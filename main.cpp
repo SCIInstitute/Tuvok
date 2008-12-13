@@ -36,7 +36,6 @@
 //!    Copyright (C) 2008 SCI Institute
 
 #include <QtGui/QApplication>
-#include <UI/ImageVis3D.h>
 #include <Controller/MasterController.h>
 
 #include <Basics/SysTools.h>
@@ -77,7 +76,9 @@ int main(int argc, char* argv[])
 
   // create the QT window
   QApplication app( argc, argv );
+#if 0
   MainWindow mainWindow(masterController, 0, Qt::Window);
+#endif
   
   // if using a logfile inject that file-logger into the debug out chain
   if (bUseLogFile) {
@@ -99,8 +100,10 @@ int main(int argc, char* argv[])
     pMultiOut->AddDebugOut(pOldDebug, bDeleteOldDebug);
   }
 
+#if 0
   // open the QT window
   mainWindow.show();
+#endif
 
   // execute the QT messageing loop
   return app.exec();
