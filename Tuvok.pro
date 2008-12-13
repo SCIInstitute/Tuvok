@@ -3,9 +3,9 @@
 ######################################################################
 
 TEMPLATE          = lib
-unix:TARGET       = Build/Linux/Bin/ImageVis3D
-win32:TARGET      = Build/Win32/Bin/ImageVis3D
-mac:TARGET        = Build/OSX/Bin/ImageVis3D
+unix:TARGET       = Build/Linux/Bin/Tuvok
+win32:TARGET      = Build/Win32/Bin/Tuvok
+mac:TARGET        = Build/OSX/Bin/Tuvok
 unix:RCC_DIR      = Build/Linux
 win32:RCC_DIR     = Build/Win32
 mac:RCC_DIR       = Build/OSX
