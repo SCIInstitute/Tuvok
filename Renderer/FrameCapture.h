@@ -40,8 +40,8 @@
 #define FRAMECAPTURE_H
 
 #include <string>
-#include <Basics/SysTools.h>
-#include <Basics/Vectors.h>
+#include "../Basics/SysTools.h"
+#include "../Basics/Vectors.h"
 #include <QtGui/QImage>
 
 class FrameCapture {

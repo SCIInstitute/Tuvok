@@ -9,8 +9,8 @@
 
 #include <string>
 #include <vector>
-#include <Basics/MathTools.h>  // for UINT64
-#include <Basics/EndianConvert.h>
+#include "../../Basics/MathTools.h"
+#include "../../Basics/EndianConvert.h"
 
 #ifdef _WIN32
   #include<windows.h>

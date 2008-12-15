@@ -43,8 +43,8 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include <Basics/Vectors.h>
-#include <Basics/EndianConvert.h>
+#include "../Basics/Vectors.h"
+#include "../Basics/EndianConvert.h"
 
 class SimpleFileInfo {
 public:

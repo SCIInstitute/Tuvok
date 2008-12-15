@@ -3,7 +3,7 @@
 #ifndef CRC32_H
 #define CRC32_H
 
-#include <Basics/MathTools.h>  // for UINT64
+#include "../MathTools.h"
 
 #include <stdlib.h>
 #include <stdio.h>

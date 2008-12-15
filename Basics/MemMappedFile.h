@@ -41,7 +41,7 @@
 #define MEMMAPPEDFILE_H
 
 #include <string>
-#include <Basics/MathTools.h>  // for UINT64
+#include "../Basics/MathTools.h"
 
 #ifdef _WIN32
   #include <windows.h>

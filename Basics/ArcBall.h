@@ -38,7 +38,7 @@
 #pragma once
 
 #include <vector>
-#include <Basics/Vectors.h>
+#include "../Basics/Vectors.h"
 
 /** \class ArcBall */
 class ArcBall

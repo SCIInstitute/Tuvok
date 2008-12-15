@@ -41,8 +41,8 @@
 #ifndef GLSBVR_H
 #define GLSBVR_H
 
-#include <Renderer/GLRenderer.h>
-#include <Renderer/SBVRGeogen.h>
+#include "../Renderer/GLRenderer.h"
+#include "../Renderer/SBVRGeogen.h"
 
 /** \class GLSBVR
  * Slice-based GPU volume renderer.

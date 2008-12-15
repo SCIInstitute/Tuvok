@@ -41,7 +41,7 @@
 #define GLTEXTURE2D_H
 
 #include "GLTexture.h"
-#include <Basics/Vectors.h>
+#include "../Basics/Vectors.h"
 
 class GLTexture2D : public GLTexture {
   public:

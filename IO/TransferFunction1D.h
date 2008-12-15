@@ -40,11 +40,11 @@
 #ifndef TRANSFERFUNCTION1D
 #define TRANSFERFUNCTION1D
 
-#include <StdDefines.h>
+#include "../StdDefines.h"
 #include <string>
 #include <vector>
-#include <Basics/Vectors.h>
-#include <Basics/Grids.h>
+#include "../Basics/Vectors.h"
+#include "../Basics/Grids.h"
 
 typedef VECTOR2<UINT64> UINT64VECTOR2;
 typedef Grid1D<unsigned int> Histogram1D;

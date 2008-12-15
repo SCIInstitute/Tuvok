@@ -42,9 +42,9 @@
 #define IOMANAGER_H
 
 #include <string>
-#include <Renderer/AbstrRenderer.h>
-#include <IO/DirectoryParser.h>
-#include <IO/UVF/UVF.h>
+#include "../Renderer/AbstrRenderer.h"
+#include "../IO/DirectoryParser.h"
+#include "../IO/UVF/UVF.h"
 
 #define BRICKSIZE 256
 #define BRICKOVERLAP 4

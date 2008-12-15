@@ -43,8 +43,8 @@
 
 #include <string>
 
-#include <Renderer/GLInclude.h>
-#include <Renderer/GPUMemMan/GPUMemMan.h>
+#include "GLInclude.h"
+#include "GPUMemMan/GPUMemMan.h"
 #include "AbstrRenderer.h"
 
 class MasterController;

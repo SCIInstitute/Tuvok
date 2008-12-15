@@ -39,7 +39,7 @@
 #ifndef SYSTEMINFO_H
 #define SYSTEMINFO_H
 
-#include <Basics/MathTools.h>  // for UINT64
+#include "../Basics/MathTools.h"
 
 class SystemInfo
 {

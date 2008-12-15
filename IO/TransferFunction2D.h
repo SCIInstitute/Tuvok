@@ -44,8 +44,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <Basics/Vectors.h>
-#include <Basics/Grids.h>
+#include "../Basics/Vectors.h"
+#include "../Basics/Grids.h"
 
 #include <QtGui/QPainter>
 

@@ -41,7 +41,7 @@
 #define GLTexture3D_H
 
 #include "GLTexture.h"
-#include <Basics/Vectors.h>
+#include "../Basics/Vectors.h"
 
 class GLTexture3D : public GLTexture {
   public:

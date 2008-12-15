@@ -44,8 +44,8 @@
 #include <string>
 #include "TransferFunction1D.h"
 #include "TransferFunction2D.h"
-#include <IO/UVF/UVF.h>
-#include <Basics/Vectors.h>
+#include "../IO/UVF/UVF.h"
+#include "../Basics/Vectors.h"
 
 typedef VECTOR2<UINT64> UINT64VECTOR2;
 typedef VECTOR3<UINT64> UINT64VECTOR3;

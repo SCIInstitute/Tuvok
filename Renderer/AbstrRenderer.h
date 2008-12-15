@@ -43,11 +43,11 @@
 
 #include <string>
 
-#include <StdDefines.h>
-#include <IO/VolumeDataset.h>
-#include <IO/TransferFunction1D.h>
-#include <IO/TransferFunction2D.h>
-#include <Renderer/CullingLOD.h>
+#include "../StdDefines.h"
+#include "../IO/VolumeDataset.h"
+#include "../IO/TransferFunction1D.h"
+#include "../IO/TransferFunction2D.h"
+#include "../Renderer/CullingLOD.h"
 
 class Brick {
 public:

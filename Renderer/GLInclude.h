@@ -39,10 +39,10 @@
 #ifndef GLINCLUDE_H
 #define GLINCLUDE_H
 
-#include <3rdParty/GLEW/glew.h>
+#include "../3rdParty/GLEW/glew.h"
 
 #ifdef WIN32
-  #include <3rdParty/GLEW/wglew.h>
+  #include "../3rdParty/GLEW/wglew.h"
   #include <windows.h>
 #else
   // #include <3rdParty/GLEW/glxew.h> // glxew and QT do not really like each other

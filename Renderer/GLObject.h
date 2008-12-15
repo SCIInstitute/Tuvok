@@ -41,7 +41,7 @@
 #define GLOBJECT_H
 
 #include "GLInclude.h"
-#include <Basics/MathTools.h>  // for UINT64
+#include "../Basics/MathTools.h"
 
 /** Base for all types which will utilize GPU memory.
  * Forces children to keep track of memory use on both the CPU and GPU,

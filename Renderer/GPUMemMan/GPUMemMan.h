@@ -40,7 +40,7 @@
 #define GPUMEMMAN_H
 
 #include "GPUMemManDataStructs.h"
-#include <Basics/SystemInfo.h>
+#include "../../Basics/SystemInfo.h"
 
 class MasterController;
 

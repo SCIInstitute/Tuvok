@@ -42,17 +42,17 @@
 
 #include <vector>
 #include <string>
-#include <IO/IOManager.h>
-#include <IO/TransferFunction1D.h>
-#include <IO/TransferFunction2D.h>
+#include "../IO/IOManager.h"
+#include "../IO/TransferFunction1D.h"
+#include "../IO/TransferFunction2D.h"
 
-#include <DebugOut/AbstrDebugOut.h>
-#include <DebugOut/ConsoleOut.h>
+#include "../DebugOut/AbstrDebugOut.h"
+#include "../DebugOut/ConsoleOut.h"
 
-#include <Renderer/GPUMemMan/GPUMemMan.h>
-#include <Renderer/AbstrRenderer.h>
-#include <Renderer/GLSBVR.h>
-#include <Renderer/GLRaycaster.h>
+#include "../Renderer/GPUMemMan/GPUMemMan.h"
+#include "../Renderer/AbstrRenderer.h"
+#include "../Renderer/GLSBVR.h"
+#include "../Renderer/GLRaycaster.h"
 
 /** \class MasterController
  * Centralized controller for ImageVis3D.

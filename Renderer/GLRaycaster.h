@@ -41,7 +41,7 @@
 #ifndef GLRAYCASTER_H
 #define GLRAYCASTER_H
 
-#include <Renderer/GLRenderer.h>
+#include "../Renderer/GLRenderer.h"
 
 /** \class GLRaycaster
  * GPU Rayster.

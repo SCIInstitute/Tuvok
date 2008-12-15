@@ -41,15 +41,15 @@
 
 #include <deque>
 #include <string>
-#include <Renderer/AbstrRenderer.h>
-#include <Renderer/GLTexture1D.h>
-#include <Renderer/GLTexture2D.h>
-#include <Renderer/GLTexture3D.h>
-#include <Renderer/GLFBOTex.h>
-#include <Renderer/GLSLProgram.h>
-#include <IO/VolumeDataset.h>
-#include <IO/TransferFunction1D.h>
-#include <IO/TransferFunction2D.h>
+#include "../AbstrRenderer.h"
+#include "../GLTexture1D.h"
+#include "../GLTexture2D.h"
+#include "../GLTexture3D.h"
+#include "../GLFBOTex.h"
+#include "../GLSLProgram.h"
+#include "../../IO/VolumeDataset.h"
+#include "../../IO/TransferFunction1D.h"
+#include "../../IO/TransferFunction2D.h"
 
 typedef std::deque< AbstrRenderer* > AbstrRendererList;
 typedef AbstrRendererList::iterator AbstrRendererListIter;

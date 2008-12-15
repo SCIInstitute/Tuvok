@@ -41,7 +41,7 @@
 #ifndef CULLINGLOD_H
 #define CULLINGLOD_H
 
-#include <Basics/Vectors.h>
+#include "../Basics/Vectors.h"
 
 class CullingLOD
 {
