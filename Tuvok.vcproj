@@ -287,171 +287,179 @@
 			Name="Basics"
 			>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\ArcBall.cpp"
+				RelativePath=".\Basics\ArcBall.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\ArcBall.h"
+				RelativePath=".\Basics\ArcBall.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\Console.h"
+				RelativePath=".\Basics\Console.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\Checksums\crc32.h"
+				RelativePath=".\Basics\EndianConvert.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\EndianConvert.h"
+				RelativePath=".\Basics\Grids.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\Grids.h"
+				RelativePath=".\Basics\MathTools.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\MathTools.cpp"
+				RelativePath=".\Basics\MathTools.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\MathTools.h"
+				RelativePath=".\Basics\MemMappedFile.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\Checksums\MD5.cpp"
+				RelativePath=".\Basics\MemMappedFile.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\Checksums\MD5.h"
+				RelativePath=".\Basics\SystemInfo.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\MemMappedFile.cpp"
+				RelativePath=".\Basics\SystemInfo.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\MemMappedFile.h"
+				RelativePath=".\Basics\SysTools.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\SystemInfo.cpp"
+				RelativePath=".\Basics\SysTools.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\SystemInfo.h"
+				RelativePath=".\Basics\Vectors.h"
 				>
 			</File>
-			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\SysTools.cpp"
+			<Filter
+				Name="Systeminfo"
 				>
-			</File>
-			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\SysTools.h"
+				<File
+					RelativePath=".\Basics\Systeminfo\VidMemViaDDraw.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Basics\Systeminfo\VidMemViaDXGI.cpp"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Checksums"
 				>
-			</File>
-			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\Vectors.h"
-				>
-			</File>
-			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\Systeminfo\VidMemViaDDraw.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\ImageVis3D\tuvok\Basics\Systeminfo\VidMemViaDXGI.cpp"
-				>
-			</File>
+				<File
+					RelativePath=".\Basics\Checksums\crc32.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Basics\Checksums\MD5.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Basics\Checksums\MD5.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Shaders"
 			>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\1D-slice-FS.glsl"
+				RelativePath=".\Shaders\1D-slice-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\2D-slice-FS.glsl"
+				RelativePath=".\Shaders\2D-slice-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\Compose-CV-FS.glsl"
+				RelativePath=".\Shaders\Compose-CV-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\Compose-FS.glsl"
+				RelativePath=".\Shaders\Compose-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLRaycaster-1D-FS.glsl"
+				RelativePath=".\Shaders\GLRaycaster-1D-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLRaycaster-1D-light-FS.glsl"
+				RelativePath=".\Shaders\GLRaycaster-1D-light-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLRaycaster-2D-FS.glsl"
+				RelativePath=".\Shaders\GLRaycaster-2D-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLRaycaster-2D-light-FS.glsl"
+				RelativePath=".\Shaders\GLRaycaster-2D-light-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLRaycaster-frontfaces-FS.glsl"
+				RelativePath=".\Shaders\GLRaycaster-frontfaces-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLRaycaster-ISO-CV-FS.glsl"
+				RelativePath=".\Shaders\GLRaycaster-ISO-CV-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLRaycaster-ISO-FS.glsl"
+				RelativePath=".\Shaders\GLRaycaster-ISO-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLRaycaster-VS.glsl"
+				RelativePath=".\Shaders\GLRaycaster-VS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLSBVR-1D-FS.glsl"
+				RelativePath=".\Shaders\GLSBVR-1D-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLSBVR-1D-light-FS.glsl"
+				RelativePath=".\Shaders\GLSBVR-1D-light-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLSBVR-2D-FS.glsl"
+				RelativePath=".\Shaders\GLSBVR-2D-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLSBVR-2D-light-FS.glsl"
+				RelativePath=".\Shaders\GLSBVR-2D-light-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLSBVR-ISO-FS.glsl"
+				RelativePath=".\Shaders\GLSBVR-ISO-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLSBVR-ISO-NC-FS.glsl"
+				RelativePath=".\Shaders\GLSBVR-ISO-NC-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\GLSBVR-VS.glsl"
+				RelativePath=".\Shaders\GLSBVR-VS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\MIP-slice-FS.glsl"
+				RelativePath=".\Shaders\MIP-slice-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\Transfer-FS.glsl"
+				RelativePath=".\Shaders\Transfer-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Shaders\Transfer-VS.glsl"
+				RelativePath=".\Shaders\Transfer-VS.glsl"
 				>
 			</File>
 		</Filter>
@@ -459,105 +467,105 @@
 			Name="Renderer"
 			>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Renderer\AbstrRenderer.cpp"
+				RelativePath=".\Renderer\AbstrRenderer.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Renderer\AbstrRenderer.h"
+				RelativePath=".\Renderer\AbstrRenderer.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Renderer\CullingLOD.cpp"
+				RelativePath=".\Renderer\CullingLOD.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Renderer\CullingLOD.h"
+				RelativePath=".\Renderer\CullingLOD.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Renderer\SBVRGeogen.cpp"
+				RelativePath=".\Renderer\SBVRGeogen.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\Renderer\SBVRGeogen.h"
+				RelativePath=".\Renderer\SBVRGeogen.h"
 				>
 			</File>
 			<Filter
 				Name="MemMan"
 				>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GPUMemMan\GPUMemMan.cpp"
+					RelativePath=".\Renderer\GPUMemMan\GPUMemMan.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GPUMemMan\GPUMemMan.h"
+					RelativePath=".\Renderer\GPUMemMan\GPUMemMan.h"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GPUMemMan\GPUMemManDataStructs.cpp"
+					RelativePath=".\Renderer\GPUMemMan\GPUMemManDataStructs.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GPUMemMan\GPUMemManDataStructs.h"
+					RelativePath=".\Renderer\GPUMemMan\GPUMemManDataStructs.h"
 					>
 				</File>
 				<Filter
 					Name="GL"
 					>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLFBOTex.cpp"
+						RelativePath=".\Renderer\GLFBOTex.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLFBOTex.h"
+						RelativePath=".\Renderer\GLFBOTex.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLInclude.h"
+						RelativePath=".\Renderer\GLInclude.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLObject.h"
+						RelativePath=".\Renderer\GLObject.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLSLProgram.cpp"
+						RelativePath=".\Renderer\GLSLProgram.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLSLProgram.h"
+						RelativePath=".\Renderer\GLSLProgram.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLTexture.cpp"
+						RelativePath=".\Renderer\GLTexture.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLTexture.h"
+						RelativePath=".\Renderer\GLTexture.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLTexture1D.cpp"
+						RelativePath=".\Renderer\GLTexture1D.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLTexture1D.h"
+						RelativePath=".\Renderer\GLTexture1D.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLTexture2D.cpp"
+						RelativePath=".\Renderer\GLTexture2D.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLTexture2D.h"
+						RelativePath=".\Renderer\GLTexture2D.h"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLTexture3D.cpp"
+						RelativePath=".\Renderer\GLTexture3D.cpp"
 						>
 					</File>
 					<File
-						RelativePath="..\ImageVis3D\tuvok\Renderer\GLTexture3D.h"
+						RelativePath=".\Renderer\GLTexture3D.h"
 						>
 					</File>
 				</Filter>
@@ -570,27 +578,27 @@
 				Name="GL"
 				>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GLRaycaster.cpp"
+					RelativePath=".\Renderer\GLRaycaster.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GLRaycaster.h"
+					RelativePath=".\Renderer\GLRaycaster.h"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GLRenderer.cpp"
+					RelativePath=".\Renderer\GLRenderer.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GLRenderer.h"
+					RelativePath=".\Renderer\GLRenderer.h"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GLSBVR.cpp"
+					RelativePath=".\Renderer\GLSBVR.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GLSBVR.h"
+					RelativePath=".\Renderer\GLSBVR.h"
 					>
 				</File>
 			</Filter>
@@ -602,15 +610,15 @@
 				Name="Capturing"
 				>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\FrameCapture.h"
+					RelativePath=".\Renderer\FrameCapture.h"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GLFrameCapture.cpp"
+					RelativePath=".\Renderer\GLFrameCapture.cpp"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\Renderer\GLFrameCapture.h"
+					RelativePath=".\Renderer\GLFrameCapture.h"
 					>
 				</File>
 			</Filter>
@@ -619,31 +627,31 @@
 			Name="DebugOut"
 			>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\DebugOut\AbstrDebugOut.h"
+				RelativePath=".\DebugOut\AbstrDebugOut.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\DebugOut\ConsoleOut.cpp"
+				RelativePath=".\DebugOut\ConsoleOut.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\DebugOut\ConsoleOut.h"
+				RelativePath=".\DebugOut\ConsoleOut.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\DebugOut\MultiplexOut.cpp"
+				RelativePath=".\DebugOut\MultiplexOut.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\DebugOut\MultiplexOut.h"
+				RelativePath=".\DebugOut\MultiplexOut.h"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\DebugOut\TextfileOut.cpp"
+				RelativePath=".\DebugOut\TextfileOut.cpp"
 				>
 			</File>
 			<File
-				RelativePath="..\ImageVis3D\tuvok\DebugOut\TextfileOut.h"
+				RelativePath=".\DebugOut\TextfileOut.h"
 				>
 			</File>
 		</Filter>
@@ -654,19 +662,19 @@
 				Name="GLEW"
 				>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\3rdParty\GLEW\glew.c"
+					RelativePath=".\3rdParty\GLEW\glew.c"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\3rdParty\GLEW\glew.h"
+					RelativePath=".\3rdParty\GLEW\glew.h"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\3rdParty\GLEW\glxew.h"
+					RelativePath=".\3rdParty\GLEW\glxew.h"
 					>
 				</File>
 				<File
-					RelativePath="..\ImageVis3D\tuvok\3rdParty\GLEW\wglew.h"
+					RelativePath=".\3rdParty\GLEW\wglew.h"
 					>
 				</File>
 			</Filter>

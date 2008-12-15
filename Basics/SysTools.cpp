@@ -318,7 +318,150 @@ namespace SysTools {
   wstring AppendFilename(const wstring& fileName, const wstring& tag) {
     return RemoveExt(fileName) + tag + L"." + GetExt(fileName);
   }
- 
+
+  vector<wstring> GetDirTree(const wstring& dir) {
+    vector<wstring> subDirs;
+    wstring rootdir;
+
+#ifdef _WIN32
+    wstringstream s;
+    if (dir == L"") {
+      WCHAR path[4096];
+      GetCurrentDirectoryW(4096, path);
+      s << path << L"/";
+    } else {
+      s << dir << L"/";
+    }
+
+    rootdir = s.str();
+
+    WIN32_FIND_DATAW FindFileData;
+    HANDLE hFind;
+
+    hFind=FindFirstFileW((rootdir + L"*.*").c_str(), &FindFileData);
+
+    if (hFind != INVALID_HANDLE_VALUE) {
+      do {
+        wstring wstrFilename = FindFileData.cFileName;
+        if( FindFileData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY && wstrFilename != L"." && wstrFilename != L"..") {
+          subDirs.push_back(wstrFilename);
+        }
+      }while ( FindNextFileW(hFind, &FindFileData) );
+    }
+
+    FindClose(hFind);
+#else
+    if (dir == L"") {
+      rootdir = L"./";
+    } else {
+      rootdir = dir + L"/";
+    }
+
+    string strDir(rootdir.begin(), rootdir.end());
+    DIR* dirData=opendir(strDir.c_str());
+
+    if (dirData != NULL) {
+
+      struct dirent *inode;
+    
+      while ((inode=readdir(dirData)) != NULL) {
+        string strFilename = inode->d_name;
+        wstring wstrFilename(strFilename.begin(), strFilename.end());
+        strFilename = strDir + strFilename;
+
+        struct ::stat st;
+        if (::stat(strFilename.c_str(), &st) != -1) 
+          if (S_ISDIR(st.st_mode)) {
+            subDirs.push_back(wstrFilename);
+          }
+      }
+    }
+    closedir(dirData);
+#endif
+
+    vector<wstring> completeSubDirs;
+    for (size_t i = 0;i<subDirs.size();i++) {
+      completeSubDirs.push_back(rootdir+subDirs[i]);
+      vector<wstring> subSubDirs = GetDirTree(rootdir+subDirs[i]);
+      for (size_t j = 0;j<subSubDirs.size();j++) {
+        completeSubDirs.push_back(subSubDirs[j]);
+      }
+    }
+    return completeSubDirs;
+  }
+
+
+  vector<string> GetDirTree(const string& dir) {
+    vector<string> subDirs;
+    string rootdir;
+
+#ifdef _WIN32
+    stringstream s;
+    if (dir == "") {
+      CHAR path[4096];
+      GetCurrentDirectoryA(4096, path);
+      s << path << "/";
+    } else {
+      s << dir << "/";
+    }
+
+    rootdir = s.str();
+
+    WIN32_FIND_DATAA FindFileData;
+    HANDLE hFind;
+
+    hFind=FindFirstFileA((rootdir + "*.*").c_str(), &FindFileData);
+
+    if (hFind != INVALID_HANDLE_VALUE) {
+      do {
+        string strFilename = FindFileData.cFileName;
+        if( FindFileData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY && strFilename != "." && strFilename != "..") {
+          subDirs.push_back(strFilename);
+        }
+      }while ( FindNextFileA(hFind, &FindFileData) );
+    }
+
+    FindClose(hFind);
+#else
+    if (dir == "") {
+      rootdir = "./";
+    } else {
+      rootdir = dir + "/";
+    }
+
+    DIR* dirData=opendir(rootdir.c_str());
+
+    if (dirData != NULL) {
+
+      struct dirent *inode;
+    
+      while ((inode=readdir(dirData)) != NULL) {
+        string strFilename = inode->d_name;
+        wstring wstrFilename(strFilename.begin(), strFilename.end());
+        strFilename = strDir + strFilename;
+
+        struct ::stat st;
+        if (::stat(strFilename.c_str(), &st) != -1) 
+          if (S_ISDIR(st.st_mode)) {
+            subDirs.push_back(wstrFilename);
+          }
+      }
+    }
+    closedir(dirData);
+#endif
+
+    vector<string> completeSubDirs;
+    for (size_t i = 0;i<subDirs.size();i++) {
+      completeSubDirs.push_back(rootdir+subDirs[i]);
+      vector<string> subSubDirs = GetDirTree(rootdir+subDirs[i]);
+      for (size_t j = 0;j<subSubDirs.size();j++) {
+        completeSubDirs.push_back(subSubDirs[j]);
+      }
+    }
+    return completeSubDirs;
+  }
+
+
   vector<wstring> GetDirContents(const wstring& dir, const wstring& fileName, const wstring& ext) {
     vector<wstring> files;
     wstringstream s;
