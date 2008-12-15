@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="Tuvoc"
+	Name="Tuvok"
 	ProjectGUID="{D474A1E1-2ED3-42E6-826C-372430E549B9}"
 	RootNamespace="Tuvoc"
 	Keyword="Win32Proj"
