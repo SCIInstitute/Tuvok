@@ -437,13 +437,12 @@ namespace SysTools {
     
       while ((inode=readdir(dirData)) != NULL) {
         string strFilename = inode->d_name;
-        wstring wstrFilename(strFilename.begin(), strFilename.end());
         strFilename = rootdir + strFilename;
 
         struct ::stat st;
         if (::stat(strFilename.c_str(), &st) != -1) 
           if (S_ISDIR(st.st_mode)) {
-            subDirs.push_back(wstrFilename);
+            subDirs.push_back(strFilename);
           }
       }
     }
