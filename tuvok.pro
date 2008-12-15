@@ -1,15 +1,10 @@
 TEMPLATE          = lib
+CONFIG           += staticlib static
 TARGET            = tuvok
 VERSION           = 0.0.1
 TARGET            = Build/tuvok
-unix:RCC_DIR      = Build/Linux
-win32:RCC_DIR     = Build/Win32
-mac:RCC_DIR       = Build/OSX
-unix:OBJECTS_DIR  = Build/Linux
-win32:OBJECTS_DIR = Build/Win32
-mac:OBJECTS_DIR   = Build/OSX
-UI_DIR            = UI/AutoGen
-MOC_DIR           = UI/AutoGen
+RCC_DIR           = Build/rcc
+OBJECTS_DIR       = Build/objects
 DEPENDPATH       += .
 INCLUDEPATH      += .
 QT               += opengl
@@ -45,8 +40,6 @@ HEADERS += StdDefines.h \
            Controller/MasterController.h \
            DebugOut/AbstrDebugOut.h \
            DebugOut/TextfileOut.h \
-           DebugOut/QTOut.h \
-           DebugOut/QTLabelOut.h \
            DebugOut/ConsoleOut.h \
            DebugOut/MultiplexOut.h \
            3rdParty/GLEW/glew.h \
@@ -95,8 +88,6 @@ SOURCES += 3rdParty/GLEW/glew.c \
            IO/UVF/MaxMinDataBlock.cpp \
            Controller/MasterController.cpp \
            DebugOut/TextfileOut.cpp \
-           DebugOut/QTOut.cpp \
-           DebugOut/QTLabelOut.cpp \
            DebugOut/ConsoleOut.cpp \
            DebugOut/MultiplexOut.cpp \ 
            Renderer/CullingLOD.cpp \
