@@ -104,5 +104,4 @@ SOURCES += 3rdParty/GLEW/glew.c \
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
            Renderer/SBVRGeogen.cpp \  
-           Renderer/GLFBOTex.cpp \  
-           main.cpp
+           Renderer/GLFBOTex.cpp
