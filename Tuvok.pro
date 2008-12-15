@@ -1,8 +1,8 @@
 TEMPLATE          = lib
 CONFIG           += staticlib static
-TARGET            = tuvok
+TARGET            = Tuvok
 VERSION           = 0.0.1
-TARGET            = Build/tuvok
+TARGET            = Build/Tuvok
 RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
 DEPENDPATH       += .
