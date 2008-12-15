@@ -111,12 +111,12 @@ bool GLRenderer::Initialize() {
     m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
   }
 
-  if (!LoadAndVerifyShader("Shaders/Transfer-VS.glsl", "Shaders/Transfer-FS.glsl",  &(m_pProgramTrans))        ||
-      !LoadAndVerifyShader("Shaders/Transfer-VS.glsl", "Shaders/1D-slice-FS.glsl",  &(m_pProgram1DTransSlice)) ||
-      !LoadAndVerifyShader("Shaders/Transfer-VS.glsl", "Shaders/2D-slice-FS.glsl",  &(m_pProgram2DTransSlice)) ||
-      !LoadAndVerifyShader("Shaders/Transfer-VS.glsl", "Shaders/MIP-slice-FS.glsl", &(m_pProgramMIPSlice))     ||
-      !LoadAndVerifyShader("Shaders/Transfer-VS.glsl", "Shaders/Compose-FS.glsl",   &(m_pProgramIsoCompose))   ||
-      !LoadAndVerifyShader("Shaders/Transfer-VS.glsl", "Shaders/Compose-CV-FS.glsl",&(m_pProgramCVCompose)))   {
+  if (!LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/Transfer-FS.glsl",  &(m_pProgramTrans))        ||
+      !LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/1D-slice-FS.glsl",  &(m_pProgram1DTransSlice)) ||
+      !LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/2D-slice-FS.glsl",  &(m_pProgram2DTransSlice)) ||
+      !LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/MIP-slice-FS.glsl", &(m_pProgramMIPSlice))     ||
+      !LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/Compose-FS.glsl",   &(m_pProgramIsoCompose))   ||
+      !LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/Compose-CV-FS.glsl",&(m_pProgramCVCompose)))   {
 
       m_pMasterController->DebugOut()->Error("GLRenderer::Initialize","Error loading transfer shaders.");
       return false;
