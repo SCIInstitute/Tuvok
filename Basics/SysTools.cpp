@@ -449,6 +449,7 @@ namespace SysTools {
     closedir(dirData);
 #endif
 
+    printf("..");
     vector<string> completeSubDirs;
     for (size_t i = 0;i<subDirs.size();i++) {
       completeSubDirs.push_back(rootdir+subDirs[i]);
