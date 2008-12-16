@@ -123,7 +123,7 @@ class GLRenderer : public AbstrRenderer {
     virtual void Recompose3DView(ERenderArea eArea);
 
     virtual void CreateOffscreenBuffers();
-    virtual bool LoadAndVerifyShader(const std::string& strVSFile, const std::string& strFSFile, GLSLProgram** pShaderProgram);
+    virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile, GLSLProgram** pShaderProgram);
 
     void BBoxPreRender();
     void BBoxPostRender();

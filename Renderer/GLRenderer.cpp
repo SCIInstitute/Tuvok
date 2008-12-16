@@ -925,7 +925,7 @@ void GLRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
 }
 
 
-bool GLRenderer::LoadAndVerifyShader(const string& strVSFile, const string& strFSFile, GLSLProgram** pShaderProgram) {
+bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLProgram** pShaderProgram) {
 
 #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strVSFile))) strVSFile = SysTools::GetFromResourceOnMac(strVSFile);
