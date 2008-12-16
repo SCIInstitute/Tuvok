@@ -365,13 +365,13 @@ namespace SysTools {
       struct dirent *inode;
     
       while ((inode=readdir(dirData)) != NULL) {
-        string strFilename = inode->d_name;
-        wstring wstrFilename(strFilename.begin(), strFilename.end());
+        string strFilenameLocal = inode->d_name;
+        wstring wstrFilename(strFilenameLocal.begin(), strFilenameLocal.end());
         strFilename = strDir + strFilename;
 
         struct ::stat st;
         if (::stat(strFilename.c_str(), &st) != -1) 
-          if (S_ISDIR(st.st_mode)) {
+          if (S_ISDIR(st.st_mode) && strFilenameLocal != "." && strFilenameLocal != "..") {
             subDirs.push_back(wstrFilename);
           }
       }
@@ -436,12 +436,12 @@ namespace SysTools {
       struct dirent *inode;
     
       while ((inode=readdir(dirData)) != NULL) {
-        string strFilename = inode->d_name;
-        strFilename = rootdir + strFilename;
+        string strFilenameLocal = inode->d_name;
+        string strFilename = rootdir + strFilenameLocal;
 
         struct ::stat st;
         if (::stat(strFilename.c_str(), &st) != -1) 
-          if (S_ISDIR(st.st_mode)) {
+          if (S_ISDIR(st.st_mode) && strFilenameLocal != "." && strFilenameLocal != "..") {
             subDirs.push_back(strFilename);
           }
       }
