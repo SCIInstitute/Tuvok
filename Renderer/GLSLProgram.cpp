@@ -87,8 +87,8 @@ GLSLProgram::GLSLProgram(MasterController* pMasterController, const char *VSFile
   m_bEnabled(false),
   m_hProgram(0)
 {
-  Initialize();
-  Load(VSFile,FSFile,src);
+  if (Initialize())
+    Load(VSFile,FSFile,src);
 }
 
 
@@ -102,10 +102,12 @@ GLSLProgram::GLSLProgram(MasterController* pMasterController, const char *VSFile
  * \date Aug.2004
  */
 GLSLProgram::~GLSLProgram() {
-  if (m_bGLUseARB) 
-    glDeleteObjectARB(m_hProgram);
-  else
-    glDeleteProgram(m_hProgram);
+  if (IsValid()) { 
+    if (m_bGLUseARB) 
+      glDeleteObjectARB(m_hProgram);
+    else
+      glDeleteProgram(m_hProgram);
+  }
   m_hProgram=0;
 }
 

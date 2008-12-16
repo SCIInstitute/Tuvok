@@ -183,7 +183,12 @@ public:
     strVSFile(_strVSFile), strFSFile(_strFSFile),
     iAccessCounter(1),
     pGLSLProgram(new GLSLProgram(pMasterController, _strVSFile.c_str(), _strFSFile.c_str()))
-  {}
+  {
+    if (!pGLSLProgram->IsValid()) {
+      delete pGLSLProgram;
+      pGLSLProgram = NULL;
+    }
+  }
 
   ~GLSLListElem()
   {

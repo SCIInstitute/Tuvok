@@ -564,12 +564,18 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile, const string& st
 
   GLSLListElem* e = new GLSLListElem(m_MasterController, strVSFile, strFSFile);
 
-  m_vpGLSLList.push_back(e);
+  if (e->pGLSLProgram != NULL) {
 
-  m_iAllocatedGPUMemory += e->pGLSLProgram->GetCPUSize();
-  m_iAllocatedCPUMemory += e->pGLSLProgram->GetGPUSize();
+    m_vpGLSLList.push_back(e);
 
-  return e->pGLSLProgram;
+    m_iAllocatedGPUMemory += e->pGLSLProgram->GetCPUSize();
+    m_iAllocatedCPUMemory += e->pGLSLProgram->GetGPUSize();
+
+    return e->pGLSLProgram;
+  } else {
+    m_MasterController->DebugOut()->Error("GPUMemMan::GetGLSLProgram","Failed to created GLSL program from the VS %s and the FS %s", strVSFile.c_str(), strFSFile.c_str());
+    return NULL;
+  }
 }
 
 void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
