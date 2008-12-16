@@ -21,6 +21,7 @@ HEADERS += StdDefines.h \
  	   IO/AbstrConverter.h \
  	   IO/NRRDConverter.h \
  	   IO/RAWConverter.h \
+ 	   IO/QVISConverter.h \
            IO/DirectoryParser.h \
            IO/KeyValueFileParser.h \
            IO/Transferfunction1D.h \
@@ -74,6 +75,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
  	   IO/AbstrConverter.cpp \
  	   IO/NRRDConverter.cpp \
  	   IO/RAWConverter.cpp \
+ 	   IO/QVISConverter.cpp \
            IO/KeyValueFileParser.cpp \           
            IO/Transferfunction1D.cpp \
            IO/Transferfunction2D.cpp \
