@@ -27,50 +27,33 @@
 */
 
 /**
-  \file    IOManager.h
+  \file    NRRDConverter.h
   \author    Jens Krueger
         SCI Institute
         University of Utah
   \version  1.0
-  \date    August 2008
+  \date    December 2008
 */
 
 
 #pragma once
 
-#ifndef IOMANAGER_H
-#define IOMANAGER_H
+#ifndef NRRDCONVERTER_H
+#define NRRDCONVERTER_H
 
-#include <string>
-#include "../Renderer/AbstrRenderer.h"
-#include "../IO/DirectoryParser.h"
-#include "../IO/UVF/UVF.h"
 #include "RAWConverter.h"
-
-#define BRICKSIZE 256
-#define BRICKOVERLAP 4
 
 class MasterController;
 
-class IOManager {
+class NRRDConverter : public RAWConverter {
 public:
-  IOManager(MasterController* masterController);
-  ~IOManager();
+  NRRDConverter();
+  ~NRRDConverter();
 
-  std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
-  bool ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename);
-  bool ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename);
-  VolumeDataset* ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester);
-  VolumeDataset* ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, AbstrRenderer* requester);
-  VolumeDataset* LoadDataset(const std::string& strFilename, AbstrRenderer* requester);
-  bool NeedsConversion(const std::string& strFilename, bool& bChecksumFail);
-  bool NeedsConversion(const std::string& strFilename);
+  virtual bool Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController);
 
-private:
-  std::string                   m_TempDir;
-  MasterController*             m_pMasterController;
-  std::vector<AbstrConverter*>  m_vpConverters;
+protected:
 
 };
 
-#endif // IOMANAGER_H
+#endif // NRRDCONVERTER_H

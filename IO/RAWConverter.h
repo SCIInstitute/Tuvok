@@ -27,50 +27,29 @@
 */
 
 /**
-  \file    IOManager.h
+  \file    RAWConverter.h
   \author    Jens Krueger
         SCI Institute
         University of Utah
   \version  1.0
-  \date    August 2008
+  \date    December 2008
 */
 
 
 #pragma once
 
-#ifndef IOMANAGER_H
-#define IOMANAGER_H
+#ifndef RAWCONVERTER_H
+#define RAWCONVERTER_H
 
-#include <string>
-#include "../Renderer/AbstrRenderer.h"
-#include "../IO/DirectoryParser.h"
-#include "../IO/UVF/UVF.h"
-#include "RAWConverter.h"
+#include "AbstrConverter.h"
 
-#define BRICKSIZE 256
-#define BRICKOVERLAP 4
-
-class MasterController;
-
-class IOManager {
+class RAWConverter : public AbstrConverter {
 public:
-  IOManager(MasterController* masterController);
-  ~IOManager();
-
-  std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
-  bool ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename);
-  bool ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename);
-  VolumeDataset* ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester);
-  VolumeDataset* ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, AbstrRenderer* requester);
-  VolumeDataset* LoadDataset(const std::string& strFilename, AbstrRenderer* requester);
-  bool NeedsConversion(const std::string& strFilename, bool& bChecksumFail);
-  bool NeedsConversion(const std::string& strFilename);
-
-private:
-  std::string                   m_TempDir;
-  MasterController*             m_pMasterController;
-  std::vector<AbstrConverter*>  m_vpConverters;
+  static bool ConvertRAWDataset(const std::string& strFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController,
+                                UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness,
+				                        bool bSigned, UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, 
+                                const std::string& strDesc, const std::string& strSource="", UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED);
 
 };
 
-#endif // IOMANAGER_H
+#endif // RAWCONVERTER_H

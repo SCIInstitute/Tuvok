@@ -683,6 +683,14 @@
 			Name="IO"
 			>
 			<File
+				RelativePath=".\IO\AbstrConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\AbstrConverter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IO\DirectoryParser.cpp"
 				>
 			</File>
@@ -704,6 +712,30 @@
 			</File>
 			<File
 				RelativePath=".\IO\KeyValueFileParser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\NRRDConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\NRRDConverter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\QVISConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\QVISConverter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\RAWConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\RAWConverter.h"
 				>
 			</File>
 			<File

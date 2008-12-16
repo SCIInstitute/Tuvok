@@ -27,50 +27,36 @@
 */
 
 /**
-  \file    IOManager.h
+  \file    AbstrConverter.h
   \author    Jens Krueger
         SCI Institute
         University of Utah
   \version  1.0
-  \date    August 2008
+  \date    December 2008
 */
 
 
 #pragma once
 
-#ifndef IOMANAGER_H
-#define IOMANAGER_H
+#ifndef ABSTRCONVERTER_H
+#define ABSTRCONVERTER_H
 
-#include <string>
-#include "../Renderer/AbstrRenderer.h"
-#include "../IO/DirectoryParser.h"
+#include "../StdDefines.h"
 #include "../IO/UVF/UVF.h"
-#include "RAWConverter.h"
-
-#define BRICKSIZE 256
-#define BRICKOVERLAP 4
+#include "../Basics/Vectors.h"
 
 class MasterController;
 
-class IOManager {
+class AbstrConverter {
 public:
-  IOManager(MasterController* masterController);
-  ~IOManager();
+  virtual bool Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController) = 0;
+  const std::vector<std::string>& SupportedExt() {return m_vSupportedExt;}
 
-  std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
-  bool ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename);
-  bool ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename);
-  VolumeDataset* ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester);
-  VolumeDataset* ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, AbstrRenderer* requester);
-  VolumeDataset* LoadDataset(const std::string& strFilename, AbstrRenderer* requester);
-  bool NeedsConversion(const std::string& strFilename, bool& bChecksumFail);
-  bool NeedsConversion(const std::string& strFilename);
+protected:
+  std::vector<std::string>  m_vSupportedExt;
 
-private:
-  std::string                   m_TempDir;
-  MasterController*             m_pMasterController;
-  std::vector<AbstrConverter*>  m_vpConverters;
-
+  static const std::string QuantizeShortTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, size_t iSize);
+  static const std::string QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, size_t iSize);
 };
 
-#endif // IOMANAGER_H
+#endif // ABSTRCONVERTER_H

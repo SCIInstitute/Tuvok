@@ -1,0 +1,317 @@
+/*
+   For more information, please see: http://software.sci.utah.edu
+
+   The MIT License
+
+   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   University of Utah.
+
+   
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/
+
+/**
+  \file    RAWConverter.cpp
+  \author    Jens Krueger
+        SCI Institute
+        University of Utah
+  \date    December 2008
+*/
+
+#include "RAWConverter.h"
+#include "IOManager.h"  // for the size defines
+#include <Controller/MasterController.h>
+#include <Basics/SysTools.h>
+
+using namespace std;
+
+bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
+                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
+                                     UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const std::string& strDesc, const std::string& strSource, UVFTables::ElementSemanticTable eType)
+{
+  if (iComponentSize < 16) bConvertEndianness = false; // catch silly user input
+
+  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Converting RAW dataset %s to %s", strFilename.c_str(), strTargetFilename.c_str());
+
+  string strSourceFilename;
+  string tmpFilename0 = strTempDir+SysTools::GetFilename(strFilename)+".endianess";
+  string tmpFilename1 = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
+
+  if (bConvertEndianness) {
+    pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Performaing endianess conversion of RAW dataset %s to %s", strFilename.c_str(), tmpFilename0.c_str());
+
+    if (iComponentSize != 16 && iComponentSize != 32 && iComponentSize != 64) {
+      pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unable to endian convert anything but 16bit, 32bit, or 64bit values (requested %i)", iComponentSize);
+      return false;
+    }
+
+
+    LargeRAWFile WrongEndianData(strFilename);
+    WrongEndianData.Open(false);
+
+    if (!WrongEndianData.IsOpen()) {
+      pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unable to open source file %s", strFilename.c_str());
+      return false;
+    }
+
+    LargeRAWFile ConvEndianData(tmpFilename0);
+    ConvEndianData.Create();
+
+    if (!ConvEndianData.IsOpen()) {
+      pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unable to open temp file %s for endianess conversion", tmpFilename0.c_str());
+      WrongEndianData.Close();
+      return false;
+    }
+
+    UINT64 ulFileLength = WrongEndianData.GetCurrentSize();
+    size_t iBufferSize = min<size_t>(size_t(ulFileLength), size_t(BRICKSIZE*BRICKSIZE*BRICKSIZE*iComponentSize/8)); // hint: this must fit into memory otherwise other subsystems would break
+    UINT64 ulBufferConverted = 0;
+
+    unsigned char* pBuffer = new unsigned char[iBufferSize];
+
+    while (ulBufferConverted < ulFileLength) {
+
+      size_t iBytesRead = WrongEndianData.ReadRAW(pBuffer, iBufferSize);
+
+      switch (iComponentSize) {
+        case 16 : for (size_t i = 0;i<iBytesRead;i+=2) 
+                    EndianConvert::Swap<unsigned short>((unsigned short*)(pBuffer+i)); 
+                  break;
+        case 32 : for (size_t i = 0;i<iBytesRead;i+=4) 
+                    EndianConvert::Swap<float>((float*)(pBuffer+i)); 
+                  break;
+        case 64 : for (size_t i = 0;i<iBytesRead;i+=8) 
+                    EndianConvert::Swap<double>((double*)(pBuffer+i)); 
+                  break;
+      }
+
+      size_t iBytesWritten = ConvEndianData.WriteRAW(pBuffer, iBytesRead);
+
+      if (iBytesRead != iBytesWritten)  {
+        pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Read/Write error converting endianess from %s to %s", strFilename.c_str(), tmpFilename0.c_str());
+        WrongEndianData.Close();
+        ConvEndianData.Close();
+        remove(tmpFilename0.c_str());
+        delete [] pBuffer;
+        return false;
+      }
+
+      ulBufferConverted += UINT64(iBytesWritten);
+    }
+
+    delete [] pBuffer;
+
+    WrongEndianData.Close();
+    ConvEndianData.Close();
+    strSourceFilename = tmpFilename0;
+  } else strSourceFilename = strFilename;
+
+	switch (iComponentSize) {
+    case 16 : 
+      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume());
+      break;
+		case 32 :	
+      strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume());
+      iComponentSize = 16;
+      break;
+  }
+  
+  if (strSourceFilename == "")  {
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Read/Write error quantizing from to %s", strFilename.c_str());
+    return false;
+  }
+  
+  bool bQuantized = strSourceFilename == tmpFilename1;
+
+
+
+
+  LargeRAWFile SourceData(strSourceFilename, iHeaderSkip);
+  SourceData.Open(false);
+
+  if (!SourceData.IsOpen()) {
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unable to open source file %s", strSourceFilename.c_str());
+    return false;
+  }
+
+	wstring wstrUVFName(strTargetFilename.begin(), strTargetFilename.end());
+	UVF uvfFile(wstrUVFName);
+
+	UINT64 iLodLevelCount = 1;
+  unsigned int iMaxVal = vVolumeSize.maxVal();
+
+  while (iMaxVal > BRICKSIZE) {
+    iMaxVal /= 2;
+    iLodLevelCount++;
+  }
+
+	GlobalHeader uvfGlobalHeader;
+  uvfGlobalHeader.bIsBigEndian = EndianConvert::IsBigEndian();
+	uvfGlobalHeader.ulChecksumSemanticsEntry = UVFTables::CS_MD5;
+	uvfFile.SetGlobalHeader(uvfGlobalHeader);
+
+	RasterDataBlock dataVolume;
+
+  if (strSource == "") 
+    dataVolume.strBlockID = (strDesc!="") ? strDesc + " volume converted by ImageVis3D" : "Volume converted by ImageVis3D";
+  else
+    dataVolume.strBlockID = (strDesc!="") ? strDesc + " volume converted from " + strSource + " by ImageVis3D" : "Volume converted from " + strSource + " by ImageVis3D";
+
+	dataVolume.ulCompressionScheme = UVFTables::COS_NONE;
+	dataVolume.ulDomainSemantics.push_back(UVFTables::DS_X);
+	dataVolume.ulDomainSemantics.push_back(UVFTables::DS_Y);
+	dataVolume.ulDomainSemantics.push_back(UVFTables::DS_Z);
+
+	dataVolume.ulDomainSize.push_back(vVolumeSize.x);
+	dataVolume.ulDomainSize.push_back(vVolumeSize.y);
+	dataVolume.ulDomainSize.push_back(vVolumeSize.z);
+
+	dataVolume.ulLODDecFactor.push_back(2);
+	dataVolume.ulLODDecFactor.push_back(2);
+	dataVolume.ulLODDecFactor.push_back(2);
+
+	dataVolume.ulLODGroups.push_back(0);
+	dataVolume.ulLODGroups.push_back(0);
+	dataVolume.ulLODGroups.push_back(0);
+
+	dataVolume.ulLODLevelCount.push_back(iLodLevelCount);
+
+	vector<UVFTables::ElementSemanticTable> vSem;
+
+	switch (iComponentCount) {
+		case 3 : vSem.push_back(UVFTables::ES_RED);
+				 vSem.push_back(UVFTables::ES_GREEN);
+				 vSem.push_back(UVFTables::ES_BLUE); break;
+		case 4 : vSem.push_back(UVFTables::ES_RED);
+				 vSem.push_back(UVFTables::ES_GREEN);
+				 vSem.push_back(UVFTables::ES_BLUE); 
+				 vSem.push_back(UVFTables::ES_ALPHA); break;
+		default : for (uint i = 0;i<iComponentCount;i++) vSem.push_back(eType);
+	}
+
+	dataVolume.SetTypeToVector(iComponentSize/iComponentCount, 
+							               iComponentSize == 32 ? 23 : iComponentSize/iComponentCount,
+							               bSigned, 
+							               vSem);
+	
+	dataVolume.ulBrickSize.push_back(BRICKSIZE);
+	dataVolume.ulBrickSize.push_back(BRICKSIZE);
+	dataVolume.ulBrickSize.push_back(BRICKSIZE);
+
+	dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+	dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+	dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+
+	vector<double> vScale;
+	vScale.push_back(vVolumeAspect.x);
+	vScale.push_back(vVolumeAspect.y);
+	vScale.push_back(vVolumeAspect.z);
+	dataVolume.SetScaleOnlyTransformation(vScale);
+
+  MaxMinDataBlock MaxMinData;
+
+	switch (iComponentSize) {
+		case 8 :	
+          switch (iComponentCount) {
+            case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char>, &MaxMinData, pMasterController->DebugOut()); break;
+						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, NULL, NULL, pMasterController->DebugOut()); break;
+						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, NULL, NULL, pMasterController->DebugOut()); break;
+						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, NULL, NULL, pMasterController->DebugOut()); break;
+						default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+					} break;
+		case 16 :
+          switch (iComponentCount) {
+						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short>, &MaxMinData, pMasterController->DebugOut()); break;
+						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, NULL, NULL, pMasterController->DebugOut()); break;
+						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, NULL, NULL, pMasterController->DebugOut()); break;
+						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, NULL, NULL, pMasterController->DebugOut()); break;
+						default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+					} break;
+		case 32 :	
+          switch (iComponentCount) {
+						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,1>, SimpleMaxMin<float>, &MaxMinData, pMasterController->DebugOut()); break;
+						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, NULL, NULL, pMasterController->DebugOut()); break;
+						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, NULL, NULL, pMasterController->DebugOut()); break;
+						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, NULL, NULL, pMasterController->DebugOut()); break;
+						default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+					} break;
+		default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+	}
+
+	string strProblemDesc;
+	if (!dataVolume.Verify(&strProblemDesc)) {
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Verify failed with the following reason: %s", strProblemDesc.c_str()); 
+    uvfFile.Close(); 
+    SourceData.Close();
+    if (bConvertEndianness) remove(tmpFilename0.c_str());
+    if (bQuantized) remove(tmpFilename1.c_str());
+		return false;
+	}
+
+	if (!uvfFile.AddDataBlock(&dataVolume,dataVolume.ComputeDataSize(), true)) {
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","AddDataBlock failed!"); 
+    uvfFile.Close(); 
+    SourceData.Close();
+    if (bConvertEndianness) remove(tmpFilename0.c_str());
+    if (bQuantized) remove(tmpFilename1.c_str());
+		return false;
+	}
+
+ 	Histogram1DDataBlock Histogram1D;
+  if (!Histogram1D.Compute(&dataVolume)) {
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 1D Histogram failed!"); 
+    uvfFile.Close(); 
+    SourceData.Close();
+    if (bConvertEndianness) remove(tmpFilename0.c_str());
+    if (bQuantized) remove(tmpFilename1.c_str());
+		return false;
+  }
+
+  Histogram2DDataBlock Histogram2D;
+  if (!Histogram2D.Compute(&dataVolume)) {
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 2D Histogram failed!"); 
+    uvfFile.Close(); 
+    SourceData.Close();
+    if (bConvertEndianness) remove(tmpFilename0.c_str());
+    if (bQuantized) remove(tmpFilename1.c_str());
+		return false;
+  }
+
+	uvfFile.AddDataBlock(&Histogram1D,Histogram1D.ComputeDataSize());
+	uvfFile.AddDataBlock(&Histogram2D,Histogram2D.ComputeDataSize());
+  uvfFile.AddDataBlock(&MaxMinData, MaxMinData.ComputeDataSize());
+
+/*
+  /// \todo maybe add information from the source file to the UVF, like DICOM desc etc.
+
+  KeyValuePairDataBlock testPairs;
+	testPairs.AddPair("SOURCE","DICOM");
+	testPairs.AddPair("CONVERTED BY","DICOM2UVF V1.0");
+	UINT64 iDataSize = testPairs.ComputeDataSize();
+	uvfFile.AddDataBlock(testPairs,iDataSize);
+*/
+
+	uvfFile.Create();
+	SourceData.Close();
+	uvfFile.Close();
+  if (bConvertEndianness) remove(tmpFilename0.c_str());
+  if (bQuantized) remove(tmpFilename1.c_str());
+
+  return true;
+}

@@ -854,7 +854,7 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
 
 	for (size_t i = 0;i<vLODCombis.size();i++) {
 
-		if (pDebugOut) pDebugOut->Message("FlatDataToBrickedLOD", "Generating data for lod level %i of %i",i, vLODCombis.size()); 
+		if (pDebugOut) pDebugOut->Message("FlatDataToBrickedLOD", "Generating data for lod level %i of %i",int(i+1), int(vLODCombis.size())); 
 
     // compute size of the domain
     vReducedDomainSize = GetLODDomainSize(vLODCombis[i]);
@@ -920,7 +920,7 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
     unsigned char* pData = new unsigned char[BLOCK_COPY_SIZE];
 		for (size_t j=0;j<vBrickPermutation.size();j++) {
 
-   		if (pDebugOut) pDebugOut->Message("FlatDataToBrickedLOD", "Processing brick %i of %i in lod level %i of %i",j,vBrickPermutation.size(),i, vLODCombis.size()); 
+   		if (pDebugOut) pDebugOut->Message("FlatDataToBrickedLOD", "Processing brick %i of %i in lod level %i of %i",int(j+1),int(vBrickPermutation.size()),int(i+1), int(vLODCombis.size())); 
 			//Console::printf("      Brick %i (",j);
 			//for (UINT64 k=0;k<vBrickPermutation[j].size();k++) Console::printf("%i ",vBrickPermutation[j][k]);
 
