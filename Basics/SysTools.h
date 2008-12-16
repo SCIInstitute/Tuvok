@@ -108,8 +108,10 @@ namespace SysTools {
   std::vector<std::wstring> GetDirContents(const std::wstring& dir, const std::wstring& fileName=L"*", const std::wstring& ext=L"");
   std::vector<std::string> GetDirContents(const std::string& dir, const std::string& fileName="*", const std::string& ext="");
 #endif
+  /*
   std::vector<std::wstring> GetDirTree(const std::wstring& dir);
   std::vector<std::string> GetDirTree(const std::string& dir);
+  */
 
   bool GetFileStats(const std::string& strFileName, struct stat& stat_buf);
   bool GetFileStats(const std::wstring& wstrFileName, struct stat& stat_buf);
