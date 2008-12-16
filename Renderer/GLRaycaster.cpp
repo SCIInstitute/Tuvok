@@ -79,14 +79,14 @@ bool GLRaycaster::Initialize() {
   }
 
   glShadeModel(GL_SMOOTH);
- 
-  if (!LoadAndVerifyShader("../Tuvok/Shaders/GLRaycaster-VS.glsl", "../Tuvok/Shaders/GLRaycaster-frontfaces-FS.glsl",&(m_pProgramRenderFrontFaces)) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLRaycaster-VS.glsl", "../Tuvok/Shaders/GLRaycaster-1D-FS.glsl",        &(m_pProgram1DTrans[0])) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLRaycaster-VS.glsl", "../Tuvok/Shaders/GLRaycaster-1D-light-FS.glsl",  &(m_pProgram1DTrans[1])) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLRaycaster-VS.glsl", "../Tuvok/Shaders/GLRaycaster-2D-FS.glsl",        &(m_pProgram2DTrans[0])) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLRaycaster-VS.glsl", "../Tuvok/Shaders/GLRaycaster-2D-light-FS.glsl",  &(m_pProgram2DTrans[1])) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLRaycaster-VS.glsl", "../Tuvok/Shaders/GLRaycaster-ISO-FS.glsl",       &(m_pProgramIso)) || 
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLRaycaster-VS.glsl", "../Tuvok/Shaders/GLRaycaster-ISO-CV-FS.glsl",    &(m_pProgramIso2))) {
+
+  if (!LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-frontfaces-FS.glsl", m_vShaderSearchDirs, &(m_pProgramRenderFrontFaces)) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-1D-FS.glsl",         m_vShaderSearchDirs, &(m_pProgram1DTrans[0])) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-1D-light-FS.glsl",   m_vShaderSearchDirs, &(m_pProgram1DTrans[1])) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-2D-FS.glsl",         m_vShaderSearchDirs, &(m_pProgram2DTrans[0])) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-2D-light-FS.glsl",   m_vShaderSearchDirs, &(m_pProgram2DTrans[1])) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-ISO-FS.glsl",        m_vShaderSearchDirs, &(m_pProgramIso)) || 
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-ISO-CV-FS.glsl",     m_vShaderSearchDirs, &(m_pProgramIso2))) {
 
       Cleanup();
 

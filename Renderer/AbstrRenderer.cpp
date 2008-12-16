@@ -109,6 +109,12 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bRedrawMask[1] = true;
   m_bRedrawMask[2] = true;
   m_bRedrawMask[3] = true;
+
+  m_vShaderSearchDirs.push_back("../../../Tuvok/Shaders");
+  m_vShaderSearchDirs.push_back("../../Tuvok/Shaders");
+  m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
+  m_vShaderSearchDirs.push_back("Tuvok/Shaders");
+  m_vShaderSearchDirs.push_back("Shaders");
 }
 
 bool AbstrRenderer::Initialize() {

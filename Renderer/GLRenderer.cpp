@@ -111,12 +111,12 @@ bool GLRenderer::Initialize() {
     m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
   }
 
-  if (!LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/Transfer-FS.glsl",  &(m_pProgramTrans))        ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/1D-slice-FS.glsl",  &(m_pProgram1DTransSlice)) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/2D-slice-FS.glsl",  &(m_pProgram2DTransSlice)) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/MIP-slice-FS.glsl", &(m_pProgramMIPSlice))     ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/Compose-FS.glsl",   &(m_pProgramIsoCompose))   ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/Compose-CV-FS.glsl",&(m_pProgramCVCompose)))   {
+  if (!LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-FS.glsl",  m_vShaderSearchDirs, &(m_pProgramTrans))        ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "1D-slice-FS.glsl",  m_vShaderSearchDirs, &(m_pProgram1DTransSlice)) ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "2D-slice-FS.glsl",  m_vShaderSearchDirs, &(m_pProgram2DTransSlice)) ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "MIP-slice-FS.glsl", m_vShaderSearchDirs, &(m_pProgramMIPSlice))     ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramIsoCompose))   ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",m_vShaderSearchDirs, &(m_pProgramCVCompose)))   {
 
       m_pMasterController->DebugOut()->Error("GLRenderer::Initialize","Error loading transfer shaders.");
       return false;
@@ -924,8 +924,22 @@ void GLRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   }
 }
 
+bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const std::vector<std::string>& strDirs, GLSLProgram** pShaderProgram) {
+  for (size_t i = 0;i<strDirs.size();i++) {
+    string strCompleteVSFile = strDirs[i] + "/" + strVSFile;
+    string strCompleteFSFile = strDirs[i] + "/" + strFSFile;
 
-bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLProgram** pShaderProgram) {
+    if (LoadAndVerifyShader(strCompleteVSFile, strCompleteFSFile, pShaderProgram, false)) return true;
+  }
+
+  // if all else fails probe current directory and all of its subdirectories
+  if (LoadAndVerifyShader(strVSFile, strFSFile, pShaderProgram, true)) 
+    return true;
+  else
+    return false;
+}
+
+bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs) {
 
 #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strVSFile))) strVSFile = SysTools::GetFromResourceOnMac(strVSFile);
@@ -933,7 +947,7 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
 #endif
 
   string strActualVSFile = "";
-  if (!SysTools::FileExists(strVSFile)) {
+  if (!SysTools::FileExists(strVSFile) && bSearchSubdirs) {
     // if vertex shader is not found in the given directory, probe all subdirectories
     vector<string> subdirs = SysTools::GetSubDirList("");
     subdirs.push_back(".");
@@ -959,7 +973,7 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
   }
 
   string strActualFSFile = "";
-  if (!SysTools::FileExists(strFSFile)) {
+  if (!SysTools::FileExists(strFSFile) && bSearchSubdirs) {
     // if fragment shader is not found in the given directory, probe all subdirectories
     vector<string> subdirs = SysTools::GetSubDirList("");
     subdirs.push_back(".");
@@ -985,13 +999,20 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
   }
 
 
-  (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(strActualVSFile, strActualFSFile);
+  if (SysTools::FileExists(strActualVSFile) && SysTools::FileExists(strActualFSFile)) {
+    (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(strActualVSFile, strActualFSFile);
 
-  if ((*pShaderProgram) == NULL || !(*pShaderProgram)->IsValid()) {
-      m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Error loading a shader combination VS %s and FS %s.", strActualVSFile.c_str(), strActualFSFile.c_str());
-      m_pMasterController->MemMan()->FreeGLSLProgram(*pShaderProgram);
-      return false;
-  } else return true;
+    if ((*pShaderProgram) == NULL || !(*pShaderProgram)->IsValid()) {
+        m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Error loading a shader combination VS %s and FS %s.", strActualVSFile.c_str(), strActualFSFile.c_str());
+        m_pMasterController->MemMan()->FreeGLSLProgram(*pShaderProgram);
+        return false;
+    } else return true;
+
+  } else {
+    (*pShaderProgram) = NULL;
+    return false;
+  }
+
 }
 
 

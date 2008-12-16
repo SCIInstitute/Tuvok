@@ -67,12 +67,12 @@ bool GLSBVR::Initialize() {
   glShadeModel(GL_SMOOTH);
   glDisable(GL_CULL_FACE);
   
-  if (!LoadAndVerifyShader("../Tuvok/Shaders/GLSBVR-VS.glsl", "../Tuvok/Shaders/GLSBVR-1D-FS.glsl",       &(m_pProgram1DTrans[0])) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLSBVR-VS.glsl", "../Tuvok/Shaders/GLSBVR-1D-light-FS.glsl", &(m_pProgram1DTrans[1])) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLSBVR-VS.glsl", "../Tuvok/Shaders/GLSBVR-2D-FS.glsl",       &(m_pProgram2DTrans[0])) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLSBVR-VS.glsl", "../Tuvok/Shaders/GLSBVR-2D-light-FS.glsl", &(m_pProgram2DTrans[1])) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLSBVR-VS.glsl", "../Tuvok/Shaders/GLSBVR-ISO-FS.glsl",      &(m_pProgramIso)) ||
-      !LoadAndVerifyShader("../Tuvok/Shaders/GLSBVR-VS.glsl", "../Tuvok/Shaders/GLSBVR-ISO-NC-FS.glsl",   &(m_pProgramIsoNoCompose))) {
+  if (!LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-1D-FS.glsl",       m_vShaderSearchDirs, &(m_pProgram1DTrans[0])) ||
+      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-1D-light-FS.glsl", m_vShaderSearchDirs, &(m_pProgram1DTrans[1])) ||
+      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl",       m_vShaderSearchDirs, &(m_pProgram2DTrans[0])) ||
+      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-2D-light-FS.glsl", m_vShaderSearchDirs, &(m_pProgram2DTrans[1])) ||
+      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-ISO-FS.glsl",      m_vShaderSearchDirs, &(m_pProgramIso)) ||
+      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-ISO-NC-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramIsoNoCompose))) {
 
       Cleanup();
 

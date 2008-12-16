@@ -320,16 +320,15 @@ class AbstrRenderer {
     bool                m_bUseOnlyPowerOfTwo;
     bool                m_bAvoidSeperateCompositing;
 
-    virtual void ScheduleRecompose();
-    void ComputeMinLODForCurrentView();
-
     FLOATMATRIX4        m_matModelView;
+    std::vector<std::string> m_vShaderSearchDirs;
 
+    virtual void        ScheduleRecompose();
+    void                ComputeMinLODForCurrentView();
     void                Plan3DFrame();
     std::vector<Brick>  BuildFrameBrickList();
-
-    virtual void ClearDepthBuffer() = 0;
-    virtual void ClearColorBuffer() = 0;
+    virtual void        ClearDepthBuffer() = 0;
+    virtual void        ClearColorBuffer() = 0;
 };
 
 #endif // ABSTRRENDERER_H
