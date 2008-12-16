@@ -351,32 +351,33 @@ namespace SysTools {
 
     FindClose(hFind);
 #else
-    if (dir == L"") {
-      rootdir = L"./";
-    } else {
-      rootdir = dir + L"/";
+  if (dir == L"") {
+    rootdir = L"./";
+  } else {
+    rootdir = dir + L"/";
+  }
+
+  string strDir(rootdir.begin(), rootdir.end());
+
+  DIR* dirData=opendir(strDir.c_str());
+
+  if (dirData != NULL) {
+
+    struct dirent *inode;
+  
+    while ((inode=readdir(dirData)) != NULL) {
+      string strFilenameLocal = inode->d_name;
+      wstring wstrFilename(strFilenameLocal.begin(), strFilenameLocal.end());
+      string strFilename = strDir + strFilenameLocal;
+
+      struct ::stat st;
+      if (::stat(strFilename.c_str(), &st) != -1) 
+        if (S_ISDIR(st.st_mode) && strFilenameLocal != "." && strFilenameLocal != "..") {
+          subDirs.push_back(wstrFilename);
+        }
     }
-
-    string strDir(rootdir.begin(), rootdir.end());
-    DIR* dirData=opendir(strDir.c_str());
-
-    if (dirData != NULL) {
-
-      struct dirent *inode;
-    
-      while ((inode=readdir(dirData)) != NULL) {
-        string strFilenameLocal = inode->d_name;
-        wstring wstrFilename(strFilenameLocal.begin(), strFilenameLocal.end());
-        string strFilename = strDir + strFilenameLocal;
-
-        struct ::stat st;
-        if (::stat(strFilename.c_str(), &st) != -1) 
-          if (S_ISDIR(st.st_mode) && strFilenameLocal != "." && strFilenameLocal != "..") {
-            subDirs.push_back(wstrFilename);
-          }
-      }
-    }
-    closedir(dirData);
+  }
+  closedir(dirData);
 #endif
 
     vector<wstring> completeSubDirs;
@@ -387,13 +388,15 @@ namespace SysTools {
         completeSubDirs.push_back(subSubDirs[j]);
       }
     }
-    return completeSubDirs;
+
+    return completeSubDirs; 
   }
 
 
   vector<string> GetSubDirList(const string& dir) {
     vector<string> subDirs;
     string rootdir;
+
 
 #ifdef _WIN32
     stringstream s;
@@ -423,33 +426,32 @@ namespace SysTools {
 
     FindClose(hFind);
 #else
-    if (dir == "") {
-      rootdir = "./";
-    } else {
-      rootdir = dir + "/";
+  if (dir == "") {
+    rootdir = "./";
+  } else {
+    rootdir = dir + "/";
+  }
+
+  DIR* dirData=opendir(rootdir.c_str());
+
+  if (dirData != NULL) {
+
+    struct dirent *inode;
+  
+    while ((inode=readdir(dirData)) != NULL) {
+      string strFilenameLocal = inode->d_name;
+      string strFilename = rootdir + strFilenameLocal;
+
+      struct ::stat st;
+      if (::stat(strFilename.c_str(), &st) != -1) 
+        if (S_ISDIR(st.st_mode) && strFilenameLocal != "." && strFilenameLocal != "..") {
+          subDirs.push_back(strFilenameLocal);
+        }
     }
-
-    DIR* dirData=opendir(rootdir.c_str());
-
-    if (dirData != NULL) {
-
-      struct dirent *inode;
-    
-      while ((inode=readdir(dirData)) != NULL) {
-        string strFilenameLocal = inode->d_name;
-        string strFilename = rootdir + strFilenameLocal;
-
-        struct ::stat st;
-        if (::stat(strFilename.c_str(), &st) != -1) 
-          if (S_ISDIR(st.st_mode) && strFilenameLocal != "." && strFilenameLocal != "..") {
-            subDirs.push_back(strFilename);
-          }
-      }
-    }
-    closedir(dirData);
+  }
+  closedir(dirData);
 #endif
 
-    printf("..");
     vector<string> completeSubDirs;
     for (size_t i = 0;i<subDirs.size();i++) {
       completeSubDirs.push_back(rootdir+subDirs[i]);
