@@ -319,8 +319,7 @@ namespace SysTools {
     return RemoveExt(fileName) + tag + L"." + GetExt(fileName);
   }
 
-  /*
-  vector<wstring> GetDirTree(const wstring& dir) {
+  vector<wstring> GetSubDirList(const wstring& dir) {
     vector<wstring> subDirs;
     wstring rootdir;
 
@@ -383,7 +382,7 @@ namespace SysTools {
     vector<wstring> completeSubDirs;
     for (size_t i = 0;i<subDirs.size();i++) {
       completeSubDirs.push_back(rootdir+subDirs[i]);
-      vector<wstring> subSubDirs = GetDirTree(rootdir+subDirs[i]);
+      vector<wstring> subSubDirs = GetSubDirList(rootdir+subDirs[i]);
       for (size_t j = 0;j<subSubDirs.size();j++) {
         completeSubDirs.push_back(subSubDirs[j]);
       }
@@ -392,7 +391,7 @@ namespace SysTools {
   }
 
 
-  vector<string> GetDirTree(const string& dir) {
+  vector<string> GetSubDirList(const string& dir) {
     vector<string> subDirs;
     string rootdir;
 
@@ -453,14 +452,13 @@ namespace SysTools {
     vector<string> completeSubDirs;
     for (size_t i = 0;i<subDirs.size();i++) {
       completeSubDirs.push_back(rootdir+subDirs[i]);
-      vector<string> subSubDirs = GetDirTree(rootdir+subDirs[i]);
+      vector<string> subSubDirs = GetSubDirList(rootdir+subDirs[i]);
       for (size_t j = 0;j<subSubDirs.size();j++) {
         completeSubDirs.push_back(subSubDirs[j]);
       }
     }
     return completeSubDirs;
   }
-*/
 
   vector<wstring> GetDirContents(const wstring& dir, const wstring& fileName, const wstring& ext) {
     vector<wstring> files;
