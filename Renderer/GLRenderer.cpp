@@ -111,12 +111,12 @@ bool GLRenderer::Initialize() {
     m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
   }
 
-  if (!LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/Transfer-FS.glsl",  &(m_pProgramTrans))        ||
-      !LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/1D-slice-FS.glsl",  &(m_pProgram1DTransSlice)) ||
-      !LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/2D-slice-FS.glsl",  &(m_pProgram2DTransSlice)) ||
-      !LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/MIP-slice-FS.glsl", &(m_pProgramMIPSlice))     ||
-      !LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/Compose-FS.glsl",   &(m_pProgramIsoCompose))   ||
-      !LoadAndVerifyShader("tuvok/Shaders/Transfer-VS.glsl", "tuvok/Shaders/Compose-CV-FS.glsl",&(m_pProgramCVCompose)))   {
+  if (!LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/Transfer-FS.glsl",  &(m_pProgramTrans))        ||
+      !LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/1D-slice-FS.glsl",  &(m_pProgram1DTransSlice)) ||
+      !LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/2D-slice-FS.glsl",  &(m_pProgram2DTransSlice)) ||
+      !LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/MIP-slice-FS.glsl", &(m_pProgramMIPSlice))     ||
+      !LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/Compose-FS.glsl",   &(m_pProgramIsoCompose))   ||
+      !LoadAndVerifyShader("../Tuvok/Shaders/Transfer-VS.glsl", "../Tuvok/Shaders/Compose-CV-FS.glsl",&(m_pProgramCVCompose)))   {
 
       m_pMasterController->DebugOut()->Error("GLRenderer::Initialize","Error loading transfer shaders.");
       return false;
@@ -927,10 +927,63 @@ void GLRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
 
 bool GLRenderer::LoadAndVerifyShader(const string& strVSFile, const string& strFSFile, GLSLProgram** pShaderProgram) {
 
-  (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(SysTools::GetFromResourceOnMac(strVSFile), SysTools::GetFromResourceOnMac(strFSFile));
+  string strActualVSFile = "";
+  if (!SysTools::FileExists(strVSFile)) {
+    // if vertex shader is not found in the given directory, probe all subdirectories
+    vector<string> subdirs = SysTools::GetSubDirList("");
+    subdirs.push_back(".");
+
+    string strDirlessVSFile = SysTools::GetFilename(strVSFile);
+    for (size_t i = 0;i<subdirs.size();i++) {
+      string strTestVSFile = subdirs[i] + "/" + strDirlessVSFile;
+
+      if (SysTools::FileExists(strTestVSFile)) {
+        strActualVSFile = strTestVSFile;
+        break;
+      }
+    }
+
+  if (strActualVSFile == "") {
+      m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Unable to locate fragment shader %s (%s)",strDirlessVSFile.c_str(), strVSFile.c_str());
+      return false;
+    } else
+      m_pMasterController->DebugOut()->Message("GLRenderer::LoadAndVerifyShader","Changed fragment shader %s to %s",strVSFile.c_str(), strActualVSFile.c_str());
+
+  } else {
+    strActualVSFile = strVSFile;
+  }
+
+  string strActualFSFile = "";
+  if (!SysTools::FileExists(strFSFile)) {
+    // if fragment shader is not found in the given directory, probe all subdirectories
+    vector<string> subdirs = SysTools::GetSubDirList("");
+    subdirs.push_back(".");
+
+    string strDirlessFSFile = SysTools::GetFilename(strFSFile);
+    for (size_t i = 0;i<subdirs.size();i++) {
+      string strTestFSFile = subdirs[i] + "/" + strDirlessFSFile;
+
+      if (SysTools::FileExists(strTestFSFile)) {
+        strActualFSFile = strTestFSFile;
+        break;
+      }
+    }
+
+    if (strActualFSFile == "") {
+      m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Unable to locate fragment shader %s (%s)",strDirlessFSFile.c_str(), strFSFile.c_str());
+      return false;
+    } else
+      m_pMasterController->DebugOut()->Message("GLRenderer::LoadAndVerifyShader","Changed fragment shader %s to %s",strFSFile.c_str(), strActualFSFile.c_str());
+
+  } else {
+    strActualFSFile = strFSFile;
+  }
+
+
+  (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(SysTools::GetFromResourceOnMac(strActualVSFile), SysTools::GetFromResourceOnMac(strActualFSFile));
 
   if ((*pShaderProgram) == NULL || !(*pShaderProgram)->IsValid()) {
-      m_pMasterController->DebugOut()->Error("GLRenderer::Initialize","Error loading a shader combination VS %s and FS %s.", strVSFile.c_str(), strFSFile.c_str());
+      m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Error loading a shader combination VS %s and FS %s.", strActualVSFile.c_str(), strActualFSFile.c_str());
       m_pMasterController->MemMan()->FreeGLSLProgram(*pShaderProgram);
       return false;
   } else return true;

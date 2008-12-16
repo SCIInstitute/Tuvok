@@ -32,8 +32,8 @@
   \author    Jens Krueger
         SCI Institute
         University of Utah
-  \version  1.32
-  \date    July 2008
+  \version  1.5
+  \date    Dec 2008
 */
 
 #include "SysTools.h"
