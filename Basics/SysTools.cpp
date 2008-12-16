@@ -367,7 +367,7 @@ namespace SysTools {
       while ((inode=readdir(dirData)) != NULL) {
         string strFilenameLocal = inode->d_name;
         wstring wstrFilename(strFilenameLocal.begin(), strFilenameLocal.end());
-        strFilename = strDir + strFilename;
+        string strFilename = strDir + strFilenameLocal;
 
         struct ::stat st;
         if (::stat(strFilename.c_str(), &st) != -1) 
