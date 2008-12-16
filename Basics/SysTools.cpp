@@ -382,10 +382,10 @@ namespace SysTools {
     vector<wstring> completeSubDirs;
     for (size_t i = 0;i<subDirs.size();i++) {
       completeSubDirs.push_back(rootdir+subDirs[i]);
-      vector<wstring> subSubDirs = GetDirTree(rootdir+subDirs[i]);
+/*      vector<wstring> subSubDirs = GetDirTree(rootdir+subDirs[i]);
       for (size_t j = 0;j<subSubDirs.size();j++) {
         completeSubDirs.push_back(subSubDirs[j]);
-      }
+      }*/
     }
     return completeSubDirs;
   }
@@ -452,10 +452,10 @@ namespace SysTools {
     vector<string> completeSubDirs;
     for (size_t i = 0;i<subDirs.size();i++) {
       completeSubDirs.push_back(rootdir+subDirs[i]);
-      vector<string> subSubDirs = GetDirTree(rootdir+subDirs[i]);
+   /*   vector<string> subSubDirs = GetDirTree(rootdir+subDirs[i]);
       for (size_t j = 0;j<subSubDirs.size();j++) {
         completeSubDirs.push_back(subSubDirs[j]);
-      }
+      }*/
     }
     return completeSubDirs;
   }
