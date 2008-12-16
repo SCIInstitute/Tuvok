@@ -152,13 +152,13 @@ bool GLSLProgram::Initialize(void) {
       if (glewGetExtension("GL_ARB_shader_objects")) 
         m_pMasterController->DebugOut()->Message("GLSLProgram::Initialize","ARB_shader_objects supported.");
       else {
-        m_pMasterController->DebugOut()->Error("GLSLProgram::Initialize","ARB_shader_objects not supported!");
+        m_pMasterController->DebugOut()->Error("GLSLProgram::Initialize","Neither OpenGL 2.0 nor ARB_shader_objects not supported!");
         return false;
       }
       if (glewGetExtension("GL_ARB_shading_language_100")) 
         m_pMasterController->DebugOut()->Message("GLSLProgram::Initialize","ARB_shading_language_100 supported.");
       else {
-        m_pMasterController->DebugOut()->Message("GLSLProgram::Initialize","ARB_shading_language_100 not supported!");
+        m_pMasterController->DebugOut()->Message("GLSLProgram::Initialize","Neither OpenGL 2.0 nor ARB_shading_language_100 not supported!");
         return false;
       }
 
@@ -178,7 +178,6 @@ bool GLSLProgram::Initialize(void) {
 
       m_bGLUseARB = true;
     }
-    return false;
   } 
   return true;
 }
