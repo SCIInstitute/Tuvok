@@ -927,6 +927,11 @@ void GLRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
 
 bool GLRenderer::LoadAndVerifyShader(const string& strVSFile, const string& strFSFile, GLSLProgram** pShaderProgram) {
 
+#if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strVSFile))) strVSFile = SysTools::GetFromResourceOnMac(strVSFile);
+  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strFSFile))) strFSFile = SysTools::GetFromResourceOnMac(strFSFile);
+#endif
+
   string strActualVSFile = "";
   if (!SysTools::FileExists(strVSFile)) {
     // if vertex shader is not found in the given directory, probe all subdirectories
@@ -943,7 +948,7 @@ bool GLRenderer::LoadAndVerifyShader(const string& strVSFile, const string& strF
       }
     }
 
-  if (strActualVSFile == "") {
+    if (strActualVSFile == "") {
       m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Unable to locate fragment shader %s (%s)",strDirlessVSFile.c_str(), strVSFile.c_str());
       return false;
     } else
@@ -980,7 +985,7 @@ bool GLRenderer::LoadAndVerifyShader(const string& strVSFile, const string& strF
   }
 
 
-  (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(SysTools::GetFromResourceOnMac(strActualVSFile), SysTools::GetFromResourceOnMac(strActualFSFile));
+  (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(strActualVSFile, strActualFSFile);
 
   if ((*pShaderProgram) == NULL || !(*pShaderProgram)->IsValid()) {
       m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Error loading a shader combination VS %s and FS %s.", strActualVSFile.c_str(), strActualFSFile.c_str());
