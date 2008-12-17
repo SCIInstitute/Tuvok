@@ -153,7 +153,10 @@ class AbstrRenderer {
      * is not complete yet. */
     virtual bool CheckForRedraw();
 
-    virtual void Paint() = 0;
+    virtual void Paint() {
+      // check if we are rendering a stereo frame
+      m_bDoStereoRendering = m_bRequestStereoRendering && m_eViewMode == VM_SINGLE && m_eFullWindowMode == WM_3D;
+    }
 
     virtual bool Initialize();
 
@@ -238,6 +241,13 @@ class AbstrRenderer {
 
 	  void DisableLOD(bool bLODDisabled) {m_bLODDisabled = bLODDisabled;}
 
+    virtual void  SetStereo(bool bStereoRendering);
+    virtual void  SetStereoEyeDist(float fStereoEyeDist);
+    virtual void  SetStereoFocalLength(float fStereoFocalLength);
+    virtual bool  GetStereo() {return m_bRequestStereoRendering;}
+    virtual float GetStereoEyeDist() {return m_fStereoEyeDist;}
+    virtual float GetStereoFocalLength() {return m_fStereoFocalLength;}
+
     // ClearView
     virtual bool SupportsClearView() {return false;}
     virtual void SetCV(bool bEnable);
@@ -315,12 +325,18 @@ class AbstrRenderer {
     float               m_fCVBorderScale;
     FLOATVECTOR2        m_vCVPos;
     bool                m_bPerformReCompose;
+    bool                m_bRequestStereoRendering;
+    bool                m_bDoStereoRendering;
+    float               m_fStereoEyeDist;
+    float               m_fStereoFocalLength;
 
     // compatibility settings
     bool                m_bUseOnlyPowerOfTwo;
     bool                m_bAvoidSeperateCompositing;
 
-    FLOATMATRIX4        m_matModelView;
+    FLOATMATRIX4        m_mProjection[2];
+    FLOATMATRIX4        m_mView[2];
+    FLOATMATRIX4        m_matModelView[2];
     std::vector<std::string> m_vShaderSearchDirs;
 
     virtual void        ScheduleRecompose();

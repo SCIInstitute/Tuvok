@@ -91,9 +91,9 @@ class GLRenderer : public AbstrRenderer {
     unsigned char*  m_p1DData;
     unsigned char*  m_p2DData;
     GLFBOTex*       m_pFBO3DImageLast;
-    GLFBOTex*       m_pFBO3DImageCurrent;
-    GLFBOTex*       m_pFBOIsoHit;
-    GLFBOTex*       m_pFBOCVHit;
+    GLFBOTex*       m_pFBO3DImageCurrent[2];
+    GLFBOTex*       m_pFBOIsoHit[2];
+    GLFBOTex*       m_pFBOCVHit[2];
     int             m_iFilledBuffers;
     GLTexture2D*    m_pLogoTex;
     GLSLProgram*    m_pProgram1DTrans[2];
@@ -117,9 +117,9 @@ class GLRenderer : public AbstrRenderer {
 
     virtual void Render3DView();
     virtual void Render3DPreLoop() {};
-    virtual void Render3DInLoop(size_t iCurentBrick) = 0;
+    virtual void Render3DInLoop(size_t iCurentBrick, int iStereoID) = 0;
     virtual void Render3DPostLoop() {}
-    virtual void ComposeSurfaceImage();
+    virtual void ComposeSurfaceImage(int iStereoID);
     virtual void Recompose3DView(ERenderArea eArea);
 
     virtual void CreateOffscreenBuffers();

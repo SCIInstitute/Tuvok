@@ -27,19 +27,27 @@
 */
 
 /**
-  \file    Vectors.h
-  \brief    Simple vector and matrix templates
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \version  2.4
-  \date    July 2008
+  \file     Vectors.h
+  \brief    Vector, matrix, and quaternion templates with additional OpenGL and Direct3D features
+  \author   Jens Krueger
+            SCI Institute
+            University of Utah
+  \version  3.0
+  \date    December 2008
 */
 
 #pragma once
 
 #ifndef VECTORS_H
 #define VECTORS_H
+
+#if defined DIRECT3D_VERSION
+  #define USEDX
+#endif
+
+#if defined __GL_H__
+  #define USEGL
+#endif
 
 // some DX files define min/max but that interferes
 // with the numerical_limits so undef them
@@ -73,13 +81,13 @@
 #ifdef WIN32
   #pragma warning( disable : 4201 )  // Disable warning messages about nameless union
   
-  #ifdef __D3DX9MATH_H__
+  #ifdef USEDX
     #pragma message("    [vectors.h] Using DX extensions.\n")
 //  #else
 //    #pragma message("    [vectors.h] NOT using DX extensions.\n")
   #endif
   
-  #ifdef __GL_H__
+  #ifdef USEGL
     #pragma message("    [vectors.h] Using GL extensions.\n")
 //  #else
 //    #pragma message("    [vectors.h] NOT using GL extensions.\n")
@@ -169,7 +177,7 @@ public:
     y = std::max(y,other.y);
   }
 
-  #ifdef __D3DX9MATH_H__
+  #ifdef USEDX
     VECTOR2<T>(const D3DXVECTOR2 &other): x(T(other.x)), y(T(other.y)) {}
     D3DXVECTOR2 toD3DXVEC() const {return D3DXVECTOR2(float(x),float(y));}
     bool operator == ( const D3DXVECTOR2& other ) const {return (other.x==T(x) && other.y== T(y)); }
@@ -178,7 +186,7 @@ public:
   #endif
 
   // OpenGL
-  #ifdef __GL_H__
+  #ifdef USEGL
     void glVertex() {
       glVertex2f(GLfloat(x),GLfloat(y));
     }
@@ -301,7 +309,7 @@ public:
     z = std::max(z,other.z);
   }
   
-  #ifdef __D3DX9MATH_H__
+  #ifdef USEDX
     VECTOR3(const D3DXVECTOR3 &other): x(T(other.x)), y(T(other.y)), z(T(other.z)) {}
     VECTOR3(const D3DXVECTOR4 &other): x(T(other.x)), y(T(other.y)), z(T(other.z)) {}
     D3DXVECTOR3 toD3DXVEC() const {return D3DXVECTOR3(float(x),float(y),float(z));}
@@ -311,7 +319,7 @@ public:
   #endif
 
   // OpenGL
-  #ifdef __GL_H__
+  #ifdef USEGL
     void glVertex() {
       glVertex3f(GLfloat(x),GLfloat(y),GLfloat(z));
     }
@@ -442,7 +450,7 @@ public:
   VECTOR3<T> xyz() const {return VECTOR3<T>(x,y,z);}
 
   // DirectX
-  #ifdef __D3DX9MATH_H__
+  #ifdef USEDX
     VECTOR4<T>(const D3DXVECTOR4 &other): x(T(other.x)), y(T(other.y)), z(T(other.z)), w(T(other.w)){}
     D3DXVECTOR4 toD3DXVEC() const {return D3DXVECTOR4(float(x),float(y),float(z),float(w));}
 
@@ -452,7 +460,7 @@ public:
   #endif
 
   // OpenGL
-  #ifdef __GL_H__
+  #ifdef USEGL
     void glVertex() {
       glVertex4f(GLfloat(x),GLfloat(y),GLfloat(z),GLfloat(w));
     }
@@ -576,7 +584,7 @@ public:
     MATRIX3() : m11(1), m12(0), m13(0),
         m21(0), m22(1), m23(0),
         m31(0), m32(0), m33(1) {};
-  MATRIX3( const T *e ) : m11(e[0]), m12(e[1]), m13(e[2]),
+    MATRIX3( const T *e ) : m11(e[0]), m12(e[1]), m13(e[2]),
               m21(e[3]), m22(e[4]), m23(e[5]),
               m31(e[6]), m32(e[7]), m33(e[8]) {};
     MATRIX3( const MATRIX3<T>& other ) : m11(other.m11), m12(other.m12), m13(other.m13),
@@ -585,7 +593,7 @@ public:
     MATRIX3( const MATRIX4<T>& other ) : m11(other.m11), m12(other.m12), m13(other.m13),
                                   m21(other.m21), m22(other.m22), m23(other.m23),
                     m31(other.m31), m32(other.m32), m33(other.m33) {};
-  MATRIX3( const VECTOR3<T> *rows ) : m11(rows[0].x), m12(rows[0].y), m13(rows[0].z),
+    MATRIX3( const VECTOR3<T> *rows ) : m11(rows[0].x), m12(rows[0].y), m13(rows[0].z),
                     m21(rows[1].x), m22(rows[1].y), m23(rows[1].z),
                     m31(rows[2].x), m32(rows[2].y), m33(rows[2].z) {};
     MATRIX3(T _m11, T _m12, T _m13,
@@ -707,7 +715,7 @@ public:
   }
 
   // DirectX
-  #ifdef __D3DX9MATH_H__
+  #ifdef USEDX
     MATRIX3( const D3DXMATRIX& other ) : m11(other(0,0)), m12(other(0,1)), m13(other(0,2)),
                        m21(other(1,0)), m22(other(1,1)), m23(other(1,2)),
                        m31(other(2,0)), m32(other(2,1)), m33(other(2,2)) {};
@@ -717,7 +725,7 @@ public:
   #endif
 
   // OpenGL
-  #ifdef __GL_H__
+  #ifdef USEGL
     void getProjection() {
       float P[16];
       glGetFloatv(GL_PROJECTION_MATRIX,P);
@@ -1068,7 +1076,7 @@ public:
   }
 
   // DirectX
-  #ifdef __D3DX9MATH_H__
+  #ifdef USEDX
     MATRIX4( const D3DXMATRIX& other ) : m11(other(0,0)), m12(other(0,1)), m13(other(0,2)),m14(other(0,3)),
                        m21(other(1,0)), m22(other(1,1)), m23(other(1,2)),m24(other(1,3)),
                        m31(other(2,0)), m32(other(2,1)), m33(other(2,2)),m34(other(2,3)),
@@ -1081,60 +1089,137 @@ public:
   #endif
 
   // OpenGL
-  #ifdef __GL_H__
+  #ifdef USEGL
 
-    void BuildLookAt(const FLOATVECTOR3 eye, const FLOATVECTOR3 center, const FLOATVECTOR3 up) {
-      FLOATVECTOR3 F = center-eye;  
-      FLOATVECTOR3 U = up;
-      FLOATVECTOR3 S = F % U;
+
+    static void BuildStereoLookAtAndProjection(const VECTOR3<T> vEye, const VECTOR3<T> vAt, const VECTOR3<T> vUp,
+                                              T fFOVY, T fAspect, T fZNear, T fZFar, T fFocalLength,
+                                              T fEyeDist, int iEyeID, MATRIX4<T>& mView, MATRIX4<T>& mProj) {
+
+	    T radians = T(3.14159265358979323846/180.0) * fFOVY/T(2);
+	    T wd2     = fZNear * T(tan(radians));
+	    T nfdl    = fZNear / fFocalLength;
+      T fShift  =   fEyeDist * nfdl;
+	    T left    = - fAspect * wd2 + T(iEyeID)*fShift;
+	    T right   =   fAspect * wd2 + T(iEyeID)*fShift;
+	    T top     =   wd2;
+	    T bottom  = - wd2;
+      
+      // projection matrix
+      mProj.MatrixPerspectiveOffCenter(left, right, bottom, top, fZNear, fZFar);
+
+      // view matrix
+			mView.BuildLookAt(vEye, vAt, vUp);
+      MATRIX4<T> mTranslate;
+		  mTranslate.Translation(fEyeDist*T(iEyeID), 0.0f, 0.0f);
+      mView= mTranslate * mView;
+    }
+
+
+    static void BuildStereoLookAtAndProjection(const VECTOR3<T> vEye, const VECTOR3<T> vAt, const VECTOR3<T> vUp,
+                                              T fFOVY, T fAspect, T fZNear, T fZFar, T fFocalLength,
+                                              T fEyeDist, MATRIX4<T>& mViewLeft, MATRIX4<T>& mViewRight, MATRIX4<T>& mProjLeft, MATRIX4<T>& mProjRight) {
+
+	    T radians = T(3.14159265358979323846/180.0) *  fFOVY/2;
+	    T wd2     = fZNear * T(tan(radians));
+	    T nfdl    = fZNear / fFocalLength;
+      T fShift  =   fEyeDist * nfdl;
+	    T left    = - fAspect * wd2 + fShift;
+	    T right   =   fAspect * wd2 + fShift;
+	    T top     =   wd2;
+	    T bottom  = - wd2;
+      
+      // projection matrices
+      mProjLeft.MatrixPerspectiveOffCenter(left, right, bottom, top, fZNear, fZFar);
+	    left    = - fAspect * wd2 - fShift;
+	    right   =   fAspect * wd2 - fShift;
+      mProjRight.MatrixPerspectiveOffCenter(left, right, bottom, top, fZNear, fZFar);
+
+      // view matrices
+			mViewLeft.BuildLookAt(vEye, vAt, vUp);
+      mViewRight.BuildLookAt(vEye, vAt, vUp);
+
+      // eye translation
+      MATRIX4<T> mTranslate;
+
+		  mTranslate.Translation(fEyeDist, 0.0f, 0.0f);
+      mViewLeft = mTranslate * mViewLeft;
+      
+      mTranslate.Translation(-fEyeDist, 0.0f, 0.0f);
+      mViewRight = mTranslate * mViewRight;
+    }
+
+    void BuildLookAt(const VECTOR3<T> vEye, const VECTOR3<T> vAt, const VECTOR3<T> vUp) {
+      VECTOR3<T> F = vAt-vEye;  
+      VECTOR3<T> U = vUp;
+      VECTOR3<T> S = F % U;
       U = S % F;
 
       F.normalize();
       U.normalize();
       S.normalize();
 
-      array[ 0]= S[0];  array[ 4]= S[1];  array[ 8]= S[2];  array[12]=-(S^eye);
-      array[ 1]= U[0];  array[ 5]= U[1];  array[ 9]= U[2];  array[13]=-(U^eye);
-      array[ 2]=-F[0];  array[ 6]=-F[1];  array[10]=-F[2];  array[14]= (F^eye);
-      array[ 3]=0.0f;    array[ 7]=0.0f;    array[11]=0.0f;    array[15]= 1.0f;
+      array[ 0]= S[0];  array[ 4]= S[1];  array[ 8]= S[2];  array[12]=-(S^vEye);
+      array[ 1]= U[0];  array[ 5]= U[1];  array[ 9]= U[2];  array[13]=-(U^vEye);
+      array[ 2]=-F[0];  array[ 6]=-F[1];  array[10]=-F[2];  array[14]= (F^vEye);
+      array[ 3]= T(0);  array[ 7]=T(0);   array[11]=T(0);   array[15]= T(1);
     }
 
-    void MatrixPerspectiveOffCenter(float left, float right, float bottom, float top, float n, float f) {
-      array[ 0]= 2.0f*n/(right-left);   array[ 4]=0.0f;          array[ 8]=(right+left)/(right-left);  array[12]=0.0f;
-      array[ 1]= 0.0f;         array[ 5]=2.0f*n/(top-bottom);    array[ 9]=(top+bottom)/(top-bottom);  array[13]=0.0f;
-      array[ 2]= 0.0f;         array[ 6]=0.0f;          array[10]=-(f+n)/(f-n);          array[14]=-2.0f*(f*n)/(f-n);
-      array[ 3]= 0.0f;         array[ 7]=0.0f;          array[11]=-1.0f;            array[15]=0.0f;
+    void MatrixPerspective(T fovy, T aspect, T n, T f) {
+      // deg 2 rad
+      fovy = fovy * T(3.14159265358979323846/180.0);
+
+      T cotan = T(1.0/tan(double(fovy)/2.0));
+
+      array[ 0]= cotan/aspect;  array[ 4]=T(0);     array[ 8]=T(0);             array[12]=T(0);
+      array[ 1]= T(0);          array[ 5]=cotan;    array[ 9]=T(0);             array[13]=T(0);
+      array[ 2]= T(0);          array[ 6]=T(0);     array[10]=-(f+n)/(f-n);     array[14]=T(-2)*(f*n)/(f-n);
+      array[ 3]= T(0);          array[ 7]=T(0);     array[11]=T(-1);            array[15]=T(0);
+    }
+
+    void MatrixPerspectiveOffCenter(T left, T right, T bottom, T top, T n, T f) {
+      array[ 0]= T(2)*n/(right-left);   array[ 4]=T(0);                   array[ 8]=(right+left)/(right-left);  array[12]=T(0);
+      array[ 1]= T(0);                  array[ 5]=T(2)*n/(top-bottom);    array[ 9]=(top+bottom)/(top-bottom);  array[13]=T(0);
+      array[ 2]= T(0);                  array[ 6]=T(0);                   array[10]=-(f+n)/(f-n);               array[14]=T(-2)*(f*n)/(f-n);
+      array[ 3]= T(0);                  array[ 7]=T(0);                   array[11]=T(-1);                      array[15]=T(0);
     }
 
     void getProjection() {
       float P[16];
       glGetFloatv(GL_PROJECTION_MATRIX,P);
-      for (int i=0;i<16;i++) array[i] = P[i];
+      for (int i=0;i<16;i++) array[i] = T(P[i]);
     }
 
     void getModelview() {
       float M[16];
       glGetFloatv(GL_MODELVIEW_MATRIX,M);
-      for (int i=0;i<16;i++) array[i] = M[i];
+      for (int i=0;i<16;i++) array[i] = T(M[i]);
     }
 
     void multModelview() {
       float M[16];
-      for (int i=0;i<16;i++) M[i] = array[i];
+      for (int i=0;i<16;i++) M[i] = float(array[i]);
       glMatrixMode(GL_MODELVIEW);
       glMultMatrixf(M);
     }
 
+    void setProjection() {
+      float M[16];
+      for (int i=0;i<16;i++) M[i] = float(array[i]);
+      glMatrixMode(GL_PROJECTION);
+      glLoadMatrixf(M);
+    }
+
     void setModelview() {
       float M[16];
-      for (int i=0;i<16;i++) M[i] = array[i];
+      for (int i=0;i<16;i++) M[i] = float(array[i]);
       glMatrixMode(GL_MODELVIEW);
       glLoadMatrixf(M);
     }
 
     void setTextureMatrix() {
       float M[16];
-      for (int i=0;i<16;i++) M[i] = array[i];
+      for (int i=0;i<16;i++) M[i] = float(array[i]);
       glMatrixMode(GL_TEXTURE);
       glLoadMatrixf(M);
     }

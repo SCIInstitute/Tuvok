@@ -50,9 +50,6 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_p1DData(NULL),
   m_p2DData(NULL),
   m_pFBO3DImageLast(NULL),
-  m_pFBO3DImageCurrent(NULL),
-  m_pFBOIsoHit(NULL),
-  m_pFBOCVHit(NULL),
   m_iFilledBuffers(0),
   m_pLogoTex(NULL),
   m_pProgramIso(NULL),
@@ -67,6 +64,14 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgram1DTrans[1]   = NULL;
   m_pProgram2DTrans[0]   = NULL;
   m_pProgram2DTrans[1]   = NULL;
+
+  m_pFBO3DImageCurrent[0] = NULL;
+  m_pFBOIsoHit[0] = NULL;
+  m_pFBOCVHit[0] = NULL;
+  m_pFBO3DImageCurrent[1] = NULL;
+  m_pFBOIsoHit[1] = NULL;
+  m_pFBOCVHit[1] = NULL;
+
 }
 
 GLRenderer::~GLRenderer() {
@@ -241,9 +246,6 @@ void GLRenderer::StartFrame() {
   // clear the framebuffer (if requested)
   if (m_bClearFramebuffer) ClearDepthBuffer();
 
-  // bind offscreen buffer
-  m_pFBO3DImageCurrent->Write();
-
   if (m_eRenderMode == RM_ISOSURFACE) {
     FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
     if (m_bDoClearView) {
@@ -261,11 +263,12 @@ void GLRenderer::StartFrame() {
     m_fScaledIsovalue = m_fIsovalue * float(iMaxValue)/float(iMaxRange);
     m_fScaledCVIsovalue = m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
 
-
   }
 }
 
 void GLRenderer::Paint() {
+  AbstrRenderer::Paint();
+
   StartFrame();
 
   bool bNewDataToShow = false;
@@ -334,9 +337,12 @@ void GLRenderer::Paint() {
         if (bLocalNewDataToShow) iReadyWindows++;
       } else {
         // blit the previous result quad to the entire screen but restrict draing to the current subarea
+        m_pFBO3DImageCurrent[0]->Write();
+        GLFBOTex::OneDrawBuffer();
         SetRenderTargetArea(RA_FULLSCREEN);
         SetRenderTargetAreaScissor(eArea);
         RerenderPreviousResult(false);
+        m_pFBO3DImageCurrent[0]->FinishWrite();
       }
     }
 
@@ -352,12 +358,15 @@ void GLRenderer::Paint() {
 }
 
 void GLRenderer::EndFrame(bool bNewDataToShow) {
-  // unbind offscreen buffer
-  m_pFBO3DImageCurrent->FinishWrite();
-
   // if the image is complete swap the offscreen buffers
   if (bNewDataToShow) {
-    swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent);
+
+    // in stereo compose both images into one, in mono mode simply swap the pointers
+    if (m_bDoStereoRendering) {
+      // TODO
+    } else {
+      swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
+    }
     m_iFilledBuffers = 0;
   }
 
@@ -397,20 +406,29 @@ void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) 
 
   UINTVECTOR2 viSize = viUpperRight-viLowerLeft;
 
-  float aspect=(float)viSize.x/(float)viSize.y;
-  float fovy = 50.0f;
-  float nearPlane = 0.1f;
-  float farPlane = 100.0f;
+  float fAspect =(float)viSize.x/(float)viSize.y;
+  float fFOVY  = 50.0f;
+  float fZNear = 0.1f;
+  float fZFar  = 100.0f;
+  FLOATVECTOR3 vEye(0,0,2), vAt(0,0,0), vUp(0,1,0);
+
+  // viewport
 	glViewport(viLowerLeft.x,viLowerLeft.y,viSize.x,viSize.y);
-	glMatrixMode(GL_PROJECTION);		
-	glLoadIdentity();
-	gluPerspective(fovy,aspect,nearPlane,farPlane); 	// Set Projection. Arguments are FOV (in degrees), aspect-ratio, near-plane, far-plane.
-  
-  // forward the GL projection matrix to the culling object
-  FLOATMATRIX4 mProjection;
-  mProjection.getProjection();
-  m_FrustumCullingLOD.SetProjectionMatrix(mProjection);
-  m_FrustumCullingLOD.SetScreenParams(fovy,aspect,nearPlane,farPlane,viSize.y);
+
+  if (m_bDoStereoRendering) {
+    FLOATMATRIX4::BuildStereoLookAtAndProjection(vEye, vAt, vUp, fFOVY, fAspect, fZNear, fZFar, m_fStereoFocalLength, m_fStereoEyeDist, m_mView[0], m_mView[1], m_mProjection[0], m_mProjection[1]);
+  } else {
+    // view matrix
+    m_mView[0].BuildLookAt(vEye, vAt, vUp);
+
+    // projection matrix
+    m_mProjection[0].MatrixPerspective(fFOVY,fAspect,fZNear,fZFar);
+    m_mProjection[0].setProjection();
+  }
+
+  // forward the projection matrix to the culling object
+  m_FrustumCullingLOD.SetProjectionMatrix(m_mProjection[0]);
+  m_FrustumCullingLOD.SetScreenParams(fFOVY,fAspect,fZNear,fZFar,viSize.y);
 }
 
 
@@ -510,6 +528,9 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
 
 bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex) {
 
+  // bind offscreen buffer
+  m_pFBO3DImageCurrent[0]->Write();
+
   SetDataDepShaderVars();
 
   if (!m_bUseMIP[size_t(eDirection)]) {
@@ -594,6 +615,8 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     glBlendEquation(GL_FUNC_ADD);
   }
 
+  m_pFBO3DImageCurrent[0]->FinishWrite();
+
   return true;
 }
 
@@ -652,8 +675,20 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, const FLOATVECTOR3& vCent
 void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
   m_iFilledBuffers = 0;
   SetRenderTargetAreaScissor(eREnderArea);
+
   glClearColor(0,0,0,0);
+
+  m_pFBO3DImageCurrent[0]->Write();
+  GLFBOTex::OneDrawBuffer();
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+  m_pFBO3DImageCurrent[0]->FinishWrite();
+  
+  if (m_bDoStereoRendering) {
+    m_pFBO3DImageCurrent[1]->Write();
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    m_pFBO3DImageCurrent[1]->FinishWrite();
+  }
+
   glDisable( GL_SCISSOR_TEST ); // since we do not clear anymore in this subframe we do not need the scissor test, maybe disabling it saves performacnce
 }
 
@@ -815,9 +850,12 @@ void GLRenderer::DrawBackGradient() {
 
 void GLRenderer::Cleanup() {
   if (m_pFBO3DImageLast)      {m_pMasterController->MemMan()->FreeFBO(m_pFBO3DImageLast); m_pFBO3DImageLast =NULL;}
-  if (m_pFBO3DImageCurrent)   {m_pMasterController->MemMan()->FreeFBO(m_pFBO3DImageCurrent); m_pFBO3DImageCurrent =NULL;}
-  if (m_pFBOIsoHit)           {m_pMasterController->MemMan()->FreeFBO(m_pFBOIsoHit);m_pFBOIsoHit = NULL;}
-  if (m_pFBOCVHit)            {m_pMasterController->MemMan()->FreeFBO(m_pFBOCVHit);m_pFBOCVHit = NULL;}
+
+  for (unsigned int i = 0;i<2;i++) {
+    if (m_pFBO3DImageCurrent[i])   {m_pMasterController->MemMan()->FreeFBO(m_pFBO3DImageCurrent[i]); m_pFBO3DImageCurrent[i] = NULL;}
+    if (m_pFBOIsoHit[i])           {m_pMasterController->MemMan()->FreeFBO(m_pFBOIsoHit[i]);m_pFBOIsoHit[i] = NULL;}
+    if (m_pFBOCVHit[i])            {m_pMasterController->MemMan()->FreeFBO(m_pFBOCVHit[i]);m_pFBOCVHit[i] = NULL;}
+  }
 
   if (m_pProgramTrans)        {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramTrans); m_pProgramTrans =NULL;}
   if (m_pProgram1DTransSlice) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTransSlice); m_pProgram1DTransSlice =NULL;}
@@ -836,27 +874,32 @@ void GLRenderer::Cleanup() {
 
 void GLRenderer::CreateOffscreenBuffers() {
   if (m_pFBO3DImageLast)      {m_pMasterController->MemMan()->FreeFBO(m_pFBO3DImageLast); m_pFBO3DImageLast =NULL;}
-  if (m_pFBO3DImageCurrent)   {m_pMasterController->MemMan()->FreeFBO(m_pFBO3DImageCurrent); m_pFBO3DImageCurrent =NULL;}
-  if (m_pFBOIsoHit)           {m_pMasterController->MemMan()->FreeFBO(m_pFBOIsoHit);m_pFBOIsoHit = NULL;}
-  if (m_pFBOCVHit)            {m_pMasterController->MemMan()->FreeFBO(m_pFBOCVHit);m_pFBOCVHit = NULL;}
+  for (unsigned int i = 0;i<2;i++) {
+    if (m_pFBO3DImageCurrent[i])   {m_pMasterController->MemMan()->FreeFBO(m_pFBO3DImageCurrent[i]); m_pFBO3DImageCurrent[i] = NULL;}
+    if (m_pFBOIsoHit[i])           {m_pMasterController->MemMan()->FreeFBO(m_pFBOIsoHit[i]);m_pFBOIsoHit[i] = NULL;}
+    if (m_pFBOCVHit[i])            {m_pMasterController->MemMan()->FreeFBO(m_pFBOCVHit[i]);m_pFBOCVHit[i] = NULL;}
+  }
 
   if (m_vWinSize.area() > 0) {
-    switch (m_eBlendPrecision) {
-      case BP_8BIT  : m_pFBO3DImageLast = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA8, 8*4, true);
-                      m_pFBO3DImageCurrent = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA8, 8*4, true);
-                      break;
-      case BP_16BIT : m_pFBO3DImageLast = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 16*4, true);
-                      m_pFBO3DImageCurrent = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 16*4, true);
-                      break;
-      case BP_32BIT : m_pFBO3DImageLast = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB, 32*4, true);
-                      m_pFBO3DImageCurrent = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB, 32*4, true);
-                      break;
-      default       : m_pMasterController->DebugOut()->Message("GLRenderer::CreateOffscreenBuffer","Invalid Blending Precision");
-                      m_pFBO3DImageLast = NULL; m_pFBO3DImageCurrent = NULL;
-                      break;
+    for (unsigned int i = 0;i<2;i++) {
+      switch (m_eBlendPrecision) {
+        case BP_8BIT  : if (i==0) m_pFBO3DImageLast = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA8, 8*4, true);
+                        m_pFBO3DImageCurrent[i] = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA8, 8*4, true);
+                        break;
+        case BP_16BIT : if (i==0)m_pFBO3DImageLast = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 16*4, true);
+                        m_pFBO3DImageCurrent[i] = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 16*4, true);
+                        break;
+        case BP_32BIT : if (i==0)m_pFBO3DImageLast = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB, 32*4, true);
+                        m_pFBO3DImageCurrent[i] = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB, 32*4, true);
+                        break;
+        default       : m_pMasterController->DebugOut()->Message("GLRenderer::CreateOffscreenBuffer","Invalid Blending Precision");
+                        if (i==0) m_pFBO3DImageLast = NULL; 
+                        m_pFBO3DImageCurrent[i] = NULL;
+                        break;
+      }
+      m_pFBOIsoHit[i]   = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 16*4, true, 2);
+      m_pFBOCVHit[i]    = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 16*4, true, 2);
     }
-    m_pFBOIsoHit   = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 16*4, true, 2);
-    m_pFBOCVHit    = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 16*4, true, 2);
   }
 }
 
@@ -1044,7 +1087,7 @@ void GLRenderer::BBoxPreRender() {
 
 void GLRenderer::BBoxPostRender() {
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) {
-    m_matModelView.setModelview();
+    m_matModelView[0].setModelview();
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     if (m_bRenderGlobalBBox) RenderBBox();
@@ -1070,30 +1113,44 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
   
   NewFrameClear(eArea);
 
-  // Modelview
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  m_matModelView.setModelview();
-
+  m_pFBO3DImageCurrent[0]->Write();
+  m_matModelView[0].setModelview();
   BBoxPreRender();
-
   Render3DPreLoop();
   Render3DPostLoop();
-
-  ComposeSurfaceImage();
-
-  // at the very end render the bboxes
+  ComposeSurfaceImage(0);
   BBoxPostRender();
+  m_pFBO3DImageCurrent[0]->Write();
+
+  if (m_bDoStereoRendering) {
+    m_pFBO3DImageCurrent[1]->Write();
+    m_matModelView[1].setModelview();
+    BBoxPreRender();
+    Render3DPreLoop();
+    Render3DPostLoop();
+    ComposeSurfaceImage(1);
+    BBoxPostRender();
+    m_pFBO3DImageCurrent[1]->FinishWrite();
+  }
 }
 
 void GLRenderer::Render3DView() {  
   // Modelview
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  m_matModelView.setModelview();
+  m_matModelView[0].setModelview();
 
   // in the first frame of a new lod level write the bounding boxes into depthbuffer (and for isosurfacing also into colorbuffer)
-  if (m_iBricksRenderedInThisSubFrame == 0) BBoxPreRender();
+  if (m_iBricksRenderedInThisSubFrame == 0) {
+    m_pFBO3DImageCurrent[0]->Write();
+    BBoxPreRender();
+    m_pFBO3DImageCurrent[0]->FinishWrite();  
+    if (m_bDoStereoRendering) {
+      m_pFBO3DImageCurrent[1]->Write();
+      BBoxPreRender();
+      m_pFBO3DImageCurrent[1]->FinishWrite();
+    }
+  }
   Render3DPreLoop();
 
   // loop over all bricks in the current LOD level
@@ -1114,8 +1171,9 @@ void GLRenderer::Render3DView() {
     GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_iIntraFrameCounter++, m_iFrameCounter);
     if(t!=NULL) t->Bind(0);
 
-    Render3DInLoop(m_iBricksRenderedInThisSubFrame);
-  
+    Render3DInLoop(m_iBricksRenderedInThisSubFrame,0);
+    if (m_bDoStereoRendering) Render3DInLoop(m_iBricksRenderedInThisSubFrame,1);
+
     // release the 3D texture
     m_pMasterController->MemMan()->Release3DTexture(t);
 
@@ -1127,10 +1185,30 @@ void GLRenderer::Render3DView() {
   }
 
   Render3DPostLoop();
-  ComposeSurfaceImage();
+
+  if (m_eRenderMode == RM_ISOSURFACE && m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {    
+    m_pFBO3DImageCurrent[0]->Write();
+    GLFBOTex::OneDrawBuffer();
+    ComposeSurfaceImage(0);
+    m_pFBO3DImageCurrent[0]->FinishWrite();
+    if (m_bDoStereoRendering) {
+      m_pFBO3DImageCurrent[1]->Write();
+      ComposeSurfaceImage(1);
+      m_pFBO3DImageCurrent[1]->FinishWrite();
+    }
+  }
 
   // at the very end render the bboxes
-  if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) BBoxPostRender();
+  if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
+    m_pFBO3DImageCurrent[0]->Write();
+    BBoxPostRender();
+    m_pFBO3DImageCurrent[0]->FinishWrite();  
+    if (m_bDoStereoRendering) {
+      m_pFBO3DImageCurrent[1]->Write();
+      BBoxPostRender();
+      m_pFBO3DImageCurrent[1]->FinishWrite();
+    }
+  }    
 }
 
 void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
@@ -1142,49 +1220,45 @@ void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
   ScheduleWindowRedraw(WM_3D);
 }
 
-void GLRenderer::ComposeSurfaceImage() {
-  if (m_eRenderMode == RM_ISOSURFACE && m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {    
+void GLRenderer::ComposeSurfaceImage(int iStereoID) {
+  glEnable(GL_DEPTH_TEST);
 
-    glEnable(GL_DEPTH_TEST);
+  m_pFBOIsoHit[iStereoID]->Read(GL_TEXTURE0, 0);
+  m_pFBOIsoHit[iStereoID]->Read(GL_TEXTURE1, 1);
 
-    m_pFBOIsoHit->Read(GL_TEXTURE0, 0);
-    m_pFBOIsoHit->Read(GL_TEXTURE1, 1);
-
-    if (m_bDoClearView) {
-      m_pProgramCVCompose->Enable(); 
-      m_pProgramCVCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
-      m_pProgramCVCompose->SetUniformVector("vLightDiffuse2",m_vCVColor.x, m_vCVColor.y, m_vCVColor.z);
-      m_pProgramCVCompose->SetUniformVector("vCVParam",m_fCVSize, m_fCVContextScale, m_fCVBorderScale);
-      m_pProgramCVCompose->SetUniformVector("vCVPickPos", m_vCVPos.x, m_vCVPos.y);
-      m_pFBOCVHit->Read(GL_TEXTURE2, 0);
-      m_pFBOCVHit->Read(GL_TEXTURE3, 1);
-      glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-    } else {
-      m_pProgramIsoCompose->Enable();
-      m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
-    }
-
-    glBegin(GL_QUADS);
-      glColor4d(1,1,1,1);
-      glTexCoord2d(0,1);
-      glVertex3d(-1.0,  1.0, -0.5);
-      glTexCoord2d(1,1);
-      glVertex3d( 1.0,  1.0, -0.5);
-      glTexCoord2d(1,0);
-      glVertex3d( 1.0, -1.0, -0.5);
-      glTexCoord2d(0,0);
-      glVertex3d(-1.0, -1.0, -0.5);
-    glEnd();
-
-    if (m_bDoClearView) {
-      m_pFBOCVHit->FinishRead(0);
-      m_pFBOCVHit->FinishRead(1);
-      m_pProgramCVCompose->Disable();
-    } else m_pProgramIsoCompose->Disable();
-
-    m_pFBOIsoHit->FinishRead(1);
-    m_pFBOIsoHit->FinishRead(0);
-
-    m_bPerformReCompose = false;
+  if (m_bDoClearView) {
+    m_pProgramCVCompose->Enable(); 
+    m_pProgramCVCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
+    m_pProgramCVCompose->SetUniformVector("vLightDiffuse2",m_vCVColor.x, m_vCVColor.y, m_vCVColor.z);
+    m_pProgramCVCompose->SetUniformVector("vCVParam",m_fCVSize, m_fCVContextScale, m_fCVBorderScale);
+    m_pProgramCVCompose->SetUniformVector("vCVPickPos", m_vCVPos.x, m_vCVPos.y);
+    m_pFBOCVHit[iStereoID]->Read(GL_TEXTURE2, 0);
+    m_pFBOCVHit[iStereoID]->Read(GL_TEXTURE3, 1);
+    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+  } else {
+    m_pProgramIsoCompose->Enable();
+    m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
   }
+
+  glBegin(GL_QUADS);
+    glTexCoord2d(0,1);
+    glVertex3d(-1.0,  1.0, -0.5);
+    glTexCoord2d(1,1);
+    glVertex3d( 1.0,  1.0, -0.5);
+    glTexCoord2d(1,0);
+    glVertex3d( 1.0, -1.0, -0.5);
+    glTexCoord2d(0,0);
+    glVertex3d(-1.0, -1.0, -0.5);
+  glEnd();
+
+  if (m_bDoClearView) {
+    m_pFBOCVHit[iStereoID]->FinishRead(0);
+    m_pFBOCVHit[iStereoID]->FinishRead(1);
+    m_pProgramCVCompose->Disable();
+  } else m_pProgramIsoCompose->Disable();
+
+  m_pFBOIsoHit[iStereoID]->FinishRead(1);
+  m_pFBOIsoHit[iStereoID]->FinishRead(0);
+
+  m_bPerformReCompose = false;
 }

@@ -80,6 +80,10 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_fCVBorderScale(60.0f),
   m_vCVPos(0.5f, 0.5f),
   m_bPerformReCompose(false),
+  m_bRequestStereoRendering(false),
+  m_bDoStereoRendering(false),
+  m_fStereoEyeDist(1.0f),
+  m_fStereoFocalLength(0.1f),
   m_bUseOnlyPowerOfTwo(bUseOnlyPowerOfTwo),
   m_bAvoidSeperateCompositing(true)
 {
@@ -466,7 +470,7 @@ vector<Brick> AbstrRenderer::BuildFrameBrickList() {
                                              b.vCenter+FLOATVECTOR3(+b.vExtension.x, +b.vExtension.y, +b.vExtension.z)* fEpsilon};
       
             for (size_t i = 0;i<8;i++) {
-              b.fDistance = min(b.fDistance,(FLOATVECTOR4(vEpsilonEdges[i],1.0f)*m_matModelView).xyz().length());
+              b.fDistance = min(b.fDistance,(FLOATVECTOR4(vEpsilonEdges[i],1.0f)*m_matModelView[0]).xyz().length());
             }
 
             // add the brick to the list of active bricks
@@ -492,8 +496,8 @@ vector<Brick> AbstrRenderer::BuildFrameBrickList() {
 void AbstrRenderer::Plan3DFrame() {
   if (m_bPerformRedraw) {
     // compute modelviewmatrix and pass it to the culling object
-    m_matModelView = m_mRotation*m_mTranslation;
-    m_FrustumCullingLOD.SetViewMatrix(m_matModelView);
+    m_matModelView[0] = m_mRotation*m_mTranslation*m_mView[0];
+    m_FrustumCullingLOD.SetViewMatrix(m_matModelView[0]);
     m_FrustumCullingLOD.Update();
 
     ComputeMinLODForCurrentView();
@@ -620,4 +624,19 @@ void AbstrRenderer::SetUseMIP(EWindowMode eWindow, bool bUseMIP) {
   if (eWindow > WM_SAGITTAL) return;
   m_bUseMIP[size_t(eWindow)] = bUseMIP;
   ScheduleWindowRedraw(eWindow);
+}
+
+void AbstrRenderer::SetStereo(bool bStereoRendering) {
+  m_bRequestStereoRendering = bStereoRendering;
+  ScheduleWindowRedraw(WM_3D);
+}
+
+void AbstrRenderer::SetStereoEyeDist(float fStereoEyeDist) {
+  m_fStereoEyeDist = fStereoEyeDist;
+  if (m_bDoStereoRendering) ScheduleWindowRedraw(WM_3D);
+}
+
+void AbstrRenderer::SetStereoFocalLength(float fStereoFocalLength) {
+  m_fStereoFocalLength = fStereoFocalLength;
+  if (m_bDoStereoRendering) ScheduleWindowRedraw(WM_3D);
 }

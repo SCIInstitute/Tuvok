@@ -204,22 +204,19 @@ void GLSBVR::RenderProxyGeometry() {
     glEnd();
 }
 
-void GLSBVR::Render3DInLoop(size_t iCurrentBrick) {
+void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   // setup the slice generator
   m_SBVRGeogen.SetBrickData(m_vCurrentBrickList[iCurrentBrick].vExtension, m_vCurrentBrickList[iCurrentBrick].vVoxelCount, 
                             m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans; 
   maBricktTrans.Translation(m_vCurrentBrickList[iCurrentBrick].vCenter.x, m_vCurrentBrickList[iCurrentBrick].vCenter.y, m_vCurrentBrickList[iCurrentBrick].vCenter.z);
-  FLOATMATRIX4 maBricktModelView = maBricktTrans * m_matModelView;
+  FLOATMATRIX4 maBricktModelView = maBricktTrans * m_matModelView[0];
   maBricktModelView.setModelview();
   m_SBVRGeogen.SetTransformation(maBricktModelView, true);
 
   if (! m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
-    // disable writing to the main offscreen buffer
-    m_pFBO3DImageCurrent->FinishWrite();
-  
-    m_pFBOIsoHit->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
-    m_pFBOIsoHit->Write(GL_COLOR_ATTACHMENT1_EXT, 1);
+    m_pFBOIsoHit[iStereoID]->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
+    m_pFBOIsoHit[iStereoID]->Write(GL_COLOR_ATTACHMENT1_EXT, 1);
     GLFBOTex::TwoDrawBuffers();
 
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -230,12 +227,12 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick) {
     m_pProgramIso->Disable();
 
     GLFBOTex::NoDrawBuffer();
-    m_pFBOIsoHit->FinishWrite(1);
-    m_pFBOIsoHit->FinishWrite(0);
+    m_pFBOIsoHit[iStereoID]->FinishWrite(1);
+    m_pFBOIsoHit[iStereoID]->FinishWrite(0);
 
     if (m_bDoClearView) {
-      m_pFBOCVHit->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
-      m_pFBOCVHit->Write(GL_COLOR_ATTACHMENT1_EXT, 1);
+      m_pFBOCVHit[iStereoID]->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
+      m_pFBOCVHit[iStereoID]->Write(GL_COLOR_ATTACHMENT1_EXT, 1);
       GLFBOTex::TwoDrawBuffers();
 
       if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -245,17 +242,17 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick) {
       m_pProgramIso->Disable();
       GLFBOTex::NoDrawBuffer();
 
-      m_pFBOCVHit->FinishWrite(1);
-      m_pFBOCVHit->FinishWrite(0);
+      m_pFBOCVHit[iStereoID]->FinishWrite(1);
+      m_pFBOCVHit[iStereoID]->FinishWrite(0);
     }
-
-    m_pFBO3DImageCurrent->Write();
-    GLFBOTex::OneDrawBuffer();
   } else {
+    m_pFBO3DImageCurrent[iStereoID]->Write();
+    GLFBOTex::OneDrawBuffer();
     glDepthMask(GL_FALSE);
     SetBrickDepShaderVars(iCurrentBrick);
     RenderProxyGeometry();
 	  glDepthMask(GL_TRUE);
+    m_pFBO3DImageCurrent[iStereoID]->FinishWrite();
   }
 }
 
@@ -292,6 +289,6 @@ bool GLSBVR::LoadDataset(const string& strFilename) {
   } else return false;
 }
 
-void GLSBVR::ComposeSurfaceImage() {
-  if (!m_bAvoidSeperateCompositing) GLRenderer::ComposeSurfaceImage();
+void GLSBVR::ComposeSurfaceImage(int iStereoID) {
+  if (!m_bAvoidSeperateCompositing) GLRenderer::ComposeSurfaceImage(iStereoID);
 }

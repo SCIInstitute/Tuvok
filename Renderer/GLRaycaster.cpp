@@ -260,7 +260,7 @@ void GLRaycaster::Render3DPreLoop() {
     // render nearplane into buffer
     float fNear = m_FrustumCullingLOD.GetNearPlane() + 0.01f;
 
-    FLOATMATRIX4 mInvModelView = m_matModelView.inverse();
+    FLOATMATRIX4 mInvModelView = m_matModelView[0].inverse();
 
     FLOATVECTOR4 vMin(-1, -1, fNear, 1);
     FLOATVECTOR4 vMax( 1,  1, fNear, 1);
@@ -284,26 +284,21 @@ void GLRaycaster::Render3DPreLoop() {
   glEnable(GL_CULL_FACE);
 }
 
-void GLRaycaster::Render3DInLoop(size_t iCurrentBrick) {
+void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   glDisable(GL_BLEND);
   glDepthMask(GL_FALSE);
 
-  // disable writing to the main offscreen buffer
-  m_pFBO3DImageCurrent->FinishWrite();
-
   // write frontfaces (ray entry points)
   m_pFBORayEntry->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
-
   m_pProgramRenderFrontFaces->Enable();
   RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax, false);
   m_pProgramRenderFrontFaces->Disable();
-
   m_pFBORayEntry->FinishWrite(0);
  
   if (m_eRenderMode == RM_ISOSURFACE) { 
     glDepthMask(GL_TRUE);
-    m_pFBOIsoHit->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
-    m_pFBOIsoHit->Write(GL_COLOR_ATTACHMENT1_EXT, 1);
+    m_pFBOIsoHit[iStereoID]->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
+    m_pFBOIsoHit[iStereoID]->Write(GL_COLOR_ATTACHMENT1_EXT, 1);
     GLFBOTex::TwoDrawBuffers();
 
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -316,35 +311,32 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick) {
 
     GLFBOTex::NoDrawBuffer();
 
-    m_pFBOIsoHit->FinishWrite(1);
-    m_pFBOIsoHit->FinishWrite(0);
+    m_pFBOIsoHit[iStereoID]->FinishWrite(1);
+    m_pFBOIsoHit[iStereoID]->FinishWrite(0);
 
     if (m_bDoClearView) {
-      m_pFBOCVHit->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
-      m_pFBOCVHit->Write(GL_COLOR_ATTACHMENT1_EXT, 1);
+      m_pFBOCVHit[iStereoID]->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
+      m_pFBOCVHit[iStereoID]->Write(GL_COLOR_ATTACHMENT1_EXT, 1);
       GLFBOTex::TwoDrawBuffers();
 
       if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       m_pProgramIso2->Enable();
       m_pFBORayEntry->Read(GL_TEXTURE2_ARB);
-      m_pFBOIsoHit->Read(GL_TEXTURE4_ARB, 0);
-      m_pFBOIsoHit->Read(GL_TEXTURE5_ARB, 1);
+      m_pFBOIsoHit[iStereoID]->Read(GL_TEXTURE4_ARB, 0);
+      m_pFBOIsoHit[iStereoID]->Read(GL_TEXTURE5_ARB, 1);
       RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax, true);
-      m_pFBOIsoHit->FinishRead(1);
-      m_pFBOIsoHit->FinishRead(0);
+      m_pFBOIsoHit[iStereoID]->FinishRead(1);
+      m_pFBOIsoHit[iStereoID]->FinishRead(0);
       m_pFBORayEntry->FinishRead();
       m_pProgramIso2->Disable();
       GLFBOTex::NoDrawBuffer();
 
-      m_pFBOCVHit->FinishWrite(1);
-      m_pFBOCVHit->FinishWrite(0);
+      m_pFBOCVHit[iStereoID]->FinishWrite(1);
+      m_pFBOCVHit[iStereoID]->FinishWrite(0);
     }
 
-    m_pFBO3DImageCurrent->Write();
-    GLFBOTex::OneDrawBuffer();
-
   } else {
-    m_pFBO3DImageCurrent->Write();
+    m_pFBO3DImageCurrent[iStereoID]->Write();
     GLFBOTex::OneDrawBuffer();
 
     // do the raycasting
@@ -439,7 +431,7 @@ FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR
                                                     FLOATVECTOR3 p2, FLOATVECTOR3 t2) {
   FLOATMATRIX4 m;
 
-  FLOATMATRIX4 mInvModelView = m_matModelView.inverse();
+  FLOATMATRIX4 mInvModelView = m_matModelView[0].inverse();
 
   FLOATVECTOR3 vTrans1 = -p1;
   FLOATVECTOR3 vScale  = (t2-t1) / (p2-p1);

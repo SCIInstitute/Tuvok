@@ -78,12 +78,12 @@ class GLSBVR : public GLRenderer {
     void SetBrickDepShaderVars(size_t iCurrentBrick);
 
     virtual void Render3DPreLoop();
-    virtual void Render3DInLoop(size_t iCurrentBrick);
+    virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
     void RenderProxyGeometry();
     virtual void Cleanup();
 
-    virtual void ComposeSurfaceImage();
+    virtual void ComposeSurfaceImage(int iStereoID);
 
 };
 

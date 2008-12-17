@@ -74,7 +74,7 @@ class GLRaycaster : public GLRenderer {
     void RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend, const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords, bool bCullBack);
 
     virtual void Render3DPreLoop();
-    virtual void Render3DInLoop(size_t iCurrentBrick);
+    virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
 
     virtual void StartFrame();
