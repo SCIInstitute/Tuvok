@@ -80,8 +80,8 @@ public:
 class KeyValueFileParser
 {
 public:
-	KeyValueFileParser(const std::string& strFilename, char cToken = ':');
-	KeyValueFileParser(const std::wstring& wstrFilename, wchar_t cToken = ':');
+	KeyValueFileParser(const std::string& strFilename, bool bStopOnEmptyLine=false, const std::string& strToken = ":");
+	KeyValueFileParser(const std::wstring& wstrFilename, bool bStopOnEmptyLine=false, const std::wstring& wstrToken = L":");
 
 	~KeyValueFileParser(void);
 
@@ -90,11 +90,14 @@ public:
 
 	bool FileReadable() const {return m_bFileReadable;}
 
+  size_t GetStopPos() {return m_iStopPos;}
+
 protected:
 	std::vector<KeyValPair> m_vecTokens;
 	bool m_bFileReadable;
+  size_t m_iStopPos;
 
-  bool ParseFile(std::wstring wstrFilename, wchar_t cToken);
+  bool ParseFile(const std::string& strFilename, bool bStopOnEmptyLine, const std::string& strToken);
 };
 
 #endif // KEYVALUEFILEPARSER_H

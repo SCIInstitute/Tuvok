@@ -107,15 +107,16 @@ KeyValPair::KeyValPair(const wstring& key, const wstring& value) :
 }
 
 
-KeyValueFileParser::KeyValueFileParser(const string& strFilename, char cToken)
+KeyValueFileParser::KeyValueFileParser(const string& strFilename, bool bStopOnEmptyLine, const string& strToken)
 {
-	wstring wstrFilename(strFilename.begin(), strFilename.end());
-	m_bFileReadable = ParseFile(wstrFilename,wchar_t(cToken));
+	m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken);
 }
 
-KeyValueFileParser::KeyValueFileParser(const wstring& wstrFilename, wchar_t cToken)
+KeyValueFileParser::KeyValueFileParser(const wstring& wstrFilename, bool bStopOnEmptyLine, const wstring& wstrToken)
 {
-	m_bFileReadable = ParseFile(wstrFilename,cToken);
+	string strFilename(wstrFilename.begin(), wstrFilename.end());
+  string strToken(wstrToken.begin(), wstrToken.end());
+	m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken);
 }
 
 KeyValueFileParser::~KeyValueFileParser()
@@ -145,12 +146,11 @@ KeyValPair* KeyValueFileParser::GetData(const wstring& wstrKey, const bool bCase
 }
 
 
-bool KeyValueFileParser::ParseFile(wstring wstrFilename, wchar_t cToken) {
-	wstring line;
+bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnEmptyLine, const std::string& strToken) {
+	string line;
+  ifstream fileData(strFilename.c_str(),ios::binary);	
 
-	string strFilename(wstrFilename.begin(), wstrFilename.end());
-	wifstream fileData(strFilename.c_str());	
-
+  m_iStopPos = 0;
 	if (fileData.is_open())
 	{
 		while (! fileData.eof() )
@@ -158,13 +158,18 @@ bool KeyValueFileParser::ParseFile(wstring wstrFilename, wchar_t cToken) {
 			getline (fileData,line);
 			SysTools::RemoveLeadingWhitespace(line);
 
-			if (line[0] == '#') continue;				// skip comments
-			if (line.find_first_of(cToken) == string::npos) continue;  // skip invalid lines
+      if (bStopOnEmptyLine && line.size() == 0)  {
+        m_iStopPos = fileData.tellg();
+        break;
+      }
 
-			wstring strKey = line.substr(0, line.find_first_of(cToken));
+			if (line[0] == '#') continue;				// skip comments
+			if (line.find_first_of(strToken) == string::npos) continue;  // skip invalid lines
+
+      string strKey = line.substr(0, line.find_first_of(strToken));
 			SysTools::RemoveTailingWhitespace(strKey);
 
-			line = line.substr(line.find_first_of(cToken)+1, line.length());
+      line = line.substr(line.find_first_of(strToken)+strToken.length(), line.length());
 			SysTools::RemoveLeadingWhitespace(line);
 			SysTools::RemoveTailingWhitespace(line);
 

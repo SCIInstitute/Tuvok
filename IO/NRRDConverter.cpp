@@ -81,10 +81,13 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
   FLOATVECTOR3	vVolumeAspect(1,1,1);
   string        strRAWFile;
 
-  KeyValueFileParser parser(strSourceFilename);
+  string strExt = SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename));
+  bool bDetachedHeader = (strExt == "NHRD");
+
+  KeyValueFileParser parser(strSourceFilename, !bDetachedHeader);
 
   if (!parser.FileReadable()) {
-    pMasterController->DebugOut()->Warning("NRRDConverter::Convert","Could not open NRHD file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Warning("NRRDConverter::Convert","Could not open NRRD file %s", strSourceFilename.c_str());
     return false;
   }
 
@@ -148,14 +151,21 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     vVolumeSize = kvpSizes->vuiValue;
   }
 
-  KeyValPair* kvpDataFile = parser.GetData("DATA FILE");
-  if (kvpDataFile == NULL) {
-    pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"data file\" in file %s", strSourceFilename.c_str());
-	  return false;
+  UINT64 iHeaderSkip;
+  if (bDetachedHeader) {
+    KeyValPair* kvpDataFile = parser.GetData("DATA FILE");
+    if (kvpDataFile == NULL) {
+      pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"data file\" in file %s", strSourceFilename.c_str());
+	    return false;
+    } else {
+      strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile->strValue;
+      iHeaderSkip = 0;
+    }
   } else {
-    strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile->strValue;
+    iHeaderSkip = UINT64(parser.GetStopPos());
+    strRAWFile = strSourceFilename;
   }
-  
+
   KeyValPair* kvpSpacings = parser.GetData("SPACINGS");
   if (kvpSpacings != NULL) {
     vVolumeAspect = kvpSpacings->vfValue;
@@ -172,7 +182,7 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     if (kvpEncoding->strValueUpper == "RAW")  {
       pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is in RAW format!");
 
-      return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
+      return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
                                vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
     } else
     if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
@@ -184,14 +194,14 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     if (kvpEncoding->strValueUpper != "GZ" || kvpEncoding->strValueUpper != "GZIP")  {
       pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is GZIP compressed RAW format.");
 
-      return ConvertGZIPDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
+      return ConvertGZIPDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
                                vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
 
     } else
     if (kvpEncoding->strValueUpper != "BZ" || kvpEncoding->strValueUpper != "BZIP2")  {
       pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is BZIP2 compressed RAW format.");
 
-      return ConvertBZIP2Dataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
+      return ConvertBZIP2Dataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
                                vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
 
     } else {
