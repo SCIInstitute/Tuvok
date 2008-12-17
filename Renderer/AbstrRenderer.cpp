@@ -82,7 +82,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bPerformReCompose(false),
   m_bRequestStereoRendering(false),
   m_bDoStereoRendering(false),
-  m_fStereoEyeDist(1.0f),
+  m_fStereoEyeDist(0.01f),
   m_fStereoFocalLength(0.1f),
   m_bUseOnlyPowerOfTwo(bUseOnlyPowerOfTwo),
   m_bAvoidSeperateCompositing(true)

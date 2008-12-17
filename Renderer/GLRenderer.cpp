@@ -364,6 +364,7 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
     // in stereo compose both images into one, in mono mode simply swap the pointers
     if (m_bDoStereoRendering) {
       // TODO
+      swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
     } else {
       swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
     }
