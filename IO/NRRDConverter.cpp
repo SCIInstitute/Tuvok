@@ -156,17 +156,6 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile->strValue;
   }
   
-  KeyValPair* kvpEncoding = parser.GetData("ENCODING");
-  if (kvpEncoding == NULL) {
-    pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"encoding\" in file %s", strSourceFilename.c_str());
-	  return false;
-  } else {
-    if (kvpEncoding->strValueUpper != "RAW")  {
-      pMasterController->DebugOut()->Error("NRRDConverter::Convert","Only raw encodings are supported at the moment.");
-	    return false;
-     }
-  }
-
   KeyValPair* kvpSpacings = parser.GetData("SPACINGS");
   if (kvpSpacings != NULL) {
     vVolumeAspect = kvpSpacings->vfValue;
@@ -175,7 +164,39 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
   KeyValPair* kvpEndian = parser.GetData("ENDIAN");
   if (kvpEndian != NULL && kvpEndian->strValueUpper == "BIG") bBigEndian = true;
 
-  return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
-                           vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
+  KeyValPair* kvpEncoding = parser.GetData("ENCODING");
+  if (kvpEncoding == NULL) {
+    pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not find token \"encoding\" in file %s", strSourceFilename.c_str());
+	  return false;
+  } else {
+    if (kvpEncoding->strValueUpper == "RAW")  {
+      pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is in RAW format!");
 
+      return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
+                               vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
+    } else
+    if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
+      pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in text format which is not supported at the moment.");
+    } else
+    if (kvpEncoding->strValueUpper != "HEX")  {
+      pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in haxdecimal text format which is not supported at the moment.");
+    } else
+    if (kvpEncoding->strValueUpper != "GZ" || kvpEncoding->strValueUpper != "GZIP")  {
+      pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is GZIP compressed RAW format.");
+
+      return ConvertGZIPDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
+                               vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
+
+    } else
+    if (kvpEncoding->strValueUpper != "BZ" || kvpEncoding->strValueUpper != "BZIP2")  {
+      pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is BZIP2 compressed RAW format.");
+
+      return ConvertBZIP2Dataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
+                               vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
+
+    } else {
+      pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in unknown \"%s\" format.");
+    }
+    return false;
+  }
 }

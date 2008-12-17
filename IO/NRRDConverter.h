@@ -48,7 +48,7 @@ class MasterController;
 class NRRDConverter : public RAWConverter {
 public:
   NRRDConverter();
-  ~NRRDConverter();
+  virtual ~NRRDConverter() {}
 
   virtual bool Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController);
 

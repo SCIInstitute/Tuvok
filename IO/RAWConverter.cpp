@@ -315,3 +315,49 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
   return true;
 }
+
+
+bool RAWConverter::ConvertGZIPDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
+                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
+                                     UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const std::string& strDesc, const std::string& strSource, UVFTables::ElementSemanticTable eType)
+{
+  string strUncompressedFile = strTempDir+SysTools::GetFilename(strFilename)+".uncompressed";
+
+  /// \todo Tom: add gzip decompression code here 
+  ///            uncompressing strFilename into strUncompressedFile
+  ///            and do not forget to skip the first "iHeaderSkip" bytes
+  ///            before heanding the stream over to the gzip lib
+
+  bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename, strTempDir, pMasterController, 
+                                   0, iComponentSize, iComponentCount, bSigned, bConvertEndianness,
+                                   vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
+
+  if( remove(strUncompressedFile.c_str()) != 0 )
+      pMasterController->DebugOut()->Warning("NRRDConverter::ConvertGZIPDataset","Unable to delete temp file %s.", strUncompressedFile.c_str());
+
+  return bResult;
+}
+
+
+bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
+                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
+                                     UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const std::string& strDesc, const std::string& strSource, UVFTables::ElementSemanticTable eType)
+{
+  string strUncompressedFile = strTempDir+SysTools::GetFilename(strFilename)+".uncompressed";
+
+  /// \todo Tom: add bzip2 decompression code here 
+  ///            uncompressing strFilename into strUncompressedFile
+  ///            and do not forget to skip the first "iHeaderSkip" bytes
+  ///            before heanding the stream over to the bzip2 lib
+
+  return false;
+
+  bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename, strTempDir, pMasterController, 
+                                   0, iComponentSize, iComponentCount, bSigned, bConvertEndianness,
+                                   vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
+
+  if( remove(strUncompressedFile.c_str()) != 0 )
+      pMasterController->DebugOut()->Warning("NRRDConverter::ConvertBZIP2Dataset","Unable to delete temp file %s.", strUncompressedFile.c_str());
+
+  return bResult;
+}

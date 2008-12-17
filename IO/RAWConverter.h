@@ -45,11 +45,22 @@
 
 class RAWConverter : public AbstrConverter {
 public:
+  virtual ~RAWConverter() {}
+  
   static bool ConvertRAWDataset(const std::string& strFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController,
                                 UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness,
 				                        bool bSigned, UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, 
                                 const std::string& strDesc, const std::string& strSource="", UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED);
 
+  static bool ConvertGZIPDataset(const std::string& strFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController,
+                                UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness,
+				                        bool bSigned, UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, 
+                                const std::string& strDesc, const std::string& strSource="", UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED);
+
+  static bool ConvertBZIP2Dataset(const std::string& strFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController,
+                                UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness,
+				                        bool bSigned, UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, 
+                                const std::string& strDesc, const std::string& strSource="", UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED);
 };
 
 #endif // RAWCONVERTER_H
