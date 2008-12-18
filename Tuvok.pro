@@ -1,13 +1,14 @@
 TEMPLATE          = lib
-CONFIG           += staticlib static
+CONFIG           += staticlib static create_prl
 TARGET            = Tuvok
 VERSION           = 0.0.1
 TARGET            = Build/Tuvok
 RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
 DEPENDPATH       += .
-INCLUDEPATH      += .
+INCLUDEPATH      += . 3rdparty/zlib/include
 QT               += opengl
+LIBS             += -L3rdParty/zlib/lib -Ltuvok/3rdParty/zlib/lib -lz
 
 # Input
 HEADERS += StdDefines.h \

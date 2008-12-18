@@ -33,6 +33,7 @@
         University of Utah
   \date    December 2008
 */
+#include <cstdio>
 #include "zlib.h"
 
 #include "RAWConverter.h"
