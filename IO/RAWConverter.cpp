@@ -33,9 +33,7 @@
         University of Utah
   \date    December 2008
 */
-#if 0
 #include "zlib.h"
-#endif
 
 #include "RAWConverter.h"
 #include "IOManager.h"  // for the size defines
@@ -376,8 +374,6 @@ bool RAWConverter::ConvertGZIPDataset(const std::string& strFilename,
     return false;
   }
 
-#if 0
-    // will fix in a sec -- TJF
   gz_skip_header(f_compressed); // always needed?
 
   ret = gz_inflate(f_compressed, f_inflated);
@@ -404,10 +400,6 @@ bool RAWConverter::ConvertGZIPDataset(const std::string& strFilename,
       return false;
       break;
   }
-#else
-    dbg->Error(method, "unimplemented");
-    return false;
-#endif
 
   bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename,
                                    strTempDir, pMasterController, 0,

@@ -1,6 +1,4 @@
 #include "gzio.h"
-#if 0
-    /* will fix in a sec -- TJF */
 #include "zlib.h"
 #include <assert.h>
 
@@ -127,4 +125,3 @@ gz_skip_header(FILE *fs)
         fgetc(fs);
     }
 }
-#endif
