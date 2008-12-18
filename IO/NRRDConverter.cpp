@@ -82,7 +82,7 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
   string        strRAWFile;
 
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename));
-  bool bDetachedHeader = (strExt == "NHRD");
+  bool bDetachedHeader = (strExt == "NHDR");
 
   KeyValueFileParser parser(strSourceFilename, !bDetachedHeader);
 
@@ -188,17 +188,17 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
       pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in text format which is not supported at the moment.");
     } else
-    if (kvpEncoding->strValueUpper != "HEX")  {
+    if (kvpEncoding->strValueUpper == "HEX")  {
       pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in haxdecimal text format which is not supported at the moment.");
     } else
-    if (kvpEncoding->strValueUpper != "GZ" || kvpEncoding->strValueUpper != "GZIP")  {
+    if (kvpEncoding->strValueUpper == "GZ" || kvpEncoding->strValueUpper == "GZIP")  {
       pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is GZIP compressed RAW format.");
 
       return ConvertGZIPDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
                                vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
 
     } else
-    if (kvpEncoding->strValueUpper != "BZ" || kvpEncoding->strValueUpper != "BZIP2")  {
+    if (kvpEncoding->strValueUpper == "BZ" || kvpEncoding->strValueUpper == "BZIP2")  {
       pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is BZIP2 compressed RAW format.");
 
       return ConvertBZIP2Dataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
