@@ -58,7 +58,8 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgram2DTransSlice(NULL),
   m_pProgramMIPSlice(NULL),
   m_pProgramIsoCompose(NULL),
-  m_pProgramCVCompose(NULL)
+  m_pProgramCVCompose(NULL),
+  m_pProgramComposeAnaglyphs(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
   m_pProgram1DTrans[1]   = NULL;
@@ -121,7 +122,8 @@ bool GLRenderer::Initialize() {
       !LoadAndVerifyShader("Transfer-VS.glsl", "2D-slice-FS.glsl",  m_vShaderSearchDirs, &(m_pProgram2DTransSlice)) ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "MIP-slice-FS.glsl", m_vShaderSearchDirs, &(m_pProgramMIPSlice))     ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramIsoCompose))   ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",m_vShaderSearchDirs, &(m_pProgramCVCompose)))   {
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",m_vShaderSearchDirs, &(m_pProgramCVCompose))    ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",m_vShaderSearchDirs, &(m_pProgramComposeAnaglyphs)))   {
 
       m_pMasterController->DebugOut()->Error("GLRenderer::Initialize","Error loading transfer shaders.");
       return false;
@@ -168,6 +170,12 @@ bool GLRenderer::Initialize() {
     m_pProgramCVCompose->SetUniformVector("vLightDir",0.0f,0.0f,-1.0f);
     m_pProgramCVCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
     m_pProgramCVCompose->Disable();
+
+    m_pProgramComposeAnaglyphs->Enable();
+    m_pProgramComposeAnaglyphs->SetUniformVector("texLeftEye",0);
+    m_pProgramComposeAnaglyphs->SetUniformVector("texRightEye",1);
+    m_pProgramComposeAnaglyphs->Disable();
+    
   }
 
   return true;
@@ -230,12 +238,18 @@ void GLRenderer::ClearDepthBuffer() {
 
 void GLRenderer::ClearColorBuffer() {
   glDepthMask(GL_FALSE);
-  if (m_vBackgroundColors[0] == m_vBackgroundColors[1]) {
-    glClearColor(m_vBackgroundColors[0].x,m_vBackgroundColors[0].y,m_vBackgroundColors[0].z,0);
+  if (m_bDoStereoRendering) {
+    // render anaglyphs agains a black background only
+    glClearColor(0,0,0,0);
     glClear(GL_COLOR_BUFFER_BIT); 
   } else {
-    glDisable(GL_BLEND);
-    DrawBackGradient();
+    if (m_vBackgroundColors[0] == m_vBackgroundColors[1]) {
+      glClearColor(m_vBackgroundColors[0].x,m_vBackgroundColors[0].y,m_vBackgroundColors[0].z,0);
+      glClear(GL_COLOR_BUFFER_BIT); 
+    } else {
+      glDisable(GL_BLEND);
+      DrawBackGradient();
+    }
   }
   DrawLogo();
   glDepthMask(GL_TRUE);
@@ -358,13 +372,37 @@ void GLRenderer::Paint() {
 }
 
 void GLRenderer::EndFrame(bool bNewDataToShow) {
-  // if the image is complete swap the offscreen buffers
+  // if the image is complete
   if (bNewDataToShow) {
 
     // in stereo compose both images into one, in mono mode simply swap the pointers
     if (m_bDoStereoRendering) {
-      // TODO
-      swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
+      m_pFBO3DImageCurrent[0]->Read(GL_TEXTURE0);
+      m_pFBO3DImageCurrent[1]->Read(GL_TEXTURE1);
+
+      m_pFBO3DImageLast->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
+      GLFBOTex::OneDrawBuffer();
+      glClear(GL_COLOR_BUFFER_BIT);
+
+
+      m_pProgramComposeAnaglyphs->Enable();
+      glDisable(GL_DEPTH_TEST);
+      glBegin(GL_QUADS);
+        glTexCoord2d(0,0);
+        glVertex3d(-1.0, -1.0, -0.5);
+        glTexCoord2d(1,0);
+        glVertex3d( 1.0, -1.0, -0.5);
+        glTexCoord2d(1,1);
+        glVertex3d( 1.0,  1.0, -0.5);
+        glTexCoord2d(0,1);
+        glVertex3d(-1.0,  1.0, -0.5);
+      glEnd();
+      m_pProgramComposeAnaglyphs->Disable();
+
+      m_pFBO3DImageLast->FinishWrite();
+
+      m_pFBO3DImageCurrent[0]->FinishRead();
+      m_pFBO3DImageCurrent[1]->FinishRead();
     } else {
       swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
     }
@@ -869,6 +907,7 @@ void GLRenderer::Cleanup() {
   if (m_pProgramIso)          {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIso); m_pProgramIso =NULL;}
   if (m_pProgramIsoCompose)   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIsoCompose); m_pProgramIsoCompose = NULL;}
   if (m_pProgramCVCompose)    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramCVCompose); m_pProgramCVCompose = NULL;}
+  if (m_pProgramComposeAnaglyphs){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeAnaglyphs); m_pProgramComposeAnaglyphs = NULL;}
 
   if (m_pLogoTex)             {m_pMasterController->MemMan()->FreeTexture(m_pLogoTex); m_pLogoTex =NULL;}
 }
@@ -1064,7 +1103,7 @@ void GLRenderer::BBoxPreRender() {
   // for rendering modes other than isosurface render the bbox in the first pass once to init the depth buffer
   // for isosurface rendering we can go ahead and render the bbox directly as isosurfacing 
   // writes out correct depth values
-  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) {
+  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
 	  glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
 	  if (m_bRenderGlobalBBox) 
       RenderBBox();
@@ -1076,8 +1115,7 @@ void GLRenderer::BBoxPreRender() {
 	  glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
   } else {
     glDisable(GL_BLEND);
-	  if (m_bRenderGlobalBBox) 
-      RenderBBox();
+	  if (m_bRenderGlobalBBox) RenderBBox();
 	  if (m_bRenderLocalBBox) {
 	    for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
 	      RenderBBox(FLOATVECTOR4(0,1,0,1), m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
@@ -1087,8 +1125,7 @@ void GLRenderer::BBoxPreRender() {
 }
 
 void GLRenderer::BBoxPostRender() {
-  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) {
-    m_matModelView[0].setModelview();
+  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     if (m_bRenderGlobalBBox) RenderBBox();
@@ -1115,6 +1152,7 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
   NewFrameClear(eArea);
 
   m_pFBO3DImageCurrent[0]->Write();
+  m_mProjection[0].setProjection();
   m_matModelView[0].setModelview();
   BBoxPreRender();
   Render3DPreLoop();
@@ -1125,6 +1163,7 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
 
   if (m_bDoStereoRendering) {
     m_pFBO3DImageCurrent[1]->Write();
+    m_mProjection[1].setProjection();
     m_matModelView[1].setModelview();
     BBoxPreRender();
     Render3DPreLoop();
@@ -1136,18 +1175,17 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
 }
 
 void GLRenderer::Render3DView() {  
-  // Modelview
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  m_matModelView[0].setModelview();
-
   // in the first frame of a new lod level write the bounding boxes into depthbuffer (and for isosurfacing also into colorbuffer)
   if (m_iBricksRenderedInThisSubFrame == 0) {
     m_pFBO3DImageCurrent[0]->Write();
+    m_mProjection[0].setProjection();
+    m_matModelView[0].setModelview();
     BBoxPreRender();
     m_pFBO3DImageCurrent[0]->FinishWrite();  
     if (m_bDoStereoRendering) {
       m_pFBO3DImageCurrent[1]->Write();
+      m_mProjection[1].setProjection();
+      m_matModelView[1].setModelview();
       BBoxPreRender();
       m_pFBO3DImageCurrent[1]->FinishWrite();
     }
@@ -1202,10 +1240,14 @@ void GLRenderer::Render3DView() {
   // at the very end render the bboxes
   if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
     m_pFBO3DImageCurrent[0]->Write();
+    m_mProjection[0].setProjection();
+    m_matModelView[0].setModelview();
     BBoxPostRender();
     m_pFBO3DImageCurrent[0]->FinishWrite();  
     if (m_bDoStereoRendering) {
       m_pFBO3DImageCurrent[1]->Write();
+      m_mProjection[1].setProjection();
+      m_matModelView[1].setModelview();
       BBoxPostRender();
       m_pFBO3DImageCurrent[1]->FinishWrite();
     }

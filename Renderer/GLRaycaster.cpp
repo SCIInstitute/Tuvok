@@ -185,7 +185,7 @@ void GLRaycaster::SetBrickDepShaderVars(size_t iCurrentBrick) {
 
 }
 
-void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend, const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords, bool bCullBack) {
+void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend, const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords, bool bCullBack, int iStereoID) {
   if (bCullBack) {
     glCullFace(GL_BACK);
   } else {
@@ -200,7 +200,8 @@ void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vEx
   FLOATMATRIX4 m = ComputeEyeToTextureMatrix(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z),
                                              FLOATVECTOR3(vMaxCoords.x, vMaxCoords.y, vMaxCoords.z),
                                              FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMinPoint.z),
-                                             FLOATVECTOR3(vMinCoords.x, vMinCoords.y, vMinCoords.z));
+                                             FLOATVECTOR3(vMinCoords.x, vMinCoords.y, vMinCoords.z),
+                                             iStereoID);
 
 
   m.setTextureMatrix();
@@ -288,10 +289,16 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   glDisable(GL_BLEND);
   glDepthMask(GL_FALSE);
 
+  m_matModelView[iStereoID].setModelview();
+  m_mProjection[iStereoID].setProjection();
+
   // write frontfaces (ray entry points)
   m_pFBORayEntry->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
+  GLFBOTex::OneDrawBuffer();
   m_pProgramRenderFrontFaces->Enable();
-  RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax, false);
+  RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, 
+            m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax,
+            false, iStereoID);
   m_pProgramRenderFrontFaces->Disable();
   m_pFBORayEntry->FinishWrite(0);
  
@@ -305,12 +312,13 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     m_pProgramIso->Enable();
     SetBrickDepShaderVars(iCurrentBrick);
     m_pFBORayEntry->Read(GL_TEXTURE2_ARB);
-    RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax, true);
+    RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, 
+              m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax,
+              true, iStereoID);
     m_pFBORayEntry->FinishRead();
     m_pProgramIso->Disable();
 
     GLFBOTex::NoDrawBuffer();
-
     m_pFBOIsoHit[iStereoID]->FinishWrite(1);
     m_pFBOIsoHit[iStereoID]->FinishWrite(0);
 
@@ -324,11 +332,14 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
       m_pFBORayEntry->Read(GL_TEXTURE2_ARB);
       m_pFBOIsoHit[iStereoID]->Read(GL_TEXTURE4_ARB, 0);
       m_pFBOIsoHit[iStereoID]->Read(GL_TEXTURE5_ARB, 1);
-      RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax, true);
+      RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension,
+                m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax,
+                true, iStereoID);
       m_pFBOIsoHit[iStereoID]->FinishRead(1);
       m_pFBOIsoHit[iStereoID]->FinishRead(0);
       m_pFBORayEntry->FinishRead();
       m_pProgramIso2->Disable();
+
       GLFBOTex::NoDrawBuffer();
 
       m_pFBOCVHit[iStereoID]->FinishWrite(1);
@@ -356,7 +367,9 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     SetBrickDepShaderVars(iCurrentBrick);
 
     m_pFBORayEntry->Read(GL_TEXTURE2_ARB);
-    RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax, true);
+    RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, 
+              m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax, 
+              true, iStereoID);
     m_pFBORayEntry->FinishRead();
 
     switch (m_eRenderMode) {
@@ -369,6 +382,8 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
       default            :  m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DInLoop","Invalid rendermode set"); 
                             break;
     }
+
+    m_pFBO3DImageCurrent[iStereoID]->FinishWrite();
   }
 }
 
@@ -414,7 +429,6 @@ void GLRaycaster::Render3DPostLoop() {
   glDisable(GL_CULL_FACE);
   glDepthMask(GL_TRUE);
   glEnable(GL_BLEND);
-
 }
 
 void GLRaycaster::SetDataDepShaderVars() {
@@ -428,10 +442,11 @@ void GLRaycaster::SetDataDepShaderVars() {
 
 
 FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1, 
-                                                    FLOATVECTOR3 p2, FLOATVECTOR3 t2) {
+                                                    FLOATVECTOR3 p2, FLOATVECTOR3 t2,
+                                                    int iStereoID) {
   FLOATMATRIX4 m;
 
-  FLOATMATRIX4 mInvModelView = m_matModelView[0].inverse();
+  FLOATMATRIX4 mInvModelView = m_matModelView[iStereoID].inverse();
 
   FLOATVECTOR3 vTrans1 = -p1;
   FLOATVECTOR3 vScale  = (t2-t1) / (p2-p1);

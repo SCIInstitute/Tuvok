@@ -82,8 +82,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bPerformReCompose(false),
   m_bRequestStereoRendering(false),
   m_bDoStereoRendering(false),
-  m_fStereoEyeDist(0.01f),
-  m_fStereoFocalLength(0.1f),
+  m_fStereoEyeDist(0.02f),
+  m_fStereoFocalLength(1.0f),
   m_bUseOnlyPowerOfTwo(bUseOnlyPowerOfTwo),
   m_bAvoidSeperateCompositing(true)
 {
@@ -497,6 +497,10 @@ void AbstrRenderer::Plan3DFrame() {
   if (m_bPerformRedraw) {
     // compute modelviewmatrix and pass it to the culling object
     m_matModelView[0] = m_mRotation*m_mTranslation*m_mView[0];
+    if (m_bDoStereoRendering) 
+      m_matModelView[1] = m_mRotation*m_mTranslation*m_mView[1];
+
+    // we assume that the left and right eye's view are similar so we only use one for culling
     m_FrustumCullingLOD.SetViewMatrix(m_matModelView[0]);
     m_FrustumCullingLOD.Update();
 

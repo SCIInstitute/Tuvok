@@ -1217,9 +1217,10 @@ public:
       glLoadMatrixf(M);
     }
 
-    void setTextureMatrix() {
+    void setTextureMatrix(int iUnit = 0) {
       float M[16];
       for (int i=0;i<16;i++) M[i] = float(array[i]);
+      glActiveTextureARB(GL_TEXTURE0_ARB+iUnit);
       glMatrixMode(GL_TEXTURE);
       glLoadMatrixf(M);
     }

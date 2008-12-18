@@ -27,37 +27,23 @@
 */
 
 /**
-  \file    AbstrDebugOut.h
+  \file    GLSBVR-Transfer-FS.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah
   \version  1.0
-  \date    August 2008
+  \date    October 2008
 */
 
+uniform sampler2D texRightEye;
+uniform sampler2D texLeftEye;  
 
-#pragma once
+void main(void){
+  vec4 vLeftEye = texture2D(texLeftEye,  gl_TexCoord[0].xy);
+  vec4 vRightEye = texture2D(texRightEye, gl_TexCoord[0].xy);
 
-#ifndef ABSTRDEBUGOUT_H
-#define ABSTRDEBUGOUT_H
+  float fGrayLeftEye  = dot(vLeftEye.rgb, vec3(0.3,0.59,0.11));
+  float fGrayRightEye = dot(vRightEye.rgb, vec3(0.3,0.59,0.11));
 
-class AbstrDebugOut {
-  public:
-#ifdef _DEBUG
-    AbstrDebugOut() : m_bShowMessages(false), m_bShowWarnings(true), m_bShowErrors(true), m_bShowOther(true) {}
-#else
-    AbstrDebugOut() : m_bShowMessages(false), m_bShowWarnings(false), m_bShowErrors(true), m_bShowOther(true) {}
-#endif
-    virtual ~AbstrDebugOut() {}
-    virtual void printf(const char* format, ...) = 0;
-    virtual void Message(const char* source, const char* format, ...) = 0;
-    virtual void Warning(const char* source, const char* format, ...) = 0;
-    virtual void Error(const char* source, const char* format, ...) = 0;
-
-    bool m_bShowMessages;
-    bool m_bShowWarnings;
-    bool m_bShowErrors;
-    bool m_bShowOther;
-};
-
-#endif // ABSTRDEBUGOUT_H
+  gl_FragColor = vec4(fGrayLeftEye,0,fGrayRightEye,max(vLeftEye.a,vRightEye.a));
+}

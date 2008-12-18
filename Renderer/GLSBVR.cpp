@@ -210,7 +210,8 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
                             m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans; 
   maBricktTrans.Translation(m_vCurrentBrickList[iCurrentBrick].vCenter.x, m_vCurrentBrickList[iCurrentBrick].vCenter.y, m_vCurrentBrickList[iCurrentBrick].vCenter.z);
-  FLOATMATRIX4 maBricktModelView = maBricktTrans * m_matModelView[0];
+  FLOATMATRIX4 maBricktModelView = maBricktTrans * m_matModelView[iStereoID];
+  m_mProjection[iStereoID].setProjection();
   maBricktModelView.setModelview();
   m_SBVRGeogen.SetTransformation(maBricktModelView, true);
 

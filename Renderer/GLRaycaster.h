@@ -71,7 +71,9 @@ class GLRaycaster : public GLRenderer {
     void SetBrickDepShaderVars(size_t iCurrentBrick);
 
     virtual void CreateOffscreenBuffers();
-    void RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend, const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords, bool bCullBack);
+    void RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend, 
+                   const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords, 
+                   bool bCullBack, int iStereoID);
 
     virtual void Render3DPreLoop();
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
@@ -81,7 +83,8 @@ class GLRaycaster : public GLRenderer {
     virtual void SetDataDepShaderVars();
 
     FLOATMATRIX4 ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1, 
-                                           FLOATVECTOR3 p2, FLOATVECTOR3 t2);
+                                           FLOATVECTOR3 p2, FLOATVECTOR3 t2,
+                                           int iStereoID);
 };
 
 #endif // GLRAYCASTER_H

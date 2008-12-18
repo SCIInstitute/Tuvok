@@ -140,6 +140,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramMIPSlice;
     GLSLProgram*    m_pProgramIsoCompose;
     GLSLProgram*    m_pProgramCVCompose;
+    GLSLProgram*    m_pProgramComposeAnaglyphs;
 
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();
