@@ -49,12 +49,23 @@ using namespace std;
 
 IOManager::IOManager(MasterController* masterController) :
   m_pMasterController(masterController),
-  m_TempDir("./") // changed by convert dataset
+  m_TempDir("./"), // changed by convert dataset
+  m_pFinalConverter(NULL)
 {
   m_vpConverters.push_back(new QVISConverter());
   m_vpConverters.push_back(new NRRDConverter());
-
 }
+
+
+void IOManager::RegisterExternalConverter(AbstrConverter* pConverter) {
+  m_vpConverters.push_back(pConverter);
+}
+
+void IOManager::RegisterFinalConverter(AbstrConverter* pConverter) {
+  if ( m_pFinalConverter ) delete m_pFinalConverter;
+  m_pFinalConverter = pConverter;
+}
+
 
 IOManager::~IOManager()
 {
@@ -271,7 +282,11 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
       }
     }
   }
-  return false;
+
+  if (m_pFinalConverter) 
+    return m_pFinalConverter->Convert(strFilename, strTargetFilename, m_TempDir, m_pMasterController);
+  else
+    return false;
 }
 
 VolumeDataset* IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester) {

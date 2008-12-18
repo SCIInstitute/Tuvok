@@ -66,10 +66,14 @@ public:
   bool NeedsConversion(const std::string& strFilename, bool& bChecksumFail);
   bool NeedsConversion(const std::string& strFilename);
 
+  void RegisterExternalConverter(AbstrConverter* pConverter);
+  void RegisterFinalConverter(AbstrConverter* pConverter);
+
 private:
   std::string                   m_TempDir;
   MasterController*             m_pMasterController;
   std::vector<AbstrConverter*>  m_vpConverters;
+  AbstrConverter*               m_pFinalConverter;
 
 };
 
