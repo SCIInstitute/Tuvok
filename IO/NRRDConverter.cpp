@@ -66,11 +66,12 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
       return false;
     }
   } else {
-    pMasterController->DebugOut()->Warning("NRRDConverter::Convert","Could not open NRHD file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Warning("NRRDConverter::Convert",
+                                           "Could not open NHDR file %s",
+                                           strSourceFilename.c_str());
     return false;
   }
   fileData.close();
-
 
   // read data
   UINT64			  iComponentSize=8;
@@ -176,8 +177,11 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
 
   KeyValPair* kvpEncoding = parser.GetData("ENCODING");
   if (kvpEncoding == NULL) {
-    pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not find token \"encoding\" in file %s", strSourceFilename.c_str());
-	  return false;
+    pMasterController->DebugOut()->Error("NRRDConverter::Convert",
+                                         "Could not find token \"encoding\""
+                                         " in file %s",
+                                         strSourceFilename.c_str());
+    return false;
   } else {
     if (kvpEncoding->strValueUpper == "RAW")  {
       pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is in RAW format!");
