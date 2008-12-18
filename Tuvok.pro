@@ -8,7 +8,7 @@ OBJECTS_DIR       = Build/objects
 DEPENDPATH       += .
 INCLUDEPATH      += . 3rdparty/zlib/include
 QT               += opengl
-LIBS             += -L3rdParty/zlib/lib -Ltuvok/3rdParty/zlib/lib -lz
+LIBS             += -L3rdParty/zlib/lib -LTuvok/3rdParty/zlib/lib -lz
 
 # Input
 HEADERS += StdDefines.h \
