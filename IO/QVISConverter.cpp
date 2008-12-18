@@ -50,7 +50,7 @@ QVISConverter::QVISConverter()
 
 bool QVISConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController)
 {
-  pMasterController->DebugOut()->Message("QVISConverter::Convert","Attempting to convertet QVIS dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
+  pMasterController->DebugOut()->Message("QVISConverter::Convert","Attempting to convert QVIS dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
 
   UINT64			  iComponentSize=8;
   UINT64			  iComponentCount=1;
