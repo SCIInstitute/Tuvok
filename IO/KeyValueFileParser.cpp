@@ -47,76 +47,76 @@ using namespace std;
 
 
 KeyValPair::KeyValPair() : 
-	strKey(""),
-	wstrKey(L""),
-	strKeyUpper(""),
-	wstrKeyUpper(L""),
+  strKey(""),
+  wstrKey(L""),
+  strKeyUpper(""),
+  wstrKeyUpper(L""),
 
-	strValue(""),
-	wstrValue(L""),
-	strValueUpper(""),
-	wstrValueUpper(L""),
-	uiValue(0),
-	iValue(0),
-	fValue(0),
-	viValue(0,0,0),
-	vfValue(0,0,0)
+  strValue(""),
+  wstrValue(L""),
+  strValueUpper(""),
+  wstrValueUpper(L""),
+  uiValue(0),
+  iValue(0),
+  fValue(0),
+  viValue(0,0,0),
+  vfValue(0,0,0)
 
 {}
 
 KeyValPair::KeyValPair(const string& key, const string& value) :
-	strKey(key),
-	wstrKey(key.begin(), key.end()),
+  strKey(key),
+  wstrKey(key.begin(), key.end()),
 
-	strValue(value),
-	wstrValue(value.begin(), value.end())
+  strValue(value),
+  wstrValue(value.begin(), value.end())
 {
-	istringstream ss1( value ), ss2( value ), ss3( value ), ss4( value ), ss5( value ), ss6( value );
-	ss1 >> uiValue;
-	ss2 >> iValue;
-	ss3 >> fValue;
-	ss4 >> viValue.x >> viValue.y >> viValue.z;
-	ss5 >> vuiValue.x >> vuiValue.y >> vuiValue.z;
-	ss6 >> vfValue.x >> vfValue.y >> vfValue.z;
+  istringstream ss1( value ), ss2( value ), ss3( value ), ss4( value ), ss5( value ), ss6( value );
+  ss1 >> uiValue;
+  ss2 >> iValue;
+  ss3 >> fValue;
+  ss4 >> viValue.x >> viValue.y >> viValue.z;
+  ss5 >> vuiValue.x >> vuiValue.y >> vuiValue.z;
+  ss6 >> vfValue.x >> vfValue.y >> vfValue.z;
 
-	strKeyUpper  = strKey; transform(strKeyUpper.begin(), strKeyUpper.end(), strKeyUpper.begin(), ::toupper);
-	wstrKeyUpper = wstrKey; transform(wstrKeyUpper.begin(), wstrKeyUpper.end(), wstrKeyUpper.begin(), ::toupper);
-	strValueUpper  = strValue; transform(strValueUpper.begin(), strValueUpper.end(), strValueUpper.begin(), ::toupper);
-	wstrValueUpper  = wstrValue; transform(wstrValueUpper.begin(), wstrValueUpper.end(), wstrValueUpper.begin(), ::toupper);
+  strKeyUpper  = strKey; transform(strKeyUpper.begin(), strKeyUpper.end(), strKeyUpper.begin(), ::toupper);
+  wstrKeyUpper = wstrKey; transform(wstrKeyUpper.begin(), wstrKeyUpper.end(), wstrKeyUpper.begin(), ::toupper);
+  strValueUpper  = strValue; transform(strValueUpper.begin(), strValueUpper.end(), strValueUpper.begin(), ::toupper);
+  wstrValueUpper  = wstrValue; transform(wstrValueUpper.begin(), wstrValueUpper.end(), wstrValueUpper.begin(), ::toupper);
 }
 
 KeyValPair::KeyValPair(const wstring& key, const wstring& value) :
-	strKey(key.begin(), key.end()),
-	wstrKey(key),
+  strKey(key.begin(), key.end()),
+  wstrKey(key),
 
-	strValue(value.begin(), value.end()),
-	wstrValue(value)
+  strValue(value.begin(), value.end()),
+  wstrValue(value)
 {
-	wistringstream ss1( value ), ss2( value ), ss3( value ), ss4( value ), ss5( value ), ss6( value );
-	ss1 >> uiValue;
-	ss2 >> iValue;
-	ss3 >> fValue;
-	ss4 >> viValue.x >> viValue.y >> viValue.z;
-	ss5 >> vuiValue.x >> vuiValue.y >> vuiValue.z;
-	ss6 >> vfValue.x >> vfValue.y >> vfValue.z;
+  wistringstream ss1( value ), ss2( value ), ss3( value ), ss4( value ), ss5( value ), ss6( value );
+  ss1 >> uiValue;
+  ss2 >> iValue;
+  ss3 >> fValue;
+  ss4 >> viValue.x >> viValue.y >> viValue.z;
+  ss5 >> vuiValue.x >> vuiValue.y >> vuiValue.z;
+  ss6 >> vfValue.x >> vfValue.y >> vfValue.z;
 
-	strKeyUpper  = strKey; transform(strKeyUpper.begin(), strKeyUpper.end(), strKeyUpper.begin(), ::toupper);
-	wstrKeyUpper = wstrKey; transform(wstrKeyUpper.begin(), wstrKeyUpper.end(), wstrKeyUpper.begin(), ::toupper);
-	strValueUpper  = strValue; transform(strValueUpper.begin(), strValueUpper.end(), strValueUpper.begin(), ::toupper);
-	wstrValueUpper  = wstrValue; transform(wstrValueUpper.begin(), wstrValueUpper.end(), wstrValueUpper.begin(), ::toupper);
+  strKeyUpper  = strKey; transform(strKeyUpper.begin(), strKeyUpper.end(), strKeyUpper.begin(), ::toupper);
+  wstrKeyUpper = wstrKey; transform(wstrKeyUpper.begin(), wstrKeyUpper.end(), wstrKeyUpper.begin(), ::toupper);
+  strValueUpper  = strValue; transform(strValueUpper.begin(), strValueUpper.end(), strValueUpper.begin(), ::toupper);
+  wstrValueUpper  = wstrValue; transform(wstrValueUpper.begin(), wstrValueUpper.end(), wstrValueUpper.begin(), ::toupper);
 }
 
 
 KeyValueFileParser::KeyValueFileParser(const string& strFilename, bool bStopOnEmptyLine, const string& strToken)
 {
-	m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken);
+  m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken);
 }
 
 KeyValueFileParser::KeyValueFileParser(const wstring& wstrFilename, bool bStopOnEmptyLine, const wstring& wstrToken)
 {
-	string strFilename(wstrFilename.begin(), wstrFilename.end());
+  string strFilename(wstrFilename.begin(), wstrFilename.end());
   string strToken(wstrToken.begin(), wstrToken.end());
-	m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken);
+  m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken);
 }
 
 KeyValueFileParser::~KeyValueFileParser()
@@ -124,62 +124,62 @@ KeyValueFileParser::~KeyValueFileParser()
 }
 
 KeyValPair* KeyValueFileParser::GetData(const string&  strKey, const bool bCaseSensitive) {
-	if (!bCaseSensitive) {
-		string upperKey(strKey);
-		transform(upperKey.begin(), upperKey.end(), upperKey.begin(), ::toupper);
-		for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].strKeyUpper == upperKey) return &m_vecTokens[i];
-	} else {
-		for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].strKey == strKey) return &m_vecTokens[i];
-	}
-	return NULL;
+  if (!bCaseSensitive) {
+    string upperKey(strKey);
+    transform(upperKey.begin(), upperKey.end(), upperKey.begin(), ::toupper);
+    for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].strKeyUpper == upperKey) return &m_vecTokens[i];
+  } else {
+    for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].strKey == strKey) return &m_vecTokens[i];
+  }
+  return NULL;
 }
 
 KeyValPair* KeyValueFileParser::GetData(const wstring& wstrKey, const bool bCaseSensitive) {
-	if (!bCaseSensitive) {
-		wstring wupperKey(wstrKey);
-		transform(wupperKey.begin(), wupperKey.end(), wupperKey.begin(), ::toupper);
-		for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].wstrKeyUpper == wupperKey) return &m_vecTokens[i];
-	} else {
-		for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].wstrKey == wstrKey) return &m_vecTokens[i];
-	}
-	return NULL;
+  if (!bCaseSensitive) {
+    wstring wupperKey(wstrKey);
+    transform(wupperKey.begin(), wupperKey.end(), wupperKey.begin(), ::toupper);
+    for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].wstrKeyUpper == wupperKey) return &m_vecTokens[i];
+  } else {
+    for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].wstrKey == wstrKey) return &m_vecTokens[i];
+  }
+  return NULL;
 }
 
 
 bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnEmptyLine, const std::string& strToken) {
-	string line;
-  ifstream fileData(strFilename.c_str(),ios::binary);	
+  string line;
+  ifstream fileData(strFilename.c_str(),ios::binary);  
 
   m_iStopPos = 0;
-	if (fileData.is_open())
-	{
-		while (! fileData.eof() )
-		{
-			getline (fileData,line);
-			SysTools::RemoveLeadingWhitespace(line);
+  if (fileData.is_open())
+  {
+    while (! fileData.eof() )
+    {
+      getline (fileData,line);
+      SysTools::RemoveLeadingWhitespace(line);
 
       if (bStopOnEmptyLine && line.size() == 0)  {
         m_iStopPos = fileData.tellg();
         break;
       }
 
-			if (line[0] == '#') continue;				// skip comments
-			if (line.find_first_of(strToken) == string::npos) continue;  // skip invalid lines
+      if (line[0] == '#') continue;        // skip comments
+      if (line.find_first_of(strToken) == string::npos) continue;  // skip invalid lines
 
       string strKey = line.substr(0, line.find_first_of(strToken));
-			SysTools::RemoveTailingWhitespace(strKey);
+      SysTools::RemoveTailingWhitespace(strKey);
 
       line = line.substr(line.find_first_of(strToken)+strToken.length(), line.length());
-			SysTools::RemoveLeadingWhitespace(line);
-			SysTools::RemoveTailingWhitespace(line);
+      SysTools::RemoveLeadingWhitespace(line);
+      SysTools::RemoveTailingWhitespace(line);
 
-			if (strKey.length() == 0 || line.length() == 0) continue;
+      if (strKey.length() == 0 || line.length() == 0) continue;
 
-			KeyValPair newKey(strKey, line);
-			m_vecTokens.push_back(newKey);
-		}
-		fileData.close();
-	} else return false;
+      KeyValPair newKey(strKey, line);
+      m_vecTokens.push_back(newKey);
+    }
+    fileData.close();
+  } else return false;
 
-	return true;
+  return true;
 }
