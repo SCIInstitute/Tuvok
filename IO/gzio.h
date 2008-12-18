@@ -1,6 +1,8 @@
 #ifndef IV3D_GZIO_H
 #define IV3D_GZIO_H
 
+#include <3rdParty/zlib/include/zlib.h>
+
 #include <stdio.h>
 
 #ifdef __cplusplus

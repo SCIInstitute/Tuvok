@@ -34,7 +34,6 @@
   \date    December 2008
 */
 #include <cstdio>
-#include "zlib.h"
 
 #include "RAWConverter.h"
 #include "IOManager.h"  // for the size defines
@@ -319,6 +318,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   return true;
 }
 
+
+#ifdef WIN32
+  #pragma warning( disable : 4996 ) // disable deprecated warning 
+#endif
 
 /** Converts a gzip-compressed chunk of a file to a raw file.
  * @param strFilename the input (compressed) file

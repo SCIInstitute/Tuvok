@@ -1,8 +1,12 @@
 #include "gzio.h"
-#include "zlib.h"
 #include <assert.h>
 
-static const size_t CHUNK = 16384;
+#ifdef WIN32
+  #pragma warning( disable : 4706) // disable "assignment in conditional" warning 
+#endif
+
+
+#define CHUNK 16384
 
 /* Decompress from file source to file dest until stream ends or EOF.
    inf() returns Z_OK on success, Z_MEM_ERROR if memory could not be
@@ -31,7 +35,7 @@ gz_inflate(FILE *source, FILE *dest)
 
     /* decompress until deflate stream ends or end of file */
     do {
-        strm.avail_in = fread(in, 1, CHUNK, source);
+        strm.avail_in = (uInt)fread(in, 1, CHUNK, source);
         if (ferror(source)) {
             (void)inflateEnd(&strm);
             return Z_ERRNO;
