@@ -33,11 +33,13 @@
         University of Utah
   \date    December 2008
 */
+#include "zlib.h"
 
 #include "RAWConverter.h"
 #include "IOManager.h"  // for the size defines
 #include <Controller/MasterController.h>
 #include <Basics/SysTools.h>
+#include <IO/gzio.h>
 
 using namespace std;
 
@@ -317,27 +319,100 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 }
 
 
-bool RAWConverter::ConvertGZIPDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
-                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
-                                     UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const std::string& strDesc, const std::string& strSource, UVFTables::ElementSemanticTable eType)
+/** Converts a gzip-compressed chunk of a file to a raw file.
+ * @param strFilename the input (compressed) file
+ * @param strTargetFilename  ????
+ * @param strTempDir directory prefix for raw file.
+ * @param pMasterController controller, for reporting errors
+ * @param iHeaderSkip number of bytes to skip off of strFilename
+ * @param iComponentSize ????
+ * @param iComponentCount ????
+ * @param bSigned ????
+ * @param bConvertEndianness if we need to flip the endianness of the data
+ * @param vVolumeSize dimensions of the volume
+ * @param vVolumeAspect per-dimension aspect ratio
+ * @param strDesc ????
+ * @param strSource ????
+ * @param eType ???? */
+bool RAWConverter::ConvertGZIPDataset(const std::string& strFilename,
+                                      const std::string& strTargetFilename,
+                                      const std::string& strTempDir,
+                                      MasterController* pMasterController,
+                                      UINT64 iHeaderSkip,
+                                      UINT64 iComponentSize,
+                                      UINT64 iComponentCount,
+                                      bool bSigned, bool bConvertEndianness,
+                                      UINTVECTOR3 vVolumeSize,
+                                      FLOATVECTOR3 vVolumeAspect,
+                                      const std::string& strDesc,
+                                      const std::string& strSource,
+                                      UVFTables::ElementSemanticTable eType)
 {
   string strUncompressedFile = strTempDir+SysTools::GetFilename(strFilename)+".uncompressed";
 
-  /// \todo Tom: add gzip decompression code here 
-  ///            uncompressing strFilename into strUncompressedFile
-  ///            and do not forget to skip the first "iHeaderSkip" bytes
-  ///            before heanding the stream over to the gzip lib
+  FILE *f_compressed;
+  FILE *f_inflated;
+  int ret;
+  static const char method[] = "RAWConverter::ConvertGZIPDataset";
+  AbstrDebugOut *dbg = pMasterController->DebugOut();
 
-  bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename, strTempDir, pMasterController, 
-                                   0, iComponentSize, iComponentCount, bSigned, bConvertEndianness,
-                                   vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
+  f_compressed = fopen(strFilename.c_str(), "rb");
+  f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
-  if( remove(strUncompressedFile.c_str()) != 0 )
-      pMasterController->DebugOut()->Warning("NRRDConverter::ConvertGZIPDataset","Unable to delete temp file %s.", strUncompressedFile.c_str());
+  if(f_compressed == NULL) {
+    dbg->Error(method, "Could not open %s", strFilename.c_str());
+    return false;
+  }
+  if(f_inflated == NULL) {
+    dbg->Error(method, "Could not open %s", strUncompressedFile.c_str());
+    return false;
+  }
 
+  if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
+    /// \todo use strerror(errno) and actually report the damn error.
+    dbg->Error(method, "Seek failed");
+    return false;
+  }
+
+  gz_skip_header(f_compressed); // always needed?
+
+  ret = gz_inflate(f_compressed, f_inflated);
+
+  switch(ret) {
+    case Z_OK:
+      dbg->Message(method, "Decompression successful.");
+      break;
+    case Z_MEM_ERROR:
+      dbg->Error(method, "Not enough memory decompress %s",
+                 strFilename.c_str());
+      return false;
+      break;
+    case Z_DATA_ERROR:
+      dbg->Error(method, "Deflation invalid or incomplete");
+      return false;
+      break;
+    case Z_VERSION_ERROR:
+      dbg->Error(method, "Zlib library versioning error!");
+      return false;
+      break;
+    default:
+      dbg->Warning(method, "Unknown / unhandled case %d", ret);
+      return false;
+      break;
+  }
+
+  bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename,
+                                   strTempDir, pMasterController, 0,
+                                   iComponentSize, iComponentCount, bSigned,
+                                   bConvertEndianness, vVolumeSize,
+                                   vVolumeAspect, strDesc, strSource, eType);
+
+  if( remove(strUncompressedFile.c_str()) != 0 ) {
+    dbg->Warning(method, "Unable to delete temp file %s",
+                 strUncompressedFile.c_str());
+  }
   return bResult;
 }
-
 
 bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
                                      UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
