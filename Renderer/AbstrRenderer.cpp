@@ -373,8 +373,34 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
   m_iMinLODForCurrentView = max(0, min<int>(m_pDataset->GetInfo()->GetLODLevelCount()-1,m_FrustumCullingLOD.GetLODLevel(vfCenter,vfExtend,viVoxelCount)));
 } 
 
+vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(const vector<Brick>& vRightEyeBrickList ) {
+  vector<Brick> vBrickList = vRightEyeBrickList;
 
-vector<Brick> AbstrRenderer::BuildFrameBrickList() {
+  for (unsigned int iBrick = 0;iBrick<vBrickList.size();iBrick++) {
+    /// compute minimum distance to brick corners (offset slightly to the center to resolve ambiguities) 
+    vBrickList[iBrick].fDistance = numeric_limits<float>::max();
+    float fEpsilon = 0.4999f;
+    FLOATVECTOR3 vEpsilonEdges[8] = {vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon, 
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon, 
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon, 
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon, 
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon, 
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon, 
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon, 
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon};
+
+    for (size_t i = 0;i<8;i++) {
+      vBrickList[iBrick].fDistance = min(vBrickList[iBrick].fDistance,(FLOATVECTOR4(vEpsilonEdges[i],1.0f)*m_matModelView[1]).xyz().length());
+    }
+
+  }
+
+  sort(vBrickList.begin(), vBrickList.end());
+
+  return vBrickList;
+}
+
+vector<Brick> AbstrRenderer::BuildSubFrameBrickList() {
   vector<Brick> vBrickList;
 
   UINT64VECTOR3 vOverlap = m_pDataset->GetInfo()->GetBrickOverlapSize();
@@ -523,7 +549,11 @@ void AbstrRenderer::Plan3DFrame() {
     UINT64VECTOR3 vBrickCount = m_pDataset->GetInfo()->GetBrickCount(m_iCurrentLOD);
 
     // build new brick todo-list
-    m_vCurrentBrickList = BuildFrameBrickList();
+    m_vCurrentBrickList = BuildSubFrameBrickList();
+
+    if (m_bDoStereoRendering)
+      m_vLeftEyeBrickList = BuildLeftEyeSubFrameBrickList(m_vCurrentBrickList);
+    
     m_iBricksRenderedInThisSubFrame = 0;
   }
 

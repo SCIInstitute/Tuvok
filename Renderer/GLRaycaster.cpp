@@ -145,9 +145,7 @@ bool GLRaycaster::Initialize() {
   return true;
 }
 
-void GLRaycaster::SetBrickDepShaderVars(size_t iCurrentBrick) {
-  const Brick& currentBrick = m_vCurrentBrickList[iCurrentBrick];
-
+void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurrentBrick) {
   FLOATVECTOR3 vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(currentBrick.vVoxelCount);
   float fRayStep = (currentBrick.vExtension*vVoxelSizeTexSpace * 0.5f * 1.0f/m_fSampleRateModifier).minVal();
   float fStepScale = 1.0f/m_fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetInfo()->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetInfo()->GetDomainSize(m_iCurrentLOD))).maxVal();
@@ -286,6 +284,8 @@ void GLRaycaster::Render3DPreLoop() {
 }
 
 void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
+  const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
+  
   glDisable(GL_BLEND);
   glDepthMask(GL_FALSE);
 
@@ -296,8 +296,8 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   m_pFBORayEntry->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
   GLFBOTex::OneDrawBuffer();
   m_pProgramRenderFrontFaces->Enable();
-  RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, 
-            m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax,
+  RenderBox(b.vCenter, b.vExtension, 
+            b.vTexcoordsMin, b.vTexcoordsMax,
             false, iStereoID);
   m_pProgramRenderFrontFaces->Disable();
   m_pFBORayEntry->FinishWrite(0);
@@ -310,10 +310,10 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_pProgramIso->Enable();
-    SetBrickDepShaderVars(iCurrentBrick);
+    SetBrickDepShaderVars(b, iCurrentBrick);
     m_pFBORayEntry->Read(GL_TEXTURE2_ARB);
-    RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, 
-              m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax,
+    RenderBox(b.vCenter, b.vExtension, 
+              b.vTexcoordsMin, b.vTexcoordsMax,
               true, iStereoID);
     m_pFBORayEntry->FinishRead();
     m_pProgramIso->Disable();
@@ -332,8 +332,8 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
       m_pFBORayEntry->Read(GL_TEXTURE2_ARB);
       m_pFBOIsoHit[iStereoID]->Read(GL_TEXTURE4_ARB, 0);
       m_pFBOIsoHit[iStereoID]->Read(GL_TEXTURE5_ARB, 1);
-      RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension,
-                m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax,
+      RenderBox(b.vCenter, b.vExtension,
+                b.vTexcoordsMin, b.vTexcoordsMax,
                 true, iStereoID);
       m_pFBOIsoHit[iStereoID]->FinishRead(1);
       m_pFBOIsoHit[iStereoID]->FinishRead(0);
@@ -364,11 +364,11 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
                             break;
     }
 
-    SetBrickDepShaderVars(iCurrentBrick);
+    SetBrickDepShaderVars(b, iCurrentBrick);
 
     m_pFBORayEntry->Read(GL_TEXTURE2_ARB);
-    RenderBox(m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension, 
-              m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax, 
+    RenderBox(b.vCenter, b.vExtension, 
+              b.vTexcoordsMin, b.vTexcoordsMax, 
               true, iStereoID);
     m_pFBORayEntry->FinishRead();
 

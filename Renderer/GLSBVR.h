@@ -75,7 +75,7 @@ class GLSBVR : public GLRenderer {
     SBVRGeogen    m_SBVRGeogen;
     GLSLProgram*  m_pProgramIsoNoCompose;
 
-    void SetBrickDepShaderVars(size_t iCurrentBrick);
+    void SetBrickDepShaderVars(const Brick& currentBrick);
 
     virtual void Render3DPreLoop();
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);

@@ -1208,10 +1208,23 @@ void GLRenderer::Render3DView() {
 
     // get the 3D texture from the memory manager
     GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_iIntraFrameCounter++, m_iFrameCounter);
-    if(t!=NULL) t->Bind(0);
+    if(t) t->Bind(0);
 
     Render3DInLoop(m_iBricksRenderedInThisSubFrame,0);
-    if (m_bDoStereoRendering) Render3DInLoop(m_iBricksRenderedInThisSubFrame,1);
+    if (m_bDoStereoRendering) {
+     
+      if (m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords != m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords) {
+        vBrick.clear();
+        vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.x);
+        vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.y);
+        vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.z);
+
+        m_pMasterController->MemMan()->Release3DTexture(t);
+        t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_iIntraFrameCounter++, m_iFrameCounter);
+        if(t) t->Bind(0);
+      }
+      Render3DInLoop(m_iBricksRenderedInThisSubFrame,1);
+    }
 
     // release the 3D texture
     m_pMasterController->MemMan()->Release3DTexture(t);

@@ -315,6 +315,7 @@ class AbstrRenderer {
     UINT64              m_iCurrentLOD;
     UINT64              m_iBricksRenderedInThisSubFrame;
     std::vector<Brick>  m_vCurrentBrickList;
+    std::vector<Brick>  m_vLeftEyeBrickList;
   	bool				        m_bLODDisabled;
 
     bool                m_bDoClearView;
@@ -342,7 +343,8 @@ class AbstrRenderer {
     virtual void        ScheduleRecompose();
     void                ComputeMinLODForCurrentView();
     void                Plan3DFrame();
-    std::vector<Brick>  BuildFrameBrickList();
+    std::vector<Brick>  BuildSubFrameBrickList();
+    std::vector<Brick>  BuildLeftEyeSubFrameBrickList(const std::vector<Brick>& vRightEyeBrickList );
     virtual void        ClearDepthBuffer() = 0;
     virtual void        ClearColorBuffer() = 0;
 };

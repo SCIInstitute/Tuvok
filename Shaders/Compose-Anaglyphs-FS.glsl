@@ -45,5 +45,5 @@ void main(void){
   float fGrayLeftEye  = dot(vLeftEye.rgb, vec3(0.3,0.59,0.11));
   float fGrayRightEye = dot(vRightEye.rgb, vec3(0.3,0.59,0.11));
 
-  gl_FragColor = vec4(fGrayLeftEye,0,fGrayRightEye,max(vLeftEye.a,vRightEye.a));
+  gl_FragColor = vec4(fGrayLeftEye,fGrayRightEye*0.5,fGrayRightEye,max(vLeftEye.a,vRightEye.a));
 }

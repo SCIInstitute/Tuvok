@@ -140,8 +140,7 @@ void GLSBVR::SetDataDepShaderVars() {
   }
 }
 
-void GLSBVR::SetBrickDepShaderVars(size_t iCurrentBrick) {
-  const Brick& currentBrick = m_vCurrentBrickList[iCurrentBrick];
+void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
   FLOATVECTOR3 vStep(1.0f/currentBrick.vVoxelCount.x, 1.0f/currentBrick.vVoxelCount.y, 1.0f/currentBrick.vVoxelCount.z);
 
   float fStepScale = m_SBVRGeogen.GetOpacityCorrection();
@@ -205,11 +204,14 @@ void GLSBVR::RenderProxyGeometry() {
 }
 
 void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
+  const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
+  
+
   // setup the slice generator
-  m_SBVRGeogen.SetBrickData(m_vCurrentBrickList[iCurrentBrick].vExtension, m_vCurrentBrickList[iCurrentBrick].vVoxelCount, 
-                            m_vCurrentBrickList[iCurrentBrick].vTexcoordsMin, m_vCurrentBrickList[iCurrentBrick].vTexcoordsMax);
+  m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, 
+                            b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans; 
-  maBricktTrans.Translation(m_vCurrentBrickList[iCurrentBrick].vCenter.x, m_vCurrentBrickList[iCurrentBrick].vCenter.y, m_vCurrentBrickList[iCurrentBrick].vCenter.z);
+  maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
   FLOATMATRIX4 maBricktModelView = maBricktTrans * m_matModelView[iStereoID];
   m_mProjection[iStereoID].setProjection();
   maBricktModelView.setModelview();
@@ -222,7 +224,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_pProgramIso->Enable();
-    SetBrickDepShaderVars(iCurrentBrick);
+    SetBrickDepShaderVars(b);
     m_pProgramIso->SetUniformVector("fIsoval",m_fScaledIsovalue);
     RenderProxyGeometry();
     m_pProgramIso->Disable();
@@ -250,7 +252,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     m_pFBO3DImageCurrent[iStereoID]->Write();
     GLFBOTex::OneDrawBuffer();
     glDepthMask(GL_FALSE);
-    SetBrickDepShaderVars(iCurrentBrick);
+    SetBrickDepShaderVars(b);
     RenderProxyGeometry();
 	  glDepthMask(GL_TRUE);
     m_pFBO3DImageCurrent[iStereoID]->FinishWrite();

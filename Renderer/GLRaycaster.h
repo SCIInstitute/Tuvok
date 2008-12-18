@@ -68,7 +68,7 @@ class GLRaycaster : public GLRenderer {
     GLSLProgram*    m_pProgramRenderFrontFaces;
     GLSLProgram*    m_pProgramIso2;
 
-    void SetBrickDepShaderVars(size_t iCurrentBrick);
+    void SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurrentBrick);
 
     virtual void CreateOffscreenBuffers();
     void RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend, 
