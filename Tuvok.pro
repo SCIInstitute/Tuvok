@@ -6,9 +6,9 @@ TARGET            = Build/Tuvok
 RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
 DEPENDPATH       += .
-INCLUDEPATH      += . 3rdparty/zlib/include
+INCLUDEPATH      += .
 QT               += opengl
-LIBS             += -L3rdParty/zlib/lib -LTuvok/3rdParty/zlib/lib -lz
+LIBS             += -lz
 
 # Input
 HEADERS += StdDefines.h \
