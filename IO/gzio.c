@@ -1,6 +1,6 @@
 #include "gzio.h"
 #include <assert.h>
-#include <stdio.h>
+#include <stdlib.h>
 
 #ifdef WIN32
   #pragma warning( disable : 4706) // disable "assignment in conditional" warning 
