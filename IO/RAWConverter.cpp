@@ -470,7 +470,7 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
                   {
                     int tmp;
                     sourceFile >> tmp;
-                    signed char tmp2 = signed char(tmp);
+                    signed char tmp2 = static_cast<signed char>(tmp);
                     binaryFile.WriteRAW((unsigned char*)&tmp2,1);
                   }
                 } else {
@@ -478,7 +478,7 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
                   {
                     int tmp;
                     sourceFile >> tmp;
-                    unsigned char tmp2 = unsigned char(tmp);
+                    unsigned char tmp2 = static_cast<unsigned char>(tmp);
                     binaryFile.WriteRAW((unsigned char*)&tmp2,1);
                   }
                 }
