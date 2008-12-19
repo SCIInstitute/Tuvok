@@ -1160,7 +1160,7 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
   Render3DPostLoop();
   ComposeSurfaceImage(0);
   BBoxPostRender();
-  m_pFBO3DImageCurrent[0]->Write();
+  m_pFBO3DImageCurrent[0]->FinishWrite();
 
   if (m_bDoStereoRendering) {
     m_pFBO3DImageCurrent[1]->Write();

@@ -45,7 +45,7 @@ using namespace std;
 
 bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
                                      UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
-                                     UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const std::string& strDesc, const std::string& strSource, UVFTables::ElementSemanticTable eType)
+                                     UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
   if (iComponentSize < 16) bConvertEndianness = false; // catch silly user input
 
@@ -338,9 +338,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
  * @param strDesc ????
  * @param strSource ????
  * @param eType ???? */
-bool RAWConverter::ConvertGZIPDataset(const std::string& strFilename,
-                                      const std::string& strTargetFilename,
-                                      const std::string& strTempDir,
+bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
+                                      const string& strTargetFilename,
+                                      const string& strTempDir,
                                       MasterController* pMasterController,
                                       UINT64 iHeaderSkip,
                                       UINT64 iComponentSize,
@@ -348,8 +348,8 @@ bool RAWConverter::ConvertGZIPDataset(const std::string& strFilename,
                                       bool bSigned, bool bConvertEndianness,
                                       UINTVECTOR3 vVolumeSize,
                                       FLOATVECTOR3 vVolumeAspect,
-                                      const std::string& strDesc,
-                                      const std::string& strSource,
+                                      const string& strDesc,
+                                      const string& strSource,
                                       UVFTables::ElementSemanticTable eType)
 {
   string strUncompressedFile = strTempDir+SysTools::GetFilename(strFilename)+".uncompressed";
@@ -420,7 +420,7 @@ bool RAWConverter::ConvertGZIPDataset(const std::string& strFilename,
 
 bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
                                      UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
-                                     UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const std::string& strDesc, const std::string& strSource, UVFTables::ElementSemanticTable eType)
+                                     UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
   string strUncompressedFile = strTempDir+SysTools::GetFilename(strFilename)+".uncompressed";
 
@@ -437,6 +437,26 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename, const string& 
 
   if( remove(strUncompressedFile.c_str()) != 0 )
       pMasterController->DebugOut()->Warning("NRRDConverter::ConvertBZIP2Dataset","Unable to delete temp file %s.", strUncompressedFile.c_str());
+
+  return bResult;
+}
+
+bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
+                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
+                                     UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
+{
+  string strBinaryFile = strTempDir+SysTools::GetFilename(strFilename)+".binary";
+
+  /// \todo 
+
+  return false;
+
+  bool bResult = ConvertRAWDataset(strBinaryFile, strTargetFilename, strTempDir, pMasterController, 
+                                   0, iComponentSize, iComponentCount, bSigned, bConvertEndianness,
+                                   vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
+
+  if( remove(strBinaryFile.c_str()) != 0 )
+      pMasterController->DebugOut()->Warning("NRRDConverter::ConvertTXTDataset","Unable to delete temp file %s.", strBinaryFile.c_str());
 
   return bResult;
 }
