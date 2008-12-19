@@ -26,6 +26,7 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+
 /**
   \file    ArcBall.cpp
   \author  Jens Krueger
