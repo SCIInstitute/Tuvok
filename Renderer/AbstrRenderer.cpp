@@ -37,6 +37,7 @@
 #include "AbstrRenderer.h"
 #include <Controller/MasterController.h>
 #include <algorithm>
+#include <IO/IV3D_QtPlugins.h>
 
 using namespace std;
 

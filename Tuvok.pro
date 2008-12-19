@@ -1,6 +1,7 @@
 TEMPLATE          = lib
 CONFIG           += staticlib static create_prl
 TARGET            = Tuvok
+QTPLUGIN         += qjpeg
 VERSION           = 0.0.1
 TARGET            = Build/Tuvok
 RCC_DIR           = Build/rcc
