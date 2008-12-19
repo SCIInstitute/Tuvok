@@ -67,7 +67,7 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     }
   } else {
     pMasterController->DebugOut()->Warning("NRRDConverter::Convert",
-                                           "Could not open NHDR file %s",
+                                           "Could not open NRRD file %s",
                                            strSourceFilename.c_str());
     return false;
   }
@@ -190,7 +190,10 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
                                vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
     } else
     if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
-      pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in text format which is not supported at the moment.");
+      pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is plain textformat.");
+
+      return ConvertTXTDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned,
+                               vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
     } else
     if (kvpEncoding->strValueUpper == "HEX")  {
       pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in haxdecimal text format which is not supported at the moment.");

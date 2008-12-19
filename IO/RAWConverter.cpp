@@ -325,19 +325,19 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
 /** Converts a gzip-compressed chunk of a file to a raw file.
  * @param strFilename the input (compressed) file
- * @param strTargetFilename  ????
+ * @param strTargetFilename the target uvf file 
  * @param strTempDir directory prefix for raw file.
  * @param pMasterController controller, for reporting errors
  * @param iHeaderSkip number of bytes to skip off of strFilename
- * @param iComponentSize ????
- * @param iComponentCount ????
- * @param bSigned ????
+ * @param iComponentSize size in bit of one component (e.g. 8 for a byte)
+ * @param iComponentCount how many components (e.g. 1 for scalar)
+ * @param bSigned is the value a signed variable
  * @param bConvertEndianness if we need to flip the endianness of the data
  * @param vVolumeSize dimensions of the volume
  * @param vVolumeAspect per-dimension aspect ratio
- * @param strDesc ????
- * @param strSource ????
- * @param eType ???? */
+ * @param strDesc a string decribing the input data
+ * @param strSource a string decribing the input filename (usually the filnemae without the path)
+ * @param eType data type enumerator (defaults to undefined) */
 bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
                                       const string& strTargetFilename,
                                       const string& strTempDir,
@@ -442,17 +442,97 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename, const string& 
 }
 
 bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
-                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
+                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
                                      UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
   string strBinaryFile = strTempDir+SysTools::GetFilename(strFilename)+".binary";
 
-  /// \todo 
+  ifstream sourceFile(strFilename.c_str(),ios::binary);  
+  if (!sourceFile.is_open()) {
+    pMasterController->DebugOut()->Error("NRRDConverter::ConvertTXTDataset","Unable to open source file %s.", strFilename.c_str());
+    return false;
+  }
 
-  return false;
+  LargeRAWFile binaryFile(strBinaryFile);
+  binaryFile.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
+  if (!binaryFile.IsOpen()) {
+    pMasterController->DebugOut()->Error("NRRDConverter::ConvertTXTDataset","Unable to open temp file %s.", strBinaryFile.c_str());
+    sourceFile.close();
+    return false;
+  }
+
+  sourceFile.seekg(iHeaderSkip);
+ 
+  switch (iComponentSize) {
+    case 8 : {
+                if (bSigned) { 
+                  while (! sourceFile.eof() )
+                  {
+                    int tmp;
+                    sourceFile >> tmp;
+                    signed char tmp2 = signed char(tmp);
+                    binaryFile.WriteRAW((unsigned char*)&tmp2,1);
+                  }
+                } else {
+                  while (! sourceFile.eof() )
+                  {
+                    int tmp;
+                    sourceFile >> tmp;
+                    unsigned char tmp2 = unsigned char(tmp);
+                    binaryFile.WriteRAW((unsigned char*)&tmp2,1);
+                  }
+                }
+               break;
+             }
+    case 16 : {
+                if (bSigned) { 
+                  while (! sourceFile.eof() )
+                  {
+                    signed short tmp;
+                    sourceFile >> tmp;
+                    binaryFile.WriteRAW((unsigned char*)&tmp,2);
+                  }
+                } else {
+                  while (! sourceFile.eof() )
+                  {
+                    unsigned short tmp;
+                    sourceFile >> tmp;
+                    binaryFile.WriteRAW((unsigned char*)&tmp,2);
+                  }
+                }
+               break;
+             }
+    case 32 : {
+                if (bSigned) { 
+                  while (! sourceFile.eof() )
+                  {
+                    signed int tmp;
+                    sourceFile >> tmp;
+                    binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                  }
+                } else {
+                  while (! sourceFile.eof() )
+                  {
+                    unsigned int tmp;
+                    sourceFile >> tmp;
+                    binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                  }
+                }
+               break;
+             }
+    default : {
+                pMasterController->DebugOut()->Error("NRRDConverter::ConvertTXTDataset","Unable unsupported data type.");
+                sourceFile.close();
+                binaryFile.Delete();
+                return false;
+              }
+  }
+
+  binaryFile.Close();
+  sourceFile.close();
 
   bool bResult = ConvertRAWDataset(strBinaryFile, strTargetFilename, strTempDir, pMasterController, 
-                                   0, iComponentSize, iComponentCount, bSigned, bConvertEndianness,
+                                   0, iComponentSize, iComponentCount, bSigned, false,
                                    vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
 
   if( remove(strBinaryFile.c_str()) != 0 )
