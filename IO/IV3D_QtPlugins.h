@@ -33,7 +33,7 @@
   \date    December 2008
 */
 
-#include <QtPlugin>
+#include <QtCore/QtPlugin>
 
 Q_IMPORT_PLUGIN(qjpeg)
 

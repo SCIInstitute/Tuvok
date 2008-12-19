@@ -723,6 +723,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IO\IV3D_QtPlugins.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IO\KeyValueFileParser.cpp"
 				>
 			</File>
