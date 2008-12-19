@@ -355,7 +355,7 @@ void AbstrRenderer::ScheduleWindowRedraw(EWindowMode eWindow) {
 
 void AbstrRenderer::ScheduleRecompose() {
   if (!m_bAvoidSeperateCompositing && 
-    m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_iCurrentLODOffset > m_iMinLODForCurrentView) { // make sure we finished the current frame
+    m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) { // make sure we finished the current frame
     m_bPerformReCompose = true;
     m_bRedrawMask[WM_3D]  = true;
   } else {

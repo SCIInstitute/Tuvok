@@ -1152,6 +1152,7 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
   NewFrameClear(eArea);
 
   m_pFBO3DImageCurrent[0]->Write();
+  GLFBOTex::OneDrawBuffer();
   m_mProjection[0].setProjection();
   m_matModelView[0].setModelview();
   BBoxPreRender();
