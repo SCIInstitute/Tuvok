@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)include&quot;;."
+				AdditionalIncludeDirectories="&quot;$(QTDIR32)include&quot;;."
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -65,7 +65,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)lib32&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -109,7 +109,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)include&quot;;."
+				AdditionalIncludeDirectories="&quot;$(QTDIR64)include&quot;;."
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -130,7 +130,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)lib64&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR64)lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -175,7 +175,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)include&quot;;."
+				AdditionalIncludeDirectories="&quot;$(QTDIR32)include&quot;;."
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -195,7 +195,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)lib32&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -241,7 +241,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(QTDIR)include&quot;;."
+				AdditionalIncludeDirectories="&quot;$(QTDIR64)include&quot;;."
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -261,7 +261,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR)lib64&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR64)lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
