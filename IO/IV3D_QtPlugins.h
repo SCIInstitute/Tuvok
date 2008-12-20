@@ -35,8 +35,6 @@
 
 #include <QtCore/QtPlugin>
 
-#ifndef _WIN32
-  Q_IMPORT_PLUGIN(qjpeg)
-#endif
+Q_IMPORT_PLUGIN(qjpeg)
 
 #endif // IV3D_QTPLUGINS_H
