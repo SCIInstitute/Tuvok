@@ -27,17 +27,17 @@
 */
 
 /**
-  \file    StdDefines.h
+  \file    StdTuvokDefines.h
   \author    Jens Krueger
         SCI Institute
         University of Utah
-  \date    October 2008
+  \date    December 2008
 */
 
 #pragma once
 
-#ifndef STDDEFINES_H
-#define STDDEFINES_H
+#ifndef STDTUVOKDEFINES_H
+#define STDTUVOKDEFINES_H
 
 #include <limits>
 
@@ -50,10 +50,36 @@ typedef unsigned int UINT32;
 
 #define UNUSED 0
 #define UNUSED_FLOAT 0.0f
-#define UNUSED_DOUBLE 0.0f
-#define IV3D_VERSION "0.02 beta"
+#define UNUSED_DOUBLE 0.0
+#define TUVOK_VERSION "0.02 beta"
+
+#ifdef _WIN32
+  #ifdef _WIN64
+    #ifdef USE_DIRECTX
+      #define TUVOK_DETAILS "Windows 64bit build with DirectX extensions"
+    #else
+      #define TUVOK_DETAILS "Windows 64bit build"
+    #endif
+  #else
+    #ifdef USE_DIRECTX
+      #define TUVOK_DETAILS "Windows 32bit build with DirectX extensions"
+    #else
+      #define TUVOK_DETAILS "Windows 32bit build"
+    #endif
+  #endif
+#else
+#if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+  #define TUVOK_DETAILS "OSX build"
+#else
+  #define TUVOK_DETAILS "Linux build"
+#endif
+
+
+#endif
+
+
 #define UINT32_INVALID (std::numeric_limits<UINT>::max())
 #define UINT64_INVALID (std::numeric_limits<UINT64>::max())
 
 
-#endif // STDDEFINES_H
+#endif // STDTUVOKDEFINES_H

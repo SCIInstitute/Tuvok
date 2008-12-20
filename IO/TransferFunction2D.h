@@ -40,7 +40,7 @@
 #ifndef TRANSFERFUNCTION2D
 #define TRANSFERFUNCTION2D
 
-#include <StdDefines.h>
+#include "../StdTuvokDefines.h"
 #include <fstream>
 #include <string>
 #include <vector>

@@ -12,7 +12,7 @@ QT               += opengl
 LIBS             += -lz
 
 # Input
-HEADERS += StdDefines.h \
+HEADERS += StdTuvokDefines.h \
            Basics/Grids.h \
            Basics/SysTools.h \
            Basics/Vectors.h \

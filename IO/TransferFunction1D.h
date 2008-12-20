@@ -40,7 +40,7 @@
 #ifndef TRANSFERFUNCTION1D
 #define TRANSFERFUNCTION1D
 
-#include "../StdDefines.h"
+#include "../StdTuvokDefines.h"
 #include <string>
 #include <vector>
 #include "../Basics/Vectors.h"

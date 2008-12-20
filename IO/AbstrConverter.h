@@ -41,7 +41,7 @@
 #ifndef ABSTRCONVERTER_H
 #define ABSTRCONVERTER_H
 
-#include "../StdDefines.h"
+#include "../StdTuvokDefines.h"
 #include "../IO/UVF/UVF.h"
 #include "../Basics/Vectors.h"
 
