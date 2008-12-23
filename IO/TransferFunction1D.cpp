@@ -87,11 +87,15 @@ void TransferFunction1D::SetStdFunction(float fCenterPoint, float fInvGradient, 
 
   for (size_t i = iRampEndPoint;i<vColorData.size();i++)
     vColorData[i][iComponent] = 1;
+
+  ComputeNonZeroLimits();
 }
 
 void TransferFunction1D::Clear() {
   for (size_t i = 0;i<vColorData.size();i++)
     vColorData[i] = FLOATVECTOR4(0,0,0,0);
+
+  m_vValueBBox = UINT64VECTOR2(0,0);
 }
 
 void TransferFunction1D::Resample(size_t iTargetSize) {
@@ -133,6 +137,7 @@ void TransferFunction1D::Resample(size_t iTargetSize) {
   }
 
   vColorData = vTmpColorData;
+  ComputeNonZeroLimits();
 }
 
 bool TransferFunction1D::Load(const std::string& filename, size_t iTargetSize) {
@@ -149,6 +154,7 @@ bool TransferFunction1D::Load(const std::string& filename) {
   ifstream file(filename.c_str());
   if (!Load(file)) return false;
   file.close();
+  ComputeNonZeroLimits();
   return true;
 }
 
@@ -178,6 +184,7 @@ bool TransferFunction1D::Load(ifstream& file) {
       file >> vColorData[i][j];
     }
   }
+
   return true;
 }
 

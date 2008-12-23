@@ -45,6 +45,7 @@ using namespace std;
 
 NRRDConverter::NRRDConverter()
 {
+  m_vConverterDesc = "Nearly Raw Raster Data";
   m_vSupportedExt.push_back("NRRD");
   m_vSupportedExt.push_back("NHDR");
 }

@@ -41,9 +41,11 @@
 #include <Basics/SysTools.h>
 #include <sstream>
 #include <fstream>
+#include <map>
 
 #include "QVISConverter.h"
 #include "NRRDConverter.h"
+#include "VFFConverter.h"
 
 using namespace std;
 
@@ -54,6 +56,7 @@ IOManager::IOManager(MasterController* masterController) :
 {
   m_vpConverters.push_back(new QVISConverter());
   m_vpConverters.push_back(new NRRDConverter());
+  m_vpConverters.push_back(new VFFConverter());
 }
 
 
@@ -311,4 +314,39 @@ bool IOManager::NeedsConversion(const std::string& strFilename, bool& bChecksumF
 bool IOManager::NeedsConversion(const std::string& strFilename) {
   wstring wstrFilename(strFilename.begin(), strFilename.end());
   return !UVF::IsUVFFile(wstrFilename);
+}
+
+
+std::string IOManager::GetLoadDialogString() {
+  string strDialog = "All known Files ( *.uvf ";
+  map<string,string> descPairs;
+
+  // first create the show all text entry
+  for (size_t i = 0;i<m_vpConverters.size();i++) {
+    for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
+      string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+      if (descPairs.count(strExt) == 0) {
+        strDialog = strDialog + "*." + strExt + " ";
+        descPairs[strExt] = m_vpConverters[i]->GetDesc();
+      }
+    }
+  }
+  strDialog += ");;Universal Volume Format (*.uvf);;";
+
+  // seperate entries
+  for (size_t i = 0;i<m_vpConverters.size();i++) {
+    strDialog += m_vpConverters[i]->GetDesc() + " (";
+    for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
+      string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+      strDialog = strDialog + "*." + strExt + " ";
+    }
+    strDialog += ");;";
+  }
+
+
+
+  strDialog += "All Files (*.*)";
+
+  return strDialog;
+
 }

@@ -53,8 +53,10 @@ public:
 
   virtual bool Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController) = 0;
   const std::vector<std::string>& SupportedExt() {return m_vSupportedExt;}
+  virtual const std::string& GetDesc() {return m_vConverterDesc;}
 
 protected:
+  std::string               m_vConverterDesc;
   std::vector<std::string>  m_vSupportedExt;
 
   static const std::string QuantizeShortTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, size_t iSize);

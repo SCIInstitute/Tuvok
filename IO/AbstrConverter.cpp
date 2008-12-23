@@ -86,14 +86,14 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     return "";
   }
 
-  float fQuantFact = 4095.0f / float(iMax-iMin);
+  UINT64 iRange = iMax-iMin;
   
   InputData.SeekPos(iHeaderSkip);
   iPos = 0;
   while (iPos < iSize)  {
     size_t iRead = InputData.ReadRAW((unsigned char*)pInData, BRICKSIZE*BRICKSIZE*BRICKSIZE*2)/2;
     for (size_t i = 0;i<iRead;i++) {
-      pInData[i] = min<unsigned short>(4095, (float(pInData[i]-iMin) * fQuantFact));
+      pInData[i] = min<unsigned short>(4095, (unsigned short)((UINT64(pInData[i]-iMin) * 4095)/iRange));
     }
     iPos += UINT64(iRead);
 

@@ -662,7 +662,9 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor) {
   UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
   UINT64 iMaxDomainSize = vDomainSize.maxVal();
-  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize)/float(iMaxDomainSize) * FLOATVECTOR3(m_pDataset->GetInfo()->GetScale());
+  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetInfo()->GetScale());
+  vScale /= vScale.maxVal();
+  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize)/float(iMaxDomainSize) * vScale;
 
   FLOATVECTOR3 vCenter(0,0,0);
   RenderBBox(vColor, vCenter, vExtend);

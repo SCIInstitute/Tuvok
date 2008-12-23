@@ -27,56 +27,33 @@
 */
 
 /**
-  \file    IOManager.h
+  \file    VFFConverter.h
   \author    Jens Krueger
         SCI Institute
         University of Utah
   \version  1.0
-  \date    August 2008
+  \date    December 2008
 */
 
 
 #pragma once
 
-#ifndef IOMANAGER_H
-#define IOMANAGER_H
+#ifndef VFFCONVERTER_H
+#define VFFCONVERTER_H
 
-#include <string>
-#include "../Renderer/AbstrRenderer.h"
-#include "../IO/DirectoryParser.h"
-#include "../IO/UVF/UVF.h"
 #include "RAWConverter.h"
-
-#define BRICKSIZE 256
-#define BRICKOVERLAP 4
 
 class MasterController;
 
-class IOManager {
+class VFFConverter : public RAWConverter {
 public:
-  IOManager(MasterController* masterController);
-  ~IOManager();
+  VFFConverter();
+  virtual ~VFFConverter() {}
 
-  std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
-  bool ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename);
-  bool ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename);
-  VolumeDataset* ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester);
-  VolumeDataset* ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, AbstrRenderer* requester);
-  VolumeDataset* LoadDataset(const std::string& strFilename, AbstrRenderer* requester);
-  bool NeedsConversion(const std::string& strFilename, bool& bChecksumFail);
-  bool NeedsConversion(const std::string& strFilename);
+  virtual bool Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController);
 
-  void RegisterExternalConverter(AbstrConverter* pConverter);
-  void RegisterFinalConverter(AbstrConverter* pConverter);
-
-  std::string GetLoadDialogString();
-
-private:
-  MasterController*             m_pMasterController;
-  std::string                   m_TempDir;
-  std::vector<AbstrConverter*>  m_vpConverters;
-  AbstrConverter*               m_pFinalConverter;
+protected:
 
 };
 
-#endif // IOMANAGER_H
+#endif // VFFCONVERTER_H

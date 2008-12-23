@@ -45,6 +45,7 @@ using namespace std;
 
 QVISConverter::QVISConverter()
 {
+  m_vConverterDesc = "QVis Data";
   m_vSupportedExt.push_back("DAT");
 }
 

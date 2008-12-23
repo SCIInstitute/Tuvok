@@ -107,16 +107,18 @@ KeyValPair::KeyValPair(const wstring& key, const wstring& value) :
 }
 
 
-KeyValueFileParser::KeyValueFileParser(const string& strFilename, bool bStopOnEmptyLine, const string& strToken)
+KeyValueFileParser::KeyValueFileParser(const string& strFilename, bool bStopOnEmptyLine, const string& strToken, const std::string& strEndToken)
 {
-  m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken);
+  m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken, strEndToken);
 }
 
-KeyValueFileParser::KeyValueFileParser(const wstring& wstrFilename, bool bStopOnEmptyLine, const wstring& wstrToken)
+KeyValueFileParser::KeyValueFileParser(const wstring& wstrFilename, bool bStopOnEmptyLine, const wstring& wstrToken, const std::wstring& wstrEndToken)
 {
   string strFilename(wstrFilename.begin(), wstrFilename.end());
   string strToken(wstrToken.begin(), wstrToken.end());
-  m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken);
+  string strEndToken(wstrEndToken.begin(), wstrEndToken.end());
+  
+  m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken, strEndToken);
 }
 
 KeyValueFileParser::~KeyValueFileParser()
@@ -146,7 +148,7 @@ KeyValPair* KeyValueFileParser::GetData(const wstring& wstrKey, const bool bCase
 }
 
 
-bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnEmptyLine, const std::string& strToken) {
+bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnEmptyLine, const std::string& strToken, const std::string& strEndToken) {
   string line;
   ifstream fileData(strFilename.c_str(),ios::binary);  
 
@@ -158,7 +160,8 @@ bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnE
       getline (fileData,line);
       SysTools::RemoveLeadingWhitespace(line);
 
-      if (bStopOnEmptyLine && line.size() == 0)  {
+      if ((strEndToken != "" && strEndToken == line) ||
+          (bStopOnEmptyLine && line.size() == 0))  {
         m_iStopPos = fileData.tellg();
         break;
       }

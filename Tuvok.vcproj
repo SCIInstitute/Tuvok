@@ -1035,6 +1035,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IO\VFFConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\VFFConverter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IO\VolumeDataset.cpp"
 				>
 			</File>

@@ -25,6 +25,7 @@ HEADERS += StdTuvokDefines.h \
            IO/NRRDConverter.h \
            IO/RAWConverter.h \
            IO/QVISConverter.h \
+           IO/VFFConverter.h \
            IO/DirectoryParser.h \
            IO/KeyValueFileParser.h \
            IO/Transferfunction1D.h \
@@ -80,6 +81,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            IO/NRRDConverter.cpp \
            IO/RAWConverter.cpp \
            IO/QVISConverter.cpp \
+           IO/VFFConverter.cpp \
            IO/KeyValueFileParser.cpp \           
            IO/Transferfunction1D.cpp \
            IO/Transferfunction2D.cpp \
