@@ -44,7 +44,7 @@
 using namespace std;
 
 bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
-                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
+                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned,
                                      UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
   if (iComponentSize < 16) bConvertEndianness = false; // catch silly user input
@@ -56,15 +56,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   string tmpFilename1 = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
 
   if (bConvertEndianness) {
-    pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Performing endianess conversion of RAW dataset %s to %s", strFilename.c_str(), tmpFilename0.c_str());
+    pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Performing endianess conversion ...");
 
     if (iComponentSize != 16 && iComponentSize != 32 && iComponentSize != 64) {
       pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unable to endian convert anything but 16bit, 32bit, or 64bit values (requested %i)", iComponentSize);
       return false;
     }
 
-
-    LargeRAWFile WrongEndianData(strFilename);
+    LargeRAWFile WrongEndianData(strFilename, iHeaderSkip);
     WrongEndianData.Open(false);
 
     if (!WrongEndianData.IsOpen()) {
@@ -128,8 +127,11 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   Histogram1DDataBlock Histogram1D;
 
 	switch (iComponentSize) {
+    case 8 : 
+      strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
+      break;
     case 16 : 
-      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D, pMasterController);
+      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
       break;
 		case 32 :	
       strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D, pMasterController);
@@ -371,7 +373,8 @@ bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
                                       UINT64 iHeaderSkip,
                                       UINT64 iComponentSize,
                                       UINT64 iComponentCount,
-                                      bool bSigned, bool bConvertEndianness,
+                                      bool bConvertEndianness,
+                                      bool bSigned,
                                       UINTVECTOR3 vVolumeSize,
                                       FLOATVECTOR3 vVolumeAspect,
                                       const string& strDesc,
@@ -385,6 +388,8 @@ bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
   int ret;
   static const char method[] = "RAWConverter::ConvertGZIPDataset";
   AbstrDebugOut *dbg = pMasterController->DebugOut();
+
+  dbg->Message(method, "Deflating GZIP data ...");
 
   f_compressed = fopen(strFilename.c_str(), "rb");
   f_inflated = fopen(strUncompressedFile.c_str(), "wb");
@@ -407,6 +412,9 @@ bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
   gz_skip_header(f_compressed); // always needed?
 
   ret = gz_inflate(f_compressed, f_inflated);
+
+  fclose(f_compressed);
+  fclose(f_inflated);
 
   switch(ret) {
     case Z_OK:
@@ -433,8 +441,8 @@ bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
 
   bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename,
                                    strTempDir, pMasterController, 0,
-                                   iComponentSize, iComponentCount, bSigned,
-                                   bConvertEndianness, vVolumeSize,
+                                   iComponentSize, iComponentCount, bConvertEndianness,
+                                   bSigned, vVolumeSize,
                                    vVolumeAspect, strDesc, strSource, eType);
 
   if( remove(strUncompressedFile.c_str()) != 0 ) {
@@ -445,7 +453,7 @@ bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
 }
 
 bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
-                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bConvertEndianness,
+                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned, 
                                      UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
   string strUncompressedFile = strTempDir+SysTools::GetFilename(strFilename)+".uncompressed";
@@ -458,7 +466,7 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename, const string& 
   return false;
 /*
   bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename, strTempDir, pMasterController, 
-                                   0, iComponentSize, iComponentCount, bSigned, bConvertEndianness,
+                                   0, iComponentSize, iComponentCount, bConvertEndianness, bSigned
                                    vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
 
   if( remove(strUncompressedFile.c_str()) != 0 )
@@ -558,7 +566,7 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
   sourceFile.close();
 
   bool bResult = ConvertRAWDataset(strBinaryFile, strTargetFilename, strTempDir, pMasterController, 
-                                   0, iComponentSize, iComponentCount, bSigned, false,
+                                   0, iComponentSize, iComponentCount, false, bSigned,
                                    vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
 
   if( remove(strBinaryFile.c_str()) != 0 )

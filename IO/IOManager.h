@@ -47,8 +47,9 @@
 #include "../IO/UVF/UVF.h"
 #include "RAWConverter.h"
 
-#define BRICKSIZE 256
-#define BRICKOVERLAP 4
+#define BRICKSIZE (256)
+#define BRICKOVERLAP (4)
+#define INCORESIZE (BRICKSIZE*BRICKSIZE*BRICKSIZE)
 
 class MasterController;
 

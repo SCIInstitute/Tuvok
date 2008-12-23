@@ -187,7 +187,7 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     if (kvpEncoding->strValueUpper == "RAW")  {
       pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is in RAW format!");
 
-      return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
+      return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
                                vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
     } else
     if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
@@ -202,14 +202,14 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     if (kvpEncoding->strValueUpper == "GZ" || kvpEncoding->strValueUpper == "GZIP")  {
       pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is GZIP compressed RAW format.");
 
-      return ConvertGZIPDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
+      return ConvertGZIPDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
                                vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
 
     } else
     if (kvpEncoding->strValueUpper == "BZ" || kvpEncoding->strValueUpper == "BZIP2")  {
       pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is BZIP2 compressed RAW format.");
 
-      return ConvertBZIP2Dataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bBigEndian != EndianConvert::IsBigEndian(),
+      return ConvertBZIP2Dataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
                                vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
 
     } else {

@@ -169,6 +169,7 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
 
   size_t iHeaderSkip = parser.GetStopPos();
 
-  return ConvertRAWDataset(strSourceFilename, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, false, !EndianConvert::IsBigEndian(),
+  /// \todo check if really all vff files contain signed data
+  return ConvertRAWDataset(strSourceFilename, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, !EndianConvert::IsBigEndian(), true,
                            vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename));
 }

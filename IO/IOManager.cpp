@@ -206,8 +206,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
     bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, m_pMasterController, 0,
                                     pDICOMStack->m_iAllocated, pDICOMStack->m_iComponentCount, 
-                                    false,
                                     pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
+                                    pDICOMStack->m_iComponentCount >=32,
                                     iSize, pDICOMStack->m_fvfAspect, 
                                     "DICOM stack", SysTools::GetFilename(pDICOMStack->m_Elements[0]->m_strFileName)
                                     + " to " + SysTools::GetFilename(pDICOMStack->m_Elements[pDICOMStack->m_Elements.size()-1]->m_strFileName));
@@ -250,8 +250,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
         bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, m_pMasterController, 0,
                                         pStack->m_iAllocated, pStack->m_iComponentCount, 
-                                        false,
                                         pStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
+                                        pStack->m_iComponentCount >= 32,
                                         iSize, pStack->m_fvfAspect, 
                                         "Image stack", SysTools::GetFilename(pStack->m_Elements[0]->m_strFileName)
                                         + " to " + SysTools::GetFilename(pStack->m_Elements[pStack->m_Elements.size()-1]->m_strFileName));

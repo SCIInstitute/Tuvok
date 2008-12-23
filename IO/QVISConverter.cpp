@@ -112,7 +112,7 @@ bool QVISConverter::Convert(const std::string& strSourceFilename, const std::str
 	  strRAWFile = SysTools::GetPath(strSourceFilename) + strRAWFile;
 
     /// \todo  detect big endian DAT/RAW combinations and set the conversion parameter accordingly instead of always assuming it is little endian and thius converting if the machine is big endian 
-    return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, bSigned, EndianConvert::IsBigEndian(),
+    return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, EndianConvert::IsBigEndian(), bSigned,
                              vVolumeSize, vVolumeAspect, "Qvis data", SysTools::GetFilename(strSourceFilename));
 
   } else return false;
