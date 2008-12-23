@@ -86,6 +86,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     return "";
   }
 
+
   UINT64 iRange = iMax-iMin;
   
   InputData.SeekPos(iHeaderSkip);
