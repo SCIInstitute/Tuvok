@@ -111,23 +111,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     OutputData.Close();
     InputData.Close();
 
-<<<<<<< .mine
     strQuantFile = strTargetFilename;
-=======
-
-  UINT64 iRange = iMax-iMin;
-  
-  InputData.SeekPos(iHeaderSkip);
-  iPos = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, BRICKSIZE*BRICKSIZE*BRICKSIZE*2)/2;
-    for (size_t i = 0;i<iRead;i++) {
-      pInData[i] = min<unsigned short>(4095, (unsigned short)((UINT64(pInData[i]-iMin) * 4095)/iRange));
-    }
-    iPos += UINT64(iRead);
-
-    OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
->>>>>>> .r580
   }
 
   Histogram1D.SetHistogram(aHist);
