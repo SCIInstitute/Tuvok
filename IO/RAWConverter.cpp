@@ -124,12 +124,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     strSourceFilename = tmpFilename0;
   } else strSourceFilename = strFilename;
 
+  Histogram1DDataBlock Histogram1D;
+
 	switch (iComponentSize) {
     case 16 : 
-      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume());
+      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D);
       break;
 		case 32 :	
-      strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume());
+      strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D);
       iComponentSize = 16;
       break;
   }
@@ -278,18 +280,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 		return false;
 	}
 
- 	Histogram1DDataBlock Histogram1D;
-  if (!Histogram1D.Compute(&dataVolume)) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 1D Histogram failed!"); 
-    uvfFile.Close(); 
-    SourceData.Close();
-    if (bConvertEndianness) remove(tmpFilename0.c_str());
-    if (bQuantized) remove(tmpFilename1.c_str());
-		return false;
-  }
-
   Histogram2DDataBlock Histogram2D;
-  if (!Histogram2D.Compute(&dataVolume)) {
+  if (!Histogram2D.Compute(&dataVolume, Histogram1D.GetHistogram().size())) {
     pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 2D Histogram failed!"); 
     uvfFile.Close(); 
     SourceData.Close();

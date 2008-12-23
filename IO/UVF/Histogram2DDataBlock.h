@@ -15,8 +15,10 @@ public:
 	virtual Histogram2DDataBlock& operator=(const Histogram2DDataBlock& other);
 	virtual UINT64 ComputeDataSize() const;
 
-  bool Compute(RasterDataBlock* source);
+  bool Compute(RasterDataBlock* source, size_t iMaxValue);
   const std::vector< std::vector<UINT64> >& GetHistogram() {return m_vHistData;}
+  void SetHistogram(std::vector< std::vector<UINT64> >& vHistData, float fMaxGradMagnitude) {m_vHistData = vHistData;m_fMaxGradMagnitude=fMaxGradMagnitude;}
+
   float GetMaxGradMagnitude() const {return m_fMaxGradMagnitude;}
 
 protected:

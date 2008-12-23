@@ -17,6 +17,7 @@ public:
 
   bool Compute(RasterDataBlock* source);
   const std::vector<UINT64>& GetHistogram() {return m_vHistData;}
+  void SetHistogram(std::vector<UINT64>& vHistData) {m_vHistData = vHistData;}
 
 protected:
 	std::vector<UINT64> m_vHistData;

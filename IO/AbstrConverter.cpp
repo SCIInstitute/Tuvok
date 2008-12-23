@@ -41,13 +41,16 @@
 
 using namespace std;
 
-const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize) {
+const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D) {
   LargeRAWFile InputData(strFilename);
   InputData.Open(false);
 
   if (!InputData.IsOpen()) return "";
 
   InputData.SeekPos(iHeaderSkip);
+
+  vector<UINT64> aHist(4096); 
+  for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
 
   // determine max and min
   unsigned short iMax = 0;
@@ -58,10 +61,9 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     size_t iRead = InputData.ReadRAW((unsigned char*)pInData, BRICKSIZE*BRICKSIZE*BRICKSIZE*2)/2;
 
     for (size_t i = 0;i<iRead;i++) {
-      if ( iMax < pInData[i])
-        iMax = pInData[i];
-      if (iMin > pInData[i]) 
-        iMin = pInData[i];
+      if (iMax < pInData[i]) iMax = pInData[i];
+      if (iMin > pInData[i])  iMin = pInData[i];
+      if (iMax < 4096) aHist[pInData[i]]++;
     }
 
     iPos += UINT64(iRead);
@@ -69,23 +71,49 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     if (iMin == 0 && iMax == 65535) break;
   }
 
+  string strQuantFile;
   // if file uses less or equal than 12 bits quit here
   if (iMax < 4096) {
+    aHist.resize(iMax);
     delete [] pInData;
     InputData.Close();
-    return strFilename;
-  }
+    strQuantFile = strFilename;
+  } else {
+    for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
 
-  // otherwise quantize
-  LargeRAWFile OutputData(strTargetFilename);
-  OutputData.Create(iSize*2);
+    // otherwise quantize
+    LargeRAWFile OutputData(strTargetFilename);
+    OutputData.Create(iSize*2);
 
-  if (!OutputData.IsOpen()) {
+    if (!OutputData.IsOpen()) {
+      delete [] pInData;
+      InputData.Close();
+      return "";
+    }
+
+    UINT64 iRange = iMax-iMin;
+    
+    InputData.SeekPos(iHeaderSkip);
+    iPos = 0;
+    while (iPos < iSize)  {
+      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, BRICKSIZE*BRICKSIZE*BRICKSIZE*2)/2;
+      for (size_t i = 0;i<iRead;i++) {
+        unsigned short iNewVal = min<unsigned short>(4095, (unsigned short)((UINT64(pInData[i]-iMin) * 4095)/iRange));
+        pInData[i] = iNewVal;
+        aHist[iNewVal]++;
+      }
+      iPos += UINT64(iRead);
+
+      OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
+    }
+
     delete [] pInData;
+    OutputData.Close();
     InputData.Close();
-    return "";
-  }
 
+<<<<<<< .mine
+    strQuantFile = strTargetFilename;
+=======
 
   UINT64 iRange = iMax-iMin;
   
@@ -99,16 +127,15 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     iPos += UINT64(iRead);
 
     OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
+>>>>>>> .r580
   }
 
-  delete [] pInData;
-  OutputData.Close();
-  InputData.Close();
+  Histogram1D.SetHistogram(aHist);
 
-  return strTargetFilename;
+  return strQuantFile;
 }
 
-const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize) {
+const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D) {
   LargeRAWFile InputData(strFilename);
   InputData.Open(false);
 
@@ -145,12 +172,17 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
   float fQuantFact = 4095.0f / float(fMax-fMin);
   unsigned short* pOutData = new unsigned short[BRICKSIZE*BRICKSIZE*BRICKSIZE*2];
   
+  vector<UINT64> aHist(4096); 
+  for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+
   InputData.SeekPos(iHeaderSkip);
   iPos = 0;
   while (iPos < iSize)  {
     size_t iRead = InputData.ReadRAW((unsigned char*)pInData, BRICKSIZE*BRICKSIZE*BRICKSIZE*4)/4;
     for (size_t i = 0;i<iRead;i++) {
-      pOutData[i] = min<unsigned short>(4095, ((pInData[i]-fMin) * fQuantFact));
+      unsigned short iNewVal = min<unsigned short>(4095, ((pInData[i]-fMin) * fQuantFact));
+      pOutData[i] = iNewVal;
+      aHist[iNewVal]++;
     }
     iPos += UINT64(iRead);
 
@@ -161,6 +193,8 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
   delete [] pOutData;
   OutputData.Close();
   InputData.Close();
+
+  Histogram1D.SetHistogram(aHist);
 
   return strTargetFilename;
 }
