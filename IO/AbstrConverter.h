@@ -59,8 +59,8 @@ protected:
   std::string               m_vConverterDesc;
   std::vector<std::string>  m_vSupportedExt;
 
-  static const std::string QuantizeShortTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D);
-  static const std::string QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D);
+  static const std::string QuantizeShortTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController);
+  static const std::string QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController);
 };
 
 #endif // ABSTRCONVERTER_H

@@ -56,7 +56,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   string tmpFilename1 = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
 
   if (bConvertEndianness) {
-    pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Performaing endianess conversion of RAW dataset %s to %s", strFilename.c_str(), tmpFilename0.c_str());
+    pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Performing endianess conversion of RAW dataset %s to %s", strFilename.c_str(), tmpFilename0.c_str());
 
     if (iComponentSize != 16 && iComponentSize != 32 && iComponentSize != 64) {
       pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unable to endian convert anything but 16bit, 32bit, or 64bit values (requested %i)", iComponentSize);
@@ -92,8 +92,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       size_t iBytesRead = WrongEndianData.ReadRAW(pBuffer, iBufferSize);
 
       switch (iComponentSize) {
-        case 16 : for (size_t i = 0;i<iBytesRead;i+=2) 
-                    EndianConvert::Swap<unsigned short>((unsigned short*)(pBuffer+i)); 
+        case 16 : for (size_t i = 0;i<iBytesRead;i+=2)
+                    EndianConvert::Swap<unsigned short>((unsigned short*)(pBuffer+i));                     
                   break;
         case 32 : for (size_t i = 0;i<iBytesRead;i+=4) 
                     EndianConvert::Swap<float>((float*)(pBuffer+i)); 
@@ -122,16 +122,17 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     WrongEndianData.Close();
     ConvEndianData.Close();
     strSourceFilename = tmpFilename0;
+    iHeaderSkip = 0;  // the new file is straigt raw without any header
   } else strSourceFilename = strFilename;
 
   Histogram1DDataBlock Histogram1D;
 
 	switch (iComponentSize) {
     case 16 : 
-      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D);
+      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D, pMasterController);
       break;
 		case 32 :	
-      strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D);
+      strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D, pMasterController);
       iComponentSize = 16;
       break;
   }
@@ -144,7 +145,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   bool bQuantized;
   if (strSourceFilename == tmpFilename1) {
     bQuantized = true;
-    iHeaderSkip = 0;
+    
+    // if we actually created two temp file so far we can delete the first one
+    if (bConvertEndianness) {
+      remove(tmpFilename0.c_str());
+      bConvertEndianness = false;
+    }
+      
+    iHeaderSkip = 0; // the new file is straigt raw without any header
   } else {
     bQuantized = false;
   }
@@ -280,6 +288,21 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 		return false;
 	}
 
+
+  // if no resampling was perfomed above we need to compute the 1d histogram here
+  if (Histogram1D.GetHistogram().size() == 0) {
+    pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Computing 1D Histogram...");
+    if (!Histogram1D.Compute(&dataVolume)) {
+      pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 1D Histogram failed!"); 
+      uvfFile.Close(); 
+      SourceData.Close();
+      if (bConvertEndianness) remove(tmpFilename0.c_str());
+      if (bQuantized) remove(tmpFilename1.c_str());
+		  return false;
+    }
+  }
+
+  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Computing 2D Histogram...");
   Histogram2DDataBlock Histogram2D;
   if (!Histogram2D.Compute(&dataVolume, Histogram1D.GetHistogram().size())) {
     pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 2D Histogram failed!"); 
@@ -289,6 +312,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     if (bQuantized) remove(tmpFilename1.c_str());
 		return false;
   }
+
+  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Merging data...");
 
 	uvfFile.AddDataBlock(&Histogram1D,Histogram1D.ComputeDataSize());
 	uvfFile.AddDataBlock(&Histogram2D,Histogram2D.ComputeDataSize());
@@ -304,12 +329,18 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	uvfFile.AddDataBlock(testPairs,iDataSize);
 */
 
+  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Computing checksum and writing file...");
+
 	uvfFile.Create();
 	SourceData.Close();
 	uvfFile.Close();
+
+  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Removing temporarie files...");
+
   if (bConvertEndianness) remove(tmpFilename0.c_str());
   if (bQuantized) remove(tmpFilename1.c_str());
 
+  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Done!");
   return true;
 }
 

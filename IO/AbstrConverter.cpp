@@ -41,7 +41,7 @@
 
 using namespace std;
 
-const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D) {
+const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
   LargeRAWFile InputData(strFilename);
   InputData.Open(false);
 
@@ -74,11 +74,13 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
   string strQuantFile;
   // if file uses less or equal than 12 bits quit here
   if (iMax < 4096) {
+    m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","No quantization required (min=%i, max=%i)", iMin, iMax);
     aHist.resize(iMax);
     delete [] pInData;
     InputData.Close();
     strQuantFile = strFilename;
   } else {
+    m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","Quantizating to 12 bit (min=%i, max=%i)", iMin, iMax);
     for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
 
     // otherwise quantize
@@ -119,7 +121,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
   return strQuantFile;
 }
 
-const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D) {
+const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
   LargeRAWFile InputData(strFilename);
   InputData.Open(false);
 
@@ -152,6 +154,8 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
     InputData.Close();
     return "";
   }
+
+  m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeFloatTo12Bits","No quantization required (min=%g, max=%g)", fMax, fMax);
 
   float fQuantFact = 4095.0f / float(fMax-fMin);
   unsigned short* pOutData = new unsigned short[BRICKSIZE*BRICKSIZE*BRICKSIZE*2];
