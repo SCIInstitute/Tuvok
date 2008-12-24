@@ -82,6 +82,8 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iMaxValue) {
   if (source->ulDomainSize.size() < 3 || source->ulDomainSemantics[0] != UVFTables::DS_X ||
       source->ulDomainSemantics[1] != UVFTables::DS_Y || source->ulDomainSemantics[2] != UVFTables::DS_Z) return false;
 
+  iMaxValue++; // if x is the maxvalue we need to create a vector with x+1 entries
+
   m_vHistData.resize(iMaxValue);
   for (size_t i = 0;i<iMaxValue;i++) {
     m_vHistData[i].resize(256);
@@ -222,7 +224,8 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iMaxValue) {
                                      (float(psSourceData[iFront])-float(psSourceData[iBack]))/(65535*vScale.z));
 
             unsigned char iGardientMagnitudeIndex = (unsigned char)(min<int>(255,int(vGradient.length()/m_fMaxGradMagnitude*255.0f)));
-            m_vHistData[psSourceData[iCenter]][iGardientMagnitudeIndex]++;
+            int iValue = psSourceData[iCenter];
+            m_vHistData[iValue][iGardientMagnitudeIndex]++;
           }
         }
       }
