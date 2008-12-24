@@ -82,8 +82,6 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iMaxValue) {
   if (source->ulDomainSize.size() < 3 || source->ulDomainSemantics[0] != UVFTables::DS_X ||
       source->ulDomainSemantics[1] != UVFTables::DS_Y || source->ulDomainSemantics[2] != UVFTables::DS_Z) return false;
 
-  iMaxValue++; // if x is the maxvalue we need to create a vector with x+1 entries
-
   m_vHistData.resize(iMaxValue);
   for (size_t i = 0;i<iMaxValue;i++) {
     m_vHistData[i].resize(256);

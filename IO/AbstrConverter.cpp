@@ -131,7 +131,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
   // if file uses less or equal than 12 bits quit here
   if (iMax < 4096) {
     m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","No quantization required (min=%i, max=%i)", iMin, iMax);
-    aHist.resize(iMax);
+    aHist.resize(iMax+1);  // size is the maximum value plus one (the zero value)
     delete [] pInData;
     InputData.Close();
     strQuantFile = strFilename;
