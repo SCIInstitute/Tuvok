@@ -77,7 +77,6 @@ private:
   std::string                   m_TempDir;
   std::vector<AbstrConverter*>  m_vpConverters;
   AbstrConverter*               m_pFinalConverter;
-
 };
 
 #endif // IOMANAGER_H

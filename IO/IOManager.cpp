@@ -348,5 +348,4 @@ std::string IOManager::GetLoadDialogString() {
   strDialog += "All Files (*.*)";
 
   return strDialog;
-
 }
