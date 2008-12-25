@@ -40,61 +40,61 @@
 #define KEYVALUEFILEPARSER_H
 
 #ifdef _WIN32
-	#pragma warning (disable : 4995)
+  #pragma warning (disable : 4995)
 #endif
 #include <vector>
 #include <string>
 #ifdef _WIN32
-	#pragma warning (default : 4995)
+  #pragma warning (default : 4995)
 #endif
 
 #include <Basics/Vectors.h>
 
 class KeyValPair {
 public:
-	
-	KeyValPair();
-	KeyValPair(const std::string& key, const std::string& value);
-	KeyValPair(const std::wstring& key, const std::wstring& value);
+  
+  KeyValPair();
+  KeyValPair(const std::string& key, const std::string& value);
+  KeyValPair(const std::wstring& key, const std::wstring& value);
 
-	// keys
-	std::string		strKey;
-	std::wstring	wstrKey;
-	std::string		strKeyUpper;
-	std::wstring	wstrKeyUpper;
+  // keys
+  std::string    strKey;
+  std::wstring  wstrKey;
+  std::string    strKeyUpper;
+  std::wstring  wstrKeyUpper;
 
-	// values
-	std::string		strValue;
-	std::wstring	wstrValue;
-	std::string		strValueUpper;
-	std::wstring	wstrValueUpper;
-	unsigned int	uiValue;
-	int				iValue;
-	float			fValue;
-	INTVECTOR3		viValue;
-	UINTVECTOR3		vuiValue;
-	FLOATVECTOR3	vfValue;
+  // values
+  std::string    strValue;
+  std::wstring  wstrValue;
+  std::string    strValueUpper;
+  std::wstring  wstrValueUpper;
+  unsigned int  uiValue;
+  int        iValue;
+  float      fValue;
+  INTVECTOR3    viValue;
+  UINTVECTOR3    vuiValue;
+  FLOATVECTOR3  vfValue;
 };
 
 
 class KeyValueFileParser
 {
 public:
-	KeyValueFileParser(const std::string& strFilename, bool bStopOnEmptyLine=false, const std::string& strToken = ":", const std::string& strEndToken = "");
-	KeyValueFileParser(const std::wstring& wstrFilename, bool bStopOnEmptyLine=false, const std::wstring& wstrToken = L":", const std::wstring& wstrEndToken = L"");
+  KeyValueFileParser(const std::string& strFilename, bool bStopOnEmptyLine=false, const std::string& strToken = ":", const std::string& strEndToken = "");
+  KeyValueFileParser(const std::wstring& wstrFilename, bool bStopOnEmptyLine=false, const std::wstring& wstrToken = L":", const std::wstring& wstrEndToken = L"");
 
-	~KeyValueFileParser(void);
+  ~KeyValueFileParser(void);
 
-	KeyValPair* GetData(const std::string&  strKey, const bool bCaseSensitive=false);
-	KeyValPair* GetData(const std::wstring& wstrKey, const bool bCaseSensitive=false); 
+  KeyValPair* GetData(const std::string&  strKey, const bool bCaseSensitive=false);
+  KeyValPair* GetData(const std::wstring& wstrKey, const bool bCaseSensitive=false); 
 
-	bool FileReadable() const {return m_bFileReadable;}
+  bool FileReadable() const {return m_bFileReadable;}
 
   size_t GetStopPos() {return m_iStopPos;}
 
 protected:
-	std::vector<KeyValPair> m_vecTokens;
-	bool m_bFileReadable;
+  std::vector<KeyValPair> m_vecTokens;
+  bool m_bFileReadable;
   size_t m_iStopPos;
 
   bool ParseFile(const std::string& strFilename, bool bStopOnEmptyLine, const std::string& strToken, const std::string& strEndToken);

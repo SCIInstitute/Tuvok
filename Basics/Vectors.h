@@ -1096,22 +1096,22 @@ public:
                                               T fFOVY, T fAspect, T fZNear, T fZFar, T fFocalLength,
                                               T fEyeDist, int iEyeID, MATRIX4<T>& mView, MATRIX4<T>& mProj) {
 
-	    T radians = T(3.14159265358979323846/180.0) * fFOVY/T(2);
-	    T wd2     = fZNear * T(tan(radians));
-	    T nfdl    = fZNear / fFocalLength;
+      T radians = T(3.14159265358979323846/180.0) * fFOVY/T(2);
+      T wd2     = fZNear * T(tan(radians));
+      T nfdl    = fZNear / fFocalLength;
       T fShift  =   fEyeDist * nfdl;
-	    T left    = - fAspect * wd2 + T(iEyeID)*fShift;
-	    T right   =   fAspect * wd2 + T(iEyeID)*fShift;
-	    T top     =   wd2;
-	    T bottom  = - wd2;
+      T left    = - fAspect * wd2 + T(iEyeID)*fShift;
+      T right   =   fAspect * wd2 + T(iEyeID)*fShift;
+      T top     =   wd2;
+      T bottom  = - wd2;
       
       // projection matrix
       mProj.MatrixPerspectiveOffCenter(left, right, bottom, top, fZNear, fZFar);
 
       // view matrix
-			mView.BuildLookAt(vEye, vAt, vUp);
+      mView.BuildLookAt(vEye, vAt, vUp);
       MATRIX4<T> mTranslate;
-		  mTranslate.Translation(fEyeDist*T(iEyeID), 0.0f, 0.0f);
+      mTranslate.Translation(fEyeDist*T(iEyeID), 0.0f, 0.0f);
       mView= mTranslate * mView;
     }
 
@@ -1120,29 +1120,29 @@ public:
                                               T fFOVY, T fAspect, T fZNear, T fZFar, T fFocalLength,
                                               T fEyeDist, MATRIX4<T>& mViewLeft, MATRIX4<T>& mViewRight, MATRIX4<T>& mProjLeft, MATRIX4<T>& mProjRight) {
 
-	    T radians = T(3.14159265358979323846/180.0) *  fFOVY/2;
-	    T wd2     = fZNear * T(tan(radians));
-	    T nfdl    = fZNear / fFocalLength;
+      T radians = T(3.14159265358979323846/180.0) *  fFOVY/2;
+      T wd2     = fZNear * T(tan(radians));
+      T nfdl    = fZNear / fFocalLength;
       T fShift  =   fEyeDist * nfdl;
-	    T left    = - fAspect * wd2 + fShift;
-	    T right   =   fAspect * wd2 + fShift;
-	    T top     =   wd2;
-	    T bottom  = - wd2;
+      T left    = - fAspect * wd2 + fShift;
+      T right   =   fAspect * wd2 + fShift;
+      T top     =   wd2;
+      T bottom  = - wd2;
       
       // projection matrices
       mProjLeft.MatrixPerspectiveOffCenter(left, right, bottom, top, fZNear, fZFar);
-	    left    = - fAspect * wd2 - fShift;
-	    right   =   fAspect * wd2 - fShift;
+      left    = - fAspect * wd2 - fShift;
+      right   =   fAspect * wd2 - fShift;
       mProjRight.MatrixPerspectiveOffCenter(left, right, bottom, top, fZNear, fZFar);
 
       // view matrices
-			mViewLeft.BuildLookAt(vEye, vAt, vUp);
+      mViewLeft.BuildLookAt(vEye, vAt, vUp);
       mViewRight.BuildLookAt(vEye, vAt, vUp);
 
       // eye translation
       MATRIX4<T> mTranslate;
 
-		  mTranslate.Translation(fEyeDist, 0.0f, 0.0f);
+      mTranslate.Translation(fEyeDist, 0.0f, 0.0f);
       mViewLeft = mTranslate * mViewLeft;
       
       mTranslate.Translation(-fEyeDist, 0.0f, 0.0f);

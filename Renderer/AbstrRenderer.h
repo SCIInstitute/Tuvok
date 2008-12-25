@@ -76,7 +76,7 @@ public:
 };
 
 inline bool operator < (const Brick& left, const Brick& right) {
-	if  (left.fDistance < right.fDistance) return true;
+  if  (left.fDistance < right.fDistance) return true;
   return false;
 }
 
@@ -239,7 +239,7 @@ class AbstrRenderer {
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {m_pDataset->GetInfo()->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();}
     DOUBLEVECTOR3 GetRescaleFactors() {return m_pDataset->GetInfo()->GetRescaleFactors();}
 
-	  void DisableLOD(bool bLODDisabled) {m_bLODDisabled = bLODDisabled;}
+    void DisableLOD(bool bLODDisabled) {m_bLODDisabled = bLODDisabled;}
 
     virtual void  SetStereo(bool bStereoRendering);
     virtual void  SetStereoEyeDist(float fStereoEyeDist);
@@ -316,7 +316,7 @@ class AbstrRenderer {
     UINT64              m_iBricksRenderedInThisSubFrame;
     std::vector<Brick>  m_vCurrentBrickList;
     std::vector<Brick>  m_vLeftEyeBrickList;
-  	bool				        m_bLODDisabled;
+    bool                m_bLODDisabled;
 
     bool                m_bDoClearView;
     float               m_fCVIsovalue;

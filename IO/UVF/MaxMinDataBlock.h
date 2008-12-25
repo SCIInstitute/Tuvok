@@ -39,13 +39,13 @@ typedef MaxMinElemen<double, double> InternalMaxMinElemen;
 class MaxMinDataBlock : public DataBlock
 {
 public:
-	MaxMinDataBlock();
+  MaxMinDataBlock();
   ~MaxMinDataBlock();
-	MaxMinDataBlock(const MaxMinDataBlock &other);
-	MaxMinDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
+  MaxMinDataBlock(const MaxMinDataBlock &other);
+  MaxMinDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
 
-	virtual MaxMinDataBlock& operator=(const MaxMinDataBlock& other);
-	virtual UINT64 ComputeDataSize() const;
+  virtual MaxMinDataBlock& operator=(const MaxMinDataBlock& other);
+  virtual UINT64 ComputeDataSize() const;
 
   const InternalMaxMinElemen& GetValue(size_t iIndex);
   void StartNewValue();
@@ -55,11 +55,11 @@ public:
 protected:
   std::vector< InternalMaxMinElemen > m_vfMaxMinData;
 
-	virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
-	virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
-	virtual UINT64 GetOffsetToNextBlock() const;
+  virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
+  virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual UINT64 GetOffsetToNextBlock() const;
 
-	virtual DataBlock* Clone();
+  virtual DataBlock* Clone();
 };
 
 

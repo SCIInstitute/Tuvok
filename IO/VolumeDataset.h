@@ -62,7 +62,7 @@ class VolumeDatasetInfo {
     void SetRescaleFactors(DOUBLEVECTOR3 vfRescale) {m_vfRescale[0] = vfRescale[0]; m_vfRescale[1] = vfRescale[1]; m_vfRescale[2] = vfRescale[2];}
     DOUBLEVECTOR3 GetRescaleFactors() const {return DOUBLEVECTOR3(m_vfRescale[0], m_vfRescale[1], m_vfRescale[2]);}
 
-  	UINT64VECTOR3 GetBrickCount(const UINT64 iLOD) const;
+    UINT64VECTOR3 GetBrickCount(const UINT64 iLOD) const;
     UINT64VECTOR3 GetBrickSize(const UINT64 iLOD, const UINT64VECTOR3& vBrick) const;
     FLOATVECTOR3 GetEffectiveBrickSize(const UINT64 iLOD, const UINT64VECTOR3& vBrick) const;
     UINT64VECTOR3 GetDomainSize(const UINT64 iLOD=0) const;

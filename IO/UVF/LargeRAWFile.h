@@ -32,9 +32,9 @@
 
 class LargeRAWFile {
 public:
-	LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize=0);
-	LargeRAWFile(const std::wstring& wstrFilename, UINT64 iHeaderSize=0);
-	LargeRAWFile(LargeRAWFile &other);
+  LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize=0);
+  LargeRAWFile(const std::wstring& wstrFilename, UINT64 iHeaderSize=0);
+  LargeRAWFile(LargeRAWFile &other);
   virtual ~LargeRAWFile() {Close();}
 
   bool Open(bool bReadWrite);
@@ -65,45 +65,45 @@ public:
 
   template<class T> void ReadData(T& value, bool bIsBigEndian) {
     ReadRAW((unsigned char*)&value, sizeof(T));
-	  if (EndianConvert::IsBigEndian() != bIsBigEndian) EndianConvert::Swap<T>(value);
+    if (EndianConvert::IsBigEndian() != bIsBigEndian) EndianConvert::Swap<T>(value);
   }
 
   template<class T> void WriteData(const T& value, bool bIsBigEndian) {
-	  if (EndianConvert::IsBigEndian() != bIsBigEndian) EndianConvert::Swap<T>(value);
+    if (EndianConvert::IsBigEndian() != bIsBigEndian) EndianConvert::Swap<T>(value);
     WriteRAW((unsigned char*)&value, sizeof(T));
-	  if (EndianConvert::IsBigEndian() != bIsBigEndian) EndianConvert::Swap<T>(value);
+    if (EndianConvert::IsBigEndian() != bIsBigEndian) EndianConvert::Swap<T>(value);
   }
 
   template<class T> void ReadData(std::vector<T> &value, UINT64 count, bool bIsBigEndian) {
-	  if (count == 0) return;
-	  value.resize(size_t(count));
+    if (count == 0) return;
+    value.resize(size_t(count));
     ReadRAW( (unsigned char*)&value[0], sizeof(T)*size_t(count));
-	  if (EndianConvert::IsBigEndian() != bIsBigEndian) for (size_t i = 0;i<count;i++) EndianConvert::Swap<T>(value[i]);
+    if (EndianConvert::IsBigEndian() != bIsBigEndian) for (size_t i = 0;i<count;i++) EndianConvert::Swap<T>(value[i]);
   }
 
   template<class T> void WriteData(const std::vector<T> &value, bool bIsBigEndian) {
     UINT64 count = value.size();
 
     if (count == 0) return;
-	  if (EndianConvert::IsBigEndian() != bIsBigEndian) for (size_t i = 0;i<count;i++) EndianConvert::Swap<T>(value[i]);
+    if (EndianConvert::IsBigEndian() != bIsBigEndian) for (size_t i = 0;i<count;i++) EndianConvert::Swap<T>(value[i]);
     WriteRAW((unsigned char*)&value[0], sizeof(T)*size_t(count));
-	  if (EndianConvert::IsBigEndian() != bIsBigEndian) for (size_t i = 0;i<count;i++) EndianConvert::Swap<T>(value[i]);
+    if (EndianConvert::IsBigEndian() != bIsBigEndian) for (size_t i = 0;i<count;i++) EndianConvert::Swap<T>(value[i]);
   }
 
   void ReadData(std::string &value, UINT64 count) {
-	  if (count == 0) return;
-	  value.resize(size_t(count));
+    if (count == 0) return;
+    value.resize(size_t(count));
     ReadRAW((unsigned char*)&value[0], sizeof(char)*size_t(count));
   }
 
   void WriteData(const std::string &value) {
-	  if (value.length() == 0) return;
+    if (value.length() == 0) return;
     WriteRAW((unsigned char*)&value[0], sizeof(char)*size_t(value.length()));
   }
 
 
 protected:
-	FILETYPE      m_StreamFile;
+  FILETYPE      m_StreamFile;
   std::string   m_strFilename;
   bool          m_bIsOpen;
   bool          m_bWritable;

@@ -46,16 +46,16 @@ class MasterController;
 
 class GLFBOTex : public GLObject {
 public:
-	GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1);
-	virtual ~GLFBOTex(void);
-	virtual void Write(GLenum target=GL_COLOR_ATTACHMENT0_EXT, int iBuffer=0, bool bCheckBuffer=true);
-	virtual void Read(GLenum texunit,int iBuffer=0);
-	virtual void FinishWrite(int iBuffer=0);
-	virtual void FinishRead(int iBuffer=0);
+  GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1);
+  virtual ~GLFBOTex(void);
+  virtual void Write(GLenum target=GL_COLOR_ATTACHMENT0_EXT, int iBuffer=0, bool bCheckBuffer=true);
+  virtual void Read(GLenum texunit,int iBuffer=0);
+  virtual void FinishWrite(int iBuffer=0);
+  virtual void FinishRead(int iBuffer=0);
   virtual void ReadDepth(GLenum texunit);
   virtual void FinishDepthRead();
-	virtual operator GLuint(void) { return m_hTexture[0]; }
-	virtual operator GLuint*(void) { return m_hTexture; }
+  virtual operator GLuint(void) { return m_hTexture[0]; }
+  virtual operator GLuint*(void) { return m_hTexture; }
 
   /// \todo check how much mem an FBO really occupies
   virtual UINT64 GetCPUSize() {return m_iNumBuffers*m_iSizeX*m_iSizeY*m_iSizePerElement/8 + ((m_hDepthBuffer) ? m_iSizeX*m_iSizeY*4 : 0);}
@@ -74,18 +74,18 @@ private:
   GLuint              m_iSizeX;
   GLuint              m_iSizeY;
 
-  bool			CheckFBO(const char* method);
-	void			initFBO(void);
-	void			initTextures(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat);
-	GLuint			        *m_hTexture;
-	GLuint			        m_hDepthBuffer;
-	static GLuint	      m_hFBO;
-	static bool		      m_bInitialized;
-	static int		      m_iCount;
-	GLenum			        *m_LastTexUnit;
-	GLenum			        m_LastDepthTextUnit;
-	int				          m_iNumBuffers;
-	GLenum			        *m_LastAttachment;
+  bool      CheckFBO(const char* method);
+  void      initFBO(void);
+  void      initTextures(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat);
+  GLuint              *m_hTexture;
+  GLuint              m_hDepthBuffer;
+  static GLuint        m_hFBO;
+  static bool          m_bInitialized;
+  static int          m_iCount;
+  GLenum              *m_LastTexUnit;
+  GLenum              m_LastDepthTextUnit;
+  int                  m_iNumBuffers;
+  GLenum              *m_LastAttachment;
 };
 
 
@@ -93,16 +93,16 @@ private:
 
 class VBOTex : public GLObject {
 public:
-	VBOTex(MasterController* pMasterController, GLsizei width, GLsizei height, bool bHaveDepth=false, int iNumBuffers=1);
-	virtual ~VBOTex(void);
-	virtual void CopyToVBO(int iBuffer=0);
-	virtual void Write(GLenum target=GL_COLOR_ATTACHMENT0_EXT, int iBuffer=0);
-	virtual void FinishWrite(int iBuffer=0);
-	virtual void ReadTex(GLenum texunit, int iBuffer=0);
-	virtual void FinishReadTex(int iBuffer=0);
-	virtual void Read(void);
-	virtual void FinishRead(void);
-	virtual operator GLuint(void) { return m_hPBO; }	
+  VBOTex(MasterController* pMasterController, GLsizei width, GLsizei height, bool bHaveDepth=false, int iNumBuffers=1);
+  virtual ~VBOTex(void);
+  virtual void CopyToVBO(int iBuffer=0);
+  virtual void Write(GLenum target=GL_COLOR_ATTACHMENT0_EXT, int iBuffer=0);
+  virtual void FinishWrite(int iBuffer=0);
+  virtual void ReadTex(GLenum texunit, int iBuffer=0);
+  virtual void FinishReadTex(int iBuffer=0);
+  virtual void Read(void);
+  virtual void FinishRead(void);
+  virtual operator GLuint(void) { return m_hPBO; }  
 
   /// \todo check how much mem an FBO really occupies
   virtual UINT64 GetCPUSize() {return m_iSizeX*m_iSizeY*m_iSizePerElement/8;}
@@ -115,15 +115,15 @@ private:
   GLuint            m_iSizeY;
   unsigned int      m_iSizePerElement;
 
-	GLFBOTex          *m_hGLFBOTex;
-	GLuint		        m_hPBO;
-	GLsizei		        m_iWidth;
-	GLsizei		        m_iHeight;
-	GLenum		        *m_LastAttachment;
-	static int	      m_iCount;
-	static bool	      m_bInitialized;
-	static bool	      m_bPBOSupported;
-	int			          m_iNumBuffers;
+  GLFBOTex          *m_hGLFBOTex;
+  GLuint            m_hPBO;
+  GLsizei            m_iWidth;
+  GLsizei            m_iHeight;
+  GLenum            *m_LastAttachment;
+  static int        m_iCount;
+  static bool        m_bInitialized;
+  static bool        m_bPBOSupported;
+  int                m_iNumBuffers;
 };
 
 

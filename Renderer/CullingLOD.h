@@ -48,13 +48,13 @@ class CullingLOD
   public:
     CullingLOD(float fScreenSpaceError=1.0f);
     void SetScreenParams(float fFOVY, float fAspect, float fNearPlane, float fFarPlane, unsigned int iPixelCountY);
-	  void SetProjectionMatrix(const FLOATMATRIX4& mProjectionMatrix);
+    void SetProjectionMatrix(const FLOATMATRIX4& mProjectionMatrix);
     void SetModelMatrix(const FLOATMATRIX4& mModelMatrix);
     void SetViewMatrix(const FLOATMATRIX4& mViewMatrix);
-	  void Update();
+    void Update();
     
     int GetLODLevel(const FLOATVECTOR3& vfCenter, const FLOATVECTOR3& vfExtent, const UINTVECTOR3& viVoxelCount) const;
-	  bool IsVisible(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vfExtent) const;
+    bool IsVisible(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vfExtent) const;
 
     FLOATVECTOR2 GetDepthScaleParams() const;
     float        GetNearPlane() const {return m_fNearPlane;}
@@ -62,11 +62,11 @@ class CullingLOD
 
   private:
     FLOATMATRIX4 m_mModelViewProjectionMatrix;
-	  FLOATMATRIX4 m_mModelViewMatrix;
-	  FLOATMATRIX4 m_mProjectionMatrix;
-	  FLOATMATRIX4 m_mViewMatrix;
-	  FLOATMATRIX4 m_mModelMatrix;
-	  FLOATVECTOR4 m_Planes[6];
+    FLOATMATRIX4 m_mModelViewMatrix;
+    FLOATMATRIX4 m_mProjectionMatrix;
+    FLOATMATRIX4 m_mViewMatrix;
+    FLOATMATRIX4 m_mModelMatrix;
+    FLOATVECTOR4 m_Planes[6];
     float        m_fFOVY;
     float        m_fAspect;
     float        m_fNearPlane;

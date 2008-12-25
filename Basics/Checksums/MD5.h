@@ -17,7 +17,7 @@ public:
         //RSA MD5 Implementation
         void Transform(BYTE Block[64], int& error);
         void Update(BYTE* Input, UINT nInputLen, int& error);
-		std::vector<unsigned char> Final(int& iErrorCalculate);
+    std::vector<unsigned char> Final(int& iErrorCalculate);
  
 protected:
         inline UINT RotateLeft(UINT x, int n);
