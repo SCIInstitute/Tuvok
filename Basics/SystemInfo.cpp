@@ -80,11 +80,11 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
     return statex.ullTotalPhys;
   #else
     #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
-  	  UINT64 phys = 0;
-  	  int mib[2] = { CTL_HW, HW_PHYSMEM };    
-  	  size_t len = sizeof(phys);	
-  	  if (sysctl(mib, 2, &phys, &len, NULL, 0) != 0) return 0;  	
-  	  return phys;
+      UINT64 phys = 0;
+      int mib[2] = { CTL_HW, HW_PHYSMEM };
+      size_t len = sizeof(phys);
+      if (sysctl(mib, 2, &phys, &len, NULL, 0) != 0) return 0;
+      return phys;
     #else
       struct sysinfo si;
       if(sysinfo(&si) != 0) return 0;

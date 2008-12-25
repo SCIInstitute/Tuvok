@@ -131,13 +131,13 @@ FileStackInfo::~FileStackInfo() {
 
 FileStackInfo::FileStackInfo( UINTVECTOR3  ivSize, FLOATVECTOR3 fvfAspect, unsigned int iAllocated, unsigned int iStored,
                               unsigned int iComponentCount, bool bIsBigEndian, const std::string& strDesc, const std::string& strFileType) :
-	m_ivSize(ivSize),
-	m_fvfAspect(fvfAspect),
-	m_iAllocated(iAllocated),
-	m_iStored(iStored),
-	m_iComponentCount(iComponentCount),
-	m_bIsBigEndian(bIsBigEndian),
-	m_strDesc(strDesc),
+  m_ivSize(ivSize),
+  m_fvfAspect(fvfAspect),
+  m_iAllocated(iAllocated),
+  m_iStored(iStored),
+  m_iComponentCount(iComponentCount),
+  m_bIsBigEndian(bIsBigEndian),
+  m_strDesc(strDesc),
   m_strFileType(strFileType)
 {
 }

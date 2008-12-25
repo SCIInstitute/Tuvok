@@ -532,11 +532,11 @@ void AbstrRenderer::Plan3DFrame() {
     m_FrustumCullingLOD.Update();
 
     ComputeMinLODForCurrentView();
-	  if (!m_bLODDisabled) {
-		  m_iCurrentLODOffset = m_iMaxLODIndex+1;
-	  } else {
-		  m_iCurrentLODOffset = m_iMinLODForCurrentView+1;
-	  }
+    if (!m_bLODDisabled) {
+      m_iCurrentLODOffset = m_iMaxLODIndex+1;
+    } else {
+      m_iCurrentLODOffset = m_iMinLODForCurrentView+1;
+    }
   }
 
   // plan if the frame is to be redrawn

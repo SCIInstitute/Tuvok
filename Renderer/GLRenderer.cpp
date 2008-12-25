@@ -452,7 +452,7 @@ void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) 
   FLOATVECTOR3 vEye(0,0,2), vAt(0,0,0), vUp(0,1,0);
 
   // viewport
-	glViewport(viLowerLeft.x,viLowerLeft.y,viSize.x,viSize.y);
+  glViewport(viLowerLeft.x,viLowerLeft.y,viSize.x,viSize.y);
 
   if (m_bDoStereoRendering) {
     FLOATMATRIX4::BuildStereoLookAtAndProjection(vEye, vAt, vUp, fFOVY, fAspect, fZNear, fZFar, m_fStereoFocalLength, m_fStereoEyeDist, m_mView[0], m_mView[1], m_mProjection[0], m_mProjection[1]);
@@ -1106,22 +1106,22 @@ void GLRenderer::BBoxPreRender() {
   // for isosurface rendering we can go ahead and render the bbox directly as isosurfacing 
   // writes out correct depth values
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
-	  glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
-	  if (m_bRenderGlobalBBox) 
+    glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
+    if (m_bRenderGlobalBBox) 
       RenderBBox();
-	  if (m_bRenderLocalBBox) {
-	    for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
-	      RenderBBox(FLOATVECTOR4(0,1,0,1), m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
-	    }
+    if (m_bRenderLocalBBox) {
+      for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
+        RenderBBox(FLOATVECTOR4(0,1,0,1), m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
+      }
     }
-	  glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+    glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
   } else {
     glDisable(GL_BLEND);
-	  if (m_bRenderGlobalBBox) RenderBBox();
-	  if (m_bRenderLocalBBox) {
-	    for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
-	      RenderBBox(FLOATVECTOR4(0,1,0,1), m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
-	    }
+    if (m_bRenderGlobalBBox) RenderBBox();
+    if (m_bRenderLocalBBox) {
+      for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
+        RenderBBox(FLOATVECTOR4(0,1,0,1), m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
+      }
     }
   }
 }
@@ -1234,7 +1234,7 @@ void GLRenderer::Render3DView() {
 
     // count the bricks rendered
     m_iBricksRenderedInThisSubFrame++;
-	  
+    
     // time this loop
     if (!m_bLODDisabled) timeProbe = clock();
   }
@@ -1275,7 +1275,7 @@ void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
 
   if (m_pLogoTex) {m_pMasterController->MemMan()->FreeTexture(m_pLogoTex); m_pLogoTex =NULL;}
   if (m_strLogoFilename != "")
-	m_pLogoTex = m_pMasterController->MemMan()->Load2DTextureFromFile(m_strLogoFilename);
+  m_pLogoTex = m_pMasterController->MemMan()->Load2DTextureFromFile(m_strLogoFilename);
   ScheduleWindowRedraw(WM_3D);
 }
 

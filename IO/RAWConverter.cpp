@@ -94,7 +94,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
         case 16 : for (size_t i = 0;i<iBytesRead;i+=2)
                     EndianConvert::Swap<unsigned short>((unsigned short*)(pBuffer+i));                     
                   break;
-        case 32 : for (size_t i = 0;i<iBytesRead;i+=4) 
+        case 32 : for (size_t i = 0;i<iBytesRead;i+=4)
                     EndianConvert::Swap<float>((float*)(pBuffer+i)); 
                   break;
         case 64 : for (size_t i = 0;i<iBytesRead;i+=8) 
@@ -126,14 +126,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
   Histogram1DDataBlock Histogram1D;
 
-	switch (iComponentSize) {
+  switch (iComponentSize) {
     case 8 : 
       strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
       break;
     case 16 : 
       strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
       break;
-		case 32 :	
+    case 32 :
       strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D, pMasterController);
       iComponentSize = 16;
       break;
@@ -167,10 +167,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     return false;
   }
 
-	wstring wstrUVFName(strTargetFilename.begin(), strTargetFilename.end());
-	UVF uvfFile(wstrUVFName);
+  wstring wstrUVFName(strTargetFilename.begin(), strTargetFilename.end());
+  UVF uvfFile(wstrUVFName);
 
-	UINT64 iLodLevelCount = 1;
+  UINT64 iLodLevelCount = 1;
   unsigned int iMaxVal = vVolumeSize.maxVal();
 
   while (iMaxVal > BRICKSIZE) {
@@ -178,117 +178,117 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     iLodLevelCount++;
   }
 
-	GlobalHeader uvfGlobalHeader;
+  GlobalHeader uvfGlobalHeader;
   uvfGlobalHeader.bIsBigEndian = EndianConvert::IsBigEndian();
-	uvfGlobalHeader.ulChecksumSemanticsEntry = UVFTables::CS_MD5;
-	uvfFile.SetGlobalHeader(uvfGlobalHeader);
+  uvfGlobalHeader.ulChecksumSemanticsEntry = UVFTables::CS_MD5;
+  uvfFile.SetGlobalHeader(uvfGlobalHeader);
 
-	RasterDataBlock dataVolume;
+  RasterDataBlock dataVolume;
 
   if (strSource == "") 
     dataVolume.strBlockID = (strDesc!="") ? strDesc + " volume converted by ImageVis3D" : "Volume converted by ImageVis3D";
   else
     dataVolume.strBlockID = (strDesc!="") ? strDesc + " volume converted from " + strSource + " by ImageVis3D" : "Volume converted from " + strSource + " by ImageVis3D";
 
-	dataVolume.ulCompressionScheme = UVFTables::COS_NONE;
-	dataVolume.ulDomainSemantics.push_back(UVFTables::DS_X);
-	dataVolume.ulDomainSemantics.push_back(UVFTables::DS_Y);
-	dataVolume.ulDomainSemantics.push_back(UVFTables::DS_Z);
+  dataVolume.ulCompressionScheme = UVFTables::COS_NONE;
+  dataVolume.ulDomainSemantics.push_back(UVFTables::DS_X);
+  dataVolume.ulDomainSemantics.push_back(UVFTables::DS_Y);
+  dataVolume.ulDomainSemantics.push_back(UVFTables::DS_Z);
 
-	dataVolume.ulDomainSize.push_back(vVolumeSize.x);
-	dataVolume.ulDomainSize.push_back(vVolumeSize.y);
-	dataVolume.ulDomainSize.push_back(vVolumeSize.z);
+  dataVolume.ulDomainSize.push_back(vVolumeSize.x);
+  dataVolume.ulDomainSize.push_back(vVolumeSize.y);
+  dataVolume.ulDomainSize.push_back(vVolumeSize.z);
 
-	dataVolume.ulLODDecFactor.push_back(2);
-	dataVolume.ulLODDecFactor.push_back(2);
-	dataVolume.ulLODDecFactor.push_back(2);
+  dataVolume.ulLODDecFactor.push_back(2);
+  dataVolume.ulLODDecFactor.push_back(2);
+  dataVolume.ulLODDecFactor.push_back(2);
 
-	dataVolume.ulLODGroups.push_back(0);
-	dataVolume.ulLODGroups.push_back(0);
-	dataVolume.ulLODGroups.push_back(0);
+  dataVolume.ulLODGroups.push_back(0);
+  dataVolume.ulLODGroups.push_back(0);
+  dataVolume.ulLODGroups.push_back(0);
 
-	dataVolume.ulLODLevelCount.push_back(iLodLevelCount);
+  dataVolume.ulLODLevelCount.push_back(iLodLevelCount);
 
-	vector<UVFTables::ElementSemanticTable> vSem;
+  vector<UVFTables::ElementSemanticTable> vSem;
 
-	switch (iComponentCount) {
-		case 3 : vSem.push_back(UVFTables::ES_RED);
-				 vSem.push_back(UVFTables::ES_GREEN);
-				 vSem.push_back(UVFTables::ES_BLUE); break;
-		case 4 : vSem.push_back(UVFTables::ES_RED);
-				 vSem.push_back(UVFTables::ES_GREEN);
-				 vSem.push_back(UVFTables::ES_BLUE); 
-				 vSem.push_back(UVFTables::ES_ALPHA); break;
-		default : for (uint i = 0;i<iComponentCount;i++) vSem.push_back(eType);
-	}
+  switch (iComponentCount) {
+    case 3 : vSem.push_back(UVFTables::ES_RED);
+         vSem.push_back(UVFTables::ES_GREEN);
+         vSem.push_back(UVFTables::ES_BLUE); break;
+    case 4 : vSem.push_back(UVFTables::ES_RED);
+         vSem.push_back(UVFTables::ES_GREEN);
+         vSem.push_back(UVFTables::ES_BLUE);
+         vSem.push_back(UVFTables::ES_ALPHA); break;
+    default : for (uint i = 0;i<iComponentCount;i++) vSem.push_back(eType);
+  }
 
-	dataVolume.SetTypeToVector(iComponentSize/iComponentCount, 
-							               iComponentSize == 32 ? 23 : iComponentSize/iComponentCount,
-							               bSigned, 
-							               vSem);
-	
-	dataVolume.ulBrickSize.push_back(BRICKSIZE);
-	dataVolume.ulBrickSize.push_back(BRICKSIZE);
-	dataVolume.ulBrickSize.push_back(BRICKSIZE);
+  dataVolume.SetTypeToVector(iComponentSize/iComponentCount,
+                             iComponentSize == 32 ? 23 : iComponentSize/iComponentCount,
+                             bSigned,
+                             vSem);
 
-	dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
-	dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
-	dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+  dataVolume.ulBrickSize.push_back(BRICKSIZE);
+  dataVolume.ulBrickSize.push_back(BRICKSIZE);
+  dataVolume.ulBrickSize.push_back(BRICKSIZE);
 
-	vector<double> vScale;
-	vScale.push_back(vVolumeAspect.x);
-	vScale.push_back(vVolumeAspect.y);
-	vScale.push_back(vVolumeAspect.z);
-	dataVolume.SetScaleOnlyTransformation(vScale);
+  dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+  dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+  dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+
+  vector<double> vScale;
+  vScale.push_back(vVolumeAspect.x);
+  vScale.push_back(vVolumeAspect.y);
+  vScale.push_back(vVolumeAspect.z);
+  dataVolume.SetScaleOnlyTransformation(vScale);
 
   MaxMinDataBlock MaxMinData;
 
-	switch (iComponentSize) {
-		case 8 :	
+  switch (iComponentSize) {
+    case 8 :
           switch (iComponentCount) {
             case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char>, &MaxMinData, pMasterController->DebugOut()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, NULL, NULL, pMasterController->DebugOut()); break;
-						default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
-					} break;
-		case 16 :
+            case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, NULL, NULL, pMasterController->DebugOut()); break;
+            case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, NULL, NULL, pMasterController->DebugOut()); break;
+            case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, NULL, NULL, pMasterController->DebugOut()); break;
+            default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+          } break;
+    case 16 :
           switch (iComponentCount) {
-						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short>, &MaxMinData, pMasterController->DebugOut()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, NULL, NULL, pMasterController->DebugOut()); break;
-						default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
-					} break;
-		case 32 :	
+            case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short>, &MaxMinData, pMasterController->DebugOut()); break;
+            case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, NULL, NULL, pMasterController->DebugOut()); break;
+            case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, NULL, NULL, pMasterController->DebugOut()); break;
+            case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, NULL, NULL, pMasterController->DebugOut()); break;
+            default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+          } break;
+    case 32 :
           switch (iComponentCount) {
-						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,1>, SimpleMaxMin<float>, &MaxMinData, pMasterController->DebugOut()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, NULL, NULL, pMasterController->DebugOut()); break;
-						default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
-					} break;
-		default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
-	}
+            case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,1>, SimpleMaxMin<float>, &MaxMinData, pMasterController->DebugOut()); break;
+            case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, NULL, NULL, pMasterController->DebugOut()); break;
+            case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, NULL, NULL, pMasterController->DebugOut()); break;
+            case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, NULL, NULL, pMasterController->DebugOut()); break;
+            default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+          } break;
+    default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+  }
 
-	string strProblemDesc;
-	if (!dataVolume.Verify(&strProblemDesc)) {
+  string strProblemDesc;
+  if (!dataVolume.Verify(&strProblemDesc)) {
     pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Verify failed with the following reason: %s", strProblemDesc.c_str()); 
     uvfFile.Close(); 
     SourceData.Close();
     if (bConvertEndianness) remove(tmpFilename0.c_str());
     if (bQuantized) remove(tmpFilename1.c_str());
-		return false;
-	}
+    return false;
+  }
 
-	if (!uvfFile.AddDataBlock(&dataVolume,dataVolume.ComputeDataSize(), true)) {
+  if (!uvfFile.AddDataBlock(&dataVolume,dataVolume.ComputeDataSize(), true)) {
     pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","AddDataBlock failed!"); 
     uvfFile.Close(); 
     SourceData.Close();
     if (bConvertEndianness) remove(tmpFilename0.c_str());
     if (bQuantized) remove(tmpFilename1.c_str());
-		return false;
-	}
+    return false;
+  }
 
 
   // if no resampling was perfomed above we need to compute the 1d histogram here
@@ -300,7 +300,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       SourceData.Close();
       if (bConvertEndianness) remove(tmpFilename0.c_str());
       if (bQuantized) remove(tmpFilename1.c_str());
-		  return false;
+      return false;
     }
   }
 
@@ -312,30 +312,30 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     SourceData.Close();
     if (bConvertEndianness) remove(tmpFilename0.c_str());
     if (bQuantized) remove(tmpFilename1.c_str());
-		return false;
+    return false;
   }
 
   pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Merging data...");
 
-	uvfFile.AddDataBlock(&Histogram1D,Histogram1D.ComputeDataSize());
-	uvfFile.AddDataBlock(&Histogram2D,Histogram2D.ComputeDataSize());
+  uvfFile.AddDataBlock(&Histogram1D,Histogram1D.ComputeDataSize());
+  uvfFile.AddDataBlock(&Histogram2D,Histogram2D.ComputeDataSize());
   uvfFile.AddDataBlock(&MaxMinData, MaxMinData.ComputeDataSize());
 
 /*
   /// \todo maybe add information from the source file to the UVF, like DICOM desc etc.
 
   KeyValuePairDataBlock testPairs;
-	testPairs.AddPair("SOURCE","DICOM");
-	testPairs.AddPair("CONVERTED BY","DICOM2UVF V1.0");
-	UINT64 iDataSize = testPairs.ComputeDataSize();
-	uvfFile.AddDataBlock(testPairs,iDataSize);
+  testPairs.AddPair("SOURCE","DICOM");
+  testPairs.AddPair("CONVERTED BY","DICOM2UVF V1.0");
+  UINT64 iDataSize = testPairs.ComputeDataSize();
+  uvfFile.AddDataBlock(testPairs,iDataSize);
 */
 
   pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Computing checksum and writing file...");
 
-	uvfFile.Create();
-	SourceData.Close();
-	uvfFile.Close();
+  uvfFile.Create();
+  SourceData.Close();
+  uvfFile.Close();
 
   pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Removing temporarie files...");
 

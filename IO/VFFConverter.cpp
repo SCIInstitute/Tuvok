@@ -55,12 +55,12 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
   pMasterController->DebugOut()->Message("VFFConverter::Convert","Attempting to convertet VFF dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
 
   // Check Magic value in VFF File first
-	ifstream fileData(strSourceFilename.c_str());	
+  ifstream fileData(strSourceFilename.c_str());  
   string strFirstLine;
 
-	if (fileData.is_open())
-	{
-		getline (fileData,strFirstLine);
+  if (fileData.is_open())
+  {
+    getline (fileData,strFirstLine);
     if (strFirstLine.substr(0,7) != "ncaa") {
       pMasterController->DebugOut()->Warning("VFFConverter::Convert","The file %s is not a VFF file (missing magic)", strSourceFilename.c_str());
       return false;
@@ -74,10 +74,10 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
   fileData.close();
 
   // read data
-  UINT64			  iComponentSize=8;
-  UINT64			  iComponentCount=1;
-  UINTVECTOR3		vVolumeSize(1,1,1);
-  FLOATVECTOR3	vVolumeAspect(1,1,1);
+  UINT64        iComponentSize=8;
+  UINT64        iComponentCount=1;
+  UINTVECTOR3    vVolumeSize(1,1,1);
+  FLOATVECTOR3  vVolumeAspect(1,1,1);
 
   string strHeaderEnd;
   strHeaderEnd.push_back(12);  // header end char of vffs is ^L = 0C = 12 
@@ -92,11 +92,11 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
   KeyValPair* kvp = parser.GetData("TYPE");
   if (kvp == NULL) {
     pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"type\" in file %s", strSourceFilename.c_str());
-	  return false;
+    return false;
   } else {
     if (kvp->strValueUpper != "RASTER;")  {
       pMasterController->DebugOut()->Error("VFFConverter::Convert","Only raster VFFs are supported at the moment");
-	    return false;
+      return false;
      }
   }
 
@@ -104,7 +104,7 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
   kvp = parser.GetData("RANK");
   if (kvp == NULL) {
     pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"rank\" in file %s", strSourceFilename.c_str());
-	  return false;
+    return false;
   } else {
     iDim = kvp->iValue;
   }
@@ -112,29 +112,29 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
   kvp = parser.GetData("BANDS");
   if (kvp == NULL) {
     pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"bands\" in file %s", strSourceFilename.c_str());
-	  return false;
+    return false;
   } else {
     if (kvp->iValue != 1)  {
       pMasterController->DebugOut()->Error("VFFConverter::Convert","Only scalar VFFs are supported at the moment");
-	    return false;
+      return false;
      }
   }
 
   kvp = parser.GetData("FORMAT");
   if (kvp == NULL) {
     pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"format\" in file %s", strSourceFilename.c_str());
-	  return false;
+    return false;
   } else {
     if (kvp->strValueUpper != "SLICE;")  {
       pMasterController->DebugOut()->Error("VFFConverter::Convert","Only VFFs with slice layout are supported at the moment");
-	    return false;
+      return false;
      }
   }
 
   kvp = parser.GetData("BITS");
   if (kvp == NULL) {
     pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"bands\" in file %s", strSourceFilename.c_str());
-	  return false;
+    return false;
   } else {
     iComponentSize = kvp->iValue;
   }
@@ -142,7 +142,7 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
   kvp = parser.GetData("SIZE");
   if (kvp == NULL) {
     pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"size\" in file %s", strSourceFilename.c_str());
-	  return false;
+    return false;
   } else {
     vVolumeSize[0] = kvp->viValue[0];
     vVolumeSize[1] = kvp->viValue[1];
@@ -152,7 +152,7 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
   kvp = parser.GetData("SPACING");
   if (kvp == NULL) {
     pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"size\" in file %s", strSourceFilename.c_str());
-	  return false;
+    return false;
   } else {
     vVolumeAspect[0] = kvp->vfValue[0];
     vVolumeAspect[1] = kvp->vfValue[1];

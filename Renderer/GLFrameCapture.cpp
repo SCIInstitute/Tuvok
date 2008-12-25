@@ -38,16 +38,16 @@
 #include "GLInclude.h"
 
 bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename) {
-	GLint viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
+  GLint viewport[4];
+  glGetIntegerv(GL_VIEWPORT, viewport);
 
-	unsigned char *image = new unsigned char[viewport[2]*viewport[3]*4];
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_BYTE,image);
+  unsigned char *image = new unsigned char[viewport[2]*viewport[3]*4];
+  glPixelStorei(GL_PACK_ALIGNMENT, 1);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_BYTE,image);
 
-	bool bResult = SaveImage(strFilename, UINTVECTOR2(viewport[2], viewport[3]), image);
-	delete[] image;
+  bool bResult = SaveImage(strFilename, UINTVECTOR2(viewport[2], viewport[3]), image);
+  delete[] image;
 
-	return bResult;
+  return bResult;
 }

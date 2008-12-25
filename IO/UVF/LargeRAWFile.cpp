@@ -34,7 +34,7 @@ LargeRAWFile::LargeRAWFile(LargeRAWFile &other) :
 
     unsigned char* pData = new unsigned char[size_t(min(iDataSize, BLOCK_COPY_SIZE))];
     for (UINT64 i = 0;i<iDataSize;i+=BLOCK_COPY_SIZE) {
-		  UINT64 iCopySize = min(BLOCK_COPY_SIZE, iDataSize-i);
+      UINT64 iCopySize = min(BLOCK_COPY_SIZE, iDataSize-i);
 
       other.ReadRAW(pData, iCopySize);
       WriteRAW(pData, iCopySize);
@@ -93,7 +93,7 @@ UINT64 LargeRAWFile::GetCurrentSize() {
   UINT64 iPrevPos = GetPos();
 
   SeekStart();
-	UINT64 ulStart = GetPos();
+  UINT64 ulStart = GetPos();
   UINT64 ulEnd   = SeekEnd();
   UINT64 ulFileLength = ulEnd - ulStart;
   

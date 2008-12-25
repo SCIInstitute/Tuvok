@@ -126,7 +126,7 @@ bool Texture3DListElem::Replace(VolumeDataset* _pDataset, const std::vector<UINT
   LoadData();
   glGetError();
   pTexture->SetData(pData);
-	return GL_NO_ERROR==glGetError();
+  return GL_NO_ERROR==glGetError();
 }
 
 
@@ -237,7 +237,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
     delete [] pPaddedData;
   }
   FreeData();
-	return GL_NO_ERROR==glGetError();
+  return GL_NO_ERROR==glGetError();
 }
 
 void Texture3DListElem::FreeTexture() {

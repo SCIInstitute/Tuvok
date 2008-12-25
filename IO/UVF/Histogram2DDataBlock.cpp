@@ -22,20 +22,20 @@ Histogram2DDataBlock::Histogram2DDataBlock(const Histogram2DDataBlock &other) :
 }
 
 Histogram2DDataBlock& Histogram2DDataBlock::operator=(const Histogram2DDataBlock& other) {
-	strBlockID = other.strBlockID;
-	ulBlockSemantics = other.ulBlockSemantics;
-	ulCompressionScheme = other.ulCompressionScheme;
-	ulOffsetToNextDataBlock = other.ulOffsetToNextDataBlock;
+  strBlockID = other.strBlockID;
+  ulBlockSemantics = other.ulBlockSemantics;
+  ulCompressionScheme = other.ulCompressionScheme;
+  ulOffsetToNextDataBlock = other.ulOffsetToNextDataBlock;
 
-	m_vHistData = other.m_vHistData;
+  m_vHistData = other.m_vHistData;
   m_fMaxGradMagnitude = other.m_fMaxGradMagnitude;
 
-	return *this;
+  return *this;
 }
 
 
 Histogram2DDataBlock::Histogram2DDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian) {
-	GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);	
+  GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
 }
 
 Histogram2DDataBlock::~Histogram2DDataBlock() 
@@ -43,17 +43,17 @@ Histogram2DDataBlock::~Histogram2DDataBlock()
 }
 
 DataBlock* Histogram2DDataBlock::Clone() {
-	return new Histogram2DDataBlock(*this);
+  return new Histogram2DDataBlock(*this);
 }
 
 UINT64 Histogram2DDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian) {
   UINT64 iStart = iOffset + DataBlock::GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
-	pStreamFile->SeekPos(iStart);
+  pStreamFile->SeekPos(iStart);
 
-	UINT64 ulElementCountX, ulElementCountY;
+  UINT64 ulElementCountX, ulElementCountY;
   pStreamFile->ReadData(m_fMaxGradMagnitude, bIsBigEndian);
-	pStreamFile->ReadData(ulElementCountX, bIsBigEndian);
-	pStreamFile->ReadData(ulElementCountY, bIsBigEndian);
+  pStreamFile->ReadData(ulElementCountX, bIsBigEndian);
+  pStreamFile->ReadData(ulElementCountY, bIsBigEndian);
 
   m_vHistData.resize(size_t(ulElementCountX));
   vector<UINT64> tmp((size_t)ulElementCountY);
@@ -236,17 +236,17 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iMaxValue) {
   delete [] pcSourceData;
 
   // set data block information
-	strBlockID = "2D Histogram for datablock " + source->strBlockID;
+  strBlockID = "2D Histogram for datablock " + source->strBlockID;
 
   return true;
 }
 
 UINT64 Histogram2DDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
   UINT64 iStart = iOffset + DataBlock::CopyToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
-	pStreamFile->SeekPos(iStart);
+  pStreamFile->SeekPos(iStart);
 
-	UINT64 ulElementCountX = UINT64(m_vHistData.size());
-	UINT64 ulElementCountY = UINT64(m_vHistData[0].size());
+  UINT64 ulElementCountX = UINT64(m_vHistData.size());
+  UINT64 ulElementCountY = UINT64(m_vHistData[0].size());
 
   pStreamFile->WriteData(m_fMaxGradMagnitude, bIsBigEndian);
   pStreamFile->WriteData(ulElementCountX, bIsBigEndian);
@@ -259,20 +259,20 @@ UINT64 Histogram2DDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffse
   }
 
 
-	return pStreamFile->GetPos() - iOffset;  
+  return pStreamFile->GetPos() - iOffset;
 }
 
 
 UINT64 Histogram2DDataBlock::GetOffsetToNextBlock() const {
-	return DataBlock::GetOffsetToNextBlock() + ComputeDataSize();
+  return DataBlock::GetOffsetToNextBlock() + ComputeDataSize();
 }
 
 UINT64 Histogram2DDataBlock::ComputeDataSize() const {
 
-	UINT64 ulElementCountX = UINT64(m_vHistData.size());
+  UINT64 ulElementCountX = UINT64(m_vHistData.size());
   UINT64 ulElementCountY = UINT64((ulElementCountX == 0) ? 0 : m_vHistData[0].size());
 
-	return 1*sizeof(float) +                                // the m_fMaxGradMagnitude value
-         2*sizeof(UINT64) +						            		    // length of the vectors
-		     ulElementCountX*ulElementCountY*sizeof(UINT64);  // the vectors themselves
+  return 1*sizeof(float) +                                // the m_fMaxGradMagnitude value
+         2*sizeof(UINT64) +                                // length of the vectors
+         ulElementCountX*ulElementCountY*sizeof(UINT64);  // the vectors themselves
 }

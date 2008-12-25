@@ -53,63 +53,63 @@ bool QVISConverter::Convert(const std::string& strSourceFilename, const std::str
 {
   pMasterController->DebugOut()->Message("QVISConverter::Convert","Attempting to convert QVIS dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
 
-  UINT64			  iComponentSize=8;
-  UINT64			  iComponentCount=1;
+  UINT64        iComponentSize=8;
+  UINT64        iComponentCount=1;
   bool          bSigned=false;
-  UINTVECTOR3		vVolumeSize;
-  FLOATVECTOR3	vVolumeAspect;
+  UINTVECTOR3    vVolumeSize;
+  FLOATVECTOR3  vVolumeAspect;
   string        strRAWFile;
 
   KeyValueFileParser parser(strSourceFilename);
 
   if (parser.FileReadable())  {
-	  KeyValPair* format = parser.GetData("FORMAT");
-	  if (format == NULL) 
-		  return false;
-	  else {
-		  if (format->strValueUpper == "UCHAR" || format->strValueUpper == "BYTE") {
-  		  bSigned = false;
-			  iComponentSize = 8;
-			  iComponentCount = 1;
-		  } else if (format->strValueUpper == "USHORT") {
-  		  bSigned = false;
-			  iComponentSize = 16;
-			  iComponentCount = 1;
-		  } else if (format->strValueUpper == "UCHAR4") {
-  		  bSigned = false;
-			  iComponentSize = 32;
-			  iComponentCount = 4;
-		  } else if (format->strValueUpper == "FLOAT") {
-  		  bSigned = true;
-			  iComponentSize = 32;
-			  iComponentCount = 1;
-		  }
-	  }
+    KeyValPair* format = parser.GetData("FORMAT");
+    if (format == NULL)
+      return false;
+    else {
+      if (format->strValueUpper == "UCHAR" || format->strValueUpper == "BYTE") {
+        bSigned = false;
+        iComponentSize = 8;
+        iComponentCount = 1;
+      } else if (format->strValueUpper == "USHORT") {
+        bSigned = false;
+        iComponentSize = 16;
+        iComponentCount = 1;
+      } else if (format->strValueUpper == "UCHAR4") {
+        bSigned = false;
+        iComponentSize = 32;
+        iComponentCount = 4;
+      } else if (format->strValueUpper == "FLOAT") {
+        bSigned = true;
+        iComponentSize = 32;
+        iComponentCount = 1;
+      }
+    }
 
-	  KeyValPair* objectfilename = parser.GetData("OBJECTFILENAME");
+    KeyValPair* objectfilename = parser.GetData("OBJECTFILENAME");
     if (objectfilename == NULL) {
       pMasterController->DebugOut()->Warning("QVISConverter::Convert","This is not a valid QVIS dat file.");
       return false; 
     } else 
       strRAWFile = objectfilename->strValue;
 
-	  KeyValPair* resolution = parser.GetData("RESOLUTION");
+    KeyValPair* resolution = parser.GetData("RESOLUTION");
     if (resolution == NULL) {
       pMasterController->DebugOut()->Warning("QVISConverter::Convert","This is not a valid QVIS dat file.");
       return false; 
     } else 
       vVolumeSize = resolution->vuiValue;
 
-	  KeyValPair* sliceThickness = parser.GetData("SLICETHICKNESS");
+    KeyValPair* sliceThickness = parser.GetData("SLICETHICKNESS");
     if (sliceThickness == NULL) {
       pMasterController->DebugOut()->Warning("QVISConverter::Convert","This is not a valid QVIS dat file.");
-		  vVolumeAspect = FLOATVECTOR3(1,1,1);
-    } else {			
-		  vVolumeAspect = sliceThickness->vfValue;
-		  vVolumeAspect = vVolumeAspect / vVolumeAspect.maxVal();
-	  }
+      vVolumeAspect = FLOATVECTOR3(1,1,1);
+    } else {
+      vVolumeAspect = sliceThickness->vfValue;
+      vVolumeAspect = vVolumeAspect / vVolumeAspect.maxVal();
+    }
 
-	  strRAWFile = SysTools::GetPath(strSourceFilename) + strRAWFile;
+    strRAWFile = SysTools::GetPath(strSourceFilename) + strRAWFile;
 
     /// \todo  detect big endian DAT/RAW combinations and set the conversion parameter accordingly instead of always assuming it is little endian and thius converting if the machine is big endian 
     return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, EndianConvert::IsBigEndian(), bSigned,

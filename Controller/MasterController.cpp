@@ -65,10 +65,10 @@ MasterController::~MasterController() {
 
 
 void MasterController::SetDebugOut(AbstrDebugOut* debugOut,
-				   bool bDeleteOnExit) {
+           bool bDeleteOnExit) {
   if (debugOut != NULL) {
     m_pDebugOut->Message("MasterController::SetDebugOut",
-			 "Disconnecting from this debug out");
+       "Disconnecting from this debug out");
     if (m_bDeleteDebugOutOnExit )
       delete m_pDebugOut;
 
@@ -76,11 +76,11 @@ void MasterController::SetDebugOut(AbstrDebugOut* debugOut,
 
     m_pDebugOut = debugOut;
     m_pDebugOut->Message("MasterController::SetDebugOut",
-			 "Connected to this debug out");
+       "Connected to this debug out");
 
   } else {
     m_pDebugOut->Warning("MasterController::SetDebugOut",
-			 "New debug is a NULL pointer, keeping old debug out");
+       "New debug is a NULL pointer, keeping old debug out");
   }
 }
 
@@ -89,7 +89,7 @@ void MasterController::RemoveDebugOut(AbstrDebugOut* debugOut) {
 
   if (debugOut == m_pDebugOut) {
     m_pDebugOut->Message("MasterController::RemoveDebugOut",
-			 "Disconnecting from this debug out");
+       "Disconnecting from this debug out");
     if (m_bDeleteDebugOutOnExit)
       delete m_pDebugOut;
 
@@ -97,11 +97,11 @@ void MasterController::RemoveDebugOut(AbstrDebugOut* debugOut) {
 
     m_bDeleteDebugOutOnExit = true;
     m_pDebugOut->Message("MasterController::RemoveDebugOut",
-			 "Connected to this debug out");
+       "Connected to this debug out");
 
   } else {
     m_pDebugOut->Message("MasterController::RemoveDebugOut",
-			 "Not Connected the debug out in question (anymore), doing nothing");
+       "Not Connected the debug out in question (anymore), doing nothing");
   }
 }
 
@@ -136,7 +136,7 @@ void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
 
     if (*i == pVolumeRenderer) {
       m_pDebugOut->Message("MasterController::ReleaseVolumerenderer",
-			   "Deleting volume renderer");
+         "Deleting volume renderer");
       delete pVolumeRenderer;
 
       m_vVolumeRenderer.erase(i);
@@ -145,7 +145,7 @@ void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
   }
 
   m_pDebugOut->Warning("MasterController::ReleaseVolumerenderer",
-		       "requested volume renderer not found");
+           "requested volume renderer not found");
 }
 
 

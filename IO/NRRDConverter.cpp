@@ -56,12 +56,12 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
   pMasterController->DebugOut()->Message("NRRDConverter::Convert","Attempting to convertet NRRD dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
 
   // Check Magic value in NRRD File first
-	ifstream fileData(strSourceFilename.c_str());	
+  ifstream fileData(strSourceFilename.c_str());
   string strFirstLine;
 
-	if (fileData.is_open())
-	{
-		getline (fileData,strFirstLine);
+  if (fileData.is_open())
+  {
+    getline (fileData,strFirstLine);
     if (strFirstLine.substr(0,7) != "NRRD000") {
       pMasterController->DebugOut()->Warning("NRRDConverter::Convert","The file %s is not a NRRD file (missing magic)", strSourceFilename.c_str());
       return false;
@@ -75,12 +75,12 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
   fileData.close();
 
   // read data
-  UINT64			  iComponentSize=8;
-  UINT64			  iComponentCount=1;
+  UINT64        iComponentSize=8;
+  UINT64        iComponentCount=1;
   bool          bSigned=false;
   bool          bBigEndian=false;
-  UINTVECTOR3		vVolumeSize;
-  FLOATVECTOR3	vVolumeAspect(1,1,1);
+  UINTVECTOR3    vVolumeSize;
+  FLOATVECTOR3  vVolumeAspect(1,1,1);
   string        strRAWFile;
 
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename));
@@ -96,59 +96,59 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
   KeyValPair* kvpType = parser.GetData("TYPE");
   if (kvpType == NULL) {
     pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"type\" in file %s", strSourceFilename.c_str());
-	  return false;
+    return false;
   } else {
-	  if (kvpType->strValueUpper == "SIGNED CHAR" || kvpType->strValueUpper == "INT8" || kvpType->strValueUpper == "INT8_T") {
-		  bSigned = true;
+    if (kvpType->strValueUpper == "SIGNED CHAR" || kvpType->strValueUpper == "INT8" || kvpType->strValueUpper == "INT8_T") {
+      bSigned = true;
       iComponentSize = 8;
-	  } else if (kvpType->strValueUpper == "UCHAR" || kvpType->strValueUpper == "UNSIGNED CHAR" ||  kvpType->strValueUpper == "UINT8" || kvpType->strValueUpper == "UINT8_T") {
-		  bSigned = false;
+    } else if (kvpType->strValueUpper == "UCHAR" || kvpType->strValueUpper == "UNSIGNED CHAR" ||  kvpType->strValueUpper == "UINT8" || kvpType->strValueUpper == "UINT8_T") {
+      bSigned = false;
       iComponentSize = 8;
-	  } else if (kvpType->strValueUpper == "SHORT" || kvpType->strValueUpper == "SHORT INT" ||  kvpType->strValueUpper == "SIGNED SHORT" || kvpType->strValueUpper == "SIGNED SHORT INT" || kvpType->strValueUpper == "INT16" || kvpType->strValueUpper == "INT16_T") {
-		  bSigned = true;
-		  iComponentSize = 16;
-	  } else if (kvpType->strValueUpper == "USHORT" || kvpType->strValueUpper == "UNSIGNED SHORT" || kvpType->strValueUpper == "UNSIGNED SHORT INT" || kvpType->strValueUpper == "UINT16" || kvpType->strValueUpper == "UINT16_T") {
-		  bSigned = false;
-		  iComponentSize = 16;
-	  } else if (kvpType->strValueUpper == "INT" || kvpType->strValueUpper == "SIGNED INT" || kvpType->strValueUpper == "INT32" || kvpType->strValueUpper == "INT32_T") {
-		  bSigned = true;
-		  iComponentSize = 32;
-	  } else if (kvpType->strValueUpper == "UINT" || kvpType->strValueUpper == "UNSIGNED INT" || kvpType->strValueUpper == "UINT32" || kvpType->strValueUpper == "UINT32_T") {
-		  bSigned = false;
-		  iComponentSize = 32;
-	  } else if (kvpType->strValueUpper == "LONGLONG" || kvpType->strValueUpper == "LONG LONG" || kvpType->strValueUpper == "LONG LONG INT" || kvpType->strValueUpper == "SIGNED LONG LONG" || kvpType->strValueUpper == "SIGNED LONG LONG INT" || kvpType->strValueUpper == "INT64" || kvpType->strValueUpper == "INT64_T") {
-		  bSigned = true;
-		  iComponentSize = 64;
-	  } else if (kvpType->strValueUpper == "ULONGLONG" || kvpType->strValueUpper == "UNSIGNED LONG LONG" || kvpType->strValueUpper == "UNSIGNED LONG LONG INT" || kvpType->strValueUpper == "UINT64" || kvpType->strValueUpper == "UINT64_T") {
-		  bSigned = true;
-		  iComponentSize = 64;
-	  } else if (kvpType->strValueUpper == "FLOAT") {
-		  bSigned = true;
-		  iComponentSize = 32;
-	  } else if (kvpType->strValueUpper == "DOUBLE") {
-		  bSigned = true;
-		  iComponentSize = 64;
-	  } else {
+    } else if (kvpType->strValueUpper == "SHORT" || kvpType->strValueUpper == "SHORT INT" ||  kvpType->strValueUpper == "SIGNED SHORT" || kvpType->strValueUpper == "SIGNED SHORT INT" || kvpType->strValueUpper == "INT16" || kvpType->strValueUpper == "INT16_T") {
+      bSigned = true;
+      iComponentSize = 16;
+    } else if (kvpType->strValueUpper == "USHORT" || kvpType->strValueUpper == "UNSIGNED SHORT" || kvpType->strValueUpper == "UNSIGNED SHORT INT" || kvpType->strValueUpper == "UINT16" || kvpType->strValueUpper == "UINT16_T") {
+      bSigned = false;
+      iComponentSize = 16;
+    } else if (kvpType->strValueUpper == "INT" || kvpType->strValueUpper == "SIGNED INT" || kvpType->strValueUpper == "INT32" || kvpType->strValueUpper == "INT32_T") {
+      bSigned = true;
+      iComponentSize = 32;
+    } else if (kvpType->strValueUpper == "UINT" || kvpType->strValueUpper == "UNSIGNED INT" || kvpType->strValueUpper == "UINT32" || kvpType->strValueUpper == "UINT32_T") {
+      bSigned = false;
+      iComponentSize = 32;
+    } else if (kvpType->strValueUpper == "LONGLONG" || kvpType->strValueUpper == "LONG LONG" || kvpType->strValueUpper == "LONG LONG INT" || kvpType->strValueUpper == "SIGNED LONG LONG" || kvpType->strValueUpper == "SIGNED LONG LONG INT" || kvpType->strValueUpper == "INT64" || kvpType->strValueUpper == "INT64_T") {
+      bSigned = true;
+      iComponentSize = 64;
+    } else if (kvpType->strValueUpper == "ULONGLONG" || kvpType->strValueUpper == "UNSIGNED LONG LONG" || kvpType->strValueUpper == "UNSIGNED LONG LONG INT" || kvpType->strValueUpper == "UINT64" || kvpType->strValueUpper == "UINT64_T") {
+      bSigned = true;
+      iComponentSize = 64;
+    } else if (kvpType->strValueUpper == "FLOAT") {
+      bSigned = true;
+      iComponentSize = 32;
+    } else if (kvpType->strValueUpper == "DOUBLE") {
+      bSigned = true;
+      iComponentSize = 64;
+    } else {
       pMasterController->DebugOut()->Error("NRRDConverter::Convert","Unsupported \"type\" in file %s", strSourceFilename.c_str());
-	    return false;
+      return false;
     }
   }
 
   KeyValPair* kvpDim = parser.GetData("DIMENSION");
   if (kvpDim == NULL) {
     pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"dimension\" in file %s", strSourceFilename.c_str());
-	  return false;
+    return false;
   } else {
     if (kvpDim->iValue != 3)  {
       pMasterController->DebugOut()->Error("NRRDConverter::Convert","Only 3D NRRDs are supported at the moment");
-	    return false;
+      return false;
      }
   }
 
   KeyValPair* kvpSizes = parser.GetData("SIZES");
   if (kvpSizes == NULL) {
     pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"sizes\" in file %s", strSourceFilename.c_str());
-	  return false;
+    return false;
   } else {
     vVolumeSize = kvpSizes->vuiValue;
   }
@@ -158,7 +158,7 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     KeyValPair* kvpDataFile = parser.GetData("DATA FILE");
     if (kvpDataFile == NULL) {
       pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"data file\" in file %s", strSourceFilename.c_str());
-	    return false;
+      return false;
     } else {
       strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile->strValue;
       iHeaderSkip = 0;

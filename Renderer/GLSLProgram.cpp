@@ -264,35 +264,35 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
   }
 
   if (m_bGLUseARB) {
-	  // attach to shader program
-	  m_hProgram=glCreateProgramObjectARB();
-	  if (hVS) glAttachObjectARB(m_hProgram,hVS); 
-	  if (hFS) glAttachObjectARB(m_hProgram,hFS);
+    // attach to shader program
+    m_hProgram=glCreateProgramObjectARB();
+    if (hVS) glAttachObjectARB(m_hProgram,hVS); 
+    if (hFS) glAttachObjectARB(m_hProgram,hFS);
 
     // link the program together
     if (bVSSuccess && bFSSuccess) {
-	    glLinkProgramARB(m_hProgram);
+      glLinkProgramARB(m_hProgram);
 
-	    // check for errors
-	    GLint iLinked;
-	    glGetObjectParameterivARB(m_hProgram,GL_OBJECT_LINK_STATUS_ARB,&iLinked);
-	    WriteError(m_hProgram);
-    		
-	    // delete temporary objects
-	    if (hVS) glDeleteObjectARB(hVS);
-	    if (hFS) glDeleteObjectARB(hFS);	
+      // check for errors
+      GLint iLinked;
+      glGetObjectParameterivARB(m_hProgram,GL_OBJECT_LINK_STATUS_ARB,&iLinked);
+      WriteError(m_hProgram);
+        
+      // delete temporary objects
+      if (hVS) glDeleteObjectARB(hVS);
+      if (hFS) glDeleteObjectARB(hFS);  
 
-	    if (CheckGLError("Load()") || !iLinked) {
-		    glDeleteObjectARB(m_hProgram);
-		    m_bInitialized=false;
-		    return;
+      if (CheckGLError("Load()") || !iLinked) {
+        glDeleteObjectARB(m_hProgram);
+        m_bInitialized=false;
+        return;
       } else {
         m_pMasterController->DebugOut()->Message("GLSLProgram::Load","PROGRAM OBJECT: OK");
         m_bInitialized=true;
       }
     } else {
-	    if (hVS) glDeleteObjectARB(hVS);
-	    if (hFS) glDeleteObjectARB(hFS);	
+      if (hVS) glDeleteObjectARB(hVS);
+      if (hFS) glDeleteObjectARB(hFS);  
       glDeleteObjectARB(m_hProgram);
       m_hProgram=0;
       m_bInitialized=false;
@@ -359,9 +359,9 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bPro
   // Check for errors
   GLint iLength;
   if (bProgram)
-	  glGetProgramiv(hObject,GL_INFO_LOG_LENGTH,&iLength);
+    glGetProgramiv(hObject,GL_INFO_LOG_LENGTH,&iLength);
   else
-	  glGetShaderiv(hObject,GL_INFO_LOG_LENGTH,&iLength);
+    glGetShaderiv(hObject,GL_INFO_LOG_LENGTH,&iLength);
 
   GLboolean bAtMostWarnings=true;
   if (iLength>1) {    
@@ -377,12 +377,12 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bPro
     if (bAtMostWarnings) {
       m_pMasterController->DebugOut()->Warning("GLSLProgram::WriteInfoLog",shaderdesc);
       m_pMasterController->DebugOut()->Warning("GLSLProgram::WriteInfoLog",pcLogInfo);
-	  delete[] pcLogInfo;  
-	  return false;
+    delete[] pcLogInfo;  
+    return false;
     } else {
       m_pMasterController->DebugOut()->Error("GLSLProgram::WriteInfoLog",shaderdesc);
       m_pMasterController->DebugOut()->Error("GLSLProgram::WriteInfoLog",pcLogInfo);
-	  delete[] pcLogInfo;  
+    delete[] pcLogInfo;  
 #ifdef GLSLPROGRAM_STRICT
     return true;
 #endif
@@ -401,17 +401,17 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bPro
  * \date Aug.2004
  */
 bool GLSLProgram::WriteError(GLhandleARB hObject) {
-	// Check for errors
-	GLint iLength;
-	glGetObjectParameterivARB(hObject,GL_OBJECT_INFO_LOG_LENGTH_ARB,&iLength);
-	if (iLength>1) {
-		GLcharARB *pcLogInfo=new GLcharARB[iLength];
-		glGetInfoLogARB(hObject,iLength,&iLength,pcLogInfo);
+  // Check for errors
+  GLint iLength;
+  glGetObjectParameterivARB(hObject,GL_OBJECT_INFO_LOG_LENGTH_ARB,&iLength);
+  if (iLength>1) {
+    GLcharARB *pcLogInfo=new GLcharARB[iLength];
+    glGetInfoLogARB(hObject,iLength,&iLength,pcLogInfo);
     m_pMasterController->DebugOut()->Message("GLSLProgram::WriteError",pcLogInfo);
-		delete[] pcLogInfo;
-		return true;	// an error had occured.
-	}
-	return false;
+    delete[] pcLogInfo;
+    return true;  // an error had occured.
+  }
+  return false;
 }
 
 
@@ -478,13 +478,13 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
   if (m_bGLUseARB) {
     hShader = glCreateShaderObjectARB(Type);
     glShaderSourceARB(hShader,1,(const GLchar**)&pcShader,NULL); // upload null-terminated shader
-	  glCompileShaderARB(hShader);  
+    glCompileShaderARB(hShader);  
 
     // Check for errors
-	  if (CheckGLError("LoadProgram()")) {
-		  glDeleteObjectARB(hShader);
-		  bError =true;
-	  }
+    if (CheckGLError("LoadProgram()")) {
+      glDeleteObjectARB(hShader);
+      bError =true;
+    }
   } else {
     hShader = glCreateShader(Type);
     glShaderSource(hShader,1,(const char**)&pcShader,NULL);  // upload null-terminated shader

@@ -254,7 +254,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     glDepthMask(GL_FALSE);
     SetBrickDepShaderVars(b);
     RenderProxyGeometry();
-	  glDepthMask(GL_TRUE);
+    glDepthMask(GL_TRUE);
     m_pFBO3DImageCurrent[iStereoID]->FinishWrite();
   }
 }
@@ -266,11 +266,11 @@ void GLSBVR::Render3DPostLoop() {
   // disable the shader
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->Disable();
-						              glDisable(GL_BLEND);
-						              break;						  
+                          glDisable(GL_BLEND);
+                          break;              
     case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Disable(); 
-						              glDisable(GL_BLEND);
-					                break;
+                          glDisable(GL_BLEND);
+                          break;
     case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
                              m_pProgramIsoNoCompose->Disable(); 
                              glDisable(GL_BLEND);

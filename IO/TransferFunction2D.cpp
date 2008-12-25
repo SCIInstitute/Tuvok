@@ -207,7 +207,7 @@ int m_iBorderSize  = 0;
 
 INTVECTOR2 TransferFunction2D::Rel2Abs(FLOATVECTOR2 vfCoord) {
   return INTVECTOR2(int(m_iSwatchBorderSize/2+ m_iBorderSize/2+vfCoord.x* (m_iSize.x-m_iBorderSize-m_iSwatchBorderSize)),
-		                int(m_iSwatchBorderSize/2+m_iBorderSize/2+vfCoord.y*(m_iSize.y-m_iBorderSize-m_iSwatchBorderSize)));
+                    int(m_iSwatchBorderSize/2+m_iBorderSize/2+vfCoord.y*(m_iSize.y-m_iBorderSize-m_iSwatchBorderSize)));
 }
 
 unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
