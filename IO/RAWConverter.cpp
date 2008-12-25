@@ -487,6 +487,24 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
   string strUncompressedFile = strTempDir + SysTools::GetFilename(strFilename)
                                           + ".uncompressed";
 
+  FILE *f_compressed = fopen(strFilename.c_str(), "rb");
+  FILE *f_inflated = fopen(strUncompressedFile.c_str(), "wb");
+
+  if(f_compressed == NULL) {
+    dbg->Error(method, "Could not open %s", strFilename.c_str());
+    return false;
+  }
+  if(f_inflated == NULL) {
+    dbg->Error(method, "Could not open %s", strUncompressedFile.c_str());
+    return false;
+  }
+
+  if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
+    /// \todo use strerror(errno) and actually report the damn error.
+    dbg->Error(method, "Seek failed");
+    return false;
+  }
+
   /// \todo Tom: add bzip2 decompression code here 
   ///            uncompressing strFilename into strUncompressedFile
   ///            and do not forget to skip the first "iHeaderSkip" bytes
