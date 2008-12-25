@@ -10,6 +10,7 @@ DEPENDPATH       += .
 INCLUDEPATH      += .
 QT               += opengl
 LIBS             += -lz
+unix:LIBS        += -ljpeg
 
 # Input
 HEADERS += StdTuvokDefines.h \
