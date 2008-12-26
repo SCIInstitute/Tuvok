@@ -9,6 +9,8 @@
 //
 // Copyright (c) Microsoft Corp. All rights reserved.
 //-----------------------------------------------------------------------------
+#if defined(_WIN32) && defined(USE_DIRECTX)
+
 #define INITGUID
 #include <windows.h>
 #include <string.h>
@@ -103,3 +105,5 @@ HRESULT GetVideoMemoryViaDXGI( HMONITOR hMonitor,
         return E_FAIL;
 }
 
+
+#endif
