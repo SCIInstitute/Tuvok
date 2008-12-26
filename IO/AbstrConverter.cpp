@@ -28,9 +28,9 @@
 
 /**
   \file    AbstrConverter.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    December 2008
 */
 
@@ -244,4 +244,3 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
 
   return strTargetFilename;
 }
-

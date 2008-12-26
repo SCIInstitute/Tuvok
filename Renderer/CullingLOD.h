@@ -28,11 +28,11 @@
 
 /**
   \file    CullingLOD.h
-  \brief    Simple routines for filename handling
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \version  1.4
+  \brief   Simple routines for filename handling
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \version 1.4
   \date    July 2008
 */
 

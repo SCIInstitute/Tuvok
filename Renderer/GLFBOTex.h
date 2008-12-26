@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GPUMemMan.h
+  \file    GLFBOTex.h
   \author  Jens Krueger
            SCI Institute
            University of Utah
@@ -125,6 +125,5 @@ private:
   static bool        m_bPBOSupported;
   int                m_iNumBuffers;
 };
-
 
 #endif  // GLFBOTEX_H_

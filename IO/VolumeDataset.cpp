@@ -28,9 +28,9 @@
 
 /**
   \file    VolumeDataset.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    August 2008
 */
 

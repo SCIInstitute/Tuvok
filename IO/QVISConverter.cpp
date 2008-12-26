@@ -28,9 +28,9 @@
 
 /**
   \file    QVISConverter.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    December 2008
 */
 

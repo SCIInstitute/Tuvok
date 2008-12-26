@@ -28,10 +28,10 @@
 
 /**
   \file    TransferFunction2D.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \version  1.0
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \version 1.0
   \date    September 2008
 */
 

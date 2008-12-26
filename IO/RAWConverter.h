@@ -28,10 +28,10 @@
 
 /**
   \file    RAWConverter.h
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \version  1.0
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \version 1.0
   \date    December 2008
 */
 

@@ -28,9 +28,9 @@
 
 /**
   \file    GLFrameCapture.h
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    November 2008
 */
 

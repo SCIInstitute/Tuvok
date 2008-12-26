@@ -28,9 +28,9 @@
 
 /**
   \file    KeyValueFileParser.h
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    September 2008
 */
 

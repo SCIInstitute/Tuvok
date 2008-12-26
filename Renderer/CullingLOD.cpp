@@ -28,11 +28,11 @@
 
 /**
   \file    CullingLOD.cpp
-  \brief    Simple conservative frustum Culling and LOD computation
-  \author   Jens Krueger
-            SCI Institute
-            University of Utah
-  \version  1.1
+  \brief   Simple conservative frustum Culling and LOD computation
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \version 1.1
   \date    November 2008
 */
 

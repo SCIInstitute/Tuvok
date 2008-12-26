@@ -28,9 +28,9 @@
 
 /**
   \file    RAWConverter.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    December 2008
 */
 #include <cstdio>
@@ -121,7 +121,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     WrongEndianData.Close();
     ConvEndianData.Close();
     strSourceFilename = tmpFilename0;
-    iHeaderSkip = 0;  // the new file is straigt raw without any header
+    iHeaderSkip = 0;  // the new file is straight raw without any header
   } else strSourceFilename = strFilename;
 
   Histogram1DDataBlock Histogram1D;
@@ -154,7 +154,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       bConvertEndianness = false;
     }
       
-    iHeaderSkip = 0; // the new file is straigt raw without any header
+    iHeaderSkip = 0; // the new file is straight raw without any header
   } else {
     bQuantized = false;
   }
@@ -550,27 +550,27 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
  
   switch (iComponentSize) {
     case 8 : {
-                if (bSigned) { 
-                  while (! sourceFile.eof() )
-                  {
-                    int tmp;
-                    sourceFile >> tmp;
-                    signed char tmp2 = static_cast<signed char>(tmp);
-                    binaryFile.WriteRAW((unsigned char*)&tmp2,1);
-                  }
-                } else {
-                  while (! sourceFile.eof() )
-                  {
-                    int tmp;
-                    sourceFile >> tmp;
-                    unsigned char tmp2 = static_cast<unsigned char>(tmp);
-                    binaryFile.WriteRAW((unsigned char*)&tmp2,1);
-                  }
-                }
+               if (bSigned) {
+                 while (! sourceFile.eof() )
+                 {
+                   int tmp;
+                   sourceFile >> tmp;
+                   signed char tmp2 = static_cast<signed char>(tmp);
+                   binaryFile.WriteRAW((unsigned char*)&tmp2,1);
+                 }
+               } else {
+                 while (! sourceFile.eof() )
+                 {
+                   int tmp;
+                   sourceFile >> tmp;
+                   unsigned char tmp2 = static_cast<unsigned char>(tmp);
+                   binaryFile.WriteRAW((unsigned char*)&tmp2,1);
+                 }
+               }
                break;
              }
     case 16 : {
-                if (bSigned) { 
+                if (bSigned) {
                   while (! sourceFile.eof() )
                   {
                     signed short tmp;
@@ -585,10 +585,10 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
                     binaryFile.WriteRAW((unsigned char*)&tmp,2);
                   }
                 }
-               break;
-             }
+                break;
+              }
     case 32 : {
-                if (bSigned) { 
+                if (bSigned) {
                   while (! sourceFile.eof() )
                   {
                     signed int tmp;

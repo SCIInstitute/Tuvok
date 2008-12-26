@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -71,8 +71,8 @@ class GLRaycaster : public GLRenderer {
     void SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurrentBrick);
 
     virtual void CreateOffscreenBuffers();
-    void RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend, 
-                   const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords, 
+    void RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend,
+                   const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords,
                    bool bCullBack, int iStereoID);
 
     virtual void Render3DPreLoop();
@@ -82,7 +82,7 @@ class GLRaycaster : public GLRenderer {
     virtual void StartFrame();
     virtual void SetDataDepShaderVars();
 
-    FLOATMATRIX4 ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1, 
+    FLOATMATRIX4 ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                            FLOATVECTOR3 p2, FLOATVECTOR3 t2,
                                            int iStereoID);
 };

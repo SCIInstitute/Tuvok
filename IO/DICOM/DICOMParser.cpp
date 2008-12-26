@@ -28,10 +28,10 @@
 
 /**
   \file    DICOMParser.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \version  1.2
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \version 1.2
   \date    September 2008
 */
 

@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -28,12 +28,11 @@
 
 /**
   \file    GLRaycaster.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    August 2008
 */
-
 
 #include "GLRaycaster.h"
 
@@ -85,7 +84,7 @@ bool GLRaycaster::Initialize() {
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-1D-light-FS.glsl",   m_vShaderSearchDirs, &(m_pProgram1DTrans[1])) ||
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-2D-FS.glsl",         m_vShaderSearchDirs, &(m_pProgram2DTrans[0])) ||
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-2D-light-FS.glsl",   m_vShaderSearchDirs, &(m_pProgram2DTrans[1])) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-ISO-FS.glsl",        m_vShaderSearchDirs, &(m_pProgramIso)) || 
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-ISO-FS.glsl",        m_vShaderSearchDirs, &(m_pProgramIso)) ||
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-ISO-CV-FS.glsl",     m_vShaderSearchDirs, &(m_pProgramIso2))) {
 
       Cleanup();
@@ -139,7 +138,7 @@ bool GLRaycaster::Initialize() {
     m_pProgramIso2->SetUniformVector("texRayExitPos",2);
     m_pProgramIso2->SetUniformVector("texLastHit",4);
     m_pProgramIso2->SetUniformVector("texLastHitPos",5);
-    m_pProgramIso2->Disable();    
+    m_pProgramIso2->Disable();
   }
 
   return true;
@@ -172,7 +171,7 @@ void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurre
                               m_pProgramIso2->SetUniformVector("iTileID", int(iCurrentBrick));
                               m_pProgramIso2->Disable();
                               m_pProgramIso->Enable();
-                            } 
+                            }
                             m_pProgramIso->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
                             m_pProgramIso->SetUniformVector("fRayStepsize", fRayStep);
                             m_pProgramIso->SetUniformVector("iTileID", int(iCurrentBrick));
@@ -204,7 +203,7 @@ void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vEx
 
   m.setTextureMatrix();
 
-  glBegin(GL_QUADS);        
+  glBegin(GL_QUADS);
     // BACK
     glVertex3f( vMaxPoint.x, vMinPoint.y, vMinPoint.z);
     glVertex3f( vMinPoint.x, vMinPoint.y, vMinPoint.z);
@@ -240,14 +239,14 @@ void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vEx
 
 void GLRaycaster::Render3DPreLoop() {
   switch (m_eRenderMode) {
-    case RM_1DTRANS    :  m_p1DTransTex->Bind(1); 
+    case RM_1DTRANS    :  m_p1DTransTex->Bind(1);
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
     case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
     case RM_ISOSURFACE :  break;
-    default    :          m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DView","Invalid rendermode set"); 
+    default    :          m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DView","Invalid rendermode set");
                           break;
   }
 
@@ -268,7 +267,7 @@ void GLRaycaster::Render3DPreLoop() {
     vMax = vMax * mInvModelView;
 
     m_pProgramRenderFrontFaces->Enable();
-    glBegin(GL_QUADS);        
+    glBegin(GL_QUADS);
       glVertex4f(  vMax.x,  vMax.y, vMax.z, vMax.w);
       glVertex4f(  vMin.x, vMax.y, vMax.z, vMax.w);
       glVertex4f(  vMin.x, vMin.y, vMax.z, vMax.w);
@@ -277,7 +276,7 @@ void GLRaycaster::Render3DPreLoop() {
     m_pProgramRenderFrontFaces->Disable();
 
     m_pFBORayEntry->FinishWrite(0);
-    m_pFBO3DImageCurrent->Write();    
+    m_pFBO3DImageCurrent->Write();
   }*/
 
   glEnable(GL_CULL_FACE);
@@ -285,7 +284,7 @@ void GLRaycaster::Render3DPreLoop() {
 
 void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
-  
+
   glDisable(GL_BLEND);
   glDepthMask(GL_FALSE);
 
@@ -296,13 +295,13 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   m_pFBORayEntry->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
   GLFBOTex::OneDrawBuffer();
   m_pProgramRenderFrontFaces->Enable();
-  RenderBox(b.vCenter, b.vExtension, 
+  RenderBox(b.vCenter, b.vExtension,
             b.vTexcoordsMin, b.vTexcoordsMax,
             false, iStereoID);
   m_pProgramRenderFrontFaces->Disable();
   m_pFBORayEntry->FinishWrite(0);
- 
-  if (m_eRenderMode == RM_ISOSURFACE) { 
+
+  if (m_eRenderMode == RM_ISOSURFACE) {
     glDepthMask(GL_TRUE);
     m_pFBOIsoHit[iStereoID]->Write(GL_COLOR_ATTACHMENT0_EXT, 0);
     m_pFBOIsoHit[iStereoID]->Write(GL_COLOR_ATTACHMENT1_EXT, 1);
@@ -312,7 +311,7 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     m_pProgramIso->Enable();
     SetBrickDepShaderVars(b, iCurrentBrick);
     m_pFBORayEntry->Read(GL_TEXTURE2_ARB);
-    RenderBox(b.vCenter, b.vExtension, 
+    RenderBox(b.vCenter, b.vExtension,
               b.vTexcoordsMin, b.vTexcoordsMax,
               true, iStereoID);
     m_pFBORayEntry->FinishRead();
@@ -356,19 +355,19 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
                             glEnable(GL_BLEND);
                             glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                             break;
-      case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Enable(); 
+      case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Enable();
                             glEnable(GL_BLEND);
                             glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                             break;
-      default            :  m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DInLoop","Invalid rendermode set"); 
+      default            :  m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DInLoop","Invalid rendermode set");
                             break;
     }
 
     SetBrickDepShaderVars(b, iCurrentBrick);
 
     m_pFBORayEntry->Read(GL_TEXTURE2_ARB);
-    RenderBox(b.vCenter, b.vExtension, 
-              b.vTexcoordsMin, b.vTexcoordsMax, 
+    RenderBox(b.vCenter, b.vExtension,
+              b.vTexcoordsMin, b.vTexcoordsMax,
               true, iStereoID);
     m_pFBORayEntry->FinishRead();
 
@@ -376,10 +375,10 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
       case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->Disable();
                             glDisable(GL_BLEND);
                             break;
-      case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Disable(); 
+      case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Disable();
                             glDisable(GL_BLEND);
                             break;
-      default            :  m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DInLoop","Invalid rendermode set"); 
+      default            :  m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DInLoop","Invalid rendermode set");
                             break;
     }
 
@@ -418,13 +417,13 @@ void GLRaycaster::StartFrame() {
                           m_pProgramIso->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
                           m_pProgramIso->Disable();
                           break;
-    default    :          m_pMasterController->DebugOut()->Error("GLRaycaster::StartFrame","Invalid rendermode set"); 
+    default    :          m_pMasterController->DebugOut()->Error("GLRaycaster::StartFrame","Invalid rendermode set");
                           break;
   }
 }
 
 void GLRaycaster::Render3DPostLoop() {
-  GLRenderer::Render3DPostLoop(); 
+  GLRenderer::Render3DPostLoop();
 
   glDisable(GL_CULL_FACE);
   glDepthMask(GL_TRUE);
@@ -437,11 +436,11 @@ void GLRaycaster::SetDataDepShaderVars() {
     m_pProgramIso2->Enable();
     m_pProgramIso2->SetUniformVector("fIsoval",m_fScaledCVIsovalue);
     m_pProgramIso2->Disable();
-  } 
+  }
 }
 
 
-FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1, 
+FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                                     FLOATVECTOR3 p2, FLOATVECTOR3 t2,
                                                     int iStereoID) {
   FLOATMATRIX4 m;
