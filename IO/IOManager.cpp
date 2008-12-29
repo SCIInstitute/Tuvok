@@ -85,6 +85,25 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   DICOMParser parseDICOM;
   parseDICOM.GetDirInfo(strDirectory);
 
+
+  for (unsigned int iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {    
+    DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
+
+    // if trying to load JPEG files. check if Qimage can handle the JPEG payload
+    if (f->m_bIsJPEGEncoded) {
+      void* pData = NULL;
+      f->m_Elements[0]->GetData(&pData);
+      unsigned int iLength = f->m_Elements[0]->GetDataSize();
+      QImage image;
+      if (!image.loadFromData((uchar*)pData, iLength)) {
+        parseDICOM.m_FileStacks.erase(parseDICOM.m_FileStacks.begin()+iStackID);
+        iStackID--;
+      }
+      delete [] (char*)pData;
+    }
+  }
+
+
   if (parseDICOM.m_FileStacks.size() == 1)
     m_pMasterController->DebugOut()->Message("IOManager::ScanDirectory","  found a single DICOM stack");
   else
@@ -119,7 +138,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
     fileStacks.push_back(f);
   }
 
-  /// \todo  add other image parsers here
+  // add other image parsers here
 
   m_pMasterController->DebugOut()->Message("IOManager::ScanDirectory","  scan complete");
 
@@ -161,6 +180,41 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
       pDICOMStack->m_Elements[j]->GetData((void**)&pData); // the first call does a "new" on pData 
 
       unsigned int iDataSize = pDICOMStack->m_Elements[j]->GetDataSize();
+
+
+      if (pDICOMStack->m_bIsJPEGEncoded) {
+        QImage image;
+        if (!image.loadFromData((uchar*)pData, iDataSize)) {
+          m_pMasterController->DebugOut()->Error("IOManager::ConvertDataset","QImage is unable to load JPEG block in DICOM file.");
+          delete [] pData;
+          return false;
+        }
+        if (pDICOMStack->m_iComponentCount == 1) {
+          size_t i = 0;
+          for (int h = 0;h<image.height();h++) {
+            for (int w = 0;w<image.width();w++) {
+              pData[i] = qRed(image.pixel(w,h));
+              i++;
+            }
+          }
+        } else 
+        if (pDICOMStack->m_iComponentCount == 3) {
+          size_t i = 0;
+          for (int h = 0;h<image.height();h++) {
+            for (int w = 0;w<image.width();w++) {
+              pData[i+0] = qRed(image.pixel(w,h));
+              pData[i+1] = qGreen(image.pixel(w,h));
+              pData[i+2] = qBlue(image.pixel(w,h));
+              i+=3;
+            }
+          }
+        } else {
+          m_pMasterController->DebugOut()->Error("IOManager::ConvertDataset","Only 1 and 3 component images are supported a the moment.");
+          delete [] pData;
+          return false;
+        }
+      }
+
 
       if (pDICOMStack->m_bIsBigEndian) {
         switch (pDICOMStack->m_iAllocated) {
@@ -207,7 +261,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, m_pMasterController, 0,
                                     pDICOMStack->m_iAllocated, pDICOMStack->m_iComponentCount, 
                                     pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
-                                    pDICOMStack->m_iComponentCount >=32,
+                                    pDICOMStack->m_iAllocated >=32,
                                     iSize, pDICOMStack->m_fvfAspect, 
                                     "DICOM stack", SysTools::GetFilename(pDICOMStack->m_Elements[0]->m_strFileName)
                                     + " to " + SysTools::GetFilename(pDICOMStack->m_Elements[pDICOMStack->m_Elements.size()-1]->m_strFileName));

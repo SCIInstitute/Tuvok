@@ -87,6 +87,7 @@ public:
   unsigned int m_iStored;
   unsigned int m_iComponentCount;
   bool         m_bIsBigEndian;
+  bool         m_bIsJPEGEncoded;
   std::string  m_strAcquDate;
   std::string  m_strAcquTime;
   std::string  m_strModality;

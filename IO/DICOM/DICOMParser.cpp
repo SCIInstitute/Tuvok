@@ -298,7 +298,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename, DICOMFileInfo& inf
 
   struct stat stat_buf;
   
-  bool bImplicit = false;
+  bool bImplicit    = false;
+  info.m_bIsJPEGEncoded = false;
   bool bNeedsEndianConversion = EndianConvert::IsBigEndian();
 
   info.m_strFileName = strFilename;
@@ -365,8 +366,25 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename, DICOMFileInfo& inf
               #ifdef DEBUG_DICOM
                 Console::printf("DICOM file is Explicit VR Big Endian\n");
               #endif
+            } else if (value == "1.2.840.10008.1.2.4.50" ||   // JPEG Baseline            ( untested due to lack of example DICOMS)
+                       value == "1.2.840.10008.1.2.4.51" ||   // JPEG Extended            ( untested due to lack of example DICOMS)
+                       value == "1.2.840.10008.1.2.4.55" ||   // JPEG Progressive         ( untested due to lack of example DICOMS)
+                       value == "1.2.840.10008.1.2.4.57" ||   // JPEG Lossless            ( untested due to lack of example DICOMS)
+                       value == "1.2.840.10008.1.2.4.58" ||   // JPEG Lossless            ( untested due to lack of example DICOMS)
+                       value == "1.2.840.10008.1.2.4.70" ||   // JPEG Lossless            ( untested due to lack of example DICOMS)
+                       value == "1.2.840.10008.1.2.4.80" ||   // JPEG-LS Lossless         ( untested due to lack of example DICOMS)
+                       value == "1.2.840.10008.1.2.4.81" ||   // JPEG-LS Near-lossless    ( untested due to lack of example DICOMS)
+                       value == "1.2.840.10008.1.2.4.90" ||   // JPEG 2000 Lossless       ( untested due to lack of example DICOMS)
+                       value == "1.2.840.10008.1.2.4.90" ) {  // JPEG 2000                ( untested due to lack of example DICOMS)
+              info.m_bIsJPEGEncoded = true;
+              bImplicit = false;
+              bNeedsEndianConversion = EndianConvert::IsBigEndian();
+              info.m_bIsBigEndian = false;
+              #ifdef DEBUG_DICOM
+                Console::printf("DICOM file is Explicit VR Big Endian\n");
+              #endif
             } else {
-              return false; // unsupported file format, must be some JPEG compressed stuff
+              return false; // unsupported file format
             }
            } break;
       default : {
@@ -644,9 +662,18 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename, DICOMFileInfo& inf
       unsigned int iDataSizeInFile;
       fileDICOM.read((char*)&iDataSizeInFile,4);
 
-      if (iPixelDataSize != iDataSizeInFile) {
-        elementType = TYPE_UN;
-      } else info.SetOffsetToData((unsigned int)fileDICOM.tellg());
+      if (info.m_bIsJPEGEncoded) {
+        unsigned char iJPEGID[2];
+        while (!fileDICOM.eof()) {
+          fileDICOM.read((char*)iJPEGID,2);
+          if (iJPEGID[0] == 0xFF && iJPEGID[1] == 0xE0 ) break;
+        }
+        info.SetOffsetToData((unsigned int)(int(fileDICOM.tellg())-4));
+      } else {
+        if (iPixelDataSize != iDataSizeInFile) {
+          elementType = TYPE_UN;
+        } else info.SetOffsetToData((unsigned int)fileDICOM.tellg());
+      }
     } else info.SetOffsetToData((unsigned int)fileDICOM.tellg());  // otherwise just believe we have found the right data block
   } 
 
@@ -766,6 +793,7 @@ DICOMFileInfo::DICOMFileInfo() :
   m_iStored(0),
   m_iComponentCount(1),
   m_bIsBigEndian(false),
+  m_bIsJPEGEncoded(false),
   m_strAcquDate(""),
   m_strAcquTime(""),
   m_strModality(""),
@@ -781,6 +809,7 @@ DICOMFileInfo::DICOMFileInfo(const std::string& strFileName) :
   m_iStored(0),
   m_iComponentCount(1),
   m_bIsBigEndian(false),
+  m_bIsJPEGEncoded(false),
   m_strAcquDate(""),
   m_strAcquTime(""),
   m_strModality(""),
@@ -797,6 +826,7 @@ DICOMFileInfo::DICOMFileInfo(const std::wstring& wstrFileName) :
   m_iStored(0),
   m_iComponentCount(1),
   m_bIsBigEndian(false),
+  m_bIsJPEGEncoded(false),
   m_strAcquDate(""),
   m_strAcquTime(""),
   m_strModality(""),
@@ -820,7 +850,7 @@ DICOMStackInfo::DICOMStackInfo() :
 
 DICOMStackInfo::DICOMStackInfo(const DICOMFileInfo* fileInfo) :
   FileStackInfo(fileInfo->m_ivSize, fileInfo->m_fvfAspect, fileInfo->m_iAllocated, fileInfo->m_iStored,
-                fileInfo->m_iComponentCount, fileInfo->m_bIsBigEndian, fileInfo->m_strDesc, "DICOM"),
+                fileInfo->m_iComponentCount, fileInfo->m_bIsBigEndian, fileInfo->m_bIsJPEGEncoded, fileInfo->m_strDesc, "DICOM"),
   m_iSeries(fileInfo->m_iSeries),
   m_strAcquDate(fileInfo->m_strAcquDate),
   m_strAcquTime(fileInfo->m_strAcquTime),
@@ -841,6 +871,7 @@ DICOMStackInfo::DICOMStackInfo(const DICOMStackInfo* other) :
   m_iStored         = other->m_iStored;
   m_iComponentCount = other->m_iComponentCount;
   m_bIsBigEndian    = other->m_bIsBigEndian;
+  m_bIsJPEGEncoded  = other->m_bIsJPEGEncoded;
   m_strDesc         = other->m_strDesc;
   m_strFileType     = other->m_strFileType;
 
@@ -859,6 +890,7 @@ bool DICOMStackInfo::Match(const DICOMFileInfo* info) {
     m_iComponentCount == info->m_iComponentCount &&
     m_fvfAspect       == info->m_fvfAspect &&
     m_bIsBigEndian    == info->m_bIsBigEndian &&
+    m_bIsJPEGEncoded  == info->m_bIsJPEGEncoded &&
     m_strAcquDate     == info->m_strAcquDate &&
     //m_strAcquTime   == info->m_strAcquTime &&
     m_strModality     == info->m_strModality &&
