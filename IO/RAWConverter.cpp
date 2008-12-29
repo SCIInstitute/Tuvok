@@ -48,7 +48,7 @@
 
 using namespace std;
 
-bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
+bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController,
                                      UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned,
                                      UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
@@ -102,13 +102,13 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
       switch (iComponentSize) {
         case 16 : for (size_t i = 0;i<iBytesRead;i+=2)
-                    EndianConvert::Swap<unsigned short>((unsigned short*)(pBuffer+i));                     
+                    EndianConvert::Swap<unsigned short>((unsigned short*)(pBuffer+i));
                   break;
-        case 32 : for (size_t i = 0;i<iBytesRead;i+=4) 
-                    EndianConvert::Swap<float>((float*)(pBuffer+i)); 
+        case 32 : for (size_t i = 0;i<iBytesRead;i+=4)
+                    EndianConvert::Swap<float>((float*)(pBuffer+i));
                   break;
-        case 64 : for (size_t i = 0;i<iBytesRead;i+=8) 
-                    EndianConvert::Swap<double>((double*)(pBuffer+i)); 
+        case 64 : for (size_t i = 0;i<iBytesRead;i+=8)
+                    EndianConvert::Swap<double>((double*)(pBuffer+i));
                   break;
       }
 
@@ -137,10 +137,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   Histogram1DDataBlock Histogram1D;
 
 	switch (iComponentSize) {
-    case 8 : 
+    case 8 :
       strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
       break;
-    case 16 : 
+    case 16 :
       strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
       break;
 		case 32 :	
@@ -148,22 +148,22 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       iComponentSize = 16;
       break;
   }
-  
+
   if (strSourceFilename == "")  {
     pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Read/Write error quantizing from to %s", strFilename.c_str());
     return false;
   }
-  
+
   bool bQuantized;
   if (strSourceFilename == tmpFilename1) {
     bQuantized = true;
-    
+
     // if we actually created two temp file so far we can delete the first one
     if (bConvertEndianness) {
       remove(tmpFilename0.c_str());
       bConvertEndianness = false;
     }
-      
+
     iHeaderSkip = 0; // the new file is straigt raw without any header
   } else {
     bQuantized = false;
@@ -195,7 +195,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
 	RasterDataBlock dataVolume;
 
-  if (strSource == "") 
+  if (strSource == "")
     dataVolume.strBlockID = (strDesc!="") ? strDesc + " volume converted by ImageVis3D" : "Volume converted by ImageVis3D";
   else
     dataVolume.strBlockID = (strDesc!="") ? strDesc + " volume converted from " + strSource + " by ImageVis3D" : "Volume converted from " + strSource + " by ImageVis3D";
@@ -227,14 +227,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 				 vSem.push_back(UVFTables::ES_BLUE); break;
 		case 4 : vSem.push_back(UVFTables::ES_RED);
 				 vSem.push_back(UVFTables::ES_GREEN);
-				 vSem.push_back(UVFTables::ES_BLUE); 
+				 vSem.push_back(UVFTables::ES_BLUE);
 				 vSem.push_back(UVFTables::ES_ALPHA); break;
 		default : for (uint i = 0;i<iComponentCount;i++) vSem.push_back(eType);
 	}
 
-	dataVolume.SetTypeToVector(iComponentSize/iComponentCount, 
+	dataVolume.SetTypeToVector(iComponentSize/iComponentCount,
 							               iComponentSize == 32 ? 23 : iComponentSize/iComponentCount,
-							               bSigned, 
+							               bSigned,
 							               vSem);
 	
 	dataVolume.ulBrickSize.push_back(BRICKSIZE);
@@ -283,8 +283,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
 	string strProblemDesc;
 	if (!dataVolume.Verify(&strProblemDesc)) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Verify failed with the following reason: %s", strProblemDesc.c_str()); 
-    uvfFile.Close(); 
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Verify failed with the following reason: %s", strProblemDesc.c_str());
+    uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) remove(tmpFilename0.c_str());
     if (bQuantized) remove(tmpFilename1.c_str());
@@ -292,8 +292,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	}
 
 	if (!uvfFile.AddDataBlock(&dataVolume,dataVolume.ComputeDataSize(), true)) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","AddDataBlock failed!"); 
-    uvfFile.Close(); 
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","AddDataBlock failed!");
+    uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) remove(tmpFilename0.c_str());
     if (bQuantized) remove(tmpFilename1.c_str());
@@ -305,8 +305,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   if (Histogram1D.GetHistogram().size() == 0) {
     pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Computing 1D Histogram...");
     if (!Histogram1D.Compute(&dataVolume)) {
-      pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 1D Histogram failed!"); 
-      uvfFile.Close(); 
+      pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 1D Histogram failed!");
+      uvfFile.Close();
       SourceData.Close();
       if (bConvertEndianness) remove(tmpFilename0.c_str());
       if (bQuantized) remove(tmpFilename1.c_str());
@@ -317,8 +317,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Computing 2D Histogram...");
   Histogram2DDataBlock Histogram2D;
   if (!Histogram2D.Compute(&dataVolume, Histogram1D.GetHistogram().size())) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 2D Histogram failed!"); 
-    uvfFile.Close(); 
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 2D Histogram failed!");
+    uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) remove(tmpFilename0.c_str());
     if (bQuantized) remove(tmpFilename1.c_str());
@@ -358,12 +358,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
 
 #ifdef WIN32
-  #pragma warning( disable : 4996 ) // disable deprecated warning 
+  #pragma warning( disable : 4996 ) // disable deprecated warning
 #endif
 
 /** Converts a gzip-compressed chunk of a file to a raw file.
  * @param strFilename the input (compressed) file
- * @param strTargetFilename the target uvf file 
+ * @param strTargetFilename the target uvf file
  * @param strTempDir directory prefix for raw file.
  * @param pMasterController controller, for reporting errors
  * @param iHeaderSkip number of bytes to skip off of strFilename
@@ -628,13 +628,13 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
   return bResult;
 }
 
-bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
+bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController,
                                      UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
                                      UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
   string strBinaryFile = strTempDir+SysTools::GetFilename(strFilename)+".binary";
 
-  ifstream sourceFile(strFilename.c_str(),ios::binary);  
+  ifstream sourceFile(strFilename.c_str(),ios::binary);
   if (!sourceFile.is_open()) {
     pMasterController->DebugOut()->Error("NRRDConverter::ConvertTXTDataset","Unable to open source file %s.", strFilename.c_str());
     return false;
@@ -649,10 +649,10 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
   }
 
   sourceFile.seekg(iHeaderSkip);
- 
+
   switch (iComponentSize) {
     case 8 : {
-                if (bSigned) { 
+                if (bSigned) {
                   while (! sourceFile.eof() )
                   {
                     int tmp;
@@ -672,7 +672,7 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
                break;
              }
     case 16 : {
-                if (bSigned) { 
+                if (bSigned) {
                   while (! sourceFile.eof() )
                   {
                     signed short tmp;
@@ -690,7 +690,7 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
                break;
              }
     case 32 : {
-                if (bSigned) { 
+                if (bSigned) {
                   while (! sourceFile.eof() )
                   {
                     signed int tmp;
@@ -718,7 +718,7 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
   binaryFile.Close();
   sourceFile.close();
 
-  bool bResult = ConvertRAWDataset(strBinaryFile, strTargetFilename, strTempDir, pMasterController, 
+  bool bResult = ConvertRAWDataset(strBinaryFile, strTargetFilename, strTempDir, pMasterController,
                                    0, iComponentSize, iComponentCount, false, bSigned,
                                    vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
 
