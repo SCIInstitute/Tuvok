@@ -9,7 +9,7 @@ OBJECTS_DIR       = Build/objects
 DEPENDPATH       += .
 INCLUDEPATH      += .
 QT               += opengl
-LIBS             += -lz
+LIBS             += -lz -lbz2
 
 # Input
 HEADERS += StdTuvokDefines.h \

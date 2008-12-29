@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -28,12 +28,17 @@
 
 /**
   \file    RAWConverter.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    December 2008
 */
+#include <cerrno>
 #include <cstdio>
+#include <cstring>
+#ifdef TUVOK_BZIP
+#   include <bzlib.h>
+#endif
 
 #include "RAWConverter.h"
 #include "IOManager.h"  // for the size defines
@@ -457,27 +462,170 @@ bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
   return bResult;
 }
 
-bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
-                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned, 
-                                     UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
+#ifdef TUVOK_BZIP
+/** Tests a bzip return code for errors, and translates it to a string for the
+ * debug logs.
+ * @param bz_err the error code (given by the bzip2 library)
+ * @param dbg    streams to print error information to
+ * @return true if an error occurred */
+static bool
+bz_err_test(int bz_err, AbstrDebugOut * const dbg)
 {
-  string strUncompressedFile = strTempDir+SysTools::GetFilename(strFilename)+".uncompressed";
+  static const char m[] = "bz_err_test (RAWConverter)";
+  bool error_occurred = true;
+  switch(bz_err) {
+        case BZ_OK:        /* FALL THROUGH */
+        case BZ_RUN_OK:    /* FALL THROUGH */
+        case BZ_FLUSH_OK:  /* FALL THROUGH */
+        case BZ_FINISH_OK:
+            dbg->Message(m, "Bzip operation successful.");
+            error_occurred = false;
+            break;
+        case BZ_STREAM_END:
+            dbg->Message(m, "End of bzip stream.");
+            break;
+        case BZ_CONFIG_ERROR:
+            dbg->Error(m, "Bzip configuration error");
+            break;
+        case BZ_SEQUENCE_ERROR:
+            dbg->Error(m, "Bzip sequencing error");
+            break;
+        case BZ_PARAM_ERROR:
+            dbg->Error(m, "Bzip parameter error");
+            break;
+        case BZ_MEM_ERROR:
+            dbg->Error(m, "Bzip memory allocation failed.");
+            break;
+        case BZ_DATA_ERROR_MAGIC:
+            dbg->Warning(m, "Bzip stream does not have correct magic bytes!");
+            /* FALL THROUGH */
+        case BZ_DATA_ERROR:
+            dbg->Error(m, "Bzip data integrity error; this usually means the "
+                          "compressed file is corrupt.");
+            break;
+        case BZ_IO_ERROR: {
+            const char *err_msg = strerror(errno);
+            dbg->Error(m, "Bzip IO error: %s", err_msg);
+            break;
+        }
+        case BZ_UNEXPECTED_EOF:
+            dbg->Warning(m, "EOF before end of Bzip stream.");
+            break;
+        case BZ_OUTBUFF_FULL:
+            dbg->Error(m, "Bzip output buffer is not large enough");
+            break;
+    }
+    return error_occurred;
+}
+#endif /* TUVOK_BZIP */
 
-  /// \todo Tom: add bzip2 decompression code here 
-  ///            uncompressing strFilename into strUncompressedFile
-  ///            and do not forget to skip the first "iHeaderSkip" bytes
-  ///            before heanding the stream over to the bzip2 lib
+/** Converts a bzip2-compressed file chunk to a raw file.
+ * @param strFilename the input (compressed) file
+ * @param strTargetFilename the target uvf file
+ * @param strTempDir directory prefix for raw file.
+ * @param pMasterController controller, for reporting errors
+ * @param iHeaderSkip number of bytes to skip of strFilename's header.
+ * @param iComponentSize size in bits of one component (e.g. 8 for a byte)
+ * @param iComponentCount how many components (e.g. 1 for scalar)
+ * @param bSigned is the field a signed field?
+ * @param bConvertEndianness if we need to flip the endianness of the data
+ * @param vVolumeSize dimensions of the volume
+ * @param vVolumeAspect per-dimension aspect ratio
+ * @param strDesc a string decribing the input data
+ * @param strSource a string decribing the input filename (usually the filname
+ *                  without the path)
+ * @param eType data type enumerator (defaults to undefined) */
+bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
+                                       const string& strTargetFilename,
+                                       const string& strTempDir,
+                                       MasterController* pMasterController,
+                                       UINT64 iHeaderSkip,
+                                       UINT64 iComponentSize,
+                                       UINT64 iComponentCount, bool bSigned,
+                                       bool bConvertEndianness,
+                                       UINTVECTOR3 vVolumeSize,
+                                       FLOATVECTOR3 vVolumeAspect,
+                                       const string& strDesc,
+                                       const string& strSource,
+                                       UVFTables::ElementSemanticTable eType)
+{
+  AbstrDebugOut *dbg = pMasterController->DebugOut();
+  static const char method[] = "RAWConverter::ConvertBZIP2Dataset";
+  string strUncompressedFile = strTempDir + SysTools::GetFilename(strFilename)
+                                          + ".uncompressed";
+#ifdef TUVOK_BZIP
+  BZFILE *bzf;
+  int bz_err;
+#endif
+  char *buffer = new char[INCORESIZE];
 
+  FILE *f_compressed = fopen(strFilename.c_str(), "rb");
+  FILE *f_inflated = fopen(strUncompressedFile.c_str(), "wb");
+
+  if(f_compressed == NULL) {
+    dbg->Error(method, "Could not open %s", strFilename.c_str());
+    delete []buffer;
+    return false;
+  }
+  if(f_inflated == NULL) {
+    dbg->Error(method, "Could not open %s", strUncompressedFile.c_str());
+    delete []buffer;
+    return false;
+  }
+
+  if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
+    /// \todo use strerror(errno) and actually report the damn error.
+    dbg->Error(method, "Seek failed");
+    delete []buffer;
+    return false;
+  }
+
+#ifdef TUVOK_BZIP
+  bzf = BZ2_bzReadOpen(&bz_err, f_compressed, 0, 0, NULL, 0);
+  if(bz_err_test(bz_err, dbg)) {
+    dbg->Error(method, "Bzip library error occurred; bailing.");
+    delete []buffer;
+    return false;
+  }
+
+  do {
+    int nbytes = BZ2_bzRead(&bz_err, bzf, buffer, INCORESIZE);
+    if(bz_err != BZ_STREAM_END && bz_err_test(bz_err, dbg)) {
+      dbg->Error(method, "Bzip library error occurred; bailing.");
+      delete []buffer;
+      return false;
+    }
+    if(1 != fwrite(buffer, nbytes, 1, f_inflated)) {
+      dbg->Warning(method, "%d-byte write of decompressed file failed.",
+                   nbytes);
+      delete []buffer;
+      return false;
+    }
+  } while(bz_err == BZ_OK);
+#else
+  dbg->Error(method, "Bzip support was not enabled at compile time.");
+#endif
+
+  delete []buffer;
+  fclose(f_inflated);
+  fclose(f_compressed);
+
+#ifndef TUVOK_BZIP
   return false;
-/*
-  bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename, strTempDir, pMasterController, 
-                                   0, iComponentSize, iComponentCount, bConvertEndianness, bSigned
-                                   vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
+#endif
 
-  if( remove(strUncompressedFile.c_str()) != 0 )
-      pMasterController->DebugOut()->Warning("NRRDConverter::ConvertBZIP2Dataset","Unable to delete temp file %s.", strUncompressedFile.c_str());
+  bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename,
+                                   strTempDir, pMasterController, 0,
+                                   iComponentSize, iComponentCount, bSigned,
+                                   bConvertEndianness, vVolumeSize,
+                                   vVolumeAspect, strDesc, strSource, eType);
 
-  return bResult;*/
+  if( remove(strUncompressedFile.c_str()) != 0 ) {
+    dbg->Warning(method, "Unable to delete temp file '%s'.",
+                 strUncompressedFile.c_str());
+  }
+
+  return bResult;
 }
 
 bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController, 
