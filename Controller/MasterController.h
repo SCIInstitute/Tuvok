@@ -74,7 +74,7 @@ public:
   };
 
   /// Defaults to using a Console-based debug output stream.
-  MasterController();
+  MasterController(AbstrDebugOut* pDebugOut=NULL);
   virtual ~MasterController();
 
   /// Create a new renderer.

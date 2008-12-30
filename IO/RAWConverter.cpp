@@ -347,7 +347,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	SourceData.Close();
 	uvfFile.Close();
 
-  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Removing temporarie files...");
+  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Removing temporary files...");
 
   if (bConvertEndianness) remove(tmpFilename0.c_str());
   if (bQuantized) remove(tmpFilename1.c_str());

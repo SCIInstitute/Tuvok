@@ -37,8 +37,8 @@
 
 #include "MasterController.h"
 
-MasterController::MasterController() :
-  m_pDebugOut(new ConsoleOut()),
+MasterController::MasterController(AbstrDebugOut* pDebugOut) :
+  m_pDebugOut(pDebugOut == NULL ? new ConsoleOut() : pDebugOut),
   m_bDeleteDebugOutOnExit(true)
 {
   m_pSystemInfo = new SystemInfo();
