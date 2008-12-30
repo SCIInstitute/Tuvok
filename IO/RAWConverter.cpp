@@ -37,7 +37,7 @@
 #include <cstdio>
 #include <cstring>
 #ifdef TUVOK_BZIP
-#   include <bzlib.h>
+#   include <3rdParty/bzip2/bzlib.h>
 #endif
 
 #include "RAWConverter.h"
