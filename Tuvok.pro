@@ -9,7 +9,7 @@ OBJECTS_DIR       = Build/objects
 DEPENDPATH       += .
 INCLUDEPATH      += .
 QT               += opengl
-LIBS             += -lz -lbz2
+LIBS             += -lz
 
 # Input
 HEADERS += StdTuvokDefines.h \
@@ -52,6 +52,8 @@ HEADERS += StdTuvokDefines.h \
            DebugOut/MultiplexOut.h \
            3rdParty/GLEW/glew.h \
            3rdParty/GLEW/glxew.h \
+           3rdParty/bzip2/bzlib.h \
+           3rdParty/bzip2/bzlib_private.h \
            Renderer/FrameCapture.h \
            Renderer/GLFrameCapture.h \
            Renderer/CullingLOD.h \
@@ -71,6 +73,13 @@ HEADERS += StdTuvokDefines.h \
            Renderer/SBVRGeogen.h
 
 SOURCES += 3rdParty/GLEW/glew.c \
+           3rdParty/bzip2/blocksort.c \
+           3rdParty/bzip2/huffman.c \
+           3rdParty/bzip2/crctable.c \
+           3rdParty/bzip2/randtable.c \
+           3rdParty/bzip2/compress.c \
+           3rdParty/bzip2/decompress.c \
+           3rdParty/bzip2/bzlib.c \
            Basics/SystemInfo.cpp \
            Basics/SysTools.cpp \
            Basics/MathTools.cpp \
