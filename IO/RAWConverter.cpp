@@ -36,9 +36,7 @@
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
-#ifdef TUVOK_BZIP
-#   include <3rdParty/bzip2/bzlib.h>
-#endif
+#include <3rdParty/bzip2/bzlib.h>
 
 #include "RAWConverter.h"
 #include "IOManager.h"  // for the size defines
@@ -462,7 +460,6 @@ bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
   return bResult;
 }
 
-#ifdef TUVOK_BZIP
 /** Tests a bzip return code for errors, and translates it to a string for the
  * debug logs.
  * @param bz_err the error code (given by the bzip2 library)
@@ -517,7 +514,6 @@ bz_err_test(int bz_err, AbstrDebugOut * const dbg)
     }
     return error_occurred;
 }
-#endif /* TUVOK_BZIP */
 
 /** Converts a bzip2-compressed file chunk to a raw file.
  * @param strFilename the input (compressed) file
@@ -553,10 +549,8 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
   static const char method[] = "RAWConverter::ConvertBZIP2Dataset";
   string strUncompressedFile = strTempDir + SysTools::GetFilename(strFilename)
                                           + ".uncompressed";
-#ifdef TUVOK_BZIP
   BZFILE *bzf;
   int bz_err;
-#endif
   char *buffer = new char[INCORESIZE];
 
   FILE *f_compressed = fopen(strFilename.c_str(), "rb");
@@ -580,7 +574,6 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
     return false;
   }
 
-#ifdef TUVOK_BZIP
   bzf = BZ2_bzReadOpen(&bz_err, f_compressed, 0, 0, NULL, 0);
   if(bz_err_test(bz_err, dbg)) {
     dbg->Error(method, "Bzip library error occurred; bailing.");
@@ -602,17 +595,10 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
       return false;
     }
   } while(bz_err == BZ_OK);
-#else
-  dbg->Error(method, "Bzip support was not enabled at compile time.");
-#endif
 
   delete []buffer;
   fclose(f_inflated);
   fclose(f_compressed);
-
-#ifndef TUVOK_BZIP
-  return false;
-#endif
 
   bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename,
                                    strTempDir, pMasterController, 0,
