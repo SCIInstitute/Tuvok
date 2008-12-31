@@ -53,6 +53,7 @@ class CullingLOD
     void SetModelMatrix(const FLOATMATRIX4& mModelMatrix);
     void SetViewMatrix(const FLOATMATRIX4& mViewMatrix);
     void Update();
+    void SetPassAll(bool bPassAll) {m_bPassAll = bPassAll;}
     
     int GetLODLevel(const FLOATVECTOR3& vfCenter, const FLOATVECTOR3& vfExtent, const UINTVECTOR3& viVoxelCount) const;
     bool IsVisible(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vfExtent) const;
@@ -74,7 +75,8 @@ class CullingLOD
     float        m_fFarPlane;
     UINT32       m_iPixelCountY;
     float        m_fScreenSpaceError;
-    float        m_fLODFactor;          /// < the magic LOD factor !
+    float        m_fLODFactor;
+    bool         m_bPassAll;
 };
 
 #endif // CULLINGLOD_H

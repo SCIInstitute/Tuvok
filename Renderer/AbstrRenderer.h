@@ -220,8 +220,8 @@ class AbstrRenderer {
   
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
     void Set2DFlipMode(EWindowMode eWindow, bool bFlipX, bool bFlipY);
-    void Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlipY);
-    void GetUseMIP(EWindowMode eWindow, bool& bUseMIP);
+    void Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlipY) const;
+    bool GetUseMIP(EWindowMode eWindow) const;
     void SetUseMIP(EWindowMode eWindow, bool bUseMIP);
 
     // scheduling routines
@@ -271,6 +271,8 @@ class AbstrRenderer {
     void SetAvoidSeperateCompositing(bool bAvoidSeperateCompositing) {m_bAvoidSeperateCompositing = bAvoidSeperateCompositing;}
     bool GetAvoidSeperateCompositing() const {return m_bAvoidSeperateCompositing;}
 
+    void SetMIPRotationAngle(float fAngle) {m_fMIPRotationAngle = fAngle; m_bPerformRedraw = true;}
+
   protected:
     MasterController*   m_pMasterController;
     bool                m_bPerformRedraw;
@@ -317,6 +319,7 @@ class AbstrRenderer {
     std::vector<Brick>  m_vCurrentBrickList;
     std::vector<Brick>  m_vLeftEyeBrickList;
     bool                m_bLODDisabled;
+    bool                m_fMIPRotationAngle;
 
     bool                m_bDoClearView;
     float               m_fCVIsovalue;
@@ -343,6 +346,7 @@ class AbstrRenderer {
     virtual void        ScheduleRecompose();
     void                ComputeMinLODForCurrentView();
     void                Plan3DFrame();
+    void                PlanHQMIPFrame();
     std::vector<Brick>  BuildSubFrameBrickList();
     std::vector<Brick>  BuildLeftEyeSubFrameBrickList(const std::vector<Brick>& vRightEyeBrickList );
     virtual void        ClearDepthBuffer() = 0;

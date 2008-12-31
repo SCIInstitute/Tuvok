@@ -73,6 +73,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_iCurrentLOD(0),
   m_iBricksRenderedInThisSubFrame(0),
   m_bLODDisabled(false),
+  m_fMIPRotationAngle(0.0f),
   m_bDoClearView(false),
   m_fCVIsovalue(0.8f),
   m_vCVColor(1,0,0),
@@ -565,6 +566,28 @@ void AbstrRenderer::Plan3DFrame() {
   }
 }
 
+void AbstrRenderer::PlanHQMIPFrame() {
+  // compute modelviewmatrix and pass it to the culling object
+  m_matModelView[0] = m_mRotation*m_mTranslation*m_mView[0];
+
+  m_FrustumCullingLOD.SetPassAll(true);
+
+  // TODO ComputeMinLODForCurrentView();
+  m_iCurrentLODOffset = 0;
+  m_iCurrentLOD = 0;
+
+  UINT64VECTOR3 vBrickCount = m_pDataset->GetInfo()->GetBrickCount(m_iCurrentLOD);
+
+  // build new brick todo-list
+  m_vCurrentBrickList = BuildSubFrameBrickList();
+
+  m_iBricksRenderedInThisSubFrame = 0;
+
+  // update frame states
+  m_iIntraFrameCounter = 0;
+  m_iFrameCounter = m_pMasterController->MemMan()->UpdateFrameCounter();
+}
+
 void AbstrRenderer::SetCV(bool bEnable) {
   if (!SupportsClearView()) return;
 
@@ -641,17 +664,19 @@ void AbstrRenderer::Set2DFlipMode(EWindowMode eWindow, bool bFlipX, bool bFlipY)
   ScheduleWindowRedraw(eWindow);
 }
 
-void AbstrRenderer::Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlipY) {
+void AbstrRenderer::Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlipY) const {
   // flipping is only possible for 2D views
   if (eWindow > WM_SAGITTAL) return;
   bFlipX = m_bFlipView[size_t(eWindow)].x;
   bFlipY = m_bFlipView[size_t(eWindow)].y;
 }
 
-void AbstrRenderer::GetUseMIP(EWindowMode eWindow, bool& bUseMIP) {
+bool AbstrRenderer::GetUseMIP(EWindowMode eWindow) const {
   // MIP is only possible for 2D views
-  if (eWindow > WM_SAGITTAL) return;
-  bUseMIP = m_bUseMIP[size_t(eWindow)];
+  if (eWindow > WM_SAGITTAL) 
+    return false;
+  else
+    return m_bUseMIP[size_t(eWindow)];
 }
 
 void AbstrRenderer::SetUseMIP(EWindowMode eWindow, bool bUseMIP) {

@@ -386,6 +386,26 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   }
 }
 
+void GLRaycaster::Render3DPostLoop() {
+  GLRenderer::Render3DPostLoop();
+
+  glDisable(GL_CULL_FACE);
+  glDepthMask(GL_TRUE);
+  glEnable(GL_BLEND);
+}
+
+void GLRaycaster::RenderHQMIPPreLoop() {
+  // TODO
+}
+
+void GLRaycaster::RenderHQMIPInLoop(const Brick& b) {
+  // TODO
+}
+
+void GLRaycaster::RenderHQMIPPostLoop() {
+  // TODO
+}
+
 void GLRaycaster::StartFrame() {
   GLRenderer::StartFrame();
 
@@ -420,14 +440,6 @@ void GLRaycaster::StartFrame() {
     default    :          m_pMasterController->DebugOut()->Error("GLRaycaster::StartFrame","Invalid rendermode set");
                           break;
   }
-}
-
-void GLRaycaster::Render3DPostLoop() {
-  GLRenderer::Render3DPostLoop();
-
-  glDisable(GL_CULL_FACE);
-  glDepthMask(GL_TRUE);
-  glEnable(GL_BLEND);
 }
 
 void GLRaycaster::SetDataDepShaderVars() {

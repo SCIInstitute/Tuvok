@@ -209,6 +209,7 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
 }
 
 void GLRenderer::RenderSeperatingLines() {
+  m_pFBO3DImageCurrent[0]->Write();
   // set render area to fullscreen
   SetRenderTargetAreaScissor(RA_FULLSCREEN);
   SetRenderTargetArea(RA_FULLSCREEN);
@@ -237,6 +238,7 @@ void GLRenderer::RenderSeperatingLines() {
   glPopMatrix();
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
+  m_pFBO3DImageCurrent[0]->FinishWrite();
 }
 
 void GLRenderer::ClearDepthBuffer() {
@@ -368,7 +370,7 @@ void GLRenderer::Paint() {
     }
 
     // if we had at least one renderwindow that was doing something and from those all are finished then 
-    // set a flg so that we can display the result to the user later
+    // set a flag so that we can display the result to the user later
     bNewDataToShow = (iActiveRenderWindows > 0) && (iReadyWindows==iActiveRenderWindows);
 
     // render cross to seperate the four subwindows
@@ -568,7 +570,7 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
                           glEnd();
                           break;
                       }
-    default        :  m_pMasterController->DebugOut()->Error("GLRenderer::Render2DView","Invalid windowmode set"); break;
+    default        :  m_pMasterController->DebugOut()->Error("GLRenderer::RenderSlice","Invalid windowmode set"); break;
   }
 }
 
@@ -581,86 +583,116 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     m_pFBO3DImageCurrent[0]->Write();
   }
 
-  SetDataDepShaderVars();
+  // if we render a slice view or MIP preview
+  if (!m_bUseMIP[size_t(eDirection)] || !m_bLODDisabled)  {
+    SetDataDepShaderVars();
 
-  if (!m_bUseMIP[size_t(eDirection)]) {
-    switch (m_eRenderMode) {
-      case RM_2DTRANS    :  m_p2DTransTex->Bind(1); 
-                            m_pProgram2DTransSlice->Enable();
-                            break;
-      default            :  m_p1DTransTex->Bind(1); 
-                            m_pProgram1DTransSlice->Enable();
-                            break;
+    if (!m_bUseMIP[size_t(eDirection)]) {
+      switch (m_eRenderMode) {
+        case RM_2DTRANS    :  m_p2DTransTex->Bind(1); 
+                              m_pProgram2DTransSlice->Enable();
+                              break;
+        default            :  m_p1DTransTex->Bind(1); 
+                              m_pProgram1DTransSlice->Enable();
+                              break;
+      }
+      glDisable(GL_BLEND);
+    } else {
+      m_pProgramMIPSlice->Enable();
+      glBlendFunc(GL_ONE, GL_ONE);
+      glBlendEquation(GL_MAX);
+      glEnable(GL_BLEND);
+
+      SetRenderTargetAreaScissor(eREnderArea);
+      glClearColor(0,0,0,0);
+      glClear(GL_COLOR_BUFFER_BIT);
+      glDisable( GL_SCISSOR_TEST );
     }
-    glDisable(GL_BLEND);
-  } else {
-    m_pProgramMIPSlice->Enable();
-    glBlendFunc(GL_ONE, GL_ONE);
-    glBlendEquation(GL_MAX);
-    glEnable(GL_BLEND);
 
+    glDisable(GL_DEPTH_TEST);
+
+    UINT64 iCurrentLOD = 0;
+    UINTVECTOR3 vVoxelCount;
+
+    for (UINT64 i = 0;i<m_pDataset->GetInfo()->GetLODLevelCount();i++) {
+      if (m_pDataset->GetInfo()->GetBrickCount(i).volume() == 1) {
+          iCurrentLOD = i;
+          vVoxelCount = UINTVECTOR3(m_pDataset->GetInfo()->GetDomainSize(i));
+      }
+    }
+
+    if (!m_bUseMIP[size_t(eDirection)]) SetBrickDepShaderVarsSlice(vVoxelCount);
+
+    // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
+    vector<UINT64> vLOD; vLOD.push_back(iCurrentLOD);
+    vector<UINT64> vBrick; 
+    vBrick.push_back(0);vBrick.push_back(0);vBrick.push_back(0);
+
+    // get the 3D texture from the memory manager
+    GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, 0, m_iFrameCounter);
+    if(t!=NULL) t->Bind(0);
+
+    // clear the target at the beginning
     SetRenderTargetAreaScissor(eREnderArea);
-    glClearColor(0,0,0,0);
+    glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT);
-    glDisable( GL_SCISSOR_TEST );
-  }
+    glDisable(GL_SCISSOR_TEST);
 
-  glDisable(GL_DEPTH_TEST);
+    FLOATVECTOR3 vMinCoords(0.5f/FLOATVECTOR3(vVoxelCount));
+    FLOATVECTOR3 vMaxCoords(1.0f-vMinCoords);
 
-  UINT64 iCurrentLOD = 0;
-  UINTVECTOR3 vVoxelCount;
+    UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
+    DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetInfo()->GetScale() * DOUBLEVECTOR3(vDomainSize);  
 
-  /// \todo change this code to use something better than the biggest single brick LOD level
-  for (UINT64 i = 0;i<m_pDataset->GetInfo()->GetLODLevelCount();i++) {
-    if (m_pDataset->GetInfo()->GetBrickCount(i).volume() == 1) {
-        iCurrentLOD = i;
-        vVoxelCount = UINTVECTOR3(m_pDataset->GetInfo()->GetDomainSize(i));
+    DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
+    vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
+
+    if (!m_bUseMIP[size_t(eDirection)]) {
+        RenderSlice(eDirection, iSliceIndex, vMinCoords, vMaxCoords, vDomainSize, vAspectRatio, vWinAspectRatio);
+    } else {
+      for (UINT64 i = 0;i<vDomainSize[size_t(eDirection)];i++) 
+        RenderSlice(eDirection, i, vMinCoords, vMaxCoords, vDomainSize, vAspectRatio, vWinAspectRatio);
     }
-  }
 
-  if (!m_bUseMIP[size_t(eDirection)]) SetBrickDepShaderVarsSlice(vVoxelCount);
+    m_pMasterController->MemMan()->Release3DTexture(t);
 
-  // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
-  vector<UINT64> vLOD; vLOD.push_back(iCurrentLOD);
-  vector<UINT64> vBrick; 
-  vBrick.push_back(0);vBrick.push_back(0);vBrick.push_back(0);
-
-  // get the 3D texture from the memory manager
-  GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, 0, m_iFrameCounter);
-  if(t!=NULL) t->Bind(0);
-
-  // clear the target at the beginning
-  SetRenderTargetAreaScissor(eREnderArea);
-  glClearColor(0,0,0,1);
-  glClear(GL_COLOR_BUFFER_BIT);
-  glDisable(GL_SCISSOR_TEST);
-
-  FLOATVECTOR3 vMinCoords(0.5f/FLOATVECTOR3(vVoxelCount));
-  FLOATVECTOR3 vMaxCoords(1.0f-vMinCoords);
-
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
-  DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetInfo()->GetScale() * DOUBLEVECTOR3(vDomainSize);  
-
-  DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
-  vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
-
-  if (!m_bUseMIP[size_t(eDirection)]) {
-      RenderSlice(eDirection, iSliceIndex, vMinCoords, vMaxCoords, vDomainSize, vAspectRatio, vWinAspectRatio);
-  } else {
-    for (UINT64 i = 0;i<vDomainSize[size_t(eDirection)];i++) 
-      RenderSlice(eDirection, i, vMinCoords, vMaxCoords, vDomainSize, vAspectRatio, vWinAspectRatio);
-  }
-
-  m_pMasterController->MemMan()->Release3DTexture(t);
-
-  glEnable(GL_DEPTH_TEST);
-
-  if (!m_bUseMIP[size_t(eDirection)]) {
-    switch (m_eRenderMode) {
-      case RM_2DTRANS    :  m_pProgram2DTransSlice->Disable(); break;
-      default            :  m_pProgram1DTransSlice->Disable(); break;
+    glEnable(GL_DEPTH_TEST);
+    if (!m_bUseMIP[size_t(eDirection)]) {
+      switch (m_eRenderMode) {
+        case RM_2DTRANS    :  m_pProgram2DTransSlice->Disable(); break;
+        default            :  m_pProgram1DTransSlice->Disable(); break;
+      }
     }
+
   } else {
+    PlanHQMIPFrame();
+    m_iFilledBuffers = 0;
+    glClearColor(0,0,0,0);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    SetDataDepShaderVars(); 
+
+    RenderHQMIPPreLoop();
+    for (size_t iBrickIndex = 0;iBrickIndex<m_vCurrentBrickList.size();iBrickIndex++) {
+      m_pMasterController->DebugOut()->Message("GLRenderer::Render2DView","Brick %i of %i", int(iBrickIndex+1),int(m_vCurrentBrickList.size()));
+
+      // convert 3D variables to the more general ND scheme used in the memory manager, e.i. convert 3-vectors to stl vectors
+      vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
+      vector<UINT64> vBrick; 
+      vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.x);
+      vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.y);
+      vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.z);
+
+      // get the 3D texture from the memory manager
+      GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_iIntraFrameCounter++, m_iFrameCounter);
+      if(t) t->Bind(0);
+      RenderHQMIPInLoop(m_vCurrentBrickList[iBrickIndex]);
+      m_pMasterController->MemMan()->Release3DTexture(t);
+    }
+    RenderHQMIPPostLoop();
+  }
+
+  // apply 1D transferfunction to MIP image
+  if (m_bUseMIP[size_t(eDirection)]) {
     m_pProgramMIPSlice->Disable();
     glBlendEquation(GL_FUNC_ADD);
     glDisable( GL_BLEND );

@@ -69,6 +69,7 @@ class GPUMemMan {
     void FreeTexture(GLTexture2D* pTexture);
 
     GLTexture3D* Get3DTexture(VolumeDataset* pDataset, const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo, UINT64 iIntraFrameCounter, UINT64 iFrameCounter);
+    bool IsResident(VolumeDataset* pDataset, const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo);
     void Release3DTexture(GLTexture3D* pTexture);
 
     GLFBOTex* GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, UINT32 iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1);

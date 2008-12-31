@@ -277,6 +277,18 @@ void GLSBVR::Render3DPostLoop() {
   }
 }
 
+void GLSBVR::RenderHQMIPPreLoop() {
+  // TODO
+}
+
+void GLSBVR::RenderHQMIPInLoop(const Brick& b) {
+  // TODO
+}
+
+void GLSBVR::RenderHQMIPPostLoop() {
+  // TODO
+}
+
 
 bool GLSBVR::LoadDataset(const string& strFilename) {
   if (GLRenderer::LoadDataset(strFilename)) {

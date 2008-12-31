@@ -121,7 +121,7 @@ GPUMemMan::~GPUMemMan() {
 
 // ******************** Datasets
 
-VolumeDataset* GPUMemMan::LoadDataset(const std::string& strFilename, AbstrRenderer* requester) {
+VolumeDataset* GPUMemMan::LoadDataset(const string& strFilename, AbstrRenderer* requester) {
   for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
     if (i->pVolumeDataset->Filename() == strFilename) {
       m_MasterController->DebugOut()->Message("GPUMemMan::LoadDataset","Reusing %s", strFilename.c_str());
@@ -167,7 +167,7 @@ void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset, AbstrRenderer* reques
 
 // ******************** Simple Textures
 
-GLTexture2D* GPUMemMan::Load2DTextureFromFile(const std::string& strFilename) {
+GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
   for (SimpleTextureListIter i = m_vpSimpleTextures.begin();i<m_vpSimpleTextures.end();i++) {
     if (i->strFilename == strFilename) {
       m_MasterController->DebugOut()->Message("GPUMemMan::Load2DTextureFromFile","Reusing %s", strFilename.c_str());
@@ -248,7 +248,7 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester, Transfer
   m_vpTrans1DList.push_back(Trans1DListElem(*ppTransferFunction1D, *tex, requester));
 }
 
-void GPUMemMan::Get1DTransFromFile(const std::string& strFilename, AbstrRenderer* requester, TransferFunction1D** ppTransferFunction1D, GLTexture1D** tex) {
+void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction1D** ppTransferFunction1D, GLTexture1D** tex) {
   m_MasterController->DebugOut()->Message("GPUMemMan::Get1DTransFromFile","Loading 2D transfer function from file");
   *ppTransferFunction1D = new TransferFunction1D(strFilename);
 
@@ -337,7 +337,7 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize, AbstrRenderer* req
   m_vpTrans2DList.push_back(Trans2DListElem(*ppTransferFunction2D, *tex, requester));
 }
 
-void GPUMemMan::Get2DTransFromFile(const std::string& strFilename, AbstrRenderer* requester, TransferFunction2D** ppTransferFunction2D, GLTexture2D** tex) {
+void GPUMemMan::Get2DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction2D** ppTransferFunction2D, GLTexture2D** tex) {
   m_MasterController->DebugOut()->Message("GPUMemMan::Get2DTransFromFile","Loading 2D transfer function from file");
   *ppTransferFunction2D = new TransferFunction2D(strFilename);
 
@@ -395,7 +395,17 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRender
 
 // ******************** 3D Textures
 
-GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo, UINT64 iIntraFrameCounter, UINT64 iFrameCounter) {
+bool GPUMemMan::IsResident(VolumeDataset* pDataset, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo) {
+  for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
+    if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo, UINT64 iIntraFrameCounter, UINT64 iFrameCounter) {
   for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
     if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo)) {
       m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","Reusing 3D texture");
@@ -403,7 +413,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const std::vector<
     }
   }
 
-  const std::vector<UINT64> vSize = pDataset->GetInfo()->GetBrickSizeND(vLOD, vBrick);
+  const vector<UINT64> vSize = pDataset->GetInfo()->GetBrickSizeND(vLOD, vBrick);
   UINT64 iBitWidth  = pDataset->GetInfo()->GetBitwith();
   UINT64 iCompCount = pDataset->GetInfo()->GetComponentCount();
 

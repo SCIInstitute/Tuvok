@@ -123,6 +123,10 @@ class GLRenderer : public AbstrRenderer {
     virtual void ComposeSurfaceImage(int iStereoID);
     virtual void Recompose3DView(ERenderArea eArea);
 
+    virtual void RenderHQMIPPreLoop() {}
+    virtual void RenderHQMIPInLoop(const Brick& b) = 0;
+    virtual void RenderHQMIPPostLoop() {}
+
     virtual void CreateOffscreenBuffers();
     virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile, const std::vector<std::string>& strDirs, GLSLProgram** pShaderProgram);
     virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs);

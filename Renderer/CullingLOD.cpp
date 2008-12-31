@@ -52,7 +52,8 @@ CullingLOD::CullingLOD(float fScreenSpaceError) :
     m_fFarPlane(100.0f),
     m_iPixelCountY(1),
     m_fScreenSpaceError(fScreenSpaceError),
-    m_fLODFactor(1.0f)
+    m_fLODFactor(1.0f),
+    m_bPassAll(false)
 {
 }
 
@@ -139,6 +140,8 @@ int CullingLOD::GetLODLevel(const FLOATVECTOR3& vfCenter, const FLOATVECTOR3& vf
 
 bool CullingLOD::IsVisible(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vfExtent)  const
 {
+  if (m_bPassAll) return true;
+
   FLOATVECTOR3 vHalfExtent = 0.5f * vfExtent; 
 
   for (UINT32 uiPlane = 0; uiPlane < 6; uiPlane++)

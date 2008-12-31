@@ -81,6 +81,11 @@ class GLSBVR : public GLRenderer {
     virtual void Render3DPreLoop();
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
+
+    virtual void RenderHQMIPPreLoop();
+    virtual void RenderHQMIPInLoop(const Brick& b);
+    virtual void RenderHQMIPPostLoop();
+
     void RenderProxyGeometry();
     virtual void Cleanup();
 
