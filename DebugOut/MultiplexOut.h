@@ -41,6 +41,7 @@
 #ifndef MULTIPLEXOUT_H
 #define MULTIPLEXOUT_H
 
+#include "../StdTuvokDefines.h"
 #include "AbstrDebugOut.h"
 #include <vector>
 

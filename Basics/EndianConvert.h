@@ -41,6 +41,7 @@
 #ifndef ENDIANCONVERT_H
 #define ENDIANCONVERT_H
 
+#include "../StdTuvokDefines.h"
 #include <cassert>
 
 #ifndef WIN32

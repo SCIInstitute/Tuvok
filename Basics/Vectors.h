@@ -67,6 +67,7 @@
   #define MIN(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
+#include "../StdTuvokDefines.h"
 #include <math.h>
 #include <assert.h>
 
@@ -477,21 +478,17 @@ template <class T> VECTOR4<T> operator * ( T scalar, const VECTOR4<T>& vec ) {re
 template <class T> VECTOR4<T> operator / ( T scalar, const VECTOR4<T>& vec ) {return VECTOR4<T>(scalar/vec.x,scalar/vec.y,scalar/vec.z,scalar/vec.w);}
 template <class T> VECTOR4<T> operator % ( T scalar, const VECTOR4<T>& vec ) {return VECTOR4<T>(scalar%vec.x,scalar%vec.y,scalar%vec.z,scalar%vec.w);}
 
-
-typedef unsigned int uint;
-typedef unsigned short ushort;
-
 typedef VECTOR4<> INTVECTOR4;
 typedef VECTOR3<> INTVECTOR3;
 typedef VECTOR2<> INTVECTOR2;
 
-typedef VECTOR4<uint> UINTVECTOR4;
-typedef VECTOR3<uint> UINTVECTOR3;
-typedef VECTOR2<uint> UINTVECTOR2;
+typedef VECTOR4<UINT32> UINTVECTOR4;
+typedef VECTOR3<UINT32> UINTVECTOR3;
+typedef VECTOR2<UINT32> UINTVECTOR2;
 
-typedef VECTOR4<ushort> USHORTVECTOR4;
-typedef VECTOR3<ushort> USHORTVECTOR3;
-typedef VECTOR2<ushort> USHORTVECTOR2;
+typedef VECTOR4<unsigned short> USHORTVECTOR4;
+typedef VECTOR3<unsigned short> USHORTVECTOR3;
+typedef VECTOR2<unsigned short> USHORTVECTOR2;
 
 typedef VECTOR4<float> FLOATVECTOR4;
 typedef VECTOR3<float> FLOATVECTOR3;

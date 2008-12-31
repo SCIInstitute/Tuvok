@@ -239,7 +239,7 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester, Transfer
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction1D)->GetByteArray(&pcData);
-  *tex = new GLTexture1D(GLuint((*ppTransferFunction1D)->GetSize()), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
+  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
@@ -254,7 +254,7 @@ void GPUMemMan::Get1DTransFromFile(const std::string& strFilename, AbstrRenderer
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction1D)->GetByteArray(&pcData);
-  *tex = new GLTexture1D(GLuint((*ppTransferFunction1D)->GetSize()), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
+  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
@@ -328,7 +328,7 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize, AbstrRenderer* req
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
-  *tex = new GLTexture2D(GLuint(iSize.x), GLuint(iSize.y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
+  *tex = new GLTexture2D(UINT32(iSize.x), UINT32(iSize.y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
   delete [] pcData;
   
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
@@ -343,7 +343,7 @@ void GPUMemMan::Get2DTransFromFile(const std::string& strFilename, AbstrRenderer
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
-  *tex = new GLTexture2D(GLuint((*ppTransferFunction2D)->GetSize().x), GLuint((*ppTransferFunction2D)->GetSize().y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
+  *tex = new GLTexture2D(UINT32((*ppTransferFunction2D)->GetSize().x), UINT32((*ppTransferFunction2D)->GetSize().y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
@@ -521,7 +521,7 @@ void GPUMemMan::MemSizesChanged() {
 }
 
 
-GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, unsigned int iSizePerElement, bool bHaveDepth, int iNumBuffers) {
+GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, UINT32 iSizePerElement, bool bHaveDepth, int iNumBuffers) {
 
   m_MasterController->DebugOut()->Message("GPUMemMan::GetFBO","Creating new FBO of size %i x %i", int(width), int(height));
 

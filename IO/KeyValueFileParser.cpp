@@ -129,9 +129,9 @@ KeyValPair* KeyValueFileParser::GetData(const string&  strKey, const bool bCaseS
   if (!bCaseSensitive) {
     string upperKey(strKey);
     transform(upperKey.begin(), upperKey.end(), upperKey.begin(), ::toupper);
-    for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].strKeyUpper == upperKey) return &m_vecTokens[i];
+    for (UINT32 i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].strKeyUpper == upperKey) return &m_vecTokens[i];
   } else {
-    for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].strKey == strKey) return &m_vecTokens[i];
+    for (UINT32 i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].strKey == strKey) return &m_vecTokens[i];
   }
   return NULL;
 }
@@ -140,9 +140,9 @@ KeyValPair* KeyValueFileParser::GetData(const wstring& wstrKey, const bool bCase
   if (!bCaseSensitive) {
     wstring wupperKey(wstrKey);
     transform(wupperKey.begin(), wupperKey.end(), wupperKey.begin(), ::toupper);
-    for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].wstrKeyUpper == wupperKey) return &m_vecTokens[i];
+    for (UINT32 i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].wstrKeyUpper == wupperKey) return &m_vecTokens[i];
   } else {
-    for (uint i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].wstrKey == wstrKey) return &m_vecTokens[i];
+    for (UINT32 i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].wstrKey == wstrKey) return &m_vecTokens[i];
   }
   return NULL;
 }

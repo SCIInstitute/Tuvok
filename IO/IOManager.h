@@ -34,13 +34,12 @@
   \version 1.0
   \date    August 2008
 */
-
-
 #pragma once
 
 #ifndef IOMANAGER_H
 #define IOMANAGER_H
 
+#include "../StdTuvokDefines.h"
 #include <string>
 #include "../Renderer/AbstrRenderer.h"
 #include "../IO/DirectoryParser.h"

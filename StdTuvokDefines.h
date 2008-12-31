@@ -47,6 +47,7 @@
   typedef unsigned long long UINT64;
 #endif
 typedef unsigned int UINT32;
+typedef unsigned char BYTE;
 
 #define UNUSED 0
 #define UNUSED_FLOAT 0.0f
@@ -75,11 +76,18 @@ typedef unsigned int UINT32;
   #define TUVOK_DETAILS "Linux build"
 #endif
 
-
 #endif
 
+// undef stupid windows defines to max and min
+#ifdef max
+#undef max
+#endif
 
-#define UINT32_INVALID (std::numeric_limits<UINT>::max())
+#ifdef min
+#undef min
+#endif
+
+#define UINT32_INVALID (std::numeric_limits<UINT32>::max())
 #define UINT64_INVALID (std::numeric_limits<UINT64>::max())
 
 

@@ -149,6 +149,6 @@ void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
 }
 
 
-void MasterController::Filter( std::string , unsigned int , 
+void MasterController::Filter( std::string , UINT32 , 
                               void*, void *, void *, void * ) {
 };

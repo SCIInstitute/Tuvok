@@ -41,6 +41,7 @@
 #ifndef VOLUMEDATASET_H
 #define VOLUMEDATASET_H
 
+#include "../StdTuvokDefines.h"
 #include <string>
 #include "TransferFunction1D.h"
 #include "TransferFunction2D.h"

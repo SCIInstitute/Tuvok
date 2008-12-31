@@ -38,10 +38,6 @@
 #include "ConsoleOut.h"
 #include "Basics/Console.h"
 
-#ifdef WIN32
-  #include <windows.h>
-#endif
-
 ConsoleOut::ConsoleOut() {
   Message("ConsoleOut::ConsoleOut:","Starting up ConsoleDebug out");
 }

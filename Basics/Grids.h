@@ -41,6 +41,7 @@
 #ifndef GRIDS
 #define GRIDS
 
+#include "../StdTuvokDefines.h"
 #include "Vectors.h"
 
 template <class T> class GridnD  {

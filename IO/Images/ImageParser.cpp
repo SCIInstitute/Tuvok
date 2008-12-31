@@ -86,7 +86,7 @@ SimpleImageFileInfo::SimpleImageFileInfo(const SimpleImageFileInfo* info) :
   SimpleFileInfo(info)
 {}
 
-bool SimpleImageFileInfo::GetData(void* pData, unsigned int iLength, unsigned int iOffset) {
+bool SimpleImageFileInfo::GetData(void* pData, UINT32 iLength, UINT32 iOffset) {
   QImage qImage(m_strFileName.c_str()); 
   if (qImage.isNull()) return false;
 
@@ -135,7 +135,7 @@ ImageStackInfo::ImageStackInfo(const ImageStackInfo* other)
   m_strDesc         = other->m_strDesc;
   m_strFileType     = other->m_strFileType;
 
-  for (unsigned int i=0;i<other->m_Elements.size();i++) {
+  for (size_t i=0;i<other->m_Elements.size();i++) {
     SimpleImageFileInfo* e = new SimpleImageFileInfo((SimpleImageFileInfo*)other->m_Elements[i]);
     m_Elements.push_back(e);
   }
@@ -172,12 +172,12 @@ ImageParser::~ImageParser(void)
 void ImageParser::GetDirInfo(string  strDirectory) {
   vector<string> files = SysTools::GetDirContents(strDirectory);
   vector<ImageFileInfo> fileInfos;
-  for (unsigned int i = 0;i<files.size();i++) {
+  for (size_t i = 0;i<files.size();i++) {
     files[i] = strDirectory+"/"+files[i]; 
   }
 
   // query directory for image files
-  for (unsigned int i = 0;i<files.size();i++) {
+  for (size_t i = 0;i<files.size();i++) {
     QImage qImage(files[i].c_str()); 
     if (!qImage.isNull()) {
       ImageFileInfo info(files[i]);
@@ -192,12 +192,12 @@ void ImageParser::GetDirInfo(string  strDirectory) {
   }
 
   // sort results into stacks
-  for (unsigned int i = 0; i<m_FileStacks.size(); i++) delete m_FileStacks[i];
+  for (size_t i = 0; i<m_FileStacks.size(); i++) delete m_FileStacks[i];
   m_FileStacks.clear();
 
-  for (unsigned int i = 0; i<fileInfos.size(); i++) {
+  for (size_t i = 0; i<fileInfos.size(); i++) {
     bool bFoundMatch = false;
-    for (unsigned int j = 0; j<m_FileStacks.size(); j++) {
+    for (size_t j = 0; j<m_FileStacks.size(); j++) {
       if (((ImageStackInfo*)m_FileStacks[j])->Match(&fileInfos[i])) {
         bFoundMatch = true;
         break;

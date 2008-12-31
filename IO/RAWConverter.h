@@ -41,6 +41,7 @@
 #ifndef RAWCONVERTER_H
 #define RAWCONVERTER_H
 
+#include "../StdTuvokDefines.h"
 #include "AbstrConverter.h"
 
 class RAWConverter : public AbstrConverter {

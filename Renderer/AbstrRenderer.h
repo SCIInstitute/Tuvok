@@ -58,7 +58,7 @@ public:
   {
   }
 
-  Brick(unsigned int x, unsigned int y, unsigned int z, unsigned int iSizeX, unsigned int iSizeY, unsigned int iSizeZ) :
+  Brick(UINT32 x, UINT32 y, UINT32 z, UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ) :
     vCenter(0,0,0),
     vExtension(0,0,0), 
     vVoxelCount(iSizeX, iSizeY, iSizeZ),
@@ -226,16 +226,16 @@ class AbstrRenderer {
 
     // scheduling routines
     UINT64 GetCurrentSubFrameCount() {return 1+m_iMaxLODIndex-m_iMinLODForCurrentView;}
-    unsigned int GetWorkingSubFrame() {return 1+m_iMaxLODIndex-m_iCurrentLOD;}
+    UINT32 GetWorkingSubFrame() {return 1+m_iMaxLODIndex-m_iCurrentLOD;}
 
-    unsigned int GetCurrentBrickCount() {return (unsigned int)(m_vCurrentBrickList.size());}
-    unsigned int GetWorkingBrick() {return m_iBricksRenderedInThisSubFrame;}
+    UINT32 GetCurrentBrickCount() {return UINT32(m_vCurrentBrickList.size());}
+    UINT32 GetWorkingBrick() {return m_iBricksRenderedInThisSubFrame;}
 
-    unsigned int GetFrameProgress() {return (unsigned int)(100.0f * float(GetWorkingSubFrame()) / float(GetCurrentSubFrameCount()));}
-    unsigned int GetSubFrameProgress() {return (m_vCurrentBrickList.size() == 0) ? 100 : (unsigned int)(100.0f * m_iBricksRenderedInThisSubFrame / float(m_vCurrentBrickList.size()));}
+    UINT32 GetFrameProgress() {return UINT32(100.0f * float(GetWorkingSubFrame()) / float(GetCurrentSubFrameCount()));}
+    UINT32 GetSubFrameProgress() {return (m_vCurrentBrickList.size() == 0) ? 100 : UINT32(100.0f * m_iBricksRenderedInThisSubFrame / float(m_vCurrentBrickList.size()));}
     
-    void SetTimeSlice(unsigned int iMSecs) {m_iTimeSliceMSecs = iMSecs;}
-    void SetPerfMeasures(unsigned int iMinFramerate, unsigned int iStartDelay) {m_iMinFramerate = iMinFramerate; m_iStartDelay = iStartDelay;}
+    void SetTimeSlice(UINT32 iMSecs) {m_iTimeSliceMSecs = iMSecs;}
+    void SetPerfMeasures(UINT32 iMinFramerate, UINT32 iStartDelay) {m_iMinFramerate = iMinFramerate; m_iStartDelay = iStartDelay;}
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {m_pDataset->GetInfo()->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();}
     DOUBLEVECTOR3 GetRescaleFactors() {return m_pDataset->GetInfo()->GetRescaleFactors();}
 
@@ -300,14 +300,14 @@ class AbstrRenderer {
     int                 m_iLogoPos;
     std::string         m_strLogoFilename;
 
-    unsigned int        m_iMinFramerate;
-    unsigned int        m_iStartDelay;
+    UINT32              m_iMinFramerate;
+    UINT32              m_iStartDelay;
     UINT64              m_iMinLODForCurrentView;
-    unsigned int        m_iTimeSliceMSecs;
+    UINT32              m_iTimeSliceMSecs;
 
     UINT64              m_iIntraFrameCounter;
     UINT64              m_iFrameCounter;
-    unsigned int        m_iCheckCounter;
+    UINT32              m_iCheckCounter;
     UINT64              m_iMaxLODIndex;
     UINT64              m_iCurrentLODOffset;
     CullingLOD          m_FrustumCullingLOD;

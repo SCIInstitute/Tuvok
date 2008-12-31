@@ -40,6 +40,7 @@
 #ifndef MASTERCONTROLLER_H
 #define MASTERCONTROLLER_H
 
+#include "../StdTuvokDefines.h"
 #include <vector>
 #include <string>
 #include "../IO/IOManager.h"
@@ -51,8 +52,8 @@
 
 #include "../Renderer/GPUMemMan/GPUMemMan.h"
 #include "../Renderer/AbstrRenderer.h"
-#include "../Renderer/GLSBVR.h"
-#include "../Renderer/GLRaycaster.h"
+#include "../Renderer/GL/GLSBVR.h"
+#include "../Renderer/GL/GLRaycaster.h"
 
 /** \class MasterController
  * Centralized controller for ImageVis3D.
@@ -106,7 +107,7 @@ public:
 
   /// \todo this should return a pointer to memory.
   void Filter( std::string datasetName,
-         unsigned int filter,
+         UINT32 filter,
          void *var0 = 0, void *var1 = 0,
          void *var2 = 0, void *var3 = 0 );
 

@@ -41,6 +41,7 @@
 #ifndef TEXTFILEOUT_H
 #define TEXTFILEOUT_H
 
+#include "../StdTuvokDefines.h"
 #include "AbstrDebugOut.h"
 #include <string>
 

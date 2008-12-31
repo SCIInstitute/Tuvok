@@ -41,6 +41,7 @@
 #ifndef IMAGEPARSER_H
 #define IMAGEPARSER_H
 
+#include "../../StdTuvokDefines.h"
 #include <IO/DirectoryParser.h>
 
 // if the following define is set, the DICOM parser putputs detailed parsing information
@@ -63,7 +64,7 @@ public:
   SimpleImageFileInfo(const SimpleImageFileInfo* info);
   virtual ~SimpleImageFileInfo() {}
 
-  virtual bool GetData(void* pData, unsigned int iLength, unsigned int iOffset);
+  virtual bool GetData(void* pData, UINT32 iLength, UINT32 iOffset);
   virtual SimpleFileInfo* clone();
 };
 
@@ -74,9 +75,9 @@ public:
   ImageFileInfo(const std::wstring& wstrFileName);
   virtual ~ImageFileInfo() {}
 
-  UINTVECTOR2  m_ivSize;
-  unsigned int m_iAllocated;
-  unsigned int m_iComponentCount;
+  UINTVECTOR2 m_ivSize;
+  UINT32      m_iAllocated;
+  UINT32      m_iComponentCount;
 
   void ComputeSize();
 

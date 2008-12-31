@@ -12,8 +12,11 @@
   #endif
 #endif
 
-#define UVF_INVALID (std::numeric_limits<UINT64>::max())
+#include "../../StdTuvokDefines.h"
+#define UVF_INVALID UINT64_INVALID
+
 #include "LargeRAWFile.h"
 class DataBlock;
+
 
 #endif // UVFBASIC_H

@@ -35,12 +35,12 @@
   \date    August 2008
 */
 
-
 #pragma once
 
 #ifndef CONSOLEOUT_H
 #define CONSOLEOUT_H
 
+#include "../StdTuvokDefines.h"
 #include "AbstrDebugOut.h"
 
 class ConsoleOut : public AbstrDebugOut{

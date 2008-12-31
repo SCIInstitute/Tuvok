@@ -19,6 +19,14 @@
   #include<sys/types.h>
   #include<sys/stat.h>
   #include<share.h>
+  // undef stupid windows defines to max and min
+  #ifdef max
+  #undef max
+  #endif
+
+  #ifdef min
+  #undef min
+  #endif
 #else
   #include <stdio.h>
   #include <unistd.h>

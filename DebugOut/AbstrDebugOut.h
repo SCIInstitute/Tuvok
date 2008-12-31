@@ -41,6 +41,8 @@
 #ifndef ABSTRDEBUGOUT_H
 #define ABSTRDEBUGOUT_H
 
+#include "../StdTuvokDefines.h"
+
 class AbstrDebugOut {
   public:
 #ifdef _DEBUG

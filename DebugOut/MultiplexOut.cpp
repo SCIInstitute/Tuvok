@@ -39,6 +39,14 @@
 
 #ifdef WIN32
   #include <windows.h>
+  // undef stupid windows defines to max and min
+  #ifdef max
+  #undef max
+  #endif
+
+  #ifdef min
+  #undef min
+  #endif
 #endif
 
 #include <stdarg.h>

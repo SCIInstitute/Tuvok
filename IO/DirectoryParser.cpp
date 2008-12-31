@@ -51,7 +51,7 @@ DirectoryParser::DirectoryParser(void)
 
 DirectoryParser::~DirectoryParser(void)
 {
-  for (unsigned int i = 0; i<m_FileStacks.size(); i++) delete m_FileStacks[i];
+  for (size_t i = 0; i<m_FileStacks.size(); i++) delete m_FileStacks[i];
   m_FileStacks.clear();
 }
 
@@ -121,18 +121,18 @@ FileStackInfo::FileStackInfo(const FileStackInfo* other) :
   m_strDesc(other->m_strDesc),
   m_strFileType(other->m_strFileType)
 {
-  for (unsigned int i=0;i<other->m_Elements.size();i++) {
+  for (size_t i=0;i<other->m_Elements.size();i++) {
     SimpleFileInfo* e = other->m_Elements[i]->clone();
     m_Elements.push_back(e);
   }
 }
 
 FileStackInfo::~FileStackInfo() {
-  for (unsigned int i=0;i<m_Elements.size();i++) delete m_Elements[i];
+  for (size_t i=0;i<m_Elements.size();i++) delete m_Elements[i];
 }
 
-FileStackInfo::FileStackInfo( UINTVECTOR3  ivSize, FLOATVECTOR3 fvfAspect, unsigned int iAllocated, unsigned int iStored,
-                              unsigned int iComponentCount, bool bIsBigEndian, bool bIsJPEGEncoded, const std::string& strDesc, const std::string& strFileType) :
+FileStackInfo::FileStackInfo( UINTVECTOR3  ivSize, FLOATVECTOR3 fvfAspect, UINT32 iAllocated, UINT32 iStored,
+                              UINT32 iComponentCount, bool bIsBigEndian, bool bIsJPEGEncoded, const std::string& strDesc, const std::string& strFileType) :
   m_ivSize(ivSize),
   m_fvfAspect(fvfAspect),
   m_iAllocated(iAllocated),

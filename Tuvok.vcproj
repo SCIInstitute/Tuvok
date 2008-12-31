@@ -777,59 +777,59 @@
 					Name="GL"
 					>
 					<File
-						RelativePath=".\Renderer\GLFBOTex.cpp"
+						RelativePath=".\Renderer\GL\GLFBOTex.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLFBOTex.h"
+						RelativePath=".\Renderer\GL\GLFBOTex.h"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLInclude.h"
+						RelativePath=".\Renderer\GL\GLInclude.h"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLObject.h"
+						RelativePath=".\Renderer\GL\GLObject.h"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLSLProgram.cpp"
+						RelativePath=".\Renderer\GL\GLSLProgram.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLSLProgram.h"
+						RelativePath=".\Renderer\GL\GLSLProgram.h"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLTexture.cpp"
+						RelativePath=".\Renderer\GL\GLTexture.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLTexture.h"
+						RelativePath=".\Renderer\GL\GLTexture.h"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLTexture1D.cpp"
+						RelativePath=".\Renderer\GL\GLTexture1D.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLTexture1D.h"
+						RelativePath=".\Renderer\GL\GLTexture1D.h"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLTexture2D.cpp"
+						RelativePath=".\Renderer\GL\GLTexture2D.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLTexture2D.h"
+						RelativePath=".\Renderer\GL\GLTexture2D.h"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLTexture3D.cpp"
+						RelativePath=".\Renderer\GL\GLTexture3D.cpp"
 						>
 					</File>
 					<File
-						RelativePath=".\Renderer\GLTexture3D.h"
+						RelativePath=".\Renderer\GL\GLTexture3D.h"
 						>
 					</File>
 				</Filter>
@@ -837,32 +837,40 @@
 					Name="DX"
 					>
 				</Filter>
+				<Filter
+					Name="API Independent"
+					>
+					<File
+						RelativePath=".\Renderer\GPUObject.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="GL"
 				>
 				<File
-					RelativePath=".\Renderer\GLRaycaster.cpp"
+					RelativePath=".\Renderer\GL\GLRaycaster.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Renderer\GLRaycaster.h"
+					RelativePath=".\Renderer\GL\GLRaycaster.h"
 					>
 				</File>
 				<File
-					RelativePath=".\Renderer\GLRenderer.cpp"
+					RelativePath=".\Renderer\GL\GLRenderer.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Renderer\GLRenderer.h"
+					RelativePath=".\Renderer\GL\GLRenderer.h"
 					>
 				</File>
 				<File
-					RelativePath=".\Renderer\GLSBVR.cpp"
+					RelativePath=".\Renderer\GL\GLSBVR.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Renderer\GLSBVR.h"
+					RelativePath=".\Renderer\GL\GLSBVR.h"
 					>
 				</File>
 			</Filter>
@@ -878,11 +886,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Renderer\GLFrameCapture.cpp"
+					RelativePath=".\Renderer\GL\GLFrameCapture.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Renderer\GLFrameCapture.h"
+					RelativePath=".\Renderer\GL\GLFrameCapture.h"
 					>
 				</File>
 			</Filter>

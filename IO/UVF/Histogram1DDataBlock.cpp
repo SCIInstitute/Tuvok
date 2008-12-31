@@ -61,7 +61,7 @@ bool Histogram1DDataBlock::Compute(RasterDataBlock* source) {
   //       this should be changed to a more general approach
   vector<UINT64> vSmallestLOD = source->GetSmallestBrickIndex();
   const vector<UINT64>& vBricks = source->GetBrickCount(vSmallestLOD);
-  for (unsigned int i = 0;i<vBricks.size();i++) if (vBricks[i] != 1) return false;
+  for (size_t i = 0;i<vBricks.size();i++) if (vBricks[i] != 1) return false;
   
   // create temp histogram 
   size_t iValueRange = size_t(1<<(source->ulElementBitSize[0][0]));

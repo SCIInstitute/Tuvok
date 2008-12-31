@@ -200,7 +200,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
 
   glGetError();
   if (!m_bIsPaddedToPowerOfTwo || (MathTools::IsPow2(vSize[0]) && MathTools::IsPow2(vSize[1]) && MathTools::IsPow2(vSize[2]))) {   
-    pTexture = new GLTexture3D(GLuint(vSize[0]), GLuint(vSize[1]), GLuint(vSize[2]), glInternalformat, glFormat, glType, (unsigned int)(iBitWidth*iCompCount), pData, GL_LINEAR, GL_LINEAR);
+    pTexture = new GLTexture3D(UINT32(vSize[0]), UINT32(vSize[1]), UINT32(vSize[2]), glInternalformat, glFormat, glType, UINT32(iBitWidth*iCompCount), pData, GL_LINEAR, GL_LINEAR);
   } else {
     // pad the data to a power of two
     UINTVECTOR3 vPaddedSize(MathTools::NextPow2(vSize[0]), MathTools::NextPow2(vSize[1]), MathTools::NextPow2(vSize[2]));
@@ -232,7 +232,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
    // if (vPaddedSize[2] > vSize[2])
      // memcpy(pPaddedData+iTarget, pPaddedData+iTarget-vPaddedSize[1]*iRowSizeTarget, vPaddedSize[1]*iRowSizeTarget);
 
-    pTexture = new GLTexture3D(GLuint(vPaddedSize[0]), GLuint(vPaddedSize[1]), GLuint(vPaddedSize[2]), glInternalformat, glFormat, glType, (unsigned int)(iBitWidth*iCompCount), pPaddedData, GL_LINEAR, GL_LINEAR);
+    pTexture = new GLTexture3D(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2], glInternalformat, glFormat, glType, UINT32(iBitWidth*iCompCount), pPaddedData, GL_LINEAR, GL_LINEAR);
 
     delete [] pPaddedData;
   }

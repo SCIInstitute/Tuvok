@@ -344,7 +344,7 @@ bool VolumeDataset::Open(bool bVerify)
     const vector<UINT64>& vHist1D = m_pHist1DDataBlock->GetHistogram();
     m_pHist1D = new Histogram1D(vHist1D.size());
     for (size_t i = 0;i<m_pHist1D->GetSize();i++) {
-      m_pHist1D->Set(i, (unsigned int)vHist1D[i]);
+      m_pHist1D->Set(i, UINT32(vHist1D[i]));
     }
   } else {
     // generate a zero 1D histogram (max 4k) if none is found in the file
@@ -363,7 +363,7 @@ bool VolumeDataset::Open(bool bVerify)
     m_pHist2D = new Histogram2D(vSize);
     for (size_t y = 0;y<m_pHist2D->GetSize().y;y++)
       for (size_t x = 0;x<m_pHist2D->GetSize().x;x++) 
-        m_pHist2D->Set(x,y,(unsigned int)vHist2D[x][y]);
+        m_pHist2D->Set(x,y,UINT32(vHist2D[x][y]));
 
   } else {
     // generate a zero 2D histogram (max 4k) if none is found in the file
@@ -385,9 +385,9 @@ UINTVECTOR3 VolumeDataset::GetBrickSize(const vector<UINT64>& vLOD, const vector
   vector<UINT64> vSizeUVF = m_pVolumeDatasetInfo->GetBrickSizeND(vLOD, vBrick);
 
   // TODO: this code assumes that x,y,z are the first coords in the dataset which does not have to be, so better check this at load time
-  vSize[0] = (unsigned int)(vSizeUVF[0]);
-  vSize[1] = (unsigned int)(vSizeUVF[1]);
-  vSize[2] = (unsigned int)(vSizeUVF[2]);
+  vSize[0] = UINT32(vSizeUVF[0]);
+  vSize[1] = UINT32(vSizeUVF[1]);
+  vSize[2] = UINT32(vSizeUVF[2]);
 
   return vSize;
 }

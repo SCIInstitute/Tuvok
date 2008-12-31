@@ -56,7 +56,7 @@ CullingLOD::CullingLOD(float fScreenSpaceError) :
 {
 }
 
-void CullingLOD::SetScreenParams(float fFOVY, float fAspect, float fNearPlane, float fFarPlane, unsigned int iPixelCountY) {
+void CullingLOD::SetScreenParams(float fFOVY, float fAspect, float fNearPlane, float fFarPlane, UINT32 iPixelCountY) {
   m_fFOVY = fFOVY;
   m_fAspect = fAspect;
   m_fNearPlane = fNearPlane;
@@ -141,7 +141,7 @@ bool CullingLOD::IsVisible(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vfEx
 {
   FLOATVECTOR3 vHalfExtent = 0.5f * vfExtent; 
 
-  for (unsigned int uiPlane = 0; uiPlane < 6; uiPlane++)
+  for (UINT32 uiPlane = 0; uiPlane < 6; uiPlane++)
   {
     FLOATVECTOR4 plane = m_Planes[uiPlane];
     if (

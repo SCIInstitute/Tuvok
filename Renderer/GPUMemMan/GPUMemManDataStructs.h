@@ -41,12 +41,13 @@
 
 #include <deque>
 #include <string>
+#include "../../StdTuvokDefines.h"
 #include "../AbstrRenderer.h"
-#include "../GLTexture1D.h"
-#include "../GLTexture2D.h"
-#include "../GLTexture3D.h"
-#include "../GLFBOTex.h"
-#include "../GLSLProgram.h"
+#include "../GL/GLTexture1D.h"
+#include "../GL/GLTexture2D.h"
+#include "../GL/GLTexture3D.h"
+#include "../GL/GLFBOTex.h"
+#include "../GL/GLSLProgram.h"
 #include "../../IO/VolumeDataset.h"
 #include "../../IO/TransferFunction1D.h"
 #include "../../IO/TransferFunction2D.h"
@@ -72,15 +73,15 @@ typedef VolDataList::iterator VolDataListIter;
 // simple textures
 class SimpleTextureListElem {
 public:
-  SimpleTextureListElem(unsigned int _iAccessCounter, GLTexture2D* _pTexture, std::string _strFilename) :
+  SimpleTextureListElem(UINT32 _iAccessCounter, GLTexture2D* _pTexture, std::string _strFilename) :
     iAccessCounter(_iAccessCounter), 
     pTexture(_pTexture), 
     strFilename(_strFilename)
   {}
 
-  unsigned int  iAccessCounter;
+  UINT32        iAccessCounter;
   GLTexture2D*  pTexture;
-  std::string    strFilename;
+  std::string   strFilename;
 };
 typedef std::deque<SimpleTextureListElem> SimpleTextureList;
 typedef SimpleTextureList::iterator SimpleTextureListIter;
@@ -137,7 +138,7 @@ public:
   unsigned char*      pData;
   GLTexture3D*        pTexture;
   VolumeDataset*      pDataset;
-  unsigned int        iUserCount;
+  UINT32              iUserCount;
 
   UINT64 GetIntraFrameCounter() {return m_iIntraFrameCounter;}
   UINT64 GetFrameCounter() {return m_iFrameCounter;}
@@ -161,7 +162,7 @@ class FBOListElem {
 public:
   FBOListElem(GLFBOTex* _pFBOTex) : pFBOTex(_pFBOTex)
   {}
-  FBOListElem(MasterController* pMasterController, GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, unsigned int iSizePerElement, bool bHaveDepth, int iNumBuffers) :
+  FBOListElem(MasterController* pMasterController, GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, UINT32 iSizePerElement, bool bHaveDepth, int iNumBuffers) :
     pFBOTex(new GLFBOTex(pMasterController, minfilter, magfilter, wrapmode, width, height, intformat, iSizePerElement, bHaveDepth, iNumBuffers))
   {}
 
@@ -195,10 +196,10 @@ public:
     delete pGLSLProgram;
   }
 
-  std::string strVSFile; 
-  std::string strFSFile;
-  unsigned int iAccessCounter;
-  GLSLProgram* pGLSLProgram;
+  std::string   strVSFile; 
+  std::string   strFSFile;
+  UINT32        iAccessCounter;
+  GLSLProgram*  pGLSLProgram;
 };
 typedef std::deque<GLSLListElem*> GLSLList;
 typedef GLSLList::iterator GLSLListIter;

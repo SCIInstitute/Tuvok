@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include "../StdTuvokDefines.h"
 #include <vector>
 #include "../Basics/Vectors.h"
 
@@ -45,12 +46,12 @@
 class ArcBall
 {
 public:
-  ArcBall(unsigned int iWinWidth=0, unsigned int iWinHeight=0, int iWinOffsetX=0, int iWinOffsetY=0);
+  ArcBall(UINT32 iWinWidth=0, UINT32 iWinHeight=0, int iWinOffsetX=0, int iWinOffsetY=0);
 
   void SetRadius(float fRadius) {m_fRadius = fRadius;}
   void SetTranslation(const FLOATMATRIX4& mTranslation) {m_mTranslation = mTranslation;}
   const FLOATMATRIX4& GetTranslation() const {return m_mTranslation;}
-  void SetWindowSize(unsigned int iWinWidth, unsigned int iWinHeight);
+  void SetWindowSize(UINT32 iWinWidth, UINT32 iWinHeight);
   void SetWindowOffset(int iWinOffsetX, int iWinOffsetY);
   void Click(UINTVECTOR2 vPosition);
   FLOATQUATERNION4 Drag(UINTVECTOR2 vPosition);

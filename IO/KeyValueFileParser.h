@@ -48,6 +48,7 @@
   #pragma warning (default : 4995)
 #endif
 
+#include "../StdTuvokDefines.h"
 #include <Basics/Vectors.h>
 
 class KeyValPair {
@@ -58,21 +59,21 @@ public:
   KeyValPair(const std::wstring& key, const std::wstring& value);
 
   // keys
-  std::string    strKey;
+  std::string   strKey;
   std::wstring  wstrKey;
-  std::string    strKeyUpper;
+  std::string   strKeyUpper;
   std::wstring  wstrKeyUpper;
 
   // values
-  std::string    strValue;
+  std::string   strValue;
   std::wstring  wstrValue;
-  std::string    strValueUpper;
+  std::string   strValueUpper;
   std::wstring  wstrValueUpper;
-  unsigned int  uiValue;
-  int        iValue;
-  float      fValue;
+  UINT32        uiValue;
+  int           iValue;
+  float         fValue;
   INTVECTOR3    viValue;
-  UINTVECTOR3    vuiValue;
+  UINTVECTOR3   vuiValue;
   FLOATVECTOR3  vfValue;
 };
 

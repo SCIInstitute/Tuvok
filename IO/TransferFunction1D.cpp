@@ -175,12 +175,12 @@ bool TransferFunction1D::Save(const std::string& filename) {
 }
 
 bool TransferFunction1D::Load(ifstream& file) {
-  unsigned int iSize;
+  UINT32 iSize;
   file >> iSize;
   vColorData.resize(iSize);
 
-  for(unsigned int i=0;i<vColorData.size();++i){
-    for(unsigned int j=0;j<4;++j){
+  for(size_t i=0;i<vColorData.size();++i){
+    for(size_t j=0;j<4;++j){
       file >> vColorData[i][j];
     }
   }
@@ -194,8 +194,8 @@ bool TransferFunction1D::Save(ofstream& file) {
 
   file << vColorData.size() << endl;
 
-  for(unsigned int i=0;i<vColorData.size();++i){
-    for(unsigned int j=0;j<4;++j){
+  for(size_t i=0;i<vColorData.size();++i){
+    for(size_t j=0;j<4;++j){
       file << vColorData[i][j] << " ";
     }
     file << endl;
@@ -209,7 +209,7 @@ void TransferFunction1D::GetByteArray(unsigned char** pcData, unsigned char cUse
   if (*pcData == NULL) *pcData = new unsigned char[vColorData.size()*4];
 
   unsigned char *pcDataIterator = *pcData;
-  for (unsigned int i = 0;i<vColorData.size();i++) {
+  for (size_t i = 0;i<vColorData.size();i++) {
     *pcDataIterator++ = (unsigned char)(vColorData[i][0]*cUsedRange);
     *pcDataIterator++ = (unsigned char)(vColorData[i][1]*cUsedRange);
     *pcDataIterator++ = (unsigned char)(vColorData[i][2]*cUsedRange);
@@ -221,7 +221,7 @@ void TransferFunction1D::GetShortArray(unsigned short** psData, unsigned short s
   if (*psData == NULL) *psData = new unsigned short[vColorData.size()*4];
 
   unsigned short *psDataIterator = *psData;
-  for (unsigned int i = 0;i<vColorData.size();i++) {
+  for (size_t i = 0;i<vColorData.size();i++) {
     *psDataIterator++ = (unsigned short)(vColorData[i][0]*sUsedRange);
     *psDataIterator++ = (unsigned short)(vColorData[i][1]*sUsedRange);
     *psDataIterator++ = (unsigned short)(vColorData[i][2]*sUsedRange);

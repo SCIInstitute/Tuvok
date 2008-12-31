@@ -42,12 +42,13 @@
 #define CULLINGLOD_H
 
 #include "../Basics/Vectors.h"
+#include "../StdTuvokDefines.h"
 
 class CullingLOD
 {
   public:
     CullingLOD(float fScreenSpaceError=1.0f);
-    void SetScreenParams(float fFOVY, float fAspect, float fNearPlane, float fFarPlane, unsigned int iPixelCountY);
+    void SetScreenParams(float fFOVY, float fAspect, float fNearPlane, float fFarPlane, UINT32 iPixelCountY);
     void SetProjectionMatrix(const FLOATMATRIX4& mProjectionMatrix);
     void SetModelMatrix(const FLOATMATRIX4& mModelMatrix);
     void SetViewMatrix(const FLOATMATRIX4& mViewMatrix);
@@ -71,7 +72,7 @@ class CullingLOD
     float        m_fAspect;
     float        m_fNearPlane;
     float        m_fFarPlane;
-    unsigned int m_iPixelCountY;
+    UINT32       m_iPixelCountY;
     float        m_fScreenSpaceError;
     float        m_fLODFactor;          /// < the magic LOD factor !
 };

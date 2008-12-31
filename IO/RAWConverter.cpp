@@ -179,7 +179,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	UVF uvfFile(wstrUVFName);
 
 	UINT64 iLodLevelCount = 1;
-  unsigned int iMaxVal = vVolumeSize.maxVal();
+  UINT32 iMaxVal = vVolumeSize.maxVal();
 
   while (iMaxVal > BRICKSIZE) {
     iMaxVal /= 2;
@@ -227,7 +227,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 				 vSem.push_back(UVFTables::ES_GREEN);
 				 vSem.push_back(UVFTables::ES_BLUE);
 				 vSem.push_back(UVFTables::ES_ALPHA); break;
-		default : for (uint i = 0;i<iComponentCount;i++) vSem.push_back(eType);
+		default : for (UINT64 i = 0;i<iComponentCount;i++) vSem.push_back(eType);
 	}
 
 	dataVolume.SetTypeToVector(iComponentSize/iComponentCount,
@@ -686,7 +686,7 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
                 } else {
                   while (! sourceFile.eof() )
                   {
-                    unsigned int tmp;
+                    UINT32 tmp;
                     sourceFile >> tmp;
                     binaryFile.WriteRAW((unsigned char*)&tmp,4);
                   }

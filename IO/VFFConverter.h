@@ -41,6 +41,7 @@
 #ifndef VFFCONVERTER_H
 #define VFFCONVERTER_H
 
+#include "../StdTuvokDefines.h"
 #include "RAWConverter.h"
 
 class MasterController;

@@ -41,6 +41,7 @@
 #ifndef QVISCONVERTER_H
 #define QVISCONVERTER_H
 
+#include "../StdTuvokDefines.h"
 #include "RAWConverter.h"
 
 class MasterController;

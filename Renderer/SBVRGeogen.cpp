@@ -104,7 +104,7 @@ bool SBVRGeogen::EpsilonEqual(float a, float b) {
   return fabs(a-b) < 0.00001;
 }
 
-void SBVRGeogen::ComputeIntersection(float z, uint indexA, uint indexB, POS3TEX3_VERTEX& vHit, uint &count) {
+void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB, POS3TEX3_VERTEX& vHit, UINT32 &count) {
   /* 
      return NO INTERSECTION if the line of the 2 points a,b is
      1. in front of the intersection plane
@@ -146,29 +146,29 @@ void SBVRGeogen::Swap(POS3TEX3_VERTEX& a, POS3TEX3_VERTEX& b) {
   b = temp;
 }
 
-void SBVRGeogen::SortPoints(POS3TEX3_VERTEX fArray[12], uint iCount) {
+void SBVRGeogen::SortPoints(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
   // use bubble sort here, because array is very small which makes bubble sort faster than QSort
-  for (uint i= 1;i<iCount;++i) 
-    for (uint j = 1;j<iCount-i;++j) 
+  for (UINT32 i= 1;i<iCount;++i) 
+    for (UINT32 j = 1;j<iCount-i;++j) 
       if (!CheckOrdering(fArray[j].m_vPos,fArray[j+1].m_vPos,fArray[0].m_vPos)) Swap(fArray[j],fArray[j+1]);
 }
 
 
-int SBVRGeogen::FindMinPoint(POS3TEX3_VERTEX fArray[12], uint iCount) {
+int SBVRGeogen::FindMinPoint(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
   int iIndex = 0;
-  for (uint i = 1;i<iCount;++i) if (fArray[i].m_vPos.y < fArray[iIndex].m_vPos.y) iIndex = i;
+  for (UINT32 i = 1;i<iCount;++i) if (fArray[i].m_vPos.y < fArray[iIndex].m_vPos.y) iIndex = i;
   return iIndex;
 }
 
 
-void SBVRGeogen::Triangulate(POS3TEX3_VERTEX fArray[12], uint iCount) {
+void SBVRGeogen::Triangulate(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
   // move bottom element to front of array
   Swap(fArray[0],fArray[FindMinPoint(fArray,iCount)]);
   // sort points according to gradient
   SortPoints(fArray,iCount);
   
   // convert to triangles
-  for (uint i = 0;i<iCount-2;i++) {
+  for (UINT32 i = 0;i<iCount-2;i++) {
     m_vSliceTriangles.push_back(fArray[0]); 
     m_vSliceTriangles.push_back(fArray[i+1]); 
     m_vSliceTriangles.push_back(fArray[i+2]);
@@ -176,8 +176,8 @@ void SBVRGeogen::Triangulate(POS3TEX3_VERTEX fArray[12], uint iCount) {
 }
 
 
-uint SBVRGeogen::ComputeLayerGeometry(float fDepth, POS3TEX3_VERTEX pfLayerPoints[12]) {
-  uint iCount = 0;
+UINT32 SBVRGeogen::ComputeLayerGeometry(float fDepth, POS3TEX3_VERTEX pfLayerPoints[12]) {
+  UINT32 iCount = 0;
 
   ComputeIntersection(fDepth,0,1,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,1,2,pfLayerPoints[iCount],iCount);
@@ -206,7 +206,7 @@ uint SBVRGeogen::ComputeLayerGeometry(float fDepth, POS3TEX3_VERTEX pfLayerPoint
 
 
 bool SBVRGeogen::ComputeLayerGeometry(float fDepth) {
-  uint iCount = 0;
+  UINT32 iCount = 0;
   POS3TEX3_VERTEX pfLayerPoints[12];
 
   ComputeIntersection(fDepth,0,1,pfLayerPoints[iCount],iCount);

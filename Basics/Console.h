@@ -41,6 +41,7 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
+#include "../StdTuvokDefines.h"
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -61,6 +62,14 @@
 namespace Console {
   #ifdef WIN32
     #include <windows.h>
+    // undef stupid windows defines to max and min
+    #ifdef max
+    #undef max
+    #endif
+
+    #ifdef min
+    #undef min
+    #endif
 
     static void printf(const WCHAR* format, ...)
     {

@@ -47,7 +47,7 @@
 #include "../Basics/Grids.h"
 
 typedef VECTOR2<UINT64> UINT64VECTOR2;
-typedef Grid1D<unsigned int> Histogram1D;
+typedef Grid1D<UINT32> Histogram1D;
 typedef Grid1D<float> NormalizedHistogram1D;
 
 class TransferFunction2D;

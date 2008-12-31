@@ -38,6 +38,14 @@
 
 #ifdef _WIN32
   #include <windows.h>
+  // undef stupid windows defines to max and min
+  #ifdef max
+  #undef max
+  #endif
+
+  #ifdef min
+  #undef min
+  #endif
 #else
   #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
     #include <sys/sysctl.h>
@@ -58,7 +66,7 @@ SystemInfo::SystemInfo() :
   m_iGPUMemSize   = ComputeGPUMemory();
 }
 
-unsigned int SystemInfo::ComputeNumCPUs() {
+UINT32 SystemInfo::ComputeNumCPUs() {
   #ifdef _WIN32
     SYSTEM_INFO siSysInfo;
     GetSystemInfo(&siSysInfo); 
@@ -95,7 +103,6 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
   #define INITGUID
-  #include <windows.h>
   #include <string.h>
   #include <stdio.h>
   #include <assert.h>

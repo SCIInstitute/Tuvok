@@ -40,11 +40,20 @@
 #ifndef MEMMAPPEDFILE_H
 #define MEMMAPPEDFILE_H
 
+#include "../StdTuvokDefines.h"
 #include <string>
 #include "../Basics/MathTools.h"
 
 #ifdef _WIN32
   #include <windows.h>
+  // undef stupid windows defines to max and min
+  #ifdef max
+  #undef max
+  #endif
+
+  #ifdef min
+  #undef min
+  #endif
 #endif
 
 enum MMFILE_ACCESS {

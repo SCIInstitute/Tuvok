@@ -41,6 +41,8 @@
 #ifndef SYSTOOLS_H
 #define SYSTOOLS_H
 
+#include "../StdTuvokDefines.h"
+
 #include <string>
 #include <vector>
 

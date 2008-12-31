@@ -86,14 +86,14 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   parseDICOM.GetDirInfo(strDirectory);
 
 
-  for (unsigned int iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {    
+  for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {    
     DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
 
     // if trying to load JPEG files. check if Qimage can handle the JPEG payload
     if (f->m_bIsJPEGEncoded) {
       void* pData = NULL;
       f->m_Elements[0]->GetData(&pData);
-      unsigned int iLength = f->m_Elements[0]->GetDataSize();
+      UINT32 iLength = f->m_Elements[0]->GetDataSize();
       QImage image;
       if (!image.loadFromData((uchar*)pData, iLength)) {
         parseDICOM.m_FileStacks.erase(parseDICOM.m_FileStacks.begin()+iStackID);
@@ -109,7 +109,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   else
     m_pMasterController->DebugOut()->Message("IOManager::ScanDirectory","  found %i DICOM stacks", int(parseDICOM.m_FileStacks.size()));
 
-  for (unsigned int iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {    
+  for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {    
     DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
 
     stringstream s;
@@ -128,7 +128,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   else
     m_pMasterController->DebugOut()->Message("IOManager::ScanDirectory","  found %i image stacks", int(parseImages.m_FileStacks.size()));
 
-  for (unsigned int iStackID = 0;iStackID < parseImages.m_FileStacks.size();iStackID++) {    
+  for (size_t iStackID = 0;iStackID < parseImages.m_FileStacks.size();iStackID++) {    
     ImageStackInfo* f = new ImageStackInfo((ImageStackInfo*)parseImages.m_FileStacks[iStackID]);
 
     stringstream s;
@@ -176,10 +176,10 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     }
 
     char *pData = NULL;
-    for (uint j = 0;j<pDICOMStack->m_Elements.size();j++) {
+    for (size_t j = 0;j<pDICOMStack->m_Elements.size();j++) {
       pDICOMStack->m_Elements[j]->GetData((void**)&pData); // the first call does a "new" on pData 
 
-      unsigned int iDataSize = pDICOMStack->m_Elements[j]->GetDataSize();
+      UINT32 iDataSize = pDICOMStack->m_Elements[j]->GetDataSize();
 
 
       if (pDICOMStack->m_bIsJPEGEncoded) {
@@ -220,11 +220,11 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
         switch (pDICOMStack->m_iAllocated) {
           case  8 : break;
           case 16 : {
-                for (uint k = 0;k<iDataSize/2;k++)
+                for (UINT32 k = 0;k<iDataSize/2;k++)
                   ((short*)pData)[k] = EndianConvert::Swap<short>(((short*)pData)[k]);
                 } break;
           case 32 : {
-                for (uint k = 0;k<iDataSize/4;k++)
+                for (UINT32 k = 0;k<iDataSize/4;k++)
                   ((float*)pData)[k] = EndianConvert::Swap<float>(((float*)pData)[k]);
                 } break;
         }
@@ -232,10 +232,10 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
       // HACK: this code assumes 3 component data is always 3*char
       if (pDICOMStack->m_iComponentCount == 3) {
-        unsigned int iRGBADataSize = (iDataSize / 3 ) * 4;
+        UINT32 iRGBADataSize = (iDataSize / 3 ) * 4;
 
         unsigned char *pRGBAData = new unsigned char[ iRGBADataSize ];
-        for (uint k = 0;k<iDataSize/3;k++) {
+        for (UINT32 k = 0;k<iDataSize/3;k++) {
           pRGBAData[k*4+0] = pData[k*3+0];
           pRGBAData[k*4+1] = pData[k*3+1];
           pRGBAData[k*4+2] = pData[k*3+2];
@@ -254,7 +254,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     m_pMasterController->DebugOut()->Message("IOManager::ConvertDataset","    done creating intermediate file %s", strTempMergeFilename.c_str()); 
 
     UINTVECTOR3 iSize = pDICOMStack->m_ivSize;
-    iSize.z *= (unsigned int)pDICOMStack->m_Elements.size();
+    iSize.z *= UINT32(pDICOMStack->m_Elements.size());
 
     /// \todo evaluate pDICOMStack->m_strModality
 
@@ -287,10 +287,10 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
         }
 
         char *pData = NULL;
-        for (uint j = 0;j<pStack->m_Elements.size();j++) {
+        for (size_t j = 0;j<pStack->m_Elements.size();j++) {
           pStack->m_Elements[j]->GetData((void**)&pData); // the first call does a "new" on pData 
 
-          unsigned int iDataSize = pStack->m_Elements[j]->GetDataSize();
+          UINT32 iDataSize = pStack->m_Elements[j]->GetDataSize();
           fs.write(pData, iDataSize);
         }
         delete [] pData;
@@ -300,7 +300,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
         m_pMasterController->DebugOut()->Message("IOManager::ConvertDataset","    done creating intermediate file %s", strTempMergeFilename.c_str()); 
 
         UINTVECTOR3 iSize = pStack->m_ivSize;
-        iSize.z *= (unsigned int)pStack->m_Elements.size();
+        iSize.z *= UINT32(pStack->m_Elements.size());
 
         bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, m_pMasterController, 0,
                                         pStack->m_iAllocated, pStack->m_iComponentCount, 

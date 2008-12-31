@@ -247,7 +247,7 @@ void AbstrRenderer::SetIsoValue(float fIsovalue) {
 bool AbstrRenderer::CheckForRedraw() {
   if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame || m_iCurrentLODOffset > m_iMinLODForCurrentView) {
     if (m_iCheckCounter == 0)  {
-      m_pMasterController->DebugOut()->Message("GLRenderer::CheckForRedraw","Still drawing...");
+      m_pMasterController->DebugOut()->Message("AbstrRenderer::CheckForRedraw","Still drawing...");
       return true;
     } else m_iCheckCounter--;
   }
@@ -377,7 +377,7 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
 vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(const vector<Brick>& vRightEyeBrickList ) {
   vector<Brick> vBrickList = vRightEyeBrickList;
 
-  for (unsigned int iBrick = 0;iBrick<vBrickList.size();iBrick++) {
+  for (UINT32 iBrick = 0;iBrick<vBrickList.size();iBrick++) {
     /// compute minimum distance to brick corners (offset slightly to the center to resolve ambiguities) 
     vBrickList[iBrick].fDistance = numeric_limits<float>::max();
     float fEpsilon = 0.4999f;
@@ -425,7 +425,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList() {
       for (UINT64 x = 0;x<vBrickDimension.x;x++) {
         
         UINT64VECTOR3 vSize = m_pDataset->GetInfo()->GetBrickSize(m_iCurrentLOD, UINT64VECTOR3(x,y,z));
-        b = Brick(x,y,z, (unsigned int)(vSize.x), (unsigned int)(vSize.y), (unsigned int)(vSize.z));
+        b = Brick(x,y,z, UINT32(vSize.x), UINT32(vSize.y), UINT32(vSize.z));
 
 
         FLOATVECTOR3 vEffectiveSize = m_pDataset->GetInfo()->GetEffectiveBrickSize(m_iCurrentLOD, UINT64VECTOR3(x,y,z));

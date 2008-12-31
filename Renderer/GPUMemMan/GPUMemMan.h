@@ -39,6 +39,7 @@
 #ifndef GPUMEMMAN_H
 #define GPUMEMMAN_H
 
+#include "../../StdTuvokDefines.h"
 #include "GPUMemManDataStructs.h"
 #include "../../Basics/SystemInfo.h"
 
@@ -70,7 +71,7 @@ class GPUMemMan {
     GLTexture3D* Get3DTexture(VolumeDataset* pDataset, const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo, UINT64 iIntraFrameCounter, UINT64 iFrameCounter);
     void Release3DTexture(GLTexture3D* pTexture);
 
-    GLFBOTex* GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1);
+    GLFBOTex* GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, UINT32 iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1);
     void FreeFBO(GLFBOTex* pFBO);
 
     GLSLProgram* GetGLSLProgram(const std::string& strVSFile, const std::string& strFSFile);
@@ -85,8 +86,8 @@ class GPUMemMan {
     UINT64 GetGPUMem() const {return m_SystemInfo->GetGPUMemSize();}
     UINT64 GetAllocatedCPUMem() const {return m_iAllocatedCPUMemory;}
     UINT64 GetAllocatedGPUMem() const {return m_iAllocatedGPUMemory;}
-    unsigned int GetBitWithMem() const {return m_SystemInfo->GetProgrammBitWith();}
-    unsigned int GetNumCPUs() const {return m_SystemInfo->GetNumberOfCPUs();}
+    UINT32 GetBitWithMem() const {return m_SystemInfo->GetProgrammBitWith();}
+    UINT32 GetNumCPUs() const {return m_SystemInfo->GetNumberOfCPUs();}
 
   private:
     VolDataList       m_vpVolumeDatasets;

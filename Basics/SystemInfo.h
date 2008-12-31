@@ -39,6 +39,7 @@
 #ifndef SYSTEMINFO_H
 #define SYSTEMINFO_H
 
+#include "../StdTuvokDefines.h"
 #include "../Basics/MathTools.h"
 
 class SystemInfo
@@ -46,26 +47,26 @@ class SystemInfo
 public:
   SystemInfo();
 
-  unsigned int GetProgrammBitWith() {return m_iProgrammBitWith;}
+  UINT32 GetProgrammBitWith() {return m_iProgrammBitWith;}
   UINT64 GetCPUMemSize() {return m_iCPUMemSize;}
   UINT64 GetGPUMemSize() {return m_iGPUMemSize;}
   UINT64 GetMaxUsableCPUMem() {return m_iUseMaxCPUMem;}
   UINT64 GetMaxUsableGPUMem() {return m_iUseMaxGPUMem;}
   void SetMaxUsableCPUMem(UINT64 iUseMaxCPUMem) {m_iUseMaxCPUMem = iUseMaxCPUMem;}
   void SetMaxUsableGPUMem(UINT64 iUseMaxGPUMem) {m_iUseMaxGPUMem = iUseMaxGPUMem;}
-  unsigned int GetNumberOfCPUs() {return m_iNumberOfCPUs;}
+  UINT32 GetNumberOfCPUs() {return m_iNumberOfCPUs;}
 
 private:
-  unsigned ComputeNumCPUs();
+  UINT32 ComputeNumCPUs();
   UINT64 ComputeCPUMemSize();
   UINT64 ComputeGPUMemory();
 
-  unsigned int  m_iProgrammBitWith;
-  UINT64        m_iCPUMemSize;
-  UINT64        m_iUseMaxCPUMem;
-  UINT64        m_iGPUMemSize;
-  UINT64        m_iUseMaxGPUMem;
-  unsigned int  m_iNumberOfCPUs;
+  UINT32  m_iProgrammBitWith;
+  UINT64  m_iCPUMemSize;
+  UINT64  m_iUseMaxCPUMem;
+  UINT64  m_iGPUMemSize;
+  UINT64  m_iUseMaxGPUMem;
+  UINT32  m_iNumberOfCPUs;
 };
 
 #endif // SYSTEMINFO_H

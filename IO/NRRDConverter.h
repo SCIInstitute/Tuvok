@@ -41,6 +41,7 @@
 #ifndef NRRDCONVERTER_H
 #define NRRDCONVERTER_H
 
+#include "../StdTuvokDefines.h"
 #include "RAWConverter.h"
 
 class MasterController;
