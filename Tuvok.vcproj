@@ -723,6 +723,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Shaders\Transfer-MIP-FS.glsl"
+				>
+			</File>
+			<File
 				RelativePath=".\Shaders\Transfer-VS.glsl"
 				>
 			</File>

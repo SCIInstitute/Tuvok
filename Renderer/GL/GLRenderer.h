@@ -139,6 +139,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgram1DTransSlice;
     GLSLProgram*    m_pProgram2DTransSlice;
     GLSLProgram*    m_pProgramMIPSlice;
+    GLSLProgram*    m_pProgramTransMIP;
     GLSLProgram*    m_pProgramIsoCompose;
     GLSLProgram*    m_pProgramCVCompose;
     GLSLProgram*    m_pProgramComposeAnaglyphs;

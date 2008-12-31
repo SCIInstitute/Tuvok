@@ -57,6 +57,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgram1DTransSlice(NULL),
   m_pProgram2DTransSlice(NULL),
   m_pProgramMIPSlice(NULL),
+  m_pProgramTransMIP(NULL),
   m_pProgramIsoCompose(NULL),
   m_pProgramCVCompose(NULL),
   m_pProgramComposeAnaglyphs(NULL)
@@ -117,12 +118,13 @@ bool GLRenderer::Initialize() {
     m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
   }
 
-  if (!LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-FS.glsl",  m_vShaderSearchDirs, &(m_pProgramTrans))        ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "1D-slice-FS.glsl",  m_vShaderSearchDirs, &(m_pProgram1DTransSlice)) ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "2D-slice-FS.glsl",  m_vShaderSearchDirs, &(m_pProgram2DTransSlice)) ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "MIP-slice-FS.glsl", m_vShaderSearchDirs, &(m_pProgramMIPSlice))     ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramIsoCompose))   ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",m_vShaderSearchDirs, &(m_pProgramCVCompose))    ||
+  if (!LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-FS.glsl",     m_vShaderSearchDirs, &(m_pProgramTrans))        ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "1D-slice-FS.glsl",     m_vShaderSearchDirs, &(m_pProgram1DTransSlice)) ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "2D-slice-FS.glsl",     m_vShaderSearchDirs, &(m_pProgram2DTransSlice)) ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "MIP-slice-FS.glsl",    m_vShaderSearchDirs, &(m_pProgramMIPSlice))     ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-MIP-FS.glsl", m_vShaderSearchDirs, &(m_pProgramTransMIP))     ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-FS.glsl",      m_vShaderSearchDirs, &(m_pProgramIsoCompose))   ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramCVCompose))    ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",m_vShaderSearchDirs, &(m_pProgramComposeAnaglyphs)))   {
 
       m_pMasterController->DebugOut()->Error("GLRenderer::Initialize","Error loading transfer shaders.");
@@ -146,6 +148,11 @@ bool GLRenderer::Initialize() {
     m_pProgramMIPSlice->Enable();
     m_pProgramMIPSlice->SetUniformVector("texVolume",0);
     m_pProgramMIPSlice->Disable();
+
+    m_pProgramTransMIP->Enable();
+    m_pProgramTransMIP->SetUniformVector("texLast",0);
+    m_pProgramTransMIP->SetUniformVector("texTrans1D",1);
+    m_pProgramTransMIP->Disable();
 
     FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
 
@@ -568,7 +575,11 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
 bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex) {
 
   // bind offscreen buffer
-  m_pFBO3DImageCurrent[0]->Write();
+  if (m_bUseMIP[size_t(eDirection)]) {
+    m_pFBO3DImageCurrent[1]->Write();  // for MIP rendering "abuse" left-eye buffer for the itermediate results
+  } else {
+    m_pFBO3DImageCurrent[0]->Write();
+  }
 
   SetDataDepShaderVars();
 
@@ -607,7 +618,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     }
   }
 
-  SetBrickDepShaderVarsSlice(vVoxelCount);
+  if (!m_bUseMIP[size_t(eDirection)]) SetBrickDepShaderVarsSlice(vVoxelCount);
 
   // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
   vector<UINT64> vLOD; vLOD.push_back(iCurrentLOD);
@@ -652,6 +663,33 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
   } else {
     m_pProgramMIPSlice->Disable();
     glBlendEquation(GL_FUNC_ADD);
+    glDisable( GL_BLEND );
+
+    m_pFBO3DImageCurrent[1]->FinishWrite();
+    m_pFBO3DImageCurrent[0]->Write();
+
+    SetRenderTargetArea(RA_FULLSCREEN);
+    SetRenderTargetAreaScissor(eREnderArea);
+//    glClearColor(0,0,0,0);
+//    glClear(GL_COLOR_BUFFER_BIT);
+
+    m_pFBO3DImageCurrent[1]->Read(0);
+    m_p1DTransTex->Bind(1);
+    m_pProgramTransMIP->Enable();
+    glDisable(GL_DEPTH_TEST);
+    glBegin(GL_QUADS);
+      glTexCoord2d(0,0);
+      glVertex3d(-1.0, -1.0, -0.5);
+      glTexCoord2d(1,0);
+      glVertex3d( 1.0, -1.0, -0.5);
+      glTexCoord2d(1,1);
+      glVertex3d( 1.0,  1.0, -0.5);
+      glTexCoord2d(0,1);
+      glVertex3d(-1.0,  1.0, -0.5);
+    glEnd();
+    glDisable( GL_SCISSOR_TEST );
+
+    m_pProgramTransMIP->Disable();
   }
 
   m_pFBO3DImageCurrent[0]->FinishWrite();
@@ -960,6 +998,10 @@ void GLRenderer::SetDataDepShaderVars() {
   float fScale         = float(iMaxRange)/float(iMaxValue);
   float fGradientScale = 1.0f/m_pDataset->GetMaxGradMagnitude();
 
+  m_pProgramTransMIP->Enable();
+  m_pProgramTransMIP->SetUniformVector("fTransScale",fScale);
+  m_pProgramTransMIP->Disable();
+
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  {
                             m_pProgram1DTransSlice->Enable();
@@ -1048,10 +1090,10 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
     }
 
     if (strActualVSFile == "") {
-      m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Unable to locate fragment shader %s (%s)",strDirlessVSFile.c_str(), strVSFile.c_str());
+      m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Unable to locate vertex shader %s (%s)",strDirlessVSFile.c_str(), strVSFile.c_str());
       return false;
     } else
-      m_pMasterController->DebugOut()->Message("GLRenderer::LoadAndVerifyShader","Changed fragment shader %s to %s",strVSFile.c_str(), strActualVSFile.c_str());
+      m_pMasterController->DebugOut()->Message("GLRenderer::LoadAndVerifyShader","Changed vertex shader %s to %s",strVSFile.c_str(), strActualVSFile.c_str());
 
   } else {
     strActualVSFile = strVSFile;
