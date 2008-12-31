@@ -54,20 +54,21 @@ HEADERS += StdTuvokDefines.h \
            3rdParty/GLEW/glxew.h \
            3rdParty/bzip2/bzlib.h \
            3rdParty/bzip2/bzlib_private.h \
-           Renderer/FrameCapture.h \
-           Renderer/GLFrameCapture.h \
            Renderer/CullingLOD.h \
-           Renderer/GLSLProgram.h \
-           Renderer/GLInclude.h \
-           Renderer/GLObject.h \
-           Renderer/GLTexture.h \
-           Renderer/GLTexture1D.h \
-           Renderer/GLTexture2D.h \
-           Renderer/GLTexture3D.h \
-           Renderer/GLRenderer.h \
+           Renderer/FrameCapture.h \
+           Renderer/GPUObject.h \
+           Renderer/GL/GLFrameCapture.h \
+           Renderer/GL/GLSLProgram.h \
+           Renderer/GL/GLInclude.h \
+           Renderer/GL/GLObject.h \
+           Renderer/GL/GLTexture.h \
+           Renderer/GL/GLTexture1D.h \
+           Renderer/GL/GLTexture2D.h \
+           Renderer/GL/GLTexture3D.h \
+           Renderer/GL/GLRenderer.h \
+           Renderer/GL/GLRaycaster.h \
+           Renderer/GL/GLSBVR.h \
            Renderer/AbstrRenderer.h \
-           Renderer/GLRaycaster.h \
-           Renderer/GLSBVR.h \
            Renderer/GPUMemMan/GPUMemMan.h \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
            Renderer/SBVRGeogen.h
@@ -114,17 +115,17 @@ SOURCES += 3rdParty/GLEW/glew.c \
            DebugOut/ConsoleOut.cpp \
            DebugOut/MultiplexOut.cpp \ 
            Renderer/CullingLOD.cpp \
-           Renderer/GLFrameCapture.cpp \
-           Renderer/GLSLProgram.cpp \
-           Renderer/GLTexture.cpp \
-           Renderer/GLTexture1D.cpp \
-           Renderer/GLTexture2D.cpp \
-           Renderer/GLTexture3D.cpp \
-           Renderer/GLRenderer.cpp \           
+           Renderer/GL/GLFrameCapture.cpp \
+           Renderer/GL/GLSLProgram.cpp \
+           Renderer/GL/GLTexture.cpp \
+           Renderer/GL/GLTexture1D.cpp \
+           Renderer/GL/GLTexture2D.cpp \
+           Renderer/GL/GLTexture3D.cpp \
+           Renderer/GL/GLRenderer.cpp \           
+           Renderer/GL/GLFBOTex.cpp \
+           Renderer/GL/GLRaycaster.cpp \
+           Renderer/GL/GLSBVR.cpp \
            Renderer/AbstrRenderer.cpp \
-           Renderer/GLRaycaster.cpp \
-           Renderer/GLSBVR.cpp \
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
-           Renderer/SBVRGeogen.cpp \  
-           Renderer/GLFBOTex.cpp
+           Renderer/SBVRGeogen.cpp 
