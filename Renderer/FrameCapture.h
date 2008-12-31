@@ -39,7 +39,7 @@
 #ifndef FRAMECAPTURE_H
 #define FRAMECAPTURE_H
 
-#include "../../StdTuvokDefines.h"
+#include "../StdTuvokDefines.h"
 #include <string>
 #include "../Basics/SysTools.h"
 #include "../Basics/Vectors.h"
