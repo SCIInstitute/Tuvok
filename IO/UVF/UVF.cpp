@@ -154,11 +154,11 @@ vector<unsigned char> UVF::ComputeChecksum(LargeRAWFile& streamFile, ChecksumSem
     case CS_MD5 : {
               MD5    md5;
               int    iError=0;
-              UINT  iBlockSize;
+              UINT32 iBlockSize;
 
               while (iSize > 0)
               {
-                iBlockSize = UINT(min(iSize,UINT64(1<<20)));
+                iBlockSize = UINT32(min(iSize,UINT64(1<<20)));
 
                 streamFile.ReadRAW(ucBlock,iBlockSize);
                 md5.Update(ucBlock, iBlockSize, iError);
