@@ -84,6 +84,7 @@ bool GLRaycaster::Initialize() {
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-1D-light-FS.glsl",   m_vShaderSearchDirs, &(m_pProgram1DTrans[1])) ||
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-2D-FS.glsl",         m_vShaderSearchDirs, &(m_pProgram2DTrans[0])) ||
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-2D-light-FS.glsl",   m_vShaderSearchDirs, &(m_pProgram2DTrans[1])) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-MIP-Rot-FS.glsl",    m_vShaderSearchDirs, &(m_pProgramHQMIPRot)) ||
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-ISO-FS.glsl",        m_vShaderSearchDirs, &(m_pProgramIso)) ||
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-ISO-CV-FS.glsl",     m_vShaderSearchDirs, &(m_pProgramIso2))) {
 
@@ -132,6 +133,11 @@ bool GLRaycaster::Initialize() {
     m_pProgramIso->SetUniformVector("texRayExitPos",2);
     m_pProgramIso->SetUniformVector("vProjParam",vParams.x, vParams.y);
     m_pProgramIso->Disable();
+
+    m_pProgramHQMIPRot->Enable();
+    m_pProgramHQMIPRot->SetUniformVector("texVolume",0);
+    m_pProgramHQMIPRot->SetUniformVector("texRayExitPos",2);
+    m_pProgramHQMIPRot->Disable();
 
     m_pProgramIso2->Enable();
     m_pProgramIso2->SetUniformVector("texVolume",0);
@@ -394,7 +400,8 @@ void GLRaycaster::Render3DPostLoop() {
   glEnable(GL_BLEND);
 }
 
-void GLRaycaster::RenderHQMIPPreLoop() {
+void GLRaycaster::RenderHQMIPPreLoop(EWindowMode eDirection) {
+  GLRenderer::RenderHQMIPPreLoop(eDirection);
   // TODO
 }
 

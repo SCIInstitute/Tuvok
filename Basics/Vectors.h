@@ -1162,7 +1162,7 @@ public:
       array[ 3]= T(0);  array[ 7]=T(0);   array[11]=T(0);   array[15]= T(1);
     }
 
-    void MatrixPerspective(T fovy, T aspect, T n, T f) {
+    void Perspective(T fovy, T aspect, T n, T f) {
       // deg 2 rad
       fovy = fovy * T(3.14159265358979323846/180.0);
 
@@ -1172,6 +1172,13 @@ public:
       array[ 1]= T(0);          array[ 5]=cotan;    array[ 9]=T(0);             array[13]=T(0);
       array[ 2]= T(0);          array[ 6]=T(0);     array[10]=-(f+n)/(f-n);     array[14]=T(-2)*(f*n)/(f-n);
       array[ 3]= T(0);          array[ 7]=T(0);     array[11]=T(-1);            array[15]=T(0);
+    }
+
+    void Ortho(T left, T right, T bottom, T top, T znear, T zfar ) {
+      array[ 0]= T(2)/(right-left);  array[ 4]=T(0);                array[ 8]=T(0);               array[12]=-(right+left)/(right-left);
+      array[ 1]= T(0);               array[ 5]=T(2)/(top-bottom);   array[ 9]=T(0);               array[13]=-(top+bottom)/(top-bottom);
+      array[ 2]= T(0);               array[ 6]=T(0);                array[10]=-T(2)/(zfar-znear); array[14]=-(zfar+znear)/(zfar-znear);
+      array[ 3]= T(0);               array[ 7]=T(0);                array[11]=T(0);               array[15]=T(1);
     }
 
     void MatrixPerspectiveOffCenter(T left, T right, T bottom, T top, T n, T f) {

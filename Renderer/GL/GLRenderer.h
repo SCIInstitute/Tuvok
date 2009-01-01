@@ -100,6 +100,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgram1DTrans[2];
     GLSLProgram*    m_pProgram2DTrans[2];
     GLSLProgram*    m_pProgramIso;
+    GLSLProgram*    m_pProgramHQMIPRot;
 
     void SetRenderTargetArea(ERenderArea eREnderArea);
     void SetRenderTargetAreaScissor(ERenderArea eREnderArea);
@@ -123,7 +124,7 @@ class GLRenderer : public AbstrRenderer {
     virtual void ComposeSurfaceImage(int iStereoID);
     virtual void Recompose3DView(ERenderArea eArea);
 
-    virtual void RenderHQMIPPreLoop() {}
+    virtual void RenderHQMIPPreLoop(EWindowMode eDirection);
     virtual void RenderHQMIPInLoop(const Brick& b) = 0;
     virtual void RenderHQMIPPostLoop() {}
 

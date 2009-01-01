@@ -80,7 +80,7 @@ class GLRaycaster : public GLRenderer {
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
 
-    virtual void RenderHQMIPPreLoop();
+    virtual void RenderHQMIPPreLoop(EWindowMode eDirection);
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void RenderHQMIPPostLoop();
 

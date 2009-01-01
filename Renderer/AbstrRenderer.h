@@ -319,7 +319,8 @@ class AbstrRenderer {
     std::vector<Brick>  m_vCurrentBrickList;
     std::vector<Brick>  m_vLeftEyeBrickList;
     bool                m_bLODDisabled;
-    bool                m_fMIPRotationAngle;
+    float               m_fMIPRotationAngle;
+    FLOATMATRIX4        m_maMIPRotation;
 
     bool                m_bDoClearView;
     float               m_fCVIsovalue;
@@ -347,7 +348,7 @@ class AbstrRenderer {
     void                ComputeMinLODForCurrentView();
     void                Plan3DFrame();
     void                PlanHQMIPFrame();
-    std::vector<Brick>  BuildSubFrameBrickList();
+    std::vector<Brick>  BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion=false);
     std::vector<Brick>  BuildLeftEyeSubFrameBrickList(const std::vector<Brick>& vRightEyeBrickList );
     virtual void        ClearDepthBuffer() = 0;
     virtual void        ClearColorBuffer() = 0;

@@ -53,6 +53,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_iFilledBuffers(0),
   m_pLogoTex(NULL),
   m_pProgramIso(NULL),
+  m_pProgramHQMIPRot(NULL),
   m_pProgramTrans(NULL),
   m_pProgram1DTransSlice(NULL),
   m_pProgram2DTransSlice(NULL),
@@ -470,7 +471,7 @@ void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) 
     m_mView[0].BuildLookAt(vEye, vAt, vUp);
 
     // projection matrix
-    m_mProjection[0].MatrixPerspective(fFOVY,fAspect,fZNear,fZFar);
+    m_mProjection[0].Perspective(fFOVY,fAspect,fZNear,fZFar);
     m_mProjection[0].setProjection();
   }
 
@@ -583,10 +584,11 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     m_pFBO3DImageCurrent[0]->Write();
   }
 
+  SetDataDepShaderVars();
+  
   // if we render a slice view or MIP preview
   if (!m_bUseMIP[size_t(eDirection)] || !m_bLODDisabled)  {
-    SetDataDepShaderVars();
-
+    
     if (!m_bUseMIP[size_t(eDirection)]) {
       switch (m_eRenderMode) {
         case RM_2DTRANS    :  m_p2DTransTex->Bind(1); 
@@ -664,14 +666,59 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       }
     }
 
+    if (!m_bUseMIP[size_t(eDirection)]) {
+      m_pProgramMIPSlice->Disable();
+      m_pFBO3DImageCurrent[1]->FinishWrite();
+    }    
+
   } else {
     PlanHQMIPFrame();
     m_iFilledBuffers = 0;
     glClearColor(0,0,0,0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    SetDataDepShaderVars(); 
 
-    RenderHQMIPPreLoop();
+    FLOATMATRIX4 maOrtho;
+
+    UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
+    DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetInfo()->GetScale() * DOUBLEVECTOR3(vDomainSize);  
+
+    DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
+    vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
+
+    DOUBLEVECTOR2 v2AspectRatio;
+    switch (eDirection) {
+      case WM_CORONAL :  {
+                           v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
+                           v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+                           break;
+                         }
+      case WM_AXIAL :    {
+                           v2AspectRatio = vAspectRatio.xy()*DOUBLEVECTOR2(vWinAspectRatio);
+                           v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+                           break;
+                         }
+      case WM_SAGITTAL : {
+                           v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
+                           v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+                           break;
+                         }
+      default        :  m_pMasterController->DebugOut()->Error("GLRenderer::Render2DView","Invalid windowmode set"); break;
+    }
+
+    float fRoot2Scale = (v2AspectRatio.x < v2AspectRatio.y) ? max(1.0,1.414213f * v2AspectRatio.x/v2AspectRatio.y) : 1.414213f;
+
+    maOrtho.Ortho(-0.5*fRoot2Scale/v2AspectRatio.x, +0.5*fRoot2Scale/v2AspectRatio.x, 
+                  -0.5*fRoot2Scale/v2AspectRatio.y, +0.5*fRoot2Scale/v2AspectRatio.y, 
+                  -1.0, 1.0);
+    maOrtho.setProjection();
+
+    glBlendFunc(GL_ONE, GL_ONE);
+    glBlendEquation(GL_MAX);
+    glEnable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+
+    RenderHQMIPPreLoop(eDirection);
+
     for (size_t iBrickIndex = 0;iBrickIndex<m_vCurrentBrickList.size();iBrickIndex++) {
       m_pMasterController->DebugOut()->Message("GLRenderer::Render2DView","Brick %i of %i", int(iBrickIndex+1),int(m_vCurrentBrickList.size()));
 
@@ -693,7 +740,6 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 
   // apply 1D transferfunction to MIP image
   if (m_bUseMIP[size_t(eDirection)]) {
-    m_pProgramMIPSlice->Disable();
     glBlendEquation(GL_FUNC_ADD);
     glDisable( GL_BLEND );
 
@@ -718,6 +764,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       glVertex3d(-1.0,  1.0, -0.5);
     glEnd();
     glDisable( GL_SCISSOR_TEST );
+    m_pFBO3DImageCurrent[1]->FinishRead(0);
 
     m_pProgramTransMIP->Disable();
   }
@@ -725,6 +772,36 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
   m_pFBO3DImageCurrent[0]->FinishWrite();
 
   return true;
+}
+
+void GLRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
+  double dPI = 3.141592653589793238462643383;
+  FLOATMATRIX4 matRotDir, matFlipX, matFlipY;
+  switch (eDirection) {
+    case WM_CORONAL : {
+                        matRotDir.RotationX(-dPI/2.0);
+                        break;
+                      }
+    case WM_AXIAL : {
+                        break;
+                      }
+    case WM_SAGITTAL : {
+                         FLOATMATRIX4 matTemp;
+                         matRotDir.RotationX(-dPI/2.0);
+                         matTemp.RotationY(-dPI/2.0);
+                         matRotDir = matRotDir * matTemp;
+                         break;
+                      }
+    default        :  m_pMasterController->DebugOut()->Error("GLRenderer::RenderHQMIPPreLoop","Invalid windowmode set"); break;
+  }
+  if (m_bFlipView[int(eDirection)].x) {
+    matFlipY.Scaling(-1,1,1);
+  }
+  if (m_bFlipView[int(eDirection)].y) {
+    matFlipX.Scaling(1,-1,1);
+  }
+  m_maMIPRotation.RotationY(dPI*double(m_fMIPRotationAngle)/180.0);
+  m_maMIPRotation = matRotDir * matFlipX * matFlipY * m_maMIPRotation;
 }
 
 void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor) {
@@ -970,6 +1047,7 @@ void GLRenderer::Cleanup() {
   if (m_pProgram1DTransSlice) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTransSlice); m_pProgram1DTransSlice =NULL;}
   if (m_pProgram2DTransSlice) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTransSlice); m_pProgram2DTransSlice =NULL;}
   if (m_pProgramMIPSlice)     {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramMIPSlice); m_pProgramMIPSlice =NULL;}
+  if (m_pProgramHQMIPRot)     {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramHQMIPRot); m_pProgramHQMIPRot =NULL;}
   if (m_pProgramTransMIP)     {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramTransMIP); m_pProgramTransMIP =NULL;}
   if (m_pProgram1DTrans[0])   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTrans[0]); m_pProgram1DTrans[0] =NULL;}
   if (m_pProgram1DTrans[1])   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTrans[1]); m_pProgram1DTrans[1] =NULL;}

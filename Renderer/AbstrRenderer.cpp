@@ -402,7 +402,7 @@ vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(const vector<Brick>& 
   return vBrickList;
 }
 
-vector<Brick> AbstrRenderer::BuildSubFrameBrickList() {
+vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
   vector<Brick> vBrickList;
 
   UINT64VECTOR3 vOverlap = m_pDataset->GetInfo()->GetBrickOverlapSize();
@@ -484,21 +484,34 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList() {
 
             }
 
+            // for MIP rotations where the depth order does not matter we want to render in core data first 
+            if (bUseResidencyAsDistanceCriterion) {
+              vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
+              vector<UINT64> vBrick; 
+              vBrick.push_back(b.vCoords.x);
+              vBrick.push_back(b.vCoords.y);
+              vBrick.push_back(b.vCoords.z);
 
-            /// compute minimum distance to brick corners (offset slightly to the center to resolve ambiguities) 
-            b.fDistance = numeric_limits<float>::max();
-            float fEpsilon = 0.4999f;
-            FLOATVECTOR3 vEpsilonEdges[8] = {b.vCenter+FLOATVECTOR3(-b.vExtension.x, -b.vExtension.y, -b.vExtension.z)* fEpsilon, 
-                                             b.vCenter+FLOATVECTOR3(-b.vExtension.x, -b.vExtension.y, +b.vExtension.z)* fEpsilon, 
-                                             b.vCenter+FLOATVECTOR3(-b.vExtension.x, +b.vExtension.y, -b.vExtension.z)* fEpsilon, 
-                                             b.vCenter+FLOATVECTOR3(-b.vExtension.x, +b.vExtension.y, +b.vExtension.z)* fEpsilon, 
-                                             b.vCenter+FLOATVECTOR3(+b.vExtension.x, -b.vExtension.y, -b.vExtension.z)* fEpsilon, 
-                                             b.vCenter+FLOATVECTOR3(+b.vExtension.x, -b.vExtension.y, +b.vExtension.z)* fEpsilon, 
-                                             b.vCenter+FLOATVECTOR3(+b.vExtension.x, +b.vExtension.y, -b.vExtension.z)* fEpsilon, 
-                                             b.vCenter+FLOATVECTOR3(+b.vExtension.x, +b.vExtension.y, +b.vExtension.z)* fEpsilon};
-      
-            for (size_t i = 0;i<8;i++) {
-              b.fDistance = min(b.fDistance,(FLOATVECTOR4(vEpsilonEdges[i],1.0f)*m_matModelView[0]).xyz().length());
+              if (m_pMasterController->MemMan()->IsResident(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo))
+                b.fDistance = 0;
+              else
+                b.fDistance = 1;
+            } else {
+              /// compute minimum distance to brick corners (offset slightly to the center to resolve ambiguities) 
+              b.fDistance = numeric_limits<float>::max();
+              float fEpsilon = 0.4999f;
+              FLOATVECTOR3 vEpsilonEdges[8] = {b.vCenter+FLOATVECTOR3(-b.vExtension.x, -b.vExtension.y, -b.vExtension.z)* fEpsilon, 
+                                               b.vCenter+FLOATVECTOR3(-b.vExtension.x, -b.vExtension.y, +b.vExtension.z)* fEpsilon, 
+                                               b.vCenter+FLOATVECTOR3(-b.vExtension.x, +b.vExtension.y, -b.vExtension.z)* fEpsilon, 
+                                               b.vCenter+FLOATVECTOR3(-b.vExtension.x, +b.vExtension.y, +b.vExtension.z)* fEpsilon, 
+                                               b.vCenter+FLOATVECTOR3(+b.vExtension.x, -b.vExtension.y, -b.vExtension.z)* fEpsilon, 
+                                               b.vCenter+FLOATVECTOR3(+b.vExtension.x, -b.vExtension.y, +b.vExtension.z)* fEpsilon, 
+                                               b.vCenter+FLOATVECTOR3(+b.vExtension.x, +b.vExtension.y, -b.vExtension.z)* fEpsilon, 
+                                               b.vCenter+FLOATVECTOR3(+b.vExtension.x, +b.vExtension.y, +b.vExtension.z)* fEpsilon};
+        
+              for (size_t i = 0;i<8;i++) {
+                b.fDistance = min(b.fDistance,(FLOATVECTOR4(vEpsilonEdges[i],1.0f)*m_matModelView[0]).xyz().length());
+              }
             }
 
             // add the brick to the list of active bricks
@@ -572,14 +585,22 @@ void AbstrRenderer::PlanHQMIPFrame() {
 
   m_FrustumCullingLOD.SetPassAll(true);
 
-  // TODO ComputeMinLODForCurrentView();
+  UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetInfo()->GetDomainSize());
+
   m_iCurrentLODOffset = 0;
   m_iCurrentLOD = 0;
 
-  UINT64VECTOR3 vBrickCount = m_pDataset->GetInfo()->GetBrickCount(m_iCurrentLOD);
+  while (viVoxelCount.minVal() >= m_vWinSize.maxVal()) {
+    viVoxelCount /= 2;
+    m_iCurrentLOD++;
+  }
+
+  if (m_iCurrentLOD > 0) { 
+    m_iCurrentLOD = min<int>(m_pDataset->GetInfo()->GetLODLevelCount()-1,m_iCurrentLOD-1);
+  }
 
   // build new brick todo-list
-  m_vCurrentBrickList = BuildSubFrameBrickList();
+  m_vCurrentBrickList = BuildSubFrameBrickList(true);
 
   m_iBricksRenderedInThisSubFrame = 0;
 

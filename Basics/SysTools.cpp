@@ -310,6 +310,13 @@ namespace SysTools {
     return RemoveExt(fileName)+ L"." + newext;
   }
 
+  string  AppendFilename(const string& fileName, const int iTag) {
+    return AppendFilename(fileName, ToString(iTag));
+  }
+
+  wstring AppendFilename(const wstring& fileName, const int iTag) {
+    return AppendFilename(fileName, ToWString(iTag));
+  }
 
   string  AppendFilename(const string& fileName, const string& tag) {
     return RemoveExt(fileName) + tag + "." + GetExt(fileName);

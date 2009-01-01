@@ -44,6 +44,7 @@
 #include "../StdTuvokDefines.h"
 
 #include <string>
+#include <sstream>
 #include <vector>
 
 #ifdef _WIN32
@@ -64,6 +65,20 @@
 #endif
 
 namespace SysTools {
+
+  template <typename T> std::string ToString(T aValue)
+  {
+     std::stringstream ss;
+     ss << aValue;
+     return ss.str();
+  }
+
+  template <typename T> std::wstring ToWString(T aValue)
+  {
+     std::wstringstream ss;
+     ss << aValue;
+     return ss.str();
+  }
 
   std::wstring ToLowerCase(const std::wstring& str);
   std::string ToLowerCase(const std::string& str);
@@ -94,6 +109,8 @@ namespace SysTools {
   std::string  ChangeExt(const std::string& fileName, const std::string& newext);
   std::wstring ChangeExt(const std::wstring& fileName, const std::wstring& newext);
 
+  std::string  AppendFilename(const std::string& fileName, const int iTag);
+  std::wstring AppendFilename(const std::wstring& fileName, const int iTag);
   std::string  AppendFilename(const std::string& fileName, const std::string& tag);
   std::wstring AppendFilename(const std::wstring& fileName, const std::wstring& tag);
 

@@ -27,25 +27,17 @@
 */
 
 /**
-  \file     Transfer-MIP-FS.glsl
-  \author   Jens Krueger
-            SCI Institute
-            University of Utah
-  \version  1.0
-  \date     December 2008
+  \file    GLSBVR-MIP-Rot-FS.glsl
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \version 1.0
+  \date    October 2008
 */
 
-uniform sampler2D texLast;    ///< the maximum value from the previous passes
-uniform sampler1D texTrans1D; ///< the 1D Transfer function
-uniform float fTransScale;    ///< scale for 1D Transfer function lookup
+uniform sampler3D texVolume;  ///< the data volume
 
-void main(void){
-  // fetch MIP value
-  vec2 fVLastVal = texture2D(texLast,  gl_TexCoord[0].xy).xw;
-
-  // apply 1D transfer function but ignore opacity
-	if (fVLastVal.y == 1) 
-    gl_FragColor = vec4(texture1D(texTrans1D, fVLastVal.x*fTransScale).rgb,1.0);
-  else
-    gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+void main(void)
+{
+	gl_FragColor = vec4(texture3D(texVolume, gl_TexCoord[0].xyz).xxx,1);
 }

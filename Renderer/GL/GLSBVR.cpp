@@ -68,6 +68,7 @@ bool GLSBVR::Initialize() {
       !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-1D-light-FS.glsl", m_vShaderSearchDirs, &(m_pProgram1DTrans[1])) ||
       !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl",       m_vShaderSearchDirs, &(m_pProgram2DTrans[0])) ||
       !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-2D-light-FS.glsl", m_vShaderSearchDirs, &(m_pProgram2DTrans[1])) ||
+      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl",  m_vShaderSearchDirs, &(m_pProgramHQMIPRot)) ||
       !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-ISO-FS.glsl",      m_vShaderSearchDirs, &(m_pProgramIso)) ||
       !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-ISO-NC-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramIsoNoCompose))) {
 
@@ -107,6 +108,10 @@ bool GLSBVR::Initialize() {
     m_pProgramIso->Enable();
     m_pProgramIso->SetUniformVector("texVolume",0);
     m_pProgramIso->Disable();
+
+    m_pProgramHQMIPRot->Enable();
+    m_pProgramHQMIPRot->SetUniformVector("texVolume",0);
+    m_pProgramHQMIPRot->Disable();
 
     m_pProgramIsoNoCompose->Enable();
     m_pProgramIsoNoCompose->SetUniformVector("texVolume",0);
@@ -277,16 +282,23 @@ void GLSBVR::Render3DPostLoop() {
   }
 }
 
-void GLSBVR::RenderHQMIPPreLoop() {
-  // TODO
+void GLSBVR::RenderHQMIPPreLoop(EWindowMode eDirection) {
+  GLRenderer::RenderHQMIPPreLoop(eDirection);
+  m_pProgramHQMIPRot->Enable();
 }
 
 void GLSBVR::RenderHQMIPInLoop(const Brick& b) {
-  // TODO
+  m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
+  FLOATMATRIX4 maBricktTrans; 
+  maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
+  FLOATMATRIX4 maBricktModelView = maBricktTrans * m_maMIPRotation;
+  m_SBVRGeogen.SetTransformation(maBricktModelView, true);
+
+  RenderProxyGeometry();
 }
 
 void GLSBVR::RenderHQMIPPostLoop() {
-  // TODO
+  m_pProgramHQMIPRot->Disable();
 }
 
 
