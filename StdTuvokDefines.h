@@ -52,7 +52,7 @@ typedef unsigned char BYTE;
 #define UNUSED 0
 #define UNUSED_FLOAT 0.0f
 #define UNUSED_DOUBLE 0.0
-#define TUVOK_VERSION 0.03
+#define TUVOK_VERSION 0.04
 #define TUVOK_VERSION_TYPE "beta"
 
 #ifdef _WIN32

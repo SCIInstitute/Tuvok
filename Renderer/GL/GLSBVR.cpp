@@ -285,6 +285,11 @@ void GLSBVR::Render3DPostLoop() {
 void GLSBVR::RenderHQMIPPreLoop(EWindowMode eDirection) {
   GLRenderer::RenderHQMIPPreLoop(eDirection);
   m_pProgramHQMIPRot->Enable();
+
+  glBlendFunc(GL_ONE, GL_ONE);
+  glBlendEquation(GL_MAX);
+  glEnable(GL_BLEND);
+  glDisable(GL_DEPTH_TEST);
 }
 
 void GLSBVR::RenderHQMIPInLoop(const Brick& b) {
@@ -298,6 +303,7 @@ void GLSBVR::RenderHQMIPInLoop(const Brick& b) {
 }
 
 void GLSBVR::RenderHQMIPPostLoop() {
+  GLRenderer::RenderHQMIPPostLoop();
   m_pProgramHQMIPRot->Disable();
 }
 

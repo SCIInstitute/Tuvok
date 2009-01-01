@@ -712,11 +712,6 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
                   -1.0, 1.0);
     maOrtho.setProjection();
 
-    glBlendFunc(GL_ONE, GL_ONE);
-    glBlendEquation(GL_MAX);
-    glEnable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
-
     RenderHQMIPPreLoop(eDirection);
 
     for (size_t iBrickIndex = 0;iBrickIndex<m_vCurrentBrickList.size();iBrickIndex++) {

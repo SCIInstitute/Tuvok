@@ -402,15 +402,48 @@ void GLRaycaster::Render3DPostLoop() {
 
 void GLRaycaster::RenderHQMIPPreLoop(EWindowMode eDirection) {
   GLRenderer::RenderHQMIPPreLoop(eDirection);
-  // TODO
+  m_pProgramHQMIPRot->Enable();
+  m_pProgramHQMIPRot->SetUniformVector("vScreensize",float(m_vWinSize.x), float(m_vWinSize.y));
+  m_pProgramHQMIPRot->Disable();
+  glDisable(GL_DEPTH_TEST);
+  glDepthMask(GL_FALSE);
+  m_matModelView[0] = m_maMIPRotation;
+  m_matModelView[0].setModelview();
 }
 
 void GLRaycaster::RenderHQMIPInLoop(const Brick& b) {
-  // TODO
+  glDisable(GL_BLEND);
+
+  // write frontfaces (ray entry points)
+  m_pFBO3DImageCurrent[1]->FinishWrite();
+  m_pFBORayEntry->Write(0, 0);
+
+  m_pProgramRenderFrontFaces->Enable();
+  RenderBox(b.vCenter, b.vExtension, b.vTexcoordsMin, b.vTexcoordsMax, false, 0);
+  m_pProgramRenderFrontFaces->Disable();
+  m_pFBORayEntry->FinishWrite(0);
+
+  m_pFBO3DImageCurrent[1]->Write();  // for MIP rendering "abuse" left-eye buffer for the itermediate results
+  glBlendFunc(GL_ONE, GL_ONE);
+  glBlendEquation(GL_MAX);
+  glEnable(GL_BLEND);
+
+  m_pProgramHQMIPRot->Enable();
+
+  FLOATVECTOR3 vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(b.vVoxelCount);
+  float fRayStep = (b.vExtension*vVoxelSizeTexSpace * 0.5f * 1.0f/m_fSampleRateModifier).minVal();
+  m_pProgramHQMIPRot->SetUniformVector("fRayStepsize", fRayStep);
+
+  m_pFBORayEntry->Read(2);
+  RenderBox(b.vCenter, b.vExtension,b.vTexcoordsMin, b.vTexcoordsMax, true, 0);
+  m_pFBORayEntry->FinishRead();
+  m_pProgramHQMIPRot->Disable();
 }
 
 void GLRaycaster::RenderHQMIPPostLoop() {
-  // TODO
+  GLRenderer::RenderHQMIPPostLoop();
+  glDisable(GL_CULL_FACE);
+  glDepthMask(GL_TRUE);
 }
 
 void GLRaycaster::StartFrame() {

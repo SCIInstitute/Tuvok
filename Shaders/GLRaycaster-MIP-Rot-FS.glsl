@@ -61,7 +61,7 @@ void main(void)
   vec3 vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
 
   // do the actual raycasting
-  float fMaxVal = 0;
+  float fMaxVal = 0.0;
   vec3  vCurrentPosTex = vRayEntryTex;
   for (int i = 0;i<iStepCount;i++) {
     float fVolumVal = texture3D(texVolume, vCurrentPosTex).x;	
@@ -70,5 +70,5 @@ void main(void)
     vCurrentPosTex += vRayIncTex;
   }
   
-  gl_FragColor = vec4(fMaxVal.xxx,1);
+  gl_FragColor = vec4(fMaxVal.xxx,1.0);
 }
