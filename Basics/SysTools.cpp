@@ -350,7 +350,7 @@ namespace SysTools {
     if (hFind != INVALID_HANDLE_VALUE) {
       do {
         wstring wstrFilename = FindFileData.cFileName;
-        if( FindFileData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY && wstrFilename != L"." && wstrFilename != L"..") {
+        if( (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && wstrFilename != L"." && wstrFilename != L"..") {
           subDirs.push_back(wstrFilename);
         }
       }while ( FindNextFileW(hFind, &FindFileData) );
@@ -425,7 +425,7 @@ namespace SysTools {
     if (hFind != INVALID_HANDLE_VALUE) {
       do {
         string strFilename = FindFileData.cFileName;
-        if( FindFileData.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY && strFilename != "." && strFilename != "..") {
+        if( (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) && strFilename != "." && strFilename != "..") {
           subDirs.push_back(strFilename);
         }
       }while ( FindNextFileA(hFind, &FindFileData) );
@@ -489,7 +489,7 @@ namespace SysTools {
 
     if (hFind != INVALID_HANDLE_VALUE) {
       do {
-        if( FindFileData.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY ) {
+        if( 0 == (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
           files.push_back(FindFileData.cFileName);
         }
       }while ( FindNextFileW(hFind, &FindFileData) );
@@ -577,7 +577,7 @@ namespace SysTools {
 
     if (hFind != INVALID_HANDLE_VALUE) {
       do {
-        if( FindFileData.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY ) {
+        if( 0 == (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
           files.push_back(FindFileData.cFileName);
         }
       }while ( FindNextFileA(hFind, &FindFileData) );

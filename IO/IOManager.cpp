@@ -85,7 +85,6 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   DICOMParser parseDICOM;
   parseDICOM.GetDirInfo(strDirectory);
 
-
   for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {    
     DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
 
@@ -101,6 +100,8 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
       }
       delete [] (char*)pData;
     }
+
+    delete f;
   }
 
 
@@ -118,7 +119,6 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
 
     fileStacks.push_back(f);
   }
-
 
   ImageParser parseImages;
   parseImages.GetDirInfo(strDirectory);
@@ -138,7 +138,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
     fileStacks.push_back(f);
   }
 
-  // add other image parsers here
+   // add other image parsers here
 
   m_pMasterController->DebugOut()->Message("IOManager::ScanDirectory","  scan complete");
 
