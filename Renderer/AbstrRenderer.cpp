@@ -99,9 +99,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
 
   m_eFullWindowMode   = WM_3D;
 
-  m_piSlice[0]     = 0.0f;
-  m_piSlice[1]     = 0.0f;
-  m_piSlice[2]     = 0.0f;
+  m_piSlice[0]     = 0;
+  m_piSlice[1]     = 0;
+  m_piSlice[2]     = 0;
 
   m_bFlipView[0]   = VECTOR2<bool>(false, false);
   m_bFlipView[1]   = VECTOR2<bool>(false, false);
