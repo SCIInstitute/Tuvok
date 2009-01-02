@@ -408,15 +408,13 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
   UINT64VECTOR3 vOverlap = m_pDataset->GetInfo()->GetBrickOverlapSize();
   UINT64VECTOR3 vBrickDimension = m_pDataset->GetInfo()->GetBrickCount(m_iCurrentLOD);
   UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize(m_iCurrentLOD);
-  UINT64 iMaxDomainSize = vDomainSize.maxVal();
   FLOATVECTOR3 vScale(m_pDataset->GetInfo()->GetScale().x, 
                       m_pDataset->GetInfo()->GetScale().y, 
                       m_pDataset->GetInfo()->GetScale().z);
 
-  vScale /= vScale.maxVal();
-
-  FLOATVECTOR3 vDomainExtend = FLOATVECTOR3(vScale.x*vDomainSize.x, vScale.y*vDomainSize.y, vScale.z*vDomainSize.z) / iMaxDomainSize;
-
+  FLOATVECTOR3 vDomainExtend = vScale * FLOATVECTOR3(vDomainSize);
+  float fDownscale = vDomainExtend.maxVal();
+  vDomainExtend /= fDownscale;
 
   FLOATVECTOR3 vBrickCorner;
 
@@ -432,9 +430,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
         FLOATVECTOR3 vEffectiveSize = m_pDataset->GetInfo()->GetEffectiveBrickSize(m_iCurrentLOD, UINT64VECTOR3(x,y,z));
 
 
-        b.vExtension.x = float(vEffectiveSize.x/float(iMaxDomainSize) * vScale.x);
-        b.vExtension.y = float(vEffectiveSize.y/float(iMaxDomainSize) * vScale.y);
-        b.vExtension.z = float(vEffectiveSize.z/float(iMaxDomainSize) * vScale.z);
+        b.vExtension = (vEffectiveSize* vScale)/fDownscale;
         
         // compute center of the brick
         b.vCenter = (vBrickCorner + b.vExtension/2.0f)-vDomainExtend*0.5f;

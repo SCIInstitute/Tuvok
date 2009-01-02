@@ -177,7 +177,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
     char *pData = NULL;
     for (size_t j = 0;j<pDICOMStack->m_Elements.size();j++) {
-      pDICOMStack->m_Elements[j]->GetData((void**)&pData); // the first call does a "new" on pData 
+      pDICOMStack->m_Elements[j]->GetData((void**)(char**)&pData); // the first call does a "new" on pData, the strange casting here is to avoid pointer aliasing issues
 
       UINT32 iDataSize = pDICOMStack->m_Elements[j]->GetDataSize();
 
@@ -288,7 +288,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
         char *pData = NULL;
         for (size_t j = 0;j<pStack->m_Elements.size();j++) {
-          pStack->m_Elements[j]->GetData((void**)&pData); // the first call does a "new" on pData 
+          pStack->m_Elements[j]->GetData((void**)(char**)&pData); // the first call does a "new" on pData, the strange casting here is to avoid pointer aliasing issues
 
           UINT32 iDataSize = pStack->m_Elements[j]->GetDataSize();
           fs.write(pData, iDataSize);

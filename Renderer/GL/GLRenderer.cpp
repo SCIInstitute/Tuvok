@@ -779,10 +779,9 @@ void GLRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
 
 void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor) {
   UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
-  UINT64 iMaxDomainSize = vDomainSize.maxVal();
   FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetInfo()->GetScale());
-  vScale /= vScale.maxVal();
-  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize)/float(iMaxDomainSize) * vScale;
+  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
+  vExtend /= vExtend.maxVal();
 
   FLOATVECTOR3 vCenter(0,0,0);
   RenderBBox(vColor, vCenter, vExtend);
