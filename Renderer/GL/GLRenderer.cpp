@@ -680,35 +680,13 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     FLOATMATRIX4 maOrtho;
 
     UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
-    DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetInfo()->GetScale() * DOUBLEVECTOR3(vDomainSize);  
-
     DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
     vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
 
-    DOUBLEVECTOR2 v2AspectRatio;
-    switch (eDirection) {
-      case WM_CORONAL :  {
-                           v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
-                           v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-                           break;
-                         }
-      case WM_AXIAL :    {
-                           v2AspectRatio = vAspectRatio.xy()*DOUBLEVECTOR2(vWinAspectRatio);
-                           v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-                           break;
-                         }
-      case WM_SAGITTAL : {
-                           v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
-                           v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-                           break;
-                         }
-      default        :  m_pMasterController->DebugOut()->Error("GLRenderer::Render2DView","Invalid windowmode set"); break;
-    }
+    float fRoot2Scale = (vWinAspectRatio.x < vWinAspectRatio.y) ? max(1.0,1.414213f * vWinAspectRatio.x/vWinAspectRatio.y) : 1.414213f;
 
-    float fRoot2Scale = (v2AspectRatio.x < v2AspectRatio.y) ? max(1.0,1.414213f * v2AspectRatio.x/v2AspectRatio.y) : 1.414213f;
-
-    maOrtho.Ortho(-0.5*fRoot2Scale/v2AspectRatio.x, +0.5*fRoot2Scale/v2AspectRatio.x, 
-                  -0.5*fRoot2Scale/v2AspectRatio.y, +0.5*fRoot2Scale/v2AspectRatio.y, 
+    maOrtho.Ortho(-0.5*fRoot2Scale/vWinAspectRatio.x, +0.5*fRoot2Scale/vWinAspectRatio.x, 
+                  -0.5*fRoot2Scale/vWinAspectRatio.y, +0.5*fRoot2Scale/vWinAspectRatio.y, 
                   -1.0, 1.0);
     maOrtho.setProjection();
 
