@@ -226,7 +226,9 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
   while (iPos < iSize)  {
     size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
     for (size_t i = 0;i<iRead;i++) {
-      unsigned short iNewVal = min<unsigned short>(4095, ((pInData[i]-fMin) * fQuantFact));
+      unsigned short iNewVal = min<unsigned short>(4095,
+                                   static_cast<unsigned short>
+                                   ((pInData[i]-fMin) * fQuantFact));
       pOutData[i] = iNewVal;
       aHist[iNewVal]++;
     }
