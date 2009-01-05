@@ -296,7 +296,12 @@ void GLSBVR::RenderHQMIPInLoop(const Brick& b) {
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans; 
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
-  FLOATMATRIX4 maBricktModelView = maBricktTrans * m_maMIPRotation;
+  FLOATMATRIX4 maBricktModelView;
+  if (m_bOrthoView)
+    maBricktModelView = maBricktTrans * m_maMIPRotation;
+  else
+    maBricktModelView = maBricktTrans * m_maMIPRotation * m_mView[0];
+
   m_SBVRGeogen.SetTransformation(maBricktModelView, true);
 
   RenderProxyGeometry();

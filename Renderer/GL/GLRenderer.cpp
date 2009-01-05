@@ -677,18 +677,18 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     glClearColor(0,0,0,0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    FLOATMATRIX4 maOrtho;
+    if (m_bOrthoView) {
+      FLOATMATRIX4 maOrtho;
+      UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
+      DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
+      vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
+      float fRoot2Scale = (vWinAspectRatio.x < vWinAspectRatio.y) ? max(1.0,1.414213f * vWinAspectRatio.x/vWinAspectRatio.y) : 1.414213f;
 
-    UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
-    DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
-    vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
-
-    float fRoot2Scale = (vWinAspectRatio.x < vWinAspectRatio.y) ? max(1.0,1.414213f * vWinAspectRatio.x/vWinAspectRatio.y) : 1.414213f;
-
-    maOrtho.Ortho(-0.5*fRoot2Scale/vWinAspectRatio.x, +0.5*fRoot2Scale/vWinAspectRatio.x, 
-                  -0.5*fRoot2Scale/vWinAspectRatio.y, +0.5*fRoot2Scale/vWinAspectRatio.y, 
-                  -1.0, 1.0);
-    maOrtho.setProjection();
+      maOrtho.Ortho(-0.5*fRoot2Scale/vWinAspectRatio.x, +0.5*fRoot2Scale/vWinAspectRatio.x, 
+                    -0.5*fRoot2Scale/vWinAspectRatio.y, +0.5*fRoot2Scale/vWinAspectRatio.y, 
+                    -1.0, 1.0);
+      maOrtho.setProjection();
+    } 
 
     RenderHQMIPPreLoop(eDirection);
 

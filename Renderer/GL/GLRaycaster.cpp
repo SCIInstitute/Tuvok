@@ -407,7 +407,12 @@ void GLRaycaster::RenderHQMIPPreLoop(EWindowMode eDirection) {
   m_pProgramHQMIPRot->Disable();
   glDisable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
-  m_matModelView[0] = m_maMIPRotation;
+
+  if (m_bOrthoView)
+    m_matModelView[0] = m_maMIPRotation;
+  else
+    m_matModelView[0] = m_maMIPRotation * m_mView[0];
+
   m_matModelView[0].setModelview();
 }
 
