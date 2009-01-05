@@ -98,15 +98,21 @@ int bz_config_ok ( void )
 
 
 /*---------------------------------------------------*/
+#if defined(__GNUC__) && __GNUC__ >= 3
+#   define GNUC_UNUSED __attribute__((unused))
+#else
+#   define GNUC_UNUSED /* nothing */
+#endif
+
 static
-void* default_bzalloc ( void* opaque, Int32 items, Int32 size )
+void* default_bzalloc ( GNUC_UNUSED void* opaque, Int32 items, Int32 size )
 {
    void* v = malloc ( items * size );
    return v;
 }
 
 static
-void default_bzfree ( void* opaque, void* addr )
+void default_bzfree ( GNUC_UNUSED void* opaque, void* addr )
 {
    if (addr != NULL) free ( addr );
 }
@@ -1503,7 +1509,7 @@ int BZ_API(BZ2_bzwrite) (BZFILE* b, void* buf, int len )
 
 
 /*---------------------------------------------------*/
-int BZ_API(BZ2_bzflush) (BZFILE *b)
+int BZ_API(BZ2_bzflush) (GNUC_UNUSED BZFILE *b)
 {
    /* do nothing now... */
    return 0;
