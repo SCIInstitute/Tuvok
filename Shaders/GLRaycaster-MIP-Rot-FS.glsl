@@ -70,5 +70,5 @@ void main(void)
     vCurrentPosTex += vRayIncTex;
   }
   
-  gl_FragColor = vec4(fMaxVal.xxx,1.0);
+  gl_FragColor = vec4(fMaxVal, fMaxVal, fMaxVal, 1.0);
 }
