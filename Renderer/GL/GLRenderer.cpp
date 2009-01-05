@@ -459,7 +459,7 @@ void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) 
   float fFOVY  = 50.0f;
   float fZNear = 0.1f;
   float fZFar  = 100.0f;
-  FLOATVECTOR3 vEye(0,0,1.6), vAt(0,0,0), vUp(0,1,0);
+  FLOATVECTOR3 vEye(0,0,1.6f), vAt(0,0,0), vUp(0,1,0);
 
   // viewport
   glViewport(viLowerLeft.x,viLowerLeft.y,viSize.x,viSize.y);
