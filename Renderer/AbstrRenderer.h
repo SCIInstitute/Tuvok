@@ -200,6 +200,8 @@ class AbstrRenderer {
     virtual void SetIsosufaceColor(const FLOATVECTOR3& vColor);
     virtual FLOATVECTOR3 GetIsosufaceColor()  const {return m_vIsoColor;}
 
+    virtual void SetOrthoView(bool bOrthoView);
+    virtual bool GetOrthoView() const {return m_bOrthoView;}
 
     /** Change the size of the render window.  Any previous image is
      * destroyed, causing a full redraw on the next render.
@@ -321,6 +323,7 @@ class AbstrRenderer {
     bool                m_bLODDisabled;
     float               m_fMIPRotationAngle;
     FLOATMATRIX4        m_maMIPRotation;
+    bool                m_bOrthoView;
 
     bool                m_bDoClearView;
     float               m_fCVIsovalue;

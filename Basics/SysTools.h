@@ -114,6 +114,9 @@ namespace SysTools {
   std::string  AppendFilename(const std::string& fileName, const std::string& tag);
   std::wstring AppendFilename(const std::wstring& fileName, const std::wstring& tag);
 
+  std::string  FindNextSequenceName(const std::string& strFilename);
+  std::wstring FindNextSequenceName(const std::wstring& wStrFilename);
+
   std::string  FindNextSequenceName(const std::string& fileName, const std::string& ext, const std::string& dir="");
   std::wstring FindNextSequenceName(const std::wstring& fileName, const std::wstring& ext, const std::wstring& dir=L"");
 

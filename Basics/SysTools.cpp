@@ -638,6 +638,22 @@ namespace SysTools {
     return files;
   }
 
+  std::string  FindNextSequenceName(const std::string& strFilename) {
+    std::string dir = SysTools::GetPath(strFilename);
+    std::string fileName = SysTools::RemoveExt(SysTools::GetFilename(strFilename));
+    std::string ext = SysTools::GetExt(strFilename);
+
+    return FindNextSequenceName(fileName, ext, dir);
+  }
+  
+  std::wstring FindNextSequenceName(const std::wstring& wStrFilename) {
+    std::wstring dir = SysTools::GetPath(wStrFilename);
+    std::wstring fileName = SysTools::RemoveExt(SysTools::GetFilename(wStrFilename));
+    std::wstring ext = SysTools::GetExt(wStrFilename);
+
+    return FindNextSequenceName(fileName, ext, dir);
+  }
+
   string  FindNextSequenceName(const string& fileName, const string& ext, const string& dir) {
     stringstream out;
     vector<string> files = GetDirContents(dir, fileName+"*", ext);
@@ -645,7 +661,18 @@ namespace SysTools {
     UINT32 iMaxIndex = 0;
     for (size_t i = 0; i<files.size();i++) {
       string curFilename = RemoveExt(files[i]);
-      UINT32 iCurrIndex = UINT32(atoi(curFilename.substr(fileName.length()).c_str()));
+
+      string rest = RemoveExt(curFilename).substr(fileName.length());
+      for (size_t j = 0; j<rest.size();j++) {
+        if (rest[j] != '0' && rest[j] != '1' && rest[j] != '2' && rest[j] != '3' &&
+            rest[j] != '4' && rest[j] != '5' && rest[j] != '6' && rest[j] != '7' &&
+            rest[j] != '8' && rest[j] != '9') {
+              rest.clear();
+              break;
+        }
+      }
+      if (rest.length() == 0) continue;
+      UINT32 iCurrIndex = UINT32(atoi(rest.c_str()));
       iMaxIndex = (iMaxIndex <= iCurrIndex) ? iCurrIndex+1 : iMaxIndex;
     }
 
@@ -665,7 +692,19 @@ namespace SysTools {
     for (size_t i = 0; i<files.size();i++) {
       wstring wcurFilename = RemoveExt(files[i]);
       string curFilename(wcurFilename.begin(), wcurFilename.end());
-      UINT32 iCurrIndex = UINT32(atoi(curFilename.substr(fileName.length()).c_str()));
+
+      string rest = RemoveExt(curFilename).substr(fileName.length());
+      for (size_t j = 0; j<rest.size();j++) {
+        if (rest[j] != '0' && rest[j] != '1' && rest[j] != '2' && rest[j] != '3' &&
+            rest[j] != '4' && rest[j] != '5' && rest[j] != '6' && rest[j] != '7' &&
+            rest[j] != '8' && rest[j] != '9') {
+              rest.clear();
+              break;
+        }
+      }
+      if (rest.length() == 0) continue;
+
+      UINT32 iCurrIndex = UINT32(atoi(rest.c_str()));
       iMaxIndex = (iMaxIndex <= iCurrIndex) ? iCurrIndex+1 : iMaxIndex;
     }
 

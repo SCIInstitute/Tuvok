@@ -74,6 +74,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_iBricksRenderedInThisSubFrame(0),
   m_bLODDisabled(false),
   m_fMIPRotationAngle(0.0f),
+  m_bOrthoView(false),
   m_bDoClearView(false),
   m_fCVIsovalue(0.8f),
   m_vCVColor(1,0,0),
@@ -619,6 +620,13 @@ void AbstrRenderer::SetIsosufaceColor(const FLOATVECTOR3& vColor) {
   m_vIsoColor = vColor; 
   if (m_eRenderMode == RM_ISOSURFACE) 
     ScheduleRecompose();
+}
+
+void AbstrRenderer::SetOrthoView(bool bOrthoView) {
+  if (m_bOrthoView != bOrthoView) {
+    m_bOrthoView = bOrthoView;
+    ScheduleCompleteRedraw();
+  }
 }
 
 void AbstrRenderer::SetCVIsoValue(float fIsovalue) {

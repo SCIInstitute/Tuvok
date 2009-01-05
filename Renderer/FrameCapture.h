@@ -51,11 +51,9 @@ class FrameCapture {
     virtual ~FrameCapture() {}
 
     virtual bool CaptureSingleFrame(const std::string& strFilename) = 0;
-    bool CaptureSequenceFrame(const std::string& strFilename) {
-      std::string strDirectory = SysTools::GetPath(strFilename);
-      std::string strFilenameOnly = SysTools::RemoveExt(SysTools::GetFilename(strFilename));
-      std::string strFileExt = SysTools::GetExt(strFilename);
-      std::string strSequenceName = SysTools::FindNextSequenceName(strFilenameOnly,strFileExt,strDirectory);
+    bool CaptureSequenceFrame(const std::string& strFilename, std::string* strRealFilename=NULL) {
+      std::string strSequenceName = SysTools::FindNextSequenceName(strFilename);
+      if (strRealFilename) (*strRealFilename) = strSequenceName;
       return CaptureSingleFrame(strSequenceName);
     }
   protected:
