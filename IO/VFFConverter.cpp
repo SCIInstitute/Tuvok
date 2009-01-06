@@ -52,7 +52,7 @@ VFFConverter::VFFConverter()
 bool VFFConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController)
 {
 
-  pMasterController->DebugOut()->Message("VFFConverter::Convert","Attempting to convertet VFF dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
+  pMasterController->DebugOut()->Message("VFFConverter::Convert","Attempting to convert VFF dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
 
   // Check Magic value in VFF File first
   ifstream fileData(strSourceFilename.c_str());  
