@@ -136,8 +136,8 @@ class AbstrRenderer {
     EBlendPrecision GetBlendPrecision() {return m_eBlendPrecision;}
     virtual void SetBlendPrecision(EBlendPrecision eBlendPrecision);
 
-    bool GetUseLigthing() {return m_bUseLigthing;}
-    virtual void SetUseLigthing(bool bUseLigthing);
+    bool GetUseLighting() {return m_bUseLighting;}
+    virtual void SetUseLighting(bool bUseLighting);
 
     /** Default settings: 1D transfer function, one by three view, white text, black BG.
      * @param pMasterController message router */
@@ -287,7 +287,7 @@ class AbstrRenderer {
     EWindowMode         m_eFullWindowMode;
     UINT64              m_piSlice[3];
     EBlendPrecision     m_eBlendPrecision;
-    bool                m_bUseLigthing;
+    bool                m_bUseLighting;
     VolumeDataset*      m_pDataset;
     TransferFunction1D* m_p1DTrans;
     TransferFunction2D* m_p2DTrans;

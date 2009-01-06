@@ -149,14 +149,14 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
 
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  {                    
-                            m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
-                            if (m_bUseLigthing)
+                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
+                            if (m_bUseLighting)
                                 m_pProgram1DTrans[1]->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
                             break;
                           }
     case RM_2DTRANS    :  {
-                            m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
-                            m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
+                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
+                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
                             break;
                           }
     case RM_ISOSURFACE : {
@@ -174,12 +174,12 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
 void GLSBVR::Render3DPreLoop() {
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_p1DTransTex->Bind(1); 
-                          m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->Enable();
+                          m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
                           glEnable(GL_BLEND);
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
     case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
-                          m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Enable(); 
+                          m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
                           glEnable(GL_BLEND);
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
@@ -267,10 +267,10 @@ void GLSBVR::Render3DPostLoop() {
 
   // disable the shader
   switch (m_eRenderMode) {
-    case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->Disable();
+    case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
                           glDisable(GL_BLEND);
                           break;              
-    case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Disable(); 
+    case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
                           glDisable(GL_BLEND);
                           break;
     case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {

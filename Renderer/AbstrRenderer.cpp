@@ -47,7 +47,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_eRenderMode(RM_1DTRANS),
   m_eViewMode(VM_SINGLE),
   m_eBlendPrecision(BP_32BIT),
-  m_bUseLigthing(true),
+  m_bUseLighting(true),
   m_pDataset(NULL),
   m_p1DTrans(NULL),
   m_p2DTrans(NULL),
@@ -198,9 +198,9 @@ void AbstrRenderer::SetFullWindowmode(EWindowMode eWindowMode) {
   }  
 }
 
-void AbstrRenderer::SetUseLigthing(bool bUseLigthing) {
-  if (m_bUseLigthing != bUseLigthing) {
-    m_bUseLigthing = bUseLigthing; 
+void AbstrRenderer::SetUseLighting(bool bUseLighting) {
+  if (m_bUseLighting != bUseLighting) {
+    m_bUseLighting = bUseLighting;
     ScheduleWindowRedraw(WM_3D);
   }
 }
@@ -211,7 +211,6 @@ void AbstrRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
     ScheduleWindowRedraw(WM_3D);
   }
 }
-
 
 void AbstrRenderer::Changed1DTrans() {
   if (m_eRenderMode != RM_1DTRANS) {

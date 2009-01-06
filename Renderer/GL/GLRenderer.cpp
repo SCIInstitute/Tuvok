@@ -1089,9 +1089,9 @@ void GLRenderer::SetDataDepShaderVars() {
                             m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
                             m_pProgram1DTransSlice->Disable();
 
-                            m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->Enable();
-                            m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("fTransScale",fScale);
-                            m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->Disable();
+                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
+                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
                             break;
                           }
     case RM_2DTRANS    :  {
@@ -1100,10 +1100,10 @@ void GLRenderer::SetDataDepShaderVars() {
                             m_pProgram2DTransSlice->SetUniformVector("fGradientScale",fGradientScale);
                             m_pProgram2DTransSlice->Disable();
 
-                            m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Enable();
-                            m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("fTransScale",fScale);
-                            m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
-                            m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Disable();
+                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
+                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
+                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
                             break;
                           }
     case RM_ISOSURFACE : {

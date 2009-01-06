@@ -157,16 +157,16 @@ void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurre
 
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  {
-                            m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
-                            m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("fRayStepsize", fRayStep);
-                            if (m_bUseLigthing)
+                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
+                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fRayStepsize", fRayStep);
+                            if (m_bUseLighting)
                                 m_pProgram1DTrans[1]->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
                             break;
                           }
     case RM_2DTRANS    :  {
-                            m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
-                            m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
-                            m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->SetUniformVector("fRayStepsize", fRayStep);
+                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
+                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
+                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fRayStepsize", fRayStep);
                             break;
                           }
     case RM_ISOSURFACE : {
@@ -357,11 +357,11 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
     // do the raycasting
     switch (m_eRenderMode) {
-      case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->Enable();
+      case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
                             glEnable(GL_BLEND);
                             glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                             break;
-      case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Enable();
+      case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
                             glEnable(GL_BLEND);
                             glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                             break;
@@ -378,10 +378,10 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     m_pFBORayEntry->FinishRead();
 
     switch (m_eRenderMode) {
-      case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLigthing ? 1 : 0]->Disable();
+      case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
                             glDisable(GL_BLEND);
                             break;
-      case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLigthing ? 1 : 0]->Disable();
+      case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
                             glDisable(GL_BLEND);
                             break;
       default            :  m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DInLoop","Invalid rendermode set");
