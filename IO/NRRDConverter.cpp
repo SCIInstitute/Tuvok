@@ -50,7 +50,7 @@ NRRDConverter::NRRDConverter()
   m_vSupportedExt.push_back("NHDR");
 }
 
-bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController)
+bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
 {
 
   pMasterController->DebugOut()->Message("NRRDConverter::Convert","Attempting to convert NRRD dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());

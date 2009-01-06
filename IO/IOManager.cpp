@@ -323,7 +323,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
   return false;
 }
 
-bool IOManager::ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename) {
+bool IOManager::ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, bool bNoUserInteraction) {
   /// \todo maybe come up with something smarter for a temp dir then the target dir
   m_TempDir = SysTools::GetPath(strTargetFilename);
 
@@ -335,13 +335,13 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
     const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
     for (size_t j = 0;j<vStrSupportedExt.size();j++) {
       if (vStrSupportedExt[j] == strExt) {
-        if (m_vpConverters[i]->Convert(strFilename, strTargetFilename, m_TempDir, m_pMasterController)) return true;
+        if (m_vpConverters[i]->Convert(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction)) return true;
       }
     }
   }
 
   if (m_pFinalConverter) 
-    return m_pFinalConverter->Convert(strFilename, strTargetFilename, m_TempDir, m_pMasterController);
+    return m_pFinalConverter->Convert(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction);
   else
     return false;
 }

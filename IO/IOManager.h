@@ -59,7 +59,7 @@ public:
 
   std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
   bool ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename);
-  bool ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename);
+  bool ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, bool bNoUserInteraction=false);
   VolumeDataset* ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester);
   VolumeDataset* ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, AbstrRenderer* requester);
   VolumeDataset* LoadDataset(const std::string& strFilename, AbstrRenderer* requester);

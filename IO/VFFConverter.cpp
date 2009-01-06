@@ -49,9 +49,8 @@ VFFConverter::VFFConverter()
   m_vSupportedExt.push_back("VFF");
 }
 
-bool VFFConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController)
+bool VFFConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
 {
-
   pMasterController->DebugOut()->Message("VFFConverter::Convert","Attempting to convert VFF dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
 
   // Check Magic value in VFF File first

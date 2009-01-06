@@ -85,6 +85,8 @@ namespace SysTools {
   std::wstring ToUpperCase(const std::wstring& str);
   std::string ToUpperCase(const std::string& str);
 
+  std::vector< std::string > Tokenize(const std::string& strInput, bool bQuoteprotect=true);
+
   std::string GetFromResourceOnMac(const std::string& fileName);
   std::wstring GetFromResourceOnMac(const std::wstring& fileName);
 

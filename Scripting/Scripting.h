@@ -49,14 +49,13 @@ class MasterController;
 
 class ScriptableListElement {
   public:
-    ScriptableListElement(Scriptable* source, const std::string& strCommand, const std::string& strDescription) :
-      m_source(source),
-      m_strCommand(strCommand),
-      m_strDescription(strDescription)
-    {}
+    ScriptableListElement(Scriptable* source, const std::string& strCommand, const std::string& strParameters, const std::string& strDescription);
     
     Scriptable* m_source;
     std::string m_strCommand;
+    std::vector<std::string> m_vParameters;
+    UINT32 m_iMaxParam;
+    UINT32 m_iMinParam;
     std::string m_strDescription;
 };
 
@@ -70,7 +69,7 @@ class Scripting
     bool ParseLine(const std::string& strLine);
     bool ParseFile(const std::string& strFilename);
 
-    bool RegisterCommand(Scriptable* source, const std::string& strCommand, const std::string& strDescription);
+    bool RegisterCommand(Scriptable* source, const std::string& strCommand, const std::string& strParameters, const std::string& strDescription);
 
   private:
     MasterController*                   m_pMasterController;

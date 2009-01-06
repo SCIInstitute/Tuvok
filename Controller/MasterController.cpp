@@ -157,35 +157,32 @@ void MasterController::Filter( std::string , UINT32 ,
 
 
 bool MasterController::RegisterCalls(Scripting* pScriptEngine) {
-  pScriptEngine->RegisterCommand(this, "seterrorlog", "on/off  toggle recording of errors");
-  pScriptEngine->RegisterCommand(this, "setwarninglog", "on/off  toggle recording of warnings");
-  pScriptEngine->RegisterCommand(this, "setemessagelog", "on/off  toggle recording of messages");
-  pScriptEngine->RegisterCommand(this, "printerrorlog", "print recorded errors");
-  pScriptEngine->RegisterCommand(this, "printwarninglog", "print recorded errwarningsors");
-  pScriptEngine->RegisterCommand(this, "printmessagelog", "print recorded messages");
-  pScriptEngine->RegisterCommand(this, "clearerrorlog", "clear recorded errors");
-  pScriptEngine->RegisterCommand(this, "clearwarninglog", "clear recorded warnings");
-  pScriptEngine->RegisterCommand(this, "clearmessagelog", "clear recorded messages");
-  pScriptEngine->RegisterCommand(this, "toggleoutput", "on/off on/off on/off on/off toggle messages, warning, errors, and other output");
+  pScriptEngine->RegisterCommand(this, "seterrorlog", "on/off", "toggle recording of errors");
+  pScriptEngine->RegisterCommand(this, "setwarninglog", "on/off", "toggle recording of warnings");
+  pScriptEngine->RegisterCommand(this, "setemessagelog", "on/off", "toggle recording of messages");
+  pScriptEngine->RegisterCommand(this, "printerrorlog", "", "print recorded errors");
+  pScriptEngine->RegisterCommand(this, "printwarninglog", "", "print recorded errwarningsors");
+  pScriptEngine->RegisterCommand(this, "printmessagelog", "", "print recorded messages");
+  pScriptEngine->RegisterCommand(this, "clearerrorlog", "", "clear recorded errors");
+  pScriptEngine->RegisterCommand(this, "clearwarninglog", "", "clear recorded warnings");
+  pScriptEngine->RegisterCommand(this, "clearmessagelog", "", "clear recorded messages");
+  pScriptEngine->RegisterCommand(this, "toggleoutput", "on/off on/off on/off on/off","toggle messages, warning, errors, and other output");
 
   return false;
 }
 
 bool MasterController::Execute(const std::string& strCommand, const std::vector< std::string >& strParams) {
   if (strCommand == "seterrorlog") {
-    if (strParams.size() != 1 && strParams[0] != "on" && strParams[0] != "off") return false;
     m_pDebugOut->SetListRecordingErrors(strParams[0] == "on");
     if (m_pDebugOut->GetListRecordingErrors()) m_pDebugOut->printf("current state: true"); else m_pDebugOut->printf("current state: false");
     return true;
   }
   if (strCommand == "setwarninglog") {
-    if (strParams.size() != 1 && strParams[0] != "on" && strParams[0] != "off") return false;
     m_pDebugOut->SetListRecordingWarnings(strParams[0] == "on");
     if (m_pDebugOut->GetListRecordingWarnings()) m_pDebugOut->printf("current state: true"); else m_pDebugOut->printf("current state: false");
     return true;
   }
   if (strCommand == "setmessagelog") {
-    if (strParams.size() != 1 && strParams[0] != "on" && strParams[0] != "off") return false;
     m_pDebugOut->SetListRecordingMessages(strParams[0] == "on");
     if (m_pDebugOut->GetListRecordingMessages()) m_pDebugOut->printf("current state: true"); else m_pDebugOut->printf("current state: false");
     return true;
@@ -215,7 +212,6 @@ bool MasterController::Execute(const std::string& strCommand, const std::vector<
     return true;
   }
   if (strCommand == "toggleoutput") {
-    if (strParams.size() != 4) return false;
     m_pDebugOut->SetOutput(strParams[0] == "on", 
                            strParams[1] == "on", 
                            strParams[2] == "on", 

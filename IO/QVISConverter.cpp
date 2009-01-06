@@ -49,7 +49,7 @@ QVISConverter::QVISConverter()
   m_vSupportedExt.push_back("DAT");
 }
 
-bool QVISConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController)
+bool QVISConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
 {
   pMasterController->DebugOut()->Message("QVISConverter::Convert","Attempting to convert QVIS dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
 

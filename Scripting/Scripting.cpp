@@ -43,6 +43,31 @@
 
 using namespace std;
 
+
+ScriptableListElement::ScriptableListElement(Scriptable* source, const std::string& strCommand, const std::string& strParameters, const std::string& strDescription) :
+      m_source(source),
+      m_strCommand(strCommand),
+      m_strDescription(strDescription)
+{
+  m_vParameters = SysTools::Tokenize(strParameters, false);
+
+  m_iMaxParam = UINT32(m_vParameters.size());
+  m_iMinParam = 0;
+
+  bool bFoundOptional = false;
+  for (UINT32 i = 0;i<m_iMaxParam;i++) {
+    if (m_vParameters[i][0] == '[' && m_vParameters[i][m_vParameters[i].size()-1] == ']') {
+      bFoundOptional = true;
+      m_vParameters[i] = string(m_vParameters[i].begin()+1, m_vParameters[i].end()-1);
+    } else {
+      if (!bFoundOptional) 
+        m_iMinParam++;
+      // else // this else would be an syntax error case but lets just assume all parameters after the first optional parameter are also optional
+    }
+  }
+}
+
+
 Scripting::Scripting(MasterController* pMasterController) : 
   m_pMasterController(pMasterController)
 {
@@ -53,23 +78,20 @@ Scripting::~Scripting() {
 }
 
 
-bool Scripting::RegisterCommand(Scriptable* source, const std::string& strCommand, const std::string& strDescription) {
+bool Scripting::RegisterCommand(Scriptable* source, const std::string& strCommand, const std::string& strParameters, const std::string& strDescription) {
   // commands may not contain whitespaces
-  string buf;
-  stringstream ss(strCommand); 
-  vector<string> strTest;
-  while (ss >> buf) strTest.push_back(buf);
+  vector<string> strTest = SysTools::Tokenize(strCommand, false);
   if (strTest.size() != 1) return false;
 
-  // comannds must be unique
+  // commands must be unique
   for (size_t i = 0;i<m_ScriptableList.size();i++) {
     if (m_ScriptableList[i]->m_strCommand == strCommand) return false;
   }
-  // comannds must not be "help"
+  // commanns must not be "help"
   if ("help" == strCommand) return false;
 
   // ok all seems fine add the comannd to the list
-  ScriptableListElement* elem = new ScriptableListElement(source, strCommand, strDescription);
+  ScriptableListElement* elem = new ScriptableListElement(source, strCommand, strParameters, strDescription);
   m_ScriptableList.push_back(elem);
   return true;
 }
@@ -77,12 +99,9 @@ bool Scripting::RegisterCommand(Scriptable* source, const std::string& strComman
 
 bool Scripting::ParseLine(const string& strLine) {
   // tokenize string
-  string buf; 
-  stringstream ss(strLine); 
-  vector<string> strParameters;
-  while (ss >> buf) strParameters.push_back(buf);
+  vector<string> vParameters = SysTools::Tokenize(strLine);
 
-  bool bResult = ParseCommand(strParameters);
+  bool bResult = ParseCommand(vParameters);
   
   if (!bResult)
     m_pMasterController->DebugOut()->printf("Input \"%s\" not understood, try \"help\"!", strLine.c_str());
@@ -101,15 +120,28 @@ bool Scripting::ParseCommand(const vector<string>& strTokenized) {
     m_pMasterController->DebugOut()->printf("Command Listing:");
     m_pMasterController->DebugOut()->printf("\"help\" : this help screen");
     for (size_t i = 0;i<m_ScriptableList.size();i++) {
-      m_pMasterController->DebugOut()->printf("\"%s\" : %s", m_ScriptableList[i]->m_strCommand.c_str(), m_ScriptableList[i]->m_strDescription.c_str());
+      string strParams = "";
+      for (size_t j = 0;j<m_ScriptableList[i]->m_iMinParam;j++) {
+        strParams = strParams + m_ScriptableList[i]->m_vParameters[j];
+        if (j != m_ScriptableList[i]->m_vParameters.size()-1) strParams = strParams + " ";
+      }
+      for (size_t j = m_ScriptableList[i]->m_iMinParam;j<m_ScriptableList[i]->m_iMaxParam;j++) {
+        strParams = strParams + "["+m_ScriptableList[i]->m_vParameters[j]+"]";
+        if (j != m_ScriptableList[i]->m_vParameters.size()-1) strParams = strParams + " ";
+      }
+
+      m_pMasterController->DebugOut()->printf("\"%s\" %s: %s", m_ScriptableList[i]->m_strCommand.c_str(), strParams.c_str(), m_ScriptableList[i]->m_strDescription.c_str());
     }
     return true;
   }
 
 
   for (size_t i = 0;i<m_ScriptableList.size();i++) {
-    if (m_ScriptableList[i]->m_strCommand == strCommand)
-      return m_ScriptableList[i]->m_source->Execute(strCommand, strParams);      
+    if (m_ScriptableList[i]->m_strCommand == strCommand) {
+      if (strParams.size() >= m_ScriptableList[i]->m_iMinParam &&
+          strParams.size() <= m_ScriptableList[i]->m_iMaxParam)
+      return m_ScriptableList[i]->m_source->Execute(strCommand, strParams);
+    }
   }
 
   return false;
@@ -127,7 +159,7 @@ bool Scripting::ParseFile(const std::string& strFilename) {
       getline (fileData,line);
       iLine++;
       SysTools::RemoveLeadingWhitespace(line);
-      if (line.size() == 0) continue;    // skip empty lines
+      if (line.size() == 0) continue;     // skip empty lines
       if (line[0] == '#') continue;       // skip comments
 
       if (!ParseLine(line)) {

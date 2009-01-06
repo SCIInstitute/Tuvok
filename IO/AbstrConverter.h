@@ -51,7 +51,7 @@ class AbstrConverter {
 public:
   virtual ~AbstrConverter() {}
 
-  virtual bool Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController) = 0;
+  virtual bool Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool bNoUserInteraction) = 0;
   const std::vector<std::string>& SupportedExt() {return m_vSupportedExt;}
   virtual const std::string& GetDesc() {return m_vConverterDesc;}
 

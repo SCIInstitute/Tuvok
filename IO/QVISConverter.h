@@ -51,7 +51,7 @@ public:
   QVISConverter();
   virtual ~QVISConverter() {}
 
-  virtual bool Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController);
+  virtual bool Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool bNoUserInteraction);
 
 protected:
 
