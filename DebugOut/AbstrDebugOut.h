@@ -62,11 +62,6 @@ class AbstrDebugOut {
     virtual void Warning(const char* source, const char* format, ...) = 0;
     virtual void Error(const char* source, const char* format, ...) = 0;
 
-    bool m_bShowMessages;
-    bool m_bShowWarnings;
-    bool m_bShowErrors;
-    bool m_bShowOther;
-
     void PrintErrorList();
     void PrintWarningList();
     void PrintMessageList();
@@ -81,8 +76,26 @@ class AbstrDebugOut {
     virtual bool GetListRecordingErrors()   {return m_bRecordLists[0];}
     virtual bool GetListRecordingWarnings() {return m_bRecordLists[1];}
     virtual bool GetListRecordingMessages() {return m_bRecordLists[2];}
+  
+    void SetOutput(bool bShowMessages, bool bShowWarnings, bool bShowErrors, bool bShowOther);
+    void GetOutput(bool& bShowErrors, bool& bShowWarnings, bool& bShowMessages, bool& bShowOther) const;
+
+    bool ShowMessages() const {return m_bShowMessages;}
+    bool ShowWarnings() const {return m_bShowWarnings;}
+    bool ShowErrors() const {return m_bShowErrors;}
+    bool ShowOther() const {return m_bShowOther;}
+
+    virtual void SetShowMessages(bool bShowMessages);
+    virtual void SetShowWarnings(bool bShowWarnings);
+    virtual void SetShowErrors(bool bShowErrors);
+    virtual void SetShowOther(bool bShowOther);
 
 protected:
+    bool                      m_bShowMessages;
+    bool                      m_bShowWarnings;
+    bool                      m_bShowErrors;
+    bool                      m_bShowOther;
+
     bool                      m_bRecordLists[3];
     std::deque< std::string > m_strErrorList;
     std::deque< std::string > m_strWarningList;

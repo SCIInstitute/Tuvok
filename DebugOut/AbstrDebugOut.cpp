@@ -57,3 +57,41 @@ void AbstrDebugOut::PrintMessageList() {
     printf( i->c_str() );
   printf( "end of recorded errors" );
 }
+
+void AbstrDebugOut::SetOutput(bool bShowMessages, 
+                                 bool bShowWarnings, 
+                                 bool bShowErrors, 
+                                 bool bShowOther) {
+  SetShowMessages(bShowMessages); 
+  SetShowWarnings(bShowWarnings);
+  SetShowErrors(bShowErrors);
+  SetShowOther(bShowOther);
+}
+
+void AbstrDebugOut::GetOutput(bool& bShowErrors,
+                              bool& bShowWarnings,
+                              bool& bShowMessages,
+                              bool& bShowOther) const {
+
+  bShowMessages = ShowMessages();
+  bShowWarnings = ShowWarnings();
+  bShowErrors   = ShowErrors();
+  bShowOther    = ShowOther();
+}
+
+
+void AbstrDebugOut::SetShowMessages(bool bShowMessages) {
+  m_bShowMessages = bShowMessages;
+}
+
+void AbstrDebugOut::SetShowWarnings(bool bShowWarnings) {
+  m_bShowWarnings = bShowWarnings;
+}
+
+void AbstrDebugOut::SetShowErrors(bool bShowErrors) {
+  m_bShowErrors = bShowErrors;
+}
+
+void AbstrDebugOut::SetShowOther(bool bShowOther) {
+  m_bShowOther = bShowOther;
+}

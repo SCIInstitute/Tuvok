@@ -166,6 +166,7 @@ bool MasterController::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "clearerrorlog", "clear recorded errors");
   pScriptEngine->RegisterCommand(this, "clearwarninglog", "clear recorded warnings");
   pScriptEngine->RegisterCommand(this, "clearmessagelog", "clear recorded messages");
+  pScriptEngine->RegisterCommand(this, "toggleoutput", "on/off on/off on/off on/off toggle messages, warning, errors, and other output");
 
   return false;
 }
@@ -211,6 +212,14 @@ bool MasterController::Execute(const std::string& strCommand, const std::vector<
   }
   if (strCommand == "clearmessagelog") {
     m_pDebugOut->ClearMessageList();
+    return true;
+  }
+  if (strCommand == "toggleoutput") {
+    if (strParams.size() != 4) return false;
+    m_pDebugOut->SetOutput(strParams[0] == "on", 
+                           strParams[1] == "on", 
+                           strParams[2] == "on", 
+                           strParams[3] == "on");
     return true;
   }
 

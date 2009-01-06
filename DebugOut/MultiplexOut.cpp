@@ -141,3 +141,24 @@ void MultiplexOut::Error(const char* source, const char* format, ...) {
 #endif
   for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->Error(source,buff);
 }
+
+void MultiplexOut::SetShowMessages(bool bShowMessages) {
+  AbstrDebugOut::SetShowMessages(bShowMessages);
+  for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->SetShowMessages(bShowMessages);
+}
+
+void MultiplexOut::SetShowWarnings(bool bShowWarnings) {
+  AbstrDebugOut::SetShowWarnings(bShowWarnings);
+  for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->SetShowWarnings(bShowWarnings);
+}
+
+void MultiplexOut::SetShowErrors(bool bShowErrors) {
+  AbstrDebugOut::SetShowErrors(bShowErrors);
+  for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->SetShowErrors(bShowErrors);
+}
+
+void MultiplexOut::SetShowOther(bool bShowOther) {
+  AbstrDebugOut::SetShowOther(bShowOther);
+  for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->SetShowOther(bShowOther);
+}
+

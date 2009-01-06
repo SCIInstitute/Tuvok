@@ -57,6 +57,12 @@ class MultiplexOut : public AbstrDebugOut{
     virtual void Message(const char* source, const char* format, ...);
     virtual void Warning(const char* source, const char* format, ...);
     virtual void Error(const char* source, const char* format, ...);
+
+    virtual void SetShowMessages(bool bShowMessages);
+    virtual void SetShowWarnings(bool bShowWarnings);
+    virtual void SetShowErrors(bool bShowErrors);
+    virtual void SetShowOther(bool bShowOther);
+
   private:
     std::vector<AbstrDebugOut*> m_vpDebugger;
     std::vector<bool>           m_vbDeleteOnExit;

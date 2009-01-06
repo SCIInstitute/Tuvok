@@ -84,10 +84,9 @@ bool Scripting::ParseLine(const string& strLine) {
 
   bool bResult = ParseCommand(strParameters);
   
-  if (bResult)
-    m_pMasterController->DebugOut()->printf("OK");
-  else
+  if (!bResult)
     m_pMasterController->DebugOut()->printf("Input \"%s\" not understood, try \"help\"!", strLine.c_str());
+//  else m_pMasterController->DebugOut()->printf("OK (%s)", strLine.c_str());
 
   return bResult;
 }
@@ -118,7 +117,7 @@ bool Scripting::ParseCommand(const vector<string>& strTokenized) {
 
 bool Scripting::ParseFile(const std::string& strFilename) {
   string line;
-  ifstream fileData(strFilename.c_str(),ios::binary);  
+  ifstream fileData(strFilename.c_str());  
 
   UINT32 iLine=0;
   if (fileData.is_open())
