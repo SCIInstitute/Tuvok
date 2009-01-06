@@ -116,7 +116,6 @@ SOURCES += 3rdParty/GLEW/glew.c \
            DebugOut/TextfileOut.cpp \
            DebugOut/ConsoleOut.cpp \
            DebugOut/MultiplexOut.cpp \ 
-           Scripting/Scriptable.cpp \
            Scripting/Scripting.cpp \
            Renderer/CullingLOD.cpp \
            Renderer/GL/GLFrameCapture.cpp \
