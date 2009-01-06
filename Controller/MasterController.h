@@ -55,6 +55,9 @@
 #include "../Renderer/GL/GLSBVR.h"
 #include "../Renderer/GL/GLRaycaster.h"
 
+#include "../Scripting/Scripting.h"
+
+
 /** \class MasterController
  * Centralized controller for ImageVis3D.
  *
@@ -65,7 +68,7 @@
  * Instead, it informs the abstract interface through this controller,
  * and the renderer implementation decides on its own how it wants to
  * handle the resize event. */
-class MasterController {
+class MasterController : public Scriptable {
 public:
   enum EVolumeRendererType {
     OPENGL_SBVR = 0,
@@ -105,17 +108,24 @@ public:
   /// amount of memory available.
   SystemInfo*    SysInfo()  {return m_pSystemInfo;}
 
+  Scripting*     ScriptEngine()   {return m_pScriptEngine;}
+
   /// \todo this should return a pointer to memory.
   void Filter( std::string datasetName,
          UINT32 filter,
          void *var0 = 0, void *var1 = 0,
          void *var2 = 0, void *var3 = 0 );
 
+  // Scriptable implementation
+  virtual bool RegisterCalls(Scripting* pScriptEngine);
+  virtual bool Execute(const std::string& strCommand, const std::vector< std::string >& strParams);
+
 private:
   SystemInfo*    m_pSystemInfo;
   GPUMemMan*     m_pGPUMemMan;
   IOManager*     m_pIOManager;
   AbstrDebugOut* m_pDebugOut;
+  Scripting*     m_pScriptEngine;
   bool           m_bDeleteDebugOutOnExit;  
 
   AbstrRendererList m_vVolumeRenderer;

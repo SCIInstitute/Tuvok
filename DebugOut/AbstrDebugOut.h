@@ -42,6 +42,7 @@
 #define ABSTRDEBUGOUT_H
 
 #include "../StdTuvokDefines.h"
+#include <deque>
 
 class AbstrDebugOut {
   public:
@@ -50,7 +51,11 @@ class AbstrDebugOut {
 #else
     AbstrDebugOut() : m_bShowMessages(false), m_bShowWarnings(false), m_bShowErrors(true), m_bShowOther(true) {}
 #endif
-    virtual ~AbstrDebugOut() {}
+    virtual ~AbstrDebugOut() {
+      m_bRecordLists[0] = false;
+      m_bRecordLists[1] = false;
+      m_bRecordLists[2] = false;
+    }
     virtual void printf(const char* format, ...) = 0;
     virtual void Message(const char* source, const char* format, ...) = 0;
     virtual void Warning(const char* source, const char* format, ...) = 0;
@@ -60,6 +65,42 @@ class AbstrDebugOut {
     bool m_bShowWarnings;
     bool m_bShowErrors;
     bool m_bShowOther;
+
+    void PrintErrorList() {
+      printf( "Printing recorded errors:" );
+      for (std::deque< std::string >::iterator i = m_strErrorList.begin();i<m_strErrorList.end();i++) printf( i->c_str() );
+      printf( "end of recorded errors" );
+    }
+
+    void PrintWarningList() {
+      printf( "Printing recorded errors:" );
+      for (std::deque< std::string >::iterator i = m_strWarningList.begin();i<m_strErrorList.end();i++) printf( i->c_str() );
+      printf( "end of recorded errors" );
+    }
+
+    void PrintMessageList() {
+      printf( "Printing recorded errors:" );
+      for (std::deque< std::string >::iterator i = m_strMessageList.begin();i<m_strErrorList.end();i++) printf( i->c_str() );
+      printf( "end of recorded errors" );
+    }
+
+    virtual void ClearErrorList()   {m_strErrorList.clear();}
+    virtual void ClearWarningList() {m_strWarningList.clear();}
+    virtual void ClearMessageList() {m_strMessageList.clear();}
+
+    virtual void SetListRecordingErrors(bool bRecord)   {m_bRecordLists[0] = bRecord;}
+    virtual void SetListRecordingWarnings(bool bRecord) {m_bRecordLists[1] = bRecord;}
+    virtual void SetListRecordingMessages(bool bRecord) {m_bRecordLists[2] = bRecord;}
+    virtual bool GetListRecordingErrors()   {return m_bRecordLists[0];}
+    virtual bool GetListRecordingWarnings() {return m_bRecordLists[1];}
+    virtual bool GetListRecordingMessages() {return m_bRecordLists[2];}
+
+protected:
+    bool                      m_bRecordLists[3];
+    std::deque< std::string > m_strErrorList;
+    std::deque< std::string > m_strWarningList;
+    std::deque< std::string > m_strMessageList;
+
 };
 
 #endif // ABSTRDEBUGOUT_H

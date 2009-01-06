@@ -26,7 +26,7 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-//!    File   : ImageVis3D.cpp
+//!    File   : MasterController.cpp
 //!    Author : Jens Krueger
 //!             SCI Institute
 //!             University of Utah
@@ -41,9 +41,11 @@ MasterController::MasterController(AbstrDebugOut* pDebugOut) :
   m_pDebugOut(pDebugOut == NULL ? new ConsoleOut() : pDebugOut),
   m_bDeleteDebugOutOnExit(true)
 {
-  m_pSystemInfo = new SystemInfo();
-  m_pIOManager = new IOManager(this);
-  m_pGPUMemMan = new GPUMemMan(this);
+  m_pSystemInfo   = new SystemInfo();
+  m_pIOManager    = new IOManager(this);
+  m_pGPUMemMan    = new GPUMemMan(this);
+  m_pScriptEngine = new Scripting(this);
+  RegisterCalls(m_pScriptEngine);
 }
 
 
@@ -152,3 +154,65 @@ void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
 void MasterController::Filter( std::string , UINT32 , 
                               void*, void *, void *, void * ) {
 };
+
+
+bool MasterController::RegisterCalls(Scripting* pScriptEngine) {
+  pScriptEngine->RegisterCommand(this, "seterrorlog", "on/off  toggle recording of errors");
+  pScriptEngine->RegisterCommand(this, "setwarninglog", "on/off  toggle recording of warnings");
+  pScriptEngine->RegisterCommand(this, "setemessagelog", "on/off  toggle recording of messages");
+  pScriptEngine->RegisterCommand(this, "printerrorlog", "print recorded errors");
+  pScriptEngine->RegisterCommand(this, "printwarninglog", "print recorded errwarningsors");
+  pScriptEngine->RegisterCommand(this, "printmessagelog", "print recorded messages");
+  pScriptEngine->RegisterCommand(this, "clearerrorlog", "clear recorded errors");
+  pScriptEngine->RegisterCommand(this, "clearwarninglog", "clear recorded warnings");
+  pScriptEngine->RegisterCommand(this, "clearmessagelog", "clear recorded messages");
+
+  return false;
+}
+
+bool MasterController::Execute(const std::string& strCommand, const std::vector< std::string >& strParams) {
+  if (strCommand == "seterrorlog") {
+    if (strParams.size() != 1 && strParams[0] != "on" && strParams[0] != "off") return false;
+    m_pDebugOut->SetListRecordingErrors(strParams[0] == "on");
+    if (m_pDebugOut->GetListRecordingErrors()) m_pDebugOut->printf("current state: true"); else m_pDebugOut->printf("current state: false");
+    return true;
+  }
+  if (strCommand == "setwarninglog") {
+    if (strParams.size() != 1 && strParams[0] != "on" && strParams[0] != "off") return false;
+    m_pDebugOut->SetListRecordingWarnings(strParams[0] == "on");
+    if (m_pDebugOut->GetListRecordingWarnings()) m_pDebugOut->printf("current state: true"); else m_pDebugOut->printf("current state: false");
+    return true;
+  }
+  if (strCommand == "setmessagelog") {
+    if (strParams.size() != 1 && strParams[0] != "on" && strParams[0] != "off") return false;
+    m_pDebugOut->SetListRecordingMessages(strParams[0] == "on");
+    if (m_pDebugOut->GetListRecordingMessages()) m_pDebugOut->printf("current state: true"); else m_pDebugOut->printf("current state: false");
+    return true;
+  }
+  if (strCommand == "printerrorlog") {
+    m_pDebugOut->PrintErrorList();
+    return true;
+  }
+  if (strCommand == "printwarninglog") {
+    m_pDebugOut->PrintWarningList();
+    return true;
+  }
+  if (strCommand == "printmessagelog") {
+    m_pDebugOut->PrintMessageList();
+    return true;
+  }
+  if (strCommand == "clearerrorlog") {
+    m_pDebugOut->ClearErrorList();
+    return true;
+  }
+  if (strCommand == "clearwarninglog") {
+    m_pDebugOut->ClearWarningList();
+    return true;
+  }
+  if (strCommand == "clearmessagelog") {
+    m_pDebugOut->ClearMessageList();
+    return true;
+  }
+
+  return false;
+}

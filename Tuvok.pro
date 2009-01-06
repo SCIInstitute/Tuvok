@@ -54,6 +54,8 @@ HEADERS += StdTuvokDefines.h \
            3rdParty/GLEW/glxew.h \
            3rdParty/bzip2/bzlib.h \
            3rdParty/bzip2/bzlib_private.h \
+           Scripting/Scripting.h \
+           Scripting/Scriptable.h \
            Renderer/CullingLOD.h \
            Renderer/FrameCapture.h \
            Renderer/GPUObject.h \
@@ -114,6 +116,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            DebugOut/TextfileOut.cpp \
            DebugOut/ConsoleOut.cpp \
            DebugOut/MultiplexOut.cpp \ 
+           Scripting/Scriptable.cpp \
            Renderer/CullingLOD.cpp \
            Renderer/GL/GLFrameCapture.cpp \
            Renderer/GL/GLSLProgram.cpp \
