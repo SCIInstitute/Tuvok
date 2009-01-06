@@ -113,6 +113,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            IO/UVF/Histogram2DDataBlock.cpp \                     
            IO/UVF/MaxMinDataBlock.cpp \
            Controller/MasterController.cpp \
+           DebugOut/AbstrDebugOut.cpp \
            DebugOut/TextfileOut.cpp \
            DebugOut/ConsoleOut.cpp \
            DebugOut/MultiplexOut.cpp \ 

@@ -911,6 +911,10 @@
 			Name="DebugOut"
 			>
 			<File
+				RelativePath=".\DebugOut\AbstrDebugOut.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\DebugOut\AbstrDebugOut.h"
 				>
 			</File>
