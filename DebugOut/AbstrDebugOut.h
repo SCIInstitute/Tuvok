@@ -67,23 +67,9 @@ class AbstrDebugOut {
     bool m_bShowErrors;
     bool m_bShowOther;
 
-    void PrintErrorList() {
-      printf( "Printing recorded errors:" );
-      for (std::deque< std::string >::iterator i = m_strErrorList.begin();i<m_strErrorList.end();i++) printf( i->c_str() );
-      printf( "end of recorded errors" );
-    }
-
-    void PrintWarningList() {
-      printf( "Printing recorded errors:" );
-      for (std::deque< std::string >::iterator i = m_strWarningList.begin();i<m_strErrorList.end();i++) printf( i->c_str() );
-      printf( "end of recorded errors" );
-    }
-
-    void PrintMessageList() {
-      printf( "Printing recorded errors:" );
-      for (std::deque< std::string >::iterator i = m_strMessageList.begin();i<m_strErrorList.end();i++) printf( i->c_str() );
-      printf( "end of recorded errors" );
-    }
+    void PrintErrorList();
+    void PrintWarningList();
+    void PrintMessageList();
 
     virtual void ClearErrorList()   {m_strErrorList.clear();}
     virtual void ClearWarningList() {m_strWarningList.clear();}
