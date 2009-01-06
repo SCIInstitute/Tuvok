@@ -43,6 +43,7 @@
 
 #include "../StdTuvokDefines.h"
 #include <deque>
+#include <string>
 
 class AbstrDebugOut {
   public:
