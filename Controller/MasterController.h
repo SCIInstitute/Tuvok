@@ -118,7 +118,7 @@ public:
 
   // Scriptable implementation
   virtual bool RegisterCalls(Scripting* pScriptEngine);
-  virtual bool Execute(const std::string& strCommand, const std::vector< std::string >& strParams);
+  virtual bool Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage);
 
 private:
   SystemInfo*    m_pSystemInfo;

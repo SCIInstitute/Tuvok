@@ -52,7 +52,7 @@ class Scriptable
     virtual ~Scriptable() {} // make the gcc compiler happy
 
     virtual bool RegisterCalls(Scripting* pScriptEngine) = 0;
-    virtual bool Execute(const std::string& strCommand, const std::vector< std::string >& strParams) = 0;
+    virtual bool Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage) = 0;
 };
 
 #endif // SCRIPTABLE_H

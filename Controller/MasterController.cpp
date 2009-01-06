@@ -171,7 +171,8 @@ bool MasterController::RegisterCalls(Scripting* pScriptEngine) {
   return false;
 }
 
-bool MasterController::Execute(const std::string& strCommand, const std::vector< std::string >& strParams) {
+bool MasterController::Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage) {
+  strMessage = "";
   if (strCommand == "seterrorlog") {
     m_pDebugOut->SetListRecordingErrors(strParams[0] == "on");
     if (m_pDebugOut->GetListRecordingErrors()) m_pDebugOut->printf("current state: true"); else m_pDebugOut->printf("current state: false");

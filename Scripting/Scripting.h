@@ -65,7 +65,7 @@ class Scripting
     Scripting(MasterController* pMasterController);
     ~Scripting();
 
-    bool ParseCommand(const std::vector< std::string >& strTokenized);
+    bool ParseCommand(const std::vector< std::string >& strTokenized, std::string& strMessage);
     bool ParseLine(const std::string& strLine);
     bool ParseFile(const std::string& strFilename);
 

@@ -101,20 +101,27 @@ bool Scripting::ParseLine(const string& strLine) {
   // tokenize string
   vector<string> vParameters = SysTools::Tokenize(strLine);
 
-  bool bResult = ParseCommand(vParameters);
+  string strMessage = "";
+  bool bResult = ParseCommand(vParameters, strMessage);
   
-  if (!bResult)
-    m_pMasterController->DebugOut()->printf("Input \"%s\" not understood, try \"help\"!", strLine.c_str());
+  if (!bResult) {
+    if (strMessage == "") 
+      m_pMasterController->DebugOut()->printf("Input \"%s\" not understood, try \"help\"!", strLine.c_str());
+    else
+      m_pMasterController->DebugOut()->printf(strMessage.c_str());
+  }
 //  else m_pMasterController->DebugOut()->printf("OK (%s)", strLine.c_str());
 
   return bResult;
 }
 
-bool Scripting::ParseCommand(const vector<string>& strTokenized) {
+bool Scripting::ParseCommand(const vector<string>& strTokenized, string& strMessage) {
 
   if (strTokenized.size() == 0) return false;
   string strCommand = strTokenized[0];
   vector<string> strParams(strTokenized.begin()+1, strTokenized.end());
+
+  strMessage = "";
 
   if (strCommand == "help") {
     m_pMasterController->DebugOut()->printf("Command Listing:");
@@ -132,6 +139,7 @@ bool Scripting::ParseCommand(const vector<string>& strTokenized) {
 
       m_pMasterController->DebugOut()->printf("\"%s\" %s: %s", m_ScriptableList[i]->m_strCommand.c_str(), strParams.c_str(), m_ScriptableList[i]->m_strDescription.c_str());
     }
+    
     return true;
   }
 
@@ -139,8 +147,12 @@ bool Scripting::ParseCommand(const vector<string>& strTokenized) {
   for (size_t i = 0;i<m_ScriptableList.size();i++) {
     if (m_ScriptableList[i]->m_strCommand == strCommand) {
       if (strParams.size() >= m_ScriptableList[i]->m_iMinParam &&
-          strParams.size() <= m_ScriptableList[i]->m_iMaxParam)
-      return m_ScriptableList[i]->m_source->Execute(strCommand, strParams);
+          strParams.size() <= m_ScriptableList[i]->m_iMaxParam) {
+        return m_ScriptableList[i]->m_source->Execute(strCommand, strParams, strMessage);
+      } else {
+         strMessage = "Parameter missmatch for command \""+strCommand+"\"";
+         return false;
+      }
     }
   }
 
