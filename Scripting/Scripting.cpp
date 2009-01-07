@@ -87,10 +87,10 @@ bool Scripting::RegisterCommand(Scriptable* source, const std::string& strComman
   for (size_t i = 0;i<m_ScriptableList.size();i++) {
     if (m_ScriptableList[i]->m_strCommand == strCommand) return false;
   }
-  // commanns must not be "help"
+  // commands must not be "help"
   if ("help" == strCommand) return false;
 
-  // ok all seems fine add the comannd to the list
+  // ok, all seems fine: add the command to the list
   ScriptableListElement* elem = new ScriptableListElement(source, strCommand, strParameters, strDescription);
   m_ScriptableList.push_back(elem);
   return true;
