@@ -150,7 +150,7 @@ bool Scripting::ParseCommand(const vector<string>& strTokenized, string& strMess
           strParams.size() <= m_ScriptableList[i]->m_iMaxParam) {
         return m_ScriptableList[i]->m_source->Execute(strCommand, strParams, strMessage);
       } else {
-         strMessage = "Parameter missmatch for command \""+strCommand+"\"";
+         strMessage = "Parameter mismatch for command \""+strCommand+"\"";
          return false;
       }
     }
