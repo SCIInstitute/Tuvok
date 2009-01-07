@@ -55,7 +55,8 @@ TransferFunction2D::TransferFunction2D(const std::string& filename):
   m_iSize(0,0),
   m_pColorData(NULL),
   m_pCanvas(NULL),
-  m_pPainter(NULL)
+  m_pPainter(NULL),
+  m_bUseCachedData(false)
 {
   Load(filename);
 }
@@ -64,7 +65,8 @@ TransferFunction2D::TransferFunction2D(const VECTOR2<size_t>& iSize):
   m_iSize(iSize),
   m_pColorData(NULL),
   m_pCanvas(NULL),
-  m_pPainter(NULL)
+  m_pPainter(NULL),
+  m_bUseCachedData(false)
 {
   Resize(m_iSize);
 }
