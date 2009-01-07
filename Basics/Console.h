@@ -51,7 +51,8 @@
   #include <iostream>
 #endif
 
-#if defined(__GNUC__) && __GNUC__ >= 3
+#if defined(__GNUC__) && __GNUC__ > 3 || \
+    (__GNUC__ == 3 && __GNUC_MINOR_ >= 4)
 #   define FQN_UNUSED __attribute__ ((unused))
 #   define FQN_PRINTF __attribute__ ((format (printf, 1, 2)))
 #else

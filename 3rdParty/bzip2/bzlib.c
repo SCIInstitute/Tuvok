@@ -98,7 +98,8 @@ int bz_config_ok ( void )
 
 
 /*---------------------------------------------------*/
-#if defined(__GNUC__) && __GNUC__ >= 3
+#if defined(__GNUC__) && __GNUC__ > 3 || \
+    (__GNUC__ == 3 && __GNUC_MINOR_ >= 4)
 #   define GNUC_UNUSED __attribute__((unused))
 #else
 #   define GNUC_UNUSED /* nothing */
