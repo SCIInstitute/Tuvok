@@ -24,8 +24,8 @@ LargeRAWFile::LargeRAWFile(const std::wstring& wstrFilename, UINT64 iHeaderSize)
 LargeRAWFile::LargeRAWFile(LargeRAWFile &other) :
   m_strFilename(other.m_strFilename+"~"),
   m_bIsOpen(other.m_bIsOpen),
-  m_iHeaderSize(other.m_iHeaderSize),
-  m_bWritable(other.m_bWritable)
+  m_bWritable(other.m_bWritable),
+  m_iHeaderSize(other.m_iHeaderSize)
 {
   if (m_bIsOpen) {
     UINT64 iDataSize = other.GetCurrentSize();
