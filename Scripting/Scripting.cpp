@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -60,7 +60,7 @@ ScriptableListElement::ScriptableListElement(Scriptable* source, const std::stri
       bFoundOptional = true;
       m_vParameters[i] = string(m_vParameters[i].begin()+1, m_vParameters[i].end()-1);
     } else {
-      if (!bFoundOptional) 
+      if (!bFoundOptional)
         m_iMinParam++;
       // else // this else would be an syntax error case but lets just assume all parameters after the first optional parameter are also optional
     }
@@ -68,7 +68,7 @@ ScriptableListElement::ScriptableListElement(Scriptable* source, const std::stri
 }
 
 
-Scripting::Scripting(MasterController* pMasterController) : 
+Scripting::Scripting(MasterController* pMasterController) :
   m_pMasterController(pMasterController)
 {
 }
@@ -103,9 +103,9 @@ bool Scripting::ParseLine(const string& strLine) {
 
   string strMessage = "";
   bool bResult = ParseCommand(vParameters, strMessage);
-  
+
   if (!bResult) {
-    if (strMessage == "") 
+    if (strMessage == "")
       m_pMasterController->DebugOut()->printf("Input \"%s\" not understood, try \"help\"!", strLine.c_str());
     else
       m_pMasterController->DebugOut()->printf(strMessage.c_str());
@@ -139,7 +139,7 @@ bool Scripting::ParseCommand(const vector<string>& strTokenized, string& strMess
 
       m_pMasterController->DebugOut()->printf("\"%s\" %s: %s", m_ScriptableList[i]->m_strCommand.c_str(), strParams.c_str(), m_ScriptableList[i]->m_strDescription.c_str());
     }
-    
+
     return true;
   }
 
@@ -161,7 +161,7 @@ bool Scripting::ParseCommand(const vector<string>& strTokenized, string& strMess
 
 bool Scripting::ParseFile(const std::string& strFilename) {
   string line;
-  ifstream fileData(strFilename.c_str());  
+  ifstream fileData(strFilename.c_str());
 
   UINT32 iLine=0;
   if (fileData.is_open())

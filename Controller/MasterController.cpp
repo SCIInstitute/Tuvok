@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -151,7 +151,7 @@ void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
 }
 
 
-void MasterController::Filter( std::string , UINT32 , 
+void MasterController::Filter( std::string , UINT32 ,
                               void*, void *, void *, void * ) {
 };
 
@@ -213,9 +213,9 @@ bool MasterController::Execute(const std::string& strCommand, const std::vector<
     return true;
   }
   if (strCommand == "toggleoutput") {
-    m_pDebugOut->SetOutput(strParams[0] == "on", 
-                           strParams[1] == "on", 
-                           strParams[2] == "on", 
+    m_pDebugOut->SetOutput(strParams[0] == "on",
+                           strParams[1] == "on",
+                           strParams[2] == "on",
                            strParams[3] == "on");
     return true;
   }
