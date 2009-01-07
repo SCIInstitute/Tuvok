@@ -404,16 +404,19 @@ bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
 
   if(f_compressed == NULL) {
     dbg->Error(method, "Could not open %s", strFilename.c_str());
+    fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
     dbg->Error(method, "Could not open %s", strUncompressedFile.c_str());
+    fclose(f_compressed);
     return false;
   }
 
   if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
     dbg->Error(method, "Seek failed");
+    fclose(f_compressed);
     return false;
   }
 
@@ -559,11 +562,13 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
   if(f_compressed == NULL) {
     dbg->Error(method, "Could not open %s", strFilename.c_str());
     delete []buffer;
+    fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
     dbg->Error(method, "Could not open %s", strUncompressedFile.c_str());
     delete []buffer;
+    fclose(f_compressed);
     return false;
   }
 
@@ -571,6 +576,8 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
     /// \todo use strerror(errno) and actually report the damn error.
     dbg->Error(method, "Seek failed");
     delete []buffer;
+    fclose(f_inflated);
+    fclose(f_compressed);
     return false;
   }
 
@@ -578,6 +585,8 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
   if(bz_err_test(bz_err, dbg)) {
     dbg->Error(method, "Bzip library error occurred; bailing.");
     delete []buffer;
+    fclose(f_inflated);
+    fclose(f_compressed);
     return false;
   }
 
@@ -586,12 +595,16 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
     if(bz_err != BZ_STREAM_END && bz_err_test(bz_err, dbg)) {
       dbg->Error(method, "Bzip library error occurred; bailing.");
       delete []buffer;
+      fclose(f_inflated);
+      fclose(f_compressed);
       return false;
     }
     if(1 != fwrite(buffer, nbytes, 1, f_inflated)) {
       dbg->Warning(method, "%d-byte write of decompressed file failed.",
                    nbytes);
       delete []buffer;
+      fclose(f_inflated);
+      fclose(f_compressed);
       return false;
     }
   } while(bz_err == BZ_OK);
