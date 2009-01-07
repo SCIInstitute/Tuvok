@@ -1,5 +1,5 @@
 TEMPLATE          = lib
-CONFIG           += staticlib static create_prl
+CONFIG           += staticlib static create_prl warn_on
 TARGET            = Tuvok
 QTPLUGIN         += qjpeg
 VERSION           = 0.0.1
