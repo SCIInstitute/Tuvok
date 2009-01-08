@@ -41,9 +41,10 @@
 
 using namespace std;
 
-const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
+const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
+  UINT64 iPercent = iSize / 100;
 
   if (!InputData.IsOpen()) return "";
 
@@ -66,6 +67,8 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
     UINT64 iPos = 0;
     while (iPos < iSize)  {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE);
+      if (iRead == 0) break;
+
       for (size_t i = 0;i<iRead;i++) {
         pInData[i] += 128;
         aHist[pInData[i]]++;
@@ -73,6 +76,11 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
       OutputData.WriteData((unsigned char*)pInData, iRead);
       iPos += UINT64(iRead);
     }
+
+    if (iPos < iSize) {
+      m_pMasterController->DebugOut()->Warning("AbstrConverter::Process8BitsTo8Bits","Specified size and real datasize mismatch");
+    }
+
     delete [] pInData;
     strSignChangedFile = strTargetFilename;
     OutputData.Close();
@@ -82,14 +90,27 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
     unsigned char* pInData = new unsigned char[INCORESIZE];
 
     UINT64 iPos = 0;
+    UINT64 iDivLast = 0;
     while (iPos < iSize)  {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE);
+      if (iRead == 0) break;
       for (size_t i = 0;i<iRead;i++) aHist[pInData[i]]++;
       iPos += UINT64(iRead);
+
+      if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+        m_pMasterController->DebugOut()->Message("AbstrConverter::Process8BitsTo8Bits","Computing 1D Histogram (%i percent complete)", int((100*iPos)/iSize));
+        iDivLast = (100*iPos)/iSize;
+      }
     }
+
+    if (iPos < iSize) {
+      m_pMasterController->DebugOut()->Warning("AbstrConverter::Process8BitsTo8Bits","Specified size and real datasize mismatch");
+    }
+
     delete [] pInData;
     strSignChangedFile = strFilename;
   }
+  m_pMasterController->DebugOut()->Message("AbstrConverter::Process8BitsTo8Bits","1D Histogram complete");
 
   InputData.Close();
   Histogram1D.SetHistogram(aHist);
@@ -98,9 +119,10 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
 }
 
 
-const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
+const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
+  UINT64 iPercent = iSize / 100;
 
   if (!InputData.IsOpen()) return "";
 
@@ -112,8 +134,10 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
   unsigned short iMin = numeric_limits<unsigned short>::max();
   short* pInData = new short[INCORESIZE];
   UINT64 iPos = 0;
+  UINT64 iDivLast = 0;
   while (iPos < iSize)  {
     size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+    if (iRead == 0) break;
 
     for (size_t i = 0;i<iRead;i++) {
       unsigned short iValue = (bSigned) ? pInData[i] + numeric_limits<short>::max() : pInData[i];
@@ -124,7 +148,17 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
 
     iPos += UINT64(iRead);
 
+    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      iDivLast = (100*iPos)/iSize;
+    }
+
     if (iMin == 0 && iMax == 65535) break;
+  }
+
+  if (iPos < iSize) {
+    m_pMasterController->DebugOut()->Warning("AbstrConverter::QuantizeShortTo12Bits","Specified size and real datasize mismatch");
+    iSize = iPos;
   }
 
   string strQuantFile;
@@ -154,10 +188,12 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
 
     UINT64 iRange = iMax-iMin;
     
-    InputData.SeekPos(iHeaderSkip);
+    InputData.SeekStart();
     iPos = 0;
+    iDivLast = 0;
     while (iPos < iSize)  {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+
       for (size_t i = 0;i<iRead;i++) {
         unsigned short iValue = (bSigned) ? pInData[i] + numeric_limits<short>::max() : pInData[i];
         unsigned short iNewVal = min<unsigned short>(4095, (unsigned short)((UINT64(iValue-iMin) * 4095)/iRange));
@@ -165,6 +201,14 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
         aHist[iNewVal]++;
       }
       iPos += UINT64(iRead);
+
+      if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+        if (bSigned) 
+          m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", int(iMin)-numeric_limits<short>::max(), int(iMax)-numeric_limits<short>::max(), int((100*iPos)/iSize));
+        else
+          m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
+        iDivLast = (100*iPos)/iSize;
+      }
 
       OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
     }
@@ -181,9 +225,10 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
   return strQuantFile;
 }
 
-const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, size_t iSize, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
+const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
+  UINT64 iPercent = iSize / 100;
 
   if (!InputData.IsOpen()) return "";
 
@@ -192,8 +237,10 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
   float fMin = numeric_limits<float>::max();
   float* pInData = new float[INCORESIZE];
   UINT64 iPos = 0;
+  UINT64 iDivLast = 0;
   while (iPos < iSize)  {
     size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
+    if (iRead == 0) break;
 
     for (size_t i = 0;i<iRead;i++) {
       if (fMax < pInData[i]) fMax = pInData[i];
@@ -201,6 +248,17 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
     }
 
     iPos += UINT64(iRead);
+
+    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeFloatTo12Bits","Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      iDivLast = (100*iPos)/iSize;
+    }
+
+  }
+
+  if (iPos < iSize) {
+    m_pMasterController->DebugOut()->Warning("AbstrConverter::QuantizeFloatTo12Bits","Specified size and real datasize mismatch");
+    iSize = iPos;
   }
 
   // quantize
@@ -221,8 +279,9 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
   vector<UINT64> aHist(4096); 
   for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
 
-  InputData.SeekPos(iHeaderSkip);
+  InputData.SeekStart();
   iPos = 0;
+  iDivLast = 0;
   while (iPos < iSize)  {
     size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
     for (size_t i = 0;i<iRead;i++) {
@@ -233,6 +292,11 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
       aHist[iNewVal]++;
     }
     iPos += UINT64(iRead);
+
+    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeFloatTo12Bits","Quantizating to 12 bit (input data has range from %g to %g)\n%i percent complete", fMin, fMax, int((100*iPos)/iSize));
+      iDivLast = (100*iPos)/iSize;
+    }
 
     OutputData.WriteRAW((unsigned char*)pOutData, 2*iRead);
   }
