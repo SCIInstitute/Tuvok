@@ -56,6 +56,7 @@ typedef unsigned char BYTE;
 #define TUVOK_VERSION_TYPE "beta"
 
 #ifdef _WIN32
+  #undef __APPLE__
   #ifdef _WIN64
     #ifdef USE_DIRECTX
       #define TUVOK_DETAILS "Windows 64bit build with DirectX extensions"
@@ -71,8 +72,11 @@ typedef unsigned char BYTE;
   #endif
 #else
 #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+  #undef __APPLE__
+  #define __APPLE__ 1
   #define TUVOK_DETAILS "OSX build"
 #else
+  #undef __APPLE__
   #define TUVOK_DETAILS "Linux build"
 #endif
 
