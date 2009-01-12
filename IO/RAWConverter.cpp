@@ -554,20 +554,18 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
                                           + ".uncompressed";
   BZFILE *bzf;
   int bz_err;
-  char *buffer = new char[INCORESIZE];
+  std::vector<char> buffer(INCORESIZE);
 
   FILE *f_compressed = fopen(strFilename.c_str(), "rb");
   FILE *f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
   if(f_compressed == NULL) {
     dbg->Error(method, "Could not open %s", strFilename.c_str());
-    delete []buffer;
     fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
     dbg->Error(method, "Could not open %s", strUncompressedFile.c_str());
-    delete []buffer;
     fclose(f_compressed);
     return false;
   }
@@ -575,7 +573,6 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
   if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
     dbg->Error(method, "Seek failed");
-    delete []buffer;
     fclose(f_inflated);
     fclose(f_compressed);
     return false;
@@ -584,32 +581,28 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
   bzf = BZ2_bzReadOpen(&bz_err, f_compressed, 0, 0, NULL, 0);
   if(bz_err_test(bz_err, dbg)) {
     dbg->Error(method, "Bzip library error occurred; bailing.");
-    delete []buffer;
     fclose(f_inflated);
     fclose(f_compressed);
     return false;
   }
 
   do {
-    int nbytes = BZ2_bzRead(&bz_err, bzf, buffer, INCORESIZE);
+    int nbytes = BZ2_bzRead(&bz_err, bzf, &buffer[0], INCORESIZE);
     if(bz_err != BZ_STREAM_END && bz_err_test(bz_err, dbg)) {
       dbg->Error(method, "Bzip library error occurred; bailing.");
-      delete []buffer;
       fclose(f_inflated);
       fclose(f_compressed);
       return false;
     }
-    if(1 != fwrite(buffer, nbytes, 1, f_inflated)) {
+    if(1 != fwrite(&buffer[0], nbytes, 1, f_inflated)) {
       dbg->Warning(method, "%d-byte write of decompressed file failed.",
                    nbytes);
-      delete []buffer;
       fclose(f_inflated);
       fclose(f_compressed);
       return false;
     }
   } while(bz_err == BZ_OK);
 
-  delete []buffer;
   fclose(f_inflated);
   fclose(f_compressed);
 
