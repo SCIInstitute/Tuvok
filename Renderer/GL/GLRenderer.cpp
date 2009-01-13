@@ -672,11 +672,6 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     }    
 
   } else {
-    PlanHQMIPFrame();
-    m_iFilledBuffers = 0;
-    glClearColor(0,0,0,0);
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
     if (m_bOrthoView) {
       FLOATMATRIX4 maOrtho;
       UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
@@ -690,12 +685,18 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       maOrtho.setProjection();
     } 
 
+    PlanHQMIPFrame();
+    m_iFilledBuffers = 0;
+    glClearColor(0,0,0,0);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+
     RenderHQMIPPreLoop(eDirection);
 
     for (size_t iBrickIndex = 0;iBrickIndex<m_vCurrentBrickList.size();iBrickIndex++) {
       m_pMasterController->DebugOut()->Message("GLRenderer::Render2DView","Brick %i of %i", int(iBrickIndex+1),int(m_vCurrentBrickList.size()));
 
-      // convert 3D variables to the more general ND scheme used in the memory manager, e.i. convert 3-vectors to stl vectors
+      // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
       vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
       vector<UINT64> vBrick; 
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.x);
