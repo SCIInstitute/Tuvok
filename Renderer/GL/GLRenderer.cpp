@@ -41,7 +41,7 @@
 
 using namespace std;
 
-GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo) : 
+GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo) :
   AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo),
   m_fScaledIsovalue(0.0f),    // set by StartFrame
   m_fScaledCVIsovalue(0.0f),  // set by StartFrame
@@ -90,13 +90,13 @@ bool GLRenderer::Initialize() {
 
   string strPotential1DTransName = SysTools::ChangeExt(m_pDataset->Filename(), "1dt");
   string strPotential2DTransName = SysTools::ChangeExt(m_pDataset->Filename(), "2dt");
-  
-  if (SysTools::FileExists(strPotential1DTransName)) 
+
+  if (SysTools::FileExists(strPotential1DTransName))
     m_pMasterController->MemMan()->Get1DTransFromFile(strPotential1DTransName, this, &m_p1DTrans, &m_p1DTransTex);
   else
     m_pMasterController->MemMan()->GetEmpty1DTrans(m_pDataset->Get1DHistogram()->GetFilledSize(), this, &m_p1DTrans, &m_p1DTransTex);
 
-  if (SysTools::FileExists(strPotential2DTransName)) 
+  if (SysTools::FileExists(strPotential2DTransName))
     m_pMasterController->MemMan()->Get2DTransFromFile(strPotential2DTransName, this, &m_p2DTrans, &m_p2DTransTex);
   else {
     m_pMasterController->MemMan()->GetEmpty2DTrans(m_pDataset->Get2DHistogram()->GetFilledSize(), this, &m_p2DTrans, &m_p2DTransTex);
@@ -183,7 +183,7 @@ bool GLRenderer::Initialize() {
     m_pProgramComposeAnaglyphs->SetUniformVector("texLeftEye",0);
     m_pProgramComposeAnaglyphs->SetUniformVector("texRightEye",1);
     m_pProgramComposeAnaglyphs->Disable();
-    
+
   }
 
   return true;
@@ -251,11 +251,11 @@ void GLRenderer::ClearColorBuffer() {
   if (m_bDoStereoRendering) {
     // render anaglyphs agains a black background only
     glClearColor(0,0,0,0);
-    glClear(GL_COLOR_BUFFER_BIT); 
+    glClear(GL_COLOR_BUFFER_BIT);
   } else {
     if (m_vBackgroundColors[0] == m_vBackgroundColors[1]) {
       glClearColor(m_vBackgroundColors[0].x,m_vBackgroundColors[0].y,m_vBackgroundColors[0].z,0);
-      glClear(GL_COLOR_BUFFER_BIT); 
+      glClear(GL_COLOR_BUFFER_BIT);
     } else {
       glDisable(GL_BLEND);
       DrawBackGradient();
@@ -280,7 +280,7 @@ void GLRenderer::StartFrame() {
       m_pProgramIsoCompose->Enable();
       m_pProgramIsoCompose->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
       m_pProgramIsoCompose->Disable();
-    } 
+    }
 
     size_t       iMaxValue  = m_p1DTrans->GetSize();
     UINT32 iMaxRange        = UINT32(1<<m_pDataset->GetInfo()->GetBitwith());
@@ -309,12 +309,12 @@ void GLRenderer::Paint() {
                                 // plan the frame
                                 Plan3DFrame();
                                 // execute the frame
-                                bNewDataToShow = Execute3DFrame(RA_FULLSCREEN); 
+                                bNewDataToShow = Execute3DFrame(RA_FULLSCREEN);
                               }
                               break;
                           }
-       case WM_SAGITTAL : 
-       case WM_AXIAL    : 
+       case WM_SAGITTAL :
+       case WM_AXIAL    :
        case WM_CORONAL  : if (m_bPerformRedraw) bNewDataToShow = Render2DView(RA_FULLSCREEN, m_eFullWindowMode, m_piSlice[size_t(m_eFullWindowMode)]); break;
        default          : m_pMasterController->DebugOut()->Error("GLRenderer::Paint","Invalid Windowmode");
                           bNewDataToShow = false;
@@ -322,7 +322,7 @@ void GLRenderer::Paint() {
 
     }
 
-  } else { // VM_TWOBYTWO 
+  } else { // VM_TWOBYTWO
     int iActiveRenderWindows = 0;
     int iReadyWindows = 0;
 
@@ -348,16 +348,16 @@ void GLRenderer::Paint() {
                                 m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) || (m_iCurrentLODOffset > m_iMinLODForCurrentView);
                                 break;
                               }
-           case WM_SAGITTAL : 
-           case WM_AXIAL    : 
-           case WM_CORONAL  : bLocalNewDataToShow= Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]); 
+           case WM_SAGITTAL :
+           case WM_AXIAL    :
+           case WM_CORONAL  : bLocalNewDataToShow= Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
                               m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = false;
                               break;
            default          : m_pMasterController->DebugOut()->Error("GLRenderer::Paint","Invalid Windowmode");
-                              bLocalNewDataToShow = false; 
+                              bLocalNewDataToShow = false;
                               break;
         }
-        
+
         if (bLocalNewDataToShow) iReadyWindows++;
       } else {
         // blit the previous result quad to the entire screen but restrict draing to the current subarea
@@ -370,7 +370,7 @@ void GLRenderer::Paint() {
       }
     }
 
-    // if we had at least one renderwindow that was doing something and from those all are finished then 
+    // if we had at least one renderwindow that was doing something and from those all are finished then
     // set a flag so that we can display the result to the user later
     bNewDataToShow = (iActiveRenderWindows > 0) && (iReadyWindows==iActiveRenderWindows);
 
@@ -420,7 +420,7 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
   }
 
   // show the result
-  if (bNewDataToShow || m_iFilledBuffers < 2) 
+  if (bNewDataToShow || m_iFilledBuffers < 2)
     RerenderPreviousResult(true);
 
   // no complete redraw is necessary as we just finished the first pass
@@ -448,7 +448,7 @@ void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
     case RA_FULLSCREEN  : /*glScissor(0,0,m_vWinSize.x, m_vWinSize.y);*/ glDisable( GL_SCISSOR_TEST );break;
     default             : m_pMasterController->DebugOut()->Error("GLRenderer::SetRenderTargetAreaScissor","Invalid render area set"); break;
   }
-  
+
 }
 
 void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) {
@@ -481,8 +481,8 @@ void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) 
 }
 
 
-void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex, 
-                             FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords, 
+void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
+                             FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                              UINT64VECTOR3 vDomainSize, DOUBLEVECTOR3 vAspectRatio,
                              DOUBLEVECTOR2 vWinAspectRatio) {
 
@@ -585,16 +585,15 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
   }
 
   SetDataDepShaderVars();
-  
+
   // if we render a slice view or MIP preview
   if (!m_bUseMIP[size_t(eDirection)] || !m_bLODDisabled)  {
-    
     if (!m_bUseMIP[size_t(eDirection)]) {
       switch (m_eRenderMode) {
-        case RM_2DTRANS    :  m_p2DTransTex->Bind(1); 
+        case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
                               m_pProgram2DTransSlice->Enable();
                               break;
-        default            :  m_p1DTransTex->Bind(1); 
+        default            :  m_p1DTransTex->Bind(1);
                               m_pProgram1DTransSlice->Enable();
                               break;
       }
@@ -627,7 +626,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 
     // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
     vector<UINT64> vLOD; vLOD.push_back(iCurrentLOD);
-    vector<UINT64> vBrick; 
+    vector<UINT64> vBrick;
     vBrick.push_back(0);vBrick.push_back(0);vBrick.push_back(0);
 
     // get the 3D texture from the memory manager
@@ -644,7 +643,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     FLOATVECTOR3 vMaxCoords(1.0f-vMinCoords);
 
     UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
-    DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetInfo()->GetScale() * DOUBLEVECTOR3(vDomainSize);  
+    DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetInfo()->GetScale() * DOUBLEVECTOR3(vDomainSize);
 
     DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
     vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
@@ -652,7 +651,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     if (!m_bUseMIP[size_t(eDirection)]) {
         RenderSlice(eDirection, iSliceIndex, vMinCoords, vMaxCoords, vDomainSize, vAspectRatio, vWinAspectRatio);
     } else {
-      for (UINT64 i = 0;i<vDomainSize[size_t(eDirection)];i++) 
+      for (UINT64 i = 0;i<vDomainSize[size_t(eDirection)];i++)
         RenderSlice(eDirection, i, vMinCoords, vMaxCoords, vDomainSize, vAspectRatio, vWinAspectRatio);
     }
 
@@ -669,7 +668,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     if (!m_bUseMIP[size_t(eDirection)]) {
       m_pProgramMIPSlice->Disable();
       m_pFBO3DImageCurrent[1]->FinishWrite();
-    }    
+    }
 
   } else {
     if (m_bOrthoView) {
@@ -679,11 +678,11 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
       float fRoot2Scale = (vWinAspectRatio.x < vWinAspectRatio.y) ? max(1.0,1.414213f * vWinAspectRatio.x/vWinAspectRatio.y) : 1.414213f;
 
-      maOrtho.Ortho(-0.5*fRoot2Scale/vWinAspectRatio.x, +0.5*fRoot2Scale/vWinAspectRatio.x, 
-                    -0.5*fRoot2Scale/vWinAspectRatio.y, +0.5*fRoot2Scale/vWinAspectRatio.y, 
+      maOrtho.Ortho(-0.5*fRoot2Scale/vWinAspectRatio.x, +0.5*fRoot2Scale/vWinAspectRatio.x,
+                    -0.5*fRoot2Scale/vWinAspectRatio.y, +0.5*fRoot2Scale/vWinAspectRatio.y,
                     -1.0, 1.0);
       maOrtho.setProjection();
-    } 
+    }
 
     PlanHQMIPFrame();
     m_iFilledBuffers = 0;
@@ -698,7 +697,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 
       // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
       vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
-      vector<UINT64> vBrick; 
+      vector<UINT64> vBrick;
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.x);
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.y);
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.z);
@@ -841,7 +840,7 @@ void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
   GLFBOTex::OneDrawBuffer();
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
   m_pFBO3DImageCurrent[0]->FinishWrite();
-  
+
   if (m_bDoStereoRendering) {
     m_pFBO3DImageCurrent[1]->Write();
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -854,7 +853,7 @@ void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
 bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
   // are we starting a new LOD level?
   if (m_iBricksRenderedInThisSubFrame == 0) NewFrameClear(eREnderArea);
-  
+
   // if zero bricks are to be rendered we have completed the draw job
   if (m_vCurrentBrickList.size() == 0) {
     m_pMasterController->DebugOut()->Message("GLRenderer::Execute3DFrame","zero bricks are to be rendered, completed the draw job");
@@ -866,7 +865,7 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
     m_pMasterController->DebugOut()->Message("GLRenderer::Execute3DFrame","%i bricks left to render", int(UINT64(m_vCurrentBrickList.size())-m_iBricksRenderedInThisSubFrame));
 
     // setup shaders vars
-    SetDataDepShaderVars(); 
+    SetDataDepShaderVars();
 
     // Render a few bricks
     Render3DView();
@@ -876,15 +875,15 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
       m_pMasterController->DebugOut()->Message("GLRenderer::Execute3DFrame","Subframe completed.");
       return true;
     }
-  } 
+  }
   return false;
 }
 
 void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
   // clear the framebuffer
-  if (m_bClearFramebuffer) 
+  if (m_bClearFramebuffer)
     ClearColorBuffer();
- 
+
   if (bTransferToFramebuffer) {
     glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
     m_iFilledBuffers++;
@@ -1055,7 +1054,7 @@ void GLRenderer::CreateOffscreenBuffers() {
                         m_pFBO3DImageCurrent[i] = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB, 32*4, true);
                         break;
         default       : m_pMasterController->DebugOut()->Message("GLRenderer::CreateOffscreenBuffer","Invalid Blending Precision");
-                        if (i==0) m_pFBO3DImageLast = NULL; 
+                        if (i==0) m_pFBO3DImageLast = NULL;
                         m_pFBO3DImageCurrent[i] = NULL;
                         break;
       }
@@ -1142,7 +1141,7 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const s
   }
 
   // if all else fails probe current directory and all of its subdirectories
-  if (LoadAndVerifyShader(strVSFile, strFSFile, pShaderProgram, true)) 
+  if (LoadAndVerifyShader(strVSFile, strFSFile, pShaderProgram, true))
     return true;
   else
     return false;
@@ -1227,11 +1226,11 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
 
 void GLRenderer::BBoxPreRender() {
   // for rendering modes other than isosurface render the bbox in the first pass once to init the depth buffer
-  // for isosurface rendering we can go ahead and render the bbox directly as isosurfacing 
+  // for isosurface rendering we can go ahead and render the bbox directly as isosurfacing
   // writes out correct depth values
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
     glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
-    if (m_bRenderGlobalBBox) 
+    if (m_bRenderGlobalBBox)
       RenderBBox();
     if (m_bRenderLocalBBox) {
       for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
@@ -1274,7 +1273,7 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
 
 void GLRenderer::Recompose3DView(ERenderArea eArea) {
   m_pMasterController->DebugOut()->Message("GLRenderer::Recompose3DView","Recomposing...");
-  
+
   NewFrameClear(eArea);
 
   m_pFBO3DImageCurrent[0]->Write();
@@ -1301,14 +1300,14 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
   }
 }
 
-void GLRenderer::Render3DView() {  
+void GLRenderer::Render3DView() {
   // in the first frame of a new lod level write the bounding boxes into depthbuffer (and for isosurfacing also into colorbuffer)
   if (m_iBricksRenderedInThisSubFrame == 0) {
     m_pFBO3DImageCurrent[0]->Write();
     m_mProjection[0].setProjection();
     m_matModelView[0].setModelview();
     BBoxPreRender();
-    m_pFBO3DImageCurrent[0]->FinishWrite();  
+    m_pFBO3DImageCurrent[0]->FinishWrite();
     if (m_bDoStereoRendering) {
       m_pFBO3DImageCurrent[1]->Write();
       m_mProjection[1].setProjection();
@@ -1328,7 +1327,7 @@ void GLRenderer::Render3DView() {
 
     // convert 3D variables to the more general ND scheme used in the memory manager, e.i. convert 3-vectors to stl vectors
     vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
-    vector<UINT64> vBrick; 
+    vector<UINT64> vBrick;
     vBrick.push_back(m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords.x);
     vBrick.push_back(m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords.y);
     vBrick.push_back(m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords.z);
@@ -1339,7 +1338,7 @@ void GLRenderer::Render3DView() {
 
     Render3DInLoop(m_iBricksRenderedInThisSubFrame,0);
     if (m_bDoStereoRendering) {
-     
+
       if (m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords != m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords) {
         vBrick.clear();
         vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.x);
@@ -1358,14 +1357,14 @@ void GLRenderer::Render3DView() {
 
     // count the bricks rendered
     m_iBricksRenderedInThisSubFrame++;
-    
+
     // time this loop
     if (!m_bLODDisabled) timeProbe = clock();
   }
 
   Render3DPostLoop();
 
-  if (m_eRenderMode == RM_ISOSURFACE && m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {    
+  if (m_eRenderMode == RM_ISOSURFACE && m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
     m_pFBO3DImageCurrent[0]->Write();
     GLFBOTex::OneDrawBuffer();
     ComposeSurfaceImage(0);
@@ -1383,7 +1382,7 @@ void GLRenderer::Render3DView() {
     m_mProjection[0].setProjection();
     m_matModelView[0].setModelview();
     BBoxPostRender();
-    m_pFBO3DImageCurrent[0]->FinishWrite();  
+    m_pFBO3DImageCurrent[0]->FinishWrite();
     if (m_bDoStereoRendering) {
       m_pFBO3DImageCurrent[1]->Write();
       m_mProjection[1].setProjection();
@@ -1391,7 +1390,7 @@ void GLRenderer::Render3DView() {
       BBoxPostRender();
       m_pFBO3DImageCurrent[1]->FinishWrite();
     }
-  }    
+  }
 }
 
 void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
@@ -1410,7 +1409,7 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
   m_pFBOIsoHit[iStereoID]->Read(1, 1);
 
   if (m_bDoClearView) {
-    m_pProgramCVCompose->Enable(); 
+    m_pProgramCVCompose->Enable();
     m_pProgramCVCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
     m_pProgramCVCompose->SetUniformVector("vLightDiffuse2",m_vCVColor.x, m_vCVColor.y, m_vCVColor.z);
     m_pProgramCVCompose->SetUniformVector("vCVParam",m_fCVSize, m_fCVContextScale, m_fCVBorderScale);

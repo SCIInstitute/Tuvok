@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -44,10 +44,10 @@
 
 class GLTexture1D : public GLTexture {
   public:
-    GLTexture1D(UINT32 iSize, GLint internalformat, GLenum format, GLenum type, 
+    GLTexture1D(UINT32 iSize, GLint internalformat, GLenum format, GLenum type,
           UINT32 iSizePerElement,
           const void *pixels = 0,
-          GLint iMagFilter = GL_NEAREST, 
+          GLint iMagFilter = GL_NEAREST,
           GLint iMinFilter = GL_NEAREST,
           GLint wrap = GL_CLAMP);
     virtual ~GLTexture1D() {}
@@ -59,7 +59,7 @@ class GLTexture1D : public GLTexture {
     virtual void SetData(const void *pixels);
 
     virtual UINT64 GetCPUSize() {return UINT64(m_iSize*m_iSizePerElement/8);}
-    virtual UINT64 GetGPUSize() {return UINT64(m_iSize*m_iSizePerElement/8);} 
+    virtual UINT64 GetGPUSize() {return UINT64(m_iSize*m_iSizePerElement/8);}
 
     UINT32 GetSize() {return UINT32(m_iSize);}
 

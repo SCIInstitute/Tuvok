@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -36,7 +36,7 @@
 
 #include "GLTexture.h"
 #include <cassert>
-  
+
 GLTexture::~GLTexture() {
   /*! \todo We'd like to call ::Delete() here, but we're not guaranteed to be
    *        in the correct context.  Instead, we'll make sure the texture was
@@ -45,6 +45,6 @@ GLTexture::~GLTexture() {
 }
 
 void GLTexture::Delete() {
-  glDeleteTextures(1,&m_iGLID); 
+  glDeleteTextures(1,&m_iGLID);
   m_iGLID = UINT32_INVALID;
 }

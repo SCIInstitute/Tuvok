@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -75,7 +75,7 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
       return;
     }
     m_bInitialized=true;
-  }    
+  }
   glGetError();
   assert(iNumBuffers>0);
   assert(iNumBuffers<5);
@@ -87,7 +87,7 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
     m_LastAttachment[i]=GL_COLOR_ATTACHMENT0_EXT+i;
     m_hTexture[i]=0;
   }
-  if (m_hFBO==0) 
+  if (m_hFBO==0)
     initFBO();
 
   if (GL_NO_ERROR!=glGetError()) {
@@ -125,7 +125,7 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
 
 
 /**
- * Destructor: Delete texture object. If no more instances of 
+ * Destructor: Delete texture object. If no more instances of
  * GLFBOTex are around, the FBO is deleted as well.
  */
 GLFBOTex::~GLFBOTex(void) {
@@ -176,7 +176,7 @@ void GLFBOTex::initTextures(GLenum minfilter,GLenum magfilter,GLenum wrapmode, G
       case GL_LINEAR_MIPMAP_NEAREST:
       case GL_NEAREST_MIPMAP_LINEAR:
       case GL_LINEAR_MIPMAP_LINEAR:
-        do {        
+        do {
           glTexImage2D(GL_TEXTURE_2D, level, intformat, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
           width/=2;
           height/=2;
@@ -206,21 +206,21 @@ void GLFBOTex::initFBO(void) {
 bool GLFBOTex::CheckFBO(const char* method) {
   GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
   switch(status) {
-    case GL_FRAMEBUFFER_COMPLETE_EXT: 
+    case GL_FRAMEBUFFER_COMPLETE_EXT:
       return true;
-    case GL_FRAMEBUFFER_UNSUPPORTED_EXT: 
+    case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
       m_pMasterController->DebugOut()->Error("GLFBOTex:CheckFBO","%s() - Unsupported Format!",method); return false;
-    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT: 
+    case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
       m_pMasterController->DebugOut()->Error("GLFBOTex:CheckFBO","%s() - Incomplete attachment",method); return false;
-    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT: 
+    case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
       m_pMasterController->DebugOut()->Error("GLFBOTex:CheckFBO","%s() - Incomplete missing attachment",method); return false;
-    case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT: 
+    case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
       m_pMasterController->DebugOut()->Error("GLFBOTex:CheckFBO","%s() - Incomplete dimensions",method); return false;
-    case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT: 
+    case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
       m_pMasterController->DebugOut()->Error("GLFBOTex:CheckFBO","%s() - Incomplete formats",method); return false;
-    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT: 
+    case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
       m_pMasterController->DebugOut()->Error("GLFBOTex:CheckFBO","%s() - Incomplete draw buffer",method); return false;
-    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT: 
+    case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
       m_pMasterController->DebugOut()->Error("GLFBOTex:CheckFBO","%s() - Incomplete read buffer",method); return false;
     default:  return false;
   }
@@ -387,7 +387,7 @@ void VBOTex::CopyToVBO(int iBuffer) {
     void *buffer=glMapBufferARB(GL_ARRAY_BUFFER_ARB,GL_WRITE_ONLY);
     assert(buffer!=NULL);
     // copy to VBO (via CPU)
-    glReadPixels(0,0,m_iWidth,m_iHeight,GL_RGBA,GL_FLOAT, buffer);  
+    glReadPixels(0,0,m_iWidth,m_iHeight,GL_RGBA,GL_FLOAT, buffer);
     // Set everything back to normal again
     bool result=(GL_TRUE==glUnmapBufferARB(GL_ARRAY_BUFFER_ARB));
     assert(result!=GL_FALSE);
@@ -396,7 +396,7 @@ void VBOTex::CopyToVBO(int iBuffer) {
   }
 }
 
-void VBOTex::FinishWrite(int iBuffer) {  
+void VBOTex::FinishWrite(int iBuffer) {
   m_hGLFBOTex->FinishWrite(iBuffer);
 }
 

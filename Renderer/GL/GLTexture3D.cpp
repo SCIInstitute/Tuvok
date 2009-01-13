@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -37,7 +37,7 @@
 #include "GLTexture3D.h"
 
 
-GLTexture3D::GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ, GLint internalformat, GLenum format, GLenum type, 
+GLTexture3D::GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ, GLint internalformat, GLenum format, GLenum type,
              UINT32 iSizePerElement, const GLvoid *pixels, GLint iMagFilter, GLint iMinFilter, GLint wrapX, GLint wrapY, GLint wrapZ) :
   GLTexture(iSizePerElement),
   m_iSizeX(GLuint(iSizeX)),

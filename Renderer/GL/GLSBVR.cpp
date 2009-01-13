@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -148,7 +148,7 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
   float fStepScale = m_SBVRGeogen.GetOpacityCorrection();
 
   switch (m_eRenderMode) {
-    case RM_1DTRANS    :  {                    
+    case RM_1DTRANS    :  {
                             m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
                             if (m_bUseLighting)
                                 m_pProgram1DTrans[1]->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
@@ -173,7 +173,7 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
 
 void GLSBVR::Render3DPreLoop() {
   switch (m_eRenderMode) {
-    case RM_1DTRANS    :  m_p1DTransTex->Bind(1); 
+    case RM_1DTRANS    :  m_p1DTransTex->Bind(1);
                           m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
                           glEnable(GL_BLEND);
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
@@ -189,7 +189,7 @@ void GLSBVR::Render3DPreLoop() {
                             glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           }
                           break;
-    default    :  m_pMasterController->DebugOut()->Error("GLSBVR::Render3DView","Invalid rendermode set"); 
+    default    :  m_pMasterController->DebugOut()->Error("GLSBVR::Render3DView","Invalid rendermode set");
                           break;
   }
 
@@ -207,12 +207,12 @@ void GLSBVR::RenderProxyGeometry() {
 
 void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
-  
+
 
   // setup the slice generator
-  m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, 
+  m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount,
                             b.vTexcoordsMin, b.vTexcoordsMax);
-  FLOATMATRIX4 maBricktTrans; 
+  FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
   FLOATMATRIX4 maBricktModelView = maBricktTrans * m_matModelView[iStereoID];
   m_mProjection[iStereoID].setProjection();
@@ -263,18 +263,18 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
 
 void GLSBVR::Render3DPostLoop() {
-  GLRenderer::Render3DPostLoop(); 
+  GLRenderer::Render3DPostLoop();
 
   // disable the shader
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
                           glDisable(GL_BLEND);
-                          break;              
+                          break;
     case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
                           glDisable(GL_BLEND);
                           break;
     case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
-                             m_pProgramIsoNoCompose->Disable(); 
+                             m_pProgramIsoNoCompose->Disable();
                              glDisable(GL_BLEND);
                           }
                           break;
@@ -294,7 +294,7 @@ void GLSBVR::RenderHQMIPPreLoop(EWindowMode eDirection) {
 
 void GLSBVR::RenderHQMIPInLoop(const Brick& b) {
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
-  FLOATMATRIX4 maBricktTrans; 
+  FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
   FLOATMATRIX4 maBricktModelView;
   if (m_bOrthoView)
@@ -318,7 +318,7 @@ bool GLSBVR::LoadDataset(const string& strFilename) {
     UINTVECTOR3    vSize = UINTVECTOR3(m_pDataset->GetInfo()->GetDomainSize());
     FLOATVECTOR3 vAspect = FLOATVECTOR3(m_pDataset->GetInfo()->GetScale());
     vAspect /= vAspect.maxVal();
-    
+
     m_SBVRGeogen.SetVolumeData(vAspect, vSize);
     return true;
   } else return false;

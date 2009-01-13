@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -46,16 +46,16 @@
 
 class GLTexture3D : public GLTexture {
   public:
-    GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ, GLint internalformat, GLenum format, GLenum type, 
+    GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ, GLint internalformat, GLenum format, GLenum type,
           UINT32 iSizePerElement,
           const GLvoid *pixels = 0,
-          GLint iMagFilter = GL_NEAREST, 
+          GLint iMagFilter = GL_NEAREST,
           GLint iMinFilter = GL_NEAREST,
           GLint wrapX = GL_CLAMP,
           GLint wrapY = GL_CLAMP,
           GLint wrapZ = GL_CLAMP);
     virtual ~GLTexture3D() {}
-    
+
     virtual void Bind(UINT32 iUnit=0) {glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit)); glBindTexture(GL_TEXTURE_3D, m_iGLID);}
     virtual void SetData(const void *pixels);
 

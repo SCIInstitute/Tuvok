@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -79,8 +79,8 @@ class GLRenderer : public AbstrRenderer {
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
 
-    void RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex, 
-                     FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords, 
+    void RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
+                     FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                      UINT64VECTOR3 vDomainSize, DOUBLEVECTOR3 vAspectRatio,
                      DOUBLEVECTOR2 vWinAspectRatio);
 
@@ -114,7 +114,7 @@ class GLRenderer : public AbstrRenderer {
     void RerenderPreviousResult(bool bTransferToFramebuffer);
     void DrawLogo();
     void DrawBackGradient();
-    
+
     virtual void SetDataDepShaderVars();
 
     virtual void Render3DView();

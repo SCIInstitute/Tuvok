@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -34,7 +34,7 @@
 */
 
 #ifdef _WIN32
-  #pragma warning( disable : 4996 ) // disable deprecated warning 
+  #pragma warning( disable : 4996 ) // disable deprecated warning
 #endif
 
 #include "GLSLProgram.h"
@@ -52,7 +52,7 @@ GLchar AtiHackChar;
 
 /**
  * Default Constructor.
- * Initializes glew on first instantiation. 
+ * Initializes glew on first instantiation.
  * \param void
  * \return void
  * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
@@ -102,8 +102,8 @@ GLSLProgram::GLSLProgram(MasterController* pMasterController, const char *VSFile
  * \date Aug.2004
  */
 GLSLProgram::~GLSLProgram() {
-  if (IsValid()) { 
-    if (m_bGLUseARB) 
+  if (IsValid()) {
+    if (m_bGLUseARB)
       glDeleteObjectARB(m_hProgram);
     else
       glDeleteProgram(m_hProgram);
@@ -128,14 +128,14 @@ GLSLProgram::operator GLuint(void) const {
  * Initializes the class.
  * If GLSLProgram is initialized for the first time, initialize GLEW
  * \param void
- * \return bool 
+ * \return bool
  * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
  * \date Aug.2004
  * \see m_bGlewInitialized
  */
 bool GLSLProgram::Initialize(void) {
   if (!m_bGlewInitialized) {
-    if (GLEW_OK!=glewInit()) m_pMasterController->DebugOut()->Error("GLSLProgram::Initialize","GLEW initialization failed!");    
+    if (GLEW_OK!=glewInit()) m_pMasterController->DebugOut()->Error("GLSLProgram::Initialize","GLEW initialization failed!");
     m_bGlewInitialized=true;
   }
 #ifdef GLSL_DEBUG  // just in case someone wants to handle GLEW himself (by setting the static var to true) but failed to do so properly
@@ -149,13 +149,13 @@ bool GLSLProgram::Initialize(void) {
       m_pMasterController->DebugOut()->Message("GLSLProgram::Initialize","OpenGL 2.0 supported");
       m_bGLUseARB = false;
     } else { // check for ARB extensions
-      if (glewGetExtension("GL_ARB_shader_objects")) 
+      if (glewGetExtension("GL_ARB_shader_objects"))
         m_pMasterController->DebugOut()->Message("GLSLProgram::Initialize","ARB_shader_objects supported.");
       else {
         m_pMasterController->DebugOut()->Error("GLSLProgram::Initialize","Neither OpenGL 2.0 nor ARB_shader_objects not supported!");
         return false;
       }
-      if (glewGetExtension("GL_ARB_shading_language_100")) 
+      if (glewGetExtension("GL_ARB_shading_language_100"))
         m_pMasterController->DebugOut()->Message("GLSLProgram::Initialize","ARB_shading_language_100 supported.");
       else {
         m_pMasterController->DebugOut()->Message("GLSLProgram::Initialize","Neither OpenGL 2.0 nor ARB_shading_language_100 not supported!");
@@ -178,7 +178,7 @@ bool GLSLProgram::Initialize(void) {
 
       m_bGLUseARB = true;
     }
-  } 
+  }
   return true;
 }
 
@@ -234,7 +234,6 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
   }
   bool bFSSuccess=true;  // fixed function pipeline is always working
   if (FSFile!=NULL) {
-    
     hFS=LoadShader(FSFile,GL_FRAGMENT_SHADER,src);
     if (hFS!=0) m_pMasterController->DebugOut()->Message("GLSLProgram::Load","FRAGMENT SHADER: OK");
     else {
@@ -259,14 +258,14 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
           }
         }
         delete[] chVerbose;
-      } 
-    }    
+      }
+    }
   }
 
   if (m_bGLUseARB) {
     // attach to shader program
     m_hProgram=glCreateProgramObjectARB();
-    if (hVS) glAttachObjectARB(m_hProgram,hVS); 
+    if (hVS) glAttachObjectARB(m_hProgram,hVS);
     if (hFS) glAttachObjectARB(m_hProgram,hFS);
 
     // link the program together
@@ -277,10 +276,10 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
       GLint iLinked;
       glGetObjectParameterivARB(m_hProgram,GL_OBJECT_LINK_STATUS_ARB,&iLinked);
       WriteError(m_hProgram);
-        
+
       // delete temporary objects
       if (hVS) glDeleteObjectARB(hVS);
-      if (hFS) glDeleteObjectARB(hFS);  
+      if (hFS) glDeleteObjectARB(hFS);
 
       if (CheckGLError("Load()") || !iLinked) {
         glDeleteObjectARB(m_hProgram);
@@ -292,7 +291,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
       }
     } else {
       if (hVS) glDeleteObjectARB(hVS);
-      if (hFS) glDeleteObjectARB(hFS);  
+      if (hFS) glDeleteObjectARB(hFS);
       glDeleteObjectARB(m_hProgram);
       m_hProgram=0;
       m_bInitialized=false;
@@ -303,7 +302,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
   } else {
     // attach to program object
     m_hProgram=glCreateProgram();
-    if (hVS) glAttachShader(m_hProgram,hVS); 
+    if (hVS) glAttachShader(m_hProgram,hVS);
     if (hFS) glAttachShader(m_hProgram,hFS);
 
     // link the program together
@@ -316,7 +315,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
 
       std::string fileDesc = std::string("VS: ") + std::string(VSFile) + std::string("  FS:") + std::string(FSFile);
       WriteInfoLog(fileDesc.c_str(), m_hProgram, true);
-        
+
       // flag shaders such that they can be deleted when they get detached
       if (hVS) glDeleteShader(hVS);
       if (hFS) glDeleteShader(hFS);
@@ -364,7 +363,7 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bPro
     glGetShaderiv(hObject,GL_INFO_LOG_LENGTH,&iLength);
 
   GLboolean bAtMostWarnings=true;
-  if (iLength>1) {    
+  if (iLength>1) {
     char *pcLogInfo=new char[iLength];
     if (bProgram) {
       glGetProgramInfoLog(hObject,iLength,&iLength,pcLogInfo);
@@ -373,22 +372,22 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bPro
     else {
       glGetShaderInfoLog(hObject,iLength,&iLength,pcLogInfo);
       bAtMostWarnings=glIsShader(hObject);
-    }    
+    }
     if (bAtMostWarnings) {
       m_pMasterController->DebugOut()->Warning("GLSLProgram::WriteInfoLog",shaderdesc);
       m_pMasterController->DebugOut()->Warning("GLSLProgram::WriteInfoLog",pcLogInfo);
-    delete[] pcLogInfo;  
+    delete[] pcLogInfo;
     return false;
     } else {
       m_pMasterController->DebugOut()->Error("GLSLProgram::WriteInfoLog",shaderdesc);
       m_pMasterController->DebugOut()->Error("GLSLProgram::WriteInfoLog",pcLogInfo);
-    delete[] pcLogInfo;  
+    delete[] pcLogInfo;
 #ifdef GLSLPROGRAM_STRICT
     return true;
 #endif
     }
   }
-  return !bool(bAtMostWarnings==GL_TRUE); // error occured?  
+  return !bool(bAtMostWarnings==GL_TRUE); // error occured?
 }
 
 /**
@@ -478,7 +477,7 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
   if (m_bGLUseARB) {
     hShader = glCreateShaderObjectARB(Type);
     glShaderSourceARB(hShader,1,(const GLchar**)&pcShader,NULL); // upload null-terminated shader
-    glCompileShaderARB(hShader);  
+    glCompileShaderARB(hShader);
 
     // Check for errors
     if (CheckGLError("LoadProgram()")) {
@@ -526,7 +525,7 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
 void GLSLProgram::Enable(void) {
   if (m_bInitialized) {
     CheckGLError();
-    if (m_bGLUseARB) 
+    if (m_bGLUseARB)
       glUseProgramObjectARB(m_hProgram);
     else
       glUseProgram(m_hProgram);
@@ -549,7 +548,7 @@ void GLSLProgram::Enable(void) {
 void GLSLProgram::Disable(void) {
   if (m_bInitialized) {
     CheckGLError();
-    if (m_bGLUseARB) 
+    if (m_bGLUseARB)
       glUseProgramObjectARB(0);
     else
       glUseProgram(0);
@@ -604,7 +603,7 @@ bool GLSLProgram::CheckGLError(const char *pcError, const char *pcAdditional) co
       case GL_STACK_OVERFLOW:     sprintf(output,"%s - %s",pcMessage,"GL_STACK_OVERFLOW");  break;
       case GL_STACK_UNDERFLOW:    sprintf(output,"%s - %s",pcMessage,"GL_STACK_UNDERFLOW");  break;
       case GL_OUT_OF_MEMORY:      sprintf(output,"%s - %s",pcMessage,"GL_OUT_OF_MEMORY");    break;
-      default:                    sprintf(output,"%s - unknown GL_ERROR",pcError);      break;    
+      default:                    sprintf(output,"%s - unknown GL_ERROR",pcError);      break;
     }
     if (pcMessage!=pcError) delete[] pcMessage;
 
@@ -612,7 +611,7 @@ bool GLSLProgram::CheckGLError(const char *pcError, const char *pcAdditional) co
     m_pMasterController->DebugOut()->Error("GLSLProgram::CheckGLError",output);
     delete[] output;
 
-    return true;  
+    return true;
   }
 }
 #endif
@@ -625,11 +624,11 @@ bool GLSLProgram::CheckGLError(const char *pcError, const char *pcAdditional) co
   Computer Graphics and Visualization Group
     Institute for Computer Science I15
   Technical University of Munich
-  
+
 **************************************************************************************************************/
 
 /**
- * Returns true if this program is valid. 
+ * Returns true if this program is valid.
  * \param void
  * \return true if this program was initialized properly
  * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
@@ -651,11 +650,11 @@ bool GLSLProgram::IsValid(void) const {
 void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, float w) const{
   assert(m_bEnabled);
   CheckGLError();
-  
+
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -664,15 +663,15 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
 
   if(iLocation==-1) {
     m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Error getting address for %s.",name);
-    return;  
+    return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
 
-  if (CheckGLError("SetUniformVector(%s,float,...) [getting type]",name)) return;  
+  if (CheckGLError("SetUniformVector(%s,float,...) [getting type]",name)) return;
 
   switch (iType) {
     case GL_FLOAT:               glUniform1f(iLocation,x); break;
@@ -683,7 +682,7 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
     case GL_INT:
     case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D: 
+    case GL_SAMPLER_2D:
     case GL_SAMPLER_3D:
     case GL_SAMPLER_CUBE:
     case GL_SAMPLER_1D_SHADOW:
@@ -700,7 +699,7 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
     case GL_BOOL_VEC4:          glUniform4f(iLocation,x,y,z,w); break;
 #endif
 
-    default: 
+    default:
       m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name);
       break;
   }
@@ -723,11 +722,11 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
 void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool w) const {
   assert(m_bEnabled);
   CheckGLError();
-  
+
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -736,15 +735,15 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
 
   if(iLocation==-1) {
     m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Error getting address for %s.",name);
-    return;  
+    return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
 
-  if (CheckGLError("SetUniformVector(%s,bool,...) [getting type]",name)) return;  
+  if (CheckGLError("SetUniformVector(%s,bool,...) [getting type]",name)) return;
 
   switch (iType) {
     case GL_BOOL:            glUniform1i(iLocation,(x ? 1 : 0)); break;
@@ -763,8 +762,8 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
     case GL_INT_VEC4:          glUniform4i(iLocation,(x ? 1 : 0),(y ? 1 : 0),(z ? 1 : 0),(w ? 1 : 0)); break;
 #endif
 
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -790,7 +789,7 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -798,11 +797,11 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
   if (CheckGLError("SetUniformVector(%s,int,...) [getting adress]", name )) return;
   if(iLocation==-1) {
     m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Error getting address for %s.",name);
-    return;  
+    return;
   }
 
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
@@ -811,8 +810,8 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 
   switch (iType) {
     case GL_INT:
-    case GL_SAMPLER_1D: 
-    case GL_SAMPLER_2D: 
+    case GL_SAMPLER_1D:
+    case GL_SAMPLER_2D:
     case GL_SAMPLER_3D:
     case GL_SAMPLER_CUBE:
     case GL_SAMPLER_1D_SHADOW:
@@ -835,10 +834,10 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,float(x),float(y),float(z),float(w)); break;
 #endif
 
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name);
       break;
-  }  
+  }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,int,...)",name);
 #endif
@@ -855,26 +854,26 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
  * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
  * \date Aug.2004
  */
-void GLSLProgram::SetUniformVector(const char *name,const float *v) const {  
+void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
   assert(m_bEnabled);
   CheckGLError();
 
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformVector(%s,float*) [getting adress]",name)) return;  
+  if (CheckGLError("SetUniformVector(%s,float*) [getting adress]",name)) return;
 
   if(iLocation==-1) {
     m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Error getting address for %s.",name);
-    return;  
+    return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
@@ -890,7 +889,7 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
     case GL_INT:
     case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D: 
+    case GL_SAMPLER_2D:
     case GL_SAMPLER_3D:
     case GL_SAMPLER_CUBE:
     case GL_SAMPLER_1D_SHADOW:
@@ -907,8 +906,8 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
     case GL_BOOL_VEC4:          glUniform4fv(iLocation,1,v); break;
 #endif
 
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -934,7 +933,7 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -942,10 +941,10 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
   if (CheckGLError("SetUniformVector(%s,int*) [getting adress]",name)) return;
   if(iLocation==-1) {
     m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Error getting address for %s.",name);
-    return;  
+    return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
@@ -955,7 +954,7 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
   switch (iType) {
     case GL_INT:
     case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D: 
+    case GL_SAMPLER_2D:
     case GL_SAMPLER_3D:
     case GL_SAMPLER_CUBE:
     case GL_SAMPLER_1D_SHADOW:
@@ -976,8 +975,8 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
     case GL_FLOAT_VEC3:          glUniform3f(iLocation,float(i[0]),float(i[1]),float(i[2])); break;
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,float(i[0]),float(i[1]),float(i[2]),float(i[3])); break;
 #endif
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1003,7 +1002,7 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -1011,10 +1010,10 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
   if (CheckGLError("SetUniformVector(%s,bool*) [getting adress]",name)) return;
   if(iLocation==-1) {
     m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Error getting address for %s.",name);
-    return;  
+    return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
@@ -1036,8 +1035,8 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
     case GL_FLOAT_VEC3:          glUniform3f(iLocation,(b[0] ? 1.0f : 0.0f),(b[1] ? 1.0f : 0.0f),(b[2] ? 1.0f : 0.0f)); break;
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,(b[0] ? 1.0f : 0.0f),(b[1] ? 1.0f : 0.0f),(b[2] ? 1.0f : 0.0f),(b[3] ? 1.0f : 0.0f)); break;
 #endif
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformVector","Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1065,7 +1064,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -1076,7 +1075,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
     return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
@@ -1087,8 +1086,8 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
     case GL_FLOAT_MAT2:          glUniformMatrix2fv(iLocation,1,bTranspose,m); break;
     case GL_FLOAT_MAT3:          glUniformMatrix3fv(iLocation,1,bTranspose,m); break;
     case GL_FLOAT_MAT4:          glUniformMatrix4fv(iLocation,1,bTranspose,m); break;
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformMatrix","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformMatrix","Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1119,7 +1118,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -1130,7 +1129,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
     return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
@@ -1141,18 +1140,18 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
   switch (iType) {
     case GL_FLOAT_MAT2:
       for (unsigned int ui=0; ui<4; ui++) M[ui]=float(m[ui]);
-      glUniformMatrix2fv(iLocation,1,bTranspose,M); 
+      glUniformMatrix2fv(iLocation,1,bTranspose,M);
       break;
     case GL_FLOAT_MAT3:
       for (unsigned int ui=0; ui<9; ui++) M[ui]=float(m[ui]);
-      glUniformMatrix3fv(iLocation,1,bTranspose,M); 
+      glUniformMatrix3fv(iLocation,1,bTranspose,M);
       break;
     case GL_FLOAT_MAT4:
       for (unsigned int ui=0; ui<16; ui++) M[ui]=float(m[ui]);
-      glUniformMatrix4fv(iLocation,1,bTranspose,M); 
+      glUniformMatrix4fv(iLocation,1,bTranspose,M);
       break;
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformMatrix","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformMatrix","Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1181,7 +1180,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -1192,7 +1191,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
     return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
@@ -1203,18 +1202,18 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
   switch (iType) {
     case GL_FLOAT_MAT2:
       for (unsigned int ui=0; ui<4; ui++) M[ui]=(m[ui] ? 1.0f : 0.0f);
-      glUniformMatrix2fv(iLocation,1,bTranspose,M); 
+      glUniformMatrix2fv(iLocation,1,bTranspose,M);
       break;
     case GL_FLOAT_MAT3:
       for (unsigned int ui=0; ui<9; ui++) M[ui]=(m[ui] ? 1.0f : 0.0f);
-      glUniformMatrix3fv(iLocation,1,bTranspose,M); 
+      glUniformMatrix3fv(iLocation,1,bTranspose,M);
       break;
     case GL_FLOAT_MAT4:
       for (unsigned int ui=0; ui<16; ui++) M[ui]=(m[ui] ? 1.0f : 0.0f);
-      glUniformMatrix4fv(iLocation,1,bTranspose,M); 
+      glUniformMatrix4fv(iLocation,1,bTranspose,M);
       break;
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformMatrix","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformMatrix","Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1243,7 +1242,7 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -1251,10 +1250,10 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
   if (CheckGLError("SetUniformArray(%s,float*) [getting adress]",name)) return;
   if(iLocation==-1) {
     m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformArray","Error getting address for %s.",name);
-    return;  
+    return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
@@ -1276,26 +1275,26 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
     case GL_BOOL_VEC2:          glUniform2fv(iLocation,iSize,a); break;
     case GL_BOOL_VEC3:          glUniform3fv(iLocation,iSize,a); break;
     case GL_BOOL_VEC4:          glUniform4fv(iLocation,iSize,a); break;
-    
+
     case GL_INT:
     case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D: 
+    case GL_SAMPLER_2D:
     case GL_SAMPLER_3D:
     case GL_SAMPLER_CUBE:
     case GL_SAMPLER_1D_SHADOW:
     case GL_SAMPLER_2D_SHADOW:
     case GL_SAMPLER_2D_RECT_ARB:
-    case GL_SAMPLER_2D_RECT_SHADOW_ARB:    
+    case GL_SAMPLER_2D_RECT_SHADOW_ARB:
       iArray=new GLint[iSize];
       for (int i=0; i<iSize; i++) iArray[i]=int(a[i]);
-      glUniform1iv(iLocation,iSize,iArray); 
+      glUniform1iv(iLocation,iSize,iArray);
       delete[] iArray;
       break;
 
     case GL_INT_VEC2:
       iArray=new GLint[2*iSize];
       for (int i=0; i<2*iSize; i++) iArray[i]=int(a[i]);
-      glUniform2iv(iLocation,iSize,iArray); 
+      glUniform2iv(iLocation,iSize,iArray);
       delete[] iArray;
       break;
     case GL_INT_VEC3:
@@ -1312,8 +1311,8 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
       break;
 #endif
 
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformArray","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformArray","Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1340,7 +1339,7 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -1348,10 +1347,10 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
   if (CheckGLError("SetUniformArray(%s,int*) [getting adress]",name)) return;
   if(iLocation==-1) {
     m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformArray","Error getting address for %s.",name);
-    return;  
+    return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
@@ -1365,7 +1364,7 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
   switch (iType) {
     case GL_INT:
     case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D: 
+    case GL_SAMPLER_2D:
     case GL_SAMPLER_3D:
     case GL_SAMPLER_CUBE:
     case GL_SAMPLER_1D_SHADOW:
@@ -1381,17 +1380,17 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
     case GL_BOOL_VEC2:          glUniform2iv(iLocation,iSize,(const GLint*)a); break;
     case GL_BOOL_VEC3:          glUniform3iv(iLocation,iSize,(const GLint*)a); break;
     case GL_BOOL_VEC4:          glUniform4iv(iLocation,iSize,(const GLint*)a); break;
-    
+
     case GL_FLOAT:
       fArray=new float[iSize];
       for (int i=0; i<iSize; i++) fArray[i]=float(a[i]);
-      glUniform1fv(iLocation,iSize,fArray); 
+      glUniform1fv(iLocation,iSize,fArray);
       delete[] fArray;
       break;
     case GL_FLOAT_VEC2:
       fArray=new float[2*iSize];
       for (int i=0; i<2*iSize; i++) fArray[i]=float(a[i]);
-      glUniform2fv(iLocation,iSize,fArray); 
+      glUniform2fv(iLocation,iSize,fArray);
       delete[] fArray;
       break;
     case GL_FLOAT_VEC3:
@@ -1408,8 +1407,8 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
       break;
 #endif
 
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformArray","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformArray","Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1436,7 +1435,7 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
   else
     iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
@@ -1444,10 +1443,10 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
   if (CheckGLError("SetUniformArray(%s,bool*) [getting adress]",name)) return;
   if(iLocation==-1) {
    m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformArray","Error getting address for %s.",name);
-    return;  
+    return;
   }
 
-  if (m_bGLUseARB)    
+  if (m_bGLUseARB)
     glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
   else
     glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
@@ -1455,32 +1454,32 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
   if (CheckGLError("SetUniformArray(%s,bool*) [getting type]",name)) return;
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
-  float *fArray;  
+  float *fArray;
 #endif
   GLint *iArray;
   switch (iType) {
     case GL_BOOL:
       iArray=new GLint[iSize];
       for (int i=0; i<iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform1iv(iLocation,iSize,iArray); 
+      glUniform1iv(iLocation,iSize,iArray);
       delete[] iArray;
       break;
     case GL_BOOL_VEC2:
       iArray=new GLint[2*iSize];
       for (int i=0; i<2*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform2iv(iLocation,iSize,iArray); 
+      glUniform2iv(iLocation,iSize,iArray);
       delete[] iArray;
       break;
     case GL_BOOL_VEC3:
       iArray=new GLint[3*iSize];
       for (int i=0; i<3*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform3iv(iLocation,iSize,iArray); 
+      glUniform3iv(iLocation,iSize,iArray);
       delete[] iArray;
       break;
     case GL_BOOL_VEC4:
       iArray=new GLint[4*iSize];
       for (int i=0; i<4*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform4iv(iLocation,iSize,iArray); 
+      glUniform4iv(iLocation,iSize,iArray);
       delete[] iArray;
       break;
 
@@ -1488,37 +1487,37 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
     case GL_INT:
       iArray=new GLint[iSize];
       for (int i=0; i<iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform1iv(iLocation,iSize,iArray); 
+      glUniform1iv(iLocation,iSize,iArray);
       delete[] iArray;
       break;
     case GL_INT_VEC2:
       iArray=new GLint[2*iSize];
       for (int i=0; i<2*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform2iv(iLocation,iSize,iArray); 
+      glUniform2iv(iLocation,iSize,iArray);
       delete[] iArray;
       break;
     case GL_INT_VEC3:
       iArray=new GLint[3*iSize];
       for (int i=0; i<3*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform3iv(iLocation,iSize,iArray); 
+      glUniform3iv(iLocation,iSize,iArray);
       delete[] iArray;
       break;
     case GL_INT_VEC4:
       iArray=new GLint[4*iSize];
       for (int i=0; i<4*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform4iv(iLocation,iSize,iArray); 
+      glUniform4iv(iLocation,iSize,iArray);
       delete[] iArray;
       break;
     case GL_FLOAT:
       fArray=new float[iSize];
       for (int i=0; i<iSize; i++) fArray[i]=(a[i] ? 1.0f : 0.0f);
-      glUniform1fv(iLocation,iSize,fArray); 
+      glUniform1fv(iLocation,iSize,fArray);
       delete[] fArray;
       break;
     case GL_FLOAT_VEC2:
       fArray=new float[2*iSize];
       for (int i=0; i<2*iSize; i++) fArray[i]=(a[i] ? 1.0f : 0.0f);
-      glUniform2fv(iLocation,iSize,fArray); 
+      glUniform2fv(iLocation,iSize,fArray);
       delete[] fArray;
       break;
     case GL_FLOAT_VEC3:
@@ -1535,8 +1534,8 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
       break;
 #endif
 
-    default: 
-      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformArray","Unknown type for %s.",name); 
+    default:
+      m_pMasterController->DebugOut()->Error("GLSLProgram::SetUniformArray","Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG

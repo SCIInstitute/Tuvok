@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -61,7 +61,7 @@ public:
   /// \todo check how much mem an FBO really occupies
   virtual UINT64 GetCPUSize() {return m_iNumBuffers*m_iSizeX*m_iSizeY*m_iSizePerElement/8 + ((m_hDepthBuffer) ? m_iSizeX*m_iSizeY*4 : 0);}
   virtual UINT64 GetGPUSize() {return GetCPUSize();}
-  
+
   static void NoDrawBuffer() { glDrawBuffer(GL_NONE); }
   static void OneDrawBuffer() { glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT); }
   static void TwoDrawBuffers() {
@@ -69,7 +69,7 @@ public:
                              GL_COLOR_ATTACHMENT1_EXT };
     glDrawBuffers(2, twobuffers);
   }
-  
+
 private:
   MasterController    *m_pMasterController;
   unsigned int        m_iSizePerElement;
@@ -104,7 +104,7 @@ public:
   virtual void FinishReadTex(int iBuffer=0);
   virtual void Read(void);
   virtual void FinishRead(void);
-  virtual operator GLuint(void) { return m_hPBO; }  
+  virtual operator GLuint(void) { return m_hPBO; }
 
   /// \todo check how much mem an FBO really occupies
   virtual UINT64 GetCPUSize() {return m_iSizeX*m_iSizeY*m_iSizePerElement/8;}
