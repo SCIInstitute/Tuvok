@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -53,16 +53,16 @@ class Brick {
 public:
   Brick() :
     vCenter(0,0,0),
-    vExtension(0,0,0), 
-    vCoords(0,0,0) 
+    vExtension(0,0,0),
+    vCoords(0,0,0)
   {
   }
 
   Brick(UINT32 x, UINT32 y, UINT32 z, UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ) :
     vCenter(0,0,0),
-    vExtension(0,0,0), 
+    vExtension(0,0,0),
     vVoxelCount(iSizeX, iSizeY, iSizeZ),
-    vCoords(x,y,z) 
+    vCoords(x,y,z)
   {
   }
 
@@ -115,20 +115,21 @@ class AbstrRenderer {
 
     enum EWindowMode {
       WM_CORONAL = 0,
-      WM_AXIAL,   
-      WM_SAGITTAL,   
+      WM_AXIAL,
+      WM_SAGITTAL,
       WM_3D,
       WM_INVALID
     };
-    EWindowMode Get2x2Windowmode(ERenderArea eArea) {return m_e2x2WindowMode[size_t(eArea)];}
+    EWindowMode Get2x2Windowmode(ERenderArea eArea) const
+        { return m_e2x2WindowMode[size_t(eArea)]; }
     virtual void Set2x2Windowmode(ERenderArea eArea, EWindowMode eWindowMode);
-    EWindowMode GetFullWindowmode() {return m_eFullWindowMode;}
+    EWindowMode GetFullWindowmode() const { return m_eFullWindowMode; }
     virtual void SetFullWindowmode(EWindowMode eWindowMode);
     EWindowMode GetWindowUnderCursor(FLOATVECTOR2 vPos);
     FLOATVECTOR2 GetLocalCursorPos(FLOATVECTOR2 vPos);
-    
+
     enum EBlendPrecision {
-      BP_8BIT = 0,      
+      BP_8BIT = 0,
       BP_16BIT,
       BP_32BIT,
       BP_INVALID
@@ -136,11 +137,14 @@ class AbstrRenderer {
     EBlendPrecision GetBlendPrecision() {return m_eBlendPrecision;}
     virtual void SetBlendPrecision(EBlendPrecision eBlendPrecision);
 
-    bool GetUseLighting() {return m_bUseLighting;}
+    bool GetUseLighting() const { return m_bUseLighting; }
     virtual void SetUseLighting(bool bUseLighting);
 
-    /** Default settings: 1D transfer function, one by three view, white text, black BG.
-     * @param pMasterController message router */
+    /** Default settings: 1D transfer function, single-image view, white text,
+     * black BG.
+     * @param pMasterController message router
+     * @param bUseOnlyPowerOfTwo force power of two textures, for performance
+     *                           reasons. */
     AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo);
     /** Deallocates dataset and transfer functions. */
     virtual ~AbstrRenderer();
@@ -164,9 +168,11 @@ class AbstrRenderer {
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
     TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
 
-    /** Force a redraw if we're currently using a one dimensional TF. */ 
+    /** Notify renderer that 1D TF has changed.  In most cases, this will cause
+     * the renderer to start anew. */
     virtual void Changed1DTrans();
-    /** Force a redraw if we're currently using a two dimensional TF. */ 
+    /** Notify renderer that 2D TF has changed.  In most cases, this will cause
+     * the renderer to start anew. */
     virtual void Changed2DTrans();
 
     /** Sets up a gradient background which fades vertically.
@@ -192,13 +198,13 @@ class AbstrRenderer {
     FLOATVECTOR4 GetTextColor() const {return m_vTextColor;}
 
     virtual void SetSampleRateModifier(float fSampleRateModifier);
-    float GetSampleRateModifier() {return m_fSampleRateModifier;}
+    float GetSampleRateModifier() const { return m_fSampleRateModifier; }
 
     virtual void SetIsoValue(float fIsovalue);
-    float GetIsoValue() {return m_fIsovalue;}
+    float GetIsoValue() const { return m_fIsovalue; }
 
     virtual void SetIsosufaceColor(const FLOATVECTOR3& vColor);
-    virtual FLOATVECTOR3 GetIsosufaceColor()  const {return m_vIsoColor;}
+    virtual FLOATVECTOR3 GetIsosufaceColor() const { return m_vIsoColor; }
 
     virtual void SetOrthoView(bool bOrthoView);
     virtual bool GetOrthoView() const {return m_bOrthoView;}
@@ -207,7 +213,7 @@ class AbstrRenderer {
      * destroyed, causing a full redraw on the next render.
      * \param vWinSize  new width and height of the view window */
     virtual void Resize(const UINTVECTOR2& vWinSize);
-    
+
     virtual void SetRotation(const FLOATMATRIX4& mRotation);
     virtual void SetTranslation(const FLOATMATRIX4& mTranslation);
     virtual void SetSliceDepth(EWindowMode eWindow, UINT64 fSliceDepth);
@@ -219,7 +225,7 @@ class AbstrRenderer {
     bool GetGlobalBBox() {return m_bRenderGlobalBBox;}
     void SetLocalBBox(bool bRenderBBox);
     bool GetLocalBBox() {return m_bRenderLocalBBox;}
-  
+
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
     void Set2DFlipMode(EWindowMode eWindow, bool bFlipX, bool bFlipY);
     void Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlipY) const;
@@ -227,15 +233,26 @@ class AbstrRenderer {
     void SetUseMIP(EWindowMode eWindow, bool bUseMIP);
 
     // scheduling routines
-    UINT64 GetCurrentSubFrameCount() {return 1+m_iMaxLODIndex-m_iMinLODForCurrentView;}
-    UINT32 GetWorkingSubFrame() {return 1+m_iMaxLODIndex-m_iCurrentLOD;}
+    UINT64 GetCurrentSubFrameCount() const
+        { return 1+m_iMaxLODIndex-m_iMinLODForCurrentView; }
+    UINT32 GetWorkingSubFrame() const
+        { return 1+m_iMaxLODIndex-m_iCurrentLOD; }
 
-    UINT32 GetCurrentBrickCount() {return UINT32(m_vCurrentBrickList.size());}
-    UINT32 GetWorkingBrick() {return m_iBricksRenderedInThisSubFrame;}
+    UINT32 GetCurrentBrickCount() const
+        { return UINT32(m_vCurrentBrickList.size()); }
+    UINT32 GetWorkingBrick() const
+        { return m_iBricksRenderedInThisSubFrame; }
 
-    UINT32 GetFrameProgress() {return UINT32(100.0f * float(GetWorkingSubFrame()) / float(GetCurrentSubFrameCount()));}
-    UINT32 GetSubFrameProgress() {return (m_vCurrentBrickList.size() == 0) ? 100 : UINT32(100.0f * m_iBricksRenderedInThisSubFrame / float(m_vCurrentBrickList.size()));}
-    
+    UINT32 GetFrameProgress() const {
+        return UINT32(100.0f * float(GetWorkingSubFrame()) /
+                      float(GetCurrentSubFrameCount()));
+    }
+    UINT32 GetSubFrameProgress() const {
+        return (m_vCurrentBrickList.size() == 0) ? 100 :
+                UINT32(100.0f * m_iBricksRenderedInThisSubFrame /
+                float(m_vCurrentBrickList.size()));
+    }
+
     void SetTimeSlice(UINT32 iMSecs) {m_iTimeSliceMSecs = iMSecs;}
     void SetPerfMeasures(UINT32 iMinFramerate, UINT32 iStartDelay) {m_iMinFramerate = iMinFramerate; m_iStartDelay = iStartDelay;}
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {m_pDataset->GetInfo()->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();}

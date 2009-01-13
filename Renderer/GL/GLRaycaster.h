@@ -52,7 +52,8 @@ class GLRaycaster : public GLRenderer {
   public:
     /** Constructs a VRer with immediate redraw, and
      * wireframe mode off.
-     * \param pMasterController message routing object */
+     * \param pMasterController message routing object
+     * \param bUseOnlyPowerOfTwo force power of two textures (performance) */
     GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo);
     virtual ~GLRaycaster();
 
@@ -74,7 +75,7 @@ class GLRaycaster : public GLRenderer {
     virtual void CreateOffscreenBuffers();
     void RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend,
                    const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords,
-                   bool bCullBack, int iStereoID);
+                   bool bCullBack, int iStereoID) const;
 
     virtual void Render3DPreLoop();
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
@@ -89,7 +90,7 @@ class GLRaycaster : public GLRenderer {
 
     FLOATMATRIX4 ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                            FLOATVECTOR3 p2, FLOATVECTOR3 t2,
-                                           int iStereoID);
+                                           int iStereoID) const;
 };
 
 #endif // GLRAYCASTER_H

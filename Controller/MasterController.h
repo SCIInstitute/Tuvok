@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -85,7 +85,7 @@ public:
   AbstrRenderer* RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOfTwo);
   /// Indicate that a renderer is no longer needed.
   void ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer);
-    
+
   /// Connects a new debug output stream.
   /// If necessary, the old stream is deallocated.
   /// \param debugOut      the new stream
@@ -96,7 +96,7 @@ public:
   void RemoveDebugOut(AbstrDebugOut* debugOut);
 
   /// Access the currently-active debug stream.
-  AbstrDebugOut* DebugOut() {return m_pDebugOut;}
+  AbstrDebugOut* DebugOut() { return m_pDebugOut; }
   /// Whether this controller owns the debug stream.
   bool           DoDeleteDebugOut() {return m_bDeleteDebugOutOnExit;}
   /// The GPU memory manager moves data from CPU to GPU memory, and
@@ -126,7 +126,7 @@ private:
   IOManager*     m_pIOManager;
   AbstrDebugOut* m_pDebugOut;
   Scripting*     m_pScriptEngine;
-  bool           m_bDeleteDebugOutOnExit;  
+  bool           m_bDeleteDebugOutOnExit;
 
   AbstrRendererList m_vVolumeRenderer;
 };

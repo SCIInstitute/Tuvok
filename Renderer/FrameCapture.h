@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -50,14 +50,15 @@ class FrameCapture {
     FrameCapture() {}
     virtual ~FrameCapture() {}
 
-    virtual bool CaptureSingleFrame(const std::string& strFilename) = 0;
+    virtual bool CaptureSingleFrame(const std::string& strFilename) const = 0;
     bool CaptureSequenceFrame(const std::string& strFilename, std::string* strRealFilename=NULL) {
       std::string strSequenceName = SysTools::FindNextSequenceName(strFilename);
       if (strRealFilename) (*strRealFilename) = strSequenceName;
       return CaptureSingleFrame(strSequenceName);
     }
   protected:
-    bool SaveImage(const std::string& strFilename, const UINTVECTOR2& vSize, unsigned char* pData) {
+    bool SaveImage(const std::string& strFilename, const UINTVECTOR2& vSize,
+                   unsigned char* pData) const {
       QImage qTargetFile(QSize(vSize.x, vSize.y), QImage::Format_ARGB32);
 
       size_t i = 0;

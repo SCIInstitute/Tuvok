@@ -223,7 +223,7 @@ bool GLFBOTex::CheckFBO(const char* method) {
     case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT: 
       m_pMasterController->DebugOut()->Error("GLFBOTex:CheckFBO","%s() - Incomplete read buffer",method); return false;
     default:  return false;
-  }  
+  }
 }
 
 // ************************************************************************************************************************************************************

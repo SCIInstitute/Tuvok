@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -27,12 +27,12 @@
 */
 
 /**
-  \file     Vectors.h
-  \brief    Vector, matrix, and quaternion templates with additional OpenGL and Direct3D features
-  \author   Jens Krueger
-            SCI Institute
-            University of Utah
-  \version  3.0
+  \file    Vectors.h
+  \brief   Vector, matrix, and quaternion templates with additional OpenGL and Direct3D features
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \version 3.0
   \date    December 2008
 */
 
@@ -72,22 +72,22 @@
 #include <assert.h>
 
 #ifdef WIN32
-  #pragma warning( disable : 4995 ) // disable deprecated warning 
+  #pragma warning( disable : 4995 ) // disable deprecated warning
 #endif
 #include <ostream>
 #ifdef WIN32
-  #pragma warning( default : 4995 ) 
+  #pragma warning( default : 4995 )
 #endif
 
 #ifdef WIN32
   #pragma warning( disable : 4201 )  // Disable warning messages about nameless union
-  
+
   #ifdef USEDX
     #pragma message("    [vectors.h] Using DX extensions.\n")
 //  #else
 //    #pragma message("    [vectors.h] NOT using DX extensions.\n")
   #endif
-  
+
   #ifdef USEGL
     #pragma message("    [vectors.h] Using GL extensions.\n")
 //  #else
@@ -110,7 +110,7 @@ public:
   VECTOR2<T>(const T* vec) : x(vec[0]), y(vec[1]) {}
 
   bool operator == ( const VECTOR2<T>& other ) const {return (other.x==x && other.y==y); }
-  bool operator != ( const VECTOR2<T>& other ) const {return (other.x!=x || other.y!=y); } 
+  bool operator != ( const VECTOR2<T>& other ) const {return (other.x!=x || other.y!=y); }
 
     // binary operators with scalars
   VECTOR2<T> operator + ( T scalar ) const {return VECTOR2<T>(x+scalar,y+scalar);}
@@ -168,7 +168,7 @@ public:
     return vOut;
   }
 
-  void StoreMin(const VECTOR2<T> &other) {  
+  void StoreMin(const VECTOR2<T> &other) {
     x = std::min(x,other.x);
     y = std::min(y,other.y);
   }
@@ -215,7 +215,7 @@ public:
 
 
   bool operator == ( const VECTOR3<T>& other ) const {return (other.x==x && other.y==y && other.z==z); }
-  bool operator != ( const VECTOR3<T>& other ) const {return (other.x!=x || other.y!=y || other.z!=z); } 
+  bool operator != ( const VECTOR3<T>& other ) const {return (other.x!=x || other.y!=y || other.z!=z); }
 
     // binary operators with scalars
   VECTOR3<T> operator + ( T scalar ) const {return VECTOR3<T>(x+scalar,y+scalar,z+scalar);}
@@ -298,7 +298,7 @@ public:
     return vOut;
   }
 
-  void StoreMin(const VECTOR3<T> &other) {  
+  void StoreMin(const VECTOR3<T> &other) {
     x = std::min(x,other.x);
     y = std::min(y,other.y);
     z = std::min(z,other.z);
@@ -309,7 +309,7 @@ public:
     y = std::max(y,other.y);
     z = std::max(z,other.z);
   }
-  
+
   #ifdef USEDX
     VECTOR3(const D3DXVECTOR3 &other): x(T(other.x)), y(T(other.y)), z(T(other.z)) {}
     VECTOR3(const D3DXVECTOR4 &other): x(T(other.x)), y(T(other.y)), z(T(other.z)) {}
@@ -356,7 +356,7 @@ public:
   VECTOR4<T>(const T* vec) : x(vec[0]), y(vec[1]), z(vec[2]), w(vec[3]) {}
 
   bool operator == ( const VECTOR4<T>& other ) const {return (other.x==x && other.y==y && other.z==z && other.w==w); }
-  bool operator != ( const VECTOR4<T>& other ) const {return (other.x!=x || other.y!=y || other.z!=z || other.w!=w); } 
+  bool operator != ( const VECTOR4<T>& other ) const {return (other.x!=x || other.y!=y || other.z!=z || other.w!=w); }
 
     // binary operators with scalars
   VECTOR4<T> operator + ( T scalar ) const {return VECTOR4<T>(x+scalar,y+scalar,z+scalar,w+scalar);}
@@ -424,7 +424,7 @@ public:
     return vOut;
   }
 
-  void StoreMin(const VECTOR4<T> &other) {  
+  void StoreMin(const VECTOR4<T> &other) {
     x = std::min(x,other.x);
     y = std::min(y,other.y);
     z = std::min(z,other.z);
@@ -507,7 +507,7 @@ public:
     };
     T array[9];
   };
-  
+
   MATRIX2() : m11(1), m12(0),
         m21(0), m22(1) {};
   MATRIX2( const T *e ) : m11(e[0]),  m12(e[1]),
@@ -520,7 +520,7 @@ public:
                                   m21(other.m21), m22(other.m22) {};
   MATRIX2( const VECTOR2<T> *rows ) : m11(rows[0].x), m12(rows[0].y),
                     m21(rows[1].x), m22(rows[1].y) {};
-    MATRIX2(T _m11, T _m12, T _m21, T _m22) : m11(_m11), m12(_m12), 
+    MATRIX2(T _m11, T _m12, T _m21, T _m22) : m11(_m11), m12(_m12),
                         m21(_m21), m22(_m22) {};
 
   bool operator == ( const MATRIX2<T>& other ) const {return (other.m11==m11 && other.m12==m12 && other.m21==m21 && other.m22==m22); }
@@ -549,7 +549,7 @@ public:
     MATRIX2<T> result;
 
     for (int x = 0;x<4;x+=2)
-      for (int y = 0;y<2;y++) 
+      for (int y = 0;y<2;y++)
         result[x+y] = array[0+x]*other.array[0+y] + array[1+x]*other.array[2+y];
 
     return result;
@@ -607,8 +607,8 @@ public:
                                 other.m31!=m31 || other.m32!=m32 || other.m33!=m33); }
 
 
-  friend std::ostream& operator<<(std::ostream &os,const MATRIX3<T>& m){os << m.m11 << '\t' << m.m12 << '\t' << m.m13 << '\n' 
-                                       << m.m21 << '\t' << m.m22 << '\t' << m.m23 << '\n' 
+  friend std::ostream& operator<<(std::ostream &os,const MATRIX3<T>& m){os << m.m11 << '\t' << m.m12 << '\t' << m.m13 << '\n'
+                                       << m.m21 << '\t' << m.m22 << '\t' << m.m23 << '\n'
                                        << m.m31 << '\t' << m.m32 << '\t' << m.m33; return os;}
 
   operator T*(void) {return &m11;}
@@ -619,7 +619,7 @@ public:
   MATRIX3<T> operator * ( const MATRIX3<T>& other ) const {
     MATRIX3<T> result;
     for (int x = 0;x<9;x+=3)
-      for (int y = 0;y<3;y++) 
+      for (int y = 0;y<3;y++)
         result[x+y] = array[1+x]  * other.array[0+y]+
                       array[2+x]  * other.array[3+y]+
                       array[3+x]  * other.array[6+y];
@@ -748,7 +748,7 @@ public:
       glMatrixMode(GL_MODELVIEW);
       glMultMatrixf(M);
     }
-    
+
     void setModelview() {
       float M[16];
       M[0] = float(m11);  M[1] = float(m12);  M[2] = float(m13);  M[3] = 0;
@@ -773,7 +773,7 @@ public:
     };
     T array[16];
   };
-  
+
   MATRIX4() : m11(1), m12(0), m13(0), m14(0),
               m21(0), m22(1), m23(0), m24(0),
               m31(0), m32(0), m33(1), m34(0),
@@ -797,7 +797,7 @@ public:
   MATRIX4(T _m11, T _m12, T _m13, T _m14,
           T _m21, T _m22, T _m23, T _m24,
           T _m31, T _m32, T _m33, T _m34,
-          T _m41, T _m42, T _m43, T _m44) : 
+          T _m41, T _m42, T _m43, T _m44) :
       m11(_m11), m12(_m12), m13(_m13), m14(_m14),
       m21(_m21), m22(_m22), m23(_m23), m24(_m24),
       m31(_m31), m32(_m32), m33(_m33), m34(_m34),
@@ -812,9 +812,9 @@ public:
                                 other.m31!=m31 || other.m32!=m32 || other.m33!=m33 || other.m34!=m34 ||
                                 other.m41!=m41 || other.m42!=m42 || other.m43!=m43 || other.m44!=m44); }
 
-  friend std::ostream& operator<<(std::ostream &os,const MATRIX4<T>& m){os << m.m11 << '\t' << m.m12 << '\t' << m.m13 << '\t' << m.m14 << '\n' 
-                                       << m.m21 << '\t' << m.m22 << '\t' << m.m23 << '\t' << m.m24 << '\n' 
-                                       << m.m31 << '\t' << m.m32 << '\t' << m.m33 << '\t' << m.m34 << '\n' 
+  friend std::ostream& operator<<(std::ostream &os,const MATRIX4<T>& m){os << m.m11 << '\t' << m.m12 << '\t' << m.m13 << '\t' << m.m14 << '\n'
+                                       << m.m21 << '\t' << m.m22 << '\t' << m.m23 << '\t' << m.m24 << '\n'
+                                       << m.m31 << '\t' << m.m32 << '\t' << m.m33 << '\t' << m.m34 << '\n'
                                        << m.m41 << '\t' << m.m42 << '\t' << m.m43 << '\t' << m.m44 ; return os;}
 
   operator T*(void) {return &m11;}
@@ -845,7 +845,7 @@ public:
   MATRIX4<T> operator * ( const MATRIX4<T>& other ) const {
     MATRIX4<T> result;
     for (int x = 0;x<16;x+=4)
-      for (int y = 0;y<4;y++) 
+      for (int y = 0;y<4;y++)
         result[x+y] = array[0+x] * other.array[0+y]+
                       array[1+x] * other.array[4+y]+
                       array[2+x] * other.array[8+y]+
@@ -961,7 +961,7 @@ public:
           m14* (m23 *( m32 * m41 - m42 * m31)+
             m22 *( m31 * m43 - m41 * m33));
 
-    result.m11 =  ( m24  * m32  * m43 
+    result.m11 =  ( m24  * m32  * m43
         + m44 * m22  * m33
         - m44 * m23  * m32
         - m34 * m22  * m43
@@ -974,9 +974,9 @@ public:
         + m24  * m31  * m43
         - m24  * m41 * m33)/Q;
     result.m31 = (- m21  * m34 * m42
-        + m21  * m44 * m32 
-        - m44 * m31  * m22 
-        - m24  * m41 * m32 
+        + m21  * m44 * m32
+        - m44 * m31  * m22
+        - m24  * m41 * m32
         + m34 * m41 * m22
         + m24  * m31  * m42)/Q;
       result.m41 =  -(m21  * m32  * m43
@@ -986,21 +986,21 @@ public:
         - m31  * m22  * m43
         + m42 * m23  * m31)/Q;
     /// 2
-    result.m12 = (- m12  * m44 * m33 
-        + m12  * m34 * m43 
-        - m34 * m13  * m42 
-        - m14  * m32  * m43 
-        + m44 * m13  * m32 
+    result.m12 = (- m12  * m44 * m33
+        + m12  * m34 * m43
+        - m34 * m13  * m42
+        - m14  * m32  * m43
+        + m44 * m13  * m32
         + m14  * m42 * m33)/Q;
 
-    result.m22 = (- m44 * m13  * m31 
-        + m44 * m11  * m33 
-        - m34 * m11  * m43 
-        - m14  * m41 * m33 
-        + m34 * m13  * m41 
+    result.m22 = (- m44 * m13  * m31
+        + m44 * m11  * m33
+        - m34 * m11  * m43
+        - m14  * m41 * m33
+        + m34 * m13  * m41
         + m14  * m31  * m43)/Q;
 
-    result.m32 = -(-m12  * m44 * m31 
+    result.m32 = -(-m12  * m44 * m31
         + m12  * m34 * m41
         + m44 * m11  * m32
         - m14  * m32  * m41
@@ -1040,7 +1040,7 @@ public:
         - m13  * m41 * m22
         - m23  * m11  * m42
         + m23  * m12  * m41
-        + m13  * m21  * m42)/Q;  
+        + m13  * m21  * m42)/Q;
     /// 4
     result.m14 = (- m12  * m34 * m23
         + m12  * m24  * m33
@@ -1101,7 +1101,7 @@ public:
       T right   =   fAspect * wd2 + T(iEyeID)*fShift;
       T top     =   wd2;
       T bottom  = - wd2;
-      
+
       // projection matrix
       mProj.MatrixPerspectiveOffCenter(left, right, bottom, top, fZNear, fZFar);
 
@@ -1125,7 +1125,7 @@ public:
       T right   =   fAspect * wd2 + fShift;
       T top     =   wd2;
       T bottom  = - wd2;
-      
+
       // projection matrices
       mProjLeft.MatrixPerspectiveOffCenter(left, right, bottom, top, fZNear, fZFar);
       left    = - fAspect * wd2 - fShift;
@@ -1141,13 +1141,13 @@ public:
 
       mTranslate.Translation(fEyeDist, 0.0f, 0.0f);
       mViewLeft = mTranslate * mViewLeft;
-      
+
       mTranslate.Translation(-fEyeDist, 0.0f, 0.0f);
       mViewRight = mTranslate * mViewRight;
     }
 
     void BuildLookAt(const VECTOR3<T> vEye, const VECTOR3<T> vAt, const VECTOR3<T> vUp) {
-      VECTOR3<T> F = vAt-vEye;  
+      VECTOR3<T> F = vAt-vEye;
       VECTOR3<T> U = vUp;
       VECTOR3<T> S = F % U;
       U = S % F;
@@ -1244,7 +1244,7 @@ typedef MATRIX4<double> DOUBLEMATRIX4;
 
 template <class T> class QUATERNION4 {
 public:
-  float x, y, z, w;  
+  float x, y, z, w;
 
   QUATERNION4<T>(): x(0), y(0),z(0), w(0) {}
   QUATERNION4<T>(T _x, T _y, T _z, T _w): x(_x), y(_y), z(_z), w(_w) {}
@@ -1281,7 +1281,7 @@ public:
   }
 
   bool operator == ( const QUATERNION4<T>& other ) const {return (other.x==x && other.y==y && other.z==z && other.w==w); }
-  bool operator != ( const QUATERNION4<T>& other ) const {return (other.x!=x || other.y!=y || other.z!=z || other.w!=w); } 
+  bool operator != ( const QUATERNION4<T>& other ) const {return (other.x!=x || other.y!=y || other.z!=z || other.w!=w); }
 
   // binary operators with other quaternions
   QUATERNION4<T> operator + ( const QUATERNION4<T>& other ) const {return QUATERNION4<T>(x+other.x,y+other.y,z+other.z,w+other.w);}
@@ -1292,7 +1292,7 @@ public:
 
     T _w = w * other.w - (v1 ^ v2);
     VECTOR3<T> _v = (v2 * w) + (v1 * other.w) + (v1 % v2);
-    
+
     return QUATERNION4<T>(_v.x, _v.y, _v.z, _w);
   }
 
@@ -1313,6 +1313,5 @@ public:
 
 typedef QUATERNION4<float>  FLOATQUATERNION4;
 typedef QUATERNION4<double> DOUBLEQUATERNION4;
-
 
 #endif // VECTORS_H

@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -77,7 +77,7 @@ typedef enum {
 
 class MasterController;
 
-/** 
+/**
  * Wrapper for handling OpenGL 2.0 conformant program objects.
  * \class GLSLProgram
  * \version 1.0c
@@ -95,16 +95,16 @@ public:
   void Enable(void);                                                                            ///< Enables this shader for rendering.
   void Disable(void);                                                                           ///< Disables this shader for rendering (using fixed function pipeline again).
   operator GLuint(void) const;                                                                  ///< Returns the handle of this shader.
-  
-  bool IsValid(void);    ///< returns true if this program is valid
+
+  bool IsValid(void) const;    ///< returns true if this program is valid
 
   void SetUniformVector(const char *name,float x=0.0f, float y=0.0f, float z=0.0f, float w=0.0f) const;  ///< Sets an uniform parameter.
   void SetUniformVector(const char *name,int x=0, int y=0, int z=0, int w=0) const;            ///< Sets an uniform parameter.
   void SetUniformVector(const char *name,bool x=false, bool y=false,  bool z=false, bool w=false) const;  ///< Sets an uniform parameter.
-  void SetUniformVector(const char *name,const float *v) const;    ///< Sets an uniform parameter.  
-  void SetUniformVector(const char *name,const int *i) const;    ///< Sets an uniform parameter.  
-  void SetUniformVector(const char *name,const bool *b) const;    ///< Sets an uniform parameter.  
-  
+  void SetUniformVector(const char *name,const float *v) const;    ///< Sets an uniform parameter.
+  void SetUniformVector(const char *name,const int *i) const;    ///< Sets an uniform parameter.
+  void SetUniformVector(const char *name,const bool *b) const;    ///< Sets an uniform parameter.
+
   void SetUniformMatrix(const char *name,const float *m,bool bTranspose=false) const;    ///< Sets an uniform matrix. Matrices are always float.
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
@@ -128,11 +128,10 @@ private:
   MasterController*   m_pMasterController;
   bool                m_bInitialized;
   bool                m_bEnabled;
-  GLuint              m_hProgram;  
+  GLuint              m_hProgram;
   static bool         m_bGlewInitialized;
   static bool         m_bGLChecked;
   static bool         m_bGLUseARB;
-
 };
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS

@@ -28,10 +28,10 @@
 
 /**
   \file    AbstrDebugOut.h
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \version  1.0
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \version 1.0
   \date    August 2008
 */
 
@@ -115,10 +115,10 @@ protected:
     bool                      m_bShowOther;
 
     bool                      m_bRecordLists[3];
+
     std::deque< std::string > m_strErrorList;
     std::deque< std::string > m_strWarningList;
     std::deque< std::string > m_strMessageList;
-
 };
 
 #endif // ABSTRDEBUGOUT_H

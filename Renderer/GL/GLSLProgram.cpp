@@ -635,7 +635,7 @@ bool GLSLProgram::CheckGLError(const char *pcError, const char *pcAdditional) co
  * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
  * \date Jun.2005
  */
-bool GLSLProgram::IsValid(void) {
+bool GLSLProgram::IsValid(void) const {
   return m_bInitialized;
 }
 

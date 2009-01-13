@@ -62,10 +62,11 @@ public:
   virtual UINT64 GetCPUSize() {return m_iNumBuffers*m_iSizeX*m_iSizeY*m_iSizePerElement/8 + ((m_hDepthBuffer) ? m_iSizeX*m_iSizeY*4 : 0);}
   virtual UINT64 GetGPUSize() {return GetCPUSize();}
   
-  static void NoDrawBuffer() {glDrawBuffer(GL_NONE);}
-  static void OneDrawBuffer() {glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);}
+  static void NoDrawBuffer() { glDrawBuffer(GL_NONE); }
+  static void OneDrawBuffer() { glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT); }
   static void TwoDrawBuffers() {
-    GLenum twobuffers[]  = { GL_COLOR_ATTACHMENT0_EXT, GL_COLOR_ATTACHMENT1_EXT };
+    GLenum twobuffers[]  = { GL_COLOR_ATTACHMENT0_EXT,
+                             GL_COLOR_ATTACHMENT1_EXT };
     glDrawBuffers(2, twobuffers);
   }
   

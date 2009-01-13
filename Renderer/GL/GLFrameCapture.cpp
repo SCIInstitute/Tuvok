@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -37,7 +37,7 @@
 #include "GLFrameCapture.h"
 #include "GLInclude.h"
 
-bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename) {
+bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename) const {
   GLint viewport[4];
   glGetIntegerv(GL_VIEWPORT, viewport);
 

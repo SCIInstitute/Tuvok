@@ -188,7 +188,7 @@ void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurre
 
 }
 
-void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend, const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords, bool bCullBack, int iStereoID) {
+void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend, const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords, bool bCullBack, int iStereoID) const  {
   if (bCullBack) {
     glCullFace(GL_BACK);
   } else {
@@ -206,40 +206,39 @@ void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vEx
                                              FLOATVECTOR3(vMinCoords.x, vMinCoords.y, vMinCoords.z),
                                              iStereoID);
 
-
   m.setTextureMatrix();
 
   glBegin(GL_QUADS);
     // BACK
-    glVertex3f( vMaxPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f( vMinPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f( vMinPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f( vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
+    glVertex3f(vMaxPoint.x, vMinPoint.y, vMinPoint.z);
+    glVertex3f(vMinPoint.x, vMinPoint.y, vMinPoint.z);
+    glVertex3f(vMinPoint.x, vMaxPoint.y, vMinPoint.z);
+    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
     // FRONT
-    glVertex3f( vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f( vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f( vMinPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f( vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
+    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
+    glVertex3f(vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
+    glVertex3f(vMinPoint.x, vMinPoint.y, vMaxPoint.z);
+    glVertex3f(vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
     // LEFT
-    glVertex3f( vMinPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f( vMinPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f( vMinPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f( vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
+    glVertex3f(vMinPoint.x, vMaxPoint.y, vMinPoint.z);
+    glVertex3f(vMinPoint.x, vMinPoint.y, vMinPoint.z);
+    glVertex3f(vMinPoint.x, vMinPoint.y, vMaxPoint.z);
+    glVertex3f(vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
     // RIGHT
-    glVertex3f( vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f( vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f( vMaxPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f( vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
+    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
+    glVertex3f(vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
+    glVertex3f(vMaxPoint.x, vMinPoint.y, vMinPoint.z);
+    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
     // BOTTOM
-    glVertex3f( vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f( vMinPoint.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f( vMinPoint.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f( vMaxPoint.x, vMinPoint.y, vMinPoint.z);
+    glVertex3f(vMaxPoint.x, vMinPoint.y, vMaxPoint.z);
+    glVertex3f(vMinPoint.x, vMinPoint.y, vMaxPoint.z);
+    glVertex3f(vMinPoint.x, vMinPoint.y, vMinPoint.z);
+    glVertex3f(vMaxPoint.x, vMinPoint.y, vMinPoint.z);
     // TOP
-    glVertex3f( vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f( vMinPoint.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f( vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
-    glVertex3f( vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
+    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMinPoint.z);
+    glVertex3f(vMinPoint.x, vMaxPoint.y, vMinPoint.z);
+    glVertex3f(vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
+    glVertex3f(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
   glEnd();
 }
 
@@ -499,7 +498,7 @@ void GLRaycaster::SetDataDepShaderVars() {
 
 FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                                     FLOATVECTOR3 p2, FLOATVECTOR3 t2,
-                                                    int iStereoID) {
+                                                    int iStereoID) const {
   FLOATMATRIX4 m;
 
   FLOATMATRIX4 mInvModelView = m_matModelView[iStereoID].inverse();
