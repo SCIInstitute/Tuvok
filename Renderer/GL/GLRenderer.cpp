@@ -631,7 +631,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 
     // get the 3D texture from the memory manager
     GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, 0, m_iFrameCounter);
-    if(t!=NULL) t->Bind(0);
+    if(t) t->Bind(0);
 
     // clear the target at the beginning
     SetRenderTargetAreaScissor(eREnderArea);

@@ -249,7 +249,7 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester, Transfer
 }
 
 void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction1D** ppTransferFunction1D, GLTexture1D** tex) {
-  m_MasterController->DebugOut()->Message("GPUMemMan::Get1DTransFromFile","Loading 2D transfer function from file");
+  m_MasterController->DebugOut()->Message("GPUMemMan::Get1DTransFromFile","Loading 1D transfer function from file");
   *ppTransferFunction1D = new TransferFunction1D(strFilename);
 
   unsigned char* pcData = NULL;
@@ -444,6 +444,12 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
       
       // no suitable brick found -> randomly delete bricks until this brick fits into memory
       while (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
+
+        if (m_vpTex3DList.size() == 0) {  // in this case we do not have enougth memory to page in a single block, then we are in trouble
+          m_MasterController->DebugOut()->Error("GPUMemMan::Get3DTexture","  Note enougth memory to page in a brick into memory, aborting (MaxMem=%ikb, NeededMem=%ikb).", int(m_SystemInfo->GetMaxUsableCPUMem()/1024), int(iNeededCPUMemory/1024));
+          return NULL;
+        }
+
         size_t iIndex = size_t(rand()%m_vpTex3DList.size());  // theoretically this means that if we have more than MAX_RAND bricks we always pick the first, but who cares ...
 
         if (m_vpTex3DList[iIndex]->iUserCount == 0) {
