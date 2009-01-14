@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -28,9 +28,9 @@
 
 /**
   \file    SystemInfo.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    July 2008
 */
 
@@ -51,6 +51,8 @@
     #include <sys/sysctl.h>
   #else
     #include <sys/sysinfo.h>
+    #include <cerrno>
+    #include <cstdio>
   #endif
 #endif
 
@@ -87,7 +89,7 @@ SystemInfo::SystemInfo(UINT64 iDefaultCPUMemSize, UINT64 iDefaultGPUMemSize) :
 UINT32 SystemInfo::ComputeNumCPUs() {
   #ifdef _WIN32
     SYSTEM_INFO siSysInfo;
-    GetSystemInfo(&siSysInfo); 
+    GetSystemInfo(&siSysInfo);
     return siSysInfo.dwNumberOfProcessors;
   #else
     #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
@@ -113,7 +115,10 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
       return phys;
     #else
       struct sysinfo si;
-      if(sysinfo(&si) != 0) return 0;
+      if(sysinfo(&si) != 0) {
+        perror("sysinfo failed:");
+        return 0;
+      }
       return UINT64(si.totalram); // * UINT64(si*mem_unit);
     #endif
   #endif
