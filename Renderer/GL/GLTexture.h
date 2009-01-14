@@ -60,11 +60,13 @@ class GLTexture : public GLObject {
 
     /** Removes this texture from the OpenGL context. */
     virtual void Delete();
+
     /** Initializes the texture data with the given data. */
     virtual void SetData(const void *pixels) = 0;
     virtual void Bind(UINT32 iUnit=0) = 0;
+
     /** \return The OpenGL identifier for this texture. */
-    GLuint GetGLID() {return m_iGLID;}
+    GLuint GetGLID() const {return m_iGLID;}
 
   protected:
     GLuint  m_iGLID;

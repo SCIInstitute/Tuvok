@@ -28,9 +28,9 @@
 
 /**
   \file    GLTexture1D.h
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    August 2008
 */
 
@@ -61,8 +61,7 @@ class GLTexture1D : public GLTexture {
     virtual UINT64 GetCPUSize() {return UINT64(m_iSize*m_iSizePerElement/8);}
     virtual UINT64 GetGPUSize() {return UINT64(m_iSize*m_iSizePerElement/8);}
 
-    UINT32 GetSize() {return UINT32(m_iSize);}
-
+    UINT32 GetSize() const {return UINT32(m_iSize);}
 
   protected:
     GLuint m_iSize;

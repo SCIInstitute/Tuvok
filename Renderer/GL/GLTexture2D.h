@@ -28,9 +28,9 @@
 
 /**
   \file    GLTexture2D.h
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    August 2008
 */
 
@@ -61,7 +61,7 @@ class GLTexture2D : public GLTexture {
     virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement/8);}
     virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement/8);}
 
-    UINTVECTOR2 GetSize() {return UINTVECTOR2(UINT32(m_iSizeX), UINT32(m_iSizeY));}
+    UINTVECTOR2 GetSize() const {return UINTVECTOR2(UINT32(m_iSizeX), UINT32(m_iSizeY));}
 
   protected:
     GLuint m_iSizeX;
@@ -69,7 +69,6 @@ class GLTexture2D : public GLTexture {
     GLint  m_internalformat;
     GLenum m_format;
     GLenum m_type;
-
 };
 
 #endif // GLTEXTURE2D_H

@@ -28,9 +28,9 @@
 
 /**
   \file    GLSBVR.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    August 2008
 */
 
@@ -50,7 +50,6 @@ GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo) :
 }
 
 GLSBVR::~GLSBVR() {
-
 }
 
 void GLSBVR::Cleanup() {

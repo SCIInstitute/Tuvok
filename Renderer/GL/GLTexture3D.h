@@ -28,9 +28,9 @@
 
 /**
   \file    GLTexture3D.h
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    August 2008
 */
 
@@ -59,9 +59,10 @@ class GLTexture3D : public GLTexture {
     virtual void Bind(UINT32 iUnit=0) {glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit)); glBindTexture(GL_TEXTURE_3D, m_iGLID);}
     virtual void SetData(const void *pixels);
 
-    UINTVECTOR3 GetSize() {return UINTVECTOR3(UINT32(m_iSizeX),UINT32(m_iSizeY),UINT32(m_iSizeZ));}
     virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement/8);}
     virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement/8);}
+
+    UINTVECTOR3 GetSize() const {return UINTVECTOR3(UINT32(m_iSizeX),UINT32(m_iSizeY),UINT32(m_iSizeZ));}
 
   protected:
     GLuint m_iSizeX;
