@@ -45,15 +45,18 @@
 class SystemInfo
 {
 public:
-  SystemInfo();
+  SystemInfo(UINT64 iDefaultCPUMemSize=UINT64(32)*UINT64(1024)*UINT64(1024)*UINT64(1024), UINT64 iDefaultGPUMemSize=UINT64(8)*UINT64(1024)*UINT64(1024)*UINT64(1024));
 
   UINT32 GetProgrammBitWith() {return m_iProgrammBitWith;}
   UINT64 GetCPUMemSize() {return m_iCPUMemSize;}
   UINT64 GetGPUMemSize() {return m_iGPUMemSize;}
+  bool IsCPUSizeComputed() {return m_bIsCPUSizeComputed;}
+  bool IsGPUSizeComputed() {return m_bIsGPUSizeComputed;}
   UINT64 GetMaxUsableCPUMem() {return m_iUseMaxCPUMem;}
   UINT64 GetMaxUsableGPUMem() {return m_iUseMaxGPUMem;}
   void SetMaxUsableCPUMem(UINT64 iUseMaxCPUMem) {m_iUseMaxCPUMem = iUseMaxCPUMem;}
   void SetMaxUsableGPUMem(UINT64 iUseMaxGPUMem) {m_iUseMaxGPUMem = iUseMaxGPUMem;}
+  bool IsNumberOfCPUsComputed() {return m_bIsNumberOfCPUsComputed;}
   UINT32 GetNumberOfCPUs() {return m_iNumberOfCPUs;}
 
 private:
@@ -62,11 +65,16 @@ private:
   UINT64 ComputeGPUMemory();
 
   UINT32  m_iProgrammBitWith;
-  UINT64  m_iCPUMemSize;
   UINT64  m_iUseMaxCPUMem;
-  UINT64  m_iGPUMemSize;
   UINT64  m_iUseMaxGPUMem;
+  UINT64  m_iCPUMemSize;
+  UINT64  m_iGPUMemSize;
   UINT32  m_iNumberOfCPUs;
+
+  bool m_bIsCPUSizeComputed;
+  bool m_bIsGPUSizeComputed;
+  bool m_bIsNumberOfCPUsComputed;
+
 };
 
 #endif // SYSTEMINFO_H

@@ -55,15 +55,33 @@
 #endif
 
 
-SystemInfo::SystemInfo() :
-  m_iUseMaxCPUMem(0),
-  m_iUseMaxGPUMem(0)
-
+SystemInfo::SystemInfo(UINT64 iDefaultCPUMemSize, UINT64 iDefaultGPUMemSize) :
+  m_iProgrammBitWith(sizeof(void*)*8),
+  m_iUseMaxCPUMem(iDefaultCPUMemSize),
+  m_iUseMaxGPUMem(iDefaultGPUMemSize),
+  m_iCPUMemSize(iDefaultCPUMemSize),
+  m_iGPUMemSize(iDefaultGPUMemSize),
+  m_bIsCPUSizeComputed(false),
+  m_bIsGPUSizeComputed(false),
+  m_bIsNumberOfCPUsComputed(false)
 {
-  m_iProgrammBitWith = sizeof(void*)*8;
-  m_iNumberOfCPUs = ComputeNumCPUs();
-  m_iCPUMemSize   = ComputeCPUMemSize();
-  m_iGPUMemSize   = ComputeGPUMemory();
+  UINT32 iNumberOfCPUs = ComputeNumCPUs();
+  if (iNumberOfCPUs > 0) {
+    m_iNumberOfCPUs = iNumberOfCPUs;
+    m_bIsNumberOfCPUsComputed = true;
+  }
+
+  UINT64 iCPUMemSize = ComputeCPUMemSize();
+  if (iCPUMemSize > 0) {
+    m_iCPUMemSize = iCPUMemSize;
+    m_bIsCPUSizeComputed = true;
+  }
+
+  UINT64 iGPUMemSize = ComputeGPUMemory();
+  if (iGPUMemSize > 0) {
+    m_iGPUMemSize = iGPUMemSize;
+    m_bIsGPUSizeComputed = true;
+  }
 }
 
 UINT32 SystemInfo::ComputeNumCPUs() {
