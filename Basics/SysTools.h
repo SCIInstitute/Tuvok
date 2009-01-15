@@ -86,11 +86,13 @@ namespace SysTools {
       return !(iss >> f >> t).fail();
   }
 
+  /*
   template <typename T> bool FromString(T& t, const std::wstring& s, std::ios_base& (*f)(std::ios_base&) = std::dec)
   {
       std::iwstringstream iss(s);
       return !(iss >> f >> t).fail();
   }
+  */
 
   std::wstring ToLowerCase(const std::wstring& str);
   std::string ToLowerCase(const std::string& str);
