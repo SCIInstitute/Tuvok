@@ -94,18 +94,18 @@ bool QVISConverter::Convert(const std::string& strSourceFilename, const std::str
       strRAWFile = objectfilename->strValue;
 
     KeyValPair* resolution = parser.GetData("RESOLUTION");
-    if (resolution == NULL) {
+    if (resolution == NULL || resolution->vuiValue.size() != 3) {
       pMasterController->DebugOut()->Warning("QVISConverter::Convert","This is not a valid QVIS dat file.");
       return false; 
     } else 
-      vVolumeSize = resolution->vuiValue;
+      vVolumeSize = UINTVECTOR3(resolution->vuiValue);
 
     KeyValPair* sliceThickness = parser.GetData("SLICETHICKNESS");
-    if (sliceThickness == NULL) {
+    if (sliceThickness == NULL || sliceThickness->vuiValue.size() != 3) {
       pMasterController->DebugOut()->Warning("QVISConverter::Convert","This is not a valid QVIS dat file.");
       vVolumeAspect = FLOATVECTOR3(1,1,1);
     } else {
-      vVolumeAspect = sliceThickness->vfValue;
+      vVolumeAspect = FLOATVECTOR3(sliceThickness->vfValue);
       vVolumeAspect = vVolumeAspect / vVolumeAspect.maxVal();
     }
 

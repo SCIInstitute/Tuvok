@@ -86,13 +86,12 @@ namespace SysTools {
       return !(iss >> f >> t).fail();
   }
 
-  /*
+  
   template <typename T> bool FromString(T& t, const std::wstring& s, std::ios_base& (*f)(std::ios_base&) = std::dec)
   {
-      std::iwstringstream iss(s);
+      std::wistringstream iss(s);
       return !(iss >> f >> t).fail();
-  }
-  */
+  }  
 
   std::wstring ToLowerCase(const std::wstring& str);
   std::string ToLowerCase(const std::string& str);
@@ -100,6 +99,7 @@ namespace SysTools {
   std::string ToUpperCase(const std::string& str);
 
   std::vector< std::string > Tokenize(const std::string& strInput, bool bQuoteprotect=true);
+  std::vector< std::wstring > Tokenize(const std::wstring& strInput, bool bQuoteprotect=true);
 
   std::string GetFromResourceOnMac(const std::string& fileName);
   std::wstring GetFromResourceOnMac(const std::wstring& fileName);

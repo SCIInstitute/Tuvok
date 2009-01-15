@@ -95,6 +95,35 @@ namespace SysTools {
     }
   }
 
+  vector< wstring > Tokenize(const wstring& strInput, bool bQuoteprotect) {
+    if (bQuoteprotect) {
+      wstring buf;
+      wstringstream ss(strInput); 
+      vector<wstring> strElements;
+      bool bProtected = false;
+      while (ss >> buf) {
+        wstring cleanBuf = buf;
+        if (cleanBuf[0] == '\"') cleanBuf = cleanBuf.substr(1, cleanBuf.length()-1);
+        if (cleanBuf[cleanBuf.size()-1] == '\"') cleanBuf = cleanBuf.substr(0, cleanBuf.length()-1);
+
+        if (bProtected)
+          strElements[strElements.size()-1] = strElements[strElements.size()-1] + L" " + cleanBuf;
+        else
+          strElements.push_back(cleanBuf);
+
+        if (buf[0] == '\"')            bProtected = true;
+        if (buf[buf.size()-1] == '\"') bProtected = false;
+      }
+      return strElements;
+    } else {
+      wstring buf;
+      wstringstream ss(strInput); 
+      vector<wstring> strElements;
+      while (ss >> buf) strElements.push_back(buf);
+      return strElements;
+    }
+  }
+
   string GetFromResourceOnMac(const string& strFileName) {
 
 

@@ -44,6 +44,7 @@
 #include <Basics/SysTools.h>
 
 using namespace std;
+using namespace SysTools;
 
 
 KeyValPair::KeyValPair() : 
@@ -51,17 +52,10 @@ KeyValPair::KeyValPair() :
   wstrKey(L""),
   strKeyUpper(""),
   wstrKeyUpper(L""),
-
   strValue(""),
   wstrValue(L""),
   strValueUpper(""),
-  wstrValueUpper(L""),
-  uiValue(0),
-  iValue(0),
-  fValue(0),
-  viValue(0,0,0),
-  vfValue(0,0,0)
-
+  wstrValueUpper(L"")
 {}
 
 KeyValPair::KeyValPair(const string& key, const string& value) :
@@ -71,18 +65,11 @@ KeyValPair::KeyValPair(const string& key, const string& value) :
   strValue(value),
   wstrValue(value.begin(), value.end())
 {
-  istringstream ss1( value ), ss2( value ), ss3( value ), ss4( value ), ss5( value ), ss6( value );
-  ss1 >> uiValue;
-  ss2 >> iValue;
-  ss3 >> fValue;
-  ss4 >> viValue.x >> viValue.y >> viValue.z;
-  ss5 >> vuiValue.x >> vuiValue.y >> vuiValue.z;
-  ss6 >> vfValue.x >> vfValue.y >> vfValue.z;
-
-  strKeyUpper  = strKey; transform(strKeyUpper.begin(), strKeyUpper.end(), strKeyUpper.begin(), ::toupper);
-  wstrKeyUpper = wstrKey; transform(wstrKeyUpper.begin(), wstrKeyUpper.end(), wstrKeyUpper.begin(), ::toupper);
-  strValueUpper  = strValue; transform(strValueUpper.begin(), strValueUpper.end(), strValueUpper.begin(), ::toupper);
-  wstrValueUpper  = wstrValue; transform(wstrValueUpper.begin(), wstrValueUpper.end(), wstrValueUpper.begin(), ::toupper);
+  vstrValue = Tokenize(value);
+  for (size_t i = 0;i<vstrValue.size();i++) {
+    vwstrValue.push_back(wstring(vstrValue[i].begin(), vstrValue[i].end()));
+  }    
+  FillDerivedData();
 }
 
 KeyValPair::KeyValPair(const wstring& key, const wstring& value) :
@@ -92,18 +79,50 @@ KeyValPair::KeyValPair(const wstring& key, const wstring& value) :
   strValue(value.begin(), value.end()),
   wstrValue(value)
 {
-  wistringstream ss1( value ), ss2( value ), ss3( value ), ss4( value ), ss5( value ), ss6( value );
-  ss1 >> uiValue;
-  ss2 >> iValue;
-  ss3 >> fValue;
-  ss4 >> viValue.x >> viValue.y >> viValue.z;
-  ss5 >> vuiValue.x >> vuiValue.y >> vuiValue.z;
-  ss6 >> vfValue.x >> vfValue.y >> vfValue.z;
+  vwstrValue = Tokenize(value);
+  for (size_t i = 0;i<vwstrValue.size();i++) {
+    vstrValue.push_back(string(vwstrValue[i].begin(), vwstrValue[i].end()));
+  }
+  FillDerivedData();
+}
 
-  strKeyUpper  = strKey; transform(strKeyUpper.begin(), strKeyUpper.end(), strKeyUpper.begin(), ::toupper);
-  wstrKeyUpper = wstrKey; transform(wstrKeyUpper.begin(), wstrKeyUpper.end(), wstrKeyUpper.begin(), ::toupper);
-  strValueUpper  = strValue; transform(strValueUpper.begin(), strValueUpper.end(), strValueUpper.begin(), ::toupper);
-  wstrValueUpper  = wstrValue; transform(wstrValueUpper.begin(), wstrValueUpper.end(), wstrValueUpper.begin(), ::toupper);
+void KeyValPair::FillDerivedData() {
+  int    _iValue;
+  UINT32 _uiValue;
+  float  _fValue;
+
+
+  for (size_t i = 0;i<vwstrValue.size();i++) {
+    if (FromString(_iValue, vstrValue[i])) 
+      viValue.push_back(_iValue);
+    else 
+      viValue.push_back(0);
+
+    if (FromString(_uiValue, vstrValue[i])) 
+      vuiValue.push_back(_uiValue);
+    else 
+      vuiValue.push_back(0);
+
+    if (FromString(_fValue, vstrValue[i])) 
+      vfValue.push_back(_fValue);
+    else 
+      vfValue.push_back(0.0f);
+  }
+
+  if (vwstrValue.size() > 0) {
+    iValue  = viValue[0];
+    uiValue = vuiValue[0];
+    fValue  = vfValue[0];
+  } else {
+    iValue  = 0;
+    uiValue = 0;
+    fValue  = 0.0f;
+  }
+
+  strKeyUpper  = ToUpperCase(strKey);
+  wstrKeyUpper = ToUpperCase(wstrKey);
+  strValueUpper  = ToUpperCase(strValue);
+  wstrValueUpper  = ToUpperCase(wstrValue);
 }
 
 
@@ -158,7 +177,7 @@ bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnE
     while (! fileData.eof() )
     {
       getline (fileData,line);
-      SysTools::RemoveLeadingWhitespace(line);
+      RemoveLeadingWhitespace(line);
 
       if ((strEndToken != "" && strEndToken == line) ||
           (bStopOnEmptyLine && line.size() == 0))  {
@@ -170,11 +189,11 @@ bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnE
       if (line.find_first_of(strToken) == string::npos) continue;  // skip invalid lines
 
       string strKey = line.substr(0, line.find_first_of(strToken));
-      SysTools::RemoveTailingWhitespace(strKey);
+      RemoveTailingWhitespace(strKey);
 
       line = line.substr(line.find_first_of(strToken)+strToken.length(), line.length());
-      SysTools::RemoveLeadingWhitespace(line);
-      SysTools::RemoveTailingWhitespace(line);
+      RemoveLeadingWhitespace(line);
+      RemoveTailingWhitespace(line);
 
       if (strKey.length() == 0 || line.length() == 0) continue;
 

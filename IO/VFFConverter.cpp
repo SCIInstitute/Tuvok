@@ -75,7 +75,7 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
   // read data
   UINT64        iComponentSize=8;
   UINT64        iComponentCount=1;
-  UINTVECTOR3    vVolumeSize(1,1,1);
+  UINTVECTOR3   vVolumeSize(1,1,1);
   FLOATVECTOR3  vVolumeAspect(1,1,1);
 
   string strHeaderEnd;

@@ -199,11 +199,11 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
   }
 
   glGetError();
-  if (!m_bIsPaddedToPowerOfTwo || (MathTools::IsPow2(vSize[0]) && MathTools::IsPow2(vSize[1]) && MathTools::IsPow2(vSize[2]))) {   
+  if (!m_bIsPaddedToPowerOfTwo || (MathTools::IsPow2(UINT32(vSize[0])) && MathTools::IsPow2(UINT32(vSize[1])) && MathTools::IsPow2(UINT32(vSize[2])))) {   
     pTexture = new GLTexture3D(UINT32(vSize[0]), UINT32(vSize[1]), UINT32(vSize[2]), glInternalformat, glFormat, glType, UINT32(iBitWidth*iCompCount), pData, GL_LINEAR, GL_LINEAR);
   } else {
     // pad the data to a power of two
-    UINTVECTOR3 vPaddedSize(MathTools::NextPow2(vSize[0]), MathTools::NextPow2(vSize[1]), MathTools::NextPow2(vSize[2]));
+    UINTVECTOR3 vPaddedSize(MathTools::NextPow2(UINT32(vSize[0])), MathTools::NextPow2(UINT32(vSize[1])), MathTools::NextPow2(UINT32(vSize[2])));
 
     size_t iTarget = 0;
     size_t iSource = 0;

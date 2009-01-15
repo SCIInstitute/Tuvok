@@ -79,7 +79,7 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
   UINT64        iComponentCount=1;
   bool          bSigned=false;
   bool          bBigEndian=false;
-  UINTVECTOR3    vVolumeSize;
+  UINTVECTOR3   vVolumeSize(1,1,1);
   FLOATVECTOR3  vVolumeAspect(1,1,1);
   string        strRAWFile;
 
@@ -134,23 +134,37 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     }
   }
 
-  KeyValPair* kvpDim = parser.GetData("DIMENSION");
-  if (kvpDim == NULL) {
-    pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"dimension\" in file %s", strSourceFilename.c_str());
-    return false;
-  } else {
-    if (kvpDim->iValue != 3)  {
-      pMasterController->DebugOut()->Error("NRRDConverter::Convert","Only 3D NRRDs are supported at the moment");
-      return false;
-     }
-  }
 
   KeyValPair* kvpSizes = parser.GetData("SIZES");
   if (kvpSizes == NULL) {
     pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"sizes\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
-    vVolumeSize = kvpSizes->vuiValue;
+
+    size_t j = 0;
+    for (size_t i = 0;i<kvpSizes->vuiValue.size();i++) {
+      if (kvpSizes->vuiValue[i] > 1) {
+        if (j>2) {
+          pMasterController->DebugOut()->Error("NRRDConverter::Convert","Only 3D NRRDs are supported at the moment");
+          return false;
+        }
+        vVolumeSize[j] = kvpSizes->vuiValue[i];
+        j++;
+      }
+    }
+  }
+
+  KeyValPair* kvpDim = parser.GetData("DIMENSION");
+  if (kvpDim == NULL) {
+    pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"dimension\" in file %s", strSourceFilename.c_str());
+    return false;
+  } else {
+    if (kvpDim->iValue < 3)  {
+      pMasterController->DebugOut()->Warning("NRRDConverter::Convert","The dimension of this NRRD file is less than three.");
+    }
+    if (kvpDim->iValue > 3)  {
+      pMasterController->DebugOut()->Warning("NRRDConverter::Convert","The dimension of this NRRD file is more than three.");
+    }
   }
 
   UINT64 iHeaderSkip;
@@ -170,7 +184,14 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
 
   KeyValPair* kvpSpacings = parser.GetData("SPACINGS");
   if (kvpSpacings != NULL) {
-    vVolumeAspect = kvpSpacings->vfValue;
+    size_t j = 0;
+    for (size_t i = 0;i<kvpSizes->vuiValue.size();i++) {
+      if (kvpSpacings->vfValue.size() <= i) break;
+      if (kvpSizes->vuiValue[i] > 1) {
+        vVolumeAspect[j] = kvpSpacings->vfValue[i];
+        j++;
+      }
+    }
   }
 
   KeyValPair* kvpEndian = parser.GetData("ENDIAN");

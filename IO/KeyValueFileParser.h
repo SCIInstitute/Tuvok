@@ -65,16 +65,21 @@ public:
   std::wstring  wstrKeyUpper;
 
   // values
-  std::string   strValue;
-  std::wstring  wstrValue;
-  std::string   strValueUpper;
-  std::wstring  wstrValueUpper;
-  UINT32        uiValue;
-  int           iValue;
-  float         fValue;
-  INTVECTOR3    viValue;
-  UINTVECTOR3   vuiValue;
-  FLOATVECTOR3  vfValue;
+  std::string               strValue;
+  std::wstring              wstrValue;
+  std::string               strValueUpper;
+  std::wstring              wstrValueUpper;
+  int                       iValue;
+  UINT32                    uiValue;
+  float                     fValue;
+  std::vector<int>          viValue;
+  std::vector<UINT32>       vuiValue;
+  std::vector<float>        vfValue;
+  std::vector<std::string>  vstrValue;
+  std::vector<std::wstring> vwstrValue;
+
+private:
+  void FillDerivedData();
 };
 
 
