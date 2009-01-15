@@ -50,9 +50,11 @@
   #ifdef TUVOK_OS_APPLE
     #include <sys/sysctl.h>
   #else
-    #include <sys/sysinfo.h>
     #include <cerrno>
     #include <cstdio>
+    #include <sys/resource.h>
+    #include <sys/sysinfo.h>
+    #include <sys/time.h>
   #endif
 #endif
 
@@ -100,6 +102,17 @@ UINT32 SystemInfo::ComputeNumCPUs() {
   #endif
 }
 
+#ifdef __linux__
+static unsigned long sysinfo_mem() {
+  struct sysinfo si;
+  if(sysinfo(&si) < 0) {
+    perror("sysinfo");
+    return 0;
+  }
+  return si.totalram;
+}
+#endif
+
 UINT64 SystemInfo::ComputeCPUMemSize() {
   #ifdef _WIN32
     MEMORYSTATUSEX statex;
@@ -114,12 +127,25 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
       if (sysctl(mib, 2, &phys, &len, NULL, 0) != 0) return 0;
       return phys;
     #else
-      struct sysinfo si;
-      if(sysinfo(&si) != 0) {
-        perror("sysinfo failed:");
-        return 0;
+      struct rlimit limit;
+      // RLIMIT_MEMLOCK returns 32768 (that's *bytes*) on my 6gb-RAM system, so
+      // that number is worthless to us.
+      // This isn't great, because it gets the entire data segment size
+      // allowable, not just the heap size ...
+      if(getrlimit(RLIMIT_DATA, &limit) != 0) {
+        perror("getrlimit");
+        // Try sysinfo before failing outright.
+        return static_cast<UINT64>(sysinfo_mem());
       }
-      return UINT64(si.totalram); // * UINT64(si.mem_unit);
+      // Frequently the information given by getrlimit(2) is essentially
+      // worthless, because it assumes we don't care about swapping.
+      if(limit.rlim_cur == RLIM_INFINITY || limit.rlim_max == RLIM_INFINITY) {
+#ifndef NDEBUG
+        fputs("getrlimit gave useless info, falling back on sysinfo\n", stderr);
+#endif
+        return static_cast<UINT64>(sysinfo_mem());
+      }
+      return limit.rlim_max;
     #endif
   #endif
 }
