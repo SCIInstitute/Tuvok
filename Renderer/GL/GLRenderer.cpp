@@ -1149,7 +1149,7 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const s
 
 bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs) {
 
-#if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+#ifdef TUVOK_OS_APPLE
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strVSFile))) strVSFile = SysTools::GetFromResourceOnMac(strVSFile);
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strFSFile))) strFSFile = SysTools::GetFromResourceOnMac(strFSFile);
 #endif

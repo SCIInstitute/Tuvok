@@ -57,7 +57,7 @@
   // #include "../../3rdParty/GLEW/glxew.h" // glxew and QT do not really like each other
 #endif
 
-#if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+#ifdef TUVOK_OS_APPLE
   #include <OpenGL/gl.h>
 #else
   #include <GL/gl.h>

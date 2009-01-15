@@ -47,7 +47,7 @@
   #undef min
   #endif
 #else
-  #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+  #ifdef TUVOK_OS_APPLE
     #include <sys/sysctl.h>
   #else
     #include <sys/sysinfo.h>
@@ -92,7 +92,7 @@ UINT32 SystemInfo::ComputeNumCPUs() {
     GetSystemInfo(&siSysInfo);
     return siSysInfo.dwNumberOfProcessors;
   #else
-    #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+    #ifdef TUVOK_OS_APPLE
       return 0;
     #else
       return 0;
@@ -107,7 +107,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
     GlobalMemoryStatusEx (&statex);
     return statex.ullTotalPhys;
   #else
-    #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+    #ifdef TUVOK_OS_APPLE
       UINT64 phys = 0;
       int mib[2] = { CTL_HW, HW_PHYSMEM };
       size_t len = sizeof(phys);
@@ -119,7 +119,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
         perror("sysinfo failed:");
         return 0;
       }
-      return UINT64(si.totalram); // * UINT64(si*mem_unit);
+      return UINT64(si.totalram); // * UINT64(si.mem_unit);
     #endif
   #endif
 }
@@ -184,7 +184,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
 #else
   UINT64 SystemInfo::ComputeGPUMemory( )
   {
-    #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+    #ifdef TUVOK_OS_APPLE
       return 0;
     #else
       return 0;

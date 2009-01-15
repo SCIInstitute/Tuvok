@@ -41,6 +41,15 @@
 
 #include <limits>
 
+// undef stupid windows defines to max and min
+#ifdef max
+#undef max
+#endif
+
+#ifdef min
+#undef min
+#endif
+
 #ifdef _WIN32
   typedef unsigned __int64 UINT64;
 #else
@@ -49,14 +58,41 @@
 typedef unsigned int UINT32;
 typedef unsigned char BYTE;
 
-#define UNUSED 0
-#define UNUSED_FLOAT 0.0f
-#define UNUSED_DOUBLE 0.0
+#define UNUSED (0)
+#define UNUSED_FLOAT (0.0f)
+#define UNUSED_DOUBLE (0.0)
+#define UINT32_INVALID (std::numeric_limits<UINT32>::max())
+#define UINT64_INVALID (std::numeric_limits<UINT64>::max())
+
 #define TUVOK_VERSION 0.052
 #define TUVOK_VERSION_TYPE "beta"
 
+// undef all OS types first
+#ifdef TUVOK_OS_WINDOWS
+#undef TUVOK_OS_WINDOWS
+#endif
+
+#ifdef TUVOK_OS_APPLE
+#undef TUVOK_OS_APPLE
+#endif
+
+#ifdef TUVOK_OS_UNIX
+#undef TUVOK_OS_UNIX
+#endif
+
+// now figure out which OS we are compiling on
 #ifdef _WIN32
-  #undef __APPLE__
+  #define TUVOK_OS_WINDOWS
+#else
+  #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+    #define TUVOK_OS_APPLE
+  #else
+    #define TUVOK_OS_UNIX
+  #endif
+#endif
+
+// set some strings to reflect that OS
+#ifdef TUVOK_OS_WINDOWS
   #ifdef _WIN64
     #ifdef USE_DIRECTX
       #define TUVOK_DETAILS "Windows 64bit build with DirectX extensions"
@@ -70,29 +106,14 @@ typedef unsigned char BYTE;
       #define TUVOK_DETAILS "Windows 32bit build"
     #endif
   #endif
-#else
-#if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
-  #undef __APPLE__
-  #define __APPLE__ 1
+#endif
+
+#ifdef TUVOK_OS_APPLE
   #define TUVOK_DETAILS "OSX build"
-#else
-  #undef __APPLE__
+#endif
+
+#ifdef TUVOK_OS_UNIX
   #define TUVOK_DETAILS "Linux build"
 #endif
-
-#endif
-
-// undef stupid windows defines to max and min
-#ifdef max
-#undef max
-#endif
-
-#ifdef min
-#undef min
-#endif
-
-#define UINT32_INVALID (std::numeric_limits<UINT32>::max())
-#define UINT64_INVALID (std::numeric_limits<UINT64>::max())
-
 
 #endif // STDTUVOKDEFINES_H
