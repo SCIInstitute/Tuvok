@@ -72,7 +72,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bClearFramebuffer(true),
   m_iCurrentLOD(0),
   m_iBricksRenderedInThisSubFrame(0),
-  m_bLODDisabled(false),
+  m_bCaptureMode(false),
+  m_bMIPLOD(true),
   m_fMIPRotationAngle(0.0f),
   m_bOrthoView(false),
   m_bDoClearView(false),
@@ -542,7 +543,7 @@ void AbstrRenderer::Plan3DFrame() {
     m_FrustumCullingLOD.Update();
 
     ComputeMinLODForCurrentView();
-    if (!m_bLODDisabled) {
+    if (!m_bCaptureMode) {
       m_iCurrentLODOffset = m_iMaxLODIndex+1;
     } else {
       m_iCurrentLODOffset = m_iMinLODForCurrentView+1;
@@ -586,9 +587,11 @@ void AbstrRenderer::PlanHQMIPFrame() {
   m_iCurrentLODOffset = 0;
   m_iCurrentLOD = 0;
 
-  while (viVoxelCount.minVal() >= m_vWinSize.maxVal()) {
-    viVoxelCount /= 2;
-    m_iCurrentLOD++;
+  if (m_bMIPLOD) {
+    while (viVoxelCount.minVal() >= m_vWinSize.maxVal()) {
+      viVoxelCount /= 2;
+      m_iCurrentLOD++;
+    }
   }
 
   if (m_iCurrentLOD > 0) { 

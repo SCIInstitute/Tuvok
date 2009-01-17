@@ -587,7 +587,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
   SetDataDepShaderVars();
 
   // if we render a slice view or MIP preview
-  if (!m_bUseMIP[size_t(eDirection)] || !m_bLODDisabled)  {
+  if (!m_bUseMIP[size_t(eDirection)] || !m_bCaptureMode)  {
     if (!m_bUseMIP[size_t(eDirection)]) {
       switch (m_eRenderMode) {
         case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
@@ -1359,7 +1359,7 @@ void GLRenderer::Render3DView() {
     m_iBricksRenderedInThisSubFrame++;
 
     // time this loop
-    if (!m_bLODDisabled) timeProbe = clock();
+    if (!m_bCaptureMode) timeProbe = clock();
   }
 
   Render3DPostLoop();

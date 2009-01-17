@@ -258,7 +258,8 @@ class AbstrRenderer {
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {m_pDataset->GetInfo()->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();}
     DOUBLEVECTOR3 GetRescaleFactors() {return m_pDataset->GetInfo()->GetRescaleFactors();}
 
-    void DisableLOD(bool bLODDisabled) {m_bLODDisabled = bLODDisabled;}
+    void SetCaptureMode(bool bCaptureMode) {m_bCaptureMode = bCaptureMode;}
+    void SetMIPLOD(bool bMIPLOD) {m_bMIPLOD = bMIPLOD;}
 
     virtual void  SetStereo(bool bStereoRendering);
     virtual void  SetStereoEyeDist(float fStereoEyeDist);
@@ -337,7 +338,8 @@ class AbstrRenderer {
     UINT64              m_iBricksRenderedInThisSubFrame;
     std::vector<Brick>  m_vCurrentBrickList;
     std::vector<Brick>  m_vLeftEyeBrickList;
-    bool                m_bLODDisabled;
+    bool                m_bCaptureMode;
+    bool                m_bMIPLOD;
     float               m_fMIPRotationAngle;
     FLOATMATRIX4        m_maMIPRotation;
     bool                m_bOrthoView;
