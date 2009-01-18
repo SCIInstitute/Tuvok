@@ -43,8 +43,8 @@
 
 using namespace std;
 
-GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo) :
-  GLRenderer(pMasterController, bUseOnlyPowerOfTwo),
+GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits) :
+  GLRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits),
   m_pProgramIsoNoCompose(NULL)
 {
 }

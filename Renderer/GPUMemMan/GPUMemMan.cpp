@@ -395,9 +395,9 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRender
 
 // ******************** 3D Textures
 
-bool GPUMemMan::IsResident(VolumeDataset* pDataset, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo) {
+bool GPUMemMan::IsResident(VolumeDataset* pDataset, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits) {
   for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
-    if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo)) {
+    if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits)) {
       return true;
     }
   }
@@ -405,9 +405,9 @@ bool GPUMemMan::IsResident(VolumeDataset* pDataset, const vector<UINT64>& vLOD, 
 }
 
 
-GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo, UINT64 iIntraFrameCounter, UINT64 iFrameCounter) {
+GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, UINT64 iIntraFrameCounter, UINT64 iFrameCounter) {
   for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
-    if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo)) {
+    if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits)) {
       m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","Reusing 3D texture");
       return (*i)->Access(iIntraFrameCounter, iFrameCounter);
     }
@@ -429,14 +429,14 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
     UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
     Texture3DListIter iBestMatch;
     for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
-      if ((*i)->BestMatch(vSize, bUseOnlyPowerOfTwo, iTargetIntraFrameCounter,iTargetFrameCounter)) iBestMatch = i;
+      if ((*i)->BestMatch(vSize, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, iTargetIntraFrameCounter,iTargetFrameCounter)) iBestMatch = i;
     }
 
     if (iTargetFrameCounter != UINT64_INVALID) {
       // found a suitable brick that can be replaced
       m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","  Found suitable target brick from frame %i with intraframe counter %i (current frame %i / current intraframe %i)",
                                               int(iTargetFrameCounter), int(iTargetIntraFrameCounter), int(iFrameCounter), int(iIntraFrameCounter));
-      (*iBestMatch)->Replace(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, iIntraFrameCounter, iFrameCounter);
+      (*iBestMatch)->Replace(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, iIntraFrameCounter, iFrameCounter);
       (*iBestMatch)->iUserCount++;
       return (*iBestMatch)->pTexture;
     } else {
@@ -462,7 +462,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
 
   m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","Creating new texture %i x %i x %i, bitsize=%i, componentcount=%i", int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth), int(iCompCount));
 
-  Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, iIntraFrameCounter, iFrameCounter);
+  Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, iIntraFrameCounter, iFrameCounter);
 
   if (pNew3DTex->pTexture == NULL) {
     m_MasterController->DebugOut()->Error("GPUMemMan::Get3DTexture","Failed to create OpenGL texture.");

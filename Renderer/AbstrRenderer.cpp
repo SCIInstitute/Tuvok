@@ -41,7 +41,7 @@
 
 using namespace std;
 
-AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo) : 
+AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits) : 
   m_pMasterController(pMasterController),
   m_bPerformRedraw(true), 
   m_eRenderMode(RM_1DTRANS),
@@ -89,6 +89,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_fStereoEyeDist(0.02f),
   m_fStereoFocalLength(1.0f),
   m_bUseOnlyPowerOfTwo(bUseOnlyPowerOfTwo),
+  m_bDownSampleTo8Bits(bDownSampleTo8Bits),
   m_bAvoidSeperateCompositing(true)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
@@ -489,7 +490,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
               vBrick.push_back(b.vCoords.y);
               vBrick.push_back(b.vCoords.z);
 
-              if (m_pMasterController->MemMan()->IsResident(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo))
+              if (m_pMasterController->MemMan()->IsResident(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits))
                 b.fDistance = 0;
               else
                 b.fDistance = 1;

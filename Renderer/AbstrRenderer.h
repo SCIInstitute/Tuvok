@@ -143,9 +143,11 @@ class AbstrRenderer {
     /** Default settings: 1D transfer function, single-image view, white text,
      * black BG.
      * @param pMasterController message router
-     * @param bUseOnlyPowerOfTwo force power of two textures, for performance
-     *                           reasons. */
-    AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo);
+     * @param bUseOnlyPowerOfTwo force power of two textures, for systems that do not
+     *                           support npot textures.
+     * @param bDownSampleTo8Bits force 8bit textures, for systems that do not
+     *                           support 16bit textures (or 16bit linear interpolation). */
+    AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits);
     /** Deallocates dataset and transfer functions. */
     virtual ~AbstrRenderer();
     /** Sends a message to the master to ask for a dataset to be loaded.
@@ -359,6 +361,7 @@ class AbstrRenderer {
 
     // compatibility settings
     bool                m_bUseOnlyPowerOfTwo;
+    bool                m_bDownSampleTo8Bits;
     bool                m_bAvoidSeperateCompositing;
 
     FLOATMATRIX4        m_mProjection[2];

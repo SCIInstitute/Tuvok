@@ -41,8 +41,8 @@
 
 using namespace std;
 
-GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo) :
-  AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo),
+GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits) :
+  AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo,bDownSampleTo8Bits),
   m_fScaledIsovalue(0.0f),    // set by StartFrame
   m_fScaledCVIsovalue(0.0f),  // set by StartFrame
   m_p1DTransTex(NULL),
@@ -282,7 +282,9 @@ void GLRenderer::StartFrame() {
       m_pProgramIsoCompose->Disable();
     }
 
-    size_t       iMaxValue  = m_p1DTrans->GetSize();
+    // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used thus
+    // to compute m_fScaledIsovalue & m_fScaledCVIsovalue correctly we set iMaxValue to 65536
+    size_t iMaxValue     = (m_bDownSampleTo8Bits) ? 65536 : m_p1DTrans->GetSize();
     UINT32 iMaxRange        = UINT32(1<<m_pDataset->GetInfo()->GetBitwith());
     m_fScaledIsovalue       = m_fIsovalue * float(iMaxValue)/float(iMaxRange);
     m_fScaledCVIsovalue     = m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
@@ -630,7 +632,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     vBrick.push_back(0);vBrick.push_back(0);vBrick.push_back(0);
 
     // get the 3D texture from the memory manager
-    GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, 0, m_iFrameCounter);
+    GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, 0, m_iFrameCounter);
     if(t) t->Bind(0);
 
     // clear the target at the beginning
@@ -703,7 +705,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.z);
 
       // get the 3D texture from the memory manager
-      GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_iIntraFrameCounter++, m_iFrameCounter);
+      GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_iIntraFrameCounter++, m_iFrameCounter);
       if(t) t->Bind(0);
       RenderHQMIPInLoop(m_vCurrentBrickList[iBrickIndex]);
       m_pMasterController->MemMan()->Release3DTexture(t);
@@ -1074,7 +1076,9 @@ void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
 void GLRenderer::SetDataDepShaderVars() {
   m_pMasterController->DebugOut()->Message("GLRenderer::SetDataDepShaderVars","Setting up vars");
 
-  size_t iMaxValue     = m_p1DTrans->GetSize();
+  // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used thus
+  // to compute fScale correctly we set iMaxValue to 65536
+  size_t iMaxValue     = (m_bDownSampleTo8Bits) ? 65536 : m_p1DTrans->GetSize();
   UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetInfo()->GetBitwith());
   float fScale         = float(iMaxRange)/float(iMaxValue);
   float fGradientScale = 1.0f/m_pDataset->GetMaxGradMagnitude();
@@ -1333,7 +1337,7 @@ void GLRenderer::Render3DView() {
     vBrick.push_back(m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords.z);
 
     // get the 3D texture from the memory manager
-    GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_iIntraFrameCounter++, m_iFrameCounter);
+    GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_iIntraFrameCounter++, m_iFrameCounter);
     if(t) t->Bind(0);
 
     Render3DInLoop(m_iBricksRenderedInThisSubFrame,0);
@@ -1346,7 +1350,7 @@ void GLRenderer::Render3DView() {
         vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.z);
 
         m_pMasterController->MemMan()->Release3DTexture(t);
-        t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_iIntraFrameCounter++, m_iFrameCounter);
+        t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_iIntraFrameCounter++, m_iFrameCounter);
         if(t) t->Bind(0);
       }
       Render3DInLoop(m_iBricksRenderedInThisSubFrame,1);

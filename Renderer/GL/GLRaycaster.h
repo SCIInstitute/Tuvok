@@ -53,8 +53,9 @@ class GLRaycaster : public GLRenderer {
     /** Constructs a VRer with immediate redraw, and
      * wireframe mode off.
      * \param pMasterController message routing object
-     * \param bUseOnlyPowerOfTwo force power of two textures (performance) */
-    GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo);
+     * \param bUseOnlyPowerOfTwo force power of two textures (compatibility)
+     * \param bDownSampleTo8Bits force 8bit textures (compatibility) */
+    GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits);
     virtual ~GLRaycaster();
 
     /** Loads GLSL vertex and fragment shaders. */
