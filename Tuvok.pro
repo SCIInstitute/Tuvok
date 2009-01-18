@@ -18,6 +18,7 @@ HEADERS += StdTuvokDefines.h \
            Basics/Vectors.h \
            Basics/MathTools.h \
            Basics/ArcBall.h \
+           Basics/GeometryGenerator.h \
            Basics/Checksums/MD5.h \
            Basics/Checksums/crc32.h \
            IO/gzio.h \
@@ -87,6 +88,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            Basics/SysTools.cpp \
            Basics/MathTools.cpp \
            Basics/ArcBall.cpp \
+           Basics/GeometryGenerator.cpp \
            Basics/Checksums/MD5.cpp \
            IO/gzio.c \
            IO/AbstrConverter.cpp \
