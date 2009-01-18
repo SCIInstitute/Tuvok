@@ -362,7 +362,7 @@ void GLRenderer::Paint() {
 
         if (bLocalNewDataToShow) iReadyWindows++;
       } else {
-        // blit the previous result quad to the entire screen but restrict draing to the current subarea
+        // blit the previous result quad to the entire screen but restrict drawing to the current subarea
         m_pFBO3DImageCurrent[0]->Write();
         GLFBOTex::OneDrawBuffer();
         SetRenderTargetArea(RA_FULLSCREEN);
@@ -852,6 +852,93 @@ void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
   glDisable( GL_SCISSOR_TEST ); // since we do not clear anymore in this subframe we do not need the scissor test, maybe disabling it saves performacnce
 }
 
+void GLRenderer::RenderCoordArrows() {
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHTING);
+
+  glCullFace(GL_BACK);
+  glEnable(GL_CULL_FACE);
+
+  GLfloat light_diffuse[4]  ={0.4f,0.4f,0.4f,1.0f};
+  GLfloat light_specular[4] ={1.0f,1.0f,1.0f,1.0f};
+  GLfloat global_ambient[4] ={0.1f,0.1f,0.1f,1.0f};
+  glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);
+  glLightfv(GL_LIGHT0, GL_AMBIENT,  global_ambient);
+  glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);	
+  glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);	
+  glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,16.0f);
+  glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,light_specular);
+	glEnable(GL_COLOR_MATERIAL);
+  GLfloat pfLightDirection[4]={0.0f,1.0f,1.0f,0.0f};
+
+  m_matModelView[0] = m_mView[0];
+  m_matModelView[0].setModelview();
+  glLightfv(GL_LIGHT0, GL_POSITION, pfLightDirection); 
+
+  FLOATMATRIX4 mTranslation, mProjection; 
+  mTranslation.Translation(0.8f,0.8f,-1.85f);
+  mProjection = m_mProjection[0]*mTranslation;
+  mProjection.setProjection();
+  FLOATMATRIX4 mRotation;
+  m_matModelView[0] = m_mRotation*m_mView[0];
+  m_matModelView[0].setModelview();
+
+  glBegin(GL_TRIANGLES);
+    glColor4f(0.0f,0.0f,1.0f,1.0f);
+    for (size_t i = 0;i<m_vArrowGeometry.size();i++) {
+      for (size_t j = 0;j<3;j++) {
+        glNormal3f(m_vArrowGeometry[i].m_vertices[j].m_vNormal.x,
+                   m_vArrowGeometry[i].m_vertices[j].m_vNormal.y,
+                   m_vArrowGeometry[i].m_vertices[j].m_vNormal.z);
+        glVertex3f(m_vArrowGeometry[i].m_vertices[j].m_vPos.x,
+                   m_vArrowGeometry[i].m_vertices[j].m_vPos.y,
+                   m_vArrowGeometry[i].m_vertices[j].m_vPos.z);
+      }
+    } 
+  glEnd();
+
+  mRotation.RotationX(-3.1415f/2.0f);
+  m_matModelView[0] = mRotation*m_mRotation*m_mView[0];
+  m_matModelView[0].setModelview();
+
+  glBegin(GL_TRIANGLES);
+    glColor4f(0.0f,1.0f,0.0f,1.0f);
+    for (size_t i = 0;i<m_vArrowGeometry.size();i++) {
+      for (size_t j = 0;j<3;j++) {
+        glNormal3f(m_vArrowGeometry[i].m_vertices[j].m_vNormal.x,
+                   m_vArrowGeometry[i].m_vertices[j].m_vNormal.y,
+                   m_vArrowGeometry[i].m_vertices[j].m_vNormal.z);
+        glVertex3f(m_vArrowGeometry[i].m_vertices[j].m_vPos.x,
+                   m_vArrowGeometry[i].m_vertices[j].m_vPos.y,
+                   m_vArrowGeometry[i].m_vertices[j].m_vPos.z);
+      }
+    } 
+  glEnd();
+
+  mRotation.RotationY(3.1415f/2.0f);
+  m_matModelView[0] = mRotation*m_mRotation*m_mView[0];
+  m_matModelView[0].setModelview();
+
+  glBegin(GL_TRIANGLES);
+    glColor4f(1.0f,0.0f,0.0f,1.0f);
+    for (size_t i = 0;i<m_vArrowGeometry.size();i++) {
+      for (size_t j = 0;j<3;j++) {
+        glNormal3f(m_vArrowGeometry[i].m_vertices[j].m_vNormal.x,
+                   m_vArrowGeometry[i].m_vertices[j].m_vNormal.y,
+                   m_vArrowGeometry[i].m_vertices[j].m_vNormal.z);
+        glVertex3f(m_vArrowGeometry[i].m_vertices[j].m_vPos.x,
+                   m_vArrowGeometry[i].m_vertices[j].m_vPos.y,
+                   m_vArrowGeometry[i].m_vertices[j].m_vPos.z);
+      }
+    } 
+  glEnd();
+
+  glDisable(GL_LIGHTING);
+  glDisable(GL_COLOR_MATERIAL);
+  glDisable(GL_CULL_FACE);
+}
+
 bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
   // are we starting a new LOD level?
   if (m_iBricksRenderedInThisSubFrame == 0) NewFrameClear(eREnderArea);
@@ -874,7 +961,21 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
 
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
+      
+      if (m_bRenderCoordArrows) {
+        m_pFBO3DImageCurrent[0]->Write();
+        RenderCoordArrows();
+        m_pFBO3DImageCurrent[0]->FinishWrite();
+
+        if (m_bDoStereoRendering) {
+          m_pFBO3DImageCurrent[1]->Write();
+          RenderCoordArrows();
+          m_pFBO3DImageCurrent[1]->FinishWrite();
+        }
+      }
+
       m_pMasterController->DebugOut()->Message("GLRenderer::Execute3DFrame","Subframe completed.");
+      
       return true;
     }
   }
@@ -990,6 +1091,7 @@ void GLRenderer::DrawBackGradient() {
 
   glDisable(GL_TEXTURE_3D);
   glDisable(GL_TEXTURE_2D);
+  glDisable(GL_CULL_FACE);
 
   glBegin(GL_QUADS);
     glColor4d(m_vBackgroundColors[0].x,m_vBackgroundColors[0].y,m_vBackgroundColors[0].z,1);

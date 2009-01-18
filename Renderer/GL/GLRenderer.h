@@ -151,5 +151,7 @@ class GLRenderer : public AbstrRenderer {
 
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();
+    void RenderCoordArrows();
+
 };
 #endif // GLRenderer_H

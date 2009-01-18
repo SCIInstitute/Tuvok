@@ -186,6 +186,8 @@ void GLSBVR::Render3DPreLoop() {
                             m_pProgramIsoNoCompose->Enable();
                             glEnable(GL_BLEND);
                             glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+                          } else {
+                            glEnable(GL_DEPTH_TEST);
                           }
                           break;
     default    :  m_pMasterController->DebugOut()->Error("GLSBVR::Render3DView","Invalid rendermode set");

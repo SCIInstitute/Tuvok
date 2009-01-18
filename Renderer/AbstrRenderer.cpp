@@ -76,6 +76,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bMIPLOD(true),
   m_fMIPRotationAngle(0.0f),
   m_bOrthoView(false),
+  m_bRenderCoordArrows(false),
   m_bDoClearView(false),
   m_fCVIsovalue(0.8f),
   m_vCVColor(1,0,0),
@@ -124,6 +125,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
   m_vShaderSearchDirs.push_back("Tuvok/Shaders");
   m_vShaderSearchDirs.push_back("Shaders");
+
+  m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
 }
 
 bool AbstrRenderer::Initialize() {
@@ -629,6 +632,13 @@ void AbstrRenderer::SetOrthoView(bool bOrthoView) {
   if (m_bOrthoView != bOrthoView) {
     m_bOrthoView = bOrthoView;
     ScheduleCompleteRedraw();
+  }
+}
+
+void AbstrRenderer::SetRenderCoordArrows(bool bRenderCoordArrows) {
+  if (m_bRenderCoordArrows != bRenderCoordArrows) {
+    m_bRenderCoordArrows = bRenderCoordArrows;
+    ScheduleWindowRedraw(WM_3D);
   }
 }
 

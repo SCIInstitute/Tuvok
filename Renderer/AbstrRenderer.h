@@ -48,6 +48,8 @@
 #include "../IO/TransferFunction1D.h"
 #include "../IO/TransferFunction2D.h"
 #include "../Renderer/CullingLOD.h"
+#include "../Basics/GeometryGenerator.h"
+
 
 class Brick {
 public:
@@ -211,6 +213,10 @@ class AbstrRenderer {
     virtual void SetOrthoView(bool bOrthoView);
     virtual bool GetOrthoView() const {return m_bOrthoView;}
 
+    virtual void SetRenderCoordArrows(bool bRenderCoordArrows);
+    virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
+    
+
     /** Change the size of the render window.  Any previous image is
      * destroyed, causing a full redraw on the next render.
      * \param vWinSize  new width and height of the view window */
@@ -345,6 +351,7 @@ class AbstrRenderer {
     float               m_fMIPRotationAngle;
     FLOATMATRIX4        m_maMIPRotation;
     bool                m_bOrthoView;
+    bool                m_bRenderCoordArrows;
 
     bool                m_bDoClearView;
     float               m_fCVIsovalue;
@@ -358,6 +365,7 @@ class AbstrRenderer {
     bool                m_bDoStereoRendering;
     float               m_fStereoEyeDist;
     float               m_fStereoFocalLength;
+    std::vector<Triangle> m_vArrowGeometry;
 
     // compatibility settings
     bool                m_bUseOnlyPowerOfTwo;
@@ -377,6 +385,7 @@ class AbstrRenderer {
     std::vector<Brick>  BuildLeftEyeSubFrameBrickList(const std::vector<Brick>& vRightEyeBrickList );
     virtual void        ClearDepthBuffer() = 0;
     virtual void        ClearColorBuffer() = 0;
+
 };
 
 #endif // ABSTRRENDERER_H

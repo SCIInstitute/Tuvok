@@ -84,71 +84,6 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug|x64"
-			OutputDirectory="Build\$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="Build\$(PlatformName)\$(ConfigurationName)\objects"
-			ConfigurationType="4"
-			CharacterSet="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-				TargetEnvironment="3"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR64)include&quot;;."
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
-				WarningLevel="4"
-				DebugInformationFormat="3"
-				DisableSpecificWarnings="4127;4512"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR64)lib&quot;"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="Build\$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="Build\$(PlatformName)\$(ConfigurationName)\objects"
@@ -196,6 +131,200 @@
 			<Tool
 				Name="VCLibrarianTool"
 				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug (with DirectX)|Win32"
+			OutputDirectory="Build\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="Build\$(PlatformName)\$(ConfigurationName)\objects"
+			ConfigurationType="4"
+			CharacterSet="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="&quot;$(QTDIR32)include&quot;;."
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
+				WarningLevel="4"
+				DebugInformationFormat="4"
+				DisableSpecificWarnings="4127;4512"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release (with DirectX)|Win32"
+			OutputDirectory="Build\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="Build\$(PlatformName)\$(ConfigurationName)\objects"
+			ConfigurationType="4"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="&quot;$(QTDIR32)include&quot;;."
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				UsePrecompiledHeader="0"
+				WarningLevel="4"
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4127;4512"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Debug|x64"
+			OutputDirectory="Build\$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="Build\$(PlatformName)\$(ConfigurationName)\objects"
+			ConfigurationType="4"
+			CharacterSet="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				TargetEnvironment="3"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="&quot;$(QTDIR64)include&quot;;."
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="0"
+				WarningLevel="4"
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4127;4512"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLibrarianTool"
+				AdditionalLibraryDirectories="&quot;$(QTDIR64)lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -280,70 +409,6 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug (with DirectX)|Win32"
-			OutputDirectory="Build\$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="Build\$(PlatformName)\$(ConfigurationName)\objects"
-			ConfigurationType="4"
-			CharacterSet="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR32)include&quot;;."
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
-				WarningLevel="4"
-				DebugInformationFormat="4"
-				DisableSpecificWarnings="4127;4512"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
 			Name="Debug (with DirectX)|x64"
 			OutputDirectory="Build\$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="Build\$(PlatformName)\$(ConfigurationName)\objects"
@@ -391,71 +456,6 @@
 			<Tool
 				Name="VCLibrarianTool"
 				AdditionalLibraryDirectories="&quot;$(QTDIR64)lib&quot;"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release (with DirectX)|Win32"
-			OutputDirectory="Build\$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="Build\$(PlatformName)\$(ConfigurationName)\objects"
-			ConfigurationType="4"
-			CharacterSet="1"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="2"
-				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(QTDIR32)include&quot;;."
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
-				RuntimeLibrary="2"
-				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="0"
-				WarningLevel="4"
-				DebugInformationFormat="3"
-				DisableSpecificWarnings="4127;4512"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -560,6 +560,14 @@
 			</File>
 			<File
 				RelativePath=".\Basics\EndianConvert.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Basics\GeometryGenerator.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Basics\GeometryGenerator.h"
 				>
 			</File>
 			<File
@@ -997,23 +1005,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug|x64"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4100;4244;4267;4996"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
 						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4100;4244;4267;4996"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1029,7 +1021,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug (with DirectX)|x64"
+						Name="Release (with DirectX)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1037,7 +1029,23 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release (with DirectX)|Win32"
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4100;4244;4267;4996"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4100;4244;4267;4996"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (with DirectX)|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1073,23 +1081,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug|x64"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
 						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1105,7 +1097,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug (with DirectX)|x64"
+						Name="Release (with DirectX)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1113,7 +1105,23 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release (with DirectX)|Win32"
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4244"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4244"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (with DirectX)|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1145,23 +1153,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug|x64"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
 						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1177,7 +1169,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug (with DirectX)|x64"
+						Name="Release (with DirectX)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1185,7 +1177,23 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release (with DirectX)|Win32"
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4244"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4244"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (with DirectX)|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1213,23 +1221,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug|x64"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
 						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1245,7 +1237,7 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug (with DirectX)|x64"
+						Name="Release (with DirectX)|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1253,7 +1245,23 @@
 						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Release (with DirectX)|Win32"
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4244"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4244"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (with DirectX)|x64"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
