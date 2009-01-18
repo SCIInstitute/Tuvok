@@ -244,7 +244,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
       for (size_t y = 0;y<vSize[1];y++) {
         memcpy(pPaddedData+iTarget, pData+iSource, iRowSizeSource);
         
-        // if the x sizes differ copy one more element to make the texture behave like clamp
+        // if the x sizes differ, dubicate the last element to make the texture behave like clamp
         if (iRowSizeTarget > iRowSizeSource)
           memcpy(pPaddedData+iTarget+iRowSizeSource, 
                  pPaddedData+iTarget+iRowSizeSource-iElementSize, 
@@ -257,9 +257,11 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
         iTarget += (vPaddedSize[1]-vSize[1])*iRowSizeTarget;
       }
     }
-    // if the z sizes differ copy one more slice to make the texture behave like clamp
-    if (vPaddedSize[2] > vSize[2])
-     memcpy(pPaddedData+iTarget, pPaddedData+iTarget-vPaddedSize[1]*iRowSizeTarget, vPaddedSize[1]*iRowSizeTarget);
+    // if the z sizes differ, fill the rest with the final slice to make the texture behave like clamp
+    for (UINT32 iZCopy = vSize[2]; iZCopy < vPaddedSize[2]; iZCopy++) {
+      memcpy(pPaddedData+iTarget, pPaddedData+(iTarget-vPaddedSize[1]*iRowSizeTarget), vPaddedSize[1]*iRowSizeTarget);
+      iTarget += vPaddedSize[1]*iRowSizeTarget;
+    }
 
     pTexture = new GLTexture3D(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2], glInternalformat, glFormat, glType, UINT32(iBitWidth*iCompCount), pPaddedData, GL_LINEAR, GL_LINEAR);
 
