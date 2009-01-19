@@ -149,7 +149,7 @@ class AbstrRenderer {
      *                           support npot textures.
      * @param bDownSampleTo8Bits force 8bit textures, for systems that do not
      *                           support 16bit textures (or 16bit linear interpolation). */
-    AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits);
+    AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
     /** Deallocates dataset and transfer functions. */
     virtual ~AbstrRenderer();
     /** Sends a message to the master to ask for a dataset to be loaded.
@@ -370,6 +370,7 @@ class AbstrRenderer {
     // compatibility settings
     bool                m_bUseOnlyPowerOfTwo;
     bool                m_bDownSampleTo8Bits;
+    bool                m_bDisableBorder;
     bool                m_bAvoidSeperateCompositing;
 
     FLOATMATRIX4        m_mProjection[2];

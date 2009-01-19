@@ -43,8 +43,8 @@
 
 using namespace std;
 
-GLRaycaster::GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits) :
-  GLRenderer(pMasterController,bUseOnlyPowerOfTwo, bDownSampleTo8Bits),
+GLRaycaster::GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
+  GLRenderer(pMasterController,bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
   m_pFBORayEntry(NULL),
   m_pProgramRenderFrontFaces(NULL),
   m_pProgramIso2(NULL)

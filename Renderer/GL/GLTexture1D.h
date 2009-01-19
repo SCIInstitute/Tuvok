@@ -49,7 +49,7 @@ class GLTexture1D : public GLTexture {
           const void *pixels = 0,
           GLint iMagFilter = GL_NEAREST,
           GLint iMinFilter = GL_NEAREST,
-          GLint wrap = GL_CLAMP);
+          GLint wrap = GL_CLAMP_TO_EDGE);
     virtual ~GLTexture1D() {}
 
     virtual void Bind(UINT32 iUnit=0) {

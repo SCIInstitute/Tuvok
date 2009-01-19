@@ -51,9 +51,9 @@ class GLTexture3D : public GLTexture {
           const GLvoid *pixels = 0,
           GLint iMagFilter = GL_NEAREST,
           GLint iMinFilter = GL_NEAREST,
-          GLint wrapX = GL_CLAMP,
-          GLint wrapY = GL_CLAMP,
-          GLint wrapZ = GL_CLAMP);
+          GLint wrapX = GL_CLAMP_TO_EDGE,
+          GLint wrapY = GL_CLAMP_TO_EDGE,
+          GLint wrapZ = GL_CLAMP_TO_EDGE);
     virtual ~GLTexture3D() {}
 
     virtual void Bind(UINT32 iUnit=0) {glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit)); glBindTexture(GL_TEXTURE_3D, m_iGLID);}

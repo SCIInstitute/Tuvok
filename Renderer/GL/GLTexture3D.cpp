@@ -59,7 +59,7 @@ GLTexture3D::GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ, GLint inte
   glPixelStorei(GL_PACK_ALIGNMENT ,1);
   glPixelStorei(GL_UNPACK_ALIGNMENT ,1);
 
-  glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat, GLuint(m_iSizeX), GLuint(m_iSizeY), GLuint(m_iSizeZ), 0, m_format, m_type, (GLvoid*)pixels);
+  glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat, m_iSizeX, m_iSizeY, m_iSizeZ, 0, m_format, m_type, (GLvoid*)pixels);
 }
 
 void GLTexture3D::SetData(const void *pixels) {

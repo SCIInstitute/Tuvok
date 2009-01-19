@@ -55,7 +55,7 @@ class GLRaycaster : public GLRenderer {
      * \param pMasterController message routing object
      * \param bUseOnlyPowerOfTwo force power of two textures (compatibility)
      * \param bDownSampleTo8Bits force 8bit textures (compatibility) */
-    GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits);
+    GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
     virtual ~GLRaycaster();
 
     /** Loads GLSL vertex and fragment shaders. */

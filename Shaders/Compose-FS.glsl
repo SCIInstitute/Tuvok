@@ -56,7 +56,7 @@ void main(void){
   if (vPosition.a == 0.0) discard;
   
   // get hit normal
-  vec3  vNormal  = texture2D(texRayHitNormal, vFragCoords).xyz;  
+  vec3  vNormal  = abs(texture2D(texRayHitNormal, vFragCoords).xyz);
 
 	// compute lighting
 	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition.xyz);
@@ -66,7 +66,7 @@ void main(void){
 					   vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0);
 
 	/// write result to fragment color
-	gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0);
+	gl_FragColor    = vec4(vNormal.x, vNormal.y, vNormal.z, 1.0);
 
   // compute non linear depth from linear eye depth
   gl_FragDepth = vProjParam.x + (vProjParam.y / -vPosition.z);

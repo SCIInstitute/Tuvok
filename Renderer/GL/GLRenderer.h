@@ -52,7 +52,7 @@ class MasterController;
 
 class GLRenderer : public AbstrRenderer {
   public:
-    GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits);
+    GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
     virtual ~GLRenderer();
     virtual bool Initialize();
     virtual void Changed1DTrans();
