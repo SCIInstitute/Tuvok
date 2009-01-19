@@ -264,10 +264,10 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
         iSource += iRowSizeSource;
       }
       // if the y sizes differ, dubicate the last element to make the texture behave like clamp
-      if (!m_bDisableBorder && vPaddedSize[1] > vSize[1]) {
-        memcpy(pPaddedData+iTarget, pPaddedData+iTarget-iRowSizeTarget, iRowSizeTarget);
+      if (vPaddedSize[1] > vSize[1]) {
+        if (!m_bDisableBorder) memcpy(pPaddedData+iTarget, pPaddedData+iTarget-iRowSizeTarget, iRowSizeTarget);
         iTarget += (vPaddedSize[1]-vSize[1])*iRowSizeTarget;
-      }
+      } 
     }
     // if the z sizes differ, dubicate the last element to make the texture behave like clamp
     if (!m_bDisableBorder && vPaddedSize[2] > vSize[2]) {
