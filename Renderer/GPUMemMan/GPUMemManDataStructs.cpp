@@ -35,14 +35,16 @@
 */
 
 #include "GPUMemManDataStructs.h"
+#include <Controller/MasterController.h>
 
-Texture3DListElem::Texture3DListElem(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder, UINT64 iIntraFrameCounter, UINT64 iFrameCounter) :
+Texture3DListElem::Texture3DListElem(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder, UINT64 iIntraFrameCounter, UINT64 iFrameCounter, MasterController* pMasterController) :
   pData(NULL),
   pTexture(NULL),
   pDataset(_pDataset),
   iUserCount(1),
   m_iIntraFrameCounter(iIntraFrameCounter),
   m_iFrameCounter(iFrameCounter),
+  m_pMasterController(pMasterController),
   vLOD(_vLOD),
   vBrick(_vBrick),
   m_bIsPaddedToPowerOfTwo(bIsPaddedToPowerOfTwo),
@@ -149,9 +151,6 @@ void  Texture3DListElem::FreeData() {
   pData = NULL;
 }
 
-
-#include <Basics/Console.h>
-#include <sstream>
 
 bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
   if (bDeleteOldTexture) FreeTexture();
@@ -265,7 +264,8 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
       }
       // if the y sizes differ, dubicate the last element to make the texture behave like clamp
       if (vPaddedSize[1] > vSize[1]) {
-        if (!m_bDisableBorder) memcpy(pPaddedData+iTarget, pPaddedData+iTarget-iRowSizeTarget, iRowSizeTarget);
+        if (!m_bDisableBorder) 
+          memcpy(pPaddedData+iTarget, pPaddedData+iTarget-iRowSizeTarget, iRowSizeTarget);
         iTarget += (vPaddedSize[1]-vSize[1])*iRowSizeTarget;
       } 
     }
@@ -273,6 +273,8 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
     if (!m_bDisableBorder && vPaddedSize[2] > vSize[2]) {
       memcpy(pPaddedData+iTarget, pPaddedData+(iTarget-vPaddedSize[1]*iRowSizeTarget), vPaddedSize[1]*iRowSizeTarget);
     }
+
+    m_pMasterController->DebugOut()->Message("Texture3DListElem::CreateTexture","Actually creating new texture %i x %i x %i, bitsize=%i, componentcount=%i due to compatibility settings", int(vPaddedSize[0]), int(vPaddedSize[1]), int(vPaddedSize[2]), int(iBitWidth), int(iCompCount));
 
     pTexture = new GLTexture3D(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2], glInternalformat, glFormat, glType, UINT32(iBitWidth*iCompCount), pPaddedData, GL_LINEAR, GL_LINEAR, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
 

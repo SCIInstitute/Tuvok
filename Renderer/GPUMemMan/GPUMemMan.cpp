@@ -462,7 +462,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
 
   m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","Creating new texture %i x %i x %i, bitsize=%i, componentcount=%i", int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth), int(iCompCount));
 
-  Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder, iIntraFrameCounter, iFrameCounter);
+  Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder, iIntraFrameCounter, iFrameCounter, m_MasterController);
 
   if (pNew3DTex->pTexture == NULL) {
     m_MasterController->DebugOut()->Error("GPUMemMan::Get3DTexture","Failed to create OpenGL texture.");

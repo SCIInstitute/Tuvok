@@ -123,7 +123,7 @@ typedef Trans2DList::iterator Trans2DListIter;
 // 3D textures
 class Texture3DListElem {
 public:
-  Texture3DListElem(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bDisableBorder, bool bIsDownsampledTo8Bits, UINT64 iIntraFrameCounter, UINT64 iFrameCounter);
+  Texture3DListElem(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bDisableBorder, bool bIsDownsampledTo8Bits, UINT64 iIntraFrameCounter, UINT64 iFrameCounter, MasterController* pMasterController);
   ~Texture3DListElem();
   bool Equals(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder);
   bool Replace(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder, UINT64 iIntraFrameCounter, UINT64 iFrameCounter);
@@ -148,6 +148,7 @@ private:
 
   UINT64 m_iIntraFrameCounter;
   UINT64 m_iFrameCounter;
+  MasterController* m_pMasterController;
 
   std::vector<UINT64> vLOD;
   std::vector<UINT64> vBrick;
