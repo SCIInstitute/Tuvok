@@ -282,12 +282,11 @@ void GLRenderer::StartFrame() {
       m_pProgramIsoCompose->Disable();
     }
 
-    // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used thus
-    // to compute m_fScaledIsovalue & m_fScaledCVIsovalue correctly we set iMaxValue to 65536
-    size_t iMaxValue     = (m_bDownSampleTo8Bits) ? 65536 : m_p1DTrans->GetSize();
+    size_t iMaxValue        = m_p1DTrans->GetSize();
     UINT32 iMaxRange        = UINT32(1<<m_pDataset->GetInfo()->GetBitwith());
-    m_fScaledIsovalue       = m_fIsovalue * float(iMaxValue)/float(iMaxRange);
-    m_fScaledCVIsovalue     = m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
+    // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
+    m_fScaledIsovalue       = (m_pDataset->GetInfo()->GetBitwith() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fIsovalue * float(iMaxValue)/float(iMaxRange);
+    m_fScaledCVIsovalue     = (m_pDataset->GetInfo()->GetBitwith() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
 
   }
 }
@@ -1179,11 +1178,10 @@ void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
 void GLRenderer::SetDataDepShaderVars() {
   m_pMasterController->DebugOut()->Message("GLRenderer::SetDataDepShaderVars","Setting up vars");
 
-  // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used thus
-  // to compute fScale correctly we set iMaxValue to 65536
-  size_t iMaxValue     = (m_bDownSampleTo8Bits) ? 65536 : m_p1DTrans->GetSize();
+  size_t iMaxValue     = (m_pDataset->GetInfo()->GetBitwith() != 8 && m_bDownSampleTo8Bits) ? 65536 : m_p1DTrans->GetSize();
   UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetInfo()->GetBitwith());
-  float fScale         = float(iMaxRange)/float(iMaxValue);
+  // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
+  float fScale         = (m_pDataset->GetInfo()->GetBitwith() != 8 && m_bDownSampleTo8Bits) ? 1.0f : float(iMaxRange)/float(iMaxValue);
   float fGradientScale = 1.0f/m_pDataset->GetMaxGradMagnitude();
 
   m_pProgramTransMIP->Enable();
