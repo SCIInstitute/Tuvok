@@ -145,7 +145,7 @@ bool GLSLProgram::Initialize(void) {
 #endif
 
   if (!m_bGLChecked) {
-    if (GLEW_VERSION_2_0) {
+    if (atof((const char*)glGetString(GL_VERSION)) >= 2.0) {
       m_pMasterController->DebugOut()->Message("GLSLProgram::Initialize","OpenGL 2.0 supported");
       m_bGLUseARB = false;
     } else { // check for ARB extensions

@@ -66,14 +66,14 @@
 
 namespace SysTools {
 
-  template <typename T> std::string ToString(T aValue)
+  template <typename T> std::string ToString(const T& aValue)
   {
      std::stringstream ss;
      ss << aValue;
      return ss.str();
   }
 
-  template <typename T> std::wstring ToWString(T aValue)
+  template <typename T> std::wstring ToWString(const T& aValue)
   {
      std::wstringstream ss;
      ss << aValue;
@@ -92,6 +92,22 @@ namespace SysTools {
       std::wistringstream iss(s);
       return !(iss >> f >> t).fail();
   }  
+
+  template <typename T> T FromString(const std::string& s, std::ios_base& (*f)(std::ios_base&)= std::dec)
+  {
+      T t;
+      std::istringstream iss(s);
+      iss >> f >> t;
+      return t;
+  }
+  
+  template <typename T> T FromString(const std::wstring& s, std::ios_base& (*f)(std::ios_base&) = std::dec)
+  {
+      T t;
+      std::wistringstream iss(s);
+      iss >> f >> t;
+      return t;
+  }
 
   std::wstring ToLowerCase(const std::wstring& str);
   std::string ToLowerCase(const std::string& str);
