@@ -67,7 +67,8 @@ SystemInfo::SystemInfo(UINT64 iDefaultCPUMemSize, UINT64 iDefaultGPUMemSize) :
   m_iGPUMemSize(iDefaultGPUMemSize),
   m_bIsCPUSizeComputed(false),
   m_bIsGPUSizeComputed(false),
-  m_bIsNumberOfCPUsComputed(false)
+  m_bIsNumberOfCPUsComputed(false),
+  m_bIsDirectX10Capable(false)
 {
   UINT32 iNumberOfCPUs = ComputeNumCPUs();
   if (iNumberOfCPUs > 0) {
@@ -81,7 +82,7 @@ SystemInfo::SystemInfo(UINT64 iDefaultCPUMemSize, UINT64 iDefaultGPUMemSize) :
     m_bIsCPUSizeComputed = true;
   }
 
-  UINT64 iGPUMemSize = ComputeGPUMemory();
+  UINT64 iGPUMemSize = ComputeGPUMemory();  // also sets m_bIsDirectX10Capable
   if (iGPUMemSize > 0) {
     m_iGPUMemSize = iGPUMemSize;
     m_bIsGPUSizeComputed = true;
@@ -184,6 +185,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
             SIZE_T SharedSystemMemory;
             if( SUCCEEDED( GetVideoMemoryViaDXGI( hMonitor, &DedicatedVideoMemory, &DedicatedSystemMemory, &SharedSystemMemory ) ) )
             {
+              m_bIsDirectX10Capable = true;
               SAFE_RELEASE( pD3D9 );
               return UINT64(DedicatedVideoMemory);
             } else {
@@ -212,7 +214,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
   {
     #ifdef TUVOK_OS_APPLE
       return 0;
-    #else
+    #else // Linux
       return 0;
     #endif
   }

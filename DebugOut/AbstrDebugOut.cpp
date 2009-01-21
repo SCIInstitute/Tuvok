@@ -58,10 +58,10 @@ void AbstrDebugOut::PrintMessageList() {
   printf( "end of recorded errors" );
 }
 
-void AbstrDebugOut::SetOutput(bool bShowMessages, 
-                                 bool bShowWarnings, 
-                                 bool bShowErrors, 
-                                 bool bShowOther) {
+void AbstrDebugOut::SetOutput(bool bShowErrors,
+                              bool bShowWarnings, 
+                              bool bShowMessages, 
+                              bool bShowOther) {
   SetShowMessages(bShowMessages); 
   SetShowWarnings(bShowWarnings);
   SetShowErrors(bShowErrors);
