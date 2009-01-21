@@ -1,7 +1,7 @@
 TEMPLATE          = lib
 CONFIG           += staticlib static create_prl warn_on
 TARGET            = Tuvok
-QTPLUGIN         += qjpeg
+QTPLUGIN         += qjpeg qtiff qgif
 VERSION           = 0.0.1
 TARGET            = Build/Tuvok
 RCC_DIR           = Build/rcc

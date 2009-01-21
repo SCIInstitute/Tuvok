@@ -38,5 +38,7 @@
 #include <QtCore/QtPlugin>
 
 Q_IMPORT_PLUGIN(qjpeg)
+Q_IMPORT_PLUGIN(qtiff)
+Q_IMPORT_PLUGIN(qgif)
 
 #endif // IV3D_QTPLUGINS_H
