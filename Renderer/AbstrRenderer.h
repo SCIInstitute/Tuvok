@@ -169,7 +169,7 @@ class AbstrRenderer {
     virtual bool Initialize();
 
     /** Deallocates GPU memory allocated during the rendering process. */
-    virtual void Cleanup() = NULL;
+    virtual void Cleanup() = 0;
 
     VolumeDataset*      GetDataSet() {return m_pDataset;}
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
