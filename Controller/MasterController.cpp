@@ -237,6 +237,7 @@ bool MasterController::Execute(const std::string& strCommand, const std::vector<
 
     AbstrDebugOut* pOldDebug       = DebugOut();
     bool           bDeleteOldDebug = DoDeleteDebugOut();
+    SetDeleteDebugOut(false);
 
     MultiplexOut* pMultiOut = new MultiplexOut();
     pMultiOut->SetOutput(true,true,true,true);
