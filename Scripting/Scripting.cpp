@@ -170,6 +170,7 @@ bool Scripting::ParseFile(const std::string& strFilename) {
 
 void Scripting::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "help", "", "show all commands");
+  pScriptEngine->RegisterCommand(this, "execute", "filename", "run the script saved as 'filename'");
   pScriptEngine->RegisterCommand(this, "echo", "on/off", "turn feedback on succesfull command execution on or off");
 }
 
@@ -179,6 +180,9 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
   if (strCommand == "echo") { 
     m_bEcho = SysTools::ToLowerCase(strParams[0]) == "on";
     return true;
+  } else 
+  if (strCommand == "execute") { 
+    return ParseFile(strParams[0]);
   } else 
   if (strCommand == "help") {
     m_pMasterController->DebugOut()->printf("Command Listing:");

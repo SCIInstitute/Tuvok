@@ -138,6 +138,9 @@ namespace SysTools {
   std::string  RemoveExt(const std::string& fileName);
   std::wstring RemoveExt(const std::wstring& fileName);
 
+  std::string  CheckExt(const std::string& fileName, const std::string& newext);
+  std::wstring CheckExt(const std::wstring& fileName, const std::wstring& newext);
+
   std::string  ChangeExt(const std::string& fileName, const std::string& newext);
   std::wstring ChangeExt(const std::wstring& fileName, const std::wstring& newext);
 

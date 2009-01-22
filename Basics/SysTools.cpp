@@ -368,6 +368,30 @@ namespace SysTools {
     return RemoveExt(fileName)+ L"." + newext;
   }
 
+  string  CheckExt(const string& fileName, const std::string& newext) {
+    string currentExt = GetExt(fileName);
+#ifdef _WIN32  // do a case insensitive check on windows systems
+    if (ToLowerCase(currentExt) != ToLowerCase(newext)) 
+#else
+    if (currentExt != newext) 
+#endif
+      return fileName + "." + newext;
+    else 
+      return fileName;
+  }
+
+  wstring CheckExt(const std::wstring& fileName, const std::wstring& newext) {
+    wstring currentExt = GetExt(fileName);
+#ifdef _WIN32  // do a case insensitive check on windows systems
+    if (ToLowerCase(currentExt) != ToLowerCase(newext)) 
+#else
+    if (currentExt != newext) 
+#endif
+      return fileName + L"." + newext;
+    else 
+      return fileName;
+  }
+
   string  AppendFilename(const string& fileName, const int iTag) {
     return AppendFilename(fileName, ToString(iTag));
   }
