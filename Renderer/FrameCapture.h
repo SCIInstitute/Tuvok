@@ -50,26 +50,41 @@ class FrameCapture {
     FrameCapture() {}
     virtual ~FrameCapture() {}
 
-    virtual bool CaptureSingleFrame(const std::string& strFilename) const = 0;
-    bool CaptureSequenceFrame(const std::string& strFilename, std::string* strRealFilename=NULL) {
+    virtual bool CaptureSingleFrame(const std::string& strFilename, bool bPreserveTransparency) const = 0;
+    bool CaptureSequenceFrame(const std::string& strFilename, bool bPreserveTransparency, std::string* strRealFilename=NULL) {
       std::string strSequenceName = SysTools::FindNextSequenceName(strFilename);
       if (strRealFilename) (*strRealFilename) = strSequenceName;
-      return CaptureSingleFrame(strSequenceName);
+      return CaptureSingleFrame(strSequenceName, bPreserveTransparency);
     }
   protected:
     bool SaveImage(const std::string& strFilename, const UINTVECTOR2& vSize,
-                   unsigned char* pData) const {
+                   unsigned char* pData, bool bPreserveTransparency) const {
       QImage qTargetFile(QSize(vSize.x, vSize.y), QImage::Format_ARGB32);
 
       size_t i = 0;
-      for (int y = 0;y<int(vSize.y);y++)
-        for (int x = 0;x<int(vSize.x);x++) {
-        qTargetFile.setPixel(x,(vSize.y-1)-y,qRgba(int(pData[i+0]),
-                         int(pData[i+1]),
-                         int(pData[i+2]),
-                         int(pData[i+3])));
-        i+=4;
+      if (bPreserveTransparency) { 
+        for (int y = 0;y<int(vSize.y);y++) {
+          for (int x = 0;x<int(vSize.x);x++) {
+            qTargetFile.setPixel(x,(vSize.y-1)-y,
+                                 qRgba(int(pData[i+0]),
+                                       int(pData[i+1]),
+                                       int(pData[i+2]),
+                                       int(pData[i+3])));
+            i+=4;
+          }
         }
+      } else {
+        for (int y = 0;y<int(vSize.y);y++) {
+          for (int x = 0;x<int(vSize.x);x++) {
+            qTargetFile.setPixel(x,(vSize.y-1)-y,
+                                qRgba(int(pData[i+0]),
+                                      int(pData[i+1]),
+                                      int(pData[i+2]),
+                                      255));
+            i+=4;
+          }
+        }
+      }
 
       return qTargetFile.save(strFilename.c_str());
     }

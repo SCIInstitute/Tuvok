@@ -37,7 +37,7 @@
 #include "GLFrameCapture.h"
 #include "GLInclude.h"
 
-bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename) const {
+bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename, bool bPreserveTransparency) const {
   GLint viewport[4];
   glGetIntegerv(GL_VIEWPORT, viewport);
 
@@ -46,7 +46,7 @@ bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename) const {
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_BYTE,image);
 
-  bool bResult = SaveImage(strFilename, UINTVECTOR2(viewport[2], viewport[3]), image);
+  bool bResult = SaveImage(strFilename, UINTVECTOR2(viewport[2], viewport[3]), image, bPreserveTransparency);
   delete[] image;
 
   return bResult;

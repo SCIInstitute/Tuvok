@@ -1094,10 +1094,10 @@ void GLRenderer::DrawBackGradient() {
   glDisable(GL_CULL_FACE);
 
   glBegin(GL_QUADS);
-    glColor4d(m_vBackgroundColors[0].x,m_vBackgroundColors[0].y,m_vBackgroundColors[0].z,1);
+    glColor4d(m_vBackgroundColors[0].x,m_vBackgroundColors[0].y,m_vBackgroundColors[0].z,0);
     glVertex3d(-1.0, -1.0, -0.5);
     glVertex3d( 1.0, -1.0, -0.5);
-    glColor4d(m_vBackgroundColors[1].x,m_vBackgroundColors[1].y,m_vBackgroundColors[1].z,1);
+    glColor4d(m_vBackgroundColors[1].x,m_vBackgroundColors[1].y,m_vBackgroundColors[1].z,0);
     glVertex3d( 1.0,  1.0, -0.5);
     glVertex3d(-1.0,  1.0, -0.5);
   glEnd();

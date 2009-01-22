@@ -182,7 +182,6 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
   } else 
   if (strCommand == "help") {
     m_pMasterController->DebugOut()->printf("Command Listing:");
-    m_pMasterController->DebugOut()->printf("\"help\" : this help screen");
     for (size_t i = 0;i<m_ScriptableList.size();i++) {
       string strParams = "";
       for (size_t j = 0;j<m_ScriptableList[i]->m_iMinParam;j++) {

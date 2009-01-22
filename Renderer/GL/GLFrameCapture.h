@@ -47,7 +47,7 @@ class GLFrameCapture : public FrameCapture {
     GLFrameCapture() : FrameCapture() {}
     virtual ~GLFrameCapture() {}
 
-    virtual bool CaptureSingleFrame(const std::string& strFilename) const;
+    virtual bool CaptureSingleFrame(const std::string& strFilename, bool bPreserveTransparency) const;
 };
 
 #endif // GLFRAMECAPTURE_H
