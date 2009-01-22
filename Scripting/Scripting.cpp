@@ -100,6 +100,7 @@ bool Scripting::RegisterCommand(Scriptable* source, const std::string& strComman
 bool Scripting::ParseLine(const string& strLine) {
   // tokenize string
   vector<string> vParameters = SysTools::Tokenize(strLine);
+  if(vParameters.empty()) { return true; }
 
   string strMessage = "";
   bool bResult = ParseCommand(vParameters, strMessage);
@@ -117,7 +118,7 @@ bool Scripting::ParseLine(const string& strLine) {
 
 bool Scripting::ParseCommand(const vector<string>& strTokenized, string& strMessage) {
 
-  if (strTokenized.size() == 0) return false;
+  if (strTokenized.empty()) return false;
   string strCommand = strTokenized[0];
   vector<string> strParams(strTokenized.begin()+1, strTokenized.end());
 
