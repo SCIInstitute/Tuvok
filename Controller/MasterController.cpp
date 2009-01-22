@@ -36,6 +36,9 @@
 
 
 #include "MasterController.h"
+#include "../DebugOut/TextfileOut.h"
+#include "../DebugOut/MultiplexOut.h"
+
 
 MasterController::MasterController(AbstrDebugOut* pDebugOut) :
   m_pDebugOut(pDebugOut == NULL ? new ConsoleOut() : pDebugOut),
@@ -162,7 +165,7 @@ void MasterController::Filter( std::string , UINT32 ,
 };
 
 
-bool MasterController::RegisterCalls(Scripting* pScriptEngine) {
+void MasterController::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "seterrorlog", "on/off", "toggle recording of errors");
   pScriptEngine->RegisterCommand(this, "setwarninglog", "on/off", "toggle recording of warnings");
   pScriptEngine->RegisterCommand(this, "setemessagelog", "on/off", "toggle recording of messages");
@@ -172,9 +175,8 @@ bool MasterController::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "clearerrorlog", "", "clear recorded errors");
   pScriptEngine->RegisterCommand(this, "clearwarninglog", "", "clear recorded warnings");
   pScriptEngine->RegisterCommand(this, "clearmessagelog", "", "clear recorded messages");
+  pScriptEngine->RegisterCommand(this, "fileoutput", "filename","write debug output to 'filename'");
   pScriptEngine->RegisterCommand(this, "toggleoutput", "on/off on/off on/off on/off","toggle messages, warning, errors, and other output");
-
-  return false;
 }
 
 bool MasterController::Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage) {
@@ -223,6 +225,26 @@ bool MasterController::Execute(const std::string& strCommand, const std::vector<
                            strParams[1] == "on",
                            strParams[2] == "on",
                            strParams[3] == "on");
+    return true;
+  }
+  if (strCommand == "fileoutput") {
+    TextfileOut* textout = new TextfileOut(strParams[0]);
+  
+    textout->SetShowErrors(m_pDebugOut->ShowErrors());
+    textout->SetShowWarnings(m_pDebugOut->ShowWarnings());
+    textout->SetShowMessages(m_pDebugOut->ShowMessages());
+    textout->SetShowOther(m_pDebugOut->ShowOther());
+
+    AbstrDebugOut* pOldDebug       = DebugOut();
+    bool           bDeleteOldDebug = DoDeleteDebugOut();
+
+    MultiplexOut* pMultiOut = new MultiplexOut();
+    pMultiOut->SetOutput(true,true,true,true);
+    SetDebugOut(pMultiOut, true);
+
+    pMultiOut->AddDebugOut(textout, true);
+    pMultiOut->AddDebugOut(pOldDebug, bDeleteOldDebug);
+
     return true;
   }
 

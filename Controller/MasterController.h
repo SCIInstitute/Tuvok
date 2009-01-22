@@ -99,6 +99,8 @@ public:
   AbstrDebugOut* DebugOut() { return m_pDebugOut; }
   /// Whether this controller owns the debug stream.
   bool           DoDeleteDebugOut() {return m_bDeleteDebugOutOnExit;}
+  /// set whether this controller owns the debug stream.
+  void           SetDeleteDebugOut(bool bDeleteDebugOutOnExit) {m_bDeleteDebugOutOnExit = bDeleteDebugOutOnExit;}
   /// The GPU memory manager moves data from CPU to GPU memory, and
   /// removes data from GPU memory.
   GPUMemMan*     MemMan()   {return m_pGPUMemMan;}
@@ -117,7 +119,7 @@ public:
          void *var2 = 0, void *var3 = 0 );
 
   // Scriptable implementation
-  virtual bool RegisterCalls(Scripting* pScriptEngine);
+  virtual void RegisterCalls(Scripting* pScriptEngine);
   virtual bool Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage);
 
 private:

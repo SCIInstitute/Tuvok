@@ -69,8 +69,10 @@ ScriptableListElement::ScriptableListElement(Scriptable* source, const std::stri
 
 
 Scripting::Scripting(MasterController* pMasterController) :
-  m_pMasterController(pMasterController)
+  m_pMasterController(pMasterController),
+  m_bEcho(false)
 {
+  RegisterCalls(this);
 }
 
 Scripting::~Scripting() {
@@ -87,8 +89,6 @@ bool Scripting::RegisterCommand(Scriptable* source, const std::string& strComman
   for (size_t i = 0;i<m_ScriptableList.size();i++) {
     if (m_ScriptableList[i]->m_strCommand == strCommand) return false;
   }
-  // commands must not be "help"
-  if ("help" == strCommand) return false;
 
   // ok, all seems fine: add the command to the list
   ScriptableListElement* elem = new ScriptableListElement(source, strCommand, strParameters, strDescription);
@@ -109,8 +109,8 @@ bool Scripting::ParseLine(const string& strLine) {
       m_pMasterController->DebugOut()->printf("Input \"%s\" not understood, try \"help\"!", strLine.c_str());
     else
       m_pMasterController->DebugOut()->printf(strMessage.c_str());
-  }
-//  else m_pMasterController->DebugOut()->printf("OK (%s)", strLine.c_str());
+  } else 
+    if (m_bEcho) m_pMasterController->DebugOut()->printf("OK (%s)", strLine.c_str());
 
   return bResult;
 }
@@ -122,28 +122,6 @@ bool Scripting::ParseCommand(const vector<string>& strTokenized, string& strMess
   vector<string> strParams(strTokenized.begin()+1, strTokenized.end());
 
   strMessage = "";
-
-  if (strCommand == "help") {
-    m_pMasterController->DebugOut()->printf("Command Listing:");
-    m_pMasterController->DebugOut()->printf("\"help\" : this help screen");
-    for (size_t i = 0;i<m_ScriptableList.size();i++) {
-      string strParams = "";
-      for (size_t j = 0;j<m_ScriptableList[i]->m_iMinParam;j++) {
-        strParams = strParams + m_ScriptableList[i]->m_vParameters[j];
-        if (j != m_ScriptableList[i]->m_vParameters.size()-1) strParams = strParams + " ";
-      }
-      for (size_t j = m_ScriptableList[i]->m_iMinParam;j<m_ScriptableList[i]->m_iMaxParam;j++) {
-        strParams = strParams + "["+m_ScriptableList[i]->m_vParameters[j]+"]";
-        if (j != m_ScriptableList[i]->m_vParameters.size()-1) strParams = strParams + " ";
-      }
-
-      m_pMasterController->DebugOut()->printf("\"%s\" %s: %s", m_ScriptableList[i]->m_strCommand.c_str(), strParams.c_str(), m_ScriptableList[i]->m_strDescription.c_str());
-    }
-
-    return true;
-  }
-
-
   for (size_t i = 0;i<m_ScriptableList.size();i++) {
     if (m_ScriptableList[i]->m_strCommand == strCommand) {
       if (strParams.size() >= m_ScriptableList[i]->m_iMinParam &&
@@ -187,4 +165,39 @@ bool Scripting::ParseFile(const std::string& strFilename) {
 
   fileData.close();
   return true;
+}
+
+void Scripting::RegisterCalls(Scripting* pScriptEngine) {
+  pScriptEngine->RegisterCommand(this, "help", "", "show all commands");
+  pScriptEngine->RegisterCommand(this, "echo", "on/off", "turn feedback on succesfull command execution on or off");
+}
+
+
+bool Scripting::Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage) {
+  strMessage = "";
+  if (strCommand == "echo") { 
+    m_bEcho = SysTools::ToLowerCase(strParams[0]) == "on";
+    return true;
+  } else 
+  if (strCommand == "help") {
+    m_pMasterController->DebugOut()->printf("Command Listing:");
+    m_pMasterController->DebugOut()->printf("\"help\" : this help screen");
+    for (size_t i = 0;i<m_ScriptableList.size();i++) {
+      string strParams = "";
+      for (size_t j = 0;j<m_ScriptableList[i]->m_iMinParam;j++) {
+        strParams = strParams + m_ScriptableList[i]->m_vParameters[j];
+        if (j != m_ScriptableList[i]->m_vParameters.size()-1) strParams = strParams + " ";
+      }
+      for (size_t j = m_ScriptableList[i]->m_iMinParam;j<m_ScriptableList[i]->m_iMaxParam;j++) {
+        strParams = strParams + "["+m_ScriptableList[i]->m_vParameters[j]+"]";
+        if (j != m_ScriptableList[i]->m_vParameters.size()-1) strParams = strParams + " ";
+      }
+
+      m_pMasterController->DebugOut()->printf("\"%s\" %s: %s", m_ScriptableList[i]->m_strCommand.c_str(), strParams.c_str(), m_ScriptableList[i]->m_strDescription.c_str());
+    }
+    return true;
+  }
+
+  return false;
+
 }

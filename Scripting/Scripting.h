@@ -59,7 +59,7 @@ class ScriptableListElement {
     std::string m_strDescription;
 };
 
-class Scripting 
+class Scripting : public Scriptable
 {
   public:
     Scripting(MasterController* pMasterController);
@@ -71,9 +71,15 @@ class Scripting
 
     bool RegisterCommand(Scriptable* source, const std::string& strCommand, const std::string& strParameters, const std::string& strDescription);
 
+    // Scriptable
+    virtual void RegisterCalls(Scripting* pScriptEngine);
+    virtual bool Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage);
+
+
   private:
     MasterController*                   m_pMasterController;
     std::vector<ScriptableListElement*> m_ScriptableList;
+    bool                                m_bEcho;
 
 };
 
