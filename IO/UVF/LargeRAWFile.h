@@ -28,7 +28,7 @@
   #undef min
   #endif
 #else
-  #include <stdio.h>
+  #include <cstdio>
   #include <unistd.h>
 #endif
 
@@ -116,7 +116,6 @@ protected:
   bool          m_bIsOpen;
   bool          m_bWritable;
   UINT64        m_iHeaderSize;
-
 };
 
 #endif // LARGERAWFILE_H

@@ -50,6 +50,9 @@ bool LargeRAWFile::Open(bool bReadWrite) {
     m_bIsOpen = m_StreamFile != INVALID_HANDLE_VALUE;
   #else
     m_StreamFile = fopen(m_strFilename.c_str(), (bReadWrite) ? "w+b" : "rb");
+    if(m_StreamFile == NULL) {
+      perror("fopen");
+    }
     m_bIsOpen = m_StreamFile != NULL;
   #endif
 
