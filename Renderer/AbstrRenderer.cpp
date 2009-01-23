@@ -396,10 +396,10 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
 /// transformation.  There is a slight offset towards the center, which helps
 /// avoid ambiguous cases.
 static float
-brick_distance(const Brick &b, FLOATMATRIX4 mat_modelview)
+brick_distance(const Brick &b, const FLOATMATRIX4 &mat_modelview)
 {
   const float fEpsilon = 0.4999f;
-  FLOATVECTOR3 vEpsilonEdges[8] = {
+  const FLOATVECTOR3 vEpsilonEdges[8] = {
     b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,-b.vExtension.z) *
       fEpsilon,
     b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,+b.vExtension.z) *
