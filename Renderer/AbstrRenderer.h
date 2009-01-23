@@ -127,8 +127,8 @@ class AbstrRenderer {
     virtual void Set2x2Windowmode(ERenderArea eArea, EWindowMode eWindowMode);
     EWindowMode GetFullWindowmode() const { return m_eFullWindowMode; }
     virtual void SetFullWindowmode(EWindowMode eWindowMode);
-    EWindowMode GetWindowUnderCursor(FLOATVECTOR2 vPos);
-    FLOATVECTOR2 GetLocalCursorPos(FLOATVECTOR2 vPos);
+    EWindowMode GetWindowUnderCursor(FLOATVECTOR2 vPos) const;
+    FLOATVECTOR2 GetLocalCursorPos(FLOATVECTOR2 vPos) const;
 
     enum EBlendPrecision {
       BP_8BIT = 0,
@@ -218,7 +218,6 @@ class AbstrRenderer {
 
     virtual void SetRenderCoordArrows(bool bRenderCoordArrows);
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
-    
 
     /** Change the size of the render window.  Any previous image is
      * destroyed, causing a full redraw on the next render.

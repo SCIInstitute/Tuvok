@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -126,7 +126,7 @@ void CullingLOD::Update()
 int CullingLOD::GetLODLevel(const FLOATVECTOR3& vfCenter, const FLOATVECTOR3& vfExtent, const UINTVECTOR3& viVoxelCount) const {
   FLOATVECTOR3 vHalfExtent = 0.5f * vfExtent;
   float fLevelZeroWorldSpaceError = (vfExtent/FLOATVECTOR3(viVoxelCount)).minVal();
-  
+
   float zCenter = (FLOATVECTOR4(vfCenter,1) * m_mModelViewMatrix).z;
 
 
@@ -142,7 +142,7 @@ bool CullingLOD::IsVisible(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vfEx
 {
   if (m_bPassAll) return true;
 
-  FLOATVECTOR3 vHalfExtent = 0.5f * vfExtent; 
+  FLOATVECTOR3 vHalfExtent = 0.5f * vfExtent;
 
   for (UINT32 uiPlane = 0; uiPlane < 6; uiPlane++)
   {

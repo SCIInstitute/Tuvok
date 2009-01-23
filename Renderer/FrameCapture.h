@@ -62,7 +62,7 @@ class FrameCapture {
       QImage qTargetFile(QSize(vSize.x, vSize.y), QImage::Format_ARGB32);
 
       size_t i = 0;
-      if (bPreserveTransparency) { 
+      if (bPreserveTransparency) {
         for (int y = 0;y<int(vSize.y);y++) {
           for (int x = 0;x<int(vSize.x);x++) {
             qTargetFile.setPixel(x,(vSize.y-1)-y,

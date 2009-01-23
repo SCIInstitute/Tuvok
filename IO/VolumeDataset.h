@@ -55,7 +55,8 @@ typedef VECTOR4<UINT64> UINT64VECTOR4;
 class VolumeDataset;
 class MasterController;
 
-// right now this is just a wrapper around the UVF data to hide the actual implementation and cosnider only 3D data
+// right now this is just a wrapper around the UVF data to hide the
+// implementation and consider only 3D data
 class VolumeDatasetInfo {
   public:
     VolumeDatasetInfo() : m_pVolumeDataBlock(NULL) {}

@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -41,9 +41,9 @@
 
 using namespace std;
 
-AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) : 
+AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
   m_pMasterController(pMasterController),
-  m_bPerformRedraw(true), 
+  m_bPerformRedraw(true),
   m_eRenderMode(RM_1DTRANS),
   m_eViewMode(VM_SINGLE),
   m_eBlendPrecision(BP_32BIT),
@@ -136,27 +136,31 @@ bool AbstrRenderer::Initialize() {
 
 bool AbstrRenderer::LoadDataset(const string& strFilename) {
   if (m_pMasterController == NULL) return false;
+  AbstrDebugOut *dbg = m_pMasterController->DebugOut();
 
   if (m_pMasterController->IOMan() == NULL) {
-    m_pMasterController->DebugOut()->Error("AbstrRenderer::LoadDataset","Cannont load dataset because m_pMasterController->IOMan() == NULL");
+    dbg->Error("AbstrRenderer::LoadDataset",
+               "Cannot load dataset because IOManager is NULL");
     return false;
   }
 
   m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this);
 
   if (m_pDataset == NULL) {
-    m_pMasterController->DebugOut()->Error("AbstrRenderer::LoadDataset","IOMan call to load dataset failed");
+    dbg->Error("AbstrRenderer::LoadDataset",
+               "IOManager call to load dataset failed.");
     return false;
   }
 
-  m_pMasterController->DebugOut()->Message("AbstrRenderer::LoadDataset","Load successful, initializing renderer!");
+  dbg->Message("AbstrRenderer::LoadDataset",
+               "Load successful, initializing renderer!");
 
-  // find the maximum lod index
+  // find the maximum LOD index
   std::vector<UINT64> vSmallestLOD = m_pDataset->GetInfo()->GetLODLevelCountND();
-  for (size_t i = 0;i<vSmallestLOD.size();i++) vSmallestLOD[i] -= 1;
-  UINT64 iMaxSmallestLOD = 0;
-  for (size_t i = 0;i<vSmallestLOD.size();i++) if (iMaxSmallestLOD < vSmallestLOD[i]) iMaxSmallestLOD = vSmallestLOD[i];  
-  m_iMaxLODIndex = iMaxSmallestLOD;
+  for (size_t i = 0;i<vSmallestLOD.size();i++) {
+    vSmallestLOD[i]--;
+  }
+  m_iMaxLODIndex = *std::min_element(vSmallestLOD.begin(), vSmallestLOD.end());
 
   m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetInfo()->GetDomainSize()[0]/2;
   m_piSlice[size_t(WM_CORONAL)]  = m_pDataset->GetInfo()->GetDomainSize()[1]/2;
@@ -169,39 +173,38 @@ AbstrRenderer::~AbstrRenderer() {
   m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
   m_pMasterController->MemMan()->Free1DTrans(m_p1DTrans, this);
   m_pMasterController->MemMan()->Free2DTrans(m_p2DTrans, this);
-
 }
 
-void AbstrRenderer::SetRendermode(ERenderMode eRenderMode) 
+void AbstrRenderer::SetRendermode(ERenderMode eRenderMode)
 {
   if (m_eRenderMode != eRenderMode) {
-    m_eRenderMode = eRenderMode; 
+    m_eRenderMode = eRenderMode;
     ScheduleCompleteRedraw();
-  }  
+  }
 }
 
 void AbstrRenderer::SetViewmode(EViewMode eViewMode)
 {
   if (m_eViewMode != eViewMode) {
-    m_eViewMode = eViewMode; 
+    m_eViewMode = eViewMode;
     ScheduleCompleteRedraw();
-  }  
+  }
 }
 
 void AbstrRenderer::Set2x2Windowmode(ERenderArea eArea, EWindowMode eWindowMode)
 {
   /// \todo make sure every view is only assigned to one subwindow
   if (m_e2x2WindowMode[size_t(eArea)] != eWindowMode) {
-    m_e2x2WindowMode[size_t(eArea)] = eWindowMode; 
+    m_e2x2WindowMode[size_t(eArea)] = eWindowMode;
     ScheduleWindowRedraw(eWindowMode);
-  }  
+  }
 }
 
 void AbstrRenderer::SetFullWindowmode(EWindowMode eWindowMode) {
   if (m_eFullWindowMode != eWindowMode) {
-    m_eFullWindowMode = eWindowMode; 
+    m_eFullWindowMode = eWindowMode;
     ScheduleCompleteRedraw();
-  }  
+  }
 }
 
 void AbstrRenderer::SetUseLighting(bool bUseLighting) {
@@ -219,19 +222,25 @@ void AbstrRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
 }
 
 void AbstrRenderer::Changed1DTrans() {
+  AbstrDebugOut *dbg = m_pMasterController->DebugOut();
   if (m_eRenderMode != RM_1DTRANS) {
-    m_pMasterController->DebugOut()->Message("AbstrRenderer::Changed1DTrans","not using the 1D transferfunction at the moment, ignoring message");
+    dbg->Message("AbstrRenderer::Changed1DTrans",
+                 "not using the 1D transferfunction at the moment, "
+                 "ignoring message");
   } else {
-    m_pMasterController->DebugOut()->Message("AbstrRenderer::Changed1DTrans","complete redraw scheduled");
+    dbg->Message("AbstrRenderer::Changed1DTrans", "complete redraw scheduled");
     ScheduleCompleteRedraw();
   }
 }
 
 void AbstrRenderer::Changed2DTrans() {
+  AbstrDebugOut *dbg = m_pMasterController->DebugOut();
   if (m_eRenderMode != RM_2DTRANS) {
-    m_pMasterController->DebugOut()->Message("AbstrRenderer::Changed2DTrans","not using the 2D transferfunction at the moment, ignoring message");
+    dbg->Message("AbstrRenderer::Changed2DTrans",
+                 "not using the 2D transferfunction at the moment, "
+                 "ignoring message");
   } else {
-    m_pMasterController->DebugOut()->Message("AbstrRenderer::Changed2DTrans","complete redraw scheduled");
+    dbg->Message("AbstrRenderer::Changed2DTrans", "complete redraw scheduled");
     ScheduleCompleteRedraw();
   }
 }
@@ -254,14 +263,16 @@ void AbstrRenderer::SetIsoValue(float fIsovalue) {
 bool AbstrRenderer::CheckForRedraw() {
   if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame || m_iCurrentLODOffset > m_iMinLODForCurrentView) {
     if (m_iCheckCounter == 0)  {
-      m_pMasterController->DebugOut()->Message("AbstrRenderer::CheckForRedraw","Still drawing...");
+      AbstrDebugOut *dbg = m_pMasterController->DebugOut();
+      dbg->Message("AbstrRenderer::CheckForRedraw","Still drawing...");
       return true;
     } else m_iCheckCounter--;
   }
   return m_bPerformRedraw || m_bPerformReCompose;
 }
 
-AbstrRenderer::EWindowMode AbstrRenderer::GetWindowUnderCursor(FLOATVECTOR2 vPos) {
+AbstrRenderer::EWindowMode
+AbstrRenderer::GetWindowUnderCursor(FLOATVECTOR2 vPos) const {
   switch (m_eViewMode) {
     case VM_SINGLE   : return m_eFullWindowMode;
     case VM_TWOBYTWO : {
@@ -283,7 +294,7 @@ AbstrRenderer::EWindowMode AbstrRenderer::GetWindowUnderCursor(FLOATVECTOR2 vPos
   }
 }
 
-FLOATVECTOR2 AbstrRenderer::GetLocalCursorPos(FLOATVECTOR2 vPos) {
+FLOATVECTOR2 AbstrRenderer::GetLocalCursorPos(FLOATVECTOR2 vPos) const {
   switch (m_eViewMode) {
     case VM_SINGLE   : return vPos;
     case VM_TWOBYTWO : {
@@ -362,7 +373,7 @@ void AbstrRenderer::ScheduleWindowRedraw(EWindowMode eWindow) {
 }
 
 void AbstrRenderer::ScheduleRecompose() {
-  if (!m_bAvoidSeperateCompositing && 
+  if (!m_bAvoidSeperateCompositing &&
     m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) { // make sure we finished the current frame
     m_bPerformReCompose = true;
     m_bRedrawMask[WM_3D]  = true;
@@ -375,32 +386,33 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
   UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetInfo()->GetDomainSize());
   FLOATVECTOR3 vfExtend     = (FLOATVECTOR3(viVoxelCount) / viVoxelCount.maxVal()) * FLOATVECTOR3(m_pDataset->GetInfo()->GetScale() / m_pDataset->GetInfo()->GetScale().maxVal() );
 
-  // TODO consider real extend not center
+  // TODO consider real extent not center
 
   FLOATVECTOR3 vfCenter(0,0,0);
   m_iMinLODForCurrentView = max(0, min<int>(m_pDataset->GetInfo()->GetLODLevelCount()-1,m_FrustumCullingLOD.GetLODLevel(vfCenter,vfExtend,viVoxelCount)));
-} 
+}
 
-vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(const vector<Brick>& vRightEyeBrickList ) {
+vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
+                             const vector<Brick>& vRightEyeBrickList) {
   vector<Brick> vBrickList = vRightEyeBrickList;
 
   for (UINT32 iBrick = 0;iBrick<vBrickList.size();iBrick++) {
-    /// compute minimum distance to brick corners (offset slightly to the center to resolve ambiguities) 
+    // compute minimum distance to brick corners (offset slightly to the center
+    // to resolve ambiguities).
     vBrickList[iBrick].fDistance = numeric_limits<float>::max();
     float fEpsilon = 0.4999f;
-    FLOATVECTOR3 vEpsilonEdges[8] = {vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon, 
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon, 
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon, 
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon, 
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon, 
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon, 
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon, 
+    FLOATVECTOR3 vEpsilonEdges[8] = {vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon,
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon,
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon,
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon,
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon,
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon,
+                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon,
                                      vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon};
 
     for (size_t i = 0;i<8;i++) {
       vBrickList[iBrick].fDistance = min(vBrickList[iBrick].fDistance,(FLOATVECTOR4(vEpsilonEdges[i],1.0f)*m_matModelView[1]).xyz().length());
     }
-
   }
 
   sort(vBrickList.begin(), vBrickList.end());
@@ -414,8 +426,8 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
   UINT64VECTOR3 vOverlap = m_pDataset->GetInfo()->GetBrickOverlapSize();
   UINT64VECTOR3 vBrickDimension = m_pDataset->GetInfo()->GetBrickCount(m_iCurrentLOD);
   UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize(m_iCurrentLOD);
-  FLOATVECTOR3 vScale(m_pDataset->GetInfo()->GetScale().x, 
-                      m_pDataset->GetInfo()->GetScale().y, 
+  FLOATVECTOR3 vScale(m_pDataset->GetInfo()->GetScale().x,
+                      m_pDataset->GetInfo()->GetScale().y,
                       m_pDataset->GetInfo()->GetScale().z);
 
   FLOATVECTOR3 vDomainExtend = vScale * FLOATVECTOR3(vDomainSize);
@@ -428,26 +440,20 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     Brick b;
     for (UINT64 y = 0;y<vBrickDimension.y;y++) {
       for (UINT64 x = 0;x<vBrickDimension.x;x++) {
-        
         UINT64VECTOR3 vSize = m_pDataset->GetInfo()->GetBrickSize(m_iCurrentLOD, UINT64VECTOR3(x,y,z));
         b = Brick(x,y,z, UINT32(vSize.x), UINT32(vSize.y), UINT32(vSize.z));
 
-
-        FLOATVECTOR3 vEffectiveSize = m_pDataset->GetInfo()->GetEffectiveBrickSize(m_iCurrentLOD, UINT64VECTOR3(x,y,z));
-
+        FLOATVECTOR3 vEffectiveSize = m_pDataset->GetInfo()->GetEffectiveBrickSize(m_iCurrentLOD,UINT64VECTOR3(x,y,z));
 
         b.vExtension = (vEffectiveSize* vScale)/fDownscale;
-        
+
         // compute center of the brick
         b.vCenter = (vBrickCorner + b.vExtension/2.0f)-vDomainExtend*0.5f;
 
         vBrickCorner.x += b.vExtension.x;
 
-
         // if the brick is inside the frustum continue processing
         if (m_FrustumCullingLOD.IsVisible(b.vCenter, b.vExtension)) {
-
-
           bool bContainsData;
 
           switch (m_eRenderMode) {
@@ -478,7 +484,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
               b.vTexcoordsMin = FLOATVECTOR3((x == 0) ? 0.5f/b.vVoxelCount.x : vOverlap.x*0.5f/b.vVoxelCount.x,
                                              (y == 0) ? 0.5f/b.vVoxelCount.y : vOverlap.y*0.5f/b.vVoxelCount.y,
                                              (z == 0) ? 0.5f/b.vVoxelCount.z : vOverlap.z*0.5f/b.vVoxelCount.z);
-              
+
               // for padded volume adjust texcoords
               b.vTexcoordsMax = FLOATVECTOR3((x == vBrickDimension.x-1) ? 1.0f-0.5f/b.vVoxelCount.x : 1.0f-vOverlap.x*0.5f/b.vVoxelCount.x,
                                              (y == vBrickDimension.y-1) ? 1.0f-0.5f/b.vVoxelCount.y : 1.0f-vOverlap.y*0.5f/b.vVoxelCount.y,
@@ -486,10 +492,10 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
 
             }
 
-            // for MIP rotations where the depth order does not matter we want to render in core data first 
+            // for MIP rotations where the depth order does not matter we want to render in core data first
             if (bUseResidencyAsDistanceCriterion) {
               vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
-              vector<UINT64> vBrick; 
+              vector<UINT64> vBrick;
               vBrick.push_back(b.vCoords.x);
               vBrick.push_back(b.vCoords.y);
               vBrick.push_back(b.vCoords.z);
@@ -499,18 +505,18 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
               else
                 b.fDistance = 1;
             } else {
-              /// compute minimum distance to brick corners (offset slightly to the center to resolve ambiguities) 
+              /// compute minimum distance to brick corners (offset slightly to the center to resolve ambiguities)
               b.fDistance = numeric_limits<float>::max();
               float fEpsilon = 0.4999f;
-              FLOATVECTOR3 vEpsilonEdges[8] = {b.vCenter+FLOATVECTOR3(-b.vExtension.x, -b.vExtension.y, -b.vExtension.z)* fEpsilon, 
-                                               b.vCenter+FLOATVECTOR3(-b.vExtension.x, -b.vExtension.y, +b.vExtension.z)* fEpsilon, 
-                                               b.vCenter+FLOATVECTOR3(-b.vExtension.x, +b.vExtension.y, -b.vExtension.z)* fEpsilon, 
-                                               b.vCenter+FLOATVECTOR3(-b.vExtension.x, +b.vExtension.y, +b.vExtension.z)* fEpsilon, 
-                                               b.vCenter+FLOATVECTOR3(+b.vExtension.x, -b.vExtension.y, -b.vExtension.z)* fEpsilon, 
-                                               b.vCenter+FLOATVECTOR3(+b.vExtension.x, -b.vExtension.y, +b.vExtension.z)* fEpsilon, 
-                                               b.vCenter+FLOATVECTOR3(+b.vExtension.x, +b.vExtension.y, -b.vExtension.z)* fEpsilon, 
+              FLOATVECTOR3 vEpsilonEdges[8] = {b.vCenter+FLOATVECTOR3(-b.vExtension.x, -b.vExtension.y, -b.vExtension.z)* fEpsilon,
+                                               b.vCenter+FLOATVECTOR3(-b.vExtension.x, -b.vExtension.y, +b.vExtension.z)* fEpsilon,
+                                               b.vCenter+FLOATVECTOR3(-b.vExtension.x, +b.vExtension.y, -b.vExtension.z)* fEpsilon,
+                                               b.vCenter+FLOATVECTOR3(-b.vExtension.x, +b.vExtension.y, +b.vExtension.z)* fEpsilon,
+                                               b.vCenter+FLOATVECTOR3(+b.vExtension.x, -b.vExtension.y, -b.vExtension.z)* fEpsilon,
+                                               b.vCenter+FLOATVECTOR3(+b.vExtension.x, -b.vExtension.y, +b.vExtension.z)* fEpsilon,
+                                               b.vCenter+FLOATVECTOR3(+b.vExtension.x, +b.vExtension.y, -b.vExtension.z)* fEpsilon,
                                                b.vCenter+FLOATVECTOR3(+b.vExtension.x, +b.vExtension.y, +b.vExtension.z)* fEpsilon};
-        
+
               for (size_t i = 0;i<8;i++) {
                 b.fDistance = min(b.fDistance,(FLOATVECTOR4(vEpsilonEdges[i],1.0f)*m_matModelView[0]).xyz().length());
               }
@@ -540,7 +546,7 @@ void AbstrRenderer::Plan3DFrame() {
   if (m_bPerformRedraw) {
     // compute modelviewmatrix and pass it to the culling object
     m_matModelView[0] = m_mRotation*m_mTranslation*m_mView[0];
-    if (m_bDoStereoRendering) 
+    if (m_bDoStereoRendering)
       m_matModelView[1] = m_mRotation*m_mTranslation*m_mView[1];
 
     // we assume that the left and right eye's view are similar so we only use one for culling
@@ -557,7 +563,7 @@ void AbstrRenderer::Plan3DFrame() {
 
   // plan if the frame is to be redrawn
   // or if we have completed the last subframe but not the entire frame
-  if (m_bPerformRedraw || 
+  if (m_bPerformRedraw ||
      (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_iCurrentLODOffset > m_iMinLODForCurrentView)) {
 
     // compute current LOD level
@@ -570,7 +576,7 @@ void AbstrRenderer::Plan3DFrame() {
 
     if (m_bDoStereoRendering)
       m_vLeftEyeBrickList = BuildLeftEyeSubFrameBrickList(m_vCurrentBrickList);
-    
+
     m_iBricksRenderedInThisSubFrame = 0;
   }
 
@@ -599,7 +605,7 @@ void AbstrRenderer::PlanHQMIPFrame() {
     }
   }
 
-  if (m_iCurrentLOD > 0) { 
+  if (m_iCurrentLOD > 0) {
     m_iCurrentLOD = min<int>(m_pDataset->GetInfo()->GetLODLevelCount()-1,m_iCurrentLOD-1);
   }
 
@@ -617,15 +623,15 @@ void AbstrRenderer::SetCV(bool bEnable) {
   if (!SupportsClearView()) return;
 
   if (m_bDoClearView != bEnable) {
-    m_bDoClearView = bEnable; 
-    if (m_eRenderMode == RM_ISOSURFACE) 
+    m_bDoClearView = bEnable;
+    if (m_eRenderMode == RM_ISOSURFACE)
       ScheduleWindowRedraw(WM_3D);
   }
 }
 
 void AbstrRenderer::SetIsosufaceColor(const FLOATVECTOR3& vColor) {
-  m_vIsoColor = vColor; 
-  if (m_eRenderMode == RM_ISOSURFACE) 
+  m_vIsoColor = vColor;
+  if (m_eRenderMode == RM_ISOSURFACE)
     ScheduleRecompose();
 }
 
@@ -652,8 +658,8 @@ void AbstrRenderer::SetCVIsoValue(float fIsovalue) {
 
 void AbstrRenderer::SetCVColor(const FLOATVECTOR3& vColor) {
   if (m_vCVColor != vColor) {
-    m_vCVColor = vColor; 
-    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) 
+    m_vCVColor = vColor;
+    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE)
       ScheduleRecompose();
   }
 }
@@ -661,7 +667,7 @@ void AbstrRenderer::SetCVColor(const FLOATVECTOR3& vColor) {
 void AbstrRenderer::SetCVSize(float fSize) {
   if (m_fCVSize != fSize) {
     m_fCVSize = fSize;
-    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) 
+    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE)
       ScheduleRecompose();
   }
 }
@@ -669,15 +675,15 @@ void AbstrRenderer::SetCVSize(float fSize) {
 void AbstrRenderer::SetCVContextScale(float fScale) {
   if (m_fCVContextScale != fScale) {
     m_fCVContextScale = fScale;
-    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) 
+    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE)
       ScheduleRecompose();
   }
 }
 
 void AbstrRenderer::SetCVBorderScale(float fScale) {
   if (m_fCVBorderScale != fScale) {
-    m_fCVBorderScale = fScale; 
-    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) 
+    m_fCVBorderScale = fScale;
+    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE)
       ScheduleRecompose();
   }
 }
@@ -685,8 +691,8 @@ void AbstrRenderer::SetCVBorderScale(float fScale) {
 void AbstrRenderer::SetCVFocusPos(FLOATVECTOR2 vPos) {
   vPos.y = 1.0f-vPos.y;
   if (m_vCVPos!= vPos) {
-    m_vCVPos = vPos; 
-    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) 
+    m_vCVPos = vPos;
+    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE)
       ScheduleRecompose();
   }
 }
@@ -712,7 +718,7 @@ void AbstrRenderer::Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlip
 
 bool AbstrRenderer::GetUseMIP(EWindowMode eWindow) const {
   // MIP is only possible for 2D views
-  if (eWindow > WM_SAGITTAL) 
+  if (eWindow > WM_SAGITTAL)
     return false;
   else
     return m_bUseMIP[size_t(eWindow)];
