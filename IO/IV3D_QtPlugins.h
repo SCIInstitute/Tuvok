@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -37,8 +37,10 @@
 
 #include <QtCore/QtPlugin>
 
+#ifndef IV3D_DYNAMIC_QT
 Q_IMPORT_PLUGIN(qjpeg)
 Q_IMPORT_PLUGIN(qtiff)
 Q_IMPORT_PLUGIN(qgif)
+#endif // IV3D_DYNAMIC_QT
 
 #endif // IV3D_QTPLUGINS_H
