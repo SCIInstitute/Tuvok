@@ -52,6 +52,8 @@
   #else
     #include <cerrno>
     #include <cstdio>
+    #include <fstream>
+    #include <iostream>
     #include <sys/resource.h>
     #include <sys/sysinfo.h>
     #include <sys/time.h>
@@ -104,13 +106,63 @@ UINT32 SystemInfo::ComputeNumCPUs() {
 }
 
 #ifdef __linux__
-static unsigned long sysinfo_mem() {
+
+#ifndef NDEBUG
+#   define DBG(str) do { std::cerr << str << std::endl; } while(0)
+#else
+#   define DBG(str) /* nothing */
+#endif
+static unsigned long lnx_mem_sysinfo() {
   struct sysinfo si;
   if(sysinfo(&si) < 0) {
     perror("sysinfo");
     return 0;
   }
   return si.totalram;
+}
+
+static UINT64 lnx_mem_rlimit() {
+    struct rlimit limit;
+    // RLIMIT_MEMLOCK returns 32768 (that's *bytes*) on my 6gb-RAM system, so
+    // that number is worthless to us.
+    // RLIMIT_DATA isn't great, because it gets the entire data segment size
+    // allowable, not just the heap size ...
+    if(getrlimit(RLIMIT_DATA, &limit) != 0) {
+        perror("getrlimit");
+        return 0;
+    }
+    // Frequently the information given by getrlimit(2) is essentially
+    // worthless, because it assumes we don't care about swapping.
+    if(limit.rlim_cur == RLIM_INFINITY || limit.rlim_max == RLIM_INFINITY) {
+        DBG("getrlimit gave useless info...");
+        return 0;
+    }
+    return limit.rlim_max;
+}
+
+static UINT64 lnx_mem_proc() {
+  std::ifstream meminfo("/proc/meminfo");
+  if(meminfo.bad()) {
+    DBG("could not open proc memory filesystem");
+    return 0;
+  }
+  // @todo fixme -- implement!  basically just grep for MemTotal.
+  return 0;
+}
+
+static UINT64 lnx_mem() {
+  UINT64 m;
+  if((m = lnx_mem_sysinfo()) == 0) {
+    DBG("sysinfo failed, falling back to rlimit");
+    if((m = lnx_mem_rlimit()) == 0) {
+      DBG("rlimit failed, falling back to proc");
+      if((m = lnx_mem_proc()) == 0) {
+        DBG("proc failed, pretending you have 1GB of memory");
+        return 1024*1024*1024;
+      }
+    }
+  }
+  return m;
 }
 #endif
 
@@ -127,26 +179,12 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
       size_t len = sizeof(phys);
       if (sysctl(mib, 2, &phys, &len, NULL, 0) != 0) return 0;
       return phys;
+    #elif defined(__linux__)
+      return static_cast<UINT64>(lnx_mem());
     #else
-      struct rlimit limit;
-      // RLIMIT_MEMLOCK returns 32768 (that's *bytes*) on my 6gb-RAM system, so
-      // that number is worthless to us.
-      // This isn't great, because it gets the entire data segment size
-      // allowable, not just the heap size ...
-      if(getrlimit(RLIMIT_DATA, &limit) != 0) {
-        perror("getrlimit");
-        // Try sysinfo before failing outright.
-        return static_cast<UINT64>(sysinfo_mem());
-      }
-      // Frequently the information given by getrlimit(2) is essentially
-      // worthless, because it assumes we don't care about swapping.
-      if(limit.rlim_cur == RLIM_INFINITY || limit.rlim_max == RLIM_INFINITY) {
-#ifndef NDEBUG
-        fputs("getrlimit gave useless info, falling back on sysinfo\n", stderr);
-#endif
-        return static_cast<UINT64>(sysinfo_mem());
-      }
-      return limit.rlim_max;
+      std::cerr << "Unknown system, can't lookup max memory.  "
+                << "Using a hard setting of 10 gb." << std::endl;
+      return 1024*1024*1024*10;
     #endif
   #endif
 }
