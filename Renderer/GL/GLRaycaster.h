@@ -71,6 +71,7 @@ class GLRaycaster : public GLRenderer {
     GLSLProgram*    m_pProgramRenderFrontFaces;
     GLSLProgram*    m_pProgramIso2;
 
+    /** Sets variables related to bricks in the shader. */
     void SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurrentBrick);
 
     virtual void CreateOffscreenBuffers();
