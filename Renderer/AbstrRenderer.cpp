@@ -392,34 +392,6 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
   m_iMinLODForCurrentView = max(0, min<int>(m_pDataset->GetInfo()->GetLODLevelCount()-1,m_FrustumCullingLOD.GetLODLevel(vfCenter,vfExtend,viVoxelCount)));
 }
 
-vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
-                             const vector<Brick>& vRightEyeBrickList) {
-  vector<Brick> vBrickList = vRightEyeBrickList;
-
-  for (UINT32 iBrick = 0;iBrick<vBrickList.size();iBrick++) {
-    // compute minimum distance to brick corners (offset slightly to the center
-    // to resolve ambiguities).
-    vBrickList[iBrick].fDistance = numeric_limits<float>::max();
-    float fEpsilon = 0.4999f;
-    FLOATVECTOR3 vEpsilonEdges[8] = {vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon,
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon,
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon,
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(-vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon,
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon,
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, -vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon,
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, -vBrickList[iBrick].vExtension.z)* fEpsilon,
-                                     vBrickList[iBrick].vCenter+FLOATVECTOR3(+vBrickList[iBrick].vExtension.x, +vBrickList[iBrick].vExtension.y, +vBrickList[iBrick].vExtension.z)* fEpsilon};
-
-    for (size_t i = 0;i<8;i++) {
-      vBrickList[iBrick].fDistance = min(vBrickList[iBrick].fDistance,(FLOATVECTOR4(vEpsilonEdges[i],1.0f)*m_matModelView[1]).xyz().length());
-    }
-  }
-
-  sort(vBrickList.begin(), vBrickList.end());
-
-  return vBrickList;
-}
-
 /// Calculates the distance to a given brick given the current view
 /// transformation.  There is a slight offset towards the center, which helps
 /// avoid ambiguous cases.
@@ -456,6 +428,22 @@ brick_distance(const Brick &b, FLOATMATRIX4 mat_modelview)
                 );
   }
   return fDistance;
+}
+
+vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
+                             const vector<Brick>& vRightEyeBrickList) {
+  vector<Brick> vBrickList = vRightEyeBrickList;
+
+  for (UINT32 iBrick = 0;iBrick<vBrickList.size();iBrick++) {
+    // compute minimum distance to brick corners (offset slightly to
+    // the center to resolve ambiguities).
+    vBrickList[iBrick].fDistance = brick_distance(vBrickList[iBrick],
+                                                  m_matModelView[1]);
+  }
+
+  sort(vBrickList.begin(), vBrickList.end());
+
+  return vBrickList;
 }
 
 vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
