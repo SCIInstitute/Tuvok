@@ -27,11 +27,11 @@
 */
 #pragma once
 
-#ifndef IV3D_QTPLUGINS_H
-#define IV3D_QTPLUGINS_H
+#ifndef TUVOK_QTPLUGINS_H
+#define TUVOK_QTPLUGINS_H
 
 /**
-  \file    IV3D_QtPlugins.h
+  \file    TUVOK_QtPlugins.h
   \date    December 2008
 */
 
@@ -43,4 +43,4 @@ Q_IMPORT_PLUGIN(qtiff)
 Q_IMPORT_PLUGIN(qgif)
 #endif // TUVOK_DYNAMIC_QT
 
-#endif // IV3D_QTPLUGINS_H
+#endif // TUVOK_QTPLUGINS_H

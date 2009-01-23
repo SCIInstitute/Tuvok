@@ -1319,7 +1319,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\IO\IV3D_QtPlugins.h"
+				RelativePath=".\IO\Tuvok_QtPlugins.h"
 				>
 			</File>
 			<File

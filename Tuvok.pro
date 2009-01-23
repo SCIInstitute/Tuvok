@@ -35,6 +35,7 @@ HEADERS += StdTuvokDefines.h \
            IO/IOManager.h \
            IO/DICOM/DICOMParser.h \
            IO/Images/ImageParser.h \
+           IO/TUVOK_QtPlugins.h \
            IO/UVF/DataBlock.h \
            IO/UVF/GlobalHeader.h \
            IO/UVF/KeyValuePairDataBlock.h \
