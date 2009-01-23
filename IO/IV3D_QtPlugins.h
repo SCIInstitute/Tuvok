@@ -37,10 +37,10 @@
 
 #include <QtCore/QtPlugin>
 
-#ifndef IV3D_DYNAMIC_QT
+#ifndef TUVOK_DYNAMIC_QT
 Q_IMPORT_PLUGIN(qjpeg)
 Q_IMPORT_PLUGIN(qtiff)
 Q_IMPORT_PLUGIN(qgif)
-#endif // IV3D_DYNAMIC_QT
+#endif // TUVOK_DYNAMIC_QT
 
 #endif // IV3D_QTPLUGINS_H
