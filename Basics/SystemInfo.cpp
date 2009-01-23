@@ -54,9 +54,11 @@
     #include <cstdio>
     #include <fstream>
     #include <iostream>
+    #include <sstream>
     #include <sys/resource.h>
     #include <sys/sysinfo.h>
     #include <sys/time.h>
+    #include "IO/KeyValueFileParser.h"
   #endif
 #endif
 
@@ -141,13 +143,22 @@ static UINT64 lnx_mem_rlimit() {
 }
 
 static UINT64 lnx_mem_proc() {
-  std::ifstream meminfo("/proc/meminfo");
-  if(meminfo.bad()) {
+  KeyValueFileParser meminfo("/proc/meminfo");
+
+  if(!meminfo.FileReadable()) {
     DBG("could not open proc memory filesystem");
     return 0;
   }
-  // @todo fixme -- implement!  basically just grep for MemTotal.
-  return 0;
+
+  KeyValPair *mem_total = meminfo.GetData("MemTotal");
+  if(mem_total == NULL) {
+    DBG("proc mem fs did not have a `MemTotal' entry.");
+    return 0;
+  }
+  std::istringstream mem_strm(mem_total->strValue);
+  UINT64 mem;
+  mem_strm >> mem;
+  return mem * 1024;
 }
 
 static UINT64 lnx_mem() {
