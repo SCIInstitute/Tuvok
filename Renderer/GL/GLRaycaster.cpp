@@ -357,16 +357,14 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     // do the raycasting
     switch (m_eRenderMode) {
       case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-                            glEnable(GL_BLEND);
-                            glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                             break;
       case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
-                            glEnable(GL_BLEND);
-                            glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                             break;
       default            :  m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DInLoop","Invalid rendermode set");
                             break;
     }
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
 
     SetBrickDepShaderVars(b, iCurrentBrick);
 
@@ -378,14 +376,13 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
     switch (m_eRenderMode) {
       case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
-                            glDisable(GL_BLEND);
                             break;
       case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
-                            glDisable(GL_BLEND);
                             break;
       default            :  m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DInLoop","Invalid rendermode set");
                             break;
     }
+    glDisable(GL_BLEND);
 
     m_pFBO3DImageCurrent[iStereoID]->FinishWrite();
   }
