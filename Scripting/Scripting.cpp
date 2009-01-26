@@ -40,6 +40,7 @@
 #include <Basics/SysTools.h>
 
 #include <sstream>
+#include <limits>
 
 using namespace std;
 
@@ -56,13 +57,17 @@ ScriptableListElement::ScriptableListElement(Scriptable* source, const std::stri
 
   bool bFoundOptional = false;
   for (UINT32 i = 0;i<m_iMaxParam;i++) {
-    if (m_vParameters[i][0] == '[' && m_vParameters[i][m_vParameters[i].size()-1] == ']') {
-      bFoundOptional = true;
-      m_vParameters[i] = string(m_vParameters[i].begin()+1, m_vParameters[i].end()-1);
+    if (m_vParameters[i] == "...") {
+      m_iMaxParam = numeric_limits<UINT32>::max();
     } else {
-      if (!bFoundOptional)
-        m_iMinParam++;
-      // else // this else would be an syntax error case but lets just assume all parameters after the first optional parameter are also optional
+      if (m_vParameters[i][0] == '[' && m_vParameters[i][m_vParameters[i].size()-1] == ']') {
+        bFoundOptional = true;
+        m_vParameters[i] = string(m_vParameters[i].begin()+1, m_vParameters[i].end()-1);
+      } else {
+        if (!bFoundOptional)
+          m_iMinParam++;
+        // else // this else would be an syntax error case but lets just assume all parameters after the first optional parameter are also optional
+      }
     }
   }
 }

@@ -50,7 +50,7 @@
 #endif
 
 // some DX files define min/max but that interferes
-// with the numerical_limits so undef them
+// with the numeric_limits so undef them
 #ifdef min
   #undef min
 #endif
