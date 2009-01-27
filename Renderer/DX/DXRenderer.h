@@ -49,6 +49,10 @@
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../AbstrRenderer.h"
 
+#include <windows.h>
+#include <d3d10.h>
+#include <d3dx10.h>
+
 class MasterController;
 
 class DXRenderer : public AbstrRenderer {
@@ -85,7 +89,21 @@ class DXRenderer : public AbstrRenderer {
                      UINT64VECTOR3 vDomainSize, DOUBLEVECTOR3 vAspectRatio,
                      DOUBLEVECTOR2 vWinAspectRatio);
 
+    void SetWinID(HWND winId) {m_hWnd = winId;}
   protected:
+    HWND                    m_hWnd;
+    HINSTANCE               m_hInst;
+    D3D10_DRIVER_TYPE       m_driverType;
+    ID3D10Device*           m_pd3dDevice;
+    IDXGISwapChain*         m_pSwapChain;
+    ID3D10RenderTargetView* m_pRenderTargetView;
+    IDXGIFactory*           m_pDXGIFactory;
+
+    bool OnCreateDevice();
+    bool OnResizedSwapChain();
+    void OnReleasingSwapChain();
+    void OnDestroyDevice();
+
 
     void SetRenderTargetArea(ERenderArea eREnderArea);
     void SetRenderTargetAreaScissor(ERenderArea eREnderArea);

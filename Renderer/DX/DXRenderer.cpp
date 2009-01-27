@@ -51,7 +51,14 @@
 using namespace std;
 
 DXRenderer::DXRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
-  AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder)
+  AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
+  m_hWnd(NULL),
+  m_hInst(NULL),
+  m_driverType(D3D10_DRIVER_TYPE_NULL),
+  m_pd3dDevice(NULL),
+  m_pSwapChain(NULL),
+  m_pRenderTargetView(NULL),
+  m_pDXGIFactory(NULL)
 {
 }
 
@@ -62,7 +69,40 @@ void DXRenderer::Cleanup() {
 }
 
 bool DXRenderer::Initialize() {
-  return true;
+  // at first initialize the DirectX subsystem
+
+  HRESULT hr = S_OK;
+  UINT createDeviceFlags = 0;
+#ifdef _DEBUG
+  createDeviceFlags |= D3D10_CREATE_DEVICE_DEBUG;
+#endif
+  D3D10_DRIVER_TYPE driverTypes[] =
+  {
+      D3D10_DRIVER_TYPE_HARDWARE,
+      D3D10_DRIVER_TYPE_REFERENCE,
+  };
+  UINT numDriverTypes = sizeof( driverTypes ) / sizeof( driverTypes[0] );
+  m_pd3dDevice = NULL;
+  for( UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++ )
+  {
+    m_driverType = driverTypes[driverTypeIndex];
+    hr = D3D10CreateDevice( NULL,
+                            m_driverType,
+                            NULL,
+                            createDeviceFlags,
+                            D3D10_SDK_VERSION,
+                            &m_pd3dDevice );
+    if( SUCCEEDED( hr ) ) break;
+  }
+  if( FAILED( hr ) ) return false; 
+
+  // Create the DXGI Factory
+  // hr = CreateDXGIFactory( IID_IDXGIFactory, ( void** )&m_pDXGIFactory );
+  if( FAILED( hr ) ) return false;
+
+
+  // next initialize the renderer
+  return OnCreateDevice();
 }
 
 void DXRenderer::Changed1DTrans() {
@@ -72,6 +112,93 @@ void DXRenderer::Changed2DTrans() {
 }
 
 void DXRenderer::Resize(const UINTVECTOR2& vWinSize) {
+  // at first initialize the DirectX subsystem
+
+  HRESULT hr = S_OK;
+  // get the dxgi device
+  IDXGIDevice* pDXGIDevice = NULL;
+  hr = m_pd3dDevice->QueryInterface( IID_IDXGIDevice, ( void** )&pDXGIDevice );
+  if( FAILED( hr ) ) {
+      // TODO report failiure
+      return;
+  }
+
+  // create a swap chain
+  DXGI_SWAP_CHAIN_DESC SwapChainDesc;
+  ZeroMemory( &SwapChainDesc, sizeof( DXGI_SWAP_CHAIN_DESC ) );
+  SwapChainDesc.BufferDesc.Width = vWinSize.x;
+  SwapChainDesc.BufferDesc.Height = vWinSize.y;
+  SwapChainDesc.BufferDesc.RefreshRate.Numerator = 60;
+  SwapChainDesc.BufferDesc.RefreshRate.Denominator = 1;
+  SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+  SwapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+  SwapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+  SwapChainDesc.SampleDesc.Count = 1;
+  SwapChainDesc.SampleDesc.Quality = 0;
+  SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+  SwapChainDesc.BufferCount = 3;
+  SwapChainDesc.OutputWindow = m_hWnd;
+  SwapChainDesc.Windowed = true;
+  SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+  SwapChainDesc.Flags = 0;
+  hr = m_pDXGIFactory->CreateSwapChain( pDXGIDevice, &SwapChainDesc, &m_pSwapChain );
+  pDXGIDevice->Release();
+  pDXGIDevice = NULL;
+  if( FAILED( hr ) ) {
+      // TODO report failiure
+      return;
+  }
+
+  // Create a render target view
+  ID3D10Texture2D* pBackBuffer;
+  hr = m_pSwapChain->GetBuffer( 0, __uuidof( ID3D10Texture2D ), ( LPVOID* )&pBackBuffer );
+  if( FAILED( hr ) ) {
+      // TODO report failiure
+      return;
+  }
+
+  hr = m_pd3dDevice->CreateRenderTargetView( pBackBuffer, NULL, &m_pRenderTargetView );
+  pBackBuffer->Release();
+  if( FAILED( hr ) ) {
+      // TODO report failiure
+      return;
+  }
+
+  m_pd3dDevice->OMSetRenderTargets( 1, &m_pRenderTargetView, NULL );
+
+  // Setup the viewport
+  D3D10_VIEWPORT vp;
+  vp.Width = vWinSize.x;
+  vp.Height = vWinSize.y;
+  vp.MinDepth = 0.0f;
+  vp.MaxDepth = 1.0f;
+  vp.TopLeftX = 0;
+  vp.TopLeftY = 0;
+  m_pd3dDevice->RSSetViewports( 1, &vp );
+
+
+
+  // next initialize the renderer
+  if (!OnResizedSwapChain()) {
+      // TODO report failiure
+      return;
+  }
+}
+
+bool DXRenderer::OnCreateDevice() {
+  return true;
+}
+
+bool DXRenderer::OnResizedSwapChain() {
+  return true;
+}
+
+void DXRenderer::OnReleasingSwapChain() {
+
+}
+
+void DXRenderer::OnDestroyDevice() {
+
 }
 
 void DXRenderer::RenderSeperatingLines() {
