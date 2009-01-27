@@ -54,7 +54,11 @@
 #include "../Renderer/AbstrRenderer.h"
 #include "../Renderer/GL/GLSBVR.h"
 #include "../Renderer/GL/GLRaycaster.h"
+
+#if defined(_WIN32) && defined(USE_DIRECTX)
+#include "../Renderer/DX/DXSBVR.h"
 #include "../Renderer/DX/DXRaycaster.h"
+#endif
 
 #include "../Scripting/Scripting.h"
 
