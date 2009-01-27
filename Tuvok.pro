@@ -136,3 +136,13 @@ SOURCES += 3rdParty/GLEW/glew.c \
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
            Renderer/SBVRGeogen.cpp 
+
+win32 {
+  HEADERS += Renderer/DX/DXRenderer.cpp \           
+             Renderer/DX/DXSBVR.cpp \
+             Renderer/DX/DXRaycaster.cpp
+
+  SOURCES += Renderer/DX/DXRenderer.cpp \           
+             Renderer/DX/DXSBVR.cpp \
+             Renderer/DX/DXRaycaster.cpp
+}

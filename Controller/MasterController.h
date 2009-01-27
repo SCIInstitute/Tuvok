@@ -54,6 +54,7 @@
 #include "../Renderer/AbstrRenderer.h"
 #include "../Renderer/GL/GLSBVR.h"
 #include "../Renderer/GL/GLRaycaster.h"
+#include "../Renderer/DX/DXRaycaster.h"
 
 #include "../Scripting/Scripting.h"
 

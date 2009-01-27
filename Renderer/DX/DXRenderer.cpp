@@ -1,0 +1,181 @@
+/*
+   For more information, please see: http://software.sci.utah.edu
+
+   The MIT License
+
+   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   University of Utah.
+
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/
+
+/**
+  \file    DXRenderer.cpp
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \date    August 2008
+*/
+
+#if defined(_WIN32) && defined(USE_DIRECTX)
+
+#pragma comment( lib, "d3d10.lib" )
+#ifdef _DEBUG
+  #pragma comment( lib, "d3dx10d.lib" )
+#else
+  #pragma comment( lib, "d3dx10.lib" )
+#endif
+
+#include "DXRenderer.h"
+#include <Controller/MasterController.h>
+#include <Basics/SysTools.h>
+#include <ctime>
+
+using namespace std;
+
+DXRenderer::DXRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
+  AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder)
+{
+}
+
+DXRenderer::~DXRenderer() {
+}
+
+void DXRenderer::Cleanup() {
+}
+
+bool DXRenderer::Initialize() {
+  return true;
+}
+
+void DXRenderer::Changed1DTrans() {
+}
+
+void DXRenderer::Changed2DTrans() {
+}
+
+void DXRenderer::Resize(const UINTVECTOR2& vWinSize) {
+}
+
+void DXRenderer::RenderSeperatingLines() {
+}
+
+void DXRenderer::ClearDepthBuffer() {
+}
+
+void DXRenderer::ClearColorBuffer() {
+}
+
+void DXRenderer::StartFrame() {
+}
+
+void DXRenderer::Paint() {
+}
+
+void DXRenderer::EndFrame(bool bNewDataToShow) {
+}
+
+void DXRenderer::SetRenderTargetArea(ERenderArea eREnderArea) {
+}
+
+void DXRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
+}
+
+void DXRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) {
+}
+
+void DXRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
+                             FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
+                             UINT64VECTOR3 vDomainSize, DOUBLEVECTOR3 vAspectRatio,
+                             DOUBLEVECTOR2 vWinAspectRatio) {
+}
+
+bool DXRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex) {
+  return true;
+}
+
+void DXRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
+}
+
+void DXRenderer::RenderBBox(const FLOATVECTOR4 vColor) {
+}
+
+void DXRenderer::RenderBBox(const FLOATVECTOR4 vColor, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend) {
+}
+
+void DXRenderer::NewFrameClear(ERenderArea eREnderArea) {
+}
+
+void DXRenderer::RenderCoordArrows() {
+}
+
+bool DXRenderer::Execute3DFrame(ERenderArea eREnderArea) {
+  return true;
+}
+
+void DXRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
+}
+
+void DXRenderer::DrawBackGradient() {
+}
+
+void DXRenderer::CreateOffscreenBuffers() {
+}
+
+void DXRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
+}
+
+void DXRenderer::SetDataDepShaderVars() {
+}
+
+void DXRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
+}
+
+bool DXRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const std::vector<std::string>& strDirs, GLSLProgram** pShaderProgram) {
+  return true;
+}
+
+bool DXRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs) {
+  return true;
+}
+
+void DXRenderer::BBoxPreRender() {
+}
+
+void DXRenderer::BBoxPostRender() {
+}
+
+bool DXRenderer::LoadDataset(const string& strFilename) {
+  return true;
+}
+
+void DXRenderer::Recompose3DView(ERenderArea eArea) {
+}
+
+void DXRenderer::Render3DView() {
+}
+
+void DXRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
+}
+
+void DXRenderer::ComposeSurfaceImage(int iStereoID) {
+}
+
+#endif // _WIN32 && USE_DIRECTX

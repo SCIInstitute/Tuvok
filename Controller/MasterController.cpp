@@ -127,10 +127,13 @@ RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOf
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 
   case DIRECTX_SBVR : 
-  case DIRECTX_RAYCASTER :
-    m_pDebugOut->Error("MasterController::RequestNewVolumerenderer","DirectX 10 volume renderer not yet implemented. Please select OpenGL as the render API in the settings dialog.");
+    m_pDebugOut->Error("MasterController::RequestNewVolumerenderer","DirectX 10 slice based volume renderer not yet implemented. Please select OpenGL as the render API in the settings dialog.");
     return NULL;
 
+  case DIRECTX_RAYCASTER :
+    m_vVolumeRenderer.push_back(new DXRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
+    m_pDebugOut->Error("MasterController::RequestNewVolumerenderer","DirectX 10 volume renderer not yet implemented. Please select OpenGL as the render API in the settings dialog.");
+    return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 
   default :
     m_pDebugOut->Error("MasterController::RequestNewVolumerenderer","Unsupported Volume renderer requested");
