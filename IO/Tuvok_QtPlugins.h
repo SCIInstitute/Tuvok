@@ -41,6 +41,22 @@
 Q_IMPORT_PLUGIN(qjpeg)
 Q_IMPORT_PLUGIN(qtiff)
 Q_IMPORT_PLUGIN(qgif)
+
+#ifdef _WIN32
+  #pragma comment( lib, "Imm32.lib" )
+  #pragma comment( lib, "Winmm.lib" )
+  #pragma comment( lib, "ws2_32.lib" )
+  #ifdef _DEBUG
+    #pragma comment( lib, "qjpegd.lib" )
+    #pragma comment( lib, "qtiffd.lib" )
+    #pragma comment( lib, "qgifd.lib" )
+  #else
+    #pragma comment( lib, "qjpeg.lib" )
+    #pragma comment( lib, "qtiff.lib" )
+    #pragma comment( lib, "qgif.lib" )
+  #endif
+#endif
+
 #endif // TUVOK_DYNAMIC_QT
 
 #endif // TUVOK_QTPLUGINS_H

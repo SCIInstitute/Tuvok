@@ -37,6 +37,8 @@
 #if defined(_WIN32) && defined(USE_DIRECTX)
 
 #pragma comment( lib, "d3d10.lib" )
+#pragma comment( lib, "dxgi.lib" )
+
 #ifdef _DEBUG
   #pragma comment( lib, "d3dx10d.lib" )
 #else
@@ -66,11 +68,21 @@ DXRenderer::~DXRenderer() {
 }
 
 void DXRenderer::Cleanup() {
+  OnReleasingSwapChain();
+  OnDestroyDevice();
 }
 
 bool DXRenderer::Initialize() {
-  // at first initialize the DirectX subsystem
+  // call the parent
+  if (!AbstrRenderer::Initialize()) {
+    m_pMasterController->DebugOut()->Error("DXRenderer::Initialize","Error in parent call -> aborting");
+    return false;
+  }
 
+  // next destroy the dx system we may have created already 
+  if (m_pd3dDevice) OnDestroyDevice();
+  
+  // next initialize the DirectX subsystem
   HRESULT hr = S_OK;
   UINT createDeviceFlags = 0;
 #ifdef _DEBUG
@@ -95,25 +107,34 @@ bool DXRenderer::Initialize() {
     if( SUCCEEDED( hr ) ) break;
   }
   if( FAILED( hr ) ) return false; 
-
-  // Create the DXGI Factory
-  // hr = CreateDXGIFactory( IID_IDXGIFactory, ( void** )&m_pDXGIFactory );
+  hr = CreateDXGIFactory( IID_IDXGIFactory, ( void** )&m_pDXGIFactory );
   if( FAILED( hr ) ) return false;
 
-
-  // next initialize the renderer
+  // finally initialize the renderer
   return OnCreateDevice();
 }
 
 void DXRenderer::Changed1DTrans() {
+  AbstrRenderer::Changed1DTrans();
+
+
 }
 
 void DXRenderer::Changed2DTrans() {
+  AbstrRenderer::Changed2DTrans();
+
+
+
 }
 
 void DXRenderer::Resize(const UINTVECTOR2& vWinSize) {
-  // at first initialize the DirectX subsystem
+  // call the parent
+  AbstrRenderer::Resize(vWinSize);
 
+  // next destroy screen dependent data we may have created already 
+  if (m_pSwapChain) OnReleasingSwapChain();
+
+  // next create the DirectX swapchain subsystem
   HRESULT hr = S_OK;
   // get the dxgi device
   IDXGIDevice* pDXGIDevice = NULL;
@@ -176,8 +197,6 @@ void DXRenderer::Resize(const UINTVECTOR2& vWinSize) {
   vp.TopLeftY = 0;
   m_pd3dDevice->RSSetViewports( 1, &vp );
 
-
-
   // next initialize the renderer
   if (!OnResizedSwapChain()) {
       // TODO report failiure
@@ -214,6 +233,8 @@ void DXRenderer::StartFrame() {
 }
 
 void DXRenderer::Paint() {
+  AbstrRenderer::Paint();
+  // TODO
 }
 
 void DXRenderer::EndFrame(bool bNewDataToShow) {
@@ -273,6 +294,10 @@ void DXRenderer::SetDataDepShaderVars() {
 }
 
 void DXRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
+  if (eBlendPrecision != m_eBlendPrecision) {
+    AbstrRenderer::SetBlendPrecision(eBlendPrecision);
+    // TODO
+  }
 }
 
 bool DXRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const std::vector<std::string>& strDirs, GLSLProgram** pShaderProgram) {
@@ -290,7 +315,10 @@ void DXRenderer::BBoxPostRender() {
 }
 
 bool DXRenderer::LoadDataset(const string& strFilename) {
-  return true;
+  if (AbstrRenderer::LoadDataset(strFilename)) {
+    // TODO
+    return true;
+  } else return false;
 }
 
 void DXRenderer::Recompose3DView(ERenderArea eArea) {
@@ -300,6 +328,8 @@ void DXRenderer::Render3DView() {
 }
 
 void DXRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
+  AbstrRenderer::SetLogoParams(strLogoFilename, iLogoPos);
+  // TODO
 }
 
 void DXRenderer::ComposeSurfaceImage(int iStereoID) {
