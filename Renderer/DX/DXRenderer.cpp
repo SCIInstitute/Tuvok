@@ -36,14 +36,8 @@
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
 
-#pragma comment( lib, "d3d10.lib" )
-#pragma comment( lib, "dxgi.lib" )
+#include <Basics/DynamicDX.h>
 
-#ifdef _DEBUG
-  #pragma comment( lib, "d3dx10d.lib" )
-#else
-  #pragma comment( lib, "d3dx10.lib" )
-#endif
 
 #include "DXRenderer.h"
 #include <Controller/MasterController.h>
@@ -98,7 +92,7 @@ bool DXRenderer::Initialize() {
   for( UINT driverTypeIndex = 0; driverTypeIndex < numDriverTypes; driverTypeIndex++ )
   {
     m_driverType = driverTypes[driverTypeIndex];
-    hr = D3D10CreateDevice( NULL,
+    hr = DynamicDX::D3D10CreateDevice( NULL,
                             m_driverType,
                             NULL,
                             createDeviceFlags,
@@ -107,7 +101,7 @@ bool DXRenderer::Initialize() {
     if( SUCCEEDED( hr ) ) break;
   }
   if( FAILED( hr ) ) return false; 
-  hr = CreateDXGIFactory( IID_IDXGIFactory, ( void** )&m_pDXGIFactory );
+  hr = DynamicDX::CreateDXGIFactory( IID_IDXGIFactory, ( void** )&m_pDXGIFactory );
   if( FAILED( hr ) ) return false;
 
   // finally initialize the renderer

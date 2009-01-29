@@ -52,7 +52,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				DebugInformationFormat="4"
-				DisableSpecificWarnings="4127;4512"
+				DisableSpecificWarnings="4127;4512;4006"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -117,7 +117,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				DebugInformationFormat="3"
-				DisableSpecificWarnings="4127;4512"
+				DisableSpecificWarnings="4127;4512;4006"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -182,7 +182,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				DebugInformationFormat="3"
-				DisableSpecificWarnings="4127;4512"
+				DisableSpecificWarnings="4127;4512;4006"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -248,7 +248,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				DebugInformationFormat="3"
-				DisableSpecificWarnings="4127;4512"
+				DisableSpecificWarnings="4127;4512;4006"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -312,7 +312,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				DebugInformationFormat="4"
-				DisableSpecificWarnings="4127;4512"
+				DisableSpecificWarnings="4127;4512;4006"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -377,7 +377,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				DebugInformationFormat="3"
-				DisableSpecificWarnings="4127;4512"
+				DisableSpecificWarnings="4127;4512;4006"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -442,7 +442,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				DebugInformationFormat="3"
-				DisableSpecificWarnings="4127;4512"
+				DisableSpecificWarnings="4127;4512;4006"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -508,7 +508,7 @@
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				DebugInformationFormat="3"
-				DisableSpecificWarnings="4127;4512"
+				DisableSpecificWarnings="4127;4512;4006"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -556,6 +556,14 @@
 			</File>
 			<File
 				RelativePath=".\Basics\Console.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Basics\DynamicDX.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Basics\DynamicDX.h"
 				>
 			</File>
 			<File

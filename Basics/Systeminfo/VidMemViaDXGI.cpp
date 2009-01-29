@@ -32,8 +32,7 @@
 #define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p)=NULL; } }
 #endif
 
-typedef HRESULT ( WINAPI* LPCREATEDXGIFACTORY )( REFIID, void** );
-
+#include "../DynamicDX.h"
 
 HRESULT GetVideoMemoryViaDXGI( HMONITOR hMonitor,
                                SIZE_T* pDedicatedVideoMemory,
@@ -46,14 +45,10 @@ HRESULT GetVideoMemoryViaDXGI( HMONITOR hMonitor,
     *pDedicatedSystemMemory = 0;
     *pSharedSystemMemory = 0;
 
-    HINSTANCE hDXGI = LoadLibrary( L"dxgi.dll" );
-    if( hDXGI )
+    if( DynamicDX::IsInitialized() )
     {
-        LPCREATEDXGIFACTORY pCreateDXGIFactory = NULL;
         IDXGIFactory* pDXGIFactory = NULL;
-
-        pCreateDXGIFactory = ( LPCREATEDXGIFACTORY )GetProcAddress( hDXGI, "CreateDXGIFactory" );
-        pCreateDXGIFactory( __uuidof( IDXGIFactory ), ( LPVOID* )&pDXGIFactory );
+        DynamicDX::CreateDXGIFactory( __uuidof( IDXGIFactory ), ( LPVOID* )&pDXGIFactory );
 
         for( int index = 0; ; ++index )
         {
@@ -95,8 +90,6 @@ HRESULT GetVideoMemoryViaDXGI( HMONITOR hMonitor,
                 break;
             }
         }
-
-        FreeLibrary( hDXGI );
     }
 
     if( bGotMemory )

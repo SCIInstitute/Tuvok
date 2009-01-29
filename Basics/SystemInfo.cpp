@@ -217,10 +217,22 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
     #define SAFE_RELEASE(p)      { if (p) { (p)->Release(); (p)=NULL; } }
   #endif
 
+  typedef IDirect3D9* ( WINAPI* LPDIRECT3DCREATE9 )( UINT  );
+  LPDIRECT3DCREATE9 pDirect3DCreate9;
+
   UINT64 SystemInfo::ComputeGPUMemory( )
   {
+    HINSTANCE hD3D9 = LoadLibrary( L"d3d9.dll" );
+    if (!hD3D9) return 0;
+    pDirect3DCreate9 = ( LPDIRECT3DCREATE9 )GetProcAddress( hD3D9, "Direct3DCreate9" );
+    
+    if (!pDirect3DCreate9) {
+      FreeLibrary( hD3D9 );
+      return 0;
+    }
+
     IDirect3D9* pD3D9 = NULL;
-    pD3D9 = Direct3DCreate9( D3D_SDK_VERSION );
+    pD3D9 = pDirect3DCreate9( D3D_SDK_VERSION );
     if( pD3D9 )
     {
         UINT dwAdapterCount = pD3D9->GetAdapterCount();
@@ -241,19 +253,23 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
               DWORD dwAvailableVidMem;
               if( SUCCEEDED( GetVideoMemoryViaDirectDraw( hMonitor, &dwAvailableVidMem ) ) ) {
                 SAFE_RELEASE( pD3D9 );
+                FreeLibrary( hD3D9 );
                 return UINT64(DedicatedVideoMemory);
               } else {
                 SAFE_RELEASE( pD3D9 );
+                FreeLibrary( hD3D9 );
                 return 0;
               }
             }
         }
 
         SAFE_RELEASE( pD3D9 );
+        FreeLibrary( hD3D9 );
         return 0;
     }
     else
     {
+        FreeLibrary( hD3D9 );
         return 0;
     }
   }
