@@ -217,7 +217,7 @@ void AbstrRenderer::SetUseLighting(bool bUseLighting) {
 void AbstrRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   if (m_eBlendPrecision != eBlendPrecision) {
     m_eBlendPrecision = eBlendPrecision;
-    ScheduleWindowRedraw(WM_3D);
+    ScheduleCompleteRedraw();
   }
 }
 
