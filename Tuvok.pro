@@ -138,11 +138,13 @@ SOURCES += 3rdParty/GLEW/glew.c \
            Renderer/SBVRGeogen.cpp 
 
 win32 {
-  HEADERS += Renderer/DX/DXRenderer.cpp \           
-             Renderer/DX/DXSBVR.cpp \
-             Renderer/DX/DXRaycaster.cpp
+  HEADERS += Renderer/DX/DynamicDX.h \
+             Renderer/DX/DXRenderer.h \
+             Renderer/DX/DXSBVR.h \
+             Renderer/DX/DXRaycaster.h
 
-  SOURCES += Renderer/DX/DXRenderer.cpp \           
+  SOURCES += Renderer/DX/DynamicDX.cpp \
+             Renderer/DX/DXRenderer.cpp \           
              Renderer/DX/DXSBVR.cpp \
              Renderer/DX/DXRaycaster.cpp
 }
