@@ -10,6 +10,8 @@ DEPENDPATH       += .
 INCLUDEPATH      += .
 QT               += opengl
 LIBS             += -lz
+unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
+unix:QMAKE_CFLAGS += -fno-strict-aliasing
 
 # Input
 HEADERS += StdTuvokDefines.h \
