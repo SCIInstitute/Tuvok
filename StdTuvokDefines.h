@@ -76,19 +76,21 @@ typedef unsigned char BYTE;
 #undef TUVOK_OS_APPLE
 #endif
 
-#ifdef TUVOK_OS_UNIX
-#undef TUVOK_OS_UNIX
+#ifdef TUVOK_OS_LINUX
+#undef TUVOK_OS_LINUX
 #endif
 
 // now figure out which OS we are compiling on
 #ifdef _WIN32
   #define TUVOK_OS_WINDOWS
-#else
-  #if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
-    #define TUVOK_OS_APPLE
-  #else
-    #define TUVOK_OS_UNIX
-  #endif
+#endif
+
+#if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+  #define TUVOK_OS_APPLE
+#endif
+
+#if defined(__linux__)
+  #define TUVOK_OS_LINUX
 #endif
 
 // set some strings to reflect that OS
@@ -112,7 +114,7 @@ typedef unsigned char BYTE;
   #define TUVOK_DETAILS "OSX build"
 #endif
 
-#ifdef TUVOK_OS_UNIX
+#ifdef TUVOK_OS_LINUX
   #define TUVOK_DETAILS "Linux build"
 #endif
 
