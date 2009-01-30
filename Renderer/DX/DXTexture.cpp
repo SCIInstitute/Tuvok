@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -27,46 +27,35 @@
 */
 
 /**
-  \file    DynamicDX.h
+  \file    DXTexture.cpp
   \author    Jens Krueger
         SCI Institute
         University of Utah
-  \date    January 2009
+  \date    August 2008
 */
-
-#pragma once
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
 
-#ifndef DYNAMICDX_H
-#define DYNAMICDX_H
+#include "DXTexture.h"
 
-#include "../StdTuvokDefines.h"
+DXTexture::~DXTexture() {
+  Delete();
+}
 
-#include "../Renderer/DX/DXInclude.h"
+void DXTexture::Delete() {
+  SAFE_RELEASE(m_pTexture_SRV);
+}
 
-class DynamicDX {
-public:
-  static bool InitializeDX();
-  static void CleanupDX();
-  static bool IsInitialized() {return m_bDynamicDXIsInitialized;}
+void DXTexture::Bind(ID3D10EffectShaderResourceVariable* pSRVar) {
+  m_pSRVarBound =  pSRVar; 
+  m_pSRVarBound->SetResource( m_pTexture_SRV );
+}
 
-  // DXGI calls
-  typedef HRESULT ( WINAPI* LPCREATEDXGIFACTORY )( REFIID, void** );
-  static LPCREATEDXGIFACTORY CreateDXGIFactory;
-
-  // D3D10 calls
-  typedef HRESULT ( WINAPI* LPD3D10CREATEDEVICE )( IDXGIAdapter*, D3D10_DRIVER_TYPE, HMODULE, UINT, UINT, ID3D10Device** );
-  static LPD3D10CREATEDEVICE D3D10CreateDevice;
-
-private:
-  static bool m_bDynamicDXIsInitialized;
-  static HINSTANCE m_hD3D10;
-  static HINSTANCE m_hDXGI;
-  static HINSTANCE m_hD3DX10;
-
-};
-
-#endif // DYNAMICDX_H
+void DXTexture::UnBind() {
+  if (m_pSRVarBound) {
+    m_pSRVarBound->SetResource( NULL );
+    m_pSRVarBound=NULL;
+  }
+}
 
 #endif // _WIN32 && USE_DIRECTX

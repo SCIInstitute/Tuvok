@@ -139,11 +139,21 @@ SOURCES += 3rdParty/GLEW/glew.c \
 
 win32 {
   HEADERS += Renderer/DX/DynamicDX.h \
+             Renderer/DX/DXObject.h \
+             Renderer/DX/DXInclude.h \
+             Renderer/DX/DXTexture.h \
+             Renderer/DX/DXTexture1D.h \
+             Renderer/DX/DXTexture2D.h \
+             Renderer/DX/DXTexture3D.h \
              Renderer/DX/DXRenderer.h \
              Renderer/DX/DXSBVR.h \
              Renderer/DX/DXRaycaster.h
 
   SOURCES += Renderer/DX/DynamicDX.cpp \
+             Renderer/DX/DXTexture.cpp \
+             Renderer/DX/DXTexture1D.cpp \
+             Renderer/DX/DXTexture2D.cpp \
+             Renderer/DX/DXTexture3D.cpp \
              Renderer/DX/DXRenderer.cpp \           
              Renderer/DX/DXSBVR.cpp \
              Renderer/DX/DXRaycaster.cpp

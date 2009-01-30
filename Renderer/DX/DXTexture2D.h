@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -27,46 +27,48 @@
 */
 
 /**
-  \file    DynamicDX.h
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \date    January 2009
+  \file    DXTexture2D.h
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \date    August 2008
 */
+
 
 #pragma once
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
 
-#ifndef DYNAMICDX_H
-#define DYNAMICDX_H
+#ifndef DXTEXTURE2D_H
+#define DXTEXTURE2D_H
 
-#include "../StdTuvokDefines.h"
+#include "../../StdTuvokDefines.h"
+#include "DXTexture.h"
+#include "../../Basics/Vectors.h"
 
-#include "../Renderer/DX/DXInclude.h"
+class DXTexture2D : public DXTexture {
+  public:
+    DXTexture2D(ID3D10Device* pd3dDevice, 
+                UINT32 iSizeX, UINT32 iSizeY, 
+                DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, 
+                const void* pInitialData=0);
+    virtual ~DXTexture2D();
 
-class DynamicDX {
-public:
-  static bool InitializeDX();
-  static void CleanupDX();
-  static bool IsInitialized() {return m_bDynamicDXIsInitialized;}
+    virtual void SetData(const void *pixels);
+    virtual void Delete();
 
-  // DXGI calls
-  typedef HRESULT ( WINAPI* LPCREATEDXGIFACTORY )( REFIID, void** );
-  static LPCREATEDXGIFACTORY CreateDXGIFactory;
+    virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement/8);}
+    virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement/8);}
 
-  // D3D10 calls
-  typedef HRESULT ( WINAPI* LPD3D10CREATEDEVICE )( IDXGIAdapter*, D3D10_DRIVER_TYPE, HMODULE, UINT, UINT, ID3D10Device** );
-  static LPD3D10CREATEDEVICE D3D10CreateDevice;
+    UINTVECTOR2 GetSize() const {return UINTVECTOR2(UINT32(m_iSizeX), UINT32(m_iSizeY));}
 
-private:
-  static bool m_bDynamicDXIsInitialized;
-  static HINSTANCE m_hD3D10;
-  static HINSTANCE m_hDXGI;
-  static HINSTANCE m_hD3DX10;
+  protected:
+    UINT32 m_iSizeX;
+    UINT32 m_iSizeY;
 
+    ID3D10Texture2D* m_pTexture;
 };
 
-#endif // DYNAMICDX_H
+#endif // DXTEXTURE2D_H
 
 #endif // _WIN32 && USE_DIRECTX

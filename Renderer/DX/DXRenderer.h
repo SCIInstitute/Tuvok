@@ -48,10 +48,7 @@
 #include "../../StdTuvokDefines.h"
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../AbstrRenderer.h"
-
-#include <windows.h>
-#include <d3d10.h>
-#include <d3dx10.h>
+#include "DXInclude.h"
 
 class MasterController;
 

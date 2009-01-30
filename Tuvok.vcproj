@@ -864,6 +864,46 @@
 				<Filter
 					Name="DX"
 					>
+					<File
+						RelativePath=".\Renderer\DX\DXInclude.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Renderer\DX\DXObject.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Renderer\DX\DXTexture.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Renderer\DX\DXTexture.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Renderer\DX\DXTexture1D.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Renderer\DX\DXTexture1D.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Renderer\DX\DXTexture2D.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Renderer\DX\DXTexture2D.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Renderer\DX\DXTexture3D.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\Renderer\DX\DXTexture3D.h"
+						>
+					</File>
 				</Filter>
 				<Filter
 					Name="API Independent"

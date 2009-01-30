@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -27,46 +27,61 @@
 */
 
 /**
-  \file    DynamicDX.h
+  \file    DXTexture2D.cpp
   \author    Jens Krueger
         SCI Institute
         University of Utah
-  \date    January 2009
+  \date    August 2008
 */
-
-#pragma once
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
 
-#ifndef DYNAMICDX_H
-#define DYNAMICDX_H
+#include "DXTexture2D.h"
 
-#include "../StdTuvokDefines.h"
 
-#include "../Renderer/DX/DXInclude.h"
+DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, DXGI_FORMAT format, const void* pInitialData) :
+  DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize*8),
+  m_iSizeX(iSizeX),
+  m_iSizeY(iSizeY),
+  m_pTexture(NULL)
+{
+	// create texture (if no inital data is spcified the textures are filled with zeros)
+	D3D10_TEXTURE2D_DESC texDesc = {
+		m_iSizeX,
+		m_iSizeY,
+		1, 1,
+		format,
+		1,0,
+		D3D10_USAGE_IMMUTABLE,
+		D3D10_BIND_SHADER_RESOURCE,
+		0, 0
+	};
+	D3D10_SUBRESOURCE_DATA vbInitDataTex = {
+	  pInitialData,
+		g_dx10Format[int(format)].m_iByteSize,
+		0
+	};
+	m_pd3dDevice->CreateTexture2D( &texDesc, pInitialData == NULL ? NULL : &vbInitDataTex, &m_pTexture);
 
-class DynamicDX {
-public:
-  static bool InitializeDX();
-  static void CleanupDX();
-  static bool IsInitialized() {return m_bDynamicDXIsInitialized;}
+	// create shader resource views
+	D3D10_SHADER_RESOURCE_VIEW_DESC SRVDesc = {
+    texDesc.Format, 
+    D3D10_SRV_DIMENSION_TEXTURE2D, 0, 1
+  };
+	m_pd3dDevice->CreateShaderResourceView( m_pTexture, &SRVDesc, &m_pTexture_SRV );
 
-  // DXGI calls
-  typedef HRESULT ( WINAPI* LPCREATEDXGIFACTORY )( REFIID, void** );
-  static LPCREATEDXGIFACTORY CreateDXGIFactory;
+}
 
-  // D3D10 calls
-  typedef HRESULT ( WINAPI* LPD3D10CREATEDEVICE )( IDXGIAdapter*, D3D10_DRIVER_TYPE, HMODULE, UINT, UINT, ID3D10Device** );
-  static LPD3D10CREATEDEVICE D3D10CreateDevice;
+DXTexture2D::~DXTexture2D() {
+  Delete();
+}
 
-private:
-  static bool m_bDynamicDXIsInitialized;
-  static HINSTANCE m_hD3D10;
-  static HINSTANCE m_hDXGI;
-  static HINSTANCE m_hD3DX10;
+void DXTexture2D::SetData(const void *pInitialData) {
+  // TODO
+}
 
-};
-
-#endif // DYNAMICDX_H
+void DXTexture2D::Delete() {
+  SAFE_RELEASE(m_pTexture);
+}
 
 #endif // _WIN32 && USE_DIRECTX
