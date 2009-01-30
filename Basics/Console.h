@@ -178,7 +178,7 @@ namespace Console {
           va_start(args, format);
 
           vswprintf( buff, sizeof(buff), format, args);
-          cout << buff;
+          std::cout << buff;
       }
     #else
       static void printfd(const wchar_t*, ...) {}
