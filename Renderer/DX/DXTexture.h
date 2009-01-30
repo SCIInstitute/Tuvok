@@ -56,9 +56,10 @@ class DXTexture : public DXObject {
      * texture in their constructor[s].
      * @param iSizePerElement bits per texel.  Used to track memory size of the
                               texture. */
-    DXTexture(ID3D10Device* pd3dDevice, UINT32 iSizePerElement) : 
+    DXTexture(ID3D10Device* pd3dDevice, UINT32 iSizePerElement, bool bIsReadOnly) : 
                                         m_pd3dDevice(pd3dDevice),
                                         m_iSizePerElement(iSizePerElement),
+                                        m_bIsReadOnly(bIsReadOnly),
                                         m_pTexture_SRV(NULL),
                                         m_pSRVarBound(NULL) {}
     virtual ~DXTexture();
@@ -74,6 +75,7 @@ class DXTexture : public DXObject {
   protected:
     ID3D10Device*                       m_pd3dDevice;
     UINT32                              m_iSizePerElement;
+    bool                                m_bIsReadOnly;
 
     ID3D10ShaderResourceView*	          m_pTexture_SRV;
     ID3D10EffectShaderResourceVariable* m_pSRVarBound;

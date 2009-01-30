@@ -48,17 +48,16 @@
 
 class DXTexture2D : public DXTexture {
   public:
-    DXTexture2D(ID3D10Device* pd3dDevice, 
-                UINT32 iSizeX, UINT32 iSizeY, 
-                DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, 
-                const void* pInitialData=0);
+    DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, DXGI_FORMAT format);
+    DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, DXGI_FORMAT format, 
+                const void* pInitialData, bool bIsReadOnly=true);
     virtual ~DXTexture2D();
 
     virtual void SetData(const void *pixels);
     virtual void Delete();
 
-    virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement/8);}
-    virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement/8);}
+    virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement);}
+    virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement);}
 
     UINTVECTOR2 GetSize() const {return UINTVECTOR2(UINT32(m_iSizeX), UINT32(m_iSizeY));}
 

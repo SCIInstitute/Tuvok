@@ -58,8 +58,8 @@ class GLTexture1D : public GLTexture {
     }
     virtual void SetData(const void *pixels);
 
-    virtual UINT64 GetCPUSize() {return UINT64(m_iSize*m_iSizePerElement/8);}
-    virtual UINT64 GetGPUSize() {return UINT64(m_iSize*m_iSizePerElement/8);}
+    virtual UINT64 GetCPUSize() {return UINT64(m_iSize*m_iSizePerElement);}
+    virtual UINT64 GetGPUSize() {return UINT64(m_iSize*m_iSizePerElement);}
 
     UINT32 GetSize() const {return UINT32(m_iSize);}
 

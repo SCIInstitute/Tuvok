@@ -58,8 +58,8 @@ class GLTexture2D : public GLTexture {
     virtual void Bind(UINT32 iUnit=0) {glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit)); glBindTexture(GL_TEXTURE_2D, m_iGLID);}
     virtual void SetData(const void *pixels);
 
-    virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement/8);}
-    virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement/8);}
+    virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement);}
+    virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement);}
 
     UINTVECTOR2 GetSize() const {return UINTVECTOR2(UINT32(m_iSizeX), UINT32(m_iSizeY));}
 

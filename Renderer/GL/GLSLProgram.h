@@ -116,8 +116,8 @@ public:
   void SetUniformArray(const char *name,const int   *a) const;    ///< Sets an uniform array. User has to take care that a is large enough.
   void SetUniformArray(const char *name,const bool  *a) const;    ///< Sets an uniform array. User has to take care that a is large enough.
 
-  virtual UINT64 GetCPUSize() {return 8;}  ///< assume near zero CPU memory cost for shaders to avoid any memory manager from paging out shaders, the 8 is basically only to detect mem-leaks
-  virtual UINT64 GetGPUSize() {return 8;}  ///< assume near zero GPU memory cost for shaders to avoid any memory manager from paging out shaders, the 8 is basically only to detect mem-leaks
+  virtual UINT64 GetCPUSize() {return 1;}  ///< assume near zero CPU memory cost for shaders to avoid any memory manager from paging out shaders, the 1 is basically only to detect mem-leaks
+  virtual UINT64 GetGPUSize() {return 1;}  ///< assume near zero GPU memory cost for shaders to avoid any memory manager from paging out shaders, the 1 is basically only to detect mem-leaks
 
 private:
   bool    Initialize(void);

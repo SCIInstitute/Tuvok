@@ -253,7 +253,7 @@ VBOTex::VBOTex(MasterController* pMasterController, GLsizei width, GLsizei heigh
   m_LastAttachment=new GLenum[m_iNumBuffers];
   for (int i=0; i<iNumBuffers; i++) m_LastAttachment[i]=GL_COLOR_ATTACHMENT0_EXT;
   // Generate FBO Texture
-  m_hGLFBOTex = new GLFBOTex(m_pMasterController, GL_NEAREST,GL_NEAREST,GL_CLAMP_TO_EDGE,width,height,GL_RGBA32F_ARB,bHaveDepth);
+  m_hGLFBOTex = new GLFBOTex(m_pMasterController, GL_NEAREST,GL_NEAREST,GL_CLAMP_TO_EDGE,width,height,GL_RGBA32F_ARB,4*4,bHaveDepth);
   // Generate PBO -or- VBO and allocate data
   glGenBuffersARB(1,&m_hPBO);
   if (m_bPBOSupported) {

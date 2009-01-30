@@ -37,27 +37,24 @@
 #if defined(_WIN32) && defined(USE_DIRECTX)
 
 #include "DXTexture1D.h"
+#include <cassert>
 
-DXTexture1D::DXTexture1D(ID3D10Device* pd3dDevice, UINT32 iSize, DXGI_FORMAT format, const void* pInitialData) :
-  DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize*8),
+DXTexture1D::DXTexture1D(ID3D10Device* pd3dDevice, UINT32 iSize, DXGI_FORMAT format) : 
+  DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, false),
   m_iSize(iSize),
   m_pTexture(NULL)
 {
-	// create texture (if no inital data is spcified the textures are filled with zeros)
+	// create texture and fill with zeros
 	D3D10_TEXTURE1D_DESC texDesc = {
 		m_iSize,
 		1, 1,
 		format,
-		D3D10_USAGE_IMMUTABLE,
+		D3D10_USAGE_DEFAULT,
 		D3D10_BIND_SHADER_RESOURCE,
 		0, 0
 	};
-	D3D10_SUBRESOURCE_DATA vbInitDataTex = {
-	  pInitialData,
-		g_dx10Format[int(format)].m_iByteSize,
-		0
-	};
-	m_pd3dDevice->CreateTexture1D( &texDesc, pInitialData == NULL ? NULL : &vbInitDataTex, &m_pTexture);
+
+	m_pd3dDevice->CreateTexture1D( &texDesc, NULL, &m_pTexture);
 
 	// create shader resource views
 	D3D10_SHADER_RESOURCE_VIEW_DESC SRVDesc = {
@@ -65,15 +62,70 @@ DXTexture1D::DXTexture1D(ID3D10Device* pd3dDevice, UINT32 iSize, DXGI_FORMAT for
     D3D10_SRV_DIMENSION_TEXTURE1D, 0, 1
   };
 	m_pd3dDevice->CreateShaderResourceView( m_pTexture, &SRVDesc, &m_pTexture_SRV );
-
 }
+
+DXTexture1D::DXTexture1D(ID3D10Device* pd3dDevice, UINT32 iSize, DXGI_FORMAT format, 
+                         const void* pInitialData, bool bIsReadOnly) :
+  DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, bIsReadOnly),
+  m_iSize(iSize),
+  m_pTexture(NULL)
+{
+  assert(pInitialData || !bIsReadOnly);
+
+	// create texture (if no inital data is specified the textures are filled with zeros)
+	D3D10_TEXTURE1D_DESC texDesc = {
+		m_iSize,
+		1, 1,
+		format,
+    bIsReadOnly ? D3D10_USAGE_IMMUTABLE : D3D10_USAGE_DEFAULT,
+		D3D10_BIND_SHADER_RESOURCE,
+		0, 0
+	};
+
+  D3D10_SUBRESOURCE_DATA vbInitDataTex = {
+	  pInitialData,
+		0,
+		0
+	};
+	m_pd3dDevice->CreateTexture1D( &texDesc, pInitialData == NULL ? NULL : &vbInitDataTex, &m_pTexture);
+
+	// create shader resource views
+	D3D10_SHADER_RESOURCE_VIEW_DESC SRVDesc = {
+    texDesc.Format, 
+    D3D10_SRV_DIMENSION_TEXTURE2D, 0, 1
+  };
+	m_pd3dDevice->CreateShaderResourceView( m_pTexture, &SRVDesc, &m_pTexture_SRV );
+}
+
 
 DXTexture1D::~DXTexture1D() {
   Delete();
 }
 
-void DXTexture1D::SetData(const void *pInitialData) {
-  // TODO
+void DXTexture1D::SetData(const void *pData) {
+  assert(!m_bIsReadOnly);
+
+  // Create a staging resource to copy the data
+  ID3D10Texture1D* pStagingTexture = NULL;
+
+	D3D10_TEXTURE1D_DESC desc;
+	m_pTexture->GetDesc(&desc);
+  desc.Usage = D3D10_USAGE_STAGING;
+  desc.BindFlags = 0;
+  desc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
+  m_pd3dDevice->CreateTexture1D( &desc, NULL, &pStagingTexture );
+
+  char* pcData = (char*)pData;
+
+  void *pMapData;
+  pStagingTexture->Map(0, D3D10_MAP_WRITE, NULL, &pMapData );
+    char *pStagingData = (char*)pMapData;
+    size_t iDataSize = m_iSizePerElement * m_iSize;
+    memcpy(pStagingData, pcData, iDataSize);
+	pStagingTexture->Unmap(0);
+
+  m_pd3dDevice->CopyResource(m_pTexture, pStagingTexture);
+	SAFE_RELEASE(pStagingTexture);
 }
 
 void DXTexture1D::Delete() {

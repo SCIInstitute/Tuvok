@@ -60,7 +60,7 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
   if (fileData.is_open())
   {
     getline (fileData,strFirstLine);
-    if (strFirstLine.substr(0,7) != "ncaa") {
+    if (strFirstLine.substr(0,4) != "ncaa") {
       pMasterController->DebugOut()->Warning("VFFConverter::Convert","The file %s is not a VFF file (missing magic)", strSourceFilename.c_str());
       return false;
     }

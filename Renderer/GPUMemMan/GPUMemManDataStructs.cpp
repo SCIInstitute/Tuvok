@@ -236,7 +236,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
 
   glGetError();
   if (!m_bIsPaddedToPowerOfTwo || (MathTools::IsPow2(UINT32(vSize[0])) && MathTools::IsPow2(UINT32(vSize[1])) && MathTools::IsPow2(UINT32(vSize[2])))) {   
-    pTexture = new GLTexture3D(UINT32(vSize[0]), UINT32(vSize[1]), UINT32(vSize[2]), glInternalformat, glFormat, glType, UINT32(iBitWidth*iCompCount), pData, GL_LINEAR, GL_LINEAR, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+    pTexture = new GLTexture3D(UINT32(vSize[0]), UINT32(vSize[1]), UINT32(vSize[2]), glInternalformat, glFormat, glType, UINT32(iBitWidth/8*iCompCount), pData, GL_LINEAR, GL_LINEAR, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
   } else {
     // pad the data to a power of two
     UINTVECTOR3 vPaddedSize(MathTools::NextPow2(UINT32(vSize[0])), MathTools::NextPow2(UINT32(vSize[1])), MathTools::NextPow2(UINT32(vSize[2])));
@@ -276,7 +276,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
 
     m_pMasterController->DebugOut()->Message("Texture3DListElem::CreateTexture","Actually creating new texture %i x %i x %i, bitsize=%i, componentcount=%i due to compatibility settings", int(vPaddedSize[0]), int(vPaddedSize[1]), int(vPaddedSize[2]), int(iBitWidth), int(iCompCount));
 
-    pTexture = new GLTexture3D(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2], glInternalformat, glFormat, glType, UINT32(iBitWidth*iCompCount), pPaddedData, GL_LINEAR, GL_LINEAR, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+    pTexture = new GLTexture3D(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2], glInternalformat, glFormat, glType, UINT32(iBitWidth/8*iCompCount), pPaddedData, GL_LINEAR, GL_LINEAR, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
 
     delete [] pPaddedData;
   }

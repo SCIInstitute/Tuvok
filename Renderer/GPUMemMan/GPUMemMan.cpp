@@ -185,7 +185,7 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
 
   QImage glimage = QGLWidget::convertToGLFormat(image);
 
-  GLTexture2D* tex = new GLTexture2D(glimage.width(),glimage.height(), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4*8, glimage.bits(), GL_LINEAR, GL_LINEAR);
+  GLTexture2D* tex = new GLTexture2D(glimage.width(),glimage.height(), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, glimage.bits(), GL_LINEAR, GL_LINEAR);
 
   m_iAllocatedGPUMemory += tex->GetCPUSize();
   m_iAllocatedCPUMemory += tex->GetGPUSize();
@@ -239,7 +239,7 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester, Transfer
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction1D)->GetByteArray(&pcData);
-  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
+  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
@@ -254,7 +254,7 @@ void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* req
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction1D)->GetByteArray(&pcData);
-  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
+  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
@@ -328,7 +328,7 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize, AbstrRenderer* req
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
-  *tex = new GLTexture2D(UINT32(iSize.x), UINT32(iSize.y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
+  *tex = new GLTexture2D(UINT32(iSize.x), UINT32(iSize.y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
   delete [] pcData;
   
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
@@ -343,7 +343,7 @@ void GPUMemMan::Get2DTransFromFile(const string& strFilename, AbstrRenderer* req
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
-  *tex = new GLTexture2D(UINT32((*ppTransferFunction2D)->GetSize().x), UINT32((*ppTransferFunction2D)->GetSize().y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4*8,pcData);
+  *tex = new GLTexture2D(UINT32((*ppTransferFunction2D)->GetSize().x), UINT32((*ppTransferFunction2D)->GetSize().y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();

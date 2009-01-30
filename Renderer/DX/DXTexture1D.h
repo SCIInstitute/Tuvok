@@ -46,17 +46,17 @@
 
 class DXTexture1D : public DXTexture {
   public:
-    DXTexture1D(ID3D10Device* pd3dDevice, 
-                UINT32 iSize, 
-                DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, 
-                const void* pInitialData=0);
+
+    DXTexture1D(ID3D10Device* pd3dDevice, UINT32 iSize, DXGI_FORMAT format);
+    DXTexture1D(ID3D10Device* pd3dDevice, UINT32 iSize, DXGI_FORMAT format, 
+                const void* pInitialData, bool bIsReadOnly=true);
     virtual ~DXTexture1D();
 
-    virtual void SetData(const void *pixels);
+    virtual void SetData(const void *pData);
     virtual void Delete();
 
-    virtual UINT64 GetCPUSize() {return UINT64(m_iSize*m_iSizePerElement/8);}
-    virtual UINT64 GetGPUSize() {return UINT64(m_iSize*m_iSizePerElement/8);}
+    virtual UINT64 GetCPUSize() {return UINT64(m_iSize*m_iSizePerElement);}
+    virtual UINT64 GetGPUSize() {return UINT64(m_iSize*m_iSizePerElement);}
 
     UINT32 GetSize() const {return UINT32(m_iSize);}
 
