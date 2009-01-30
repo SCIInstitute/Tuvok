@@ -58,7 +58,6 @@ bool LargeRAWFile::Open(bool bReadWrite) {
 
   if (m_bIsOpen && m_iHeaderSize != 0) SeekStart();
 
-
   m_bWritable = (m_bIsOpen) ? bReadWrite : false;
 
   return m_bIsOpen;

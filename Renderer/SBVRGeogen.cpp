@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -28,9 +28,9 @@
 
 /**
   \file    SBVRGeogen.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    September 2008
 */
 
@@ -93,10 +93,9 @@ void SBVRGeogen::InitBBOX() {
   m_pfBBOXVertex[6] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[6]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
   m_pfBBOXVertex[7] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[7]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
 
-  
   // find the minimum z value
   m_fMinZ = m_pfBBOXVertex[0].m_vPos.z;
-  
+
   for (int i = 1;i<8;++i) m_fMinZ= MIN(m_fMinZ, m_pfBBOXVertex[i].m_vPos.z);
 }
 
@@ -105,14 +104,14 @@ bool SBVRGeogen::EpsilonEqual(float a, float b) {
 }
 
 void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB, POS3TEX3_VERTEX& vHit, UINT32 &count) {
-  /* 
+  /*
      return NO INTERSECTION if the line of the 2 points a,b is
      1. in front of the intersection plane
      2. behind the intersection plane
-     3. parallel to the intersection plane (both points have "pretty much" the same z)  
-  */  
+     3. parallel to the intersection plane (both points have "pretty much" the same z)
+  */
   if ((z > m_pfBBOXVertex[indexA].m_vPos.z && z > m_pfBBOXVertex[indexB].m_vPos.z) ||
-    (z < m_pfBBOXVertex[indexA].m_vPos.z && z < m_pfBBOXVertex[indexB].m_vPos.z) || 
+    (z < m_pfBBOXVertex[indexA].m_vPos.z && z < m_pfBBOXVertex[indexB].m_vPos.z) ||
     (EpsilonEqual(m_pfBBOXVertex[indexA].m_vPos.z,m_pfBBOXVertex[indexB].m_vPos.z))) return;
 
   float fAlpha = (z-m_pfBBOXVertex[indexA].m_vPos.z)/(m_pfBBOXVertex[indexA].m_vPos.z-m_pfBBOXVertex[indexB].m_vPos.z);
@@ -148,8 +147,8 @@ void SBVRGeogen::Swap(POS3TEX3_VERTEX& a, POS3TEX3_VERTEX& b) {
 
 void SBVRGeogen::SortPoints(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
   // use bubble sort here, because array is very small which makes bubble sort faster than QSort
-  for (UINT32 i= 1;i<iCount;++i) 
-    for (UINT32 j = 1;j<iCount-i;++j) 
+  for (UINT32 i= 1;i<iCount;++i)
+    for (UINT32 j = 1;j<iCount-i;++j)
       if (!CheckOrdering(fArray[j].m_vPos,fArray[j+1].m_vPos,fArray[0].m_vPos)) Swap(fArray[j],fArray[j+1]);
 }
 
@@ -166,11 +165,11 @@ void SBVRGeogen::Triangulate(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
   Swap(fArray[0],fArray[FindMinPoint(fArray,iCount)]);
   // sort points according to gradient
   SortPoints(fArray,iCount);
-  
+
   // convert to triangles
   for (UINT32 i = 0;i<iCount-2;i++) {
-    m_vSliceTriangles.push_back(fArray[0]); 
-    m_vSliceTriangles.push_back(fArray[i+1]); 
+    m_vSliceTriangles.push_back(fArray[0]);
+    m_vSliceTriangles.push_back(fArray[i+1]);
     m_vSliceTriangles.push_back(fArray[i+2]);
   }
 }
@@ -183,12 +182,12 @@ UINT32 SBVRGeogen::ComputeLayerGeometry(float fDepth, POS3TEX3_VERTEX pfLayerPoi
   ComputeIntersection(fDepth,1,2,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,2,3,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,3,0,pfLayerPoints[iCount],iCount);
-      
+
   ComputeIntersection(fDepth,4,5,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,5,6,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,6,7,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,7,4,pfLayerPoints[iCount],iCount);
-    
+
   ComputeIntersection(fDepth,4,0,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,5,1,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,6,2,pfLayerPoints[iCount],iCount);
@@ -199,7 +198,7 @@ UINT32 SBVRGeogen::ComputeLayerGeometry(float fDepth, POS3TEX3_VERTEX pfLayerPoi
     Swap(pfLayerPoints[0],pfLayerPoints[FindMinPoint(pfLayerPoints,iCount)]);
     // sort points according to gradient
     SortPoints(pfLayerPoints,iCount);
-  } 
+  }
 
   return iCount;
 }
@@ -213,12 +212,12 @@ bool SBVRGeogen::ComputeLayerGeometry(float fDepth) {
   ComputeIntersection(fDepth,1,2,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,2,3,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,3,0,pfLayerPoints[iCount],iCount);
-      
+
   ComputeIntersection(fDepth,4,5,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,5,6,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,6,7,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,7,4,pfLayerPoints[iCount],iCount);
-    
+
   ComputeIntersection(fDepth,4,0,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,5,1,pfLayerPoints[iCount],iCount);
   ComputeIntersection(fDepth,6,2,pfLayerPoints[iCount],iCount);
@@ -259,9 +258,9 @@ void SBVRGeogen::SetLODData(const UINTVECTOR3& vSize) {
 
 
 void SBVRGeogen::SetBrickData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize, const FLOATVECTOR3& vTexCoordMin, const FLOATVECTOR3& vTexCoordMax) {
-  m_vAspect       = vAspect; 
+  m_vAspect       = vAspect;
   m_vSize         = vSize;
   m_vTexCoordMin  = vTexCoordMin;
   m_vTexCoordMax  = vTexCoordMax;
-  InitBBOX(); 
+  InitBBOX();
 }
