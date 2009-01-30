@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -76,7 +76,7 @@ namespace Console {
     {
       // output string
       WCHAR buff[16384];
-         
+
       // arguments
       va_list args;
       va_start(args, format);
@@ -93,7 +93,7 @@ namespace Console {
       #ifdef _DEBUG
           // output string
           WCHAR buff[16384];
-             
+
           // arguments
           va_list args;
           va_start(args, format);
@@ -113,7 +113,7 @@ namespace Console {
     {
       // output string
       CHAR buff[16384];
-         
+
       // arguments
       va_list args;
       va_start(args, format);
@@ -130,7 +130,7 @@ namespace Console {
       #ifdef _DEBUG
           // output string
           CHAR buff[16384];
-             
+
           // arguments
           va_list args;
           va_start(args, format);
@@ -158,7 +158,7 @@ namespace Console {
     {
       // output string
       wchar_t buff[16384];
-         
+
       // arguments
       va_list args;
       va_start(args, format);
@@ -172,7 +172,7 @@ namespace Console {
       {
           // output string
           wchar_t buff[16384];
-             
+
           // arguments
           va_list args;
           va_start(args, format);
@@ -188,7 +188,7 @@ namespace Console {
     {
       // output string
       char buff[16384];
-         
+
       // arguments
       va_list args;
       va_start(args, format);
@@ -202,7 +202,7 @@ namespace Console {
       {
           // output string
           char buff[16384];
-             
+
           // arguments
           va_list args;
           va_start(args, format);
