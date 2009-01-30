@@ -35,6 +35,7 @@
 */
 
 #include "SBVRGeogen.h"
+#include <algorithm>
 #include <Basics/MathTools.h>
 
 SBVRGeogen::SBVRGeogen(void) :
@@ -103,7 +104,8 @@ bool SBVRGeogen::EpsilonEqual(float a, float b) {
   return fabs(a-b) < 0.00001;
 }
 
-void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB, POS3TEX3_VERTEX& vHit, UINT32 &count) {
+void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB,
+                                     POS3TEX3_VERTEX& vHit, UINT32 &count) {
   /*
      return NO INTERSECTION if the line of the 2 points a,b is
      1. in front of the intersection plane
@@ -116,11 +118,17 @@ void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB, POS3
 
   float fAlpha = (z-m_pfBBOXVertex[indexA].m_vPos.z)/(m_pfBBOXVertex[indexA].m_vPos.z-m_pfBBOXVertex[indexB].m_vPos.z);
 
-  vHit.m_vPos.x = m_pfBBOXVertex[indexA].m_vPos.x + (m_pfBBOXVertex[indexA].m_vPos.x-m_pfBBOXVertex[indexB].m_vPos.x)*fAlpha;
-  vHit.m_vPos.y = m_pfBBOXVertex[indexA].m_vPos.y + (m_pfBBOXVertex[indexA].m_vPos.y-m_pfBBOXVertex[indexB].m_vPos.y)*fAlpha;
+  vHit.m_vPos.x = m_pfBBOXVertex[indexA].m_vPos.x +
+                    (m_pfBBOXVertex[indexA].m_vPos.x -
+                     m_pfBBOXVertex[indexB].m_vPos.x) * fAlpha;
+  vHit.m_vPos.y = m_pfBBOXVertex[indexA].m_vPos.y +
+                    (m_pfBBOXVertex[indexA].m_vPos.y -
+                     m_pfBBOXVertex[indexB].m_vPos.y) * fAlpha;
   vHit.m_vPos.z = z;
 
-  vHit.m_vTex = m_pfBBOXVertex[indexA].m_vTex + (m_pfBBOXVertex[indexA].m_vTex-m_pfBBOXVertex[indexB].m_vTex)*fAlpha;
+  vHit.m_vTex = m_pfBBOXVertex[indexA].m_vTex +
+                    (m_pfBBOXVertex[indexA].m_vTex -
+                     m_pfBBOXVertex[indexB].m_vTex) * fAlpha;
 
   count++;
 }
@@ -128,7 +136,7 @@ void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB, POS3
 
 bool SBVRGeogen::CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c) {
   float g1 = (a[1]-c[1])/(a[0]-c[0]),
-      g2 = (b[1]-c[1])/(b[0]-c[0]);
+        g2 = (b[1]-c[1])/(b[0]-c[0]);
 
   if (EpsilonEqual(a[0],c[0])) return (g2 < 0) || (EpsilonEqual(g2,0) && b[0] < c[0]);
   if (EpsilonEqual(b[0],c[0])) return (g1 > 0) || (EpsilonEqual(g1,0) && a[0] > c[0]);
@@ -139,30 +147,27 @@ bool SBVRGeogen::CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c
     if (b[0] < c[0]) return true; else return g1 < g2;
 }
 
-void SBVRGeogen::Swap(POS3TEX3_VERTEX& a, POS3TEX3_VERTEX& b) {
-  POS3TEX3_VERTEX temp(a);
-  a = b;
-  b = temp;
-}
-
 void SBVRGeogen::SortPoints(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
-  // use bubble sort here, because array is very small which makes bubble sort faster than QSort
+  // for small arrays, this bubble sort actually beats qsort.
   for (UINT32 i= 1;i<iCount;++i)
     for (UINT32 j = 1;j<iCount-i;++j)
-      if (!CheckOrdering(fArray[j].m_vPos,fArray[j+1].m_vPos,fArray[0].m_vPos)) Swap(fArray[j],fArray[j+1]);
+      if (!CheckOrdering(fArray[j].m_vPos,fArray[j+1].m_vPos,fArray[0].m_vPos))
+        std::swap(fArray[j], fArray[j+1]);
 }
 
 
 int SBVRGeogen::FindMinPoint(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
   int iIndex = 0;
-  for (UINT32 i = 1;i<iCount;++i) if (fArray[i].m_vPos.y < fArray[iIndex].m_vPos.y) iIndex = i;
+  for (UINT32 i = 1;i<iCount;++i)
+    if (fArray[i].m_vPos.y < fArray[iIndex].m_vPos.y)
+      iIndex = i;
   return iIndex;
 }
 
 
 void SBVRGeogen::Triangulate(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
   // move bottom element to front of array
-  Swap(fArray[0],fArray[FindMinPoint(fArray,iCount)]);
+  std::swap(fArray[0], fArray[FindMinPoint(fArray,iCount)]);
   // sort points according to gradient
   SortPoints(fArray,iCount);
 
@@ -175,7 +180,8 @@ void SBVRGeogen::Triangulate(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
 }
 
 
-UINT32 SBVRGeogen::ComputeLayerGeometry(float fDepth, POS3TEX3_VERTEX pfLayerPoints[12]) {
+UINT32 SBVRGeogen::ComputeLayerGeometry(float fDepth,
+                                        POS3TEX3_VERTEX pfLayerPoints[12]) {
   UINT32 iCount = 0;
 
   ComputeIntersection(fDepth,0,1,pfLayerPoints[iCount],iCount);
@@ -195,7 +201,7 @@ UINT32 SBVRGeogen::ComputeLayerGeometry(float fDepth, POS3TEX3_VERTEX pfLayerPoi
 
   if (iCount > 2) {
     // move bottom element to front of array
-    Swap(pfLayerPoints[0],pfLayerPoints[FindMinPoint(pfLayerPoints,iCount)]);
+    std::swap(pfLayerPoints[0],pfLayerPoints[FindMinPoint(pfLayerPoints,iCount)]);
     // sort points according to gradient
     SortPoints(pfLayerPoints,iCount);
   }
@@ -256,8 +262,10 @@ void SBVRGeogen::SetLODData(const UINTVECTOR3& vSize) {
   m_vLODSize = vSize;
 }
 
-
-void SBVRGeogen::SetBrickData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize, const FLOATVECTOR3& vTexCoordMin, const FLOATVECTOR3& vTexCoordMax) {
+void SBVRGeogen::SetBrickData(const FLOATVECTOR3& vAspect,
+                              const UINTVECTOR3& vSize,
+                              const FLOATVECTOR3& vTexCoordMin,
+                              const FLOATVECTOR3& vTexCoordMax) {
   m_vAspect       = vAspect;
   m_vSize         = vSize;
   m_vTexCoordMin  = vTexCoordMin;

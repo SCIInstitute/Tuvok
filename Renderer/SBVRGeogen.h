@@ -95,7 +95,6 @@ protected:
   bool ComputeLayerGeometry(float fDepth);
   void ComputeIntersection(float z, UINT32  indexA, UINT32  indexB, POS3TEX3_VERTEX& vHit, UINT32  &count);
   bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c);
-  void Swap(POS3TEX3_VERTEX& a, POS3TEX3_VERTEX& b);
   void SortPoints(POS3TEX3_VERTEX fArray[12], UINT32 iCount);
   int FindMinPoint(POS3TEX3_VERTEX fArray[12], UINT32 iCount);
   void Triangulate(POS3TEX3_VERTEX fArray[12], UINT32 iCount);
