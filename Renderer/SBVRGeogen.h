@@ -68,7 +68,6 @@ public:
   void SetLODData(const UINTVECTOR3& vSize);
   void SetBrickData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize, const FLOATVECTOR3& vTexCoordMin=FLOATVECTOR3(0,0,0), const FLOATVECTOR3& vTexCoordMax=FLOATVECTOR3(1,1,1));
   void ComputeGeometry();
-  UINT32  ComputeLayerGeometry(float fDepth, POS3TEX3_VERTEX pfLayerPoints[12]);
   float GetOpacityCorrection();
   std::vector<POS3TEX3_VERTEX> m_vSliceTriangles;
   void SetMinLayers(UINT32 iMinLayers) {m_iMinLayers = iMinLayers; ComputeGeometry();}
@@ -95,8 +94,8 @@ protected:
   bool ComputeLayerGeometry(float fDepth);
   void ComputeIntersection(float z, UINT32  indexA, UINT32  indexB, POS3TEX3_VERTEX& vHit, UINT32  &count);
   bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c);
-  void SortPoints(POS3TEX3_VERTEX fArray[12], UINT32 iCount);
-  int FindMinPoint(POS3TEX3_VERTEX fArray[12], UINT32 iCount);
-  void Triangulate(POS3TEX3_VERTEX fArray[12], UINT32 iCount);
+  void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount);
+  int FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount);
+  void Triangulate(std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount);
   float GetLayerDistance();
 };

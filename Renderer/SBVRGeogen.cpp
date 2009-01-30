@@ -147,7 +147,7 @@ bool SBVRGeogen::CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c
     if (b[0] < c[0]) return true; else return g1 < g2;
 }
 
-void SBVRGeogen::SortPoints(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
+void SBVRGeogen::SortPoints(std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount) {
   // for small arrays, this bubble sort actually beats qsort.
   for (UINT32 i= 1;i<iCount;++i)
     for (UINT32 j = 1;j<iCount-i;++j)
@@ -156,7 +156,7 @@ void SBVRGeogen::SortPoints(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
 }
 
 
-int SBVRGeogen::FindMinPoint(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
+int SBVRGeogen::FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount) {
   int iIndex = 0;
   for (UINT32 i = 1;i<iCount;++i)
     if (fArray[i].m_vPos.y < fArray[iIndex].m_vPos.y)
@@ -165,7 +165,7 @@ int SBVRGeogen::FindMinPoint(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
 }
 
 
-void SBVRGeogen::Triangulate(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
+void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount) {
   // move bottom element to front of array
   std::swap(fArray[0], fArray[FindMinPoint(fArray,iCount)]);
   // sort points according to gradient
@@ -180,57 +180,28 @@ void SBVRGeogen::Triangulate(POS3TEX3_VERTEX fArray[12], UINT32 iCount) {
 }
 
 
-UINT32 SBVRGeogen::ComputeLayerGeometry(float fDepth,
-                                        POS3TEX3_VERTEX pfLayerPoints[12]) {
-  UINT32 iCount = 0;
-
-  ComputeIntersection(fDepth,0,1,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,1,2,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,2,3,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,3,0,pfLayerPoints[iCount],iCount);
-
-  ComputeIntersection(fDepth,4,5,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,5,6,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,6,7,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,7,4,pfLayerPoints[iCount],iCount);
-
-  ComputeIntersection(fDepth,4,0,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,5,1,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,6,2,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,7,3,pfLayerPoints[iCount],iCount);
-
-  if (iCount > 2) {
-    // move bottom element to front of array
-    std::swap(pfLayerPoints[0],pfLayerPoints[FindMinPoint(pfLayerPoints,iCount)]);
-    // sort points according to gradient
-    SortPoints(pfLayerPoints,iCount);
-  }
-
-  return iCount;
-}
-
-
 bool SBVRGeogen::ComputeLayerGeometry(float fDepth) {
   UINT32 iCount = 0;
-  POS3TEX3_VERTEX pfLayerPoints[12];
+  std::vector<POS3TEX3_VERTEX> vLayerPoints;
+  vLayerPoints.resize(12);
 
-  ComputeIntersection(fDepth,0,1,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,1,2,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,2,3,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,3,0,pfLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,0,1,vLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,1,2,vLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,2,3,vLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,3,0,vLayerPoints[iCount],iCount);
 
-  ComputeIntersection(fDepth,4,5,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,5,6,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,6,7,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,7,4,pfLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,4,5,vLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,5,6,vLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,6,7,vLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,7,4,vLayerPoints[iCount],iCount);
 
-  ComputeIntersection(fDepth,4,0,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,5,1,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,6,2,pfLayerPoints[iCount],iCount);
-  ComputeIntersection(fDepth,7,3,pfLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,4,0,vLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,5,1,vLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,6,2,vLayerPoints[iCount],iCount);
+  ComputeIntersection(fDepth,7,3,vLayerPoints[iCount],iCount);
 
   if (iCount > 2) {
-    Triangulate(pfLayerPoints,iCount);
+    Triangulate(vLayerPoints,iCount);
     return true;
   } else return false;
 }
