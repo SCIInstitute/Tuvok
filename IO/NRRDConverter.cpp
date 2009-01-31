@@ -84,9 +84,8 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
   string        strRAWFile;
 
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename));
-  bool bDetachedHeader = (strExt == "NHDR");
 
-  KeyValueFileParser parser(strSourceFilename, !bDetachedHeader);
+  KeyValueFileParser parser(strSourceFilename, true);
 
   if (!parser.FileReadable()) {
     pMasterController->DebugOut()->Warning("NRRDConverter::Convert","Could not open NRRD file %s", strSourceFilename.c_str());
@@ -134,7 +133,6 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     }
   }
 
-
   KeyValPair* kvpSizes = parser.GetData("SIZES");
   if (kvpSizes == NULL) {
     pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"sizes\" in file %s", strSourceFilename.c_str());
@@ -168,18 +166,23 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
   }
 
   UINT64 iHeaderSkip;
-  if (bDetachedHeader) {
-    KeyValPair* kvpDataFile = parser.GetData("DATA FILE");
-    if (kvpDataFile == NULL) {
-      pMasterController->DebugOut()->Error("NRRDConverter::Convert","Could not open find token \"data file\" in file %s", strSourceFilename.c_str());
-      return false;
-    } else {
-      strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile->strValue;
-      iHeaderSkip = 0;
-    }
-  } else {
+  bool bDetachedHeader;
+
+  KeyValPair* kvpDataFile1 = parser.GetData("DATA FILE");
+  KeyValPair* kvpDataFile2 = parser.GetData("DATAFILE");
+  if (kvpDataFile1 == NULL && kvpDataFile2 == NULL) {
     iHeaderSkip = UINT64(parser.GetStopPos());
     strRAWFile = strSourceFilename;
+    bDetachedHeader = false;
+  } else {
+    if (kvpDataFile1 && kvpDataFile2 && kvpDataFile1->strValue != kvpDataFile2->strValue) 
+      pMasterController->DebugOut()->Warning("NRRDConverter::Convert", "Found different 'data file' and 'datafiel' fields, using 'datafile'.");
+
+    if (kvpDataFile1) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile1->strValue;
+    if (kvpDataFile2) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile2->strValue;
+    
+    iHeaderSkip = 0;
+    bDetachedHeader = true;
   }
 
   KeyValPair* kvpSpacings = parser.GetData("SPACINGS");
@@ -191,6 +194,60 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
         vVolumeAspect[j] = kvpSpacings->vfValue[i];
         j++;
       }
+    }
+  }
+  
+  int iLineSkip = 0;
+  int iByteSkip = 0;
+  KeyValPair* kvpLineSkip1 = parser.GetData("LINE SKIP");
+  if (kvpLineSkip1 != NULL) iLineSkip = kvpLineSkip1->iValue;
+
+  KeyValPair* kvpLineSkip2 = parser.GetData("LINESKIP");
+  if (kvpLineSkip2 != NULL) {
+    if (kvpLineSkip1 != NULL && iLineSkip != kvpLineSkip2->iValue) 
+      pMasterController->DebugOut()->Warning("NRRDConverter::Convert", "Found different 'line skip' and 'lineskip' fields, using 'lineskip'.");
+    iLineSkip = kvpLineSkip2->iValue;
+  }
+
+  KeyValPair* kvpByteSkip1 = parser.GetData("BYTE SKIP");
+  if (kvpByteSkip1 != NULL) iByteSkip = kvpByteSkip1->iValue;
+
+  KeyValPair* kvpByteSkip2 = parser.GetData("BYTESKIP");
+  if (kvpByteSkip2 != NULL) {
+    if (kvpByteSkip1 != NULL && iByteSkip != kvpByteSkip2->iValue) 
+      pMasterController->DebugOut()->Warning("NRRDConverter::Convert", "Found different 'byte skip' and 'byteskip' fields, using 'byteskip'.");
+    iByteSkip = kvpByteSkip2->iValue;
+  }
+
+  if (iLineSkip < 0) {
+    pMasterController->DebugOut()->Warning("NRRDConverter::Convert", "Negative 'line skip' found, ignoring.");
+    iLineSkip = 0;
+  }
+
+  if (iByteSkip == -1 && iLineSkip != 0) {
+    pMasterController->DebugOut()->Warning("NRRDConverter::Convert", "'byte skip' = -1 'line skip' found, ignoring 'line skip'.");
+    iLineSkip = 0;
+  }
+
+  int iLineSkipBytes = 0;
+  if (iLineSkip != 0) {
+    ifstream fileData(strRAWFile.c_str(),ios::binary);  
+    string line;
+    if (fileData.is_open()) {
+      int i = 0;
+      while (! fileData.eof() ) {
+        getline (fileData,line);
+        i++;
+        if (i == iLineSkip) {
+          iLineSkipBytes = fileData.tellg();
+          break;
+        }
+      }
+      if (iLineSkipBytes == 0) 
+        pMasterController->DebugOut()->Warning("NRRDConverter::Convert", "Invalid 'line skip', file to short, ignoring 'line skip'.");
+      fileData.close();
+    } else {
+        pMasterController->DebugOut()->Warning("NRRDConverter::Convert", "Unable to open target file, ignoring 'line skip'.");
     }
   }
 
@@ -208,33 +265,57 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
     if (kvpEncoding->strValueUpper == "RAW")  {
       pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is in RAW format!");
 
+      if (iByteSkip == -1) {
+        LargeRAWFile f(strRAWFile);
+        f.Open(false);
+        UINT64 iSize = f.GetCurrentSize();
+        f.Close();
+
+        iHeaderSkip = iSize - (iComponentSize/8 * iComponentCount * UINT64(vVolumeSize.volume()));
+      } else {
+        if (iByteSkip != 0) {
+          if (bDetachedHeader) 
+            iHeaderSkip = iByteSkip;
+          else {
+            pMasterController->DebugOut()->Warning("NRRDConverter::Convert", "Skip value in attached header found.");
+            iHeaderSkip += iByteSkip;
+          }
+        }
+      }
+
+      iHeaderSkip += iLineSkipBytes;
+
       return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
                                vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
-    } else
-    if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
-      pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is plain textformat.");
-
-      return ConvertTXTDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned,
-                               vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
-    } else
-    if (kvpEncoding->strValueUpper == "HEX")  {
-      pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in haxdecimal text format which is not supported at the moment.");
-    } else
-    if (kvpEncoding->strValueUpper == "GZ" || kvpEncoding->strValueUpper == "GZIP")  {
-      pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is GZIP compressed RAW format.");
-
-      return ConvertGZIPDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
-                               vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
-
-    } else
-    if (kvpEncoding->strValueUpper == "BZ" || kvpEncoding->strValueUpper == "BZIP2")  {
-      pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is BZIP2 compressed RAW format.");
-
-      return ConvertBZIP2Dataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
-                               vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
-
     } else {
-      pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in unknown \"%s\" format.");
+      if (iByteSkip == -1) 
+        pMasterController->DebugOut()->Warning("NRRDConverter::Convert", "Found illegal -1 'byte skip' in non RAW mode, ignoring 'byte skip'.");
+
+      if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
+        pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is plain textformat.");
+
+        return ConvertTXTDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned,
+                                 vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
+      } else
+      if (kvpEncoding->strValueUpper == "HEX")  {
+        pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in haxdecimal text format which is not supported at the moment.");
+      } else
+      if (kvpEncoding->strValueUpper == "GZ" || kvpEncoding->strValueUpper == "GZIP")  {
+        pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is GZIP compressed RAW format.");
+
+        return ConvertGZIPDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
+                                 vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
+
+      } else
+      if (kvpEncoding->strValueUpper == "BZ" || kvpEncoding->strValueUpper == "BZIP2")  {
+        pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is BZIP2 compressed RAW format.");
+
+        return ConvertBZIP2Dataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
+                                 vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
+
+      } else {
+        pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in unknown \"%s\" format.");
+      }
     }
     return false;
   }
