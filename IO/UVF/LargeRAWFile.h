@@ -49,6 +49,7 @@ public:
   bool IsOpen() { return m_bIsOpen;}
   bool IsWritable() { return m_bWritable;}
   bool Create(UINT64 iInitialSize=0);
+  bool Append();
   void Close();
   void Delete();
   UINT64 GetCurrentSize();

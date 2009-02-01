@@ -53,7 +53,7 @@ DXRaycaster::DXRaycaster(MasterController* pMasterController, bool bUseOnlyPower
 DXRaycaster::~DXRaycaster() {
 }
 
-
+#pragma warning(disable:4100) // disable "unused parameter" warning for now
 void DXRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
 }

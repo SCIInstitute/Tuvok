@@ -60,7 +60,7 @@ Appendix::Appendix(string strTarget, const vector<string>& vstrSource) :
     }
   }
 
-  // create the file (if the file exists delete it first)
+  // create the file (if the file exists, override)
   LargeRAWFile target(strTarget);
   target.Create();
   if (!target.IsOpen()) {

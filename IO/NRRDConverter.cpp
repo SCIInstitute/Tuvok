@@ -50,7 +50,7 @@ NRRDConverter::NRRDConverter()
   m_vSupportedExt.push_back("NHDR");
 }
 
-bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
+bool NRRDConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
 {
 
   pMasterController->DebugOut()->Message("NRRDConverter::Convert","Attempting to convert NRRD dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
@@ -318,5 +318,102 @@ bool NRRDConverter::Convert(const std::string& strSourceFilename, const std::str
       }
     }
     return false;
+  }
+}
+
+bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+                             UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
+                             UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction) {
+  
+  bool bDetached = SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)) == "nhdr";
+
+  // compute fromat string
+  string strFormat;
+
+  bool bFormatOK = true;
+  if (bFloatingPoint) {
+    if (bSigned) {
+      switch (iComponentSize) {
+        case 32 : strFormat = "FLOAT"; break;
+        case 64 : strFormat = "DOUBLE"; break;
+        default : bFormatOK = false; break;
+      }
+    } else {
+      bFormatOK = false;
+    }
+  } else {
+    if (bSigned) {
+      switch (iComponentSize) {
+        case  8 : strFormat = "SIGNED CHAR"; break;
+        case 16 : strFormat = "SHORT"; break;
+        case 32 : strFormat = "INT"; break;
+        case 64 : strFormat = "LONGLONG"; break;
+        default : bFormatOK = false; break;
+      }
+    } else {
+      switch (iComponentSize) {
+        case  8 : strFormat = "UCHAR"; break;
+        case 16 : strFormat = "USHORT"; break;
+        case 32 : strFormat = "UINT"; break;
+        case 64 : strFormat = "ULONGLONG"; break;
+        default : bFormatOK = false; break;
+      }
+    }
+  }
+
+  if (!bFormatOK) {
+    pMasterController->DebugOut()->Error("NRRDConverter::ConvertToNative","This data type is not supported by NRRD files.");
+    return false;
+  }                               
+                               
+  // create header textfile from metadata
+
+  ofstream fAsciiTarget(strTargetFilename.c_str());  
+  if (!fAsciiTarget.is_open()) {
+    pMasterController->DebugOut()->Error("NRRDConverter::ConvertToNative","Unable to open target file %s.", strTargetFilename.c_str());
+    return false;
+  }
+
+  fAsciiTarget << "NRRD0001" << endl;
+  fAsciiTarget << "type: ./" << strFormat << endl;
+  fAsciiTarget << "dimension: 3" << endl;
+  fAsciiTarget << "sizes:     " << vVolumeSize.x << " " << vVolumeSize.y << " "<< vVolumeSize.z << endl;
+  fAsciiTarget << "spacings: " << vVolumeAspect.x << " " << vVolumeAspect.y << " "<< vVolumeAspect.z << endl;
+  fAsciiTarget << "endian: little" << endl;
+  fAsciiTarget << "encoding: raw" << endl;
+
+  if (bDetached) {
+    string strTargetRAWFilename = strTargetFilename+".raw";
+    fAsciiTarget << "data file: ./" << strTargetRAWFilename << endl;
+    fAsciiTarget.close();
+
+    // copy RAW file using the parent's call
+    bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, 
+                                                     iComponentSize, iComponentCount, bSigned, bFloatingPoint,
+                                                     vVolumeSize, vVolumeAspect, pMasterController, bNoUserInteraction);
+
+    if (bRAWSuccess) {
+      return true;
+    } else {
+      pMasterController->DebugOut()->Error("NRRDConverter::ConvertToNative","Error creating raw target file %s.", strTargetRAWFilename.c_str());
+      remove(strTargetFilename.c_str());
+      return false;
+    }
+
+  } else {
+    // add the "empty line" header delimiter
+    fAsciiTarget << endl;
+    fAsciiTarget.close();
+ 
+    // append RAW data using the parent's call
+    bool bRAWSuccess = AppendRAW(strRawFilename, strTargetFilename, iComponentSize, pMasterController);
+
+    if (bRAWSuccess) {
+      return true;
+    } else {
+      pMasterController->DebugOut()->Error("NRRDConverter::ConvertToNative","Error appaneding raw data to header file %s.", strTargetFilename.c_str());
+      remove(strTargetFilename.c_str());
+      return false;
+    }
   }
 }

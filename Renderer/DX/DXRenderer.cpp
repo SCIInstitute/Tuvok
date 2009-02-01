@@ -231,6 +231,7 @@ void DXRenderer::Paint() {
   // TODO
 }
 
+#pragma warning(disable:4100) // disable "unused parameter" warning for now
 void DXRenderer::EndFrame(bool bNewDataToShow) {
 }
 

@@ -39,6 +39,7 @@
 #include <Controller/MasterController.h>
 #include <Basics/SysTools.h>
 #include <IO/KeyValueFileParser.h>
+#include <fstream>
 
 using namespace std;
 
@@ -49,7 +50,7 @@ QVISConverter::QVISConverter()
   m_vSupportedExt.push_back("DAT");
 }
 
-bool QVISConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
+bool QVISConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
 {
   pMasterController->DebugOut()->Message("QVISConverter::Convert","Attempting to convert QVIS dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
 
@@ -77,7 +78,7 @@ bool QVISConverter::Convert(const std::string& strSourceFilename, const std::str
         iComponentCount = 1;
       } else if (format->strValueUpper == "UCHAR4") {
         bSigned = false;
-        iComponentSize = 32;
+        iComponentSize = 8;
         iComponentCount = 4;
       } else if (format->strValueUpper == "FLOAT") {
         bSigned = true;
@@ -116,4 +117,60 @@ bool QVISConverter::Convert(const std::string& strSourceFilename, const std::str
                              vVolumeSize, vVolumeAspect, "Qvis data", SysTools::GetFilename(strSourceFilename));
 
   } else return false;
+}
+
+bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+                             UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
+                             UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction) {
+
+  // compute fromat string
+  string strFormat;
+
+  if (bFloatingPoint && bSigned && iComponentSize == 32 && iComponentCount == 1) 
+    strFormat = "FLOAT";
+  else
+  if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 1) 
+    strFormat = "UCHAR";
+  else
+  if (!bFloatingPoint && !bSigned && iComponentSize == 16 && iComponentCount == 1) 
+    strFormat = "USHORT";
+  else
+  if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 4) 
+    strFormat = "UCHAR4";
+  else {
+    pMasterController->DebugOut()->Error("QVISConverter::ConvertToNative","This data type is not supported by QVIS DAT/RAW files.");
+    return false;
+  }                               
+                               
+  // create DAT textfile from metadata
+  string strTargetRAWFilename = strTargetFilename+".raw";
+
+  ofstream fTarget(strTargetFilename.c_str());  
+  if (!fTarget.is_open()) {
+    pMasterController->DebugOut()->Error("QVISConverter::ConvertToNative","Unable to open target file %s.", strTargetFilename.c_str());
+    return false;
+  }
+
+  fTarget << "ObjectFileName: " << strTargetRAWFilename << endl;
+  fTarget << "TaggedFileName: ---" << endl;
+  fTarget << "Resolution:     " << vVolumeSize.x << " " << vVolumeSize.y << " "<< vVolumeSize.z << endl;
+  fTarget << "SliceThickness: " << vVolumeAspect.x << " " << vVolumeAspect.y << " "<< vVolumeAspect.z << endl;
+  fTarget << "Format:         " << strFormat << endl;
+  fTarget << "ObjectType:     TEXTURE_VOLUME_OBJECT" << endl;
+  fTarget << "ObjectModel:    RGBA" << endl;
+  fTarget << "GridType:       EQUIDISTANT" << endl;
+  fTarget.close();
+
+  // copy RAW file using the parent's call
+  bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, 
+                                                   iComponentSize, iComponentCount, bSigned, bFloatingPoint,
+                                                   vVolumeSize, vVolumeAspect, pMasterController, bNoUserInteraction);
+
+  if (bRAWSuccess) {
+    return true;
+  } else {
+    pMasterController->DebugOut()->Error("QVISConverter::ConvertToNative","Error creating raw target file %s.", strTargetRAWFilename.c_str());
+    remove(strTargetFilename.c_str());
+    return false;
+  }
 }

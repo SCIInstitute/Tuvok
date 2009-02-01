@@ -67,6 +67,15 @@ public:
                                 UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
                                 UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect,
                                 const std::string& strDesc, const std::string& strSource, UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED);
+
+  static bool AppendRAW(const std::string& strRawFilename, const std::string& strTargetFilename,
+                        UINT64 iComponentSize, MasterController* pMasterController, bool bChangendiness=false, bool bToSigned=false);
+
+  virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+                               UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
+                               UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction);
+
+
 };
 
 #endif // RAWCONVERTER_H

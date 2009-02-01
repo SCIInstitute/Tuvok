@@ -335,13 +335,13 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
     const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
     for (size_t j = 0;j<vStrSupportedExt.size();j++) {
       if (vStrSupportedExt[j] == strExt) {
-        if (m_vpConverters[i]->Convert(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction)) return true;
+        if (m_vpConverters[i]->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction)) return true;
       }
     }
   }
 
   if (m_pFinalConverter) 
-    return m_pFinalConverter->Convert(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction);
+    return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction);
   else
     return false;
 }

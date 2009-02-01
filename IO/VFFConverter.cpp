@@ -49,7 +49,7 @@ VFFConverter::VFFConverter()
   m_vSupportedExt.push_back("VFF");
 }
 
-bool VFFConverter::Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
+bool VFFConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
 {
   pMasterController->DebugOut()->Message("VFFConverter::Convert","Attempting to convert VFF dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
 
@@ -171,4 +171,48 @@ bool VFFConverter::Convert(const std::string& strSourceFilename, const std::stri
   /// \todo check if really all vff files contain signed data
   return ConvertRAWDataset(strSourceFilename, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, !EndianConvert::IsBigEndian(), true,
                            vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename));
+}
+
+
+bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+                             UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
+                             UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool) {
+                           
+  // create header textfile from metadata
+  ofstream fAsciiTarget(strTargetFilename.c_str());  
+  if (!fAsciiTarget.is_open()) {
+    pMasterController->DebugOut()->Error("VFFConverter::ConvertToNative","Unable to open target file %s.", strTargetFilename.c_str());
+    return false;
+  }
+
+  if (bFloatingPoint) {
+    pMasterController->DebugOut()->Error("VFFConverter::ConvertToNative","Floating point formats are not avaliable for vff files.");
+    return false;
+  }
+
+  fAsciiTarget << "ncaa" << endl;
+  fAsciiTarget << "type: raster;" << endl;
+  fAsciiTarget << "rank: 3;" << endl;
+  fAsciiTarget << "bands: " << iComponentCount << ";"<< endl;
+  fAsciiTarget << "format: slice;" << endl;
+  fAsciiTarget << "bits: " << iComponentSize << ";" << endl;
+  fAsciiTarget << "size: " << vVolumeSize.x << " " << vVolumeSize.y << " "<< vVolumeSize.z << ";" << endl;
+  fAsciiTarget << "spacing: " << vVolumeAspect.x << " " << vVolumeAspect.y << " "<< vVolumeAspect.z << ";" << endl;
+
+  // add the ^L header delimiter
+  string strHeaderEnd;
+  strHeaderEnd.push_back(12);  // header end char of vffs is ^L = 0C = 12 
+  fAsciiTarget << strHeaderEnd;
+  fAsciiTarget.close();
+
+  // append RAW data using the parent's call
+  bool bRAWSuccess = AppendRAW(strRawFilename, strTargetFilename, iComponentSize, pMasterController, !EndianConvert::IsBigEndian(), !bSigned);
+
+  if (bRAWSuccess) {
+    return true;
+  } else {
+    pMasterController->DebugOut()->Error("VFFConverter::ConvertToNative","Error appaneding raw data to header file %s.", strTargetFilename.c_str());
+    remove(strTargetFilename.c_str());
+    return false;
+  }
 }

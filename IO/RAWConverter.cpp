@@ -628,14 +628,14 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
 
   ifstream sourceFile(strFilename.c_str(),ios::binary);
   if (!sourceFile.is_open()) {
-    pMasterController->DebugOut()->Error("NRRDConverter::ConvertTXTDataset","Unable to open source file %s.", strFilename.c_str());
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable to open source file %s.", strFilename.c_str());
     return false;
   }
 
   LargeRAWFile binaryFile(strBinaryFile);
   binaryFile.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
   if (!binaryFile.IsOpen()) {
-    pMasterController->DebugOut()->Error("NRRDConverter::ConvertTXTDataset","Unable to open temp file %s.", strBinaryFile.c_str());
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable to open temp file %s.", strBinaryFile.c_str());
     sourceFile.close();
     return false;
   }
@@ -700,7 +700,7 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
                break;
              }
     default : {
-                pMasterController->DebugOut()->Error("NRRDConverter::ConvertTXTDataset","Unable unsupported data type.");
+                pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable unsupported data type.");
                 sourceFile.close();
                 binaryFile.Delete();
                 return false;
@@ -715,7 +715,94 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
                                    vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
 
   if( remove(strBinaryFile.c_str()) != 0 )
-      pMasterController->DebugOut()->Warning("NRRDConverter::ConvertTXTDataset","Unable to delete temp file %s.", strBinaryFile.c_str());
+      pMasterController->DebugOut()->Warning("RAWConverter::ConvertTXTDataset","Unable to delete temp file %s.", strBinaryFile.c_str());
 
   return bResult;
+}
+
+bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+                                   UINT64 iComponentSize, UINT64 , bool , bool, 
+                                   UINTVECTOR3 , FLOATVECTOR3 , MasterController* pMasterController, bool) {
+  // convert raw to raw is easy :-), just copy the file and ignore the metadata
+
+  // if the file exists, delete it first
+  if (SysTools::FileExists(strTargetFilename)) 
+    remove(strTargetFilename.c_str());
+  if (SysTools::FileExists(strTargetFilename)) {
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertToNative","Unable to remove exisitng target file %s.", strTargetFilename.c_str());
+    return false;
+  }
+
+  return AppendRAW(strRawFilename, strTargetFilename, iComponentSize, pMasterController, EndianConvert::IsBigEndian());
+}
+
+bool RAWConverter::AppendRAW(const std::string& strRawFilename, const std::string& strTargetFilename,
+                             UINT64 iComponentSize, MasterController* pMasterController, bool bChangendiness, bool bToSigned) {
+  // open source file
+  LargeRAWFile fSource(strRawFilename);
+  fSource.Open(false);
+  if (!fSource.IsOpen()) {
+    pMasterController->DebugOut()->Error("RAWConverter::AppendRAW","Unable to open source file %s.", strRawFilename.c_str());
+    return false;
+  }
+  // append to target file
+  LargeRAWFile fTarget(strTargetFilename);
+  fTarget.Append();
+  if (!fTarget.IsOpen()) {
+    fSource.Close();
+    pMasterController->DebugOut()->Error("RAWConverter::AppendRAW","Unable to open target file %s.", strTargetFilename.c_str());
+    return false;
+  }
+
+  UINT64 iCopySize = min(fSource.GetCurrentSize(),BLOCK_COPY_SIZE);
+  unsigned char* pBuffer = new unsigned char[size_t(iCopySize)];
+
+  do {
+    iCopySize = fSource.ReadRAW(pBuffer, iCopySize);
+
+    if (bToSigned) {
+      switch (iComponentSize) {
+        case 8  : // char to uchar
+                  for (size_t i = 0;i<iCopySize;i++)
+                    (*(char*)(pBuffer+i)) = char(*(unsigned char*)(pBuffer+i)) - std::numeric_limits<char>::max();
+                  break;
+        case 16 : // short to ushort
+                  for (size_t i = 0;i<iCopySize;i+=2)
+                    (*(short*)(pBuffer+i)) = short(*(unsigned short*)(pBuffer+i)) - std::numeric_limits<short>::max();
+                  break;
+        case 32 : // int to uint
+                  for (size_t i = 0;i<iCopySize;i+=4)
+                    (*(int*)(pBuffer+i)) = int(*(unsigned int*)(pBuffer+i)) - std::numeric_limits<int>::max();
+                  break;
+        case 64 : // ulonglong to longlong
+                  for (size_t i = 0;i<iCopySize;i+=8)
+                    (*(INT64*)(pBuffer+i)) = INT64(*(UINT64*)(pBuffer+i)) - std::numeric_limits<INT64>::max();
+                  break;
+        default : pMasterController->DebugOut()->Error("VFFConverter::ConvertToNative","Unsuported data type for vff files.");
+                  return false;
+      }
+    }
+
+    if (bChangendiness) {
+      switch (iComponentSize) {
+        case 16 : for (size_t i = 0;i<iCopySize;i+=2)
+                    EndianConvert::Swap<unsigned short>((unsigned short*)(pBuffer+i));
+                  break;
+        case 32 : for (size_t i = 0;i<iCopySize;i+=4)
+                    EndianConvert::Swap<float>((float*)(pBuffer+i));
+                  break;
+        case 64 : for (size_t i = 0;i<iCopySize;i+=8)
+                    EndianConvert::Swap<double>((double*)(pBuffer+i));
+                  break;
+      }
+    }
+
+    fTarget.WriteRAW(pBuffer, iCopySize);
+  } while (iCopySize > 0); 
+
+  fSource.Close();
+  fTarget.Close();
+  delete [] pBuffer;    
+
+  return true;
 }

@@ -51,7 +51,15 @@ class AbstrConverter {
 public:
   virtual ~AbstrConverter() {}
 
-  virtual bool Convert(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool bNoUserInteraction) = 0;
+  virtual bool ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, 
+                            const std::string& strTempDir, MasterController* pMasterController, 
+                            bool bNoUserInteraction) = 0;
+
+  virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+                               UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
+                               UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController,
+                               bool bNoUserInteraction) = 0;
+
   const std::vector<std::string>& SupportedExt() {return m_vSupportedExt;}
   virtual const std::string& GetDesc() {return m_vConverterDesc;}
 

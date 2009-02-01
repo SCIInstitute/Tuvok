@@ -53,7 +53,7 @@ DXSBVR::DXSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, boo
 DXSBVR::~DXSBVR() {
 }
 
-
+#pragma warning(disable:4100) // disable "unused parameter" warning for now
 void DXSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
 }
