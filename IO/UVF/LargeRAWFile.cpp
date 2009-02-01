@@ -2,8 +2,6 @@
 
 using namespace std;
 
-#define BLOCK_COPY_SIZE (UINT64(128*1024*1024))
-
 LargeRAWFile::LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize) :
   m_strFilename(strFilename),
   m_bIsOpen(false),

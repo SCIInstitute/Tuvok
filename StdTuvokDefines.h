@@ -118,4 +118,6 @@ typedef unsigned char BYTE;
   #define TUVOK_DETAILS "Linux build"
 #endif
 
+#define BLOCK_COPY_SIZE     (UINT64(64*1024*1024))
+
 #endif // STDTUVOKDEFINES_H

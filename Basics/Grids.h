@@ -1,5 +1,3 @@
-#pragma once
-
 /*
    For more information, please see: http://software.sci.utah.edu
 
@@ -38,8 +36,10 @@
   \date    July 2008
 */
 
-#ifndef GRIDS
-#define GRIDS
+#pragma once
+
+#ifndef GRIDS_H
+#define GRIDS_H
 
 #include "../StdTuvokDefines.h"
 #include "Vectors.h"
@@ -180,4 +180,4 @@ template <class T> class Grid3D : public GridnD<T> {
     VECTOR3<size_t> m_iSize;
 };
 
-#endif // GRIDS
+#endif // GRIDS_H

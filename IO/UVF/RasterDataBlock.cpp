@@ -12,8 +12,6 @@
 using namespace std;
 using namespace UVFTables;
 
-#define BLOCK_COPY_SIZE     (UINT64(512*1024*1024))
-
 //*************** Raster Data Block **********************
 
 RasterDataBlock::RasterDataBlock() : 

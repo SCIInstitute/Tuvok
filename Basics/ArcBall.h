@@ -38,6 +38,9 @@
 
 #pragma once
 
+#ifndef ARCBALL_H
+#define ARCBALL_H
+
 #include "../StdTuvokDefines.h"
 #include <vector>
 #include "../Basics/Vectors.h"
@@ -68,3 +71,5 @@ protected:
 
   FLOATVECTOR3 MapToSphere(UINTVECTOR2 vPosition) const;
 };
+
+#endif // ARCBALL_H

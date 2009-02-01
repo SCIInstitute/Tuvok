@@ -28,50 +28,61 @@
 
 
 /**
-  \file    GeometryGenerator.cpp
+  \file    Appendix.cpp
   \author  Jens Krueger
            SCI Institute
            University of Utah
-  \date    Januar 2009
+  \date    January 2009
 */
 
 #pragma once
 
-#ifndef GEOMETRYGENERATOR_H
-#define GEOMETRYGENERATOR_H
+#ifndef APPENDIX_H
+#define APPENDIX_H
 
 #include "../StdTuvokDefines.h"
 #include <vector>
-#include "../Basics/Vectors.h"
+#include <string>
 
-class PosNormalVertex {
+
+/** \class FileInfo */
+class FileInfo {
 public:
-  PosNormalVertex(const FLOATVECTOR3& vPos = FLOATVECTOR3(0,0,0), const FLOATVECTOR3& vNormal = FLOATVECTOR3(1,0,0)) :
-      m_vPos(vPos), m_vNormal(vNormal) {}
-
-  FLOATVECTOR3 m_vPos;
-  FLOATVECTOR3 m_vNormal;
+  FileInfo(std::string strName, UINT64 iSize) :
+    m_strName(strName),
+    m_iSize(iSize) {}
+  
+    std::string m_strName;
+    UINT64 m_iSize;
 };
 
-class Triangle {
+class InternalFileInfo : public FileInfo {
 public:
-  Triangle(const PosNormalVertex& a, const PosNormalVertex& b, const PosNormalVertex& c) {
-    m_vertices[0] = a;
-    m_vertices[1] = b;
-    m_vertices[2] = c;
-  }
-  PosNormalVertex m_vertices[3];;
+  InternalFileInfo(std::string strName, UINT64 iSize, UINT64 iOffset) :
+    FileInfo(strName, iSize),
+    m_iOffset(iOffset) {}
+  
+    UINT64 m_iOffset;
 };
 
-/** \class GeometryGenerator */
-class GeometryGenerator {
-public:
-  static std::vector<Triangle> GenArrow(float  fOverallLength, 
-                                        float  fShaftToHeadRatio,
-                                        float  fShaftRadius,
-                                        float  fHeadRadius,
-                                        UINT32 iSegments);
+/** \class Appendix */
+class Appendix
+{
+  public:
+    Appendix(std::string strTarget, const std::vector<std::string>& vstrSource);
+    Appendix(std::string strAPXFile);
+
+    bool IsOK() {return m_bOK;}
+    bool ExtractFile(size_t i, std::string strTarget);
+
+    std::vector<FileInfo> ListFiles();
+
+  protected:
+    std::string                   m_strAPXFile;
+    UINT64                        m_iHeaderLength;
+    bool                          m_bOK;
+    std::vector<InternalFileInfo> m_vHeaderData;
 
 };
 
-#endif // GEOMETRYGENERATOR_H
+#endif // APPENDIX_H
