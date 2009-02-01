@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -86,12 +86,12 @@ namespace SysTools {
       return !(iss >> f >> t).fail();
   }
 
-  
+
   template <typename T> bool FromString(T& t, const std::wstring& s, std::ios_base& (*f)(std::ios_base&) = std::dec)
   {
       std::wistringstream iss(s);
       return !(iss >> f >> t).fail();
-  }  
+  }
 
   template <typename T> T FromString(const std::string& s, std::ios_base& (*f)(std::ios_base&)= std::dec)
   {
@@ -100,7 +100,7 @@ namespace SysTools {
       iss >> f >> t;
       return t;
   }
-  
+
   template <typename T> T FromString(const std::wstring& s, std::ios_base& (*f)(std::ios_base&) = std::dec)
   {
       T t;
@@ -168,7 +168,7 @@ namespace SysTools {
 
   std::vector<std::wstring> GetSubDirList(const std::wstring& dir);
   std::vector<std::string> GetSubDirList(const std::string& dir);
-  
+
   bool GetFileStats(const std::string& strFileName, struct stat& stat_buf);
   bool GetFileStats(const std::wstring& wstrFileName, struct stat& stat_buf);
 
@@ -200,7 +200,7 @@ namespace SysTools {
       bool GetValue(const std::wstring& parameter, int& value);
       bool GetValue(const std::string& parameter, std::string& value);
       bool GetValue(const std::wstring& parameter, std::wstring& value);
-    
+
     protected:
       std::vector<std::string> m_strArrayParameters;
       std::vector<std::string> m_strArrayValues;

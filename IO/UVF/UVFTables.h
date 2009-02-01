@@ -62,7 +62,7 @@ namespace UVFTables {
     ES_GREEN,
     ES_BLUE,
     ES_ALPHA,
-    ES_MR = 20000, 
+    ES_MR = 20000,
     ES_CT,
     ES_TIME = 30000,
     ES_MASS,

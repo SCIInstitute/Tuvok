@@ -18,7 +18,7 @@ template<class T> void SimpleMaxMin(const void* pIn, size_t iStart, size_t iCoun
     if (fMin > pDataIn[i]) fMin = pDataIn[i];
     if (fMax < pDataIn[i]) fMax = pDataIn[i];
   }
-  
+
   (*pfMin) = fMin;
   (*pfMax) = fMax;
 }
@@ -61,7 +61,7 @@ template<class T, UINT64 iVecLength> void CombineAverage(std::vector<UINT64> vSo
     for (UINT64 v = 0;v<iVecLength;v++) temp[size_t(v)] += double(pDataIn[v+vSource[i]*iVecLength]) / double(vSource.size());
   }
   // make sure not to touch pDataOut before we are finished with reading pDataIn, this allows for inplace combine calls
-  for (UINT64 v = 0;v<iVecLength;v++) 
+  for (UINT64 v = 0;v<iVecLength;v++)
     pDataOut[v+iTarget*iVecLength] = T(temp[v]);
 }
 
@@ -125,12 +125,12 @@ public:
   const std::vector<UINT64> GetSmallestBrickIndex() const;
   const std::vector<UINT64>& GetSmallestBrickSize() const;
 
-  void FlatDataToBrickedLOD(const void* pSourceData, const std::string& strTempFile = "tempFile.tmp", 
-                            void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) = CombineAverage<char>, 
+  void FlatDataToBrickedLOD(const void* pSourceData, const std::string& strTempFile = "tempFile.tmp",
+                            void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) = CombineAverage<char>,
                             void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, double *pfMin, double *pfMax) = SimpleMaxMin<char>,
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
-  void FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const std::string& strTempFile = "tempFile.tmp", 
-                            void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) = CombineAverage<char>, 
+  void FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const std::string& strTempFile = "tempFile.tmp",
+                            void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) = CombineAverage<char>,
                             void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, double *pfMin, double *pfMax) = SimpleMaxMin<char>,
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
   void AllocateTemp(const std::string& strTempFile, bool bBuildOffsetTables=false);

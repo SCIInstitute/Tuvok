@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -54,7 +54,7 @@ namespace MathTools {
   UINT32 Log2(UINT32 n);
   UINT32 Pow2(UINT32 e);
   UINT64 Log2(UINT64 n);
-  UINT64 Pow2(UINT64 e);  
+  UINT64 Pow2(UINT64 e);
   UINT32 GaussianSum(UINT32 n);
   bool IsPow2(UINT32 n);
   UINT32 NextPow2(UINT32 n, bool bReturn_ID_on_Pow2=true);

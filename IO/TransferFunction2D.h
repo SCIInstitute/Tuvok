@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -79,7 +79,7 @@ public:
   TransferFunction2D(const VECTOR2<size_t>& iSize);
   TransferFunction2D(const std::string& filename);
   ~TransferFunction2D(void);
-  
+
   void Resize(const Histogram2D& hist) {Resize(hist.GetSize());}
   void Resize(const NormalizedHistogram2D& hist) {Resize(hist.GetSize());}
   void Resize(const VECTOR2<size_t>& iSize);
@@ -115,7 +115,7 @@ protected:
 private:
   ColorData2D*      m_pColorData;
   QImage*           m_pCanvas;
-  QPainter*         m_pPainter;  
+  QPainter*         m_pPainter;
   UINT64VECTOR4     m_vValueBBox;
   bool              m_bUseCachedData;
 

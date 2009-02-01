@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-  
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -53,7 +53,7 @@
 
 class KeyValPair {
 public:
-  
+
   KeyValPair();
   KeyValPair(const std::string& key, const std::string& value);
   KeyValPair(const std::wstring& key, const std::wstring& value);
@@ -92,7 +92,7 @@ public:
   ~KeyValueFileParser(void);
 
   KeyValPair* GetData(const std::string&  strKey, const bool bCaseSensitive=false);
-  KeyValPair* GetData(const std::wstring& wstrKey, const bool bCaseSensitive=false); 
+  KeyValPair* GetData(const std::wstring& wstrKey, const bool bCaseSensitive=false);
 
   bool FileReadable() const {return m_bFileReadable;}
 

@@ -8,14 +8,14 @@
 template<class T, class S> class MaxMinElemen {
 public:
   MaxMinElemen() :
-   minScalar(0), 
+   minScalar(0),
    maxScalar(0),
    minGradient(0),
    maxGradient(0)
   {}
 
   MaxMinElemen( T _minScalar, T _maxScalar, S _minGradient, S _maxGradient) :
-   minScalar(_minScalar), 
+   minScalar(_minScalar),
    maxScalar(_maxScalar),
    minGradient(_minGradient),
    maxGradient(_maxGradient)
@@ -51,7 +51,7 @@ public:
   void StartNewValue();
   void MergeData(double fMin, double fMax, double fMinGrad, double fMaxGrad);
   void MergeData(const InternalMaxMinElemen& data);
-  
+
 protected:
   std::vector< InternalMaxMinElemen > m_vfMaxMinData;
 
@@ -61,6 +61,5 @@ protected:
 
   virtual DataBlock* Clone();
 };
-
 
 #endif // MAXMINDATABLOCK_H

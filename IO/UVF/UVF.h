@@ -54,7 +54,7 @@ protected:
 
   bool ParseGlobalHeader(bool bVerify, std::string* pstrProblem = NULL);
   void ParseDataBlocks();
-  static bool VerifyChecksum(LargeRAWFile& streamFile, GlobalHeader& globalHeader, std::string* pstrProblem = NULL);  
+  static bool VerifyChecksum(LargeRAWFile& streamFile, GlobalHeader& globalHeader, std::string* pstrProblem = NULL);
   static std::vector<unsigned char> ComputeChecksum(LargeRAWFile& streamFile, UVFTables::ChecksumSemanticTable eChecksumSemanticsEntry);
 
   static bool CheckMagic(LargeRAWFile& streamFile);

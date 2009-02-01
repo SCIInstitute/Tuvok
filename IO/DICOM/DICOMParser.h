@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -100,7 +100,7 @@ public:
 
 class DICOMStackInfo : public FileStackInfo {
 public:
-  
+
   DICOMStackInfo();
   DICOMStackInfo(const DICOMFileInfo* info);
   DICOMStackInfo(const DICOMStackInfo* other);
@@ -140,7 +140,7 @@ enum DICOM_eType {
   TYPE_UL, // Unsigned Long binary 4 bytes fixed
   TYPE_US, // Unsigned Short binary 2 bytes fixed
   TYPE_UT, // Unlimited Text string 232-2
-  TYPE_UN, // Unknown 
+  TYPE_UN, // Unknown
   TYPE_Implicit // Implict File no type
 };
 

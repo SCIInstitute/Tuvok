@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -77,20 +77,20 @@ template <class T> class Grid1D : public GridnD<T> {
 
     size_t GetSize() const {return m_iSize;}
     void Resize(const size_t& iSize) {
-      delete [] this->m_pData; 
+      delete [] this->m_pData;
       m_iSize = iSize;
       this->m_pData = new T[m_iSize];
     }
 
     T Get(size_t i) const {return this->m_pData[i];}
     void Set(size_t i, T tValue) {this->m_pData[i] = tValue;}
-    
-    Grid1D<T>& operator=(const Grid1D<T>& other)  { 
-      delete [] this->m_pData; 
+
+    Grid1D<T>& operator=(const Grid1D<T>& other)  {
+      delete [] this->m_pData;
       m_iSize = other.m_iSize;
       this->m_pData = new T[m_iSize];
       memcpy(this->m_pData, other->m_pData, sizeof(T)*m_iSize);
-      return *this; 
+      return *this;
     }
 
   private:
@@ -123,7 +123,7 @@ template <class T> class Grid2D : public GridnD<T> {
 
     VECTOR2<size_t> GetSize() const {return m_iSize;}
     void Resize(const VECTOR2<size_t>& iSize) {
-      delete [] this->m_pData; 
+      delete [] this->m_pData;
       m_iSize = iSize;
       this->m_pData = new T[m_iSize.area()];
     }
@@ -132,13 +132,13 @@ template <class T> class Grid2D : public GridnD<T> {
     void Set(const UINTVECTOR2& pos, T tValue) {this->m_pData[pos.x+pos.y*m_iSize.x] = tValue;}
     T Get(size_t x, size_t y) const {return this->m_pData[x+m_iSize.x*y];}
     void Set(size_t x, size_t y, T tValue) {this->m_pData[x+m_iSize.x*y] = tValue;}
-    
-    Grid2D<T>& operator=(const Grid2D<T>& other)  { 
-      delete [] this->m_pData; 
+
+    Grid2D<T>& operator=(const Grid2D<T>& other)  {
+      delete [] this->m_pData;
       m_iSize = other.m_iSize;
       this->m_pData = new T[m_iSize.area()];
       memcpy(this->m_pData, other->m_pData, sizeof(T)*m_iSize.area());
-      return *this; 
+      return *this;
     }
 
   private:
@@ -158,7 +158,7 @@ template <class T> class Grid3D : public GridnD<T> {
 
     VECTOR3<size_t> GetSize() const {return m_iSize;}
     void Resize(const VECTOR3<size_t>& iSize) {
-      delete [] this->m_pData; 
+      delete [] this->m_pData;
       m_iSize = iSize;
       this->m_pData = new T[m_iSize.volume()];
     }
@@ -167,13 +167,13 @@ template <class T> class Grid3D : public GridnD<T> {
     void Set(const UINTVECTOR3& pos, T tValue) {this->m_pData[pos.x+pos.y*m_iSize.x+pos.z*m_iSize.x*m_iSize.y] = tValue;}
     T Get(size_t x, size_t y, size_t z) const {return this->m_pData[x+m_iSize.x*y+z*m_iSize.x*m_iSize.y];}
     void Set(size_t x, size_t y, size_t z, T tValue) {this->m_pData[x+m_iSize.x*y+z*m_iSize.x*m_iSize.y] = tValue;}
-    
-    Grid3D<T>& operator=(const Grid3D<T>& other)  { 
-      delete [] this->m_pData; 
+
+    Grid3D<T>& operator=(const Grid3D<T>& other)  {
+      delete [] this->m_pData;
       m_iSize = other.m_iSize;
       this->m_pData = new T[m_iSize.volume()];
       memcpy(this->m_pData, other->m_pData, sizeof(T)*m_iSize.volume());
-      return *this; 
+      return *this;
     }
 
   private:

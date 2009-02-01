@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -59,7 +59,7 @@ typedef AbstrRendererList::iterator AbstrRendererListIter;
 class VolDataListElem {
 public:
   VolDataListElem(VolumeDataset* _pVolumeDataset, AbstrRenderer* pUser) :
-    pVolumeDataset(_pVolumeDataset) 
+    pVolumeDataset(_pVolumeDataset)
   {
     qpUser.push_back(pUser);
   }
@@ -74,8 +74,8 @@ typedef VolDataList::iterator VolDataListIter;
 class SimpleTextureListElem {
 public:
   SimpleTextureListElem(UINT32 _iAccessCounter, GLTexture2D* _pTexture, std::string _strFilename) :
-    iAccessCounter(_iAccessCounter), 
-    pTexture(_pTexture), 
+    iAccessCounter(_iAccessCounter),
+    pTexture(_pTexture),
     strFilename(_strFilename)
   {}
 
@@ -199,7 +199,7 @@ public:
     delete pGLSLProgram;
   }
 
-  std::string   strVSFile; 
+  std::string   strVSFile;
   std::string   strFSFile;
   UINT32        iAccessCounter;
   GLSLProgram*  pGLSLProgram;

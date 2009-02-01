@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -94,7 +94,7 @@ class AbstrDebugOut {
     virtual bool GetListRecordingErrors()   {return m_bRecordLists[0];}
     virtual bool GetListRecordingWarnings() {return m_bRecordLists[1];}
     virtual bool GetListRecordingMessages() {return m_bRecordLists[2];}
-  
+
     void SetOutput(bool bShowErrors, bool bShowWarnings, bool bShowMessages, bool bShowOther);
     void GetOutput(bool& bShowErrors, bool& bShowWarnings, bool& bShowMessages, bool& bShowOther) const;
 

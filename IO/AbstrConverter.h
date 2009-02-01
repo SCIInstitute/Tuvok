@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -58,7 +58,7 @@ public:
 protected:
   std::string               m_vConverterDesc;
   std::vector<std::string>  m_vSupportedExt;
-  
+
   static const std::string Process8BitsTo8Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController);
   static const std::string QuantizeShortTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController);
   static const std::string QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController);

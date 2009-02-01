@@ -52,7 +52,7 @@ public:
   void Close();
   void Delete();
   UINT64 GetCurrentSize();
-  std::string GetFilename() {return m_strFilename;} 
+  std::string GetFilename() {return m_strFilename;}
 
   void SeekStart();
   UINT64 SeekEnd();
@@ -60,7 +60,7 @@ public:
   void SeekPos(UINT64 iPos);
   size_t ReadRAW(unsigned char* pData, UINT64 iCount);
   size_t WriteRAW(const unsigned char* pData, UINT64 iCount);
-  
+
   template<class T> void Read(const T* pData, UINT64 iCount, UINT64 iPos, UINT64 iOffset) {
     SeekPos(iOffset+sizeof(T)*iPos);
     ReadRAW((unsigned char*)pData, sizeof(T)*iCount);

@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-  
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -58,7 +58,7 @@ public:
   TransferFunction1D(size_t iSize = 0);
   TransferFunction1D(const std::string& filename);
   ~TransferFunction1D(void);
-  
+
   void SetStdFunction(float fCenterPoint=0.5f, float fInvGradient=0.5f);
   void SetStdFunction(float fCenterPoint, float fInvGradient, int iComponent);
 
