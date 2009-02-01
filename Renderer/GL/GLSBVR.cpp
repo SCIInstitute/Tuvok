@@ -198,12 +198,12 @@ void GLSBVR::Render3DPreLoop() {
 }
 
 void GLSBVR::RenderProxyGeometry() {
-    glBegin(GL_TRIANGLES);
-      for (int i = int(m_SBVRGeogen.m_vSliceTriangles.size())-1;i>=0;i--) {
-        glTexCoord3fv(m_SBVRGeogen.m_vSliceTriangles[i].m_vTex);
-        glVertex3fv(m_SBVRGeogen.m_vSliceTriangles[i].m_vPos);
-      }
-    glEnd();
+  glBegin(GL_TRIANGLES);
+    for (int i = int(m_SBVRGeogen.m_vSliceTriangles.size())-1;i>=0;i--) {
+      glTexCoord3fv(m_SBVRGeogen.m_vSliceTriangles[i].m_vTex);
+      glVertex3fv(m_SBVRGeogen.m_vSliceTriangles[i].m_vPos);
+    }
+  glEnd();
 }
 
 void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
