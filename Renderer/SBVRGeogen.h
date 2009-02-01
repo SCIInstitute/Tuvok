@@ -46,9 +46,15 @@ class POS3TEX3_VERTEX
 {
 public:
   POS3TEX3_VERTEX() : m_vPos() , m_vTex() {}
-  POS3TEX3_VERTEX(const FLOATVECTOR3 &vPos, const FLOATVECTOR3 &vTex) : m_vPos(vPos) , m_vTex(vTex) {}
-  POS3TEX3_VERTEX(const FLOATVECTOR4 &vPos, const FLOATVECTOR3 &vTex) : m_vPos(vPos.xyz()), m_vTex(vTex) {}
-  POS3TEX3_VERTEX(const FLOATVECTOR3 &vPos) : m_vPos(vPos)  {m_vTex = m_vPos + 0.5f;}
+  POS3TEX3_VERTEX(const FLOATVECTOR3 &vPos, const FLOATVECTOR3 &vTex)
+    : m_vPos(vPos),
+      m_vTex(vTex) {}
+  POS3TEX3_VERTEX(const FLOATVECTOR4 &vPos, const FLOATVECTOR3 &vTex)
+    : m_vPos(vPos.xyz()),
+      m_vTex(vTex) {}
+  POS3TEX3_VERTEX(const FLOATVECTOR3 &vPos) : m_vPos(vPos) {
+    m_vTex = m_vPos + 0.5f;
+  }
 
   FLOATVECTOR3 m_vPos;
   FLOATVECTOR3 m_vTex;
@@ -62,15 +68,24 @@ public:
   SBVRGeogen(void);
   virtual ~SBVRGeogen(void);
 
-  void SetSamplingModifier(float fSamplingModifier) {m_fSamplingModifier = fSamplingModifier;}
-  void SetTransformation(const FLOATMATRIX4& matTransform, bool bForceUpdate = false);
+  void SetSamplingModifier(float fSamplingModifier) {
+    m_fSamplingModifier = fSamplingModifier;
+  }
+  void SetTransformation(const FLOATMATRIX4& matTransform,
+                         bool bForceUpdate = false);
   void SetVolumeData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize);
   void SetLODData(const UINTVECTOR3& vSize);
-  void SetBrickData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize, const FLOATVECTOR3& vTexCoordMin=FLOATVECTOR3(0,0,0), const FLOATVECTOR3& vTexCoordMax=FLOATVECTOR3(1,1,1));
+  void SetBrickData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize,
+                    const FLOATVECTOR3& vTexCoordMin=FLOATVECTOR3(0,0,0),
+                    const FLOATVECTOR3& vTexCoordMax=FLOATVECTOR3(1,1,1));
   void ComputeGeometry();
   float GetOpacityCorrection();
+  void SetMinLayers(UINT32 iMinLayers) {
+    m_iMinLayers = iMinLayers;
+    ComputeGeometry();
+  }
+
   std::vector<POS3TEX3_VERTEX> m_vSliceTriangles;
-  void SetMinLayers(UINT32 iMinLayers) {m_iMinLayers = iMinLayers; ComputeGeometry();}
 
 protected:
 
@@ -83,8 +98,9 @@ protected:
   UINTVECTOR3       m_vSize;
   FLOATVECTOR3      m_vTexCoordMin;
   FLOATVECTOR3      m_vTexCoordMax;
-  UINT32            m_iMinLayers; ///< allows the user to specifiy a minimum layer count to prevent small volumes from beeing sparsely sampled
-
+  UINT32            m_iMinLayers; ///< allows the user to specifiy a minimum
+                                  ///  layer count to prevent small volumes
+                                  ///  from beeing sparsely sampled
   FLOATVECTOR3      m_vGlobalAspect;
   UINTVECTOR3       m_vGlobalSize;
   UINTVECTOR3       m_vLODSize;
@@ -92,7 +108,8 @@ protected:
   void InitBBOX();
   bool EpsilonEqual(float a, float b);
   bool ComputeLayerGeometry(float fDepth);
-  void ComputeIntersection(float z, UINT32  indexA, UINT32  indexB, POS3TEX3_VERTEX& vHit, UINT32  &count);
+  void ComputeIntersection(float z, UINT32  indexA, UINT32  indexB,
+                           POS3TEX3_VERTEX& vHit, UINT32  &count);
   bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c);
   void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount);
   int FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount);
