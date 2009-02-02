@@ -362,35 +362,13 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 /** Converts a gzip-compressed chunk of a file to a raw file.
  * @param strFilename the input (compressed) file
  * @param strTargetFilename the target uvf file
- * @param strTempDir directory prefix for raw file.
  * @param pMasterController controller, for reporting errors
- * @param iHeaderSkip number of bytes to skip off of strFilename
- * @param iComponentSize size in bit of one component (e.g. 8 for a byte)
- * @param iComponentCount how many components (e.g. 1 for scalar)
- * @param bSigned is the value a signed variable
- * @param bConvertEndianness if we need to flip the endianness of the data
- * @param vVolumeSize dimensions of the volume
- * @param vVolumeAspect per-dimension aspect ratio
- * @param strDesc a string decribing the input data
- * @param strSource a string decribing the input filename (usually the filnemae without the path)
- * @param eType data type enumerator (defaults to undefined) */
-bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
-                                      const string& strTargetFilename,
-                                      const string& strTempDir,
+ * @param iHeaderSkip number of bytes to skip off of strFilename */
+bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
+                                      const string& strUncompressedFile,
                                       MasterController* pMasterController,
-                                      UINT64 iHeaderSkip,
-                                      UINT64 iComponentSize,
-                                      UINT64 iComponentCount,
-                                      bool bConvertEndianness,
-                                      bool bSigned,
-                                      UINTVECTOR3 vVolumeSize,
-                                      FLOATVECTOR3 vVolumeAspect,
-                                      const string& strDesc,
-                                      const string& strSource,
-                                      UVFTables::ElementSemanticTable eType)
+                                      UINT64 iHeaderSkip)
 {
-  string strUncompressedFile = strTempDir+SysTools::GetFilename(strFilename)+".uncompressed";
-
   FILE *f_compressed;
   FILE *f_inflated;
   int ret;
@@ -450,17 +428,7 @@ bool RAWConverter::ConvertGZIPDataset(const string& strFilename,
       break;
   }
 
-  bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename,
-                                   strTempDir, pMasterController, 0,
-                                   iComponentSize, iComponentCount, bConvertEndianness,
-                                   bSigned, vVolumeSize,
-                                   vVolumeAspect, strDesc, strSource, eType);
-
-  if( remove(strUncompressedFile.c_str()) != 0 ) {
-    dbg->Warning(method, "Unable to delete temp file %s",
-                 strUncompressedFile.c_str());
-  }
-  return bResult;
+  return true;
 }
 
 /** Tests a bzip return code for errors, and translates it to a string for the
@@ -521,37 +489,15 @@ bz_err_test(int bz_err, AbstrDebugOut * const dbg)
 /** Converts a bzip2-compressed file chunk to a raw file.
  * @param strFilename the input (compressed) file
  * @param strTargetFilename the target uvf file
- * @param strTempDir directory prefix for raw file.
  * @param pMasterController controller, for reporting errors
- * @param iHeaderSkip number of bytes to skip of strFilename's header.
- * @param iComponentSize size in bits of one component (e.g. 8 for a byte)
- * @param iComponentCount how many components (e.g. 1 for scalar)
- * @param bSigned is the field a signed field?
- * @param bConvertEndianness if we need to flip the endianness of the data
- * @param vVolumeSize dimensions of the volume
- * @param vVolumeAspect per-dimension aspect ratio
- * @param strDesc a string decribing the input data
- * @param strSource a string decribing the input filename (usually the filname
- *                  without the path)
- * @param eType data type enumerator (defaults to undefined) */
-bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
-                                       const string& strTargetFilename,
-                                       const string& strTempDir,
+ * @param iHeaderSkip number of bytes to skip of strFilename's header*/
+bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
+                                       const string& strUncompressedFile,
                                        MasterController* pMasterController,
-                                       UINT64 iHeaderSkip,
-                                       UINT64 iComponentSize,
-                                       UINT64 iComponentCount, bool bSigned,
-                                       bool bConvertEndianness,
-                                       UINTVECTOR3 vVolumeSize,
-                                       FLOATVECTOR3 vVolumeAspect,
-                                       const string& strDesc,
-                                       const string& strSource,
-                                       UVFTables::ElementSemanticTable eType)
+                                       UINT64 iHeaderSkip)
 {
   AbstrDebugOut *dbg = pMasterController->DebugOut();
   static const char method[] = "RAWConverter::ConvertBZIP2Dataset";
-  string strUncompressedFile = strTempDir + SysTools::GetFilename(strFilename)
-                                          + ".uncompressed";
   BZFILE *bzf;
   int bz_err;
   std::vector<char> buffer(INCORESIZE);
@@ -605,27 +551,19 @@ bool RAWConverter::ConvertBZIP2Dataset(const string& strFilename,
 
   fclose(f_inflated);
   fclose(f_compressed);
-
-  bool bResult = ConvertRAWDataset(strUncompressedFile, strTargetFilename,
-                                   strTempDir, pMasterController, 0,
-                                   iComponentSize, iComponentCount, bSigned,
-                                   bConvertEndianness, vVolumeSize,
-                                   vVolumeAspect, strDesc, strSource, eType);
-
-  if( remove(strUncompressedFile.c_str()) != 0 ) {
-    dbg->Warning(method, "Unable to delete temp file '%s'.",
-                 strUncompressedFile.c_str());
-  }
-
-  return bResult;
+  
+  return true;
 }
 
-bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController,
-                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
-                                     UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
+bool RAWConverter::ParseTXTDataset(const string& strFilename, 
+                                     const string& strBinaryFile, 
+                                     MasterController* pMasterController,
+                                     UINT64 iHeaderSkip, 
+                                     UINT64 iComponentSize, 
+                                     UINT64 iComponentCount, 
+                                     bool bSigned,
+                                     UINTVECTOR3 vVolumeSize)
 {
-  string strBinaryFile = strTempDir+SysTools::GetFilename(strFilename)+".binary";
-
   ifstream sourceFile(strFilename.c_str(),ios::binary);
   if (!sourceFile.is_open()) {
     pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable to open source file %s.", strFilename.c_str());
@@ -710,14 +648,7 @@ bool RAWConverter::ConvertTXTDataset(const string& strFilename, const string& st
   binaryFile.Close();
   sourceFile.close();
 
-  bool bResult = ConvertRAWDataset(strBinaryFile, strTargetFilename, strTempDir, pMasterController,
-                                   0, iComponentSize, iComponentCount, false, bSigned,
-                                   vVolumeSize, vVolumeAspect, strDesc, strSource, eType);
-
-  if( remove(strBinaryFile.c_str()) != 0 )
-      pMasterController->DebugOut()->Warning("RAWConverter::ConvertTXTDataset","Unable to delete temp file %s.", strBinaryFile.c_str());
-
-  return bResult;
+  return true;
 }
 
 bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
@@ -805,4 +736,39 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, const std::strin
   delete [] pBuffer;    
 
   return true;
+}
+
+
+bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, 
+                                const std::string& strTempDir, MasterController* pMasterController, 
+                                bool bNoUserInteraction) {
+
+  UINT64        iHeaderSkip; 
+  UINT64        iComponentSize;
+  UINT64        iComponentCount; 
+  bool          bConvertEndianess;
+  bool          bSigned;
+  UINTVECTOR3   vVolumeSize;
+  FLOATVECTOR3  vVolumeAspect;
+  string        strTitle;
+  string        strSource;
+  UVFTables::ElementSemanticTable eType;
+  string        strIntermediateFile;
+  bool          bDeleteIntermediateFile;
+
+  bool bRAWCreated = ConvertToRAW(strSourceFilename, strTempDir, pMasterController, bNoUserInteraction, 
+                                  iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, vVolumeSize, vVolumeAspect,
+                                  strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+
+  if (!bRAWCreated) {
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertToUVF","Convert to RAW step failed, aborting.");
+    return false;    
+  }
+
+  bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, !EndianConvert::IsBigEndian(), bSigned,
+                           vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename));
+
+  if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
+
+  return bUVFCreated;
 }

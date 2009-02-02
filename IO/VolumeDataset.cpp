@@ -186,12 +186,12 @@ const vector<double> VolumeDatasetInfo::GetScaleND() const {
   return vfScale;
 }
 
-bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fMin, double fMax, double fMinGrad, double fMaxGrad) const {
+bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fIsoval) const {
   // if we have no max min data we have to assume that every block is visible
   if (!m_pMaxMinData) return true;
 
   const InternalMaxMinElemen& maxMinElement = m_vvaMaxMin[iLOD][vBrick.x][vBrick.y][vBrick.z];
-  return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar) && (fMaxGrad >= maxMinElement.minGradient && fMinGrad <= maxMinElement.maxGradient);
+  return (fIsoval <= maxMinElement.maxScalar);
 }
 
 bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fMin, double fMax) const {
@@ -201,6 +201,15 @@ bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBr
   const InternalMaxMinElemen& maxMinElement = m_vvaMaxMin[iLOD][vBrick.x][vBrick.y][vBrick.z];
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
+
+bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fMin, double fMax, double fMinGrad, double fMaxGrad) const {
+  // if we have no max min data we have to assume that every block is visible
+  if (!m_pMaxMinData) return true;
+
+  const InternalMaxMinElemen& maxMinElement = m_vvaMaxMin[iLOD][vBrick.x][vBrick.y][vBrick.z];
+  return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar) && (fMaxGrad >= maxMinElement.minGradient && fMinGrad <= maxMinElement.maxGradient);
+}
+
 
 // *********************************************************************************************************************************************
 

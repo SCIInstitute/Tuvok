@@ -49,9 +49,14 @@ VFFConverter::VFFConverter()
   m_vSupportedExt.push_back("VFF");
 }
 
-bool VFFConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
-{
-  pMasterController->DebugOut()->Message("VFFConverter::Convert","Attempting to convert VFF dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
+bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
+                                const std::string&, MasterController* pMasterController, bool,
+                                UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
+                                bool& bConvertEndianess, bool& bSigned, UINTVECTOR3& vVolumeSize,
+                                FLOATVECTOR3& vVolumeAspect, std::string& strTitle, std::string& strSource, 
+                                UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
+                                bool& bDeleteIntermediateFile) {
+  pMasterController->DebugOut()->Message("VFFConverter::ConvertToRAW","Attempting to convert VFF dataset %s", strSourceFilename.c_str());
 
   // Check Magic value in VFF File first
   ifstream fileData(strSourceFilename.c_str());  
@@ -61,40 +66,47 @@ bool VFFConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   {
     getline (fileData,strFirstLine);
     if (strFirstLine.substr(0,4) != "ncaa") {
-      pMasterController->DebugOut()->Warning("VFFConverter::Convert","The file %s is not a VFF file (missing magic)", strSourceFilename.c_str());
+      pMasterController->DebugOut()->Warning("VFFConverter::ConvertToRAW","The file %s is not a VFF file (missing magic)", strSourceFilename.c_str());
       return false;
     }
   } else {
-    pMasterController->DebugOut()->Warning("VFFConverter::Convert",
+    pMasterController->DebugOut()->Warning("VFFConverter::ConvertToRAW",
                                            "Could not open VFF file %s",
                                            strSourceFilename.c_str());
     return false;
   }
   fileData.close();
 
-  // read data
-  UINT64        iComponentSize=8;
-  UINT64        iComponentCount=1;
-  UINTVECTOR3   vVolumeSize(1,1,1);
-  FLOATVECTOR3  vVolumeAspect(1,1,1);
+  // init data
+  strIntermediateFile = strSourceFilename;
+  bDeleteIntermediateFile = false;
+  iComponentSize    = 8;
+  iComponentCount   = 1;
+  vVolumeSize       = UINTVECTOR3(1,1,1);
+  vVolumeAspect     = FLOATVECTOR3(1,1,1);
+  bConvertEndianess = EndianConvert::IsLittleEndian();
+  bSigned           = true;
+  strSource         = SysTools::GetFilename(strSourceFilename);
+  eType             = UVFTables::ES_UNDEFINED;
 
+  // read data
   string strHeaderEnd;
   strHeaderEnd.push_back(12);  // header end char of vffs is ^L = 0C = 12 
 
   KeyValueFileParser parser(strSourceFilename, true, "=", strHeaderEnd);
 
   if (!parser.FileReadable()) {
-    pMasterController->DebugOut()->Warning("VFFConverter::Convert","Could not open VFF file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Warning("VFFConverter::ConvertToRAW","Could not open VFF file %s", strSourceFilename.c_str());
     return false;
   }
 
   KeyValPair* kvp = parser.GetData("TYPE");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"type\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"type\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->strValueUpper != "RASTER;")  {
-      pMasterController->DebugOut()->Error("VFFConverter::Convert","Only raster VFFs are supported at the moment");
+      pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Only raster VFFs are supported at the moment");
       return false;
      }
   }
@@ -102,7 +114,7 @@ bool VFFConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   int iDim;
   kvp = parser.GetData("RANK");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"rank\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"rank\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     iDim = kvp->iValue;
@@ -110,29 +122,29 @@ bool VFFConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
 
   kvp = parser.GetData("BANDS");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"bands\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"bands\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->iValue != 1)  {
-      pMasterController->DebugOut()->Error("VFFConverter::Convert","Only scalar VFFs are supported at the moment");
+      pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Only scalar VFFs are supported at the moment");
       return false;
      }
   }
 
   kvp = parser.GetData("FORMAT");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"format\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"format\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->strValueUpper != "SLICE;")  {
-      pMasterController->DebugOut()->Error("VFFConverter::Convert","Only VFFs with slice layout are supported at the moment");
+      pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Only VFFs with slice layout are supported at the moment");
       return false;
      }
   }
 
   kvp = parser.GetData("BITS");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"bands\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"bands\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     iComponentSize = kvp->iValue;
@@ -140,7 +152,7 @@ bool VFFConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
 
   kvp = parser.GetData("SIZE");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"size\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"size\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     vVolumeSize[0] = kvp->viValue[0];
@@ -150,7 +162,7 @@ bool VFFConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
 
   kvp = parser.GetData("SPACING");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::Convert","Could not open find token \"size\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"size\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     vVolumeAspect[0] = kvp->vfValue[0];
@@ -158,7 +170,6 @@ bool VFFConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
     if (iDim == 3) vVolumeAspect[2] = kvp->vfValue[2];
   }
 
-  string strTitle;
   kvp = parser.GetData("TITLE");
   if (kvp == NULL) {
     strTitle = "VFF data";
@@ -166,13 +177,10 @@ bool VFFConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
     strTitle = kvp->strValue;
   }
 
-  size_t iHeaderSkip = parser.GetStopPos();
+  iHeaderSkip = parser.GetStopPos();
 
-  /// \todo check if really all vff files contain signed data
-  return ConvertRAWDataset(strSourceFilename, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, !EndianConvert::IsBigEndian(), true,
-                           vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename));
+  return true;
 }
-
 
 bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,

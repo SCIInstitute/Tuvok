@@ -50,10 +50,15 @@ NRRDConverter::NRRDConverter()
   m_vSupportedExt.push_back("NHDR");
 }
 
-bool NRRDConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
-{
+bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename, 
+                                 const std::string& strTempDir, MasterController* pMasterController, bool,
+                                 UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
+                                 bool& bConvertEndianess, bool& bSigned, UINTVECTOR3& vVolumeSize,
+                                 FLOATVECTOR3& vVolumeAspect, std::string& strTitle, std::string& strSource, 
+                                 UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
+                                 bool& bDeleteIntermediateFile) {
 
-  pMasterController->DebugOut()->Message("NRRDConverter::Convert","Attempting to convert NRRD dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
+  pMasterController->DebugOut()->Message("NRRDConverter::Convert","Attempting to convert NRRD dataset %s", strSourceFilename.c_str());
 
   // Check Magic value in NRRD File first
   ifstream fileData(strSourceFilename.c_str());
@@ -74,17 +79,19 @@ bool NRRDConverter::ConvertToUVF(const std::string& strSourceFilename, const std
   }
   fileData.close();
 
-  // read data
-  UINT64        iComponentSize=8;
-  UINT64        iComponentCount=1;
-  bool          bSigned=false;
-  bool          bBigEndian=false;
-  UINTVECTOR3   vVolumeSize(1,1,1);
-  FLOATVECTOR3  vVolumeAspect(1,1,1);
+  // init data
+  eType    = UVFTables::ES_UNDEFINED;
+  strTitle = "NRRD data";
+  strSource = SysTools::GetFilename(strSourceFilename);
+  iComponentSize=8;
+  iComponentCount=1;
+  bSigned=false;
+  bool bBigEndian=false;
+  vVolumeSize = UINTVECTOR3(1,1,1);
+  vVolumeAspect = FLOATVECTOR3(1,1,1);
   string        strRAWFile;
 
-  string strExt = SysTools::ToUpperCase(SysTools::GetExt(strSourceFilename));
-
+  // read data
   KeyValueFileParser parser(strSourceFilename, true);
 
   if (!parser.FileReadable()) {
@@ -165,7 +172,6 @@ bool NRRDConverter::ConvertToUVF(const std::string& strSourceFilename, const std
     }
   }
 
-  UINT64 iHeaderSkip;
   bool bDetachedHeader;
 
   KeyValPair* kvpDataFile1 = parser.GetData("DATA FILE");
@@ -254,6 +260,8 @@ bool NRRDConverter::ConvertToUVF(const std::string& strSourceFilename, const std
   KeyValPair* kvpEndian = parser.GetData("ENDIAN");
   if (kvpEndian != NULL && kvpEndian->strValueUpper == "BIG") bBigEndian = true;
 
+  bConvertEndianess = bBigEndian != EndianConvert::IsBigEndian();
+
   KeyValPair* kvpEncoding = parser.GetData("ENCODING");
   if (kvpEncoding == NULL) {
     pMasterController->DebugOut()->Error("NRRDConverter::Convert",
@@ -285,8 +293,9 @@ bool NRRDConverter::ConvertToUVF(const std::string& strSourceFilename, const std
 
       iHeaderSkip += iLineSkipBytes;
 
-      return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
-                               vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
+      strIntermediateFile = strRAWFile;
+      bDeleteIntermediateFile = false;
+      return true;
     } else {
       if (iByteSkip == -1) 
         pMasterController->DebugOut()->Warning("NRRDConverter::Convert", "Found illegal -1 'byte skip' in non RAW mode, ignoring 'byte skip'.");
@@ -294,8 +303,13 @@ bool NRRDConverter::ConvertToUVF(const std::string& strSourceFilename, const std
       if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
         pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is plain textformat.");
 
-        return ConvertTXTDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned,
-                                 vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
+        string strBinaryFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".binary";
+        bool bResult = ParseTXTDataset(strRAWFile, strBinaryFile, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, vVolumeSize);
+        strIntermediateFile = strBinaryFile;
+        bDeleteIntermediateFile = true;
+        iHeaderSkip = 0;
+        bConvertEndianess = false;
+        return bResult;
       } else
       if (kvpEncoding->strValueUpper == "HEX")  {
         pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in haxdecimal text format which is not supported at the moment.");
@@ -303,16 +317,22 @@ bool NRRDConverter::ConvertToUVF(const std::string& strSourceFilename, const std
       if (kvpEncoding->strValueUpper == "GZ" || kvpEncoding->strValueUpper == "GZIP")  {
         pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is GZIP compressed RAW format.");
 
-        return ConvertGZIPDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
-                                 vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
-
+        string strUncompressedFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".uncompressed";
+        bool bResult = ExtractGZIPDataset(strRAWFile, strUncompressedFile, pMasterController, iHeaderSkip);
+        strIntermediateFile = strUncompressedFile;
+        bDeleteIntermediateFile = true;
+        iHeaderSkip = 0;
+        return bResult;
       } else
       if (kvpEncoding->strValueUpper == "BZ" || kvpEncoding->strValueUpper == "BZIP2")  {
         pMasterController->DebugOut()->Message("NRRDConverter::Convert","NRRD data is BZIP2 compressed RAW format.");
 
-        return ConvertBZIP2Dataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bBigEndian != EndianConvert::IsBigEndian(), bSigned,
-                                 vVolumeSize, vVolumeAspect, "NRRD data", SysTools::GetFilename(strSourceFilename));
-
+        string strUncompressedFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".uncompressed";
+        bool bResult = ExtractBZIP2Dataset(strRAWFile, strUncompressedFile, pMasterController, iHeaderSkip);
+        strIntermediateFile = strUncompressedFile;
+        bDeleteIntermediateFile = true;
+        iHeaderSkip = 0;
+        return bResult;
       } else {
         pMasterController->DebugOut()->Error("NRRDConverter::Convert","NRRD data is in unknown \"%s\" format.");
       }

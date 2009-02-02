@@ -71,7 +71,7 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
 
       for (size_t i = 0;i<iRead;i++) {
         pInData[i] += 128;
-        aHist[pInData[i]]++;
+        aHist[(unsigned char)pInData[i]]++;
       }
       OutputData.WriteData((unsigned char*)pInData, iRead);
       iPos += UINT64(iRead);

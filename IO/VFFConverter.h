@@ -51,7 +51,13 @@ public:
   VFFConverter();
   virtual ~VFFConverter() {}
 
-  virtual bool ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool bNoUserInteraction);
+  virtual bool ConvertToRAW(const std::string& strSourceFilename, 
+                            const std::string& strTempDir, MasterController* pMasterController, bool bNoUserInteraction,
+                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
+                            bool& bConvertEndianess, bool& bSigned, UINTVECTOR3& vVolumeSize,
+                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle, std::string& strSource, 
+                            UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
+                            bool& bDeleteIntermediateFile);
 
   virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,

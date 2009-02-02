@@ -50,31 +50,33 @@ public:
 
   static bool ConvertRAWDataset(const std::string& strFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController,
                                 UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned,
-                                UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect,
+                                UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect,
                                 const std::string& strDesc, const std::string& strSource="", UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED);
 
-  static bool ConvertGZIPDataset(const std::string& strFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController,
-                                UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned,
-                                UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect,
-                                const std::string& strDesc, const std::string& strSource="", UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED);
+  static bool ExtractGZIPDataset(const std::string& strFilename,
+                                 const std::string& strUncompressedFile,
+                                 MasterController* pMasterController,
+                                 UINT64 iHeaderSkip);
 
-  static bool ConvertBZIP2Dataset(const std::string& strFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController,
-                                UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned,
-                                UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect,
-                                const std::string& strDesc, const std::string& strSource="", UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED);
+  static bool ExtractBZIP2Dataset(const std::string& strFilename,
+                                  const std::string& strUncompressedFile,
+                                  MasterController* pMasterController,
+                                  UINT64 iHeaderSkip);
 
-  static bool ConvertTXTDataset(const std::string& strFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController,
+  static bool ParseTXTDataset(const std::string& strFilename, const std::string& strBinaryFile, MasterController* pMasterController,
                                 UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
-                                UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect,
-                                const std::string& strDesc, const std::string& strSource, UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED);
+                                UINTVECTOR3 vVolumeSize);
 
   static bool AppendRAW(const std::string& strRawFilename, const std::string& strTargetFilename,
                         UINT64 iComponentSize, MasterController* pMasterController, bool bChangendiness=false, bool bToSigned=false);
 
   virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                               UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction);
+                               UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction);
 
+  virtual bool ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, 
+                            const std::string& strTempDir, MasterController* pMasterController, 
+                            bool bNoUserInteraction);
 
 };
 

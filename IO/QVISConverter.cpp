@@ -50,16 +50,30 @@ QVISConverter::QVISConverter()
   m_vSupportedExt.push_back("DAT");
 }
 
-bool QVISConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController, bool)
-{
-  pMasterController->DebugOut()->Message("QVISConverter::Convert","Attempting to convert QVIS dataset %s to %s", strSourceFilename.c_str(), strTargetFilename.c_str());
+bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename, 
+                            const std::string&, MasterController* pMasterController, bool,
+                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
+                            bool& bConvertEndianess, bool& bSigned, UINTVECTOR3& vVolumeSize,
+                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle, std::string& strSource, 
+                            UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
+                            bool& bDeleteIntermediateFile) {
 
-  UINT64        iComponentSize=8;
-  UINT64        iComponentCount=1;
-  bool          bSigned=false;
-  UINTVECTOR3    vVolumeSize;
-  FLOATVECTOR3  vVolumeAspect;
-  string        strRAWFile;
+  pMasterController->DebugOut()->Message("QVISConverter::ConvertToRAW","Attempting to convert QVIS dataset %s", strSourceFilename.c_str());
+
+
+  bDeleteIntermediateFile = false;
+  eType             = UVFTables::ES_UNDEFINED;
+  strTitle          = "Qvis data";
+  strSource         = SysTools::GetFilename(strSourceFilename);
+  iHeaderSkip       = 0; 
+  iComponentSize    = 8;
+  iComponentCount   = 1;
+  bSigned           = false;
+  /// \todo  detect big endian DAT/RAW combinations and set the conversion 
+  ///        parameter accordingly instead of always assuming it is little 
+  ///        endian and thius converting if the machine is big endian 
+  bConvertEndianess = EndianConvert::IsBigEndian();
+  string strRAWFile;
 
   KeyValueFileParser parser(strSourceFilename);
 
@@ -89,21 +103,21 @@ bool QVISConverter::ConvertToUVF(const std::string& strSourceFilename, const std
 
     KeyValPair* objectfilename = parser.GetData("OBJECTFILENAME");
     if (objectfilename == NULL) {
-      pMasterController->DebugOut()->Warning("QVISConverter::Convert","This is not a valid QVIS dat file.");
+      pMasterController->DebugOut()->Warning("QVISConverter::ConvertToRAW","This is not a valid QVIS dat file.");
       return false; 
-    } else 
-      strRAWFile = objectfilename->strValue;
+    } else
+        strIntermediateFile = objectfilename->strValue;
 
     KeyValPair* resolution = parser.GetData("RESOLUTION");
     if (resolution == NULL || resolution->vuiValue.size() != 3) {
-      pMasterController->DebugOut()->Warning("QVISConverter::Convert","This is not a valid QVIS dat file.");
+      pMasterController->DebugOut()->Warning("QVISConverter::ConvertToRAW","This is not a valid QVIS dat file.");
       return false; 
     } else 
       vVolumeSize = UINTVECTOR3(resolution->vuiValue);
 
     KeyValPair* sliceThickness = parser.GetData("SLICETHICKNESS");
     if (sliceThickness == NULL || sliceThickness->vuiValue.size() != 3) {
-      pMasterController->DebugOut()->Warning("QVISConverter::Convert","This is not a valid QVIS dat file.");
+      pMasterController->DebugOut()->Warning("QVISConverter::ConvertToRAW","This is not a valid QVIS dat file.");
       vVolumeAspect = FLOATVECTOR3(1,1,1);
     } else {
       vVolumeAspect = FLOATVECTOR3(sliceThickness->vfValue);
@@ -111,12 +125,9 @@ bool QVISConverter::ConvertToUVF(const std::string& strSourceFilename, const std
     }
 
     strRAWFile = SysTools::GetPath(strSourceFilename) + strRAWFile;
-
-    /// \todo  detect big endian DAT/RAW combinations and set the conversion parameter accordingly instead of always assuming it is little endian and thius converting if the machine is big endian 
-    return ConvertRAWDataset(strRAWFile, strTargetFilename, strTempDir, pMasterController, 0, iComponentSize, iComponentCount, EndianConvert::IsBigEndian(), bSigned,
-                             vVolumeSize, vVolumeAspect, "Qvis data", SysTools::GetFilename(strSourceFilename));
-
   } else return false;
+
+  return true;
 }
 
 bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 

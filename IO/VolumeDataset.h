@@ -72,6 +72,7 @@ class VolumeDatasetInfo {
     UINT64VECTOR3 GetBrickOverlapSize() const;
     UINT64 GetLODLevelCount() const;
     DOUBLEVECTOR3 GetScale() const;
+    bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fIsoval) const;
     bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fMin, double fMax) const;
     bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fMin, double fMax, double fMinGrad, double fMaxGrad) const;
 
