@@ -651,7 +651,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
   return true;
 }
 
-bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                    UINT64 iComponentSize, UINT64 , bool , bool, 
                                    UINTVECTOR3 , FLOATVECTOR3 , MasterController* pMasterController, bool) {
   // convert raw to raw is easy :-), just copy the file and ignore the metadata
@@ -664,13 +664,13 @@ bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std:
     return false;
   }
 
-  return AppendRAW(strRawFilename, strTargetFilename, iComponentSize, pMasterController, EndianConvert::IsBigEndian());
+  return AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, pMasterController, EndianConvert::IsBigEndian());
 }
 
-bool RAWConverter::AppendRAW(const std::string& strRawFilename, const std::string& strTargetFilename,
-                             UINT64 iComponentSize, MasterController* pMasterController, bool bChangendiness, bool bToSigned) {
+bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSkip, const std::string& strTargetFilename,
+                             UINT64 iComponentSize, MasterController* pMasterController, bool bChangeEndianess, bool bToSigned) {
   // open source file
-  LargeRAWFile fSource(strRawFilename);
+  LargeRAWFile fSource(strRawFilename, iHeaderSkip);
   fSource.Open(false);
   if (!fSource.IsOpen()) {
     pMasterController->DebugOut()->Error("RAWConverter::AppendRAW","Unable to open source file %s.", strRawFilename.c_str());
@@ -714,7 +714,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, const std::strin
       }
     }
 
-    if (bChangendiness) {
+    if (bChangeEndianess) {
       switch (iComponentSize) {
         case 16 : for (size_t i = 0;i<iCopySize;i+=2)
                     EndianConvert::Swap<unsigned short>((unsigned short*)(pBuffer+i));

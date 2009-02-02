@@ -93,7 +93,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   string strHeaderEnd;
   strHeaderEnd.push_back(12);  // header end char of vffs is ^L = 0C = 12 
 
-  KeyValueFileParser parser(strSourceFilename, true, "=", strHeaderEnd);
+  KeyValueFileParser parser(strSourceFilename, false, "=", strHeaderEnd);
 
   if (!parser.FileReadable()) {
     pMasterController->DebugOut()->Warning("VFFConverter::ConvertToRAW","Could not open VFF file %s", strSourceFilename.c_str());
@@ -182,7 +182,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool) {
                            
@@ -199,22 +199,22 @@ bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std:
   }
 
   fAsciiTarget << "ncaa" << endl;
-  fAsciiTarget << "type: raster;" << endl;
-  fAsciiTarget << "rank: 3;" << endl;
-  fAsciiTarget << "bands: " << iComponentCount << ";"<< endl;
-  fAsciiTarget << "format: slice;" << endl;
-  fAsciiTarget << "bits: " << iComponentSize << ";" << endl;
-  fAsciiTarget << "size: " << vVolumeSize.x << " " << vVolumeSize.y << " "<< vVolumeSize.z << ";" << endl;
-  fAsciiTarget << "spacing: " << vVolumeAspect.x << " " << vVolumeAspect.y << " "<< vVolumeAspect.z << ";" << endl;
+  fAsciiTarget << "type=raster;" << endl;
+  fAsciiTarget << "rank=3;" << endl;
+  fAsciiTarget << "bands=" << iComponentCount << ";"<< endl;
+  fAsciiTarget << "format=slice;" << endl;
+  fAsciiTarget << "bits=" << iComponentSize << ";" << endl;
+  fAsciiTarget << "size=" << vVolumeSize.x << " " << vVolumeSize.y << " "<< vVolumeSize.z << ";" << endl;
+  fAsciiTarget << "spacing=" << vVolumeAspect.x << " " << vVolumeAspect.y << " "<< vVolumeAspect.z << ";" << endl;
 
   // add the ^L header delimiter
   string strHeaderEnd;
   strHeaderEnd.push_back(12);  // header end char of vffs is ^L = 0C = 12 
-  fAsciiTarget << strHeaderEnd;
+  fAsciiTarget << strHeaderEnd << endl;
   fAsciiTarget.close();
 
   // append RAW data using the parent's call
-  bool bRAWSuccess = AppendRAW(strRawFilename, strTargetFilename, iComponentSize, pMasterController, !EndianConvert::IsBigEndian(), !bSigned);
+  bool bRAWSuccess = AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, pMasterController, !EndianConvert::IsBigEndian(), !bSigned);
 
   if (bRAWSuccess) {
     return true;

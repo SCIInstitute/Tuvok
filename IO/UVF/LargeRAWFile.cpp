@@ -70,8 +70,9 @@ bool LargeRAWFile::Create(UINT64 iInitialSize) {
   m_bIsOpen = m_StreamFile != NULL;
 #endif
 
-  if (m_bIsOpen) {
-    SeekPos(iInitialSize);
+  if (m_bIsOpen && iInitialSize>0) {
+    SeekPos(iInitialSize-1);
+    WriteData<unsigned char>(0,false);
     SeekStart();
   }
 

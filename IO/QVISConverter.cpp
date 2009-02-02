@@ -60,7 +60,6 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   pMasterController->DebugOut()->Message("QVISConverter::ConvertToRAW","Attempting to convert QVIS dataset %s", strSourceFilename.c_str());
 
-
   bDeleteIntermediateFile = false;
   eType             = UVFTables::ES_UNDEFINED;
   strTitle          = "Qvis data";
@@ -82,9 +81,17 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
     if (format == NULL)
       return false;
     else {
-      if (format->strValueUpper == "UCHAR" || format->strValueUpper == "BYTE") {
+      if (format->strValueUpper == "CHAR") {
         bSigned = false;
         iComponentSize = 8;
+        iComponentCount = 1;
+      } else if (format->strValueUpper == "UCHAR" || format->strValueUpper == "BYTE") {
+        bSigned = false;
+        iComponentSize = 8;
+        iComponentCount = 1;
+      } else if (format->strValueUpper == "SHORT") {
+        bSigned = true;
+        iComponentSize = 16;
         iComponentCount = 1;
       } else if (format->strValueUpper == "USHORT") {
         bSigned = false;
@@ -130,18 +137,24 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction) {
 
   // compute fromat string
   string strFormat;
 
-  if (bFloatingPoint && bSigned && iComponentSize == 32 && iComponentCount == 1) 
+  if (bFloatingPoint && bSigned && iComponentSize == 32 && iComponentCount == 1)
     strFormat = "FLOAT";
+  else
+  if (!bFloatingPoint && bSigned && iComponentSize == 8 && iComponentCount == 1) 
+    strFormat = "CHAR";
   else
   if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 1) 
     strFormat = "UCHAR";
+  else
+  if (!bFloatingPoint && bSigned && iComponentSize == 16 && iComponentCount == 1) 
+    strFormat = "SHORT";
   else
   if (!bFloatingPoint && !bSigned && iComponentSize == 16 && iComponentCount == 1) 
     strFormat = "USHORT";
@@ -173,7 +186,7 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   fTarget.close();
 
   // copy RAW file using the parent's call
-  bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, 
+  bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, iHeaderSkip,
                                                    iComponentSize, iComponentCount, bSigned, bFloatingPoint,
                                                    vVolumeSize, vVolumeAspect, pMasterController, bNoUserInteraction);
 

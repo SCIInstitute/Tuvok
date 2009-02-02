@@ -341,7 +341,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 }
 
-bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction) {
   
@@ -395,7 +395,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
   }
 
   fAsciiTarget << "NRRD0001" << endl;
-  fAsciiTarget << "type: ./" << strFormat << endl;
+  fAsciiTarget << "type: " << strFormat << endl;
   fAsciiTarget << "dimension: 3" << endl;
   fAsciiTarget << "sizes:     " << vVolumeSize.x << " " << vVolumeSize.y << " "<< vVolumeSize.z << endl;
   fAsciiTarget << "spacings: " << vVolumeAspect.x << " " << vVolumeAspect.y << " "<< vVolumeAspect.z << endl;
@@ -408,7 +408,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     fAsciiTarget.close();
 
     // copy RAW file using the parent's call
-    bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, 
+    bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, iHeaderSkip,
                                                      iComponentSize, iComponentCount, bSigned, bFloatingPoint,
                                                      vVolumeSize, vVolumeAspect, pMasterController, bNoUserInteraction);
 
@@ -426,7 +426,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     fAsciiTarget.close();
  
     // append RAW data using the parent's call
-    bool bRAWSuccess = AppendRAW(strRawFilename, strTargetFilename, iComponentSize, pMasterController);
+    bool bRAWSuccess = AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, pMasterController);
 
     if (bRAWSuccess) {
       return true;

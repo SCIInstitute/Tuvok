@@ -63,9 +63,9 @@ public:
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile)  = 0;
 
-  virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+  virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                               UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController,
+                               UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController,
                                bool bNoUserInteraction) = 0;
 
   const std::vector<std::string>& SupportedExt() {return m_vSupportedExt;}

@@ -67,14 +67,14 @@ public:
                                 UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
                                 UINTVECTOR3 vVolumeSize);
 
-  static bool AppendRAW(const std::string& strRawFilename, const std::string& strTargetFilename,
-                        UINT64 iComponentSize, MasterController* pMasterController, bool bChangendiness=false, bool bToSigned=false);
+  static bool AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSkip, const std::string& strTargetFilename,
+                        UINT64 iComponentSize, MasterController* pMasterController, bool bChangeEndianess=false, bool bToSigned=false);
 
-  virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, 
+  virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
                                UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction);
 
-  virtual bool ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, 
+  virtual bool ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename,
                             const std::string& strTempDir, MasterController* pMasterController, 
                             bool bNoUserInteraction);
 

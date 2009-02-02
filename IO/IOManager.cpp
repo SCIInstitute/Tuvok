@@ -331,19 +331,85 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
 
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
 
-  for (size_t i = 0;i<m_vpConverters.size();i++) {
-    const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
-    for (size_t j = 0;j<vStrSupportedExt.size();j++) {
-      if (vStrSupportedExt[j] == strExt) {
-        if (m_vpConverters[i]->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction)) return true;
+  string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
+
+  if (strExtTarget == "UVF") {
+    for (size_t i = 0;i<m_vpConverters.size();i++) {
+      const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+      for (size_t j = 0;j<vStrSupportedExt.size();j++) {
+        if (vStrSupportedExt[j] == strExt) {
+          if (m_vpConverters[i]->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction)) return true;
+        }
       }
     }
-  }
 
-  if (m_pFinalConverter) 
-    return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction);
-  else
-    return false;
+    if (m_pFinalConverter) 
+      return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction);
+    else
+      return false;
+  } else {
+      UINT64        iHeaderSkip; 
+      UINT64        iComponentSize;
+      UINT64        iComponentCount; 
+      bool          bConvertEndianess;
+      bool          bSigned;
+      UINTVECTOR3   vVolumeSize;
+      FLOATVECTOR3  vVolumeAspect;
+      string        strTitle;
+      string        strSource;
+      UVFTables::ElementSemanticTable eType;
+      string        strIntermediateFile;
+      bool          bDeleteIntermediateFile;
+
+      for (size_t i = 0;i<m_vpConverters.size();i++) {
+        const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+        for (size_t j = 0;j<vStrSupportedExt.size();j++) {
+          if (vStrSupportedExt[j] == strExt) {
+            bool bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
+                                            iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, vVolumeSize, vVolumeAspect,
+                                            strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+            if (!bRAWCreated) continue;
+            bool bTargetCreated = false;
+            for (size_t k = 0;k<m_vpConverters.size();k++) {
+              const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
+              for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
+                if (vStrSupportedExtTarget[l] == strExtTarget) {
+                  bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
+                                                                          iComponentSize, iComponentCount, bSigned, false,
+                                                                          vVolumeSize, vVolumeAspect, m_pMasterController, bNoUserInteraction);
+                  if (bTargetCreated) break;
+                }
+              }
+              if (bTargetCreated) break;
+            }
+            if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
+            if (bTargetCreated) return true;
+          }
+        }
+      }
+
+      if (m_pFinalConverter) {
+        bool bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
+                                        iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, vVolumeSize, vVolumeAspect,
+                                        strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+        if (!bRAWCreated) return false;
+        bool bTargetCreated = false;
+        for (size_t k = 0;k<m_vpConverters.size();k++) {
+          const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
+          for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
+            if (vStrSupportedExtTarget[l] == strExtTarget) {
+              bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
+                                                                      iComponentSize, iComponentCount, bSigned, false,
+                                                                      vVolumeSize, vVolumeAspect, m_pMasterController, bNoUserInteraction);
+              if (bTargetCreated) break;
+            }
+          }
+          if (bTargetCreated) break;
+        }
+        if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
+        return bTargetCreated;
+      } else return false;
+  }
 }
 
 VolumeDataset* IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester) {
