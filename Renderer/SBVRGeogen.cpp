@@ -34,8 +34,10 @@
   \date    September 2008
 */
 
-#include "SBVRGeogen.h"
 #include <algorithm>
+#include <limits>
+#include "SBVRGeogen.h"
+
 #include <Basics/MathTools.h>
 
 static bool EpsilonEqual(float a, float b);
@@ -248,7 +250,7 @@ void SBVRGeogen::SetBrickData(const FLOATVECTOR3& vAspect,
 }
 
 static bool EpsilonEqual(float a, float b) {
-  return fabs(a-b) < 0.00001;
+  return fabs(a-b) <= std::numeric_limits<float>::epsilon();
 }
 
 static bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c) {
