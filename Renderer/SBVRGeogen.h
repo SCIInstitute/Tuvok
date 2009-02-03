@@ -109,7 +109,6 @@ protected:
   bool ComputeLayerGeometry(float fDepth);
   void ComputeIntersection(float z, UINT32  indexA, UINT32  indexB,
                            std::vector<POS3TEX3_VERTEX>& vHit, UINT32  &count);
-  void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray);
   void Triangulate(std::vector<POS3TEX3_VERTEX> &fArray);
   float GetLayerDistance();
 };

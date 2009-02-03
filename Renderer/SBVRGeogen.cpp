@@ -41,6 +41,7 @@
 static bool EpsilonEqual(float a, float b);
 static bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c);
 static int FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray);
+static void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray);
 
 SBVRGeogen::SBVRGeogen(void) :
   m_fSamplingModifier(1.0f),
@@ -137,15 +138,6 @@ void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB,
   count++;
 }
 
-void SBVRGeogen::SortPoints(std::vector<POS3TEX3_VERTEX> &fArray) {
-  // for small arrays, this bubble sort actually beats qsort.
-  for (UINT32 i= 1;i<fArray.size();++i)
-    for (UINT32 j = 1;j<fArray.size()-i;++j)
-      if (!CheckOrdering(fArray[j].m_vPos,fArray[j+1].m_vPos,fArray[0].m_vPos))
-        std::swap(fArray[j], fArray[j+1]);
-}
-
-
 void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
   // move bottom element to front of array
   std::swap(fArray[0], fArray[FindMinPoint(fArray)]);
@@ -232,7 +224,7 @@ static bool EpsilonEqual(float a, float b) {
   return fabs(a-b) < 0.00001;
 }
 
-bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c) {
+static bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c) {
   float g1 = (a[1]-c[1])/(a[0]-c[0]),
         g2 = (b[1]-c[1])/(b[0]-c[0]);
 
@@ -252,4 +244,13 @@ static int FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray) {
     if (fArray[i].m_vPos.y < fArray[iIndex].m_vPos.y)
       iIndex = i;
   return iIndex;
+}
+
+/// @todo: should be replaced with std::sort.
+static void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray) {
+  // for small arrays, this bubble sort actually beats qsort.
+  for (UINT32 i= 1;i<fArray.size();++i)
+    for (UINT32 j = 1;j<fArray.size()-i;++j)
+      if (!CheckOrdering(fArray[j].m_vPos,fArray[j+1].m_vPos,fArray[0].m_vPos))
+        std::swap(fArray[j], fArray[j+1]);
 }
