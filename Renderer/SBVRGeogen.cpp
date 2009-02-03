@@ -40,7 +40,6 @@
 
 static bool EpsilonEqual(float a, float b);
 static bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c);
-static int FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray);
 static void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray);
 
 SBVRGeogen::SBVRGeogen(void) :
@@ -245,15 +244,6 @@ static bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c) {
     if (b[0] < c[0]) return g1 < g2; else return false;
   else
     if (b[0] < c[0]) return true; else return g1 < g2;
-}
-
-/// @todo: should probably be replaced with std::min.
-static int FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray) {
-  int iIndex = 0;
-  for (size_t i=1; i<fArray.size(); ++i)
-    if (fArray[i].m_vPos.y < fArray[iIndex].m_vPos.y)
-      iIndex = i;
-  return iIndex;
 }
 
 /// @todo: should be replaced with std::sort.
