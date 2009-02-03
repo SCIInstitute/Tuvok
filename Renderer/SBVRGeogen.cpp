@@ -151,10 +151,10 @@ bool SBVRGeogen::CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c
     if (b[0] < c[0]) return true; else return g1 < g2;
 }
 
-void SBVRGeogen::SortPoints(std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount) {
+void SBVRGeogen::SortPoints(std::vector<POS3TEX3_VERTEX> &fArray) {
   // for small arrays, this bubble sort actually beats qsort.
-  for (UINT32 i= 1;i<iCount;++i)
-    for (UINT32 j = 1;j<iCount-i;++j)
+  for (UINT32 i= 1;i<fArray.size();++i)
+    for (UINT32 j = 1;j<fArray.size()-i;++j)
       if (!CheckOrdering(fArray[j].m_vPos,fArray[j+1].m_vPos,fArray[0].m_vPos))
         std::swap(fArray[j], fArray[j+1]);
 }
@@ -173,7 +173,7 @@ void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
   // move bottom element to front of array
   std::swap(fArray[0], fArray[FindMinPoint(fArray)]);
   // sort points according to gradient
-  SortPoints(fArray,fArray.size());
+  SortPoints(fArray);
 
   // convert to triangles
   for (UINT32 i=0; i<(fArray.size()-2) ; i++) {

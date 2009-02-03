@@ -111,7 +111,7 @@ protected:
   void ComputeIntersection(float z, UINT32  indexA, UINT32  indexB,
                            std::vector<POS3TEX3_VERTEX>& vHit, UINT32  &count);
   bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c);
-  void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount);
+  void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray);
   int FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray);
   void Triangulate(std::vector<POS3TEX3_VERTEX> &fArray);
   float GetLayerDistance();
