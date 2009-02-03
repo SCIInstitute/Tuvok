@@ -169,11 +169,11 @@ int SBVRGeogen::FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray, UINT32 
 }
 
 
-void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount) {
+void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
   // move bottom element to front of array
-  std::swap(fArray[0], fArray[FindMinPoint(fArray,iCount)]);
+  std::swap(fArray[0], fArray[FindMinPoint(fArray,fArray.size())]);
   // sort points according to gradient
-  SortPoints(fArray,iCount);
+  SortPoints(fArray,fArray.size());
 
   // convert to triangles
   for (UINT32 i=0; i<(fArray.size()-2) ; i++) {
@@ -205,9 +205,11 @@ bool SBVRGeogen::ComputeLayerGeometry(float fDepth) {
   ComputeIntersection(fDepth,7,3,vLayerPoints,iCount);
 
   if (iCount > 2) {
-    Triangulate(vLayerPoints,iCount);
+    Triangulate(vLayerPoints);
     return true;
-  } else return false;
+  } else {
+    return false;
+  }
 }
 
 float SBVRGeogen::GetLayerDistance() {
