@@ -156,12 +156,21 @@ struct vertex_min : public std::binary_function<POS3TEX3_VERTEX,
   }
 };
 
-void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
+// Sorts a vector
+static void SortByGradient(std::vector<POS3TEX3_VERTEX>& fArray)
+{
   // move bottom element to front of array
+  if(fArray.empty()) { return; }
   std::swap(fArray[0],
             *std::min_element(fArray.begin(), fArray.end(), vertex_min()));
-  // sort points according to gradient
-  SortPoints(fArray);
+  if(fArray.size() > 2) {
+    // sort points according to gradient
+    SortPoints(fArray);
+  }
+}
+
+void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
+  SortByGradient(fArray);
 
   // convert to triangles
   for (UINT32 i=0; i<(fArray.size()-2) ; i++) {
