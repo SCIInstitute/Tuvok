@@ -39,6 +39,7 @@
 #include <Basics/MathTools.h>
 
 static bool EpsilonEqual(float a, float b);
+static bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c);
 
 SBVRGeogen::SBVRGeogen(void) :
   m_fSamplingModifier(1.0f),
@@ -133,20 +134,6 @@ void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB,
   vHits.push_back(vHit);
 
   count++;
-}
-
-
-bool SBVRGeogen::CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c) {
-  float g1 = (a[1]-c[1])/(a[0]-c[0]),
-        g2 = (b[1]-c[1])/(b[0]-c[0]);
-
-  if (EpsilonEqual(a[0],c[0])) return (g2 < 0) || (EpsilonEqual(g2,0) && b[0] < c[0]);
-  if (EpsilonEqual(b[0],c[0])) return (g1 > 0) || (EpsilonEqual(g1,0) && a[0] > c[0]);
-
-  if (a[0] < c[0])
-    if (b[0] < c[0]) return g1 < g2; else return false;
-  else
-    if (b[0] < c[0]) return true; else return g1 < g2;
 }
 
 void SBVRGeogen::SortPoints(std::vector<POS3TEX3_VERTEX> &fArray) {
@@ -251,4 +238,17 @@ void SBVRGeogen::SetBrickData(const FLOATVECTOR3& vAspect,
 
 static bool EpsilonEqual(float a, float b) {
   return fabs(a-b) < 0.00001;
+}
+
+bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c) {
+  float g1 = (a[1]-c[1])/(a[0]-c[0]),
+        g2 = (b[1]-c[1])/(b[0]-c[0]);
+
+  if (EpsilonEqual(a[0],c[0])) return (g2 < 0) || (EpsilonEqual(g2,0) && b[0] < c[0]);
+  if (EpsilonEqual(b[0],c[0])) return (g1 > 0) || (EpsilonEqual(g1,0) && a[0] > c[0]);
+
+  if (a[0] < c[0])
+    if (b[0] < c[0]) return g1 < g2; else return false;
+  else
+    if (b[0] < c[0]) return true; else return g1 < g2;
 }
