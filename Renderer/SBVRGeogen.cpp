@@ -138,9 +138,19 @@ void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB,
   count++;
 }
 
+// Functor to identify the point with the lowest `y' coordinate.
+struct vertex_min : public std::binary_function<POS3TEX3_VERTEX,
+                                                POS3TEX3_VERTEX,
+                                                bool> {
+  bool operator()(const POS3TEX3_VERTEX &a, const POS3TEX3_VERTEX &b) const {
+    return (a.m_vPos.y < b.m_vPos.y);
+  }
+};
+
 void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
   // move bottom element to front of array
-  std::swap(fArray[0], fArray[FindMinPoint(fArray)]);
+  std::swap(fArray[0],
+            *std::min_element(fArray.begin(), fArray.end(), vertex_min()));
   // sort points according to gradient
   SortPoints(fArray);
 
