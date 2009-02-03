@@ -52,7 +52,7 @@ VFFConverter::VFFConverter()
 bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
                                 const std::string&, MasterController* pMasterController, bool,
                                 UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
-                                bool& bConvertEndianess, bool& bSigned, UINTVECTOR3& vVolumeSize,
+                                bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
                                 FLOATVECTOR3& vVolumeAspect, std::string& strTitle, std::string& strSource, 
                                 UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                                 bool& bDeleteIntermediateFile) {
@@ -88,6 +88,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   bSigned           = true;
   strSource         = SysTools::GetFilename(strSourceFilename);
   eType             = UVFTables::ES_UNDEFINED;
+  bIsFloat          = false; /// \todo check if VFF can store float values
 
   // read data
   string strHeaderEnd;

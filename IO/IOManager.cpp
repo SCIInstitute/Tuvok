@@ -261,7 +261,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, m_pMasterController, 0,
                                     pDICOMStack->m_iAllocated, pDICOMStack->m_iComponentCount, 
                                     pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
-                                    pDICOMStack->m_iAllocated >=32,
+                                    pDICOMStack->m_iAllocated >=32, /// \todo read sign property from DICOM file
+                                    false, /// \todo read float property from DICOM file
                                     iSize, pDICOMStack->m_fvfAspect, 
                                     "DICOM stack", SysTools::GetFilename(pDICOMStack->m_Elements[0]->m_strFileName)
                                     + " to " + SysTools::GetFilename(pDICOMStack->m_Elements[pDICOMStack->m_Elements.size()-1]->m_strFileName));
@@ -306,6 +307,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
                                         pStack->m_iAllocated, pStack->m_iComponentCount, 
                                         pStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
                                         pStack->m_iComponentCount >= 32,
+                                        false,
                                         iSize, pStack->m_fvfAspect, 
                                         "Image stack", SysTools::GetFilename(pStack->m_Elements[0]->m_strFileName)
                                         + " to " + SysTools::GetFilename(pStack->m_Elements[pStack->m_Elements.size()-1]->m_strFileName));
@@ -353,6 +355,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
       UINT64        iComponentCount; 
       bool          bConvertEndianess;
       bool          bSigned;
+      bool          bIsFloat;
       UINTVECTOR3   vVolumeSize;
       FLOATVECTOR3  vVolumeAspect;
       string        strTitle;
@@ -366,7 +369,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
         for (size_t j = 0;j<vStrSupportedExt.size();j++) {
           if (vStrSupportedExt[j] == strExt) {
             bool bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
-                                            iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, vVolumeSize, vVolumeAspect,
+                                            iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                             strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
             if (!bRAWCreated) continue;
             bool bTargetCreated = false;
@@ -375,7 +378,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
               for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
                 if (vStrSupportedExtTarget[l] == strExtTarget) {
                   bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
-                                                                          iComponentSize, iComponentCount, bSigned, false,
+                                                                          iComponentSize, iComponentCount, bSigned, bIsFloat,
                                                                           vVolumeSize, vVolumeAspect, m_pMasterController, bNoUserInteraction);
                   if (bTargetCreated) break;
                 }
@@ -390,7 +393,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
 
       if (m_pFinalConverter) {
         bool bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
-                                        iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, vVolumeSize, vVolumeAspect,
+                                        iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                         strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
         if (!bRAWCreated) return false;
         bool bTargetCreated = false;
@@ -399,7 +402,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
           for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
             if (vStrSupportedExtTarget[l] == strExtTarget) {
               bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
-                                                                      iComponentSize, iComponentCount, bSigned, false,
+                                                                      iComponentSize, iComponentCount, bSigned, bIsFloat, 
                                                                       vVolumeSize, vVolumeAspect, m_pMasterController, bNoUserInteraction);
               if (bTargetCreated) break;
             }

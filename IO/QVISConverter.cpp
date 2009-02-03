@@ -53,7 +53,7 @@ QVISConverter::QVISConverter()
 bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename, 
                             const std::string&, MasterController* pMasterController, bool,
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
-                            bool& bConvertEndianess, bool& bSigned, UINTVECTOR3& vVolumeSize,
+                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle, std::string& strSource, 
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile) {
@@ -85,26 +85,32 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
         bSigned = false;
         iComponentSize = 8;
         iComponentCount = 1;
+        bIsFloat = false;
       } else if (format->strValueUpper == "UCHAR" || format->strValueUpper == "BYTE") {
         bSigned = false;
         iComponentSize = 8;
         iComponentCount = 1;
+        bIsFloat = false;
       } else if (format->strValueUpper == "SHORT") {
         bSigned = true;
         iComponentSize = 16;
         iComponentCount = 1;
+        bIsFloat = false;
       } else if (format->strValueUpper == "USHORT") {
         bSigned = false;
         iComponentSize = 16;
         iComponentCount = 1;
+        bIsFloat = false;
       } else if (format->strValueUpper == "UCHAR4") {
         bSigned = false;
         iComponentSize = 8;
         iComponentCount = 4;
+        bIsFloat = false;
       } else if (format->strValueUpper == "FLOAT") {
         bSigned = true;
         iComponentSize = 32;
         iComponentCount = 1;
+        bIsFloat = true;
       }
     }
 

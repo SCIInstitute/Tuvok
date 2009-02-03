@@ -58,7 +58,7 @@ public:
   virtual bool ConvertToRAW(const std::string& strSourceFilename, 
                             const std::string& strTempDir, MasterController* pMasterController, bool bNoUserInteraction,                                                       
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
-                            bool& bConvertEndianess, bool& bSigned, UINTVECTOR3& vVolumeSize,
+                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle, std::string& strSource, 
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile)  = 0;
@@ -77,6 +77,7 @@ protected:
 
   static const std::string Process8BitsTo8Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController);
   static const std::string QuantizeShortTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController);
+  static const std::string QuantizeIntTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController);
   static const std::string QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController);
 };
 

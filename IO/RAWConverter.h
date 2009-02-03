@@ -49,7 +49,7 @@ public:
   virtual ~RAWConverter() {}
 
   static bool ConvertRAWDataset(const std::string& strFilename, const std::string& strTargetFilename, const std::string& strTempDir, MasterController* pMasterController,
-                                UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned,
+                                UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned, bool bIsFloat,
                                 UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect,
                                 const std::string& strDesc, const std::string& strSource="", UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED);
 
@@ -64,7 +64,7 @@ public:
                                   UINT64 iHeaderSkip);
 
   static bool ParseTXTDataset(const std::string& strFilename, const std::string& strBinaryFile, MasterController* pMasterController,
-                                UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
+                                UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bIsFloat,
                                 UINTVECTOR3 vVolumeSize);
 
   static bool AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSkip, const std::string& strTargetFilename,

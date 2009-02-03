@@ -47,7 +47,7 @@
 using namespace std;
 
 bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController,
-                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned,
+                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned, bool bIsFloat,
                                      UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
   if (iComponentCount > 1) {
@@ -142,7 +142,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
       break;
 		case 32 :	
-      strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D, pMasterController);
+      if (bIsFloat) 
+        strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D, pMasterController);
+      else
+        strSourceFilename = QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
       iComponentSize = 16;
       break;
   }
@@ -562,6 +565,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
                                      UINT64 iComponentSize, 
                                      UINT64 iComponentCount, 
                                      bool bSigned,
+                                     bool bIsFloat,
                                      UINTVECTOR3 vVolumeSize)
 {
   ifstream sourceFile(strFilename.c_str(),ios::binary);
@@ -579,72 +583,105 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
   }
 
   sourceFile.seekg(iHeaderSkip);
-
-  switch (iComponentSize) {
-    case 8 : {
-                if (bSigned) {
+  if (bIsFloat) { 
+    if (!bSigned) {
+      pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable unsupported data type. (unsiged float)");
+      sourceFile.close();
+      binaryFile.Delete();
+      return false;
+    }
+    switch (iComponentSize) {
+      case 32 : {
                   while (! sourceFile.eof() )
                   {
-                    int tmp;
-                    sourceFile >> tmp;
-                    signed char tmp2 = static_cast<signed char>(tmp);
-                    binaryFile.WriteRAW((unsigned char*)&tmp2,1);
-                  }
-                } else {
-                  while (! sourceFile.eof() )
-                  {
-                    int tmp;
-                    sourceFile >> tmp;
-                    unsigned char tmp2 = static_cast<unsigned char>(tmp);
-                    binaryFile.WriteRAW((unsigned char*)&tmp2,1);
-                  }
-                }
-               break;
-             }
-    case 16 : {
-                if (bSigned) {
-                  while (! sourceFile.eof() )
-                  {
-                    signed short tmp;
-                    sourceFile >> tmp;
-                    binaryFile.WriteRAW((unsigned char*)&tmp,2);
-                  }
-                } else {
-                  while (! sourceFile.eof() )
-                  {
-                    unsigned short tmp;
-                    sourceFile >> tmp;
-                    binaryFile.WriteRAW((unsigned char*)&tmp,2);
-                  }
-                }
-               break;
-             }
-    case 32 : {
-                if (bSigned) {
-                  while (! sourceFile.eof() )
-                  {
-                    signed int tmp;
+                    float tmp;
                     sourceFile >> tmp;
                     binaryFile.WriteRAW((unsigned char*)&tmp,4);
                   }
-                } else {
+                 break;
+               }
+      case 64 : {
                   while (! sourceFile.eof() )
                   {
-                    UINT32 tmp;
+                    double tmp;
                     sourceFile >> tmp;
-                    binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                    binaryFile.WriteRAW((unsigned char*)&tmp,8);
                   }
+                 break;
+               }
+      default : {
+                  pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable unsupported data type. (float)");
+                  sourceFile.close();
+                  binaryFile.Delete();
+                  return false;
                 }
-               break;
-             }
-    default : {
-                pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable unsupported data type.");
-                sourceFile.close();
-                binaryFile.Delete();
-                return false;
-              }
+    }
+  } else {
+    switch (iComponentSize) {
+      case 8 : {
+                  if (bSigned) {
+                    while (! sourceFile.eof() )
+                    {
+                      int tmp;
+                      sourceFile >> tmp;
+                      signed char tmp2 = static_cast<signed char>(tmp);
+                      binaryFile.WriteRAW((unsigned char*)&tmp2,1);
+                    }
+                  } else {
+                    while (! sourceFile.eof() )
+                    {
+                      int tmp;
+                      sourceFile >> tmp;
+                      unsigned char tmp2 = static_cast<unsigned char>(tmp);
+                      binaryFile.WriteRAW((unsigned char*)&tmp2,1);
+                    }
+                  }
+                 break;
+               }
+      case 16 : {
+                  if (bSigned) {
+                    while (! sourceFile.eof() )
+                    {
+                      signed short tmp;
+                      sourceFile >> tmp;
+                      binaryFile.WriteRAW((unsigned char*)&tmp,2);
+                    }
+                  } else {
+                    while (! sourceFile.eof() )
+                    {
+                      unsigned short tmp;
+                      sourceFile >> tmp;
+                      binaryFile.WriteRAW((unsigned char*)&tmp,2);
+                    }
+                  }
+                 break;
+               }
+      case 32 : {
+                  if (bSigned) {
+                    while (! sourceFile.eof() )
+                    {
+                      signed int tmp;
+                      sourceFile >> tmp;
+                      binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                    }
+                  } else {
+                    while (! sourceFile.eof() )
+                    {
+                      UINT32 tmp;
+                      sourceFile >> tmp;
+                      binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                    }
+                  }
+                 break;
+               }
+      default : {
+                  pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable unsupported data type. (int)");
+                  sourceFile.close();
+                  binaryFile.Delete();
+                  return false;
+                }
+    }
   }
-
   binaryFile.Close();
   sourceFile.close();
 
@@ -748,6 +785,7 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   UINT64        iComponentCount; 
   bool          bConvertEndianess;
   bool          bSigned;
+  bool          bIsFloat;
   UINTVECTOR3   vVolumeSize;
   FLOATVECTOR3  vVolumeAspect;
   string        strTitle;
@@ -757,16 +795,16 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   bool          bDeleteIntermediateFile;
 
   bool bRAWCreated = ConvertToRAW(strSourceFilename, strTempDir, pMasterController, bNoUserInteraction, 
-                                  iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, vVolumeSize, vVolumeAspect,
-                                  strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+                                  iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, 
+                                  bIsFloat, vVolumeSize, vVolumeAspect, strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
 
   if (!bRAWCreated) {
     pMasterController->DebugOut()->Error("RAWConverter::ConvertToUVF","Convert to RAW step failed, aborting.");
     return false;    
   }
 
-  bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, !EndianConvert::IsBigEndian(), bSigned,
-                           vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename));
+  bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned,
+                                       bIsFloat, vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename));
 
   if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
 
