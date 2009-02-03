@@ -38,6 +38,8 @@
 #include <algorithm>
 #include <Basics/MathTools.h>
 
+static bool EpsilonEqual(float a, float b);
+
 SBVRGeogen::SBVRGeogen(void) :
   m_fSamplingModifier(1.0f),
   m_fMinZ(0),
@@ -98,10 +100,6 @@ void SBVRGeogen::InitBBOX() {
   m_fMinZ = m_pfBBOXVertex[0].m_vPos.z;
 
   for (int i = 1;i<8;++i) m_fMinZ= MIN(m_fMinZ, m_pfBBOXVertex[i].m_vPos.z);
-}
-
-bool SBVRGeogen::EpsilonEqual(float a, float b) {
-  return fabs(a-b) < 0.00001;
 }
 
 void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB,
@@ -249,4 +247,8 @@ void SBVRGeogen::SetBrickData(const FLOATVECTOR3& vAspect,
   m_vTexCoordMin  = vTexCoordMin;
   m_vTexCoordMax  = vTexCoordMax;
   InitBBOX();
+}
+
+static bool EpsilonEqual(float a, float b) {
+  return fabs(a-b) < 0.00001;
 }

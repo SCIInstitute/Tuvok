@@ -106,7 +106,6 @@ protected:
   UINTVECTOR3       m_vLODSize;
 
   void InitBBOX();
-  bool EpsilonEqual(float a, float b);
   bool ComputeLayerGeometry(float fDepth);
   void ComputeIntersection(float z, UINT32  indexA, UINT32  indexB,
                            std::vector<POS3TEX3_VERTEX>& vHit, UINT32  &count);
