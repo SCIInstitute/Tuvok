@@ -41,7 +41,8 @@
 #include <Basics/MathTools.h>
 
 static bool EpsilonEqual(float a, float b);
-static bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c);
+static bool CheckOrdering(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
+                          const FLOATVECTOR3& c);
 static void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray);
 
 SBVRGeogen::SBVRGeogen(void) :
@@ -262,17 +263,23 @@ static bool EpsilonEqual(float a, float b) {
   return fabs(a-b) <= std::numeric_limits<float>::epsilon();
 }
 
-static bool CheckOrdering(FLOATVECTOR3& a, FLOATVECTOR3& b, FLOATVECTOR3& c) {
-  float g1 = (a[1]-c[1])/(a[0]-c[0]),
-        g2 = (b[1]-c[1])/(b[0]-c[0]);
+// Checks the ordering of two points relative to another.
+static bool CheckOrdering(const FLOATVECTOR3& a,
+                          const FLOATVECTOR3& b,
+                          const FLOATVECTOR3& c) {
+  float g1 = (a.y-c.y)/(a.x-c.x),
+        g2 = (b.y-c.y)/(b.x-c.x);
 
-  if (EpsilonEqual(a[0],c[0])) return (g2 < 0) || (EpsilonEqual(g2,0) && b[0] < c[0]);
-  if (EpsilonEqual(b[0],c[0])) return (g1 > 0) || (EpsilonEqual(g1,0) && a[0] > c[0]);
+  if (EpsilonEqual(a.x,c.x))
+    return (g2 < 0) || (EpsilonEqual(g2,0) && b.x < c.x);
+  if (EpsilonEqual(b.x,c.x))
+    return (g1 > 0) || (EpsilonEqual(g1,0) && a.x > c.x);
 
-  if (a[0] < c[0])
-    if (b[0] < c[0]) return g1 < g2; else return false;
+
+  if (a.x < c.x)
+    if (b.x < c.x) return g1 < g2; else return false;
   else
-    if (b[0] < c[0]) return true; else return g1 < g2;
+    if (b.x < c.x) return true; else return g1 < g2;
 }
 
 /// @todo: should be replaced with std::sort.
