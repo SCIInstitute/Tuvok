@@ -104,23 +104,20 @@ void SBVRGeogen::InitBBOX() {
   for (int i = 1;i<8;++i) m_fMinZ= MIN(m_fMinZ, m_pfBBOXVertex[i].m_vPos.z);
 }
 
-bool SBVRGeogen::ComputeIntersection(float z,
-                                     const POS3TEX3_VERTEX &plA,
-                                     const POS3TEX3_VERTEX &plB,
-                                     std::vector<POS3TEX3_VERTEX>& vHits,
-                                     UINT32 &count) const {
+static bool ComputeIntersection(float z,
+                                const POS3TEX3_VERTEX &plA,
+                                const POS3TEX3_VERTEX &plB,
+                                std::vector<POS3TEX3_VERTEX>& vHits)
+{
   /*
-     return NO INTERSECTION if the line of the 2 points a,b is
+     returns NO INTERSECTION if the line of the 2 points a,b is
      1. in front of the intersection plane
      2. behind the intersection plane
      3. parallel to the intersection plane (both points have "pretty much" the same z)
   */
-  if ((z > plA.m_vPos.z &&
-       z > plB.m_vPos.z) ||
-      (z < plA.m_vPos.z &&
-       z < plB.m_vPos.z) ||
-      (EpsilonEqual(plA.m_vPos.z,
-                    plB.m_vPos.z))) {
+  if ((z > plA.m_vPos.z && z > plB.m_vPos.z) ||
+      (z < plA.m_vPos.z && z < plB.m_vPos.z) ||
+      (EpsilonEqual(plA.m_vPos.z, plB.m_vPos.z))) {
     return false;
   }
 
@@ -137,7 +134,6 @@ bool SBVRGeogen::ComputeIntersection(float z,
 
   vHits.push_back(vHit);
 
-  count++;
   return true;
 }
 
@@ -167,44 +163,42 @@ void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
 
 
 bool SBVRGeogen::ComputeLayerGeometry(float fDepth) {
-  UINT32 iCount = 0;
   std::vector<POS3TEX3_VERTEX> vLayerPoints;
   vLayerPoints.reserve(12);
 
   ComputeIntersection(fDepth, m_pfBBOXVertex[0], m_pfBBOXVertex[1],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
   ComputeIntersection(fDepth, m_pfBBOXVertex[1], m_pfBBOXVertex[2],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
   ComputeIntersection(fDepth, m_pfBBOXVertex[2], m_pfBBOXVertex[3],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
   ComputeIntersection(fDepth, m_pfBBOXVertex[3], m_pfBBOXVertex[0],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
 
   ComputeIntersection(fDepth, m_pfBBOXVertex[4], m_pfBBOXVertex[5],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
   ComputeIntersection(fDepth, m_pfBBOXVertex[5], m_pfBBOXVertex[6],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
   ComputeIntersection(fDepth, m_pfBBOXVertex[6], m_pfBBOXVertex[7],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
   ComputeIntersection(fDepth, m_pfBBOXVertex[7], m_pfBBOXVertex[4],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
 
   ComputeIntersection(fDepth, m_pfBBOXVertex[4], m_pfBBOXVertex[0],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
   ComputeIntersection(fDepth, m_pfBBOXVertex[5], m_pfBBOXVertex[1],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
   ComputeIntersection(fDepth, m_pfBBOXVertex[6], m_pfBBOXVertex[2],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
   ComputeIntersection(fDepth, m_pfBBOXVertex[7], m_pfBBOXVertex[3],
-                      vLayerPoints,iCount);
+                      vLayerPoints);
 
-  assert(vLayerPoints.size() == iCount);
-  if (iCount > 2) {
-    Triangulate(vLayerPoints);
-    return true;
-  } else {
+  if (vLayerPoints.size() <= 2) {
     return false;
   }
+
+  Triangulate(vLayerPoints);
+  return true;
 }
 
 float SBVRGeogen::GetLayerDistance() {
