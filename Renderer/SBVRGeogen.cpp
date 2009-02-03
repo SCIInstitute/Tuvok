@@ -160,9 +160,9 @@ void SBVRGeogen::SortPoints(std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount)
 }
 
 
-int SBVRGeogen::FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray, UINT32 iCount) {
+int SBVRGeogen::FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray) {
   int iIndex = 0;
-  for (UINT32 i = 1;i<iCount;++i)
+  for (size_t i=1; i<fArray.size(); ++i)
     if (fArray[i].m_vPos.y < fArray[iIndex].m_vPos.y)
       iIndex = i;
   return iIndex;
@@ -171,7 +171,7 @@ int SBVRGeogen::FindMinPoint(const std::vector<POS3TEX3_VERTEX> &fArray, UINT32 
 
 void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
   // move bottom element to front of array
-  std::swap(fArray[0], fArray[FindMinPoint(fArray,fArray.size())]);
+  std::swap(fArray[0], fArray[FindMinPoint(fArray)]);
   // sort points according to gradient
   SortPoints(fArray,fArray.size());
 
@@ -204,6 +204,7 @@ bool SBVRGeogen::ComputeLayerGeometry(float fDepth) {
   ComputeIntersection(fDepth,6,2,vLayerPoints,iCount);
   ComputeIntersection(fDepth,7,3,vLayerPoints,iCount);
 
+  assert(vLayerPoints.size() == iCount);
   if (iCount > 2) {
     Triangulate(vLayerPoints);
     return true;
