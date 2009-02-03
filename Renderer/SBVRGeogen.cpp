@@ -85,6 +85,15 @@ void SBVRGeogen::SetTransformation(const FLOATMATRIX4& matTransform, bool bForce
   }
 }
 
+// Finds the point with the minimum position in Z.
+struct vertex_min_z : public std::binary_function<POS3TEX3_VERTEX,
+                                                  POS3TEX3_VERTEX,
+                                                  bool> {
+  bool operator()(const POS3TEX3_VERTEX &a, const POS3TEX3_VERTEX &b) const {
+    return (a.m_vPos.z < b.m_vPos.z);
+  }
+};
+
 void SBVRGeogen::InitBBOX() {
 
   FLOATVECTOR3 vVertexScale(m_vAspect);
@@ -99,9 +108,8 @@ void SBVRGeogen::InitBBOX() {
   m_pfBBOXVertex[7] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[7]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
 
   // find the minimum z value
-  m_fMinZ = m_pfBBOXVertex[0].m_vPos.z;
-
-  for (int i = 1;i<8;++i) m_fMinZ= MIN(m_fMinZ, m_pfBBOXVertex[i].m_vPos.z);
+  m_fMinZ = (*std::min_element(m_pfBBOXVertex, m_pfBBOXVertex+8,
+                               vertex_min_z())).m_vPos.z;
 }
 
 static bool ComputeIntersection(float z,
