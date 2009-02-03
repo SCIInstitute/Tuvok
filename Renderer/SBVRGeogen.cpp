@@ -104,37 +104,41 @@ void SBVRGeogen::InitBBOX() {
   for (int i = 1;i<8;++i) m_fMinZ= MIN(m_fMinZ, m_pfBBOXVertex[i].m_vPos.z);
 }
 
-void SBVRGeogen::ComputeIntersection(float z, UINT32 indexA, UINT32 indexB,
+bool SBVRGeogen::ComputeIntersection(float z,
+                                     const POS3TEX3_VERTEX &plA,
+                                     const POS3TEX3_VERTEX &plB,
                                      std::vector<POS3TEX3_VERTEX>& vHits,
-                                     UINT32 &count) {
+                                     UINT32 &count) const {
   /*
      return NO INTERSECTION if the line of the 2 points a,b is
      1. in front of the intersection plane
      2. behind the intersection plane
      3. parallel to the intersection plane (both points have "pretty much" the same z)
   */
-  if ((z > m_pfBBOXVertex[indexA].m_vPos.z && z > m_pfBBOXVertex[indexB].m_vPos.z) ||
-    (z < m_pfBBOXVertex[indexA].m_vPos.z && z < m_pfBBOXVertex[indexB].m_vPos.z) ||
-    (EpsilonEqual(m_pfBBOXVertex[indexA].m_vPos.z,m_pfBBOXVertex[indexB].m_vPos.z))) return;
+  if ((z > plA.m_vPos.z &&
+       z > plB.m_vPos.z) ||
+      (z < plA.m_vPos.z &&
+       z < plB.m_vPos.z) ||
+      (EpsilonEqual(plA.m_vPos.z,
+                    plB.m_vPos.z))) {
+    return false;
+  }
 
-  float fAlpha = (z-m_pfBBOXVertex[indexA].m_vPos.z)/(m_pfBBOXVertex[indexA].m_vPos.z-m_pfBBOXVertex[indexB].m_vPos.z);
+  float fAlpha = (z - plA.m_vPos.z) /
+                 (plA.m_vPos.z - plB.m_vPos.z);
 
   POS3TEX3_VERTEX vHit;
 
-  vHit.m_vPos.x = m_pfBBOXVertex[indexA].m_vPos.x +
-                    (m_pfBBOXVertex[indexA].m_vPos.x -
-                     m_pfBBOXVertex[indexB].m_vPos.x) * fAlpha;
-  vHit.m_vPos.y = m_pfBBOXVertex[indexA].m_vPos.y +
-                    (m_pfBBOXVertex[indexA].m_vPos.y -
-                     m_pfBBOXVertex[indexB].m_vPos.y) * fAlpha;
+  vHit.m_vPos.x = plA.m_vPos.x + (plA.m_vPos.x - plB.m_vPos.x) * fAlpha;
+  vHit.m_vPos.y = plA.m_vPos.y + (plA.m_vPos.y - plB.m_vPos.y) * fAlpha;
   vHit.m_vPos.z = z;
 
-  vHit.m_vTex = m_pfBBOXVertex[indexA].m_vTex +
-                    (m_pfBBOXVertex[indexA].m_vTex -
-                     m_pfBBOXVertex[indexB].m_vTex) * fAlpha;
+  vHit.m_vTex = plA.m_vTex + (plA.m_vTex - plB.m_vTex) * fAlpha;
+
   vHits.push_back(vHit);
 
   count++;
+  return true;
 }
 
 // Functor to identify the point with the lowest `y' coordinate.
@@ -167,20 +171,32 @@ bool SBVRGeogen::ComputeLayerGeometry(float fDepth) {
   std::vector<POS3TEX3_VERTEX> vLayerPoints;
   vLayerPoints.reserve(12);
 
-  ComputeIntersection(fDepth,0,1,vLayerPoints,iCount);
-  ComputeIntersection(fDepth,1,2,vLayerPoints,iCount);
-  ComputeIntersection(fDepth,2,3,vLayerPoints,iCount);
-  ComputeIntersection(fDepth,3,0,vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[0], m_pfBBOXVertex[1],
+                      vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[1], m_pfBBOXVertex[2],
+                      vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[2], m_pfBBOXVertex[3],
+                      vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[3], m_pfBBOXVertex[0],
+                      vLayerPoints,iCount);
 
-  ComputeIntersection(fDepth,4,5,vLayerPoints,iCount);
-  ComputeIntersection(fDepth,5,6,vLayerPoints,iCount);
-  ComputeIntersection(fDepth,6,7,vLayerPoints,iCount);
-  ComputeIntersection(fDepth,7,4,vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[4], m_pfBBOXVertex[5],
+                      vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[5], m_pfBBOXVertex[6],
+                      vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[6], m_pfBBOXVertex[7],
+                      vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[7], m_pfBBOXVertex[4],
+                      vLayerPoints,iCount);
 
-  ComputeIntersection(fDepth,4,0,vLayerPoints,iCount);
-  ComputeIntersection(fDepth,5,1,vLayerPoints,iCount);
-  ComputeIntersection(fDepth,6,2,vLayerPoints,iCount);
-  ComputeIntersection(fDepth,7,3,vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[4], m_pfBBOXVertex[0],
+                      vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[5], m_pfBBOXVertex[1],
+                      vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[6], m_pfBBOXVertex[2],
+                      vLayerPoints,iCount);
+  ComputeIntersection(fDepth, m_pfBBOXVertex[7], m_pfBBOXVertex[3],
+                      vLayerPoints,iCount);
 
   assert(vLayerPoints.size() == iCount);
   if (iCount > 2) {

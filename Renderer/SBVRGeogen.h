@@ -107,8 +107,11 @@ protected:
 
   void InitBBOX();
   bool ComputeLayerGeometry(float fDepth);
-  void ComputeIntersection(float z, UINT32  indexA, UINT32  indexB,
-                           std::vector<POS3TEX3_VERTEX>& vHit, UINT32  &count);
+  bool ComputeIntersection(float z,
+                           const POS3TEX3_VERTEX &plA,
+                           const POS3TEX3_VERTEX &plB,
+                           std::vector<POS3TEX3_VERTEX>& vHits,
+                           UINT32 &count) const;
   void Triangulate(std::vector<POS3TEX3_VERTEX> &fArray);
   float GetLayerDistance();
 };
