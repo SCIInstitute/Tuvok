@@ -629,7 +629,7 @@ const std::vector<UINT64> RasterDataBlock::GetSmallestBrickIndex() const {
 
 const std::vector<UINT64>& RasterDataBlock::GetSmallestBrickSize() const {
   std::vector<UINT64> vSmallestLOD = GetSmallestBrickIndex();
-  std::vector<UINT64> vFirstBrick(GetBrickCount(vSmallestLOD).size());
+  std::vector<UINT64> vFirstBrick(GetBrickCount(vSmallestLOD).size());  
   for (size_t i = 0;i<vFirstBrick.size();i++) vFirstBrick[i] = 0; // get the size of the first brick
   return GetBrickSize(vSmallestLOD, vFirstBrick);
 }
@@ -1058,5 +1058,35 @@ bool RasterDataBlock::SetData(unsigned char* pData, const vector<UINT64>& vLOD, 
   m_pStreamFile->SeekPos(iOffset);
   m_pStreamFile->WriteRAW(pData, iSize);
 
+  return true;
+}
+
+
+bool RasterDataBlock::BrickedLODToFlatData(const vector<UINT64>& vLOD, const std::string& strTargetFile, bool bAppend, AbstrDebugOut* pDebugOut) const {
+
+  LargeRAWFile* pTargetFile = new LargeRAWFile(strTargetFile);
+  
+  if (bAppend) 
+    pTargetFile->Append();
+  else
+    pTargetFile->Create();
+
+  
+  if (!pTargetFile->IsOpen()) {
+    if (pDebugOut) pDebugOut->Error("RasterDataBlock::BrickedLODToFlatData","Unable to write to target file.");
+    delete pTargetFile;
+    return false;
+  }
+
+  vector<UINT64> vBrickCount = GetBrickCount(vLOD);
+  vector<UINT64> vFirstBrick(GetBrickCount(vLOD).size());  
+  for (size_t i = 0;i<vFirstBrick.size();i++) vFirstBrick[i] = 0; // get the size of the first brick
+  std::vector<UINT64> ulBrickSize;
+  vector<UINT64> vLargestBrickSize = GetBrickSize(vLOD, vFirstBrick); // the first brick is the largest brick by defintion of the UVF format
+  //GetData
+
+
+  pTargetFile->Close();
+  delete pTargetFile;
   return true;
 }

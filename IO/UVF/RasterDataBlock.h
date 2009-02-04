@@ -122,6 +122,8 @@ public:
   const std::vector<UINT64>& GetBrickSize(const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const;
   std::vector<UINT64> GetLODDomainSize(const std::vector<UINT64>& vLOD) const;
 
+  bool BrickedLODToFlatData(const std::vector<UINT64>& vLOD, const std::string& strTargetFile, bool bAppend = false, AbstrDebugOut* pDebugOut=NULL) const;
+
   const std::vector<UINT64> GetSmallestBrickIndex() const;
   const std::vector<UINT64>& GetSmallestBrickSize() const;
 

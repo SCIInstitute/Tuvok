@@ -461,14 +461,27 @@ std::string IOManager::GetLoadDialogString() {
     strDialog += m_vpConverters[i]->GetDesc() + " (";
     for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
       string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
-      strDialog = strDialog + "*." + strExt + " ";
+      strDialog += "*." + strExt;
+      if (j<m_vpConverters[i]->SupportedExt().size()-1) 
+        strDialog += " ";
     }
     strDialog += ");;";
   }
 
-
-
   strDialog += "All Files (*.*)";
+
+  return strDialog;
+}
+
+std::string IOManager::GetExportDialogString() {
+  std::string strDialog;
+  // seperate entries
+  for (size_t i = 0;i<m_vpConverters.size();i++) {
+    for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
+      string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+      strDialog += m_vpConverters[i]->GetDesc() + " (*." + strExt + ");;";
+    }
+  }
 
   return strDialog;
 }

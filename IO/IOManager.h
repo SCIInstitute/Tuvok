@@ -70,6 +70,7 @@ public:
   void RegisterFinalConverter(AbstrConverter* pConverter);
 
   std::string GetLoadDialogString();
+  std::string GetExportDialogString();
 
 private:
   MasterController*             m_pMasterController;
