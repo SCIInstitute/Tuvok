@@ -92,6 +92,33 @@ void TransferFunction2D::Resize(const VECTOR2<size_t>& iSize) {
   DeleteCanvasData();
 }
 
+bool TransferFunction2D::Load(const std::string& filename, const VECTOR2<size_t>& vTargetSize) {
+  ifstream file(filename.c_str());
+
+  if (!file.is_open()) return false;
+
+  m_iSize = vTargetSize;
+
+  // ignore the size in the file (read it but never use it again)
+  VECTOR2<size_t> vSizeInFile;
+  file >> vSizeInFile.x >> vSizeInFile.y;
+
+  // load 1D Trans
+  m_Trans1D.Load(file, vTargetSize.x);
+
+  // load swatch count
+  UINT32 iSwatchCount;
+  file >> iSwatchCount;
+  m_Swatches.resize(iSwatchCount);
+
+  // load Swatches
+  for (size_t i = 0;i<m_Swatches.size();i++) m_Swatches[i].Load(file);
+
+  file.close();
+
+  return true;
+}
+
 
 bool TransferFunction2D::Load(const std::string& filename) {
   ifstream file(filename.c_str());
