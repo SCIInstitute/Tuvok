@@ -76,7 +76,6 @@ class VolumeDatasetInfo {
     bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fMin, double fMax) const;
     bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fMin, double fMax, double fMinGrad, double fMaxGrad) const;
 
-
     void SetRescaleFactorsND(std::vector<double> vfRescale) {m_vfRescale = vfRescale;}
     const std::vector<double>& GetRescaleFactorsND() const {return m_vfRescale;};
 
@@ -94,7 +93,12 @@ class VolumeDatasetInfo {
     /// \todo change this if we want to support color data
     UINT64 GetComponentCount() const {return 1;}
 
+    bool GetIsSigned() const {return m_pVolumeDataBlock->bSignedElement[0][0];}
+    bool GetIsFloat() const {return GetBitwith() != m_pVolumeDataBlock->ulElementBitSize[0][0];}
+
+
     bool IsSameEndianess() const {return m_bIsSameEndianess;}
+
 
   private:
     VolumeDatasetInfo(RasterDataBlock* pVolumeDataBlock, MaxMinDataBlock* pMaxMinData, bool bIsSameEndianess);
@@ -135,6 +139,9 @@ public:
   UINTVECTOR3 GetBrickSize(const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick);
   bool GetBrick(unsigned char** ppData, const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const {return m_pVolumeDataBlock->GetData(ppData, vLOD, vBrick);}
 
+  bool Export(UINT64 iLODlevel, const std::string& strTargetFilename, bool bApppend, AbstrDebugOut* pDebugOut);
+
+
 private:
   MasterController*        m_pMasterController;
   RasterDataBlock*         m_pVolumeDataBlock;
@@ -150,7 +157,6 @@ private:
   Histogram2D*        m_pHist2D;
 
   bool Open(bool bVerify);
-
 };
 
 #endif // VOLUMEDATASET_H

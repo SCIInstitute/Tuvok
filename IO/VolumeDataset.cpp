@@ -210,7 +210,6 @@ bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBr
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar) && (fMaxGrad >= maxMinElement.minGradient && fMinGrad <= maxMinElement.maxGradient);
 }
 
-
 // *********************************************************************************************************************************************
 
 VolumeDataset::VolumeDataset(const string& strFilename, bool bVerify, MasterController* pMasterController) : 
@@ -400,3 +399,9 @@ UINTVECTOR3 VolumeDataset::GetBrickSize(const vector<UINT64>& vLOD, const vector
 
   return vSize;
 }
+
+bool VolumeDataset::Export(UINT64 iLODlevel, const std::string& strTargetFilename, bool bApppend, AbstrDebugOut* pDebugOut) {
+  vector<UINT64> vLOD; vLOD.push_back(iLODlevel);
+  return m_pVolumeDataBlock->BrickedLODToFlatData(vLOD,strTargetFilename, bApppend, pDebugOut);
+}
+

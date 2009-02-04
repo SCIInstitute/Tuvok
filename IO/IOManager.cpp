@@ -429,6 +429,56 @@ VolumeDataset* IOManager::LoadDataset(const std::string& strFilename, AbstrRende
   return m_pMasterController->MemMan()->LoadDataset(strFilename, requester);
 }
 
+bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir) {
+  // find the right converter to handle the output
+  string strExt = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
+  AbstrConverter* pExporter = NULL;
+  for (size_t i = 0;i<m_vpConverters.size();i++) {
+    const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+    for (size_t j = 0;j<vStrSupportedExt.size();j++) {
+      if (vStrSupportedExt[j] == strExt) {
+        pExporter = m_vpConverters[i];
+        break;
+      }
+    }
+    if (pExporter) break;
+  }
+  
+  if (!pExporter) {
+    m_pMasterController->DebugOut()->Error("IOManager::ExportDataset","Unknown file extension %s.", strExt.c_str());
+    return false;
+  }
+
+  string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
+  bool bRAWCreated = pSourceData->Export(iLODlevel, strTempFilename, false, m_pMasterController->DebugOut());
+
+  if (!bRAWCreated) {
+    m_pMasterController->DebugOut()->Error("IOManager::ExportDataset","Unable to write temp file %s", strTempFilename.c_str());
+    return false;
+  }
+
+  bool bTargetCreated = pExporter->ConvertToNative(
+                                strTempFilename, strTargetFilename, 0,
+                                pSourceData->GetInfo()->GetBitwith(), 
+                                pSourceData->GetInfo()->GetComponentCount(),
+                                pSourceData->GetInfo()->GetIsSigned(), 
+                                pSourceData->GetInfo()->GetIsFloat(),
+                                UINTVECTOR3(pSourceData->GetInfo()->GetDomainSize(iLODlevel)),
+                                FLOATVECTOR3(pSourceData->GetInfo()->GetRescaleFactors()),
+                                m_pMasterController,
+                                false);
+
+  remove(strTempFilename.c_str());
+
+  if (!bTargetCreated) {
+    m_pMasterController->DebugOut()->Error("IOManager::ExportDataset","Unable to write target file %s", strTargetFilename.c_str());
+    return false;
+  }
+
+  return bTargetCreated;
+}
+
+
 bool IOManager::NeedsConversion(const std::string& strFilename, bool& bChecksumFail) {
   wstring wstrFilename(strFilename.begin(), strFilename.end());
   return !UVF::IsUVFFile(wstrFilename, bChecksumFail);

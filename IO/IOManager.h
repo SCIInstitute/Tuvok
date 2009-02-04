@@ -66,6 +66,8 @@ public:
   bool NeedsConversion(const std::string& strFilename, bool& bChecksumFail);
   bool NeedsConversion(const std::string& strFilename);
 
+  bool ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir);
+
   void RegisterExternalConverter(AbstrConverter* pConverter);
   void RegisterFinalConverter(AbstrConverter* pConverter);
 
