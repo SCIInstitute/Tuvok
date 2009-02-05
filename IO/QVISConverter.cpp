@@ -70,9 +70,8 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
   bSigned           = false;
   /// \todo  detect big endian DAT/RAW combinations and set the conversion 
   ///        parameter accordingly instead of always assuming it is little 
-  ///        endian and thius converting if the machine is big endian 
+  ///        endian and thus converting if the machine is big endian 
   bConvertEndianess = EndianConvert::IsBigEndian();
-  string strRAWFile;
 
   KeyValueFileParser parser(strSourceFilename);
 
@@ -137,7 +136,7 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
       vVolumeAspect = vVolumeAspect / vVolumeAspect.maxVal();
     }
 
-    strRAWFile = SysTools::GetPath(strSourceFilename) + strRAWFile;
+    strIntermediateFile = SysTools::GetPath(strSourceFilename) + strIntermediateFile;
   } else return false;
 
   return true;
@@ -181,7 +180,9 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
     return false;
   }
 
-  fTarget << "ObjectFileName: " << strTargetRAWFilename << endl;
+  pMasterController->DebugOut()->Message("QVISConverter::ConvertToNative","Writing DAT File");
+
+  fTarget << "ObjectFileName: " << SysTools::GetFilename(strTargetRAWFilename) << endl;
   fTarget << "TaggedFileName: ---" << endl;
   fTarget << "Resolution:     " << vVolumeSize.x << " " << vVolumeSize.y << " "<< vVolumeSize.z << endl;
   fTarget << "SliceThickness: " << vVolumeAspect.x << " " << vVolumeAspect.y << " "<< vVolumeAspect.z << endl;
@@ -190,6 +191,8 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   fTarget << "ObjectModel:    RGBA" << endl;
   fTarget << "GridType:       EQUIDISTANT" << endl;
   fTarget.close();
+
+  pMasterController->DebugOut()->Message("QVISConverter::ConvertToNative","Writing RAW File");
 
   // copy RAW file using the parent's call
   bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, iHeaderSkip,

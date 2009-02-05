@@ -151,7 +151,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   }
 
   if (strSourceFilename == "")  {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Read/Write error quantizing from to %s", strFilename.c_str());
+    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Read/Write error quantizing to %s", strFilename.c_str());
     return false;
   }
 
@@ -722,13 +722,18 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
     return false;
   }
 
-  UINT64 iCopySize = min(fSource.GetCurrentSize(),BLOCK_COPY_SIZE);
+  UINT64 iSourceSize = fSource.GetCurrentSize();
+  UINT64 iCopySize = min(iSourceSize,BLOCK_COPY_SIZE);
   unsigned char* pBuffer = new unsigned char[size_t(iCopySize)];
+  UINT64 iCopiedSize = 0;
 
   do {
+    pMasterController->DebugOut()->Message("RAWConverter::AppendRAW","Writing output data\n%g percent completed", 100.0f*float(iCopiedSize)/float(iSourceSize));
+
     iCopySize = fSource.ReadRAW(pBuffer, iCopySize);
 
     if (bToSigned) {
+
       switch (iComponentSize) {
         case 8  : // char to uchar
                   for (size_t i = 0;i<iCopySize;i++)
@@ -766,6 +771,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
     }
 
     fTarget.WriteRAW(pBuffer, iCopySize);
+    iCopiedSize += iCopySize;
   } while (iCopySize > 0); 
 
   fSource.Close();

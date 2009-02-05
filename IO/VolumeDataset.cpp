@@ -124,13 +124,18 @@ FLOATVECTOR3 VolumeDatasetInfo::GetEffectiveBrickSize(const UINT64 iLOD, const U
                           m_vvaBrickSize[iLOD][vBrick.x][vBrick.y][vBrick.z].y,
                           m_vvaBrickSize[iLOD][vBrick.x][vBrick.y][vBrick.z].z);
 
-  if (vBrick.x > 0) vBrickSize.x -= m_aOverlap.x/2.0f;
-  if (vBrick.y > 0) vBrickSize.y -= m_aOverlap.y/2.0f;
-  if (vBrick.z > 0) vBrickSize.z -= m_aOverlap.z/2.0f;
-
-  if (vBrick.x < m_vaBrickCount[iLOD].x-1) vBrickSize.x -= m_aOverlap.x/2.0f;
-  if (vBrick.y < m_vaBrickCount[iLOD].y-1) vBrickSize.y -= m_aOverlap.y/2.0f;
-  if (vBrick.z < m_vaBrickCount[iLOD].z-1) vBrickSize.z -= m_aOverlap.z/2.0f;
+  if (m_vaBrickCount[iLOD].x > 1) {
+    if (vBrick.x > 0) vBrickSize.x -= m_aOverlap.x/2.0f;
+    if (vBrick.x < m_vaBrickCount[iLOD].x-1) vBrickSize.x -= m_aOverlap.x/2.0f;
+  }
+  if (m_vaBrickCount[iLOD].y > 1) {
+    if (vBrick.y < m_vaBrickCount[iLOD].y-1) vBrickSize.y -= m_aOverlap.y/2.0f;
+    if (vBrick.y > 0) vBrickSize.y -= m_aOverlap.y/2.0f;
+  }
+  if (m_vaBrickCount[iLOD].z > 1) {
+    if (vBrick.z < m_vaBrickCount[iLOD].z-1) vBrickSize.z -= m_aOverlap.z/2.0f;
+    if (vBrick.z > 0) vBrickSize.z -= m_aOverlap.z/2.0f;
+  }
 
   return vBrickSize;
 }

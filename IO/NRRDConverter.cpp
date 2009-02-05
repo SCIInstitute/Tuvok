@@ -414,7 +414,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
 
   if (bDetached) {
     string strTargetRAWFilename = strTargetFilename+".raw";
-    fAsciiTarget << "data file: ./" << strTargetRAWFilename << endl;
+    fAsciiTarget << "data file: ./" << SysTools::GetFilename(strTargetRAWFilename) << endl;
     fAsciiTarget.close();
 
     // copy RAW file using the parent's call

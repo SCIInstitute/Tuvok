@@ -457,6 +457,8 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
     return false;
   }
 
+  m_pMasterController->DebugOut()->Message("IOManager::ExportDataset","Writing Target Dataset");
+
   bool bTargetCreated = pExporter->ConvertToNative(
                                 strTempFilename, strTargetFilename, 0,
                                 pSourceData->GetInfo()->GetBitwith(), 
@@ -474,6 +476,8 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
     m_pMasterController->DebugOut()->Error("IOManager::ExportDataset","Unable to write target file %s", strTargetFilename.c_str());
     return false;
   }
+
+  m_pMasterController->DebugOut()->Message("IOManager::ExportDataset","Done!");
 
   return bTargetCreated;
 }
