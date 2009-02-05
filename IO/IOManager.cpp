@@ -350,69 +350,87 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
     else
       return false;
   } else {
-      UINT64        iHeaderSkip; 
-      UINT64        iComponentSize;
-      UINT64        iComponentCount; 
-      bool          bConvertEndianess;
-      bool          bSigned;
-      bool          bIsFloat;
-      UINTVECTOR3   vVolumeSize;
-      FLOATVECTOR3  vVolumeAspect;
-      string        strTitle;
-      string        strSource;
-      UVFTables::ElementSemanticTable eType;
-      string        strIntermediateFile;
-      bool          bDeleteIntermediateFile;
+      UINT64        iHeaderSkip=0; 
+      UINT64        iComponentSize=0;
+      UINT64        iComponentCount=0; 
+      bool          bConvertEndianess=false;
+      bool          bSigned=false;
+      bool          bIsFloat=false;
+      UINTVECTOR3   vVolumeSize(0,0,0);
+      FLOATVECTOR3  vVolumeAspect(0,0,0);
+      string        strTitle = "";
+      string        strSource = "";
+      UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
+      string        strIntermediateFile = "";
+      bool          bDeleteIntermediateFile = false;
 
-      for (size_t i = 0;i<m_vpConverters.size();i++) {
-        const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
-        for (size_t j = 0;j<vStrSupportedExt.size();j++) {
-          if (vStrSupportedExt[j] == strExt) {
-            bool bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
-                                            iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                            strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
-            if (!bRAWCreated) continue;
-            bool bTargetCreated = false;
-            for (size_t k = 0;k<m_vpConverters.size();k++) {
-              const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
-              for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
-                if (vStrSupportedExtTarget[l] == strExtTarget) {
-                  bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
-                                                                          iComponentSize, iComponentCount, bSigned, bIsFloat,
-                                                                          vVolumeSize, vVolumeAspect, m_pMasterController, bNoUserInteraction);
-                  if (bTargetCreated) break;
-                }
-              }
-              if (bTargetCreated) break;
+      bool bRAWCreated = false;
+
+      if (strExt == "UVF") {
+        VolumeDataset v(strFilename,false, m_pMasterController);
+        if (!v.IsOpen()) return false;
+
+        UINT64 iLODLevel = 0; // always extract the highest quality here
+
+        iHeaderSkip = 0;
+        iComponentSize = v.GetInfo()->GetBitwith();
+        iComponentCount = v.GetInfo()->GetComponentCount();
+        bConvertEndianess = !v.GetInfo()->IsSameEndianess();
+        bSigned = v.GetInfo()->GetIsSigned();
+        bIsFloat = v.GetInfo()->GetIsFloat();
+        vVolumeSize = UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel));
+        vVolumeAspect = FLOATVECTOR3(v.GetInfo()->GetScale());
+        eType             = UVFTables::ES_UNDEFINED;  /// \todo grab this data from the UVF file
+        strTitle          = "UVF data";               /// \todo grab this data from the UVF file
+        strSource         = SysTools::GetFilename(strFilename);
+        
+        strIntermediateFile = m_TempDir + strFilename +".raw";
+        bDeleteIntermediateFile = true;
+
+        if (!v.Export(iLODLevel, strIntermediateFile, false, m_pMasterController->DebugOut())) {
+          if (SysTools::FileExists(strIntermediateFile)) remove(strIntermediateFile.c_str());
+          return false;
+        } else bRAWCreated = true;
+
+      } else {
+        for (size_t i = 0;i<m_vpConverters.size();i++) {
+          const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+          for (size_t j = 0;j<vStrSupportedExt.size();j++) {
+            if (vStrSupportedExt[j] == strExt) {
+              bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
+                                              iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
+                                              strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+              if (!bRAWCreated) continue;
             }
-            if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
-            if (bTargetCreated) return true;
           }
+        }
+
+        if (!bRAWCreated && m_pFinalConverter) {
+          bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
+                                          iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
+                                          strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
         }
       }
+      if (!bRAWCreated) return false;
 
-      if (m_pFinalConverter) {
-        bool bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
-                                        iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                        strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
-        if (!bRAWCreated) return false;
-        bool bTargetCreated = false;
-        for (size_t k = 0;k<m_vpConverters.size();k++) {
-          const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
-          for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
-            if (vStrSupportedExtTarget[l] == strExtTarget) {
-              bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
-                                                                      iComponentSize, iComponentCount, bSigned, bIsFloat, 
-                                                                      vVolumeSize, vVolumeAspect, m_pMasterController, bNoUserInteraction);
-              if (bTargetCreated) break;
-            }
+      bool bTargetCreated = false;
+      for (size_t k = 0;k<m_vpConverters.size();k++) {
+        const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
+        for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
+          if (vStrSupportedExtTarget[l] == strExtTarget) {
+            bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
+                                                                    iComponentSize, iComponentCount, bSigned, bIsFloat,
+                                                                    vVolumeSize, vVolumeAspect, m_pMasterController, bNoUserInteraction);
+            if (bTargetCreated) break;
           }
-          if (bTargetCreated) break;
         }
-        if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
-        return bTargetCreated;
-      } else return false;
+        if (bTargetCreated) break;
+      }
+      if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
+      if (bTargetCreated) 
+        return true;
   }
+  return false;
 }
 
 VolumeDataset* IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester) {

@@ -1089,7 +1089,7 @@ bool RasterDataBlock::BrickedLODToFlatData(const vector<UINT64>& vLOD, const std
   vPrefixProd.push_back(1);
   UINT64 iBrickCount = vBrickCount[0];
   for (size_t i = 1;i<ulDomainSize.size();i++) {
-    vPrefixProd.push_back(*(vPrefixProd.end()-1) *  ulDomainSize[i-1]);
+    vPrefixProd.push_back(*(vPrefixProd.end()-1) * ulDomainSize[i-1]);
     iBrickCount *= vBrickCount[i];
   }
 
@@ -1114,7 +1114,7 @@ void RasterDataBlock::TraverseBricksToWriteBrickToFile(UINT64& iBrickCounter, UI
     }
   } else {
     for (size_t i = 1;i<ulDomainSize.size();i++) {
-      iTargetOffset += vPrefixProd[i] * vCoords[i] * ulBrickSize[i];
+      iTargetOffset += vPrefixProd[i] * vCoords[i] * (ulBrickSize[i]-ulBrickOverlap[i]);
     }
 
     for (size_t i = 0;i<vBrickCount[0];i++) {
@@ -1125,54 +1125,30 @@ void RasterDataBlock::TraverseBricksToWriteBrickToFile(UINT64& iBrickCounter, UI
 
       vCoords[0] = i;
       const std::vector<UINT64> vBrickSize = GetBrickSize(vLOD, vCoords);
-      const std::vector<UINT64> vEffectiveBrickSize = GetEffectiveBrickSize(vLOD, vCoords);
-      const std::vector<UINT64> vBorderOffset = GetBorderOffset(vLOD, vCoords);
+      std::vector<UINT64> vEffectiveBrickSize = vBrickSize;
+
+      for (size_t i = 0;i<vEffectiveBrickSize.size();i++) {
+        if (vCoords[i] < vBrickCount[i]-1) 
+          vEffectiveBrickSize[i] -= ulBrickOverlap[i];
+      }
+
       GetData(ppData, vLOD, vCoords);
       UINT64 iSourceOffset = 0;
-      WriteBrickToFile(vBrickCount.size()-1, iSourceOffset, iTargetOffset, vBrickSize, vEffectiveBrickSize, vBorderOffset, ppData, pTargetFile, iElementSize, vPrefixProd);
-      iTargetOffset += vBrickSize[0];
+      WriteBrickToFile(vBrickCount.size()-1, iSourceOffset, iTargetOffset, vBrickSize, vEffectiveBrickSize, ppData, pTargetFile, iElementSize, vPrefixProd);
+      iTargetOffset += vEffectiveBrickSize[0];
     }
   }
 }
 
-void RasterDataBlock::WriteBrickToFile(size_t iCurrentDim, UINT64& iSourceOffset, UINT64& iTargetOffset, const std::vector<UINT64>& vBrickSize, const std::vector<UINT64>& vEffectiveBrickSize, const std::vector<UINT64>& vBorderOffset, unsigned char **ppData, LargeRAWFile* pTargetFile, UINT64 iElementSize, const std::vector<UINT64>& vPrefixProd) const {
+void RasterDataBlock::WriteBrickToFile(size_t iCurrentDim, UINT64& iSourceOffset, UINT64& iTargetOffset, const std::vector<UINT64>& vBrickSize, const std::vector<UINT64>& vEffectiveBrickSize, unsigned char **ppData, LargeRAWFile* pTargetFile, UINT64 iElementSize, const std::vector<UINT64>& vPrefixProd) const {
   if (iCurrentDim>0) {
     for (size_t i = 0;i<vBrickSize[iCurrentDim];i++) {
       UINT64 iBrickTargetOffset = iTargetOffset + vPrefixProd[iCurrentDim] * i;
-      WriteBrickToFile(iCurrentDim-1, iSourceOffset, iBrickTargetOffset, vBrickSize, vEffectiveBrickSize, vBorderOffset, ppData, pTargetFile, iElementSize, vPrefixProd);
+      WriteBrickToFile(iCurrentDim-1, iSourceOffset, iBrickTargetOffset, vBrickSize, vEffectiveBrickSize, ppData, pTargetFile, iElementSize, vPrefixProd);
     }
   } else {
     pTargetFile->SeekPos(iTargetOffset*iElementSize);
     pTargetFile->WriteRAW((*ppData)+iSourceOffset*iElementSize, vEffectiveBrickSize[0]*iElementSize);
     iSourceOffset += vBrickSize[0];
   }
-}
-
-
-std::vector<UINT64> RasterDataBlock::GetEffectiveBrickSize(const std::vector<UINT64>& vLOD,  const std::vector<UINT64>& vBrick) const {
-  std::vector<UINT64> vBrickSize  = GetBrickSize(vLOD, vBrick);
-  std::vector<UINT64> vBrickCount = GetBrickCount(vLOD);
-
-  for (size_t i = 0;i<vBrickSize.size();i++) {
-    if (vBrickCount[i] > 1) {
-      if (vBrick[i] > 0) vBrickSize[i] -= ulBrickOverlap[i]/2;
-      if (vBrick[i] < vBrickCount[i]-1) vBrickSize[i] -= ulBrickOverlap[i]/2;
-    }
-  }
-
-  return vBrickSize;
-}
-
-std::vector<UINT64> RasterDataBlock::GetBorderOffset(const std::vector<UINT64>& vLOD,  const std::vector<UINT64>& vBrick) const {
-  std::vector<UINT64> vBorderOffset = ulBrickOverlap;
-  std::vector<UINT64> vBrickCount   = GetBrickCount(vLOD);
-
-  for (size_t i = 0;i<vBorderOffset.size();i++) {
-    if (vBrickCount[i] == 1 || vBrick[i] == 0) 
-      vBorderOffset[i] = 0;
-    else 
-      vBorderOffset[i] /= 2;        
-  }
-
-  return vBorderOffset;
 }
