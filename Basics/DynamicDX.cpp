@@ -37,14 +37,21 @@
 #if defined(_WIN32) && defined(USE_DIRECTX)
 
 #include "DynamicDX.h"
+#include <string>
+#include <sstream>
 
-HINSTANCE DynamicDX::m_hD3D10 = NULL;
-HINSTANCE DynamicDX::m_hDXGI = NULL;
-HINSTANCE DynamicDX::m_hD3DX10 = NULL;
+using namespace std;
+
+DynamicDX::LPCREATEDXGIFACTORY DynamicDX::CreateDXGIFactory                     = NULL;
+DynamicDX::LPD3D10CREATEDEVICE DynamicDX::D3D10CreateDevice                     = NULL;
+DynamicDX::LPD3DX10CREATEEFFECTFROMFILEW DynamicDX::D3DX10CreateEffectFromFileW = NULL;
+DynamicDX::LPD3DX10CREATEEFFECTFROMFILEA DynamicDX::D3DX10CreateEffectFromFileA = NULL;
+
+int DynamicDX::m_iD3DX10Version           = 0;
 bool DynamicDX::m_bDynamicDXIsInitialized = false;
-
-DynamicDX::LPCREATEDXGIFACTORY DynamicDX::CreateDXGIFactory = NULL;
-DynamicDX::LPD3D10CREATEDEVICE DynamicDX::D3D10CreateDevice = NULL;
+HINSTANCE DynamicDX::m_hD3D10             = NULL;
+HINSTANCE DynamicDX::m_hDXGI              = NULL;
+HINSTANCE DynamicDX::m_hD3DX10            = NULL;
 
 bool DynamicDX::InitializeDX() {
   if (m_bDynamicDXIsInitialized) return true;
@@ -53,18 +60,36 @@ bool DynamicDX::InitializeDX() {
   m_hDXGI  = LoadLibrary( L"dxgi.dll" );
 
 #ifdef _DEBUG
-  m_hD3DX10 = LoadLibrary( L"d3dx10d.dll" );
+  wstring wstrD3DX10DLL_prefix = L"d3dx10d_";
 #else
-  m_hD3DX10 = LoadLibrary( L"d3dx10.dll" );
+  wstring wstrD3DX10DLL_prefix = L"d3dx10_";
 #endif
 
+  // try a few different D3DX10 DLLs
+  for (int i = 40; i>=33; i--) {
+    wstringstream wstrD3DX10DLL;
+    wstrD3DX10DLL << wstrD3DX10DLL_prefix << i << ".dll";
+    m_iD3DX10Version = i;
+    m_hD3DX10 = LoadLibrary( wstrD3DX10DLL.str().c_str() );
+    if (m_hD3DX10) break;
+  }
+
   if( !m_hD3D10 || !m_hDXGI || !m_hD3DX10 ) return false;
-  m_bDynamicDXIsInitialized = true;
 
   // DXGI calls
   CreateDXGIFactory = ( LPCREATEDXGIFACTORY )GetProcAddress( m_hDXGI, "CreateDXGIFactory" );
-  D3D10CreateDevice = ( LPD3D10CREATEDEVICE )GetProcAddress( m_hDXGI, "D3D10CreateDevice" );
-
+  if (!CreateDXGIFactory) return false;
+  // D3D10 calls
+  D3D10CreateDevice = ( LPD3D10CREATEDEVICE )GetProcAddress( m_hD3D10, "D3D10CreateDevice" );
+  if (!D3D10CreateDevice) return false;
+  // D3DX10 calls
+  D3DX10CreateEffectFromFileW = ( LPD3DX10CREATEEFFECTFROMFILEW )GetProcAddress( m_hD3DX10, "D3DX10CreateEffectFromFileW" );
+  if (!D3DX10CreateEffectFromFileW) return false;
+  D3DX10CreateEffectFromFileA = ( LPD3DX10CREATEEFFECTFROMFILEA )GetProcAddress( m_hD3DX10, "D3DX10CreateEffectFromFileA" );
+  if (!D3DX10CreateEffectFromFileA) return false;
+  
+  m_bDynamicDXIsInitialized = true;
+  
   return true;
 }
 
