@@ -72,6 +72,7 @@ HEADERS += StdTuvokDefines.h \
            Renderer/GL/GLTexture1D.h \
            Renderer/GL/GLTexture2D.h \
            Renderer/GL/GLTexture3D.h \
+           Renderer/GL/GLTargetBinder.h \
            Renderer/GL/GLRenderer.h \
            Renderer/GL/GLRaycaster.h \
            Renderer/GL/GLSBVR.h \
@@ -132,6 +133,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            Renderer/GL/GLTexture1D.cpp \
            Renderer/GL/GLTexture2D.cpp \
            Renderer/GL/GLTexture3D.cpp \
+           Renderer/GL/GLTargetBinder.cpp \
            Renderer/GL/GLRenderer.cpp \           
            Renderer/GL/GLFBOTex.cpp \
            Renderer/GL/GLRaycaster.cpp \
