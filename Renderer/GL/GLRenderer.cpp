@@ -45,6 +45,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
   m_fScaledIsovalue(0.0f),    // set by StartFrame
   m_fScaledCVIsovalue(0.0f),  // set by StartFrame
+  m_TargetBinder(pMasterController),
   m_p1DTransTex(NULL),
   m_p2DTransTex(NULL),
   m_p1DData(NULL),
@@ -210,7 +211,7 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
 }
 
 void GLRenderer::RenderSeperatingLines() {
-  m_pFBO3DImageCurrent[0]->Write();
+  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   // set render area to fullscreen
   SetRenderTargetAreaScissor(RA_FULLSCREEN);
   SetRenderTargetArea(RA_FULLSCREEN);
@@ -239,7 +240,7 @@ void GLRenderer::RenderSeperatingLines() {
   glPopMatrix();
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
-  m_pFBO3DImageCurrent[0]->FinishWrite();
+  m_TargetBinder.Unbind();
 }
 
 void GLRenderer::ClearDepthBuffer() {
@@ -362,12 +363,11 @@ void GLRenderer::Paint() {
         if (bLocalNewDataToShow) iReadyWindows++;
       } else {
         // blit the previous result quad to the entire screen but restrict drawing to the current subarea
-        m_pFBO3DImageCurrent[0]->Write();
-        GLFBOTex::OneDrawBuffer();
+        m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
         SetRenderTargetArea(RA_FULLSCREEN);
         SetRenderTargetAreaScissor(eArea);
         RerenderPreviousResult(false);
-        m_pFBO3DImageCurrent[0]->FinishWrite();
+        m_TargetBinder.Unbind();
       }
     }
 
@@ -391,10 +391,8 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
       m_pFBO3DImageCurrent[0]->Read(0);
       m_pFBO3DImageCurrent[1]->Read(1);
 
-      m_pFBO3DImageLast->Write(0, 0);
-      GLFBOTex::OneDrawBuffer();
+      m_TargetBinder.Bind(m_pFBO3DImageLast);
       glClear(GL_COLOR_BUFFER_BIT);
-
 
       m_pProgramComposeAnaglyphs->Enable();
       glDisable(GL_DEPTH_TEST);
@@ -410,7 +408,7 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
       glEnd();
       m_pProgramComposeAnaglyphs->Disable();
 
-      m_pFBO3DImageLast->FinishWrite();
+      m_TargetBinder.Unbind();
 
       m_pFBO3DImageCurrent[0]->FinishRead();
       m_pFBO3DImageCurrent[1]->FinishRead();
@@ -580,9 +578,9 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 
   // bind offscreen buffer
   if (m_bUseMIP[size_t(eDirection)]) {
-    m_pFBO3DImageCurrent[1]->Write();  // for MIP rendering "abuse" left-eye buffer for the itermediate results
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
   } else {
-    m_pFBO3DImageCurrent[0]->Write();
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   }
 
   SetDataDepShaderVars();
@@ -666,11 +664,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       }
     }
 
-    if (!m_bUseMIP[size_t(eDirection)]) {
-      m_pProgramMIPSlice->Disable();
-      m_pFBO3DImageCurrent[1]->FinishWrite();
-    }
-
+    if (!m_bUseMIP[size_t(eDirection)]) m_pProgramMIPSlice->Disable();
   } else {
     if (m_bOrthoView) {
       FLOATMATRIX4 maOrtho;
@@ -717,8 +711,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     glBlendEquation(GL_FUNC_ADD);
     glDisable( GL_BLEND );
 
-    m_pFBO3DImageCurrent[1]->FinishWrite();
-    m_pFBO3DImageCurrent[0]->Write();
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
 
     SetRenderTargetArea(RA_FULLSCREEN);
     SetRenderTargetAreaScissor(eREnderArea);
@@ -743,7 +736,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     m_pProgramTransMIP->Disable();
   }
 
-  m_pFBO3DImageCurrent[0]->FinishWrite();
+  m_TargetBinder.Unbind();
 
   return true;
 }
@@ -837,16 +830,15 @@ void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
 
   glClearColor(0,0,0,0);
 
-  m_pFBO3DImageCurrent[0]->Write();
-  GLFBOTex::OneDrawBuffer();
+  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-  m_pFBO3DImageCurrent[0]->FinishWrite();
 
   if (m_bDoStereoRendering) {
-    m_pFBO3DImageCurrent[1]->Write();
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    m_pFBO3DImageCurrent[1]->FinishWrite();
   }
+
+  m_TargetBinder.Unbind();
 
   glDisable( GL_SCISSOR_TEST ); // since we do not clear anymore in this subframe we do not need the scissor test, maybe disabling it saves performacnce
 }
@@ -963,15 +955,14 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
       
       if (m_bRenderCoordArrows) {
-        m_pFBO3DImageCurrent[0]->Write();
+        m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
         RenderCoordArrows();
-        m_pFBO3DImageCurrent[0]->FinishWrite();
 
         if (m_bDoStereoRendering) {
-          m_pFBO3DImageCurrent[1]->Write();
+          m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
           RenderCoordArrows();
-          m_pFBO3DImageCurrent[1]->FinishWrite();
         }
+        m_TargetBinder.Unbind();
       }
 
       m_pMasterController->DebugOut()->Message("GLRenderer::Execute3DFrame","Subframe completed.");
@@ -1381,8 +1372,7 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
 
   NewFrameClear(eArea);
 
-  m_pFBO3DImageCurrent[0]->Write();
-  GLFBOTex::OneDrawBuffer();
+  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   m_mProjection[0].setProjection();
   m_matModelView[0].setModelview();
   BBoxPreRender();
@@ -1390,10 +1380,9 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
   Render3DPostLoop();
   ComposeSurfaceImage(0);
   BBoxPostRender();
-  m_pFBO3DImageCurrent[0]->FinishWrite();
 
   if (m_bDoStereoRendering) {
-    m_pFBO3DImageCurrent[1]->Write();
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
     m_mProjection[1].setProjection();
     m_matModelView[1].setModelview();
     BBoxPreRender();
@@ -1401,26 +1390,26 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
     Render3DPostLoop();
     ComposeSurfaceImage(1);
     BBoxPostRender();
-    m_pFBO3DImageCurrent[1]->FinishWrite();
   }
+  m_TargetBinder.Unbind();
 }
 
 void GLRenderer::Render3DView() {
   // in the first frame of a new lod level write the bounding boxes into depthbuffer (and for isosurfacing also into colorbuffer)
   if (m_iBricksRenderedInThisSubFrame == 0) {
-    m_pFBO3DImageCurrent[0]->Write();
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
     m_mProjection[0].setProjection();
     m_matModelView[0].setModelview();
     BBoxPreRender();
-    m_pFBO3DImageCurrent[0]->FinishWrite();
     if (m_bDoStereoRendering) {
-      m_pFBO3DImageCurrent[1]->Write();
+      m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
       m_mProjection[1].setProjection();
       m_matModelView[1].setModelview();
       BBoxPreRender();
-      m_pFBO3DImageCurrent[1]->FinishWrite();
     }
+    m_TargetBinder.Unbind();
   }
+
   Render3DPreLoop();
 
   // loop over all bricks in the current LOD level
@@ -1470,31 +1459,28 @@ void GLRenderer::Render3DView() {
   Render3DPostLoop();
 
   if (m_eRenderMode == RM_ISOSURFACE && m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
-    m_pFBO3DImageCurrent[0]->Write();
-    GLFBOTex::OneDrawBuffer();
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
     ComposeSurfaceImage(0);
-    m_pFBO3DImageCurrent[0]->FinishWrite();
     if (m_bDoStereoRendering) {
-      m_pFBO3DImageCurrent[1]->Write();
+      m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
       ComposeSurfaceImage(1);
-      m_pFBO3DImageCurrent[1]->FinishWrite();
     }
+    m_TargetBinder.Unbind();
   }
 
   // at the very end render the bboxes
   if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
-    m_pFBO3DImageCurrent[0]->Write();
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
     m_mProjection[0].setProjection();
     m_matModelView[0].setModelview();
     BBoxPostRender();
-    m_pFBO3DImageCurrent[0]->FinishWrite();
     if (m_bDoStereoRendering) {
-      m_pFBO3DImageCurrent[1]->Write();
+      m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
       m_mProjection[1].setProjection();
       m_matModelView[1].setModelview();
       BBoxPostRender();
-      m_pFBO3DImageCurrent[1]->FinishWrite();
     }
+    m_TargetBinder.Unbind();
   }
 }
 

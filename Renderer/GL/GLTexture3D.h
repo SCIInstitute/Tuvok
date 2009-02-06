@@ -37,8 +37,8 @@
 
 #pragma once
 
-#ifndef GLTexture3D_H
-#define GLTexture3D_H
+#ifndef GLTEXTURE3D_H
+#define GLTEXTURE3D_H
 
 #include "../../StdTuvokDefines.h"
 #include "GLTexture.h"
@@ -73,4 +73,4 @@ class GLTexture3D : public GLTexture {
     GLenum m_type;
 };
 
-#endif // GLTexture3D_H
+#endif // GLTEXTURE3D_H

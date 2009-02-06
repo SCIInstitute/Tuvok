@@ -209,7 +209,6 @@ void GLSBVR::RenderProxyGeometry() {
 void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
 
-
   // setup the slice generator
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount,
                             b.vTexcoordsMin, b.vTexcoordsMax);
@@ -221,9 +220,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   m_SBVRGeogen.SetTransformation(maBricktModelView, true);
 
   if (! m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
-    m_pFBOIsoHit[iStereoID]->Write(0, 0);
-    m_pFBOIsoHit[iStereoID]->Write(1, 1);
-    GLFBOTex::TwoDrawBuffers();
+    m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
 
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_pProgramIso->Enable();
@@ -232,34 +229,24 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     RenderProxyGeometry();
     m_pProgramIso->Disable();
 
-    GLFBOTex::NoDrawBuffer();
-    m_pFBOIsoHit[iStereoID]->FinishWrite(1);
-    m_pFBOIsoHit[iStereoID]->FinishWrite(0);
-
     if (m_bDoClearView) {
-      m_pFBOCVHit[iStereoID]->Write(0, 0);
-      m_pFBOCVHit[iStereoID]->Write(1, 1);
-      GLFBOTex::TwoDrawBuffers();
+      m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
 
       if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       m_pProgramIso->Enable();
       m_pProgramIso->SetUniformVector("fIsoval",m_fScaledCVIsovalue);
       RenderProxyGeometry();
       m_pProgramIso->Disable();
-      GLFBOTex::NoDrawBuffer();
-
-      m_pFBOCVHit[iStereoID]->FinishWrite(1);
-      m_pFBOCVHit[iStereoID]->FinishWrite(0);
     }
   } else {
-    m_pFBO3DImageCurrent[iStereoID]->Write();
-    GLFBOTex::OneDrawBuffer();
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
+
     glDepthMask(GL_FALSE);
     SetBrickDepShaderVars(b);
     RenderProxyGeometry();
     glDepthMask(GL_TRUE);
-    m_pFBO3DImageCurrent[iStereoID]->FinishWrite();
   }
+  m_TargetBinder.Unbind();
 }
 
 

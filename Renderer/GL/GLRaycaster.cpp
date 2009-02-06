@@ -257,8 +257,7 @@ void GLRaycaster::Render3DPreLoop() {
 
   /*
   if (m_iBricksRenderedInThisSubFrame == 0) {
-    m_pFBO3DImageCurrent->FinishWrite();
-    m_pFBORayEntry->Write(0, 0);
+    m_TargetBinder.Bind(m_pFBORayEntry);
 
     // render nearplane into buffer
     float fNear = m_FrustumCullingLOD.GetNearPlane() + 0.01f;
@@ -280,8 +279,7 @@ void GLRaycaster::Render3DPreLoop() {
     glEnd();
     m_pProgramRenderFrontFaces->Disable();
 
-    m_pFBORayEntry->FinishWrite(0);
-    m_pFBO3DImageCurrent->Write();
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent);
   }*/
 
   glEnable(GL_CULL_FACE);
@@ -297,20 +295,16 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   m_mProjection[iStereoID].setProjection();
 
   // write frontfaces (ray entry points)
-  m_pFBORayEntry->Write(0, 0);
-  GLFBOTex::OneDrawBuffer();
+  m_TargetBinder.Bind(m_pFBORayEntry);
   m_pProgramRenderFrontFaces->Enable();
   RenderBox(b.vCenter, b.vExtension,
             b.vTexcoordsMin, b.vTexcoordsMax,
             false, iStereoID);
   m_pProgramRenderFrontFaces->Disable();
-  m_pFBORayEntry->FinishWrite(0);
 
   if (m_eRenderMode == RM_ISOSURFACE) {
     glDepthMask(GL_TRUE);
-    m_pFBOIsoHit[iStereoID]->Write(0, 0);
-    m_pFBOIsoHit[iStereoID]->Write(1, 1);
-    GLFBOTex::TwoDrawBuffers();
+    m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
 
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_pProgramIso->Enable();
@@ -322,14 +316,8 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     m_pFBORayEntry->FinishRead();
     m_pProgramIso->Disable();
 
-    GLFBOTex::NoDrawBuffer();
-    m_pFBOIsoHit[iStereoID]->FinishWrite(1);
-    m_pFBOIsoHit[iStereoID]->FinishWrite(0);
-
     if (m_bDoClearView) {
-      m_pFBOCVHit[iStereoID]->Write(0, 0);
-      m_pFBOCVHit[iStereoID]->Write(1, 1);
-      GLFBOTex::TwoDrawBuffers();
+      m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
 
       if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       m_pProgramIso2->Enable();
@@ -343,16 +331,10 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
       m_pFBOIsoHit[iStereoID]->FinishRead(0);
       m_pFBORayEntry->FinishRead();
       m_pProgramIso2->Disable();
-
-      GLFBOTex::NoDrawBuffer();
-
-      m_pFBOCVHit[iStereoID]->FinishWrite(1);
-      m_pFBOCVHit[iStereoID]->FinishWrite(0);
     }
 
   } else {
-    m_pFBO3DImageCurrent[iStereoID]->Write();
-    GLFBOTex::OneDrawBuffer();
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
 
     // do the raycasting
     switch (m_eRenderMode) {
@@ -384,8 +366,8 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     }
     glDisable(GL_BLEND);
 
-    m_pFBO3DImageCurrent[iStereoID]->FinishWrite();
   }
+  m_TargetBinder.Unbind();
 }
 
 void GLRaycaster::Render3DPostLoop() {
@@ -416,15 +398,13 @@ void GLRaycaster::RenderHQMIPInLoop(const Brick& b) {
   glDisable(GL_BLEND);
 
   // write frontfaces (ray entry points)
-  m_pFBO3DImageCurrent[1]->FinishWrite();
-  m_pFBORayEntry->Write(0, 0);
+  m_TargetBinder.Bind(m_pFBORayEntry);
 
   m_pProgramRenderFrontFaces->Enable();
   RenderBox(b.vCenter, b.vExtension, b.vTexcoordsMin, b.vTexcoordsMax, false, 0);
   m_pProgramRenderFrontFaces->Disable();
-  m_pFBORayEntry->FinishWrite(0);
 
-  m_pFBO3DImageCurrent[1]->Write();  // for MIP rendering "abuse" left-eye buffer for the itermediate results
+  m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
   glBlendFunc(GL_ONE, GL_ONE);
   glBlendEquation(GL_MAX);
   glEnable(GL_BLEND);
