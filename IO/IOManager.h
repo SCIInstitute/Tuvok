@@ -55,31 +55,93 @@ class MasterController;
 
 class MCData  {
 public:  
-  MCData(LargeRAWFile* pTargetFile) : 
-    m_pTargetFile(pTargetFile)
+  MCData(const std::string& strTargetFile) : 
+    m_strTargetFile(strTargetFile)
   {}
 
-  virtual void PerformMC(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset) = 0;
+  virtual ~MCData() {}
+
+  virtual bool PerformMC(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset) = 0;
 
 protected:
-  LargeRAWFile  *m_pTargetFile;
+  std::string m_strTargetFile;
 };
 
 
 template <class T> class MCDataTemplate  : public MCData {
 public:  
-  MCDataTemplate(LargeRAWFile* pTargetFile, T TIsoValue) :
-    MCData(pTargetFile),
-    m_TIsoValue(TIsoValue)
-  {}
+  MCDataTemplate(const std::string& strTargetFile, T TIsoValue, FLOATVECTOR3 vScale) :
+    MCData(strTargetFile),
+    m_TIsoValue(TIsoValue),
+    m_pData(NULL),
+    m_iIndexoffset(0),
+    m_pMarchingCubes(new MarchingCubes<T>())
+  {
+    m_matScale.Scaling(vScale.x, vScale.y, vScale.z);
+  }
 
-  virtual void PerformMC(LargeRAWFile* , const std::vector<UINT64> , const std::vector<UINT64> ) {
-    // TODO: do marching-cubes here
+  virtual ~MCDataTemplate() {
+		m_outStream << "end" << std::endl;
+		m_outStream.close();
+
+    delete m_pMarchingCubes;
+    delete m_pData;
+  }
+
+  virtual bool PerformMC(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset) {
+
+    UINT64 iSize = 1;
+    for (size_t i = 0;i<vBrickSize.size();i++) iSize *= vBrickSize[i];
+    if (!m_pData) {   // since we know that no brick is larger than the first we can create a fixed array on first invocation 
+      m_pData = new T[iSize];
+
+      m_outStream.open(m_strTargetFile.c_str());
+      if (m_outStream.fail()) return false;
+  		m_outStream << "begin" << std::endl;
+    }
+
+    pSourceFile->SeekStart();
+    pSourceFile->ReadRAW((unsigned char*)m_pData, size_t(iSize*sizeof(T)));
+
+    // extract isosurface 
+    m_pMarchingCubes->SetVolume(int(vBrickSize[0]), int(vBrickSize[1]), int(vBrickSize[2]), m_pData);
+    m_pMarchingCubes->Process(m_TIsoValue);
+
+    // apply scale
+  	m_pMarchingCubes->m_Isosurface->Transform(m_matScale);
+
+    m_outStream << "# Writing MC mesh for a brick of size " << vBrickSize[0] << " "  << vBrickSize[0] << " "  << vBrickSize[0] << " " << std::endl;
+
+		//Saving to disk (1/3 vertices)
+		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
+			m_outStream << "v " << (m_pMarchingCubes->m_Isosurface->vfVertices[i].x + vBrickOffset[0]) << " " 
+                          << (m_pMarchingCubes->m_Isosurface->vfVertices[i].y + vBrickOffset[1]) << " " 
+                          << (m_pMarchingCubes->m_Isosurface->vfVertices[i].z + vBrickOffset[2]) << std::endl;
+		}
+		// Saving to disk (2/3 normals)
+		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
+			m_outStream << "vn " << m_pMarchingCubes->m_Isosurface->vfNormals[i].x << " " << m_pMarchingCubes->m_Isosurface->vfNormals[i].y << " " << m_pMarchingCubes->m_Isosurface->vfNormals[i].z << std::endl;
+		}
+		// Saving to disk (3/3 faces)
+		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iTriangles;i++) {
+			m_outStream << "f " << m_pMarchingCubes->m_Isosurface->viTriangles[i].x+1+m_iIndexoffset << " " << 
+                           m_pMarchingCubes->m_Isosurface->viTriangles[i].z+1+m_iIndexoffset << " " << 
+                           m_pMarchingCubes->m_Isosurface->viTriangles[i].y+1+m_iIndexoffset << std::endl;
+		}
+
+    m_iIndexoffset += m_pMarchingCubes->m_Isosurface->iVertices;
+
+    return true;
+
   }
 
 protected:
   T                 m_TIsoValue;
+  T*                m_pData;
+  UINT64            m_iIndexoffset;
   MarchingCubes<T>* m_pMarchingCubes;
+  FLOATMATRIX4      m_matScale;
+  std::ofstream     m_outStream;
 };
 
 class IOManager {
@@ -97,7 +159,7 @@ public:
   bool NeedsConversion(const std::string& strFilename);
 
   bool ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir);
-  bool ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const std::string& strTargetFilename, const std::string& strTempDir);
+  bool ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir);
 
   void RegisterExternalConverter(AbstrConverter* pConverter);
   void RegisterFinalConverter(AbstrConverter* pConverter);

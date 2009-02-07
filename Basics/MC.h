@@ -94,12 +94,13 @@ protected:
 	static int		ms_triTable[256][16];
 
 	INTVECTOR3	  m_vVolSize;
+  INTVECTOR3	  m_vOffset;
 	T*			      m_pTVolume;
 	T			        m_TIsoValue;
 
 	virtual void MarchLayer(LayerTempData<T> *layer, int iLayer);
 	virtual int MakeVertex(int whichEdge, int i, int j, int k, Isosurface* sliceIso);
-	virtual FLOATVECTOR3 InterpolateNormal(float fValueAtPos, INTVECTOR3 vPosition);
+	virtual FLOATVECTOR3 InterpolateNormal(T fValueAtPos, INTVECTOR3 vPosition);
 
 };
 

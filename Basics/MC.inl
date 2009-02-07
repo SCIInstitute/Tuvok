@@ -435,25 +435,25 @@ template <class T> void MarchingCubes<T>::MarchLayer(LayerTempData<T> *layer, in
     for(int j = 0; j < m_vVolSize.y-1; j++) {
 
       // fetch data from the volume
-      float fVolumeValues[8];
-      fVolumeValues[0] = float(layer->pTBotData[(j+1)  * m_vVolSize.x + i]);
-      fVolumeValues[1] = float(layer->pTBotData[(j+1)  * m_vVolSize.x + i+1]);
-      fVolumeValues[2] = float(layer->pTBotData[j      * m_vVolSize.x + i+1]);
-      fVolumeValues[3] = float(layer->pTBotData[j      * m_vVolSize.x + i]);
-      fVolumeValues[4] = float(layer->pTTopData[(j+1)  * m_vVolSize.x + i]);
-      fVolumeValues[5] = float(layer->pTTopData[(j+1)  * m_vVolSize.x + i+1]);
-      fVolumeValues[6] = float(layer->pTTopData[j      * m_vVolSize.x + i+1]);
-      fVolumeValues[7] = float(layer->pTTopData[j      * m_vVolSize.x + i]);
+      T fVolumeValues[8];
+      fVolumeValues[0] = (layer->pTBotData[(j+1)  * m_vVolSize.x + i]);
+      fVolumeValues[1] = (layer->pTBotData[(j+1)  * m_vVolSize.x + i+1]);
+      fVolumeValues[2] = (layer->pTBotData[j      * m_vVolSize.x + i+1]);
+      fVolumeValues[3] = (layer->pTBotData[j      * m_vVolSize.x + i]);
+      fVolumeValues[4] = (layer->pTTopData[(j+1)  * m_vVolSize.x + i]);
+      fVolumeValues[5] = (layer->pTTopData[(j+1)  * m_vVolSize.x + i+1]);
+      fVolumeValues[6] = (layer->pTTopData[j      * m_vVolSize.x + i+1]);
+      fVolumeValues[7] = (layer->pTTopData[j      * m_vVolSize.x + i]);
 
       // compute the index for the table lookup
-      int cellIndex = 1*(fVolumeValues[0] < m_TIsoValue)+
-                      2*(fVolumeValues[1] < m_TIsoValue)+
-                      4*(fVolumeValues[2] < m_TIsoValue)+
-                      8*(fVolumeValues[3] < m_TIsoValue)+
-                     16*(fVolumeValues[4] < m_TIsoValue)+
-                     32*(fVolumeValues[5] < m_TIsoValue)+
-                     64*(fVolumeValues[6] < m_TIsoValue)+
-                    128*(fVolumeValues[7] < m_TIsoValue);
+      int cellIndex = 1*int(fVolumeValues[0] < m_TIsoValue)+
+                      2*int(fVolumeValues[1] < m_TIsoValue)+
+                      4*int(fVolumeValues[2] < m_TIsoValue)+
+                      8*int(fVolumeValues[3] < m_TIsoValue)+
+                     16*int(fVolumeValues[4] < m_TIsoValue)+
+                     32*int(fVolumeValues[5] < m_TIsoValue)+
+                     64*int(fVolumeValues[6] < m_TIsoValue)+
+                    128*int(fVolumeValues[7] < m_TIsoValue);
 
       // get the coordinates for the vertices, compute the triangulation and interpolate the normals
       if (ms_edgeTable[cellIndex] &    1) {
@@ -604,11 +604,11 @@ template <class T> int MarchingCubes<T>::MakeVertex(int iEdgeIndex, int i, int j
     case 11:vFrom  = INTVECTOR3(i,j,k);    vTo  = INTVECTOR3(i,j,k+1);  break;
   }
 
-  float fFromValue = m_pTVolume[DATA_INDEX(vFrom.x, vFrom.y, vFrom.z, m_vVolSize.x, m_vVolSize.y)];
-  float fToValue   = m_pTVolume[DATA_INDEX(vTo.x, vTo.y, vTo.z, m_vVolSize.x, m_vVolSize.y)];
+  T fFromValue = m_pTVolume[DATA_INDEX(vFrom.x, vFrom.y, vFrom.z, m_vVolSize.x, m_vVolSize.y)];
+  T fToValue   = m_pTVolume[DATA_INDEX(vTo.x, vTo.y, vTo.z, m_vVolSize.x, m_vVolSize.y)];
 
   // determine the relative distance along edge vFrom->vTo that the isosurface vertex lies
-  float d = ( fFromValue - m_TIsoValue) / ( fFromValue - fToValue );
+  float d = float( fFromValue - m_TIsoValue) / float( fFromValue - fToValue );
   if (d < EPSILON) {  d = 0.0f;} else if (d > (1 - EPSILON)) {d = 1.0f;}
 
   // interpolate the vertex
@@ -630,7 +630,7 @@ template <class T> int MarchingCubes<T>::MakeVertex(int iEdgeIndex, int i, int j
 }
 
 
-template <class T> VECTOR3<float> MarchingCubes<T>::InterpolateNormal(float fValueAtPos, INTVECTOR3 vPosition) {
+template <class T> VECTOR3<float> MarchingCubes<T>::InterpolateNormal(T fValueAtPos, INTVECTOR3 vPosition) {
   // the gradients are computed by central differences, except
   // on the boundaries of the dataset, where forward or backward
   // differencing is used (three point form)
@@ -639,15 +639,15 @@ template <class T> VECTOR3<float> MarchingCubes<T>::InterpolateNormal(float fVal
 
   // the x component
   if (vPosition.x == 0) {              // left border -> forward diff
-    result.x = 0.5f * (-3.0f * fValueAtPos + 
+    result.x = 0.5f * float(-3.0f * fValueAtPos + 
                  4.0f * m_pTVolume[DATA_INDEX(vPosition.x+1, vPosition.y, vPosition.z, m_vVolSize.x, m_vVolSize.y)] +
                 -1.0f * m_pTVolume[DATA_INDEX(vPosition.x+2, vPosition.y, vPosition.z, m_vVolSize.x, m_vVolSize.y)]);
   } else if (vPosition.x == m_vVolSize.x - 1) {  // right border -> forward diff
-    result.x = 0.5f * (  3.0f * fValueAtPos+
+    result.x = 0.5f * float(  3.0f * fValueAtPos+
                  -4.0f * m_pTVolume[DATA_INDEX(vPosition.x-1, vPosition.y, vPosition.z, m_vVolSize.x, m_vVolSize.y)] +
                 1.0f * m_pTVolume[DATA_INDEX(vPosition.x-2, vPosition.y, vPosition.z, m_vVolSize.x, m_vVolSize.y)]);
   } else {                  // interior -> central diff
-    result.x = 0.5f * (  m_pTVolume[DATA_INDEX(vPosition.x+1, vPosition.y, vPosition.z, m_vVolSize.x, m_vVolSize.y)] -
+    result.x = 0.5f * float(  m_pTVolume[DATA_INDEX(vPosition.x+1, vPosition.y, vPosition.z, m_vVolSize.x, m_vVolSize.y)] -
                 m_pTVolume[DATA_INDEX(vPosition.x-1, vPosition.y, vPosition.z, m_vVolSize.x, m_vVolSize.y)]);
   }
 
