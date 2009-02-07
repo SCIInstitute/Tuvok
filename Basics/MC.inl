@@ -27,7 +27,7 @@
 */
 
 
-//!    File   : MC.cpp
+//!    File   : MC.inl
 //!    Author : Jens Krueger
 //!             SCI Institute
 //!             University of Utah
@@ -714,96 +714,5 @@ template <class T> void LayerTempData<T>::NextIteration() {
         piEdges[EDGE_INDEX(iEdges, iX, iY, m_vVolSize.x-1)] = NO_EDGE;
       }
     }
-  }
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-Isosurface::Isosurface() :
-  vfVertices(NULL),
-  vfNormals(NULL),
-  viTriangles(NULL),
-  iVertices(0),
-  iTriangles(0)
-{}
-
-Isosurface::Isosurface(int iMaxVertices, int iMaxTris) :
-  vfVertices(new VECTOR3<float>[iMaxVertices]),
-  vfNormals(new VECTOR3<float>[iMaxVertices]),
-  viTriangles(new VECTOR3<int>[iMaxTris]),
-  iVertices(0),
-  iTriangles(0)
-{}
-
-Isosurface::~Isosurface() {
-  delete [] vfVertices;
-  delete [] vfNormals;
-  delete [] viTriangles;
-}
-
-int Isosurface::AddTriangle(int a, int b, int c) {
-  viTriangles[iTriangles++] = VECTOR3<int>(a,b,c);
-  return iTriangles-1;
-}
-
-int Isosurface::AddVertex(VECTOR3<float> v, VECTOR3<float> n) {
-  vfVertices[iVertices] = v;
-  vfNormals[iVertices++] = n; 
-  return iVertices-1;
-}
-
-void Isosurface::AppendData(const Isosurface* other) {
-  // if verts in other, expand the storage this surface
-  if (other->iVertices > 0) {
-
-    // create new mem
-    VECTOR3<float>*  temp_Vertices  = new VECTOR3<float>[iVertices  + other->iVertices];
-    VECTOR3<float>*  temp_Normals   = new VECTOR3<float>[iVertices  + other->iVertices];
-    VECTOR3<int>*  temp_Triangles = new VECTOR3<int>[iTriangles + other->iTriangles];
-
-    // copy "old" data
-    memcpy(temp_Vertices, vfVertices, sizeof(VECTOR3<float>)*iVertices);
-    memcpy(temp_Normals, vfNormals, sizeof(VECTOR3<float>)*iVertices);
-    memcpy(temp_Triangles, viTriangles, sizeof(VECTOR3<int>)*iTriangles);
-
-    // append new data
-    memcpy(temp_Vertices+iVertices, other->vfVertices, sizeof(VECTOR3<float>)*other->iVertices);
-    memcpy(temp_Normals+iVertices, other->vfNormals, sizeof(VECTOR3<float>)*other->iVertices);
-    memcpy(temp_Triangles+iTriangles, other->viTriangles, sizeof(VECTOR3<int>)*other->iTriangles);
-
-    // delete "old" data
-    delete [] vfVertices;
-    delete [] vfNormals;
-    delete [] viTriangles;
-
-    // rename
-    vfVertices  = temp_Vertices;
-    vfNormals   = temp_Normals;
-    viTriangles = temp_Triangles;
-  }
-
-  // update this list's counters
-  iVertices  += other->iVertices;
-  iTriangles += other->iTriangles;
-}
-
-
-void Isosurface::Transform(const FLOATMATRIX4& matrix) {
-
-  FLOATMATRIX4 itMatrix = matrix.inverse();
-  itMatrix = itMatrix.Transpose();
-
-  for (int i = 0;i<iVertices;i++) {
-    FLOATVECTOR4  fVertex(vfVertices[i],1);
-    FLOATVECTOR4  fNormal(vfNormals[i],0);
-
-    fVertex = matrix * fVertex ;
-    fNormal  = itMatrix * fNormal ;
-
-    vfVertices[i] = fVertex.xyz() / fVertex.w;
-
-    vfNormals[i] = fNormal.xyz();
-    vfNormals[i].normalize();
   }
 }

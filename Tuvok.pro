@@ -90,6 +90,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            3rdParty/bzip2/compress.c \
            3rdParty/bzip2/decompress.c \
            3rdParty/bzip2/bzlib.c \
+           Basics/MC.cpp \           
            Basics/SystemInfo.cpp \
            Basics/SysTools.cpp \
            Basics/MathTools.cpp \
