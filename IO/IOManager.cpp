@@ -447,6 +447,78 @@ VolumeDataset* IOManager::LoadDataset(const std::string& strFilename, AbstrRende
   return m_pMasterController->MemMan()->LoadDataset(strFilename, requester);
 }
 
+void MCBrick(LargeRAWFile* pBrickFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset, void* pUserContext ) {
+    MCData* pMCData = (MCData*)pUserContext;
+
+    pMCData->PerformMC(pBrickFile, vBrickSize, vBrickOffset);
+}
+
+bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const std::string& strTargetFilename, const std::string& strTempDir) {
+  if (pSourceData->GetInfo()->GetComponentCount() != 1) {
+    m_pMasterController->DebugOut()->Error("IOManager::ExtractIsosurface","Isosurface extracion only supported for scaler volumes.");
+    return false;
+  }
+
+  LargeRAWFile targetFile(strTargetFilename);
+
+
+  string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
+  MCData* pMCData = NULL;
+
+  bool   bFloatingPoint  = pSourceData->GetInfo()->GetIsFloat();
+  bool   bSigned         = pSourceData->GetInfo()->GetIsSigned();
+  UINT64  iComponentSize = pSourceData->GetInfo()->GetBitwith();
+
+  if (bFloatingPoint) {
+    if (bSigned) {
+      switch (iComponentSize) {
+        case 32 : pMCData = new MCDataTemplate<float>(&targetFile, float(fIsovalue)); break;
+        case 64 : pMCData = new MCDataTemplate<double>(&targetFile, double(fIsovalue)); break;
+      }
+    }
+  } else {
+    if (bSigned) {
+      switch (iComponentSize) {
+        case  8 : pMCData = new MCDataTemplate<char>(&targetFile, char(fIsovalue)); break;
+        case 16 : pMCData = new MCDataTemplate<short>(&targetFile, short(fIsovalue)); break;
+        case 32 : pMCData = new MCDataTemplate<int>(&targetFile, int(fIsovalue)); break;
+        case 64 : pMCData = new MCDataTemplate<INT64>(&targetFile, INT64(fIsovalue)); break;
+      }
+    } else {
+      switch (iComponentSize) {
+        case  8 : pMCData = new MCDataTemplate<unsigned char>(&targetFile, (unsigned char)(fIsovalue)); break;
+        case 16 : pMCData = new MCDataTemplate<unsigned short>(&targetFile, (unsigned short)(fIsovalue)); break;
+        case 32 : pMCData = new MCDataTemplate<UINT32>(&targetFile, UINT32(fIsovalue)); break;
+        case 64 : pMCData = new MCDataTemplate<UINT64>(&targetFile, UINT64(fIsovalue)); break;
+      }
+    }
+  }
+
+  if (!pMCData) {
+    m_pMasterController->DebugOut()->Error("IOManager::ExtractIsosurface","Unsupported data format.");
+    return false;
+  }
+
+  targetFile.Create();
+  if (!targetFile.IsOpen()) {
+    m_pMasterController->DebugOut()->Error("IOManager::ExtractIsosurface","Unable to open target file %s.", strTargetFilename.c_str());
+    delete pMCData;
+    return false;
+  }
+
+  bool bResult = pSourceData->Export(iLODlevel, strTempFilename, false, m_pMasterController->DebugOut(), &MCBrick, (void*)pMCData );
+
+  delete pMCData;
+  if (bResult)
+    return true;
+  else {
+    remove (strTargetFilename.c_str());
+    m_pMasterController->DebugOut()->Error("IOManager::ExtractIsosurface","Export call failed.");
+    return false;
+  }
+}
+
+
 bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir) {
   // find the right converter to handle the output
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));

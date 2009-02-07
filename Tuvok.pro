@@ -15,6 +15,7 @@ unix:QMAKE_CFLAGS += -fno-strict-aliasing
 
 # Input
 HEADERS += StdTuvokDefines.h \
+           Basics/MC.h \
            Basics/Grids.h \
            Basics/SysTools.h \
            Basics/Vectors.h \

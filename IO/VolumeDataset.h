@@ -139,7 +139,8 @@ public:
   UINTVECTOR3 GetBrickSize(const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick);
   bool GetBrick(unsigned char** ppData, const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const {return m_pVolumeDataBlock->GetData(ppData, vLOD, vBrick);}
 
-  bool Export(UINT64 iLODlevel, const std::string& strTargetFilename, bool bApppend, AbstrDebugOut* pDebugOut);
+  bool Export(UINT64 iLODlevel, const std::string& strTargetFilename, bool bApppend, AbstrDebugOut* pDebugOut,
+              void (*brickFunc)(LargeRAWFile* pBrickFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset, void* pUserContext )=NULL, void* pUserContext = NULL);
 
 
 private:

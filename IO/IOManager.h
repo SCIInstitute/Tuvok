@@ -45,12 +45,42 @@
 #include "../IO/DirectoryParser.h"
 #include "../IO/UVF/UVF.h"
 #include "RAWConverter.h"
+#include "../Basics/MC.h"
 
 #define BRICKSIZE (256)
 #define BRICKOVERLAP (4)
 #define INCORESIZE (BRICKSIZE*BRICKSIZE*BRICKSIZE)
 
 class MasterController;
+
+class MCData  {
+public:  
+  MCData(LargeRAWFile* pTargetFile) : 
+    m_pTargetFile(pTargetFile)
+  {}
+
+  virtual void PerformMC(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset) = 0;
+
+protected:
+  LargeRAWFile  *m_pTargetFile;
+};
+
+
+template <class T> class MCDataTemplate  : public MCData {
+public:  
+  MCDataTemplate(LargeRAWFile* pTargetFile, T TIsoValue) :
+    MCData(pTargetFile),
+    m_TIsoValue(TIsoValue)
+  {}
+
+  virtual void PerformMC(LargeRAWFile* , const std::vector<UINT64> , const std::vector<UINT64> ) {
+    // TODO: do marching-cubes here
+  }
+
+protected:
+  T                 m_TIsoValue;
+  MarchingCubes<T>* m_pMarchingCubes;
+};
 
 class IOManager {
 public:
@@ -67,6 +97,7 @@ public:
   bool NeedsConversion(const std::string& strFilename);
 
   bool ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir);
+  bool ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const std::string& strTargetFilename, const std::string& strTempDir);
 
   void RegisterExternalConverter(AbstrConverter* pConverter);
   void RegisterFinalConverter(AbstrConverter* pConverter);

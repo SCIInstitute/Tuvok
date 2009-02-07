@@ -405,8 +405,8 @@ UINTVECTOR3 VolumeDataset::GetBrickSize(const vector<UINT64>& vLOD, const vector
   return vSize;
 }
 
-bool VolumeDataset::Export(UINT64 iLODlevel, const std::string& strTargetFilename, bool bApppend, AbstrDebugOut* pDebugOut) {
+bool VolumeDataset::Export(UINT64 iLODlevel, const std::string& strTargetFilename, bool bApppend, AbstrDebugOut* pDebugOut,
+                           void (*brickFunc)(LargeRAWFile* pBrickFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset, void* pUserContext ), void* pUserContext ) {
   vector<UINT64> vLOD; vLOD.push_back(iLODlevel);
-  return m_pVolumeDataBlock->BrickedLODToFlatData(vLOD,strTargetFilename, bApppend, pDebugOut);
+  return m_pVolumeDataBlock->BrickedLODToFlatData(vLOD,strTargetFilename, bApppend, pDebugOut, brickFunc, pUserContext );
 }
-

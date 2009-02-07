@@ -599,6 +599,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Basics\MC.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Basics\MC.inl"
+				>
+			</File>
+			<File
 				RelativePath=".\Basics\MemMappedFile.cpp"
 				>
 			</File>
