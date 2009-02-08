@@ -97,6 +97,9 @@ public:
 
       m_outStream.open(m_strTargetFile.c_str());
       if (m_outStream.fail()) return false;
+      m_outStream << "###############################################" << std::endl;
+      m_outStream << "# Mesh created via Marching Cubes by ImageVis3D" << std::endl;
+      m_outStream << "###############################################" << std::endl << std::endl;
   		m_outStream << "begin" << std::endl;
     }
 
@@ -110,7 +113,7 @@ public:
     // apply scale
   	m_pMarchingCubes->m_Isosurface->Transform(m_matScale);
 
-    m_outStream << "# Writing MC mesh for a brick of size " << vBrickSize[0] << " "  << vBrickSize[0] << " "  << vBrickSize[0] << " " << std::endl;
+    m_outStream << "# Marching Cubes mesh from a " << vBrickSize[0] << " " << vBrickSize[1] << " " << vBrickSize[2] << " brick. At " << vBrickOffset[0] << " " << vBrickOffset[1] << " " << vBrickOffset[2] << "." << std::endl;
 
 		//Saving to disk (1/3 vertices)
 		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {

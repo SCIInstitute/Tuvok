@@ -496,7 +496,7 @@ bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, 
     return false;
   }
 
-  bool bResult = pSourceData->Export(iLODlevel, strTempFilename, false, m_pMasterController->DebugOut(), &MCBrick, (void*)pMCData );
+  bool bResult = pSourceData->Export(iLODlevel, strTempFilename, false, m_pMasterController->DebugOut(), &MCBrick, (void*)pMCData, 1);
 
   if (SysTools::FileExists(strTempFilename)) remove (strTempFilename.c_str());
   delete pMCData;

@@ -122,8 +122,14 @@ public:
   const std::vector<UINT64>& GetBrickSize(const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const;
   std::vector<UINT64> GetLODDomainSize(const std::vector<UINT64>& vLOD) const;
 
-  bool BrickedLODToFlatData(const std::vector<UINT64>& vLOD, const std::string& strTargetFile, bool bAppend = false, AbstrDebugOut* pDebugOut=NULL,
-                            bool (*brickFunc)(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset, void* pUserContext ) = NULL, void* pUserContext = NULL) const;
+  bool BrickedLODToFlatData(const std::vector<UINT64>& vLOD, const std::string& strTargetFile,
+                            bool bAppend = false, AbstrDebugOut* pDebugOut=NULL,
+                            bool (*brickFunc)(LargeRAWFile* pSourceFile, 
+                                const std::vector<UINT64> vBrickSize, 
+                                const std::vector<UINT64> vBrickOffset, 
+                                void* pUserContext ) = NULL,
+                            void* pUserContext = NULL,
+                            UINT64 iOverlap=0) const;
 
   const std::vector<UINT64> GetSmallestBrickIndex() const;
   const std::vector<UINT64>& GetSmallestBrickSize() const;
@@ -179,7 +185,13 @@ protected:
                                        const std::vector<UINT64>& vBrickCount, std::vector<UINT64> vCoords, size_t iCurrentDim,
                                        UINT64 iTargetOffset, unsigned char **ppData, LargeRAWFile* pTargetFile, UINT64 iElementSize,
                                        const std::vector<UINT64>& vPrefixProd, AbstrDebugOut* pDebugOut,
-                                       bool (*brickFunc)(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset, void* pUserContext ), void* pUserContext ) const;
+                                       bool (*brickFunc)(LargeRAWFile* pSourceFile, 
+                                          const std::vector<UINT64> vBrickSize, 
+                                          const std::vector<UINT64> vBrickOffset, 
+                                          void* pUserContext ), 
+                                       void* pUserContext,
+                                       UINT64 iOverlap) const;
+
   void WriteBrickToFile(size_t iCurrentDim, UINT64& iSourceOffset, UINT64& iTargetOffset, const std::vector<UINT64>& vBrickSize,
                         const std::vector<UINT64>& vEffectiveBrickSize, unsigned char **ppData, 
                         LargeRAWFile* pTargetFile, UINT64 iElementSize, const std::vector<UINT64>& vPrefixProd,

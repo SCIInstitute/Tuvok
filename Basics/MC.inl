@@ -590,37 +590,37 @@ template <class T> int MarchingCubes<T>::MakeVertex(int iEdgeIndex, int i, int j
 
   // on the edge index decide what the edges are
   switch (iEdgeIndex) {
-    case 0: vFrom  = INTVECTOR3(i,j+1,k);  vTo  = INTVECTOR3(i+1,j+1,k);  break;
-    case 1: vFrom  = INTVECTOR3(i+1,j+1,k);  vTo  = INTVECTOR3(i+1,j,k);  break;
-    case 2: vFrom  = INTVECTOR3(i+1,j,k);  vTo  = INTVECTOR3(i,j,k);    break;
-    case 3: vFrom  = INTVECTOR3(i,j,k);    vTo  = INTVECTOR3(i,j+1,k);  break;
-    case 4: vFrom  = INTVECTOR3(i,j+1,k+1);  vTo  = INTVECTOR3(i+1,j+1,k+1);break;
-    case 5: vFrom  = INTVECTOR3(i+1,j+1,k+1);vTo  = INTVECTOR3(i+1,j,k+1);  break;
-    case 6: vFrom  = INTVECTOR3(i+1,j,k+1);  vTo  = INTVECTOR3(i,j,k+1);  break;
-    case 7: vFrom  = INTVECTOR3(i,j,k+1);  vTo  = INTVECTOR3(i,j+1,k+1);  break;
-    case 8: vFrom  = INTVECTOR3(i,j+1,k);  vTo  = INTVECTOR3(i,j+1,k+1);  break;
-    case 9: vFrom  = INTVECTOR3(i+1,j+1,k);  vTo  = INTVECTOR3(i+1,j+1,k+1);break;
-    case 10:vFrom  = INTVECTOR3(i+1,j,k);  vTo  = INTVECTOR3(i+1,j,k+1);  break;
-    case 11:vFrom  = INTVECTOR3(i,j,k);    vTo  = INTVECTOR3(i,j,k+1);  break;
+    case  0: vFrom  = INTVECTOR3(  i,j+1,  k);  vTo  = INTVECTOR3(i+1,j+1,  k); break;
+    case  1: vFrom  = INTVECTOR3(i+1,j+1,  k);  vTo  = INTVECTOR3(i+1,  j,  k); break;
+    case  2: vFrom  = INTVECTOR3(i+1,  j,  k);  vTo  = INTVECTOR3(  i,  j,  k); break;
+    case  3: vFrom  = INTVECTOR3(  i,  j,  k);  vTo  = INTVECTOR3(  i,j+1,  k); break;
+    case  4: vFrom  = INTVECTOR3(  i,j+1,k+1);  vTo  = INTVECTOR3(i+1,j+1,k+1); break;
+    case  5: vFrom  = INTVECTOR3(i+1,j+1,k+1);  vTo  = INTVECTOR3(i+1,  j,k+1); break;
+    case  6: vFrom  = INTVECTOR3(i+1,  j,k+1);  vTo  = INTVECTOR3(  i,  j,k+1); break;
+    case  7: vFrom  = INTVECTOR3(  i,  j,k+1);  vTo  = INTVECTOR3(  i,j+1,k+1); break;
+    case  8: vFrom  = INTVECTOR3(  i,j+1,  k);  vTo  = INTVECTOR3(  i,j+1,k+1); break;
+    case  9: vFrom  = INTVECTOR3(i+1,j+1,  k);  vTo  = INTVECTOR3(i+1,j+1,k+1); break;
+    case 10: vFrom  = INTVECTOR3(i+1,  j,  k);  vTo  = INTVECTOR3(i+1,  j,k+1); break;
+    case 11: vFrom  = INTVECTOR3(  i,  j,  k);  vTo  = INTVECTOR3(  i,  j,k+1); break;
   }
 
   T fFromValue = m_pTVolume[DATA_INDEX(vFrom.x, vFrom.y, vFrom.z, m_vVolSize.x, m_vVolSize.y)];
-  T fToValue   = m_pTVolume[DATA_INDEX(vTo.x, vTo.y, vTo.z, m_vVolSize.x, m_vVolSize.y)];
+  T fToValue   = m_pTVolume[DATA_INDEX(  vTo.x,   vTo.y,   vTo.z, m_vVolSize.x, m_vVolSize.y)];
 
   // determine the relative distance along edge vFrom->vTo that the isosurface vertex lies
   float d = float( fFromValue - m_TIsoValue) / float( fFromValue - fToValue );
-  if (d < EPSILON) {  d = 0.0f;} else if (d > (1 - EPSILON)) {d = 1.0f;}
+  if (d < EPSILON) d = 0.0f; else if (d > (1.0f-EPSILON)) d = 1.0f;
 
   // interpolate the vertex
-  VECTOR3<float>  vVertex = VECTOR3<float>(float(vFrom.x) + d * float(vTo.x - vFrom.x),float(vFrom.y) + d * float(vTo.y - vFrom.y),float(vFrom.z) + d * float(vTo.z - vFrom.z));
+  FLOATVECTOR3  vVertex  = FLOATVECTOR3(vFrom) + d * FLOATVECTOR3(vTo - vFrom);
 
   // now determine the gradients at the endpoints of the edge 
   // and interpolate the normal for the isosurface vertex     
-  VECTOR3<float>  vNormFrom = InterpolateNormal(fFromValue,vFrom);
-  VECTOR3<float>  vNormTo   = InterpolateNormal(fToValue,vTo);
+  FLOATVECTOR3  vNormFrom = InterpolateNormal(fFromValue,vFrom);
+  FLOATVECTOR3  vNormTo   = InterpolateNormal(  fToValue,  vTo);
 
   // interpolate the normal
-  VECTOR3<float>  vNormal = VECTOR3<float>(float(vNormFrom.x) + d * float(vNormTo.x - vNormFrom.x),
+  FLOATVECTOR3  vNormal = FLOATVECTOR3(float(vNormFrom.x) + d * float(vNormTo.x - vNormFrom.x),
                        float(vNormFrom.y) + d * float(vNormTo.y - vNormFrom.y),
                        float(vNormFrom.z) + d * float(vNormTo.z - vNormFrom.z));
   vNormal.normalize(EPSILON);
@@ -630,12 +630,12 @@ template <class T> int MarchingCubes<T>::MakeVertex(int iEdgeIndex, int i, int j
 }
 
 
-template <class T> VECTOR3<float> MarchingCubes<T>::InterpolateNormal(T fValueAtPos, INTVECTOR3 vPosition) {
+template <class T> FLOATVECTOR3 MarchingCubes<T>::InterpolateNormal(T fValueAtPos, INTVECTOR3 vPosition) {
   // the gradients are computed by central differences, except
   // on the boundaries of the dataset, where forward or backward
   // differencing is used (three point form)
 
-  VECTOR3<float> result;
+  FLOATVECTOR3 result;
 
   // the x component
   if (vPosition.x == 0) {              // left border -> forward diff
