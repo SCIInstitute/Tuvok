@@ -39,7 +39,7 @@
 #pragma once
 
 #include <string>
-#include "vectors.h"
+#include "Vectors.h"
 
 #define EPSILON 0.000001f
 #define DATA_INDEX(I, J, K, IDIM, JDIM) ((I) + ((IDIM) * (J)) + ((IDIM * JDIM) * (K)))
