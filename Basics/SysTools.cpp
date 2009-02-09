@@ -44,6 +44,8 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#include <IO/UVF/LargeRAWFile.h>
+
 #ifdef TUVOK_OS_APPLE
   #include <CoreFoundation/CoreFoundation.h>
 #endif
@@ -122,6 +124,84 @@ namespace SysTools {
       while (ss >> buf) strElements.push_back(buf);
       return strElements;
     }
+  }
+
+  bool CompareFiles(const std::string& strFirstFile, const std::string& strSecondFile, std::string* strMessage) {
+    std::wstring wstrFirstFile(strFirstFile.begin(), strFirstFile.end());
+    std::wstring wstrSecondFile(strSecondFile.begin(), strSecondFile.end());
+    if (!strMessage)
+      return CompareFiles(wstrFirstFile, wstrSecondFile, NULL);
+    else {
+      std::wstring wstrMessage;
+      bool bResult = CompareFiles(wstrFirstFile, wstrSecondFile, &wstrMessage);
+      (*strMessage) = string(wstrMessage.begin(), wstrMessage.end());
+      return bResult;
+    }
+  }
+
+  bool CompareFiles(const std::wstring& wstrFirstFile, const std::wstring& wstrSecondFile, std::wstring* wstrMessage) {
+    LargeRAWFile first(wstrFirstFile);
+    LargeRAWFile second(wstrSecondFile);
+
+    first.Open(false);
+    second.Open(false);
+    if (!first.IsOpen() || !second.IsOpen()) {
+      if (wstrMessage) (*wstrMessage) = L"Unable to open input files";
+      return false;
+    }
+
+    if (first.GetCurrentSize() != second.GetCurrentSize()) {
+      first.Close();
+      second.Close();
+      if (wstrMessage) (*wstrMessage) = L"Files differ in size";
+      return false;
+    }
+
+    UINT64 iFileSize = first.GetCurrentSize();
+    UINT64 iCopySize = min(iFileSize,BLOCK_COPY_SIZE/2);
+    unsigned char* pBuffer1 = new unsigned char[size_t(iCopySize)];
+    unsigned char* pBuffer2 = new unsigned char[size_t(iCopySize)];
+    UINT64 iCopiedSize = 0;
+    UINT64 iDiffCount = 0;
+
+    if (wstrMessage) (*wstrMessage) = L"";
+
+    do {
+      iCopySize = first.ReadRAW(pBuffer1, iCopySize);
+      second.ReadRAW(pBuffer2, iCopySize);
+
+      for (UINT64 i = 0;i<iCopySize;i++) {
+        if (pBuffer1[i] != pBuffer2[i]) {
+          if (wstrMessage) {
+            wstringstream ss;
+            if (iDiffCount == 0) { 
+              ss << L"Files differ at address " << i+iCopiedSize;
+              iDiffCount = 1;
+            } else {
+              if (++iDiffCount == 10) {  // report up to 10 differences
+                (*wstrMessage) += L" and more";
+                delete [] pBuffer1;
+                delete [] pBuffer2;
+                first.Close();
+                second.Close();
+                return false;
+              } else {
+                ss << L", " << i+iCopiedSize;
+              }              
+            }
+            (*wstrMessage) +=ss.str();
+          }
+        }
+
+      }
+      iCopiedSize += iCopySize;
+    } while (iCopySize > 0);
+
+    first.Close();
+    second.Close();
+    delete [] pBuffer1;
+    delete [] pBuffer2;
+    return iDiffCount == 0;
   }
 
   string GetFromResourceOnMac(const string& strFileName) {
