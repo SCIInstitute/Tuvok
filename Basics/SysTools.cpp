@@ -144,9 +144,13 @@ namespace SysTools {
     LargeRAWFile second(wstrSecondFile);
 
     first.Open(false);
+    if (!first.IsOpen()) {
+      if (wstrMessage) (*wstrMessage) = L"Unable to open input file " + wstrFirstFile;
+      return false;
+    }
     second.Open(false);
-    if (!first.IsOpen() || !second.IsOpen()) {
-      if (wstrMessage) (*wstrMessage) = L"Unable to open input files";
+    if (!second.IsOpen()) {
+      if (wstrMessage) (*wstrMessage) = L"Unable to open input file " + wstrSecondFile;
       return false;
     }
 
