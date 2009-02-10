@@ -38,6 +38,8 @@
 #include "Scripting.h"
 #include <Controller/MasterController.h>
 #include <Basics/SysTools.h>
+#include <QtCore/QTime>
+#include <QtCore/QDate>
 
 #include <sstream>
 #include <limits>
@@ -177,6 +179,9 @@ void Scripting::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "help", "", "show all commands");
   pScriptEngine->RegisterCommand(this, "execute", "filename", "run the script saved as 'filename'");
   pScriptEngine->RegisterCommand(this, "echo", "on/off", "turn feedback on succesfull command execution on or off");
+  pScriptEngine->RegisterCommand(this, "time", "","print out the current time");
+  pScriptEngine->RegisterCommand(this, "date", "","print out the current date");
+  pScriptEngine->RegisterCommand(this, "write", "test","print out 'text'");
 }
 
 
@@ -204,6 +209,20 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
 
       m_pMasterController->DebugOut()->printf("\"%s\" %s: %s", m_ScriptableList[i]->m_strCommand.c_str(), strParams.c_str(), m_ScriptableList[i]->m_strDescription.c_str());
     }
+    return true;
+  } else
+  if (strCommand == "time") { 
+    string strTime(QTime::currentTime().toString().toAscii()); 
+    m_pMasterController->DebugOut()->printf(strTime.c_str());
+    return true;
+  } else 
+  if (strCommand == "date") { 
+    string strDate(QDate::currentDate().toString().toAscii()); 
+    m_pMasterController->DebugOut()->printf(strDate.c_str());
+    return true;
+  } else 
+  if (strCommand == "write") { 
+    m_pMasterController->DebugOut()->printf(strParams[0].c_str());
     return true;
   }
 
