@@ -58,7 +58,7 @@ ScriptableListElement::ScriptableListElement(Scriptable* source, const std::stri
   m_iMinParam = 0;
 
   bool bFoundOptional = false;
-  for (UINT32 i = 0;i<m_iMaxParam;i++) {
+  for (UINT32 i = 0;i<m_vParameters.size();i++) {
     if (m_vParameters[i] == "...") {
       m_iMaxParam = numeric_limits<UINT32>::max();
     } else {
@@ -161,7 +161,7 @@ bool Scripting::ParseFile(const std::string& strFilename) {
       if (line[0] == '#') continue;       // skip comments
 
       if (!ParseLine(line)) {
-        m_pMasterController->DebugOut()->Error("Scripting::ParseFile:","Error reading line %i in file %s (%s)", iLine, strFilename.c_str(), line.c_str());
+        m_pMasterController->DebugOut()->Error("Scripting::ParseFile:","Error executing line %i in file %s (%s)", iLine, strFilename.c_str(), line.c_str());
         fileData.close();
         return false;
       }
@@ -198,12 +198,14 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
     m_pMasterController->DebugOut()->printf("Command Listing:");
     for (size_t i = 0;i<m_ScriptableList.size();i++) {
       string strParams = "";
-      for (size_t j = 0;j<m_ScriptableList[i]->m_iMinParam;j++) {
-        strParams = strParams + m_ScriptableList[i]->m_vParameters[j];
-        if (j != m_ScriptableList[i]->m_vParameters.size()-1) strParams = strParams + " ";
-      }
-      for (size_t j = m_ScriptableList[i]->m_iMinParam;j<m_ScriptableList[i]->m_iMaxParam;j++) {
-        strParams = strParams + "["+m_ScriptableList[i]->m_vParameters[j]+"]";
+      UINT32 iMin = m_ScriptableList[i]->m_iMinParam;
+      for (size_t j = 0;j<m_ScriptableList[i]->m_vParameters.size();j++) {
+        if (j < iMin) {
+          if (m_ScriptableList[i]->m_vParameters[j] == "...") iMin++;
+          strParams = strParams + m_ScriptableList[i]->m_vParameters[j];
+        } else {
+          strParams = strParams + "["+m_ScriptableList[i]->m_vParameters[j]+"]";
+        }
         if (j != m_ScriptableList[i]->m_vParameters.size()-1) strParams = strParams + " ";
       }
 
