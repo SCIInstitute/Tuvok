@@ -149,6 +149,28 @@ static bool ComputeIntersection(float z,
   return true;
 }
 
+// Calculates the intersection point of a line segment lb->la which crosses the
+// plane with normal `n'.
+static bool intersection(const POS3TEX3_VERTEX &la,
+                         const POS3TEX3_VERTEX &lb,
+                         const FLOATVECTOR3 &n,
+                         POS3TEX3_VERTEX &hit)
+{
+  const FLOATVECTOR3 &va = la.m_vPos;
+  const FLOATVECTOR3 &vb = lb.m_vPos;
+  const float denom = n ^ (va - vb);
+  if(EpsilonEqual(denom, 0)) {
+    return false;
+  }
+  const float D = 0;
+  const float t = ((n ^ va) + D) / denom;
+
+  hit.m_vPos = va + (t*(vb - va));
+  hit.m_vTex = la.m_vTex + t*(lb.m_vTex - la.m_vTex);
+
+  return true;
+}
+
 // Functor to identify the point with the lowest `y' coordinate.
 struct vertex_min : public std::binary_function<POS3TEX3_VERTEX,
                                                 POS3TEX3_VERTEX,
