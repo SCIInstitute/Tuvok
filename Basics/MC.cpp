@@ -36,6 +36,7 @@
 //!    Copyright (C) 2008 SCI Institute
 
 
+#include <cstring>
 #include <sstream>
 #include <iomanip>
 #include "MC.h"
