@@ -217,6 +217,12 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   FLOATMATRIX4 maBricktModelView = maBricktTrans * m_matModelView[iStereoID];
   m_mProjection[iStereoID].setProjection();
   maBricktModelView.setModelview();
+
+  m_SBVRGeogen.DisableClipPlane();
+  if(m_bClipPlaneOn) {
+    m_SBVRGeogen.EnableClipPlane();
+    m_SBVRGeogen.SetClipPlane(m_ClipPlane.normal, m_ClipPlane.d);
+  }
   m_SBVRGeogen.SetTransformation(maBricktModelView, true);
 
   if (! m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
