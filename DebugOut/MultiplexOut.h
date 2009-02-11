@@ -45,12 +45,12 @@
 #include "AbstrDebugOut.h"
 #include <vector>
 
-class MultiplexOut : public AbstrDebugOut{
+class MultiplexOut : public AbstrDebugOut {
   public:
     MultiplexOut() {}
     ~MultiplexOut();
 
-    void AddDebugOut(AbstrDebugOut* pDebugger, bool bDeleteOnExit);
+    void AddDebugOut(AbstrDebugOut* pDebugger);
     void RemoveDebugOut(AbstrDebugOut* pDebugger);
 
     virtual void printf(const char* format, ...);
@@ -63,9 +63,10 @@ class MultiplexOut : public AbstrDebugOut{
     virtual void SetShowErrors(bool bShowErrors);
     virtual void SetShowOther(bool bShowOther);
 
+    size_t size() const { return m_vpDebugger.size(); }
+
   private:
     std::vector<AbstrDebugOut*> m_vpDebugger;
-    std::vector<bool>           m_vbDeleteOnExit;
 };
 
 #endif // MULTIPLEXOUT_H

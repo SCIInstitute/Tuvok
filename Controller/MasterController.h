@@ -47,7 +47,7 @@
 #include "../IO/TransferFunction1D.h"
 #include "../IO/TransferFunction2D.h"
 
-#include "../DebugOut/AbstrDebugOut.h"
+#include "../DebugOut/MultiplexOut.h"
 #include "../DebugOut/ConsoleOut.h"
 
 #include "../Renderer/GPUMemMan/GPUMemMan.h"
@@ -83,7 +83,7 @@ public:
   };
 
   /// Defaults to using a Console-based debug output stream.
-  MasterController(AbstrDebugOut* pDebugOut=NULL);
+  MasterController();
   virtual ~MasterController();
 
   /// Create a new renderer.
@@ -91,21 +91,17 @@ public:
   /// Indicate that a renderer is no longer needed.
   void ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer);
 
-  /// Connects a new debug output stream.
-  /// If necessary, the old stream is deallocated.
+  /// Add another debug output
   /// \param debugOut      the new stream
-  /// \param bDeleteOnExit ownership information
-  void SetDebugOut(AbstrDebugOut* debugOut, bool bDeleteOnExit = false);
+  void AddDebugOut(AbstrDebugOut* debugOut);
+
   /// Removes the given debug output stream.
   /// The stream must be the currently connected/used one.
   void RemoveDebugOut(AbstrDebugOut* debugOut);
 
   /// Access the currently-active debug stream.
-  AbstrDebugOut* DebugOut() { return m_pDebugOut; }
-  /// Whether this controller owns the debug stream.
-  bool           DoDeleteDebugOut() {return m_bDeleteDebugOutOnExit;}
-  /// set whether this controller owns the debug stream.
-  void           SetDeleteDebugOut(bool bDeleteDebugOutOnExit) {m_bDeleteDebugOutOnExit = bDeleteDebugOutOnExit;}
+  AbstrDebugOut* DebugOut();
+
   /// The GPU memory manager moves data from CPU to GPU memory, and
   /// removes data from GPU memory.
   GPUMemMan*     MemMan()   {return m_pGPUMemMan;}
@@ -131,7 +127,8 @@ private:
   SystemInfo*    m_pSystemInfo;
   GPUMemMan*     m_pGPUMemMan;
   IOManager*     m_pIOManager;
-  AbstrDebugOut* m_pDebugOut;
+  MultiplexOut   m_DebugOut;
+  ConsoleOut     m_DefaultOut;
   Scripting*     m_pScriptEngine;
   bool           m_bDeleteDebugOutOnExit;
 

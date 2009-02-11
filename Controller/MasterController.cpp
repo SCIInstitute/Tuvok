@@ -40,9 +40,7 @@
 #include "../DebugOut/MultiplexOut.h"
 
 
-MasterController::MasterController(AbstrDebugOut* pDebugOut) :
-  m_pDebugOut(pDebugOut == NULL ? new ConsoleOut() : pDebugOut),
-  m_bDeleteDebugOutOnExit(true)
+MasterController::MasterController()
 {
   m_pSystemInfo   = new SystemInfo();
   m_pIOManager    = new IOManager(this);
@@ -53,7 +51,6 @@ MasterController::MasterController(AbstrDebugOut* pDebugOut) :
 
 
 MasterController::~MasterController() {
-
   for (AbstrRendererListIter i = m_vVolumeRenderer.begin();
        i<m_vVolumeRenderer.end();
        ++i)
@@ -64,50 +61,34 @@ MasterController::~MasterController() {
   delete m_pSystemInfo;
   delete m_pIOManager;
   delete m_pGPUMemMan;
-
-  if (m_bDeleteDebugOutOnExit) delete m_pDebugOut;
 }
 
 
-void MasterController::SetDebugOut(AbstrDebugOut* debugOut,
-           bool bDeleteOnExit) {
+void MasterController::AddDebugOut(AbstrDebugOut* debugOut) {
   if (debugOut != NULL) {
-    m_pDebugOut->Message("MasterController::SetDebugOut",
+    m_DebugOut.Message("MasterController::SetDebugOut",
        "Disconnecting from this debug out");
-    if (m_bDeleteDebugOutOnExit )
-      delete m_pDebugOut;
 
-    m_bDeleteDebugOutOnExit = bDeleteOnExit;
+    m_DebugOut.AddDebugOut(debugOut);
 
-    m_pDebugOut = debugOut;
-    m_pDebugOut->Message("MasterController::SetDebugOut",
-       "Connected to this debug out");
-
+    debugOut->Message("MasterController::SetDebugOut",
+                      "Connected to this debug out");
   } else {
-    m_pDebugOut->Warning("MasterController::SetDebugOut",
+    m_DebugOut.Warning("MasterController::SetDebugOut",
        "New debug is a NULL pointer, keeping old debug out");
   }
 }
 
 
 void MasterController::RemoveDebugOut(AbstrDebugOut* debugOut) {
+  m_DebugOut.RemoveDebugOut(debugOut);
+}
 
-  if (debugOut == m_pDebugOut) {
-    m_pDebugOut->Message("MasterController::RemoveDebugOut",
-       "Disconnecting from this debug out");
-    if (m_bDeleteDebugOutOnExit)
-      delete m_pDebugOut;
-
-    m_pDebugOut = new ConsoleOut();
-
-    m_bDeleteDebugOutOnExit = true;
-    m_pDebugOut->Message("MasterController::RemoveDebugOut",
-       "Connected to this debug out");
-
-  } else {
-    m_pDebugOut->Message("MasterController::RemoveDebugOut",
-       "Not Connected the debug out in question (anymore), doing nothing");
-  }
+/// Access the currently-active debug stream.
+AbstrDebugOut* MasterController::DebugOut()
+{
+  return (m_DebugOut.size() == 0) ? static_cast<AbstrDebugOut*>(&m_DefaultOut)
+                                  : static_cast<AbstrDebugOut*>(&m_DebugOut);
 }
 
 
@@ -117,35 +98,35 @@ RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOf
   switch (eRendererType) {
 
   case OPENGL_SBVR :
-    m_pDebugOut->Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=OpenGL, Method=Slice Based Volume Rendering)");
+    m_DebugOut.Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=OpenGL, Method=Slice Based Volume Rendering)");
     m_vVolumeRenderer.push_back(new GLSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 
   case OPENGL_RAYCASTER :
-    m_pDebugOut->Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=OpenGL, Method=Raycaster)");
+    m_DebugOut.Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=OpenGL, Method=Raycaster)");
     m_vVolumeRenderer.push_back(new GLRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
   case DIRECTX_SBVR : 
-    m_pDebugOut->Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=DirectX, Method=SBVR)");
+    m_DebugOut.Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=DirectX, Method=SBVR)");
     m_vVolumeRenderer.push_back(new DXSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 
   case DIRECTX_RAYCASTER :
-    m_pDebugOut->Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=DirectX, Method=Raycaster)");
+    m_DebugOut.Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=DirectX, Method=Raycaster)");
     m_vVolumeRenderer.push_back(new DXRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 #else
   case DIRECTX_RAYCASTER :
   case DIRECTX_SBVR : 
-    m_pDebugOut->Error("MasterController::RequestNewVolumerenderer","DirectX 10 renderer not yet implemented. Please select OpenGL as the render API in the settings dialog.");
+    m_DebugOut.Error("MasterController::RequestNewVolumerenderer","DirectX 10 renderer not yet implemented. Please select OpenGL as the render API in the settings dialog.");
     return NULL;
 #endif
 
   default :
-    m_pDebugOut->Error("MasterController::RequestNewVolumerenderer","Unsupported Volume renderer requested");
+    m_DebugOut.Error("MasterController::RequestNewVolumerenderer","Unsupported Volume renderer requested");
     return NULL;
   };
 }
@@ -158,7 +139,7 @@ void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
        ++i) {
 
     if (*i == pVolumeRenderer) {
-      m_pDebugOut->Message("MasterController::ReleaseVolumerenderer",
+      m_DebugOut.Message("MasterController::ReleaseVolumerenderer",
          "Deleting volume renderer");
       delete pVolumeRenderer;
 
@@ -167,7 +148,7 @@ void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
     }
   }
 
-  m_pDebugOut->Warning("MasterController::ReleaseVolumerenderer",
+  m_DebugOut.Warning("MasterController::ReleaseVolumerenderer",
            "requested volume renderer not found");
 }
 
@@ -194,46 +175,46 @@ void MasterController::RegisterCalls(Scripting* pScriptEngine) {
 bool MasterController::Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage) {
   strMessage = "";
   if (strCommand == "seterrorlog") {
-    m_pDebugOut->SetListRecordingErrors(strParams[0] == "on");
-    if (m_pDebugOut->GetListRecordingErrors()) m_pDebugOut->printf("current state: true"); else m_pDebugOut->printf("current state: false");
+    m_DebugOut.SetListRecordingErrors(strParams[0] == "on");
+    if (m_DebugOut.GetListRecordingErrors()) m_DebugOut.printf("current state: true"); else m_DebugOut.printf("current state: false");
     return true;
   }
   if (strCommand == "setwarninglog") {
-    m_pDebugOut->SetListRecordingWarnings(strParams[0] == "on");
-    if (m_pDebugOut->GetListRecordingWarnings()) m_pDebugOut->printf("current state: true"); else m_pDebugOut->printf("current state: false");
+    m_DebugOut.SetListRecordingWarnings(strParams[0] == "on");
+    if (m_DebugOut.GetListRecordingWarnings()) m_DebugOut.printf("current state: true"); else m_DebugOut.printf("current state: false");
     return true;
   }
   if (strCommand == "setmessagelog") {
-    m_pDebugOut->SetListRecordingMessages(strParams[0] == "on");
-    if (m_pDebugOut->GetListRecordingMessages()) m_pDebugOut->printf("current state: true"); else m_pDebugOut->printf("current state: false");
+    m_DebugOut.SetListRecordingMessages(strParams[0] == "on");
+    if (m_DebugOut.GetListRecordingMessages()) m_DebugOut.printf("current state: true"); else m_DebugOut.printf("current state: false");
     return true;
   }
   if (strCommand == "printerrorlog") {
-    m_pDebugOut->PrintErrorList();
+    m_DebugOut.PrintErrorList();
     return true;
   }
   if (strCommand == "printwarninglog") {
-    m_pDebugOut->PrintWarningList();
+    m_DebugOut.PrintWarningList();
     return true;
   }
   if (strCommand == "printmessagelog") {
-    m_pDebugOut->PrintMessageList();
+    m_DebugOut.PrintMessageList();
     return true;
   }
   if (strCommand == "clearerrorlog") {
-    m_pDebugOut->ClearErrorList();
+    m_DebugOut.ClearErrorList();
     return true;
   }
   if (strCommand == "clearwarninglog") {
-    m_pDebugOut->ClearWarningList();
+    m_DebugOut.ClearWarningList();
     return true;
   }
   if (strCommand == "clearmessagelog") {
-    m_pDebugOut->ClearMessageList();
+    m_DebugOut.ClearMessageList();
     return true;
   }
   if (strCommand == "toggleoutput") {
-    m_pDebugOut->SetOutput(strParams[0] == "on",
+    m_DebugOut.SetOutput(strParams[0] == "on",
                            strParams[1] == "on",
                            strParams[2] == "on",
                            strParams[3] == "on");
@@ -241,23 +222,13 @@ bool MasterController::Execute(const std::string& strCommand, const std::vector<
   }
   if (strCommand == "fileoutput") {
     TextfileOut* textout = new TextfileOut(strParams[0]);
+    textout->SetShowErrors(m_DebugOut.ShowErrors());
+    textout->SetShowWarnings(m_DebugOut.ShowWarnings());
+    textout->SetShowMessages(m_DebugOut.ShowMessages());
+    textout->SetShowOther(m_DebugOut.ShowOther());
+
+    m_DebugOut.AddDebugOut(textout);
   
-    textout->SetShowErrors(m_pDebugOut->ShowErrors());
-    textout->SetShowWarnings(m_pDebugOut->ShowWarnings());
-    textout->SetShowMessages(m_pDebugOut->ShowMessages());
-    textout->SetShowOther(m_pDebugOut->ShowOther());
-
-    AbstrDebugOut* pOldDebug       = DebugOut();
-    bool           bDeleteOldDebug = DoDeleteDebugOut();
-    SetDeleteDebugOut(false);
-
-    MultiplexOut* pMultiOut = new MultiplexOut();
-    pMultiOut->SetOutput(true,true,true,true);
-    SetDebugOut(pMultiOut, true);
-
-    pMultiOut->AddDebugOut(textout, true);
-    pMultiOut->AddDebugOut(pOldDebug, bDeleteOldDebug);
-
     return true;
   }
 
