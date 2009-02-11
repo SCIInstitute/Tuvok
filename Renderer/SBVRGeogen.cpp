@@ -153,7 +153,7 @@ static bool ComputeIntersection(float z,
 // plane with normal `n'.
 static bool intersection(const POS3TEX3_VERTEX &la,
                          const POS3TEX3_VERTEX &lb,
-                         const FLOATVECTOR3 &n,
+                         const FLOATVECTOR3 &n, const float D,
                          POS3TEX3_VERTEX &hit)
 {
   const FLOATVECTOR3 &va = la.m_vPos;
@@ -162,7 +162,6 @@ static bool intersection(const POS3TEX3_VERTEX &la,
   if(EpsilonEqual(denom, 0)) {
     return false;
   }
-  const float D = 0;
   const float t = ((n ^ va) + D) / denom;
 
   hit.m_vPos = va + (t*(vb - va));
@@ -210,14 +209,15 @@ void SBVRGeogen::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
 static std::vector<POS3TEX3_VERTEX> SplitTriangle(POS3TEX3_VERTEX a,
                                                   POS3TEX3_VERTEX b,
                                                   POS3TEX3_VERTEX c,
-                                                  const VECTOR3<float> &normal)
+                                                  const VECTOR3<float> &normal,
+                                                  const float D)
 {
   std::vector<POS3TEX3_VERTEX> out;
   // We'll always throw away at least one of the generated triangles.
   out.reserve(2);
-  float fa = normal ^ a.m_vPos;
-  float fb = normal ^ b.m_vPos;
-  float fc = normal ^ c.m_vPos;
+  float fa = (normal ^ a.m_vPos) + D;
+  float fb = (normal ^ b.m_vPos) + D;
+  float fc = (normal ^ c.m_vPos) + D;
   if(fabs(fa) < (2 * std::numeric_limits<float>::epsilon())) { fa = 0; }
   if(fabs(fb) < (2 * std::numeric_limits<float>::epsilon())) { fb = 0; }
   if(fabs(fc) < (2 * std::numeric_limits<float>::epsilon())) { fc = 0; }
@@ -247,8 +247,8 @@ static std::vector<POS3TEX3_VERTEX> SplitTriangle(POS3TEX3_VERTEX a,
 
   // Find the intersection points.
   POS3TEX3_VERTEX A, B;
-  const bool isect_a = intersection(a,c, normal, A);
-  const bool isect_b = intersection(b,c, normal, B);
+  const bool isect_a = intersection(a,c, normal,D, A);
+  const bool isect_b = intersection(b,c, normal,D, B);
   assert(isect_a); // lines must cross plane
   assert(isect_b);
 
@@ -263,7 +263,7 @@ static std::vector<POS3TEX3_VERTEX> SplitTriangle(POS3TEX3_VERTEX a,
 
 static std::vector<POS3TEX3_VERTEX>
 ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
-              const VECTOR3<float> &normal)
+              const VECTOR3<float> &normal, const float D)
 {
   std::vector<POS3TEX3_VERTEX> out;
   assert(!in.empty() && in.size() > 2);
@@ -275,9 +275,9 @@ ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
     const POS3TEX3_VERTEX &a = (*iter);
     const POS3TEX3_VERTEX &b = (*(iter+1));
     const POS3TEX3_VERTEX &c = (*(iter+2));
-    float fa = normal ^ a.m_vPos;
-    float fb = normal ^ b.m_vPos;
-    float fc = normal ^ c.m_vPos;
+    float fa = (normal ^ a.m_vPos) + D;
+    float fb = (normal ^ b.m_vPos) + D;
+    float fc = (normal ^ c.m_vPos) + D;
     if(fabs(fa) < (2 * std::numeric_limits<float>::epsilon())) { fa = 0; }
     if(fabs(fb) < (2 * std::numeric_limits<float>::epsilon())) { fb = 0; }
     if(fabs(fc) < (2 * std::numeric_limits<float>::epsilon())) { fc = 0; }
@@ -288,8 +288,8 @@ ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
       out.push_back(b);
       out.push_back(c);
     } else { // triangle spans plane -- must be split.
-      const std::vector<POS3TEX3_VERTEX>& tris = SplitTriangle(a,b,c, normal);
-
+      const std::vector<POS3TEX3_VERTEX>& tris = SplitTriangle(a,b,c,
+                                                               normal,D);
       assert(!tris.empty());
       assert(tris.size() <= 6); // vector is actually of points, not tris.
 
