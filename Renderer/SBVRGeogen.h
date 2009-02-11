@@ -84,6 +84,12 @@ public:
     m_iMinLayers = iMinLayers;
     ComputeGeometry();
   }
+  void DisableClipPlane() { m_bClipPlaneEnabled = false; }
+  void EnableClipPlane() { m_bClipPlaneEnabled = true; }
+  void SetClipPlane(const FLOATVECTOR3& normal, float d) {
+    m_ClipPlane.normal = normal;
+    m_ClipPlane.d = d;
+  }
 
   std::vector<POS3TEX3_VERTEX> m_vSliceTriangles;
 
@@ -104,6 +110,13 @@ protected:
   FLOATVECTOR3      m_vGlobalAspect;
   UINTVECTOR3       m_vGlobalSize;
   UINTVECTOR3       m_vLODSize;
+
+  struct clip_plane {
+    FLOATVECTOR3 normal;
+    float d;
+  };
+  struct clip_plane m_ClipPlane;
+  bool              m_bClipPlaneEnabled;
 
   void InitBBOX();
   bool ComputeLayerGeometry(float fDepth);

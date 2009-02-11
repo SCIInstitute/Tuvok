@@ -56,7 +56,8 @@ SBVRGeogen::SBVRGeogen(void) :
   m_iMinLayers(100),
   m_vGlobalAspect(1,1,1),
   m_vGlobalSize(1,1,1),
-  m_vLODSize(1,1,1)
+  m_vLODSize(1,1,1),
+  m_bClipPlaneEnabled(false)
 {
   m_pfBBOXStaticVertex[0] = FLOATVECTOR3(-0.5, 0.5,-0.5);
   m_pfBBOXStaticVertex[1] = FLOATVECTOR3( 0.5, 0.5,-0.5);
@@ -75,6 +76,9 @@ SBVRGeogen::SBVRGeogen(void) :
   m_pfBBOXVertex[5] = FLOATVECTOR3(0,0,0);
   m_pfBBOXVertex[6] = FLOATVECTOR3(0,0,0);
   m_pfBBOXVertex[7] = FLOATVECTOR3(0,0,0);
+
+  m_ClipPlane.normal = FLOATVECTOR3(-1,0,0);
+  m_ClipPlane.d = 0;
 }
 
 SBVRGeogen::~SBVRGeogen(void)
@@ -358,6 +362,11 @@ void SBVRGeogen::ComputeGeometry() {
   float fLayerDistance = GetLayerDistance();
 
   while (ComputeLayerGeometry(fDepth)) fDepth += fLayerDistance;
+
+  if(m_bClipPlaneEnabled) {
+    m_vSliceTriangles = ClipTriangles(m_vSliceTriangles, m_ClipPlane.normal,
+                                      m_ClipPlane.d);
+  }
 }
 
 void SBVRGeogen::SetVolumeData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize) {
