@@ -226,6 +226,11 @@ class AbstrRenderer {
 
     virtual void SetRotation(const FLOATMATRIX4& mRotation);
     virtual void SetTranslation(const FLOATMATRIX4& mTranslation);
+    void SetClipPlane(const FLOATVECTOR3& normal, float D);
+    void EnableClipPlane();
+    void DisableClipPlane();
+
+    /// slice parameter for slice views.
     virtual void SetSliceDepth(EWindowMode eWindow, UINT64 fSliceDepth);
     virtual UINT64 GetSliceDepth(EWindowMode eWindow);
 
@@ -379,6 +384,13 @@ class AbstrRenderer {
     FLOATMATRIX4        m_mView[2];
     FLOATMATRIX4        m_matModelView[2];
     std::vector<std::string> m_vShaderSearchDirs;
+
+    struct clip_plane {
+      FLOATVECTOR3 normal;
+      float d;
+    };
+    struct clip_plane   m_ClipPlane;
+    bool                m_bClipPlaneOn;
 
     virtual void        ScheduleRecompose();
     void                ComputeMinLODForCurrentView();

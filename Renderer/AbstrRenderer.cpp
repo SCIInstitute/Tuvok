@@ -92,7 +92,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bUseOnlyPowerOfTwo(bUseOnlyPowerOfTwo),
   m_bDownSampleTo8Bits(bDownSampleTo8Bits),
   m_bDisableBorder(bDisableBorder),
-  m_bAvoidSeperateCompositing(true)
+  m_bAvoidSeperateCompositing(true),
+  m_bClipPlaneOn(false)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
@@ -128,6 +129,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_vShaderSearchDirs.push_back("Shaders");
 
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
+
+  m_ClipPlane.normal = FLOATVECTOR3(-1,0,0);
+  m_ClipPlane.d = 0.0;
 }
 
 bool AbstrRenderer::Initialize() {
@@ -329,6 +333,30 @@ void AbstrRenderer::SetRotation(const FLOATMATRIX4& mRotation) {
 void AbstrRenderer::SetTranslation(const FLOATMATRIX4& mTranslation) {
   m_mTranslation = mTranslation;
   ScheduleWindowRedraw(WM_3D);
+}
+
+void AbstrRenderer::SetClipPlane(const FLOATVECTOR3& normal, float D)
+{
+  m_ClipPlane.normal = normal;
+  m_ClipPlane.d = D;
+  ScheduleWindowRedraw(WM_3D);
+}
+
+void AbstrRenderer::EnableClipPlane() {
+  m_pMasterController->DebugOut()->Error("AbstrRenderer::EnableClipPlane",
+                                         "clip plane on");
+  if(!m_bClipPlaneOn) {
+    m_bClipPlaneOn = true;
+    ScheduleWindowRedraw(WM_3D);
+  }
+}
+void AbstrRenderer::DisableClipPlane() {
+  m_pMasterController->DebugOut()->Error("AbstrRenderer::DisableClipPlane",
+                                         "clip plane off");
+  if(m_bClipPlaneOn) {
+    m_bClipPlaneOn = false;
+    ScheduleWindowRedraw(WM_3D);
+  }
 }
 
 void AbstrRenderer::SetSliceDepth(EWindowMode eWindow, UINT64 iSliceDepth) {
