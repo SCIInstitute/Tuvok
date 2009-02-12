@@ -93,7 +93,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bDownSampleTo8Bits(bDownSampleTo8Bits),
   m_bDisableBorder(bDisableBorder),
   m_bAvoidSeperateCompositing(true),
-  m_ClipPlane(-1,0,0,0),
+  m_ClipPlane(0,0,1,0),
   m_bClipPlaneOn(false)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
