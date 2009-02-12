@@ -388,6 +388,7 @@ public:
   VECTOR4<T> operator - ( const VECTOR4<T>& other ) const {return VECTOR4<T>(x-other.x,y-other.y,z-other.z,w-other.w);}
   VECTOR4<T> operator * ( const VECTOR4<T>& other ) const {return VECTOR4<T>(x*other.x,y*other.y,z*other.z,w*other.w);}
   VECTOR4<T> operator / ( const VECTOR4<T>& other ) const {return VECTOR4<T>(x/other.x,y/other.y,z/other.z,w/other.w);}
+  T operator ^ ( const VECTOR4<T>& other ) const {return T(x*other.x+y*other.y+z*other.z+w*other.w);} // dot product
 
   // binary operators with a matrix
   VECTOR4<T> operator * ( const MATRIX4<T>& matrix ) const {
@@ -518,6 +519,7 @@ typedef VECTOR2<double> DOUBLEVECTOR2;
 
 
 template <class T> class PLANE : public VECTOR4<T> {
+public:
   PLANE<T>(): VECTOR4<T>(0,0,0,0) {}
   template <class S> explicit PLANE<T>( const std::vector<S>& v ) {
     this->x = T(v.size()>0 ? v[0] : 0);
@@ -540,7 +542,7 @@ template <class T> class PLANE : public VECTOR4<T> {
   void transform(const MATRIX4<T> &M) {
     const VECTOR4<T> u = VECTOR4<T>(this->x,this->y,this->z,static_cast<T>(0));
     const VECTOR4<T> D = (*this) * this->w;
-    const VECTOR4<T> A = (-D.x*u.x, -D.y*u.y, -D.z*u.z, static_cast<T>(1));
+    const VECTOR4<T> A(-D.x*u.x, -D.y*u.y, -D.z*u.z, static_cast<T>(1));
     const VECTOR4<T> B = A * M;
     const VECTOR4<T> V = u * M;
     const T vlen = sqrt(V.x*V.x + V.y*V.y + V.z*V.z);
@@ -548,7 +550,7 @@ template <class T> class PLANE : public VECTOR4<T> {
     this->x = S * V.x;
     this->y = S * V.y;
     this->z = S * V.z;
-    this->w = -S * (V * B);
+    this->w = -S * (V ^ B);
   }
   void normalize() {
     const T x = this->x;
