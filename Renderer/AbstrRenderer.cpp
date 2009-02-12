@@ -333,9 +333,10 @@ void AbstrRenderer::SetTranslation(const FLOATMATRIX4& mTranslation) {
   ScheduleWindowRedraw(WM_3D);
 }
 
-void AbstrRenderer::SetClipPlane(const FLOATVECTOR3& normal, float D)
+void AbstrRenderer::SetClipPlane(const PLANE<float> plane)
 {
-  m_ClipPlane = PLANE<float>(normal.x,normal.y,normal.z, D);
+  if(plane == m_ClipPlane) { return; }
+  m_ClipPlane = plane;
   ScheduleWindowRedraw(WM_3D);
 }
 
