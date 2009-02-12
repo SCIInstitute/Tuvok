@@ -1362,7 +1362,8 @@ public:
   }
 
   void transformIT(const MATRIX4<T> &M) {
-    (*this) = (*this) * M;
+    (*this) = FLOATVECTOR4::operator*(M);
+    normalize();
   }
 
   void normalize() {
