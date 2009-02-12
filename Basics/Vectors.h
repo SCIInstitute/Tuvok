@@ -539,19 +539,16 @@ public:
     VECTOR4<T>(_x,_y,_z,_w) {}
   PLANE<T>(const T* vec) : VECTOR4<T>(vec) {}
 
-  void transform(const MATRIX4<T> &M) {
-    const VECTOR4<T> u = VECTOR4<T>(this->x,this->y,this->z,static_cast<T>(0));
-    const VECTOR4<T> D = (*this) * this->w;
-    const VECTOR4<T> A(-D.x*u.x, -D.y*u.y, -D.z*u.z, static_cast<T>(1));
-    const VECTOR4<T> B = A * M;
-    const VECTOR4<T> V = u * M;
-    const T vlen = sqrt(V.x*V.x + V.y*V.y + V.z*V.z);
-    const T S(1/vlen);
-    this->x = S * V.x;
-    this->y = S * V.y;
-    this->z = S * V.z;
-    this->w = -S * (V ^ B);
+  void Transform(const MATRIX4<T> &m) {
+    FLOATMATRIX4 mIT(m.inverse());
+    mIT = mIT.Transpose();
+    TransformIT(mIT);
   }
+
+  void TransformIT(const MATRIX4<T> &M) {
+    (*this) = (*this) * M;
+  }
+
   void normalize() {
     const T x = this->x;
     const T y = this->y;
