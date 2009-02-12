@@ -77,8 +77,7 @@ SBVRGeogen::SBVRGeogen(void) :
   m_pfBBOXVertex[6] = FLOATVECTOR3(0,0,0);
   m_pfBBOXVertex[7] = FLOATVECTOR3(0,0,0);
 
-  m_ClipPlane.normal = FLOATVECTOR3(-1,0,0);
-  m_ClipPlane.d = 0;
+  m_ClipPlane = PLANE<float>(-1,0,0,0);
 }
 
 SBVRGeogen::~SBVRGeogen(void)
@@ -364,8 +363,9 @@ void SBVRGeogen::ComputeGeometry() {
   while (ComputeLayerGeometry(fDepth)) fDepth += fLayerDistance;
 
   if(m_bClipPlaneEnabled) {
-    m_vSliceTriangles = ClipTriangles(m_vSliceTriangles, m_ClipPlane.normal,
-                                      m_ClipPlane.d);
+    const FLOATVECTOR3 normal(m_ClipPlane);
+    const float d = m_ClipPlane.d();
+    m_vSliceTriangles = ClipTriangles(m_vSliceTriangles, normal, d);
   }
 }
 

@@ -385,11 +385,7 @@ class AbstrRenderer {
     FLOATMATRIX4        m_matModelView[2];
     std::vector<std::string> m_vShaderSearchDirs;
 
-    struct clip_plane {
-      FLOATVECTOR3 normal;
-      float d;
-    };
-    struct clip_plane   m_ClipPlane;
+    PLANE<float>        m_ClipPlane;
     bool                m_bClipPlaneOn;
 
     virtual void        ScheduleRecompose();

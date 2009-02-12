@@ -41,7 +41,7 @@
 #include "../StdTuvokDefines.h"
 
 /** \class POS3TEX3_VERTEX
- * Position and vertex coordinate. */
+ * Position and texture coordinate. */
 class POS3TEX3_VERTEX
 {
 public:
@@ -86,9 +86,11 @@ public:
   }
   void DisableClipPlane() { m_bClipPlaneEnabled = false; }
   void EnableClipPlane() { m_bClipPlaneEnabled = true; }
-  void SetClipPlane(const FLOATVECTOR3& normal, float d) {
-    m_ClipPlane.normal = normal;
-    m_ClipPlane.d = d;
+  void SetClipPlane(const PLANE<float>& plane) {
+    if(m_ClipPlane != plane) {
+      m_ClipPlane = plane;
+      ComputeGeometry();
+    }
   }
 
   std::vector<POS3TEX3_VERTEX> m_vSliceTriangles;
@@ -111,11 +113,7 @@ protected:
   UINTVECTOR3       m_vGlobalSize;
   UINTVECTOR3       m_vLODSize;
 
-  struct clip_plane {
-    FLOATVECTOR3 normal;
-    float d;
-  };
-  struct clip_plane m_ClipPlane;
+  PLANE<float>      m_ClipPlane;
   bool              m_bClipPlaneEnabled;
 
   void InitBBOX();

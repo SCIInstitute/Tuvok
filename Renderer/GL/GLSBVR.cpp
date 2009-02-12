@@ -221,7 +221,9 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   m_SBVRGeogen.DisableClipPlane();
   if(m_bClipPlaneOn) {
     m_SBVRGeogen.EnableClipPlane();
-    m_SBVRGeogen.SetClipPlane(m_ClipPlane.normal, m_ClipPlane.d);
+    const PLANE<float> plane(m_ClipPlane.x,m_ClipPlane.y, m_ClipPlane.z,
+                             m_ClipPlane.d());
+    m_SBVRGeogen.SetClipPlane(plane);
   }
   m_SBVRGeogen.SetTransformation(maBricktModelView, true);
 
