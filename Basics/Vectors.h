@@ -516,6 +516,49 @@ typedef VECTOR4<double> DOUBLEVECTOR4;
 typedef VECTOR3<double> DOUBLEVECTOR3;
 typedef VECTOR2<double> DOUBLEVECTOR2;
 
+
+template <class T> class PLANE : public VECTOR4<T> {
+  PLANE<T>(): VECTOR4<T>(0,0,0,0) {}
+  template <class S> explicit PLANE<T>( const std::vector<S>& v ) {
+    this->x = T(v.size()>0 ? v[0] : 0);
+    this->y = T(v.size()>1 ? v[1] : 0);
+    this->z = T(v.size()>2 ? v[2] : 0);
+    this->w = T(v.size()>3 ? v[3] : 0);
+  }
+  PLANE<T>(const VECTOR2<T> &other, const T _z, const T _w):
+    VECTOR4<T>(other, _z, _w) {}
+  PLANE<T>(const VECTOR3<T> &other, const T _w = 1): VECTOR4<T>(other, _w) {}
+  PLANE<T>(const VECTOR4<T> &other): VECTOR4<T>(other) {}
+
+  template <class S> explicit PLANE<T>(const PLANE<S> &other):
+    VECTOR4<T>(other) {}
+
+  PLANE<T>(const T _x, const T _y, const T _z, const T _w) :
+    VECTOR4<T>(_x,_y,_z,_w) {}
+  PLANE<T>(const T* vec) : VECTOR4<T>(vec) {}
+
+  void transform(const MATRIX4<T> &M) {
+    const VECTOR4<T> u = VECTOR4<T>(this->x,this->y,this->z,static_cast<T>(0));
+    const VECTOR4<T> D = (*this) * this->w;
+    const VECTOR4<T> A = (-D.x*u.x, -D.y*u.y, -D.z*u.z, static_cast<T>(1));
+    const VECTOR4<T> B = A * M;
+    const VECTOR4<T> V = u * M;
+    const T vlen = sqrt(V.x*V.x + V.y*V.y + V.z*V.z);
+    const T S(1/vlen);
+    this->x = S * V.x;
+    this->y = S * V.y;
+    this->z = S * V.z;
+    this->w = -S * (V * B);
+  }
+  void normalize() {
+    const T x = this->x;
+    const T y = this->y;
+    const T z = this->z;
+    T length = sqrt(x*x + y*y + z*z);
+    (*this) /= length;
+  }
+};
+
 template <class T=int> class MATRIX2 {
 public:
   union {
