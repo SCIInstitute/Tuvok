@@ -72,6 +72,9 @@ class GLSBVR : public GLRenderer {
 
     virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing;}
 
+    virtual void EnableClipPlane();
+    virtual void DisableClipPlane();
+
   protected:
     SBVRGeogen    m_SBVRGeogen;
     GLSLProgram*  m_pProgramIsoNoCompose;
@@ -90,7 +93,6 @@ class GLSBVR : public GLRenderer {
     virtual void Cleanup();
 
     virtual void ComposeSurfaceImage(int iStereoID);
-
 };
 
 #endif // GLSBVR_H

@@ -71,8 +71,8 @@ public:
   void SetSamplingModifier(float fSamplingModifier) {
     m_fSamplingModifier = fSamplingModifier;
   }
-  void SetTransformation(const FLOATMATRIX4& matTransform,
-                         bool bForceUpdate = false);
+  void SetView(const FLOATMATRIX4 &matView, bool forceUpdate = false);
+  void SetWorld(const FLOATMATRIX4& matTransform, bool bForceUpdate = false);
   void SetVolumeData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize);
   void SetLODData(const UINTVECTOR3& vSize);
   void SetBrickData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize,
@@ -95,10 +95,15 @@ public:
 
   std::vector<POS3TEX3_VERTEX> m_vSliceTriangles;
 
+private:
+  void MatricesUpdated();
+
 protected:
 
   float             m_fSamplingModifier;
-  FLOATMATRIX4      m_matTransform;
+  FLOATMATRIX4      m_matWorld;
+  FLOATMATRIX4      m_matView;
+  FLOATMATRIX4      m_matViewTransform;
   float             m_fMinZ;
   POS3TEX3_VERTEX   m_pfBBOXVertex[8];
   FLOATVECTOR3      m_pfBBOXStaticVertex[8];

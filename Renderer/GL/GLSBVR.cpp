@@ -170,7 +170,29 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
 
 }
 
+void GLSBVR::EnableClipPlane() {
+  if(!m_bClipPlaneOn) {
+    AbstrRenderer::EnableClipPlane();
+    m_SBVRGeogen.EnableClipPlane();
+    m_SBVRGeogen.SetClipPlane(m_ClipPlane);
+  }
+}
+
+void GLSBVR::DisableClipPlane() {
+  if(m_bClipPlaneOn) {
+    AbstrRenderer::DisableClipPlane();
+    m_SBVRGeogen.DisableClipPlane();
+  }
+}
+
 void GLSBVR::Render3DPreLoop() {
+  if(m_bClipPlaneOn) {
+    m_SBVRGeogen.EnableClipPlane();
+    m_SBVRGeogen.SetClipPlane(m_ClipPlane);
+  } else {
+    m_SBVRGeogen.DisableClipPlane();
+  }
+
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_p1DTransTex->Bind(1);
                           m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
@@ -218,14 +240,8 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   m_mProjection[iStereoID].setProjection();
   maBricktModelView.setModelview();
 
-  m_SBVRGeogen.DisableClipPlane();
-  if(m_bClipPlaneOn) {
-    m_SBVRGeogen.EnableClipPlane();
-    const PLANE<float> plane(m_ClipPlane.x,m_ClipPlane.y, m_ClipPlane.z,
-                             m_ClipPlane.d());
-    m_SBVRGeogen.SetClipPlane(plane);
-  }
-  m_SBVRGeogen.SetTransformation(maBricktModelView, true);
+  m_SBVRGeogen.SetWorld(maBricktTrans * m_mRotation * m_mTranslation);
+  m_SBVRGeogen.SetView(m_mView[iStereoID], true);
 
   if (! m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
@@ -292,13 +308,12 @@ void GLSBVR::RenderHQMIPInLoop(const Brick& b) {
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
-  FLOATMATRIX4 maBricktModelView;
   if (m_bOrthoView)
-    maBricktModelView = maBricktTrans * m_maMIPRotation;
+    m_SBVRGeogen.SetView(FLOATMATRIX4());
   else
-    maBricktModelView = maBricktTrans * m_maMIPRotation * m_mView[0];
+    m_SBVRGeogen.SetView(m_mView[0]);
 
-  m_SBVRGeogen.SetTransformation(maBricktModelView, true);
+  m_SBVRGeogen.SetWorld(maBricktTrans * m_maMIPRotation, true);
 
   RenderProxyGeometry();
 }

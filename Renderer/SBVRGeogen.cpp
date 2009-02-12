@@ -76,19 +76,33 @@ SBVRGeogen::SBVRGeogen(void) :
   m_pfBBOXVertex[5] = FLOATVECTOR3(0,0,0);
   m_pfBBOXVertex[6] = FLOATVECTOR3(0,0,0);
   m_pfBBOXVertex[7] = FLOATVECTOR3(0,0,0);
-
-  m_ClipPlane = PLANE<float>(-1,0,0,0);
 }
 
 SBVRGeogen::~SBVRGeogen(void)
 {
 }
 
-void SBVRGeogen::SetTransformation(const FLOATMATRIX4& matTransform, bool bForceUpdate) {
-  if (bForceUpdate || m_matTransform != matTransform)  {
-    m_matTransform = matTransform;
-    InitBBOX();
-    ComputeGeometry();
+// Should be called after updating the world or view matrices.  Causes geometry
+// to be recomputed with the updated matrices.
+void SBVRGeogen::MatricesUpdated()
+{
+  m_matViewTransform = m_matWorld * m_matView;
+  InitBBOX();
+  ComputeGeometry();
+}
+
+void SBVRGeogen::SetWorld(const FLOATMATRIX4& matWorld, bool bForceUpdate) {
+  if (bForceUpdate || m_matWorld != matWorld) {
+    m_matWorld = matWorld;
+    MatricesUpdated();
+  }
+}
+void SBVRGeogen::SetView(const FLOATMATRIX4& mTransform,
+                         bool forceUpdate)
+{
+  if(forceUpdate || m_matView != mTransform) {
+    m_matView = mTransform;
+    MatricesUpdated();
   }
 }
 
@@ -105,14 +119,14 @@ void SBVRGeogen::InitBBOX() {
 
   FLOATVECTOR3 vVertexScale(m_vAspect);
 
-  m_pfBBOXVertex[0] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[0]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMax.y,m_vTexCoordMin.z));
-  m_pfBBOXVertex[1] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[1]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMax.y,m_vTexCoordMin.z));
-  m_pfBBOXVertex[2] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[2]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMax.y,m_vTexCoordMax.z));
-  m_pfBBOXVertex[3] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[3]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMax.y,m_vTexCoordMax.z));
-  m_pfBBOXVertex[4] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[4]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMin.y,m_vTexCoordMin.z));
-  m_pfBBOXVertex[5] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[5]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMin.y,m_vTexCoordMin.z));
-  m_pfBBOXVertex[6] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[6]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
-  m_pfBBOXVertex[7] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[7]*vVertexScale,1.0f) * m_matTransform, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
+  m_pfBBOXVertex[0] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[0]*vVertexScale,1.0f) * m_matViewTransform, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMax.y,m_vTexCoordMin.z));
+  m_pfBBOXVertex[1] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[1]*vVertexScale,1.0f) * m_matViewTransform, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMax.y,m_vTexCoordMin.z));
+  m_pfBBOXVertex[2] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[2]*vVertexScale,1.0f) * m_matViewTransform, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMax.y,m_vTexCoordMax.z));
+  m_pfBBOXVertex[3] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[3]*vVertexScale,1.0f) * m_matViewTransform, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMax.y,m_vTexCoordMax.z));
+  m_pfBBOXVertex[4] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[4]*vVertexScale,1.0f) * m_matViewTransform, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMin.y,m_vTexCoordMin.z));
+  m_pfBBOXVertex[5] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[5]*vVertexScale,1.0f) * m_matViewTransform, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMin.y,m_vTexCoordMin.z));
+  m_pfBBOXVertex[6] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[6]*vVertexScale,1.0f) * m_matViewTransform, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
+  m_pfBBOXVertex[7] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[7]*vVertexScale,1.0f) * m_matViewTransform, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
 
   // find the minimum z value
   m_fMinZ = (*std::min_element(m_pfBBOXVertex, m_pfBBOXVertex+8,
@@ -363,8 +377,9 @@ void SBVRGeogen::ComputeGeometry() {
   while (ComputeLayerGeometry(fDepth)) fDepth += fLayerDistance;
 
   if(m_bClipPlaneEnabled) {
-    const FLOATVECTOR3 normal(m_ClipPlane);
-    const float d = m_ClipPlane.d();
+    PLANE<float> transformed = m_ClipPlane * m_matView;
+    const FLOATVECTOR3 normal(transformed);
+    const float d = transformed.d();
     m_vSliceTriangles = ClipTriangles(m_vSliceTriangles, normal, d);
   }
 }
