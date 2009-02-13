@@ -43,25 +43,22 @@
 #include "../StdTuvokDefines.h"
 #include <vector>
 #include <string>
-#include "../IO/IOManager.h"
-#include "../IO/TransferFunction1D.h"
-#include "../IO/TransferFunction2D.h"
 
 #include "../DebugOut/MultiplexOut.h"
 #include "../DebugOut/ConsoleOut.h"
 
-#include "../Renderer/GPUMemMan/GPUMemMan.h"
 #include "../Renderer/AbstrRenderer.h"
-#include "../Renderer/GL/GLSBVR.h"
-#include "../Renderer/GL/GLRaycaster.h"
-
+#include "../Renderer/GPUMemMan/GPUMemManDataStructs.h"
 #if defined(_WIN32) && defined(USE_DIRECTX)
 #include "../Renderer/DX/DXSBVR.h"
 #include "../Renderer/DX/DXRaycaster.h"
 #endif
 
-#include "../Scripting/Scripting.h"
-
+#include "../Scripting/Scriptable.h"
+class IOManager;
+class GPUMemMan;
+class Scripting;
+class SystemInfo;
 
 /** \class MasterController
  * Centralized controller for ImageVis3D.

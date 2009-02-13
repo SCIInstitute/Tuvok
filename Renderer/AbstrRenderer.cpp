@@ -34,10 +34,12 @@
   \date    August 2008
 */
 
+#include <algorithm>
 #include "AbstrRenderer.h"
 #include <Controller/MasterController.h>
-#include <algorithm>
 #include <IO/Tuvok_QtPlugins.h>
+#include <IO/IOManager.h>
+#include <Renderer/GPUMemMan/GPUMemMan.h>
 
 using namespace std;
 

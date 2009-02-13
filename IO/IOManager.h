@@ -40,19 +40,20 @@
 #define IOMANAGER_H
 
 #include "../StdTuvokDefines.h"
+#include <algorithm>
+#include <limits>
 #include <string>
-#include "../Renderer/AbstrRenderer.h"
+#include "../Controller/MasterController.h"
 #include "../IO/DirectoryParser.h"
 #include "../IO/UVF/UVF.h"
+#include "../Renderer/AbstrRenderer.h"
 #include "RAWConverter.h"
 #include "../Basics/MC.h"
+#include "../Basics/SysTools.h"
 
 #define BRICKSIZE (256)
 #define BRICKOVERLAP (4)
 #define INCORESIZE (BRICKSIZE*BRICKSIZE*BRICKSIZE)
-
-class MasterController;
-
 
 class MergeDataset {
 public:
@@ -90,7 +91,7 @@ public:
       return;
     }
 
-    UINT64 iCopySize = min(iElemCount,BLOCK_COPY_SIZE/2)/sizeof(T);
+    UINT64 iCopySize = std::min(iElemCount,BLOCK_COPY_SIZE/2)/sizeof(T);
     T* pTargetBuffer = new T[size_t(iCopySize)];
     T* pSourceBuffer = new T[size_t(iCopySize)];
     for (size_t i = 1;i<strFiles.size();i++) { 
@@ -112,7 +113,7 @@ public:
          target.ReadRAW((unsigned char*)pTargetBuffer, iCopySize*sizeof(T));
 
          for (UINT64 j = 0;j<iCopySize;j++) {
-           pTargetBuffer[j] = std::max<T>(pTargetBuffer[j], min<T>(strFiles[i].fScale*pSourceBuffer[j], numeric_limits<T>::max()) );
+           pTargetBuffer[j] = std::max<T>(pTargetBuffer[j], std::min<T>(strFiles[i].fScale*pSourceBuffer[j], std::numeric_limits<T>::max()) );
          }
 
          target.SeekPos(iReadSize*sizeof(T));

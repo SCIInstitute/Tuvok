@@ -35,13 +35,15 @@
 */
 
 #include "IOManager.h"
+#include <sstream>
+#include <fstream>
+#include <map>
+
 #include <Controller/MasterController.h>
 #include <IO/DICOM/DICOMParser.h>
 #include <IO/Images/ImageParser.h>
 #include <Basics/SysTools.h>
-#include <sstream>
-#include <fstream>
-#include <map>
+#include <Renderer/GPUMemMan/GPUMemMan.h>
 
 #include "QVISConverter.h"
 #include "NRRDConverter.h"
