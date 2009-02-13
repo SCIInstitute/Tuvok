@@ -475,12 +475,12 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
     if (bIsFloatG) {
       switch (iComponentSizeG) {
         case 32 : {
-                    DataMerger<float> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    DataMerger<float> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 64 : {
-                    DataMerger<double> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    DataMerger<double> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
                     bIsMerged = d.IsOK();
                     break;
                   }
@@ -488,22 +488,22 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
     } else {
       switch (iComponentSizeG) {
         case 8  : {
-                    DataMerger<char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    DataMerger<char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 16 : {
-                    DataMerger<short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    DataMerger<short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 32 : {
-                    DataMerger<int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    DataMerger<int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 64 : {
-                    DataMerger<INT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    DataMerger<INT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
                     bIsMerged = d.IsOK();
                     break;
                   }
@@ -515,22 +515,22 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
     } else {
       switch (iComponentSizeG) {
         case 8  : {
-                    DataMerger<unsigned char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    DataMerger<unsigned char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 16 : {
-                    DataMerger<unsigned short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    DataMerger<unsigned short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 32 : {
-                    DataMerger<unsigned int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    DataMerger<unsigned int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 64 : {
-                    DataMerger<UINT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    DataMerger<UINT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
                     bIsMerged = d.IsOK();
                     break;
                   }
