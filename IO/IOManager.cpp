@@ -429,6 +429,8 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
 
 
       if (!bRAWCreated) break;
+
+      IntermediateFile.fScale = vfScales[iInputData];
       vIntermediateFiles.push_back(IntermediateFile);
 
       if (iInputData == 0)  {

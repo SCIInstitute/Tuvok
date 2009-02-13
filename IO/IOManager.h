@@ -95,7 +95,7 @@ public:
     T* pSourceBuffer = new T[size_t(iCopySize)];
     for (size_t i = 1;i<strFiles.size();i++) { 
       pMasterController->DebugOut()->Message("DataMerger::DataMerger","Merging with file %s ...", SysTools::GetFilename(strFiles[i].strFilename).c_str());
-      LargeRAWFile source(strTarget);
+      LargeRAWFile source(strTarget, strFiles[i].iHeaderSkip);
       source.Open(false);
       if (!source.IsOpen()) {
         delete [] pTargetBuffer;
