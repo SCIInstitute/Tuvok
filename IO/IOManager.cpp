@@ -329,7 +329,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
 
 bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& vfScales,
-                              const std::string& strTargetFilename, bool bNoUserInteraction) {
+                              const std::vector<double>& vBiases, const std::string& strTargetFilename, bool bNoUserInteraction) {
   /// \todo maybe come up with something smarter for a temp dir then the target dir
   m_TempDir = SysTools::GetPath(strTargetFilename);
   m_pMasterController->DebugOut()->Message("IOManager::ConvertDataset","Request to merge multiple data sets into %s received.", strTargetFilename.c_str());
@@ -358,6 +358,9 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
 
     bRAWCreated = false;
     MergeDataset IntermediateFile;
+    IntermediateFile.fScale = vfScales[iInputData];
+    IntermediateFile.fBias = vBiases[iInputData];
+
     if (strExt == "UVF") {
 
       VolumeDataset v(strFilenames[iInputData],false, m_pMasterController);
@@ -366,7 +369,6 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       UINT64 iLODLevel = 0; // always extract the highest quality here
 
       IntermediateFile.iHeaderSkip = 0;
-      IntermediateFile.fScale = vfScales[iInputData];
     
       if (iInputData == 0)  {
         iComponentSizeG = v.GetInfo()->GetBitwith();
@@ -432,7 +434,6 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
 
       if (!bRAWCreated) break;
 
-      IntermediateFile.fScale = vfScales[iInputData];
       vIntermediateFiles.push_back(IntermediateFile);
 
       if (iInputData == 0)  {

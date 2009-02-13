@@ -57,17 +57,20 @@
 
 class MergeDataset {
 public:
-  MergeDataset(std::string _strFilename="", UINT64 _iHeaderSkip=0, bool _bDelete=false, double _fScale=1.0) :
+  MergeDataset(std::string _strFilename="", UINT64 _iHeaderSkip=0, bool _bDelete=false, 
+               double _fScale=1.0, double _fBias=0.0) :
     strFilename(_strFilename),
     iHeaderSkip(_iHeaderSkip),
     bDelete(_bDelete),
-    fScale(_fScale)
+    fScale(_fScale),
+    fBias(_fBias)
   {}
 
   std::string strFilename;
   UINT64 iHeaderSkip;
   bool bDelete;
   double fScale;
+  double fBias;
 };
 
 template <class T> class DataMerger {
@@ -108,17 +111,24 @@ public:
       }
       
       UINT64 iReadSize=0;
-      double fScale = strFiles[i].fScale/strFiles[0].fScale;
       do {
          source.ReadRAW((unsigned char*)pSourceBuffer, iCopySize*sizeof(T));
          iCopySize = target.ReadRAW((unsigned char*)pTargetBuffer, iCopySize*sizeof(T))/sizeof(T);
 
-         for (UINT64 j = 0;j<iCopySize;j++) {
-           pTargetBuffer[j] = std::max<T>(pTargetBuffer[j], 
-                                          T(std::min<double>(fScale*pSourceBuffer[j],
-                                                             std::numeric_limits<T>::max())) );
+         if (i == 1) {
+           for (UINT64 j = 0;j<iCopySize;j++) {
+             pTargetBuffer[j] = std::max<T>(T(std::min<double>(strFiles[0].fScale*(pTargetBuffer[j]+strFiles[0].fBias),
+                                                               std::numeric_limits<T>::max())), 
+                                            T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias),
+                                                               std::numeric_limits<T>::max())) );
+           }
+         } else {
+           for (UINT64 j = 0;j<iCopySize;j++) {
+             pTargetBuffer[j] = std::max<T>(pTargetBuffer[j], 
+                                            T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias),
+                                                               std::numeric_limits<T>::max())) );
+           }
          }
-
          target.SeekPos(iReadSize*sizeof(T));
          target.WriteRAW((unsigned char*)pTargetBuffer, iCopySize*sizeof(T));
          iReadSize += iCopySize;
@@ -243,7 +253,7 @@ public:
   std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
   bool ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename);
   bool ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, bool bNoUserInteraction=false);
-  bool MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& fScales, const std::string& strTargetFilename, bool bNoUserInteraction=false);
+  bool MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& fScales, const std::vector<double>& vBiases, const std::string& strTargetFilename, bool bNoUserInteraction=false);
   VolumeDataset* ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester);
   VolumeDataset* ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, AbstrRenderer* requester);
   VolumeDataset* LoadDataset(const std::string& strFilename, AbstrRenderer* requester);
