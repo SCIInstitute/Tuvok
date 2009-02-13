@@ -176,7 +176,7 @@ static bool intersection(const POS3TEX3_VERTEX &la,
   const FLOATVECTOR3 &va = la.m_vPos;
   const FLOATVECTOR3 &vb = lb.m_vPos;
   const float denom = n ^ (va - vb);
-  if(denom <= 0) {
+  if(EpsilonEqual(denom, 0)) {
     return false;
   }
   const float t = ((n ^ va) + D) / denom;
