@@ -96,7 +96,7 @@ public:
     T* pSourceBuffer = new T[size_t(iCopySize)];
     for (size_t i = 1;i<strFiles.size();i++) { 
       pMasterController->DebugOut()->Message("DataMerger::DataMerger","Merging with file %s ...", SysTools::GetFilename(strFiles[i].strFilename).c_str());
-      LargeRAWFile source(strTarget, strFiles[i].iHeaderSkip);
+      LargeRAWFile source(strFiles[i].strFilename, strFiles[i].iHeaderSkip);
       source.Open(false);
       if (!source.IsOpen()) {
         delete [] pTargetBuffer;
@@ -108,12 +108,15 @@ public:
       }
       
       UINT64 iReadSize=0;
+      double fScale = strFiles[i].fScale/strFiles[0].fScale;
       do {
          source.ReadRAW((unsigned char*)pSourceBuffer, iCopySize*sizeof(T));
-         target.ReadRAW((unsigned char*)pTargetBuffer, iCopySize*sizeof(T));
+         iCopySize = target.ReadRAW((unsigned char*)pTargetBuffer, iCopySize*sizeof(T))/sizeof(T);
 
          for (UINT64 j = 0;j<iCopySize;j++) {
-           pTargetBuffer[j] = std::max<T>(pTargetBuffer[j], std::min<T>(strFiles[i].fScale*pSourceBuffer[j], std::numeric_limits<T>::max()) );
+           pTargetBuffer[j] = std::max<T>(pTargetBuffer[j], 
+                                          T(std::min<double>(fScale*pSourceBuffer[j],
+                                                             std::numeric_limits<T>::max())) );
          }
 
          target.SeekPos(iReadSize*sizeof(T));
