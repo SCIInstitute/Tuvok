@@ -53,6 +53,90 @@
 
 class MasterController;
 
+
+class MergeDataset {
+public:
+  MergeDataset(std::string _strFilename="", UINT64 _iHeaderSkip=0, bool _bDelete=false, double _fScale=1.0) :
+    strFilename(_strFilename),
+    iHeaderSkip(_iHeaderSkip),
+    bDelete(_bDelete),
+    fScale(_fScale)
+  {}
+
+  std::string strFilename;
+  UINT64 iHeaderSkip;
+  bool bDelete;
+  double fScale;
+};
+
+template <class T> class DataMerger {
+public:
+  DataMerger(const std::vector <MergeDataset>& strFiles, const std::string& strTarget, UINT64 iElemCount, MasterController* pMasterController) : 
+    bIsOK(false)
+  {
+    pMasterController->DebugOut()->Message("DataMerger::DataMerger","Copying first file %s ...", SysTools::GetFilename(strFiles[0].strFilename).c_str());
+    if (!LargeRAWFile::Copy(strFiles[0].strFilename, strTarget, strFiles[0].iHeaderSkip)) {
+      bIsOK = false;
+      return;
+    }
+
+    pMasterController->DebugOut()->Message("DataMerger::DataMerger","Merging ...");
+    LargeRAWFile target(strTarget);
+    target.Open(true);
+
+    if (!target.IsOpen()) {
+      remove(strTarget.c_str());
+      bIsOK = false;
+      return;
+    }
+
+    UINT64 iCopySize = min(iElemCount,BLOCK_COPY_SIZE/2)/sizeof(T);
+    T* pTargetBuffer = new T[size_t(iCopySize)];
+    T* pSourceBuffer = new T[size_t(iCopySize)];
+    for (size_t i = 1;i<strFiles.size();i++) { 
+      pMasterController->DebugOut()->Message("DataMerger::DataMerger","Merging with file %s ...", SysTools::GetFilename(strFiles[i].strFilename).c_str());
+      LargeRAWFile source(strTarget);
+      source.Open(false);
+      if (!source.IsOpen()) {
+        delete [] pTargetBuffer;
+        delete [] pSourceBuffer;
+        target.Close();
+        remove(strTarget.c_str());
+        bIsOK = false;
+        return;
+      }
+      
+      UINT64 iReadSize=0;
+      do {
+         source.ReadRAW((unsigned char*)pSourceBuffer, iCopySize*sizeof(T));
+         target.ReadRAW((unsigned char*)pTargetBuffer, iCopySize*sizeof(T));
+
+         for (UINT64 j = 0;j<iCopySize;j++) {
+           pTargetBuffer[j] = std::max<T>(pTargetBuffer[j], min<T>(strFiles[i].fScale*pSourceBuffer[j], numeric_limits<T>::max()) );
+         }
+
+         target.SeekPos(iReadSize*sizeof(T));
+         target.WriteRAW((unsigned char*)pTargetBuffer, iCopySize*sizeof(T));
+         iReadSize += iCopySize;
+      } while (iReadSize < iElemCount);
+      source.Close();
+    }
+
+    delete [] pTargetBuffer;
+    delete [] pSourceBuffer;
+    target.Close();
+
+    bIsOK = true;
+  }
+
+  bool IsOK() const {return bIsOK;}
+
+private:
+  bool bIsOK;
+
+};
+
+
 class MCData  {
 public:  
   MCData(const std::string& strTargetFile) : 
@@ -155,6 +239,7 @@ public:
   std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
   bool ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename);
   bool ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, bool bNoUserInteraction=false);
+  bool MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& fScales, const std::string& strTargetFilename, bool bNoUserInteraction=false);
   VolumeDataset* ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester);
   VolumeDataset* ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, AbstrRenderer* requester);
   VolumeDataset* LoadDataset(const std::string& strFilename, AbstrRenderer* requester);

@@ -110,6 +110,10 @@ public:
     WriteRAW((unsigned char*)&value[0], sizeof(char)*size_t(value.length()));
   }
 
+  static bool Copy(const std::string& strSource, const std::string& strTarget, UINT64 iSourceHeaderSkip=0, std::string* strMessage=NULL);
+  static bool Copy(const std::wstring& wstrSource, const std::wstring& wstrTarget, UINT64 iSourceHeaderSkip=0, std::wstring* wstrMessage=NULL);
+  static bool Compare(const std::string& strFirstFile, const std::string& strSecondFile, std::string* strMessage=NULL);
+  static bool Compare(const std::wstring& wstrFirstFile, const std::wstring& wstrSecondFile, std::wstring* wstrMessage=NULL);
 
 protected:
   FILETYPE      m_StreamFile;

@@ -341,16 +341,12 @@ void AbstrRenderer::SetClipPlane(const PLANE<float> plane)
 }
 
 void AbstrRenderer::EnableClipPlane() {
-  m_pMasterController->DebugOut()->Error("AbstrRenderer::EnableClipPlane",
-                                         "clip plane on");
   if(!m_bClipPlaneOn) {
     m_bClipPlaneOn = true;
     ScheduleWindowRedraw(WM_3D);
   }
 }
 void AbstrRenderer::DisableClipPlane() {
-  m_pMasterController->DebugOut()->Error("AbstrRenderer::DisableClipPlane",
-                                         "clip plane off");
   if(m_bClipPlaneOn) {
     m_bClipPlaneOn = false;
     ScheduleWindowRedraw(WM_3D);

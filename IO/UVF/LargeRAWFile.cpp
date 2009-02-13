@@ -1,6 +1,8 @@
 #include "LargeRAWFile.h"
+#include <sstream>
 
 using namespace std;
+
 
 LargeRAWFile::LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize) :
   m_strFilename(strFilename),
@@ -177,4 +179,135 @@ size_t LargeRAWFile::WriteRAW(const unsigned char* pData, UINT64 iCount){
 void LargeRAWFile::Delete() {
   if (m_bIsOpen) Close();
   remove(m_strFilename.c_str());
+}
+
+
+
+bool LargeRAWFile::Copy(const std::string& strSource, const std::string& strTarget, UINT64 iSourceHeaderSkip, std::string* strMessage) {
+  std::wstring wstrSource(strSource.begin(), strSource.end());
+  std::wstring wstrTarget(strTarget.begin(), strTarget.end());
+  if (!strMessage)
+    return Copy(wstrSource, wstrTarget, iSourceHeaderSkip, NULL);
+  else {
+    std::wstring wstrMessage;
+    bool bResult = Copy(wstrSource, wstrTarget, iSourceHeaderSkip, &wstrMessage);
+    (*strMessage) = string(wstrMessage.begin(), wstrMessage.end());
+    return bResult;
+  }
+}
+
+
+bool LargeRAWFile::Copy(const std::wstring& wstrSource, const std::wstring& wstrTarget, UINT64 iSourceHeaderSkip, std::wstring* wstrMessage) {
+  LargeRAWFile source(wstrSource, iSourceHeaderSkip);
+  LargeRAWFile target(wstrTarget);
+
+  source.Open(false);
+  if (!source.IsOpen()) {
+    if (wstrMessage) (*wstrMessage) = L"Unable to open source file " + wstrSource;
+    return false;
+  }
+
+  target.Create();
+  if (!target.IsOpen()) {
+    if (wstrMessage) (*wstrMessage) = L"Unable to open target file " + wstrTarget;
+    source.Close();
+    return false;
+  }
+
+  UINT64 iFileSize = source.GetCurrentSize();
+  UINT64 iCopySize = min(iFileSize,BLOCK_COPY_SIZE);
+  unsigned char* pBuffer = new unsigned char[size_t(iCopySize)];
+
+  do {
+    iCopySize = source.ReadRAW(pBuffer, iCopySize);
+    target.WriteRAW(pBuffer, iCopySize);
+  } while (iCopySize>0);
+
+  target.Close();
+  source.Close();
+  return true;
+}
+
+
+bool LargeRAWFile::Compare(const std::string& strFirstFile, const std::string& strSecondFile, std::string* strMessage) {
+  std::wstring wstrFirstFile(strFirstFile.begin(), strFirstFile.end());
+  std::wstring wstrSecondFile(strSecondFile.begin(), strSecondFile.end());
+  if (!strMessage)
+    return Compare(wstrFirstFile, wstrSecondFile, NULL);
+  else {
+    std::wstring wstrMessage;
+    bool bResult = Compare(wstrFirstFile, wstrSecondFile, &wstrMessage);
+    (*strMessage) = string(wstrMessage.begin(), wstrMessage.end());
+    return bResult;
+  }
+}
+
+bool LargeRAWFile::Compare(const std::wstring& wstrFirstFile, const std::wstring& wstrSecondFile, std::wstring* wstrMessage) {
+  LargeRAWFile first(wstrFirstFile);
+  LargeRAWFile second(wstrSecondFile);
+
+  first.Open(false);
+  if (!first.IsOpen()) {
+    if (wstrMessage) (*wstrMessage) = L"Unable to open input file " + wstrFirstFile;
+    return false;
+  }
+  second.Open(false);
+  if (!second.IsOpen()) {
+    if (wstrMessage) (*wstrMessage) = L"Unable to open input file " + wstrSecondFile;
+    first.Close();
+    return false;
+  }
+
+  if (first.GetCurrentSize() != second.GetCurrentSize()) {
+    first.Close();
+    second.Close();
+    if (wstrMessage) (*wstrMessage) = L"Files differ in size";
+    return false;
+  }
+
+  UINT64 iFileSize = first.GetCurrentSize();
+  UINT64 iCopySize = min(iFileSize,BLOCK_COPY_SIZE/2);
+  unsigned char* pBuffer1 = new unsigned char[size_t(iCopySize)];
+  unsigned char* pBuffer2 = new unsigned char[size_t(iCopySize)];
+  UINT64 iCopiedSize = 0;
+  UINT64 iDiffCount = 0;
+
+  if (wstrMessage) (*wstrMessage) = L"";
+
+  do {
+    iCopySize = first.ReadRAW(pBuffer1, iCopySize);
+    second.ReadRAW(pBuffer2, iCopySize);
+
+    for (UINT64 i = 0;i<iCopySize;i++) {
+      if (pBuffer1[i] != pBuffer2[i]) {
+        if (wstrMessage) {
+          wstringstream ss;
+          if (iDiffCount == 0) { 
+            ss << L"Files differ at address " << i+iCopiedSize;
+            iDiffCount = 1;
+          } else {
+            if (++iDiffCount == 10) {  // report up to 10 differences
+              (*wstrMessage) += L" and more";
+              delete [] pBuffer1;
+              delete [] pBuffer2;
+              first.Close();
+              second.Close();
+              return false;
+            } else {
+              ss << L", " << i+iCopiedSize;
+            }              
+          }
+          (*wstrMessage) +=ss.str();
+        }
+      }
+
+    }
+    iCopiedSize += iCopySize;
+  } while (iCopySize > 0);
+
+  first.Close();
+  second.Close();
+  delete [] pBuffer1;
+  delete [] pBuffer2;
+  return iDiffCount == 0;
 }

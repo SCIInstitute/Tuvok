@@ -145,6 +145,9 @@ bool GLRaycaster::Initialize() {
     m_pProgramIso2->SetUniformVector("texLastHit",4);
     m_pProgramIso2->SetUniformVector("texLastHitPos",5);
     m_pProgramIso2->Disable();
+
+    ClipPlaneToShader(PLANE<float>(0,0,1,-100000),0,true);
+
   }
 
   return true;
@@ -242,6 +245,44 @@ void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vEx
   glEnd();
 }
 
+
+void GLRaycaster::ClipPlaneToShader(const PLANE<float> &clipPlane, int iStereoID, bool bForce) {
+  vector<GLSLProgram*> vCurrentShader;
+
+  if (bForce) {
+    vCurrentShader.push_back(m_pProgram1DTrans[0]);
+    vCurrentShader.push_back(m_pProgram1DTrans[1]);
+    vCurrentShader.push_back(m_pProgram2DTrans[0]);
+    vCurrentShader.push_back(m_pProgram2DTrans[1]);
+    vCurrentShader.push_back(m_pProgramIso);
+    vCurrentShader.push_back(m_pProgramIso2);
+  } else {
+    switch (m_eRenderMode) {
+      case RM_1DTRANS    :  vCurrentShader.push_back(m_pProgram1DTrans[m_bUseLighting ? 1 : 0]);
+                            break;
+      case RM_2DTRANS    :  vCurrentShader.push_back(m_pProgram2DTrans[m_bUseLighting ? 1 : 0]);
+                            break;
+      case RM_ISOSURFACE :  vCurrentShader.push_back(m_pProgramIso);
+                            if (m_bDoClearView) vCurrentShader.push_back(m_pProgramIso2);
+                            break;
+      default    :          m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DView","Invalid rendermode set");
+                            break;
+    }
+  }
+
+  if (bForce || m_bClipPlaneOn) {
+    PLANE<float> plane(clipPlane);
+
+    plane.transform(m_mView[iStereoID]);
+    for (size_t i = 0;i<vCurrentShader.size();i++) {
+      vCurrentShader[i]->Enable();
+      vCurrentShader[i]->SetUniformVector("vClipPlane", plane.x, plane.y, plane.z, plane.w);
+      vCurrentShader[i]->Disable();
+    }
+  }
+
+}
+
 void GLRaycaster::Render3DPreLoop() {
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_p1DTransTex->Bind(1);
@@ -254,6 +295,7 @@ void GLRaycaster::Render3DPreLoop() {
     default    :          m_pMasterController->DebugOut()->Error("GLRaycaster::Render3DView","Invalid rendermode set");
                           break;
   }
+
 
   /*
   if (m_iBricksRenderedInThisSubFrame == 0) {
@@ -293,6 +335,8 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
   m_matModelView[iStereoID].setModelview();
   m_mProjection[iStereoID].setProjection();
+
+  if (m_bClipPlaneOn) ClipPlaneToShader(m_ClipPlane, iStereoID);
 
   // write frontfaces (ray entry points)
   m_TargetBinder.Bind(m_pFBORayEntry);
@@ -495,4 +539,10 @@ FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR
   m = mInvModelView * mTrans1 * mScale * mTrans2;
 
   return m;
+}
+
+
+void GLRaycaster::DisableClipPlane() {
+  AbstrRenderer::DisableClipPlane();
+  ClipPlaneToShader(PLANE<float>(0,0,1,-100000),0,true);
 }

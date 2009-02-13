@@ -325,6 +325,251 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
   return false;
 }
 
+
+bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& vfScales,
+                              const std::string& strTargetFilename, bool bNoUserInteraction) {
+  /// \todo maybe come up with something smarter for a temp dir then the target dir
+  m_TempDir = SysTools::GetPath(strTargetFilename);
+  m_pMasterController->DebugOut()->Message("IOManager::ConvertDataset","Request to merge multiple data sets into %s received.", strTargetFilename.c_str());
+
+  // convert the input files to RAW
+  UINT64        iComponentSizeG=0;
+  UINT64        iComponentCountG=0; 
+  bool          bConvertEndianessG=false;
+  bool          bSignedG=false;
+  bool          bIsFloatG=false;
+  UINTVECTOR3   vVolumeSizeG(0,0,0);
+  FLOATVECTOR3  vVolumeAspectG(0,0,0);
+  string strTitleG      = "Merged data from multiple files";
+  stringstream  ss;
+  for (size_t i = 0;i<strFilenames.size();i++) {
+    ss << SysTools::GetFilename(strFilenames[i]);
+    if (i<strFilenames.size()-1) ss << " ";
+  }
+  string        strSourceG = ss.str();
+
+  bool bRAWCreated = false;
+  vector<MergeDataset> vIntermediateFiles;
+  for (size_t iInputData = 0;iInputData<strFilenames.size();iInputData++) {
+    m_pMasterController->DebugOut()->Message("IOManager::ConvertDataset","Reading data sets %s...", strFilenames[iInputData].c_str());
+    string strExt       = SysTools::ToUpperCase(SysTools::GetExt(strFilenames[iInputData]));
+
+    bRAWCreated = false;
+    MergeDataset IntermediateFile;
+    if (strExt == "UVF") {
+
+      VolumeDataset v(strFilenames[iInputData],false, m_pMasterController);
+      if (!v.IsOpen()) break;
+
+      UINT64 iLODLevel = 0; // always extract the highest quality here
+
+      IntermediateFile.iHeaderSkip = 0;
+      IntermediateFile.fScale = vfScales[iInputData];
+    
+      if (iInputData == 0)  {
+        iComponentSizeG = v.GetInfo()->GetBitwith();
+        iComponentCountG = v.GetInfo()->GetComponentCount();
+        bConvertEndianessG = !v.GetInfo()->IsSameEndianess();
+        bSignedG = v.GetInfo()->GetIsSigned();
+        bIsFloatG = v.GetInfo()->GetIsFloat();
+        vVolumeSizeG = UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel));
+        vVolumeAspectG = FLOATVECTOR3(v.GetInfo()->GetScale());
+      } else {
+        if (iComponentSizeG  != v.GetInfo()->GetBitwith() ||
+            iComponentCountG != v.GetInfo()->GetComponentCount() ||
+            bConvertEndianessG != !v.GetInfo()->IsSameEndianess() ||
+            bSignedG != v.GetInfo()->GetIsSigned() ||
+            bIsFloatG != v.GetInfo()->GetIsFloat() ||
+            vVolumeSizeG != UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel)) ||
+            vVolumeAspectG != FLOATVECTOR3(v.GetInfo()->GetScale())) {
+          bRAWCreated = false;
+          break;
+        }
+      }
+      
+      IntermediateFile.strFilename = m_TempDir + strFilenames[iInputData] +".raw";
+      IntermediateFile.bDelete = true;
+
+      if (!v.Export(iLODLevel, IntermediateFile.strFilename, false, m_pMasterController->DebugOut())) {
+        if (SysTools::FileExists(IntermediateFile.strFilename)) remove(IntermediateFile.strFilename.c_str());
+        break;
+      } else bRAWCreated = true;
+      vIntermediateFiles.push_back(IntermediateFile);
+    } else {
+
+      UINT64        iComponentSize=0;
+      UINT64        iComponentCount=0; 
+      bool          bConvertEndianess=false;
+      bool          bSigned=false;
+      bool          bIsFloat=false;
+      UINTVECTOR3   vVolumeSize(0,0,0);
+      FLOATVECTOR3  vVolumeAspect(0,0,0);
+      string        strTitle = "";
+      string        strSource = "";
+      UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
+
+
+      for (size_t i = 0;i<m_vpConverters.size();i++) {
+        const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+        for (size_t j = 0;j<vStrSupportedExt.size();j++) {
+          if (vStrSupportedExt[j] == strExt) {
+            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilenames[iInputData], m_TempDir, m_pMasterController, bNoUserInteraction, 
+                                            IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
+                                            strTitle, strSource, eType, IntermediateFile.strFilename, IntermediateFile.bDelete);
+            if (!bRAWCreated) continue;
+          }
+        }
+      }
+
+      if (!bRAWCreated && m_pFinalConverter) {
+        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilenames[iInputData], m_TempDir, m_pMasterController, bNoUserInteraction, 
+                                        IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
+                                        strTitle, strSource, eType, IntermediateFile.strFilename, IntermediateFile.bDelete);
+      }
+
+
+      if (!bRAWCreated) break;
+      vIntermediateFiles.push_back(IntermediateFile);
+
+      if (iInputData == 0)  {
+        iComponentSizeG = iComponentSize;
+        iComponentCountG = iComponentCount;
+        bConvertEndianessG = bConvertEndianess;
+        bSignedG = bSigned;
+        bIsFloatG = bIsFloat;
+        vVolumeSizeG = vVolumeSize;
+        vVolumeAspectG = vVolumeAspect;
+      } else {
+        if (iComponentSizeG  != iComponentSize ||
+            iComponentCountG != iComponentCount ||
+            bConvertEndianessG != bConvertEndianess ||
+            bSignedG != bSigned ||
+            bIsFloatG != bIsFloat ||
+            vVolumeSizeG != vVolumeSize ||
+            vVolumeAspectG != vVolumeAspect) {
+          bRAWCreated = false;
+          break;
+        }
+      }
+    }
+    
+  }
+
+  if (!bRAWCreated) {
+    for (size_t i = 0;i<vIntermediateFiles.size();i++) {    
+      if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename)) 
+        remove(vIntermediateFiles[i].strFilename.c_str());
+    }
+    return false;
+  }
+
+  // merge the raw files into a single RAW file
+  string strMergedFile = m_TempDir + "merged.raw";
+
+  bool bIsMerged = false;
+  if (bSignedG) {
+    if (bIsFloatG) {
+      switch (iComponentSizeG) {
+        case 32 : {
+                    DataMerger<float> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    bIsMerged = d.IsOK();
+                    break;
+                  }
+        case 64 : {
+                    DataMerger<double> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    bIsMerged = d.IsOK();
+                    break;
+                  }
+      }
+    } else {
+      switch (iComponentSizeG) {
+        case 8  : {
+                    DataMerger<char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    bIsMerged = d.IsOK();
+                    break;
+                  }
+        case 16 : {
+                    DataMerger<short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    bIsMerged = d.IsOK();
+                    break;
+                  }
+        case 32 : {
+                    DataMerger<int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    bIsMerged = d.IsOK();
+                    break;
+                  }
+        case 64 : {
+                    DataMerger<INT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    bIsMerged = d.IsOK();
+                    break;
+                  }
+      }
+    }
+  } else {
+    if (bIsFloatG) {
+      // unsigned float ??? :-)
+    } else {
+      switch (iComponentSizeG) {
+        case 8  : {
+                    DataMerger<unsigned char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    bIsMerged = d.IsOK();
+                    break;
+                  }
+        case 16 : {
+                    DataMerger<unsigned short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    bIsMerged = d.IsOK();
+                    break;
+                  }
+        case 32 : {
+                    DataMerger<unsigned int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    bIsMerged = d.IsOK();
+                    break;
+                  }
+        case 64 : {
+                    DataMerger<UINT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume() + iComponentCountG, m_pMasterController);
+                    bIsMerged = d.IsOK();
+                    break;
+                  }
+      }
+    }
+  }
+  
+
+  for (size_t i = 0;i<vIntermediateFiles.size();i++) {    
+    if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename)) 
+      remove(vIntermediateFiles[i].strFilename.c_str());
+  }
+  if (!bIsMerged) return false;
+
+
+  // convert that single RAW file to the target data
+  string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
+  bool bTargetCreated = false;
+  if (strExtTarget == "UVF") {
+    bTargetCreated = RAWConverter::ConvertRAWDataset(strMergedFile, strTargetFilename, m_TempDir, m_pMasterController, 0, 
+                                       iComponentSizeG, iComponentCountG, bConvertEndianessG, bSignedG,
+                                       bIsFloatG, vVolumeSizeG, vVolumeAspectG, strTitleG, SysTools::GetFilename(strMergedFile));
+
+  } else {
+    for (size_t k = 0;k<m_vpConverters.size();k++) {
+      const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
+      for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
+        if (vStrSupportedExtTarget[l] == strExtTarget) {
+          bTargetCreated = m_vpConverters[k]->ConvertToNative(strMergedFile, strTargetFilename, 0, 
+                                                              iComponentSizeG, iComponentCountG, bSignedG, bIsFloatG,
+                                                              vVolumeSizeG, vVolumeAspectG, m_pMasterController, bNoUserInteraction);
+          if (bTargetCreated) break;
+        }
+      }
+      if (bTargetCreated) break;
+    }
+  }
+  remove(strMergedFile.c_str());
+  return bTargetCreated;
+
+}
+
+
 bool IOManager::ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, bool bNoUserInteraction) {
   /// \todo maybe come up with something smarter for a temp dir then the target dir
   m_TempDir = SysTools::GetPath(strTargetFilename);
@@ -332,7 +577,6 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
   m_pMasterController->DebugOut()->Message("IOManager::ConvertDataset","Request to convert dataset %s to %s received.", strFilename.c_str(), strTargetFilename.c_str());
 
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
-
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
 
   if (strExtTarget == "UVF") {
@@ -350,85 +594,84 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
     else
       return false;
   } else {
-      UINT64        iHeaderSkip=0; 
-      UINT64        iComponentSize=0;
-      UINT64        iComponentCount=0; 
-      bool          bConvertEndianess=false;
-      bool          bSigned=false;
-      bool          bIsFloat=false;
-      UINTVECTOR3   vVolumeSize(0,0,0);
-      FLOATVECTOR3  vVolumeAspect(0,0,0);
-      string        strTitle = "";
-      string        strSource = "";
-      UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
-      string        strIntermediateFile = "";
-      bool          bDeleteIntermediateFile = false;
+    UINT64        iHeaderSkip=0; 
+    UINT64        iComponentSize=0;
+    UINT64        iComponentCount=0; 
+    bool          bConvertEndianess=false;
+    bool          bSigned=false;
+    bool          bIsFloat=false;
+    UINTVECTOR3   vVolumeSize(0,0,0);
+    FLOATVECTOR3  vVolumeAspect(0,0,0);
+    string        strTitle = "";
+    string        strSource = "";
+    UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
+    string        strIntermediateFile = "";
+    bool          bDeleteIntermediateFile = false;
 
-      bool bRAWCreated = false;
+    bool bRAWCreated = false;
 
-      if (strExt == "UVF") {
-        VolumeDataset v(strFilename,false, m_pMasterController);
-        if (!v.IsOpen()) return false;
+    if (strExt == "UVF") {
+      VolumeDataset v(strFilename,false, m_pMasterController);
+      if (!v.IsOpen()) return false;
 
-        UINT64 iLODLevel = 0; // always extract the highest quality here
+      UINT64 iLODLevel = 0; // always extract the highest quality here
 
-        iHeaderSkip = 0;
-        iComponentSize = v.GetInfo()->GetBitwith();
-        iComponentCount = v.GetInfo()->GetComponentCount();
-        bConvertEndianess = !v.GetInfo()->IsSameEndianess();
-        bSigned = v.GetInfo()->GetIsSigned();
-        bIsFloat = v.GetInfo()->GetIsFloat();
-        vVolumeSize = UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel));
-        vVolumeAspect = FLOATVECTOR3(v.GetInfo()->GetScale());
-        eType             = UVFTables::ES_UNDEFINED;  /// \todo grab this data from the UVF file
-        strTitle          = "UVF data";               /// \todo grab this data from the UVF file
-        strSource         = SysTools::GetFilename(strFilename);
-        
-        strIntermediateFile = m_TempDir + strFilename +".raw";
-        bDeleteIntermediateFile = true;
+      iHeaderSkip = 0;
+      iComponentSize = v.GetInfo()->GetBitwith();
+      iComponentCount = v.GetInfo()->GetComponentCount();
+      bConvertEndianess = !v.GetInfo()->IsSameEndianess();
+      bSigned = v.GetInfo()->GetIsSigned();
+      bIsFloat = v.GetInfo()->GetIsFloat();
+      vVolumeSize = UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel));
+      vVolumeAspect = FLOATVECTOR3(v.GetInfo()->GetScale());
+      eType             = UVFTables::ES_UNDEFINED;  /// \todo grab this data from the UVF file
+      strTitle          = "UVF data";               /// \todo grab this data from the UVF file
+      strSource         = SysTools::GetFilename(strFilename);
+      
+      strIntermediateFile = m_TempDir + strFilename +".raw";
+      bDeleteIntermediateFile = true;
 
-        if (!v.Export(iLODLevel, strIntermediateFile, false, m_pMasterController->DebugOut())) {
-          if (SysTools::FileExists(strIntermediateFile)) remove(strIntermediateFile.c_str());
-          return false;
-        } else bRAWCreated = true;
+      if (!v.Export(iLODLevel, strIntermediateFile, false, m_pMasterController->DebugOut())) {
+        if (SysTools::FileExists(strIntermediateFile)) remove(strIntermediateFile.c_str());
+        return false;
+      } else bRAWCreated = true;
 
-      } else {
-        for (size_t i = 0;i<m_vpConverters.size();i++) {
-          const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
-          for (size_t j = 0;j<vStrSupportedExt.size();j++) {
-            if (vStrSupportedExt[j] == strExt) {
-              bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
-                                              iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                              strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
-              if (!bRAWCreated) continue;
-            }
+    } else {
+      for (size_t i = 0;i<m_vpConverters.size();i++) {
+        const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+        for (size_t j = 0;j<vStrSupportedExt.size();j++) {
+          if (vStrSupportedExt[j] == strExt) {
+            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
+                                            iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
+                                            strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+            if (!bRAWCreated) continue;
           }
         }
+      }
 
-        if (!bRAWCreated && m_pFinalConverter) {
-          bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
-                                          iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                          strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+      if (!bRAWCreated && m_pFinalConverter) {
+        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
+                                        iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
+                                        strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+      }
+    }
+    if (!bRAWCreated) return false;
+
+    bool bTargetCreated = false;
+    for (size_t k = 0;k<m_vpConverters.size();k++) {
+      const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
+      for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
+        if (vStrSupportedExtTarget[l] == strExtTarget) {
+          bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
+                                                                  iComponentSize, iComponentCount, bSigned, bIsFloat,
+                                                                  vVolumeSize, vVolumeAspect, m_pMasterController, bNoUserInteraction);
+          if (bTargetCreated) break;
         }
       }
-      if (!bRAWCreated) return false;
-
-      bool bTargetCreated = false;
-      for (size_t k = 0;k<m_vpConverters.size();k++) {
-        const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
-        for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
-          if (vStrSupportedExtTarget[l] == strExtTarget) {
-            bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
-                                                                    iComponentSize, iComponentCount, bSigned, bIsFloat,
-                                                                    vVolumeSize, vVolumeAspect, m_pMasterController, bNoUserInteraction);
-            if (bTargetCreated) break;
-          }
-        }
-        if (bTargetCreated) break;
-      }
-      if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
-      if (bTargetCreated) 
-        return true;
+      if (bTargetCreated) break;
+    }
+    if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
+    if (bTargetCreated) return true;
   }
   return false;
 }

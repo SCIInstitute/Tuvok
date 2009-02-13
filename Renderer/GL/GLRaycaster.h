@@ -66,6 +66,8 @@ class GLRaycaster : public GLRenderer {
 
     virtual bool SupportsClearView() {return true;}
 
+    virtual void DisableClipPlane();
+
   protected:
     GLFBOTex*       m_pFBORayEntry;
     GLSLProgram*    m_pProgramRenderFrontFaces;
@@ -86,6 +88,8 @@ class GLRaycaster : public GLRenderer {
     virtual void RenderHQMIPPreLoop(EWindowMode eDirection);
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void RenderHQMIPPostLoop();
+
+    void ClipPlaneToShader(const PLANE<float> &clipPlane, int iStereoID=0, bool bForce = false);
 
     virtual void StartFrame();
     virtual void SetDataDepShaderVars();

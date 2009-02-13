@@ -117,9 +117,6 @@ namespace SysTools {
   std::vector< std::string > Tokenize(const std::string& strInput, bool bQuoteprotect=true);
   std::vector< std::wstring > Tokenize(const std::wstring& strInput, bool bQuoteprotect=true);
 
-  bool CompareFiles(const std::string& strFirstFile, const std::string& strSecondFile, std::string* strMessage=NULL);
-  bool CompareFiles(const std::wstring& wstrFirstFile, const std::wstring& wstrSecondFile, std::wstring* wstrMessage=NULL);
-
   std::string GetFromResourceOnMac(const std::string& fileName);
   std::wstring GetFromResourceOnMac(const std::wstring& fileName);
 

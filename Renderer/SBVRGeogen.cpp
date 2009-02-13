@@ -176,7 +176,7 @@ static bool intersection(const POS3TEX3_VERTEX &la,
   const FLOATVECTOR3 &va = la.m_vPos;
   const FLOATVECTOR3 &vb = lb.m_vPos;
   const float denom = n ^ (va - vb);
-  if(EpsilonEqual(denom, 0)) {
+  if(denom <= 0) {
     return false;
   }
   const float t = ((n ^ va) + D) / denom;
@@ -264,10 +264,15 @@ static std::vector<POS3TEX3_VERTEX> SplitTriangle(POS3TEX3_VERTEX a,
 
   // Find the intersection points.
   POS3TEX3_VERTEX A, B;
+#ifdef _DEBUG
   const bool isect_a = intersection(a,c, normal,D, A);
   const bool isect_b = intersection(b,c, normal,D, B);
   assert(isect_a); // lines must cross plane
   assert(isect_b);
+#else
+  intersection(a,c, normal,D, A);
+  intersection(b,c, normal,D, B);
+#endif
 
   if(fc >= 0) {
     out.push_back(a); out.push_back(b); out.push_back(A);
