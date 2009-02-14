@@ -524,8 +524,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
 
           bool bClip = true;
           for (size_t i = 0;i<8;i++) {
-vBrickVertices[i] =             vBrickVertices[i] * m_matModelView[0];
-
+            vBrickVertices[i] = vBrickVertices[i] * m_matModelView[0];
             if (m_ClipPlane.clip(vBrickVertices[i])) {
               bClip = false;
               break;
