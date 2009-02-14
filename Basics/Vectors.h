@@ -1356,7 +1356,7 @@ public:
   PLANE<T>(const T* vec) : VECTOR4<T>(vec) {}
 
   bool clip(VECTOR3<T> point) {
-    return ((xyz() ^ point) + d() < 0);    
+    return ((FLOATVECTOR4::xyz() ^ point) + d() < 0);    
   }
 
   void transform(const MATRIX4<T> &m) {
