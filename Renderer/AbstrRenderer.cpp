@@ -470,6 +470,7 @@ vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
   return vBrickList;
 }
 
+
 vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
   vector<Brick> vBrickList;
 
@@ -506,8 +507,35 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
         if (!m_FrustumCullingLOD.IsVisible(b.vCenter, b.vExtension)) {
           continue;
         }
-        bool bContainsData;
 
+        // skip the brick if it is cliped by the clipplane
+        if (m_bClipPlaneOn) {
+          
+          FLOATVECTOR3 vBrickVertices[8] = {
+            b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
+            b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
+            b.vCenter + FLOATVECTOR3(-b.vExtension.x,+b.vExtension.y,-b.vExtension.z) * 0.5f,
+            b.vCenter + FLOATVECTOR3(-b.vExtension.x,+b.vExtension.y,+b.vExtension.z) * 0.5f,
+            b.vCenter + FLOATVECTOR3(+b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
+            b.vCenter + FLOATVECTOR3(+b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
+            b.vCenter + FLOATVECTOR3(+b.vExtension.x,+b.vExtension.y,-b.vExtension.z) * 0.5f,
+            b.vCenter + FLOATVECTOR3(+b.vExtension.x,+b.vExtension.y,+b.vExtension.z) * 0.5f,
+          };
+
+          bool bClip = true;
+          for (size_t i = 0;i<8;i++) {
+vBrickVertices[i] =             vBrickVertices[i] * m_matModelView[0];
+
+            if (m_ClipPlane.clip(vBrickVertices[i])) {
+              bClip = false;
+              break;
+            }
+          }
+          if (bClip) 
+            continue;
+        }
+
+        bool bContainsData;
         switch (m_eRenderMode) {
           case RM_1DTRANS    :  bContainsData = m_pDataset->GetInfo()->ContainsData(m_iCurrentLOD, UINT64VECTOR3(x,y,z), double(m_p1DTrans->GetNonZeroLimits().x), double(m_p1DTrans->GetNonZeroLimits().y)); break;
           case RM_2DTRANS    :  bContainsData = m_pDataset->GetInfo()->ContainsData(m_iCurrentLOD, UINT64VECTOR3(x,y,z), double(m_p2DTrans->GetNonZeroLimits().x), double(m_p2DTrans->GetNonZeroLimits().y),double(m_p2DTrans->GetNonZeroLimits().z), double(m_p2DTrans->GetNonZeroLimits().w)); break;

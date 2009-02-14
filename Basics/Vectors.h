@@ -1355,6 +1355,10 @@ public:
     VECTOR4<T>(_x,_y,_z,_w) {}
   PLANE<T>(const T* vec) : VECTOR4<T>(vec) {}
 
+  bool clip(VECTOR3<T> point) {
+    return ((xyz() ^ point) + d() < 0);    
+  }
+
   void transform(const MATRIX4<T> &m) {
     FLOATMATRIX4 mIT(m.inverse());
     mIT = mIT.Transpose();
