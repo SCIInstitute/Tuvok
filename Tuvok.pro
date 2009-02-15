@@ -25,6 +25,7 @@ HEADERS += StdTuvokDefines.h \
            Basics/GeometryGenerator.h \
            Basics/Checksums/MD5.h \
            Basics/Checksums/crc32.h \
+           Basics/Plane.h \
            IO/gzio.h \
            IO/AbstrConverter.h \
            IO/NRRDConverter.h \
@@ -98,6 +99,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            Basics/Appendix.cpp \
            Basics/GeometryGenerator.cpp \
            Basics/Checksums/MD5.cpp \
+           Basics/Plane.cpp \
            IO/gzio.c \
            IO/AbstrConverter.cpp \
            IO/NRRDConverter.cpp \

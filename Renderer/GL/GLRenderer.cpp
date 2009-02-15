@@ -1321,16 +1321,22 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
 
 
 void GLRenderer::BBoxPreRender() {
-  // for rendering modes other than isosurface render the bbox in the first pass once to init the depth buffer
-  // for isosurface rendering we can go ahead and render the bbox directly as isosurfacing
-  // writes out correct depth values
-  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
+  // for rendering modes other than isosurface render the bbox in the first
+  // pass once to init the depth buffer.  for isosurface rendering we can go
+  // ahead and render the bbox directly as isosurfacing writes out correct
+  // depth values
+  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView ||
+      m_bAvoidSeperateCompositing) {
     glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
     if (m_bRenderGlobalBBox)
       RenderBBox();
     if (m_bRenderLocalBBox) {
-      for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1), m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
+      for (UINT64 iCurrentBrick = 0;
+           iCurrentBrick < m_vCurrentBrickList.size();
+           iCurrentBrick++) {
+        RenderBBox(FLOATVECTOR4(0,1,0,1),
+                   m_vCurrentBrickList[iCurrentBrick].vCenter,
+                   m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
@@ -1338,14 +1344,23 @@ void GLRenderer::BBoxPreRender() {
     glDisable(GL_BLEND);
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
-      for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1), m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
+      for (UINT64 iCurrentBrick = 0;
+           iCurrentBrick < m_vCurrentBrickList.size();
+           iCurrentBrick++) {
+        RenderBBox(FLOATVECTOR4(0,1,0,1),
+                   m_vCurrentBrickList[iCurrentBrick].vCenter,
+                   m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
   }
 }
 
+// For volume rendering, we render the bounding box again after rendering the
+// dataset.  This is because we want the box lines which are in front of the
+// dataset to appear .. well, in front of the dataset.
 void GLRenderer::BBoxPostRender() {
+  // Not required for isosurfacing, since we use the depth buffer for
+  // occluding/showing the bbox's outline.
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
@@ -1360,6 +1375,47 @@ void GLRenderer::BBoxPostRender() {
   }
 }
 
+void GLRenderer::RenderClipPlane(size_t iStereoID)
+{
+  const FLOATVECTOR3 vEye(0,0,1.6f);
+  const FLOATVECTOR3 vAt(0,0,0);
+  const FLOATVECTOR4 vColor(0.,0.,0.8,0.8);
+  FLOATVECTOR3 vTransformedCenter;
+
+  vTransformedCenter = (FLOATVECTOR4(0,0,0,1) *
+                        m_mTranslation).dehomo();
+  
+  FLOATVECTOR3 viewDir(vAt - vEye);
+  viewDir.normalize();
+  ExtendedPlane transformed(m_ClipPlane);
+  m_mView[iStereoID].setModelview();
+
+  typedef std::vector<FLOATVECTOR3> TriList;
+  TriList quad;
+  bool ccw = transformed.Quad(viewDir, vTransformedCenter, quad);
+  if(m_eRenderMode != RM_ISOSURFACE) {
+    if(ccw) {
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    } else {
+      glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+    }
+  } else {
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  }
+
+  glEnable(GL_BLEND);
+  glBegin(GL_TRIANGLES);
+    glColor4fv(&(vColor.x));
+    for(TriList::const_iterator tri = quad.begin();
+        tri != quad.end(); tri += 3) {
+      glVertex3fv(&(*(tri+0)).x);
+      glVertex3fv(&(*(tri+1)).x);
+      glVertex3fv(&(*(tri+2)).x);
+    }
+  glEnd();
+  glDisable(GL_BLEND);
+}
+
 bool GLRenderer::LoadDataset(const string& strFilename) {
   if (AbstrRenderer::LoadDataset(strFilename)) {
     if (m_pProgram1DTrans[0] != NULL) SetDataDepShaderVars();
@@ -1369,7 +1425,6 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
 
 void GLRenderer::Recompose3DView(ERenderArea eArea) {
   m_pMasterController->DebugOut()->Message("GLRenderer::Recompose3DView","Recomposing...");
-
   NewFrameClear(eArea);
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
@@ -1380,6 +1435,7 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
   Render3DPostLoop();
   ComposeSurfaceImage(0);
   BBoxPostRender();
+  RenderClipPlane(0);
 
   if (m_bDoStereoRendering) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
@@ -1390,6 +1446,7 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
     Render3DPostLoop();
     ComposeSurfaceImage(1);
     BBoxPostRender();
+    RenderClipPlane(1);
   }
   m_TargetBinder.Unbind();
 }
@@ -1474,11 +1531,13 @@ void GLRenderer::Render3DView() {
     m_mProjection[0].setProjection();
     m_matModelView[0].setModelview();
     BBoxPostRender();
+    RenderClipPlane(0);
     if (m_bDoStereoRendering) {
       m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
       m_mProjection[1].setProjection();
       m_matModelView[1].setModelview();
       BBoxPostRender();
+      RenderClipPlane(1);
     }
     m_TargetBinder.Unbind();
   }

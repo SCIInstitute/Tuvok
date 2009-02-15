@@ -40,6 +40,7 @@
 #include <Basics/SysTools.h>
 #include <Controller/MasterController.h>
 #include <ctime>
+#include "../../Basics/Plane.h"
 
 using namespace std;
 
@@ -146,7 +147,7 @@ bool GLRaycaster::Initialize() {
     m_pProgramIso2->SetUniformVector("texLastHitPos",5);
     m_pProgramIso2->Disable();
 
-    ClipPlaneToShader(PLANE<float>(0,0,1,-100000),0,true);
+    ClipPlaneToShader(ExtendedPlane(PLANE<float>(0,0,1,-100000)),0,true);
 
   }
 
@@ -246,7 +247,7 @@ void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vEx
 }
 
 
-void GLRaycaster::ClipPlaneToShader(const PLANE<float> &clipPlane, int iStereoID, bool bForce) {
+void GLRaycaster::ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoID, bool bForce) {
   vector<GLSLProgram*> vCurrentShader;
 
   if (bForce) {
@@ -271,12 +272,13 @@ void GLRaycaster::ClipPlaneToShader(const PLANE<float> &clipPlane, int iStereoID
   }
 
   if (bForce || m_bClipPlaneOn) {
-    PLANE<float> plane(clipPlane);
+    ExtendedPlane plane(clipPlane);
 
     plane.transform(m_mView[iStereoID]);
     for (size_t i = 0;i<vCurrentShader.size();i++) {
       vCurrentShader[i]->Enable();
-      vCurrentShader[i]->SetUniformVector("vClipPlane", plane.x, plane.y, plane.z, plane.w);
+      vCurrentShader[i]->SetUniformVector("vClipPlane", plane.x(), plane.y(),
+                                                        plane.z(), plane.d());
       vCurrentShader[i]->Disable();
     }
   }
@@ -544,5 +546,5 @@ FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR
 
 void GLRaycaster::DisableClipPlane() {
   AbstrRenderer::DisableClipPlane();
-  ClipPlaneToShader(PLANE<float>(0,0,1,-100000),0,true);
+  ClipPlaneToShader(ExtendedPlane(PLANE<float>(0,0,1,-100000)),0,true);
 }

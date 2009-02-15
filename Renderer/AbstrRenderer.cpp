@@ -95,7 +95,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bDownSampleTo8Bits(bDownSampleTo8Bits),
   m_bDisableBorder(bDisableBorder),
   m_bAvoidSeperateCompositing(true),
-  m_ClipPlane(0,0,1,0),
   m_bClipPlaneOn(false)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
@@ -334,7 +333,7 @@ void AbstrRenderer::SetTranslation(const FLOATMATRIX4& mTranslation) {
   ScheduleWindowRedraw(WM_3D);
 }
 
-void AbstrRenderer::SetClipPlane(const PLANE<float> plane)
+void AbstrRenderer::SetClipPlane(const ExtendedPlane& plane)
 {
   if(plane == m_ClipPlane) { return; }
   m_ClipPlane = plane;
@@ -507,7 +506,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
           continue;
         }
 
-        // skip the brick if it is cliped by the clipplane
+        // skip the brick if it is clipped by the clipping plane
         if (m_bClipPlaneOn) {
           
           FLOATVECTOR3 vBrickVertices[8] = {
@@ -524,7 +523,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
           bool bClip = true;
           for (size_t i = 0;i<8;i++) {
             vBrickVertices[i] = vBrickVertices[i] * m_matModelView[0];
-            if (m_ClipPlane.clip(vBrickVertices[i])) {
+            if (m_ClipPlane.Plane().clip(vBrickVertices[i])) {
               bClip = false;
               break;
             }

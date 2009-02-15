@@ -129,7 +129,7 @@ typedef unsigned char BYTE;
 #ifdef _MSC_VER
 # define _func_ __FUNCTION__
 #elif defined(__GNUC__)
-# define _func_ __PRETTY_FUNCTION__
+# define _func_ __func__
 #else
 # warning "unknown compiler!"
 # define _func_ "???"

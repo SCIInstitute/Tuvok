@@ -49,7 +49,7 @@
 #include "../IO/TransferFunction2D.h"
 #include "../Renderer/CullingLOD.h"
 #include "../Basics/GeometryGenerator.h"
-
+#include "../Basics/Plane.h"
 
 class Brick {
 public:
@@ -226,7 +226,7 @@ class AbstrRenderer {
 
     virtual void SetRotation(const FLOATMATRIX4& mRotation);
     virtual void SetTranslation(const FLOATMATRIX4& mTranslation);
-    void SetClipPlane(const PLANE<float> plane);
+    void SetClipPlane(const ExtendedPlane& plane);
     virtual void EnableClipPlane();
     virtual void DisableClipPlane();
 
@@ -385,7 +385,7 @@ class AbstrRenderer {
     FLOATMATRIX4        m_matModelView[2];
     std::vector<std::string> m_vShaderSearchDirs;
 
-    PLANE<float>        m_ClipPlane;
+    ExtendedPlane       m_ClipPlane;
     bool                m_bClipPlaneOn;
 
     virtual void        ScheduleRecompose();
@@ -396,7 +396,6 @@ class AbstrRenderer {
     std::vector<Brick>  BuildLeftEyeSubFrameBrickList(const std::vector<Brick>& vRightEyeBrickList );
     virtual void        ClearDepthBuffer() = 0;
     virtual void        ClearColorBuffer() = 0;
-
 };
 
 #endif // ABSTRRENDERER_H

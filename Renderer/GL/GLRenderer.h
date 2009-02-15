@@ -110,7 +110,9 @@ class GLRenderer : public AbstrRenderer {
 
     bool Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex);
     void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1));
-    void RenderBBox(const FLOATVECTOR4 vColor, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
+    void RenderBBox(const FLOATVECTOR4 vColor, const FLOATVECTOR3& vCenter,
+                    const FLOATVECTOR3& vExtend);
+    void RenderClipPlane(size_t iStereoID);
     void NewFrameClear(ERenderArea eREnderArea);
     bool Execute3DFrame(ERenderArea eREnderArea);
     void RerenderPreviousResult(bool bTransferToFramebuffer);
@@ -154,6 +156,5 @@ class GLRenderer : public AbstrRenderer {
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();
     void RenderCoordArrows();
-
 };
 #endif // GLRenderer_H

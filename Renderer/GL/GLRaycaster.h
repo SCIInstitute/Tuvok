@@ -44,6 +44,8 @@
 #include "../../StdTuvokDefines.h"
 #include "GLRenderer.h"
 
+class ExtendedPlane;
+
 /** \class GLRaycaster
  * GPU Rayster.
  *
@@ -89,7 +91,7 @@ class GLRaycaster : public GLRenderer {
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void RenderHQMIPPostLoop();
 
-    void ClipPlaneToShader(const PLANE<float> &clipPlane, int iStereoID=0, bool bForce = false);
+    void ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoID=0, bool bForce = false);
 
     virtual void StartFrame();
     virtual void SetDataDepShaderVars();
