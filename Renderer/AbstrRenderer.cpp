@@ -528,9 +528,11 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
           };
 
           bool bClip = true;
+          FLOATMATRIX4 matWorld = m_mRotation * m_mTranslation;
           for (size_t i = 0;i<8;i++) {
-            vBrickVertices[i] = vBrickVertices[i] * m_matModelView[0];
-            if (m_ClipPlane.Plane().clip(vBrickVertices[i])) {
+            vBrickVertices[i] = (FLOATVECTOR4(vBrickVertices[i],1) * matWorld).dehomo();
+
+            if (!m_ClipPlane.Plane().clip(vBrickVertices[i])) {
               bClip = false;
               break;
             }

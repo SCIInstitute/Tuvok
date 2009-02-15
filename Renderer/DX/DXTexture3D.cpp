@@ -37,6 +37,7 @@
 #if defined(_WIN32) && defined(USE_DIRECTX)
 
 #include "DXTexture3D.h"
+#include <cassert>
 
 DXTexture3D::DXTexture3D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ, DXGI_FORMAT format) :
   DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, false),

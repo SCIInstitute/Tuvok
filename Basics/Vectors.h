@@ -1334,9 +1334,10 @@ typedef QUATERNION4<float>  FLOATQUATERNION4;
 typedef QUATERNION4<double> DOUBLEQUATERNION4;
 
 
-static bool EpsilonEqual(float a, float b) {
-  return fabs(a-b) <= std::numeric_limits<float>::epsilon();
+template <class T> static bool EpsilonEqual(T a, T b) {
+  return fabs(a-b) <= std::numeric_limits<T>::epsilon();
 }
+
 template <class T> class PLANE : public VECTOR4<T> {
 public:
   PLANE<T>(): VECTOR4<T>(0,0,0,0) {}
@@ -1359,7 +1360,7 @@ public:
   PLANE<T>(const T* vec) : VECTOR4<T>(vec) {}
 
   bool clip(VECTOR3<T> point) const {
-    return ((FLOATVECTOR4::xyz() ^ point) + d() < 0);    
+    return ((FLOATVECTOR4::xyz() ^ point)+w >= 0);    
   }
 
   void transform(const MATRIX4<T> &m) {

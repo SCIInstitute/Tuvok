@@ -1380,7 +1380,7 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   if(!m_bClipPlaneOn || !m_bClipPlaneDisplayed) { return ; }
   const FLOATVECTOR3 vEye(0,0,1.6f);
   const FLOATVECTOR3 vAt(0,0,0);
-  const FLOATVECTOR4 vColor(0.,0.,0.8,0.8);
+  const FLOATVECTOR4 vColor(0.0f,0.0f,0.8f,0.6f);
   FLOATVECTOR3 vTransformedCenter;
 
   vTransformedCenter = (FLOATVECTOR4(0,0,0,1) *

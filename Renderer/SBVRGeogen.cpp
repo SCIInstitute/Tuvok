@@ -176,7 +176,7 @@ static bool intersection(const POS3TEX3_VERTEX &la,
   const FLOATVECTOR3 &va = la.m_vPos;
   const FLOATVECTOR3 &vb = lb.m_vPos;
   const float denom = n ^ (va - vb);
-  if(EpsilonEqual(denom, 0)) {
+  if(EpsilonEqual(denom, 0.0f)) {
     return false;
   }
   const float t = ((n ^ va) + D) / denom;
@@ -417,9 +417,9 @@ static bool CheckOrdering(const FLOATVECTOR3& a,
         g2 = (b.y-c.y)/(b.x-c.x);
 
   if (EpsilonEqual(a.x,c.x))
-    return (g2 < 0) || (EpsilonEqual(g2,0) && b.x < c.x);
+    return (g2 < 0) || (EpsilonEqual(g2,0.0f) && b.x < c.x);
   if (EpsilonEqual(b.x,c.x))
-    return (g1 > 0) || (EpsilonEqual(g1,0) && a.x > c.x);
+    return (g1 > 0) || (EpsilonEqual(g1,0.0f) && a.x > c.x);
 
 
   if (a.x < c.x)
