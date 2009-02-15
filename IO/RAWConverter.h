@@ -44,6 +44,29 @@
 #include "../StdTuvokDefines.h"
 #include "AbstrConverter.h"
 
+
+template<class T> class MinMaxScanner {
+public:
+  MinMaxScanner(LargeRAWFile* file, T& minValue, T& maxValue, UINT64 iElemCount) {
+    size_t iMaxElemCount = size_t(min<UINT64>(BLOCK_COPY_SIZE, iElemCount) / sizeof(T));
+    T* pInData = new T[iMaxElemCount];
+
+    UINT64 iPos = 0;
+    while (iPos < iElemCount)  {
+      size_t iRead = file->ReadRAW((unsigned char*)pInData, iMaxElemCount*sizeof(T))/sizeof(T);
+      if (iRead == 0) break;
+
+      for (size_t i = 0;i<iRead;i++) {
+        if (minValue > pInData[i]) minValue = pInData[i];
+        if (maxValue < pInData[i]) maxValue = pInData[i];
+      }
+      iPos += UINT64(iRead);
+    }
+
+    delete [] pInData;
+  }
+};
+
 class RAWConverter : public AbstrConverter {
 public:
   virtual ~RAWConverter() {}
@@ -78,6 +101,12 @@ public:
                             const std::string& strTempDir, MasterController* pMasterController, 
                             bool bNoUserInteraction);
 
+  virtual bool Analyze(const std::string& strSourceFilename, const std::string& strTempDir, 
+                       MasterController* pMasterController, bool bNoUserInteraction, RangeInfo& info);
+
+  static bool Analyze(const std::string& strSourceFilename, UINT64 iHeaderSkip,
+                       UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
+                       UINTVECTOR3 vVolumeSize, MasterController* pMasterController, RangeInfo& info);
 };
 
 #endif // RAWCONVERTER_H

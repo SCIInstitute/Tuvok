@@ -63,7 +63,6 @@ public:
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint, 
                                UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction);
 
-
 protected:
 
 };

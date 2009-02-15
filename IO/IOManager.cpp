@@ -328,8 +328,9 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 }
 
 
-bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& vfScales,
-                              const std::vector<double>& vBiases, const std::string& strTargetFilename, bool bNoUserInteraction) {
+bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& vScales,
+                              const std::vector<double>& vBiases, const std::string& strTargetFilename, 
+                              bool bUseMaxMode, bool bNoUserInteraction) {
   /// \todo maybe come up with something smarter for a temp dir then the target dir
   m_TempDir = SysTools::GetPath(strTargetFilename);
   m_pMasterController->DebugOut()->Message("IOManager::ConvertDataset","Request to merge multiple data sets into %s received.", strTargetFilename.c_str());
@@ -358,7 +359,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
 
     bRAWCreated = false;
     MergeDataset IntermediateFile;
-    IntermediateFile.fScale = vfScales[iInputData];
+    IntermediateFile.fScale = vScales[iInputData];
     IntermediateFile.fBias = vBiases[iInputData];
 
     if (strExt == "UVF") {
@@ -476,12 +477,12 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
     if (bIsFloatG) {
       switch (iComponentSizeG) {
         case 32 : {
-                    DataMerger<float> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
+                    DataMerger<float> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 64 : {
-                    DataMerger<double> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
+                    DataMerger<double> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
@@ -489,22 +490,22 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
     } else {
       switch (iComponentSizeG) {
         case 8  : {
-                    DataMerger<char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
+                    DataMerger<char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 16 : {
-                    DataMerger<short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
+                    DataMerger<short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 32 : {
-                    DataMerger<int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
+                    DataMerger<int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 64 : {
-                    DataMerger<INT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
+                    DataMerger<INT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
@@ -516,22 +517,22 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
     } else {
       switch (iComponentSizeG) {
         case 8  : {
-                    DataMerger<unsigned char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
+                    DataMerger<unsigned char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 16 : {
-                    DataMerger<unsigned short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
+                    DataMerger<unsigned short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 32 : {
-                    DataMerger<unsigned int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
+                    DataMerger<unsigned int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 64 : {
-                    DataMerger<UINT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController);
+                    DataMerger<UINT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
@@ -649,9 +650,10 @@ bool IOManager::ConvertDataset(const std::string& strFilename, const std::string
             bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
                                             iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                             strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
-            if (!bRAWCreated) continue;
+            if (bRAWCreated) break;
           }
         }
+        if (bRAWCreated) break;
       }
 
       if (!bRAWCreated && m_pFinalConverter) {
@@ -868,4 +870,62 @@ std::string IOManager::GetExportDialogString() {
   }
 
   return strDialog;
+}
+
+
+
+bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info) {
+  // find the right converter to handle the dataset
+  string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
+
+  if (strExt == "UVF") {
+    VolumeDataset v(strFilename,false, m_pMasterController);
+    if (!v.IsOpen()) return false;
+
+    UINT64 iComponentCount = v.GetInfo()->GetComponentCount();
+    bool bSigned = v.GetInfo()->GetIsSigned();
+    bool bIsFloat = v.GetInfo()->GetIsFloat();
+
+    if (iComponentCount != 1) return false;  // only scalar data supported at the moment
+    const Histogram1D* pHist = v.Get1DHistogram();
+    if (pHist == NULL) return false;
+
+    // as our UVFs are always quantized to either 8bit or 16bit right now only the 
+    // nofloat + unsigned path is taken, the others are for future extensions
+    if (bIsFloat) {
+      info.m_iValueType = 0;
+      info.m_fRange.first = 0.0;
+      info.m_fRange.second = double(pHist->GetFilledSize()-1);
+    } else {
+      if (bSigned) {
+        info.m_iValueType = 1;
+        info.m_iRange.first = 0;
+        info.m_iRange.second =INT64(pHist->GetFilledSize()-1);
+      } else {
+        info.m_iValueType = 2;
+        info.m_uiRange.first = 0;
+        info.m_uiRange.second = UINT64(pHist->GetFilledSize()-1);
+      }
+    }
+
+    return true;
+  } else {
+    bool bAnalyzed = false;
+    for (size_t i = 0;i<m_vpConverters.size();i++) {
+      const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+      for (size_t j = 0;j<vStrSupportedExt.size();j++) {
+        if (vStrSupportedExt[j] == strExt) {
+          bAnalyzed = m_vpConverters[i]->Analyze(strFilename, m_TempDir, m_pMasterController, false, info);
+          if (bAnalyzed) break;
+        }
+      }
+      if (bAnalyzed) break;
+    }
+
+    if (!bAnalyzed && m_pFinalConverter) {
+      bAnalyzed = m_pFinalConverter->Analyze(strFilename, m_TempDir, m_pMasterController, false, info);
+    }
+
+    return bAnalyzed;
+  }
 }

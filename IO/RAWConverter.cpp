@@ -816,3 +816,172 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
 
   return bUVFCreated;
 }
+
+bool RAWConverter::Analyze(const std::string& strSourceFilename, const std::string& strTempDir, 
+                           MasterController* pMasterController, bool bNoUserInteraction, RangeInfo& info) {
+
+    UINT64        iHeaderSkip=0;
+    UINT64        iComponentSize=0;
+    UINT64        iComponentCount=0; 
+    bool          bConvertEndianess=false;
+    bool          bSigned=false;
+    bool          bIsFloat=false;
+    UINTVECTOR3   vVolumeSize(0,0,0);
+    FLOATVECTOR3  vVolumeAspect(0,0,0);
+    string        strTitle = "";
+    string        strSource = "";
+    UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
+
+    string        strRAWFilename = "";
+    bool          bRAWDelete = false;
+
+
+    bool bConverted = ConvertToRAW(strSourceFilename, strTempDir, pMasterController, bNoUserInteraction, 
+                                   iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, 
+                                   bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
+                                   strTitle, strSource, eType, strRAWFilename, bRAWDelete);
+
+    if (!bConverted) return false;
+
+
+    bool bAnalyzed = Analyze(strRAWFilename, iHeaderSkip, iComponentSize, iComponentCount, 
+                             bSigned, bIsFloat, vVolumeSize, pMasterController, info);
+
+    if (bRAWDelete) remove(strRAWFilename.c_str());
+
+    return bAnalyzed;
+}
+
+bool RAWConverter::Analyze(const std::string& strSourceFilename, UINT64 iHeaderSkip,
+                       UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
+                       UINTVECTOR3 vVolumeSize, MasterController* pMasterController, RangeInfo& info) {
+
+  
+  // open source file
+  LargeRAWFile fSource(strSourceFilename, iHeaderSkip);
+  fSource.Open(false);
+  if (!fSource.IsOpen()) {
+    pMasterController->DebugOut()->Error("RAWConverter::Analyze","Unable to open source file %s.", strSourceFilename.c_str());
+    return false;
+  }
+
+  UINT64 iElemCount = vVolumeSize.volume()*iComponentCount;
+  
+  if (bFloatingPoint) { 
+    if (!bSigned) {
+      pMasterController->DebugOut()->Error("RAWConverter::Analyze","Unable unsupported data type. (unsiged float)");
+      fSource.Close();
+      return false;
+    }
+    info.m_iValueType = 0;
+    switch (iComponentSize) {
+      case 32 : {
+                  float fMin = numeric_limits<float>::max();
+                  float fMax = -numeric_limits<float>::max();
+                  MinMaxScanner<float> scanner(&fSource, fMin, fMax, iElemCount);
+                  info.m_fRange.first  = fMin;
+                  info.m_fRange.second = fMax;
+                  break;
+                }
+      case 64 : {
+                  double fMin = numeric_limits<double>::max();
+                  double fMax = -numeric_limits<double>::max();
+                  MinMaxScanner<double> scanner(&fSource, fMin, fMax, iElemCount);
+                  info.m_fRange.first  = fMin;
+                  info.m_fRange.second = fMax;
+                  break;
+               }
+      default : {
+                  pMasterController->DebugOut()->Error("RAWConverter::Analyze","Unable unsupported data type. (float)");
+                  fSource.Close();
+                  return false;
+                }
+    }
+  } else {
+    if (bSigned)
+      info.m_iValueType = 1;
+    else
+      info.m_iValueType = 2;
+
+    switch (iComponentSize) {
+      case 8 : {
+                 if (bSigned) {
+                   char iMin = numeric_limits<char>::max();
+                   char iMax = -numeric_limits<char>::max();
+                   MinMaxScanner<char> scanner(&fSource, iMin, iMax, iElemCount);
+                   info.m_iRange.first  = iMin;
+                   info.m_iRange.second = iMax;
+                   break;
+                 } else {
+                   unsigned char iMin = numeric_limits<unsigned char>::max();
+                   unsigned char iMax = numeric_limits<unsigned char>::min();
+                   MinMaxScanner<unsigned char> scanner(&fSource, iMin, iMax, iElemCount);
+                   info.m_uiRange.first  = iMin;
+                   info.m_uiRange.second = iMax;
+                 }
+                 break;
+               }
+      case 16 : {
+                 if (bSigned) {
+                   short iMin = numeric_limits<short>::max();
+                   short iMax = -numeric_limits<short>::max();
+                   MinMaxScanner<short> scanner(&fSource, iMin, iMax, iElemCount);
+                   info.m_iRange.first  = iMin;
+                   info.m_iRange.second = iMax;
+                   break;
+                 } else {
+                   unsigned short iMin = numeric_limits<unsigned short>::max();
+                   unsigned short iMax = numeric_limits<unsigned short>::min();
+                   MinMaxScanner<unsigned short> scanner(&fSource, iMin, iMax, iElemCount);
+                   info.m_uiRange.first  = iMin;
+                   info.m_uiRange.second = iMax;
+                 }
+                 break;
+               }
+      case 32 : {
+                 if (bSigned) {
+                   int iMin = numeric_limits<int>::max();
+                   int iMax = -numeric_limits<int>::max();
+                   MinMaxScanner<int> scanner(&fSource, iMin, iMax, iElemCount);
+                   info.m_iRange.first  = iMin;
+                   info.m_iRange.second = iMax;
+                   break;
+                 } else {
+                   unsigned int iMin = numeric_limits<unsigned int>::max();
+                   unsigned int iMax = numeric_limits<unsigned int>::min();
+                   MinMaxScanner<unsigned int> scanner(&fSource, iMin, iMax, iElemCount);
+                   info.m_uiRange.first  = iMin;
+                   info.m_uiRange.second = iMax;
+                 }
+                 break;
+               }
+      case 64 : {
+                 if (bSigned) {
+                   INT64 iMin = numeric_limits<INT64>::max();
+                   INT64 iMax = -numeric_limits<INT64>::max();
+                   MinMaxScanner<INT64> scanner(&fSource, iMin, iMax, iElemCount);
+                   info.m_iRange.first  = iMin;
+                   info.m_iRange.second = iMax;
+                   break;
+                 } else {
+                   UINT64 iMin = numeric_limits<UINT64>::max();
+                   UINT64 iMax = numeric_limits<UINT64>::min();
+                   MinMaxScanner<UINT64> scanner(&fSource, iMin, iMax, iElemCount);
+                   info.m_uiRange.first  = iMin;
+                   info.m_uiRange.second = iMax;
+                 }
+                 break;
+               }
+      default : {
+                  pMasterController->DebugOut()->Error("RAWConverter::Analyze","Unable unsupported data type. (int)");
+                  fSource.Close();
+                  return false;
+                }
+    }
+  }
+
+
+
+  fSource.Close();
+  return true;
+}

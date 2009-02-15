@@ -47,6 +47,14 @@
 
 class MasterController;
 
+class RangeInfo {
+public:
+  int                       m_iValueType;
+  std::pair<double, double> m_fRange;
+  std::pair<INT64, INT64>   m_iRange;
+  std::pair<UINT64, UINT64> m_uiRange;  
+};
+
 class AbstrConverter {
 public:
   virtual ~AbstrConverter() {}
@@ -68,6 +76,9 @@ public:
                                UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController,
                                bool bNoUserInteraction) = 0;
 
+  virtual bool Analyze(const std::string& strSourceFilename, const std::string& strTempDir, 
+                       MasterController* pMasterController, bool bNoUserInteraction, RangeInfo& info) = 0;
+  
   const std::vector<std::string>& SupportedExt() {return m_vSupportedExt;}
   virtual const std::string& GetDesc() {return m_vConverterDesc;}
 
