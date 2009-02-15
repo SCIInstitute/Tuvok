@@ -227,7 +227,7 @@ class AbstrRenderer {
     virtual void SetRotation(const FLOATMATRIX4& mRotation);
     virtual void SetTranslation(const FLOATMATRIX4& mTranslation);
     void SetClipPlane(const ExtendedPlane& plane);
-    virtual void EnableClipPlane();
+    virtual void EnableClipPlane(bool bDisplayed, bool bLocked);
     virtual void DisableClipPlane();
 
     /// slice parameter for slice views.
@@ -387,6 +387,8 @@ class AbstrRenderer {
 
     ExtendedPlane       m_ClipPlane;
     bool                m_bClipPlaneOn;
+    bool                m_bClipPlaneDisplayed;
+    bool                m_bClipPlaneLocked;
 
     virtual void        ScheduleRecompose();
     void                ComputeMinLODForCurrentView();
