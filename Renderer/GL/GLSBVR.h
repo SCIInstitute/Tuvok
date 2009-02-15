@@ -72,7 +72,7 @@ class GLSBVR : public GLRenderer {
 
     virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing;}
 
-    virtual void EnableClipPlane(bool,bool);
+    virtual void EnableClipPlane();
     virtual void DisableClipPlane();
 
   protected:

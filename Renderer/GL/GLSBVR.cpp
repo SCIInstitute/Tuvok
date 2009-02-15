@@ -170,9 +170,9 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
 
 }
 
-void GLSBVR::EnableClipPlane(bool bDisplayed, bool bLocked) {
+void GLSBVR::EnableClipPlane() {
   if(!m_bClipPlaneOn) {
-    AbstrRenderer::EnableClipPlane(bDisplayed, bLocked);
+    AbstrRenderer::EnableClipPlane();
     m_SBVRGeogen.EnableClipPlane();
     m_SBVRGeogen.SetClipPlane(m_ClipPlane.Plane());
   }

@@ -342,13 +342,8 @@ void AbstrRenderer::SetClipPlane(const ExtendedPlane& plane)
   ScheduleWindowRedraw(WM_3D);
 }
 
-void AbstrRenderer::EnableClipPlane(bool bDisplayed, bool bLocked) {
-  m_pMasterController->DebugOut()->Message(_func_, "Disp: %d, lock: %d",
-                                           static_cast<int>(bDisplayed),
-                                           static_cast<int>(bLocked));
-  m_bClipPlaneLocked = bLocked;
-  if(!m_bClipPlaneOn || bDisplayed != m_bClipPlaneDisplayed) {
-    m_bClipPlaneDisplayed = bDisplayed;
+void AbstrRenderer::EnableClipPlane() {
+  if(!m_bClipPlaneOn) {
     m_bClipPlaneOn = true;
     ScheduleWindowRedraw(WM_3D);
   }

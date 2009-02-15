@@ -227,7 +227,7 @@ class AbstrRenderer {
     virtual void SetRotation(const FLOATMATRIX4& mRotation);
     virtual void SetTranslation(const FLOATMATRIX4& mTranslation);
     void SetClipPlane(const ExtendedPlane& plane);
-    virtual void EnableClipPlane(bool bDisplayed=true, bool bLocked=false);
+    virtual void EnableClipPlane();
     virtual void DisableClipPlane();
     virtual void ShowClipPlane(bool);
     virtual void ClipPlaneRelativeLock(bool);
