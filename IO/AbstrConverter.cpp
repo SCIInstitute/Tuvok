@@ -53,7 +53,8 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
 
   string strSignChangedFile;
   if (bSigned)  {
-    m_pMasterController->DebugOut()->Message("AbstrConverter::Process8BitsTo8Bits","Changing signed to unsigned char and computing 1D histogram...");
+    m_pMasterController->DebugOut()->Message(_func_,
+           "Changing signed to unsigned char and computing 1D histogram...");
     LargeRAWFile OutputData(strTargetFilename);
     OutputData.Create(iSize);
 
@@ -78,15 +79,16 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
     }
 
     if (iPos < iSize) {
-      m_pMasterController->DebugOut()->Warning("AbstrConverter::Process8BitsTo8Bits","Specified size and real datasize mismatch");
+      m_pMasterController->DebugOut()->Warning(_func_,
+                           "Specified size and real datasize mismatch");
     }
 
     delete [] pInData;
     strSignChangedFile = strTargetFilename;
     OutputData.Close();
   } else {
-    m_pMasterController->DebugOut()->Message("AbstrConverter::Process8BitsTo8Bits","Computing 1D Histogram...");
-
+    m_pMasterController->DebugOut()->Message(_func_,
+                                             "Computing 1D Histogram...");
     unsigned char* pInData = new unsigned char[INCORESIZE];
 
     UINT64 iPos = 0;
@@ -98,19 +100,21 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
       iPos += UINT64(iRead);
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-        m_pMasterController->DebugOut()->Message("AbstrConverter::Process8BitsTo8Bits","Computing 1D Histogram (%i percent complete)", int((100*iPos)/iSize));
+        m_pMasterController->DebugOut()->Message(_func_,
+         "Computing 1D Histogram (%i percent complete)", int((100*iPos)/iSize));
         iDivLast = (100*iPos)/iSize;
       }
     }
 
     if (iPos < iSize) {
-      m_pMasterController->DebugOut()->Warning("AbstrConverter::Process8BitsTo8Bits","Specified size and real datasize mismatch");
+      m_pMasterController->DebugOut()->Warning(_func_,
+                           "Specified size and real datasize mismatch");
     }
 
     delete [] pInData;
     strSignChangedFile = strFilename;
   }
-  m_pMasterController->DebugOut()->Message("AbstrConverter::Process8BitsTo8Bits","1D Histogram complete");
+  m_pMasterController->DebugOut()->Message(_func_,"1D Histogram complete");
 
   InputData.Close();
   Histogram1D.SetHistogram(aHist);
@@ -149,7 +153,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     iPos += UINT64(iRead);
 
     if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      m_pMasterController->DebugOut()->Message(_func_,"Computing value range (%i percent complete)", int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
 
@@ -157,23 +161,24 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
   }
 
   if (iPos < iSize) {
-    m_pMasterController->DebugOut()->Warning("AbstrConverter::QuantizeShortTo12Bits","Specified size and real datasize mismatch");
+    m_pMasterController->DebugOut()->Warning(_func_,
+                         "Specified size and real datasize mismatch");
     iSize = iPos;
   }
 
   string strQuantFile;
   // if file uses less or equal than 12 bits quit here
   if (iMax < 4096) {
-    m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","No quantization required (min=%i, max=%i)", iMin, iMax);
+    m_pMasterController->DebugOut()->Message(_func_,"No quantization required (min=%i, max=%i)", iMin, iMax);
     aHist.resize(iMax+1);  // size is the maximum value plus one (the zero value)
     delete [] pInData;
     InputData.Close();
     strQuantFile = strFilename;
   } else {
     if (bSigned) 
-      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","Quantizating to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<short>::max(), int(iMax)-numeric_limits<short>::max());
+      m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<short>::max(), int(iMax)-numeric_limits<short>::max());
     else
-      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","Quantizating to 12 bit (input data has range from %i to %i)", iMin, iMax);
+      m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)", iMin, iMax);
     for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
 
     // otherwise quantize
@@ -204,9 +209,9 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
         if (bSigned) 
-          m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", int(iMin)-numeric_limits<short>::max(), int(iMax)-numeric_limits<short>::max(), int((100*iPos)/iSize));
+          m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", int(iMin)-numeric_limits<short>::max(), int(iMax)-numeric_limits<short>::max(), int((100*iPos)/iSize));
         else
-          m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeShortTo12Bits","Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
+          m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
         iDivLast = (100*iPos)/iSize;
       }
 
@@ -250,14 +255,15 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
     iPos += UINT64(iRead);
 
     if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeFloatTo12Bits","Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      m_pMasterController->DebugOut()->Message(_func_,"Computing value range (%i percent complete)", int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
 
   }
 
   if (iPos < iSize) {
-    m_pMasterController->DebugOut()->Warning("AbstrConverter::QuantizeFloatTo12Bits","Specified size and real datasize mismatch");
+    m_pMasterController->DebugOut()->Warning(_func_,
+                         "Specified size and real datasize mismatch");
     iSize = iPos;
   }
 
@@ -271,7 +277,7 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
     return "";
   }
 
-  m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeFloatTo12Bits","Quantizating to 12 bit (input data has range from %g to %g)", fMin, fMax);
+  m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %g to %g)", fMin, fMax);
 
   float fQuantFact = 4095.0f / float(fMax-fMin);
   unsigned short* pOutData = new unsigned short[INCORESIZE];
@@ -294,7 +300,7 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
     iPos += UINT64(iRead);
 
     if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeFloatTo12Bits","Quantizating to 12 bit (input data has range from %g to %g)\n%i percent complete", fMin, fMax, int((100*iPos)/iSize));
+      m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %g to %g)\n%i percent complete", fMin, fMax, int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
 
@@ -341,7 +347,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
     iPos += UINT64(iRead);
 
     if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeIntTo12Bits","Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      m_pMasterController->DebugOut()->Message(_func_,"Computing value range (%i percent complete)", int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
 
@@ -356,16 +362,16 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
   string strQuantFile;
   // if file uses less or equal than 12 bits quit here
   if (iMax < 4096) {
-    m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeIntTo12Bits","No quantization required (min=%i, max=%i)", iMin, iMax);
+    m_pMasterController->DebugOut()->Message(_func_,"No quantization required (min=%i, max=%i)", iMin, iMax);
     aHist.resize(iMax+1);  // reduce the size to the filled size (the maximum value plus one (the zero value))
     delete [] pInData;
     InputData.Close();
     strQuantFile = strFilename;
   } else {
     if (bSigned) 
-      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeIntTo12Bits","Quantizating to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max());
+      m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max());
     else
-      m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeIntTo12Bits","Quantizating to 12 bit (input data has range from %i to %i)", iMin, iMax);
+      m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)", iMin, iMax);
     for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
 
     // otherwise quantize
@@ -396,9 +402,9 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
         if (bSigned) 
-          m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeIntTo12Bits","Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max(), int((100*iPos)/iSize));
+          m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max(), int((100*iPos)/iSize));
         else
-          m_pMasterController->DebugOut()->Message("AbstrConverter::QuantizeIntTo12Bits","Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
+          m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
         iDivLast = (100*iPos)/iSize;
       }
 

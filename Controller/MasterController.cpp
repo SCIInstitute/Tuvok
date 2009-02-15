@@ -71,16 +71,14 @@ MasterController::~MasterController() {
 
 void MasterController::AddDebugOut(AbstrDebugOut* debugOut) {
   if (debugOut != NULL) {
-    m_DebugOut.Message("MasterController::SetDebugOut",
-       "Disconnecting from this debug out");
+    m_DebugOut.Message(_func_, "Disconnecting from this debug out");
 
     m_DebugOut.AddDebugOut(debugOut);
 
-    debugOut->Message("MasterController::SetDebugOut",
-                      "Connected to this debug out");
+    debugOut->Message(_func_, "Connected to this debug out");
   } else {
-    m_DebugOut.Warning("MasterController::SetDebugOut",
-       "New debug is a NULL pointer, keeping old debug out");
+    m_DebugOut.Warning(_func_,
+                       "New debug is a NULL pointer, ignoring it.");
   }
 }
 
@@ -103,49 +101,48 @@ RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOf
   switch (eRendererType) {
 
   case OPENGL_SBVR :
-    m_DebugOut.Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=OpenGL, Method=Slice Based Volume Rendering)");
+    m_DebugOut.Message(_func_,"Starting up new renderer (API=OpenGL, Method=Slice Based Volume Rendering)");
+//    m_DebugOut.Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=OpenGL, Method=Slice Based Volume Rendering)");
     m_vVolumeRenderer.push_back(new GLSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 
   case OPENGL_RAYCASTER :
-    m_DebugOut.Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=OpenGL, Method=Raycaster)");
+    m_DebugOut.Message(_func_,"Starting up new renderer (API=OpenGL, Method=Raycaster)");
     m_vVolumeRenderer.push_back(new GLRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
   case DIRECTX_SBVR : 
-    m_DebugOut.Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=DirectX, Method=SBVR)");
+    m_DebugOut.Message(_func_,"Starting up new renderer (API=DirectX, Method=SBVR)");
     m_vVolumeRenderer.push_back(new DXSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 
   case DIRECTX_RAYCASTER :
-    m_DebugOut.Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=DirectX, Method=Raycaster)");
+    m_DebugOut.Message(_func_,"Starting up new renderer (API=DirectX, Method=Raycaster)");
     m_vVolumeRenderer.push_back(new DXRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 #else
   case DIRECTX_RAYCASTER :
   case DIRECTX_SBVR : 
-    m_DebugOut.Error("MasterController::RequestNewVolumerenderer","DirectX 10 renderer not yet implemented. Please select OpenGL as the render API in the settings dialog.");
+    m_DebugOut.Error(_func_,"DirectX 10 renderer not yet implemented. Please select OpenGL as the render API in the settings dialog.");
     return NULL;
 #endif
 
   default :
-    m_DebugOut.Error("MasterController::RequestNewVolumerenderer","Unsupported Volume renderer requested");
+    m_DebugOut.Error(_func_,"Unsupported Volume renderer requested");
     return NULL;
   };
 }
 
 
 void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
-
   for (AbstrRendererListIter i = m_vVolumeRenderer.begin();
-       i<m_vVolumeRenderer.end();
+       i < m_vVolumeRenderer.end();
        ++i) {
 
     if (*i == pVolumeRenderer) {
-      m_DebugOut.Message("MasterController::ReleaseVolumerenderer",
-         "Deleting volume renderer");
+      m_DebugOut.Message(_func_, "Deleting volume renderer");
       delete pVolumeRenderer;
 
       m_vVolumeRenderer.erase(i);
@@ -153,8 +150,7 @@ void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
     }
   }
 
-  m_DebugOut.Warning("MasterController::ReleaseVolumerenderer",
-           "requested volume renderer not found");
+  m_DebugOut.Warning(_func_, "requested volume renderer not found");
 }
 
 

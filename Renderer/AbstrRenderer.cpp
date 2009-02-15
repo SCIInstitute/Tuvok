@@ -143,8 +143,7 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   AbstrDebugOut *dbg = m_pMasterController->DebugOut();
 
   if (m_pMasterController->IOMan() == NULL) {
-    dbg->Error("AbstrRenderer::LoadDataset",
-               "Cannot load dataset because IOManager is NULL");
+    dbg->Error(_func_, "Cannot load dataset because IOManager is NULL");
     return false;
   }
 
