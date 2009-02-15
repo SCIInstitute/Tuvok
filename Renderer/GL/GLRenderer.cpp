@@ -1377,6 +1377,7 @@ void GLRenderer::BBoxPostRender() {
 
 void GLRenderer::RenderClipPlane(size_t iStereoID)
 {
+  if(!m_bClipPlaneOn) { return ; }
   const FLOATVECTOR3 vEye(0,0,1.6f);
   const FLOATVECTOR3 vAt(0,0,0);
   const FLOATVECTOR4 vColor(0.,0.,0.8,0.8);
