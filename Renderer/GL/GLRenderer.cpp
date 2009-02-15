@@ -1379,25 +1379,23 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
 {
   if(!m_bClipPlaneOn || !m_bClipPlaneDisplayed) { return ; }
   const FLOATVECTOR3 vEye(0,0,1.6f);
-  const FLOATVECTOR3 vAt(0,0,0);
-  const FLOATVECTOR4 vColor(0.0f,0.0f,0.8f,0.6f);
+  FLOATVECTOR4 vColor(0.0f,0.0f,0.8f,0.4f);
   FLOATVECTOR3 vTransformedCenter;
 
   vTransformedCenter = (FLOATVECTOR4(0,0,0,1) *
                         m_mTranslation).dehomo();
   
-  FLOATVECTOR3 viewDir(vAt - vEye);
-  viewDir.normalize();
   ExtendedPlane transformed(m_ClipPlane);
   m_mView[iStereoID].setModelview();
 
   typedef std::vector<FLOATVECTOR3> TriList;
   TriList quad;
-  bool ccw = transformed.Quad(viewDir, vTransformedCenter, quad);
+  bool ccw = transformed.Quad(vEye, vTransformedCenter, quad);
   if(m_eRenderMode != RM_ISOSURFACE) {
     if(ccw) {
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     } else {
+      vColor *= vColor.w;
       glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
     }
   } else {

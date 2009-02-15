@@ -58,7 +58,7 @@ void ExtendedPlane::TransformIT(const FLOATMATRIX4& mat)
   m_Perpendicular.normalize();
 }
 
-bool ExtendedPlane::Quad(const FLOATVECTOR3& viewDir,
+bool ExtendedPlane::Quad(const FLOATVECTOR3& vEye,
                          const FLOATVECTOR3& vDatasetCenter,
                          std::vector<FLOATVECTOR3>& quad)
 {
@@ -69,6 +69,8 @@ bool ExtendedPlane::Quad(const FLOATVECTOR3& viewDir,
   float dist = m_Plane.xyz() ^ vDatasetCenter;
   FLOATVECTOR3 vCenter = vDatasetCenter - (dist+plane_d)*m_Plane.xyz();
   pt_on_plane = vCenter;
+
+  FLOATVECTOR3 viewDir = pt_on_plane-vEye;
 
   if((m_Plane.xyz() ^ viewDir) < 0) {
     quad.push_back((pt_on_plane + (vec  + m_Perpendicular)));

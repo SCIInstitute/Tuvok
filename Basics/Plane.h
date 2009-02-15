@@ -52,7 +52,7 @@ class ExtendedPlane {
     void Transform(const FLOATMATRIX4&);
     void TransformIT(const FLOATMATRIX4&);
 
-    bool Quad(const FLOATVECTOR3& viewDir, const FLOATVECTOR3& vDatasetCenter,
+    bool Quad(const FLOATVECTOR3& vEye, const FLOATVECTOR3& vDatasetCenter,
               std::vector<FLOATVECTOR3>& quad);
 
     static const PLANE<float> ms_Plane;
@@ -76,11 +76,6 @@ class ExtendedPlane {
     }
 
     bool operator ==(const ExtendedPlane &ep) const {
-#ifdef _DEBUG
-      if(m_Plane == ep.m_Plane) {
-        assert(m_Perpendicular == ep.m_Perpendicular);
-      }
-#endif
       return m_Plane == ep.m_Plane;
     }
 
