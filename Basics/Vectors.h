@@ -68,8 +68,8 @@
 #endif
 
 #include "../StdTuvokDefines.h"
-#include <math.h>
-#include <assert.h>
+#include <cmath>
+#include <limits>
 
 #ifdef WIN32
   #pragma warning( disable : 4995 ) // disable deprecated warning
@@ -1334,6 +1334,9 @@ typedef QUATERNION4<float>  FLOATQUATERNION4;
 typedef QUATERNION4<double> DOUBLEQUATERNION4;
 
 
+static bool EpsilonEqual(float a, float b) {
+  return fabs(a-b) <= std::numeric_limits<float>::epsilon();
+}
 template <class T> class PLANE : public VECTOR4<T> {
 public:
   PLANE<T>(): VECTOR4<T>(0,0,0,0) {}
@@ -1385,6 +1388,17 @@ public:
     PLANE<T> tmp(*this);
     tmp.transform(matrix);
     return tmp;
+  }
+
+  bool intersect(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
+                 FLOATVECTOR3& hit) const {
+    const float denom = (*this) ^ (a - b);
+    if(EpsilonEqual(denom, 0.)) {
+      return false;
+    }
+    const float t = (((*this) ^ a) + this->d()) / denom;
+    hit = a + (t*(b - a));
+    return true;
   }
 };
 

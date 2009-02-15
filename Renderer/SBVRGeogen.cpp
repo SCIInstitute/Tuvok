@@ -35,13 +35,13 @@
 */
 
 #include <algorithm>
+#include <cassert>
 #include <functional>
 #include <limits>
 #include "SBVRGeogen.h"
 
 #include <Basics/MathTools.h>
 
-static bool EpsilonEqual(float a, float b);
 static bool CheckOrdering(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
                           const FLOATVECTOR3& c);
 static void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray);
@@ -407,10 +407,6 @@ void SBVRGeogen::SetBrickData(const FLOATVECTOR3& vAspect,
   m_vTexCoordMin  = vTexCoordMin;
   m_vTexCoordMax  = vTexCoordMax;
   InitBBOX();
-}
-
-static bool EpsilonEqual(float a, float b) {
-  return fabs(a-b) <= std::numeric_limits<float>::epsilon();
 }
 
 // Checks the ordering of two points relative to another.
