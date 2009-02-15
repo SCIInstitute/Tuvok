@@ -95,7 +95,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bDownSampleTo8Bits(bDownSampleTo8Bits),
   m_bDisableBorder(bDisableBorder),
   m_bAvoidSeperateCompositing(true),
-  m_bClipPlaneOn(false)
+  m_bClipPlaneOn(false),
+  m_bClipPlaneDisplayed(true),
+  m_bClipPlaneLocked(false)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
@@ -341,6 +343,9 @@ void AbstrRenderer::SetClipPlane(const ExtendedPlane& plane)
 }
 
 void AbstrRenderer::EnableClipPlane(bool bDisplayed, bool bLocked) {
+  m_pMasterController->DebugOut()->Message(_func_, "Disp: %d, lock: %d",
+                                           static_cast<int>(bDisplayed),
+                                           static_cast<int>(bLocked));
   m_bClipPlaneLocked = bLocked;
   if(!m_bClipPlaneOn || bDisplayed != m_bClipPlaneDisplayed) {
     m_bClipPlaneDisplayed = bDisplayed;
