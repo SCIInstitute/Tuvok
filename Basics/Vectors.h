@@ -1394,7 +1394,7 @@ public:
   bool intersect(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
                  FLOATVECTOR3& hit) const {
     const float denom = (*this) ^ (a - b);
-    if(EpsilonEqual(denom, 0.)) {
+    if(EpsilonEqual(denom, 0.0f)) {
       return false;
     }
     const float t = (((*this) ^ a) + this->d()) / denom;
