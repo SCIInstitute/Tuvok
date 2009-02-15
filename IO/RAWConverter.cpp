@@ -843,6 +843,10 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename, const std::stri
 
     if (!bConverted) return false;
 
+    info.m_vDomainSize = vVolumeSize;
+    // ConvertToRAW either creates a 16 or 8 bit unsigned int, so checking 
+    // the iComponentSize is sufficient to make sure the types are the same
+    info.m_iComponentSize = iComponentSize;
 
     bool bAnalyzed = Analyze(strRAWFilename, iHeaderSkip, iComponentSize, iComponentCount, 
                              bSigned, bIsFloat, vVolumeSize, pMasterController, info);

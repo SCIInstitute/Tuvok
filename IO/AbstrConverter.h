@@ -49,6 +49,8 @@ class MasterController;
 
 class RangeInfo {
 public:
+  UINTVECTOR3               m_vDomainSize;
+  UINT64                    m_iComponentSize;
   int                       m_iValueType;
   std::pair<double, double> m_fRange;
   std::pair<INT64, INT64>   m_iRange;
