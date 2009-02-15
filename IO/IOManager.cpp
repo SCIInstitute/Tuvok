@@ -333,7 +333,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
                               bool bUseMaxMode, bool bNoUserInteraction) {
   /// \todo maybe come up with something smarter for a temp dir then the target dir
   m_TempDir = SysTools::GetPath(strTargetFilename);
-  m_pMasterController->DebugOut()->Message("IOManager::ConvertDataset","Request to merge multiple data sets into %s received.", strTargetFilename.c_str());
+  m_pMasterController->DebugOut()->Message("IOManager::MergeDatasets","Request to merge multiple data sets into %s received.", strTargetFilename.c_str());
 
   // convert the input files to RAW
   UINT64        iComponentSizeG=0;
@@ -354,7 +354,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
   bool bRAWCreated = false;
   vector<MergeDataset> vIntermediateFiles;
   for (size_t iInputData = 0;iInputData<strFilenames.size();iInputData++) {
-    m_pMasterController->DebugOut()->Message("IOManager::ConvertDataset","Reading data sets %s...", strFilenames[iInputData].c_str());
+    m_pMasterController->DebugOut()->Message("IOManager::MergeDatasets","Reading data sets %s...", strFilenames[iInputData].c_str());
     string strExt       = SysTools::ToUpperCase(SysTools::GetExt(strFilenames[iInputData]));
 
     bRAWCreated = false;
@@ -385,11 +385,12 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
             bConvertEndianessG != !v.GetInfo()->IsSameEndianess() ||
             bSignedG != v.GetInfo()->GetIsSigned() ||
             bIsFloatG != v.GetInfo()->GetIsFloat() ||
-            vVolumeSizeG != UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel)) ||
-            vVolumeAspectG != FLOATVECTOR3(v.GetInfo()->GetScale())) {
+            vVolumeSizeG != UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel))) {
           bRAWCreated = false;
           break;
         }
+        if (vVolumeAspectG != FLOATVECTOR3(v.GetInfo()->GetScale())) 
+          m_pMasterController->DebugOut()->Warning("IOManager::MergeDatasets","Different aspect ratios found.");
       }
       
       IntermediateFile.strFilename = m_TempDir + strFilenames[iInputData] +".raw";
@@ -451,11 +452,13 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
             bConvertEndianessG != bConvertEndianess ||
             bSignedG != bSigned ||
             bIsFloatG != bIsFloat ||
-            vVolumeSizeG != vVolumeSize ||
-            vVolumeAspectG != vVolumeAspect) {
+            vVolumeSizeG != vVolumeSize) {
           bRAWCreated = false;
           break;
         }
+
+        if (vVolumeAspectG != vVolumeAspect) 
+          m_pMasterController->DebugOut()->Warning("IOManager::MergeDatasets","Different aspect ratios found.");
       }
     }
     
