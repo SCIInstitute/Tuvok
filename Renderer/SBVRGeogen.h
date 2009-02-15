@@ -79,7 +79,7 @@ public:
                     const FLOATVECTOR3& vTexCoordMin=FLOATVECTOR3(0,0,0),
                     const FLOATVECTOR3& vTexCoordMax=FLOATVECTOR3(1,1,1));
   void ComputeGeometry();
-  float GetOpacityCorrection();
+  float GetOpacityCorrection() const;
   void SetMinLayers(UINT32 iMinLayers) {
     m_iMinLayers = iMinLayers;
     ComputeGeometry();
@@ -124,5 +124,5 @@ protected:
   void InitBBOX();
   bool ComputeLayerGeometry(float fDepth);
   void Triangulate(std::vector<POS3TEX3_VERTEX> &fArray);
-  float GetLayerDistance();
+  float GetLayerDistance() const;
 };

@@ -364,12 +364,12 @@ bool SBVRGeogen::ComputeLayerGeometry(float fDepth) {
   return true;
 }
 
-float SBVRGeogen::GetLayerDistance() {
+float SBVRGeogen::GetLayerDistance() const {
   return (0.5f * 1.0f/m_fSamplingModifier * (m_vAspect/FLOATVECTOR3(m_vSize))).minVal(); //float(m_vAspect.minVal())/float(std::max(m_vSize.maxVal(),m_iMinLayers));
 }
 
 
-float SBVRGeogen::GetOpacityCorrection() {
+float SBVRGeogen::GetOpacityCorrection() const {
   return 1.0f/m_fSamplingModifier * (FLOATVECTOR3(m_vGlobalSize)/FLOATVECTOR3(m_vLODSize)).maxVal();//  GetLayerDistance()*m_vSize.maxVal();
 }
 
