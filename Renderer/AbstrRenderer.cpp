@@ -359,6 +359,15 @@ void AbstrRenderer::DisableClipPlane() {
     ScheduleWindowRedraw(WM_3D);
   }
 }
+void AbstrRenderer::ShowClipPlane(bool bShown) {
+  m_bClipPlaneDisplayed = bShown;
+  if(m_bClipPlaneOn) {
+    ScheduleWindowRedraw(WM_3D);
+  }
+}
+void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
+  m_bClipPlaneLocked = bRel;
+}
 
 void AbstrRenderer::SetSliceDepth(EWindowMode eWindow, UINT64 iSliceDepth) {
   if (eWindow < WM_3D) {

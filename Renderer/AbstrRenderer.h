@@ -227,8 +227,13 @@ class AbstrRenderer {
     virtual void SetRotation(const FLOATMATRIX4& mRotation);
     virtual void SetTranslation(const FLOATMATRIX4& mTranslation);
     void SetClipPlane(const ExtendedPlane& plane);
-    virtual void EnableClipPlane(bool bDisplayed, bool bLocked);
+    virtual void EnableClipPlane(bool bDisplayed=true, bool bLocked=false);
     virtual void DisableClipPlane();
+    virtual void ShowClipPlane(bool);
+    virtual void ClipPlaneRelativeLock(bool);
+    bool ClipPlaneEnabled() const { return m_bClipPlaneOn; }
+    bool ClipPlaneShown() const   { return m_bClipPlaneDisplayed; }
+    bool ClipPlaneLocked() const  { return m_bClipPlaneLocked; }
 
     /// slice parameter for slice views.
     virtual void SetSliceDepth(EWindowMode eWindow, UINT64 fSliceDepth);
