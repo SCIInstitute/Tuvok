@@ -48,7 +48,7 @@
 template<class T> class MinMaxScanner {
 public:
   MinMaxScanner(LargeRAWFile* file, T& minValue, T& maxValue, UINT64 iElemCount) {
-    size_t iMaxElemCount = size_t(min<UINT64>(BLOCK_COPY_SIZE, iElemCount) / sizeof(T));
+    size_t iMaxElemCount = size_t(std::min<UINT64>(BLOCK_COPY_SIZE, iElemCount) / sizeof(T));
     T* pInData = new T[iMaxElemCount];
 
     UINT64 iPos = 0;
