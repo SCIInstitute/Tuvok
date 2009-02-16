@@ -174,7 +174,12 @@ void GLSBVR::EnableClipPlane() {
   if(!m_bClipPlaneOn) {
     AbstrRenderer::EnableClipPlane();
     m_SBVRGeogen.EnableClipPlane();
-    m_SBVRGeogen.SetClipPlane(m_ClipPlane.Plane());
+    PLANE<float> plane(m_ClipPlane.Plane());
+    if(m_bClipPlaneLocked) {
+      FLOATMATRIX4 mat((m_mRotation * m_mTranslation).inverse());
+      plane.transform(mat.Transpose());
+    }
+    m_SBVRGeogen.SetClipPlane(plane);
   }
 }
 
@@ -188,7 +193,12 @@ void GLSBVR::DisableClipPlane() {
 void GLSBVR::Render3DPreLoop() {
   if(m_bClipPlaneOn) {
     m_SBVRGeogen.EnableClipPlane();
-    m_SBVRGeogen.SetClipPlane(m_ClipPlane.Plane());
+    PLANE<float> plane(m_ClipPlane.Plane());
+    if(m_bClipPlaneLocked) {
+      FLOATMATRIX4 mat((m_mRotation * m_mTranslation).inverse());
+      plane.transform(mat.Transpose());
+    }
+    m_SBVRGeogen.SetClipPlane(plane);
   } else {
     m_SBVRGeogen.DisableClipPlane();
   }
