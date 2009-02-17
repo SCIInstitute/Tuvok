@@ -53,7 +53,7 @@ class ExtendedPlane {
     void TransformIT(const FLOATMATRIX4&);
 
     bool Quad(const FLOATVECTOR3& vEye, const FLOATVECTOR3& vDatasetCenter,
-              std::vector<FLOATVECTOR3>& quad);
+              std::vector<FLOATVECTOR3>& quad, const float fWidgetSize=0.5f);
 
     static const PLANE<float> ms_Plane;
     static const FLOATVECTOR3 ms_Perpendicular;

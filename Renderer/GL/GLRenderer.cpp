@@ -1379,7 +1379,8 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
 {
   if(!m_bClipPlaneOn || !m_bClipPlaneDisplayed) { return ; }
   const FLOATVECTOR3 vEye(0,0,1.6f);
-  FLOATVECTOR4 vColor(0.0f,0.0f,0.8f,0.4f);
+  FLOATVECTOR4 vColorQuad(0.0f,0.0f,0.8f,0.4f);
+  FLOATVECTOR4 vColorBorder(1.0f,1.0f,0.0f,1.0f);
   FLOATVECTOR3 vTransformedCenter;
 
   vTransformedCenter = (FLOATVECTOR4(0,0,0,1) *
@@ -1399,7 +1400,8 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
     if(ccw) {
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     } else {
-      vColor *= vColor.w;
+      vColorQuad *= vColorQuad.w;
+      vColorBorder *= vColorBorder.w;
       glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
     }
   } else {
@@ -1408,14 +1410,26 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
 
   glEnable(GL_BLEND);
   glBegin(GL_TRIANGLES);
-    glColor4fv(&(vColor.x));
-    for(TriList::const_iterator tri = quad.begin();
-        tri != quad.end(); tri += 3) {
-      glVertex3fv(&(*(tri+0)).x);
-      glVertex3fv(&(*(tri+1)).x);
-      glVertex3fv(&(*(tri+2)).x);
+    glColor4fv(&(vColorQuad.x));
+    for(size_t i = 0;i<6;i+= 3) {
+      glVertex3fv(&quad[i+0].x);
+      glVertex3fv(&quad[i+1].x);
+      glVertex3fv(&quad[i+2].x);
     }
   glEnd();
+
+  glEnable(GL_LINE_SMOOTH);
+  glLineWidth(4);
+  glBegin(GL_LINES);
+    glColor4fv(&(vColorBorder.x));
+    for(size_t i = 6;i<14;i+= 2) {
+      glVertex3fv(&quad[i+0].x);
+      glVertex3fv(&quad[i+1].x);
+    }
+  glEnd();
+  glLineWidth(1);
+  glDisable(GL_LINE_SMOOTH);
+
   glDisable(GL_BLEND);
 }
 

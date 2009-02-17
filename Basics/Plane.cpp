@@ -60,7 +60,8 @@ void ExtendedPlane::TransformIT(const FLOATMATRIX4& mat)
 
 bool ExtendedPlane::Quad(const FLOATVECTOR3& vEye,
                          const FLOATVECTOR3& vDatasetCenter,
-                         std::vector<FLOATVECTOR3>& quad)
+                         std::vector<FLOATVECTOR3>& quad,
+                         const float fWidgetSize)
 {
   FLOATVECTOR3 vec = m_Plane.xyz() % m_Perpendicular;
   float plane_d = m_Plane.d();
@@ -72,22 +73,37 @@ bool ExtendedPlane::Quad(const FLOATVECTOR3& vEye,
 
   FLOATVECTOR3 viewDir = pt_on_plane-vEye;
 
+  // "push back" the triangulated quad
   if((m_Plane.xyz() ^ viewDir) < 0) {
-    quad.push_back((pt_on_plane + (vec  + m_Perpendicular)));
-    quad.push_back((pt_on_plane + (vec  - m_Perpendicular)));
-    quad.push_back((pt_on_plane + (-vec - m_Perpendicular)));
+    quad.push_back((pt_on_plane + (fWidgetSize*(vec  + m_Perpendicular))));
+    quad.push_back((pt_on_plane + (fWidgetSize*(vec  - m_Perpendicular))));
+    quad.push_back((pt_on_plane + (fWidgetSize*(-vec - m_Perpendicular))));
 
-    quad.push_back((pt_on_plane + (-vec - m_Perpendicular)));
-    quad.push_back((pt_on_plane + (-vec + m_Perpendicular)));
-    quad.push_back((pt_on_plane + (vec  + m_Perpendicular)));
+    quad.push_back((pt_on_plane + (fWidgetSize*(-vec - m_Perpendicular))));
+    quad.push_back((pt_on_plane + (fWidgetSize*(-vec + m_Perpendicular))));
+    quad.push_back((pt_on_plane + (fWidgetSize*(vec  + m_Perpendicular))));
   } else {
-    quad.push_back((pt_on_plane + (-vec - m_Perpendicular)));
-    quad.push_back((pt_on_plane + (vec  - m_Perpendicular)));
-    quad.push_back((pt_on_plane + (vec  + m_Perpendicular)));
+    quad.push_back((pt_on_plane + (fWidgetSize*(-vec - m_Perpendicular))));
+    quad.push_back((pt_on_plane + (fWidgetSize*(vec  - m_Perpendicular))));
+    quad.push_back((pt_on_plane + (fWidgetSize*(vec  + m_Perpendicular))));
 
-    quad.push_back((pt_on_plane + (vec  + m_Perpendicular)));
-    quad.push_back((pt_on_plane + (-vec + m_Perpendicular)));
-    quad.push_back((pt_on_plane + (-vec - m_Perpendicular)));
+    quad.push_back((pt_on_plane + (fWidgetSize*(vec  + m_Perpendicular))));
+    quad.push_back((pt_on_plane + (fWidgetSize*(-vec + m_Perpendicular))));
+    quad.push_back((pt_on_plane + (fWidgetSize*(-vec - m_Perpendicular))));
   }
+
+  // "push back" the lines for the border
+  quad.push_back((pt_on_plane + (fWidgetSize*(vec  + m_Perpendicular))));
+  quad.push_back((pt_on_plane + (fWidgetSize*(vec  - m_Perpendicular))));
+
+  quad.push_back((pt_on_plane + (fWidgetSize*(vec  - m_Perpendicular))));
+  quad.push_back((pt_on_plane + (fWidgetSize*(-vec - m_Perpendicular))));
+
+  quad.push_back((pt_on_plane + (fWidgetSize*(-vec - m_Perpendicular))));
+  quad.push_back((pt_on_plane + (fWidgetSize*(-vec + m_Perpendicular))));
+
+  quad.push_back((pt_on_plane + (fWidgetSize*(-vec + m_Perpendicular))));
+  quad.push_back((pt_on_plane + (fWidgetSize*(vec  + m_Perpendicular))));
+
   return (m_Plane.xyz() ^ viewDir) < 0;
 }
