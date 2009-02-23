@@ -37,7 +37,7 @@
 
 #include <QtCore/QtPlugin>
 
-#ifndef TUVOK_DYNAMIC_QT
+#ifndef QT_SHARED
 Q_IMPORT_PLUGIN(qjpeg)
 Q_IMPORT_PLUGIN(qtiff)
 Q_IMPORT_PLUGIN(qgif)
@@ -57,6 +57,6 @@ Q_IMPORT_PLUGIN(qgif)
   #endif
 #endif
 
-#endif // TUVOK_DYNAMIC_QT
+#endif // QT_SHARED
 
 #endif // TUVOK_QTPLUGINS_H
