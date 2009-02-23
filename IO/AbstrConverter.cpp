@@ -355,7 +355,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
   }
 
   if (iPos < iSize) {
-    m_pMasterController->DebugOut()->Warning("AbstrConverter::QuantizeIntTo12Bits","Specified size and real datasize mismatch");
+    m_pMasterController->DebugOut()->Warning(_func_,"Specified size and real datasize mismatch");
     iSize = iPos;
   }
 

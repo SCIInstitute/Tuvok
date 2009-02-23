@@ -78,13 +78,13 @@ public:
   DataMerger(const std::vector <MergeDataset>& strFiles, const std::string& strTarget, UINT64 iElemCount, MasterController* pMasterController, bool bUseMaxMode) : 
     bIsOK(false)
   {
-    pMasterController->DebugOut()->Message("DataMerger::DataMerger","Copying first file %s ...", SysTools::GetFilename(strFiles[0].strFilename).c_str());
+    pMasterController->DebugOut()->Message(_func_,"Copying first file %s ...", SysTools::GetFilename(strFiles[0].strFilename).c_str());
     if (!LargeRAWFile::Copy(strFiles[0].strFilename, strTarget, strFiles[0].iHeaderSkip)) {
       bIsOK = false;
       return;
     }
 
-    pMasterController->DebugOut()->Message("DataMerger::DataMerger","Merging ...");
+    pMasterController->DebugOut()->Message(_func_,"Merging ...");
     LargeRAWFile target(strTarget);
     target.Open(true);
 
@@ -98,7 +98,7 @@ public:
     T* pTargetBuffer = new T[size_t(iCopySize)];
     T* pSourceBuffer = new T[size_t(iCopySize)];
     for (size_t i = 1;i<strFiles.size();i++) { 
-      pMasterController->DebugOut()->Message("DataMerger::DataMerger","Merging with file %s ...", SysTools::GetFilename(strFiles[i].strFilename).c_str());
+      pMasterController->DebugOut()->Message(_func_,"Merging with file %s ...", SysTools::GetFilename(strFiles[i].strFilename).c_str());
       LargeRAWFile source(strFiles[i].strFilename, strFiles[i].iHeaderSkip);
       source.Open(false);
       if (!source.IsOpen()) {

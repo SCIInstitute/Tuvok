@@ -151,13 +151,11 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this);
 
   if (m_pDataset == NULL) {
-    dbg->Error("AbstrRenderer::LoadDataset",
-               "IOManager call to load dataset failed.");
+    dbg->Error(_func_, "IOManager call to load dataset failed.");
     return false;
   }
 
-  dbg->Message("AbstrRenderer::LoadDataset",
-               "Load successful, initializing renderer!");
+  dbg->Message(_func_, "Load successful, initializing renderer!");
 
   // find the maximum LOD index
   std::vector<UINT64> vSmallestLOD = m_pDataset->GetInfo()->GetLODLevelCountND();
@@ -228,11 +226,11 @@ void AbstrRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
 void AbstrRenderer::Changed1DTrans() {
   AbstrDebugOut *dbg = m_pMasterController->DebugOut();
   if (m_eRenderMode != RM_1DTRANS) {
-    dbg->Message("AbstrRenderer::Changed1DTrans",
+    dbg->Message(_func_,
                  "not using the 1D transferfunction at the moment, "
                  "ignoring message");
   } else {
-    dbg->Message("AbstrRenderer::Changed1DTrans", "complete redraw scheduled");
+    dbg->Message(_func_, "complete redraw scheduled");
     ScheduleCompleteRedraw();
   }
 }
@@ -240,11 +238,11 @@ void AbstrRenderer::Changed1DTrans() {
 void AbstrRenderer::Changed2DTrans() {
   AbstrDebugOut *dbg = m_pMasterController->DebugOut();
   if (m_eRenderMode != RM_2DTRANS) {
-    dbg->Message("AbstrRenderer::Changed2DTrans",
+    dbg->Message(_func_,
                  "not using the 2D transferfunction at the moment, "
                  "ignoring message");
   } else {
-    dbg->Message("AbstrRenderer::Changed2DTrans", "complete redraw scheduled");
+    dbg->Message(_func_, "complete redraw scheduled");
     ScheduleCompleteRedraw();
   }
 }
@@ -268,7 +266,7 @@ bool AbstrRenderer::CheckForRedraw() {
   if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame || m_iCurrentLODOffset > m_iMinLODForCurrentView) {
     if (m_iCheckCounter == 0)  {
       AbstrDebugOut *dbg = m_pMasterController->DebugOut();
-      dbg->Message("AbstrRenderer::CheckForRedraw","Still drawing...");
+      dbg->Message(_func_,"Still drawing...");
       return true;
     } else m_iCheckCounter--;
   }

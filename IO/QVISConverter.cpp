@@ -58,7 +58,7 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile) {
 
-  pMasterController->DebugOut()->Message("QVISConverter::ConvertToRAW","Attempting to convert QVIS dataset %s", strSourceFilename.c_str());
+  pMasterController->DebugOut()->Message(_func_,"Attempting to convert QVIS dataset %s", strSourceFilename.c_str());
 
   bDeleteIntermediateFile = false;
   eType             = UVFTables::ES_UNDEFINED;
@@ -115,21 +115,21 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
 
     KeyValPair* objectfilename = parser.GetData("OBJECTFILENAME");
     if (objectfilename == NULL) {
-      pMasterController->DebugOut()->Warning("QVISConverter::ConvertToRAW","This is not a valid QVIS dat file.");
+      pMasterController->DebugOut()->Warning(_func_,"This is not a valid QVIS dat file.");
       return false; 
     } else
         strIntermediateFile = objectfilename->strValue;
 
     KeyValPair* resolution = parser.GetData("RESOLUTION");
     if (resolution == NULL || resolution->vuiValue.size() != 3) {
-      pMasterController->DebugOut()->Warning("QVISConverter::ConvertToRAW","This is not a valid QVIS dat file.");
+      pMasterController->DebugOut()->Warning(_func_,"This is not a valid QVIS dat file.");
       return false; 
     } else 
       vVolumeSize = UINTVECTOR3(resolution->vuiValue);
 
     KeyValPair* sliceThickness = parser.GetData("SLICETHICKNESS");
     if (sliceThickness == NULL || sliceThickness->vuiValue.size() != 3) {
-      pMasterController->DebugOut()->Warning("QVISConverter::ConvertToRAW","This is not a valid QVIS dat file.");
+      pMasterController->DebugOut()->Warning(_func_,"This is not a valid QVIS dat file.");
       vVolumeAspect = FLOATVECTOR3(1,1,1);
     } else {
       vVolumeAspect = FLOATVECTOR3(sliceThickness->vfValue);
@@ -167,7 +167,7 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 4) 
     strFormat = "UCHAR4";
   else {
-    pMasterController->DebugOut()->Error("QVISConverter::ConvertToNative","This data type is not supported by QVIS DAT/RAW files.");
+    pMasterController->DebugOut()->Error(_func_,"This data type is not supported by QVIS DAT/RAW files.");
     return false;
   }                               
                                
@@ -176,11 +176,11 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
 
   ofstream fTarget(strTargetFilename.c_str());  
   if (!fTarget.is_open()) {
-    pMasterController->DebugOut()->Error("QVISConverter::ConvertToNative","Unable to open target file %s.", strTargetFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Unable to open target file %s.", strTargetFilename.c_str());
     return false;
   }
 
-  pMasterController->DebugOut()->Message("QVISConverter::ConvertToNative","Writing DAT File");
+  pMasterController->DebugOut()->Message(_func_,"Writing DAT File");
 
   fTarget << "ObjectFileName: " << SysTools::GetFilename(strTargetRAWFilename) << endl;
   fTarget << "TaggedFileName: ---" << endl;
@@ -192,7 +192,7 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   fTarget << "GridType:       EQUIDISTANT" << endl;
   fTarget.close();
 
-  pMasterController->DebugOut()->Message("QVISConverter::ConvertToNative","Writing RAW File");
+  pMasterController->DebugOut()->Message(_func_,"Writing RAW File");
 
   // copy RAW file using the parent's call
   bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, iHeaderSkip,
@@ -202,7 +202,7 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   if (bRAWSuccess) {
     return true;
   } else {
-    pMasterController->DebugOut()->Error("QVISConverter::ConvertToNative","Error creating raw target file %s.", strTargetRAWFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Error creating raw target file %s.", strTargetRAWFilename.c_str());
     remove(strTargetFilename.c_str());
     return false;
   }

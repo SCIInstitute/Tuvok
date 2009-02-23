@@ -54,12 +54,12 @@ GPUMemMan::GPUMemMan(MasterController* masterController) :
 
 GPUMemMan::~GPUMemMan() {
   for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
-    m_MasterController->DebugOut()->Warning("GPUMemMan::~GPUMemMan","Detected unfreed dataset %s.", i->pVolumeDataset->Filename().c_str());
+    m_MasterController->DebugOut()->Warning(_func_,"Detected unfreed dataset %s.", i->pVolumeDataset->Filename().c_str());
     delete i->pVolumeDataset;
   }
 
   for (SimpleTextureListIter i = m_vpSimpleTextures.begin();i<m_vpSimpleTextures.end();i++) {
-    m_MasterController->DebugOut()->Warning("GPUMemMan::~GPUMemMan","Detected unfreed SimpleTexture %s.", i->strFilename.c_str());
+    m_MasterController->DebugOut()->Warning(_func_,"Detected unfreed SimpleTexture %s.", i->strFilename.c_str());
 
     m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
     m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
@@ -68,7 +68,7 @@ GPUMemMan::~GPUMemMan() {
   }
 
   for (Trans1DListIter i = m_vpTrans1DList.begin();i<m_vpTrans1DList.end();i++) {
-    m_MasterController->DebugOut()->Warning("GPUMemMan::~GPUMemMan","Detected unfreed 1D Transferfunction.");
+    m_MasterController->DebugOut()->Warning(_func_,"Detected unfreed 1D Transferfunction.");
 
     m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
     m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
@@ -78,7 +78,7 @@ GPUMemMan::~GPUMemMan() {
   }
 
   for (Trans2DListIter i = m_vpTrans2DList.begin();i<m_vpTrans2DList.end();i++) {
-    m_MasterController->DebugOut()->Warning("GPUMemMan::~GPUMemMan","Detected unfreed 2D Transferfunction.");
+    m_MasterController->DebugOut()->Warning(_func_,"Detected unfreed 2D Transferfunction.");
 
     m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
     m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
@@ -88,7 +88,7 @@ GPUMemMan::~GPUMemMan() {
   }
 
   for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
-    m_MasterController->DebugOut()->Warning("GPUMemMan::~GPUMemMan","Detected unfreed 3D texture.");
+    m_MasterController->DebugOut()->Warning(_func_,"Detected unfreed 3D texture.");
 
     m_iAllocatedGPUMemory -= (*i)->pTexture->GetCPUSize();
     m_iAllocatedCPUMemory -= (*i)->pTexture->GetGPUSize();
@@ -97,7 +97,7 @@ GPUMemMan::~GPUMemMan() {
   }
 
   for (FBOListIter i = m_vpFBOList.begin();i<m_vpFBOList.end();i++) {
-    m_MasterController->DebugOut()->Warning("GPUMemMan::~GPUMemMan","Detected unfreed FBO.");
+    m_MasterController->DebugOut()->Warning(_func_,"Detected unfreed FBO.");
 
     m_iAllocatedGPUMemory -= (*i)->pFBOTex->GetCPUSize();
     m_iAllocatedCPUMemory -= (*i)->pFBOTex->GetGPUSize();
@@ -106,7 +106,7 @@ GPUMemMan::~GPUMemMan() {
   }
 
   for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
-    m_MasterController->DebugOut()->Warning("GPUMemMan::~GPUMemMan","Detected unfreed GLSL program.");
+    m_MasterController->DebugOut()->Warning(_func_,"Detected unfreed GLSL program.");
 
     m_iAllocatedGPUMemory -= (*i)->pGLSLProgram->GetCPUSize();
     m_iAllocatedCPUMemory -= (*i)->pGLSLProgram->GetGPUSize();
@@ -124,19 +124,19 @@ GPUMemMan::~GPUMemMan() {
 VolumeDataset* GPUMemMan::LoadDataset(const string& strFilename, AbstrRenderer* requester) {
   for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
     if (i->pVolumeDataset->Filename() == strFilename) {
-      m_MasterController->DebugOut()->Message("GPUMemMan::LoadDataset","Reusing %s", strFilename.c_str());
+      m_MasterController->DebugOut()->Message(_func_,"Reusing %s", strFilename.c_str());
       i->qpUser.push_back(requester);
       return i->pVolumeDataset;
     }
   }
 
-  m_MasterController->DebugOut()->Message("GPUMemMan::LoadDataset","Loading %s", strFilename.c_str());
+  m_MasterController->DebugOut()->Message(_func_,"Loading %s", strFilename.c_str());
   VolumeDataset* dataset = new VolumeDataset(strFilename, false, m_MasterController);  // PRECONDITION: we assume that the file has been verified before
   if (dataset->IsOpen()) {
     m_vpVolumeDatasets.push_back(VolDataListElem(dataset, requester));
     return dataset;
   } else {
-    m_MasterController->DebugOut()->Error("GPUMemMan::LoadDataset","Error opening dataset %s", strFilename.c_str());
+    m_MasterController->DebugOut()->Error(_func_,"Error opening dataset %s", strFilename.c_str());
     return NULL;
   }
 }
@@ -149,20 +149,20 @@ void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset, AbstrRenderer* reques
         if (*j == requester) {
           i->qpUser.erase(j);
           if (i->qpUser.size() == 0) {
-            m_MasterController->DebugOut()->Message("GPUMemMan::FreeDataset","Cleaning up all 3D textures associated to dataset %s", pVolumeDataset->Filename().c_str());
+            m_MasterController->DebugOut()->Message(_func_,"Cleaning up all 3D textures associated to dataset %s", pVolumeDataset->Filename().c_str());
             FreeAssociatedTextures(pVolumeDataset);
-            m_MasterController->DebugOut()->Message("GPUMemMan::FreeDataset","Released Dataset %s", pVolumeDataset->Filename().c_str());
+            m_MasterController->DebugOut()->Message(_func_,"Released Dataset %s", pVolumeDataset->Filename().c_str());
             delete pVolumeDataset;
             m_vpVolumeDatasets.erase(i);
           } else {
-            m_MasterController->DebugOut()->Message("GPUMemMan::FreeDataset","Decreased access count but dataset %s is still in use by another subsystem", pVolumeDataset->Filename().c_str());
+            m_MasterController->DebugOut()->Message(_func_,"Decreased access count but dataset %s is still in use by another subsystem", pVolumeDataset->Filename().c_str());
           }
           return;
         }
       }
     }
   }
-  m_MasterController->DebugOut()->Warning("GPUMemMan::FreeDataset","Dataset %s not found or not being used by requester", pVolumeDataset->Filename().c_str());
+  m_MasterController->DebugOut()->Warning(_func_,"Dataset %s not found or not being used by requester", pVolumeDataset->Filename().c_str());
 }
 
 // ******************** Simple Textures
@@ -170,7 +170,7 @@ void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset, AbstrRenderer* reques
 GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
   for (SimpleTextureListIter i = m_vpSimpleTextures.begin();i<m_vpSimpleTextures.end();i++) {
     if (i->strFilename == strFilename) {
-      m_MasterController->DebugOut()->Message("GPUMemMan::Load2DTextureFromFile","Reusing %s", strFilename.c_str());
+      m_MasterController->DebugOut()->Message(_func_,"Reusing %s", strFilename.c_str());
       i->iAccessCounter++;
       return i->pTexture;
     }
@@ -178,10 +178,10 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
 
   QImage image;
   if (!image.load(strFilename.c_str())) {
-    m_MasterController->DebugOut()->Error("GPUMemMan::Load2DTextureFromFile","Unable to load file %s", strFilename.c_str());
+    m_MasterController->DebugOut()->Error(_func_,"Unable to load file %s", strFilename.c_str());
     return NULL;
   }
-  m_MasterController->DebugOut()->Message("GPUMemMan::Load2DTextureFromFile","Loaded %s, now creating OpenGL resources ..", strFilename.c_str());
+  m_MasterController->DebugOut()->Message(_func_,"Loaded %s, now creating OpenGL resources ..", strFilename.c_str());
 
   QImage glimage = QGLWidget::convertToGLFormat(image);
 
@@ -200,7 +200,7 @@ void GPUMemMan::FreeTexture(GLTexture2D* pTexture) {
     if (i->pTexture == pTexture) {
       i->iAccessCounter--;
       if (i->iAccessCounter == 0) {
-        m_MasterController->DebugOut()->Message("GPUMemMan::FreeTexture","Deleted texture %s", i->strFilename.c_str());
+        m_MasterController->DebugOut()->Message(_func_,"Deleted texture %s", i->strFilename.c_str());
 
         m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
         m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
@@ -208,18 +208,18 @@ void GPUMemMan::FreeTexture(GLTexture2D* pTexture) {
         i->pTexture->Delete();
         m_vpSimpleTextures.erase(i);
       } else {
-        m_MasterController->DebugOut()->Message("GPUMemMan::FreeTexture","Decreased access count but the texture %s is still in use by another subsystem",i->strFilename.c_str());
+        m_MasterController->DebugOut()->Message(_func_,"Decreased access count but the texture %s is still in use by another subsystem",i->strFilename.c_str());
       }
       return;
     }
   }
-  m_MasterController->DebugOut()->Warning("GPUMemMan::FreeTexture","Texture not found");
+  m_MasterController->DebugOut()->Warning(_func_,"Texture not found");
 }
 
 // ******************** 1D Trans
 
 void GPUMemMan::Changed1DTrans(AbstrRenderer* requester, TransferFunction1D* pTransferFunction1D) {
-  m_MasterController->DebugOut()->Message("GPUMemMan::Changed1DTrans","Sending change notification for 1D transfer function");
+  m_MasterController->DebugOut()->Message(_func_,"Sending change notification for 1D transfer function");
 
   pTransferFunction1D->ComputeNonZeroLimits();
 
@@ -233,7 +233,7 @@ void GPUMemMan::Changed1DTrans(AbstrRenderer* requester, TransferFunction1D* pTr
 }
 
 void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester, TransferFunction1D** ppTransferFunction1D, GLTexture1D** tex) {
-  m_MasterController->DebugOut()->Message("GPUMemMan::GetEmpty1DTrans","Creating new empty 1D transfer function");
+  m_MasterController->DebugOut()->Message(_func_,"Creating new empty 1D transfer function");
   *ppTransferFunction1D = new TransferFunction1D(iSize);
   (*ppTransferFunction1D)->SetStdFunction();
 
@@ -249,7 +249,7 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester, Transfer
 }
 
 void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction1D** ppTransferFunction1D, GLTexture1D** tex) {
-  m_MasterController->DebugOut()->Message("GPUMemMan::Get1DTransFromFile","Loading 1D transfer function from file");
+  m_MasterController->DebugOut()->Message(_func_,"Loading 1D transfer function from file");
   *ppTransferFunction1D = new TransferFunction1D(strFilename);
 
   unsigned char* pcData = NULL;
@@ -266,13 +266,13 @@ void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* req
 GLTexture1D* GPUMemMan::Access1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRenderer* requester) {
   for (Trans1DListIter i = m_vpTrans1DList.begin();i<m_vpTrans1DList.end();i++) {
     if (i->pTransferFunction1D == pTransferFunction1D) {
-      m_MasterController->DebugOut()->Message("GPUMemMan::Access1DTrans","Accessing 1D transferfunction");
+      m_MasterController->DebugOut()->Message(_func_,"Accessing 1D transferfunction");
       i->qpUser.push_back(requester);
       return i->pTexture;
     }
   }
 
-  m_MasterController->DebugOut()->Error("GPUMemMan::Access1DTrans","Unable to find 1D transferfunction");
+  m_MasterController->DebugOut()->Error(_func_,"Unable to find 1D transferfunction");
   return NULL;
 }
 
@@ -283,7 +283,7 @@ void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRender
         if (*j == requester) {
           i->qpUser.erase(j);
           if (i->qpUser.size() == 0) {
-            m_MasterController->DebugOut()->Message("GPUMemMan::Free1DTrans","Released TransferFunction1D");
+            m_MasterController->DebugOut()->Message(_func_,"Released TransferFunction1D");
 
             m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
             m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();            
@@ -293,20 +293,20 @@ void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRender
             delete i->pTexture;
             m_vpTrans1DList.erase(i);
           } else {
-            m_MasterController->DebugOut()->Message("GPUMemMan::Free1DTrans","Decreased access count but TransferFunction1D is still in use by another subsystem");
+            m_MasterController->DebugOut()->Message(_func_,"Decreased access count but TransferFunction1D is still in use by another subsystem");
           }
           return;
         }
       }
     }
   }
-  m_MasterController->DebugOut()->Warning("GPUMemMan::Free1DTrans","TransferFunction1D not found or not being used by requester");
+  m_MasterController->DebugOut()->Warning(_func_,"TransferFunction1D not found or not being used by requester");
 }
 
 // ******************** 2D Trans
 
 void GPUMemMan::Changed2DTrans(AbstrRenderer* requester, TransferFunction2D* pTransferFunction2D) {
-  m_MasterController->DebugOut()->Message("GPUMemMan::Changed2DTrans","Sending change notification for 2D transfer function");
+  m_MasterController->DebugOut()->Message(_func_,"Sending change notification for 2D transfer function");
 
   pTransferFunction2D->InvalidateCache();
 
@@ -323,7 +323,7 @@ void GPUMemMan::Changed2DTrans(AbstrRenderer* requester, TransferFunction2D* pTr
 }
 
 void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize, AbstrRenderer* requester, TransferFunction2D** ppTransferFunction2D, GLTexture2D** tex) {
-  m_MasterController->DebugOut()->Message("GPUMemMan::GetEmpty2DTrans","Creating new empty 2D transfer function");
+  m_MasterController->DebugOut()->Message(_func_,"Creating new empty 2D transfer function");
   *ppTransferFunction2D = new TransferFunction2D(iSize);
 
   unsigned char* pcData = NULL;
@@ -338,7 +338,7 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize, AbstrRenderer* req
 }
 
 void GPUMemMan::Get2DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction2D** ppTransferFunction2D, GLTexture2D** tex) {
-  m_MasterController->DebugOut()->Message("GPUMemMan::Get2DTransFromFile","Loading 2D transfer function from file");
+  m_MasterController->DebugOut()->Message(_func_,"Loading 2D transfer function from file");
   *ppTransferFunction2D = new TransferFunction2D(strFilename);
 
   unsigned char* pcData = NULL;
@@ -355,13 +355,13 @@ void GPUMemMan::Get2DTransFromFile(const string& strFilename, AbstrRenderer* req
 GLTexture2D* GPUMemMan::Access2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRenderer* requester) {
   for (Trans2DListIter i = m_vpTrans2DList.begin();i<m_vpTrans2DList.end();i++) {
     if (i->pTransferFunction2D == pTransferFunction2D) {
-      m_MasterController->DebugOut()->Message("GPUMemMan::Access2DTrans","Accessing 2D transferfunction");
+      m_MasterController->DebugOut()->Message(_func_,"Accessing 2D transferfunction");
       i->qpUser.push_back(requester);
       return i->pTexture;
     }
   }
 
-  m_MasterController->DebugOut()->Error("GPUMemMan::Access2DTrans","Unable to find 2D transferfunction");
+  m_MasterController->DebugOut()->Error(_func_,"Unable to find 2D transferfunction");
   return NULL;
 }
 
@@ -372,7 +372,7 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRender
         if (*j == requester) {
           i->qpUser.erase(j);
           if (i->qpUser.size() == 0) {
-            m_MasterController->DebugOut()->Message("GPUMemMan::Free2DTrans","Released TransferFunction2D");
+            m_MasterController->DebugOut()->Message(_func_,"Released TransferFunction2D");
 
             m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
             m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();            
@@ -383,14 +383,14 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRender
 
             m_vpTrans2DList.erase(i);
           } else {
-            m_MasterController->DebugOut()->Message("GPUMemMan::Free2DTrans","Decreased access count but TransferFunction2D is still in use by another subsystem");
+            m_MasterController->DebugOut()->Message(_func_,"Decreased access count but TransferFunction2D is still in use by another subsystem");
           }
           return;
         }
       }
     }
   }
-  m_MasterController->DebugOut()->Warning("GPUMemMan::Free2DTrans","TransferFunction2D not found or not being used by requester");
+  m_MasterController->DebugOut()->Warning(_func_,"TransferFunction2D not found or not being used by requester");
 }
 
 // ******************** 3D Textures
@@ -408,7 +408,7 @@ bool GPUMemMan::IsResident(VolumeDataset* pDataset, const vector<UINT64>& vLOD, 
 GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder, UINT64 iIntraFrameCounter, UINT64 iFrameCounter) {
   for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
     if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder)) {
-      m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","Reusing 3D texture");
+      m_MasterController->DebugOut()->Message(_func_,"Reusing 3D texture");
       return (*i)->Access(iIntraFrameCounter, iFrameCounter);
     }
   }
@@ -422,7 +422,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
 
   // for OpenGL we ignore the GPU memory load and let GL do the paging
   if (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
-    m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","Not enougth memory for texture %i x %i x %i (%ibit * %i), paging ...", int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth), int(iCompCount));
+    m_MasterController->DebugOut()->Message(_func_,"Not enough memory for texture %i x %i x %i (%ibit * %i), paging ...", int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth), int(iCompCount));
 
     // search for best brick to replace with this brick
     UINT64 iTargetFrameCounter = UINT64_INVALID;
@@ -434,38 +434,38 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
 
     if (iTargetFrameCounter != UINT64_INVALID) {
       // found a suitable brick that can be replaced
-      m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","  Found suitable target brick from frame %i with intraframe counter %i (current frame %i / current intraframe %i)",
+      m_MasterController->DebugOut()->Message(_func_,"  Found suitable target brick from frame %i with intraframe counter %i (current frame %i / current intraframe %i)",
                                               int(iTargetFrameCounter), int(iTargetIntraFrameCounter), int(iFrameCounter), int(iIntraFrameCounter));
       (*iBestMatch)->Replace(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder, iIntraFrameCounter, iFrameCounter);
       (*iBestMatch)->iUserCount++;
       return (*iBestMatch)->pTexture;
     } else {
-      m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","  No suitable brick found. Randomly deleting bricks until this brick fits into memory");
+      m_MasterController->DebugOut()->Message(_func_,"  No suitable brick found. Randomly deleting bricks until this brick fits into memory");
       
       // no suitable brick found -> randomly delete bricks until this brick fits into memory
       while (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
 
         if (m_vpTex3DList.size() == 0) {  // in this case we do not have enougth memory to page in a single block, then we are in trouble
-          m_MasterController->DebugOut()->Error("GPUMemMan::Get3DTexture","  Note enougth memory to page in a brick into memory, aborting (MaxMem=%ikb, NeededMem=%ikb).", int(m_SystemInfo->GetMaxUsableCPUMem()/1024), int(iNeededCPUMemory/1024));
+          m_MasterController->DebugOut()->Error(_func_,"  Note enougth memory to page in a brick into memory, aborting (MaxMem=%ikb, NeededMem=%ikb).", int(m_SystemInfo->GetMaxUsableCPUMem()/1024), int(iNeededCPUMemory/1024));
           return NULL;
         }
 
         size_t iIndex = size_t(rand()%m_vpTex3DList.size());  // theoretically this means that if we have more than MAX_RAND bricks we always pick the first, but who cares ...
 
         if (m_vpTex3DList[iIndex]->iUserCount == 0) {
-          m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","   Deleting texture %i", int(iIndex));
+          m_MasterController->DebugOut()->Message(_func_,"   Deleting texture %i", int(iIndex));
           Delete3DTexture(iIndex);
         }
       }     
     }
   }
 
-  m_MasterController->DebugOut()->Message("GPUMemMan::Get3DTexture","Creating new texture %i x %i x %i, bitsize=%i, componentcount=%i", int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth), int(iCompCount));
+  m_MasterController->DebugOut()->Message(_func_,"Creating new texture %i x %i x %i, bitsize=%i, componentcount=%i", int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth), int(iCompCount));
 
   Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder, iIntraFrameCounter, iFrameCounter, m_MasterController);
 
   if (pNew3DTex->pTexture == NULL) {
-    m_MasterController->DebugOut()->Error("GPUMemMan::Get3DTexture","Failed to create OpenGL texture.");
+    m_MasterController->DebugOut()->Error(_func_,"Failed to create OpenGL texture.");
     delete pNew3DTex;
     return NULL;
   }
@@ -539,7 +539,7 @@ void GPUMemMan::MemSizesChanged() {
 
 GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, UINT32 iSizePerElement, bool bHaveDepth, int iNumBuffers) {
 
-  m_MasterController->DebugOut()->Message("GPUMemMan::GetFBO","Creating new FBO of size %i x %i", int(width), int(height));
+  m_MasterController->DebugOut()->Message(_func_,"Creating new FBO of size %i x %i", int(width), int(height));
 
   FBOListElem* e = new FBOListElem(m_MasterController,minfilter, magfilter, wrapmode, width, height, intformat, iSizePerElement, bHaveDepth, iNumBuffers);
 
@@ -554,7 +554,7 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode,
 void GPUMemMan::FreeFBO(GLFBOTex* pFBO) {
   for (size_t i = 0;i<m_vpFBOList.size();i++) {
     if (m_vpFBOList[i]->pFBOTex == pFBO) {
-      m_MasterController->DebugOut()->Message("GPUMemMan::FreeFBO","Freeing FBO ");
+      m_MasterController->DebugOut()->Message(_func_,"Freeing FBO ");
       m_iAllocatedGPUMemory -= m_vpFBOList[i]->pFBOTex->GetCPUSize();
       m_iAllocatedCPUMemory -= m_vpFBOList[i]->pFBOTex->GetGPUSize();
 
@@ -564,19 +564,19 @@ void GPUMemMan::FreeFBO(GLFBOTex* pFBO) {
       return;
     }
   }
-  m_MasterController->DebugOut()->Warning("GPUMemMan::FreeFBO","FBO to free not found.");
+  m_MasterController->DebugOut()->Warning(_func_,"FBO to free not found.");
 }
 
 GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile, const string& strFSFile) {
   for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
     if ((*i)->strVSFile == strVSFile && (*i)->strFSFile == strFSFile) {
-      m_MasterController->DebugOut()->Message("GPUMemMan::GetGLSLProgram","Reusing GLSL program from the VS %s and the FS %s", (*i)->strVSFile.c_str(), (*i)->strFSFile.c_str());
+      m_MasterController->DebugOut()->Message(_func_,"Reusing GLSL program from the VS %s and the FS %s", (*i)->strVSFile.c_str(), (*i)->strFSFile.c_str());
       (*i)->iAccessCounter++;
       return (*i)->pGLSLProgram;
     }
   }
 
-  m_MasterController->DebugOut()->Message("GPUMemMan::GetGLSLProgram","Creating new GLSL program from the VS %s and the FS %s", strVSFile.c_str(), strFSFile.c_str());
+  m_MasterController->DebugOut()->Message(_func_,"Creating new GLSL program from the VS %s and the FS %s", strVSFile.c_str(), strFSFile.c_str());
 
   GLSLListElem* e = new GLSLListElem(m_MasterController, strVSFile, strFSFile);
 
@@ -589,7 +589,7 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile, const string& st
 
     return e->pGLSLProgram;
   } else {
-    m_MasterController->DebugOut()->Error("GPUMemMan::GetGLSLProgram","Failed to created GLSL program from the VS %s and the FS %s", strVSFile.c_str(), strFSFile.c_str());
+    m_MasterController->DebugOut()->Error(_func_,"Failed to created GLSL program from the VS %s and the FS %s", strVSFile.c_str(), strFSFile.c_str());
     return NULL;
   }
 }
@@ -602,16 +602,16 @@ void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
       m_vpGLSLList[i]->iAccessCounter--;
       if (m_vpGLSLList[i]->iAccessCounter == 0) {
 
-        m_MasterController->DebugOut()->Message("GPUMemMan::FreeGLSLProgram","Freeing GLSL program");
+        m_MasterController->DebugOut()->Message(_func_,"Freeing GLSL program");
         m_iAllocatedGPUMemory -= m_vpGLSLList[i]->pGLSLProgram->GetCPUSize();
         m_iAllocatedCPUMemory -= m_vpGLSLList[i]->pGLSLProgram->GetGPUSize();
 
         delete m_vpGLSLList[i];
 
         m_vpGLSLList.erase(m_vpGLSLList.begin()+i);
-      } else m_MasterController->DebugOut()->Message("GPUMemMan::FreeGLSLProgram","Decreased access counter but kept GLSL program in memory.");
+      } else m_MasterController->DebugOut()->Message(_func_,"Decreased access counter but kept GLSL program in memory.");
       return;
     }
   }
-  m_MasterController->DebugOut()->Warning("GPUMemMan::FreeGLSLProgram","GLSL program to free not found.");
+  m_MasterController->DebugOut()->Warning(_func_,"GLSL program to free not found.");
 }

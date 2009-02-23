@@ -850,7 +850,7 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
 
   for (size_t i = 0;i<vLODCombis.size();i++) {
 
-    if (pDebugOut) pDebugOut->Message("FlatDataToBrickedLOD", "Generating data for lod level %i of %i",int(i+1), int(vLODCombis.size())); 
+    if (pDebugOut) pDebugOut->Message(_func_, "Generating data for lod level %i of %i",int(i+1), int(vLODCombis.size())); 
 
     // compute size of the domain
     vReducedDomainSize = GetLODDomainSize(vLODCombis[i]);
@@ -916,7 +916,7 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
     unsigned char* pData = new unsigned char[BLOCK_COPY_SIZE];
     for (size_t j=0;j<vBrickPermutation.size();j++) {
 
-       if (pDebugOut) pDebugOut->Message("FlatDataToBrickedLOD", "Processing brick %i of %i in lod level %i of %i",int(j+1),int(vBrickPermutation.size()),int(i+1), int(vLODCombis.size())); 
+       if (pDebugOut) pDebugOut->Message(_func_, "Processing brick %i of %i in lod level %i of %i",int(j+1),int(vBrickPermutation.size()),int(i+1), int(vLODCombis.size())); 
       //Console::printf("      Brick %i (",j);
       //for (UINT64 k=0;k<vBrickPermutation[j].size();k++) Console::printf("%i ",vBrickPermutation[j][k]);
 
@@ -1080,7 +1080,7 @@ bool RasterDataBlock::BrickedLODToFlatData(const vector<UINT64>& vLOD, const std
 
   
   if (!pTargetFile->IsOpen()) {
-    if (pDebugOut) pDebugOut->Error("RasterDataBlock::BrickedLODToFlatData","Unable to write to target file.");
+    if (pDebugOut) pDebugOut->Error(_func_,"Unable to write to target file.");
     delete pTargetFile;
     return false;
   }
@@ -1163,7 +1163,7 @@ bool RasterDataBlock::TraverseBricksToWriteBrickToFile(UINT64& iBrickCounter, UI
 
       UINT64 iSourceOffset = 0;
       if (brickFunc) {
-        if (pDebugOut) pDebugOut->Message("TraverseBricksToWriteBrickToFile", "Extracting volume data\nProcessing brick %i of %i",int(++iBrickCounter),int(iBrickCount));
+        if (pDebugOut) pDebugOut->Message(_func_, "Extracting volume data\nProcessing brick %i of %i",int(++iBrickCounter),int(iBrickCount));
 
         iTargetOffset = 0;
 
@@ -1175,12 +1175,12 @@ bool RasterDataBlock::TraverseBricksToWriteBrickToFile(UINT64& iBrickCounter, UI
         for (size_t j = 0;j<ulBrickSize.size();j++)
           vAbsCoords[j] *= (ulBrickSize[j]-ulBrickOverlap[j]);
 
-        if (pDebugOut) pDebugOut->Message("TraverseBricksToWriteBrickToFile", "Processing volume data\nProcessing brick %i of %i",int(iBrickCounter),int(iBrickCount));
+        if (pDebugOut) pDebugOut->Message(_func_, "Processing volume data\nProcessing brick %i of %i",int(iBrickCounter),int(iBrickCount));
         if (!brickFunc(pTargetFile, vEffectiveBrickSize, vAbsCoords, pUserContext )) return false;
         pTargetFile->Close();
         pTargetFile->Create();
       } else {
-        if (pDebugOut) pDebugOut->Message("TraverseBricksToWriteBrickToFile", "Processing brick %i of %i",int(++iBrickCounter),int(iBrickCount));
+        if (pDebugOut) pDebugOut->Message(_func_, "Processing brick %i of %i",int(++iBrickCounter),int(iBrickCount));
         WriteBrickToFile(vBrickCount.size()-1, iSourceOffset, iTargetOffset, vBrickSize, 
                          vEffectiveBrickSize, ppData, pTargetFile, iElementSize, vPrefixProd,
                          vBrickPrefixProduct, true);

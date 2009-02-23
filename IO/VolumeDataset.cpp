@@ -259,19 +259,19 @@ bool VolumeDataset::Open(bool bVerify)
   for (size_t iBlocks = 0;iBlocks<m_pDatasetFile->GetDataBlockCount();iBlocks++) { 
     if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() == UVFTables::BS_1D_Histogram) {
       if (m_pHist1DDataBlock != NULL) {
-        m_pMasterController->DebugOut()->Warning("VolumeDataset::Open","Multiple 1D Histograms found using last block.");
+        m_pMasterController->DebugOut()->Warning(_func_,"Multiple 1D Histograms found using last block.");
       }
       m_pHist1DDataBlock = (Histogram1DDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
     } else
     if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() == UVFTables::BS_2D_Histogram) {
       if (m_pHist2DDataBlock != NULL) {
-        m_pMasterController->DebugOut()->Warning("VolumeDataset::Open","Multiple 2D Histograms found using last block.");
+        m_pMasterController->DebugOut()->Warning(_func_,"Multiple 2D Histograms found using last block.");
       }
       m_pHist2DDataBlock = (Histogram2DDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
     } else
     if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() == UVFTables::BS_MAXMIN_VALUES) {
       if (m_pMaxMinData != NULL) {
-        m_pMasterController->DebugOut()->Warning("VolumeDataset::Open","Multiple MaxMinData Blocks found using last block.");
+        m_pMasterController->DebugOut()->Warning(_func_,"Multiple MaxMinData Blocks found using last block.");
       }
       m_pMaxMinData = (MaxMinDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
     } else
@@ -280,26 +280,26 @@ bool VolumeDataset::Open(bool bVerify)
 
       // check if the block is at least 3 dimensional
       if (pVolumeDataBlock->ulDomainSize.size() < 3) {
-        m_pMasterController->DebugOut()->Message("VolumeDataset::Open","%i-D raster data block found in UVF file, skipping.", int(pVolumeDataBlock->ulDomainSize.size()));
+        m_pMasterController->DebugOut()->Message(_func_,"%i-D raster data block found in UVF file, skipping.", int(pVolumeDataBlock->ulDomainSize.size()));
         continue;
       }
 
       // check if the ulElementDimension = 1 e.g. we can deal with scalars and vectors
       if (pVolumeDataBlock->ulElementDimension != 1) {
-        m_pMasterController->DebugOut()->Message("VolumeDataset::Open","Non scalar/vector raster data block found in UVF file, skipping.");
+        m_pMasterController->DebugOut()->Message(_func_,"Non scalar/vector raster data block found in UVF file, skipping.");
         continue;
       }
 
       // TODO: rethink this for time dependent data
       if (pVolumeDataBlock->ulLODGroups[0] != pVolumeDataBlock->ulLODGroups[1] || pVolumeDataBlock->ulLODGroups[1] != pVolumeDataBlock->ulLODGroups[2]) {
-        m_pMasterController->DebugOut()->Message("VolumeDataset::Open","Raster data block with unsupported LOD layout found in UVF file, skipping.");
+        m_pMasterController->DebugOut()->Message(_func_,"Raster data block with unsupported LOD layout found in UVF file, skipping.");
         continue;
       }      
 
       // TODO: change this if we want to support color/vector data
       // check if we have anything other than scalars 
       if (pVolumeDataBlock->ulElementDimensionSize[0] != 1) {
-        m_pMasterController->DebugOut()->Message("VolumeDataset::Open","Non scalar raster data block found in UVF file, skipping.");
+        m_pMasterController->DebugOut()->Message(_func_,"Non scalar raster data block found in UVF file, skipping.");
         continue;
       }
 
@@ -309,7 +309,7 @@ bool VolumeDataset::Open(bool bVerify)
       bool bToFewLODLevels = false;
       for (size_t i = 0;i<vSmallLODBrick.size();i++) {
         if (vSmallLODBrick[i] > BRICKSIZE) {
-          m_pMasterController->DebugOut()->Message("VolumeDataset::Open","Raster data block with insufficient LOD levels found in UVF file, skipping.");
+          m_pMasterController->DebugOut()->Message(_func_,"Raster data block with insufficient LOD levels found in UVF file, skipping.");
           bToFewLODLevels = true;
           break;
         }
@@ -317,20 +317,20 @@ bool VolumeDataset::Open(bool bVerify)
       if (bToFewLODLevels) continue;
 
       if (iRasterBlockIndex != UINT64(-1)) {
-        m_pMasterController->DebugOut()->Warning("VolumeDataset::Open","Multiple volume blocks found using last block.");
+        m_pMasterController->DebugOut()->Warning(_func_,"Multiple volume blocks found using last block.");
       }
       iRasterBlockIndex = iBlocks;
     } else {
-      m_pMasterController->DebugOut()->Message("VolumeDataset::Open","Non-volume block found in UVF file, skipping.");
+      m_pMasterController->DebugOut()->Message(_func_,"Non-volume block found in UVF file, skipping.");
     }
   }
 
   if (iRasterBlockIndex == UINT64(-1)) {
-    m_pMasterController->DebugOut()->Error("VolumeDataset::Open","No suitable volume block found in UVF file. Check previous messages for rejected blocks.");
+    m_pMasterController->DebugOut()->Error(_func_,"No suitable volume block found in UVF file. Check previous messages for rejected blocks.");
     return false;
   }
 
-  m_pMasterController->DebugOut()->Message("VolumeDataset::Open","Open successfully found a suitable data block in the UVF file, analysing data...");
+  m_pMasterController->DebugOut()->Message(_func_,"Open successfully found a suitable data block in the UVF file, analysing data...");
 
   m_pVolumeDataBlock = (RasterDataBlock*)m_pDatasetFile->GetDataBlock(iRasterBlockIndex);
   m_pVolumeDatasetInfo = new VolumeDatasetInfo(m_pVolumeDataBlock, m_pMaxMinData, m_pDatasetFile->GetGlobalHeader().bIsBigEndian == EndianConvert::IsBigEndian());
@@ -386,9 +386,9 @@ bool VolumeDataset::Open(bool bVerify)
         m_pHist2D->Set(x,y,0);
   }
 
-  m_pMasterController->DebugOut()->Message("VolumeDataset::Open","  Size %s", sStreamDomain.str().c_str());
-  m_pMasterController->DebugOut()->Message("VolumeDataset::Open","  %i Bit, %i components", int(m_pVolumeDatasetInfo->GetBitwith()), int(m_pVolumeDatasetInfo->GetComponentCount()));
-  m_pMasterController->DebugOut()->Message("VolumeDataset::Open","  LOD down to %s found", sStreamBrick.str().c_str());
+  m_pMasterController->DebugOut()->Message(_func_,"  Size %s", sStreamDomain.str().c_str());
+  m_pMasterController->DebugOut()->Message(_func_,"  %i Bit, %i components", int(m_pVolumeDatasetInfo->GetBitwith()), int(m_pVolumeDatasetInfo->GetComponentCount()));
+  m_pMasterController->DebugOut()->Message(_func_,"  LOD down to %s found", sStreamBrick.str().c_str());
 
   return true;
 }

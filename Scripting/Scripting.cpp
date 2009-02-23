@@ -161,13 +161,13 @@ bool Scripting::ParseFile(const std::string& strFilename) {
       if (line[0] == '#') continue;       // skip comments
 
       if (!ParseLine(line)) {
-        m_pMasterController->DebugOut()->Error("Scripting::ParseFile:","Error executing line %i in file %s (%s)", iLine, strFilename.c_str(), line.c_str());
+        m_pMasterController->DebugOut()->Error(_func_,"Error executing line %i in file %s (%s)", iLine, strFilename.c_str(), line.c_str());
         fileData.close();
         return false;
       }
     }
   } else {
-    m_pMasterController->DebugOut()->Error("Scripting::ParseFile:","Error opening script file %s", strFilename.c_str());
+    m_pMasterController->DebugOut()->Error(_func_,"Error opening script file %s", strFilename.c_str());
     return false;
   }
 

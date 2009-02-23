@@ -59,7 +59,7 @@ void GLSBVR::Cleanup() {
 
 bool GLSBVR::Initialize() {
   if (!GLRenderer::Initialize()) {
-    m_pMasterController->DebugOut()->Error("GLSBVR::Initialize","Error in parent call -> aborting");
+    m_pMasterController->DebugOut()->Error(_func_,"Error in parent call -> aborting");
     return false;
   }
 
@@ -73,7 +73,7 @@ bool GLSBVR::Initialize() {
 
       Cleanup();
 
-      m_pMasterController->DebugOut()->Error("GLSBVR::Initialize","Error loading a shader.");
+      m_pMasterController->DebugOut()->Error(_func_,"Error loading a shader.");
       return false;
   } else {
     m_pProgram1DTrans[0]->Enable();
@@ -165,7 +165,7 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
                               m_pProgramIso->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
                             break;
                           }
-    case RM_INVALID    :  m_pMasterController->DebugOut()->Error("GLSBVR::SetBrickDepShaderVars","Invalid rendermode set"); break;
+    case RM_INVALID    :  m_pMasterController->DebugOut()->Error(_func_,"Invalid rendermode set"); break;
   }
 
 }
@@ -222,7 +222,7 @@ void GLSBVR::Render3DPreLoop() {
                             glEnable(GL_DEPTH_TEST);
                           }
                           break;
-    default    :  m_pMasterController->DebugOut()->Error("GLSBVR::Render3DView","Invalid rendermode set");
+    default    :  m_pMasterController->DebugOut()->Error(_func_,"Invalid rendermode set");
                           break;
   }
 
@@ -300,7 +300,7 @@ void GLSBVR::Render3DPostLoop() {
                              glDisable(GL_BLEND);
                           }
                           break;
-    case RM_INVALID    :  m_pMasterController->DebugOut()->Error("GLSBVR::Render3DView","Invalid rendermode set"); break;
+    case RM_INVALID    :  m_pMasterController->DebugOut()->Error(_func_,"Invalid rendermode set"); break;
   }
 }
 

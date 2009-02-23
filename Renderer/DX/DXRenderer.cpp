@@ -69,7 +69,7 @@ void DXRenderer::Cleanup() {
 bool DXRenderer::Initialize() {
   // call the parent
   if (!AbstrRenderer::Initialize()) {
-    m_pMasterController->DebugOut()->Error("DXRenderer::Initialize","Error in parent call -> aborting");
+    m_pMasterController->DebugOut()->Error(_func_,"Error in parent call -> aborting");
     return false;
   }
 

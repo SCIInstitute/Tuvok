@@ -395,7 +395,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
           break;
         }
         if (vVolumeAspectG != FLOATVECTOR3(v.GetInfo()->GetScale())) 
-          m_pMasterController->DebugOut()->Warning("IOManager::MergeDatasets","Different aspect ratios found.");
+          m_pMasterController->DebugOut()->Warning(_func_,"Different aspect ratios found.");
       }
       
       IntermediateFile.strFilename = m_TempDir + strFilenames[iInputData] +".raw";
@@ -463,7 +463,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
         }
 
         if (vVolumeAspectG != vVolumeAspect) 
-          m_pMasterController->DebugOut()->Warning("IOManager::MergeDatasets","Different aspect ratios found.");
+          m_pMasterController->DebugOut()->Warning(_func_,"Different aspect ratios found.");
       }
     }
     

@@ -85,7 +85,7 @@ GLRenderer::~GLRenderer() {
 
 bool GLRenderer::Initialize() {
   if (!AbstrRenderer::Initialize()) {
-    m_pMasterController->DebugOut()->Error("GLRenderer::Initialize","Error in parent call -> aborting");
+    m_pMasterController->DebugOut()->Error(_func_,"Error in parent call -> aborting");
     return false;
   }
 
@@ -129,7 +129,7 @@ bool GLRenderer::Initialize() {
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramCVCompose))    ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",m_vShaderSearchDirs, &(m_pProgramComposeAnaglyphs)))   {
 
-      m_pMasterController->DebugOut()->Error("GLRenderer::Initialize","Error loading transfer shaders.");
+      m_pMasterController->DebugOut()->Error(_func_,"Error loading transfer shaders.");
       return false;
   } else {
     m_pProgramTrans->Enable();
@@ -206,7 +206,7 @@ void GLRenderer::Changed2DTrans() {
 
 void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
   AbstrRenderer::Resize(vWinSize);
-  m_pMasterController->DebugOut()->Message("GLRenderer::Resize","Resizing to %i x %i", vWinSize.x, vWinSize.y);
+  m_pMasterController->DebugOut()->Message(_func_,"Resizing to %i x %i", vWinSize.x, vWinSize.y);
   CreateOffscreenBuffers();
 }
 
@@ -318,7 +318,7 @@ void GLRenderer::Paint() {
        case WM_SAGITTAL :
        case WM_AXIAL    :
        case WM_CORONAL  : if (m_bPerformRedraw) bNewDataToShow = Render2DView(RA_FULLSCREEN, m_eFullWindowMode, m_piSlice[size_t(m_eFullWindowMode)]); break;
-       default          : m_pMasterController->DebugOut()->Error("GLRenderer::Paint","Invalid Windowmode");
+       default          : m_pMasterController->DebugOut()->Error(_func_,"Invalid Windowmode");
                           bNewDataToShow = false;
                           break;
 
@@ -355,7 +355,7 @@ void GLRenderer::Paint() {
            case WM_CORONAL  : bLocalNewDataToShow= Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
                               m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = false;
                               break;
-           default          : m_pMasterController->DebugOut()->Error("GLRenderer::Paint","Invalid Windowmode");
+           default          : m_pMasterController->DebugOut()->Error(_func_,"Invalid Windowmode");
                               bLocalNewDataToShow = false;
                               break;
         }
@@ -434,7 +434,7 @@ void GLRenderer::SetRenderTargetArea(ERenderArea eREnderArea) {
     case RA_LOWERLEFT   : SetViewPort(UINTVECTOR2(0,0),m_vWinSize/2); break;
     case RA_LOWERRIGHT  : SetViewPort(UINTVECTOR2(m_vWinSize.x/2,0), UINTVECTOR2(m_vWinSize.x,m_vWinSize.y/2)); break;
     case RA_FULLSCREEN  : SetViewPort(UINTVECTOR2(0,0), m_vWinSize); break;
-    default             : m_pMasterController->DebugOut()->Error("GLRenderer::SetRenderTargetArea","Invalid render area set"); break;
+    default             : m_pMasterController->DebugOut()->Error(_func_,"Invalid render area set"); break;
   }
 }
 
@@ -445,7 +445,7 @@ void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
     case RA_LOWERLEFT   : glScissor(0,0,m_vWinSize.x/2, m_vWinSize.y/2); glEnable( GL_SCISSOR_TEST );break;
     case RA_LOWERRIGHT  : glScissor(m_vWinSize.x/2,0,m_vWinSize.x,m_vWinSize.y/2); glEnable( GL_SCISSOR_TEST );break;
     case RA_FULLSCREEN  : /*glScissor(0,0,m_vWinSize.x, m_vWinSize.y);*/ glDisable( GL_SCISSOR_TEST );break;
-    default             : m_pMasterController->DebugOut()->Error("GLRenderer::SetRenderTargetAreaScissor","Invalid render area set"); break;
+    default             : m_pMasterController->DebugOut()->Error(_func_,"Invalid render area set"); break;
   }
 
 }
@@ -570,7 +570,7 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
                           glEnd();
                           break;
                       }
-    default        :  m_pMasterController->DebugOut()->Error("GLRenderer::RenderSlice","Invalid windowmode set"); break;
+    default        :  m_pMasterController->DebugOut()->Error(_func_,"Invalid windowmode set"); break;
   }
 }
 
@@ -688,7 +688,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     RenderHQMIPPreLoop(eDirection);
 
     for (size_t iBrickIndex = 0;iBrickIndex<m_vCurrentBrickList.size();iBrickIndex++) {
-      m_pMasterController->DebugOut()->Message("GLRenderer::Render2DView","Brick %i of %i", int(iBrickIndex+1),int(m_vCurrentBrickList.size()));
+      m_pMasterController->DebugOut()->Message(_func_,"Brick %i of %i", int(iBrickIndex+1),int(m_vCurrentBrickList.size()));
 
       // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
       vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
@@ -759,7 +759,7 @@ void GLRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
                          matRotDir = matRotDir * matTemp;
                          break;
                       }
-    default        :  m_pMasterController->DebugOut()->Error("GLRenderer::RenderHQMIPPreLoop","Invalid windowmode set"); break;
+    default        :  m_pMasterController->DebugOut()->Error(_func_,"Invalid windowmode set"); break;
   }
   if (m_bFlipView[int(eDirection)].x) {
     matFlipY.Scaling(-1,1,1);
@@ -937,13 +937,13 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
 
   // if zero bricks are to be rendered we have completed the draw job
   if (m_vCurrentBrickList.size() == 0) {
-    m_pMasterController->DebugOut()->Message("GLRenderer::Execute3DFrame","zero bricks are to be rendered, completed the draw job");
+    m_pMasterController->DebugOut()->Message(_func_,"zero bricks are to be rendered, completed the draw job");
     return true;
   }
 
   // if there is something left in the TODO list
   if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) {
-    m_pMasterController->DebugOut()->Message("GLRenderer::Execute3DFrame","%i bricks left to render", int(UINT64(m_vCurrentBrickList.size())-m_iBricksRenderedInThisSubFrame));
+    m_pMasterController->DebugOut()->Message(_func_,"%i bricks left to render", int(UINT64(m_vCurrentBrickList.size())-m_iBricksRenderedInThisSubFrame));
 
     // setup shaders vars
     SetDataDepShaderVars();
@@ -965,7 +965,7 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
         m_TargetBinder.Unbind();
       }
 
-      m_pMasterController->DebugOut()->Message("GLRenderer::Execute3DFrame","Subframe completed.");
+      m_pMasterController->DebugOut()->Message(_func_,"Subframe completed.");
       
       return true;
     }
@@ -1148,7 +1148,7 @@ void GLRenderer::CreateOffscreenBuffers() {
         case BP_32BIT : if (i==0)m_pFBO3DImageLast = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB, 4*4, true);
                         m_pFBO3DImageCurrent[i] = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB, 4*4, true);
                         break;
-        default       : m_pMasterController->DebugOut()->Message("GLRenderer::CreateOffscreenBuffer","Invalid Blending Precision");
+        default       : m_pMasterController->DebugOut()->Message(_func_,"Invalid Blending Precision");
                         if (i==0) m_pFBO3DImageLast = NULL;
                         m_pFBO3DImageCurrent[i] = NULL;
                         break;
@@ -1167,7 +1167,7 @@ void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
 }
 
 void GLRenderer::SetDataDepShaderVars() {
-  m_pMasterController->DebugOut()->Message("GLRenderer::SetDataDepShaderVars","Setting up vars");
+  m_pMasterController->DebugOut()->Message(_func_,"Setting up vars");
 
   size_t iMaxValue     = (m_pDataset->GetInfo()->GetBitwith() != 8 && m_bDownSampleTo8Bits) ? 65536 : m_p1DTrans->GetSize();
   UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetInfo()->GetBitwith());
@@ -1213,11 +1213,11 @@ void GLRenderer::SetDataDepShaderVars() {
                             m_pProgramIso->Disable();
                             break;
                           }
-    case RM_INVALID    :  m_pMasterController->DebugOut()->Error("GLRenderer::SetDataDepShaderVars","Invalid rendermode set");
+    case RM_INVALID    :  m_pMasterController->DebugOut()->Error(_func_,"Invalid rendermode set");
                           break;
   }
 
-  m_pMasterController->DebugOut()->Message("GLRenderer::SetDataDepShaderVars","Done");
+  m_pMasterController->DebugOut()->Message(_func_,"Done");
 }
 
 
@@ -1267,10 +1267,10 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
     }
 
     if (strActualVSFile == "") {
-      m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Unable to locate vertex shader %s (%s)",strDirlessVSFile.c_str(), strVSFile.c_str());
+      m_pMasterController->DebugOut()->Error(_func_,"Unable to locate vertex shader %s (%s)",strDirlessVSFile.c_str(), strVSFile.c_str());
       return false;
     } else
-      m_pMasterController->DebugOut()->Message("GLRenderer::LoadAndVerifyShader","Changed vertex shader %s to %s",strVSFile.c_str(), strActualVSFile.c_str());
+      m_pMasterController->DebugOut()->Message(_func_,"Changed vertex shader %s to %s",strVSFile.c_str(), strActualVSFile.c_str());
 
   } else {
     strActualVSFile = strVSFile;
@@ -1293,10 +1293,10 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
     }
 
     if (strActualFSFile == "") {
-      m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Unable to locate fragment shader %s (%s)",strDirlessFSFile.c_str(), strFSFile.c_str());
+      m_pMasterController->DebugOut()->Error(_func_,"Unable to locate fragment shader %s (%s)",strDirlessFSFile.c_str(), strFSFile.c_str());
       return false;
     } else
-      m_pMasterController->DebugOut()->Message("GLRenderer::LoadAndVerifyShader","Changed fragment shader %s to %s",strFSFile.c_str(), strActualFSFile.c_str());
+      m_pMasterController->DebugOut()->Message(_func_,"Changed fragment shader %s to %s",strFSFile.c_str(), strActualFSFile.c_str());
 
   } else {
     strActualFSFile = strFSFile;
@@ -1307,7 +1307,7 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
     (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(strActualVSFile, strActualFSFile);
 
     if ((*pShaderProgram) == NULL || !(*pShaderProgram)->IsValid()) {
-        m_pMasterController->DebugOut()->Error("GLRenderer::LoadAndVerifyShader","Error loading a shader combination VS %s and FS %s.", strActualVSFile.c_str(), strActualFSFile.c_str());
+        m_pMasterController->DebugOut()->Error(_func_,"Error loading a shader combination VS %s and FS %s.", strActualVSFile.c_str(), strActualFSFile.c_str());
         m_pMasterController->MemMan()->FreeGLSLProgram(*pShaderProgram);
         return false;
     } else return true;
@@ -1441,7 +1441,7 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
 }
 
 void GLRenderer::Recompose3DView(ERenderArea eArea) {
-  m_pMasterController->DebugOut()->Message("GLRenderer::Recompose3DView","Recomposing...");
+  m_pMasterController->DebugOut()->Message(_func_,"Recomposing...");
   NewFrameClear(eArea);
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
@@ -1491,7 +1491,7 @@ void GLRenderer::Render3DView() {
   timeStart = timeProbe = clock();
 
   while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame && float(timeProbe-timeStart)*1000.0f/float(CLOCKS_PER_SEC) < m_iTimeSliceMSecs) {
-    m_pMasterController->DebugOut()->Message("GLRenderer::Render3DView","  Brick %i of %i", int(m_iBricksRenderedInThisSubFrame+1),int(m_vCurrentBrickList.size()));
+    m_pMasterController->DebugOut()->Message(_func_,"  Brick %i of %i", int(m_iBricksRenderedInThisSubFrame+1),int(m_vCurrentBrickList.size()));
 
     // convert 3D variables to the more general ND scheme used in the memory manager, e.i. convert 3-vectors to stl vectors
     vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);

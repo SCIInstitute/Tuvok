@@ -56,7 +56,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
                                 FLOATVECTOR3& vVolumeAspect, std::string& strTitle, std::string& strSource, 
                                 UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                                 bool& bDeleteIntermediateFile) {
-  pMasterController->DebugOut()->Message("VFFConverter::ConvertToRAW","Attempting to convert VFF dataset %s", strSourceFilename.c_str());
+  pMasterController->DebugOut()->Message(_func_,"Attempting to convert VFF dataset %s", strSourceFilename.c_str());
 
   // Check Magic value in VFF File first
   ifstream fileData(strSourceFilename.c_str());  
@@ -66,11 +66,11 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   {
     getline (fileData,strFirstLine);
     if (strFirstLine.substr(0,4) != "ncaa") {
-      pMasterController->DebugOut()->Warning("VFFConverter::ConvertToRAW","The file %s is not a VFF file (missing magic)", strSourceFilename.c_str());
+      pMasterController->DebugOut()->Warning(_func_,"The file %s is not a VFF file (missing magic)", strSourceFilename.c_str());
       return false;
     }
   } else {
-    pMasterController->DebugOut()->Warning("VFFConverter::ConvertToRAW",
+    pMasterController->DebugOut()->Warning(_func_,
                                            "Could not open VFF file %s",
                                            strSourceFilename.c_str());
     return false;
@@ -97,17 +97,17 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   KeyValueFileParser parser(strSourceFilename, false, "=", strHeaderEnd);
 
   if (!parser.FileReadable()) {
-    pMasterController->DebugOut()->Warning("VFFConverter::ConvertToRAW","Could not open VFF file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Warning(_func_,"Could not open VFF file %s", strSourceFilename.c_str());
     return false;
   }
 
   KeyValPair* kvp = parser.GetData("TYPE");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"type\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Could not find token \"type\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->strValueUpper != "RASTER;")  {
-      pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Only raster VFFs are supported at the moment");
+      pMasterController->DebugOut()->Error(_func_,"Only raster VFFs are supported at the moment");
       return false;
      }
   }
@@ -115,7 +115,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   int iDim;
   kvp = parser.GetData("RANK");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"rank\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Could not find token \"rank\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     iDim = kvp->iValue;
@@ -123,29 +123,29 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   kvp = parser.GetData("BANDS");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"bands\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Could not find token \"bands\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->iValue != 1)  {
-      pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Only scalar VFFs are supported at the moment");
+      pMasterController->DebugOut()->Error(_func_,"Only scalar VFFs are supported at the moment");
       return false;
      }
   }
 
   kvp = parser.GetData("FORMAT");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"format\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Could not find token \"format\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->strValueUpper != "SLICE;")  {
-      pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Only VFFs with slice layout are supported at the moment");
+      pMasterController->DebugOut()->Error(_func_,"Only VFFs with slice layout are supported at the moment");
       return false;
      }
   }
 
   kvp = parser.GetData("BITS");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"bands\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Could not find token \"bands\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     iComponentSize = kvp->iValue;
@@ -153,7 +153,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   kvp = parser.GetData("SIZE");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"size\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Could not find token \"size\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     vVolumeSize[0] = kvp->viValue[0];
@@ -163,7 +163,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   kvp = parser.GetData("SPACING");
   if (kvp == NULL) {
-    pMasterController->DebugOut()->Error("VFFConverter::ConvertToRAW","Could not find token \"size\" in file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Could not find token \"size\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     vVolumeAspect[0] = kvp->vfValue[0];
@@ -190,12 +190,12 @@ bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std:
   // create header textfile from metadata
   ofstream fAsciiTarget(strTargetFilename.c_str());  
   if (!fAsciiTarget.is_open()) {
-    pMasterController->DebugOut()->Error("VFFConverter::ConvertToNative","Unable to open target file %s.", strTargetFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Unable to open target file %s.", strTargetFilename.c_str());
     return false;
   }
 
   if (bFloatingPoint) {
-    pMasterController->DebugOut()->Error("VFFConverter::ConvertToNative","Floating point formats are not avaliable for vff files.");
+    pMasterController->DebugOut()->Error(_func_,"Floating point formats are not avaliable for vff files.");
     return false;
   }
 
@@ -220,7 +220,7 @@ bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std:
   if (bRAWSuccess) {
     return true;
   } else {
-    pMasterController->DebugOut()->Error("VFFConverter::ConvertToNative","Error appaneding raw data to header file %s.", strTargetFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Error appaneding raw data to header file %s.", strTargetFilename.c_str());
     remove(strTargetFilename.c_str());
     return false;
   }

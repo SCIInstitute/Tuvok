@@ -51,23 +51,23 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
                                      UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
   if (iComponentCount > 1) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Color data currently not supported.");
+    pMasterController->DebugOut()->Error(_func_,"Color data currently not supported.");
     return false;
   }
 
   if (iComponentSize < 16) bConvertEndianness = false; // catch silly user input
 
-  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Converting RAW dataset %s to %s", strFilename.c_str(), strTargetFilename.c_str());
+  pMasterController->DebugOut()->Message(_func_,"Converting RAW dataset %s to %s", strFilename.c_str(), strTargetFilename.c_str());
 
   string strSourceFilename;
   string tmpFilename0 = strTempDir+SysTools::GetFilename(strFilename)+".endianess";
   string tmpFilename1 = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
 
   if (bConvertEndianness) {
-    pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Performing endianess conversion ...");
+    pMasterController->DebugOut()->Message(_func_,"Performing endianess conversion ...");
 
     if (iComponentSize != 16 && iComponentSize != 32 && iComponentSize != 64) {
-      pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unable to endian convert anything but 16bit, 32bit, or 64bit values (requested %i)", iComponentSize);
+      pMasterController->DebugOut()->Error(_func_,"Unable to endian convert anything but 16bit, 32bit, or 64bit values (requested %i)", iComponentSize);
       return false;
     }
 
@@ -75,7 +75,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     WrongEndianData.Open(false);
 
     if (!WrongEndianData.IsOpen()) {
-      pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unable to open source file %s", strFilename.c_str());
+      pMasterController->DebugOut()->Error(_func_,"Unable to open source file %s", strFilename.c_str());
       return false;
     }
 
@@ -83,7 +83,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     ConvEndianData.Create();
 
     if (!ConvEndianData.IsOpen()) {
-      pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unable to open temp file %s for endianess conversion", tmpFilename0.c_str());
+      pMasterController->DebugOut()->Error(_func_,"Unable to open temp file %s for endianess conversion", tmpFilename0.c_str());
       WrongEndianData.Close();
       return false;
     }
@@ -113,7 +113,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       size_t iBytesWritten = ConvEndianData.WriteRAW(pBuffer, iBytesRead);
 
       if (iBytesRead != iBytesWritten)  {
-        pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Read/Write error converting endianess from %s to %s", strFilename.c_str(), tmpFilename0.c_str());
+        pMasterController->DebugOut()->Error(_func_,"Read/Write error converting endianess from %s to %s", strFilename.c_str(), tmpFilename0.c_str());
         WrongEndianData.Close();
         ConvEndianData.Close();
         remove(tmpFilename0.c_str());
@@ -151,7 +151,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   }
 
   if (strSourceFilename == "")  {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Read/Write error quantizing to %s", strFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Read/Write error quantizing to %s", strFilename.c_str());
     return false;
   }
 
@@ -174,7 +174,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   SourceData.Open(false);
 
   if (!SourceData.IsOpen()) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unable to open source file %s", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Unable to open source file %s", strSourceFilename.c_str());
     return false;
   }
 
@@ -261,7 +261,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, NULL, NULL, pMasterController->DebugOut()); break;
 						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, NULL, NULL, pMasterController->DebugOut()); break;
 						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, NULL, NULL, pMasterController->DebugOut()); break;
-						default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+						default: pMasterController->DebugOut()->Error(_func_,"Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
 		case 16 :
           switch (iComponentCount) {
@@ -269,7 +269,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, NULL, NULL, pMasterController->DebugOut()); break;
 						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, NULL, NULL, pMasterController->DebugOut()); break;
 						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, NULL, NULL, pMasterController->DebugOut()); break;
-						default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+						default: pMasterController->DebugOut()->Error(_func_,"Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
 		case 32 :	
           switch (iComponentCount) {
@@ -277,14 +277,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, NULL, NULL, pMasterController->DebugOut()); break;
 						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, NULL, NULL, pMasterController->DebugOut()); break;
 						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, NULL, NULL, pMasterController->DebugOut()); break;
-						default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+						default: pMasterController->DebugOut()->Error(_func_,"Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
-		default: pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+		default: pMasterController->DebugOut()->Error(_func_,"Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 	}
 
 	string strProblemDesc;
 	if (!dataVolume.Verify(&strProblemDesc)) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Verify failed with the following reason: %s", strProblemDesc.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Verify failed with the following reason: %s", strProblemDesc.c_str());
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) remove(tmpFilename0.c_str());
@@ -293,7 +293,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	}
 
 	if (!uvfFile.AddDataBlock(&dataVolume,dataVolume.ComputeDataSize(), true)) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","AddDataBlock failed!");
+    pMasterController->DebugOut()->Error(_func_,"AddDataBlock failed!");
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) remove(tmpFilename0.c_str());
@@ -304,9 +304,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
   // if no resampling was perfomed above we need to compute the 1d histogram here
   if (Histogram1D.GetHistogram().size() == 0) {
-    pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Computing 1D Histogram...");
+    pMasterController->DebugOut()->Message(_func_,"Computing 1D Histogram...");
     if (!Histogram1D.Compute(&dataVolume)) {
-      pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 1D Histogram failed!");
+      pMasterController->DebugOut()->Error(_func_,"Computation of 1D Histogram failed!");
       uvfFile.Close();
       SourceData.Close();
       if (bConvertEndianness) remove(tmpFilename0.c_str());
@@ -315,10 +315,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     }
   }
 
-  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Computing 2D Histogram...");
+  pMasterController->DebugOut()->Message(_func_,"Computing 2D Histogram...");
   Histogram2DDataBlock Histogram2D;
   if (!Histogram2D.Compute(&dataVolume, Histogram1D.GetHistogram().size())) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertRAWDataset","Computation of 2D Histogram failed!");
+    pMasterController->DebugOut()->Error(_func_,"Computation of 2D Histogram failed!");
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) remove(tmpFilename0.c_str());
@@ -326,7 +326,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 		return false;
   }
 
-  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Merging data...");
+  pMasterController->DebugOut()->Message(_func_,"Merging data...");
 
 	uvfFile.AddDataBlock(&Histogram1D,Histogram1D.ComputeDataSize());
 	uvfFile.AddDataBlock(&Histogram2D,Histogram2D.ComputeDataSize());
@@ -342,18 +342,18 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	uvfFile.AddDataBlock(testPairs,iDataSize);
 */
 
-  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Computing checksum and writing file...");
+  pMasterController->DebugOut()->Message(_func_,"Computing checksum and writing file...");
 
 	uvfFile.Create();
 	SourceData.Close();
 	uvfFile.Close();
 
-  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Removing temporary files...");
+  pMasterController->DebugOut()->Message(_func_,"Removing temporary files...");
 
   if (bConvertEndianness) remove(tmpFilename0.c_str());
   if (bQuantized) remove(tmpFilename1.c_str());
 
-  pMasterController->DebugOut()->Message("RAWConverter::ConvertRAWDataset","Done!");
+  pMasterController->DebugOut()->Message(_func_,"Done!");
   return true;
 }
 
@@ -570,14 +570,14 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
 {
   ifstream sourceFile(strFilename.c_str(),ios::binary);
   if (!sourceFile.is_open()) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable to open source file %s.", strFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Unable to open source file %s.", strFilename.c_str());
     return false;
   }
 
   LargeRAWFile binaryFile(strBinaryFile);
   binaryFile.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
   if (!binaryFile.IsOpen()) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable to open temp file %s.", strBinaryFile.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Unable to open temp file %s.", strBinaryFile.c_str());
     sourceFile.close();
     return false;
   }
@@ -585,7 +585,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
   sourceFile.seekg(iHeaderSkip);
   if (bIsFloat) { 
     if (!bSigned) {
-      pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable unsupported data type. (unsiged float)");
+      pMasterController->DebugOut()->Error(_func_,"Unable unsupported data type. (unsiged float)");
       sourceFile.close();
       binaryFile.Delete();
       return false;
@@ -610,7 +610,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
                  break;
                }
       default : {
-                  pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable unsupported data type. (float)");
+                  pMasterController->DebugOut()->Error(_func_,"Unable unsupported data type. (float)");
                   sourceFile.close();
                   binaryFile.Delete();
                   return false;
@@ -675,7 +675,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
                  break;
                }
       default : {
-                  pMasterController->DebugOut()->Error("RAWConverter::ConvertTXTDataset","Unable unsupported data type. (int)");
+                  pMasterController->DebugOut()->Error(_func_,"Unable unsupported data type. (int)");
                   sourceFile.close();
                   binaryFile.Delete();
                   return false;
@@ -697,7 +697,7 @@ bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std:
   if (SysTools::FileExists(strTargetFilename)) 
     remove(strTargetFilename.c_str());
   if (SysTools::FileExists(strTargetFilename)) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertToNative","Unable to remove exisitng target file %s.", strTargetFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Unable to remove exisitng target file %s.", strTargetFilename.c_str());
     return false;
   }
 
@@ -710,7 +710,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
   LargeRAWFile fSource(strRawFilename, iHeaderSkip);
   fSource.Open(false);
   if (!fSource.IsOpen()) {
-    pMasterController->DebugOut()->Error("RAWConverter::AppendRAW","Unable to open source file %s.", strRawFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Unable to open source file %s.", strRawFilename.c_str());
     return false;
   }
   // append to target file
@@ -718,7 +718,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
   fTarget.Append();
   if (!fTarget.IsOpen()) {
     fSource.Close();
-    pMasterController->DebugOut()->Error("RAWConverter::AppendRAW","Unable to open target file %s.", strTargetFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Unable to open target file %s.", strTargetFilename.c_str());
     return false;
   }
 
@@ -728,7 +728,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
   UINT64 iCopiedSize = 0;
 
   do {
-    pMasterController->DebugOut()->Message("RAWConverter::AppendRAW","Writing output data\n%g percent completed", 100.0f*float(iCopiedSize)/float(iSourceSize));
+    pMasterController->DebugOut()->Message(_func_,"Writing output data\n%g percent completed", 100.0f*float(iCopiedSize)/float(iSourceSize));
 
     iCopySize = fSource.ReadRAW(pBuffer, iCopySize);
 
@@ -751,7 +751,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
                   for (size_t i = 0;i<iCopySize;i+=8)
                     (*(INT64*)(pBuffer+i)) = INT64(*(UINT64*)(pBuffer+i)) - std::numeric_limits<INT64>::max();
                   break;
-        default : pMasterController->DebugOut()->Error("VFFConverter::ConvertToNative","Unsuported data type for vff files.");
+        default : pMasterController->DebugOut()->Error(_func_,"Unsuported data type for vff files.");
                   return false;
       }
     }
@@ -805,7 +805,7 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
                                   bIsFloat, vVolumeSize, vVolumeAspect, strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
 
   if (!bRAWCreated) {
-    pMasterController->DebugOut()->Error("RAWConverter::ConvertToUVF","Convert to RAW step failed, aborting.");
+    pMasterController->DebugOut()->Error(_func_,"Convert to RAW step failed, aborting.");
     return false;    
   }
 
@@ -866,7 +866,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename, UINT64 iHeaderS
   LargeRAWFile fSource(strSourceFilename, iHeaderSkip);
   fSource.Open(false);
   if (!fSource.IsOpen()) {
-    pMasterController->DebugOut()->Error("RAWConverter::Analyze","Unable to open source file %s.", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Unable to open source file %s.", strSourceFilename.c_str());
     return false;
   }
 
@@ -874,7 +874,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename, UINT64 iHeaderS
   
   if (bFloatingPoint) { 
     if (!bSigned) {
-      pMasterController->DebugOut()->Error("RAWConverter::Analyze","Unable unsupported data type. (unsiged float)");
+      pMasterController->DebugOut()->Error(_func_,"Unable unsupported data type. (unsiged float)");
       fSource.Close();
       return false;
     }
@@ -897,7 +897,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename, UINT64 iHeaderS
                   break;
                }
       default : {
-                  pMasterController->DebugOut()->Error("RAWConverter::Analyze","Unable unsupported data type. (float)");
+                  pMasterController->DebugOut()->Error(_func_,"Unable unsupported data type. (float)");
                   fSource.Close();
                   return false;
                 }
@@ -978,7 +978,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename, UINT64 iHeaderS
                  break;
                }
       default : {
-                  pMasterController->DebugOut()->Error("RAWConverter::Analyze","Unable unsupported data type. (int)");
+                  pMasterController->DebugOut()->Error(_func_,"Unable unsupported data type. (int)");
                   fSource.Close();
                   return false;
                 }
