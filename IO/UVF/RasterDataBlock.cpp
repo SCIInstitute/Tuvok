@@ -1080,7 +1080,7 @@ bool RasterDataBlock::BrickedLODToFlatData(const vector<UINT64>& vLOD, const std
 
   
   if (!pTargetFile->IsOpen()) {
-    if (pDebugOut) pDebugOut->Error(_func_,"Unable to write to target file.");
+    if (pDebugOut) pDebugOut->Error(_func_,"Unable to write to target file %s.", strTargetFile.c_str());
     delete pTargetFile;
     return false;
   }

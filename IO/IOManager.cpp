@@ -398,7 +398,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
           m_pMasterController->DebugOut()->Warning(_func_,"Different aspect ratios found.");
       }
       
-      IntermediateFile.strFilename = m_TempDir + strFilenames[iInputData] +".raw";
+      IntermediateFile.strFilename = m_TempDir + SysTools::GetFilename(strFilenames[iInputData]) + SysTools::ToString(rand()) +".raw";
       IntermediateFile.bDelete = true;
 
       if (!v.Export(iLODLevel, IntermediateFile.strFilename, false, m_pMasterController->DebugOut())) {
@@ -915,6 +915,10 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info) 
         info.m_uiRange.second = UINT64(pHist->GetFilledSize()-1);
       }
     }
+
+    info.m_vAspect = FLOATVECTOR3(v.GetInfo()->GetScale());
+    info.m_vDomainSize = UINTVECTOR3(v.GetInfo()->GetDomainSize());
+    info.m_iComponentSize = v.GetInfo()->GetBitwith();
 
     return true;
   } else {
