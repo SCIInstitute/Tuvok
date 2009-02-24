@@ -45,11 +45,12 @@
 
 #include "../StdTuvokDefines.h"
 #include "../IO/VolumeDataset.h"
-#include "../IO/TransferFunction1D.h"
-#include "../IO/TransferFunction2D.h"
 #include "../Renderer/CullingLOD.h"
 #include "../Basics/GeometryGenerator.h"
 #include "../Basics/Plane.h"
+
+class TransferFunction1D;
+class TransferFunction2D;
 
 class Brick {
 public:

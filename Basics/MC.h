@@ -38,7 +38,6 @@
 
 #pragma once
 
-#include <string>
 #include "Vectors.h"
 
 #define EPSILON 0.000001f

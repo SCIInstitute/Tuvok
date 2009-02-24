@@ -40,20 +40,21 @@
 #define IOMANAGER_H
 
 #include "../StdTuvokDefines.h"
-#include <algorithm>
 #include <limits>
 #include <string>
 #include "../Controller/MasterController.h"
-#include "../IO/DirectoryParser.h"
 #include "../IO/UVF/UVF.h"
-#include "../Renderer/AbstrRenderer.h"
-#include "RAWConverter.h"
 #include "../Basics/MC.h"
 #include "../Basics/SysTools.h"
 
 #define BRICKSIZE (256)
 #define BRICKOVERLAP (4)
 #define INCORESIZE (BRICKSIZE*BRICKSIZE*BRICKSIZE)
+
+class AbstrConverter;
+class AbstrRenderer;
+class FileStackInfo;
+class RangeInfo;
 
 class MergeDataset {
 public:

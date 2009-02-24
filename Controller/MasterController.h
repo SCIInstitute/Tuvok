@@ -49,10 +49,6 @@
 
 #include "../Renderer/AbstrRenderer.h"
 #include "../Renderer/GPUMemMan/GPUMemManDataStructs.h"
-#if defined(_WIN32) && defined(USE_DIRECTX)
-#include "../Renderer/DX/DXSBVR.h"
-#include "../Renderer/DX/DXRaycaster.h"
-#endif
 
 #include "../Scripting/Scriptable.h"
 class IOManager;
@@ -111,10 +107,10 @@ public:
   Scripting*     ScriptEngine()   {return m_pScriptEngine;}
 
   /// \todo this should return a pointer to memory.
-  void Filter( std::string datasetName,
-         UINT32 filter,
-         void *var0 = 0, void *var1 = 0,
-         void *var2 = 0, void *var3 = 0 );
+  void Filter(std::string datasetName,
+              UINT32 filter,
+              void *var0 = 0, void *var1 = 0,
+              void *var2 = 0, void *var3 = 0 );
 
   // Scriptable implementation
   virtual void RegisterCalls(Scripting* pScriptEngine);
