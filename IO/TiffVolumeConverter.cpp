@@ -127,8 +127,9 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   // IIRC libtiff handles all the endian issues for us.
   bConvertEndianess = false;
 
-  // This group might be bugs; not quite sure where to read these from.  In any
-  // case, we don't have any data which does not have these properties.
+  // One might consider setting the values below explicitly as bugs, but we're
+  // not quite sure where to read these from.  In any case, we don't have any
+  // data for which these settings are invalid.
   bSigned = false;
   bIsFloat = false;
   vVolumeAspect[0] = 1;
@@ -136,8 +137,8 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   vVolumeAspect[2] = 1;
 
   strTitle = "TIFF Volume";
-  // @todo FIXME: this assignment to be the same in every reader, should be
-  // moved to the caller or parent:
+  // @todo FIXME: this assignment appears to be the same in every reader,
+  // should be moved to the caller or parent:
   strSource = SysTools::GetFilename(strSourceFilename);
   eType = UVFTables::ES_UNDEFINED;
 
@@ -154,7 +155,7 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
   bDeleteIntermediateFile = true;
   // Populate the intermediate file.  We'll do this slice-by-slice, which isn't
-  // kosher for Tuvok semantics -- a slice could technically be larger than
+  // exactly kosher in Tuvok -- a slice could technically be larger than
   // INCORESIZE.  But it won't be.
   do {
     BYTE* slice = tv_read_slice(tif, dbg);
