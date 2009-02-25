@@ -48,6 +48,7 @@
 #include "QVISConverter.h"
 #include "NRRDConverter.h"
 #include "VFFConverter.h"
+#include "TiffVolumeConverter.h"
 
 using namespace std;
 
@@ -59,6 +60,7 @@ IOManager::IOManager(MasterController* masterController) :
   m_vpConverters.push_back(new QVISConverter());
   m_vpConverters.push_back(new NRRDConverter());
   m_vpConverters.push_back(new VFFConverter());
+  m_vpConverters.push_back(new TiffVolumeConverter());
 }
 
 
