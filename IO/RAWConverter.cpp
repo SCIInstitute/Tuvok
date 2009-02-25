@@ -375,28 +375,27 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
   FILE *f_compressed;
   FILE *f_inflated;
   int ret;
-  static const char method[] = "RAWConverter::ConvertGZIPDataset";
   AbstrDebugOut *dbg = pMasterController->DebugOut();
 
-  dbg->Message(method, "Deflating GZIP data ...");
+  dbg->Message(_func_, "Deflating GZIP data ...");
 
   f_compressed = fopen(strFilename.c_str(), "rb");
   f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
   if(f_compressed == NULL) {
-    dbg->Error(method, "Could not open %s", strFilename.c_str());
+    dbg->Error(_func_, "Could not open %s", strFilename.c_str());
     fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
-    dbg->Error(method, "Could not open %s", strUncompressedFile.c_str());
+    dbg->Error(_func_, "Could not open %s", strUncompressedFile.c_str());
     fclose(f_compressed);
     return false;
   }
 
   if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
-    dbg->Error(method, "Seek failed");
+    dbg->Error(_func_, "Seek failed");
     fclose(f_compressed);
     return false;
   }
@@ -410,23 +409,23 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
 
   switch(ret) {
     case Z_OK:
-      dbg->Message(method, "Decompression successful.");
+      dbg->Message(_func_, "Decompression successful.");
       break;
     case Z_MEM_ERROR:
-      dbg->Error(method, "Not enough memory decompress %s",
+      dbg->Error(_func_, "Not enough memory decompress %s",
                  strFilename.c_str());
       return false;
       break;
     case Z_DATA_ERROR:
-      dbg->Error(method, "Deflation invalid or incomplete");
+      dbg->Error(_func_, "Deflation invalid or incomplete");
       return false;
       break;
     case Z_VERSION_ERROR:
-      dbg->Error(method, "Zlib library versioning error!");
+      dbg->Error(_func_, "Zlib library versioning error!");
       return false;
       break;
     default:
-      dbg->Warning(method, "Unknown / unhandled case %d", ret);
+      dbg->Warning(_func_, "Unknown / unhandled case %d", ret);
       return false;
       break;
   }
@@ -500,7 +499,6 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
                                        UINT64 iHeaderSkip)
 {
   AbstrDebugOut *dbg = pMasterController->DebugOut();
-  static const char method[] = "RAWConverter::ConvertBZIP2Dataset";
   BZFILE *bzf;
   int bz_err;
   std::vector<char> buffer(INCORESIZE);
@@ -509,19 +507,19 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   FILE *f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
   if(f_compressed == NULL) {
-    dbg->Error(method, "Could not open %s", strFilename.c_str());
+    dbg->Error(_func_, "Could not open %s", strFilename.c_str());
     fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
-    dbg->Error(method, "Could not open %s", strUncompressedFile.c_str());
+    dbg->Error(_func_, "Could not open %s", strUncompressedFile.c_str());
     fclose(f_compressed);
     return false;
   }
 
   if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
-    dbg->Error(method, "Seek failed");
+    dbg->Error(_func_, "Seek failed");
     fclose(f_inflated);
     fclose(f_compressed);
     return false;
@@ -529,7 +527,7 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
 
   bzf = BZ2_bzReadOpen(&bz_err, f_compressed, 0, 0, NULL, 0);
   if(bz_err_test(bz_err, dbg)) {
-    dbg->Error(method, "Bzip library error occurred; bailing.");
+    dbg->Error(_func_, "Bzip library error occurred; bailing.");
     fclose(f_inflated);
     fclose(f_compressed);
     return false;
@@ -538,13 +536,13 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   do {
     int nbytes = BZ2_bzRead(&bz_err, bzf, &buffer[0], INCORESIZE);
     if(bz_err != BZ_STREAM_END && bz_err_test(bz_err, dbg)) {
-      dbg->Error(method, "Bzip library error occurred; bailing.");
+      dbg->Error(_func_, "Bzip library error occurred; bailing.");
       fclose(f_inflated);
       fclose(f_compressed);
       return false;
     }
     if(1 != fwrite(&buffer[0], nbytes, 1, f_inflated)) {
-      dbg->Warning(method, "%d-byte write of decompressed file failed.",
+      dbg->Warning(_func_, "%d-byte write of decompressed file failed.",
                    nbytes);
       fclose(f_inflated);
       fclose(f_compressed);
