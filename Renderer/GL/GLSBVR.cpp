@@ -35,11 +35,13 @@
 */
 
 
+#include "GLInclude.h"
 #include "GLSBVR.h"
 
 #include <cmath>
 #include <Basics/SysTools.h>
 #include <Controller/MasterController.h>
+#include "../GPUMemMan/GPUMemMan.h"
 
 using namespace std;
 

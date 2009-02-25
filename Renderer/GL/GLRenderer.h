@@ -44,12 +44,13 @@
 #include <string>
 
 #include "../../StdTuvokDefines.h"
-#include "GLInclude.h"
-#include "../GPUMemMan/GPUMemMan.h"
 #include "../AbstrRenderer.h"
 #include "GLTargetBinder.h"
 
 class MasterController;
+class GLTexture1D;
+class GLTexture2D;
+class GLSLProgram;
 
 class GLRenderer : public AbstrRenderer {
   public:

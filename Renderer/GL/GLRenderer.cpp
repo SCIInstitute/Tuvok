@@ -34,10 +34,12 @@
   \date    August 2008
 */
 
+#include "GLInclude.h"
 #include "GLRenderer.h"
 #include <Controller/MasterController.h>
 #include <Basics/SysTools.h>
 #include <ctime>
+#include "../GPUMemMan/GPUMemMan.h"
 
 using namespace std;
 

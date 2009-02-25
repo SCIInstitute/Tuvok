@@ -34,12 +34,14 @@
   \date    August 2008
 */
 
+#include "GLInclude.h"
 #include "GLRaycaster.h"
 
 #include <cmath>
 #include <Basics/SysTools.h>
 #include <Controller/MasterController.h>
 #include <ctime>
+#include "../GPUMemMan/GPUMemMan.h"
 #include "../../Basics/Plane.h"
 
 using namespace std;
