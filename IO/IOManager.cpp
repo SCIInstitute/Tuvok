@@ -522,6 +522,9 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
   } else {
     if (bIsFloatG) {
       // unsigned float ??? :-)
+      m_pMasterController->DebugOut()->Error(_func_, "Don't know how to handle"
+                                                     " unsigned float data.");
+      return false;
     } else {
       switch (iComponentSizeG) {
         case 8  : {
