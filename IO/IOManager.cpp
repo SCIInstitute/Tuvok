@@ -587,19 +587,30 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
 }
 
 
-bool IOManager::ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, bool bNoUserInteraction) {
+bool IOManager::ConvertDataset(const std::string& strFilename,
+                               const std::string& strTargetFilename,
+                               bool bNoUserInteraction) {
   /// \todo maybe come up with something smarter for a temp dir then the target dir
   m_TempDir = SysTools::GetPath(strTargetFilename);
 
-  m_pMasterController->DebugOut()->Message(_func_,"Request to convert dataset %s to %s received.", strFilename.c_str(), strTargetFilename.c_str());
+  AbstrDebugOut &dbg = *(m_pMasterController->DebugOut());
+
+  dbg.Message(_func_, "Request to convert dataset %s to %s received.",
+              strFilename.c_str(), strTargetFilename.c_str());
 
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
+
+  dbg.Message(_func_, "ext: %s, target: %s", strExt.c_str(),
+              strExtTarget.c_str());
 
   if (strExtTarget == "UVF") {
     for (size_t i = 0;i<m_vpConverters.size();i++) {
       const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
       for (size_t j = 0;j<vStrSupportedExt.size();j++) {
+        dbg.Message(_func_, "%s supports %s",
+                    m_vpConverters[i]->GetDesc().c_str(),
+                    vStrSupportedExt[j].c_str());
         if (vStrSupportedExt[j] == strExt) {
           if (m_vpConverters[i]->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction)) return true;
         }
