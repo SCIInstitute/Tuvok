@@ -1377,16 +1377,23 @@ void GLRenderer::BBoxPostRender() {
   }
 }
 
+/** Renders the currently configured clip plane.
+ * The plane logic is mostly handled by ExtendedPlane::Quad: though we only
+ * need the plane's normal to clip things, we store an orthogonal vector for
+ * the plane's surface specifically to make rendering the plane easy. */
 void GLRenderer::RenderClipPlane(size_t iStereoID)
 {
+  /* Bail if the user doesn't want to use or see the plane. */
   if(!m_bClipPlaneOn || !m_bClipPlaneDisplayed) { return ; }
+
+  /* Must match the vEye from SetViewPort; we should probably abstract this out
+   * to a namespace/set of const statics.. */
   const FLOATVECTOR3 vEye(0,0,1.6f);
   FLOATVECTOR4 vColorQuad(0.0f,0.0f,0.8f,0.4f);
   FLOATVECTOR4 vColorBorder(1.0f,1.0f,0.0f,1.0f);
   FLOATVECTOR3 vTransformedCenter;
 
-  vTransformedCenter = (FLOATVECTOR4(0,0,0,1) *
-                        m_mTranslation).dehomo();
+  vTransformedCenter = (FLOATVECTOR4(0,0,0,1) * m_mTranslation).dehomo();
   
   ExtendedPlane transformed(m_ClipPlane);
   if(m_bClipPlaneLocked) {
@@ -1395,6 +1402,9 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   }
   m_mView[iStereoID].setModelview();
 
+  /* transformed.Quad will give us back a list of triangle vertices; the return
+   * value gives us the order we should render those so that we don't mess up
+   * front/back faces. */
   typedef std::vector<FLOATVECTOR3> TriList;
   TriList quad;
   bool ccw = transformed.Quad(vEye, vTransformedCenter, quad);
