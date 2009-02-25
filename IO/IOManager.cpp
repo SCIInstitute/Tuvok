@@ -45,10 +45,11 @@
 #include <Basics/SysTools.h>
 #include <Renderer/GPUMemMan/GPUMemMan.h>
 
-#include "QVISConverter.h"
 #include "NRRDConverter.h"
-#include "VFFConverter.h"
+#include "QVISConverter.h"
+#include "StkConverter.h"
 #include "TiffVolumeConverter.h"
+#include "VFFConverter.h"
 
 using namespace std;
 
@@ -59,8 +60,9 @@ IOManager::IOManager(MasterController* masterController) :
 {
   m_vpConverters.push_back(new QVISConverter());
   m_vpConverters.push_back(new NRRDConverter());
-  m_vpConverters.push_back(new VFFConverter());
+  m_vpConverters.push_back(new StkConverter());
   m_vpConverters.push_back(new TiffVolumeConverter());
+  m_vpConverters.push_back(new VFFConverter());
 }
 
 
