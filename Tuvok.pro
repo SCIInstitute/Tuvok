@@ -61,6 +61,16 @@ HEADERS += StdTuvokDefines.h \
            3rdParty/GLEW/glxew.h \
            3rdParty/bzip2/bzlib.h \
            3rdParty/bzip2/bzlib_private.h \
+           3rdParty/tiff/t4.h \
+           3rdParty/tiff/tif_dir.h \
+           3rdParty/tiff/tif_fax3.h \
+           3rdParty/tiff/tiffconf.h \
+           3rdParty/tiff/tiff.h \
+           3rdParty/tiff/tiffio.h \
+           3rdParty/tiff/tiffiop.h \
+           3rdParty/tiff/tiffvers.h \
+           3rdParty/tiff/tif_predict.h \
+           3rdParty/tiff/uvcode.h \
            Scripting/Scripting.h \
            Scripting/Scriptable.h \
            Renderer/CullingLOD.h \
