@@ -32,8 +32,9 @@
            SCI Institute
            University of Utah
 */
-#include "../3rdParty/tiff/tiffio.h"
 #include "TiffVolumeConverter.h"
+#include "../3rdParty/boost/cstdint.hpp"
+#include "../3rdParty/tiff/tiffio.h"
 #include "../StdTuvokDefines.h"
 #include "../Controller/MasterController.h"
 #include "../Basics/SysTools.h"
@@ -62,6 +63,8 @@ TiffVolumeConverter::TiffVolumeConverter()
   m_vSupportedExt.push_back("TIFF");
 }
 
+// converts a TiffVolume to a `raw' file.  We'll read through the TIFF
+// slice-by-slice, copying each slice to the raw file.
 bool
 TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
                                   const std::string& strTempDir,
@@ -105,20 +108,40 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
     }
   }
   iHeaderSkip = 0;
-  /// @todo FIXME read the component size && n_components from the tag.
-  // For now, assuming monochrome, 8-bit data.
-  iComponentSize = 8;
-  iComponentCount = 1;
+
+  // read the number of bits per component from the tiff tag.
+  {
+    boost::uint16_t bits_per_sample;
+    TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bits_per_sample);
+    iComponentSize = bits_per_sample;
+    dbg.Message(_func_, "%ld bits per component.", iComponentSize);
+  }
+  // likewise for the number of components / pixel.
+  {
+    boost::uint16_t components;
+    TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &components);
+    iComponentCount = components;
+    dbg.Message(_func_, "%ld component%s.", iComponentCount,
+                (components == 1) ? "" : "s");
+  }
+  // IIRC libtiff handles all the endian issues for us.
   bConvertEndianess = false;
+
+  // This group might be bugs; not quite sure where to read these from.  In any
+  // case, we don't have any data which does not have these properties.
   bSigned = false;
   bIsFloat = false;
   vVolumeAspect[0] = 1;
   vVolumeAspect[1] = 1;
   vVolumeAspect[2] = 1;
+
   strTitle = "TIFF Volume";
-  strSource = SysTools::GetFilename(strSourceFilename); // fixme, move up.
+  // @todo FIXME: this assignment to be the same in every reader, should be
+  // moved to the caller or parent:
+  strSource = SysTools::GetFilename(strSourceFilename);
   eType = UVFTables::ES_UNDEFINED;
 
+  // Create an intermediate file to hold the data.
   strIntermediateFile = strTempDir +
                         SysTools::GetFilename(strSourceFilename) + ".binary";
   LargeRAWFile binary(strIntermediateFile);
@@ -130,9 +153,13 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
     return false;
   }
   bDeleteIntermediateFile = true;
+  // Populate the intermediate file.  We'll do this slice-by-slice, which isn't
+  // kosher for Tuvok semantics -- a slice could technically be larger than
+  // INCORESIZE.  But it won't be.
   do {
     BYTE* slice = tv_read_slice(tif, dbg);
     if(slice) {
+      // assuming 8-bit monochrome data here, which might not always be valid.
       binary.WriteRAW(static_cast<unsigned char*>(slice),
                       vVolumeSize[0]*vVolumeSize[1]*sizeof(BYTE));
       _TIFFfree(slice);
