@@ -583,7 +583,8 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
   sourceFile.seekg(iHeaderSkip);
   if (bIsFloat) { 
     if (!bSigned) {
-      pMasterController->DebugOut()->Error(_func_,"Unable unsupported data type. (unsiged float)");
+      pMasterController->DebugOut()->Error(_func_,"Unsupported data type "
+                                                  "(unsigned float)");
       sourceFile.close();
       binaryFile.Delete();
       return false;
