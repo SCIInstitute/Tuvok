@@ -699,7 +699,6 @@ namespace SysTools {
   DIR* dirData=opendir(strDir.c_str());
 
   if (dirData != NULL) {
-
     struct dirent *inode;
   
     while ((inode=readdir(dirData)) != NULL) {
@@ -712,9 +711,9 @@ namespace SysTools {
           files.push_back(inode->d_name);
         }
     }
+    closedir(dirData);
   }
   regfree(&preg);
-  closedir(dirData);
 #endif
 
     return files;
