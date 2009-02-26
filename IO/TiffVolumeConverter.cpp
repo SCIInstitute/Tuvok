@@ -95,9 +95,9 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   {
     size_t dims[3];
     tv_dimensions(tif, dims);
-    vVolumeSize[0] = dims[0];
-    vVolumeSize[1] = dims[1];
-    vVolumeSize[2] = dims[2];
+    vVolumeSize[0] = UINT32(dims[0]);
+    vVolumeSize[1] = UINT32(dims[1]);
+    vVolumeSize[2] = UINT32(dims[2]);
     dbg.Message(_func_, "TiffVolume dimensions: %zux%zux%zu",
                 dims[0], dims[1], dims[2]);
     if(dims[2] <= 1) {
