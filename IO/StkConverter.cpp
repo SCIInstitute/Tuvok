@@ -166,7 +166,7 @@ stk_read_metadata(TIFF *tif, struct stk &metadata)
     // that.  All we care about is how many slices there are.
     metadata.z = count;
   }
-  // This appears to cause an illegal instruction..
+  metadata.samples = 1;
   TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &metadata.samples);
   return true;
 }
