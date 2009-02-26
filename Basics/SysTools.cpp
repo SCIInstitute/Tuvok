@@ -38,11 +38,18 @@
 
 #include "SysTools.h"
 #include <algorithm>
-#include <sstream>
+#include <cstring>
 #include <iostream>
+#include <sstream>
 
-#include <sys/stat.h>
 #include <errno.h>
+#include <sys/stat.h>
+
+#ifndef _WIN32
+  #include <regex.h>
+  #include <dirent.h>
+  #include <unistd.h>
+#endif
 
 #ifdef TUVOK_OS_APPLE
   #include <CoreFoundation/CoreFoundation.h>
@@ -54,12 +61,6 @@
 #endif
 #ifndef MIN
   #define MIN(a,b)            (((a) < (b)) ? (a) : (b))
-#endif
-
-#ifndef _WIN32
-  #include <regex.h>
-  #include <dirent.h>
-  #include <unistd.h>
 #endif
 
 using namespace std;
@@ -706,10 +707,12 @@ namespace SysTools {
       strFilename = strDir + strFilename;
 
       struct ::stat st;
-      if (::stat(strFilename.c_str(), &st) != -1) 
-        if (!S_ISDIR(st.st_mode) && !regexec(&preg, inode->d_name, size_t(0), NULL, 0)) {
-          files.push_back(inode->d_name);
+      if (::stat(strFilename.c_str(), &st) != -1) {
+        if (!S_ISDIR(st.st_mode) &&
+            !regexec(&preg, inode->d_name, size_t(0), NULL, 0)) {
+          files.push_back(strdup(strFilename.c_str()));
         }
+      }
     }
     closedir(dirData);
   }
