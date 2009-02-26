@@ -43,6 +43,12 @@
 #include "../Renderer/GPUMemMan/GPUMemMan.h"
 #include "../Renderer/GL/GLRaycaster.h"
 #include "../Renderer/GL/GLSBVR.h"
+
+#if defined(_WIN32) && defined(USE_DIRECTX)
+#include "../Renderer/DX/DXSBVR.h"
+#include "../Renderer/DX/DXRaycaster.h"
+#endif
+
 #include "../Scripting/Scripting.h"
 
 MasterController::MasterController()
