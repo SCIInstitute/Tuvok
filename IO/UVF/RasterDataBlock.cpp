@@ -771,6 +771,7 @@ void RasterDataBlock::AllocateTemp(const string& strTempFile, bool bBuildOffsetT
   m_pTempFile = new LargeRAWFile(strTempFile);
   if (!m_pTempFile->Create(iDataSize)) {
     delete m_pTempFile;
+    m_pTempFile = NULL;
     throw "Unable To create Temp File";
   }
 }
