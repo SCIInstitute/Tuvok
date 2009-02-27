@@ -116,7 +116,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
         pMasterController->DebugOut()->Error(_func_,"Read/Write error converting endianess from %s to %s", strFilename.c_str(), tmpFilename0.c_str());
         WrongEndianData.Close();
         ConvEndianData.Close();
-        remove(tmpFilename0.c_str());
+        SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
         delete [] pBuffer;
         return false;
       }
@@ -167,7 +167,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
     // if we actually created two temp file so far we can delete the first one
     if (bConvertEndianness) {
-      remove(tmpFilename0.c_str());
+      SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
       bConvertEndianness = false;
     }
 
@@ -293,8 +293,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     pMasterController->DebugOut()->Error(_func_,"Verify failed with the following reason: %s", strProblemDesc.c_str());
     uvfFile.Close();
     SourceData.Close();
-    if (bConvertEndianness) remove(tmpFilename0.c_str());
-    if (bQuantized) remove(tmpFilename1.c_str());
+    if (bConvertEndianness) {
+      SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+    }
+    if (bQuantized) {
+      SysTools::Remove(tmpFilename1, *pMasterController->DebugOut());
+    }
 		return false;
 	}
 
@@ -302,8 +306,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     pMasterController->DebugOut()->Error(_func_,"AddDataBlock failed!");
     uvfFile.Close();
     SourceData.Close();
-    if (bConvertEndianness) remove(tmpFilename0.c_str());
-    if (bQuantized) remove(tmpFilename1.c_str());
+    if (bConvertEndianness) {
+      SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+    }
+    if (bQuantized) {
+      SysTools::Remove(tmpFilename1, *pMasterController->DebugOut());
+    }
 		return false;
 	}
 
@@ -315,8 +323,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       pMasterController->DebugOut()->Error(_func_,"Computation of 1D Histogram failed!");
       uvfFile.Close();
       SourceData.Close();
-      if (bConvertEndianness) remove(tmpFilename0.c_str());
-      if (bQuantized) remove(tmpFilename1.c_str());
+      if (bConvertEndianness) {
+        SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+      }
+      if (bQuantized) {
+        SysTools::Remove(tmpFilename1, *pMasterController->DebugOut());
+      }
 		  return false;
     }
   }
@@ -327,8 +339,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     pMasterController->DebugOut()->Error(_func_,"Computation of 2D Histogram failed!");
     uvfFile.Close();
     SourceData.Close();
-    if (bConvertEndianness) remove(tmpFilename0.c_str());
-    if (bQuantized) remove(tmpFilename1.c_str());
+    if (bConvertEndianness) {
+      SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+    }
+    if (bQuantized) {
+      SysTools::Remove(tmpFilename1, *pMasterController->DebugOut());
+    }
 		return false;
   }
 
@@ -356,8 +372,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
   pMasterController->DebugOut()->Message(_func_,"Removing temporary files...");
 
-  if (bConvertEndianness) remove(tmpFilename0.c_str());
-  if (bQuantized) remove(tmpFilename1.c_str());
+  if (bConvertEndianness) {
+    SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+  }
+  if (bQuantized) {
+    SysTools::Remove(tmpFilename1, *pMasterController->DebugOut());
+  }
 
   pMasterController->DebugOut()->Message(_func_,"Done!");
   return true;
@@ -445,7 +465,7 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
  * @param dbg    streams to print error information to
  * @return true if an error occurred */
 static bool
-bz_err_test(int bz_err, AbstrDebugOut * const dbg)
+bz_err_test(int bz_err, AbstrDebugOut& dbg)
 {
   static const char m[] = "bz_err_test (RAWConverter)";
   bool error_occurred = true;
@@ -454,41 +474,41 @@ bz_err_test(int bz_err, AbstrDebugOut * const dbg)
         case BZ_RUN_OK:    /* FALL THROUGH */
         case BZ_FLUSH_OK:  /* FALL THROUGH */
         case BZ_FINISH_OK:
-            dbg->Message(m, "Bzip operation successful.");
+            dbg.Message(m, "Bzip operation successful.");
             error_occurred = false;
             break;
         case BZ_STREAM_END:
-            dbg->Message(m, "End of bzip stream.");
+            dbg.Message(m, "End of bzip stream.");
             break;
         case BZ_CONFIG_ERROR:
-            dbg->Error(m, "Bzip configuration error");
+            dbg.Error(m, "Bzip configuration error");
             break;
         case BZ_SEQUENCE_ERROR:
-            dbg->Error(m, "Bzip sequencing error");
+            dbg.Error(m, "Bzip sequencing error");
             break;
         case BZ_PARAM_ERROR:
-            dbg->Error(m, "Bzip parameter error");
+            dbg.Error(m, "Bzip parameter error");
             break;
         case BZ_MEM_ERROR:
-            dbg->Error(m, "Bzip memory allocation failed.");
+            dbg.Error(m, "Bzip memory allocation failed.");
             break;
         case BZ_DATA_ERROR_MAGIC:
-            dbg->Warning(m, "Bzip stream does not have correct magic bytes!");
+            dbg.Warning(m, "Bzip stream does not have correct magic bytes!");
             /* FALL THROUGH */
         case BZ_DATA_ERROR:
-            dbg->Error(m, "Bzip data integrity error; this usually means the "
-                          "compressed file is corrupt.");
+            dbg.Error(m, "Bzip data integrity error; this usually means the "
+                         "compressed file is corrupt.");
             break;
         case BZ_IO_ERROR: {
             const char *err_msg = strerror(errno);
-            dbg->Error(m, "Bzip IO error: %s", err_msg);
+            dbg.Error(m, "Bzip IO error: %s", err_msg);
             break;
         }
         case BZ_UNEXPECTED_EOF:
-            dbg->Warning(m, "EOF before end of Bzip stream.");
+            dbg.Warning(m, "EOF before end of Bzip stream.");
             break;
         case BZ_OUTBUFF_FULL:
-            dbg->Error(m, "Bzip output buffer is not large enough");
+            dbg.Error(m, "Bzip output buffer is not large enough");
             break;
     }
     return error_occurred;
@@ -504,7 +524,7 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
                                        MasterController* pMasterController,
                                        UINT64 iHeaderSkip)
 {
-  AbstrDebugOut *dbg = pMasterController->DebugOut();
+  AbstrDebugOut &dbg = *pMasterController->DebugOut();
   BZFILE *bzf;
   int bz_err;
   std::vector<char> buffer(INCORESIZE);
@@ -513,19 +533,19 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   FILE *f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
   if(f_compressed == NULL) {
-    dbg->Error(_func_, "Could not open %s", strFilename.c_str());
+    dbg.Error(_func_, "Could not open %s", strFilename.c_str());
     fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
-    dbg->Error(_func_, "Could not open %s", strUncompressedFile.c_str());
+    dbg.Error(_func_, "Could not open %s", strUncompressedFile.c_str());
     fclose(f_compressed);
     return false;
   }
 
   if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
-    dbg->Error(_func_, "Seek failed");
+    dbg.Error(_func_, "Seek failed");
     fclose(f_inflated);
     fclose(f_compressed);
     return false;
@@ -533,7 +553,7 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
 
   bzf = BZ2_bzReadOpen(&bz_err, f_compressed, 0, 0, NULL, 0);
   if(bz_err_test(bz_err, dbg)) {
-    dbg->Error(_func_, "Bzip library error occurred; bailing.");
+    dbg.Error(_func_, "Bzip library error occurred; bailing.");
     fclose(f_inflated);
     fclose(f_compressed);
     return false;
@@ -542,14 +562,14 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   do {
     int nbytes = BZ2_bzRead(&bz_err, bzf, &buffer[0], INCORESIZE);
     if(bz_err != BZ_STREAM_END && bz_err_test(bz_err, dbg)) {
-      dbg->Error(_func_, "Bzip library error occurred; bailing.");
+      dbg.Error(_func_, "Bzip library error occurred; bailing.");
       fclose(f_inflated);
       fclose(f_compressed);
       return false;
     }
     if(1 != fwrite(&buffer[0], nbytes, 1, f_inflated)) {
-      dbg->Warning(_func_, "%d-byte write of decompressed file failed.",
-                   nbytes);
+      dbg.Warning(_func_, "%d-byte write of decompressed file failed.",
+                  nbytes);
       fclose(f_inflated);
       fclose(f_compressed);
       return false;
@@ -700,9 +720,9 @@ bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std:
 
   // if the file exists, delete it first
   if (SysTools::FileExists(strTargetFilename)) 
-    remove(strTargetFilename.c_str());
+    SysTools::Remove(strTargetFilename, *pMasterController->DebugOut());
   if (SysTools::FileExists(strTargetFilename)) {
-    pMasterController->DebugOut()->Error(_func_,"Unable to remove exisitng target file %s.", strTargetFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,"Unable to remove existing target file %s.", strTargetFilename.c_str());
     return false;
   }
 
@@ -817,7 +837,9 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned,
                                        bIsFloat, vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename));
 
-  if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
+  if (bDeleteIntermediateFile) {
+    SysTools::Remove(strIntermediateFile, *pMasterController->DebugOut());
+  }
 
   return bUVFCreated;
 }
@@ -857,7 +879,9 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename, const std::stri
     bool bAnalyzed = Analyze(strRAWFilename, iHeaderSkip, iComponentSize, iComponentCount, 
                              bSigned, bIsFloat, vVolumeSize, pMasterController, info);
 
-    if (bRAWDelete) remove(strRAWFilename.c_str());
+    if (bRAWDelete) {
+      SysTools::Remove(strRAWFilename, *pMasterController->DebugOut());
+    }
 
     return bAnalyzed;
 }
@@ -989,8 +1013,6 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename, UINT64 iHeaderS
                 }
     }
   }
-
-
 
   fSource.Close();
   return true;
