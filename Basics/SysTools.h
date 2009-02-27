@@ -28,11 +28,10 @@
 
 /**
   \file    SysTools.h
-  \brief    Simple routines for filename handling
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \version  1.5
+  \brief   Simple routines for filename handling
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    Dec 2008
 */
 
@@ -80,20 +79,23 @@ namespace SysTools {
      return ss.str();
   }
 
-  template <typename T> bool FromString(T& t, const std::string& s, std::ios_base& (*f)(std::ios_base&)= std::dec)
+  template <typename T> bool FromString(T& t, const std::string& s,
+                                std::ios_base& (*f)(std::ios_base&) = std::dec)
   {
       std::istringstream iss(s);
       return !(iss >> f >> t).fail();
   }
 
 
-  template <typename T> bool FromString(T& t, const std::wstring& s, std::ios_base& (*f)(std::ios_base&) = std::dec)
+  template <typename T> bool FromString(T& t, const std::wstring& s,
+                                std::ios_base& (*f)(std::ios_base&) = std::dec)
   {
       std::wistringstream iss(s);
       return !(iss >> f >> t).fail();
   }
 
-  template <typename T> T FromString(const std::string& s, std::ios_base& (*f)(std::ios_base&)= std::dec)
+  template <typename T> T FromString(const std::string& s,
+                             std::ios_base& (*f)(std::ios_base&) = std::dec)
   {
       T t;
       std::istringstream iss(s);
@@ -101,7 +103,8 @@ namespace SysTools {
       return t;
   }
 
-  template <typename T> T FromString(const std::wstring& s, std::ios_base& (*f)(std::ios_base&) = std::dec)
+  template <typename T> T FromString(const std::wstring& s,
+                             std::ios_base& (*f)(std::ios_base&) = std::dec)
   {
       T t;
       std::wistringstream iss(s);
@@ -114,8 +117,10 @@ namespace SysTools {
   std::wstring ToUpperCase(const std::wstring& str);
   std::string ToUpperCase(const std::string& str);
 
-  std::vector< std::string > Tokenize(const std::string& strInput, bool bQuoteprotect=true);
-  std::vector< std::wstring > Tokenize(const std::wstring& strInput, bool bQuoteprotect=true);
+  std::vector< std::string > Tokenize(const std::string& strInput,
+                                      bool bQuoteprotect=true);
+  std::vector< std::wstring > Tokenize(const std::wstring& strInput,
+                                       bool bQuoteprotect=true);
 
   std::string GetFromResourceOnMac(const std::string& fileName);
   std::wstring GetFromResourceOnMac(const std::wstring& fileName);
@@ -133,37 +138,62 @@ namespace SysTools {
   std::wstring GetFilename(const std::wstring& fileName);
 
   std::string FindPath(const std::string& fileName, const std::string& path);
-  std::wstring FindPath(const std::wstring& fileName, const std::wstring& path);
+  std::wstring FindPath(const std::wstring& fileName,
+                        const std::wstring& path);
 
   std::string  RemoveExt(const std::string& fileName);
   std::wstring RemoveExt(const std::wstring& fileName);
 
-  std::string  CheckExt(const std::string& fileName, const std::string& newext);
-  std::wstring CheckExt(const std::wstring& fileName, const std::wstring& newext);
+  std::string  CheckExt(const std::string& fileName,
+                        const std::string& newext);
+  std::wstring CheckExt(const std::wstring& fileName,
+                        const std::wstring& newext);
 
-  std::string  ChangeExt(const std::string& fileName, const std::string& newext);
-  std::wstring ChangeExt(const std::wstring& fileName, const std::wstring& newext);
+  std::string  ChangeExt(const std::string& fileName,
+                         const std::string& newext);
+  std::wstring ChangeExt(const std::wstring& fileName,
+                         const std::wstring& newext);
 
-  std::string  AppendFilename(const std::string& fileName, const int iTag);
-  std::wstring AppendFilename(const std::wstring& fileName, const int iTag);
-  std::string  AppendFilename(const std::string& fileName, const std::string& tag);
-  std::wstring AppendFilename(const std::wstring& fileName, const std::wstring& tag);
+  std::string  AppendFilename(const std::string& fileName,
+                              const int iTag);
+  std::wstring AppendFilename(const std::wstring& fileName,
+                              const int iTag);
+  std::string  AppendFilename(const std::string& fileName,
+                              const std::string& tag);
+  std::wstring AppendFilename(const std::wstring& fileName,
+                              const std::wstring& tag);
 
   std::string  FindNextSequenceName(const std::string& strFilename);
   std::wstring FindNextSequenceName(const std::wstring& wStrFilename);
 
-  std::string  FindNextSequenceName(const std::string& fileName, const std::string& ext, const std::string& dir="");
-  std::wstring FindNextSequenceName(const std::wstring& fileName, const std::wstring& ext, const std::wstring& dir=L"");
+  std::string  FindNextSequenceName(const std::string& fileName,
+                                    const std::string& ext,
+                                    const std::string& dir="");
+  std::wstring FindNextSequenceName(const std::wstring& fileName,
+                                    const std::wstring& ext,
+                                    const std::wstring& dir=L"");
 
-  unsigned int FindNextSequenceIndex(const std::string& fileName, const std::string& ext, const std::string& dir="");
-  unsigned int FindNextSequenceIndex(const std::wstring& fileName, const std::wstring& ext, const std::wstring& dir=L"");
+  unsigned int FindNextSequenceIndex(const std::string& fileName,
+                                     const std::string& ext,
+                                     const std::string& dir="");
+  unsigned int FindNextSequenceIndex(const std::wstring& fileName,
+                                     const std::wstring& ext,
+                                     const std::wstring& dir=L"");
 
 #ifdef _WIN32
-  std::vector<std::wstring> GetDirContents(const std::wstring& dir, const std::wstring& fileName=L"*", const std::wstring& ext=L"*");
-  std::vector<std::string> GetDirContents(const std::string& dir, const std::string& fileName="*", const std::string& ext="*");
+  std::vector<std::wstring> GetDirContents(const std::wstring& dir,
+                                           const std::wstring& fileName=L"*",
+                                           const std::wstring& ext=L"*");
+  std::vector<std::string> GetDirContents(const std::string& dir,
+                                          const std::string& fileName="*",
+                                          const std::string& ext="*");
 #else
-  std::vector<std::wstring> GetDirContents(const std::wstring& dir, const std::wstring& fileName=L"*", const std::wstring& ext=L"");
-  std::vector<std::string> GetDirContents(const std::string& dir, const std::string& fileName="*", const std::string& ext="");
+  std::vector<std::wstring> GetDirContents(const std::wstring& dir,
+                                           const std::wstring& fileName=L"*",
+                                           const std::wstring& ext=L"");
+  std::vector<std::string> GetDirContents(const std::string& dir,
+                                          const std::string& fileName="*",
+                                          const std::string& ext="");
 #endif
 
   std::vector<std::wstring> GetSubDirList(const std::wstring& dir);
@@ -178,8 +208,14 @@ namespace SysTools {
   void RemoveTailingWhitespace(std::string &str);
 
 #ifdef _WIN32
-  bool GetFilenameDialog(const std::string& lpstrTitle, const CHAR* lpstrFilter, std::string &filename, const bool save, HWND owner=NULL, DWORD* nFilterIndex=NULL);
-  bool GetFilenameDialog(const std::wstring& lpstrTitle, const WCHAR* lpstrFilter, std::wstring &filename, const bool save, HWND owner=NULL, DWORD* nFilterIndex=NULL);
+  bool GetFilenameDialog(const std::string& lpstrTitle,
+                         const CHAR* lpstrFilter,
+                         std::string &filename, const bool save,
+                         HWND owner=NULL, DWORD* nFilterIndex=NULL);
+  bool GetFilenameDialog(const std::wstring& lpstrTitle,
+                         const WCHAR* lpstrFilter,
+                         std::wstring &filename, const bool save,
+                         HWND owner=NULL, DWORD* nFilterIndex=NULL);
 #endif
 
   class CmdLineParams {
@@ -207,7 +243,6 @@ namespace SysTools {
 
       std::string m_strFilename;
   };
-
 }
 
 #endif // SYSTOOLS_H
