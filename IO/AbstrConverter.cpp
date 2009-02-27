@@ -317,6 +317,200 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
   return strTargetFilename;
 }
 
+const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
+  LargeRAWFile InputData(strFilename, iHeaderSkip);
+  InputData.Open(false);
+  UINT64 iPercent = iSize / 100;
+
+  if (!InputData.IsOpen()) return "";
+
+  // determine max and min
+  double fMax = -numeric_limits<double>::max();
+  double fMin = numeric_limits<double>::max();
+  double* pInData = new double[INCORESIZE];
+  UINT64 iPos = 0;
+  UINT64 iDivLast = 0;
+  while (iPos < iSize)  {
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*8)/8;
+    if (iRead == 0) break;
+
+    for (size_t i = 0;i<iRead;i++) {
+      if (fMax < pInData[i]) fMax = pInData[i];
+      if (fMin > pInData[i]) fMin = pInData[i];
+    }
+
+    iPos += UINT64(iRead);
+
+    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+      m_pMasterController->DebugOut()->Message(_func_,"Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      iDivLast = (100*iPos)/iSize;
+    }
+
+  }
+
+  if (iPos < iSize) {
+    m_pMasterController->DebugOut()->Warning(_func_,
+                         "Specified size and real datasize mismatch");
+    iSize = iPos;
+  }
+
+  // quantize
+  LargeRAWFile OutputData(strTargetFilename);
+  OutputData.Create(iSize*2);
+
+  if (!OutputData.IsOpen()) {
+    delete [] pInData;
+    InputData.Close();
+    return "";
+  }
+
+  m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %g to %g)", fMin, fMax);
+
+  double fQuantFact = 4095 / (fMax-fMin);
+  unsigned short* pOutData = new unsigned short[INCORESIZE];
+  
+  vector<UINT64> aHist(4096); 
+  for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+
+  InputData.SeekStart();
+  iPos = 0;
+  iDivLast = 0;
+  while (iPos < iSize)  {
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*8)/8;
+    for (size_t i = 0;i<iRead;i++) {
+      unsigned short iNewVal = min<unsigned short>(4095,
+                                   static_cast<unsigned short>
+                                   ((pInData[i]-fMin) * fQuantFact));
+      pOutData[i] = iNewVal;
+      aHist[iNewVal]++;
+    }
+    iPos += UINT64(iRead);
+
+    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+      m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %g to %g)\n%i percent complete", fMin, fMax, int((100*iPos)/iSize));
+      iDivLast = (100*iPos)/iSize;
+    }
+
+    OutputData.WriteRAW((unsigned char*)pOutData, 2*iRead);
+  }
+
+  delete [] pInData;
+  delete [] pOutData;
+  OutputData.Close();
+  InputData.Close();
+
+  Histogram1D.SetHistogram(aHist);
+
+  return strTargetFilename;
+}
+
+
+const string AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
+  LargeRAWFile InputData(strFilename, iHeaderSkip);
+  InputData.Open(false);
+  UINT64 iPercent = iSize / 100;
+
+  if (!InputData.IsOpen()) return "";
+
+  vector<UINT64> aHist(4096); 
+  for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+
+  // determine max and min
+  UINT64 iMax = 0;
+  UINT64 iMin = numeric_limits<UINT64>::max();
+  UINT64* pInData = new UINT64[INCORESIZE];
+  UINT64 iPos = 0;
+  UINT64 iDivLast = 0;
+  while (iPos < iSize)  {
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*8)/8;
+    if (iRead == 0) break;
+
+    for (size_t i = 0;i<iRead;i++) {
+      UINT64 iValue = (bSigned) ? pInData[i] + numeric_limits<int>::max() : pInData[i];
+      if (iMax < iValue)  iMax = iValue;
+      if (iMin > iValue)  iMin = iValue;
+      if (iMax < 4096)    aHist[iValue]++;
+    }
+
+    iPos += UINT64(iRead);
+
+    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+      m_pMasterController->DebugOut()->Message(_func_,"Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      iDivLast = (100*iPos)/iSize;
+    }
+
+    if (iMin == 0 && iMax == numeric_limits<UINT64>::max()) break;
+  }
+
+  if (iPos < iSize) {
+    m_pMasterController->DebugOut()->Warning(_func_,"Specified size and real datasize mismatch");
+    iSize = iPos;
+  }
+
+  string strQuantFile;
+  // if file uses less or equal than 12 bits quit here
+  if (iMax < 4096) {
+    m_pMasterController->DebugOut()->Message(_func_,"No quantization required (min=%i, max=%i)", iMin, iMax);
+    aHist.resize(iMax+1);  // reduce the size to the filled size (the maximum value plus one (the zero value))
+    delete [] pInData;
+    InputData.Close();
+    strQuantFile = strFilename;
+  } else {
+    if (bSigned) 
+      m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max());
+    else
+      m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)", iMin, iMax);
+    for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+
+    // otherwise quantize
+    LargeRAWFile OutputData(strTargetFilename);
+    OutputData.Create(iSize*2);
+
+    if (!OutputData.IsOpen()) {
+      delete [] pInData;
+      InputData.Close();
+      return "";
+    }
+
+    UINT64 iRange = iMax-iMin;
+    
+    InputData.SeekStart();
+    iPos = 0;
+    iDivLast = 0;
+    while (iPos < iSize)  {
+      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*8)/8;
+
+      for (size_t i = 0;i<iRead;i++) {
+        UINT64 iValue = (bSigned) ? pInData[i] + numeric_limits<int>::max() : pInData[i];
+        UINT64 iNewVal = min<UINT64>(4095, (UINT64)((UINT64(iValue-iMin) * 4095)/iRange));
+        pInData[i] = iNewVal;
+        aHist[iNewVal]++;
+      }
+      iPos += UINT64(iRead);
+
+      if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+        if (bSigned) 
+          m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max(), int((100*iPos)/iSize));
+        else
+          m_pMasterController->DebugOut()->Message(_func_,"Quantizating to 12 bit (input data has range from %i to %i)\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
+        iDivLast = (100*iPos)/iSize;
+      }
+
+      OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
+    }
+
+    delete [] pInData;
+    OutputData.Close();
+    InputData.Close();
+
+    strQuantFile = strTargetFilename;
+  }
+
+  Histogram1D.SetHistogram(aHist);
+
+  return strQuantFile;
+}
+
 const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* m_pMasterController) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
@@ -334,7 +528,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
   while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
     if (iRead == 0) break;
 
     for (size_t i = 0;i<iRead;i++) {
@@ -390,7 +584,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
     iPos = 0;
     iDivLast = 0;
     while (iPos < iSize)  {
-      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
 
       for (size_t i = 0;i<iRead;i++) {
         UINT32 iValue = (bSigned) ? pInData[i] + numeric_limits<int>::max() : pInData[i];
