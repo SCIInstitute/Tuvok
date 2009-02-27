@@ -163,7 +163,6 @@ void main(void)
     vec3 vNormal =  ComputeNormal(vHitPosTex.xyz);  
     gl_FragData[1] = vec4(vNormal,float(iTileID));
   } else {
-    gl_FragData[0]  = vec4(0.0);
-    gl_FragData[1]  = vec4(0.0);
+    discard;
   }
 }

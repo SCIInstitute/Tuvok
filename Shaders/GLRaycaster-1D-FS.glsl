@@ -117,6 +117,6 @@ void main(void)
     
     gl_FragColor  = vColor;
   } else {
-    gl_FragColor  = vec4(0.0);
+    discard;
   }
 }
