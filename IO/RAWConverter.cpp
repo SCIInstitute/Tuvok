@@ -142,7 +142,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
       break;
 		case 32 :	
-      if (bIsFloat) 
+      if (bIsFloat)
         strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D, pMasterController);
       else
         strSourceFilename = QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
@@ -462,7 +462,7 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
 /** Tests a bzip return code for errors, and translates it to a string for the
  * debug logs.
  * @param bz_err the error code (given by the bzip2 library)
- * @param dbg    streams to print error information to
+ * @param dbg    stream to print error information to
  * @return true if an error occurred */
 static bool
 bz_err_test(int bz_err, AbstrDebugOut& dbg)
@@ -578,16 +578,16 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
 
   fclose(f_inflated);
   fclose(f_compressed);
-  
+
   return true;
 }
 
-bool RAWConverter::ParseTXTDataset(const string& strFilename, 
-                                     const string& strBinaryFile, 
+bool RAWConverter::ParseTXTDataset(const string& strFilename,
+                                     const string& strBinaryFile,
                                      MasterController* pMasterController,
-                                     UINT64 iHeaderSkip, 
-                                     UINT64 iComponentSize, 
-                                     UINT64 iComponentCount, 
+                                     UINT64 iHeaderSkip,
+                                     UINT64 iComponentSize,
+                                     UINT64 iComponentCount,
                                      bool bSigned,
                                      bool bIsFloat,
                                      UINTVECTOR3 vVolumeSize)
@@ -607,7 +607,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
   }
 
   sourceFile.seekg(iHeaderSkip);
-  if (bIsFloat) { 
+  if (bIsFloat) {
     if (!bSigned) {
       pMasterController->DebugOut()->Error(_func_,"Unsupported data type "
                                                   "(unsigned float)");
@@ -714,12 +714,12 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
 }
 
 bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
-                                   UINT64 iComponentSize, UINT64 , bool , bool, 
+                                   UINT64 iComponentSize, UINT64 , bool , bool,
                                    UINTVECTOR3 , FLOATVECTOR3 , MasterController* pMasterController, bool) {
   // convert raw to raw is easy :-), just copy the file and ignore the metadata
 
   // if the file exists, delete it first
-  if (SysTools::FileExists(strTargetFilename)) 
+  if (SysTools::FileExists(strTargetFilename))
     SysTools::Remove(strTargetFilename, *pMasterController->DebugOut());
   if (SysTools::FileExists(strTargetFilename)) {
     pMasterController->DebugOut()->Error(_func_,"Unable to remove existing target file %s.", strTargetFilename.c_str());
@@ -797,23 +797,23 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
 
     fTarget.WriteRAW(pBuffer, iCopySize);
     iCopiedSize += iCopySize;
-  } while (iCopySize > 0); 
+  } while (iCopySize > 0);
 
   fSource.Close();
   fTarget.Close();
-  delete [] pBuffer;    
+  delete [] pBuffer;
 
   return true;
 }
 
 
-bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, 
-                                const std::string& strTempDir, MasterController* pMasterController, 
+bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename,
+                                const std::string& strTempDir, MasterController* pMasterController,
                                 bool bNoUserInteraction) {
 
-  UINT64        iHeaderSkip; 
+  UINT64        iHeaderSkip;
   UINT64        iComponentSize;
-  UINT64        iComponentCount; 
+  UINT64        iComponentCount;
   bool          bConvertEndianess;
   bool          bSigned;
   bool          bIsFloat;
@@ -825,13 +825,17 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   string        strIntermediateFile;
   bool          bDeleteIntermediateFile;
 
-  bool bRAWCreated = ConvertToRAW(strSourceFilename, strTempDir, pMasterController, bNoUserInteraction, 
-                                  iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, 
-                                  bIsFloat, vVolumeSize, vVolumeAspect, strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+  bool bRAWCreated = ConvertToRAW(strSourceFilename, strTempDir,
+                                  pMasterController, bNoUserInteraction,
+                                  iHeaderSkip, iComponentSize, iComponentCount,
+                                  bConvertEndianess, bSigned, bIsFloat,
+                                  vVolumeSize, vVolumeAspect, strTitle,
+                                  strSource, eType, strIntermediateFile,
+                                  bDeleteIntermediateFile);
 
   if (!bRAWCreated) {
     pMasterController->DebugOut()->Error(_func_,"Convert to RAW step failed, aborting.");
-    return false;    
+    return false;
   }
 
   bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned,
@@ -844,66 +848,73 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   return bUVFCreated;
 }
 
-bool RAWConverter::Analyze(const std::string& strSourceFilename, const std::string& strTempDir, 
-                           MasterController* pMasterController, bool bNoUserInteraction, RangeInfo& info) {
+bool RAWConverter::Analyze(const std::string& strSourceFilename,
+                           const std::string& strTempDir,
+                           MasterController* pMasterController,
+                           bool bNoUserInteraction, RangeInfo& info) {
+  UINT64        iHeaderSkip=0;
+  UINT64        iComponentSize=0;
+  UINT64        iComponentCount=0;
+  bool          bConvertEndianess=false;
+  bool          bSigned=false;
+  bool          bIsFloat=false;
+  UINTVECTOR3   vVolumeSize(0,0,0);
+  FLOATVECTOR3  vVolumeAspect(0,0,0);
+  string        strTitle = "";
+  string        strSource = "";
+  UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
 
-    UINT64        iHeaderSkip=0;
-    UINT64        iComponentSize=0;
-    UINT64        iComponentCount=0; 
-    bool          bConvertEndianess=false;
-    bool          bSigned=false;
-    bool          bIsFloat=false;
-    UINTVECTOR3   vVolumeSize(0,0,0);
-    FLOATVECTOR3  vVolumeAspect(0,0,0);
-    string        strTitle = "";
-    string        strSource = "";
-    UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
-
-    string        strRAWFilename = "";
-    bool          bRAWDelete = false;
+  string        strRAWFilename = "";
+  bool          bRAWDelete = false;
 
 
-    bool bConverted = ConvertToRAW(strSourceFilename, strTempDir, pMasterController, bNoUserInteraction, 
-                                   iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, 
-                                   bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                   strTitle, strSource, eType, strRAWFilename, bRAWDelete);
+  bool bConverted = ConvertToRAW(strSourceFilename, strTempDir,
+                                 pMasterController, bNoUserInteraction,
+                                 iHeaderSkip, iComponentSize, iComponentCount,
+                                 bConvertEndianess, bSigned, bIsFloat,
+                                 vVolumeSize, vVolumeAspect, strTitle,
+                                 strSource, eType, strRAWFilename,
+                                 bRAWDelete);
 
-    if (!bConverted) return false;
+  if (!bConverted) return false;
 
-    info.m_vAspect = vVolumeAspect;
-    info.m_vDomainSize = vVolumeSize;
-    // ConvertToRAW either creates a 16 or 8 bit unsigned int, so checking 
-    // the iComponentSize is sufficient to make sure the types are the same
-    info.m_iComponentSize = iComponentSize;
+  info.m_vAspect = vVolumeAspect;
+  info.m_vDomainSize = vVolumeSize;
+  // ConvertToRAW either creates a 16 or 8 bit unsigned int, so checking
+  // the iComponentSize is sufficient to make sure the types are the same
+  info.m_iComponentSize = iComponentSize;
 
-    bool bAnalyzed = Analyze(strRAWFilename, iHeaderSkip, iComponentSize, iComponentCount, 
-                             bSigned, bIsFloat, vVolumeSize, pMasterController, info);
+  bool bAnalyzed = Analyze(strRAWFilename, iHeaderSkip, iComponentSize, iComponentCount,
+                           bSigned, bIsFloat, vVolumeSize, pMasterController, info);
 
-    if (bRAWDelete) {
-      SysTools::Remove(strRAWFilename, *pMasterController->DebugOut());
-    }
+  if (bRAWDelete) {
+    SysTools::Remove(strRAWFilename, *pMasterController->DebugOut());
+  }
 
-    return bAnalyzed;
+  return bAnalyzed;
 }
 
-bool RAWConverter::Analyze(const std::string& strSourceFilename, UINT64 iHeaderSkip,
-                       UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                       UINTVECTOR3 vVolumeSize, MasterController* pMasterController, RangeInfo& info) {
-
-  
+bool RAWConverter::Analyze(const std::string& strSourceFilename,
+                           UINT64 iHeaderSkip, UINT64 iComponentSize,
+                           UINT64 iComponentCount, bool bSigned,
+                           bool bFloatingPoint, UINTVECTOR3 vVolumeSize,
+                           MasterController* pMasterController,
+                           RangeInfo& info) {
   // open source file
   LargeRAWFile fSource(strSourceFilename, iHeaderSkip);
   fSource.Open(false);
   if (!fSource.IsOpen()) {
-    pMasterController->DebugOut()->Error(_func_,"Unable to open source file %s.", strSourceFilename.c_str());
+    pMasterController->DebugOut()->Error(_func_,
+                                         "Unable to open source file %s.",
+                                         strSourceFilename.c_str());
     return false;
   }
 
   UINT64 iElemCount = vVolumeSize.volume()*iComponentCount;
-  
-  if (bFloatingPoint) { 
+
+  if (bFloatingPoint) {
     if (!bSigned) {
-      pMasterController->DebugOut()->Error(_func_,"Unable unsupported data type. (unsiged float)");
+      pMasterController->DebugOut()->Error(_func_, "Unable unsupported data type. (unsiged float)");
       fSource.Close();
       return false;
     }
