@@ -430,7 +430,8 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
           if (vStrSupportedExt[j] == strExt) {
             bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilenames[iInputData], m_TempDir, m_pMasterController, bNoUserInteraction, 
                                             IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                            strTitle, strSource, eType, IntermediateFile.strFilename, IntermediateFile.bDelete);
+                                            strTitle, eType, IntermediateFile.strFilename, IntermediateFile.bDelete);
+            strSource = SysTools::GetFilename(strFilenames[iInputData]);
             if (!bRAWCreated) continue;
           }
         }
@@ -439,7 +440,8 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       if (!bRAWCreated && m_pFinalConverter) {
         bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilenames[iInputData], m_TempDir, m_pMasterController, bNoUserInteraction, 
                                         IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                        strTitle, strSource, eType, IntermediateFile.strFilename, IntermediateFile.bDelete);
+                                        strTitle, eType, IntermediateFile.strFilename, IntermediateFile.bDelete);
+        strSource = SysTools::GetFilename(strFilenames[iInputData]);
       }
 
 
@@ -675,7 +677,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
           if (vStrSupportedExt[j] == strExt) {
             bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
                                             iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                            strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+                                            strTitle, eType, strIntermediateFile, bDeleteIntermediateFile);
             if (bRAWCreated) break;
           }
         }
@@ -685,7 +687,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       if (!bRAWCreated && m_pFinalConverter) {
         bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
                                         iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                        strTitle, strSource, eType, strIntermediateFile, bDeleteIntermediateFile);
+                                        strTitle, eType, strIntermediateFile, bDeleteIntermediateFile);
       }
     }
     if (!bRAWCreated) return false;

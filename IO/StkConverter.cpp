@@ -64,7 +64,6 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
                            bool& bIsFloat, UINTVECTOR3& vVolumeSize,
                            FLOATVECTOR3& vVolumeAspect,
                            std::string& strTitle,
-                           std::string& strSource,
                            UVFTables::ElementSemanticTable& eType,
                            std::string& strIntermediateFile,
                            bool& bDeleteIntermediateFile)
@@ -105,9 +104,6 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
   vVolumeAspect[2] = 1;
 
   strTitle = "STK Volume";
-  // @todo FIXME: this assignment appears to be the same in every reader,
-  // should be moved to the caller or parent:
-  strSource = SysTools::GetFilename(strSourceFilename);
   eType = UVFTables::ES_UNDEFINED;
 
   // Create an intermediate file to hold the data.

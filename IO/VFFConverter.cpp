@@ -53,7 +53,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
                                 const std::string&, MasterController* pMasterController, bool,
                                 UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
                                 bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
-                                FLOATVECTOR3& vVolumeAspect, std::string& strTitle, std::string& strSource, 
+                                FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                                 UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                                 bool& bDeleteIntermediateFile) {
   pMasterController->DebugOut()->Message(_func_,"Attempting to convert VFF dataset %s", strSourceFilename.c_str());
@@ -86,7 +86,6 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   vVolumeAspect     = FLOATVECTOR3(1,1,1);
   bConvertEndianess = EndianConvert::IsLittleEndian();
   bSigned           = true;
-  strSource         = SysTools::GetFilename(strSourceFilename);
   eType             = UVFTables::ES_UNDEFINED;
   bIsFloat          = false; /// \todo check if VFF can store float values
 

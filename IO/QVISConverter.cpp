@@ -54,7 +54,7 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
                             const std::string&, MasterController* pMasterController, bool,
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
                             bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
-                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle, std::string& strSource, 
+                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile) {
 
@@ -63,7 +63,6 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
   bDeleteIntermediateFile = false;
   eType             = UVFTables::ES_UNDEFINED;
   strTitle          = "Qvis data";
-  strSource         = SysTools::GetFilename(strSourceFilename);
   iHeaderSkip       = 0; 
   iComponentSize    = 8;
   iComponentCount   = 1;

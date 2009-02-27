@@ -81,7 +81,7 @@ public:
                                 bool bIsFloat, UINTVECTOR3 vVolumeSize,
                                 FLOATVECTOR3 vVolumeAspect,
                                 const std::string& strDesc,
-                                const std::string& strSource="",
+                                const std::string& strSource,
                                 UVFTables::ElementSemanticTable
                                   eType=UVFTables::ES_UNDEFINED);
 

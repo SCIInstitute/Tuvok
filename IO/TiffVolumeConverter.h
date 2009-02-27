@@ -59,7 +59,7 @@ public:
                             bool& bConvertEndianess, bool& bSigned,
                             bool& bIsFloat, UINTVECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect,
-                            std::string& strTitle, std::string& strSource,
+                            std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType,
                             std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile);

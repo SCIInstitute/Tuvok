@@ -830,8 +830,9 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
                                   iHeaderSkip, iComponentSize, iComponentCount,
                                   bConvertEndianess, bSigned, bIsFloat,
                                   vVolumeSize, vVolumeAspect, strTitle,
-                                  strSource, eType, strIntermediateFile,
+                                  eType, strIntermediateFile,
                                   bDeleteIntermediateFile);
+  strSource = SysTools::GetFilename(strSourceFilename);
 
   if (!bRAWCreated) {
     pMasterController->DebugOut()->Error(_func_,"Convert to RAW step failed, aborting.");
@@ -873,8 +874,9 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
                                  iHeaderSkip, iComponentSize, iComponentCount,
                                  bConvertEndianess, bSigned, bIsFloat,
                                  vVolumeSize, vVolumeAspect, strTitle,
-                                 strSource, eType, strRAWFilename,
+                                 eType, strRAWFilename,
                                  bRAWDelete);
+  strSource = SysTools::GetFilename(strSourceFilename);
 
   if (!bConverted) return false;
 
