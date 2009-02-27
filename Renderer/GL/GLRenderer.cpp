@@ -1420,6 +1420,7 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
+  // Now render the plane.
   glEnable(GL_BLEND);
   glBegin(GL_TRIANGLES);
     glColor4fv(&(vColorQuad.x));

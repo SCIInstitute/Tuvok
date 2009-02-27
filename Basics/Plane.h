@@ -42,19 +42,30 @@
 #include <vector>
 #include "Vectors.h"
 
-/// Encapsulates a plane with a perpendicular vector, the cross product of the
-/// plane and the perpendicular vector form a basis.
+/// Stores a plane as an always-normalized normal and a perpendicular vector.
+/// The latter is used when rendering the plane: it tells us in which direction
+/// we'd like the plane to (visibly) extend.  By packaging them together, we
+/// can ensure that both are always transformed equally, keeping them in sync.
 class ExtendedPlane {
   public:
     ExtendedPlane(const PLANE<float>& p = PLANE<float>(0,0,1,0),
                   const FLOATVECTOR3& perp = FLOATVECTOR3(0,1,0));
 
+    /// Transform the plane by the given matrix.
     void Transform(const FLOATMATRIX4&);
+    /// Transform the plane by the inverse transpose of the given matrix.
     void TransformIT(const FLOATMATRIX4&);
 
+    /// Figures out the appropriate quadrilateral for rendering this plane (the
+    /// quad's normal will be the plane's normal).
+    /// @return true if the returned set of points should be rendered counter
+    ///         clockwise.
     bool Quad(const FLOATVECTOR3& vEye, const FLOATVECTOR3& vDatasetCenter,
               std::vector<FLOATVECTOR3>& quad, const float fWidgetSize=0.5f);
 
+    /// The default / initial settings for the plane and its perpendicular
+    /// vector.  Use these when constructing initial copies of an
+    /// ExtendedPlane.
     static const PLANE<float> ms_Plane;
     static const FLOATVECTOR3 ms_Perpendicular;
 

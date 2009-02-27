@@ -1334,10 +1334,14 @@ typedef QUATERNION4<float>  FLOATQUATERNION4;
 typedef QUATERNION4<double> DOUBLEQUATERNION4;
 
 
+/// Tests to see if the two values are basically the same.
 template <class T> static bool EpsilonEqual(T a, T b) {
+  /// @todo FIXME provide specializations for types; currently this would only
+  ///       be correct if instantiated as a float!
   return fabs(a-b) <= std::numeric_limits<T>::epsilon();
 }
 
+/// a PLANE is a VECTOR4 which is always normalized.
 template <class T> class PLANE : public VECTOR4<T> {
 public:
   PLANE<T>(): VECTOR4<T>(0,0,0,0) {}
@@ -1359,16 +1363,19 @@ public:
     VECTOR4<T>(_x,_y,_z,_w) {}
   PLANE<T>(const T* vec) : VECTOR4<T>(vec) {}
 
+  /// @return true if the given point is clipped by this plane.
   bool clip(VECTOR3<T> point) const {
     return ((FLOATVECTOR4::xyz() ^ point)+this->w >= 0);
   }
 
+  /// Transform the plane by the given matrix.
   void transform(const MATRIX4<T> &m) {
     FLOATMATRIX4 mIT(m.inverse());
     mIT = mIT.Transpose();
     transformIT(mIT);
   }
 
+  /// Transform the plane by the inverse transpose of the given matrix.
   void transformIT(const MATRIX4<T> &M) {
     (*this) = FLOATVECTOR4::operator*(M);
     normalize();
@@ -1391,6 +1398,9 @@ public:
     return tmp;
   }
 
+  /// Determine the intersection point of the plane and a line `ab'.
+  /// @return whether or not the two intersect.  If false, `hit' will not be
+  ///         valid.
   bool intersect(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
                  FLOATVECTOR3& hit) const {
     const float denom = (*this) ^ (a - b);

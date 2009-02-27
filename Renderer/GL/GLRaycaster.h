@@ -91,6 +91,7 @@ class GLRaycaster : public GLRenderer {
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void RenderHQMIPPostLoop();
 
+    /// Set the clip plane input variable in the shader.
     void ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoID=0, bool bForce = false);
 
     virtual void StartFrame();

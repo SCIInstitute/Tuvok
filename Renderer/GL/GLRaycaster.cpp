@@ -149,6 +149,8 @@ bool GLRaycaster::Initialize() {
     m_pProgramIso2->SetUniformVector("texLastHitPos",5);
     m_pProgramIso2->Disable();
 
+    /// We always clip against the plane in the shader, so initialize the plane
+    /// to be way out in left field, ensuring nothing will be clipped.
     ClipPlaneToShader(ExtendedPlane(PLANE<float>(0,0,1,-100000)),0,true);
 
   }
@@ -249,6 +251,7 @@ void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vEx
 }
 
 
+/// Set the clip plane input variable in the shader.
 void GLRaycaster::ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoID, bool bForce) {
   vector<GLSLProgram*> vCurrentShader;
 
@@ -548,5 +551,7 @@ FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR
 
 void GLRaycaster::DisableClipPlane() {
   AbstrRenderer::DisableClipPlane();
+  /// We always clip against the plane in the shader, so initialize the plane
+  /// to be way out in left field, ensuring nothing will be clipped.
   ClipPlaneToShader(ExtendedPlane(PLANE<float>(0,0,1,-100000)),0,true);
 }
