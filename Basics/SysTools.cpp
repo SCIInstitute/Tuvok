@@ -38,6 +38,7 @@
 
 #include "SysTools.h"
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -64,6 +65,7 @@
 #endif
 
 using namespace std;
+#include "../DebugOut/AbstrDebugOut.h"
 
 namespace SysTools {
 
@@ -215,6 +217,18 @@ namespace SysTools {
     reverse(str.begin(), str.end());
     RemoveLeadingWhitespace(str);
     reverse(str.begin(), str.end());
+  }
+
+  /// Uses remove(3) to remove the file.
+  /// @return true if the remove succeeded.
+  bool Remove(const std::string &path, AbstrDebugOut &dbg)
+  {
+    if(std::remove(path.c_str()) == -1) {
+      dbg.Warning(_func_, "Could not remove `%s': %s", path.c_str(),
+                  strerror(errno));
+      return false;
+    }
+    return true;
   }
 
   bool GetFileStats(const string& strFileName, struct ::stat& stat_buf) {

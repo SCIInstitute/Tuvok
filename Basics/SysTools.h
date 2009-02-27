@@ -63,6 +63,8 @@
   typedef unsigned char CHAR;
 #endif
 
+class AbstrDebugOut;
+
 namespace SysTools {
 
   template <typename T> std::string ToString(const T& aValue)
@@ -217,6 +219,11 @@ namespace SysTools {
                          std::wstring &filename, const bool save,
                          HWND owner=NULL, DWORD* nFilterIndex=NULL);
 #endif
+
+  /// Removes the given file or directory.  Warns if the file could not be
+  /// deleted.
+  /// @return true if the remove succeeded.
+  bool Remove(const std::string &, AbstrDebugOut &);
 
   class CmdLineParams {
     public:
