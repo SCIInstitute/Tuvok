@@ -21,7 +21,7 @@ HEADERS += StdTuvokDefines.h \
            Basics/Vectors.h \
            Basics/MathTools.h \
            Basics/ArcBall.h \
-           Basics/Appendix.h \           
+           Basics/Appendix.h \
            Basics/GeometryGenerator.h \
            Basics/Checksums/MD5.h \
            Basics/Checksums/crc32.h \
@@ -105,7 +105,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            3rdParty/bzip2/compress.c \
            3rdParty/bzip2/decompress.c \
            3rdParty/bzip2/bzlib.c \
-           Basics/MC.cpp \           
+           Basics/MC.cpp \
            Basics/SystemInfo.cpp \
            Basics/SysTools.cpp \
            Basics/MathTools.cpp \
@@ -120,7 +120,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            IO/RAWConverter.cpp \
            IO/QVISConverter.cpp \
            IO/VFFConverter.cpp \
-           IO/KeyValueFileParser.cpp \           
+           IO/KeyValueFileParser.cpp \
            IO/StkConverter.cpp \
            IO/TiffVolumeConverter.cpp \
            IO/Transferfunction1D.cpp \
@@ -129,7 +129,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            IO/IOManager.cpp \
            IO/DirectoryParser.cpp \
            IO/DICOM/DICOMParser.cpp \
-           IO/Images/ImageParser.cpp \           
+           IO/Images/ImageParser.cpp \
            IO/UVF/DataBlock.cpp \
            IO/UVF/GlobalHeader.cpp \
            IO/UVF/KeyValuePairDataBlock.cpp \
@@ -138,13 +138,13 @@ SOURCES += 3rdParty/GLEW/glew.c \
            IO/UVF/UVF.cpp \
            IO/UVF/UVFTables.cpp \
            IO/UVF/Histogram1DDataBlock.cpp \
-           IO/UVF/Histogram2DDataBlock.cpp \                     
+           IO/UVF/Histogram2DDataBlock.cpp \
            IO/UVF/MaxMinDataBlock.cpp \
            Controller/MasterController.cpp \
            DebugOut/AbstrDebugOut.cpp \
            DebugOut/TextfileOut.cpp \
            DebugOut/ConsoleOut.cpp \
-           DebugOut/MultiplexOut.cpp \ 
+           DebugOut/MultiplexOut.cpp \
            Scripting/Scripting.cpp \
            Renderer/CullingLOD.cpp \
            Renderer/GL/GLFrameCapture.cpp \
@@ -154,14 +154,14 @@ SOURCES += 3rdParty/GLEW/glew.c \
            Renderer/GL/GLTexture2D.cpp \
            Renderer/GL/GLTexture3D.cpp \
            Renderer/GL/GLTargetBinder.cpp \
-           Renderer/GL/GLRenderer.cpp \           
+           Renderer/GL/GLRenderer.cpp \
            Renderer/GL/GLFBOTex.cpp \
            Renderer/GL/GLRaycaster.cpp \
            Renderer/GL/GLSBVR.cpp \
            Renderer/AbstrRenderer.cpp \
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
-           Renderer/SBVRGeogen.cpp 
+           Renderer/SBVRGeogen.cpp
 
 win32 {
   HEADERS += Renderer/DX/DynamicDX.h \
@@ -180,7 +180,7 @@ win32 {
              Renderer/DX/DXTexture1D.cpp \
              Renderer/DX/DXTexture2D.cpp \
              Renderer/DX/DXTexture3D.cpp \
-             Renderer/DX/DXRenderer.cpp \           
+             Renderer/DX/DXRenderer.cpp \
              Renderer/DX/DXSBVR.cpp \
              Renderer/DX/DXRaycaster.cpp
 }
