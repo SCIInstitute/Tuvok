@@ -84,10 +84,6 @@ class ExtendedPlane {
     const PLANE<float>& Plane() const { return m_Plane; }
     const FLOATVECTOR3& Point() const { return m_Point; }
 
-    void transform(const FLOATMATRIX4 &m) {
-      m_Plane = m_Plane * m;
-      m_Perpendicular = m_Perpendicular * m;
-    }
     ExtendedPlane operator *(const FLOATMATRIX4 &m) const {
       return ExtendedPlane(m_Plane * m,
                            (FLOATVECTOR4(m_Perpendicular,0) * m).xyz(),
