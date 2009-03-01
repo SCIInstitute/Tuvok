@@ -1393,8 +1393,6 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   FLOATVECTOR4 vColorBorder(1.0f,1.0f,0.0f,1.0f);
   FLOATVECTOR3 vTransformedCenter;
 
-  vTransformedCenter = (FLOATVECTOR4(0,0,0,1) * m_mTranslation).dehomo();
-  
   ExtendedPlane transformed(m_ClipPlane);
   m_mView[iStereoID].setModelview();
 
@@ -1403,7 +1401,7 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
    * front/back faces. */
   typedef std::vector<FLOATVECTOR3> TriList;
   TriList quad;
-  bool ccw = transformed.Quad(vEye, vTransformedCenter, quad);
+  bool ccw = transformed.Quad(vEye, quad);
   if(m_eRenderMode != RM_ISOSURFACE) {
     if(ccw) {
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
