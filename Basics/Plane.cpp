@@ -49,7 +49,9 @@ ExtendedPlane::ExtendedPlane(const PLANE<float>& p,
 void ExtendedPlane::Transform(const FLOATMATRIX4& mat)
 {
   m_Plane = m_Plane * mat;
-  m_Perpendicular = m_Perpendicular * mat;
+  m_Perpendicular = (FLOATVECTOR4(m_Perpendicular,0) * mat).xyz();
+  m_Perpendicular.normalize();
+  m_Point = (FLOATVECTOR4(m_Point,1) * mat).xyz();
 }
 
 void ExtendedPlane::TransformIT(const FLOATMATRIX4& mat)
@@ -59,6 +61,7 @@ void ExtendedPlane::TransformIT(const FLOATMATRIX4& mat)
   m_Plane = m_Plane * mIT;
   m_Perpendicular = (FLOATVECTOR4(m_Perpendicular,0) * mIT).xyz();
   m_Perpendicular.normalize();
+  m_Point = (FLOATVECTOR4(m_Point,1) * mIT).xyz();
 }
 
 bool ExtendedPlane::Quad(const FLOATVECTOR3& vEye,
