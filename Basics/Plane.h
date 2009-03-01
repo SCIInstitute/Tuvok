@@ -62,7 +62,8 @@ class ExtendedPlane {
     /// @return true if the returned set of points should be rendered counter
     ///         clockwise.
     bool Quad(const FLOATVECTOR3& vEye, const FLOATVECTOR3& vDatasetCenter,
-              std::vector<FLOATVECTOR3>& quad, const float fWidgetSize=0.5f);
+              std::vector<FLOATVECTOR3>& quad, const float fWidgetSize=0.5f)
+              const;
 
     /// The default / initial settings for the plane and its perpendicular
     /// vector.  Use these when constructing initial copies of an

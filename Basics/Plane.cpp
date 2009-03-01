@@ -67,7 +67,7 @@ void ExtendedPlane::TransformIT(const FLOATMATRIX4& mat)
 bool ExtendedPlane::Quad(const FLOATVECTOR3& vEye,
                          const FLOATVECTOR3& vDatasetCenter,
                          std::vector<FLOATVECTOR3>& quad,
-                         const float fWidgetSize)
+                         const float fWidgetSize) const
 {
   FLOATVECTOR3 vec = m_Plane.xyz() % m_Perpendicular;
   float plane_d = m_Plane.d();
