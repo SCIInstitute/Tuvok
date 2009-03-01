@@ -48,8 +48,9 @@
 /// can ensure that both are always transformed equally, keeping them in sync.
 class ExtendedPlane {
   public:
-    ExtendedPlane(const PLANE<float>& p = PLANE<float>(0,0,1,0),
-                  const FLOATVECTOR3& perp = FLOATVECTOR3(0,1,0));
+    ExtendedPlane(const PLANE<float>& p = ms_Plane,
+                  const FLOATVECTOR3& perp = ms_Perpendicular,
+                  const FLOATVECTOR3& pt = ms_Point);
 
     /// Transform the plane by the given matrix.
     void Transform(const FLOATMATRIX4&);
@@ -68,6 +69,10 @@ class ExtendedPlane {
     /// ExtendedPlane.
     static const PLANE<float> ms_Plane;
     static const FLOATVECTOR3 ms_Perpendicular;
+    static const FLOATVECTOR3 ms_Point;
+
+    /// Sets the plane back to default values.
+    void Default();
 
     float& d() { return m_Plane.w; }
     const float& d() const { return m_Plane.w; }
@@ -77,22 +82,26 @@ class ExtendedPlane {
     float z() const { return m_Plane.z; }
 
     const PLANE<float>& Plane() const { return m_Plane; }
+    const FLOATVECTOR3& Point() const { return m_Point; }
 
     void transform(const FLOATMATRIX4 &m) {
       m_Plane = m_Plane * m;
       m_Perpendicular = m_Perpendicular * m;
     }
     ExtendedPlane operator *(const FLOATMATRIX4 &m) const {
-      return ExtendedPlane(m_Plane * m, m_Perpendicular * m);
+      return ExtendedPlane(m_Plane * m,
+                           (FLOATVECTOR4(m_Perpendicular,0) * m).xyz(),
+                           (FLOATVECTOR4(m_Point,1) * m).xyz());
     }
 
     bool operator ==(const ExtendedPlane &ep) const {
-      return m_Plane == ep.m_Plane;
+      return m_Plane == ep.m_Plane && m_Point == ep.m_Point;
     }
 
   private:
-    PLANE<float> m_Plane;
-    FLOATVECTOR3 m_Perpendicular;
+    PLANE<float> m_Plane;         ///< the plane's normal
+    FLOATVECTOR3 m_Perpendicular; ///< a vector perpendicular to the normal
+    FLOATVECTOR3 m_Point;         ///< a point on the plane
 };
 
 #endif // TUVOK_PLANE_H

@@ -37,10 +37,13 @@
 
 const PLANE<float> ExtendedPlane::ms_Plane(0,0,1,0);
 const FLOATVECTOR3 ExtendedPlane::ms_Perpendicular(0,1,0);
+const FLOATVECTOR3 ExtendedPlane::ms_Point(0,0,0);
 
 ExtendedPlane::ExtendedPlane(const PLANE<float>& p,
-                             const FLOATVECTOR3& perp): m_Plane(p),
-                                                        m_Perpendicular(perp) {
+                             const FLOATVECTOR3& perp,
+                             const FLOATVECTOR3& pt): m_Plane(p),
+                                                      m_Perpendicular(perp),
+                                                      m_Point(pt) {
 }
 
 void ExtendedPlane::Transform(const FLOATMATRIX4& mat)
@@ -106,4 +109,12 @@ bool ExtendedPlane::Quad(const FLOATVECTOR3& vEye,
   quad.push_back((pt_on_plane + (fWidgetSize*(vec  + m_Perpendicular))));
 
   return (m_Plane.xyz() ^ viewDir) < 0;
+}
+
+/// Sets the plane back to default values.
+void ExtendedPlane::Default()
+{
+  m_Plane = ms_Plane;
+  m_Perpendicular = ms_Perpendicular;
+  m_Point = ms_Point;
 }
