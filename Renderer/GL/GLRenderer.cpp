@@ -1396,10 +1396,6 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   vTransformedCenter = (FLOATVECTOR4(0,0,0,1) * m_mTranslation).dehomo();
   
   ExtendedPlane transformed(m_ClipPlane);
-  if(m_bClipPlaneLocked) {
-    FLOATMATRIX4 mat((m_mRotation * m_mTranslation).inverse());
-    transformed.transform(mat.Transpose());
-  }
   m_mView[iStereoID].setModelview();
 
   /* transformed.Quad will give us back a list of triangle vertices; the return

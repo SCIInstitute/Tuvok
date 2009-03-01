@@ -177,10 +177,6 @@ void GLSBVR::EnableClipPlane() {
     AbstrRenderer::EnableClipPlane();
     m_SBVRGeogen.EnableClipPlane();
     PLANE<float> plane(m_ClipPlane.Plane());
-    if(m_bClipPlaneLocked) {
-      FLOATMATRIX4 mat((m_mRotation * m_mTranslation).inverse());
-      plane.transform(mat.Transpose());
-    }
     m_SBVRGeogen.SetClipPlane(plane);
   }
 }
@@ -196,10 +192,6 @@ void GLSBVR::Render3DPreLoop() {
   if(m_bClipPlaneOn) {
     m_SBVRGeogen.EnableClipPlane();
     PLANE<float> plane(m_ClipPlane.Plane());
-    if(m_bClipPlaneLocked) {
-      FLOATMATRIX4 mat((m_mRotation * m_mTranslation).inverse());
-      plane.transform(mat.Transpose());
-    }
     m_SBVRGeogen.SetClipPlane(plane);
   } else {
     m_SBVRGeogen.DisableClipPlane();
