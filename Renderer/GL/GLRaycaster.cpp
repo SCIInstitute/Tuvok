@@ -279,7 +279,7 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoI
   if (bForce || m_bClipPlaneOn) {
     ExtendedPlane plane(clipPlane);
 
-    plane.transform(m_mView[iStereoID]);
+    plane.Transform(m_mView[iStereoID]);
     for (size_t i = 0;i<vCurrentShader.size();i++) {
       vCurrentShader[i]->Enable();
       vCurrentShader[i]->SetUniformVector("vClipPlane", plane.x(), plane.y(),
