@@ -70,12 +70,7 @@ bool ExtendedPlane::Quad(const FLOATVECTOR3& vEye,
                          const float fWidgetSize) const
 {
   FLOATVECTOR3 vec = m_Plane.xyz() % m_Perpendicular;
-  float plane_d = m_Plane.d();
-  FLOATVECTOR3 pt_on_plane(-(plane_d-0.01f)*m_Plane.xyz());
-
-  float dist = m_Plane.xyz() ^ vDatasetCenter;
-  FLOATVECTOR3 vCenter = vDatasetCenter - (dist+plane_d)*m_Plane.xyz();
-  pt_on_plane = vCenter;
+  FLOATVECTOR3 pt_on_plane(m_Point);
 
   FLOATVECTOR3 viewDir = pt_on_plane-vEye;
 
