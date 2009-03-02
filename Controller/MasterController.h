@@ -80,7 +80,10 @@ public:
   virtual ~MasterController();
 
   /// Create a new renderer.
-  AbstrRenderer* RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
+  AbstrRenderer* RequestNewVolumerenderer(EVolumeRendererType eRendererType,
+                                          bool bUseOnlyPowerOfTwo,
+                                          bool bDownSampleTo8Bits,
+                                          bool bDisableBorder);
   /// Indicate that a renderer is no longer needed.
   void ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer);
 
@@ -114,7 +117,9 @@ public:
 
   // Scriptable implementation
   virtual void RegisterCalls(Scripting* pScriptEngine);
-  virtual bool Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage);
+  virtual bool Execute(const std::string& strCommand,
+                       const std::vector< std::string >& strParams,
+                       std::string& strMessage);
 
 private:
   SystemInfo*    m_pSystemInfo;

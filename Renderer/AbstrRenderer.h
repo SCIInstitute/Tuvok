@@ -61,7 +61,8 @@ public:
   {
   }
 
-  Brick(UINT32 x, UINT32 y, UINT32 z, UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ) :
+  Brick(UINT32 x, UINT32 y, UINT32 z,
+        UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ) :
     vCenter(0,0,0),
     vExtension(0,0,0),
     vVoxelCount(iSizeX, iSizeY, iSizeZ),
@@ -146,11 +147,13 @@ class AbstrRenderer {
     /** Default settings: 1D transfer function, single-image view, white text,
      * black BG.
      * @param pMasterController message router
-     * @param bUseOnlyPowerOfTwo force power of two textures, for systems that do not
-     *                           support npot textures.
+     * @param bUseOnlyPowerOfTwo force power of two textures, for systems that
+     *                           do not support npot textures.
      * @param bDownSampleTo8Bits force 8bit textures, for systems that do not
-     *                           support 16bit textures (or 16bit linear interpolation). */
-    AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
+     *                           support 16bit textures (or 16bit linear
+     *                           interpolation). */
+    AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
+                  bool bDownSampleTo8Bits, bool bDisableBorder);
     /** Deallocates dataset and transfer functions. */
     virtual ~AbstrRenderer();
     /** Sends a message to the master to ask for a dataset to be loaded.
@@ -164,7 +167,9 @@ class AbstrRenderer {
 
     virtual void Paint() {
       // check if we are rendering a stereo frame
-      m_bDoStereoRendering = m_bRequestStereoRendering && m_eViewMode == VM_SINGLE && m_eFullWindowMode == WM_3D;
+      m_bDoStereoRendering = m_bRequestStereoRendering &&
+                             m_eViewMode == VM_SINGLE &&
+                             m_eFullWindowMode == WM_3D;
     }
 
     virtual bool Initialize();
@@ -187,7 +192,8 @@ class AbstrRenderer {
      * @param vColors[0] is the color at the bottom;
      * @param vColors[1] is the color at the top. */
     virtual bool SetBackgroundColors(FLOATVECTOR3 vColors[2]) {
-      if (vColors[0] != m_vBackgroundColors[0] || vColors[1] != m_vBackgroundColors[1]) {
+      if (vColors[0] != m_vBackgroundColors[0] ||
+          vColors[1] != m_vBackgroundColors[1]) {
         m_vBackgroundColors[0]=vColors[0];
         m_vBackgroundColors[1]=vColors[1];
         ScheduleCompleteRedraw();
@@ -202,7 +208,9 @@ class AbstrRenderer {
       } return false;
     }
 
-    FLOATVECTOR3 GetBackgroundColor(int i) const {return m_vBackgroundColors[i];}
+    FLOATVECTOR3 GetBackgroundColor(int i) const {
+      return m_vBackgroundColors[i];
+    }
     FLOATVECTOR4 GetTextColor() const {return m_vTextColor;}
 
     virtual void SetSampleRateModifier(float fSampleRateModifier);
@@ -240,7 +248,9 @@ class AbstrRenderer {
     virtual void SetSliceDepth(EWindowMode eWindow, UINT64 fSliceDepth);
     virtual UINT64 GetSliceDepth(EWindowMode eWindow);
 
-    void SetClearFramebuffer(bool bClearFramebuffer) {m_bClearFramebuffer = bClearFramebuffer;}
+    void SetClearFramebuffer(bool bClearFramebuffer) {
+      m_bClearFramebuffer = bClearFramebuffer;
+    }
     bool GetClearFramebuffer() {return m_bClearFramebuffer;}
     void SetGlobalBBox(bool bRenderBBox);
     bool GetGlobalBBox() {return m_bRenderGlobalBBox;}
@@ -275,9 +285,15 @@ class AbstrRenderer {
     }
 
     void SetTimeSlice(UINT32 iMSecs) {m_iTimeSliceMSecs = iMSecs;}
-    void SetPerfMeasures(UINT32 iMinFramerate, UINT32 iStartDelay) {m_iMinFramerate = iMinFramerate; m_iStartDelay = iStartDelay;}
-    void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {m_pDataset->GetInfo()->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();}
-    DOUBLEVECTOR3 GetRescaleFactors() {return m_pDataset->GetInfo()->GetRescaleFactors();}
+    void SetPerfMeasures(UINT32 iMinFramerate, UINT32 iStartDelay) {
+      m_iMinFramerate = iMinFramerate; m_iStartDelay = iStartDelay;
+    }
+    void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
+      m_pDataset->GetInfo()->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();
+    }
+    DOUBLEVECTOR3 GetRescaleFactors() {
+      return m_pDataset->GetInfo()->GetRescaleFactors();
+    }
 
     void SetCaptureMode(bool bCaptureMode) {m_bCaptureMode = bCaptureMode;}
     void SetMIPLOD(bool bMIPLOD) {m_bMIPLOD = bMIPLOD;}
@@ -304,15 +320,24 @@ class AbstrRenderer {
     virtual void SetCVBorderScale(float fScale);
     virtual float GetCVBorderScale() const {return m_fCVBorderScale;}
     virtual void SetCVFocusPos(FLOATVECTOR2 vPos);
-    virtual FLOATVECTOR2 GetCVFocusPos() const {return FLOATVECTOR2(m_vCVPos.x, 1.0f-m_vCVPos.y);}
+    virtual FLOATVECTOR2 GetCVFocusPos() const {
+      return FLOATVECTOR2(m_vCVPos.x, 1.0f-m_vCVPos.y);
+    }
 
     virtual void ScheduleCompleteRedraw();
     virtual void ScheduleWindowRedraw(EWindowMode eWindow);
 
-    void SetAvoidSeperateCompositing(bool bAvoidSeperateCompositing) {m_bAvoidSeperateCompositing = bAvoidSeperateCompositing;}
-    bool GetAvoidSeperateCompositing() const {return m_bAvoidSeperateCompositing;}
+    void SetAvoidSeperateCompositing(bool bAvoidSeperateCompositing) {
+      m_bAvoidSeperateCompositing = bAvoidSeperateCompositing;
+    }
+    bool GetAvoidSeperateCompositing() const {
+      return m_bAvoidSeperateCompositing;
+    }
 
-    void SetMIPRotationAngle(float fAngle) {m_fMIPRotationAngle = fAngle; m_bPerformRedraw = true;}
+    void SetMIPRotationAngle(float fAngle) {
+      m_fMIPRotationAngle = fAngle;
+      m_bPerformRedraw = true;
+    }
 
   protected:
     MasterController*   m_pMasterController;
@@ -401,7 +426,7 @@ class AbstrRenderer {
     void                Plan3DFrame();
     void                PlanHQMIPFrame();
     std::vector<Brick>  BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion=false);
-    std::vector<Brick>  BuildLeftEyeSubFrameBrickList(const std::vector<Brick>& vRightEyeBrickList );
+    std::vector<Brick>  BuildLeftEyeSubFrameBrickList(const std::vector<Brick>& vRightEyeBrickList);
     virtual void        ClearDepthBuffer() = 0;
     virtual void        ClearColorBuffer() = 0;
 };

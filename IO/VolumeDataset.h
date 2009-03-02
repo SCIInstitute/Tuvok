@@ -61,26 +61,43 @@ class VolumeDatasetInfo {
   public:
     VolumeDatasetInfo() : m_pVolumeDataBlock(NULL) {}
 
-    void SetRescaleFactors(DOUBLEVECTOR3 vfRescale) {m_vfRescale[0] = vfRescale[0]; m_vfRescale[1] = vfRescale[1]; m_vfRescale[2] = vfRescale[2];}
-    DOUBLEVECTOR3 GetRescaleFactors() const {return DOUBLEVECTOR3(m_vfRescale[0], m_vfRescale[1], m_vfRescale[2]);}
+    void SetRescaleFactors(DOUBLEVECTOR3 vfRescale) {
+      m_vfRescale[0] = vfRescale[0];
+      m_vfRescale[1] = vfRescale[1];
+      m_vfRescale[2] = vfRescale[2];
+    }
+    DOUBLEVECTOR3 GetRescaleFactors() const {
+      return DOUBLEVECTOR3(m_vfRescale[0], m_vfRescale[1], m_vfRescale[2]);
+    }
 
     UINT64VECTOR3 GetBrickCount(const UINT64 iLOD) const;
-    UINT64VECTOR3 GetBrickSize(const UINT64 iLOD, const UINT64VECTOR3& vBrick) const;
-    FLOATVECTOR3 GetEffectiveBrickSize(const UINT64 iLOD, const UINT64VECTOR3& vBrick) const;
+    UINT64VECTOR3 GetBrickSize(const UINT64 iLOD,
+                               const UINT64VECTOR3& vBrick) const;
+    FLOATVECTOR3 GetEffectiveBrickSize(const UINT64 iLOD,
+                                       const UINT64VECTOR3& vBrick) const;
     UINT64VECTOR3 GetDomainSize(const UINT64 iLOD=0) const;
     UINT64VECTOR3 GetMaxBrickSize() const;
     UINT64VECTOR3 GetBrickOverlapSize() const;
     UINT64 GetLODLevelCount() const;
     DOUBLEVECTOR3 GetScale() const;
-    bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fIsoval) const;
-    bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fMin, double fMax) const;
-    bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick, double fMin, double fMax, double fMinGrad, double fMaxGrad) const;
+    bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick,
+                      double fIsoval) const;
+    bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick,
+                      double fMin, double fMax) const;
+    bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick,
+                      double fMin, double fMax,
+                      double fMinGrad, double fMaxGrad) const;
 
-    void SetRescaleFactorsND(std::vector<double> vfRescale) {m_vfRescale = vfRescale;}
-    const std::vector<double>& GetRescaleFactorsND() const {return m_vfRescale;};
+    void SetRescaleFactorsND(std::vector<double> vfRescale) {
+      m_vfRescale = vfRescale;
+    }
+    const std::vector<double>& GetRescaleFactorsND() const {
+      return m_vfRescale;
+    }
 
     const std::vector<UINT64>& GetBrickCountND(const std::vector<UINT64>& vLOD) const;
-    const std::vector<UINT64>& GetBrickSizeND(const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const;
+    const std::vector<UINT64>& GetBrickSizeND(const std::vector<UINT64>& vLOD,
+                                              const std::vector<UINT64>& vBrick) const;
     const std::vector<UINT64>& GetDomainSizeND() const;
     const std::vector<UINT64>& GetMaxBrickSizeND() const;
     const std::vector<UINT64>& GetBrickOverlapSizeND() const;
@@ -88,20 +105,22 @@ class VolumeDatasetInfo {
     const std::vector<double> GetScaleND() const;
 
     /// \todo change this if we want to support color data
-    UINT64 GetBitwith() const {return m_pVolumeDataBlock->ulElementBitSize[0][0];}
+    UINT64 GetBitwith() const {
+      return m_pVolumeDataBlock->ulElementBitSize[0][0];
+    }
 
     /// \todo change this if we want to support color data
     UINT64 GetComponentCount() const {return 1;}
 
     bool GetIsSigned() const {return m_pVolumeDataBlock->bSignedElement[0][0];}
-    bool GetIsFloat() const {return GetBitwith() != m_pVolumeDataBlock->ulElementBitSize[0][0];}
-
-
+    bool GetIsFloat() const {
+      return GetBitwith() != m_pVolumeDataBlock->ulElementBitSize[0][0];
+    }
     bool IsSameEndianess() const {return m_bIsSameEndianess;}
 
-
   private:
-    VolumeDatasetInfo(RasterDataBlock* pVolumeDataBlock, MaxMinDataBlock* pMaxMinData, bool bIsSameEndianess);
+    VolumeDatasetInfo(RasterDataBlock* pVolumeDataBlock,
+                      MaxMinDataBlock* pMaxMinData, bool bIsSameEndianess);
     RasterDataBlock*         m_pVolumeDataBlock;
     MaxMinDataBlock*         m_pMaxMinData;
 
@@ -124,7 +143,8 @@ class VolumeDatasetInfo {
 
 class VolumeDataset {
 public:
-  VolumeDataset(const std::string& strFilename, bool bVerify, MasterController* pMasterController);
+  VolumeDataset(const std::string& strFilename, bool bVerify,
+                MasterController* pMasterController);
   ~VolumeDataset();
 
   bool IsOpen() const {return m_bIsOpen;}
@@ -132,19 +152,25 @@ public:
 
   const Histogram1D* Get1DHistogram() const {return m_pHist1D;}
   const Histogram2D* Get2DHistogram() const {return m_pHist2D;}
-  float GetMaxGradMagnitude() const {return m_pHist2DDataBlock->GetMaxGradMagnitude();}
+  float GetMaxGradMagnitude() const {
+    return m_pHist2DDataBlock->GetMaxGradMagnitude();
+  }
 
   VolumeDatasetInfo* GetInfo() const {return m_pVolumeDatasetInfo;}
 
-  UINTVECTOR3 GetBrickSize(const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick);
-  bool GetBrick(unsigned char** ppData, const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const {return m_pVolumeDataBlock->GetData(ppData, vLOD, vBrick);}
+  UINTVECTOR3 GetBrickSize(const std::vector<UINT64>& vLOD,
+                           const std::vector<UINT64>& vBrick);
+  bool GetBrick(unsigned char** ppData, const std::vector<UINT64>& vLOD,
+                const std::vector<UINT64>& vBrick) const {
+    return m_pVolumeDataBlock->GetData(ppData, vLOD, vBrick);
+  }
 
-  bool Export(UINT64 iLODlevel, const std::string& strTargetFilename, 
+  bool Export(UINT64 iLODlevel, const std::string& strTargetFilename,
               bool bApppend, AbstrDebugOut* pDebugOut,
               bool (*brickFunc)(LargeRAWFile* pSourceFile,
-                const std::vector<UINT64> vBrickSize,
-                const std::vector<UINT64> vBrickOffset,
-                void* pUserContext)=NULL, 
+              const std::vector<UINT64> vBrickSize,
+              const std::vector<UINT64> vBrickOffset,
+              void* pUserContext)=NULL,
               void* pUserContext = NULL,
               UINT64 iOverlap=0);
 
