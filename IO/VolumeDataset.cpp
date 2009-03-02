@@ -397,7 +397,7 @@ bool VolumeDataset::Open(bool bVerify)
   return true;
 }
 
-UINTVECTOR3 VolumeDataset::GetBrickSize(const vector<UINT64>& vLOD, const vector<UINT64>& vBrick) {
+UINTVECTOR3 VolumeDataset::GetBrickSize(const vector<UINT64>& vLOD, const vector<UINT64>& vBrick) const {
   UINTVECTOR3 vSize;
   vector<UINT64> vSizeUVF = m_pVolumeDatasetInfo->GetBrickSizeND(vLOD, vBrick);
 

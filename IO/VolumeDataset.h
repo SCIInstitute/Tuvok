@@ -159,7 +159,7 @@ public:
   VolumeDatasetInfo* GetInfo() const {return m_pVolumeDatasetInfo;}
 
   UINTVECTOR3 GetBrickSize(const std::vector<UINT64>& vLOD,
-                           const std::vector<UINT64>& vBrick);
+                           const std::vector<UINT64>& vBrick) const;
   bool GetBrick(unsigned char** ppData, const std::vector<UINT64>& vLOD,
                 const std::vector<UINT64>& vBrick) const {
     return m_pVolumeDataBlock->GetData(ppData, vLOD, vBrick);
