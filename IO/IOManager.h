@@ -313,8 +313,8 @@ public:
   void RegisterExternalConverter(AbstrConverter* pConverter);
   void RegisterFinalConverter(AbstrConverter* pConverter);
 
-  std::string GetLoadDialogString();
-  std::string GetExportDialogString();
+  std::string GetLoadDialogString() const;
+  std::string GetExportDialogString() const;
 
 private:
   MasterController*             m_pMasterController;

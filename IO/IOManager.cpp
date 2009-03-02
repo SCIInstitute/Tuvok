@@ -855,7 +855,7 @@ bool IOManager::NeedsConversion(const std::string& strFilename) const {
 }
 
 
-std::string IOManager::GetLoadDialogString() {
+std::string IOManager::GetLoadDialogString() const {
   string strDialog = "All known Files (*.uvf ";
   map<string,string> descPairs;
 
@@ -888,7 +888,7 @@ std::string IOManager::GetLoadDialogString() {
   return strDialog;
 }
 
-std::string IOManager::GetExportDialogString() {
+std::string IOManager::GetExportDialogString() const {
   std::string strDialog;
   // seperate entries
   for (size_t i = 0;i<m_vpConverters.size();i++) {
