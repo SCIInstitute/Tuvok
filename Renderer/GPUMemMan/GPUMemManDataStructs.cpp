@@ -129,7 +129,13 @@ bool Texture3DListElem::Match(const std::vector<UINT64>& vDimension) {
   return true;
 }
 
-bool Texture3DListElem::Replace(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder, UINT64 iIntraFrameCounter, UINT64 iFrameCounter) {
+bool Texture3DListElem::Replace(VolumeDataset* _pDataset,
+                                const std::vector<UINT64>& _vLOD,
+                                const std::vector<UINT64>& _vBrick,
+                                bool bIsPaddedToPowerOfTwo,
+                                bool bIsDownsampledTo8Bits,
+                                bool bDisableBorder, UINT64 iIntraFrameCounter,
+                                UINT64 iFrameCounter) {
   if (pTexture == NULL) return false;
 
   pDataset = _pDataset;
@@ -179,8 +185,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
 
 
   if (m_bIsDownsampledTo8Bits && iBitWidth != 8) {
-
-    // here we assume that data that is not 8 bit is 16 bit
+    // here we assume that data which is not 8 bit is 16 bit
     if (iBitWidth != 16) {
       FreeData();
       return false;
@@ -262,7 +267,8 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
       for (size_t y = 0;y<vSize[1];y++) {
         memcpy(pPaddedData+iTarget, pData+iSource, iRowSizeSource);
 
-        // if the x sizes differ, dubicate the last element to make the texture behave like clamp
+        // if the x sizes differ, duplicate the last element to make the
+        // texture behave like clamp
         if (!m_bDisableBorder && iRowSizeTarget > iRowSizeSource)
           memcpy(pPaddedData+iTarget+iRowSizeSource,
                  pPaddedData+iTarget+iRowSizeSource-iElementSize,
@@ -270,14 +276,16 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
         iTarget += iRowSizeTarget;
         iSource += iRowSizeSource;
       }
-      // if the y sizes differ, dubicate the last element to make the texture behave like clamp
+      // if the y sizes differ, duplicate the last element to make the texture
+      // behave like clamp
       if (vPaddedSize[1] > vSize[1]) {
         if (!m_bDisableBorder)
           memcpy(pPaddedData+iTarget, pPaddedData+iTarget-iRowSizeTarget, iRowSizeTarget);
         iTarget += (vPaddedSize[1]-vSize[1])*iRowSizeTarget;
       }
     }
-    // if the z sizes differ, dubicate the last element to make the texture behave like clamp
+    // if the z sizes differ, duplicate the last element to make the texture
+    // behave like clamp
     if (!m_bDisableBorder && vPaddedSize[2] > vSize[2]) {
       memcpy(pPaddedData+iTarget, pPaddedData+(iTarget-vPaddedSize[1]*iRowSizeTarget), vPaddedSize[1]*iRowSizeTarget);
     }
