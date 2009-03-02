@@ -100,14 +100,26 @@ public:
 
   /// The GPU memory manager moves data from CPU to GPU memory, and
   /// removes data from GPU memory.
-  GPUMemMan*     MemMan()   {return m_pGPUMemMan;}
+  ///@{
+  GPUMemMan*       MemMan()       { return m_pGPUMemMan; }
+  const GPUMemMan* MemMan() const { return m_pGPUMemMan; }
+  ///@}
+
   /// The IO manager is responsible for loading data into host memory.
-  IOManager*     IOMan()    {return m_pIOManager;}
+  ///@{
+  IOManager*       IOMan()       { return m_pIOManager;}
+  const IOManager* IOMan() const { return m_pIOManager;}
+  ///@}
+
   /// System information is for looking up host parameters, such as the
   /// amount of memory available.
-  SystemInfo*    SysInfo()  {return m_pSystemInfo;}
+  ///@{
+  SystemInfo*       SysInfo()       { return m_pSystemInfo; }
+  const SystemInfo* SysInfo() const { return m_pSystemInfo; }
+  ///@}
 
-  Scripting*     ScriptEngine()   {return m_pScriptEngine;}
+  Scripting*       ScriptEngine()       { return m_pScriptEngine; }
+  const Scripting* ScriptEngine() const { return m_pScriptEngine; }
 
   /// \todo this should return a pointer to memory.
   void Filter(std::string datasetName,
