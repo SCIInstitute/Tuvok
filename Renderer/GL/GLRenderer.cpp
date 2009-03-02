@@ -865,11 +865,11 @@ void GLRenderer::RenderCoordArrows() {
 	glEnable(GL_COLOR_MATERIAL);
   GLfloat pfLightDirection[4]={0.0f,1.0f,1.0f,0.0f};
 
-  FLOATMATRIX4 matModelView, mTranslation, mProjection; 
+  FLOATMATRIX4 matModelView, mTranslation, mProjection;
 
   matModelView = m_mView[0];
   matModelView.setModelview();
-  glLightfv(GL_LIGHT0, GL_POSITION, pfLightDirection); 
+  glLightfv(GL_LIGHT0, GL_POSITION, pfLightDirection);
 
   mTranslation.Translation(0.8f,0.8f,-1.85f);
   mProjection = m_mProjection[0]*mTranslation;
@@ -889,7 +889,7 @@ void GLRenderer::RenderCoordArrows() {
                    m_vArrowGeometry[i].m_vertices[j].m_vPos.y,
                    m_vArrowGeometry[i].m_vertices[j].m_vPos.z);
       }
-    } 
+    }
   glEnd();
 
   mRotation.RotationX(-3.1415f/2.0f);
@@ -907,7 +907,7 @@ void GLRenderer::RenderCoordArrows() {
                    m_vArrowGeometry[i].m_vertices[j].m_vPos.y,
                    m_vArrowGeometry[i].m_vertices[j].m_vPos.z);
       }
-    } 
+    }
   glEnd();
 
   mRotation.RotationY(3.1415f/2.0f);
@@ -925,7 +925,7 @@ void GLRenderer::RenderCoordArrows() {
                    m_vArrowGeometry[i].m_vertices[j].m_vPos.y,
                    m_vArrowGeometry[i].m_vertices[j].m_vPos.z);
       }
-    } 
+    }
   glEnd();
 
   glDisable(GL_LIGHTING);
@@ -955,7 +955,6 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
 
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
-      
       if (m_bRenderCoordArrows) {
         m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
         RenderCoordArrows();
@@ -968,7 +967,7 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
       }
 
       m_pMasterController->DebugOut()->Message(_func_,"Subframe completed.");
-      
+
       return true;
     }
   }
