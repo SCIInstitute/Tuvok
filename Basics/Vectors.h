@@ -272,6 +272,16 @@ public:
   operator T*(void) {return &x;}
   const T *operator *(void) const {return &x;}
   T *operator *(void) {return &x;}
+  T& operator [](size_t i) {
+    assert(i <= 2);
+    return (i == 0) ? this->x :
+           (i == 1) ? this->y : this->z;
+  }
+  const T& operator [](size_t i) const {
+    assert(i <= 2);
+    return (i == 0) ? this->x :
+           (i == 1) ? this->y : this->z;
+  }
 
   VECTOR3<T> abs() const {return VECTOR3<T>(fabs(x),fabs(y),fabs(z));}
   T maxVal() const {return MAX(x,MAX(y,z));}
