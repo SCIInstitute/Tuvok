@@ -269,7 +269,6 @@ public:
 
   friend std::ostream& operator<<(std::ostream &os,const VECTOR3<T>& v){os << v.x << '\t' << v.y << '\t' << v.z; return os;}
 
-  operator T*(void) {return &x;}
   const T *operator *(void) const {return &x;}
   T *operator *(void) {return &x;}
   T& operator [](size_t i) {
