@@ -55,13 +55,13 @@ typedef VECTOR4<UINT64> UINT64VECTOR4;
 class VolumeDataset;
 class MasterController;
 
-// right now this is just a wrapper around the UVF data to hide the
-// implementation and consider only 3D data
+/// A wrapper around UVF data to provide easy access to 3D-only data.  UVF data
+/// is n-dimensional, making it hard to work with directly.
 class VolumeDatasetInfo {
   public:
     VolumeDatasetInfo() : m_pVolumeDataBlock(NULL) {}
 
-    void SetRescaleFactors(DOUBLEVECTOR3 vfRescale) {
+    void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
       m_vfRescale[0] = vfRescale[0];
       m_vfRescale[1] = vfRescale[1];
       m_vfRescale[2] = vfRescale[2];
