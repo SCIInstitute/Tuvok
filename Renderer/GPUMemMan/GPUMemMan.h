@@ -41,9 +41,9 @@
 
 #include "../../StdTuvokDefines.h"
 #include "GPUMemManDataStructs.h"
-#include "../../Basics/SystemInfo.h"
 
 class MasterController;
+class SystemInfo;
 
 class GPUMemMan {
   public:
@@ -115,13 +115,15 @@ class GPUMemMan {
     // Seems likely. -- TJF
     UINT64 UpdateFrameCounter() {return ++m_iFrameCounter;}
 
-    // system statistics
-    UINT64 GetCPUMem() const {return m_SystemInfo->GetCPUMemSize();}
-    UINT64 GetGPUMem() const {return m_SystemInfo->GetGPUMemSize();}
+    /// system statistics
+    ///@{
+    UINT64 GetCPUMem() const;
+    UINT64 GetGPUMem() const;
     UINT64 GetAllocatedCPUMem() const {return m_iAllocatedCPUMemory;}
     UINT64 GetAllocatedGPUMem() const {return m_iAllocatedGPUMemory;}
-    UINT32 GetBitWithMem() const {return m_SystemInfo->GetProgrammBitWith();}
-    UINT32 GetNumCPUs() const {return m_SystemInfo->GetNumberOfCPUs();}
+    UINT32 GetBitWithMem() const;
+    UINT32 GetNumCPUs() const;
+    ///@}
 
   private:
     VolDataList       m_vpVolumeDatasets;

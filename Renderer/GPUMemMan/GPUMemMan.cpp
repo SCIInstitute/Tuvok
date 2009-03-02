@@ -39,6 +39,7 @@
 #include <QtOpenGL/QGLWidget>
 #include <QtGui/QImageReader>
 #include <Controller/MasterController.h>
+#include "../../Basics/SystemInfo.h"
 
 using namespace std;
 
@@ -615,3 +616,10 @@ void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
   }
   m_MasterController->DebugOut()->Warning(_func_,"GLSL program to free not found.");
 }
+
+UINT64 GPUMemMan::GetCPUMem() const {return m_SystemInfo->GetCPUMemSize();}
+UINT64 GPUMemMan::GetGPUMem() const {return m_SystemInfo->GetGPUMemSize();}
+UINT32 GPUMemMan::GetBitWithMem() const {
+  return m_SystemInfo->GetProgrammBitWith();
+}
+UINT32 GPUMemMan::GetNumCPUs() const {return m_SystemInfo->GetNumberOfCPUs();}
