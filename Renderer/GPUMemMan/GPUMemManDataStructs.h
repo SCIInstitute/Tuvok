@@ -123,11 +123,24 @@ typedef Trans2DList::iterator Trans2DListIter;
 // 3D textures
 class Texture3DListElem {
 public:
-  Texture3DListElem(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bDisableBorder, bool bIsDownsampledTo8Bits, UINT64 iIntraFrameCounter, UINT64 iFrameCounter, MasterController* pMasterController);
+  Texture3DListElem(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
+                    const std::vector<UINT64>& _vBrick,
+                    bool bIsPaddedToPowerOfTwo, bool bDisableBorder,
+                    bool bIsDownsampledTo8Bits, UINT64 iIntraFrameCounter,
+                    UINT64 iFrameCounter, MasterController* pMasterController);
   ~Texture3DListElem();
-  bool Equals(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder);
-  bool Replace(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder, UINT64 iIntraFrameCounter, UINT64 iFrameCounter);
-  bool BestMatch(const std::vector<UINT64>& vDimension, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder, UINT64& iIntraFrameCounter, UINT64& iFrameCounter);
+
+  bool Equals(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
+              const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo,
+              bool bIsDownsampledTo8Bits, bool bDisableBorder);
+  bool Replace(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
+               const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo,
+               bool bIsDownsampledTo8Bits, bool bDisableBorder,
+               UINT64 iIntraFrameCounter, UINT64 iFrameCounter);
+  bool BestMatch(const std::vector<UINT64>& vDimension,
+                 bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
+                 bool bDisableBorder, UINT64& iIntraFrameCounter,
+                 UINT64& iFrameCounter);
   GLTexture3D* Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter);
 
   bool LoadData();
@@ -155,8 +168,8 @@ private:
   bool m_bIsPaddedToPowerOfTwo;
   bool m_bIsDownsampledTo8Bits;
   bool m_bDisableBorder;
-
 };
+
 typedef std::deque<Texture3DListElem*> Texture3DList;
 typedef Texture3DList::iterator Texture3DListIter;
 

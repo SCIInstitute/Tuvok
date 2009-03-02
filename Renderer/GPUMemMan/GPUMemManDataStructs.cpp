@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -63,9 +63,17 @@ Texture3DListElem::~Texture3DListElem() {
   FreeTexture();
 }
 
-bool Texture3DListElem::Equals(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder) {
-  if (_pDataset != pDataset || _vLOD.size() != vLOD.size() || _vBrick.size() != vBrick.size() || 
-      m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo || m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits ||
+bool Texture3DListElem::Equals(VolumeDataset* _pDataset,
+                               const std::vector<UINT64>& _vLOD,
+                               const std::vector<UINT64>& _vBrick,
+                               bool bIsPaddedToPowerOfTwo,
+                               bool bIsDownsampledTo8Bits, bool bDisableBorder)
+{
+  if (_pDataset != pDataset ||
+      _vLOD.size() != vLOD.size() ||
+      _vBrick.size() != vBrick.size() ||
+      m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo ||
+      m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits ||
       m_bDisableBorder != bDisableBorder) return false;
 
   for (size_t i = 0;i<vLOD.size();i++)   if (vLOD[i] != _vLOD[i]) return false;
@@ -83,8 +91,8 @@ GLTexture3D* Texture3DListElem::Access(UINT64& iIntraFrameCounter, UINT64& iFram
 }
 
 bool Texture3DListElem::BestMatch(const std::vector<UINT64>& vDimension, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder, UINT64& iIntraFrameCounter, UINT64& iFrameCounter) {
-  if (!Match(vDimension) || iUserCount > 0 
-      || m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo 
+  if (!Match(vDimension) || iUserCount > 0
+      || m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo
       || m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits
       || m_bDisableBorder != bDisableBorder) return false;
 
@@ -155,7 +163,7 @@ void  Texture3DListElem::FreeData() {
 bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
   if (bDeleteOldTexture) FreeTexture();
 
-  if (pData == NULL) 
+  if (pData == NULL)
     if (!LoadData()) return false;
 
   const std::vector<UINT64> vSize = pDataset->GetInfo()->GetBrickSizeND(vLOD, vBrick);
@@ -169,7 +177,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
   GLenum glFormat;
   GLenum glType;
 
- 
+
   if (m_bIsDownsampledTo8Bits && iBitWidth != 8) {
 
     // here we assume that data that is not 8 bit is 16 bit
@@ -182,7 +190,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
 
     size_t iMax = pDataset->Get1DHistogram()->GetFilledSize();
 
-    for (size_t i = 0;i<vSize[0]*vSize[1]*vSize[2]*iCompCount;i++) {     
+    for (size_t i = 0;i<vSize[0]*vSize[1]*vSize[2]*iCompCount;i++) {
       unsigned char iQuantizedVal = (unsigned char)(255.0*((unsigned short*)pData)[i]/float(iMax));
       pTmpData[i] = iQuantizedVal;
     }
@@ -235,7 +243,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
   }
 
   glGetError();
-  if (!m_bIsPaddedToPowerOfTwo || (MathTools::IsPow2(UINT32(vSize[0])) && MathTools::IsPow2(UINT32(vSize[1])) && MathTools::IsPow2(UINT32(vSize[2])))) {   
+  if (!m_bIsPaddedToPowerOfTwo || (MathTools::IsPow2(UINT32(vSize[0])) && MathTools::IsPow2(UINT32(vSize[1])) && MathTools::IsPow2(UINT32(vSize[2])))) {
     pTexture = new GLTexture3D(UINT32(vSize[0]), UINT32(vSize[1]), UINT32(vSize[2]), glInternalformat, glFormat, glType, UINT32(iBitWidth/8*iCompCount), pData, GL_LINEAR, GL_LINEAR, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
   } else {
     // pad the data to a power of two
@@ -243,8 +251,8 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
 
     size_t iTarget = 0;
     size_t iSource = 0;
-    size_t iElementSize = iBitWidth/8*iCompCount; 
-    size_t iRowSizeSource = vSize[0]*iElementSize; 
+    size_t iElementSize = iBitWidth/8*iCompCount;
+    size_t iRowSizeSource = vSize[0]*iElementSize;
     size_t iRowSizeTarget = vPaddedSize[0]*iElementSize;
 
     unsigned char* pPaddedData = new unsigned char[iRowSizeTarget*vPaddedSize[1]*vPaddedSize[2]];
@@ -253,21 +261,21 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
     for (size_t z = 0;z<vSize[2];z++) {
       for (size_t y = 0;y<vSize[1];y++) {
         memcpy(pPaddedData+iTarget, pData+iSource, iRowSizeSource);
-        
+
         // if the x sizes differ, dubicate the last element to make the texture behave like clamp
         if (!m_bDisableBorder && iRowSizeTarget > iRowSizeSource)
-          memcpy(pPaddedData+iTarget+iRowSizeSource, 
-                 pPaddedData+iTarget+iRowSizeSource-iElementSize, 
+          memcpy(pPaddedData+iTarget+iRowSizeSource,
+                 pPaddedData+iTarget+iRowSizeSource-iElementSize,
                  iElementSize);
         iTarget += iRowSizeTarget;
         iSource += iRowSizeSource;
       }
       // if the y sizes differ, dubicate the last element to make the texture behave like clamp
       if (vPaddedSize[1] > vSize[1]) {
-        if (!m_bDisableBorder) 
+        if (!m_bDisableBorder)
           memcpy(pPaddedData+iTarget, pPaddedData+iTarget-iRowSizeTarget, iRowSizeTarget);
         iTarget += (vPaddedSize[1]-vSize[1])*iRowSizeTarget;
-      } 
+      }
     }
     // if the z sizes differ, dubicate the last element to make the texture behave like clamp
     if (!m_bDisableBorder && vPaddedSize[2] > vSize[2]) {
