@@ -156,7 +156,8 @@ public:
     return m_pHist2DDataBlock->GetMaxGradMagnitude();
   }
 
-  VolumeDatasetInfo* GetInfo() const {return m_pVolumeDatasetInfo;}
+  VolumeDatasetInfo* GetInfo() {return m_pVolumeDatasetInfo;}
+  const VolumeDatasetInfo* GetInfo() const { return m_pVolumeDatasetInfo; }
 
   UINTVECTOR3 GetBrickSize(const std::vector<UINT64>& vLOD,
                            const std::vector<UINT64>& vBrick) const;
