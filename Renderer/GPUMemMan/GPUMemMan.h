@@ -92,9 +92,10 @@ class GPUMemMan {
                               bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                               bool bDisableBorder, UINT64 iIntraFrameCounter,
                               UINT64 iFrameCounter);
-    bool IsResident(VolumeDataset* pDataset, const std::vector<UINT64>& vLOD,
+    bool IsResident(const VolumeDataset* pDataset,
+                    const std::vector<UINT64>& vLOD,
                     const std::vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo,
-                    bool bDownSampleTo8Bits, bool bDisableBorder);
+                    bool bDownSampleTo8Bits, bool bDisableBorder) const;
 
     void Release3DTexture(GLTexture3D* pTexture);
 

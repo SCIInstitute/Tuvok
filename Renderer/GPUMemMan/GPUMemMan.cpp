@@ -396,7 +396,11 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRender
 
 // ******************** 3D Textures
 
-bool GPUMemMan::IsResident(VolumeDataset* pDataset, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) {
+bool GPUMemMan::IsResident(const VolumeDataset* pDataset,
+                           const vector<UINT64>& vLOD,
+                           const vector<UINT64>& vBrick,
+                           bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
+                           bool bDisableBorder) const {
   for(Texture3DListConstIter i = m_vpTex3DList.begin();
       i < m_vpTex3DList.end(); ++i) {
     if((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
