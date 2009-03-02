@@ -80,6 +80,8 @@ IOManager::~IOManager()
 {
   for (size_t i = 0;i<m_vpConverters.size();i++) delete m_vpConverters[i];
   m_vpConverters.clear();
+
+  delete m_pFinalConverter;
 }
 
 vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
