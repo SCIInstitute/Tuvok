@@ -63,7 +63,7 @@ Texture3DListElem::~Texture3DListElem() {
   FreeTexture();
 }
 
-bool Texture3DListElem::Equals(VolumeDataset* _pDataset,
+bool Texture3DListElem::Equals(const VolumeDataset* _pDataset,
                                const std::vector<UINT64>& _vLOD,
                                const std::vector<UINT64>& _vBrick,
                                bool bIsPaddedToPowerOfTwo,

@@ -130,7 +130,7 @@ public:
                     UINT64 iFrameCounter, MasterController* pMasterController);
   ~Texture3DListElem();
 
-  bool Equals(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
+  bool Equals(const VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
               const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo,
               bool bIsDownsampledTo8Bits, bool bDisableBorder);
   bool Replace(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
@@ -153,8 +153,8 @@ public:
   VolumeDataset*      pDataset;
   UINT32              iUserCount;
 
-  UINT64 GetIntraFrameCounter() {return m_iIntraFrameCounter;}
-  UINT64 GetFrameCounter() {return m_iFrameCounter;}
+  UINT64 GetIntraFrameCounter() const {return m_iIntraFrameCounter;}
+  UINT64 GetFrameCounter() const {return m_iFrameCounter;}
 
 private:
   bool Match(const std::vector<UINT64>& vDimension);
