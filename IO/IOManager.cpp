@@ -383,7 +383,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       IntermediateFile.iHeaderSkip = 0;
     
       if (iInputData == 0)  {
-        iComponentSizeG = v.GetInfo()->GetBitwith();
+        iComponentSizeG = v.GetInfo()->GetBitWidth();
         iComponentCountG = v.GetInfo()->GetComponentCount();
         bConvertEndianessG = !v.GetInfo()->IsSameEndianess();
         bSignedG = v.GetInfo()->GetIsSigned();
@@ -391,7 +391,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
         vVolumeSizeG = UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel));
         vVolumeAspectG = FLOATVECTOR3(v.GetInfo()->GetScale());
       } else {
-        if (iComponentSizeG  != v.GetInfo()->GetBitwith() ||
+        if (iComponentSizeG  != v.GetInfo()->GetBitWidth() ||
             iComponentCountG != v.GetInfo()->GetComponentCount() ||
             bConvertEndianessG != !v.GetInfo()->IsSameEndianess() ||
             bSignedG != v.GetInfo()->GetIsSigned() ||
@@ -653,7 +653,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       UINT64 iLODLevel = 0; // always extract the highest quality here
 
       iHeaderSkip = 0;
-      iComponentSize = v.GetInfo()->GetBitwith();
+      iComponentSize = v.GetInfo()->GetBitWidth();
       iComponentCount = v.GetInfo()->GetComponentCount();
       bConvertEndianess = !v.GetInfo()->IsSameEndianess();
       bSigned = v.GetInfo()->GetIsSigned();
@@ -743,7 +743,7 @@ bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, 
 
   bool   bFloatingPoint  = pSourceData->GetInfo()->GetIsFloat();
   bool   bSigned         = pSourceData->GetInfo()->GetIsSigned();
-  UINT64  iComponentSize = pSourceData->GetInfo()->GetBitwith();
+  UINT64  iComponentSize = pSourceData->GetInfo()->GetBitWidth();
   FLOATVECTOR3 vScale    = FLOATVECTOR3(pSourceData->GetInfo()->GetScale() * vfRescaleFactors);
 
   if (bFloatingPoint) {
@@ -823,7 +823,7 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
 
   bool bTargetCreated = pExporter->ConvertToNative(
                                 strTempFilename, strTargetFilename, 0,
-                                pSourceData->GetInfo()->GetBitwith(), 
+                                pSourceData->GetInfo()->GetBitWidth(), 
                                 pSourceData->GetInfo()->GetComponentCount(),
                                 pSourceData->GetInfo()->GetIsSigned(), 
                                 pSourceData->GetInfo()->GetIsFloat(),
@@ -941,7 +941,7 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info) 
 
     info.m_vAspect = FLOATVECTOR3(v.GetInfo()->GetScale());
     info.m_vDomainSize = UINTVECTOR3(v.GetInfo()->GetDomainSize());
-    info.m_iComponentSize = v.GetInfo()->GetBitwith();
+    info.m_iComponentSize = v.GetInfo()->GetBitWidth();
 
     return true;
   } else {

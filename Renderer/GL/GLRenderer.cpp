@@ -286,10 +286,10 @@ void GLRenderer::StartFrame() {
     }
 
     size_t iMaxValue        = m_p1DTrans->GetSize();
-    UINT32 iMaxRange        = UINT32(1<<m_pDataset->GetInfo()->GetBitwith());
+    UINT32 iMaxRange        = UINT32(1<<m_pDataset->GetInfo()->GetBitWidth());
     // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
-    m_fScaledIsovalue       = (m_pDataset->GetInfo()->GetBitwith() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fIsovalue * float(iMaxValue)/float(iMaxRange);
-    m_fScaledCVIsovalue     = (m_pDataset->GetInfo()->GetBitwith() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
+    m_fScaledIsovalue       = (m_pDataset->GetInfo()->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fIsovalue * float(iMaxValue)/float(iMaxRange);
+    m_fScaledCVIsovalue     = (m_pDataset->GetInfo()->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
 
   }
 }
@@ -1170,10 +1170,10 @@ void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
 void GLRenderer::SetDataDepShaderVars() {
   m_pMasterController->DebugOut()->Message(_func_,"Setting up vars");
 
-  size_t iMaxValue     = (m_pDataset->GetInfo()->GetBitwith() != 8 && m_bDownSampleTo8Bits) ? 65536 : m_p1DTrans->GetSize();
-  UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetInfo()->GetBitwith());
+  size_t iMaxValue     = (m_pDataset->GetInfo()->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 65536 : m_p1DTrans->GetSize();
+  UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetInfo()->GetBitWidth());
   // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
-  float fScale         = (m_pDataset->GetInfo()->GetBitwith() != 8 && m_bDownSampleTo8Bits) ? 1.0f : float(iMaxRange)/float(iMaxValue);
+  float fScale         = (m_pDataset->GetInfo()->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : float(iMaxRange)/float(iMaxValue);
   float fGradientScale = 1.0f/m_pDataset->GetMaxGradMagnitude();
 
   m_pProgramTransMIP->Enable();

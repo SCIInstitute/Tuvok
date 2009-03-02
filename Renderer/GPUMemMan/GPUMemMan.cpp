@@ -415,7 +415,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
   }
 
   const vector<UINT64> vSize = pDataset->GetInfo()->GetBrickSizeND(vLOD, vBrick);
-  UINT64 iBitWidth  = pDataset->GetInfo()->GetBitwith();
+  UINT64 iBitWidth  = pDataset->GetInfo()->GetBitWidth();
   UINT64 iCompCount = pDataset->GetInfo()->GetComponentCount();
 
   UINT64 iNeededCPUMemory = iBitWidth * iCompCount* vSize[0];

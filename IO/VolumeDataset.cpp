@@ -361,7 +361,7 @@ bool VolumeDataset::Open(bool bVerify)
     }
   } else {
     // generate a zero 1D histogram (max 4k) if none is found in the file
-    m_pHist1D = new Histogram1D(min(4096, 1<<m_pVolumeDatasetInfo->GetBitwith()));
+    m_pHist1D = new Histogram1D(min(4096, 1<<m_pVolumeDatasetInfo->GetBitWidth()));
     for (size_t i = 0;i<m_pHist1D->GetSize();i++) {
       m_pHist1D->Set(i, 0);
     }
@@ -380,14 +380,18 @@ bool VolumeDataset::Open(bool bVerify)
 
   } else {
     // generate a zero 2D histogram (max 4k) if none is found in the file
-    m_pHist2D = new Histogram2D(VECTOR2<size_t>(256,min(4096, 1<<m_pVolumeDatasetInfo->GetBitwith())));
+    VECTOR2<size_t> vec(256, std::min(4096,
+                                      1<<m_pVolumeDatasetInfo->GetBitWidth()));
+    m_pHist2D = new Histogram2D(vec);
     for (size_t y = 0;y<m_pHist2D->GetSize().y;y++)
       for (size_t x = 0;x<m_pHist2D->GetSize().x;x++) 
         m_pHist2D->Set(x,y,0);
   }
 
   m_pMasterController->DebugOut()->Message(_func_,"  Size %s", sStreamDomain.str().c_str());
-  m_pMasterController->DebugOut()->Message(_func_,"  %i Bit, %i components", int(m_pVolumeDatasetInfo->GetBitwith()), int(m_pVolumeDatasetInfo->GetComponentCount()));
+  m_pMasterController->DebugOut()->Message(_func_,"  %i Bit, %i components",
+                                           int(m_pVolumeDatasetInfo->GetBitWidth()),
+                                           int(m_pVolumeDatasetInfo->GetComponentCount()));
   m_pMasterController->DebugOut()->Message(_func_,"  LOD down to %s found", sStreamBrick.str().c_str());
 
   return true;

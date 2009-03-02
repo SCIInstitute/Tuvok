@@ -105,7 +105,7 @@ class VolumeDatasetInfo {
     const std::vector<double> GetScaleND() const;
 
     /// \todo change this if we want to support color data
-    UINT64 GetBitwith() const {
+    UINT64 GetBitWidth() const {
       return m_pVolumeDataBlock->ulElementBitSize[0][0];
     }
 
@@ -114,7 +114,7 @@ class VolumeDatasetInfo {
 
     bool GetIsSigned() const {return m_pVolumeDataBlock->bSignedElement[0][0];}
     bool GetIsFloat() const {
-      return GetBitwith() != m_pVolumeDataBlock->ulElementBitSize[0][0];
+      return GetBitWidth() != m_pVolumeDataBlock->ulElementBitSize[0][0];
     }
     bool IsSameEndianess() const {return m_bIsSameEndianess;}
 

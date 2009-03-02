@@ -176,7 +176,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
 
   bool bToggleEndian = !pDataset->GetInfo()->IsSameEndianess();
 
-  UINT64 iBitWidth  = pDataset->GetInfo()->GetBitwith();
+  UINT64 iBitWidth  = pDataset->GetInfo()->GetBitWidth();
   UINT64 iCompCount = pDataset->GetInfo()->GetComponentCount();
 
   GLint glInternalformat;
