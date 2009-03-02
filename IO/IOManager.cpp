@@ -843,12 +843,13 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
 }
 
 
-bool IOManager::NeedsConversion(const std::string& strFilename, bool& bChecksumFail) {
+bool IOManager::NeedsConversion(const std::string& strFilename,
+                                bool& bChecksumFail) const {
   wstring wstrFilename(strFilename.begin(), strFilename.end());
   return !UVF::IsUVFFile(wstrFilename, bChecksumFail);
 }
 
-bool IOManager::NeedsConversion(const std::string& strFilename) {
+bool IOManager::NeedsConversion(const std::string& strFilename) const {
   wstring wstrFilename(strFilename.begin(), strFilename.end());
   return !UVF::IsUVFFile(wstrFilename);
 }

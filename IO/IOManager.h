@@ -297,11 +297,18 @@ public:
   VolumeDataset* LoadDataset(const std::string& strFilename,
                              AbstrRenderer* requester);
   bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info);
-  bool NeedsConversion(const std::string& strFilename, bool& bChecksumFail);
-  bool NeedsConversion(const std::string& strFilename);
+  bool NeedsConversion(const std::string& strFilename,
+                       bool& bChecksumFail) const;
+  bool NeedsConversion(const std::string& strFilename) const;
 
-  bool ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir);
-  bool ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir);
+  bool ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel,
+                     const std::string& strTargetFilename,
+                     const std::string& strTempDir);
+  bool ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel,
+                         double fIsovalue,
+                         const DOUBLEVECTOR3& vfRescaleFactors,
+                         const std::string& strTargetFilename,
+                         const std::string& strTempDir);
 
   void RegisterExternalConverter(AbstrConverter* pConverter);
   void RegisterFinalConverter(AbstrConverter* pConverter);
