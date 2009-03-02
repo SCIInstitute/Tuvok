@@ -68,8 +68,10 @@
 #endif
 
 #include "../StdTuvokDefines.h"
+#include <cassert>
 #include <cmath>
 #include <limits>
+#include <vector>
 
 #ifdef WIN32
   #pragma warning( disable : 4995 ) // disable deprecated warning
@@ -94,8 +96,6 @@
 //    #pragma message("    [vectors.h] NOT using GL extensions.\n")
   #endif
 #endif
-
-#include <vector>
 
 template <class T> class MATRIX2;
 template <class T> class MATRIX3;
