@@ -172,6 +172,7 @@ private:
 
 typedef std::deque<Texture3DListElem*> Texture3DList;
 typedef Texture3DList::iterator Texture3DListIter;
+typedef Texture3DList::const_iterator Texture3DListConstIter;
 
 // framebuffer objects
 class FBOListElem {
