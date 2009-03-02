@@ -58,7 +58,7 @@ class RangeInfo;
 
 class MergeDataset {
 public:
-  MergeDataset(std::string _strFilename="", UINT64 _iHeaderSkip=0, bool _bDelete=false, 
+  MergeDataset(std::string _strFilename="", UINT64 _iHeaderSkip=0, bool _bDelete=false,
                double _fScale=1.0, double _fBias=0.0) :
     strFilename(_strFilename),
     iHeaderSkip(_iHeaderSkip),
@@ -76,7 +76,7 @@ public:
 
 template <class T> class DataMerger {
 public:
-  DataMerger(const std::vector <MergeDataset>& strFiles, const std::string& strTarget, UINT64 iElemCount, MasterController* pMasterController, bool bUseMaxMode) : 
+  DataMerger(const std::vector <MergeDataset>& strFiles, const std::string& strTarget, UINT64 iElemCount, MasterController* pMasterController, bool bUseMaxMode) :
     bIsOK(false)
   {
     pMasterController->DebugOut()->Message(_func_,"Copying first file %s ...", SysTools::GetFilename(strFiles[0].strFilename).c_str());
@@ -98,7 +98,7 @@ public:
     UINT64 iCopySize = std::min(iElemCount,BLOCK_COPY_SIZE/2)/sizeof(T);
     T* pTargetBuffer = new T[size_t(iCopySize)];
     T* pSourceBuffer = new T[size_t(iCopySize)];
-    for (size_t i = 1;i<strFiles.size();i++) { 
+    for (size_t i = 1;i<strFiles.size();i++) {
       pMasterController->DebugOut()->Message(_func_,"Merging with file %s ...", SysTools::GetFilename(strFiles[i].strFilename).c_str());
       LargeRAWFile source(strFiles[i].strFilename, strFiles[i].iHeaderSkip);
       source.Open(false);
@@ -110,7 +110,7 @@ public:
         bIsOK = false;
         return;
       }
-      
+
       UINT64 iReadSize=0;
       do {
          source.ReadRAW((unsigned char*)pSourceBuffer, iCopySize*sizeof(T));
@@ -120,13 +120,13 @@ public:
            if (i == 1) {
              for (UINT64 j = 0;j<iCopySize;j++) {
                pTargetBuffer[j] = std::max<T>(T(std::min<double>(strFiles[0].fScale*(pTargetBuffer[j]+strFiles[0].fBias),
-                                                                 std::numeric_limits<T>::max())), 
+                                                                 std::numeric_limits<T>::max())),
                                               T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias),
                                                                  std::numeric_limits<T>::max())) );
              }
            } else {
              for (UINT64 j = 0;j<iCopySize;j++) {
-               pTargetBuffer[j] = std::max<T>(pTargetBuffer[j], 
+               pTargetBuffer[j] = std::max<T>(pTargetBuffer[j],
                                               T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias),
                                                                  std::numeric_limits<T>::max())) );
              }
@@ -138,7 +138,7 @@ public:
                T b = T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias), std::numeric_limits<T>::max()));
 
                T val = a + b;
-                        
+
                if (val < a || val < b) // overflow
                  pTargetBuffer[j] = std::numeric_limits<T>::max();
                else
@@ -148,7 +148,7 @@ public:
              for (UINT64 j = 0;j<iCopySize;j++) {
                T b = T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias),std::numeric_limits<T>::max()));
                T val = pTargetBuffer[j] + b;
-                        
+
                if (val < pTargetBuffer[j] || val < b) // overflow
                  pTargetBuffer[j] = std::numeric_limits<T>::max();
                else
@@ -179,8 +179,8 @@ private:
 
 
 class MCData  {
-public:  
-  MCData(const std::string& strTargetFile) : 
+public:
+  MCData(const std::string& strTargetFile) :
     m_strTargetFile(strTargetFile)
   {}
 
@@ -194,7 +194,7 @@ protected:
 
 
 template <class T> class MCDataTemplate  : public MCData {
-public:  
+public:
   MCDataTemplate(const std::string& strTargetFile, T TIsoValue, FLOATVECTOR3 vScale) :
     MCData(strTargetFile),
     m_TIsoValue(TIsoValue),
@@ -217,7 +217,7 @@ public:
 
     UINT64 iSize = 1;
     for (size_t i = 0;i<vBrickSize.size();i++) iSize *= vBrickSize[i];
-    if (!m_pData) {   // since we know that no brick is larger than the first we can create a fixed array on first invocation 
+    if (!m_pData) {   // since we know that no brick is larger than the first we can create a fixed array on first invocation
       m_pData = new T[iSize];
 
       m_outStream.open(m_strTargetFile.c_str());
@@ -231,7 +231,7 @@ public:
     pSourceFile->SeekStart();
     pSourceFile->ReadRAW((unsigned char*)m_pData, size_t(iSize*sizeof(T)));
 
-    // extract isosurface 
+    // extract isosurface
     m_pMarchingCubes->SetVolume(int(vBrickSize[0]), int(vBrickSize[1]), int(vBrickSize[2]), m_pData);
     m_pMarchingCubes->Process(m_TIsoValue);
 
@@ -242,8 +242,8 @@ public:
 
 		//Saving to disk (1/3 vertices)
 		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
-			m_outStream << "v " << (m_pMarchingCubes->m_Isosurface->vfVertices[i].x + vBrickOffset[0]) << " " 
-                          << (m_pMarchingCubes->m_Isosurface->vfVertices[i].y + vBrickOffset[1]) << " " 
+			m_outStream << "v " << (m_pMarchingCubes->m_Isosurface->vfVertices[i].x + vBrickOffset[0]) << " "
+                          << (m_pMarchingCubes->m_Isosurface->vfVertices[i].y + vBrickOffset[1]) << " "
                           << (m_pMarchingCubes->m_Isosurface->vfVertices[i].z + vBrickOffset[2]) << std::endl;
 		}
 		// Saving to disk (2/3 normals)
@@ -252,8 +252,8 @@ public:
 		}
 		// Saving to disk (3/3 faces)
 		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iTriangles;i++) {
-			m_outStream << "f " << m_pMarchingCubes->m_Isosurface->viTriangles[i].x+1+m_iIndexoffset << " " << 
-                           m_pMarchingCubes->m_Isosurface->viTriangles[i].z+1+m_iIndexoffset << " " << 
+			m_outStream << "f " << m_pMarchingCubes->m_Isosurface->viTriangles[i].x+1+m_iIndexoffset << " " <<
+                           m_pMarchingCubes->m_Isosurface->viTriangles[i].z+1+m_iIndexoffset << " " <<
                            m_pMarchingCubes->m_Isosurface->viTriangles[i].y+1+m_iIndexoffset << std::endl;
 		}
 
@@ -278,12 +278,24 @@ public:
   ~IOManager();
 
   std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
-  bool ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename);
-  bool ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, bool bNoUserInteraction=false);
-  bool MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& vScales, const std::vector<double>& vBiases, const std::string& strTargetFilename, bool bUseMaxMode=true, bool bNoUserInteraction=false);
-  VolumeDataset* ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester);
-  VolumeDataset* ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, AbstrRenderer* requester);
-  VolumeDataset* LoadDataset(const std::string& strFilename, AbstrRenderer* requester);
+  bool ConvertDataset(FileStackInfo* pStack,
+                      const std::string& strTargetFilename);
+  bool ConvertDataset(const std::string& strFilename,
+                      const std::string& strTargetFilename,
+                      bool bNoUserInteraction=false);
+  bool MergeDatasets(const std::vector <std::string>& strFilenames,
+                     const std::vector <double>& vScales,
+                     const std::vector<double>& vBiases,
+                     const std::string& strTargetFilename,
+                     bool bUseMaxMode=true, bool bNoUserInteraction=false);
+  VolumeDataset* ConvertDataset(FileStackInfo* pStack,
+                                const std::string& strTargetFilename,
+                                AbstrRenderer* requester);
+  VolumeDataset* ConvertDataset(const std::string& strFilename,
+                                const std::string& strTargetFilename,
+                                AbstrRenderer* requester);
+  VolumeDataset* LoadDataset(const std::string& strFilename,
+                             AbstrRenderer* requester);
   bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info);
   bool NeedsConversion(const std::string& strFilename, bool& bChecksumFail);
   bool NeedsConversion(const std::string& strFilename);
