@@ -279,7 +279,7 @@ class AbstrRenderer {
                       float(GetCurrentSubFrameCount()));
     }
     UINT32 GetSubFrameProgress() const {
-        return (m_vCurrentBrickList.size() == 0) ? 100 :
+        return (m_vCurrentBrickList.empty()) ? 100 :
                 UINT32(100.0f * m_iBricksRenderedInThisSubFrame /
                 float(m_vCurrentBrickList.size()));
     }

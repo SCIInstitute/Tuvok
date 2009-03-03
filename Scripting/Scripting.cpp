@@ -157,7 +157,7 @@ bool Scripting::ParseFile(const std::string& strFilename) {
       getline (fileData,line);
       iLine++;
       SysTools::RemoveLeadingWhitespace(line);
-      if (line.size() == 0) continue;     // skip empty lines
+      if (line.empty()) continue;         // skip empty lines
       if (line[0] == '#') continue;       // skip comments
 
       if (!ParseLine(line)) {

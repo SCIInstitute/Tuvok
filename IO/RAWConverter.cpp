@@ -317,7 +317,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
 
   // if no resampling was perfomed above we need to compute the 1d histogram here
-  if (Histogram1D.GetHistogram().size() == 0) {
+  if (Histogram1D.GetHistogram().empty()) {
     pMasterController->DebugOut()->Message(_func_,"Computing 1D Histogram...");
     if (!Histogram1D.Compute(&dataVolume)) {
       pMasterController->DebugOut()->Error(_func_,"Computation of 1D Histogram failed!");

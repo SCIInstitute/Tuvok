@@ -837,7 +837,10 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
                                            MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut) {
   UINT64 uiBytesPerElement = ComputeElementSize()/8;
 
-  if (m_pTempFile == NULL) AllocateTemp(SysTools::AppendFilename(strTempFile,"1"),m_vLODOffsets.size() == 0);
+  if (m_pTempFile == NULL) {
+    AllocateTemp(SysTools::AppendFilename(strTempFile,"1"),
+                 m_vLODOffsets.empty());
+  }
 
   LargeRAWFile* tempFile = NULL;
 
@@ -1008,7 +1011,7 @@ void RasterDataBlock::CleanupTemp() {
 
 bool RasterDataBlock::GetData(unsigned char** ppData, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick) const {
   if (m_pTempFile == NULL && m_pStreamFile == NULL) return false;
-  if (m_vLODOffsets.size() == 0) return false;
+  if (m_vLODOffsets.empty()) { return false; }
 
   LargeRAWFile*  pStreamFile;
    UINT64 iOffset = GetLocalDataPointerOffset(vLOD, vBrick)/8;
@@ -1039,8 +1042,13 @@ bool RasterDataBlock::GetData(unsigned char** ppData, const vector<UINT64>& vLOD
 }
 
 
-bool RasterDataBlock::SetData(unsigned char* pData, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick) {
-  if (m_pStreamFile == NULL || !m_pStreamFile->IsWritable() || m_vLODOffsets.size() == 0) return false;
+bool RasterDataBlock::SetData(unsigned char* pData, const vector<UINT64>& vLOD,
+                              const vector<UINT64>& vBrick) {
+  if (m_pStreamFile == NULL ||
+      !m_pStreamFile->IsWritable() ||
+      m_vLODOffsets.empty()) {
+    return false;
+  }
 
   UINT64 iOffset = GetLocalDataPointerOffset(vLOD, vBrick)/8;
 

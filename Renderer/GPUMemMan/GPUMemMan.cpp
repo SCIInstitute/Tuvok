@@ -149,7 +149,7 @@ void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset, AbstrRenderer* reques
       for (AbstrRendererListIter j = i->qpUser.begin();j<i->qpUser.end();j++) {
         if (*j == requester) {
           i->qpUser.erase(j);
-          if (i->qpUser.size() == 0) {
+          if (i->qpUser.empty()) {
             m_MasterController->DebugOut()->Message(_func_,"Cleaning up all 3D textures associated to dataset %s", pVolumeDataset->Filename().c_str());
             FreeAssociatedTextures(pVolumeDataset);
             m_MasterController->DebugOut()->Message(_func_,"Released Dataset %s", pVolumeDataset->Filename().c_str());
@@ -283,7 +283,7 @@ void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRender
       for (AbstrRendererListIter j = i->qpUser.begin();j<i->qpUser.end();j++) {
         if (*j == requester) {
           i->qpUser.erase(j);
-          if (i->qpUser.size() == 0) {
+          if (i->qpUser.empty()) {
             m_MasterController->DebugOut()->Message(_func_,"Released TransferFunction1D");
 
             m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
@@ -372,7 +372,7 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRender
       for (AbstrRendererListIter j = i->qpUser.begin();j<i->qpUser.end();j++) {
         if (*j == requester) {
           i->qpUser.erase(j);
-          if (i->qpUser.size() == 0) {
+          if (i->qpUser.empty()) {
             m_MasterController->DebugOut()->Message(_func_,"Released TransferFunction2D");
 
             m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
@@ -452,8 +452,14 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
       // no suitable brick found -> randomly delete bricks until this brick fits into memory
       while (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
 
-        if (m_vpTex3DList.size() == 0) {  // in this case we do not have enougth memory to page in a single block, then we are in trouble
-          m_MasterController->DebugOut()->Error(_func_,"  Note enougth memory to page in a brick into memory, aborting (MaxMem=%ikb, NeededMem=%ikb).", int(m_SystemInfo->GetMaxUsableCPUMem()/1024), int(iNeededCPUMemory/1024));
+        if (m_vpTex3DList.empty()) {
+          // we do not have enough memory to page in even a single block...
+          m_MasterController->DebugOut()->Error(_func_, "Not enough memory to"
+                                                " page a brick into memory, "
+                                                "aborting (MaxMem=%ikb, "
+                                                "NeededMem=%ikb).",
+                                                int(m_SystemInfo->GetMaxUsableCPUMem()/1024),
+                                                int(iNeededCPUMemory/1024));
           return NULL;
         }
 

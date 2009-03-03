@@ -184,7 +184,7 @@ bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnE
         line = line.substr(0,line.length()-1);
 
       if ((strEndToken != "" && strEndToken == line) ||
-          (bStopOnEmptyLine && line.size() == 0))  {
+          (bStopOnEmptyLine && line.empty()))  {
         m_iStopPos = fileData.tellg();
         break;
       }

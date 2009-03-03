@@ -938,7 +938,7 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
   if (m_iBricksRenderedInThisSubFrame == 0) NewFrameClear(eREnderArea);
 
   // if zero bricks are to be rendered we have completed the draw job
-  if (m_vCurrentBrickList.size() == 0) {
+  if (m_vCurrentBrickList.empty()) {
     m_pMasterController->DebugOut()->Message(_func_,"zero bricks are to be rendered, completed the draw job");
     return true;
   }
