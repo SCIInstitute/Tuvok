@@ -1427,10 +1427,10 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   glEnable(GL_LINE_SMOOTH);
   glLineWidth(4);
   glBegin(GL_LINES);
-    glColor4fv(&(vColorBorder.x));
-    for(size_t i = 6;i<14;i+= 2) {
-      glVertex3fv(&quad[i+0].x);
-      glVertex3fv(&quad[i+1].x);
+    glColor4f(vColorBorder.x, vColorBorder.y, vColorBorder.z, vColorBorder.w);
+    for(size_t i = 6; i<14 ; i += 2) {
+      glVertex3f(quad[i+0].x, quad[i+0].y, quad[i+0].z);
+      glVertex3f(quad[i+1].x, quad[i+1].y, quad[i+1].z);
     }
   glEnd();
   glLineWidth(1);
