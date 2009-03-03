@@ -226,8 +226,12 @@ void GLSBVR::Render3DPreLoop() {
 void GLSBVR::RenderProxyGeometry() {
   glBegin(GL_TRIANGLES);
     for (int i = int(m_SBVRGeogen.m_vSliceTriangles.size())-1;i>=0;i--) {
-      glTexCoord3fv(&(m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.x));
-      glVertex3fv(&(m_SBVRGeogen.m_vSliceTriangles[i].m_vPos.x));
+      glTexCoord3f(m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.x,
+                   m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.y,
+                   m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.z);
+      glVertex3f(m_SBVRGeogen.m_vSliceTriangles[i].m_vPos.x,
+                 m_SBVRGeogen.m_vSliceTriangles[i].m_vPos.y,
+                 m_SBVRGeogen.m_vSliceTriangles[i].m_vPos.z);
     }
   glEnd();
 }

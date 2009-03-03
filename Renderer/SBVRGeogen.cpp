@@ -383,7 +383,7 @@ void SBVRGeogen::ComputeGeometry() {
 
   if(m_bClipPlaneEnabled) {
     PLANE<float> transformed = m_ClipPlane * m_matView;
-    const FLOATVECTOR3 normal(transformed);
+    const FLOATVECTOR3 normal(transformed.xyz());
     const float d = transformed.d();
     m_vSliceTriangles = ClipTriangles(m_vSliceTriangles, normal, d);
   }

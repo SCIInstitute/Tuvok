@@ -156,9 +156,14 @@ public:
 
   friend std::ostream& operator<<(std::ostream &os,const VECTOR2<T>& v){os << v.x << '\t' << v.y; return os;}
 
-  operator T*(void) {return &x;}
-  const T *operator *(void) const {return &x;}
-  T *operator *(void) {return &x;}
+  T& operator [](size_t i) {
+    assert(i <= 1);
+    return (i == 0) ? this->x : this->y;
+  }
+  const T& operator [](size_t i) const {
+    assert(i <= 1);
+    return (i == 0) ? this->x : this->y;
+  }
 
   VECTOR2<T> abs() const {return VECTOR2<T>(fabs(x),fabs(y));}
   T area() const {return x*y;}
@@ -269,8 +274,6 @@ public:
 
   friend std::ostream& operator<<(std::ostream &os,const VECTOR3<T>& v){os << v.x << '\t' << v.y << '\t' << v.z; return os;}
 
-  const T *operator *(void) const {return &x;}
-  T *operator *(void) {return &x;}
   T& operator [](size_t i) {
     assert(i <= 2);
     return (i == 0) ? this->x :
@@ -364,7 +367,6 @@ template <class T> VECTOR3<T> operator % ( T scalar, const VECTOR3<T>& vec ) {re
 
 template <class T=int> class VECTOR4 {
 public:
-
   T x,y,z,w;
 
   VECTOR4<T>(): x(0), y(0),z(0), w(0) {}
@@ -412,9 +414,18 @@ public:
   VECTOR4<T> operator - () const {return *this * -1;}
   VECTOR4<T> operator ~ () const {return VECTOR4<T>(T(1)/x,T(1)/y,T(1)/z,T(1)/w);}
 
-  operator T*(void) {return &x;}
-  const T *operator *(void) const {return &x;}
-  T *operator *(void) {return &x;}
+  T& operator [](size_t i) {
+    assert(i <= 3);
+    return (i == 0) ? this->x :
+           (i == 1) ? this->y :
+           (i == 2) ? this->z : this->w;
+  }
+  const T& operator [](size_t i) const {
+    assert(i <= 3);
+    return (i == 0) ? this->x :
+           (i == 1) ? this->y :
+           (i == 2) ? this->z : this->w;
+  }
 
   VECTOR4<T>& operator=(const VECTOR4<T>& other)  { x = other.x; y = other.y; z = other.z; w = other.w; return *this; }
   VECTOR4<T>& operator+=(const VECTOR4<T>& other) { x += other.x; y += other.y; z += other.z; w += other.w; return *this; }
