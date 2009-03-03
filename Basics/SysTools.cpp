@@ -228,8 +228,14 @@ namespace SysTools {
   bool Remove(const std::string &path, AbstrDebugOut &dbg)
   {
     if(std::remove(path.c_str()) == -1) {
+#ifdef _WIN32
+      char buffer[200];
+      strerror_s(buffer, 200, errno);
+      dbg.Warning(_func_, "Could not remove `%s': %s", path.c_str(), buffer);
+#else
       dbg.Warning(_func_, "Could not remove `%s': %s", path.c_str(),
                   strerror(errno));
+#endif
       return false;
     }
     return true;
