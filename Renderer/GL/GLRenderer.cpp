@@ -1416,11 +1416,11 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   // Now render the plane.
   glEnable(GL_BLEND);
   glBegin(GL_TRIANGLES);
-    glColor4fv(&(vColorQuad.x));
-    for(size_t i = 0;i<6;i+= 3) {
-      glVertex3fv(&quad[i+0].x);
-      glVertex3fv(&quad[i+1].x);
-      glVertex3fv(&quad[i+2].x);
+    glColor4f(vColorQuad.x, vColorQuad.y, vColorQuad.z, vColorQuad.w);
+    for(size_t i=0; i < 6; i+=3) { // 2 tris: 6 points.
+      glVertex3f(quad[i+0].x, quad[i+0].y, quad[i+0].z);
+      glVertex3f(quad[i+1].x, quad[i+1].y, quad[i+1].z);
+      glVertex3f(quad[i+2].x, quad[i+2].y, quad[i+2].z);
     }
   glEnd();
 
