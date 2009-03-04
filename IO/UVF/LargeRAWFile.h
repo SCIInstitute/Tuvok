@@ -106,7 +106,7 @@ public:
   }
 
   void WriteData(const std::string &value) {
-    if (value.length() == 0) return;
+    if (value.empty()) return;
     WriteRAW((unsigned char*)&value[0], sizeof(char)*size_t(value.length()));
   }
 
