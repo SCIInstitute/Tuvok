@@ -50,7 +50,7 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
   if (!InputData.IsOpen()) return "";
 
   vector<UINT64> aHist(256); 
-  for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+  std::fill(aHist.begin(), aHist.end(), 0);
 
   string strSignChangedFile;
   if (bSigned)  {
@@ -132,7 +132,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
   if (!InputData.IsOpen()) return "";
 
   vector<UINT64> aHist(4096); 
-  for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+  std::fill(aHist.begin(), aHist.end(), 0);
 
   // determine max and min
   unsigned short iMax = 0;
@@ -180,7 +180,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
       pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<short>::max(), int(iMax)-numeric_limits<short>::max());
     else
       pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)", iMin, iMax);
-    for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+    std::fill(aHist.begin(), aHist.end(), 0);
 
     // otherwise quantize
     LargeRAWFile OutputData(strTargetFilename);
@@ -285,7 +285,7 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
   unsigned short* pOutData = new unsigned short[INCORESIZE];
   
   vector<UINT64> aHist(4096); 
-  for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+  std::fill(aHist.begin(), aHist.end(), 0);
 
   InputData.SeekStart();
   iPos = 0;
@@ -374,7 +374,7 @@ const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const st
   unsigned short* pOutData = new unsigned short[INCORESIZE];
   
   vector<UINT64> aHist(4096); 
-  for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+  std::fill(aHist.begin(), aHist.end(), 0);
 
   InputData.SeekStart();
   iPos = 0;
@@ -550,7 +550,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
   if (!InputData.IsOpen()) return "";
 
   vector<UINT64> aHist(4096); 
-  for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+  std::fill(aHist.begin(), aHist.end(), 0);
 
   // determine max and min
   UINT32 iMax = 0;
@@ -597,7 +597,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
       pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max());
     else
       pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)", iMin, iMax);
-    for (vector<UINT64>::iterator i = aHist.begin();i<aHist.end();i++) (*i) = 0;
+    std::fill(aHist.begin(), aHist.end(), 0);
 
     // otherwise quantize
     LargeRAWFile OutputData(strTargetFilename);
