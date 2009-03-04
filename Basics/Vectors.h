@@ -567,11 +567,6 @@ public:
 
   friend std::ostream& operator<<(std::ostream &os,const MATRIX2<T>& m){os << m.m11 << '\t' << m.m12 << '\n' << m.m21 << '\t' << m.m22; return os;}
 
-  operator T*(void) {return &m11;}
-  const T *operator *(void) const {return &m11;}
-  T *operator *(void) {return &m11;}
-
-
   // binary operators with scalars
   MATRIX2<T> operator * ( T scalar ) const {return MATRIX2<T>(m11*scalar,m12*scalar,
                                 m21*scalar,m22*scalar);}
@@ -649,10 +644,6 @@ public:
   friend std::ostream& operator<<(std::ostream &os,const MATRIX3<T>& m){os << m.m11 << '\t' << m.m12 << '\t' << m.m13 << '\n'
                                        << m.m21 << '\t' << m.m22 << '\t' << m.m23 << '\n'
                                        << m.m31 << '\t' << m.m32 << '\t' << m.m33; return os;}
-
-  operator T*(void) {return &m11;}
-  const T *operator *(void) const {return &m11;}
-  T *operator *(void) {return &m11;}
 
   // binary operators with matrices
   MATRIX3<T> operator * ( const MATRIX3<T>& other ) const {
@@ -859,7 +850,6 @@ public:
   operator T*(void) {return &m11;}
   const T *operator *(void) const {return &m11;}
   T *operator *(void) {return &m11;}
-
 
   // binary operators with scalars
   MATRIX4<T> operator * ( T scalar ) const {return MATRIX4<T>(m11*scalar,m12*scalar,m13*scalar,m14*scalar,
@@ -1344,10 +1334,6 @@ public:
   QUATERNION4<T>& operator=(const QUATERNION4<T>& other)  { x = other.x; y = other.y; z = other.z; w = other.w; return *this; }
   QUATERNION4<T>& operator+=(const T& other) { x += other; y += other; z += other;  w += other; return *this; }
   QUATERNION4<T>& operator-=(const T& other) { x -= other; y -= other; z -= other;  w -= other; return *this; }
-
-  operator T*(void) {return &x;}
-  const T *operator *(void) const {return &x;}
-  T *operator *(void) {return &x;}
 };
 
 typedef QUATERNION4<float>  FLOATQUATERNION4;
