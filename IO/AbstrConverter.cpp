@@ -199,6 +199,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     iDivLast = 0;
     while (iPos < iSize)  {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+      if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
       for (size_t i = 0;i<iRead;i++) {
         unsigned short iValue = (bSigned) ? pInData[i] + numeric_limits<short>::max() : pInData[i];
@@ -291,6 +292,8 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
   iDivLast = 0;
   while (iPos < iSize)  {
     size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
+    if(iRead == 0) { break; } // bail out if the read gave us nothing.
+
     for (size_t i = 0;i<iRead;i++) {
       unsigned short iNewVal = min<unsigned short>(4095,
                                    static_cast<unsigned short>
@@ -378,6 +381,8 @@ const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const st
   iDivLast = 0;
   while (iPos < iSize)  {
     size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*8)/8;
+    if(iRead == 0) { break; } // bail out if the read gave us nothing.
+
     for (size_t i = 0;i<iRead;i++) {
       unsigned short iNewVal = min<unsigned short>(4095,
                                    static_cast<unsigned short>
@@ -496,6 +501,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
     iDivLast = 0;
     while (iPos < iSize) {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*8)/8;
+      if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
       for (size_t i = 0; i < iRead; i++) {
         UINT64 iValue = (bSigned) ? pInData[i] + numeric_limits<int>::max()
@@ -610,6 +616,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
     iDivLast = 0;
     while (iPos < iSize)  {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
+      if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
       for (size_t i = 0;i<iRead;i++) {
         UINT32 iValue = (bSigned) ? pInData[i] + numeric_limits<int>::max() : pInData[i];
