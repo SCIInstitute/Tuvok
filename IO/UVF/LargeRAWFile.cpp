@@ -4,7 +4,7 @@
 using namespace std;
 
 
-LargeRAWFile::LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize) :
+LargeRAWFile::LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize):
   m_strFilename(strFilename),
   m_bIsOpen(false),
   m_bWritable(false),
@@ -12,7 +12,7 @@ LargeRAWFile::LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize) :
 {
 }
 
-LargeRAWFile::LargeRAWFile(const std::wstring& wstrFilename, UINT64 iHeaderSize) :
+LargeRAWFile::LargeRAWFile(const std::wstring& wstrFilename, UINT64 iHeaderSize):
   m_bIsOpen(false),
   m_bWritable(false),
   m_iHeaderSize(iHeaderSize)
@@ -33,20 +33,24 @@ LargeRAWFile::LargeRAWFile(LargeRAWFile &other) :
 
     other.SeekStart();
 
-    unsigned char* pData = new unsigned char[size_t(min(iDataSize, BLOCK_COPY_SIZE))];
+    unsigned char* pData = new unsigned char[size_t(min(iDataSize,
+                                                        BLOCK_COPY_SIZE))];
     for (UINT64 i = 0;i<iDataSize;i+=BLOCK_COPY_SIZE) {
       UINT64 iCopySize = min(BLOCK_COPY_SIZE, iDataSize-i);
 
       other.ReadRAW(pData, iCopySize);
       WriteRAW(pData, iCopySize);
     }
-    delete [] pData;    
+    delete [] pData;
   }
 }
 
 bool LargeRAWFile::Open(bool bReadWrite) {
   #ifdef _WIN32
-  m_StreamFile = CreateFileA(m_strFilename.c_str(), (bReadWrite) ? GENERIC_READ | GENERIC_WRITE : GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+  m_StreamFile = CreateFileA(m_strFilename.c_str(),
+                             (bReadWrite) ? GENERIC_READ | GENERIC_WRITE
+                                          : GENERIC_READ,
+                             FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
     m_bIsOpen = m_StreamFile != INVALID_HANDLE_VALUE;
   #else
     m_StreamFile = fopen(m_strFilename.c_str(), (bReadWrite) ? "w+b" : "rb");
@@ -65,7 +69,9 @@ bool LargeRAWFile::Open(bool bReadWrite) {
 
 bool LargeRAWFile::Create(UINT64 iInitialSize) {
 #ifdef _WIN32
-  m_StreamFile = CreateFileA(m_strFilename.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
+  m_StreamFile = CreateFileA(m_strFilename.c_str(),
+                             GENERIC_READ | GENERIC_WRITE, 0, NULL,
+                             CREATE_ALWAYS, 0, NULL);
   m_bIsOpen = m_StreamFile != INVALID_HANDLE_VALUE;
 #else
   m_StreamFile = fopen(m_strFilename.c_str(), "w+b");
@@ -83,7 +89,9 @@ bool LargeRAWFile::Create(UINT64 iInitialSize) {
 
 bool LargeRAWFile::Append() {
 #ifdef _WIN32
-  m_StreamFile = CreateFileA(m_strFilename.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_ALWAYS, 0, NULL);
+  m_StreamFile = CreateFileA(m_strFilename.c_str(),
+                             GENERIC_READ | GENERIC_WRITE, 0, NULL,
+                             OPEN_ALWAYS, 0, NULL);
   m_bIsOpen = m_StreamFile != INVALID_HANDLE_VALUE;
 #else
   m_StreamFile = fopen(m_strFilename.c_str(), "a+b");
@@ -114,40 +122,42 @@ UINT64 LargeRAWFile::GetCurrentSize() {
   UINT64 ulStart = GetPos();
   UINT64 ulEnd   = SeekEnd();
   UINT64 ulFileLength = ulEnd - ulStart;
-  
+
   SeekPos(iPrevPos);
 
   return ulFileLength;
 }
 
-void LargeRAWFile::SeekStart(){
+void LargeRAWFile::SeekStart() {
   SeekPos(0);
 }
 
-UINT64 LargeRAWFile::SeekEnd(){
+UINT64 LargeRAWFile::SeekEnd() {
   #ifdef _WIN32
     LARGE_INTEGER liTarget, liRealTarget; liTarget.QuadPart = 0;
     SetFilePointerEx(m_StreamFile, liTarget, &liRealTarget, FILE_END);
-    return UINT64(liRealTarget.QuadPart)-m_iHeaderSize; 
+    return UINT64(liRealTarget.QuadPart)-m_iHeaderSize;
   #else
+    // get current position=file size!
     if(fseeko(m_StreamFile, 0, SEEK_END)==0)
-      return ftello(m_StreamFile)-m_iHeaderSize;//get current position=file size!
+      return ftello(m_StreamFile)-m_iHeaderSize;
     else
       return 0;
   #endif
 }
 
-UINT64 LargeRAWFile::GetPos(){
+UINT64 LargeRAWFile::GetPos() {
   #ifdef _WIN32
     LARGE_INTEGER liTarget, liRealTarget; liTarget.QuadPart = 0;
     SetFilePointerEx(m_StreamFile, liTarget, &liRealTarget, FILE_CURRENT);
     return UINT64(liRealTarget.QuadPart)-m_iHeaderSize;
   #else
-      return ftello(m_StreamFile)-m_iHeaderSize;//get current position=file size!
+    //get current position=file size!
+    return ftello(m_StreamFile)-m_iHeaderSize;
   #endif
 }
 
-void LargeRAWFile::SeekPos(UINT64 iPos){
+void LargeRAWFile::SeekPos(UINT64 iPos) {
   #ifdef _WIN32
     LARGE_INTEGER liTarget; liTarget.QuadPart = LONGLONG(iPos+m_iHeaderSize);
     SetFilePointerEx(m_StreamFile, liTarget, NULL, FILE_BEGIN);
@@ -156,7 +166,7 @@ void LargeRAWFile::SeekPos(UINT64 iPos){
   #endif
 }
 
-size_t LargeRAWFile::ReadRAW(unsigned char* pData, UINT64 iCount){
+size_t LargeRAWFile::ReadRAW(unsigned char* pData, UINT64 iCount) {
   #ifdef _WIN32
     DWORD dwReadBytes;
     ReadFile(m_StreamFile, pData, DWORD(iCount), &dwReadBytes, NULL);
@@ -166,7 +176,7 @@ size_t LargeRAWFile::ReadRAW(unsigned char* pData, UINT64 iCount){
   #endif
 }
 
-size_t LargeRAWFile::WriteRAW(const unsigned char* pData, UINT64 iCount){
+size_t LargeRAWFile::WriteRAW(const unsigned char* pData, UINT64 iCount) {
   #ifdef _WIN32
     DWORD dwWrittenBytes;
     WriteFile(m_StreamFile, pData, DWORD(iCount), &dwWrittenBytes, NULL);
@@ -183,33 +193,40 @@ void LargeRAWFile::Delete() {
 
 
 
-bool LargeRAWFile::Copy(const std::string& strSource, const std::string& strTarget, UINT64 iSourceHeaderSkip, std::string* strMessage) {
+bool LargeRAWFile::Copy(const std::string& strSource,
+                        const std::string& strTarget, UINT64 iSourceHeaderSkip,
+                        std::string* strMessage) {
   std::wstring wstrSource(strSource.begin(), strSource.end());
   std::wstring wstrTarget(strTarget.begin(), strTarget.end());
   if (!strMessage)
     return Copy(wstrSource, wstrTarget, iSourceHeaderSkip, NULL);
   else {
     std::wstring wstrMessage;
-    bool bResult = Copy(wstrSource, wstrTarget, iSourceHeaderSkip, &wstrMessage);
+    bool bResult = Copy(wstrSource, wstrTarget, iSourceHeaderSkip,
+                        &wstrMessage);
     (*strMessage) = string(wstrMessage.begin(), wstrMessage.end());
     return bResult;
   }
 }
 
 
-bool LargeRAWFile::Copy(const std::wstring& wstrSource, const std::wstring& wstrTarget, UINT64 iSourceHeaderSkip, std::wstring* wstrMessage) {
+bool LargeRAWFile::Copy(const std::wstring& wstrSource,
+                        const std::wstring& wstrTarget,
+                        UINT64 iSourceHeaderSkip, std::wstring* wstrMessage) {
   LargeRAWFile source(wstrSource, iSourceHeaderSkip);
   LargeRAWFile target(wstrTarget);
 
   source.Open(false);
   if (!source.IsOpen()) {
-    if (wstrMessage) (*wstrMessage) = L"Unable to open source file " + wstrSource;
+    if (wstrMessage) (*wstrMessage) = L"Unable to open source file " +
+                                      wstrSource;
     return false;
   }
 
   target.Create();
   if (!target.IsOpen()) {
-    if (wstrMessage) (*wstrMessage) = L"Unable to open target file " + wstrTarget;
+    if (wstrMessage) (*wstrMessage) = L"Unable to open target file " +
+                                      wstrTarget;
     source.Close();
     return false;
   }
@@ -229,7 +246,9 @@ bool LargeRAWFile::Copy(const std::wstring& wstrSource, const std::wstring& wstr
 }
 
 
-bool LargeRAWFile::Compare(const std::string& strFirstFile, const std::string& strSecondFile, std::string* strMessage) {
+bool LargeRAWFile::Compare(const std::string& strFirstFile,
+                           const std::string& strSecondFile,
+                           std::string* strMessage) {
   std::wstring wstrFirstFile(strFirstFile.begin(), strFirstFile.end());
   std::wstring wstrSecondFile(strSecondFile.begin(), strSecondFile.end());
   if (!strMessage)
@@ -242,18 +261,22 @@ bool LargeRAWFile::Compare(const std::string& strFirstFile, const std::string& s
   }
 }
 
-bool LargeRAWFile::Compare(const std::wstring& wstrFirstFile, const std::wstring& wstrSecondFile, std::wstring* wstrMessage) {
+bool LargeRAWFile::Compare(const std::wstring& wstrFirstFile,
+                           const std::wstring& wstrSecondFile,
+                           std::wstring* wstrMessage) {
   LargeRAWFile first(wstrFirstFile);
   LargeRAWFile second(wstrSecondFile);
 
   first.Open(false);
   if (!first.IsOpen()) {
-    if (wstrMessage) (*wstrMessage) = L"Unable to open input file " + wstrFirstFile;
+    if (wstrMessage) (*wstrMessage) = L"Unable to open input file " +
+                                      wstrFirstFile;
     return false;
   }
   second.Open(false);
   if (!second.IsOpen()) {
-    if (wstrMessage) (*wstrMessage) = L"Unable to open input file " + wstrSecondFile;
+    if (wstrMessage) (*wstrMessage) = L"Unable to open input file " +
+                                      wstrSecondFile;
     first.Close();
     return false;
   }
@@ -282,11 +305,12 @@ bool LargeRAWFile::Compare(const std::wstring& wstrFirstFile, const std::wstring
       if (pBuffer1[i] != pBuffer2[i]) {
         if (wstrMessage) {
           wstringstream ss;
-          if (iDiffCount == 0) { 
+          if (iDiffCount == 0) {
             ss << L"Files differ at address " << i+iCopiedSize;
             iDiffCount = 1;
           } else {
-            if (++iDiffCount == 10) {  // report up to 10 differences
+            // don't report more than 10 differences.
+            if (++iDiffCount == 10) {
               (*wstrMessage) += L" and more";
               delete [] pBuffer1;
               delete [] pBuffer2;
@@ -295,7 +319,7 @@ bool LargeRAWFile::Compare(const std::wstring& wstrFirstFile, const std::wstring
               return false;
             } else {
               ss << L", " << i+iCopiedSize;
-            }              
+            }
           }
           (*wstrMessage) +=ss.str();
         }

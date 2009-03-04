@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -49,7 +49,7 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
 
   if (!InputData.IsOpen()) return "";
 
-  vector<UINT64> aHist(256); 
+  vector<UINT64> aHist(256);
   std::fill(aHist.begin(), aHist.end(), 0);
 
   string strSignChangedFile;
@@ -131,7 +131,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
 
   if (!InputData.IsOpen()) return "";
 
-  vector<UINT64> aHist(4096); 
+  vector<UINT64> aHist(4096);
   std::fill(aHist.begin(), aHist.end(), 0);
 
   // determine max and min
@@ -176,7 +176,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     InputData.Close();
     strQuantFile = strFilename;
   } else {
-    if (bSigned) 
+    if (bSigned)
       pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<short>::max(), int(iMax)-numeric_limits<short>::max());
     else
       pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)", iMin, iMax);
@@ -193,7 +193,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     }
 
     UINT64 iRange = iMax-iMin;
-    
+
     InputData.SeekStart();
     iPos = 0;
     iDivLast = 0;
@@ -210,7 +210,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
       iPos += UINT64(iRead);
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-        if (bSigned) 
+        if (bSigned)
           pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)\n%i percent complete", int(iMin)-numeric_limits<short>::max(), int(iMax)-numeric_limits<short>::max(), int((100*iPos)/iSize));
         else
           pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
@@ -283,8 +283,8 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
 
   float fQuantFact = 4095.0f / float(fMax-fMin);
   unsigned short* pOutData = new unsigned short[INCORESIZE];
-  
-  vector<UINT64> aHist(4096); 
+
+  vector<UINT64> aHist(4096);
   std::fill(aHist.begin(), aHist.end(), 0);
 
   InputData.SeekStart();
@@ -372,8 +372,8 @@ const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const st
 
   double fQuantFact = 4095 / (fMax-fMin);
   unsigned short* pOutData = new unsigned short[INCORESIZE];
-  
-  vector<UINT64> aHist(4096); 
+
+  vector<UINT64> aHist(4096);
   std::fill(aHist.begin(), aHist.end(), 0);
 
   InputData.SeekStart();
@@ -425,7 +425,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
 
   if (!InputData.IsOpen()) return "";
 
-  vector<UINT64> aHist(4096); 
+  vector<UINT64> aHist(4096);
   std::fill(aHist.begin(), aHist.end(), 0);
 
   // determine max and min
@@ -474,7 +474,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
     InputData.Close();
     strQuantFile = strFilename;
   } else {
-    if (bSigned) 
+    if (bSigned)
       dbg.Message(_func_, "Quantizing to 12 bit (input data has range from "
                           "%i to %i)", int(iMin) - numeric_limits<int>::max(),
                                        int(iMax) - numeric_limits<int>::max());
@@ -495,7 +495,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
     }
 
     UINT64 iRange = iMax-iMin;
-    
+
     InputData.SeekStart();
     iPos = 0;
     iDivLast = 0;
@@ -514,7 +514,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
       iPos += UINT64(iRead);
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-        if (bSigned) 
+        if (bSigned)
           dbg.Message(_func_, "Quantizing to 12 bit (input data has range "
                       "from %i to %i)\n%i percent complete",
                       int(iMin) - numeric_limits<int>::max(),
@@ -549,7 +549,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
 
   if (!InputData.IsOpen()) return "";
 
-  vector<UINT64> aHist(4096); 
+  vector<UINT64> aHist(4096);
   std::fill(aHist.begin(), aHist.end(), 0);
 
   // determine max and min
@@ -593,7 +593,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
     InputData.Close();
     strQuantFile = strFilename;
   } else {
-    if (bSigned) 
+    if (bSigned)
       pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max());
     else
       pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)", iMin, iMax);
@@ -610,7 +610,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
     }
 
     UINT64 iRange = iMax-iMin;
-    
+
     InputData.SeekStart();
     iPos = 0;
     iDivLast = 0;
@@ -627,7 +627,7 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
       iPos += UINT64(iRead);
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-        if (bSigned) 
+        if (bSigned)
           pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)\n%i percent complete", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max(), int((100*iPos)/iSize));
         else
           pMasterController->DebugOut()->Message(_func_,"Quantizing to 12 bit (input data has range from %i to %i)\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
