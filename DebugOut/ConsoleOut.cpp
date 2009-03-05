@@ -45,7 +45,7 @@ ConsoleOut::~ConsoleOut() {
   Message("ConsoleOut::~ConsoleOut:","Shutting down ConsoleDebug out");
 }
 
-void ConsoleOut::printf(const char* format, ...)
+void ConsoleOut::printf(const char* format, ...) const
 {
   if (!m_bShowOther) return;
 

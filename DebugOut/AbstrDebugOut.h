@@ -75,7 +75,7 @@ class AbstrDebugOut {
       m_bRecordLists[1] = false;
       m_bRecordLists[2] = false;
     }
-    virtual void printf(const char* format, ...) = 0;
+    virtual void printf(const char* format, ...) const = 0;
     virtual void Message(const char* source, const char* format, ...) = 0;
     virtual void Warning(const char* source, const char* format, ...) = 0;
     virtual void Error(const char* source, const char* format, ...) = 0;

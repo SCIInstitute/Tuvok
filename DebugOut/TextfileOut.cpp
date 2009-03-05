@@ -55,7 +55,7 @@ TextfileOut::~TextfileOut() {
   this->printf("MESSAGE (TextfileOut::~TextfileOut:): Shutting down\n\n\n");
 }
 
-void TextfileOut::printf(const char* format, ...)
+void TextfileOut::printf(const char* format, ...) const
 {
   if (!m_bShowOther) return;
 
@@ -76,7 +76,7 @@ void TextfileOut::printf(const char* format, ...)
   fs.close();
 }
 
-void TextfileOut::_printf(const char* format, ...)
+void TextfileOut::_printf(const char* format, ...) const
 {
   char buff[16384];
   va_list args;

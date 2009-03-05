@@ -78,7 +78,7 @@ void MultiplexOut::RemoveDebugOut(AbstrDebugOut* pDebugger) {
 }
 
 
-void MultiplexOut::printf(const char* format, ...)
+void MultiplexOut::printf(const char* format, ...) const
 {
   char buff[16384];
   va_list args;

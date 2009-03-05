@@ -53,7 +53,7 @@ class MultiplexOut : public AbstrDebugOut {
     void AddDebugOut(AbstrDebugOut* pDebugger);
     void RemoveDebugOut(AbstrDebugOut* pDebugger);
 
-    virtual void printf(const char* format, ...);
+    virtual void printf(const char* format, ...) const;
     virtual void Message(const char* source, const char* format, ...);
     virtual void Warning(const char* source, const char* format, ...);
     virtual void Error(const char* source, const char* format, ...);

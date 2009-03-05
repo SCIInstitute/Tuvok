@@ -49,14 +49,14 @@ class TextfileOut : public AbstrDebugOut{
   public:
     TextfileOut(std::string strFilename="logfile.txt");
     ~TextfileOut();
-    virtual void printf(const char* format, ...);
+    virtual void printf(const char* format, ...) const;
     virtual void Message(const char* source, const char* format, ...);
     virtual void Warning(const char* source, const char* format, ...);
     virtual void Error(const char* source, const char* format, ...);
   private:
     std::string m_strFilename;
 
-    void _printf(const char* format, ...); //< same as printf above but does regard m_bShowOther
+    void _printf(const char* format, ...) const; //< same as printf above but does regard m_bShowOther
 };
 
 #endif // TEXTFILEOUT_H
