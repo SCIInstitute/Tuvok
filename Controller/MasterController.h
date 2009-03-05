@@ -96,7 +96,10 @@ public:
   void RemoveDebugOut(AbstrDebugOut* debugOut);
 
   /// Access the currently-active debug stream.
+  ///@{
   AbstrDebugOut* DebugOut();
+  const AbstrDebugOut *DebugOut() const;
+  ///@}
 
   /// The GPU memory manager moves data from CPU to GPU memory, and
   /// removes data from GPU memory.

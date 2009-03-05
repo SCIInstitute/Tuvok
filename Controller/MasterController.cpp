@@ -99,7 +99,11 @@ AbstrDebugOut* MasterController::DebugOut()
   return (m_DebugOut.size() == 0) ? static_cast<AbstrDebugOut*>(&m_DefaultOut)
                                   : static_cast<AbstrDebugOut*>(&m_DebugOut);
 }
-
+const AbstrDebugOut *MasterController::DebugOut() const {
+  return (m_DebugOut.size() == 0)
+           ? static_cast<const AbstrDebugOut*>(&m_DefaultOut)
+           : static_cast<const AbstrDebugOut*>(&m_DebugOut);
+}
 
 AbstrRenderer* MasterController::
 RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) {
