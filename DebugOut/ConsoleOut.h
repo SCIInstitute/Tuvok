@@ -28,10 +28,10 @@
 
 /**
   \file    ConsoleOut.h
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \version  1.0
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
+  \version 1.0
   \date    August 2008
 */
 
@@ -43,7 +43,7 @@
 #include "../StdTuvokDefines.h"
 #include "AbstrDebugOut.h"
 
-class ConsoleOut : public AbstrDebugOut{
+class ConsoleOut : public AbstrDebugOut {
   public:
     ConsoleOut();
     ~ConsoleOut();

@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -28,10 +28,9 @@
 
 /**
   \file    AbstrDebugOut.cpp
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \version  1.0
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    January 2009
 */
 
@@ -39,30 +38,30 @@
 
 void AbstrDebugOut::PrintErrorList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::iterator i = m_strErrorList.begin();i<m_strErrorList.end();i++) 
+  for (std::deque< std::string >::iterator i = m_strErrorList.begin();i<m_strErrorList.end();i++)
     printf( i->c_str() );
   printf( "end of recorded errors" );
 }
 
 void AbstrDebugOut::PrintWarningList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::iterator i = m_strWarningList.begin();i<m_strErrorList.end();i++) 
+  for (std::deque< std::string >::iterator i = m_strWarningList.begin();i<m_strErrorList.end();i++)
     printf( i->c_str() );
   printf( "end of recorded errors" );
 }
 
 void AbstrDebugOut::PrintMessageList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::iterator i = m_strMessageList.begin();i<m_strErrorList.end();i++) 
+  for (std::deque< std::string >::iterator i = m_strMessageList.begin();i<m_strErrorList.end();i++)
     printf( i->c_str() );
   printf( "end of recorded errors" );
 }
 
 void AbstrDebugOut::SetOutput(bool bShowErrors,
-                              bool bShowWarnings, 
-                              bool bShowMessages, 
+                              bool bShowWarnings,
+                              bool bShowMessages,
                               bool bShowOther) {
-  SetShowMessages(bShowMessages); 
+  SetShowMessages(bShowMessages);
   SetShowWarnings(bShowWarnings);
   SetShowErrors(bShowErrors);
   SetShowOther(bShowOther);

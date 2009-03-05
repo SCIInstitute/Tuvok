@@ -95,8 +95,10 @@ class AbstrDebugOut {
     virtual bool GetListRecordingWarnings() {return m_bRecordLists[1];}
     virtual bool GetListRecordingMessages() {return m_bRecordLists[2];}
 
-    void SetOutput(bool bShowErrors, bool bShowWarnings, bool bShowMessages, bool bShowOther);
-    void GetOutput(bool& bShowErrors, bool& bShowWarnings, bool& bShowMessages, bool& bShowOther) const;
+    void SetOutput(bool bShowErrors, bool bShowWarnings, bool bShowMessages,
+                   bool bShowOther);
+    void GetOutput(bool& bShowErrors, bool& bShowWarnings, bool& bShowMessages,
+                   bool& bShowOther) const;
 
     bool ShowMessages() const {return m_bShowMessages;}
     bool ShowWarnings() const {return m_bShowWarnings;}
