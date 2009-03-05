@@ -55,6 +55,7 @@ HEADERS += StdTuvokDefines.h \
            IO/UVF/Histogram2DDataBlock.h \
            IO/UVF/MaxMinDataBlock.h \
            Controller/MasterController.h \
+           Controller/Controller.h \
            DebugOut/AbstrDebugOut.h \
            DebugOut/TextfileOut.h \
            DebugOut/ConsoleOut.h \
