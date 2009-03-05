@@ -112,7 +112,6 @@ RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOf
 
   case OPENGL_SBVR :
     m_DebugOut.Message(_func_,"Starting up new renderer (API=OpenGL, Method=Slice Based Volume Rendering)");
-//    m_DebugOut.Message("MasterController::RequestNewVolumerenderer","Starting up new renderer (API=OpenGL, Method=Slice Based Volume Rendering)");
     m_vVolumeRenderer.push_back(new GLSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 
