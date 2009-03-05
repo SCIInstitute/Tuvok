@@ -933,9 +933,21 @@ void GLRenderer::RenderCoordArrows() {
   glDisable(GL_CULL_FACE);
 }
 
-bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
+bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea) {
   // are we starting a new LOD level?
-  if (m_iBricksRenderedInThisSubFrame == 0) NewFrameClear(eREnderArea);
+  if (m_iBricksRenderedInThisSubFrame == 0) {
+    NewFrameClear(eRenderArea);
+    if (m_bRenderCoordArrows) {
+      m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
+      RenderCoordArrows();
+
+      if (m_bDoStereoRendering) {
+        m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
+        RenderCoordArrows();
+      }
+      m_TargetBinder.Unbind();
+    }
+  }
 
   // if zero bricks are to be rendered we have completed the draw job
   if (m_vCurrentBrickList.empty()) {
@@ -945,7 +957,9 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
 
   // if there is something left in the TODO list
   if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) {
-    MESSAGE("%i bricks left to render", int(UINT64(m_vCurrentBrickList.size())-m_iBricksRenderedInThisSubFrame));
+    MESSAGE("%i bricks left to render",
+            int(UINT64(m_vCurrentBrickList.size()) -
+                m_iBricksRenderedInThisSubFrame));
 
     // setup shaders vars
     SetDataDepShaderVars();
@@ -955,19 +969,7 @@ bool GLRenderer::Execute3DFrame(ERenderArea eREnderArea) {
 
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
-      if (m_bRenderCoordArrows) {
-        m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-        RenderCoordArrows();
-
-        if (m_bDoStereoRendering) {
-          m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-          RenderCoordArrows();
-        }
-        m_TargetBinder.Unbind();
-      }
-
       MESSAGE("Subframe completed.");
-
       return true;
     }
   }
