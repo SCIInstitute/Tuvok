@@ -36,7 +36,7 @@
 #include "../Basics/SysTools.h"
 #include "../3rdParty/boost/cstdint.hpp"
 #include "../3rdParty/tiff/tiffio.h"
-#include "../Controller/MasterController.h"
+#include "../Controller/Controller.h"
 
 struct stk {
   boost::uint32_t x,y,z;      ///< dimensions

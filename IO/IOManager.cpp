@@ -39,7 +39,7 @@
 #include <fstream>
 #include <map>
 
-#include <Controller/MasterController.h>
+#include <Controller/Controller.h>
 #include <IO/DICOM/DICOMParser.h>
 #include <IO/Images/ImageParser.h>
 #include <Basics/SysTools.h>
@@ -86,7 +86,7 @@ IOManager::~IOManager()
 
 vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
 
-  m_pMasterController->DebugOut()->Message(_func_,
+  MESSAGE(
                        "Scanning directory %s", strDirectory.c_str());
 
   std::vector<FileStackInfo*> fileStacks;
@@ -115,10 +115,10 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
 
 
   if (parseDICOM.m_FileStacks.size() == 1)
-    m_pMasterController->DebugOut()->Message(_func_,
+    MESSAGE(
                                              "  found a single DICOM stack");
   else
-    m_pMasterController->DebugOut()->Message(_func_,
+    MESSAGE(
        "  found %i DICOM stacks", int(parseDICOM.m_FileStacks.size()));
 
   for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {    
@@ -135,10 +135,10 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   parseImages.GetDirInfo(strDirectory);
 
   if (parseImages.m_FileStacks.size() == 1)
-    m_pMasterController->DebugOut()->Message(_func_,
+    MESSAGE(
                                              "  found a single image stack");
   else
-    m_pMasterController->DebugOut()->Message(_func_,
+    MESSAGE(
         "  found %i image stacks", int(parseImages.m_FileStacks.size()));
 
   for (size_t iStackID = 0;iStackID < parseImages.m_FileStacks.size();iStackID++) {    
@@ -153,7 +153,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
 
    // add other image parsers here
 
-  m_pMasterController->DebugOut()->Message(_func_,"  scan complete");
+  MESSAGE("  scan complete");
 
   return fileStacks;
 }
@@ -164,27 +164,27 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
   /// \todo maybe come up with something smarter for a temp dir then the target dir
   m_TempDir = SysTools::GetPath(strTargetFilename);
 
-  m_pMasterController->DebugOut()->Message(_func_,"Request to convert stack of %s files to %s received", pStack->m_strDesc.c_str(), strTargetFilename.c_str());
+  MESSAGE("Request to convert stack of %s files to %s received", pStack->m_strDesc.c_str(), strTargetFilename.c_str());
 
   if (pStack->m_strFileType == "DICOM") {
-    m_pMasterController->DebugOut()->Message(_func_,"  Detected DICOM stack, starting DICOM conversion");
+    MESSAGE("  Detected DICOM stack, starting DICOM conversion");
 
     DICOMStackInfo* pDICOMStack = ((DICOMStackInfo*)pStack);
 
-    m_pMasterController->DebugOut()->Message(_func_,"  Stack contains %i files",  int(pDICOMStack->m_Elements.size()));
-    m_pMasterController->DebugOut()->Message(_func_,"    Series: %i  Bits: %i (%i)", pDICOMStack->m_iSeries, pDICOMStack->m_iAllocated, pDICOMStack->m_iStored);
-    m_pMasterController->DebugOut()->Message(_func_,"    Date: %s  Time: %s", pDICOMStack->m_strAcquDate.c_str(), pDICOMStack->m_strAcquTime.c_str());
-    m_pMasterController->DebugOut()->Message(_func_,"    Modality: %s  Description: %s", pDICOMStack->m_strModality.c_str(), pDICOMStack->m_strDesc.c_str());
-    m_pMasterController->DebugOut()->Message(_func_,"    Aspect Ratio: %g %g %g", pDICOMStack->m_fvfAspect.x, pDICOMStack->m_fvfAspect.y, pDICOMStack->m_fvfAspect.z);
+    MESSAGE("  Stack contains %i files",  int(pDICOMStack->m_Elements.size()));
+    MESSAGE("    Series: %i  Bits: %i (%i)", pDICOMStack->m_iSeries, pDICOMStack->m_iAllocated, pDICOMStack->m_iStored);
+    MESSAGE("    Date: %s  Time: %s", pDICOMStack->m_strAcquDate.c_str(), pDICOMStack->m_strAcquTime.c_str());
+    MESSAGE("    Modality: %s  Description: %s", pDICOMStack->m_strModality.c_str(), pDICOMStack->m_strDesc.c_str());
+    MESSAGE("    Aspect Ratio: %g %g %g", pDICOMStack->m_fvfAspect.x, pDICOMStack->m_fvfAspect.y, pDICOMStack->m_fvfAspect.z);
 
     string strTempMergeFilename = strTargetFilename + "~";
 
-    m_pMasterController->DebugOut()->Message(_func_,"    Creating intermediate file %s", strTempMergeFilename.c_str()); 
+    MESSAGE("    Creating intermediate file %s", strTempMergeFilename.c_str()); 
 
     ofstream fs;
     fs.open(strTempMergeFilename.c_str(),fstream::binary);
     if (fs.fail())  {
-      m_pMasterController->DebugOut()->Error(_func_,"Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
+      ERROR("Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
       return false;
     }
 
@@ -198,7 +198,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
       if (pDICOMStack->m_bIsJPEGEncoded) {
         QImage image;
         if (!image.loadFromData((uchar*)pData, iDataSize)) {
-          m_pMasterController->DebugOut()->Error(_func_,"QImage is unable to load JPEG block in DICOM file.");
+          ERROR("QImage is unable to load JPEG block in DICOM file.");
           delete [] pData;
           return false;
         }
@@ -222,7 +222,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
             }
           }
         } else {
-          m_pMasterController->DebugOut()->Error(_func_,"Only 1 and 3 component images are supported a the moment.");
+          ERROR("Only 1 and 3 component images are supported a the moment.");
           delete [] pData;
           return false;
         }
@@ -264,7 +264,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     delete [] pData;
 
     fs.close();
-    m_pMasterController->DebugOut()->Message(_func_,"    done creating intermediate file %s", strTempMergeFilename.c_str()); 
+    MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str()); 
 
     UINTVECTOR3 iSize = pDICOMStack->m_ivSize;
     iSize.z *= UINT32(pDICOMStack->m_Elements.size());
@@ -281,22 +281,22 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
                                     + " to " + SysTools::GetFilename(pDICOMStack->m_Elements[pDICOMStack->m_Elements.size()-1]->m_strFileName));
 
     if( remove(strTempMergeFilename.c_str()) != 0 ) {
-      m_pMasterController->DebugOut()->Warning(_func_,"Unable to remove temp file %s", strTempMergeFilename.c_str());
+      WARNING("Unable to remove temp file %s", strTempMergeFilename.c_str());
     }
 
     return result;
   } else {
      if (pStack->m_strFileType == "IMAGE") {
-        m_pMasterController->DebugOut()->Message(_func_,"  Detected Image stack, starting image conversion");
-        m_pMasterController->DebugOut()->Message(_func_,"  Stack contains %i files",  int(pStack->m_Elements.size()));
+        MESSAGE("  Detected Image stack, starting image conversion");
+        MESSAGE("  Stack contains %i files",  int(pStack->m_Elements.size()));
 
         string strTempMergeFilename = strTargetFilename + "~";
-        m_pMasterController->DebugOut()->Message(_func_,"    Creating intermediate file %s", strTempMergeFilename.c_str()); 
+        MESSAGE("    Creating intermediate file %s", strTempMergeFilename.c_str()); 
 
         ofstream fs;
         fs.open(strTempMergeFilename.c_str(),fstream::binary);
         if (fs.fail())  {
-          m_pMasterController->DebugOut()->Error(_func_,"Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
+          ERROR("Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
           return false;
         }
 
@@ -311,7 +311,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
 
         fs.close();
-        m_pMasterController->DebugOut()->Message(_func_,"    done creating intermediate file %s", strTempMergeFilename.c_str()); 
+        MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str()); 
 
         UINTVECTOR3 iSize = pStack->m_ivSize;
         iSize.z *= UINT32(pStack->m_Elements.size());
@@ -326,7 +326,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
                                         + " to " + SysTools::GetFilename(pStack->m_Elements[pStack->m_Elements.size()-1]->m_strFileName));
 
         if( remove(strTempMergeFilename.c_str()) != 0 ) {
-          m_pMasterController->DebugOut()->Warning(_func_,"Unable to remove temp file %s", strTempMergeFilename.c_str());
+          WARNING("Unable to remove temp file %s", strTempMergeFilename.c_str());
         }
 
         return result;
@@ -334,7 +334,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
   }
 
 
-  m_pMasterController->DebugOut()->Error(_func_,"Unknown source stack type %s", pStack->m_strFileType.c_str());
+  ERROR("Unknown source stack type %s", pStack->m_strFileType.c_str());
   return false;
 }
 
@@ -344,7 +344,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
                               bool bUseMaxMode, bool bNoUserInteraction) {
   /// \todo maybe come up with something smarter for a temp dir then the target dir
   m_TempDir = SysTools::GetPath(strTargetFilename);
-  m_pMasterController->DebugOut()->Message(_func_,"Request to merge multiple data sets into %s received.", strTargetFilename.c_str());
+  MESSAGE("Request to merge multiple data sets into %s received.", strTargetFilename.c_str());
 
   // convert the input files to RAW
   UINT64        iComponentSizeG=0;
@@ -365,7 +365,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
   bool bRAWCreated = false;
   vector<MergeDataset> vIntermediateFiles;
   for (size_t iInputData = 0;iInputData<strFilenames.size();iInputData++) {
-    m_pMasterController->DebugOut()->Message(_func_,"Reading data sets %s...", strFilenames[iInputData].c_str());
+    MESSAGE("Reading data sets %s...", strFilenames[iInputData].c_str());
     string strExt       = SysTools::ToUpperCase(SysTools::GetExt(strFilenames[iInputData]));
 
     bRAWCreated = false;
@@ -401,7 +401,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
           break;
         }
         if (vVolumeAspectG != FLOATVECTOR3(v.GetInfo()->GetScale())) 
-          m_pMasterController->DebugOut()->Warning(_func_,"Different aspect ratios found.");
+          WARNING("Different aspect ratios found.");
       }
       
       IntermediateFile.strFilename = m_TempDir + SysTools::GetFilename(strFilenames[iInputData]) + SysTools::ToString(rand()) +".raw";
@@ -471,7 +471,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
         }
 
         if (vVolumeAspectG != vVolumeAspect) 
-          m_pMasterController->DebugOut()->Warning(_func_,"Different aspect ratios found.");
+          WARNING("Different aspect ratios found.");
       }
     }
     
@@ -530,7 +530,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
   } else {
     if (bIsFloatG) {
       // unsigned float ??? :-)
-      m_pMasterController->DebugOut()->Error(_func_, "Don't know how to handle"
+      ERROR( "Don't know how to handle"
                                                      " unsigned float data.");
       return false;
     } else {
@@ -734,7 +734,7 @@ bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, co
 
 bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir) {
   if (pSourceData->GetInfo()->GetComponentCount() != 1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Isosurface extracion only supported for scaler volumes.");
+    ERROR("Isosurface extracion only supported for scaler volumes.");
     return false;
   }
 
@@ -772,7 +772,7 @@ bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, 
   }
 
   if (!pMCData) {
-    m_pMasterController->DebugOut()->Error(_func_,"Unsupported data format.");
+    ERROR("Unsupported data format.");
     return false;
   }
 
@@ -785,7 +785,7 @@ bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, 
     return true;
   else {
     remove (strTargetFilename.c_str());
-    m_pMasterController->DebugOut()->Error(_func_,"Export call failed.");
+    ERROR("Export call failed.");
     return false;
   }
 }
@@ -807,7 +807,7 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
   }
   
   if (!pExporter) {
-    m_pMasterController->DebugOut()->Error(_func_,"Unknown file extension %s.", strExt.c_str());
+    ERROR("Unknown file extension %s.", strExt.c_str());
     return false;
   }
 
@@ -815,11 +815,11 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
   bool bRAWCreated = pSourceData->Export(iLODlevel, strTempFilename, false, m_pMasterController->DebugOut());
 
   if (!bRAWCreated) {
-    m_pMasterController->DebugOut()->Error(_func_,"Unable to write temp file %s", strTempFilename.c_str());
+    ERROR("Unable to write temp file %s", strTempFilename.c_str());
     return false;
   }
 
-  m_pMasterController->DebugOut()->Message(_func_,"Writing Target Dataset");
+  MESSAGE("Writing Target Dataset");
 
   bool bTargetCreated = pExporter->ConvertToNative(
                                 strTempFilename, strTargetFilename, 0,
@@ -835,11 +835,11 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
   remove(strTempFilename.c_str());
 
   if (!bTargetCreated) {
-    m_pMasterController->DebugOut()->Error(_func_,"Unable to write target file %s", strTargetFilename.c_str());
+    ERROR("Unable to write target file %s", strTargetFilename.c_str());
     return false;
   }
 
-  m_pMasterController->DebugOut()->Message(_func_,"Done!");
+  MESSAGE("Done!");
 
   return bTargetCreated;
 }

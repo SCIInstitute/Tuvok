@@ -36,7 +36,7 @@
 //!    Copyright (C) 2008 SCI Institute
 
 #include "Scripting.h"
-#include <Controller/MasterController.h>
+#include <Controller/Controller.h>
 #include <Basics/SysTools.h>
 #include <QtCore/QTime>
 #include <QtCore/QDate>
@@ -161,13 +161,13 @@ bool Scripting::ParseFile(const std::string& strFilename) {
       if (line[0] == '#') continue;       // skip comments
 
       if (!ParseLine(line)) {
-        m_pMasterController->DebugOut()->Error(_func_,"Error executing line %i in file %s (%s)", iLine, strFilename.c_str(), line.c_str());
+        ERROR("Error executing line %i in file %s (%s)", iLine, strFilename.c_str(), line.c_str());
         fileData.close();
         return false;
       }
     }
   } else {
-    m_pMasterController->DebugOut()->Error(_func_,"Error opening script file %s", strFilename.c_str());
+    ERROR("Error opening script file %s", strFilename.c_str());
     return false;
   }
 

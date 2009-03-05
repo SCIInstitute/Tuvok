@@ -40,7 +40,7 @@
 
 
 #include "DXRenderer.h"
-#include <Controller/MasterController.h>
+#include <Controller/Controller.h>
 #include <Basics/SysTools.h>
 #include <ctime>
 
@@ -69,7 +69,7 @@ void DXRenderer::Cleanup() {
 bool DXRenderer::Initialize() {
   // call the parent
   if (!AbstrRenderer::Initialize()) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error in parent call -> aborting");
+    ERROR("Error in parent call -> aborting");
     return false;
   }
 

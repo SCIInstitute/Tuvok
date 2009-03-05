@@ -36,7 +36,7 @@
 #include "../3rdParty/boost/cstdint.hpp"
 #include "../3rdParty/tiff/tiffio.h"
 #include "../StdTuvokDefines.h"
-#include "../Controller/MasterController.h"
+#include "../Controller/Controller.h"
 #include "../Basics/SysTools.h"
 
 #ifdef __GNUC__

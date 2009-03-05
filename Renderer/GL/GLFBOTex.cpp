@@ -37,7 +37,7 @@
 */
 #include <stdio.h>
 #include "GLFBOTex.h"
-#include <Controller/MasterController.h>
+#include <Controller/Controller.h>
 
 #ifdef WIN32
   #ifndef DEBUG
@@ -67,11 +67,11 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
   if (height<1) height=1;
   if (!m_bInitialized) {
     if (GLEW_OK!=glewInit()) {
-      m_pMasterController->DebugOut()->Error(_func_,"failed to initialize GLEW!");
+      ERROR("failed to initialize GLEW!");
       return;
     }
     if (!glewGetExtension("GL_EXT_framebuffer_object")) {
-      m_pMasterController->DebugOut()->Error(_func_,"GL_EXT_framebuffer_object not supported!");
+      ERROR("GL_EXT_framebuffer_object not supported!");
       return;
     }
     m_bInitialized=true;
@@ -91,14 +91,14 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
     initFBO();
 
   if (GL_NO_ERROR!=glGetError()) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error during creation!");
+    ERROR("Error during creation!");
     glDeleteFramebuffersEXT(1,&m_hFBO);
     m_hFBO=0;
     return;
   }
   initTextures(minfilter,magfilter,wrapmode,width,height,intformat);
   if (GL_NO_ERROR!=glGetError()) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error during texture init!");
+    ERROR("Error during texture init!");
     glDeleteTextures(m_iNumBuffers,m_hTexture);
     delete[] m_hTexture;
     m_hTexture=NULL;
@@ -150,7 +150,7 @@ GLFBOTex::~GLFBOTex(void) {
   m_hDepthBuffer=0;
   --m_iCount;
   if (m_iCount==0) {
-    m_pMasterController->DebugOut()->Message(_func_,"FBO released via destructor call.");
+    MESSAGE("FBO released via destructor call.");
     glDeleteFramebuffersEXT(1,&m_hFBO);
     m_hFBO=0;
   }
@@ -196,7 +196,7 @@ void GLFBOTex::initTextures(GLenum minfilter,GLenum magfilter,GLenum wrapmode, G
  * Build a new FBO.
  */
 void GLFBOTex::initFBO(void) {
-  m_pMasterController->DebugOut()->Message(_func_,"FBO initialized.");
+  MESSAGE("FBO initialized.");
   glGenFramebuffersEXT(1, &m_hFBO);
 }
 
@@ -209,19 +209,19 @@ bool GLFBOTex::CheckFBO(const char* method) {
     case GL_FRAMEBUFFER_COMPLETE_EXT:
       return true;
     case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-      m_pMasterController->DebugOut()->Error(_func_,"%s() - Unsupported Format!",method); return false;
+      ERROR("%s() - Unsupported Format!",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
-      m_pMasterController->DebugOut()->Error(_func_,"%s() - Incomplete attachment",method); return false;
+      ERROR("%s() - Incomplete attachment",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
-      m_pMasterController->DebugOut()->Error(_func_,"%s() - Incomplete missing attachment",method); return false;
+      ERROR("%s() - Incomplete missing attachment",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
-      m_pMasterController->DebugOut()->Error(_func_,"%s() - Incomplete dimensions",method); return false;
+      ERROR("%s() - Incomplete dimensions",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
-      m_pMasterController->DebugOut()->Error(_func_,"%s() - Incomplete formats",method); return false;
+      ERROR("%s() - Incomplete formats",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
-      m_pMasterController->DebugOut()->Error(_func_,"%s() - Incomplete draw buffer",method); return false;
+      ERROR("%s() - Incomplete draw buffer",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
-      m_pMasterController->DebugOut()->Error(_func_,"%s() - Incomplete read buffer",method); return false;
+      ERROR("%s() - Incomplete read buffer",method); return false;
     default:  return false;
   }
 }
@@ -234,7 +234,7 @@ void GLFBOTex::Write(unsigned int iTargetBuffer, int iBuffer, bool bCheckBuffer)
 
 #ifdef _DEBUG
   if (!m_hFBO) {
-    m_pMasterController->DebugOut()->Error(_func_,"FBO not initialized!");
+    ERROR("FBO not initialized!");
     return;
   }
 #endif
@@ -265,7 +265,7 @@ void GLFBOTex::Read(unsigned int iTargetUnit, int iBuffer) {
   GLenum texunit = GL_TEXTURE0 + iTargetUnit;
 #ifdef _DEBUG
   if (m_LastTexUnit[iBuffer]!=0) {
-    m_pMasterController->DebugOut()->Error(_func_,"Missing FinishRead()!");
+    ERROR("Missing FinishRead()!");
   }
 #endif
   assert(iBuffer>=0);
@@ -279,7 +279,7 @@ void GLFBOTex::ReadDepth(unsigned int iTargetUnit) {
   GLenum texunit = GL_TEXTURE0 + iTargetUnit;
 #ifdef _DEBUG
   if (m_LastDepthTextUnit!=0) {
-    m_pMasterController->DebugOut()->Error(_func_,"Missing FinishDepthRead()!");
+    ERROR("Missing FinishDepthRead()!");
   }
 #endif
   m_LastDepthTextUnit=texunit;

@@ -38,7 +38,7 @@
 #endif
 
 #include "GLSLProgram.h"
-#include <Controller/MasterController.h>
+#include <Controller/Controller.h>
 
 bool GLSLProgram::m_bGlewInitialized=true;    ///< GL Extension Wrangler (glew) is initialized on first instantiation
 bool GLSLProgram::m_bGLChecked=false;         ///< GL extension check
@@ -135,30 +135,30 @@ GLSLProgram::operator GLuint(void) const {
  */
 bool GLSLProgram::Initialize(void) {
   if (!m_bGlewInitialized) {
-    if (GLEW_OK!=glewInit()) m_pMasterController->DebugOut()->Error(_func_,"GLEW initialization failed!");
+    if (GLEW_OK!=glewInit()) ERROR("GLEW initialization failed!");
     m_bGlewInitialized=true;
   }
 #ifdef GLSL_DEBUG  // just in case someone wants to handle GLEW himself (by setting the static var to true) but failed to do so properly
   else {
-    if (glMultiTexCoord2f==NULL) m_pMasterController->DebugOut()->Error(_func_,"GLEW must be initialized. Set GLSLProgram::m_bGlewInitialized = false in GLSLProgram.cpp if you want this class to do it for you");
+    if (glMultiTexCoord2f==NULL) ERROR("GLEW must be initialized. Set GLSLProgram::m_bGlewInitialized = false in GLSLProgram.cpp if you want this class to do it for you");
   }
 #endif
 
   if (!m_bGLChecked) {
     if (atof((const char*)glGetString(GL_VERSION)) >= 2.0) {
-      m_pMasterController->DebugOut()->Message(_func_,"OpenGL 2.0 supported");
+      MESSAGE("OpenGL 2.0 supported");
       m_bGLUseARB = false;
     } else { // check for ARB extensions
       if (glewGetExtension("GL_ARB_shader_objects"))
-        m_pMasterController->DebugOut()->Message(_func_,"ARB_shader_objects supported.");
+        MESSAGE("ARB_shader_objects supported.");
       else {
-        m_pMasterController->DebugOut()->Error(_func_,"Neither OpenGL 2.0 nor ARB_shader_objects not supported!");
+        ERROR("Neither OpenGL 2.0 nor ARB_shader_objects not supported!");
         return false;
       }
       if (glewGetExtension("GL_ARB_shading_language_100"))
-        m_pMasterController->DebugOut()->Message(_func_,"ARB_shading_language_100 supported.");
+        MESSAGE("ARB_shading_language_100 supported.");
       else {
-        m_pMasterController->DebugOut()->Message(_func_,"Neither OpenGL 2.0 nor ARB_shading_language_100 not supported!");
+        MESSAGE("Neither OpenGL 2.0 nor ARB_shading_language_100 not supported!");
         return false;
       }
 
@@ -207,14 +207,14 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
   bool bVSSuccess=true;  // fixed function pipeline is always working
   if (VSFile!=NULL) {
     hVS=LoadShader(VSFile,GL_VERTEX_SHADER,src);
-    if (hVS!=0) m_pMasterController->DebugOut()->Message(_func_,"VERTEX SHADER: OK");
+    if (hVS!=0) MESSAGE("VERTEX SHADER: OK");
     else {
       bVSSuccess=false;
       if (src==GLSLPROGRAM_DISK) {
-        m_pMasterController->DebugOut()->Error(_func_,"ERROR IN: %s", VSFile);
+        ERROR("ERROR IN: %s", VSFile);
       }
       else {
-        m_pMasterController->DebugOut()->Error(_func_,"---------- ERROR -----------");
+        ERROR("---------- ERROR -----------");
         int iPos=0;
         int iLine=1;
         char chLine[32];
@@ -224,7 +224,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
           if (chVerbose[i]=='\n') {
             chVerbose[i]='\0';
             sprintf(chLine,"(%.4i) ",iLine++);
-            m_pMasterController->DebugOut()->Error(_func_, "Load %s %s",chLine,&chVerbose[iPos]);
+            ERROR( "Load %s %s",chLine,&chVerbose[iPos]);
             iPos=i+1;
           }
         }
@@ -235,14 +235,14 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
   bool bFSSuccess=true;  // fixed function pipeline is always working
   if (FSFile!=NULL) {
     hFS=LoadShader(FSFile,GL_FRAGMENT_SHADER,src);
-    if (hFS!=0) m_pMasterController->DebugOut()->Message(_func_,"FRAGMENT SHADER: OK");
+    if (hFS!=0) MESSAGE("FRAGMENT SHADER: OK");
     else {
       bFSSuccess=false;
       if (src==GLSLPROGRAM_DISK) {
-        m_pMasterController->DebugOut()->Error(_func_, "ERROR IN: %s",FSFile);
+        ERROR( "ERROR IN: %s",FSFile);
       }
       else {
-        m_pMasterController->DebugOut()->Error(_func_,"---------- ERROR -----------");
+        ERROR("---------- ERROR -----------");
         int iPos=0;
         int iLine=1;
         char chLine[32];
@@ -252,7 +252,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
           if (chVerbose[i]=='\n') {
             chVerbose[i]='\0';
             sprintf(chLine,"(%.4i) ",iLine++);
-            m_pMasterController->DebugOut()->Error(_func_, "Load %s %s",chLine, &chVerbose[iPos]);
+            ERROR( "Load %s %s",chLine, &chVerbose[iPos]);
             iPos=i+1;
           }
         }
@@ -285,7 +285,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
         m_bInitialized=false;
         return;
       } else {
-        m_pMasterController->DebugOut()->Message(_func_,"PROGRAM OBJECT: OK");
+        MESSAGE("PROGRAM OBJECT: OK");
         m_bInitialized=true;
       }
     } else {
@@ -294,9 +294,9 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
       glDeleteObjectARB(m_hProgram);
       m_hProgram=0;
       m_bInitialized=false;
-      if (!bVSSuccess && !bFSSuccess) m_pMasterController->DebugOut()->Error(_func_,"Error in vertex and fragment shaders");
-      else if (!bVSSuccess) m_pMasterController->DebugOut()->Error(_func_,"Error in vertex shader");
-      else if (!bFSSuccess) m_pMasterController->DebugOut()->Error(_func_,"Error in fragment shader");
+      if (!bVSSuccess && !bFSSuccess) ERROR("Error in vertex and fragment shaders");
+      else if (!bVSSuccess) ERROR("Error in vertex shader");
+      else if (!bFSSuccess) ERROR("Error in fragment shader");
     }
   } else {
     // attach to program object
@@ -325,7 +325,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
         return;
       }
       else {
-        m_pMasterController->DebugOut()->Message(_func_,"PROGRAM OBJECT: OK");
+        MESSAGE("PROGRAM OBJECT: OK");
         m_bInitialized=true;
       }
     }
@@ -335,9 +335,9 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
       glDeleteProgram(m_hProgram);
       m_hProgram=0;
       m_bInitialized=false;
-      if (!bVSSuccess && !bFSSuccess) m_pMasterController->DebugOut()->Error(_func_,"Error in vertex and fragment shaders");
-      else if (!bVSSuccess) m_pMasterController->DebugOut()->Error(_func_,"Error in vertex shader");
-      else if (!bFSSuccess) m_pMasterController->DebugOut()->Error(_func_,"Error in fragment shader");
+      if (!bVSSuccess && !bFSSuccess) ERROR("Error in vertex and fragment shaders");
+      else if (!bVSSuccess) ERROR("Error in vertex shader");
+      else if (!bFSSuccess) ERROR("Error in fragment shader");
     }
   }
 }
@@ -373,13 +373,13 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bPro
       bAtMostWarnings=glIsShader(hObject);
     }
     if (bAtMostWarnings) {
-      m_pMasterController->DebugOut()->Warning(_func_,shaderdesc);
-      m_pMasterController->DebugOut()->Warning(_func_,pcLogInfo);
+      WARNING(shaderdesc);
+      WARNING(pcLogInfo);
     delete[] pcLogInfo;
     return false;
     } else {
-      m_pMasterController->DebugOut()->Error(_func_,shaderdesc);
-      m_pMasterController->DebugOut()->Error(_func_,pcLogInfo);
+      ERROR(shaderdesc);
+      ERROR(pcLogInfo);
     delete[] pcLogInfo;
 #ifdef GLSLPROGRAM_STRICT
     return true;
@@ -405,7 +405,7 @@ bool GLSLProgram::WriteError(GLhandleARB hObject) {
   if (iLength>1) {
     GLcharARB *pcLogInfo=new GLcharARB[iLength];
     glGetInfoLogARB(hObject,iLength,&iLength,pcLogInfo);
-    m_pMasterController->DebugOut()->Message(_func_,pcLogInfo);
+    MESSAGE(pcLogInfo);
     delete[] pcLogInfo;
     return true;  // an error had occured.
   }
@@ -441,12 +441,12 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
     case GLSLPROGRAM_DISK:
       fptr=fopen(ShaderDesc,"rb");
       if (!fptr) {
-        m_pMasterController->DebugOut()->Error(_func_,"File %s not found!",ShaderDesc);
+        ERROR("File %s not found!",ShaderDesc);
         return 0;
       }
       if (fseek(fptr,0,SEEK_END)) {
         fclose(fptr);
-        m_pMasterController->DebugOut()->Error(_func_,"Error reading file %s.",ShaderDesc);
+        ERROR("Error reading file %s.",ShaderDesc);
         return 0;
       }
       lFileSize=ftell(fptr)/sizeof(char);
@@ -456,7 +456,7 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
       if (lFileSize!=fread(pcShader,sizeof(char),lFileSize,fptr)) {
         fclose(fptr);
         delete[] pcShader;
-        m_pMasterController->DebugOut()->Error(_func_,"Error reading file %s.",ShaderDesc);
+        ERROR("Error reading file %s.",ShaderDesc);
         return 0;
       }
       fclose(fptr);
@@ -466,7 +466,7 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
       lFileSize=long(strlen(pcShader));
       break;
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown source");
+      ERROR("Unknown source");
       return 0;
       break;
   }
@@ -530,7 +530,7 @@ void GLSLProgram::Enable(void) {
       glUseProgram(m_hProgram);
     if (!CheckGLError("Enable()")) m_bEnabled=true;
   }
-  else m_pMasterController->DebugOut()->Error(_func_,"No program loaded!");
+  else ERROR("No program loaded!");
 }
 
 
@@ -553,7 +553,7 @@ void GLSLProgram::Disable(void) {
       glUseProgram(0);
     if (!CheckGLError("Disable()")) m_bEnabled=false;
   }
-  else m_pMasterController->DebugOut()->Error(_func_,"No program loaded!");
+  else ERROR("No program loaded!");
 }
 
 
@@ -607,7 +607,7 @@ bool GLSLProgram::CheckGLError(const char *pcError, const char *pcAdditional) co
     if (pcMessage!=pcError) delete[] pcMessage;
 
     // display the error.
-    m_pMasterController->DebugOut()->Error(_func_,output);
+    ERROR(output);
     delete[] output;
 
     return true;
@@ -661,7 +661,7 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
   if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) return;
 
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -699,7 +699,7 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
 #endif
 
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -733,7 +733,7 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
   if (CheckGLError("SetUniformVector(%s,bool,...) [getting adress]",name)) return;
 
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -762,7 +762,7 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
 #endif
 
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -795,7 +795,7 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 
   if (CheckGLError("SetUniformVector(%s,int,...) [getting adress]", name )) return;
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -834,7 +834,7 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 #endif
 
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -868,7 +868,7 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
   if (CheckGLError("SetUniformVector(%s,float*) [getting adress]",name)) return;
 
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -906,7 +906,7 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
 #endif
 
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -939,7 +939,7 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
 
   if (CheckGLError("SetUniformVector(%s,int*) [getting adress]",name)) return;
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -975,7 +975,7 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,float(i[0]),float(i[1]),float(i[2]),float(i[3])); break;
 #endif
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1008,7 +1008,7 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
 
   if (CheckGLError("SetUniformVector(%s,bool*) [getting adress]",name)) return;
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1035,7 +1035,7 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,(b[0] ? 1.0f : 0.0f),(b[1] ? 1.0f : 0.0f),(b[2] ? 1.0f : 0.0f),(b[3] ? 1.0f : 0.0f)); break;
 #endif
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1070,7 +1070,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
 
   if (CheckGLError("SetUniformMatrix(%s,float*,bool) [getting adress]",name)) return;
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1086,7 +1086,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
     case GL_FLOAT_MAT3:          glUniformMatrix3fv(iLocation,1,bTranspose,m); break;
     case GL_FLOAT_MAT4:          glUniformMatrix4fv(iLocation,1,bTranspose,m); break;
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1124,7 +1124,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
 
   if (CheckGLError("SetUniformMatrix(%s,int*,bool) [getting adress]",name)) return;
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1150,7 +1150,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
       glUniformMatrix4fv(iLocation,1,bTranspose,M);
       break;
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1186,7 +1186,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
 
   if (CheckGLError("SetUniformMatrix(%s,int*,bool) [getting adress]",name)) return;
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1212,7 +1212,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
       glUniformMatrix4fv(iLocation,1,bTranspose,M);
       break;
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1248,7 +1248,7 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
 
   if (CheckGLError("SetUniformArray(%s,float*) [getting adress]",name)) return;
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1311,7 +1311,7 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
 #endif
 
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1345,7 +1345,7 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
 
   if (CheckGLError("SetUniformArray(%s,int*) [getting adress]",name)) return;
   if(iLocation==-1) {
-    m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+    ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1407,7 +1407,7 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
 #endif
 
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1441,7 +1441,7 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
 
   if (CheckGLError("SetUniformArray(%s,bool*) [getting adress]",name)) return;
   if(iLocation==-1) {
-   m_pMasterController->DebugOut()->Error(_func_,"Error getting address for %s.",name);
+   ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1534,7 +1534,7 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
 #endif
 
     default:
-      m_pMasterController->DebugOut()->Error(_func_,"Unknown type for %s.",name);
+      ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG

@@ -35,7 +35,7 @@
 */
 
 #include "GPUMemManDataStructs.h"
-#include <Controller/MasterController.h>
+#include <Controller/Controller.h>
 
 Texture3DListElem::Texture3DListElem(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder, UINT64 iIntraFrameCounter, UINT64 iFrameCounter, MasterController* pMasterController) :
   pData(NULL),
@@ -290,7 +290,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
       memcpy(pPaddedData+iTarget, pPaddedData+(iTarget-vPaddedSize[1]*iRowSizeTarget), vPaddedSize[1]*iRowSizeTarget);
     }
 
-    m_pMasterController->DebugOut()->Message("Texture3DListElem::CreateTexture","Actually creating new texture %i x %i x %i, bitsize=%i, componentcount=%i due to compatibility settings", int(vPaddedSize[0]), int(vPaddedSize[1]), int(vPaddedSize[2]), int(iBitWidth), int(iCompCount));
+    MESSAGE("Actually creating new texture %i x %i x %i, bitsize=%i, componentcount=%i due to compatibility settings", int(vPaddedSize[0]), int(vPaddedSize[1]), int(vPaddedSize[2]), int(iBitWidth), int(iCompCount));
 
     pTexture = new GLTexture3D(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2], glInternalformat, glFormat, glType, UINT32(iBitWidth/8*iCompCount), pPaddedData, GL_LINEAR, GL_LINEAR, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
 

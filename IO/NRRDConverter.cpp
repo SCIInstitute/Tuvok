@@ -36,7 +36,7 @@
 
 #include "NRRDConverter.h"
 #include "IOManager.h"  // for the size defines
-#include <Controller/MasterController.h>
+#include <Controller/Controller.h>
 #include <Basics/SysTools.h>
 #include <IO/KeyValueFileParser.h>
 
@@ -58,7 +58,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
                                  UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                                  bool& bDeleteIntermediateFile) {
 
-  pMasterController->DebugOut()->Message(_func_,"Attempting to convert NRRD dataset %s", strSourceFilename.c_str());
+  MESSAGE("Attempting to convert NRRD dataset %s", strSourceFilename.c_str());
 
   // Check Magic value in NRRD File first
   ifstream fileData(strSourceFilename.c_str());
@@ -68,11 +68,11 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   {
     getline (fileData,strFirstLine);
     if (strFirstLine.substr(0,7) != "NRRD000") {
-      pMasterController->DebugOut()->Warning(_func_,"The file %s is not a NRRD file (missing magic)", strSourceFilename.c_str());
+      WARNING("The file %s is not a NRRD file (missing magic)", strSourceFilename.c_str());
       return false;
     }
   } else {
-    pMasterController->DebugOut()->Warning(_func_,
+    WARNING(
                                            "Could not open NRRD file %s",
                                            strSourceFilename.c_str());
     return false;
@@ -94,13 +94,13 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   KeyValueFileParser parser(strSourceFilename, true);
 
   if (!parser.FileReadable()) {
-    pMasterController->DebugOut()->Warning(_func_,"Could not open NRRD file %s", strSourceFilename.c_str());
+    WARNING("Could not open NRRD file %s", strSourceFilename.c_str());
     return false;
   }
 
   KeyValPair* kvpType = parser.GetData("TYPE");
   if (kvpType == NULL) {
-    pMasterController->DebugOut()->Error(_func_,"Could not open find token \"type\" in file %s", strSourceFilename.c_str());
+    ERROR("Could not open find token \"type\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvpType->strValueUpper == "SIGNED CHAR" || kvpType->strValueUpper == "INT8" || kvpType->strValueUpper == "INT8_T") {
@@ -144,14 +144,14 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       bIsFloat = true;
       iComponentSize = 64;
     } else {
-      pMasterController->DebugOut()->Error(_func_,"Unsupported \"type\" in file %s", strSourceFilename.c_str());
+      ERROR("Unsupported \"type\" in file %s", strSourceFilename.c_str());
       return false;
     }
   }
 
   KeyValPair* kvpSizes = parser.GetData("SIZES");
   if (kvpSizes == NULL) {
-    pMasterController->DebugOut()->Error(_func_,"Could not open find token \"sizes\" in file %s", strSourceFilename.c_str());
+    ERROR("Could not open find token \"sizes\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
 
@@ -159,7 +159,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     for (size_t i = 0;i<kvpSizes->vuiValue.size();i++) {
       if (kvpSizes->vuiValue[i] > 1) {
         if (j>2) {
-          pMasterController->DebugOut()->Error(_func_,"Only 3D NRRDs are supported at the moment");
+          ERROR("Only 3D NRRDs are supported at the moment");
           return false;
         }
         vVolumeSize[j] = kvpSizes->vuiValue[i];
@@ -170,14 +170,14 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvpDim = parser.GetData("DIMENSION");
   if (kvpDim == NULL) {
-    pMasterController->DebugOut()->Error(_func_,"Could not open find token \"dimension\" in file %s", strSourceFilename.c_str());
+    ERROR("Could not open find token \"dimension\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvpDim->iValue < 3)  {
-      pMasterController->DebugOut()->Warning(_func_,"The dimension of this NRRD file is less than three.");
+      WARNING("The dimension of this NRRD file is less than three.");
     }
     if (kvpDim->iValue > 3)  {
-      pMasterController->DebugOut()->Warning(_func_,"The dimension of this NRRD file is more than three.");
+      WARNING("The dimension of this NRRD file is more than three.");
     }
   }
 
@@ -191,7 +191,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     bDetachedHeader = false;
   } else {
     if (kvpDataFile1 && kvpDataFile2 && kvpDataFile1->strValue != kvpDataFile2->strValue) 
-      pMasterController->DebugOut()->Warning(_func_, "Found different 'data file' and 'datafiel' fields, using 'datafile'.");
+      WARNING( "Found different 'data file' and 'datafiel' fields, using 'datafile'.");
 
     if (kvpDataFile1) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile1->strValue;
     if (kvpDataFile2) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile2->strValue;
@@ -220,7 +220,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   KeyValPair* kvpLineSkip2 = parser.GetData("LINESKIP");
   if (kvpLineSkip2 != NULL) {
     if (kvpLineSkip1 != NULL && iLineSkip != kvpLineSkip2->iValue) 
-      pMasterController->DebugOut()->Warning(_func_, "Found different 'line skip' and 'lineskip' fields, using 'lineskip'.");
+      WARNING( "Found different 'line skip' and 'lineskip' fields, using 'lineskip'.");
     iLineSkip = kvpLineSkip2->iValue;
   }
 
@@ -230,17 +230,17 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   KeyValPair* kvpByteSkip2 = parser.GetData("BYTESKIP");
   if (kvpByteSkip2 != NULL) {
     if (kvpByteSkip1 != NULL && iByteSkip != kvpByteSkip2->iValue) 
-      pMasterController->DebugOut()->Warning(_func_, "Found different 'byte skip' and 'byteskip' fields, using 'byteskip'.");
+      WARNING( "Found different 'byte skip' and 'byteskip' fields, using 'byteskip'.");
     iByteSkip = kvpByteSkip2->iValue;
   }
 
   if (iLineSkip < 0) {
-    pMasterController->DebugOut()->Warning(_func_, "Negative 'line skip' found, ignoring.");
+    WARNING( "Negative 'line skip' found, ignoring.");
     iLineSkip = 0;
   }
 
   if (iByteSkip == -1 && iLineSkip != 0) {
-    pMasterController->DebugOut()->Warning(_func_, "'byte skip' = -1 'line skip' found, ignoring 'line skip'.");
+    WARNING( "'byte skip' = -1 'line skip' found, ignoring 'line skip'.");
     iLineSkip = 0;
   }
 
@@ -259,10 +259,10 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         }
       }
       if (iLineSkipBytes == 0) 
-        pMasterController->DebugOut()->Warning(_func_, "Invalid 'line skip', file to short, ignoring 'line skip'.");
+        WARNING( "Invalid 'line skip', file to short, ignoring 'line skip'.");
       fileData.close();
     } else {
-        pMasterController->DebugOut()->Warning(_func_, "Unable to open target file, ignoring 'line skip'.");
+        WARNING( "Unable to open target file, ignoring 'line skip'.");
     }
   }
 
@@ -273,14 +273,14 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvpEncoding = parser.GetData("ENCODING");
   if (kvpEncoding == NULL) {
-    pMasterController->DebugOut()->Error(_func_,
+    ERROR(
                                          "Could not find token \"encoding\""
                                          " in file %s",
                                          strSourceFilename.c_str());
     return false;
   } else {
     if (kvpEncoding->strValueUpper == "RAW")  {
-      pMasterController->DebugOut()->Message(_func_,"NRRD data is in RAW format!");
+      MESSAGE("NRRD data is in RAW format!");
 
       if (iByteSkip == -1) {
         LargeRAWFile f(strRAWFile);
@@ -294,7 +294,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
           if (bDetachedHeader) 
             iHeaderSkip = iByteSkip;
           else {
-            pMasterController->DebugOut()->Warning(_func_, "Skip value in attached header found.");
+            WARNING( "Skip value in attached header found.");
             iHeaderSkip += iByteSkip;
           }
         }
@@ -307,10 +307,10 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       return true;
     } else {
       if (iByteSkip == -1) 
-        pMasterController->DebugOut()->Warning(_func_, "Found illegal -1 'byte skip' in non RAW mode, ignoring 'byte skip'.");
+        WARNING( "Found illegal -1 'byte skip' in non RAW mode, ignoring 'byte skip'.");
 
       if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
-        pMasterController->DebugOut()->Message(_func_,"NRRD data is plain textformat.");
+        MESSAGE("NRRD data is plain textformat.");
 
         string strBinaryFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".binary";
         bool bResult = ParseTXTDataset(strRAWFile, strBinaryFile, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bIsFloat, vVolumeSize);
@@ -321,10 +321,10 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         return bResult;
       } else
       if (kvpEncoding->strValueUpper == "HEX")  {
-        pMasterController->DebugOut()->Error(_func_,"NRRD data is in haxdecimal text format which is not supported at the moment.");
+        ERROR("NRRD data is in haxdecimal text format which is not supported at the moment.");
       } else
       if (kvpEncoding->strValueUpper == "GZ" || kvpEncoding->strValueUpper == "GZIP")  {
-        pMasterController->DebugOut()->Message(_func_,"NRRD data is GZIP compressed RAW format.");
+        MESSAGE("NRRD data is GZIP compressed RAW format.");
 
         string strUncompressedFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".uncompressed";
         bool bResult = ExtractGZIPDataset(strRAWFile, strUncompressedFile, pMasterController, iHeaderSkip);
@@ -334,7 +334,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         return bResult;
       } else
       if (kvpEncoding->strValueUpper == "BZ" || kvpEncoding->strValueUpper == "BZIP2")  {
-        pMasterController->DebugOut()->Message(_func_,"NRRD data is BZIP2 compressed RAW format.");
+        MESSAGE("NRRD data is BZIP2 compressed RAW format.");
 
         string strUncompressedFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".uncompressed";
         bool bResult = ExtractBZIP2Dataset(strRAWFile, strUncompressedFile, pMasterController, iHeaderSkip);
@@ -343,7 +343,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         iHeaderSkip = 0;
         return bResult;
       } else {
-        pMasterController->DebugOut()->Error(_func_,"NRRD data is in unknown \"%s\" format.");
+        ERROR("NRRD data is in unknown \"%s\" format.");
       }
     }
     return false;
@@ -391,7 +391,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
   }
 
   if (!bFormatOK) {
-    pMasterController->DebugOut()->Error(_func_,"This data type is not supported by NRRD files.");
+    ERROR("This data type is not supported by NRRD files.");
     return false;
   }                               
                                
@@ -399,7 +399,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
 
   ofstream fAsciiTarget(strTargetFilename.c_str());  
   if (!fAsciiTarget.is_open()) {
-    pMasterController->DebugOut()->Error(_func_,"Unable to open target file %s.", strTargetFilename.c_str());
+    ERROR("Unable to open target file %s.", strTargetFilename.c_str());
     return false;
   }
 
@@ -424,7 +424,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     if (bRAWSuccess) {
       return true;
     } else {
-      pMasterController->DebugOut()->Error(_func_,"Error creating raw target file %s.", strTargetRAWFilename.c_str());
+      ERROR("Error creating raw target file %s.", strTargetRAWFilename.c_str());
       remove(strTargetFilename.c_str());
       return false;
     }
@@ -440,7 +440,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     if (bRAWSuccess) {
       return true;
     } else {
-      pMasterController->DebugOut()->Error(_func_,"Error appaneding raw data to header file %s.", strTargetFilename.c_str());
+      ERROR("Error appaneding raw data to header file %s.", strTargetFilename.c_str());
       remove(strTargetFilename.c_str());
       return false;
     }
