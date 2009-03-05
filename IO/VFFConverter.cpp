@@ -70,9 +70,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
       return false;
     }
   } else {
-    WARNING(
-                                           "Could not open VFF file %s",
-                                           strSourceFilename.c_str());
+    WARNING("Could not open VFF file %s", strSourceFilename.c_str());
     return false;
   }
   fileData.close();

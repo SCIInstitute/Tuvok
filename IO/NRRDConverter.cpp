@@ -72,9 +72,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       return false;
     }
   } else {
-    WARNING(
-                                           "Could not open NRRD file %s",
-                                           strSourceFilename.c_str());
+    WARNING("Could not open NRRD file %s", strSourceFilename.c_str());
     return false;
   }
   fileData.close();
@@ -273,10 +271,8 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvpEncoding = parser.GetData("ENCODING");
   if (kvpEncoding == NULL) {
-    ERROR(
-                                         "Could not find token \"encoding\""
-                                         " in file %s",
-                                         strSourceFilename.c_str());
+    ERROR("Could not find token \"encoding\" in file %s",
+          strSourceFilename.c_str());
     return false;
   } else {
     if (kvpEncoding->strValueUpper == "RAW")  {

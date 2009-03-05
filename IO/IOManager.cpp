@@ -86,8 +86,7 @@ IOManager::~IOManager()
 
 vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
 
-  MESSAGE(
-                       "Scanning directory %s", strDirectory.c_str());
+  MESSAGE("Scanning directory %s", strDirectory.c_str());
 
   std::vector<FileStackInfo*> fileStacks;
 
@@ -115,11 +114,9 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
 
 
   if (parseDICOM.m_FileStacks.size() == 1)
-    MESSAGE(
-                                             "  found a single DICOM stack");
+    MESSAGE("  found a single DICOM stack");
   else
-    MESSAGE(
-       "  found %i DICOM stacks", int(parseDICOM.m_FileStacks.size()));
+    MESSAGE("  found %i DICOM stacks", int(parseDICOM.m_FileStacks.size()));
 
   for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {    
     DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
@@ -135,11 +132,9 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   parseImages.GetDirInfo(strDirectory);
 
   if (parseImages.m_FileStacks.size() == 1)
-    MESSAGE(
-                                             "  found a single image stack");
+    MESSAGE("  found a single image stack");
   else
-    MESSAGE(
-        "  found %i image stacks", int(parseImages.m_FileStacks.size()));
+    MESSAGE("  found %i image stacks", int(parseImages.m_FileStacks.size()));
 
   for (size_t iStackID = 0;iStackID < parseImages.m_FileStacks.size();iStackID++) {    
     ImageStackInfo* f = new ImageStackInfo((ImageStackInfo*)parseImages.m_FileStacks[iStackID]);
@@ -530,8 +525,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
   } else {
     if (bIsFloatG) {
       // unsigned float ??? :-)
-      ERROR( "Don't know how to handle"
-                                                     " unsigned float data.");
+      ERROR("Don't know how to handle unsigned float data.");
       return false;
     } else {
       switch (iComponentSizeG) {

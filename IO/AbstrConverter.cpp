@@ -54,8 +54,7 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
 
   string strSignChangedFile;
   if (bSigned)  {
-    MESSAGE(
-           "Changing signed to unsigned char and computing 1D histogram...");
+    MESSAGE("Changing signed to unsigned char and computing 1D histogram...");
     LargeRAWFile OutputData(strTargetFilename);
     OutputData.Create(iSize);
 
@@ -80,16 +79,14 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
     }
 
     if (iPos < iSize) {
-      WARNING(
-                           "Specified size and real datasize mismatch");
+      WARNING("Specified size and real datasize mismatch");
     }
 
     delete [] pInData;
     strSignChangedFile = strTargetFilename;
     OutputData.Close();
   } else {
-    MESSAGE(
-                                             "Computing 1D Histogram...");
+    MESSAGE("Computing 1D Histogram...");
     unsigned char* pInData = new unsigned char[INCORESIZE];
 
     UINT64 iPos = 0;
@@ -101,15 +98,14 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
       iPos += UINT64(iRead);
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-        MESSAGE(
-         "Computing 1D Histogram (%i percent complete)", int((100*iPos)/iSize));
+        MESSAGE("Computing 1D Histogram (%i percent complete)",
+                int((100*iPos)/iSize));
         iDivLast = (100*iPos)/iSize;
       }
     }
 
     if (iPos < iSize) {
-      WARNING(
-                           "Specified size and real datasize mismatch");
+      WARNING("Specified size and real datasize mismatch");
     }
 
     delete [] pInData;
@@ -154,7 +150,8 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     iPos += UINT64(iRead);
 
     if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      MESSAGE("Computing value range (%i percent complete)",
+              int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
 
@@ -162,8 +159,7 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
   }
 
   if (iPos < iSize) {
-    WARNING(
-                         "Specified size and real datasize mismatch");
+    WARNING("Specified size and real datasize mismatch");
     iSize = iPos;
   }
 
@@ -176,10 +172,14 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     InputData.Close();
     strQuantFile = strFilename;
   } else {
-    if (bSigned)
-      MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<short>::max(), int(iMax)-numeric_limits<short>::max());
-    else
-      MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)", iMin, iMax);
+    if (bSigned) {
+      MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)",
+              int(iMin)-numeric_limits<short>::max(),
+              int(iMax)-numeric_limits<short>::max());
+    } else {
+      MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)",
+              iMin, iMax);
+    }
     std::fill(aHist.begin(), aHist.end(), 0);
 
     // otherwise quantize
@@ -210,10 +210,16 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
       iPos += UINT64(iRead);
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-        if (bSigned)
-          MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)\n%i percent complete", int(iMin)-numeric_limits<short>::max(), int(iMax)-numeric_limits<short>::max(), int((100*iPos)/iSize));
-        else
-          MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
+        if (bSigned) {
+          MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)"
+                  "\n%i percent complete",
+                  int(iMin) - numeric_limits<short>::max(),
+                  int(iMax) - numeric_limits<short>::max(),
+                  int((100*iPos)/iSize));
+        } else {
+          MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)"
+                  "\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
+        }
         iDivLast = (100*iPos)/iSize;
       }
 
@@ -257,15 +263,15 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
     iPos += UINT64(iRead);
 
     if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      MESSAGE("Computing value range (%i percent complete)",
+              int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
 
   }
 
   if (iPos < iSize) {
-    WARNING(
-                         "Specified size and real datasize mismatch");
+    WARNING("Specified size and real datasize mismatch");
     iSize = iPos;
   }
 
@@ -279,7 +285,8 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
     return "";
   }
 
-  MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)", fMin, fMax);
+  MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)",
+          fMin, fMax);
 
   float fQuantFact = 4095.0f / float(fMax-fMin);
   unsigned short* pOutData = new unsigned short[INCORESIZE];
@@ -304,7 +311,8 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
     iPos += UINT64(iRead);
 
     if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)\n%i percent complete", fMin, fMax, int((100*iPos)/iSize));
+      MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)\n"
+              "%i percent complete", fMin, fMax, int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
 
@@ -346,15 +354,15 @@ const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const st
     iPos += UINT64(iRead);
 
     if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      MESSAGE("Computing value range (%i percent complete)",
+              int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
 
   }
 
   if (iPos < iSize) {
-    WARNING(
-                         "Specified size and real datasize mismatch");
+    WARNING("Specified size and real datasize mismatch");
     iSize = iPos;
   }
 
@@ -368,7 +376,8 @@ const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const st
     return "";
   }
 
-  MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)", fMin, fMax);
+  MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)",
+          fMin, fMax);
 
   double fQuantFact = 4095 / (fMax-fMin);
   unsigned short* pOutData = new unsigned short[INCORESIZE];
@@ -393,7 +402,8 @@ const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const st
     iPos += UINT64(iRead);
 
     if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)\n%i percent complete", fMin, fMax, int((100*iPos)/iSize));
+      MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)\n"
+              "%i percent complete", fMin, fMax, int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
 
@@ -572,7 +582,8 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
     iPos += UINT64(iRead);
 
     if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Computing value range (%i percent complete)", int((100*iPos)/iSize));
+      MESSAGE("Computing value range (%i percent complete)",
+              int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
 
@@ -593,10 +604,14 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
     InputData.Close();
     strQuantFile = strFilename;
   } else {
-    if (bSigned)
-      MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max());
-    else
-      MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)", iMin, iMax);
+    if (bSigned) {
+      MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)",
+              int(iMin) - numeric_limits<int>::max(),
+              int(iMax) - numeric_limits<int>::max());
+    } else {
+      MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)",
+              iMin, iMax);
+    }
     std::fill(aHist.begin(), aHist.end(), 0);
 
     // otherwise quantize
@@ -627,10 +642,16 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
       iPos += UINT64(iRead);
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-        if (bSigned)
-          MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)\n%i percent complete", int(iMin)-numeric_limits<int>::max(), int(iMax)-numeric_limits<int>::max(), int((100*iPos)/iSize));
-        else
-          MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
+        if (bSigned) {
+          MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)"
+                  "\n%i percent complete",
+                  int(iMin) - numeric_limits<int>::max(),
+                  int(iMax) - numeric_limits<int>::max(),
+                  int((100*iPos)/iSize));
+        } else {
+          MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)"
+                  "\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
+        }
         iDivLast = (100*iPos)/iSize;
       }
 

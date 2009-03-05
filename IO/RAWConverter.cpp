@@ -906,9 +906,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
   LargeRAWFile fSource(strSourceFilename, iHeaderSkip);
   fSource.Open(false);
   if (!fSource.IsOpen()) {
-    ERROR(
-                                         "Unable to open source file %s.",
-                                         strSourceFilename.c_str());
+    ERROR("Unable to open source file %s.", strSourceFilename.c_str());
     return false;
   }
 
