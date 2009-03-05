@@ -933,25 +933,68 @@ void GLRenderer::RenderCoordArrows() {
   glDisable(GL_CULL_FACE);
 }
 
+/// Actions to perform every subframe (rendering of a complete LOD level).
+void GLRenderer::PreSubframe(ERenderArea eRenderArea)
+{
+  NewFrameClear(eRenderArea);
+
+  // Render the coordinate cross (three arrows in upper right corner)
+  if (m_bRenderCoordArrows) {
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
+    RenderCoordArrows();
+
+    if (m_bDoStereoRendering) {
+      m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
+      RenderCoordArrows();
+    }
+    m_TargetBinder.Unbind();
+  }
+
+  // write the bounding boxes into the depth buffer (+ colorbuffer for
+  // isosurfacing).
+  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
+  m_mProjection[0].setProjection();
+  m_matModelView[0].setModelview();
+  BBoxPreRender();
+  if (m_bDoStereoRendering) {
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
+    m_mProjection[1].setProjection();
+    m_matModelView[1].setModelview();
+    BBoxPreRender();
+  }
+  m_TargetBinder.Unbind();
+}
+
+/// Actions which should be performed when we declare a subframe complete.
+void GLRenderer::PostSubframe()
+{
+  // render the bounding boxes and clip plane; these are essentially no
+  // ops if they aren't enabled.
+  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
+  m_mProjection[0].setProjection();
+  m_matModelView[0].setModelview();
+  BBoxPostRender();
+  RenderClipPlane(0);
+  if (m_bDoStereoRendering) {
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
+    m_mProjection[1].setProjection();
+    m_matModelView[1].setModelview();
+    BBoxPostRender();
+    RenderClipPlane(1);
+  }
+  m_TargetBinder.Unbind();
+}
+
 bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea) {
   // are we starting a new LOD level?
   if (m_iBricksRenderedInThisSubFrame == 0) {
-    NewFrameClear(eRenderArea);
-    if (m_bRenderCoordArrows) {
-      m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-      RenderCoordArrows();
-
-      if (m_bDoStereoRendering) {
-        m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-        RenderCoordArrows();
-      }
-      m_TargetBinder.Unbind();
-    }
+    PreSubframe(eRenderArea);
   }
 
   // if zero bricks are to be rendered we have completed the draw job
   if (m_vCurrentBrickList.empty()) {
     MESSAGE("zero bricks are to be rendered, completed the draw job");
+    PostSubframe();
     return true;
   }
 
@@ -970,6 +1013,7 @@ bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea) {
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
       MESSAGE("Subframe completed.");
+      PostSubframe();
       return true;
     }
   }
@@ -1477,21 +1521,6 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
 }
 
 void GLRenderer::Render3DView() {
-  // in the first frame of a new lod level write the bounding boxes into depthbuffer (and for isosurfacing also into colorbuffer)
-  if (m_iBricksRenderedInThisSubFrame == 0) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-    m_mProjection[0].setProjection();
-    m_matModelView[0].setModelview();
-    BBoxPreRender();
-    if (m_bDoStereoRendering) {
-      m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-      m_mProjection[1].setProjection();
-      m_matModelView[1].setModelview();
-      BBoxPreRender();
-    }
-    m_TargetBinder.Unbind();
-  }
-
   Render3DPreLoop();
 
   // loop over all bricks in the current LOD level
@@ -1546,23 +1575,6 @@ void GLRenderer::Render3DView() {
     if (m_bDoStereoRendering) {
       m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
       ComposeSurfaceImage(1);
-    }
-    m_TargetBinder.Unbind();
-  }
-
-  // at the very end render the bboxes
-  if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-    m_mProjection[0].setProjection();
-    m_matModelView[0].setModelview();
-    BBoxPostRender();
-    RenderClipPlane(0);
-    if (m_bDoStereoRendering) {
-      m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-      m_mProjection[1].setProjection();
-      m_matModelView[1].setModelview();
-      BBoxPostRender();
-      RenderClipPlane(1);
     }
     m_TargetBinder.Unbind();
   }
