@@ -217,8 +217,7 @@ bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBr
 
 // ****************************************************************************
 
-VolumeDataset::VolumeDataset(const string& strFilename, bool bVerify, MasterController* pMasterController) : 
-  m_pMasterController(pMasterController),
+VolumeDataset::VolumeDataset(const string& strFilename, bool bVerify) :
   m_pVolumeDataBlock(NULL),
   m_pHist1DDataBlock(NULL),
   m_pHist2DDataBlock(NULL),

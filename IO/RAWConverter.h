@@ -74,7 +74,6 @@ public:
   static bool ConvertRAWDataset(const std::string& strFilename,
                                 const std::string& strTargetFilename,
                                 const std::string& strTempDir,
-                                MasterController* pMasterController,
                                 UINT64 iHeaderSkip, UINT64 iComponentSize,
                                 UINT64 iComponentCount,
                                 bool bConvertEndianness, bool bSigned,
@@ -87,17 +86,14 @@ public:
 
   static bool ExtractGZIPDataset(const std::string& strFilename,
                                  const std::string& strUncompressedFile,
-                                 MasterController* pMasterController,
                                  UINT64 iHeaderSkip);
 
   static bool ExtractBZIP2Dataset(const std::string& strFilename,
                                   const std::string& strUncompressedFile,
-                                  MasterController* pMasterController,
                                   UINT64 iHeaderSkip);
 
   static bool ParseTXTDataset(const std::string& strFilename,
                               const std::string& strBinaryFile,
-                              MasterController* pMasterController,
                               UINT64 iHeaderSkip, UINT64 iComponentSize,
                               UINT64 iComponentCount, bool bSigned,
                               bool bIsFloat, UINTVECTOR3 vVolumeSize);
@@ -105,7 +101,6 @@ public:
   static bool AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSkip,
                         const std::string& strTargetFilename,
                         UINT64 iComponentSize,
-                        MasterController* pMasterController,
                         bool bChangeEndianess=false,
                         bool bToSigned=false);
 
@@ -115,25 +110,21 @@ public:
                                UINT64 iComponentCount, bool bSigned,
                                bool bFloatingPoint, UINTVECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
-                               MasterController* pMasterController,
                                bool bNoUserInteraction);
 
   virtual bool ConvertToUVF(const std::string& strSourceFilename,
                             const std::string& strTargetFilename,
                             const std::string& strTempDir,
-                            MasterController* pMasterController,
                             bool bNoUserInteraction);
 
   virtual bool Analyze(const std::string& strSourceFilename,
                        const std::string& strTempDir,
-                       MasterController* pMasterController,
                        bool bNoUserInteraction, RangeInfo& info);
 
   static bool Analyze(const std::string& strSourceFilename, UINT64 iHeaderSkip,
                       UINT64 iComponentSize, UINT64 iComponentCount,
                       bool bSigned, bool bFloatingPoint,
                       UINTVECTOR3 vVolumeSize,
-                      MasterController* pMasterController,
                       RangeInfo& info);
 };
 

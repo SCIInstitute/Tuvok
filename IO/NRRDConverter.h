@@ -44,15 +44,13 @@
 #include "../StdTuvokDefines.h"
 #include "RAWConverter.h"
 
-class MasterController;
-
 class NRRDConverter : public RAWConverter {
 public:
   NRRDConverter();
   virtual ~NRRDConverter() {}
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename, 
-                            const std::string& strTempDir, MasterController* pMasterController, bool bNoUserInteraction,
+                            const std::string& strTempDir, bool bNoUserInteraction,
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
                             bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
@@ -61,7 +59,7 @@ public:
 
   virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint, 
-                               UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction);
+                               UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction);
 
 protected:
 

@@ -39,8 +39,6 @@
 #include "../StdTuvokDefines.h"
 #include "RAWConverter.h"
 
-class MasterController;
-
 /** A converter for `stk' files, created by the Metamorph software.  These are
  * basically TiffVolumes, in that they are embedded in a TIFF container within
  * a single file.  Unfortunately they don't use the standard TIFF mechanisms to
@@ -52,7 +50,6 @@ public:
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir,
-                            MasterController* pMasterController,
                             bool bNoUserInteraction, UINT64& iHeaderSkip,
                             UINT64& iComponentSize, UINT64& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned,
@@ -70,7 +67,6 @@ public:
                                UINT64 iComponentCount, bool bSigned,
                                bool bFloatingPoint, UINTVECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
-                               MasterController* pMasterController,
                                bool bNoUserInteraction);
 };
 #endif // STKCONVERTER_H

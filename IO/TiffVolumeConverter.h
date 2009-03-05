@@ -42,8 +42,6 @@
 #include "../StdTuvokDefines.h"
 #include "RAWConverter.h"
 
-class MasterController;
-
 /** A converter for TIFF volumes.  These are basically just TIFFs which
  * have multiple images per file. */
 class TiffVolumeConverter : public RAWConverter {
@@ -53,7 +51,6 @@ public:
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir,
-                            MasterController* pMasterController,
                             bool bNoUserInteraction, UINT64& iHeaderSkip,
                             UINT64& iComponentSize, UINT64& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned,
@@ -71,7 +68,6 @@ public:
                                UINT64 iComponentCount, bool bSigned,
                                bool bFloatingPoint, UINTVECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
-                               MasterController* pMasterController,
                                bool bNoUserInteraction);
 };
 #endif // TIFFVOLUMECONVERTER_H

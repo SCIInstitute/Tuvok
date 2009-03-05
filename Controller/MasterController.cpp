@@ -54,9 +54,9 @@
 MasterController::MasterController()
 {
   m_pSystemInfo   = new SystemInfo();
-  m_pIOManager    = new IOManager(this);
+  m_pIOManager    = new IOManager();
   m_pGPUMemMan    = new GPUMemMan(this);
-  m_pScriptEngine = new Scripting(this);
+  m_pScriptEngine = new Scripting();
   RegisterCalls(m_pScriptEngine);
 }
 

@@ -51,7 +51,7 @@ NRRDConverter::NRRDConverter()
 }
 
 bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename, 
-                                 const std::string& strTempDir, MasterController* pMasterController, bool,
+                                 const std::string& strTempDir, bool,
                                  UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
                                  bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
                                  FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
@@ -309,7 +309,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         MESSAGE("NRRD data is plain textformat.");
 
         string strBinaryFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".binary";
-        bool bResult = ParseTXTDataset(strRAWFile, strBinaryFile, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bIsFloat, vVolumeSize);
+        bool bResult = ParseTXTDataset(strRAWFile, strBinaryFile, iHeaderSkip, iComponentSize, iComponentCount, bSigned, bIsFloat, vVolumeSize);
         strIntermediateFile = strBinaryFile;
         bDeleteIntermediateFile = true;
         iHeaderSkip = 0;
@@ -323,7 +323,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         MESSAGE("NRRD data is GZIP compressed RAW format.");
 
         string strUncompressedFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".uncompressed";
-        bool bResult = ExtractGZIPDataset(strRAWFile, strUncompressedFile, pMasterController, iHeaderSkip);
+        bool bResult = ExtractGZIPDataset(strRAWFile, strUncompressedFile, iHeaderSkip);
         strIntermediateFile = strUncompressedFile;
         bDeleteIntermediateFile = true;
         iHeaderSkip = 0;
@@ -333,7 +333,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         MESSAGE("NRRD data is BZIP2 compressed RAW format.");
 
         string strUncompressedFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".uncompressed";
-        bool bResult = ExtractBZIP2Dataset(strRAWFile, strUncompressedFile, pMasterController, iHeaderSkip);
+        bool bResult = ExtractBZIP2Dataset(strRAWFile, strUncompressedFile, iHeaderSkip);
         strIntermediateFile = strUncompressedFile;
         bDeleteIntermediateFile = true;
         iHeaderSkip = 0;
@@ -348,7 +348,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                             UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction) {
+                             UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction) {
   
   bool bDetached = SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)) == "nhdr";
 
@@ -415,7 +415,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     // copy RAW file using the parent's call
     bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, iHeaderSkip,
                                                      iComponentSize, iComponentCount, bSigned, bFloatingPoint,
-                                                     vVolumeSize, vVolumeAspect, pMasterController, bNoUserInteraction);
+                                                     vVolumeSize, vVolumeAspect, bNoUserInteraction);
 
     if (bRAWSuccess) {
       return true;
@@ -431,7 +431,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     fAsciiTarget.close();
  
     // append RAW data using the parent's call
-    bool bRAWSuccess = AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, pMasterController);
+    bool bRAWSuccess = AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize);
 
     if (bRAWSuccess) {
       return true;

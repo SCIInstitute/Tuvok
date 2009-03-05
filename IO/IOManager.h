@@ -274,7 +274,7 @@ protected:
 
 class IOManager {
 public:
-  IOManager(MasterController* masterController);
+  IOManager();
   ~IOManager();
 
   std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
@@ -317,7 +317,6 @@ public:
   std::string GetExportDialogString() const;
 
 private:
-  MasterController*             m_pMasterController;
   std::string                   m_TempDir;
   std::vector<AbstrConverter*>  m_vpConverters;
   AbstrConverter*               m_pFinalConverter;

@@ -53,8 +53,7 @@
 
 using namespace std;
 
-IOManager::IOManager(MasterController* masterController) :
-  m_pMasterController(masterController),
+IOManager::IOManager() :
   m_TempDir("./"), // changed by convert dataset
   m_pFinalConverter(NULL)
 {
@@ -266,7 +265,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
     /// \todo evaluate pDICOMStack->m_strModality
 
-    bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, m_pMasterController, 0,
+    bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, 0,
                                     pDICOMStack->m_iAllocated, pDICOMStack->m_iComponentCount, 
                                     pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
                                     pDICOMStack->m_iAllocated >=32, /// \todo read sign property from DICOM file
@@ -311,7 +310,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
         UINTVECTOR3 iSize = pStack->m_ivSize;
         iSize.z *= UINT32(pStack->m_Elements.size());
 
-        bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, m_pMasterController, 0,
+        bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, 0,
                                         pStack->m_iAllocated, pStack->m_iComponentCount, 
                                         pStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
                                         pStack->m_iComponentCount >= 32,
@@ -370,7 +369,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
 
     if (strExt == "UVF") {
 
-      VolumeDataset v(strFilenames[iInputData],false, m_pMasterController);
+      VolumeDataset v(strFilenames[iInputData],false);
       if (!v.IsOpen()) break;
 
       UINT64 iLODLevel = 0; // always extract the highest quality here
@@ -402,7 +401,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       IntermediateFile.strFilename = m_TempDir + SysTools::GetFilename(strFilenames[iInputData]) + SysTools::ToString(rand()) +".raw";
       IntermediateFile.bDelete = true;
 
-      if (!v.Export(iLODLevel, IntermediateFile.strFilename, false, m_pMasterController->DebugOut())) {
+      if (!v.Export(iLODLevel, IntermediateFile.strFilename, false, &Controller::Debug::Out())) {
         if (SysTools::FileExists(IntermediateFile.strFilename)) remove(IntermediateFile.strFilename.c_str());
         break;
       } else bRAWCreated = true;
@@ -425,7 +424,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
         const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
         for (size_t j = 0;j<vStrSupportedExt.size();j++) {
           if (vStrSupportedExt[j] == strExt) {
-            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilenames[iInputData], m_TempDir, m_pMasterController, bNoUserInteraction, 
+            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilenames[iInputData], m_TempDir, bNoUserInteraction, 
                                             IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                             strTitle, eType, IntermediateFile.strFilename, IntermediateFile.bDelete);
             strSource = SysTools::GetFilename(strFilenames[iInputData]);
@@ -435,7 +434,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       }
 
       if (!bRAWCreated && m_pFinalConverter) {
-        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilenames[iInputData], m_TempDir, m_pMasterController, bNoUserInteraction, 
+        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilenames[iInputData], m_TempDir, bNoUserInteraction, 
                                         IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                         strTitle, eType, IntermediateFile.strFilename, IntermediateFile.bDelete);
         strSource = SysTools::GetFilename(strFilenames[iInputData]);
@@ -484,16 +483,17 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
   string strMergedFile = m_TempDir + "merged.raw";
 
   bool bIsMerged = false;
+  MasterController *MCtlr = &(Controller::Instance());
   if (bSignedG) {
     if (bIsFloatG) {
       switch (iComponentSizeG) {
         case 32 : {
-                    DataMerger<float> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
+                    DataMerger<float> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 64 : {
-                    DataMerger<double> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
+                    DataMerger<double> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
@@ -501,22 +501,22 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
     } else {
       switch (iComponentSizeG) {
         case 8  : {
-                    DataMerger<char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
+                    DataMerger<char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 16 : {
-                    DataMerger<short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
+                    DataMerger<short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 32 : {
-                    DataMerger<int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
+                    DataMerger<int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 64 : {
-                    DataMerger<INT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
+                    DataMerger<INT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
@@ -530,22 +530,22 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
     } else {
       switch (iComponentSizeG) {
         case 8  : {
-                    DataMerger<unsigned char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
+                    DataMerger<unsigned char> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 16 : {
-                    DataMerger<unsigned short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
+                    DataMerger<unsigned short> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 32 : {
-                    DataMerger<unsigned int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
+                    DataMerger<unsigned int> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
         case 64 : {
-                    DataMerger<UINT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, m_pMasterController, bUseMaxMode);
+                    DataMerger<UINT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
@@ -565,7 +565,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
   bool bTargetCreated = false;
   if (strExtTarget == "UVF") {
-    bTargetCreated = RAWConverter::ConvertRAWDataset(strMergedFile, strTargetFilename, m_TempDir, m_pMasterController, 0, 
+    bTargetCreated = RAWConverter::ConvertRAWDataset(strMergedFile, strTargetFilename, m_TempDir, 0, 
                                        iComponentSizeG, iComponentCountG, bConvertEndianessG, bSignedG,
                                        bIsFloatG, vVolumeSizeG, vVolumeAspectG, strTitleG, SysTools::GetFilename(strMergedFile));
 
@@ -576,7 +576,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
         if (vStrSupportedExtTarget[l] == strExtTarget) {
           bTargetCreated = m_vpConverters[k]->ConvertToNative(strMergedFile, strTargetFilename, 0, 
                                                               iComponentSizeG, iComponentCountG, bSignedG, bIsFloatG,
-                                                              vVolumeSizeG, vVolumeAspectG, m_pMasterController, bNoUserInteraction);
+                                                              vVolumeSizeG, vVolumeAspectG, bNoUserInteraction);
           if (bTargetCreated) break;
         }
       }
@@ -595,32 +595,29 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
   /// \todo maybe come up with something smarter for a temp dir then the target dir
   m_TempDir = SysTools::GetPath(strTargetFilename);
 
-  AbstrDebugOut &dbg = *(m_pMasterController->DebugOut());
-
-  dbg.Message(_func_, "Request to convert dataset %s to %s received.",
-              strFilename.c_str(), strTargetFilename.c_str());
+  MESSAGE("Request to convert dataset %s to %s received.",
+          strFilename.c_str(), strTargetFilename.c_str());
 
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
 
-  dbg.Message(_func_, "ext: %s, target: %s", strExt.c_str(),
-              strExtTarget.c_str());
+  MESSAGE("ext: %s, target: %s", strExt.c_str(), strExtTarget.c_str());
+          
 
   if (strExtTarget == "UVF") {
     for (size_t i = 0;i<m_vpConverters.size();i++) {
       const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
       for (size_t j = 0;j<vStrSupportedExt.size();j++) {
-        dbg.Message(_func_, "%s supports %s",
-                    m_vpConverters[i]->GetDesc().c_str(),
-                    vStrSupportedExt[j].c_str());
+        MESSAGE("%s supports %s", m_vpConverters[i]->GetDesc().c_str(),
+                vStrSupportedExt[j].c_str());
         if (vStrSupportedExt[j] == strExt) {
-          if (m_vpConverters[i]->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction)) return true;
+          if (m_vpConverters[i]->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, bNoUserInteraction)) return true;
         }
       }
     }
 
     if (m_pFinalConverter) 
-      return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, m_pMasterController, bNoUserInteraction);
+      return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, bNoUserInteraction);
     else
       return false;
   } else {
@@ -641,7 +638,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
     bool bRAWCreated = false;
 
     if (strExt == "UVF") {
-      VolumeDataset v(strFilename,false, m_pMasterController);
+      VolumeDataset v(strFilename,false);
       if (!v.IsOpen()) return false;
 
       UINT64 iLODLevel = 0; // always extract the highest quality here
@@ -661,7 +658,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       strIntermediateFile = m_TempDir + strFilename +".raw";
       bDeleteIntermediateFile = true;
 
-      if (!v.Export(iLODLevel, strIntermediateFile, false, m_pMasterController->DebugOut())) {
+      if (!v.Export(iLODLevel, strIntermediateFile, false, &(Controller::Debug::Out()))) {
         if (SysTools::FileExists(strIntermediateFile)) remove(strIntermediateFile.c_str());
         return false;
       } else bRAWCreated = true;
@@ -671,7 +668,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
         const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
         for (size_t j = 0;j<vStrSupportedExt.size();j++) {
           if (vStrSupportedExt[j] == strExt) {
-            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
+            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, bNoUserInteraction, 
                                             iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                             strTitle, eType, strIntermediateFile, bDeleteIntermediateFile);
             if (bRAWCreated) break;
@@ -681,7 +678,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       }
 
       if (!bRAWCreated && m_pFinalConverter) {
-        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, m_pMasterController, bNoUserInteraction, 
+        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, bNoUserInteraction, 
                                         iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                         strTitle, eType, strIntermediateFile, bDeleteIntermediateFile);
       }
@@ -695,7 +692,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
         if (vStrSupportedExtTarget[l] == strExtTarget) {
           bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
                                                                   iComponentSize, iComponentCount, bSigned, bIsFloat,
-                                                                  vVolumeSize, vVolumeAspect, m_pMasterController, bNoUserInteraction);
+                                                                  vVolumeSize, vVolumeAspect, bNoUserInteraction);
           if (bTargetCreated) break;
         }
       }
@@ -718,7 +715,7 @@ VolumeDataset* IOManager::ConvertDataset(const std::string& strFilename, const s
 }
 
 VolumeDataset* IOManager::LoadDataset(const std::string& strFilename, AbstrRenderer* requester) {
-  return m_pMasterController->MemMan()->LoadDataset(strFilename, requester);
+  return Controller::Instance().MemMan()->LoadDataset(strFilename, requester);
 }
 
 bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset, void* pUserContext ) {
@@ -770,7 +767,7 @@ bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, 
     return false;
   }
 
-  bool bResult = pSourceData->Export(iLODlevel, strTempFilename, false, m_pMasterController->DebugOut(), &MCBrick, (void*)pMCData, 1);
+  bool bResult = pSourceData->Export(iLODlevel, strTempFilename, false, &(Controller::Debug::Out()), &MCBrick, (void*)pMCData, 1);
 
   if (SysTools::FileExists(strTempFilename)) remove (strTempFilename.c_str());
   delete pMCData;
@@ -806,7 +803,7 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
   }
 
   string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
-  bool bRAWCreated = pSourceData->Export(iLODlevel, strTempFilename, false, m_pMasterController->DebugOut());
+  bool bRAWCreated = pSourceData->Export(iLODlevel, strTempFilename, false, &Controller::Debug::Out());
 
   if (!bRAWCreated) {
     ERROR("Unable to write temp file %s", strTempFilename.c_str());
@@ -823,7 +820,6 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
                                 pSourceData->GetInfo()->GetIsFloat(),
                                 UINTVECTOR3(pSourceData->GetInfo()->GetDomainSize(iLODlevel)),
                                 FLOATVECTOR3(pSourceData->GetInfo()->GetRescaleFactors()),
-                                m_pMasterController,
                                 false);
 
   remove(strTempFilename.c_str());
@@ -904,7 +900,7 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info) 
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
 
   if (strExt == "UVF") {
-    VolumeDataset v(strFilename,false, m_pMasterController);
+    VolumeDataset v(strFilename,false);
     if (!v.IsOpen()) return false;
 
     UINT64 iComponentCount = v.GetInfo()->GetComponentCount();
@@ -944,7 +940,7 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info) 
       const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
       for (size_t j = 0;j<vStrSupportedExt.size();j++) {
         if (vStrSupportedExt[j] == strExt) {
-          bAnalyzed = m_vpConverters[i]->Analyze(strFilename, m_TempDir, m_pMasterController, false, info);
+          bAnalyzed = m_vpConverters[i]->Analyze(strFilename, m_TempDir, false, info);
           if (bAnalyzed) break;
         }
       }
@@ -952,7 +948,7 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info) 
     }
 
     if (!bAnalyzed && m_pFinalConverter) {
-      bAnalyzed = m_pFinalConverter->Analyze(strFilename, m_TempDir, m_pMasterController, false, info);
+      bAnalyzed = m_pFinalConverter->Analyze(strFilename, m_TempDir, false, info);
     }
 
     return bAnalyzed;

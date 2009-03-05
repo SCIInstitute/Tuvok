@@ -75,8 +75,7 @@ ScriptableListElement::ScriptableListElement(Scriptable* source, const std::stri
 }
 
 
-Scripting::Scripting(MasterController* pMasterController) :
-  m_pMasterController(pMasterController),
+Scripting::Scripting() :
   m_bEcho(false)
 {
   RegisterCalls(this);
@@ -114,11 +113,11 @@ bool Scripting::ParseLine(const string& strLine) {
 
   if (!bResult) {
     if (strMessage == "")
-      m_pMasterController->DebugOut()->printf("Input \"%s\" not understood, try \"help\"!", strLine.c_str());
+      Controller::Debug::Out().printf("Input \"%s\" not understood, try \"help\"!", strLine.c_str());
     else
-      m_pMasterController->DebugOut()->printf(strMessage.c_str());
+      Controller::Debug::Out().printf(strMessage.c_str());
   } else 
-    if (m_bEcho) m_pMasterController->DebugOut()->printf("OK (%s)", strLine.c_str());
+    if (m_bEcho) Controller::Debug::Out().printf("OK (%s)", strLine.c_str());
 
   return bResult;
 }
@@ -195,7 +194,7 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
     return ParseFile(strParams[0]);
   } else 
   if (strCommand == "help") {
-    m_pMasterController->DebugOut()->printf("Command Listing:");
+    Controller::Debug::Out().printf("Command Listing:");
     for (size_t i = 0;i<m_ScriptableList.size();i++) {
       string strParams = "";
       UINT32 iMin = m_ScriptableList[i]->m_iMinParam;
@@ -209,22 +208,22 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
         if (j != m_ScriptableList[i]->m_vParameters.size()-1) strParams = strParams + " ";
       }
 
-      m_pMasterController->DebugOut()->printf("\"%s\" %s: %s", m_ScriptableList[i]->m_strCommand.c_str(), strParams.c_str(), m_ScriptableList[i]->m_strDescription.c_str());
+      Controller::Debug::Out().printf("\"%s\" %s: %s", m_ScriptableList[i]->m_strCommand.c_str(), strParams.c_str(), m_ScriptableList[i]->m_strDescription.c_str());
     }
     return true;
   } else
   if (strCommand == "time") { 
     string strTime(QTime::currentTime().toString().toAscii()); 
-    m_pMasterController->DebugOut()->printf(strTime.c_str());
+    Controller::Debug::Out().printf(strTime.c_str());
     return true;
   } else 
   if (strCommand == "date") { 
     string strDate(QDate::currentDate().toString().toAscii()); 
-    m_pMasterController->DebugOut()->printf(strDate.c_str());
+    Controller::Debug::Out().printf(strDate.c_str());
     return true;
   } else 
   if (strCommand == "write") { 
-    m_pMasterController->DebugOut()->printf(strParams[0].c_str());
+    Controller::Debug::Out().printf(strParams[0].c_str());
     return true;
   }
 

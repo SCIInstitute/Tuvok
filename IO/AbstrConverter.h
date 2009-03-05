@@ -63,11 +63,11 @@ public:
   virtual ~AbstrConverter() {}
 
   virtual bool ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, 
-                            const std::string& strTempDir, MasterController* pMasterController, 
+                            const std::string& strTempDir,
                             bool bNoUserInteraction) = 0;
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename, 
-                            const std::string& strTempDir, MasterController* pMasterController, bool bNoUserInteraction,                                                       
+                            const std::string& strTempDir, bool bNoUserInteraction,                                                       
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
                             bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
@@ -76,11 +76,11 @@ public:
 
   virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                               UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController,
+                               UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect,
                                bool bNoUserInteraction) = 0;
 
   virtual bool Analyze(const std::string& strSourceFilename, const std::string& strTempDir, 
-                       MasterController* pMasterController, bool bNoUserInteraction, RangeInfo& info) = 0;
+                       bool bNoUserInteraction, RangeInfo& info) = 0;
   
   const std::vector<std::string>& SupportedExt() {return m_vSupportedExt;}
   virtual const std::string& GetDesc() {return m_vConverterDesc;}
@@ -89,12 +89,12 @@ protected:
   std::string               m_vConverterDesc;
   std::vector<std::string>  m_vSupportedExt;
 
-  static const std::string Process8BitsTo8Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* pMasterController);
-  static const std::string QuantizeShortTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* pMasterController);
-  static const std::string QuantizeIntTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* pMasterController);
-  static const std::string QuantizeLongTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D, MasterController* pMasterController);
-  static const std::string QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock& Histogram1D, MasterController* pMasterController);
-  static const std::string QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock& Histogram1D, MasterController* pMasterController);
+  static const std::string Process8BitsTo8Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D);
+  static const std::string QuantizeShortTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D);
+  static const std::string QuantizeIntTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D);
+  static const std::string QuantizeLongTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D);
+  static const std::string QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock& Histogram1D);
+  static const std::string QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock& Histogram1D);
 };
 
 #endif // ABSTRCONVERTER_H

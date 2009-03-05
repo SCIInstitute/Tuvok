@@ -62,7 +62,7 @@ class ScriptableListElement {
 class Scripting : public Scriptable
 {
   public:
-    Scripting(MasterController* pMasterController);
+    Scripting();
     ~Scripting();
 
     bool ParseCommand(const std::vector< std::string >& strTokenized, std::string& strMessage);
@@ -77,7 +77,6 @@ class Scripting : public Scriptable
 
 
   private:
-    MasterController*                   m_pMasterController;
     std::vector<ScriptableListElement*> m_ScriptableList;
     bool                                m_bEcho;
 

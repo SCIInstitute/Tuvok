@@ -46,7 +46,7 @@
 #endif
 
 static void tv_dimensions(TIFF *, size_t dims[3]);
-_malloc static BYTE* tv_read_slice(TIFF *, AbstrDebugOut &);
+_malloc static BYTE* tv_read_slice(TIFF *);
 #if 0
 // currently disabled -- mistakenly thought I was reading 4-component data for
 // a while.  left in because we'll probably want to be able to convert
@@ -68,7 +68,6 @@ TiffVolumeConverter::TiffVolumeConverter()
 bool
 TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
                                   const std::string& strTempDir,
-                                  MasterController* pMasterController,
                                   bool, UINT64& iHeaderSkip,
                                   UINT64& iComponentSize,
                                   UINT64& iComponentCount,
@@ -80,13 +79,11 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
                                   std::string& strIntermediateFile,
                                   bool& bDeleteIntermediateFile)
 {
-  AbstrDebugOut& dbg = *(pMasterController->DebugOut());
-  dbg.Message(_func_, "Attempting to convert TiffVolume: %s",
-              strSourceFilename.c_str());
+  MESSAGE("Attempting to convert TiffVolume: %s", strSourceFilename.c_str());
 
   TIFF *tif = TIFFOpen(strSourceFilename.c_str(), "r");
   if(tif == NULL) {
-    dbg.Error(_func_, "Could not open %s", strSourceFilename.c_str());
+    ERROR("Could not open %s", strSourceFilename.c_str());
     return false;
   }
 
@@ -97,11 +94,10 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
     vVolumeSize[0] = UINT32(dims[0]);
     vVolumeSize[1] = UINT32(dims[1]);
     vVolumeSize[2] = UINT32(dims[2]);
-    dbg.Message(_func_, "TiffVolume dimensions: %zux%zux%zu",
-                dims[0], dims[1], dims[2]);
+    MESSAGE("TiffVolume dimensions: %zux%zux%zu", dims[0], dims[1], dims[2]);
     if(dims[2] <= 1) {
-      dbg.Error(_func_, "TIFF is not a volume; use "
-                        "`Load Dataset from Directory' instead!");
+      ERROR("TIFF is not a volume; use "
+            "`Load Dataset from Directory' instead!");
       TIFFClose(tif);
       return false;
     }
@@ -113,14 +109,14 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
     boost::uint16_t bits_per_sample;
     TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bits_per_sample);
     iComponentSize = bits_per_sample;
-    dbg.Message(_func_, "%ld bits per component.", iComponentSize);
+    MESSAGE("%ld bits per component.", iComponentSize);
   }
   // likewise for the number of components / pixel.
   {
     boost::uint16_t components;
     TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &components);
     iComponentCount = components;
-    dbg.Message(_func_, "%ld component%s.", iComponentCount,
+    MESSAGE("%ld component%s.", iComponentCount,
                 (components == 1) ? "" : "s");
   }
   // IIRC libtiff handles all the endian issues for us.
@@ -144,8 +140,8 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   LargeRAWFile binary(strIntermediateFile);
   binary.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
   if(!binary.IsOpen()) {
-    dbg.Error(_func_, "Could not create binary file %s",
-              strIntermediateFile.c_str());
+    ERROR("Could not create binary file %s", strIntermediateFile.c_str());
+       
     TIFFClose(tif);
     return false;
   }
@@ -154,7 +150,7 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   // exactly kosher in Tuvok -- a slice could technically be larger than
   // INCORESIZE.  But it won't be.
   do {
-    BYTE* slice = tv_read_slice(tif, dbg);
+    BYTE* slice = tv_read_slice(tif);
     if(slice) {
       // assuming 8-bit monochrome data here, which might not always be valid.
       binary.WriteRAW(static_cast<unsigned char*>(slice),
@@ -182,7 +178,6 @@ TiffVolumeConverter::ConvertToNative(const std::string&,
                                      bool,
                                      UINTVECTOR3,
                                      FLOATVECTOR3,
-                                     MasterController*,
                                      bool)
 {
   return false;
@@ -212,7 +207,7 @@ tv_dimensions(TIFF *tif, size_t dims[3])
 }
 
 _malloc static BYTE*
-tv_read_slice(TIFF *tif, AbstrDebugOut& dbg)
+tv_read_slice(TIFF *tif)
 {
   BYTE *slice;
   UINT32 width;
@@ -220,10 +215,10 @@ tv_read_slice(TIFF *tif, AbstrDebugOut& dbg)
   TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
   TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
 
-  dbg.Message(_func_, "Reading %ux%u TIFF slice.", width, height);
+  MESSAGE("Reading %ux%u TIFF slice.", width, height);
   slice = static_cast<BYTE*>(_TIFFmalloc((width*height) * sizeof(BYTE)));
   if(slice == NULL) {
-    dbg.Error(_func_, "TIFFmalloc failed.");
+    ERROR("TIFFmalloc failed.");
     return NULL;
   }
   const tstrip_t n_strips = TIFFNumberOfStrips(tif);

@@ -46,7 +46,7 @@
 
 using namespace std;
 
-bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir, MasterController* pMasterController,
+bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir,
                                      UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned, bool bIsFloat,
                                      UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
@@ -116,7 +116,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
         ERROR("Read/Write error converting endianess from %s to %s", strFilename.c_str(), tmpFilename0.c_str());
         WrongEndianData.Close();
         ConvEndianData.Close();
-        SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+        SysTools::Remove(tmpFilename0, Controller::Debug::Out());
         delete [] pBuffer;
         return false;
       }
@@ -136,22 +136,22 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
 	switch (iComponentSize) {
     case 8 :
-      strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
+      strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
       break;
     case 16 :
-      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
+      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
       break;
 		case 32 :	
       if (bIsFloat)
-        strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D, pMasterController);
+        strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D);
       else
-        strSourceFilename = QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
+        strSourceFilename = QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
       iComponentSize = 16;
 		case 64 :	
       if (bIsFloat) 
-        strSourceFilename = QuantizeDoubleTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D, pMasterController);
+        strSourceFilename = QuantizeDoubleTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D);
       else
-        strSourceFilename = QuantizeLongTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D, pMasterController);
+        strSourceFilename = QuantizeLongTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
       iComponentSize = 16;
       break;
   }
@@ -167,7 +167,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
     // if we actually created two temp file so far we can delete the first one
     if (bConvertEndianness) {
-      SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+      SysTools::Remove(tmpFilename0, Controller::Debug::Out());
       bConvertEndianness = false;
     }
 
@@ -263,26 +263,26 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	switch (iComponentSize) {
 		case 8 :	
           switch (iComponentCount) {
-            case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char>, &MaxMinData, pMasterController->DebugOut()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, NULL, NULL, pMasterController->DebugOut()); break;
+            case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, NULL, NULL, &Controller::Debug::Out()); break;
+						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, NULL, NULL, &Controller::Debug::Out()); break;
+						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, NULL, NULL, &Controller::Debug::Out()); break;
 						default: ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
 		case 16 :
           switch (iComponentCount) {
-						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short>, &MaxMinData, pMasterController->DebugOut()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, NULL, NULL, pMasterController->DebugOut()); break;
+						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, NULL, NULL, &Controller::Debug::Out()); break;
+						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, NULL, NULL, &Controller::Debug::Out()); break;
+						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, NULL, NULL, &Controller::Debug::Out()); break;
 						default: ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
 		case 32 :	
           switch (iComponentCount) {
-						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,1>, SimpleMaxMin<float>, &MaxMinData, pMasterController->DebugOut()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, NULL, NULL, pMasterController->DebugOut()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, NULL, NULL, pMasterController->DebugOut()); break;
+						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,1>, SimpleMaxMin<float>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, NULL, NULL, &Controller::Debug::Out()); break;
+						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, NULL, NULL, &Controller::Debug::Out()); break;
+						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, NULL, NULL, &Controller::Debug::Out()); break;
 						default: ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
 		default: ERROR("Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
@@ -294,10 +294,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) {
-      SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+      SysTools::Remove(tmpFilename0, Controller::Debug::Out());
     }
     if (bQuantized) {
-      SysTools::Remove(tmpFilename1, *pMasterController->DebugOut());
+      SysTools::Remove(tmpFilename1, Controller::Debug::Out());
     }
 		return false;
 	}
@@ -307,10 +307,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) {
-      SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+      SysTools::Remove(tmpFilename0, Controller::Debug::Out());
     }
     if (bQuantized) {
-      SysTools::Remove(tmpFilename1, *pMasterController->DebugOut());
+      SysTools::Remove(tmpFilename1, Controller::Debug::Out());
     }
 		return false;
 	}
@@ -324,10 +324,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       uvfFile.Close();
       SourceData.Close();
       if (bConvertEndianness) {
-        SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+        SysTools::Remove(tmpFilename0, Controller::Debug::Out());
       }
       if (bQuantized) {
-        SysTools::Remove(tmpFilename1, *pMasterController->DebugOut());
+        SysTools::Remove(tmpFilename1, Controller::Debug::Out());
       }
 		  return false;
     }
@@ -340,10 +340,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) {
-      SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+      SysTools::Remove(tmpFilename0, Controller::Debug::Out());
     }
     if (bQuantized) {
-      SysTools::Remove(tmpFilename1, *pMasterController->DebugOut());
+      SysTools::Remove(tmpFilename1, Controller::Debug::Out());
     }
 		return false;
   }
@@ -373,10 +373,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   MESSAGE("Removing temporary files...");
 
   if (bConvertEndianness) {
-    SysTools::Remove(tmpFilename0, *pMasterController->DebugOut());
+    SysTools::Remove(tmpFilename0, Controller::Debug::Out());
   }
   if (bQuantized) {
-    SysTools::Remove(tmpFilename1, *pMasterController->DebugOut());
+    SysTools::Remove(tmpFilename1, Controller::Debug::Out());
   }
 
   MESSAGE("Done!");
@@ -391,37 +391,34 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 /** Converts a gzip-compressed chunk of a file to a raw file.
  * @param strFilename the input (compressed) file
  * @param strTargetFilename the target uvf file
- * @param pMasterController controller, for reporting errors
  * @param iHeaderSkip number of bytes to skip off of strFilename */
 bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
                                       const string& strUncompressedFile,
-                                      MasterController* pMasterController,
                                       UINT64 iHeaderSkip)
 {
   FILE *f_compressed;
   FILE *f_inflated;
   int ret;
-  AbstrDebugOut *dbg = pMasterController->DebugOut();
 
-  dbg->Message(_func_, "Deflating GZIP data ...");
+  MESSAGE("Deflating GZIP data ...");
 
   f_compressed = fopen(strFilename.c_str(), "rb");
   f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
   if(f_compressed == NULL) {
-    dbg->Error(_func_, "Could not open %s", strFilename.c_str());
+    ERROR("Could not open %s", strFilename.c_str());
     fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
-    dbg->Error(_func_, "Could not open %s", strUncompressedFile.c_str());
+    ERROR("Could not open %s", strUncompressedFile.c_str());
     fclose(f_compressed);
     return false;
   }
 
   if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
-    dbg->Error(_func_, "Seek failed");
+    ERROR("Seek failed");
     fclose(f_compressed);
     return false;
   }
@@ -435,23 +432,23 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
 
   switch(ret) {
     case Z_OK:
-      dbg->Message(_func_, "Decompression successful.");
+      MESSAGE("Decompression successful.");
       break;
     case Z_MEM_ERROR:
-      dbg->Error(_func_, "Not enough memory decompress %s",
+      ERROR("Not enough memory decompress %s",
                  strFilename.c_str());
       return false;
       break;
     case Z_DATA_ERROR:
-      dbg->Error(_func_, "Deflation invalid or incomplete");
+      ERROR("Deflation invalid or incomplete");
       return false;
       break;
     case Z_VERSION_ERROR:
-      dbg->Error(_func_, "Zlib library versioning error!");
+      ERROR("Zlib library versioning error!");
       return false;
       break;
     default:
-      dbg->Warning(_func_, "Unknown / unhandled case %d", ret);
+      WARNING("Unknown / unhandled case %d", ret);
       return false;
       break;
   }
@@ -462,53 +459,51 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
 /** Tests a bzip return code for errors, and translates it to a string for the
  * debug logs.
  * @param bz_err the error code (given by the bzip2 library)
- * @param dbg    stream to print error information to
  * @return true if an error occurred */
 static bool
-bz_err_test(int bz_err, AbstrDebugOut& dbg)
+bz_err_test(int bz_err)
 {
-  static const char m[] = "bz_err_test (RAWConverter)";
   bool error_occurred = true;
   switch(bz_err) {
         case BZ_OK:        /* FALL THROUGH */
         case BZ_RUN_OK:    /* FALL THROUGH */
         case BZ_FLUSH_OK:  /* FALL THROUGH */
         case BZ_FINISH_OK:
-            dbg.Message(m, "Bzip operation successful.");
+            MESSAGE("Bzip operation successful.");
             error_occurred = false;
             break;
         case BZ_STREAM_END:
-            dbg.Message(m, "End of bzip stream.");
+            MESSAGE("End of bzip stream.");
             break;
         case BZ_CONFIG_ERROR:
-            dbg.Error(m, "Bzip configuration error");
+            ERROR("Bzip configuration error");
             break;
         case BZ_SEQUENCE_ERROR:
-            dbg.Error(m, "Bzip sequencing error");
+            ERROR("Bzip sequencing error");
             break;
         case BZ_PARAM_ERROR:
-            dbg.Error(m, "Bzip parameter error");
+            ERROR("Bzip parameter error");
             break;
         case BZ_MEM_ERROR:
-            dbg.Error(m, "Bzip memory allocation failed.");
+            ERROR("Bzip memory allocation failed.");
             break;
         case BZ_DATA_ERROR_MAGIC:
-            dbg.Warning(m, "Bzip stream does not have correct magic bytes!");
+            WARNING("Bzip stream does not have correct magic bytes!");
             /* FALL THROUGH */
         case BZ_DATA_ERROR:
-            dbg.Error(m, "Bzip data integrity error; this usually means the "
-                         "compressed file is corrupt.");
+            ERROR("Bzip data integrity error; this usually means the "
+                  "compressed file is corrupt.");
             break;
         case BZ_IO_ERROR: {
             const char *err_msg = strerror(errno);
-            dbg.Error(m, "Bzip IO error: %s", err_msg);
+            ERROR("Bzip IO error: %s", err_msg);
             break;
         }
         case BZ_UNEXPECTED_EOF:
-            dbg.Warning(m, "EOF before end of Bzip stream.");
+            WARNING("EOF before end of Bzip stream.");
             break;
         case BZ_OUTBUFF_FULL:
-            dbg.Error(m, "Bzip output buffer is not large enough");
+            ERROR("Bzip output buffer is not large enough");
             break;
     }
     return error_occurred;
@@ -517,14 +512,11 @@ bz_err_test(int bz_err, AbstrDebugOut& dbg)
 /** Converts a bzip2-compressed file chunk to a raw file.
  * @param strFilename the input (compressed) file
  * @param strTargetFilename the target uvf file
- * @param pMasterController controller, for reporting errors
  * @param iHeaderSkip number of bytes to skip of strFilename's header*/
 bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
                                        const string& strUncompressedFile,
-                                       MasterController* pMasterController,
                                        UINT64 iHeaderSkip)
 {
-  AbstrDebugOut &dbg = *pMasterController->DebugOut();
   BZFILE *bzf;
   int bz_err;
   std::vector<char> buffer(INCORESIZE);
@@ -533,27 +525,27 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   FILE *f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
   if(f_compressed == NULL) {
-    dbg.Error(_func_, "Could not open %s", strFilename.c_str());
+    ERROR("Could not open %s", strFilename.c_str());
     fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
-    dbg.Error(_func_, "Could not open %s", strUncompressedFile.c_str());
+    ERROR("Could not open %s", strUncompressedFile.c_str());
     fclose(f_compressed);
     return false;
   }
 
   if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
-    dbg.Error(_func_, "Seek failed");
+    ERROR("Seek failed");
     fclose(f_inflated);
     fclose(f_compressed);
     return false;
   }
 
   bzf = BZ2_bzReadOpen(&bz_err, f_compressed, 0, 0, NULL, 0);
-  if(bz_err_test(bz_err, dbg)) {
-    dbg.Error(_func_, "Bzip library error occurred; bailing.");
+  if(bz_err_test(bz_err)) {
+    ERROR("Bzip library error occurred; bailing.");
     fclose(f_inflated);
     fclose(f_compressed);
     return false;
@@ -561,14 +553,14 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
 
   do {
     int nbytes = BZ2_bzRead(&bz_err, bzf, &buffer[0], INCORESIZE);
-    if(bz_err != BZ_STREAM_END && bz_err_test(bz_err, dbg)) {
-      dbg.Error(_func_, "Bzip library error occurred; bailing.");
+    if(bz_err != BZ_STREAM_END && bz_err_test(bz_err)) {
+      ERROR("Bzip library error occurred; bailing.");
       fclose(f_inflated);
       fclose(f_compressed);
       return false;
     }
     if(1 != fwrite(&buffer[0], nbytes, 1, f_inflated)) {
-      dbg.Warning(_func_, "%d-byte write of decompressed file failed.",
+      WARNING("%d-byte write of decompressed file failed.",
                   nbytes);
       fclose(f_inflated);
       fclose(f_compressed);
@@ -584,7 +576,6 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
 
 bool RAWConverter::ParseTXTDataset(const string& strFilename,
                                      const string& strBinaryFile,
-                                     MasterController* pMasterController,
                                      UINT64 iHeaderSkip,
                                      UINT64 iComponentSize,
                                      UINT64 iComponentCount,
@@ -715,22 +706,22 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
 
 bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                    UINT64 iComponentSize, UINT64 , bool , bool,
-                                   UINTVECTOR3 , FLOATVECTOR3 , MasterController* pMasterController, bool) {
+                                   UINTVECTOR3, FLOATVECTOR3, bool) {
   // convert raw to raw is easy :-), just copy the file and ignore the metadata
 
   // if the file exists, delete it first
   if (SysTools::FileExists(strTargetFilename))
-    SysTools::Remove(strTargetFilename, *pMasterController->DebugOut());
+    SysTools::Remove(strTargetFilename, Controller::Debug::Out());
   if (SysTools::FileExists(strTargetFilename)) {
     ERROR("Unable to remove existing target file %s.", strTargetFilename.c_str());
     return false;
   }
 
-  return AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, pMasterController, EndianConvert::IsBigEndian());
+  return AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, EndianConvert::IsBigEndian());
 }
 
 bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSkip, const std::string& strTargetFilename,
-                             UINT64 iComponentSize, MasterController* pMasterController, bool bChangeEndianess, bool bToSigned) {
+                             UINT64 iComponentSize, bool bChangeEndianess, bool bToSigned) {
   // open source file
   LargeRAWFile fSource(strRawFilename, iHeaderSkip);
   fSource.Open(false);
@@ -808,7 +799,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
 
 
 bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename,
-                                const std::string& strTempDir, MasterController* pMasterController,
+                                const std::string& strTempDir,
                                 bool bNoUserInteraction) {
 
   UINT64        iHeaderSkip;
@@ -826,7 +817,7 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   bool          bDeleteIntermediateFile;
 
   bool bRAWCreated = ConvertToRAW(strSourceFilename, strTempDir,
-                                  pMasterController, bNoUserInteraction,
+                                  bNoUserInteraction,
                                   iHeaderSkip, iComponentSize, iComponentCount,
                                   bConvertEndianess, bSigned, bIsFloat,
                                   vVolumeSize, vVolumeAspect, strTitle,
@@ -839,11 +830,11 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
     return false;
   }
 
-  bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir, pMasterController, iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned,
+  bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir, iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned,
                                        bIsFloat, vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename));
 
   if (bDeleteIntermediateFile) {
-    SysTools::Remove(strIntermediateFile, *pMasterController->DebugOut());
+    SysTools::Remove(strIntermediateFile, Controller::Debug::Out());
   }
 
   return bUVFCreated;
@@ -851,7 +842,6 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
 
 bool RAWConverter::Analyze(const std::string& strSourceFilename,
                            const std::string& strTempDir,
-                           MasterController* pMasterController,
                            bool bNoUserInteraction, RangeInfo& info) {
   UINT64        iHeaderSkip=0;
   UINT64        iComponentSize=0;
@@ -870,7 +860,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
 
 
   bool bConverted = ConvertToRAW(strSourceFilename, strTempDir,
-                                 pMasterController, bNoUserInteraction,
+                                 bNoUserInteraction,
                                  iHeaderSkip, iComponentSize, iComponentCount,
                                  bConvertEndianess, bSigned, bIsFloat,
                                  vVolumeSize, vVolumeAspect, strTitle,
@@ -887,10 +877,10 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
   info.m_iComponentSize = iComponentSize;
 
   bool bAnalyzed = Analyze(strRAWFilename, iHeaderSkip, iComponentSize, iComponentCount,
-                           bSigned, bIsFloat, vVolumeSize, pMasterController, info);
+                           bSigned, bIsFloat, vVolumeSize, info);
 
   if (bRAWDelete) {
-    SysTools::Remove(strRAWFilename, *pMasterController->DebugOut());
+    SysTools::Remove(strRAWFilename, Controller::Debug::Out());
   }
 
   return bAnalyzed;
@@ -900,7 +890,6 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
                            UINT64 iHeaderSkip, UINT64 iComponentSize,
                            UINT64 iComponentCount, bool bSigned,
                            bool bFloatingPoint, UINTVECTOR3 vVolumeSize,
-                           MasterController* pMasterController,
                            RangeInfo& info) {
   // open source file
   LargeRAWFile fSource(strSourceFilename, iHeaderSkip);

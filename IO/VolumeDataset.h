@@ -53,7 +53,6 @@ typedef VECTOR3<UINT64> UINT64VECTOR3;
 typedef VECTOR4<UINT64> UINT64VECTOR4;
 
 class VolumeDataset;
-class MasterController;
 
 /// A wrapper around UVF data to provide easy access to 3D-only data.  UVF data
 /// is n-dimensional, making it hard to work with directly.
@@ -143,8 +142,7 @@ class VolumeDatasetInfo {
 
 class VolumeDataset {
 public:
-  VolumeDataset(const std::string& strFilename, bool bVerify,
-                MasterController* pMasterController);
+  VolumeDataset(const std::string& strFilename, bool bVerify);
   ~VolumeDataset();
 
   bool IsOpen() const {return m_bIsOpen;}
@@ -176,7 +174,6 @@ public:
               UINT64 iOverlap=0);
 
 private:
-  MasterController*        m_pMasterController;
   RasterDataBlock*         m_pVolumeDataBlock;
   Histogram1DDataBlock*    m_pHist1DDataBlock;
   Histogram2DDataBlock*    m_pHist2DDataBlock;

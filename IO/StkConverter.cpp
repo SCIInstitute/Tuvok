@@ -56,7 +56,6 @@ StkConverter::StkConverter()
 bool
 StkConverter::ConvertToRAW(const std::string& strSourceFilename,
                            const std::string& strTempDir,
-                           MasterController* pMasterController,
                            bool, UINT64& iHeaderSkip,
                            UINT64& iComponentSize,
                            UINT64& iComponentCount,
@@ -68,7 +67,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
                            std::string& strIntermediateFile,
                            bool& bDeleteIntermediateFile)
 {
-  AbstrDebugOut& dbg = *(pMasterController->DebugOut());
+  AbstrDebugOut& dbg = Controller::Debug::Out();
   dbg.Message(_func_, "Attempting to convert stk file: %s",
               strSourceFilename.c_str());
 
@@ -135,7 +134,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
 bool
 StkConverter::ConvertToNative(const std::string&, const std::string&,
                               UINT64, UINT64, UINT64, bool, bool, UINTVECTOR3,
-                              FLOATVECTOR3, MasterController*, bool)
+                              FLOATVECTOR3, bool)
 {
   return false;
 }

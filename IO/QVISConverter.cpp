@@ -51,7 +51,7 @@ QVISConverter::QVISConverter()
 }
 
 bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename, 
-                            const std::string&, MasterController* pMasterController, bool,
+                            const std::string&, bool,
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
                             bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
@@ -143,7 +143,7 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                             UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, MasterController* pMasterController, bool bNoUserInteraction) {
+                             UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction) {
 
   // compute fromat string
   string strFormat;
@@ -196,7 +196,7 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   // copy RAW file using the parent's call
   bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, iHeaderSkip,
                                                    iComponentSize, iComponentCount, bSigned, bFloatingPoint,
-                                                   vVolumeSize, vVolumeAspect, pMasterController, bNoUserInteraction);
+                                                   vVolumeSize, vVolumeAspect, bNoUserInteraction);
 
   if (bRAWSuccess) {
     return true;
