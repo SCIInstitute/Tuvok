@@ -497,9 +497,7 @@ void GPUMemMan::Release3DTexture(GLTexture3D* pTexture) {
       if (m_vpTex3DList[i]->iUserCount > 0) {
           m_vpTex3DList[i]->iUserCount--;
       } else {
-        m_MasterController->DebugOut()->Warning(
-          "GPUMemMan::Release3DTexture",
-          "Attempting to release a 3D texture that is not in use.");
+        WARNING("Attempting to release a 3D texture that is not in use.");
       }
     }
   }
@@ -511,9 +509,7 @@ void GPUMemMan::Delete3DTexture(size_t iIndex) {
   m_iAllocatedCPUMemory -= m_vpTex3DList[iIndex]->pTexture->GetGPUSize();
 
   if ( m_vpTex3DList[iIndex]->iUserCount != 0) {
-    m_MasterController->DebugOut()->Warning(
-      "Delete3DTexture::FreeAssociatedTextures",
-      "Freeing used 3D texture!");
+    WARNING("Freeing used 3D texture!");
   }
 
   delete m_vpTex3DList[iIndex];
@@ -525,12 +521,10 @@ void GPUMemMan::FreeAssociatedTextures(VolumeDataset* pDataset) {
   for (size_t i = 0;i<m_vpTex3DList.size();i++) {
     if (m_vpTex3DList[i]->pDataset == pDataset) {
 
-      m_MasterController->DebugOut()->Message(
-        "GPUMemMan::FreeAssociatedTextures",
-        "Deleteting a 3D texture of size %i x %i x %i", 
-        m_vpTex3DList[i]->pTexture->GetSize().x,
-        m_vpTex3DList[i]->pTexture->GetSize().y,
-        m_vpTex3DList[i]->pTexture->GetSize().z);
+      MESSAGE("Deleteting a 3D texture of size %i x %i x %i",
+              m_vpTex3DList[i]->pTexture->GetSize().x,
+              m_vpTex3DList[i]->pTexture->GetSize().y,
+              m_vpTex3DList[i]->pTexture->GetSize().z);
 
       Delete3DTexture(i);
       i--;
