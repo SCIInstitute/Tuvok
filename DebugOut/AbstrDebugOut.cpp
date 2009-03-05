@@ -38,21 +38,24 @@
 
 void AbstrDebugOut::PrintErrorList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::iterator i = m_strErrorList.begin();i<m_strErrorList.end();i++)
+  for (std::deque< std::string >::const_iterator i = m_strErrorList.begin();
+       i < m_strErrorList.end(); i++)
     printf( i->c_str() );
   printf( "end of recorded errors" );
 }
 
 void AbstrDebugOut::PrintWarningList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::iterator i = m_strWarningList.begin();i<m_strErrorList.end();i++)
+  for (std::deque< std::string >::const_iterator i = m_strWarningList.begin();
+       i < m_strErrorList.end(); i++)
     printf( i->c_str() );
   printf( "end of recorded errors" );
 }
 
 void AbstrDebugOut::PrintMessageList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::iterator i = m_strMessageList.begin();i<m_strErrorList.end();i++)
+  for (std::deque< std::string >::const_iterator i = m_strMessageList.begin();
+       i < m_strErrorList.end(); i++)
     printf( i->c_str() );
   printf( "end of recorded errors" );
 }
