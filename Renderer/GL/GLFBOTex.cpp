@@ -67,11 +67,11 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
   if (height<1) height=1;
   if (!m_bInitialized) {
     if (GLEW_OK!=glewInit()) {
-      ERROR("failed to initialize GLEW!");
+      T_ERROR("failed to initialize GLEW!");
       return;
     }
     if (!glewGetExtension("GL_EXT_framebuffer_object")) {
-      ERROR("GL_EXT_framebuffer_object not supported!");
+      T_ERROR("GL_EXT_framebuffer_object not supported!");
       return;
     }
     m_bInitialized=true;
@@ -91,14 +91,14 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
     initFBO();
 
   if (GL_NO_ERROR!=glGetError()) {
-    ERROR("Error during creation!");
+    T_ERROR("Error during creation!");
     glDeleteFramebuffersEXT(1,&m_hFBO);
     m_hFBO=0;
     return;
   }
   initTextures(minfilter,magfilter,wrapmode,width,height,intformat);
   if (GL_NO_ERROR!=glGetError()) {
-    ERROR("Error during texture init!");
+    T_ERROR("Error during texture init!");
     glDeleteTextures(m_iNumBuffers,m_hTexture);
     delete[] m_hTexture;
     m_hTexture=NULL;
@@ -209,19 +209,19 @@ bool GLFBOTex::CheckFBO(const char* method) {
     case GL_FRAMEBUFFER_COMPLETE_EXT:
       return true;
     case GL_FRAMEBUFFER_UNSUPPORTED_EXT:
-      ERROR("%s() - Unsupported Format!",method); return false;
+      T_ERROR("%s() - Unsupported Format!",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT_EXT:
-      ERROR("%s() - Incomplete attachment",method); return false;
+      T_ERROR("%s() - Incomplete attachment",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT_EXT:
-      ERROR("%s() - Incomplete missing attachment",method); return false;
+      T_ERROR("%s() - Incomplete missing attachment",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS_EXT:
-      ERROR("%s() - Incomplete dimensions",method); return false;
+      T_ERROR("%s() - Incomplete dimensions",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_FORMATS_EXT:
-      ERROR("%s() - Incomplete formats",method); return false;
+      T_ERROR("%s() - Incomplete formats",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER_EXT:
-      ERROR("%s() - Incomplete draw buffer",method); return false;
+      T_ERROR("%s() - Incomplete draw buffer",method); return false;
     case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER_EXT:
-      ERROR("%s() - Incomplete read buffer",method); return false;
+      T_ERROR("%s() - Incomplete read buffer",method); return false;
     default:  return false;
   }
 }
@@ -234,7 +234,7 @@ void GLFBOTex::Write(unsigned int iTargetBuffer, int iBuffer, bool bCheckBuffer)
 
 #ifdef _DEBUG
   if (!m_hFBO) {
-    ERROR("FBO not initialized!");
+    T_ERROR("FBO not initialized!");
     return;
   }
 #endif
@@ -265,7 +265,7 @@ void GLFBOTex::Read(unsigned int iTargetUnit, int iBuffer) {
   GLenum texunit = GL_TEXTURE0 + iTargetUnit;
 #ifdef _DEBUG
   if (m_LastTexUnit[iBuffer]!=0) {
-    ERROR("Missing FinishRead()!");
+    T_ERROR("Missing FinishRead()!");
   }
 #endif
   assert(iBuffer>=0);
@@ -279,7 +279,7 @@ void GLFBOTex::ReadDepth(unsigned int iTargetUnit) {
   GLenum texunit = GL_TEXTURE0 + iTargetUnit;
 #ifdef _DEBUG
   if (m_LastDepthTextUnit!=0) {
-    ERROR("Missing FinishDepthRead()!");
+    T_ERROR("Missing FinishDepthRead()!");
   }
 #endif
   m_LastDepthTextUnit=texunit;

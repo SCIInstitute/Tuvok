@@ -83,7 +83,7 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   TIFF *tif = TIFFOpen(strSourceFilename.c_str(), "r");
   if(tif == NULL) {
-    ERROR("Could not open %s", strSourceFilename.c_str());
+    T_ERROR("Could not open %s", strSourceFilename.c_str());
     return false;
   }
 
@@ -96,7 +96,7 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
     vVolumeSize[2] = UINT32(dims[2]);
     MESSAGE("TiffVolume dimensions: %zux%zux%zu", dims[0], dims[1], dims[2]);
     if(dims[2] <= 1) {
-      ERROR("TIFF is not a volume; use "
+      T_ERROR("TIFF is not a volume; use "
             "`Load Dataset from Directory' instead!");
       TIFFClose(tif);
       return false;
@@ -140,7 +140,7 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   LargeRAWFile binary(strIntermediateFile);
   binary.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
   if(!binary.IsOpen()) {
-    ERROR("Could not create binary file %s", strIntermediateFile.c_str());
+    T_ERROR("Could not create binary file %s", strIntermediateFile.c_str());
        
     TIFFClose(tif);
     return false;
@@ -218,7 +218,7 @@ tv_read_slice(TIFF *tif)
   MESSAGE("Reading %ux%u TIFF slice.", width, height);
   slice = static_cast<BYTE*>(_TIFFmalloc((width*height) * sizeof(BYTE)));
   if(slice == NULL) {
-    ERROR("TIFFmalloc failed.");
+    T_ERROR("TIFFmalloc failed.");
     return NULL;
   }
   const tstrip_t n_strips = TIFFNumberOfStrips(tif);

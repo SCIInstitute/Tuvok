@@ -98,7 +98,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvpType = parser.GetData("TYPE");
   if (kvpType == NULL) {
-    ERROR("Could not open find token \"type\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not open find token \"type\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvpType->strValueUpper == "SIGNED CHAR" || kvpType->strValueUpper == "INT8" || kvpType->strValueUpper == "INT8_T") {
@@ -142,14 +142,14 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       bIsFloat = true;
       iComponentSize = 64;
     } else {
-      ERROR("Unsupported \"type\" in file %s", strSourceFilename.c_str());
+      T_ERROR("Unsupported \"type\" in file %s", strSourceFilename.c_str());
       return false;
     }
   }
 
   KeyValPair* kvpSizes = parser.GetData("SIZES");
   if (kvpSizes == NULL) {
-    ERROR("Could not open find token \"sizes\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not open find token \"sizes\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
 
@@ -157,7 +157,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     for (size_t i = 0;i<kvpSizes->vuiValue.size();i++) {
       if (kvpSizes->vuiValue[i] > 1) {
         if (j>2) {
-          ERROR("Only 3D NRRDs are supported at the moment");
+          T_ERROR("Only 3D NRRDs are supported at the moment");
           return false;
         }
         vVolumeSize[j] = kvpSizes->vuiValue[i];
@@ -168,7 +168,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvpDim = parser.GetData("DIMENSION");
   if (kvpDim == NULL) {
-    ERROR("Could not open find token \"dimension\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not open find token \"dimension\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvpDim->iValue < 3)  {
@@ -271,7 +271,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvpEncoding = parser.GetData("ENCODING");
   if (kvpEncoding == NULL) {
-    ERROR("Could not find token \"encoding\" in file %s",
+    T_ERROR("Could not find token \"encoding\" in file %s",
           strSourceFilename.c_str());
     return false;
   } else {
@@ -317,7 +317,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         return bResult;
       } else
       if (kvpEncoding->strValueUpper == "HEX")  {
-        ERROR("NRRD data is in haxdecimal text format which is not supported at the moment.");
+        T_ERROR("NRRD data is in haxdecimal text format which is not supported at the moment.");
       } else
       if (kvpEncoding->strValueUpper == "GZ" || kvpEncoding->strValueUpper == "GZIP")  {
         MESSAGE("NRRD data is GZIP compressed RAW format.");
@@ -339,7 +339,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         iHeaderSkip = 0;
         return bResult;
       } else {
-        ERROR("NRRD data is in unknown \"%s\" format.");
+        T_ERROR("NRRD data is in unknown \"%s\" format.");
       }
     }
     return false;
@@ -387,7 +387,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
   }
 
   if (!bFormatOK) {
-    ERROR("This data type is not supported by NRRD files.");
+    T_ERROR("This data type is not supported by NRRD files.");
     return false;
   }                               
                                
@@ -395,7 +395,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
 
   ofstream fAsciiTarget(strTargetFilename.c_str());  
   if (!fAsciiTarget.is_open()) {
-    ERROR("Unable to open target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
     return false;
   }
 
@@ -420,7 +420,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     if (bRAWSuccess) {
       return true;
     } else {
-      ERROR("Error creating raw target file %s.", strTargetRAWFilename.c_str());
+      T_ERROR("Error creating raw target file %s.", strTargetRAWFilename.c_str());
       remove(strTargetFilename.c_str());
       return false;
     }
@@ -436,7 +436,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     if (bRAWSuccess) {
       return true;
     } else {
-      ERROR("Error appaneding raw data to header file %s.", strTargetFilename.c_str());
+      T_ERROR("Error appaneding raw data to header file %s.", strTargetFilename.c_str());
       remove(strTargetFilename.c_str());
       return false;
     }

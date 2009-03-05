@@ -325,7 +325,7 @@ bool VolumeDataset::Open(bool bVerify)
   }
 
   if (iRasterBlockIndex == UINT64(-1)) {
-    ERROR("No suitable volume block found in UVF file. Check previous messages for rejected blocks.");
+    T_ERROR("No suitable volume block found in UVF file. Check previous messages for rejected blocks.");
     return false;
   }
 

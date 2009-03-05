@@ -135,12 +135,12 @@ GLSLProgram::operator GLuint(void) const {
  */
 bool GLSLProgram::Initialize(void) {
   if (!m_bGlewInitialized) {
-    if (GLEW_OK!=glewInit()) ERROR("GLEW initialization failed!");
+    if (GLEW_OK!=glewInit()) T_ERROR("GLEW initialization failed!");
     m_bGlewInitialized=true;
   }
 #ifdef GLSL_DEBUG  // just in case someone wants to handle GLEW himself (by setting the static var to true) but failed to do so properly
   else {
-    if (glMultiTexCoord2f==NULL) ERROR("GLEW must be initialized. Set GLSLProgram::m_bGlewInitialized = false in GLSLProgram.cpp if you want this class to do it for you");
+    if (glMultiTexCoord2f==NULL) T_ERROR("GLEW must be initialized. Set GLSLProgram::m_bGlewInitialized = false in GLSLProgram.cpp if you want this class to do it for you");
   }
 #endif
 
@@ -152,7 +152,7 @@ bool GLSLProgram::Initialize(void) {
       if (glewGetExtension("GL_ARB_shader_objects"))
         MESSAGE("ARB_shader_objects supported.");
       else {
-        ERROR("Neither OpenGL 2.0 nor ARB_shader_objects not supported!");
+        T_ERROR("Neither OpenGL 2.0 nor ARB_shader_objects not supported!");
         return false;
       }
       if (glewGetExtension("GL_ARB_shading_language_100"))
@@ -211,10 +211,10 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
     else {
       bVSSuccess=false;
       if (src==GLSLPROGRAM_DISK) {
-        ERROR("ERROR IN: %s", VSFile);
+        T_ERROR("ERROR IN: %s", VSFile);
       }
       else {
-        ERROR("---------- ERROR -----------");
+        T_ERROR("---------- ERROR -----------");
         int iPos=0;
         int iLine=1;
         char chLine[32];
@@ -224,7 +224,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
           if (chVerbose[i]=='\n') {
             chVerbose[i]='\0';
             sprintf(chLine,"(%.4i) ",iLine++);
-            ERROR( "Load %s %s",chLine,&chVerbose[iPos]);
+            T_ERROR( "Load %s %s",chLine,&chVerbose[iPos]);
             iPos=i+1;
           }
         }
@@ -239,10 +239,10 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
     else {
       bFSSuccess=false;
       if (src==GLSLPROGRAM_DISK) {
-        ERROR( "ERROR IN: %s",FSFile);
+        T_ERROR( "ERROR IN: %s",FSFile);
       }
       else {
-        ERROR("---------- ERROR -----------");
+        T_ERROR("---------- ERROR -----------");
         int iPos=0;
         int iLine=1;
         char chLine[32];
@@ -252,7 +252,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
           if (chVerbose[i]=='\n') {
             chVerbose[i]='\0';
             sprintf(chLine,"(%.4i) ",iLine++);
-            ERROR( "Load %s %s",chLine, &chVerbose[iPos]);
+            T_ERROR( "Load %s %s",chLine, &chVerbose[iPos]);
             iPos=i+1;
           }
         }
@@ -294,9 +294,9 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
       glDeleteObjectARB(m_hProgram);
       m_hProgram=0;
       m_bInitialized=false;
-      if (!bVSSuccess && !bFSSuccess) ERROR("Error in vertex and fragment shaders");
-      else if (!bVSSuccess) ERROR("Error in vertex shader");
-      else if (!bFSSuccess) ERROR("Error in fragment shader");
+      if (!bVSSuccess && !bFSSuccess) T_ERROR("Error in vertex and fragment shaders");
+      else if (!bVSSuccess) T_ERROR("Error in vertex shader");
+      else if (!bFSSuccess) T_ERROR("Error in fragment shader");
     }
   } else {
     // attach to program object
@@ -335,9 +335,9 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
       glDeleteProgram(m_hProgram);
       m_hProgram=0;
       m_bInitialized=false;
-      if (!bVSSuccess && !bFSSuccess) ERROR("Error in vertex and fragment shaders");
-      else if (!bVSSuccess) ERROR("Error in vertex shader");
-      else if (!bFSSuccess) ERROR("Error in fragment shader");
+      if (!bVSSuccess && !bFSSuccess) T_ERROR("Error in vertex and fragment shaders");
+      else if (!bVSSuccess) T_ERROR("Error in vertex shader");
+      else if (!bFSSuccess) T_ERROR("Error in fragment shader");
     }
   }
 }
@@ -378,8 +378,8 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bPro
     delete[] pcLogInfo;
     return false;
     } else {
-      ERROR(shaderdesc);
-      ERROR(pcLogInfo);
+      T_ERROR(shaderdesc);
+      T_ERROR(pcLogInfo);
     delete[] pcLogInfo;
 #ifdef GLSLPROGRAM_STRICT
     return true;
@@ -441,12 +441,12 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
     case GLSLPROGRAM_DISK:
       fptr=fopen(ShaderDesc,"rb");
       if (!fptr) {
-        ERROR("File %s not found!",ShaderDesc);
+        T_ERROR("File %s not found!",ShaderDesc);
         return 0;
       }
       if (fseek(fptr,0,SEEK_END)) {
         fclose(fptr);
-        ERROR("Error reading file %s.",ShaderDesc);
+        T_ERROR("Error reading file %s.",ShaderDesc);
         return 0;
       }
       lFileSize=ftell(fptr)/sizeof(char);
@@ -456,7 +456,7 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
       if (lFileSize!=fread(pcShader,sizeof(char),lFileSize,fptr)) {
         fclose(fptr);
         delete[] pcShader;
-        ERROR("Error reading file %s.",ShaderDesc);
+        T_ERROR("Error reading file %s.",ShaderDesc);
         return 0;
       }
       fclose(fptr);
@@ -466,7 +466,7 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
       lFileSize=long(strlen(pcShader));
       break;
     default:
-      ERROR("Unknown source");
+      T_ERROR("Unknown source");
       return 0;
       break;
   }
@@ -530,7 +530,7 @@ void GLSLProgram::Enable(void) {
       glUseProgram(m_hProgram);
     if (!CheckGLError("Enable()")) m_bEnabled=true;
   }
-  else ERROR("No program loaded!");
+  else T_ERROR("No program loaded!");
 }
 
 
@@ -553,7 +553,7 @@ void GLSLProgram::Disable(void) {
       glUseProgram(0);
     if (!CheckGLError("Disable()")) m_bEnabled=false;
   }
-  else ERROR("No program loaded!");
+  else T_ERROR("No program loaded!");
 }
 
 
@@ -607,7 +607,7 @@ bool GLSLProgram::CheckGLError(const char *pcError, const char *pcAdditional) co
     if (pcMessage!=pcError) delete[] pcMessage;
 
     // display the error.
-    ERROR(output);
+    T_ERROR(output);
     delete[] output;
 
     return true;
@@ -661,7 +661,7 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
   if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) return;
 
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -699,7 +699,7 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
 #endif
 
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -733,7 +733,7 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
   if (CheckGLError("SetUniformVector(%s,bool,...) [getting adress]",name)) return;
 
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -762,7 +762,7 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
 #endif
 
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -795,7 +795,7 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 
   if (CheckGLError("SetUniformVector(%s,int,...) [getting adress]", name )) return;
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -834,7 +834,7 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 #endif
 
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -868,7 +868,7 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
   if (CheckGLError("SetUniformVector(%s,float*) [getting adress]",name)) return;
 
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -906,7 +906,7 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
 #endif
 
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -939,7 +939,7 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
 
   if (CheckGLError("SetUniformVector(%s,int*) [getting adress]",name)) return;
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -975,7 +975,7 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,float(i[0]),float(i[1]),float(i[2]),float(i[3])); break;
 #endif
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1008,7 +1008,7 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
 
   if (CheckGLError("SetUniformVector(%s,bool*) [getting adress]",name)) return;
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1035,7 +1035,7 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,(b[0] ? 1.0f : 0.0f),(b[1] ? 1.0f : 0.0f),(b[2] ? 1.0f : 0.0f),(b[3] ? 1.0f : 0.0f)); break;
 #endif
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1070,7 +1070,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
 
   if (CheckGLError("SetUniformMatrix(%s,float*,bool) [getting adress]",name)) return;
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1086,7 +1086,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
     case GL_FLOAT_MAT3:          glUniformMatrix3fv(iLocation,1,bTranspose,m); break;
     case GL_FLOAT_MAT4:          glUniformMatrix4fv(iLocation,1,bTranspose,m); break;
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1124,7 +1124,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
 
   if (CheckGLError("SetUniformMatrix(%s,int*,bool) [getting adress]",name)) return;
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1150,7 +1150,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
       glUniformMatrix4fv(iLocation,1,bTranspose,M);
       break;
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1186,7 +1186,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
 
   if (CheckGLError("SetUniformMatrix(%s,int*,bool) [getting adress]",name)) return;
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1212,7 +1212,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
       glUniformMatrix4fv(iLocation,1,bTranspose,M);
       break;
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1248,7 +1248,7 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
 
   if (CheckGLError("SetUniformArray(%s,float*) [getting adress]",name)) return;
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1311,7 +1311,7 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
 #endif
 
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1345,7 +1345,7 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
 
   if (CheckGLError("SetUniformArray(%s,int*) [getting adress]",name)) return;
   if(iLocation==-1) {
-    ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1407,7 +1407,7 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
 #endif
 
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1441,7 +1441,7 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
 
   if (CheckGLError("SetUniformArray(%s,bool*) [getting adress]",name)) return;
   if(iLocation==-1) {
-   ERROR("Error getting address for %s.",name);
+   T_ERROR("Error getting address for %s.",name);
     return;
   }
 
@@ -1534,7 +1534,7 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
 #endif
 
     default:
-      ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type for %s.",name);
       break;
   }
 #ifdef GLSL_DEBUG

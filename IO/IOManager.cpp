@@ -178,7 +178,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     ofstream fs;
     fs.open(strTempMergeFilename.c_str(),fstream::binary);
     if (fs.fail())  {
-      ERROR("Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
+      T_ERROR("Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
       return false;
     }
 
@@ -192,7 +192,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
       if (pDICOMStack->m_bIsJPEGEncoded) {
         QImage image;
         if (!image.loadFromData((uchar*)pData, iDataSize)) {
-          ERROR("QImage is unable to load JPEG block in DICOM file.");
+          T_ERROR("QImage is unable to load JPEG block in DICOM file.");
           delete [] pData;
           return false;
         }
@@ -216,7 +216,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
             }
           }
         } else {
-          ERROR("Only 1 and 3 component images are supported a the moment.");
+          T_ERROR("Only 1 and 3 component images are supported a the moment.");
           delete [] pData;
           return false;
         }
@@ -290,7 +290,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
         ofstream fs;
         fs.open(strTempMergeFilename.c_str(),fstream::binary);
         if (fs.fail())  {
-          ERROR("Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
+          T_ERROR("Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
           return false;
         }
 
@@ -328,7 +328,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
   }
 
 
-  ERROR("Unknown source stack type %s", pStack->m_strFileType.c_str());
+  T_ERROR("Unknown source stack type %s", pStack->m_strFileType.c_str());
   return false;
 }
 
@@ -525,7 +525,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
   } else {
     if (bIsFloatG) {
       // unsigned float ??? :-)
-      ERROR("Don't know how to handle unsigned float data.");
+      T_ERROR("Don't know how to handle unsigned float data.");
       return false;
     } else {
       switch (iComponentSizeG) {
@@ -725,7 +725,7 @@ bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, co
 
 bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir) {
   if (pSourceData->GetInfo()->GetComponentCount() != 1) {
-    ERROR("Isosurface extracion only supported for scaler volumes.");
+    T_ERROR("Isosurface extracion only supported for scaler volumes.");
     return false;
   }
 
@@ -763,7 +763,7 @@ bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, 
   }
 
   if (!pMCData) {
-    ERROR("Unsupported data format.");
+    T_ERROR("Unsupported data format.");
     return false;
   }
 
@@ -776,7 +776,7 @@ bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, 
     return true;
   else {
     remove (strTargetFilename.c_str());
-    ERROR("Export call failed.");
+    T_ERROR("Export call failed.");
     return false;
   }
 }
@@ -798,7 +798,7 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
   }
   
   if (!pExporter) {
-    ERROR("Unknown file extension %s.", strExt.c_str());
+    T_ERROR("Unknown file extension %s.", strExt.c_str());
     return false;
   }
 
@@ -806,7 +806,7 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
   bool bRAWCreated = pSourceData->Export(iLODlevel, strTempFilename, false, &Controller::Debug::Out());
 
   if (!bRAWCreated) {
-    ERROR("Unable to write temp file %s", strTempFilename.c_str());
+    T_ERROR("Unable to write temp file %s", strTempFilename.c_str());
     return false;
   }
 
@@ -825,7 +825,7 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
   remove(strTempFilename.c_str());
 
   if (!bTargetCreated) {
-    ERROR("Unable to write target file %s", strTargetFilename.c_str());
+    T_ERROR("Unable to write target file %s", strTargetFilename.c_str());
     return false;
   }
 

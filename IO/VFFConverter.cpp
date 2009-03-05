@@ -100,11 +100,11 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvp = parser.GetData("TYPE");
   if (kvp == NULL) {
-    ERROR("Could not find token \"type\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find token \"type\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->strValueUpper != "RASTER;")  {
-      ERROR("Only raster VFFs are supported at the moment");
+      T_ERROR("Only raster VFFs are supported at the moment");
       return false;
      }
   }
@@ -112,7 +112,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   int iDim;
   kvp = parser.GetData("RANK");
   if (kvp == NULL) {
-    ERROR("Could not find token \"rank\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find token \"rank\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     iDim = kvp->iValue;
@@ -120,29 +120,29 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   kvp = parser.GetData("BANDS");
   if (kvp == NULL) {
-    ERROR("Could not find token \"bands\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find token \"bands\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->iValue != 1)  {
-      ERROR("Only scalar VFFs are supported at the moment");
+      T_ERROR("Only scalar VFFs are supported at the moment");
       return false;
      }
   }
 
   kvp = parser.GetData("FORMAT");
   if (kvp == NULL) {
-    ERROR("Could not find token \"format\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find token \"format\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->strValueUpper != "SLICE;")  {
-      ERROR("Only VFFs with slice layout are supported at the moment");
+      T_ERROR("Only VFFs with slice layout are supported at the moment");
       return false;
      }
   }
 
   kvp = parser.GetData("BITS");
   if (kvp == NULL) {
-    ERROR("Could not find token \"bands\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find token \"bands\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     iComponentSize = kvp->iValue;
@@ -150,7 +150,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   kvp = parser.GetData("SIZE");
   if (kvp == NULL) {
-    ERROR("Could not find token \"size\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find token \"size\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     vVolumeSize[0] = kvp->viValue[0];
@@ -160,7 +160,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   kvp = parser.GetData("SPACING");
   if (kvp == NULL) {
-    ERROR("Could not find token \"size\" in file %s", strSourceFilename.c_str());
+    T_ERROR("Could not find token \"size\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     vVolumeAspect[0] = kvp->vfValue[0];
@@ -187,12 +187,12 @@ bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std:
   // create header textfile from metadata
   ofstream fAsciiTarget(strTargetFilename.c_str());  
   if (!fAsciiTarget.is_open()) {
-    ERROR("Unable to open target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
     return false;
   }
 
   if (bFloatingPoint) {
-    ERROR("Floating point formats are not avaliable for vff files.");
+    T_ERROR("Floating point formats are not avaliable for vff files.");
     return false;
   }
 
@@ -217,7 +217,7 @@ bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std:
   if (bRAWSuccess) {
     return true;
   } else {
-    ERROR("Error appaneding raw data to header file %s.", strTargetFilename.c_str());
+    T_ERROR("Error appaneding raw data to header file %s.", strTargetFilename.c_str());
     remove(strTargetFilename.c_str());
     return false;
   }

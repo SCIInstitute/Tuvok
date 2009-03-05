@@ -51,7 +51,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
                                      UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
   if (iComponentCount > 1) {
-    ERROR("Color data currently not supported.");
+    T_ERROR("Color data currently not supported.");
     return false;
   }
 
@@ -67,7 +67,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     MESSAGE("Performing endianess conversion ...");
 
     if (iComponentSize != 16 && iComponentSize != 32 && iComponentSize != 64) {
-      ERROR("Unable to endian convert anything but 16bit, 32bit, or 64bit values (requested %i)", iComponentSize);
+      T_ERROR("Unable to endian convert anything but 16bit, 32bit, or 64bit values (requested %i)", iComponentSize);
       return false;
     }
 
@@ -75,7 +75,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     WrongEndianData.Open(false);
 
     if (!WrongEndianData.IsOpen()) {
-      ERROR("Unable to open source file %s", strFilename.c_str());
+      T_ERROR("Unable to open source file %s", strFilename.c_str());
       return false;
     }
 
@@ -83,7 +83,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     ConvEndianData.Create();
 
     if (!ConvEndianData.IsOpen()) {
-      ERROR("Unable to open temp file %s for endianess conversion", tmpFilename0.c_str());
+      T_ERROR("Unable to open temp file %s for endianess conversion", tmpFilename0.c_str());
       WrongEndianData.Close();
       return false;
     }
@@ -113,7 +113,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       size_t iBytesWritten = ConvEndianData.WriteRAW(pBuffer, iBytesRead);
 
       if (iBytesRead != iBytesWritten)  {
-        ERROR("Read/Write error converting endianess from %s to %s", strFilename.c_str(), tmpFilename0.c_str());
+        T_ERROR("Read/Write error converting endianess from %s to %s", strFilename.c_str(), tmpFilename0.c_str());
         WrongEndianData.Close();
         ConvEndianData.Close();
         SysTools::Remove(tmpFilename0, Controller::Debug::Out());
@@ -157,7 +157,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   }
 
   if (strSourceFilename == "")  {
-    ERROR("Read/Write error quantizing to %s", strFilename.c_str());
+    T_ERROR("Read/Write error quantizing to %s", strFilename.c_str());
     return false;
   }
 
@@ -180,7 +180,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   SourceData.Open(false);
 
   if (!SourceData.IsOpen()) {
-    ERROR("Unable to open source file %s", strSourceFilename.c_str());
+    T_ERROR("Unable to open source file %s", strSourceFilename.c_str());
     return false;
   }
 
@@ -267,7 +267,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, NULL, NULL, &Controller::Debug::Out()); break;
 						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, NULL, NULL, &Controller::Debug::Out()); break;
 						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, NULL, NULL, &Controller::Debug::Out()); break;
-						default: ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+						default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
 		case 16 :
           switch (iComponentCount) {
@@ -275,7 +275,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, NULL, NULL, &Controller::Debug::Out()); break;
 						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, NULL, NULL, &Controller::Debug::Out()); break;
 						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, NULL, NULL, &Controller::Debug::Out()); break;
-						default: ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+						default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
 		case 32 :	
           switch (iComponentCount) {
@@ -283,14 +283,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, NULL, NULL, &Controller::Debug::Out()); break;
 						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, NULL, NULL, &Controller::Debug::Out()); break;
 						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, NULL, NULL, &Controller::Debug::Out()); break;
-						default: ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+						default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
-		default: ERROR("Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+		default: T_ERROR("Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 	}
 
 	string strProblemDesc;
 	if (!dataVolume.Verify(&strProblemDesc)) {
-    ERROR("Verify failed with the following reason: %s", strProblemDesc.c_str());
+    T_ERROR("Verify failed with the following reason: %s", strProblemDesc.c_str());
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) {
@@ -303,7 +303,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	}
 
 	if (!uvfFile.AddDataBlock(&dataVolume,dataVolume.ComputeDataSize(), true)) {
-    ERROR("AddDataBlock failed!");
+    T_ERROR("AddDataBlock failed!");
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) {
@@ -320,7 +320,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   if (Histogram1D.GetHistogram().empty()) {
     MESSAGE("Computing 1D Histogram...");
     if (!Histogram1D.Compute(&dataVolume)) {
-      ERROR("Computation of 1D Histogram failed!");
+      T_ERROR("Computation of 1D Histogram failed!");
       uvfFile.Close();
       SourceData.Close();
       if (bConvertEndianness) {
@@ -336,7 +336,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   MESSAGE("Computing 2D Histogram...");
   Histogram2DDataBlock Histogram2D;
   if (!Histogram2D.Compute(&dataVolume, Histogram1D.GetHistogram().size())) {
-    ERROR("Computation of 2D Histogram failed!");
+    T_ERROR("Computation of 2D Histogram failed!");
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) {
@@ -406,19 +406,19 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
   f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
   if(f_compressed == NULL) {
-    ERROR("Could not open %s", strFilename.c_str());
+    T_ERROR("Could not open %s", strFilename.c_str());
     fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
-    ERROR("Could not open %s", strUncompressedFile.c_str());
+    T_ERROR("Could not open %s", strUncompressedFile.c_str());
     fclose(f_compressed);
     return false;
   }
 
   if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
-    ERROR("Seek failed");
+    T_ERROR("Seek failed");
     fclose(f_compressed);
     return false;
   }
@@ -435,16 +435,16 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
       MESSAGE("Decompression successful.");
       break;
     case Z_MEM_ERROR:
-      ERROR("Not enough memory decompress %s",
+      T_ERROR("Not enough memory decompress %s",
                  strFilename.c_str());
       return false;
       break;
     case Z_DATA_ERROR:
-      ERROR("Deflation invalid or incomplete");
+      T_ERROR("Deflation invalid or incomplete");
       return false;
       break;
     case Z_VERSION_ERROR:
-      ERROR("Zlib library versioning error!");
+      T_ERROR("Zlib library versioning error!");
       return false;
       break;
     default:
@@ -476,34 +476,34 @@ bz_err_test(int bz_err)
             MESSAGE("End of bzip stream.");
             break;
         case BZ_CONFIG_ERROR:
-            ERROR("Bzip configuration error");
+            T_ERROR("Bzip configuration error");
             break;
         case BZ_SEQUENCE_ERROR:
-            ERROR("Bzip sequencing error");
+            T_ERROR("Bzip sequencing error");
             break;
         case BZ_PARAM_ERROR:
-            ERROR("Bzip parameter error");
+            T_ERROR("Bzip parameter error");
             break;
         case BZ_MEM_ERROR:
-            ERROR("Bzip memory allocation failed.");
+            T_ERROR("Bzip memory allocation failed.");
             break;
         case BZ_DATA_ERROR_MAGIC:
             WARNING("Bzip stream does not have correct magic bytes!");
             /* FALL THROUGH */
         case BZ_DATA_ERROR:
-            ERROR("Bzip data integrity error; this usually means the "
+            T_ERROR("Bzip data integrity error; this usually means the "
                   "compressed file is corrupt.");
             break;
         case BZ_IO_ERROR: {
             const char *err_msg = strerror(errno);
-            ERROR("Bzip IO error: %s", err_msg);
+            T_ERROR("Bzip IO error: %s", err_msg);
             break;
         }
         case BZ_UNEXPECTED_EOF:
             WARNING("EOF before end of Bzip stream.");
             break;
         case BZ_OUTBUFF_FULL:
-            ERROR("Bzip output buffer is not large enough");
+            T_ERROR("Bzip output buffer is not large enough");
             break;
     }
     return error_occurred;
@@ -525,19 +525,19 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   FILE *f_inflated = fopen(strUncompressedFile.c_str(), "wb");
 
   if(f_compressed == NULL) {
-    ERROR("Could not open %s", strFilename.c_str());
+    T_ERROR("Could not open %s", strFilename.c_str());
     fclose(f_inflated);
     return false;
   }
   if(f_inflated == NULL) {
-    ERROR("Could not open %s", strUncompressedFile.c_str());
+    T_ERROR("Could not open %s", strUncompressedFile.c_str());
     fclose(f_compressed);
     return false;
   }
 
   if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
-    ERROR("Seek failed");
+    T_ERROR("Seek failed");
     fclose(f_inflated);
     fclose(f_compressed);
     return false;
@@ -545,7 +545,7 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
 
   bzf = BZ2_bzReadOpen(&bz_err, f_compressed, 0, 0, NULL, 0);
   if(bz_err_test(bz_err)) {
-    ERROR("Bzip library error occurred; bailing.");
+    T_ERROR("Bzip library error occurred; bailing.");
     fclose(f_inflated);
     fclose(f_compressed);
     return false;
@@ -554,7 +554,7 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   do {
     int nbytes = BZ2_bzRead(&bz_err, bzf, &buffer[0], INCORESIZE);
     if(bz_err != BZ_STREAM_END && bz_err_test(bz_err)) {
-      ERROR("Bzip library error occurred; bailing.");
+      T_ERROR("Bzip library error occurred; bailing.");
       fclose(f_inflated);
       fclose(f_compressed);
       return false;
@@ -585,14 +585,14 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
 {
   ifstream sourceFile(strFilename.c_str(),ios::binary);
   if (!sourceFile.is_open()) {
-    ERROR("Unable to open source file %s.", strFilename.c_str());
+    T_ERROR("Unable to open source file %s.", strFilename.c_str());
     return false;
   }
 
   LargeRAWFile binaryFile(strBinaryFile);
   binaryFile.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
   if (!binaryFile.IsOpen()) {
-    ERROR("Unable to open temp file %s.", strBinaryFile.c_str());
+    T_ERROR("Unable to open temp file %s.", strBinaryFile.c_str());
     sourceFile.close();
     return false;
   }
@@ -600,7 +600,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
   sourceFile.seekg(iHeaderSkip);
   if (bIsFloat) {
     if (!bSigned) {
-      ERROR("Unsupported data type "
+      T_ERROR("Unsupported data type "
                                                   "(unsigned float)");
       sourceFile.close();
       binaryFile.Delete();
@@ -626,7 +626,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
                  break;
                }
       default : {
-                  ERROR("Unable unsupported data type. (float)");
+                  T_ERROR("Unable unsupported data type. (float)");
                   sourceFile.close();
                   binaryFile.Delete();
                   return false;
@@ -691,7 +691,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
                  break;
                }
       default : {
-                  ERROR("Unable unsupported data type. (int)");
+                  T_ERROR("Unable unsupported data type. (int)");
                   sourceFile.close();
                   binaryFile.Delete();
                   return false;
@@ -713,7 +713,7 @@ bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std:
   if (SysTools::FileExists(strTargetFilename))
     SysTools::Remove(strTargetFilename, Controller::Debug::Out());
   if (SysTools::FileExists(strTargetFilename)) {
-    ERROR("Unable to remove existing target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to remove existing target file %s.", strTargetFilename.c_str());
     return false;
   }
 
@@ -726,7 +726,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
   LargeRAWFile fSource(strRawFilename, iHeaderSkip);
   fSource.Open(false);
   if (!fSource.IsOpen()) {
-    ERROR("Unable to open source file %s.", strRawFilename.c_str());
+    T_ERROR("Unable to open source file %s.", strRawFilename.c_str());
     return false;
   }
   // append to target file
@@ -734,7 +734,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
   fTarget.Append();
   if (!fTarget.IsOpen()) {
     fSource.Close();
-    ERROR("Unable to open target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
     return false;
   }
 
@@ -767,7 +767,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
                   for (size_t i = 0;i<iCopySize;i+=8)
                     (*(INT64*)(pBuffer+i)) = INT64(*(UINT64*)(pBuffer+i)) - std::numeric_limits<INT64>::max();
                   break;
-        default : ERROR("Unsuported data type for vff files.");
+        default : T_ERROR("Unsuported data type for vff files.");
                   return false;
       }
     }
@@ -826,7 +826,7 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   strSource = SysTools::GetFilename(strSourceFilename);
 
   if (!bRAWCreated) {
-    ERROR("Convert to RAW step failed, aborting.");
+    T_ERROR("Convert to RAW step failed, aborting.");
     return false;
   }
 
@@ -895,7 +895,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
   LargeRAWFile fSource(strSourceFilename, iHeaderSkip);
   fSource.Open(false);
   if (!fSource.IsOpen()) {
-    ERROR("Unable to open source file %s.", strSourceFilename.c_str());
+    T_ERROR("Unable to open source file %s.", strSourceFilename.c_str());
     return false;
   }
 
@@ -903,7 +903,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
 
   if (bFloatingPoint) {
     if (!bSigned) {
-      ERROR( "Unable unsupported data type. (unsiged float)");
+      T_ERROR( "Unable unsupported data type. (unsiged float)");
       fSource.Close();
       return false;
     }
@@ -926,7 +926,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
                   break;
                }
       default : {
-                  ERROR("Unable unsupported data type. (float)");
+                  T_ERROR("Unable unsupported data type. (float)");
                   fSource.Close();
                   return false;
                 }
@@ -1007,7 +1007,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
                  break;
                }
       default : {
-                  ERROR("Unable unsupported data type. (int)");
+                  T_ERROR("Unable unsupported data type. (int)");
                   fSource.Close();
                   return false;
                 }

@@ -166,7 +166,7 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 4) 
     strFormat = "UCHAR4";
   else {
-    ERROR("This data type is not supported by QVIS DAT/RAW files.");
+    T_ERROR("This data type is not supported by QVIS DAT/RAW files.");
     return false;
   }                               
                                
@@ -175,7 +175,7 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
 
   ofstream fTarget(strTargetFilename.c_str());  
   if (!fTarget.is_open()) {
-    ERROR("Unable to open target file %s.", strTargetFilename.c_str());
+    T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
     return false;
   }
 
@@ -201,7 +201,7 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   if (bRAWSuccess) {
     return true;
   } else {
-    ERROR("Error creating raw target file %s.", strTargetRAWFilename.c_str());
+    T_ERROR("Error creating raw target file %s.", strTargetRAWFilename.c_str());
     remove(strTargetFilename.c_str());
     return false;
   }

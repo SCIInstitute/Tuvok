@@ -160,13 +160,13 @@ bool Scripting::ParseFile(const std::string& strFilename) {
       if (line[0] == '#') continue;       // skip comments
 
       if (!ParseLine(line)) {
-        ERROR("Error executing line %i in file %s (%s)", iLine, strFilename.c_str(), line.c_str());
+        T_ERROR("Error executing line %i in file %s (%s)", iLine, strFilename.c_str(), line.c_str());
         fileData.close();
         return false;
       }
     }
   } else {
-    ERROR("Error opening script file %s", strFilename.c_str());
+    T_ERROR("Error opening script file %s", strFilename.c_str());
     return false;
   }
 

@@ -137,7 +137,7 @@ VolumeDataset* GPUMemMan::LoadDataset(const string& strFilename, AbstrRenderer* 
     m_vpVolumeDatasets.push_back(VolDataListElem(dataset, requester));
     return dataset;
   } else {
-    ERROR("Error opening dataset %s", strFilename.c_str());
+    T_ERROR("Error opening dataset %s", strFilename.c_str());
     return NULL;
   }
 }
@@ -179,7 +179,7 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
 
   QImage image;
   if (!image.load(strFilename.c_str())) {
-    ERROR("Unable to load file %s", strFilename.c_str());
+    T_ERROR("Unable to load file %s", strFilename.c_str());
     return NULL;
   }
   MESSAGE("Loaded %s, now creating OpenGL resources ..", strFilename.c_str());
@@ -273,7 +273,7 @@ GLTexture1D* GPUMemMan::Access1DTrans(TransferFunction1D* pTransferFunction1D, A
     }
   }
 
-  ERROR("Unable to find 1D transferfunction");
+  T_ERROR("Unable to find 1D transferfunction");
   return NULL;
 }
 
@@ -362,7 +362,7 @@ GLTexture2D* GPUMemMan::Access2DTrans(TransferFunction2D* pTransferFunction2D, A
     }
   }
 
-  ERROR("Unable to find 2D transferfunction");
+  T_ERROR("Unable to find 2D transferfunction");
   return NULL;
 }
 
@@ -454,7 +454,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
 
         if (m_vpTex3DList.empty()) {
           // we do not have enough memory to page in even a single block...
-          ERROR( "Not enough memory to"
+          T_ERROR( "Not enough memory to"
                                                 " page a brick into memory, "
                                                 "aborting (MaxMem=%ikb, "
                                                 "NeededMem=%ikb).",
@@ -478,7 +478,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
   Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder, iIntraFrameCounter, iFrameCounter, m_MasterController);
 
   if (pNew3DTex->pTexture == NULL) {
-    ERROR("Failed to create OpenGL texture.");
+    T_ERROR("Failed to create OpenGL texture.");
     delete pNew3DTex;
     return NULL;
   }
@@ -596,7 +596,7 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile, const string& st
 
     return e->pGLSLProgram;
   } else {
-    ERROR("Failed to created GLSL program from the VS %s and the FS %s", strVSFile.c_str(), strFSFile.c_str());
+    T_ERROR("Failed to created GLSL program from the VS %s and the FS %s", strVSFile.c_str(), strFSFile.c_str());
     return NULL;
   }
 }

@@ -76,7 +76,7 @@ void GLRaycaster::CreateOffscreenBuffers() {
 
 bool GLRaycaster::Initialize() {
   if (!GLRenderer::Initialize()) {
-    ERROR("Error in parent call -> aborting");
+    T_ERROR("Error in parent call -> aborting");
     return false;
   }
 
@@ -93,7 +93,7 @@ bool GLRaycaster::Initialize() {
 
       Cleanup();
 
-      ERROR("Error loading a shader.");
+      T_ERROR("Error loading a shader.");
       return false;
   } else {
 
@@ -191,7 +191,7 @@ void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurre
                             m_pProgramIso->SetUniformVector("iTileID", int(iCurrentBrick));
                             break;
                           }
-    case RM_INVALID    :  ERROR("Invalid rendermode set"); break;
+    case RM_INVALID    :  T_ERROR("Invalid rendermode set"); break;
   }
 
 }
@@ -271,7 +271,7 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoI
       case RM_ISOSURFACE :  vCurrentShader.push_back(m_pProgramIso);
                             if (m_bDoClearView) vCurrentShader.push_back(m_pProgramIso2);
                             break;
-      default    :          ERROR("Invalid rendermode set");
+      default    :          T_ERROR("Invalid rendermode set");
                             break;
     }
   }
@@ -299,7 +299,7 @@ void GLRaycaster::Render3DPreLoop() {
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
     case RM_ISOSURFACE :  break;
-    default    :          ERROR("Invalid rendermode set");
+    default    :          T_ERROR("Invalid rendermode set");
                           break;
   }
 
@@ -393,7 +393,7 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
                             break;
       case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
                             break;
-      default            :  ERROR("Invalid rendermode set");
+      default            :  T_ERROR("Invalid rendermode set");
                             break;
     }
     glEnable(GL_BLEND);
@@ -412,7 +412,7 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
                             break;
       case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
                             break;
-      default            :  ERROR("Invalid rendermode set");
+      default            :  T_ERROR("Invalid rendermode set");
                             break;
     }
     glDisable(GL_BLEND);
@@ -509,7 +509,7 @@ void GLRaycaster::StartFrame() {
                           m_pProgramIso->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
                           m_pProgramIso->Disable();
                           break;
-    default    :          ERROR("Invalid rendermode set");
+    default    :          T_ERROR("Invalid rendermode set");
                           break;
   }
 }

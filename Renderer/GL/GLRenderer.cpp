@@ -87,7 +87,7 @@ GLRenderer::~GLRenderer() {
 
 bool GLRenderer::Initialize() {
   if (!AbstrRenderer::Initialize()) {
-    ERROR("Error in parent call -> aborting");
+    T_ERROR("Error in parent call -> aborting");
     return false;
   }
 
@@ -131,7 +131,7 @@ bool GLRenderer::Initialize() {
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramCVCompose))    ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",m_vShaderSearchDirs, &(m_pProgramComposeAnaglyphs)))   {
 
-      ERROR("Error loading transfer shaders.");
+      T_ERROR("Error loading transfer shaders.");
       return false;
   } else {
     m_pProgramTrans->Enable();
@@ -320,7 +320,7 @@ void GLRenderer::Paint() {
        case WM_SAGITTAL :
        case WM_AXIAL    :
        case WM_CORONAL  : if (m_bPerformRedraw) bNewDataToShow = Render2DView(RA_FULLSCREEN, m_eFullWindowMode, m_piSlice[size_t(m_eFullWindowMode)]); break;
-       default          : ERROR("Invalid Windowmode");
+       default          : T_ERROR("Invalid Windowmode");
                           bNewDataToShow = false;
                           break;
 
@@ -357,7 +357,7 @@ void GLRenderer::Paint() {
            case WM_CORONAL  : bLocalNewDataToShow= Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
                               m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = false;
                               break;
-           default          : ERROR("Invalid Windowmode");
+           default          : T_ERROR("Invalid Windowmode");
                               bLocalNewDataToShow = false;
                               break;
         }
@@ -436,7 +436,7 @@ void GLRenderer::SetRenderTargetArea(ERenderArea eREnderArea) {
     case RA_LOWERLEFT   : SetViewPort(UINTVECTOR2(0,0),m_vWinSize/2); break;
     case RA_LOWERRIGHT  : SetViewPort(UINTVECTOR2(m_vWinSize.x/2,0), UINTVECTOR2(m_vWinSize.x,m_vWinSize.y/2)); break;
     case RA_FULLSCREEN  : SetViewPort(UINTVECTOR2(0,0), m_vWinSize); break;
-    default             : ERROR("Invalid render area set"); break;
+    default             : T_ERROR("Invalid render area set"); break;
   }
 }
 
@@ -447,7 +447,7 @@ void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
     case RA_LOWERLEFT   : glScissor(0,0,m_vWinSize.x/2, m_vWinSize.y/2); glEnable( GL_SCISSOR_TEST );break;
     case RA_LOWERRIGHT  : glScissor(m_vWinSize.x/2,0,m_vWinSize.x,m_vWinSize.y/2); glEnable( GL_SCISSOR_TEST );break;
     case RA_FULLSCREEN  : /*glScissor(0,0,m_vWinSize.x, m_vWinSize.y);*/ glDisable( GL_SCISSOR_TEST );break;
-    default             : ERROR("Invalid render area set"); break;
+    default             : T_ERROR("Invalid render area set"); break;
   }
 
 }
@@ -572,7 +572,7 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
                           glEnd();
                           break;
                       }
-    default        :  ERROR("Invalid windowmode set"); break;
+    default        :  T_ERROR("Invalid windowmode set"); break;
   }
 }
 
@@ -761,7 +761,7 @@ void GLRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
                          matRotDir = matRotDir * matTemp;
                          break;
                       }
-    default        :  ERROR("Invalid windowmode set"); break;
+    default        :  T_ERROR("Invalid windowmode set"); break;
   }
   if (m_bFlipView[int(eDirection)].x) {
     matFlipY.Scaling(-1,1,1);
@@ -1214,7 +1214,7 @@ void GLRenderer::SetDataDepShaderVars() {
                             m_pProgramIso->Disable();
                             break;
                           }
-    case RM_INVALID    :  ERROR("Invalid rendermode set");
+    case RM_INVALID    :  T_ERROR("Invalid rendermode set");
                           break;
   }
 
@@ -1268,7 +1268,7 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
     }
 
     if (strActualVSFile == "") {
-      ERROR("Unable to locate vertex shader %s (%s)",strDirlessVSFile.c_str(), strVSFile.c_str());
+      T_ERROR("Unable to locate vertex shader %s (%s)",strDirlessVSFile.c_str(), strVSFile.c_str());
       return false;
     } else
       MESSAGE("Changed vertex shader %s to %s",strVSFile.c_str(), strActualVSFile.c_str());
@@ -1294,7 +1294,7 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
     }
 
     if (strActualFSFile == "") {
-      ERROR("Unable to locate fragment shader %s (%s)",strDirlessFSFile.c_str(), strFSFile.c_str());
+      T_ERROR("Unable to locate fragment shader %s (%s)",strDirlessFSFile.c_str(), strFSFile.c_str());
       return false;
     } else
       MESSAGE("Changed fragment shader %s to %s",strFSFile.c_str(), strActualFSFile.c_str());
@@ -1308,7 +1308,7 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
     (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(strActualVSFile, strActualFSFile);
 
     if ((*pShaderProgram) == NULL || !(*pShaderProgram)->IsValid()) {
-        ERROR("Error loading a shader combination VS %s and FS %s.", strActualVSFile.c_str(), strActualFSFile.c_str());
+        T_ERROR("Error loading a shader combination VS %s and FS %s.", strActualVSFile.c_str(), strActualFSFile.c_str());
         m_pMasterController->MemMan()->FreeGLSLProgram(*pShaderProgram);
         return false;
     } else return true;

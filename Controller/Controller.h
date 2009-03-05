@@ -61,7 +61,7 @@ namespace Controller {
   };
 };
 
-#define ERROR(...)                                         \
+#define T_ERROR(...)                                       \
   do {                                                     \
     Controller::Debug::Out().Error(_func_, __VA_ARGS__);   \
   } while(0)

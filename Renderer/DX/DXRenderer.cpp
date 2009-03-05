@@ -69,7 +69,7 @@ void DXRenderer::Cleanup() {
 bool DXRenderer::Initialize() {
   // call the parent
   if (!AbstrRenderer::Initialize()) {
-    ERROR("Error in parent call -> aborting");
+    T_ERROR("Error in parent call -> aborting");
     return false;
   }
 
