@@ -238,10 +238,7 @@ VolumeDataset::~VolumeDataset()
   delete m_pHist2D;
   delete m_pVolumeDatasetInfo;
 
-  if (m_pDatasetFile != NULL) {
-     m_pDatasetFile->Close();
-    delete m_pDatasetFile;
-  }
+  delete m_pDatasetFile;
 }
 
 
