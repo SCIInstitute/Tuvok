@@ -71,8 +71,7 @@ public:
   void SetHistogram(const std::vector<UINT32>&);
   void SetHistogram(const std::vector<std::vector<UINT32> >&);
 
-private:
-  VolumeDatasetInfo*  m_pVolumeInfo;
+  void SetInfo(VolumeDatasetInfo *vds_i) { m_pVolumeDatasetInfo = vds_i; }
 };
 
 #endif // VOLUMEDATASET_H
