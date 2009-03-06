@@ -34,6 +34,7 @@
   \date    August 2008
 */
 
+#include <cassert>
 #include <algorithm>
 #include <functional>
 #include "GPUMemMan.h"
@@ -265,20 +266,25 @@ void GPUMemMan::Changed1DTrans(AbstrRenderer* requester, TransferFunction1D* pTr
   }
 }
 
-void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester, TransferFunction1D** ppTransferFunction1D, GLTexture1D** tex) {
+void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
+                                TransferFunction1D** ppTransferFunction1D,
+                                GLTexture1D** tex) {
   MESSAGE("Creating new empty 1D transfer function");
+  assert(iSize > 0); // if not, our TF would be *really* empty :)
   *ppTransferFunction1D = new TransferFunction1D(iSize);
   (*ppTransferFunction1D)->SetStdFunction();
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction1D)->GetByteArray(&pcData);
-  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
+  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
+                         GL_RGBA, GL_UNSIGNED_BYTE, 4, pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetGPUSize();
 
-  m_vpTrans1DList.push_back(Trans1DListElem(*ppTransferFunction1D, *tex, requester));
+  m_vpTrans1DList.push_back(Trans1DListElem(*ppTransferFunction1D, *tex,
+                                            requester));
 }
 
 void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction1D** ppTransferFunction1D, GLTexture1D** tex) {
