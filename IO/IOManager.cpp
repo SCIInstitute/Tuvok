@@ -401,7 +401,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       IntermediateFile.strFilename = m_TempDir + SysTools::GetFilename(strFilenames[iInputData]) + SysTools::ToString(rand()) +".raw";
       IntermediateFile.bDelete = true;
 
-      if (!v.Export(iLODLevel, IntermediateFile.strFilename, false, &Controller::Debug::Out())) {
+      if (!v.Export(iLODLevel, IntermediateFile.strFilename, false)) {
         if (SysTools::FileExists(IntermediateFile.strFilename)) remove(IntermediateFile.strFilename.c_str());
         break;
       } else bRAWCreated = true;
@@ -658,8 +658,11 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       strIntermediateFile = m_TempDir + strFilename +".raw";
       bDeleteIntermediateFile = true;
 
-      if (!v.Export(iLODLevel, strIntermediateFile, false, &(Controller::Debug::Out()))) {
-        if (SysTools::FileExists(strIntermediateFile)) remove(strIntermediateFile.c_str());
+      if (!v.Export(iLODLevel, strIntermediateFile, false)) {
+        if (SysTools::FileExists(strIntermediateFile)) {
+          SysTools::Remove(strIntermediateFile.c_str(),
+                           Controller::Debug::Out());
+        }
         return false;
       } else bRAWCreated = true;
 
@@ -767,7 +770,7 @@ bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, 
     return false;
   }
 
-  bool bResult = pSourceData->Export(iLODlevel, strTempFilename, false, &(Controller::Debug::Out()), &MCBrick, (void*)pMCData, 1);
+  bool bResult = pSourceData->Export(iLODlevel, strTempFilename, false, &MCBrick, (void*)pMCData, 1);
 
   if (SysTools::FileExists(strTempFilename)) remove (strTempFilename.c_str());
   delete pMCData;
@@ -803,7 +806,7 @@ bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, cons
   }
 
   string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
-  bool bRAWCreated = pSourceData->Export(iLODlevel, strTempFilename, false, &Controller::Debug::Out());
+  bool bRAWCreated = pSourceData->Export(iLODlevel, strTempFilename, false);
 
   if (!bRAWCreated) {
     T_ERROR("Unable to write temp file %s", strTempFilename.c_str());
