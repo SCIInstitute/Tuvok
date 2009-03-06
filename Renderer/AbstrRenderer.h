@@ -181,7 +181,9 @@ class AbstrRenderer {
     /// which don't want to use the LOD subsystem.
     void SetDataSet(VolumeDataset *vds);
 
-    const VolumeDataset&      GetDataSet() const {return *m_pDataset;}
+    VolumeDataset&       GetDataSet()       { return *m_pDataset; }
+    const VolumeDataset& GetDataSet() const { return *m_pDataset; }
+
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
     TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
 
