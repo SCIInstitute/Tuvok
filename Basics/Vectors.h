@@ -276,13 +276,19 @@ public:
 
   T& operator [](size_t i) {
     assert(i <= 2);
-    return (i == 0) ? this->x :
-           (i == 1) ? this->y : this->z;
+    switch(i) {
+      case 0: return this->x;
+      case 1: return this->y;
+      default: return this->z;
+    }
   }
   const T& operator [](size_t i) const {
     assert(i <= 2);
-    return (i == 0) ? this->x :
-           (i == 1) ? this->y : this->z;
+    switch(i) {
+      case 0: return this->x;
+      case 1: return this->y;
+      default: return this->z;
+    }
   }
 
   VECTOR3<T> abs() const {return VECTOR3<T>(fabs(x),fabs(y),fabs(z));}
@@ -416,15 +422,21 @@ public:
 
   T& operator [](size_t i) {
     assert(i <= 3);
-    return (i == 0) ? this->x :
-           (i == 1) ? this->y :
-           (i == 2) ? this->z : this->w;
+    switch(i) {
+      case 0: return this->x;
+      case 1: return this->y;
+      case 2: return this->z;
+      default: return this->w;
+    }
   }
   const T& operator [](size_t i) const {
     assert(i <= 3);
-    return (i == 0) ? this->x :
-           (i == 1) ? this->y :
-           (i == 2) ? this->z : this->w;
+    switch(i) {
+      case 0: return this->x;
+      case 1: return this->y;
+      case 2: return this->z;
+      default: return this->w;
+    }
   }
 
   VECTOR4<T>& operator=(const VECTOR4<T>& other)  { x = other.x; y = other.y; z = other.z; w = other.w; return *this; }
