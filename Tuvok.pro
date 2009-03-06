@@ -32,6 +32,7 @@ HEADERS += StdTuvokDefines.h \
            IO/RAWConverter.h \
            IO/QVISConverter.h \
            IO/VFFConverter.h \
+           IO/CoreVolume.h \
            IO/DirectoryParser.h \
            IO/KeyValueFileParser.h \
            IO/StkConverter.h \
@@ -128,6 +129,7 @@ SOURCES += 3rdParty/GLEW/glew.c \
            IO/Transferfunction2D.cpp \
            IO/VolumeDataset.cpp \
            IO/IOManager.cpp \
+           IO/CoreVolume.cpp \
            IO/DirectoryParser.cpp \
            IO/DICOM/DICOMParser.cpp \
            IO/Images/ImageParser.cpp \
