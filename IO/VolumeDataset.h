@@ -178,6 +178,7 @@ public:
 protected:
   Histogram1D*        m_pHist1D;
   Histogram2D*        m_pHist2D;
+  VolumeDatasetInfo*  m_pVolumeDatasetInfo;
 
 private:
   RasterDataBlock*         m_pVolumeDataBlock;
@@ -188,7 +189,6 @@ private:
 
   bool                m_bIsOpen;
   std::string         m_strFilename;
-  VolumeDatasetInfo*  m_pVolumeDatasetInfo;
 
   bool Open(bool bVerify);
 };
