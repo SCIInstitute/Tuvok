@@ -68,6 +68,9 @@ public:
                         const std::vector<UINT64>& vLOD,
                         const std::vector<UINT64>& vBrick) const;
 
+  void SetHistogram(const std::vector<UINT32>&);
+  void SetHistogram(const std::vector<std::vector<UINT32> >&);
+
 private:
   VolumeDatasetInfo*  m_pVolumeInfo;
 };

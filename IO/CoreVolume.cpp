@@ -31,6 +31,8 @@
            SCI Institute
            University of Utah
 */
+#include <cstring>
+#include <cstdlib>
 #include "CoreVolume.h"
 
 CoreVolume::CoreVolume() {}
@@ -40,4 +42,27 @@ bool CoreVolume::GetBrick(unsigned char**,
                           const std::vector<UINT64>&,
                           const std::vector<UINT64>&) const {
   return false;
+}
+
+void CoreVolume::SetHistogram(const std::vector<UINT32>& hist)
+{
+  if(m_pHist1D) { delete m_pHist1D; }
+  m_pHist1D = new Histogram1D(hist.size());
+  std::memcpy(m_pHist1D->GetDataPointer(), &(hist.at(0)),
+              sizeof(UINT32)*hist.size());
+}
+
+void CoreVolume::SetHistogram(const std::vector<std::vector<UINT32> >& hist)
+{
+  if(m_pHist2D) { delete m_pHist2D; }
+  // assume the 2D histogram is square: hist[0].size() == hist[1].size() == ...
+  const VECTOR2<size_t> sz(hist.size(), hist[0].size());
+  m_pHist2D = new Histogram2D(sz);
+
+  UINT32 *data = m_pHist2D->GetDataPointer();
+  for(std::vector<std::vector<UINT32> >::const_iterator iter = hist.begin();
+      iter != hist.end(); ++iter) {
+    std::memcpy(data, &(iter->at(0)), sizeof(UINT32)*iter->size());
+    data += iter->size();
+  }
 }
