@@ -134,7 +134,7 @@ class VolumeDatasetInfo {
     std::vector< std::vector< std::vector<std::vector<UINT64VECTOR3> > > >m_vvaBrickSize;
     std::vector< std::vector< std::vector<std::vector<InternalMaxMinElemen> > > >m_vvaMaxMin;
 
-    // set externaly by the user
+    // set externally by the user
     std::vector<double>         m_vfRescale;
 
     friend class VolumeDataset;
