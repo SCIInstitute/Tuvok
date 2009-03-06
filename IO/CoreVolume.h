@@ -74,4 +74,4 @@ public:
   void SetInfo(VolumeDatasetInfo *vds_i) { m_pVolumeDatasetInfo = vds_i; }
 };
 
-#endif // VOLUMEDATASET_H
+#endif // TUVOK_CORE_VOLUME_H
