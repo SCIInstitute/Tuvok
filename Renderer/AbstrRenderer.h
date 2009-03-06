@@ -345,6 +345,12 @@ class AbstrRenderer {
       m_bPerformRedraw = true;
     }
 
+    /// Appends the given directory to the list of paths Tuvok will try to find
+    /// shaders in.
+    void AddShaderPath(const std::string &path) {
+      m_vShaderSearchDirs.push_back(path);
+    }
+
   protected:
     MasterController*   m_pMasterController;
     bool                m_bPerformRedraw;
