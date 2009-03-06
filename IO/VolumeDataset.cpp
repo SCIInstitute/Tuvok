@@ -423,7 +423,7 @@ bool VolumeDataset::Export(UINT64 iLODlevel,
                             const std::vector<UINT64> vBrickOffset,
                             void* pUserContext),
                            void* pUserContext,
-                           UINT64 iOverlap) {
+                           UINT64 iOverlap) const {
   vector<UINT64> vLOD; vLOD.push_back(iLODlevel);
   return m_pVolumeDataBlock->BrickedLODToFlatData(vLOD, strTargetFilename,
                                                   bAppend,

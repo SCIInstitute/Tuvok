@@ -172,7 +172,7 @@ public:
                                         const std::vector<UINT64> vBrickOffset,
                                         void* pUserContext) = NULL,
                       void* pUserContext = NULL,
-                      UINT64 iOverlap=0);
+                      UINT64 iOverlap=0) const;
 
 private:
   RasterDataBlock*         m_pVolumeDataBlock;

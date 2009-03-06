@@ -144,7 +144,7 @@ bool TransferFunction2D::Load(const std::string& filename) {
   return true;
 }
 
-bool TransferFunction2D::Save(const std::string& filename) {
+bool TransferFunction2D::Save(const std::string& filename) const {
   ofstream file(filename.c_str());
 
   if (!file.is_open()) return false;
@@ -185,7 +185,8 @@ void TransferFunction2D::GetByteArray(unsigned char** pcData) {
 }
 
 
-void TransferFunction2D::GetByteArray(unsigned char** pcData, unsigned char cUsedRange) {
+void TransferFunction2D::GetByteArray(unsigned char** pcData,
+                                      unsigned char cUsedRange) {
   if (*pcData == NULL) *pcData = new unsigned char[m_iSize.area()*4];
 
   float fScale = 255.0f/float(cUsedRange);
@@ -209,7 +210,8 @@ void TransferFunction2D::GetByteArray(unsigned char** pcData, unsigned char cUse
   }
 }
 
-void TransferFunction2D::GetShortArray(unsigned short** psData, unsigned short sUsedRange) {
+void TransferFunction2D::GetShortArray(unsigned short** psData,
+                                       unsigned short sUsedRange) {
   if (*psData == NULL) *psData = new unsigned short[m_iSize.area()*4];
 
   RenderTransferFunction();
@@ -234,7 +236,7 @@ void TransferFunction2D::GetFloatArray(float** pfData) {
 int m_iSwatchBorderSize = 0;
 int m_iBorderSize  = 0;
 
-INTVECTOR2 TransferFunction2D::Rel2Abs(FLOATVECTOR2 vfCoord) {
+INTVECTOR2 TransferFunction2D::Rel2Abs(FLOATVECTOR2 vfCoord) const {
   return INTVECTOR2(int(m_iSwatchBorderSize/2+ m_iBorderSize/2+vfCoord.x* (m_iSize.x-m_iBorderSize-m_iSwatchBorderSize)),
                     int(m_iSwatchBorderSize/2+m_iBorderSize/2+vfCoord.y*(m_iSize.y-m_iBorderSize-m_iSwatchBorderSize)));
 }
@@ -336,7 +338,7 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
 
 }
 
-// ************************************************************************************************************
+// ***************************************************************************
 
 void TFPolygon::Load(ifstream& file) {
   UINT32 iSize;
@@ -363,7 +365,7 @@ void TFPolygon::Load(ifstream& file) {
 
 }
 
-void TFPolygon::Save(ofstream& file) {
+void TFPolygon::Save(ofstream& file) const {
   file << UINT32(pPoints.size()) << endl;
 
   for(size_t i=0;i<pPoints.size();++i){

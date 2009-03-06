@@ -726,9 +726,9 @@ bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, co
     return pMCData->PerformMC(pSourceFile, vBrickSize, vBrickOffset);
 }
 
-bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir) {
+bool IOManager::ExtractIsosurface(const VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir) {
   if (pSourceData->GetInfo()->GetComponentCount() != 1) {
-    T_ERROR("Isosurface extracion only supported for scaler volumes.");
+    T_ERROR("Isosurface extraction only supported for scaler volumes.");
     return false;
   }
 
@@ -785,7 +785,7 @@ bool IOManager::ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel, 
 }
 
 
-bool IOManager::ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir) {
+bool IOManager::ExportDataset(const VolumeDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir) {
   // find the right converter to handle the output
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
   AbstrConverter* pExporter = NULL;

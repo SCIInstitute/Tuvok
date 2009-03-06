@@ -64,7 +64,7 @@ class TFPolygon {
     TFPolygon() {}
 
     void Load(std::ifstream& file);
-    void Save(std::ofstream& file);
+    void Save(std::ofstream& file) const;
 
     std::vector< FLOATVECTOR2 > pPoints;
     FLOATVECTOR2 pGradientCoords[2];
@@ -86,12 +86,13 @@ public:
 
   bool Load(const std::string& filename);
   bool Load(const std::string& filename, const VECTOR2<size_t>& vTargetSize);
-  bool Save(const std::string& filename);
+  bool Save(const std::string& filename) const;
 
   void InvalidateCache() {m_bUseCachedData = false;}
   void GetByteArray(unsigned char** pcData);
   void GetByteArray(unsigned char** pcData, unsigned char cUsedRange);
-  void GetShortArray(unsigned short** psData, unsigned short sUsedRange=4095);
+  void GetShortArray(unsigned short** psData,
+                     unsigned short sUsedRange=4095);
   void GetFloatArray(float** pfData);
 
   std::vector< TFPolygon > m_Swatches;
@@ -111,7 +112,7 @@ protected:
   VECTOR2<size_t> m_iSize;
   ColorData2D* RenderTransferFunction();
   unsigned char* RenderTransferFunction8Bit();
-  INTVECTOR2 Rel2Abs(FLOATVECTOR2 vfCoord);
+  INTVECTOR2 Rel2Abs(FLOATVECTOR2 vfCoord) const;
 
 private:
   ColorData2D*      m_pColorData;

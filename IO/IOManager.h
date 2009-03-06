@@ -301,10 +301,10 @@ public:
                        bool& bChecksumFail) const;
   bool NeedsConversion(const std::string& strFilename) const;
 
-  bool ExportDataset(VolumeDataset* pSourceData, UINT64 iLODlevel,
+  bool ExportDataset(const VolumeDataset* pSourceData, UINT64 iLODlevel,
                      const std::string& strTargetFilename,
                      const std::string& strTempDir);
-  bool ExtractIsosurface(VolumeDataset* pSourceData, UINT64 iLODlevel,
+  bool ExtractIsosurface(const VolumeDataset* pSourceData, UINT64 iLODlevel,
                          double fIsovalue,
                          const DOUBLEVECTOR3& vfRescaleFactors,
                          const std::string& strTargetFilename,

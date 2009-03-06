@@ -59,7 +59,7 @@ void TransferFunction1D::Resize(size_t iSize) {
   vColorData.resize(iSize);
 }
 
-float TransferFunction1D::Smoothstep(float x) {
+float TransferFunction1D::Smoothstep(float x) const {
   return 3*x*x-2*x*x*x;
 }
 
@@ -167,7 +167,7 @@ bool TransferFunction1D::Load(ifstream& file, size_t iTargetSize) {
   }
 }
 
-bool TransferFunction1D::Save(const std::string& filename) {
+bool TransferFunction1D::Save(const std::string& filename) const {
   ofstream file(filename.c_str());
   if (!Save(file)) return false;
   file.close();
@@ -189,7 +189,7 @@ bool TransferFunction1D::Load(ifstream& file) {
 }
 
 
-bool TransferFunction1D::Save(ofstream& file) {
+bool TransferFunction1D::Save(ofstream& file) const {
   if (!file.is_open()) return false;
 
   file << vColorData.size() << endl;
@@ -205,7 +205,8 @@ bool TransferFunction1D::Save(ofstream& file) {
 }
 
 
-void TransferFunction1D::GetByteArray(unsigned char** pcData, unsigned char cUsedRange) {
+void TransferFunction1D::GetByteArray(unsigned char** pcData,
+                                      unsigned char cUsedRange) const {
   if (*pcData == NULL) *pcData = new unsigned char[vColorData.size()*4];
 
   unsigned char *pcDataIterator = *pcData;
@@ -217,7 +218,8 @@ void TransferFunction1D::GetByteArray(unsigned char** pcData, unsigned char cUse
   }
 }
 
-void TransferFunction1D::GetShortArray(unsigned short** psData, unsigned short sUsedRange) {
+void TransferFunction1D::GetShortArray(unsigned short** psData,
+                                       unsigned short sUsedRange) const {
   if (*psData == NULL) *psData = new unsigned short[vColorData.size()*4];
 
   unsigned short *psDataIterator = *psData;
@@ -229,7 +231,7 @@ void TransferFunction1D::GetShortArray(unsigned short** psData, unsigned short s
   }
 }
 
-void TransferFunction1D::GetFloatArray(float** pfData) {
+void TransferFunction1D::GetFloatArray(float** pfData) const {
   if (*pfData == NULL) *pfData = new float[4*vColorData.size()];
   memcpy(*pfData, &pfData[0], sizeof(float)*4*vColorData.size());
 }

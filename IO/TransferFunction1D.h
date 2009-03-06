@@ -70,14 +70,16 @@ public:
   bool Load(const std::string& filename, size_t iTargetSize);
   bool Load(std::ifstream& file);
   bool Load(std::ifstream& file, size_t iTargetSize);
-  bool Save(const std::string& filename);
-  bool Save(std::ofstream& file);
+  bool Save(const std::string& filename) const;
+  bool Save(std::ofstream& file) const;
 
   void Clear();
 
-  void GetByteArray(unsigned char** pcData, unsigned char cUsedRange = 255);
-  void GetShortArray(unsigned short** psData, unsigned short sUsedRange=4095);
-  void GetFloatArray(float** pfData);
+  void GetByteArray(unsigned char** pcData,
+                    unsigned char cUsedRange = 255) const;
+  void GetShortArray(unsigned short** psData,
+                     unsigned short sUsedRange=4095) const;
+  void GetFloatArray(float** pfData) const;
 
   std::vector< FLOATVECTOR4 > vColorData;
 
@@ -87,7 +89,7 @@ public:
 private:
   UINT64VECTOR2 m_vValueBBox;
 
-  float Smoothstep(float x);
+  float Smoothstep(float x) const;
 
 };
 
