@@ -222,6 +222,15 @@ void AbstrRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   }
 }
 
+void AbstrRenderer::SetDataSet(VolumeDataset *vds)
+{
+  if(m_pDataset) {
+    delete m_pDataset;
+  }
+  m_pDataset = vds;
+  ScheduleCompleteRedraw();
+}
+
 void AbstrRenderer::Changed1DTrans() {
   AbstrDebugOut *dbg = m_pMasterController->DebugOut();
   if (m_eRenderMode != RM_1DTRANS) {

@@ -177,6 +177,10 @@ class AbstrRenderer {
     /** Deallocates GPU memory allocated during the rendering process. */
     virtual void Cleanup() = 0;
 
+    /// Sets the dataset from external source; only meant to be used by clients
+    /// which don't want to use the LOD subsystem.
+    void SetDataSet(VolumeDataset *vds);
+
     const VolumeDataset*      GetDataSet() const {return m_pDataset;}
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
     TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
