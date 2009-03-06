@@ -143,10 +143,10 @@ class VolumeDatasetInfo {
 class VolumeDataset {
 public:
   VolumeDataset(const std::string& strFilename, bool bVerify);
-  ~VolumeDataset();
+  virtual ~VolumeDataset();
 
-  bool IsOpen() const {return m_bIsOpen;}
-  std::string Filename() const {return m_strFilename;}
+  virtual bool IsOpen() const {return m_bIsOpen;}
+  virtual std::string Filename() const {return m_strFilename;}
 
   const Histogram1D* Get1DHistogram() const {return m_pHist1D;}
   const Histogram2D* Get2DHistogram() const {return m_pHist2D;}
@@ -159,19 +159,20 @@ public:
 
   UINTVECTOR3 GetBrickSize(const std::vector<UINT64>& vLOD,
                            const std::vector<UINT64>& vBrick) const;
-  bool GetBrick(unsigned char** ppData, const std::vector<UINT64>& vLOD,
-                const std::vector<UINT64>& vBrick) const {
+  virtual bool GetBrick(unsigned char** ppData,
+                        const std::vector<UINT64>& vLOD,
+                        const std::vector<UINT64>& vBrick) const {
     return m_pVolumeDataBlock->GetData(ppData, vLOD, vBrick);
   }
 
-  bool Export(UINT64 iLODlevel, const std::string& strTargetFilename,
-              bool bAppend,
-              bool (*brickFunc)(LargeRAWFile* pSourceFile,
-                                const std::vector<UINT64> vBrickSize,
-                                const std::vector<UINT64> vBrickOffset,
-                                void* pUserContext) = NULL,
-              void* pUserContext = NULL,
-              UINT64 iOverlap=0);
+  virtual bool Export(UINT64 iLODlevel, const std::string& strTargetFilename,
+                      bool bAppend,
+                      bool (*brickFunc)(LargeRAWFile* pSourceFile,
+                                        const std::vector<UINT64> vBrickSize,
+                                        const std::vector<UINT64> vBrickOffset,
+                                        void* pUserContext) = NULL,
+                      void* pUserContext = NULL,
+                      UINT64 iOverlap=0);
 
 private:
   RasterDataBlock*         m_pVolumeDataBlock;
