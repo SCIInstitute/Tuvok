@@ -34,6 +34,8 @@
   \date    August 2008
 */
 
+#include <algorithm>
+#include <functional>
 #include "GPUMemMan.h"
 #include <QtGui/QImage>
 #include <QtOpenGL/QGLWidget>
@@ -142,28 +144,58 @@ VolumeDataset* GPUMemMan::LoadDataset(const string& strFilename, AbstrRenderer* 
   }
 }
 
-
-void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset, AbstrRenderer* requester) {
-  for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
-    if (i->pVolumeDataset == pVolumeDataset) {
-      for (AbstrRendererListIter j = i->qpUser.begin();j<i->qpUser.end();j++) {
-        if (*j == requester) {
-          i->qpUser.erase(j);
-          if (i->qpUser.empty()) {
-            MESSAGE("Cleaning up all 3D textures associated to dataset %s", pVolumeDataset->Filename().c_str());
-            FreeAssociatedTextures(pVolumeDataset);
-            MESSAGE("Released Dataset %s", pVolumeDataset->Filename().c_str());
-            delete pVolumeDataset;
-            m_vpVolumeDatasets.erase(i);
-          } else {
-            MESSAGE("Decreased access count but dataset %s is still in use by another subsystem", pVolumeDataset->Filename().c_str());
-          }
-          return;
-        }
-      }
-    }
+// Functor to find the VolDataListElem which holds the VolumeDataset given to
+// the constructor.
+struct find_ds : public std::unary_function<VolDataListElem, bool> {
+  find_ds(const VolumeDataset *vds) : _ds(vds) { }
+  bool operator()(const VolDataListElem &cmp) const {
+    return cmp.pVolumeDataset == _ds;
   }
-  WARNING("Dataset %s not found or not being used by requester", pVolumeDataset->Filename().c_str());
+  private: const VolumeDataset *_ds;
+};
+
+void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset,
+                            AbstrRenderer* requester) {
+  // store a name conditional for later logging
+  const std::string ds_name = pVolumeDataset ? pVolumeDataset->Filename()
+                                             : std::string("(null ds)");
+
+  // find the dataset this refers to in our internal list
+  VolDataListIter vol_ds = std::find_if(m_vpVolumeDatasets.begin(),
+                                        m_vpVolumeDatasets.end(),
+                                        find_ds(pVolumeDataset));
+
+  if(vol_ds == m_vpVolumeDatasets.end()) {
+    WARNING("Dataset %s not found or not being used by requester",
+            ds_name.c_str());
+    return;
+  }
+
+  // search for a renderer that the dataset is using
+  AbstrRendererListIter renderer = std::find(vol_ds->qpUser.begin(),
+                                             vol_ds->qpUser.end(), requester);
+  // bail out if there doesn't appear to be a link between the DS and a
+  // renderer.
+  if(renderer == vol_ds->qpUser.end()) {
+    WARNING("Dataset %s does not seem to be associated with a renderer.",
+            ds_name.c_str());
+    return;
+  }
+
+  // remove it from the list of renderers which use this DS; if this brings the
+  // `reference count' of the DS to 0, delete it.
+  vol_ds->qpUser.erase(renderer);
+  if(vol_ds->qpUser.empty()) {
+    MESSAGE("Cleaning up all 3D textures associated to dataset %s",
+            ds_name.c_str());
+    FreeAssociatedTextures(pVolumeDataset);
+    MESSAGE("Released Dataset %s", ds_name.c_str());
+    delete pVolumeDataset;
+    m_vpVolumeDatasets.erase(vol_ds);
+  } else {
+    MESSAGE("Decreased access count but dataset %s is still in use by "
+            "another subsystem", ds_name.c_str());
+  }
 }
 
 // ******************** Simple Textures
