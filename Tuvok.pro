@@ -7,7 +7,7 @@ TARGET            = Build/Tuvok
 RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
 DEPENDPATH       += . Basics Controller DebugOut IO Renderer Scripting
-INCLUDEPATH      += . 3rdParty
+INCLUDEPATH      += . 3rdParty 3rdParty/GLEW
 QT               += opengl
 LIBS             += -lz
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
@@ -62,8 +62,9 @@ HEADERS += StdTuvokDefines.h \
            DebugOut/TextfileOut.h \
            DebugOut/ConsoleOut.h \
            DebugOut/MultiplexOut.h \
-           3rdParty/GLEW/glew.h \
-           3rdParty/GLEW/glxew.h \
+           3rdParty/GLEW/GL/glew.h \
+           3rdParty/GLEW/GL/glxew.h \
+           3rdParty/GLEW/GL/wglew.h \
            3rdParty/bzip2/bzlib.h \
            3rdParty/bzip2/bzlib_private.h \
            3rdParty/tiff/t4.h \
@@ -100,7 +101,7 @@ HEADERS += StdTuvokDefines.h \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
            Renderer/SBVRGeogen.h
 
-SOURCES += 3rdParty/GLEW/glew.c \
+SOURCES += 3rdParty/GLEW/GL/glew.c \
            3rdParty/bzip2/blocksort.c \
            3rdParty/bzip2/huffman.c \
            3rdParty/bzip2/crctable.c \

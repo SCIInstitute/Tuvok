@@ -40,10 +40,10 @@
 #define GLINCLUDE_H
 
 #include "../../StdTuvokDefines.h"
-#include "../../3rdParty/GLEW/glew.h"
+#include <GL/glew.h>
 
 #ifdef WIN32
-  #include "../../3rdParty/GLEW/wglew.h"
+  #include <GL/wglew.h>
   #include <windows.h>
   // undef stupid windows defines to max and min
   #ifdef max
