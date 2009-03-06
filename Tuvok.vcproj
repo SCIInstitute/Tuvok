@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Tuvok"
 	ProjectGUID="{D474A1E1-2ED3-42E6-826C-372430E549B9}"
 	RootNamespace="Tuvoc"
@@ -1622,11 +1622,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -1700,6 +1700,14 @@
 			</File>
 			<File
 				RelativePath=".\IO\AbstrConverter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\CoreVolume.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\CoreVolume.h"
 				>
 			</File>
 			<File
