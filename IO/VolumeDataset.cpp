@@ -231,6 +231,19 @@ VolumeDataset::VolumeDataset(const string& strFilename, bool bVerify) :
 {
   Open(bVerify);
 }
+VolumeDataset::VolumeDataset() :
+  m_pVolumeDataBlock(NULL),
+  m_pHist1DDataBlock(NULL),
+  m_pHist2DDataBlock(NULL),
+  m_pMaxMinData(NULL),
+  m_pDatasetFile(NULL),
+  m_bIsOpen(false),
+  m_strFilename(""),
+  m_pVolumeDatasetInfo(NULL),
+  m_pHist1D(NULL),
+  m_pHist2D(NULL)
+{
+}
 
 VolumeDataset::~VolumeDataset()
 {

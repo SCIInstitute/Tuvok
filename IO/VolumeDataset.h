@@ -143,6 +143,7 @@ class VolumeDatasetInfo {
 class VolumeDataset {
 public:
   VolumeDataset(const std::string& strFilename, bool bVerify);
+  VolumeDataset();
   virtual ~VolumeDataset();
 
   virtual bool IsOpen() const {return m_bIsOpen;}
