@@ -35,7 +35,22 @@
 #include <cstdlib>
 #include "CoreVolume.h"
 
-CoreVolume::CoreVolume() {}
+typedef std::vector<std::vector<UINT32> > hist2d;
+
+CoreVolume::CoreVolume()
+{
+  // setup some default histograms.
+  // default value is 1, since the `FilledSize' ignores 0-valued elements, so
+  // other code would think a histogram filled with 0's is empty.
+  std::vector<UINT32> h1d(8,1);
+  hist2d h2d;
+  h2d.resize(8);
+  for(hist2d::iterator iter = h2d.begin(); iter < h2d.end(); ++iter) {
+    iter->resize(8,1);
+  }
+  SetHistogram(h1d);
+  SetHistogram(h2d);
+}
 CoreVolume::~CoreVolume() {}
 
 bool CoreVolume::GetBrick(unsigned char**,
@@ -60,8 +75,7 @@ void CoreVolume::SetHistogram(const std::vector<std::vector<UINT32> >& hist)
   m_pHist2D = new Histogram2D(sz);
 
   UINT32 *data = m_pHist2D->GetDataPointer();
-  for(std::vector<std::vector<UINT32> >::const_iterator iter = hist.begin();
-      iter != hist.end(); ++iter) {
+  for(hist2d::const_iterator iter = hist.begin(); iter < hist.end(); ++iter) {
     std::memcpy(data, &(iter->at(0)), sizeof(UINT32)*iter->size());
     data += iter->size();
   }
