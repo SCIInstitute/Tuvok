@@ -175,6 +175,10 @@ public:
                       void* pUserContext = NULL,
                       UINT64 iOverlap=0) const;
 
+protected:
+  Histogram1D*        m_pHist1D;
+  Histogram2D*        m_pHist2D;
+
 private:
   RasterDataBlock*         m_pVolumeDataBlock;
   Histogram1DDataBlock*    m_pHist1DDataBlock;
@@ -185,8 +189,6 @@ private:
   bool                m_bIsOpen;
   std::string         m_strFilename;
   VolumeDatasetInfo*  m_pVolumeDatasetInfo;
-  Histogram1D*        m_pHist1D;
-  Histogram2D*        m_pHist2D;
 
   bool Open(bool bVerify);
 };
