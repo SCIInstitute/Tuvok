@@ -124,9 +124,9 @@ public:
 
   bool BrickedLODToFlatData(const std::vector<UINT64>& vLOD, const std::string& strTargetFile,
                             bool bAppend = false, AbstrDebugOut* pDebugOut=NULL,
-                            bool (*brickFunc)(LargeRAWFile* pSourceFile, 
-                                const std::vector<UINT64> vBrickSize, 
-                                const std::vector<UINT64> vBrickOffset, 
+                            bool (*brickFunc)(LargeRAWFile* pSourceFile,
+                                const std::vector<UINT64> vBrickSize,
+                                const std::vector<UINT64> vBrickOffset,
                                 void* pUserContext ) = NULL,
                             void* pUserContext = NULL,
                             UINT64 iOverlap=0) const;
@@ -181,19 +181,19 @@ protected:
   UINT64 GetLODSizeAndOffsetTables(std::vector<UINT64>& vLODIndices, UINT64 iLOD);
   UINT64 ComputeLODLevelSizeAndOffsetTables(const std::vector<UINT64>& vReducedDomainSize, UINT64 iLOD);
 
-  bool TraverseBricksToWriteBrickToFile(UINT64& iBrickCounter, UINT64 iBrickCount, const std::vector<UINT64>& vLOD, 
+  bool TraverseBricksToWriteBrickToFile(UINT64& iBrickCounter, UINT64 iBrickCount, const std::vector<UINT64>& vLOD,
                                        const std::vector<UINT64>& vBrickCount, std::vector<UINT64> vCoords, size_t iCurrentDim,
                                        UINT64 iTargetOffset, unsigned char **ppData, LargeRAWFile* pTargetFile, UINT64 iElementSize,
                                        const std::vector<UINT64>& vPrefixProd, AbstrDebugOut* pDebugOut,
-                                       bool (*brickFunc)(LargeRAWFile* pSourceFile, 
-                                          const std::vector<UINT64> vBrickSize, 
-                                          const std::vector<UINT64> vBrickOffset, 
-                                          void* pUserContext ), 
+                                       bool (*brickFunc)(LargeRAWFile* pSourceFile,
+                                          const std::vector<UINT64> vBrickSize,
+                                          const std::vector<UINT64> vBrickOffset,
+                                          void* pUserContext ),
                                        void* pUserContext,
                                        UINT64 iOverlap) const;
 
   void WriteBrickToFile(size_t iCurrentDim, UINT64& iSourceOffset, UINT64& iTargetOffset, const std::vector<UINT64>& vBrickSize,
-                        const std::vector<UINT64>& vEffectiveBrickSize, unsigned char **ppData, 
+                        const std::vector<UINT64>& vEffectiveBrickSize, unsigned char **ppData,
                         LargeRAWFile* pTargetFile, UINT64 iElementSize, const std::vector<UINT64>& vPrefixProd,
                         const std::vector<UINT64>& vPrefixProdBrick, bool bDoSeek) const;
 };

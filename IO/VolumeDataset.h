@@ -167,9 +167,9 @@ public:
   bool Export(UINT64 iLODlevel, const std::string& strTargetFilename,
               bool bApppend, AbstrDebugOut* pDebugOut,
               bool (*brickFunc)(LargeRAWFile* pSourceFile,
-              const std::vector<UINT64> vBrickSize,
-              const std::vector<UINT64> vBrickOffset,
-              void* pUserContext)=NULL,
+                                const std::vector<UINT64> vBrickSize,
+                                const std::vector<UINT64> vBrickOffset,
+                                void* pUserContext)=NULL,
               void* pUserContext = NULL,
               UINT64 iOverlap=0);
 

@@ -29,5 +29,4 @@ protected:
   virtual DataBlock* Clone();
 };
 
-
 #endif // HISTOGRAM1DDATABLOCK_H

@@ -388,9 +388,8 @@ bool VolumeDataset::Open(bool bVerify)
   }
 
   MESSAGE("  Size %s", sStreamDomain.str().c_str());
-  MESSAGE("  %i Bit, %i components",
-                                           int(m_pVolumeDatasetInfo->GetBitWidth()),
-                                           int(m_pVolumeDatasetInfo->GetComponentCount()));
+  MESSAGE("  %i Bit, %i components", int(m_pVolumeDatasetInfo->GetBitWidth()),
+                                     int(m_pVolumeDatasetInfo->GetComponentCount()));
   MESSAGE("  LOD down to %s found", sStreamBrick.str().c_str());
 
   return true;

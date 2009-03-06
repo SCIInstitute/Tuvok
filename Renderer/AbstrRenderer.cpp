@@ -36,7 +36,7 @@
 
 #include <algorithm>
 #include "AbstrRenderer.h"
-#include <Controller/MasterController.h>
+#include <Controller/Controller.h>
 #include <IO/Tuvok_QtPlugins.h>
 #include <IO/IOManager.h>
 #include <Renderer/GPUMemMan/GPUMemMan.h>
@@ -141,21 +141,20 @@ bool AbstrRenderer::Initialize() {
 
 bool AbstrRenderer::LoadDataset(const string& strFilename) {
   if (m_pMasterController == NULL) return false;
-  AbstrDebugOut *dbg = m_pMasterController->DebugOut();
 
   if (m_pMasterController->IOMan() == NULL) {
-    dbg->Error(_func_, "Cannot load dataset because IOManager is NULL");
+    T_ERROR("Cannot load dataset because IOManager is NULL");
     return false;
   }
 
   m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this);
 
   if (m_pDataset == NULL) {
-    dbg->Error(_func_, "IOManager call to load dataset failed.");
+    T_ERROR("IOManager call to load dataset failed.");
     return false;
   }
 
-  dbg->Message(_func_, "Load successful, initializing renderer!");
+  MESSAGE("Load successful, initializing renderer!");
 
   // find the maximum LOD index
   std::vector<UINT64> vSmallestLOD = m_pDataset->GetInfo()->GetLODLevelCountND();

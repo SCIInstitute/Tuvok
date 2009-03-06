@@ -94,16 +94,24 @@ bool GLRenderer::Initialize() {
   string strPotential1DTransName = SysTools::ChangeExt(m_pDataset->Filename(), "1dt");
   string strPotential2DTransName = SysTools::ChangeExt(m_pDataset->Filename(), "2dt");
 
-  if (SysTools::FileExists(strPotential1DTransName))
-    m_pMasterController->MemMan()->Get1DTransFromFile(strPotential1DTransName, this, &m_p1DTrans, &m_p1DTransTex);
-  else
-    m_pMasterController->MemMan()->GetEmpty1DTrans(m_pDataset->Get1DHistogram()->GetFilledSize(), this, &m_p1DTrans, &m_p1DTransTex);
+  GPUMemMan &mm = *(Controller::Instance().MemMan());
+  if (SysTools::FileExists(strPotential1DTransName)) {
+    mm.Get1DTransFromFile(strPotential1DTransName, this, &m_p1DTrans,
+                                                         &m_p1DTransTex);
+  } else {
+    mm.GetEmpty1DTrans(m_pDataset->Get1DHistogram()->GetFilledSize(), this,
+                       &m_p1DTrans, &m_p1DTransTex);
+  }
 
-  if (SysTools::FileExists(strPotential2DTransName))
-    m_pMasterController->MemMan()->Get2DTransFromFile(strPotential2DTransName, this, &m_p2DTrans, &m_p2DTransTex);
-  else {
-    m_pMasterController->MemMan()->GetEmpty2DTrans(m_pDataset->Get2DHistogram()->GetFilledSize(), this, &m_p2DTrans, &m_p2DTransTex);
+  if (SysTools::FileExists(strPotential2DTransName)) {
+    mm.Get2DTransFromFile(strPotential2DTransName, this, &m_p2DTrans,
+                                                         &m_p2DTransTex);
+  } else {
+    mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram()->GetFilledSize(), this,
+                       &m_p2DTrans, &m_p2DTransTex);
 
+    // Setup a default polygon in the 2D TF, so it doesn't look like they're
+    // broken (nothing is rendered) when the user first switches to 2D TF mode.
     TFPolygon newSwatch;
     newSwatch.pPoints.push_back(FLOATVECTOR2(0.1f,0.1f));
     newSwatch.pPoints.push_back(FLOATVECTOR2(0.1f,0.9f));
@@ -122,15 +130,23 @@ bool GLRenderer::Initialize() {
     m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
   }
 
-  if (!LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-FS.glsl",     m_vShaderSearchDirs, &(m_pProgramTrans))        ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "1D-slice-FS.glsl",     m_vShaderSearchDirs, &(m_pProgram1DTransSlice)) ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "2D-slice-FS.glsl",     m_vShaderSearchDirs, &(m_pProgram2DTransSlice)) ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "MIP-slice-FS.glsl",    m_vShaderSearchDirs, &(m_pProgramMIPSlice))     ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-MIP-FS.glsl", m_vShaderSearchDirs, &(m_pProgramTransMIP))     ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-FS.glsl",      m_vShaderSearchDirs, &(m_pProgramIsoCompose))   ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramCVCompose))    ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",m_vShaderSearchDirs, &(m_pProgramComposeAnaglyphs)))   {
-
+  if (!LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgramTrans))        ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "1D-slice-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgram1DTransSlice)) ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "2D-slice-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgram2DTransSlice)) ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "MIP-slice-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgramMIPSlice))     ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-MIP-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgramTransMIP))     ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgramIsoCompose))   ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgramCVCompose))    ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgramComposeAnaglyphs)))
+  {
       T_ERROR("Error loading transfer shaders.");
       return false;
   } else {
@@ -186,7 +202,6 @@ bool GLRenderer::Initialize() {
     m_pProgramComposeAnaglyphs->SetUniformVector("texLeftEye",0);
     m_pProgramComposeAnaglyphs->SetUniformVector("texRightEye",1);
     m_pProgramComposeAnaglyphs->Disable();
-
   }
 
   return true;

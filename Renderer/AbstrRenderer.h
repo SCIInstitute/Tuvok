@@ -161,7 +161,7 @@ class AbstrRenderer {
      * @param strFilename path to a file */
     virtual bool LoadDataset(const std::string& strFilename);
     /** Query whether or not we should redraw the next frame, else we should
-     * reuse what is already rendered or cintinue with the current frame if it
+     * reuse what is already rendered or continue with the current frame if it
      * is not complete yet. */
     virtual bool CheckForRedraw();
 
