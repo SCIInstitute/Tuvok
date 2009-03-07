@@ -59,6 +59,7 @@ class VolumeDataset;
 class VolumeDatasetInfo {
   public:
     VolumeDatasetInfo() : m_pVolumeDataBlock(NULL) {}
+    virtual ~VolumeDatasetInfo() {}
 
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
       m_vfRescale[0] = vfRescale[0];
