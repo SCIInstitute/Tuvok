@@ -240,10 +240,10 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
         case 4 : glInternalformat = GL_RGBA16; break;
         default : FreeData(); return false;
       }
-
     } else {
-        FreeData();
-        return false;
+      T_ERROR("Cannot handle data of width %d", iBitWidth);
+      FreeData();
+      return false;
     }
   }
 
