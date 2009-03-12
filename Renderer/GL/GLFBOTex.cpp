@@ -150,7 +150,8 @@ GLFBOTex::~GLFBOTex(void) {
   m_hDepthBuffer=0;
   --m_iCount;
   if (m_iCount==0) {
-    MESSAGE("FBO released via destructor call.");
+    m_pMasterController->DebugOut()->Message(_func_, "FBO released via "
+                                                     "destructor call.");
     glDeleteFramebuffersEXT(1,&m_hFBO);
     m_hFBO=0;
   }

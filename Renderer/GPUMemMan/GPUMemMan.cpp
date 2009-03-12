@@ -57,13 +57,21 @@ GPUMemMan::GPUMemMan(MasterController* masterController) :
 }
 
 GPUMemMan::~GPUMemMan() {
+  // Can't access the controller through the singleton; this destructor is
+  // called during MC's destructor!  Since the MC is dying, we shouldn't rely
+  // on anything within it being valid, but as a bit of a hack we'll grab the
+  // active debug output anyway.  This works because we know that the debug
+  // outputs will be deleted last -- after the memory manager.
+  AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
   for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
-    WARNING("Detected unfreed dataset %s.", i->pVolumeDataset->Filename().c_str());
+    dbg.Warning(_func_, "Detected unfreed dataset %s.",
+                i->pVolumeDataset->Filename().c_str());
     delete i->pVolumeDataset;
   }
 
   for (SimpleTextureListIter i = m_vpSimpleTextures.begin();i<m_vpSimpleTextures.end();i++) {
-    WARNING("Detected unfreed SimpleTexture %s.", i->strFilename.c_str());
+    dbg.Warning(_func_, "Detected unfreed SimpleTexture %s.",
+                i->strFilename.c_str());
 
     m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
     m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
@@ -72,7 +80,7 @@ GPUMemMan::~GPUMemMan() {
   }
 
   for (Trans1DListIter i = m_vpTrans1DList.begin();i<m_vpTrans1DList.end();i++) {
-    WARNING("Detected unfreed 1D Transferfunction.");
+    dbg.Warning(_func_, "Detected unfreed 1D Transferfunction.");
 
     m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
     m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
@@ -82,7 +90,7 @@ GPUMemMan::~GPUMemMan() {
   }
 
   for (Trans2DListIter i = m_vpTrans2DList.begin();i<m_vpTrans2DList.end();i++) {
-    WARNING("Detected unfreed 2D Transferfunction.");
+    dbg.Warning(_func_, "Detected unfreed 2D Transferfunction.");
 
     m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
     m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
@@ -92,7 +100,7 @@ GPUMemMan::~GPUMemMan() {
   }
 
   for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
-    WARNING("Detected unfreed 3D texture.");
+    dbg.Warning(_func_, "Detected unfreed 3D texture.");
 
     m_iAllocatedGPUMemory -= (*i)->pTexture->GetCPUSize();
     m_iAllocatedCPUMemory -= (*i)->pTexture->GetGPUSize();
@@ -101,7 +109,7 @@ GPUMemMan::~GPUMemMan() {
   }
 
   for (FBOListIter i = m_vpFBOList.begin();i<m_vpFBOList.end();i++) {
-    WARNING("Detected unfreed FBO.");
+    dbg.Warning(_func_, "Detected unfreed FBO.");
 
     m_iAllocatedGPUMemory -= (*i)->pFBOTex->GetCPUSize();
     m_iAllocatedCPUMemory -= (*i)->pFBOTex->GetGPUSize();
@@ -110,14 +118,13 @@ GPUMemMan::~GPUMemMan() {
   }
 
   for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
-    WARNING("Detected unfreed GLSL program.");
+    dbg.Warning(_func_, "Detected unfreed GLSL program.");
 
     m_iAllocatedGPUMemory -= (*i)->pGLSLProgram->GetCPUSize();
     m_iAllocatedCPUMemory -= (*i)->pGLSLProgram->GetGPUSize();
 
     delete (*i);
   }
-
 
   assert(m_iAllocatedGPUMemory == 0);
   assert(m_iAllocatedCPUMemory == 0);
@@ -166,9 +173,11 @@ void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset,
                                         m_vpVolumeDatasets.end(),
                                         find_ds(pVolumeDataset));
 
+  // Don't access the singleton; see comment in the destructor.
+  AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
   if(vol_ds == m_vpVolumeDatasets.end()) {
-    WARNING("Dataset '%s' not found or not being used by requester",
-            ds_name.c_str());
+    dbg.Warning(_func_,"Dataset '%s' not found or not being used by requester",
+                ds_name.c_str());
     return;
   }
 
@@ -178,8 +187,8 @@ void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset,
   // bail out if there doesn't appear to be a link between the DS and a
   // renderer.
   if(renderer == vol_ds->qpUser.end()) {
-    WARNING("Dataset %s does not seem to be associated with a renderer.",
-            ds_name.c_str());
+    dbg.Warning(_func_, "Dataset %s does not seem to be associated "
+                        "with a renderer.", ds_name.c_str());
     return;
   }
 
@@ -187,15 +196,15 @@ void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset,
   // `reference count' of the DS to 0, delete it.
   vol_ds->qpUser.erase(renderer);
   if(vol_ds->qpUser.empty()) {
-    MESSAGE("Cleaning up all 3D textures associated to dataset %s",
-            ds_name.c_str());
+    dbg.Message(_func_,"Cleaning up all 3D textures associated to dataset %s",
+                ds_name.c_str());
     FreeAssociatedTextures(pVolumeDataset);
-    MESSAGE("Released Dataset %s", ds_name.c_str());
+    dbg.Message(_func_,"Released Dataset %s", ds_name.c_str());
     delete pVolumeDataset;
     m_vpVolumeDatasets.erase(vol_ds);
   } else {
-    MESSAGE("Decreased access count but dataset %s is still in use by "
-            "another subsystem", ds_name.c_str());
+    dbg.Message(_func_,"Decreased access count but dataset %s is still "
+                " in use by another subsystem", ds_name.c_str());
   }
 }
 
@@ -316,13 +325,14 @@ GLTexture1D* GPUMemMan::Access1DTrans(TransferFunction1D* pTransferFunction1D, A
 }
 
 void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRenderer* requester) {
+  AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
   for (Trans1DListIter i = m_vpTrans1DList.begin();i<m_vpTrans1DList.end();i++) {
     if (i->pTransferFunction1D == pTransferFunction1D) {
       for (AbstrRendererListIter j = i->qpUser.begin();j<i->qpUser.end();j++) {
         if (*j == requester) {
           i->qpUser.erase(j);
           if (i->qpUser.empty()) {
-            MESSAGE("Released TransferFunction1D");
+            dbg.Message(_func_, "Released 1D TF");
 
             m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
             m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
@@ -332,14 +342,15 @@ void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRender
             delete i->pTexture;
             m_vpTrans1DList.erase(i);
           } else {
-            MESSAGE("Decreased access count but TransferFunction1D is still in use by another subsystem");
+            dbg.Message(_func_, "Decreased access count, but 1D TF is still "
+                                "in use by another subsystem.");
           }
           return;
         }
       }
     }
   }
-  WARNING("TransferFunction1D not found or not being used by requester");
+  dbg.Warning(_func_, "1D TF not found not in use by requester.");
 }
 
 // ******************** 2D Trans
@@ -405,13 +416,14 @@ GLTexture2D* GPUMemMan::Access2DTrans(TransferFunction2D* pTransferFunction2D, A
 }
 
 void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRenderer* requester) {
+  AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
   for (Trans2DListIter i = m_vpTrans2DList.begin();i<m_vpTrans2DList.end();i++) {
     if (i->pTransferFunction2D == pTransferFunction2D) {
       for (AbstrRendererListIter j = i->qpUser.begin();j<i->qpUser.end();j++) {
         if (*j == requester) {
           i->qpUser.erase(j);
           if (i->qpUser.empty()) {
-            MESSAGE("Released TransferFunction2D");
+            dbg.Message(_func_, "Released 2D TF");
 
             m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
             m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
@@ -422,14 +434,15 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRender
 
             m_vpTrans2DList.erase(i);
           } else {
-            MESSAGE("Decreased access count but TransferFunction2D is still in use by another subsystem");
+            dbg.Message(_func_, "Decreased access count, but 2D TF is still "
+                                "in use by another subsystem.");
           }
           return;
         }
       }
     }
   }
-  WARNING("TransferFunction2D not found or not being used by requester");
+  dbg.Warning(_func_, "2D TF not found or not in use by requester.");
 }
 
 // ******************** 3D Textures
