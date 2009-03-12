@@ -118,6 +118,10 @@ class GLRenderer : public AbstrRenderer {
     void DrawLogo();
     void DrawBackGradient();
 
+    /// Defines a value to use for scaling the TF.  Client apps which hand us
+    /// over the raw data will usually want to override this to be 1, since
+    /// they generally won't support any notion of TF scaling.
+    virtual float CalculateScaling();
     virtual void SetDataDepShaderVars();
 
     virtual void Render3DView();

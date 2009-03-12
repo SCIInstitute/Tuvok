@@ -1285,14 +1285,29 @@ void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
   }
 }
 
+// If we're downsampling the data, no scaling is needed, but otherwise we need
+// to scale the TF in the same manner that we've scaled the data.
+float GLRenderer::CalculateScaling()
+{
+  size_t iMaxValue     = (m_pDataset->GetInfo()->GetBitWidth() != 8 &&
+                          m_bDownSampleTo8Bits) ? 65536
+                                                : m_p1DTrans->GetSize();
+  UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetInfo()->GetBitWidth());
+
+  return (m_pDataset->GetInfo()->GetBitWidth() != 8 && m_bDownSampleTo8Bits)
+         ? 1.0f
+         : float(iMaxRange)/float(iMaxValue);
+}
+
 void GLRenderer::SetDataDepShaderVars() {
   MESSAGE("Setting up vars");
 
-  size_t iMaxValue     = (m_pDataset->GetInfo()->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 65536 : m_p1DTrans->GetSize();
-  UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetInfo()->GetBitWidth());
   // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
-  float fScale         = (m_pDataset->GetInfo()->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : float(iMaxRange)/float(iMaxValue);
+  float fScale         = CalculateScaling();
   float fGradientScale = 1.0f/m_pDataset->GetMaxGradMagnitude();
+
+  MESSAGE("Transfer function scaling factor: %5.3f", fScale);
+  MESSAGE("Gradient scaling factor: %5.3f", fGradientScale);
 
   m_pProgramTransMIP->Enable();
   m_pProgramTransMIP->SetUniformVector("fTransScale",fScale);
