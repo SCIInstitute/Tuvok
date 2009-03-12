@@ -34,6 +34,7 @@
   \date    September 2008
 */
 
+#include <functional>
 #include "MultiplexOut.h"
 
 #ifdef WIN32
