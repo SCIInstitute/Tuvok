@@ -179,6 +179,8 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
   UINT64 iBitWidth  = pDataset->GetInfo()->GetBitWidth();
   UINT64 iCompCount = pDataset->GetInfo()->GetComponentCount();
 
+  MESSAGE("%llu components of width %llu", iCompCount, iBitWidth);
+
   GLint glInternalformat;
   GLenum glFormat;
   GLenum glType;
@@ -241,15 +243,30 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
         default : FreeData(); return false;
       }
     } else {
-      T_ERROR("Cannot handle data of width %d", iBitWidth);
-      FreeData();
-      return false;
+      if(iBitWidth == 32) {
+        glType = GL_FLOAT;
+        glInternalformat = GL_LUMINANCE;
+      } else {
+        T_ERROR("Cannot handle data of width %d", iBitWidth);
+        FreeData();
+        return false;
+      }
     }
   }
 
   glGetError();
-  if (!m_bIsPaddedToPowerOfTwo || (MathTools::IsPow2(UINT32(vSize[0])) && MathTools::IsPow2(UINT32(vSize[1])) && MathTools::IsPow2(UINT32(vSize[2])))) {
-    pTexture = new GLTexture3D(UINT32(vSize[0]), UINT32(vSize[1]), UINT32(vSize[2]), glInternalformat, glFormat, glType, UINT32(iBitWidth/8*iCompCount), pData, GL_LINEAR, GL_LINEAR, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+  if (!m_bIsPaddedToPowerOfTwo ||
+      (MathTools::IsPow2(UINT32(vSize[0])) &&
+       MathTools::IsPow2(UINT32(vSize[1])) &&
+       MathTools::IsPow2(UINT32(vSize[2])))) {
+    pTexture = new GLTexture3D(UINT32(vSize[0]), UINT32(vSize[1]),
+                               UINT32(vSize[2]),
+                               glInternalformat, glFormat, glType,
+                               UINT32(iBitWidth/8*iCompCount), pData,
+                               GL_LINEAR, GL_LINEAR,
+                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
   } else {
     // pad the data to a power of two
     UINTVECTOR3 vPaddedSize(MathTools::NextPow2(UINT32(vSize[0])), MathTools::NextPow2(UINT32(vSize[1])), MathTools::NextPow2(UINT32(vSize[2])));

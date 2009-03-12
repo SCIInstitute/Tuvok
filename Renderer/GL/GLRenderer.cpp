@@ -1191,38 +1191,95 @@ void GLRenderer::Cleanup() {
 }
 
 void GLRenderer::CreateOffscreenBuffers() {
-  if (m_pFBO3DImageLast)      {m_pMasterController->MemMan()->FreeFBO(m_pFBO3DImageLast); m_pFBO3DImageLast =NULL;}
-  for (UINT32 i = 0;i<2;i++) {
-    if (m_pFBO3DImageCurrent[i])   {m_pMasterController->MemMan()->FreeFBO(m_pFBO3DImageCurrent[i]); m_pFBO3DImageCurrent[i] = NULL;}
-    if (m_pFBOIsoHit[i])           {m_pMasterController->MemMan()->FreeFBO(m_pFBOIsoHit[i]);m_pFBOIsoHit[i] = NULL;}
-    if (m_pFBOCVHit[i])            {m_pMasterController->MemMan()->FreeFBO(m_pFBOCVHit[i]);m_pFBOCVHit[i] = NULL;}
+  GPUMemMan &mm = *(Controller::Instance().MemMan());
+
+  if (m_pFBO3DImageLast) {
+    mm.FreeFBO(m_pFBO3DImageLast);
+    m_pFBO3DImageLast = NULL;
   }
+
+  for (UINT32 i=0; i < 2; i++) {
+    if (m_pFBO3DImageCurrent[i]) {
+      mm.FreeFBO(m_pFBO3DImageCurrent[i]);
+      m_pFBO3DImageCurrent[i] = NULL;
+    }
+    if (m_pFBOIsoHit[i]) {
+      mm.FreeFBO(m_pFBOIsoHit[i]);
+      m_pFBOIsoHit[i] = NULL;
+    }
+    if (m_pFBOCVHit[i]) {
+      mm.FreeFBO(m_pFBOCVHit[i]);
+      m_pFBOCVHit[i] = NULL;
+    }
+  }
+  MESSAGE("Creating FBOs...");
 
   if (m_vWinSize.area() > 0) {
     for (UINT32 i = 0;i<2;i++) {
       switch (m_eBlendPrecision) {
-        case BP_8BIT  : if (i==0) m_pFBO3DImageLast = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA8, 4, true);
-                        m_pFBO3DImageCurrent[i] = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA8, 4, true);
+        case BP_8BIT  : if (i==0) {
+                          m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
+                                                        GL_CLAMP, m_vWinSize.x,
+                                                        m_vWinSize.y, GL_RGBA8,
+                                                        4, true);
+                        }
+                        m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
+                                                            GL_NEAREST,
+                                                            GL_CLAMP,
+                                                            m_vWinSize.x,
+                                                            m_vWinSize.y,
+                                                            GL_RGBA8, 4, true);
                         break;
-        case BP_16BIT : if (i==0)m_pFBO3DImageLast = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 2*4, true);
-                        m_pFBO3DImageCurrent[i] = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 2*4, true);
+
+        case BP_16BIT : if (i==0) {
+                          m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
+                                                        GL_CLAMP, m_vWinSize.x,
+                                                        m_vWinSize.y,
+                                                        GL_RGBA16F_ARB, 2*4,
+                                                        true);
+                        }
+                        m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
+                                                            GL_NEAREST,
+                                                            GL_CLAMP,
+                                                            m_vWinSize.x,
+                                                            m_vWinSize.y,
+                                                            GL_RGBA16F_ARB,
+                                                            2*4, true);
                         break;
-        case BP_32BIT : if (i==0)m_pFBO3DImageLast = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB, 4*4, true);
-                        m_pFBO3DImageCurrent[i] = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB, 4*4, true);
+
+        case BP_32BIT : if (i==0) {
+                          m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
+                                                        GL_CLAMP, m_vWinSize.x,
+                                                        m_vWinSize.y,
+                                                        GL_RGBA32F_ARB, 4*4,
+                                                        true);
+                        }
+                        m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
+                                                            GL_NEAREST,
+                                                            GL_CLAMP,
+                                                            m_vWinSize.x,
+                                                            m_vWinSize.y,
+                                                            GL_RGBA32F_ARB,
+                                                            4*4, true);
                         break;
+
         default       : MESSAGE("Invalid Blending Precision");
                         if (i==0) m_pFBO3DImageLast = NULL;
                         m_pFBO3DImageCurrent[i] = NULL;
                         break;
       }
-      m_pFBOIsoHit[i]   = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 2*4, true, 2);
-      m_pFBOCVHit[i]    = m_pMasterController->MemMan()->GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP, m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB, 2*4, true, 2);
+      m_pFBOIsoHit[i]   = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
+                                    m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB,
+                                    2*4, true, 2);
+      m_pFBOCVHit[i]    = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
+                                    m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB,
+                                    2*4, true, 2);
     }
   }
 }
 
 void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
-  if (m_eRenderMode ==  RM_2DTRANS) {
+  if (m_eRenderMode == RM_2DTRANS) {
     FLOATVECTOR3 vStep = 1.0f/FLOATVECTOR3(vVoxelCount);
     m_pProgram2DTransSlice->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
   }

@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -167,7 +167,7 @@ void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset,
                                         find_ds(pVolumeDataset));
 
   if(vol_ds == m_vpVolumeDatasets.end()) {
-    WARNING("Dataset %s not found or not being used by requester",
+    WARNING("Dataset '%s' not found or not being used by requester",
             ds_name.c_str());
     return;
   }
@@ -325,7 +325,7 @@ void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRender
             MESSAGE("Released TransferFunction1D");
 
             m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
-            m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();            
+            m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
 
             delete i->pTransferFunction1D;
             i->pTexture->Delete();
@@ -369,7 +369,7 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize, AbstrRenderer* req
   (*ppTransferFunction2D)->GetByteArray(&pcData);
   *tex = new GLTexture2D(UINT32(iSize.x), UINT32(iSize.y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
   delete [] pcData;
-  
+
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetGPUSize();
 
@@ -414,7 +414,7 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRender
             MESSAGE("Released TransferFunction2D");
 
             m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
-            m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();            
+            m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
 
             delete i->pTransferFunction2D;
             i->pTexture->Delete();
@@ -450,9 +450,18 @@ bool GPUMemMan::IsResident(const VolumeDataset* pDataset,
 }
 
 
-GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT64>& vLOD, const vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder, UINT64 iIntraFrameCounter, UINT64 iFrameCounter) {
-  for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
-    if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder)) {
+GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset,
+                                     const vector<UINT64>& vLOD,
+                                     const vector<UINT64>& vBrick,
+                                     bool bUseOnlyPowerOfTwo,
+                                     bool bDownSampleTo8Bits,
+                                     bool bDisableBorder,
+                                     UINT64 iIntraFrameCounter,
+                                     UINT64 iFrameCounter) {
+  for (Texture3DListIter i = m_vpTex3DList.begin();
+       i < m_vpTex3DList.end(); i++) {
+    if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
+                     bDownSampleTo8Bits, bDisableBorder)) {
       MESSAGE("Reusing 3D texture");
       return (*i)->Access(iIntraFrameCounter, iFrameCounter);
     }
@@ -462,52 +471,61 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset, const vector<UINT6
   UINT64 iBitWidth  = pDataset->GetInfo()->GetBitWidth();
   UINT64 iCompCount = pDataset->GetInfo()->GetComponentCount();
 
-  UINT64 iNeededCPUMemory = iBitWidth * iCompCount* vSize[0];
+  UINT64 iNeededCPUMemory = iBitWidth * iCompCount * vSize[0];
   for (size_t i = 1;i<vSize.size();i++) iNeededCPUMemory *= vSize[i];
 
   // for OpenGL we ignore the GPU memory load and let GL do the paging
   if (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
-    MESSAGE("Not enough memory for texture %i x %i x %i (%ibit * %i), paging ...", int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth), int(iCompCount));
+    MESSAGE("Not enough memory for texture %i x %i x %i (%ibit * %i), paging ...",
+            int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth),
+            int(iCompCount));
 
     // search for best brick to replace with this brick
     UINT64 iTargetFrameCounter = UINT64_INVALID;
     UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
     Texture3DListIter iBestMatch;
     for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
-      if ((*i)->BestMatch(vSize, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder, iTargetIntraFrameCounter, iTargetFrameCounter)) iBestMatch = i;
+      if ((*i)->BestMatch(vSize, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+                          bDisableBorder, iTargetIntraFrameCounter,
+                          iTargetFrameCounter)) iBestMatch = i;
     }
 
     if (iTargetFrameCounter != UINT64_INVALID) {
       // found a suitable brick that can be replaced
-      MESSAGE("  Found suitable target brick from frame %i with intraframe counter %i (current frame %i / current intraframe %i)",
-                                              int(iTargetFrameCounter), int(iTargetIntraFrameCounter), int(iFrameCounter), int(iIntraFrameCounter));
-      (*iBestMatch)->Replace(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder, iIntraFrameCounter, iFrameCounter);
+      MESSAGE("  Found suitable target brick from frame %i with intraframe "
+              " counter %i (current frame %i / current intraframe %i)",
+              int(iTargetFrameCounter), int(iTargetIntraFrameCounter),
+              int(iFrameCounter), int(iIntraFrameCounter));
+      (*iBestMatch)->Replace(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
+                             bDownSampleTo8Bits, bDisableBorder,
+                             iIntraFrameCounter, iFrameCounter);
       (*iBestMatch)->iUserCount++;
       return (*iBestMatch)->pTexture;
     } else {
-      MESSAGE("  No suitable brick found. Randomly deleting bricks until this brick fits into memory");
-      
+      MESSAGE("  No suitable brick found. Randomly deleting bricks until this"
+              " brick fits into memory");
+
       // no suitable brick found -> randomly delete bricks until this brick fits into memory
       while (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
 
         if (m_vpTex3DList.empty()) {
           // we do not have enough memory to page in even a single block...
-          T_ERROR( "Not enough memory to"
-                                                " page a brick into memory, "
-                                                "aborting (MaxMem=%ikb, "
-                                                "NeededMem=%ikb).",
-                                                int(m_SystemInfo->GetMaxUsableCPUMem()/1024),
-                                                int(iNeededCPUMemory/1024));
+          T_ERROR("Not enough memory to page a brick into memory, "
+                  "aborting (MaxMem=%ikb, NeededMem=%ikb).",
+                  int(m_SystemInfo->GetMaxUsableCPUMem()/1024),
+                  int(iNeededCPUMemory/1024));
           return NULL;
         }
 
-        size_t iIndex = size_t(rand()%m_vpTex3DList.size());  // theoretically this means that if we have more than MAX_RAND bricks we always pick the first, but who cares ...
+        // theoretically this means that if we have more than MAX_RAND bricks
+        // we always pick the first, but who cares ...
+        size_t iIndex = size_t(rand()%m_vpTex3DList.size());
 
         if (m_vpTex3DList[iIndex]->iUserCount == 0) {
           MESSAGE("   Deleting texture %i", int(iIndex));
           Delete3DTexture(iIndex);
         }
-      }     
+      }
     }
   }
 
@@ -559,7 +577,7 @@ void GPUMemMan::FreeAssociatedTextures(VolumeDataset* pDataset) {
   for (size_t i = 0;i<m_vpTex3DList.size();i++) {
     if (m_vpTex3DList[i]->pDataset == pDataset) {
 
-      MESSAGE("Deleteting a 3D texture of size %i x %i x %i",
+      MESSAGE("Deleting a 3D texture of size %i x %i x %i",
               m_vpTex3DList[i]->pTexture->GetSize().x,
               m_vpTex3DList[i]->pTexture->GetSize().y,
               m_vpTex3DList[i]->pTexture->GetSize().z);

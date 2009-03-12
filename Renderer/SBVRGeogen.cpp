@@ -409,7 +409,7 @@ void SBVRGeogen::SetBrickData(const FLOATVECTOR3& vAspect,
   InitBBOX();
 }
 
-// Checks the ordering of two points relative to another.
+// Checks the ordering of two points relative to a third.
 static bool CheckOrdering(const FLOATVECTOR3& a,
                           const FLOATVECTOR3& b,
                           const FLOATVECTOR3& c) {
