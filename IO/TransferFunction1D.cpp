@@ -207,6 +207,9 @@ bool TransferFunction1D::Save(ofstream& file) const {
 
 void TransferFunction1D::GetByteArray(unsigned char** pcData,
                                       unsigned char cUsedRange) const {
+  // bail out immediately if we've got no data
+  if(vColorData.empty()) { return; }
+
   if (*pcData == NULL) *pcData = new unsigned char[vColorData.size()*4];
 
   unsigned char *pcDataIterator = *pcData;
@@ -220,6 +223,9 @@ void TransferFunction1D::GetByteArray(unsigned char** pcData,
 
 void TransferFunction1D::GetShortArray(unsigned short** psData,
                                        unsigned short sUsedRange) const {
+  // bail out immediately if we've got no data
+  if(vColorData.empty()) { return; }
+
   if (*psData == NULL) *psData = new unsigned short[vColorData.size()*4];
 
   unsigned short *psDataIterator = *psData;
@@ -232,6 +238,9 @@ void TransferFunction1D::GetShortArray(unsigned short** psData,
 }
 
 void TransferFunction1D::GetFloatArray(float** pfData) const {
+  // bail out immediately if we've got no data
+  if(vColorData.empty()) { return; }
+
   if (*pfData == NULL) *pfData = new float[4*vColorData.size()];
   memcpy(*pfData, &pfData[0], sizeof(float)*4*vColorData.size());
 }
