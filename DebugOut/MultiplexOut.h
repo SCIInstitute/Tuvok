@@ -64,6 +64,7 @@ class MultiplexOut : public AbstrDebugOut {
     virtual void SetShowOther(bool bShowOther);
 
     size_t size() const { return m_vpDebugger.size(); }
+    void clear();
 
   private:
     std::vector<AbstrDebugOut*> m_vpDebugger;
