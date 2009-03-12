@@ -144,6 +144,10 @@ class GLRenderer : public AbstrRenderer {
 
     virtual void StartFrame();
     virtual void EndFrame(bool bNewDataToShow);
+
+    void PreSubframe(ERenderArea);
+    void PostSubframe();
+
   private:
     GLSLProgram*    m_pProgramTrans;
     GLSLProgram*    m_pProgram1DTransSlice;
@@ -157,7 +161,5 @@ class GLRenderer : public AbstrRenderer {
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();
     void RenderCoordArrows();
-    void PreSubframe(ERenderArea);
-    void PostSubframe();
 };
 #endif // GLRenderer_H
