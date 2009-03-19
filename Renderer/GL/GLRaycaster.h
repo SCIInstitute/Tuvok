@@ -66,7 +66,7 @@ class GLRaycaster : public GLRenderer {
     /** Deallocates GPU memory allocated during the rendering process. */
     virtual void Cleanup();
 
-    virtual bool SupportsClearView() {return true;}
+    virtual bool SupportsClearView() {return m_pDataset->GetInfo()->GetComponentCount() == 1;}
 
     virtual void DisableClipPlane();
 

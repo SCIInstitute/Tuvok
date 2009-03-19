@@ -70,7 +70,7 @@ class GLSBVR : public GLRenderer {
      * @param strFilename path to a file */
     virtual bool LoadDataset(const std::string& strFilename);
 
-    virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing;}
+    virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing && m_pDataset->GetInfo()->GetComponentCount() == 1;}
 
     virtual void EnableClipPlane();
     virtual void DisableClipPlane();
@@ -78,6 +78,7 @@ class GLSBVR : public GLRenderer {
   protected:
     SBVRGeogen    m_SBVRGeogen;
     GLSLProgram*  m_pProgramIsoNoCompose;
+    GLSLProgram*  m_pProgramColorNoCompose;
 
     void SetBrickDepShaderVars(const Brick& currentBrick);
 

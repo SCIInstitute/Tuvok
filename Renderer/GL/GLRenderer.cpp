@@ -56,6 +56,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_iFilledBuffers(0),
   m_pLogoTex(NULL),
   m_pProgramIso(NULL),
+  m_pProgramColor(NULL),
   m_pProgramHQMIPRot(NULL),
   m_pProgramTrans(NULL),
   m_pProgram1DTransSlice(NULL),
@@ -63,6 +64,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramMIPSlice(NULL),
   m_pProgramTransMIP(NULL),
   m_pProgramIsoCompose(NULL),
+  m_pProgramColorCompose(NULL),
   m_pProgramCVCompose(NULL),
   m_pProgramComposeAnaglyphs(NULL)
 {
@@ -142,6 +144,8 @@ bool GLRenderer::Initialize() {
                            m_vShaderSearchDirs, &(m_pProgramTransMIP))     ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-FS.glsl",
                            m_vShaderSearchDirs, &(m_pProgramIsoCompose))   ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Color-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgramColorCompose))   ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",
                            m_vShaderSearchDirs, &(m_pProgramCVCompose))    ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",
@@ -185,6 +189,14 @@ bool GLRenderer::Initialize() {
     m_pProgramIsoCompose->SetUniformVector("vLightDir",0.0f,0.0f,-1.0f);
     m_pProgramIsoCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
     m_pProgramIsoCompose->Disable();
+
+    m_pProgramColorCompose->Enable();
+    m_pProgramColorCompose->SetUniformVector("texRayHitPos",0);
+    m_pProgramColorCompose->SetUniformVector("texRayHitNormal",1);
+    m_pProgramColorCompose->SetUniformVector("vLightAmbient",0.2f,0.2f,0.2f);
+    m_pProgramColorCompose->SetUniformVector("vLightDir",0.0f,0.0f,-1.0f);
+    m_pProgramColorCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
+    m_pProgramColorCompose->Disable();
 
     m_pProgramCVCompose->Enable();
     m_pProgramCVCompose->SetUniformVector("texRayHitPos",0);
@@ -295,9 +307,11 @@ void GLRenderer::StartFrame() {
       m_pProgramCVCompose->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
       m_pProgramCVCompose->Disable();
     } else {
-      m_pProgramIsoCompose->Enable();
-      m_pProgramIsoCompose->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
-      m_pProgramIsoCompose->Disable();
+      GLSLProgram* shader = (m_pDataset->GetInfo()->GetComponentCount() == 1) ? m_pProgramIsoCompose : m_pProgramColorCompose;
+
+      shader->Enable();
+      shader->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+      shader->Disable();
     }
 
     size_t iMaxValue        = m_p1DTrans->GetSize();
@@ -1183,7 +1197,9 @@ void GLRenderer::Cleanup() {
   if (m_pProgram2DTrans[0])   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTrans[0]); m_pProgram2DTrans[0] =NULL;}
   if (m_pProgram2DTrans[1])   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTrans[1]); m_pProgram2DTrans[1] =NULL;}
   if (m_pProgramIso)          {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIso); m_pProgramIso =NULL;}
+  if (m_pProgramColor)        {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColor); m_pProgramColor =NULL;}
   if (m_pProgramIsoCompose)   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIsoCompose); m_pProgramIsoCompose = NULL;}
+  if (m_pProgramColorCompose) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorCompose); m_pProgramColorCompose = NULL;}
   if (m_pProgramCVCompose)    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramCVCompose); m_pProgramCVCompose = NULL;}
   if (m_pProgramComposeAnaglyphs){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeAnaglyphs); m_pProgramComposeAnaglyphs = NULL;}
 
@@ -1269,8 +1285,8 @@ void GLRenderer::CreateOffscreenBuffers() {
                         break;
       }
       m_pFBOIsoHit[i]   = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
-                                    m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB,
-                                    2*4, true, 2);
+                                    m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB,
+                                    4*4, true, 2);
       
       m_pFBOCVHit[i]    = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB,
@@ -1342,10 +1358,12 @@ void GLRenderer::SetDataDepShaderVars() {
                             m_pProgram1DTransSlice->Enable();
                             m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
                             m_pProgram1DTransSlice->Disable();
+                            
+                            GLSLProgram* shader = (m_pDataset->GetInfo()->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
-                            m_pProgramIso->Enable();
-                            m_pProgramIso->SetUniformVector("fIsoval",m_fScaledIsovalue);
-                            m_pProgramIso->Disable();
+                            shader->Enable();
+                            shader->SetUniformVector("fIsoval",m_fScaledIsovalue);
+                            shader->Disable();
                             break;
                           }
     case RM_INVALID    :  T_ERROR("Invalid rendermode set");
@@ -1696,8 +1714,12 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
     m_pFBOCVHit[iStereoID]->Read(3, 1);
     glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
   } else {
-    m_pProgramIsoCompose->Enable();
-    m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
+    if (m_pDataset->GetInfo()->GetComponentCount() == 1) {
+      m_pProgramIsoCompose->Enable();
+      m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
+    } else {
+      m_pProgramColorCompose->Enable();
+    }
   }
 
   glBegin(GL_QUADS);
@@ -1715,7 +1737,12 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
     m_pFBOCVHit[iStereoID]->FinishRead(0);
     m_pFBOCVHit[iStereoID]->FinishRead(1);
     m_pProgramCVCompose->Disable();
-  } else m_pProgramIsoCompose->Disable();
+  } else {
+    if (m_pDataset->GetInfo()->GetComponentCount() == 1)
+      m_pProgramIsoCompose->Disable();
+    else
+      m_pProgramColorCompose->Disable();
+  }
 
   m_pFBOIsoHit[iStereoID]->FinishRead(1);
   m_pFBOIsoHit[iStereoID]->FinishRead(0);

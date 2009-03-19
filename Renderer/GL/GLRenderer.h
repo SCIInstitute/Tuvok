@@ -101,6 +101,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgram1DTrans[2];
     GLSLProgram*    m_pProgram2DTrans[2];
     GLSLProgram*    m_pProgramIso;
+    GLSLProgram*    m_pProgramColor;
     GLSLProgram*    m_pProgramHQMIPRot;
 
     void SetRenderTargetArea(ERenderArea eREnderArea);
@@ -157,6 +158,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramMIPSlice;
     GLSLProgram*    m_pProgramTransMIP;
     GLSLProgram*    m_pProgramIsoCompose;
+    GLSLProgram*    m_pProgramColorCompose;
     GLSLProgram*    m_pProgramCVCompose;
     GLSLProgram*    m_pProgramComposeAnaglyphs;
 
