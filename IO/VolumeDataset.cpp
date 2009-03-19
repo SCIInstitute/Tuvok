@@ -98,7 +98,9 @@ VolumeDatasetInfo::VolumeDatasetInfo(RasterDataBlock* pVolumeDataBlock, MaxMinDa
       for (UINT64 z = 0;z<m_vaBrickCount[j].z;z++) {
         for (UINT64 y = 0;y<m_vaBrickCount[j].y;y++) {
           for (UINT64 x = 0;x<m_vaBrickCount[j].x;x++) {
-            m_vvaMaxMin[j][x][y][z] = m_pMaxMinData->GetValue(iSerial++);
+            // for four-component data we use the fourth component (presumably the alpha channel) while for all other data we use the first component
+            /// \todo we may have to change this is we use other multi component data
+            m_vvaMaxMin[j][x][y][z] = m_pMaxMinData->GetValue(iSerial++, (m_pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0);
           }
         }
       }
@@ -195,7 +197,7 @@ bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBr
   // if we have no max min data we have to assume that every block is visible
   if (!m_pMaxMinData) return true;
 
-  const InternalMaxMinElemen& maxMinElement = m_vvaMaxMin[iLOD][vBrick.x][vBrick.y][vBrick.z];
+  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[iLOD][vBrick.x][vBrick.y][vBrick.z];
   return (fIsoval <= maxMinElement.maxScalar);
 }
 
@@ -203,7 +205,7 @@ bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBr
   // if we have no max min data we have to assume that every block is visible
   if (!m_pMaxMinData) return true;
 
-  const InternalMaxMinElemen& maxMinElement = m_vvaMaxMin[iLOD][vBrick.x][vBrick.y][vBrick.z];
+  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[iLOD][vBrick.x][vBrick.y][vBrick.z];
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
 
@@ -211,9 +213,11 @@ bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBr
   // if we have no max min data we have to assume that every block is visible
   if (!m_pMaxMinData) return true;
 
-  const InternalMaxMinElemen& maxMinElement = m_vvaMaxMin[iLOD][vBrick.x][vBrick.y][vBrick.z];
+  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[iLOD][vBrick.x][vBrick.y][vBrick.z];
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar) && (fMaxGrad >= maxMinElement.minGradient && fMinGrad <= maxMinElement.maxGradient);
 }
+
+
 
 // ****************************************************************************
 
@@ -258,7 +262,7 @@ bool VolumeDataset::Open(bool bVerify)
 {
   wstring wstrFilename(m_strFilename.begin(),m_strFilename.end());
   m_pDatasetFile = new UVF(wstrFilename);
-  m_bIsOpen = m_pDatasetFile->Open(bVerify);
+  m_bIsOpen = m_pDatasetFile->Open(true, bVerify);
 
   if (!m_bIsOpen) return false;
 
@@ -312,10 +316,11 @@ bool VolumeDataset::Open(bool bVerify)
         continue;
       }
 
-      /// \todo: change this if we want to support color/vector data
-      // check if we have anything other than scalars
-      if (pVolumeDataBlock->ulElementDimensionSize[0] != 1) {
-        MESSAGE("Non scalar raster data block found in UVF file, skipping.");
+      /// \todo: change this if we want to support vector data
+      // check if we have anything other than scalars or color
+      if (pVolumeDataBlock->ulElementDimensionSize[0] != 1 &&
+          pVolumeDataBlock->ulElementDimensionSize[0] != 4) {
+        MESSAGE("Non scalar or color raster data block found in UVF file, skipping.");
         continue;
       }
 

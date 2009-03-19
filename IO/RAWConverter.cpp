@@ -50,8 +50,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
                                      UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned, bool bIsFloat,
                                      UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
 {
-  if (iComponentCount > 1) {
-    T_ERROR("Color data currently not supported.");
+  if (iComponentCount > 4) {
+    T_ERROR("Currently, only up to four component data is supported.");
     return false;
   }
 
@@ -239,8 +239,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 		default : for (UINT64 i = 0;i<iComponentCount;i++) vSem.push_back(eType);
 	}
 
-	dataVolume.SetTypeToVector(iComponentSize/iComponentCount,
-							               iComponentSize == 32 ? 23 : iComponentSize/iComponentCount,
+	dataVolume.SetTypeToVector(iComponentSize,
+							               iComponentSize == 32 ? 23 : iComponentSize,
 							               bSigned,
 							               vSem);
 	
@@ -258,31 +258,31 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	vScale.push_back(vVolumeAspect.z);
 	dataVolume.SetScaleOnlyTransformation(vScale);
 
-  MaxMinDataBlock MaxMinData;
+  MaxMinDataBlock MaxMinData(iComponentCount);
 
 	switch (iComponentSize) {
 		case 8 :	
           switch (iComponentCount) {
-            case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, NULL, NULL, &Controller::Debug::Out()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, NULL, NULL, &Controller::Debug::Out()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, NULL, NULL, &Controller::Debug::Out()); break;
+            case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char,1>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, SimpleMaxMin<unsigned char,2>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, SimpleMaxMin<unsigned char,3>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, SimpleMaxMin<unsigned char,4>, &MaxMinData, &Controller::Debug::Out()); break;
 						default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
 		case 16 :
           switch (iComponentCount) {
-						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, NULL, NULL, &Controller::Debug::Out()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, NULL, NULL, &Controller::Debug::Out()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, NULL, NULL, &Controller::Debug::Out()); break;
+						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short,1>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short,2>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short,3>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short,4>, &MaxMinData, &Controller::Debug::Out()); break;
 						default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
 		case 32 :	
           switch (iComponentCount) {
-						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,1>, SimpleMaxMin<float>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, NULL, NULL, &Controller::Debug::Out()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, NULL, NULL, &Controller::Debug::Out()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, NULL, NULL, &Controller::Debug::Out()); break;
+						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,1>, SimpleMaxMin<float,1>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, SimpleMaxMin<float,2>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, SimpleMaxMin<float,3>, &MaxMinData, &Controller::Debug::Out()); break;
+						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, SimpleMaxMin<float,4>, &MaxMinData, &Controller::Debug::Out()); break;
 						default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
 					} break;
 		default: T_ERROR("Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;

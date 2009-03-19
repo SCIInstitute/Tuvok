@@ -5,36 +5,29 @@
 
 #include "../../DebugOut/AbstrDebugOut.h"
 #include "DataBlock.h"
+#include "../Basics/Vectors.h"
 #include <string>
 
 
-template<class T> void SimpleMaxMin(const void* pIn, size_t iStart, size_t iCount, double *pfMin, double *pfMax) {
+template<class T, size_t iVecLength> void SimpleMaxMin(const void* pIn, size_t iStart, size_t iCount, std::vector<DOUBLEVECTOR4>& fMinMax) {
   const T *pDataIn = (T*)pIn;
 
-  double fMin = pDataIn[iStart];
-  double fMax = pDataIn[iStart];
+  fMinMax.resize(iVecLength);
 
-  for (size_t i = iStart+1;i<iStart+iCount;i++) {
-    if (fMin > pDataIn[i]) fMin = pDataIn[i];
-    if (fMax < pDataIn[i]) fMax = pDataIn[i];
+  for (size_t i = 0;i<iVecLength;i++) {
+    fMinMax[i].x = pDataIn[iStart+i];
+    fMinMax[i].y = pDataIn[iStart+i];
+
+    /// \todo remove this if the gradient computations is implemented below
+    fMinMax[i].z = -std::numeric_limits<double>::max();
+    fMinMax[i].w = std::numeric_limits<double>::max();
   }
 
-  (*pfMin) = fMin;
-  (*pfMax) = fMax;
-}
-
-template<class T, size_t iVecLength> void VectorMaxMin(const void* pIn, size_t iStart, size_t iCount, double *pfMin, double *pfMax) {
-  const T *pDataIn = (T*)pIn;
-
-  for (size_t l = 0;l<iVecLength;l++) {
-    pfMin[l] = pDataIn[iStart+l];
-    pfMax[l] = pDataIn[iStart+l];
-  }
-
-  for (size_t i = iStart+1;i<iStart+iCount;i++) {
-    for (size_t l = 0;l<iVecLength;l++) {
-      if (pfMin[l] > pDataIn[l+i*iVecLength]) pfMin[l] = pDataIn[l+i*iVecLength];
-      if (pfMax[l] < pDataIn[l+i*iVecLength]) pfMax[l] = pDataIn[l+i*iVecLength];
+  for (size_t i = iStart+iVecLength;i<iStart+iCount;i+=iVecLength) {
+    for (size_t iComponent = 0;iComponent<iVecLength;iComponent++) {
+      if (fMinMax[iComponent].x > pDataIn[i+iComponent]) fMinMax[iComponent].x = pDataIn[i+iComponent];
+      if (fMinMax[iComponent].y < pDataIn[i+iComponent]) fMinMax[iComponent].y = pDataIn[i+iComponent];
+      /// \todo compute gradients
     }
   }
 }
@@ -45,7 +38,7 @@ template<class T> void CombineAverage(std::vector<UINT64> vSource, UINT64 iTarge
 
   double temp = 0;
   for (size_t i = 0;i<vSource.size();i++) {
-    temp += double(pDataIn[vSource[i]]);
+    temp += double(pDataIn[size_t(vSource[i])]);
   }
   // make sure not to touch pDataOut before we are finished with reading pDataIn, this allows for inplace combine calls
   pDataOut[iTarget] = T(temp / double(vSource.size()));
@@ -55,10 +48,12 @@ template<class T, UINT64 iVecLength> void CombineAverage(std::vector<UINT64> vSo
   const T *pDataIn = (T*)pIn;
   T *pDataOut = (T*)pOut;
 
-  double temp[iVecLength];  for (UINT64 v = 0;v<iVecLength;v++) temp[v] = 0;
+  double temp[iVecLength];  
+  for (size_t i = 0;i<size_t(iVecLength);i++) temp[i] = 0.0;
 
   for (size_t i = 0;i<vSource.size();i++) {
-    for (UINT64 v = 0;v<iVecLength;v++) temp[size_t(v)] += double(pDataIn[v+vSource[i]*iVecLength]) / double(vSource.size());
+    for (size_t v = 0;v<size_t(iVecLength);v++)
+      temp[v] += double(pDataIn[size_t(vSource[i])*iVecLength+v]) / double(vSource.size());
   }
   // make sure not to touch pDataOut before we are finished with reading pDataIn, this allows for inplace combine calls
   for (UINT64 v = 0;v<iVecLength;v++)
@@ -136,11 +131,11 @@ public:
 
   void FlatDataToBrickedLOD(const void* pSourceData, const std::string& strTempFile = "tempFile.tmp",
                             void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) = CombineAverage<char>,
-                            void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, double *pfMin, double *pfMax) = SimpleMaxMin<char>,
+                            void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, std::vector<DOUBLEVECTOR4>& fMinMax) = SimpleMaxMin<char,1>,
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
   void FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const std::string& strTempFile = "tempFile.tmp",
                             void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) = CombineAverage<char>,
-                            void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, double *pfMin, double *pfMax) = SimpleMaxMin<char>,
+                            void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, std::vector<DOUBLEVECTOR4>& fMinMax) = SimpleMaxMin<char,1>,
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
   void AllocateTemp(const std::string& strTempFile, bool bBuildOffsetTables=false);
 

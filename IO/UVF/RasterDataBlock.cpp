@@ -798,7 +798,7 @@ void RasterDataBlock::AllocateTemp(const string& strTempFile, bool bBuildOffsetT
  */
 void RasterDataBlock::FlatDataToBrickedLOD(const void* pSourceData, const string& strTempFile,
                                               void (*combineFunc)(vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut),
-                                              void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, double *pfMin, double *pfMa),
+                                              void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, std::vector<DOUBLEVECTOR4>& fMinMax),
                                               MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut) {
   // size of input data
   UINT64 iInPointerSize = ComputeElementSize()/8;
@@ -845,7 +845,7 @@ vector<UINT64> RasterDataBlock::GetLODDomainSize(const vector<UINT64>& vLOD) con
  */
 void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const string& strTempFile,
                                            void (*combineFunc)(vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut),
-                                           void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, double *pfMin, double *pfMa),
+                                           void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, std::vector<DOUBLEVECTOR4>& fMinMax),
                                            MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut) {
   UINT64 uiBytesPerElement = ComputeElementSize()/8;
 
@@ -953,11 +953,11 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
 
       if (pMaxMinDatBlock) pMaxMinDatBlock->StartNewValue();
 
+      vector<DOUBLEVECTOR4> fMinMax(ulElementDimension);
       for (UINT64 k=0;k<iBrickSize/vBrickPermutation[j][0];k++) {
 
         m_pTempFile->SeekPos(iTargetOffset);
         pBrickSource->SeekPos(iSourceOffset);
-
 
         UINT64 iDataSize = vBrickPermutation[j][0] * uiBytesPerElement;
         for (UINT64 l = 0;l<iDataSize;l+=BLOCK_COPY_SIZE) {
@@ -967,10 +967,8 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
           m_pTempFile->WriteRAW(pData, iCopySize);
 
           if (pMaxMinDatBlock) {
-            double fMin, fMax, fMinGrad=-std::numeric_limits<double>::max(), fMaxGrad=std::numeric_limits<double>::max();
-            /// \todo compute gradients
-            maxminFunc(pData, 0, size_t(iCopySize/uiBytesPerElement), &fMin, &fMax);
-            pMaxMinDatBlock->MergeData(fMin, fMax, fMinGrad, fMaxGrad);
+            maxminFunc(pData, 0, size_t(iCopySize/uiBytesPerElement), fMinMax);
+            pMaxMinDatBlock->MergeData(fMinMax);
           }
         }
 

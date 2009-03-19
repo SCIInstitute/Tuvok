@@ -4,11 +4,10 @@
 #define UVFBASIC_H
 
 #ifndef UVFVERSION
-  #define UVFVERSION 1
+  #define UVFVERSION 2
 #else
-  #if UVFVERSION != 1
-    #pragma message("[UVFBasic.h] Version mismatch.\n")
-    >> VERSION MISMATCH <<
+  #if UVFVERSION != 2
+    #error [UVFBasic.h] Version mismatch
   #endif
 #endif
 

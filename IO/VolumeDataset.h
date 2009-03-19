@@ -104,15 +104,16 @@ class VolumeDatasetInfo {
     const std::vector<UINT64>& GetLODLevelCountND() const;
     const std::vector<double> GetScaleND() const;
 
-    /// \todo change this if we want to support color data
+    /// \todo change this if we want to support data where elements are of differnt size
     UINT64 GetBitWidth() const {
       return m_pVolumeDataBlock->ulElementBitSize[0][0];
     }
 
-    /// \todo change this if we want to support color data
-    UINT64 GetComponentCount() const {return 1;}
+    UINT64 GetComponentCount() const {return m_pVolumeDataBlock->ulElementDimensionSize[0];}
 
+    /// \todo change this if we want to support data where elements are of differnt type
     bool GetIsSigned() const {return m_pVolumeDataBlock->bSignedElement[0][0];}
+    /// \todo change this if we want to support data where elements are of differnt type
     bool GetIsFloat() const {
       return GetBitWidth() != m_pVolumeDataBlock->ulElementBitSize[0][0];
     }
@@ -137,7 +138,7 @@ class VolumeDatasetInfo {
     DOUBLEVECTOR3               m_aScale;
     std::vector<UINT64VECTOR3>  m_vaBrickCount;
     std::vector< std::vector< std::vector<std::vector<UINT64VECTOR3> > > >m_vvaBrickSize;
-    std::vector< std::vector< std::vector<std::vector<InternalMaxMinElemen> > > >m_vvaMaxMin;
+    std::vector< std::vector< std::vector<std::vector<InternalMaxMinElement> > > >m_vvaMaxMin;
 
     friend class VolumeDataset;
 };

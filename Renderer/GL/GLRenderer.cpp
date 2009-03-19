@@ -1271,6 +1271,7 @@ void GLRenderer::CreateOffscreenBuffers() {
       m_pFBOIsoHit[i]   = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB,
                                     2*4, true, 2);
+      
       m_pFBOCVHit[i]    = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB,
                                     2*4, true, 2);

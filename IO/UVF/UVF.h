@@ -2,13 +2,7 @@
 #ifndef UVF_H
 #define UVF_H
 
-#ifndef UVFVERSION
-  #define UVFVERSION 1
-#else
-  #if UVFVERSION != 1
-    >> VERSION MISMATCH <<
-  #endif
-#endif
+#include "UVFBasic.h"
 
 #include "UVFTables.h"
 #include "DataBlock.h"
@@ -29,7 +23,7 @@ public:
   UVF(std::wstring wstrFilename);
   virtual ~UVF(void);
 
-  bool Open(bool bVerify=true, bool bReadWrite=false, std::string* pstrProblem = NULL);
+  bool Open(bool bMustBeSameVersion=true, bool bVerify=true, bool bReadWrite=false, std::string* pstrProblem = NULL);
   void Close();
 
   const GlobalHeader& GetGlobalHeader() const {return m_GlobalHeader;}
