@@ -136,7 +136,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
 }
 
 bool AbstrRenderer::Initialize() {
-  return true; // not too much can go wrong here :-)
+  return m_pDataset != NULL;
 }
 
 bool AbstrRenderer::LoadDataset(const string& strFilename) {
@@ -171,9 +171,9 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
 }
 
 AbstrRenderer::~AbstrRenderer() {
-  m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
-  m_pMasterController->MemMan()->Free1DTrans(m_p1DTrans, this);
-  m_pMasterController->MemMan()->Free2DTrans(m_p2DTrans, this);
+  if (m_pDataset) m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
+  if (m_p1DTrans) m_pMasterController->MemMan()->Free1DTrans(m_p1DTrans, this);
+  if (m_p2DTrans) m_pMasterController->MemMan()->Free2DTrans(m_p2DTrans, this);
 }
 
 void AbstrRenderer::SetRendermode(ERenderMode eRenderMode)

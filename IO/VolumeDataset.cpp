@@ -262,9 +262,13 @@ bool VolumeDataset::Open(bool bVerify)
 {
   wstring wstrFilename(m_strFilename.begin(),m_strFilename.end());
   m_pDatasetFile = new UVF(wstrFilename);
-  m_bIsOpen = m_pDatasetFile->Open(true, bVerify);
-
-  if (!m_bIsOpen) return false;
+  string strError;
+  m_bIsOpen = m_pDatasetFile->Open(true, bVerify,false, &strError);
+  
+  if (!m_bIsOpen) {
+    T_ERROR(strError.c_str());
+    return false;
+  }
 
   UINT64 iRasterBlockIndex = UINT64(-1);
   for (size_t iBlocks = 0;
