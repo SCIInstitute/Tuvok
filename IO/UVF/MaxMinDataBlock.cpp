@@ -114,7 +114,10 @@ const InternalMaxMinElement& MaxMinDataBlock::GetValue(size_t iIndex, UINT64 iCo
 
 void MaxMinDataBlock::StartNewValue() {
   vector<InternalMaxMinElement> elems;
-  InternalMaxMinElement elem(std::numeric_limits<double>::max(), -std::numeric_limits<double>::max(), std::numeric_limits<double>::max(), -std::numeric_limits<double>::max());  
+  InternalMaxMinElement elem(std::numeric_limits<double>::max(), 
+                            -std::numeric_limits<double>::max(), 
+                             std::numeric_limits<double>::max(), 
+                            -std::numeric_limits<double>::max());  
   for (UINT64 i = 0;i<m_iComponentCount;i++) elems.push_back(elem);  
   m_vfMaxMinData.push_back(elems);
 }

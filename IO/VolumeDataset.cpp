@@ -92,7 +92,7 @@ VolumeDatasetInfo::VolumeDatasetInfo(RasterDataBlock* pVolumeDataBlock, MaxMinDa
     }
   }
 
-  size_t iSerial = 0;
+  size_t iSerializedIndex = 0;
   if (m_pMaxMinData) {
     for (size_t j = 0;j<m_iLODLevel;j++) {
       for (UINT64 z = 0;z<m_vaBrickCount[j].z;z++) {
@@ -100,7 +100,7 @@ VolumeDatasetInfo::VolumeDatasetInfo(RasterDataBlock* pVolumeDataBlock, MaxMinDa
           for (UINT64 x = 0;x<m_vaBrickCount[j].x;x++) {
             // for four-component data we use the fourth component (presumably the alpha channel) while for all other data we use the first component
             /// \todo we may have to change this is we use other multi component data
-            m_vvaMaxMin[j][x][y][z] = m_pMaxMinData->GetValue(iSerial++, (m_pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0);
+            m_vvaMaxMin[j][x][y][z] = m_pMaxMinData->GetValue(iSerializedIndex++, (m_pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0);
           }
         }
       }

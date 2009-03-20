@@ -33,10 +33,10 @@ struct SimpleMaxMin : MaxMin {
       fMinMax[i].w = std::numeric_limits<double>::max();
     }
 
-    for (size_t i = iStart+iVecLength;i<iStart+iCount;i+=iVecLength) {
+    for (size_t i = iStart+iVecLength;i<iStart+iCount;i++) {
       for (size_t iComponent = 0;iComponent<iVecLength;iComponent++) {
-        if (fMinMax[iComponent].x > pDataIn[i+iComponent]) fMinMax[iComponent].x = pDataIn[i+iComponent];
-        if (fMinMax[iComponent].y < pDataIn[i+iComponent]) fMinMax[iComponent].y = pDataIn[i+iComponent];
+        if (fMinMax[iComponent].x > pDataIn[i*iVecLength+iComponent]) fMinMax[iComponent].x = pDataIn[i*iVecLength+iComponent];
+        if (fMinMax[iComponent].y < pDataIn[i*iVecLength+iComponent]) fMinMax[iComponent].y = pDataIn[i*iVecLength+iComponent];
         /// \todo compute gradients
       }
     }

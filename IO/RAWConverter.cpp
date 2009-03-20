@@ -136,7 +136,11 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
 	switch (iComponentSize) {
     case 8 :
-      strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
+      // do not run the Process8BitsTo8Bits when we are dealing with unsigned color data, 
+      // in that case only the histogram would be computed and we do not use in that case
+      /// \todo change this if we want to support non color multi component data
+      if (iComponentCount != 4 || bSigned) 
+        strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
       break;
     case 16 :
       strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
@@ -315,12 +319,31 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 		return false;
 	}
 
+  // do compute histograms when we are dealing with color data
+  /// \todo change this if we want to support non color multi component data
+  if (iComponentCount != 4) {
 
-  // if no resampling was perfomed above we need to compute the 1d histogram here
-  if (Histogram1D.GetHistogram().empty()) {
-    MESSAGE("Computing 1D Histogram...");
-    if (!Histogram1D.Compute(&dataVolume)) {
-      T_ERROR("Computation of 1D Histogram failed!");
+    // if no resampling was perfomed above we need to compute the 1d histogram here
+    if (Histogram1D.GetHistogram().empty()) {
+      MESSAGE("Computing 1D Histogram...");
+      if (!Histogram1D.Compute(&dataVolume)) {
+        T_ERROR("Computation of 1D Histogram failed!");
+        uvfFile.Close();
+        SourceData.Close();
+        if (bConvertEndianness) {
+          SysTools::Remove(tmpFilename0, Controller::Debug::Out());
+        }
+        if (bQuantized) {
+          SysTools::Remove(tmpFilename1, Controller::Debug::Out());
+        }
+		    return false;
+      }
+    }
+
+    MESSAGE("Computing 2D Histogram...");
+    Histogram2DDataBlock Histogram2D;
+    if (!Histogram2D.Compute(&dataVolume, Histogram1D.GetHistogram().size())) {
+      T_ERROR("Computation of 2D Histogram failed!");
       uvfFile.Close();
       SourceData.Close();
       if (bConvertEndianness) {
@@ -331,27 +354,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       }
 		  return false;
     }
+    MESSAGE("Storing histogram data...");
+	  uvfFile.AddDataBlock(&Histogram1D,Histogram1D.ComputeDataSize());
+	  uvfFile.AddDataBlock(&Histogram2D,Histogram2D.ComputeDataSize());
   }
 
-  MESSAGE("Computing 2D Histogram...");
-  Histogram2DDataBlock Histogram2D;
-  if (!Histogram2D.Compute(&dataVolume, Histogram1D.GetHistogram().size())) {
-    T_ERROR("Computation of 2D Histogram failed!");
-    uvfFile.Close();
-    SourceData.Close();
-    if (bConvertEndianness) {
-      SysTools::Remove(tmpFilename0, Controller::Debug::Out());
-    }
-    if (bQuantized) {
-      SysTools::Remove(tmpFilename1, Controller::Debug::Out());
-    }
-		return false;
-  }
-
-  MESSAGE("Merging data...");
-
-	uvfFile.AddDataBlock(&Histogram1D,Histogram1D.ComputeDataSize());
-	uvfFile.AddDataBlock(&Histogram2D,Histogram2D.ComputeDataSize());
+  MESSAGE("Storing acceleration data...");
   uvfFile.AddDataBlock(&MaxMinData, MaxMinData.ComputeDataSize());
 
 /*
