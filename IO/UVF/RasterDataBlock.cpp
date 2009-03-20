@@ -1,13 +1,13 @@
-#include "RasterDataBlock.h"
-
-#include "UVF.h"
 #include <math.h>
 #include <Basics/MathTools.h>
 #include <Basics/SysTools.h>
 #include <sstream>
 #include <iostream>
 
+#include "RasterDataBlock.h"
+#include "UVF.h"
 #include "MaxMinDataBlock.h"
+#include "DebugOut/AbstrDebugOut.h"
 
 using namespace std;
 using namespace UVFTables;
@@ -798,7 +798,7 @@ void RasterDataBlock::AllocateTemp(const string& strTempFile, bool bBuildOffsetT
  */
 void RasterDataBlock::FlatDataToBrickedLOD(const void* pSourceData, const string& strTempFile,
                                               void (*combineFunc)(vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut),
-                                              void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, std::vector<DOUBLEVECTOR4>& fMinMax),
+                                           const MaxMin& maxminFunc,
                                               MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut) {
   // size of input data
   UINT64 iInPointerSize = ComputeElementSize()/8;
@@ -845,7 +845,7 @@ vector<UINT64> RasterDataBlock::GetLODDomainSize(const vector<UINT64>& vLOD) con
  */
 void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const string& strTempFile,
                                            void (*combineFunc)(vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut),
-                                           void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, std::vector<DOUBLEVECTOR4>& fMinMax),
+                                           const MaxMin& maxminFunc,
                                            MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut) {
   UINT64 uiBytesPerElement = ComputeElementSize()/8;
 

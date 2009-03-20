@@ -3,34 +3,47 @@
 #ifndef RASTERDATABLOCK_H
 #define RASTERDATABLOCK_H
 
-#include "../../DebugOut/AbstrDebugOut.h"
 #include "DataBlock.h"
 #include "../Basics/Vectors.h"
 #include <string>
 
+class AbstrDebugOut;
 
-template<class T, size_t iVecLength> void SimpleMaxMin(const void* pIn, size_t iStart, size_t iCount, std::vector<DOUBLEVECTOR4>& fMinMax) {
-  const T *pDataIn = (T*)pIn;
+struct MaxMin {
+  virtual void operator()(const void* pIn, size_t iStart, size_t iCount,
+                          std::vector<DOUBLEVECTOR4>& fMinMax) const = 0;
+};
 
-  fMinMax.resize(iVecLength);
+template<class T>
+struct SimpleMaxMin : MaxMin {
+  SimpleMaxMin(size_t vec_len): iVecLength(vec_len) { }
 
-  for (size_t i = 0;i<iVecLength;i++) {
-    fMinMax[i].x = pDataIn[iStart+i];
-    fMinMax[i].y = pDataIn[iStart+i];
+  void operator()(const void* pIn, size_t iStart, size_t iCount,
+                  std::vector<DOUBLEVECTOR4>& fMinMax) const {
+    const T *pDataIn = (T*)pIn;
 
-    /// \todo remove this if the gradient computations is implemented below
-    fMinMax[i].z = -std::numeric_limits<double>::max();
-    fMinMax[i].w = std::numeric_limits<double>::max();
-  }
+    fMinMax.resize(iVecLength);
 
-  for (size_t i = iStart+iVecLength;i<iStart+iCount;i+=iVecLength) {
-    for (size_t iComponent = 0;iComponent<iVecLength;iComponent++) {
-      if (fMinMax[iComponent].x > pDataIn[i+iComponent]) fMinMax[iComponent].x = pDataIn[i+iComponent];
-      if (fMinMax[iComponent].y < pDataIn[i+iComponent]) fMinMax[iComponent].y = pDataIn[i+iComponent];
-      /// \todo compute gradients
+    for (size_t i = 0;i<iVecLength;i++) {
+      fMinMax[i].x = pDataIn[iStart+i];
+      fMinMax[i].y = pDataIn[iStart+i];
+
+      /// \todo remove this if the gradient computations is implemented below
+      fMinMax[i].z = -std::numeric_limits<double>::max();
+      fMinMax[i].w = std::numeric_limits<double>::max();
+    }
+
+    for (size_t i = iStart+iVecLength;i<iStart+iCount;i+=iVecLength) {
+      for (size_t iComponent = 0;iComponent<iVecLength;iComponent++) {
+        if (fMinMax[iComponent].x > pDataIn[i+iComponent]) fMinMax[iComponent].x = pDataIn[i+iComponent];
+        if (fMinMax[iComponent].y < pDataIn[i+iComponent]) fMinMax[iComponent].y = pDataIn[i+iComponent];
+        /// \todo compute gradients
+      }
     }
   }
-}
+  private:
+    size_t iVecLength;
+};
 
 template<class T> void CombineAverage(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) {
   const T *pDataIn = (T*)pIn;
@@ -131,11 +144,11 @@ public:
 
   void FlatDataToBrickedLOD(const void* pSourceData, const std::string& strTempFile = "tempFile.tmp",
                             void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) = CombineAverage<char>,
-                            void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, std::vector<DOUBLEVECTOR4>& fMinMax) = SimpleMaxMin<char,1>,
+                            const MaxMin& maxMinFunc = SimpleMaxMin<char>(1),
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
   void FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const std::string& strTempFile = "tempFile.tmp",
                             void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) = CombineAverage<char>,
-                            void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount, std::vector<DOUBLEVECTOR4>& fMinMax) = SimpleMaxMin<char,1>,
+                            const MaxMin& maxMinFunc = SimpleMaxMin<char>(1),
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
   void AllocateTemp(const std::string& strTempFile, bool bBuildOffsetTables=false);
 
