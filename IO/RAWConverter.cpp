@@ -151,6 +151,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       else
         strSourceFilename = QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
       iComponentSize = 16;
+      break;
 		case 64 :	
       if (bIsFloat) 
         strSourceFilename = QuantizeDoubleTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D);
