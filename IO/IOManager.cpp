@@ -728,7 +728,7 @@ bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, co
 
 bool IOManager::ExtractIsosurface(const VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir) {
   if (pSourceData->GetInfo()->GetComponentCount() != 1) {
-    T_ERROR("Isosurface extraction only supported for scaler volumes.");
+    T_ERROR("Isosurface extraction only supported for scalar volumes.");
     return false;
   }
 

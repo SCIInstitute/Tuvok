@@ -238,13 +238,19 @@ public:
     // apply scale
   	m_pMarchingCubes->m_Isosurface->Transform(m_matScale);
 
-    m_outStream << "# Marching Cubes mesh from a " << vBrickSize[0] << " " << vBrickSize[1] << " " << vBrickSize[2] << " brick. At " << vBrickOffset[0] << " " << vBrickOffset[1] << " " << vBrickOffset[2] << "." << std::endl;
+    // scale brick offsets
+    std::vector<UINT64> vScaledBrickOffset = vBrickOffset;
+    vScaledBrickOffset[0] = vBrickOffset[0] * m_matScale.m11;
+    vScaledBrickOffset[1] = vBrickOffset[1] * m_matScale.m22;
+    vScaledBrickOffset[2] = vBrickOffset[2] * m_matScale.m33;
+
+    m_outStream << "# Marching Cubes mesh from a " << vBrickSize[0] << " " << vBrickSize[1] << " " << vBrickSize[2] << " brick. At " << vScaledBrickOffset[0] << " " << vScaledBrickOffset[1] << " " << vScaledBrickOffset[2] << "." << std::endl;
 
 		//Saving to disk (1/3 vertices)
 		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
-			m_outStream << "v " << (m_pMarchingCubes->m_Isosurface->vfVertices[i].x + vBrickOffset[0]) << " "
-                          << (m_pMarchingCubes->m_Isosurface->vfVertices[i].y + vBrickOffset[1]) << " "
-                          << (m_pMarchingCubes->m_Isosurface->vfVertices[i].z + vBrickOffset[2]) << std::endl;
+			m_outStream << "v " << (m_pMarchingCubes->m_Isosurface->vfVertices[i].x + vScaledBrickOffset[0]) << " "
+                          << (m_pMarchingCubes->m_Isosurface->vfVertices[i].y + vScaledBrickOffset[1]) << " "
+                          << (m_pMarchingCubes->m_Isosurface->vfVertices[i].z + vScaledBrickOffset[2]) << std::endl;
 		}
 		// Saving to disk (2/3 normals)
 		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
