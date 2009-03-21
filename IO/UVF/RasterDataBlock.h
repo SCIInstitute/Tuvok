@@ -34,7 +34,7 @@ void SimpleMaxMin(const void* pIn, size_t iStart, size_t iCount,
   }
 }
 
-template<class T> void CombineAverage(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) {
+template<class T> void CombineAverage(const std::vector<UINT64>& vSource, UINT64 iTarget, const void* pIn, const void* pOut) {
   const T *pDataIn = (T*)pIn;
   T *pDataOut = (T*)pOut;
 
@@ -46,7 +46,7 @@ template<class T> void CombineAverage(std::vector<UINT64> vSource, UINT64 iTarge
   pDataOut[iTarget] = T(temp / double(vSource.size()));
 }
 
-template<class T, size_t iVecLength> void CombineAverage(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut) {
+template<class T, size_t iVecLength> void CombineAverage(const std::vector<UINT64>& vSource, UINT64 iTarget, const void* pIn, const void* pOut) {
   const T *pDataIn = (T*)pIn;
   T *pDataOut = (T*)pOut;
 
@@ -132,13 +132,13 @@ public:
   const std::vector<UINT64>& GetSmallestBrickSize() const;
 
   void FlatDataToBrickedLOD(const void* pSourceData, const std::string& strTempFile,
-                            void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut),
+                            void (*combineFunc)(const std::vector<UINT64> &vSource, UINT64 iTarget, const void* pIn, const void* pOut),
                             void (*maxminFunc)(const void* pIn, size_t iStart,
                                                size_t iCount,
                                                std::vector<DOUBLEVECTOR4>& fMinMax),
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
   void FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const std::string& strTempFile,
-                            void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut),
+                            void (*combineFunc)(const std::vector<UINT64> &vSource, UINT64 iTarget, const void* pIn, const void* pOut),
                             void (*maxminFunc)(const void* pIn, size_t iStart,
                                                size_t iCount,
                                                std::vector<DOUBLEVECTOR4>& fMinMax),
@@ -177,7 +177,7 @@ protected:
   UINT64 Serialize(const std::vector<UINT64>& vec, const std::vector<UINT64>& vSizes) const;
   UINT64 GetLocalDataPointerOffset(const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const;
   UINT64 GetLocalDataPointerOffset(const UINT64 iLODIndex, const UINT64 iBrickIndex) const {return m_vLODOffsets[size_t(iLODIndex)] + m_vBrickOffsets[size_t(iLODIndex)][size_t(iBrickIndex)];}
-  void SubSample(LargeRAWFile* pSourceFile, LargeRAWFile* pTargetFile, std::vector<UINT64> sourceSize, std::vector<UINT64> targetSize, void (*combineFunc)(std::vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut));
+  void SubSample(LargeRAWFile* pSourceFile, LargeRAWFile* pTargetFile, std::vector<UINT64> sourceSize, std::vector<UINT64> targetSize, void (*combineFunc)(const std::vector<UINT64> &vSource, UINT64 iTarget, const void* pIn, const void* pOut));
   UINT64 ComputeDataSizeAndOffsetTables();
   UINT64 GetLODSizeAndOffsetTables(std::vector<UINT64>& vLODIndices, UINT64 iLOD);
   UINT64 ComputeLODLevelSizeAndOffsetTables(const std::vector<UINT64>& vReducedDomainSize, UINT64 iLOD);

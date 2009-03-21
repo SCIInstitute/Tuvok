@@ -673,7 +673,7 @@ void RasterDataBlock::SubSample(LargeRAWFile* pSourceFile,
                                 LargeRAWFile* pTargetFile,
                                 std::vector<UINT64> sourceSize,
                                 std::vector<UINT64> targetSize,
-                                void (*combineFunc)(std::vector<UINT64> vSource,
+                                void (*combineFunc)(const std::vector<UINT64> &vSource,
                                                     UINT64 iTarget,
                                                     const void* pIn,
                                                     const void* pOut)) {
@@ -797,7 +797,7 @@ void RasterDataBlock::AllocateTemp(const string& strTempFile, bool bBuildOffsetT
  * \see FlatDataToBrickedLOD
  */
 void RasterDataBlock::FlatDataToBrickedLOD(const void* pSourceData, const string& strTempFile,
-                                              void (*combineFunc)(vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut),
+                                           void (*combineFunc)(const vector<UINT64>& vSource, UINT64 iTarget, const void* pIn, const void* pOut),
                                            void (*maxminFunc)(const void* pIn, size_t iStart,
                                                               size_t iCount,
                                                               std::vector<DOUBLEVECTOR4>& fMinMax),
@@ -846,7 +846,7 @@ vector<UINT64> RasterDataBlock::GetLODDomainSize(const vector<UINT64>& vLOD) con
  * \see FlatDataToBrickedLOD
  */
 void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const string& strTempFile,
-                                           void (*combineFunc)(vector<UINT64> vSource, UINT64 iTarget, const void* pIn, const void* pOut),
+                                           void (*combineFunc)(const vector<UINT64>& vSource, UINT64 iTarget, const void* pIn, const void* pOut),
                                            void (*maxminFunc)(const void* pIn, size_t iStart,
                                                               size_t iCount,
                                                               std::vector<DOUBLEVECTOR4>& fMinMax),

@@ -92,6 +92,11 @@ void TransferFunction2D::Resize(const VECTOR2<size_t>& iSize) {
   DeleteCanvasData();
 }
 
+void TransferFunction2D::Resample(const VECTOR2<size_t>& iSize) {
+  m_iSize = iSize;
+  m_Trans1D.Resample(iSize.x);
+}
+
 bool TransferFunction2D::Load(const std::string& filename, const VECTOR2<size_t>& vTargetSize) {
   ifstream file(filename.c_str());
 

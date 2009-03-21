@@ -84,6 +84,8 @@ public:
   void Resize(const NormalizedHistogram2D& hist) {Resize(hist.GetSize());}
   void Resize(const VECTOR2<size_t>& iSize);
 
+  void Resample(const VECTOR2<size_t>& iSize);
+
   bool Load(const std::string& filename);
   bool Load(const std::string& filename, const VECTOR2<size_t>& vTargetSize);
   bool Save(const std::string& filename) const;

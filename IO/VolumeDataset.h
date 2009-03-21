@@ -154,9 +154,7 @@ public:
 
   const Histogram1D* Get1DHistogram() const {return m_pHist1D;}
   const Histogram2D* Get2DHistogram() const {return m_pHist2D;}
-  float GetMaxGradMagnitude() const {
-    return m_pHist2DDataBlock->GetMaxGradMagnitude();
-  }
+  float GetMaxGradMagnitude() const {return m_fMaxGradMagnitude;}
 
   VolumeDatasetInfo* GetInfo() {return m_pVolumeDatasetInfo;}
   const VolumeDatasetInfo* GetInfo() const { return m_pVolumeDatasetInfo; }
@@ -181,6 +179,7 @@ public:
 protected:
   Histogram1D*        m_pHist1D;
   Histogram2D*        m_pHist2D;
+  float               m_fMaxGradMagnitude;
   VolumeDatasetInfo*  m_pVolumeDatasetInfo;
 
 private:

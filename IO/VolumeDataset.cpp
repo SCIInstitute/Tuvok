@@ -238,6 +238,7 @@ VolumeDataset::VolumeDataset(const string& strFilename, bool bVerify) :
 VolumeDataset::VolumeDataset() :
   m_pHist1D(NULL),
   m_pHist2D(NULL),
+  m_fMaxGradMagnitude(NULL),
   m_pVolumeDatasetInfo(NULL),
   m_pVolumeDataBlock(NULL),
   m_pHist1DDataBlock(NULL),
@@ -390,7 +391,7 @@ bool VolumeDataset::Open(bool bVerify)
     // generate a zero 1D histogram (max 4k) if none is found in the file
     m_pHist1D = new Histogram1D(min(4096, 1<<m_pVolumeDatasetInfo->GetBitWidth()));
     for (size_t i = 0;i<m_pHist1D->GetSize();i++) {
-      m_pHist1D->Set(i, 0);
+      m_pHist1D->Set(i, 1); // set all values to one so "getFilledsize" later does not return a completely empty dataset
     }
   }
 
@@ -405,6 +406,7 @@ bool VolumeDataset::Open(bool bVerify)
       for (size_t x = 0;x<m_pHist2D->GetSize().x;x++)
         m_pHist2D->Set(x,y,UINT32(vHist2D[x][y]));
 
+    m_fMaxGradMagnitude = m_pHist2DDataBlock->GetMaxGradMagnitude();
   } else {
     // generate a zero 2D histogram (max 4k) if none is found in the file
     VECTOR2<size_t> vec(256, std::min(4096,
@@ -412,7 +414,9 @@ bool VolumeDataset::Open(bool bVerify)
     m_pHist2D = new Histogram2D(vec);
     for (size_t y = 0;y<m_pHist2D->GetSize().y;y++)
       for (size_t x = 0;x<m_pHist2D->GetSize().x;x++)
-        m_pHist2D->Set(x,y,0);
+        m_pHist2D->Set(x,y,1);// set all values to one so "getFilledsize" later does not return a completely empty dataset
+
+    m_fMaxGradMagnitude = 0;
   }
 
   MESSAGE("  Size %s", sStreamDomain.str().c_str());
