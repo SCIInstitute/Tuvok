@@ -28,6 +28,7 @@ HEADERS += StdTuvokDefines.h \
            Basics/Plane.h \
            IO/gzio.h \
            IO/AbstrConverter.h \
+           IO/BOVConverter.h \
            IO/NRRDConverter.h \
            IO/RAWConverter.h \
            IO/QVISConverter.h \
@@ -120,6 +121,7 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            Basics/Plane.cpp \
            IO/gzio.c \
            IO/AbstrConverter.cpp \
+           IO/BOVConverter.cpp \
            IO/NRRDConverter.cpp \
            IO/RAWConverter.cpp \
            IO/QVISConverter.cpp \

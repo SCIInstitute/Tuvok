@@ -1767,6 +1767,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IO\BOVConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\BOVConverter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IO\QVISConverter.cpp"
 				>
 			</File>
