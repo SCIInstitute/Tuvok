@@ -358,7 +358,6 @@ const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const st
               int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
-
   }
 
   if (iPos < iSize) {

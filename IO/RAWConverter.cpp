@@ -140,23 +140,44 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       // in that case only the histogram would be computed and we do not use in that case
       /// \todo change this if we want to support non color multi component data
       if (iComponentCount != 4 || bSigned) 
-        strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
+        strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename,
+                                                tmpFilename1,
+                                                iComponentCount*vVolumeSize.volume(),
+                                                bSigned, Histogram1D);
       break;
     case 16 :
-      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
+      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename,
+                                                tmpFilename1,
+                                                iComponentCount*vVolumeSize.volume(),
+                                                bSigned, Histogram1D);
       break;
 		case 32 :	
       if (bIsFloat)
-        strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D);
+        strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip,
+                                                  strSourceFilename,
+                                                  tmpFilename1,
+                                                  iComponentCount*vVolumeSize.volume(),
+                                                  Histogram1D);
       else
-        strSourceFilename = QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
+        strSourceFilename = QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename,
+                                                tmpFilename1,
+                                                iComponentCount*vVolumeSize.volume(),
+                                                bSigned, Histogram1D);
       iComponentSize = 16;
       break;
 		case 64 :	
       if (bIsFloat) 
-        strSourceFilename = QuantizeDoubleTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), Histogram1D);
+        strSourceFilename = QuantizeDoubleTo12Bits(iHeaderSkip,
+                                                   strSourceFilename,
+                                                   tmpFilename1,
+                                                   iComponentCount*vVolumeSize.volume(),
+                                                   Histogram1D);
       else
-        strSourceFilename = QuantizeLongTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1, iComponentCount*vVolumeSize.volume(), bSigned, Histogram1D);
+        strSourceFilename = QuantizeLongTo12Bits(iHeaderSkip,
+                                                 strSourceFilename,
+                                                 tmpFilename1,
+                                                 iComponentCount*vVolumeSize.volume(),
+                                                 bSigned, Histogram1D);
       iComponentSize = 16;
       break;
   }

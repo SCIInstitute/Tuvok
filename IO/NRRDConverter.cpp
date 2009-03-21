@@ -137,10 +137,12 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       bSigned = true;
       bIsFloat = true;
       iComponentSize = 32;
+      MESSAGE("Floating point nrrd.");
     } else if (kvpType->strValueUpper == "DOUBLE") {
       bSigned = true;
       bIsFloat = true;
       iComponentSize = 64;
+      MESSAGE("Double-precision nrrd.");
     } else {
       T_ERROR("Unsupported \"type\" in file %s", strSourceFilename.c_str());
       return false;
