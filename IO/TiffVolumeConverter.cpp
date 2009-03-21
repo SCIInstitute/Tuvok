@@ -47,12 +47,6 @@
 
 static void tv_dimensions(TIFF *, size_t dims[3]);
 _malloc static BYTE* tv_read_slice(TIFF *);
-#if 0
-// currently disabled -- mistakenly thought I was reading 4-component data for
-// a while.  left in because we'll probably want to be able to convert
-// 4-component data to 1-component data at some point.
-_malloc static UINT32* tv_vector_to_scalar_magnitude(UINT32 *, size_t, size_t);
-#endif
 
 TiffVolumeConverter::TiffVolumeConverter()
 {
@@ -237,23 +231,5 @@ tv_read_slice(TIFF *tif)
   }
 
   return slice;
-}
-
-#if 0
-// Converts an RGBA vector `field' to a scalar field of the "vector"'s
-// magnitude.  Ignores the alpha component.
-_malloc static UINT32*
-tv_vector_to_scalar_magnitude(UINT32 *field, size_t w, size_t h)
-{
-  UINT32* ret = new UINT32[w*h];
-  for(size_t i=0; i < w*h; ++i) {
-    unsigned char r = field[i] & 0xFF000000;
-    unsigned char g = field[i] & 0x00FF0000;
-    unsigned char b = field[i] & 0x0000FF00;
-    ret[i] = (static_cast<UINT32>(r) +
-              static_cast<UINT32>(g) +
-              static_cast<UINT32>(b)) / 3;
-  }
-  return ret;
-}
 #endif
+}
