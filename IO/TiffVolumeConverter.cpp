@@ -34,7 +34,11 @@
 */
 #include "TiffVolumeConverter.h"
 #include "../3rdParty/boost/cstdint.hpp"
-#include "../3rdParty/tiff/tiffio.h"
+#ifndef TUVOK_NO_IO
+# include "../3rdParty/tiff/tiffio.h"
+#else
+  struct TIFF;
+#endif
 #include "../StdTuvokDefines.h"
 #include "../Controller/Controller.h"
 #include "../Basics/SysTools.h"
@@ -51,10 +55,12 @@ _malloc static BYTE* tv_read_slice(TIFF *);
 TiffVolumeConverter::TiffVolumeConverter()
 {
   m_vConverterDesc = "TIFF Volume (Image stack)";
+#ifndef TUVOK_NO_IO
   m_vSupportedExt.push_back("OME.TIF");
   m_vSupportedExt.push_back("OME.TIFF");
   m_vSupportedExt.push_back("TIF");
   m_vSupportedExt.push_back("TIFF");
+#endif
 }
 
 // converts a TiffVolume to a `raw' file.  We'll read through the TIFF
@@ -73,6 +79,7 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
                                   std::string& strIntermediateFile,
                                   bool& bDeleteIntermediateFile)
 {
+#ifndef TUVOK_NO_IO
   MESSAGE("Attempting to convert TiffVolume: %s", strSourceFilename.c_str());
 
   TIFF *tif = TIFFOpen(strSourceFilename.c_str(), "r");
@@ -161,6 +168,10 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   TIFFClose(tif);
   return true;
+#else
+  T_ERROR("Tuvok was not built with IO support!");
+  return false;
+#endif
 }
 
 // unimplemented!
@@ -183,6 +194,7 @@ TiffVolumeConverter::ConvertToNative(const std::string&,
 static void
 tv_dimensions(TIFF *tif, size_t dims[3])
 {
+#ifndef TUVOK_NO_IO
   UINT32 x,y;
   size_t z=0;
 
@@ -198,11 +210,15 @@ tv_dimensions(TIFF *tif, size_t dims[3])
   dims[0] = x;
   dims[1] = y;
   dims[2] = z;
+#endif
 }
 
 _malloc static BYTE*
 tv_read_slice(TIFF *tif)
 {
+#ifdef TUVOK_NO_IO
+  return NULL;
+#else
   BYTE *slice;
   UINT32 width;
   UINT32 height;
