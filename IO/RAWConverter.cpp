@@ -493,6 +493,10 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
 static bool
 bz_err_test(int bz_err)
 {
+#ifdef TUVOK_NO_IO
+  T_ERROR("bzip2 library not available!");
+  return true;
+#else
   bool error_occurred = true;
   switch(bz_err) {
         case BZ_OK:        /* FALL THROUGH */
@@ -537,6 +541,7 @@ bz_err_test(int bz_err)
             break;
     }
     return error_occurred;
+#endif
 }
 
 /** Converts a bzip2-compressed file chunk to a raw file.
@@ -547,6 +552,10 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
                                        const string& strUncompressedFile,
                                        UINT64 iHeaderSkip)
 {
+#ifdef TUVOK_NO_IO
+  T_ERROR("Tuvok built without IO routines; bzip2 not available!");
+  return false;
+#else
   BZFILE *bzf;
   int bz_err;
   std::vector<char> buffer(INCORESIZE);
@@ -602,6 +611,7 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   fclose(f_compressed);
 
   return true;
+#endif
 }
 
 bool RAWConverter::ParseTXTDataset(const string& strFilename,
