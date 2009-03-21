@@ -62,7 +62,7 @@ class GPUMemMan {
     void Get1DTransFromFile(const std::string& strFilename,
                             AbstrRenderer* requester,
                             TransferFunction1D** ppTransferFunction1D,
-                            GLTexture1D** tex);
+                            GLTexture1D** tex, size_t iSize=0);
     GLTexture1D* Access1DTrans(TransferFunction1D* pTransferFunction1D,
                                AbstrRenderer* requester);
     void Free1DTrans(TransferFunction1D* pTransferFunction1D,
@@ -70,14 +70,14 @@ class GPUMemMan {
 
     void Changed2DTrans(AbstrRenderer* requester,
                         TransferFunction2D* pTransferFunction2D);
-    void GetEmpty2DTrans(const VECTOR2<size_t>& iSize,
+    void GetEmpty2DTrans(const VECTOR2<size_t>& vSize,
                          AbstrRenderer* requester,
                          TransferFunction2D** ppTransferFunction2D,
                          GLTexture2D** tex);
     void Get2DTransFromFile(const std::string& strFilename,
                             AbstrRenderer* requester,
                             TransferFunction2D** ppTransferFunction2D,
-                            GLTexture2D** tex);
+                            GLTexture2D** tex, const VECTOR2<size_t>& iSize = VECTOR2<size_t>(0,0));
     GLTexture2D* Access2DTrans(TransferFunction2D* pTransferFunction2D,
                                AbstrRenderer* requester);
     void Free2DTrans(TransferFunction2D* pTransferFunction2D,

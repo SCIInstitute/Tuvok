@@ -296,9 +296,11 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
                                             requester));
 }
 
-void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction1D** ppTransferFunction1D, GLTexture1D** tex) {
+void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction1D** ppTransferFunction1D, GLTexture1D** tex, size_t iSize) {
   MESSAGE("Loading 1D transfer function from file");
   *ppTransferFunction1D = new TransferFunction1D(strFilename);
+
+  if (iSize != 0 && (*ppTransferFunction1D)->GetSize() != iSize) (*ppTransferFunction1D)->Resample(iSize);
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction1D)->GetByteArray(&pcData);
@@ -387,9 +389,13 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize, AbstrRenderer* req
   m_vpTrans2DList.push_back(Trans2DListElem(*ppTransferFunction2D, *tex, requester));
 }
 
-void GPUMemMan::Get2DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction2D** ppTransferFunction2D, GLTexture2D** tex) {
+void GPUMemMan::Get2DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction2D** ppTransferFunction2D, GLTexture2D** tex, const VECTOR2<size_t>& vSize) {
   MESSAGE("Loading 2D transfer function from file");
   *ppTransferFunction2D = new TransferFunction2D(strFilename);
+
+  if ((vSize.x != 0 || vSize.y != 0) && (*ppTransferFunction2D)->GetSize() != vSize) 
+    (*ppTransferFunction2D)->Resample(vSize);
+
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);

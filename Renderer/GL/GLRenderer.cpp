@@ -98,16 +98,18 @@ bool GLRenderer::Initialize() {
 
   GPUMemMan &mm = *(Controller::Instance().MemMan());
   if (SysTools::FileExists(strPotential1DTransName)) {
-    mm.Get1DTransFromFile(strPotential1DTransName, this, &m_p1DTrans,
-                                                         &m_p1DTransTex);
+    mm.Get1DTransFromFile(strPotential1DTransName, this, 
+                          &m_p1DTrans, &m_p1DTransTex, 
+                          m_pDataset->Get1DHistogram()->GetFilledSize());
   } else {
     mm.GetEmpty1DTrans(m_pDataset->Get1DHistogram()->GetFilledSize(), this,
                        &m_p1DTrans, &m_p1DTransTex);
   }
 
   if (SysTools::FileExists(strPotential2DTransName)) {
-    mm.Get2DTransFromFile(strPotential2DTransName, this, &m_p2DTrans,
-                                                         &m_p2DTransTex);
+    mm.Get2DTransFromFile(strPotential2DTransName, this, 
+                          &m_p2DTrans, &m_p2DTransTex,
+                          m_pDataset->Get2DHistogram()->GetFilledSize());
   } else {
     mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram()->GetFilledSize(), this,
                        &m_p2DTrans, &m_p2DTransTex);
@@ -1321,7 +1323,7 @@ void GLRenderer::SetDataDepShaderVars() {
 
   // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
   float fScale         = CalculateScaling();
-  float fGradientScale = 1.0f/m_pDataset->GetMaxGradMagnitude();
+  float fGradientScale = (m_pDataset->GetMaxGradMagnitude() == 0) ? 1.0f : 1.0f/m_pDataset->GetMaxGradMagnitude();
 
   MESSAGE("Transfer function scaling factor: %5.3f", fScale);
   MESSAGE("Gradient scaling factor: %5.3f", fGradientScale);
