@@ -239,10 +239,10 @@ public:
   	m_pMarchingCubes->m_Isosurface->Transform(m_matScale);
 
     // scale brick offsets
-    std::vector<UINT64> vScaledBrickOffset = vBrickOffset;
-    vScaledBrickOffset[0] = vBrickOffset[0] * m_matScale.m11;
-    vScaledBrickOffset[1] = vBrickOffset[1] * m_matScale.m22;
-    vScaledBrickOffset[2] = vBrickOffset[2] * m_matScale.m33;
+    std::vector<float> vScaledBrickOffset(vBrickOffset.size());
+    vScaledBrickOffset[0] = static_cast<float>(vBrickOffset[0]) * m_matScale.m11;
+    vScaledBrickOffset[1] = static_cast<float>(vBrickOffset[1]) * m_matScale.m22;
+    vScaledBrickOffset[2] = static_cast<float>(vBrickOffset[2]) * m_matScale.m33;
 
     m_outStream << "# Marching Cubes mesh from a " << vBrickSize[0] << " " << vBrickSize[1] << " " << vBrickSize[2] << " brick. At " << vScaledBrickOffset[0] << " " << vScaledBrickOffset[1] << " " << vScaledBrickOffset[2] << "." << std::endl;
 

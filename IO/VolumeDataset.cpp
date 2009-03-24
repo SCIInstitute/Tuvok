@@ -224,6 +224,7 @@ bool VolumeDatasetInfo::ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBr
 VolumeDataset::VolumeDataset(const string& strFilename, bool bVerify) :
   m_pHist1D(NULL),
   m_pHist2D(NULL),
+  m_fMaxGradMagnitude(0.0f),
   m_pVolumeDatasetInfo(NULL),
   m_pVolumeDataBlock(NULL),
   m_pHist1DDataBlock(NULL),
@@ -238,7 +239,7 @@ VolumeDataset::VolumeDataset(const string& strFilename, bool bVerify) :
 VolumeDataset::VolumeDataset() :
   m_pHist1D(NULL),
   m_pHist2D(NULL),
-  m_fMaxGradMagnitude(NULL),
+  m_fMaxGradMagnitude(0.0f),
   m_pVolumeDatasetInfo(NULL),
   m_pVolumeDataBlock(NULL),
   m_pHist1DDataBlock(NULL),
