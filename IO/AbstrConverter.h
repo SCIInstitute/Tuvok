@@ -85,6 +85,8 @@ public:
   const std::vector<std::string>& SupportedExt() {return m_vSupportedExt;}
   virtual const std::string& GetDesc() {return m_vConverterDesc;}
 
+  virtual bool CanExportData() const {return false;}
+
 protected:
   std::string               m_vConverterDesc;
   std::vector<std::string>  m_vSupportedExt;

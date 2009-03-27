@@ -69,5 +69,8 @@ public:
                                bool bFloatingPoint, UINTVECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
                                bool bNoUserInteraction);
+
+  virtual bool CanExportData() const {return false;}
+
 };
 #endif // TIFFVOLUMECONVERTER_H

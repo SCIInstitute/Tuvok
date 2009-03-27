@@ -890,8 +890,10 @@ std::string IOManager::GetExportDialogString() const {
   // seperate entries
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
-      string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
-      strDialog += m_vpConverters[i]->GetDesc() + " (*." + strExt + ");;";
+      if (m_vpConverters[i]->CanExportData()) {
+        string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+        strDialog += m_vpConverters[i]->GetDesc() + " (*." + strExt + ");;";
+      }
     }
   }
 

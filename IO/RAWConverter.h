@@ -126,6 +126,9 @@ public:
                       bool bSigned, bool bFloatingPoint,
                       UINTVECTOR3 vVolumeSize,
                       RangeInfo& info);
+
+  virtual bool CanExportData() const {return true;}
+
 };
 
 #endif // RAWCONVERTER_H

@@ -63,6 +63,8 @@ public:
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
                                UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction);
 
+  virtual bool CanExportData() const {return false;}
+
 protected:
 
 };
