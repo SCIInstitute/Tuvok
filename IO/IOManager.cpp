@@ -94,7 +94,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   DICOMParser parseDICOM;
   parseDICOM.GetDirInfo(strDirectory);
 
-  for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {    
+  for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {
     DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
 
     // if trying to load JPEG files. check if Qimage can handle the JPEG payload

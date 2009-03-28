@@ -676,7 +676,8 @@ void RasterDataBlock::SubSample(LargeRAWFile* pSourceFile,
                                 void (*combineFunc)(const std::vector<UINT64> &vSource,
                                                     UINT64 iTarget,
                                                     const void* pIn,
-                                                    const void* pOut)) {
+                                                    const void* pOut),
+                               AbstrDebugOut* pDebugOut, UINT64 iLODLevel, UINT64 iMaxLODLevel) {
   pSourceFile->SeekStart();
   pTargetFile->SeekStart();
 
@@ -723,6 +724,8 @@ void RasterDataBlock::SubSample(LargeRAWFile* pSourceFile,
   UINT64 iSourcePos = 0;
   UINT64 iWindowSourcePos = 0;
   UINT64 iWindowTargetPos = 0;
+  
+  float fLastOutput = -1;
   for (UINT64 i = 0;i<iTargetElementCount;i++) {
 
     if (i==0 || iWindowTargetPos >= iTargetWindowSize) {
@@ -731,6 +734,12 @@ void RasterDataBlock::SubSample(LargeRAWFile* pSourceFile,
           pTargetData = new unsigned char[size_t(iTargetWindowSize*iElementSize)];
       } else {
         pTargetFile->WriteRAW(pTargetData, iTargetWindowSize*iElementSize);
+      }
+
+      float fCurrentOutput = (100.0f*i)/float(iTargetElementCount);
+      if (pDebugOut && (fCurrentOutput - fLastOutput) > 0.05) {
+        fLastOutput = fCurrentOutput;
+        pDebugOut->Message(_func_, "Generating data for lod level %i of %i\n%6.2f percent completed",int(iLODLevel+1), int(iMaxLODLevel+1), fCurrentOutput);
       }
 
       if (pSourceFile == pTargetFile) {
@@ -766,6 +775,9 @@ void RasterDataBlock::SubSample(LargeRAWFile* pSourceFile,
       iSourcePos += vPrefixProd[j-1] * vSourcePos[j-1];
     }
     iSourcePos += vPrefixProd[sourceSize.size()-1] * vSourcePos[sourceSize.size()-1];
+
+    
+
   }
 
   pTargetFile->WriteRAW(pTargetData, iTargetWindowSize*iElementSize);
@@ -884,14 +896,14 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
     // next subsample level
     if (i > 0) {
       if (i > 1) {
-        SubSample(tempFile, tempFile, vLastReducedDomainSize, vReducedDomainSize, combineFunc);
+        SubSample(tempFile, tempFile, vLastReducedDomainSize, vReducedDomainSize, combineFunc, pDebugOut, i, vLODCombis.size());
       } else {
         tempFile = new LargeRAWFile(SysTools::AppendFilename(strTempFile,"2"));
         if (!tempFile->Create(ComputeDataSize())) {
           delete tempFile;
           throw "Unable To create Temp File";
         }
-        SubSample(pSourceData, tempFile, ulDomainSize, vReducedDomainSize, combineFunc);
+        SubSample(pSourceData, tempFile, ulDomainSize, vReducedDomainSize, combineFunc, pDebugOut, i, vLODCombis.size());
       }
       pBrickSource = tempFile;
       vLastReducedDomainSize = vReducedDomainSize;

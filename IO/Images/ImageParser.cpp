@@ -39,6 +39,7 @@
 #include <QtGui/QImage>
 #include <QtGui/QColor>
 #include <Basics/SysTools.h>
+#include <Controller/Controller.h>
 
 using namespace std;
 
@@ -178,6 +179,8 @@ void ImageParser::GetDirInfo(string  strDirectory) {
 
   // query directory for image files
   for (size_t i = 0;i<files.size();i++) {
+    MESSAGE("Looking for image data in file %s", files[i].c_str());
+
     QImage qImage(files[i].c_str()); 
     if (!qImage.isNull()) {
       ImageFileInfo info(files[i]);

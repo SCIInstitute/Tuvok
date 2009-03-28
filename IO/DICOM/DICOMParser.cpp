@@ -36,6 +36,7 @@
 */
 
 #include "DICOMParser.h"
+#include <Controller/Controller.h>
 
 #ifdef DEBUG_DICOM
   #include <Basics/Console.h>
@@ -100,10 +101,15 @@ void DICOMParser::GetDirInfo(string  strDirectory) {
   vector<string> files = SysTools::GetDirContents(strDirectory);
   vector<DICOMFileInfo> fileInfos;
 
+  for (size_t i = 0;i<files.size();i++) {
+    files[i] = strDirectory+"/"+files[i]; 
+  }
+
   // query directory for DICOM files
   for (size_t i = 0;i<files.size();i++) {
+    MESSAGE("Looking for DICOM data in file %s", files[i].c_str());
     DICOMFileInfo info;
-    if (GetDICOMFileInfo(strDirectory+"/"+files[i], info)) fileInfos.push_back(info);
+    if (GetDICOMFileInfo(files[i], info)) fileInfos.push_back(info);
   }
 
   // sort results into stacks
