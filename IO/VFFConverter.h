@@ -34,8 +34,6 @@
   \version 1.0
   \date    December 2008
 */
-
-
 #pragma once
 
 #ifndef VFFCONVERTER_H
@@ -64,9 +62,6 @@ public:
                                UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction);
 
   virtual bool CanExportData() const {return true;}
-
-protected:
-
 };
 
 #endif // VFFCONVERTER_H

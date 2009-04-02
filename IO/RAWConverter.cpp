@@ -44,6 +44,10 @@
 #include <Controller/Controller.h>
 #include <Basics/SysTools.h>
 #include <IO/gzio.h>
+#include "UVF/Histogram1DDataBlock.h"
+#include "UVF/Histogram2DDataBlock.h"
+#include "UVF/MaxMinDataBlock.h"
+#include "UVF/RasterDataBlock.h"
 
 using namespace std;
 using boost::int64_t;

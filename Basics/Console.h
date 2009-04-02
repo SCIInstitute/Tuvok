@@ -41,15 +41,15 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
-#include "../StdTuvokDefines.h"
-#include <stdio.h>
-#include <stdarg.h>
-
+#include <cstdarg>
+#include <cstdio>
 #ifdef WIN32
   #pragma warning(disable:4505)
 #else
   #include <iostream>
 #endif
+
+#include "../StdTuvokDefines.h"
 
 #if defined(__GNUC__) && __GNUC__ > 3 || \
     (__GNUC__ == 3 && __GNUC_MINOR_ >= 4)
@@ -145,9 +145,7 @@ namespace Console {
       #endif
     }
 #else
-
     #include <wchar.h>
-    #include <string>
     static void printf(const wchar_t *, ...) FQN_UNUSED;
     static void printfd(const wchar_t*, ...) FQN_UNUSED;
 

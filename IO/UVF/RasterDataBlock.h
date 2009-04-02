@@ -3,9 +3,9 @@
 #ifndef RASTERDATABLOCK_H
 #define RASTERDATABLOCK_H
 
+#include <string>
 #include "DataBlock.h"
 #include "../Basics/Vectors.h"
-#include <string>
 
 class AbstrDebugOut;
 

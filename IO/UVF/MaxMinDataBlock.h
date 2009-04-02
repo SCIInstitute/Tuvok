@@ -3,7 +3,7 @@
 #ifndef MAXMINDATABLOCK_H
 #define MAXMINDATABLOCK_H
 
-#include "RasterDataBlock.h"
+#include "DataBlock.h"
 #include "../../Basics/Vectors.h"
 
 template<class T, class S> class MaxMinElemen {

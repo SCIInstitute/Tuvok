@@ -35,13 +35,16 @@
 */
 
 
+#include <cmath>
 #include "GLInclude.h"
 #include "GLSBVR.h"
 
-#include <cmath>
 #include <Basics/SysTools.h>
 #include <Controller/Controller.h>
 #include "../GPUMemMan/GPUMemMan.h"
+#include "GLSLProgram.h"
+#include "GLTexture1D.h"
+#include "GLTexture2D.h"
 
 using namespace std;
 

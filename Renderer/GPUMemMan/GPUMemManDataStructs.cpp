@@ -35,7 +35,11 @@
 */
 
 #include "GPUMemManDataStructs.h"
-#include <Controller/Controller.h>
+#include "Basics/MathTools.h"
+#include "Controller/Controller.h"
+#include "IO/VolumeDataset.h"
+#include "Renderer/GL/GLTexture3D.h"
+using namespace tuvok;
 
 Texture3DListElem::Texture3DListElem(VolumeDataset* _pDataset,
                                      const std::vector<UINT64>& _vLOD,

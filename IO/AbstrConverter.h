@@ -34,8 +34,6 @@
   \version 1.0
   \date    December 2008
 */
-
-
 #pragma once
 
 #ifndef ABSTRCONVERTER_H
@@ -47,8 +45,7 @@
 #include "boost/cstdint.hpp"
 
 using boost::int64_t;
-
-class MasterController;
+class Histogram1DDataBlock;
 
 class RangeInfo {
 public:

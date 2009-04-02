@@ -34,12 +34,14 @@
   \date    August 2008
 */
 
-#include "VolumeDataset.h"
-#include "IOManager.h"  // for the size defines
-#include <Controller/Controller.h>
 #include <cstdlib>
-#include <string>
 #include <sstream>
+#include "Controller/Controller.h"
+#include "IOManager.h"  // for the size defines
+#include "UVF/Histogram1DDataBlock.h"
+#include "UVF/Histogram2DDataBlock.h"
+#include "UVF/UVF.h"
+#include "VolumeDataset.h"
 
 using namespace std;
 

@@ -44,7 +44,6 @@
 #include "../StdTuvokDefines.h"
 #include "AbstrConverter.h"
 
-
 template<class T> class MinMaxScanner {
 public:
   MinMaxScanner(LargeRAWFile* file, T& minValue, T& maxValue, UINT64 iElemCount) {

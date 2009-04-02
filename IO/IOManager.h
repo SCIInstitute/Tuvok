@@ -39,13 +39,14 @@
 #ifndef IOMANAGER_H
 #define IOMANAGER_H
 
-#include "../StdTuvokDefines.h"
+#include <fstream>
 #include <limits>
 #include <string>
+#include "../StdTuvokDefines.h"
 #include "../Controller/MasterController.h"
-#include "../IO/UVF/UVF.h"
 #include "../Basics/MC.h"
 #include "../Basics/SysTools.h"
+#include "../IO/UVF/LargeRAWFile.h"
 
 #define BRICKSIZE (256)
 #define BRICKOVERLAP (4)
@@ -55,6 +56,7 @@ class AbstrConverter;
 class AbstrRenderer;
 class FileStackInfo;
 class RangeInfo;
+class VolumeDataset;
 
 class MergeDataset {
 public:

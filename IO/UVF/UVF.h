@@ -5,15 +5,8 @@
 #include "UVFBasic.h"
 
 #include "UVFTables.h"
-#include "DataBlock.h"
 #include "GlobalHeader.h"
-
-#include "RasterDataBlock.h"
-#include "KeyValuePairDataBlock.h"
-#include "Histogram1DDataBlock.h"
-#include "Histogram2DDataBlock.h"
-#include "MaxMinDataBlock.h"
-
+class DataBlock;
 
 class UVF
 {
@@ -56,7 +49,5 @@ protected:
   // file creation routines
   UINT64 ComputeNewFileSize();
   void UpdateChecksum();
-
 };
-
 #endif // UVF_H

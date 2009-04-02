@@ -35,14 +35,15 @@
 //
 //!    Copyright (C) 2008 SCI Institute
 
+#include <fstream>
+#include <limits>
+#include <sstream>
+
 #include "Scripting.h"
 #include <Controller/Controller.h>
 #include <Basics/SysTools.h>
 #include <QtCore/QTime>
 #include <QtCore/QDate>
-
-#include <sstream>
-#include <limits>
 
 using namespace std;
 
@@ -146,7 +147,7 @@ bool Scripting::ParseCommand(const vector<string>& strTokenized, string& strMess
 
 bool Scripting::ParseFile(const std::string& strFilename) {
   string line;
-  ifstream fileData(strFilename.c_str());
+  std::ifstream fileData(strFilename.c_str());
 
   UINT32 iLine=0;
   if (fileData.is_open())

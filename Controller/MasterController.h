@@ -47,25 +47,23 @@
 #include "../DebugOut/MultiplexOut.h"
 #include "../DebugOut/ConsoleOut.h"
 
-#include "../Renderer/AbstrRenderer.h"
-#include "../Renderer/GPUMemMan/GPUMemManDataStructs.h"
-
 #include "../Scripting/Scriptable.h"
+
+class AbstrRenderer;
 class IOManager;
 class GPUMemMan;
 class Scripting;
 class SystemInfo;
+typedef std::deque<AbstrRenderer*> AbstrRendererList;
 
 /** \class MasterController
- * Centralized controller for ImageVis3D.
+ * Centralized controller for Tuvok.
  *
  * MasterController is a router for all of the components of
- * ImageVis3D.  Modules only depend on / utilize the controller,
- * never other modules.  For example, the GUI does not inform the
- * renderer that a re-render is necessary when a window is resized.
- * Instead, it informs the abstract interface through this controller,
- * and the renderer implementation decides on its own how it wants to
- * handle the resize event. */
+ * Tuvok.  Modules only depend on / utilize the controller,
+ * never other modules.
+ * You probably don't want to create an instance directly.  Use the singleton
+ * provided by Controller::Instance(). */
 class MasterController : public Scriptable {
 public:
   enum EVolumeRendererType {

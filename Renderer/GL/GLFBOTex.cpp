@@ -35,7 +35,7 @@
            tum.3D, Muenchen
   \date    August 2008
 */
-#include <stdio.h>
+#include <cstdio>
 #include "GLFBOTex.h"
 #include <Controller/Controller.h>
 
@@ -293,6 +293,40 @@ void GLFBOTex::FinishDepthRead() {
   glActiveTextureARB(m_LastDepthTextUnit);
   glBindTexture(GL_TEXTURE_2D,0);
   m_LastDepthTextUnit=0;
+}
+
+void GLFBOTex::NoDrawBuffer() {
+  MESSAGE("no draw buffers..");
+  glDrawBuffer(GL_NONE);
+}
+
+void GLFBOTex::OneDrawBuffer() {
+  MESSAGE("One drawbuffer");
+  glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+}
+
+void GLFBOTex::TwoDrawBuffers() {
+  GLenum twobuffers[]  = { GL_COLOR_ATTACHMENT0_EXT,
+                           GL_COLOR_ATTACHMENT1_EXT };
+  MESSAGE("two drawbuffers");
+  glDrawBuffers(2, twobuffers);
+}
+
+void GLFBOTex::ThreeDrawBuffers() {
+  GLenum threebuffers[]  = { GL_COLOR_ATTACHMENT0_EXT,
+                            GL_COLOR_ATTACHMENT1_EXT,
+                            GL_COLOR_ATTACHMENT2_EXT};
+  MESSAGE("three drawbuffers");
+  glDrawBuffers(3, threebuffers);
+}
+
+void GLFBOTex::FourDrawBuffers() {
+  GLenum fourbuffers[]  = { GL_COLOR_ATTACHMENT0_EXT,
+                            GL_COLOR_ATTACHMENT1_EXT,
+                            GL_COLOR_ATTACHMENT2_EXT,
+                            GL_COLOR_ATTACHMENT3_EXT};
+  MESSAGE("four drawbuffers");
+  glDrawBuffers(4, fourbuffers);
 }
 
 // Finish reading from this texture

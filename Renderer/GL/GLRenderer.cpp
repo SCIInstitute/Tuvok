@@ -34,12 +34,18 @@
   \date    August 2008
 */
 
+#include <ctime>
 #include "GLInclude.h"
+#include "GLFBOTex.h"
 #include "GLRenderer.h"
+#include "GLSLProgram.h"
+#include "GLTexture1D.h"
+#include "GLTexture2D.h"
+#include "GLTexture3D.h"
 #include <Controller/Controller.h>
 #include <Basics/SysTools.h>
-#include <ctime>
 #include "../GPUMemMan/GPUMemMan.h"
+#include "../../Basics/GeometryGenerator.h"
 
 using namespace std;
 

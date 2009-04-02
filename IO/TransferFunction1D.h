@@ -34,15 +34,14 @@
   \version 1.0
   \date    September 2008
 */
-
 #pragma once
 
 #ifndef TRANSFERFUNCTION1D
 #define TRANSFERFUNCTION1D
 
-#include "../StdTuvokDefines.h"
 #include <string>
 #include <vector>
+#include "../StdTuvokDefines.h"
 #include "../Basics/Vectors.h"
 #include "../Basics/Grids.h"
 

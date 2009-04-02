@@ -34,8 +34,6 @@
   \version 1.0
   \date    November 2008
 */
-
-
 #pragma once
 
 #ifndef GLRAYCASTER_H
@@ -49,7 +47,7 @@ class ExtendedPlane;
 /** \class GLRaycaster
  * GPU Rayster.
  *
- * GLRaycaster is a GPU based raycaster for volumetric scalar data which uses GLSL. */
+ * GLRaycaster is a GLSL-based raycaster for volumetric data */
 class GLRaycaster : public GLRenderer {
   public:
     /** Constructs a VRer with immediate redraw, and
@@ -66,6 +64,9 @@ class GLRaycaster : public GLRenderer {
     /** Deallocates GPU memory allocated during the rendering process. */
     virtual void Cleanup();
 
+    /// Can only use CV on scalar datasets.  There's nothing really preventing
+    /// its application to RGBA datasets, but shaders would need updating (and
+    /// they haven't been)
     virtual bool SupportsClearView() {return m_pDataset->GetInfo()->GetComponentCount() == 1;}
 
     virtual void DisableClipPlane();
@@ -101,5 +102,4 @@ class GLRaycaster : public GLRenderer {
                                            FLOATVECTOR3 p2, FLOATVECTOR3 t2,
                                            int iStereoID) const;
 };
-
 #endif // GLRAYCASTER_H

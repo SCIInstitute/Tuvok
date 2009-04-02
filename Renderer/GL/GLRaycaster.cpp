@@ -34,15 +34,18 @@
   \date    August 2008
 */
 
+#include <cmath>
+#include <ctime>
 #include "GLInclude.h"
 #include "GLRaycaster.h"
+#include "GLFBOTex.h"
 
-#include <cmath>
-#include <Basics/SysTools.h>
 #include <Controller/Controller.h>
-#include <ctime>
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../../Basics/Plane.h"
+#include "GLSLProgram.h"
+#include "GLTexture1D.h"
+#include "GLTexture2D.h"
 
 using namespace std;
 

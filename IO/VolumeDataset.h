@@ -41,18 +41,22 @@
 #ifndef VOLUMEDATASET_H
 #define VOLUMEDATASET_H
 
-#include "../StdTuvokDefines.h"
 #include <string>
+#include "../StdTuvokDefines.h"
 #include "TransferFunction1D.h"
 #include "TransferFunction2D.h"
-#include "../IO/UVF/UVF.h"
 #include "../Basics/Vectors.h"
+#include "UVF/MaxMinDataBlock.h"
+#include "UVF/RasterDataBlock.h"
 
 typedef VECTOR2<UINT64> UINT64VECTOR2;
 typedef VECTOR3<UINT64> UINT64VECTOR3;
 typedef VECTOR4<UINT64> UINT64VECTOR4;
 
+class UVF;
 class VolumeDataset;
+class RasterDataBlock;
+class MaxMinDataBlock;
 
 /// A wrapper around UVF data to provide easy access to 3D-only data.  UVF data
 /// is n-dimensional, making it hard to work with directly.

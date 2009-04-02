@@ -32,7 +32,6 @@
            SCI Institute, University of Utah
   \date    October 2008
 */
-
 #pragma once
 
 #ifndef GLSLPROGRAM_H
@@ -69,11 +68,6 @@ typedef enum {
 
 #include "../../StdTuvokDefines.h"
 #include "GLObject.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
 
 class MasterController;
 

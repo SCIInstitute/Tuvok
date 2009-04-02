@@ -1,9 +1,8 @@
 #include "Histogram1DDataBlock.h"
 
-#include <memory.h>
+#include "RasterDataBlock.h"
 using namespace std;
 using namespace UVFTables;
-
 
 Histogram1DDataBlock::Histogram1DDataBlock() : DataBlock() {
   ulBlockSemantics = BS_1D_Histogram;

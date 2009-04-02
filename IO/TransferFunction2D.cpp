@@ -35,8 +35,9 @@
   \date    September 2008
 */
 
-#include "TransferFunction2D.h"
 #include <memory.h>
+#include <QtGui/QPainter>
+#include "TransferFunction2D.h"
 
 using namespace std;
 

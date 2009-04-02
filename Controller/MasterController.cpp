@@ -41,6 +41,7 @@
 #include "../DebugOut/MultiplexOut.h"
 #include "../IO/IOManager.h"
 #include "../Renderer/GPUMemMan/GPUMemMan.h"
+#include "../Renderer/GPUMemMan/GPUMemManDataStructs.h"
 #include "../Renderer/GL/GLRaycaster.h"
 #include "../Renderer/GL/GLSBVR.h"
 

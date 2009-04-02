@@ -1,16 +1,14 @@
+#include <sstream>
 #include "UVF.h"
 #include <Basics/SysTools.h>
 #include <Basics/Checksums/crc32.h>
 #include <Basics/Checksums/MD5.h>
-#include <sstream>
-
+#include "DataBlock.h"
 
 using namespace std;
 using namespace UVFTables;
 
-
 UINT64 UVF::ms_ulReaderVersion = UVFVERSION;
-
 
 UVF::UVF(std::wstring wstrFilename) : 
   m_bFileIsLoaded(false),

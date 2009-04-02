@@ -4,7 +4,6 @@
 #define MD5_H
 
 #include <vector>
-
 #include "../../StdTuvokDefines.h"
 
 class MD5

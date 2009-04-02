@@ -67,7 +67,6 @@
   #define MIN(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
-#include "../StdTuvokDefines.h"
 #include <cassert>
 #include <cmath>
 #include <limits>
@@ -83,19 +82,14 @@
 
 #ifdef WIN32
   #pragma warning( disable : 4201 )  // Disable warning messages about nameless union
-
   #ifdef USEDX
     #pragma message("    [vectors.h] Using DX extensions.\n")
-//  #else
-//    #pragma message("    [vectors.h] NOT using DX extensions.\n")
   #endif
-
   #ifdef USEGL
     #pragma message("    [vectors.h] Using GL extensions.\n")
-//  #else
-//    #pragma message("    [vectors.h] NOT using GL extensions.\n")
   #endif
 #endif
+#include "../StdTuvokDefines.h"
 
 template <class T> class MATRIX2;
 template <class T> class MATRIX3;

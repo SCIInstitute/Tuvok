@@ -34,8 +34,6 @@
   \version 1.0
   \date    August 2008
 */
-
-
 #pragma once
 
 #ifndef ABSTRRENDERER_H
@@ -44,13 +42,13 @@
 #include <string>
 
 #include "../StdTuvokDefines.h"
-#include "../IO/VolumeDataset.h"
 #include "../Renderer/CullingLOD.h"
-#include "../Basics/GeometryGenerator.h"
+#include "../IO/VolumeDataset.h"
 #include "../Basics/Plane.h"
 
 class TransferFunction1D;
 class TransferFunction2D;
+class Triangle;
 
 class Brick {
 public:

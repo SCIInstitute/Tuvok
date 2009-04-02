@@ -40,7 +40,6 @@
 #define SYSTEMINFO_H
 
 #include "../StdTuvokDefines.h"
-#include "../Basics/MathTools.h"
 
 class SystemInfo
 {

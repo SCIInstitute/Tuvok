@@ -17,5 +17,4 @@
 #include "LargeRAWFile.h"
 class DataBlock;
 
-
 #endif // UVFBASIC_H

@@ -33,14 +33,13 @@
            University of Utah
   \date    November 2008
 */
-
 #pragma once
 
 #ifndef FRAMECAPTURE_H
 #define FRAMECAPTURE_H
 
-#include "../StdTuvokDefines.h"
 #include <string>
+#include "../StdTuvokDefines.h"
 #include "../Basics/SysTools.h"
 #include "../Basics/Vectors.h"
 #include <QtGui/QImage>

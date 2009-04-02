@@ -32,8 +32,6 @@
            SCI Institute
            University of Utah
 */
-
-
 #pragma once
 
 #ifndef GLRENDERER_H

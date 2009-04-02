@@ -40,14 +40,16 @@
 #ifndef TRANSFERFUNCTION2D
 #define TRANSFERFUNCTION2D
 
-#include "../StdTuvokDefines.h"
 #include <fstream>
 #include <string>
 #include <vector>
+/// @todo FIXME remove this dependency:
+#include <QtGui/QImage>
+#include "../StdTuvokDefines.h"
 #include "../Basics/Vectors.h"
 #include "../Basics/Grids.h"
 
-#include <QtGui/QPainter>
+class QPainter;
 
 #include "TransferFunction1D.h"
 

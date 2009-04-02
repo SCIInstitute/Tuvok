@@ -62,9 +62,6 @@ public:
                                UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction);
 
   virtual bool CanExportData() const {return true;}
-
-protected:
-
 };
 
 #endif // QVISCONVERTER_H

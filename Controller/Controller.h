@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   Copyright (c) 2009 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -30,7 +30,7 @@
 //!             SCI Institute
 //!             University of Utah
 //!    Date   : March 2009
-//
+//!
 //!    Copyright (C) 2009 SCI Institute
 
 #pragma once

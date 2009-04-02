@@ -37,13 +37,19 @@
 #include <cassert>
 #include <algorithm>
 #include <functional>
+#include "GPUMemManDataStructs.h"
 #include "GPUMemMan.h"
+#include "Renderer/AbstrRenderer.h"
+#include "Renderer/GL/GLTexture1D.h"
+#include "Renderer/GL/GLTexture2D.h"
+#include "Renderer/GL/GLTexture3D.h"
 #include <QtGui/QImage>
 #include <QtOpenGL/QGLWidget>
 #include <Controller/Controller.h>
 #include "../../Basics/SystemInfo.h"
 
 using namespace std;
+using namespace tuvok;
 
 GPUMemMan::GPUMemMan(MasterController* masterController) :
   m_MasterController(masterController),

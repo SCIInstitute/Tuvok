@@ -33,17 +33,41 @@
            University of Utah
   \date    August 2008
 */
-
 #pragma once
 
-#ifndef GPUMEMMAN_H
-#define GPUMEMMAN_H
+#ifndef TUVOK_GPUMEMMAN_H
+#define TUVOK_GPUMEMMAN_H
 
+#include <deque>
 #include "../../StdTuvokDefines.h"
-#include "GPUMemManDataStructs.h"
+#include "Basics/Vectors.h"
+#include "3rdParty/GLEW/glew.h"
 
+class AbstrRenderer;
+class FBOListElem;
+class GLFBOTex;
+class GLSLListElem;
+class GLSLProgram;
+class GLTexture1D;
+class GLTexture2D;
+class GLTexture3D;
 class MasterController;
+class SimpleTextureListElem;
 class SystemInfo;
+class Texture3DListElem;
+class Trans1DListElem;
+class Trans2DListElem;
+class TransferFunction1D;
+class TransferFunction2D;
+class VolDataListElem;
+class VolumeDataset;
+typedef std::deque<VolDataListElem> VolDataList;
+typedef std::deque<SimpleTextureListElem> SimpleTextureList;
+typedef std::deque<Trans1DListElem> Trans1DList;
+typedef std::deque<Trans2DListElem> Trans2DList;
+typedef std::deque<Texture3DListElem*> Texture3DList;
+typedef std::deque<FBOListElem*> FBOList;
+typedef std::deque<GLSLListElem*> GLSLList;
 
 class GPUMemMan {
   public:
@@ -145,4 +169,4 @@ class GPUMemMan {
     void Delete3DTexture(size_t iIndex);
 };
 
-#endif // GPUMEMMAN_H
+#endif // TUVOK_GPUMEMMAN_H

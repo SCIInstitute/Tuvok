@@ -42,7 +42,6 @@
 #define ARCBALL_H
 
 #include "../StdTuvokDefines.h"
-#include <vector>
 #include "../Basics/Vectors.h"
 
 /** \class ArcBall */

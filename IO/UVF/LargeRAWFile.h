@@ -9,7 +9,6 @@
 
 #include <string>
 #include <vector>
-#include "../../Basics/MathTools.h"
 #include "../../Basics/EndianConvert.h"
 
 #ifdef _WIN32
@@ -27,9 +26,6 @@
   #ifdef min
   #undef min
   #endif
-#else
-  #include <cstdio>
-  #include <unistd.h>
 #endif
 
 #ifdef _WIN32

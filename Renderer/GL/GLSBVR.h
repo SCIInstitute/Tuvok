@@ -34,8 +34,6 @@
   \version 1.0
   \date    August 2008
 */
-
-
 #pragma once
 
 #ifndef GLSBVR_H
@@ -95,5 +93,4 @@ class GLSBVR : public GLRenderer {
 
     virtual void ComposeSurfaceImage(int iStereoID);
 };
-
 #endif // GLSBVR_H

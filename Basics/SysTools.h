@@ -40,10 +40,8 @@
 #ifndef SYSTOOLS_H
 #define SYSTOOLS_H
 
-#include "../StdTuvokDefines.h"
-
-#include <string>
 #include <sstream>
+#include <string>
 #include <vector>
 
 #ifdef _WIN32
@@ -62,6 +60,8 @@
   typedef wchar_t WCHAR;
   typedef unsigned char CHAR;
 #endif
+
+#include "../StdTuvokDefines.h"
 
 class AbstrDebugOut;
 

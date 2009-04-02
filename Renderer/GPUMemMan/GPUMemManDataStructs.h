@@ -45,16 +45,16 @@
 #include "boost/noncopyable.hpp"
 #include "../Context.h"
 #include "../../StdTuvokDefines.h"
-#include "../AbstrRenderer.h"
-#include "../GL/GLTexture1D.h"
-#include "../GL/GLTexture2D.h"
-#include "../GL/GLTexture3D.h"
 #include "../GL/GLFBOTex.h"
 #include "../GL/GLSLProgram.h"
-#include "../../IO/VolumeDataset.h"
-#include "../../IO/TransferFunction1D.h"
-#include "../../IO/TransferFunction2D.h"
-using namespace tuvok;
+
+class AbstrRenderer;
+class GLTexture1D;
+class GLTexture2D;
+class GLTexture3D;
+class TransferFunction1D;
+class TransferFunction2D;
+class VolumeDataset;
 
 typedef std::deque< AbstrRenderer* > AbstrRendererList;
 typedef AbstrRendererList::iterator AbstrRendererListIter;
@@ -136,22 +136,22 @@ public:
                     bool bIsPaddedToPowerOfTwo, bool bDisableBorder,
                     bool bIsDownsampledTo8Bits, UINT64 iIntraFrameCounter,
                     UINT64 iFrameCounter, MasterController* pMasterController,
-                    const CTContext &);
+                    const tuvok::CTContext &);
   ~Texture3DListElem();
 
   bool Equals(const VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
               const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo,
               bool bIsDownsampledTo8Bits, bool bDisableBorder,
-              const CTContext &);
+              const tuvok::CTContext &);
   bool Replace(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
                const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo,
                bool bIsDownsampledTo8Bits, bool bDisableBorder,
                UINT64 iIntraFrameCounter, UINT64 iFrameCounter,
-               const CTContext &);
+               const tuvok::CTContext &);
   bool BestMatch(const std::vector<UINT64>& vDimension,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, UINT64& iIntraFrameCounter,
-                 UINT64& iFrameCounter, const CTContext &);
+                 UINT64& iFrameCounter, const tuvok::CTContext &);
   GLTexture3D* Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter);
 
   bool LoadData();
@@ -173,7 +173,7 @@ private:
   UINT64 m_iIntraFrameCounter;
   UINT64 m_iFrameCounter;
   MasterController* m_pMasterController;
-  const CTContext& m_Context;
+  const tuvok::CTContext& m_Context;
 
   std::vector<UINT64> vLOD;
   std::vector<UINT64> vBrick;

@@ -1,10 +1,9 @@
 #include "Histogram2DDataBlock.h"
-#include <memory.h>
-#include <Basics/Vectors.h>
+#include "Basics/Vectors.h"
+#include "RasterDataBlock.h"
 
 using namespace std;
 using namespace UVFTables;
-
 
 Histogram2DDataBlock::Histogram2DDataBlock() : 
   DataBlock(),

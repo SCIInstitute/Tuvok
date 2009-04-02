@@ -34,7 +34,6 @@
 //!    Date   : January 2009
 //
 //!    Copyright (C) 2008 SCI Institute
-
 #pragma once
 
 #ifndef SCRIPTING_H
@@ -81,5 +80,4 @@ class Scripting : public Scriptable
     bool                                m_bEcho;
 
 };
-
 #endif // SCRIPTING_H

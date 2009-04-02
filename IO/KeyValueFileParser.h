@@ -42,14 +42,13 @@
 #ifdef _WIN32
   #pragma warning (disable : 4995)
 #endif
-#include <vector>
 #include <string>
+#include <vector>
 #ifdef _WIN32
   #pragma warning (default : 4995)
 #endif
 
 #include "../StdTuvokDefines.h"
-#include <Basics/Vectors.h>
 
 class KeyValPair {
 public:

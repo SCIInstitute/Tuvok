@@ -32,6 +32,7 @@
            SCI Institute
            University of Utah
 */
+#include <cstring>
 #include "TiffVolumeConverter.h"
 #include "../3rdParty/boost/cstdint.hpp"
 #ifndef TUVOK_NO_IO
@@ -240,7 +241,7 @@ tv_read_slice(TIFF *tif)
       /// There's a `compression scheme' tag which probably details this.
       tsize_t n_bytes = TIFFReadRawStrip(tif, s, buf,
                                          static_cast<tsize_t>(-1));
-      memcpy(data, buf, n_bytes);
+      std::memcpy(data, buf, n_bytes);
       data += TIFFStripSize(tif);
     }
     _TIFFfree(buf);
