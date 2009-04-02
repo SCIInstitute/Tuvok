@@ -51,12 +51,6 @@
 #endif
 
 #ifdef _WIN32
-  typedef __int64 INT64;
-#else
-  typedef long long INT64;
-#endif
-
-#ifdef _WIN32
   typedef unsigned __int64 UINT64;
 #else
   typedef unsigned long long UINT64;

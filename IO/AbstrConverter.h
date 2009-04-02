@@ -44,18 +44,21 @@
 #include "../StdTuvokDefines.h"
 #include "../IO/UVF/UVF.h"
 #include "../Basics/Vectors.h"
+#include "boost/cstdint.hpp"
+
+using boost::int64_t;
 
 class MasterController;
 
 class RangeInfo {
 public:
-  UINTVECTOR3               m_vDomainSize;
-  FLOATVECTOR3              m_vAspect;
-  UINT64                    m_iComponentSize;
-  int                       m_iValueType;
-  std::pair<double, double> m_fRange;
-  std::pair<INT64, INT64>   m_iRange;
-  std::pair<UINT64, UINT64> m_uiRange;  
+  UINTVECTOR3                 m_vDomainSize;
+  FLOATVECTOR3                m_vAspect;
+  UINT64                      m_iComponentSize;
+  int                         m_iValueType;
+  std::pair<double, double>   m_fRange;
+  std::pair<int64_t, int64_t> m_iRange;
+  std::pair<UINT64, UINT64>   m_uiRange;
 };
 
 class AbstrConverter {

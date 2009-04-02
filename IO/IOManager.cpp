@@ -34,11 +34,12 @@
   \date    August 2008
 */
 
-#include "IOManager.h"
 #include <sstream>
 #include <fstream>
 #include <map>
+#include "boost/cstdint.hpp"
 
+#include "IOManager.h"
 #include <Controller/Controller.h>
 #include <IO/DICOM/DICOMParser.h>
 #include <IO/Images/ImageParser.h>
@@ -518,7 +519,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
                     break;
                   }
         case 64 : {
-                    DataMerger<INT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
+                    DataMerger<int64_t> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
@@ -755,7 +756,7 @@ bool IOManager::ExtractIsosurface(const VolumeDataset* pSourceData, UINT64 iLODl
         case  8 : pMCData = new MCDataTemplate<char>(strTargetFilename, char(fIsovalue), vScale); break;
         case 16 : pMCData = new MCDataTemplate<short>(strTargetFilename, short(fIsovalue), vScale); break;
         case 32 : pMCData = new MCDataTemplate<int>(strTargetFilename, int(fIsovalue), vScale); break;
-        case 64 : pMCData = new MCDataTemplate<INT64>(strTargetFilename, INT64(fIsovalue), vScale); break;
+        case 64 : pMCData = new MCDataTemplate<int64_t>(strTargetFilename, int64_t(fIsovalue), vScale); break;
       }
     } else {
       switch (iComponentSize) {
@@ -928,7 +929,7 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info) 
       if (bSigned) {
         info.m_iValueType = 1;
         info.m_iRange.first = 0;
-        info.m_iRange.second =INT64(pHist->GetFilledSize()-1);
+        info.m_iRange.second = int64_t(pHist->GetFilledSize()-1);
       } else {
         info.m_iValueType = 2;
         info.m_uiRange.first = 0;

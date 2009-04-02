@@ -37,6 +37,7 @@
 #include <cstdio>
 #include <cstring>
 #include <3rdParty/bzip2/bzlib.h>
+#include "boost/cstdint.hpp"
 
 #include "RAWConverter.h"
 #include "IOManager.h"  // for the size defines
@@ -45,6 +46,7 @@
 #include <IO/gzio.h>
 
 using namespace std;
+using boost::int64_t;
 
 bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir,
                                      UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned, bool bIsFloat,
@@ -805,7 +807,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
                   break;
         case 64 : // ulonglong to longlong
                   for (size_t i = 0;i<iCopySize;i+=8)
-                    (*(INT64*)(pBuffer+i)) = INT64(*(UINT64*)(pBuffer+i)) - std::numeric_limits<INT64>::max();
+                    (*(int64_t*)(pBuffer+i)) = int64_t(*(UINT64*)(pBuffer+i)) - std::numeric_limits<int64_t>::max();
                   break;
         default : T_ERROR("Unsuported data type for vff files.");
                   return false;
@@ -1031,9 +1033,9 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
                }
       case 64 : {
                  if (bSigned) {
-                   INT64 iMin = numeric_limits<INT64>::max();
-                   INT64 iMax = -numeric_limits<INT64>::max();
-                   MinMaxScanner<INT64> scanner(&fSource, iMin, iMax, iElemCount);
+                   int64_t iMin = numeric_limits<int64_t>::max();
+                   int64_t iMax = -numeric_limits<int64_t>::max();
+                   MinMaxScanner<int64_t> scanner(&fSource, iMin, iMax, iElemCount);
                    info.m_iRange.first  = iMin;
                    info.m_iRange.second = iMax;
                    break;
