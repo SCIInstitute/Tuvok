@@ -52,10 +52,16 @@ class TextfileOut : public AbstrDebugOut{
     virtual void Message(const char* source, const char* format, ...);
     virtual void Warning(const char* source, const char* format, ...);
     virtual void Error(const char* source, const char* format, ...);
+
+  private:
+    TextfileOut(); ///< unimplemented.
+    TextfileOut(const TextfileOut &); ///< unimplemented.
+
   private:
     std::string m_strFilename;
 
-    void _printf(const char* format, ...) const; //< same as printf above but does regard m_bShowOther
+    /// same as printf above but does regard m_bShowOther
+    void _printf(const char* format, ...) const;
 };
 
 #endif // TEXTFILEOUT_H
