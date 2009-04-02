@@ -38,7 +38,6 @@
 #include "AbstrConverter.h"
 #include "IOManager.h"  // for the size defines
 #include "Controller/Controller.h"
-#include "Basics/SysTools.h"
 #include "UVF/Histogram1DDataBlock.h"
 
 using namespace std;

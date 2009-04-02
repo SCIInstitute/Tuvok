@@ -34,7 +34,6 @@
   \date    August 2008
 */
 
-#include <cstdlib>
 #include <sstream>
 #include "Controller/Controller.h"
 #include "IOManager.h"  // for the size defines

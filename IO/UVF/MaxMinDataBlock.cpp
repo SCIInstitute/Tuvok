@@ -1,6 +1,5 @@
 #include "MaxMinDataBlock.h"
 
-#include <memory.h>
 using namespace std;
 using namespace UVFTables;
 

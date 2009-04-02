@@ -3,7 +3,6 @@
 
 using namespace std;
 
-
 LargeRAWFile::LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize):
   m_strFilename(strFilename),
   m_bIsOpen(false),

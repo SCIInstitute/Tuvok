@@ -40,8 +40,6 @@
 #include <limits>
 #include "SBVRGeogen.h"
 
-#include <Basics/MathTools.h>
-
 static bool CheckOrdering(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
                           const FLOATVECTOR3& c);
 static void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray);

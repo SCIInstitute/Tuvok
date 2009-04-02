@@ -34,7 +34,9 @@
   \date    September 2008
 */
 
+#include <algorithm>
 #include <functional>
+#include <stdarg.h>
 #include "MultiplexOut.h"
 
 #ifdef WIN32
@@ -49,10 +51,6 @@
   #endif
 #endif
 
-#include <stdarg.h>
-#include <algorithm>
-
-#include <fstream>
 using namespace std;
 
 MultiplexOut::~MultiplexOut() {

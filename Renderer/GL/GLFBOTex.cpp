@@ -35,7 +35,6 @@
            tum.3D, Muenchen
   \date    August 2008
 */
-#include <cstdio>
 #include "GLFBOTex.h"
 #include <Controller/Controller.h>
 

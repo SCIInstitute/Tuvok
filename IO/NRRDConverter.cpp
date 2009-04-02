@@ -34,8 +34,8 @@
   \date    December 2008
 */
 
+#include <fstream>
 #include "NRRDConverter.h"
-#include "IOManager.h"  // for the size defines
 #include <Controller/Controller.h>
 #include <Basics/SysTools.h>
 #include <IO/KeyValueFileParser.h>

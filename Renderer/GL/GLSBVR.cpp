@@ -33,13 +33,9 @@
            University of Utah
   \date    August 2008
 */
-
-
-#include <cmath>
 #include "GLInclude.h"
 #include "GLSBVR.h"
 
-#include <Basics/SysTools.h>
 #include <Controller/Controller.h>
 #include "../GPUMemMan/GPUMemMan.h"
 #include "GLSLProgram.h"

@@ -33,11 +33,10 @@
 //!             University of Utah
 //!    Date   : January 2009
 //
-//!    Copyright (C) 2008 SCI Institute
+//!    Copyright (C) 2009 SCI Institute
 
 #include <fstream>
 #include <limits>
-#include <sstream>
 
 #include "Scripting.h"
 #include <Controller/Controller.h>
@@ -46,7 +45,6 @@
 #include <QtCore/QDate>
 
 using namespace std;
-
 
 ScriptableListElement::ScriptableListElement(Scriptable* source, const std::string& strCommand, const std::string& strParameters, const std::string& strDescription) :
       m_source(source),

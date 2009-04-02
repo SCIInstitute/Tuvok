@@ -36,13 +36,9 @@
   \date    Dec 2008
 */
 
-#include "SysTools.h"
 #include <algorithm>
-#include <cstdio>
 #include <cstring>
-#include <iostream>
 #include <sstream>
-
 #include <errno.h>
 #include <sys/stat.h>
 
@@ -64,8 +60,9 @@
   #define MIN(a,b)            (((a) < (b)) ? (a) : (b))
 #endif
 
-using namespace std;
+#include "SysTools.h"
 #include "../DebugOut/AbstrDebugOut.h"
+using namespace std;
 
 namespace SysTools {
 

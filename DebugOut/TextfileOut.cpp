@@ -34,15 +34,13 @@
   \date    August 2008
 */
 
-#include "TextfileOut.h"
-
+#include <fstream>
+#include <stdarg.h>
 #ifdef WIN32
   #include <windows.h>
 #endif
+#include "TextfileOut.h"
 
-#include <stdarg.h>
-
-#include <fstream>
 using namespace std;
 
 TextfileOut::TextfileOut(std::string strFilename) :

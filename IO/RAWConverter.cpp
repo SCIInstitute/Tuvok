@@ -34,7 +34,6 @@
   \date    December 2008
 */
 #include <cerrno>
-#include <cstdio>
 #include <cstring>
 #include <3rdParty/bzip2/bzlib.h>
 #include "boost/cstdint.hpp"

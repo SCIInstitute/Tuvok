@@ -32,14 +32,14 @@
            SCI Institute
            University of Utah
 */
-#include "StkConverter.h"
-#include "../Basics/SysTools.h"
 #include "../3rdParty/boost/cstdint.hpp"
 #ifndef TUVOK_NO_IO
 # include "../3rdParty/tiff/tiffio.h"
 #else
   struct TIFF;
 #endif
+#include "StkConverter.h"
+#include "../Basics/SysTools.h"
 #include "../Controller/Controller.h"
 
 struct stk {

@@ -30,9 +30,8 @@
 #ifndef IV3D_GZIO_H
 #define IV3D_GZIO_H
 
-#include <3rdParty/zlib/zlib.h>
-
 #include <stdio.h>
+#include <3rdParty/zlib/zlib.h>
 
 #ifdef __cplusplus
 extern "C" {

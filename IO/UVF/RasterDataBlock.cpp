@@ -1,13 +1,11 @@
-#include <math.h>
-#include <Basics/MathTools.h>
-#include <Basics/SysTools.h>
+#include <cmath>
 #include <sstream>
-#include <iostream>
 
 #include "RasterDataBlock.h"
-#include "UVF.h"
 #include "MaxMinDataBlock.h"
 #include "DebugOut/AbstrDebugOut.h"
+#include <Basics/MathTools.h>
+#include <Basics/SysTools.h>
 
 using namespace std;
 using namespace UVFTables;

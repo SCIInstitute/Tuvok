@@ -36,16 +36,12 @@
 
 #include "KeyValueFileParser.h"
 
-#include <iostream>
-#include <fstream>
 #include <algorithm>
-#include <sstream>
-
+#include <fstream>
 #include <Basics/SysTools.h>
 
 using namespace std;
 using namespace SysTools;
-
 
 KeyValPair::KeyValPair() : 
   strKey(""),

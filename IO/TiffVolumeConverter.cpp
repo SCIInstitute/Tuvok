@@ -33,13 +33,13 @@
            University of Utah
 */
 #include <cstring>
-#include "TiffVolumeConverter.h"
 #include "../3rdParty/boost/cstdint.hpp"
 #ifndef TUVOK_NO_IO
 # include "../3rdParty/tiff/tiffio.h"
 #else
   struct TIFF;
 #endif
+#include "TiffVolumeConverter.h"
 #include "../StdTuvokDefines.h"
 #include "../Controller/Controller.h"
 #include "../Basics/SysTools.h"

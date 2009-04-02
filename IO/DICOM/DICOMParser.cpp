@@ -35,17 +35,17 @@
   \date    September 2008
 */
 
-#include "DICOMParser.h"
-#include <Controller/Controller.h>
-
+#include <algorithm>
+#include <sys/stat.h>
 #ifdef DEBUG_DICOM
-  #include <Basics/Console.h>
   #include <sstream>
 #endif
-
-#include <sys/stat.h>
+#include "DICOMParser.h"
+#ifdef DEBUG_DICOM
+  #include <Basics/Console.h>
+#endif
 #include <Basics/SysTools.h>
-#include <algorithm>
+#include <Controller/Controller.h>
 
 std::string DICOM_TypeStrings[28] = {
   "AE", // Application Entity string 16 bytes maximum

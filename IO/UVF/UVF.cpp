@@ -1,6 +1,5 @@
 #include <sstream>
 #include "UVF.h"
-#include <Basics/SysTools.h>
 #include <Basics/Checksums/crc32.h>
 #include <Basics/Checksums/MD5.h>
 #include "DataBlock.h"

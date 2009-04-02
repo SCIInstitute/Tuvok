@@ -34,8 +34,6 @@
   \date    August 2008
 */
 
-#include <cmath>
-#include <ctime>
 #include "GLInclude.h"
 #include "GLRaycaster.h"
 #include "GLFBOTex.h"
