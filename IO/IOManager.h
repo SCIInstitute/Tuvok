@@ -39,6 +39,7 @@
 #ifndef IOMANAGER_H
 #define IOMANAGER_H
 
+#include <algorithm>
 #include <fstream>
 #include <limits>
 #include <string>
@@ -218,8 +219,17 @@ public:
 
   virtual bool PerformMC(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset) {
 
-    UINT64 iSize = 1;
-    for (size_t i = 0;i<vBrickSize.size();i++) iSize *= vBrickSize[i];
+    UINT64 uSize = 1;
+    for (size_t i = 0;i<vBrickSize.size();i++) uSize *= vBrickSize[i];
+	// Can't use bricks that we can't store in a single array.
+	// Really, the whole reason we're bricking is to prevent larger-than-core
+	// data, so this should never happen anyway -- we'd have no way to create
+	// such a brick.
+	assert(uSize <= std::numeric_limits<size_t>::max());
+
+	size_t iSize = static_cast<size_t>(
+				     std::min<UINT64>(uSize, std::numeric_limits<size_t>::max())
+				   );
     if (!m_pData) {   // since we know that no brick is larger than the first we can create a fixed array on first invocation
       m_pData = new T[iSize];
 

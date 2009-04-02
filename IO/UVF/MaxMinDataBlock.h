@@ -48,11 +48,12 @@ public:
   virtual MaxMinDataBlock& operator=(const MaxMinDataBlock& other);
   virtual UINT64 ComputeDataSize() const;
 
-  const InternalMaxMinElement& GetValue(size_t iIndex, UINT64 iComponent=0);
+  const InternalMaxMinElement& GetValue(size_t iIndex, size_t iComponent=0);
   void StartNewValue();
   void MergeData(const std::vector<DOUBLEVECTOR4>& fMaxMinData);
 
 protected:
+	typedef std::vector<std::vector<InternalMaxMinElement> > MaxMin;
   std::vector< std::vector<InternalMaxMinElement> > m_vfMaxMinData;
   size_t                                            m_iComponentCount;
 
@@ -61,7 +62,7 @@ protected:
   virtual UINT64 GetOffsetToNextBlock() const;
 
   virtual DataBlock* Clone();
-  void MergeData(const InternalMaxMinElement& data, const UINT64 iComponent);
+  void MergeData(const InternalMaxMinElement& data, const size_t iComponent);
 };
 
 #endif // MAXMINDATABLOCK_H

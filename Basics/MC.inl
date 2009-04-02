@@ -633,7 +633,7 @@ template <class T> FLOATVECTOR3 MarchingCubes<T>::InterpolateNormal(T fValueAtPo
   // on the boundaries of the dataset, where forward or backward
   // differencing is used (three point form)
 
-  FLOATVECTOR3 result;
+  DOUBLEVECTOR3 result;
 
   // the x component
   if (vPosition.x == 0) {              // left border -> forward diff
@@ -677,7 +677,10 @@ template <class T> FLOATVECTOR3 MarchingCubes<T>::InterpolateNormal(T fValueAtPo
                 m_pTVolume[DATA_INDEX(vPosition.x, vPosition.y, vPosition.z-1, m_vVolSize.x, m_vVolSize.y)]);
   }
 
-  return result;
+  FLOATVECTOR3 ret(static_cast<float>(result.x),
+				   static_cast<float>(result.y),
+				   static_cast<float>(result.z));
+  return ret;
 }
 
 

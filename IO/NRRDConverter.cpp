@@ -244,7 +244,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     iLineSkip = 0;
   }
 
-  int iLineSkipBytes = 0;
+  std::streamoff iLineSkipBytes = 0;
   if (iLineSkip != 0) {
     ifstream fileData(strRAWFile.c_str(),ios::binary);  
     string line;

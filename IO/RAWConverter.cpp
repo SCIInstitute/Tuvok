@@ -289,7 +289,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	vScale.push_back(vVolumeAspect.z);
 	dataVolume.SetScaleOnlyTransformation(vScale);
 
-  MaxMinDataBlock MaxMinData(iComponentCount);
+  MaxMinDataBlock MaxMinData(static_cast<size_t>(iComponentCount));
 
 	switch (iComponentSize) {
 		case 8 :	
@@ -451,7 +451,7 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
     return false;
   }
 
-  if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
+  if(fseek(f_compressed, static_cast<long>(iHeaderSkip), SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
     T_ERROR("Seek failed");
     fclose(f_compressed);
@@ -579,7 +579,7 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
     return false;
   }
 
-  if(fseek(f_compressed, iHeaderSkip, SEEK_SET) != 0) {
+  if(fseek(f_compressed, static_cast<long>(iHeaderSkip), SEEK_SET) != 0) {
     /// \todo use strerror(errno) and actually report the damn error.
     T_ERROR("Seek failed");
     fclose(f_inflated);
@@ -642,7 +642,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
     return false;
   }
 
-  sourceFile.seekg(iHeaderSkip);
+  sourceFile.seekg(static_cast<std::streamoff>(iHeaderSkip));
   if (bIsFloat) {
     if (!bSigned) {
       T_ERROR("Unsupported data type "

@@ -975,7 +975,8 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
 
       if (pMaxMinDatBlock) pMaxMinDatBlock->StartNewValue();
 
-      vector<DOUBLEVECTOR4> fMinMax(ulElementDimension);
+	  assert(ulElementDimension <= std::numeric_limits<size_t>::max());
+      vector<DOUBLEVECTOR4> fMinMax(static_cast<size_t>(ulElementDimension));
       for (UINT64 k=0;k<iBrickSize/vBrickPermutation[j][0];k++) {
 
         m_pTempFile->SeekPos(iTargetOffset);

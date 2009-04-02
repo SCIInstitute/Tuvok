@@ -67,13 +67,14 @@ UINT64 MaxMinDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOff
 
   m_vfMaxMinData.resize(size_t(ulBrickCount));
 
-  for (UINT64 i = 0;i<ulBrickCount;i++) {
-    m_vfMaxMinData[i].resize(m_iComponentCount);
-    for (UINT64 j = 0;j<m_iComponentCount;j++) {
-      pStreamFile->ReadData(m_vfMaxMinData[i][j].minScalar, bIsBigEndian);
-      pStreamFile->ReadData(m_vfMaxMinData[i][j].maxScalar, bIsBigEndian);
-      pStreamFile->ReadData(m_vfMaxMinData[i][j].minGradient, bIsBigEndian);
-      pStreamFile->ReadData(m_vfMaxMinData[i][j].maxGradient, bIsBigEndian);
+  for(MaxMin::iterator i = m_vfMaxMinData.begin();
+	  i != m_vfMaxMinData.end(); ++i) {
+    (*i).resize(m_iComponentCount);
+    for (size_t j = 0;j<m_iComponentCount;j++) {
+      pStreamFile->ReadData((*i)[j].minScalar, bIsBigEndian);
+      pStreamFile->ReadData((*i)[j].maxScalar, bIsBigEndian);
+      pStreamFile->ReadData((*i)[j].minGradient, bIsBigEndian);
+      pStreamFile->ReadData((*i)[j].maxGradient, bIsBigEndian);
     }
   }
 
@@ -92,12 +93,13 @@ UINT64 MaxMinDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bo
     pStreamFile->WriteData(component_count, bIsBigEndian);
   }
   
-  for (UINT64 i = 0;i<ulBrickCount;i++) {
-    for (UINT64 j = 0;j<m_iComponentCount;j++) {
-      pStreamFile->WriteData(m_vfMaxMinData[i][j].minScalar, bIsBigEndian);
-      pStreamFile->WriteData(m_vfMaxMinData[i][j].maxScalar, bIsBigEndian);
-      pStreamFile->WriteData(m_vfMaxMinData[i][j].minGradient, bIsBigEndian);
-      pStreamFile->WriteData(m_vfMaxMinData[i][j].maxGradient, bIsBigEndian);
+  for (MaxMin::const_iterator i = m_vfMaxMinData.begin();
+	   i != m_vfMaxMinData.end(); ++i) {
+    for (size_t j = 0;j<m_iComponentCount;j++) {
+      pStreamFile->WriteData((*i)[j].minScalar, bIsBigEndian);
+      pStreamFile->WriteData((*i)[j].maxScalar, bIsBigEndian);
+      pStreamFile->WriteData((*i)[j].minGradient, bIsBigEndian);
+      pStreamFile->WriteData((*i)[j].maxGradient, bIsBigEndian);
     }
   }
 
@@ -114,7 +116,7 @@ UINT64 MaxMinDataBlock::ComputeDataSize() const {
          sizeof(InternalMaxMinElement) * m_vfMaxMinData.size();    // the vector itself
 }
 
-const InternalMaxMinElement& MaxMinDataBlock::GetValue(size_t iIndex, UINT64 iComponent) {
+const InternalMaxMinElement& MaxMinDataBlock::GetValue(size_t iIndex, size_t iComponent) {
   return m_vfMaxMinData[iIndex][iComponent];
 }
 
@@ -129,10 +131,10 @@ void MaxMinDataBlock::StartNewValue() {
 }
 
 void MaxMinDataBlock::MergeData(const std::vector<DOUBLEVECTOR4>& fMaxMinData) {
-  for (UINT64 i = 0;i<m_iComponentCount;i++) 
+  for (size_t i = 0;i<m_iComponentCount;i++) 
     MergeData(InternalMaxMinElement(fMaxMinData[i].x, fMaxMinData[i].y, fMaxMinData[i].z, fMaxMinData[i].w), i);
 }
 
-void MaxMinDataBlock::MergeData(const InternalMaxMinElement& data, const UINT64 iComponent) {
+void MaxMinDataBlock::MergeData(const InternalMaxMinElement& data, const size_t iComponent) {
   m_vfMaxMinData[m_vfMaxMinData.size()-1][iComponent].Merge(data);
 }
