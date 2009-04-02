@@ -60,7 +60,11 @@ UINT64 MaxMinDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOff
 
   UINT64 ulBrickCount;
   pStreamFile->ReadData(ulBrickCount, bIsBigEndian);
-  pStreamFile->ReadData(m_iComponentCount, bIsBigEndian);
+  { // Widen component count to 64 bits during the read.
+    UINT64 component_count;
+    pStreamFile->ReadData(component_count, bIsBigEndian);
+    m_iComponentCount = static_cast<size_t>(component_count);
+  }
 
   m_vfMaxMinData.resize(size_t(ulBrickCount));
 
@@ -84,7 +88,10 @@ UINT64 MaxMinDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bo
   // for some strange reason throwing in the raw expression into WriteData causes random values to written into the file on windows
   UINT64 ulBrickCount = UINT64(m_vfMaxMinData.size());
   pStreamFile->WriteData(ulBrickCount, bIsBigEndian);
-  pStreamFile->WriteData(m_iComponentCount, bIsBigEndian);
+  { // Widen to 64bits during the write.
+    UINT64 component_count = m_iComponentCount;
+    pStreamFile->WriteData(component_count, bIsBigEndian);
+  }
   
   for (UINT64 i = 0;i<ulBrickCount;i++) {
     for (UINT64 j = 0;j<m_iComponentCount;j++) {

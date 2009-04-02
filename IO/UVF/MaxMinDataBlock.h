@@ -54,7 +54,7 @@ public:
 
 protected:
   std::vector< std::vector<InternalMaxMinElement> > m_vfMaxMinData;
-  UINT64                                           m_iComponentCount;
+  size_t                                            m_iComponentCount;
 
   virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
   virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
