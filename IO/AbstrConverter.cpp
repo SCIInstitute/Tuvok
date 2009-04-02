@@ -451,7 +451,9 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
                                 : pInData[i];
       if (iMax < iValue)  iMax = iValue;
       if (iMin > iValue)  iMin = iValue;
-      if (iMax < 4096)    aHist[iValue]++;
+	  if (iMax < 4096) {
+		aHist[static_cast<size_t>(iValue)]++;
+	  }
     }
 
     iPos += UINT64(iRead);
@@ -477,7 +479,8 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
                 iMin, iMax);
     // reduce the size to the filled size (the maximum value plus one (the zero
     // value))
-    aHist.resize(iMax+1);
+	assert(iMax <= std::numeric_limits<size_t>::max());
+    aHist.resize(static_cast<size_t>(iMax+1));
     delete [] pInData;
     InputData.Close();
     strQuantFile = strFilename;
@@ -517,7 +520,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
         UINT64 iNewVal = min<UINT64>(4095,
                                      (UINT64)((UINT64(iValue-iMin) * 4095)/iRange));
         pInData[i] = iNewVal;
-        aHist[iNewVal]++;
+        aHist[static_cast<size_t>(iNewVal)]++;
       }
       iPos += UINT64(iRead);
 

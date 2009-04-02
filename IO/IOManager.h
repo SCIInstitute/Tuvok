@@ -122,22 +122,22 @@ public:
            if (i == 1) {
              for (UINT64 j = 0;j<iCopySize;j++) {
                pTargetBuffer[j] = std::max<T>(T(std::min<double>(strFiles[0].fScale*(pTargetBuffer[j]+strFiles[0].fBias),
-                                                                 std::numeric_limits<T>::max())),
+                                                                 static_cast<double>(std::numeric_limits<T>::max()))),
                                               T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias),
-                                                                 std::numeric_limits<T>::max())) );
+                                                                 static_cast<double>(std::numeric_limits<T>::max()))) );
              }
            } else {
              for (UINT64 j = 0;j<iCopySize;j++) {
                pTargetBuffer[j] = std::max<T>(pTargetBuffer[j],
                                               T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias),
-                                                                 std::numeric_limits<T>::max())) );
+                                                                 static_cast<double>(std::numeric_limits<T>::max()))) );
              }
            }
          } else {
            if (i == 1) {
              for (UINT64 j = 0;j<iCopySize;j++) {
-               T a = T(std::min<double>(strFiles[0].fScale*(pTargetBuffer[j]+strFiles[0].fBias), std::numeric_limits<T>::max()));
-               T b = T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias), std::numeric_limits<T>::max()));
+               T a = T(std::min<double>(strFiles[0].fScale*(pTargetBuffer[j]+strFiles[0].fBias), static_cast<double>(std::numeric_limits<T>::max())));
+               T b = T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias), static_cast<double>(std::numeric_limits<T>::max())));
 
                T val = a + b;
 
@@ -148,7 +148,8 @@ public:
              }
            } else {
              for (UINT64 j = 0;j<iCopySize;j++) {
-               T b = T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias),std::numeric_limits<T>::max()));
+               T b = T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias),
+				                        static_cast<double>(std::numeric_limits<T>::max())));
                T val = pTargetBuffer[j] + b;
 
                if (val < pTargetBuffer[j] || val < b) // overflow

@@ -54,7 +54,6 @@ class TextfileOut : public AbstrDebugOut{
     virtual void Error(const char* source, const char* format, ...);
 
   private:
-    TextfileOut(); ///< unimplemented.
     TextfileOut(const TextfileOut &); ///< unimplemented.
 
   private:

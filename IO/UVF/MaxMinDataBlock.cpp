@@ -12,7 +12,7 @@ using namespace UVFTables;
 #endif
 
 
-MaxMinDataBlock::MaxMinDataBlock(UINT64 iComponentCount) : 
+MaxMinDataBlock::MaxMinDataBlock(size_t iComponentCount) : 
   DataBlock()
 {
   ulBlockSemantics = BS_MAXMIN_VALUES;

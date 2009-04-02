@@ -40,7 +40,7 @@ typedef MaxMinElemen<double, double> InternalMaxMinElement;
 class MaxMinDataBlock : public DataBlock
 {
 public:
-  MaxMinDataBlock(UINT64 iComponentCount);
+  MaxMinDataBlock(size_t iComponentCount);
   ~MaxMinDataBlock();
   MaxMinDataBlock(const MaxMinDataBlock &other);
   MaxMinDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
