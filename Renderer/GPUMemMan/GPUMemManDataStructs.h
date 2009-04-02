@@ -41,6 +41,9 @@
 
 #include <deque>
 #include <string>
+#include "GL/glew.h"
+#include "boost/noncopyable.hpp"
+#include "../Context.h"
 #include "../../StdTuvokDefines.h"
 #include "../AbstrRenderer.h"
 #include "../GL/GLTexture1D.h"
@@ -51,6 +54,7 @@
 #include "../../IO/VolumeDataset.h"
 #include "../../IO/TransferFunction1D.h"
 #include "../../IO/TransferFunction2D.h"
+using namespace tuvok;
 
 typedef std::deque< AbstrRenderer* > AbstrRendererList;
 typedef AbstrRendererList::iterator AbstrRendererListIter;
@@ -121,26 +125,33 @@ typedef std::deque<Trans2DListElem> Trans2DList;
 typedef Trans2DList::iterator Trans2DListIter;
 
 // 3D textures
-class Texture3DListElem {
+/// For equivalent contexts, it might actually be valid to copy a 3D texture
+/// object.  However, for one, this is untested.  Secondly, this object may
+/// hold the chunk of data for the 3D texture, so copying it in the general
+/// case would be a bad idea -- the copy might be large.
+class Texture3DListElem : boost::noncopyable {
 public:
   Texture3DListElem(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
                     const std::vector<UINT64>& _vBrick,
                     bool bIsPaddedToPowerOfTwo, bool bDisableBorder,
                     bool bIsDownsampledTo8Bits, UINT64 iIntraFrameCounter,
-                    UINT64 iFrameCounter, MasterController* pMasterController);
+                    UINT64 iFrameCounter, MasterController* pMasterController,
+                    const CTContext &);
   ~Texture3DListElem();
 
   bool Equals(const VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
               const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo,
-              bool bIsDownsampledTo8Bits, bool bDisableBorder);
+              bool bIsDownsampledTo8Bits, bool bDisableBorder,
+              const CTContext &);
   bool Replace(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD,
                const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo,
                bool bIsDownsampledTo8Bits, bool bDisableBorder,
-               UINT64 iIntraFrameCounter, UINT64 iFrameCounter);
+               UINT64 iIntraFrameCounter, UINT64 iFrameCounter,
+               const CTContext &);
   bool BestMatch(const std::vector<UINT64>& vDimension,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, UINT64& iIntraFrameCounter,
-                 UINT64& iFrameCounter);
+                 UINT64& iFrameCounter, const CTContext &);
   GLTexture3D* Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter);
 
   bool LoadData();
@@ -162,6 +173,7 @@ private:
   UINT64 m_iIntraFrameCounter;
   UINT64 m_iFrameCounter;
   MasterController* m_pMasterController;
+  const CTContext& m_Context;
 
   std::vector<UINT64> vLOD;
   std::vector<UINT64> vBrick;

@@ -37,7 +37,16 @@
 #include "GPUMemManDataStructs.h"
 #include <Controller/Controller.h>
 
-Texture3DListElem::Texture3DListElem(VolumeDataset* _pDataset, const std::vector<UINT64>& _vLOD, const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder, UINT64 iIntraFrameCounter, UINT64 iFrameCounter, MasterController* pMasterController) :
+Texture3DListElem::Texture3DListElem(VolumeDataset* _pDataset,
+                                     const std::vector<UINT64>& _vLOD,
+                                     const std::vector<UINT64>& _vBrick,
+                                     bool bIsPaddedToPowerOfTwo,
+                                     bool bIsDownsampledTo8Bits,
+                                     bool bDisableBorder,
+                                     UINT64 iIntraFrameCounter,
+                                     UINT64 iFrameCounter,
+                                     MasterController* pMasterController,
+                                     const CTContext &ctx) :
   pData(NULL),
   pTexture(NULL),
   pDataset(_pDataset),
@@ -45,6 +54,7 @@ Texture3DListElem::Texture3DListElem(VolumeDataset* _pDataset, const std::vector
   m_iIntraFrameCounter(iIntraFrameCounter),
   m_iFrameCounter(iFrameCounter),
   m_pMasterController(pMasterController),
+  m_Context(ctx),
   vLOD(_vLOD),
   vBrick(_vBrick),
   m_bIsPaddedToPowerOfTwo(bIsPaddedToPowerOfTwo),
@@ -67,14 +77,18 @@ bool Texture3DListElem::Equals(const VolumeDataset* _pDataset,
                                const std::vector<UINT64>& _vLOD,
                                const std::vector<UINT64>& _vBrick,
                                bool bIsPaddedToPowerOfTwo,
-                               bool bIsDownsampledTo8Bits, bool bDisableBorder)
+                               bool bIsDownsampledTo8Bits, bool bDisableBorder,
+                               const CTContext &cid)
 {
   if (_pDataset != pDataset ||
       _vLOD.size() != vLOD.size() ||
       _vBrick.size() != vBrick.size() ||
       m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo ||
       m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits ||
-      m_bDisableBorder != bDisableBorder) return false;
+      m_bDisableBorder != bDisableBorder ||
+      m_Context != cid) {
+    return false;
+  }
 
   for (size_t i = 0;i<vLOD.size();i++)   if (vLOD[i] != _vLOD[i]) return false;
   for (size_t i = 0;i<vBrick.size();i++) if (vBrick[i] != _vBrick[i]) return false;
@@ -90,11 +104,21 @@ GLTexture3D* Texture3DListElem::Access(UINT64& iIntraFrameCounter, UINT64& iFram
   return pTexture;
 }
 
-bool Texture3DListElem::BestMatch(const std::vector<UINT64>& vDimension, bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits, bool bDisableBorder, UINT64& iIntraFrameCounter, UINT64& iFrameCounter) {
+bool Texture3DListElem::BestMatch(const std::vector<UINT64>& vDimension,
+                                  bool bIsPaddedToPowerOfTwo,
+                                  bool bIsDownsampledTo8Bits,
+                                  bool bDisableBorder,
+                                  UINT64& iIntraFrameCounter,
+                                  UINT64& iFrameCounter,
+                                  const CTContext &cid)
+{
   if (!Match(vDimension) || iUserCount > 0
       || m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo
       || m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits
-      || m_bDisableBorder != bDisableBorder) return false;
+      || m_bDisableBorder != bDisableBorder
+      || m_Context != cid) {
+    return false;
+  }
 
   // framewise older data as before found -> use this object
   if (iFrameCounter > m_iFrameCounter) {
@@ -135,8 +159,13 @@ bool Texture3DListElem::Replace(VolumeDataset* _pDataset,
                                 bool bIsPaddedToPowerOfTwo,
                                 bool bIsDownsampledTo8Bits,
                                 bool bDisableBorder, UINT64 iIntraFrameCounter,
-                                UINT64 iFrameCounter) {
+                                UINT64 iFrameCounter, const CTContext &cid) {
   if (pTexture == NULL) return false;
+  if (m_Context != cid) {
+    T_ERROR("Trying to replace texture in one context"
+            "with a texture from a second context!");
+    return false;
+  }
 
   pDataset = _pDataset;
   vLOD     = _vLOD;

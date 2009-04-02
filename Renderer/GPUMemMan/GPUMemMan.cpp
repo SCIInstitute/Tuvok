@@ -40,7 +40,6 @@
 #include "GPUMemMan.h"
 #include <QtGui/QImage>
 #include <QtOpenGL/QGLWidget>
-#include <QtGui/QImageReader>
 #include <Controller/Controller.h>
 #include "../../Basics/SystemInfo.h"
 
@@ -461,7 +460,8 @@ bool GPUMemMan::IsResident(const VolumeDataset* pDataset,
   for(Texture3DListConstIter i = m_vpTex3DList.begin();
       i < m_vpTex3DList.end(); ++i) {
     if((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
-                    bDownSampleTo8Bits, bDisableBorder)) {
+                    bDownSampleTo8Bits, bDisableBorder,
+                    CTContext::Current())) {
       return true;
     }
   }
@@ -480,7 +480,8 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset,
   for (Texture3DListIter i = m_vpTex3DList.begin();
        i < m_vpTex3DList.end(); i++) {
     if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
-                     bDownSampleTo8Bits, bDisableBorder)) {
+                     bDownSampleTo8Bits, bDisableBorder,
+                     CTContext::Current())) {
       MESSAGE("Reusing 3D texture");
       return (*i)->Access(iIntraFrameCounter, iFrameCounter);
     }
@@ -506,7 +507,9 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset,
     for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
       if ((*i)->BestMatch(vSize, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
                           bDisableBorder, iTargetIntraFrameCounter,
-                          iTargetFrameCounter)) iBestMatch = i;
+                          iTargetFrameCounter, CTContext::Current())) {
+        iBestMatch = i;
+      }
     }
 
     if (iTargetFrameCounter != UINT64_INVALID) {
@@ -517,7 +520,8 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset,
               int(iFrameCounter), int(iIntraFrameCounter));
       (*iBestMatch)->Replace(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits, bDisableBorder,
-                             iIntraFrameCounter, iFrameCounter);
+                             iIntraFrameCounter, iFrameCounter,
+                             CTContext::Current());
       (*iBestMatch)->iUserCount++;
       return (*iBestMatch)->pTexture;
     } else {
@@ -550,8 +554,14 @@ GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset,
 
   MESSAGE("Creating new texture %i x %i x %i, bitsize=%i, componentcount=%i", int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth), int(iCompCount));
 
-  Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder, iIntraFrameCounter, iFrameCounter, m_MasterController);
-
+  Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, vLOD, vBrick,
+                                                       bUseOnlyPowerOfTwo,
+                                                       bDownSampleTo8Bits,
+                                                       bDisableBorder,
+                                                       iIntraFrameCounter,
+                                                       iFrameCounter,
+                                                       m_MasterController,
+                                                       CTContext::Current());
   if (pNew3DTex->pTexture == NULL) {
     T_ERROR("Failed to create OpenGL texture.");
     delete pNew3DTex;
