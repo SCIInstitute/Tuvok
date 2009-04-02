@@ -1637,11 +1637,15 @@ void GLRenderer::Render3DView() {
   // loop over all bricks in the current LOD level
   clock_t timeStart, timeProbe;
   timeStart = timeProbe = clock();
+  UINT32 bricks_this_call = 0;
 
-  while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame && float(timeProbe-timeStart)*1000.0f/float(CLOCKS_PER_SEC) < m_iTimeSliceMSecs) {
-    MESSAGE("  Brick %i of %i", int(m_iBricksRenderedInThisSubFrame+1),int(m_vCurrentBrickList.size()));
+  while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame &&
+         float(timeProbe-timeStart)*1000.0f/float(CLOCKS_PER_SEC) < m_iTimeSliceMSecs) {
+    MESSAGE("  Brick %i of %i", int(m_iBricksRenderedInThisSubFrame+1),
+                                int(m_vCurrentBrickList.size()));
 
-    // convert 3D variables to the more general ND scheme used in the memory manager, e.i. convert 3-vectors to stl vectors
+    // convert 3D variables to the more general ND scheme used in the
+    // memory manager, i.e. convert 3-vectors to STL vectors
     vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
     vector<UINT64> vBrick;
     vBrick.push_back(m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords.x);
@@ -1649,38 +1653,48 @@ void GLRenderer::Render3DView() {
     vBrick.push_back(m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords.z);
 
     // get the 3D texture from the memory manager
-    GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, m_iIntraFrameCounter++, m_iFrameCounter);
-    if(t) t->Bind(0);
+    GPUMemMan &mm = *(m_pMasterController->MemMan());
+    GLTexture3D* t = mm.Get3DTexture(m_pDataset, vLOD, vBrick,
+                                     m_bUseOnlyPowerOfTwo,
+                                     m_bDownSampleTo8Bits, m_bDisableBorder,
+                                     m_iIntraFrameCounter++, m_iFrameCounter);
+
+    if(t) { t->Bind(0); }
 
     Render3DInLoop(m_iBricksRenderedInThisSubFrame,0);
     if (m_bDoStereoRendering) {
-
-      if (m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords != m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords) {
+      if (m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords !=
+          m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords) {
         vBrick.clear();
         vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.x);
         vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.y);
         vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.z);
 
-        m_pMasterController->MemMan()->Release3DTexture(t);
-        t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, m_iIntraFrameCounter++, m_iFrameCounter);
-        if(t) t->Bind(0);
+        mm.Release3DTexture(t);
+        t = mm.Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo,
+                            m_bDownSampleTo8Bits, m_bDisableBorder,
+                            m_iIntraFrameCounter++, m_iFrameCounter);
+        if(t) { t->Bind(0); }
       }
+
       Render3DInLoop(m_iBricksRenderedInThisSubFrame,1);
     }
 
     // release the 3D texture
-    m_pMasterController->MemMan()->Release3DTexture(t);
+    mm.Release3DTexture(t);
 
     // count the bricks rendered
     m_iBricksRenderedInThisSubFrame++;
 
     // time this loop
     if (!m_bCaptureMode) timeProbe = clock();
+    ++bricks_this_call;
   }
 
   Render3DPostLoop();
 
-  if (m_eRenderMode == RM_ISOSURFACE && m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
+  if (m_eRenderMode == RM_ISOSURFACE &&
+      m_vCurrentBrickList.size() ==m_iBricksRenderedInThisSubFrame) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
     ComposeSurfaceImage(0);
     if (m_bDoStereoRendering) {
@@ -1694,9 +1708,13 @@ void GLRenderer::Render3DView() {
 void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
   AbstrRenderer::SetLogoParams(strLogoFilename, iLogoPos);
 
-  if (m_pLogoTex) {m_pMasterController->MemMan()->FreeTexture(m_pLogoTex); m_pLogoTex =NULL;}
+  GPUMemMan &mm = *(m_pMasterController->MemMan());
+  if (m_pLogoTex) {
+    mm.FreeTexture(m_pLogoTex);
+    m_pLogoTex =NULL;
+  }
   if (m_strLogoFilename != "")
-  m_pLogoTex = m_pMasterController->MemMan()->Load2DTextureFromFile(m_strLogoFilename);
+    m_pLogoTex = mm.Load2DTextureFromFile(m_strLogoFilename);
   ScheduleWindowRedraw(WM_3D);
 }
 
@@ -1708,17 +1726,22 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
 
   if (m_bDoClearView) {
     m_pProgramCVCompose->Enable();
-    m_pProgramCVCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
-    m_pProgramCVCompose->SetUniformVector("vLightDiffuse2",m_vCVColor.x, m_vCVColor.y, m_vCVColor.z);
-    m_pProgramCVCompose->SetUniformVector("vCVParam",m_fCVSize, m_fCVContextScale, m_fCVBorderScale);
-    m_pProgramCVCompose->SetUniformVector("vCVPickPos", m_vCVPos.x, m_vCVPos.y);
+    m_pProgramCVCompose->SetUniformVector("vLightDiffuse", m_vIsoColor.x,
+                                          m_vIsoColor.y, m_vIsoColor.z);
+    m_pProgramCVCompose->SetUniformVector("vLightDiffuse2",m_vCVColor.x,
+                                          m_vCVColor.y, m_vCVColor.z);
+    m_pProgramCVCompose->SetUniformVector("vCVParam",m_fCVSize,
+                                          m_fCVContextScale, m_fCVBorderScale);
+    m_pProgramCVCompose->SetUniformVector("vCVPickPos", m_vCVPos.x,
+                                                        m_vCVPos.y);
     m_pFBOCVHit[iStereoID]->Read(2, 0);
     m_pFBOCVHit[iStereoID]->Read(3, 1);
     glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
   } else {
     if (m_pDataset->GetInfo()->GetComponentCount() == 1) {
       m_pProgramIsoCompose->Enable();
-      m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
+      m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x,
+                                             m_vIsoColor.y, m_vIsoColor.z);
     } else {
       m_pProgramColorCompose->Enable();
     }
