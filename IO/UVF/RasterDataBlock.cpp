@@ -723,7 +723,9 @@ void RasterDataBlock::SubSample(LargeRAWFile* pSourceFile,
   UINT64 iWindowSourcePos = 0;
   UINT64 iWindowTargetPos = 0;
   
-  float fLastOutput = -1;
+  static const size_t uItersPerUpdate = 100;
+  size_t uCount = uItersPerUpdate;
+
   for (UINT64 i = 0;i<iTargetElementCount;i++) {
 
     if (i==0 || iWindowTargetPos >= iTargetWindowSize) {
@@ -734,10 +736,12 @@ void RasterDataBlock::SubSample(LargeRAWFile* pSourceFile,
         pTargetFile->WriteRAW(pTargetData, iTargetWindowSize*iElementSize);
       }
 
-      float fCurrentOutput = (100.0f*i)/float(iTargetElementCount);
-      if (pDebugOut && (fCurrentOutput - fLastOutput) > 0.05) {
-        fLastOutput = fCurrentOutput;
-        pDebugOut->Message(_func_, "Generating data for lod level %i of %i\n%6.2f percent completed",int(iLODLevel+1), int(iMaxLODLevel+1), fCurrentOutput);
+      if(pDebugOut && (--uCount == 0)) {
+        uCount = uItersPerUpdate;
+        float fCurrentOutput = (100.0f*i)/float(iTargetElementCount);
+        pDebugOut->Message(_func_, "Generating data for lod level %i of %i:"
+                           "%6.2f percent completed", int(iLODLevel+1),
+                           int(iMaxLODLevel+1), fCurrentOutput);
       }
 
       if (pSourceFile == pTargetFile) {
@@ -880,7 +884,11 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
 
   for (size_t i = 0;i<vLODCombis.size();i++) {
 
-    if (pDebugOut) pDebugOut->Message(_func_, "Generating data for lod level %i of %i",int(i+1), int(vLODCombis.size()));
+    if (pDebugOut) {
+      pDebugOut->Message(_func_,
+                         "Generating data for lod level %i of %i", int(i+1),
+                         int(vLODCombis.size()));
+    }
 
     // compute size of the domain
     vReducedDomainSize = GetLODDomainSize(vLODCombis[i]);
