@@ -47,34 +47,32 @@ namespace tuvok {
 class QtGLContextID : ContextID<QtGLContextID> {
   public:
     /// Create an ID with the current context.
-    QtGLContextID() : ContextID<QtGLContextID>(),
-                      ctx((QGLContext::currentContext())) {} 
+    QtGLContextID() : ctx((QGLContext::currentContext())) {}
     /// Create an ID from the given context.
     QtGLContextID(const QGLContext *c) : ContextID<QtGLContextID>(), ctx(c) {}
+    QtGLContextID(const QtGLContextID& ct) : ContextID<QtGLContextID>(),
+                                             ctx(ct.ctx) {}
 
     static QtGLContextID Current() { return QtGLContextID(); }
 
     bool operator==(const QtGLContextID &gl_cid) const {
       return this->ctx == gl_cid.ctx;
     }
-    bool operator==(const ContextID<QtGLContextID> &gl_cid) const {
-      return this->ctx == dynamic_cast<const QtGLContextID&>(gl_cid).ctx;
-    }
-
     bool operator!=(const QtGLContextID &gl_cid) const {
       return this->ctx != gl_cid.ctx;
     }
-    bool operator!=(const ContextID<QtGLContextID> &gl_cid) const {
-      return this->ctx != dynamic_cast<const QtGLContextID&>(gl_cid).ctx;
+
+    QtGLContextID& operator=(const QtGLContextID &ct) {
+      this->ctx = ct.ctx;
+      return *this;
     }
 
   private:
-    QtGLContextID& operator=(const QtGLContextID &); ///< undefined
+    QtGLContextID(const ContextID<QtGLContextID>&); ///< unimplemented
 
   private:
     const QGLContext *ctx;
 };
 
 };
-
 #endif // TUVOK_GL_CONTEXT_ID_H

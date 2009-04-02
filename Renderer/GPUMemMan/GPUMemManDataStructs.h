@@ -173,7 +173,7 @@ private:
   UINT64 m_iIntraFrameCounter;
   UINT64 m_iFrameCounter;
   MasterController* m_pMasterController;
-  const tuvok::CTContext& m_Context;
+  const tuvok::CTContext m_Context;
 
   std::vector<UINT64> vLOD;
   std::vector<UINT64> vBrick;

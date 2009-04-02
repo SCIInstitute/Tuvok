@@ -58,19 +58,18 @@ namespace tuvok {
 template<class Context>
 class ContextID {
   public:
-    virtual bool operator==(const ContextID &cid) const = 0;
-    virtual bool operator!=(const ContextID &cid) const = 0;
-
     static Context Current() {
       return Context::CurrentCtx();
     }
 
   protected:
     ContextID() {}
-    ContextID(const ContextID &) {}
 
   private:
     ContextID& operator=(const ContextID &); ///< undefined
+    ContextID(const ContextID &); ///< undefined.
+    bool operator==(const ContextID&) const; ///< undefined
+    bool operator!=(const ContextID&) const; ///< undefined
 };
 
 };
