@@ -82,9 +82,12 @@ HEADERS += StdTuvokDefines.h \
            3rdParty/boost/cstdint.hpp \
            Scripting/Scripting.h \
            Scripting/Scriptable.h \
+           Renderer/Context.h \
+           Renderer/ContextID.h \
            Renderer/CullingLOD.h \
            Renderer/FrameCapture.h \
            Renderer/GPUObject.h \
+           Renderer/GL/GLContextID.h \
            Renderer/GL/GLFrameCapture.h \
            Renderer/GL/GLSLProgram.h \
            Renderer/GL/GLInclude.h \
@@ -97,6 +100,7 @@ HEADERS += StdTuvokDefines.h \
            Renderer/GL/GLRenderer.h \
            Renderer/GL/GLRaycaster.h \
            Renderer/GL/GLSBVR.h \
+           Renderer/GL/QtGLContextID.h \
            Renderer/AbstrRenderer.h \
            Renderer/GPUMemMan/GPUMemMan.h \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
@@ -173,6 +177,7 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
 
 win32 {
   HEADERS += Renderer/DX/DynamicDX.h \
+             Renderer/DX/DXContextID.h \
              Renderer/DX/DXObject.h \
              Renderer/DX/DXInclude.h \
              Renderer/DX/DXTexture.h \
