@@ -37,6 +37,7 @@
 */
 
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
 #include <sstream>
 #include <errno.h>

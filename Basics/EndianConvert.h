@@ -42,6 +42,7 @@
 #define ENDIANCONVERT_H
 
 #include <cassert>
+#include <cstdio>
 #ifndef WIN32
   #include <unistd.h>
 #endif

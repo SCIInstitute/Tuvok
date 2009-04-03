@@ -35,6 +35,7 @@
 */
 
 #include <algorithm>
+#include <cstdio>
 #include <functional>
 #include <stdarg.h>
 #include "MultiplexOut.h"

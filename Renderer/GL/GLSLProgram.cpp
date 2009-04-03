@@ -37,6 +37,7 @@
   #pragma warning( disable : 4996 ) // disable deprecated warning
 #endif
 
+#include <cstdio>
 #include <cstring>
 #include "GLSLProgram.h"
 #include <Controller/Controller.h>

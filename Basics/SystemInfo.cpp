@@ -50,6 +50,7 @@
   #ifdef TUVOK_OS_APPLE
     #include <sys/sysctl.h>
   #else
+    #include <cstdio>
     #include <iostream>
     #include <sstream>
     #include <sys/resource.h>
