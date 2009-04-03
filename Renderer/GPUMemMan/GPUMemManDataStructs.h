@@ -41,6 +41,7 @@
 
 #include <deque>
 #include <string>
+#include <vector>
 #include "GL/glew.h"
 #include "boost/noncopyable.hpp"
 #include "../Context.h"

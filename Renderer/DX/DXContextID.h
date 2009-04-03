@@ -52,21 +52,16 @@ class DXContextID : ContextID<DXContextID> {
                     ctx(NULL /** @todo fixme! */) {} 
     /// Create an ID from the given context.
     DXContextID(const void *c) : ContextID<DXContextID>(), ctx(c) {}
+	DXContextID(const DXContextID &dx) : ContextID<DXContextID>(),
+		                                 ctx(dx.ctx) { }
 
     static DXContextID Current() { return DXContextID(); }
 
     bool operator==(const DXContextID &dx_cid) const {
       return this->ctx == dx_cid.ctx;
     }
-    bool operator==(const ContextID<DXContextID> &dx_cid) const {
-      return this->ctx == dynamic_cast<const DXContextID&>(dx_cid).ctx;
-    }
-
     bool operator!=(const DXContextID &dx_cid) const {
       return this->ctx != dx_cid.ctx;
-    }
-    bool operator!=(const ContextID<DXContextID> &dx_cid) const {
-      return this->ctx != dynamic_cast<const DXContextID&>(dx_cid).ctx;
     }
 
   private:
