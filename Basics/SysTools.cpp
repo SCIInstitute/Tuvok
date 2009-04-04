@@ -43,6 +43,7 @@
 #include <errno.h>
 #include <sys/stat.h>
 
+#include "StdTuvokDefines.h"
 #ifndef _WIN32
   #include <regex.h>
   #include <dirent.h>
@@ -130,8 +131,6 @@ namespace SysTools {
   }
 
   string GetFromResourceOnMac(const string& strFileName) {
-
-
     #ifdef TUVOK_OS_APPLE
       CFStringRef cfFilename = CFStringCreateWithCString(kCFAllocatorDefault, RemoveExt(GetFilename(strFileName)).c_str(), CFStringGetSystemEncoding());   
       CFStringRef cfExt = CFStringCreateWithCString(kCFAllocatorDefault, GetExt(GetFilename(strFileName)).c_str(), CFStringGetSystemEncoding());   
