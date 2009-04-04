@@ -56,6 +56,7 @@
 #include "VFFConverter.h"
 
 using namespace std;
+using namespace tuvok;
 
 IOManager::IOManager() :
   m_TempDir("./"), // changed by convert dataset

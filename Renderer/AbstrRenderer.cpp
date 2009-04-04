@@ -44,6 +44,7 @@
 #include "Basics/GeometryGenerator.h"
 
 using namespace std;
+using namespace tuvok;
 
 AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
   m_pMasterController(pMasterController),

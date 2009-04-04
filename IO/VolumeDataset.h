@@ -57,7 +57,9 @@ class UVF;
 class VolumeDataset;
 class RasterDataBlock;
 class MaxMinDataBlock;
-class UVFDataset;
+namespace tuvok {
+  class UVFDataset;
+};
 
 /// A wrapper around UVF data to provide easy access to 3D-only data.  UVF data
 /// is n-dimensional, making it hard to work with directly.
@@ -146,7 +148,7 @@ class VolumeDatasetInfo {
     std::vector< std::vector< std::vector<std::vector<InternalMaxMinElement> > > >m_vvaMaxMin;
 
     friend class VolumeDataset;
-    friend class UVFDataset;
+    friend class tuvok::UVFDataset;
 };
 
 class VolumeDataset {

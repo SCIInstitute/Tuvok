@@ -45,6 +45,8 @@ class Histogram2DDataBlock;
 class MaxMinDataBlock;
 class UVF;
 
+namespace tuvok {
+
 class UVFDataset : public Dataset {
 public:
   /// A brick key into UVF is composed of a list of LODs and a list of brick
@@ -102,6 +104,8 @@ private:
   UVF*                  m_pDatasetFile;
   bool                  m_bIsOpen;
   std::string           m_strFilename;
+};
+
 };
 
 #endif // TUVOK_UVF_DATASET_H

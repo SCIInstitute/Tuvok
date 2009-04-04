@@ -42,6 +42,8 @@
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
 
+namespace tuvok {
+
 UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify) :
   m_pVolumeDataBlock(NULL),
   m_pHist1DDataBlock(NULL),
@@ -283,3 +285,5 @@ bool UVFDataset::Export(UINT64 iLODLevel, const std::string& targetFilename,
                                                   brickFunc, pUserContext,
                                                   iOverlap);
 }
+
+}; // tuvok namespace.

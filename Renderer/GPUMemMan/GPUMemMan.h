@@ -54,16 +54,18 @@ class MasterController;
 class SystemInfo;
 class TransferFunction1D;
 class TransferFunction2D;
-class Dataset;
+namespace tuvok {
+  class Dataset;
+};
 
 class GPUMemMan {
   public:
     GPUMemMan(MasterController* masterController);
     virtual ~GPUMemMan();
 
-    Dataset* LoadDataset(const std::string& strFilename,
-                         AbstrRenderer* requester);
-    void FreeDataset(Dataset* pVolumeDataset, AbstrRenderer* requester);
+    tuvok::Dataset* LoadDataset(const std::string& strFilename,
+                                AbstrRenderer* requester);
+    void FreeDataset(tuvok::Dataset* pVolumeDataset, AbstrRenderer* requester);
 
     void Changed1DTrans(AbstrRenderer* requester,
                         TransferFunction1D* pTransferFunction1D);
@@ -97,13 +99,13 @@ class GPUMemMan {
     GLTexture2D* Load2DTextureFromFile(const std::string& strFilename);
     void FreeTexture(GLTexture2D* pTexture);
 
-    GLTexture3D* Get3DTexture(Dataset* pDataset,
+    GLTexture3D* Get3DTexture(tuvok::Dataset* pDataset,
                               const std::vector<UINT64>& vLOD,
                               const std::vector<UINT64>& vBrick,
                               bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                               bool bDisableBorder, UINT64 iIntraFrameCounter,
                               UINT64 iFrameCounter);
-    bool IsResident(const Dataset* pDataset,
+    bool IsResident(const tuvok::Dataset* pDataset,
                     const std::vector<UINT64>& vLOD,
                     const std::vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo,
                     bool bDownSampleTo8Bits, bool bDisableBorder) const;
@@ -152,7 +154,7 @@ class GPUMemMan {
     UINT64            m_iAllocatedCPUMemory;
     UINT64            m_iFrameCounter;
 
-    void FreeAssociatedTextures(Dataset* pDataset);
+    void FreeAssociatedTextures(tuvok::Dataset* pDataset);
     void Delete3DTexture(size_t iIndex);
 };
 

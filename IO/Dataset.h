@@ -45,6 +45,8 @@
 #include "VolumeDataset.h"
 class LargeRAWFile;
 
+namespace tuvok {
+
 /// Abstract interface to a dataset.
 /// noncopyable not because it wouldn't work, but because we might be holding a
 /// lot of data -- copying would be prohibitively expensive.
@@ -83,6 +85,8 @@ protected:
   Histogram1D*       m_pHist1D;
   Histogram2D*       m_pHist2D;
   VolumeDatasetInfo* m_pVolumeDatasetInfo;
+};
+
 };
 
 #endif // TUVOK_DATASET_H

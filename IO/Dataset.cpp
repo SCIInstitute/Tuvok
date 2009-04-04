@@ -34,14 +34,14 @@
 
 #include "Dataset.h"
 
-Dataset::Dataset():
+tuvok::Dataset::Dataset():
   m_pHist1D(NULL),
   m_pHist2D(NULL),
   m_pVolumeDatasetInfo(NULL)
 {
 }
 
-Dataset::~Dataset()
+tuvok::Dataset::~Dataset()
 {
   delete m_pHist1D;            m_pHist1D = NULL;
   delete m_pHist2D;            m_pHist2D = NULL;
@@ -49,12 +49,11 @@ Dataset::~Dataset()
 }
 
 /// unimplemented!
-bool Dataset::Export(UINT64, const std::string&,
-                     bool,
-                     bool (*)(LargeRAWFile* pSourceFile,
-                              const std::vector<UINT64> vBrickSize,
-                              const std::vector<UINT64> vBrickOffset,
-                              void* pUserContext),
-                     void *, UINT64) const {
+bool tuvok::Dataset::Export(UINT64, const std::string&, bool,
+                            bool (*)(LargeRAWFile* pSourceFile,
+                                     const std::vector<UINT64> vBrickSize,
+                                     const std::vector<UINT64> vBrickOffset,
+                                     void* pUserContext),
+                            void *, UINT64) const {
   return false;
 }

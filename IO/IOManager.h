@@ -55,11 +55,13 @@
 
 class AbstrConverter;
 class AbstrRenderer;
-class Dataset;
 class FileStackInfo;
 class RangeInfo;
 class VolumeDataset;
-class UVFDataset;
+namespace tuvok {
+  class Dataset;
+  class UVFDataset;
+};
 
 class MergeDataset {
 public:
@@ -180,11 +182,10 @@ public:
 
 private:
   bool bIsOK;
-
 };
 
 
-class MCData  {
+class MCData {
 public:
   MCData(const std::string& strTargetFile) :
     m_strTargetFile(strTargetFile)
@@ -309,24 +310,24 @@ public:
                      const std::vector<double>& vBiases,
                      const std::string& strTargetFilename,
                      bool bUseMaxMode=true, bool bNoUserInteraction=false);
-  UVFDataset* ConvertDataset(FileStackInfo* pStack,
-                             const std::string& strTargetFilename,
-                             AbstrRenderer* requester);
-  UVFDataset* ConvertDataset(const std::string& strFilename,
-                          const std::string& strTargetFilename,
-                          AbstrRenderer* requester);
-  Dataset* LoadDataset(const std::string& strFilename,
-                       AbstrRenderer* requester);
+  tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
+                                    const std::string& strTargetFilename,
+                                    AbstrRenderer* requester);
+  tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
+                                    const std::string& strTargetFilename,
+                                    AbstrRenderer* requester);
+  tuvok::Dataset* LoadDataset(const std::string& strFilename,
+                              AbstrRenderer* requester);
   bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info);
   bool NeedsConversion(const std::string& strFilename,
                        bool& bChecksumFail) const;
   bool NeedsConversion(const std::string& strFilename) const;
 
-  bool ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel,
+  bool ExportDataset(const tuvok::UVFDataset* pSourceData, UINT64 iLODlevel,
                      const std::string& strTargetFilename,
                      const std::string& strTempDir);
-  bool ExtractIsosurface(const UVFDataset* pSourceData, UINT64 iLODlevel,
-                         double fIsovalue,
+  bool ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
+                         UINT64 iLODlevel, double fIsovalue,
                          const DOUBLEVECTOR3& vfRescaleFactors,
                          const std::string& strTargetFilename,
                          const std::string& strTempDir);
