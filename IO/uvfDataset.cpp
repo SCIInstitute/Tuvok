@@ -45,6 +45,7 @@
 namespace tuvok {
 
 UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify) :
+  m_fMaxGradMagnitude(0.0f),
   m_pVolumeDataBlock(NULL),
   m_pHist1DDataBlock(NULL),
   m_pHist2DDataBlock(NULL),
@@ -57,7 +58,7 @@ UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify) :
 }
 
 UVFDataset::UVFDataset() :
-  m_fMaxGradMagnitude(NULL),
+  m_fMaxGradMagnitude(0.0f),
   m_pVolumeDataBlock(NULL),
   m_pHist1DDataBlock(NULL),
   m_pHist2DDataBlock(NULL),
