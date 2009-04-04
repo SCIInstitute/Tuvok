@@ -43,6 +43,7 @@
 
 #include "../StdTuvokDefines.h"
 #include "../Renderer/CullingLOD.h"
+#include "../IO/uvfDataset.h"
 #include "../IO/VolumeDataset.h"
 #include "../Basics/Plane.h"
 
@@ -177,10 +178,10 @@ class AbstrRenderer {
 
     /// Sets the dataset from external source; only meant to be used by clients
     /// which don't want to use the LOD subsystem.
-    void SetDataSet(VolumeDataset *vds);
+    void SetDataSet(Dataset *vds);
 
-    VolumeDataset&       GetDataSet()       { return *m_pDataset; }
-    const VolumeDataset& GetDataSet() const { return *m_pDataset; }
+    Dataset&       GetDataSet()       { return *m_pDataset; }
+    const Dataset& GetDataSet() const { return *m_pDataset; }
 
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
     TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
@@ -362,7 +363,7 @@ class AbstrRenderer {
     UINT64              m_piSlice[3];
     EBlendPrecision     m_eBlendPrecision;
     bool                m_bUseLighting;
-    VolumeDataset*      m_pDataset;
+    Dataset*            m_pDataset;
     TransferFunction1D* m_p1DTrans;
     TransferFunction2D* m_p2DTrans;
     float               m_fSampleRateModifier;

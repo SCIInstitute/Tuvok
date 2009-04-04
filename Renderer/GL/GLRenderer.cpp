@@ -99,25 +99,38 @@ bool GLRenderer::Initialize() {
     return false;
   }
 
-  string strPotential1DTransName = SysTools::ChangeExt(m_pDataset->Filename(), "1dt");
-  string strPotential2DTransName = SysTools::ChangeExt(m_pDataset->Filename(), "2dt");
+  // Try to guess filenames for a transfer functions.  We guess based on the
+  // filename of the dataset, but it could be the case that our client gave us
+  // an in-memory dataset.
+  std::string strPotential1DTransName;
+  std::string strPotential2DTransName;
+  try {
+    UVFDataset& ds = dynamic_cast<UVFDataset&>(*m_pDataset);
+    strPotential1DTransName = SysTools::ChangeExt(ds.Filename(), "1dt");
+    strPotential2DTransName = SysTools::ChangeExt(ds.Filename(), "2dt");
+  } catch(std::bad_cast) {
+    // Will happen when we don't have a file-backed dataset; just disable the
+    // filename-guessing / automatic TF loading feature.
+    strPotential1DTransName = "";
+    strPotential2DTransName = "";
+  }
 
   GPUMemMan &mm = *(Controller::Instance().MemMan());
   if (SysTools::FileExists(strPotential1DTransName)) {
     mm.Get1DTransFromFile(strPotential1DTransName, this, 
                           &m_p1DTrans, &m_p1DTransTex, 
-                          m_pDataset->Get1DHistogram()->GetFilledSize());
+                          m_pDataset->Get1DHistogram().GetFilledSize());
   } else {
-    mm.GetEmpty1DTrans(m_pDataset->Get1DHistogram()->GetFilledSize(), this,
+    mm.GetEmpty1DTrans(m_pDataset->Get1DHistogram().GetFilledSize(), this,
                        &m_p1DTrans, &m_p1DTransTex);
   }
 
   if (SysTools::FileExists(strPotential2DTransName)) {
     mm.Get2DTransFromFile(strPotential2DTransName, this, 
                           &m_p2DTrans, &m_p2DTransTex,
-                          m_pDataset->Get2DHistogram()->GetFilledSize());
+                          m_pDataset->Get2DHistogram().GetFilledSize());
   } else {
-    mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram()->GetFilledSize(), this,
+    mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram().GetFilledSize(), this,
                        &m_p2DTrans, &m_p2DTransTex);
 
     // Setup a default polygon in the 2D TF, so it doesn't look like they're

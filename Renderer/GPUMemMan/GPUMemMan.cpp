@@ -47,6 +47,7 @@
 #include <QtOpenGL/QGLWidget>
 #include <Controller/Controller.h>
 #include "../../Basics/SystemInfo.h"
+#include "../IO/uvfDataset.h"
 
 using namespace std;
 using namespace tuvok;
@@ -69,8 +70,12 @@ GPUMemMan::~GPUMemMan() {
   // outputs will be deleted last -- after the memory manager.
   AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
   for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
-    dbg.Warning(_func_, "Detected unfreed dataset %s.",
-                i->pVolumeDataset->Filename().c_str());
+    try {
+      dbg.Warning(_func_, "Detected unfreed dataset %s.",
+                  dynamic_cast<UVFDataset&>(*(i->pVolumeDataset)).Filename().c_str());
+    } catch(std::bad_cast) {
+      dbg.Warning(_func_, "Detected unfreed dataset %p.", i->pVolumeDataset);
+    }
     delete i->pVolumeDataset;
   }
 
@@ -137,9 +142,24 @@ GPUMemMan::~GPUMemMan() {
 
 // ******************** Datasets
 
-VolumeDataset* GPUMemMan::LoadDataset(const string& strFilename, AbstrRenderer* requester) {
+Dataset* GPUMemMan::LoadDataset(const string& strFilename,
+                                AbstrRenderer* requester) {
+  // We want to reuse datasets which have already been loaded.  Yet we have a
+  // list of `Dataset's, not `UVFDataset's, and so therefore we can't rely on
+  // each element of the list having a file backing it up.
+  //
+  // Yet they all will; this method is never going to get called for datasets
+  // which are given from clients via an in-memory transfer.  Thus nothing is
+  // ever going to get added to the list which isn't a UVFDataset.
+  //
+  // We could make the list be composed only of UVFDatasets.  Eventually we'd
+  // like to do dataset caching for any client though, not just ImageVis3D.
   for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
-    if (i->pVolumeDataset->Filename() == strFilename) {
+    // Given the above, this cast is guaranteed to succeed.
+    UVFDataset *dataset = dynamic_cast<UVFDataset*>(i->pVolumeDataset);
+    assert(dataset != NULL);
+
+    if (dataset->Filename() == strFilename) {
       MESSAGE("Reusing %s", strFilename.c_str());
       i->qpUser.push_back(requester);
       return i->pVolumeDataset;
@@ -147,7 +167,9 @@ VolumeDataset* GPUMemMan::LoadDataset(const string& strFilename, AbstrRenderer* 
   }
 
   MESSAGE("Loading %s", strFilename.c_str());
-  VolumeDataset* dataset = new VolumeDataset(strFilename, false);  // PRECONDITION: we assume that the file has been verified before
+  // we assume the file has already been verified
+  UVFDataset* dataset = new UVFDataset(strFilename, false);
+
   if (dataset->IsOpen()) {
     m_vpVolumeDatasets.push_back(VolDataListElem(dataset, requester));
     return dataset;
@@ -157,21 +179,26 @@ VolumeDataset* GPUMemMan::LoadDataset(const string& strFilename, AbstrRenderer* 
   }
 }
 
-// Functor to find the VolDataListElem which holds the VolumeDataset given to
+// Functor to find the VolDataListElem which holds the Dataset given in
 // the constructor.
 struct find_ds : public std::unary_function<VolDataListElem, bool> {
-  find_ds(const VolumeDataset *vds) : _ds(vds) { }
+  find_ds(const Dataset* vds) : _ds(vds) { }
   bool operator()(const VolDataListElem &cmp) const {
     return cmp.pVolumeDataset == _ds;
   }
-  private: const VolumeDataset *_ds;
+  private: const Dataset* _ds;
 };
 
-void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset,
+void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
                             AbstrRenderer* requester) {
   // store a name conditional for later logging
-  const std::string ds_name = pVolumeDataset ? pVolumeDataset->Filename()
-                                             : std::string("(null ds)");
+  std::string ds_name;
+  try {
+    const UVFDataset& ds = dynamic_cast<UVFDataset&>(*pVolumeDataset);
+    ds_name = ds.Filename();
+  } catch(std::bad_cast) {
+    ds_name = "(unnamed dataset)";
+  }
 
   // find the dataset this refers to in our internal list
   VolDataListIter vol_ds = std::find_if(m_vpVolumeDatasets.begin(),
@@ -198,7 +225,7 @@ void GPUMemMan::FreeDataset(VolumeDataset* pVolumeDataset,
   }
 
   // remove it from the list of renderers which use this DS; if this brings the
-  // `reference count' of the DS to 0, delete it.
+  // reference count of the DS to 0, delete it.
   vol_ds->qpUser.erase(renderer);
   if(vol_ds->qpUser.empty()) {
     dbg.Message(_func_,"Cleaning up all 3D textures associated to dataset %s",
@@ -458,7 +485,7 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRender
 
 // ******************** 3D Textures
 
-bool GPUMemMan::IsResident(const VolumeDataset* pDataset,
+bool GPUMemMan::IsResident(const Dataset* pDataset,
                            const vector<UINT64>& vLOD,
                            const vector<UINT64>& vBrick,
                            bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
@@ -475,7 +502,7 @@ bool GPUMemMan::IsResident(const VolumeDataset* pDataset,
 }
 
 
-GLTexture3D* GPUMemMan::Get3DTexture(VolumeDataset* pDataset,
+GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
                                      const vector<UINT64>& vLOD,
                                      const vector<UINT64>& vBrick,
                                      bool bUseOnlyPowerOfTwo,
@@ -608,7 +635,7 @@ void GPUMemMan::Delete3DTexture(size_t iIndex) {
   m_vpTex3DList.erase(m_vpTex3DList.begin()+iIndex);
 }
 
-void GPUMemMan::FreeAssociatedTextures(VolumeDataset* pDataset) {
+void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset) {
   for (size_t i = 0;i<m_vpTex3DList.size();i++) {
     if (m_vpTex3DList[i]->pDataset == pDataset) {
 

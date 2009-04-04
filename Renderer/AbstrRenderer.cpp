@@ -224,7 +224,7 @@ void AbstrRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   }
 }
 
-void AbstrRenderer::SetDataSet(VolumeDataset *vds)
+void AbstrRenderer::SetDataSet(Dataset *vds)
 {
   if(m_pDataset) {
     delete m_pDataset;

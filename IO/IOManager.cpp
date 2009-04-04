@@ -46,6 +46,7 @@
 #include <Basics/SysTools.h>
 #include <Renderer/GPUMemMan/GPUMemMan.h>
 #include "VolumeDataset.h"
+#include "uvfDataset.h"
 
 #include "BOVConverter.h"
 #include "NRRDConverter.h"
@@ -711,17 +712,18 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
   return false;
 }
 
-VolumeDataset* IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester) {
+UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, AbstrRenderer* requester) {
   if (!ConvertDataset(pStack, strTargetFilename)) return NULL;
-  return LoadDataset(strTargetFilename, requester);
+  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
 
-VolumeDataset* IOManager::ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, AbstrRenderer* requester) {
+UVFDataset* IOManager::ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, AbstrRenderer* requester) {
   if (!ConvertDataset(strFilename, strTargetFilename)) return NULL;
-  return LoadDataset(strTargetFilename, requester);
+  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
 
-VolumeDataset* IOManager::LoadDataset(const std::string& strFilename, AbstrRenderer* requester) {
+Dataset* IOManager::LoadDataset(const std::string& strFilename,
+                                AbstrRenderer* requester) {
   return Controller::Instance().MemMan()->LoadDataset(strFilename, requester);
 }
 
@@ -730,7 +732,7 @@ bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, co
     return pMCData->PerformMC(pSourceFile, vBrickSize, vBrickOffset);
 }
 
-bool IOManager::ExtractIsosurface(const VolumeDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir) {
+bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir) {
   if (pSourceData->GetInfo()->GetComponentCount() != 1) {
     T_ERROR("Isosurface extraction only supported for scalar volumes.");
     return false;
@@ -789,7 +791,7 @@ bool IOManager::ExtractIsosurface(const VolumeDataset* pSourceData, UINT64 iLODl
 }
 
 
-bool IOManager::ExportDataset(const VolumeDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir) {
+bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir) {
   // find the right converter to handle the output
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
   AbstrConverter* pExporter = NULL;

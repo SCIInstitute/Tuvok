@@ -38,10 +38,11 @@
 #include "Basics/MathTools.h"
 #include "Controller/Controller.h"
 #include "IO/VolumeDataset.h"
+#include "IO/uvfDataset.h"
 #include "Renderer/GL/GLTexture3D.h"
 using namespace tuvok;
 
-Texture3DListElem::Texture3DListElem(VolumeDataset* _pDataset,
+Texture3DListElem::Texture3DListElem(Dataset* _pDataset,
                                      const std::vector<UINT64>& _vLOD,
                                      const std::vector<UINT64>& _vBrick,
                                      bool bIsPaddedToPowerOfTwo,
@@ -77,7 +78,7 @@ Texture3DListElem::~Texture3DListElem() {
   FreeTexture();
 }
 
-bool Texture3DListElem::Equals(const VolumeDataset* _pDataset,
+bool Texture3DListElem::Equals(const Dataset* _pDataset,
                                const std::vector<UINT64>& _vLOD,
                                const std::vector<UINT64>& _vBrick,
                                bool bIsPaddedToPowerOfTwo,
@@ -157,7 +158,7 @@ bool Texture3DListElem::Match(const std::vector<UINT64>& vDimension) {
   return true;
 }
 
-bool Texture3DListElem::Replace(VolumeDataset* _pDataset,
+bool Texture3DListElem::Replace(Dataset* _pDataset,
                                 const std::vector<UINT64>& _vLOD,
                                 const std::vector<UINT64>& _vBrick,
                                 bool bIsPaddedToPowerOfTwo,
@@ -190,7 +191,9 @@ bool Texture3DListElem::Replace(VolumeDataset* _pDataset,
 
 bool Texture3DListElem::LoadData() {
   FreeData();
-  return pDataset->GetBrick(&pData, vLOD, vBrick);
+
+  UVFDataset& ds = dynamic_cast<UVFDataset&>(*(this->pDataset));
+  return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), &pData);
 }
 
 void  Texture3DListElem::FreeData() {
@@ -228,7 +231,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
 
     unsigned char* pTmpData = new unsigned char[vSize[0]*vSize[1]*vSize[2]*iCompCount];
 
-    size_t iMax = pDataset->Get1DHistogram()->GetFilledSize();
+    size_t iMax = pDataset->Get1DHistogram().GetFilledSize();
 
     for (size_t i = 0;i<vSize[0]*vSize[1]*vSize[2]*iCompCount;i++) {
       unsigned char iQuantizedVal = (unsigned char)(255.0*((unsigned short*)pData)[i]/float(iMax));
