@@ -39,7 +39,7 @@
 #define TUVOK_CONTROLLER_H
 
 #include "MasterController.h"
-#include <boost/serialization/singleton.hpp>
+#include "boost/serialization/singleton.hpp"
 
 namespace serial = boost::serialization;
 

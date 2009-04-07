@@ -32,7 +32,7 @@
            SCI Institute
            University of Utah
 */
-#include "../3rdParty/boost/cstdint.hpp"
+#include "boost/cstdint.hpp"
 #ifndef TUVOK_NO_IO
 # include "../3rdParty/tiff/tiffio.h"
 #else
