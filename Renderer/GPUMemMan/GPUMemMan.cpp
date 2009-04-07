@@ -47,7 +47,7 @@
 #include <QtOpenGL/QGLWidget>
 #include <Controller/Controller.h>
 #include "../../Basics/SystemInfo.h"
-#include "../IO/uvfDataset.h"
+#include "../../IO/uvfDataset.h"
 
 using namespace std;
 using namespace tuvok;
