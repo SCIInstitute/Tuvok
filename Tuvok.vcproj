@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR32)include&quot;;3rdParty;3rdParty/GLEW;."
+				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR32)/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -109,7 +109,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR64)include&quot;;3rdParty;3rdParty/GLEW;."
+				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR64)/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -175,7 +175,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(QTDIR32)include&quot;;3rdParty;3rdParty/GLEW;."
+				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR32)/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -241,7 +241,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(QTDIR64)include&quot;;3rdParty;3rdParty/GLEW;."
+				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR64)/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -304,7 +304,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR32)include&quot;;3rdParty;3rdParty/GLEW;."
+				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR32)/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -369,7 +369,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(QTDIR64)include&quot;;3rdParty;3rdParty/GLEW;."
+				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR64)/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -435,7 +435,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(QTDIR32)include&quot;;3rdParty;3rdParty/GLEW;."
+				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR32)/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -501,7 +501,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(QTDIR64)include&quot;;3rdParty;3rdParty/GLEW;."
+				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR64)/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -1658,11 +1658,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
