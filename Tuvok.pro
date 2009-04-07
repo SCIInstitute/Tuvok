@@ -7,7 +7,7 @@ TARGET            = Build/Tuvok
 RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
 DEPENDPATH       += . Basics Controller DebugOut IO Renderer Scripting
-INCLUDEPATH      += . 3rdParty 3rdParty/GLEW
+INCLUDEPATH      += . 3rdParty/GLEW 3rdParty/boost
 QT               += opengl
 LIBS             += -lz
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
@@ -80,8 +80,8 @@ HEADERS += StdTuvokDefines.h \
            3rdParty/tiff/tiffvers.h \
            3rdParty/tiff/tif_predict.h \
            3rdParty/tiff/uvcode.h \
-           3rdParty/boost/config.hpp \
-           3rdParty/boost/cstdint.hpp \
+           3rdParty/boost/boost/config.hpp \
+           3rdParty/boost/boost/cstdint.hpp \
            Scripting/Scripting.h \
            Scripting/Scriptable.h \
            Renderer/Context.h \
