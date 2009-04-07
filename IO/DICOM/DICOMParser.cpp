@@ -296,11 +296,11 @@ void DICOMParser::SkipUnusedElement(ifstream& fileDICOM, string& value, const UI
   fileDICOM.read(&value[0],iElemLength);
 }
 
-bool DICOMParser::GetDICOMFileInfo(const string& strFilename, DICOMFileInfo& info) {
-
-  #ifdef DEBUG_DICOM
-    Console::printf("Processing file %s\n",strFilename.c_str());
-  #endif
+bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
+                                   DICOMFileInfo& info) {
+#ifdef DEBUG_DICOM
+  Console::printf("Processing file %s\n",strFilename.c_str());
+#endif
 
   struct stat stat_buf;
   
@@ -310,23 +310,37 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename, DICOMFileInfo& inf
 
   info.m_strFileName = strFilename;
   info.m_wstrFileName = wstring(strFilename.begin(), strFilename.end());
-  info.m_ivSize.z = 1; // default if lsices does not apear in the dicom
+  info.m_ivSize.z = 1; // default if slices does not apear in the dicom
 
   // check for basic properties
-  if (!SysTools::GetFileStats(strFilename, stat_buf)) return false;  // file exits ?
-  if (stat_buf.st_size < 128+4) return false;                // file has minimum length ?
+  if (!SysTools::GetFileStats(strFilename, stat_buf)) {// file must exist
+    MESSAGE("File '%s' can't be a DICOM -- doesn't exist.",
+            strFilename.c_str());
+    return false;
+  }
+  if (stat_buf.st_size < 128+4) { // file has minimum length ?
+    MESSAGE("File '%s' can't be a DICOM -- too short.", strFilename.c_str());
+    return false;
+  }
 
   // open file
   ifstream fileDICOM(strFilename.c_str(), ios::in | ios::binary);
   
   fileDICOM.seekg(128);  // skip first 128 bytes
 
-  char DICM[4];
-  fileDICOM.read(DICM,4);
-  if (DICM[0] != 'D' || DICM[1] != 'I' || DICM[2] != 'C' || DICM[3] != 'M') return false;  // Look for 'D', 'I', 'C', 'M'
+  // check for file magic.
+  {
+    char DICM[4];
+    fileDICOM.read(DICM,4);
+    if (DICM[0] != 'D' || DICM[1] != 'I' || DICM[2] != 'C' || DICM[3] != 'M') {
+      MESSAGE("File '%s' can't be a DICOM -- magic value is wrong.",
+              strFilename.c_str());
+      return false;
+    }
+  }
 
-  // Ok, at this point we are very sure that we are dealing with a DICOM File, lets find out the dimensions, the sequence numbers
-  
+  // Ok, at this point we are very sure that we are dealing with a DICOM File,
+  // lets find out the dimensions, the sequence numbers
   string value;
   float fSliceSpacing = 0;
   short iGroupID, iElementID;
@@ -334,7 +348,9 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename, DICOMFileInfo& inf
   DICOM_eType elementType;
 
   // read metadata block
-  ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType, iElemLength, bImplicit, info.m_bIsBigEndian);
+  ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType,
+                      iElemLength, bImplicit, info.m_bIsBigEndian);
+
   while (iGroupID == 0x2) {
     switch (iElementID) {
       case 0x0 : {  // File Meta Elements Group Len
