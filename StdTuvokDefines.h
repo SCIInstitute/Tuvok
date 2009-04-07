@@ -33,12 +33,12 @@
         University of Utah
   \date    December 2008
 */
-
 #pragma once
 
 #ifndef STDTUVOKDEFINES_H
 #define STDTUVOKDEFINES_H
 
+#define BOOST_FILESYSTEM_STATIC_LINK 1
 #include <limits>
 
 // undef stupid windows defines to max and min
