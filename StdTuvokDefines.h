@@ -39,7 +39,11 @@
 #define STDTUVOKDEFINES_H
 
 #define BOOST_FILESYSTEM_STATIC_LINK 1
-#include <limits>
+#ifdef __cplusplus
+# include <limits>
+#else
+# include <limits.h>
+#endif
 
 // undef stupid windows defines to max and min
 #ifdef max
