@@ -65,6 +65,23 @@ HEADERS += StdTuvokDefines.h \
            DebugOut/TextfileOut.h \
            DebugOut/ConsoleOut.h \
            DebugOut/MultiplexOut.h \
+           3rdParty/jpeglib/jchuff.h \
+           3rdParty/jpeglib/jdhuff.h \
+           3rdParty/jpeglib/jerror.h \
+           3rdParty/jpeglib/mangle_jpeg.h \
+           3rdParty/jpeglib/jdct.h \
+           3rdParty/jpeglib/jlossls.h \
+           3rdParty/jpeglib/jinclude.h \
+           3rdParty/jpeglib/jmemsys.h \
+           3rdParty/jpeglib/jmorecfg.h \
+           3rdParty/jpeglib/jpegint.h \
+           3rdParty/jpeglib/jpeglib.h \
+           3rdParty/jpeglib/jversion.h \
+           3rdParty/jpeglib/cdjpeg.h \
+           3rdParty/jpeglib/cderror.h \
+           3rdParty/jpeglib/transupp.h \
+           3rdParty/jpeglib/jconfig.h \
+           3rdParty/jpeglib/jlossy.h \
            3rdParty/GLEW/GL/glew.h \
            3rdParty/GLEW/GL/glxew.h \
            3rdParty/GLEW/GL/wglew.h \
@@ -116,6 +133,80 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            3rdParty/bzip2/compress.c \
            3rdParty/bzip2/decompress.c \
            3rdParty/bzip2/bzlib.c \
+           3rdParty/jpeglib/jcmarker.c \
+           3rdParty/jpeglib/jcphuff.c \
+           3rdParty/jpeglib/jcsample.c \
+           3rdParty/jpeglib/jclhuff.c \
+           3rdParty/jpeglib/jcmainct.c \
+           3rdParty/jpeglib/jcmaster.c \
+           3rdParty/jpeglib/jcodec.c \
+           3rdParty/jpeglib/jcomapi.c \
+           3rdParty/jpeglib/jcparam.c \
+           3rdParty/jpeglib/jcpred.c \
+           3rdParty/jpeglib/jcprepct.c \
+           3rdParty/jpeglib/jcscale.c \
+           3rdParty/jpeglib/jcshuff.c \
+           3rdParty/jpeglib/jctrans.c \
+           3rdParty/jpeglib/jdatadst.c \
+           3rdParty/jpeglib/jdatasrc.c \
+           3rdParty/jpeglib/jdcolor.c \
+           3rdParty/jpeglib/jddctmgr.c \
+           3rdParty/jpeglib/jddiffct.c \
+           3rdParty/jpeglib/jdhuff.c \
+           3rdParty/jpeglib/jdlhuff.c \
+           3rdParty/jpeglib/jfdctfst.c \
+           3rdParty/jpeglib/jdmerge.c \
+           3rdParty/jpeglib/jdpostct.c \
+           3rdParty/jpeglib/jdpred.c \
+           3rdParty/jpeglib/jdsample.c \
+           3rdParty/jpeglib/jdshuff.c \
+           3rdParty/jpeglib/jerror.c \
+           3rdParty/jpeglib/jfdctint.c \
+           3rdParty/jpeglib/jidctflt.c \
+           3rdParty/jpeglib/jidctfst.c \
+           3rdParty/jpeglib/jidctint.c \
+           3rdParty/jpeglib/jidctred.c \
+           3rdParty/jpeglib/jmemansi.c \
+           3rdParty/jpeglib/jutils.c \
+           3rdParty/jpeglib/rdbmp.c \
+           3rdParty/jpeglib/rdcolmap.c \
+           3rdParty/jpeglib/jmemnobs.c \
+           3rdParty/jpeglib/jquant1.c \
+           3rdParty/jpeglib/jquant2.c \
+           3rdParty/jpeglib/jmemmgr.c \
+           3rdParty/jpeglib/jmemname.c \
+           3rdParty/jpeglib/jcapistd.c \
+           3rdParty/jpeglib/jccolor.c \
+           3rdParty/jpeglib/jcinit.c \
+           3rdParty/jpeglib/jdapimin.c \
+           3rdParty/jpeglib/rdppm.c \
+           3rdParty/jpeglib/rdtarga.c \
+           3rdParty/jpeglib/wrppm.c \
+           3rdParty/jpeglib/wrgif.c \
+           3rdParty/jpeglib/cdjpeg.c \
+           3rdParty/jpeglib/jcdiffct.c \
+           3rdParty/jpeglib/jchuff.c \
+           3rdParty/jpeglib/jdlossy.c \
+           3rdParty/jpeglib/rdgif.c \
+           3rdParty/jpeglib/jclossls.c \
+           3rdParty/jpeglib/jcdctmgr.c \
+           3rdParty/jpeglib/jdmaster.c \
+           3rdParty/jpeglib/jdapistd.c \
+           3rdParty/jpeglib/jccoefct.c \
+           3rdParty/jpeglib/jcapimin.c \
+           3rdParty/jpeglib/jclossy.c \
+           3rdParty/jpeglib/jdcoefct.c \
+           3rdParty/jpeglib/jdinput.c \
+           3rdParty/jpeglib/jdlossls.c \
+           3rdParty/jpeglib/rdrle.c \
+           3rdParty/jpeglib/jdmainct.c \
+           3rdParty/jpeglib/jdmarker.c \
+           3rdParty/jpeglib/jdphuff.c \
+           3rdParty/jpeglib/jdscale.c \
+           3rdParty/jpeglib/jdtrans.c \
+           3rdParty/jpeglib/jfdctflt.c \
+           3rdParty/jpeglib/rdswitch.c \
+           3rdParty/jpeglib/transupp.c \
            Basics/MC.cpp \
            Basics/SystemInfo.cpp \
            Basics/SysTools.cpp \
@@ -200,4 +291,8 @@ win32 {
              Renderer/DX/DXRenderer.cpp \
              Renderer/DX/DXSBVR.cpp \
              Renderer/DX/DXRaycaster.cpp
+}
+mac {
+  SOURCES += \
+           3rdParty/jpeglib/jmemmac.c \
 }
