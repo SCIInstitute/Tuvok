@@ -175,7 +175,6 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            3rdParty/jpeglib/jquant1.c \
            3rdParty/jpeglib/jquant2.c \
            3rdParty/jpeglib/jmemmgr.c \
-           3rdParty/jpeglib/jmemname.c \
            3rdParty/jpeglib/jcapistd.c \
            3rdParty/jpeglib/jccolor.c \
            3rdParty/jpeglib/jcinit.c \
