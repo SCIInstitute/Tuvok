@@ -173,9 +173,6 @@ ImageParser::~ImageParser(void)
 void ImageParser::GetDirInfo(string  strDirectory) {
   vector<string> files = SysTools::GetDirContents(strDirectory);
   vector<ImageFileInfo> fileInfos;
-  for (size_t i = 0;i<files.size();i++) {
-    files[i] = strDirectory+"/"+files[i]; 
-  }
 
   // query directory for image files
   for (size_t i = 0;i<files.size();i++) {
