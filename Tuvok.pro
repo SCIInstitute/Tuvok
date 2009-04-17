@@ -294,7 +294,3 @@ win32 {
              Renderer/DX/DXSBVR.cpp \
              Renderer/DX/DXRaycaster.cpp
 }
-mac {
-  SOURCES += \
-           3rdParty/jpeglib/jmemmac.c \
-}
