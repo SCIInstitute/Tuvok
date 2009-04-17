@@ -167,7 +167,6 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            3rdParty/jpeglib/jidctfst.c \
            3rdParty/jpeglib/jidctint.c \
            3rdParty/jpeglib/jidctred.c \
-           3rdParty/jpeglib/jmemansi.c \
            3rdParty/jpeglib/jutils.c \
            3rdParty/jpeglib/rdbmp.c \
            3rdParty/jpeglib/rdcolmap.c \
