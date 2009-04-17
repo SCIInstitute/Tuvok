@@ -72,6 +72,7 @@ MasterController::~MasterController() {
   delete m_pSystemInfo;
   delete m_pIOManager;
   delete m_pGPUMemMan;
+  delete m_pScriptEngine;
   m_DebugOut.clear();
 }
 
