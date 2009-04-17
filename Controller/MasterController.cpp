@@ -183,7 +183,9 @@ void MasterController::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "toggleoutput", "on/off on/off on/off on/off","toggle messages, warning, errors, and other output");
 }
 
-bool MasterController::Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage) {
+bool MasterController::Execute(const std::string& strCommand,
+                               const std::vector<std::string>& strParams,
+                               std::string& strMessage) {
   strMessage = "";
   if (strCommand == "seterrorlog") {
     m_DebugOut.SetListRecordingErrors(strParams[0] == "on");

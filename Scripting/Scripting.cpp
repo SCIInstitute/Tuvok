@@ -46,7 +46,10 @@
 
 using namespace std;
 
-ScriptableListElement::ScriptableListElement(Scriptable* source, const std::string& strCommand, const std::string& strParameters, const std::string& strDescription) :
+ScriptableListElement::ScriptableListElement(Scriptable* source,
+                                             const std::string& strCommand,
+                                             const std::string& strParameters,
+                                             std::string strDescription) :
       m_source(source),
       m_strCommand(strCommand),
       m_strDescription(strDescription)
@@ -85,7 +88,10 @@ Scripting::~Scripting() {
 }
 
 
-bool Scripting::RegisterCommand(Scriptable* source, const std::string& strCommand, const std::string& strParameters, const std::string& strDescription) {
+bool Scripting::RegisterCommand(Scriptable* source,
+                                const std::string& strCommand,
+                                const std::string& strParameters,
+                                std::string strDescription) {
   // commands may not contain whitespaces
   vector<string> strTest = SysTools::Tokenize(strCommand, false);
   if (strTest.size() != 1) return false;
@@ -96,7 +102,9 @@ bool Scripting::RegisterCommand(Scriptable* source, const std::string& strComman
   }
 
   // ok, all seems fine: add the command to the list
-  ScriptableListElement* elem = new ScriptableListElement(source, strCommand, strParameters, strDescription);
+  ScriptableListElement* elem = new ScriptableListElement(source, strCommand,
+                                                          strParameters,
+                                                          strDescription);
   m_ScriptableList.push_back(elem);
   return true;
 }
