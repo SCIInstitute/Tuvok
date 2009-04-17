@@ -101,10 +101,6 @@ void DICOMParser::GetDirInfo(string  strDirectory) {
   vector<string> files = SysTools::GetDirContents(strDirectory);
   vector<DICOMFileInfo> fileInfos;
 
-  for (size_t i = 0;i<files.size();i++) {
-    files[i] = strDirectory+"/"+files[i]; 
-  }
-
   // query directory for DICOM files
   for (size_t i = 0;i<files.size();i++) {
     MESSAGE("Looking for DICOM data in file %s", files[i].c_str());
