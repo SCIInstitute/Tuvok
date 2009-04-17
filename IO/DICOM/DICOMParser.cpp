@@ -105,18 +105,24 @@ void DICOMParser::GetDirInfo(string  strDirectory) {
   for (size_t i = 0;i<files.size();i++) {
     MESSAGE("Looking for DICOM data in file %s", files[i].c_str());
     DICOMFileInfo info;
-    if (GetDICOMFileInfo(files[i], info)) fileInfos.push_back(info);
+    if (GetDICOMFileInfo(files[i], info)) {
+      fileInfos.push_back(info);
+    }
   }
 
   // sort results into stacks
   for (size_t i = 0; i<m_FileStacks.size(); i++) delete m_FileStacks[i];
   m_FileStacks.clear();
 
-
+  MESSAGE("%d files in candidate list.", fileInfos.size());
+  // Ignore duplicate DICOMs.
   for (size_t i = 0; i<fileInfos.size(); i++) {
     bool bFoundMatch = false;
     for (size_t j = 0; j<m_FileStacks.size(); j++) {
       if (((DICOMStackInfo*)m_FileStacks[j])->Match(&fileInfos[i])) {
+        MESSAGE("found match at %d(%s), dropping %i(%s) out.",
+                j, m_FileStacks[j]->m_strDesc.c_str(),
+                i, fileInfos[i].m_strDesc.c_str());
         bFoundMatch = true;
         break;
       }

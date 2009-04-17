@@ -108,6 +108,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
       UINT32 iLength = f->m_Elements[0]->GetDataSize();
       QImage image;
       if (!image.loadFromData((uchar*)pData, iLength)) {
+        MESSAGE("Skipping stack %d; can't load JPEG data!", iStackID);
         parseDICOM.m_FileStacks.erase(parseDICOM.m_FileStacks.begin()+iStackID);
         iStackID--;
       }
