@@ -731,7 +731,7 @@ namespace SysTools {
       if (::stat(strFilename.c_str(), &st) != -1) {
         if (!S_ISDIR(st.st_mode) &&
             !regexec(&preg, inode->d_name, size_t(0), NULL, 0)) {
-          files.push_back(strdup(strFilename.c_str()));
+          files.push_back(std::string(strFilename.c_str()));
         }
       }
     }
