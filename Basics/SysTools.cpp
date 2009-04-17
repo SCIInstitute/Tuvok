@@ -574,7 +574,9 @@ namespace SysTools {
     return completeSubDirs;
   }
 
-  vector<wstring> GetDirContents(const wstring& dir, const wstring& fileName, const wstring& ext) {
+  vector<wstring> GetDirContents(const wstring& dir,
+                                 const wstring& fileName,
+                                 const wstring& ext) {
     vector<wstring> files;
     wstringstream s;
 
@@ -637,17 +639,16 @@ namespace SysTools {
   DIR* dirData=opendir(strDir.c_str());
 
   if (dirData != NULL) {
-
-    struct dirent *inode;
+    struct dirent *finfo;
   
-    while ((inode=readdir(dirData)) != NULL) {
-      string strFilename = inode->d_name;
+    while ((finfo=readdir(dirData)) != NULL) {
+      string strFilename = finfo->d_name;
       wstring wstrFilename(strFilename.begin(), strFilename.end());
       strFilename = strDir + strFilename;
 
       struct ::stat st;
       if (::stat(strFilename.c_str(), &st) != -1) 
-        if (!S_ISDIR(st.st_mode) && !regexec(&preg, inode->d_name, size_t(0), NULL, 0)) {
+        if (!S_ISDIR(st.st_mode) && !regexec(&preg, finfo->d_name, size_t(0), NULL, 0)) {
           files.push_back(wstrFilename);
         }
     }
@@ -659,7 +660,9 @@ namespace SysTools {
     return files;
   }
 
-  vector<string> GetDirContents(const string& dir, const string& fileName, const string& ext) {
+  vector<string> GetDirContents(const string& dir,
+                                const string& fileName,
+                                const string& ext) {
     vector<string> files;
 
     stringstream s;
@@ -721,16 +724,16 @@ namespace SysTools {
   DIR* dirData=opendir(strDir.c_str());
 
   if (dirData != NULL) {
-    struct dirent *inode;
+    struct dirent *finfo;
   
-    while ((inode=readdir(dirData)) != NULL) {
-      string strFilename = inode->d_name;
+    while ((finfo=readdir(dirData)) != NULL) {
+      string strFilename = finfo->d_name;
       strFilename = strDir + strFilename;
 
       struct ::stat st;
       if (::stat(strFilename.c_str(), &st) != -1) {
         if (!S_ISDIR(st.st_mode) &&
-            !regexec(&preg, inode->d_name, size_t(0), NULL, 0)) {
+            !regexec(&preg, finfo->d_name, size_t(0), NULL, 0)) {
           files.push_back(std::string(strFilename.c_str()));
         }
       }
