@@ -47,6 +47,7 @@ HEADERS += StdTuvokDefines.h \
            IO/IOManager.h \
            IO/DICOM/DICOMParser.h \
            IO/Images/ImageParser.h \
+           IO/TuvokJPEG.h \
            IO/Tuvok_QtPlugins.h \
            IO/UVF/DataBlock.h \
            IO/UVF/GlobalHeader.h \
@@ -237,6 +238,7 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            IO/DirectoryParser.cpp \
            IO/DICOM/DICOMParser.cpp \
            IO/Images/ImageParser.cpp \
+           IO/TuvokJPEG.cpp \
            IO/UVF/DataBlock.cpp \
            IO/UVF/GlobalHeader.cpp \
            IO/UVF/KeyValuePairDataBlock.cpp \
