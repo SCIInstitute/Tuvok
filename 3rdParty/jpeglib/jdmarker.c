@@ -11,11 +11,11 @@
  * we must exit back to the application.  On resumption, we reprocess
  * the marker.
  */
+#include <stdlib.h>
 
 #define JPEG_INTERNALS
 #include "jinclude.h"
 #include "jpeglib.h"
-
 
 typedef enum {			/* JPEG marker codes */
   M_SOF0  = 0xc0,

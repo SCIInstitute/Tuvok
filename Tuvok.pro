@@ -181,12 +181,10 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            3rdParty/jpeglib/rdppm.c \
            3rdParty/jpeglib/rdtarga.c \
            3rdParty/jpeglib/wrppm.c \
-           3rdParty/jpeglib/wrgif.c \
            3rdParty/jpeglib/cdjpeg.c \
            3rdParty/jpeglib/jcdiffct.c \
            3rdParty/jpeglib/jchuff.c \
            3rdParty/jpeglib/jdlossy.c \
-           3rdParty/jpeglib/rdgif.c \
            3rdParty/jpeglib/jclossls.c \
            3rdParty/jpeglib/jcdctmgr.c \
            3rdParty/jpeglib/jdmaster.c \
