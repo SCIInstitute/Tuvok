@@ -161,12 +161,12 @@ static UINT64 lnx_mem_proc() {
 
 static UINT64 lnx_mem() {
   UINT64 m;
-  if((m = lnx_mem_sysinfo()) == 0) {
-    DBG("sysinfo failed, falling back to rlimit");
+  if((m = lnx_mem_proc()) == 0) {
+    DBG("proc failed, falling back to rlimit");
     if((m = lnx_mem_rlimit()) == 0) {
-      DBG("rlimit failed, falling back to proc");
-      if((m = lnx_mem_proc()) == 0) {
-        DBG("proc failed, pretending you have 1GB of memory");
+      DBG("rlimit failed, falling back to sysinfo");
+      if((m = lnx_mem_sysinfo()) == 0) {
+        DBG("all memory lookups failed; pretending you have 1Gb of memory.");
         return 1024*1024*1024;
       }
     }
