@@ -14,6 +14,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 /*
  * Include file for users of JPEG library.
