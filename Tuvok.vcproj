@@ -1685,11 +1685,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -2142,6 +2142,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IO\Dataset.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\Dataset.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IO\DirectoryParser.cpp"
 				>
 			</File>
@@ -2171,6 +2179,14 @@
 			</File>
 			<File
 				RelativePath=".\IO\KeyValueFileParser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\Metadata.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\Metadata.h"
 				>
 			</File>
 			<File
@@ -2234,6 +2250,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IO\uvfDataset.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\uvfDataset.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\uvfMetadata.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\uvfMetadata.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IO\VFFConverter.cpp"
 				>
 			</File>
@@ -2282,14 +2314,6 @@
 				</File>
 				<File
 					RelativePath=".\IO\UVF\DataBlock.h"
-					>
-				</File>
-				<File
-					RelativePath=".\IO\Dataset.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\IO\Dataset.h"
 					>
 				</File>
 				<File
@@ -2358,14 +2382,6 @@
 				</File>
 				<File
 					RelativePath=".\IO\UVF\UVFBasic.h"
-					>
-				</File>
-				<File
-					RelativePath=".\IO\uvfDataset.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\IO\uvfDataset.h"
 					>
 				</File>
 				<File
