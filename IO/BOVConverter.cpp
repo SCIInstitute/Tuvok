@@ -75,11 +75,14 @@ bool BOVConverter::ConvertToRAW(
   {
     iHeaderSkip = 0;
     strIntermediateFile = SysTools::GetPath(strSourceFilename) + file->strValue;
+    MESSAGE("Reading data from %s", strIntermediateFile.c_str());
     bDeleteIntermediateFile = false;
   }
   {
     std::istringstream ss(size->strValue);
     ss >> vVolumeSize[0] >> vVolumeSize[1] >> vVolumeSize[2];
+    MESSAGE("Dimensions: %ux%ux%u",
+            vVolumeSize[0], vVolumeSize[1], vVolumeSize[2]);
     iHeaderSkip = 0;
   }
   {
@@ -94,6 +97,9 @@ bool BOVConverter::ConvertToRAW(
       bSigned = true;
       bIsFloat = true;
     }
+    MESSAGE("%lu-bit %s, %s data", iComponentSize,
+            bSigned ? "signed" : "unsigned",
+            bIsFloat ? "floating point" : "integer(?)");
   }
   {
     // e.g. "BRICK X_AXIS 1.000 0.000 0.000"
@@ -104,6 +110,8 @@ bool BOVConverter::ConvertToRAW(
     x >> vVolumeAspect[0];
     y >> junk >> vVolumeAspect[1];
     z >> junk >> junk >> vVolumeAspect[2];
+    MESSAGE("Aspect: %2.2fx%2.2fx%2.2f",
+            vVolumeAspect[0], vVolumeAspect[1], vVolumeAspect[2]);
   }
   return true;
 }
