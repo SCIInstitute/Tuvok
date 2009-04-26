@@ -38,6 +38,15 @@
 #include "Controller/Controller.h"
 #include "Basics/SysTools.h"
 
+enum DataType {
+  Unknown,
+  Float,
+  Integer,
+  Char
+};
+
+static DataType bov_type(const KeyValueFileParser &kvp);
+
 BOVConverter::BOVConverter()
 {
   m_vConverterDesc = "Brick of Values";
@@ -65,7 +74,6 @@ bool BOVConverter::ConvertToRAW(
   }
   KeyValPair *file = hdr.GetData("DATA_FILE");
   KeyValPair *size = hdr.GetData("DATA SIZE");
-  KeyValPair *format = hdr.GetData("DATA FORMAT");
   KeyValPair *aspect_x = hdr.GetData("BRICK X_AXIS");
   KeyValPair *aspect_y = hdr.GetData("BRICK Y_AXIS");
   KeyValPair *aspect_z = hdr.GetData("BRICK Z_AXIS");
@@ -92,7 +100,7 @@ bool BOVConverter::ConvertToRAW(
     bIsFloat = false;
     bSigned = false;
 
-    if(format->strValueUpper == "FLOATS") {
+    if(bov_type(hdr) == Float) {
       iComponentSize = 32;
       bSigned = true;
       bIsFloat = true;
@@ -127,4 +135,45 @@ bool BOVConverter::ConvertToNative(
 {
   /// \todo implement?
   return false; // unsupported.
+}
+
+static DataType
+bov_type(const KeyValueFileParser &kvp)
+{
+  const KeyValPair *format;
+  DataType retval = Unknown;
+
+  // Search a list of strings until we find one.
+  static const char formats[][16] = {
+    "DATA FORMAT", "DATA_FORMAT", "FORMAT"
+  };
+  for(size_t i=0; i < sizeof(formats); ++i) {
+    format = kvp.GetData(formats[i]);
+    if(format != NULL) { break; }
+  }
+
+  // Might not have found any of those.
+  if(format == NULL) {
+    T_ERROR("Could not determine data format.  "
+            "Is this a BOV file?  Potentially corrupt.");
+    return Unknown;
+  }
+
+  // Data type is specified by strings, but the exact string isn't quite
+  // uniform.  Another search.
+  static const char floats[][16] = {
+    "FLOAT", "FLOATS"
+  };
+  for(size_t i=0; i < sizeof(floats); ++i) {
+    if(format->strValueUpper == std::string(floats[i])) {
+      retval = Float;
+      break;
+    }
+  }
+
+  if(retval != Float) {
+    MESSAGE("Developer does not have integer or char datasets to test"
+            " with; such a dataset will be reported as unknown type!");
+  }
+  return retval;
 }
