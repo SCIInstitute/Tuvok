@@ -162,6 +162,32 @@ KeyValPair* KeyValueFileParser::GetData(const wstring& wstrKey, const bool bCase
   return NULL;
 }
 
+struct matching_keys : public std::binary_function<std::string,
+                                                   KeyValPair,
+                                                   bool> {
+  bool operator()(const std::string &key, const KeyValPair &kv) const {
+    return key == kv.strKey;
+  }
+};
+
+const KeyValPair* KeyValueFileParser::GetData(const std::string& strKey,
+                                              const bool bCaseSensitive) const
+{
+  std::string key(strKey);
+  if(!bCaseSensitive) {
+    std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+  }
+
+  std::vector<KeyValPair>::const_iterator iter;
+  iter = std::find_if(m_vecTokens.begin(), m_vecTokens.end(),
+                      std::bind1st(matching_keys(), key));
+
+  if(iter == m_vecTokens.end()) {
+    return NULL;
+  }
+  return &(*iter);
+}
+
 
 bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnEmptyLine, const std::string& strToken, const std::string& strEndToken) {
   string line;

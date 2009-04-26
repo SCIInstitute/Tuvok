@@ -92,6 +92,8 @@ public:
 
   KeyValPair* GetData(const std::string&  strKey, const bool bCaseSensitive=false);
   KeyValPair* GetData(const std::wstring& wstrKey, const bool bCaseSensitive=false);
+  const KeyValPair* GetData(const std::string&  strKey,
+                            const bool bCaseSensitive=false) const;
 
   bool FileReadable() const {return m_bFileReadable;}
 
