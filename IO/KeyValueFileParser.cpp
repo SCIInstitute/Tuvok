@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-  
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -44,7 +44,7 @@
 using namespace std;
 using namespace SysTools;
 
-KeyValPair::KeyValPair() : 
+KeyValPair::KeyValPair() :
   strKey(""),
   wstrKey(L""),
   strKeyUpper(""),
@@ -65,7 +65,7 @@ KeyValPair::KeyValPair(const string& key, const string& value) :
   vstrValue = Tokenize(value);
   for (size_t i = 0;i<vstrValue.size();i++) {
     vwstrValue.push_back(wstring(vstrValue[i].begin(), vstrValue[i].end()));
-  }    
+  }
   FillDerivedData();
 }
 
@@ -90,19 +90,19 @@ void KeyValPair::FillDerivedData() {
 
 
   for (size_t i = 0;i<vwstrValue.size();i++) {
-    if (FromString(_iValue, vstrValue[i])) 
+    if (FromString(_iValue, vstrValue[i]))
       viValue.push_back(_iValue);
-    else 
+    else
       viValue.push_back(0);
 
-    if (FromString(_uiValue, vstrValue[i])) 
+    if (FromString(_uiValue, vstrValue[i]))
       vuiValue.push_back(_uiValue);
-    else 
+    else
       vuiValue.push_back(0);
 
-    if (FromString(_fValue, vstrValue[i])) 
+    if (FromString(_fValue, vstrValue[i]))
       vfValue.push_back(_fValue);
-    else 
+    else
       vfValue.push_back(0.0f);
   }
 
@@ -133,7 +133,7 @@ KeyValueFileParser::KeyValueFileParser(const wstring& wstrFilename, bool bStopOn
   string strFilename(wstrFilename.begin(), wstrFilename.end());
   string strToken(wstrToken.begin(), wstrToken.end());
   string strEndToken(wstrEndToken.begin(), wstrEndToken.end());
-  
+
   m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken, strEndToken);
 }
 
@@ -192,7 +192,7 @@ const KeyValPair* KeyValueFileParser::GetData(const std::string& strKey,
 
 bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnEmptyLine, const std::string& strToken, const std::string& strEndToken) {
   string line;
-  ifstream fileData(strFilename.c_str(),ios::binary);  
+  ifstream fileData(strFilename.c_str(),ios::binary);
 
   m_iStopPos = 0;
   if (fileData.is_open())
@@ -203,7 +203,7 @@ bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnE
       RemoveLeadingWhitespace(line);
 
       // remove windows line endings
-      if (line.length() > 0 && line[line.length()-1] == 13) 
+      if (line.length() > 0 && line[line.length()-1] == 13)
         line = line.substr(0,line.length()-1);
 
       if ((strEndToken != "" && strEndToken == line) ||
