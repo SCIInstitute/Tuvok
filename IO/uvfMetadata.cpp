@@ -152,10 +152,12 @@ UINT64VECTOR3 UVFMetadata::GetBrickCount(const UINT64 lod) const
 UINT64VECTOR3 UVFMetadata::GetBrickSize(const NDBrickKey &k) const
 {
   const UINT64 lod = k.first[0];
-  const UINT64VECTOR3 vBrick = UINT64VECTOR3(k.second[0].x,
-                                             k.second[0].y,
-                                             k.second[0].z);
-  return m_vvaBrickSize[lod][vBrick.x][vBrick.y][vBrick.z];
+  const size_t vBrick[3] = {
+    static_cast<size_t>(k.second[0].x),
+    static_cast<size_t>(k.second[0].y),
+    static_cast<size_t>(k.second[0].z)
+  };
+  return m_vvaBrickSize[lod][vBrick[0]][vBrick[1]][vBrick[2]];
 }
 
 
@@ -163,24 +165,26 @@ UINT64VECTOR3 UVFMetadata::GetBrickSize(const NDBrickKey &k) const
 FLOATVECTOR3 UVFMetadata::GetEffectiveBrickSize(const NDBrickKey &k) const
 {
   const UINT64 iLOD = k.first[0];
-  const UINT64VECTOR3 vBrick = UINT64VECTOR3(k.second[0].x,
-                                             k.second[0].y,
-                                             k.second[0].z);
-  FLOATVECTOR3 vBrickSize(m_vvaBrickSize[iLOD][vBrick.x][vBrick.y][vBrick.z].x,
-                          m_vvaBrickSize[iLOD][vBrick.x][vBrick.y][vBrick.z].y,
-                          m_vvaBrickSize[iLOD][vBrick.x][vBrick.y][vBrick.z].z);
+  const size_t vBrick[3] = {
+    static_cast<size_t>(k.second[0].x),
+    static_cast<size_t>(k.second[0].y),
+    static_cast<size_t>(k.second[0].z)
+  };
+  FLOATVECTOR3 vBrickSize(m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].x,
+                          m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].y,
+                          m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].z);
 
   if (m_vaBrickCount[iLOD].x > 1) {
-    if (vBrick.x > 0) vBrickSize.x -= m_aOverlap.x/2.0f;
-    if (vBrick.x < m_vaBrickCount[iLOD].x-1) vBrickSize.x -= m_aOverlap.x/2.0f;
+    if (vBrick[0] > 0) vBrickSize.x -= m_aOverlap.x/2.0f;
+    if (vBrick[0] < m_vaBrickCount[iLOD].x-1) vBrickSize.x -= m_aOverlap.x/2.0f;
   }
   if (m_vaBrickCount[iLOD].y > 1) {
-    if (vBrick.y < m_vaBrickCount[iLOD].y-1) vBrickSize.y -= m_aOverlap.y/2.0f;
-    if (vBrick.y > 0) vBrickSize.y -= m_aOverlap.y/2.0f;
+    if (vBrick[1] < m_vaBrickCount[iLOD].y-1) vBrickSize.y -= m_aOverlap.y/2.0f;
+    if (vBrick[1] > 0) vBrickSize.y -= m_aOverlap.y/2.0f;
   }
   if (m_vaBrickCount[iLOD].z > 1) {
-    if (vBrick.z < m_vaBrickCount[iLOD].z-1) vBrickSize.z -= m_aOverlap.z/2.0f;
-    if (vBrick.z > 0) vBrickSize.z -= m_aOverlap.z/2.0f;
+    if (vBrick[2] < m_vaBrickCount[iLOD].z-1) vBrickSize.z -= m_aOverlap.z/2.0f;
+    if (vBrick[2] > 0) vBrickSize.z -= m_aOverlap.z/2.0f;
   }
 
   return vBrickSize;
@@ -300,13 +304,16 @@ bool UVFMetadata::ContainsData(const NDBrickKey &k, double isoval) const
   if(NULL == m_pMaxMinData) {
     return true;
   }
-  const UINT64VECTOR3 vBrick = UINT64VECTOR3(k.second[0].x,
-                                             k.second[0].y,
-                                             k.second[0].z);
+
+  const size_t vBrick[3] = {
+    static_cast<size_t>(k.second[0].x),
+    static_cast<size_t>(k.second[0].y),
+    static_cast<size_t>(k.second[0].z)
+  };
   const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[k.first[0]]
-                                                          [vBrick.x]
-                                                          [vBrick.y]
-                                                          [vBrick.z];
+                                                          [vBrick[0]]
+                                                          [vBrick[1]]
+                                                          [vBrick[2]];
   return (isoval <= maxMinElement.maxScalar);
 }
 
@@ -318,13 +325,15 @@ bool UVFMetadata::ContainsData(const NDBrickKey &k,
     return true;
   }
 
-  const UINT64VECTOR3 vBrick = UINT64VECTOR3(k.second[0].x,
-                                             k.second[0].y,
-                                             k.second[0].z);
+  const size_t vBrick[3] = {
+    static_cast<size_t>(k.second[0].x),
+    static_cast<size_t>(k.second[0].y),
+    static_cast<size_t>(k.second[0].z)
+  };
   const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[k.first[0]]
-                                                          [vBrick.x]
-                                                          [vBrick.y]
-                                                          [vBrick.z];
+                                                          [vBrick[0]]
+                                                          [vBrick[1]]
+                                                          [vBrick[2]];
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
 bool UVFMetadata::ContainsData(const NDBrickKey &k, double fMin,double fMax,
@@ -335,13 +344,15 @@ bool UVFMetadata::ContainsData(const NDBrickKey &k, double fMin,double fMax,
     return true;
   }
 
-  const UINT64VECTOR3 vBrick = UINT64VECTOR3(k.second[0].x,
-                                             k.second[0].y,
-                                             k.second[0].z);
+  const size_t vBrick[3] = {
+    static_cast<size_t>(k.second[0].x),
+    static_cast<size_t>(k.second[0].y),
+    static_cast<size_t>(k.second[0].z)
+  };
   const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[k.first[0]]
-                                                          [vBrick.x]
-                                                          [vBrick.y]
-                                                          [vBrick.z];
+                                                          [vBrick[0]]
+                                                          [vBrick[1]]
+                                                          [vBrick[2]];
   return (fMax >= maxMinElement.minScalar &&
           fMin <= maxMinElement.maxScalar)
                          &&
