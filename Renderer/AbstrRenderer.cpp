@@ -42,6 +42,7 @@
 #include <Renderer/GPUMemMan/GPUMemMan.h>
 #include "Basics/MathTools.h"
 #include "Basics/GeometryGenerator.h"
+#include "IO/uvfMetadata.h"
 
 using namespace std;
 using namespace tuvok;
@@ -160,7 +161,9 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   MESSAGE("Load successful, initializing renderer!");
 
   // find the maximum LOD index
-  std::vector<UINT64> vSmallestLOD = m_pDataset->GetInfo()->GetLODLevelCountND();
+  const UVFMetadata *md = dynamic_cast<const UVFMetadata *>
+                                      (m_pDataset->GetInfo());
+  std::vector<UINT64> vSmallestLOD = md->GetLODLevelCountND();
   for (size_t i = 0;i<vSmallestLOD.size();i++) {
     vSmallestLOD[i]--;
   }
@@ -509,10 +512,16 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     Brick b;
     for (UINT64 y = 0;y<vBrickDimension.y;y++) {
       for (UINT64 x = 0;x<vBrickDimension.x;x++) {
-        UINT64VECTOR3 vSize = m_pDataset->GetInfo()->GetBrickSize(m_iCurrentLOD, UINT64VECTOR3(x,y,z));
+        UINT64VECTOR3 vSize = m_pDataset->GetInfo()->GetBrickSize(
+                                Metadata::BrickKey(m_iCurrentLOD,
+                                                   UINT64VECTOR3(x,y,z))
+                              );
         b = Brick(x,y,z, UINT32(vSize.x), UINT32(vSize.y), UINT32(vSize.z));
 
-        FLOATVECTOR3 vEffectiveSize = m_pDataset->GetInfo()->GetEffectiveBrickSize(m_iCurrentLOD,UINT64VECTOR3(x,y,z));
+        FLOATVECTOR3 vEffectiveSize =
+          m_pDataset->GetInfo()->GetEffectiveBrickSize(
+            Metadata::BrickKey(m_iCurrentLOD, UINT64VECTOR3(x,y,z))
+          );
 
         b.vExtension = (vEffectiveSize* vScale)/fDownscale;
 
@@ -555,11 +564,36 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
         }
 
         bool bContainsData;
+        const Metadata& md = *(m_pDataset->GetInfo());
         switch (m_eRenderMode) {
-          case RM_1DTRANS    :  bContainsData = m_pDataset->GetInfo()->ContainsData(m_iCurrentLOD, UINT64VECTOR3(x,y,z), double(m_p1DTrans->GetNonZeroLimits().x), double(m_p1DTrans->GetNonZeroLimits().y)); break;
-          case RM_2DTRANS    :  bContainsData = m_pDataset->GetInfo()->ContainsData(m_iCurrentLOD, UINT64VECTOR3(x,y,z), double(m_p2DTrans->GetNonZeroLimits().x), double(m_p2DTrans->GetNonZeroLimits().y),double(m_p2DTrans->GetNonZeroLimits().z), double(m_p2DTrans->GetNonZeroLimits().w)); break;
-          case RM_ISOSURFACE :  bContainsData = m_pDataset->GetInfo()->ContainsData(m_iCurrentLOD, UINT64VECTOR3(x,y,z), m_fIsovalue*m_p1DTrans->GetSize()); break;
-          default            :  bContainsData = false; break;
+          case RM_1DTRANS:
+            bContainsData = md.ContainsData(
+                              Metadata::BrickKey(m_iCurrentLOD,
+                                                 UINT64VECTOR3(x,y,z)),
+                              double(m_p1DTrans->GetNonZeroLimits().x),
+                              double(m_p1DTrans->GetNonZeroLimits().y)
+                            );
+            break;
+          case RM_2DTRANS:
+            bContainsData = md.ContainsData(
+                              Metadata::BrickKey(m_iCurrentLOD,
+                                                 UINT64VECTOR3(x,y,z)),
+                              double(m_p2DTrans->GetNonZeroLimits().x),
+                              double(m_p2DTrans->GetNonZeroLimits().y),
+                              double(m_p2DTrans->GetNonZeroLimits().z),
+                              double(m_p2DTrans->GetNonZeroLimits().w)
+                            );
+            break;
+          case RM_ISOSURFACE:
+            bContainsData = md.ContainsData(
+                              Metadata::BrickKey(m_iCurrentLOD,
+                                                 UINT64VECTOR3(x,y,z)),
+                              m_fIsovalue*m_p1DTrans->GetSize()
+                            );
+            break;
+          default:
+            bContainsData = false;
+            break;
         }
 
         // if the brick is visible under the current transfer function continue processing

@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   Copyright (c) 2009 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -36,7 +36,7 @@
 #include "uvfDataset.h"
 
 #include "IOManager.h"
-#include "VolumeDataset.h"
+#include "uvfMetadata.h"
 #include "Controller/Controller.h"
 #include "UVF/UVF.h"
 #include "UVF/Histogram1DDataBlock.h"
@@ -146,7 +146,7 @@ bool UVFDataset::Open(bool bVerify)
       }
 
       // check if the data's smallest LOD level is not larger than our bricksize
-      // TODO: if this fails we may want to convert the dataset
+      /// \todo: if this fails we may want to convert the dataset
       std::vector<UINT64> vSmallLODBrick = pVolumeDataBlock->GetSmallestBrickSize();
       bool bToFewLODLevels = false;
       for (size_t i = 0;i<vSmallLODBrick.size();i++) {
@@ -178,17 +178,19 @@ bool UVFDataset::Open(bool bVerify)
           " analyzing data...");
 
   m_pVolumeDataBlock = (RasterDataBlock*)m_pDatasetFile->GetDataBlock(iRasterBlockIndex);
-  m_pVolumeDatasetInfo = new VolumeDatasetInfo(
+  m_pVolumeDatasetInfo = new UVFMetadata(
                            m_pVolumeDataBlock,
                            m_pMaxMinData,
                            m_pDatasetFile->GetGlobalHeader().bIsBigEndian ==
                             EndianConvert::IsBigEndian());
 
   std::stringstream sStreamDomain, sStreamBrick;
+  const UVFMetadata *md = dynamic_cast<const UVFMetadata*>
+                                      (m_pVolumeDatasetInfo);
 
-  for (size_t i = 0;i<m_pVolumeDatasetInfo->GetDomainSizeND().size();i++) {
+  for (size_t i = 0;i<md->GetDomainSizeND().size();i++) {
     if (i == 0)
-      sStreamDomain << m_pVolumeDatasetInfo->GetDomainSizeND()[i];
+      sStreamDomain << md->GetDomainSizeND()[i];
     else
       sStreamDomain << " x " << m_pVolumeDatasetInfo->GetDomainSize()[i];
   }
@@ -257,8 +259,9 @@ bool UVFDataset::Open(bool bVerify)
 UINTVECTOR3 UVFDataset::GetBrickSize(const BrickKey&k) const
 {
   const NDBrickKey& key = KeyToNDKey(k);
-  std::vector<UINT64> vSizeUVF = 
-      m_pVolumeDatasetInfo->GetBrickSizeND(key.first, key.second);
+  const UVFMetadata *md = dynamic_cast<const UVFMetadata*>
+                                      (m_pVolumeDatasetInfo);
+  std::vector<UINT64> vSizeUVF = md->GetBrickSizeND(key.first, key.second);
 
   UINTVECTOR3 vSize;
   /// \todo: this code assumes that x,y,z are the first coords in the dataset

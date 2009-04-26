@@ -46,8 +46,9 @@
 #include <QtGui/QImage>
 #include <QtOpenGL/QGLWidget>
 #include <Controller/Controller.h>
-#include "../../Basics/SystemInfo.h"
-#include "../../IO/uvfDataset.h"
+#include "Basics/SystemInfo.h"
+#include "IO/uvfDataset.h"
+#include "IO/uvfMetadata.h"
 
 using namespace std;
 using namespace tuvok;
@@ -520,7 +521,9 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
     }
   }
 
-  const vector<UINT64> vSize = pDataset->GetInfo()->GetBrickSizeND(vLOD, vBrick);
+  const UVFMetadata* md = dynamic_cast<const UVFMetadata*>
+                                      (pDataset->GetInfo());
+  const vector<UINT64> vSize = md->GetBrickSizeND(vLOD, vBrick);
   UINT64 iBitWidth  = pDataset->GetInfo()->GetBitWidth();
   UINT64 iCompCount = pDataset->GetInfo()->GetComponentCount();
 

@@ -106,7 +106,6 @@ class Metadata {
                       const DOUBLEVECTOR2& gradientRange) const;
     ///@}
 
-  protected:
     void SetRescaleFactors(const double[3]);
     void SetRescaleFactors(const DOUBLEVECTOR3&);
 

@@ -39,6 +39,7 @@
 #include "Controller/Controller.h"
 #include "IO/VolumeDataset.h"
 #include "IO/uvfDataset.h"
+#include "IO/uvfMetadata.h"
 #include "Renderer/GL/GLTexture3D.h"
 using namespace tuvok;
 
@@ -150,10 +151,18 @@ bool Texture3DListElem::BestMatch(const std::vector<UINT64>& vDimension,
 bool Texture3DListElem::Match(const std::vector<UINT64>& vDimension) {
   if (pTexture == NULL) return false;
 
-  const std::vector<UINT64> vSize = pDataset->GetInfo()->GetBrickSizeND(vLOD, vBrick);
+  const UVFMetadata *md = dynamic_cast<const UVFMetadata*>
+                                      (pDataset->GetInfo());
+  const std::vector<UINT64> vSize = md->GetBrickSizeND(vLOD, vBrick);
 
-  if (vDimension.size() != vSize.size()) return false;
-  for (size_t i = 0;i<vSize.size();i++)   if (vSize[i] != vDimension[i]) return false;
+  if (vDimension.size() != vSize.size()) {
+    return false;
+  }
+  for (size_t i=0; i < vSize.size(); i++) {
+    if (vSize[i] != vDimension[i]) {
+      return false;
+    }
+  }
 
   return true;
 }
@@ -208,9 +217,11 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
   if (pData == NULL)
     if (!LoadData()) return false;
 
-  const std::vector<UINT64> vSize = pDataset->GetInfo()->GetBrickSizeND(vLOD, vBrick);
+  const UVFMetadata *md = dynamic_cast<const UVFMetadata*>
+                                      (pDataset->GetInfo());
+  const std::vector<UINT64> vSize = md->GetBrickSizeND(vLOD, vBrick);
 
-  bool bToggleEndian = !pDataset->GetInfo()->IsSameEndianess();
+  bool bToggleEndian = !pDataset->GetInfo()->IsSameEndianness();
 
   UINT64 iBitWidth  = pDataset->GetInfo()->GetBitWidth();
   UINT64 iCompCount = pDataset->GetInfo()->GetComponentCount();
