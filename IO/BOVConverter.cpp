@@ -140,7 +140,7 @@ bool BOVConverter::ConvertToNative(
 static DataType
 bov_type(const KeyValueFileParser &kvp)
 {
-  const KeyValPair *format;
+  const KeyValPair *format = NULL;
   DataType retval = UnknownType;
 
   // Search a list of strings until we find one.
