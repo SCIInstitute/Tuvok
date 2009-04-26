@@ -39,6 +39,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <sstream>
 #include "GLSLProgram.h"
 #include <Controller/Controller.h>
 
@@ -596,25 +597,39 @@ bool GLSLProgram::CheckGLError(const char *pcError, const char *pcAdditional) co
     }
     else pcMessage=(char*)pcError;
 
-    char *output=new char[strlen(pcMessage)+128];
+    std::ostringstream msg;
+    msg << pcMessage << " - ";
     switch (iError) {
       case GL_NO_ERROR:
         if (pcMessage!=pcError) delete[] pcMessage;
         return false;
         break;
-      case GL_INVALID_ENUM:       sprintf(output,"%s - %s",pcMessage,"GL_INVALID_ENUM");    break;
-      case GL_INVALID_VALUE:      sprintf(output,"%s - %s",pcMessage,"GL_INVALID_VALUE");    break;
-      case GL_INVALID_OPERATION:  sprintf(output,"%s - %s",pcMessage,"GL_INVALID_OPERATION");  break;
-      case GL_STACK_OVERFLOW:     sprintf(output,"%s - %s",pcMessage,"GL_STACK_OVERFLOW");  break;
-      case GL_STACK_UNDERFLOW:    sprintf(output,"%s - %s",pcMessage,"GL_STACK_UNDERFLOW");  break;
-      case GL_OUT_OF_MEMORY:      sprintf(output,"%s - %s",pcMessage,"GL_OUT_OF_MEMORY");    break;
-      default:                    sprintf(output,"%s - unknown GL_ERROR",pcError);      break;
+      case GL_INVALID_ENUM:
+        msg << "GL_INVALID_ENUM";
+        break;
+      case GL_INVALID_VALUE:
+        msg << "GL_INVALID_VALUE";
+        break;
+      case GL_INVALID_OPERATION:
+        msg << "GL_INVALID_OPERATION";
+        break;
+      case GL_STACK_OVERFLOW:
+        msg << "GL_STACK_OVERFLOW";
+        break;
+      case GL_STACK_UNDERFLOW:
+        msg << "GL_STACK_UNDERFLOW";
+        break;
+      case GL_OUT_OF_MEMORY:
+        msg << "GL_OUT_OF_MEMORY";
+        break;
+      default:
+        msg << "unknown GL_ERROR " << iError;
+        break;
     }
     if (pcMessage!=pcError) delete[] pcMessage;
 
     // display the error.
-    T_ERROR(output);
-    delete[] output;
+    T_ERROR("%s", msg.str().c_str());
 
     return true;
   }
