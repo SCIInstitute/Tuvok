@@ -43,6 +43,8 @@ HEADERS += StdTuvokDefines.h \
            IO/Transferfunction2D.h \
            IO/Dataset.h \
            IO/uvfDataset.h \
+           IO/uvfMetadata.h \
+           IO/Metadata.h \
            IO/VolumeDataset.h \
            IO/IOManager.h \
            IO/DICOM/DICOMParser.h \
@@ -227,6 +229,8 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            IO/Transferfunction2D.cpp \
            IO/Dataset.cpp \
            IO/uvfDataset.cpp \
+           IO/Metadata.cpp \
+           IO/uvfMetadata.cpp \
            IO/VolumeDataset.cpp \
            IO/IOManager.cpp \
            IO/CoreVolume.cpp \
