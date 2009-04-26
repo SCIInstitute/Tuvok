@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include <Basics/SysTools.h>
 
 using namespace std;
