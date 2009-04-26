@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -54,7 +54,7 @@
   #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-// define MAX / MIN 
+// define MAX / MIN
 #ifndef MAX
   #define MAX(a,b)            (((a) > (b)) ? (a) : (b))
 #endif
@@ -71,7 +71,7 @@ namespace SysTools {
   vector< string > Tokenize(const string& strInput, bool bQuoteprotect) {
     if (bQuoteprotect) {
       string buf;
-      stringstream ss(strInput); 
+      stringstream ss(strInput);
       vector<string> strElements;
       bool bProtected = false;
       while (ss >> buf) {
@@ -94,7 +94,7 @@ namespace SysTools {
       return strElements;
     } else {
       string buf;
-      stringstream ss(strInput); 
+      stringstream ss(strInput);
       vector<string> strElements;
       while (ss >> buf) strElements.push_back(buf);
       return strElements;
@@ -104,7 +104,7 @@ namespace SysTools {
   vector< wstring > Tokenize(const wstring& strInput, bool bQuoteprotect) {
     if (bQuoteprotect) {
       wstring buf;
-      wstringstream ss(strInput); 
+      wstringstream ss(strInput);
       vector<wstring> strElements;
       bool bProtected = false;
       while (ss >> buf) {
@@ -123,7 +123,7 @@ namespace SysTools {
       return strElements;
     } else {
       wstring buf;
-      wstringstream ss(strInput); 
+      wstringstream ss(strInput);
       vector<wstring> strElements;
       while (ss >> buf) strElements.push_back(buf);
       return strElements;
@@ -132,8 +132,8 @@ namespace SysTools {
 
   string GetFromResourceOnMac(const string& strFileName) {
     #ifdef TUVOK_OS_APPLE
-      CFStringRef cfFilename = CFStringCreateWithCString(kCFAllocatorDefault, RemoveExt(GetFilename(strFileName)).c_str(), CFStringGetSystemEncoding());   
-      CFStringRef cfExt = CFStringCreateWithCString(kCFAllocatorDefault, GetExt(GetFilename(strFileName)).c_str(), CFStringGetSystemEncoding());   
+      CFStringRef cfFilename = CFStringCreateWithCString(kCFAllocatorDefault, RemoveExt(GetFilename(strFileName)).c_str(), CFStringGetSystemEncoding());
+      CFStringRef cfExt = CFStringCreateWithCString(kCFAllocatorDefault, GetExt(GetFilename(strFileName)).c_str(), CFStringGetSystemEncoding());
 
       CFURLRef    imageURL = CFBundleCopyResourceURL( CFBundleGetMainBundle(), cfFilename, cfExt, NULL );
       if (imageURL == NULL) return "";
@@ -170,7 +170,7 @@ namespace SysTools {
       if(pos==std::string::npos) break;
       input.replace(pos,search.size(),replace);
       pos +=replace.size();
-    }    
+    }
   }
 
   void ReplaceAll(wstring& input, const wstring& search, const wstring& replace) {
@@ -181,14 +181,14 @@ namespace SysTools {
       if(pos==std::string::npos) break;
       input.replace(pos,search.size(),replace);
       pos +=replace.size();
-    }    
+    }
   }
 
-  inline int myTolower(int c) {return tolower(static_cast<unsigned char>(c));} 
-  inline int myToupper(int c) {return toupper(static_cast<unsigned char>(c));} 
+  inline int myTolower(int c) {return tolower(static_cast<unsigned char>(c));}
+  inline int myToupper(int c) {return toupper(static_cast<unsigned char>(c));}
 
   void RemoveLeadingWhitespace(wstring &str) {
-    while (int(str.find_first_not_of(L" ")) > 0 || int(str.find_first_not_of(L"\t")) > 0 
+    while (int(str.find_first_not_of(L" ")) > 0 || int(str.find_first_not_of(L"\t")) > 0
            || int(str.find_first_not_of(L"\r")) > 0 || int(str.find_first_not_of(L"\n")) > 0)  {
       str = str.substr(str.find_first_not_of(L" "), str.length());
       str = str.substr(str.find_first_not_of(L"\t"), str.length());
@@ -327,7 +327,7 @@ namespace SysTools {
 
     if (fileName[0] != '/' && fileName[0] != '\\' && path[path.length()-1] != '/' && path[path.length()-1] != '\\') {
       slash = "/";
-    } 
+    }
 
 
     // search in the given path
@@ -352,11 +352,11 @@ namespace SysTools {
     wstring searchFile;
     wstring slash = L"";
 
-    if (fileName[0]         != '/' && fileName[0]         != '\\' && 
+    if (fileName[0]         != '/' && fileName[0]         != '\\' &&
       path[path.length()-1] != '/' && path[path.length()-1] != '\\') {
 
       slash = L"/";
-    } 
+    }
 
 
     // search in the given path
@@ -393,24 +393,24 @@ namespace SysTools {
   string  CheckExt(const string& fileName, const std::string& newext) {
     string currentExt = GetExt(fileName);
 #ifdef _WIN32  // do a case insensitive check on windows systems
-    if (ToLowerCase(currentExt) != ToLowerCase(newext)) 
+    if (ToLowerCase(currentExt) != ToLowerCase(newext))
 #else
-    if (currentExt != newext) 
+    if (currentExt != newext)
 #endif
       return fileName + "." + newext;
-    else 
+    else
       return fileName;
   }
 
   wstring CheckExt(const std::wstring& fileName, const std::wstring& newext) {
     wstring currentExt = GetExt(fileName);
 #ifdef _WIN32  // do a case insensitive check on windows systems
-    if (ToLowerCase(currentExt) != ToLowerCase(newext)) 
+    if (ToLowerCase(currentExt) != ToLowerCase(newext))
 #else
-    if (currentExt != newext) 
+    if (currentExt != newext)
 #endif
       return fileName + L"." + newext;
-    else 
+    else
       return fileName;
   }
 
@@ -475,14 +475,14 @@ namespace SysTools {
   if (dirData != NULL) {
 
     struct dirent *inode;
-  
+
     while ((inode=readdir(dirData)) != NULL) {
       string strFilenameLocal = inode->d_name;
       wstring wstrFilename(strFilenameLocal.begin(), strFilenameLocal.end());
       string strFilename = strDir + strFilenameLocal;
 
       struct ::stat st;
-      if (::stat(strFilename.c_str(), &st) != -1) 
+      if (::stat(strFilename.c_str(), &st) != -1)
         if (S_ISDIR(st.st_mode) && strFilenameLocal != "." && strFilenameLocal != "..") {
           subDirs.push_back(wstrFilename);
         }
@@ -500,7 +500,7 @@ namespace SysTools {
       }
     }
 
-    return completeSubDirs; 
+    return completeSubDirs;
   }
 
 
@@ -548,13 +548,13 @@ namespace SysTools {
   if (dirData != NULL) {
 
     struct dirent *inode;
-  
+
     while ((inode=readdir(dirData)) != NULL) {
       string strFilenameLocal = inode->d_name;
       string strFilename = rootdir + strFilenameLocal;
 
       struct ::stat st;
-      if (::stat(strFilename.c_str(), &st) != -1) 
+      if (::stat(strFilename.c_str(), &st) != -1)
         if (S_ISDIR(st.st_mode) && strFilenameLocal != "." && strFilenameLocal != "..") {
           subDirs.push_back(strFilenameLocal);
         }
@@ -640,14 +640,14 @@ namespace SysTools {
 
   if (dirData != NULL) {
     struct dirent *finfo;
-  
+
     while ((finfo=readdir(dirData)) != NULL) {
       string strFilename = finfo->d_name;
       wstring wstrFilename(strFilename.begin(), strFilename.end());
       strFilename = strDir + strFilename;
 
       struct ::stat st;
-      if (::stat(strFilename.c_str(), &st) != -1) 
+      if (::stat(strFilename.c_str(), &st) != -1)
         if (!S_ISDIR(st.st_mode) && !regexec(&preg, finfo->d_name, size_t(0), NULL, 0)) {
           files.push_back(wstrFilename);
         }
@@ -720,12 +720,12 @@ namespace SysTools {
     regExpr = regExpr + "\\." + tmpext + "$";
   }
   if (regcomp(&preg, regExpr.c_str(), REG_EXTENDED | REG_NOSUB) != 0) return files;
-    
+
   DIR* dirData=opendir(strDir.c_str());
 
   if (dirData != NULL) {
     struct dirent *finfo;
-  
+
     while ((finfo=readdir(dirData)) != NULL) {
       string strFilename = finfo->d_name;
       strFilename = strDir + strFilename;
@@ -753,7 +753,7 @@ namespace SysTools {
 
     return FindNextSequenceName(fileName, ext, dir);
   }
-  
+
   std::wstring FindNextSequenceName(const std::wstring& wStrFilename) {
     std::wstring dir = SysTools::GetPath(wStrFilename);
     std::wstring fileName = SysTools::RemoveExt(SysTools::GetFilename(wStrFilename));
@@ -784,7 +784,7 @@ namespace SysTools {
       iMaxIndex = (iMaxIndex <= iCurrIndex) ? iCurrIndex+1 : iMaxIndex;
     }
 
-    if (dir == "" || dir[dir.size()-1] == '\\' ||  dir[dir.size()-1] == '/') 
+    if (dir == "" || dir[dir.size()-1] == '\\' ||  dir[dir.size()-1] == '/')
       out << dir << fileName << iMaxIndex << "." << ext;
     else
       out << dir << "/" << fileName << iMaxIndex << "." << ext;
@@ -816,7 +816,7 @@ namespace SysTools {
       iMaxIndex = (iMaxIndex <= iCurrIndex) ? iCurrIndex+1 : iMaxIndex;
     }
 
-    if (dir == L"" || dir[dir.size()-1] == L'\\' ||  dir[dir.size()-1] == L'/') 
+    if (dir == L"" || dir[dir.size()-1] == L'\\' ||  dir[dir.size()-1] == L'/')
       out << dir << fileName << iMaxIndex << L"." << ext;
     else
       out << dir << L"/" << fileName << iMaxIndex << L"." << ext;
@@ -837,7 +837,7 @@ namespace SysTools {
 
     return iMaxIndex;
   }
-   
+
   UINT32 FindNextSequenceIndex(const wstring& fileName, const wstring& ext, const wstring& dir) {
     vector<wstring> files = GetDirContents(dir, fileName+L"*", ext);
 
@@ -857,14 +857,14 @@ namespace SysTools {
     BOOL result;
     OPENFILENAMEA ofn;
     ZeroMemory(&ofn,sizeof(OPENFILENAMEA));
-    
+
     static CHAR szFile[MAX_PATH];
 
     char szDir[MAX_PATH];
     if (filename.length()>0) {
       errno_t err=strcpy_s(szDir,MAX_PATH,filename.c_str());
       filename.clear();
-      if (err) return false;                  
+      if (err) return false;
     } else szDir[0]=0;
     ofn.lpstrInitialDir = szDir;
 
@@ -903,7 +903,7 @@ namespace SysTools {
     BOOL result;
     OPENFILENAMEW ofn;
     ZeroMemory(&ofn,sizeof(OPENFILENAMEW));
-    
+
     static WCHAR szFile[MAX_PATH];
     szFile[0] = 0;
 
@@ -912,7 +912,7 @@ namespace SysTools {
     if (filename.length()>0) {
       errno_t err=wcscpy_s(szDir,MAX_PATH,filename.c_str());
       filename.clear();
-      if (err) return false;                  
+      if (err) return false;
     } else szDir[0]=0;
     ofn.lpstrInitialDir = szDir;
 
@@ -1062,7 +1062,7 @@ namespace SysTools {
   }
 
   bool CmdLineParams::GetValue(const std::wstring& parameter, std::wstring& value) {
-    string sParameter(parameter.begin(), parameter.end()), 
+    string sParameter(parameter.begin(), parameter.end()),
          sValue(value.begin(), value.end());
 
     if (GetValue(sParameter, sValue)) {
