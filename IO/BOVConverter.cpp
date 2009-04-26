@@ -39,7 +39,7 @@
 #include "Basics/SysTools.h"
 
 enum DataType {
-  Unknown,
+  UnknownType,
   Float,
   Integer,
   Char
@@ -141,7 +141,7 @@ static DataType
 bov_type(const KeyValueFileParser &kvp)
 {
   const KeyValPair *format;
-  DataType retval = Unknown;
+  DataType retval = UnknownType;
 
   // Search a list of strings until we find one.
   static const char formats[][16] = {
@@ -156,7 +156,7 @@ bov_type(const KeyValueFileParser &kvp)
   if(format == NULL) {
     T_ERROR("Could not determine data format.  "
             "Is this a BOV file?  Potentially corrupt.");
-    return Unknown;
+    return UnknownType;
   }
 
   // Data type is specified by strings, but the exact string isn't quite
