@@ -33,7 +33,7 @@ HEADERS += StdTuvokDefines.h \
            IO/RAWConverter.h \
            IO/QVISConverter.h \
            IO/VFFConverter.h \
-           IO/CoreVolume.h \
+           IO/UnbrickedDataset.h \
            IO/CoreVolumeInfo.h \
            IO/DirectoryParser.h \
            IO/KeyValueFileParser.h \
@@ -233,7 +233,7 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            IO/uvfMetadata.cpp \
            IO/VolumeDataset.cpp \
            IO/IOManager.cpp \
-           IO/CoreVolume.cpp \
+           IO/UnbrickedDataset.cpp \
            IO/CoreVolumeInfo.cpp \
            IO/DirectoryParser.cpp \
            IO/DICOM/DICOMParser.cpp \
