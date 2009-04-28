@@ -537,7 +537,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
 
         // skip the brick if it is clipped by the clipping plane
         if (m_bClipPlaneOn) {
-          
+
           FLOATVECTOR3 vBrickVertices[8] = {
             b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
             b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
@@ -559,7 +559,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
               break;
             }
           }
-          if (bClip) 
+          if (bClip)
             continue;
         }
 
