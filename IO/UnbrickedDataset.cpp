@@ -33,7 +33,7 @@
 */
 #include <cstring>
 #include <cstdlib>
-#include "CoreVolume.h"
+#include "UnbrickedDataset.h"
 
 typedef std::vector<std::vector<UINT32> > hist2d;
 

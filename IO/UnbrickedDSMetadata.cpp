@@ -32,34 +32,47 @@
            University of Utah
 */
 
-#include "CoreVolumeInfo.h"
+#include "UnbrickedDSMetadata.h"
 
-CoreVolumeInfo::CoreVolumeInfo()
-{
-  m_aOverlap = UINT64VECTOR3(0,0,0);
-  m_vfRescale.push_back(1); // data should not be scaled
-  m_vfRescale.push_back(1);
-  m_vfRescale.push_back(1);
+namespace tuvok {
+
+UnbrickedDSMetadata::UnbrickedDSMetadata() {}
+
+/// There's only one brick, which is the entire domain... so the largest brick
+/// is the size of the domain.
+UINT64VECTOR3 UnbrickedDSMetadata::GetMaxBrickSize() const {
+  return GetDomainSize();
 }
 
-bool CoreVolumeInfo::ContainsData(const UINT64,
-                                  const UINT64VECTOR3&,
-                                  double) const
+/// Only one brick; it can't overlap with anything.
+UINT64VECTOR3 UnbrickedDSMetadata::GetBrickOverlapSize() const {
+  return UINT64VECTOR3(0,0,0);
+}
+
+/// There's only 1 LOD for these datasets.
+UINT64 UnbrickedDSMetadata::GetLODLevelCount() const
+{
+  return 1;
+}
+
+/// Data should not be scaled.
+DOUBLEVECTOR3 UnbrickedDSMetadata::GetScale() const {
+  return DOUBLEVECTOR3(1,1,1);
+}
+
+/// Disabled for now; force the brick to always get rendered.
+bool UnbrickedDSMetadata::ContainsData(const BrickKey &, double) const
+{
+  return true;
+}
+bool UnbrickedDSMetadata::ContainsData(const BrickKey &, double, double) const
+{
+  return true;
+}
+bool UnbrickedDSMetadata::ContainsData(const BrickKey &, double,double,
+                                       double,double) const
 {
   return true;
 }
 
-bool CoreVolumeInfo::ContainsData(const UINT64,
-                                  const UINT64VECTOR3&,
-                                  double, double) const
-{
-  return true;
-}
-
-bool CoreVolumeInfo::ContainsData(const UINT64,
-                                  const UINT64VECTOR3&,
-                                  double, double,
-                                  double, double) const
-{
-  return true;
-}
+}; // namespace tuvok

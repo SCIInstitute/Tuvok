@@ -33,44 +33,71 @@
 */
 #pragma once
 
-#ifndef TUVOK_CORE_VOLUME_INFO__H
-#define TUVOK_CORE_VOLUME_INFO_H
+#ifndef TUVOK_UNBRICKED_DS_METADATA_H
+#define TUVOK_UNBRICKED_DS_METADATA_H
 
-#include "VolumeDataset.h"
+#include "Metadata.h"
+#include "Controller/Controller.h"
 
-/** CoreVolumeInfo provides metadata information for a dataset which exists
+namespace tuvok {
+
+/** UnbrickedDSMetadata provides metadata information for a dataset which exists
  * entirely in memory -- not backed by a file.  These volumes do not have
  * varying LODs; just one large brick. */
-class CoreVolumeInfo : public VolumeDatasetInfo {
+class UnbrickedDSMetadata : public Metadata {
 public:
-  CoreVolumeInfo();
-  virtual ~CoreVolumeInfo() {}
+  UnbrickedDSMetadata();
+  virtual ~UnbrickedDSMetadata() {}
 
   UINT64VECTOR3 GetBrickCount(const UINT64) const {
     return UINT64VECTOR3(1,1,1);
   }
-  UINT64VECTOR3 GetBrickSize(const UINT64,
-                             const UINT64VECTOR3&) const {
+  UINT64VECTOR3 GetBrickSize(const BrickKey &) const {
     return GetDomainSize(); // one brick for the whole domain
   }
-  FLOATVECTOR3 GetEffectiveBrickSize(const UINT64,
-                                     const UINT64VECTOR3&) const {
+  FLOATVECTOR3 GetEffectiveBrickSize(const BrickKey &) const {
     const UINT64VECTOR3 domain = GetDomainSize();
     return FLOATVECTOR3(static_cast<float>(domain[0]),
                         static_cast<float>(domain[1]),
                         static_cast<float>(domain[2]));
   }
+
   UINT64VECTOR3 GetDomainSize(const UINT64 = 0) const {
     return m_vDomainSize;
   }
 
-  bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick,
-                    double fIsoval) const;
-  bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick,
-                    double fMin, double fMax) const;
-  bool ContainsData(const UINT64 iLOD, const UINT64VECTOR3& vBrick,
-                    double fMin, double fMax,
-                    double fMinGrad, double fMaxGrad) const;
+  UINT64VECTOR3 GetMaxBrickSize() const;
+  UINT64VECTOR3 GetBrickOverlapSize() const;
+  UINT64 GetLODLevelCount() const;
+  DOUBLEVECTOR3 GetScale() const;
+
+  /// Number of bits in the data representation.
+  UINT64 GetBitWidth() const {
+    WARNING("Assuming floating-point data.");
+    return 32;
+  }
+  /// Number of components per data point.
+  UINT64 GetComponentCount() const {
+    WARNING("Assuming single-component data.");
+    return 1;
+  }
+  bool GetIsSigned() const {
+    WARNING("Assuming floating-point data.");
+    return true;
+  }
+  bool GetIsFloat() const {
+    WARNING("Assuming floating-point data.");
+    return true;
+  }
+  bool IsSameEndianness() const {
+    return true;
+  }
+
+  bool ContainsData(const BrickKey &, double isoval) const;
+  bool ContainsData(const BrickKey &,
+                    double fMin,double fMax) const;
+  bool ContainsData(const BrickKey &, double fMin,double fMax,
+                    double fMinGradient,double fMaxGradient) const;
 
   void SetDomainSize(UINT64 x, UINT64 y, UINT64 z) {
     m_vDomainSize = UINT64VECTOR3(x,y,z);
@@ -80,4 +107,6 @@ private:
   UINT64VECTOR3 m_vDomainSize;
 };
 
-#endif // TUVOK_CORE_VOLUME_INFO_H
+}; //namespace tuvok
+
+#endif // TUVOK_UNBRICKED_DS_METADATA_H
