@@ -36,7 +36,10 @@
 
 namespace tuvok {
 
-UnbrickedDSMetadata::UnbrickedDSMetadata() {}
+UnbrickedDSMetadata::UnbrickedDSMetadata() :
+  m_dataType(MDT_FLOAT)
+{
+}
 
 /// There's only one brick, which is the entire domain... so the largest brick
 /// is the size of the domain.

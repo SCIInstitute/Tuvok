@@ -71,11 +71,6 @@ public:
   UINT64 GetLODLevelCount() const;
   DOUBLEVECTOR3 GetScale() const;
 
-  /// Number of bits in the data representation.
-  UINT64 GetBitWidth() const {
-    WARNING("Assuming floating-point data.");
-    return 32;
-  }
   /// Number of components per data point.
   UINT64 GetComponentCount() const {
     WARNING("Assuming single-component data.");
@@ -103,8 +98,25 @@ public:
     m_vDomainSize = UINT64VECTOR3(x,y,z);
   }
 
+  enum MD_Data_Type {
+    MDT_FLOAT=0,
+    MDT_BYTE,
+  };
+  void SetDataType(MD_Data_Type dt) { this->m_dataType = dt; }
+
+  /// Number of bits in the data representation.
+  virtual UINT64 GetBitWidth() const {
+    switch(m_dataType) {
+      case MDT_FLOAT: return 32;
+      case MDT_BYTE:  return  8;
+    }
+    assert(1==0);
+    return 42;
+  }
+
 private:
   UINT64VECTOR3 m_vDomainSize;
+  MD_Data_Type m_dataType;
 };
 
 }; //namespace tuvok
