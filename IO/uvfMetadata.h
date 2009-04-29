@@ -26,7 +26,7 @@
    DEALINGS IN THE SOFTWARE.
 */
 /**
-  \file    uvfUVFMetadata.h
+  \file    uvfMetadata.h
   \author  Tom Fogal
            SCI Institute
            University of Utah
