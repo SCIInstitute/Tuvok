@@ -33,45 +33,51 @@
 */
 #pragma once
 
-#ifndef TUVOK_CORE_VOLUME_H
-#define TUVOK_CORE_VOLUME_H
+#ifndef TUVOK_UNBRICKED_DATASET_H
+#define TUVOK_UNBRICKED_DATASET_H
 
-#include "VolumeDataset.h"
+#include "Dataset.h"
 #include "../Controller/Controller.h"
 
-/** A CoreVolume is a VolumeDataset which is entirely in core -- no paging can
- * be done for rendering the dataset.  The intent is that CoreVolumes only have
+namespace tuvok {
+
+/** A UnbrickedDataset is a Dataset which is entirely in core -- no paging can
+ * be done for rendering the dataset.  The intent is that UnbrickedDatasets only have
  * a single LOD. */
-class CoreVolume : public VolumeDataset {
+class UnbrickedDataset : public Dataset {
 public:
-  CoreVolume();
-  virtual ~CoreVolume();
+  UnbrickedDataset();
+  virtual ~UnbrickedDataset();
 
-  /// These functions make no sense given the purpose of this class.
-  /// .. of course this indicates we should rethink the hierarchy.
+  virtual float MaxGradientMagnitude() const;
+
+  virtual UINTVECTOR3 GetBrickSize(const BrickKey&) const;
+  virtual bool GetBrick(const BrickKey&, unsigned char **) const;
+
+  /// Accessors to allow the client to upload it's own data/metadata.
   ///@{
-  virtual bool IsOpen() const { return true; }
-  virtual std::string Filename() const { return std::string(""); }
-  virtual bool Export(UINT64, const std::string&, bool, 
-                      bool (*)(LargeRAWFile* pSourceFile,
-                               const std::vector<UINT64> vBrickSize,
-                               const std::vector<UINT64> vBrickOffset,
-                               void* pUserContext)=NULL,
-                      void* = NULL,
-                      UINT64 =0) const {
-    T_ERROR("Cannot export in-core dataset!");
-    return false;
+  void SetMetadata(Metadata * const md) {
+    this->m_pVolumeDatasetInfo = md;
   }
-  ///@}
-
-  virtual bool GetBrick(unsigned char** ppData,
-                        const std::vector<UINT64>& vLOD,
-                        const std::vector<UINT64>& vBrick) const;
 
   void SetHistogram(const std::vector<UINT32>&);
   void SetHistogram(const std::vector<std::vector<UINT32> >&);
 
-  void SetInfo(VolumeDatasetInfo *vds_i) { m_pVolumeDatasetInfo = vds_i; }
+  void SetData(float *, size_t len);
+  void SetData(unsigned char*, size_t len);
+  void SetGradientMagnitude(float *gmn, size_t len);
+  ///@}
+
+protected:
+  /// Should the data change and the client isn't going to supply a histogram,
+  /// we should supply one ourself.
+  void Recalculate1DHistogram();
+
+private:
+  std::vector<unsigned char> m_vScalar;
+  std::vector<float> m_vGradientMagnitude;
 };
 
-#endif // TUVOK_CORE_VOLUME_H
+}; // namespace tuvok
+
+#endif // TUVOK_UNBRICKED_DATASET_H

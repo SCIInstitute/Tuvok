@@ -34,32 +34,54 @@
 #include <cstring>
 #include <cstdlib>
 #include "UnbrickedDataset.h"
+#include "UnbrickedDSMetadata.h"
+
+namespace tuvok {
 
 typedef std::vector<std::vector<UINT32> > hist2d;
 
-CoreVolume::CoreVolume()
+UnbrickedDataset::UnbrickedDataset()
 {
   // setup some default histograms.
   // default value is 1, since the `FilledSize' ignores 0-valued elements, so
   // other code would think a histogram filled with 0's is empty.
   std::vector<UINT32> h1d(8,1);
   hist2d h2d;
-  h2d.resize(8);
+  h2d.resize(256);
   for(hist2d::iterator iter = h2d.begin(); iter < h2d.end(); ++iter) {
-    iter->resize(8,1);
+    iter->resize(256,1);
   }
   SetHistogram(h1d);
   SetHistogram(h2d);
 }
-CoreVolume::~CoreVolume() {}
+UnbrickedDataset::~UnbrickedDataset() {}
 
-bool CoreVolume::GetBrick(unsigned char**,
-                          const std::vector<UINT64>&,
-                          const std::vector<UINT64>&) const {
-  return false;
+bool UnbrickedDataset::GetBrick(const BrickKey&, unsigned char **brick) const
+{
+  if(*brick == NULL) {
+    *brick = new unsigned char[m_vScalar.size()];
+  }
+  // arguments to GetBrickSize are garbage, only to satisfy interface
+  /// \todo FIXME Datasets and Metadata use different BrickKeys (uint,uint
+  /// versus uint,uint3vec)!
+  UINT64VECTOR3 sz = GetInfo()->GetBrickSize(
+                                  UnbrickedDSMetadata::BrickKey(
+                                          0, UINT64VECTOR3(0,0,0))
+                                );
+
+  MESSAGE("Copying brick of size %zu, dimensions %lu %lu %lu...",
+          m_vScalar.size(), sz[0], sz[1], sz[2]);
+  std::memcpy(*brick, &m_vScalar.at(0), m_vScalar.size());
+  return true;
 }
 
-void CoreVolume::SetHistogram(const std::vector<UINT32>& hist)
+float UnbrickedDataset::MaxGradientMagnitude() const
+{
+  return *std::max_element(m_vGradientMagnitude.begin(),
+                           m_vGradientMagnitude.end());
+}
+
+void UnbrickedDataset::SetHistogram(const std::vector<UINT32>& hist)
 {
   if(m_pHist1D) { delete m_pHist1D; }
   m_pHist1D = new Histogram1D(hist.size());
@@ -67,7 +89,7 @@ void CoreVolume::SetHistogram(const std::vector<UINT32>& hist)
               sizeof(UINT32)*hist.size());
 }
 
-void CoreVolume::SetHistogram(const std::vector<std::vector<UINT32> >& hist)
+void UnbrickedDataset::SetHistogram(const std::vector<std::vector<UINT32> >& hist)
 {
   if(m_pHist2D) { delete m_pHist2D; }
   // assume the 2D histogram is square: hist[0].size() == hist[1].size() == ...
@@ -80,3 +102,44 @@ void CoreVolume::SetHistogram(const std::vector<std::vector<UINT32> >& hist)
     data += iter->size();
   }
 }
+
+void UnbrickedDataset::SetData(float *data, size_t len)
+{
+  m_vScalar.resize(len*sizeof(float));
+  std::memcpy(&m_vScalar.at(0), data, sizeof(float) * len);
+
+  Recalculate1DHistogram();
+  dynamic_cast<UnbrickedDSMetadata&>(*(this->GetInfo())).SetDataType(
+    UnbrickedDSMetadata::MDT_FLOAT
+  );
+}
+
+void UnbrickedDataset::SetData(unsigned char *data, size_t len)
+{
+  m_vScalar.resize(len);
+  std::memcpy(&m_vScalar.at(0), data, len);
+
+  Recalculate1DHistogram();
+  dynamic_cast<UnbrickedDSMetadata&>(*(this->GetInfo())).SetDataType(
+    UnbrickedDSMetadata::MDT_BYTE
+  );
+}
+
+void UnbrickedDataset::SetGradientMagnitude(float *gmn, size_t len)
+{
+  m_vGradientMagnitude.resize(len);
+  std::memcpy(&m_vGradientMagnitude.at(0), gmn, sizeof(float) * len);
+}
+
+void UnbrickedDataset::Recalculate1DHistogram()
+{
+  if(m_pHist1D) { delete m_pHist1D; }
+  m_pHist1D = new Histogram1D(m_vScalar.size());
+  std::fill(m_pHist1D->GetDataPointer(),
+            m_pHist1D->GetDataPointer()+m_pHist1D->GetSize(), 0);
+  for(size_t i=0; i < m_vScalar.size(); ++i) {
+    m_pHist1D->Set(i, m_vScalar[i]);
+  }
+}
+
+}; //namespace tuvok
