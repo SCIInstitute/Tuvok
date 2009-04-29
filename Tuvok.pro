@@ -45,7 +45,6 @@ HEADERS += StdTuvokDefines.h \
            IO/uvfDataset.h \
            IO/uvfMetadata.h \
            IO/Metadata.h \
-           IO/VolumeDataset.h \
            IO/IOManager.h \
            IO/DICOM/DICOMParser.h \
            IO/Images/ImageParser.h \
@@ -231,7 +230,6 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            IO/uvfDataset.cpp \
            IO/Metadata.cpp \
            IO/uvfMetadata.cpp \
-           IO/VolumeDataset.cpp \
            IO/IOManager.cpp \
            IO/UnbrickedDataset.cpp \
            IO/UnbrickedDSMetadata.cpp \

@@ -45,7 +45,6 @@
 #include <IO/Images/ImageParser.h>
 #include <Basics/SysTools.h>
 #include <Renderer/GPUMemMan/GPUMemMan.h>
-#include "VolumeDataset.h"
 #include "uvfDataset.h"
 
 #include "BOVConverter.h"
@@ -376,7 +375,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
 
     if (strExt == "UVF") {
 
-      VolumeDataset v(strFilenames[iInputData],false);
+      UVFDataset v(strFilenames[iInputData],false);
       if (!v.IsOpen()) break;
 
       UINT64 iLODLevel = 0; // always extract the highest quality here
@@ -386,7 +385,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       if (iInputData == 0)  {
         iComponentSizeG = v.GetInfo()->GetBitWidth();
         iComponentCountG = v.GetInfo()->GetComponentCount();
-        bConvertEndianessG = !v.GetInfo()->IsSameEndianess();
+        bConvertEndianessG = !v.GetInfo()->IsSameEndianness();
         bSignedG = v.GetInfo()->GetIsSigned();
         bIsFloatG = v.GetInfo()->GetIsFloat();
         vVolumeSizeG = UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel));
@@ -394,7 +393,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       } else {
         if (iComponentSizeG  != v.GetInfo()->GetBitWidth() ||
             iComponentCountG != v.GetInfo()->GetComponentCount() ||
-            bConvertEndianessG != !v.GetInfo()->IsSameEndianess() ||
+            bConvertEndianessG != !v.GetInfo()->IsSameEndianness() ||
             bSignedG != v.GetInfo()->GetIsSigned() ||
             bIsFloatG != v.GetInfo()->GetIsFloat() ||
             vVolumeSizeG != UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel))) {
@@ -645,7 +644,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
     bool bRAWCreated = false;
 
     if (strExt == "UVF") {
-      VolumeDataset v(strFilename,false);
+      UVFDataset v(strFilename,false);
       if (!v.IsOpen()) return false;
 
       UINT64 iLODLevel = 0; // always extract the highest quality here
@@ -653,7 +652,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       iHeaderSkip = 0;
       iComponentSize = v.GetInfo()->GetBitWidth();
       iComponentCount = v.GetInfo()->GetComponentCount();
-      bConvertEndianess = !v.GetInfo()->IsSameEndianess();
+      bConvertEndianess = !v.GetInfo()->IsSameEndianness();
       bSigned = v.GetInfo()->GetIsSigned();
       bIsFloat = v.GetInfo()->GetIsFloat();
       vVolumeSize = UINTVECTOR3(v.GetInfo()->GetDomainSize(iLODLevel));
@@ -913,7 +912,7 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info) 
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
 
   if (strExt == "UVF") {
-    VolumeDataset v(strFilename,false);
+    UVFDataset v(strFilename,false);
     if (!v.IsOpen()) return false;
 
     UINT64 iComponentCount = v.GetInfo()->GetComponentCount();
@@ -921,24 +920,23 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info) 
     bool bIsFloat = v.GetInfo()->GetIsFloat();
 
     if (iComponentCount != 1) return false;  // only scalar data supported at the moment
-    const Histogram1D* pHist = v.Get1DHistogram();
-    if (pHist == NULL) return false;
+    const Histogram1D& pHist = v.Get1DHistogram();
 
     // as our UVFs are always quantized to either 8bit or 16bit right now only the 
     // nofloat + unsigned path is taken, the others are for future extensions
     if (bIsFloat) {
       info.m_iValueType = 0;
       info.m_fRange.first = 0.0;
-      info.m_fRange.second = double(pHist->GetFilledSize()-1);
+      info.m_fRange.second = double(pHist.GetFilledSize()-1);
     } else {
       if (bSigned) {
         info.m_iValueType = 1;
         info.m_iRange.first = 0;
-        info.m_iRange.second = int64_t(pHist->GetFilledSize()-1);
+        info.m_iRange.second = int64_t(pHist.GetFilledSize()-1);
       } else {
         info.m_iValueType = 2;
         info.m_uiRange.first = 0;
-        info.m_uiRange.second = UINT64(pHist->GetFilledSize()-1);
+        info.m_uiRange.second = UINT64(pHist.GetFilledSize()-1);
       }
     }
 

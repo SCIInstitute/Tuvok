@@ -57,7 +57,7 @@ class AbstrConverter;
 class AbstrRenderer;
 class FileStackInfo;
 class RangeInfo;
-class VolumeDataset;
+
 namespace tuvok {
   class Dataset;
   class UVFDataset;
