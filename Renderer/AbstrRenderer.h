@@ -294,10 +294,10 @@ class AbstrRenderer {
       m_iMinFramerate = iMinFramerate; m_iStartDelay = iStartDelay;
     }
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
-      m_pDataset->GetInfo()->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();
+      m_pDataset->GetInfo().SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();
     }
     DOUBLEVECTOR3 GetRescaleFactors() {
-      return m_pDataset->GetInfo()->GetRescaleFactors();
+      return m_pDataset->GetInfo().GetRescaleFactors();
     }
 
     void SetCaptureMode(bool bCaptureMode) {m_bCaptureMode = bCaptureMode;}

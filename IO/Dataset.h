@@ -76,8 +76,8 @@ public:
                       void *pUserContext = NULL,
                       UINT64 iOverlap=0) const;
 
-  Metadata*       GetInfo() { return m_pVolumeDatasetInfo; }
-  const Metadata* GetInfo() const { return m_pVolumeDatasetInfo; }
+  Metadata&       GetInfo() { return *m_pVolumeDatasetInfo; }
+  const Metadata& GetInfo() const { return *m_pVolumeDatasetInfo; }
 
 protected:
   Histogram1D*       m_pHist1D;

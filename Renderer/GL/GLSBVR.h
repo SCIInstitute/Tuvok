@@ -68,7 +68,7 @@ class GLSBVR : public GLRenderer {
      * @param strFilename path to a file */
     virtual bool LoadDataset(const std::string& strFilename);
 
-    virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing && m_pDataset->GetInfo()->GetComponentCount() == 1;}
+    virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing && m_pDataset->GetInfo().GetComponentCount() == 1;}
 
     virtual void EnableClipPlane();
     virtual void DisableClipPlane();

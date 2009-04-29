@@ -329,7 +329,7 @@ void GLRenderer::StartFrame() {
       m_pProgramCVCompose->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
       m_pProgramCVCompose->Disable();
     } else {
-      GLSLProgram* shader = (m_pDataset->GetInfo()->GetComponentCount() == 1) ? m_pProgramIsoCompose : m_pProgramColorCompose;
+      GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIsoCompose : m_pProgramColorCompose;
 
       shader->Enable();
       shader->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
@@ -337,10 +337,10 @@ void GLRenderer::StartFrame() {
     }
 
     size_t iMaxValue        = m_p1DTrans->GetSize();
-    UINT32 iMaxRange        = UINT32(1<<m_pDataset->GetInfo()->GetBitWidth());
+    UINT32 iMaxRange        = UINT32(1<<m_pDataset->GetInfo().GetBitWidth());
     // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
-    m_fScaledIsovalue       = (m_pDataset->GetInfo()->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fIsovalue * float(iMaxValue)/float(iMaxRange);
-    m_fScaledCVIsovalue     = (m_pDataset->GetInfo()->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
+    m_fScaledIsovalue       = (m_pDataset->GetInfo().GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fIsovalue * float(iMaxValue)/float(iMaxRange);
+    m_fScaledCVIsovalue     = (m_pDataset->GetInfo().GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
 
   }
 }
@@ -667,10 +667,10 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     UINT64 iCurrentLOD = 0;
     UINTVECTOR3 vVoxelCount;
 
-    for (UINT64 i = 0;i<m_pDataset->GetInfo()->GetLODLevelCount();i++) {
-      if (m_pDataset->GetInfo()->GetBrickCount(i).volume() == 1) {
+    for (UINT64 i = 0;i<m_pDataset->GetInfo().GetLODLevelCount();i++) {
+      if (m_pDataset->GetInfo().GetBrickCount(i).volume() == 1) {
           iCurrentLOD = i;
-          vVoxelCount = UINTVECTOR3(m_pDataset->GetInfo()->GetDomainSize(i));
+          vVoxelCount = UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize(i));
       }
     }
 
@@ -694,8 +694,8 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     FLOATVECTOR3 vMinCoords(0.5f/FLOATVECTOR3(vVoxelCount));
     FLOATVECTOR3 vMaxCoords(1.0f-vMinCoords);
 
-    UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
-    DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetInfo()->GetScale() * DOUBLEVECTOR3(vDomainSize);
+    UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize();
+    DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetInfo().GetScale() * DOUBLEVECTOR3(vDomainSize);
 
     DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
     vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
@@ -721,7 +721,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
   } else {
     if (m_bOrthoView) {
       FLOATMATRIX4 maOrtho;
-      UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
+      UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize();
       DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
       vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
       float fRoot2Scale = (vWinAspectRatio.x < vWinAspectRatio.y) ? max(1.0,1.414213f * vWinAspectRatio.x/vWinAspectRatio.y) : 1.414213f;
@@ -825,8 +825,8 @@ void GLRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
 }
 
 void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor) {
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize();
-  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetInfo()->GetScale());
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize();
+  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetInfo().GetScale());
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
 
@@ -1328,12 +1328,12 @@ void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
 // to scale the TF in the same manner that we've scaled the data.
 float GLRenderer::CalculateScaling()
 {
-  size_t iMaxValue     = (m_pDataset->GetInfo()->GetBitWidth() != 8 &&
+  size_t iMaxValue     = (m_pDataset->GetInfo().GetBitWidth() != 8 &&
                           m_bDownSampleTo8Bits) ? 65536
                                                 : m_p1DTrans->GetSize();
-  UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetInfo()->GetBitWidth());
+  UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetInfo().GetBitWidth());
 
-  return (m_pDataset->GetInfo()->GetBitWidth() != 8 && m_bDownSampleTo8Bits)
+  return (m_pDataset->GetInfo().GetBitWidth() != 8 && m_bDownSampleTo8Bits)
          ? 1.0f
          : float(iMaxRange)/float(iMaxValue);
 }
@@ -1381,7 +1381,7 @@ void GLRenderer::SetDataDepShaderVars() {
                             m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
                             m_pProgram1DTransSlice->Disable();
                             
-                            GLSLProgram* shader = (m_pDataset->GetInfo()->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+                            GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
                             shader->Enable();
                             shader->SetUniformVector("fIsoval",m_fScaledIsovalue);
@@ -1758,7 +1758,7 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
     m_pFBOCVHit[iStereoID]->Read(3, 1);
     glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
   } else {
-    if (m_pDataset->GetInfo()->GetComponentCount() == 1) {
+    if (m_pDataset->GetInfo().GetComponentCount() == 1) {
       m_pProgramIsoCompose->Enable();
       m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x,
                                              m_vIsoColor.y, m_vIsoColor.z);
@@ -1783,7 +1783,7 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
     m_pFBOCVHit[iStereoID]->FinishRead(1);
     m_pProgramCVCompose->Disable();
   } else {
-    if (m_pDataset->GetInfo()->GetComponentCount() == 1)
+    if (m_pDataset->GetInfo().GetComponentCount() == 1)
       m_pProgramIsoCompose->Disable();
     else
       m_pProgramColorCompose->Disable();

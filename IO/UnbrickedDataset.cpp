@@ -64,10 +64,10 @@ bool UnbrickedDataset::GetBrick(const BrickKey&, unsigned char **brick) const
   // arguments to GetBrickSize are garbage, only to satisfy interface
   /// \todo FIXME Datasets and Metadata use different BrickKeys (uint,uint
   /// versus uint,uint3vec)!
-  UINT64VECTOR3 sz = GetInfo()->GetBrickSize(
+  UINT64VECTOR3 sz = GetInfo().GetBrickSize(
                                   UnbrickedDSMetadata::BrickKey(
                                           0, UINT64VECTOR3(0,0,0))
-                                );
+                               );
 
   MESSAGE("Copying brick of size %zu, dimensions %lu %lu %lu...",
           m_vScalar.size(), sz[0], sz[1], sz[2]);
@@ -109,7 +109,7 @@ void UnbrickedDataset::SetData(float *data, size_t len)
   std::memcpy(&m_vScalar.at(0), data, sizeof(float) * len);
 
   Recalculate1DHistogram();
-  dynamic_cast<UnbrickedDSMetadata&>(*(this->GetInfo())).SetDataType(
+  dynamic_cast<UnbrickedDSMetadata&>(this->GetInfo()).SetDataType(
     UnbrickedDSMetadata::MDT_FLOAT
   );
 }
@@ -120,7 +120,7 @@ void UnbrickedDataset::SetData(unsigned char *data, size_t len)
   std::memcpy(&m_vScalar.at(0), data, len);
 
   Recalculate1DHistogram();
-  dynamic_cast<UnbrickedDSMetadata&>(*(this->GetInfo())).SetDataType(
+  dynamic_cast<UnbrickedDSMetadata&>(this->GetInfo()).SetDataType(
     UnbrickedDSMetadata::MDT_BYTE
   );
 }

@@ -151,9 +151,9 @@ bool Texture3DListElem::BestMatch(const std::vector<UINT64>& vDimension,
 bool Texture3DListElem::Match(const std::vector<UINT64>& vDimension) {
   if (pTexture == NULL) return false;
 
-  const UVFMetadata *md = dynamic_cast<const UVFMetadata*>
+  const UVFMetadata& md = dynamic_cast<const UVFMetadata&>
                                       (pDataset->GetInfo());
-  const std::vector<UINT64> vSize = md->GetBrickSizeND(vLOD, vBrick);
+  const std::vector<UINT64> vSize = md.GetBrickSizeND(vLOD, vBrick);
 
   if (vDimension.size() != vSize.size()) {
     return false;
@@ -217,14 +217,14 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
   if (pData == NULL)
     if (!LoadData()) return false;
 
-  const UVFMetadata *md = dynamic_cast<const UVFMetadata*>
+  const UVFMetadata& md = dynamic_cast<const UVFMetadata&>
                                       (pDataset->GetInfo());
-  const std::vector<UINT64> vSize = md->GetBrickSizeND(vLOD, vBrick);
+  const std::vector<UINT64> vSize = md.GetBrickSizeND(vLOD, vBrick);
 
-  bool bToggleEndian = !pDataset->GetInfo()->IsSameEndianness();
+  bool bToggleEndian = !pDataset->GetInfo().IsSameEndianness();
 
-  UINT64 iBitWidth  = pDataset->GetInfo()->GetBitWidth();
-  UINT64 iCompCount = pDataset->GetInfo()->GetComponentCount();
+  UINT64 iBitWidth  = pDataset->GetInfo().GetBitWidth();
+  UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
 
   MESSAGE("%llu components of width %llu", iCompCount, iBitWidth);
 

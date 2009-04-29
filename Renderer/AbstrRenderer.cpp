@@ -161,17 +161,17 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   MESSAGE("Load successful, initializing renderer!");
 
   // find the maximum LOD index
-  const UVFMetadata *md = dynamic_cast<const UVFMetadata *>
+  const UVFMetadata &md = dynamic_cast<const UVFMetadata &>
                                       (m_pDataset->GetInfo());
-  std::vector<UINT64> vSmallestLOD = md->GetLODLevelCountND();
+  std::vector<UINT64> vSmallestLOD = md.GetLODLevelCountND();
   for (size_t i = 0;i<vSmallestLOD.size();i++) {
     vSmallestLOD[i]--;
   }
   m_iMaxLODIndex = *std::min_element(vSmallestLOD.begin(), vSmallestLOD.end());
 
-  m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetInfo()->GetDomainSize()[0]/2;
-  m_piSlice[size_t(WM_CORONAL)]  = m_pDataset->GetInfo()->GetDomainSize()[1]/2;
-  m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetInfo()->GetDomainSize()[2]/2;
+  m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetInfo().GetDomainSize()[0]/2;
+  m_piSlice[size_t(WM_CORONAL)]  = m_pDataset->GetInfo().GetDomainSize()[1]/2;
+  m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetInfo().GetDomainSize()[2]/2;
 
   return true;
 }
@@ -428,13 +428,13 @@ void AbstrRenderer::ScheduleRecompose() {
 }
 
 void AbstrRenderer::ComputeMinLODForCurrentView() {
-  UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetInfo()->GetDomainSize());
-  FLOATVECTOR3 vfExtend     = (FLOATVECTOR3(viVoxelCount) / viVoxelCount.maxVal()) * FLOATVECTOR3(m_pDataset->GetInfo()->GetScale() / m_pDataset->GetInfo()->GetScale().maxVal() );
+  UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize());
+  FLOATVECTOR3 vfExtend     = (FLOATVECTOR3(viVoxelCount) / viVoxelCount.maxVal()) * FLOATVECTOR3(m_pDataset->GetInfo().GetScale() / m_pDataset->GetInfo().GetScale().maxVal() );
 
   // TODO consider real extent not center
 
   FLOATVECTOR3 vfCenter(0,0,0);
-  m_iMinLODForCurrentView = max(0, min<int>(m_pDataset->GetInfo()->GetLODLevelCount()-1,m_FrustumCullingLOD.GetLODLevel(vfCenter,vfExtend,viVoxelCount)));
+  m_iMinLODForCurrentView = max(0, min<int>(m_pDataset->GetInfo().GetLODLevelCount()-1,m_FrustumCullingLOD.GetLODLevel(vfCenter,vfExtend,viVoxelCount)));
 }
 
 /// Calculates the distance to a given brick given the current view
@@ -495,12 +495,12 @@ vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
 vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
   vector<Brick> vBrickList;
 
-  UINT64VECTOR3 vOverlap = m_pDataset->GetInfo()->GetBrickOverlapSize();
-  UINT64VECTOR3 vBrickDimension = m_pDataset->GetInfo()->GetBrickCount(m_iCurrentLOD);
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo()->GetDomainSize(m_iCurrentLOD);
-  FLOATVECTOR3 vScale(m_pDataset->GetInfo()->GetScale().x,
-                      m_pDataset->GetInfo()->GetScale().y,
-                      m_pDataset->GetInfo()->GetScale().z);
+  UINT64VECTOR3 vOverlap = m_pDataset->GetInfo().GetBrickOverlapSize();
+  UINT64VECTOR3 vBrickDimension = m_pDataset->GetInfo().GetBrickCount(m_iCurrentLOD);
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize(m_iCurrentLOD);
+  FLOATVECTOR3 vScale(m_pDataset->GetInfo().GetScale().x,
+                      m_pDataset->GetInfo().GetScale().y,
+                      m_pDataset->GetInfo().GetScale().z);
 
   FLOATVECTOR3 vDomainExtend = vScale * FLOATVECTOR3(vDomainSize);
   float fDownscale = vDomainExtend.maxVal();
@@ -512,14 +512,14 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     Brick b;
     for (UINT64 y = 0;y<vBrickDimension.y;y++) {
       for (UINT64 x = 0;x<vBrickDimension.x;x++) {
-        UINT64VECTOR3 vSize = m_pDataset->GetInfo()->GetBrickSize(
+        UINT64VECTOR3 vSize = m_pDataset->GetInfo().GetBrickSize(
                                 Metadata::BrickKey(m_iCurrentLOD,
                                                    UINT64VECTOR3(x,y,z))
                               );
         b = Brick(x,y,z, UINT32(vSize.x), UINT32(vSize.y), UINT32(vSize.z));
 
         FLOATVECTOR3 vEffectiveSize =
-          m_pDataset->GetInfo()->GetEffectiveBrickSize(
+          m_pDataset->GetInfo().GetEffectiveBrickSize(
             Metadata::BrickKey(m_iCurrentLOD, UINT64VECTOR3(x,y,z))
           );
 
@@ -564,7 +564,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
         }
 
         bool bContainsData;
-        const Metadata& md = *(m_pDataset->GetInfo());
+        const Metadata& md = m_pDataset->GetInfo();
         switch (m_eRenderMode) {
           case RM_1DTRANS:
             bContainsData = md.ContainsData(
@@ -697,8 +697,8 @@ void AbstrRenderer::Plan3DFrame() {
 
     // compute current LOD level
     m_iCurrentLODOffset--;
-    m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,m_pDataset->GetInfo()->GetLODLevelCount()-1);
-    UINT64VECTOR3 vBrickCount = m_pDataset->GetInfo()->GetBrickCount(m_iCurrentLOD);
+    m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,m_pDataset->GetInfo().GetLODLevelCount()-1);
+    UINT64VECTOR3 vBrickCount = m_pDataset->GetInfo().GetBrickCount(m_iCurrentLOD);
 
     // build new brick todo-list
     m_vCurrentBrickList = BuildSubFrameBrickList();
@@ -722,7 +722,7 @@ void AbstrRenderer::PlanHQMIPFrame() {
 
   m_FrustumCullingLOD.SetPassAll(true);
 
-  UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetInfo()->GetDomainSize());
+  UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize());
 
   m_iCurrentLODOffset = 0;
   m_iCurrentLOD = 0;
@@ -735,7 +735,7 @@ void AbstrRenderer::PlanHQMIPFrame() {
   }
 
   if (m_iCurrentLOD > 0) {
-    m_iCurrentLOD = min<int>(m_pDataset->GetInfo()->GetLODLevelCount()-1,m_iCurrentLOD-1);
+    m_iCurrentLOD = min<int>(m_pDataset->GetInfo().GetLODLevelCount()-1,m_iCurrentLOD-1);
   }
 
   // build new brick todo-list

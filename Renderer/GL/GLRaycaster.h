@@ -67,7 +67,7 @@ class GLRaycaster : public GLRenderer {
     /// Can only use CV on scalar datasets.  There's nothing really preventing
     /// its application to RGBA datasets, but shaders would need updating (and
     /// they haven't been)
-    virtual bool SupportsClearView() {return m_pDataset->GetInfo()->GetComponentCount() == 1;}
+    virtual bool SupportsClearView() {return m_pDataset->GetInfo().GetComponentCount() == 1;}
 
     virtual void DisableClipPlane();
 

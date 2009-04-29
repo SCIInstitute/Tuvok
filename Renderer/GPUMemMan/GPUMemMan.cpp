@@ -521,11 +521,11 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
     }
   }
 
-  const UVFMetadata* md = dynamic_cast<const UVFMetadata*>
+  const UVFMetadata& md = dynamic_cast<const UVFMetadata&>
                                       (pDataset->GetInfo());
-  const vector<UINT64> vSize = md->GetBrickSizeND(vLOD, vBrick);
-  UINT64 iBitWidth  = pDataset->GetInfo()->GetBitWidth();
-  UINT64 iCompCount = pDataset->GetInfo()->GetComponentCount();
+  const vector<UINT64> vSize = md.GetBrickSizeND(vLOD, vBrick);
+  UINT64 iBitWidth  = pDataset->GetInfo().GetBitWidth();
+  UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
 
   UINT64 iNeededCPUMemory = iBitWidth * iCompCount * vSize[0];
   for (size_t i = 1;i<vSize.size();i++) iNeededCPUMemory *= vSize[i];
