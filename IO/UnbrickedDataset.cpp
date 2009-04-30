@@ -31,6 +31,7 @@
            SCI Institute
            University of Utah
 */
+#include <algorithm>
 #include <cstring>
 #include <cstdlib>
 #include "UnbrickedDataset.h"

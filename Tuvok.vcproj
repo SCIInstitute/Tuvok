@@ -1685,11 +1685,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -2239,6 +2239,22 @@
 			</File>
 			<File
 				RelativePath=".\IO\Tuvok_QtPlugins.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\UnbrickedDataset.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\UnbrickedDataset.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\UnbrickedDSMetadata.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\UnbrickedDSMetadata.h"
 				>
 			</File>
 			<File
