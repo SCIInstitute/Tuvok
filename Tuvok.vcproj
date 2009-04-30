@@ -1685,11 +1685,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -2131,14 +2131,6 @@
 			</File>
 			<File
 				RelativePath=".\IO\BOVConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\CoreVolume.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\CoreVolume.h"
 				>
 			</File>
 			<File
