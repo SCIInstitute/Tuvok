@@ -169,7 +169,6 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            3rdParty/jpeglib/jidctint.c \
            3rdParty/jpeglib/jidctred.c \
            3rdParty/jpeglib/jutils.c \
-           3rdParty/jpeglib/rdbmp.c \
            3rdParty/jpeglib/rdcolmap.c \
            3rdParty/jpeglib/jmemnobs.c \
            3rdParty/jpeglib/jquant1.c \
@@ -179,9 +178,6 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            3rdParty/jpeglib/jccolor.c \
            3rdParty/jpeglib/jcinit.c \
            3rdParty/jpeglib/jdapimin.c \
-           3rdParty/jpeglib/rdppm.c \
-           3rdParty/jpeglib/rdtarga.c \
-           3rdParty/jpeglib/wrppm.c \
            3rdParty/jpeglib/cdjpeg.c \
            3rdParty/jpeglib/jcdiffct.c \
            3rdParty/jpeglib/jchuff.c \
@@ -196,7 +192,6 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            3rdParty/jpeglib/jdcoefct.c \
            3rdParty/jpeglib/jdinput.c \
            3rdParty/jpeglib/jdlossls.c \
-           3rdParty/jpeglib/rdrle.c \
            3rdParty/jpeglib/jdmainct.c \
            3rdParty/jpeglib/jdmarker.c \
            3rdParty/jpeglib/jdphuff.c \
