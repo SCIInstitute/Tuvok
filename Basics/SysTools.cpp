@@ -41,6 +41,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cctype>
+#include <functional>
 #include <iterator>
 #include <sstream>
 #include <sys/stat.h>
