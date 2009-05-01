@@ -34,6 +34,7 @@
   \date    August 2008
 */
 
+#include "Basics/Vectors.h"
 #include "GLFrameCapture.h"
 #include "GLInclude.h"
 

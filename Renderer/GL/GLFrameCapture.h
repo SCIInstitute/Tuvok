@@ -40,6 +40,7 @@
 #define GLFRAMECAPTURE_H
 
 #include "../../StdTuvokDefines.h"
+#include <vector>
 #include "../FrameCapture.h"
 
 class GLFrameCapture : public FrameCapture {
