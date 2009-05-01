@@ -1685,11 +1685,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -2077,27 +2077,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\jpeglib\rdbmp.c"
-					>
-				</File>
-				<File
 					RelativePath=".\3rdParty\jpeglib\rdcolmap.c"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\jpeglib\rdppm.c"
-					>
-				</File>
-				<File
-					RelativePath=".\3rdParty\jpeglib\rdrle.c"
-					>
-				</File>
-				<File
 					RelativePath=".\3rdParty\jpeglib\rdswitch.c"
-					>
-				</File>
-				<File
-					RelativePath=".\3rdParty\jpeglib\rdtarga.c"
 					>
 				</File>
 				<File
@@ -2106,10 +2090,6 @@
 				</File>
 				<File
 					RelativePath=".\3rdParty\jpeglib\transupp.h"
-					>
-				</File>
-				<File
-					RelativePath=".\3rdParty\jpeglib\wrppm.c"
 					>
 				</File>
 			</Filter>
