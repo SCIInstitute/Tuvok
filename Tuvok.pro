@@ -254,6 +254,7 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            DebugOut/MultiplexOut.cpp \
            Scripting/Scripting.cpp \
            Renderer/CullingLOD.cpp \
+           Renderer/FrameCapture.cpp \
            Renderer/GL/GLFrameCapture.cpp \
            Renderer/GL/GLSLProgram.cpp \
            Renderer/GL/GLTexture.cpp \
