@@ -38,20 +38,14 @@
 #ifndef STDTUVOKDEFINES_H
 #define STDTUVOKDEFINES_H
 
+// Make sure windows doesn't give us stupid macros.
+#define NOMINMAX
+
 #define BOOST_FILESYSTEM_STATIC_LINK 1
 #ifdef __cplusplus
 # include <limits>
 #else
 # include <limits.h>
-#endif
-
-// undef stupid windows defines to max and min
-#ifdef max
-#undef max
-#endif
-
-#ifdef min
-#undef min
 #endif
 
 #ifdef _WIN32
