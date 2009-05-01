@@ -58,7 +58,7 @@ UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
 
   // we also assume that x,y,z are in the first 3 components and
   // we have no anisotropy (i.e. ulLODLevelCount.size=1)
-  m_iLODLevel = m_pVolumeDataBlock->ulLODLevelCount[0];
+  m_iLODLevel = static_cast<size_t>(m_pVolumeDataBlock->ulLODLevelCount[0]);
   for (size_t i = 0;i<3;i++) {
     m_aOverlap[i] = m_pVolumeDataBlock->ulBrickOverlap[i];
     m_aMaxBrickSize[i] = m_pVolumeDataBlock->ulBrickSize[i];

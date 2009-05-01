@@ -141,7 +141,7 @@ class UVFMetadata : public Metadata {
     bool                       m_bIsSameEndianness;
     std::vector<UINT64VECTOR3> m_aDomainSize;
     UINT64VECTOR3              m_aMaxBrickSize;
-    UINT64                     m_iLODLevel;
+    size_t                     m_iLODLevel;
     DOUBLEVECTOR3              m_aScale;
     std::vector<UINT64VECTOR3> m_vaBrickCount;
     std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >
