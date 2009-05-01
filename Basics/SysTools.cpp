@@ -37,10 +37,12 @@
 */
 
 #include <algorithm>
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
+#include <cctype>
+#include <iterator>
 #include <sstream>
-#include <errno.h>
 #include <sys/stat.h>
 
 #include "StdTuvokDefines.h"
@@ -762,32 +764,46 @@ namespace SysTools {
     return FindNextSequenceName(fileName, ext, dir);
   }
 
-  string  FindNextSequenceName(const string& fileName, const string& ext, const string& dir) {
+  // Functor to identify the numeric ID appended to a given filename.
+  struct fileNumber : public std::unary_function<std::string, size_t> {
+    size_t operator()(const std::string& filename) const {
+      // get just the filename itself, without extension or path information.
+      std::string fn = RemoveExt(GetFilename(filename));
+
+      // Find where the numbers start.
+      std::string::iterator numerals = std::find_if(fn.begin(), fn.end(),
+                                                    ::isdigit);
+      if(numerals == fn.end()) { // give back `0' if there were no numerals.
+        return 0;
+      }
+      // Otherwise try to convert it to a size_t and return that.
+      size_t retval = 0;
+      FromString(retval, std::string(&*numerals));
+      return retval;
+    }
+  };
+
+  // Given a filename model and a directory, identify the next filename in the
+  // sequence.  Sequences start at 0 and increment.
+  string FindNextSequenceName(const string& fileName, const string& ext,
+                              const string& dir) {
     stringstream out;
     vector<string> files = GetDirContents(dir, fileName+"*", ext);
 
-    UINT32 iMaxIndex = 0;
-    for (size_t i = 0; i<files.size();i++) {
-      string curFilename = RemoveExt(files[i]);
+    // Get a list of all the trailing numeric values.
+    std::vector<size_t> values;
+    values.reserve(files.size());
+    std::transform(files.begin(), files.end(), std::back_inserter(values),
+                   fileNumber());
 
-      string rest = RemoveExt(curFilename).substr(fileName.length());
-      for (size_t j = 0; j<rest.size();j++) {
-        if (rest[j] != '0' && rest[j] != '1' && rest[j] != '2' && rest[j] != '3' &&
-            rest[j] != '4' && rest[j] != '5' && rest[j] != '6' && rest[j] != '7' &&
-            rest[j] != '8' && rest[j] != '9') {
-              rest.clear();
-              break;
-        }
-      }
-      if (rest.length() == 0) continue;
-      UINT32 iCurrIndex = UINT32(atoi(rest.c_str()));
-      iMaxIndex = (iMaxIndex <= iCurrIndex) ? iCurrIndex+1 : iMaxIndex;
+    // No files in the dir?  Default to 0.
+    if(values.empty()) {
+      out << dir << fileName << 0 << "." << ext;
+    } else {
+      // Otherwise, the next number is the current max + 1.
+      size_t max_val = *(std::max_element(values.begin(), values.end()));
+      out << dir << fileName << max_val+1 << "." << ext;
     }
-
-    if (dir == "" || dir[dir.size()-1] == '\\' ||  dir[dir.size()-1] == '/')
-      out << dir << fileName << iMaxIndex << "." << ext;
-    else
-      out << dir << "/" << fileName << iMaxIndex << "." << ext;
 
     return out.str();
   }
