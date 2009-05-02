@@ -41,7 +41,7 @@
 #include <deque>
 #include "../../StdTuvokDefines.h"
 #include "Basics/Vectors.h"
-#include "3rdParty/GLEW/glew.h"
+#include "GL/glew.h"
 #include "GPUMemManDataStructs.h"
 
 class AbstrRenderer;
