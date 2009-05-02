@@ -1343,7 +1343,8 @@ void GLRenderer::SetDataDepShaderVars() {
 
   // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
   float fScale         = CalculateScaling();
-  float fGradientScale = (m_pDataset->GetMaxGradMagnitude() == 0) ? 1.0f : 1.0f/m_pDataset->GetMaxGradMagnitude();
+  float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
+                          1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
 
   MESSAGE("Transfer function scaling factor: %5.3f", fScale);
   MESSAGE("Gradient scaling factor: %5.3f", fGradientScale);

@@ -59,8 +59,6 @@ public:
   virtual ~UVFDataset();
 
   float MaxGradientMagnitude() const { return m_fMaxGradMagnitude; }
-  /// @todo FIXME remove this API
-  float GetMaxGradMagnitude() const { return m_fMaxGradMagnitude; }
 
   bool IsOpen() const { return m_bIsOpen; }
   std::string Filename() const { return m_strFilename; }

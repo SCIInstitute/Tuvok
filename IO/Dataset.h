@@ -60,8 +60,6 @@ public:
   const Histogram1D& Get1DHistogram() const { return *m_pHist1D; }
   const Histogram2D& Get2DHistogram() const { return *m_pHist2D; }
   virtual float MaxGradientMagnitude() const = 0;
-  /// @todo FIXME remove this API
-  virtual float GetMaxGradMagnitude() const = 0;
 
   virtual UINTVECTOR3 GetBrickSize(const BrickKey&) const = 0;
   virtual bool GetBrick(const BrickKey&, unsigned char **) const = 0;
