@@ -1128,22 +1128,26 @@
 			<Filter
 				Name="GLEW"
 				>
-				<File
-					RelativePath=".\3rdParty\GLEW\glew.c"
+				<Filter
+					Name="GL"
 					>
-				</File>
-				<File
-					RelativePath=".\3rdParty\GLEW\glew.h"
-					>
-				</File>
-				<File
-					RelativePath=".\3rdParty\GLEW\glxew.h"
-					>
-				</File>
-				<File
-					RelativePath=".\3rdParty\GLEW\wglew.h"
-					>
-				</File>
+					<File
+						RelativePath=".\3rdParty\GLEW\GL\glew.c"
+						>
+					</File>
+					<File
+						RelativePath=".\3rdParty\GLEW\GL\glew.h"
+						>
+					</File>
+					<File
+						RelativePath=".\3rdParty\GLEW\GL\glxew.h"
+						>
+					</File>
+					<File
+						RelativePath=".\3rdParty\GLEW\GL\wglew.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 			<Filter
 				Name="zlib"
@@ -1685,11 +1689,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
