@@ -37,7 +37,6 @@
 #include "GPUMemManDataStructs.h"
 #include "Basics/MathTools.h"
 #include "Controller/Controller.h"
-#include "IO/VolumeDataset.h"
 #include "IO/uvfDataset.h"
 #include "IO/uvfMetadata.h"
 #include "Renderer/GL/GLTexture3D.h"

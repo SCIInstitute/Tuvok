@@ -44,7 +44,6 @@
 #include "../StdTuvokDefines.h"
 #include "../Renderer/CullingLOD.h"
 #include "../IO/uvfDataset.h"
-#include "../IO/VolumeDataset.h"
 #include "../Basics/Plane.h"
 
 class TransferFunction1D;
