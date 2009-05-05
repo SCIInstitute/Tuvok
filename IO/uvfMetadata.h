@@ -63,10 +63,10 @@ class UVFMetadata : public Metadata {
     }
     UINT64VECTOR3 GetBrickSize(const NDBrickKey &) const;
     /// Gives the size of a brick in real space.
-    virtual FLOATVECTOR3 GetEffectiveBrickSize(const BrickKey &k) const {
+    virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &k) const {
       return this->GetEffectiveBrickSize(this->KeyToNDKey(k));
     }
-    FLOATVECTOR3 GetEffectiveBrickSize(const NDBrickKey &) const;
+    UINT64VECTOR3 GetEffectiveBrickSize(const NDBrickKey &) const;
     ///@}
 
     /// Per-dataset information.

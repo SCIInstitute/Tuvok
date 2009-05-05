@@ -518,12 +518,12 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
                               );
         b = Brick(x,y,z, UINT32(vSize.x), UINT32(vSize.y), UINT32(vSize.z));
 
-        FLOATVECTOR3 vEffectiveSize =
+        UINT64VECTOR3 vEffectiveSize =
           m_pDataset->GetInfo().GetEffectiveBrickSize(
             Metadata::BrickKey(m_iCurrentLOD, UINT64VECTOR3(x,y,z))
           );
 
-        b.vExtension = (vEffectiveSize* vScale)/fDownscale;
+        b.vExtension = (FLOATVECTOR3(vEffectiveSize)* vScale)/fDownscale;
 
         // compute center of the brick
         b.vCenter = (vBrickCorner + b.vExtension/2.0f)-vDomainExtend*0.5f;

@@ -59,7 +59,7 @@ class Metadata {
     virtual UINT64VECTOR3 GetBrickCount(const UINT64 lod) const = 0;
     virtual UINT64VECTOR3 GetBrickSize(const BrickKey &) const = 0;
     /// Gives the size of a brick in real space.
-    virtual FLOATVECTOR3 GetEffectiveBrickSize(const BrickKey &) const = 0;
+    virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const = 0;
     ///@}
 
     /// Per-dataset information.

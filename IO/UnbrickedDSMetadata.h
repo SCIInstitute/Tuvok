@@ -55,11 +55,8 @@ public:
   UINT64VECTOR3 GetBrickSize(const BrickKey &) const {
     return GetDomainSize(); // one brick for the whole domain
   }
-  FLOATVECTOR3 GetEffectiveBrickSize(const BrickKey &) const {
-    const UINT64VECTOR3 domain = GetDomainSize();
-    return FLOATVECTOR3(static_cast<float>(domain[0]),
-                        static_cast<float>(domain[1]),
-                        static_cast<float>(domain[2]));
+  UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const {
+    return GetDomainSize();
   }
 
   UINT64VECTOR3 GetDomainSize(const UINT64 = 0) const {

@@ -162,7 +162,7 @@ UINT64VECTOR3 UVFMetadata::GetBrickSize(const NDBrickKey &k) const
 
 
 // Gives the size of a brick in real space.
-FLOATVECTOR3 UVFMetadata::GetEffectiveBrickSize(const NDBrickKey &k) const
+UINT64VECTOR3 UVFMetadata::GetEffectiveBrickSize(const NDBrickKey &k) const
 {
   const UINT64 iLOD = k.first[0];
   const size_t vBrick[3] = {
@@ -170,9 +170,11 @@ FLOATVECTOR3 UVFMetadata::GetEffectiveBrickSize(const NDBrickKey &k) const
     static_cast<size_t>(k.second[0].y),
     static_cast<size_t>(k.second[0].z)
   };
-  FLOATVECTOR3 vBrickSize(m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].x,
-                          m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].y,
-                          m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].z);
+  UINT64VECTOR3 vBrickSize(
+    m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].x,
+    m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].y,
+    m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].z
+  );
 
   if (m_vaBrickCount[iLOD].x > 1) {
     if (vBrick[0] > 0) vBrickSize.x -= m_aOverlap.x/2.0f;
