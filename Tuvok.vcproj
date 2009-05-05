@@ -654,6 +654,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Basics\StdDefines.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Basics\SystemInfo.cpp"
 				>
 			</File>
@@ -1689,11 +1693,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File

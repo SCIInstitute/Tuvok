@@ -38,6 +38,8 @@
 #ifndef STDTUVOKDEFINES_H
 #define STDTUVOKDEFINES_H
 
+#include <Basics/StdDefines.h>
+
 // Make sure windows doesn't give us stupid macros.
 #define NOMINMAX
 
@@ -47,20 +49,6 @@
 #else
 # include <limits.h>
 #endif
-
-#ifdef _WIN32
-  typedef unsigned __int64 UINT64;
-#else
-  typedef unsigned long long UINT64;
-#endif
-typedef unsigned int UINT32;
-typedef unsigned char BYTE;
-
-#define UNUSED (0)
-#define UNUSED_FLOAT (0.0f)
-#define UNUSED_DOUBLE (0.0)
-#define UINT32_INVALID (std::numeric_limits<UINT32>::max())
-#define UINT64_INVALID (std::numeric_limits<UINT64>::max())
 
 #define TUVOK_VERSION 0.07
 #define TUVOK_VERSION_TYPE "beta"
