@@ -57,18 +57,25 @@ UnbrickedDataset::UnbrickedDataset()
 }
 UnbrickedDataset::~UnbrickedDataset() {}
 
+// There's only one brick!  Ignore the key they gave us, just return the domain
+// size.
+UINTVECTOR3 UnbrickedDataset::GetBrickSize(const BrickKey&) const
+{
+  // arguments to GetBrickSize are garbage, only to satisfy interface
+  /// \todo FIXME Datasets and Metadata use different BrickKeys (uint,uint
+  /// versus uint,uint3vec)!
+  UINT64VECTOR3 sz = GetInfo().GetBrickSize(
+                       UnbrickedDSMetadata::BrickKey(0, UINT64VECTOR3(0,0,0))
+                     );
+  return UINTVECTOR3(sz[0],sz[1],sz[2]);
+}
+
 bool UnbrickedDataset::GetBrick(const BrickKey&, unsigned char **brick) const
 {
   if(*brick == NULL) {
     *brick = new unsigned char[m_vScalar.size()];
   }
-  // arguments to GetBrickSize are garbage, only to satisfy interface
-  /// \todo FIXME Datasets and Metadata use different BrickKeys (uint,uint
-  /// versus uint,uint3vec)!
-  UINT64VECTOR3 sz = GetInfo().GetBrickSize(
-                                  UnbrickedDSMetadata::BrickKey(
-                                          0, UINT64VECTOR3(0,0,0))
-                               );
+  UINTVECTOR3 sz = this->GetBrickSize();
 
   MESSAGE("Copying brick of size %zu, dimensions %lu %lu %lu...",
           m_vScalar.size(), sz[0], sz[1], sz[2]);
