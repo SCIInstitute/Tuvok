@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Tuvok"
 	ProjectGUID="{D474A1E1-2ED3-42E6-826C-372430E549B9}"
 	RootNamespace="Tuvoc"
@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR32)/include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -71,7 +71,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR32)\lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR64)/include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -139,7 +139,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR64)lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR64)\lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -187,7 +187,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR32)/include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -207,7 +207,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR32)\lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -256,7 +256,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR64)/include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -276,7 +276,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR64)lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR64)\lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -322,7 +322,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR32)/include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -343,7 +343,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR32)\lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -390,7 +390,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR64)/include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -411,7 +411,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR64)lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR64)\lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -459,7 +459,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR32)/include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -479,7 +479,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR32)lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR32)\lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -528,7 +528,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty/boost;3rdParty/GLEW;.;&quot;$(QTDIR64)/include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -548,7 +548,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalLibraryDirectories="&quot;$(QTDIR64)lib&quot;"
+				AdditionalLibraryDirectories="&quot;$(QTDIR64)\lib&quot;"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -1689,11 +1689,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
