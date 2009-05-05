@@ -88,7 +88,7 @@ class GLRenderer : public AbstrRenderer {
     GLTargetBinder  m_TargetBinder;
     GLTexture1D*    m_p1DTransTex;
     GLTexture2D*    m_p2DTransTex;
-    unsigned char*  m_p1DData;
+    std::vector<unsigned char> m_p1DData;
     unsigned char*  m_p2DData;
     GLFBOTex*       m_pFBO3DImageLast;
     GLFBOTex*       m_pFBO3DImageCurrent[2];

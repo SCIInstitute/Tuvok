@@ -317,11 +317,10 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
   *ppTransferFunction1D = new TransferFunction1D(iSize);
   (*ppTransferFunction1D)->SetStdFunction();
 
-  unsigned char* pcData = NULL;
-  (*ppTransferFunction1D)->GetByteArray(&pcData);
+  std::vector<unsigned char> vTFData;
+  (*ppTransferFunction1D)->GetByteArray(vTFData);
   *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
-                         GL_RGBA, GL_UNSIGNED_BYTE, 4, pcData);
-  delete [] pcData;
+                         GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0));
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetGPUSize();
@@ -336,10 +335,10 @@ void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* req
 
   if (iSize != 0 && (*ppTransferFunction1D)->GetSize() != iSize) (*ppTransferFunction1D)->Resample(iSize);
 
-  unsigned char* pcData = NULL;
-  (*ppTransferFunction1D)->GetByteArray(&pcData);
-  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
-  delete [] pcData;
+  std::vector<unsigned char> vTFData;
+  (*ppTransferFunction1D)->GetByteArray(vTFData);
+  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
+                         GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0));
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetGPUSize();

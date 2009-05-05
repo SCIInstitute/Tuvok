@@ -90,7 +90,6 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
 }
 
 GLRenderer::~GLRenderer() {
-  delete [] m_p1DData;
   delete [] m_p2DData;
 }
 
@@ -242,8 +241,8 @@ bool GLRenderer::Initialize() {
 }
 
 void GLRenderer::Changed1DTrans() {
-  m_p1DTrans->GetByteArray(&m_p1DData);
-  m_p1DTransTex->SetData(m_p1DData);
+  m_p1DTrans->GetByteArray(m_p1DData);
+  m_p1DTransTex->SetData(&m_p1DData.at(0));
 
   AbstrRenderer::Changed1DTrans();
 }

@@ -304,17 +304,14 @@ bool TransferFunction1D::Save(ofstream& file) const {
 }
 
 
-void TransferFunction1D::GetByteArray(unsigned char** pcData,
+void TransferFunction1D::GetByteArray(std::vector<unsigned char>& vData,
                                       unsigned char cUsedRange) const {
   // bail out immediately if we've got no data
   if(vColorData.empty()) { return; }
 
-  if(*pcData != NULL) {
-    delete[] *pcData;
-  }
-  *pcData = new unsigned char[vColorData.size()*4];
+  vData.resize(vColorData.size() * 4);
 
-  unsigned char *pcDataIterator = *pcData;
+  unsigned char *pcDataIterator = &vData.at(0);
   for (size_t i = 0;i<vColorData.size();i++) {
     *pcDataIterator++ = (unsigned char)(vColorData[i][0]*cUsedRange);
     *pcDataIterator++ = (unsigned char)(vColorData[i][1]*cUsedRange);

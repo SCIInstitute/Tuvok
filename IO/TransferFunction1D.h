@@ -77,7 +77,7 @@ public:
 
   void Clear();
 
-  void GetByteArray(unsigned char** pcData,
+  void GetByteArray(std::vector<unsigned char>& vData,
                     unsigned char cUsedRange = 255) const;
   void GetShortArray(unsigned short** psData,
                      unsigned short sUsedRange=4095) const;
