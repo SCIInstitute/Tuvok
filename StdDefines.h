@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -26,62 +26,31 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-
 /**
-  \file    Appendix.cpp
+  \file    StdDefines.h
   \author  Jens Krueger
            SCI Institute
            University of Utah
-  \date    January 2009
+  \date    May 2009
 */
 
 #pragma once
 
-#ifndef APPENDIX_H
-#define APPENDIX_H
+#ifndef STDDEFINES_H
+#define STDDEFINES_H
 
-#include <vector>
-#include <string>
-#include "StdDefines.h"
+#ifdef _WIN32
+  typedef unsigned __int64 UINT64;
+#else
+  typedef unsigned long long UINT64;
+#endif
+typedef unsigned int UINT32;
+typedef unsigned char BYTE;
 
-/** \class FileInfo */
-class FileInfo {
-public:
-  FileInfo(std::string strName, UINT64 iSize) :
-    m_strName(strName),
-    m_iSize(iSize) {}
-  
-    std::string m_strName;
-    UINT64 m_iSize;
-};
+#define UNUSED (0)
+#define UNUSED_FLOAT (0.0f)
+#define UNUSED_DOUBLE (0.0)
+#define UINT32_INVALID (std::numeric_limits<UINT32>::max())
+#define UINT64_INVALID (std::numeric_limits<UINT64>::max())
 
-class InternalFileInfo : public FileInfo {
-public:
-  InternalFileInfo(std::string strName, UINT64 iSize, UINT64 iOffset) :
-    FileInfo(strName, iSize),
-    m_iOffset(iOffset) {}
-  
-    UINT64 m_iOffset;
-};
-
-/** \class Appendix */
-class Appendix
-{
-  public:
-    Appendix(std::string strTarget, const std::vector<std::string>& vstrSource);
-    Appendix(std::string strAPXFile);
-
-    bool IsOK() {return m_bOK;}
-    bool ExtractFile(size_t i, std::string strTarget);
-
-    std::vector<FileInfo> ListFiles();
-
-  protected:
-    std::string                   m_strAPXFile;
-    UINT64                        m_iHeaderLength;
-    bool                          m_bOK;
-    std::vector<InternalFileInfo> m_vHeaderData;
-
-};
-
-#endif // APPENDIX_H
+#endif // STDDEFINES_H
