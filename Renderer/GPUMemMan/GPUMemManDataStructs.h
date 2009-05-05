@@ -44,6 +44,7 @@
 #include <vector>
 #include "GL/glew.h"
 #include "boost/noncopyable.hpp"
+#include "Basics/Vectors.h"
 #include "../Context.h"
 #include "../../StdTuvokDefines.h"
 #include "../GL/GLFBOTex.h"
@@ -158,6 +159,10 @@ public:
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, UINT64& iIntraFrameCounter,
                  UINT64& iFrameCounter, const tuvok::CTContext &);
+  bool BestMatch(const UINT64VECTOR3& vDimension,
+                 bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
+                 bool bDisableBorder, UINT64& iIntraFrameCounter,
+                 UINT64& iFrameCounter, const tuvok::CTContext &ctx);
   GLTexture3D* Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter);
 
   bool LoadData();

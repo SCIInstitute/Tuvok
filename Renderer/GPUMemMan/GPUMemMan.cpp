@@ -37,6 +37,7 @@
 #include <cassert>
 #include <algorithm>
 #include <functional>
+#include <numeric>
 #include "GPUMemManDataStructs.h"
 #include "GPUMemMan.h"
 #include "Renderer/AbstrRenderer.h"
@@ -502,6 +503,30 @@ bool GPUMemMan::IsResident(const Dataset* pDataset,
   return false;
 }
 
+/// Calculates the amount of memory the given brick will take up.
+/// Slightly complicated because we might have an N-dimensional brick.
+static UINT64
+required_cpu_memory(const Metadata& md,
+                    const std::vector<UINT64>& vLOD,
+                    const std::vector<UINT64>& vBrick)
+{
+  UINT64 mem = 1;
+  try {
+    const UVFMetadata& umd = dynamic_cast<const UVFMetadata&>(md);
+    const std::vector<UINT64> vSize = umd.GetBrickSizeND(vLOD, vBrick);
+    mem = std::accumulate(vSize.begin(), vSize.end(), 1,
+                          std::multiplies<UINT64>());
+  } catch(const std::bad_cast&) {
+    const size_t lod = vLOD[0];
+    const UINT64VECTOR3 brick(vBrick[0],vBrick[1],vBrick[2]);
+    const UINT64VECTOR3 sz = md.GetBrickSize(Metadata::BrickKey(lod, brick));
+    mem = sz[0] * sz[1] * sz[2];
+  }
+  mem *= md.GetBitWidth();
+  mem *= md.GetComponentCount();
+  return mem;
+}
+
 
 GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
                                      const vector<UINT64>& vLOD,
@@ -521,19 +546,20 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
     }
   }
 
-  const UVFMetadata& md = dynamic_cast<const UVFMetadata&>
-                                      (pDataset->GetInfo());
-  const vector<UINT64> vSize = md.GetBrickSizeND(vLOD, vBrick);
-  UINT64 iBitWidth  = pDataset->GetInfo().GetBitWidth();
-  UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
+  UINT64 iNeededCPUMemory = required_cpu_memory(pDataset->GetInfo(),
+                                                vLOD, vBrick);
 
-  UINT64 iNeededCPUMemory = iBitWidth * iCompCount * vSize[0];
-  for (size_t i = 1;i<vSize.size();i++) iNeededCPUMemory *= vSize[i];
+  const UINT64VECTOR3 bk(vBrick[0], vBrick[1], vBrick[2]);
+  const UINT64VECTOR3 sz = pDataset->GetInfo().GetBrickSize(
+                              Metadata::BrickKey(vLOD[0], bk)
+                           );
+  const UINT64 iBitWidth = pDataset->GetInfo().GetBitWidth();
+  const UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
 
   // for OpenGL we ignore the GPU memory load and let GL do the paging
   if (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
     MESSAGE("Not enough memory for texture %i x %i x %i (%ibit * %i), paging ...",
-            int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth),
+            int(sz[0]), int(sz[1]), int(sz[2]), int(iBitWidth),
             int(iCompCount));
 
     // search for best brick to replace with this brick
@@ -541,6 +567,9 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
     UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
     Texture3DListIter iBestMatch;
     for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
+      const UVFMetadata& umd = dynamic_cast<const UVFMetadata&>
+                                           (pDataset->GetInfo());
+      const std::vector<UINT64> vSize = umd.GetBrickSizeND(vLOD, vBrick);
       if ((*i)->BestMatch(vSize, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
                           bDisableBorder, iTargetIntraFrameCounter,
                           iTargetFrameCounter, CTContext::Current())) {
@@ -588,7 +617,8 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
     }
   }
 
-  MESSAGE("Creating new texture %i x %i x %i, bitsize=%i, componentcount=%i", int(vSize[0]), int(vSize[1]), int(vSize[2]), int(iBitWidth), int(iCompCount));
+  MESSAGE("Creating new texture %i x %i x %i, bitsize=%i, componentcount=%i",
+          int(sz[0]), int(sz[1]), int(sz[2]), int(iBitWidth), int(iCompCount));
 
   Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, vLOD, vBrick,
                                                        bUseOnlyPowerOfTwo,

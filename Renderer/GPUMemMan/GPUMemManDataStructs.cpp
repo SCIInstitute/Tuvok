@@ -146,6 +146,22 @@ bool Texture3DListElem::BestMatch(const std::vector<UINT64>& vDimension,
   return false;
 }
 
+bool Texture3DListElem::BestMatch(const UINT64VECTOR3& vDimension,
+                                  bool bIsPaddedToPowerOfTwo,
+                                  bool bIsDownsampledTo8Bits,
+                                  bool bDisableBorder,
+                                  UINT64& iIntraFrameCounter,
+                                  UINT64& iFrameCounter,
+                                  const tuvok::CTContext &ctx) {
+  std::vector<UINT64> dim(3);
+  dim[0] = vDimension[0];
+  dim[1] = vDimension[1];
+  dim[2] = vDimension[2];
+  return this->BestMatch(dim, bIsPaddedToPowerOfTwo, bIsDownsampledTo8Bits,
+                         bDisableBorder, iIntraFrameCounter, iFrameCounter,
+                         ctx);
+}
+
 
 bool Texture3DListElem::Match(const std::vector<UINT64>& vDimension) {
   if (pTexture == NULL) return false;
