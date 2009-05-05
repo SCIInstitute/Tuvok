@@ -35,9 +35,11 @@
   \date    September 2008
 */
 
+#include <cstdlib>
 #include <fstream>
 #include <memory.h>
 #include "TransferFunction1D.h"
+#include "Controller/Controller.h"
 
 using namespace std;
 
@@ -87,6 +89,103 @@ void TransferFunction1D::SetStdFunction(float fCenterPoint, float fInvGradient, 
 
   for (size_t i = iRampEndPoint;i<vColorData.size();i++)
     vColorData[i][iComponent] = 1;
+
+  ComputeNonZeroLimits();
+}
+
+template<typename T>
+static bool is_nan(T) { std::abort(); } // Rely on specialization.
+template<>
+bool is_nan(float v) {
+  // This is only valid for ieee754.
+  return (v != v);
+}
+
+template<typename T>
+static bool is_infinite(T) { abort(); } // Rely on specialization.
+template<>
+bool is_infinite(float v) {
+  return (v ==  std::numeric_limits<float>::infinity() ||
+          v == -std::numeric_limits<float>::infinity());
+}
+
+template<typename in, typename out>
+static inline out
+lerp(in value, in imin, in imax, out omin, out omax)
+{
+  out ret = omin + (value-imin) * (static_cast<double>(omax-omin) /
+                                                      (imax-imin));
+#if 0
+  // Very useful while debugging.
+  if(is_nan(ret) || is_infinite(ret)) { return 0; }
+#endif
+  return ret;
+}
+
+/// Finds the minimum and maximum per-channel of a 4-component packed vector.
+template<typename ForwardIter, typename Out>
+void minmax_component4(ForwardIter first, ForwardIter last,
+                       Out c_min[4], Out c_max[4])
+{
+  c_min[0] = c_min[1] = c_min[2] = c_min[3] = *first;
+  c_max[0] = c_max[1] = c_max[2] = c_max[3] = *first;
+  if(first == last) { return; }
+  while(first < last) {
+    if(*(first+0) < c_min[0]) { c_min[0] = *(first+0); }
+    if(*(first+1) < c_min[1]) { c_min[1] = *(first+1); }
+    if(*(first+2) < c_min[2]) { c_min[2] = *(first+2); }
+    if(*(first+3) < c_min[3]) { c_min[3] = *(first+3); }
+
+    if(*(first+0) > c_max[0]) { c_max[0] = *(first+0); }
+    if(*(first+1) > c_max[1]) { c_max[1] = *(first+1); }
+    if(*(first+2) > c_max[2]) { c_max[2] = *(first+2); }
+    if(*(first+3) > c_max[3]) { c_max[3] = *(first+3); }
+
+    // Ugh.  Bail out if incrementing the iterator would go beyond the end.
+    // We'd never actually deref the iterator in that case (because of the
+    // while conditional), but we hit internal libstdc++ asserts anyway.
+    if(static_cast<size_t>(std::distance(first, last)) < 4) {
+      break;
+    }
+    std::advance(first, 4);
+  }
+}
+
+/// Set the transfer function from an external source.  Assumes the vector
+/// has 4-components per element, in RGBA order.
+void TransferFunction1D::Set(const std::vector<unsigned char>& tf)
+{
+  assert(!tf.empty());
+  vColorData.resize(tf.size()/4);
+
+  unsigned char tfmin[4];
+  unsigned char tfmax[4];
+  // A bit tricky.  We need the min/max of our vector so that we know how to
+  // interpolate, but it needs to be a per-channel min/max.
+  minmax_component4(tf.begin(),tf.end(), tfmin,tfmax);
+
+  // Similarly, we need the min/max of our output format.
+  const float fmin = 0.0;
+  const float fmax = 1.0;
+
+  assert(tfmin[0] <= tfmax[0]);
+  assert(tfmin[1] <= tfmax[1]);
+  assert(tfmin[2] <= tfmax[2]);
+  assert(tfmin[3] <= tfmax[3]);
+  MESSAGE("r min/max: %zu:%zu", size_t(tfmin[0]), size_t(tfmax[0]));
+  MESSAGE("g min/max: %zu:%zu", size_t(tfmin[1]), size_t(tfmax[1]));
+  MESSAGE("b min/max: %zu:%zu", size_t(tfmin[2]), size_t(tfmax[2]));
+  MESSAGE("a min/max: %zu:%zu", size_t(tfmin[3]), size_t(tfmax[3]));
+
+  for(size_t i=0; i < vColorData.size(); ++i) {
+    vColorData[i] = FLOATVECTOR4(
+      lerp(tf[4*i+0], tfmin[0],tfmax[0], fmin,fmax),
+      lerp(tf[4*i+1], tfmin[1],tfmax[1], fmin,fmax),
+      lerp(tf[4*i+2], tfmin[2],tfmax[2], fmin,fmax),
+      lerp(tf[4*i+3], static_cast<unsigned char>(0),
+                      static_cast<unsigned char>(255), fmin,fmax)
+    );
+  }
 
   ComputeNonZeroLimits();
 }
