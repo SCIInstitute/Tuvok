@@ -39,8 +39,6 @@
 #include <utility>
 #include "Basics/Vectors.h"
 
-typedef VECTOR3<UINT64> UINT64VECTOR3;
-
 namespace tuvok {
 
 class Metadata {
