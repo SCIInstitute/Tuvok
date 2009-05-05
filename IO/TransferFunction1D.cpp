@@ -210,7 +210,10 @@ void TransferFunction1D::GetByteArray(unsigned char** pcData,
   // bail out immediately if we've got no data
   if(vColorData.empty()) { return; }
 
-  if (*pcData == NULL) *pcData = new unsigned char[vColorData.size()*4];
+  if(*pcData != NULL) {
+    delete[] *pcData;
+  }
+  *pcData = new unsigned char[vColorData.size()*4];
 
   unsigned char *pcDataIterator = *pcData;
   for (size_t i = 0;i<vColorData.size();i++) {
