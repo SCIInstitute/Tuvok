@@ -349,6 +349,18 @@ class AbstrRenderer {
       m_vShaderSearchDirs.push_back(path);
     }
 
+    void SetViewParameters(float angle, float znear, float zfar,
+                           const FLOATVECTOR3& eye,
+                           const FLOATVECTOR3& ref,
+                           const FLOATVECTOR3& vup) {
+      m_vEye = eye;
+      m_vAt = ref;
+      m_vUp = vup;
+      m_fFOV = angle;
+      m_fZNear = znear;
+      m_fZFar = zfar;
+    }
+
   protected:
     MasterController*   m_pMasterController;
     bool                m_bPerformRedraw;
@@ -430,6 +442,13 @@ class AbstrRenderer {
     bool                m_bClipPlaneOn;
     bool                m_bClipPlaneDisplayed;
     bool                m_bClipPlaneLocked;
+
+    /// view parameters.
+    ///@{
+    FLOATVECTOR3        m_vEye, m_vAt, m_vUp;
+    float               m_fFOV;
+    float               m_fZNear, m_fZFar;
+    ///@}
 
     virtual void        ScheduleRecompose();
     void                ComputeMinLODForCurrentView();

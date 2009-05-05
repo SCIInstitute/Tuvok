@@ -101,7 +101,13 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bAvoidSeperateCompositing(true),
   m_bClipPlaneOn(false),
   m_bClipPlaneDisplayed(true),
-  m_bClipPlaneLocked(false)
+  m_bClipPlaneLocked(false),
+  m_vEye(0,0,1.6f),
+  m_vAt(0,0,0),
+  m_vUp(0,1,0),
+  m_fFOV(50.0f),
+  m_fZNear(0.1f),
+  m_fZFar(100.0f)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);

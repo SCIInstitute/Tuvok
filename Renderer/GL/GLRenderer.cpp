@@ -508,28 +508,30 @@ void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) 
   UINTVECTOR2 viSize = viUpperRight-viLowerLeft;
 
   float fAspect =(float)viSize.x/(float)viSize.y;
-  float fFOVY  = 50.0f;
-  float fZNear = 0.1f;
-  float fZFar  = 100.0f;
-  FLOATVECTOR3 vEye(0,0,1.6f), vAt(0,0,0), vUp(0,1,0);
 
   // viewport
   glViewport(viLowerLeft.x,viLowerLeft.y,viSize.x,viSize.y);
 
   if (m_bDoStereoRendering) {
-    FLOATMATRIX4::BuildStereoLookAtAndProjection(vEye, vAt, vUp, fFOVY, fAspect, fZNear, fZFar, m_fStereoFocalLength, m_fStereoEyeDist, m_mView[0], m_mView[1], m_mProjection[0], m_mProjection[1]);
+    FLOATMATRIX4::BuildStereoLookAtAndProjection(m_vEye, m_vAt, m_vUp, m_fFOV,
+                                                 fAspect, m_fZNear, m_fZFar,
+                                                 m_fStereoFocalLength,
+                                                 m_fStereoEyeDist, m_mView[0],
+                                                 m_mView[1], m_mProjection[0],
+                                                 m_mProjection[1]);
   } else {
     // view matrix
-    m_mView[0].BuildLookAt(vEye, vAt, vUp);
+    m_mView[0].BuildLookAt(m_vEye, m_vAt, m_vUp);
 
     // projection matrix
-    m_mProjection[0].Perspective(fFOVY,fAspect,fZNear,fZFar);
+    m_mProjection[0].Perspective(m_fFOV, fAspect, m_fZNear, m_fZFar);
     m_mProjection[0].setProjection();
   }
 
   // forward the projection matrix to the culling object
   m_FrustumCullingLOD.SetProjectionMatrix(m_mProjection[0]);
-  m_FrustumCullingLOD.SetScreenParams(fFOVY,fAspect,fZNear,fZFar,viSize.y);
+  m_FrustumCullingLOD.SetScreenParams(m_fFOV, fAspect, m_fZNear, m_fZFar,
+                                      viSize.y);
 }
 
 
