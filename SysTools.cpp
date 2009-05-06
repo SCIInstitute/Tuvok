@@ -223,16 +223,6 @@ namespace SysTools {
     reverse(str.begin(), str.end());
   }
 
-  /// Uses remove(3) to remove the file.
-  /// @return true if the remove succeeded.
-  bool Remove(const std::string &path)
-  {
-    if(std::remove(path.c_str()) == -1) {
-      return false;
-    }
-    return true;
-  }
-
   bool GetFileStats(const string& strFileName, struct ::stat& stat_buf) {
     return (::stat( strFileName.c_str(), &stat_buf) >= 0);
   }

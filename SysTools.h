@@ -220,11 +220,6 @@ namespace SysTools {
                          HWND owner=NULL, DWORD* nFilterIndex=NULL);
 #endif
 
-  /// Removes the given file or directory.  Warns if the file could not be
-  /// deleted.
-  /// @return true if the remove succeeded.
-  bool Remove(const std::string &, AbstrDebugOut &);
-
   class CmdLineParams {
     public:
       #ifdef _WIN32
