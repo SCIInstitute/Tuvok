@@ -89,7 +89,8 @@
     #pragma message("    [vectors.h] Using GL extensions.\n")
   #endif
 #endif
-#include "../StdTuvokDefines.h"
+
+#include "StdDefines.h"
 
 template <class T> class MATRIX2;
 template <class T> class MATRIX3;

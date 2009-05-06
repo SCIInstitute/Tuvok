@@ -41,7 +41,7 @@
 #define MATHTOOLS_H
 
 #include <cmath>
-#include "../StdTuvokDefines.h"
+#include "StdDefines.h"
 
 #define ROOT3 1.732050f
 

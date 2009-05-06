@@ -41,8 +41,7 @@
 #ifndef DYNAMICDX_H
 #define DYNAMICDX_H
 
-#include "../StdTuvokDefines.h"
-
+#include "StdDefines.h"
 #include "../Renderer/DX/DXInclude.h"
 
 class DynamicDX {

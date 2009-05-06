@@ -46,7 +46,7 @@
 #include <sstream>
 #include <sys/stat.h>
 
-#include "StdTuvokDefines.h"
+#include "StdDefines.h"
 #ifndef _WIN32
   #include <regex.h>
   #include <dirent.h>
@@ -66,7 +66,7 @@
 #endif
 
 #include "SysTools.h"
-#include "../DebugOut/AbstrDebugOut.h"
+
 using namespace std;
 
 namespace SysTools {
@@ -225,17 +225,9 @@ namespace SysTools {
 
   /// Uses remove(3) to remove the file.
   /// @return true if the remove succeeded.
-  bool Remove(const std::string &path, AbstrDebugOut &dbg)
+  bool Remove(const std::string &path)
   {
     if(std::remove(path.c_str()) == -1) {
-#ifdef _WIN32
-      char buffer[200];
-      strerror_s(buffer, 200, errno);
-      dbg.Warning(_func_, "Could not remove `%s': %s", path.c_str(), buffer);
-#else
-      dbg.Warning(_func_, "Could not remove `%s': %s", path.c_str(),
-                  strerror(errno));
-#endif
       return false;
     }
     return true;

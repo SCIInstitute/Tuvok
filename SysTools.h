@@ -61,7 +61,7 @@
   typedef unsigned char CHAR;
 #endif
 
-#include "../StdTuvokDefines.h"
+#include "StdDefines.h"
 
 class AbstrDebugOut;
 

@@ -39,7 +39,7 @@
 #ifndef SYSTEMINFO_H
 #define SYSTEMINFO_H
 
-#include "../StdTuvokDefines.h"
+#include "StdDefines.h"
 
 class SystemInfo
 {
