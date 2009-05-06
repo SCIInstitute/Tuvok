@@ -2341,14 +2341,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\UVF\LargeRAWFile.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\IO\UVF\LargeRAWFile.h"
-					>
-				</File>
-				<File
 					RelativePath=".\IO\UVF\MaxMinDataBlock.cpp"
 					>
 				</File>
