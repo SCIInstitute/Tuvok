@@ -36,6 +36,7 @@
 
 #include "SystemInfo.h"
 
+#include "StdTuvokDefines.h"
 #ifdef _WIN32
   #include <windows.h>
   // undef stupid windows defines to max and min
