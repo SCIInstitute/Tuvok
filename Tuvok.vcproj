@@ -618,6 +618,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Basics\LargeRAWFile.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Basics\LargeRAWFile.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Basics\MathTools.cpp"
 				>
 			</File>

@@ -47,7 +47,7 @@
 #include "../Controller/MasterController.h"
 #include "../Basics/MC.h"
 #include "../Basics/SysTools.h"
-#include "../IO/UVF/LargeRAWFile.h"
+#include "../Basics/LargeRAWFile.h"
 
 #define BRICKSIZE (256)
 #define BRICKOVERLAP (4)

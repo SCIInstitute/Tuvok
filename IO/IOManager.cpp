@@ -666,7 +666,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
 
       if (!v.Export(iLODLevel, strIntermediateFile, false)) {
         if (SysTools::FileExists(strIntermediateFile)) {
-          SysTools::Remove(strIntermediateFile.c_str(),
+          RAWConverter::Remove(strIntermediateFile.c_str(),
                            Controller::Debug::Out());
         }
         return false;

@@ -14,7 +14,7 @@
 #include "../../StdTuvokDefines.h"
 #define UVF_INVALID UINT64_INVALID
 
-#include "LargeRAWFile.h"
+#include "../../Basics/LargeRAWFile.h"
 class DataBlock;
 
 #endif // UVFBASIC_H

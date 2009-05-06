@@ -26,6 +26,7 @@ HEADERS += StdTuvokDefines.h \
            Basics/Checksums/MD5.h \
            Basics/Checksums/crc32.h \
            Basics/Plane.h \
+           Basics/LargeRAWFile.h \
            IO/gzio.h \
            IO/AbstrConverter.h \
            IO/BOVConverter.h \
@@ -53,7 +54,6 @@ HEADERS += StdTuvokDefines.h \
            IO/UVF/DataBlock.h \
            IO/UVF/GlobalHeader.h \
            IO/UVF/KeyValuePairDataBlock.h \
-           IO/UVF/LargeRAWFile.h \
            IO/UVF/RasterDataBlock.h \
            IO/UVF/UVF.h \
            IO/UVF/UVFBasic.h \
@@ -209,6 +209,7 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            Basics/GeometryGenerator.cpp \
            Basics/Checksums/MD5.cpp \
            Basics/Plane.cpp \
+           Basics/LargeRAWFile.cpp \
            IO/gzio.c \
            IO/AbstrConverter.cpp \
            IO/BOVConverter.cpp \
@@ -235,7 +236,6 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            IO/UVF/DataBlock.cpp \
            IO/UVF/GlobalHeader.cpp \
            IO/UVF/KeyValuePairDataBlock.cpp \
-           IO/UVF/LargeRAWFile.cpp \
            IO/UVF/RasterDataBlock.cpp \
            IO/UVF/UVF.cpp \
            IO/UVF/UVFTables.cpp \
