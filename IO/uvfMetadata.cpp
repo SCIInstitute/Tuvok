@@ -160,6 +160,24 @@ UINT64VECTOR3 UVFMetadata::GetBrickSize(const NDBrickKey &k) const
   return m_vvaBrickSize[lod][vBrick[0]][vBrick[1]][vBrick[2]];
 }
 
+// One dimensional brick shrinking for internal bricks that have some overlap
+// with neighboring bricks.  Assumes overlap is constant per dataset: this
+// brick's overlap with the brick to its right is the same as the overlap with
+// the right brick's overlap with the brick to the left.
+/// @param v        original brick size for this dimension
+/// @param nbrick   which brick this is
+/// @param count    number of bricks for this dimension
+/// @param overlap  amount of per-brick overlap.
+static void fix_overlap(UINT64& v, UINT64 nbrick, UINT64 count,
+                        UINT64 overlap) {
+  if(nbrick > 0) {
+    v -= static_cast<size_t>(overlap/2.0f);
+  }
+  if(nbrick < count) {
+    v -= static_cast<size_t>(overlap/2.0f);
+  }
+}
+
 
 // Gives the size of a brick in real space.
 UINT64VECTOR3 UVFMetadata::GetEffectiveBrickSize(const NDBrickKey &k) const
@@ -176,17 +194,19 @@ UINT64VECTOR3 UVFMetadata::GetEffectiveBrickSize(const NDBrickKey &k) const
     m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].z
   );
 
+  // If this is an internal brick, the size is a bit smaller based on the
+  // amount of overlap per-brick.
   if (m_vaBrickCount[iLOD].x > 1) {
-    if (vBrick[0] > 0) vBrickSize.x -= m_aOverlap.x/2.0f;
-    if (vBrick[0] < m_vaBrickCount[iLOD].x-1) vBrickSize.x -= m_aOverlap.x/2.0f;
+    fix_overlap(vBrickSize.x, vBrick[0], m_vaBrickCount[iLOD].x-1,
+                m_aOverlap.x);
   }
   if (m_vaBrickCount[iLOD].y > 1) {
-    if (vBrick[1] < m_vaBrickCount[iLOD].y-1) vBrickSize.y -= m_aOverlap.y/2.0f;
-    if (vBrick[1] > 0) vBrickSize.y -= m_aOverlap.y/2.0f;
+    fix_overlap(vBrickSize.y, vBrick[1], m_vaBrickCount[iLOD].y-1,
+                m_aOverlap.y);
   }
   if (m_vaBrickCount[iLOD].z > 1) {
-    if (vBrick[2] < m_vaBrickCount[iLOD].z-1) vBrickSize.z -= m_aOverlap.z/2.0f;
-    if (vBrick[2] > 0) vBrickSize.z -= m_aOverlap.z/2.0f;
+    fix_overlap(vBrickSize.z, vBrick[2], m_vaBrickCount[iLOD].z-1,
+                m_aOverlap.z);
   }
 
   return vBrickSize;
