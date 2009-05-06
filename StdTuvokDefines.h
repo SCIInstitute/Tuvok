@@ -38,7 +38,7 @@
 #ifndef STDTUVOKDEFINES_H
 #define STDTUVOKDEFINES_H
 
-#include <Basics/StdDefines.h>
+#include "Basics/StdDefines.h"
 
 // Make sure windows doesn't give us stupid macros.
 #define NOMINMAX
