@@ -40,7 +40,6 @@
 
 #include "RAWConverter.h"
 #include "IOManager.h"  // for the size defines
-#include <Controller/Controller.h>
 #include <Basics/SysTools.h>
 #include <IO/gzio.h>
 #include "UVF/Histogram1DDataBlock.h"
@@ -121,7 +120,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
         T_ERROR("Read/Write error converting endianess from %s to %s", strFilename.c_str(), tmpFilename0.c_str());
         WrongEndianData.Close();
         ConvEndianData.Close();
-        SysTools::Remove(tmpFilename0, Controller::Debug::Out());
+        Remove(tmpFilename0, Controller::Debug::Out());
         delete [] pBuffer;
         return false;
       }
@@ -198,7 +197,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
     // if we actually created two temp file so far we can delete the first one
     if (bConvertEndianness) {
-      SysTools::Remove(tmpFilename0, Controller::Debug::Out());
+      Remove(tmpFilename0, Controller::Debug::Out());
       bConvertEndianness = false;
     }
 
@@ -325,10 +324,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) {
-      SysTools::Remove(tmpFilename0, Controller::Debug::Out());
+      Remove(tmpFilename0, Controller::Debug::Out());
     }
     if (bQuantized) {
-      SysTools::Remove(tmpFilename1, Controller::Debug::Out());
+      Remove(tmpFilename1, Controller::Debug::Out());
     }
 		return false;
 	}
@@ -338,10 +337,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) {
-      SysTools::Remove(tmpFilename0, Controller::Debug::Out());
+      Remove(tmpFilename0, Controller::Debug::Out());
     }
     if (bQuantized) {
-      SysTools::Remove(tmpFilename1, Controller::Debug::Out());
+      Remove(tmpFilename1, Controller::Debug::Out());
     }
 		return false;
 	}
@@ -358,10 +357,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
         uvfFile.Close();
         SourceData.Close();
         if (bConvertEndianness) {
-          SysTools::Remove(tmpFilename0, Controller::Debug::Out());
+          Remove(tmpFilename0, Controller::Debug::Out());
         }
         if (bQuantized) {
-          SysTools::Remove(tmpFilename1, Controller::Debug::Out());
+          Remove(tmpFilename1, Controller::Debug::Out());
         }
 		    return false;
       }
@@ -374,10 +373,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       uvfFile.Close();
       SourceData.Close();
       if (bConvertEndianness) {
-        SysTools::Remove(tmpFilename0, Controller::Debug::Out());
+        Remove(tmpFilename0, Controller::Debug::Out());
       }
       if (bQuantized) {
-        SysTools::Remove(tmpFilename1, Controller::Debug::Out());
+        Remove(tmpFilename1, Controller::Debug::Out());
       }
 		  return false;
     }
@@ -408,10 +407,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   MESSAGE("Removing temporary files...");
 
   if (bConvertEndianness) {
-    SysTools::Remove(tmpFilename0, Controller::Debug::Out());
+    Remove(tmpFilename0, Controller::Debug::Out());
   }
   if (bQuantized) {
-    SysTools::Remove(tmpFilename1, Controller::Debug::Out());
+    Remove(tmpFilename1, Controller::Debug::Out());
   }
 
   MESSAGE("Done!");
@@ -756,7 +755,7 @@ bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std:
 
   // if the file exists, delete it first
   if (SysTools::FileExists(strTargetFilename))
-    SysTools::Remove(strTargetFilename, Controller::Debug::Out());
+    Remove(strTargetFilename, Controller::Debug::Out());
   if (SysTools::FileExists(strTargetFilename)) {
     T_ERROR("Unable to remove existing target file %s.", strTargetFilename.c_str());
     return false;
@@ -879,7 +878,7 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
                                        bIsFloat, vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename));
 
   if (bDeleteIntermediateFile) {
-    SysTools::Remove(strIntermediateFile, Controller::Debug::Out());
+    Remove(strIntermediateFile, Controller::Debug::Out());
   }
 
   return bUVFCreated;
@@ -925,7 +924,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
                            bSigned, bIsFloat, vVolumeSize, info);
 
   if (bRAWDelete) {
-    SysTools::Remove(strRAWFilename, Controller::Debug::Out());
+    Remove(strRAWFilename, Controller::Debug::Out());
   }
 
   return bAnalyzed;
@@ -1060,5 +1059,24 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
   }
 
   fSource.Close();
+  return true;
+}
+
+
+  /// Uses remove(3) to remove the file.
+  /// @return true if the remove succeeded.
+bool RAWConverter::Remove(const std::string &path, AbstrDebugOut &dbg)
+{
+  if(std::remove(path.c_str()) == -1) {
+#ifdef _WIN32
+      char buffer[200];
+      strerror_s(buffer, 200, errno);
+      dbg.Warning(_func_, "Could not remove `%s': %s", path.c_str(), buffer);
+#else
+      dbg.Warning(_func_, "Could not remove `%s': %s", path.c_str(),
+                  strerror(errno));
+#endif
+      return false;
+  }
   return true;
 }
