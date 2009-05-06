@@ -104,8 +104,6 @@
   #define TUVOK_DETAILS "Linux build"
 #endif
 
-#define BLOCK_COPY_SIZE     (UINT64(64*1024*1024))
-
 #ifdef _MSC_VER
 # define _func_ __FUNCTION__
 #elif defined(__GNUC__)
