@@ -47,7 +47,7 @@
   #include <unistd.h>
 #endif
 
-#include "../StdTuvokDefines.h"
+#include "StdDefines.h"
 
 #define ENDIANCONVERT_THREAD_SAFE  ///< Switch on to ensure Thread-safeness. Quick and untested hack.
 

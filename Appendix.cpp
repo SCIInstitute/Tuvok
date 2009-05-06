@@ -38,7 +38,6 @@
 #include "SysTools.h"
 #include "LargeRAWFile.h"
 
-
 using namespace std;
 
 Appendix::Appendix(string strTarget, const vector<string>& vstrSource) :

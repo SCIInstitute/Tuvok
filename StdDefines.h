@@ -53,4 +53,6 @@ typedef unsigned char BYTE;
 #define UINT32_INVALID (std::numeric_limits<UINT32>::max())
 #define UINT64_INVALID (std::numeric_limits<UINT64>::max())
 
+#define BLOCK_COPY_SIZE (UINT64(64*1024*1024))
+
 #endif // STDDEFINES_H

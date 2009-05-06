@@ -9,7 +9,7 @@
 
 #include <string>
 #include <vector>
-#include "../../Basics/EndianConvert.h"
+#include "EndianConvert.h"
 
 #ifdef _WIN32
   #include <windows.h>
