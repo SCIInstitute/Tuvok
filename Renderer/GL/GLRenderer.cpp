@@ -57,7 +57,6 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_TargetBinder(pMasterController),
   m_p1DTransTex(NULL),
   m_p2DTransTex(NULL),
-  m_p1DData(NULL),
   m_p2DData(NULL),
   m_pFBO3DImageLast(NULL),
   m_iFilledBuffers(0),
