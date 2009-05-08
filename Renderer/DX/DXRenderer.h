@@ -48,7 +48,7 @@
 #include "../../StdTuvokDefines.h"
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../AbstrRenderer.h"
-#include "DXInclude.h"
+#include "../../Basics/DynamicDX.h"
 
 class MasterController;
 

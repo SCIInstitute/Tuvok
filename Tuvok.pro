@@ -267,10 +267,9 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            Renderer/SBVRGeogen.cpp
 
 win32 {
-  HEADERS += Renderer/DX/DynamicDX.h \
+  HEADERS += Basics/DynamicDX.h \
              Renderer/DX/DXContextID.h \
              Renderer/DX/DXObject.h \
-             Renderer/DX/DXInclude.h \
              Renderer/DX/DXTexture.h \
              Renderer/DX/DXTexture1D.h \
              Renderer/DX/DXTexture2D.h \
@@ -279,7 +278,7 @@ win32 {
              Renderer/DX/DXSBVR.h \
              Renderer/DX/DXRaycaster.h
 
-  SOURCES += Renderer/DX/DynamicDX.cpp \
+  SOURCES += Basics/DynamicDX.cpp \
              Renderer/DX/DXTexture.cpp \
              Renderer/DX/DXTexture1D.cpp \
              Renderer/DX/DXTexture2D.cpp \
