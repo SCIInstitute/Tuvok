@@ -36,7 +36,7 @@
 
 #include "SystemInfo.h"
 
-#include "StdDefines.h"
+#include "StdTuvokDefines.h"
 #ifdef _WIN32
   #include <windows.h>
 #else
