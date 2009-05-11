@@ -206,14 +206,18 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
   m_iIntraFrameCounter = iIntraFrameCounter;
   m_iFrameCounter = iFrameCounter;
 
-  LoadData();
-  glGetError();
+  if (!LoadData()) {
+    T_ERROR("LoadData call failed, system may be out of memory");
+    return false;
+  }
+  glGetError();  // clear gl error flags
   pTexture->SetData(pData);
   return GL_NO_ERROR==glGetError();
 }
 
 
 bool Texture3DListElem::LoadData() {
+  if (pData != NULL) MESSAGE("Freeing data before load");
   FreeData();
 
   UVFDataset& ds = dynamic_cast<UVFDataset&>(*(this->pDataset));
