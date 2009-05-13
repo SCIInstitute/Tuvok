@@ -108,6 +108,9 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
       QImage image;
       if (!image.loadFromData((uchar*)pData, iLength)) {
         MESSAGE("Skipping stack %d; can't load JPEG data!", iStackID);
+        // should probably be using ptr container lib here instead of trying to
+        // explicitly manage this.
+        delete *(parseDICOM.m_FileStacks.begin()+iStackID);
         parseDICOM.m_FileStacks.erase(parseDICOM.m_FileStacks.begin()+iStackID);
         iStackID--;
       }

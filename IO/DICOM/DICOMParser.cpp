@@ -36,7 +36,9 @@
 */
 
 #include <algorithm>
+#include <functional>
 #include <sys/stat.h>
+#include <vector>
 #ifdef DEBUG_DICOM
   #include <sstream>
 #endif

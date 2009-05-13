@@ -41,7 +41,6 @@
 
 #include <fstream>
 #include <string>
-#include <vector>
 
 // if the following define is set, the DICOM parser outputs detailed parsing
 // information.  Be careful with this option: it creates a massive amount of
