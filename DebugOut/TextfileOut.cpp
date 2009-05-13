@@ -69,17 +69,24 @@ void TextfileOut::printf(const char* format, ...) const
 #endif
 
   time_t epoch_time;
-  struct tm now;
-  char datetime[64];
-
   time(&epoch_time);
-  localtime_r(&epoch_time, &now);
+
+#ifdef TUVOK_OS_WINDOWS
+  struct tm now;
+  localtime_s(&now, &epoch_time);
+#define ADDR_NOW (&now)
+#else
+  struct tm* now;
+  now = localtime(&epoch_time);
+#define ADDR_NOW (now)
+#endif
+  char datetime[64];
 
   ofstream fs;
   fs.open(m_strFilename.c_str(),  ios_base::app);
   if (fs.fail()) return;
 
-  if(strftime(datetime, 64, "(%F %T)", &now) > 0) {
+  if(strftime(datetime, 64, "(%F %T)", ADDR_NOW) > 0) {
     fs << datetime << " " << buff << std::endl;
   } else {
     fs << buff << std::endl;
@@ -103,16 +110,23 @@ void TextfileOut::_printf(const char* format, ...) const
 #endif
 
   time_t epoch_time;
-  struct tm now;
-  char datetime[64];
-
   time(&epoch_time);
-  localtime_r(&epoch_time, &now);
+
+#ifdef TUVOK_OS_WINDOWS
+  struct tm now;
+  localtime_s(&now, &epoch_time);
+#define ADDR_NOW (&now)
+#else
+  struct tm* now;
+  now = localtime(&epoch_time);
+#define ADDR_NOW (now)
+#endif
+  char datetime[64];
 
   ofstream fs;
   fs.open(m_strFilename.c_str(),  ios_base::app);
   if (fs.fail()) return;
-  if(strftime(datetime, 64, "(%F %T)", &now) > 0) {
+  if(strftime(datetime, 64, "(%F %T)", ADDR_NOW) > 0) {
     fs << datetime << " " << buff << std::endl;
   } else {
     fs << buff << std::endl;
