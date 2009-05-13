@@ -61,7 +61,7 @@
 #endif
 
 namespace Console {
-  #ifdef WIN32
+  #ifdef _WIN32
     #include <windows.h>
     // undef stupid windows defines to max and min
     #ifdef max
