@@ -45,7 +45,7 @@
 // if the following define is set, the DICOM parser outputs detailed parsing
 // information.  Be careful with this option: it creates a massive amount of
 // output.
-#ifndef DEBUG
+#ifdef _DEBUG
   //#define DEBUG_DICOM
 #endif
 

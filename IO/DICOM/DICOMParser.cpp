@@ -39,18 +39,22 @@
 #include <functional>
 #include <sys/stat.h>
 #include <vector>
+#include "DICOMParser.h"
+
+#include <Controller/Controller.h>
+#include <Basics/SysTools.h>
+
 #ifdef DEBUG_DICOM
   #define DICOM_DBG(...) Console::printf(__VA_ARGS__)
   #include <sstream>
 #else
-  #define DICOM_DBG(...) /* nadda */
+  #define DICOM_DBG(...) 
 #endif
-#include "DICOMParser.h"
+
 #ifdef DEBUG_DICOM
   #include <Basics/Console.h>
 #endif
-#include <Basics/SysTools.h>
-#include <Controller/Controller.h>
+
 
 std::string DICOM_TypeStrings[28] = {
   "AE", // Application Entity string 16 bytes maximum
@@ -163,7 +167,7 @@ void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, shor
 
   if (iGroupID == 0x2) {  // ignore input for meta block
     bImplicit = false;
-    bNeedsEndianConversion = false;
+    bNeedsEndianConversion = EndianConvert::IsBigEndian();
   }
 
   if (bNeedsEndianConversion) {
@@ -175,6 +179,7 @@ void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, shor
     eElementType = TYPE_Implicit;
     fileDICOM.read((char*)&iElemLength,4);
     if (bNeedsEndianConversion) iElemLength = EndianConvert::Swap<UINT32>(iElemLength);
+    DICOM_DBG("Reader read implict field iGroupID=%i, iElementID=%i, iElemLength=%i\n",iGroupID, iElementID, iElemLength);
   } else {
     fileDICOM.read(&typeString[0],2);
     short tmp;
@@ -182,9 +187,24 @@ void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, shor
     if (bNeedsEndianConversion) tmp = EndianConvert::Swap<short>(tmp);
     iElemLength = tmp;
     eElementType = TYPE_UN;
-    for (UINT32 i = 0;i<27;i++) {
-      if (typeString == DICOM_TypeStrings[i]) eElementType = DICOM_eType(i);
+    UINT32 i=0;
+    for (;i<27;i++) {
+      if (typeString == DICOM_TypeStrings[i]) {
+        eElementType = DICOM_eType(i);
+        break;
+      }
     }
+    if (i==27) {
+      DICOM_DBG("WARNING: Reader could not interpret type %c%c (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], iGroupID, iElementID, iElemLength);
+    } else {
+      DICOM_DBG("Reader could interpret type %c%c (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], iGroupID, iElementID, iElemLength);
+    }
+  }
+
+  if (eElementType == TYPE_OB && iElemLength == 0) {
+    fileDICOM.read((char*)&iElemLength,4);
+    if (bNeedsEndianConversion) iElemLength = EndianConvert::Swap<UINT32>(iElemLength);
+    DICOM_DBG("Reader found 0 length OB field and read the length again which is now (iElemLength=%i)\n", iElemLength);
   }
 }
 
@@ -351,19 +371,26 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
   short iGroupID, iElementID;
   UINT32 iElemLength;
   DICOM_eType elementType;
+  int iMetaHeaderEnd;
+
+  bool bParsingMetaHeader = true;
 
   // read metadata block
   ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType,
                       iElemLength, bImplicit, info.m_bIsBigEndian);
 
-  while (iGroupID == 0x2) {
+  while (bParsingMetaHeader && iGroupID == 0x2) {
     switch (iElementID) {
       case 0x0 : {  // File Meta Elements Group Len
-            int iMetaLength;            // unused at this time
-            fileDICOM.read((char*)&iMetaLength,4);
+            if (iElemLength != 4) {
+              MESSAGE("Metaheader length field is invalid.");
+              return false;
+            }
+            int iMetaHeaderLength;            
+            fileDICOM.read((char*)&iMetaHeaderLength,4);
+            iMetaHeaderEnd  = iMetaHeaderLength + UINT32(fileDICOM.tellg());
            } break;
       case 0x1 : {  // Version
-            iElemLength = 6;
             value.resize(iElemLength);
             fileDICOM.read(&value[0],iElemLength);
            } break;
@@ -408,6 +435,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                       "send a debug log.", value.c_str());
               return false; // unsupported file format
             }
+            fileDICOM.seekg(iMetaHeaderEnd, std::ios_base::beg);
+            bParsingMetaHeader = false;            
            } break;
       default : {
         value.resize(iElemLength);
@@ -449,7 +478,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     fileDICOM.read(&info.m_strAcquDate[0],iElemLength);
                     #ifdef DEBUG_DICOM
                     {
-                        stringstream ss;
+                      stringstream ss;
                       ss << info.m_strAcquDate << " (Acquisition Date: recognized and stored)";
                       value = ss.str();
                     }
