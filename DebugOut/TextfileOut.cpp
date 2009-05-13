@@ -59,25 +59,32 @@ void TextfileOut::printf(const char* format, ...) const
   if (!m_bShowOther) return;
 
   char buff[16384];
-  char date [10];
-  char time [10];
 
   va_list args;
   va_start(args, format);
 #ifdef WIN32
   _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-  _strdate_s(date,10);
-  _strtime_s(time,10);
 #else
   vsnprintf( buff, sizeof(buff), format, args);
-  _strdate(date);
-  _strtime(time);
 #endif
+
+  time_t epoch_time;
+  struct tm now;
+  char datetime[64];
+
+  time(&epoch_time);
+  localtime_r(&epoch_time, &now);
 
   ofstream fs;
   fs.open(m_strFilename.c_str(),  ios_base::app);
   if (fs.fail()) return;
-  fs << buff << " (" << date << " " << time << ")" << endl;
+
+  if(strftime(datetime, 64, "(%F %T)", &now) > 0) {
+    fs << datetime << " " << buff << std::endl;
+  } else {
+    fs << buff << std::endl;
+  }
+
   fs.flush();
   fs.close();
 }
@@ -85,27 +92,31 @@ void TextfileOut::printf(const char* format, ...) const
 void TextfileOut::_printf(const char* format, ...) const
 {
   char buff[16384];
-  char date [10];
-  char time [10];
 
   va_list args;
   va_start(args, format);
 
 #ifdef WIN32
   _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-  _strdate_s(date,10);
-  _strtime_s(time,10);
 #else
   vsnprintf( buff, sizeof(buff), format, args);
-  _strdate(date);
-  _strtime(time);
 #endif
 
+  time_t epoch_time;
+  struct tm now;
+  char datetime[64];
+
+  time(&epoch_time);
+  localtime_r(&epoch_time, &now);
 
   ofstream fs;
   fs.open(m_strFilename.c_str(),  ios_base::app);
   if (fs.fail()) return;
-  fs << buff << " (" << date << " " << time << ")" << endl;
+  if(strftime(datetime, 64, "(%F %T)", &now) > 0) {
+    fs << datetime << " " << buff << std::endl;
+  } else {
+    fs << buff << std::endl;
+  }
   fs.flush();
   fs.close();
 }
