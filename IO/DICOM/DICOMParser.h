@@ -158,14 +158,32 @@ public:
   static bool GetDICOMFileInfo(const std::string& fileName, DICOMFileInfo& info);
 protected:
 
-  static void SkipUnusedElement(std::ifstream& fileDICOM, std::string& value, const UINT32 iElemLength);
-  static void ReadHeaderElemStart(std::ifstream& fileDICOM, short& iGroupID, short& iElementID, DICOM_eType& eElementType, UINT32& iElemLength, bool bImplicit, bool bNeedsEndianConversion);
-  static UINT32 GetUInt(std::ifstream& fileDICOM, const DICOM_eType eElementType, const UINT32 iElemLength, const bool bNeedsEndianConversion);
+  static void SkipUnusedElement(std::ifstream& fileDICOM, std::string& value,
+                                const UINT32 iElemLength);
+  static void ReadHeaderElemStart(std::ifstream& fileDICOM, short& iGroupID,
+                                  short& iElementID, DICOM_eType& eElementType,
+                                  UINT32& iElemLength, bool bImplicit,
+                                  bool bNeedsEndianConversion);
+  static UINT32 GetUInt(std::ifstream& fileDICOM,
+                        const DICOM_eType eElementType,
+                        const UINT32 iElemLength,
+                        const bool bNeedsEndianConversion);
 
   #ifdef DEBUG_DICOM
-  static void ParseUndefLengthSequence(std::ifstream& fileDICOM, short& iSeqGroupID, short& iSeqElementID, DICOMFileInfo& info, const bool bImplicit, const bool bNeedsEndianConversion, UINT32 iDepth);
+  static void ParseUndefLengthSequence(std::ifstream& fileDICOM,
+                                       short& iSeqGroupID,
+                                       short& iSeqElementID,
+                                       DICOMFileInfo& info,
+                                       const bool bImplicit,
+                                       const bool bNeedsEndianConversion,
+                                       UINT32 iDepth);
   #else
-  static void ParseUndefLengthSequence(std::ifstream& fileDICOM, short& iSeqGroupID, short& iSeqElementID, DICOMFileInfo& info, const bool bImplicit, const bool bNeedsEndianConversion);
+  static void ParseUndefLengthSequence(std::ifstream& fileDICOM,
+                                       short& iSeqGroupID,
+                                       short& iSeqElementID,
+                                       DICOMFileInfo& info,
+                                       const bool bImplicit,
+                                       const bool bNeedsEndianConversion);
   #endif
 };
 
