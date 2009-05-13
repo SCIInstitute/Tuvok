@@ -49,9 +49,18 @@ Metadata::Metadata() {
 DOUBLEVECTOR3 Metadata::GetRescaleFactors() const {
   return DOUBLEVECTOR3(m_Rescale);
 }
+
+#ifdef TUVOK_OS_WINDOWS
+  #pragma warning(disable:4996)
+#endif
+
 void Metadata::GetRescaleFactors(double rescale[3]) const {
   std::copy(m_Rescale, m_Rescale+3, rescale);
 }
+
+#ifdef TUVOK_OS_WINDOWS
+  #pragma warning(default:4996)
+#endif
 
 bool
 Metadata::ContainsData(const BrickKey &key, const double range[2]) const {

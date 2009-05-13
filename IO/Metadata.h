@@ -38,6 +38,7 @@
 
 #include <utility>
 #include "Basics/Vectors.h"
+#include <StdTuvokDefines.h>
 
 namespace tuvok {
 

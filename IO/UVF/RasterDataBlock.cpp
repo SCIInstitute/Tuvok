@@ -1066,6 +1066,7 @@ bool RasterDataBlock::GetData(unsigned char** ppData, const vector<UINT64>& vLOD
   vector<UINT64> vSize = GetBrickSize(vLOD,vBrick);
   UINT64 iSize = ComputeElementSize()/8;
   for (size_t i = 0;i<vSize.size();i++) iSize *= vSize[i];
+
   if (*ppData == NULL) *ppData = new unsigned char[size_t(iSize)];
   if (*ppData == NULL) return false;
 

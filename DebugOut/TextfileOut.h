@@ -53,6 +53,8 @@ class TextfileOut : public AbstrDebugOut{
     virtual void Warning(const char* source, const char* format, ...);
     virtual void Error(const char* source, const char* format, ...);
 
+    const std::string& GetFileName() const {return m_strFilename;}
+
   private:
     TextfileOut(const TextfileOut &); ///< unimplemented.
 

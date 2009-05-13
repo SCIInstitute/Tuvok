@@ -513,8 +513,7 @@ required_cpu_memory(const Metadata& md,
   try {
     const UVFMetadata& umd = dynamic_cast<const UVFMetadata&>(md);
     const std::vector<UINT64> vSize = umd.GetBrickSizeND(vLOD, vBrick);
-    mem = std::accumulate(vSize.begin(), vSize.end(), 1,
-                          std::multiplies<UINT64>());
+    mem = std::accumulate(vSize.begin(), vSize.end(), UINT64(1), std::multiplies<UINT64>());
   } catch(const std::bad_cast&) {
     const size_t lod = vLOD[0];
     const UINT64VECTOR3 brick(vBrick[0],vBrick[1],vBrick[2]);

@@ -113,8 +113,8 @@ template<typename in, typename out>
 static inline out
 lerp(in value, in imin, in imax, out omin, out omax)
 {
-  out ret = omin + (value-imin) * (static_cast<double>(omax-omin) /
-                                                      (imax-imin));
+  out ret = out(omin + (value-imin) * (static_cast<double>(omax-omin) /
+                                                      (imax-imin)));
 #if 0
   // Very useful while debugging.
   if(is_nan(ret) || is_infinite(ret)) { return 0; }
