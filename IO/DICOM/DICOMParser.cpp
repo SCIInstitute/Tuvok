@@ -40,7 +40,10 @@
 #include <sys/stat.h>
 #include <vector>
 #ifdef DEBUG_DICOM
+  #define DICOM_DBG(...) Console::printf(__VA_ARGS__)
   #include <sstream>
+#else
+  #define DICOM_DBG(...) /* nadda */
 #endif
 #include "DICOMParser.h"
 #ifdef DEBUG_DICOM
@@ -302,9 +305,7 @@ void DICOMParser::SkipUnusedElement(ifstream& fileDICOM, string& value, const UI
 
 bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                                    DICOMFileInfo& info) {
-#ifdef DEBUG_DICOM
-  Console::printf("Processing file %s\n",strFilename.c_str());
-#endif
+  DICOM_DBG("Processing file %s\n",strFilename.c_str());
 
   struct stat stat_buf;
 
@@ -375,23 +376,17 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
               bImplicit = true;
               bNeedsEndianConversion = EndianConvert::IsBigEndian();
               info.m_bIsBigEndian = false;
-              #ifdef DEBUG_DICOM
-                Console::printf("DICOM file is Implicit VR Little Endian\n");
-              #endif
+              DICOM_DBG("DICOM file is Implicit VR Little Endian\n");
             } else if (value == "1.2.840.10008.1.2.1") { // Explicit VR Little Endian
               bImplicit = false;
               bNeedsEndianConversion = EndianConvert::IsBigEndian();
               info.m_bIsBigEndian = false;
-              #ifdef DEBUG_DICOM
-                Console::printf("DICOM file is Explicit VR Little Endian\n");
-              #endif
+              DICOM_DBG("DICOM file is Explicit VR Little Endian\n");
             } else if (value == "1.2.840.10008.1.2.2") { // Explicit VR Big Endian
               bImplicit = false;
               bNeedsEndianConversion = EndianConvert::IsLittleEndian();
               info.m_bIsBigEndian = true;
-              #ifdef DEBUG_DICOM
-                Console::printf("DICOM file is Explicit VR Big Endian\n");
-              #endif
+              DICOM_DBG("DICOM file is Explicit VR Big Endian\n");
             } else if (value == "1.2.840.10008.1.2.4.50" ||   // JPEG Baseline            ( untested due to lack of example DICOMS)
                        value == "1.2.840.10008.1.2.4.51" ||   // JPEG Extended            ( untested due to lack of example DICOMS)
                        value == "1.2.840.10008.1.2.4.55" ||   // JPEG Progressive         ( untested due to lack of example DICOMS)
@@ -406,10 +401,11 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
               bImplicit = false;
               bNeedsEndianConversion = EndianConvert::IsBigEndian();
               info.m_bIsBigEndian = false;
-              #ifdef DEBUG_DICOM
-                Console::printf("DICOM file is Explicit VR Big Endian\n");
-              #endif
+              DICOM_DBG("DICOM file is JPEG Explicit VR Big Endian\n");
             } else {
+              WARNING("Unknown DICOM type '%s' -- not a DICOM? "
+                      "Might just be something we haven't seen: please "
+                      "send a debug log.", value.c_str());
               return false; // unsupported file format
             }
            } break;
@@ -418,7 +414,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
         fileDICOM.read(&value[0],iElemLength);
       } break;
     }
-    ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType, iElemLength, bImplicit, bNeedsEndianConversion);
+    ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType,
+                        iElemLength, bImplicit, bNeedsEndianConversion);
   }
 
   do {
@@ -678,9 +675,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
     ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType, iElemLength, bImplicit, info.m_bIsBigEndian);
   } while (iGroupID != 0x7fe0 && elementType != TYPE_UN);
 
-
   if (elementType != TYPE_UN) {
-
     if (!bImplicit) {
       // for an explicit file we can actually check if we found the pixel data block (and not some color table)
       UINT32 iPixelDataSize = info.m_ivSize.volume() * info.m_iAllocated / 8;
@@ -693,6 +688,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
           fileDICOM.read((char*)iJPEGID,2);
           if (iJPEGID[0] == 0xFF && iJPEGID[1] == 0xE0 ) break;
         }
+        MESSAGE("JPEG is at offset: %u\n",
+                static_cast<unsigned int>((int(fileDICOM.tellg())-4)));
         info.SetOffsetToData(UINT32(int(fileDICOM.tellg())-4));
       } else {
         if (iPixelDataSize != iDataSizeInFile) {
@@ -703,22 +700,26 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
   }
 
   if (elementType == TYPE_UN) {
-    // ok we encoutered some strange DICOM file (must likely that additional SIEMENS header) and found an unknown tag,
-    // so lets just march througth the rest of the file and search the magic 0x7fe0, then use the last one found
-
+    // ok we encoutered some strange DICOM file (most likely that additional
+    // SIEMENS header) and found an unknown tag,
+    // so lets just march througth the rest of the file and search the magic
+    // 0x7fe0, then use the last one found
+    DICOM_DBG("Manual search for GroupId 0x7fe0\n");
     size_t iPosition   = fileDICOM.tellg();
     fileDICOM.seekg(0,ios::end);
     size_t iFileLength = fileDICOM.tellg();
     fileDICOM.seekg(iPosition,ios::beg);
 
-    UINT32 iPixelDataSize = info.m_iComponentCount * info.m_ivSize.volume() * info.m_iAllocated / 8;
-
+    UINT32 iPixelDataSize = info.m_iComponentCount *
+                            info.m_ivSize.volume() *
+                            info.m_iAllocated / 8;
     bool bOK = false;
     do {
       iGroupID = 0;
       iPosition = fileDICOM.tellg();
 
-      while (!fileDICOM.eof() && iGroupID != 0x7fe0 && iPosition+iPixelDataSize < iFileLength) {
+      while (!fileDICOM.eof() && iGroupID != 0x7fe0 &&
+             iPosition+iPixelDataSize < iFileLength) {
         iPosition++;
         fileDICOM.read((char*)&iGroupID,2);
       }
@@ -726,10 +727,14 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
       // check if this 0x7fe0 is really a group ID
       if (iGroupID == 0x7fe0) {
         fileDICOM.seekg(-2, ios_base::cur);
-        ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType, iElemLength, bImplicit, info.m_bIsBigEndian);
-        bOK = (elementType == TYPE_OW || elementType == TYPE_OB || elementType == TYPE_OF );
+        ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType,
+                            iElemLength, bImplicit, info.m_bIsBigEndian);
+        bOK = (elementType == TYPE_OW ||
+               elementType == TYPE_OB ||
+               elementType == TYPE_OF);
 
         if (bOK) {
+          DICOM_DBG("Manual search for GroupID seemed to work.\n");
           if (!bImplicit) {
             UINT32 iPixelDataSize = info.m_ivSize.volume() * info.m_iAllocated / 8;
             UINT32 iDataSizeInFile;
@@ -739,18 +744,21 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
           }
 
           info.SetOffsetToData(int(fileDICOM.tellg()));
-        }
-        else
+        } else {
+          DICOM_DBG("Manual search failed (for this iteration), "
+                    "seeking back 8 bytes.");
           fileDICOM.seekg(-8, ios_base::cur);
+        }
       }
-
-
     } while(iGroupID == 0x7fe0);
 
-    if (!bOK) { // ok everthing failed than let's just use the data we have so far, and let's hope that the file ends with the data
+    if (!bOK) {
+      // ok everthing failed than let's just use the data we have so far,
+      // and let's hope that the file ends with the data
+      WARNING("Trouble parsing DICOM file; assuming data starts at %u",
+              static_cast<unsigned int>(iFileLength - size_t(iPixelDataSize)));
       info.SetOffsetToData(UINT32(iFileLength - size_t(iPixelDataSize)));
     }
-
   }
 
 
