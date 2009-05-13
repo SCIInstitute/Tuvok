@@ -273,18 +273,26 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
     }
 
     INTVECTOR2 vPixelPos0 = Rel2Abs(currentSwatch.pGradientCoords[0])-m_iSwatchBorderSize, vPixelPos1 = Rel2Abs(currentSwatch.pGradientCoords[1])-m_iSwatchBorderSize; 
-    QLinearGradient linearBrush(vPixelPos0.x, vPixelPos0.y, vPixelPos1.x, vPixelPos1.y);
+
+    QGradient* pGradientBrush;
+    if (currentSwatch.bRadial) {
+      double r = sqrt( pow(double(vPixelPos0.x-vPixelPos1.x),2.0) + pow(double(vPixelPos0.y-vPixelPos1.y),2.0));
+      pGradientBrush = new QRadialGradient(vPixelPos0.x, vPixelPos0.y, r);
+    } else {
+      pGradientBrush = new QLinearGradient(vPixelPos0.x, vPixelPos0.y, vPixelPos1.x, vPixelPos1.y);
+    }
     
     for (size_t j = 0;j<currentSwatch.pGradientStops.size();j++) {      
-      linearBrush.setColorAt(currentSwatch.pGradientStops[j].first, 
+      pGradientBrush->setColorAt(currentSwatch.pGradientStops[j].first, 
                    QColor(int(currentSwatch.pGradientStops[j].second[0]*255),
                           int(currentSwatch.pGradientStops[j].second[1]*255),
                           int(currentSwatch.pGradientStops[j].second[2]*255),
                           int(currentSwatch.pGradientStops[j].second[3]*255)));
     }
 
-    m_pPainter->setBrush(linearBrush);
+    m_pPainter->setBrush(*pGradientBrush);
     m_pPainter->drawPolygon(&pointList[0], int(currentSwatch.pPoints.size()));
+    delete pGradientBrush;
   }
 
   m_bUseCachedData = true;
@@ -348,6 +356,7 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
 
 void TFPolygon::Load(ifstream& file) {
   UINT32 iSize;
+  file >> bRadial;
   file >> iSize;
   pPoints.resize(iSize);
 
@@ -372,6 +381,7 @@ void TFPolygon::Load(ifstream& file) {
 }
 
 void TFPolygon::Save(ofstream& file) const {
+  file << bRadial << endl;
   file << UINT32(pPoints.size()) << endl;
 
   for(size_t i=0;i<pPoints.size();++i){

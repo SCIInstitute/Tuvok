@@ -59,7 +59,7 @@ public:
   ~TransferFunction1D(void);
 
   void SetStdFunction(float fCenterPoint=0.5f, float fInvGradient=0.5f);
-  void SetStdFunction(float fCenterPoint, float fInvGradient, int iComponent);
+  void SetStdFunction(float fCenterPoint, float fInvGradient, int iComponent, bool bInvertedStep);
   /// Set the transfer function from an external source.  Assumes the vector
   /// has 4-components per element, in RGBA order.
   void Set(const std::vector<unsigned char>&);

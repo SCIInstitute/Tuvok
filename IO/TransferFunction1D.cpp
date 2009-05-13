@@ -66,29 +66,42 @@ float TransferFunction1D::Smoothstep(float x) const {
 }
 
 void TransferFunction1D::SetStdFunction(float fCenterPoint, float fInvGradient) {
-  SetStdFunction(fCenterPoint, fInvGradient,0);
-  SetStdFunction(fCenterPoint, fInvGradient,1);
-  SetStdFunction(fCenterPoint, fInvGradient,2);
-  SetStdFunction(fCenterPoint, fInvGradient,3);
+  SetStdFunction(fCenterPoint, fInvGradient,0, false);
+  SetStdFunction(fCenterPoint, fInvGradient,1, false);
+  SetStdFunction(fCenterPoint, fInvGradient,2, false);
+  SetStdFunction(fCenterPoint, fInvGradient,3, false);
 }
 
-void TransferFunction1D::SetStdFunction(float fCenterPoint, float fInvGradient, int iComponent) {
+void TransferFunction1D::SetStdFunction(float fCenterPoint, float fInvGradient, int iComponent, bool bInvertedStep) {
   size_t iCenterPoint = size_t((vColorData.size()-1) * float(std::min<float>(std::max<float>(0,fCenterPoint),1)));
   size_t iInvGradient = size_t((vColorData.size()-1) * float(std::min<float>(std::max<float>(0,fInvGradient),1)));
 
   size_t iRampStartPoint = (iInvGradient/2 > iCenterPoint)                      ? 0                 : iCenterPoint-(iInvGradient/2); 
   size_t iRampEndPoint   = (iInvGradient/2 + iCenterPoint > vColorData.size())  ? vColorData.size() : iCenterPoint+(iInvGradient/2);
 
-  for (size_t i = 0;i<iRampStartPoint;i++)                  
-    vColorData[i][iComponent] = 0;
+  if (bInvertedStep) {
+    for (size_t i = 0;i<iRampStartPoint;i++)                  
+      vColorData[i][iComponent] = 1;
 
-  for (size_t i = iRampStartPoint;i<iRampEndPoint;i++) {
-    float fValue = Smoothstep(float(i-iCenterPoint+(iInvGradient/2))/float(iInvGradient));
-    vColorData[i][iComponent] = fValue;
+    for (size_t i = iRampStartPoint;i<iRampEndPoint;i++) {
+      float fValue = Smoothstep(float(i-iCenterPoint+(iInvGradient/2))/float(iInvGradient));
+      vColorData[i][iComponent] = 1.0f-fValue;
+    }
+
+    for (size_t i = iRampEndPoint;i<vColorData.size();i++)
+      vColorData[i][iComponent] = 0;
+  } else {
+    for (size_t i = 0;i<iRampStartPoint;i++)                  
+      vColorData[i][iComponent] = 0;
+
+    for (size_t i = iRampStartPoint;i<iRampEndPoint;i++) {
+      float fValue = Smoothstep(float(i-iCenterPoint+(iInvGradient/2))/float(iInvGradient));
+      vColorData[i][iComponent] = fValue;
+    }
+
+    for (size_t i = iRampEndPoint;i<vColorData.size();i++)
+      vColorData[i][iComponent] = 1;
   }
-
-  for (size_t i = iRampEndPoint;i<vColorData.size();i++)
-    vColorData[i][iComponent] = 1;
 
   ComputeNonZeroLimits();
 }

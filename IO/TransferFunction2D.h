@@ -63,11 +63,12 @@ typedef std::pair< float, FLOATVECTOR4 > GradientStop;
 
 class TFPolygon {
   public:
-    TFPolygon() {}
+    TFPolygon() : bRadial(false) {}
 
     void Load(std::ifstream& file);
     void Save(std::ofstream& file) const;
 
+    bool                        bRadial;
     std::vector< FLOATVECTOR2 > pPoints;
     FLOATVECTOR2 pGradientCoords[2];
     std::vector< GradientStop > pGradientStops;
