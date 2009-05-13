@@ -710,6 +710,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
     size_t iFileLength = fileDICOM.tellg();
     fileDICOM.seekg(iPosition,ios::beg);
 
+    DICOM_DBG("volume size: %u\n", info.m_ivSize.volume());
+    DICOM_DBG("n components: %u\n", info.m_iComponentCount);
     UINT32 iPixelDataSize = info.m_iComponentCount *
                             info.m_ivSize.volume() *
                             info.m_iAllocated / 8;
@@ -723,6 +725,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
         iPosition++;
         fileDICOM.read((char*)&iGroupID,2);
       }
+      DICOM_DBG("At eof: %d\n", fileDICOM.eof());
 
       // check if this 0x7fe0 is really a group ID
       if (iGroupID == 0x7fe0) {
@@ -736,11 +739,11 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
         if (bOK) {
           DICOM_DBG("Manual search for GroupID seemed to work.\n");
           if (!bImplicit) {
-            UINT32 iPixelDataSize = info.m_ivSize.volume() * info.m_iAllocated / 8;
+            UINT32 iVolumeDataSize = info.m_ivSize.volume() * info.m_iAllocated / 8;
             UINT32 iDataSizeInFile;
             fileDICOM.read((char*)&iDataSizeInFile,4);
 
-            if (iPixelDataSize != iDataSizeInFile) bOK = false;
+            if (iVolumeDataSize != iDataSizeInFile) bOK = false;
           }
 
           info.SetOffsetToData(int(fileDICOM.tellg()));
