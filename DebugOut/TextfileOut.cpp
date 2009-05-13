@@ -44,6 +44,18 @@
 
 using namespace std;
 
+/// ANSI escape codes for various colors.
+///@{
+static const char C_DGRAY[]  = "\033[01;30m";
+static const char C_NORM[]   = "\033[00m";
+static const char C_RED[]    = "\033[01;31m";
+static const char C_YELLOW[] = "\033[01;33m";
+static const char C_GREEN[]  = "\033[01;32m";
+static const char C_MAG[]    = "\033[01;35m";
+static const char C_LBLUE[]  = "\033[01;36m";
+static const char C_WHITE[]  = "\033[01;27m";
+///@}
+
 TextfileOut::TextfileOut(std::string strFilename) :
   m_strFilename(strFilename)
 {
@@ -146,7 +158,7 @@ void TextfileOut::Message(const char* source, const char* format, ...) {
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
-  this->_printf("MESSAGE (%s): %s",source, buff);
+  this->_printf("MESSAGE (%s): %s", source, buff);
 }
 
 void TextfileOut::Warning(const char* source, const char* format, ...) {
@@ -159,7 +171,11 @@ void TextfileOut::Warning(const char* source, const char* format, ...) {
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
-  this->_printf("WARNING (%s): %s",source, buff);
+#ifndef TUVOK_OS_WINDOWS
+  this->_printf("%sWARNING%s (%s): %s", C_YELLOW, C_NORM, source, buff);
+#else
+  this->_printf("WARNING (%s): %s", source, buff);
+#endif
 }
 
 void TextfileOut::Error(const char* source, const char* format, ...) {
@@ -172,5 +188,9 @@ void TextfileOut::Error(const char* source, const char* format, ...) {
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
-  this->_printf("ERROR (%s): %s",source, buff);
+#ifndef TUVOK_OS_WINDOWS
+  this->_printf("%sERROR%s (%s): %s", C_RED, C_NORM, source, buff);
+#else
+  this->_printf("ERROR (%s): %s", source, buff);
+#endif
 }
