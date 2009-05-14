@@ -34,6 +34,7 @@
   \date    August 2008
 */
 
+#include <IO/IOManager.h>
 #include "GPUMemManDataStructs.h"
 #include "Basics/MathTools.h"
 #include "Controller/Controller.h"
@@ -41,6 +42,7 @@
 #include "IO/uvfMetadata.h"
 #include "Renderer/GL/GLTexture3D.h"
 using namespace tuvok;
+
 
 Texture3DListElem::Texture3DListElem(Dataset* _pDataset,
                                      const std::vector<UINT64>& _vLOD,
@@ -51,7 +53,8 @@ Texture3DListElem::Texture3DListElem(Dataset* _pDataset,
                                      UINT64 iIntraFrameCounter,
                                      UINT64 iFrameCounter,
                                      MasterController* pMasterController,
-                                     const CTContext &ctx) :
+                                     const CTContext &ctx,
+                                     unsigned char* pUploadHub) :
   pData(NULL),
   pTexture(NULL),
   pDataset(_pDataset),
@@ -64,9 +67,10 @@ Texture3DListElem::Texture3DListElem(Dataset* _pDataset,
   vBrick(_vBrick),
   m_bIsPaddedToPowerOfTwo(bIsPaddedToPowerOfTwo),
   m_bIsDownsampledTo8Bits(bIsDownsampledTo8Bits),
-  m_bDisableBorder(bDisableBorder)
+  m_bDisableBorder(bDisableBorder),
+  m_bUsingHub(false)
 {
-  if (!CreateTexture()) {
+  if (!CreateTexture(pUploadHub)) {
     pTexture->Delete();
     delete pTexture;
     pTexture = NULL;
@@ -188,7 +192,8 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
                                 bool bIsPaddedToPowerOfTwo,
                                 bool bIsDownsampledTo8Bits,
                                 bool bDisableBorder, UINT64 iIntraFrameCounter,
-                                UINT64 iFrameCounter, const CTContext &cid) {
+                                UINT64 iFrameCounter, const CTContext &cid,
+                                unsigned char* pUploadHub) {
   if (pTexture == NULL) return false;
   if (m_Context != cid) {
     T_ERROR("Trying to replace texture in one context"
@@ -206,22 +211,37 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
   m_iIntraFrameCounter = iIntraFrameCounter;
   m_iFrameCounter = iFrameCounter;
 
-  if (!LoadData()) {
+  if (!LoadData(pUploadHub)) {
     T_ERROR("LoadData call failed, system may be out of memory");
     return false;
   }
   glGetError();  // clear gl error flags
-  pTexture->SetData(pData);
+  pTexture->SetData(m_bUsingHub ? pUploadHub : pData);
+
   return GL_NO_ERROR==glGetError();
 }
 
 
-bool Texture3DListElem::LoadData() {
+bool Texture3DListElem::LoadData(unsigned char* pUploadHub) {
   if (pData != NULL) MESSAGE("Freeing data before load");
   FreeData();
 
   UVFDataset& ds = dynamic_cast<UVFDataset&>(*(this->pDataset));
-  return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), &pData);
+
+  const UVFMetadata& md = dynamic_cast<const UVFMetadata&>
+                                      (pDataset->GetInfo());
+  const std::vector<UINT64> vSize = md.GetBrickSizeND(vLOD, vBrick);
+  
+  UINT64 iByteWidth  = pDataset->GetInfo().GetBitWidth()/8;
+  UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
+
+  UINT64 iBrickSize = vSize[0]*vSize[1]*vSize[2]*iByteWidth * iCompCount;
+
+  if (pUploadHub != NULL && iBrickSize <= UINT64(INCORESIZE*4)) {
+    m_bUsingHub = true;
+    return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), &pUploadHub);
+  } else
+    return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), &pData);
 }
 
 void  Texture3DListElem::FreeData() {
@@ -230,11 +250,13 @@ void  Texture3DListElem::FreeData() {
 }
 
 
-bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
+bool Texture3DListElem::CreateTexture(unsigned char* pUploadHub, bool bDeleteOldTexture) {
   if (bDeleteOldTexture) FreeTexture();
 
   if (pData == NULL)
-    if (!LoadData()) return false;
+    if (!LoadData(pUploadHub)) return false;
+
+  unsigned char* pRawData = (m_bUsingHub) ? pUploadHub : pData;
 
   const UVFMetadata& md = dynamic_cast<const UVFMetadata&>
                                       (pDataset->GetInfo());
@@ -259,17 +281,13 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
       return false;
     }
 
-    unsigned char* pTmpData = new unsigned char[vSize[0]*vSize[1]*vSize[2]*iCompCount];
-
     size_t iMax = pDataset->Get1DHistogram().GetFilledSize();
 
     for (size_t i = 0;i<vSize[0]*vSize[1]*vSize[2]*iCompCount;i++) {
-      unsigned char iQuantizedVal = (unsigned char)(255.0*((unsigned short*)pData)[i]/float(iMax));
-      pTmpData[i] = iQuantizedVal;
+      unsigned char iQuantizedVal = (unsigned char)(255.0*((unsigned short*)pRawData)[i]/float(iMax));
+      pRawData[i] = iQuantizedVal;
     }
 
-    delete [] pData;
-    pData = pTmpData;
     iBitWidth = 8;
   }
 
@@ -296,7 +314,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
       if (bToggleEndian) {
         UINT64 iElemCount = vSize[0];
         for (size_t i = 1;i<vSize.size();i++) iElemCount *= vSize[i];
-        short* pShorData = (short*)pData;
+        short* pShorData = (short*)pRawData;
         for (UINT64 i = 0;i<iCompCount*iElemCount;i++) {
           EndianConvert::Swap<short>(pShorData+i);
         }
@@ -328,7 +346,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
     pTexture = new GLTexture3D(UINT32(vSize[0]), UINT32(vSize[1]),
                                UINT32(vSize[2]),
                                glInternalformat, glFormat, glType,
-                               UINT32(iBitWidth/8*iCompCount), pData,
+                               UINT32(iBitWidth/8*iCompCount), pRawData,
                                GL_LINEAR, GL_LINEAR,
                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
@@ -348,7 +366,7 @@ bool Texture3DListElem::CreateTexture(bool bDeleteOldTexture) {
 
     for (size_t z = 0;z<vSize[2];z++) {
       for (size_t y = 0;y<vSize[1];y++) {
-        memcpy(pPaddedData+iTarget, pData+iSource, iRowSizeSource);
+        memcpy(pPaddedData+iTarget, pRawData+iSource, iRowSizeSource);
 
         // if the x sizes differ, duplicate the last element to make the
         // texture behave like clamp

@@ -154,6 +154,8 @@ class GPUMemMan {
     UINT64            m_iAllocatedCPUMemory;
     UINT64            m_iFrameCounter;
 
+    unsigned char*     m_pUploadHub;
+
     void FreeAssociatedTextures(tuvok::Dataset* pDataset);
     void Delete3DTexture(size_t iIndex);
 };

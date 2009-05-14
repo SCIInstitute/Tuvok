@@ -63,7 +63,7 @@ public:
   bool IsOpen() const { return m_bIsOpen; }
   std::string Filename() const { return m_strFilename; }
 
-  virtual UINTVECTOR3 GetBrickSize(const BrickKey&) const;
+  virtual UINT64VECTOR3 GetBrickSize(const BrickKey&) const;
 
   virtual bool GetBrick(const BrickKey& k, unsigned char **ppData) const {
     const NDBrickKey& key = this->KeyToNDKey(k);

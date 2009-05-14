@@ -142,7 +142,8 @@ public:
                     bool bIsPaddedToPowerOfTwo, bool bDisableBorder,
                     bool bIsDownsampledTo8Bits, UINT64 iIntraFrameCounter,
                     UINT64 iFrameCounter, MasterController* pMasterController,
-                    const tuvok::CTContext &);
+                    const tuvok::CTContext &,
+                    unsigned char* pUploadHub);
   ~Texture3DListElem();
 
   bool Equals(const tuvok::Dataset* _pDataset,
@@ -154,7 +155,8 @@ public:
                const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo,
                bool bIsDownsampledTo8Bits, bool bDisableBorder,
                UINT64 iIntraFrameCounter, UINT64 iFrameCounter,
-               const tuvok::CTContext &);
+               const tuvok::CTContext &,
+               unsigned char* pUploadHub);
   bool BestMatch(const std::vector<UINT64>& vDimension,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, UINT64& iIntraFrameCounter,
@@ -165,9 +167,9 @@ public:
                  UINT64& iFrameCounter, const tuvok::CTContext &ctx);
   GLTexture3D* Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter);
 
-  bool LoadData();
+  bool LoadData(unsigned char* pUploadHub);
   void  FreeData();
-  bool CreateTexture(bool bDeleteOldTexture=true);
+  bool CreateTexture(unsigned char* pUploadHub, bool bDeleteOldTexture=true);
   void  FreeTexture();
 
   unsigned char*      pData;
@@ -191,6 +193,7 @@ private:
   bool m_bIsPaddedToPowerOfTwo;
   bool m_bIsDownsampledTo8Bits;
   bool m_bDisableBorder;
+  bool m_bUsingHub;
 };
 
 typedef std::deque<Texture3DListElem*> Texture3DList;

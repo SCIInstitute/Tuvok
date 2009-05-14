@@ -256,21 +256,16 @@ bool UVFDataset::Open(bool bVerify)
   return true;
 }
 
-UINTVECTOR3 UVFDataset::GetBrickSize(const BrickKey&k) const
+UINT64VECTOR3 UVFDataset::GetBrickSize(const BrickKey&k) const
 {
   const NDBrickKey& key = KeyToNDKey(k);
   const UVFMetadata *md = dynamic_cast<const UVFMetadata*>
                                       (m_pVolumeDatasetInfo);
   std::vector<UINT64> vSizeUVF = md->GetBrickSizeND(key.first, key.second);
 
-  UINTVECTOR3 vSize;
   /// \todo: this code assumes that x,y,z are the first coords in the dataset
   // which is not strictly true; should check this at load time.
-  vSize[0] = static_cast<UINT32>(vSizeUVF[0]);
-  vSize[1] = static_cast<UINT32>(vSizeUVF[1]);
-  vSize[2] = static_cast<UINT32>(vSizeUVF[2]);
-
-  return vSize;
+  return UINT64VECTOR3(vSizeUVF[0], vSizeUVF[1], vSizeUVF[2]);
 }
 
 bool UVFDataset::Export(UINT64 iLODLevel, const std::string& targetFilename,

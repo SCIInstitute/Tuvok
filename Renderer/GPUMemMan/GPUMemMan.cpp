@@ -54,14 +54,18 @@
 using namespace std;
 using namespace tuvok;
 
+#include <IO/IOManager.h>
+
 GPUMemMan::GPUMemMan(MasterController* masterController) :
   m_MasterController(masterController),
   m_SystemInfo(masterController->SysInfo()),
   m_iAllocatedGPUMemory(0),
   m_iAllocatedCPUMemory(0),
-  m_iFrameCounter(0)
+  m_iFrameCounter(0),
+  m_pUploadHub(NULL)
 {
-
+  m_pUploadHub = new unsigned char[INCORESIZE*4];
+  m_iAllocatedCPUMemory = INCORESIZE*4;
 }
 
 GPUMemMan::~GPUMemMan() {
@@ -137,6 +141,9 @@ GPUMemMan::~GPUMemMan() {
 
     delete (*i);
   }
+
+  delete [] m_pUploadHub;
+  m_iAllocatedCPUMemory -= INCORESIZE*4;
 
   assert(m_iAllocatedGPUMemory == 0);
   assert(m_iAllocatedCPUMemory == 0);
@@ -584,7 +591,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
       (*iBestMatch)->Replace(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits, bDisableBorder,
                              iIntraFrameCounter, iFrameCounter,
-                             CTContext::Current());
+                             CTContext::Current(), m_pUploadHub);
       (*iBestMatch)->iUserCount++;
       return (*iBestMatch)->pTexture;
     } else {
@@ -625,7 +632,8 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
                                                        iIntraFrameCounter,
                                                        iFrameCounter,
                                                        m_MasterController,
-                                                       CTContext::Current());
+                                                       CTContext::Current(),
+                                                       m_pUploadHub);
   if (pNew3DTex->pTexture == NULL) {
     T_ERROR("Failed to create OpenGL texture.");
     delete pNew3DTex;
