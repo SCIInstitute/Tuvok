@@ -786,7 +786,7 @@ namespace SysTools {
     std::vector<size_t> values;
     values.reserve(files.size());
     std::transform(files.begin(), files.end(), std::back_inserter(values),
-      fileNumber<std::string>());
+                   fileNumber<std::string>());
 
     // No files in the dir?  Default to 0.
     if(values.empty()) {
@@ -808,7 +808,7 @@ namespace SysTools {
     std::vector<size_t> values;
     values.reserve(files.size());
     std::transform(files.begin(), files.end(), std::back_inserter(values),
-                  fileNumber<std::wstring>());
+                   fileNumber<std::wstring>());
 
     // No files in the dir?  Default to 0.
     if(values.empty()) {
