@@ -566,22 +566,27 @@ namespace SysTools {
     wstringstream s;
 
 #ifdef _WIN32
+    wstring wstrDir;
     if (dir == L"") {
       WCHAR path[4096];
       GetCurrentDirectoryW(4096, path);
-      s << path << "/" << fileName << "." << ext;
+      s << path << L"/" << fileName << L"." << ext;
+      wstrDir = wstring(path);
     } else {
-      s << dir << "/" << fileName << "." << ext;
+      s << dir << L"/" << fileName << L"." << ext;
+      wstrDir = dir;
     }
+
     WIN32_FIND_DATAW FindFileData;
     HANDLE hFind;
+
 
     hFind=FindFirstFileW(s.str().c_str(), &FindFileData);
 
     if (hFind != INVALID_HANDLE_VALUE) {
       do {
         if( 0 == (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
-          files.push_back(FindFileData.cFileName);
+          files.push_back(wstrDir + L"/" + wstring(FindFileData.cFileName));
         }
       }while ( FindNextFileW(hFind, &FindFileData) );
     }
@@ -594,6 +599,8 @@ namespace SysTools {
   } else {
     wstrDir = dir + L"/";
   }
+  string strDir(wstrDir.begin(), wstrDir.end());
+
 
   // filter files via regexpr
   string regExpr = "^";
@@ -618,8 +625,6 @@ namespace SysTools {
   }
   if (regcomp(&preg, regExpr.c_str(), REG_EXTENDED | REG_NOSUB) != 0) return files;
 
-
-  string strDir(wstrDir.begin(), wstrDir.end());
 
   DIR* dirData=opendir(strDir.c_str());
 
@@ -657,12 +662,15 @@ namespace SysTools {
     WIN32_FIND_DATAA FindFileData;
     HANDLE hFind;
 
+    string strDir;
     if (dir == "") {
       char path[4096];
       GetCurrentDirectoryA(4096, path);
       s << path << "/" << fileName << "." << ext;
+      strDir = string(path);
     } else {
       s << dir << "/" << fileName << "." << ext;
+      strDir = dir;
     }
 
     hFind=FindFirstFileA(s.str().c_str(), &FindFileData);
@@ -670,7 +678,7 @@ namespace SysTools {
     if (hFind != INVALID_HANDLE_VALUE) {
       do {
         if( 0 == (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ) {
-          files.push_back(FindFileData.cFileName);
+          files.push_back(strDir + "/" + string(FindFileData.cFileName));
         }
       }while ( FindNextFileA(hFind, &FindFileData) );
     }
@@ -748,20 +756,20 @@ namespace SysTools {
   }
 
   // Functor to identify the numeric ID appended to a given filename.
-  struct fileNumber : public std::unary_function<std::string, size_t> {
-    size_t operator()(const std::string& filename) const {
+  template <typename T> struct fileNumber : public std::unary_function<T, size_t> {
+    size_t operator()(const T& filename) const {
       // get just the filename itself, without extension or path information.
-      std::string fn = RemoveExt(GetFilename(filename));
+      T fn = RemoveExt(GetFilename(filename));
 
       // Find where the numbers start.
-      std::string::iterator numerals = std::find_if(fn.begin(), fn.end(),
+      T::iterator numerals = std::find_if(fn.begin(), fn.end(),
                                                     ::isdigit);
       if(numerals == fn.end()) { // give back `0' if there were no numerals.
         return 0;
       }
       // Otherwise try to convert it to a size_t and return that.
       size_t retval = 0;
-      FromString(retval, std::string(&*numerals));
+      FromString(retval, T(&*numerals));
       return retval;
     }
   };
@@ -777,7 +785,7 @@ namespace SysTools {
     std::vector<size_t> values;
     values.reserve(files.size());
     std::transform(files.begin(), files.end(), std::back_inserter(values),
-                   fileNumber());
+      fileNumber<std::string>());
 
     // No files in the dir?  Default to 0.
     if(values.empty()) {
@@ -795,30 +803,20 @@ namespace SysTools {
     wstringstream out;
     vector<wstring> files = GetDirContents(dir, fileName+L"*", ext);
 
-    UINT32 iMaxIndex = 0;
-    for (size_t i = 0; i<files.size();i++) {
-      wstring wcurFilename = RemoveExt(files[i]);
-      string curFilename(wcurFilename.begin(), wcurFilename.end());
+    // Get a list of all the trailing numeric values.
+    std::vector<size_t> values;
+    values.reserve(files.size());
+    std::transform(files.begin(), files.end(), std::back_inserter(values),
+                  fileNumber<std::wstring>());
 
-      string rest = RemoveExt(curFilename).substr(fileName.length());
-      for (size_t j = 0; j<rest.size();j++) {
-        if (rest[j] != '0' && rest[j] != '1' && rest[j] != '2' && rest[j] != '3' &&
-            rest[j] != '4' && rest[j] != '5' && rest[j] != '6' && rest[j] != '7' &&
-            rest[j] != '8' && rest[j] != '9') {
-              rest.clear();
-              break;
-        }
-      }
-      if (rest.length() == 0) continue;
-
-      UINT32 iCurrIndex = UINT32(atoi(rest.c_str()));
-      iMaxIndex = (iMaxIndex <= iCurrIndex) ? iCurrIndex+1 : iMaxIndex;
+    // No files in the dir?  Default to 0.
+    if(values.empty()) {
+      out << dir << fileName << 0 << L"." << ext;
+    } else {
+      // Otherwise, the next number is the current max + 1.
+      size_t max_val = *(std::max_element(values.begin(), values.end()));
+      out << dir << fileName << max_val+1 << L"." << ext;
     }
-
-    if (dir == L"" || dir[dir.size()-1] == L'\\' ||  dir[dir.size()-1] == L'/')
-      out << dir << fileName << iMaxIndex << L"." << ext;
-    else
-      out << dir << L"/" << fileName << iMaxIndex << L"." << ext;
 
     return out.str();
   }
