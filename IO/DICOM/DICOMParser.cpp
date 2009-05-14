@@ -371,7 +371,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
   short iGroupID, iElementID;
   UINT32 iElemLength;
   DICOM_eType elementType;
-  int iMetaHeaderEnd;
+  int iMetaHeaderEnd=0;
 
   bool bParsingMetaHeader = true;
 
