@@ -762,8 +762,9 @@ namespace SysTools {
       T fn = RemoveExt(GetFilename(filename));
 
       // Find where the numbers start.
-      T::iterator numerals = std::find_if(fn.begin(), fn.end(),
-                                                    ::isdigit);
+      typename T::const_iterator numerals =
+        std::find_if(fn.begin(), fn.end(), ::isdigit);
+
       if(numerals == fn.end()) { // give back `0' if there were no numerals.
         return 0;
       }
