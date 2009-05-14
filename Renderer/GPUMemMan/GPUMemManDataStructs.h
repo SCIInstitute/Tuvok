@@ -165,6 +165,11 @@ public:
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, UINT64& iIntraFrameCounter,
                  UINT64& iFrameCounter, const tuvok::CTContext &ctx);
+  void GetCounters(UINT64& iIntraFrameCounter, UINT64& iFrameCounter) {
+    iIntraFrameCounter = m_iIntraFrameCounter;
+    iFrameCounter = m_iFrameCounter;
+  }
+
   GLTexture3D* Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter);
 
   bool LoadData(unsigned char* pUploadHub);

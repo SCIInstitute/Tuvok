@@ -599,7 +599,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
               " brick fits into memory");
 
       // no suitable brick found -> randomly delete bricks until this brick fits into memory
-      while (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
+      while (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
 
         if (m_vpTex3DList.empty()) {
           // we do not have enough memory to page in even a single block...
@@ -705,7 +705,45 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode,
 
   MESSAGE("Creating new FBO of size %i x %i", int(width), int(height));
 
-  FBOListElem* e = new FBOListElem(m_MasterController,minfilter, magfilter, wrapmode, width, height, intformat, iSizePerElement, bHaveDepth, iNumBuffers);
+  UINT64 m_iCPUMemEstimate = GLFBOTex::EstimateCPUSize(width, height, iSizePerElement, bHaveDepth, iNumBuffers);
+//  UINT64 m_iGPUMemEstimate = GLFBOTex::EstimateGPUSize(width, height, iSizePerElement, bHaveDepth, iNumBuffers);  // GPU mem is not used in GL at the moment
+
+  // if we are running out of mem, kick out bricks to create room for the FBO
+  while (m_iAllocatedCPUMemory + m_iCPUMemEstimate > m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
+    MESSAGE("Not enough memory for FBO %i x %i (%ibit * %i), paging out volume bricks ...",
+            int(width), int(height), int(iSizePerElement), int(iNumBuffers));
+
+    // search for best brick to replace with this brick
+    UINT64 iMinTargetFrameCounter;
+    UINT64 iMaxTargetIntraFrameCounter;
+    (*m_vpTex3DList.begin())->GetCounters(iMaxTargetIntraFrameCounter, iMinTargetFrameCounter);
+    size_t iIndex = 0;
+    size_t iBestIndex = 0;
+
+    for (Texture3DListIter i = m_vpTex3DList.begin()+1;i<m_vpTex3DList.end();i++) {
+      UINT64 iTargetFrameCounter = UINT64_INVALID;
+      UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
+      (*i)->GetCounters(iTargetIntraFrameCounter, iTargetFrameCounter);
+      iIndex++;
+
+      if (iTargetFrameCounter < iMinTargetFrameCounter) {
+        iMinTargetFrameCounter = iTargetFrameCounter;
+        iMaxTargetIntraFrameCounter = iTargetIntraFrameCounter;
+        iBestIndex = iIndex;
+      } else {
+        if (iTargetFrameCounter == iMinTargetFrameCounter &&
+            iTargetIntraFrameCounter > iMaxTargetIntraFrameCounter) {
+          iMaxTargetIntraFrameCounter = iTargetIntraFrameCounter;
+          iBestIndex = iIndex;
+        }
+      }
+    }
+    MESSAGE("   Deleting texture %i", int(iBestIndex));
+    Delete3DTexture(iBestIndex);
+  }
+
+
+  FBOListElem* e = new FBOListElem(m_MasterController, minfilter, magfilter, wrapmode, width, height, intformat, iSizePerElement, bHaveDepth, iNumBuffers);
 
   m_vpFBOList.push_back(e);
 

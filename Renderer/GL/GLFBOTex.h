@@ -57,8 +57,12 @@ public:
   virtual operator GLuint*(void) { return m_hTexture; }
 
   /// \todo check how much mem an FBO really occupies
-  virtual UINT64 GetCPUSize() {return m_iNumBuffers*m_iSizeX*m_iSizeY*m_iSizePerElement + ((m_hDepthBuffer) ? m_iSizeX*m_iSizeY*4 : 0);}
-  virtual UINT64 GetGPUSize() {return GetCPUSize();}
+  virtual UINT64 GetCPUSize() {return EstimateCPUSize(m_iSizeX, m_iSizeY, m_iSizePerElement, m_hDepthBuffer!=0, m_iNumBuffers);}
+  virtual UINT64 GetGPUSize() {return EstimateGPUSize(m_iSizeX, m_iSizeY, m_iSizePerElement, m_hDepthBuffer!=0, m_iNumBuffers);}
+
+  static UINT64 EstimateCPUSize(GLsizei width, GLsizei height, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1) {return iNumBuffers*width*height*iSizePerElement + ((bHaveDepth) ? width*height*4 : 0);}
+  static UINT64 EstimateGPUSize(GLsizei width, GLsizei height, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1) {return EstimateCPUSize(width, height, iSizePerElement, bHaveDepth, iNumBuffers);}
+
 
   static void NoDrawBuffer();
   static void OneDrawBuffer();
