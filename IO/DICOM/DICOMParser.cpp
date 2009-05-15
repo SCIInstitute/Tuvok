@@ -716,7 +716,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
 
   if (elementType != TYPE_UN) {
     if (!bImplicit) {
-      // for an explicit file we can actually check if we found the pixel data block (and not some color table)
+      // for an explicit file we can actually check if we found the pixel
+      // data block (and not some color table)
       UINT32 iPixelDataSize = info.m_ivSize.volume() * info.m_iAllocated / 8;
       UINT32 iDataSizeInFile;
       fileDICOM.read((char*)&iDataSizeInFile,4);
@@ -727,9 +728,17 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
           fileDICOM.read((char*)iJPEGID,2);
           if (iJPEGID[0] == 0xFF && iJPEGID[1] == 0xE0 ) break;
         }
-        MESSAGE("JPEG is at offset: %u\n",
-                static_cast<unsigned int>((int(fileDICOM.tellg())-4)));
-        info.SetOffsetToData(UINT32(int(fileDICOM.tellg())-4));
+        // Try to get the offset, which can fail.  If it does, report an error
+        // and fake an offset -- we're screwed at that point anyway.
+        size_t offset = fileDICOM.tellg();
+        if(static_cast<int>(fileDICOM.tellg()) == -1) {
+          T_ERROR("JPEG offset unknown; DICOM parsing failed.  "
+                  "Assuming offset 0.  Please send a debug log.");
+          offset = 4;  // make sure it won't underflow in the next line.
+        }
+        offset -= 4;
+        MESSAGE("JPEG is at offset: %u", offset);
+        info.SetOffsetToData(static_cast<UINT32>(offset));
       } else {
         if (iPixelDataSize != iDataSizeInFile) {
           elementType = TYPE_UN;
