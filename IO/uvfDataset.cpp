@@ -140,8 +140,9 @@ bool UVFDataset::Open(bool bVerify)
       // check if we have anything other than scalars or color
       if (pVolumeDataBlock->ulElementDimensionSize[0] != 1 &&
           pVolumeDataBlock->ulElementDimensionSize[0] != 4) {
-        MESSAGE("Non scalar or color raster data block found "
-                "in UVF file, skipping.");
+        MESSAGE("Skipping UVF raster data block with %u elements; "
+                "only know how to handle scalar and color data.",
+                pVolumeDataBlock->ulElementDimensionSize[0]);
         continue;
       }
 
