@@ -75,7 +75,7 @@ static void fill_buffer_from_file(std::vector<char>& buf, const char *fn,
 /// the `jpeg implementation'.  This is what we'll actually end up pointing to.
 struct j_implementation : public JPEG::j_impl {
   // Constructor just configures the objects we'll use later.
-  j_implementation() {
+  j_implementation() : started(false) {
     struct jpeg_decompress_struct jpg;
     jpg.err = jpeg_std_error(&(this->jerr));
     jpg.err->error_exit = jpg_error;
@@ -93,8 +93,12 @@ struct j_implementation : public JPEG::j_impl {
     this->data = mem;
     this->jinfo.src->bytes_in_buffer = this->data.size();
     this->jinfo.src->next_input_byte = &(this->data.at(0));
-    jpeg_read_header(&(this->jinfo), TRUE);
+    if(jpeg_read_header(&(this->jinfo), TRUE) != JPEG_HEADER_OK) {
+      T_ERROR("Could not read JPEG header, bailing...");
+      return;
+    }
     jpeg_start_decompress(&(this->jinfo));
+    started = true;
   }
 
   virtual ~j_implementation() {
@@ -102,10 +106,13 @@ struct j_implementation : public JPEG::j_impl {
     // metadata), then this `finish' causes an `Application transferred too few
     // scanlines' warning.  Yet we've called start_decompress, so we must call
     // finish.  Just live with the warning, or fix the issue in libjpeg itself.
-    jpeg_finish_decompress(&this->jinfo);
-    jpeg_destroy_decompress(&this->jinfo);
+    if(started) {
+      jpeg_finish_decompress(&this->jinfo);
+      jpeg_destroy_decompress(&this->jinfo);
+    }
   }
   std::vector<char> data;       ///< hunk of memory we'll read the jpeg from.
+  bool started;                 ///< whether we've started decompressing
   jpeg_error_mgr jerr;          ///< how jpeg will report errors
   jpeg_decompress_struct jinfo; ///< main interface for decompression
 };
@@ -230,7 +237,14 @@ fill_buffer_from_file(std::vector<char>& buf, const char *fn,
   MESSAGE("Reading %d byte file.", static_cast<unsigned int>(file_size));
 
   // resize our buffer to be big enough for the file
-  buf.resize(file_size);
+  try {
+    buf.resize(file_size);
+  } catch(std::bad_alloc &ba) {
+    T_ERROR("Could not allocate JPEG buffer");
+    WARNING("Retrying with smaller buffer...");
+    file_size = 256*256*256;
+    buf.resize(file_size);
+  }
   ifs.read(&buf.at(0), file_size);
   assert(ifs.gcount() == file_size);
 }

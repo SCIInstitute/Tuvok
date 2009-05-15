@@ -298,6 +298,14 @@ void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& , short& 
             ParseUndefLengthSequence(fileDICOM, iGroupID, iElementID, info, bImplicit, bNeedsEndianConversion);
           #endif
         } else {
+          // In a debug build, crash and burn so we know where the error
+          // occurred.
+          // In release, nudge up the data value so we're guaranteed to make
+          // progress; otherwise the application can hang in an infinite loop
+          // of reading 0's.
+          assert(iData > 0);
+          if(iData == 0) { iData = 1; }
+
           value.resize(iData);
           fileDICOM.read(&value[0],iData);
           #ifdef DEBUG_DICOM
@@ -308,7 +316,7 @@ void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& , short& 
       }
     }
 
-  } while (iData != 0xE0DDFFFE);
+  } while (iData != 0xE0DDFFFE && !fileDICOM.eof());
   fileDICOM.read((char*)&iData,4);
 
 #ifdef DEBUG_DICOM
@@ -379,7 +387,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
   ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType,
                       iElemLength, bImplicit, info.m_bIsBigEndian);
 
-  while (bParsingMetaHeader && iGroupID == 0x2) {
+  while (bParsingMetaHeader && iGroupID == 0x2 && !fileDICOM.eof()) {
     switch (iElementID) {
       case 0x0 : {  // File Meta Elements Group Len
             if (iElemLength != 4) {
@@ -391,6 +399,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
             iMetaHeaderEnd  = iMetaHeaderLength + UINT32(fileDICOM.tellg());
            } break;
       case 0x1 : {  // Version
+            assert(iElemLength > 0);
+            if(iElemLength == 0) { iElemLength = 1; } // guarantee progress.
             value.resize(iElemLength);
             fileDICOM.read(&value[0],iElemLength);
            } break;
@@ -778,8 +788,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
           info.SetOffsetToData(int(fileDICOM.tellg()));
         } else {
           DICOM_DBG("Manual search failed (for this iteration), "
-                    "seeking back 8 bytes.");
-          fileDICOM.seekg(-8, ios_base::cur);
+                    "skipping element of type '%d'!", (int)elementType);
+          fileDICOM.seekg(iElemLength, ios_base::cur);
         }
       }
     } while(iGroupID == 0x7fe0);
