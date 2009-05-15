@@ -163,6 +163,9 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   return fileStacks;
 }
 
+#ifdef TUVOK_OS_WINDOWS
+  #pragma warning(disable:4996)
+#endif
 
 bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename) {
 
@@ -341,6 +344,10 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
   T_ERROR("Unknown source stack type %s", pStack->m_strFileType.c_str());
   return false;
 }
+
+#ifdef TUVOK_OS_WINDOWS
+  #pragma warning(default:4996)
+#endif
 
 
 bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& vScales,

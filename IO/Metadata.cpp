@@ -58,6 +58,10 @@ void Metadata::GetRescaleFactors(double rescale[3]) const {
   std::copy(m_Rescale, m_Rescale+3, rescale);
 }
 
+void Metadata::SetRescaleFactors(const double rescale[3]) {
+  std::copy(rescale,rescale+3, this->m_Rescale);
+}
+
 #ifdef TUVOK_OS_WINDOWS
   #pragma warning(default:4996)
 #endif
@@ -82,9 +86,6 @@ bool Metadata::ContainsData(const BrickKey &key, const DOUBLEVECTOR2& valRange,
                             gradientRange[0],gradientRange[1]);
 }
 
-void Metadata::SetRescaleFactors(const double rescale[3]) {
-  std::copy(rescale,rescale+3, this->m_Rescale);
-}
 void Metadata::SetRescaleFactors(const DOUBLEVECTOR3& rescale) {
   this->m_Rescale[0] = rescale[0];
   this->m_Rescale[1] = rescale[1];

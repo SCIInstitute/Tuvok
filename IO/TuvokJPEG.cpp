@@ -165,7 +165,7 @@ const char* JPEG::data()
     jbuffer = (*jimpl->jinfo.mem->alloc_sarray)(
                  (j_common_ptr) &(jimpl->jinfo),
                  JPOOL_IMAGE,
-                 row_sz,
+                 JDIMENSION(row_sz),
                  1
               );
 
@@ -240,7 +240,7 @@ fill_buffer_from_file(std::vector<char>& buf, const char *fn,
   try {
     buf.resize(file_size);
   } catch(std::bad_alloc &ba) {
-    T_ERROR("Could not allocate JPEG buffer");
+    T_ERROR("Could not allocate JPEG buffer (%s)",ba.what());
     WARNING("Retrying with smaller buffer...");
     file_size = 256*256*256;
     buf.resize(file_size);
