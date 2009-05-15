@@ -196,7 +196,7 @@ void GLFBOTex::initTextures(GLenum minfilter,GLenum magfilter,GLenum wrapmode, G
  * Build a new FBO.
  */
 void GLFBOTex::initFBO(void) {
-  MESSAGE("FBO initialized.");
+  MESSAGE("Initializing FBO...");
   glGenFramebuffersEXT(1, &m_hFBO);
 }
 
@@ -295,19 +295,16 @@ void GLFBOTex::FinishDepthRead() {
 }
 
 void GLFBOTex::NoDrawBuffer() {
-  MESSAGE("no draw buffers..");
   glDrawBuffer(GL_NONE);
 }
 
 void GLFBOTex::OneDrawBuffer() {
-  MESSAGE("One drawbuffer");
   glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 }
 
 void GLFBOTex::TwoDrawBuffers() {
   GLenum twobuffers[]  = { GL_COLOR_ATTACHMENT0_EXT,
                            GL_COLOR_ATTACHMENT1_EXT };
-  MESSAGE("two drawbuffers");
   glDrawBuffers(2, twobuffers);
 }
 
@@ -315,7 +312,6 @@ void GLFBOTex::ThreeDrawBuffers() {
   GLenum threebuffers[]  = { GL_COLOR_ATTACHMENT0_EXT,
                             GL_COLOR_ATTACHMENT1_EXT,
                             GL_COLOR_ATTACHMENT2_EXT};
-  MESSAGE("three drawbuffers");
   glDrawBuffers(3, threebuffers);
 }
 
@@ -324,7 +320,6 @@ void GLFBOTex::FourDrawBuffers() {
                             GL_COLOR_ATTACHMENT1_EXT,
                             GL_COLOR_ATTACHMENT2_EXT,
                             GL_COLOR_ATTACHMENT3_EXT};
-  MESSAGE("four drawbuffers");
   glDrawBuffers(4, fourbuffers);
 }
 
