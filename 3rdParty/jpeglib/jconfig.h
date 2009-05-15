@@ -63,6 +63,6 @@ typedef unsigned char boolean;
 }
 #endif // cplusplus
 
-#define BITS_IN_JSAMPLE 16
+#define BITS_IN_JSAMPLE 8
 #define HAVE_PROTOTYPES
 #include "mangle_jpeg.h"

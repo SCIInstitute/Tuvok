@@ -232,7 +232,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
       }
 
 
-      if (pDICOMStack->m_bIsBigEndian) {
+      if (pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian()) {
         switch (pDICOMStack->m_iAllocated) {
           case  8 : break;
           case 16 : {
@@ -246,9 +246,18 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
         }
       }
 
-      // HACK: this code assumes 3 component data is always 3*char
+      // Create temporary file with the DICOM (image) data.  We pretend 3
+      // component data is 4 component data to simplify processing later.
+      /// @todo FIXME: this code assumes 3 component data is always 3*char
       if (pDICOMStack->m_iComponentCount == 3) {
         UINT32 iRGBADataSize = (iDataSize / 3 ) * 4;
+
+        // Later we'll tell RAWConverter that this dataset has
+        // m_iComponentCount components.  Since we're upping the number of
+        // components here, we update the component count too.
+        pDICOMStack->m_iComponentCount = 4;
+        // Do note that the number of components in the data and the number of
+        // components in our in-memory copy of the data now differ.
 
         unsigned char *pRGBAData = new unsigned char[ iRGBADataSize ];
         for (UINT32 k = 0;k<iDataSize/3;k++) {
