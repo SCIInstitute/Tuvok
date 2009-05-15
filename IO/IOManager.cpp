@@ -45,6 +45,7 @@
 #include <IO/Images/ImageParser.h>
 #include <Basics/SysTools.h>
 #include <Renderer/GPUMemMan/GPUMemMan.h>
+#include "TuvokJPEG.h"
 #include "uvfDataset.h"
 
 #include "BOVConverter.h"
@@ -97,24 +98,25 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   DICOMParser parseDICOM;
   parseDICOM.GetDirInfo(strDirectory);
 
+  // Sort out DICOMs with embedded images that we can't read.
   for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {
     DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
 
-    // if trying to load JPEG files. check if Qimage can handle the JPEG payload
+    // if trying to load JPEG files. check if we can handle the JPEG payload
     if (f->m_bIsJPEGEncoded) {
-      void* pData = NULL;
-      f->m_Elements[0]->GetData(&pData);
-      UINT32 iLength = f->m_Elements[0]->GetDataSize();
-      QImage image;
-      if (!image.loadFromData((uchar*)pData, iLength)) {
-        MESSAGE("Skipping stack %d; can't load JPEG data!", iStackID);
-        // should probably be using ptr container lib here instead of trying to
-        // explicitly manage this.
-        delete *(parseDICOM.m_FileStacks.begin()+iStackID);
-        parseDICOM.m_FileStacks.erase(parseDICOM.m_FileStacks.begin()+iStackID);
-        iStackID--;
+      for(size_t i=0; i < f->m_Elements.size(); ++i) {
+        if(!tuvok::JPEG(f->m_Elements[i]->m_strFileName,
+                        dynamic_cast<SimpleDICOMFileInfo*>
+                          (f->m_Elements[i])->GetOffsetToData()).valid()) {
+          WARNING("Can't load JPEG in stack %d, element %u!", iStackID, i);
+          // should probably be using ptr container lib here instead of trying to
+          // explicitly manage this.
+          delete *(parseDICOM.m_FileStacks.begin()+iStackID);
+          parseDICOM.m_FileStacks.erase(parseDICOM.m_FileStacks.begin()+iStackID);
+          iStackID--;
+          break;
+        }
       }
-      delete [] (char*)pData;
     }
 
     delete f;
@@ -193,42 +195,32 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
     char *pData = NULL;
     for (size_t j = 0;j<pDICOMStack->m_Elements.size();j++) {
-      pDICOMStack->m_Elements[j]->GetData((void**)(char**)&pData); // the first call does a "new" on pData, the strange casting here is to avoid pointer aliasing issues
 
       UINT32 iDataSize = pDICOMStack->m_Elements[j]->GetDataSize();
 
+      pData = new char[iDataSize];
 
       if (pDICOMStack->m_bIsJPEGEncoded) {
-        QImage image;
-        if (!image.loadFromData((uchar*)pData, iDataSize)) {
-          T_ERROR("QImage is unable to load JPEG block in DICOM file.");
-          delete [] pData;
+        MESSAGE("JPEG is %d bytes, offset %d", iDataSize,
+                dynamic_cast<SimpleDICOMFileInfo*>(pDICOMStack->m_Elements[j])
+                ->GetOffsetToData());
+        tuvok::JPEG jpg(pDICOMStack->m_Elements[j]->m_strFileName,
+                        dynamic_cast<SimpleDICOMFileInfo*>
+                          (pDICOMStack->m_Elements[j])->GetOffsetToData());
+        if(!jpg.valid()) {
+          delete []pData;
+          WARNING("'%s' reports an embedded JPEG, but the JPEG is invalid.",
+                  pDICOMStack->m_Elements[j]->m_strFileName.c_str());
           return false;
         }
-        if (pDICOMStack->m_iComponentCount == 1) {
-          size_t i = 0;
-          for (int h = 0;h<image.height();h++) {
-            for (int w = 0;w<image.width();w++) {
-              pData[i] = qRed(image.pixel(w,h));
-              i++;
-            }
-          }
-        } else 
-        if (pDICOMStack->m_iComponentCount == 3) {
-          size_t i = 0;
-          for (int h = 0;h<image.height();h++) {
-            for (int w = 0;w<image.width();w++) {
-              pData[i+0] = qRed(image.pixel(w,h));
-              pData[i+1] = qGreen(image.pixel(w,h));
-              pData[i+2] = qBlue(image.pixel(w,h));
-              i+=3;
-            }
-          }
-        } else {
-          T_ERROR("Only 1 and 3 component images are supported a the moment.");
-          delete [] pData;
-          return false;
-        }
+        MESSAGE("jpg is: %u bytes (%ux%u, %u components)", jpg.size(),
+                jpg.width(), jpg.height(), jpg.components());
+
+        const char *jpeg_data = jpg.data();
+        std::copy(jpeg_data, jpeg_data + jpg.size(), pData);
+      } else {
+        // the first call does a "new" on pData
+        pDICOMStack->m_Elements[j]->GetData((void**)&pData);
       }
 
 
