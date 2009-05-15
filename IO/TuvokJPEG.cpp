@@ -68,7 +68,8 @@ typedef struct {
 static boolean fill_input_buffer(j_decompress_ptr);
 static void jpg_error(j_common_ptr);
 
-static void fill_buffer_from_file(std::vector<char>& buf, const char *fn);
+static void fill_buffer_from_file(std::vector<char>& buf, const char *fn,
+                                  std::streamoff offset);
 
 /// To avoid including jpeglib in the header, we create an opaque pointer to
 /// the `jpeg implementation'.  This is what we'll actually end up pointing to.
@@ -109,17 +110,10 @@ struct j_implementation : public JPEG::j_impl {
   jpeg_decompress_struct jinfo; ///< main interface for decompression
 };
 
-JPEG::JPEG(const char *fn) :
+JPEG::JPEG(const std::string &fn, std::streamoff offset) :
   w(0), h(0), bpp(0), jpeg_impl(new j_implementation)
 {
-  fill_buffer_from_file(this->buffer, fn);
-  this->initialize();
-}
-
-JPEG::JPEG(const std::string &fn) :
-  w(0), h(0), bpp(0), jpeg_impl(new j_implementation)
-{
-  fill_buffer_from_file(this->buffer, fn.c_str());
+  fill_buffer_from_file(this->buffer, fn.c_str(), offset);
   this->initialize();
 }
 
@@ -153,8 +147,7 @@ const char* JPEG::data()
   // If the JPEG isn't valid, we can't load anything from it; just bail.
   if(!this->valid()) { return NULL; }
 
-  // Need a buffer for the image data.  Since the data were copied when given
-  // to j_implementation, we reuse our internal buffer for the jpeg payload.
+  // Need a buffer for the image data.
   this->buffer.resize(this->size());
 
   j_implementation *jimpl = dynamic_cast<j_implementation*>(this->jpeg_impl);
@@ -176,10 +169,11 @@ const char* JPEG::data()
     char *data = &(this->buffer.at(0));
 
     while(jimpl->jinfo.output_scanline < jimpl->jinfo.output_height) {
-      jpeg_read_scanlines(&(jimpl->jinfo), (JSAMPLE**)jbuffer, 1);
+      jpeg_read_scanlines(&(jimpl->jinfo), (JSAMPLE**)&jbuffer, 1);
       // The -1 is because jpeg_read_scanlines implicitly incremented the
       // output_scanline field, putting the current scanline after the call 1
       // in front of the scanline we want to copy.
+      assert(jimpl->jinfo.output_scanline > 0);
       std::memcpy(data + ((jimpl->jinfo.output_scanline-1)*row_sz),
                   jbuffer, row_sz);
     }
@@ -223,14 +217,17 @@ jpg_error(j_common_ptr jinfo)
 /// Exactly what it says; fill the contents of the buffer with the data in the
 /// given filename.  Not a great idea to do this with large files.
 static void
-fill_buffer_from_file(std::vector<char>& buf, const char *fn)
+fill_buffer_from_file(std::vector<char>& buf, const char *fn,
+                      std::streamoff offset)
 {
   std::ifstream ifs(fn, std::ifstream::binary);
 
   // get filesize.
   ifs.seekg(0, std::ios::end);
-  std::ifstream::pos_type file_size = ifs.tellg();
-  ifs.seekg(0, std::ios::beg);
+  std::ifstream::pos_type file_size = ifs.tellg() - offset;
+  ifs.seekg(offset, std::ios::beg);
+
+  MESSAGE("Reading %d byte file.", static_cast<unsigned int>(file_size));
 
   // resize our buffer to be big enough for the file
   buf.resize(file_size);

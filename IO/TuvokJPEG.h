@@ -38,6 +38,7 @@
 #ifndef TUVOK_JPEG_H
 #define TUVOK_JPEG_H
 
+#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -46,11 +47,9 @@ namespace tuvok {
 /// Simple wrapper for reading a JPEG using libjpeg.
 class JPEG {
   public:
-    /// Loads a JPEG from a file.
-    ///@{
-    JPEG(const char *);
-    JPEG(const std::string &);
-    ///@}
+    /// Loads a JPEG from a file, starting at the given offset.
+    JPEG(const std::string &, std::streamoff offset=0);
+
     /// Loads a JPEG from an in-memory buffer.
     JPEG(const std::vector<char>& buf);
     ~JPEG();
