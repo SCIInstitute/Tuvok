@@ -78,19 +78,19 @@ UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
     m_vaBrickCount.push_back(UINT64VECTOR3(vBrickCount[0], vBrickCount[1],
                                            vBrickCount[2]));
 
-    m_vvaBrickSize[j].resize(m_vaBrickCount[j].x);
+    m_vvaBrickSize[j].resize(size_t(m_vaBrickCount[j].x));
     if (m_pMaxMinData) {
-      m_vvaMaxMin[j].resize(m_vaBrickCount[j].x);
+      m_vvaMaxMin[j].resize(size_t(m_vaBrickCount[j].x));
     }
     for (UINT64 x=0; x < m_vaBrickCount[j].x; x++) {
-      m_vvaBrickSize[j][x].resize(m_vaBrickCount[j].y);
+      m_vvaBrickSize[j][size_t(x)].resize(size_t(m_vaBrickCount[j].y));
       if (m_pMaxMinData) {
-        m_vvaMaxMin[j][x].resize(m_vaBrickCount[j].y);
+        m_vvaMaxMin[j][size_t(x)].resize(size_t(m_vaBrickCount[j].y));
       }
 
       for (UINT64 y=0; y < m_vaBrickCount[j].y; y++) {
         if (m_pMaxMinData) {
-          m_vvaMaxMin[j][x][y].resize(m_vaBrickCount[j].z);
+          m_vvaMaxMin[j][size_t(x)][size_t(y)].resize(size_t(m_vaBrickCount[j].z));
         }
 
         for (UINT64 z=0; z < m_vaBrickCount[j].z; z++) {
@@ -101,7 +101,7 @@ UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
           std::vector<UINT64> vBrickSize =
             m_pVolumeDataBlock->GetBrickSize(vLOD, vBrick);
 
-          m_vvaBrickSize[j][x][y].push_back(UINT64VECTOR3(vBrickSize[0],
+          m_vvaBrickSize[j][size_t(x)][size_t(y)].push_back(UINT64VECTOR3(vBrickSize[0],
                                                           vBrickSize[1],
                                                           vBrickSize[2]));
         }
@@ -120,7 +120,7 @@ UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
             // the first component
             /// \todo we may have to change this if we add support for other
             /// kinds of multicomponent data.
-            m_vvaMaxMin[lod][x][y][z] =
+            m_vvaMaxMin[lod][size_t(x)][size_t(y)][size_t(z)] =
               m_pMaxMinData->GetValue(iSerializedIndex++,
                  (m_pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0
               );
@@ -145,7 +145,7 @@ UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
 // Return the number of bricks in the given LoD, along each axis.
 UINT64VECTOR3 UVFMetadata::GetBrickCount(const UINT64 lod) const
 {
-  return m_vaBrickCount[lod];
+  return m_vaBrickCount[size_t(lod)];
 }
 
 // Size of the brick in logical space.
@@ -157,7 +157,7 @@ UINT64VECTOR3 UVFMetadata::GetBrickSize(const NDBrickKey &k) const
     static_cast<size_t>(k.second[0].y),
     static_cast<size_t>(k.second[0].z)
   };
-  return m_vvaBrickSize[lod][vBrick[0]][vBrick[1]][vBrick[2]];
+  return m_vvaBrickSize[size_t(lod)][vBrick[0]][vBrick[1]][vBrick[2]];
 }
 
 // One dimensional brick shrinking for internal bricks that have some overlap
@@ -182,7 +182,7 @@ static void fix_overlap(UINT64& v, UINT64 nbrick, UINT64 count,
 // Gives the size of a brick in real space.
 UINT64VECTOR3 UVFMetadata::GetEffectiveBrickSize(const NDBrickKey &k) const
 {
-  const UINT64 iLOD = k.first[0];
+  const size_t iLOD = size_t(k.first[0]);
   const size_t vBrick[3] = {
     static_cast<size_t>(k.second[0].x),
     static_cast<size_t>(k.second[0].y),
@@ -214,7 +214,7 @@ UINT64VECTOR3 UVFMetadata::GetEffectiveBrickSize(const NDBrickKey &k) const
 
 UINT64VECTOR3 UVFMetadata::GetDomainSize(const UINT64 lod) const
 {
-  return m_aDomainSize[lod];
+  return m_aDomainSize[size_t(lod)];
 }
 
 UINT64VECTOR3 UVFMetadata::GetMaxBrickSize() const
@@ -332,7 +332,7 @@ bool UVFMetadata::ContainsData(const NDBrickKey &k, double isoval) const
     static_cast<size_t>(k.second[0].y),
     static_cast<size_t>(k.second[0].z)
   };
-  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[k.first[0]]
+  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[size_t(k.first[0])]
                                                           [vBrick[0]]
                                                           [vBrick[1]]
                                                           [vBrick[2]];
@@ -352,7 +352,7 @@ bool UVFMetadata::ContainsData(const NDBrickKey &k,
     static_cast<size_t>(k.second[0].y),
     static_cast<size_t>(k.second[0].z)
   };
-  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[k.first[0]]
+  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[size_t(k.first[0])]
                                                           [vBrick[0]]
                                                           [vBrick[1]]
                                                           [vBrick[2]];
@@ -371,7 +371,7 @@ bool UVFMetadata::ContainsData(const NDBrickKey &k, double fMin,double fMax,
     static_cast<size_t>(k.second[0].y),
     static_cast<size_t>(k.second[0].z)
   };
-  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[k.first[0]]
+  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[size_t(k.first[0])]
                                                           [vBrick[0]]
                                                           [vBrick[1]]
                                                           [vBrick[2]];
