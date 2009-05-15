@@ -102,7 +102,7 @@ void ConsoleOut::Warning(const char* source, const char* format, ...) {
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
 #ifndef TUVOK_OS_WINDOWS
-  this->printf("%sWARNING%s (%s): %s", C_DGRAY, C_NORM, source, buff);
+  this->printf("%sWARNING%s (%s): %s", C_YELLOW, C_NORM, source, buff);
 #else
   this->printf("WARNING (%s): %s", source, buff);
 #endif
