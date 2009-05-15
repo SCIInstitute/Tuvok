@@ -291,7 +291,9 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
     }
 
     m_pPainter->setBrush(*pGradientBrush);
-    m_pPainter->drawPolygon(&pointList[0], int(currentSwatch.pPoints.size()));
+    if(!pointList.empty()) {
+      m_pPainter->drawPolygon(&pointList[0], int(currentSwatch.pPoints.size()));
+    }
     delete pGradientBrush;
   }
 
