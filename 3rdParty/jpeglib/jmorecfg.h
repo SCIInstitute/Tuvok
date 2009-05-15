@@ -14,6 +14,9 @@
 extern "C" {
 #endif // cplusplus
 
+// Force static build.
+#define JPEGSTATIC
+
 /*
  * Define BITS_IN_JSAMPLE as either
  *   8   for 8-bit sample values (the usual setting)
