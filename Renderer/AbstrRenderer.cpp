@@ -101,7 +101,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bAvoidSeperateCompositing(true),
   m_bClipPlaneOn(false),
   m_bClipPlaneDisplayed(true),
-  m_bClipPlaneLocked(false),
+  m_bClipPlaneLocked(true),
   m_vEye(0,0,1.6f),
   m_vAt(0,0,0),
   m_vUp(0,1,0),
