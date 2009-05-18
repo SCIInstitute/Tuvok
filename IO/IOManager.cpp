@@ -163,7 +163,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   return fileStacks;
 }
 
-#ifdef TUVOK_OS_WINDOWS
+#ifdef DETECTED_OS_WINDOWS
   #pragma warning(disable:4996)
 #endif
 
@@ -345,7 +345,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
   return false;
 }
 
-#ifdef TUVOK_OS_WINDOWS
+#ifdef DETECTED_OS_WINDOWS
   #pragma warning(default:4996)
 #endif
 

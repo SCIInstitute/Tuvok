@@ -55,7 +55,7 @@
   #endif
 #endif
 
-#ifdef TUVOK_OS_APPLE
+#ifdef DETECTED_OS_APPLE
   #include <OpenGL/gl.h>
 #else
   #include <GL/gl.h>

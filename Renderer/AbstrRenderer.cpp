@@ -136,11 +136,11 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bRedrawMask[2] = true;
   m_bRedrawMask[3] = true;
 
-  m_vShaderSearchDirs.push_back("../../../Tuvok/Shaders");
-  m_vShaderSearchDirs.push_back("../../Tuvok/Shaders");
-  m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
-  m_vShaderSearchDirs.push_back("Tuvok/Shaders");
   m_vShaderSearchDirs.push_back("Shaders");
+  m_vShaderSearchDirs.push_back("Tuvok/Shaders");
+  m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
+  m_vShaderSearchDirs.push_back("../../Tuvok/Shaders");
+  m_vShaderSearchDirs.push_back("../../../Tuvok/Shaders");
 
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
 }

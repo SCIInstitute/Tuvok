@@ -71,7 +71,7 @@ void TextfileOut::printf(const char* format, ...) const
   time_t epoch_time;
   time(&epoch_time);
 
-#ifdef TUVOK_OS_WINDOWS
+#ifdef DETECTED_OS_WINDOWS
   struct tm now;
   localtime_s(&now, &epoch_time);
 #define ADDR_NOW (&now)
@@ -112,7 +112,7 @@ void TextfileOut::_printf(const char* format, ...) const
   time_t epoch_time;
   time(&epoch_time);
 
-#ifdef TUVOK_OS_WINDOWS
+#ifdef DETECTED_OS_WINDOWS
   struct tm now;
   localtime_s(&now, &epoch_time);
 #undef ADDR_NOW

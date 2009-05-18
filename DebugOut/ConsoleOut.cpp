@@ -84,7 +84,7 @@ void ConsoleOut::Message(const char* source, const char* format, ...) {
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
 
-#ifndef TUVOK_OS_WINDOWS
+#ifndef DETECTED_OS_WINDOWS
   this->printf("%sMESSAGE%s (%s): %s", C_DGRAY, C_NORM, source, buff);
 #else
   this->printf("MESSAGE (%s): %s", source, buff);
@@ -101,7 +101,7 @@ void ConsoleOut::Warning(const char* source, const char* format, ...) {
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
-#ifndef TUVOK_OS_WINDOWS
+#ifndef DETECTED_OS_WINDOWS
   this->printf("%sWARNING%s (%s): %s", C_YELLOW, C_NORM, source, buff);
 #else
   this->printf("WARNING (%s): %s", source, buff);
@@ -119,7 +119,7 @@ void ConsoleOut::Error(const char* source, const char* format, ...) {
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
 
-#ifndef TUVOK_OS_WINDOWS
+#ifndef DETECTED_OS_WINDOWS
   this->printf("%sERROR%s (%s): %s", C_RED, C_NORM, source, buff);
 #else
   this->printf("ERROR (%s): %s", source, buff);

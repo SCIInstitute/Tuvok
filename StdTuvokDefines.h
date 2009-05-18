@@ -53,57 +53,6 @@
 #define TUVOK_VERSION 0.07
 #define TUVOK_VERSION_TYPE "beta"
 
-// undef all OS types first
-#ifdef TUVOK_OS_WINDOWS
-#undef TUVOK_OS_WINDOWS
-#endif
-
-#ifdef TUVOK_OS_APPLE
-#undef TUVOK_OS_APPLE
-#endif
-
-#ifdef TUVOK_OS_LINUX
-#undef TUVOK_OS_LINUX
-#endif
-
-// now figure out which OS we are compiling on
-#ifdef _WIN32
-  #define TUVOK_OS_WINDOWS
-#endif
-
-#if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
-  #define TUVOK_OS_APPLE
-#endif
-
-#if defined(__linux__)
-  #define TUVOK_OS_LINUX
-#endif
-
-// set some strings to reflect that OS
-#ifdef TUVOK_OS_WINDOWS
-  #ifdef _WIN64
-    #ifdef USE_DIRECTX
-      #define TUVOK_DETAILS "Windows 64bit build with DirectX extensions"
-    #else
-      #define TUVOK_DETAILS "Windows 64bit build"
-    #endif
-  #else
-    #ifdef USE_DIRECTX
-      #define TUVOK_DETAILS "Windows 32bit build with DirectX extensions"
-    #else
-      #define TUVOK_DETAILS "Windows 32bit build"
-    #endif
-  #endif
-#endif
-
-#ifdef TUVOK_OS_APPLE
-  #define TUVOK_DETAILS "OSX build"
-#endif
-
-#ifdef TUVOK_OS_LINUX
-  #define TUVOK_DETAILS "Linux build"
-#endif
-
 #ifdef _MSC_VER
 # define _func_ __FUNCTION__
 #elif defined(__GNUC__)
