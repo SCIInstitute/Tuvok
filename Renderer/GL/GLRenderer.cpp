@@ -1412,8 +1412,10 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const s
     if (LoadAndVerifyShader(strCompleteVSFile, strCompleteFSFile, pShaderProgram, false))
       return true;
 
-    MESSAGE("Shader %s not found.", strCompleteVSFile.c_str());
-  }
+    MESSAGE("Shader combination %s and %s not found.", strCompleteVSFile.c_str(), strCompleteFSFile.c_str());
+  }  
+
+  WARNING("Shader combination %s and %s not found in any of the given serach directories, now scanning current diretory and all of its subdirectories as a final attempt.", strVSFile.c_str(), strFSFile.c_str());
 
   // if all else fails probe current directory and all of its subdirectories
   if (LoadAndVerifyShader(strVSFile, strFSFile, pShaderProgram, true))
