@@ -55,4 +55,57 @@ typedef unsigned char BYTE;
 
 #define BLOCK_COPY_SIZE (UINT64(64*1024*1024))
 
+// undef all OS types first
+#ifdef DETECTED_OS_WINDOWS
+#undef DETECTED_OS_WINDOWS
+#endif
+
+#ifdef DETECTED_OS_APPLE
+#undef DETECTED_OS_APPLE
+#endif
+
+#ifdef DETECTED_OS_LINUX
+#undef DETECTED_OS_LINUX
+#endif
+
+// now figure out which OS we are compiling on
+#ifdef _WIN32
+  #define DETECTED_OS_WINDOWS
+#endif
+
+#if defined(macintosh) || (defined(__MACH__) && defined(__APPLE__))
+  #define DETECTED_OS_APPLE
+#endif
+
+#if defined(__linux__)
+  #define DETECTED_OS_LINUX
+#endif
+
+// set some strings to reflect that OS
+#ifdef DETECTED_OS_WINDOWS
+  #ifdef _WIN64
+    #ifdef USE_DIRECTX
+      #define TUVOK_DETAILS "Windows 64bit build with DirectX extensions"
+    #else
+      #define TUVOK_DETAILS "Windows 64bit build"
+    #endif
+  #else
+    #ifdef USE_DIRECTX
+      #define TUVOK_DETAILS "Windows 32bit build with DirectX extensions"
+    #else
+      #define TUVOK_DETAILS "Windows 32bit build"
+    #endif
+  #endif
+#endif
+
+#ifdef DETECTED_OS_APPLE
+  #define TUVOK_DETAILS "OSX build"
+#endif
+
+#ifdef DETECTED_OS_LINUX
+  #define TUVOK_DETAILS "Linux build"
+#endif
+
+
+
 #endif // STDDEFINES_H

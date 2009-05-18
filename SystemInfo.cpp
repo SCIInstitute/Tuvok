@@ -40,7 +40,7 @@
 #ifdef _WIN32
   #include <windows.h>
 #else
-  #ifdef TUVOK_OS_APPLE
+  #ifdef DETECTED_OS_APPLE
     #include <sys/sysctl.h>
   #else
     #include <cstdio>
@@ -90,7 +90,7 @@ UINT32 SystemInfo::ComputeNumCPUs() {
     GetSystemInfo(&siSysInfo);
     return siSysInfo.dwNumberOfProcessors;
   #else
-    #ifdef TUVOK_OS_APPLE
+    #ifdef DETECTED_OS_APPLE
       return 0;
     #else
       return 0;
@@ -175,7 +175,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
     GlobalMemoryStatusEx (&statex);
     return statex.ullTotalPhys;
   #else
-    #ifdef TUVOK_OS_APPLE
+    #ifdef DETECTED_OS_APPLE
       UINT64 phys = 0;
       int mib[2] = { CTL_HW, HW_PHYSMEM };
       size_t len = sizeof(phys);
@@ -268,7 +268,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
 #else
   UINT64 SystemInfo::ComputeGPUMemory( )
   {
-    #ifdef TUVOK_OS_APPLE
+    #ifdef DETECTED_OS_APPLE
       return 0;
     #else // Linux
       return 0;

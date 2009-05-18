@@ -53,7 +53,7 @@
   #include <unistd.h>
 #endif
 
-#ifdef TUVOK_OS_APPLE
+#ifdef DETECTED_OS_APPLE
   #include <CoreFoundation/CoreFoundation.h>
 #endif
 
@@ -134,7 +134,7 @@ namespace SysTools {
   }
 
   string GetFromResourceOnMac(const string& strFileName) {
-    #ifdef TUVOK_OS_APPLE
+    #ifdef DETECTED_OS_APPLE
       CFStringRef cfFilename = CFStringCreateWithCString(kCFAllocatorDefault, RemoveExt(GetFilename(strFileName)).c_str(), CFStringGetSystemEncoding());
       CFStringRef cfExt = CFStringCreateWithCString(kCFAllocatorDefault, GetExt(GetFilename(strFileName)).c_str(), CFStringGetSystemEncoding());
 
@@ -153,7 +153,7 @@ namespace SysTools {
   }
 
   wstring GetFromResourceOnMac(const wstring& wstrFileName) {
-    #ifdef TUVOK_OS_APPLE
+    #ifdef DETECTED_OS_APPLE
       // for now just call the string method by converting the unicode string down to an 8bit string
       string strFileName(wstrFileName.begin(), wstrFileName.end());
       string strResult = GetFromResourceOnMac(strFileName);
