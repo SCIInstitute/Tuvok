@@ -71,6 +71,8 @@ class GLRaycaster : public GLRenderer {
 
     virtual void DisableClipPlane();
 
+    virtual ERendererType GetRendererType() {return RT_RC;}
+
   protected:
     GLFBOTex*       m_pFBORayEntry;
     GLSLProgram*    m_pProgramRenderFrontFaces;

@@ -89,6 +89,14 @@ class MasterController;
 class AbstrRenderer {
   public:
 
+    enum ERendererType {
+      RT_SBVR = 0,
+      RT_RC,
+      RT_INVALID
+    };
+
+    virtual ERendererType GetRendererType() {return RT_INVALID;}
+
     enum ERenderArea {
       RA_TOPLEFT = 0,
       RA_TOPRIGHT,
@@ -122,6 +130,7 @@ class AbstrRenderer {
       WM_3D,
       WM_INVALID
     };
+
     EWindowMode Get2x2Windowmode(ERenderArea eArea) const
         { return m_e2x2WindowMode[size_t(eArea)]; }
     virtual void Set2x2Windowmode(ERenderArea eArea, EWindowMode eWindowMode);

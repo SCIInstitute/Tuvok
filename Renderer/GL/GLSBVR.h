@@ -73,6 +73,8 @@ class GLSBVR : public GLRenderer {
     virtual void EnableClipPlane();
     virtual void DisableClipPlane();
 
+    virtual ERendererType GetRendererType() {return RT_SBVR;}
+
   protected:
     SBVRGeogen    m_SBVRGeogen;
     GLSLProgram*  m_pProgramIsoNoCompose;
