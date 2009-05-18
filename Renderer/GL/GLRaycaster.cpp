@@ -290,6 +290,8 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoI
     }
   }
 
+  /// todo remove this hack once long shaders (and thus clipplanes work better on the mac)
+#ifndef DETECTED_OS_APPLE
   if (bForce || m_bClipPlaneOn) {
     ExtendedPlane plane(clipPlane);
 
@@ -301,7 +303,7 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoI
       vCurrentShader[i]->Disable();
     }
   }
-
+#endif
 }
 
 void GLRaycaster::Render3DPreLoop() {
