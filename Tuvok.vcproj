@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;;3rdParty\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -187,7 +187,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -256,7 +256,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;;3rdParty\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -322,7 +322,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -390,7 +390,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;;3rdParty\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -459,7 +459,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -528,7 +528,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;;3rdParty\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -1725,7 +1725,63 @@
 					>
 				</File>
 				<File
+					RelativePath=".\3rdParty\tiff\tif_aux.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_close.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_codec.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_color.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_compress.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_config.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_dir.c"
+					>
+				</File>
+				<File
 					RelativePath=".\3rdParty\tiff\tif_dir.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_dirinfo.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_dirread.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_dirwrite.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_dumpmode.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_error.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_extension.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_fax3.c"
 					>
 				</File>
 				<File
@@ -1733,7 +1789,91 @@
 					>
 				</File>
 				<File
+					RelativePath=".\3rdParty\tiff\tif_fax3sm.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_flush.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_getimage.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_luv.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_lzw.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_next.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_open.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_packbits.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_pixarlog.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_predict.c"
+					>
+				</File>
+				<File
 					RelativePath=".\3rdParty\tiff\tif_predict.h"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_print.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_read.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_strip.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_swab.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_thunder.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_tile.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_unix.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_version.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_warning.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_write.c"
+					>
+				</File>
+				<File
+					RelativePath=".\3rdParty\tiff\tif_zip.c"
 					>
 				</File>
 				<File
