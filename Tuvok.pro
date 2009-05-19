@@ -19,6 +19,7 @@ unix:QMAKE_CFLAGS += -fno-strict-aliasing
 unix {
     exists(/Developer/SDKs/MacOSX10.5.sdk/) {
         CONFIG += x86 x86_64
+        QTPLUGIN -= qgif qjpeg qtiff
     }
 }
 
