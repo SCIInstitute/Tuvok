@@ -1,7 +1,7 @@
 TEMPLATE          = lib
 CONFIG           += staticlib static create_prl warn_on stl exceptions x86 x86_64
 TARGET            = Tuvok
-QTPLUGIN         += qjpeg qtiff qgif
+QTPLUGIN         += qjpeg qgif
 VERSION           = 0.0.1
 TARGET            = Build/Tuvok
 RCC_DIR           = Build/rcc
@@ -200,6 +200,40 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            3rdParty/jpeglib/jfdctflt.c \
            3rdParty/jpeglib/rdswitch.c \
            3rdParty/jpeglib/transupp.c \
+           3rdParty/tiff/tif_aux.c \
+           3rdParty/tiff/tif_close.c \
+           3rdParty/tiff/tif_codec.c \
+           3rdParty/tiff/tif_color.c \
+           3rdParty/tiff/tif_compress.c \
+           3rdParty/tiff/tif_dir.c \
+           3rdParty/tiff/tif_dirinfo.c \
+           3rdParty/tiff/tif_dirread.c \
+           3rdParty/tiff/tif_dirwrite.c \
+           3rdParty/tiff/tif_dumpmode.c \
+           3rdParty/tiff/tif_error.c \
+           3rdParty/tiff/tif_extension.c \
+           3rdParty/tiff/tif_fax3.c \
+           3rdParty/tiff/tif_fax3sm.c \
+           3rdParty/tiff/tif_flush.c \
+           3rdParty/tiff/tif_getimage.c \
+           3rdParty/tiff/tif_luv.c \
+           3rdParty/tiff/tif_lzw.c \
+           3rdParty/tiff/tif_next.c \
+           3rdParty/tiff/tif_open.c \
+           3rdParty/tiff/tif_packbits.c \
+           3rdParty/tiff/tif_pixarlog.c \
+           3rdParty/tiff/tif_predict.c \
+           3rdParty/tiff/tif_print.c \
+           3rdParty/tiff/tif_read.c \
+           3rdParty/tiff/tif_strip.c \
+           3rdParty/tiff/tif_swab.c \
+           3rdParty/tiff/tif_thunder.c \
+           3rdParty/tiff/tif_tile.c \
+           3rdParty/tiff/tif_unix.c \
+           3rdParty/tiff/tif_version.c \
+           3rdParty/tiff/tif_warning.c \
+           3rdParty/tiff/tif_write.c \
+           3rdParty/tiff/tif_zip.c \
            Basics/MC.cpp \
            Basics/SystemInfo.cpp \
            Basics/SysTools.cpp \
