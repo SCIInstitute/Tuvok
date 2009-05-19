@@ -1,5 +1,5 @@
 TEMPLATE          = lib
-CONFIG           += staticlib static create_prl warn_on stl exceptions x86 x86_64
+CONFIG           += staticlib static create_prl warn_on stl exceptions
 TARGET            = Tuvok
 QTPLUGIN         += qjpeg qgif
 VERSION           = 0.0.1
