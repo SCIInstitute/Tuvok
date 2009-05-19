@@ -77,8 +77,8 @@ bool UnbrickedDataset::GetBrick(const BrickKey&, unsigned char **brick) const
   }
   UINT64VECTOR3 sz = this->GetBrickSize();
 
-  MESSAGE("Copying brick of size %zu, dimensions %lu %lu %lu...",
-          m_vScalar.size(), sz[0], sz[1], sz[2]);
+  MESSAGE("Copying brick of size %u, dimensions %lu %lu %lu...",
+          UINT32(m_vScalar.size()), sz[0], sz[1], sz[2]);
   std::memcpy(*brick, &m_vScalar.at(0), m_vScalar.size());
   return true;
 }
