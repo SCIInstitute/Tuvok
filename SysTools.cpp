@@ -762,13 +762,10 @@ namespace SysTools {
       T fn = RemoveExt(GetFilename(filename));
 
       // Find where the numbers start.
-      typename T::const_iterator numerals =
-        std::find_if(fn.begin(), fn.end(), ::isdigit);
+      typename T::const_iterator numerals = fn.end()-1;
+	  while (numerals != fn.begin() && ::isdigit(*(numerals-1))) --numerals;
 
-      if(numerals == fn.end()) { // give back `0' if there were no numerals.
-        return 0;
-      }
-      // Otherwise try to convert it to a size_t and return that.
+      // convert it to a size_t and return that.
       size_t retval = 0;
       FromString(retval, T(&*numerals));
       return retval;
