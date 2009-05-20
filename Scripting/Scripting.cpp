@@ -184,7 +184,7 @@ bool Scripting::ParseFile(const std::string& strFilename) {
 void Scripting::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "help", "", "show all commands");
   pScriptEngine->RegisterCommand(this, "execute", "filename", "run the script saved as 'filename'");
-  pScriptEngine->RegisterCommand(this, "echo", "on/off", "turn feedback on succesfull command execution on or off");
+  pScriptEngine->RegisterCommand(this, "echo", "on/off", "turn feedback on successful command execution on or off");
   pScriptEngine->RegisterCommand(this, "time", "","print out the current time");
   pScriptEngine->RegisterCommand(this, "date", "","print out the current date");
   pScriptEngine->RegisterCommand(this, "write", "test","print out 'text'");

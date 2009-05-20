@@ -175,7 +175,7 @@ void MasterController::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "setwarninglog", "on/off", "toggle recording of warnings");
   pScriptEngine->RegisterCommand(this, "setemessagelog", "on/off", "toggle recording of messages");
   pScriptEngine->RegisterCommand(this, "printerrorlog", "", "print recorded errors");
-  pScriptEngine->RegisterCommand(this, "printwarninglog", "", "print recorded errwarningsors");
+  pScriptEngine->RegisterCommand(this, "printwarninglog", "", "print recorded warnings");
   pScriptEngine->RegisterCommand(this, "printmessagelog", "", "print recorded messages");
   pScriptEngine->RegisterCommand(this, "clearerrorlog", "", "clear recorded errors");
   pScriptEngine->RegisterCommand(this, "clearwarninglog", "", "clear recorded warnings");
