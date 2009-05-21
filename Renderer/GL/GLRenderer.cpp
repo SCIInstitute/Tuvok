@@ -35,6 +35,7 @@
 */
 
 #include <ctime>
+#include <typeinfo>
 #include "GLInclude.h"
 #include "GLFBOTex.h"
 #include "GLRenderer.h"

@@ -38,6 +38,7 @@
 #include <algorithm>
 #include <functional>
 #include <numeric>
+#include <typeinfo>
 #include "GPUMemManDataStructs.h"
 #include "GPUMemMan.h"
 #include "Renderer/AbstrRenderer.h"
