@@ -306,6 +306,7 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
 }
 #else
 void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& , int , bool ) {
+  // NO CLIP-PLANES NO COOKIE
 }
 #endif
 
