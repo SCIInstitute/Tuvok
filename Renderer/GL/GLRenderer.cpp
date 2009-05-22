@@ -1640,6 +1640,9 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
   glDisable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
 
+  glDepthFunc(GL_LEQUAL); 
+
+
 
   glBegin(GL_LINE_LOOP);
     glColor4f(1,1,1,1);
@@ -1660,6 +1663,16 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     glVertex3f(vMinPoint.x, vMaxPoint.y, vfPlanePos.z);
     glVertex3f(vMaxPoint.x, vMaxPoint.y, vfPlanePos.z);
   glEnd();
+
+  
+  /*
+
+  /// \todo fix this: this code fills the clip planes in 3D 
+            view with the 3D texture sice, while this works
+            fine with the SBVR it does not work at present
+            with the ray-caster until the raycaster takes
+            the depth buffer into account for transferfunction
+            rendering (iso-surfaces work)
 
   GLTexture3D* t = NULL;
 
@@ -1730,8 +1743,8 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
 
     m_pMasterController->MemMan()->Release3DTexture(t);
   }
-
-
+*/
+  glDepthFunc(GL_LESS);
 }
 
 /** Renders the currently configured clip plane.
