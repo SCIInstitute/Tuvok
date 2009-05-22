@@ -68,6 +68,8 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramTrans(NULL),
   m_pProgram1DTransSlice(NULL),
   m_pProgram2DTransSlice(NULL),
+  m_pProgram1DTransSlice3D(NULL),
+  m_pProgram2DTransSlice3D(NULL),
   m_pProgramMIPSlice(NULL),
   m_pProgramTransMIP(NULL),
   m_pProgramIsoCompose(NULL),
@@ -161,6 +163,10 @@ bool GLRenderer::Initialize() {
                            m_vShaderSearchDirs, &(m_pProgram2DTransSlice)) ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "MIP-slice-FS.glsl",
                            m_vShaderSearchDirs, &(m_pProgramMIPSlice))     ||
+      !LoadAndVerifyShader("SlicesIn3D.glsl", "1D-slice-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgram1DTransSlice3D)) ||
+      !LoadAndVerifyShader("SlicesIn3D.glsl", "2D-slice-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgram2DTransSlice3D)) ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-MIP-FS.glsl",
                            m_vShaderSearchDirs, &(m_pProgramTransMIP))     ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-FS.glsl",
@@ -189,6 +195,16 @@ bool GLRenderer::Initialize() {
     m_pProgram2DTransSlice->SetUniformVector("texVolume",0);
     m_pProgram2DTransSlice->SetUniformVector("texTrans2D",1);
     m_pProgram2DTransSlice->Disable();
+
+    m_pProgram1DTransSlice3D->Enable();
+    m_pProgram1DTransSlice3D->SetUniformVector("texVolume",0);
+    m_pProgram1DTransSlice3D->SetUniformVector("texTrans1D",1);
+    m_pProgram1DTransSlice3D->Disable();
+
+    m_pProgram2DTransSlice3D->Enable();
+    m_pProgram2DTransSlice3D->SetUniformVector("texVolume",0);
+    m_pProgram2DTransSlice3D->SetUniformVector("texTrans2D",1);
+    m_pProgram2DTransSlice3D->Disable();
 
     m_pProgramMIPSlice->Enable();
     m_pProgramMIPSlice->SetUniformVector("texVolume",0);
@@ -1008,11 +1024,13 @@ void GLRenderer::PreSubframe(ERenderArea eRenderArea)
   m_mProjection[0].setProjection();
   m_matModelView[0].setModelview();
   BBoxPreRender();
+  PlaneIn3DPreRender();
   if (m_bDoStereoRendering) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
     m_mProjection[1].setProjection();
     m_matModelView[1].setModelview();
     BBoxPreRender();
+    PlaneIn3DPreRender();
   }
   m_TargetBinder.Unbind();
 }
@@ -1026,12 +1044,14 @@ void GLRenderer::PostSubframe()
   m_mProjection[0].setProjection();
   m_matModelView[0].setModelview();
   BBoxPostRender();
+  PlaneIn3DPostRender();
   RenderClipPlane(0);
   if (m_bDoStereoRendering) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
     m_mProjection[1].setProjection();
     m_matModelView[1].setModelview();
     BBoxPostRender();
+    PlaneIn3DPostRender();
     RenderClipPlane(1);
   }
   m_TargetBinder.Unbind();
@@ -1209,21 +1229,23 @@ void GLRenderer::Cleanup() {
     if (m_pFBOCVHit[i])            {m_pMasterController->MemMan()->FreeFBO(m_pFBOCVHit[i]);m_pFBOCVHit[i] = NULL;}
   }
 
-  if (m_pProgramTrans)        {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramTrans); m_pProgramTrans =NULL;}
-  if (m_pProgram1DTransSlice) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTransSlice); m_pProgram1DTransSlice =NULL;}
-  if (m_pProgram2DTransSlice) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTransSlice); m_pProgram2DTransSlice =NULL;}
-  if (m_pProgramMIPSlice)     {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramMIPSlice); m_pProgramMIPSlice =NULL;}
-  if (m_pProgramHQMIPRot)     {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramHQMIPRot); m_pProgramHQMIPRot =NULL;}
-  if (m_pProgramTransMIP)     {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramTransMIP); m_pProgramTransMIP =NULL;}
-  if (m_pProgram1DTrans[0])   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTrans[0]); m_pProgram1DTrans[0] =NULL;}
-  if (m_pProgram1DTrans[1])   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTrans[1]); m_pProgram1DTrans[1] =NULL;}
-  if (m_pProgram2DTrans[0])   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTrans[0]); m_pProgram2DTrans[0] =NULL;}
-  if (m_pProgram2DTrans[1])   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTrans[1]); m_pProgram2DTrans[1] =NULL;}
-  if (m_pProgramIso)          {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIso); m_pProgramIso =NULL;}
-  if (m_pProgramColor)        {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColor); m_pProgramColor =NULL;}
-  if (m_pProgramIsoCompose)   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIsoCompose); m_pProgramIsoCompose = NULL;}
-  if (m_pProgramColorCompose) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorCompose); m_pProgramColorCompose = NULL;}
-  if (m_pProgramCVCompose)    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramCVCompose); m_pProgramCVCompose = NULL;}
+  if (m_pProgramTrans)         {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramTrans); m_pProgramTrans =NULL;}
+  if (m_pProgram1DTransSlice)  {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTransSlice); m_pProgram1DTransSlice =NULL;}
+  if (m_pProgram2DTransSlice)  {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTransSlice); m_pProgram2DTransSlice =NULL;}
+  if (m_pProgram1DTransSlice3D){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTransSlice3D); m_pProgram1DTransSlice3D =NULL;}
+  if (m_pProgram2DTransSlice3D){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTransSlice3D); m_pProgram2DTransSlice3D =NULL;}
+  if (m_pProgramMIPSlice)      {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramMIPSlice); m_pProgramMIPSlice =NULL;}
+  if (m_pProgramHQMIPRot)      {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramHQMIPRot); m_pProgramHQMIPRot =NULL;}
+  if (m_pProgramTransMIP)      {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramTransMIP); m_pProgramTransMIP =NULL;}
+  if (m_pProgram1DTrans[0])    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTrans[0]); m_pProgram1DTrans[0] =NULL;}
+  if (m_pProgram1DTrans[1])    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTrans[1]); m_pProgram1DTrans[1] =NULL;}
+  if (m_pProgram2DTrans[0])    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTrans[0]); m_pProgram2DTrans[0] =NULL;}
+  if (m_pProgram2DTrans[1])    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTrans[1]); m_pProgram2DTrans[1] =NULL;}
+  if (m_pProgramIso)           {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIso); m_pProgramIso =NULL;}
+  if (m_pProgramColor)         {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColor); m_pProgramColor =NULL;}
+  if (m_pProgramIsoCompose)    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIsoCompose); m_pProgramIsoCompose = NULL;}
+  if (m_pProgramColorCompose)  {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorCompose); m_pProgramColorCompose = NULL;}
+  if (m_pProgramCVCompose)     {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramCVCompose); m_pProgramCVCompose = NULL;}
   if (m_pProgramComposeAnaglyphs){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeAnaglyphs); m_pProgramComposeAnaglyphs = NULL;}
 
   if (m_pLogoTex)             {m_pMasterController->MemMan()->FreeTexture(m_pLogoTex); m_pLogoTex =NULL;}
@@ -1360,6 +1382,10 @@ void GLRenderer::SetDataDepShaderVars() {
                             m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
                             m_pProgram1DTransSlice->Disable();
 
+                            m_pProgram1DTransSlice3D->Enable();
+                            m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
+                            m_pProgram1DTransSlice3D->Disable();
+
                             m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
                             m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
                             m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
@@ -1370,6 +1396,11 @@ void GLRenderer::SetDataDepShaderVars() {
                             m_pProgram2DTransSlice->SetUniformVector("fTransScale",fScale);
                             m_pProgram2DTransSlice->SetUniformVector("fGradientScale",fGradientScale);
                             m_pProgram2DTransSlice->Disable();
+
+                            m_pProgram2DTransSlice3D->Enable();
+                            m_pProgram2DTransSlice3D->SetUniformVector("fTransScale",fScale);
+                            m_pProgram2DTransSlice3D->SetUniformVector("fGradientScale",fGradientScale);
+                            m_pProgram2DTransSlice3D->Disable();
 
                             m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
                             m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
@@ -1383,6 +1414,10 @@ void GLRenderer::SetDataDepShaderVars() {
                             m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
                             m_pProgram1DTransSlice->Disable();
                             
+                            m_pProgram1DTransSlice3D->Enable();
+                            m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
+                            m_pProgram1DTransSlice3D->Disable();
+
                             GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
                             shader->Enable();
@@ -1557,6 +1592,148 @@ void GLRenderer::BBoxPostRender() {
   }
 }
 
+void GLRenderer::PlaneIn3DPreRender() {
+  if (!m_bRenderPlanesIn3D) return;
+
+  // for rendering modes other than isosurface render the planes in the first
+  // pass once to init the depth buffer.  for isosurface rendering we can go
+  // ahead and render the planes directly as isosurfacing writes out correct
+  // depth values
+  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView ||
+      m_bAvoidSeperateCompositing) {
+    glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
+    RenderPlanesIn3D(true);
+    glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+  } else {
+    glDisable(GL_BLEND);
+    RenderPlanesIn3D(false);
+  }
+}
+
+void GLRenderer::PlaneIn3DPostRender() {
+  if (!m_bRenderPlanesIn3D) return;
+  // Not required for isosurfacing, since we use the depth buffer for
+  // occluding/showing the planes
+  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
+    glEnable(GL_BLEND);
+    glDisable(GL_DEPTH_TEST);
+    RenderPlanesIn3D(false);
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+  }
+}
+
+void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
+
+
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize();
+  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetInfo().GetScale());
+  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
+  vExtend /= vExtend.maxVal();
+
+  FLOATVECTOR3 vMinPoint = -vExtend/2.0, vMaxPoint = vExtend/2.0;
+
+  FLOATVECTOR3 vfSliceIndex = FLOATVECTOR3(m_piSlice[2],m_piSlice[0],m_piSlice[1])/FLOATVECTOR3(vDomainSize);
+
+
+  FLOATVECTOR3 vfPlanePos = vMinPoint * (1.0f-vfSliceIndex) + vMaxPoint * vfSliceIndex;
+  glDisable(GL_CULL_FACE);
+  glEnable(GL_DEPTH_TEST);
+
+
+  glBegin(GL_LINE_LOOP);
+    glColor4f(1,1,1,1);
+    glVertex3f(vfPlanePos.x, vMinPoint.y, vMaxPoint.z);
+    glVertex3f(vfPlanePos.x, vMinPoint.y, vMinPoint.z);
+    glVertex3f(vfPlanePos.x, vMaxPoint.y, vMinPoint.z);
+    glVertex3f(vfPlanePos.x, vMaxPoint.y, vMaxPoint.z);
+  glEnd();
+  glBegin(GL_LINE_LOOP);
+    glVertex3f(vMaxPoint.x, vfPlanePos.y, vMinPoint.z);
+    glVertex3f(vMinPoint.x, vfPlanePos.y, vMinPoint.z);
+    glVertex3f(vMinPoint.x, vfPlanePos.y, vMaxPoint.z);
+    glVertex3f(vMaxPoint.x, vfPlanePos.y, vMaxPoint.z);
+  glEnd();
+  glBegin(GL_LINE_LOOP);
+    glVertex3f(vMaxPoint.x, vMinPoint.y, vfPlanePos.z);
+    glVertex3f(vMinPoint.x, vMinPoint.y, vfPlanePos.z);
+    glVertex3f(vMinPoint.x, vMaxPoint.y, vfPlanePos.z);
+    glVertex3f(vMaxPoint.x, vMaxPoint.y, vfPlanePos.z);
+  glEnd();
+
+  GLTexture3D* t = NULL;
+
+  if (!bDepthPassOnly) {
+    switch (m_eRenderMode) {
+      case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
+                            m_pProgram2DTransSlice3D->Enable();
+                            break;
+      default            :  m_p1DTransTex->Bind(1);
+                            m_pProgram1DTransSlice3D->Enable();
+                            break;
+    }
+
+    UINT64 iCurrentLOD = 0;
+    UINTVECTOR3 vVoxelCount;
+    for (UINT64 i = 0;i<m_pDataset->GetInfo().GetLODLevelCount();i++) {
+      if (m_pDataset->GetInfo().GetBrickCount(i).volume() == 1) {
+          iCurrentLOD = i;
+          vVoxelCount = UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize(i));
+      }
+    }
+    // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
+    vector<UINT64> vLOD; vLOD.push_back(iCurrentLOD);
+    vector<UINT64> vBrick;
+    vBrick.push_back(0);vBrick.push_back(0);vBrick.push_back(0);
+
+    // get the 3D texture from the memory manager
+    t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, 0, m_iFrameCounter);
+    if(t) t->Bind(0);
+  }
+
+  glBegin(GL_QUADS);
+    glTexCoord3f(vfSliceIndex.x,0,1);
+    glVertex3f(vfPlanePos.x, vMinPoint.y, vMaxPoint.z);
+    glTexCoord3f(vfSliceIndex.x,0,0);
+    glVertex3f(vfPlanePos.x, vMinPoint.y, vMinPoint.z);
+    glTexCoord3f(vfSliceIndex.x,1,0);
+    glVertex3f(vfPlanePos.x, vMaxPoint.y, vMinPoint.z);
+    glTexCoord3f(vfSliceIndex.x,1,1);
+    glVertex3f(vfPlanePos.x, vMaxPoint.y, vMaxPoint.z);
+  glEnd();
+  glBegin(GL_QUADS);
+    glTexCoord3f(1,vfSliceIndex.y,0);
+    glVertex3f(vMaxPoint.x, vfPlanePos.y, vMinPoint.z);
+    glTexCoord3f(0,vfSliceIndex.y,0);
+    glVertex3f(vMinPoint.x, vfPlanePos.y, vMinPoint.z);
+    glTexCoord3f(0,vfSliceIndex.y,1);
+    glVertex3f(vMinPoint.x, vfPlanePos.y, vMaxPoint.z);
+    glTexCoord3f(1,vfSliceIndex.y,1);
+    glVertex3f(vMaxPoint.x, vfPlanePos.y, vMaxPoint.z);
+  glEnd();
+  glBegin(GL_QUADS);
+    glTexCoord3f(1,0,vfSliceIndex.z);
+    glVertex3f(vMaxPoint.x, vMinPoint.y, vfPlanePos.z);
+    glTexCoord3f(0,0,vfSliceIndex.z);
+    glVertex3f(vMinPoint.x, vMinPoint.y, vfPlanePos.z);
+    glTexCoord3f(0,1,vfSliceIndex.z);
+    glVertex3f(vMinPoint.x, vMaxPoint.y, vfPlanePos.z);
+    glTexCoord3f(1,1,vfSliceIndex.z);
+    glVertex3f(vMaxPoint.x, vMaxPoint.y, vfPlanePos.z);
+  glEnd();
+
+  if (!bDepthPassOnly) {
+    switch (m_eRenderMode) {
+      case RM_2DTRANS    :  m_pProgram2DTransSlice3D->Disable(); break;
+      default            :  m_pProgram1DTransSlice3D->Disable(); break;
+    }
+
+    m_pMasterController->MemMan()->Release3DTexture(t);
+  }
+
+
+}
+
 /** Renders the currently configured clip plane.
  * The plane logic is mostly handled by ExtendedPlane::Quad: though we only
  * need the plane's normal to clip things, we store an orthogonal vector for
@@ -1635,10 +1812,12 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
   m_mProjection[0].setProjection();
   m_matModelView[0].setModelview();
   BBoxPreRender();
+  PlaneIn3DPreRender();
   Render3DPreLoop();
   Render3DPostLoop();
   ComposeSurfaceImage(0);
   BBoxPostRender();
+  PlaneIn3DPostRender();
   RenderClipPlane(0);
 
   if (m_bDoStereoRendering) {
@@ -1646,10 +1825,12 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
     m_mProjection[1].setProjection();
     m_matModelView[1].setModelview();
     BBoxPreRender();
+    PlaneIn3DPreRender();
     Render3DPreLoop();
     Render3DPostLoop();
     ComposeSurfaceImage(1);
     BBoxPostRender();
+    PlaneIn3DPostRender();
     RenderClipPlane(1);
   }
   m_TargetBinder.Unbind();

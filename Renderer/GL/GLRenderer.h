@@ -140,6 +140,11 @@ class GLRenderer : public AbstrRenderer {
 
     void BBoxPreRender();
     void BBoxPostRender();
+
+    void PlaneIn3DPreRender();
+    void PlaneIn3DPostRender();
+    void RenderPlanesIn3D(bool bDepthPassOnly);
+
     virtual void ClearDepthBuffer();
     virtual void ClearColorBuffer();
 
@@ -153,6 +158,8 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramTrans;
     GLSLProgram*    m_pProgram1DTransSlice;
     GLSLProgram*    m_pProgram2DTransSlice;
+    GLSLProgram*    m_pProgram1DTransSlice3D;
+    GLSLProgram*    m_pProgram2DTransSlice3D;
     GLSLProgram*    m_pProgramMIPSlice;
     GLSLProgram*    m_pProgramTransMIP;
     GLSLProgram*    m_pProgramIsoCompose;

@@ -83,6 +83,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_fMIPRotationAngle(0.0f),
   m_bOrthoView(false),
   m_bRenderCoordArrows(false),
+  m_bRenderPlanesIn3D(false),
   m_bDoClearView(false),
   m_fCVIsovalue(0.8f),
   m_vCVColor(1,0,0),
@@ -384,8 +385,11 @@ void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
 
 void AbstrRenderer::SetSliceDepth(EWindowMode eWindow, UINT64 iSliceDepth) {
   if (eWindow < WM_3D) {
-    m_piSlice[size_t(eWindow)] = iSliceDepth;
-    ScheduleWindowRedraw(eWindow);
+    if (m_piSlice[size_t(eWindow)] != iSliceDepth) {
+      m_piSlice[size_t(eWindow)] = iSliceDepth;
+      ScheduleWindowRedraw(eWindow);
+      if (m_bRenderPlanesIn3D) ScheduleWindowRedraw(WM_3D);
+    }
   }
 }
 
@@ -780,6 +784,13 @@ void AbstrRenderer::SetOrthoView(bool bOrthoView) {
 void AbstrRenderer::SetRenderCoordArrows(bool bRenderCoordArrows) {
   if (m_bRenderCoordArrows != bRenderCoordArrows) {
     m_bRenderCoordArrows = bRenderCoordArrows;
+    ScheduleWindowRedraw(WM_3D);
+  }
+}
+
+void AbstrRenderer::Set2DPlanesIn3DView(bool bRenderPlanesIn3D) {
+  if (m_bRenderPlanesIn3D != bRenderPlanesIn3D) {
+    m_bRenderPlanesIn3D = bRenderPlanesIn3D;
     ScheduleWindowRedraw(WM_3D);
   }
 }

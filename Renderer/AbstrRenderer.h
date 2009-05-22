@@ -240,6 +240,9 @@ class AbstrRenderer {
 
     virtual void SetRenderCoordArrows(bool bRenderCoordArrows);
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
+    
+    virtual void Set2DPlanesIn3DView(bool bRenderPlanesIn3D);
+    virtual bool Get2DPlanesIn3DView() const {return m_bRenderPlanesIn3D;}
 
     /** Change the size of the render window.  Any previous image is
      * destroyed, causing a full redraw on the next render.
@@ -421,6 +424,7 @@ class AbstrRenderer {
     FLOATMATRIX4        m_maMIPRotation;
     bool                m_bOrthoView;
     bool                m_bRenderCoordArrows;
+    bool                m_bRenderPlanesIn3D;
 
     bool                m_bDoClearView;
     float               m_fCVIsovalue;

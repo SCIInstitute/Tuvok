@@ -309,6 +309,12 @@ void DXRenderer::BBoxPreRender() {
 void DXRenderer::BBoxPostRender() {
 }
 
+void DXRenderer::PlaneIn3DPreRender() {
+}
+
+void DXRenderer::PlaneIn3DPostRender() {
+}
+
 bool DXRenderer::LoadDataset(const string& strFilename) {
   if (AbstrRenderer::LoadDataset(strFilename)) {
     // TODO
