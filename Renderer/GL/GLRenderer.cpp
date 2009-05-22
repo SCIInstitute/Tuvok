@@ -385,9 +385,9 @@ void GLRenderer::Paint() {
                               }
                               break;
                           }
-       case WM_SAGITTAL :
+       case WM_CORONAL :
        case WM_AXIAL    :
-       case WM_CORONAL  : if (m_bPerformRedraw) bNewDataToShow = Render2DView(RA_FULLSCREEN, m_eFullWindowMode, m_piSlice[size_t(m_eFullWindowMode)]); break;
+       case WM_SAGITTAL  : if (m_bPerformRedraw) bNewDataToShow = Render2DView(RA_FULLSCREEN, m_eFullWindowMode, m_piSlice[size_t(m_eFullWindowMode)]); break;
        default          : T_ERROR("Invalid Windowmode");
                           bNewDataToShow = false;
                           break;
@@ -420,9 +420,9 @@ void GLRenderer::Paint() {
                                 m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) || (m_iCurrentLODOffset > m_iMinLODForCurrentView);
                                 break;
                               }
-           case WM_SAGITTAL :
+           case WM_CORONAL :
            case WM_AXIAL    :
-           case WM_CORONAL  : bLocalNewDataToShow= Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
+           case WM_SAGITTAL  : bLocalNewDataToShow= Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
                               m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = false;
                               break;
            default          : T_ERROR("Invalid Windowmode");
@@ -558,7 +558,7 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
                              DOUBLEVECTOR2 vWinAspectRatio) {
 
   switch (eDirection) {
-    case WM_CORONAL : {
+    case WM_AXIAL : {
                           if (m_bFlipView[int(eDirection)].x) {
                               float fTemp = vMinCoords.x;
                               vMinCoords.x = vMaxCoords.x;
@@ -586,7 +586,7 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
                           glEnd();
                           break;
                       }
-    case WM_AXIAL : {
+    case WM_CORONAL : {
                           if (m_bFlipView[int(eDirection)].x) {
                               float fTemp = vMinCoords.x;
                               vMinCoords.x = vMaxCoords.x;
@@ -817,14 +817,14 @@ void GLRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
   double dPI = 3.141592653589793238462643383;
   FLOATMATRIX4 matRotDir, matFlipX, matFlipY;
   switch (eDirection) {
-    case WM_CORONAL : {
+    case WM_SAGITTAL : {
                         matRotDir.RotationX(-dPI/2.0);
                         break;
                       }
     case WM_AXIAL : {
                         break;
                       }
-    case WM_SAGITTAL : {
+    case WM_CORONAL : {
                          FLOATMATRIX4 matTemp;
                          matRotDir.RotationX(-dPI/2.0);
                          matTemp.RotationY(-dPI/2.0);
@@ -1636,7 +1636,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
 
   FLOATVECTOR3 vMinPoint = -vExtend/2.0, vMaxPoint = vExtend/2.0;
 
-  FLOATVECTOR3 vfSliceIndex = FLOATVECTOR3(m_piSlice[2],m_piSlice[0],m_piSlice[1])/FLOATVECTOR3(vDomainSize);
+  FLOATVECTOR3 vfSliceIndex = FLOATVECTOR3(m_piSlice[0],m_piSlice[1],m_piSlice[2])/FLOATVECTOR3(vDomainSize);
 
 
   FLOATVECTOR3 vfPlanePos = vMinPoint * (1.0f-vfSliceIndex) + vMaxPoint * vfSliceIndex;

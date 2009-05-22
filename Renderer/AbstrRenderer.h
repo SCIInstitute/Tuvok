@@ -124,9 +124,9 @@ class AbstrRenderer {
     virtual void SetViewmode(EViewMode eViewMode);
 
     enum EWindowMode {
-      WM_CORONAL = 0,
+      WM_SAGITTAL = 0,
       WM_AXIAL,
-      WM_SAGITTAL,
+      WM_CORONAL,
       WM_3D,
       WM_INVALID
     };

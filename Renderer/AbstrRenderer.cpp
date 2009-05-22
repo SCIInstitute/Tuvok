@@ -114,9 +114,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
 
   m_e2x2WindowMode[0] = WM_3D;
-  m_e2x2WindowMode[1] = WM_CORONAL;
+  m_e2x2WindowMode[1] = WM_SAGITTAL;
   m_e2x2WindowMode[2] = WM_AXIAL;
-  m_e2x2WindowMode[3] = WM_SAGITTAL;
+  m_e2x2WindowMode[3] = WM_CORONAL;
 
   m_eFullWindowMode   = WM_3D;
 
@@ -176,8 +176,8 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   }
   m_iMaxLODIndex = *std::min_element(vSmallestLOD.begin(), vSmallestLOD.end());
 
-  m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetInfo().GetDomainSize()[0]/2;
-  m_piSlice[size_t(WM_CORONAL)]  = m_pDataset->GetInfo().GetDomainSize()[1]/2;
+  m_piSlice[size_t(WM_CORONAL)] = m_pDataset->GetInfo().GetDomainSize()[0]/2;
+  m_piSlice[size_t(WM_SAGITTAL)]  = m_pDataset->GetInfo().GetDomainSize()[1]/2;
   m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetInfo().GetDomainSize()[2]/2;
 
   return true;
@@ -850,21 +850,21 @@ void AbstrRenderer::SetLogoParams(string strLogoFilename, int iLogoPos) {
 
 void AbstrRenderer::Set2DFlipMode(EWindowMode eWindow, bool bFlipX, bool bFlipY) {
   // flipping is only possible for 2D views
-  if (eWindow > WM_SAGITTAL) return;
+  if (eWindow > WM_CORONAL) return;
   m_bFlipView[size_t(eWindow)] = VECTOR2<bool>(bFlipX, bFlipY);
   ScheduleWindowRedraw(eWindow);
 }
 
 void AbstrRenderer::Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlipY) const {
   // flipping is only possible for 2D views
-  if (eWindow > WM_SAGITTAL) return;
+  if (eWindow > WM_CORONAL) return;
   bFlipX = m_bFlipView[size_t(eWindow)].x;
   bFlipY = m_bFlipView[size_t(eWindow)].y;
 }
 
 bool AbstrRenderer::GetUseMIP(EWindowMode eWindow) const {
   // MIP is only possible for 2D views
-  if (eWindow > WM_SAGITTAL)
+  if (eWindow > WM_CORONAL)
     return false;
   else
     return m_bUseMIP[size_t(eWindow)];
@@ -872,7 +872,7 @@ bool AbstrRenderer::GetUseMIP(EWindowMode eWindow) const {
 
 void AbstrRenderer::SetUseMIP(EWindowMode eWindow, bool bUseMIP) {
   // MIP is only possible for 2D views
-  if (eWindow > WM_SAGITTAL) return;
+  if (eWindow > WM_CORONAL) return;
   m_bUseMIP[size_t(eWindow)] = bUseMIP;
   ScheduleWindowRedraw(eWindow);
 }
