@@ -1630,6 +1630,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
   FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetInfo().GetScale());
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
+ 
 
   FLOATVECTOR3 vMinPoint = -vExtend/2.0, vMaxPoint = vExtend/2.0;
 
@@ -1641,8 +1642,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
   glEnable(GL_DEPTH_TEST);
 
   glDepthFunc(GL_LEQUAL); 
-
-
+  glLineWidth(2); 
 
   glBegin(GL_LINE_LOOP);
     glColor4f(1,1,1,1);
@@ -1664,6 +1664,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     glVertex3f(vMaxPoint.x, vMaxPoint.y, vfPlanePos.z);
   glEnd();
 
+  glLineWidth(1); 
   
   /*
 
