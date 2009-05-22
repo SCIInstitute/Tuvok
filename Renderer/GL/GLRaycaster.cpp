@@ -261,8 +261,10 @@ void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vEx
 }
 
 
+/// todo remove this hack once long shaders (and thus clipplanes work better on the mac)
+#ifndef DETECTED_OS_APPLE
 /// Set the clip plane input variable in the shader.
-void GLRaycaster::ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoID, bool bForce) {
+void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoID, bool bForce) {
   vector<GLSLProgram*> vCurrentShader;
 
   if (bForce) {
@@ -290,8 +292,6 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoI
     }
   }
 
-  /// todo remove this hack once long shaders (and thus clipplanes work better on the mac)
-#ifndef DETECTED_OS_APPLE
   if (bForce || m_bClipPlaneOn) {
     ExtendedPlane plane(clipPlane);
 
@@ -303,8 +303,12 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoI
       vCurrentShader[i]->Disable();
     }
   }
-#endif
 }
+#else
+void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& , int , bool ) {
+}
+#endif
+
 
 void GLRaycaster::Render3DPreLoop() {
   switch (m_eRenderMode) {

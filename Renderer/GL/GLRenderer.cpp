@@ -1645,7 +1645,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
   glLineWidth(2); 
 
   glBegin(GL_LINE_LOOP);
-    glColor4f(1,1,1,1);
+    if (!bDepthPassOnly) glColor4f(1,1,1,1);
     glVertex3f(vfPlanePos.x, vMinPoint.y, vMaxPoint.z);
     glVertex3f(vfPlanePos.x, vMinPoint.y, vMinPoint.z);
     glVertex3f(vfPlanePos.x, vMaxPoint.y, vMinPoint.z);
