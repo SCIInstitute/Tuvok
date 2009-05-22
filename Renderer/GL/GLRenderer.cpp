@@ -119,10 +119,12 @@ bool GLRenderer::Initialize() {
 
   GPUMemMan &mm = *(Controller::Instance().MemMan());
   if (SysTools::FileExists(strPotential1DTransName)) {
+    MESSAGE("Loading 1D TF from file.");
     mm.Get1DTransFromFile(strPotential1DTransName, this, 
                           &m_p1DTrans, &m_p1DTransTex, 
                           m_pDataset->Get1DHistogram().GetFilledSize());
   } else {
+    MESSAGE("Creating empty 1D TF.");
     mm.GetEmpty1DTrans(m_pDataset->Get1DHistogram().GetFilledSize(), this,
                        &m_p1DTrans, &m_p1DTransTex);
   }
