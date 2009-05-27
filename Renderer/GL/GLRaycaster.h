@@ -55,7 +55,7 @@ class GLRaycaster : public GLRenderer {
      * \param pMasterController message routing object
      * \param bUseOnlyPowerOfTwo force power of two textures (compatibility)
      * \param bDownSampleTo8Bits force 8bit textures (compatibility) */
-    GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
+    GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder, bool bNoRCClipplanes);
     virtual ~GLRaycaster();
 
     /** Loads GLSL vertex and fragment shaders. */
@@ -73,10 +73,14 @@ class GLRaycaster : public GLRenderer {
 
     virtual ERendererType GetRendererType() {return RT_RC;}
 
+    virtual bool CanDoClipPlane() {return !m_bNoRCClipplanes;}
+   
+
   protected:
     GLFBOTex*       m_pFBORayEntry;
     GLSLProgram*    m_pProgramRenderFrontFaces;
     GLSLProgram*    m_pProgramIso2;
+    bool            m_bNoRCClipplanes;
 
     /** Sets variables related to bricks in the shader. */
     void SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurrentBrick);

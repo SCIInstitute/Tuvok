@@ -47,11 +47,12 @@
 
 using namespace std;
 
-GLRaycaster::GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
+GLRaycaster::GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder, bool bNoRCClipplanes) :
   GLRenderer(pMasterController,bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
   m_pFBORayEntry(NULL),
   m_pProgramRenderFrontFaces(NULL),
-  m_pProgramIso2(NULL)
+  m_pProgramIso2(NULL),
+  m_bNoRCClipplanes(bNoRCClipplanes)
 {
 }
 
@@ -83,15 +84,35 @@ bool GLRaycaster::Initialize() {
 
   glShadeModel(GL_SMOOTH);
 
+  string shaderNames[7];
+  if (m_bNoRCClipplanes) {
+   shaderNames[0] = "GLRaycaster-1D-FS-NC.glsl";
+   shaderNames[1] = "GLRaycaster-1D-light-FS-NC.glsl";
+   shaderNames[2] = "GLRaycaster-2D-FS-NC.glsl";
+   shaderNames[3] = "GLRaycaster-2D-light-FS-NC.glsl";
+   shaderNames[4] = "GLRaycaster-Color-FS-NC.glsl";
+   shaderNames[5] = "GLRaycaster-ISO-CV-FS-NC.glsl";
+   shaderNames[6] = "GLRaycaster-ISO-FS-NC.glsl";
+  } else {
+   shaderNames[0] = "GLRaycaster-1D-FS.glsl";
+   shaderNames[1] = "GLRaycaster-1D-light-FS.glsl";
+   shaderNames[2] = "GLRaycaster-2D-FS.glsl";
+   shaderNames[3] = "GLRaycaster-2D-light-FS.glsl";
+   shaderNames[4] = "GLRaycaster-Color-FS.glsl";
+   shaderNames[5] = "GLRaycaster-ISO-CV-FS.glsl";
+   shaderNames[6] = "GLRaycaster-ISO-FS.glsl";
+  }
+
+
   if (!LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-frontfaces-FS.glsl", m_vShaderSearchDirs, &(m_pProgramRenderFrontFaces)) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-1D-FS.glsl",         m_vShaderSearchDirs, &(m_pProgram1DTrans[0])) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-1D-light-FS.glsl",   m_vShaderSearchDirs, &(m_pProgram1DTrans[1])) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-2D-FS.glsl",         m_vShaderSearchDirs, &(m_pProgram2DTrans[0])) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-2D-light-FS.glsl",   m_vShaderSearchDirs, &(m_pProgram2DTrans[1])) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-MIP-Rot-FS.glsl",    m_vShaderSearchDirs, &(m_pProgramHQMIPRot)) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-ISO-FS.glsl",        m_vShaderSearchDirs, &(m_pProgramIso)) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-Color-FS.glsl",      m_vShaderSearchDirs, &(m_pProgramColor)) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-ISO-CV-FS.glsl",     m_vShaderSearchDirs, &(m_pProgramIso2))) {
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[0],   m_vShaderSearchDirs, &(m_pProgram1DTrans[0])) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[1],   m_vShaderSearchDirs, &(m_pProgram1DTrans[1])) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[2],   m_vShaderSearchDirs, &(m_pProgram2DTrans[0])) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[3],   m_vShaderSearchDirs, &(m_pProgram2DTrans[1])) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[6],   m_vShaderSearchDirs, &(m_pProgramIso)) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[4],   m_vShaderSearchDirs, &(m_pProgramColor)) ||
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[5],   m_vShaderSearchDirs, &(m_pProgramIso2)) || 
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-MIP-Rot-FS.glsl",    m_vShaderSearchDirs, &(m_pProgramHQMIPRot))) {
 
       Cleanup();
 
@@ -263,6 +284,8 @@ void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vEx
 
 /// Set the clip plane input variable in the shader.
 void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoID, bool bForce) {
+  if (m_bNoRCClipplanes) return;
+
   vector<GLSLProgram*> vCurrentShader;
 
   if (bForce) {

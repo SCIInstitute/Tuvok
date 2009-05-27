@@ -108,7 +108,7 @@ const AbstrDebugOut *MasterController::DebugOut() const {
 }
 
 AbstrRenderer* MasterController::
-RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) {
+RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder, bool bNoRCClipplanes) {
 
   switch (eRendererType) {
 
@@ -119,7 +119,7 @@ RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOf
 
   case OPENGL_RAYCASTER :
     m_DebugOut.Message(_func_,"Starting up new renderer (API=OpenGL, Method=Raycaster)");
-    m_vVolumeRenderer.push_back(new GLRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
+    m_vVolumeRenderer.push_back(new GLRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder, bNoRCClipplanes));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 
 

@@ -256,6 +256,7 @@ class AbstrRenderer {
     virtual void DisableClipPlane();
     virtual void ShowClipPlane(bool);
     virtual void ClipPlaneRelativeLock(bool);
+    virtual bool CanDoClipPlane() {return true;}
     bool ClipPlaneEnabled() const { return m_bClipPlaneOn; }
     bool ClipPlaneShown() const   { return m_bClipPlaneDisplayed; }
     bool ClipPlaneLocked() const  { return m_bClipPlaneLocked; }
