@@ -50,8 +50,8 @@
 # include <limits.h>
 #endif
 
-#define TUVOK_VERSION 0.1
-#define TUVOK_VERSION_TYPE "Release Candidate"
+#define TUVOK_VERSION 1.0
+#define TUVOK_VERSION_TYPE "Release"
 
 #ifdef _MSC_VER
 # define _func_ __FUNCTION__
