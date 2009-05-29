@@ -112,7 +112,7 @@ class GLRenderer : public AbstrRenderer {
                     const FLOATVECTOR3& vExtend);
     void RenderClipPlane(size_t iStereoID);
     void NewFrameClear(ERenderArea eREnderArea);
-    bool Execute3DFrame(ERenderArea eREnderArea);
+    bool Execute3DFrame(ERenderArea eREnderArea, float &fMsecPassed);
     void RerenderPreviousResult(bool bTransferToFramebuffer);
     void DrawLogo();
     void DrawBackGradient();
@@ -123,7 +123,7 @@ class GLRenderer : public AbstrRenderer {
     virtual float CalculateScaling();
     virtual void SetDataDepShaderVars();
 
-    virtual void Render3DView();
+    virtual float Render3DView();
     virtual void Render3DPreLoop() {};
     virtual void Render3DInLoop(size_t iCurentBrick, int iStereoID) = 0;
     virtual void Render3DPostLoop() {}

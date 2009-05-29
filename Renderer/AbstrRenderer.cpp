@@ -74,7 +74,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_iFrameCounter(0),
   m_iCheckCounter(0),
   m_iMaxLODIndex(0),
+  m_iPerformanceBasedLODSkip(0),
   m_iCurrentLODOffset(0),
+  m_iStartLODOffset(0),
   m_bClearFramebuffer(true),
   m_iCurrentLOD(0),
   m_iBricksRenderedInThisSubFrame(0),
@@ -117,6 +119,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_e2x2WindowMode[1] = WM_SAGITTAL;
   m_e2x2WindowMode[2] = WM_AXIAL;
   m_e2x2WindowMode[3] = WM_CORONAL;
+  m_fMsecPassed[0] = 0.0f;
+  m_fMsecPassed[1] = 0.0f;
 
   m_eFullWindowMode   = WM_3D;
 
@@ -437,6 +441,36 @@ void AbstrRenderer::ScheduleRecompose() {
   }
 }
 
+void AbstrRenderer::ComputeMaxLODForCurrentView() {
+
+  if (m_fMsecPassed[0] > 1000.0f/float(m_iMinFramerate)) {
+    UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
+    m_iPerformanceBasedLODSkip = std::max<UINT64>(1,m_iPerformanceBasedLODSkip)-1;
+    if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) 
+      MESSAGE("Increasing start LOD by %i as it took %g ms to render the first LOD level (max is %g) ",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0], 1000.0f/float(m_iMinFramerate));
+  } else {
+    if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f && m_fMsecPassed[1] <= 1000.0f/float(m_iMinFramerate)) {
+      UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
+      m_iPerformanceBasedLODSkip = std::min<UINT64>(m_iMaxLODIndex-m_iMinLODForCurrentView,m_iPerformanceBasedLODSkip+1);
+      if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) 
+        MESSAGE("Decreasing start LOD by %i as it took only %g ms to render the second LOD level",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[1]);
+    }
+  }
+  if (m_iStartLODOffset == m_iMinLODForCurrentView || 
+     (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f)) {
+    m_fMsecPassed[0] = 0.0f;
+    m_fMsecPassed[1] = 0.0f;
+  }
+
+  if (!m_bCaptureMode) {
+    m_iStartLODOffset = m_iMaxLODIndex-m_iPerformanceBasedLODSkip;
+  } else {
+    m_iStartLODOffset = m_iMinLODForCurrentView;
+  }
+
+  m_iCurrentLODOffset = m_iStartLODOffset+1;  // +1 since m_iCurrentLODOffset is decremented before the rendering
+}
+
 void AbstrRenderer::ComputeMinLODForCurrentView() {
   UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize());
   FLOATVECTOR3 vfExtend     = (FLOATVECTOR3(viVoxelCount) / viVoxelCount.maxVal()) * FLOATVECTOR3(m_pDataset->GetInfo().GetScale() / m_pDataset->GetInfo().GetScale().maxVal() );
@@ -692,12 +726,11 @@ void AbstrRenderer::Plan3DFrame() {
     m_FrustumCullingLOD.SetViewMatrix(m_matModelView[0]);
     m_FrustumCullingLOD.Update();
 
-    ComputeMinLODForCurrentView();
-    if (!m_bCaptureMode) {
-      m_iCurrentLODOffset = m_iMaxLODIndex+1;
-    } else {
-      m_iCurrentLODOffset = m_iMinLODForCurrentView+1;
-    }
+    ComputeMinLODForCurrentView();  // figure out how fine we need to draw the data for the current view
+                                    // this method takes the size of a voxel in screen space into account
+    ComputeMaxLODForCurrentView();  // figure out at wat coarse level we need to start for the current view
+                                    // this method takes the rendermode (capture or not) and the time it took
+                                    // to render the last subframe into account
   }
 
   // plan if the frame is to be redrawn

@@ -381,7 +381,12 @@ void GLRenderer::Paint() {
                                 // plan the frame
                                 Plan3DFrame();
                                 // execute the frame
-                                bNewDataToShow = Execute3DFrame(RA_FULLSCREEN);
+                                float fMsecPassed = 0.0;
+                                bNewDataToShow = Execute3DFrame(RA_FULLSCREEN, fMsecPassed);
+                                if (m_iCurrentLODOffset == m_iStartLODOffset) 
+                                  m_fMsecPassed[0] += fMsecPassed;
+                                if (m_iCurrentLODOffset == m_iStartLODOffset-1) 
+                                  m_fMsecPassed[1] += fMsecPassed;
                               }
                               break;
                           }
@@ -414,7 +419,10 @@ void GLRenderer::Paint() {
                                   // plan the frame
                                   Plan3DFrame();
                                   // execute the frame
-                                  bLocalNewDataToShow = Execute3DFrame(eArea);
+                                  float fMsecPassed = 0.0;
+                                  bLocalNewDataToShow = Execute3DFrame(eArea, fMsecPassed);
+                                  if (m_iCurrentLODOffset == m_iStartLODOffset) m_fMsecPassed[0] += fMsecPassed;
+                                  if (m_iCurrentLODOffset == m_iStartLODOffset-1) m_fMsecPassed[1] += fMsecPassed;
                                 }
                                 // are we done traversing the LOD levels
                                 m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) || (m_iCurrentLODOffset > m_iMinLODForCurrentView);
@@ -1059,9 +1067,10 @@ void GLRenderer::PostSubframe()
   m_TargetBinder.Unbind();
 }
 
-bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea) {
+bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea, float &fMsecPassed) {
   // are we starting a new LOD level?
   if (m_iBricksRenderedInThisSubFrame == 0) {
+    fMsecPassed = 0;
     PreSubframe(eRenderArea);
   }
 
@@ -1081,8 +1090,8 @@ bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea) {
     // setup shaders vars
     SetDataDepShaderVars();
 
-    // Render a few bricks
-    Render3DView();
+    // Render a few bricks and return the time it took
+    fMsecPassed += Render3DView();
 
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
@@ -1852,16 +1861,16 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
   m_TargetBinder.Unbind();
 }
 
-void GLRenderer::Render3DView() {
+float GLRenderer::Render3DView() {
   Render3DPreLoop();
 
   // loop over all bricks in the current LOD level
   clock_t timeStart, timeProbe;
   timeStart = timeProbe = clock();
   UINT32 bricks_this_call = 0;
+  float fMsecPassed = 0;
 
-  while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame &&
-         float(timeProbe-timeStart)*1000.0f/float(CLOCKS_PER_SEC) < m_iTimeSliceMSecs) {
+  while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame && fMsecPassed < m_iTimeSliceMSecs) {
     MESSAGE("  Brick %i of %i", int(m_iBricksRenderedInThisSubFrame+1),
                                 int(m_vCurrentBrickList.size()));
 
@@ -1910,6 +1919,8 @@ void GLRenderer::Render3DView() {
     // time this loop
     if (!m_bCaptureMode) timeProbe = clock();
     ++bricks_this_call;
+
+    fMsecPassed += float(timeProbe-timeStart)*1000.0f/float(CLOCKS_PER_SEC);
   }
 
   Render3DPostLoop();
@@ -1924,6 +1935,8 @@ void GLRenderer::Render3DView() {
     }
     m_TargetBinder.Unbind();
   }
+
+  return fMsecPassed;
 }
 
 void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {

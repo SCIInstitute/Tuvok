@@ -110,14 +110,14 @@ class DXRenderer : public AbstrRenderer {
     void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1));
     void RenderBBox(const FLOATVECTOR4 vColor, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
     void NewFrameClear(ERenderArea eREnderArea);
-    bool Execute3DFrame(ERenderArea eREnderArea);
+    bool Execute3DFrame(ERenderArea eREnderArea, float &fMsecPassed);
     void RerenderPreviousResult(bool bTransferToFramebuffer);
     void DrawLogo();
     void DrawBackGradient();
 
     virtual void SetDataDepShaderVars();
 
-    virtual void Render3DView();
+    virtual float Render3DView();
     virtual void Render3DPreLoop() {};
     virtual void Render3DInLoop(size_t iCurentBrick, int iStereoID) = 0;
     virtual void Render3DPostLoop() {}

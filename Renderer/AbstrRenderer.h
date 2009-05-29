@@ -377,6 +377,7 @@ class AbstrRenderer {
   protected:
     MasterController*   m_pMasterController;
     bool                m_bPerformRedraw;
+    float               m_fMsecPassed[2];
     bool                m_bRedrawMask[4];
     ERenderMode         m_eRenderMode;
     EViewMode           m_eViewMode;
@@ -412,7 +413,9 @@ class AbstrRenderer {
     UINT64              m_iFrameCounter;
     UINT32              m_iCheckCounter;
     UINT64              m_iMaxLODIndex;
+    UINT64              m_iPerformanceBasedLODSkip;
     UINT64              m_iCurrentLODOffset;
+    UINT64              m_iStartLODOffset;
     CullingLOD          m_FrustumCullingLOD;
     bool                m_bClearFramebuffer;
     UINT64              m_iCurrentLOD;
@@ -466,6 +469,7 @@ class AbstrRenderer {
 
     virtual void        ScheduleRecompose();
     void                ComputeMinLODForCurrentView();
+    void                ComputeMaxLODForCurrentView();
     void                Plan3DFrame();
     void                PlanHQMIPFrame();
     std::vector<Brick>  BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion=false);
