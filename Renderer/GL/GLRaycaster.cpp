@@ -158,6 +158,7 @@ bool GLRaycaster::Initialize() {
     m_pProgramIso->SetUniformVector("texVolume",0);
     m_pProgramIso->SetUniformVector("texRayExitPos",2);
     m_pProgramIso->SetUniformVector("vProjParam",vParams.x, vParams.y);
+    m_pProgramIso->SetUniformVector("iTileID", 1); // just to make sure it is never 0
     m_pProgramIso->Disable();
 
     m_pProgramColor->Enable();
@@ -207,19 +208,18 @@ void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurre
                             break;
                           }
     case RM_ISOSURFACE : {
+                            GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
                             if (m_bDoClearView) {
                               m_pProgramIso2->Enable();
                               m_pProgramIso2->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
                               m_pProgramIso2->SetUniformVector("fRayStepsize", fRayStep);
                               m_pProgramIso2->SetUniformVector("iTileID", int(iCurrentBrick));
                               m_pProgramIso2->Disable();
-                              m_pProgramIso->Enable();
+                              shader->Enable();
+                              shader->SetUniformVector("iTileID", int(iCurrentBrick));
                             }
-                            GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
-
                             shader->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
-                            shader->SetUniformVector("fRayStepsize", fRayStep);
-                            shader->SetUniformVector("iTileID", int(iCurrentBrick));
+                            shader->SetUniformVector("fRayStepsize", fRayStep);                            
                             break;
                           }
     case RM_INVALID    :  T_ERROR("Invalid rendermode set"); break;
