@@ -277,6 +277,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   m_SBVRGeogen.SetView(m_mView[iStereoID], true);
 
   if (! m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
+    glDisable(GL_BLEND);
     GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
