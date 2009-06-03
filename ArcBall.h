@@ -48,7 +48,7 @@
 class ArcBall
 {
 public:
-  ArcBall(UINT32 iWinWidth=0, UINT32 iWinHeight=0, int iWinOffsetX=0, int iWinOffsetY=0, bool bUseTranslation = true);
+  ArcBall(UINT32 iWinWidth=0, UINT32 iWinHeight=0, int iWinOffsetX=0, int iWinOffsetY=0, bool bUseTranslation = false);
 
   void SetRadius(float fRadius) {m_fRadius = fRadius;}
   void SetTranslation(const FLOATMATRIX4& mTranslation) {m_mTranslation = mTranslation;}
