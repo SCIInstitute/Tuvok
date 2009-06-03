@@ -1729,11 +1729,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\3rdParty\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -2420,7 +2420,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -2428,7 +2428,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -2436,7 +2436,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -2444,7 +2444,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -2452,7 +2452,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -2460,7 +2460,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -2468,7 +2468,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -2476,7 +2476,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 				</File>
