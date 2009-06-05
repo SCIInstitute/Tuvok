@@ -245,7 +245,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
               if( SUCCEEDED( GetVideoMemoryViaDirectDraw( hMonitor, &dwAvailableVidMem ) ) ) {
                 SAFE_RELEASE( pD3D9 );
                 FreeLibrary( hD3D9 );
-                return UINT64(DedicatedVideoMemory);
+                return UINT64(dwAvailableVidMem);
               } else {
                 SAFE_RELEASE( pD3D9 );
                 FreeLibrary( hD3D9 );
