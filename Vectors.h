@@ -493,6 +493,7 @@ public:
   VECTOR2<T> zx() const {return VECTOR2<T>(z,x);}
   VECTOR2<T> zy() const {return VECTOR2<T>(z,y);}
   VECTOR2<T> zz() const {return VECTOR2<T>(z,z);}
+  VECTOR2<T> zw() const {return VECTOR2<T>(z,w);}
 
   VECTOR3<T> xyz() const {return VECTOR3<T>(x,y,z);}
 
