@@ -50,7 +50,7 @@ DOUBLEVECTOR3 Metadata::GetRescaleFactors() const {
   return DOUBLEVECTOR3(m_Rescale);
 }
 
-#ifdef TUVOK_OS_WINDOWS
+#ifdef DETECTED_OS_WINDOWS
   #pragma warning(disable:4996)
 #endif
 
@@ -62,7 +62,7 @@ void Metadata::SetRescaleFactors(const double rescale[3]) {
   std::copy(rescale,rescale+3, this->m_Rescale);
 }
 
-#ifdef TUVOK_OS_WINDOWS
+#ifdef DETECTED_OS_WINDOWS
   #pragma warning(default:4996)
 #endif
 
