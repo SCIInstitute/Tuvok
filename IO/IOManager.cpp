@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -54,6 +54,7 @@
 #include "StkConverter.h"
 #include "TiffVolumeConverter.h"
 #include "VFFConverter.h"
+#include "REKConverter.h"
 
 using namespace std;
 using namespace tuvok;
@@ -68,6 +69,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new TiffVolumeConverter());
   m_vpConverters.push_back(new VFFConverter());
   m_vpConverters.push_back(new BOVConverter());
+  m_vpConverters.push_back(new REKConverter());
 }
 
 

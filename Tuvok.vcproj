@@ -4354,6 +4354,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IO\REKConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\REKConverter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IO\StkConverter.cpp"
 				>
 			</File>

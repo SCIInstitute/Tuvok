@@ -58,6 +58,7 @@ HEADERS += StdTuvokDefines.h \
            IO/BOVConverter.h \
            IO/NRRDConverter.h \
            IO/RAWConverter.h \
+           IO/REKConverter.h \
            IO/QVISConverter.h \
            IO/VFFConverter.h \
            IO/UnbrickedDataset.h \
@@ -275,6 +276,7 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            IO/BOVConverter.cpp \
            IO/NRRDConverter.cpp \
            IO/RAWConverter.cpp \
+           IO/REKConverter.cpp \
            IO/QVISConverter.cpp \
            IO/VFFConverter.cpp \
            IO/KeyValueFileParser.cpp \
