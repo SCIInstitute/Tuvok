@@ -70,7 +70,7 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   if(fileData.is_open()) {
     fileData.read( buffer, sizeof(buffer) );
-    char ff[] = { 255, 255, 255, 255 };
+    unsigned char ff[] = { 255, 255, 255, 255 };
     if( memcmp(&buffer[116], &ff, 4) != 0 ) {
       WARNING("The file %s is not a REK file", strSourceFilename.c_str());
       fileData.close();
