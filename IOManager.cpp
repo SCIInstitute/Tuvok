@@ -51,6 +51,7 @@
 #include "BOVConverter.h"
 #include "NRRDConverter.h"
 #include "QVISConverter.h"
+#include "REKConverter.h"
 #include "StkConverter.h"
 #include "TiffVolumeConverter.h"
 #include "VFFConverter.h"
@@ -68,6 +69,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new TiffVolumeConverter());
   m_vpConverters.push_back(new VFFConverter());
   m_vpConverters.push_back(new BOVConverter());
+  m_vpConverters.push_back(new REKConverter());
 }
 
 
