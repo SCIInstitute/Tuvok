@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -130,7 +130,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   else
     MESSAGE("  found %i DICOM stacks", int(parseDICOM.m_FileStacks.size()));
 
-  for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {    
+  for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {
     DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
 
     stringstream s;
@@ -148,7 +148,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   else
     MESSAGE("  found %i image stacks", int(parseImages.m_FileStacks.size()));
 
-  for (size_t iStackID = 0;iStackID < parseImages.m_FileStacks.size();iStackID++) {    
+  for (size_t iStackID = 0;iStackID < parseImages.m_FileStacks.size();iStackID++) {
     ImageStackInfo* f = new ImageStackInfo((ImageStackInfo*)parseImages.m_FileStacks[iStackID]);
 
     stringstream s;
@@ -189,7 +189,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
     string strTempMergeFilename = strTargetFilename + "~";
 
-    MESSAGE("    Creating intermediate file %s", strTempMergeFilename.c_str()); 
+    MESSAGE("    Creating intermediate file %s", strTempMergeFilename.c_str());
 
     ofstream fs;
     fs.open(strTempMergeFilename.c_str(),fstream::binary);
@@ -273,7 +273,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     delete [] pData;
 
     fs.close();
-    MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str()); 
+    MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());
 
     UINTVECTOR3 iSize = pDICOMStack->m_ivSize;
     iSize.z *= UINT32(pDICOMStack->m_Elements.size());
@@ -281,11 +281,11 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     /// \todo evaluate pDICOMStack->m_strModality
 
     bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, 0,
-                                    pDICOMStack->m_iAllocated, pDICOMStack->m_iComponentCount, 
+                                    pDICOMStack->m_iAllocated, pDICOMStack->m_iComponentCount,
                                     pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
                                     pDICOMStack->m_iAllocated >=32, /// \todo read sign property from DICOM file
                                     false, /// \todo read float property from DICOM file
-                                    iSize, pDICOMStack->m_fvfAspect, 
+                                    iSize, pDICOMStack->m_fvfAspect,
                                     "DICOM stack", SysTools::GetFilename(pDICOMStack->m_Elements[0]->m_strFileName)
                                     + " to " + SysTools::GetFilename(pDICOMStack->m_Elements[pDICOMStack->m_Elements.size()-1]->m_strFileName));
 
@@ -300,7 +300,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
         MESSAGE("  Stack contains %i files",  int(pStack->m_Elements.size()));
 
         string strTempMergeFilename = strTargetFilename + "~";
-        MESSAGE("    Creating intermediate file %s", strTempMergeFilename.c_str()); 
+        MESSAGE("    Creating intermediate file %s", strTempMergeFilename.c_str());
 
         ofstream fs;
         fs.open(strTempMergeFilename.c_str(),fstream::binary);
@@ -320,17 +320,17 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
 
         fs.close();
-        MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str()); 
+        MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());
 
         UINTVECTOR3 iSize = pStack->m_ivSize;
         iSize.z *= UINT32(pStack->m_Elements.size());
 
         bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, m_TempDir, 0,
-                                        pStack->m_iAllocated, pStack->m_iComponentCount, 
+                                        pStack->m_iAllocated, pStack->m_iComponentCount,
                                         pStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
                                         pStack->m_iComponentCount >= 32,
                                         false,
-                                        iSize, pStack->m_fvfAspect, 
+                                        iSize, pStack->m_fvfAspect,
                                         "Image stack", SysTools::GetFilename(pStack->m_Elements[0]->m_strFileName)
                                         + " to " + SysTools::GetFilename(pStack->m_Elements[pStack->m_Elements.size()-1]->m_strFileName));
 
@@ -353,7 +353,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
 
 bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& vScales,
-                              const std::vector<double>& vBiases, const std::string& strTargetFilename, 
+                              const std::vector<double>& vBiases, const std::string& strTargetFilename,
                               bool bUseMaxMode, bool bNoUserInteraction) {
   /// \todo maybe come up with something smarter for a temp dir then the target dir
   m_TempDir = SysTools::GetPath(strTargetFilename);
@@ -361,7 +361,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
 
   // convert the input files to RAW
   UINT64        iComponentSizeG=0;
-  UINT64        iComponentCountG=0; 
+  UINT64        iComponentCountG=0;
   bool          bConvertEndianessG=false;
   bool          bSignedG=false;
   bool          bIsFloatG=false;
@@ -394,7 +394,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       UINT64 iLODLevel = 0; // always extract the highest quality here
 
       IntermediateFile.iHeaderSkip = 0;
-    
+
       if (iInputData == 0)  {
         iComponentSizeG = v.GetInfo().GetBitWidth();
         iComponentCountG = v.GetInfo().GetComponentCount();
@@ -413,10 +413,10 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
           bRAWCreated = false;
           break;
         }
-        if (vVolumeAspectG != FLOATVECTOR3(v.GetInfo().GetScale())) 
+        if (vVolumeAspectG != FLOATVECTOR3(v.GetInfo().GetScale()))
           WARNING("Different aspect ratios found.");
       }
-      
+
       IntermediateFile.strFilename = m_TempDir + SysTools::GetFilename(strFilenames[iInputData]) + SysTools::ToString(rand()) +".raw";
       IntermediateFile.bDelete = true;
 
@@ -428,7 +428,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
     } else {
 
       UINT64        iComponentSize=0;
-      UINT64        iComponentCount=0; 
+      UINT64        iComponentCount=0;
       bool          bConvertEndianess=false;
       bool          bSigned=false;
       bool          bIsFloat=false;
@@ -443,7 +443,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
         const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
         for (size_t j = 0;j<vStrSupportedExt.size();j++) {
           if (vStrSupportedExt[j] == strExt) {
-            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilenames[iInputData], m_TempDir, bNoUserInteraction, 
+            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilenames[iInputData], m_TempDir, bNoUserInteraction,
                                             IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                             strTitle, eType, IntermediateFile.strFilename, IntermediateFile.bDelete);
             strSource = SysTools::GetFilename(strFilenames[iInputData]);
@@ -453,7 +453,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       }
 
       if (!bRAWCreated && m_pFinalConverter) {
-        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilenames[iInputData], m_TempDir, bNoUserInteraction, 
+        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilenames[iInputData], m_TempDir, bNoUserInteraction,
                                         IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                         strTitle, eType, IntermediateFile.strFilename, IntermediateFile.bDelete);
         strSource = SysTools::GetFilename(strFilenames[iInputData]);
@@ -483,16 +483,16 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
           break;
         }
 
-        if (vVolumeAspectG != vVolumeAspect) 
+        if (vVolumeAspectG != vVolumeAspect)
           WARNING("Different aspect ratios found.");
       }
     }
-    
+
   }
 
   if (!bRAWCreated) {
-    for (size_t i = 0;i<vIntermediateFiles.size();i++) {    
-      if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename)) 
+    for (size_t i = 0;i<vIntermediateFiles.size();i++) {
+      if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename))
         remove(vIntermediateFiles[i].strFilename.c_str());
     }
     return false;
@@ -571,10 +571,10 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       }
     }
   }
-  
 
-  for (size_t i = 0;i<vIntermediateFiles.size();i++) {    
-    if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename)) 
+
+  for (size_t i = 0;i<vIntermediateFiles.size();i++) {
+    if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename))
       remove(vIntermediateFiles[i].strFilename.c_str());
   }
   if (!bIsMerged) return false;
@@ -584,7 +584,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
   bool bTargetCreated = false;
   if (strExtTarget == "UVF") {
-    bTargetCreated = RAWConverter::ConvertRAWDataset(strMergedFile, strTargetFilename, m_TempDir, 0, 
+    bTargetCreated = RAWConverter::ConvertRAWDataset(strMergedFile, strTargetFilename, m_TempDir, 0,
                                        iComponentSizeG, iComponentCountG, bConvertEndianessG, bSignedG,
                                        bIsFloatG, vVolumeSizeG, vVolumeAspectG, strTitleG, SysTools::GetFilename(strMergedFile));
 
@@ -593,7 +593,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
       for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
         if (vStrSupportedExtTarget[l] == strExtTarget) {
-          bTargetCreated = m_vpConverters[k]->ConvertToNative(strMergedFile, strTargetFilename, 0, 
+          bTargetCreated = m_vpConverters[k]->ConvertToNative(strMergedFile, strTargetFilename, 0,
                                                               iComponentSizeG, iComponentCountG, bSignedG, bIsFloatG,
                                                               vVolumeSizeG, vVolumeAspectG, bNoUserInteraction);
           if (bTargetCreated) break;
@@ -621,7 +621,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
 
   MESSAGE("ext: %s, target: %s", strExt.c_str(), strExtTarget.c_str());
-          
+
 
   if (strExtTarget == "UVF") {
     for (size_t i = 0;i<m_vpConverters.size();i++) {
@@ -635,14 +635,14 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       }
     }
 
-    if (m_pFinalConverter) 
+    if (m_pFinalConverter)
       return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, m_TempDir, bNoUserInteraction);
     else
       return false;
   } else {
-    UINT64        iHeaderSkip=0; 
+    UINT64        iHeaderSkip=0;
     UINT64        iComponentSize=0;
-    UINT64        iComponentCount=0; 
+    UINT64        iComponentCount=0;
     bool          bConvertEndianess=false;
     bool          bSigned=false;
     bool          bIsFloat=false;
@@ -673,7 +673,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       eType             = UVFTables::ES_UNDEFINED;  /// \todo grab this data from the UVF file
       strTitle          = "UVF data";               /// \todo grab this data from the UVF file
       strSource         = SysTools::GetFilename(strFilename);
-      
+
       strIntermediateFile = m_TempDir + strFilename +".raw";
       bDeleteIntermediateFile = true;
 
@@ -690,7 +690,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
         const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
         for (size_t j = 0;j<vStrSupportedExt.size();j++) {
           if (vStrSupportedExt[j] == strExt) {
-            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, bNoUserInteraction, 
+            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, m_TempDir, bNoUserInteraction,
                                             iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                             strTitle, eType, strIntermediateFile, bDeleteIntermediateFile);
             if (bRAWCreated) break;
@@ -700,7 +700,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       }
 
       if (!bRAWCreated && m_pFinalConverter) {
-        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, bNoUserInteraction, 
+        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, m_TempDir, bNoUserInteraction,
                                         iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
                                         strTitle, eType, strIntermediateFile, bDeleteIntermediateFile);
       }
@@ -712,7 +712,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
       for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
         if (vStrSupportedExtTarget[l] == strExtTarget) {
-          bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip, 
+          bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip,
                                                                   iComponentSize, iComponentCount, bSigned, bIsFloat,
                                                                   vVolumeSize, vVolumeAspect, bNoUserInteraction);
           if (bTargetCreated) break;
@@ -819,7 +819,7 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel, c
     }
     if (pExporter) break;
   }
-  
+
   if (!pExporter) {
     T_ERROR("Unknown file extension %s.", strExt.c_str());
     return false;
@@ -837,9 +837,9 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel, c
 
   bool bTargetCreated = pExporter->ConvertToNative(
                                 strTempFilename, strTargetFilename, 0,
-                                pSourceData->GetInfo().GetBitWidth(), 
+                                pSourceData->GetInfo().GetBitWidth(),
                                 pSourceData->GetInfo().GetComponentCount(),
-                                pSourceData->GetInfo().GetIsSigned(), 
+                                pSourceData->GetInfo().GetIsSigned(),
                                 pSourceData->GetInfo().GetIsFloat(),
                                 UINTVECTOR3(pSourceData->GetInfo().GetDomainSize(iLODlevel)),
                                 FLOATVECTOR3(pSourceData->GetInfo().GetRescaleFactors()),
@@ -892,7 +892,7 @@ std::string IOManager::GetLoadDialogString() const {
     for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
       string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
       strDialog += "*." + strExt;
-      if (j<m_vpConverters[i]->SupportedExt().size()-1) 
+      if (j<m_vpConverters[i]->SupportedExt().size()-1)
         strDialog += " ";
     }
     strDialog += ");;";
@@ -935,7 +935,7 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info) 
     if (iComponentCount != 1) return false;  // only scalar data supported at the moment
     const Histogram1D& pHist = v.Get1DHistogram();
 
-    // as our UVFs are always quantized to either 8bit or 16bit right now only the 
+    // as our UVFs are always quantized to either 8bit or 16bit right now only the
     // nofloat + unsigned path is taken, the others are for future extensions
     if (bIsFloat) {
       info.m_iValueType = 0;
