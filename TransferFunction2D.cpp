@@ -304,8 +304,6 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
   memcpy(m_pPixelData, m_pRCanvas->scaled(int(m_iSize.x), int(m_iSize.y)).bits(), 4*m_iSize.area());
   m_bUseCachedData = true;
 
-  //m_pCanvas->save("tst0.png");
-  //m_pRCanvas->scaled(int(m_iSize.x), int(m_iSize.y))->save("tst1.png");
   return m_pPixelData;
 }
 
