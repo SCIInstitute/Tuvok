@@ -45,11 +45,10 @@
 #include <vector>
 /// @todo FIXME remove this dependency:
 #include <QtGui/QImage>
+#include <QtGui/QPainter>
 #include "../StdTuvokDefines.h"
 #include "../Basics/Vectors.h"
 #include "../Basics/Grids.h"
-
-class QPainter;
 
 #include "TransferFunction1D.h"
 
@@ -103,6 +102,7 @@ public:
   std::vector< TFPolygon > m_Swatches;
 
   const VECTOR2<size_t> GetSize() const {return m_iSize;}
+  const VECTOR2<size_t> GetRenderSize() const {return m_iSize.x > m_iSize.y ? VECTOR2<size_t>(m_iSize.x, m_iSize.x/2.0) : VECTOR2<size_t>(m_iSize.y*2, m_iSize.y);}
 
   void ComputeNonZeroLimits();
   const UINT64VECTOR4& GetNonZeroLimits() { return m_vValueBBox;}
@@ -117,12 +117,13 @@ protected:
   VECTOR2<size_t> m_iSize;
   ColorData2D* RenderTransferFunction();
   unsigned char* RenderTransferFunction8Bit();
-  INTVECTOR2 Rel2Abs(FLOATVECTOR2 vfCoord) const;
+  INTVECTOR2 Rel2Abs(FLOATVECTOR2 vfCoord, VECTOR2<size_t> iSize) const;
 
 private:
   ColorData2D*      m_pColorData;
-  QImage*           m_pCanvas;
-  QPainter*         m_pPainter;
+  unsigned char*    m_pPixelData;
+  QPainter          m_Painter;
+  QImage*           m_pRCanvas;
   UINT64VECTOR4     m_vValueBBox;
   bool              m_bUseCachedData;
 

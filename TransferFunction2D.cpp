@@ -36,7 +36,6 @@
 */
 
 #include <memory.h>
-#include <QtGui/QPainter>
 #include "TransferFunction2D.h"
 
 using namespace std;
@@ -44,8 +43,8 @@ using namespace std;
 TransferFunction2D::TransferFunction2D() :
   m_iSize(0,0),
   m_pColorData(NULL),
-  m_pCanvas(NULL),
-  m_pPainter(NULL),
+  m_pPixelData(NULL),
+  m_pRCanvas(NULL),
   m_vValueBBox(0,0),
   m_bUseCachedData(false)
 {
@@ -55,8 +54,8 @@ TransferFunction2D::TransferFunction2D() :
 TransferFunction2D::TransferFunction2D(const std::string& filename):
   m_iSize(0,0),
   m_pColorData(NULL),
-  m_pCanvas(NULL),
-  m_pPainter(NULL),
+  m_pPixelData(NULL),
+  m_pRCanvas(NULL),
   m_bUseCachedData(false)
 {
   Load(filename);
@@ -65,8 +64,8 @@ TransferFunction2D::TransferFunction2D(const std::string& filename):
 TransferFunction2D::TransferFunction2D(const VECTOR2<size_t>& iSize):
   m_iSize(iSize),
   m_pColorData(NULL),
-  m_pCanvas(NULL),
-  m_pPainter(NULL),
+  m_pPixelData(NULL),
+  m_pRCanvas(NULL),
   m_bUseCachedData(false)
 {
   Resize(m_iSize);
@@ -75,9 +74,9 @@ TransferFunction2D::TransferFunction2D(const VECTOR2<size_t>& iSize):
 
 void TransferFunction2D::DeleteCanvasData()
 {
-  delete m_pPainter;
   delete m_pColorData;
-  delete m_pCanvas;
+  delete [] m_pPixelData;
+  delete m_pRCanvas;
 }
 
 TransferFunction2D::~TransferFunction2D(void)
@@ -242,37 +241,40 @@ void TransferFunction2D::GetFloatArray(float** pfData) {
 int m_iSwatchBorderSize = 0;
 int m_iBorderSize  = 0;
 
-INTVECTOR2 TransferFunction2D::Rel2Abs(FLOATVECTOR2 vfCoord) const {
-  return INTVECTOR2(int(m_iSwatchBorderSize/2+ m_iBorderSize/2+vfCoord.x* (m_iSize.x-m_iBorderSize-m_iSwatchBorderSize)),
-                    int(m_iSwatchBorderSize/2+m_iBorderSize/2+vfCoord.y*(m_iSize.y-m_iBorderSize-m_iSwatchBorderSize)));
+INTVECTOR2 TransferFunction2D::Rel2Abs(FLOATVECTOR2 vfCoord, VECTOR2<size_t> iSize) const {
+  return INTVECTOR2(int(m_iSwatchBorderSize/2+ m_iBorderSize/2+vfCoord.x* (int(iSize.x)-m_iBorderSize-m_iSwatchBorderSize)),
+                    int(m_iSwatchBorderSize/2+m_iBorderSize/2+vfCoord.y*(int(iSize.y)-m_iBorderSize-m_iSwatchBorderSize)));
 }
 
 unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
+  VECTOR2<size_t> vRS = GetRenderSize();
   if (m_pColorData == NULL ) m_pColorData = new ColorData2D(m_iSize);
-  if (m_pCanvas == NULL )    m_pCanvas    = new QImage(int(m_iSize.x), int(m_iSize.y), QImage::Format_ARGB32);
-  if (m_pPainter == NULL)    m_pPainter   = new QPainter(m_pCanvas);
+  if (m_pPixelData == NULL ) m_pPixelData = new unsigned char[4*m_iSize.area()];
+  if (m_pRCanvas == NULL )   m_pRCanvas   = new QImage(int(vRS.x), int(vRS.y), QImage::Format_ARGB32);
 
-  if (m_bUseCachedData) return m_pCanvas->bits();
+  if (m_pPixelData != NULL && m_bUseCachedData) return m_pPixelData;
 
-  m_pCanvas->fill(0);  
+  m_pRCanvas->fill(0);
 
   // render 1D trans 
-  QRect imageRect(0, 0, int(m_iSize.x), int(m_iSize.y));
-  m_pPainter->drawImage(imageRect,m_Trans1DImage);
+  QRect imageRect(0, 0, int(vRS.x), int(vRS.y));
+  m_Painter.begin(m_pRCanvas);
+  m_Painter.drawImage(imageRect,m_Trans1DImage);
 
   // render swatches
   QPen noBorderPen(Qt::NoPen);
-  m_pPainter->setPen(noBorderPen);
+  m_Painter.setPen(noBorderPen);
   for (size_t i = 0;i<m_Swatches.size();i++) {
     TFPolygon& currentSwatch = m_Swatches[i];
     
     std::vector<QPoint> pointList(currentSwatch.pPoints.size());
     for (size_t j = 0;j<currentSwatch.pPoints.size();j++) {    
-      INTVECTOR2 vPixelPos = Rel2Abs(currentSwatch.pPoints[j]);
+      INTVECTOR2 vPixelPos = Rel2Abs(currentSwatch.pPoints[j],vRS);
       pointList[j] = QPoint(vPixelPos.x, vPixelPos.y);
     }
 
-    INTVECTOR2 vPixelPos0 = Rel2Abs(currentSwatch.pGradientCoords[0])-m_iSwatchBorderSize, vPixelPos1 = Rel2Abs(currentSwatch.pGradientCoords[1])-m_iSwatchBorderSize; 
+    INTVECTOR2 vPixelPos0 = Rel2Abs(currentSwatch.pGradientCoords[0],vRS)-m_iSwatchBorderSize, 
+               vPixelPos1 = Rel2Abs(currentSwatch.pGradientCoords[1],vRS)-m_iSwatchBorderSize; 
 
     QGradient* pGradientBrush;
     if (currentSwatch.bRadial) {
@@ -290,16 +292,21 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
                           int(currentSwatch.pGradientStops[j].second[3]*255)));
     }
 
-    m_pPainter->setBrush(*pGradientBrush);
+    m_Painter.setBrush(*pGradientBrush);
     if(!pointList.empty()) {
-      m_pPainter->drawPolygon(&pointList[0], int(currentSwatch.pPoints.size()));
+      m_Painter.drawPolygon(&pointList[0], int(currentSwatch.pPoints.size()));
     }
     delete pGradientBrush;
   }
+  m_Painter.end();
 
+
+  memcpy(m_pPixelData, m_pRCanvas->scaled(int(m_iSize.x), int(m_iSize.y)).bits(), 4*m_iSize.area());
   m_bUseCachedData = true;
 
-  return m_pCanvas->bits();
+  //m_pCanvas->save("tst0.png");
+  //m_pRCanvas->scaled(int(m_iSize.x), int(m_iSize.y))->save("tst1.png");
+  return m_pPixelData;
 }
 
 ColorData2D* TransferFunction2D::RenderTransferFunction() {
