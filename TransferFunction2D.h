@@ -117,7 +117,7 @@ protected:
   VECTOR2<size_t> m_iSize;
   ColorData2D* RenderTransferFunction();
   unsigned char* RenderTransferFunction8Bit();
-  INTVECTOR2 Rel2Abs(FLOATVECTOR2 vfCoord, VECTOR2<size_t> iSize) const;
+  INTVECTOR2 Normalized2Offscreen(FLOATVECTOR2 vfCoord, VECTOR2<size_t> iSize) const;
 
 private:
   ColorData2D*      m_pColorData;
