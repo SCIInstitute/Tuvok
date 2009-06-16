@@ -238,12 +238,9 @@ void TransferFunction2D::GetFloatArray(float** pfData) {
   memcpy(*pfData, m_pColorData->GetDataPointer(), 4*sizeof(float)*m_iSize.area());
 }
 
-int m_iSwatchBorderSize = 0;
-int m_iBorderSize  = 0;
-
 INTVECTOR2 TransferFunction2D::Normalized2Offscreen(FLOATVECTOR2 vfCoord, VECTOR2<size_t> iSize) const {
-  return INTVECTOR2(int(m_iSwatchBorderSize/2+ m_iBorderSize/2+vfCoord.x* (int(iSize.x)-m_iBorderSize-m_iSwatchBorderSize)),
-                    int(m_iSwatchBorderSize/2+m_iBorderSize/2+vfCoord.y*(int(iSize.y)-m_iBorderSize-m_iSwatchBorderSize)));
+  return INTVECTOR2(int(vfCoord.x*int(iSize.x)),
+                    int(vfCoord.y*int(iSize.y)));
 }
 
 unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
@@ -273,8 +270,8 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
       pointList[j] = QPoint(vPixelPos.x, vPixelPos.y);
     }
 
-    INTVECTOR2 vPixelPos0 = Normalized2Offscreen(currentSwatch.pGradientCoords[0],vRS)-m_iSwatchBorderSize, 
-               vPixelPos1 = Normalized2Offscreen(currentSwatch.pGradientCoords[1],vRS)-m_iSwatchBorderSize; 
+    INTVECTOR2 vPixelPos0 = Normalized2Offscreen(currentSwatch.pGradientCoords[0],vRS), 
+               vPixelPos1 = Normalized2Offscreen(currentSwatch.pGradientCoords[1],vRS); 
 
     QGradient* pGradientBrush;
     if (currentSwatch.bRadial) {
