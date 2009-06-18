@@ -89,19 +89,25 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
   if (m_hFBO==0)
     initFBO();
 
-  if (GL_NO_ERROR!=glGetError()) {
-    T_ERROR("Error during creation!");
-    glDeleteFramebuffersEXT(1,&m_hFBO);
-    m_hFBO=0;
-    return;
+  {
+    GLenum glerr = glGetError();
+    if(GL_NO_ERROR != glerr) {
+      T_ERROR("Error '%d' during FBO creation!", static_cast<int>(glerr));
+      glDeleteFramebuffersEXT(1,&m_hFBO);
+      m_hFBO=0;
+      return;
+    }
   }
   initTextures(minfilter,magfilter,wrapmode,width,height,intformat);
-  if (GL_NO_ERROR!=glGetError()) {
-    T_ERROR("Error during texture init!");
-    glDeleteTextures(m_iNumBuffers,m_hTexture);
-    delete[] m_hTexture;
-    m_hTexture=NULL;
-    return;
+  {
+    GLenum glerr = glGetError();
+    if(GL_NO_ERROR != glerr) {
+      T_ERROR("Error '%d' during texture creation!", static_cast<int>(glerr));
+      glDeleteTextures(m_iNumBuffers,m_hTexture);
+      delete[] m_hTexture;
+      m_hTexture=NULL;
+      return;
+    }
   }
   if (bHaveDepth) {
 #ifdef GLFBOTEX_DEPTH_RENDERBUFFER
