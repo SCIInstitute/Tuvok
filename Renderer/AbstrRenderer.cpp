@@ -736,15 +736,20 @@ void AbstrRenderer::Plan3DFrame() {
   // plan if the frame is to be redrawn
   // or if we have completed the last subframe but not the entire frame
   if (m_bPerformRedraw ||
-     (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_iCurrentLODOffset > m_iMinLODForCurrentView)) {
-
+      (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame &&
+       m_iCurrentLODOffset > m_iMinLODForCurrentView)) {
     // compute current LOD level
     m_iCurrentLODOffset--;
     m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,m_pDataset->GetInfo().GetLODLevelCount()-1);
     UINT64VECTOR3 vBrickCount = m_pDataset->GetInfo().GetBrickCount(m_iCurrentLOD);
 
     // build new brick todo-list
+    MESSAGE("Building new brick list for LOD with %u bricks",
+            static_cast<UINT32>(
+              vBrickCount[0] * vBrickCount[1] * vBrickCount[2]
+            ));
     m_vCurrentBrickList = BuildSubFrameBrickList();
+    MESSAGE("%u bricks made the cut.", m_vCurrentBrickList.size());
 
     if (m_bDoStereoRendering)
       m_vLeftEyeBrickList = BuildLeftEyeSubFrameBrickList(m_vCurrentBrickList);
