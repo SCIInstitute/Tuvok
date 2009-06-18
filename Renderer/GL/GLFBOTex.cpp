@@ -168,6 +168,8 @@ GLFBOTex::~GLFBOTex(void) {
  * Build a dummy texture according to the parameters.
  */
 void GLFBOTex::initTextures(GLenum minfilter,GLenum magfilter,GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat) {
+  MESSAGE("Initializing 2D texture of dimensions: %ux%u",
+          static_cast<unsigned int>(width), static_cast<unsigned int>(height));
   glDeleteTextures(m_iNumBuffers,m_hTexture);
   glGenTextures(m_iNumBuffers,m_hTexture);
   for (int i=0; i<m_iNumBuffers; i++) {
@@ -183,7 +185,8 @@ void GLFBOTex::initTextures(GLenum minfilter,GLenum magfilter,GLenum wrapmode, G
       case GL_NEAREST_MIPMAP_LINEAR:
       case GL_LINEAR_MIPMAP_LINEAR:
         do {
-          glTexImage2D(GL_TEXTURE_2D, level, intformat, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+          glTexImage2D(GL_TEXTURE_2D, level, intformat, width, height, 0,
+                       GL_RGBA, GL_UNSIGNED_BYTE, NULL);
           width/=2;
           height/=2;
           if (width==0 && height>0) width=1;
@@ -192,7 +195,8 @@ void GLFBOTex::initTextures(GLenum minfilter,GLenum magfilter,GLenum wrapmode, G
         } while (width>=1 && height>=1);
         break;
       default:
-        glTexImage2D(GL_TEXTURE_2D, 0, intformat, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+        glTexImage2D(GL_TEXTURE_2D, 0, intformat, width, height, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     }
   }
 }

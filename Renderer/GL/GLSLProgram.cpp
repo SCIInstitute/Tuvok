@@ -152,6 +152,8 @@ bool GLSLProgram::Initialize(void) {
 #endif
 
   if (!m_bGLChecked) {
+    MESSAGE("Initializing OpenGL on a: %s",
+            (const char*)glGetString(GL_VENDOR));
     if (atof((const char*)glGetString(GL_VERSION)) >= 2.0) {
       MESSAGE("OpenGL 2.0 supported");
       m_bGLUseARB = false;
