@@ -434,22 +434,27 @@ void GPUMemMan::Get2DTransFromFile(const string& strFilename, AbstrRenderer* req
   MESSAGE("Loading 2D transfer function from file");
   *ppTransferFunction2D = new TransferFunction2D(strFilename);
 
-  if ((vSize.x != 0 || vSize.y != 0) && (*ppTransferFunction2D)->GetSize() != vSize) 
+  if ((vSize.x != 0 || vSize.y != 0) &&
+      (*ppTransferFunction2D)->GetSize() != vSize) {
     (*ppTransferFunction2D)->Resample(vSize);
-
+  }
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
-  *tex = new GLTexture2D(UINT32((*ppTransferFunction2D)->GetSize().x), UINT32((*ppTransferFunction2D)->GetSize().y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
+  *tex = new GLTexture2D(UINT32((*ppTransferFunction2D)->GetSize().x),
+                         UINT32((*ppTransferFunction2D)->GetSize().y),
+                         GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetGPUSize();
 
-  m_vpTrans2DList.push_back(Trans2DListElem(*ppTransferFunction2D, *tex, requester));
+  m_vpTrans2DList.push_back(Trans2DListElem(*ppTransferFunction2D, *tex,
+                                            requester));
 }
 
-GLTexture2D* GPUMemMan::Access2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRenderer* requester) {
+GLTexture2D* GPUMemMan::Access2DTrans(TransferFunction2D* pTransferFunction2D,
+                                      AbstrRenderer* requester) {
   for (Trans2DListIter i = m_vpTrans2DList.begin();i<m_vpTrans2DList.end();i++) {
     if (i->pTransferFunction2D == pTransferFunction2D) {
       MESSAGE("Accessing 2D transferfunction");
@@ -462,7 +467,8 @@ GLTexture2D* GPUMemMan::Access2DTrans(TransferFunction2D* pTransferFunction2D, A
   return NULL;
 }
 
-void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRenderer* requester) {
+void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D,
+                            AbstrRenderer* requester) {
   AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
   for (Trans2DListIter i = m_vpTrans2DList.begin();i<m_vpTrans2DList.end();i++) {
     if (i->pTransferFunction2D == pTransferFunction2D) {
@@ -481,8 +487,8 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D, AbstrRender
 
             m_vpTrans2DList.erase(i);
           } else {
-            dbg.Message(_func_, "Decreased access count, but 2D TF is still "
-                                "in use by another subsystem.");
+            dbg.Message(_func_, "Decreased access count, "
+                        "but 2D TF is still in use by another subsystem.");
           }
           return;
         }
@@ -521,7 +527,8 @@ required_cpu_memory(const Metadata& md,
   try {
     const UVFMetadata& umd = dynamic_cast<const UVFMetadata&>(md);
     const std::vector<UINT64> vSize = umd.GetBrickSizeND(vLOD, vBrick);
-    mem = std::accumulate(vSize.begin(), vSize.end(), UINT64(1), std::multiplies<UINT64>());
+    mem = std::accumulate(vSize.begin(), vSize.end(), UINT64(1),
+                          std::multiplies<UINT64>());
   } catch(const std::bad_cast&) {
     const size_t lod = vLOD[0];
     const UINT64VECTOR3 brick(vBrick[0],vBrick[1],vBrick[2]);
@@ -563,16 +570,17 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
   const UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
 
   // for OpenGL we ignore the GPU memory load and let GL do the paging
-  if (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem()) {
-    MESSAGE("Not enough memory for texture %i x %i x %i (%ibit * %i), paging ...",
-            int(sz[0]), int(sz[1]), int(sz[2]), int(iBitWidth),
-            int(iCompCount));
+  if (m_iAllocatedCPUMemory + iNeededCPUMemory >
+      m_SystemInfo->GetMaxUsableCPUMem()) {
+    MESSAGE("Not enough memory for texture %i x %i x %i (%ibit * %i), "
+            "paging ...", int(sz[0]), int(sz[1]), int(sz[2]),
+            int(iBitWidth), int(iCompCount));
 
     // search for best brick to replace with this brick
     UINT64 iTargetFrameCounter = UINT64_INVALID;
     UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
     Texture3DListIter iBestMatch;
-    for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
+    for (Texture3DListIter i=m_vpTex3DList.begin(); i<m_vpTex3DList.end();i++) {
       const UVFMetadata& umd = dynamic_cast<const UVFMetadata&>
                                            (pDataset->GetInfo());
       const std::vector<UINT64> vSize = umd.GetBrickSizeND(vLOD, vBrick);
@@ -599,12 +607,11 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
       MESSAGE("  No suitable brick found. Randomly deleting bricks until this"
               " brick fits into memory");
 
-      // no suitable brick found -> randomly delete bricks until this brick fits into memory
-      while (m_iAllocatedCPUMemory + iNeededCPUMemory > m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
-
+      while (m_iAllocatedCPUMemory + iNeededCPUMemory >
+             m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
         if (m_vpTex3DList.empty()) {
           // we do not have enough memory to page in even a single block...
-          T_ERROR("Not enough memory to page a brick into memory, "
+          T_ERROR("Not enough memory to page a single brick into memory, "
                   "aborting (MaxMem=%ikb, NeededMem=%ikb).",
                   int(m_SystemInfo->GetMaxUsableCPUMem()/1024),
                   int(iNeededCPUMemory/1024));
@@ -702,22 +709,28 @@ void GPUMemMan::MemSizesChanged() {
 }
 
 
-GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, UINT32 iSizePerElement, bool bHaveDepth, int iNumBuffers) {
-
+GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
+                            GLenum wrapmode, GLsizei width, GLsizei height,
+                            GLenum intformat, UINT32 iSizePerElement,
+                            bool bHaveDepth, int iNumBuffers) {
   MESSAGE("Creating new FBO of size %i x %i", int(width), int(height));
 
-  UINT64 m_iCPUMemEstimate = GLFBOTex::EstimateCPUSize(width, height, iSizePerElement, bHaveDepth, iNumBuffers);
-//  UINT64 m_iGPUMemEstimate = GLFBOTex::EstimateGPUSize(width, height, iSizePerElement, bHaveDepth, iNumBuffers);  // GPU mem is not used in GL at the moment
+  UINT64 m_iCPUMemEstimate = GLFBOTex::EstimateCPUSize(width, height,
+                                                       iSizePerElement,
+                                                       bHaveDepth, iNumBuffers);
 
   // if we are running out of mem, kick out bricks to create room for the FBO
-  while (m_iAllocatedCPUMemory + m_iCPUMemEstimate > m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
-    MESSAGE("Not enough memory for FBO %i x %i (%ibit * %i), paging out volume bricks ...",
-            int(width), int(height), int(iSizePerElement), int(iNumBuffers));
+  while (m_iAllocatedCPUMemory + m_iCPUMemEstimate >
+         m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
+    MESSAGE("Not enough memory for FBO %i x %i (%ibit * %i), "
+            "paging out bricks ...", int(width), int(height),
+            int(iSizePerElement), int(iNumBuffers));
 
     // search for best brick to replace with this brick
     UINT64 iMinTargetFrameCounter;
     UINT64 iMaxTargetIntraFrameCounter;
-    (*m_vpTex3DList.begin())->GetCounters(iMaxTargetIntraFrameCounter, iMinTargetFrameCounter);
+    (*m_vpTex3DList.begin())->GetCounters(iMaxTargetIntraFrameCounter,
+                                          iMinTargetFrameCounter);
     size_t iIndex = 0;
     size_t iBestIndex = 0;
 
@@ -744,8 +757,9 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode,
   }
 
 
-  FBOListElem* e = new FBOListElem(m_MasterController, minfilter, magfilter, wrapmode, width, height, intformat, iSizePerElement, bHaveDepth, iNumBuffers);
-
+  FBOListElem* e = new FBOListElem(m_MasterController, minfilter, magfilter,
+                                   wrapmode, width, height, intformat,
+                                   iSizePerElement, bHaveDepth, iNumBuffers);
   m_vpFBOList.push_back(e);
 
   m_iAllocatedGPUMemory += e->pFBOTex->GetCPUSize();
@@ -770,21 +784,23 @@ void GPUMemMan::FreeFBO(GLFBOTex* pFBO) {
   WARNING("FBO to free not found.");
 }
 
-GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile, const string& strFSFile) {
+GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile,
+                                       const string& strFSFile) {
   for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
     if ((*i)->strVSFile == strVSFile && (*i)->strFSFile == strFSFile) {
-      MESSAGE("Reusing GLSL program from the VS %s and the FS %s", (*i)->strVSFile.c_str(), (*i)->strFSFile.c_str());
+      MESSAGE("Reusing GLSL program from the VS %s and the FS %s",
+              (*i)->strVSFile.c_str(), (*i)->strFSFile.c_str());
       (*i)->iAccessCounter++;
       return (*i)->pGLSLProgram;
     }
   }
 
-  MESSAGE("Creating new GLSL program from the VS %s and the FS %s", strVSFile.c_str(), strFSFile.c_str());
+  MESSAGE("Creating new GLSL program from the VS %s and the FS %s",
+          strVSFile.c_str(), strFSFile.c_str());
 
   GLSLListElem* e = new GLSLListElem(m_MasterController, strVSFile, strFSFile);
 
   if (e->pGLSLProgram != NULL) {
-
     m_vpGLSLList.push_back(e);
 
     m_iAllocatedGPUMemory += e->pGLSLProgram->GetCPUSize();
@@ -792,7 +808,8 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile, const string& st
 
     return e->pGLSLProgram;
   } else {
-    T_ERROR("Failed to created GLSL program from the VS %s and the FS %s", strVSFile.c_str(), strFSFile.c_str());
+    T_ERROR("Failed to created GLSL program from the VS %s and the FS %s",
+            strVSFile.c_str(), strFSFile.c_str());
     return NULL;
   }
 }
@@ -804,7 +821,6 @@ void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
     if (m_vpGLSLList[i]->pGLSLProgram == pGLSLProgram) {
       m_vpGLSLList[i]->iAccessCounter--;
       if (m_vpGLSLList[i]->iAccessCounter == 0) {
-
         MESSAGE("Freeing GLSL program");
         m_iAllocatedGPUMemory -= m_vpGLSLList[i]->pGLSLProgram->GetCPUSize();
         m_iAllocatedCPUMemory -= m_vpGLSLList[i]->pGLSLProgram->GetGPUSize();
@@ -812,7 +828,9 @@ void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
         delete m_vpGLSLList[i];
 
         m_vpGLSLList.erase(m_vpGLSLList.begin()+i);
-      } else MESSAGE("Decreased access counter but kept GLSL program in memory.");
+      } else {
+        MESSAGE("Decreased access counter but kept GLSL program in memory.");
+      }
       return;
     }
   }
