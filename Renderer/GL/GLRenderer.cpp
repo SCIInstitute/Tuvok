@@ -1870,7 +1870,8 @@ float GLRenderer::Render3DView() {
   UINT32 bricks_this_call = 0;
   float fMsecPassed = 0;
 
-  while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame && fMsecPassed < m_iTimeSliceMSecs) {
+  while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame &&
+         fMsecPassed < m_iTimeSliceMSecs) {
     MESSAGE("  Brick %i of %i", int(m_iBricksRenderedInThisSubFrame+1),
                                 int(m_vCurrentBrickList.size()));
 

@@ -164,34 +164,35 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
   float fStepScale = m_SBVRGeogen.GetOpacityCorrection();
 
   switch (m_eRenderMode) {
-    case RM_1DTRANS    :  {
-                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
-                            if (m_bUseLighting)
-                                m_pProgram1DTrans[1]->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
-                            break;
-                          }
-    case RM_2DTRANS    :  {
-                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
-                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
-                            break;
-                          }
-    case RM_ISOSURFACE : {
-                            if (m_bAvoidSeperateCompositing) {
-                              if (m_pDataset->GetInfo().GetComponentCount() == 1) 
-                                m_pProgramIsoNoCompose->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
-                              else
-                                m_pProgramColorNoCompose->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
-                            } else {
-                              if (m_pDataset->GetInfo().GetComponentCount() == 1) 
-                                m_pProgramIso->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
-                              else
-                                m_pProgramColor->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
-                            }
-                            break;
-                          }
-    case RM_INVALID    :  T_ERROR("Invalid rendermode set"); break;
+    case RM_1DTRANS: {
+      GLSLProgram *shader = m_pProgram1DTrans[m_bUseLighting ? 1 : 0];
+      shader->SetUniformVector("fStepScale", fStepScale);
+      if (m_bUseLighting) {
+        m_pProgram1DTrans[1]->SetUniformVector("vVoxelStepsize",
+                                               vStep.x, vStep.y, vStep.z);
+      }
+      break;
+    }
+    case RM_2DTRANS: {
+      GLSLProgram *shader = m_pProgram2DTrans[m_bUseLighting ? 1 : 0];
+      shader->SetUniformVector("fStepScale", fStepScale);
+      shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
+      break;
+    }
+    case RM_ISOSURFACE: {
+      GLSLProgram *shader;
+      if (m_bAvoidSeperateCompositing) {
+        shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ?
+                 m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
+      } else {
+        shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ?
+                 m_pProgramIso : m_pProgramColor;;
+      }
+      shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
+      break;
+    }
+    case RM_INVALID: T_ERROR("Invalid rendermode set"); break;
   }
-
 }
 
 void GLSBVR::EnableClipPlane() {
