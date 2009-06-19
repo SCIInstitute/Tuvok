@@ -186,7 +186,7 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
                  m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
       } else {
         shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ?
-                 m_pProgramIso : m_pProgramColor;;
+                 m_pProgramIso : m_pProgramColor;
       }
       shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
       break;
