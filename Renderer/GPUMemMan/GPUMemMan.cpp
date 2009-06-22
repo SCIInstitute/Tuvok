@@ -540,6 +540,31 @@ required_cpu_memory(const Metadata& md,
   return mem;
 }
 
+/// Searches the texture list for a texture which matches the given criterion.
+/// @return matching texture, or lst.end() if no texture matches.
+static Texture3DListIter
+find_closest_texture(Texture3DList &lst, const std::vector<UINT64> vSize,
+                     bool use_pot, bool downsample, bool disable_border)
+{
+  UINT64 iTargetFrameCounter = UINT64_INVALID;
+  UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
+
+  Texture3DListIter iBestMatch = lst.end();
+  for (Texture3DListIter i=lst.begin(); i < lst.end(); ++i) {
+    if ((*i)->BestMatch(vSize, use_pot, downsample, disable_border,
+                        iTargetIntraFrameCounter, iTargetFrameCounter,
+                        CTContext::Current())) {
+      iBestMatch = i;
+    }
+  }
+  if(iBestMatch != lst.end()) {
+    MESSAGE("  Found suitable target brick from frame %i with intraframe "
+            "counter %i.", int(iTargetFrameCounter),
+            int(iTargetIntraFrameCounter));
+  }
+  return iBestMatch;
+}
+
 
 GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
                                      const vector<UINT64>& vLOD,
@@ -577,26 +602,15 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
             int(iBitWidth), int(iCompCount));
 
     // search for best brick to replace with this brick
-    UINT64 iTargetFrameCounter = UINT64_INVALID;
-    UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
-    Texture3DListIter iBestMatch;
-    for (Texture3DListIter i=m_vpTex3DList.begin(); i<m_vpTex3DList.end();i++) {
-      const UVFMetadata& umd = dynamic_cast<const UVFMetadata&>
-                                           (pDataset->GetInfo());
-      const std::vector<UINT64> vSize = umd.GetBrickSizeND(vLOD, vBrick);
-      if ((*i)->BestMatch(vSize, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
-                          bDisableBorder, iTargetIntraFrameCounter,
-                          iTargetFrameCounter, CTContext::Current())) {
-        iBestMatch = i;
-      }
-    }
-
-    if (iTargetFrameCounter != UINT64_INVALID) {
+    const UVFMetadata& umd = dynamic_cast<const UVFMetadata&>
+                                         (pDataset->GetInfo());
+    const std::vector<UINT64> vSize = umd.GetBrickSizeND(vLOD, vBrick);
+    Texture3DListIter iBestMatch = find_closest_texture(m_vpTex3DList, vSize,
+                                                        bUseOnlyPowerOfTwo,
+                                                        bDownSampleTo8Bits,
+                                                        bDisableBorder);
+    if (iBestMatch != m_vpTex3DList.end()) {
       // found a suitable brick that can be replaced
-      MESSAGE("  Found suitable target brick from frame %i with intraframe "
-              " counter %i (current frame %i / current intraframe %i)",
-              int(iTargetFrameCounter), int(iTargetIntraFrameCounter),
-              int(iFrameCounter), int(iIntraFrameCounter));
       (*iBestMatch)->Replace(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits, bDisableBorder,
                              iIntraFrameCounter, iFrameCounter,
@@ -604,6 +618,9 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
       (*iBestMatch)->iUserCount++;
       return (*iBestMatch)->pTexture;
     } else {
+      // We know the brick doesn't fit in memory, and we know there's no
+      // existing texture which matches enough that we could overwrite it with
+      // this one.  There's little we can do at this point ...
       MESSAGE("  No suitable brick found. Randomly deleting bricks until this"
               " brick fits into memory");
 
