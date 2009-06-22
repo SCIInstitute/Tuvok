@@ -625,7 +625,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
               " brick fits into memory");
 
       while (m_iAllocatedCPUMemory + iNeededCPUMemory >
-             m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
+             m_SystemInfo->GetMaxUsableCPUMem()) {
         if (m_vpTex3DList.empty()) {
           // we do not have enough memory to page in even a single block...
           T_ERROR("Not enough memory to page a single brick into memory, "
