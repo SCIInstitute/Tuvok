@@ -102,7 +102,11 @@ public:
   std::vector< TFPolygon > m_Swatches;
 
   const VECTOR2<size_t> GetSize() const {return m_iSize;}
-  const VECTOR2<size_t> GetRenderSize() const {return m_iSize.x > m_iSize.y ? VECTOR2<size_t>(m_iSize.x, m_iSize.x/2.0) : VECTOR2<size_t>(m_iSize.y*2, m_iSize.y);}
+  const VECTOR2<size_t> GetRenderSize() const {
+    return m_iSize.x > m_iSize.y ?
+           VECTOR2<size_t>(m_iSize.x, static_cast<size_t>(m_iSize.x/2.0)) :
+           VECTOR2<size_t>(m_iSize.y*2, m_iSize.y);
+  }
 
   void ComputeNonZeroLimits();
   const UINT64VECTOR4& GetNonZeroLimits() { return m_vValueBBox;}
@@ -114,7 +118,7 @@ public:
 protected:
   TransferFunction1D m_Trans1D;
   QImage             m_Trans1DImage;
-  VECTOR2<size_t> m_iSize;
+  VECTOR2<size_t>    m_iSize;
   ColorData2D* RenderTransferFunction();
   unsigned char* RenderTransferFunction8Bit();
   INTVECTOR2 Normalized2Offscreen(FLOATVECTOR2 vfCoord, VECTOR2<size_t> iSize) const;
