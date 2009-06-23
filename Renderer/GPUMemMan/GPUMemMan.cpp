@@ -42,6 +42,7 @@
 #include "GPUMemManDataStructs.h"
 #include "GPUMemMan.h"
 #include "Renderer/AbstrRenderer.h"
+#include "Renderer/GL/GLError.h"
 #include "Renderer/GL/GLTexture1D.h"
 #include "Renderer/GL/GLTexture2D.h"
 #include "Renderer/GL/GLTexture3D.h"
@@ -566,6 +567,43 @@ find_closest_texture(Texture3DList &lst, const std::vector<UINT64> vSize,
 }
 
 
+// We use our own function instead of a functor because we're searching through
+// a list of 3D textures, which are noncopyable.  A copy operation on our 3d
+// texes would be expensive.
+template <typename ForwIter> static ForwIter
+find_brick_with_usercount(ForwIter first, const ForwIter last,
+                          UINT32 user_count)
+{
+  while(first != last && (*first)->iUserCount != user_count) {
+    ++first;
+  }
+  return first;
+}
+
+// We don't have enough CPU memory to load something.  Get rid of a brick.
+void GPUMemMan::DeleteArbitraryBrick() {
+  assert(!m_vpTex3DList.empty());
+
+  // Identify the least used brick.  The 128 is an arbitrary choice.  We want
+  // it to be high enough to hit every conceivable number of users for a brick.
+  // We don't want to use 2^32 though, because then the application would feel
+  // like it hung if we had some other bug.
+  for(size_t in_use_by=0; in_use_by < 128; ++in_use_by) {
+    const Texture3DListIter& iter = find_brick_with_usercount(
+                                      m_vpTex3DList.begin(),
+                                      m_vpTex3DList.end(), in_use_by
+                                    );
+    if(iter != m_vpTex3DList.end()) {
+      MESSAGE("  Deleting texture %d",
+              std::distance(iter, m_vpTex3DList.begin()));
+      Delete3DTexture(iter);
+      return;
+    }
+  }
+  WARNING("All bricks are (heavily) in use: "
+          "cannot make space for a new brick.");
+}
+
 GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
                                      const vector<UINT64>& vLOD,
                                      const vector<UINT64>& vBrick,
@@ -574,6 +612,37 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
                                      bool bDisableBorder,
                                      UINT64 iIntraFrameCounter,
                                      UINT64 iFrameCounter) {
+  // It can occur that we can create the brick in CPU memory but OpenGL must
+  // perform a texture copy to obtain the texture.  If that happens, we'll
+  // delete any brick and then try again.
+  do {
+    try {
+      return this->AllocOrGet3DTexture(pDataset, vLOD, vBrick,
+                                       bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+                                       bDisableBorder,
+                                       iIntraFrameCounter, iFrameCounter);
+    } catch(tuvok::OutOfMemory&) { // Texture allocation failed.
+      // If texture allocation failed and we had no bricks loaded, then the
+      // system must be extremely memory limited.  Make a note and then bail.
+      if(m_vpTex3DList.empty()) {
+        T_ERROR("This system does not have enough memory to render a brick.");
+        return NULL;
+      }
+      DeleteArbitraryBrick();
+    }
+  } while(!m_vpTex3DList.empty());
+  // Can't happen, but to quiet compilers:
+  return NULL;
+}
+
+GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
+                                            const vector<UINT64>& vLOD,
+                                            const vector<UINT64>& vBrick,
+                                            bool bUseOnlyPowerOfTwo,
+                                            bool bDownSampleTo8Bits,
+                                            bool bDisableBorder,
+                                            UINT64 iIntraFrameCounter,
+                                            UINT64 iFrameCounter) {
   for (Texture3DListIter i = m_vpTex3DList.begin();
        i < m_vpTex3DList.end(); i++) {
     if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
@@ -635,14 +704,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
           return NULL;
         }
 
-        // theoretically this means that if we have more than MAX_RAND bricks
-        // we always pick the first, but who cares ...
-        size_t iIndex = size_t(rand()%m_vpTex3DList.size());
-
-        if (m_vpTex3DList[iIndex]->iUserCount == 0) {
-          MESSAGE("   Deleting texture %i", int(iIndex));
-          Delete3DTexture(iIndex);
-        }
+        DeleteArbitraryBrick();
       }
     }
   }
@@ -685,18 +747,19 @@ void GPUMemMan::Release3DTexture(GLTexture3D* pTexture) {
   }
 }
 
-void GPUMemMan::Delete3DTexture(size_t iIndex) {
+void GPUMemMan::Delete3DTexture(const Texture3DListIter &tex) {
+  m_iAllocatedGPUMemory -= (*tex)->pTexture->GetCPUSize();
+  m_iAllocatedCPUMemory -= (*tex)->pTexture->GetGPUSize();
 
-  m_iAllocatedGPUMemory -= m_vpTex3DList[iIndex]->pTexture->GetCPUSize();
-  m_iAllocatedCPUMemory -= m_vpTex3DList[iIndex]->pTexture->GetGPUSize();
-
-  if ( m_vpTex3DList[iIndex]->iUserCount != 0) {
+  if((*tex)->iUserCount != 0) {
     WARNING("Freeing used 3D texture!");
   }
+  delete *tex;
+  m_vpTex3DList.erase(tex);
+}
 
-  delete m_vpTex3DList[iIndex];
-
-  m_vpTex3DList.erase(m_vpTex3DList.begin()+iIndex);
+void GPUMemMan::Delete3DTexture(size_t iIndex) {
+  this->Delete3DTexture(m_vpTex3DList.begin() + iIndex);
 }
 
 void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset) {
