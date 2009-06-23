@@ -580,6 +580,34 @@ find_brick_with_usercount(ForwIter first, const ForwIter last,
   return first;
 }
 
+// Gets rid of *all* unused bricks.  Returns the number of bricks it deleted.
+size_t GPUMemMan::DeleteUnusedBricks() {
+  size_t removed = 0;
+  // This is a bit harsh.  erase() in the middle of a deque invalidates *all*
+  // iterators.  So we repeatedly search for unused bricks, until our search
+  // comes up empty.
+  // That said, erase() at the beginning or end of a deque only invalidates the
+  // pointed-to element.  You might consider an optimization where we delete
+  // all unused bricks from the beginning and end of the structure, before
+  // moving on to the exhaustive+expensive search.
+  bool found;
+  do {
+    found = false;
+    const Texture3DListIter& iter = find_brick_with_usercount(
+                                      m_vpTex3DList.begin(),
+                                      m_vpTex3DList.end(), 0
+                                    );
+    if(iter != m_vpTex3DList.end()) {
+      ++removed;
+      found = true;
+      Delete3DTexture(iter);
+    }
+  } while(!m_vpTex3DList.empty() && found);
+
+  MESSAGE("Got rid of %u unused bricks.", static_cast<unsigned int>(removed));
+  return removed;
+}
+
 // We don't have enough CPU memory to load something.  Get rid of a brick.
 void GPUMemMan::DeleteArbitraryBrick() {
   assert(!m_vpTex3DList.empty());
@@ -628,7 +656,17 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
         T_ERROR("This system does not have enough memory to render a brick.");
         return NULL;
       }
-      DeleteArbitraryBrick();
+      // Delete all bricks that aren't used.  If that ends up being nothing,
+      // then we're pretty screwed.  Stupidly choose a brick in that case.
+      if(0 == DeleteUnusedBricks()) {
+        WARNING("No bricks unused.  Falling back to "
+                "deleting bricks that ARE in use!");
+        // Delete up to 4 bricks.  We want to delete multiple bricks here
+        // because we'll temporarily need copies of the bricks in memory.
+        for(size_t i=0; i < 4 && !m_vpTex3DList.empty(); ++i) {
+          DeleteArbitraryBrick();
+        }
+      }
     }
   } while(!m_vpTex3DList.empty());
   // Can't happen, but to quiet compilers:

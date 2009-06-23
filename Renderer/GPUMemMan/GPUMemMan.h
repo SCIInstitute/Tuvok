@@ -164,6 +164,7 @@ class GPUMemMan {
 
     unsigned char*     m_pUploadHub;
 
+    size_t DeleteUnusedBricks();
     void DeleteArbitraryBrick();
     void FreeAssociatedTextures(tuvok::Dataset* pDataset);
     void Delete3DTexture(size_t iIndex);
