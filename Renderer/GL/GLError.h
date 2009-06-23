@@ -67,7 +67,7 @@ class OutOfMemory : virtual public std::runtime_error {
 /// Intended to be thrown, e.g.:
 ///    throw OUT_OF_MEM("OpenGL 3d texture");
 /// It automatically sets location information.
-#define OUT_OF_MEMORY(s) tuvok::OutOfMemory(s, __FILE__ ":", __LINE__)
+#define OUT_OF_MEMORY(s) tuvok::OutOfMemory(s, __FILE__, __LINE__)
 
 };
 
