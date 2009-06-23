@@ -34,6 +34,7 @@
   \date    August 2008
 */
 
+#include <new>
 #include <IO/IOManager.h>
 #include "GPUMemManDataStructs.h"
 #include "Basics/MathTools.h"
@@ -70,7 +71,7 @@ Texture3DListElem::Texture3DListElem(Dataset* _pDataset,
   m_bDisableBorder(bDisableBorder),
   m_bUsingHub(false)
 {
-  if (!CreateTexture(pUploadHub)) {
+  if (!CreateTexture(pUploadHub) && pTexture) {
     pTexture->Delete();
     delete pTexture;
     pTexture = NULL;
@@ -361,7 +362,14 @@ bool Texture3DListElem::CreateTexture(unsigned char* pUploadHub, bool bDeleteOld
     size_t iRowSizeSource = vSize[0]*iElementSize;
     size_t iRowSizeTarget = vPaddedSize[0]*iElementSize;
 
-    unsigned char* pPaddedData = new unsigned char[iRowSizeTarget*vPaddedSize[1]*vPaddedSize[2]];
+    unsigned char* pPaddedData;
+    try {
+      pPaddedData = new unsigned char[iRowSizeTarget *
+                                      vPaddedSize[1] *
+                                      vPaddedSize[2]];
+    } catch(std::bad_alloc&) {
+      return false;
+    }
     memset(pPaddedData, 0, iRowSizeTarget*vPaddedSize[1]*vPaddedSize[2]);
 
     for (size_t z = 0;z<vSize[2];z++) {
