@@ -616,7 +616,7 @@ void GPUMemMan::DeleteArbitraryBrick() {
   // it to be high enough to hit every conceivable number of users for a brick.
   // We don't want to use 2^32 though, because then the application would feel
   // like it hung if we had some other bug.
-  for(size_t in_use_by=0; in_use_by < 128; ++in_use_by) {
+  for(UINT32 in_use_by=0; in_use_by < 128; ++in_use_by) {
     const Texture3DListIter& iter = find_brick_with_usercount(
                                       m_vpTex3DList.begin(),
                                       m_vpTex3DList.end(), in_use_by
