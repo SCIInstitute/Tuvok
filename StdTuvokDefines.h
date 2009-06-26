@@ -50,7 +50,10 @@
 # include <limits.h>
 #endif
 
-#define TUVOK_VERSION 1.1.1
+#define TUVOK_MAJOR 1
+#define TUVOK_MINOR 1
+#define TUVOK_PATCH 1
+#define TUVOK_VERSION "1.1.1"
 #define TUVOK_VERSION_TYPE "Release"
 
 #ifdef _MSC_VER
