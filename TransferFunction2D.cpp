@@ -38,6 +38,8 @@
 #include <memory.h>
 #include "TransferFunction2D.h"
 
+#include "Controller/Controller.h"
+
 using namespace std;
 
 TransferFunction2D::TransferFunction2D() :
@@ -244,6 +246,7 @@ INTVECTOR2 TransferFunction2D::Normalized2Offscreen(FLOATVECTOR2 vfCoord, VECTOR
 }
 
 unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
+#ifndef TUVOK_NO_QT
   VECTOR2<size_t> vRS = GetRenderSize();
   if (m_pColorData == NULL ) m_pColorData = new ColorData2D(m_iSize);
   if (m_pPixelData == NULL ) m_pPixelData = new unsigned char[4*m_iSize.area()];
@@ -302,6 +305,10 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
   m_bUseCachedData = true;
 
   return m_pPixelData;
+#else
+  T_ERROR("Cannot render transfer functions without Qt.");
+  return NULL;
+#endif
 }
 
 ColorData2D* TransferFunction2D::RenderTransferFunction() {
@@ -341,7 +348,7 @@ void TransferFunction2D::ComputeNonZeroLimits() {
 }
 
 void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
-
+#ifndef TUVOK_NO_QT
   m_Trans1D = TransferFunction1D(*p1DTrans);
 
   size_t iSize = min<size_t>(m_iSize.x,  m_Trans1D.GetSize());
@@ -353,7 +360,9 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
                                            int(m_Trans1D.vColorData[i][2]*255),
                                            int(m_Trans1D.vColorData[i][3]*255)));
   }
-
+#else
+  T_ERROR("Unsupported without Qt.");
+#endif
 }
 
 // ***************************************************************************

@@ -44,8 +44,13 @@
 #include <string>
 #include <vector>
 /// @todo FIXME remove this dependency:
-#include <QtGui/QImage>
-#include <QtGui/QPainter>
+#ifdef TUVOK_NO_QT
+typedef void* QImage;
+typedef void* QPainter;
+#else
+# include <QtGui/QImage>
+# include <QtGui/QPainter>
+#endif
 #include "../StdTuvokDefines.h"
 #include "../Basics/Vectors.h"
 #include "../Basics/Grids.h"
