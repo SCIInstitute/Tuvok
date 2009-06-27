@@ -39,11 +39,13 @@
 #include <functional>
 #include <numeric>
 #include <typeinfo>
+// normally we'd include Qt headers first, but we want to make sure to get GLEW
+// before GL in this special case.
+#include "GPUMemMan.h"
 #ifndef TUVOK_NO_QT
 # include <QtGui/QImage>
 # include <QtOpenGL/QGLWidget>
 #endif
-#include "GPUMemMan.h"
 
 #include "Basics/SystemInfo.h"
 #include "Controller/Controller.h"

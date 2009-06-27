@@ -40,8 +40,8 @@
 
 #include <deque>
 #include "../../StdTuvokDefines.h"
-#include "Basics/Vectors.h"
 #include "GL/glew.h"
+#include "Basics/Vectors.h"
 #include "GPUMemManDataStructs.h"
 
 class AbstrRenderer;
