@@ -34,6 +34,7 @@
   \date    August 2008
 */
 
+#include <cstring>
 #include <new>
 #include <IO/IOManager.h>
 #include "GPUMemManDataStructs.h"
