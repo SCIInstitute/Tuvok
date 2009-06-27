@@ -65,12 +65,14 @@ public:
 
   virtual UINT64VECTOR3 GetBrickSize(const BrickKey&) const;
 
-  virtual bool GetBrick(const BrickKey& k, unsigned char **ppData) const {
+  virtual bool GetBrick(const BrickKey& k,
+                        std::vector<unsigned char>& vData) const {
     const NDBrickKey& key = this->KeyToNDKey(k);
-    return m_pVolumeDataBlock->GetData(ppData, key.first, key.second);
+    return m_pVolumeDataBlock->GetData(vData, key.first, key.second);
   }
-  bool GetBrick(const NDBrickKey& k, unsigned char **ppData) const {
-    return m_pVolumeDataBlock->GetData(ppData, k.first, k.second);
+  bool GetBrick(const NDBrickKey& k,
+                std::vector<unsigned char>& vData) const {
+    return m_pVolumeDataBlock->GetData(vData, k.first, k.second);
   }
 
   virtual bool Export(UINT64 iLODLevel, const std::string& targetFilename,

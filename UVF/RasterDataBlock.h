@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef RASTERDATABLOCK_H
-#define RASTERDATABLOCK_H
+#ifndef UVF_RASTERDATABLOCK_H
+#define UVF_RASTERDATABLOCK_H
 
 #include <string>
 #include "DataBlock.h"
@@ -112,7 +112,9 @@ public:
   void SetTypeToUInt32(UVFTables::ElementSemanticTable semantic);
   void SetTypeToUInt64(UVFTables::ElementSemanticTable semantic);
 
-  bool GetData(unsigned char** ppData, const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const;
+  bool GetData(std::vector<unsigned char>& vData,
+               const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick) const;
   bool SetData(unsigned char* pData, const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick);
 
   const std::vector<UINT64>& GetBrickCount(const std::vector<UINT64>& vLOD) const;
@@ -182,21 +184,32 @@ protected:
   UINT64 GetLODSizeAndOffsetTables(std::vector<UINT64>& vLODIndices, UINT64 iLOD);
   UINT64 ComputeLODLevelSizeAndOffsetTables(const std::vector<UINT64>& vReducedDomainSize, UINT64 iLOD);
 
-  bool TraverseBricksToWriteBrickToFile(UINT64& iBrickCounter, UINT64 iBrickCount, const std::vector<UINT64>& vLOD,
-                                       const std::vector<UINT64>& vBrickCount, std::vector<UINT64> vCoords, size_t iCurrentDim,
-                                       UINT64 iTargetOffset, unsigned char **ppData, LargeRAWFile* pTargetFile, UINT64 iElementSize,
-                                       const std::vector<UINT64>& vPrefixProd, AbstrDebugOut* pDebugOut,
-                                       bool (*brickFunc)(LargeRAWFile* pSourceFile,
-                                          const std::vector<UINT64> vBrickSize,
-                                          const std::vector<UINT64> vBrickOffset,
-                                          void* pUserContext ),
-                                       void* pUserContext,
-                                       UINT64 iOverlap) const;
+  bool TraverseBricksToWriteBrickToFile(
+      UINT64& iBrickCounter, UINT64 iBrickCount,
+      const std::vector<UINT64>& vLOD,
+      const std::vector<UINT64>& vBrickCount,
+      std::vector<UINT64> vCoords,
+      size_t iCurrentDim, UINT64 iTargetOffset,
+      std::vector<unsigned char> &vData,
+      LargeRAWFile* pTargetFile, UINT64 iElementSize,
+      const std::vector<UINT64>& vPrefixProd,
+      AbstrDebugOut* pDebugOut,
+      bool (*brickFunc)(LargeRAWFile* pSourceFile,
+                        const std::vector<UINT64> vBrickSize,
+                        const std::vector<UINT64> vBrickOffset,
+                        void* pUserContext),
+      void* pUserContext,
+      UINT64 iOverlap
+  ) const;
 
-  void WriteBrickToFile(size_t iCurrentDim, UINT64& iSourceOffset, UINT64& iTargetOffset, const std::vector<UINT64>& vBrickSize,
-                        const std::vector<UINT64>& vEffectiveBrickSize, unsigned char **ppData,
-                        LargeRAWFile* pTargetFile, UINT64 iElementSize, const std::vector<UINT64>& vPrefixProd,
-                        const std::vector<UINT64>& vPrefixProdBrick, bool bDoSeek) const;
+  void WriteBrickToFile(size_t iCurrentDim,
+                        UINT64& iSourceOffset, UINT64& iTargetOffset,
+                        const std::vector<UINT64>& vBrickSize,
+                        const std::vector<UINT64>& vEffectiveBrickSize,
+                        std::vector<unsigned char>& vData,
+                        LargeRAWFile* pTargetFile, UINT64 iElementSize,
+                        const std::vector<UINT64>& vPrefixProd,
+                        const std::vector<UINT64>& vPrefixProdBrick,
+                        bool bDoSeek) const;
 };
-
-#endif // RASTERDATABLOCK_H
+#endif // UVF_RASTERDATABLOCK_H

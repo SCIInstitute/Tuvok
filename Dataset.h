@@ -62,7 +62,8 @@ public:
   virtual float MaxGradientMagnitude() const = 0;
 
   virtual UINT64VECTOR3 GetBrickSize(const BrickKey&) const = 0;
-  virtual bool GetBrick(const BrickKey&, unsigned char **) const = 0;
+  virtual bool GetBrick(const BrickKey&,
+                        std::vector<unsigned char>&) const = 0;
 
   /// unimplemented!
   virtual bool Export(UINT64 iLODLevel, const std::string& targetFilename,

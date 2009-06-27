@@ -52,7 +52,7 @@ public:
   virtual float MaxGradientMagnitude() const;
 
   virtual UINT64VECTOR3 GetBrickSize(const BrickKey& = BrickKey(0,0)) const;
-  virtual bool GetBrick(const BrickKey&, unsigned char **) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<unsigned char>&) const;
 
   /// Accessors to allow the client to upload it's own data/metadata.
   ///@{

@@ -70,16 +70,15 @@ UINT64VECTOR3 UnbrickedDataset::GetBrickSize(const BrickKey&) const
   return sz;
 }
 
-bool UnbrickedDataset::GetBrick(const BrickKey&, unsigned char **brick) const
+bool UnbrickedDataset::GetBrick(const BrickKey&,
+                                std::vector<unsigned char>& brick) const
 {
-  if(*brick == NULL) {
-    *brick = new unsigned char[m_vScalar.size()];
-  }
+  brick.resize(m_vScalar.size());
   UINT64VECTOR3 sz = this->GetBrickSize();
 
-  MESSAGE("Copying brick of size %u, dimensions %lu %lu %lu...",
-          UINT32(m_vScalar.size()), sz[0], sz[1], sz[2]);
-  std::memcpy(*brick, &m_vScalar.at(0), m_vScalar.size());
+  MESSAGE("Copying brick of size %u, dimensions %lu %lu %lu",
+          UINT32(m_vScalar.size()), sz[0],sz[1],sz[2]);
+  std::copy(m_vScalar.begin(), m_vScalar.end(), brick.begin());
   return true;
 }
 
