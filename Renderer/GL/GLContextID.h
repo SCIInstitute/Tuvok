@@ -55,32 +55,30 @@ class GLContextID : ContextID<GLContextID> {
     GLContextID() : ContextID<GLContextID>(), ctx(glXGetCurrentContext()) {} 
     /// Create an ID from the given context.
     GLContextID(GLXContext c) : ContextID<GLContextID>(), ctx(c) {}
+    GLContextID(const GLContextID& ct) : ContextID<GLContextID>(),
+                                         ctx(ct.ctx) {}
 
     static GLContextID Current() { return GLContextID(); }
 
     bool operator==(const GLContextID &gl_cid) const {
       return this->ctx == gl_cid.ctx;
     }
-    bool operator==(const ContextID<GLContextID> &gl_cid) const {
-      return this->ctx == dynamic_cast<const GLContextID&>(gl_cid).ctx;
-    }
-
     bool operator!=(const GLContextID &gl_cid) const {
       return this->ctx != gl_cid.ctx;
     }
-    bool operator!=(const ContextID<GLContextID> &gl_cid) const {
-      return this->ctx != dynamic_cast<const GLContextID&>(gl_cid).ctx;
+
+    GLContextID& operator=(const GLContextID &ct) {
+      this->ctx = ct.ctx;
+      return *this;
     }
 
   private:
-    GLContextID& operator=(const GLContextID &); ///< undefined
+    GLContextID(const ContextID<GLContextID>&); ///< unimplemented
 
   private:
-    const GLXContext ctx;
+    GLXContext ctx;
 };
 
-typedef GLContextID CTContext;
-
-}
+};
 
 #endif // TUVOK_GL_CONTEXT_ID_H
