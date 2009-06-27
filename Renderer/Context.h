@@ -47,6 +47,11 @@
   namespace tuvok {
     typedef DXContextID CTContext;
   };
+#elif defined(TUVOK_NO_QT)
+# include "GL/GLContextID.h"
+  namespace tuvok {
+    typedef GLContextID CTContext;
+  };
 #else
 # include "GL/QtGLContextID.h"
   namespace tuvok {
