@@ -63,10 +63,9 @@ GPUMemMan::GPUMemMan(MasterController* masterController) :
   m_SystemInfo(masterController->SysInfo()),
   m_iAllocatedGPUMemory(0),
   m_iAllocatedCPUMemory(0),
-  m_iFrameCounter(0),
-  m_pUploadHub(NULL)
+  m_iFrameCounter(0)
 {
-  m_pUploadHub = new unsigned char[INCORESIZE*4];
+  m_vUploadHub.resize(INCORESIZE*4);
   m_iAllocatedCPUMemory = INCORESIZE*4;
 }
 
@@ -144,7 +143,7 @@ GPUMemMan::~GPUMemMan() {
     delete (*i);
   }
 
-  delete [] m_pUploadHub;
+  m_vUploadHub.resize(0);
   m_iAllocatedCPUMemory -= INCORESIZE*4;
 
   assert(m_iAllocatedGPUMemory == 0);
@@ -721,7 +720,7 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
       (*iBestMatch)->Replace(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits, bDisableBorder,
                              iIntraFrameCounter, iFrameCounter,
-                             CTContext::Current(), m_pUploadHub);
+                             CTContext::Current(), m_vUploadHub);
       (*iBestMatch)->iUserCount++;
       return (*iBestMatch)->pTexture;
     } else {
@@ -758,12 +757,13 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
                                                        iFrameCounter,
                                                        m_MasterController,
                                                        CTContext::Current(),
-                                                       m_pUploadHub);
+                                                       m_vUploadHub);
   if (pNew3DTex->pTexture == NULL) {
     T_ERROR("Failed to create OpenGL texture.");
     delete pNew3DTex;
     return NULL;
   }
+  MESSAGE("texture created.");
   pNew3DTex->iUserCount = 1;
 
   m_iAllocatedGPUMemory += pNew3DTex->pTexture->GetCPUSize();

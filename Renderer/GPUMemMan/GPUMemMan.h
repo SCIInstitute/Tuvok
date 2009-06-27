@@ -162,7 +162,7 @@ class GPUMemMan {
     UINT64            m_iAllocatedCPUMemory;
     UINT64            m_iFrameCounter;
 
-    unsigned char*     m_pUploadHub;
+    std::vector<unsigned char> m_vUploadHub;
 
     size_t DeleteUnusedBricks();
     void DeleteArbitraryBrick();

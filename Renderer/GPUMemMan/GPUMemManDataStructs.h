@@ -143,7 +143,7 @@ public:
                     bool bIsDownsampledTo8Bits, UINT64 iIntraFrameCounter,
                     UINT64 iFrameCounter, MasterController* pMasterController,
                     const tuvok::CTContext &,
-                    unsigned char* pUploadHub);
+                    std::vector<unsigned char>& vUploadHub);
   ~Texture3DListElem();
 
   bool Equals(const tuvok::Dataset* _pDataset,
@@ -156,7 +156,7 @@ public:
                bool bIsDownsampledTo8Bits, bool bDisableBorder,
                UINT64 iIntraFrameCounter, UINT64 iFrameCounter,
                const tuvok::CTContext &,
-               unsigned char* pUploadHub);
+               std::vector<unsigned char>& vUploadHub);
   bool BestMatch(const std::vector<UINT64>& vDimension,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, UINT64& iIntraFrameCounter,
@@ -172,12 +172,13 @@ public:
 
   GLTexture3D* Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter);
 
-  bool LoadData(unsigned char* pUploadHub);
+  bool LoadData(std::vector<unsigned char>& vUploadHub);
   void  FreeData();
-  bool CreateTexture(unsigned char* pUploadHub, bool bDeleteOldTexture=true);
+  bool CreateTexture(std::vector<unsigned char>& vUploadHub,
+                     bool bDeleteOldTexture=true);
   void  FreeTexture();
 
-  unsigned char*      pData;
+  std::vector<unsigned char> vData;
   GLTexture3D*        pTexture;
   tuvok::Dataset*     pDataset;
   UINT32              iUserCount;

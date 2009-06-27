@@ -55,8 +55,7 @@ Texture3DListElem::Texture3DListElem(Dataset* _pDataset,
                                      UINT64 iFrameCounter,
                                      MasterController* pMasterController,
                                      const CTContext &ctx,
-                                     unsigned char* pUploadHub) :
-  pData(NULL),
+                                     std::vector<unsigned char>& vUploadHub) :
   pTexture(NULL),
   pDataset(_pDataset),
   iUserCount(1),
@@ -71,7 +70,7 @@ Texture3DListElem::Texture3DListElem(Dataset* _pDataset,
   m_bDisableBorder(bDisableBorder),
   m_bUsingHub(false)
 {
-  if (!CreateTexture(pUploadHub) && pTexture) {
+  if (!CreateTexture(vUploadHub) && pTexture) {
     pTexture->Delete();
     delete pTexture;
     pTexture = NULL;
@@ -194,7 +193,7 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
                                 bool bIsDownsampledTo8Bits,
                                 bool bDisableBorder, UINT64 iIntraFrameCounter,
                                 UINT64 iFrameCounter, const CTContext &cid,
-                                unsigned char* pUploadHub) {
+                                std::vector<unsigned char>& vUploadHub) {
   if (pTexture == NULL) return false;
   if (m_Context != cid) {
     T_ERROR("Trying to replace texture in one context"
@@ -212,52 +211,59 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
   m_iIntraFrameCounter = iIntraFrameCounter;
   m_iFrameCounter = iFrameCounter;
 
-  if (!LoadData(pUploadHub)) {
+  if (!LoadData(vUploadHub)) {
     T_ERROR("LoadData call failed, system may be out of memory");
     return false;
   }
   glGetError();  // clear gl error flags
-  pTexture->SetData(m_bUsingHub ? pUploadHub : pData);
+  pTexture->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
 
   return GL_NO_ERROR==glGetError();
 }
 
 
-bool Texture3DListElem::LoadData(unsigned char* pUploadHub) {
-  if (pData != NULL) MESSAGE("Freeing data before load");
-  FreeData();
-
-  UVFDataset& ds = dynamic_cast<UVFDataset&>(*(this->pDataset));
-
-  const UVFMetadata& md = dynamic_cast<const UVFMetadata&>
-                                      (pDataset->GetInfo());
-  const std::vector<UINT64> vSize = md.GetBrickSizeND(vLOD, vBrick);
-  
+bool Texture3DListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
+  const Metadata& md = pDataset->GetInfo();
+  const UINT64VECTOR3 brick(vBrick[0], vBrick[1], vBrick[2]);
+  const UINT64VECTOR3 vSize = md.GetBrickSize(Metadata::BrickKey(vLOD[0],
+                                                                 brick));
   UINT64 iByteWidth  = pDataset->GetInfo().GetBitWidth()/8;
   UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
 
   UINT64 iBrickSize = vSize[0]*vSize[1]*vSize[2]*iByteWidth * iCompCount;
 
-  if (pUploadHub != NULL && iBrickSize <= UINT64(INCORESIZE*4)) {
+  if (!vUploadHub.empty() && iBrickSize <= UINT64(INCORESIZE*4)) {
     m_bUsingHub = true;
-    return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), &pUploadHub);
-  } else
-    return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), &pData);
+    try {
+      UVFDataset& ds = dynamic_cast<UVFDataset&>(*(this->pDataset));
+      return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), vUploadHub);
+    } catch(std::bad_cast) {
+      return this->pDataset->GetBrick(Dataset::BrickKey(0,0), vUploadHub);
+    }
+  } else {
+    try {
+      UVFDataset& ds = dynamic_cast<UVFDataset&>(*(this->pDataset));
+      return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), vData);
+    } catch(std::bad_cast) {
+      return this->pDataset->GetBrick(Dataset::BrickKey(0,0), vData);
+    }
+  }
 }
 
 void  Texture3DListElem::FreeData() {
-  delete [] pData;
-  pData = NULL;
+  vData.resize(0);
 }
 
 
-bool Texture3DListElem::CreateTexture(unsigned char* pUploadHub, bool bDeleteOldTexture) {
+bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
+                                      bool bDeleteOldTexture) {
   if (bDeleteOldTexture) FreeTexture();
 
-  if (pData == NULL)
-    if (!LoadData(pUploadHub)) return false;
+  if (vData.empty()) {
+    if (!LoadData(vUploadHub)) { return false; }
+  }
 
-  unsigned char* pRawData = (m_bUsingHub) ? pUploadHub : pData;
+  unsigned char* pRawData = (m_bUsingHub) ? &vUploadHub.at(0) : &vData.at(0);
 
   // Figure out how big this is going to be.
   const Metadata& md = pDataset->GetInfo();
@@ -274,7 +280,6 @@ bool Texture3DListElem::CreateTexture(unsigned char* pUploadHub, bool bDeleteOld
   GLint glInternalformat;
   GLenum glFormat;
   GLenum glType;
-
 
   if (m_bIsDownsampledTo8Bits && iBitWidth != 8) {
     // here we assume that data which is not 8 bit is 16 bit
