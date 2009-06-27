@@ -74,12 +74,17 @@ public:
     return 1;
   }
   bool GetIsSigned() const {
-    WARNING("Assuming floating-point data.");
+    switch(m_dataType) {
+      case MDT_FLOAT: return true;
+      case MDT_BYTE:  return false;
+    }
     return true;
   }
   bool GetIsFloat() const {
-    WARNING("Assuming floating-point data.");
-    return true;
+    if(m_dataType == MDT_FLOAT) {
+      return true;
+    }
+    return false;
   }
   bool IsSameEndianness() const {
     return true;
