@@ -1,7 +1,7 @@
 # This is a CMake file for building/including Tuvok into your own projects.
 # It is meant only as a guide; it sets up only basic options which are specific
-# to Tuvok.  If you need additional settings, it's recommended that create an
-# external file and use CMake's `include' directive to include this file
+# to Tuvok.  If you need additional settings, it's recommended that you create
+# an external file and use CMake's `include' directive to include this file
 # inline.
 # Still, there are some mechanisms setup to make that task easy.
 #   . Use TUVOK_EXTERNAL_INCLUDES to setup a list of external include
