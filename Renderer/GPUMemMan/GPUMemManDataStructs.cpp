@@ -259,12 +259,13 @@ bool Texture3DListElem::CreateTexture(unsigned char* pUploadHub, bool bDeleteOld
 
   unsigned char* pRawData = (m_bUsingHub) ? pUploadHub : pData;
 
-  const UVFMetadata& md = dynamic_cast<const UVFMetadata&>
-                                      (pDataset->GetInfo());
-  const std::vector<UINT64> vSize = md.GetBrickSizeND(vLOD, vBrick);
+  // Figure out how big this is going to be.
+  const Metadata& md = pDataset->GetInfo();
+  const UINT64VECTOR3 brick(vBrick[0], vBrick[1], vBrick[2]);
+  const UINT64VECTOR3 vSize = md.GetBrickSize(Metadata::BrickKey(vLOD[0],
+                                                                 brick));
 
   bool bToggleEndian = !pDataset->GetInfo().IsSameEndianness();
-
   UINT64 iBitWidth  = pDataset->GetInfo().GetBitWidth();
   UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
 
@@ -313,8 +314,9 @@ bool Texture3DListElem::CreateTexture(unsigned char* pUploadHub, bool bDeleteOld
       glType = GL_UNSIGNED_SHORT;
 
       if (bToggleEndian) {
-        UINT64 iElemCount = vSize[0];
-        for (size_t i = 1;i<vSize.size();i++) iElemCount *= vSize[i];
+        /// @todo BROKEN for N-dimensional data; we're assuming we only get 3D
+        /// data here.
+        UINT64 iElemCount = vSize[0] * vSize[1] * vSize[2];
         short* pShorData = (short*)pRawData;
         for (UINT64 i = 0;i<iCompCount*iElemCount;i++) {
           EndianConvert::Swap<short>(pShorData+i);
