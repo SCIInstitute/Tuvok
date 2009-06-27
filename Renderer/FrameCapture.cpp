@@ -35,8 +35,12 @@
 */
 #include "StdTuvokDefines.h"
 #include <string>
-#include <QtGui/QImage>
+#ifndef TUVOK_NO_QT
+# include <QtGui/QImage>
+#endif
 #include "FrameCapture.h"
+
+#include "Controller/Controller.h"
 #include "Basics/SysTools.h"
 #include "Basics/Vectors.h"
 
@@ -49,6 +53,16 @@ bool FrameCapture::CaptureSequenceFrame(const std::string& strFilename,
   return CaptureSingleFrame(strSequenceName, bPreserveTransparency);
 }
 
+#ifdef TUVOK_NO_QT
+bool FrameCapture::SaveImage(const std::string& filename,
+                             const UINTVECTOR2&,
+                             unsigned char*,
+                             bool) const
+{
+  T_ERROR("Refusing to save image %s: Tuvok was compiled without Qt support.",
+          filename.c_str());
+}
+#else
 bool FrameCapture::SaveImage(const std::string& strFilename,
                              const UINTVECTOR2& vSize,
                              unsigned char* pData,
@@ -83,3 +97,4 @@ bool FrameCapture::SaveImage(const std::string& strFilename,
 
   return qTargetFile.save(strFilename.c_str());
 }
+#endif

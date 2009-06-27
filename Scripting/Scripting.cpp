@@ -37,12 +37,14 @@
 
 #include <fstream>
 #include <limits>
-
+#ifndef TUVOK_NO_QT
+# include <QtCore/QTime>
+# include <QtCore/QDate>
+#endif
 #include "Scripting.h"
-#include <Controller/Controller.h>
-#include <Basics/SysTools.h>
-#include <QtCore/QTime>
-#include <QtCore/QDate>
+
+#include "Basics/SysTools.h"
+#include "Controller/Controller.h"
 
 using namespace std;
 
@@ -220,13 +222,17 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
     return true;
   } else
   if (strCommand == "time") { 
+#ifndef TUVOK_NO_QT
     string strTime(QTime::currentTime().toString().toAscii()); 
     Controller::Debug::Out().printf(strTime.c_str());
+#endif
     return true;
   } else 
   if (strCommand == "date") { 
+#ifndef TUVOK_NO_QT
     string strDate(QDate::currentDate().toString().toAscii()); 
     Controller::Debug::Out().printf(strDate.c_str());
+#endif
     return true;
   } else 
   if (strCommand == "write") { 

@@ -39,19 +39,22 @@
 #include <functional>
 #include <numeric>
 #include <typeinfo>
-#include "GPUMemManDataStructs.h"
+#ifndef TUVOK_NO_QT
+# include <QtGui/QImage>
+# include <QtOpenGL/QGLWidget>
+#endif
 #include "GPUMemMan.h"
+
+#include "Basics/SystemInfo.h"
+#include "Controller/Controller.h"
+#include "GPUMemManDataStructs.h"
+#include "IO/uvfDataset.h"
+#include "IO/uvfMetadata.h"
 #include "Renderer/AbstrRenderer.h"
 #include "Renderer/GL/GLError.h"
 #include "Renderer/GL/GLTexture1D.h"
 #include "Renderer/GL/GLTexture2D.h"
 #include "Renderer/GL/GLTexture3D.h"
-#include <QtGui/QImage>
-#include <QtOpenGL/QGLWidget>
-#include <Controller/Controller.h>
-#include "Basics/SystemInfo.h"
-#include "IO/uvfDataset.h"
-#include "IO/uvfMetadata.h"
 
 using namespace std;
 using namespace tuvok;
@@ -261,6 +264,7 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
     }
   }
 
+#ifndef TUVOK_NO_QT
   QImage image;
   if (!image.load(strFilename.c_str())) {
     T_ERROR("Unable to load file %s", strFilename.c_str());
@@ -277,6 +281,10 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
 
   m_vpSimpleTextures.push_back(SimpleTextureListElem(1,tex,strFilename));
   return tex;
+#else
+  T_ERROR("No Qt support!");
+  return NULL;
+#endif
 }
 
 
