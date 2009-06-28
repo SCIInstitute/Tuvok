@@ -111,7 +111,7 @@ bool GLRaycaster::Initialize() {
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[3],   m_vShaderSearchDirs, &(m_pProgram2DTrans[1])) ||
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[6],   m_vShaderSearchDirs, &(m_pProgramIso)) ||
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[4],   m_vShaderSearchDirs, &(m_pProgramColor)) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[5],   m_vShaderSearchDirs, &(m_pProgramIso2)) || 
+      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[5],   m_vShaderSearchDirs, &(m_pProgramIso2)) ||
       !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-MIP-Rot-FS.glsl",    m_vShaderSearchDirs, &(m_pProgramHQMIPRot))) {
 
       Cleanup();
@@ -219,7 +219,7 @@ void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurre
                               shader->SetUniformVector("iTileID", int(iCurrentBrick));
                             }
                             shader->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
-                            shader->SetUniformVector("fRayStepsize", fRayStep);                            
+
                             break;
                           }
     case RM_INVALID    :  T_ERROR("Invalid rendermode set"); break;

@@ -120,8 +120,8 @@ bool GLRenderer::Initialize() {
   GPUMemMan &mm = *(Controller::Instance().MemMan());
   if (SysTools::FileExists(strPotential1DTransName)) {
     MESSAGE("Loading 1D TF from file.");
-    mm.Get1DTransFromFile(strPotential1DTransName, this, 
-                          &m_p1DTrans, &m_p1DTransTex, 
+    mm.Get1DTransFromFile(strPotential1DTransName, this,
+                          &m_p1DTrans, &m_p1DTransTex,
                           m_pDataset->Get1DHistogram().GetFilledSize());
   } else {
     MESSAGE("Creating empty 1D TF.");
@@ -130,7 +130,7 @@ bool GLRenderer::Initialize() {
   }
 
   if (SysTools::FileExists(strPotential2DTransName)) {
-    mm.Get2DTransFromFile(strPotential2DTransName, this, 
+    mm.Get2DTransFromFile(strPotential2DTransName, this,
                           &m_p2DTrans, &m_p2DTransTex,
                           m_pDataset->Get2DHistogram().GetFilledSize());
   } else {
@@ -383,9 +383,9 @@ void GLRenderer::Paint() {
                                 // execute the frame
                                 float fMsecPassed = 0.0;
                                 bNewDataToShow = Execute3DFrame(RA_FULLSCREEN, fMsecPassed);
-                                if (m_iCurrentLODOffset == m_iStartLODOffset) 
+                                if (m_iCurrentLODOffset == m_iStartLODOffset)
                                   m_fMsecPassed[0] += fMsecPassed;
-                                if (m_iCurrentLODOffset == m_iStartLODOffset-1) 
+                                if (m_iCurrentLODOffset == m_iStartLODOffset-1)
                                   m_fMsecPassed[1] += fMsecPassed;
                               }
                               break;
@@ -1343,7 +1343,7 @@ void GLRenderer::CreateOffscreenBuffers() {
       m_pFBOIsoHit[i]   = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB,
                                     4*4, true, 2);
-      
+
       m_pFBOCVHit[i]    = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB,
                                     2*4, true, 2);
@@ -1424,7 +1424,7 @@ void GLRenderer::SetDataDepShaderVars() {
                             m_pProgram1DTransSlice->Enable();
                             m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
                             m_pProgram1DTransSlice->Disable();
-                            
+
                             m_pProgram1DTransSlice3D->Enable();
                             m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
                             m_pProgram1DTransSlice3D->Disable();
@@ -1460,7 +1460,7 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const s
       return true;
 
     MESSAGE("Shader combination %s and %s not found.", strCompleteVSFile.c_str(), strCompleteFSFile.c_str());
-  }  
+  }
 
   WARNING("Shader combination %s and %s not found in any of the given serach directories, now scanning current diretory and all of its subdirectories as a final attempt.", strVSFile.c_str(), strFSFile.c_str());
 
@@ -1641,7 +1641,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
   FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetInfo().GetScale());
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
- 
+
 
   FLOATVECTOR3 vMinPoint = -vExtend/2.0, vMaxPoint = vExtend/2.0;
 
@@ -1652,8 +1652,8 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
   glDisable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
 
-  glDepthFunc(GL_LEQUAL); 
-  glLineWidth(2); 
+  glDepthFunc(GL_LEQUAL);
+  glLineWidth(2);
 
   glBegin(GL_LINE_LOOP);
     if (!bDepthPassOnly) glColor4f(1,1,1,1);
@@ -1675,11 +1675,11 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     glVertex3f(vMaxPoint.x, vMaxPoint.y, vfPlanePos.z);
   glEnd();
 
-  glLineWidth(1); 
-  
+  glLineWidth(1);
+
   /*
 
-  /// \todo fix this: this code fills the clip planes in 3D 
+  /// \todo fix this: this code fills the clip planes in 3D
             view with the 3D texture sice, while this works
             fine with the SBVR it does not work at present
             with the ray-caster until the raycaster takes

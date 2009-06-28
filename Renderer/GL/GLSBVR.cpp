@@ -73,7 +73,7 @@ bool GLSBVR::Initialize() {
       !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl",  m_vShaderSearchDirs, &(m_pProgramHQMIPRot)) ||
       !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-ISO-FS.glsl",      m_vShaderSearchDirs, &(m_pProgramIso)) ||
       !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-Color-FS.glsl",    m_vShaderSearchDirs, &(m_pProgramColor)) ||
-      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-ISO-NC-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramIsoNoCompose)) || 
+      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-ISO-NC-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramIsoNoCompose)) ||
       !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", m_vShaderSearchDirs, &(m_pProgramColorNoCompose))) {
 
       Cleanup();
@@ -232,7 +232,7 @@ void GLSBVR::Render3DPreLoop() {
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
     case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
-                            if (m_pDataset->GetInfo().GetComponentCount() == 1) 
+                            if (m_pDataset->GetInfo().GetComponentCount() == 1)
                               m_pProgramIsoNoCompose->Enable();
                             else
                               m_pProgramColorNoCompose->Enable();
@@ -323,7 +323,7 @@ void GLSBVR::Render3DPostLoop() {
                           glDisable(GL_BLEND);
                           break;
     case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
-                            if (m_pDataset->GetInfo().GetComponentCount() == 1) 
+                            if (m_pDataset->GetInfo().GetComponentCount() == 1)
                               m_pProgramIsoNoCompose->Disable();
                             else
                               m_pProgramColorNoCompose->Disable();

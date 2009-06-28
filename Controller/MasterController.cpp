@@ -124,7 +124,7 @@ RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOf
 
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
-  case DIRECTX_SBVR : 
+  case DIRECTX_SBVR :
     m_DebugOut.Message(_func_,"Starting up new renderer (API=DirectX, Method=SBVR)");
     m_vVolumeRenderer.push_back(new DXSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
@@ -135,7 +135,7 @@ RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOf
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 #else
   case DIRECTX_RAYCASTER :
-  case DIRECTX_SBVR : 
+  case DIRECTX_SBVR :
     m_DebugOut.Error(_func_,"DirectX 10 renderer not yet implemented. Please select OpenGL as the render API in the settings dialog.");
     return NULL;
 #endif
@@ -242,7 +242,7 @@ bool MasterController::Execute(const std::string& strCommand,
     textout->SetShowOther(m_DebugOut.ShowOther());
 
     m_DebugOut.AddDebugOut(textout);
-  
+
     return true;
   }
 

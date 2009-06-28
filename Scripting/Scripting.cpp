@@ -125,7 +125,7 @@ bool Scripting::ParseLine(const string& strLine) {
       Controller::Debug::Out().printf("Input \"%s\" not understood, try \"help\"!", strLine.c_str());
     else
       Controller::Debug::Out().printf(strMessage.c_str());
-  } else 
+  } else
     if (m_bEcho) Controller::Debug::Out().printf("OK (%s)", strLine.c_str());
 
   return bResult;
@@ -195,13 +195,13 @@ void Scripting::RegisterCalls(Scripting* pScriptEngine) {
 
 bool Scripting::Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage) {
   strMessage = "";
-  if (strCommand == "echo") { 
+  if (strCommand == "echo") {
     m_bEcho = SysTools::ToLowerCase(strParams[0]) == "on";
     return true;
-  } else 
-  if (strCommand == "execute") { 
+  } else
+  if (strCommand == "execute") {
     return ParseFile(strParams[0]);
-  } else 
+  } else
   if (strCommand == "help") {
     Controller::Debug::Out().printf("Command Listing:");
     for (size_t i = 0;i<m_ScriptableList.size();i++) {
@@ -221,21 +221,21 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
     }
     return true;
   } else
-  if (strCommand == "time") { 
+  if (strCommand == "time") {
 #ifndef TUVOK_NO_QT
-    string strTime(QTime::currentTime().toString().toAscii()); 
+    string strTime(QTime::currentTime().toString().toAscii());
     Controller::Debug::Out().printf(strTime.c_str());
 #endif
     return true;
-  } else 
-  if (strCommand == "date") { 
+  } else
+  if (strCommand == "date") {
 #ifndef TUVOK_NO_QT
-    string strDate(QDate::currentDate().toString().toAscii()); 
+    string strDate(QDate::currentDate().toString().toAscii());
     Controller::Debug::Out().printf(strDate.c_str());
 #endif
     return true;
-  } else 
-  if (strCommand == "write") { 
+  } else
+  if (strCommand == "write") {
     Controller::Debug::Out().printf(strParams[0].c_str());
     return true;
   }

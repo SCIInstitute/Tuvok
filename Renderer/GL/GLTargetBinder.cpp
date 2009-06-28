@@ -38,7 +38,7 @@
 #include "GLFBOTex.h"
 #include "Controller/Controller.h"
 
-GLTargetBinder::GLTargetBinder(MasterController* pMasterController) : 
+GLTargetBinder::GLTargetBinder(MasterController* pMasterController) :
   m_pMasterController(pMasterController)
 {
 }
@@ -50,9 +50,9 @@ GLTargetBinder::~GLTargetBinder() {
 
 void GLTargetBinder::Bind(const std::vector<GLBufferID>& vpFBOs) {
   // now for the fun stuff with OpenGL binding
-  
+
   UnbindInternal();
-   
+
   switch (vpFBOs.size()) {
     case 1  : vpFBOs[0].pBuffer->Write(0,vpFBOs[0].iSubBuffer);
               GLFBOTex::OneDrawBuffer();
@@ -79,9 +79,9 @@ void GLTargetBinder::Bind(const std::vector<GLBufferID>& vpFBOs) {
   m_vpBoundFBOs = vpFBOs;
 }
 
-void GLTargetBinder::Bind(GLFBOTex* pFBO0, int iSubBuffer0, 
-                          GLFBOTex* pFBO1, int iSubBuffer1, 
-                          GLFBOTex* pFBO2, int iSubBuffer2, 
+void GLTargetBinder::Bind(GLFBOTex* pFBO0, int iSubBuffer0,
+                          GLFBOTex* pFBO1, int iSubBuffer1,
+                          GLFBOTex* pFBO2, int iSubBuffer2,
                           GLFBOTex* pFBO3, int iSubBuffer3) {
   std::vector<GLBufferID> vpFBOs;
   vpFBOs.push_back(GLBufferID(pFBO0, iSubBuffer0));
@@ -108,7 +108,7 @@ void GLTargetBinder::Unbind() {
 }
 
 void GLTargetBinder::UnbindInternal() {
- 
+
   if (m_vpBoundFBOs.size() == 1) {
     m_vpBoundFBOs[0].pBuffer->FinishWrite(m_vpBoundFBOs[0].iSubBuffer);
   } else
@@ -129,7 +129,7 @@ void GLTargetBinder::UnbindInternal() {
     m_vpBoundFBOs[2].pBuffer->FinishWrite(m_vpBoundFBOs[2].iSubBuffer);
     m_vpBoundFBOs[1].pBuffer->FinishWrite(m_vpBoundFBOs[1].iSubBuffer);
     m_vpBoundFBOs[0].pBuffer->FinishWrite(m_vpBoundFBOs[0].iSubBuffer);
-  }  
-  
+  }
+
   m_vpBoundFBOs.clear();
 }
