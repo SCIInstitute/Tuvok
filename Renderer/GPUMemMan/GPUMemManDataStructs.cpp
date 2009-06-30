@@ -36,6 +36,7 @@
 
 #include <cstring>
 #include <new>
+#include <typeinfo>
 #include <IO/IOManager.h>
 #include "GPUMemManDataStructs.h"
 #include "Basics/MathTools.h"
