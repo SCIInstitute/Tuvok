@@ -554,7 +554,7 @@ public:
       T  m11,m12,
         m21,m22;
     };
-    T array[9];
+    T array[4];
   };
 
   MATRIX2() : m11(1), m12(0),
