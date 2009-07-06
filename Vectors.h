@@ -69,6 +69,7 @@
 
 #include <cassert>
 #include <cmath>
+#include <istream>
 #include <limits>
 #include <vector>
 
@@ -367,6 +368,8 @@ template <class T> VECTOR3<T> operator / ( T scalar, const VECTOR3<T>& vec ) {re
 template <class T> VECTOR3<T> operator % ( T scalar, const VECTOR3<T>& vec ) {return VECTOR3<T>(scalar%vec.x,scalar%vec.y,scalar%vec.z);}
 
 template <class T=int> class VECTOR4 {
+  template <class U>
+  friend std::istream& operator >>(std::istream &, VECTOR4<U>&);
 public:
   T x,y,z,w;
 
@@ -516,8 +519,17 @@ public:
       dehomo().glNormal();
     }
   #endif
-
 };
+
+template <class T>
+std::istream& operator >>(std::istream &is, VECTOR4<T>& v4)
+{
+  is >> v4[0];
+  is >> v4[1];
+  is >> v4[2];
+  is >> v4[3];
+  return is;
+}
 
 template <class T> VECTOR4<T> operator + ( T scalar, const VECTOR4<T>& vec ) {return VECTOR4<T>(scalar+vec.x,scalar+vec.y,scalar+vec.z,scalar+vec.w);}
 template <class T> VECTOR4<T> operator - ( T scalar, const VECTOR4<T>& vec ) {return VECTOR4<T>(scalar-vec.x,scalar-vec.y,scalar-vec.z,scalar-vec.w);}
