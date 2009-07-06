@@ -331,7 +331,9 @@ std::string TransferFunction1D::Serialize() const {
 void TransferFunction1D::Deserialize(const std::string &s) {
   std::istringstream tf(s);
   this->vColorData.clear();
-  // likely to be 4096 or fewer elements.
+  // since we quantize `wide' data down to 12 bits, we'll never have a TF with
+  // more than 4096 elements.  Sometimes we'll have an 8bit TF, so this is
+  // overkill for that case... but we can live with that.
   this->vColorData.reserve(4096);
   std::back_insert_iterator<std::vector<FLOATVECTOR4> > ins(this->vColorData);
 
