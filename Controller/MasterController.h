@@ -135,14 +135,25 @@ public:
                        const std::vector< std::string >& strParams,
                        std::string& strMessage);
 
+  /// Provenance recording.
+  ///@{
+  typedef void (provenance_func)(const std::string);
+  /// Register new callback.  Overwrites the previous callback.
+  void RegisterProvenanceCB(provenance_func *);
+  /// Calls most recently registered provenance callback.
+  void Provenance(const std::string);
+  ///@}
+
+
 private:
-  SystemInfo*    m_pSystemInfo;
-  GPUMemMan*     m_pGPUMemMan;
-  IOManager*     m_pIOManager;
-  MultiplexOut   m_DebugOut;
-  ConsoleOut     m_DefaultOut;
-  Scripting*     m_pScriptEngine;
-  bool           m_bDeleteDebugOutOnExit;
+  SystemInfo*      m_pSystemInfo;
+  GPUMemMan*       m_pGPUMemMan;
+  IOManager*       m_pIOManager;
+  MultiplexOut     m_DebugOut;
+  ConsoleOut       m_DefaultOut;
+  Scripting*       m_pScriptEngine;
+  bool             m_bDeleteDebugOutOnExit;
+  provenance_func* m_pProvenance;
 
   AbstrRendererList m_vVolumeRenderer;
 };

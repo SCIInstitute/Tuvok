@@ -51,7 +51,9 @@
 
 #include "../Scripting/Scripting.h"
 
-MasterController::MasterController()
+MasterController::MasterController() :
+  m_bDeleteDebugOutOnExit(false),
+  m_pProvenance(NULL)
 {
   m_pSystemInfo   = new SystemInfo();
   m_pIOManager    = new IOManager();
@@ -165,7 +167,7 @@ void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
 }
 
 
-void MasterController::Filter( std::string , UINT32 ,
+void MasterController::Filter(std::string, UINT32,
                               void*, void *, void *, void * ) {
 };
 
@@ -247,4 +249,16 @@ bool MasterController::Execute(const std::string& strCommand,
   }
 
   return false;
+}
+
+void MasterController::RegisterProvenanceCB(provenance_func *pfunc)
+{
+  this->m_pProvenance = pfunc;
+}
+
+void MasterController::Provenance(const std::string s)
+{
+  if(this->m_pProvenance) {
+    this->m_pProvenance(s);
+  }
 }
