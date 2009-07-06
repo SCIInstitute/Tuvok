@@ -74,6 +74,8 @@ public:
   bool Load(std::ifstream& file, size_t iTargetSize);
   bool Save(const std::string& filename) const;
   bool Save(std::ofstream& file) const;
+  std::string Serialize() const;
+  void Deserialize(const std::string &);
 
   void Clear();
 

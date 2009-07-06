@@ -37,7 +37,9 @@
 
 #include <cstdlib>
 #include <fstream>
+#include <iterator>
 #include <memory.h>
+#include <sstream>
 #include "TransferFunction1D.h"
 #include "Controller/Controller.h"
 
@@ -314,6 +316,30 @@ bool TransferFunction1D::Save(ofstream& file) const {
   }
 
   return true;
+}
+
+std::string TransferFunction1D::Serialize() const {
+  std::ostringstream oss;
+  std::vector<FLOATVECTOR4>::const_iterator tf;
+  for(tf = this->vColorData.begin(); tf != this->vColorData.end(); ++tf) {
+    oss << (*tf)[0] << ", " << (*tf)[1] << ", "
+        << (*tf)[2] << ", " << (*tf)[3] << "\n";
+  }
+  return oss.str();
+}
+
+void TransferFunction1D::Deserialize(const std::string &s) {
+  std::istringstream tf(s);
+  this->vColorData.clear();
+  // likely to be 4096 or fewer elements.
+  this->vColorData.reserve(4096);
+  std::back_insert_iterator<std::vector<FLOATVECTOR4> > ins(this->vColorData);
+
+  FLOATVECTOR4 val;
+  do {
+    tf >> val;
+    *ins++ = val;
+  } while(!tf.eof());
 }
 
 
