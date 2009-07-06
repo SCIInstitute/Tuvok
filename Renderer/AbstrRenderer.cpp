@@ -170,6 +170,11 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   }
 
   MESSAGE("Load successful, initializing renderer!");
+  {
+    std::ostringstream prov;
+    prov << "open " << strFilename << std::endl;
+    Controller::Instance().Provenance(prov.str());
+  }
 
   // find the maximum LOD index
   const UVFMetadata &md = dynamic_cast<const UVFMetadata &>
@@ -296,6 +301,9 @@ void AbstrRenderer::SetIsoValue(float fIsovalue) {
   if(m_fIsovalue != fIsovalue) {
     m_fIsovalue = fIsovalue;
     ScheduleWindowRedraw(WM_3D);
+    std::ostringstream oss;
+    oss << "setiso " << fIsovalue << std::endl;
+    Controller::Instance().Provenance(oss.str());
   }
 }
 
@@ -358,6 +366,9 @@ FLOATVECTOR2 AbstrRenderer::GetLocalCursorPos(FLOATVECTOR2 vPos) const {
 void AbstrRenderer::Resize(const UINTVECTOR2& vWinSize) {
   m_vWinSize = vWinSize;
   ScheduleCompleteRedraw();
+  std::ostringstream oss;
+  oss << "resize " << vWinSize.x << " " << vWinSize.y << std::endl;
+  Controller::Instance().Provenance(oss.str());
 }
 
 void AbstrRenderer::SetRotation(const FLOATMATRIX4& mRotation) {
@@ -849,6 +860,9 @@ void AbstrRenderer::SetCVIsoValue(float fIsovalue) {
   if (m_fCVIsovalue != fIsovalue) {
     m_fCVIsovalue = fIsovalue;
     if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) ScheduleWindowRedraw(WM_3D);
+    std::ostringstream prov;
+    prov << "setcviso " << fIsovalue << std::endl;
+    Controller::Instance().Provenance(prov.str());
   }
 }
 
