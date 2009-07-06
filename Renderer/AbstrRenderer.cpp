@@ -193,11 +193,22 @@ AbstrRenderer::~AbstrRenderer() {
   if (m_p2DTrans) m_pMasterController->MemMan()->Free2DTrans(m_p2DTrans, this);
 }
 
+static std::string render_mode(AbstrRenderer::ERenderMode mode) {
+  switch(mode) {
+    case AbstrRenderer::RM_1DTRANS: return "mode1d";
+    case AbstrRenderer::RM_2DTRANS: return "mode2d";
+    case AbstrRenderer::RM_ISOSURFACE: return "modeiso";
+    default: return "invalid";
+  };
+  return "invalid";
+}
+
 void AbstrRenderer::SetRendermode(ERenderMode eRenderMode)
 {
   if (m_eRenderMode != eRenderMode) {
     m_eRenderMode = eRenderMode;
     ScheduleCompleteRedraw();
+    Controller::Instance().Provenance(render_mode(eRenderMode));
   }
 }
 
@@ -257,6 +268,7 @@ void AbstrRenderer::Changed1DTrans() {
   } else {
     dbg->Message(_func_, "complete redraw scheduled");
     ScheduleCompleteRedraw();
+    Controller::Instance().Provenance("set_tf_1d " + m_p1DTrans->Serialize());
   }
 }
 
