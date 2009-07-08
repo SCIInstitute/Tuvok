@@ -84,13 +84,13 @@ bool Histogram1DDataBlock::Compute(RasterDataBlock* source) {
   ///       changed to use a more general approach.
   if (source->ulElementBitSize[0][0] == 8) {
     for (UINT64 i = 0;i<iDataSize;i++) {
-       vTmpHist[vcSourceData[i]]++;
+       vTmpHist[vcSourceData[size_t(i)]]++;
     }
   } else {
     if (source->ulElementBitSize[0][0] == 16) {
       unsigned short *psSourceData = (unsigned short*)(&(vcSourceData.at(0)));
       for (UINT64 i = 0;i<iDataSize;i++) {
-        vTmpHist[psSourceData[i]]++;
+        vTmpHist[psSourceData[size_t(i)]]++;
       }
     } else {
       return false;

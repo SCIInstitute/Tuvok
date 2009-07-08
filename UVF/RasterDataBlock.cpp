@@ -1268,7 +1268,7 @@ RasterDataBlock::WriteBrickToFile(size_t iCurrentDim,
     iSourceOffset += (vBrickSize[iCurrentDim]-vEffectiveBrickSize[iCurrentDim])*vBrickPrefixProduct[iCurrentDim];
   } else {
     if (bDoSeek) pTargetFile->SeekPos(iTargetOffset*iElementSize);
-    pTargetFile->WriteRAW(&(vData.at(iSourceOffset*iElementSize)),
+    pTargetFile->WriteRAW(&(vData.at(size_t(iSourceOffset*iElementSize))),
                           vEffectiveBrickSize[0]*iElementSize);
     iSourceOffset += vBrickSize[0];
   }
