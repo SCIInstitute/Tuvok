@@ -45,6 +45,7 @@
 #include "GLTexture3D.h"
 #include <Controller/Controller.h>
 #include <Basics/SysTools.h>
+#include "IO/uvfDataset.h"
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../../Basics/GeometryGenerator.h"
 
