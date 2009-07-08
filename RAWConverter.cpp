@@ -147,13 +147,13 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
         strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename,
                                                 tmpFilename1,
                                                 iComponentCount*vVolumeSize.volume(),
-                                                bSigned, Histogram1D);
+                                                bSigned, &Histogram1D);
       break;
     case 16 :
       strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename,
                                                 tmpFilename1,
                                                 iComponentCount*vVolumeSize.volume(),
-                                                bSigned, Histogram1D);
+                                                bSigned, &Histogram1D);
       break;
 		case 32 :	
       if (bIsFloat)
@@ -161,12 +161,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
                                                   strSourceFilename,
                                                   tmpFilename1,
                                                   iComponentCount*vVolumeSize.volume(),
-                                                  Histogram1D);
+                                                  &Histogram1D);
       else
         strSourceFilename = QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename,
                                                 tmpFilename1,
                                                 iComponentCount*vVolumeSize.volume(),
-                                                bSigned, Histogram1D);
+                                                bSigned, &Histogram1D);
       iComponentSize = 16;
       break;
 		case 64 :	
@@ -175,13 +175,13 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
                                                    strSourceFilename,
                                                    tmpFilename1,
                                                    iComponentCount*vVolumeSize.volume(),
-                                                   Histogram1D);
+                                                   &Histogram1D);
       else
         strSourceFilename = QuantizeLongTo12Bits(iHeaderSkip,
                                                  strSourceFilename,
                                                  tmpFilename1,
                                                  iComponentCount*vVolumeSize.volume(),
-                                                 bSigned, Histogram1D);
+                                                 bSigned, &Histogram1D);
       iComponentSize = 16;
       break;
   }

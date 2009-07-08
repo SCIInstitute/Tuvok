@@ -160,7 +160,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   for (UINT32 i = 1;i<vVolumeSize.volume();i++) pData[i] = pData[3+i*4];
   // write to target file
   RAWFile.WriteRAW(pData, vVolumeSize.volume());
-  delete pData;
+  delete [] pData;
   RAWFile.Close();
 
   MESSAGE("Intermediate RAW file %s from I3M file %s created.", strIntermediateFile.c_str(), strSourceFilename.c_str());
@@ -170,6 +170,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 void I3MConverter::Compute8BitGradientVolumeInCore(unsigned char* pSourceData, unsigned char* pTargetData, const UINTVECTOR3& vSize) {
   for (size_t z = 0;z<size_t(vSize[2]);z++) {
+    MESSAGE("Computing gradients in slice %i of %i\n(%g percent completed)", z+1, vSize[2], 100.0f*float(z+1)/float(vSize[2]));
     for (size_t y = 0;y<size_t(vSize[1]);y++) {
       for (size_t x = 0;x<size_t(vSize[0]);x++) {
 
@@ -212,6 +213,38 @@ void I3MConverter::Compute8BitGradientVolumeInCore(unsigned char* pSourceData, u
   }
 }
 
+void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDenseData, const UINTVECTOR3& vSize, const UINTVECTOR3& vDSFactor) {
+  UINTVECTOR3 vSmallSize = vSize/vDSFactor;
+
+  UINT32 iNumDownsampledValues = vDSFactor.volume();
+  size_t iTargetIndex = 0;
+  size_t iSourceIndex = 0;
+  for (size_t z = 0;z<size_t(vSmallSize[2]);z++) {
+    MESSAGE("Downsampling data in slice %i of %i\n(%g percent completed)", z+1, vSmallSize[2], 100.0f*float(z+1)/float(vSmallSize[2]));
+    for (size_t y = 0;y<size_t(vSmallSize[1]);y++) {
+      for (size_t x = 0;x<size_t(vSmallSize[0]);x++) {
+
+        double fAccValue = 0;
+        unsigned char cValue = 0;
+
+        for (size_t w = 0;w<size_t(vDSFactor[2]);w++) {
+          for (size_t v = 0;v<size_t(vDSFactor[1]);v++) {
+            for (size_t u = 0;u<size_t(vDSFactor[0]);u++) {            
+                iSourceIndex = (x*vDSFactor[0]+u) + (y*vDSFactor[1]+v) * vSize[0] + (z*vDSFactor[2]+w) * vSize[0] * vSize[1];
+                SourceRAWFile.Read<unsigned char>(&cValue, 1, iSourceIndex, 0);
+                fAccValue += cValue;
+            }
+          }
+        }
+
+        fAccValue /= iNumDownsampledValues;
+
+        pDenseData[iTargetIndex++] = (unsigned char)(fAccValue);
+      }
+    }
+  }
+}
+
 bool I3MConverter::ConvertToNative(const std::string& strRawFilename, 
                                    const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                    UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
@@ -223,31 +256,90 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
     T_ERROR("I3M only supports scalar data");
     return false;
   }
-  if (iComponentSize!=8 && iComponentSize!=16) {
-    T_ERROR("Only 8 and 16 bit data support for I3M conversion at the moment.");
-    return false;
-  }
 
   // next check the quantization and endianess of the volume
   // if it is not 8bit unsigned char, little endian -> convert it
 
-  // TODO                                   
-  if (iComponentSize!=8) {
-    T_ERROR("Implementation in progress currently only 8 data support for I3M files.");
-    return false;
+  bool bDelte8BitFile;
+  string str8BitFilename ;
+  if (iComponentSize!=8 || bSigned) {
+    str8BitFilename = strTargetFilename+".tmp";
+
+	  switch (iComponentSize) {
+      case 8 :
+        if (bFloatingPoint) {
+          T_ERROR("Unsupported data format"); 
+          return false;
+        }
+        str8BitFilename = Process8BitsTo8Bits(iHeaderSkip,
+                                              strRawFilename,
+                                              str8BitFilename,
+                                              vVolumeSize.volume(),
+                                              bSigned);
+        break;
+      case 16 :
+        if (bFloatingPoint) {
+          T_ERROR("Unsupported data format"); 
+          return false;
+        }
+        str8BitFilename = QuantizeShortTo8Bits(iHeaderSkip, 
+                                               strRawFilename,
+                                               str8BitFilename,
+                                               vVolumeSize.volume(),
+                                               bSigned);
+        break;
+		  case 32 :	
+        if (bFloatingPoint)
+          str8BitFilename = QuantizeFloatTo8Bits(iHeaderSkip,
+                                                 strRawFilename,
+                                                 str8BitFilename,
+                                                 vVolumeSize.volume());
+        else
+          str8BitFilename = QuantizeIntTo8Bits(iHeaderSkip, 
+                                               strRawFilename,
+                                               str8BitFilename,
+                                               vVolumeSize.volume(),
+                                               bSigned);
+        break;
+		  case 64 :	
+        if (bFloatingPoint) 
+          str8BitFilename = QuantizeDoubleTo8Bits(iHeaderSkip,
+                                                  strRawFilename,
+                                                  str8BitFilename,
+                                                  vVolumeSize.volume());
+        else
+          str8BitFilename = QuantizeLongTo8Bits(iHeaderSkip,
+                                                strRawFilename,
+                                                str8BitFilename,
+                                                vVolumeSize.volume(),
+                                                bSigned);
+        break;
+      default:
+        T_ERROR("Unsupported data format");
+        return false;
+    }
+
+    iHeaderSkip = 0;
+    bDelte8BitFile = true;
+  } else {
+    str8BitFilename = strRawFilename;
+    bDelte8BitFile = false;
   }
                                      
   // next check is size of the volume, if a dimension is bigger than 
   // 128 -> downsample the volume, otherwise simply copy
 
-  LargeRAWFile SourceRAWFile(strRawFilename, iHeaderSkip);
-  SourceRAWFile.Open(false);
+  LargeRAWFile UCharDataFile(str8BitFilename, iHeaderSkip);
+  UCharDataFile.Open(false);
 
-  if (!SourceRAWFile.IsOpen()) {
-    T_ERROR("Unable to read source file %s", strRawFilename.c_str());
+  if (!UCharDataFile.IsOpen()) {
+    if (bDelte8BitFile) 
+      T_ERROR("Unable to open temp file for reading %s", str8BitFilename.c_str());
+    else
+      T_ERROR("Unable to open input file for reading %s", str8BitFilename.c_str());
     return false;
   }
-
+ 
   FLOATVECTOR3 vfDownSampleFactor = FLOATVECTOR3(vVolumeSize)/128.0f;
 
   unsigned char* pDenseData = NULL;
@@ -256,15 +348,8 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
     // volume is small enougth -> simply read the data into the array
     vI3MVolumeSize = vVolumeSize;
     pDenseData = new unsigned char[vI3MVolumeSize.volume()];
-    SourceRAWFile.ReadRAW(pDenseData, vI3MVolumeSize.volume());
+    UCharDataFile.ReadRAW(pDenseData, vI3MVolumeSize.volume());
   } else {
-    T_ERROR("Implementation in progress ... currently no downsample support for I3M files.");
-    SourceRAWFile.Close();
-    return false;
-
-    // TODO
-/*
-
     // volume has to be downsampled
     UINTVECTOR3 viDownSampleFactor(UINT32(ceil(vfDownSampleFactor.x)), 
                                    UINT32(ceil(vfDownSampleFactor.y)), 
@@ -272,14 +357,18 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
     vI3MVolumeSize = vVolumeSize/viDownSampleFactor;
     pDenseData = new unsigned char[vI3MVolumeSize.volume()];
 
-*/
+    DownSample(UCharDataFile, pDenseData, vVolumeSize, viDownSampleFactor);
 
+    // adjust aspect ratio
+    vVolumeAspect *= FLOATVECTOR3(vVolumeSize) / FLOATVECTOR3(vI3MVolumeSize);
   }
-  SourceRAWFile.Close();  
+  UCharDataFile.Close();  
+  if (bDelte8BitFile) UCharDataFile.Delete();
+
   // compute the gradients and expand data to vector format
   unsigned char* pData = new unsigned char[4*vI3MVolumeSize.volume()];
   Compute8BitGradientVolumeInCore(pDenseData, pData, vI3MVolumeSize);
-  delete pDenseData;
+  delete [] pDenseData;
 
   // write data to file
   LargeRAWFile TargetI3MFile(strTargetFilename, 0);
@@ -287,7 +376,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
 
   if (!TargetI3MFile.IsOpen()) {
     T_ERROR("Unable to open I3M file %s", strTargetFilename.c_str());
-    delete pData;
+    delete [] pData;
     return false;
   }
 
@@ -311,7 +400,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   TargetI3MFile.WriteRAW(pData, 4*vI3MVolumeSize.volume());
 
   TargetI3MFile.Close();
-  delete pData;
+  delete [] pData;
 
   return true;
 }

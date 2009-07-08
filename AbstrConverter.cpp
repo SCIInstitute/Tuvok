@@ -42,7 +42,7 @@
 
 using namespace std;
 
-const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D) {
+const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock* Histogram1D) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -72,7 +72,7 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
 
       for (size_t i = 0;i<iRead;i++) {
         pInData[i] += 127;
-        aHist[(unsigned char)pInData[i]]++;
+        if (Histogram1D) aHist[(unsigned char)pInData[i]]++;
       }
       OutputData.WriteRAW((unsigned char*)pInData, iRead);
       iPos += UINT64(iRead);
@@ -86,41 +86,43 @@ const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const strin
     strSignChangedFile = strTargetFilename;
     OutputData.Close();
   } else {
-    MESSAGE("Computing 1D Histogram...");
-    unsigned char* pInData = new unsigned char[INCORESIZE];
+    if (Histogram1D) {
+      MESSAGE("Computing 1D Histogram...");
+      unsigned char* pInData = new unsigned char[INCORESIZE];
 
-    UINT64 iPos = 0;
-    UINT64 iDivLast = 0;
-    while (iPos < iSize)  {
-      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE);
-      if (iRead == 0) break;
-      for (size_t i = 0;i<iRead;i++) aHist[pInData[i]]++;
-      iPos += UINT64(iRead);
+      UINT64 iPos = 0;
+      UINT64 iDivLast = 0;
+      while (iPos < iSize)  {
+        size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE);
+        if (iRead == 0) break;
+        for (size_t i = 0;i<iRead;i++) aHist[pInData[i]]++;
+        iPos += UINT64(iRead);
 
-      if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-        MESSAGE("Computing 1D Histogram (%i percent complete)",
-                int((100*iPos)/iSize));
-        iDivLast = (100*iPos)/iSize;
+        if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+          MESSAGE("Computing 1D Histogram (%i percent complete)",
+                  int((100*iPos)/iSize));
+          iDivLast = (100*iPos)/iSize;
+        }
       }
-    }
 
-    if (iPos < iSize) {
-      WARNING("Specified size and real datasize mismatch");
-    }
+      if (iPos < iSize) {
+        WARNING("Specified size and real datasize mismatch");
+      }
 
-    delete [] pInData;
+      MESSAGE("1D Histogram complete");
+      delete [] pInData;
+    }
     strSignChangedFile = strFilename;
   }
-  MESSAGE("1D Histogram complete");
 
   InputData.Close();
-  Histogram1D.SetHistogram(aHist);
+  if ( Histogram1D ) Histogram1D->SetHistogram(aHist);
 
   return strSignChangedFile;
 }
 
 
-const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D) {
+const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock* Histogram1D) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -233,12 +235,12 @@ const string AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip, const str
     strQuantFile = strTargetFilename;
   }
 
-  Histogram1D.SetHistogram(aHist);
+  if (Histogram1D) Histogram1D->SetHistogram(aHist);
 
   return strQuantFile;
 }
 
-const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock& Histogram1D) {
+const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock* Histogram1D) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -324,12 +326,12 @@ const string AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip, const str
   OutputData.Close();
   InputData.Close();
 
-  Histogram1D.SetHistogram(aHist);
+  if (Histogram1D) Histogram1D->SetHistogram(aHist);
 
   return strTargetFilename;
 }
 
-const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock& Histogram1D) {
+const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock* Histogram1D) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -414,7 +416,7 @@ const string AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip, const st
   OutputData.Close();
   InputData.Close();
 
-  Histogram1D.SetHistogram(aHist);
+  if (Histogram1D) Histogram1D->SetHistogram(aHist);
 
   return strTargetFilename;
 }
@@ -425,7 +427,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
                                      const string& strFilename,
                                      const string& strTargetFilename,
                                      UINT64 iSize, bool bSigned,
-                                     Histogram1DDataBlock& Histogram1D) {
+                                     Histogram1DDataBlock* Histogram1D) {
   AbstrDebugOut &dbg = Controller::Debug::Out();
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
@@ -548,12 +550,12 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
     strQuantFile = strTargetFilename;
   }
 
-  Histogram1D.SetHistogram(aHist);
+  if (Histogram1D) Histogram1D->SetHistogram(aHist);
 
   return strQuantFile;
 }
 
-const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock& Histogram1D) {
+const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock* Histogram1D) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -666,7 +668,203 @@ const string AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip, const strin
     strQuantFile = strTargetFilename;
   }
 
-  Histogram1D.SetHistogram(aHist);
+  if (Histogram1D) Histogram1D->SetHistogram(aHist);
 
   return strQuantFile;
 }
+
+
+
+
+
+
+
+
+/*******************************************************************************************************************/
+
+
+
+
+
+
+
+
+
+
+const string AbstrConverter::QuantizeShortTo8Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock* Histogram1D) {
+  LargeRAWFile InputData(strFilename, iHeaderSkip);
+  InputData.Open(false);
+  UINT64 iPercent = iSize / 100;
+
+  if (!InputData.IsOpen()) return "";
+
+  vector<UINT64> aHist(4096);
+  std::fill(aHist.begin(), aHist.end(), 0);
+
+  // determine max and min
+  unsigned short iMax = 0;
+  unsigned short iMin = numeric_limits<unsigned short>::max();
+  short* pInData = new short[INCORESIZE];
+  unsigned char* pOutData = new unsigned char[INCORESIZE];
+  UINT64 iPos = 0;
+  UINT64 iDivLast = 0;
+  while (iPos < iSize)  {
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+    if (iRead == 0) break;
+
+    for (size_t i = 0;i<iRead;i++) {
+      unsigned short iValue = (bSigned) ? pInData[i] + numeric_limits<short>::max() : pInData[i];
+      if (iMax < iValue)  iMax = iValue;
+      if (iMin > iValue)  iMin = iValue;
+    }
+
+    iPos += UINT64(iRead);
+
+    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+      MESSAGE("Computing value range (%i percent complete)",
+              int((100*iPos)/iSize));
+      iDivLast = (100*iPos)/iSize;
+    }
+
+    if (iMin == 0 && iMax == 65535) break;
+  }
+
+  if (iPos < iSize) {
+    WARNING("Specified size and real datasize mismatch");
+    iSize = iPos;
+  }
+
+  if (bSigned) {
+    MESSAGE("Quantizing to 8 bit (input data has range from %i to %i)",
+            int(iMin)-numeric_limits<short>::max(),
+            int(iMax)-numeric_limits<short>::max());
+  } else {
+    MESSAGE("Quantizing to 8 bit (input data has range from %i to %i)",
+            iMin, iMax);
+  }
+  std::fill(aHist.begin(), aHist.end(), 0);
+
+  // quantize
+  LargeRAWFile OutputData(strTargetFilename);
+  OutputData.Create(iSize);
+
+  if (!OutputData.IsOpen()) {
+    delete [] pInData;
+    delete [] pOutData;
+    InputData.Close();
+    return "";
+  }
+
+  UINT64 iRange = iMax-iMin;
+
+  InputData.SeekStart();
+  iPos = 0;
+  iDivLast = 0;
+  while (iPos < iSize)  {
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+    if(iRead == 0) { break; } // bail out if the read gave us nothing.
+
+    for (size_t i = 0;i<iRead;i++) {
+      unsigned short iValue = (bSigned) ? pInData[i] + numeric_limits<short>::max() : pInData[i];
+      unsigned char iNewVal = min<unsigned char>(255, (unsigned char)((UINT64(iValue-iMin) * 255)/iRange));
+      pOutData[i] = iNewVal;
+      aHist[iNewVal]++;
+    }
+    iPos += UINT64(iRead);
+
+    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+      if (bSigned) {
+        MESSAGE("Quantizing to 8 bit (input data has range from %i to %i)"
+                "\n%i percent complete",
+                int(iMin) - numeric_limits<short>::max(),
+                int(iMax) - numeric_limits<short>::max(),
+                int((100*iPos)/iSize));
+      } else {
+        MESSAGE("Quantizing to 8 bit (input data has range from %i to %i)"
+                "\n%i percent complete", iMin, iMax, int((100*iPos)/iSize));
+      }
+      iDivLast = (100*iPos)/iSize;
+    }
+
+    OutputData.WriteRAW((unsigned char*)pOutData, iRead);
+  }
+
+  delete [] pInData;
+  delete [] pOutData;
+
+  OutputData.Close();
+  InputData.Close();
+
+
+  if (Histogram1D) Histogram1D->SetHistogram(aHist);
+
+  return strTargetFilename;
+}
+
+const string AbstrConverter::QuantizeFloatTo8Bits(UINT64 iHeaderSkip,
+                                                  const string& strFilename,
+                                                  const string& strTargetFilename,
+                                                  UINT64 iSize,
+                                                  Histogram1DDataBlock* Histogram1D) {\
+  /// \todo doing 2 quantizations is neither the most efficient nor the numerically bets way
+  ///       but it will do the trick until we templetize these methods
+
+  string intermFile = QuantizeFloatTo12Bits(iHeaderSkip,
+                                            strFilename,
+                                            strTargetFilename+".temp",
+                                            iSize);
+
+  return QuantizeShortTo8Bits(0,intermFile,strTargetFilename,iSize,false,Histogram1D);
+}
+
+const string AbstrConverter::QuantizeDoubleTo8Bits(UINT64 iHeaderSkip, 
+                                                   const string& strFilename, 
+                                                   const string& strTargetFilename,
+                                                   UINT64 iSize, 
+                                                   Histogram1DDataBlock* Histogram1D) {
+  /// \todo doing 2 quantizations is neither the most efficient nor the numerically bets way
+  ///       but it will do the trick until we templetize these methods
+
+  string intermFile = QuantizeDoubleTo12Bits(iHeaderSkip,
+                                            strFilename,
+                                            strTargetFilename+".temp",
+                                            iSize);
+
+  return QuantizeShortTo8Bits(0,intermFile,strTargetFilename,iSize,false,Histogram1D);
+}
+
+
+const string AbstrConverter::QuantizeLongTo8Bits(UINT64 iHeaderSkip,
+                                     const string& strFilename,
+                                     const string& strTargetFilename,
+                                     UINT64 iSize, bool bSigned,
+                                     Histogram1DDataBlock* Histogram1D) {
+  /// \todo doing 2 quantizations is neither the most efficient nor the numerically bets way
+  ///       but it will do the trick until we templetize these methods
+
+  string intermFile = QuantizeLongTo12Bits(iHeaderSkip,
+                                            strFilename,
+                                            strTargetFilename+".temp",
+                                            iSize,
+                                            bSigned);
+
+  return QuantizeShortTo8Bits(0,intermFile,strTargetFilename,iSize,false,Histogram1D);
+}
+
+const string AbstrConverter::QuantizeIntTo8Bits(UINT64 iHeaderSkip,
+                                                const string& strFilename,
+                                                const string& strTargetFilename,
+                                                UINT64 iSize, bool bSigned,
+                                                Histogram1DDataBlock* Histogram1D) {
+  /// \todo doing 2 quantizations is neither the most efficient nor the numerically bets way
+  ///       but it will do the trick until we templetize these methods
+
+  string intermFile = QuantizeIntTo12Bits(iHeaderSkip,
+                                            strFilename,
+                                            strTargetFilename+".temp",
+                                            iSize,
+                                            bSigned);
+
+  return QuantizeShortTo8Bits(0,intermFile,strTargetFilename,iSize,false,Histogram1D);
+}
+

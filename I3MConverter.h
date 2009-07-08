@@ -64,6 +64,7 @@ public:
 
 protected:
   static void Compute8BitGradientVolumeInCore(unsigned char* pSourceData, unsigned char* pTargetData, const UINTVECTOR3& vSize);
+  static void DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDenseData, const UINTVECTOR3& vVolumeSize, const UINTVECTOR3& viDownSampleFactor);
 
 };
 
