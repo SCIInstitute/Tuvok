@@ -61,6 +61,7 @@ HEADERS += StdTuvokDefines.h \
            IO/REKConverter.h \
            IO/QVISConverter.h \
            IO/VFFConverter.h \
+           IO/I3MConverter.h \
            IO/UnbrickedDataset.h \
            IO/UnbrickedDSMetadata.h \
            IO/DirectoryParser.h \
@@ -279,6 +280,7 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            IO/REKConverter.cpp \
            IO/QVISConverter.cpp \
            IO/VFFConverter.cpp \
+           IO/I3MConverter.cpp \           
            IO/KeyValueFileParser.cpp \
            IO/StkConverter.cpp \
            IO/TiffVolumeConverter.cpp \
