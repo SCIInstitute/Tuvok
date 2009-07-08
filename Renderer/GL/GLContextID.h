@@ -37,16 +37,10 @@
 #ifndef TUVOK_GL_CONTEXT_ID_H
 #define TUVOK_GL_CONTEXT_ID_H
 
+#include <GL/glxew.h>
 #include "../ContextID.h"
 
 namespace tuvok {
-// Forward declare type/function so we don't have to include all of the GL
-// header files.  Even if we wanted to play nicely and include GL header files,
-// we can't do so nicely because QtOpenGL and GLEW don't play well with each
-// other, and we can't control whether this file will end up included in a
-// `QtOpenGL-using' file or a `GLEW-using' file.
-typedef void* GLXContext;
-extern GLXContext glXGetCurrentContext();
 
 /// Context wrapper based on GLX.  See base class for details.
 class GLContextID : ContextID<GLContextID> {
