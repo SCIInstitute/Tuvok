@@ -205,7 +205,6 @@ static std::string render_mode(AbstrRenderer::ERenderMode mode) {
     case AbstrRenderer::RM_ISOSURFACE: return "modeiso";
     default: return "invalid";
   };
-  return "invalid";
 }
 
 void AbstrRenderer::SetRendermode(ERenderMode eRenderMode)
