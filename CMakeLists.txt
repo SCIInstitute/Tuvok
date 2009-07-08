@@ -18,20 +18,20 @@ endif(COMMAND CMAKE_POLICY)
 
 project(tuvok)
 
-# Disable usage of IO routines in Tuvok.
-add_definitions(-DTUVOK_NO_IO)
-# Disable usage of Qt within Tuvok.
-add_definitions(-DTUVOK_NO_QT)
-
 include_directories(. ${TUVOK_EXTERNAL_INCLUDES} Basics Controller DebugOut IO
                     Renderer Scripting 3rdParty/GLEW 3rdParty/boost)
 
 # Tuvok will not build as a shared lib.
 set(BUILD_SHARED_LIBS OFF)
 
-set(TUVOK_LIBRARY tuvok CACHE INTERNAL "Tuvok library name." FORCE)
-set(TUVOK_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR} CACHE INTERNAL
+set(TUVOK_LIBRARY tuvok CACHE FILEPATH "Tuvok library name.")
+set(TUVOK_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR} CACHE PATH
     "Tuvok include directory (Tuvok's source tree root)")
+set(TUVOK_DEFINES -DTUVOK_NO_IO -DTUVOK_NO_QT CACHE STRING
+    "Defines needed for building Tuvok in most projects.")
+
+# Disable IO and Qt within Tuvok.
+add_definitions(${TUVOK_DEFINES})
 
 # Sets the variable TUVOK_SRCS.
 include(.tuvok_srcs)
