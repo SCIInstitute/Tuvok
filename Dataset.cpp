@@ -33,6 +33,7 @@
 */
 
 #include "Dataset.h"
+#include "Metadata.h"
 
 tuvok::Dataset::Dataset():
   m_pHist1D(NULL),

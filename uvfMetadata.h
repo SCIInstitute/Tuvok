@@ -85,6 +85,7 @@ class UVFMetadata : public Metadata {
     virtual bool GetIsSigned() const;
     virtual bool GetIsFloat() const;
     virtual bool IsSameEndianness() const;
+    ///@}
 
     const std::vector<UINT64>& GetBrickCountND(const std::vector<UINT64>& vLOD)
                                                const;

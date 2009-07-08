@@ -42,10 +42,11 @@
 
 #include "TransferFunction1D.h"
 #include "TransferFunction2D.h"
-#include "Metadata.h"
 class LargeRAWFile;
 
 namespace tuvok {
+
+class Metadata;
 
 /// Abstract interface to a dataset.
 /// noncopyable not because it wouldn't work, but because we might be holding a

@@ -45,6 +45,7 @@
 #include <IO/Images/ImageParser.h>
 #include <Basics/SysTools.h>
 #include <Renderer/GPUMemMan/GPUMemMan.h>
+#include "Metadata.h"
 #include "TuvokJPEG.h"
 #include "uvfDataset.h"
 
