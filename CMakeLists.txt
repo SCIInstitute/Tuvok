@@ -25,8 +25,10 @@ include_directories(. ${TUVOK_EXTERNAL_INCLUDES} Basics Controller DebugOut IO
 set(BUILD_SHARED_LIBS OFF)
 
 set(TUVOK_LIBRARY tuvok CACHE FILEPATH "Tuvok library name.")
-set(TUVOK_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR} CACHE PATH
-    "Tuvok include directory (Tuvok's source tree root)")
+set(TUVOK_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
+    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/boost
+    CACHE STRING "Tuvok include directory (Tuvok's source tree root)")
 set(TUVOK_DEFINES -DTUVOK_NO_IO -DTUVOK_NO_QT CACHE STRING
     "Defines needed for building Tuvok in most projects.")
 
@@ -41,4 +43,8 @@ if(DEFINED TUVOK_IGNORE)
 endif(DEFINED TUVOK_IGNORE)
 
 add_library(${TUVOK_LIBRARY} ${TUVOK_SRCS})
-#TARGET_LINK_LIBRARIES(${TUVOK_LIBRARY} ${GL_LIBRARY})
+# We try to read shaders from the bundle on Macs, so we need CoreFoundation.
+if(APPLE)
+  target_link_libraries(${TUVOK_LIBRARY} "-framework CoreFoundation")
+endif(APPLE)
+target_link_libraries(${TUVOK_LIBRARY} ${GL_LIBRARY})
