@@ -187,10 +187,10 @@ class AbstrRenderer {
 
     /// Sets the dataset from external source; only meant to be used by clients
     /// which don't want to use the LOD subsystem.
-    void SetDataSet(tuvok::Dataset *vds);
+    void SetDataset(tuvok::Dataset *vds);
 
-    tuvok::Dataset&       GetDataSet()       { return *m_pDataset; }
-    const tuvok::Dataset& GetDataSet() const { return *m_pDataset; }
+    tuvok::Dataset&       GetDataset()       { return *m_pDataset; }
+    const tuvok::Dataset& GetDataset() const { return *m_pDataset; }
 
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
     TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
