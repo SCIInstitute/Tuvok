@@ -70,6 +70,7 @@
 #include <cassert>
 #include <cmath>
 #include <istream>
+#include <iomanip>
 #include <limits>
 #include <vector>
 
@@ -448,7 +449,16 @@ public:
   VECTOR4<T>& operator*=(const T& other) { x *= other; y *= other; z *= other;  w *= other; return *this; }
   VECTOR4<T>& operator/=(const T& other) { x /= other; y /= other; z /= other;  w /= other; return *this; }
 
-  friend std::ostream& operator<<(std::ostream &os,const VECTOR4<T>& v){os << v.x << '\t' << v.y << '\t' << v.z << '\t' << v.w; return os;}
+  friend std::ostream& operator<<(std::ostream &os,const VECTOR4<T>& v) {
+    os << "[" << std::setiosflags(std::ios::left)
+       << std::setw(7) << std::setprecision(3) << v.x
+       << std::resetiosflags(std::ios::left)
+       << std::setw(7) << std::setprecision(3) << v.y
+       << std::setw(7) << std::setprecision(3) << v.z
+       << std::setw(7) << std::setprecision(3) << v.w
+       << "]";
+    return os;
+  }
 
 
   T max() const {return MAX(MAX(x,y),MAX(z,w));}
