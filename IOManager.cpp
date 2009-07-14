@@ -715,9 +715,14 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
       for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
         if (vStrSupportedExtTarget[l] == strExtTarget) {
-          bTargetCreated = m_vpConverters[k]->ConvertToNative(strIntermediateFile, strTargetFilename, iHeaderSkip,
-                                                                  iComponentSize, iComponentCount, bSigned, bIsFloat,
-                                                                  vVolumeSize, vVolumeAspect, bNoUserInteraction);
+          bTargetCreated =
+            m_vpConverters[k]->ConvertToNative(strIntermediateFile,
+                                               strTargetFilename,
+                                               iHeaderSkip, iComponentSize,
+                                               iComponentCount, bSigned,
+                                               bIsFloat, vVolumeSize,
+                                               vVolumeAspect,
+                                               bNoUserInteraction);
           if (bTargetCreated) break;
         }
       }
