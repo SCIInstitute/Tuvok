@@ -42,14 +42,14 @@ public:
   virtual ~LargeRAWFile() {Close();}
 
   bool Open(bool bReadWrite);
-  bool IsOpen() { return m_bIsOpen;}
-  bool IsWritable() {return m_bWritable;}
+  bool IsOpen() const { return m_bIsOpen;}
+  bool IsWritable() const { return m_bWritable;}
   bool Create(UINT64 iInitialSize=0);
   bool Append();
   void Close();
   void Delete();
   UINT64 GetCurrentSize();
-  std::string GetFilename() {return m_strFilename;}
+  std::string GetFilename() const { return m_strFilename;}
 
   void SeekStart();
   UINT64 SeekEnd();
