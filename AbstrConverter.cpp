@@ -39,10 +39,14 @@
 #include "IOManager.h"  // for the size defines
 #include "Controller/Controller.h"
 #include "UVF/Histogram1DDataBlock.h"
+#include "Quantize.h"
 
-using namespace std;
-
-const string AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip, const string& strFilename, const string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock* Histogram1D) {
+const std::string
+AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip,
+                                    const std::string& strFilename,
+                                    const std::string& strTargetFilename,
+                                    UINT64 iSize, bool bSigned,
+                                    Histogram1DDataBlock* Histogram1D) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -143,34 +147,14 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
   short* pInData = new short[INCORESIZE];
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
-    if (iRead == 0) break;
 
-    for (size_t i = 0;i<iRead;i++) {
-      unsigned short iValue = (bSigned) ? pInData[i] + numeric_limits<short>::max() : pInData[i];
-      if (iMax < iValue)  iMax = iValue;
-      if (iMin > iValue)  iMin = iValue;
-      if (iMax < 4096)    aHist[iValue]++;
-    }
+  std::pair<unsigned short,unsigned short> minmax;
+  minmax = io_minmax(raw_data_src<unsigned short>(strFilename.c_str()),
+                     TuvokProgress<UINT64>(iSize));
+  iMin = minmax.first;
+  iMax = minmax.second;
 
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Computing value range (%i percent complete)",
-              int((100*iPos)/iSize));
-      iDivLast = (100*iPos)/iSize;
-    }
-
-    if (iMin == 0 && iMax == 65535) break;
-  }
-
-  if (iPos < iSize) {
-    WARNING("Specified size and real datasize mismatch");
-    iSize = iPos;
-  }
-
-  string strQuantFile;
+  std::string strQuantFile;
   // if file uses less or equal than 12 bits quit here
   if (iMax < 4096) {
     MESSAGE("No quantization required (min=%i, max=%i)", iMin, iMax);
@@ -263,29 +247,12 @@ AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
   float* pInData = new float[INCORESIZE];
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
-    if (iRead == 0) break;
 
-    for (size_t i = 0;i<iRead;i++) {
-      if (fMax < pInData[i]) fMax = pInData[i];
-      if (fMin > pInData[i]) fMin = pInData[i];
-    }
-
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Computing value range (%i percent complete)",
-              int((100*iPos)/iSize));
-      iDivLast = (100*iPos)/iSize;
-    }
-
-  }
-
-  if (iPos < iSize) {
-    WARNING("Specified size and real datasize mismatch");
-    iSize = iPos;
-  }
+  std::pair<float,float> minmax;
+  minmax = io_minmax(raw_data_src<float>(strFilename.c_str()),
+                     TuvokProgress<UINT64>(iSize));
+  fMin = minmax.first;
+  fMax = minmax.second;
 
   // quantize
   LargeRAWFile OutputData(strTargetFilename);
@@ -359,28 +326,12 @@ AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip,
   double* pInData = new double[INCORESIZE];
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*8)/8;
-    if (iRead == 0) break;
 
-    for (size_t i = 0;i<iRead;i++) {
-      if (fMax < pInData[i]) fMax = pInData[i];
-      if (fMin > pInData[i]) fMin = pInData[i];
-    }
-
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Computing value range (%i percent complete)",
-              int((100*iPos)/iSize));
-      iDivLast = (100*iPos)/iSize;
-    }
-  }
-
-  if (iPos < iSize) {
-    WARNING("Specified size and real datasize mismatch");
-    iSize = iPos;
-  }
+  std::pair<double,double> minmax;
+  minmax = io_minmax(raw_data_src<double>(strFilename.c_str()),
+                     TuvokProgress<UINT64>(iSize));
+  fMin = minmax.first;
+  fMax = minmax.second;
 
   // quantize
   LargeRAWFile OutputData(strTargetFilename);
