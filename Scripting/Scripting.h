@@ -41,6 +41,7 @@
 
 #include "../StdTuvokDefines.h"
 #include "Scriptable.h"
+#include <list>
 #include <string>
 #include <vector>
 
@@ -82,8 +83,9 @@ class Scripting : public Scriptable
                          std::string& strMessage);
 
   private:
-    std::vector<ScriptableListElement*> m_ScriptableList;
+    typedef std::list<ScriptableListElement*> ScriptList;
+    ScriptList                          m_ScriptableList;
+    bool                                m_bSorted;
     bool                                m_bEcho;
-
 };
 #endif // SCRIPTING_H
