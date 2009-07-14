@@ -42,6 +42,10 @@
 
 using namespace std;
 
+// 42 and 69, guess that is "best of both worlds" :-)
+#define I3M_MAGIC 69426942
+#define I3M_VERSION 1
+#define MAX_I3M_VOLSIZE 128
 
 I3MConverter::I3MConverter()
 {
@@ -89,31 +93,31 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   // get file size -> used for verification later
   UINT64 ulFileLength = I3MFile.GetCurrentSize();
 
-  // get magic -> should be 69426942 (42 and 69, guess that is "best of both worlds" :-) )
+  // get magic -> should be I3M_MAGIC
   UINT32 iMagic;
   I3MFile.ReadData(iMagic, false);
-  if (iMagic != 69426942) {
+  if (iMagic != I3M_MAGIC) {
     I3MFile.Close();
     T_ERROR("This is not a valid I3M file %s", strSourceFilename.c_str());
     return false;
   }
   MESSAGE("I3M Magic OK");
 
-  // get version number -> should be 1 at present
+  // get version number -> must match I3M_VERSION
   UINT32 iVersion;
   I3MFile.ReadData(iVersion, false);
-  if (iVersion != 1) {
+  if (iVersion != I3M_VERSION) {
     I3MFile.Close();
     T_ERROR("Unsuported I3M version in file %s", strSourceFilename.c_str());
     return false;
   }
   MESSAGE("I3M Version OK");
 
-  // get volume size -> every dimension must be 128 or less 
+  // get volume size -> every dimension must be MAX_I3M_VOLSIZE or less 
   I3MFile.ReadData(vVolumeSize.x, false);
   I3MFile.ReadData(vVolumeSize.y, false);
   I3MFile.ReadData(vVolumeSize.z, false);
-  if (vVolumeSize.x > 128 || vVolumeSize.y > 128 || vVolumeSize.z > 128) {
+  if (vVolumeSize.x > MAX_I3M_VOLSIZE || vVolumeSize.y > MAX_I3M_VOLSIZE || vVolumeSize.z > MAX_I3M_VOLSIZE) {
     I3MFile.Close();
     T_ERROR("Invalid volume size detected in I3M file %s", strSourceFilename.c_str());
     return false;
@@ -327,7 +331,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   }
                                      
   // next check is size of the volume, if a dimension is bigger than 
-  // 128 -> downsample the volume, otherwise simply copy
+  // MAX_I3M_VOLSIZE -> downsample the volume, otherwise simply copy
 
   LargeRAWFile UCharDataFile(str8BitFilename, iHeaderSkip);
   UCharDataFile.Open(false);
@@ -340,7 +344,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
     return false;
   }
  
-  FLOATVECTOR3 vfDownSampleFactor = FLOATVECTOR3(vVolumeSize)/128.0f;
+  FLOATVECTOR3 vfDownSampleFactor = FLOATVECTOR3(vVolumeSize)/float(MAX_I3M_VOLSIZE);
 
   unsigned char* pDenseData = NULL;
   UINTVECTOR3 vI3MVolumeSize;
@@ -383,9 +387,9 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   MESSAGE("Writing header information to disk");
 
   // magic
-  TargetI3MFile.WriteData<UINT32>(69426942, false);
+  TargetI3MFile.WriteData<UINT32>(I3M_MAGIC, false);
   // version
-  TargetI3MFile.WriteData<UINT32>(1, false);
+  TargetI3MFile.WriteData<UINT32>(I3M_VERSION, false);
   // (subsampled) domain size
   TargetI3MFile.WriteData(vI3MVolumeSize.x, false);
   TargetI3MFile.WriteData(vI3MVolumeSize.y, false);
