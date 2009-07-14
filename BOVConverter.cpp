@@ -32,6 +32,7 @@
            SCI Institute
            University of Utah
 */
+#include <cstdarg>
 #include <sstream>
 #include "BOVConverter.h"
 #include "IO/KeyValueFileParser.h"
@@ -46,6 +47,8 @@ enum DataType {
 };
 
 static DataType bov_type(const KeyValueFileParser &kvp);
+static const KeyValPair *find_header(const KeyValueFileParser &,
+                                     const char *s, ...);
 
 BOVConverter::BOVConverter()
 {
@@ -73,7 +76,7 @@ bool BOVConverter::ConvertToRAW(
     return false;
   }
   KeyValPair *file = hdr.GetData("DATA_FILE");
-  KeyValPair *size = hdr.GetData("DATA SIZE");
+  const KeyValPair *size = find_header(hdr, "DATA SIZE", "DATA_SIZE", NULL);
   KeyValPair *aspect_x = hdr.GetData("BRICK X_AXIS");
   KeyValPair *aspect_y = hdr.GetData("BRICK Y_AXIS");
   KeyValPair *aspect_z = hdr.GetData("BRICK Z_AXIS");
@@ -110,14 +113,17 @@ bool BOVConverter::ConvertToRAW(
             bIsFloat ? "floating point" : "integer(?)");
   }
   {
-    // e.g. "BRICK X_AXIS 1.000 0.000 0.000"
-    std::stringstream x(aspect_x->strValue);
-    std::stringstream y(aspect_y->strValue);
-    std::stringstream z(aspect_z->strValue);
-    float junk;
-    x >> vVolumeAspect[0];
-    y >> junk >> vVolumeAspect[1];
-    z >> junk >> junk >> vVolumeAspect[2];
+    // e.g. "BRICK X_AXIS 1.000 0.000 0.000".  Might not exist.
+    vVolumeAspect[0] = vVolumeAspect[1] = vVolumeAspect[2] = 1.0;
+    if(aspect_x && aspect_y && aspect_z) {
+      std::stringstream x(aspect_x->strValue);
+      std::stringstream y(aspect_y->strValue);
+      std::stringstream z(aspect_z->strValue);
+      float junk;
+      x >> vVolumeAspect[0];
+      y >> junk >> vVolumeAspect[1];
+      z >> junk >> junk >> vVolumeAspect[2];
+    }
     MESSAGE("Aspect: %2.2fx%2.2fx%2.2f",
             vVolumeAspect[0], vVolumeAspect[1], vVolumeAspect[2]);
   }
@@ -176,4 +182,27 @@ bov_type(const KeyValueFileParser &kvp)
             " with; such a dataset will be reported as unknown type!");
   }
   return retval;
+}
+
+// Given a list of strings, returns the first KeyValPair that exists.  Useful
+// since some bovs use "_" between words in a key, some don't...
+// The argument list must be NULL-terminated.
+static const KeyValPair *
+find_header(const KeyValueFileParser &kvp, const char *s, ...)
+{
+  va_list args;
+  const KeyValPair *ret;
+
+  // First try 's'.
+  ret = kvp.GetData(s);
+  if(ret) { return ret; }
+
+  va_start(args, s);
+    const char *key = va_arg(args, const char *);
+    while(key) {
+      ret = kvp.GetData(key);
+      if(ret) { return ret; }
+    }
+  va_end(args);
+  return NULL;
 }
