@@ -67,6 +67,7 @@ void TextfileOut::printf(const char* format, ...) const
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
+  va_end(args);
 
   time_t epoch_time;
   time(&epoch_time);
@@ -108,6 +109,7 @@ void TextfileOut::_printf(const char* format, ...) const
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
+  va_end(args);
 
   time_t epoch_time;
   time(&epoch_time);
@@ -146,6 +148,7 @@ void TextfileOut::Message(const char* source, const char* format, ...) {
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
+  va_end(args);
   this->_printf("MESSAGE (%s): %s", source, buff);
 }
 
@@ -159,6 +162,7 @@ void TextfileOut::Warning(const char* source, const char* format, ...) {
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
+  va_end(args);
   this->_printf("WARNING (%s): %s", source, buff);
 }
 
@@ -172,5 +176,6 @@ void TextfileOut::Error(const char* source, const char* format, ...) {
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
+  va_end(args);
   this->_printf("ERROR (%s): %s", source, buff);
 }

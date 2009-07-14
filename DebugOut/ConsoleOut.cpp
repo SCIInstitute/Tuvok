@@ -70,6 +70,7 @@ void ConsoleOut::printf(const char* format, ...) const
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
+  va_end(args);
   Console::printf("%s\n",buff);
 }
 
@@ -83,6 +84,7 @@ void ConsoleOut::Message(const char* source, const char* format, ...) {
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
+  va_end(args);
 
 #ifndef DETECTED_OS_WINDOWS
   this->printf("%sMESSAGE%s (%s): %s", C_DGRAY, C_NORM, source, buff);
@@ -101,6 +103,7 @@ void ConsoleOut::Warning(const char* source, const char* format, ...) {
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
+  va_end(args);
 #ifndef DETECTED_OS_WINDOWS
   this->printf("%sWARNING%s (%s): %s", C_YELLOW, C_NORM, source, buff);
 #else
@@ -118,6 +121,7 @@ void ConsoleOut::Error(const char* source, const char* format, ...) {
 #else
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
+  va_end(args);
 
 #ifndef DETECTED_OS_WINDOWS
   this->printf("%sERROR%s (%s): %s", C_RED, C_NORM, source, buff);
