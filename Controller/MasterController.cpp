@@ -184,6 +184,9 @@ void MasterController::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "clearmessagelog", "", "clear recorded messages");
   pScriptEngine->RegisterCommand(this, "fileoutput", "filename","write debug output to 'filename'");
   pScriptEngine->RegisterCommand(this, "toggleoutput", "on/off on/off on/off on/off","toggle messages, warning, errors, and other output");
+  pScriptEngine->RegisterCommand(this, "set_tf_1d", "",
+                                 "Sets the 1D transfer from the "
+                                 "(string) argument.");
 }
 
 bool MasterController::Execute(const std::string& strCommand,
@@ -245,6 +248,16 @@ bool MasterController::Execute(const std::string& strCommand,
 
     m_DebugOut.AddDebugOut(textout);
 
+    return true;
+  }
+  if(strCommand == "set_tf_1d") {
+    assert(strParams.size() > 0);
+    for(AbstrRendererList::iterator iter = m_vVolumeRenderer.begin();
+        iter != m_vVolumeRenderer.end(); ++iter) {
+      TransferFunction1D *tf1d = m_vVolumeRenderer[0]->Get1DTrans();
+      std::istringstream serialized_tf(strParams[0]);
+      tf1d->Load(serialized_tf);
+    }
     return true;
   }
 
