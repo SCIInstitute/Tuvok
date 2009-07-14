@@ -272,8 +272,8 @@ bool TransferFunction1D::Load(const std::string& filename) {
   return true;
 }
 
-bool TransferFunction1D::Load(ifstream& file, size_t iTargetSize) {
-  if (!Load(file)) {
+bool TransferFunction1D::Load(std::istream& tf, size_t iTargetSize) {
+  if (!Load(tf)) {
     return false;
   } else {
     Resample(iTargetSize);
@@ -288,14 +288,14 @@ bool TransferFunction1D::Save(const std::string& filename) const {
   return true;
 }
 
-bool TransferFunction1D::Load(ifstream& file) {
+bool TransferFunction1D::Load(std::istream& tf) {
   UINT32 iSize;
-  file >> iSize;
+  tf >> iSize;
   vColorData.resize(iSize);
 
   for(size_t i=0;i<vColorData.size();++i){
     for(size_t j=0;j<4;++j){
-      file >> vColorData[i][j];
+      tf >> vColorData[i][j];
     }
   }
 
@@ -303,9 +303,7 @@ bool TransferFunction1D::Load(ifstream& file) {
 }
 
 
-bool TransferFunction1D::Save(ofstream& file) const {
-  if (!file.is_open()) return false;
-
+bool TransferFunction1D::Save(std::ostream& file) const {
   file << vColorData.size() << endl;
 
   for(size_t i=0;i<vColorData.size();++i){
@@ -317,33 +315,6 @@ bool TransferFunction1D::Save(ofstream& file) const {
 
   return true;
 }
-
-std::string TransferFunction1D::Serialize() const {
-  std::ostringstream oss;
-  std::vector<FLOATVECTOR4>::const_iterator tf;
-  for(tf = this->vColorData.begin(); tf != this->vColorData.end(); ++tf) {
-    oss << (*tf)[0] << ", " << (*tf)[1] << ", "
-        << (*tf)[2] << ", " << (*tf)[3] << "\n";
-  }
-  return oss.str();
-}
-
-void TransferFunction1D::Deserialize(const std::string &s) {
-  std::istringstream tf(s);
-  this->vColorData.clear();
-  // since we quantize `wide' data down to 12 bits, we'll never have a TF with
-  // more than 4096 elements.  Sometimes we'll have an 8bit TF, so this is
-  // overkill for that case... but we can live with that.
-  this->vColorData.reserve(4096);
-  std::back_insert_iterator<std::vector<FLOATVECTOR4> > ins(this->vColorData);
-
-  FLOATVECTOR4 val;
-  do {
-    tf >> val;
-    *ins++ = val;
-  } while(!tf.eof());
-}
-
 
 void TransferFunction1D::GetByteArray(std::vector<unsigned char>& vData,
                                       unsigned char cUsedRange) const {

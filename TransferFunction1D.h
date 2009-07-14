@@ -70,12 +70,10 @@ public:
 
   bool Load(const std::string& filename);
   bool Load(const std::string& filename, size_t iTargetSize);
-  bool Load(std::ifstream& file);
-  bool Load(std::ifstream& file, size_t iTargetSize);
+  bool Load(std::istream& file);
+  bool Load(std::istream& file, size_t iTargetSize);
+  bool Save(std::ostream& file) const;
   bool Save(const std::string& filename) const;
-  bool Save(std::ofstream& file) const;
-  std::string Serialize() const;
-  void Deserialize(const std::string &);
 
   void Clear();
 
