@@ -137,11 +137,18 @@ public:
 
   /// Provenance recording.
   ///@{
-  typedef void (provenance_func)(const std::string);
+  /// Callback function prototype.
+  /// @param classification  type of event that occured
+  /// @param command         command to use for IV3D's scripting.
+  /// @param arguments       args for aforementioned command.  Might be empty.
+  typedef void (provenance_func)(const std::string classification,
+                                 const std::string command,
+                                 const std::string arguments);
   /// Register new callback.  Overwrites the previous callback.
   void RegisterProvenanceCB(provenance_func *);
   /// Calls most recently registered provenance callback.
-  void Provenance(const std::string);
+  void Provenance(const std::string, const std::string,
+                  const std::string args = std::string());
   ///@}
 
 

@@ -256,9 +256,11 @@ void MasterController::RegisterProvenanceCB(provenance_func *pfunc)
   this->m_pProvenance = pfunc;
 }
 
-void MasterController::Provenance(const std::string s)
+void MasterController::Provenance(const std::string kind,
+                                  const std::string cmd,
+                                  const std::string args)
 {
   if(this->m_pProvenance) {
-    this->m_pProvenance(s);
+    this->m_pProvenance(kind, cmd, args);
   }
 }

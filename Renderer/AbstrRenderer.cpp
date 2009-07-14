@@ -170,11 +170,8 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   }
 
   MESSAGE("Load successful, initializing renderer!");
-  {
-    std::ostringstream prov;
-    prov << "open " << strFilename << std::endl;
-    Controller::Instance().Provenance(prov.str());
-  }
+
+  Controller::Instance().Provenance("file", "open", strFilename);
 
   // find the maximum LOD index
   const UVFMetadata &md = dynamic_cast<const UVFMetadata &>
@@ -212,7 +209,16 @@ void AbstrRenderer::SetRendermode(ERenderMode eRenderMode)
   if (m_eRenderMode != eRenderMode) {
     m_eRenderMode = eRenderMode;
     ScheduleCompleteRedraw();
-    Controller::Instance().Provenance(render_mode(eRenderMode));
+    Controller::Instance().Provenance("mode", render_mode(eRenderMode));
+  }
+}
+
+static std::string view_mode(AbstrRenderer::EViewMode mode) {
+  switch(mode) {
+    case AbstrRenderer::VM_SINGLE: return "single"; break;
+    case AbstrRenderer::VM_TWOBYTWO: return "two-by-two"; break;
+    case AbstrRenderer::VM_INVALID: /* fall-through */
+    default: return "invalid"; break;
   }
 }
 
@@ -221,6 +227,8 @@ void AbstrRenderer::SetViewmode(EViewMode eViewMode)
   if (m_eViewMode != eViewMode) {
     m_eViewMode = eViewMode;
     ScheduleCompleteRedraw();
+    Controller::Instance().Provenance("vmode", "viewmode",
+                                      view_mode(eViewMode));
   }
 }
 
@@ -244,6 +252,7 @@ void AbstrRenderer::SetUseLighting(bool bUseLighting) {
   if (m_bUseLighting != bUseLighting) {
     m_bUseLighting = bUseLighting;
     ScheduleWindowRedraw(WM_3D);
+    Controller::Instance().Provenance("light", "lighting");
   }
 }
 
@@ -261,6 +270,7 @@ void AbstrRenderer::SetDataset(Dataset *vds)
   }
   m_pDataset = vds;
   ScheduleCompleteRedraw();
+  Controller::Instance().Provenance("file", "open", "<in_memory_buffer>");
 }
 
 void AbstrRenderer::Changed1DTrans() {
@@ -272,7 +282,8 @@ void AbstrRenderer::Changed1DTrans() {
   } else {
     dbg->Message(_func_, "complete redraw scheduled");
     ScheduleCompleteRedraw();
-    Controller::Instance().Provenance("set_tf_1d " + m_p1DTrans->Serialize());
+    // No provenance; as a mechanism to filter out too many updates, we place
+    // the onus on updating this in the UI which is driving us.
   }
 }
 
@@ -285,6 +296,7 @@ void AbstrRenderer::Changed2DTrans() {
   } else {
     dbg->Message(_func_, "complete redraw scheduled");
     ScheduleCompleteRedraw();
+    // No provenance; handled by application, not Tuvok lib.
   }
 }
 
@@ -300,9 +312,6 @@ void AbstrRenderer::SetIsoValue(float fIsovalue) {
   if(m_fIsovalue != fIsovalue) {
     m_fIsovalue = fIsovalue;
     ScheduleWindowRedraw(WM_3D);
-    std::ostringstream oss;
-    oss << "setiso " << fIsovalue << std::endl;
-    Controller::Instance().Provenance(oss.str());
   }
 }
 
@@ -365,9 +374,6 @@ FLOATVECTOR2 AbstrRenderer::GetLocalCursorPos(FLOATVECTOR2 vPos) const {
 void AbstrRenderer::Resize(const UINTVECTOR2& vWinSize) {
   m_vWinSize = vWinSize;
   ScheduleCompleteRedraw();
-  std::ostringstream oss;
-  oss << "resize " << vWinSize.x << " " << vWinSize.y << std::endl;
-  Controller::Instance().Provenance(oss.str());
 }
 
 void AbstrRenderer::SetRotation(const FLOATMATRIX4& mRotation) {
@@ -391,18 +397,21 @@ void AbstrRenderer::EnableClipPlane() {
   if(!m_bClipPlaneOn) {
     m_bClipPlaneOn = true;
     ScheduleWindowRedraw(WM_3D);
+    Controller::Instance().Provenance("clip", "clip", "enable");
   }
 }
 void AbstrRenderer::DisableClipPlane() {
   if(m_bClipPlaneOn) {
     m_bClipPlaneOn = false;
     ScheduleWindowRedraw(WM_3D);
+    Controller::Instance().Provenance("clip", "clip", "disable");
   }
 }
 void AbstrRenderer::ShowClipPlane(bool bShown) {
   m_bClipPlaneDisplayed = bShown;
   if(m_bClipPlaneOn) {
     ScheduleWindowRedraw(WM_3D);
+    Controller::Instance().Provenance("clip", "showclip", "enable");
   }
 }
 void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
@@ -429,11 +438,13 @@ UINT64 AbstrRenderer::GetSliceDepth(EWindowMode eWindow) {
 void AbstrRenderer::SetGlobalBBox(bool bRenderBBox) {
   m_bRenderGlobalBBox = bRenderBBox;
   ScheduleWindowRedraw(WM_3D);
+  Controller::Instance().Provenance("boundingbox", "global_bbox");
 }
 
 void AbstrRenderer::SetLocalBBox(bool bRenderBBox) {
   m_bRenderLocalBBox = bRenderBBox;
   ScheduleWindowRedraw(WM_3D);
+  Controller::Instance().Provenance("boundingbox", "local_bbox");
 }
 
 void AbstrRenderer::ScheduleCompleteRedraw() {
@@ -861,7 +872,6 @@ void AbstrRenderer::SetCVIsoValue(float fIsovalue) {
     if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) ScheduleWindowRedraw(WM_3D);
     std::ostringstream prov;
     prov << "setcviso " << fIsovalue << std::endl;
-    Controller::Instance().Provenance(prov.str());
   }
 }
 
