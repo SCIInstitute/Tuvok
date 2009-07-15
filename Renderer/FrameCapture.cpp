@@ -61,6 +61,7 @@ bool FrameCapture::SaveImage(const std::string& filename,
 {
   T_ERROR("Refusing to save image %s: Tuvok was compiled without Qt support.",
           filename.c_str());
+  return false;
 }
 #else
 bool FrameCapture::SaveImage(const std::string& strFilename,
