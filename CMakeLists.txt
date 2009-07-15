@@ -19,16 +19,17 @@ endif(COMMAND CMAKE_POLICY)
 project(tuvok)
 
 include_directories(. ${TUVOK_EXTERNAL_INCLUDES} Basics Controller DebugOut IO
-                    Renderer Scripting 3rdParty/GLEW 3rdParty/boost)
+                    Renderer Scripting 3rdParty/GLEW IO/3rdParty/boost)
 
 # Tuvok will not build as a shared lib.
 set(BUILD_SHARED_LIBS OFF)
 
 set(TUVOK_LIBRARY tuvok CACHE FILEPATH "Tuvok library name.")
-set(TUVOK_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}
+set(TUVOK_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty
-    ${CMAKE_CURRENT_SOURCE_DIR}/3rdParty/boost
-    CACHE STRING "Tuvok include directory (Tuvok's source tree root)")
+    ${CMAKE_CURRENT_SOURCE_DIR}/IO/3rdParty/boost"
+    CACHE STRING "Tuvok include directory (Tuvok's source tree root)" FORCE)
+
 set(TUVOK_DEFINES -DTUVOK_NO_IO -DTUVOK_NO_QT CACHE STRING
     "Defines needed for building Tuvok in most projects.")
 
