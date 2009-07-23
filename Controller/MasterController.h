@@ -101,7 +101,7 @@ public:
   ///@}
 
   /// Returns the most recently registered renderer.
-  const AbstRenderer *Renderer() const {
+  const AbstrRenderer *Renderer() const {
     return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
   }
 
