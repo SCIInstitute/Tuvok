@@ -46,10 +46,10 @@
 #include "../IO/Metadata.h"
 #include "../IO/Dataset.h"
 #include "../Basics/Plane.h"
+#include "../Basics/GeometryGenerator.h"
 
 class TransferFunction1D;
 class TransferFunction2D;
-class Triangle;
 
 class Brick {
 public:
