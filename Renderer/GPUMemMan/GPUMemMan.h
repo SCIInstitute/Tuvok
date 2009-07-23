@@ -39,6 +39,7 @@
 #define TUVOK_GPUMEMMAN_H
 
 #include <deque>
+#include <utility>
 #include "../../StdTuvokDefines.h"
 #include "GL/glew.h"
 #include "Basics/Vectors.h"
@@ -76,6 +77,9 @@ class GPUMemMan {
                             AbstrRenderer* requester,
                             TransferFunction1D** ppTransferFunction1D,
                             GLTexture1D** tex, size_t iSize=0);
+    std::pair<TransferFunction1D*, GLTexture1D*>
+    SetExternal1DTrans(const std::vector<unsigned char>& rgba,
+                       AbstrRenderer* requester);
     GLTexture1D* Access1DTrans(TransferFunction1D* pTransferFunction1D,
                                AbstrRenderer* requester);
     void Free1DTrans(TransferFunction1D* pTransferFunction1D,

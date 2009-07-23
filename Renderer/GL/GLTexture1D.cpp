@@ -35,6 +35,7 @@
 */
 
 #include "GLTexture1D.h"
+#include "Controller/Controller.h"
 
 
 GLTexture1D::GLTexture1D(UINT32 iSize, GLint internalformat, GLenum format,
@@ -64,6 +65,7 @@ void GLTexture1D::SetData(const void *pixels) {
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
+  MESSAGE("Uploading new %u element 1D texture.", static_cast<UINT32>(m_iSize));
   glBindTexture(GL_TEXTURE_1D, m_iGLID);
   glTexImage1D(GL_TEXTURE_1D, 0, m_internalformat, m_iSize, 0, m_format,
                m_type, (GLvoid*)pixels);

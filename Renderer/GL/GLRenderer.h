@@ -53,6 +53,7 @@ class GLRenderer : public AbstrRenderer {
     GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
     virtual ~GLRenderer();
     virtual bool Initialize();
+    virtual void Set1DTrans(const std::vector<unsigned char>&);
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();
 

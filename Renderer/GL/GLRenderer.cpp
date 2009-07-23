@@ -259,7 +259,21 @@ bool GLRenderer::Initialize() {
   return true;
 }
 
+void GLRenderer::Set1DTrans(const std::vector<unsigned char>& rgba)
+{
+  AbstrRenderer::Set1DTrans(rgba);
+
+  GPUMemMan& mm = *(Controller::Instance().MemMan());
+  std::pair<TransferFunction1D*, GLTexture1D*> tf;
+  tf = mm.SetExternal1DTrans(rgba, this);
+
+  m_p1DTrans = tf.first;
+  m_p1DTransTex = tf.second;
+}
+
 void GLRenderer::Changed1DTrans() {
+  assert(m_p1DTransTex->GetSize() == m_p1DTrans->GetSize());
+
   m_p1DTrans->GetByteArray(m_p1DData);
   m_p1DTransTex->SetData(&m_p1DData.at(0));
 

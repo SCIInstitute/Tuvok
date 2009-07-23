@@ -273,6 +273,12 @@ void AbstrRenderer::SetDataset(Dataset *vds)
   Controller::Instance().Provenance("file", "open", "<in_memory_buffer>");
 }
 
+void AbstrRenderer::Set1DTrans(const std::vector<unsigned char>&)
+{
+  GPUMemMan& mm = *(Controller::Instance().MemMan());
+  mm.Free1DTrans(m_p1DTrans, this);
+}
+
 void AbstrRenderer::Changed1DTrans() {
   AbstrDebugOut *dbg = m_pMasterController->DebugOut();
   if (m_eRenderMode != RM_1DTRANS) {

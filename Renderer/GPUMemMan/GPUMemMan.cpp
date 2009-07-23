@@ -364,6 +364,29 @@ void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* req
   m_vpTrans1DList.push_back(Trans1DListElem(*ppTransferFunction1D, *tex, requester));
 }
 
+std::pair<TransferFunction1D*, GLTexture1D*>
+GPUMemMan::SetExternal1DTrans(const std::vector<unsigned char>& rgba,
+                              AbstrRenderer* requester)
+{
+  const size_t sz = rgba.size() / 4; // RGBA, i.e. 4 components.
+  MESSAGE("Setting %u element 1D TF from external source.",
+          static_cast<UINT32>(sz));
+  assert(!rgba.empty());
+
+  TransferFunction1D *tf1d = new TransferFunction1D(sz);
+  tf1d->Set(rgba);
+
+  GLTexture1D *tex = new GLTexture1D(static_cast<UINT32>(tf1d->GetSize()),
+                                     GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4,
+                                     &rgba.at(0));
+  m_iAllocatedGPUMemory += tex->GetCPUSize();
+  m_iAllocatedCPUMemory += tex->GetGPUSize();
+
+  m_vpTrans1DList.push_back(Trans1DListElem(tf1d, tex, requester));
+
+  return std::make_pair(tf1d, tex);
+}
+
 GLTexture1D* GPUMemMan::Access1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRenderer* requester) {
   for (Trans1DListIter i = m_vpTrans1DList.begin();i<m_vpTrans1DList.end();i++) {
     if (i->pTransferFunction1D == pTransferFunction1D) {
