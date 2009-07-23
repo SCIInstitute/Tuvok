@@ -339,7 +339,8 @@ bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     } else {
       if(iBitWidth == 32) {
         glType = GL_FLOAT;
-        glInternalformat = GL_LUMINANCE;
+        glInternalformat = GL_LUMINANCE32F_ARB;
+        glFormat = GL_LUMINANCE;
       } else {
         T_ERROR("Cannot handle data of width %d", iBitWidth);
         FreeData();
