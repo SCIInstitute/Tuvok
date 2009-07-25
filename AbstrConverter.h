@@ -91,7 +91,7 @@ protected:
   std::string               m_vConverterDesc;
   std::vector<std::string>  m_vSupportedExt;
 
-  /// \todo templetize all of the stuff below
+  /// \todo templatize all of the stuff below
 
   static const std::string Process8BitsTo8Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock* Histogram1D=0);
   static const std::string QuantizeShortTo12Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock* Histogram1D=0);

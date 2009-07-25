@@ -750,8 +750,8 @@ AbstrConverter::QuantizeFloatTo8Bits(UINT64 iHeaderSkip,
                                      const std::string& strTargetFilename,
                                      UINT64 iSize,
                                      Histogram1DDataBlock* Histogram1D) {
-  /// \todo doing 2 quantizations is neither the most efficient nor the numerically bets way
-  ///       but it will do the trick until we templetize these methods
+  /// \todo doing 2 quantizations is neither the most efficient nor the numerically best way
+  ///       but it will do the trick until we templatize these methods
 
   std::string intermFile = QuantizeFloatTo12Bits(iHeaderSkip,
                                                  strFilename,
@@ -767,8 +767,8 @@ AbstrConverter::QuantizeDoubleTo8Bits(UINT64 iHeaderSkip,
                                       const std::string& strTargetFilename,
                                       UINT64 iSize, 
                                       Histogram1DDataBlock* Histogram1D) {
-  /// \todo doing 2 quantizations is neither the most efficient nor the numerically bets way
-  ///       but it will do the trick until we templetize these methods
+  /// \todo doing 2 quantizations is neither the most efficient nor the numerically best way
+  ///       but it will do the trick until we templatize these methods
 
   std::string intermFile = QuantizeDoubleTo12Bits(iHeaderSkip,
                                                   strFilename,
@@ -785,8 +785,8 @@ AbstrConverter::QuantizeLongTo8Bits(UINT64 iHeaderSkip,
                                     const std::string& strTargetFilename,
                                     UINT64 iSize, bool bSigned,
                                     Histogram1DDataBlock* Histogram1D) {
-  /// \todo doing 2 quantizations is neither the most efficient nor the numerically bets way
-  ///       but it will do the trick until we templetize these methods
+  /// \todo doing 2 quantizations is neither the most efficient nor the numerically best way
+  ///       but it will do the trick until we templatize these methods
 
   std::string intermFile = QuantizeLongTo12Bits(iHeaderSkip,
                                                 strFilename,
@@ -803,8 +803,8 @@ AbstrConverter::QuantizeIntTo8Bits(UINT64 iHeaderSkip,
                                    const std::string& strTargetFilename,
                                    UINT64 iSize, bool bSigned,
                                    Histogram1DDataBlock* Histogram1D) {
-  /// \todo doing 2 quantizations is neither the most efficient nor the numerically bets way
-  ///       but it will do the trick until we templetize these methods
+  /// \todo doing 2 quantizations is neither the most efficient nor the numerically best way
+  ///       but it will do the trick until we templatize these methods
 
   std::string intermFile = QuantizeIntTo12Bits(iHeaderSkip,
                                                strFilename,

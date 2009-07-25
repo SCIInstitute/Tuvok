@@ -301,24 +301,29 @@ public:
 
   std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
   bool ConvertDataset(FileStackInfo* pStack,
-                      const std::string& strTargetFilename);
+                      const std::string& strTargetFilename,
+                      const std::string& strTempDir);
   bool ConvertDataset(const std::string& strFilename,
                       const std::string& strTargetFilename,
+                      const std::string& strTempDir,
                       bool bNoUserInteraction=false);
   bool MergeDatasets(const std::vector <std::string>& strFilenames,
                      const std::vector <double>& vScales,
                      const std::vector<double>& vBiases,
                      const std::string& strTargetFilename,
+                     const std::string& strTempDir,
                      bool bUseMaxMode=true, bool bNoUserInteraction=false);
   tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
                                     const std::string& strTargetFilename,
+                                    const std::string& strTempDir,
                                     AbstrRenderer* requester);
   tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
                                     const std::string& strTargetFilename,
+                                    const std::string& strTempDir,
                                     AbstrRenderer* requester);
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
                               AbstrRenderer* requester);
-  bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info);
+  bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info, const std::string& strTempDir);
   bool NeedsConversion(const std::string& strFilename,
                        bool& bChecksumFail) const;
   bool NeedsConversion(const std::string& strFilename) const;
@@ -339,7 +344,6 @@ public:
   std::string GetExportDialogString() const;
 
 private:
-  std::string                   m_TempDir;
   std::vector<AbstrConverter*>  m_vpConverters;
   AbstrConverter*               m_pFinalConverter;
 };

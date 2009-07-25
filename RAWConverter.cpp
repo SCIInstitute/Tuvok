@@ -142,7 +142,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     case 8 :
       // do not run the Process8BitsTo8Bits when we are dealing with unsigned color data, 
       // in that case only the histogram would be computed and we do not use in that case
-      /// \todo change this if we want to support non color multi component data
+      /// \todo change this if we want to support non-color multi-component data
       if (iComponentCount != 4 || bSigned) 
         strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename,
                                                 tmpFilename1,
