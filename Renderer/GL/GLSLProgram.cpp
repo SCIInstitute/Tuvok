@@ -41,7 +41,8 @@
 #include <cstring>
 #include <sstream>
 #include "GLSLProgram.h"
-#include <Controller/Controller.h>
+#include "Controller/Controller.h"
+#include "Renderer/GL/GLError.h"
 
 /// GL Extension Wrangler (glew) is initialized on first instantiation
 bool GLSLProgram::m_bGlewInitialized=true;
@@ -648,6 +649,40 @@ bool GLSLProgram::IsValid(void) const {
   return m_bInitialized;
 }
 
+static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
+{
+  glGetError();  // flush current error state.
+
+  GLint size;
+  GLint location;
+
+  // Get the position for the uniform var.
+  if(GLSLProgram::m_bGLUseARB) {
+    location=glGetUniformLocationARB(program, name);
+  } else {
+    location=glGetUniformLocation(program, name);
+  }
+  GLenum gl_err = glGetError();
+  if(gl_err != GL_NO_ERROR || location == -1) {
+    throw GL_ERROR(gl_err);
+  }
+
+  if (GLSLProgram::m_bGLUseARB) {
+    glGetActiveUniformARB(program, location, 0, NULL, &size, type, NULL);
+  } else {
+    glGetActiveUniform(program, location, 1, &AtiHackLen, &size, type,
+                       &AtiHackChar);
+  }
+
+  gl_err = glGetError();
+  if(gl_err != GL_NO_ERROR) {
+    T_ERROR("Error getting type.");
+    throw GL_ERROR(gl_err);
+  }
+
+  return location;
+}
+
 /**
  * Sets an uniform vector parameter.
  * \warning uses glGetError();
@@ -662,28 +697,16 @@ void GLSLProgram::SetUniformVector(const char *name,
   assert(m_bEnabled);
   CheckGLError();
 
-  GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) return;
-
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+  try {
+    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+  } catch(tuvok::GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.errno(),
+            name, m_sVS.c_str(), m_sFS.c_str());
     return;
   }
-
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
-
-  if (CheckGLError("SetUniformVector(%s,float,...) [getting type]",name)) return;
 
   switch (iType) {
     case GL_FLOAT:      glUniform1f(iLocation,x); break;
@@ -733,28 +756,16 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
   assert(m_bEnabled);
   CheckGLError();
 
-  GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformVector(%s,bool,...) [getting adress]",name)) return;
-
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+  try {
+    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+  } catch(tuvok::GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.errno(),
+            name, m_sVS.c_str(), m_sFS.c_str());
     return;
   }
-
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
-
-  if (CheckGLError("SetUniformVector(%s,bool,...) [getting type]",name)) return;
 
   switch (iType) {
     case GL_BOOL:            glUniform1i(iLocation,(x ? 1 : 0)); break;
@@ -795,28 +806,16 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
   assert(m_bEnabled);
   CheckGLError();
 
-  GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformVector(%s,int,...) [getting adress]", name )) return;
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+  try {
+    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+  } catch(tuvok::GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.errno(),
+            name, m_sVS.c_str(), m_sFS.c_str());
     return;
   }
-
-
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
-
-  if (CheckGLError("SetUniformVector(%s,int,...) [getting type]",name)) return;
 
   switch (iType) {
     case GL_INT:
@@ -866,28 +865,16 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
   assert(m_bEnabled);
   CheckGLError();
 
-  GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformVector(%s,float*) [getting adress]",name)) return;
-
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+  try {
+    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+  } catch(tuvok::GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.errno(),
+            name, m_sVS.c_str(), m_sFS.c_str());
     return;
   }
-
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
-
-  if (CheckGLError("SetUniformVector(%s,float*) [getting type]" ,name)) return;
 
   switch (iType) {
     case GL_FLOAT:            glUniform1fv(iLocation,1,v); break;
@@ -937,27 +924,16 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
   assert(m_bEnabled);
   CheckGLError();
 
-  GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformVector(%s,int*) [getting adress]",name)) return;
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+  try {
+    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+  } catch(tuvok::GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.errno(),
+            name, m_sVS.c_str(), m_sFS.c_str());
     return;
   }
-
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
-
-  if (CheckGLError("SetUniformVector(%s,int*) [getting type]",name)) return;
 
   switch (iType) {
     case GL_INT:
@@ -1005,27 +981,16 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
   assert(m_bEnabled);
   CheckGLError();
 
-  GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformVector(%s,bool*) [getting adress]",name)) return;
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+  try {
+    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+  } catch(tuvok::GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.errno(),
+            name, m_sVS.c_str(), m_sFS.c_str());
     return;
   }
-
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
-
-  if (CheckGLError("SetUniformVector(%s,bool*) [getting type]",name)) return;
 
   switch (iType) {
     case GL_BOOL:            glUniform1i(iLocation,(b[0] ? 1 : 0)); break;
@@ -1066,27 +1031,16 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
   assert(m_bEnabled);
   CheckGLError();
 
-  GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformMatrix(%s,float*,bool) [getting adress]",name)) return;
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+  try {
+    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+  } catch(tuvok::GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.errno(),
+            name, m_sVS.c_str(), m_sFS.c_str());
     return;
   }
-
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
-
-  if (CheckGLError("SetUniformMatrix(%s,float*,bool) [getting type]",name)) return;
 
   switch (iType) {
     case GL_FLOAT_MAT2:          glUniformMatrix2fv(iLocation,1,bTranspose,m); break;
@@ -1119,27 +1073,16 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
   assert(m_bEnabled);
   CheckGLError();
 
-  GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformMatrix(%s,int*,bool) [getting adress]",name)) return;
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+  try {
+    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+  } catch(tuvok::GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.errno(),
+            name, m_sVS.c_str(), m_sFS.c_str());
     return;
   }
-
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
-
-  if (CheckGLError("SetUniformMatrix(%s,float*,bool) [getting type]",name)) return;
 
   float M[16];
   switch (iType) {
@@ -1182,26 +1125,16 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
   assert(m_bEnabled);
   CheckGLError();
 
-  GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformMatrix(%s,int*,bool) [getting adress]",name)) return;
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+  try {
+    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+  } catch(tuvok::GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.errno(),
+            name, m_sVS.c_str(), m_sFS.c_str());
     return;
   }
-
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
-
-  if (CheckGLError("SetUniformMatrix(%s,float*,bool) [getting type]",name)) return;
 
   float M[16];
   switch (iType) {
@@ -1245,23 +1178,33 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformArray(%s,float*) [getting adress]",name)) return;
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+  if (m_bGLUseARB) {
+    iLocation=glGetUniformLocationARB(m_hProgram,name);
+  } else {
+    iLocation=glGetUniformLocation(m_hProgram,name);
+  }
+
+  if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) {
     return;
   }
 
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
+  if(iLocation==-1) {
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
+    return;
+  }
 
-  if (CheckGLError("SetUniformArray(%s,float*) [getting type]",name)) return;
+  if (m_bGLUseARB) {
+    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
+  } else {
+    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,
+                       &AtiHackChar);
+  }
+
+  if (CheckGLError("SetUniformVector(%s,float,...) [getting type]",name)) {
+    return;
+  }
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
   GLint *iArray;
@@ -1340,23 +1283,33 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformArray(%s,int*) [getting adress]",name)) return;
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+  if (m_bGLUseARB) {
+    iLocation=glGetUniformLocationARB(m_hProgram,name);
+  } else {
+    iLocation=glGetUniformLocation(m_hProgram,name);
+  }
+
+  if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) {
     return;
   }
 
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
+  if(iLocation==-1) {
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
+    return;
+  }
 
-  if (CheckGLError("SetUniformArray(%s,int*) [getting type]",name)) return;
+  if (m_bGLUseARB) {
+    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
+  } else {
+    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,
+                       &AtiHackChar);
+  }
+
+  if (CheckGLError("SetUniformVector(%s,float,...) [getting type]",name)) {
+    return;
+  }
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
   float *fArray;
@@ -1435,23 +1388,33 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
   GLint iSize;
   GLenum iType;
   GLint iLocation;
-  if (m_bGLUseARB)
-    iLocation=glGetUniformLocationARB(m_hProgram,name); // Position of uniform var
-  else
-    iLocation=glGetUniformLocation(m_hProgram,name); // Position of uniform var
 
-  if (CheckGLError("SetUniformArray(%s,bool*) [getting adress]",name)) return;
-  if(iLocation==-1) {
-   T_ERROR("Error getting address for %s.",name);
+  if (m_bGLUseARB) {
+    iLocation=glGetUniformLocationARB(m_hProgram,name);
+  } else {
+    iLocation=glGetUniformLocation(m_hProgram,name);
+  }
+
+  if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) {
     return;
   }
 
-  if (m_bGLUseARB)
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  else
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,&AtiHackChar);
+  if(iLocation==-1) {
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
+    return;
+  }
 
-  if (CheckGLError("SetUniformArray(%s,bool*) [getting type]",name)) return;
+  if (m_bGLUseARB) {
+    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
+  } else {
+    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,
+                       &AtiHackChar);
+  }
+
+  if (CheckGLError("SetUniformVector(%s,float,...) [getting type]",name)) {
+    return;
+  }
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
   float *fArray;

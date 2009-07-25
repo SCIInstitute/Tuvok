@@ -157,6 +157,8 @@ public:
   /// detect memory leaks
   virtual UINT64 GetGPUSize() {return 1;}
 
+  static bool         m_bGLUseARB;
+
 private:
   bool    Initialize(void);
   GLuint  LoadShader(const char*, GLenum, GLSLPROGRAM_SOURCE src);
@@ -170,7 +172,6 @@ private:
   GLuint              m_hProgram;
   static bool         m_bGlewInitialized;
   static bool         m_bGLChecked;
-  static bool         m_bGLUseARB;
   std::string         m_sVS;
   std::string         m_sFS;
 };
