@@ -151,6 +151,7 @@ HEADERS += StdTuvokDefines.h \
            Renderer/GL/GLSBVR.h \
            Renderer/GL/QtGLContextID.h \
            Renderer/AbstrRenderer.h \
+           Renderer/TFScaling.h \
            Renderer/GPUMemMan/GPUMemMan.h \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
            Renderer/SBVRGeogen.h
@@ -326,6 +327,7 @@ SOURCES += 3rdParty/GLEW/GL/glew.c \
            Renderer/GL/GLRaycaster.cpp \
            Renderer/GL/GLSBVR.cpp \
            Renderer/AbstrRenderer.cpp \
+           Renderer/TFScaling.cpp \
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
            Renderer/SBVRGeogen.cpp
