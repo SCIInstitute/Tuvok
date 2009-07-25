@@ -90,7 +90,7 @@ class GLError : virtual public std::runtime_error {
 };
 
 /// Intended to be thrown, e.g.:
-///    throw OUT_OF_MEM("OpenGL 3d texture");
+///    throw GL_ERROR(42);
 /// It automatically sets location information.
 #define GL_ERROR(e) tuvok::GLError(e, __FILE__, __LINE__)
 
