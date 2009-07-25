@@ -43,13 +43,14 @@
 #include "GLSLProgram.h"
 #include <Controller/Controller.h>
 
-bool GLSLProgram::m_bGlewInitialized=true;    ///< GL Extension Wrangler (glew) is initialized on first instantiation
-bool GLSLProgram::m_bGLChecked=false;         ///< GL extension check
-bool GLSLProgram::m_bGLUseARB=false;          ///< use pre GL 2.0 syntax
+/// GL Extension Wrangler (glew) is initialized on first instantiation
+bool GLSLProgram::m_bGlewInitialized=true;
+bool GLSLProgram::m_bGLChecked=false;      ///< GL extension check
+bool GLSLProgram::m_bGLUseARB=false;       ///< use pre GL 2.0 syntax
 
-/*
-Hack: since the ATI/AMD driver has a bug and the 3rd parameter if glGetActiveUniform must be != 0 we use these two dummy vars in the glGetActiveUniform calls
-*/
+/* Hack: the ATI/AMD driver has a bug which requires the 3rd parameter of
+ * glGetActiveUniform to be nonzero.  We use these two dummy vars in the
+ * glGetActiveUniform calls to cope with it. */
 GLsizei AtiHackLen;
 GLchar AtiHackChar;
 
@@ -88,13 +89,13 @@ GLSLProgram::GLSLProgram(MasterController* pMasterController, const char *VSFile
   m_pMasterController(pMasterController),
   m_bInitialized(false),
   m_bEnabled(false),
-  m_hProgram(0)
+  m_hProgram(0),
+  m_sVS(VSFile),
+  m_sFS(FSFile)
 {
   if (Initialize())
     Load(VSFile,FSFile,src);
 }
-
-
 
 /**
  * Standard Destructor.
@@ -113,8 +114,6 @@ GLSLProgram::~GLSLProgram() {
   }
   m_hProgram=0;
 }
-
-
 
 /**
  * Returns the handle to this shader.
@@ -191,8 +190,6 @@ bool GLSLProgram::Initialize(void) {
   return true;
 }
 
-
-
 /**
  * Loads vertex and fragment shader from disk/memory.
  * Loads any combination of vertex and fragment shader from disk or from a memory position.
@@ -216,7 +213,9 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
   bool bVSSuccess=true;  // fixed function pipeline is always working
   if (VSFile!=NULL) {
     hVS=LoadShader(VSFile,GL_VERTEX_SHADER,src);
-    if (hVS == 0) {
+    if(hVS != 0) {
+      m_sVS = std::string(VSFile); // record program source
+    } else {
       bVSSuccess=false;
       if (src==GLSLPROGRAM_DISK) {
         T_ERROR("ERROR IN: %s", VSFile);
@@ -232,7 +231,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
           if (chVerbose[i]=='\n') {
             chVerbose[i]='\0';
             sprintf(chLine,"(%.4i) ",iLine++);
-            T_ERROR( "Load %s %s",chLine,&chVerbose[iPos]);
+            T_ERROR("Load %s %s", chLine, &chVerbose[iPos]);
             iPos=i+1;
           }
         }
@@ -243,7 +242,9 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
   bool bFSSuccess=true;  // fixed function pipeline is always working
   if (FSFile!=NULL) {
     hFS=LoadShader(FSFile,GL_FRAGMENT_SHADER,src);
-    if (hFS == 0) {
+    if(hVS != 0) {
+      m_sFS = std::string(FSFile); // record program source
+    } else {
       bFSSuccess=false;
       if (src==GLSLPROGRAM_DISK) {
         T_ERROR( "Error in fragment shader: %s", FSFile);
@@ -318,7 +319,8 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
       GLint iLinked;
       glGetProgramiv(m_hProgram,GL_LINK_STATUS,&iLinked);
 
-      std::string fileDesc = std::string("VS: ") + std::string(VSFile) + std::string("  FS:") + std::string(FSFile);
+      std::string fileDesc = std::string("VS: ") + std::string(VSFile) +
+                             std::string(", FS:") + std::string(FSFile);
       WriteInfoLog(fileDesc.c_str(), m_hProgram, true);
 
       // flag shaders such that they can be deleted when they get detached
@@ -346,8 +348,6 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
     }
   }
 }
-
-
 
 /**
  * Writes errors/information messages to stdout.
@@ -380,14 +380,14 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bPro
     if (bAtMostWarnings) {
       WARNING(shaderdesc);
       WARNING(pcLogInfo);
-    delete[] pcLogInfo;
-    return false;
+      delete[] pcLogInfo;
+      return false;
     } else {
       T_ERROR(shaderdesc);
       T_ERROR(pcLogInfo);
-    delete[] pcLogInfo;
+      delete[] pcLogInfo;
 #ifdef GLSLPROGRAM_STRICT
-    return true;
+      return true;
 #endif
     }
   }
@@ -416,8 +416,6 @@ bool GLSLProgram::WriteError(GLhandleARB hObject) {
   }
   return false;
 }
-
-
 
 /**
  * Loads a vertex or fragment shader.
@@ -515,8 +513,6 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
   return hShader;
 }
 
-
-
 /**
  * Enables the program for rendering.
  * Generates error messages if something went wrong (i.e. program not initialized etc.)
@@ -538,8 +534,6 @@ void GLSLProgram::Enable(void) {
   else T_ERROR("No program loaded!");
 }
 
-
-
 /**
  * Disables the program for rendering.
  * Generates error messages if something went wrong (i.e. program not initialized etc.)
@@ -560,8 +554,6 @@ void GLSLProgram::Disable(void) {
   }
   else T_ERROR("No program loaded!");
 }
-
-
 
 /**
  * Checks and handles glErrors.
@@ -635,15 +627,15 @@ bool GLSLProgram::CheckGLError(const char *pcError, const char *pcAdditional) co
 #endif
 
 
-/**************************************************************************************************************
+/***************************************************************************
 
 (c) 2004-05 by Jens Schneider, TUM.3D
-  mailto:jens.schneider@in.tum.de
-  Computer Graphics and Visualization Group
-    Institute for Computer Science I15
-  Technical University of Munich
+    mailto:jens.schneider@in.tum.de
+    Computer Graphics and Visualization Group
+      Institute for Computer Science I15
+    Technical University of Munich
 
-**************************************************************************************************************/
+****************************************************************************/
 
 /**
  * Returns true if this program is valid.
@@ -665,7 +657,8 @@ bool GLSLProgram::IsValid(void) const {
  * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
  * \date Aug.2004
  */
-void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, float w) const{
+void GLSLProgram::SetUniformVector(const char *name,
+                                   float x, float y, float z, float w) const {
   assert(m_bEnabled);
   CheckGLError();
 
@@ -680,7 +673,8 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
   if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) return;
 
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
     return;
   }
 
@@ -692,10 +686,10 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
   if (CheckGLError("SetUniformVector(%s,float,...) [getting type]",name)) return;
 
   switch (iType) {
-    case GL_FLOAT:               glUniform1f(iLocation,x); break;
-    case GL_FLOAT_VEC2:          glUniform2f(iLocation,x,y); break;
-    case GL_FLOAT_VEC3:          glUniform3f(iLocation,x,y,z); break;
-    case GL_FLOAT_VEC4:          glUniform4f(iLocation,x,y,z,w); break;
+    case GL_FLOAT:      glUniform1f(iLocation,x); break;
+    case GL_FLOAT_VEC2: glUniform2f(iLocation,x,y); break;
+    case GL_FLOAT_VEC3: glUniform3f(iLocation,x,y,z); break;
+    case GL_FLOAT_VEC4: glUniform4f(iLocation,x,y,z,w); break;
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
     case GL_INT:
@@ -708,25 +702,23 @@ void GLSLProgram::SetUniformVector(const char *name,float x, float y, float z, f
     case GL_SAMPLER_2D_RECT_ARB:
     case GL_SAMPLER_2D_RECT_SHADOW_ARB:  glUniform1i(iLocation,int(x)); break;
 
-    case GL_INT_VEC2:          glUniform2i(iLocation,int(x),int(y)); break;
-    case GL_INT_VEC3:          glUniform3i(iLocation,int(x),int(y),int(z)); break;
-    case GL_INT_VEC4:          glUniform4i(iLocation,int(x),int(y),int(z),int(w)); break;
-    case GL_BOOL:              glUniform1f(iLocation,x); break;
-    case GL_BOOL_VEC2:          glUniform2f(iLocation,x,y); break;
-    case GL_BOOL_VEC3:          glUniform3f(iLocation,x,y,z); break;
-    case GL_BOOL_VEC4:          glUniform4f(iLocation,x,y,z,w); break;
+    case GL_INT_VEC2:   glUniform2i(iLocation,int(x),int(y)); break;
+    case GL_INT_VEC3:   glUniform3i(iLocation,int(x),int(y),int(z)); break;
+    case GL_INT_VEC4:   glUniform4i(iLocation,int(x),int(y),int(z),int(w)); break;
+    case GL_BOOL:       glUniform1f(iLocation,x); break;
+    case GL_BOOL_VEC2:  glUniform2f(iLocation,x,y); break;
+    case GL_BOOL_VEC3:  glUniform3f(iLocation,x,y,z); break;
+    case GL_BOOL_VEC4:  glUniform4f(iLocation,x,y,z,w); break;
 #endif
 
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,float,...)",name);
 #endif
 }
-
-
 
 /**
  * Sets an uniform vector parameter.
@@ -752,7 +744,8 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
   if (CheckGLError("SetUniformVector(%s,bool,...) [getting adress]",name)) return;
 
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
     return;
   }
 
@@ -781,15 +774,13 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
 #endif
 
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,bool,...)",name);
 #endif
 }
-
-
 
 /**
  * Sets an uniform vector parameter.
@@ -814,7 +805,8 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 
   if (CheckGLError("SetUniformVector(%s,int,...) [getting adress]", name )) return;
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
     return;
   }
 
@@ -853,15 +845,13 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 #endif
 
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,int,...)",name);
 #endif
 }
-
-
 
 /**
  * Sets an uniform vector parameter.
@@ -887,7 +877,8 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
   if (CheckGLError("SetUniformVector(%s,float*) [getting adress]",name)) return;
 
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
     return;
   }
 
@@ -925,15 +916,13 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
 #endif
 
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,float*)",name);
 #endif
 }
-
-
 
 /**
  * Sets an uniform vector parameter.
@@ -958,7 +947,8 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
 
   if (CheckGLError("SetUniformVector(%s,int*) [getting adress]",name)) return;
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
     return;
   }
 
@@ -994,15 +984,13 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,float(i[0]),float(i[1]),float(i[2]),float(i[3])); break;
 #endif
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,int*)",name);
 #endif
 }
-
-
 
 /**
  * Sets an uniform vector parameter.
@@ -1027,7 +1015,8 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
 
   if (CheckGLError("SetUniformVector(%s,bool*) [getting adress]",name)) return;
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
     return;
   }
 
@@ -1054,15 +1043,13 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,(b[0] ? 1.0f : 0.0f),(b[1] ? 1.0f : 0.0f),(b[2] ? 1.0f : 0.0f),(b[3] ? 1.0f : 0.0f)); break;
 #endif
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,bool*)",name);
 #endif
 }
-
-
 
 /**
  * Sets an uniform matrix.
@@ -1089,7 +1076,8 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
 
   if (CheckGLError("SetUniformMatrix(%s,float*,bool) [getting adress]",name)) return;
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
     return;
   }
 
@@ -1105,15 +1093,13 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
     case GL_FLOAT_MAT3:          glUniformMatrix3fv(iLocation,1,bTranspose,m); break;
     case GL_FLOAT_MAT4:          glUniformMatrix4fv(iLocation,1,bTranspose,m); break;
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformMatrix(%s,float*,bool)",name);
 #endif
 }
-
-
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
 
@@ -1143,7 +1129,8 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
 
   if (CheckGLError("SetUniformMatrix(%s,int*,bool) [getting adress]",name)) return;
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.",name);
+    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
+            m_sVS.c_str(), m_sFS.c_str());
     return;
   }
 
@@ -1169,7 +1156,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
       glUniformMatrix4fv(iLocation,1,bTranspose,M);
       break;
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1231,7 +1218,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
       glUniformMatrix4fv(iLocation,1,bTranspose,M);
       break;
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1240,8 +1227,6 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
 }
 
 #endif // GLSL_ALLOW_IMPLICIT_CASTS
-
-
 
 /**
  * Sets an uniform array.
@@ -1330,15 +1315,13 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
 #endif
 
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformArray(%s,float*)",name);
 #endif
 }
-
-
 
 /**
  * Sets an uniform array.
@@ -1426,14 +1409,13 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
 #endif
 
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformArray(%s,int*)",name);
 #endif
 }
-
 
 
 /**
@@ -1553,7 +1535,7 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
 #endif
 
     default:
-      T_ERROR("Unknown type for %s.",name);
+      T_ERROR("Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG

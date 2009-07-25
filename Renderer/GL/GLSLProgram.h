@@ -171,6 +171,8 @@ private:
   static bool         m_bGlewInitialized;
   static bool         m_bGLChecked;
   static bool         m_bGLUseARB;
+  std::string         m_sVS;
+  std::string         m_sFS;
 };
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
