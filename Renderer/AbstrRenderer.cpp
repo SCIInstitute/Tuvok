@@ -47,7 +47,9 @@
 using namespace std;
 using namespace tuvok;
 
-AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
+AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
+                             bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
+                             bool bDisableBorder, enum ScalingMethod sm) :
   m_pMasterController(pMasterController),
   m_bPerformRedraw(true),
   m_eRenderMode(RM_1DTRANS),
@@ -102,6 +104,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController, bool bUseOnlyP
   m_bDownSampleTo8Bits(bDownSampleTo8Bits),
   m_bDisableBorder(bDisableBorder),
   m_bAvoidSeperateCompositing(true),
+  m_TFScalingMethod(sm),
   m_bClipPlaneOn(false),
   m_bClipPlaneDisplayed(true),
   m_bClipPlaneLocked(true),

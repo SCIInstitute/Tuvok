@@ -152,6 +152,10 @@ class AbstrRenderer {
     bool GetUseLighting() const { return m_bUseLighting; }
     virtual void SetUseLighting(bool bUseLighting);
 
+    enum ScalingMethod {
+      SMETH_BIT_WIDTH=0,    ///< scaled based on DS and TF bit width
+      SMETH_BIAS_AND_SCALE  ///< bias + scale factors of DS calculated
+    };
     /** Default settings: 1D transfer function, single-image view, white text,
      * black BG.
      * @param pMasterController message router
@@ -159,9 +163,12 @@ class AbstrRenderer {
      *                           do not support npot textures.
      * @param bDownSampleTo8Bits force 8bit textures, for systems that do not
      *                           support 16bit textures (or 16bit linear
-     *                           interpolation). */
+     *                           interpolation).
+     * @param bDisableBorder     don't use OpenGL borders for textures.
+     * @param smeth              method to scale values into TF range */
     AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
-                  bool bDownSampleTo8Bits, bool bDisableBorder);
+                  bool bDownSampleTo8Bits, bool bDisableBorder,
+                  enum ScalingMethod smeth = SMETH_BIT_WIDTH);
     /** Deallocates dataset and transfer functions. */
     virtual ~AbstrRenderer();
     /** Sends a message to the master to ask for a dataset to be loaded.
@@ -376,6 +383,10 @@ class AbstrRenderer {
       m_fZFar = zfar;
     }
 
+    void SetScalingMethod(enum ScalingMethod sm) {
+      this->m_TFScalingMethod = sm;
+    }
+
   protected:
     MasterController*   m_pMasterController;
     bool                m_bPerformRedraw;
@@ -451,6 +462,7 @@ class AbstrRenderer {
     bool                m_bDownSampleTo8Bits;
     bool                m_bDisableBorder;
     bool                m_bAvoidSeperateCompositing;
+    enum ScalingMethod  m_TFScalingMethod;
 
     FLOATMATRIX4        m_mProjection[2];
     FLOATMATRIX4        m_mView[2];
