@@ -252,8 +252,14 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
   } else
   if (strCommand == "time") {
 #ifndef TUVOK_NO_QT
-    string strTime(QTime::currentTime().toString().toAscii());
-    Controller::Debug::Out().printf(strTime.c_str());
+    static QTime qt;
+    if(!qt.isNull() && qt.secsTo(QTime::currentTime()) < 1) {
+      Controller::Debug::Out().printf("To get a watch!");
+    } else {
+      qt = QTime::currentTime();
+      std::string strTime(qt.toString().toAscii());
+      Controller::Debug::Out().printf(strTime.c_str());
+    }
 #endif
     return true;
   } else
