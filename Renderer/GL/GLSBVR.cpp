@@ -36,11 +36,12 @@
 #include "GLInclude.h"
 #include "GLSBVR.h"
 
-#include <Controller/Controller.h>
-#include "../GPUMemMan/GPUMemMan.h"
-#include "GLSLProgram.h"
-#include "GLTexture1D.h"
-#include "GLTexture2D.h"
+#include "Controller/Controller.h"
+#include "Renderer/GL/GLSLProgram.h"
+#include "Renderer/GL/GLTexture1D.h"
+#include "Renderer/GL/GLTexture2D.h"
+#include "Renderer/GPUMemMan/GPUMemMan.h"
+#include "Renderer/TFScaling.h"
 
 using namespace std;
 
@@ -152,9 +153,20 @@ void GLSBVR::SetDataDepShaderVars() {
 
     shader->Enable();
     shader->SetUniformVector("fIsoval",m_fScaledIsovalue);
-    // this is not really a data dependent var but as we only need to do it once per frame we may also do it here
+    // this is not really a data dependent var but as we only need to
+    // do it once per frame we may also do it here
     shader->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
     shader->Disable();
+  }
+  if(m_eRenderMode == RM_1DTRANS && m_TFScalingMethod == SMETH_BIAS_AND_SCALE) {
+    std::pair<float,float> bias_scale =
+      tuvok::scale_bias_and_scale(m_pDataset->GetInfo());
+    MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
+            bias_scale.second);
+    m_pProgram1DTrans[0]->Enable();
+    m_pProgram1DTrans[0]->SetUniformVector("TFuncBias", bias_scale.first);
+    m_pProgram1DTrans[0]->SetUniformVector("fTransScale", bias_scale.second);
+    m_pProgram1DTrans[0]->Disable();
   }
 }
 
