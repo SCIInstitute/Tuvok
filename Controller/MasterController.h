@@ -78,11 +78,13 @@ public:
   virtual ~MasterController();
 
   /// Create a new renderer.
-  AbstrRenderer* RequestNewVolumerenderer(EVolumeRendererType eRendererType,
+  AbstrRenderer* RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
                                           bool bUseOnlyPowerOfTwo,
                                           bool bDownSampleTo8Bits,
                                           bool bDisableBorder,
-                                          bool bNoRCClipplanes);
+                                          bool bNoRCClipplanes,
+                                          bool bBiasAndScaleTF=false);
+
   /// Indicate that a renderer is no longer needed.
   void ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer);
 

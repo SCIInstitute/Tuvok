@@ -109,43 +109,66 @@ const AbstrDebugOut *MasterController::DebugOut() const {
            : static_cast<const AbstrDebugOut*>(&m_DebugOut);
 }
 
-AbstrRenderer* MasterController::
-RequestNewVolumerenderer(EVolumeRendererType eRendererType, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder, bool bNoRCClipplanes) {
+AbstrRenderer*
+MasterController::RequestNewVolumeRenderer(
+    EVolumeRendererType eRendererType, bool bUseOnlyPowerOfTwo,
+    bool bDownSampleTo8Bits, bool bDisableBorder,
+    bool bNoRCClipplanes, bool bBiasAndScaleTF)
+{
+  std::string api;
+  std::string method;
+  AbstrRenderer *retval;
 
   switch (eRendererType) {
-
   case OPENGL_SBVR :
-    m_DebugOut.Message(_func_,"Starting up new renderer (API=OpenGL, Method=Slice Based Volume Rendering)");
-    m_vVolumeRenderer.push_back(new GLSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
-    return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
+    api = "OpenGL";
+    method = "Slice Based Volume Renderer";
+    retval = new GLSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+                        bDisableBorder);
+    break;
 
   case OPENGL_RAYCASTER :
-    m_DebugOut.Message(_func_,"Starting up new renderer (API=OpenGL, Method=Raycaster)");
-    m_vVolumeRenderer.push_back(new GLRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder, bNoRCClipplanes));
-    return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
-
+    api = "OpenGL";
+    method = "Raycaster";
+    retval = new GLRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+                             bDisableBorder, bNoRCClipplanes);
+    break;
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
   case DIRECTX_SBVR :
-    m_DebugOut.Message(_func_,"Starting up new renderer (API=DirectX, Method=SBVR)");
-    m_vVolumeRenderer.push_back(new DXSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
-    return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
+    api = "DirectX";
+    method = "Slice Based Volume Renderer";
+    retval = new DXSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+                        bDisableBorder);
+    break;
 
   case DIRECTX_RAYCASTER :
-    m_DebugOut.Message(_func_,"Starting up new renderer (API=DirectX, Method=Raycaster)");
-    m_vVolumeRenderer.push_back(new DXRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder));
-    return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
+    api = "DirectX";
+    method = "Raycaster";
+    retval = new DXRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+                             bDisableBorder);
+    break;
 #else
   case DIRECTX_RAYCASTER :
   case DIRECTX_SBVR :
-    m_DebugOut.Error(_func_,"DirectX 10 renderer not yet implemented. Please select OpenGL as the render API in the settings dialog.");
+    m_DebugOut.Error(_func_,"DirectX 10 renderer not yet implemented."
+                            "Please select OpenGL as the render API "
+                            "in the settings dialog.");
     return NULL;
 #endif
 
   default :
-    m_DebugOut.Error(_func_,"Unsupported Volume renderer requested");
+    m_DebugOut.Error(_func_, "Unsupported Volume renderer requested");
     return NULL;
   };
+
+  m_DebugOut.Message(_func_, "Starting up new renderer (API=%s, Method=%s)",
+                     api.c_str(), method.c_str());
+  if(bBiasAndScaleTF) {
+    retval->SetScalingMethod(AbstrRenderer::SMETH_BIAS_AND_SCALE);
+  }
+  m_vVolumeRenderer.push_back(retval);
+  return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 }
 
 
