@@ -39,6 +39,7 @@
 #include <fstream>
 #include <limits>
 #include <boost/algorithm/minmax_element.hpp>
+#include <boost/cstdint.hpp>
 #include "IOManager.h"  // for the size defines
 #include "Basics/LargeRAWFile.h"
 
@@ -66,7 +67,7 @@ struct TuvokProgress {
 
 /// (raw) Data source policies.  Must implement:
 ///   constructor: takes a filename
-///   records(): returns the number of elements in the file.
+///   size(): returns the number of elements in the file.
 ///   read(data, b): reads `b' bytes in to `data'.  Returns number of elems
 ///                  actually read.
 /// ios_data_src -- data source for C++ iostreams.
@@ -82,10 +83,10 @@ struct ios_data_src {
   ios_data_src(const ios_data_src<T>& ios) : ifs(ios.filename) { }
   ~ios_data_src() { ifs.close(); }
 
-  UINT64 records() {
+  boost::uint64_t size() {
     std::streampos cur = ifs.tellg();
     ifs.seekg(0, std::ios::end);
-    UINT64 retval = ifs.tellg();
+    boost::uint64_t retval = ifs.tellg();
     ifs.seekg(cur, std::ios::beg);
     return retval/sizeof(T);
   }
@@ -109,7 +110,7 @@ struct raw_data_src {
   raw_data_src(const raw_data_src<T>& r) : raw(r.raw.GetFilename()) {}
   ~raw_data_src() { raw.Close(); }
 
-  UINT64 records() { return raw.GetCurrentSize() / sizeof(T); }
+  boost::uint64_t size() { return raw.GetCurrentSize() / sizeof(T); }
   size_t read(unsigned char *data, size_t max_bytes) {
     return raw.ReadRAW(data, max_bytes)/sizeof(T);
   }
@@ -125,8 +126,8 @@ template <typename T, template <typename T> class DataSrc, class Progress>
 std::pair<T,T> io_minmax(DataSrc<T> ds, const Progress& progress)
 {
   std::vector<T> data(INCORESIZE);
-  UINT64 iPos = 0;
-  UINT64 iSize = ds.records();
+  boost::uint64_t iPos = 0;
+  boost::uint64_t iSize = ds.size();
 
   std::pair<T,T> t_minmax(std::numeric_limits<T>::max(),
                           -(std::numeric_limits<T>::max()-1));
@@ -141,9 +142,31 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, const Progress& progress)
     t_minmax.first = std::min(t_minmax.first, *cur_mm.first);
     t_minmax.second = std::max(t_minmax.second, *cur_mm.second);
 
-    iPos += UINT64(n_records*sizeof(T));
+    iPos += boost::uint64_t(n_records*sizeof(T));
 
     progress.notify(iPos);
   }
   return t_minmax;
+}
+
+template <typename T,
+          template <typename T> class DataSrc,
+          template <typename T> class DataSink,
+          class Progress>
+void quantize(DataSrc<T> dsrc, DataSink<T> dsink, const Progress& progress,
+              T qMin, T qMax)
+{
+  T range = qMax - qMin;
+  std::vector<T> data(INCORESIZE);
+
+  boost::uint64_t cur_pos = 0;
+  boost::uint64_t size = dsrc.size();
+
+  std::pair<T,T> minmax = io_minmax(dsrc, progress);
+
+  while(cur_pos < size) {
+    size_t n_records = dsrc.read((unsigned char*)(&(data.at(0))),
+                                 INCORESIZE*sizeof(T));
+    if(n_records == 0) { break; }
+  }
 }
