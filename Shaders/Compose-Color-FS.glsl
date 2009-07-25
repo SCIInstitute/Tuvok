@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLRaycaster-compose-FS.glsl
+  \file    Compose-Color-FS.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah
