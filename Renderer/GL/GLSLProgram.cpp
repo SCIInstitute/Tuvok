@@ -216,8 +216,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
   bool bVSSuccess=true;  // fixed function pipeline is always working
   if (VSFile!=NULL) {
     hVS=LoadShader(VSFile,GL_VERTEX_SHADER,src);
-    if (hVS!=0) MESSAGE("VERTEX SHADER: OK");
-    else {
+    if (hVS == 0) {
       bVSSuccess=false;
       if (src==GLSLPROGRAM_DISK) {
         T_ERROR("ERROR IN: %s", VSFile);
@@ -244,11 +243,10 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
   bool bFSSuccess=true;  // fixed function pipeline is always working
   if (FSFile!=NULL) {
     hFS=LoadShader(FSFile,GL_FRAGMENT_SHADER,src);
-    if (hFS!=0) MESSAGE("FRAGMENT SHADER: OK");
-    else {
+    if (hFS == 0) {
       bFSSuccess=false;
       if (src==GLSLPROGRAM_DISK) {
-        T_ERROR( "ERROR IN: %s",FSFile);
+        T_ERROR( "Error in fragment shader: %s", FSFile);
       }
       else {
         T_ERROR("---------- ERROR -----------");
@@ -294,7 +292,6 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
         m_bInitialized=false;
         return;
       } else {
-        MESSAGE("PROGRAM OBJECT: OK");
         m_bInitialized=true;
       }
     } else {
@@ -334,7 +331,6 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
         return;
       }
       else {
-        MESSAGE("PROGRAM OBJECT: OK");
         m_bInitialized=true;
       }
     }

@@ -947,7 +947,8 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile,
   }
 
   MESSAGE("Creating new GLSL program from the VS %s and the FS %s",
-          strVSFile.c_str(), strFSFile.c_str());
+          SysTools::GetFilename(strVSFile).c_str(),
+          SysTools::GetFilename(strFSFile).c_str());
 
   GLSLListElem* e = new GLSLListElem(m_MasterController, strVSFile, strFSFile);
 

@@ -1403,56 +1403,56 @@ void GLRenderer::SetDataDepShaderVars() {
   m_pProgramTransMIP->Disable();
 
   switch (m_eRenderMode) {
-    case RM_1DTRANS    :  {
-                            m_pProgram1DTransSlice->Enable();
-                            m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
-                            m_pProgram1DTransSlice->Disable();
+    case RM_1DTRANS: {
+      m_pProgram1DTransSlice->Enable();
+      m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
+      m_pProgram1DTransSlice->Disable();
 
-                            m_pProgram1DTransSlice3D->Enable();
-                            m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
-                            m_pProgram1DTransSlice3D->Disable();
+      m_pProgram1DTransSlice3D->Enable();
+      m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
+      m_pProgram1DTransSlice3D->Disable();
 
-                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
-                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
-                            break;
-                          }
-    case RM_2DTRANS    :  {
-                            m_pProgram2DTransSlice->Enable();
-                            m_pProgram2DTransSlice->SetUniformVector("fTransScale",fScale);
-                            m_pProgram2DTransSlice->SetUniformVector("fGradientScale",fGradientScale);
-                            m_pProgram2DTransSlice->Disable();
+      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
+      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
+      break;
+    }
+    case RM_2DTRANS: {
+      m_pProgram2DTransSlice->Enable();
+      m_pProgram2DTransSlice->SetUniformVector("fTransScale",fScale);
+      m_pProgram2DTransSlice->SetUniformVector("fGradientScale",fGradientScale);
+      m_pProgram2DTransSlice->Disable();
 
-                            m_pProgram2DTransSlice3D->Enable();
-                            m_pProgram2DTransSlice3D->SetUniformVector("fTransScale",fScale);
-                            m_pProgram2DTransSlice3D->SetUniformVector("fGradientScale",fGradientScale);
-                            m_pProgram2DTransSlice3D->Disable();
+      m_pProgram2DTransSlice3D->Enable();
+      m_pProgram2DTransSlice3D->SetUniformVector("fTransScale",fScale);
+      m_pProgram2DTransSlice3D->SetUniformVector("fGradientScale",fGradientScale);
+      m_pProgram2DTransSlice3D->Disable();
 
-                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
-                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
-                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
-                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
-                            break;
-                          }
-    case RM_ISOSURFACE : {
-                            // as we are rendering the 2 slices with the 1d transferfunction in iso mode update that shader also
-                            m_pProgram1DTransSlice->Enable();
-                            m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
-                            m_pProgram1DTransSlice->Disable();
+      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
+      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
+      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
+      break;
+    }
+    case RM_ISOSURFACE: {
+      // as we are rendering the 2 slices with the 1d transferfunction
+      // in iso mode update that shader also
+      m_pProgram1DTransSlice->Enable();
+      m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
+      m_pProgram1DTransSlice->Disable();
 
-                            m_pProgram1DTransSlice3D->Enable();
-                            m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
-                            m_pProgram1DTransSlice3D->Disable();
+      m_pProgram1DTransSlice3D->Enable();
+      m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
+      m_pProgram1DTransSlice3D->Disable();
 
-                            GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+      GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
-                            shader->Enable();
-                            shader->SetUniformVector("fIsoval",m_fScaledIsovalue);
-                            shader->Disable();
-                            break;
-                          }
-    case RM_INVALID    :  T_ERROR("Invalid rendermode set");
-                          break;
+      shader->Enable();
+      shader->SetUniformVector("fIsoval",m_fScaledIsovalue);
+      shader->Disable();
+      break;
+    }
+    case RM_INVALID: T_ERROR("Invalid rendermode set"); break;
   }
 
   MESSAGE("Done");
@@ -1470,16 +1470,19 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const s
   for (size_t i = 0;i<strDirs.size();i++) {
     string strCompleteVSFile = strDirs[i] + "/" + strVSFile;
     string strCompleteFSFile = strDirs[i] + "/" + strFSFile;
+    MESSAGE("Searching for shaders in %s ...", strDirs[i].c_str());
 
-    if (LoadAndVerifyShader(strCompleteVSFile, strCompleteFSFile, pShaderProgram, false))
+    if (LoadAndVerifyShader(strCompleteVSFile, strCompleteFSFile,
+                            pShaderProgram, false)) {
       return true;
-
-    MESSAGE("Shader combination %s and %s not found.", strCompleteVSFile.c_str(), strCompleteFSFile.c_str());
+    }
   }
 
-  WARNING("Shader combination %s and %s not found in any of the given serach directories, now scanning current diretory and all of its subdirectories as a final attempt.", strVSFile.c_str(), strFSFile.c_str());
-
   // if all else fails probe current directory and all of its subdirectories
+  WARNING("Shader combination %s and %s not found "
+          "in any of the given search directories, "
+          "now scanning current diretory and all of its subdirectories "
+          "as a final attempt.", strVSFile.c_str(), strFSFile.c_str());
   if (LoadAndVerifyShader(strVSFile, strFSFile, pShaderProgram, true))
     return true;
   else
