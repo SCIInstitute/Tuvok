@@ -219,6 +219,7 @@ void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurre
                               shader->SetUniformVector("iTileID", int(iCurrentBrick));
                             }
                             shader->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
+                            shader->SetUniformVector("fRayStepsize", fRayStep);
 
                             break;
                           }
