@@ -83,7 +83,7 @@ public:
                      unsigned short sUsedRange=4095) const;
   void GetFloatArray(float** pfData) const;
 
-  std::vector< FLOATVECTOR4 > vColorData;
+  std::vector<FLOATVECTOR4> vColorData;
 
   void ComputeNonZeroLimits();
   const UINT64VECTOR2& GetNonZeroLimits() { return m_vValueBBox;}
@@ -92,7 +92,6 @@ private:
   UINT64VECTOR2 m_vValueBBox;
 
   float Smoothstep(float x) const;
-
 };
 
 #endif // TRANSFERFUNCTION1D
