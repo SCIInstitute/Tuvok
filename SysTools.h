@@ -182,6 +182,9 @@ namespace SysTools {
                                      const std::wstring& ext,
                                      const std::wstring& dir=L"");
 
+  bool GetTempDirectory(std::string& path);
+  bool GetTempDirectory(std::wstring& path);
+
 #ifdef _WIN32
   std::vector<std::wstring> GetDirContents(const std::wstring& dir,
                                            const std::wstring& fileName=L"*",

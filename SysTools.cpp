@@ -847,6 +847,43 @@ namespace SysTools {
     return iMaxIndex;
   }
 
+  bool GetTempDirectory(std::string& path) {
+  #ifdef DETECTED_OS_WINDOWS
+    DWORD result = ::GetTempPathA(0, "");
+    if(result == 0) return false;
+    std::vector<char> tempPath(result + 1);
+    result = ::GetTempPathA(static_cast<DWORD>(tempPath.size()), &tempPath[0]);
+    if((result == 0) || (result >= tempPath.size())) return false;
+    path = std::string( tempPath.begin(), tempPath.begin() + static_cast<std::size_t>(result)  );
+    return true;
+  #else
+    char * pointer;
+    pointer = tmpnam(NULL);
+    path = GetPath(std::string( pointer ));
+    return true;
+  #endif
+  }
+
+
+  bool GetTempDirectory(std::wstring& path) {
+  #ifdef DETECTED_OS_WINDOWS
+      DWORD result = ::GetTempPathW(0, L"");
+      if(result == 0) return false;
+      std::vector<WCHAR> tempPath(result + 1);
+      result = ::GetTempPathW(static_cast<DWORD>(tempPath.size()), &tempPath[0]);
+      if((result == 0) || (result >= tempPath.size())) return false;
+      path = std::wstring( tempPath.begin(), tempPath.begin() + static_cast<std::size_t>(result)  );
+      return true;
+  #else 
+      // too lazy to find the unicode version for linux and mac
+      std::string astrPath;
+      if (!GetTempDirectory(astrPath)) return false;    
+      path = std::wstring( astrPath.begin(), astrPath.end());
+      return true;
+  #endif
+  }
+
+
 #ifdef _WIN32
   bool GetFilenameDialog(const string& lpstrTitle, const CHAR* lpstrFilter, string &filename, const bool save, HWND owner, DWORD* nFilterIndex) {
     BOOL result;
