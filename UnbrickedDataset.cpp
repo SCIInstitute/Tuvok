@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <cstring>
 #include <cstdlib>
+#include <boost/algorithm/minmax_element.hpp>
 #include "UnbrickedDataset.h"
 #include "UnbrickedDSMetadata.h"
 
@@ -110,26 +111,66 @@ void UnbrickedDataset::SetHistogram(const std::vector<std::vector<UINT32> >& his
   }
 }
 
+namespace {
+
+template<typename T> struct type2enum {};
+template<> struct type2enum<float> {
+  enum { value = UnbrickedDSMetadata::MDT_FLOAT };
+};
+template<> struct type2enum<unsigned char> {
+  enum { value = UnbrickedDSMetadata::MDT_BYTE };
+};
+
+static bool range_has_not_been_set(const UnbrickedDSMetadata &md)
+{
+  return md.GetRange().first == md.GetRange().second;
+}
+
+// Copies the data and sets the data type.
+// Returns the range of the data; we can't set it here directly because we're
+// not a friend of Metadata.
+template<typename T>
+std::pair<double,double>
+set_data(T *data, size_t len, std::vector<unsigned char>& into,
+         UnbrickedDSMetadata &metadata)
+{
+  into.resize(len*sizeof(T));
+  std::memcpy(&into.at(0), data, len*sizeof(T));
+
+  int dtype = type2enum<T>::value;
+  metadata.SetDataType(static_cast<UnbrickedDSMetadata::MD_Data_Type>(dtype));
+
+  std::pair<double,double> mmax;
+  if(range_has_not_been_set(metadata)) {
+    std::pair<T*,T*> curmm = boost::minmax_element(data, data+len);
+    mmax = std::make_pair(static_cast<double>(*curmm.first),
+                          static_cast<double>(*curmm.second));
+  }
+  return mmax;
+}
+
+}; // anonymous namespace.
+
 void UnbrickedDataset::SetData(float *data, size_t len)
 {
-  m_vScalar.resize(len*sizeof(float));
-  std::memcpy(&m_vScalar.at(0), data, sizeof(float) * len);
-
+  UnbrickedDSMetadata &metadata =
+    dynamic_cast<UnbrickedDSMetadata&>(this->GetInfo());
+  std::pair<double,double> mmax = set_data(data, len, m_vScalar, metadata);
+  if(range_has_not_been_set(metadata)) {
+    metadata.SetRange(mmax);
+  }
   Recalculate1DHistogram();
-  dynamic_cast<UnbrickedDSMetadata&>(this->GetInfo()).SetDataType(
-    UnbrickedDSMetadata::MDT_FLOAT
-  );
 }
 
 void UnbrickedDataset::SetData(unsigned char *data, size_t len)
 {
-  m_vScalar.resize(len);
-  std::memcpy(&m_vScalar.at(0), data, len);
-
+  UnbrickedDSMetadata &metadata =
+    dynamic_cast<UnbrickedDSMetadata&>(this->GetInfo());
+  std::pair<double,double> mmax = set_data(data, len, m_vScalar, metadata);
+  if(range_has_not_been_set(metadata)) {
+    metadata.SetRange(mmax);
+  }
   Recalculate1DHistogram();
-  dynamic_cast<UnbrickedDSMetadata&>(this->GetInfo()).SetDataType(
-    UnbrickedDSMetadata::MDT_BYTE
-  );
 }
 
 void UnbrickedDataset::SetGradientMagnitude(float *gmn, size_t len)

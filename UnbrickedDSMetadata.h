@@ -96,6 +96,9 @@ public:
   bool ContainsData(const BrickKey &, double fMin,double fMax,
                     double fMinGradient,double fMaxGradient) const;
 
+  void SetRange(std::pair<double,double> trouble);
+  void SetRange(double, double);
+
   void SetDomainSize(UINT64 x, UINT64 y, UINT64 z) {
     m_vDomainSize = UINT64VECTOR3(x,y,z);
   }
@@ -119,6 +122,7 @@ public:
 private:
   UINT64VECTOR3 m_vDomainSize;
   MD_Data_Type m_dataType;
+  std::pair<double, double> range;
 };
 
 }; //namespace tuvok

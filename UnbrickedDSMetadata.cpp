@@ -78,4 +78,15 @@ bool UnbrickedDSMetadata::ContainsData(const BrickKey &, double,double,
   return true;
 }
 
+/// Our parent knows/handles our range.
+void UnbrickedDSMetadata::SetRange(std::pair<double,double> r)
+{
+  Metadata::SetRange(r);
+}
+void UnbrickedDSMetadata::SetRange(double l, double h)
+{
+  Metadata::SetRange(std::make_pair(l,h));
+}
+
+
 }; // namespace tuvok

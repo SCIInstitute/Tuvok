@@ -36,14 +36,13 @@
 
 namespace tuvok {
 
-/// A key for a brick is composed of an LOD indicator and a spatial index
-/// (x,y,z coordinate) for the brick.  The spatial index is logical, only
-/// corresponding with real space in a relative manner.
-typedef std::pair<size_t, UINT64VECTOR3> BrickKey;
-
-Metadata::Metadata() {
+Metadata::Metadata() :
+  range(std::make_pair(0.0,0.0))
+{
   m_Rescale[0] = m_Rescale[1] = m_Rescale[2] = 0.0;
 };
+
+std::pair<double,double> Metadata::GetRange() const { return this->range; }
 
     /// Rescaling information, for handling anisotropic datasets.
 DOUBLEVECTOR3 Metadata::GetRescaleFactors() const {

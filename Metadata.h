@@ -42,6 +42,8 @@
 
 namespace tuvok {
 
+class UnbrickedDataset;
+
 class Metadata {
   public:
     /// A key for a brick is composed of an LOD indicator and a spatial index
@@ -79,6 +81,8 @@ class Metadata {
     virtual bool GetIsSigned() const = 0;
     virtual bool GetIsFloat() const = 0;
     virtual bool IsSameEndianness() const = 0;
+    // Min/Max of the data across the entire dataset
+    std::pair<double,double> GetRange() const;
     ///@}
 
     /// Rescaling information, for handling anisotropic datasets.
@@ -108,8 +112,12 @@ class Metadata {
     void SetRescaleFactors(const double[3]);
     void SetRescaleFactors(const DOUBLEVECTOR3&);
 
+  protected:
+    void SetRange(std::pair<double,double> r) { this->range = r; }
+
   private:
     double m_Rescale[3];
+    std::pair<double,double> range;
 };
 
 }; // namespace tuvok

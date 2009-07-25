@@ -85,6 +85,12 @@ class UVFMetadata : public Metadata {
     virtual bool GetIsSigned() const;
     virtual bool GetIsFloat() const;
     virtual bool IsSameEndianness() const;
+    /// Unsupported for UVF!  Wouldn't be hard to implement, though, just not
+    /// currently needed.
+    std::pair<double,double> GetRange() const {
+      assert(1 == 0);
+      return std::make_pair(0.0, 0.0);
+    }
     ///@}
 
     const std::vector<UINT64>& GetBrickCountND(const std::vector<UINT64>& vLOD)
