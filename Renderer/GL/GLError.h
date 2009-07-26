@@ -79,7 +79,7 @@ class GLError : virtual public std::runtime_error {
     virtual ~GLError() throw() { }
 
     virtual const char *what() const throw() { return "OpenGL error"; }
-    int errno() const { return this->glerrno; }
+    int error() const { return this->glerrno; }
     const char *where() const { return this->location; }
     size_t lineno() const { return this->line; }
 

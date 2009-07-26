@@ -905,6 +905,14 @@
 				RelativePath=".\Renderer\SBVRGeogen.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Renderer\TFScaling.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Renderer\TFScaling.h"
+				>
+			</File>
 			<Filter
 				Name="MemMan"
 				>
@@ -1046,6 +1054,10 @@
 				>
 				<File
 					RelativePath=".\Renderer\GL\GLContextID.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Renderer\GL\GLError.h"
 					>
 				</File>
 				<File
