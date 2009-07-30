@@ -37,7 +37,11 @@
 #ifndef TUVOK_GL_CONTEXT_ID_H
 #define TUVOK_GL_CONTEXT_ID_H
 
-#include <GL/glxew.h>
+#ifdef TUVOK_OS_WINDOWS
+# include <GL/wglew.h>
+#else
+# include <GL/glxew.h>
+#endif
 #include "../ContextID.h"
 
 namespace tuvok {
@@ -46,7 +50,11 @@ namespace tuvok {
 class GLContextID : ContextID<GLContextID> {
   public:
     /// Create an ID with the current context.
-    GLContextID() : ContextID<GLContextID>(), ctx(glXGetCurrentContext()) {} 
+#ifdef TUVOK_OS_WINDOWS
+    GLContextID() : ContextID<GLContextID>(), ctx(wglGetCurrentContext()) {}
+#else
+    GLContextID() : ContextID<GLContextID>(), ctx(glXGetCurrentContext()) {}
+#endif
     /// Create an ID from the given context.
     GLContextID(GLXContext c) : ContextID<GLContextID>(), ctx(c) {}
     GLContextID(const GLContextID& ct) : ContextID<GLContextID>(),
@@ -70,7 +78,11 @@ class GLContextID : ContextID<GLContextID> {
     GLContextID(const ContextID<GLContextID>&); ///< unimplemented
 
   private:
+#ifdef TUVOK_OS_WINDOWS
+    HGLRC ctx;
+#else
     GLXContext ctx;
+#endif
 };
 
 };
