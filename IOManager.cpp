@@ -186,7 +186,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     MESSAGE("    Modality: %s  Description: %s", pDICOMStack->m_strModality.c_str(), pDICOMStack->m_strDesc.c_str());
     MESSAGE("    Aspect Ratio: %g %g %g", pDICOMStack->m_fvfAspect.x, pDICOMStack->m_fvfAspect.y, pDICOMStack->m_fvfAspect.z);
 
-    string strTempMergeFilename = strTargetFilename + "~";
+    string strTempMergeFilename = strTempDir + SysTools::GetFilename(strTargetFilename) + "~";
 
     MESSAGE("    Creating intermediate file %s", strTempMergeFilename.c_str());
 
@@ -298,7 +298,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
         MESSAGE("  Detected Image stack, starting image conversion");
         MESSAGE("  Stack contains %i files",  int(pStack->m_Elements.size()));
 
-        string strTempMergeFilename = strTargetFilename + "~";
+        string strTempMergeFilename = strTempDir + SysTools::GetFilename(strTargetFilename) + "~";
         MESSAGE("    Creating intermediate file %s", strTempMergeFilename.c_str());
 
         ofstream fs;
