@@ -104,6 +104,7 @@ void ConsoleOut::Warning(const char* source, const char* format, ...) {
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
   va_end(args);
+
 #ifndef DETECTED_OS_WINDOWS
   this->printf("%sWARNING%s (%s): %s", C_YELLOW, C_NORM, source, buff);
 #else

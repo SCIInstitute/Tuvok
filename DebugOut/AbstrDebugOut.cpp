@@ -97,3 +97,19 @@ void AbstrDebugOut::SetShowErrors(bool bShowErrors) {
 void AbstrDebugOut::SetShowOther(bool bShowOther) {
   m_bShowOther = bShowOther;
 }
+
+
+void AbstrDebugOut::ReplaceSpecialChars(char* buff, size_t iSize) const {
+  std::string s = buff;
+
+  size_t j=0;
+  for (;(j = s.find( "%", j )) != std::string::npos;)
+  {
+    s.replace( j, 1, "%%" );
+    j+=2;
+  }
+
+  size_t iLength = std::min(s.length(), iSize-1);
+  memcpy(buff, s.c_str(), iLength);
+  buff[iLength] = 0;
+}

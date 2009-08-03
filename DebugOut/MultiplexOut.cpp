@@ -89,7 +89,7 @@ void MultiplexOut::printf(const char* format, ...) const
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
   va_end(args);
-
+  ReplaceSpecialChars(buff, 16384);
   for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->printf(buff);
 }
 
@@ -103,6 +103,7 @@ void MultiplexOut::Message(const char* source, const char* format, ...) {
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
   va_end(args);
+  ReplaceSpecialChars(buff, 16384);
   for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->Message(source,buff);
 }
 
@@ -116,6 +117,7 @@ void MultiplexOut::Warning(const char* source, const char* format, ...) {
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
   va_end(args);
+  ReplaceSpecialChars(buff, 16384);
   for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->Warning(source,buff);
 }
 
@@ -129,6 +131,7 @@ void MultiplexOut::Error(const char* source, const char* format, ...) {
   vsnprintf( buff, sizeof(buff), format, args);
 #endif
   va_end(args);
+  ReplaceSpecialChars(buff, 16384);
   for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->Error(source,buff);
 }
 
