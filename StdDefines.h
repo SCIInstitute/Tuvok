@@ -47,6 +47,14 @@
 typedef unsigned int UINT32;
 typedef unsigned char BYTE;
 
+// Make sure windows doesn't give us stupid macros that interfere with
+// functions in 'std'.
+#define NOMINMAX
+// Disable checked iterators on Windows.
+#ifndef _DEBUG
+# define _SECURE_SCL 0
+#endif
+
 #define UNUSED (0)
 #define UNUSED_FLOAT (0.0f)
 #define UNUSED_DOUBLE (0.0)
@@ -105,7 +113,5 @@ typedef unsigned char BYTE;
 #ifdef DETECTED_OS_LINUX
   #define TUVOK_DETAILS "Linux build"
 #endif
-
-
 
 #endif // STDDEFINES_H
