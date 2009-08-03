@@ -149,6 +149,45 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, const Progress& progress)
   return t_minmax;
 }
 
+
+
+
+/// Computes the minimum and maximum of a conceptually one dimensional dataset.
+/// Takes policies tell it how to access data && notify external entities of
+/// progress.
+/// @todo shouldn't hardcode INCORESIZE in here.
+template <typename T, template <typename T> class DataSrc, class Progress> std::pair<T,T> io_minmax(DataSrc<T> ds, bool bSigned, std::vector<UINT64>& aHist, const Progress& progress)
+{
+  std::vector<T> data(INCORESIZE);
+  boost::uint64_t iPos = 0;
+  boost::uint64_t iSize = ds.size();
+
+  std::pair<T,T> t_minmax(std::numeric_limits<T>::max(),
+                          -(std::numeric_limits<T>::max()-1));
+  while(iPos < iSize) {
+    size_t n_records = ds.read((unsigned char*)(&(data.at(0))),
+                               INCORESIZE*sizeof(T));
+    data.resize(n_records);
+    assert(n_records > 0);
+
+    if(n_records == 0) { break; } // bail out if the read gave us nothing.
+
+    for (size_t i = 0;i<n_records;i++) {
+      unsigned short iValue = (bSigned) ? data[i] + std::numeric_limits<short>::max() : data[i];
+      
+      if (iValue<aHist.size()) aHist[iValue]++;
+
+      t_minmax.first = std::min(t_minmax.first, iValue);
+      t_minmax.second = std::max(t_minmax.second, iValue);
+    }
+
+    iPos += boost::uint64_t(n_records*sizeof(T));
+
+    progress.notify(iPos);
+  }
+  return t_minmax;
+}
+
 template <typename T,
           template <typename T> class DataSrc,
           template <typename T> class DataSink,

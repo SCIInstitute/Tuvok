@@ -149,8 +149,8 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
   UINT64 iDivLast = 0;
 
   std::pair<unsigned short,unsigned short> minmax;
-  minmax = io_minmax(raw_data_src<unsigned short>(strFilename.c_str()),
-                     TuvokProgress<UINT64>(iSize));
+  minmax = io_minmax(raw_data_src<unsigned short>(strFilename.c_str()), 
+                     bSigned, aHist, TuvokProgress<UINT64>(iSize));
   iMin = minmax.first;
   iMax = minmax.second;
 
@@ -159,6 +159,7 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
   if (iMax < 4096) {
     MESSAGE("No quantization required (min=%i, max=%i)", iMin, iMax);
     aHist.resize(iMax+1);  // size is the maximum value plus one (the zero value)
+
     delete [] pInData;
     InputData.Close();
     strQuantFile = strFilename;
