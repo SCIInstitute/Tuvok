@@ -142,7 +142,7 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, const Progress& progress)
     t_minmax.first = std::min(t_minmax.first, *cur_mm.first);
     t_minmax.second = std::max(t_minmax.second, *cur_mm.second);
 
-    iPos += boost::uint64_t(n_records*sizeof(T));
+    iPos += boost::uint64_t(n_records);
 
     progress.notify(iPos);
   }
@@ -181,7 +181,7 @@ template <typename T, template <typename T> class DataSrc, class Progress> std::
       t_minmax.second = std::max(t_minmax.second, iValue);
     }
 
-    iPos += boost::uint64_t(n_records*sizeof(T));
+    iPos += boost::uint64_t(n_records);
 
     progress.notify(iPos);
   }
