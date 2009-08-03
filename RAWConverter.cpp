@@ -788,7 +788,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSk
   UINT64 iCopiedSize = 0;
 
   do {
-    MESSAGE("Writing output data\n%g percent completed", 100.0f*float(iCopiedSize)/float(iSourceSize));
+    MESSAGE("Writing output data\n%g%% completed", 100.0f*float(iCopiedSize)/float(iSourceSize));
 
     iCopySize = fSource.ReadRAW(pBuffer, iCopySize);
 

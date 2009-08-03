@@ -58,7 +58,7 @@ template <typename T>
 struct TuvokProgress {
   TuvokProgress(T total) : tMax(total) {}
   void notify(T current) const {
-    MESSAGE("Computing value range (%5.3f percent complete).",
+    MESSAGE("Computing value range (%5.3f%% complete).",
             static_cast<double>(current) / static_cast<double>(tMax)*100.0);
   }
   private: T tMax;

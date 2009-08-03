@@ -740,7 +740,7 @@ void RasterDataBlock::SubSample(LargeRAWFile* pSourceFile,
         uCount = uItersPerUpdate;
         float fCurrentOutput = (100.0f*i)/float(iTargetElementCount);
         pDebugOut->Message(_func_, "Generating data for lod level %i of %i:"
-                           "%6.2f percent completed", int(iLODLevel+1),
+                           "%6.2f%% completed", int(iLODLevel+1),
                            int(iMaxLODLevel), fCurrentOutput);
       }
 

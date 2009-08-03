@@ -174,7 +174,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 void I3MConverter::Compute8BitGradientVolumeInCore(unsigned char* pSourceData, unsigned char* pTargetData, const UINTVECTOR3& vSize) {
   for (size_t z = 0;z<size_t(vSize[2]);z++) {
-    MESSAGE("Computing gradients in slice %i of %i\n(%g percent completed)", z+1, vSize[2], 100.0f*float(z+1)/float(vSize[2]));
+    MESSAGE("Computing gradients in slice %i of %i\n(%g%% completed)", z+1, vSize[2], 100.0f*float(z+1)/float(vSize[2]));
     for (size_t y = 0;y<size_t(vSize[1]);y++) {
       for (size_t x = 0;x<size_t(vSize[0]);x++) {
 
@@ -224,7 +224,7 @@ void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDense
   size_t iTargetIndex = 0;
   size_t iSourceIndex = 0;
   for (size_t z = 0;z<size_t(vSmallSize[2]);z++) {
-    MESSAGE("Downsampling data in slice %i of %i\n(%g percent completed)", z+1, vSmallSize[2], 100.0f*float(z+1)/float(vSmallSize[2]));
+    MESSAGE("Downsampling data in slice %i of %i\n(%g%% completed)", z+1, vSmallSize[2], 100.0f*float(z+1)/float(vSmallSize[2]));
     for (size_t y = 0;y<size_t(vSmallSize[1]);y++) {
       for (size_t x = 0;x<size_t(vSmallSize[0]);x++) {
 
