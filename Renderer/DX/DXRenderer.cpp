@@ -257,10 +257,10 @@ bool DXRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 void DXRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
 }
 
-void DXRenderer::RenderBBox(const FLOATVECTOR4 vColor) {
+void DXRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset) {
 }
 
-void DXRenderer::RenderBBox(const FLOATVECTOR4 vColor, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend) {
+void DXRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend) {
 }
 
 void DXRenderer::NewFrameClear(ERenderArea eREnderArea) {

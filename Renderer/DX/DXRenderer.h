@@ -107,8 +107,9 @@ class DXRenderer : public AbstrRenderer {
     void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight);
 
     bool Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex);
-    void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1));
-    void RenderBBox(const FLOATVECTOR4 vColor, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
+    void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1), bool bEpsilonOffset=true);
+    void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter,
+                    const FLOATVECTOR3& vExtend);
     void NewFrameClear(ERenderArea eREnderArea);
     bool Execute3DFrame(ERenderArea eREnderArea, float &fMsecPassed);
     void RerenderPreviousResult(bool bTransferToFramebuffer);

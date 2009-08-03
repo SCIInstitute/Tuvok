@@ -866,20 +866,23 @@ void GLRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
   m_maMIPRotation = matRotDir * matFlipX * matFlipY * m_maMIPRotation;
 }
 
-void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor) {
+void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset) {
   UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize();
   FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetInfo().GetScale());
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
 
   FLOATVECTOR3 vCenter(0,0,0);
-  RenderBBox(vColor, vCenter, vExtend);
+  RenderBBox(vColor, bEpsilonOffset, vCenter, vExtend);
 }
 
-void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend) {
+void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend) {
   FLOATVECTOR3 vMinPoint, vMaxPoint;
 
-  FLOATVECTOR3 vEExtend(vExtend+0.001f);
+  FLOATVECTOR3 vEExtend(vExtend+(bEpsilonOffset ? 0.003f : 0)); 
+                                         // increase the size of the bbox by 
+                                         // epsilon = 0.003 to avoid the data
+                                         // z-fighting with the bbox when requested
 
   vMinPoint = (vCenter - vEExtend/2.0);
   vMaxPoint = (vCenter + vEExtend/2.0);
@@ -1580,7 +1583,7 @@ void GLRenderer::BBoxPreRender() {
       for (UINT64 iCurrentBrick = 0;
            iCurrentBrick < m_vCurrentBrickList.size();
            iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1),
+        RenderBBox(FLOATVECTOR4(0,1,0,1), false,
                    m_vCurrentBrickList[iCurrentBrick].vCenter,
                    m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
@@ -1593,7 +1596,7 @@ void GLRenderer::BBoxPreRender() {
       for (UINT64 iCurrentBrick = 0;
            iCurrentBrick < m_vCurrentBrickList.size();
            iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1),
+        RenderBBox(FLOATVECTOR4(0,1,0,1), false,
                    m_vCurrentBrickList[iCurrentBrick].vCenter,
                    m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
@@ -1613,7 +1616,7 @@ void GLRenderer::BBoxPostRender() {
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
       for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1), m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
+        RenderBBox(FLOATVECTOR4(0,1,0,1), false, m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
     glEnable(GL_DEPTH_TEST);
