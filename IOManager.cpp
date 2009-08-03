@@ -188,7 +188,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
     string strTempMergeFilename = strTempDir + SysTools::GetFilename(strTargetFilename) + "~";
 
-    MESSAGE("    Creating intermediate file %s", strTempMergeFilename.c_str());
+    MESSAGE("Creating intermediate file %s", strTempMergeFilename.c_str());
 
     ofstream fs;
     fs.open(strTempMergeFilename.c_str(),fstream::binary);
@@ -225,6 +225,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
       } else {
         // the first call does a "new" on pData
         pDICOMStack->m_Elements[j]->GetData((void**)&pData);
+        MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), (100*j)/pDICOMStack->m_Elements.size());
       }
 
 
@@ -299,7 +300,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
         MESSAGE("  Stack contains %i files",  int(pStack->m_Elements.size()));
 
         string strTempMergeFilename = strTempDir + SysTools::GetFilename(strTargetFilename) + "~";
-        MESSAGE("    Creating intermediate file %s", strTempMergeFilename.c_str());
+        MESSAGE("Creating intermediate file %s", strTempMergeFilename.c_str());
 
         ofstream fs;
         fs.open(strTempMergeFilename.c_str(),fstream::binary);
@@ -314,6 +315,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
           UINT32 iDataSize = pStack->m_Elements[j]->GetDataSize();
           fs.write(pData, iDataSize);
+          MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), (100*j)/pStack->m_Elements.size());
         }
         delete [] pData;
 
