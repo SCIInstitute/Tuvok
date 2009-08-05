@@ -34,6 +34,7 @@
   \date    January 2009
 */
 
+#include <cstring>
 #include "AbstrDebugOut.h"
 
 void AbstrDebugOut::PrintErrorList() {
@@ -110,6 +111,6 @@ void AbstrDebugOut::ReplaceSpecialChars(char* buff, size_t iSize) const {
   }
 
   size_t iLength = std::min(s.length(), iSize-1);
-  memcpy(buff, s.c_str(), iLength);
+  std::memcpy(buff, s.c_str(), iLength);
   buff[iLength] = 0;
 }
