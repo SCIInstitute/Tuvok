@@ -103,6 +103,7 @@ HEADERS += \
            IO/KeyValueFileParser.h \
            IO/Metadata.h \
            IO/NRRDConverter.h \
+           IO/Quantize.h \
            IO/QVISConverter.h \
            IO/RAWConverter.h \
            IO/REKConverter.h \
