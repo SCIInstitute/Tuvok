@@ -52,6 +52,7 @@ typedef unsigned char BYTE;
 #define NOMINMAX
 // Disable checked iterators on Windows.
 #ifndef _DEBUG
+# undef _SECURE_SCL
 # define _SECURE_SCL 0
 #endif
 
