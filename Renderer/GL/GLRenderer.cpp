@@ -261,7 +261,7 @@ bool GLRenderer::Initialize() {
 
 void GLRenderer::Set1DTrans(const std::vector<unsigned char>& rgba)
 {
-  AbstrRenderer::Set1DTrans(rgba);
+  AbstrRenderer::Free1DTrans();
 
   GPUMemMan& mm = *(Controller::Instance().MemMan());
   std::pair<TransferFunction1D*, GLTexture1D*> tf;

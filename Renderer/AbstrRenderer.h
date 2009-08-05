@@ -201,7 +201,7 @@ class AbstrRenderer {
 
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
     TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
-    virtual void Set1DTrans(const std::vector<unsigned char>& rgba);
+    virtual void Set1DTrans(const std::vector<unsigned char>& rgba) = 0;
 
     /** Notify renderer that 1D TF has changed.  In most cases, this will cause
      * the renderer to start anew. */
@@ -386,6 +386,11 @@ class AbstrRenderer {
     void SetScalingMethod(enum ScalingMethod sm) {
       this->m_TFScalingMethod = sm;
     }
+
+  protected:
+    /// Unsets the current transfer function, including deleting it from GPU
+    /// memory.  It's expected you'll set another one directly afterwards.
+    void Free1DTrans();
 
   protected:
     MasterController*   m_pMasterController;
