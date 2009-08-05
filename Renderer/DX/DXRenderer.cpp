@@ -121,6 +121,18 @@ void DXRenderer::Changed2DTrans() {
 
 }
 
+void DXRenderer::Set1DTrans(std::vector<unsigned char>& rgba)
+{
+  Free1DTrans();
+  
+  GPUMemMan& mm = *(Controller::Instance().MemMan());
+  std::pair<TransferFunction1D*, DXTexture1D*> tf;
+  tf = mm.SetExternal1DTrans(rgba, this);
+
+  m_p1DTrans = tf.first;
+  m_p1DTransTex = tf.second;
+}
+
 void DXRenderer::Resize(const UINTVECTOR2& vWinSize) {
   // call the parent
   AbstrRenderer::Resize(vWinSize);

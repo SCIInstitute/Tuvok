@@ -59,10 +59,7 @@ class DXRenderer : public AbstrRenderer {
     virtual bool Initialize();
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();
-
-    /// @todo Implement this: it should delete the current TF and then
-    /// upload the given one as a new one.
-    //void Set1DTrans(std::vector<unsigned char>&);
+    void Set1DTrans(std::vector<unsigned char>&);
 
     /** Set the bit depth mode of the offscreen buffer used for blending.  Causes a full redraw. */
     virtual void SetBlendPrecision(EBlendPrecision eBlendPrecision);
