@@ -138,9 +138,6 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
 
   if (!InputData.IsOpen()) return "";
 
-  std::vector<UINT64> aHist(4096);
-  std::fill(aHist.begin(), aHist.end(), 0);
-
   // determine max and min
   unsigned short iMax = 0;
   unsigned short iMin = std::numeric_limits<unsigned short>::max();
@@ -148,9 +145,13 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
 
+  std::vector<UINT64> aHist(4096);
+  std::fill(aHist.begin(), aHist.end(), 0);
+
   std::pair<unsigned short,unsigned short> minmax;
-  minmax = io_minmax(raw_data_src<unsigned short>(strFilename.c_str()), 
-                     bSigned, aHist, TuvokProgress<UINT64>(iSize));
+  minmax = io_minmax(raw_data_src<unsigned short>(InputData),
+                     Unsigned12BitHistogram<unsigned short>(aHist),
+                     TuvokProgress<UINT64>(iSize));
   iMin = minmax.first;
   iMax = minmax.second;
 
@@ -249,8 +250,12 @@ AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
 
+  std::vector<UINT64> aHist(4096);
+  std::fill(aHist.begin(), aHist.end(), 0);
+
   std::pair<float,float> minmax;
-  minmax = io_minmax(raw_data_src<float>(strFilename.c_str()),
+  minmax = io_minmax(raw_data_src<float>(InputData),
+                     Unsigned12BitHistogram<float>(aHist),
                      TuvokProgress<UINT64>(iSize));
   fMin = minmax.first;
   fMax = minmax.second;
@@ -265,14 +270,8 @@ AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
     return "";
   }
 
-  MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)",
-          fMin, fMax);
-
   float fQuantFact = 4095.0f / float(fMax-fMin);
   unsigned short* pOutData = new unsigned short[INCORESIZE];
-
-  std::vector<UINT64> aHist(4096);
-  std::fill(aHist.begin(), aHist.end(), 0);
 
   InputData.SeekStart();
   iPos = 0;
@@ -328,8 +327,12 @@ AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip,
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
 
+  std::vector<UINT64> aHist(4096);
+  std::fill(aHist.begin(), aHist.end(), 0);
+
   std::pair<double,double> minmax;
-  minmax = io_minmax(raw_data_src<double>(strFilename.c_str()),
+  minmax = io_minmax(raw_data_src<double>(InputData),
+                     Unsigned12BitHistogram<double>(aHist),
                      TuvokProgress<UINT64>(iSize));
   fMin = minmax.first;
   fMax = minmax.second;
@@ -349,9 +352,6 @@ AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip,
 
   double fQuantFact = 4095 / (fMax-fMin);
   unsigned short* pOutData = new unsigned short[INCORESIZE];
-
-  std::vector<UINT64> aHist(4096);
-  std::fill(aHist.begin(), aHist.end(), 0);
 
   InputData.SeekStart();
   iPos = 0;
