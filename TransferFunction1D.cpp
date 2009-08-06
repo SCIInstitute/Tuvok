@@ -187,10 +187,6 @@ void TransferFunction1D::Set(const std::vector<unsigned char>& tf)
   assert(tfmin[1] <= tfmax[1]);
   assert(tfmin[2] <= tfmax[2]);
   assert(tfmin[3] <= tfmax[3]);
-  MESSAGE("r min/max: %hhu:%hhu", tfmin[0], tfmax[0]);
-  MESSAGE("g min/max: %hhu:%hhu", tfmin[1], tfmax[1]);
-  MESSAGE("b min/max: %hhu:%hhu", tfmin[2], tfmax[2]);
-  MESSAGE("a min/max: %hhu:%hhu", tfmin[3], tfmax[3]);
 
   for(size_t i=0; i < vColorData.size(); ++i) {
     vColorData[i] = FLOATVECTOR4(
