@@ -35,11 +35,12 @@
 */
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
+#include <cassert>
 
 #include <Basics/DynamicDX.h>
-
-
 #include "DXRenderer.h"
+
+#include "DXTexture1D.h"
 #include <Controller/Controller.h>
 #include <Basics/SysTools.h>
 #include <ctime>
@@ -121,13 +122,15 @@ void DXRenderer::Changed2DTrans() {
 
 }
 
-void DXRenderer::Set1DTrans(std::vector<unsigned char>& rgba)
+void DXRenderer::Set1DTrans(const std::vector<unsigned char>&)
 {
   Free1DTrans();
   
-  GPUMemMan& mm = *(Controller::Instance().MemMan());
   std::pair<TransferFunction1D*, DXTexture1D*> tf;
-  tf = mm.SetExternal1DTrans(rgba, this);
+  /// @todo FIXME GPUMemMan needs to account for DX.
+  assert(1 == 0); // make sure this comment gets noticed!  
+  //GPUMemMan& mm = *(Controller::Instance().MemMan());
+  //tf = mm.SetExternal1DTrans(rgba, this);
 
   m_p1DTrans = tf.first;
   m_p1DTransTex = tf.second;

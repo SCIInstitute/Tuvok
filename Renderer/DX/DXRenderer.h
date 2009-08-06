@@ -50,6 +50,7 @@
 #include "../AbstrRenderer.h"
 #include "../../Basics/DynamicDX.h"
 
+class DXTexture1D;
 class MasterController;
 
 class DXRenderer : public AbstrRenderer {
@@ -59,7 +60,7 @@ class DXRenderer : public AbstrRenderer {
     virtual bool Initialize();
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();
-    void Set1DTrans(std::vector<unsigned char>&);
+    virtual void Set1DTrans(const std::vector<unsigned char>&);
 
     /** Set the bit depth mode of the offscreen buffer used for blending.  Causes a full redraw. */
     virtual void SetBlendPrecision(EBlendPrecision eBlendPrecision);
@@ -149,6 +150,9 @@ class DXRenderer : public AbstrRenderer {
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();
     void RenderCoordArrows();
+
+  private:
+    DXTexture1D*    m_p1DTransTex;
 
 };
 #endif // DXRENDERER_H
