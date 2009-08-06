@@ -65,6 +65,6 @@ public:
                                FLOATVECTOR3 vVolumeAspect,
                                bool bNoUserInteraction);
 
-  virtual bool CanExportData() const { return false; }
+  virtual bool CanExportData() const { return true; }
 };
 #endif // BOVCONVERTER_H

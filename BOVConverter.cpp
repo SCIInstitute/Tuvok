@@ -33,6 +33,7 @@
            University of Utah
 */
 #include <cstdarg>
+#include <fstream>
 #include <sstream>
 #include "BOVConverter.h"
 #include "IO/KeyValueFileParser.h"
@@ -130,17 +131,48 @@ bool BOVConverter::ConvertToRAW(
   return true;
 }
 
-bool BOVConverter::ConvertToNative(
-                               const std::string&,
-                               const std::string&,
-                               UINT64, UINT64,
-                               UINT64, bool,
-                               bool,  UINTVECTOR3,
-                               FLOATVECTOR3,
-                               bool)
+bool BOVConverter::ConvertToNative(const std::string& raw,
+                                   const std::string& target,
+                                   UINT64 skip, UINT64 component_size,
+                                   UINT64 n_components, bool is_signed,
+                                   bool fp, UINTVECTOR3 dimensions,
+                                   FLOATVECTOR3 aspect, bool batch)
 {
-  /// \todo implement?
-  return false; // unsupported.
+  std::string fn_data = SysTools::RemoveExt(target);
+
+  std::ofstream header(target.c_str(), std::ios::out | std::ios::trunc);
+
+  std::string data_format;
+  switch(component_size) {
+    case 8: data_format = "BYTE"; break;
+    case 16: data_format = "SHORT"; break;
+    case 32:
+      if(fp) { data_format = "FLOAT"; }
+      else   { data_format = "INT"; }
+      break;
+    case 64:
+      // In BOV, a 64bit integer dataset is a 2-component 32-bit integer
+      // dataset.  As far as I can tell...
+      if(fp) { data_format = "DOUBLE"; }
+      else   { data_format = "INT"; }
+      break;
+  }
+  header << "DATA_FILE: " << raw << ".data" << std::endl
+         << "DATA SIZE: "
+            << dimensions[0] << " " << dimensions[1] << " " << dimensions[2]
+         << std::endl
+         << "DATA FORMAT: " << data_format << std::endl
+         << "DATA_COMPONENTS: " << n_components << std::endl
+         << "VARIABLE: from_imagevis3d" << std::endl
+         << "BRICK_SIZE: "
+            << dimensions[0] << " " << dimensions[1] << " " << dimensions[2]
+         << std::endl;
+  header.close();
+
+  // copy the raw file.
+  return RAWConverter::ConvertToNative(raw, raw + ".data", skip,
+                                       component_size, n_components, is_signed,
+                                       fp, dimensions, aspect, batch);
 }
 
 static DataType
