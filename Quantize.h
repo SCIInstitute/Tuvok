@@ -180,13 +180,14 @@ template<typename T> struct Unsigned12BitHistogram {
     // Calculate our bias factor up front.
     typename ctti<T>::size_type bias;
     bias = static_cast<typename ctti<T>::size_type>
-                      (std::fabs(std::numeric_limits<T>::min()));
+                      (std::fabs(static_cast<double>
+                                 (std::numeric_limits<T>::min())));
 
     if(static_cast<typename ctti<T>::size_type>(value) < histo.size()) {
       typename ctti<T>::size_type u_value;
       u_value = ctti<T>::is_signed ? value + bias : value;
       if(u_value < histo.size()) {
-        ++histo[u_value];
+        ++histo[static_cast<size_t>(u_value)];
       }
     }
   }
