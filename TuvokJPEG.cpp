@@ -97,8 +97,9 @@ struct j_implementation : public JPEG::j_impl {
       T_ERROR("Could not read JPEG header, bailing...");
       return;
     }
-    jpeg_start_decompress(&(this->jinfo));
-    started = true;
+    if(jpeg_start_decompress(&(this->jinfo))) {
+      started = true;
+    }
   }
 
   virtual ~j_implementation() {
@@ -108,8 +109,8 @@ struct j_implementation : public JPEG::j_impl {
     // finish.  Just live with the warning, or fix the issue in libjpeg itself.
     if(started) {
       jpeg_finish_decompress(&this->jinfo);
-      jpeg_destroy_decompress(&this->jinfo);
     }
+    jpeg_destroy_decompress(&this->jinfo);
   }
   std::vector<char> data;       ///< hunk of memory we'll read the jpeg from.
   bool started;                 ///< whether we've started decompressing
@@ -160,14 +161,9 @@ const char* JPEG::data()
   j_implementation *jimpl = dynamic_cast<j_implementation*>(this->jpeg_impl);
 
   {
-    void *jbuffer = NULL;
+    JSAMPLE *jbuffer = NULL;
     const size_t row_sz = this->w * this->bpp;
-    jbuffer = (*jimpl->jinfo.mem->alloc_sarray)(
-                 (j_common_ptr) &(jimpl->jinfo),
-                 JPOOL_IMAGE,
-                 JDIMENSION(row_sz),
-                 1
-              );
+    jbuffer = new JSAMPLE[row_sz];
 
     assert(this->h == jimpl->jinfo.output_height);
     assert(this->height() == jimpl->jinfo.output_height);
@@ -184,7 +180,12 @@ const char* JPEG::data()
       std::memcpy(data + ((jimpl->jinfo.output_scanline-1)*row_sz),
                   jbuffer, row_sz);
     }
+    delete[] jbuffer;
   }
+  // This would happen in our destructor anyway, but we might as clean up ASAP.
+  delete this->jpeg_impl;
+  this->jpeg_impl = NULL;
+
   return &this->buffer.at(0);
 }
 
@@ -229,12 +230,15 @@ fill_buffer_from_file(std::vector<char>& buf, const char *fn,
 {
   std::ifstream ifs(fn, std::ifstream::binary);
 
+  if(!ifs.is_open()) {
+    return;
+  }
   // get filesize.
   ifs.seekg(0, std::ios::end);
   std::ifstream::pos_type file_size = ifs.tellg() - offset;
   ifs.seekg(offset, std::ios::beg);
 
-  MESSAGE("Reading %d byte file.", static_cast<unsigned int>(file_size));
+  MESSAGE("Reading %u byte file.", static_cast<unsigned int>(file_size));
 
   // resize our buffer to be big enough for the file
   try {
