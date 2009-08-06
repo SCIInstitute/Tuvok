@@ -21,12 +21,14 @@ LargeRAWFile::LargeRAWFile(const std::wstring& wstrFilename, UINT64 iHeaderSize)
 }
 
 LargeRAWFile::LargeRAWFile(LargeRAWFile &other) :
-  m_strFilename(other.m_strFilename+"~"),
+  m_strFilename(other.m_strFilename),
   m_bIsOpen(other.m_bIsOpen),
   m_bWritable(other.m_bWritable),
   m_iHeaderSize(other.m_iHeaderSize)
 {
-  if (m_bIsOpen) {
+  /// @todo !?!? need a better fix, a copy constructor shouldn't be expensive.
+  if (m_bIsOpen && m_bWritable) {
+    m_strFilename += "~";
     UINT64 iDataSize = other.GetCurrentSize();
     Create(iDataSize);
 

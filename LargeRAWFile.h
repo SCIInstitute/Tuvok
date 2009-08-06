@@ -41,7 +41,7 @@ public:
   LargeRAWFile(LargeRAWFile &other);
   virtual ~LargeRAWFile() {Close();}
 
-  bool Open(bool bReadWrite);
+  bool Open(bool bReadWrite=false);
   bool IsOpen() const { return m_bIsOpen;}
   bool IsWritable() const { return m_bWritable;}
   bool Create(UINT64 iInitialSize=0);
