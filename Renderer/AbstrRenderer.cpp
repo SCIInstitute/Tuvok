@@ -269,6 +269,7 @@ void AbstrRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
 void AbstrRenderer::SetDataset(Dataset *vds)
 {
   if(m_pDataset) {
+    Controller::Instance().MemMan()->FreeDataset(vds, this);
     delete m_pDataset;
   }
   m_pDataset = vds;
