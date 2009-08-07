@@ -35,6 +35,7 @@
 //
 //!    Copyright (C) 2009 SCI Institute
 
+#include "StdTuvokDefines.h"
 #include <algorithm>
 #include <fstream>
 #include <limits>
