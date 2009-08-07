@@ -117,7 +117,13 @@ template<typename T> struct type2enum {};
 template<> struct type2enum<float> {
   enum { value = UnbrickedDSMetadata::MDT_FLOAT };
 };
+template<> struct type2enum<const float> {
+  enum { value = UnbrickedDSMetadata::MDT_FLOAT };
+};
 template<> struct type2enum<unsigned char> {
+  enum { value = UnbrickedDSMetadata::MDT_BYTE };
+};
+template<> struct type2enum<const unsigned char> {
   enum { value = UnbrickedDSMetadata::MDT_BYTE };
 };
 
@@ -151,22 +157,24 @@ set_data(T *data, size_t len, std::vector<unsigned char>& into,
 
 }; // anonymous namespace.
 
-void UnbrickedDataset::SetData(float *data, size_t len)
+void UnbrickedDataset::SetData(const float *data, size_t len)
 {
   UnbrickedDSMetadata &metadata =
     dynamic_cast<UnbrickedDSMetadata&>(this->GetInfo());
-  std::pair<double,double> mmax = set_data(data, len, m_vScalar, metadata);
+  std::pair<double,double> mmax = set_data(data, len, this->m_vScalar,
+                                           metadata);
   if(range_has_not_been_set(metadata)) {
     metadata.SetRange(mmax);
   }
   Recalculate1DHistogram();
 }
 
-void UnbrickedDataset::SetData(unsigned char *data, size_t len)
+void UnbrickedDataset::SetData(const unsigned char *data, size_t len)
 {
   UnbrickedDSMetadata &metadata =
     dynamic_cast<UnbrickedDSMetadata&>(this->GetInfo());
-  std::pair<double,double> mmax = set_data(data, len, m_vScalar, metadata);
+  std::pair<double,double> mmax = set_data(data, len, this->m_vScalar,
+                                           metadata);
   if(range_has_not_been_set(metadata)) {
     metadata.SetRange(mmax);
   }

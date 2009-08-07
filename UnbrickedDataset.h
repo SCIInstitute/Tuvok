@@ -63,8 +63,8 @@ public:
   void SetHistogram(const std::vector<UINT32>&);
   void SetHistogram(const std::vector<std::vector<UINT32> >&);
 
-  void SetData(float *, size_t len);
-  void SetData(unsigned char*, size_t len);
+  void SetData(const float *, size_t len);
+  void SetData(const unsigned char *, size_t len);
   void SetGradientMagnitude(float *gmn, size_t len);
   ///@}
 
