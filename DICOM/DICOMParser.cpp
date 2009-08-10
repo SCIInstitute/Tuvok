@@ -197,14 +197,14 @@ void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, shor
     if (i==27) {
       DICOM_DBG("WARNING: Reader could not interpret type %c%c (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], iGroupID, iElementID, iElemLength);
     } else {
-      DICOM_DBG("Reader could interpret type %c%c (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], iGroupID, iElementID, iElemLength);
+      DICOM_DBG("Read type %c%c field (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], iGroupID, iElementID, iElemLength);
     }
   }
 
-  if (eElementType == TYPE_OB && iElemLength == 0) {
+  if ((eElementType == TYPE_OB || eElementType == TYPE_UT) && iElemLength == 0) {
     fileDICOM.read((char*)&iElemLength,4);
     if (bNeedsEndianConversion) iElemLength = EndianConvert::Swap<UINT32>(iElemLength);
-    DICOM_DBG("Reader found 0 length OB field and read the length again which is now (iElemLength=%i)\n", iElemLength);
+    DICOM_DBG("Reader found zero length %c%c field and read the length again which is now (iElemLength=%i)\n", typeString[0], typeString[1], iElemLength);
   }
 }
 
@@ -298,24 +298,21 @@ void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& , short& 
             ParseUndefLengthSequence(fileDICOM, iGroupID, iElementID, info, bImplicit, bNeedsEndianConversion);
           #endif
         } else {
-          // In a debug build, crash and burn so we know where the error
-          // occurred.
-          // In release, nudge up the data value so we're guaranteed to make
-          // progress; otherwise the application can hang in an infinite loop
-          // of reading 0's.
-          assert(iData > 0);
-          if(iData == 0) { iData = 1; }
-
-          value.resize(iData);
-          fileDICOM.read(&value[0],iData);
-          #ifdef DEBUG_DICOM
-            for (UINT32 i = 0;i<iDepth;i++) Console::printf("  ");
-            Console::printf("iGroupID=%x iElementID=%x elementType=%s value=%s\n", iGroupID, iElementID, DICOM_TypeStrings[int(elementType)].c_str(), value.c_str());
-          #endif
+          if(iData > 0) {            
+            value.resize(iData);
+            fileDICOM.read(&value[0],iData);
+            #ifdef DEBUG_DICOM
+              for (UINT32 i = 0;i<iDepth;i++) Console::printf("  ");
+              Console::printf("iGroupID=%x iElementID=%x elementType=%s value=%s\n", iGroupID, iElementID, DICOM_TypeStrings[int(elementType)].c_str(), value.c_str());
+            #endif
+          } else {
+            #ifdef DEBUG_DICOM
+              Console::printf("iGroupID=%x iElementID=%x elementType=%s value=empty\n", iGroupID, iElementID, DICOM_TypeStrings[int(elementType)].c_str());
+            #endif
+          }
         }
       }
     }
-
   } while (iData != 0xE0DDFFFE && !fileDICOM.eof());
   fileDICOM.read((char*)&iData,4);
 
@@ -458,7 +455,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
   }
 
   do {
-    if (elementType == TYPE_SQ) { // skip sequences (explicit)
+    if (elementType == TYPE_SQ) { // read explicit sequence
       fileDICOM.read((char*)&iElemLength,4);
       if (iElemLength == 0xFFFFFFFF) {
         #ifdef DEBUG_DICOM
@@ -473,7 +470,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
         fileDICOM.read(&value[0],iElemLength);
         value = "SKIPPED EXPLICIT SEQUENCE";
       }
-    } else if (elementType == TYPE_Implicit && iElemLength == 0xFFFFFFFF) { // skip sequences (implicit)
+    } else if (elementType == TYPE_Implicit && iElemLength == 0xFFFFFFFF) { // read implicit sequence
         #ifdef DEBUG_DICOM
         ParseUndefLengthSequence(fileDICOM, iGroupID, iElementID, info, true, bNeedsEndianConversion, 1);
         #else
