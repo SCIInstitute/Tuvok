@@ -1789,9 +1789,6 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   /* Bail if the user doesn't want to use or see the plane. */
   if(!m_bClipPlaneOn || !m_bClipPlaneDisplayed) { return ; }
 
-  /* Must match the vEye from SetViewPort; we should probably abstract this out
-   * to a namespace/set of const statics.. */
-  const FLOATVECTOR3 vEye(0,0,1.6f);
   FLOATVECTOR4 vColorQuad(0.0f,0.0f,0.8f,0.4f);
   FLOATVECTOR4 vColorBorder(1.0f,1.0f,0.0f,1.0f);
   FLOATVECTOR3 vTransformedCenter;
@@ -1804,7 +1801,7 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
    * front/back faces. */
   typedef std::vector<FLOATVECTOR3> TriList;
   TriList quad;
-  bool ccw = transformed.Quad(vEye, quad);
+  bool ccw = transformed.Quad(m_vEye, quad);
   if(m_eRenderMode != RM_ISOSURFACE) {
     if(ccw) {
       glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
