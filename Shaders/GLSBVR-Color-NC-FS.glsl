@@ -52,17 +52,18 @@ void main(void)
   // if we hit (or shot over) an isosurface
   if (fVolumVal.a >= fIsoval) {
     // compute the gradient/normal
-	  float fVolumValXp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).a;
-	  float fVolumValXm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).a;
-	  float fVolumValYp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).a;
-	  float fVolumValYm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).a;
-	  float fVolumValZp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).a;
-	  float fVolumValZm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).a;
+	float fVolumValXp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).a;
+	float fVolumValXm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).a;
+	float fVolumValYp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).a;
+	float fVolumValYm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).a;
+	float fVolumValZp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).a;
+	float fVolumValZm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).a;
     vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp); 
 
     // compute lighting
     vec3 vNormal     = gl_NormalMatrix * vGradient;
     float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
+    vNormal.z = abs(vNormal.z);
     vec3 vViewDir    = normalize(vec3(0,0,0)-vPosition);
     vec3 vLightColor = vLightAmbient * l + (1.0-l) * fVolumVal.rgb +
                        fVolumVal.rgb*clamp(abs(dot(vNormal, -vLightDir)),0.0,1.0);

@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLRaycaster-2D-FS.glsl
+  \file    GLRaycaster-2D-FS-NC.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah

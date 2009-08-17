@@ -103,7 +103,7 @@ void main(void)
       float fVolumVal = texture3D(texVolume, vCurrentPosTex).x;	
 
       /// apply 1D transfer function
-	    vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
+	  vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
 
       /// apply opacity correction
       vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);

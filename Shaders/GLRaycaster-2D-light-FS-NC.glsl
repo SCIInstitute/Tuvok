@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLRaycaster-2D-light-FS.glsl
+  \file    GLRaycaster-2D-light-FS-NC.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah
@@ -53,10 +53,20 @@ uniform vec4 vClipPlane;
 
 varying vec3 vEyePos;
 
+
+vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
+	vNormal.z = abs(vNormal.z);
+
+	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
+	vec3 vReflection = normalize(reflect(vViewDir, vNormal));
+	return vLightAmbient+
+		   vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
+		   vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0);
+}
+
 bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit) {
   return true;
 }
-
 
 vec4 ColorBlend(vec4 src, vec4 dst) {
 	vec4 result = dst;
@@ -112,12 +122,8 @@ void main(void)
       /// compute lighting
       vec3 vNormal     = gl_NormalMatrix * vGradient;
       float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
-      vec3 vViewDir    = normalize(vec3(0,0,0)-vCurrentPos);
-      vec3 vReflection = normalize(reflect(vViewDir, vNormal));
-      vec3 vLightColor = vLightAmbient+
-                         vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)*vTransVal.xyz+
-                         vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0);
-
+      vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient, vLightDiffuse*vTransVal.xyz, vLightSpecular);
+      
       /// apply opacity correction
       vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
       

@@ -55,21 +55,23 @@ void main(void){
   
   // get hit normal
   vec4  vNormalFetch = texture2D(texRayHitNormal, vFragCoords);
-  vec3  vNormal  = abs(vNormalFetch.xyz);
+  vec3  vNormal  = vec3(vNormalFetch.xy,abs(vNormalFetch.z));
 
   // recover color from the two alpha channels
   vec3 vColor = vec3(vPosition.a-1.0, 
                      floor(vNormalFetch.a/2.0)/256.0, 
                      vNormalFetch.a-floor(vNormalFetch.a));
 
-	// compute lighting
-	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition.xyz);
+  // compute lighting
+  vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition.xyz);
   float l = length(vNormal);
+  
+  vNormal.z = abs(vNormal.z);
   vec3 vLightColor = vLightAmbient * l + (1.0-l) * vColor.rgb +
                      vColor.rgb*clamp(abs(dot(vNormal, -vLightDir)),0.0,1.0);
 
 	/// write result to fragment color
-	gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0);
+  gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0);
 
   // compute non linear depth from linear eye depth
   gl_FragDepth = vProjParam.x + (vProjParam.y / -vPosition.z);

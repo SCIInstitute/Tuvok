@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLRaycaster-compose-FS.glsl
+  \file    Compose-FS.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah
@@ -46,6 +46,16 @@ uniform vec3 vLightDir;
 uniform vec2 vScreensize;      ///< the size of the screen in pixels
 uniform vec2 vProjParam;       ///< X = far / (far - near)  / Y = (far * near / (near - far))
 
+vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
+	vNormal.z = abs(vNormal.z);
+
+	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
+	vec3 vReflection = normalize(reflect(vViewDir, vNormal));
+	return vLightAmbient+
+		   vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
+		   vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0);
+}
+
 void main(void){
   // compute the coordinates to look up the previous pass
   vec2 vFragCoords = vec2(gl_FragCoord.x / vScreensize.x , gl_FragCoord.y / vScreensize.y);
@@ -56,17 +66,9 @@ void main(void){
   if (vPosition.a == 0.0) discard;
   
   // get hit normal
-  vec3  vNormal  = abs(texture2D(texRayHitNormal, vFragCoords).xyz);
+  vec3  vNormal  = texture2D(texRayHitNormal, vFragCoords).xyz;
 
-	// compute lighting
-	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition.xyz);
-	vec3 vReflection = normalize(reflect(vViewDir, vNormal));
-	vec3 vLightColor = vLightAmbient+
-					   vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
-					   vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0);
-
-	/// write result to fragment color
-	gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0);
+  gl_FragColor = vec4(Lighting(vPosition.xyz, vNormal, vLightAmbient, vLightDiffuse, vLightSpecular),1.0);
 
   // compute non linear depth from linear eye depth
   gl_FragDepth = vProjParam.x + (vProjParam.y / -vPosition.z);

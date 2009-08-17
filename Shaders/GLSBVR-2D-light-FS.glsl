@@ -49,18 +49,28 @@ uniform vec3 vLightDir;
 
 varying vec3 vPosition;
 
+vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
+	vNormal.z = abs(vNormal.z);
+
+	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
+	vec3 vReflection = normalize(reflect(vViewDir, vNormal));
+	return vLightAmbient+
+		   vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
+		   vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0);
+}
+
 void main(void)
 {
   /// get volume value
 	float fVolumVal = texture3D(texVolume, gl_TexCoord[0].xyz).x;	
 
   /// compute the gradient magnitude & normal
-	float fVolumValXp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).x;
-	float fVolumValXm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).x;
-	float fVolumValYp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).x;
-	float fVolumValYm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).x;
-	float fVolumValZp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).x;
-	float fVolumValZm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).x;
+  float fVolumValXp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).x;
+  float fVolumValXm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).x;
+  float fVolumValYp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).x;
+  float fVolumValYm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).x;
+  float fVolumValZp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).x;
+  float fVolumValZm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).x;
   vec3  vGradient = vec3((fVolumValXm-fVolumValXp)/2.0, 
                          (fVolumValYp-fVolumValYm)/2.0,
                          (fVolumValZm-fVolumValZp)/2.0); 
@@ -72,15 +82,11 @@ void main(void)
   /// compute lighting
   vec3 vNormal     = gl_NormalMatrix * vGradient;
   float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
-  vec3 vViewDir    = normalize(vec3(0,0,0)-vPosition);
-  vec3 vReflection = normalize(reflect(vViewDir, vNormal));
-  vec3 vLightColor = vLightAmbient+
-                     vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)*vTransVal.xyz+
-                     vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0);
+  vec3 vLightColor = Lighting(vPosition.xyz, vNormal, vLightAmbient, vLightDiffuse*vTransVal.xyz, vLightSpecular);
 
   /// apply opacity correction
   vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
 
   /// write result to fragment color
-	gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0) * vTransVal.a;
+  gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0) * vTransVal.a;
 }

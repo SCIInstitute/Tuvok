@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLSBVR-ISO-FS.glsl
+  \file    GLSBVR-Color-FS.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah

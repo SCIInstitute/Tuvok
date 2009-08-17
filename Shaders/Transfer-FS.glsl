@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLSBVR-Transfer-FS.glsl
+  \file    Transfer-FS.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah

@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLSBVR-Transfer-FS.glsl
+  \file    Compose-Anaglyphs-FS.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah

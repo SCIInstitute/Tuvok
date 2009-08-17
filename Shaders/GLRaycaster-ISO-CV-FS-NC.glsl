@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLRaycaster-ISO-CV-FS.glsl
+  \file    GLRaycaster-ISO-CV-FS-NC.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah

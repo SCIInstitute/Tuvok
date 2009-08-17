@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLSBVR-2D-FS.glsl
+  \file    2D-slice-FS.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah

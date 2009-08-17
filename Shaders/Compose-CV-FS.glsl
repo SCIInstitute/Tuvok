@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLRaycaster-compose-CV-FS.glsl
+  \file    Compose-CV-FS.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah
@@ -52,6 +52,8 @@ uniform vec3 vCVParam;         ///< X = m_fCVSize / Y = m_fCVContextScale / Z = 
 uniform vec3 vCVPickPos;       ///< 3D position under the mouse
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
+	vNormal.z = abs(vNormal.z);
+
 	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
 	vec3 vReflection = normalize(reflect(vViewDir, vNormal));
 	return vLightAmbient+
