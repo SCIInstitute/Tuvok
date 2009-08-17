@@ -94,7 +94,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_fCVSize(5.5f),
   m_fCVContextScale(1.0f),
   m_fCVBorderScale(60.0f),
-  m_vCVPos(0.5f, 0.5f),
+  m_vCVMousePos(0.5f,0.5f),
+  m_vCVPos(0,0,0,0),
   m_bPerformReCompose(false),
   m_bRequestStereoRendering(false),
   m_bDoStereoRendering(false),
@@ -917,12 +918,11 @@ void AbstrRenderer::SetCVBorderScale(float fScale) {
   }
 }
 
-void AbstrRenderer::SetCVFocusPos(FLOATVECTOR2 vPos) {
-  vPos.y = 1.0f-vPos.y;
-  if (m_vCVPos!= vPos) {
-    m_vCVPos = vPos;
+void AbstrRenderer::SetCVFocusPos(INTVECTOR2 vPos) {
+  if (m_vCVMousePos!= vPos) {
+    m_vCVMousePos = vPos;
     if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE)
-      ScheduleRecompose();
+      CVFocusHasChanged();
   }
 }
 
@@ -973,4 +973,8 @@ void AbstrRenderer::SetStereoEyeDist(float fStereoEyeDist) {
 void AbstrRenderer::SetStereoFocalLength(float fStereoFocalLength) {
   m_fStereoFocalLength = fStereoFocalLength;
   if (m_bDoStereoRendering) ScheduleWindowRedraw(WM_3D);
+}
+
+void AbstrRenderer::CVFocusHasChanged() { 
+  ScheduleRecompose();
 }

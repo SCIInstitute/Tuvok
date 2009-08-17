@@ -154,6 +154,8 @@ class GLRenderer : public AbstrRenderer {
 
     void PreSubframe(ERenderArea);
     void PostSubframe();
+    
+    virtual void  CVFocusHasChanged();
 
   private:
     GLSLProgram*    m_pProgramTrans;

@@ -345,10 +345,8 @@ class AbstrRenderer {
     virtual float GetCVContextScale() const {return m_fCVContextScale;}
     virtual void SetCVBorderScale(float fScale);
     virtual float GetCVBorderScale() const {return m_fCVBorderScale;}
-    virtual void SetCVFocusPos(FLOATVECTOR2 vPos);
-    virtual FLOATVECTOR2 GetCVFocusPos() const {
-      return FLOATVECTOR2(m_vCVPos.x, 1.0f-m_vCVPos.y);
-    }
+    virtual void SetCVFocusPos(INTVECTOR2 vPos);
+    virtual INTVECTOR2 GetCVFocusPos() const {return m_vCVMousePos;}
 
     virtual void ScheduleCompleteRedraw();
     virtual void ScheduleWindowRedraw(EWindowMode eWindow);
@@ -454,7 +452,8 @@ class AbstrRenderer {
     float               m_fCVSize;
     float               m_fCVContextScale;
     float               m_fCVBorderScale;
-    FLOATVECTOR2        m_vCVPos;
+    INTVECTOR2          m_vCVMousePos;
+    FLOATVECTOR4        m_vCVPos;
     bool                m_bPerformReCompose;
     bool                m_bRequestStereoRendering;
     bool                m_bDoStereoRendering;
@@ -495,6 +494,7 @@ class AbstrRenderer {
     std::vector<Brick>  BuildLeftEyeSubFrameBrickList(const std::vector<Brick>& vRightEyeBrickList);
     virtual void        ClearDepthBuffer() = 0;
     virtual void        ClearColorBuffer() = 0;
+    virtual void        CVFocusHasChanged();
 };
 
 #endif // ABSTRRENDERER_H

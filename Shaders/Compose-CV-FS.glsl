@@ -49,7 +49,7 @@ uniform vec3 vLightDir;
 uniform vec2 vScreensize;      ///< the size of the screen in pixels
 uniform vec2 vProjParam;       ///< X = far / (far - near)  / Y = (far * near / (near - far))
 uniform vec3 vCVParam;         ///< X = m_fCVSize / Y = m_fCVContextScale / Z =  m_fCVBorderScale
-uniform vec2 vCVPickPos;       ///< pick position of the mouse
+uniform vec3 vCVPickPos;       ///< 3D position under the mouse
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
 	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
@@ -83,14 +83,14 @@ void main(void){
   vec3  vNormal2   = texture2D(texRayHitNormal2, vFragCoords).xyz;  
 
   // estimate the curvature of the context surface
-	float fCurvatureEstimate = length(
-	                              abs(texture2D(texRayHitNormal,vFragCoords+vec2(+1.0/vScreensize.x,0.0)).xyz-vNormal.xyz) +
-	                              abs(texture2D(texRayHitNormal,vFragCoords+vec2(-1.0/vScreensize.x,0.0)).xyz-vNormal.xyz) +
-	                              abs(texture2D(texRayHitNormal,vFragCoords+vec2(0.0,+1.0/vScreensize.y)).xyz-vNormal.xyz) +
-	                              abs(texture2D(texRayHitNormal,vFragCoords+vec2(0.0,-1.0/vScreensize.y)).xyz-vNormal.xyz)
-				                      );
+  float fCurvatureEstimate = length(
+								  abs(texture2D(texRayHitNormal,vFragCoords+vec2(+1.0/vScreensize.x,0.0)).xyz-vNormal.xyz) +
+								  abs(texture2D(texRayHitNormal,vFragCoords+vec2(-1.0/vScreensize.x,0.0)).xyz-vNormal.xyz) +
+								  abs(texture2D(texRayHitNormal,vFragCoords+vec2(0.0,+1.0/vScreensize.y)).xyz-vNormal.xyz) +
+								  abs(texture2D(texRayHitNormal,vFragCoords+vec2(0.0,-1.0/vScreensize.y)).xyz-vNormal.xyz)
+									  );
 
-  float fDistWeight  = length((vPosition.xyz-texture2D(texRayHitPos, vCVPickPos).xyz)) * vCVParam.x;
+  float fDistWeight  = length(vPosition.xyz-vCVPickPos) * vCVParam.x;
   float blendFac = clamp(max(fCurvatureEstimate * vCVParam.y, clamp(fDistWeight,0.0,1.0)), 0.0,1.0);	
 
   vec4 vFocusColor = vec4(0,0,0,0);

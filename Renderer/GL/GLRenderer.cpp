@@ -1985,8 +1985,11 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
                                           m_vCVColor.y, m_vCVColor.z);
     m_pProgramCVCompose->SetUniformVector("vCVParam",m_fCVSize,
                                           m_fCVContextScale, m_fCVBorderScale);
-    m_pProgramCVCompose->SetUniformVector("vCVPickPos", m_vCVPos.x,
-                                                        m_vCVPos.y);
+
+    FLOATVECTOR4 transPos = m_vCVPos * m_matModelView[iStereoID];
+    m_pProgramCVCompose->SetUniformVector("vCVPickPos", transPos.x,
+                                                        transPos.y,
+                                                        transPos.z);
     m_pFBOCVHit[iStereoID]->Read(2, 0);
     m_pFBOCVHit[iStereoID]->Read(3, 1);
     glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
@@ -2026,4 +2029,30 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
   m_pFBOIsoHit[iStereoID]->FinishRead(0);
 
   m_bPerformReCompose = false;
+}
+
+
+void GLRenderer::CVFocusHasChanged() {
+  // read back the 3D position from the framebuffer
+
+  m_pFBOIsoHit[0]->Write(0,0,false);
+  glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+  float vec[4];
+  glReadPixels(m_vCVMousePos.x, m_vWinSize.y-m_vCVMousePos.y, 1, 1, GL_RGBA, GL_FLOAT, vec);
+  glReadBuffer(GL_FRONT);
+  m_pFBOIsoHit[0]->FinishWrite(0);
+  
+  // update m_vCVPos
+  if (vec[3] != 0.0f) {
+    m_vCVPos = FLOATVECTOR4(vec[0],vec[1],vec[2],1.0f) * m_matModelView[0].inverse();
+
+    MESSAGE("Setting new CV 3D pos (%g, %g, %g, %g) at screen position (%i, %i)", vec[0], vec[1], vec[2], vec[3], m_vCVMousePos.x, m_vWinSize.y-m_vCVMousePos.y);
+  } else {
+    // if we do not pick a valid point move CV pos to "nirvana"
+    m_vCVPos = FLOATVECTOR4(10000000.0f, 10000000.0f, 10000000.0f, 0.0f);
+  }
+
+
+  // now let the parent do it's part
+  AbstrRenderer::CVFocusHasChanged();
 }
