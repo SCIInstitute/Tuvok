@@ -170,8 +170,14 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramCVCompose;
     GLSLProgram*    m_pProgramComposeAnaglyphs;
 
+    float*          m_aDepthStorage;
+
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();
     void RenderCoordArrows();
+    void SaveEmptyDepthBuffer();
+    void SaveDepthBuffer();
+    void CreateDepthStorage();
+    void DeleteDepthStorage() {delete [] m_aDepthStorage;}
 };
 #endif // GLRenderer_H

@@ -331,6 +331,9 @@ class AbstrRenderer {
     virtual float GetStereoEyeDist() {return m_fStereoEyeDist;}
     virtual float GetStereoFocalLength() {return m_fStereoFocalLength;}
 
+    virtual void  SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbuffer);
+    virtual bool  GetConsiderPreviousDepthbuffer() {return m_bConsiderPreviousDepthbuffer;}
+
     // ClearView
     virtual bool SupportsClearView() {return false;}
     virtual void SetCV(bool bEnable);
@@ -434,6 +437,7 @@ class AbstrRenderer {
     UINT64              m_iStartLODOffset;
     CullingLOD          m_FrustumCullingLOD;
     bool                m_bClearFramebuffer;
+    bool                m_bConsiderPreviousDepthbuffer;
     UINT64              m_iCurrentLOD;
     UINT64              m_iBricksRenderedInThisSubFrame;
     std::vector<Brick>  m_vCurrentBrickList;

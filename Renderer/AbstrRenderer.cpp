@@ -80,6 +80,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_iCurrentLODOffset(0),
   m_iStartLODOffset(0),
   m_bClearFramebuffer(true),
+  m_bConsiderPreviousDepthbuffer(true),
   m_iCurrentLOD(0),
   m_iBricksRenderedInThisSubFrame(0),
   m_bCaptureMode(false),
@@ -977,4 +978,12 @@ void AbstrRenderer::SetStereoFocalLength(float fStereoFocalLength) {
 
 void AbstrRenderer::CVFocusHasChanged() { 
   ScheduleRecompose();
+}
+
+void AbstrRenderer::SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbuffer) {
+  if (m_bConsiderPreviousDepthbuffer != bConsiderPreviousDepthbuffer) 
+  {
+    m_bConsiderPreviousDepthbuffer = bConsiderPreviousDepthbuffer;
+    ScheduleCompleteRedraw();
+  }
 }

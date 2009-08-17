@@ -76,7 +76,8 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramIsoCompose(NULL),
   m_pProgramColorCompose(NULL),
   m_pProgramCVCompose(NULL),
-  m_pProgramComposeAnaglyphs(NULL)
+  m_pProgramComposeAnaglyphs(NULL),
+  m_aDepthStorage(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
   m_pProgram1DTrans[1]   = NULL;
@@ -94,6 +95,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
 
 GLRenderer::~GLRenderer() {
   delete [] m_p2DData;
+  DeleteDepthStorage();
 }
 
 bool GLRenderer::Initialize() {
@@ -291,6 +293,7 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
   AbstrRenderer::Resize(vWinSize);
   MESSAGE("Resizing to %i x %i", vWinSize.x, vWinSize.y);
   CreateOffscreenBuffers();
+  CreateDepthStorage();
 }
 
 void GLRenderer::RenderSeperatingLines() {
@@ -352,7 +355,12 @@ void GLRenderer::ClearColorBuffer() {
 
 void GLRenderer::StartFrame() {
   // clear the framebuffer (if requested)
-  if (m_bClearFramebuffer) ClearDepthBuffer();
+  if (m_bClearFramebuffer) {
+    ClearDepthBuffer();
+    if (m_bConsiderPreviousDepthbuffer) SaveEmptyDepthBuffer();
+  } else {
+    if (m_bConsiderPreviousDepthbuffer) SaveDepthBuffer();
+  }
 
   if (m_eRenderMode == RM_ISOSURFACE) {
     FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
@@ -373,7 +381,6 @@ void GLRenderer::StartFrame() {
     // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
     m_fScaledIsovalue       = (m_pDataset->GetInfo().GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fIsovalue * float(iMaxValue)/float(iMaxRange);
     m_fScaledCVIsovalue     = (m_pDataset->GetInfo().GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
-
   }
 }
 
@@ -517,6 +524,7 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 
   // no complete redraw is necessary as we just finished the first pass
   m_bPerformRedraw = false;
+
 }
 
 
@@ -929,11 +937,33 @@ void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
   glClearColor(0,0,0,0);
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-  glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+  if (m_bConsiderPreviousDepthbuffer && m_aDepthStorage) {
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glRasterPos2f(-1.0,-1.0);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+    glDrawPixels(m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT, m_aDepthStorage);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+  } else {
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+  }
 
   if (m_bDoStereoRendering) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+    if (m_bConsiderPreviousDepthbuffer && m_aDepthStorage) {
+      glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+      glRasterPos2f(-1.0,-1.0);
+      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+      glDrawPixels(m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT, m_aDepthStorage);
+      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    } else {
+      glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    }
   }
 
   m_TargetBinder.Unbind();
@@ -1138,26 +1168,33 @@ void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
   m_pFBO3DImageLast->Read(0);
   m_pFBO3DImageLast->ReadDepth(1);
 
+  // always clear the depth buffer 
+  // since we are transporting
+  // new data from the FBO
+  glClear(GL_DEPTH_BUFFER_BIT);
+  glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
+  glDepthFunc(GL_LEQUAL);
+ 
   m_pProgramTrans->Enable();
-
-  glDisable(GL_DEPTH_TEST);
 
   glBegin(GL_QUADS);
     glTexCoord2d(0,0);
-    glVertex3d(-1.0, -1.0, -0.5);
+    glVertex3d(-1.0, -1.0, 0);
     glTexCoord2d(1,0);
-    glVertex3d( 1.0, -1.0, -0.5);
+    glVertex3d( 1.0, -1.0, 0);
     glTexCoord2d(1,1);
-    glVertex3d( 1.0,  1.0, -0.5);
+    glVertex3d( 1.0,  1.0, 0);
     glTexCoord2d(0,1);
-    glVertex3d(-1.0,  1.0, -0.5);
+    glVertex3d(-1.0,  1.0, 0);
   glEnd();
 
   m_pProgramTrans->Disable();
 
   m_pFBO3DImageLast->FinishRead();
   m_pFBO3DImageLast->FinishDepthRead();
-  glEnable(GL_DEPTH_TEST);
+  
+  glDepthFunc(GL_LESS);
 }
 
 
@@ -1612,14 +1649,14 @@ void GLRenderer::BBoxPostRender() {
   // occluding/showing the bbox's outline.
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
     glEnable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
       for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
         RenderBBox(FLOATVECTOR4(0,1,0,1), false, m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
-    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glDisable(GL_BLEND);
   }
 }
@@ -2039,7 +2076,7 @@ void GLRenderer::CVFocusHasChanged() {
   glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
   float vec[4];
   glReadPixels(m_vCVMousePos.x, m_vWinSize.y-m_vCVMousePos.y, 1, 1, GL_RGBA, GL_FLOAT, vec);
-  glReadBuffer(GL_FRONT);
+  glReadBuffer(GL_BACK);
   m_pFBOIsoHit[0]->FinishWrite(0);
   
   // update m_vCVPos
@@ -2055,4 +2092,20 @@ void GLRenderer::CVFocusHasChanged() {
 
   // now let the parent do it's part
   AbstrRenderer::CVFocusHasChanged();
+}
+
+void GLRenderer::SaveEmptyDepthBuffer() {
+  if (m_aDepthStorage == NULL) return;
+  for (size_t i = 0;i<m_vWinSize.area();i++) m_aDepthStorage[i] = 1.0f;
+}
+
+void GLRenderer::SaveDepthBuffer() {
+  if (m_aDepthStorage == NULL) return;
+  glReadPixels(0, 0, m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT, m_aDepthStorage);
+}
+
+
+void GLRenderer::CreateDepthStorage() {
+  DeleteDepthStorage();
+  m_aDepthStorage = new float[m_vWinSize.area()];
 }
