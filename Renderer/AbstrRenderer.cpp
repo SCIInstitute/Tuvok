@@ -488,27 +488,30 @@ void AbstrRenderer::ScheduleRecompose() {
 
 void AbstrRenderer::ComputeMaxLODForCurrentView() {
 
-  if (m_fMsecPassed[0] > 1000.0f/float(m_iMinFramerate)) {
-    UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
-    m_iPerformanceBasedLODSkip = std::max<UINT64>(1,m_iPerformanceBasedLODSkip)-1;
-    if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip)
-      MESSAGE("Increasing start LOD by %i as it took %g ms to render the first LOD level (max is %g) ",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0], 1000.0f/float(m_iMinFramerate));
-  } else {
-    if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f && m_fMsecPassed[1] <= 1000.0f/float(m_iMinFramerate)) {
-      UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
-      m_iPerformanceBasedLODSkip = std::min<UINT64>(m_iMaxLODIndex-m_iMinLODForCurrentView,m_iPerformanceBasedLODSkip+1);
-      if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip)
-        MESSAGE("Decreasing start LOD by %i as it took only %g ms to render the second LOD level",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[1]);
-    }
-  }
-  if (m_iStartLODOffset == m_iMinLODForCurrentView ||
-     (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f)) {
-    m_fMsecPassed[0] = 0.0f;
-    m_fMsecPassed[1] = 0.0f;
-  }
-
   if (!m_bCaptureMode) {
+    // if rendering is too slow use a lower resolution during interaction
+    if (m_fMsecPassed[0] > 1000.0f/float(m_iMinFramerate)) {
+      UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
+      m_iPerformanceBasedLODSkip = std::max<UINT64>(1,m_iPerformanceBasedLODSkip)-1;
+      if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip)
+        MESSAGE("Increasing start LOD by %i as it took %g ms to render the first LOD level (max is %g) ",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0], 1000.0f/float(m_iMinFramerate));
+    } else {
+      // if rendering is fast enougth use a higher resolution during interaction
+      if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f && m_fMsecPassed[1] <= 1000.0f/float(m_iMinFramerate)) {
+        UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
+        m_iPerformanceBasedLODSkip = std::min<UINT64>(m_iMaxLODIndex-m_iMinLODForCurrentView,m_iPerformanceBasedLODSkip+1);
+        if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip)
+          MESSAGE("Decreasing start LOD by %i as it took only %g ms to render the second LOD level",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[1]);
+      }
+    }
+    if (m_iStartLODOffset == m_iMinLODForCurrentView ||
+       (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f)) {
+      m_fMsecPassed[0] = 0.0f;
+      m_fMsecPassed[1] = 0.0f;
+    }
+
     m_iStartLODOffset = m_iMaxLODIndex-m_iPerformanceBasedLODSkip;
+
   } else {
     m_iStartLODOffset = m_iMinLODForCurrentView;
   }

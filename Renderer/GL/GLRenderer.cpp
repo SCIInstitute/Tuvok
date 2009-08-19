@@ -406,9 +406,9 @@ void GLRenderer::Paint() {
                                 float fMsecPassed = 0.0;
                                 bNewDataToShow = Execute3DFrame(RA_FULLSCREEN, fMsecPassed);
                                 if (m_iCurrentLODOffset == m_iStartLODOffset)
-                                  m_fMsecPassed[0] += fMsecPassed;
+                                  m_fMsecPassed[0] += 0.0001f+fMsecPassed; // time for current interaction LOD -> to detect if we are to slow
                                 if (m_iCurrentLODOffset == m_iStartLODOffset-1)
-                                  m_fMsecPassed[1] += fMsecPassed;
+                                  m_fMsecPassed[1] += 0.0001f+fMsecPassed; // time for next better resolution -> to detect if we can go faster
                               }
                               break;
                           }
