@@ -506,6 +506,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
     }
     if (m_iStartLODOffset == m_iMinLODForCurrentView ||
        (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f)) {
+      MESSAGE("The current frame took %g ms to render",m_fMsecPassed[0]);
       m_fMsecPassed[0] = 0.0f;
       m_fMsecPassed[1] = 0.0f;
     }
