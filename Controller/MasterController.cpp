@@ -81,11 +81,11 @@ MasterController::~MasterController() {
 
 void MasterController::AddDebugOut(AbstrDebugOut* debugOut) {
   if (debugOut != NULL) {
-    m_DebugOut.Message(_func_, "Disconnecting from this debug out");
+    m_DebugOut.printf(_func_, "Disconnecting from this debug out");
 
     m_DebugOut.AddDebugOut(debugOut);
 
-    debugOut->Message(_func_, "Connected to this debug out");
+    debugOut->printf(_func_, "Connected to this debug out");
   } else {
     m_DebugOut.Warning(_func_,
                        "New debug is a NULL pointer, ignoring it.");
