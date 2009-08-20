@@ -343,8 +343,8 @@ public:
   std::string GetLoadDialogString() const;
   std::string GetExportDialogString() const;
 
-  std::vector< std::pair <std::string, std::string > > IOManager::GetImportFormatList() const;
-  std::vector< std::pair <std::string, std::string > > IOManager::GetExportFormatList() const;
+  std::vector< std::pair <std::string, std::string > > GetImportFormatList() const;
+  std::vector< std::pair <std::string, std::string > > GetExportFormatList() const;
 
 private:
   std::vector<AbstrConverter*>  m_vpConverters;
