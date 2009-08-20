@@ -56,14 +56,14 @@ using namespace std;
 
 MultiplexOut::~MultiplexOut() {
   for (size_t i = 0;i<m_vpDebugger.size();i++) {
-    m_vpDebugger[i]->Message(_func_, "(MultiplexOut::~MultiplexOut): Shutting down");
+    m_vpDebugger[i]->printf(_func_, "(MultiplexOut::~MultiplexOut): Shutting down");
     delete m_vpDebugger[i];
   }
 }
 
 void MultiplexOut::AddDebugOut(AbstrDebugOut* pDebugger) {
   m_vpDebugger.push_back(pDebugger);
-  pDebugger->Message(_func_,"Operating as part of a multiplexed debug out now.");
+  pDebugger->printf(_func_,"Operating as part of a multiplexed debug out now.");
 }
 
 void MultiplexOut::RemoveDebugOut(AbstrDebugOut* pDebugger) {
