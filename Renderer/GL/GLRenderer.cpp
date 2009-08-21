@@ -765,9 +765,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
         case RM_2DTRANS    :  m_pProgram2DTransSlice->Disable(); break;
         default            :  m_pProgram1DTransSlice->Disable(); break;
       }
-    }
-
-    if (!m_bUseMIP[size_t(eDirection)]) m_pProgramMIPSlice->Disable();
+    } else m_pProgramMIPSlice->Disable();
   } else {
     if (m_bOrthoView) {
       FLOATMATRIX4 maOrtho;
