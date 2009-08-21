@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLSBVR-1D-FS.glsl
+  \file    MIP-slice-FS.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah
