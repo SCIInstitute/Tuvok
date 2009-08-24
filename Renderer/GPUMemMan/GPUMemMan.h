@@ -109,14 +109,6 @@ class GPUMemMan {
                               bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                               bool bDisableBorder, UINT64 iIntraFrameCounter,
                               UINT64 iFrameCounter);
-    GLTexture3D* AllocOrGet3DTexture(tuvok::Dataset* pDataset,
-                                     const std::vector<UINT64>& vLOD,
-                                     const std::vector<UINT64>& vBrick,
-                                     bool bUseOnlyPowerOfTwo,
-                                     bool bDownSampleTo8Bits,
-                                     bool bDisableBorder,
-                                     UINT64 iIntraFrameCounter,
-                                     UINT64 iFrameCounter);
     bool IsResident(const tuvok::Dataset* pDataset,
                     const std::vector<UINT64>& vLOD,
                     const std::vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo,
@@ -168,6 +160,14 @@ class GPUMemMan {
 
     std::vector<unsigned char> m_vUploadHub;
 
+    GLTexture3D* AllocOrGet3DTexture(tuvok::Dataset* pDataset,
+                                     const std::vector<UINT64>& vLOD,
+                                     const std::vector<UINT64>& vBrick,
+                                     bool bUseOnlyPowerOfTwo,
+                                     bool bDownSampleTo8Bits,
+                                     bool bDisableBorder,
+                                     UINT64 iIntraFrameCounter,
+                                     UINT64 iFrameCounter);
     size_t DeleteUnusedBricks();
     void DeleteArbitraryBrick();
     void FreeAssociatedTextures(tuvok::Dataset* pDataset);
