@@ -309,18 +309,22 @@ void GLRenderer::RenderSeperatingLines() {
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
   glLoadIdentity();
-  glOrtho(-1, 1, 1, -1, 0, 1);
+  glOrtho(0, 1, 0, 1, 0, 1);
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
   glLoadIdentity();
 
+  glLineWidth(m_i2x2DividerWidth);
+
   glBegin(GL_LINES);
     glColor4f(1.0f,1.0f,1.0f,1.0f);
-    glVertex3f(0,-1,0);
-    glVertex3f(0,1,0);
-    glVertex3f(-1,0,0);
-    glVertex3f(1,0,0);
+    glVertex3f(m_vWinFraction.x,-1,0);
+    glVertex3f(m_vWinFraction.x,1,0);
+    glVertex3f(-1,m_vWinFraction.y,0);
+    glVertex3f(1,m_vWinFraction.y,0);
   glEnd();
+
+  glLineWidth(1);
 
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
@@ -530,23 +534,45 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 
 void GLRenderer::SetRenderTargetArea(ERenderArea eREnderArea) {
   switch (eREnderArea) {
-    case RA_TOPLEFT     : SetViewPort(UINTVECTOR2(0,m_vWinSize.y/2), UINTVECTOR2(m_vWinSize.x/2,m_vWinSize.y)); break;
-    case RA_TOPRIGHT    : SetViewPort(m_vWinSize/2, m_vWinSize); break;
-    case RA_LOWERLEFT   : SetViewPort(UINTVECTOR2(0,0),m_vWinSize/2); break;
-    case RA_LOWERRIGHT  : SetViewPort(UINTVECTOR2(m_vWinSize.x/2,0), UINTVECTOR2(m_vWinSize.x,m_vWinSize.y/2)); break;
-    case RA_FULLSCREEN  : SetViewPort(UINTVECTOR2(0,0), m_vWinSize); break;
-    default             : T_ERROR("Invalid render area set"); break;
+  case RA_TOPLEFT    : SetViewPort(UINTVECTOR2(0, m_vWinSize.y*m_vWinFraction.y),
+                                   UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y));
+    break;
+  case RA_TOPRIGHT   : SetViewPort(UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y),
+                                   m_vWinSize);
+    break;
+  case RA_LOWERLEFT  : SetViewPort(UINTVECTOR2(0,0),
+                                   UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y));
+    break;
+  case RA_LOWERRIGHT : SetViewPort(UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, 0),
+                                   UINTVECTOR2(m_vWinSize.x,m_vWinSize.y*m_vWinFraction.y));
+    break;
+  case RA_FULLSCREEN : SetViewPort(UINTVECTOR2(0,0), m_vWinSize); break;
+  default            : T_ERROR("Invalid render area set"); break;
   }
 }
 
 void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
   switch (eREnderArea) {
-    case RA_TOPLEFT     : glScissor(0,m_vWinSize.y/2, m_vWinSize.x/2,m_vWinSize.y); glEnable( GL_SCISSOR_TEST ); break;
-    case RA_TOPRIGHT    : glScissor(m_vWinSize.x/2, m_vWinSize.y/2, m_vWinSize.x, m_vWinSize.y); glEnable( GL_SCISSOR_TEST );break;
-    case RA_LOWERLEFT   : glScissor(0,0,m_vWinSize.x/2, m_vWinSize.y/2); glEnable( GL_SCISSOR_TEST );break;
-    case RA_LOWERRIGHT  : glScissor(m_vWinSize.x/2,0,m_vWinSize.x,m_vWinSize.y/2); glEnable( GL_SCISSOR_TEST );break;
-    case RA_FULLSCREEN  : /*glScissor(0,0,m_vWinSize.x, m_vWinSize.y);*/ glDisable( GL_SCISSOR_TEST );break;
-    default             : T_ERROR("Invalid render area set"); break;
+  case RA_TOPLEFT    : glScissor(0, m_vWinSize.y*m_vWinFraction.y, 
+                                 m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y);
+    glEnable( GL_SCISSOR_TEST );
+    break;
+  case RA_TOPRIGHT   : glScissor(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y,
+                                 m_vWinSize.x, m_vWinSize.y);
+    glEnable( GL_SCISSOR_TEST );
+    break;
+  case RA_LOWERLEFT  : glScissor(0, 0,
+                                 m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y);
+    glEnable( GL_SCISSOR_TEST );
+    break;
+  case RA_LOWERRIGHT : glScissor(m_vWinSize.x*m_vWinFraction.x, 0,
+                                 m_vWinSize.x, m_vWinSize.y*m_vWinFraction.y);
+    glEnable( GL_SCISSOR_TEST );
+    break;
+  case RA_FULLSCREEN : /*glScissor(0,0,m_vWinSize.x, m_vWinSize.y);*/
+    glDisable( GL_SCISSOR_TEST );
+    break;
+  default            : T_ERROR("Invalid render area set"); break;
   }
 
 }
@@ -982,11 +1008,11 @@ void GLRenderer::RenderCoordArrows() {
   GLfloat global_ambient[4] ={0.1f,0.1f,0.1f,1.0f};
   glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);
   glLightfv(GL_LIGHT0, GL_AMBIENT,  global_ambient);
-  glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);	
-  glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);	
+  glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+  glLightModelf(GL_LIGHT_MODEL_LOCAL_VIEWER, 1.0f);
   glMaterialf(GL_FRONT_AND_BACK,GL_SHININESS,16.0f);
   glMaterialfv(GL_FRONT_AND_BACK,GL_SPECULAR,light_specular);
-	glEnable(GL_COLOR_MATERIAL);
+  glEnable(GL_COLOR_MATERIAL);
   GLfloat pfLightDirection[4]={0.0f,1.0f,1.0f,0.0f};
 
   FLOATMATRIX4 matModelView, mTranslation, mProjection;

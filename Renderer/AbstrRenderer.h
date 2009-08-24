@@ -134,6 +134,9 @@ class AbstrRenderer {
       WM_AXIAL,
       WM_CORONAL,
       WM_3D,
+      WM_DIVIDER_HORIZONTAL,
+      WM_DIVIDER_VERTICAL,
+      WM_DIVIDER_BOTH,
       WM_INVALID
     };
 
@@ -395,6 +398,12 @@ class AbstrRenderer {
       this->m_TFScalingMethod = sm;
     }
 
+    void SetWindowFraction2x2(FLOATVECTOR2 f) {
+      m_vWinFraction = f;
+      ScheduleCompleteRedraw();
+    }
+    FLOATVECTOR2 WindowFraction2x2() const { return m_vWinFraction; }
+
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
     /// memory.  It's expected you'll set another one directly afterwards.
@@ -495,6 +504,10 @@ class AbstrRenderer {
     float               m_fFOV;
     float               m_fZNear, m_fZFar;
     ///@}
+
+    int                 m_i2x2DividerWidth;
+    FLOATVECTOR2        m_vWinFraction;
+
 
     virtual void        ScheduleRecompose();
     void                ComputeMinLODForCurrentView();

@@ -116,7 +116,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vUp(0,1,0),
   m_fFOV(50.0f),
   m_fZNear(0.1f),
-  m_fZFar(100.0f)
+  m_fZFar(100.0f),
+  m_i2x2DividerWidth(6),
+  m_vWinFraction(0.5, 0.5)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
@@ -351,45 +353,56 @@ bool AbstrRenderer::CheckForRedraw() {
 AbstrRenderer::EWindowMode
 AbstrRenderer::GetWindowUnderCursor(FLOATVECTOR2 vPos) const {
   switch (m_eViewMode) {
-    case VM_SINGLE   : return m_eFullWindowMode;
-    case VM_TWOBYTWO : {
-                          if (vPos.y < 0.5f) {
-                            if (vPos.x < 0.5f) {
-                                return m_e2x2WindowMode[0];
-                            } else {
-                                return m_e2x2WindowMode[1];
-                            }
-                          } else {
-                            if (vPos.x < 0.5f) {
-                                return m_e2x2WindowMode[2];
-                            } else {
-                                return m_e2x2WindowMode[3];
-                            }
-                          }
-                       }
-    default          : return WM_INVALID;
+  case VM_SINGLE   : return m_eFullWindowMode;
+  case VM_TWOBYTWO : 
+    {
+      const FLOATVECTOR2 halfWidth = FLOATVECTOR2(m_i2x2DividerWidth, m_i2x2DividerWidth) / FLOATVECTOR2(m_vWinSize*2);
+      const bool isVertical   = (fabs(vPos.x - m_vWinFraction.x) <= halfWidth.x);
+      const bool isHorizontal = (fabs(vPos.y - (1-m_vWinFraction.y)) <= halfWidth.y);
+      if (isVertical && isHorizontal) return WM_DIVIDER_BOTH;
+      if (isVertical)   return WM_DIVIDER_VERTICAL;
+      if (isHorizontal) return WM_DIVIDER_HORIZONTAL;
+      if (vPos.y < 1-m_vWinFraction.y) {
+        if (vPos.x < m_vWinFraction.x) {
+          return m_e2x2WindowMode[0];
+        } else {
+          return m_e2x2WindowMode[1];
+        }
+      } else {
+        if (vPos.x < m_vWinFraction.x) {
+          return m_e2x2WindowMode[2];
+        } else {
+          return m_e2x2WindowMode[3];
+        }
+      }
+    }
+  default          : return WM_INVALID;
   }
 }
 
 FLOATVECTOR2 AbstrRenderer::GetLocalCursorPos(FLOATVECTOR2 vPos) const {
   switch (m_eViewMode) {
-    case VM_SINGLE   : return vPos;
-    case VM_TWOBYTWO : {
-                          if (vPos.y < 0.5f) {
-                            if (vPos.x < 0.5f) {
-                                return vPos*2.0f;
-                            } else {
-                                return FLOATVECTOR2(vPos.x-0.5f,vPos.y)*2.0f;
-                            }
-                          } else {
-                            if (vPos.x < 0.5f) {
-                                return FLOATVECTOR2(vPos.x,vPos.y-0.5f)*2.0f;
-                            } else {
-                                return FLOATVECTOR2(vPos.x-0.5f,vPos.y-0.5f)*2.0f;
-                            }
-                          }
-                       }
-    default          : return vPos;
+  case VM_SINGLE   : return vPos;
+  case VM_TWOBYTWO : {
+    if (vPos.y < (1-m_vWinFraction.y)) {
+      if (vPos.x < m_vWinFraction.x) {
+        return FLOATVECTOR2(vPos.x/m_vWinFraction.x,
+                            vPos.y/(1-m_vWinFraction.y));
+      } else {
+        return FLOATVECTOR2((vPos.x-m_vWinFraction.x)/m_vWinFraction.x,
+                            vPos.y/(1-m_vWinFraction.y));
+      }
+    } else {
+      if (vPos.x < m_vWinFraction.x) {
+        return FLOATVECTOR2((vPos.x)/m_vWinFraction.x,
+                            (vPos.y-(1-m_vWinFraction.y))/(1-m_vWinFraction.y));
+      } else {
+        return FLOATVECTOR2((vPos.x-m_vWinFraction.x)/m_vWinFraction.x,
+                            (vPos.y-(1-m_vWinFraction.y))/(1-m_vWinFraction.y));
+      }
+    }
+  }
+  default          : return vPos;
   }
 }
 
