@@ -839,13 +839,16 @@ void GPUMemMan::Delete3DTexture(size_t iIndex) {
 }
 
 void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset) {
+  // Don't use singleton; see destructor comments.
+  AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
+
   for (size_t i = 0;i<m_vpTex3DList.size();i++) {
     if (m_vpTex3DList[i]->pDataset == pDataset) {
 
-      MESSAGE("Deleting a 3D texture of size %i x %i x %i",
-              m_vpTex3DList[i]->pTexture->GetSize().x,
-              m_vpTex3DList[i]->pTexture->GetSize().y,
-              m_vpTex3DList[i]->pTexture->GetSize().z);
+      dbg.Message(_func_, "Deleting a 3D texture of size %i x %i x %i",
+                  m_vpTex3DList[i]->pTexture->GetSize().x,
+                  m_vpTex3DList[i]->pTexture->GetSize().y,
+                  m_vpTex3DList[i]->pTexture->GetSize().z);
 
       Delete3DTexture(i);
       i--;
