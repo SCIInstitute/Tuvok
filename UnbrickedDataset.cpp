@@ -74,7 +74,7 @@ UINT64VECTOR3 UnbrickedDataset::GetBrickSize(const BrickKey&) const
 bool UnbrickedDataset::GetBrick(const BrickKey&,
                                 std::vector<unsigned char>& brick) const
 {
-  size_t bytes;
+  size_t bytes = 0;
 
   const UnbrickedDSMetadata &metadata =
     dynamic_cast<const UnbrickedDSMetadata&>(this->GetInfo());
