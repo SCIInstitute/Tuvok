@@ -354,14 +354,17 @@ AbstrRenderer::EWindowMode
 AbstrRenderer::GetWindowUnderCursor(FLOATVECTOR2 vPos) const {
   switch (m_eViewMode) {
   case VM_SINGLE   : return m_eFullWindowMode;
-  case VM_TWOBYTWO : 
+  case VM_TWOBYTWO :
     {
-      const FLOATVECTOR2 halfWidth = FLOATVECTOR2(m_i2x2DividerWidth, m_i2x2DividerWidth) / FLOATVECTOR2(m_vWinSize*2);
-      const bool isVertical   = (fabs(vPos.x - m_vWinFraction.x) <= halfWidth.x);
-      const bool isHorizontal = (fabs(vPos.y - (1-m_vWinFraction.y)) <= halfWidth.y);
+      const FLOATVECTOR2 halfWidth = 
+        FLOATVECTOR2(m_i2x2DividerWidth, m_i2x2DividerWidth) / FLOATVECTOR2(m_vWinSize*2);
+      const bool isVertical   = (fabsf(vPos.x - m_vWinFraction.x) <= halfWidth.x);
+      const bool isHorizontal = 
+        (fabsf(vPos.y - (1-m_vWinFraction.y)) <= halfWidth.y);
+
       if (isVertical && isHorizontal) return WM_DIVIDER_BOTH;
-      if (isVertical)   return WM_DIVIDER_VERTICAL;
-      if (isHorizontal) return WM_DIVIDER_HORIZONTAL;
+      if (isVertical)                 return WM_DIVIDER_VERTICAL;
+      if (isHorizontal)               return WM_DIVIDER_HORIZONTAL;
       if (vPos.y < 1-m_vWinFraction.y) {
         if (vPos.x < m_vWinFraction.x) {
           return m_e2x2WindowMode[0];
@@ -389,16 +392,16 @@ FLOATVECTOR2 AbstrRenderer::GetLocalCursorPos(FLOATVECTOR2 vPos) const {
         return FLOATVECTOR2(vPos.x/m_vWinFraction.x,
                             vPos.y/(1-m_vWinFraction.y));
       } else {
-        return FLOATVECTOR2((vPos.x-m_vWinFraction.x)/m_vWinFraction.x,
+        return FLOATVECTOR2((vPos.x-m_vWinFraction.x)/(1-m_vWinFraction.x),
                             vPos.y/(1-m_vWinFraction.y));
       }
     } else {
       if (vPos.x < m_vWinFraction.x) {
         return FLOATVECTOR2((vPos.x)/m_vWinFraction.x,
-                            (vPos.y-(1-m_vWinFraction.y))/(1-m_vWinFraction.y));
+                            (vPos.y-(1-m_vWinFraction.y))/m_vWinFraction.y);
       } else {
-        return FLOATVECTOR2((vPos.x-m_vWinFraction.x)/m_vWinFraction.x,
-                            (vPos.y-(1-m_vWinFraction.y))/(1-m_vWinFraction.y));
+        return FLOATVECTOR2((vPos.x-m_vWinFraction.x)/(1-m_vWinFraction.x),
+                            (vPos.y-(1-m_vWinFraction.y))/m_vWinFraction.y);
       }
     }
   }
@@ -463,7 +466,7 @@ void AbstrRenderer::SetSliceDepth(EWindowMode eWindow, UINT64 iSliceDepth) {
   }
 }
 
-UINT64 AbstrRenderer::GetSliceDepth(EWindowMode eWindow) {
+UINT64 AbstrRenderer::GetSliceDepth(EWindowMode eWindow) const {
   if (eWindow < WM_3D)
     return m_piSlice[size_t(eWindow)];
   else
@@ -1003,12 +1006,12 @@ void AbstrRenderer::SetStereoFocalLength(float fStereoFocalLength) {
   if (m_bDoStereoRendering) ScheduleWindowRedraw(WM_3D);
 }
 
-void AbstrRenderer::CVFocusHasChanged() { 
+void AbstrRenderer::CVFocusHasChanged() {
   ScheduleRecompose();
 }
 
 void AbstrRenderer::SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbuffer) {
-  if (m_bConsiderPreviousDepthbuffer != bConsiderPreviousDepthbuffer) 
+  if (m_bConsiderPreviousDepthbuffer != bConsiderPreviousDepthbuffer)
   {
     m_bConsiderPreviousDepthbuffer = bConsiderPreviousDepthbuffer;
     ScheduleCompleteRedraw();

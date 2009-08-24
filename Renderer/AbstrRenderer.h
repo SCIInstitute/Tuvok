@@ -132,8 +132,8 @@ class AbstrRenderer {
 
     enum EWindowMode {
       WM_SAGITTAL = 0,
-      WM_AXIAL,
-      WM_CORONAL,
+      WM_AXIAL    = 1,
+      WM_CORONAL  = 2,
       WM_3D,
       WM_DIVIDER_HORIZONTAL,
       WM_DIVIDER_VERTICAL,
@@ -260,7 +260,7 @@ class AbstrRenderer {
 
     virtual void SetRenderCoordArrows(bool bRenderCoordArrows);
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
-    
+
     virtual void Set2DPlanesIn3DView(bool bRenderPlanesIn3D);
     virtual bool Get2DPlanesIn3DView() const {return m_bRenderPlanesIn3D;}
 
@@ -283,7 +283,7 @@ class AbstrRenderer {
 
     /// slice parameter for slice views.
     virtual void SetSliceDepth(EWindowMode eWindow, UINT64 fSliceDepth);
-    virtual UINT64 GetSliceDepth(EWindowMode eWindow);
+    virtual UINT64 GetSliceDepth(EWindowMode eWindow) const;
 
     void SetClearFramebuffer(bool bClearFramebuffer) {
       m_bClearFramebuffer = bClearFramebuffer;
