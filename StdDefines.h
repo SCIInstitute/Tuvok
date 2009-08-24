@@ -45,6 +45,7 @@
   typedef unsigned long long UINT64;
 #endif
 typedef unsigned int UINT32;
+typedef unsigned int UINT;
 typedef unsigned char BYTE;
 
 // Make sure windows doesn't give us stupid macros that interfere with
