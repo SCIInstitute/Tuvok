@@ -141,6 +141,7 @@ set(TUVOK_SRCS ./3rdParty/GLEW/GL/glew.c
 ./Renderer/SBVRGeogen.cpp
 ./Renderer/FrameCapture.cpp
 ./Renderer/AbstrRenderer.cpp
+./Renderer/TFScaling.cpp
 ./Scripting/Scripting.cpp
 ./Basics/Appendix.cpp
 ./Basics/ArcBall.cpp
