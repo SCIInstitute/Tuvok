@@ -194,6 +194,11 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
   }
 }
 
+void GPUMemMan::AddDataset(Dataset* ds, AbstrRenderer *requester)
+{
+  m_vpVolumeDatasets.push_back(VolDataListElem(ds, requester));
+}
+
 // Functor to find the VolDataListElem which holds the Dataset given in
 // the constructor.
 struct find_ds : public std::unary_function<VolDataListElem, bool> {

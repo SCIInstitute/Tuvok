@@ -66,6 +66,8 @@ class GPUMemMan {
 
     tuvok::Dataset* LoadDataset(const std::string& strFilename,
                                 AbstrRenderer* requester);
+    void AddDataset(tuvok::Dataset* ds, AbstrRenderer *requester);
+    void FreeAssociatedTextures(tuvok::Dataset* pDataset);
     void FreeDataset(tuvok::Dataset* pVolumeDataset, AbstrRenderer* requester);
 
     void Changed1DTrans(AbstrRenderer* requester,
@@ -170,7 +172,6 @@ class GPUMemMan {
                                      UINT64 iFrameCounter);
     size_t DeleteUnusedBricks();
     void DeleteArbitraryBrick();
-    void FreeAssociatedTextures(tuvok::Dataset* pDataset);
     void Delete3DTexture(size_t iIndex);
     void Delete3DTexture(const Texture3DListIter &tex);
 };
