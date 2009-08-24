@@ -39,8 +39,9 @@
 #ifndef ABSTRRENDERER_H
 #define ABSTRRENDERER_H
 
+#include "StdTuvokDefines.h"
 #include <string>
-#ifdef TUVOK_OS_WINDOWS
+#ifdef DETECTED_OS_WINDOWS
 # include <memory>
 #else
 # include <tr1/memory>
