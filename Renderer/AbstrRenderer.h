@@ -40,6 +40,11 @@
 #define ABSTRRENDERER_H
 
 #include <string>
+#ifdef TUVOK_OS_WINDOWS
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
 
 #include "../StdTuvokDefines.h"
 #include "../Renderer/CullingLOD.h"
@@ -195,6 +200,8 @@ class AbstrRenderer {
     /// Sets the dataset from external source; only meant to be used by clients
     /// which don't want to use the LOD subsystem.
     void SetDataset(tuvok::Dataset *vds);
+    /// Modifies previously uploaded data.
+    void UpdateData(std::tr1::shared_ptr<float> fp, size_t len);
 
     tuvok::Dataset&       GetDataset()       { return *m_pDataset; }
     const tuvok::Dataset& GetDataset() const { return *m_pDataset; }

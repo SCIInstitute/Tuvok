@@ -42,6 +42,7 @@
 #include <Renderer/GPUMemMan/GPUMemMan.h>
 #include "Basics/MathTools.h"
 #include "Basics/GeometryGenerator.h"
+#include "IO/UnbrickedDataset.h"
 #include "IO/uvfMetadata.h"
 
 using namespace std;
@@ -275,8 +276,17 @@ void AbstrRenderer::SetDataset(Dataset *vds)
     delete m_pDataset;
   }
   m_pDataset = vds;
+  Controller::Instance().MemMan()->AddDataset(m_pDataset, this);
   ScheduleCompleteRedraw();
   Controller::Instance().Provenance("file", "open", "<in_memory_buffer>");
+}
+
+void AbstrRenderer::UpdateData(std::tr1::shared_ptr<float> fp, size_t len)
+{
+  MESSAGE("Updating data with %u element array", static_cast<UINT32>(len));
+  // free old data; we know we'll never need it, at this point.
+  Controller::Instance().MemMan()->FreeAssociatedTextures(m_pDataset);
+  dynamic_cast<tuvok::UnbrickedDataset*>(m_pDataset)->SetData(fp, len);
 }
 
 void AbstrRenderer::Free1DTrans()
