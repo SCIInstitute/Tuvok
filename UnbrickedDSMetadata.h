@@ -108,6 +108,7 @@ public:
     MDT_BYTE,
   };
   void SetDataType(MD_Data_Type dt) { this->m_dataType = dt; }
+  enum MD_Data_Type GetDataType() const { return this->m_dataType; }
 
   /// Number of bits in the data representation.
   virtual UINT64 GetBitWidth() const {

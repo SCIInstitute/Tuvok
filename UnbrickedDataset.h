@@ -36,6 +36,12 @@
 #ifndef TUVOK_UNBRICKED_DATASET_H
 #define TUVOK_UNBRICKED_DATASET_H
 
+#ifdef TUVOK_OS_WINDOWS
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
+
 #include "Dataset.h"
 #include "../Controller/Controller.h"
 
@@ -63,8 +69,8 @@ public:
   void SetHistogram(const std::vector<UINT32>&);
   void SetHistogram(const std::vector<std::vector<UINT32> >&);
 
-  void SetData(const float *, size_t len);
-  void SetData(const unsigned char *, size_t len);
+  void SetData(const std::tr1::shared_ptr<float>, size_t len);
+  void SetData(const std::tr1::shared_ptr<unsigned char>, size_t len);
   void SetGradientMagnitude(float *gmn, size_t len);
   ///@}
 
@@ -74,8 +80,15 @@ protected:
   void Recalculate1DHistogram();
 
 private:
-  std::vector<unsigned char> m_vScalar;
-  std::vector<float> m_vGradientMagnitude;
+  // Bit of a hack here.  We might get data in either float or unsigned byte
+  // form.  However, if we had a single m_vScalar field, we'd need to
+  // templatize the whole class based on the data type.  That's a bit of a
+  // pain, so we just have multiple pointers and only access the one we need.
+  // The overhead is negligible compared to the sizes of datasets.
+  std::tr1::shared_ptr<unsigned char> m_Scalarub;
+  std::tr1::shared_ptr<float>         m_Scalarf;
+  size_t                              m_DataSize;
+  std::vector<float>                  m_vGradientMagnitude;
 };
 
 }; // namespace tuvok

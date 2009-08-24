@@ -42,7 +42,7 @@ namespace tuvok {
 
 typedef std::vector<std::vector<UINT32> > hist2d;
 
-UnbrickedDataset::UnbrickedDataset()
+UnbrickedDataset::UnbrickedDataset() : m_DataSize(0)
 {
   // setup some default histograms.
   // default value is 1, since the `FilledSize' ignores 0-valued elements, so
@@ -74,12 +74,29 @@ UINT64VECTOR3 UnbrickedDataset::GetBrickSize(const BrickKey&) const
 bool UnbrickedDataset::GetBrick(const BrickKey&,
                                 std::vector<unsigned char>& brick) const
 {
-  brick.resize(m_vScalar.size());
-  UINT64VECTOR3 sz = this->GetBrickSize();
+  size_t bytes;
 
-  MESSAGE("Copying brick of size %u, dimensions %lu %lu %lu",
-          UINT32(m_vScalar.size()), sz[0],sz[1],sz[2]);
-  std::copy(m_vScalar.begin(), m_vScalar.end(), brick.begin());
+  const UnbrickedDSMetadata &metadata =
+    dynamic_cast<const UnbrickedDSMetadata&>(this->GetInfo());
+  switch(metadata.GetDataType()) {
+    case UnbrickedDSMetadata::MDT_FLOAT:
+      bytes = this->m_DataSize * sizeof(float);
+      brick.resize(bytes);
+      std::memcpy(&brick.at(0), m_Scalarf.get(), bytes);
+      break;
+    case UnbrickedDSMetadata::MDT_BYTE:
+      bytes = this->m_DataSize * sizeof(unsigned char);
+      brick.resize(bytes);
+      std::memcpy(&brick.at(0), m_Scalarub.get(), bytes);
+      break;
+    default:
+      T_ERROR("Unhandled data type.");
+      break;
+  }
+  UINT64VECTOR3 sz = this->GetBrickSize();
+  MESSAGE("Copied brick of size %u, dimensions %u %u %u",
+          static_cast<UINT32>(bytes), static_cast<UINT32>(sz[0]),
+          static_cast<UINT32>(sz[1]), static_cast<UINT32>(sz[2]));
   return true;
 }
 
@@ -127,28 +144,24 @@ template<> struct type2enum<const unsigned char> {
   enum { value = UnbrickedDSMetadata::MDT_BYTE };
 };
 
-static bool range_has_not_been_set(const UnbrickedDSMetadata &md)
+static bool range_has_not_been_set(const Metadata &md)
 {
   return md.GetRange().first == md.GetRange().second;
 }
 
-// Copies the data and sets the data type.
 // Returns the range of the data; we can't set it here directly because we're
 // not a friend of Metadata.
 template<typename T>
 std::pair<double,double>
-set_data(T *data, size_t len, std::vector<unsigned char>& into,
-         UnbrickedDSMetadata &metadata)
+set_metadata(const std::tr1::shared_ptr<T> data, size_t len,
+             UnbrickedDSMetadata &metadata)
 {
-  into.resize(len*sizeof(T));
-  std::memcpy(&into.at(0), data, len*sizeof(T));
-
   int dtype = type2enum<T>::value;
   metadata.SetDataType(static_cast<UnbrickedDSMetadata::MD_Data_Type>(dtype));
 
   std::pair<double,double> mmax;
   if(range_has_not_been_set(metadata)) {
-    std::pair<T*,T*> curmm = boost::minmax_element(data, data+len);
+    std::pair<T*,T*> curmm = boost::minmax_element(data.get(), data.get()+len);
     mmax = std::make_pair(static_cast<double>(*curmm.first),
                           static_cast<double>(*curmm.second));
   }
@@ -157,24 +170,31 @@ set_data(T *data, size_t len, std::vector<unsigned char>& into,
 
 }; // anonymous namespace.
 
-void UnbrickedDataset::SetData(const float *data, size_t len)
+void UnbrickedDataset::SetData(const std::tr1::shared_ptr<float> data,
+                               size_t len)
 {
   UnbrickedDSMetadata &metadata =
     dynamic_cast<UnbrickedDSMetadata&>(this->GetInfo());
-  std::pair<double,double> mmax = set_data(data, len, this->m_vScalar,
-                                           metadata);
+
+  this->m_Scalarf = data;
+  this->m_DataSize = len;
+  std::pair<double,double> mmax = set_metadata(this->m_Scalarf, len, metadata);
+
   if(range_has_not_been_set(metadata)) {
     metadata.SetRange(mmax);
   }
   Recalculate1DHistogram();
 }
 
-void UnbrickedDataset::SetData(const unsigned char *data, size_t len)
+void UnbrickedDataset::SetData(const std::tr1::shared_ptr<unsigned char> data,
+                               size_t len)
 {
   UnbrickedDSMetadata &metadata =
     dynamic_cast<UnbrickedDSMetadata&>(this->GetInfo());
-  std::pair<double,double> mmax = set_data(data, len, this->m_vScalar,
-                                           metadata);
+  this->m_Scalarub = data;
+  this->m_DataSize = len;
+  std::pair<double,double> mmax = set_metadata(this->m_Scalarub, len, metadata);
+
   if(range_has_not_been_set(metadata)) {
     metadata.SetRange(mmax);
   }
@@ -190,12 +210,32 @@ void UnbrickedDataset::SetGradientMagnitude(float *gmn, size_t len)
 void UnbrickedDataset::Recalculate1DHistogram()
 {
   if(m_pHist1D) { delete m_pHist1D; }
-  m_pHist1D = new Histogram1D(m_vScalar.size());
+  m_pHist1D = new Histogram1D(m_DataSize);
   std::fill(m_pHist1D->GetDataPointer(),
             m_pHist1D->GetDataPointer()+m_pHist1D->GetSize(), 0);
-  for(size_t i=0; i < m_vScalar.size(); ++i) {
-    m_pHist1D->Set(i, m_vScalar[i]);
+
+  const UnbrickedDSMetadata &metadata =
+    dynamic_cast<const UnbrickedDSMetadata&>(this->GetInfo());
+  switch(metadata.GetDataType()) {
+    case UnbrickedDSMetadata::MDT_FLOAT: {
+      const float *data = m_Scalarf.get();
+      for(size_t i=0; i < m_DataSize; ++i) {
+        m_pHist1D->Set(i, data[i]);
+      }
+      break;
+    }
+    case UnbrickedDSMetadata::MDT_BYTE: {
+      const unsigned char *data = m_Scalarub.get();
+      for(size_t i=0; i < m_DataSize; ++i) {
+        m_pHist1D->Set(i, data[i]);
+      }
+      break;
+    }
+    default:
+      T_ERROR("Unhandled data type");
+      break;
   }
+
 }
 
 }; //namespace tuvok
