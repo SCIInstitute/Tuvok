@@ -398,11 +398,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	uvfFile.AddDataBlock(testPairs,iDataSize);
 */
 
-  MESSAGE("Computing checksum and writing file...");
+  MESSAGE("Writing UVF file...");
 
 	uvfFile.Create();
 	SourceData.Close();
-	uvfFile.Close();
+
+  MESSAGE("Computing checksum...");
+  
+  uvfFile.Close();
 
   MESSAGE("Removing temporary files...");
 
