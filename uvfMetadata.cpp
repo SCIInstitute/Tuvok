@@ -139,7 +139,7 @@ UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
           UINT64VECTOR3 vDomainExtent = this->GetDomainSize(j);
           bmd.extents = FLOATVECTOR3(effective[0], effective[1], effective[2]);
           bmd.center = FLOATVECTOR3((vBrickCorner + bmd.extents/2.0f) -
-                                    vDomainExtent*0.5f);
+                                    FLOATVECTOR3(vDomainExtent)*0.5f);
           bmd.n_voxels = UINTVECTOR3(vBrickSize[0], vBrickSize[1],
                                      vBrickSize[2]);
           this->m_pDataset->AddBrick(k, bmd);
