@@ -159,11 +159,6 @@ template<> struct type2enum<const unsigned char> {
   enum { value = ExternalMetadata::MDT_BYTE };
 };
 
-static bool range_has_not_been_set(const Metadata &md)
-{
-  return md.GetRange().first == md.GetRange().second;
-}
-
 // Returns the range of the data; we can't set it here directly because we're
 // not a friend of Metadata.
 template<typename T>
@@ -192,9 +187,11 @@ update_metadata(ExternalMetadata &md, const BrickMD& b,
     md.SetDataType(static_cast<ExternalMetadata::MD_Data_Type>(dtype));
   }
   { // data range
-    std::pair<T,T> minmax = md.GetRange();
-    minmax.first = std::min(minmax.first, brick_min);
-    minmax.second = std::max(minmax.second, brick_max);
+    std::pair<double,double> minmax = md.GetRange();
+    // We only store ranges as doubles, even if the underlying dataset is
+    // fixed point.
+    minmax.first = std::min(minmax.first, static_cast<double>(brick_min));
+    minmax.second = std::max(minmax.second, static_cast<double>(brick_max));
     md.SetRange(minmax);
   }
   { // max brick size
