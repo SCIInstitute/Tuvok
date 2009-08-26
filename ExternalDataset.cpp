@@ -63,7 +63,12 @@ UINTVECTOR3 ExternalDataset::GetBrickVoxelCounts(const BrickKey& bk) const
   MESSAGE("looking up brick with key: (%u, %u)",
           static_cast<unsigned>(bk.first),
           static_cast<unsigned>(bk.second));
+#ifdef TR1_NOT_CONST_CORRECT
+  ExternalDataset* cthis = const_cast<ExternalDataset*>(this);
+  BrickTable::const_iterator iter = cthis->bricks.find(bk);
+#else
   BrickTable::const_iterator iter = this->bricks.find(bk);
+#endif
   if(iter == this->bricks.end()) {
     // HACK!
     char *k = static_cast<char*>(malloc(1024)); // leaked, oh well.
@@ -88,7 +93,12 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
 {
   size_t bytes;
 
+#ifdef TR1_NOT_CONST_CORRECT
+  ExternalDataset* cthis = const_cast<ExternalDataset*>(this);
+  DataTable::const_iterator brick_data = cthis->m_Data.find(bk);
+#else
   DataTable::const_iterator brick_data = this->m_Data.find(bk);
+#endif
   assert(brick_data != this->m_Data.end());
   const VariantArray &varray = brick_data->second;
 
