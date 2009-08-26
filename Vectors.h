@@ -231,12 +231,30 @@ public:
   bool operator == ( const VECTOR3<T>& other ) const {return (other.x==x && other.y==y && other.z==z); }
   bool operator != ( const VECTOR3<T>& other ) const {return (other.x!=x || other.y!=y || other.z!=z); }
 
-    // binary operators with scalars
+  // binary operators with scalars
   VECTOR3<T> operator + ( T scalar ) const {return VECTOR3<T>(x+scalar,y+scalar,z+scalar);}
   VECTOR3<T> operator - ( T scalar ) const {return VECTOR3<T>(x-scalar,y-scalar,z-scalar);}
   VECTOR3<T> operator * ( T scalar ) const {return VECTOR3<T>(x*scalar,y*scalar,z*scalar);}
   VECTOR3<T> operator / ( T scalar ) const {return VECTOR3<T>(x/scalar,y/scalar,z/scalar);}
   VECTOR3<T> operator % ( T scalar ) const {return VECTOR3<T>(x%scalar,y%scalar,z%scalar);}
+
+  /// Even if T is a fixed point type, operations with floating point types must
+  /// result in a floating point vector.
+  /// @todo FIXME loses precision when T is a double.
+  ///@{
+  template<typename U>
+  VECTOR3<U> operator * (float scalar) const {
+    return VECTOR3<U>(static_cast<float>(x)*scalar,
+                      static_cast<float>(y)*scalar,
+                      static_cast<float>(z)*scalar);
+  }
+  template<typename U>
+  VECTOR3<U> operator - (float scalar) const {
+    return VECTOR3<U>(static_cast<float>(x)-scalar,
+                      static_cast<float>(y)-scalar,
+                      static_cast<float>(z)-scalar);
+  }
+  ///@}
 
   // binary operators with vectors
   VECTOR3<T> operator + ( const VECTOR3<T>& other ) const {return VECTOR3<T>(x+other.x,y+other.y,z+other.z);}
@@ -245,6 +263,17 @@ public:
   VECTOR3<T> operator * ( const VECTOR3<T>& other ) const {return VECTOR3<T>(x*other.x,y*other.y,z*other.z);} // component product
   VECTOR3<T> operator % ( const VECTOR3<T>& other ) const {return VECTOR3<T>(y*other.z-z*other.y,z*other.x-x*other.z,x*other.y-y*other.x);} // cross product
   T operator ^ ( const VECTOR3<T>& other ) const {return T(x*other.x+y*other.y+z*other.z);} // dot product
+
+  /// Again, fixed point T's need to be promoted to FP types for proper ops.
+  /// @todo FIXME: these will actually *lose* precision if T is a double.
+  ///@{
+  template<typename U>
+  VECTOR3<U> operator - (const VECTOR3<U>& v) const {
+    return VECTOR3<U>(static_cast<float>(x) - v.x,
+                      static_cast<float>(y) - v.y,
+                      static_cast<float>(z) - v.z);
+  }
+  ///@}
 
   // unary opartors
   VECTOR3<T> operator + () const {return *this;}
