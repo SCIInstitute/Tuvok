@@ -537,7 +537,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
       m_fMsecPassed[1] = 0.0f;
     }
 
-    m_iStartLODOffset = m_iMaxLODIndex-m_iPerformanceBasedLODSkip;
+    m_iStartLODOffset = std::max(m_iMinLODForCurrentView,m_iMaxLODIndex-m_iPerformanceBasedLODSkip);
 
   } else {
     m_iStartLODOffset = m_iMinLODForCurrentView;
