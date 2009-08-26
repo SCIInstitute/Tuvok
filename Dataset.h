@@ -35,9 +35,11 @@
 #ifndef TUVOK_DATASET_H
 #define TUVOK_DATASET_H
 
+#include <StdTuvokDefines.h>
+
 #include <cstdlib>
 #include <utility>
-#ifdef TUVOK_OS_WINDOWS
+#ifdef DETECTED_OS_WINDOWS
 # include <functional>
 # include <memory>
 # include <unordered_map>

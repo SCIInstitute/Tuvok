@@ -35,8 +35,10 @@
 #ifndef TUVOK_BRICK_H
 #define TUVOK_BRICK_H
 
+#include <StdTuvokDefines.h>
+
 #include <utility>
-#ifdef TUVOK_OS_WINDOWS
+#ifdef DETECTED_OS_WINDOWS
 # include <functional>
 # include <memory>
 # include <unordered_map>

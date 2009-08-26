@@ -36,7 +36,9 @@
 #ifndef TUVOK_EXTERNAL_DATASET_H
 #define TUVOK_EXTERNAL_DATASET_H
 
-#ifdef TUVOK_OS_WINDOWS
+#include <StdTuvokDefines.h>
+
+#ifdef DETECTED_OS_WINDOWS
 # include <functional>
 # include <memory>
 # include <unordered_map>

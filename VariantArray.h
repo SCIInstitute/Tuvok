@@ -36,7 +36,9 @@
 #ifndef TUVOK_VARIANT_ARRAY_H
 #define TUVOK_VARIANT_ARRAY_H
 
-#ifdef TUVOK_OS_WINDOWS
+#include <StdTuvokDefines.h>
+
+#ifdef DETECTED_OS_WINDOWS
 # include <memory>
 #else
 # include <tr1/memory>
