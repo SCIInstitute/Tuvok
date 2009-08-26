@@ -42,7 +42,7 @@
 #include <Renderer/GPUMemMan/GPUMemMan.h>
 #include "Basics/MathTools.h"
 #include "Basics/GeometryGenerator.h"
-#include "IO/UnbrickedDataset.h"
+#include "IO/ExternalDataset.h"
 #include "IO/uvfMetadata.h"
 
 using namespace std;
@@ -283,12 +283,13 @@ void AbstrRenderer::SetDataset(Dataset *vds)
   Controller::Instance().Provenance("file", "open", "<in_memory_buffer>");
 }
 
-void AbstrRenderer::UpdateData(std::tr1::shared_ptr<float> fp, size_t len)
+void AbstrRenderer::UpdateData(const tuvok::BrickKey& bk,
+                               std::tr1::shared_ptr<float> fp, size_t len)
 {
   MESSAGE("Updating data with %u element array", static_cast<UINT32>(len));
   // free old data; we know we'll never need it, at this point.
   Controller::Instance().MemMan()->FreeAssociatedTextures(m_pDataset);
-  dynamic_cast<tuvok::UnbrickedDataset*>(m_pDataset)->SetData(fp, len);
+  dynamic_cast<tuvok::ExternalDataset*>(m_pDataset)->UpdateData(bk, fp, len);
 }
 
 void AbstrRenderer::Free1DTrans()
@@ -616,8 +617,7 @@ vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
 vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
   vector<Brick> vBrickList;
 
-  UINT64VECTOR3 vOverlap = m_pDataset->GetInfo().GetBrickOverlapSize();
-  UINT64VECTOR3 vBrickDimension = m_pDataset->GetInfo().GetBrickCount(m_iCurrentLOD);
+  UINTVECTOR3 vOverlap = m_pDataset->GetInfo().GetBrickOverlapSize();
   UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize(m_iCurrentLOD);
   FLOATVECTOR3 vScale(m_pDataset->GetInfo().GetScale().x,
                       m_pDataset->GetInfo().GetScale().y,
@@ -629,161 +629,188 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
 
   FLOATVECTOR3 vBrickCorner;
 
-  for (UINT64 z = 0;z<vBrickDimension.z;z++) {
+  MESSAGE("Building active brick list from %u active bricks.",
+          static_cast<unsigned>(m_pDataset->GetBrickCount(m_iCurrentLOD)));
+
+  BrickTable::const_iterator brick = m_pDataset->BricksBegin();
+  for(; brick != m_pDataset->BricksEnd(); ++brick) {
+    // skip over the brick if it's for the wrong LOD.
+    if(brick->first.first != m_iCurrentLOD) {
+      continue;
+    }
+    const BrickMD& bmd = brick->second;
     Brick b;
-    for (UINT64 y = 0;y<vBrickDimension.y;y++) {
-      for (UINT64 x = 0;x<vBrickDimension.x;x++) {
-        UINT64VECTOR3 vSize = m_pDataset->GetInfo().GetBrickSize(
-                                Metadata::BrickKey(m_iCurrentLOD,
-                                                   UINT64VECTOR3(x,y,z))
-                              );
-        b = Brick(x,y,z, UINT32(vSize.x), UINT32(vSize.y), UINT32(vSize.z));
+    b.vExtension = (bmd.extents * vScale) / fDownscale;
+    // compute center of the brick
+    //b.vCenter = (vBrickCorner + b.vExtension/2.0f)-vDomainExtend*0.5f;
+    b.vCenter = bmd.center;
+    b.vCenter = bmd.center - bmd.center; // HACK (duh)
+    b.vVoxelCount = bmd.n_voxels;
+    //vBrickCorner.x += b.vExtension.x;
 
-        UINT64VECTOR3 vEffectiveSize =
-          m_pDataset->GetInfo().GetEffectiveBrickSize(
-            Metadata::BrickKey(m_iCurrentLOD, UINT64VECTOR3(x,y,z))
-          );
+    MESSAGE("current brick (%u, %u) <-> ((%g,%g,%g), (%g,%g,%g), (%u,%u,%u))",
+            static_cast<unsigned>(brick->first.first),
+            static_cast<unsigned>(brick->first.second),
+            b.vCenter[0], b.vCenter[1], b.vCenter[2],
+            b.vExtension[0], b.vExtension[1], b.vExtension[2],
+            b.vVoxelCount[0], b.vVoxelCount[1], b.vVoxelCount[2]);
+    {
+      UVFMetadata &uvfmd = dynamic_cast<UVFMetadata&>(m_pDataset->GetInfo());
 
-        b.vExtension = (FLOATVECTOR3(vEffectiveSize)* vScale)/fDownscale;
+      UINT64VECTOR3 vEffectiveSize = uvfmd.GetEffectiveBrickSize(brick->first);
 
-        // compute center of the brick
-        b.vCenter = (vBrickCorner + b.vExtension/2.0f)-vDomainExtend*0.5f;
+      FLOATVECTOR3 vext = (FLOATVECTOR3(vEffectiveSize)* vScale)/fDownscale;
+      FLOATVECTOR3 center = (vBrickCorner + vext/2.0f)-vDomainExtend*0.5f;
+      UINTVECTOR3 size = uvfmd.GetBrickVoxelCounts(brick->first);
+      vBrickCorner.x += vext.x;
+      // should also do y/z, but we don't have the indices to know when that
+      // happens.  we could query e.g. dataset->IsLastInDimension(...)...
+      MESSAGE("would be: (%u,(%u,%u,%u)) <-> ((%g,%g,%g), (%g,%g,%g), "
+              "(%u,%u,%u))", static_cast<unsigned>(brick->first.first),
+              0,0,0, // don't have the brick indices...
+              center[0], center[1], center[2],
+              vext[0], vext[1], vext[2],
+              static_cast<unsigned>(size.x),
+              static_cast<unsigned>(size.y),
+              static_cast<unsigned>(size.z));
+    }
 
-        vBrickCorner.x += b.vExtension.x;
+    // skip the brick if it is outside the current view frustum
+    if (!m_FrustumCullingLOD.IsVisible(b.vCenter, b.vExtension)) {
+      continue;
+    }
 
-        // skip the brick if it is outside the current view frustum
-        if (!m_FrustumCullingLOD.IsVisible(b.vCenter, b.vExtension)) {
-          continue;
-        }
+    // skip the brick if it is clipped by the clipping plane
+    if (m_bClipPlaneOn) {
+      FLOATVECTOR3 vBrickVertices[8] = {
+        b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
+        b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
+        b.vCenter + FLOATVECTOR3(-b.vExtension.x,+b.vExtension.y,-b.vExtension.z) * 0.5f,
+        b.vCenter + FLOATVECTOR3(-b.vExtension.x,+b.vExtension.y,+b.vExtension.z) * 0.5f,
+        b.vCenter + FLOATVECTOR3(+b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
+        b.vCenter + FLOATVECTOR3(+b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
+        b.vCenter + FLOATVECTOR3(+b.vExtension.x,+b.vExtension.y,-b.vExtension.z) * 0.5f,
+        b.vCenter + FLOATVECTOR3(+b.vExtension.x,+b.vExtension.y,+b.vExtension.z) * 0.5f,
+      };
 
-        // skip the brick if it is clipped by the clipping plane
-        if (m_bClipPlaneOn) {
-
-          FLOATVECTOR3 vBrickVertices[8] = {
-            b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
-            b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
-            b.vCenter + FLOATVECTOR3(-b.vExtension.x,+b.vExtension.y,-b.vExtension.z) * 0.5f,
-            b.vCenter + FLOATVECTOR3(-b.vExtension.x,+b.vExtension.y,+b.vExtension.z) * 0.5f,
-            b.vCenter + FLOATVECTOR3(+b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
-            b.vCenter + FLOATVECTOR3(+b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
-            b.vCenter + FLOATVECTOR3(+b.vExtension.x,+b.vExtension.y,-b.vExtension.z) * 0.5f,
-            b.vCenter + FLOATVECTOR3(+b.vExtension.x,+b.vExtension.y,+b.vExtension.z) * 0.5f,
-          };
-
-          bool bClip = true;
-          FLOATMATRIX4 matWorld = m_mRotation * m_mTranslation;
-          for (size_t i = 0;i<8;i++) {
-            vBrickVertices[i] = (FLOATVECTOR4(vBrickVertices[i],1) * matWorld).dehomo();
-
-            if (!m_ClipPlane.Plane().clip(vBrickVertices[i])) {
-              bClip = false;
-              break;
-            }
-          }
-          if (bClip)
-            continue;
-        }
-
-        bool bContainsData;
-        const Metadata& md = m_pDataset->GetInfo();
-        switch (m_eRenderMode) {
-          case RM_1DTRANS:
-            bContainsData = md.ContainsData(
-                              Metadata::BrickKey(m_iCurrentLOD,
-                                                 UINT64VECTOR3(x,y,z)),
-                              double(m_p1DTrans->GetNonZeroLimits().x),
-                              double(m_p1DTrans->GetNonZeroLimits().y)
-                            );
-            break;
-          case RM_2DTRANS:
-            bContainsData = md.ContainsData(
-                              Metadata::BrickKey(m_iCurrentLOD,
-                                                 UINT64VECTOR3(x,y,z)),
-                              double(m_p2DTrans->GetNonZeroLimits().x),
-                              double(m_p2DTrans->GetNonZeroLimits().y),
-                              double(m_p2DTrans->GetNonZeroLimits().z),
-                              double(m_p2DTrans->GetNonZeroLimits().w)
-                            );
-            break;
-          case RM_ISOSURFACE:
-            bContainsData = md.ContainsData(
-                              Metadata::BrickKey(m_iCurrentLOD,
-                                                 UINT64VECTOR3(x,y,z)),
-                              m_fIsovalue*m_p1DTrans->GetSize()
-                            );
-            break;
-          default:
-            bContainsData = false;
-            break;
-        }
-
-        // if the brick is visible under the current transfer function continue processing
-        if (bContainsData) {
-          // compute texture coordinates
-          if (m_bUseOnlyPowerOfTwo) {
-            UINTVECTOR3 vRealVoxelCount(MathTools::NextPow2(b.vVoxelCount.x),
-                                        MathTools::NextPow2(b.vVoxelCount.y),
-                                        MathTools::NextPow2(b.vVoxelCount.z));
-            b.vTexcoordsMin = FLOATVECTOR3(
-              (x == 0) ? 0.5f/vRealVoxelCount.x : vOverlap.x*0.5f/vRealVoxelCount.x,
-              (y == 0) ? 0.5f/vRealVoxelCount.y : vOverlap.y*0.5f/vRealVoxelCount.y,
-              (z == 0) ? 0.5f/vRealVoxelCount.z : vOverlap.z*0.5f/vRealVoxelCount.z
-            );
-            b.vTexcoordsMax = FLOATVECTOR3((x == vBrickDimension.x-1) ? 1.0f-0.5f/vRealVoxelCount.x : 1.0f-vOverlap.x*0.5f/vRealVoxelCount.x,
-                                           (y == vBrickDimension.y-1) ? 1.0f-0.5f/vRealVoxelCount.y : 1.0f-vOverlap.y*0.5f/vRealVoxelCount.y,
-                                           (z == vBrickDimension.z-1) ? 1.0f-0.5f/vRealVoxelCount.z : 1.0f-vOverlap.z*0.5f/vRealVoxelCount.z);
-
-            b.vTexcoordsMax -= FLOATVECTOR3(vRealVoxelCount - b.vVoxelCount) / FLOATVECTOR3(vRealVoxelCount);
-          } else {
-            // compute texture coordinates
-            b.vTexcoordsMin = FLOATVECTOR3(
-              (x == 0) ? 0.5f/b.vVoxelCount.x : vOverlap.x*0.5f/b.vVoxelCount.x,
-              (y == 0) ? 0.5f/b.vVoxelCount.y : vOverlap.y*0.5f/b.vVoxelCount.y,
-              (z == 0) ? 0.5f/b.vVoxelCount.z : vOverlap.z*0.5f/b.vVoxelCount.z
-            );
-            // for padded volume adjust texcoords
-            b.vTexcoordsMax = FLOATVECTOR3((x == vBrickDimension.x-1) ? 1.0f-0.5f/b.vVoxelCount.x : 1.0f-vOverlap.x*0.5f/b.vVoxelCount.x,
-                                           (y == vBrickDimension.y-1) ? 1.0f-0.5f/b.vVoxelCount.y : 1.0f-vOverlap.y*0.5f/b.vVoxelCount.y,
-                                           (z == vBrickDimension.z-1) ? 1.0f-0.5f/b.vVoxelCount.z : 1.0f-vOverlap.z*0.5f/b.vVoxelCount.z);
-
-          }
-
-          // the depth order doesn't really matter for MIP rotations,
-          // since we need to traverse every brick anyway.  So we do a
-          // sort based on which bricks are already resident, to get a
-          // good cache hit rate.
-          if (bUseResidencyAsDistanceCriterion) {
-            vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
-            vector<UINT64> vBrick;
-            vBrick.push_back(b.vCoords.x);
-            vBrick.push_back(b.vCoords.y);
-            vBrick.push_back(b.vCoords.z);
-
-            if (m_pMasterController->MemMan()->IsResident(m_pDataset, vLOD,
-                                                          vBrick,
-                                                          m_bUseOnlyPowerOfTwo,
-                                                          m_bDownSampleTo8Bits,
-                                                          m_bDisableBorder)) {
-              b.fDistance = 0;
-            } else {
-              b.fDistance = 1;
-            }
-          } else {
-            // compute minimum distance to brick corners (offset
-            // slightly to the center to resolve ambiguities)
-            b.fDistance = brick_distance(b, m_matModelView[0]);
-          }
-
-          // add the brick to the list of active bricks
-          vBrickList.push_back(b);
+      bool bClip = true;
+      FLOATMATRIX4 matWorld = m_mRotation * m_mTranslation;
+      for (size_t i = 0;i<8;i++) {
+        vBrickVertices[i] = (FLOATVECTOR4(vBrickVertices[i],1) * matWorld)
+                            .dehomo();
+        if (!m_ClipPlane.Plane().clip(vBrickVertices[i])) {
+          bClip = false;
+          break;
         }
       }
-
-      vBrickCorner.x  = 0;
-      vBrickCorner.y += b.vExtension.y;
+      if (bClip) {
+        continue;
+      }
     }
-    vBrickCorner.y = 0;
-    vBrickCorner.z += b.vExtension.z;
+
+    // check if the brick contains any data worth rendering.
+    bool bContainsData;
+    const Metadata& md = m_pDataset->GetInfo();
+    switch (m_eRenderMode) {
+      case RM_1DTRANS:
+        bContainsData = md.ContainsData(
+                          brick->first,
+                          double(m_p1DTrans->GetNonZeroLimits().x),
+                          double(m_p1DTrans->GetNonZeroLimits().y)
+                        );
+        break;
+      case RM_2DTRANS:
+        bContainsData = md.ContainsData(
+                          brick->first,
+                          double(m_p2DTrans->GetNonZeroLimits().x),
+                          double(m_p2DTrans->GetNonZeroLimits().y),
+                          double(m_p2DTrans->GetNonZeroLimits().z),
+                          double(m_p2DTrans->GetNonZeroLimits().w)
+                        );
+        break;
+      case RM_ISOSURFACE:
+        bContainsData = md.ContainsData(
+                          brick->first,
+                          m_fIsovalue*m_p1DTrans->GetSize()
+                        );
+        break;
+      default:
+        bContainsData = false;
+        break;
+    }
+    // skip the brick if no data are visible in the current rendering mode.
+    if(!bContainsData) {
+      continue;
+    }
+
+    bool first_x = m_pDataset->BrickIsFirstInDimension(0, brick->first);
+    bool first_y = m_pDataset->BrickIsFirstInDimension(1, brick->first);
+    bool first_z = m_pDataset->BrickIsFirstInDimension(2, brick->first);
+    bool last_x = m_pDataset->BrickIsLastInDimension(0, brick->first);
+    bool last_y = m_pDataset->BrickIsLastInDimension(1, brick->first);
+    bool last_z = m_pDataset->BrickIsLastInDimension(2, brick->first);
+    // compute texture coordinates
+    if (m_bUseOnlyPowerOfTwo) {
+      UINTVECTOR3 vRealVoxelCount(MathTools::NextPow2(b.vVoxelCount.x),
+                                  MathTools::NextPow2(b.vVoxelCount.y),
+                                  MathTools::NextPow2(b.vVoxelCount.z));
+      b.vTexcoordsMin = FLOATVECTOR3(
+        (first_x) ? 0.5f/vRealVoxelCount.x : vOverlap.x*0.5f/vRealVoxelCount.x,
+        (first_y) ? 0.5f/vRealVoxelCount.y : vOverlap.y*0.5f/vRealVoxelCount.y,
+        (first_z) ? 0.5f/vRealVoxelCount.z : vOverlap.z*0.5f/vRealVoxelCount.z
+      );
+      b.vTexcoordsMax = FLOATVECTOR3(
+        (last_x) ? 1.0f-0.5f/vRealVoxelCount.x : 1.0f-vOverlap.x*0.5f/vRealVoxelCount.x,
+        (last_y) ? 1.0f-0.5f/vRealVoxelCount.y : 1.0f-vOverlap.y*0.5f/vRealVoxelCount.y,
+        (last_z) ? 1.0f-0.5f/vRealVoxelCount.z : 1.0f-vOverlap.z*0.5f/vRealVoxelCount.z
+      );
+
+      b.vTexcoordsMax -= FLOATVECTOR3(vRealVoxelCount - b.vVoxelCount) /
+                         FLOATVECTOR3(vRealVoxelCount);
+    } else {
+      // compute texture coordinates
+      b.vTexcoordsMin = FLOATVECTOR3(
+        (first_x) ? 0.5f/b.vVoxelCount.x : vOverlap.x*0.5f/b.vVoxelCount.x,
+        (first_y) ? 0.5f/b.vVoxelCount.y : vOverlap.y*0.5f/b.vVoxelCount.y,
+        (first_z) ? 0.5f/b.vVoxelCount.z : vOverlap.z*0.5f/b.vVoxelCount.z
+      );
+      // for padded volume adjust texcoords
+      b.vTexcoordsMax = FLOATVECTOR3(
+        (last_x) ? 1.0f-0.5f/b.vVoxelCount.x : 1.0f-vOverlap.x*0.5f/b.vVoxelCount.x,
+        (last_y) ? 1.0f-0.5f/b.vVoxelCount.y : 1.0f-vOverlap.y*0.5f/b.vVoxelCount.y,
+        (last_z) ? 1.0f-0.5f/b.vVoxelCount.z : 1.0f-vOverlap.z*0.5f/b.vVoxelCount.z
+      );
+    }
+
+    // the depth order doesn't really matter for MIP rotations,
+    // since we need to traverse every brick anyway.  So we do a
+    // sort based on which bricks are already resident, to get a
+    // good cache hit rate.
+    if (bUseResidencyAsDistanceCriterion) {
+      vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
+      vector<UINT64> vBrick;
+      vBrick.push_back(b.vCoords.x);
+      vBrick.push_back(b.vCoords.y);
+      vBrick.push_back(b.vCoords.z);
+
+      // should take the BrickKey instead of vLOD && vBrick
+      if (m_pMasterController->MemMan()->IsResident(m_pDataset, vLOD,
+                                                    vBrick,
+                                                    m_bUseOnlyPowerOfTwo,
+                                                    m_bDownSampleTo8Bits,
+                                                    m_bDisableBorder)) {
+        b.fDistance = 0;
+      } else {
+        b.fDistance = 1;
+      }
+    } else {
+      // compute minimum distance to brick corners (offset
+      // slightly to the center to resolve ambiguities)
+      b.fDistance = brick_distance(b, m_matModelView[0]);
+    }
+
+    // add the brick to the list of active bricks
+    vBrickList.push_back(b);
   }
 
   // depth sort bricks
@@ -799,15 +826,18 @@ void AbstrRenderer::Plan3DFrame() {
     if (m_bDoStereoRendering)
       m_matModelView[1] = m_mRotation*m_mTranslation*m_mView[1];
 
-    // we assume that the left and right eye's view are similar so we only use one for culling
+    // we assume that the left and right eye's view are similar so we only
+    // use one for culling
     m_FrustumCullingLOD.SetViewMatrix(m_matModelView[0]);
     m_FrustumCullingLOD.Update();
 
-    ComputeMinLODForCurrentView();  // figure out how fine we need to draw the data for the current view
-                                    // this method takes the size of a voxel in screen space into account
-    ComputeMaxLODForCurrentView();  // figure out at wat coarse level we need to start for the current view
-                                    // this method takes the rendermode (capture or not) and the time it took
-                                    // to render the last subframe into account
+    // figure out how fine we need to draw the data for the current view
+    // this method takes the size of a voxel in screen space into account
+    ComputeMinLODForCurrentView();
+    // figure out at what coarse level we need to start for the current view
+    // this method takes the rendermode (capture or not) and the time it took
+    // to render the last subframe into account
+    ComputeMaxLODForCurrentView();
   }
 
   // plan if the frame is to be redrawn
@@ -818,13 +848,9 @@ void AbstrRenderer::Plan3DFrame() {
     // compute current LOD level
     m_iCurrentLODOffset--;
     m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,m_pDataset->GetInfo().GetLODLevelCount()-1);
-    UINT64VECTOR3 vBrickCount = m_pDataset->GetInfo().GetBrickCount(m_iCurrentLOD);
 
     // build new brick todo-list
-    MESSAGE("Building new brick list for LOD with %u bricks",
-            static_cast<UINT32>(
-              vBrickCount[0] * vBrickCount[1] * vBrickCount[2]
-            ));
+    MESSAGE("Building new brick list for LOD ...");
     m_vCurrentBrickList = BuildSubFrameBrickList();
     MESSAGE("%u bricks made the cut.", m_vCurrentBrickList.size());
 

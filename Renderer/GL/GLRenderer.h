@@ -82,6 +82,7 @@ class GLRenderer : public AbstrRenderer {
                      FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                      UINT64VECTOR3 vDomainSize, DOUBLEVECTOR3 vAspectRatio,
                      DOUBLEVECTOR2 vWinAspectRatio);
+    virtual void NewFrameClear(ERenderArea eREnderArea);
 
   protected:
     float           m_fScaledIsovalue;
@@ -112,7 +113,6 @@ class GLRenderer : public AbstrRenderer {
     void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter,
                     const FLOATVECTOR3& vExtend);
     void RenderClipPlane(size_t iStereoID);
-    void NewFrameClear(ERenderArea eREnderArea);
     bool Execute3DFrame(ERenderArea eREnderArea, float &fMsecPassed);
     void RerenderPreviousResult(bool bTransferToFramebuffer);
     void DrawLogo();

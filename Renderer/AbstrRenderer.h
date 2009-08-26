@@ -205,7 +205,8 @@ class AbstrRenderer {
     /// which don't want to use the LOD subsystem.
     void SetDataset(tuvok::Dataset *vds);
     /// Modifies previously uploaded data.
-    void UpdateData(std::tr1::shared_ptr<float> fp, size_t len);
+    void UpdateData(const tuvok::BrickKey&,
+                    std::tr1::shared_ptr<float> fp, size_t len);
 
     tuvok::Dataset&       GetDataset()       { return *m_pDataset; }
     const tuvok::Dataset& GetDataset() const { return *m_pDataset; }
@@ -404,6 +405,8 @@ class AbstrRenderer {
       ScheduleCompleteRedraw();
     }
     FLOATVECTOR2 WindowFraction2x2() const { return m_vWinFraction; }
+
+    virtual void NewFrameClear(ERenderArea) { assert(1==0); }
 
   protected:
     /// Unsets the current transfer function, including deleting it from GPU

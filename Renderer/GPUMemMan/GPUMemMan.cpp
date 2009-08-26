@@ -569,8 +569,12 @@ required_cpu_memory(const Metadata& md,
                           std::multiplies<UINT64>());
   } catch(const std::bad_cast&) {
     const size_t lod = vLOD[0];
+    /// @todo FIXME these keys are all wrong; we shouldn't be using
+    /// N-dimensional data structures for the keys here.
     const UINT64VECTOR3 brick(vBrick[0],vBrick[1],vBrick[2]);
-    const UINT64VECTOR3 sz = md.GetBrickSize(Metadata::BrickKey(lod, brick));
+    const UINTVECTOR3 sz = md.GetBrickVoxelCounts(
+                                BrickKey(std::make_pair(lod, brick[0]))
+                           );
     mem = sz[0] * sz[1] * sz[2];
   }
   mem *= md.GetBitWidth();
@@ -731,10 +735,12 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
   UINT64 iNeededCPUMemory = required_cpu_memory(pDataset->GetInfo(),
                                                 vLOD, vBrick);
 
+  /// @todo FIXME these keys are all wrong; we shouldn't be using N-dimensional
+  /// data structures for the keys here.
   const UINT64VECTOR3 bk(vBrick[0], vBrick[1], vBrick[2]);
-  const UINT64VECTOR3 sz = pDataset->GetInfo().GetBrickSize(
-                              Metadata::BrickKey(vLOD[0], bk)
-                           );
+  const UINTVECTOR3 sz = pDataset->GetInfo().GetBrickVoxelCounts(
+                            BrickKey(std::make_pair(vLOD[0], bk[0])) // wrong
+                         );
   const UINT64 iBitWidth = pDataset->GetInfo().GetBitWidth();
   const UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
 

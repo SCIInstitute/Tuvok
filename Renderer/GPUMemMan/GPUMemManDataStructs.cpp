@@ -226,9 +226,10 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
 
 bool Texture3DListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
   const Metadata& md = pDataset->GetInfo();
+  /// @todo FIXME these keys are all wrong; we shouldn't be using N-dimensional
+  /// data structures for the keys here.
   const UINT64VECTOR3 brick(vBrick[0], vBrick[1], vBrick[2]);
-  const UINT64VECTOR3 vSize = md.GetBrickSize(Metadata::BrickKey(vLOD[0],
-                                                                 brick));
+  const UINTVECTOR3 vSize = md.GetBrickVoxelCounts(BrickKey(vLOD[0], brick[0]));
   UINT64 iByteWidth  = pDataset->GetInfo().GetBitWidth()/8;
   UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
 
@@ -240,14 +241,14 @@ bool Texture3DListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
       UVFDataset& ds = dynamic_cast<UVFDataset&>(*(this->pDataset));
       return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), vUploadHub);
     } catch(std::bad_cast) {
-      return this->pDataset->GetBrick(Dataset::BrickKey(0,0), vUploadHub);
+      return this->pDataset->GetBrick(BrickKey(0,0), vUploadHub);
     }
   } else {
     try {
       UVFDataset& ds = dynamic_cast<UVFDataset&>(*(this->pDataset));
       return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), vData);
     } catch(std::bad_cast) {
-      return this->pDataset->GetBrick(Dataset::BrickKey(0,0), vData);
+      return this->pDataset->GetBrick(BrickKey(0,0), vData);
     }
   }
 }
@@ -270,8 +271,9 @@ bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
   // Figure out how big this is going to be.
   const Metadata& md = pDataset->GetInfo();
   const UINT64VECTOR3 brick(vBrick[0], vBrick[1], vBrick[2]);
-  const UINT64VECTOR3 vSize = md.GetBrickSize(Metadata::BrickKey(vLOD[0],
-                                                                 brick));
+  /// @todo FIXME these keys are all wrong; we shouldn't be using N-dimensional
+  /// data structures for the keys here.
+  const UINTVECTOR3 vSize = md.GetBrickVoxelCounts(BrickKey(vLOD[0], brick[0]));
 
   bool bToggleEndian = !pDataset->GetInfo().IsSameEndianness();
   UINT64 iBitWidth  = pDataset->GetInfo().GetBitWidth();

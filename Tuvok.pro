@@ -93,9 +93,12 @@ HEADERS += \
            DebugOut/TextfileOut.h \
            IO/AbstrConverter.h \
            IO/BOVConverter.h \
+           IO/BrickedDataset.h \
            IO/Dataset.h \
            IO/DICOM/DICOMParser.h \
            IO/DirectoryParser.h \
+           IO/ExternalDataset.h \
+           IO/ExternalMetadata.h \
            IO/gzio.h \
            IO/I3MConverter.h \
            IO/Images/ImageParser.h \
@@ -113,8 +116,6 @@ HEADERS += \
            IO/Transferfunction2D.h \
            IO/TuvokJPEG.h \
            IO/Tuvok_QtPlugins.h \
-           IO/UnbrickedDataset.h \
-           IO/UnbrickedDSMetadata.h \
            IO/UVF/DataBlock.h \
            IO/uvfDataset.h \
            IO/UVF/GlobalHeader.h \
@@ -127,6 +128,7 @@ HEADERS += \
            IO/UVF/UVFBasic.h \
            IO/UVF/UVF.h \
            IO/UVF/UVFTables.h \
+           IO/VariantArray.h \
            IO/VFFConverter.h \
            Renderer/AbstrRenderer.h \
            Renderer/Context.h \
@@ -281,9 +283,12 @@ SOURCES += \
            DebugOut/TextfileOut.cpp \
            IO/AbstrConverter.cpp \
            IO/BOVConverter.cpp \
+           IO/BrickedDataset.cpp \
            IO/Dataset.cpp \
            IO/DICOM/DICOMParser.cpp \
            IO/DirectoryParser.cpp \
+           IO/ExternalDataset.cpp \
+           IO/ExternalMetadata.cpp \
            IO/gzio.c \
            IO/I3MConverter.cpp \
            IO/Images/ImageParser.cpp \
@@ -299,8 +304,6 @@ SOURCES += \
            IO/Transferfunction1D.cpp \
            IO/Transferfunction2D.cpp \
            IO/TuvokJPEG.cpp \
-           IO/UnbrickedDataset.cpp \
-           IO/UnbrickedDSMetadata.cpp \
            IO/UVF/DataBlock.cpp \
            IO/uvfDataset.cpp \
            IO/UVF/GlobalHeader.cpp \
@@ -312,6 +315,7 @@ SOURCES += \
            IO/UVF/RasterDataBlock.cpp \
            IO/UVF/UVF.cpp \
            IO/UVF/UVFTables.cpp \
+           IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
            Renderer/AbstrRenderer.cpp \
            Renderer/CullingLOD.cpp \
