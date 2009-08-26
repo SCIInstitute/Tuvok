@@ -36,10 +36,10 @@
 #include <cstdlib>
 #include <boost/algorithm/minmax_element.hpp>
 #include "ExternalDataset.h"
-#include "ExternalMetadata.h"
+#include <Controller/Controller.h>
 
 namespace tuvok {
-
+/*
 typedef std::vector<std::vector<UINT32> > hist2d;
 
 ExternalDataset::ExternalDataset()
@@ -242,6 +242,7 @@ void ExternalDataset::UpdateData(const BrickKey& bk,
   }
   iter->second.set(data, len);
 }
+
 void ExternalDataset::UpdateData(const BrickKey& bk,
                                  const std::tr1::shared_ptr<unsigned char> data,
                                  size_t len)
@@ -298,5 +299,5 @@ void ExternalDataset::Recalculate1DHistogram()
   //assert(1 == 0);
 #endif
 }
-
+*/
 } //namespace tuvok

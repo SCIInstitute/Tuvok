@@ -38,6 +38,12 @@
 #include <vector>
 #include "BrickedDataset.h"
 #include "UVF/RasterDataBlock.h"
+#include "UVF/MaxMinDataBlock.h"
+
+/// For UVF, a brick key has to be a list for the LOD indicators and a
+/// list of brick indices for the brick itself.
+typedef std::pair<std::vector<UINT64>,std::vector<UINT64> > NDBrickKey;
+
 
 class VolumeDatasetInfo;
 class Histogram1DDataBlock;
@@ -49,32 +55,46 @@ namespace tuvok {
 
 class UVFDataset : public BrickedDataset {
 public:
-  /// A brick key into UVF is composed of a list of LODs and a list of brick
-  /// IDs.  These lists will frequently be one element (currently, they always
-  /// are), but UVF uses a vector because they can be N-dimensional indices.
-  typedef std::pair<std::vector<UINT64>, std::vector<UINT64> > NDBrickKey;
-
   UVFDataset(const std::string& strFilename, bool bVerify);
   UVFDataset();
   virtual ~UVFDataset();
 
-  float MaxGradientMagnitude() const { return m_fMaxGradMagnitude; }
+  // Brick Data
+  virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
+  virtual bool GetBrick(const BrickKey& k, std::vector<unsigned char>& vData) const;
+  virtual bool BrickIsFirstInDimension(size_t, const BrickKey&) const;
+  virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const;
+  virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const;
 
+  /// Acceleration queries.
+  virtual bool ContainsData(const BrickKey &k, double isoval) const;
+  virtual bool ContainsData(const BrickKey &k, double fMin,double fMax) const;
+  virtual bool ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const;
+
+  // LOD Data
+  virtual BrickTable::size_type GetBrickCount(size_t lod) const;
+  virtual UINT64VECTOR3 GetDomainSize(const UINT64 lod=0) const;
+
+  // Global Data
   bool IsOpen() const { return m_bIsOpen; }
   std::string Filename() const { return m_strFilename; }
-
-  virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
-
-  virtual bool GetBrick(const BrickKey& k,
-                        std::vector<unsigned char>& vData) const {
-    const NDBrickKey& key = this->KeyToNDKey(k);
-    return m_pVolumeDataBlock->GetData(vData, key.first, key.second);
+  float MaxGradientMagnitude() const { return m_fMaxGradMagnitude; }
+  virtual UINTVECTOR3 GetMaxBrickSize() const;
+  virtual UINTVECTOR3 GetBrickOverlapSize() const;
+  virtual UINT64 GetLODLevelCount() const;
+  virtual UINT64 GetBitWidth() const;
+  virtual UINT64 GetComponentCount() const;
+  virtual bool GetIsSigned() const;
+  virtual bool GetIsFloat() const;
+  virtual bool IsSameEndianness() const;
+  /// Unsupported for UVF!  Wouldn't be hard to implement, though, just not
+  /// currently needed.
+  virtual std::pair<double,double> GetRange() const {
+    assert(1 == 0);
+    return std::make_pair(0.0, 0.0);
   }
-  bool GetBrick(const NDBrickKey& k,
-                std::vector<unsigned char>& vData) const {
-    return m_pVolumeDataBlock->GetData(vData, k.first, k.second);
-  }
 
+  // Global "Operations" and additional data not from the UVF file
   virtual bool Export(UINT64 iLODLevel, const std::string& targetFilename,
                       bool bAppend,
                       bool (*brickFunc)(LargeRAWFile* pSourceFile,
@@ -84,16 +104,17 @@ public:
                       void *pUserContext = NULL,
                       UINT64 iOverlap=0) const;
 
+
 private:
-  // converts normal key scheme to ND one needed by UVF.
-  NDBrickKey KeyToNDKey(const BrickKey &k) const {
-    std::vector<UINT64> vLOD;
-    std::vector<UINT64> vBrick;
-    vLOD.push_back(k.first);
-    vBrick.push_back(k.second);
-    return std::make_pair(vLOD, vBrick);
-  }
+  std::vector<UINT64> UVFDataset::IndexToVector(const BrickKey &k) const;
+  NDBrickKey IndexToVectorKey(const BrickKey &k) const;
   bool Open(bool bVerify);
+  UINT64 FindSuitableRasterBlock();
+  void ComputeMetaData();
+  void GetHistograms();
+
+  void FixOverlap(UINT64& v, UINT64 brickIndex, UINT64 maxindex, UINT64 overlap) const;
+
 
 private:
   float                 m_fMaxGradMagnitude;
@@ -104,6 +125,15 @@ private:
   UVF*                  m_pDatasetFile;
   bool                  m_bIsOpen;
   std::string           m_strFilename;
+
+  UINTVECTOR3                m_aOverlap;
+  bool                       m_bIsSameEndianness;
+  std::vector<UINT64VECTOR3> m_aDomainSize;
+  UINTVECTOR3                m_aMaxBrickSize;
+  std::vector<UINT64VECTOR3> m_vaBrickCount;
+  std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
+  std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
+
 };
 
 };

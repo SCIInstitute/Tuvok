@@ -67,10 +67,6 @@ public:
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<unsigned char>&) const;
 
-  void SetMetadata(Metadata * const md) {
-    this->m_pVolumeDatasetInfo = md;
-  }
-
   /// Uploads external histograms.  One will be calculated implicitly if not
   /// given.  To prevent this (potentially extra) work, upload the histogram
   /// *before* the data.

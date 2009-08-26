@@ -33,24 +33,25 @@
 */
 
 #include "Dataset.h"
-#include "Metadata.h"
 
-tuvok::Dataset::Dataset():
+
+namespace tuvok {
+
+Dataset::Dataset():
   m_pHist1D(NULL),
   m_pHist2D(NULL),
-  m_pVolumeDatasetInfo(NULL)
+  m_UserScale(1.0,1.0,1.0)
 {
 }
 
-tuvok::Dataset::~Dataset()
+Dataset::~Dataset()
 {
   delete m_pHist1D;            m_pHist1D = NULL;
   delete m_pHist2D;            m_pHist2D = NULL;
-  delete m_pVolumeDatasetInfo; m_pVolumeDatasetInfo = NULL;
 }
 
 /// unimplemented!
-bool tuvok::Dataset::Export(UINT64, const std::string&, bool,
+bool Dataset::Export(UINT64, const std::string&, bool,
                             bool (*)(LargeRAWFile* pSourceFile,
                                      const std::vector<UINT64> vBrickSize,
                                      const std::vector<UINT64> vBrickOffset,
@@ -58,3 +59,14 @@ bool tuvok::Dataset::Export(UINT64, const std::string&, bool,
                             void *, UINT64) const {
   return false;
 }
+
+void Dataset::SetRescaleFactors(const DOUBLEVECTOR3& rescale) {
+  m_UserScale = rescale;
+}
+
+DOUBLEVECTOR3 Dataset::GetRescaleFactors() const {
+  return m_UserScale;
+}
+
+
+}; // tuvok namespace.

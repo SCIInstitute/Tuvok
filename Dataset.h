@@ -95,6 +95,28 @@ public:
   virtual bool BrickIsFirstInDimension(size_t, const BrickKey&) const = 0;
   virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const = 0;
 
+  void SetRescaleFactors(const DOUBLEVECTOR3&);
+  DOUBLEVECTOR3 GetRescaleFactors() const;
+
+  virtual UINT64 GetLODLevelCount() const = 0;
+  virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0) const = 0;
+  DOUBLEVECTOR3 GetScale() const {return m_DomainScale * m_UserScale;}
+  virtual UINTVECTOR3 GetBrickOverlapSize() const = 0;
+  virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const = 0;
+
+  virtual UINT64 GetBitWidth() const = 0;
+  virtual UINT64 GetComponentCount() const = 0;
+  virtual bool GetIsSigned() const = 0;
+  virtual bool GetIsFloat() const = 0;
+  virtual bool IsSameEndianness() const = 0;
+  virtual std::pair<double,double> GetRange() const = 0;
+
+
+  /// Acceleration queries.
+  virtual bool ContainsData(const BrickKey&, double /*isoval*/) const {return true;}
+  virtual bool ContainsData(const BrickKey&, double /*fMin*/, double /*fMax*/) const {return true;}
+  virtual bool ContainsData(const BrickKey&, double /*fMin*/, double /*fMax*/, double /*fMinGradient*/, double /*fMaxGradient*/) const {return true;}
+
   /// unimplemented!
   virtual bool Export(UINT64 iLODLevel, const std::string& targetFilename,
                       bool bAppend,
@@ -105,13 +127,13 @@ public:
                       void *pUserContext = NULL,
                       UINT64 iOverlap=0) const;
 
-  Metadata&       GetInfo() { return *m_pVolumeDatasetInfo; }
-  const Metadata& GetInfo() const { return *m_pVolumeDatasetInfo; }
-
 protected:
   Histogram1D*       m_pHist1D;
   Histogram2D*       m_pHist2D;
-  Metadata*          m_pVolumeDatasetInfo;
+
+  DOUBLEVECTOR3      m_UserScale;
+  DOUBLEVECTOR3      m_DomainScale;
+
 };
 
 };

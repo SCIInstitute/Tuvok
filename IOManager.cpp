@@ -45,7 +45,6 @@
 #include <IO/Images/ImageParser.h>
 #include <Basics/SysTools.h>
 #include <Renderer/GPUMemMan/GPUMemMan.h>
-#include "Metadata.h"
 #include "TuvokJPEG.h"
 #include "uvfDataset.h"
 
@@ -396,24 +395,24 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       IntermediateFile.iHeaderSkip = 0;
 
       if (iInputData == 0)  {
-        iComponentSizeG = v.GetInfo().GetBitWidth();
-        iComponentCountG = v.GetInfo().GetComponentCount();
-        bConvertEndianessG = !v.GetInfo().IsSameEndianness();
-        bSignedG = v.GetInfo().GetIsSigned();
-        bIsFloatG = v.GetInfo().GetIsFloat();
-        vVolumeSizeG = UINTVECTOR3(v.GetInfo().GetDomainSize(iLODLevel));
-        vVolumeAspectG = FLOATVECTOR3(v.GetInfo().GetScale());
+        iComponentSizeG = v.GetBitWidth();
+        iComponentCountG = v.GetComponentCount();
+        bConvertEndianessG = !v.IsSameEndianness();
+        bSignedG = v.GetIsSigned();
+        bIsFloatG = v.GetIsFloat();
+        vVolumeSizeG = UINTVECTOR3(v.GetDomainSize(iLODLevel));
+        vVolumeAspectG = FLOATVECTOR3(v.GetScale());
       } else {
-        if (iComponentSizeG  != v.GetInfo().GetBitWidth() ||
-            iComponentCountG != v.GetInfo().GetComponentCount() ||
-            bConvertEndianessG != !v.GetInfo().IsSameEndianness() ||
-            bSignedG != v.GetInfo().GetIsSigned() ||
-            bIsFloatG != v.GetInfo().GetIsFloat() ||
-            vVolumeSizeG != UINTVECTOR3(v.GetInfo().GetDomainSize(iLODLevel))) {
+        if (iComponentSizeG  != v.GetBitWidth() ||
+            iComponentCountG != v.GetComponentCount() ||
+            bConvertEndianessG != !v.IsSameEndianness() ||
+            bSignedG != v.GetIsSigned() ||
+            bIsFloatG != v.GetIsFloat() ||
+            vVolumeSizeG != UINTVECTOR3(v.GetDomainSize(iLODLevel))) {
           bRAWCreated = false;
           break;
         }
-        if (vVolumeAspectG != FLOATVECTOR3(v.GetInfo().GetScale()))
+        if (vVolumeAspectG != FLOATVECTOR3(v.GetScale()))
           WARNING("Different aspect ratios found.");
       }
 
@@ -663,13 +662,13 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       UINT64 iLODLevel = 0; // always extract the highest quality here
 
       iHeaderSkip = 0;
-      iComponentSize = v.GetInfo().GetBitWidth();
-      iComponentCount = v.GetInfo().GetComponentCount();
-      bConvertEndianess = !v.GetInfo().IsSameEndianness();
-      bSigned = v.GetInfo().GetIsSigned();
-      bIsFloat = v.GetInfo().GetIsFloat();
-      vVolumeSize = UINTVECTOR3(v.GetInfo().GetDomainSize(iLODLevel));
-      vVolumeAspect = FLOATVECTOR3(v.GetInfo().GetScale());
+      iComponentSize = v.GetBitWidth();
+      iComponentCount = v.GetComponentCount();
+      bConvertEndianess = !v.IsSameEndianness();
+      bSigned = v.GetIsSigned();
+      bIsFloat = v.GetIsFloat();
+      vVolumeSize = UINTVECTOR3(v.GetDomainSize(iLODLevel));
+      vVolumeAspect = FLOATVECTOR3(v.GetScale());
       eType             = UVFTables::ES_UNDEFINED;  /// \todo grab this data from the UVF file
       strTitle          = "UVF data";               /// \todo grab this data from the UVF file
       strSource         = SysTools::GetFilename(strFilename);
@@ -752,7 +751,7 @@ bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, co
 }
 
 bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir) {
-  if (pSourceData->GetInfo().GetComponentCount() != 1) {
+  if (pSourceData->GetComponentCount() != 1) {
     T_ERROR("Isosurface extraction only supported for scalar volumes.");
     return false;
   }
@@ -760,10 +759,10 @@ bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData, UINT64 iLODleve
   string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
   MCData* pMCData = NULL;
 
-  bool   bFloatingPoint  = pSourceData->GetInfo().GetIsFloat();
-  bool   bSigned         = pSourceData->GetInfo().GetIsSigned();
-  UINT64  iComponentSize = pSourceData->GetInfo().GetBitWidth();
-  FLOATVECTOR3 vScale    = FLOATVECTOR3(pSourceData->GetInfo().GetScale() * vfRescaleFactors);
+  bool   bFloatingPoint  = pSourceData->GetIsFloat();
+  bool   bSigned         = pSourceData->GetIsSigned();
+  UINT64  iComponentSize = pSourceData->GetBitWidth();
+  FLOATVECTOR3 vScale    = FLOATVECTOR3(pSourceData->GetScale() * vfRescaleFactors);
 
   if (bFloatingPoint) {
     if (bSigned) {
@@ -842,12 +841,12 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel, c
 
   bool bTargetCreated = pExporter->ConvertToNative(
                                 strTempFilename, strTargetFilename, 0,
-                                pSourceData->GetInfo().GetBitWidth(),
-                                pSourceData->GetInfo().GetComponentCount(),
-                                pSourceData->GetInfo().GetIsSigned(),
-                                pSourceData->GetInfo().GetIsFloat(),
-                                UINTVECTOR3(pSourceData->GetInfo().GetDomainSize(iLODlevel)),
-                                FLOATVECTOR3(pSourceData->GetInfo().GetRescaleFactors()),
+                                pSourceData->GetBitWidth(),
+                                pSourceData->GetComponentCount(),
+                                pSourceData->GetIsSigned(),
+                                pSourceData->GetIsFloat(),
+                                UINTVECTOR3(pSourceData->GetDomainSize(iLODlevel)),
+                                FLOATVECTOR3(pSourceData->GetRescaleFactors()),
                                 false);
 
   remove(strTempFilename.c_str());
@@ -971,9 +970,9 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info, 
     UVFDataset v(strFilename,false);
     if (!v.IsOpen()) return false;
 
-    UINT64 iComponentCount = v.GetInfo().GetComponentCount();
-    bool bSigned = v.GetInfo().GetIsSigned();
-    bool bIsFloat = v.GetInfo().GetIsFloat();
+    UINT64 iComponentCount = v.GetComponentCount();
+    bool bSigned = v.GetIsSigned();
+    bool bIsFloat = v.GetIsFloat();
 
     if (iComponentCount != 1) return false;  // only scalar data supported at the moment
     const Histogram1D& pHist = v.Get1DHistogram();
@@ -996,9 +995,9 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info, 
       }
     }
 
-    info.m_vAspect = FLOATVECTOR3(v.GetInfo().GetScale());
-    info.m_vDomainSize = UINTVECTOR3(v.GetInfo().GetDomainSize());
-    info.m_iComponentSize = v.GetInfo().GetBitWidth();
+    info.m_vAspect = FLOATVECTOR3(v.GetScale());
+    info.m_vDomainSize = UINTVECTOR3(v.GetDomainSize());
+    info.m_iComponentSize = v.GetBitWidth();
 
     return true;
   } else {
