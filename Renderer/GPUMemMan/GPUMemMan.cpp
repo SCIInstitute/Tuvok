@@ -804,8 +804,8 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
   MESSAGE("texture created.");
   pNew3DTex->iUserCount = 1;
 
-  m_iAllocatedGPUMemory += pNew3DTex->pTexture->GetCPUSize();
-  m_iAllocatedCPUMemory += pNew3DTex->pTexture->GetGPUSize();
+  m_iAllocatedGPUMemory += pNew3DTex->pTexture->GetGPUSize();
+  m_iAllocatedCPUMemory += pNew3DTex->pTexture->GetCPUSize();
 
   m_vpTex3DList.push_back(pNew3DTex);
   return (*(m_vpTex3DList.end()-1))->pTexture;
