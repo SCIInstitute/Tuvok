@@ -98,13 +98,11 @@ HEADERS += \
            IO/DICOM/DICOMParser.h \
            IO/DirectoryParser.h \
            IO/ExternalDataset.h \
-           IO/ExternalMetadata.h \
            IO/gzio.h \
            IO/I3MConverter.h \
            IO/Images/ImageParser.h \
            IO/IOManager.h \
            IO/KeyValueFileParser.h \
-           IO/Metadata.h \
            IO/NRRDConverter.h \
            IO/Quantize.h \
            IO/QVISConverter.h \
@@ -123,7 +121,6 @@ HEADERS += \
            IO/UVF/Histogram2DDataBlock.h \
            IO/UVF/KeyValuePairDataBlock.h \
            IO/UVF/MaxMinDataBlock.h \
-           IO/uvfMetadata.h \
            IO/UVF/RasterDataBlock.h \
            IO/UVF/UVFBasic.h \
            IO/UVF/UVF.h \
@@ -288,13 +285,11 @@ SOURCES += \
            IO/DICOM/DICOMParser.cpp \
            IO/DirectoryParser.cpp \
            IO/ExternalDataset.cpp \
-           IO/ExternalMetadata.cpp \
            IO/gzio.c \
            IO/I3MConverter.cpp \
            IO/Images/ImageParser.cpp \
            IO/IOManager.cpp \
            IO/KeyValueFileParser.cpp \
-           IO/Metadata.cpp \
            IO/NRRDConverter.cpp \
            IO/QVISConverter.cpp \
            IO/RAWConverter.cpp \
@@ -311,7 +306,6 @@ SOURCES += \
            IO/UVF/Histogram2DDataBlock.cpp \
            IO/UVF/KeyValuePairDataBlock.cpp \
            IO/UVF/MaxMinDataBlock.cpp \
-           IO/uvfMetadata.cpp \
            IO/UVF/RasterDataBlock.cpp \
            IO/UVF/UVF.cpp \
            IO/UVF/UVFTables.cpp \
