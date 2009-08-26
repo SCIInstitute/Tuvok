@@ -47,29 +47,21 @@
 
 class AbstrDebugOut {
   public:
+    AbstrDebugOut() :
+        m_bShowMessages(false),
 #ifdef _DEBUG
-    AbstrDebugOut() :
-        m_bShowMessages(false),
         m_bShowWarnings(true),
-        m_bShowErrors(true),
-        m_bShowOther(true)
-    {
-        m_bRecordLists[0] = false;
-        m_bRecordLists[1] = false;
-        m_bRecordLists[2] = false;
-    }
 #else
-    AbstrDebugOut() :
-        m_bShowMessages(false),
         m_bShowWarnings(false),
+#endif
         m_bShowErrors(true),
-        m_bShowOther(true)
+        m_bShowOther(false)
     {
         m_bRecordLists[0] = false;
         m_bRecordLists[1] = false;
         m_bRecordLists[2] = false;
     }
-#endif
+
     virtual ~AbstrDebugOut() {
       m_bRecordLists[0] = false;
       m_bRecordLists[1] = false;
