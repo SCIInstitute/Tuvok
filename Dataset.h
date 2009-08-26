@@ -56,7 +56,7 @@
 
 // Apple ships a broken version of gcc's tr1 on 10.4; see gcc bug 23053.  Also
 // note that the bug has been fixed for over 4 years.
-#ifdef __GNUC__ && (__GNUC__ == 4 && __GNUC_MINOR__ == 0)
+#if __GNUC__ && (__GNUC__ == 4 && __GNUC_MINOR__ == 0)
 # define TR1_NOT_CONST_CORRECT
 #endif
 
