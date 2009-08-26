@@ -780,6 +780,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       case RA_TOPRIGHT   : vWinAspectRatio /= DOUBLEVECTOR2(1.0f-m_vWinFraction.x, 1.0f-m_vWinFraction.y); break;
       case RA_LOWERLEFT  : vWinAspectRatio /= DOUBLEVECTOR2(m_vWinFraction.x, m_vWinFraction.y); break;
       case RA_LOWERRIGHT : vWinAspectRatio /= DOUBLEVECTOR2(1.0f-m_vWinFraction.x, m_vWinFraction.y); break;       
+      default: break;
     }
     vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
 
