@@ -774,6 +774,13 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetInfo().GetScale() * DOUBLEVECTOR3(vDomainSize);
 
     DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
+
+    switch (eREnderArea) {
+      case RA_TOPLEFT    : vWinAspectRatio /= DOUBLEVECTOR2(m_vWinFraction.x, 1.0f-m_vWinFraction.y); break;
+      case RA_TOPRIGHT   : vWinAspectRatio /= DOUBLEVECTOR2(1.0f-m_vWinFraction.x, 1.0f-m_vWinFraction.y); break;
+      case RA_LOWERLEFT  : vWinAspectRatio /= DOUBLEVECTOR2(m_vWinFraction.x, m_vWinFraction.y); break;
+      case RA_LOWERRIGHT : vWinAspectRatio /= DOUBLEVECTOR2(1.0f-m_vWinFraction.x, m_vWinFraction.y); break;       
+    }
     vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
 
     if (!m_bUseMIP[size_t(eDirection)]) {
