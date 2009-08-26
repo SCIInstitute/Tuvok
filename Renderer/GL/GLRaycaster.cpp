@@ -191,7 +191,7 @@ bool GLRaycaster::Initialize() {
 void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurrentBrick) {
   FLOATVECTOR3 vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(currentBrick.vVoxelCount);
   float fRayStep = (currentBrick.vExtension*vVoxelSizeTexSpace * 0.5f * 1.0f/m_fSampleRateModifier).minVal();
-  float fStepScale = 1.0f/m_fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetInfo().GetDomainSize())/FLOATVECTOR3(m_pDataset->GetInfo().GetDomainSize(m_iCurrentLOD))).maxVal();
+  float fStepScale = 1.0f/m_fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
 
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  {
@@ -208,7 +208,7 @@ void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurre
                             break;
                           }
     case RM_ISOSURFACE : {
-                            GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+                            GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
                             if (m_bDoClearView) {
                               m_pProgramIso2->Enable();
                               m_pProgramIso2->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
@@ -303,7 +303,7 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
                             break;
       case RM_2DTRANS    :  vCurrentShader.push_back(m_pProgram2DTrans[m_bUseLighting ? 1 : 0]);
                             break;
-      case RM_ISOSURFACE :  if (m_pDataset->GetInfo().GetComponentCount() == 1)
+      case RM_ISOSURFACE :  if (m_pDataset->GetComponentCount() == 1)
                               vCurrentShader.push_back(m_pProgramIso);
                             else
                               vCurrentShader.push_back(m_pProgramColor);
@@ -396,7 +396,7 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
 
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
     shader->Enable();
     SetBrickDepShaderVars(b, iCurrentBrick);
     m_pFBORayEntry->Read(2);
@@ -545,7 +545,7 @@ void GLRaycaster::StartFrame() {
                               m_pProgramIso2->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
                               m_pProgramIso2->Disable();
                             }
-                            GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+                            GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
                             shader->Enable();
                             shader->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
                             shader->Disable();

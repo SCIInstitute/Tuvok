@@ -37,35 +37,34 @@
 #include <cmath>
 #include "TFScaling.h"
 #include "IO/Dataset.h"
-#include "IO/Metadata.h"
 #include "IO/TransferFunction1D.h"
 
 namespace tuvok {
 
 float
-scale_bit_width(const Metadata& md, bool downsample,
+scale_bit_width(const Dataset& ds, bool downsample,
                 const TransferFunction1D& tf)
 {
-  size_t max_value = (md.GetBitWidth() != 8 && downsample)
+  size_t max_value = (ds.GetBitWidth() != 8 && downsample)
                       ? 65536 : tf.GetSize();
-  UINT32 max_range = static_cast<UINT32>(1 << md.GetBitWidth());
+  UINT32 max_range = static_cast<UINT32>(1 << ds.GetBitWidth());
 
-  return (md.GetBitWidth() != 8 && downsample)
+  return (ds.GetBitWidth() != 8 && downsample)
           ? 1.0f : static_cast<float>(max_range) /
                    static_cast<float>(max_value);
 }
 
 std::pair<float,float>
-scale_bias_and_scale(const Metadata& md)
+scale_bias_and_scale(const Dataset& ds)
 {
   std::pair<float,float> retval;
 
   // bias by the minimum value in the dataset.
-  retval.first = -(md.GetRange().first);
+  retval.first = -(ds.GetRange().first);
 
   // scale by the full range of the data
-  retval.second = fabsf(md.GetRange().first) +
-                  fabsf(md.GetRange().second);
+  retval.second = fabsf(ds.GetRange().first) +
+                  fabsf(ds.GetRange().second);
   return retval;
 }
 

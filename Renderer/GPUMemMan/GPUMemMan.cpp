@@ -51,7 +51,6 @@
 #include "Controller/Controller.h"
 #include "GPUMemManDataStructs.h"
 #include "IO/uvfDataset.h"
-#include "IO/uvfMetadata.h"
 #include "Renderer/AbstrRenderer.h"
 #include "Renderer/GL/GLError.h"
 #include "Renderer/GL/GLTexture1D.h"
@@ -556,13 +555,13 @@ bool GPUMemMan::IsResident(const Dataset* pDataset,
 /// Calculates the amount of memory the given brick will take up.
 /// Slightly complicated because we might have an N-dimensional brick.
 static UINT64
-required_cpu_memory(const Dataset& ds, const Metadata& md, const BrickKey& key)
+required_cpu_memory(const Dataset& ds, const BrickKey& key)
 {
   UINT64 mem = 1;
   const UINTVECTOR3 size = ds.GetBrickVoxelCounts(key);
   mem = size[0] * size[1] * size[2];
-  mem *= md.GetBitWidth();
-  mem *= md.GetComponentCount();
+  mem *= ds.GetBitWidth();
+  mem *= ds.GetComponentCount();
   return mem;
 }
 
@@ -712,13 +711,13 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset, const BrickKey& k
     }
   }
 
-  UINT64 iNeededCPUMemory = required_cpu_memory(*pDataset, pDataset->GetInfo(), key);
+  UINT64 iNeededCPUMemory = required_cpu_memory(*pDataset, key);
 
   /// @todo FIXME these keys are all wrong; we shouldn't be using N-dimensional
   /// data structures for the keys here.
-  const UINTVECTOR3 sz = pDataset->GetInfo().GetBrickVoxelCounts(key);
-  const UINT64 iBitWidth = pDataset->GetInfo().GetBitWidth();
-  const UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
+  const UINTVECTOR3 sz = pDataset->GetBrickVoxelCounts(key);
+  const UINT64 iBitWidth = pDataset->GetBitWidth();
+  const UINT64 iCompCount = pDataset->GetComponentCount();
 
   // for OpenGL we ignore the GPU memory load and let GL do the paging
   if (m_iAllocatedCPUMemory + iNeededCPUMemory >

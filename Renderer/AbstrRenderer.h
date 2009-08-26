@@ -49,7 +49,6 @@
 
 #include "../StdTuvokDefines.h"
 #include "../Renderer/CullingLOD.h"
-#include "../IO/Metadata.h"
 #include "../IO/Dataset.h"
 #include "../Basics/Plane.h"
 #include "../Basics/GeometryGenerator.h"
@@ -207,10 +206,10 @@ class AbstrRenderer {
     /// Sets the dataset from external source; only meant to be used by clients
     /// which don't want to use the LOD subsystem.
     void SetDataset(tuvok::Dataset *vds);
-    /// Modifies previously uploaded data.
+/*    /// Modifies previously uploaded data.
     void UpdateData(const tuvok::BrickKey&,
                     std::tr1::shared_ptr<float> fp, size_t len);
-
+*/
     tuvok::Dataset&       GetDataset()       { return *m_pDataset; }
     const tuvok::Dataset& GetDataset() const { return *m_pDataset; }
 
@@ -330,10 +329,10 @@ class AbstrRenderer {
       m_iMinFramerate = iMinFramerate; m_iStartDelay = iStartDelay;
     }
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
-      m_pDataset->GetInfo().SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();
+      m_pDataset->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();
     }
     DOUBLEVECTOR3 GetRescaleFactors() {
-      return m_pDataset->GetInfo().GetRescaleFactors();
+      return m_pDataset->GetRescaleFactors();
     }
 
     void SetCaptureMode(bool bCaptureMode) {m_bCaptureMode = bCaptureMode;}

@@ -44,12 +44,11 @@ class TransferFunction1D;
 namespace tuvok {
 
 class Dataset;
-class Metadata;
 
-float scale_bit_width(const Metadata& md, bool downsample,
+float scale_bit_width(const Dataset& ds, bool downsample,
                       const TransferFunction1D& tf);
 
-std::pair<float,float> scale_bias_and_scale(const Metadata& md);
+std::pair<float,float> scale_bias_and_scale(const Dataset& ds);
 
 }; // tuvok namespace.
 

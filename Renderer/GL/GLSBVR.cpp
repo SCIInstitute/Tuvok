@@ -149,7 +149,7 @@ void GLSBVR::SetDataDepShaderVars() {
   GLRenderer::SetDataDepShaderVars();
 
   if (m_eRenderMode == RM_ISOSURFACE && m_bAvoidSeperateCompositing) {
-    GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
+    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
 
     shader->Enable();
     shader->SetUniformVector("fIsoval",m_fScaledIsovalue);
@@ -159,8 +159,7 @@ void GLSBVR::SetDataDepShaderVars() {
     shader->Disable();
   }
   if(m_eRenderMode == RM_1DTRANS && m_TFScalingMethod == SMETH_BIAS_AND_SCALE) {
-    std::pair<float,float> bias_scale =
-      tuvok::scale_bias_and_scale(m_pDataset->GetInfo());
+    std::pair<float,float> bias_scale = tuvok::scale_bias_and_scale(*m_pDataset);
     MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
             bias_scale.second);
     m_pProgram1DTrans[0]->Enable();
@@ -194,10 +193,10 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
     case RM_ISOSURFACE: {
       GLSLProgram *shader;
       if (m_bAvoidSeperateCompositing) {
-        shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ?
+        shader = (m_pDataset->GetComponentCount() == 1) ?
                  m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
       } else {
-        shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ?
+        shader = (m_pDataset->GetComponentCount() == 1) ?
                  m_pProgramIso : m_pProgramColor;
       }
       shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
@@ -244,7 +243,7 @@ void GLSBVR::Render3DPreLoop() {
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
     case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
-                            if (m_pDataset->GetInfo().GetComponentCount() == 1)
+                            if (m_pDataset->GetComponentCount() == 1)
                               m_pProgramIsoNoCompose->Enable();
                             else
                               m_pProgramColorNoCompose->Enable();
@@ -258,7 +257,7 @@ void GLSBVR::Render3DPreLoop() {
                           break;
   }
 
-  m_SBVRGeogen.SetLODData( UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize(m_iCurrentLOD))  );
+  m_SBVRGeogen.SetLODData( UINTVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))  );
 }
 
 void GLSBVR::RenderProxyGeometry() {
@@ -291,7 +290,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
   if (! m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);
-    GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
 
@@ -335,7 +334,7 @@ void GLSBVR::Render3DPostLoop() {
                           glDisable(GL_BLEND);
                           break;
     case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
-                            if (m_pDataset->GetInfo().GetComponentCount() == 1)
+                            if (m_pDataset->GetComponentCount() == 1)
                               m_pProgramIsoNoCompose->Disable();
                             else
                               m_pProgramColorNoCompose->Disable();
@@ -378,8 +377,8 @@ void GLSBVR::RenderHQMIPPostLoop() {
 
 bool GLSBVR::LoadDataset(const string& strFilename) {
   if (GLRenderer::LoadDataset(strFilename)) {
-    UINTVECTOR3    vSize = UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize());
-    FLOATVECTOR3 vAspect = FLOATVECTOR3(m_pDataset->GetInfo().GetScale());
+    UINTVECTOR3    vSize = UINTVECTOR3(m_pDataset->GetDomainSize());
+    FLOATVECTOR3 vAspect = FLOATVECTOR3(m_pDataset->GetScale());
     vAspect /= vAspect.maxVal();
 
     m_SBVRGeogen.SetVolumeData(vAspect, vSize);

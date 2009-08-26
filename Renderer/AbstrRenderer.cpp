@@ -43,7 +43,6 @@
 #include "Basics/MathTools.h"
 #include "Basics/GeometryGenerator.h"
 #include "IO/ExternalDataset.h"
-#include "IO/uvfMetadata.h"
 
 using namespace std;
 using namespace tuvok;
@@ -182,17 +181,11 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   Controller::Instance().Provenance("file", "open", strFilename);
 
   // find the maximum LOD index
-  const UVFMetadata &md = dynamic_cast<const UVFMetadata &>
-                                      (m_pDataset->GetInfo());
-  std::vector<UINT64> vSmallestLOD = md.GetLODLevelCountND();
-  for (size_t i = 0;i<vSmallestLOD.size();i++) {
-    vSmallestLOD[i]--;
-  }
-  m_iMaxLODIndex = *std::min_element(vSmallestLOD.begin(), vSmallestLOD.end());
+  m_iMaxLODIndex = m_pDataset->GetLODLevelCount()-1;
 
-  m_piSlice[size_t(WM_CORONAL)] = m_pDataset->GetInfo().GetDomainSize()[0]/2;
-  m_piSlice[size_t(WM_SAGITTAL)]  = m_pDataset->GetInfo().GetDomainSize()[1]/2;
-  m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetInfo().GetDomainSize()[2]/2;
+  m_piSlice[size_t(WM_CORONAL)]  = m_pDataset->GetDomainSize()[0]/2;
+  m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetDomainSize()[1]/2;
+  m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetDomainSize()[2]/2;
 
   return true;
 }
@@ -283,6 +276,7 @@ void AbstrRenderer::SetDataset(Dataset *vds)
   Controller::Instance().Provenance("file", "open", "<in_memory_buffer>");
 }
 
+/*
 void AbstrRenderer::UpdateData(const tuvok::BrickKey& bk,
                                std::tr1::shared_ptr<float> fp, size_t len)
 {
@@ -291,6 +285,7 @@ void AbstrRenderer::UpdateData(const tuvok::BrickKey& bk,
   Controller::Instance().MemMan()->FreeAssociatedTextures(m_pDataset);
   dynamic_cast<tuvok::ExternalDataset*>(m_pDataset)->UpdateData(bk, fp, len);
 }
+*/
 
 void AbstrRenderer::Free1DTrans()
 {
@@ -550,13 +545,13 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
 }
 
 void AbstrRenderer::ComputeMinLODForCurrentView() {
-  UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize());
-  FLOATVECTOR3 vfExtend     = (FLOATVECTOR3(viVoxelCount) / viVoxelCount.maxVal()) * FLOATVECTOR3(m_pDataset->GetInfo().GetScale() / m_pDataset->GetInfo().GetScale().maxVal() );
+  UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetDomainSize());
+  FLOATVECTOR3 vfExtend     = (FLOATVECTOR3(viVoxelCount) / viVoxelCount.maxVal()) * FLOATVECTOR3(m_pDataset->GetScale() / m_pDataset->GetScale().maxVal() );
 
   // TODO consider real extent not center
 
   FLOATVECTOR3 vfCenter(0,0,0);
-  m_iMinLODForCurrentView = max(0, min<int>(m_pDataset->GetInfo().GetLODLevelCount()-1,m_FrustumCullingLOD.GetLODLevel(vfCenter,vfExtend,viVoxelCount)));
+  m_iMinLODForCurrentView = max(0, min<int>(m_pDataset->GetLODLevelCount()-1,m_FrustumCullingLOD.GetLODLevel(vfCenter,vfExtend,viVoxelCount)));
 }
 
 /// Calculates the distance to a given brick given the current view
@@ -617,15 +612,13 @@ vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
 vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
   vector<Brick> vBrickList;
 
-  UINTVECTOR3 vOverlap = m_pDataset->GetInfo().GetBrickOverlapSize();
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize(m_iCurrentLOD);
-  FLOATVECTOR3 vScale(m_pDataset->GetInfo().GetScale().x,
-                      m_pDataset->GetInfo().GetScale().y,
-                      m_pDataset->GetInfo().GetScale().z);
-
-  FLOATVECTOR3 vDomainExtend = vScale * FLOATVECTOR3(vDomainSize);
-  float fDownscale = vDomainExtend.maxVal();
-  vDomainExtend /= fDownscale;
+  UINTVECTOR3 vOverlap = m_pDataset->GetBrickOverlapSize();
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize(m_iCurrentLOD);
+  FLOATVECTOR3 vScale(m_pDataset->GetScale().x,
+                      m_pDataset->GetScale().y,
+                      m_pDataset->GetScale().z);
+  
+  vScale /= vScale.maxVal();
 
   FLOATVECTOR3 vBrickCorner;
 
@@ -640,41 +633,11 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     }
     const BrickMD& bmd = brick->second;
     Brick b;
-    b.vExtension = (bmd.extents * vScale) / fDownscale;
-    // compute center of the brick
-    //b.vCenter = (vBrickCorner + b.vExtension/2.0f)-vDomainExtend*0.5f;
-    b.vCenter = bmd.center;
-    b.vCenter = bmd.center - bmd.center; // HACK (duh)
+    b.vExtension = bmd.extents * vScale;
+    b.vCenter = bmd.center * vScale;
     b.vVoxelCount = bmd.n_voxels;
     b.kBrick = brick->first;
-    //vBrickCorner.x += b.vExtension.x;
 
-    MESSAGE("current brick (%u, %u) <-> ((%g,%g,%g), (%g,%g,%g), (%u,%u,%u))",
-            static_cast<unsigned>(brick->first.first),
-            static_cast<unsigned>(brick->first.second),
-            b.vCenter[0], b.vCenter[1], b.vCenter[2],
-            b.vExtension[0], b.vExtension[1], b.vExtension[2],
-            b.vVoxelCount[0], b.vVoxelCount[1], b.vVoxelCount[2]);
-    {
-      UVFMetadata &uvfmd = dynamic_cast<UVFMetadata&>(m_pDataset->GetInfo());
-
-      UINT64VECTOR3 vEffectiveSize = uvfmd.GetEffectiveBrickSize(brick->first);
-
-      FLOATVECTOR3 vext = (FLOATVECTOR3(vEffectiveSize)* vScale)/fDownscale;
-      FLOATVECTOR3 center = (vBrickCorner + vext/2.0f)-vDomainExtend*0.5f;
-      UINTVECTOR3 size = uvfmd.GetBrickVoxelCounts(brick->first);
-      vBrickCorner.x += vext.x;
-      // should also do y/z, but we don't have the indices to know when that
-      // happens.  we could query e.g. dataset->IsLastInDimension(...)...
-      MESSAGE("would be: (%u,(%u,%u,%u)) <-> ((%g,%g,%g), (%g,%g,%g), "
-              "(%u,%u,%u))", static_cast<unsigned>(brick->first.first),
-              0,0,0, // don't have the brick indices...
-              center[0], center[1], center[2],
-              vext[0], vext[1], vext[2],
-              static_cast<unsigned>(size.x),
-              static_cast<unsigned>(size.y),
-              static_cast<unsigned>(size.z));
-    }
 
     // skip the brick if it is outside the current view frustum
     if (!m_FrustumCullingLOD.IsVisible(b.vCenter, b.vExtension)) {
@@ -711,17 +674,16 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
 
     // check if the brick contains any data worth rendering.
     bool bContainsData;
-    const Metadata& md = m_pDataset->GetInfo();
     switch (m_eRenderMode) {
       case RM_1DTRANS:
-        bContainsData = md.ContainsData(
+        bContainsData = m_pDataset->ContainsData(
                           brick->first,
                           double(m_p1DTrans->GetNonZeroLimits().x),
                           double(m_p1DTrans->GetNonZeroLimits().y)
                         );
         break;
       case RM_2DTRANS:
-        bContainsData = md.ContainsData(
+        bContainsData = m_pDataset->ContainsData(
                           brick->first,
                           double(m_p2DTrans->GetNonZeroLimits().x),
                           double(m_p2DTrans->GetNonZeroLimits().y),
@@ -730,7 +692,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
                         );
         break;
       case RM_ISOSURFACE:
-        bContainsData = md.ContainsData(
+        bContainsData = m_pDataset->ContainsData(
                           brick->first,
                           m_fIsovalue*m_p1DTrans->GetSize()
                         );
@@ -739,10 +701,9 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
         bContainsData = false;
         break;
     }
+
     // skip the brick if no data are visible in the current rendering mode.
-    if(!bContainsData) {
-      continue;
-    }
+    if(!bContainsData) continue;
 
     bool first_x = m_pDataset->BrickIsFirstInDimension(0, brick->first);
     bool first_y = m_pDataset->BrickIsFirstInDimension(1, brick->first);
@@ -840,7 +801,7 @@ void AbstrRenderer::Plan3DFrame() {
        m_iCurrentLODOffset > m_iMinLODForCurrentView)) {
     // compute current LOD level
     m_iCurrentLODOffset--;
-    m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,m_pDataset->GetInfo().GetLODLevelCount()-1);
+    m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,m_pDataset->GetLODLevelCount()-1);
 
     // build new brick todo-list
     MESSAGE("Building new brick list for LOD ...");
@@ -866,7 +827,7 @@ void AbstrRenderer::PlanHQMIPFrame() {
 
   m_FrustumCullingLOD.SetPassAll(true);
 
-  UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize());
+  UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetDomainSize());
 
   m_iCurrentLODOffset = 0;
   m_iCurrentLOD = 0;
@@ -879,7 +840,7 @@ void AbstrRenderer::PlanHQMIPFrame() {
   }
 
   if (m_iCurrentLOD > 0) {
-    m_iCurrentLOD = min<int>(m_pDataset->GetInfo().GetLODLevelCount()-1,m_iCurrentLOD-1);
+    m_iCurrentLOD = min<int>(m_pDataset->GetLODLevelCount()-1,m_iCurrentLOD-1);
   }
 
   // build new brick todo-list

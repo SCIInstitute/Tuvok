@@ -376,7 +376,7 @@ void GLRenderer::StartFrame() {
       m_pProgramCVCompose->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
       m_pProgramCVCompose->Disable();
     } else {
-      GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIsoCompose : m_pProgramColorCompose;
+      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIsoCompose : m_pProgramColorCompose;
 
       shader->Enable();
       shader->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
@@ -384,10 +384,10 @@ void GLRenderer::StartFrame() {
     }
 
     size_t iMaxValue        = m_p1DTrans->GetSize();
-    UINT32 iMaxRange        = UINT32(1<<m_pDataset->GetInfo().GetBitWidth());
+    UINT32 iMaxRange        = UINT32(1<<m_pDataset->GetBitWidth());
     // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
-    m_fScaledIsovalue       = (m_pDataset->GetInfo().GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fIsovalue * float(iMaxValue)/float(iMaxRange);
-    m_fScaledCVIsovalue     = (m_pDataset->GetInfo().GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
+    m_fScaledIsovalue       = (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fIsovalue * float(iMaxValue)/float(iMaxRange);
+    m_fScaledCVIsovalue     = (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
   }
 }
 
@@ -753,15 +753,15 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 #if 0
     // We're ignoring bricking here.  This is trying to find the number of
     // voxels in the coarsest resolution of the dataset.
-    for (UINT64 i = 0;i<m_pDataset->GetInfo().GetLODLevelCount();i++) {
+    for (UINT64 i = 0;i<m_pDataset->GetLODLevelCount();i++) {
       // The conditional is indirectly looking for the LOD with 1 brick.  If
       // the LOD has only 1 brick, then the number of bricks along each
       // dimension will be one.  The 'volume' of a unit-cubed chunk of space is
       // 1 -- thus if the volume of the brick count is 1, then this is the
       // coarsest LOD.
-      if (m_pDataset->GetInfo().GetBrickCount(i).volume() == 1) {
+      if (m_pDataset->GetBrickCount(i).volume() == 1) {
           iCurrentLOD = i;
-          vVoxelCount = UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize(i));
+          vVoxelCount = UINTVECTOR3(m_pDataset->GetDomainSize(i));
           break;
       }
     }
@@ -787,8 +787,8 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     FLOATVECTOR3 vMinCoords(0.5f/FLOATVECTOR3(vVoxelCount));
     FLOATVECTOR3 vMaxCoords(1.0f-vMinCoords);
 
-    UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize();
-    DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetInfo().GetScale() * DOUBLEVECTOR3(vDomainSize);
+    UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
+    DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetScale() * DOUBLEVECTOR3(vDomainSize);
 
     DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
 
@@ -820,7 +820,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
   } else {
     if (m_bOrthoView) {
       FLOATMATRIX4 maOrtho;
-      UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize();
+      UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
       DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
       vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
       float fRoot2Scale = (vWinAspectRatio.x < vWinAspectRatio.y) ? max(1.0,1.414213f * vWinAspectRatio.x/vWinAspectRatio.y) : 1.414213f;
@@ -927,8 +927,8 @@ void GLRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
 }
 
 void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset) {
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize();
-  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetInfo().GetScale());
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
+  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetScale());
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
 
@@ -1475,12 +1475,12 @@ void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
 // to scale the TF in the same manner that we've scaled the data.
 float GLRenderer::CalculateScaling()
 {
-  size_t iMaxValue     = (m_pDataset->GetInfo().GetBitWidth() != 8 &&
+  size_t iMaxValue     = (m_pDataset->GetBitWidth() != 8 &&
                           m_bDownSampleTo8Bits) ? 65536
                                                 : m_p1DTrans->GetSize();
-  UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetInfo().GetBitWidth());
+  UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetBitWidth());
 
-  return (m_pDataset->GetInfo().GetBitWidth() != 8 && m_bDownSampleTo8Bits)
+  return (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits)
          ? 1.0f
          : float(iMaxRange)/float(iMaxValue);
 }
@@ -1543,7 +1543,7 @@ void GLRenderer::SetDataDepShaderVars() {
       m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
       m_pProgram1DTransSlice3D->Disable();
 
-      GLSLProgram* shader = (m_pDataset->GetInfo().GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
       shader->Enable();
       shader->SetUniformVector("fIsoval",m_fScaledIsovalue);
@@ -1751,8 +1751,8 @@ void GLRenderer::PlaneIn3DPostRender() {
 }
 
 void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetInfo().GetDomainSize();
-  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetInfo().GetScale());
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
+  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetScale());
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
 
@@ -1814,10 +1814,10 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
 
     UINT64 iCurrentLOD = 0;
     UINTVECTOR3 vVoxelCount;
-    for (UINT64 i = 0;i<m_pDataset->GetInfo().GetLODLevelCount();i++) {
-      if (m_pDataset->GetInfo().GetBrickCount(i).volume() == 1) {
+    for (UINT64 i = 0;i<m_pDataset->GetLODLevelCount();i++) {
+      if (m_pDataset->GetBrickCount(i).volume() == 1) {
           iCurrentLOD = i;
-          vVoxelCount = UINTVECTOR3(m_pDataset->GetInfo().GetDomainSize(i));
+          vVoxelCount = UINTVECTOR3(m_pDataset->GetDomainSize(i));
       }
     }
     // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
@@ -2079,7 +2079,7 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
     m_pFBOCVHit[iStereoID]->Read(3, 1);
     glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
   } else {
-    if (m_pDataset->GetInfo().GetComponentCount() == 1) {
+    if (m_pDataset->GetComponentCount() == 1) {
       m_pProgramIsoCompose->Enable();
       m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",m_vIsoColor.x,
                                              m_vIsoColor.y, m_vIsoColor.z);
@@ -2104,7 +2104,7 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
     m_pFBOCVHit[iStereoID]->FinishRead(1);
     m_pProgramCVCompose->Disable();
   } else {
-    if (m_pDataset->GetInfo().GetComponentCount() == 1)
+    if (m_pDataset->GetComponentCount() == 1)
       m_pProgramIsoCompose->Disable();
     else
       m_pProgramColorCompose->Disable();

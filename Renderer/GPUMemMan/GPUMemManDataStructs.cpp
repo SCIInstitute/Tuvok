@@ -42,7 +42,6 @@
 #include "Basics/MathTools.h"
 #include "Controller/Controller.h"
 #include "IO/uvfDataset.h"
-#include "IO/uvfMetadata.h"
 #include "Renderer/GL/GLTexture3D.h"
 using namespace tuvok;
 
@@ -194,12 +193,11 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
 
 
 bool Texture3DListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
-  const Metadata& md = pDataset->GetInfo();
   /// @todo FIXME these keys are all wrong; we shouldn't be using N-dimensional
   /// data structures for the keys here.
-  const UINTVECTOR3 vSize = md.GetBrickVoxelCounts(m_Key);
-  UINT64 iByteWidth  = pDataset->GetInfo().GetBitWidth()/8;
-  UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
+  const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
+  UINT64 iByteWidth  = pDataset->GetBitWidth()/8;
+  UINT64 iCompCount = pDataset->GetComponentCount();
 
   UINT64 iBrickSize = vSize[0]*vSize[1]*vSize[2]*iByteWidth * iCompCount;
 
@@ -229,9 +227,9 @@ bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
   // Figure out how big this is going to be.
   const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
 
-  bool bToggleEndian = !pDataset->GetInfo().IsSameEndianness();
-  UINT64 iBitWidth  = pDataset->GetInfo().GetBitWidth();
-  UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
+  bool bToggleEndian = !pDataset->IsSameEndianness();
+  UINT64 iBitWidth  = pDataset->GetBitWidth();
+  UINT64 iCompCount = pDataset->GetComponentCount();
 
   MESSAGE("%llu components of width %llu", iCompCount, iBitWidth);
 
