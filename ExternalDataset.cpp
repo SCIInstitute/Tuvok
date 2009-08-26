@@ -68,7 +68,7 @@ UINTVECTOR3 ExternalDataset::GetBrickVoxelCounts(const BrickKey& bk) const
     // HACK!
     char *k = static_cast<char*>(malloc(1024)); // leaked, oh well.
 #ifdef DETECTED_OS_WINDOWS
-  _snprintf(k, 1024, "GetBrickSize: no brick w/ key (%zu, %zu)",
+  _snprintf_s(k, 1024,1024, "GetBrickSize: no brick w/ key (%zu, %zu)",
              static_cast<size_t>(bk.first),
              static_cast<size_t>(bk.second));
 #else
@@ -76,8 +76,6 @@ UINTVECTOR3 ExternalDataset::GetBrickVoxelCounts(const BrickKey& bk) const
              static_cast<size_t>(bk.first),
              static_cast<size_t>(bk.second));
 #endif
-
-
     throw BrickNotFound(k);
   }
   return UINTVECTOR3(iter->second.n_voxels[0],
@@ -109,6 +107,7 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
       break;
     default:
       T_ERROR("Unhandled data type.");
+      bytes = 0;
       break;
   }
   UINTVECTOR3 sz = this->GetBrickVoxelCounts(bk);
