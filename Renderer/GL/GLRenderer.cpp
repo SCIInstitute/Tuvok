@@ -2004,7 +2004,7 @@ float GLRenderer::Render3DView() {
     m_iBricksRenderedInThisSubFrame++;
 
     // time this loop
-    glFlush(); // let's pretend this actually does what it should
+    glFinish(); // let's pretend this actually does what it should
     if (!m_bCaptureMode) timeProbe = clock();
     ++bricks_this_call;
 
