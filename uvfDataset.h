@@ -73,7 +73,7 @@ public:
 
   // LOD Data
   virtual BrickTable::size_type GetBrickCount(size_t lod) const;
-  virtual UINT64VECTOR3 GetDomainSize(const UINT64 lod=0) const;
+  virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0) const;
 
   // Global Data
   bool IsOpen() const { return m_bIsOpen; }
@@ -106,7 +106,7 @@ public:
 
 
 private:
-  std::vector<UINT64> UVFDataset::IndexToVector(const BrickKey &k) const;
+  std::vector<UINT64> IndexToVector(const BrickKey &k) const;
   NDBrickKey IndexToVectorKey(const BrickKey &k) const;
   bool Open(bool bVerify);
   UINT64 FindSuitableRasterBlock();
