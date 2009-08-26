@@ -159,25 +159,6 @@ template<> struct type2enum<const unsigned char> {
   enum { value = ExternalMetadata::MDT_BYTE };
 };
 
-// Returns the range of the data; we can't set it here directly because we're
-// not a friend of Metadata.
-template<typename T>
-std::pair<double,double>
-set_metadata(const std::tr1::shared_ptr<T> data, size_t len,
-             ExternalMetadata &metadata)
-{
-  int dtype = type2enum<T>::value;
-  metadata.SetDataType(static_cast<ExternalMetadata::MD_Data_Type>(dtype));
-
-  std::pair<double,double> mmax;
-  if(range_has_not_been_set(metadata)) {
-    std::pair<T*,T*> curmm = boost::minmax_element(data.get(), data.get()+len);
-    mmax = std::make_pair(static_cast<double>(*curmm.first),
-                          static_cast<double>(*curmm.second));
-  }
-  return mmax;
-}
-
 template<typename T> void
 update_metadata(ExternalMetadata &md, const BrickMD& b,
                 T brick_min, T brick_max)
