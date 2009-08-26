@@ -68,13 +68,13 @@ UINTVECTOR3 ExternalDataset::GetBrickVoxelCounts(const BrickKey& bk) const
     // HACK!
     char *k = static_cast<char*>(malloc(1024)); // leaked, oh well.
 #ifdef DETECTED_OS_WINDOWS
-  _snprintf_s(k, 1024,1024, "GetBrickSize: no brick w/ key (%zu, %zu)",
-             static_cast<size_t>(bk.first),
-             static_cast<size_t>(bk.second));
+  _snprintf_s(k, 1024,1024, "GetBrickSize: no brick w/ key (%u, %u)",
+             static_cast<unsigned>(bk.first),
+             static_cast<unsigned>(bk.second));
 #else
-    snprintf(k, 1024, "GetBrickSize: no brick w/ key (%zu, %zu)",
-             static_cast<size_t>(bk.first),
-             static_cast<size_t>(bk.second));
+    snprintf(k, 1024, "GetBrickSize: no brick w/ key (%u, %u)",
+             static_cast<unsigned>(bk.first),
+             static_cast<unsigned>(bk.second));
 #endif
     throw BrickNotFound(k);
   }
@@ -311,4 +311,4 @@ void ExternalDataset::Recalculate1DHistogram()
 #endif
 }
 
-}; //namespace tuvok
+} //namespace tuvok
