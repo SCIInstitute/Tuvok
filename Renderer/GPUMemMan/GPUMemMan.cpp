@@ -539,13 +539,12 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D,
 // ******************** 3D Textures
 
 bool GPUMemMan::IsResident(const Dataset* pDataset,
-                           const vector<UINT64>& vLOD,
-                           const vector<UINT64>& vBrick,
+                           const BrickKey& key,
                            bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                            bool bDisableBorder) const {
   for(Texture3DListConstIter i = m_vpTex3DList.begin();
       i < m_vpTex3DList.end(); ++i) {
-    if((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
+    if((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                     bDownSampleTo8Bits, bDisableBorder,
                     CTContext::Current())) {
       return true;
@@ -557,26 +556,11 @@ bool GPUMemMan::IsResident(const Dataset* pDataset,
 /// Calculates the amount of memory the given brick will take up.
 /// Slightly complicated because we might have an N-dimensional brick.
 static UINT64
-required_cpu_memory(const Metadata& md,
-                    const std::vector<UINT64>& vLOD,
-                    const std::vector<UINT64>& vBrick)
+required_cpu_memory(const Dataset& ds, const Metadata& md, const BrickKey& key)
 {
   UINT64 mem = 1;
-  try {
-    const UVFMetadata& umd = dynamic_cast<const UVFMetadata&>(md);
-    const std::vector<UINT64> vSize = umd.GetBrickSizeND(vLOD, vBrick);
-    mem = std::accumulate(vSize.begin(), vSize.end(), UINT64(1),
-                          std::multiplies<UINT64>());
-  } catch(const std::bad_cast&) {
-    const size_t lod = vLOD[0];
-    /// @todo FIXME these keys are all wrong; we shouldn't be using
-    /// N-dimensional data structures for the keys here.
-    const UINT64VECTOR3 brick(vBrick[0],vBrick[1],vBrick[2]);
-    const UINTVECTOR3 sz = md.GetBrickVoxelCounts(
-                                BrickKey(std::make_pair(lod, brick[0]))
-                           );
-    mem = sz[0] * sz[1] * sz[2];
-  }
+  const UINTVECTOR3 size = ds.GetBrickVoxelCounts(key);
+  mem = size[0] * size[1] * size[2];
   mem *= md.GetBitWidth();
   mem *= md.GetComponentCount();
   return mem;
@@ -585,7 +569,7 @@ required_cpu_memory(const Metadata& md,
 /// Searches the texture list for a texture which matches the given criterion.
 /// @return matching texture, or lst.end() if no texture matches.
 static Texture3DListIter
-find_closest_texture(Texture3DList &lst, const std::vector<UINT64> vSize,
+find_closest_texture(Texture3DList &lst, const UINTVECTOR3& vSize,
                      bool use_pot, bool downsample, bool disable_border)
 {
   UINT64 iTargetFrameCounter = UINT64_INVALID;
@@ -673,9 +657,7 @@ void GPUMemMan::DeleteArbitraryBrick() {
           "cannot make space for a new brick.");
 }
 
-GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
-                                     const vector<UINT64>& vLOD,
-                                     const vector<UINT64>& vBrick,
+GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset, const BrickKey& key,
                                      bool bUseOnlyPowerOfTwo,
                                      bool bDownSampleTo8Bits,
                                      bool bDisableBorder,
@@ -686,7 +668,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
   // delete any brick and then try again.
   do {
     try {
-      return this->AllocOrGet3DTexture(pDataset, vLOD, vBrick,
+      return this->AllocOrGet3DTexture(pDataset, key,
                                        bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
                                        bDisableBorder,
                                        iIntraFrameCounter, iFrameCounter);
@@ -714,9 +696,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset,
   return NULL;
 }
 
-GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
-                                            const vector<UINT64>& vLOD,
-                                            const vector<UINT64>& vBrick,
+GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset, const BrickKey& key,
                                             bool bUseOnlyPowerOfTwo,
                                             bool bDownSampleTo8Bits,
                                             bool bDisableBorder,
@@ -724,7 +704,7 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
                                             UINT64 iFrameCounter) {
   for (Texture3DListIter i = m_vpTex3DList.begin();
        i < m_vpTex3DList.end(); i++) {
-    if ((*i)->Equals(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
+    if ((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                      bDownSampleTo8Bits, bDisableBorder,
                      CTContext::Current())) {
       MESSAGE("Reusing 3D texture");
@@ -732,15 +712,11 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
     }
   }
 
-  UINT64 iNeededCPUMemory = required_cpu_memory(pDataset->GetInfo(),
-                                                vLOD, vBrick);
+  UINT64 iNeededCPUMemory = required_cpu_memory(*pDataset, pDataset->GetInfo(), key);
 
   /// @todo FIXME these keys are all wrong; we shouldn't be using N-dimensional
   /// data structures for the keys here.
-  const UINT64VECTOR3 bk(vBrick[0], vBrick[1], vBrick[2]);
-  const UINTVECTOR3 sz = pDataset->GetInfo().GetBrickVoxelCounts(
-                            BrickKey(std::make_pair(vLOD[0], bk[0])) // wrong
-                         );
+  const UINTVECTOR3 sz = pDataset->GetInfo().GetBrickVoxelCounts(key);
   const UINT64 iBitWidth = pDataset->GetInfo().GetBitWidth();
   const UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
 
@@ -752,16 +728,14 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
             int(iBitWidth), int(iCompCount));
 
     // search for best brick to replace with this brick
-    const UVFMetadata& umd = dynamic_cast<const UVFMetadata&>
-                                         (pDataset->GetInfo());
-    const std::vector<UINT64> vSize = umd.GetBrickSizeND(vLOD, vBrick);
+    UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(key);
     Texture3DListIter iBestMatch = find_closest_texture(m_vpTex3DList, vSize,
                                                         bUseOnlyPowerOfTwo,
                                                         bDownSampleTo8Bits,
                                                         bDisableBorder);
     if (iBestMatch != m_vpTex3DList.end()) {
       // found a suitable brick that can be replaced
-      (*iBestMatch)->Replace(pDataset, vLOD, vBrick, bUseOnlyPowerOfTwo,
+      (*iBestMatch)->Replace(pDataset, key, bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits, bDisableBorder,
                              iIntraFrameCounter, iFrameCounter,
                              CTContext::Current(), m_vUploadHub);
@@ -793,7 +767,7 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
   MESSAGE("Creating new texture %i x %i x %i, bitsize=%i, componentcount=%i",
           int(sz[0]), int(sz[1]), int(sz[2]), int(iBitWidth), int(iCompCount));
 
-  Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, vLOD, vBrick,
+  Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, key,
                                                        bUseOnlyPowerOfTwo,
                                                        bDownSampleTo8Bits,
                                                        bDisableBorder,

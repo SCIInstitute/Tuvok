@@ -749,7 +749,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     UINT64 iCurrentLOD = 0;
     UINTVECTOR3 vVoxelCount;
 
-    /// @todo FIXME
+    /// @todo FIXME-IO
 #if 0
     // We're ignoring bricking here.  This is trying to find the number of
     // voxels in the coarsest resolution of the dataset.
@@ -769,13 +769,12 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     if (!m_bUseMIP[size_t(eDirection)]) SetBrickDepShaderVarsSlice(vVoxelCount);
 #endif
 
-    // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
-    vector<UINT64> vLOD; vLOD.push_back(iCurrentLOD);
-    vector<UINT64> vBrick;
-    vBrick.push_back(0);vBrick.push_back(0);vBrick.push_back(0);
+    // Get the brick at this LOD; note we're guaranteed this brick will cover the entire domain,
+    // because the search above gives us the coarsest LOD!
+    const BrickKey bkey(iCurrentLOD, 0);
 
     // get the 3D texture from the memory manager
-    GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, 0, m_iFrameCounter);
+    GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, 0, m_iFrameCounter);
     if(t) t->Bind(0);
 
     // clear the target at the beginning
@@ -851,9 +850,10 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.x);
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.y);
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.z);
+      const BrickKey &key = m_vCurrentBrickList[iBrickIndex].kBrick;
 
       // get the 3D texture from the memory manager
-      GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, m_iIntraFrameCounter++, m_iFrameCounter);
+      GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, key, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, m_iIntraFrameCounter++, m_iFrameCounter);
       if(t) t->Bind(0);
       RenderHQMIPInLoop(m_vCurrentBrickList[iBrickIndex]);
       m_pMasterController->MemMan()->Release3DTexture(t);
@@ -1986,17 +1986,11 @@ float GLRenderer::Render3DView() {
     MESSAGE("  Brick %i of %i", int(m_iBricksRenderedInThisSubFrame+1),
                                 int(m_vCurrentBrickList.size()));
 
-    // convert 3D variables to the more general ND scheme used in the
-    // memory manager, i.e. convert 3-vectors to STL vectors
-    vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
-    vector<UINT64> vBrick;
-    vBrick.push_back(m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords.x);
-    vBrick.push_back(m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords.y);
-    vBrick.push_back(m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords.z);
+    const BrickKey& key = m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
 
     // get the 3D texture from the memory manager
     GPUMemMan &mm = *(m_pMasterController->MemMan());
-    GLTexture3D* t = mm.Get3DTexture(m_pDataset, vLOD, vBrick,
+    GLTexture3D* t = mm.Get3DTexture(m_pDataset, key,
                                      m_bUseOnlyPowerOfTwo,
                                      m_bDownSampleTo8Bits, m_bDisableBorder,
                                      m_iIntraFrameCounter++, m_iFrameCounter);
@@ -2005,15 +1999,12 @@ float GLRenderer::Render3DView() {
 
     Render3DInLoop(m_iBricksRenderedInThisSubFrame,0);
     if (m_bDoStereoRendering) {
-      if (m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords !=
-          m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].vCoords) {
-        vBrick.clear();
-        vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.x);
-        vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.y);
-        vBrick.push_back(m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].vCoords.z);
+      if (m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].kBrick !=
+          m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick) {
+        const BrickKey& left_eye_key = m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
 
         mm.Release3DTexture(t);
-        t = mm.Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo,
+        t = mm.Get3DTexture(m_pDataset, left_eye_key, m_bUseOnlyPowerOfTwo,
                             m_bDownSampleTo8Bits, m_bDisableBorder,
                             m_iIntraFrameCounter++, m_iFrameCounter);
         if(t) { t->Bind(0); }

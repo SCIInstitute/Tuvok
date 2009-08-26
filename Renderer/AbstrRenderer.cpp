@@ -646,6 +646,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     b.vCenter = bmd.center;
     b.vCenter = bmd.center - bmd.center; // HACK (duh)
     b.vVoxelCount = bmd.n_voxels;
+    b.kBrick = brick->first;
     //vBrickCorner.x += b.vExtension.x;
 
     MESSAGE("current brick (%u, %u) <-> ((%g,%g,%g), (%g,%g,%g), (%u,%u,%u))",
@@ -787,15 +788,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     // sort based on which bricks are already resident, to get a
     // good cache hit rate.
     if (bUseResidencyAsDistanceCriterion) {
-      vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
-      vector<UINT64> vBrick;
-      vBrick.push_back(b.vCoords.x);
-      vBrick.push_back(b.vCoords.y);
-      vBrick.push_back(b.vCoords.z);
-
-      // should take the BrickKey instead of vLOD && vBrick
-      if (m_pMasterController->MemMan()->IsResident(m_pDataset, vLOD,
-                                                    vBrick,
+      if (m_pMasterController->MemMan()->IsResident(m_pDataset, brick->first,
                                                     m_bUseOnlyPowerOfTwo,
                                                     m_bDownSampleTo8Bits,
                                                     m_bDisableBorder)) {

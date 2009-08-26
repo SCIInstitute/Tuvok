@@ -67,11 +67,13 @@ public:
   }
 
   Brick(UINT32 x, UINT32 y, UINT32 z,
-        UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ) :
+        UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
+        const tuvok::BrickKey& k) :
     vCenter(0,0,0),
     vExtension(0,0,0),
     vVoxelCount(iSizeX, iSizeY, iSizeZ),
-    vCoords(x,y,z)
+    vCoords(x,y,z),
+    kBrick(k)
   {
   }
 
@@ -81,6 +83,7 @@ public:
   FLOATVECTOR3 vExtension;
   UINTVECTOR3 vVoxelCount;
   UINTVECTOR3 vCoords;
+  tuvok::BrickKey kBrick;
   float fDistance;
 };
 

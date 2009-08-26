@@ -45,6 +45,7 @@
 #include "GL/glew.h"
 #include "boost/noncopyable.hpp"
 #include "Basics/Vectors.h"
+#include "IO/Brick.h"
 #include "../Context.h"
 #include "../../StdTuvokDefines.h"
 #include "../GL/GLFBOTex.h"
@@ -136,9 +137,7 @@ typedef Trans2DList::iterator Trans2DListIter;
 /// case would be a bad idea -- the copy might be large.
 class Texture3DListElem : boost::noncopyable {
 public:
-  Texture3DListElem(tuvok::Dataset* _pDataset,
-                    const std::vector<UINT64>& _vLOD,
-                    const std::vector<UINT64>& _vBrick,
+  Texture3DListElem(tuvok::Dataset* _pDataset, const tuvok::BrickKey&,
                     bool bIsPaddedToPowerOfTwo, bool bDisableBorder,
                     bool bIsDownsampledTo8Bits, UINT64 iIntraFrameCounter,
                     UINT64 iFrameCounter, MasterController* pMasterController,
@@ -146,25 +145,19 @@ public:
                     std::vector<unsigned char>& vUploadHub);
   ~Texture3DListElem();
 
-  bool Equals(const tuvok::Dataset* _pDataset,
-              const std::vector<UINT64>& _vLOD,
-              const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo,
-              bool bIsDownsampledTo8Bits, bool bDisableBorder,
-              const tuvok::CTContext &);
-  bool Replace(tuvok::Dataset* _pDataset, const std::vector<UINT64>& _vLOD,
-               const std::vector<UINT64>& _vBrick, bool bIsPaddedToPowerOfTwo,
-               bool bIsDownsampledTo8Bits, bool bDisableBorder,
+  bool Equals(const tuvok::Dataset* _pDataset, const tuvok::BrickKey&,
+              bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
+              bool bDisableBorder, const tuvok::CTContext &);
+  bool Replace(tuvok::Dataset* _pDataset, const tuvok::BrickKey&,
+               bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
+               bool bDisableBorder,
                UINT64 iIntraFrameCounter, UINT64 iFrameCounter,
                const tuvok::CTContext &,
                std::vector<unsigned char>& vUploadHub);
-  bool BestMatch(const std::vector<UINT64>& vDimension,
+  bool BestMatch(const UINTVECTOR3& vDimension,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, UINT64& iIntraFrameCounter,
                  UINT64& iFrameCounter, const tuvok::CTContext &);
-  bool BestMatch(const UINT64VECTOR3& vDimension,
-                 bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
-                 bool bDisableBorder, UINT64& iIntraFrameCounter,
-                 UINT64& iFrameCounter, const tuvok::CTContext &ctx);
   void GetCounters(UINT64& iIntraFrameCounter, UINT64& iFrameCounter) {
     iIntraFrameCounter = m_iIntraFrameCounter;
     iFrameCounter = m_iFrameCounter;
@@ -187,15 +180,14 @@ public:
   UINT64 GetFrameCounter() const {return m_iFrameCounter;}
 
 private:
-  bool Match(const std::vector<UINT64>& vDimension);
+  bool Match(const UINTVECTOR3& vDimension);
 
   UINT64 m_iIntraFrameCounter;
   UINT64 m_iFrameCounter;
   MasterController* m_pMasterController;
   const tuvok::CTContext m_Context;
 
-  std::vector<UINT64> vLOD;
-  std::vector<UINT64> vBrick;
+  tuvok::BrickKey m_Key;
   bool m_bIsPaddedToPowerOfTwo;
   bool m_bIsDownsampledTo8Bits;
   bool m_bDisableBorder;

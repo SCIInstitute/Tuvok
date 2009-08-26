@@ -47,9 +47,7 @@
 using namespace tuvok;
 
 
-Texture3DListElem::Texture3DListElem(Dataset* _pDataset,
-                                     const std::vector<UINT64>& _vLOD,
-                                     const std::vector<UINT64>& _vBrick,
+Texture3DListElem::Texture3DListElem(Dataset* _pDataset, const BrickKey& key,
                                      bool bIsPaddedToPowerOfTwo,
                                      bool bIsDownsampledTo8Bits,
                                      bool bDisableBorder,
@@ -65,8 +63,7 @@ Texture3DListElem::Texture3DListElem(Dataset* _pDataset,
   m_iFrameCounter(iFrameCounter),
   m_pMasterController(pMasterController),
   m_Context(ctx),
-  vLOD(_vLOD),
-  vBrick(_vBrick),
+  m_Key(key),
   m_bIsPaddedToPowerOfTwo(bIsPaddedToPowerOfTwo),
   m_bIsDownsampledTo8Bits(bIsDownsampledTo8Bits),
   m_bDisableBorder(bDisableBorder),
@@ -84,25 +81,19 @@ Texture3DListElem::~Texture3DListElem() {
   FreeTexture();
 }
 
-bool Texture3DListElem::Equals(const Dataset* _pDataset,
-                               const std::vector<UINT64>& _vLOD,
-                               const std::vector<UINT64>& _vBrick,
+bool Texture3DListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
                                bool bIsPaddedToPowerOfTwo,
                                bool bIsDownsampledTo8Bits, bool bDisableBorder,
                                const CTContext &cid)
 {
   if (_pDataset != pDataset ||
-      _vLOD.size() != vLOD.size() ||
-      _vBrick.size() != vBrick.size() ||
+      m_Key != key ||
       m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo ||
       m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits ||
       m_bDisableBorder != bDisableBorder ||
       m_Context != cid) {
     return false;
   }
-
-  for (size_t i = 0;i<vLOD.size();i++)   if (vLOD[i] != _vLOD[i]) return false;
-  for (size_t i = 0;i<vBrick.size();i++) if (vBrick[i] != _vBrick[i]) return false;
 
   return true;
 }
@@ -115,7 +106,7 @@ GLTexture3D* Texture3DListElem::Access(UINT64& iIntraFrameCounter, UINT64& iFram
   return pTexture;
 }
 
-bool Texture3DListElem::BestMatch(const std::vector<UINT64>& vDimension,
+bool Texture3DListElem::BestMatch(const UINTVECTOR3& vDimension,
                                   bool bIsPaddedToPowerOfTwo,
                                   bool bIsDownsampledTo8Bits,
                                   bool bDisableBorder,
@@ -152,34 +143,14 @@ bool Texture3DListElem::BestMatch(const std::vector<UINT64>& vDimension,
   return false;
 }
 
-bool Texture3DListElem::BestMatch(const UINT64VECTOR3& vDimension,
-                                  bool bIsPaddedToPowerOfTwo,
-                                  bool bIsDownsampledTo8Bits,
-                                  bool bDisableBorder,
-                                  UINT64& iIntraFrameCounter,
-                                  UINT64& iFrameCounter,
-                                  const tuvok::CTContext &ctx) {
-  std::vector<UINT64> dim(3);
-  dim[0] = vDimension[0];
-  dim[1] = vDimension[1];
-  dim[2] = vDimension[2];
-  return this->BestMatch(dim, bIsPaddedToPowerOfTwo, bIsDownsampledTo8Bits,
-                         bDisableBorder, iIntraFrameCounter, iFrameCounter,
-                         ctx);
-}
 
 
-bool Texture3DListElem::Match(const std::vector<UINT64>& vDimension) {
+bool Texture3DListElem::Match(const UINTVECTOR3& vDimension) {
   if (pTexture == NULL) return false;
 
-  const UVFMetadata& md = dynamic_cast<const UVFMetadata&>
-                                      (pDataset->GetInfo());
-  const std::vector<UINT64> vSize = md.GetBrickSizeND(vLOD, vBrick);
+  const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
 
-  if (vDimension.size() != vSize.size()) {
-    return false;
-  }
-  for (size_t i=0; i < vSize.size(); i++) {
+  for (size_t i=0; i < 3; i++) {
     if (vSize[i] != vDimension[i]) {
       return false;
     }
@@ -189,8 +160,7 @@ bool Texture3DListElem::Match(const std::vector<UINT64>& vDimension) {
 }
 
 bool Texture3DListElem::Replace(Dataset* _pDataset,
-                                const std::vector<UINT64>& _vLOD,
-                                const std::vector<UINT64>& _vBrick,
+                                const BrickKey& key,
                                 bool bIsPaddedToPowerOfTwo,
                                 bool bIsDownsampledTo8Bits,
                                 bool bDisableBorder, UINT64 iIntraFrameCounter,
@@ -204,8 +174,7 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
   }
 
   pDataset = _pDataset;
-  vLOD     = _vLOD;
-  vBrick   = _vBrick;
+  m_Key    = key;
   m_bIsPaddedToPowerOfTwo = bIsPaddedToPowerOfTwo;
   m_bIsDownsampledTo8Bits = bIsDownsampledTo8Bits;
   m_bDisableBorder        = bDisableBorder;
@@ -228,8 +197,7 @@ bool Texture3DListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
   const Metadata& md = pDataset->GetInfo();
   /// @todo FIXME these keys are all wrong; we shouldn't be using N-dimensional
   /// data structures for the keys here.
-  const UINT64VECTOR3 brick(vBrick[0], vBrick[1], vBrick[2]);
-  const UINTVECTOR3 vSize = md.GetBrickVoxelCounts(BrickKey(vLOD[0], brick[0]));
+  const UINTVECTOR3 vSize = md.GetBrickVoxelCounts(m_Key);
   UINT64 iByteWidth  = pDataset->GetInfo().GetBitWidth()/8;
   UINT64 iCompCount = pDataset->GetInfo().GetComponentCount();
 
@@ -237,19 +205,9 @@ bool Texture3DListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
 
   if (!vUploadHub.empty() && iBrickSize <= UINT64(INCORESIZE*4)) {
     m_bUsingHub = true;
-    try {
-      UVFDataset& ds = dynamic_cast<UVFDataset&>(*(this->pDataset));
-      return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), vUploadHub);
-    } catch(std::bad_cast) {
-      return this->pDataset->GetBrick(BrickKey(0,0), vUploadHub);
-    }
+    return pDataset->GetBrick(m_Key, vUploadHub);
   } else {
-    try {
-      UVFDataset& ds = dynamic_cast<UVFDataset&>(*(this->pDataset));
-      return ds.GetBrick(UVFDataset::NDBrickKey(vLOD, vBrick), vData);
-    } catch(std::bad_cast) {
-      return this->pDataset->GetBrick(BrickKey(0,0), vData);
-    }
+    return pDataset->GetBrick(m_Key, vData);
   }
 }
 
@@ -269,11 +227,7 @@ bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
   unsigned char* pRawData = (m_bUsingHub) ? &vUploadHub.at(0) : &vData.at(0);
 
   // Figure out how big this is going to be.
-  const Metadata& md = pDataset->GetInfo();
-  const UINT64VECTOR3 brick(vBrick[0], vBrick[1], vBrick[2]);
-  /// @todo FIXME these keys are all wrong; we shouldn't be using N-dimensional
-  /// data structures for the keys here.
-  const UINTVECTOR3 vSize = md.GetBrickVoxelCounts(BrickKey(vLOD[0], brick[0]));
+  const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
 
   bool bToggleEndian = !pDataset->GetInfo().IsSameEndianness();
   UINT64 iBitWidth  = pDataset->GetInfo().GetBitWidth();

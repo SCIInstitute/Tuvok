@@ -105,15 +105,12 @@ class GPUMemMan {
     GLTexture2D* Load2DTextureFromFile(const std::string& strFilename);
     void FreeTexture(GLTexture2D* pTexture);
 
-    GLTexture3D* Get3DTexture(tuvok::Dataset* pDataset,
-                              const std::vector<UINT64>& vLOD,
-                              const std::vector<UINT64>& vBrick,
+    GLTexture3D* Get3DTexture(tuvok::Dataset* pDataset, const tuvok::BrickKey& key,
                               bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                               bool bDisableBorder, UINT64 iIntraFrameCounter,
                               UINT64 iFrameCounter);
     bool IsResident(const tuvok::Dataset* pDataset,
-                    const std::vector<UINT64>& vLOD,
-                    const std::vector<UINT64>& vBrick, bool bUseOnlyPowerOfTwo,
+                    const tuvok::BrickKey& key, bool bUseOnlyPowerOfTwo,
                     bool bDownSampleTo8Bits, bool bDisableBorder) const;
 
     void Release3DTexture(GLTexture3D* pTexture);
@@ -162,9 +159,8 @@ class GPUMemMan {
 
     std::vector<unsigned char> m_vUploadHub;
 
-    GLTexture3D* AllocOrGet3DTexture(tuvok::Dataset* pDataset,
-                                     const std::vector<UINT64>& vLOD,
-                                     const std::vector<UINT64>& vBrick,
+    GLTexture3D* AllocOrGet3DTexture(tuvok::Dataset* pDataset, 
+                                     const tuvok::BrickKey& key,
                                      bool bUseOnlyPowerOfTwo,
                                      bool bDownSampleTo8Bits,
                                      bool bDisableBorder,
