@@ -1174,7 +1174,8 @@ bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea, float &fMsecPassed) {
 
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
-      MESSAGE("Subframe completed.");
+      // show the timings as "other", to distinguish it from all those million messages
+      OTHER("The current subframe took %g ms to render (LOD Level %i)",m_fMsecPassed[0]+fMsecPassed, m_iCurrentLODOffset);
       PostSubframe();
       return true;
     }

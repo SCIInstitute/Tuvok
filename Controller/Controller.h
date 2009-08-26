@@ -75,7 +75,7 @@ namespace Controller {
   } while(0)
 #define OTHER(...)                                         \
   do {                                                     \
-    Controller::Debug::Out().printf(_func_, __VA_ARGS__);   \
+    Controller::Debug::Out().printf(__VA_ARGS__);   \
   } while(0)
 
 #endif // TUVOK_CONTROLLER_H
