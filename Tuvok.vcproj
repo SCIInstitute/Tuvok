@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Tuvok"
 	ProjectGUID="{D474A1E1-2ED3-42E6-826C-372430E549B9}"
 	RootNamespace="Tuvoc"
@@ -4269,11 +4269,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -4310,6 +4310,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IO\Brick.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\BrickedDataset.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\BrickedDataset.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IO\Dataset.cpp"
 				>
 			</File>
@@ -4323,6 +4335,22 @@
 			</File>
 			<File
 				RelativePath=".\IO\DirectoryParser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\ExternalDataset.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\ExternalDataset.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\ExternalMetadata.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\ExternalMetadata.h"
 				>
 			</File>
 			<File
@@ -4479,6 +4507,14 @@
 			</File>
 			<File
 				RelativePath=".\IO\uvfMetadata.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\VariantArray.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\VariantArray.h"
 				>
 			</File>
 			<File
