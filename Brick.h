@@ -25,33 +25,51 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
 /**
+  \file    Brick.h
   \author  Tom Fogal
            SCI Institute
            University of Utah
 */
 #pragma once
+#ifndef TUVOK_BRICK_H
+#define TUVOK_BRICK_H
 
-#ifndef TUVOK_UNBRICKED_DS_METADATA_H
-#define TUVOK_UNBRICKED_DS_METADATA_H
-
-#include "ExternalMetadata.h"
-#include "Controller/Controller.h"
+#include <utility>
+#ifdef TUVOK_OS_WINDOWS
+# include <functional>
+# include <memory>
+# include <unordered_map>
+#else
+# include <tr1/functional>
+# include <tr1/memory>
+# include <tr1/unordered_map>
+#endif
+#include "Basics/Vectors.h"
 
 namespace tuvok {
 
-/** UnbrickedDSMetadata presents a simplified view of external data.  The
- * volumes do not have any LODs, and consist entirely of one brick. */
-class UnbrickedDSMetadata : public ExternalMetadata {
-public:
-  UnbrickedDSMetadata();
-  virtual ~UnbrickedDSMetadata() {}
-
-  UINTVECTOR3 GetMaxBrickSize() const;
-  UINTVECTOR3 GetBrickOverlapSize() const;
+/// Datasets are organized as a set of bricks, stored in a hash table.  A key
+/// into this table consists of an LOD index plus a brick index; at some
+/// point we'll likely add a time index.  An element in the table contains
+/// brick metadata, but no data; to obtain the data one must query the dataset.
+typedef std::pair<size_t, size_t> BrickKey; ///< LOD + brick indices
+struct BrickMD {
+  FLOATVECTOR3 center; ///< center of the brick, in world coords
+  FLOATVECTOR3 extents; ///< width/height/depth of the brick.
+  UINTVECTOR3  n_voxels; ///< number of voxels, per dimension.
 };
+struct BKeyHash : std::unary_function<BrickKey, std::size_t> {
+  std::size_t operator()(const BrickKey& bk) const {
+    size_t h_lod = std::tr1::hash<size_t>()(bk.first);
+    size_t brick = std::tr1::hash<size_t>()(bk.second);
+    size_t seed = h_lod;
+    seed ^= brick + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    return seed;
+  }
+};
+typedef std::tr1::unordered_map<BrickKey, BrickMD, BKeyHash> BrickTable;
 
-}; //namespace tuvok
+} // namespace tuvok
 
-#endif // TUVOK_UNBRICKED_DS_METADATA_H
+#endif // TUVOK_BRICK_H

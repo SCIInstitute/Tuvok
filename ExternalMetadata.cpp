@@ -31,43 +31,70 @@
            SCI Institute
            University of Utah
 */
-#include <algorithm>
-#include <cstring>
-#include <cstdlib>
-#include <boost/algorithm/minmax_element.hpp>
-#include "UnbrickedDataset.h"
-#include "UnbrickedDSMetadata.h"
+
 #include "ExternalMetadata.h"
 
 namespace tuvok {
 
-typedef std::vector<std::vector<UINT32> > hist2d;
-
-UnbrickedDataset::UnbrickedDataset() { }
-UnbrickedDataset::~UnbrickedDataset() {}
-
-// There's only one brick!  Ignore the key they gave us, just return the domain
-// size.
-UINT64VECTOR3 UnbrickedDataset::GetBrickSize(const BrickKey&) const
+ExternalMetadata::ExternalMetadata() :
+  m_dataType(MDT_FLOAT)
 {
-#if 0
-  // arguments to GetBrickSize are garbage, only to satisfy interface
-  /// \todo FIXME Datasets and Metadata use different BrickKeys (uint,uint
-  /// versus uint,uint3vec)!
-  UINT64VECTOR3 sz = GetInfo().GetBrickSize(
-                       UnbrickedDSMetadata::BrickKey(0, UINT64VECTOR3(0,0,0))
-                     );
-  return sz;
-#else
-  T_ERROR("completely broken... is this called?");
-  return UINT64VECTOR3();
-#endif
 }
 
-bool UnbrickedDataset::GetBrick(const BrickKey& bk,
-                                std::vector<unsigned char>& brick) const
+UINTVECTOR3 ExternalMetadata::GetMaxBrickSize() const
 {
-  return ExternalDataset::GetBrick(bk, brick);
+  return m_vMaxBrickSize;
 }
 
-}; //namespace tuvok
+UINTVECTOR3 ExternalMetadata::GetBrickOverlapSize() const
+{
+  return m_vOverlap;
+}
+
+void ExternalMetadata::SetMaxBrickSize(const UINTVECTOR3 &mx)
+{
+  m_vMaxBrickSize = mx;
+}
+
+void ExternalMetadata::SetBrickOverlap(const UINTVECTOR3 &overlap)
+{
+  m_vOverlap = overlap;
+}
+
+UINT64 ExternalMetadata::GetLODLevelCount() const
+{
+  return 1;
+}
+
+/// Data should not be scaled.
+DOUBLEVECTOR3 ExternalMetadata::GetScale() const {
+  return DOUBLEVECTOR3(1,1,1);
+}
+
+/// Disabled for now; force the brick to always get rendered.
+bool ExternalMetadata::ContainsData(const BrickKey &, double) const
+{
+  return true;
+}
+bool ExternalMetadata::ContainsData(const BrickKey &, double, double) const
+{
+  return true;
+}
+bool ExternalMetadata::ContainsData(const BrickKey &, double,double,
+                                       double,double) const
+{
+  return true;
+}
+
+/// Our parent knows/handles our range.
+void ExternalMetadata::SetRange(std::pair<double,double> r)
+{
+  Metadata::SetRange(r);
+}
+void ExternalMetadata::SetRange(double l, double h)
+{
+  Metadata::SetRange(std::make_pair(l,h));
+}
+
+
+}; // namespace tuvok

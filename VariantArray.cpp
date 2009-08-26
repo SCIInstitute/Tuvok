@@ -31,43 +31,50 @@
            SCI Institute
            University of Utah
 */
-#include <algorithm>
-#include <cstring>
-#include <cstdlib>
-#include <boost/algorithm/minmax_element.hpp>
-#include "UnbrickedDataset.h"
-#include "UnbrickedDSMetadata.h"
-#include "ExternalMetadata.h"
+
+#include <cassert>
+#include "VariantArray.h"
 
 namespace tuvok {
 
-typedef std::vector<std::vector<UINT32> > hist2d;
+VariantArray::VariantArray(): length(0) { }
+VariantArray::~VariantArray() {}
 
-UnbrickedDataset::UnbrickedDataset() { }
-UnbrickedDataset::~UnbrickedDataset() {}
-
-// There's only one brick!  Ignore the key they gave us, just return the domain
-// size.
-UINT64VECTOR3 UnbrickedDataset::GetBrickSize(const BrickKey&) const
+void VariantArray::set(const std::tr1::shared_ptr<float> data, size_t len)
 {
-#if 0
-  // arguments to GetBrickSize are garbage, only to satisfy interface
-  /// \todo FIXME Datasets and Metadata use different BrickKeys (uint,uint
-  /// versus uint,uint3vec)!
-  UINT64VECTOR3 sz = GetInfo().GetBrickSize(
-                       UnbrickedDSMetadata::BrickKey(0, UINT64VECTOR3(0,0,0))
-                     );
-  return sz;
-#else
-  T_ERROR("completely broken... is this called?");
-  return UINT64VECTOR3();
-#endif
+  this->length = len;
+  this->scalar_f = data;
+  this->scalar_ub.reset();
+  this->data_type = DT_FLOAT;
+}
+void VariantArray::set(const std::tr1::shared_ptr<unsigned char> data,
+                       size_t len)
+{
+  this->length = len;
+  this->scalar_f.reset();
+  this->scalar_ub = data;
+  this->data_type = DT_UBYTE;
 }
 
-bool UnbrickedDataset::GetBrick(const BrickKey& bk,
-                                std::vector<unsigned char>& brick) const
+const float* VariantArray::getf() const
 {
-  return ExternalDataset::GetBrick(bk, brick);
+  assert(this->data_type == DT_FLOAT);
+  return this->scalar_f.get();
 }
 
-}; //namespace tuvok
+const unsigned char* VariantArray::getub() const
+{
+  assert(this->data_type == DT_UBYTE);
+  return this->scalar_ub.get();
+}
+
+VariantArray& VariantArray::operator=(const VariantArray &va)
+{
+  this->scalar_f = va.scalar_f;
+  this->scalar_ub = va.scalar_ub;
+  this->length = va.length;
+  this->data_type = va.data_type;
+  return *this;
+}
+
+}; // namespace tuvok

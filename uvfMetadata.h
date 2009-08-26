@@ -43,6 +43,8 @@
 
 namespace tuvok {
 
+class BrickedDataset;
+
 class UVFMetadata : public Metadata {
   public:
     /// For UVF, a brick key has to be a list for the LOD indicators and a
@@ -51,18 +53,24 @@ class UVFMetadata : public Metadata {
                       std::vector<UINT64VECTOR3> > NDBrickKey;
 
     UVFMetadata();
+#if 0
     UVFMetadata(RasterDataBlock* pVolumeDataBlock,
                 MaxMinDataBlock* pMaxMinData, bool bIsSameEndianness);
+#else
+    // FIXME-IO remove last param
+    UVFMetadata(RasterDataBlock* pVolumeDataBlock,
+                MaxMinDataBlock* pMaxMinData, bool bIsSameEndianness,
+                BrickedDataset*);
+#endif
     virtual ~UVFMetadata() {}
 
     /// Brick-specific information:
     ///@{
     virtual UINT64VECTOR3 GetBrickCount(const UINT64 lod) const;
-    virtual UINT64VECTOR3 GetBrickSize(const BrickKey &k) const {
-      return this->GetBrickSize(this->KeyToNDKey(k));
+    virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey &k) const {
+      return this->GetBrickVoxelCounts(this->KeyToNDKey(k));
     }
-    UINT64VECTOR3 GetBrickSize(const NDBrickKey &) const;
-    /// Gives the size of a brick in real space.
+    UINTVECTOR3 GetBrickVoxelCounts(const NDBrickKey &) const;
     virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &k) const {
       return this->GetEffectiveBrickSize(this->KeyToNDKey(k));
     }
@@ -72,8 +80,8 @@ class UVFMetadata : public Metadata {
     /// Per-dataset information.
     ///@{
     virtual UINT64VECTOR3 GetDomainSize(const UINT64 lod=0) const;
-    virtual UINT64VECTOR3 GetMaxBrickSize() const;
-    virtual UINT64VECTOR3 GetBrickOverlapSize() const;
+    virtual UINTVECTOR3 GetMaxBrickSize() const;
+    virtual UINTVECTOR3 GetBrickOverlapSize() const;
     virtual UINT64 GetLODLevelCount() const;
     virtual DOUBLEVECTOR3 GetScale() const;
     ///@}
@@ -127,27 +135,30 @@ class UVFMetadata : public Metadata {
     bool ContainsData(const NDBrickKey &, double fMin,double fMax,
                       double fMinGradient,double fMaxGradient) const;
     ///@}
+
   private:
     // converts normal key scheme to ND one needed by UVF.
     NDBrickKey KeyToNDKey(const BrickKey &k) const {
       std::vector<UINT64> vLOD;
       std::vector<UINT64VECTOR3> vBrick;
       vLOD.push_back(k.first);
-      vBrick.push_back(k.second);
+      /// @todo FIXME-IO
+      vBrick.push_back(/* hack! */ UINT64VECTOR3(k.second,k.second,k.second));
       return NDBrickKey(vLOD, vBrick);
     }
 
   private:
     RasterDataBlock* m_pVolumeDataBlock;
     MaxMinDataBlock* m_pMaxMinData;
+    BrickedDataset*  m_pDataset; // FIXME-IO bad, remove.
 
-    UINT64VECTOR3              m_aOverlap;
+    UINTVECTOR3                m_aOverlap;
 
     /// read from the dataset
     ///@{
     bool                       m_bIsSameEndianness;
     std::vector<UINT64VECTOR3> m_aDomainSize;
-    UINT64VECTOR3              m_aMaxBrickSize;
+    UINTVECTOR3                m_aMaxBrickSize;
     size_t                     m_iLODLevel;
     DOUBLEVECTOR3              m_aScale;
     std::vector<UINT64VECTOR3> m_vaBrickCount;

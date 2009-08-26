@@ -36,9 +36,11 @@
 #ifndef TUVOK_METADATA_H
 #define TUVOK_METADATA_H
 
+#include <StdTuvokDefines.h>
+
 #include <utility>
 #include "Basics/Vectors.h"
-#include <StdTuvokDefines.h>
+#include "Brick.h"
 
 namespace tuvok {
 
@@ -46,28 +48,22 @@ class UnbrickedDataset;
 
 class Metadata {
   public:
-    /// A key for a brick is composed of an LOD indicator and a spatial index
-    /// (x,y,z coordinate) for the brick.  The spatial index is logical, only
-    /// corresponding with real space in a relative manner.
-    typedef std::pair<size_t, UINT64VECTOR3> BrickKey;
-
     Metadata();
     virtual ~Metadata() {}
 
     /// Brick-specific information:
+    /// FIXME-IO: should move to BrickedDataset.
     ///@{
-    /// The number of bricks at a given LOD.
-    virtual UINT64VECTOR3 GetBrickCount(const UINT64 lod) const = 0;
-    virtual UINT64VECTOR3 GetBrickSize(const BrickKey &) const = 0;
-    /// Gives the size of a brick in real space.
-    virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const = 0;
+    virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey &) const = 0;
     ///@}
 
     /// Per-dataset information.
     ///@{
     virtual UINT64VECTOR3 GetDomainSize(const UINT64 lod=0) const = 0;
-    virtual UINT64VECTOR3 GetMaxBrickSize() const = 0;
-    virtual UINT64VECTOR3 GetBrickOverlapSize() const = 0;
+    /// FIXME-IO: if we consider MD a cache, then this function is relevant;
+    /// else we should move this to bricked dataset.
+    virtual UINTVECTOR3 GetMaxBrickSize() const = 0;
+    virtual UINTVECTOR3 GetBrickOverlapSize() const = 0;
     virtual UINT64 GetLODLevelCount() const = 0;
     virtual DOUBLEVECTOR3 GetScale() const = 0;
     ///@}
@@ -120,6 +116,6 @@ class Metadata {
     std::pair<double,double> range;
 };
 
-}; // namespace tuvok
+} // namespace tuvok
 
 #endif // TUVOK_METADATA_H

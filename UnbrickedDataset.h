@@ -43,53 +43,22 @@
 # include <tr1/memory>
 #endif
 
-#include "Dataset.h"
+#include "ExternalDataset.h"
 #include "../Controller/Controller.h"
 
 namespace tuvok {
 
-/** A UnbrickedDataset is a Dataset which is entirely in core -- no paging can
- * be done for rendering the dataset.  The intent is that UnbrickedDatasets only have
- * a single LOD. */
-class UnbrickedDataset : public Dataset {
+/** A dataset which consists of a single brick and a single LOD. */
+class UnbrickedDataset : public ExternalDataset {
 public:
   UnbrickedDataset();
   virtual ~UnbrickedDataset();
 
-  virtual float MaxGradientMagnitude() const;
-
   virtual UINT64VECTOR3 GetBrickSize(const BrickKey& = BrickKey(0,0)) const;
   virtual bool GetBrick(const BrickKey&, std::vector<unsigned char>&) const;
 
-  /// Accessors to allow the client to upload it's own data/metadata.
-  ///@{
-  void SetMetadata(Metadata * const md) {
-    this->m_pVolumeDatasetInfo = md;
-  }
-
-  void SetHistogram(const std::vector<UINT32>&);
-  void SetHistogram(const std::vector<std::vector<UINT32> >&);
-
   void SetData(const std::tr1::shared_ptr<float>, size_t len);
   void SetData(const std::tr1::shared_ptr<unsigned char>, size_t len);
-  void SetGradientMagnitude(float *gmn, size_t len);
-  ///@}
-
-protected:
-  /// Should the data change and the client isn't going to supply a histogram,
-  /// we should supply one ourself.
-  void Recalculate1DHistogram();
-
-private:
-  // Bit of a hack here.  We might get data in either float or unsigned byte
-  // form.  However, if we had a single m_vScalar field, we'd need to
-  // templatize the whole class based on the data type.  That's a bit of a
-  // pain, so we just have multiple pointers and only access the one we need.
-  // The overhead is negligible compared to the sizes of datasets.
-  std::tr1::shared_ptr<unsigned char> m_Scalarub;
-  std::tr1::shared_ptr<float>         m_Scalarf;
-  size_t                              m_DataSize;
-  std::vector<float>                  m_vGradientMagnitude;
 };
 
 }; // namespace tuvok

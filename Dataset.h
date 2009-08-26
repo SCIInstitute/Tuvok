@@ -37,11 +37,21 @@
 
 #include <cstdlib>
 #include <utility>
+#ifdef TUVOK_OS_WINDOWS
+# include <functional>
+# include <memory>
+# include <unordered_map>
+#else
+# include <tr1/functional>
+# include <tr1/memory>
+# include <tr1/unordered_map>
+#endif
 #include "boost/noncopyable.hpp"
 #include "Basics/Vectors.h"
-
+#include "Brick.h"
 #include "TransferFunction1D.h"
 #include "TransferFunction2D.h"
+
 class LargeRAWFile;
 
 namespace tuvok {
@@ -52,9 +62,8 @@ class Metadata;
 /// noncopyable not because it wouldn't work, but because we might be holding a
 /// lot of data -- copying would be prohibitively expensive.
 class Dataset : public boost::noncopyable {
-public:
-  typedef std::pair<size_t, size_t> BrickKey; ///< LOD + brick indices
 
+public:
   Dataset();
   virtual ~Dataset();
 
@@ -62,9 +71,21 @@ public:
   const Histogram2D& Get2DHistogram() const { return *m_pHist2D; }
   virtual float MaxGradientMagnitude() const = 0;
 
-  virtual UINT64VECTOR3 GetBrickSize(const BrickKey&) const = 0;
+  virtual void AddBrick(const BrickKey&, const BrickMD&) = 0;
+  /// Gets the number of voxels, per dimension.
+  // (temp note): was GetBrickSize, renaming to make it more obvious what
+  // information it's retrieving, and to differentiate from 'effective' brick
+  // size.
+  virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const = 0;
+  virtual FLOATVECTOR3 GetBrickExtents(const BrickKey &) const=0;
   virtual bool GetBrick(const BrickKey&,
                         std::vector<unsigned char>&) const = 0;
+  virtual BrickTable::const_iterator BricksBegin() const = 0;
+  virtual BrickTable::const_iterator BricksEnd() const = 0;
+  virtual BrickTable::size_type GetBrickCount(size_t lod) const = 0;
+
+  virtual bool BrickIsFirstInDimension(size_t, const BrickKey&) const = 0;
+  virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const = 0;
 
   /// unimplemented!
   virtual bool Export(UINT64 iLODLevel, const std::string& targetFilename,

@@ -26,7 +26,7 @@
    DEALINGS IN THE SOFTWARE.
 */
 /**
-  \file    uvfUVFMetadata.cpp
+  \file    uvfMetadata.cpp
   \author  Tom Fogal
            SCI Institute
            University of Utah
@@ -36,23 +36,30 @@
 #include <algorithm>
 #include "uvfMetadata.h"
 
+#include "BrickedDataset.h"
+#include "Controller/Controller.h"
+
 namespace tuvok {
 
 UVFMetadata::UVFMetadata() :
   m_pVolumeDataBlock(NULL),
-  m_pMaxMinData(NULL)
+  m_pMaxMinData(NULL),
+  m_pDataset(NULL) // FIXME-IO bad.
 {
 }
 
 UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
-                         MaxMinDataBlock* pMaxMinData, bool bIsSameEndianness):
+                         MaxMinDataBlock* pMaxMinData, bool bIsSameEndianness,
+                         BrickedDataset *ds):
   m_pVolumeDataBlock(pVolumeDataBlock),
   m_pMaxMinData(pMaxMinData),
+  m_pDataset(ds),
   m_bIsSameEndianness(bIsSameEndianness)
 {
   std::vector<double> vfScale;
   size_t iSize = m_pVolumeDataBlock->ulDomainSize.size();
 
+  MESSAGE("UVF md constructor...");
   // we require the data to be at least 3D
   assert(iSize >= 3);
 
@@ -65,8 +72,12 @@ UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
     m_aScale[i] = m_pVolumeDataBlock->dDomainTransformation[i+(iSize+1)*i];
   }
 
+  /// @todo FIXME-IO: the brick information that's calculated below and stored
+  /// in m_vvaBrickSize needs to end up in 'BrickedDataset', via its
+  /// 'AddBrick' call.
   m_vvaBrickSize.resize(m_iLODLevel);
   if (m_pMaxMinData) m_vvaMaxMin.resize(m_iLODLevel);
+
 
   for (size_t j = 0;j<m_iLODLevel;j++) {
     std::vector<UINT64> vLOD;  vLOD.push_back(j);
@@ -82,6 +93,11 @@ UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
     if (m_pMaxMinData) {
       m_vvaMaxMin[j].resize(size_t(m_vaBrickCount[j].x));
     }
+
+    FLOATVECTOR3 vBrickCorner;
+
+    BrickMD bmd;
+    size_t brick_index = 0;
     for (UINT64 x=0; x < m_vaBrickCount[j].x; x++) {
       m_vvaBrickSize[j][size_t(x)].resize(size_t(m_vaBrickCount[j].y));
       if (m_pMaxMinData) {
@@ -104,8 +120,34 @@ UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
           m_vvaBrickSize[j][size_t(x)][size_t(y)].push_back(UINT64VECTOR3(vBrickSize[0],
                                                           vBrickSize[1],
                                                           vBrickSize[2]));
+          const BrickKey k = BrickKey(j, brick_index);
+          ++brick_index;
+
+          UINT64VECTOR3 effective;
+          { /// @todo FIXME-IO we basically need the effective size of the
+            /// brick we just added.  The correct solution is to change
+            /// GetEffectiveBrickSize so that it can do the overlap fixing
+            /// algorithm that we need with*out* an NDKey.  Until we fix that,
+            /// this is a temp solution.
+            NDBrickKey fake_key;
+            fake_key.first = vLOD;
+            std::vector<UINT64VECTOR3> fake_key_brick;
+            fake_key_brick.push_back(UINT64VECTOR3(x,y,z));
+            fake_key.second = fake_key_brick;
+            effective = this->GetEffectiveBrickSize(fake_key);
+          }
+          UINT64VECTOR3 vDomainExtent = this->GetDomainSize(j);
+          bmd.extents = FLOATVECTOR3(effective[0], effective[1], effective[2]);
+          bmd.center = FLOATVECTOR3((vBrickCorner + bmd.extents/2.0f) -
+                                    vDomainExtent*0.5f);
+          bmd.n_voxels = UINTVECTOR3(vBrickSize[0], vBrickSize[1],
+                                     vBrickSize[2]);
+          this->m_pDataset->AddBrick(k, bmd);
+          vBrickCorner.z += bmd.extents.z;
         }
+        vBrickCorner.y += bmd.extents.y;
       }
+      vBrickCorner.x += bmd.extents.x;
     }
   }
 
@@ -143,13 +185,16 @@ UVFMetadata::UVFMetadata(RasterDataBlock* pVolumeDataBlock,
 
 
 // Return the number of bricks in the given LoD, along each axis.
+/// @todo FIXME-IO: obsolete; clients should use Dataset::GetBrickCount
+/// and not call this method.
 UINT64VECTOR3 UVFMetadata::GetBrickCount(const UINT64 lod) const
 {
   return m_vaBrickCount[size_t(lod)];
 }
 
 // Size of the brick in logical space.
-UINT64VECTOR3 UVFMetadata::GetBrickSize(const NDBrickKey &k) const
+/// @todo FIXME-IO: obsolete; clients should query Dataset for this info.
+UINTVECTOR3 UVFMetadata::GetBrickVoxelCounts(const NDBrickKey &k) const
 {
   const UINT64 lod = k.first[0];
   const size_t vBrick[3] = {
@@ -157,7 +202,8 @@ UINT64VECTOR3 UVFMetadata::GetBrickSize(const NDBrickKey &k) const
     static_cast<size_t>(k.second[0].y),
     static_cast<size_t>(k.second[0].z)
   };
-  return m_vvaBrickSize[size_t(lod)][vBrick[0]][vBrick[1]][vBrick[2]];
+  UINT64VECTOR3 v = m_vvaBrickSize[size_t(lod)][vBrick[0]][vBrick[1]][vBrick[2]];
+  return UINTVECTOR3(v[0], v[1], v[2]);
 }
 
 // One dimensional brick shrinking for internal bricks that have some overlap
@@ -180,22 +226,26 @@ static void fix_overlap(UINT64& v, UINT64 nbrick, UINT64 count,
 
 
 // Gives the size of a brick in real space.
+/// @todo FIXME-IO: obsolete: any query on bricks must be done in
+/// ExternalDataset, with a pure-virtual for that call in Dataset.
 UINT64VECTOR3 UVFMetadata::GetEffectiveBrickSize(const NDBrickKey &k) const
 {
   const size_t iLOD = size_t(k.first[0]);
-  const size_t vBrick[3] = {
+  const size_t vBrick[3] = { // FIXME-IO: just 'vBrick'; no '[3]'
     static_cast<size_t>(k.second[0].x),
     static_cast<size_t>(k.second[0].y),
     static_cast<size_t>(k.second[0].z)
   };
   UINT64VECTOR3 vBrickSize(
-    m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].x,
+    m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].x, // FIXME-IO
     m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].y,
     m_vvaBrickSize[iLOD][vBrick[0]][vBrick[1]][vBrick[2]].z
   );
 
   // If this is an internal brick, the size is a bit smaller based on the
   // amount of overlap per-brick.
+  /// Bug?  Shouldn't these if's be a "if i > 1 && i < N-1" ?
+  /// Perhaps these should just use Dataset::BrickIsFirstInDimension etc. ?
   if (m_vaBrickCount[iLOD].x > 1) {
     fix_overlap(vBrickSize.x, vBrick[0], m_vaBrickCount[iLOD].x-1,
                 m_aOverlap.x);
@@ -217,12 +267,15 @@ UINT64VECTOR3 UVFMetadata::GetDomainSize(const UINT64 lod) const
   return m_aDomainSize[size_t(lod)];
 }
 
-UINT64VECTOR3 UVFMetadata::GetMaxBrickSize() const
+/// @todo FIXME-IO: obsolete?  We might choose to think of *Metadata classes as
+/// caches for potentially-expensive-to-get data though, and then it'd make a
+/// lot of sense to have these.
+UINTVECTOR3 UVFMetadata::GetMaxBrickSize() const
 {
   return m_aMaxBrickSize;
 }
 
-UINT64VECTOR3 UVFMetadata::GetBrickOverlapSize() const
+UINTVECTOR3 UVFMetadata::GetBrickOverlapSize() const
 {
   return m_aOverlap;
 }
@@ -327,7 +380,7 @@ bool UVFMetadata::ContainsData(const NDBrickKey &k, double isoval) const
     return true;
   }
 
-  const size_t vBrick[3] = {
+  const size_t vBrick[3] = { // FIXME-IO: 'vBrick', not an array.
     static_cast<size_t>(k.second[0].x),
     static_cast<size_t>(k.second[0].y),
     static_cast<size_t>(k.second[0].z)
@@ -347,7 +400,7 @@ bool UVFMetadata::ContainsData(const NDBrickKey &k,
     return true;
   }
 
-  const size_t vBrick[3] = {
+  const size_t vBrick[3] = { // FIXME-IO: 'vBrick', not an array.
     static_cast<size_t>(k.second[0].x),
     static_cast<size_t>(k.second[0].y),
     static_cast<size_t>(k.second[0].z)
@@ -366,7 +419,7 @@ bool UVFMetadata::ContainsData(const NDBrickKey &k, double fMin,double fMax,
     return true;
   }
 
-  const size_t vBrick[3] = {
+  const size_t vBrick[3] = { // FIXME-IO: 'vBrick', not an array.
     static_cast<size_t>(k.second[0].x),
     static_cast<size_t>(k.second[0].y),
     static_cast<size_t>(k.second[0].z)

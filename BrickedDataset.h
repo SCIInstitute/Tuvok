@@ -25,33 +25,52 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
 /**
+  \file    BrickedDataset.h
   \author  Tom Fogal
            SCI Institute
            University of Utah
 */
 #pragma once
+#ifndef TUVOK_BRICKED_DATASET_H
+#define TUVOK_BRICKED_DATASET_H
 
-#ifndef TUVOK_UNBRICKED_DS_METADATA_H
-#define TUVOK_UNBRICKED_DS_METADATA_H
-
-#include "ExternalMetadata.h"
-#include "Controller/Controller.h"
+#include "Dataset.h"
 
 namespace tuvok {
 
-/** UnbrickedDSMetadata presents a simplified view of external data.  The
- * volumes do not have any LODs, and consist entirely of one brick. */
-class UnbrickedDSMetadata : public ExternalMetadata {
+/// Abstract base for IO layers which support bricked datasets.
+class BrickedDataset : public Dataset {
 public:
-  UnbrickedDSMetadata();
-  virtual ~UnbrickedDSMetadata() {}
+  BrickedDataset();
+  virtual ~BrickedDataset();
 
-  UINTVECTOR3 GetMaxBrickSize() const;
-  UINTVECTOR3 GetBrickOverlapSize() const;
+  /// Adds a brick to the dataset.
+  virtual void AddBrick(const BrickKey&, const BrickMD&);
+
+  /// Looks up the spatial range of a brick.
+  virtual FLOATVECTOR3 GetBrickExtents(const BrickKey &) const;
+
+  /// @return an iterator that can be used to visit every brick in the dataset.
+  virtual BrickTable::const_iterator BricksBegin() const;
+  virtual BrickTable::const_iterator BricksEnd() const;
+  /// @return the number of bricks at the given LOD.
+  virtual BrickTable::size_type GetBrickCount(size_t lod) const;
+
+  /// It can be important to know whether the given brick is the first or last
+  /// along any particular axis.  As an example, there's 0 brick overlap for a
+  /// border brick.
+  ///@{
+  /// @return true if the brick is the minimum brick in the given dimension.
+  virtual bool BrickIsFirstInDimension(size_t, const BrickKey&) const;
+  /// @return true if the brick is the maximum brick in the given dimension.
+  virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const;
+  ///@}
+
+protected:
+  BrickTable bricks;
 };
 
-}; //namespace tuvok
+} // namespace tuvok
 
-#endif // TUVOK_UNBRICKED_DS_METADATA_H
+#endif // TUVOK_BRICKED_DATASET_H

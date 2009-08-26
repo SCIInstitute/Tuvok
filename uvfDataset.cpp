@@ -183,7 +183,8 @@ bool UVFDataset::Open(bool bVerify)
                            m_pVolumeDataBlock,
                            m_pMaxMinData,
                            m_pDatasetFile->GetGlobalHeader().bIsBigEndian ==
-                            EndianConvert::IsBigEndian());
+                            EndianConvert::IsBigEndian(),
+                           this);
 
   std::stringstream sStreamDomain, sStreamBrick;
   const UVFMetadata *md = dynamic_cast<const UVFMetadata*>
@@ -257,7 +258,7 @@ bool UVFDataset::Open(bool bVerify)
   return true;
 }
 
-UINT64VECTOR3 UVFDataset::GetBrickSize(const BrickKey&k) const
+UINTVECTOR3 UVFDataset::GetBrickVoxelCounts(const BrickKey&k) const
 {
   const NDBrickKey& key = KeyToNDKey(k);
   const UVFMetadata *md = dynamic_cast<const UVFMetadata*>
@@ -266,7 +267,7 @@ UINT64VECTOR3 UVFDataset::GetBrickSize(const BrickKey&k) const
 
   /// \todo: this code assumes that x,y,z are the first coords in the dataset
   // which is not strictly true; should check this at load time.
-  return UINT64VECTOR3(vSizeUVF[0], vSizeUVF[1], vSizeUVF[2]);
+  return UINTVECTOR3(vSizeUVF[0], vSizeUVF[1], vSizeUVF[2]);
 }
 
 bool UVFDataset::Export(UINT64 iLODLevel, const std::string& targetFilename,

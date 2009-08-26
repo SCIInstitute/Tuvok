@@ -36,7 +36,7 @@
 #define TUVOK_UVF_DATASET_H
 
 #include <vector>
-#include "Dataset.h"
+#include "BrickedDataset.h"
 #include "UVF/RasterDataBlock.h"
 
 class VolumeDatasetInfo;
@@ -47,7 +47,7 @@ class UVF;
 
 namespace tuvok {
 
-class UVFDataset : public Dataset {
+class UVFDataset : public BrickedDataset {
 public:
   /// A brick key into UVF is composed of a list of LODs and a list of brick
   /// IDs.  These lists will frequently be one element (currently, they always
@@ -63,7 +63,7 @@ public:
   bool IsOpen() const { return m_bIsOpen; }
   std::string Filename() const { return m_strFilename; }
 
-  virtual UINT64VECTOR3 GetBrickSize(const BrickKey&) const;
+  virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
 
   virtual bool GetBrick(const BrickKey& k,
                         std::vector<unsigned char>& vData) const {
