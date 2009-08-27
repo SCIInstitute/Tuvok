@@ -62,8 +62,6 @@ public:
   // Brick Data
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
   virtual bool GetBrick(const BrickKey& k, std::vector<unsigned char>& vData) const;
-  virtual bool BrickIsFirstInDimension(size_t, const BrickKey&) const;
-  virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const;
   virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const;
 
   /// Acceleration queries.

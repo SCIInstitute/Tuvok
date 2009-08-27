@@ -62,9 +62,9 @@ public:
   /// border brick.
   ///@{
   /// @return true if the brick is the minimum brick in the given dimension.
-  virtual bool BrickIsFirstInDimension(size_t, const BrickKey&) const = 0;
+  virtual bool BrickIsFirstInDimension(size_t, const BrickKey&) const;
   /// @return true if the brick is the maximum brick in the given dimension.
-  virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const = 0;
+  virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const;
   ///@}
 
 protected:

@@ -431,33 +431,6 @@ bool UVFDataset::Export(UINT64 iLODLevel, const std::string& targetFilename,
 
 
 bool
-UVFDataset::BrickIsFirstInDimension(size_t dim, const BrickKey& k) const
-{
-  const BrickMD& md = this->bricks.find(k)->second;
-  for(BrickTable::const_iterator iter = this->BricksBegin();
-      iter != this->BricksEnd(); ++iter) {
-    if(iter->second.center[dim] < md.center[dim]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-bool
-UVFDataset::BrickIsLastInDimension(size_t dim, const BrickKey& k) const
-{
-  const BrickMD& md = this->bricks.find(k)->second;
-  for(BrickTable::const_iterator iter = this->BricksBegin();
-      iter != this->BricksEnd(); ++iter) {
-    if(iter->second.center[dim] > md.center[dim]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool
 UVFDataset::GetBrick(const BrickKey& k,
                       std::vector<unsigned char>& vData) const {
   const NDBrickKey& key = this->IndexToVectorKey(k);
