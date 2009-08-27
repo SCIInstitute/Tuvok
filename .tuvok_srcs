@@ -236,11 +236,12 @@ set(TUVOK_SRCS ./3rdParty/GLEW/GL/glew.c
 ./IO/3rdParty/jpeglib/rdcolmap.c
 ./IO/3rdParty/jpeglib/rdswitch.c
 ./IO/3rdParty/jpeglib/transupp.c
+./IO/BrickedDataset.cpp
 ./IO/DICOM/DICOMParser.cpp
 ./IO/DirectoryParser.cpp
+./IO/ExternalDataset.cpp
 ./IO/Images/ImageParser.cpp
 ./IO/KeyValueFileParser.cpp
-./IO/Metadata.cpp
 ./IO/NRRDConverter.cpp
 ./IO/QVISConverter.cpp
 ./IO/REKConverter.cpp
@@ -256,12 +257,9 @@ set(TUVOK_SRCS ./3rdParty/GLEW/GL/glew.c
 ./IO/UVF/Histogram2DDataBlock.cpp
 ./IO/UVF/Histogram1DDataBlock.cpp
 ./IO/UVF/RasterDataBlock.cpp
-./IO/UnbrickedDSMetadata.cpp
 ./IO/VFFConverter.cpp
 ./IO/gzio.c
 ./IO/uvfDataset.cpp
-./IO/uvfMetadata.cpp
-./IO/UnbrickedDataset.cpp
 ./IO/TransferFunction2D.cpp
 ./IO/Dataset.cpp
 ./IO/AbstrConverter.cpp
@@ -270,4 +268,5 @@ set(TUVOK_SRCS ./3rdParty/GLEW/GL/glew.c
 ./IO/IOManager.cpp
 ./IO/RAWConverter.cpp
 ./IO/TransferFunction1D.cpp
+./IO/VariantArray.cpp
 )
