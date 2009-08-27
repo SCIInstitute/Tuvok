@@ -57,10 +57,10 @@
 #include "Renderer/GL/GLTexture2D.h"
 #include "Renderer/GL/GLTexture3D.h"
 
+#include <IO/IOManager.h>
+
 using namespace std;
 using namespace tuvok;
-
-#include <IO/IOManager.h>
 
 GPUMemMan::GPUMemMan(MasterController* masterController) :
   m_MasterController(masterController),
