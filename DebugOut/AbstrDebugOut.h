@@ -115,7 +115,6 @@ protected:
     std::deque< std::string > m_strMessageList;
     
     void ReplaceSpecialChars(char* buff, size_t iSize) const;
-
 };
 
 #endif // ABSTRDEBUGOUT_H

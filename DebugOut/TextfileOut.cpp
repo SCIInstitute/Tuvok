@@ -56,8 +56,6 @@ TextfileOut::~TextfileOut() {
 
 void TextfileOut::printf(const char* format, ...) const
 {
-  if (!m_bShowOther) return;
-
   char buff[16384];
 
   va_list args;

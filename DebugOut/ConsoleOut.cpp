@@ -60,8 +60,6 @@ ConsoleOut::~ConsoleOut() {
 
 void ConsoleOut::printf(const char* format, ...) const
 {
-  if (!m_bShowOther) return;
-
   char buff[16384];
   va_list args;
   va_start(args, format);
