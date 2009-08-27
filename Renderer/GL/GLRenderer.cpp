@@ -334,7 +334,6 @@ void GLRenderer::RenderSeperatingLines() {
 }
 
 void GLRenderer::ClearDepthBuffer() {
-  MESSAGE("clearing depth");
   glClear(GL_DEPTH_BUFFER_BIT);
 }
 
@@ -343,12 +342,10 @@ void GLRenderer::ClearColorBuffer() {
   if (m_bDoStereoRendering) {
     // render anaglyphs agains a black background only
     glClearColor(0,0,0,0);
-    MESSAGE("clearing color");
     glClear(GL_COLOR_BUFFER_BIT);
   } else {
     if (m_vBackgroundColors[0] == m_vBackgroundColors[1]) {
       glClearColor(m_vBackgroundColors[0].x,m_vBackgroundColors[0].y,m_vBackgroundColors[0].z,0);
-      MESSAGE("clearing color");
       glClear(GL_COLOR_BUFFER_BIT);
     } else {
       glDisable(GL_BLEND);
@@ -499,7 +496,6 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
       m_pFBO3DImageCurrent[1]->Read(1);
 
       m_TargetBinder.Bind(m_pFBO3DImageLast);
-      MESSAGE("clearing color");
       glClear(GL_COLOR_BUFFER_BIT);
 
       m_pProgramComposeAnaglyphs->Enable();
@@ -739,7 +735,6 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 
       SetRenderTargetAreaScissor(eREnderArea);
       glClearColor(0,0,0,0);
-      MESSAGE("clearing color");
       glClear(GL_COLOR_BUFFER_BIT);
       glDisable( GL_SCISSOR_TEST );
     }
@@ -780,7 +775,6 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     // clear the target at the beginning
     SetRenderTargetAreaScissor(eREnderArea);
     glClearColor(0,0,0,1);
-    MESSAGE("clearing color");
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
@@ -834,9 +828,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     PlanHQMIPFrame();
     m_iFilledBuffers = 0;
     glClearColor(0,0,0,0);
-    MESSAGE("clearing depth AND color");
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    MESSAGE("clearing color");
 
 
     RenderHQMIPPreLoop(eDirection);
@@ -991,7 +983,6 @@ void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
 
   if (m_bConsiderPreviousDepthbuffer && m_aDepthStorage) {
-    MESSAGE("clearing color AND depth");
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -1002,7 +993,6 @@ void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
     glDrawPixels(m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT, m_aDepthStorage);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
   } else {
-    MESSAGE("clearing color AND depth");
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
   }
 
@@ -1010,14 +1000,12 @@ void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
 
     if (m_bConsiderPreviousDepthbuffer && m_aDepthStorage) {
-      MESSAGE("clearing color AND depth");
       glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
       glRasterPos2f(-1.0,-1.0);
       glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
       glDrawPixels(m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT, m_aDepthStorage);
       glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     } else {
-      MESSAGE("clearing color AND depth");
       glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     }
   }
@@ -1228,7 +1216,6 @@ void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
   // always clear the depth buffer 
   // since we are transporting
   // new data from the FBO
-  MESSAGE("clearing depth");
   glClear(GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
