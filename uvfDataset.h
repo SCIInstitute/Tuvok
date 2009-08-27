@@ -115,14 +115,14 @@ private:
 
 
 private:
-  float                 m_fMaxGradMagnitude;
-  RasterDataBlock*      m_pVolumeDataBlock;
-  Histogram1DDataBlock* m_pHist1DDataBlock;
-  Histogram2DDataBlock* m_pHist2DDataBlock;
-  MaxMinDataBlock*      m_pMaxMinData;
-  UVF*                  m_pDatasetFile;
-  bool                  m_bIsOpen;
-  std::string           m_strFilename;
+  float                       m_fMaxGradMagnitude;
+  const RasterDataBlock*      m_pVolumeDataBlock;
+  const Histogram1DDataBlock* m_pHist1DDataBlock;
+  const Histogram2DDataBlock* m_pHist2DDataBlock;
+  MaxMinDataBlock*            m_pMaxMinData;
+  UVF*                        m_pDatasetFile;
+  bool                        m_bIsOpen;
+  std::string                 m_strFilename;
 
   UINTVECTOR3                m_aOverlap;
   bool                       m_bIsSameEndianness;
@@ -131,9 +131,8 @@ private:
   std::vector<UINT64VECTOR3> m_vaBrickCount;
   std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
   std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
-
 };
 
-};
+}
 
 #endif // TUVOK_UVF_DATASET_H

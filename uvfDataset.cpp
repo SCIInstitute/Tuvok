@@ -92,7 +92,8 @@ bool UVFDataset::Open(bool bVerify)
     return false;
   } 
   MESSAGE("Open successfully found a suitable data block in the UVF file analyzing data...");
-  m_pVolumeDataBlock = (RasterDataBlock*)m_pDatasetFile->GetDataBlock(iRasterBlockIndex);
+  m_pVolumeDataBlock = static_cast<const RasterDataBlock*>
+                             (m_pDatasetFile->GetDataBlock(iRasterBlockIndex));
 
   // get the metadata and the histograms
   ComputeMetaData();
@@ -284,13 +285,15 @@ UINT64 UVFDataset::FindSuitableRasterBlock() {
       if (m_pHist1DDataBlock != NULL) {
         WARNING("Multiple 1D Histograms found using last block.");
       }
-      m_pHist1DDataBlock = (Histogram1DDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
+      m_pHist1DDataBlock = static_cast<const Histogram1DDataBlock*>
+                                      (m_pDatasetFile->GetDataBlock(iBlocks));
     } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
                UVFTables::BS_2D_Histogram) {
       if (m_pHist2DDataBlock != NULL) {
         WARNING("Multiple 2D Histograms found using last block.");
       }
-      m_pHist2DDataBlock = (Histogram2DDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
+      m_pHist2DDataBlock = static_cast<const Histogram2DDataBlock*>
+                                      (m_pDatasetFile->GetDataBlock(iBlocks));
     } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
                UVFTables::BS_MAXMIN_VALUES) {
       if (m_pMaxMinData != NULL) {
