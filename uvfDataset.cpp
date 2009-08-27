@@ -114,6 +114,9 @@ void UVFDataset::ComputeMetaData() {
   // we require the data to be at least 3D
   assert(iSize >= 3);
 
+  m_bIsSameEndianness = m_pDatasetFile->GetGlobalHeader().bIsBigEndian ==
+                          EndianConvert::IsBigEndian();
+
   // we also assume that x,y,z are in the first 3 components and
   // we have no anisotropy (i.e. ulLODLevelCount.size=1)
   size_t iLODLevel = static_cast<size_t>(m_pVolumeDataBlock->ulLODLevelCount[0]);
