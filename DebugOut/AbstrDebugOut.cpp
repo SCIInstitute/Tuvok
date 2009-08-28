@@ -50,6 +50,19 @@ const char *AbstrDebugOut::ChannelToString(enum DebugChannel c) const
   return "";
 }
 
+bool AbstrDebugOut::Enabled(enum DebugChannel channel) const
+{
+  switch(channel) {
+    case CHANNEL_NONE:  /* FALL THROUGH */
+    case CHANNEL_FINAL: return true;
+    case CHANNEL_ERROR: return m_bShowErrors;
+    case CHANNEL_WARNING: return m_bShowWarnings;
+    case CHANNEL_MESSAGE: return m_bShowMessages;
+    case CHANNEL_OTHER: return m_bShowOther;
+  }
+  return true;
+}
+
 void AbstrDebugOut::Other(const char *source, const char* format, ...)
 {
   if (!m_bShowOther) return;

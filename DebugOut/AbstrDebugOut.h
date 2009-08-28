@@ -82,6 +82,7 @@ class AbstrDebugOut {
       CHANNEL_FINAL, ///< don't use, but must be the last one.
     };
     const char *ChannelToString(enum DebugChannel) const;
+    bool Enabled(enum DebugChannel) const;
 
     virtual void printf(enum DebugChannel, const char* source,
                         const char* msg) = 0;

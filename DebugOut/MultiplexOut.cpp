@@ -64,6 +64,12 @@ MultiplexOut::~MultiplexOut() {
 void MultiplexOut::AddDebugOut(AbstrDebugOut* pDebugger) {
   m_vpDebugger.push_back(pDebugger);
   pDebugger->Message(_func_,"Operating as part of a multiplexed debug out now.");
+
+  // Find the maximal set of channels to enable.
+  m_bShowMessages |= pDebugger->ShowMessages();
+  m_bShowWarnings |= pDebugger->ShowWarnings();
+  m_bShowErrors |= pDebugger->ShowErrors();
+  m_bShowOther |= pDebugger->ShowOther();
 }
 
 void MultiplexOut::RemoveDebugOut(AbstrDebugOut* pDebugger) {
@@ -82,7 +88,9 @@ void MultiplexOut::printf(enum DebugChannel channel, const char* source,
                           const char* msg)
 {
   for (size_t i = 0;i<m_vpDebugger.size();i++) {
-    m_vpDebugger[i]->printf(channel, source, msg);
+    if(m_vpDebugger[i]->Enabled(channel)) {
+      m_vpDebugger[i]->printf(channel, source, msg);
+    }
   }
 }
 
