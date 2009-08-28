@@ -132,12 +132,20 @@ bool Scripting::ParseLine(const string& strLine) {
   bool bResult = ParseCommand(vParameters, strMessage);
 
   if (!bResult) {
-    if (strMessage == "")
-      Controller::Debug::Out().printf("Input \"%s\" not understood, try \"help\"!", strLine.c_str());
+    if (strMessage == "") {
+      std::ostringstream badinput;
+      badinput << "Input '" << strLine << "' not understood; try 'help'!";
+      Controller::Debug::Out().printf(badinput.str().c_str());
+    }
     else
       Controller::Debug::Out().printf(strMessage.c_str());
-  } else
-    if (m_bEcho) Controller::Debug::Out().printf("OK (%s)", strLine.c_str());
+  } else {
+    if (m_bEcho) {
+      std::ostringstream ok;
+      ok << "OK (" << strLine << ")";
+      Controller::Debug::Out().printf(ok.str().c_str());
+    }
+  }
 
   return bResult;
 }
@@ -244,10 +252,10 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
         if (j != (*cmd)->m_vParameters.size()-1) strParams = strParams + " ";
       }
 
-      Controller::Debug::Out().printf("\"%s\" %s: %s",
-                                      (*cmd)->m_strCommand.c_str(),
-                                      strParams.c_str(),
-                                      (*cmd)->m_strDescription.c_str());
+      std::ostringstream echo;
+      echo << "'" << (*cmd)->m_strCommand << "' " << strParams << ": "
+           << (*cmd)->m_strDescription;
+      Controller::Debug::Out().printf(echo.str().c_str());
     }
     return true;
   } else

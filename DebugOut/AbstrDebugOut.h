@@ -38,12 +38,18 @@
 
 #pragma once
 
-#ifndef ABSTRDEBUGOUT_H
-#define ABSTRDEBUGOUT_H
+#ifndef TUVOK_ABSTRDEBUGOUT_H
+#define TUVOK_ABSTRDEBUGOUT_H
 
+#include "../StdTuvokDefines.h"
+#include <cstdarg>
 #include <deque>
 #include <string>
-#include "../StdTuvokDefines.h"
+#ifdef DETECTED_OS_WINDOWS
+# include <array>
+#else
+# include <tr1/array>
+#endif
 
 class AbstrDebugOut {
   public:
@@ -57,28 +63,41 @@ class AbstrDebugOut {
         m_bShowErrors(true),
         m_bShowOther(false)
     {
-        m_bRecordLists[0] = false;
-        m_bRecordLists[1] = false;
-        m_bRecordLists[2] = false;
+      for(size_t i=0; i < m_bRecordLists.size(); ++i) {
+        m_bRecordLists[i] = false;
+      }
     }
 
     virtual ~AbstrDebugOut() {
-      m_bRecordLists[0] = false;
-      m_bRecordLists[1] = false;
-      m_bRecordLists[2] = false;
+      for(size_t i=0; i < m_bRecordLists.size(); ++i) {
+        m_bRecordLists[i] = false;
+      }
     }
-    virtual void printf(const char* format, ...) const = 0;
-    virtual void Message(const char* source, const char* format, ...) = 0;
-    virtual void Warning(const char* source, const char* format, ...) = 0;
-    virtual void Error(const char* source, const char* format, ...) = 0;
+    enum DebugChannel {
+      CHANNEL_NONE=0,
+      CHANNEL_ERROR,
+      CHANNEL_WARNING,
+      CHANNEL_MESSAGE,
+      CHANNEL_OTHER,
+      CHANNEL_FINAL, ///< don't use, but must be the last one.
+    };
+    const char *ChannelToString(enum DebugChannel) const;
+
+    virtual void printf(enum DebugChannel, const char* source,
+                        const char* msg) = 0;
+    virtual void printf(const char *s) const = 0;
+    virtual void Other(const char *source, const char* format, ...);
+    virtual void Message(const char* source, const char* format, ...);
+    virtual void Warning(const char* source, const char* format, ...);
+    virtual void Error(const char* source, const char* format, ...);
 
     void PrintErrorList();
     void PrintWarningList();
     void PrintMessageList();
 
-    virtual void ClearErrorList()   {m_strErrorList.clear();}
-    virtual void ClearWarningList() {m_strWarningList.clear();}
-    virtual void ClearMessageList() {m_strMessageList.clear();}
+    virtual void ClearErrorList()   { m_strLists[CHANNEL_ERROR].clear(); }
+    virtual void ClearWarningList() { m_strLists[CHANNEL_WARNING].clear(); }
+    virtual void ClearMessageList() { m_strLists[CHANNEL_MESSAGE].clear(); }
 
     virtual void SetListRecordingErrors(bool bRecord)   {m_bRecordLists[0] = bRecord;}
     virtual void SetListRecordingWarnings(bool bRecord) {m_bRecordLists[1] = bRecord;}
@@ -108,13 +127,10 @@ protected:
     bool                      m_bShowErrors;
     bool                      m_bShowOther;
 
-    bool                      m_bRecordLists[3];
+    std::tr1::array<bool, CHANNEL_FINAL> m_bRecordLists;
+    std::tr1::array<std::deque<std::string>, CHANNEL_FINAL> m_strLists;
 
-    std::deque< std::string > m_strErrorList;
-    std::deque< std::string > m_strWarningList;
-    std::deque< std::string > m_strMessageList;
-    
     void ReplaceSpecialChars(char* buff, size_t iSize) const;
 };
 
-#endif // ABSTRDEBUGOUT_H
+#endif // TUVOK_ABSTRDEBUGOUT_H

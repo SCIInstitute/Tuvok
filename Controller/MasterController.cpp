@@ -81,11 +81,11 @@ MasterController::~MasterController() {
 
 void MasterController::AddDebugOut(AbstrDebugOut* debugOut) {
   if (debugOut != NULL) {
-    m_DebugOut.printf(_func_, "Disconnecting from this debug out");
+    m_DebugOut.Message(_func_, "Disconnecting from this debug out");
 
     m_DebugOut.AddDebugOut(debugOut);
 
-    debugOut->printf(_func_, "Connected to this debug out");
+    debugOut->Message(_func_, "Connected to this debug out");
   } else {
     m_DebugOut.Warning(_func_,
                        "New debug is a NULL pointer, ignoring it.");
@@ -218,7 +218,11 @@ bool MasterController::Execute(const std::string& strCommand,
   strMessage = "";
   if (strCommand == "seterrorlog") {
     m_DebugOut.SetListRecordingErrors(strParams[0] == "on");
-    if (m_DebugOut.GetListRecordingErrors()) m_DebugOut.printf("current state: true"); else m_DebugOut.printf("current state: false");
+    if (m_DebugOut.GetListRecordingErrors()) {
+      m_DebugOut.printf("current state: true");
+    } else {
+      m_DebugOut.printf("current state: false");
+    }
     return true;
   }
   if (strCommand == "setwarninglog") {

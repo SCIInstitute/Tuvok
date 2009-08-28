@@ -38,8 +38,8 @@
 
 #pragma once
 
-#ifndef MULTIPLEXOUT_H
-#define MULTIPLEXOUT_H
+#ifndef TUVOK_MULTIPLEXOUT_H
+#define TUVOK_MULTIPLEXOUT_H
 
 #include <vector>
 #include "AbstrDebugOut.h"
@@ -52,10 +52,9 @@ class MultiplexOut : public AbstrDebugOut {
     void AddDebugOut(AbstrDebugOut* pDebugger);
     void RemoveDebugOut(AbstrDebugOut* pDebugger);
 
-    virtual void printf(const char* format, ...) const;
-    virtual void Message(const char* source, const char* format, ...);
-    virtual void Warning(const char* source, const char* format, ...);
-    virtual void Error(const char* source, const char* format, ...);
+    virtual void printf(enum DebugChannel, const char* source,
+                        const char* msg);
+    virtual void printf(const char *s) const;
 
     virtual void SetShowMessages(bool bShowMessages);
     virtual void SetShowWarnings(bool bShowWarnings);
@@ -68,4 +67,4 @@ class MultiplexOut : public AbstrDebugOut {
   private:
     std::vector<AbstrDebugOut*> m_vpDebugger;
 };
-#endif // MULTIPLEXOUT_H
+#endif // TUVOK_MULTIPLEXOUT_H

@@ -37,27 +37,112 @@
 #include <cstring>
 #include "AbstrDebugOut.h"
 
+const char *AbstrDebugOut::ChannelToString(enum DebugChannel c) const
+{
+  switch(c) {
+    case CHANNEL_NONE:    /* FALL THROUGH */
+    case CHANNEL_FINAL:   return "";
+    case CHANNEL_ERROR:   return "ERROR";
+    case CHANNEL_WARNING: return "WARNING";
+    case CHANNEL_MESSAGE: return "MESSAGE";
+    case CHANNEL_OTHER:   return "OTHER";
+  }
+  return "";
+}
+
+void AbstrDebugOut::Other(const char *source, const char* format, ...)
+{
+  if (!m_bShowOther) return;
+  char buff[16384];
+
+  va_list args;
+  va_start(args, format);
+#ifdef DETECTED_OS_WINDOWS
+  _vsnprintf_s(buff, 16384, sizeof(buff), format, args);
+#else
+  vsnprintf(buff, sizeof(buff), format, args);
+#endif
+  va_end(args);
+
+  this->printf(CHANNEL_OTHER, source, buff);
+}
+
+void AbstrDebugOut::Message(const char* source, const char* format, ...)
+{
+  if (!m_bShowMessages) return;
+  char buff[16384];
+
+  va_list args;
+  va_start(args, format);
+#ifdef DETECTED_OS_WINDOWS
+  _vsnprintf_s(buff, 16384, sizeof(buff), format, args);
+#else
+  vsnprintf(buff, sizeof(buff), format, args);
+#endif
+  va_end(args);
+
+  this->printf(CHANNEL_MESSAGE, source, buff);
+}
+void AbstrDebugOut::Warning(const char* source, const char* format, ...)
+{
+  if (!m_bShowWarnings) return;
+  char buff[16384];
+
+  va_list args;
+  va_start(args, format);
+#ifdef DETECTED_OS_WINDOWS
+  _vsnprintf_s(buff, 16384, sizeof(buff), format, args);
+#else
+  vsnprintf(buff, sizeof(buff), format, args);
+#endif
+  va_end(args);
+
+  this->printf(CHANNEL_WARNING, source, buff);
+}
+void AbstrDebugOut::Error(const char* source, const char* format, ...)
+{
+  if (!m_bShowErrors) return;
+  char buff[16384];
+
+  va_list args;
+  va_start(args, format);
+#ifdef DETECTED_OS_WINDOWS
+  _vsnprintf_s(buff, 16384, sizeof(buff), format, args);
+#else
+  vsnprintf(buff, sizeof(buff), format, args);
+#endif
+  va_end(args);
+
+  this->printf(CHANNEL_ERROR, source, buff);
+}
+
 void AbstrDebugOut::PrintErrorList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::const_iterator i = m_strErrorList.begin();
-       i < m_strErrorList.end(); i++)
+  for (std::deque< std::string >::const_iterator i =
+            m_strLists[CHANNEL_ERROR].begin();
+       i < m_strLists[CHANNEL_ERROR].end(); ++i) {
     printf( i->c_str() );
+  }
   printf( "end of recorded errors" );
 }
 
 void AbstrDebugOut::PrintWarningList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::const_iterator i = m_strWarningList.begin();
-       i < m_strErrorList.end(); i++)
+  for (std::deque< std::string >::const_iterator i =
+            m_strLists[CHANNEL_WARNING].begin();
+       i < m_strLists[CHANNEL_WARNING].end(); ++i) {
     printf( i->c_str() );
+  }
   printf( "end of recorded errors" );
 }
 
 void AbstrDebugOut::PrintMessageList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::const_iterator i = m_strMessageList.begin();
-       i < m_strErrorList.end(); i++)
+  for (std::deque< std::string >::const_iterator i =
+            m_strLists[CHANNEL_MESSAGE].begin();
+       i < m_strLists[CHANNEL_MESSAGE].end(); ++i) {
     printf( i->c_str() );
+  }
   printf( "end of recorded errors" );
 }
 

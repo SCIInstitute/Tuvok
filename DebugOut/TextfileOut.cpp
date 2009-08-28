@@ -47,75 +47,23 @@ using namespace std;
 TextfileOut::TextfileOut(std::string strFilename) :
   m_strFilename(strFilename)
 {
-  this->printf("MESSAGE (TextfileOut::TextfileOut:): Starting up");
+  this->Message(_func_, "Starting up");
 }
 
 TextfileOut::~TextfileOut() {
-  this->printf("MESSAGE (TextfileOut::~TextfileOut:): Shutting down\n\n\n");
+  this->Message(_func_, "Shutting down\n");
 }
 
-void TextfileOut::printf(const char* format, ...) const
+void TextfileOut::printf(enum DebugChannel channel, const char* source,
+                         const char* buff)
 {
-  char buff[16384];
-
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-
   time_t epoch_time;
   time(&epoch_time);
 
-#ifdef DETECTED_OS_WINDOWS
-  struct tm now;
-  localtime_s(&now, &epoch_time);
-#define ADDR_NOW (&now)
-#else
-  struct tm* now;
-  now = localtime(&epoch_time);
-#define ADDR_NOW (now)
-#endif
-  char datetime[64];
-
-  ofstream fs;
-  fs.open(m_strFilename.c_str(),  ios_base::app);
-  if (fs.fail()) return;
-
-  if(strftime(datetime, 64, "(%d.%m.%Y %H:%M:%S)", ADDR_NOW) > 0) {
-    fs << datetime << " " << buff << std::endl;
-  } else {
-    fs << buff << std::endl;
-  }
-
-  fs.flush();
-  fs.close();
-}
-
-void TextfileOut::_printf(const char* format, ...) const
-{
-  char buff[16384];
-
-  va_list args;
-  va_start(args, format);
-
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-
-  time_t epoch_time;
-  time(&epoch_time);
-
-#ifdef DETECTED_OS_WINDOWS
-  struct tm now;
-  localtime_s(&now, &epoch_time);
 #undef ADDR_NOW
+#ifdef DETECTED_OS_WINDOWS
+  struct tm now;
+  localtime_s(&now, &epoch_time);
 #define ADDR_NOW (&now)
 #else
   struct tm* now;
@@ -125,55 +73,45 @@ void TextfileOut::_printf(const char* format, ...) const
   char datetime[64];
 
   ofstream fs;
-  fs.open(m_strFilename.c_str(),  ios_base::app);
+  fs.open(m_strFilename.c_str(), ios_base::app);
   if (fs.fail()) return;
+
   if(strftime(datetime, 64, "(%d.%m.%Y %H:%M:%S)", ADDR_NOW) > 0) {
-    fs << datetime << " " << buff << std::endl;
-  } else {
-    fs << buff << std::endl;
+    fs << datetime << " ";
   }
+  fs << ChannelToString(channel) << " (" << source << ")" << buff << std::endl;
+
   fs.flush();
   fs.close();
 }
 
-void TextfileOut::Message(const char* source, const char* format, ...) {
-  if (!m_bShowMessages) return;
-  char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-  this->_printf("MESSAGE (%s): %s", source, buff);
-}
+void TextfileOut::printf(const char *s) const
+{
+  time_t epoch_time;
+  time(&epoch_time);
 
-void TextfileOut::Warning(const char* source, const char* format, ...) {
-  if (!m_bShowWarnings) return;
-  char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
+#undef ADDR_NOW
+#ifdef DETECTED_OS_WINDOWS
+  struct tm now;
+  localtime_s(&now, &epoch_time);
+#define ADDR_NOW (&now)
 #else
-  vsnprintf( buff, sizeof(buff), format, args);
+  struct tm* now;
+  now = localtime(&epoch_time);
+#define ADDR_NOW (now)
 #endif
-  va_end(args);
-  this->_printf("WARNING (%s): %s", source, buff);
-}
+  char datetime[64];
 
-void TextfileOut::Error(const char* source, const char* format, ...) {
-  if (!m_bShowErrors) return;
-  char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-  this->_printf("ERROR (%s): %s", source, buff);
+  ofstream fs;
+  fs.open(m_strFilename.c_str(), ios_base::app);
+  if (fs.fail()) return;
+
+  if(strftime(datetime, 64, "(%d.%m.%Y %H:%M:%S)", ADDR_NOW) > 0) {
+    fs << datetime << " " << s << std::endl;
+  } else {
+    fs << s << std::endl;
+  }
+
+  fs.flush();
+  fs.close();
 }

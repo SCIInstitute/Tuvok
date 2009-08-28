@@ -56,14 +56,14 @@ using namespace std;
 
 MultiplexOut::~MultiplexOut() {
   for (size_t i = 0;i<m_vpDebugger.size();i++) {
-    m_vpDebugger[i]->printf(_func_, "(MultiplexOut::~MultiplexOut): Shutting down");
+    m_vpDebugger[i]->Message(_func_, "Shutting down");
     delete m_vpDebugger[i];
   }
 }
 
 void MultiplexOut::AddDebugOut(AbstrDebugOut* pDebugger) {
   m_vpDebugger.push_back(pDebugger);
-  pDebugger->printf(_func_,"Operating as part of a multiplexed debug out now.");
+  pDebugger->Message(_func_,"Operating as part of a multiplexed debug out now.");
 }
 
 void MultiplexOut::RemoveDebugOut(AbstrDebugOut* pDebugger) {
@@ -78,61 +78,19 @@ void MultiplexOut::RemoveDebugOut(AbstrDebugOut* pDebugger) {
 }
 
 
-void MultiplexOut::printf(const char* format, ...) const
+void MultiplexOut::printf(enum DebugChannel channel, const char* source,
+                          const char* msg)
 {
-  char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-  ReplaceSpecialChars(buff, 16384);
-  for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->printf(buff);
+  for (size_t i = 0;i<m_vpDebugger.size();i++) {
+    m_vpDebugger[i]->printf(channel, source, msg);
+  }
 }
 
-void MultiplexOut::Message(const char* source, const char* format, ...) {
-  char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-  ReplaceSpecialChars(buff, 16384);
-  for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->Message(source,buff);
-}
-
-void MultiplexOut::Warning(const char* source, const char* format, ...) {
-  char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-  ReplaceSpecialChars(buff, 16384);
-  for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->Warning(source,buff);
-}
-
-void MultiplexOut::Error(const char* source, const char* format, ...) {
-  char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-  ReplaceSpecialChars(buff, 16384);
-  for (size_t i = 0;i<m_vpDebugger.size();i++) m_vpDebugger[i]->Error(source,buff);
+void MultiplexOut::printf(const char *s) const
+{
+  for (size_t i = 0;i<m_vpDebugger.size();i++) {
+    m_vpDebugger[i]->printf(s);
+  }
 }
 
 void MultiplexOut::SetShowMessages(bool bShowMessages) {

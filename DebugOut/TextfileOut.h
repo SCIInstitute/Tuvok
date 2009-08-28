@@ -38,20 +38,19 @@
 
 #pragma once
 
-#ifndef TEXTFILEOUT_H
-#define TEXTFILEOUT_H
+#ifndef TUVOK_TEXTFILEOUT_H
+#define TUVOK_TEXTFILEOUT_H
 
 #include <string>
 #include "AbstrDebugOut.h"
 
-class TextfileOut : public AbstrDebugOut{
+class TextfileOut : public AbstrDebugOut {
   public:
     TextfileOut(std::string strFilename="logfile.txt");
     ~TextfileOut();
-    virtual void printf(const char* format, ...) const;
-    virtual void Message(const char* source, const char* format, ...);
-    virtual void Warning(const char* source, const char* format, ...);
-    virtual void Error(const char* source, const char* format, ...);
+    virtual void printf(enum DebugChannel, const char* source,
+                        const char* msg);
+    virtual void printf(const char *s) const;
 
     const std::string& GetFileName() const {return m_strFilename;}
 
@@ -65,4 +64,4 @@ class TextfileOut : public AbstrDebugOut{
     void _printf(const char* format, ...) const;
 };
 
-#endif // TEXTFILEOUT_H
+#endif // TUVOK_TEXTFILEOUT_H

@@ -34,6 +34,7 @@
   \date    August 2008
 */
 
+#include <cstring>
 #include "ConsoleOut.h"
 #include "Basics/Console.h"
 
@@ -58,73 +59,29 @@ ConsoleOut::~ConsoleOut() {
   Message("ConsoleOut::~ConsoleOut:","Shutting down ConsoleDebug out");
 }
 
-void ConsoleOut::printf(const char* format, ...) const
+void ConsoleOut::printf(enum DebugChannel channel, const char* source,
+                        const char* msg)
 {
   char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
+  strncpy(buff, msg, 16384);
+  ReplaceSpecialChars(buff, 16384);
+#ifdef DETECTED_OS_WINDOWS
+  Console::printf("%s (%s): %s\n", ChannelToString(channel), source, buff);
 #else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-  Console::printf("%s\n",buff);
-}
-
-void ConsoleOut::Message(const char* source, const char* format, ...) {
-  if (!m_bShowMessages) return;
-  char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-
-#ifndef DETECTED_OS_WINDOWS
-  this->printf("%sMESSAGE%s (%s): %s", C_DGRAY, C_NORM, source, buff);
-#else
-  this->printf("MESSAGE (%s): %s", source, buff);
+  const char *color = C_NORM;
+  switch(channel) {
+    case CHANNEL_FINAL:   /* FALL THROUGH */
+    case CHANNEL_NONE:    color = C_NORM; break;
+    case CHANNEL_ERROR:   color = C_RED; break;
+    case CHANNEL_WARNING: color = C_YELLOW; break;
+    case CHANNEL_MESSAGE: color = C_DGRAY; break;
+    case CHANNEL_OTHER:   color = C_LBLUE; break;
+  }
+  Console::printf("%s%s%s (%s): %s\n", color, ChannelToString(channel), C_NORM,
+                  source, buff);
 #endif
 }
-
-void ConsoleOut::Warning(const char* source, const char* format, ...) {
-  if (!m_bShowWarnings) return;
-  char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-
-#ifndef DETECTED_OS_WINDOWS
-  this->printf("%sWARNING%s (%s): %s", C_YELLOW, C_NORM, source, buff);
-#else
-  this->printf("WARNING (%s): %s", source, buff);
-#endif
-}
-
-void ConsoleOut::Error(const char* source, const char* format, ...) {
-  if (!m_bShowErrors) return;
-  char buff[16384];
-  va_list args;
-  va_start(args, format);
-#ifdef WIN32
-  _vsnprintf_s( buff, 16384, sizeof(buff), format, args);
-#else
-  vsnprintf( buff, sizeof(buff), format, args);
-#endif
-  va_end(args);
-
-#ifndef DETECTED_OS_WINDOWS
-  this->printf("%sERROR%s (%s): %s", C_RED, C_NORM, source, buff);
-#else
-  this->printf("ERROR (%s): %s", source, buff);
-#endif
+void ConsoleOut::printf(const char *s) const
+{
+  Console::printf("%s\n", s);
 }
