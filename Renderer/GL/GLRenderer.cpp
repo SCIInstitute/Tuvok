@@ -742,19 +742,11 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     glDisable(GL_DEPTH_TEST);
 
     UINT64 iCurrentLOD = 0;
-    UINTVECTOR3 vVoxelCount;
+    UINTVECTOR3 vVoxelCount(1,1,1); // make sure we do not dive by zero later if no single-brick LOD exists
 
-    /// @todo FIXME-IO
-#if 0
-    // We're ignoring bricking here.  This is trying to find the number of
-    // voxels in the coarsest resolution of the dataset.
+    // For now to make things simpler for the slice renderer we use the LOD level with just one brick
     for (UINT64 i = 0;i<m_pDataset->GetLODLevelCount();i++) {
-      // The conditional is indirectly looking for the LOD with 1 brick.  If
-      // the LOD has only 1 brick, then the number of bricks along each
-      // dimension will be one.  The 'volume' of a unit-cubed chunk of space is
-      // 1 -- thus if the volume of the brick count is 1, then this is the
-      // coarsest LOD.
-      if (m_pDataset->GetBrickCount(i).volume() == 1) {
+      if (m_pDataset->GetBrickCount(i) == 1) {
           iCurrentLOD = i;
           vVoxelCount = UINTVECTOR3(m_pDataset->GetDomainSize(i));
           break;
@@ -762,7 +754,6 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     }
 
     if (!m_bUseMIP[size_t(eDirection)]) SetBrickDepShaderVarsSlice(vVoxelCount);
-#endif
 
     // Get the brick at this LOD; note we're guaranteed this brick will cover the entire domain,
     // because the search above gives us the coarsest LOD!
