@@ -326,7 +326,8 @@ class AbstrRenderer {
 
     void SetTimeSlice(UINT32 iMSecs) {m_iTimeSliceMSecs = iMSecs;}
     void SetPerfMeasures(UINT32 iMinFramerate, UINT32 iStartDelay) {
-      m_iMinFramerate = iMinFramerate; m_iStartDelay = iStartDelay;
+      m_fMaxMSPerFrame = (iMinFramerate == 0) ? 10000 : 1000.0f / float(iMinFramerate);
+      m_iStartDelay = iStartDelay;
     }
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
       m_pDataset->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();
@@ -445,7 +446,7 @@ class AbstrRenderer {
     int                 m_iLogoPos;
     std::string         m_strLogoFilename;
 
-    UINT32              m_iMinFramerate;
+    float               m_fMaxMSPerFrame;
     UINT32              m_iStartDelay;
     UINT64              m_iMinLODForCurrentView;
     UINT32              m_iTimeSliceMSecs;

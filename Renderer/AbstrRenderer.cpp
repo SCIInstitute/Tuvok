@@ -68,7 +68,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vWinSize(0,0),
   m_iLogoPos(3),
   m_strLogoFilename(""),
-  m_iMinFramerate(10),
+  m_fMaxMSPerFrame(10000),
   m_iStartDelay(1000),
   m_iMinLODForCurrentView(0),
   m_iTimeSliceMSecs(100),
@@ -512,14 +512,14 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
 
   if (!m_bCaptureMode) {
     // if rendering is too slow use a lower resolution during interaction
-    if (m_fMsecPassed[0] > 1000.0f/float(m_iMinFramerate)) {
+    if (m_fMsecPassed[0] > m_fMaxMSPerFrame) {
       UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
       m_iPerformanceBasedLODSkip = std::max<UINT64>(1,m_iPerformanceBasedLODSkip)-1;
       if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip)
-        OTHER("Increasing start LOD by %i as it took %g ms to render the first LOD level (max is %g) ",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0], 1000.0f/float(m_iMinFramerate));
+        OTHER("Increasing start LOD by %i as it took %g ms to render the first LOD level (max is %g) ",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0], m_fMaxMSPerFrame);
     } else {
       // if rendering is fast enougth use a higher resolution during interaction
-      if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f && m_fMsecPassed[1] <= 1000.0f/float(m_iMinFramerate)) {
+      if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f && m_fMsecPassed[1] <= m_fMaxMSPerFrame) {
         UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
         m_iPerformanceBasedLODSkip = std::min<UINT64>(m_iMaxLODIndex-m_iMinLODForCurrentView,m_iPerformanceBasedLODSkip+1);
         if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip)
