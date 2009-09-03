@@ -39,6 +39,11 @@
 #include <fstream>
 #include <functional>
 #include <limits>
+#ifdef DETECTED_OS_WINDOWS
+# include <type_traits>
+#else
+# include <tr1/type_traits>
+#endif
 #include <boost/algorithm/minmax_element.hpp>
 #include <boost/cstdint.hpp>
 #include "IOManager.h"  // for the size defines
@@ -46,30 +51,44 @@
 
 namespace {
 /// "Compile time type info"
-/// is_signed: whether or not this type is signed.
-///            Note that this exists in std::numeric_limits as well, but was
-///            incorrectly specified so that it is not a compile-time constant.
+/// Metaprogramming type traits that we need but aren't in tr1.
+/// is_signed: tr1's is_signed only returns true for *integral* signed types..
+///            ridiculous.  so we use this as a replacement.
 /// size_type: unsigned variant of 'T'.
 ///@{
-template <typename T> struct ctti { };
-template<> struct ctti<short>  { enum { is_signed = 1 };
-                                 typedef unsigned short size_type; };
-template<> struct ctti<bool>   { enum { is_signed = 0 };
-                                 typedef bool size_type; };
-template<> struct ctti<int>    { enum { is_signed = 1 };
-                                 typedef unsigned int size_type; };
-template<> struct ctti<long>   { enum { is_signed = 1 };
-                                 typedef unsigned long size_type; };
-template<> struct ctti<float>  { enum { is_signed = 1 };
-                                 typedef float size_type; };
-template<> struct ctti<double> { enum { is_signed = 1 };
-                                 typedef double size_type; };
-template<> struct ctti<unsigned int>   { enum { is_signed = 0 };
-                                         typedef unsigned int size_type; };
-template<> struct ctti<unsigned char>  { enum { is_signed = 0 };
-                                         typedef unsigned char size_type; };
-template<> struct ctti<unsigned short> { enum { is_signed = 0 };
-                                         typedef unsigned short size_type; };
+template <typename T> struct ctti_base {
+  enum { is_signed = std::tr1::is_signed<T>::value ||
+                     std::tr1::is_floating_point<T>::value };
+};
+template <typename T> struct ctti : ctti_base<T> { };
+
+template<> struct ctti<short> : ctti_base<short> {
+  typedef unsigned short size_type;
+};
+template<> struct ctti<bool> : ctti_base<bool> {
+  typedef bool size_type;
+};
+template<> struct ctti<int> : ctti_base<int> {
+  typedef unsigned int size_type;
+};
+template<> struct ctti<long> : ctti_base<long> {
+  typedef unsigned long size_type;
+};
+template<> struct ctti<float> : ctti_base<float> {
+  typedef float size_type;
+};
+template<> struct ctti<double> : ctti_base<double> {
+  typedef double size_type;
+};
+template<> struct ctti<unsigned int> : ctti_base<unsigned int> {
+  typedef unsigned int size_type;
+};
+template<> struct ctti<unsigned char> : ctti_base<unsigned char> {
+  typedef unsigned char size_type;
+};
+template<> struct ctti<unsigned short> : ctti_base<unsigned short> {
+  typedef unsigned short size_type;
+};
 ///@}
 };
 
@@ -181,14 +200,14 @@ template<typename T> struct Unsigned12BitHistogram {
     typename ctti<T>::size_type bias;
     bias = static_cast<typename ctti<T>::size_type>
                       (std::fabs(static_cast<double>
-                                 (std::numeric_limits<T>::min())));
+                                 (-(std::numeric_limits<T>::max()-1))));
 
-    if(static_cast<typename ctti<T>::size_type>(value) < histo.size()) {
-      typename ctti<T>::size_type u_value;
-      u_value = ctti<T>::is_signed ? value + bias : value;
-      if(u_value < histo.size()) {
-        ++histo[static_cast<size_t>(u_value)];
-      }
+    typename ctti<T>::size_type u_value;
+    u_value = ctti<T>::is_signed ? value + bias : value;
+    assert(!ctti<T>::is_signed || (ctti<T>::is_signed && ((value+bias) >= 0)));
+
+    if(u_value < histo.size()) {
+      ++histo[static_cast<size_t>(u_value)];
     }
   }
   private:
