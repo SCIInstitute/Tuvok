@@ -91,6 +91,16 @@ BrickTable::size_type BrickedDataset::GetBrickCount(size_t lod) const
   return count;
 }
 
+const BrickMD& BrickedDataset::GetBrickMetadata(const BrickKey& k) const
+{
+#ifdef TR1_NOT_CONST_CORRECT
+  BrickedDataset* cthis = const_cast<BrickedDataset*>(this);
+  return cthis->bricks.find(k)->second;
+#else
+  return this->bricks.find(k)->second;
+#endif
+}
+
 bool
 BrickedDataset::BrickIsFirstInDimension(size_t dim, const BrickKey& k) const
 {
@@ -125,6 +135,11 @@ BrickedDataset::BrickIsLastInDimension(size_t dim, const BrickKey& k) const
     }
   }
   return true;
+}
+
+void BrickedDataset::Clear() {
+  MESSAGE("Clearing brick metadata.");
+  bricks.clear();
 }
 
 } // namespace tuvok

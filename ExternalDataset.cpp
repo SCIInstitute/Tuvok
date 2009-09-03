@@ -39,7 +39,7 @@
 #include <Controller/Controller.h>
 
 namespace tuvok {
-/*
+
 typedef std::vector<std::vector<UINT32> > hist2d;
 
 ExternalDataset::ExternalDataset()
@@ -83,15 +83,15 @@ UINTVECTOR3 ExternalDataset::GetBrickVoxelCounts(const BrickKey& bk) const
 #endif
     throw BrickNotFound(k);
   }
-  return UINTVECTOR3(iter->second.n_voxels[0],
-                     iter->second.n_voxels[1],
-                     iter->second.n_voxels[2]);
+  MESSAGE("voxels: %ux%ux%u", iter->second.n_voxels[0],
+          iter->second.n_voxels[1], iter->second.n_voxels[2]);
+  return iter->second.n_voxels;
 }
 
 bool ExternalDataset::GetBrick(const BrickKey& bk,
                                std::vector<unsigned char>& brick) const
 {
-  size_t bytes;
+  size_t bytes=0;
 
 #ifdef TR1_NOT_CONST_CORRECT
   ExternalDataset* cthis = const_cast<ExternalDataset*>(this);
@@ -102,16 +102,14 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
   assert(brick_data != this->m_Data.end());
   const VariantArray &varray = brick_data->second;
 
-  const ExternalMetadata &metadata =
-    dynamic_cast<const ExternalMetadata&>(this->GetInfo());
-  switch(metadata.GetDataType()) {
-    case ExternalMetadata::MDT_FLOAT:
-      bytes = this->m_Data.size() * sizeof(float);
+  switch(brick_data->second.type()) {
+    case VariantArray::DT_FLOAT:
+      bytes = brick_data->second.size() * sizeof(float);
       brick.resize(bytes);
       std::memcpy(&brick.at(0), varray.getf(), bytes);
       break;
-    case ExternalMetadata::MDT_BYTE:
-      bytes = this->m_Data.size() * sizeof(unsigned char);
+    case VariantArray::DT_UBYTE:
+      bytes = brick_data->second.size() * sizeof(unsigned char);
       brick.resize(bytes);
       std::memcpy(&brick.at(0), varray.getub(), bytes);
       break;
@@ -155,42 +153,17 @@ void ExternalDataset::SetHistogram(const std::vector<std::vector<UINT32> >& hist
 
 namespace {
 
-template<typename T> struct type2enum {};
-template<> struct type2enum<float> {
-  enum { value = ExternalMetadata::MDT_FLOAT };
-};
-template<> struct type2enum<const float> {
-  enum { value = ExternalMetadata::MDT_FLOAT };
-};
-template<> struct type2enum<unsigned char> {
-  enum { value = ExternalMetadata::MDT_BYTE };
-};
-template<> struct type2enum<const unsigned char> {
-  enum { value = ExternalMetadata::MDT_BYTE };
-};
-
 template<typename T> void
-update_metadata(ExternalMetadata &md, const BrickMD& b,
-                T brick_min, T brick_max)
+update_metadata(ExternalDataset &ds, T brick_min, T brick_max)
 {
-  { // type
-    int dtype = type2enum<T>::value;
-    md.SetDataType(static_cast<ExternalMetadata::MD_Data_Type>(dtype));
-  }
   { // data range
-    std::pair<double,double> minmax = md.GetRange();
+    std::pair<double,double> minmax = ds.GetRange();
     // We only store ranges as doubles, even if the underlying dataset is
     // fixed point.
     minmax.first = std::min(minmax.first, static_cast<double>(brick_min));
     minmax.second = std::max(minmax.second, static_cast<double>(brick_max));
-    md.SetRange(minmax);
-  }
-  { // max brick size
-    UINTVECTOR3 brick_sz = md.GetMaxBrickSize();
-    brick_sz[0] = std::max(static_cast<UINT>(brick_sz[0]), b.n_voxels[0]);
-    brick_sz[1] = std::max(static_cast<UINT>(brick_sz[1]), b.n_voxels[1]);
-    brick_sz[2] = std::max(static_cast<UINT>(brick_sz[2]), b.n_voxels[2]);
-    md.SetMaxBrickSize(brick_sz);
+    ds.SetRange(minmax);
+    MESSAGE("Range: [%g - %g]", minmax.first, minmax.second);
   }
 }
 
@@ -204,12 +177,12 @@ void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
   VariantArray varr;
   varr.set(data, len);
   this->m_Data.insert(std::pair<BrickKey, VariantArray>(bk, varr));
-  MESSAGE("added brick with key: (%u, %u)",
+  MESSAGE("added %u-elem float brick with key: (%u, %u)",
+          static_cast<unsigned>(len),
           static_cast<unsigned>(bk.first),
           static_cast<unsigned>(bk.second));
 
-  ExternalMetadata& metadata = dynamic_cast<ExternalMetadata&>(this->GetInfo());
-  update_metadata<float>(metadata, md, fMin, fMax);
+  update_metadata<float>(*this, fMin, fMax);
 
   Recalculate1DHistogram();
 }
@@ -222,12 +195,12 @@ void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
   VariantArray varr;
   varr.set(data, len);
   this->m_Data.insert(std::pair<BrickKey, VariantArray>(bk, varr));
-  MESSAGE("added brick with key: (%u, %u)",
+  MESSAGE("added %u-elem ubyte brick with key: (%u, %u)",
+          static_cast<unsigned>(len),
           static_cast<unsigned>(bk.first),
           static_cast<unsigned>(bk.second));
 
-  ExternalMetadata& metadata = dynamic_cast<ExternalMetadata&>(this->GetInfo());
-  update_metadata<unsigned char>(metadata, md, ubmin, ubmax);
+  update_metadata<unsigned char>(*this, ubmin, ubmax);
 
   Recalculate1DHistogram();
 }
@@ -254,11 +227,28 @@ void ExternalDataset::UpdateData(const BrickKey& bk,
   iter->second.set(data, len);
 }
 
+void ExternalDataset::Clear() {
+    MESSAGE("Clearing brick data");
+    this->m_Data.clear();
+    BrickedDataset::Clear();
+}
+
 void ExternalDataset::SetGradientMagnitudeRange(float, float high)
 {
   // Minimum value is currently ignored; might be needed later.
   m_fMaxMagnitude = high;
 }
+
+void ExternalDataset::SetRange(const std::pair<double, double>& range)
+{
+  m_DataRange = range;
+}
+
+std::pair<double,double> ExternalDataset::GetRange() const
+{
+  return m_DataRange;
+}
+
 
 void ExternalDataset::Recalculate1DHistogram()
 {
@@ -273,17 +263,15 @@ void ExternalDataset::Recalculate1DHistogram()
   std::fill(m_pHist1D->GetDataPointer(),
             m_pHist1D->GetDataPointer()+m_pHist1D->GetSize(), 0);
 
-  const ExternalMetadata &metadata =
-    dynamic_cast<const ExternalMetadata&>(this->GetInfo());
-  switch(metadata.GetDataType()) {
-    case ExternalMetadata::MDT_FLOAT: {
+  switch(this->GetDataType()) {
+    case VariantArray::DT_FLOAT: {
       const float *data = m_Data.getf();
       for(size_t i=0; i < m_DataSize; ++i) {
         m_pHist1D->Set(i, data[i]);
       }
       break;
     }
-    case ExternalMetadata::MDT_BYTE: {
+    case VariantArray::DT_UBYTE: {
       const unsigned char *data = m_Data.getub();
       for(size_t i=0; i < m_DataSize; ++i) {
         m_pHist1D->Set(i, data[i]);
@@ -299,5 +287,5 @@ void ExternalDataset::Recalculate1DHistogram()
   //assert(1 == 0);
 #endif
 }
-*/
+
 } //namespace tuvok

@@ -47,8 +47,10 @@
 # include <tr1/memory>
 # include <tr1/unordered_map>
 #endif
+#include <utility>
 #include "BrickedDataset.h"
 #include "VariantArray.h"
+#include "Controller/Controller.h"
 
 namespace tuvok {
 
@@ -66,6 +68,19 @@ public:
 
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<unsigned char>&) const;
+  virtual UINTVECTOR3 GetBrickOverlapSize() const {
+    // Hack; should have a setter for this, and query the info it sets here.
+    return UINTVECTOR3(1,1,1);
+  }
+
+  virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey& bk) const {
+    const UINTVECTOR3& voxels = this->GetBrickMetadata(bk).n_voxels;
+    /// @todo FIXME: WRONG -- assumes internal brick.
+    /// we need a setter for this info, and then query the info it sets here.
+    return UINT64VECTOR3(voxels[0]-1, voxels[1]-1, voxels[2]-1);
+  }
+
+  virtual UINT64 GetLODLevelCount() const { /* hack! */ return 1; }
 
   /// Uploads external histograms.  One will be calculated implicitly if not
   /// given.  To prevent this (potentially extra) work, upload the histogram
@@ -97,6 +112,7 @@ public:
   void UpdateData(const BrickKey&, const std::tr1::shared_ptr<unsigned char>,
                   size_t len);
   ///@}
+  void Clear();
 
   /// Thrown when a brick lookup fails.
   struct BrickNotFound : public std::exception {
@@ -108,10 +124,55 @@ public:
   /// Important for correct 2D transfer function rendering.
   void SetGradientMagnitudeRange(float, float);
 
-  /// Hacks for BrickedExternalMetadata.
-  ///@{
-  UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const;
-  ///@}
+  /// Number of bits in the data representation.
+  virtual UINT64 GetBitWidth() const {
+    // We query VariantArray for the type.  Yet we have one variant array per
+    // brick; theoretically each brick could have a different underlying data
+    // type.  However our model doesn't handle that: the data type is global
+    // for a dataset.  So we simply query the first brick && use its data type
+    // to represent the entire dataset's data type.
+    assert(!this->m_Data.empty());
+    DataTable::const_iterator iter = this->m_Data.begin();
+    switch(iter->second.type()) {
+      case VariantArray::DT_FLOAT: return 32;
+      case VariantArray::DT_UBYTE:  return  8;
+    }
+    assert(1==0);
+    return 42;
+  }
+  /// Number of components per data point.
+  UINT64 GetComponentCount() const {
+    WARNING("Assuming single-component data.");
+    return 1;
+  }
+  bool GetIsSigned() const {
+    assert(!this->m_Data.empty());
+    DataTable::const_iterator iter = this->m_Data.begin();
+    switch(iter->second.type()) {
+      case VariantArray::DT_FLOAT: return true;
+      case VariantArray::DT_UBYTE:  return false;
+    }
+    return true;
+  }
+  bool GetIsFloat() const {
+    assert(!this->m_Data.empty());
+    DataTable::const_iterator iter = this->m_Data.begin();
+    return iter->second.type() == VariantArray::DT_FLOAT;
+  }
+  bool IsSameEndianness() const {
+    return true;
+  }
+  UINT64VECTOR3 GetDomainSize(const size_t /* lod */ = 0) const {
+    return m_vDomainSize;
+  }
+  void SetDomainSize(UINT64 x, UINT64 y, UINT64 z) {
+    m_vDomainSize = UINT64VECTOR3(x,y,z);
+  }
+  void SetRange(const std::pair<double, double>&);
+  void SetRange(double low, double high) {
+    this->SetRange(std::make_pair(low, high));
+  }
+  virtual std::pair<double,double> GetRange() const;
 
 protected:
   /// Should the data change and the client isn't going to supply a histogram,
@@ -120,8 +181,10 @@ protected:
 
 private:
   typedef std::tr1::unordered_map<BrickKey, VariantArray, BKeyHash> DataTable;
-  DataTable                           m_Data;
-  float                               m_fMaxMagnitude;
+  DataTable                m_Data;
+  float                    m_fMaxMagnitude;
+  UINT64VECTOR3            m_vDomainSize;
+  std::pair<double,double> m_DataRange;
 };
 
 }; // namespace tuvok

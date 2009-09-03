@@ -79,6 +79,9 @@ public:
   const Histogram2D& Get2DHistogram() const { return *m_pHist2D; }
   virtual float MaxGradientMagnitude() const = 0;
 
+  /// Remove all cached bricks / brick metadata.
+  virtual void Clear() { }
+
   virtual void AddBrick(const BrickKey&, const BrickMD&) = 0;
   /// Gets the number of voxels, per dimension.
   // (temp note): was GetBrickSize, renaming to make it more obvious what
@@ -102,6 +105,8 @@ public:
   virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0) const = 0;
   DOUBLEVECTOR3 GetScale() const {return m_DomainScale * m_UserScale;}
   virtual UINTVECTOR3 GetBrickOverlapSize() const = 0;
+  /// @return the number of voxels for the given brick, per dimension, taking
+  ///         into account any brick overlaps.
   virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const = 0;
 
   virtual UINT64 GetBitWidth() const = 0;
@@ -110,7 +115,6 @@ public:
   virtual bool GetIsFloat() const = 0;
   virtual bool IsSameEndianness() const = 0;
   virtual std::pair<double,double> GetRange() const = 0;
-
 
   /// Acceleration queries.
   virtual bool ContainsData(const BrickKey&, double /*isoval*/) const {return true;}
@@ -133,7 +137,6 @@ protected:
 
   DOUBLEVECTOR3      m_UserScale;
   DOUBLEVECTOR3      m_DomainScale;
-
 };
 
 };

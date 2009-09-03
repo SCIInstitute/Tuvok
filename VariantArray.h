@@ -63,22 +63,27 @@ namespace tuvok {
  *       a different type will invalidate access to other data. */
 class VariantArray {
 public:
+  enum DataType {
+    DT_FLOAT=0, DT_UBYTE
+  };
+
+public:
   VariantArray();
+  VariantArray(const VariantArray &);
   ~VariantArray();
 
   void set(const std::tr1::shared_ptr<float>, size_t len);
   void set(const std::tr1::shared_ptr<unsigned char>, size_t len);
 
   size_t size() const { return length; }
+
   const float* getf() const;
   const unsigned char* getub() const;
+  DataType type() const;
 
   VariantArray& operator=(const VariantArray &);
 
 private:
-  enum DataType {
-    DT_FLOAT=0, DT_UBYTE
-  };
   std::tr1::shared_ptr<float>         scalar_f;
   std::tr1::shared_ptr<unsigned char> scalar_ub;
   size_t                              length;

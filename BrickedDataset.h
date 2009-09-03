@@ -57,6 +57,10 @@ public:
   /// @return the number of bricks at the given LOD.
   virtual BrickTable::size_type GetBrickCount(size_t lod) const;
 
+  virtual const BrickMD& GetBrickMetadata(const BrickKey&) const;
+
+  virtual void Clear();
+
   /// It can be important to know whether the given brick is the first or last
   /// along any particular axis.  As an example, there's 0 brick overlap for a
   /// border brick.

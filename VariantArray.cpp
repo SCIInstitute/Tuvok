@@ -34,10 +34,19 @@
 
 #include <cassert>
 #include "VariantArray.h"
+#include "Controller/Controller.h"
 
 namespace tuvok {
 
 VariantArray::VariantArray(): length(0) { }
+VariantArray::VariantArray(const VariantArray &va) :
+  length(va.length),
+  data_type(va.data_type)
+{
+  this->scalar_f = va.scalar_f;
+  this->scalar_ub = va.scalar_ub;
+}
+
 VariantArray::~VariantArray() {}
 
 void VariantArray::set(const std::tr1::shared_ptr<float> data, size_t len)
@@ -46,6 +55,7 @@ void VariantArray::set(const std::tr1::shared_ptr<float> data, size_t len)
   this->scalar_f = data;
   this->scalar_ub.reset();
   this->data_type = DT_FLOAT;
+  MESSAGE("set %u float elements", static_cast<unsigned>(len));
 }
 void VariantArray::set(const std::tr1::shared_ptr<unsigned char> data,
                        size_t len)
@@ -54,6 +64,7 @@ void VariantArray::set(const std::tr1::shared_ptr<unsigned char> data,
   this->scalar_f.reset();
   this->scalar_ub = data;
   this->data_type = DT_UBYTE;
+  MESSAGE("set %u ubyte elements", static_cast<unsigned>(len));
 }
 
 const float* VariantArray::getf() const
@@ -76,5 +87,7 @@ VariantArray& VariantArray::operator=(const VariantArray &va)
   this->data_type = va.data_type;
   return *this;
 }
+
+VariantArray::DataType VariantArray::type() const { return this->data_type; }
 
 }; // namespace tuvok
