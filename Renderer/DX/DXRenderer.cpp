@@ -248,6 +248,17 @@ void DXRenderer::Paint() {
 
 #pragma warning(disable:4100) // disable "unused parameter" warning for now
 void DXRenderer::EndFrame(bool bNewDataToShow) {
+  // if the image is complete
+  if (bNewDataToShow) {
+    // TODO
+    CompletedASubframe();
+  }
+
+  // show the result
+  if (bNewDataToShow) RerenderPreviousResult(true);
+
+  // no complete redraw is necessary as we just finished the first pass
+  m_bPerformRedraw = false;
 }
 
 void DXRenderer::SetRenderTargetArea(ERenderArea eREnderArea) {

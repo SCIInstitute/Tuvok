@@ -58,9 +58,6 @@ class GLSBVR : public GLRenderer {
     /** Loads GLSL vertex and fragment shaders. */
     virtual bool Initialize();
 
-    /** Set the oversampling ratio (e.g. 2 means twice the slices as needed).  Causes a full redraw. */
-    virtual void SetSampleRateModifier(float fSampleRateModifier);
-
     virtual void SetDataDepShaderVars();
 
     /** Sends a message to the master to ask for a dataset to be loaded.

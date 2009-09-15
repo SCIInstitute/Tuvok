@@ -140,11 +140,6 @@ bool GLSBVR::Initialize() {
   return true;
 }
 
-void GLSBVR::SetSampleRateModifier(float fSampleRateModifier) {
-  GLRenderer::SetSampleRateModifier(fSampleRateModifier);
-  m_SBVRGeogen.SetSamplingModifier(fSampleRateModifier);
-}
-
 void GLSBVR::SetDataDepShaderVars() {
   GLRenderer::SetDataDepShaderVars();
 
@@ -223,6 +218,9 @@ void GLSBVR::DisableClipPlane() {
 }
 
 void GLSBVR::Render3DPreLoop() {
+
+  m_SBVRGeogen.SetSamplingModifier(m_fSampleRateModifier / ((m_bDecreaseSamplingRateNow) ? m_fSampleDecFactor : 1.0f));
+
   if(m_bClipPlaneOn) {
     m_SBVRGeogen.EnableClipPlane();
     PLANE<float> plane(m_ClipPlane.Plane());
@@ -284,7 +282,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   FLOATMATRIX4 maBricktModelView = maBricktTrans * m_matModelView[iStereoID];
   m_mProjection[iStereoID].setProjection();
   maBricktModelView.setModelview();
-
+  
   m_SBVRGeogen.SetWorld(maBricktTrans * m_mRotation * m_mTranslation);
   m_SBVRGeogen.SetView(m_mView[iStereoID], true);
 

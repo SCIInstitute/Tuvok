@@ -157,6 +157,9 @@ class GLRenderer : public AbstrRenderer {
     
     virtual void  CVFocusHasChanged();
 
+    void FullscreenQuad();
+    void ComputeViewAndProjection(float fAspect);
+
   private:
     GLSLProgram*    m_pProgramTrans;
     GLSLProgram*    m_pProgram1DTransSlice;

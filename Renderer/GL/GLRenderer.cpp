@@ -388,6 +388,7 @@ void GLRenderer::StartFrame() {
   }
 }
 
+
 void GLRenderer::Paint() {
   AbstrRenderer::Paint();
 
@@ -395,30 +396,32 @@ void GLRenderer::Paint() {
 
   bool bNewDataToShow = false;
   if (m_eViewMode == VM_SINGLE) {
-    // set render area to fullscreen
+
     SetRenderTargetArea(RA_FULLSCREEN);
 
     switch (m_eFullWindowMode) {
        case WM_3D       : {
-                              if (!m_bPerformRedraw && m_bPerformReCompose){
+                              if (!m_bPerformRedraw && m_bPerformReCompose && !m_bDoAnotherRedrawDueToAllMeans){
                                 Recompose3DView(RA_FULLSCREEN);
                                 bNewDataToShow = true;
                               } else {
                                 // plan the frame
                                 Plan3DFrame();
+                                // if m_bDecreaseScreenResthe render target area may have changed
+                                if (m_bDecreaseScreenRes) SetRenderTargetArea(RA_FULLSCREEN); 
                                 // execute the frame
-                                float fMsecPassed = 0.0;
+                                float fMsecPassed = 0.0f;
                                 bNewDataToShow = Execute3DFrame(RA_FULLSCREEN, fMsecPassed);
-                                if (m_iCurrentLODOffset == m_iStartLODOffset)
-                                  m_fMsecPassed[0] += 0.0001f+fMsecPassed; // time for current interaction LOD -> to detect if we are to slow
-                                if (m_iCurrentLODOffset == m_iStartLODOffset-1)
-                                  m_fMsecPassed[1] += 0.0001f+fMsecPassed; // time for next better resolution -> to detect if we can go faster
+                                m_fMsecPassedCurrentFrame += fMsecPassed;
                               }
                               break;
                           }
        case WM_CORONAL :
        case WM_AXIAL    :
-       case WM_SAGITTAL  : if (m_bPerformRedraw) bNewDataToShow = Render2DView(RA_FULLSCREEN, m_eFullWindowMode, m_piSlice[size_t(m_eFullWindowMode)]); break;
+       case WM_SAGITTAL  : if (m_bPerformRedraw) {
+                            bNewDataToShow = Render2DView(RA_FULLSCREEN, m_eFullWindowMode, m_piSlice[size_t(m_eFullWindowMode)]); 
+                           }
+                           break;
        default          : T_ERROR("Invalid Windowmode");
                           bNewDataToShow = false;
                           break;
@@ -429,26 +432,32 @@ void GLRenderer::Paint() {
     int iActiveRenderWindows = 0;
     int iReadyWindows = 0;
 
+    bool bForceCompleteRedrawDueToResChange = m_bDoAnotherRedrawDueToAllMeans;
     for (UINT32 i = 0;i<4;i++) {
       ERenderArea eArea = ERenderArea(int(RA_TOPLEFT)+i);
+      SetRenderTargetArea(eArea);
 
-      if (m_bRedrawMask[size_t(m_e2x2WindowMode[i])]) {
+      // remark: this line only works if the §D view is drawn before the 2D views
+      //          as m_bDecreaseScreenResNow is changed in Plan3DFrame
+      bForceCompleteRedrawDueToResChange = bForceCompleteRedrawDueToResChange || m_bDecreaseScreenResNow;
+
+      if (m_bRedrawMask[size_t(m_e2x2WindowMode[i])] || bForceCompleteRedrawDueToResChange) {
         iActiveRenderWindows++;
-        SetRenderTargetArea(eArea);
         bool bLocalNewDataToShow;
         switch (m_e2x2WindowMode[i]) {
            case WM_3D       : {
-                                if (!m_bPerformRedraw && m_bPerformReCompose){
+                                if (!m_bPerformRedraw && m_bPerformReCompose && !bForceCompleteRedrawDueToResChange){
                                   Recompose3DView(eArea);
                                   bLocalNewDataToShow = true;
                                 } else {
                                   // plan the frame
                                   Plan3DFrame();
-                                  // execute the frame
-                                  float fMsecPassed = 0.0;
+                                  // if m_bDecreaseScreenResthe render target area may have changed
+                                  if (m_bDecreaseScreenRes) SetRenderTargetArea(eArea); 
+                                  // execute the frame0
+                                  float fMsecPassed = 0.0f;
                                   bLocalNewDataToShow = Execute3DFrame(eArea, fMsecPassed);
-                                  if (m_iCurrentLODOffset == m_iStartLODOffset) m_fMsecPassed[0] += fMsecPassed;
-                                  if (m_iCurrentLODOffset == m_iStartLODOffset-1) m_fMsecPassed[1] += fMsecPassed;
+                                  m_fMsecPassedCurrentFrame += fMsecPassed;
                                 }
                                 // are we done traversing the LOD levels
                                 m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) || (m_iCurrentLODOffset > m_iMinLODForCurrentView);
@@ -456,7 +465,7 @@ void GLRenderer::Paint() {
                               }
            case WM_CORONAL :
            case WM_AXIAL    :
-           case WM_SAGITTAL  : bLocalNewDataToShow= Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
+           case WM_SAGITTAL  :bLocalNewDataToShow = Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
                               m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = false;
                               break;
            default          : T_ERROR("Invalid Windowmode");
@@ -486,6 +495,21 @@ void GLRenderer::Paint() {
   EndFrame(bNewDataToShow);
 }
 
+void GLRenderer::FullscreenQuad() {
+  float fMaxCoord = (m_bOffscreenIsLowRes) ? 1.0f/m_fScreenResDecFactor : 1.0f;
+
+  glBegin(GL_QUADS);
+    glTexCoord2d(0,0);
+    glVertex3d(-1.0, -1.0, -0.5);
+    glTexCoord2d(fMaxCoord,0);
+    glVertex3d( 1.0, -1.0, -0.5);
+    glTexCoord2d(fMaxCoord,fMaxCoord);
+    glVertex3d( 1.0,  1.0, -0.5);
+    glTexCoord2d(0,fMaxCoord);
+    glVertex3d(-1.0,  1.0, -0.5);
+  glEnd();
+}
+
 void GLRenderer::EndFrame(bool bNewDataToShow) {
   // if the image is complete
   if (bNewDataToShow) {
@@ -500,16 +524,7 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 
       m_pProgramComposeAnaglyphs->Enable();
       glDisable(GL_DEPTH_TEST);
-      glBegin(GL_QUADS);
-        glTexCoord2d(0,0);
-        glVertex3d(-1.0, -1.0, -0.5);
-        glTexCoord2d(1,0);
-        glVertex3d( 1.0, -1.0, -0.5);
-        glTexCoord2d(1,1);
-        glVertex3d( 1.0,  1.0, -0.5);
-        glTexCoord2d(0,1);
-        glVertex3d(-1.0,  1.0, -0.5);
-      glEnd();
+      FullscreenQuad();
       m_pProgramComposeAnaglyphs->Disable();
 
       m_TargetBinder.Unbind();
@@ -520,15 +535,15 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
       swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
     }
     m_iFilledBuffers = 0;
+    CompletedASubframe();
   }
 
   // show the result
-  if (bNewDataToShow || m_iFilledBuffers < 2)
+  if (bNewDataToShow  || m_iFilledBuffers < 2)
     RerenderPreviousResult(true);
 
   // no complete redraw is necessary as we just finished the first pass
   m_bPerformRedraw = false;
-
 }
 
 
@@ -552,40 +567,54 @@ void GLRenderer::SetRenderTargetArea(ERenderArea eREnderArea) {
 }
 
 void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
+  UINTVECTOR2  vWinSize = (m_bDecreaseScreenResNow) ? m_vWinSize/m_fScreenResDecFactor : m_vWinSize;
+
   switch (eREnderArea) {
-  case RA_TOPLEFT    : glScissor(0, m_vWinSize.y*m_vWinFraction.y, 
-                                 m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y);
-    glEnable( GL_SCISSOR_TEST );
-    break;
-  case RA_TOPRIGHT   : glScissor(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y,
-                                 m_vWinSize.x, m_vWinSize.y);
-    glEnable( GL_SCISSOR_TEST );
-    break;
-  case RA_LOWERLEFT  : glScissor(0, 0,
-                                 m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y);
-    glEnable( GL_SCISSOR_TEST );
-    break;
-  case RA_LOWERRIGHT : glScissor(m_vWinSize.x*m_vWinFraction.x, 0,
-                                 m_vWinSize.x, m_vWinSize.y*m_vWinFraction.y);
-    glEnable( GL_SCISSOR_TEST );
-    break;
-  case RA_FULLSCREEN : /*glScissor(0,0,m_vWinSize.x, m_vWinSize.y);*/
-    glDisable( GL_SCISSOR_TEST );
-    break;
-  default            : T_ERROR("Invalid render area set"); break;
+    case RA_TOPLEFT    : glScissor(0, vWinSize.y*m_vWinFraction.y, 
+                                   vWinSize.x*m_vWinFraction.x, vWinSize.y);
+                         glEnable( GL_SCISSOR_TEST );
+                         break;
+    case RA_TOPRIGHT   : glScissor(vWinSize.x*m_vWinFraction.x, vWinSize.y*m_vWinFraction.y,
+                                   vWinSize.x, vWinSize.y);
+                         glEnable( GL_SCISSOR_TEST );
+                         break;
+    case RA_LOWERLEFT  : glScissor(0, 0,
+                                   vWinSize.x*m_vWinFraction.x, vWinSize.y*m_vWinFraction.y);
+                         glEnable( GL_SCISSOR_TEST );
+                         break;
+    case RA_LOWERRIGHT : glScissor(vWinSize.x*m_vWinFraction.x, 0,
+                                   vWinSize.x, vWinSize.y*m_vWinFraction.y);
+                         glEnable( GL_SCISSOR_TEST );
+                         break;
+    case RA_FULLSCREEN : /*glScissor(0,0,vWinSize.x, vWinSize.y);*/
+                         glDisable( GL_SCISSOR_TEST );
+                         break;
+    default            : T_ERROR("Invalid render area set"); break;
   }
 
 }
 
 void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) {
 
-  UINTVECTOR2 viSize = viUpperRight-viLowerLeft;
+  if (m_bDecreaseScreenResNow) {
+    viLowerLeft /= m_fScreenResDecFactor;
+    viUpperRight /= m_fScreenResDecFactor;
+  }
 
-  float fAspect =(float)viSize.x/(float)viSize.y;
+  UINTVECTOR2 viSize = viUpperRight-viLowerLeft;
 
   // viewport
   glViewport(viLowerLeft.x,viLowerLeft.y,viSize.x,viSize.y);
 
+  float fAspect =(float)viSize.x/(float)viSize.y;
+  ComputeViewAndProjection(fAspect);
+
+  // forward the projection matrix to the culling object
+  m_FrustumCullingLOD.SetProjectionMatrix(m_mProjection[0]);
+  m_FrustumCullingLOD.SetScreenParams(m_fFOV, fAspect, m_fZNear, m_fZFar, viSize.y);
+}
+
+void GLRenderer::ComputeViewAndProjection(float fAspect) {
   if (m_bDoStereoRendering) {
     FLOATMATRIX4::BuildStereoLookAtAndProjection(m_vEye, m_vAt, m_vUp, m_fFOV,
                                                  fAspect, m_fZNear, m_fZFar,
@@ -601,13 +630,7 @@ void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) 
     m_mProjection[0].Perspective(m_fFOV, fAspect, m_fZNear, m_fZFar);
     m_mProjection[0].setProjection();
   }
-
-  // forward the projection matrix to the culling object
-  m_FrustumCullingLOD.SetProjectionMatrix(m_mProjection[0]);
-  m_FrustumCullingLOD.SetScreenParams(m_fFOV, fAspect, m_fZNear, m_fZFar,
-                                      viSize.y);
 }
-
 
 void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
                              FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
@@ -821,7 +844,6 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     glClearColor(0,0,0,0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-
     RenderHQMIPPreLoop(eDirection);
 
     for (size_t iBrickIndex = 0;iBrickIndex<m_vCurrentBrickList.size();iBrickIndex++) {
@@ -858,16 +880,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     m_p1DTransTex->Bind(1);
     m_pProgramTransMIP->Enable();
     glDisable(GL_DEPTH_TEST);
-    glBegin(GL_QUADS);
-      glTexCoord2d(0,0);
-      glVertex3d(-1.0, -1.0, -0.5);
-      glTexCoord2d(1,0);
-      glVertex3d( 1.0, -1.0, -0.5);
-      glTexCoord2d(1,1);
-      glVertex3d( 1.0,  1.0, -0.5);
-      glTexCoord2d(0,1);
-      glVertex3d(-1.0,  1.0, -0.5);
-    glEnd();
+    FullscreenQuad();
     glDisable( GL_SCISSOR_TEST );
     m_pFBO3DImageCurrent[1]->FinishRead(0);
 
@@ -1179,7 +1192,7 @@ bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea, float &fMsecPassed) {
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
       // show the timings as "other", to distinguish it from all those million messages
-      OTHER("The current subframe took %g ms to render (LOD Level %i)",m_fMsecPassed[0]+fMsecPassed, m_iCurrentLODOffset);
+      OTHER("The current subframe took %g ms to render (LOD Level %i)",m_fMsecPassedCurrentFrame+fMsecPassed, m_iCurrentLODOffset);
       PostSubframe();
       return true;
     }
@@ -1188,20 +1201,19 @@ bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea, float &fMsecPassed) {
 }
 
 void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
-  // clear the framebuffer
-  if (m_bClearFramebuffer)
-    ClearColorBuffer();
-
   if (bTransferToFramebuffer) {
     glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
     m_iFilledBuffers++;
+    if (m_bClearFramebuffer) ClearColorBuffer();
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   } else {
+    if (m_bClearFramebuffer) ClearColorBuffer();
     glDisable(GL_BLEND);
   }
 
   m_pFBO3DImageLast->Read(0);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (m_bOffscreenIsLowRes) ? GL_LINEAR : GL_NEAREST);
   m_pFBO3DImageLast->ReadDepth(1);
 
   // always clear the depth buffer 
@@ -1214,22 +1226,13 @@ void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
  
   m_pProgramTrans->Enable();
 
-  glBegin(GL_QUADS);
-    glTexCoord2d(0,0);
-    glVertex3d(-1.0, -1.0, 0);
-    glTexCoord2d(1,0);
-    glVertex3d( 1.0, -1.0, 0);
-    glTexCoord2d(1,1);
-    glVertex3d( 1.0,  1.0, 0);
-    glTexCoord2d(0,1);
-    glVertex3d(-1.0,  1.0, 0);
-  glEnd();
+  FullscreenQuad();
 
   m_pProgramTrans->Disable();
 
   m_pFBO3DImageLast->FinishRead();
   m_pFBO3DImageLast->FinishDepthRead();
-  
+
   glDepthFunc(GL_LESS);
 }
 
@@ -1951,6 +1954,8 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
 }
 
 float GLRenderer::Render3DView() {
+  m_bOffscreenIsLowRes = m_bDecreaseScreenResNow;
+
   Render3DPreLoop();
 
   // loop over all bricks in the current LOD level
@@ -2002,7 +2007,7 @@ float GLRenderer::Render3DView() {
     if (!m_bCaptureMode) timeProbe = clock();
     ++bricks_this_call;
 
-    fMsecPassed += float(timeProbe-timeStart)*1000.0f/float(CLOCKS_PER_SEC);
+    fMsecPassed = float(timeProbe-timeStart)*1000.0f/float(CLOCKS_PER_SEC);
   }
 
   Render3DPostLoop();

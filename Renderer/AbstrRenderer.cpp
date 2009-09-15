@@ -52,6 +52,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
                              bool bDisableBorder, enum ScalingMethod sm) :
   m_pMasterController(pMasterController),
   m_bPerformRedraw(true),
+  m_fMsecPassedCurrentFrame(0.0f),
   m_eRenderMode(RM_1DTRANS),
   m_eViewMode(VM_SINGLE),
   m_eBlendPrecision(BP_32BIT),
@@ -68,7 +69,18 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vWinSize(0,0),
   m_iLogoPos(3),
   m_strLogoFilename(""),
+  m_bStartingNewFrame(true),
+  m_iLODNotOKCounter(0),
   m_fMaxMSPerFrame(10000),
+  m_fScreenResDecFactor(2.0f),
+  m_fSampleDecFactor(2.0f),
+  m_bUseAllMeans(false),
+  m_bDecreaseSamplingRate(false),
+  m_bDecreaseScreenRes(false),
+  m_bDecreaseSamplingRateNow(false),
+  m_bDecreaseScreenResNow(false),
+  m_bOffscreenIsLowRes(false),
+  m_bDoAnotherRedrawDueToAllMeans(false),
   m_iStartDelay(1000),
   m_iMinLODForCurrentView(0),
   m_iTimeSliceMSecs(100),
@@ -126,8 +138,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_e2x2WindowMode[1] = WM_SAGITTAL;
   m_e2x2WindowMode[2] = WM_AXIAL;
   m_e2x2WindowMode[3] = WM_CORONAL;
-  m_fMsecPassed[0] = 0.0f;
-  m_fMsecPassed[1] = 0.0f;
+  RestartTimers();
 
   m_eFullWindowMode   = WM_3D;
 
@@ -183,9 +194,9 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   // find the maximum LOD index
   m_iMaxLODIndex = m_pDataset->GetLODLevelCount()-1;
 
-  m_piSlice[size_t(WM_CORONAL)]  = m_pDataset->GetDomainSize()[0]/2;
-  m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetDomainSize()[1]/2;
-  m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetDomainSize()[2]/2;
+  m_piSlice[size_t(WM_CORONAL)]  = m_pDataset->GetDomainSize()[2]/2;
+  m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetDomainSize()[0]/2;
+  m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetDomainSize()[1]/2;
 
   return true;
 }
@@ -226,6 +237,7 @@ static std::string view_mode(AbstrRenderer::EViewMode mode) {
 void AbstrRenderer::SetViewmode(EViewMode eViewMode)
 {
   if (m_eViewMode != eViewMode) {
+
     m_eViewMode = eViewMode;
     ScheduleCompleteRedraw();
     Controller::Instance().Provenance("vmode", "viewmode",
@@ -336,7 +348,7 @@ void AbstrRenderer::SetIsoValue(float fIsovalue) {
 }
 
 bool AbstrRenderer::CheckForRedraw() {
-  if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame || m_iCurrentLODOffset > m_iMinLODForCurrentView) {
+  if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame || m_iCurrentLODOffset > m_iMinLODForCurrentView || m_bDoAnotherRedrawDueToAllMeans) {
     if (m_iCheckCounter == 0)  {
       AbstrDebugOut *dbg = m_pMasterController->DebugOut();
       dbg->Message(_func_,"Still drawing...");
@@ -508,32 +520,90 @@ void AbstrRenderer::ScheduleRecompose() {
   }
 }
 
-void AbstrRenderer::ComputeMaxLODForCurrentView() {
+void AbstrRenderer::CompletedASubframe() {
+  bool bRenderingFirstSubFrame = (m_iCurrentLODOffset == m_iStartLODOffset) && 
+                                 (!m_bDecreaseScreenRes || m_bDecreaseScreenResNow) && 
+                                 (!m_bDecreaseSamplingRate || m_bDecreaseSamplingRateNow);
+  bool bSecondSubFrame = !bRenderingFirstSubFrame && 
+                         (m_iCurrentLODOffset == m_iStartLODOffset || 
+                         (m_iCurrentLODOffset == m_iStartLODOffset-1 && !(m_bDecreaseScreenRes || m_bDecreaseSamplingRate)));
 
-  if (!m_bCaptureMode) {
+  if (bRenderingFirstSubFrame) {   // time for current interaction LOD -> to detect if we are to slow
+    m_fMsecPassed[0] = m_fMsecPassedCurrentFrame;    
+  } else 
+    if (bSecondSubFrame) {  // time for next better resolution -> to detect if we can go faster
+    m_fMsecPassed[1] = m_fMsecPassedCurrentFrame;
+  }
+ 
+  m_fMsecPassedCurrentFrame = 0.0f;
+}
+
+void AbstrRenderer::RestartTimer(const size_t iTimerIndex) {
+  m_fMsecPassed[iTimerIndex] = -1.0f;
+}
+
+void AbstrRenderer::RestartTimers() {
+  RestartTimer(0);
+  RestartTimer(1);
+}
+
+void AbstrRenderer::ComputeMaxLODForCurrentView() {
+  if (!m_bCaptureMode && m_fMsecPassed[0]>0.0f) {
     // if rendering is too slow use a lower resolution during interaction
     if (m_fMsecPassed[0] > m_fMaxMSPerFrame) {
-      UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
-      m_iPerformanceBasedLODSkip = std::max<UINT64>(1,m_iPerformanceBasedLODSkip)-1;
-      if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip)
-        OTHER("Increasing start LOD by %i as it took %g ms to render the first LOD level (max is %g) ",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0], m_fMaxMSPerFrame);
+      if (m_iLODNotOKCounter < 3) { // wait for 3 frames before switching to lower lod (3 here is choosen more or less arbitrary, can be changed if needed)
+        MESSAGE("Would increase start LOD but will give the renderer %u more frame(s) time to become faster",3-m_iLODNotOKCounter);
+        m_iLODNotOKCounter++;
+      } else {
+        m_iLODNotOKCounter = 0;
+        UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
+        m_iPerformanceBasedLODSkip = std::max<UINT64>(1,m_iPerformanceBasedLODSkip)-1;
+        if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip)
+          MESSAGE("Increasing start LOD to %i as it took %g ms to render the first LOD level (max is %g) ",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0], m_fMaxMSPerFrame);
+        else {
+          MESSAGE("Would like to increase start LOD as it took %g ms to render the first LOD level (max is %g) BUT CAN'T.", m_fMsecPassed[0], m_fMaxMSPerFrame);
+          if (m_bUseAllMeans) {
+            if (m_bDecreaseSamplingRate && (m_bDecreaseScreenRes /*|| m_eViewMode == VM_TWOBYTWO*/)) {     // HACK: ignore m_bDecreaseScreenRes in two by two mode as it causes all knids of trouble with the interpolation
+              MESSAGE("Even with UseAllMeans there is nothing that can be done to meet the specified framerate.");
+            } else {
+              if (!m_bDecreaseScreenRes /*&& m_eViewMode != VM_TWOBYTWO*/) {
+                MESSAGE("UseAllMeans enabled decreasing resolution to meet target framerate");
+                m_bDecreaseScreenRes = true;
+              } else {
+                MESSAGE("UseAllMeans enabled decreasing sampling rate to meet target framerate");
+                m_bDecreaseSamplingRate = true;
+              }
+            }
+          } else {
+            MESSAGE("UseAllMeans disabled so framerate can not be met, sorry.");
+          }
+        }
+      }
     } else {
       // if rendering is fast enougth use a higher resolution during interaction
-      if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f && m_fMsecPassed[1] <= m_fMaxMSPerFrame) {
-        UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
-        m_iPerformanceBasedLODSkip = std::min<UINT64>(m_iMaxLODIndex-m_iMinLODForCurrentView,m_iPerformanceBasedLODSkip+1);
-        if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip)
-          OTHER("Decreasing start LOD by %i as it took only %g ms to render the second LOD level",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[1]);
+      if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] >= 0.0f && m_fMsecPassed[1] <= m_fMaxMSPerFrame) {
+        m_iLODNotOKCounter = 0;
+        if (m_bDecreaseSamplingRate || m_bDecreaseScreenRes) {
+          if (m_bDecreaseSamplingRate) {
+            MESSAGE("Rendering at full resolution as this took only %g ms", m_fMsecPassed[0]);
+            m_bDecreaseSamplingRate = false;
+          } else {
+            if (m_bDecreaseScreenRes) {
+              MESSAGE("Rendering to full viewport as this took only %g ms", m_fMsecPassed[0]);
+              m_bDecreaseScreenRes = false;
+            }
+          }
+        } else {
+          UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
+          m_iPerformanceBasedLODSkip = std::min<UINT64>(m_iMaxLODIndex-m_iMinLODForCurrentView,m_iPerformanceBasedLODSkip+1);
+          if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) {
+            MESSAGE("Decreasing start LOD to %i as it took only %g ms to render the second LOD level",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[1]);
+          }
+        }
+      } else {
+        if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) OTHER("Start LOD seems to be ok");
       }
     }
-
-
-    if (m_iStartLODOffset == m_iMinLODForCurrentView ||
-       (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] != 0.0f)) {
-      m_fMsecPassed[0] = 0.0f;
-      m_fMsecPassed[1] = 0.0f;
-    }
-
 
     m_iStartLODOffset = std::max(m_iMinLODForCurrentView,m_iMaxLODIndex-m_iPerformanceBasedLODSkip);
 
@@ -541,7 +611,9 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
     m_iStartLODOffset = m_iMinLODForCurrentView;
   }
 
-  m_iCurrentLODOffset = m_iStartLODOffset+1;  // +1 since m_iCurrentLODOffset is decremented before the rendering
+  m_iCurrentLODOffset = m_iStartLODOffset;
+  m_bStartingNewFrame = true;
+  RestartTimers();
 }
 
 void AbstrRenderer::ComputeMinLODForCurrentView() {
@@ -796,22 +868,39 @@ void AbstrRenderer::Plan3DFrame() {
 
   // plan if the frame is to be redrawn
   // or if we have completed the last subframe but not the entire frame
-  if (m_bPerformRedraw ||
-      (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame &&
-       m_iCurrentLODOffset > m_iMinLODForCurrentView)) {
-    // compute current LOD level
-    m_iCurrentLODOffset--;
-    m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,m_pDataset->GetLODLevelCount()-1);
+  if (m_bPerformRedraw || (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame)) {
 
-    // build new brick todo-list
-    MESSAGE("Building new brick list for LOD ...");
-    m_vCurrentBrickList = BuildSubFrameBrickList();
-    MESSAGE("%u bricks made the cut.", m_vCurrentBrickList.size());
+    bool bBuildNewList = false;
+    if (m_bStartingNewFrame) {
+      m_bStartingNewFrame = false;
+      m_bDecreaseSamplingRateNow = m_bDecreaseSamplingRate;
+      m_bDecreaseScreenResNow = m_bDecreaseScreenRes;
+      bBuildNewList = true;
+      if (m_bDecreaseSamplingRateNow || m_bDecreaseScreenResNow) m_bDoAnotherRedrawDueToAllMeans = true;
+    } else {
+      if (m_bDecreaseSamplingRateNow || m_bDecreaseScreenResNow) {
+        m_bDecreaseScreenResNow = false;
+        m_bDecreaseSamplingRateNow = false;
+        m_iBricksRenderedInThisSubFrame = 0;
+        m_bDoAnotherRedrawDueToAllMeans = false;
+      } else {
+        if (m_iCurrentLODOffset > m_iMinLODForCurrentView) {
+          bBuildNewList = true;
+          m_iCurrentLODOffset--;
+        }
+      }
+    }
 
-    if (m_bDoStereoRendering)
-      m_vLeftEyeBrickList = BuildLeftEyeSubFrameBrickList(m_vCurrentBrickList);
+    if (bBuildNewList) {
+      m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,m_pDataset->GetLODLevelCount()-1);
+      // build new brick todo-list
+      MESSAGE("Building new brick list for LOD ...");
+      m_vCurrentBrickList = BuildSubFrameBrickList();
+      MESSAGE("%u bricks made the cut.", m_vCurrentBrickList.size());
+      if (m_bDoStereoRendering) m_vLeftEyeBrickList = BuildLeftEyeSubFrameBrickList(m_vCurrentBrickList);
 
-    m_iBricksRenderedInThisSubFrame = 0;
+      m_iBricksRenderedInThisSubFrame = 0;
+    }
   }
 
   if (m_bPerformRedraw) {
@@ -998,4 +1087,23 @@ void AbstrRenderer::SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbu
     m_bConsiderPreviousDepthbuffer = bConsiderPreviousDepthbuffer;
     ScheduleCompleteRedraw();
   }
+}
+
+void AbstrRenderer::SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans, float fScreenResDecFactor, float fSampleDecFactor, UINT32 iStartDelay) {
+  m_fMaxMSPerFrame = (iMinFramerate == 0) ? 10000 : 1000.0f / float(iMinFramerate);
+  m_fScreenResDecFactor = fScreenResDecFactor;
+  m_fSampleDecFactor = fSampleDecFactor;
+  m_bUseAllMeans = bUseAllMeans;
+
+  if (!m_bUseAllMeans) {
+    m_bDecreaseSamplingRate = false;
+    m_bDecreaseScreenRes = false;
+    m_bDecreaseSamplingRateNow = false;
+    m_bDecreaseScreenResNow = false;
+    m_bDoAnotherRedrawDueToAllMeans = false;
+  }
+
+  m_iStartDelay = iStartDelay;
+
+  ScheduleCompleteRedraw();
 }

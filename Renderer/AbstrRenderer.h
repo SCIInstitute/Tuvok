@@ -325,10 +325,9 @@ class AbstrRenderer {
     }
 
     void SetTimeSlice(UINT32 iMSecs) {m_iTimeSliceMSecs = iMSecs;}
-    void SetPerfMeasures(UINT32 iMinFramerate, UINT32 iStartDelay) {
-      m_fMaxMSPerFrame = (iMinFramerate == 0) ? 10000 : 1000.0f / float(iMinFramerate);
-      m_iStartDelay = iStartDelay;
-    }
+    void SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans, 
+                         float fScreenResDecFactor, 
+                         float fSampleDecFactor, UINT32 iStartDelay);
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
       m_pDataset->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();
     }
@@ -419,6 +418,7 @@ class AbstrRenderer {
   protected:
     MasterController*   m_pMasterController;
     bool                m_bPerformRedraw;
+    float               m_fMsecPassedCurrentFrame;
     float               m_fMsecPassed[2];
     bool                m_bRedrawMask[4];
     ERenderMode         m_eRenderMode;
@@ -446,7 +446,18 @@ class AbstrRenderer {
     int                 m_iLogoPos;
     std::string         m_strLogoFilename;
 
+    bool                m_bStartingNewFrame;
+    UINT32              m_iLODNotOKCounter;
     float               m_fMaxMSPerFrame;
+    float               m_fScreenResDecFactor;
+    float               m_fSampleDecFactor;
+    bool                m_bUseAllMeans;
+    bool                m_bDecreaseSamplingRate;
+    bool                m_bDecreaseScreenRes;
+    bool                m_bDecreaseSamplingRateNow;
+    bool                m_bDecreaseScreenResNow;
+    bool                m_bOffscreenIsLowRes;
+    bool                m_bDoAnotherRedrawDueToAllMeans;
     UINT32              m_iStartDelay;
     UINT64              m_iMinLODForCurrentView;
     UINT32              m_iTimeSliceMSecs;
@@ -526,6 +537,9 @@ class AbstrRenderer {
     virtual void        ClearDepthBuffer() = 0;
     virtual void        ClearColorBuffer() = 0;
     virtual void        CVFocusHasChanged();
+    void                CompletedASubframe();
+    void                RestartTimer(const size_t iTimerIndex);
+    void                RestartTimers();
 };
 
 #endif // ABSTRRENDERER_H
