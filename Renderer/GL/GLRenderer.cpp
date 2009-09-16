@@ -633,9 +633,8 @@ void GLRenderer::ComputeViewAndProjection(float fAspect) {
   }
 }
 
-void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
+void GLRenderer::RenderSlice(EWindowMode eDirection, double fSliceIndex,
                              FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
-                             UINT64VECTOR3 vDomainSize,
                              DOUBLEVECTOR3 vAspectRatio,
                              DOUBLEVECTOR2 vWinAspectRatio) {
 
@@ -655,7 +654,6 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
 
                           DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
                           v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-                          double fSliceIndex = double(iSliceIndex)/double(vDomainSize.y);
                           glBegin(GL_QUADS);
                             glTexCoord3d(vMinCoords.x,fSliceIndex,vMaxCoords.z);
                             glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
@@ -683,7 +681,6 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
 
                           DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xy()*DOUBLEVECTOR2(vWinAspectRatio);
                           v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-                          double fSliceIndex = double(iSliceIndex)/double(vDomainSize.z);
                           glBegin(GL_QUADS);
                             glTexCoord3d(vMinCoords.x,vMaxCoords.y,fSliceIndex);
                             glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
@@ -711,7 +708,6 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
 
                           DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
                           v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-                          double fSliceIndex = double(iSliceIndex)/double(vDomainSize.x);
                           glBegin(GL_QUADS);
                             glTexCoord3d(fSliceIndex,vMinCoords.y,vMaxCoords.z);
                             glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
@@ -793,18 +789,19 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    FLOATVECTOR3 vMinCoords;
-    FLOATVECTOR3 vMaxCoords;
+    // 'VoxelCount' is the number of voxels in the brick which contain data.
+    // 'RealVoxelCount' will be the actual number of voxels in the brick, which
+    // could be larger than the voxel count if we need to use PoT textures.
+    UINTVECTOR3 vRealVoxelCount;
     if (m_bUseOnlyPowerOfTwo) {
-      UINTVECTOR3 vRealVoxelCount(MathTools::NextPow2(vVoxelCount.x),
-                                  MathTools::NextPow2(vVoxelCount.y),
-                                  MathTools::NextPow2(vVoxelCount.z));
-      vMinCoords =FLOATVECTOR3(0.5f/FLOATVECTOR3(vRealVoxelCount));
-      vMaxCoords =FLOATVECTOR3(vRealVoxelCount/vVoxelCount)-vMinCoords;
+      vRealVoxelCount = UINTVECTOR3(MathTools::NextPow2(vVoxelCount.x),
+                                    MathTools::NextPow2(vVoxelCount.y),
+                                    MathTools::NextPow2(vVoxelCount.z));
     } else {
-      vMinCoords =FLOATVECTOR3(0.5f/FLOATVECTOR3(vVoxelCount));
-      vMaxCoords =FLOATVECTOR3(1.0f-vMinCoords);
+     vRealVoxelCount = vVoxelCount;
     }
+    FLOATVECTOR3 vMinCoords = FLOATVECTOR3(0.5f/FLOATVECTOR3(vRealVoxelCount));
+    FLOATVECTOR3 vMaxCoords = (FLOATVECTOR3(vVoxelCount) / FLOATVECTOR3(vRealVoxelCount)) - vMinCoords;
 
     UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
     DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetScale() * DOUBLEVECTOR3(vDomainSize);
@@ -820,11 +817,35 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     }
     vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
 
-    if (!m_bUseMIP[size_t(eDirection)]) {
-        RenderSlice(eDirection, iSliceIndex, vMinCoords, vMaxCoords, vDomainSize, vAspectRatio, vWinAspectRatio);
+    if (m_bUseMIP[size_t(eDirection)]) {
+      // Iterate; render all slices, and we'll figure out the 'M'(aximum) in
+      // the shader.  Note that we iterate over all slices which have data
+      // ("VoxelCount"), not over all slices ("RealVoxelCount").
+      for (UINT64 i = 0;i<vVoxelCount[size_t(eDirection)];i++) {
+        // First normalize to a [0..1] space
+        double fSliceIndex = static_cast<double>(i) /
+                             vVoxelCount[static_cast<size_t>(eDirection)];
+        // Now correct for PoT textures: a [0..1] space gives us the location
+        // of the slice in a perfect world, but if we're using PoT textures we
+        // might only access say [0..0.75] e.g. if we needed to increase the
+        // 3Dtexture size by 25% to make it PoT.
+        fSliceIndex *= static_cast<double>
+                       (vVoxelCount[static_cast<size_t>(eDirection)]) /
+                       static_cast<double>
+                       (vRealVoxelCount[static_cast<size_t>(eDirection)]);
+        RenderSlice(eDirection, fSliceIndex, vMinCoords, vMaxCoords,
+                    vAspectRatio, vWinAspectRatio);
+      }
     } else {
-      for (UINT64 i = 0;i<vDomainSize[size_t(eDirection)];i++)
-        RenderSlice(eDirection, i, vMinCoords, vMaxCoords, vDomainSize, vAspectRatio, vWinAspectRatio);
+      // same indexing fix as above.
+      double fSliceIndex = static_cast<double>(iSliceIndex) /
+                           vDomainSize[static_cast<size_t>(eDirection)];
+      fSliceIndex *= static_cast<double>
+                     (vVoxelCount[static_cast<size_t>(eDirection)]) /
+                     static_cast<double>
+                     (vRealVoxelCount[static_cast<size_t>(eDirection)]);
+      RenderSlice(eDirection, fSliceIndex, vMinCoords, vMaxCoords,
+                  vAspectRatio, vWinAspectRatio);
     }
 
     m_pMasterController->MemMan()->Release3DTexture(t);

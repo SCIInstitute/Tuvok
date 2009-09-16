@@ -83,10 +83,9 @@ class DXRenderer : public AbstrRenderer {
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
 
-    void RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
+    void RenderSlice(EWindowMode eDirection, double fSliceIndex,
                      FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
-                     UINT64VECTOR3 vDomainSize, DOUBLEVECTOR3 vAspectRatio,
-                     DOUBLEVECTOR2 vWinAspectRatio);
+                     DOUBLEVECTOR3 vAspectRatio, DOUBLEVECTOR2 vWinAspectRatio);
 
     void SetWinID(HWND winId) {m_hWnd = winId;}
 

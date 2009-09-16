@@ -270,9 +270,9 @@ void DXRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
 void DXRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) {
 }
 
-void DXRenderer::RenderSlice(EWindowMode eDirection, UINT64 iSliceIndex,
+void DXRenderer::RenderSlice(EWindowMode eDirection, double fSliceIndex,
                              FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
-                             UINT64VECTOR3 vDomainSize, DOUBLEVECTOR3 vAspectRatio,
+                             DOUBLEVECTOR3 vAspectRatio,
                              DOUBLEVECTOR2 vWinAspectRatio) {
 }
 
