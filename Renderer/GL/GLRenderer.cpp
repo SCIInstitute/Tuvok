@@ -45,6 +45,7 @@
 #include "GLTexture3D.h"
 #include <Controller/Controller.h>
 #include <Basics/SysTools.h>
+#include <Basics/MathTools.h>
 #include "IO/uvfDataset.h"
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../../Basics/GeometryGenerator.h"
@@ -792,8 +793,18 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    FLOATVECTOR3 vMinCoords(0.5f/FLOATVECTOR3(vVoxelCount));
-    FLOATVECTOR3 vMaxCoords(1.0f-vMinCoords);
+    FLOATVECTOR3 vMinCoords;
+    FLOATVECTOR3 vMaxCoords;
+    if (m_bUseOnlyPowerOfTwo) {
+      UINTVECTOR3 vRealVoxelCount(MathTools::NextPow2(vVoxelCount.x),
+                                  MathTools::NextPow2(vVoxelCount.y),
+                                  MathTools::NextPow2(vVoxelCount.z));
+      vMinCoords =FLOATVECTOR3(0.5f/FLOATVECTOR3(vRealVoxelCount));
+      vMaxCoords =FLOATVECTOR3(vRealVoxelCount/vVoxelCount)-vMinCoords;
+    } else {
+      vMinCoords =FLOATVECTOR3(0.5f/FLOATVECTOR3(vVoxelCount));
+      vMaxCoords =FLOATVECTOR3(1.0f-vMinCoords);
+    }
 
     UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
     DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetScale() * DOUBLEVECTOR3(vDomainSize);
