@@ -148,16 +148,26 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
   std::vector<UINT64> aHist(4096);
   std::fill(aHist.begin(), aHist.end(), 0);
 
-  std::pair<unsigned short,unsigned short> minmax;
-  minmax = io_minmax(raw_data_src<unsigned short>(InputData),
-                     Unsigned12BitHistogram<unsigned short>(aHist),
-                     TuvokProgress<UINT64>(iSize));
-  iMin = minmax.first;
-  iMax = minmax.second;
+  if (bSigned) {
+    std::pair<short,short> minmax;
+    minmax = io_minmax(raw_data_src<short>(InputData),
+                       Unsigned12BitHistogram<short>(aHist),
+                       TuvokProgress<UINT64>(iSize));
+
+    iMin = minmax.first+std::numeric_limits<short>::max();
+    iMax = minmax.second+std::numeric_limits<short>::max();
+  } else {
+    std::pair<unsigned short,unsigned short> minmax;
+    minmax = io_minmax(raw_data_src<unsigned short>(InputData),
+                       Unsigned12BitHistogram<unsigned short>(aHist),
+                       TuvokProgress<UINT64>(iSize));
+    iMin = minmax.first;
+    iMax = minmax.second;
+  }
 
   std::string strQuantFile;
   // if file uses less or equal than 12 bits quit here
-  if (iMax < 4096) {
+  if (!bSigned && iMax < 4096) {
     MESSAGE("No quantization required (min=%i, max=%i)", iMin, iMax);
     aHist.resize(iMax+1);  // size is the maximum value plus one (the zero value)
 
