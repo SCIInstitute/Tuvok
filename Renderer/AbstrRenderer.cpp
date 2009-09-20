@@ -601,7 +601,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
           }
         }
       } else {
-        if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) OTHER("Start LOD seems to be ok");
+        if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) MESSAGE("Start LOD seems to be ok");
       }
     }
 
