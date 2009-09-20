@@ -126,6 +126,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       }
 
       ulBufferConverted += UINT64(iBytesWritten);
+
+      MESSAGE("Performing endianess conversion"
+              "\n%i%% complete",int(float(ulBufferConverted)/float(ulFileLength)*100.0f));
+
     }
 
     delete [] pBuffer;
