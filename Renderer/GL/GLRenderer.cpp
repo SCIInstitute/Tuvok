@@ -1205,6 +1205,7 @@ bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea, float &fMsecPassed) {
   // if zero bricks are to be rendered we have completed the draw job
   if (m_vCurrentBrickList.empty()) {
     MESSAGE("zero bricks are to be rendered, completed the draw job");
+    m_bOffscreenIsLowRes = m_bDecreaseScreenResNow;
     PostSubframe();
     return true;
   }
