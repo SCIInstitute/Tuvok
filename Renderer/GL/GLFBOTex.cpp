@@ -59,6 +59,7 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
   m_iSizePerElement(iSizePerElement),
   m_iSizeX(width),
   m_iSizeY(height),
+  m_hTexture(new GLuint[iNumBuffers]),
   m_LastDepthTextUnit(0),
   m_iNumBuffers(iNumBuffers)
 {
@@ -78,7 +79,6 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
   glGetError();
   assert(iNumBuffers>0);
   assert(iNumBuffers<5);
-  m_hTexture=new GLuint[iNumBuffers];
   m_LastTexUnit=new GLenum[iNumBuffers];
   m_LastAttachment=new GLenum[iNumBuffers];
   for (int i=0; i<m_iNumBuffers; i++) {
