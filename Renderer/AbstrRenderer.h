@@ -212,6 +212,7 @@ class AbstrRenderer {
 */
     tuvok::Dataset&       GetDataset()       { return *m_pDataset; }
     const tuvok::Dataset& GetDataset() const { return *m_pDataset; }
+    void ClearBricks() { m_pDataset->Clear(); }
 
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
     TransferFunction2D* Get2DTrans() {return m_p2DTrans;}
