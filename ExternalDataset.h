@@ -104,12 +104,23 @@ public:
   void AddBrick(const BrickKey&, const BrickMD&,
                 const std::tr1::shared_ptr<unsigned char>, size_t len,
                 unsigned char ubMin, unsigned char ubMax);
+  void AddBrick(const BrickKey&, const BrickMD&,
+                const std::tr1::shared_ptr<short>, size_t len,
+                short sMin, short sMax);
+  void AddBrick(const BrickKey&, const BrickMD&,
+                const std::tr1::shared_ptr<unsigned short>, size_t len,
+                unsigned short sMin, unsigned short sMax);
+  ///@}
   ///@}
   /// Updates the data within an existing brick.
   ///@{
   void UpdateData(const BrickKey&, const std::tr1::shared_ptr<float>,
                   size_t len);
   void UpdateData(const BrickKey&, const std::tr1::shared_ptr<unsigned char>,
+                  size_t len);
+  void UpdateData(const BrickKey&, const std::tr1::shared_ptr<short>,
+                  size_t len);
+  void UpdateData(const BrickKey&, const std::tr1::shared_ptr<unsigned short>,
                   size_t len);
   ///@}
   void Clear();
@@ -134,8 +145,10 @@ public:
     assert(!this->m_Data.empty());
     DataTable::const_iterator iter = this->m_Data.begin();
     switch(iter->second.type()) {
-      case VariantArray::DT_FLOAT: return 32;
+      case VariantArray::DT_FLOAT:  return 32;
       case VariantArray::DT_UBYTE:  return  8;
+      case VariantArray::DT_SHORT:  return 16;
+      case VariantArray::DT_USHORT: return 16;
     }
     assert(1==0);
     return 42;
@@ -149,8 +162,10 @@ public:
     assert(!this->m_Data.empty());
     DataTable::const_iterator iter = this->m_Data.begin();
     switch(iter->second.type()) {
-      case VariantArray::DT_FLOAT: return true;
+      case VariantArray::DT_FLOAT:  return true;
       case VariantArray::DT_UBYTE:  return false;
+      case VariantArray::DT_SHORT:  return true;
+      case VariantArray::DT_USHORT: return false;
     }
     return true;
   }

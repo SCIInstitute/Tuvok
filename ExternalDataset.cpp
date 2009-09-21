@@ -113,9 +113,15 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
       brick.resize(bytes);
       std::memcpy(&brick.at(0), varray.getub(), bytes);
       break;
-    default:
-      T_ERROR("Unhandled data type.");
-      bytes = 0;
+    case VariantArray::DT_SHORT:
+      bytes = brick_data->second.size() * sizeof(short);
+      brick.resize(bytes);
+      std::memcpy(&brick.at(0), varray.gets(), bytes);
+      break;
+    case VariantArray::DT_USHORT:
+      bytes = brick_data->second.size() * sizeof(unsigned short);
+      brick.resize(bytes);
+      std::memcpy(&brick.at(0), varray.getus(), bytes);
       break;
   }
   UINTVECTOR3 sz = this->GetBrickVoxelCounts(bk);
@@ -167,64 +173,97 @@ update_metadata(ExternalDataset &ds, T brick_min, T brick_max)
   }
 }
 
+template<typename T> void
+add_brick(ExternalDataset &ds, const BrickKey& bk,
+          const std::tr1::shared_ptr<T>& data, size_t len,
+          ExternalDataset::DataTable& table, T brick_min, T brick_max)
+{
+  VariantArray varr;
+  varr.set(data, len);
+  table.insert(std::pair<BrickKey, VariantArray>(bk, varr));
+  MESSAGE("added %u-elem brick with key: (%u, %u)", static_cast<unsigned>(len),
+          static_cast<unsigned>(bk.first), static_cast<unsigned>(bk.second));
+  update_metadata(ds, brick_min, brick_max);
+}
+
 }; // anonymous namespace.
+
 
 void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
                                const std::tr1::shared_ptr<float> data,
                                size_t len, float fMin, float fMax)
 {
   BrickedDataset::AddBrick(bk, md);
-  VariantArray varr;
-  varr.set(data, len);
-  this->m_Data.insert(std::pair<BrickKey, VariantArray>(bk, varr));
-  MESSAGE("added %u-elem float brick with key: (%u, %u)",
-          static_cast<unsigned>(len),
-          static_cast<unsigned>(bk.first),
-          static_cast<unsigned>(bk.second));
-
-  update_metadata<float>(*this, fMin, fMax);
-
+  add_brick(*this, bk, data, len, this->m_Data, fMin, fMax);
   Recalculate1DHistogram();
 }
+
 void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
                                const std::tr1::shared_ptr<unsigned char> data,
                                size_t len,
                                unsigned char ubmin, unsigned char ubmax)
 {
   BrickedDataset::AddBrick(bk, md);
-  VariantArray varr;
-  varr.set(data, len);
-  this->m_Data.insert(std::pair<BrickKey, VariantArray>(bk, varr));
-  MESSAGE("added %u-elem ubyte brick with key: (%u, %u)",
-          static_cast<unsigned>(len),
-          static_cast<unsigned>(bk.first),
-          static_cast<unsigned>(bk.second));
-
-  update_metadata<unsigned char>(*this, ubmin, ubmax);
-
+  add_brick(*this, bk, data, len, this->m_Data, ubmin, ubmax);
   Recalculate1DHistogram();
 }
+
+void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
+                               const std::tr1::shared_ptr<short> data,
+                               size_t len, short sMin, short sMax)
+{
+  BrickedDataset::AddBrick(bk, md);
+  add_brick(*this, bk, data, len, this->m_Data, sMin, sMax);
+  Recalculate1DHistogram();
+}
+
+void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
+                               const std::tr1::shared_ptr<unsigned short> data,
+                               size_t len,
+                               unsigned short usMin, unsigned short usMax)
+{
+  BrickedDataset::AddBrick(bk, md);
+  add_brick(*this, bk, data, len, this->m_Data, usMin, usMax);
+  Recalculate1DHistogram();
+}
+
+
+namespace {
+  template<typename T> void
+  update_data(ExternalDataset::DataTable& table, const BrickKey& bk,
+              const std::tr1::shared_ptr<T> data, size_t len)
+  {
+    ExternalDataset::DataTable::iterator iter = table.find(bk);
+    if(iter == table.end()) {
+      throw ExternalDataset::BrickNotFound("You must add the brick first!");
+    }
+    iter->second.set(data, len);
+  }
+}; // anonymous namespace.
 
 void ExternalDataset::UpdateData(const BrickKey& bk,
                                  const std::tr1::shared_ptr<float> data,
                                  size_t len)
 {
-  DataTable::iterator iter = this->m_Data.find(bk);
-  if(iter == this->m_Data.end()) {
-    throw BrickNotFound("You must add the brick first!");
-  }
-  iter->second.set(data, len);
+  update_data(this->m_Data, bk, data, len);
 }
-
 void ExternalDataset::UpdateData(const BrickKey& bk,
                                  const std::tr1::shared_ptr<unsigned char> data,
                                  size_t len)
 {
-  DataTable::iterator iter = this->m_Data.find(bk);
-  if(iter == this->m_Data.end()) {
-    throw BrickNotFound("You must add the brick first!");
-  }
-  iter->second.set(data, len);
+  update_data(this->m_Data, bk, data, len);
+}
+void ExternalDataset::UpdateData(const BrickKey& bk,
+                                 const std::tr1::shared_ptr<short> data,
+                                 size_t len)
+{
+  update_data(this->m_Data, bk, data, len);
+}
+void ExternalDataset::UpdateData(const BrickKey& bk,
+                                 const std::tr1::shared_ptr<unsigned short> data,
+                                 size_t len)
+{
+  update_data(this->m_Data, bk, data, len);
 }
 
 void ExternalDataset::Clear() {
