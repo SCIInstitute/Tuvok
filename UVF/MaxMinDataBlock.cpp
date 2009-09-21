@@ -112,8 +112,9 @@ UINT64 MaxMinDataBlock::GetOffsetToNextBlock() const {
 }
 
 UINT64 MaxMinDataBlock::ComputeDataSize() const {
-  return sizeof(UINT64) +                                          // length of the vector
-         sizeof(InternalMaxMinElement) * m_vfMaxMinData.size();    // the vector itself
+  return sizeof(UINT64) +                                       // length of the vector
+         sizeof(UINT64) +                                       // component count
+         sizeof(InternalMaxMinElement) * m_vfMaxMinData.size(); // the vector itself
 }
 
 const InternalMaxMinElement& MaxMinDataBlock::GetValue(size_t iIndex, size_t iComponent) {
