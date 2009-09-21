@@ -189,13 +189,14 @@ public:
   }
   virtual std::pair<double,double> GetRange() const;
 
+  typedef std::tr1::unordered_map<BrickKey, VariantArray, BKeyHash> DataTable;
+
 protected:
   /// Should the data change and the client isn't going to supply a histogram,
   /// we should supply one ourself.
   void Recalculate1DHistogram();
 
 private:
-  typedef std::tr1::unordered_map<BrickKey, VariantArray, BKeyHash> DataTable;
   DataTable                m_Data;
   float                    m_fMaxMagnitude;
   UINT64VECTOR3            m_vDomainSize;
