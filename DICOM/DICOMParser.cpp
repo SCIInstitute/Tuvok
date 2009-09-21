@@ -845,13 +845,15 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo(const SimpleDICOMFileInfo* other) :
 {
 }
 
-bool SimpleDICOMFileInfo::GetData(void* pData, UINT32 iLength, UINT32 iOffset) {
+bool SimpleDICOMFileInfo::GetData(std::vector<char>& vData, UINT32 iLength,
+                                  UINT32 iOffset)
+{
   ifstream fs;
   fs.open(m_strFileName.c_str(),fstream::binary);
   if (fs.fail()) return false;
 
   fs.seekg(m_iOffsetToData+iOffset, ios_base::cur);
-  fs.read((char*)pData, iLength);
+  fs.read(&vData[0], iLength);
 
   fs.close();
   return true;

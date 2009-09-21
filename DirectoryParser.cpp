@@ -86,11 +86,10 @@ SimpleFileInfo::SimpleFileInfo(const SimpleFileInfo* other) :
 {
 }
 
-bool SimpleFileInfo::GetData(void** pData) {
-  if (*pData == NULL) *pData = (void*)new char[GetDataSize()];
-
-  memset(*pData, 0, GetDataSize());
-  return GetData(*pData, GetDataSize(), 0);
+bool SimpleFileInfo::GetData(std::vector<char>& vData)
+{
+  vData.resize(GetDataSize(), 0);
+  return GetData(vData, GetDataSize(), 0);
 }
 
 

@@ -58,9 +58,11 @@ public:
   std::wstring  m_wstrFileName;
   UINT32        m_iImageIndex;
 
-  UINT32 GetDataSize() {return m_iDataSize; /* = m_iComponentCount*m_ivSize.volume()*m_iAllocated/8; */}
-  virtual bool GetData(void** pData);
-  virtual bool GetData(void* pData, UINT32 iLength, UINT32 iOffset) = 0;
+  UINT32 GetDataSize() const {
+    return m_iDataSize; /* = m_iComponentCount*m_ivSize.volume()*m_iAllocated/8; */
+  }
+  virtual bool GetData(std::vector<char>&);
+  virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset) = 0;
   virtual SimpleFileInfo* clone() = 0;
 
 protected:

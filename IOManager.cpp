@@ -196,12 +196,10 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
       return false;
     }
 
-    char *pData = NULL;
-    for (size_t j = 0;j<pDICOMStack->m_Elements.size();j++) {
-
+    std::vector<char> vData;
+    for (size_t j=0; j < pDICOMStack->m_Elements.size(); j++) {
       UINT32 iDataSize = pDICOMStack->m_Elements[j]->GetDataSize();
-
-      pData = new char[iDataSize];
+      vData.resize(iDataSize);
 
       if (pDICOMStack->m_bIsJPEGEncoded) {
         MESSAGE("JPEG is %d bytes, offset %d", iDataSize,
@@ -211,7 +209,6 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
                         dynamic_cast<SimpleDICOMFileInfo*>
                           (pDICOMStack->m_Elements[j])->GetOffsetToData());
         if(!jpg.valid()) {
-          delete []pData;
           WARNING("'%s' reports an embedded JPEG, but the JPEG is invalid.",
                   pDICOMStack->m_Elements[j]->m_strFileName.c_str());
           return false;
@@ -220,24 +217,25 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
                 jpg.width(), jpg.height(), jpg.components());
 
         const char *jpeg_data = jpg.data();
-        std::copy(jpeg_data, jpeg_data + jpg.size(), pData);
+        std::copy(jpeg_data, jpeg_data + jpg.size(), &vData[0]);
       } else {
         // the first call does a "new" on pData
-        pDICOMStack->m_Elements[j]->GetData((void**)&pData);
+        pDICOMStack->m_Elements[j]->GetData(vData);
         MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), (100*j)/pDICOMStack->m_Elements.size());
       }
-
 
       if (pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian()) {
         switch (pDICOMStack->m_iAllocated) {
           case  8 : break;
           case 16 : {
+                short *pData = reinterpret_cast<short*>(&vData[0]);
                 for (UINT32 k = 0;k<iDataSize/2;k++)
-                  ((short*)pData)[k] = EndianConvert::Swap<short>(((short*)pData)[k]);
+                  pData[k] = EndianConvert::Swap<short>(pData[k]);
                 } break;
           case 32 : {
+                float *pData = reinterpret_cast<float*>(&vData[0]);
                 for (UINT32 k = 0;k<iDataSize/4;k++)
-                  ((float*)pData)[k] = EndianConvert::Swap<float>(((float*)pData)[k]);
+                  pData[k] = EndianConvert::Swap<float>(pData[k]);
                 } break;
         }
       }
@@ -257,19 +255,17 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
         unsigned char *pRGBAData = new unsigned char[ iRGBADataSize ];
         for (UINT32 k = 0;k<iDataSize/3;k++) {
-          pRGBAData[k*4+0] = pData[k*3+0];
-          pRGBAData[k*4+1] = pData[k*3+1];
-          pRGBAData[k*4+2] = pData[k*3+2];
+          pRGBAData[k*4+0] = vData[k*3+0];
+          pRGBAData[k*4+1] = vData[k*3+1];
+          pRGBAData[k*4+2] = vData[k*3+2];
           pRGBAData[k*4+3] = 255;
         }
-
         fs.write((char*)pRGBAData, iRGBADataSize);
         delete [] pRGBAData;
       } else {
-        fs.write(pData, iDataSize);
+        fs.write(&vData[0], iDataSize);
       }
     }
-    delete [] pData;
 
     fs.close();
     MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());
@@ -308,16 +304,15 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
           return false;
         }
 
-        char *pData = NULL;
+        std::vector<char> vData;
         for (size_t j = 0;j<pStack->m_Elements.size();j++) {
-          pStack->m_Elements[j]->GetData((void**)(char**)&pData); // the first call does a "new" on pData, the strange casting here is to avoid pointer aliasing issues
-
           UINT32 iDataSize = pStack->m_Elements[j]->GetDataSize();
-          fs.write(pData, iDataSize);
+          vData.resize(iDataSize);
+          pStack->m_Elements[j]->GetData(vData);
+
+          fs.write(&vData[0], iDataSize);
           MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), (100*j)/pStack->m_Elements.size());
         }
-        delete [] pData;
-
 
         fs.close();
         MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());

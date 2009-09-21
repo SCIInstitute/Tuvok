@@ -58,7 +58,7 @@ public:
   SimpleImageFileInfo(const SimpleImageFileInfo* info);
   virtual ~SimpleImageFileInfo() {}
 
-  virtual bool GetData(void* pData, UINT32 iLength, UINT32 iOffset);
+  virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset);
   virtual SimpleFileInfo* clone();
 };
 

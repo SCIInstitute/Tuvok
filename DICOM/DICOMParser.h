@@ -66,7 +66,7 @@ public:
   // files ... idiots
   FLOATVECTOR3 m_fvPatientPosition;
 
-  virtual bool GetData(void* pData, UINT32 iLength, UINT32 iOffset);
+  virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset);
   virtual UINT32 GetOffsetToData() const { return m_iOffsetToData; }
   virtual SimpleFileInfo* clone();
 

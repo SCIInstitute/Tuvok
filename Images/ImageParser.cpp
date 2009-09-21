@@ -89,7 +89,8 @@ SimpleImageFileInfo::SimpleImageFileInfo(const SimpleImageFileInfo* info) :
   SimpleFileInfo(info)
 {}
 
-bool SimpleImageFileInfo::GetData(void* pData, UINT32 iLength, UINT32 iOffset) {
+bool SimpleImageFileInfo::GetData(std::vector<char>& vData, UINT32 iLength,
+                                  UINT32 iOffset) {
 #ifndef TUVOK_NO_QT
   QImage qImage(m_strFileName.c_str()); 
   if (qImage.isNull()) return false;
@@ -97,10 +98,13 @@ bool SimpleImageFileInfo::GetData(void* pData, UINT32 iLength, UINT32 iOffset) {
   int iCount = 0;
   for (int y = 0;y<qImage.height();y++) {
     for (int x = 0;x<qImage.width();x++) {
-      if (int(iOffset) > iCount) continue;
+      if (int(iOffset) > iCount) { continue; }
+
       QColor pixel(qImage.pixel(x,y));
       unsigned char cValue = (unsigned char)((pixel.red() + pixel.green() + pixel.blue()) / 3);
-      ((unsigned char*)pData)[iCount-iOffset] = cValue;
+      unsigned char *pData = reinterpret_cast<unsigned char*>(&vData[0]);
+      pData[iCount-iOffset] = cValue;
+
       if (int(iLength) == iCount-int(iOffset)) break;
       iCount++;
     }
