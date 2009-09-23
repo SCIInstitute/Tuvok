@@ -86,7 +86,19 @@ bool BOVConverter::ConvertToRAW(
 
   {
     iHeaderSkip = 0;
-    strIntermediateFile = SysTools::GetPath(strSourceFilename) + file->strValue;
+    strIntermediateFile = SysTools::CanonicalizePath(file->strValue);
+    // Try the path the file gave first..
+    if(!SysTools::FileExists(strIntermediateFile)) {
+      // .. but if that didn't work, prepend the directory of the .bov file.
+      strIntermediateFile = SysTools::CanonicalizePath(
+                              SysTools::GetPath(strSourceFilename) +
+                              file->strValue
+                            );
+      if(!SysTools::FileExists(strIntermediateFile)) {
+        T_ERROR("Cannot find file (%s) referenced in BOV!",
+                file->strValue.c_str());
+      }
+    }
     MESSAGE("Reading data from %s", strIntermediateFile.c_str());
     bDeleteIntermediateFile = false;
   }
