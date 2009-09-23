@@ -66,7 +66,6 @@
 class AbstrDebugOut;
 
 namespace SysTools {
-
   template <typename T> std::string ToString(const T& aValue)
   {
      std::stringstream ss;
@@ -138,6 +137,8 @@ namespace SysTools {
 
   std::string GetFilename(const std::string& fileName);
   std::wstring GetFilename(const std::wstring& fileName);
+
+  std::string CanonicalizePath(const std::string& path);
 
   std::string FindPath(const std::string& fileName, const std::string& path);
   std::wstring FindPath(const std::wstring& fileName,

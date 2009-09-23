@@ -306,6 +306,28 @@ namespace SysTools {
     return name;
   }
 
+#ifdef DETECTED_OS_WINDOWS
+# define MAX_PATH_LENGTH MAX_PATH
+#else
+# define MAX_PATH_LENGTH PATH_MAX
+#endif
+
+  std::string CanonicalizePath(const std::string& path) {
+    char resolved[MAX_PATH_LENGTH];
+#ifdef DETECTED_OS_WINDOWS
+    if(PathCanonicalize(resolved, path.c_str()) == FALSE)
+#else
+    if(realpath(path.c_str(), resolved) == NULL)
+#endif
+    {
+      std::ostringstream fn;
+      fn << "realpath " << path << ": ";
+      perror(fn.str().c_str());
+      return path; // need to return *something*.
+    }
+    return std::string(resolved);
+  }
+
   string FindPath(const string& fileName, const string& path) {
     string searchFile;
     string slash = "";
