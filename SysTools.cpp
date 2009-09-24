@@ -36,6 +36,7 @@
   \date    Dec 2008
 */
 
+#include "StdDefines.h"
 #include <algorithm>
 #include <cerrno>
 #include <cstdio>
@@ -46,11 +47,12 @@
 #include <sstream>
 #include <sys/stat.h>
 
-#include "StdDefines.h"
 #ifndef _WIN32
   #include <regex.h>
   #include <dirent.h>
   #include <unistd.h>
+#else
+  #include <shlwapi.h>
 #endif
 
 #ifdef DETECTED_OS_APPLE
@@ -313,10 +315,13 @@ namespace SysTools {
 #endif
 
   std::string CanonicalizePath(const std::string& path) {
-    char resolved[MAX_PATH_LENGTH];
 #ifdef DETECTED_OS_WINDOWS
-    if(PathCanonicalize(resolved, path.c_str()) == FALSE)
+    wchar_t resolved[MAX_PATH_LENGTH];
+    wchar_t wide[MAX_PATH_LENGTH];
+    mbstowcs(wide, path.c_str(), MAX_PATH_LENGTH);
+    if(PathCanonicalize(resolved, wide) == FALSE)
 #else
+    char resolved[MAX_PATH_LENGTH];
     if(realpath(path.c_str(), resolved) == NULL)
 #endif
     {
@@ -325,7 +330,14 @@ namespace SysTools {
       perror(fn.str().c_str());
       return path; // need to return *something*.
     }
+#ifdef DETECTED_OS_WINDOWS
+    char buffer[MAX_PATH_LENGTH];
+    mbstate_t mbs = {0};
+    wcsrtombs(buffer, (const wchar_t**)&resolved, MAX_PATH_LENGTH, &mbs);
+    return std::string(buffer);
+#else
     return std::string(resolved);
+#endif
   }
 
   string FindPath(const string& fileName, const string& path) {
