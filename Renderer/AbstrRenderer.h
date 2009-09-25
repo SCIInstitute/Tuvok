@@ -304,6 +304,9 @@ class AbstrRenderer {
     bool GetUseMIP(EWindowMode eWindow) const;
     void SetUseMIP(EWindowMode eWindow, bool bUseMIP);
 
+    UINT64 GetMaxLODIndex() const      { return m_iMaxLODIndex; }
+    UINT64 GetMinLODIndex() const      { return m_iMinLODForCurrentView; }
+
     // scheduling routines
     UINT64 GetCurrentSubFrameCount() const
         { return 1+m_iMaxLODIndex-m_iMinLODForCurrentView; }
