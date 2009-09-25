@@ -621,7 +621,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
     for (size_t i = 0;i<m_vpConverters.size();i++) {
       const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
       for (size_t j = 0;j<vStrSupportedExt.size();j++) {
-        MESSAGE("%s supports %s", m_vpConverters[i]->GetDesc().c_str(),
+        MESSAGE("Comparing file extension to %s supported formats (%s)", m_vpConverters[i]->GetDesc().c_str(),
                 vStrSupportedExt[j].c_str());
         if (vStrSupportedExt[j] == strExt) {
           if (m_vpConverters[i]->ConvertToUVF(strFilename, strTargetFilename, strTempDir, bNoUserInteraction)) return true;
@@ -629,9 +629,11 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       }
     }
 
+    MESSAGE("No suitable automatic converter found!");
+
     if (m_pFinalConverter)
       return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, strTempDir, bNoUserInteraction);
-    else
+    else 
       return false;
   } else {
     UINT64        iHeaderSkip=0;
