@@ -46,6 +46,7 @@ typedef std::pair<std::vector<UINT64>,std::vector<UINT64> > NDBrickKey;
 
 
 class VolumeDatasetInfo;
+class KeyValuePairDataBlock;
 class Histogram1DDataBlock;
 class Histogram2DDataBlock;
 class MaxMinDataBlock;
@@ -102,6 +103,7 @@ public:
                       void *pUserContext = NULL,
                       UINT64 iOverlap=0) const;
 
+  virtual const std::vector< std::pair < std::string, std::string > > GetMetadata() const;
 
 private:
   std::vector<UINT64> IndexToVector(const BrickKey &k) const;
@@ -115,14 +117,15 @@ private:
 
 
 private:
-  float                       m_fMaxGradMagnitude;
-  const RasterDataBlock*      m_pVolumeDataBlock;
-  const Histogram1DDataBlock* m_pHist1DDataBlock;
-  const Histogram2DDataBlock* m_pHist2DDataBlock;
-  MaxMinDataBlock*            m_pMaxMinData;
-  UVF*                        m_pDatasetFile;
-  bool                        m_bIsOpen;
-  std::string                 m_strFilename;
+  float                        m_fMaxGradMagnitude;
+  const RasterDataBlock*       m_pVolumeDataBlock;
+  const KeyValuePairDataBlock* m_pKVDataBlock;
+  const Histogram1DDataBlock*  m_pHist1DDataBlock;
+  const Histogram2DDataBlock*  m_pHist2DDataBlock;
+  MaxMinDataBlock*             m_pMaxMinData;
+  UVF*                         m_pDatasetFile;
+  bool                         m_bIsOpen;
+  std::string                  m_strFilename;
 
   UINTVECTOR3                m_aOverlap;
   bool                       m_bIsSameEndianness;

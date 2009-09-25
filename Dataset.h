@@ -115,7 +115,11 @@ public:
   virtual bool GetIsFloat() const = 0;
   virtual bool IsSameEndianness() const = 0;
   virtual std::pair<double,double> GetRange() const = 0;
-
+  virtual const std::vector< std::pair < std::string, std::string > > GetMetadata() const {
+    std::vector< std::pair < std::string, std::string > > v;
+    return v;
+  }
+  
   /// Acceleration queries.
   virtual bool ContainsData(const BrickKey&, double /*isoval*/) const {return true;}
   virtual bool ContainsData(const BrickKey&, double /*fMin*/, double /*fMax*/) const {return true;}

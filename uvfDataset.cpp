@@ -39,6 +39,7 @@
 #include "Controller/Controller.h"
 #include "UVF/UVF.h"
 #include "UVF/Histogram1DDataBlock.h"
+#include "UVF/KeyValuePairDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
 
 namespace tuvok {
@@ -46,6 +47,7 @@ namespace tuvok {
 UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify) :
   m_fMaxGradMagnitude(0.0f),
   m_pVolumeDataBlock(NULL),
+  m_pKVDataBlock(NULL),
   m_pHist1DDataBlock(NULL),
   m_pHist2DDataBlock(NULL),
   m_pMaxMinData(NULL),
@@ -59,6 +61,7 @@ UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify) :
 UVFDataset::UVFDataset() :
   m_fMaxGradMagnitude(0.0f),
   m_pVolumeDataBlock(NULL),
+  m_pKVDataBlock(NULL),
   m_pHist1DDataBlock(NULL),
   m_pHist2DDataBlock(NULL),
   m_pMaxMinData(NULL),
@@ -91,9 +94,11 @@ bool UVFDataset::Open(bool bVerify)
     T_ERROR("No suitable volume block found in UVF file.  Check previous messages for rejected blocks.");
     return false;
   } 
-  MESSAGE("Open successfully found a suitable data block in the UVF file analyzing data...");
+  MESSAGE("Open successfully found a suitable data block in the UVF file.");
   m_pVolumeDataBlock = static_cast<const RasterDataBlock*>
                              (m_pDatasetFile->GetDataBlock(iRasterBlockIndex));
+
+  MESSAGE("Analyzing data...");
 
   // get the metadata and the histograms
   ComputeMetaData();
@@ -296,6 +301,12 @@ UINT64 UVFDataset::FindSuitableRasterBlock() {
       m_pHist2DDataBlock = static_cast<const Histogram2DDataBlock*>
                                       (m_pDatasetFile->GetDataBlock(iBlocks));
     } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
+               UVFTables::BS_KEY_VALUE_PAIRS) {
+      if (m_pKVDataBlock != NULL) {
+        WARNING("Multiple key/value-pair data blocks found using last block.");
+      }
+      m_pKVDataBlock = (KeyValuePairDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
+    } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
                UVFTables::BS_MAXMIN_VALUES) {
       if (m_pMaxMinData != NULL) {
         WARNING("Multiple MaxMinData Blocks found using last block.");
@@ -363,6 +374,7 @@ UINT64 UVFDataset::FindSuitableRasterBlock() {
   }
   return iRasterBlockIndex;
 }
+
 
 void UVFDataset::GetHistograms() {
 
@@ -556,5 +568,16 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double
           fMinGradient <= maxMinElement.maxGradient);
 }
 
+const std::vector< std::pair < std::string, std::string > > UVFDataset::GetMetadata() const {
+  std::vector< std::pair < std::string, std::string > > v;
+
+  if (m_pKVDataBlock)  {
+    for (size_t i = 0;i<m_pKVDataBlock->GetKeyCount();i++) {
+      v.push_back(std::make_pair(m_pKVDataBlock->GetKeyByIndex(i), m_pKVDataBlock->GetValueByIndex(i)));
+    }
+  }
+
+  return v;
+}
 
 }; // tuvok namespace.
