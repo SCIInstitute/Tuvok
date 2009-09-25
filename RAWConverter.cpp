@@ -46,6 +46,7 @@
 #include "UVF/Histogram2DDataBlock.h"
 #include "UVF/MaxMinDataBlock.h"
 #include "UVF/RasterDataBlock.h"
+#include "UVF/KeyValuePairDataBlock.h"
 
 using namespace std;
 using boost::int64_t;
@@ -392,15 +393,17 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   MESSAGE("Storing acceleration data...");
   uvfFile.AddDataBlock(&MaxMinData, MaxMinData.ComputeDataSize());
 
-/*
+
   /// \todo maybe add information from the source file to the UVF, like DICOM desc etc.
 
-  KeyValuePairDataBlock testPairs;
-	testPairs.AddPair("SOURCE","DICOM");
-	testPairs.AddPair("CONVERTED BY","DICOM2UVF V1.0");
-	UINT64 iDataSize = testPairs.ComputeDataSize();
-	uvfFile.AddDataBlock(testPairs,iDataSize);
-*/
+  MESSAGE("Storing metadata...");
+
+  KeyValuePairDataBlock metaPairs;
+	metaPairs.AddPair("Data Source",strSource);
+	metaPairs.AddPair("Decription",strDesc);
+	UINT64 iDataSize = metaPairs.ComputeDataSize();
+	uvfFile.AddDataBlock(&metaPairs,iDataSize);
+
 
   MESSAGE("Writing UVF file...");
 
