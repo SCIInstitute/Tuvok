@@ -301,7 +301,7 @@ void GLRenderer::RenderSeperatingLines() {
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   // set render area to fullscreen
   SetRenderTargetAreaScissor(RA_FULLSCREEN);
-  SetRenderTargetArea(RA_FULLSCREEN);
+  SetRenderTargetArea(RA_FULLSCREEN, m_bDecreaseScreenResNow);
 
   // render seperating lines
   glDisable(GL_BLEND);
@@ -398,7 +398,7 @@ void GLRenderer::Paint() {
   bool bNewDataToShow = false;
   if (m_eViewMode == VM_SINGLE) {
 
-    SetRenderTargetArea(RA_FULLSCREEN);
+    SetRenderTargetArea(RA_FULLSCREEN, false);
 
     switch (m_eFullWindowMode) {
        case WM_3D       : {
@@ -408,8 +408,8 @@ void GLRenderer::Paint() {
                               } else {
                                 // plan the frame
                                 Plan3DFrame();
-                                // if m_bDecreaseScreenResthe render target area may have changed
-                                if (m_bDecreaseScreenRes) SetRenderTargetArea(RA_FULLSCREEN); 
+                                // if m_bDecreaseScreenResthe resolution may have changed so update matrices (but not LOD computation)
+                                if (m_bDecreaseScreenResNow) SetRenderTargetArea(RA_FULLSCREEN, m_bDecreaseScreenResNow);
                                 // execute the frame
                                 float fMsecPassed = 0.0f;
                                 bNewDataToShow = Execute3DFrame(RA_FULLSCREEN, fMsecPassed);
@@ -436,7 +436,7 @@ void GLRenderer::Paint() {
     bool bForceCompleteRedrawDueToResChange = m_bDoAnotherRedrawDueToAllMeans;
     for (UINT32 i = 0;i<4;i++) {
       ERenderArea eArea = ERenderArea(int(RA_TOPLEFT)+i);
-      SetRenderTargetArea(eArea);
+      SetRenderTargetArea(eArea, false);
 
       // remark: this line only works if the §D view is drawn before the 2D views
       //          as m_bDecreaseScreenResNow is changed in Plan3DFrame
@@ -454,7 +454,7 @@ void GLRenderer::Paint() {
                                   // plan the frame
                                   Plan3DFrame();
                                   // if m_bDecreaseScreenResthe render target area may have changed
-                                  if (m_bDecreaseScreenRes) SetRenderTargetArea(eArea); 
+                                  if (m_bDecreaseScreenResNow) SetRenderTargetArea(eArea, m_bDecreaseScreenResNow); 
                                   // execute the frame0
                                   float fMsecPassed = 0.0f;
                                   bLocalNewDataToShow = Execute3DFrame(eArea, fMsecPassed);
@@ -478,7 +478,7 @@ void GLRenderer::Paint() {
       } else {
         // blit the previous result quad to the entire screen but restrict drawing to the current subarea
         m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-        SetRenderTargetArea(RA_FULLSCREEN);
+        SetRenderTargetArea(RA_FULLSCREEN,false);
         SetRenderTargetAreaScissor(eArea);
         RerenderPreviousResult(false);
         m_TargetBinder.Unbind();
@@ -515,7 +515,7 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
   // if the image is complete
   if (bNewDataToShow) {
     m_bOffscreenIsLowRes = m_bDecreaseScreenResNow;
-    m_bDecreaseScreenResNow = false;
+    //m_bDecreaseScreenResNow = false;
 
     // in stereo compose both images into one, in mono mode simply swap the pointers
     if (m_bDoStereoRendering) {
@@ -551,21 +551,26 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 }
 
 
-void GLRenderer::SetRenderTargetArea(ERenderArea eREnderArea) {
+void GLRenderer::SetRenderTargetArea(ERenderArea eREnderArea, bool bDecreaseScreenResNow) {
   switch (eREnderArea) {
   case RA_TOPLEFT    : SetViewPort(UINTVECTOR2(0, m_vWinSize.y*m_vWinFraction.y),
-                                   UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y));
+                                   UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y),
+                                   bDecreaseScreenResNow);
     break;
   case RA_TOPRIGHT   : SetViewPort(UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y),
-                                   m_vWinSize);
+                                   m_vWinSize,
+                                   bDecreaseScreenResNow);
     break;
   case RA_LOWERLEFT  : SetViewPort(UINTVECTOR2(0,0),
-                                   UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y));
+                                   UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y),
+                                   bDecreaseScreenResNow);
     break;
   case RA_LOWERRIGHT : SetViewPort(UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, 0),
-                                   UINTVECTOR2(m_vWinSize.x,m_vWinSize.y*m_vWinFraction.y));
+                                   UINTVECTOR2(m_vWinSize.x,m_vWinSize.y*m_vWinFraction.y),
+                                   bDecreaseScreenResNow);
     break;
-  case RA_FULLSCREEN : SetViewPort(UINTVECTOR2(0,0), m_vWinSize); break;
+  case RA_FULLSCREEN : SetViewPort(UINTVECTOR2(0,0), m_vWinSize,
+                                   bDecreaseScreenResNow); break;
   default            : T_ERROR("Invalid render area set"); break;
   }
 }
@@ -598,9 +603,9 @@ void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
 
 }
 
-void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) {
+void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight, bool bDecreaseScreenResNow) {
 
-  if (m_bDecreaseScreenResNow) {
+  if (bDecreaseScreenResNow) {
     viLowerLeft /= m_fScreenResDecFactor;
     viUpperRight /= m_fScreenResDecFactor;
   }
@@ -613,9 +618,11 @@ void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) 
   float fAspect =(float)viSize.x/(float)viSize.y;
   ComputeViewAndProjection(fAspect);
 
-  // forward the projection matrix to the culling object
-  m_FrustumCullingLOD.SetProjectionMatrix(m_mProjection[0]);
-  m_FrustumCullingLOD.SetScreenParams(m_fFOV, fAspect, m_fZNear, m_fZFar, viSize.y);
+  if (!bDecreaseScreenResNow) {
+    // forward the projection matrix to the culling object
+    m_FrustumCullingLOD.SetProjectionMatrix(m_mProjection[0]);
+    m_FrustumCullingLOD.SetScreenParams(m_fFOV, fAspect, m_fZNear, m_fZFar, viSize.y);
+  }
 }
 
 void GLRenderer::ComputeViewAndProjection(float fAspect) {
@@ -908,7 +915,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
 
-    SetRenderTargetArea(RA_FULLSCREEN);
+    SetRenderTargetArea(RA_FULLSCREEN,m_bDecreaseScreenResNow);
     SetRenderTargetAreaScissor(eREnderArea);
 
     m_pFBO3DImageCurrent[1]->Read(0);

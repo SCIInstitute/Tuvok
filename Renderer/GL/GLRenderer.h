@@ -103,9 +103,9 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramColor;
     GLSLProgram*    m_pProgramHQMIPRot;
 
-    void SetRenderTargetArea(ERenderArea eREnderArea);
+    void SetRenderTargetArea(ERenderArea eREnderArea, bool bDecreaseScreenResNow);
     void SetRenderTargetAreaScissor(ERenderArea eREnderArea);
-    void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight);
+    void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight, bool bDecreaseScreenResNow);
 
     bool Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex);
     void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1), bool bEpsilonOffset=true);
