@@ -53,9 +53,10 @@ UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify) :
   m_pMaxMinData(NULL),
   m_pDatasetFile(NULL),
   m_bIsOpen(false),
-  m_strFilename(strFilename)
+  m_strFilename(strFilename),
+  m_iRasterBlockIndex(0)
 {
-  Open(bVerify);
+  Open(bVerify, false);
 }
 
 UVFDataset::UVFDataset() :
@@ -67,36 +68,37 @@ UVFDataset::UVFDataset() :
   m_pMaxMinData(NULL),
   m_pDatasetFile(NULL),
   m_bIsOpen(false),
-  m_strFilename("")
+  m_strFilename(""),
+  m_iRasterBlockIndex(0)
 {
 }
 
 UVFDataset::~UVFDataset()
 {
-  delete m_pDatasetFile;
+  Close();
 }
 
-bool UVFDataset::Open(bool bVerify)
+bool UVFDataset::Open(bool bVerify, bool bReadWrite)
 {
   // open the file
   std::wstring wstrFilename(m_strFilename.begin(),m_strFilename.end());
   m_pDatasetFile = new UVF(wstrFilename);
   std::string strError;
-  m_bIsOpen = m_pDatasetFile->Open(true, bVerify,false, &strError);
+  m_bIsOpen = m_pDatasetFile->Open(true, bVerify,bReadWrite,&strError);
   if (!m_bIsOpen) {
     T_ERROR(strError.c_str());
     return false;
-  } 
+  }
 
   // analyze the main raster data blocks
-  UINT64 iRasterBlockIndex = FindSuitableRasterBlock();
-  if (iRasterBlockIndex == UINT64(-1)) {
+  m_iRasterBlockIndex = FindSuitableRasterBlock();
+  if (m_iRasterBlockIndex == UINT64(-1)) {
     T_ERROR("No suitable volume block found in UVF file.  Check previous messages for rejected blocks.");
     return false;
   } 
   MESSAGE("Open successfully found a suitable data block in the UVF file.");
   m_pVolumeDataBlock = static_cast<const RasterDataBlock*>
-                             (m_pDatasetFile->GetDataBlock(iRasterBlockIndex));
+                             (m_pDatasetFile->GetDataBlock(m_iRasterBlockIndex));
 
   MESSAGE("Analyzing data...");
 
@@ -112,6 +114,19 @@ bool UVFDataset::Open(bool bVerify)
 
 
   return true;
+}
+
+void UVFDataset::Close() {
+  delete m_pDatasetFile;
+
+  m_fMaxGradMagnitude = 0.0f;
+  m_pVolumeDataBlock = NULL;
+  m_pKVDataBlock= NULL;
+  m_pHist1DDataBlock= NULL;
+  m_pHist2DDataBlock= NULL;
+  m_pMaxMinData= NULL;
+  m_pDatasetFile= NULL;
+  m_bIsOpen= false;
 }
 
 void UVFDataset::ComputeMetaData() {
@@ -578,6 +593,40 @@ const std::vector< std::pair < std::string, std::string > > UVFDataset::GetMetad
   }
 
   return v;
+}
+
+bool UVFDataset::SaveRescaleFactors() {
+  DOUBLEVECTOR3 saveUserScale = m_UserScale;
+  Close();
+
+  MESSAGE("Attempting to reopen file in readwrite mode.");
+
+  if (!Open(false,true)) {
+    T_ERROR("Readwrite mode failed, maybe file is write protected?");
+
+    Open(false,false);
+    return false;
+  } else {
+    MESSAGE("Successfully reopend file in readwrite mode.");
+
+    RasterDataBlock* pVolumeDataBlockRW = static_cast<RasterDataBlock*>(m_pDatasetFile->GetDataBlockRW(m_iRasterBlockIndex,true));
+
+    size_t iSize = pVolumeDataBlockRW->ulDomainSize.size();
+    for (size_t i = 0;i<3;i++) {
+      m_DomainScale[i] = saveUserScale[i];
+      // matrix multiplication with scale factors
+      pVolumeDataBlockRW->dDomainTransformation[0+(iSize+1)*i] *= saveUserScale[0];
+      pVolumeDataBlockRW->dDomainTransformation[1+(iSize+1)*i] *= saveUserScale[1];
+      pVolumeDataBlockRW->dDomainTransformation[2+(iSize+1)*i] *= saveUserScale[2];
+    }
+
+    MESSAGE("Writing changes to disk");
+    Close();
+    MESSAGE("Reopening in read-only mode");
+    Open(false,false);
+
+    return true;
+  }
 }
 
 }; // tuvok namespace.

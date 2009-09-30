@@ -100,6 +100,7 @@ public:
 
   void SetRescaleFactors(const DOUBLEVECTOR3&);
   DOUBLEVECTOR3 GetRescaleFactors() const;
+  virtual bool SaveRescaleFactors() {return false;}
 
   virtual UINT64 GetLODLevelCount() const = 0;
   virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0) const = 0;

@@ -105,10 +105,13 @@ public:
 
   virtual const std::vector< std::pair < std::string, std::string > > GetMetadata() const;
 
+  virtual bool SaveRescaleFactors();
+
 private:
   std::vector<UINT64> IndexToVector(const BrickKey &k) const;
   NDBrickKey IndexToVectorKey(const BrickKey &k) const;
-  bool Open(bool bVerify);
+  bool Open(bool bVerify, bool bReadWrite);
+  void Close();
   UINT64 FindSuitableRasterBlock();
   void ComputeMetaData();
   void GetHistograms();
@@ -126,6 +129,7 @@ private:
   UVF*                         m_pDatasetFile;
   bool                         m_bIsOpen;
   std::string                  m_strFilename;
+  UINT64                       m_iRasterBlockIndex;
 
   UINTVECTOR3                m_aOverlap;
   bool                       m_bIsSameEndianness;

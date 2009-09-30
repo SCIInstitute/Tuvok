@@ -113,14 +113,16 @@ bool Histogram1DDataBlock::Compute(RasterDataBlock* source) {
   return true;
 }
 
-UINT64 Histogram1DDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
-  UINT64 iStart = iOffset + DataBlock::CopyToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
-  pStreamFile->SeekPos(iStart);
 
+void Histogram1DDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  DataBlock::CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
   UINT64 ulElementCount = UINT64(m_vHistData.size());
   pStreamFile->WriteData(ulElementCount, bIsBigEndian);
-  pStreamFile->WriteRAW((unsigned char*)&m_vHistData[0], ulElementCount*sizeof(UINT64));
+}
 
+UINT64 Histogram1DDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
+  pStreamFile->WriteRAW((unsigned char*)&m_vHistData[0], m_vHistData.size()*sizeof(UINT64));
   return pStreamFile->GetPos() - iOffset;
 }
 

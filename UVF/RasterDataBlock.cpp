@@ -179,9 +179,8 @@ UINT64 RasterDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOff
   return pStreamFile->GetPos() - iOffset;
 }
 
-UINT64 RasterDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
-  UINT64 iStart = iOffset + DataBlock::CopyToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
-  pStreamFile->SeekPos(iStart);
+void RasterDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  DataBlock::CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
   // write header
   UINT64 ulDomainDimension = ulDomainSemantics.size();
@@ -220,6 +219,10 @@ UINT64 RasterDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bo
   }
 
   pStreamFile->WriteData(ulOffsetToDataBlock, bIsBigEndian);
+}
+
+UINT64 RasterDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
   UINT64 iDataSize = ComputeDataSize();
 

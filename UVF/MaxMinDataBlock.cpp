@@ -82,8 +82,7 @@ UINT64 MaxMinDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOff
 }
 
 UINT64 MaxMinDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
-  UINT64 iStart = iOffset + DataBlock::CopyToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
-  pStreamFile->SeekPos(iStart);
+  CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
   
   // for some strange reason throwing in the raw expression into WriteData causes random values to written into the file on windows
   UINT64 ulBrickCount = UINT64(m_vfMaxMinData.size());

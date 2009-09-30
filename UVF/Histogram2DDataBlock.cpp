@@ -237,9 +237,9 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iMaxValue) {
   return true;
 }
 
-UINT64 Histogram2DDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
-  UINT64 iStart = iOffset + DataBlock::CopyToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
-  pStreamFile->SeekPos(iStart);
+
+void Histogram2DDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  DataBlock::CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
   UINT64 ulElementCountX = UINT64(m_vHistData.size());
   UINT64 ulElementCountY = UINT64(m_vHistData[0].size());
@@ -247,13 +247,17 @@ UINT64 Histogram2DDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffse
   pStreamFile->WriteData(m_fMaxGradMagnitude, bIsBigEndian);
   pStreamFile->WriteData(ulElementCountX, bIsBigEndian);
   pStreamFile->WriteData(ulElementCountY, bIsBigEndian);
+}
+
+
+UINT64 Histogram2DDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
   vector<UINT64> tmp;
-  for (size_t i = 0;i<ulElementCountX;i++) {
+  for (size_t i = 0;i<m_vHistData.size();i++) {
     tmp = m_vHistData[i];
-    pStreamFile->WriteRAW((unsigned char*)&tmp[0], ulElementCountY*sizeof(UINT64));
+    pStreamFile->WriteRAW((unsigned char*)&tmp[0], tmp.size()*sizeof(UINT64));
   }
-
 
   return pStreamFile->GetPos() - iOffset;
 }

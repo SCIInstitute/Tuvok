@@ -69,7 +69,7 @@ UINT64 DataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, b
   return m_pStreamFile->GetPos() - iOffset;
 }
 
-UINT64 DataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+void DataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
   pStreamFile->SeekPos(iOffset);
 
   pStreamFile->WriteData(UINT64(strBlockID.size()), bIsBigEndian);
@@ -81,7 +81,10 @@ UINT64 DataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIs
     pStreamFile->WriteData(UINT64(0), bIsBigEndian);
   else
     pStreamFile->WriteData(ulOffsetToNextDataBlock, bIsBigEndian);
+}
 
+UINT64 DataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
   return pStreamFile->GetPos() - iOffset;
 }
 

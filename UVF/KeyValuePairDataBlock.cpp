@@ -53,11 +53,13 @@ UINT64 KeyValuePairDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT6
   return pStreamFile->GetPos() - iOffset;
 }
 
-UINT64 KeyValuePairDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
-  UINT64 iStart = iOffset + DataBlock::CopyToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
-  pStreamFile->SeekPos(iStart);
-
+void KeyValuePairDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  DataBlock::CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
   pStreamFile->WriteData(UINT64(m_KeyValuePairs.size()), bIsBigEndian);
+}
+
+UINT64 KeyValuePairDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
   for (size_t i = 0;i<m_KeyValuePairs.size();i++) {
     string key(m_KeyValuePairs[i].strKey), value(m_KeyValuePairs[i].strValue);

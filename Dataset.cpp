@@ -68,5 +68,4 @@ DOUBLEVECTOR3 Dataset::GetRescaleFactors() const {
   return m_UserScale;
 }
 
-
 }; // tuvok namespace.

@@ -12,7 +12,8 @@ UINT64 UVF::ms_ulReaderVersion = UVFVERSION;
 UVF::UVF(std::wstring wstrFilename) : 
   m_bFileIsLoaded(false),
   m_bFileIsReadWrite(false),
-  m_streamFile(wstrFilename)
+  m_streamFile(wstrFilename),
+  m_iAccumOffsets(0)
 {
 }
 
@@ -91,12 +92,26 @@ bool UVF::Open(bool bMustBeSameVersion, bool bVerify, bool bReadWrite, std::stri
 
 void UVF::Close() {
   if (m_bFileIsLoaded) {
-    if (m_bFileIsReadWrite) UpdateChecksum();
+    if (m_bFileIsReadWrite) {
+      UpdateChecksum();
+      for (size_t i = 0;i<m_DataBlocks.size();i++) {
+        // for now we only allow changes in the datablock header
+        // TODO: will need to extend this to abitrary changes once we add more features
+        assert(!m_DataBlocks[i]->m_bIsDirty);
+
+        if (m_DataBlocks[i]->m_bHeaderIsDirty) {
+          m_DataBlocks[i]->m_block->CopyHeaderToFile(&m_streamFile, m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(), m_GlobalHeader.bIsBigEndian, i == m_DataBlocks.size()-1);
+        }
+      }
+    }
     m_streamFile.Close();
     m_bFileIsLoaded = false;
   }
 
-  for (size_t i = 0;i<m_DataBlocks.size();i++) if (m_DataBlocks[i].second) delete m_DataBlocks[i].first;
+  for (size_t i = 0;i<m_DataBlocks.size();i++) {
+    if (m_DataBlocks[i]->m_bSelfCreatedPointer) delete m_DataBlocks[i]->m_block;
+    delete m_DataBlocks[i];
+  }
   m_DataBlocks.resize(0);
 }
 
@@ -225,11 +240,11 @@ void UVF::ParseDataBlocks() {
       d = CreateBlockFromSemanticEntry(eTableID, &m_streamFile, iOffset, m_GlobalHeader.bIsBigEndian);
     }
 
+    m_DataBlocks.push_back(new DataBlockListElem(d,true,false,iOffset-m_GlobalHeader.GetDataPos(),d->GetOffsetToNextBlock()));
+
     iOffset += d->GetOffsetToNextBlock();
 
-    m_DataBlocks.push_back(pair<DataBlock*,bool>(d,true));
-
-  } while (m_DataBlocks[m_DataBlocks.size()-1].first->ulOffsetToNextDataBlock != 0);
+  } while (m_DataBlocks[m_DataBlocks.size()-1]->m_block->ulOffsetToNextDataBlock != 0);
 }
 
 // ********************** file creation routines
@@ -263,8 +278,10 @@ bool UVF::AddDataBlock(DataBlock* dataBlock, UINT64 iSizeofData, bool bUseSource
 
   DataBlock* d;
   if (bUseSourcePointer) d = dataBlock; else d = dataBlock->Clone();
+  
+  m_DataBlocks.push_back(new DataBlockListElem(d,!bUseSourcePointer, true, m_iAccumOffsets, d->GetOffsetToNextBlock()));
   d->ulOffsetToNextDataBlock = d->GetOffsetToNextBlock();
-  m_DataBlocks.push_back(pair<DataBlock*,bool>(d,!bUseSourcePointer));
+  m_iAccumOffsets += d->ulOffsetToNextDataBlock;
 
   return true;
 }
@@ -272,7 +289,7 @@ bool UVF::AddDataBlock(DataBlock* dataBlock, UINT64 iSizeofData, bool bUseSource
 UINT64 UVF::ComputeNewFileSize() {
   UINT64 iFileSize = m_GlobalHeader.GetDataPos();
   for (size_t i = 0;i<m_DataBlocks.size();i++) 
-    iFileSize += m_DataBlocks[i].first->GetOffsetToNextBlock();
+    iFileSize += m_DataBlocks[i]->m_block->GetOffsetToNextBlock();
   return iFileSize;
 }
 
@@ -300,11 +317,22 @@ bool UVF::Create() {
     m_GlobalHeader.CopyHeaderToFile(&m_streamFile);
     
     UINT64 iOffset = m_GlobalHeader.GetDataPos();
-    for (size_t i = 0;i<m_DataBlocks.size();i++)
-        iOffset += m_DataBlocks[i].first->CopyToFile(&m_streamFile, iOffset, m_GlobalHeader.bIsBigEndian, i == m_DataBlocks.size()-1);
+    for (size_t i = 0;i<m_DataBlocks.size();i++) {
+        iOffset += m_DataBlocks[i]->m_block->CopyToFile(&m_streamFile, iOffset, m_GlobalHeader.bIsBigEndian, i == m_DataBlocks.size()-1);
+        m_DataBlocks[i]->m_bIsDirty = false;
+    }
 
     return true;
   }else {
     return false;
   }
+}
+
+
+DataBlock* UVF::GetDataBlockRW(UINT64 index, bool bOnlyChangeHeader) {
+  if (bOnlyChangeHeader)
+    m_DataBlocks[size_t(index)]->m_bHeaderIsDirty = true; 
+  else 
+    m_DataBlocks[size_t(index)]->m_bIsDirty = true; 
+  return m_DataBlocks[size_t(index)]->m_block;
 }
