@@ -689,7 +689,9 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
                       m_pDataset->GetScale().y,
                       m_pDataset->GetScale().z);
   
-  vScale /= vScale.maxVal();
+  FLOATVECTOR3 vDomainSizeCorrectedScale = vScale * FLOATVECTOR3(vDomainSize)/vDomainSize.maxVal();
+
+  vScale /= vDomainSizeCorrectedScale.maxVal();
 
   FLOATVECTOR3 vBrickCorner;
 
