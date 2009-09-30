@@ -616,13 +616,17 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
 }
 
 void AbstrRenderer::ComputeMinLODForCurrentView() {
-  UINTVECTOR3  viVoxelCount = UINTVECTOR3(m_pDataset->GetDomainSize());
-  FLOATVECTOR3 vfExtend     = (FLOATVECTOR3(viVoxelCount) / viVoxelCount.maxVal()) * FLOATVECTOR3(m_pDataset->GetScale() / m_pDataset->GetScale().maxVal() );
+  // compute scale factor for domain
+  UINTVECTOR3 vDomainSize = UINTVECTOR3(m_pDataset->GetDomainSize());
+  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetScale());
+  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
+  vExtend /= vExtend.maxVal();
+
 
   // TODO consider real extent not center
 
   FLOATVECTOR3 vfCenter(0,0,0);
-  m_iMinLODForCurrentView = max(0, min<int>(m_pDataset->GetLODLevelCount()-1,m_FrustumCullingLOD.GetLODLevel(vfCenter,vfExtend,viVoxelCount)));
+  m_iMinLODForCurrentView = max(0, min<int>(m_pDataset->GetLODLevelCount()-1,m_FrustumCullingLOD.GetLODLevel(vfCenter,vExtend,vDomainSize)));
 }
 
 /// Calculates the distance to a given brick given the current view
