@@ -34,6 +34,7 @@
   \date    Januar 2009
 */
 
+#include <cstdlib>
 #include "Timer.h"
 
 #ifndef DETECTED_OS_WINDOWS
