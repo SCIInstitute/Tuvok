@@ -2042,9 +2042,20 @@ float GLRenderer::Render3DView() {
     // count the bricks rendered
     m_iBricksRenderedInThisSubFrame++;
 
-    // time this loop
-    glFinish(); // let's pretend this actually does what it should
-    if (!m_bCaptureMode) timeProbe = clock();
+    if (!m_bCaptureMode) {
+      
+      // let's pretend this actually does what it should
+      glFinish(); 
+
+#ifdef DETECTED_OS_APPLE
+      // and now really (hopefully) force a pipleine flush
+      unsigned char dummy[4];
+      glReadPixels(0,0,1,1,GL_RGBA,GL_UNSIGNED_BYTE,dummy);
+#endif
+
+      // time this loop
+      timeProbe = clock();
+    }
     ++bricks_this_call;
 
     fMsecPassed = float(timeProbe-timeStart)*1000.0f/float(CLOCKS_PER_SEC);
