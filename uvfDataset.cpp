@@ -148,12 +148,8 @@ void UVFDataset::ComputeMetaData() {
     m_DomainScale[i] = m_pVolumeDataBlock->dDomainTransformation[i+(iSize+1)*i];
   }
 
-  /// @todo FIXME-IO: the brick information that's calculated below and stored
-  /// in m_vvaBrickSize needs to end up in 'BrickedDataset', via its
-  /// 'AddBrick' call.
   m_vvaBrickSize.resize(iLODLevel);
   if (m_pMaxMinData) m_vvaMaxMin.resize(iLODLevel);
-
 
   for (size_t j = 0;j<iLODLevel;j++) {
     std::vector<UINT64> vLOD;  vLOD.push_back(j);
@@ -261,8 +257,6 @@ void UVFDataset::FixOverlap(UINT64& v, UINT64 brickIndex, UINT64 maxindex, UINT6
 
 
 // Gives the size of a brick in real space.
-/// @todo FIXME-IO: obsolete: any query on bricks must be done in
-/// ExternalDataset, with a pure-virtual for that call in Dataset.
 UINT64VECTOR3 UVFDataset::GetEffectiveBrickSize(const BrickKey &k) const
 {
   const NDBrickKey& key = IndexToVectorKey(k);
