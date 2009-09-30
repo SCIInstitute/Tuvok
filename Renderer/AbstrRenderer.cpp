@@ -548,7 +548,7 @@ void AbstrRenderer::RestartTimers() {
 }
 
 void AbstrRenderer::ComputeMaxLODForCurrentView() {
-  if (!m_bCaptureMode && m_fMsecPassed[0]>0.0f) {
+  if (!m_bCaptureMode && m_fMsecPassed[0]>=0.0f) {
     // if rendering is too slow use a lower resolution during interaction
     if (m_fMsecPassed[0] > m_fMaxMSPerFrame) {
       if (m_iLODNotOKCounter < 3) { // wait for 3 frames before switching to lower lod (3 here is choosen more or less arbitrary, can be changed if needed)
@@ -606,7 +606,6 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
     }
 
     m_iStartLODOffset = std::max(m_iMinLODForCurrentView,m_iMaxLODIndex-m_iPerformanceBasedLODSkip);
-
   } else {
     m_iStartLODOffset = m_iMinLODForCurrentView;
   }
