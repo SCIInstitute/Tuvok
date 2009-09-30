@@ -88,6 +88,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_iFrameCounter(0),
   m_iCheckCounter(0),
   m_iMaxLODIndex(0),
+  m_iLODLimits(0,0),
   m_iPerformanceBasedLODSkip(0),
   m_iCurrentLODOffset(0),
   m_iStartLODOffset(0),
@@ -605,7 +606,9 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
       }
     }
 
-    m_iStartLODOffset = std::max(m_iMinLODForCurrentView,m_iMaxLODIndex-m_iPerformanceBasedLODSkip);
+
+    UINT64 iLODSkip = std::max(m_iPerformanceBasedLODSkip, UINT64(m_iLODLimits.x));
+    m_iStartLODOffset = std::max(m_iMinLODForCurrentView,m_iMaxLODIndex-iLODSkip);
   } else {
     m_iStartLODOffset = m_iMinLODForCurrentView;
   }
@@ -626,7 +629,8 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
   // TODO consider real extent not center
 
   FLOATVECTOR3 vfCenter(0,0,0);
-  m_iMinLODForCurrentView = max(0, min<int>(m_pDataset->GetLODLevelCount()-1,m_FrustumCullingLOD.GetLODLevel(vfCenter,vExtend,vDomainSize)));
+  m_iMinLODForCurrentView = max(int(m_iLODLimits.y), min<int>(m_pDataset->GetLODLevelCount()-1,
+                                            m_FrustumCullingLOD.GetLODLevel(vfCenter,vExtend,vDomainSize)));
 }
 
 /// Calculates the distance to a given brick given the current view
@@ -1110,5 +1114,12 @@ void AbstrRenderer::SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans, flo
 
   m_iStartDelay = iStartDelay;
 
+  ScheduleCompleteRedraw();
+}
+
+
+
+void AbstrRenderer::SetLODLimits(const UINTVECTOR2 iLODLimits) { 
+  m_iLODLimits = iLODLimits; 
   ScheduleCompleteRedraw();
 }

@@ -307,6 +307,9 @@ class AbstrRenderer {
     UINT64 GetMaxLODIndex() const      { return m_iMaxLODIndex; }
     UINT64 GetMinLODIndex() const      { return m_iMinLODForCurrentView; }
 
+    UINTVECTOR2 GetLODLimits() const      { return m_iLODLimits; }
+    void SetLODLimits(const UINTVECTOR2 iLODLimits);
+
     // scheduling routines
     UINT64 GetCurrentSubFrameCount() const
         { return 1+m_iMaxLODIndex-m_iMinLODForCurrentView; }
@@ -470,6 +473,7 @@ class AbstrRenderer {
     UINT64              m_iFrameCounter;
     UINT32              m_iCheckCounter;
     UINT64              m_iMaxLODIndex;
+    UINTVECTOR2         m_iLODLimits;
     UINT64              m_iPerformanceBasedLODSkip;
     UINT64              m_iCurrentLODOffset;
     UINT64              m_iStartLODOffset;
