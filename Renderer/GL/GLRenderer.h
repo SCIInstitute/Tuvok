@@ -40,6 +40,7 @@
 #include <string>
 
 #include "../../StdTuvokDefines.h"
+#include <Basics/Timer.h>
 #include "../AbstrRenderer.h"
 #include "GLTargetBinder.h"
 
@@ -102,6 +103,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramIso;
     GLSLProgram*    m_pProgramColor;
     GLSLProgram*    m_pProgramHQMIPRot;
+    Timer           m_Timer;
 
     void SetRenderTargetArea(ERenderArea eREnderArea, bool bDecreaseScreenResNow);
     void SetRenderTargetAreaScissor(ERenderArea eREnderArea);

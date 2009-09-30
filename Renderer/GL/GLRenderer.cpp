@@ -34,7 +34,6 @@
   \date    August 2008
 */
 
-#include <ctime>
 #include <typeinfo>
 #include "GLInclude.h"
 #include "GLFBOTex.h"
@@ -1999,8 +1998,7 @@ float GLRenderer::Render3DView() {
   Render3DPreLoop();
 
   // loop over all bricks in the current LOD level
-  clock_t timeStart, timeProbe;
-  timeStart = timeProbe = clock();
+  m_Timer.Start();
   UINT32 bricks_this_call = 0;
   float fMsecPassed = 0;
 
@@ -2044,21 +2042,21 @@ float GLRenderer::Render3DView() {
 
     if (!m_bCaptureMode) {
       
-      // let's pretend this actually does what it should
-      glFinish(); 
 
 #ifdef DETECTED_OS_APPLE
-      // and now really (hopefully) force a pipleine flush
+      // really (hopefully) force a pipleine flush
       unsigned char dummy[4];
       glReadPixels(0,0,1,1,GL_RGBA,GL_UNSIGNED_BYTE,dummy);
+#else
+      // let's pretend this actually does what it should
+      glFinish(); 
 #endif
 
       // time this loop
-      timeProbe = clock();
+      fMsecPassed = m_Timer.Elapsed();
     }
     ++bricks_this_call;
 
-    fMsecPassed = float(timeProbe-timeStart)*1000.0f/float(CLOCKS_PER_SEC);
   }
 
   Render3DPostLoop();

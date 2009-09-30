@@ -686,6 +686,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Basics\Timer.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Basics\Timer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Basics\Vectors.h"
 				>
 			</File>
@@ -4269,11 +4277,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
