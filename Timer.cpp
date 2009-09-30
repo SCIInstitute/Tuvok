@@ -60,10 +60,11 @@ void Timer::Start() {
 
 double Timer::Elapsed() {
 #ifndef DETECTED_OS_WINDOWS
+  struct timeval timeProbe;
   gettimeofday(&timeProbe, NULL);
 
-  return  (timeProbe.tv_sec - m_timeStart.tv_sec) * 1000.0;
-        + (timeProbe.tv_usec - m_timeStart.tv_usec) / 1000.0;
+  return (timeProbe.tv_sec - m_timeStart.tv_sec) * 1000.0 +
+         (timeProbe.tv_usec - m_timeStart.tv_usec) / 1000.0;
 #else
   LARGE_INTEGER timeProbe;
   QueryPerformanceCounter(&timeProbe);
