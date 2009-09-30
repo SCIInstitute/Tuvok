@@ -83,7 +83,7 @@ HEADERS += \
            Basics/MathTools.h \
            Basics/MC.h \
            Basics/Plane.h \
-           Basics/Time.h \
+           Basics/Timer.h \
            Basics/SysTools.h \
            Basics/Vectors.h \
            Controller/Controller.h \
@@ -273,7 +273,7 @@ SOURCES += \
            Basics/MC.cpp \
            Basics/Plane.cpp \
            Basics/SystemInfo.cpp \
-           Basics/Time.cpp \           
+           Basics/Timer.cpp \           
            Basics/SysTools.cpp \
            Controller/MasterController.cpp \
            DebugOut/AbstrDebugOut.cpp \

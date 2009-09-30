@@ -157,6 +157,7 @@ set(TUVOK_SRCS ./3rdParty/GLEW/GL/glew.c
 ./Basics/SystemInfo.cpp
 ./Basics/Systeminfo/VidMemViaDDraw.cpp
 ./Basics/Systeminfo/VidMemViaDXGI.cpp
+./Basics/Timer.cpp
 ./IO/3rdParty/bzip2/blocksort.c
 ./IO/3rdParty/bzip2/bzip2.c
 ./IO/3rdParty/bzip2/bzip2recover.c
