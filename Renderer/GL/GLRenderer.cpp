@@ -514,6 +514,8 @@ void GLRenderer::FullscreenQuad() {
 void GLRenderer::EndFrame(bool bNewDataToShow) {
   // if the image is complete
   if (bNewDataToShow) {
+    m_bOffscreenIsLowRes = m_bDecreaseScreenResNow;
+    m_bDecreaseScreenResNow = false;
 
     // in stereo compose both images into one, in mono mode simply swap the pointers
     if (m_bDoStereoRendering) {
@@ -540,7 +542,8 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
   }
 
   // show the result
-  if (bNewDataToShow  || m_iFilledBuffers < 2)
+  // HACK: this code assumes no more than double-buffering
+  if (bNewDataToShow || m_iFilledBuffers < 2)
     RerenderPreviousResult(true);
 
   // no complete redraw is necessary as we just finished the first pass
@@ -1205,7 +1208,6 @@ bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea, float &fMsecPassed) {
   // if zero bricks are to be rendered we have completed the draw job
   if (m_vCurrentBrickList.empty()) {
     MESSAGE("zero bricks are to be rendered, completed the draw job");
-    m_bOffscreenIsLowRes = m_bDecreaseScreenResNow;
     PostSubframe();
     return true;
   }
@@ -1987,8 +1989,6 @@ void GLRenderer::Recompose3DView(ERenderArea eArea) {
 }
 
 float GLRenderer::Render3DView() {
-  m_bOffscreenIsLowRes = m_bDecreaseScreenResNow;
-
   Render3DPreLoop();
 
   // loop over all bricks in the current LOD level
