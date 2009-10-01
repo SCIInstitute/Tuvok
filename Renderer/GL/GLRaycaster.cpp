@@ -130,10 +130,6 @@ bool GLRaycaster::Initialize() {
     m_pProgram1DTrans[1]->SetUniformVector("texVolume",0);
     m_pProgram1DTrans[1]->SetUniformVector("texTrans1D",1);
     m_pProgram1DTrans[1]->SetUniformVector("texRayExitPos",2);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightAmbient",0.2f,0.2f,0.2f);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightDiffuse",1.0f,1.0f,1.0f);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightSpecular",1.0f,1.0f,1.0f);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightDir",0.0f,0.0f,-1.0f);
     m_pProgram1DTrans[1]->Disable();
 
     m_pProgram2DTrans[0]->Enable();
@@ -146,10 +142,6 @@ bool GLRaycaster::Initialize() {
     m_pProgram2DTrans[1]->SetUniformVector("texVolume",0);
     m_pProgram2DTrans[1]->SetUniformVector("texTrans2D",1);
     m_pProgram2DTrans[1]->SetUniformVector("texRayExitPos",2);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightAmbient",0.2f,0.2f,0.2f);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightDiffuse",1.0f,1.0f,1.0f);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightSpecular",1.0f,1.0f,1.0f);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightDir",0.0f,0.0f,-1.0f);
     m_pProgram2DTrans[1]->Disable();
 
     FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
@@ -179,10 +171,11 @@ bool GLRaycaster::Initialize() {
     m_pProgramIso2->SetUniformVector("texLastHitPos",5);
     m_pProgramIso2->Disable();
 
+    UpdateColorsInShaders();
+
     /// We always clip against the plane in the shader, so initialize the plane
     /// to be way out in left field, ensuring nothing will be clipped.
     ClipPlaneToShader(ExtendedPlane(PLANE<float>(0,0,1,-100000)),0,true);
-
   }
 
   return true;

@@ -107,5 +107,6 @@ class GLRaycaster : public GLRenderer {
     FLOATMATRIX4 ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                            FLOATVECTOR3 p2, FLOATVECTOR3 t2,
                                            int iStereoID) const;
+
 };
 #endif // GLRAYCASTER_H

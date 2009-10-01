@@ -62,4 +62,9 @@ void DXRaycaster::RenderHQMIPInLoop(const Brick& b) {
 
 }
 
+void DXRaycaster::UpdateColorsInShaders() {
+
+}
+
+
 #endif // _WIN32 && USE_DIRECTX

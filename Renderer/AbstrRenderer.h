@@ -355,6 +355,15 @@ class AbstrRenderer {
     virtual void  SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbuffer);
     virtual bool  GetConsiderPreviousDepthbuffer() {return m_bConsiderPreviousDepthbuffer;}
 
+    void SetColors(const FLOATVECTOR4& ambient,
+                   const FLOATVECTOR4& diffuse,
+                   const FLOATVECTOR4& specular);
+
+
+    FLOATVECTOR4 GetAmbient() const;
+    FLOATVECTOR4 GetDiffuse() const;
+    FLOATVECTOR4 GetSpecular()const;
+
     // ClearView
     virtual bool SupportsClearView() {return false;}
     virtual void SetCV(bool bEnable);
@@ -534,6 +543,9 @@ class AbstrRenderer {
     int                 m_i2x2DividerWidth;
     FLOATVECTOR2        m_vWinFraction;
 
+    FLOATVECTOR4        m_cAmbient;
+    FLOATVECTOR4        m_cDiffuse;
+    FLOATVECTOR4        m_cSpecular;
 
     virtual void        ScheduleRecompose();
     void                ComputeMinLODForCurrentView();
@@ -548,6 +560,7 @@ class AbstrRenderer {
     void                CompletedASubframe();
     void                RestartTimer(const size_t iTimerIndex);
     void                RestartTimers();
+    virtual void        UpdateColorsInShaders() = 0;
 };
 
 #endif // ABSTRRENDERER_H

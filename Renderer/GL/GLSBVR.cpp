@@ -90,10 +90,6 @@ bool GLSBVR::Initialize() {
     m_pProgram1DTrans[1]->Enable();
     m_pProgram1DTrans[1]->SetUniformVector("texVolume",0);
     m_pProgram1DTrans[1]->SetUniformVector("texTrans1D",1);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightAmbient",0.2f,0.2f,0.2f);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightDiffuse",1.0f,1.0f,1.0f);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightSpecular",1.0f,1.0f,1.0f);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightDir",0.0f,0.0f,-1.0f);
     m_pProgram1DTrans[1]->Disable();
 
     m_pProgram2DTrans[0]->Enable();
@@ -104,10 +100,6 @@ bool GLSBVR::Initialize() {
     m_pProgram2DTrans[1]->Enable();
     m_pProgram2DTrans[1]->SetUniformVector("texVolume",0);
     m_pProgram2DTrans[1]->SetUniformVector("texTrans2D",1);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightAmbient",0.2f,0.2f,0.2f);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightDiffuse",1.0f,1.0f,1.0f);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightSpecular",1.0f,1.0f,1.0f);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightDir",0.0f,0.0f,-1.0f);
     m_pProgram2DTrans[1]->Disable();
 
     m_pProgramIso->Enable();
@@ -124,17 +116,14 @@ bool GLSBVR::Initialize() {
 
     m_pProgramIsoNoCompose->Enable();
     m_pProgramIsoNoCompose->SetUniformVector("texVolume",0);
-    m_pProgramIsoNoCompose->SetUniformVector("vLightAmbient",0.2f,0.2f,0.2f);
-    m_pProgramIsoNoCompose->SetUniformVector("vLightDiffuse",1.0f,1.0f,1.0f);
-    m_pProgramIsoNoCompose->SetUniformVector("vLightSpecular",1.0f,1.0f,1.0f);
-    m_pProgramIsoNoCompose->SetUniformVector("vLightDir",0.0f,0.0f,-1.0f);
     m_pProgramIsoNoCompose->Disable();
 
     m_pProgramColorNoCompose->Enable();
     m_pProgramColorNoCompose->SetUniformVector("texVolume",0);
-    m_pProgramColorNoCompose->SetUniformVector("vLightAmbient",0.2f,0.2f,0.2f);
-    m_pProgramColorNoCompose->SetUniformVector("vLightDir",0.0f,0.0f,-1.0f);
     m_pProgramColorNoCompose->Disable();
+
+    UpdateColorsInShaders();
+
   }
 
   return true;
@@ -386,4 +375,29 @@ bool GLSBVR::LoadDataset(const string& strFilename) {
 
 void GLSBVR::ComposeSurfaceImage(int iStereoID) {
   if (!m_bAvoidSeperateCompositing) GLRenderer::ComposeSurfaceImage(iStereoID);
+}
+
+
+void GLSBVR::UpdateColorsInShaders() {
+  GLRenderer::UpdateColorsInShaders();
+
+  FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
+  FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
+  FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
+  FLOATVECTOR3 dir(0.0f,0.0f,-1.0f);  // so far the light source is always a headlight
+
+  m_pProgramIsoNoCompose->Enable();
+  m_pProgramIsoNoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+  m_pProgramIsoNoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgramIsoNoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+  m_pProgramIsoNoCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+  m_pProgramIsoNoCompose->Disable();
+
+  m_pProgramColorNoCompose->Enable();
+  m_pProgramColorNoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+  //m_pProgramColorNoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z); // only abient color is used in color-volume mode yet
+  //m_pProgramColorNoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z); // only abient color is used in color-volume mode yet
+  m_pProgramColorNoCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+  m_pProgramColorNoCompose->Disable();
+
 }

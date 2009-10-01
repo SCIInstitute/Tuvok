@@ -65,6 +65,7 @@ class DXSBVR : public DXRenderer {
   protected:
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
     virtual void RenderHQMIPInLoop(const Brick& b);
+    virtual void UpdateColorsInShaders();
 };
 
 #endif // DXSBVR_H

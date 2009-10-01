@@ -130,7 +130,10 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_fZNear(0.1f),
   m_fZFar(100.0f),
   m_i2x2DividerWidth(6),
-  m_vWinFraction(0.5, 0.5)
+  m_vWinFraction(0.5, 0.5),
+  m_cAmbient(1.0f,1.0f,1.0f,0.2f),
+  m_cDiffuse(1.0f,1.0f,1.0f,0.8f),
+  m_cSpecular(1.0f,1.0f,1.0f,1.0f)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
@@ -1117,9 +1120,30 @@ void AbstrRenderer::SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans, flo
   ScheduleCompleteRedraw();
 }
 
-
-
 void AbstrRenderer::SetLODLimits(const UINTVECTOR2 iLODLimits) { 
   m_iLODLimits = iLODLimits; 
   ScheduleCompleteRedraw();
+}
+
+void AbstrRenderer::SetColors(const FLOATVECTOR4& ambient,
+                       const FLOATVECTOR4& diffuse,
+                       const FLOATVECTOR4& specular) {
+  m_cAmbient = ambient;
+  m_cDiffuse = diffuse;
+  m_cSpecular = specular;
+
+  UpdateColorsInShaders();
+  if (m_bUseLighting) ScheduleWindowRedraw(WM_3D);
+}
+
+FLOATVECTOR4 AbstrRenderer::GetAmbient() const {
+  return m_cAmbient;
+}
+
+FLOATVECTOR4 AbstrRenderer::GetDiffuse() const {
+  return m_cDiffuse;
+}
+
+FLOATVECTOR4 AbstrRenderer::GetSpecular()const {
+  return m_cSpecular;
 }

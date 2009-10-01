@@ -62,4 +62,8 @@ void DXSBVR::RenderHQMIPInLoop(const Brick& b) {
 
 }
 
+void DXSBVR::UpdateColorsInShaders() {
+
+}
+
 #endif // _WIN32 && USE_DIRECTX

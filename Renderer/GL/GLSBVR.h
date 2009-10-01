@@ -91,5 +91,6 @@ class GLSBVR : public GLRenderer {
     virtual void Cleanup();
 
     virtual void ComposeSurfaceImage(int iStereoID);
+    virtual void UpdateColorsInShaders();
 };
 #endif // GLSBVR_H

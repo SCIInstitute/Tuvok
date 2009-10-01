@@ -160,6 +160,7 @@ class GLRenderer : public AbstrRenderer {
 
     void FullscreenQuad();
     void ComputeViewAndProjection(float fAspect);
+    virtual void UpdateColorsInShaders();
 
   private:
     GLSLProgram*    m_pProgramTrans;
