@@ -2009,14 +2009,23 @@ float GLRenderer::Render3DView() {
 
     const BrickKey& key = m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
 
+
     // get the 3D texture from the memory manager
     GPUMemMan &mm = *(m_pMasterController->MemMan());
+
+    MESSAGE("  Requesting texture from MemMan");
+
     GLTexture3D* t = mm.Get3DTexture(m_pDataset, key,
                                      m_bUseOnlyPowerOfTwo,
                                      m_bDownSampleTo8Bits, m_bDisableBorder,
                                      m_iIntraFrameCounter++, m_iFrameCounter);
 
-    if(t) { t->Bind(0); }
+    if(t) { 
+      MESSAGE("  Binding Texture");
+      t->Bind(0); 
+    } else {
+      T_ERROR("Cannot bind texture, Get3DTexture returned invalid texture"); 
+    }
 
     Render3DInLoop(m_iBricksRenderedInThisSubFrame,0);
     if (m_bDoStereoRendering) {
