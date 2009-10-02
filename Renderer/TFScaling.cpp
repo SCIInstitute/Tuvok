@@ -55,7 +55,7 @@ scale_bit_width(const Dataset& ds, bool downsample,
 }
 
 std::pair<float,float>
-scale_bias_and_scale(const Dataset& ds)
+scale_bias_and_scale(Dataset& ds)
 {
   std::pair<float,float> retval;
 

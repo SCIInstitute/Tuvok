@@ -135,13 +135,16 @@ void GLSBVR::SetDataDepShaderVars() {
   if (m_eRenderMode == RM_ISOSURFACE && m_bAvoidSeperateCompositing) {
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
 
+    FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
+
     shader->Enable();
-    shader->SetUniformVector("fIsoval",m_fScaledIsovalue);
+    shader->SetUniformVector("fIsoval",m_fIsovalue);
     // this is not really a data dependent var but as we only need to
     // do it once per frame we may also do it here
-    shader->SetUniformVector("vLightDiffuse",m_vIsoColor.x, m_vIsoColor.y, m_vIsoColor.z);
+    shader->SetUniformVector("vLightDiffuse",d.x*m_vIsoColor.x,d.y*m_vIsoColor.y,d.z*m_vIsoColor.z);
     shader->Disable();
   }
+
   if(m_eRenderMode == RM_1DTRANS && m_TFScalingMethod == SMETH_BIAS_AND_SCALE) {
     std::pair<float,float> bias_scale = tuvok::scale_bias_and_scale(*m_pDataset);
     MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
@@ -284,7 +287,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader->Enable();
     SetBrickDepShaderVars(b);
-    shader->SetUniformVector("fIsoval",m_fScaledIsovalue);
+    shader->SetUniformVector("fIsoval",m_fIsovalue);
     RenderProxyGeometry();
     shader->Disable();
 
@@ -293,7 +296,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
       if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       m_pProgramIso->Enable();
-      m_pProgramIso->SetUniformVector("fIsoval",m_fScaledCVIsovalue);
+      m_pProgramIso->SetUniformVector("fIsoval",m_fCVIsovalue);
       RenderProxyGeometry();
       m_pProgramIso->Disable();
     }

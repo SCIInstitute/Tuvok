@@ -254,7 +254,7 @@ class AbstrRenderer {
     float GetSampleRateModifier() const { return m_fSampleRateModifier; }
 
     virtual void SetIsoValue(float fIsovalue);
-    float GetIsoValue() const { return m_fIsovalue; }
+    float GetIsoValue() const { return m_fNormalizedIsovalue; }
 
     virtual void SetIsosufaceColor(const FLOATVECTOR3& vColor);
     virtual FLOATVECTOR3 GetIsosufaceColor() const { return m_vIsoColor; }
@@ -369,7 +369,7 @@ class AbstrRenderer {
     virtual void SetCV(bool bEnable);
     virtual bool GetCV() const {return m_bDoClearView;}
     virtual void SetCVIsoValue(float fIsovalue);
-    virtual float GetCVIsoValue() const {return m_fCVIsovalue;}
+    virtual float GetCVIsoValue() const {return m_fCVNormalizedIsovalue;}
     virtual void SetCVColor(const FLOATVECTOR3& vColor);
     virtual FLOATVECTOR3 GetCVColor() const {return m_vCVColor;}
     virtual void SetCVSize(float fSize);
@@ -451,6 +451,7 @@ class AbstrRenderer {
     TransferFunction2D* m_p2DTrans;
     float               m_fSampleRateModifier;
     float               m_fIsovalue;
+    float               m_fNormalizedIsovalue;
     FLOATVECTOR3        m_vIsoColor;
     FLOATVECTOR3        m_vBackgroundColors[2];
     FLOATVECTOR4        m_vTextColor;
@@ -503,6 +504,7 @@ class AbstrRenderer {
 
     bool                m_bDoClearView;
     float               m_fCVIsovalue;
+    float               m_fCVNormalizedIsovalue;
     FLOATVECTOR3        m_vCVColor;
     float               m_fCVSize;
     float               m_fCVContextScale;
@@ -561,6 +563,7 @@ class AbstrRenderer {
     void                RestartTimer(const size_t iTimerIndex);
     void                RestartTimers();
     virtual void        UpdateColorsInShaders() = 0;
+    double              MaxValue();
 };
 
 #endif // ABSTRRENDERER_H

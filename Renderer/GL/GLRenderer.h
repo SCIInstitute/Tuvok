@@ -85,8 +85,6 @@ class GLRenderer : public AbstrRenderer {
     virtual void NewFrameClear(ERenderArea eREnderArea);
 
   protected:
-    float           m_fScaledIsovalue;
-    float           m_fScaledCVIsovalue;
     GLTargetBinder  m_TargetBinder;
     GLTexture1D*    m_p1DTransTex;
     GLTexture2D*    m_p2DTransTex;

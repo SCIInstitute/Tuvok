@@ -62,6 +62,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_p2DTrans(NULL),
   m_fSampleRateModifier(1.0f),
   m_fIsovalue(0.5f),
+  m_fNormalizedIsovalue(0.5f),
   m_vIsoColor(0.5,0.5,0.5),
   m_vTextColor(1,1,1,1),
   m_bRenderGlobalBBox(false),
@@ -104,6 +105,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bRenderPlanesIn3D(false),
   m_bDoClearView(false),
   m_fCVIsovalue(0.8f),
+  m_fCVNormalizedIsovalue(0.8f),
   m_vCVColor(1,0,0),
   m_fCVSize(5.5f),
   m_fCVContextScale(1.0f),
@@ -201,6 +203,12 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   m_piSlice[size_t(WM_CORONAL)]  = m_pDataset->GetDomainSize()[2]/2;
   m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetDomainSize()[0]/2;
   m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetDomainSize()[1]/2;
+
+
+  // now that we know the range of the dataset compute the non-normalized isovalues
+  m_fIsovalue = m_fNormalizedIsovalue * MaxValue()/(1<<m_pDataset->GetBitWidth());
+  m_fCVIsovalue = m_fCVNormalizedIsovalue * MaxValue()/(1<<m_pDataset->GetBitWidth());
+
 
   return true;
 }
@@ -345,8 +353,8 @@ void AbstrRenderer::SetSampleRateModifier(float fSampleRateModifier) {
 }
 
 void AbstrRenderer::SetIsoValue(float fIsovalue) {
-  if(m_fIsovalue != fIsovalue) {
-    m_fIsovalue = fIsovalue;
+  if(fIsovalue != m_fNormalizedIsovalue) {
+    m_fIsovalue = fIsovalue * MaxValue()/(1<<m_pDataset->GetBitWidth());
     ScheduleWindowRedraw(WM_3D);
   }
 }
@@ -690,6 +698,12 @@ vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
   return vBrickList;
 }
 
+double AbstrRenderer::MaxValue() {
+  if (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits)
+    return 255;
+  else
+    return (m_pDataset->GetRange().first > m_pDataset->GetRange().second) ? m_p1DTrans->GetSize() :  m_pDataset->GetRange().second;
+}
 
 vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
   vector<Brick> vBrickList;
@@ -756,21 +770,24 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
       }
     }
 
+    double fMaxValue = MaxValue();
+    double fRescaleFactor = fMaxValue / double(m_p1DTrans->GetSize());
+
     // check if the brick contains any data worth rendering.
     bool bContainsData;
     switch (m_eRenderMode) {
       case RM_1DTRANS:
         bContainsData = m_pDataset->ContainsData(
                           brick->first,
-                          double(m_p1DTrans->GetNonZeroLimits().x),
-                          double(m_p1DTrans->GetNonZeroLimits().y)
+                          double(m_p1DTrans->GetNonZeroLimits().x) * fRescaleFactor,
+                          double(m_p1DTrans->GetNonZeroLimits().y) * fRescaleFactor
                         );
         break;
       case RM_2DTRANS:
         bContainsData = m_pDataset->ContainsData(
                           brick->first,
-                          double(m_p2DTrans->GetNonZeroLimits().x),
-                          double(m_p2DTrans->GetNonZeroLimits().y),
+                          double(m_p2DTrans->GetNonZeroLimits().x) * fRescaleFactor,
+                          double(m_p2DTrans->GetNonZeroLimits().y) * fRescaleFactor,
                           double(m_p2DTrans->GetNonZeroLimits().z),
                           double(m_p2DTrans->GetNonZeroLimits().w)
                         );
@@ -778,7 +795,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
       case RM_ISOSURFACE:
         bContainsData = m_pDataset->ContainsData(
                           brick->first,
-                          m_fIsovalue*m_p1DTrans->GetSize()
+                          m_fIsovalue*fMaxValue
                         );
         break;
       default:
@@ -992,8 +1009,9 @@ void AbstrRenderer::Set2DPlanesIn3DView(bool bRenderPlanesIn3D) {
 }
 
 void AbstrRenderer::SetCVIsoValue(float fIsovalue) {
-  if (m_fCVIsovalue != fIsovalue) {
-    m_fCVIsovalue = fIsovalue;
+  if (m_fCVNormalizedIsovalue != fIsovalue) {
+    m_fCVIsovalue = fIsovalue * MaxValue()/(1<<m_pDataset->GetBitWidth());
+
     if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) ScheduleWindowRedraw(WM_3D);
     std::ostringstream prov;
     prov << "setcviso " << fIsovalue << std::endl;

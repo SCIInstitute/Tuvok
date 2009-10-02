@@ -556,7 +556,7 @@ void GLRaycaster::SetDataDepShaderVars() {
   GLRenderer::SetDataDepShaderVars();
   if (m_eRenderMode == RM_ISOSURFACE && m_bDoClearView) {
     m_pProgramIso2->Enable();
-    m_pProgramIso2->SetUniformVector("fIsoval",m_fScaledCVIsovalue);
+    m_pProgramIso2->SetUniformVector("fIsoval",m_fCVIsovalue);
     m_pProgramIso2->Disable();
   }
 }

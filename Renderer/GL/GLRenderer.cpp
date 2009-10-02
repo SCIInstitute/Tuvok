@@ -54,8 +54,6 @@ using namespace tuvok;
 
 GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
   AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
-  m_fScaledIsovalue(0.0f),    // set by StartFrame
-  m_fScaledCVIsovalue(0.0f),  // set by StartFrame
   m_TargetBinder(pMasterController),
   m_p1DTransTex(NULL),
   m_p2DTransTex(NULL),
@@ -370,11 +368,6 @@ void GLRenderer::StartFrame() {
       shader->Disable();
     }
 
-    size_t iMaxValue        = m_p1DTrans->GetSize();
-    UINT32 iMaxRange        = UINT32(1<<m_pDataset->GetBitWidth());
-    // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
-    m_fScaledIsovalue       = (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fIsovalue * float(iMaxValue)/float(iMaxRange);
-    m_fScaledCVIsovalue     = (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : m_fCVIsovalue * float(iMaxValue)/float(iMaxRange);
   }
 }
 
@@ -1487,14 +1480,9 @@ void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
 // to scale the TF in the same manner that we've scaled the data.
 float GLRenderer::CalculateScaling()
 {
-  size_t iMaxValue     = (m_pDataset->GetBitWidth() != 8 &&
-                          m_bDownSampleTo8Bits) ? 65536
-                                                : m_p1DTrans->GetSize();
+  size_t iMaxValue     = size_t(MaxValue());
   UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetBitWidth());
-
-  return (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits)
-         ? 1.0f
-         : float(iMaxRange)/float(iMaxValue);
+  return (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : float(iMaxRange)/float(iMaxValue);
 }
 
 void GLRenderer::SetDataDepShaderVars() {
@@ -1558,7 +1546,7 @@ void GLRenderer::SetDataDepShaderVars() {
       GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
       shader->Enable();
-      shader->SetUniformVector("fIsoval",m_fScaledIsovalue);
+      shader->SetUniformVector("fIsoval",m_fIsovalue);
       shader->Disable();
       break;
     }

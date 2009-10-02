@@ -48,7 +48,7 @@ class Dataset;
 float scale_bit_width(const Dataset& ds, bool downsample,
                       const TransferFunction1D& tf);
 
-std::pair<float,float> scale_bias_and_scale(const Dataset& ds);
+std::pair<float,float> scale_bias_and_scale(Dataset& ds);
 
 }; // tuvok namespace.
 
