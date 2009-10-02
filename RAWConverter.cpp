@@ -56,6 +56,11 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
                                      UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType,
                                      KVPairs* pKVPairs)
 {
+  bool bMetadata_SourceIsLittleEndian = bConvertEndianness && EndianConvert::IsBigEndian();
+  bool bMetadata_Signed = bSigned;
+  bool bMetadata_IsFloat = bIsFloat;
+  UINT64 iMetadata_ComponentSize = iComponentSize;
+
   if (iComponentCount > 4) {
     T_ERROR("Currently, only up to four component data is supported.");
     return false;
@@ -406,8 +411,20 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 	metaPairs.AddPair("Data Source",strSource);
 	metaPairs.AddPair("Decription",strDesc);
 
-  if (bConvertEndianness) metaPairs.AddPair("UVFConversion","convertedEndianness");
-  if (bIsFloat) metaPairs.AddPair("UVFConversion","quantizedFromFloat");
+  if (bMetadata_SourceIsLittleEndian) 
+    metaPairs.AddPair("Source Endianess","little");
+  else
+    metaPairs.AddPair("Source Endianess","big");
+
+  if (bMetadata_IsFloat) 
+    metaPairs.AddPair("Source Type","float");
+  else
+    if (bMetadata_Signed) 
+      metaPairs.AddPair("Source Type","signed integer");
+    else
+      metaPairs.AddPair("Source Type","integer");
+
+  metaPairs.AddPair("Source Bitwidth",SysTools::ToString(iMetadata_ComponentSize));
 
   if (pKVPairs) {    
     for (size_t i = 0;i<pKVPairs->size();i++) {
