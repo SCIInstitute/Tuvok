@@ -42,7 +42,7 @@
 #include "Quantize.h"
 
 const std::string
-AbstrConverter::Process8BitsTo8Bits(UINT64 iHeaderSkip,
+AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
                                     const std::string& strFilename,
                                     const std::string& strTargetFilename,
                                     UINT64 iSize, bool bSigned,
@@ -241,6 +241,121 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
   return strQuantFile;
 }
 
+const std::string
+AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
+                                      const std::string& strFilename,
+                                      const std::string& strTargetFilename,
+                                      UINT64 iSize, bool bSigned,
+                                      Histogram1DDataBlock* Histogram1D) {
+  LargeRAWFile InputData(strFilename, iHeaderSkip);
+  InputData.Open(false);
+  UINT64 iPercent = iSize / 100;
+
+  if (!InputData.IsOpen()) return "";
+
+  // determine max and min
+  unsigned short iMax = 0;
+  unsigned short iMin = std::numeric_limits<unsigned short>::max();
+  short* pInData = new short[INCORESIZE];
+  UINT64 iPos = 0;
+  UINT64 iDivLast = 0;
+
+  std::vector<UINT64> aHist(4096);
+  std::fill(aHist.begin(), aHist.end(), 0);
+
+  if (bSigned) {
+    std::pair<short,short> minmax;
+    minmax = io_minmax(raw_data_src<short>(InputData),
+                       Unsigned12BitHistogram<short>(aHist),
+                       TuvokProgress<UINT64>(iSize));
+
+    iMin = minmax.first+std::numeric_limits<short>::max();
+    iMax = minmax.second+std::numeric_limits<short>::max();
+  } else {
+    std::pair<unsigned short,unsigned short> minmax;
+    minmax = io_minmax(raw_data_src<unsigned short>(InputData),
+                       Unsigned12BitHistogram<unsigned short>(aHist),
+                       TuvokProgress<UINT64>(iSize));
+    iMin = minmax.first;
+    iMax = minmax.second;
+  }
+
+  std::string strQuantFile;
+  // if file uses less or equal than 12 bits quit here
+  if (!bSigned && iMax < 4096) {
+    MESSAGE("No histogram quantization required (min=%i, max=%i)", iMin, iMax);
+    aHist.resize(iMax+1);  // size is the maximum value plus one (the zero value)
+
+    delete [] pInData;
+    InputData.Close();
+    strQuantFile = strFilename;
+  } else {
+    if (bSigned) {
+      MESSAGE("Quantizing histogram to 12 bit (input data has range from %i to %i)",
+              int(iMin)-std::numeric_limits<short>::max(),
+              int(iMax)-std::numeric_limits<short>::max());
+    } else {
+      MESSAGE("Quantizing histogram to 12 bit (input data has range from %i to %i)",
+              iMin, iMax);
+    }
+    std::fill(aHist.begin(), aHist.end(), 0);
+
+    LargeRAWFile OutputData(strTargetFilename);
+    // only if the data is signed shift it otherwise we don't write anything
+    if (bSigned) {    
+      OutputData.Create(iSize*2);
+      if (!OutputData.IsOpen()) {
+        delete [] pInData;
+        InputData.Close();
+        return "";
+      }
+    }
+
+    UINT64 iRange = iMax-iMin;
+
+    InputData.SeekStart();
+    iPos = 0;
+    iDivLast = 0;
+    while (iPos < iSize)  {
+      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+      if(iRead == 0) { break; } // bail out if the read gave us nothing.
+
+      for (size_t i = 0;i<iRead;i++) {
+        unsigned short iValue = (bSigned) ? pInData[i] + std::numeric_limits<short>::max() : pInData[i];
+        unsigned short iNewVal = std::min<unsigned short>(4095, (unsigned short)((UINT64(iValue-iMin) * 4095)/iRange));
+        if (bSigned) pInData[i] = iValue-iMin;
+        aHist[iNewVal]++;
+      }
+      iPos += UINT64(iRead);
+
+      if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
+        if (bSigned) {
+          MESSAGE("Removing sign from 16bit data and quantizing histogram to 12 bit\n(input data has range from %i to %i)"
+                  "\n%i%% complete",
+                  int(iMin) - std::numeric_limits<short>::max(),
+                  int(iMax) - std::numeric_limits<short>::max(),
+                  int((100*iPos)/iSize));
+        } else {
+          MESSAGE("Quantizing histogram to 12 bit (input data has range from %i to %i)"
+                  "\n%i%% complete", iMin, iMax, int((100*iPos)/iSize));
+        }
+        iDivLast = (100*iPos)/iSize;
+      }
+
+      if (bSigned) OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
+    }
+
+    delete [] pInData;
+    if (bSigned) OutputData.Close();
+    InputData.Close();
+
+    if (bSigned) strQuantFile = strTargetFilename;
+  }
+
+  if (Histogram1D) Histogram1D->SetHistogram(aHist);
+
+  return strQuantFile;
+}
 const std::string
 AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
                                       const std::string& strFilename,

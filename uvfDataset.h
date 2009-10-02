@@ -86,12 +86,7 @@ public:
   virtual bool GetIsSigned() const;
   virtual bool GetIsFloat() const;
   virtual bool IsSameEndianness() const;
-  /// Unsupported for UVF!  Wouldn't be hard to implement, though, just not
-  /// currently needed.
-  virtual std::pair<double,double> GetRange() const {
-    assert(1 == 0);
-    return std::make_pair(0.0, 0.0);
-  }
+  virtual std::pair<double,double> GetRange();
 
   // Global "Operations" and additional data not from the UVF file
   virtual bool Export(UINT64 iLODLevel, const std::string& targetFilename,
@@ -130,6 +125,8 @@ private:
   bool                         m_bIsOpen;
   std::string                  m_strFilename;
   UINT64                       m_iRasterBlockIndex;
+  std::pair<double,double>     m_CachedRange;
+
 
   UINTVECTOR3                m_aOverlap;
   bool                       m_bIsSameEndianness;

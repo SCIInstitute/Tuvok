@@ -275,7 +275,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
           T_ERROR("Unsupported data format"); 
           return false;
         }
-        str8BitFilename = Process8BitsTo8Bits(iHeaderSkip,
+        str8BitFilename = Process8Bits(iHeaderSkip,
                                               strRawFilename,
                                               str8BitFilename,
                                               vVolumeSize.volume(),

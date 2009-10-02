@@ -53,7 +53,8 @@ using boost::int64_t;
 
 bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir,
                                      UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned, bool bIsFloat,
-                                     UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType)
+                                     UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType,
+                                     KVPairs* pKVPairs)
 {
   if (iComponentCount > 4) {
     T_ERROR("Currently, only up to four component data is supported.");
@@ -145,17 +146,17 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
 	switch (iComponentSize) {
     case 8 :
-      // do not run the Process8BitsTo8Bits when we are dealing with unsigned color data, 
+      // do not run the Process8Bits when we are dealing with unsigned color data, 
       // in that case only the histogram would be computed and we do not use in that case
       /// \todo change this if we want to support non-color multi-component data
       if (iComponentCount != 4 || bSigned) 
-        strSourceFilename = Process8BitsTo8Bits(iHeaderSkip, strSourceFilename,
+        strSourceFilename = Process8Bits(iHeaderSkip, strSourceFilename,
                                                 tmpFilename1,
                                                 iComponentCount*vVolumeSize.volume(),
                                                 bSigned, &Histogram1D);
       break;
     case 16 :
-      strSourceFilename = QuantizeShortTo12Bits(iHeaderSkip, strSourceFilename,
+      strSourceFilename = ProcessShort(iHeaderSkip, strSourceFilename,
                                                 tmpFilename1,
                                                 iComponentCount*vVolumeSize.volume(),
                                                 bSigned, &Histogram1D);
@@ -265,13 +266,18 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
 	switch (iComponentCount) {
 		case 3 : vSem.push_back(UVFTables::ES_RED);
-				 vSem.push_back(UVFTables::ES_GREEN);
-				 vSem.push_back(UVFTables::ES_BLUE); break;
+				     vSem.push_back(UVFTables::ES_GREEN);
+				     vSem.push_back(UVFTables::ES_BLUE);
+             break;
 		case 4 : vSem.push_back(UVFTables::ES_RED);
-				 vSem.push_back(UVFTables::ES_GREEN);
-				 vSem.push_back(UVFTables::ES_BLUE);
-				 vSem.push_back(UVFTables::ES_ALPHA); break;
-		default : for (UINT64 i = 0;i<iComponentCount;i++) vSem.push_back(eType);
+				     vSem.push_back(UVFTables::ES_GREEN);
+				     vSem.push_back(UVFTables::ES_BLUE);
+				     vSem.push_back(UVFTables::ES_ALPHA); 
+             break;
+    default : for (UINT64 i = 0;i<iComponentCount;i++) {
+                vSem.push_back(eType);
+              }
+              break;
 	}
 
 	dataVolume.SetTypeToVector(iComponentSize,
@@ -394,13 +400,21 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   uvfFile.AddDataBlock(&MaxMinData, MaxMinData.ComputeDataSize());
 
 
-  /// \todo maybe add information from the source file to the UVF, like DICOM desc etc.
-
   MESSAGE("Storing metadata...");
 
   KeyValuePairDataBlock metaPairs;
 	metaPairs.AddPair("Data Source",strSource);
 	metaPairs.AddPair("Decription",strDesc);
+
+  if (bConvertEndianness) metaPairs.AddPair("UVFConversion","convertedEndianness");
+  if (bIsFloat) metaPairs.AddPair("UVFConversion","quantizedFromFloat");
+
+  if (pKVPairs) {    
+    for (size_t i = 0;i<pKVPairs->size();i++) {
+      metaPairs.AddPair(pKVPairs->at(i).first,pKVPairs->at(i).second);
+    }
+  }
+
 	UINT64 iDataSize = metaPairs.ComputeDataSize();
 	uvfFile.AddDataBlock(&metaPairs,iDataSize);
 

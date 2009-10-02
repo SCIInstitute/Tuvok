@@ -42,6 +42,8 @@
 #include "UVF/KeyValuePairDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
 
+using namespace std;
+
 namespace tuvok {
 
 UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify) :
@@ -54,7 +56,8 @@ UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify) :
   m_pDatasetFile(NULL),
   m_bIsOpen(false),
   m_strFilename(strFilename),
-  m_iRasterBlockIndex(0)
+  m_iRasterBlockIndex(0),
+  m_CachedRange(make_pair(+1,-1))
 {
   Open(bVerify, false);
 }
@@ -69,7 +72,8 @@ UVFDataset::UVFDataset() :
   m_pDatasetFile(NULL),
   m_bIsOpen(false),
   m_strFilename(""),
-  m_iRasterBlockIndex(0)
+  m_iRasterBlockIndex(0),
+  m_CachedRange(make_pair(+1,-1))
 {
 }
 
@@ -111,7 +115,6 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite)
   MESSAGE("  Bricklayout of highest resolution level %u x %u x %u", m_vaBrickCount[0].x, m_vaBrickCount[0].y, m_vaBrickCount[0].z );
   MESSAGE("  %i Bit, %i components", int(GetBitWidth()), int(GetComponentCount()));
   MESSAGE("  LOD down to %u x %u x %u found", m_vaBrickCount[m_vaBrickCount.size()-1].x, m_vaBrickCount[m_vaBrickCount.size()-1].y, m_vaBrickCount[m_vaBrickCount.size()-1].z);
-
 
   return true;
 }
@@ -534,6 +537,30 @@ bool UVFDataset::GetIsFloat() const
 bool UVFDataset::IsSameEndianness() const
 {
   return m_bIsSameEndianness;
+}
+
+std::pair<double,double> UVFDataset::GetRange() {
+  if (m_pMaxMinData && m_CachedRange.second < m_CachedRange.first) {
+
+    // to find the range of values we simply traverse all the bricks in LOD level 0 (highest res) and compute the max & min
+    std::pair<double,double> limits;
+    for (int i = 0;i<GetBrickCount(0);i++) {
+      BrickKey k(0,i);
+      const NDBrickKey& key = IndexToVectorKey(k);
+
+      const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[0][key.second[0]][key.second[1]][key.second[2]];
+
+      if (i>0) {
+        limits.first  = min(limits.first, maxMinElement.minScalar);
+        limits.second = max(limits.second, maxMinElement.maxScalar);
+      } else {
+        limits = make_pair(maxMinElement.minScalar, maxMinElement.maxScalar);
+      }
+    }
+    m_CachedRange = limits;
+  }
+
+  return m_CachedRange;
 }
 
 

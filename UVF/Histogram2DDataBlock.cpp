@@ -66,7 +66,7 @@ UINT64 Histogram2DDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64
 
 /// \todo right now compute Histogram assumes that the lowest LOD level consists only of a single brick, this brick is used for the hist. computation
 //       this should be changed to a more general approach
-bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iMaxValue) {
+bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iHistoBinCount) {
   /// \todo right now we can only compute Histograms of scalar data this should be changed to a more general approach
   if (source->ulElementDimension != 1 || source->ulElementDimensionSize.size() != 1) return false;
 
@@ -81,8 +81,8 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iMaxValue) {
   if (source->ulDomainSize.size() < 3 || source->ulDomainSemantics[0] != UVFTables::DS_X ||
       source->ulDomainSemantics[1] != UVFTables::DS_Y || source->ulDomainSemantics[2] != UVFTables::DS_Z) return false;
 
-  m_vHistData.resize(iMaxValue);
-  for (size_t i = 0;i<iMaxValue;i++) {
+  m_vHistData.resize(iHistoBinCount);
+  for (size_t i = 0;i<iHistoBinCount;i++) {
     m_vHistData[i].resize(256);
     for (size_t j = 0;j<256;j++) {
       m_vHistData[i][j] = 0;
@@ -166,6 +166,8 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iMaxValue) {
   } else {
     if (source->ulElementBitSize[0][0] == 16) {
       unsigned short *psSourceData = (unsigned short*)(&(vcSourceData.at(0)));
+      unsigned short iMaxValueInFile = 0;
+      
       for (size_t z = 0;z<size_t(vSize[2]);z++) {
         for (size_t y = 0;y<size_t(vSize[1]);y++) {
           for (size_t x = 0;x<size_t(vSize[0]);x++) {
@@ -191,6 +193,8 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iMaxValue) {
                                      (float(psSourceData[iTop])-float(psSourceData[iBottom]))/(65535*vScale.y),
                                      (float(psSourceData[iFront])-float(psSourceData[iBack]))/(65535*vScale.z));
 
+            iMaxValueInFile = max(psSourceData[iCenter],iMaxValueInFile);
+            
             if (vGradient.length() > m_fMaxGradMagnitude) m_fMaxGradMagnitude = vGradient.length();
           }
         }
@@ -221,7 +225,8 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iMaxValue) {
                                      (float(psSourceData[iFront])-float(psSourceData[iBack]))/(65535*vScale.z));
 
             unsigned char iGardientMagnitudeIndex = (unsigned char)(min<int>(255,int(vGradient.length()/m_fMaxGradMagnitude*255.0f)));
-            int iValue = psSourceData[iCenter];
+            int iValue = (iMaxValueInFile <= iHistoBinCount) ? psSourceData[iCenter] 
+                                                             : min<int>(int(iHistoBinCount-1),int(float(psSourceData[iCenter] * float(iMaxValueInFile)/float(iHistoBinCount-1))));
             m_vHistData[iValue][iGardientMagnitudeIndex]++;
           }
         }

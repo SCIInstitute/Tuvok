@@ -55,7 +55,7 @@ namespace tuvok {
 /// into this table consists of an LOD index plus a brick index; at some
 /// point we'll likely add a time index.  An element in the table contains
 /// brick metadata, but no data; to obtain the data one must query the dataset.
-typedef std::pair<size_t, size_t> BrickKey; ///< LOD + brick indices
+typedef std::pair<size_t, size_t> BrickKey; ///< LOD + 1D brick index
 struct BrickMD {
   FLOATVECTOR3 center; ///< center of the brick, in world coords
   FLOATVECTOR3 extents; ///< width/height/depth of the brick.

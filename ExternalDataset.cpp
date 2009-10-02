@@ -283,7 +283,7 @@ void ExternalDataset::SetRange(const std::pair<double, double>& range)
   m_DataRange = range;
 }
 
-std::pair<double,double> ExternalDataset::GetRange() const
+std::pair<double,double> ExternalDataset::GetRange()
 {
   return m_DataRange;
 }

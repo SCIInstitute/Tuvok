@@ -45,6 +45,8 @@
 #include "AbstrConverter.h"
 #include <Controller/Controller.h>
 
+typedef std::vector< std::pair < std::string, std::string > > KVPairs;
+
 template<class T> class MinMaxScanner {
 public:
   MinMaxScanner(LargeRAWFile* file, T& minValue, T& maxValue, UINT64 iElemCount) {
@@ -81,8 +83,8 @@ public:
                                 FLOATVECTOR3 vVolumeAspect,
                                 const std::string& strDesc,
                                 const std::string& strSource,
-                                UVFTables::ElementSemanticTable
-                                  eType=UVFTables::ES_UNDEFINED);
+                                UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED,
+                                KVPairs* pKVPairs = NULL);
 
   static bool ExtractGZIPDataset(const std::string& strFilename,
                                  const std::string& strUncompressedFile,
