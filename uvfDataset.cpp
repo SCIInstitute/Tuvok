@@ -544,7 +544,7 @@ std::pair<double,double> UVFDataset::GetRange() {
 
     // to find the range of values we simply traverse all the bricks in LOD level 0 (highest res) and compute the max & min
     std::pair<double,double> limits;
-    for (int i = 0;i<GetBrickCount(0);i++) {
+    for (size_t i = 0;i<GetBrickCount(0);i++) {
       BrickKey k(0,i);
       const NDBrickKey& key = IndexToVectorKey(k);
 
