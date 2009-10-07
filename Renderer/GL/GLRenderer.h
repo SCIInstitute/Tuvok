@@ -104,7 +104,7 @@ class GLRenderer : public AbstrRenderer {
     Timer           m_Timer;
 
     void SetRenderTargetArea(ERenderArea eREnderArea, bool bDecreaseScreenResNow);
-    void SetRenderTargetAreaScissor(ERenderArea eREnderArea);
+    void SetRenderTargetAreaScissor(ERenderArea eREnderArea, bool bDecreaseScreenResNow);
     void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight, bool bDecreaseScreenResNow);
 
     bool Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex);
@@ -156,7 +156,7 @@ class GLRenderer : public AbstrRenderer {
     
     virtual void  CVFocusHasChanged();
 
-    void FullscreenQuad();
+    void FullscreenQuad(bool bUpscale);
     void ComputeViewAndProjection(float fAspect);
     virtual void UpdateColorsInShaders();
 

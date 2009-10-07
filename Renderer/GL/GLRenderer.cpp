@@ -287,7 +287,7 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
 void GLRenderer::RenderSeperatingLines() {
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   // set render area to fullscreen
-  SetRenderTargetAreaScissor(RA_FULLSCREEN);
+  SetRenderTargetAreaScissor(RA_FULLSCREEN, m_bDecreaseScreenResNow);
   SetRenderTargetArea(RA_FULLSCREEN, m_bDecreaseScreenResNow);
 
   // render seperating lines
@@ -391,7 +391,7 @@ void GLRenderer::Paint() {
                                 // plan the frame
                                 Plan3DFrame();
                                 // if m_bDecreaseScreenResthe resolution may have changed so update matrices (but not LOD computation)
-                                if (m_bDecreaseScreenResNow) SetRenderTargetArea(RA_FULLSCREEN, m_bDecreaseScreenResNow);
+                                if (m_bDecreaseScreenResNow) SetRenderTargetArea(RA_FULLSCREEN, true);
                                 // execute the frame
                                 float fMsecPassed = 0.0f;
                                 bNewDataToShow = Execute3DFrame(RA_FULLSCREEN, fMsecPassed);
@@ -415,20 +415,22 @@ void GLRenderer::Paint() {
     int iActiveRenderWindows = 0;
     int iReadyWindows = 0;
 
+    bool bPrevResType = m_bDecreaseScreenResNow;
+
     bool bForceCompleteRedrawDueToResChange = m_bDoAnotherRedrawDueToAllMeans;
     for (UINT32 i = 0;i<4;i++) {
       ERenderArea eArea = ERenderArea(int(RA_TOPLEFT)+i);
-      SetRenderTargetArea(eArea, false);
 
-      // remark: this line only works if the §D view is drawn before the 2D views
+      // remark: this line only works if the 3D view is drawn before the 2D views
       //          as m_bDecreaseScreenResNow is changed in Plan3DFrame
-      bForceCompleteRedrawDueToResChange = bForceCompleteRedrawDueToResChange || m_bDecreaseScreenResNow;
+      bForceCompleteRedrawDueToResChange = bForceCompleteRedrawDueToResChange || bPrevResType != m_bDecreaseScreenResNow;
 
       if (m_bRedrawMask[size_t(m_e2x2WindowMode[i])] || bForceCompleteRedrawDueToResChange) {
         iActiveRenderWindows++;
         bool bLocalNewDataToShow;
         switch (m_e2x2WindowMode[i]) {
            case WM_3D       : {
+                                SetRenderTargetArea(eArea, false);
                                 if (!m_bPerformRedraw && m_bPerformReCompose && !bForceCompleteRedrawDueToResChange){
                                   Recompose3DView(eArea);
                                   bLocalNewDataToShow = true;
@@ -436,7 +438,7 @@ void GLRenderer::Paint() {
                                   // plan the frame
                                   Plan3DFrame();
                                   // if m_bDecreaseScreenResthe render target area may have changed
-                                  if (m_bDecreaseScreenResNow) SetRenderTargetArea(eArea, m_bDecreaseScreenResNow); 
+                                  if (m_bDecreaseScreenResNow) SetRenderTargetArea(eArea, true); 
                                   // execute the frame0
                                   float fMsecPassed = 0.0f;
                                   bLocalNewDataToShow = Execute3DFrame(eArea, fMsecPassed);
@@ -448,7 +450,9 @@ void GLRenderer::Paint() {
                               }
            case WM_CORONAL :
            case WM_AXIAL    :
-           case WM_SAGITTAL  :bLocalNewDataToShow = Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
+           case WM_SAGITTAL  :
+                              SetRenderTargetArea(eArea, m_bDecreaseScreenResNow); 
+                              bLocalNewDataToShow = Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
                               m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = false;
                               break;
            default          : T_ERROR("Invalid Windowmode");
@@ -461,7 +465,7 @@ void GLRenderer::Paint() {
         // blit the previous result quad to the entire screen but restrict drawing to the current subarea
         m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
         SetRenderTargetArea(RA_FULLSCREEN,false);
-        SetRenderTargetAreaScissor(eArea);
+        SetRenderTargetAreaScissor(eArea, false);
         RerenderPreviousResult(false);
         m_TargetBinder.Unbind();
       }
@@ -478,8 +482,8 @@ void GLRenderer::Paint() {
   EndFrame(bNewDataToShow);
 }
 
-void GLRenderer::FullscreenQuad() {
-  float fMaxCoord = (m_bOffscreenIsLowRes) ? 1.0f/m_fScreenResDecFactor : 1.0f;
+void GLRenderer::FullscreenQuad(bool bUpscale) {
+  float fMaxCoord = (bUpscale) ? 1.0f/m_fScreenResDecFactor : 1.0f;
 
   glBegin(GL_QUADS);
     glTexCoord2d(0,0);
@@ -497,7 +501,6 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
   // if the image is complete
   if (bNewDataToShow) {
     m_bOffscreenIsLowRes = m_bDecreaseScreenResNow;
-    //m_bDecreaseScreenResNow = false;
 
     // in stereo compose both images into one, in mono mode simply swap the pointers
     if (m_bDoStereoRendering) {
@@ -509,7 +512,7 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 
       m_pProgramComposeAnaglyphs->Enable();
       glDisable(GL_DEPTH_TEST);
-      FullscreenQuad();
+      FullscreenQuad(m_bOffscreenIsLowRes);
       m_pProgramComposeAnaglyphs->Disable();
 
       m_TargetBinder.Unbind();
@@ -557,8 +560,8 @@ void GLRenderer::SetRenderTargetArea(ERenderArea eREnderArea, bool bDecreaseScre
   }
 }
 
-void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
-  UINTVECTOR2  vWinSize = (m_bDecreaseScreenResNow) ? m_vWinSize/m_fScreenResDecFactor : m_vWinSize;
+void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea, bool bDecreaseScreenResNow) {
+  UINTVECTOR2  vWinSize = (bDecreaseScreenResNow) ? m_vWinSize/m_fScreenResDecFactor : m_vWinSize;
 
   switch (eREnderArea) {
     case RA_TOPLEFT    : glScissor(0, vWinSize.y*m_vWinFraction.y, 
@@ -577,7 +580,7 @@ void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
                                    vWinSize.x, vWinSize.y*m_vWinFraction.y);
                          glEnable( GL_SCISSOR_TEST );
                          break;
-    case RA_FULLSCREEN : /*glScissor(0,0,vWinSize.x, vWinSize.y);*/
+    case RA_FULLSCREEN : glScissor(0,0,vWinSize.x, vWinSize.y);
                          glDisable( GL_SCISSOR_TEST );
                          break;
     default            : T_ERROR("Invalid render area set"); break;
@@ -744,11 +747,6 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       glBlendFunc(GL_ONE, GL_ONE);
       glBlendEquation(GL_MAX);
       glEnable(GL_BLEND);
-
-      SetRenderTargetAreaScissor(eREnderArea);
-      glClearColor(0,0,0,0);
-      glClear(GL_COLOR_BUFFER_BIT);
-      glDisable( GL_SCISSOR_TEST );
     }
 
     glDisable(GL_DEPTH_TEST);
@@ -776,8 +774,9 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     if(t) t->Bind(0);
 
     // clear the target at the beginning
-    SetRenderTargetAreaScissor(eREnderArea);
-    glClearColor(0,0,0,1);
+    SetRenderTargetAreaScissor(eREnderArea, m_bDecreaseScreenResNow);
+
+    glClearColor(0,0,0,1); 
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
@@ -897,14 +896,14 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
 
-    SetRenderTargetArea(RA_FULLSCREEN,m_bDecreaseScreenResNow);
-    SetRenderTargetAreaScissor(eREnderArea);
+    SetRenderTargetArea(RA_FULLSCREEN,false);
+    SetRenderTargetAreaScissor(eREnderArea, m_bDecreaseScreenResNow);
 
     m_pFBO3DImageCurrent[1]->Read(0);
     m_p1DTransTex->Bind(1);
     m_pProgramTransMIP->Enable();
     glDisable(GL_DEPTH_TEST);
-    FullscreenQuad();
+    FullscreenQuad(false);
     glDisable( GL_SCISSOR_TEST );
     m_pFBO3DImageCurrent[1]->FinishRead(0);
 
@@ -1004,7 +1003,7 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, cons
 
 void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
   m_iFilledBuffers = 0;
-  SetRenderTargetAreaScissor(eREnderArea);
+  SetRenderTargetAreaScissor(eREnderArea, m_bDecreaseScreenResNow);
 
   glClearColor(0,0,0,0);
 
@@ -1250,7 +1249,7 @@ void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
  
   m_pProgramTrans->Enable();
 
-  FullscreenQuad();
+  FullscreenQuad(m_bOffscreenIsLowRes);
 
   m_pProgramTrans->Disable();
 
