@@ -298,7 +298,8 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
 
       if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       m_pProgramIso->Enable();
-      m_pProgramIso->SetUniformVector("fIsoval",m_fCVIsovalue);
+      m_pProgramIso->SetUniformVector("fIsoval", static_cast<float>
+                                                 (GetNormalizedCVIsovalue()));
       RenderProxyGeometry();
       m_pProgramIso->Disable();
     }

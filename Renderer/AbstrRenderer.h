@@ -369,7 +369,7 @@ class AbstrRenderer {
     virtual void SetCV(bool bEnable);
     virtual bool GetCV() const {return m_bDoClearView;}
     virtual void SetCVIsoValue(float fIsovalue);
-    virtual float GetCVIsoValue() const {return m_fCVNormalizedIsovalue;}
+    virtual float GetCVIsoValue() const { return m_fCVIsovalue; }
     virtual void SetCVColor(const FLOATVECTOR3& vColor);
     virtual FLOATVECTOR3 GetCVColor() const {return m_vCVColor;}
     virtual void SetCVSize(float fSize);
@@ -433,6 +433,8 @@ class AbstrRenderer {
 
     /// @return the current iso value, normalized to be in [0,1]
     double GetNormalizedIsovalue() const;
+    /// @return the current clearview iso value, normalized to be in [0,1]
+    double GetNormalizedCVIsovalue() const;
 
   protected:
     MasterController*   m_pMasterController;
@@ -506,7 +508,6 @@ class AbstrRenderer {
 
     bool                m_bDoClearView;
     float               m_fCVIsovalue;
-    float               m_fCVNormalizedIsovalue;
     FLOATVECTOR3        m_vCVColor;
     float               m_fCVSize;
     float               m_fCVContextScale;

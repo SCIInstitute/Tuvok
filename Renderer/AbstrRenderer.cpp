@@ -104,7 +104,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bRenderPlanesIn3D(false),
   m_bDoClearView(false),
   m_fCVIsovalue(0.8f),
-  m_fCVNormalizedIsovalue(0.8f),
   m_vCVColor(1,0,0),
   m_fCVSize(5.5f),
   m_fCVContextScale(1.0f),
@@ -203,8 +202,10 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetDomainSize()[0]/2;
   m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetDomainSize()[1]/2;
 
-  // now that we know the range of the dataset compute the non-normalized isovalues
-  // set the default isoval to half the range.
+  // now that we know the range of the dataset, we can set the default
+  // isoval to half the range.  For CV, we'll set the isovals to a bit above
+  // the context isoval; with any luck, it'll make a valid image right off the
+  // bat.
   std::pair<double,double> rng = m_pDataset->GetRange();
   // It can happen that we don't know the range; old UVFs, for example.  We'll
   // know this because the minimum will be g.t. the maximum.
@@ -213,7 +214,7 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   } else {
     m_fIsovalue = (rng.second-rng.first) / 2.0f;
   }
-  m_fCVIsovalue = m_fCVNormalizedIsovalue * MaxValue()/(1<<m_pDataset->GetBitWidth());
+  m_fCVIsovalue = m_fIsovalue + (m_fIsovalue/2.0f);
 
   return true;
 }
@@ -367,6 +368,11 @@ void AbstrRenderer::SetIsoValue(float fIsovalue) {
 double AbstrRenderer::GetNormalizedIsovalue() const
 {
   return m_fIsovalue / MaxValue();
+}
+
+double AbstrRenderer::GetNormalizedCVIsovalue() const
+{
+  return m_fCVIsovalue / MaxValue();
 }
 
 bool AbstrRenderer::CheckForRedraw() {
@@ -1026,8 +1032,8 @@ void AbstrRenderer::Set2DPlanesIn3DView(bool bRenderPlanesIn3D) {
 }
 
 void AbstrRenderer::SetCVIsoValue(float fIsovalue) {
-  if (m_fCVNormalizedIsovalue != fIsovalue) {
-    m_fCVIsovalue = fIsovalue * MaxValue()/(1<<m_pDataset->GetBitWidth());
+  if (m_fCVIsovalue != fIsovalue) {
+    m_fCVIsovalue = fIsovalue;
 
     if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) {
       ScheduleWindowRedraw(WM_3D);
