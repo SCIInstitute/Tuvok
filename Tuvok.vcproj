@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib;IO/3rdParty/boost"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib;IO/3rdParty/boost;IO/3rdParty/zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -188,7 +188,7 @@
 				AdditionalOptions="/U&quot;_SECURE_SCL&quot; /D&quot;_SECURE_SCL=0&quot;"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib;IO/3rdParty/boost"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib;IO/3rdParty/boost;IO/3rdParty/zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -258,7 +258,7 @@
 				AdditionalOptions="/U&quot;_SECURE_SCL&quot; /D&quot;_SECURE_SCL=0&quot;"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;;3rdParty\zlib;IO/3rdParty/boost"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;;3rdParty\zlib;IO/3rdParty/boost;IO/3rdParty/zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -324,7 +324,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib;IO/3rdParty/boost"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib;IO/3rdParty/boost;IO/3rdParty/zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -392,7 +392,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;;3rdParty\zlib;IO/3rdParty/boost"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;;3rdParty\zlib;IO/3rdParty/boost;IO/3rdParty/zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -462,7 +462,7 @@
 				AdditionalOptions="/U&quot;_SECURE_SCL&quot; /D&quot;_SECURE_SCL=0&quot;"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib;IO/3rdParty/boost"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR32)\include&quot;;3rdParty\zlib;IO/3rdParty/boost;IO/3rdParty/zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -532,7 +532,7 @@
 				AdditionalOptions="/U&quot;_SECURE_SCL&quot; /D&quot;_SECURE_SCL=0&quot;"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;;3rdParty\zlib;IO/3rdParty/boost"
+				AdditionalIncludeDirectories="3rdParty\boost;3rdParty\GLEW;.;&quot;$(QTDIR64)\include&quot;;3rdParty\zlib;IO/3rdParty/boost;IO/3rdParty/zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -1461,11 +1461,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
