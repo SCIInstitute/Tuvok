@@ -35,13 +35,13 @@
 */
 #include <cerrno>
 #include <cstring>
-#include <3rdParty/bzip2/bzlib.h>
+#include "3rdParty/bzip2/bzlib.h"
 #include "boost/cstdint.hpp"
 
 #include "RAWConverter.h"
+#include "Basics/SysTools.h"
 #include "IOManager.h"  // for the size defines
-#include <Basics/SysTools.h>
-#include <IO/gzio.h>
+#include "IO/gzio.h"
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
 #include "UVF/MaxMinDataBlock.h"
