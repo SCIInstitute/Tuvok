@@ -41,38 +41,9 @@ contains(QMAKE_PRL_CONFIG, shared) {
 
 # Input
 HEADERS += \
-           3rdParty/bzip2/bzlib.h \
-           3rdParty/bzip2/bzlib_private.h \
            3rdParty/GLEW/GL/glew.h \
            3rdParty/GLEW/GL/glxew.h \
            3rdParty/GLEW/GL/wglew.h \
-           3rdParty/jpeglib/cderror.h \
-           3rdParty/jpeglib/cdjpeg.h \
-           3rdParty/jpeglib/jchuff.h \
-           3rdParty/jpeglib/jconfig.h \
-           3rdParty/jpeglib/jdct.h \
-           3rdParty/jpeglib/jdhuff.h \
-           3rdParty/jpeglib/jerror.h \
-           3rdParty/jpeglib/jinclude.h \
-           3rdParty/jpeglib/jlossls.h \
-           3rdParty/jpeglib/jlossy.h \
-           3rdParty/jpeglib/jmemsys.h \
-           3rdParty/jpeglib/jmorecfg.h \
-           3rdParty/jpeglib/jpegint.h \
-           3rdParty/jpeglib/jpeglib.h \
-           3rdParty/jpeglib/jversion.h \
-           3rdParty/jpeglib/mangle_jpeg.h \
-           3rdParty/jpeglib/transupp.h \
-           3rdParty/tiff/t4.h \
-           3rdParty/tiff/tif_dir.h \
-           3rdParty/tiff/tif_fax3.h \
-           3rdParty/tiff/tiffconf.h \
-           3rdParty/tiff/tiff.h \
-           3rdParty/tiff/tiffio.h \
-           3rdParty/tiff/tiffiop.h \
-           3rdParty/tiff/tiffvers.h \
-           3rdParty/tiff/tif_predict.h \
-           3rdParty/tiff/uvcode.h \
            Basics/Appendix.h \
            Basics/ArcBall.h \
            Basics/Checksums/crc32.h \
@@ -92,6 +63,35 @@ HEADERS += \
            DebugOut/ConsoleOut.h \
            DebugOut/MultiplexOut.h \
            DebugOut/TextfileOut.h \
+           IO/3rdParty/bzip2/bzlib.h \
+           IO/3rdParty/bzip2/bzlib_private.h \
+           IO/3rdParty/jpeglib/cderror.h \
+           IO/3rdParty/jpeglib/cdjpeg.h \
+           IO/3rdParty/jpeglib/jchuff.h \
+           IO/3rdParty/jpeglib/jconfig.h \
+           IO/3rdParty/jpeglib/jdct.h \
+           IO/3rdParty/jpeglib/jdhuff.h \
+           IO/3rdParty/jpeglib/jerror.h \
+           IO/3rdParty/jpeglib/jinclude.h \
+           IO/3rdParty/jpeglib/jlossls.h \
+           IO/3rdParty/jpeglib/jlossy.h \
+           IO/3rdParty/jpeglib/jmemsys.h \
+           IO/3rdParty/jpeglib/jmorecfg.h \
+           IO/3rdParty/jpeglib/jpegint.h \
+           IO/3rdParty/jpeglib/jpeglib.h \
+           IO/3rdParty/jpeglib/jversion.h \
+           IO/3rdParty/jpeglib/mangle_jpeg.h \
+           IO/3rdParty/jpeglib/transupp.h \
+           IO/3rdParty/tiff/t4.h \
+           IO/3rdParty/tiff/tif_dir.h \
+           IO/3rdParty/tiff/tif_fax3.h \
+           IO/3rdParty/tiff/tiffconf.h \
+           IO/3rdParty/tiff/tiff.h \
+           IO/3rdParty/tiff/tiffio.h \
+           IO/3rdParty/tiff/tiffiop.h \
+           IO/3rdParty/tiff/tiffvers.h \
+           IO/3rdParty/tiff/tif_predict.h \
+           IO/3rdParty/tiff/uvcode.h \
            IO/AbstrConverter.h \
            IO/BOVConverter.h \
            IO/BrickedDataset.h \
@@ -157,113 +157,7 @@ HEADERS += \
            StdTuvokDefines.h
 
 SOURCES += \
-           3rdParty/bzip2/blocksort.c \
-           3rdParty/bzip2/bzlib.c \
-           3rdParty/bzip2/compress.c \
-           3rdParty/bzip2/crctable.c \
-           3rdParty/bzip2/decompress.c \
-           3rdParty/bzip2/huffman.c \
-           3rdParty/bzip2/randtable.c \
            3rdParty/GLEW/GL/glew.c \
-           3rdParty/jpeglib/cdjpeg.c \
-           3rdParty/jpeglib/jcapimin.c \
-           3rdParty/jpeglib/jcapistd.c \
-           3rdParty/jpeglib/jccoefct.c \
-           3rdParty/jpeglib/jccolor.c \
-           3rdParty/jpeglib/jcdctmgr.c \
-           3rdParty/jpeglib/jcdiffct.c \
-           3rdParty/jpeglib/jchuff.c \
-           3rdParty/jpeglib/jcinit.c \
-           3rdParty/jpeglib/jclhuff.c \
-           3rdParty/jpeglib/jclossls.c \
-           3rdParty/jpeglib/jclossy.c \
-           3rdParty/jpeglib/jcmainct.c \
-           3rdParty/jpeglib/jcmarker.c \
-           3rdParty/jpeglib/jcmaster.c \
-           3rdParty/jpeglib/jcodec.c \
-           3rdParty/jpeglib/jcomapi.c \
-           3rdParty/jpeglib/jcparam.c \
-           3rdParty/jpeglib/jcphuff.c \
-           3rdParty/jpeglib/jcpred.c \
-           3rdParty/jpeglib/jcprepct.c \
-           3rdParty/jpeglib/jcsample.c \
-           3rdParty/jpeglib/jcscale.c \
-           3rdParty/jpeglib/jcshuff.c \
-           3rdParty/jpeglib/jctrans.c \
-           3rdParty/jpeglib/jdapimin.c \
-           3rdParty/jpeglib/jdapistd.c \
-           3rdParty/jpeglib/jdatadst.c \
-           3rdParty/jpeglib/jdatasrc.c \
-           3rdParty/jpeglib/jdcoefct.c \
-           3rdParty/jpeglib/jdcolor.c \
-           3rdParty/jpeglib/jddctmgr.c \
-           3rdParty/jpeglib/jddiffct.c \
-           3rdParty/jpeglib/jdhuff.c \
-           3rdParty/jpeglib/jdinput.c \
-           3rdParty/jpeglib/jdlhuff.c \
-           3rdParty/jpeglib/jdlossls.c \
-           3rdParty/jpeglib/jdlossy.c \
-           3rdParty/jpeglib/jdmainct.c \
-           3rdParty/jpeglib/jdmarker.c \
-           3rdParty/jpeglib/jdmaster.c \
-           3rdParty/jpeglib/jdmerge.c \
-           3rdParty/jpeglib/jdphuff.c \
-           3rdParty/jpeglib/jdpostct.c \
-           3rdParty/jpeglib/jdpred.c \
-           3rdParty/jpeglib/jdsample.c \
-           3rdParty/jpeglib/jdscale.c \
-           3rdParty/jpeglib/jdshuff.c \
-           3rdParty/jpeglib/jdtrans.c \
-           3rdParty/jpeglib/jerror.c \
-           3rdParty/jpeglib/jfdctflt.c \
-           3rdParty/jpeglib/jfdctfst.c \
-           3rdParty/jpeglib/jfdctint.c \
-           3rdParty/jpeglib/jidctflt.c \
-           3rdParty/jpeglib/jidctfst.c \
-           3rdParty/jpeglib/jidctint.c \
-           3rdParty/jpeglib/jidctred.c \
-           3rdParty/jpeglib/jmemmgr.c \
-           3rdParty/jpeglib/jmemnobs.c \
-           3rdParty/jpeglib/jquant1.c \
-           3rdParty/jpeglib/jquant2.c \
-           3rdParty/jpeglib/jutils.c \
-           3rdParty/jpeglib/rdcolmap.c \
-           3rdParty/jpeglib/rdswitch.c \
-           3rdParty/jpeglib/transupp.c \
-           3rdParty/tiff/tif_aux.c \
-           3rdParty/tiff/tif_close.c \
-           3rdParty/tiff/tif_codec.c \
-           3rdParty/tiff/tif_color.c \
-           3rdParty/tiff/tif_compress.c \
-           3rdParty/tiff/tif_dir.c \
-           3rdParty/tiff/tif_dirinfo.c \
-           3rdParty/tiff/tif_dirread.c \
-           3rdParty/tiff/tif_dirwrite.c \
-           3rdParty/tiff/tif_dumpmode.c \
-           3rdParty/tiff/tif_error.c \
-           3rdParty/tiff/tif_extension.c \
-           3rdParty/tiff/tif_fax3.c \
-           3rdParty/tiff/tif_fax3sm.c \
-           3rdParty/tiff/tif_flush.c \
-           3rdParty/tiff/tif_getimage.c \
-           3rdParty/tiff/tif_luv.c \
-           3rdParty/tiff/tif_lzw.c \
-           3rdParty/tiff/tif_next.c \
-           3rdParty/tiff/tif_open.c \
-           3rdParty/tiff/tif_packbits.c \
-           3rdParty/tiff/tif_pixarlog.c \
-           3rdParty/tiff/tif_predict.c \
-           3rdParty/tiff/tif_print.c \
-           3rdParty/tiff/tif_read.c \
-           3rdParty/tiff/tif_strip.c \
-           3rdParty/tiff/tif_swab.c \
-           3rdParty/tiff/tif_thunder.c \
-           3rdParty/tiff/tif_tile.c \
-           3rdParty/tiff/tif_unix.c \
-           3rdParty/tiff/tif_version.c \
-           3rdParty/tiff/tif_warning.c \
-           3rdParty/tiff/tif_write.c \
-           3rdParty/tiff/tif_zip.c \
            Basics/Appendix.cpp \
            Basics/ArcBall.cpp \
            Basics/Checksums/MD5.cpp \
@@ -280,6 +174,112 @@ SOURCES += \
            DebugOut/ConsoleOut.cpp \
            DebugOut/MultiplexOut.cpp \
            DebugOut/TextfileOut.cpp \
+           IO/3rdParty/bzip2/blocksort.c \
+           IO/3rdParty/bzip2/bzlib.c \
+           IO/3rdParty/bzip2/compress.c \
+           IO/3rdParty/bzip2/crctable.c \
+           IO/3rdParty/bzip2/decompress.c \
+           IO/3rdParty/bzip2/huffman.c \
+           IO/3rdParty/bzip2/randtable.c \
+           IO/3rdParty/jpeglib/cdjpeg.c \
+           IO/3rdParty/jpeglib/jcapimin.c \
+           IO/3rdParty/jpeglib/jcapistd.c \
+           IO/3rdParty/jpeglib/jccoefct.c \
+           IO/3rdParty/jpeglib/jccolor.c \
+           IO/3rdParty/jpeglib/jcdctmgr.c \
+           IO/3rdParty/jpeglib/jcdiffct.c \
+           IO/3rdParty/jpeglib/jchuff.c \
+           IO/3rdParty/jpeglib/jcinit.c \
+           IO/3rdParty/jpeglib/jclhuff.c \
+           IO/3rdParty/jpeglib/jclossls.c \
+           IO/3rdParty/jpeglib/jclossy.c \
+           IO/3rdParty/jpeglib/jcmainct.c \
+           IO/3rdParty/jpeglib/jcmarker.c \
+           IO/3rdParty/jpeglib/jcmaster.c \
+           IO/3rdParty/jpeglib/jcodec.c \
+           IO/3rdParty/jpeglib/jcomapi.c \
+           IO/3rdParty/jpeglib/jcparam.c \
+           IO/3rdParty/jpeglib/jcphuff.c \
+           IO/3rdParty/jpeglib/jcpred.c \
+           IO/3rdParty/jpeglib/jcprepct.c \
+           IO/3rdParty/jpeglib/jcsample.c \
+           IO/3rdParty/jpeglib/jcscale.c \
+           IO/3rdParty/jpeglib/jcshuff.c \
+           IO/3rdParty/jpeglib/jctrans.c \
+           IO/3rdParty/jpeglib/jdapimin.c \
+           IO/3rdParty/jpeglib/jdapistd.c \
+           IO/3rdParty/jpeglib/jdatadst.c \
+           IO/3rdParty/jpeglib/jdatasrc.c \
+           IO/3rdParty/jpeglib/jdcoefct.c \
+           IO/3rdParty/jpeglib/jdcolor.c \
+           IO/3rdParty/jpeglib/jddctmgr.c \
+           IO/3rdParty/jpeglib/jddiffct.c \
+           IO/3rdParty/jpeglib/jdhuff.c \
+           IO/3rdParty/jpeglib/jdinput.c \
+           IO/3rdParty/jpeglib/jdlhuff.c \
+           IO/3rdParty/jpeglib/jdlossls.c \
+           IO/3rdParty/jpeglib/jdlossy.c \
+           IO/3rdParty/jpeglib/jdmainct.c \
+           IO/3rdParty/jpeglib/jdmarker.c \
+           IO/3rdParty/jpeglib/jdmaster.c \
+           IO/3rdParty/jpeglib/jdmerge.c \
+           IO/3rdParty/jpeglib/jdphuff.c \
+           IO/3rdParty/jpeglib/jdpostct.c \
+           IO/3rdParty/jpeglib/jdpred.c \
+           IO/3rdParty/jpeglib/jdsample.c \
+           IO/3rdParty/jpeglib/jdscale.c \
+           IO/3rdParty/jpeglib/jdshuff.c \
+           IO/3rdParty/jpeglib/jdtrans.c \
+           IO/3rdParty/jpeglib/jerror.c \
+           IO/3rdParty/jpeglib/jfdctflt.c \
+           IO/3rdParty/jpeglib/jfdctfst.c \
+           IO/3rdParty/jpeglib/jfdctint.c \
+           IO/3rdParty/jpeglib/jidctflt.c \
+           IO/3rdParty/jpeglib/jidctfst.c \
+           IO/3rdParty/jpeglib/jidctint.c \
+           IO/3rdParty/jpeglib/jidctred.c \
+           IO/3rdParty/jpeglib/jmemmgr.c \
+           IO/3rdParty/jpeglib/jmemnobs.c \
+           IO/3rdParty/jpeglib/jquant1.c \
+           IO/3rdParty/jpeglib/jquant2.c \
+           IO/3rdParty/jpeglib/jutils.c \
+           IO/3rdParty/jpeglib/rdcolmap.c \
+           IO/3rdParty/jpeglib/rdswitch.c \
+           IO/3rdParty/jpeglib/transupp.c \
+           IO/3rdParty/tiff/tif_aux.c \
+           IO/3rdParty/tiff/tif_close.c \
+           IO/3rdParty/tiff/tif_codec.c \
+           IO/3rdParty/tiff/tif_color.c \
+           IO/3rdParty/tiff/tif_compress.c \
+           IO/3rdParty/tiff/tif_dir.c \
+           IO/3rdParty/tiff/tif_dirinfo.c \
+           IO/3rdParty/tiff/tif_dirread.c \
+           IO/3rdParty/tiff/tif_dirwrite.c \
+           IO/3rdParty/tiff/tif_dumpmode.c \
+           IO/3rdParty/tiff/tif_error.c \
+           IO/3rdParty/tiff/tif_extension.c \
+           IO/3rdParty/tiff/tif_fax3.c \
+           IO/3rdParty/tiff/tif_fax3sm.c \
+           IO/3rdParty/tiff/tif_flush.c \
+           IO/3rdParty/tiff/tif_getimage.c \
+           IO/3rdParty/tiff/tif_luv.c \
+           IO/3rdParty/tiff/tif_lzw.c \
+           IO/3rdParty/tiff/tif_next.c \
+           IO/3rdParty/tiff/tif_open.c \
+           IO/3rdParty/tiff/tif_packbits.c \
+           IO/3rdParty/tiff/tif_pixarlog.c \
+           IO/3rdParty/tiff/tif_predict.c \
+           IO/3rdParty/tiff/tif_print.c \
+           IO/3rdParty/tiff/tif_read.c \
+           IO/3rdParty/tiff/tif_strip.c \
+           IO/3rdParty/tiff/tif_swab.c \
+           IO/3rdParty/tiff/tif_thunder.c \
+           IO/3rdParty/tiff/tif_tile.c \
+           IO/3rdParty/tiff/tif_unix.c \
+           IO/3rdParty/tiff/tif_version.c \
+           IO/3rdParty/tiff/tif_warning.c \
+           IO/3rdParty/tiff/tif_write.c \
+           IO/3rdParty/tiff/tif_zip.c \
            IO/AbstrConverter.cpp \
            IO/BOVConverter.cpp \
            IO/BrickedDataset.cpp \
