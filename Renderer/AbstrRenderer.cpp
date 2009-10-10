@@ -1012,9 +1012,12 @@ void AbstrRenderer::SetCVIsoValue(float fIsovalue) {
   if (m_fCVNormalizedIsovalue != fIsovalue) {
     m_fCVIsovalue = fIsovalue * MaxValue()/(1<<m_pDataset->GetBitWidth());
 
-    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) ScheduleWindowRedraw(WM_3D);
+    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) {
+      ScheduleWindowRedraw(WM_3D);
+    }
     std::ostringstream prov;
-    prov << "setcviso " << fIsovalue << std::endl;
+    prov << fIsovalue;
+    Controller::Instance().Provenance("cv", "setcviso", prov.str());
   }
 }
 
