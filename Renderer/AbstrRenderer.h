@@ -254,7 +254,7 @@ class AbstrRenderer {
     float GetSampleRateModifier() const { return m_fSampleRateModifier; }
 
     virtual void SetIsoValue(float fIsovalue);
-    float GetIsoValue() const { return m_fNormalizedIsovalue; }
+    float GetIsoValue() const { return m_fIsovalue; }
 
     virtual void SetIsosufaceColor(const FLOATVECTOR3& vColor);
     virtual FLOATVECTOR3 GetIsosufaceColor() const { return m_vIsoColor; }
@@ -431,6 +431,9 @@ class AbstrRenderer {
     /// memory.  It's expected you'll set another one directly afterwards.
     void Free1DTrans();
 
+    /// @return the current iso value, normalized to be in [0,1]
+    double GetNormalizedIsovalue() const;
+
   protected:
     MasterController*   m_pMasterController;
     bool                m_bPerformRedraw;
@@ -451,7 +454,6 @@ class AbstrRenderer {
     TransferFunction2D* m_p2DTrans;
     float               m_fSampleRateModifier;
     float               m_fIsovalue;
-    float               m_fNormalizedIsovalue;
     FLOATVECTOR3        m_vIsoColor;
     FLOATVECTOR3        m_vBackgroundColors[2];
     FLOATVECTOR4        m_vTextColor;
@@ -563,7 +565,7 @@ class AbstrRenderer {
     void                RestartTimer(const size_t iTimerIndex);
     void                RestartTimers();
     virtual void        UpdateColorsInShaders() = 0;
-    double              MaxValue();
+    double              MaxValue() const;
 };
 
 #endif // ABSTRRENDERER_H

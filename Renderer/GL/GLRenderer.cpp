@@ -1545,7 +1545,8 @@ void GLRenderer::SetDataDepShaderVars() {
       GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
       shader->Enable();
-      shader->SetUniformVector("fIsoval",m_fIsovalue);
+      shader->SetUniformVector("fIsoval", static_cast<float>
+                                          (this->GetNormalizedIsovalue()));
       shader->Disable();
       break;
     }

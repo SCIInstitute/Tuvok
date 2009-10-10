@@ -62,7 +62,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_p2DTrans(NULL),
   m_fSampleRateModifier(1.0f),
   m_fIsovalue(0.5f),
-  m_fNormalizedIsovalue(0.5f),
   m_vIsoColor(0.5,0.5,0.5),
   m_vTextColor(1,1,1,1),
   m_bRenderGlobalBBox(false),
@@ -204,11 +203,17 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetDomainSize()[0]/2;
   m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetDomainSize()[1]/2;
 
-
   // now that we know the range of the dataset compute the non-normalized isovalues
-  m_fIsovalue = m_fNormalizedIsovalue * MaxValue()/(1<<m_pDataset->GetBitWidth());
+  // set the default isoval to half the range.
+  std::pair<double,double> rng = m_pDataset->GetRange();
+  // It can happen that we don't know the range; old UVFs, for example.  We'll
+  // know this because the minimum will be g.t. the maximum.
+  if(rng.first > rng.second) {
+    m_fIsovalue = rng.second / 2.0f;
+  } else {
+    m_fIsovalue = (rng.second-rng.first) / 2.0f;
+  }
   m_fCVIsovalue = m_fCVNormalizedIsovalue * MaxValue()/(1<<m_pDataset->GetBitWidth());
-
 
   return true;
 }
@@ -353,15 +358,22 @@ void AbstrRenderer::SetSampleRateModifier(float fSampleRateModifier) {
 }
 
 void AbstrRenderer::SetIsoValue(float fIsovalue) {
-  if(fIsovalue != m_fNormalizedIsovalue) {
-    m_fIsovalue = fIsovalue * MaxValue()/(1<<m_pDataset->GetBitWidth());
+  if(fIsovalue != m_fIsovalue) {
+    m_fIsovalue = fIsovalue;
     ScheduleWindowRedraw(WM_3D);
   }
 }
 
+double AbstrRenderer::GetNormalizedIsovalue() const
+{
+  return m_fIsovalue / MaxValue();
+}
+
 bool AbstrRenderer::CheckForRedraw() {
-  if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame || m_iCurrentLODOffset > m_iMinLODForCurrentView || m_bDoAnotherRedrawDueToAllMeans) {
-    if (m_iCheckCounter == 0)  {
+  if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame ||
+      m_iCurrentLODOffset > m_iMinLODForCurrentView ||
+      m_bDoAnotherRedrawDueToAllMeans) {
+    if (m_iCheckCounter == 0) {
       AbstrDebugOut *dbg = m_pMasterController->DebugOut();
       dbg->Message(_func_,"Still drawing...");
       return true;
@@ -698,7 +710,7 @@ vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
   return vBrickList;
 }
 
-double AbstrRenderer::MaxValue() {
+double AbstrRenderer::MaxValue() const {
   if (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits)
     return 255;
   else
@@ -795,7 +807,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
       case RM_ISOSURFACE:
         bContainsData = m_pDataset->ContainsData(
                           brick->first,
-                          m_fIsovalue*fMaxValue
+                          this->GetNormalizedIsovalue()
                         );
         break;
       default:
@@ -804,7 +816,12 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     }
 
     // skip the brick if no data are visible in the current rendering mode.
-    if(!bContainsData) continue;
+    if(!bContainsData) {
+      MESSAGE("Skipping brick <%u,%u> because it doesn't contain data "
+              "under the current %s.", brick->first.first, brick->first.second,
+              ((m_eRenderMode == RM_ISOSURFACE) ? "isovalue" : "tfqn"));
+      continue;
+    }
 
     bool first_x = m_pDataset->BrickIsFirstInDimension(0, brick->first);
     bool first_y = m_pDataset->BrickIsFirstInDimension(1, brick->first);

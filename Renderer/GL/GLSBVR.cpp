@@ -138,7 +138,8 @@ void GLSBVR::SetDataDepShaderVars() {
     FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
 
     shader->Enable();
-    shader->SetUniformVector("fIsoval",m_fIsovalue);
+    shader->SetUniformVector("fIsoval", static_cast<float>
+                                        (this->GetNormalizedIsovalue()));
     // this is not really a data dependent var but as we only need to
     // do it once per frame we may also do it here
     shader->SetUniformVector("vLightDiffuse",d.x*m_vIsoColor.x,d.y*m_vIsoColor.y,d.z*m_vIsoColor.z);
@@ -287,7 +288,8 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader->Enable();
     SetBrickDepShaderVars(b);
-    shader->SetUniformVector("fIsoval",m_fIsovalue);
+    shader->SetUniformVector("fIsoval", static_cast<float>
+                                        (this->GetNormalizedIsovalue()));
     RenderProxyGeometry();
     shader->Disable();
 

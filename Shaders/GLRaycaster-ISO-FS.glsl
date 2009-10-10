@@ -39,7 +39,7 @@ uniform sampler3D texVolume;   ///< the data volume
 uniform sampler2D texRayExitPos; ///< the backface (or ray exit point) texture in eyecoords
 uniform vec3 vVoxelStepsize;   ///< Stepsize (in texcoord) to get to the next voxel
 uniform float fRayStepsize;    ///< stepsize along the ray
-uniform float fIsoval;         ///< the isovalue
+uniform float fIsoval;         ///< the isovalue, normalized to be in [0,1]
 uniform vec2 vScreensize;      ///< the size of the screen in pixels
 uniform vec2 vProjParam;       ///< X = far / (far - near)  / Y = (far * near / (near - far))
 uniform int  iTileID;          ///< ID of the current tile
