@@ -35,7 +35,7 @@
 #include <cstring>
 #include "boost/cstdint.hpp"
 #ifndef TUVOK_NO_IO
-# include "../3rdParty/tiff/tiffio.h"
+# include "3rdParty/tiff/tiffio.h"
 #else
   struct TIFF;
 #endif
