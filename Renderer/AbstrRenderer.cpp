@@ -61,7 +61,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_p1DTrans(NULL),
   m_p2DTrans(NULL),
   m_fSampleRateModifier(1.0f),
-  m_fIsovalue(0.5f),
   m_vIsoColor(0.5,0.5,0.5),
   m_vTextColor(1,1,1,1),
   m_bRenderGlobalBBox(false),
@@ -103,7 +102,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bRenderCoordArrows(false),
   m_bRenderPlanesIn3D(false),
   m_bDoClearView(false),
-  m_fCVIsovalue(0.8f),
   m_vCVColor(1,0,0),
   m_fCVSize(5.5f),
   m_fCVContextScale(1.0f),
@@ -133,7 +131,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vWinFraction(0.5, 0.5),
   m_cAmbient(1.0f,1.0f,1.0f,0.2f),
   m_cDiffuse(1.0f,1.0f,1.0f,0.8f),
-  m_cSpecular(1.0f,1.0f,1.0f,1.0f)
+  m_cSpecular(1.0f,1.0f,1.0f,1.0f),
+  m_fIsovalue(0.5f),
+  m_fCVIsovalue(0.8f)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);

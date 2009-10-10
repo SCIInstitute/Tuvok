@@ -455,7 +455,6 @@ class AbstrRenderer {
     TransferFunction1D* m_p1DTrans;
     TransferFunction2D* m_p2DTrans;
     float               m_fSampleRateModifier;
-    float               m_fIsovalue;
     FLOATVECTOR3        m_vIsoColor;
     FLOATVECTOR3        m_vBackgroundColors[2];
     FLOATVECTOR4        m_vTextColor;
@@ -507,7 +506,6 @@ class AbstrRenderer {
     bool                m_bRenderPlanesIn3D;
 
     bool                m_bDoClearView;
-    float               m_fCVIsovalue;
     FLOATVECTOR3        m_vCVColor;
     float               m_fCVSize;
     float               m_fCVContextScale;
@@ -567,6 +565,10 @@ class AbstrRenderer {
     void                RestartTimers();
     virtual void        UpdateColorsInShaders() = 0;
     double              MaxValue() const;
+
+  private:
+    float               m_fIsovalue;
+    float               m_fCVIsovalue;
 };
 
 #endif // ABSTRRENDERER_H
