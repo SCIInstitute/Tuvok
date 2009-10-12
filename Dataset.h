@@ -54,9 +54,12 @@
 #include "TransferFunction1D.h"
 #include "TransferFunction2D.h"
 
-// Apple ships a broken version of gcc's tr1 on 10.4; see gcc bug 23053.  Also
+// Apple ships a broken version of gcc's tr1 on 10.4 and 10.5 (have
+// not yet tested 10.6); see gcc bug 23053. Since this problem applies
+// to both the supplied 4.0 and 4.2 compilers, we ignore both. Also
 // note that the bug has been fixed for over 4 years.
-#if __GNUC__ && (__GNUC__ == 4 && __GNUC_MINOR__ == 0)
+#if (defined(DETECTED_OS_APPLE) && defined(__GNUC__)) && \
+  (__GNUC__ == 4 && __GNUC_MINOR__ <= 2)
 # define TR1_NOT_CONST_CORRECT
 #endif
 
@@ -120,7 +123,7 @@ public:
     std::vector< std::pair < std::string, std::string > > v;
     return v;
   }
-  
+
   /// Acceleration queries.
   virtual bool ContainsData(const BrickKey&, double /*isoval*/) const {return true;}
   virtual bool ContainsData(const BrickKey&, double /*fMin*/, double /*fMax*/) const {return true;}
