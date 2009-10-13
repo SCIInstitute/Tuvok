@@ -367,12 +367,12 @@ void AbstrRenderer::SetIsoValue(float fIsovalue) {
 
 double AbstrRenderer::GetNormalizedIsovalue() const
 {
-  return m_fIsovalue / MaxValue();
+  return m_fIsovalue / (1 << m_pDataset->GetBitWidth());
 }
 
 double AbstrRenderer::GetNormalizedCVIsovalue() const
 {
-  return m_fCVIsovalue / MaxValue();
+  return m_fCVIsovalue / (1 << m_pDataset->GetBitWidth());
 }
 
 bool AbstrRenderer::CheckForRedraw() {
