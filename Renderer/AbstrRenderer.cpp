@@ -811,10 +811,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
                         );
         break;
       case RM_ISOSURFACE:
-        bContainsData = m_pDataset->ContainsData(
-                          brick->first,
-                          this->GetNormalizedIsovalue()
-                        );
+        bContainsData = m_pDataset->ContainsData(brick->first, m_fIsovalue);
         break;
       default:
         bContainsData = false;
