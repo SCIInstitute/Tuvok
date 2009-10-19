@@ -36,7 +36,9 @@ static const struct testjpeg jpegs[] = {
 
 struct valid_from_file : public std::unary_function<struct testjpeg, void> {
   void operator()(const struct testjpeg &tj) const {
+#ifdef VERBOSE
     TS_TRACE(std::string("file validity for ") + tj.file);
+#endif
     tuvok::JPEG jpeg(tj.file);
     TS_ASSERT(jpeg.valid());
     TS_ASSERT_EQUALS(jpeg.width(), tj.width);
@@ -47,7 +49,9 @@ struct valid_from_file : public std::unary_function<struct testjpeg, void> {
 
 struct valid_from_mem : public std::unary_function<struct testjpeg, void> {
   void operator()(const struct testjpeg &jpg) const {
+#ifdef VERBOSE
     TS_TRACE(std::string("mem validity for ") + jpg.file);
+#endif
     std::vector<char> buffer(filesize(jpg.file));
     std::ifstream ifs(jpg.file, std::ios::binary);
     ifs.read(&buffer.at(0), filesize(jpg.file));
@@ -74,7 +78,9 @@ struct file_can_read : public std::unary_function<struct testjpeg, void> {
 
 struct mem_can_read : public std::unary_function<struct testjpeg, void> {
   void operator()(const struct testjpeg &jpg) const {
+#ifdef VERBOSE
     TS_TRACE(std::string("readable test for ") + jpg.file);
+#endif
     std::vector<char> buffer(filesize(jpg.file));
     std::ifstream ifs(jpg.file, std::ios::binary);
     ifs.read(&buffer.at(0), filesize(jpg.file));

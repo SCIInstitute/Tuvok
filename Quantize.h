@@ -188,8 +188,8 @@ namespace { namespace Fits {
 template<typename T> struct NullHistogram {
   static bool bin(T) { return false; }
 };
-// Calculate a 12Bit histo, but when we encounter a value which does not fit
-// (i.e., we know we'll need to quantize), don't bother anymore.
+// Calculate a 12Bit histogram, but when we encounter a value which does not
+// fit (i.e., we know we'll need to quantize), don't bother anymore.
 template<typename T> struct Unsigned12BitHistogram {
   Unsigned12BitHistogram(std::vector<UINT64>& h)
     : histo(h), calculate(true) {}
@@ -212,6 +212,9 @@ template<typename T> struct Unsigned12BitHistogram {
 
     typename ctti<T>::size_type u_value;
     u_value = ctti<T>::is_signed ? value + bias : value;
+    // Either the data are unsigned, or there exist no values s.t. the value
+    // plus the bias is negative (and therefore *this* value + the bias is
+    // nonnegative).
     assert(!ctti<T>::is_signed || (ctti<T>::is_signed && ((value+bias) >= 0)));
 
     if(u_value < histo.size()) {
