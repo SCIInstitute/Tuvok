@@ -83,6 +83,12 @@ template<> struct ctti<double> : ctti_base<double> {
 template<> struct ctti<unsigned int> : ctti_base<unsigned int> {
   typedef unsigned int size_type;
 };
+template<> struct ctti<char> : ctti_base<char> {
+  typedef unsigned char size_type;
+};
+template<> struct ctti<signed char> : ctti_base<signed char> {
+  typedef unsigned char size_type;
+};
 template<> struct ctti<unsigned char> : ctti_base<unsigned char> {
   typedef unsigned char size_type;
 };
@@ -168,7 +174,9 @@ struct raw_data_src {
 /// I love C++ sometimes.
 namespace { namespace Fits {
   template<typename T> bool in12bits(T v) { return v <= 4096; }
+  template<> bool in12bits(signed char)   { return true; }
   template<> bool in12bits(unsigned char) { return true; }
+  template<> bool in12bits(char)          { return true; }
 }; };
 
 /// Histogram policies.  minmax can sometimes compute a 1D histogram as it
