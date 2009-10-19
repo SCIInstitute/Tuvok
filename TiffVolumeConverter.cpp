@@ -118,8 +118,13 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
     boost::uint16_t components;
     TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &components);
     iComponentCount = components;
-    MESSAGE("%ld component%s.", iComponentCount,
-                (components == 1) ? "" : "s");
+    {
+      std::ostringstream com;
+      com << iComponentCount << "component";
+      if(components > 1) { com << "s"; }
+      com << ".";
+      MESSAGE("%s", com.str().c_str());
+    }
   }
   // IIRC libtiff handles all the endian issues for us.
   bConvertEndianess = false;
