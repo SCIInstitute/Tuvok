@@ -35,7 +35,7 @@ contains(QMAKE_PRL_CONFIG, shared) {
   QTPLUGIN += qgif qjpeg
 }
 
-TEST_HEADERS=minmax.h dicom.h jpeg.h
+TEST_HEADERS=dicom.h jpeg.h minmax.h
 
 alltests.target = alltests.cpp
 alltests.commands = ../3rdParty/cxxtest/cxxtestgen.py --no-static-init --error-printer -o alltests.cpp $$TEST_HEADERS
