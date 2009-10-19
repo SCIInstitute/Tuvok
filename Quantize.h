@@ -255,6 +255,9 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T> histogram,
     data.resize(n_records);
     if(n_records == 0) { break; } // bail out if the read gave us nothing.
 
+    iPos += boost::uint64_t(n_records);
+    progress.notify(iPos);
+
     typedef typename std::vector<T>::const_iterator iterator;
     std::pair<iterator,iterator> cur_mm = boost::minmax_element(data.begin(),
                                                                 data.end());
@@ -263,10 +266,6 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T> histogram,
 
     // Run over the data again and bin the data for the histogram.
     for(size_t i=0; i < n_records && histogram.bin(data[i]); ++i) { }
-
-    iPos += boost::uint64_t(n_records);
-
-    progress.notify(iPos);
   }
   return t_minmax;
 }
