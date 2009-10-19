@@ -55,6 +55,7 @@ struct test_quant : public std::unary_function<testfile<T>, void> {
                                        TuvokProgress<UINT64>(n_elems));
       check_equality(tf.data_min, mm.first);
       check_equality(tf.data_max, mm.second);
+      raw.Close();
     }
     {
 #ifdef VERBOSE
@@ -66,6 +67,7 @@ struct test_quant : public std::unary_function<testfile<T>, void> {
                                        TuvokProgress<UINT64>(n_elems));
       check_equality(tf.data_min, mm.first);
       check_equality(tf.data_max, mm.second);
+      fs.close();
     }
   }
 };
