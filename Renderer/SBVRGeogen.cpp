@@ -36,7 +36,11 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cmath>
+#ifdef _WIN32
+# include <cmath>
+#else
+# include <tr1/cmath>
+#endif
 #include <functional>
 #include <limits>
 #include "SBVRGeogen.h"
@@ -378,22 +382,12 @@ void SBVRGeogen::ComputeGeometry() {
   float fDepth = m_fMinZ;
   float fLayerDistance = GetLayerDistance();
 
-// I hit this every time I fiddle with the integration of an
-// application.  If an app doesn't set brick metadata properly, we'll
-// calculate a bad minimum Z value of nan. nan + anything is still nan,
-// so we end up with an infinite loop computing geometry below.
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-  // Not sure this preprocessor magic is correct.  I guess I'm going on the
-  // idea that c++0x will profess to be a c99 implementation, which may or may
-  // not be true.  Assuming c++0x adopts this part of c99, it probably makes
-  // more sense to use #ifdefs to check if the compiler is c++0x-compliant.
-  assert(!isnan(fDepth));
-#else
-  // This test relies on a quirk of nans in IEEE[78]54: they must
-  // *always* compare false.  Put another way, not a number is not not
-  // a number.  =)
-  assert(fDepth == fDepth);
-#endif
+  // I hit this every time I fiddle with the integration of an
+  // application.  If an app doesn't set brick metadata properly, we'll
+  // calculate a bad minimum Z value of nan. nan + anything is still nan,
+  // so we end up with an infinite loop computing geometry below.
+  assert(!std::tr1::isnan(fDepth));
+
   while (ComputeLayerGeometry(fDepth)) fDepth += fLayerDistance;
 
   if(m_bClipPlaneEnabled) {
