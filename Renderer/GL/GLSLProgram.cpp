@@ -361,7 +361,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
  */
 bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bProgram) {
   // Check for errors
-  GLint iLength;
+  GLint iLength=0;
   if (bProgram)
     glGetProgramiv(hObject,GL_INFO_LOG_LENGTH,&iLength);
   else
