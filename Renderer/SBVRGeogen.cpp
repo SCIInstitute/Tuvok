@@ -387,7 +387,8 @@ void SBVRGeogen::ComputeGeometry() {
   // application.  If an app doesn't set brick metadata properly, we'll
   // calculate a bad minimum Z value of nan. nan + anything is still nan,
   // so we end up with an infinite loop computing geometry below.
-#ifndef _MSC_VER
+#if !(defined(_MSC_VER) || \
+     (defined(__GNUC__) && (__GNUC__ == 4 && __GNUC_MINOR__ == 0)))
   assert(!std::tr1::isnan(fDepth));
 #endif
 
