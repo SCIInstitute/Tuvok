@@ -40,8 +40,12 @@
 #ifndef MATHTOOLS_H
 #define MATHTOOLS_H
 
-#include <cmath>
 #include "StdDefines.h"
+#ifdef _MSC_VER
+# include <cmath>
+#else
+# include <tr1/cmath>
+#endif
 
 #define ROOT3 1.732050f
 
@@ -59,9 +63,25 @@ namespace MathTools {
   bool IsPow2(UINT32 n);
   UINT32 NextPow2(UINT32 n, bool bReturn_ID_on_Pow2=true);
 
-  template<class T> inline T sign(T v){return T((v > T(0)) - (v < T(0)));}
+  template<class T> inline T sign(T v) { return T((v > T(0)) - (v < T(0))); }
 
-  template<class T> inline T MakeMultiple(T v, T m){return v + (((v%m) == T(0)) ? T(0) : m-(v%m));}
+  template<class T> inline T MakeMultiple(T v, T m) {
+    return v + (((v%m) == T(0)) ? T(0) : m-(v%m));
+  }
+
+  template<typename in, typename out>
+  static inline out
+  lerp(in value, in imin, in imax, out omin, out omax)
+  {
+    out ret = out(omin + (value-imin) * (static_cast<double>(omax-omin) /
+                                                            (imax-imin)));
+#if 0
+    // Very useful while debugging.
+    if(std::tr1::isnan(ret) || std::tr1::isinf(ret)) { return 0; }
+#endif
+    return ret;
+  }
+
 };
 
 #endif // MATHTOOLS_H
