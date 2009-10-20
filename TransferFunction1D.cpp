@@ -40,8 +40,9 @@
 #include <iterator>
 #include <memory.h>
 #include <sstream>
-#include "TransferFunction1D.h"
+#include "Basics/MathTools.h"
 #include "Controller/Controller.h"
+#include "TransferFunction1D.h"
 
 using namespace std;
 
@@ -108,35 +109,6 @@ void TransferFunction1D::SetStdFunction(float fCenterPoint, float fInvGradient, 
   ComputeNonZeroLimits();
 }
 
-template<typename T>
-static bool is_nan(T) { std::abort(); } // Rely on specialization.
-template<>
-bool is_nan(float v) {
-  // This is only valid for ieee754.
-  return (v != v);
-}
-
-template<typename T>
-static bool is_infinite(T) { abort(); } // Rely on specialization.
-template<>
-bool is_infinite(float v) {
-  return (v ==  std::numeric_limits<float>::infinity() ||
-          v == -std::numeric_limits<float>::infinity());
-}
-
-template<typename in, typename out>
-static inline out
-lerp(in value, in imin, in imax, out omin, out omax)
-{
-  out ret = out(omin + (value-imin) * (static_cast<double>(omax-omin) /
-                                                      (imax-imin)));
-#if 0
-  // Very useful while debugging.
-  if(is_nan(ret) || is_infinite(ret)) { return 0; }
-#endif
-  return ret;
-}
-
 /// Finds the minimum and maximum per-channel of a 4-component packed vector.
 template<typename ForwardIter, typename Out>
 void minmax_component4(ForwardIter first, ForwardIter last,
@@ -190,11 +162,11 @@ void TransferFunction1D::Set(const std::vector<unsigned char>& tf)
 
   for(size_t i=0; i < vColorData.size(); ++i) {
     vColorData[i] = FLOATVECTOR4(
-      lerp(tf[4*i+0], tfmin[0],tfmax[0], fmin,fmax),
-      lerp(tf[4*i+1], tfmin[1],tfmax[1], fmin,fmax),
-      lerp(tf[4*i+2], tfmin[2],tfmax[2], fmin,fmax),
-      lerp(tf[4*i+3], static_cast<unsigned char>(0),
-                      static_cast<unsigned char>(255), fmin,fmax)
+      MathTools::lerp(tf[4*i+0], tfmin[0],tfmax[0], fmin,fmax),
+      MathTools::lerp(tf[4*i+1], tfmin[1],tfmax[1], fmin,fmax),
+      MathTools::lerp(tf[4*i+2], tfmin[2],tfmax[2], fmin,fmax),
+      MathTools::lerp(tf[4*i+3], static_cast<unsigned char>(0),
+                                 static_cast<unsigned char>(255), fmin,fmax)
     );
   }
 
