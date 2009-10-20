@@ -62,26 +62,8 @@ template <typename T> struct ctti_base {
 };
 template <typename T> struct ctti : ctti_base<T> { };
 
-template<> struct ctti<short> : ctti_base<short> {
-  typedef unsigned short size_type;
-};
 template<> struct ctti<bool> : ctti_base<bool> {
   typedef bool size_type;
-};
-template<> struct ctti<int> : ctti_base<int> {
-  typedef unsigned int size_type;
-};
-template<> struct ctti<long> : ctti_base<long> {
-  typedef unsigned long size_type;
-};
-template<> struct ctti<float> : ctti_base<float> {
-  typedef float size_type;
-};
-template<> struct ctti<double> : ctti_base<double> {
-  typedef double size_type;
-};
-template<> struct ctti<unsigned int> : ctti_base<unsigned int> {
-  typedef unsigned int size_type;
 };
 template<> struct ctti<char> : ctti_base<char> {
   typedef unsigned char size_type;
@@ -89,11 +71,32 @@ template<> struct ctti<char> : ctti_base<char> {
 template<> struct ctti<signed char> : ctti_base<signed char> {
   typedef unsigned char size_type;
 };
+template<> struct ctti<short> : ctti_base<short> {
+  typedef unsigned short size_type;
+};
+template<> struct ctti<int> : ctti_base<int> {
+  typedef unsigned int size_type;
+};
+template<> struct ctti<boost::int64_t> : ctti_base<boost::int64_t> {
+  typedef boost::uint64_t size_type;
+};
 template<> struct ctti<unsigned char> : ctti_base<unsigned char> {
   typedef unsigned char size_type;
 };
 template<> struct ctti<unsigned short> : ctti_base<unsigned short> {
   typedef unsigned short size_type;
+};
+template<> struct ctti<unsigned int> : ctti_base<unsigned int> {
+  typedef unsigned int size_type;
+};
+template<> struct ctti<boost::uint64_t> : ctti_base<boost::uint64_t> {
+  typedef boost::uint64_t size_type;
+};
+template<> struct ctti<float> : ctti_base<float> {
+  typedef float size_type;
+};
+template<> struct ctti<double> : ctti_base<double> {
+  typedef double size_type;
 };
 ///@}
 };
@@ -215,7 +218,11 @@ template<typename T> struct Unsigned12BitHistogram {
     // Either the data are unsigned, or there exist no values s.t. the value
     // plus the bias is negative (and therefore *this* value + the bias is
     // nonnegative).
-    assert(!ctti<T>::is_signed || (ctti<T>::is_signed && ((value+bias) >= 0)));
+    // Unfortunately we can't assert this since compilers are too dumb: with
+    // an unsigned T, they complain that "value+bias >= 0 is always true",
+    // despite the fact that the comparison would never happen for unsigned
+    // values.
+//  assert(!ctti<T>::is_signed || (ctti<T>::is_signed && ((value+bias) >= 0)));
 
     if(u_value < histo.size()) {
       ++histo[static_cast<size_t>(u_value)];
