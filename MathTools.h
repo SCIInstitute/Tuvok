@@ -42,7 +42,8 @@
 
 #include "StdDefines.h"
 #if defined(_MSC_VER) || \
-    (defined(__GNUC__) && (__GNUC__ == 4 && __GNUC_MINOR__ == 0))
+    (defined(__GNUC__) && (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 || \
+                                             __GNUC_MINOR__ == 1)))
 # include <cmath>
 #else
 # include <tr1/cmath>
