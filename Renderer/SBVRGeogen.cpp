@@ -37,7 +37,8 @@
 #include <algorithm>
 #include <cassert>
 #if defined(_MSC_VER) || \
-    (defined(__GNUC__) && (__GNUC__ == 4 && __GNUC_MINOR__ == 0))
+    (defined(__GNUC__) && (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 || \
+                                             __GNUC_MINOR__ == 1)))
 # include <cmath>
 #else
 # include <tr1/cmath>
@@ -387,8 +388,9 @@ void SBVRGeogen::ComputeGeometry() {
   // application.  If an app doesn't set brick metadata properly, we'll
   // calculate a bad minimum Z value of nan. nan + anything is still nan,
   // so we end up with an infinite loop computing geometry below.
-#if !(defined(_MSC_VER) || \
-     (defined(__GNUC__) && (__GNUC__ == 4 && __GNUC_MINOR__ == 0)))
+#if defined(_MSC_VER) || \
+    (defined(__GNUC__) && (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 || \
+                                             __GNUC_MINOR__ == 1)))
   assert(!std::tr1::isnan(fDepth));
 #endif
 
