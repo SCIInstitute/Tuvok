@@ -138,7 +138,7 @@ HEADERS += \
            Renderer/GL/GLRaycaster.h \
            Renderer/GL/GLRenderer.h \
            Renderer/GL/GLSBVR.h \
-           Renderer/GL/GLSBVR2S.h \
+           Renderer/GL/GLSBVR2D.h \
            Renderer/GL/GLSLProgram.h \
            Renderer/GL/GLTargetBinder.h \
            Renderer/GL/GLTexture1D.h \
