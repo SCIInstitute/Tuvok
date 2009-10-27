@@ -43,10 +43,12 @@
 #include "../Renderer/GPUMemMan/GPUMemManDataStructs.h"
 #include "../Renderer/GL/GLRaycaster.h"
 #include "../Renderer/GL/GLSBVR.h"
+#include "../Renderer/GL/GLSBVR2D.h"
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
 #include "../Renderer/DX/DXSBVR.h"
 #include "../Renderer/DX/DXRaycaster.h"
+#include "../Renderer/DX/DXSBVR2D.h"
 #endif
 
 #include "../Scripting/Scripting.h"
@@ -127,6 +129,13 @@ MasterController::RequestNewVolumeRenderer(
                         bDisableBorder);
     break;
 
+  case OPENGL_2DSBVR :
+    api = "OpenGL";
+    method = "Axis Aligned 2D Slice Based Volume Renderer";
+    retval = new GLSBVR2D(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+                        bDisableBorder);
+    break;
+
   case OPENGL_RAYCASTER :
     api = "OpenGL";
     method = "Raycaster";
@@ -146,6 +155,13 @@ MasterController::RequestNewVolumeRenderer(
     api = "DirectX";
     method = "Raycaster";
     retval = new DXRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+                             bDisableBorder);
+    break;
+
+  case DIRECTX_2DSBVR :
+    api = "DirectX";
+    method = "Axis Aligned 2D Slice Based Volume Renderer";
+    retval = new DXSBVR2D(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
                              bDisableBorder);
     break;
 #else

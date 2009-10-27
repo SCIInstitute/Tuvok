@@ -70,7 +70,9 @@ public:
     OPENGL_SBVR = 0,
     OPENGL_RAYCASTER,
     DIRECTX_SBVR,
-    DIRECTX_RAYCASTER
+    DIRECTX_RAYCASTER,
+    OPENGL_2DSBVR,
+    DIRECTX_2DSBVR,
   };
 
   /// Defaults to using a Console-based debug output stream.

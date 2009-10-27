@@ -75,7 +75,8 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramColorCompose(NULL),
   m_pProgramCVCompose(NULL),
   m_pProgramComposeAnaglyphs(NULL),
-  m_aDepthStorage(NULL)
+  m_aDepthStorage(NULL),
+  m_p3DVolTex(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
   m_pProgram1DTrans[1]   = NULL;
@@ -719,6 +720,29 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, double fSliceIndex,
   }
 }
 
+bool GLRenderer::BindVolumeTex(const tuvok::BrickKey& bkey) {
+  // get the 3D texture from the memory manager
+  m_p3DVolTex = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, 0, m_iFrameCounter);
+  if(m_p3DVolTex) {
+    m_p3DVolTex->Bind(0);
+    return true;
+  } else {
+    return false;
+  }
+}
+
+bool GLRenderer::UnbindVolumeTex() {
+  if(m_p3DVolTex) {
+    m_pMasterController->MemMan()->Release3DTexture(m_p3DVolTex);
+    m_p3DVolTex = NULL;
+    return true;
+  } else {
+    return false;
+  }
+  
+}
+
+
 bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex) {
 
   // bind offscreen buffer
@@ -769,9 +793,9 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     // because the search above gives us the coarsest LOD!
     const BrickKey bkey(iCurrentLOD, 0);
 
-    // get the 3D texture from the memory manager
-    GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, 0, m_iFrameCounter);
-    if(t) t->Bind(0);
+    if (!BindVolumeTex(bkey)) {
+      T_ERROR("Unable to bind volume to texture (LOD:%i, Brick:0)", int(iCurrentLOD));
+    }
 
     // clear the target at the beginning
     SetRenderTargetAreaScissor(eREnderArea, m_bDecreaseScreenResNow);
@@ -839,7 +863,9 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
                   vAspectRatio, vWinAspectRatio);
     }
 
-    m_pMasterController->MemMan()->Release3DTexture(t);
+    if (!UnbindVolumeTex()) {
+      T_ERROR("Cannot unbind volume: No volume bound");
+    } 
 
     glEnable(GL_DEPTH_TEST);
     if (!m_bUseMIP[size_t(eDirection)]) {
@@ -881,10 +907,14 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       const BrickKey &key = m_vCurrentBrickList[iBrickIndex].kBrick;
 
       // get the 3D texture from the memory manager
-      GLTexture3D* t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, key, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, m_iIntraFrameCounter++, m_iFrameCounter);
-      if(t) t->Bind(0);
+      
+      if (!BindVolumeTex(key)) {
+        T_ERROR("Unable to bind volume to texture (LOD:%i, Brick:%i)", int(m_iCurrentLOD),int(iBrickIndex));
+      }
       RenderHQMIPInLoop(m_vCurrentBrickList[iBrickIndex]);
-      m_pMasterController->MemMan()->Release3DTexture(t);
+      if (!UnbindVolumeTex()) {
+        T_ERROR("Cannot unbind volume: No volume bound");
+      }
     }
     RenderHQMIPPostLoop();
   }

@@ -389,7 +389,7 @@ void SBVRGeogen::ComputeGeometry() {
   // calculate a bad minimum Z value of nan. nan + anything is still nan,
   // so we end up with an infinite loop computing geometry below.
 #if defined(_MSC_VER) 
-  assert(!_isnan(fDepth));
+  assert(_finite(fDepth));
 #elif (defined(__GNUC__) && (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 || \
                                              __GNUC_MINOR__ == 1)))
   assert(!std::tr1::isnan(fDepth));

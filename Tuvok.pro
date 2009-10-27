@@ -138,6 +138,7 @@ HEADERS += \
            Renderer/GL/GLRaycaster.h \
            Renderer/GL/GLRenderer.h \
            Renderer/GL/GLSBVR.h \
+           Renderer/GL/GLSBVR2S.h \
            Renderer/GL/GLSLProgram.h \
            Renderer/GL/GLTargetBinder.h \
            Renderer/GL/GLTexture1D.h \
@@ -319,6 +320,7 @@ SOURCES += \
            Renderer/GL/GLRaycaster.cpp \
            Renderer/GL/GLRenderer.cpp \
            Renderer/GL/GLSBVR.cpp \
+           Renderer/GL/GLSBVR2D.cpp \
            Renderer/GL/GLSLProgram.cpp \
            Renderer/GL/GLTargetBinder.cpp \
            Renderer/GL/GLTexture1D.cpp \

@@ -47,6 +47,7 @@
 class MasterController;
 class GLTexture1D;
 class GLTexture2D;
+class GLTexture3D;
 class GLSLProgram;
 
 class GLRenderer : public AbstrRenderer {
@@ -174,6 +175,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramComposeAnaglyphs;
 
     float*          m_aDepthStorage;
+    GLTexture3D*    m_p3DVolTex;
 
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();
@@ -182,5 +184,9 @@ class GLRenderer : public AbstrRenderer {
     void SaveDepthBuffer();
     void CreateDepthStorage();
     void DeleteDepthStorage() {delete [] m_aDepthStorage;}
+
+    virtual bool BindVolumeTex(const tuvok::BrickKey& bkey);
+    virtual bool UnbindVolumeTex();
+
 };
 #endif // GLRenderer_H
