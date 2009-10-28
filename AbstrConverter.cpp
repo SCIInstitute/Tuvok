@@ -243,15 +243,18 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
 
 const std::string
 AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
-                                      const std::string& strFilename,
-                                      const std::string& strTargetFilename,
-                                      UINT64 iSize, bool bSigned,
-                                      Histogram1DDataBlock* Histogram1D) {
+                             const std::string& strFilename,
+                             const std::string& strTargetFilename,
+                             UINT64 iSize, bool bSigned,
+                             Histogram1DDataBlock* Histogram1D) {
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
 
-  if (!InputData.IsOpen()) return "";
+  if (!InputData.IsOpen()) {
+    T_ERROR("Could not open input file: %s", strFilename.c_str());
+    return "";
+  }
 
   // determine max and min
   unsigned short iMax = 0;
@@ -264,6 +267,7 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
   std::fill(aHist.begin(), aHist.end(), 0);
 
   if (bSigned) {
+    MESSAGE("16bit data is signed");
     std::pair<short,short> minmax;
     minmax = io_minmax(raw_data_src<short>(InputData),
                        Unsigned12BitHistogram<short>(aHist),
@@ -272,6 +276,7 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
     iMin = minmax.first+std::numeric_limits<short>::max();
     iMax = minmax.second+std::numeric_limits<short>::max();
   } else {
+    MESSAGE("16bit data is unsigned");
     std::pair<unsigned short,unsigned short> minmax;
     minmax = io_minmax(raw_data_src<unsigned short>(InputData),
                        Unsigned12BitHistogram<unsigned short>(aHist),
@@ -281,34 +286,40 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
   }
 
   std::string strQuantFile;
-  // if file uses less or equal than 12 bits quit here
-  if (!bSigned && iMax < 4096) {
+
+  // if the data are signed, we'll need to bias it; if the range is too
+  // large, we'll need to quantize it.  Otherwise, we can get by without
+  // writing any data, and just tell our caller that our output is our input.
+  bool new_file_required = bSigned || iMax >= 4096;
+  if(!new_file_required) {
     MESSAGE("No histogram quantization required (min=%i, max=%i)", iMin, iMax);
-    aHist.resize(iMax+1);  // size is the maximum value plus one (the zero value)
+    aHist.resize(iMax+1); // size is the maximum value plus one (the zero value)
 
     delete [] pInData;
     InputData.Close();
     strQuantFile = strFilename;
   } else {
     if (bSigned) {
-      MESSAGE("Quantizing histogram to 12 bit (input data has range from %i to %i)",
+      MESSAGE("Quantizing histogram to 12 bit "
+              "(input data has range from %i to %i)",
               int(iMin)-std::numeric_limits<short>::max(),
               int(iMax)-std::numeric_limits<short>::max());
     } else {
-      MESSAGE("Quantizing histogram to 12 bit (input data has range from %i to %i)",
+      MESSAGE("Quantizing histogram to 12 bit "
+              "(input data has range from %i to %i)",
               iMin, iMax);
     }
+    // Old histogram is invalid, as we'll be biasing || quantizing the data.
     std::fill(aHist.begin(), aHist.end(), 0);
 
     LargeRAWFile OutputData(strTargetFilename);
-    // only if the data is signed shift it otherwise we don't write anything
-    if (bSigned) {    
-      OutputData.Create(iSize*2);
-      if (!OutputData.IsOpen()) {
-        delete [] pInData;
-        InputData.Close();
-        return "";
-      }
+
+    OutputData.Create(iSize*2);
+    if (!OutputData.IsOpen()) {
+      T_ERROR("Could not open output file %s", strTargetFilename.c_str());
+      delete [] pInData;
+      InputData.Close();
+      return "";
     }
 
     UINT64 iRange = iMax-iMin;
@@ -316,40 +327,50 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
     InputData.SeekStart();
     iPos = 0;
     iDivLast = 0;
-    while (iPos < iSize)  {
+    while (iPos < iSize) {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
       if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
       for (size_t i = 0;i<iRead;i++) {
-        unsigned short iValue = (bSigned) ? pInData[i] + std::numeric_limits<short>::max() : pInData[i];
-        unsigned short iNewVal = std::min<unsigned short>(4095, (unsigned short)((UINT64(iValue-iMin) * 4095)/iRange));
-        if (bSigned) pInData[i] = iValue-iMin;
+        unsigned short iValue = (bSigned) ?
+                                pInData[i] + std::numeric_limits<short>::max()
+                              : pInData[i];
+        unsigned short iNewVal = std::min<unsigned short>(4095,
+                                         static_cast<unsigned short>
+                                                    ((static_cast<UINT64>
+                                                      (iValue-iMin) * 4095) /
+                                                              iRange
+                                                    )
+                                         );
+        pInData[i] = iValue-iMin;
         aHist[iNewVal]++;
       }
       iPos += UINT64(iRead);
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
         if (bSigned) {
-          MESSAGE("Removing sign from 16bit data and quantizing histogram to 12 bit\n(input data has range from %i to %i)"
-                  "\n%i%% complete",
+          MESSAGE("Removing sign from 16bit data and "
+                  "quantizing histogram to 12 bit\n"
+                  "(input data has range from %i to %i)\n%i%% complete",
                   int(iMin) - std::numeric_limits<short>::max(),
                   int(iMax) - std::numeric_limits<short>::max(),
                   int((100*iPos)/iSize));
         } else {
-          MESSAGE("Quantizing histogram to 12 bit (input data has range from %i to %i)"
-                  "\n%i%% complete", iMin, iMax, int((100*iPos)/iSize));
+          MESSAGE("Quantizing histogram to 12 bit "
+                  "(input data has range from %i to %i)\n%i%% complete",
+                  iMin, iMax, int((100*iPos)/iSize));
         }
         iDivLast = (100*iPos)/iSize;
       }
 
-      if (bSigned) OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
+      OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
     }
 
     delete [] pInData;
-    if (bSigned) OutputData.Close();
+    OutputData.Close();
     InputData.Close();
 
-    if (bSigned) strQuantFile = strTargetFilename;
+    strQuantFile = strTargetFilename;
   }
 
   if (Histogram1D) Histogram1D->SetHistogram(aHist);
@@ -545,9 +566,9 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
                                 : pInData[i];
       if (iMax < iValue)  iMax = iValue;
       if (iMin > iValue)  iMin = iValue;
-	  if (iMax < 4096) {
-		aHist[static_cast<size_t>(iValue)]++;
-	  }
+      if (iMax < 4096) {
+        aHist[static_cast<size_t>(iValue)]++;
+      }
     }
 
     iPos += UINT64(iRead);
@@ -570,8 +591,9 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
 
   if (bSigned)
     dbg.Message(_func_, "Quantizing to 12 bit (input data has range from "
-                        "%i to %i)", int(iMin) - std::numeric_limits<int>::max(),
-                                     int(iMax) - std::numeric_limits<int>::max());
+                        "%i to %i)",
+                        int(iMin) - std::numeric_limits<int>::max(),
+                        int(iMax) - std::numeric_limits<int>::max());
   else
     dbg.Message(_func_, "Quantizing to 12 bit (input data has range from "
                         "%i to %i)", iMin, iMax);
