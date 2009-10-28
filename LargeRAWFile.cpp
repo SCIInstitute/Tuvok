@@ -107,11 +107,11 @@ bool LargeRAWFile::Append() {
 
 void LargeRAWFile::Close() {
   if (m_bIsOpen) {
-    #ifdef _WIN32
-        CloseHandle(m_StreamFile);
-    #else
-      fclose(m_StreamFile);
-    #endif
+#ifdef _WIN32
+    CloseHandle(m_StreamFile);
+#else
+    fclose(m_StreamFile);
+#endif
     m_bIsOpen =false;
   }
 }
