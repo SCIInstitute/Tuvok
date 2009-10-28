@@ -39,8 +39,6 @@
 #ifndef STDDEFINES_H
 #define STDDEFINES_H
 
-#define _POSIX_C_SOURCE 200112L
-
 #ifdef _WIN32
   typedef unsigned __int64 UINT64;
 #else
@@ -93,6 +91,10 @@ typedef unsigned char BYTE;
 
 #if defined(__linux__)
   #define DETECTED_OS_LINUX
+#endif
+
+#ifndef DETECTED_OS_APPLE
+# define _POSIX_C_SOURCE 200112L
 #endif
 
 // set some strings to reflect that OS
