@@ -594,57 +594,82 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
   if (!m_bCaptureMode && m_fMsecPassed[0]>=0.0f) {
     // if rendering is too slow use a lower resolution during interaction
     if (m_fMsecPassed[0] > m_fMaxMSPerFrame) {
-      if (m_iLODNotOKCounter < 3) { // wait for 3 frames before switching to lower lod (3 here is choosen more or less arbitrary, can be changed if needed)
-        MESSAGE("Would increase start LOD but will give the renderer %u more frame(s) time to become faster",3-m_iLODNotOKCounter);
+      // wait for 3 frames before switching to lower lod (3 here is
+      // choosen more or less arbitrary, can be changed if needed)
+      if (m_iLODNotOKCounter < 3) {
+        MESSAGE("Would increase start LOD but will give the renderer %u "
+                "more frame(s) time to become faster", 3 - m_iLODNotOKCounter);
         m_iLODNotOKCounter++;
       } else {
         m_iLODNotOKCounter = 0;
         UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
         m_iPerformanceBasedLODSkip = std::max<UINT64>(1,m_iPerformanceBasedLODSkip)-1;
-        if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip)
-          MESSAGE("Increasing start LOD to %i as it took %g ms to render the first LOD level (max is %g) ",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0], m_fMaxMSPerFrame);
-        else {
-          MESSAGE("Would like to increase start LOD as it took %g ms to render the first LOD level (max is %g) BUT CAN'T.", m_fMsecPassed[0], m_fMaxMSPerFrame);
+        if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) {
+          MESSAGE("Increasing start LOD to %i as it took %g ms "
+                  "to render the first LOD level (max is %g) ",
+                  int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0],
+                  m_fMaxMSPerFrame);
+        } else {
+          MESSAGE("Would like to increase start LOD as it took %g ms "
+                  "to render the first LOD level (max is %g) BUT CAN'T.",
+                  m_fMsecPassed[0], m_fMaxMSPerFrame);
           if (m_bUseAllMeans) {
-            if (m_bDecreaseSamplingRate && (m_bDecreaseScreenRes /*|| m_eViewMode == VM_TWOBYTWO*/)) {     // HACK: ignore m_bDecreaseScreenRes in two by two mode as it causes all knids of trouble with the interpolation
-              MESSAGE("Even with UseAllMeans there is nothing that can be done to meet the specified framerate.");
+            // HACK: ignore m_bDecreaseScreenRes in two by two mode as
+            // it causes all kinds of trouble with the interpolation
+            if (m_bDecreaseSamplingRate &&
+                (m_bDecreaseScreenRes /*|| m_eViewMode == VM_TWOBYTWO*/)) {
+              MESSAGE("Even with UseAllMeans there is nothing that "
+                      "can be done to meet the specified framerate.");
             } else {
               if (!m_bDecreaseScreenRes /*&& m_eViewMode != VM_TWOBYTWO*/) {
-                MESSAGE("UseAllMeans enabled decreasing resolution to meet target framerate");
+                MESSAGE("UseAllMeans enabled: decreasing resolution "
+                        "to meet target framerate");
                 m_bDecreaseScreenRes = true;
               } else {
-                MESSAGE("UseAllMeans enabled decreasing sampling rate to meet target framerate");
+                MESSAGE("UseAllMeans enabled: decreasing sampling rate "
+                        "to meet target framerate");
                 m_bDecreaseSamplingRate = true;
               }
             }
           } else {
-            MESSAGE("UseAllMeans disabled so framerate can not be met, sorry.");
+            MESSAGE("UseAllMeans disabled so framerate can not be met...");
           }
         }
       }
     } else {
       // if rendering is fast enougth use a higher resolution during interaction
-      if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame && m_fMsecPassed[1] >= 0.0f && m_fMsecPassed[1] <= m_fMaxMSPerFrame) {
+      if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame &&
+          m_fMsecPassed[1] >= 0.0f && m_fMsecPassed[1] <= m_fMaxMSPerFrame &&
+          m_fMsecPassed[0] >= 0.0f && m_fMsecPassed[0] <= m_fMaxMSPerFrame) {
         m_iLODNotOKCounter = 0;
         if (m_bDecreaseSamplingRate || m_bDecreaseScreenRes) {
           if (m_bDecreaseSamplingRate) {
-            MESSAGE("Rendering at full resolution as this took only %g ms", m_fMsecPassed[0]);
+            MESSAGE("Rendering at full resolution as this took only %g ms",
+                    m_fMsecPassed[0]);
             m_bDecreaseSamplingRate = false;
           } else {
             if (m_bDecreaseScreenRes) {
-              MESSAGE("Rendering to full viewport as this took only %g ms", m_fMsecPassed[0]);
+              MESSAGE("Rendering to full viewport as this took only %g ms",
+                      m_fMsecPassed[0]);
               m_bDecreaseScreenRes = false;
             }
           }
         } else {
-          UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
-          m_iPerformanceBasedLODSkip = std::min<UINT64>(m_iMaxLODIndex-m_iMinLODForCurrentView,m_iPerformanceBasedLODSkip+1);
-          if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) {
-            MESSAGE("Decreasing start LOD to %i as it took only %g ms to render the second LOD level",int(m_iPerformanceBasedLODSkip), m_fMsecPassed[1]);
+          UINT64 iPerformanceBasedLODSkip =
+            std::min<UINT64>(m_iMaxLODIndex - m_iMinLODForCurrentView,
+                             m_iPerformanceBasedLODSkip + 1);
+          if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip &&
+              m_fMsecPassed[1] != 0.0f) {
+            MESSAGE("Decreasing start LOD to %i as it took only %g ms "
+                    "to render the second LOD level",
+                    int(m_iPerformanceBasedLODSkip), m_fMsecPassed[1]);
+            m_iPerformanceBasedLODSkip = iPerformanceBasedLODSkip;
           }
         }
       } else {
-        if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) MESSAGE("Start LOD seems to be ok");
+        if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
+          MESSAGE("Start LOD seems to be ok");
+        }
       }
     }
 

@@ -2058,8 +2058,6 @@ float GLRenderer::Render3DView() {
     m_iBricksRenderedInThisSubFrame++;
 
     if (!m_bCaptureMode) {
-      
-
 #ifdef DETECTED_OS_APPLE
       // really (hopefully) force a pipleine flush
       unsigned char dummy[4];
@@ -2073,13 +2071,12 @@ float GLRenderer::Render3DView() {
       fMsecPassed = m_Timer.Elapsed();
     }
     ++bricks_this_call;
-
   }
 
   Render3DPostLoop();
 
   if (m_eRenderMode == RM_ISOSURFACE &&
-      m_vCurrentBrickList.size() ==m_iBricksRenderedInThisSubFrame) {
+      m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
     ComposeSurfaceImage(0);
     if (m_bDoStereoRendering) {
