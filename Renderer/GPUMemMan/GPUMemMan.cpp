@@ -36,7 +36,11 @@
 
 #include <cassert>
 #include <algorithm>
-#include <functional>
+#ifndef _MSC_VER
+# include <tr1/functional>
+#else
+# include <functional>
+#endif
 #include <numeric>
 #include <typeinfo>
 // normally we'd include Qt headers first, but we want to make sure to get GLEW
@@ -60,6 +64,7 @@
 #include <IO/IOManager.h>
 
 using namespace std;
+using namespace std::tr1::placeholders;
 using namespace tuvok;
 
 GPUMemMan::GPUMemMan(MasterController* masterController) :
@@ -247,10 +252,10 @@ void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
   // reference count of the DS to 0, delete it.
   vol_ds->qpUser.erase(renderer);
   if(vol_ds->qpUser.empty()) {
-    dbg.Message(_func_,"Cleaning up all 3D textures associated to dataset %s",
+    dbg.Message(_func_, "Cleaning up all 3D textures associated w/ dataset %s",
                 ds_name.c_str());
     FreeAssociatedTextures(pVolumeDataset);
-    dbg.Message(_func_,"Released Dataset %s", ds_name.c_str());
+    dbg.Message(_func_, "Released Dataset %s", ds_name.c_str());
     delete pVolumeDataset;
     m_vpVolumeDatasets.erase(vol_ds);
   } else {
@@ -819,21 +824,32 @@ void GPUMemMan::Delete3DTexture(size_t iIndex) {
   this->Delete3DTexture(m_vpTex3DList.begin() + iIndex);
 }
 
+// Functor to identify a texture that belongs to a particular dataset.
+struct DatasetTexture: std::binary_function<Dataset, Texture3DListElem, bool> {
+  bool operator()(const Texture3DListElem* tex, const Dataset* ds) const {
+    return tex->pDataset == ds;
+  }
+};
+
 void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset) {
   // Don't use singleton; see destructor comments.
   AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
 
-  for (size_t i = 0;i<m_vpTex3DList.size();i++) {
-    if (m_vpTex3DList[i]->pDataset == pDataset) {
-
-      dbg.Message(_func_, "Deleting a 3D texture of size %i x %i x %i",
-                  m_vpTex3DList[i]->pTexture->GetSize().x,
-                  m_vpTex3DList[i]->pTexture->GetSize().y,
-                  m_vpTex3DList[i]->pTexture->GetSize().z);
-
-      Delete3DTexture(i);
-      i--;
+  while(1) { // exit condition is checked for and `break'd in the loop.
+    /// @todo For some reason, `Texture3DListConstIter' cannot be used in place
+    /// of `const Texture3DListIter' here.  Investigate why they're not
+    /// equivalent.
+    const Texture3DListIter& iter =
+      std::find_if(m_vpTex3DList.begin(), m_vpTex3DList.end(),
+                   std::tr1::bind(DatasetTexture(), _1, pDataset));
+    if(iter == m_vpTex3DList.end()) {
+      break;
     }
+    dbg.Message(_func_, "Deleting a 3D texture of size %i x %i x %i",
+                (*iter)->pTexture->GetSize().x,
+                (*iter)->pTexture->GetSize().y,
+                (*iter)->pTexture->GetSize().z);
+    Delete3DTexture(iter);
   }
 }
 
