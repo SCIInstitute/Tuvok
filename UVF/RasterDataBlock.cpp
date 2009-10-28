@@ -639,7 +639,8 @@ const std::vector<UINT64>& RasterDataBlock::GetSmallestBrickSize() const {
   return GetBrickSize(vSmallestLOD, vFirstBrick);
 }
 
-UINT64 RasterDataBlock::Serialize(const vector<UINT64>& vec, const vector<UINT64>& vSizes) const {
+UINT64 RasterDataBlock::Serialize(const vector<UINT64>& vec,
+                                  const vector<UINT64>& vSizes) const {
   UINT64 index = 0;
   UINT64 iPrefixProd = 1;
   for (size_t i = 0;i<vSizes.size();i++) {
@@ -650,7 +651,8 @@ UINT64 RasterDataBlock::Serialize(const vector<UINT64>& vec, const vector<UINT64
   return index;
 }
 
-const vector<UINT64>& RasterDataBlock::GetBrickCount(const vector<UINT64>& vLOD) const {
+const vector<UINT64>&
+RasterDataBlock::GetBrickCount(const vector<UINT64>& vLOD) const {
   return m_vBrickCount[size_t(Serialize(vLOD, ulLODLevelCount))];
 }
 
@@ -862,12 +864,15 @@ vector<UINT64> RasterDataBlock::GetLODDomainSize(const vector<UINT64>& vLOD) con
  * \return void
  * \see FlatDataToBrickedLOD
  */
-void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const string& strTempFile,
-                                           void (*combineFunc)(const vector<UINT64>& vSource, UINT64 iTarget, const void* pIn, const void* pOut),
-                                           void (*maxminFunc)(const void* pIn, size_t iStart,
-                                                              size_t iCount,
-                                                              std::vector<DOUBLEVECTOR4>& fMinMax),
-                                           MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut) {
+void
+RasterDataBlock::FlatDataToBrickedLOD(
+  LargeRAWFile* pSourceData, const string& strTempFile,
+  void (*combineFunc)(const vector<UINT64>& vSource, UINT64 iTarget,
+                      const void* pIn, const void* pOut),
+  void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
+                     std::vector<DOUBLEVECTOR4>& fMinMax),
+  MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut)
+{
   UINT64 uiBytesPerElement = ComputeElementSize()/8;
 
   if (m_pTempFile == NULL) {
@@ -905,14 +910,17 @@ void RasterDataBlock::FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const stri
     // next subsample level
     if (i > 0) {
       if (i > 1) {
-        SubSample(tempFile, tempFile, vLastReducedDomainSize, vReducedDomainSize, combineFunc, pDebugOut, i, vLODCombis.size());
+        SubSample(tempFile, tempFile, vLastReducedDomainSize,
+                  vReducedDomainSize, combineFunc, pDebugOut, i,
+                  vLODCombis.size());
       } else {
         tempFile = new LargeRAWFile(SysTools::AppendFilename(strTempFile,"2"));
         if (!tempFile->Create(ComputeDataSize())) {
           delete tempFile;
           throw "Unable To create Temp File";
         }
-        SubSample(pSourceData, tempFile, ulDomainSize, vReducedDomainSize, combineFunc, pDebugOut, i, vLODCombis.size());
+        SubSample(pSourceData, tempFile, ulDomainSize, vReducedDomainSize,
+                  combineFunc, pDebugOut, i, vLODCombis.size());
       }
       pBrickSource = tempFile;
       vLastReducedDomainSize = vReducedDomainSize;

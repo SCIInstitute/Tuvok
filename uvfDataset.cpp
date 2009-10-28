@@ -111,10 +111,16 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite)
   GetHistograms();
 
   // print out data statistics
-  MESSAGE("  Dataset Size %u x %u x %u", m_aDomainSize[0].x, m_aDomainSize[0].y, m_aDomainSize[0].z );
-  MESSAGE("  Bricklayout of highest resolution level %u x %u x %u", m_vaBrickCount[0].x, m_vaBrickCount[0].y, m_vaBrickCount[0].z );
-  MESSAGE("  %i Bit, %i components", int(GetBitWidth()), int(GetComponentCount()));
-  MESSAGE("  LOD down to %u x %u x %u found", m_vaBrickCount[m_vaBrickCount.size()-1].x, m_vaBrickCount[m_vaBrickCount.size()-1].y, m_vaBrickCount[m_vaBrickCount.size()-1].z);
+  MESSAGE("  Dataset Size %u x %u x %u", m_aDomainSize[0].x,
+          m_aDomainSize[0].y, m_aDomainSize[0].z );
+  MESSAGE("  Bricklayout of highest resolution level %u x %u x %u",
+          m_vaBrickCount[0].x, m_vaBrickCount[0].y, m_vaBrickCount[0].z);
+  MESSAGE("  %i Bit, %i components", int(GetBitWidth()),
+                                     int(GetComponentCount()));
+  MESSAGE("  LOD down to %u x %u x %u found",
+          m_vaBrickCount[m_vaBrickCount.size()-1].x,
+          m_vaBrickCount[m_vaBrickCount.size()-1].y,
+          m_vaBrickCount[m_vaBrickCount.size()-1].z);
 
   return true;
 }
@@ -196,17 +202,17 @@ void UVFDataset::ComputeMetaData() {
           std::vector<UINT64> vBrickSize =
             m_pVolumeDataBlock->GetBrickSize(vLOD, vBrick);
 
-          m_vvaBrickSize[j][size_t(x)][size_t(y)].push_back(UINT64VECTOR3(vBrickSize[0],
-                                                          vBrickSize[1],
-                                                          vBrickSize[2]));
+          m_vvaBrickSize[j][size_t(x)][size_t(y)].push_back(
+            UINT64VECTOR3(vBrickSize[0], vBrickSize[1], vBrickSize[2]));
+
           const BrickKey k = BrickKey(j, z*m_vaBrickCount[j].x*m_vaBrickCount[j].y + y*m_vaBrickCount[j].x + x);
 
-          UINT64VECTOR3 effective = GetEffectiveBrickSize(k);
-
-          bmd.extents  = FLOATVECTOR3(effective)/float(GetDomainSize(j).maxVal());
-          bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) - vNormalizedDomainSize*0.5f;
-          bmd.n_voxels = UINTVECTOR3(vBrickSize[0], vBrickSize[1], vBrickSize[2]);
-
+          bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) /
+                         float(GetDomainSize(j).maxVal());
+          bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) -
+                         vNormalizedDomainSize * 0.5f;
+          bmd.n_voxels = UINTVECTOR3(vBrickSize[0], vBrickSize[1],
+                                     vBrickSize[2]);
           AddBrick(k, bmd);
           vBrickCorner.z += bmd.extents.z;
         }
