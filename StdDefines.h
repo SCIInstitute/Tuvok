@@ -39,6 +39,8 @@
 #ifndef STDDEFINES_H
 #define STDDEFINES_H
 
+#define _POSIX_C_SOURCE 200112L
+
 #ifdef _WIN32
   typedef unsigned __int64 UINT64;
 #else
