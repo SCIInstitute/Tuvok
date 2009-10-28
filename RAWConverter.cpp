@@ -149,50 +149,61 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
 
   Histogram1DDataBlock Histogram1D;
 
-	switch (iComponentSize) {
+  switch (iComponentSize) {
     case 8 :
-      // do not run the Process8Bits when we are dealing with unsigned color data, 
-      // in that case only the histogram would be computed and we do not use in that case
-      /// \todo change this if we want to support non-color multi-component data
-      if (iComponentCount != 4 || bSigned) 
+      // do not run the Process8Bits when we are dealing with unsigned
+      // color data, in that case only the histogram would be computed
+      // and we do not use in that case.
+      /// \todo change this if we want to support non-color
+      /// multi-component data
+      MESSAGE("Dataset is 8bit.");
+      if (iComponentCount != 4 || bSigned) {
+        MESSAGE("%u component, %s data",
+                static_cast<unsigned>(iComponentCount),
+                (bSigned) ? "signed" : "unsigned");
         strSourceFilename = Process8Bits(iHeaderSkip, strSourceFilename,
-                                                tmpFilename1,
-                                                iComponentCount*vVolumeSize.volume(),
-                                                bSigned, &Histogram1D);
+                                         tmpFilename1,
+                                         iComponentCount*vVolumeSize.volume(),
+                                         bSigned, &Histogram1D);
+      }
       break;
     case 16 :
+      MESSAGE("Dataset is 16bit integers (shorts)");
       strSourceFilename = ProcessShort(iHeaderSkip, strSourceFilename,
-                                                tmpFilename1,
-                                                iComponentCount*vVolumeSize.volume(),
-                                                bSigned, &Histogram1D);
+                                       tmpFilename1,
+                                       iComponentCount*vVolumeSize.volume(),
+                                       bSigned, &Histogram1D);
       break;
-		case 32 :	
-      if (bIsFloat)
-        strSourceFilename = QuantizeFloatTo12Bits(iHeaderSkip,
-                                                  strSourceFilename,
-                                                  tmpFilename1,
-                                                  iComponentCount*vVolumeSize.volume(),
-                                                  &Histogram1D);
-      else
-        strSourceFilename = QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename,
-                                                tmpFilename1,
-                                                iComponentCount*vVolumeSize.volume(),
-                                                bSigned, &Histogram1D);
+    case 32 :
+      if (bIsFloat) {
+        MESSAGE("Dataset is 32bit FP (floats)");
+        strSourceFilename =
+          QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
+                                iComponentCount*vVolumeSize.volume(),
+                                &Histogram1D);
+      } else {
+        MESSAGE("Dataset is 32bit integers.");
+        strSourceFilename =
+          QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
+                              iComponentCount*vVolumeSize.volume(),
+                              bSigned, &Histogram1D);
+      }
       iComponentSize = 16;
       break;
-		case 64 :	
-      if (bIsFloat) 
-        strSourceFilename = QuantizeDoubleTo12Bits(iHeaderSkip,
-                                                   strSourceFilename,
-                                                   tmpFilename1,
-                                                   iComponentCount*vVolumeSize.volume(),
-                                                   &Histogram1D);
-      else
-        strSourceFilename = QuantizeLongTo12Bits(iHeaderSkip,
-                                                 strSourceFilename,
-                                                 tmpFilename1,
-                                                 iComponentCount*vVolumeSize.volume(),
-                                                 bSigned, &Histogram1D);
+    case 64 :
+      if (bIsFloat) {
+        MESSAGE("Dataset is 64bit FP (doubles).");
+        strSourceFilename =
+          QuantizeDoubleTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
+                                 iComponentCount*vVolumeSize.volume(),
+                                 &Histogram1D);
+      } else {
+        MESSAGE("Dataset is 64bit integers.");
+        strSourceFilename =
+          QuantizeLongTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
+                               iComponentCount*vVolumeSize.volume(),
+                               bSigned, &Histogram1D);
+      }
       iComponentSize = 16;
       break;
   }
@@ -225,10 +236,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     return false;
   }
 
-	wstring wstrUVFName(strTargetFilename.begin(), strTargetFilename.end());
-	UVF uvfFile(wstrUVFName);
+  wstring wstrUVFName(strTargetFilename.begin(), strTargetFilename.end());
+  UVF uvfFile(wstrUVFName);
 
-	UINT64 iLodLevelCount = 1;
+  UINT64 iLodLevelCount = 1;
   UINT32 iMaxVal = vVolumeSize.maxVal();
 
   while (iMaxVal > BRICKSIZE) {
@@ -236,106 +247,106 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     iLodLevelCount++;
   }
 
-	GlobalHeader uvfGlobalHeader;
+  GlobalHeader uvfGlobalHeader;
   uvfGlobalHeader.bIsBigEndian = EndianConvert::IsBigEndian();
-	uvfGlobalHeader.ulChecksumSemanticsEntry = UVFTables::CS_MD5;
-	uvfFile.SetGlobalHeader(uvfGlobalHeader);
+  uvfGlobalHeader.ulChecksumSemanticsEntry = UVFTables::CS_MD5;
+  uvfFile.SetGlobalHeader(uvfGlobalHeader);
 
-	RasterDataBlock dataVolume;
+  RasterDataBlock dataVolume;
 
   if (strSource == "")
     dataVolume.strBlockID = (strDesc!="") ? strDesc + " volume converted by ImageVis3D" : "Volume converted by ImageVis3D";
   else
     dataVolume.strBlockID = (strDesc!="") ? strDesc + " volume converted from " + strSource + " by ImageVis3D" : "Volume converted from " + strSource + " by ImageVis3D";
 
-	dataVolume.ulCompressionScheme = UVFTables::COS_NONE;
-	dataVolume.ulDomainSemantics.push_back(UVFTables::DS_X);
-	dataVolume.ulDomainSemantics.push_back(UVFTables::DS_Y);
-	dataVolume.ulDomainSemantics.push_back(UVFTables::DS_Z);
+  dataVolume.ulCompressionScheme = UVFTables::COS_NONE;
+  dataVolume.ulDomainSemantics.push_back(UVFTables::DS_X);
+  dataVolume.ulDomainSemantics.push_back(UVFTables::DS_Y);
+  dataVolume.ulDomainSemantics.push_back(UVFTables::DS_Z);
 
-	dataVolume.ulDomainSize.push_back(vVolumeSize.x);
-	dataVolume.ulDomainSize.push_back(vVolumeSize.y);
-	dataVolume.ulDomainSize.push_back(vVolumeSize.z);
+  dataVolume.ulDomainSize.push_back(vVolumeSize.x);
+  dataVolume.ulDomainSize.push_back(vVolumeSize.y);
+  dataVolume.ulDomainSize.push_back(vVolumeSize.z);
 
-	dataVolume.ulLODDecFactor.push_back(2);
-	dataVolume.ulLODDecFactor.push_back(2);
-	dataVolume.ulLODDecFactor.push_back(2);
+  dataVolume.ulLODDecFactor.push_back(2);
+  dataVolume.ulLODDecFactor.push_back(2);
+  dataVolume.ulLODDecFactor.push_back(2);
 
-	dataVolume.ulLODGroups.push_back(0);
-	dataVolume.ulLODGroups.push_back(0);
-	dataVolume.ulLODGroups.push_back(0);
+  dataVolume.ulLODGroups.push_back(0);
+  dataVolume.ulLODGroups.push_back(0);
+  dataVolume.ulLODGroups.push_back(0);
 
-	dataVolume.ulLODLevelCount.push_back(iLodLevelCount);
+  dataVolume.ulLODLevelCount.push_back(iLodLevelCount);
 
-	vector<UVFTables::ElementSemanticTable> vSem;
+  vector<UVFTables::ElementSemanticTable> vSem;
 
-	switch (iComponentCount) {
-		case 3 : vSem.push_back(UVFTables::ES_RED);
-				     vSem.push_back(UVFTables::ES_GREEN);
-				     vSem.push_back(UVFTables::ES_BLUE);
+  switch (iComponentCount) {
+    case 3 : vSem.push_back(UVFTables::ES_RED);
+             vSem.push_back(UVFTables::ES_GREEN);
+             vSem.push_back(UVFTables::ES_BLUE);
              break;
-		case 4 : vSem.push_back(UVFTables::ES_RED);
-				     vSem.push_back(UVFTables::ES_GREEN);
-				     vSem.push_back(UVFTables::ES_BLUE);
-				     vSem.push_back(UVFTables::ES_ALPHA); 
+    case 4 : vSem.push_back(UVFTables::ES_RED);
+             vSem.push_back(UVFTables::ES_GREEN);
+             vSem.push_back(UVFTables::ES_BLUE);
+             vSem.push_back(UVFTables::ES_ALPHA);
              break;
     default : for (UINT64 i = 0;i<iComponentCount;i++) {
                 vSem.push_back(eType);
               }
               break;
-	}
+  }
 
-	dataVolume.SetTypeToVector(iComponentSize,
-							               iComponentSize == 32 ? 23 : iComponentSize,
-							               bSigned,
-							               vSem);
-	
-	dataVolume.ulBrickSize.push_back(BRICKSIZE);
-	dataVolume.ulBrickSize.push_back(BRICKSIZE);
-	dataVolume.ulBrickSize.push_back(BRICKSIZE);
+  dataVolume.SetTypeToVector(iComponentSize,
+                             iComponentSize == 32 ? 23 : iComponentSize,
+                             bSigned,
+                             vSem);
 
-	dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
-	dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
-	dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+  dataVolume.ulBrickSize.push_back(BRICKSIZE);
+  dataVolume.ulBrickSize.push_back(BRICKSIZE);
+  dataVolume.ulBrickSize.push_back(BRICKSIZE);
 
-	vector<double> vScale;
-	vScale.push_back(vVolumeAspect.x);
-	vScale.push_back(vVolumeAspect.y);
-	vScale.push_back(vVolumeAspect.z);
-	dataVolume.SetScaleOnlyTransformation(vScale);
+  dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+  dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+  dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+
+  vector<double> vScale;
+  vScale.push_back(vVolumeAspect.x);
+  vScale.push_back(vVolumeAspect.y);
+  vScale.push_back(vVolumeAspect.z);
+  dataVolume.SetScaleOnlyTransformation(vScale);
 
   MaxMinDataBlock MaxMinData(static_cast<size_t>(iComponentCount));
 
-	switch (iComponentSize) {
-		case 8 :	
+  switch (iComponentSize) {
+    case 8 :
           switch (iComponentCount) {
             case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char,1>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, SimpleMaxMin<unsigned char, 2>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, SimpleMaxMin<unsigned char, 3>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, SimpleMaxMin<unsigned char, 4>, &MaxMinData, &Controller::Debug::Out()); break;
-						default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
-					} break;
-		case 16 :
+            case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,2>, SimpleMaxMin<unsigned char, 2>, &MaxMinData, &Controller::Debug::Out()); break;
+            case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,3>, SimpleMaxMin<unsigned char, 3>, &MaxMinData, &Controller::Debug::Out()); break;
+            case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned char,4>, SimpleMaxMin<unsigned char, 4>, &MaxMinData, &Controller::Debug::Out()); break;
+            default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+          } break;
+    case 16 :
           switch (iComponentCount) {
-						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short, 1>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short, 2>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short, 3>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short, 4>, &MaxMinData, &Controller::Debug::Out()); break;
-						default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
-					} break;
-		case 32 :	
+            case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short, 1>, &MaxMinData, &Controller::Debug::Out()); break;
+            case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short, 2>, &MaxMinData, &Controller::Debug::Out()); break;
+            case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short, 3>, &MaxMinData, &Controller::Debug::Out()); break;
+            case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short, 4>, &MaxMinData, &Controller::Debug::Out()); break;
+            default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+          } break;
+    case 32 :
           switch (iComponentCount) {
-						case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,1>, SimpleMaxMin<float, 1>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, SimpleMaxMin<float, 2>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, SimpleMaxMin<float, 3>, &MaxMinData, &Controller::Debug::Out()); break;
-						case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, SimpleMaxMin<float, 4>, &MaxMinData, &Controller::Debug::Out()); break;
-						default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
-					} break;
-		default: T_ERROR("Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
-	}
+            case 1 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,1>, SimpleMaxMin<float, 1>, &MaxMinData, &Controller::Debug::Out()); break;
+            case 2 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,2>, SimpleMaxMin<float, 2>, &MaxMinData, &Controller::Debug::Out()); break;
+            case 3 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,3>, SimpleMaxMin<float, 3>, &MaxMinData, &Controller::Debug::Out()); break;
+            case 4 : dataVolume.FlatDataToBrickedLOD(&SourceData, strTempDir+"tempFile.tmp", CombineAverage<float,4>, SimpleMaxMin<float, 4>, &MaxMinData, &Controller::Debug::Out()); break;
+            default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+          } break;
+    default: T_ERROR("Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+  }
 
-	string strProblemDesc;
-	if (!dataVolume.Verify(&strProblemDesc)) {
+  string strProblemDesc;
+  if (!dataVolume.Verify(&strProblemDesc)) {
     T_ERROR("Verify failed with the following reason: %s", strProblemDesc.c_str());
     uvfFile.Close();
     SourceData.Close();
@@ -345,10 +356,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     if (bQuantized) {
       Remove(tmpFilename1, Controller::Debug::Out());
     }
-		return false;
-	}
+    return false;
+  }
 
-	if (!uvfFile.AddDataBlock(&dataVolume,dataVolume.ComputeDataSize(), true)) {
+  if (!uvfFile.AddDataBlock(&dataVolume,dataVolume.ComputeDataSize(), true)) {
     T_ERROR("AddDataBlock failed!");
     uvfFile.Close();
     SourceData.Close();
@@ -358,14 +369,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     if (bQuantized) {
       Remove(tmpFilename1, Controller::Debug::Out());
     }
-		return false;
-	}
+    return false;
+  }
 
   // do compute histograms when we are dealing with color data
   /// \todo change this if we want to support non color multi component data
   if (iComponentCount != 4) {
-
-    // if no resampling was perfomed above we need to compute the 1d histogram here
+    // if no resampling was perfomed above, we need to compute the
+    // 1d histogram here
     if (Histogram1D.GetHistogram().empty()) {
       MESSAGE("Computing 1D Histogram...");
       if (!Histogram1D.Compute(&dataVolume)) {
@@ -378,7 +389,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
         if (bQuantized) {
           Remove(tmpFilename1, Controller::Debug::Out());
         }
-		    return false;
+        return false;
       }
     }
 
@@ -394,11 +405,11 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
       if (bQuantized) {
         Remove(tmpFilename1, Controller::Debug::Out());
       }
-		  return false;
+      return false;
     }
     MESSAGE("Storing histogram data...");
-	  uvfFile.AddDataBlock(&Histogram1D,Histogram1D.ComputeDataSize());
-	  uvfFile.AddDataBlock(&Histogram2D,Histogram2D.ComputeDataSize());
+    uvfFile.AddDataBlock(&Histogram1D,Histogram1D.ComputeDataSize());
+    uvfFile.AddDataBlock(&Histogram2D,Histogram2D.ComputeDataSize());
   }
 
   MESSAGE("Storing acceleration data...");
@@ -408,41 +419,41 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   MESSAGE("Storing metadata...");
 
   KeyValuePairDataBlock metaPairs;
-	metaPairs.AddPair("Data Source",strSource);
-	metaPairs.AddPair("Decription",strDesc);
+  metaPairs.AddPair("Data Source",strSource);
+  metaPairs.AddPair("Decription",strDesc);
 
-  if (bMetadata_SourceIsLittleEndian) 
+  if (bMetadata_SourceIsLittleEndian)
     metaPairs.AddPair("Source Endianess","little");
   else
     metaPairs.AddPair("Source Endianess","big");
 
-  if (bMetadata_IsFloat) 
+  if (bMetadata_IsFloat)
     metaPairs.AddPair("Source Type","float");
   else
-    if (bMetadata_Signed) 
+    if (bMetadata_Signed)
       metaPairs.AddPair("Source Type","signed integer");
     else
       metaPairs.AddPair("Source Type","integer");
 
   metaPairs.AddPair("Source Bitwidth",SysTools::ToString(iMetadata_ComponentSize));
 
-  if (pKVPairs) {    
+  if (pKVPairs) {
     for (size_t i = 0;i<pKVPairs->size();i++) {
       metaPairs.AddPair(pKVPairs->at(i).first,pKVPairs->at(i).second);
     }
   }
 
-	UINT64 iDataSize = metaPairs.ComputeDataSize();
-	uvfFile.AddDataBlock(&metaPairs,iDataSize);
+  UINT64 iDataSize = metaPairs.ComputeDataSize();
+  uvfFile.AddDataBlock(&metaPairs,iDataSize);
 
 
   MESSAGE("Writing UVF file...");
 
-	uvfFile.Create();
-	SourceData.Close();
+  uvfFile.Create();
+  SourceData.Close();
 
   MESSAGE("Computing checksum...");
-  
+
   uvfFile.Close();
 
   MESSAGE("Removing temporary files...");
