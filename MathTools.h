@@ -41,9 +41,11 @@
 #define MATHTOOLS_H
 
 #include "StdDefines.h"
-#if defined(_MSC_VER) || \
-    (defined(__GNUC__) && (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 || \
-                                             __GNUC_MINOR__ == 1)))
+#if defined(_MSC_VER) ||                                              \
+  (defined(__GNUC__) && ( (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 ||   \
+                                             __GNUC_MINOR__ == 1)) || \
+                          defined(DETECTED_OS_APPLE)))
+//Apple supplies a gcc 4.2 on 10.5 that also does not include tr1/cmath
 # include <cmath>
 #else
 # include <tr1/cmath>
