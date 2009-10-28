@@ -40,19 +40,12 @@
 #ifndef MEMMAPPEDFILE_H
 #define MEMMAPPEDFILE_H
 
-#include <string>
 #include "StdDefines.h"
+#include <string>
 
 #ifdef _WIN32
-  #include <windows.h>
-  // undef stupid windows defines to max and min
-  #ifdef max
-  #undef max
-  #endif
-
-  #ifdef min
-  #undef min
-  #endif
+# define NOMINMAX
+# include <windows.h>
 #endif
 
 enum MMFILE_ACCESS {
@@ -107,7 +100,6 @@ private:
     int    m_fdes;
     int    m_dwMmmapMode;
   #endif
-
 };
 
 #endif // MEMMAPPEDFILE_H

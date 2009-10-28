@@ -39,13 +39,13 @@
 
 using namespace std;
 
+#include <cstdio>
+#include <cstdlib>
+#include <cerrno>
+#include <fcntl.h>
+#include <memory.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <memory.h>
 
 #ifdef _WIN32
   #include <process.h>
@@ -73,7 +73,7 @@ MemMappedFile::MemMappedFile(const string strFilename, const MMFILE_ACCESS eAcce
 }
 
 MemMappedFile::MemMappedFile(const wstring strFilename, const MMFILE_ACCESS eAccesMode, const UINT64& iLengthForNewFile, const UINT64& iOffset, const UINT64& iBytesToMap):
-  m_strFilename( strFilename.begin(), strFilename.end() ),
+  m_strFilename(strFilename.begin(), strFilename.end()),
   m_eAccesMode(eAccesMode),
   m_iLengthForNewFile(iLengthForNewFile),
   m_AllocationGranularity(0),
@@ -107,11 +107,11 @@ void  MemMappedFile::Flush() {
 void  MemMappedFile::Close() {
   if (m_bIsOpen) {
     #ifdef _WIN32
-      CloseHandle( m_hMem );
-      if (m_pData) UnmapViewOfFile( m_pData);
+      CloseHandle(m_hMem);
+      if (m_pData) UnmapViewOfFile(m_pData);
     #else
-      close( m_fdes );
-      if (m_pData) munmap( m_pData, m_dwFileMappingSize);
+      close(m_fdes);
+      if (m_pData) munmap(m_pData, m_dwFileMappingSize);
     #endif
     m_bIsOpen = false;
     m_pData = NULL;
@@ -139,16 +139,16 @@ void* MemMappedFile::ReMap(const UINT64& iOffset, const UINT64& iBytesToMap) {
   UINT64 iPosAdjustment = (iOffset % UINT64(m_AllocationGranularity));
 
 #ifdef _WIN32
-  if (m_pData) UnmapViewOfFile( m_pData);
+  if (m_pData) UnmapViewOfFile(m_pData);
 
   DWORD dwHigh  = DWORD((((iOffset-iPosAdjustment) >> 32) & 0xFFFFFFFF));
   DWORD dwLow = DWORD(((iOffset-iPosAdjustment) & 0xFFFFFFFF));
-  m_pData = MapViewOfFile( m_hMem, m_dwDesiredAccessMap, dwHigh, dwLow, (iBytesToMap == 0) ? 0 : (size_t)(iBytesToMap+iPosAdjustment));
+  m_pData = MapViewOfFile(m_hMem, m_dwDesiredAccessMap, dwHigh, dwLow, (iBytesToMap == 0) ? 0 : (size_t)(iBytesToMap+iPosAdjustment));
   if (m_pData == NULL) {
 #else
-  if (m_pData) munmap( m_pData, m_dwFileMappingSize);
+  if (m_pData) munmap(m_pData, m_dwFileMappingSize);
 
-  m_pData = mmap( NULL, ((iBytesToMap == 0) ? (m_dwFileSize-iOffset) : iBytesToMap)+iPosAdjustment, m_dwMmmapMode, MAP_SHARED, m_fdes, iOffset-iPosAdjustment);
+  m_pData = mmap(NULL, ((iBytesToMap == 0) ? (m_dwFileSize-iOffset) : iBytesToMap)+iPosAdjustment, m_dwMmmapMode, MAP_SHARED, m_fdes, iOffset-iPosAdjustment);
   if (m_pData == (void *)-1) {
 #endif
     m_dwFileMappingSize = 0;
@@ -162,8 +162,7 @@ void* MemMappedFile::ReMap(const UINT64& iOffset, const UINT64& iBytesToMap) {
 }
 
 
-int  MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode, const UINT64& iLengthForNewFile, const UINT64& iOffset, const UINT64& iBytesToMap) {
-
+int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode, const UINT64& iLengthForNewFile, const UINT64& iOffset, const UINT64& iBytesToMap) {
   m_id = rand();
  
   bool bExists = true, bGrowFile = false;
@@ -180,7 +179,7 @@ int  MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode
   DWORD sz;
 
   // check if file already exists and determine its length 
-  res = _stat64( strPath, &stat_buf);
+  res = _stat64(strPath, &stat_buf);
   if (res < 0) {
         if (errno == ENOENT) 
     bExists = false;
@@ -208,8 +207,8 @@ int  MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode
   m_dwDesiredAccessMap    = (!bExists || eAccesMode == MMFILE_ACCESS_READWRITE) ? FILE_MAP_ALL_ACCESS : FILE_MAP_READ;
 
     // create security descriptor (needed for Windows NT) 
-    PSECURITY_DESCRIPTOR pSD = (PSECURITY_DESCRIPTOR) malloc( SECURITY_DESCRIPTOR_MIN_LENGTH );
-    if( pSD == NULL ) return -2;
+    PSECURITY_DESCRIPTOR pSD = (PSECURITY_DESCRIPTOR) malloc(SECURITY_DESCRIPTOR_MIN_LENGTH);
+    if(pSD == NULL) return -2;
 
     InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION);
     SetSecurityDescriptorDacl(pSD, TRUE, (PACL) NULL, FALSE);
@@ -221,58 +220,57 @@ int  MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode
     sa.bInheritHandle = TRUE;
 
     // create or open file 
-  hFile = CreateFileA ( strPath, dwDesiredAccess, dwShareMode, &sa, bExists ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+  hFile = CreateFileA (strPath, dwDesiredAccess, dwShareMode, &sa, bExists ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (hFile == INVALID_HANDLE_VALUE) {
-        free( pSD);
+        free(pSD);
         return -3;
-    }
-    if (! bExists || bGrowFile) {
-    
+  }
+  if (! bExists || bGrowFile) {
     UINT64 dwWriteSize;
     if (bGrowFile) {
       SetFilePointer(hFile, 0, NULL, FILE_END);
       dwWriteSize = m_dwFileSize - stat_buf.st_size;
-    } else dwWriteSize = m_dwFileSize;
+    } else {
+      dwWriteSize = m_dwFileSize;
+    }
 
-        // ensure that file is long enough and filled with zero 
-        memset( buffer, 0, sizeof(buffer));
-        for (UINT64 i = 0; i < dwWriteSize/sizeof(buffer); ++i) {
-            if (! WriteFile( hFile, buffer, sizeof(buffer), &sz, NULL)) {
-                return -3;
-            }
-        }
-        if (! WriteFile( hFile, buffer, static_cast<DWORD>(dwWriteSize%sizeof(buffer)), &sz, NULL)) {
+    // ensure that file is long enough and filled with zero 
+    memset(buffer, 0, sizeof(buffer));
+    for (UINT64 i = 0; i < dwWriteSize/sizeof(buffer); ++i) {
+        if (! WriteFile(hFile, buffer, sizeof(buffer), &sz, NULL)) {
             return -3;
         }
     }
+    if (! WriteFile(hFile, buffer, static_cast<DWORD>(dwWriteSize%sizeof(buffer)), &sz, NULL)) {
+        return -3;
+    }
+  }
         
-    // create file mapping 
-    sprintf_s( buffer, sizeof(buffer), "%d", m_id);
-    m_hMem = CreateFileMappingA( hFile, &sa, flProtect, static_cast<DWORD>((m_dwFileSize & 0xFFFFFFFF00000000) >> 32), static_cast<DWORD>(m_dwFileSize & 0xFFFFFFFF), buffer);
-    free( pSD);
-    if (NULL == m_hMem) return -3;
-
+  // create file mapping 
+  sprintf_s(buffer, sizeof(buffer), "%d", m_id);
+  m_hMem = CreateFileMappingA(hFile, &sa, flProtect, static_cast<DWORD>((m_dwFileSize & 0xFFFFFFFF00000000) >> 32), static_cast<DWORD>(m_dwFileSize & 0xFFFFFFFF), buffer);
+  free(pSD);
+  if (NULL == m_hMem) return -3;
 
   DWORD dwHigh  = DWORD((((iOffset-iPosAdjustment) >> 32) & 0xFFFFFFFF));
   DWORD dwLow = DWORD(((iOffset-iPosAdjustment) & 0xFFFFFFFF));
 
   // map the file to memory 
-  m_pData = MapViewOfFile( m_hMem, m_dwDesiredAccessMap, dwHigh, dwLow, (iBytesToMap == 0) ? 0 : (size_t)(iBytesToMap+iPosAdjustment));
+  m_pData = MapViewOfFile(m_hMem, m_dwDesiredAccessMap, dwHigh, dwLow, (iBytesToMap == 0) ? 0 : (size_t)(iBytesToMap+iPosAdjustment));
 
-    CloseHandle( hFile );
+  CloseHandle(hFile);
 
   if (NULL == m_pData) {
-    CloseHandle( m_hMem );
+    CloseHandle(m_hMem);
     return -3;
   }
 
 #else
   struct stat stat_buf;
 
- 
   // check if file already exists and determine its length
-  res = stat( strPath, &stat_buf);
+  res = stat(strPath, &stat_buf);
   if (res < 0) {
     if (errno == ENOENT) 
       bExists = false;
@@ -298,7 +296,7 @@ int  MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode
   m_dwMmmapMode    = (!bExists || eAccesMode == MMFILE_ACCESS_READWRITE) ? PROT_READ | PROT_WRITE : PROT_READ;
  
   // open / create mapped file 
-  m_fdes = open( strPath, (bExists) ? dwDesiredAccess : dwDesiredAccess | O_CREAT, dwShareMode);
+  m_fdes = open(strPath, (bExists) ? dwDesiredAccess : dwDesiredAccess | O_CREAT, dwShareMode);
   if (m_fdes < -1) return -1;
  
   // ensure that file is long enough and filled with zero 
@@ -309,18 +307,18 @@ int  MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode
       dwWriteSize = m_dwFileSize - stat_buf.st_size;
     } else dwWriteSize = m_dwFileSize;
 
-    memset( buffer, 0, sizeof(buffer));
+    memset(buffer, 0, sizeof(buffer));
     for (size_t i = 0; i < dwWriteSize/sizeof(buffer); ++i) {
-      if (write( m_fdes, buffer, sizeof(buffer)) != sizeof(buffer)) {
+      if (write(m_fdes, buffer, sizeof(buffer)) != sizeof(buffer)) {
         return -1;
       }
     }
-    if ((size_t)(write( m_fdes, buffer, dwWriteSize%sizeof(buffer))) != dwWriteSize%sizeof(buffer)) {
+    if ((size_t)(write(m_fdes, buffer, dwWriteSize%sizeof(buffer))) != dwWriteSize%sizeof(buffer)) {
       return -1;
     }
   }
   // map the file to memory 
-  m_pData = mmap( NULL, ((iBytesToMap == 0) ? (m_dwFileSize-iOffset) : iBytesToMap)+iPosAdjustment, m_dwMmmapMode, MAP_SHARED, m_fdes, iOffset-iPosAdjustment);
+  m_pData = mmap(NULL, ((iBytesToMap == 0) ? (m_dwFileSize-iOffset) : iBytesToMap)+iPosAdjustment, m_dwMmmapMode, MAP_SHARED, m_fdes, iOffset-iPosAdjustment);
   if (m_pData == (void *)-1) return -1;
 #endif
 
