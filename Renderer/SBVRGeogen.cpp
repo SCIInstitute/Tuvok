@@ -36,9 +36,12 @@
 
 #include <algorithm>
 #include <cassert>
-#if defined(_MSC_VER) || \
-    (defined(__GNUC__) && (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 || \
-                                             __GNUC_MINOR__ == 1)))
+#include <StdTuvokDefines.h>
+#if defined(_MSC_VER) ||                                              \
+  (defined(__GNUC__) && ( (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 ||   \
+                                             __GNUC_MINOR__ == 1)) || \
+                          defined(DETECTED_OS_APPLE)))
+//Apple supplies a gcc 4.2 on 10.5 that also does not include tr1/cmath
 # include <cmath>
 #else
 # include <tr1/cmath>
@@ -388,7 +391,7 @@ void SBVRGeogen::ComputeGeometry() {
   // application.  If an app doesn't set brick metadata properly, we'll
   // calculate a bad minimum Z value of nan. nan + anything is still nan,
   // so we end up with an infinite loop computing geometry below.
-#if defined(_MSC_VER) 
+#if defined(_MSC_VER)
   assert(_finite(fDepth));
 #elif (defined(__GNUC__) && (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 || \
                                              __GNUC_MINOR__ == 1)))
