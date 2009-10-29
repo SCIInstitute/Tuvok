@@ -554,8 +554,8 @@ void AbstrRenderer::ScheduleWindowRedraw(EWindowMode eWindow) {
 }
 
 void AbstrRenderer::ScheduleRecompose() {
-  if (!m_bAvoidSeperateCompositing &&
-    m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) { // make sure we finished the current frame
+  if(!m_bAvoidSeperateCompositing && // ensure we finished the current frame:
+     m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
     m_bPerformReCompose = true;
     m_bRedrawMask[WM_3D]  = true;
   } else {
@@ -573,8 +573,7 @@ void AbstrRenderer::CompletedASubframe() {
 
   if (bRenderingFirstSubFrame) {   // time for current interaction LOD -> to detect if we are to slow
     m_fMsecPassed[0] = m_fMsecPassedCurrentFrame;    
-  } else 
-    if (bSecondSubFrame) {  // time for next better resolution -> to detect if we can go faster
+  } else if(bSecondSubFrame) {
     m_fMsecPassed[1] = m_fMsecPassedCurrentFrame;
   }
  
@@ -602,13 +601,15 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
         m_iLODNotOKCounter++;
       } else {
         m_iLODNotOKCounter = 0;
-        UINT64 iPerformanceBasedLODSkip = m_iPerformanceBasedLODSkip;
-        m_iPerformanceBasedLODSkip = std::max<UINT64>(1,m_iPerformanceBasedLODSkip)-1;
+        UINT64 iPerformanceBasedLODSkip =
+          std::max<UINT64>(1, m_iPerformanceBasedLODSkip) - 1;
         if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) {
           MESSAGE("Increasing start LOD to %i as it took %g ms "
                   "to render the first LOD level (max is %g) ",
                   int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0],
                   m_fMaxMSPerFrame);
+          m_fMsecPassed[0] = m_fMsecPassed[1];
+          m_iPerformanceBasedLODSkip = iPerformanceBasedLODSkip;
         } else {
           MESSAGE("Would like to increase start LOD as it took %g ms "
                   "to render the first LOD level (max is %g) BUT CAN'T.",
@@ -637,10 +638,9 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
         }
       }
     } else {
-      // if rendering is fast enougth use a higher resolution during interaction
+      // if rendering is fast enough use a higher resolution during interaction
       if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame &&
-          m_fMsecPassed[1] >= 0.0f && m_fMsecPassed[1] <= m_fMaxMSPerFrame &&
-          m_fMsecPassed[0] >= 0.0f && m_fMsecPassed[0] <= m_fMaxMSPerFrame) {
+          m_fMsecPassed[1] >= 0.0f && m_fMsecPassed[1] <= m_fMaxMSPerFrame) {
         m_iLODNotOKCounter = 0;
         if (m_bDecreaseSamplingRate || m_bDecreaseScreenRes) {
           if (m_bDecreaseSamplingRate) {
@@ -658,8 +658,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
           UINT64 iPerformanceBasedLODSkip =
             std::min<UINT64>(m_iMaxLODIndex - m_iMinLODForCurrentView,
                              m_iPerformanceBasedLODSkip + 1);
-          if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip &&
-              m_fMsecPassed[1] != 0.0f) {
+          if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) {
             MESSAGE("Decreasing start LOD to %i as it took only %g ms "
                     "to render the second LOD level",
                     int(m_iPerformanceBasedLODSkip), m_fMsecPassed[1]);
@@ -759,6 +758,12 @@ double AbstrRenderer::MaxValue() const {
   else
     return (m_pDataset->GetRange().first > m_pDataset->GetRange().second) ?
             m_p1DTrans->GetSize() : m_pDataset->GetRange().second;
+}
+
+bool AbstrRenderer::OnlyRecomposite() const {
+  return !m_bPerformRedraw &&
+          m_bPerformReCompose &&
+         !m_bDoAnotherRedrawDueToAllMeans;
 }
 
 vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
@@ -1106,8 +1111,9 @@ void AbstrRenderer::SetCVContextScale(float fScale) {
 void AbstrRenderer::SetCVBorderScale(float fScale) {
   if (m_fCVBorderScale != fScale) {
     m_fCVBorderScale = fScale;
-    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE)
+    if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) {
       ScheduleRecompose();
+    }
   }
 }
 

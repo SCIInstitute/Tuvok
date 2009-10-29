@@ -565,6 +565,7 @@ class AbstrRenderer {
     void                RestartTimers();
     virtual void        UpdateColorsInShaders() = 0;
     double              MaxValue() const;
+    bool                OnlyRecomposite() const;
 
   private:
     float               m_fIsovalue;

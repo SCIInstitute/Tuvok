@@ -279,7 +279,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   m_SBVRGeogen.SetWorld(maBricktTrans * m_mRotation * m_mTranslation);
   m_SBVRGeogen.SetView(m_mView[iStereoID], true);
 
-  if (! m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
+  if (!m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 

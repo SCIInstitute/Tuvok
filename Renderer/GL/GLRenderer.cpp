@@ -380,38 +380,39 @@ void GLRenderer::Paint() {
 
   bool bNewDataToShow = false;
   if (m_eViewMode == VM_SINGLE) {
-
     SetRenderTargetArea(RA_FULLSCREEN, false);
-
     switch (m_eFullWindowMode) {
-       case WM_3D       : {
-                              if (!m_bPerformRedraw && m_bPerformReCompose && !m_bDoAnotherRedrawDueToAllMeans){
-                                Recompose3DView(RA_FULLSCREEN);
-                                bNewDataToShow = true;
-                              } else {
-                                // plan the frame
-                                Plan3DFrame();
-                                // if m_bDecreaseScreenResthe resolution may have changed so update matrices (but not LOD computation)
-                                if (m_bDecreaseScreenResNow) SetRenderTargetArea(RA_FULLSCREEN, true);
-                                // execute the frame
-                                float fMsecPassed = 0.0f;
-                                bNewDataToShow = Execute3DFrame(RA_FULLSCREEN, fMsecPassed);
-                                m_fMsecPassedCurrentFrame += fMsecPassed;
-                              }
-                              break;
-                          }
-       case WM_CORONAL :
-       case WM_AXIAL    :
-       case WM_SAGITTAL  : if (m_bPerformRedraw) {
-                            bNewDataToShow = Render2DView(RA_FULLSCREEN, m_eFullWindowMode, m_piSlice[size_t(m_eFullWindowMode)]); 
-                           }
-                           break;
-       default          : T_ERROR("Invalid Windowmode");
-                          bNewDataToShow = false;
-                          break;
-
+      case WM_3D:
+        if(OnlyRecomposite()) {
+          Recompose3DView(RA_FULLSCREEN);
+          bNewDataToShow = true;
+        } else {
+          // plan the frame
+          Plan3DFrame();
+          // if m_bDecreaseScreenRes the resolution may
+          // have changed so update matrices (but not
+          // LOD computation)
+          if (m_bDecreaseScreenResNow) {
+            SetRenderTargetArea(RA_FULLSCREEN, true);
+          }
+          // execute the frame
+          float fMsecPassed = 0.0f;
+          bNewDataToShow = Execute3DFrame(RA_FULLSCREEN, fMsecPassed);
+          m_fMsecPassedCurrentFrame += fMsecPassed;
+        }
+        break;
+      case WM_CORONAL: /* FALL THROUGH */
+      case WM_AXIAL:   /* ... */
+      case WM_SAGITTAL:
+        if (m_bPerformRedraw) {
+          bNewDataToShow = Render2DView(RA_FULLSCREEN, m_eFullWindowMode, m_piSlice[size_t(m_eFullWindowMode)]);
+        }
+        break;
+      default:
+        T_ERROR("Invalid Windowmode");
+        bNewDataToShow = false;
+        break;
     }
-
   } else { // VM_TWOBYTWO
     int iActiveRenderWindows = 0;
     int iReadyWindows = 0;
@@ -419,48 +420,49 @@ void GLRenderer::Paint() {
     bool bPrevResType = m_bDecreaseScreenResNow;
 
     bool bForceCompleteRedrawDueToResChange = m_bDoAnotherRedrawDueToAllMeans;
-    for (UINT32 i = 0;i<4;i++) {
+    for (UINT32 i = 0;i<4;i++) {  // foreach of the 4 views ...
       ERenderArea eArea = ERenderArea(int(RA_TOPLEFT)+i);
 
-      // remark: this line only works if the 3D view is drawn before the 2D views
-      //          as m_bDecreaseScreenResNow is changed in Plan3DFrame
+      // note: this line only works if the 3D view is drawn before the 2D
+      //       views, as m_bDecreaseScreenResNow is changed in Plan3DFrame
       bForceCompleteRedrawDueToResChange = bForceCompleteRedrawDueToResChange || bPrevResType != m_bDecreaseScreenResNow;
 
       if (m_bRedrawMask[size_t(m_e2x2WindowMode[i])] || bForceCompleteRedrawDueToResChange) {
         iActiveRenderWindows++;
         bool bLocalNewDataToShow;
         switch (m_e2x2WindowMode[i]) {
-           case WM_3D       : {
-                                SetRenderTargetArea(eArea, false);
-                                if (!m_bPerformRedraw && m_bPerformReCompose && !bForceCompleteRedrawDueToResChange){
-                                  Recompose3DView(eArea);
-                                  bLocalNewDataToShow = true;
-                                } else {
-                                  // plan the frame
-                                  Plan3DFrame();
-                                  // if m_bDecreaseScreenResthe render target area may have changed
-                                  if (m_bDecreaseScreenResNow) SetRenderTargetArea(eArea, true); 
-                                  // execute the frame0
-                                  float fMsecPassed = 0.0f;
-                                  bLocalNewDataToShow = Execute3DFrame(eArea, fMsecPassed);
-                                  m_fMsecPassedCurrentFrame += fMsecPassed;
-                                }
-                                // are we done traversing the LOD levels
-                                m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) || (m_iCurrentLODOffset > m_iMinLODForCurrentView);
-                                break;
-                              }
-           case WM_CORONAL :
-           case WM_AXIAL    :
-           case WM_SAGITTAL  :
-                              SetRenderTargetArea(eArea, m_bDecreaseScreenResNow); 
-                              bLocalNewDataToShow = Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
-                              m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = false;
-                              break;
-           default          : T_ERROR("Invalid Windowmode");
-                              bLocalNewDataToShow = false;
-                              break;
+          case WM_3D:
+            SetRenderTargetArea(eArea, false);
+            if (!m_bPerformRedraw && m_bPerformReCompose && !bForceCompleteRedrawDueToResChange){
+              Recompose3DView(eArea);
+              bLocalNewDataToShow = true;
+            } else {
+              // plan the frame
+              Plan3DFrame();
+              // if m_bDecreaseScreenResthe render target area may have changed
+              if (m_bDecreaseScreenResNow) SetRenderTargetArea(eArea, true);
+              // execute the frame0
+              float fMsecPassed = 0.0f;
+              bLocalNewDataToShow = Execute3DFrame(eArea, fMsecPassed);
+              m_fMsecPassedCurrentFrame += fMsecPassed;
+            }
+            // are we done traversing the LOD levels
+            m_bRedrawMask[size_t(m_e2x2WindowMode[i])] =
+              (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
+              (m_iCurrentLODOffset > m_iMinLODForCurrentView);
+            break;
+          case WM_CORONAL:  /* FALL THROUGH */
+          case WM_AXIAL:    /* ... */
+          case WM_SAGITTAL:
+            SetRenderTargetArea(eArea, m_bDecreaseScreenResNow);
+            bLocalNewDataToShow = Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
+            m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = false;
+            break;
+          default:
+            T_ERROR("Invalid Windowmode");
+            bLocalNewDataToShow = false;
+            break;
         }
-
         if (bLocalNewDataToShow) iReadyWindows++;
       } else {
         // blit the previous result quad to the entire screen but restrict drawing to the current subarea
@@ -524,7 +526,9 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
       swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
     }
     m_iFilledBuffers = 0;
-    CompletedASubframe();
+    if(!OnlyRecomposite()) {
+      CompletedASubframe();
+    }
   }
 
   // show the result
@@ -534,6 +538,8 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 
   // no complete redraw is necessary as we just finished the first pass
   m_bPerformRedraw = false;
+  // we've definitely recomposed by now.
+  m_bPerformReCompose = false;
 }
 
 
@@ -565,7 +571,7 @@ void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea, bool bDecre
   UINTVECTOR2  vWinSize = (bDecreaseScreenResNow) ? m_vWinSize/m_fScreenResDecFactor : m_vWinSize;
 
   switch (eREnderArea) {
-    case RA_TOPLEFT    : glScissor(0, vWinSize.y*m_vWinFraction.y, 
+    case RA_TOPLEFT    : glScissor(0, vWinSize.y*m_vWinFraction.y,
                                    vWinSize.x*m_vWinFraction.x, vWinSize.y);
                          glEnable( GL_SCISSOR_TEST );
                          break;
@@ -739,7 +745,6 @@ bool GLRenderer::UnbindVolumeTex() {
   } else {
     return false;
   }
-  
 }
 
 
@@ -800,7 +805,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     // clear the target at the beginning
     SetRenderTargetAreaScissor(eREnderArea, m_bDecreaseScreenResNow);
 
-    glClearColor(0,0,0,1); 
+    glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
@@ -827,7 +832,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       case RA_TOPLEFT    : vWinAspectRatio /= DOUBLEVECTOR2(m_vWinFraction.x, 1.0f-m_vWinFraction.y); break;
       case RA_TOPRIGHT   : vWinAspectRatio /= DOUBLEVECTOR2(1.0f-m_vWinFraction.x, 1.0f-m_vWinFraction.y); break;
       case RA_LOWERLEFT  : vWinAspectRatio /= DOUBLEVECTOR2(m_vWinFraction.x, m_vWinFraction.y); break;
-      case RA_LOWERRIGHT : vWinAspectRatio /= DOUBLEVECTOR2(1.0f-m_vWinFraction.x, m_vWinFraction.y); break;       
+      case RA_LOWERRIGHT : vWinAspectRatio /= DOUBLEVECTOR2(1.0f-m_vWinFraction.x, m_vWinFraction.y); break;
       default: break;
     }
     vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
@@ -865,7 +870,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 
     if (!UnbindVolumeTex()) {
       T_ERROR("Cannot unbind volume: No volume bound");
-    } 
+    }
 
     glEnable(GL_DEPTH_TEST);
     if (!m_bUseMIP[size_t(eDirection)]) {
@@ -907,7 +912,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       const BrickKey &key = m_vCurrentBrickList[iBrickIndex].kBrick;
 
       // get the 3D texture from the memory manager
-      
+
       if (!BindVolumeTex(key)) {
         T_ERROR("Unable to bind volume to texture (LOD:%i, Brick:%i)", int(m_iCurrentLOD),int(iBrickIndex));
       }
@@ -988,8 +993,8 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset) {
 void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend) {
   FLOATVECTOR3 vMinPoint, vMaxPoint;
 
-  FLOATVECTOR3 vEExtend(vExtend+(bEpsilonOffset ? 0.003f : 0)); 
-                                         // increase the size of the bbox by 
+  FLOATVECTOR3 vEExtend(vExtend+(bEpsilonOffset ? 0.003f : 0));
+                                         // increase the size of the bbox by
                                          // epsilon = 0.003 to avoid the data
                                          // z-fighting with the bbox when requested
 
@@ -1269,14 +1274,14 @@ void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (m_bOffscreenIsLowRes) ? GL_LINEAR : GL_NEAREST);
   m_pFBO3DImageLast->ReadDepth(1);
 
-  // always clear the depth buffer 
+  // always clear the depth buffer
   // since we are transporting
   // new data from the FBO
   glClear(GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
   glDepthFunc(GL_LEQUAL);
- 
+
   m_pProgramTrans->Enable();
 
   FullscreenQuad(m_bOffscreenIsLowRes);
@@ -2028,11 +2033,11 @@ float GLRenderer::Render3DView() {
                                      m_bDownSampleTo8Bits, m_bDisableBorder,
                                      m_iIntraFrameCounter++, m_iFrameCounter);
 
-    if(t) { 
+    if(t) {
       MESSAGE("  Binding Texture");
-      t->Bind(0); 
+      t->Bind(0);
     } else {
-      T_ERROR("Cannot bind texture, Get3DTexture returned invalid texture"); 
+      T_ERROR("Cannot bind texture, Get3DTexture returned invalid texture");
     }
 
     Render3DInLoop(m_iBricksRenderedInThisSubFrame,0);
@@ -2064,7 +2069,7 @@ float GLRenderer::Render3DView() {
       glReadPixels(0,0,1,1,GL_RGBA,GL_UNSIGNED_BYTE,dummy);
 #else
       // let's pretend this actually does what it should
-      glFinish(); 
+      glFinish();
 #endif
 
       // time this loop
@@ -2157,33 +2162,32 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
 
   m_pFBOIsoHit[iStereoID]->FinishRead(1);
   m_pFBOIsoHit[iStereoID]->FinishRead(0);
-
-  m_bPerformReCompose = false;
 }
 
 
 void GLRenderer::CVFocusHasChanged() {
   // read back the 3D position from the framebuffer
-
   m_pFBOIsoHit[0]->Write(0,0,false);
   glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
   float vec[4];
-  glReadPixels(m_vCVMousePos.x, m_vWinSize.y-m_vCVMousePos.y, 1, 1, GL_RGBA, GL_FLOAT, vec);
+  glReadPixels(m_vCVMousePos.x, m_vWinSize.y-m_vCVMousePos.y, 1, 1,
+               GL_RGBA, GL_FLOAT, vec);
   glReadBuffer(GL_BACK);
   m_pFBOIsoHit[0]->FinishWrite(0);
-  
+
   // update m_vCVPos
   if (vec[3] != 0.0f) {
-    m_vCVPos = FLOATVECTOR4(vec[0],vec[1],vec[2],1.0f) * m_matModelView[0].inverse();
-
-    MESSAGE("Setting new CV 3D pos (%g, %g, %g, %g) at screen position (%i, %i)", vec[0], vec[1], vec[2], vec[3], m_vCVMousePos.x, m_vWinSize.y-m_vCVMousePos.y);
+    m_vCVPos = FLOATVECTOR4(vec[0],vec[1],vec[2],1.0f) *
+               m_matModelView[0].inverse();
+    MESSAGE("Setting new CV 3D pos (%g, %g, %g, %g) "
+            "at screen position (%i, %i)", vec[0], vec[1], vec[2], vec[3],
+            m_vCVMousePos.x, m_vWinSize.y - m_vCVMousePos.y);
   } else {
     // if we do not pick a valid point move CV pos to "nirvana"
     m_vCVPos = FLOATVECTOR4(10000000.0f, 10000000.0f, 10000000.0f, 0.0f);
   }
 
-
-  // now let the parent do it's part
+  // now let the parent do its part
   AbstrRenderer::CVFocusHasChanged();
 }
 
