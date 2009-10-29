@@ -93,7 +93,9 @@ typedef unsigned char BYTE;
   #define DETECTED_OS_LINUX
 #endif
 
-#ifndef DETECTED_OS_APPLE
+// Disabled for now; clean up include ordering at some point before
+// re-enabling.
+#if 0
 # define _POSIX_C_SOURCE 200112L
 #endif
 
