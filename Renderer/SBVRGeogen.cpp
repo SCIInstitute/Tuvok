@@ -37,11 +37,11 @@
 #include <algorithm>
 #include <cassert>
 #include <StdTuvokDefines.h>
-#if defined(_MSC_VER) ||                                              \
-  (defined(__GNUC__) && ( (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 ||   \
-                                             __GNUC_MINOR__ == 1)) || \
-                          defined(DETECTED_OS_APPLE)))
-//Apple supplies a gcc 4.2 on 10.5 that also does not include tr1/cmath
+#if defined(_MSC_VER) ||                                               \
+    (defined(__GNUC__) && (__GNUC__ == 4 && __GNUC_MINOR__ <= 1)) ||   \
+    defined(DETECTED_OS_APPLE)
+// MS puts tr1 in standard headers.  Old gcc's and all gcc's on Apple are
+// broken, not including this part of tr1.
 # include <cmath>
 #else
 # include <tr1/cmath>
@@ -393,8 +393,10 @@ void SBVRGeogen::ComputeGeometry() {
   // so we end up with an infinite loop computing geometry below.
 #if defined(_MSC_VER)
   assert(_finite(fDepth));
-#elif (defined(__GNUC__) && (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 || \
-                                             __GNUC_MINOR__ == 1)))
+#elif defined(__GNUC__) && (__GNUC__ == 4 && __GNUC_MINOR__ <= 1) || \
+      defined(DETECTED_OS_APPLE)
+  /* nothing... bleh. */
+#elif (defined(__GNUC__) && (__GNUC__ == 4 && __GNUC_MINOR__ <= 1))
   assert(!std::tr1::isnan(fDepth));
 #endif
 
