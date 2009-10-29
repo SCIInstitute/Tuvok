@@ -39,13 +39,13 @@
 
 /// if enabled, SetUniformVector allows for implicit casting, which can
 /// impact performance
-#define GLSL_ALLOW_IMPLICIT_CASTS
+#define GLSL_ALLOW_IMPLICIT_CASTS 1
 /// if enabled, GLSL-compiler warnings are treated as errors
 #define GLSLPROGRAM_STRICT
 
 #ifdef _DEBUG
   /// switches on debugging output - can be changed per-class.
-  #define GLSL_DEBUG
+  #define GLSL_DEBUG 1
 #endif
 
 /// on windows warn if GLSL_DEBUG differs from _DEBUG (i.e.. if the

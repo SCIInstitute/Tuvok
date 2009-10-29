@@ -1622,10 +1622,14 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const s
     return false;
 }
 
-bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs) {
-
+bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,  
+                                     GLSLProgram** pShaderProgram,
+                                     bool bSearchSubdirs) {
 #ifdef DETECTED_OS_APPLE
-  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strVSFile))) strVSFile = SysTools::GetFromResourceOnMac(strVSFile);
+  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strVSFile))) {
+    strVSFile = SysTools::GetFromResourceOnMac(strVSFile);
+    MESSAGE("Found %s in bundle, using that.", strVSFile.c_str());
+  }
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strFSFile))) strFSFile = SysTools::GetFromResourceOnMac(strFSFile);
 #endif
 
@@ -1648,9 +1652,9 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
     if (strActualVSFile == "") {
       T_ERROR("Unable to locate vertex shader %s (%s)",strDirlessVSFile.c_str(), strVSFile.c_str());
       return false;
-    } else
+    } else {
       MESSAGE("Changed vertex shader %s to %s",strVSFile.c_str(), strActualVSFile.c_str());
-
+    }
   } else {
     strActualVSFile = strVSFile;
   }

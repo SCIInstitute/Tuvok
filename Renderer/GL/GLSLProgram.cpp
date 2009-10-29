@@ -248,7 +248,7 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
     } else {
       bFSSuccess=false;
       if (src==GLSLPROGRAM_DISK) {
-        T_ERROR( "Error in fragment shader: %s", FSFile);
+        T_ERROR("Error in fragment shader: %s", FSFile);
       }
       else {
         T_ERROR("---------- ERROR -----------");
@@ -309,49 +309,70 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
   } else {
     // attach to program object
     m_hProgram=glCreateProgram();
-    if (hVS) glAttachShader(m_hProgram,hVS);
-    if (hFS) glAttachShader(m_hProgram,hFS);
+    assert(GL_NO_ERROR == glGetError());
+    if (hVS) {
+      glAttachShader(m_hProgram,hVS);
+    }
+    assert(GL_NO_ERROR == glGetError());
+    if (hFS) {
+      glAttachShader(m_hProgram,hFS);
+    }
+    assert(GL_NO_ERROR == glGetError());
 
     // link the program together
     if (bVSSuccess && bFSSuccess) {
       glLinkProgram(m_hProgram);
 
       // check for errors
-      GLint iLinked;
-      glGetProgramiv(m_hProgram,GL_LINK_STATUS,&iLinked);
+      GLint iLinked=42;
+      glGetProgramiv(m_hProgram, GL_LINK_STATUS, &iLinked);
+      if(iLinked != GL_TRUE) {
+        GLchar log[2048];
+        GLsizei len=42;
+        glGetProgramInfoLog(m_hProgram, 2047, &len, log);
+        if(len > 0) {
+          WARNING("Shader link failed: %s", static_cast<char*>(log));
+        }
+      }
 
       std::string fileDesc = std::string("VS: ") + std::string(VSFile) +
                              std::string(", FS:") + std::string(FSFile);
       WriteInfoLog(fileDesc.c_str(), m_hProgram, true);
 
       // flag shaders such that they can be deleted when they get detached
-      if (hVS) glDeleteShader(hVS);
-      if (hFS) glDeleteShader(hFS);
+      if (hVS) {
+        glDeleteShader(hVS);
+      }
+      if (hFS) {
+        glDeleteShader(hFS);
+      }
+      MESSAGE("linked: %d", static_cast<int>(iLinked));
       if (CheckGLError("Load()") || iLinked!=GLint(GL_TRUE)) {
         glDeleteProgram(m_hProgram);
         m_hProgram=0;
         m_bInitialized=false;
         return;
-      }
-      else {
+      } else {
         m_bInitialized=true;
       }
-    }
-    else {
+    } else {
       if (hVS) glDeleteShader(hVS);
       if (hFS) glDeleteShader(hFS);
       glDeleteProgram(m_hProgram);
       m_hProgram=0;
       m_bInitialized=false;
-      if (!bVSSuccess && !bFSSuccess) T_ERROR("Error in vertex and fragment shaders");
-      else if (!bVSSuccess) T_ERROR("Error in vertex shader");
-      else if (!bFSSuccess) T_ERROR("Error in fragment shader");
+      if (!bVSSuccess && !bFSSuccess) {
+        T_ERROR("Error in vertex and fragment shaders");
+      } else if (!bVSSuccess) {
+        T_ERROR("Error in vertex shader");
+      } else if (!bFSSuccess) {
+        T_ERROR("Error in fragment shader");
+      }
     }
   }
 }
 
 /**
- * Writes errors/information messages to stdout.
  * Gets the InfoLogARB of hObject and messages it.
  * \param hObject - a handle to the object.
  * \param bProgram - if true, hObject is a program object, otherwise it is a shader object.
@@ -359,7 +380,8 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
  * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
  * \date Aug.2004
  */
-bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bProgram) {
+bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject,
+                               bool bProgram) {
   // Check for errors
   GLint iLength=0;
   if (bProgram)
@@ -367,30 +389,34 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject, bool bPro
   else
     glGetShaderiv(hObject,GL_INFO_LOG_LENGTH,&iLength);
 
-  GLboolean bAtMostWarnings=true;
-  if (iLength>1) {
+  GLenum err = glGetError();
+  assert(GL_NO_ERROR == err);
+
+  GLboolean bAtMostWarnings = GL_TRUE;
+  if (iLength > 1) {
     char *pcLogInfo=new char[iLength];
     if (bProgram) {
       glGetProgramInfoLog(hObject,iLength,&iLength,pcLogInfo);
-      bAtMostWarnings=glIsProgram(hObject);
-    }
-    else {
+      bAtMostWarnings = glIsProgram(hObject);
+    } else {
       glGetShaderInfoLog(hObject,iLength,&iLength,pcLogInfo);
-      bAtMostWarnings=glIsShader(hObject);
+      bAtMostWarnings = glIsShader(hObject);
     }
     if (bAtMostWarnings) {
-      WARNING(shaderdesc);
-      WARNING(pcLogInfo);
+      WARNING("%s", shaderdesc);
+      WARNING("%s", pcLogInfo);
       delete[] pcLogInfo;
       return false;
     } else {
-      T_ERROR(shaderdesc);
-      T_ERROR(pcLogInfo);
+      T_ERROR("%s", shaderdesc);
+      T_ERROR("%s", pcLogInfo);
       delete[] pcLogInfo;
 #ifdef GLSLPROGRAM_STRICT
       return true;
 #endif
     }
+  } else {
+    MESSAGE("No info log available.");
   }
   return !bool(bAtMostWarnings==GL_TRUE); // error occured?
 }
@@ -489,20 +515,24 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
     }
   } else {
     hShader = glCreateShader(Type);
-    glShaderSource(hShader,1,(const char**)&pcShader,NULL);  // upload null-terminated shader
+    // upload null-terminated shader
+    glShaderSource(hShader,1,(const char**)&pcShader,NULL);
     glCompileShader(hShader);
 
     // Check for compile status
-    GLint iCompiled;
+    GLint iCompiled=42, srclen=42;
     glGetShaderiv(hShader,GL_COMPILE_STATUS,&iCompiled);
+    glGetShaderiv(hShader, GL_SHADER_SOURCE_LENGTH, &srclen);
 
     // Check for errors
-    if (WriteInfoLog(ShaderDesc, hShader,false)) {
+    if (WriteInfoLog(ShaderDesc, hShader, false)) {
+      T_ERROR("WIL failed, deleting shader..");
       glDeleteShader(hShader);
       bError=true;
     }
 
     if (CheckGLError("LoadProgram()") || iCompiled!=GLint(GL_TRUE)) {
+      T_ERROR("Shader compilation failed.");
       glDeleteShader(hShader);
       bError=true;
     }
@@ -574,7 +604,8 @@ bool GLSLProgram::CheckGLError(const char*, const char*) const {
   return (glGetError()!=GL_NO_ERROR);
 }
 #else
-bool GLSLProgram::CheckGLError(const char *pcError, const char *pcAdditional) const{
+bool GLSLProgram::CheckGLError(const char *pcError,
+                               const char *pcAdditional) const {
   if (pcError==NULL) {  // Simply check for error, true if an error occured.
     return (glGetError()!=GL_NO_ERROR);
   }
