@@ -673,13 +673,12 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
       }
     }
 
-
-    UINT64 iLODSkip = std::max(m_iPerformanceBasedLODSkip, UINT64(m_iLODLimits.x));
-    m_iStartLODOffset = std::max(m_iMinLODForCurrentView,m_iMaxLODIndex-iLODSkip);
+    m_iStartLODOffset = std::max(m_iMinLODForCurrentView,m_iMaxLODIndex-m_iPerformanceBasedLODSkip);
   } else {
     m_iStartLODOffset = m_iMinLODForCurrentView;
   }
 
+  m_iStartLODOffset = std::min(m_iStartLODOffset, UINT64(m_iMaxLODIndex-m_iLODLimits.x));
   m_iCurrentLODOffset = m_iStartLODOffset;
   m_bStartingNewFrame = true;
   RestartTimers();
