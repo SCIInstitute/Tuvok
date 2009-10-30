@@ -727,7 +727,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
         }
         // Try to get the offset, which can fail.  If it does, report an error
         // and fake an offset -- we're screwed at that point anyway.
-        size_t offset = fileDICOM.tellg();
+        size_t offset = static_cast<size_t>(fileDICOM.tellg());
         if(static_cast<int>(fileDICOM.tellg()) == -1) {
           T_ERROR("JPEG offset unknown; DICOM parsing failed.  "
                   "Assuming offset 0.  Please send a debug log.");
@@ -741,7 +741,10 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
           elementType = TYPE_UN;
         } else info.SetOffsetToData(UINT32(fileDICOM.tellg()));
       }
-    } else info.SetOffsetToData(UINT32(fileDICOM.tellg()));  // otherwise just believe we have found the right data block
+    } else {
+      // otherwise just believe we have found the right data block
+      info.SetOffsetToData(UINT32(fileDICOM.tellg()));
+    }
   }
 
   if (elementType == TYPE_UN) {

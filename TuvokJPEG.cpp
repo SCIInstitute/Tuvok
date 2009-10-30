@@ -231,6 +231,7 @@ fill_buffer_from_file(std::vector<char>& buf, const char *fn,
   std::ifstream ifs(fn, std::ifstream::binary);
 
   if(!ifs.is_open()) {
+    T_ERROR("Could not get JPEG data from file %s!", fn);
     return;
   }
   // get filesize.
@@ -238,7 +239,7 @@ fill_buffer_from_file(std::vector<char>& buf, const char *fn,
   std::ifstream::pos_type file_size = ifs.tellg() - offset;
   ifs.seekg(offset, std::ios::beg);
 
-  MESSAGE("Reading %u byte file.", static_cast<unsigned int>(file_size));
+  MESSAGE("Reading %u byte file.", static_cast<unsigned>(file_size));
 
   // resize our buffer to be big enough for the file
   try {
