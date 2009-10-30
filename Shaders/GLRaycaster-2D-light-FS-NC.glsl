@@ -44,6 +44,7 @@ uniform float fStepScale;     ///< opacity correction quotient
 uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next voxel
 uniform vec2 vScreensize;      ///< the size of the screen in pixels
 uniform float fRayStepsize;     ///< stepsize along the ray
+uniform vec3 vDomainScale;
 
 uniform vec3 vLightAmbient;
 uniform vec3 vLightSpecular;
@@ -120,7 +121,7 @@ void main(void)
 	    vec4  vTransVal = texture2D(texTrans2D, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
 
       /// compute lighting
-      vec3 vNormal     = gl_NormalMatrix * vGradient;
+      vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
       float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
       vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient, vLightDiffuse*vTransVal.xyz, vLightSpecular);
       

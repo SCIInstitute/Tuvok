@@ -38,6 +38,7 @@
 uniform sampler3D texVolume;  ///< the data volume
 uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next voxel
 uniform float fIsoval;        ///< the isovalue
+uniform vec3 vDomainScale;
 
 uniform vec3 vLightAmbient;
 uniform vec3 vLightDir;
@@ -61,7 +62,7 @@ void main(void)
     vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp); 
 
     // compute lighting
-    vec3 vNormal     = gl_NormalMatrix * vGradient;
+    vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
     float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
     vNormal.z = abs(vNormal.z);
     vec3 vViewDir    = normalize(vec3(0,0,0)-vPosition);

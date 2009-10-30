@@ -2219,11 +2219,14 @@ void GLRenderer::UpdateColorsInShaders() {
     FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
     FLOATVECTOR3 dir(0.0f,0.0f,-1.0f);  // so far the light source is always a headlight
 
+    FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
+
     m_pProgram1DTrans[1]->Enable();
     m_pProgram1DTrans[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
     m_pProgram1DTrans[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
     m_pProgram1DTrans[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
     m_pProgram1DTrans[1]->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+    m_pProgram1DTrans[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
     m_pProgram1DTrans[1]->Disable();
 
     m_pProgram2DTrans[1]->Enable();
@@ -2231,6 +2234,7 @@ void GLRenderer::UpdateColorsInShaders() {
     m_pProgram2DTrans[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
     m_pProgram2DTrans[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
     m_pProgram2DTrans[1]->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+    m_pProgram2DTrans[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
     m_pProgram2DTrans[1]->Disable();
 
     m_pProgramIsoCompose->Enable();
@@ -2253,5 +2257,13 @@ void GLRenderer::UpdateColorsInShaders() {
     m_pProgramCVCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
     m_pProgramCVCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
     m_pProgramCVCompose->Disable();
+
+    m_pProgramIso->Enable();
+    m_pProgramIso->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+    m_pProgramIso->Disable();
+
+    m_pProgramColor->Enable();
+    m_pProgramColor->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+    m_pProgramColor->Disable();
 
 }

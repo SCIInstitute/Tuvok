@@ -49,6 +49,7 @@ uniform vec3 vLightAmbient;
 uniform vec3 vLightDiffuse;
 uniform vec3 vLightSpecular;
 uniform vec3 vLightDir;
+uniform vec3 vDomainScale;
 
 uniform vec4 vClipPlane;
 
@@ -61,8 +62,8 @@ vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffu
 	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
 	vec3 vReflection = normalize(reflect(vViewDir, vNormal));
 	return clamp(vLightAmbient+
-		   vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
-		   vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0), 0.0,1.0);
+			     vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
+				 vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0),0.0,1.0);
 }
 
 vec4 ColorBlend(vec4 src, vec4 dst) {
@@ -80,7 +81,7 @@ vec3 ComputeNormal(vec3 vHitPosTex) {
   float fVolumValZp = texture3D(texVolume, vHitPosTex+vec3(0,0,+vVoxelStepsize.z)).x;
   float fVolumValZm = texture3D(texVolume, vHitPosTex+vec3(0,0,-vVoxelStepsize.z)).x;
   vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp); 
-  vec3 vNormal     = gl_NormalMatrix * vGradient;
+  vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
   float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
   return vNormal;
 }

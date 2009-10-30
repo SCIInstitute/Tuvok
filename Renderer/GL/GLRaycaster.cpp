@@ -536,14 +536,17 @@ void GLRaycaster::StartFrame() {
                           m_pProgram2DTrans[1]->Disable();
                           break;
     case RM_ISOSURFACE :  {
+                           FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
                             if (m_bDoClearView) {
                               m_pProgramIso2->Enable();
                               m_pProgramIso2->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+                              m_pProgramIso2->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
                               m_pProgramIso2->Disable();
                             }
                             GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
                             shader->Enable();
                             shader->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+                            shader->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
                             shader->Disable();
                           }
                           break;

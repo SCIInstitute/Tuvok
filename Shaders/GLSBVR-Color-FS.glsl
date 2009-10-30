@@ -38,6 +38,7 @@
 uniform sampler3D texVolume;  ///< the data volume
 uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next voxel
 uniform float fIsoval;        ///< the isovalue
+uniform vec3 vDomainScale;
 
 varying vec3 vPosition;
 
@@ -49,7 +50,7 @@ vec3 ComputeNormal(vec3 vHitPosTex) {
   float fVolumValZp = texture3D(texVolume, vHitPosTex+vec3(0,0,+vVoxelStepsize.z)).x;
   float fVolumValZm = texture3D(texVolume, vHitPosTex+vec3(0,0,-vVoxelStepsize.z)).x;
   vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp); 
-  vec3 vNormal     = gl_NormalMatrix * vGradient;
+  vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
   float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
   return vNormal;
 }

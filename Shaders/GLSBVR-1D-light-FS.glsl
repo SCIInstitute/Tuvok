@@ -40,6 +40,7 @@ uniform sampler1D texTrans1D; ///< the 1D Transfer function
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
 uniform float fStepScale;   ///< opacity correction quotient
 uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next voxel
+uniform vec3 vDomainScale;
 
 uniform vec3 vLightAmbient;
 uniform vec3 vLightDiffuse;
@@ -75,7 +76,7 @@ void main(void)
   vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp); 
 
   // compute lighting
-  vec3 vNormal     = gl_NormalMatrix * vGradient;
+  vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
   float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
 
   vec3 vLightColor = Lighting(vPosition.xyz, vNormal, vLightAmbient, vLightDiffuse*vTransVal.xyz, vLightSpecular);

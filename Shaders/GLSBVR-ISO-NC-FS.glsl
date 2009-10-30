@@ -43,6 +43,7 @@ uniform vec3 vLightAmbient;
 uniform vec3 vLightDiffuse;
 uniform vec3 vLightSpecular;
 uniform vec3 vLightDir;
+uniform vec3 vDomainScale;
 
 varying vec3 vPosition;
 
@@ -73,7 +74,7 @@ void main(void)
     vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp); 
 
     // compute normal
-    vec3 vNormal     = gl_NormalMatrix * vGradient;
+    vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
     float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
 
     // write result to fragment color

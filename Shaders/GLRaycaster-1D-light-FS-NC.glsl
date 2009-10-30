@@ -44,6 +44,7 @@ uniform float fStepScale;        ///< opacity correction quotient
 uniform vec3 vVoxelStepsize;     ///< Stepsize (in texcoord) to get to the next voxel
 uniform vec2 vScreensize;        ///< the size of the screen in pixels
 uniform float fRayStepsize;      ///< stepsize along the ray
+uniform vec3 vDomainScale;
 
 uniform vec3 vLightAmbient;
 uniform vec3 vLightDiffuse;
@@ -79,7 +80,7 @@ vec3 ComputeNormal(vec3 vHitPosTex) {
   float fVolumValZp = texture3D(texVolume, vHitPosTex+vec3(0,0,+vVoxelStepsize.z)).x;
   float fVolumValZm = texture3D(texVolume, vHitPosTex+vec3(0,0,-vVoxelStepsize.z)).x;
   vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp); 
-  vec3 vNormal     = gl_NormalMatrix * vGradient;
+  vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
   float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
   return vNormal;
 }
