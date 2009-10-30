@@ -419,8 +419,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   MESSAGE("Storing metadata...");
 
   KeyValuePairDataBlock metaPairs;
-  metaPairs.AddPair("Data Source",strSource);
-  metaPairs.AddPair("Decription",strDesc);
+  if (strSource != "") metaPairs.AddPair("Data Source",strSource);
+  if (strDesc != "") metaPairs.AddPair("Decription",strDesc);
 
   if (bMetadata_SourceIsLittleEndian)
     metaPairs.AddPair("Source Endianess","little");
