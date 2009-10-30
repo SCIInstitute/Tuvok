@@ -1040,6 +1040,13 @@ namespace SysTools {
   typedef unsigned char CHAR;
 #endif
 
+  /// True if the given string is an argument to an "-option"
+  static bool is_argument(const char *str) {
+    // Right now, this means the string doesn't start with "-", or "-" is the
+    // entire string.
+    return strcmp(str, "-") == 0 || str[0] != '-';
+  }
+
   CmdLineParams::CmdLineParams(int argc, char** argv) {
     m_strFilename = SysTools::GetFilename(argv[0]);
 
@@ -1049,7 +1056,7 @@ namespace SysTools {
       {
         m_strArrayParameters.push_back(argv[a]+1);
 
-        if (a+1<argc && argv[a+1][0] != '-') {
+        if((a+1) < argc && is_argument(argv[a+1])) {
           m_strArrayValues.push_back(argv[a+1]);
           ++a;
         } else m_strArrayValues.push_back("");
