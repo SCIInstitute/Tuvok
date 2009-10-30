@@ -389,8 +389,10 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject,
   else
     glGetShaderiv(hObject,GL_INFO_LOG_LENGTH,&iLength);
 
+#ifdef _DEBUG
   GLenum err = glGetError();
   assert(GL_NO_ERROR == err);
+#endif
 
   GLboolean bAtMostWarnings = GL_TRUE;
   if (iLength > 1) {
