@@ -1049,7 +1049,7 @@ namespace SysTools {
       {
         m_strArrayParameters.push_back(argv[a]+1);
 
-        if (a+1<argc) {
+        if (a+1<argc && argv[a+1][0] != '-') {
           m_strArrayValues.push_back(argv[a+1]);
           ++a;
         } else m_strArrayValues.push_back("");
