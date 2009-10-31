@@ -52,7 +52,7 @@ QVISConverter::QVISConverter()
 bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename, 
                             const std::string&, bool,
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
-                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
+                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile) {
@@ -123,7 +123,7 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
       WARNING("This is not a valid QVIS dat file.");
       return false; 
     } else 
-      vVolumeSize = UINTVECTOR3(resolution->vuiValue);
+      vVolumeSize = UINT64VECTOR3(resolution->vuiValue);
 
     KeyValPair* sliceThickness = parser.GetData("SLICETHICKNESS");
     if (sliceThickness == NULL || sliceThickness->vuiValue.size() != 3) {
@@ -142,7 +142,7 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                             UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction) {
+                             UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction) {
 
   // compute fromat string
   string strFormat;

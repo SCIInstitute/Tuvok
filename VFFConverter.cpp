@@ -50,7 +50,7 @@ VFFConverter::VFFConverter()
 bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
                                 const std::string&, bool,
                                 UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
-                                bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
+                                bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                 FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                                 UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                                 bool& bDeleteIntermediateFile) {
@@ -78,7 +78,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   bDeleteIntermediateFile = false;
   iComponentSize    = 8;
   iComponentCount   = 1;
-  vVolumeSize       = UINTVECTOR3(1,1,1);
+  vVolumeSize       = UINT64VECTOR3(1,1,1);
   vVolumeAspect     = FLOATVECTOR3(1,1,1);
   bConvertEndianess = EndianConvert::IsLittleEndian();
   bSigned           = true;
@@ -180,7 +180,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                             UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool) {
+                             UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool) {
                            
   // create header textfile from metadata
   ofstream fAsciiTarget(strTargetFilename.c_str());  

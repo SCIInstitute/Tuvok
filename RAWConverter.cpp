@@ -53,7 +53,7 @@ using boost::int64_t;
 
 bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir,
                                      UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned, bool bIsFloat,
-                                     UINTVECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType,
+                                     UINT64VECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType,
                                      KVPairs* pKVPairs)
 {
   bool bMetadata_SourceIsLittleEndian = bConvertEndianness && EndianConvert::IsBigEndian();
@@ -240,7 +240,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
   UVF uvfFile(wstrUVFName);
 
   UINT64 iLodLevelCount = 1;
-  UINT32 iMaxVal = vVolumeSize.maxVal();
+  UINT64 iMaxVal = vVolumeSize.maxVal();
 
   while (iMaxVal > BRICKSIZE) {
     iMaxVal /= 2;
@@ -677,7 +677,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
                                      UINT64 iComponentCount,
                                      bool bSigned,
                                      bool bIsFloat,
-                                     UINTVECTOR3 vVolumeSize)
+                                     UINT64VECTOR3 vVolumeSize)
 {
   ifstream sourceFile(strFilename.c_str(),ios::binary);
   if (!sourceFile.is_open()) {
@@ -802,7 +802,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
 
 bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                    UINT64 iComponentSize, UINT64 , bool , bool,
-                                   UINTVECTOR3, FLOATVECTOR3, bool) {
+                                   UINT64VECTOR3, FLOATVECTOR3, bool) {
   // convert raw to raw is easy :-), just copy the file and ignore the metadata
 
   // if the file exists, delete it first
@@ -904,7 +904,7 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   bool          bConvertEndianess;
   bool          bSigned;
   bool          bIsFloat;
-  UINTVECTOR3   vVolumeSize;
+  UINT64VECTOR3 vVolumeSize;
   FLOATVECTOR3  vVolumeAspect;
   string        strTitle;
   string        strSource;
@@ -945,7 +945,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
   bool          bConvertEndianess=false;
   bool          bSigned=false;
   bool          bIsFloat=false;
-  UINTVECTOR3   vVolumeSize(0,0,0);
+  UINT64VECTOR3 vVolumeSize(0,0,0);
   FLOATVECTOR3  vVolumeAspect(0,0,0);
   string        strTitle = "";
   string        strSource = "";
@@ -985,7 +985,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
 bool RAWConverter::Analyze(const std::string& strSourceFilename,
                            UINT64 iHeaderSkip, UINT64 iComponentSize,
                            UINT64 iComponentCount, bool bSigned,
-                           bool bFloatingPoint, UINTVECTOR3 vVolumeSize,
+                           bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                            RangeInfo& info) {
   // open source file
   LargeRAWFile fSource(strSourceFilename, iHeaderSkip);

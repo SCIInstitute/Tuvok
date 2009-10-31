@@ -66,7 +66,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
                            UINT64& iComponentSize,
                            UINT64& iComponentCount,
                            bool& bConvertEndianess, bool& bSigned,
-                           bool& bIsFloat, UINTVECTOR3& vVolumeSize,
+                           bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                            FLOATVECTOR3& vVolumeAspect,
                            std::string& strTitle,
                            UVFTables::ElementSemanticTable& eType,
@@ -144,7 +144,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
 // unimplemented!
 bool
 StkConverter::ConvertToNative(const std::string&, const std::string&,
-                              UINT64, UINT64, UINT64, bool, bool, UINTVECTOR3,
+                              UINT64, UINT64, UINT64, bool, bool, UINT64VECTOR3,
                               FLOATVECTOR3, bool)
 {
   return false;

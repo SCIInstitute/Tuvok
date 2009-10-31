@@ -52,14 +52,14 @@ public:
   virtual bool ConvertToRAW(const std::string& strSourceFilename, 
                             const std::string& strTempDir, bool bNoUserInteraction,
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
-                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
+                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile);
 
   virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint, 
-                               UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction);
+                               UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction);
 
   virtual bool CanExportData() const {return true;}
 };

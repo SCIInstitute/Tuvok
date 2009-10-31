@@ -79,7 +79,7 @@ public:
                                 UINT64 iHeaderSkip, UINT64 iComponentSize,
                                 UINT64 iComponentCount,
                                 bool bConvertEndianness, bool bSigned,
-                                bool bIsFloat, UINTVECTOR3 vVolumeSize,
+                                bool bIsFloat, UINT64VECTOR3 vVolumeSize,
                                 FLOATVECTOR3 vVolumeAspect,
                                 const std::string& strDesc,
                                 const std::string& strSource,
@@ -98,7 +98,7 @@ public:
                               const std::string& strBinaryFile,
                               UINT64 iHeaderSkip, UINT64 iComponentSize,
                               UINT64 iComponentCount, bool bSigned,
-                              bool bIsFloat, UINTVECTOR3 vVolumeSize);
+                              bool bIsFloat, UINT64VECTOR3 vVolumeSize);
 
   static bool AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSkip,
                         const std::string& strTargetFilename,
@@ -110,7 +110,7 @@ public:
                                const std::string& strTargetFilename,
                                UINT64 iHeaderSkip, UINT64 iComponentSize,
                                UINT64 iComponentCount, bool bSigned,
-                               bool bFloatingPoint, UINTVECTOR3 vVolumeSize,
+                               bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
                                bool bNoUserInteraction);
 
@@ -126,7 +126,7 @@ public:
   static bool Analyze(const std::string& strSourceFilename, UINT64 iHeaderSkip,
                       UINT64 iComponentSize, UINT64 iComponentCount,
                       bool bSigned, bool bFloatingPoint,
-                      UINTVECTOR3 vVolumeSize,
+                      UINT64VECTOR3 vVolumeSize,
                       RangeInfo& info);
 
   virtual bool CanExportData() const {return true;}

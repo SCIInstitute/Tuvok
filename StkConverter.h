@@ -53,7 +53,7 @@ public:
                             bool bNoUserInteraction, UINT64& iHeaderSkip,
                             UINT64& iComponentSize, UINT64& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned,
-                            bool& bIsFloat, UINTVECTOR3& vVolumeSize,
+                            bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect,
                             std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType,
@@ -65,7 +65,7 @@ public:
                                const std::string& strTargetFilename,
                                UINT64 iHeaderSkip, UINT64 iComponentSize,
                                UINT64 iComponentCount, bool bSigned,
-                               bool bFloatingPoint, UINTVECTOR3 vVolumeSize,
+                               bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
                                bool bNoUserInteraction);
 

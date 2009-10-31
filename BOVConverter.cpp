@@ -63,7 +63,7 @@ bool BOVConverter::ConvertToRAW(
                             UINT64& iHeaderSkip, UINT64& iComponentSize,
                             UINT64& iComponentCount, bool& bConvertEndianness,
                             bool& bSigned, bool& bIsFloat,
-                            UINTVECTOR3& vVolumeSize,
+                            UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType,
                             std::string& strIntermediateFile,
@@ -147,7 +147,7 @@ bool BOVConverter::ConvertToNative(const std::string& raw,
                                    const std::string& target,
                                    UINT64 skip, UINT64 component_size,
                                    UINT64 n_components, bool is_signed,
-                                   bool fp, UINTVECTOR3 dimensions,
+                                   bool fp, UINT64VECTOR3 dimensions,
                                    FLOATVECTOR3 aspect, bool batch)
 {
   std::string fn_data = SysTools::RemoveExt(target);

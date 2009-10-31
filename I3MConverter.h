@@ -51,20 +51,20 @@ public:
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir, bool bNoUserInteraction,
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
-                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
+                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile);
 
   virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint, 
-                               UINTVECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction);
+                               UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction);
 
   virtual bool CanExportData() const {return true;}
 
 protected:
-  static void Compute8BitGradientVolumeInCore(unsigned char* pSourceData, unsigned char* pTargetData, const UINTVECTOR3& vSize);
-  static void DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDenseData, const UINTVECTOR3& vVolumeSize, const UINTVECTOR3& viDownSampleFactor);
+  static void Compute8BitGradientVolumeInCore(unsigned char* pSourceData, unsigned char* pTargetData, const UINT64VECTOR3& vVolumeSize);
+  static void DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDenseData, const UINT64VECTOR3& vVolumeSize, const UINT64VECTOR3& viDownSampleFactor);
 
 };
 

@@ -56,7 +56,7 @@ I3MConverter::I3MConverter()
 bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename, 
                             const std::string& strTempDir, bool,
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
-                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINTVECTOR3& vVolumeSize,
+                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile) {
@@ -172,14 +172,14 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-void I3MConverter::Compute8BitGradientVolumeInCore(unsigned char* pSourceData, unsigned char* pTargetData, const UINTVECTOR3& vSize) {
-  for (size_t z = 0;z<size_t(vSize[2]);z++) {
-    MESSAGE("Computing gradients in slice %i of %i\n(%g%% completed)", z+1, vSize[2], 100.0f*float(z+1)/float(vSize[2]));
-    for (size_t y = 0;y<size_t(vSize[1]);y++) {
-      for (size_t x = 0;x<size_t(vSize[0]);x++) {
+void I3MConverter::Compute8BitGradientVolumeInCore(unsigned char* pSourceData, unsigned char* pTargetData, const UINT64VECTOR3& vVolumeSize) {
+  for (size_t z = 0;z<size_t(vVolumeSize[2]);z++) {
+    MESSAGE("Computing gradients in slice %i of %i\n(%g%% completed)", z+1, vVolumeSize[2], 100.0f*float(z+1)/float(vVolumeSize[2]));
+    for (size_t y = 0;y<size_t(vVolumeSize[1]);y++) {
+      for (size_t x = 0;x<size_t(vVolumeSize[0]);x++) {
 
         // compute 3D positions
-        size_t iCenter = x+size_t(vSize[0])*y+size_t(vSize[0])*size_t(vSize[1])*z;
+        size_t iCenter = x+size_t(vVolumeSize[0])*y+size_t(vVolumeSize[0])*size_t(vVolumeSize[1])*z;
         size_t iLeft   = iCenter;
         size_t iRight  = iCenter;
         size_t iTop    = iCenter;
@@ -191,11 +191,11 @@ void I3MConverter::Compute8BitGradientVolumeInCore(unsigned char* pSourceData, u
 
         // handle borders
         if (x > 0)          {iLeft   = iCenter-1; vScale.x++;}
-        if (x < vSize[0]-1) {iRight  = iCenter+1; vScale.x++;}
-        if (y > 0)          {iTop    = iCenter-size_t(vSize[0]);vScale.y++;}
-        if (y < vSize[1]-1) {iBottom = iCenter+size_t(vSize[0]);vScale.y++;}
-        if (z > 0)          {iFront  = iCenter-size_t(vSize[0])*size_t(vSize[1]);vScale.z++;}
-        if (z < vSize[2]-1) {iBack   = iCenter+size_t(vSize[0])*size_t(vSize[1]);vScale.z++;}
+        if (x < vVolumeSize[0]-1) {iRight  = iCenter+1; vScale.x++;}
+        if (y > 0)          {iTop    = iCenter-size_t(vVolumeSize[0]);vScale.y++;}
+        if (y < vVolumeSize[1]-1) {iBottom = iCenter+size_t(vVolumeSize[0]);vScale.y++;}
+        if (z > 0)          {iFront  = iCenter-size_t(vVolumeSize[0])*size_t(vVolumeSize[1]);vScale.z++;}
+        if (z < vVolumeSize[2]-1) {iBack   = iCenter+size_t(vVolumeSize[0])*size_t(vVolumeSize[1]);vScale.z++;}
 
         // compte central differences
         FLOATVECTOR3 vGradient((float(pSourceData[iLeft]) -float(pSourceData[iRight]) )/(255*vScale.x),
@@ -217,10 +217,10 @@ void I3MConverter::Compute8BitGradientVolumeInCore(unsigned char* pSourceData, u
   }
 }
 
-void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDenseData, const UINTVECTOR3& vSize, const UINTVECTOR3& vDSFactor) {
-  UINTVECTOR3 vSmallSize = vSize/vDSFactor;
+void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDenseData, const UINT64VECTOR3& vVolumeSize, const UINT64VECTOR3& vDSFactor) {
+  UINT64VECTOR3 vSmallSize = vVolumeSize/vDSFactor;
 
-  UINT32 iNumDownsampledValues = vDSFactor.volume();
+  UINT64 iNumDownsampledValues = vDSFactor.volume();
   size_t iTargetIndex = 0;
   size_t iSourceIndex = 0;
   for (size_t z = 0;z<size_t(vSmallSize[2]);z++) {
@@ -234,7 +234,7 @@ void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDense
         for (size_t w = 0;w<size_t(vDSFactor[2]);w++) {
           for (size_t v = 0;v<size_t(vDSFactor[1]);v++) {
             for (size_t u = 0;u<size_t(vDSFactor[0]);u++) {            
-                iSourceIndex = (x*vDSFactor[0]+u) + (y*vDSFactor[1]+v) * vSize[0] + (z*vDSFactor[2]+w) * vSize[0] * vSize[1];
+                iSourceIndex = (x*vDSFactor[0]+u) + (y*vDSFactor[1]+v) * vVolumeSize[0] + (z*vDSFactor[2]+w) * vVolumeSize[0] * vVolumeSize[1];
                 SourceRAWFile.Read<unsigned char>(&cValue, 1, iSourceIndex, 0);
                 fAccValue += cValue;
             }
@@ -252,7 +252,7 @@ void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDense
 bool I3MConverter::ConvertToNative(const std::string& strRawFilename, 
                                    const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                    UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
-                                   bool bFloatingPoint, UINTVECTOR3 vVolumeSize, 
+                                   bool bFloatingPoint, UINT64VECTOR3 vVolumeSize, 
                                    FLOATVECTOR3 vVolumeAspect, bool ) {
 
   // some fitness checks first
@@ -347,7 +347,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   FLOATVECTOR3 vfDownSampleFactor = FLOATVECTOR3(vVolumeSize)/float(MAX_I3M_VOLSIZE);
 
   unsigned char* pDenseData = NULL;
-  UINTVECTOR3 vI3MVolumeSize;
+  UINT64VECTOR3 vI3MVolumeSize;
   if (vfDownSampleFactor.x <= 1 && vfDownSampleFactor.y <= 1 && vfDownSampleFactor.z <= 1) {
     // volume is small enougth -> simply read the data into the array
     vI3MVolumeSize = vVolumeSize;
@@ -355,9 +355,9 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
     UCharDataFile.ReadRAW(pDenseData, vI3MVolumeSize.volume());
   } else {
     // volume has to be downsampled
-    UINTVECTOR3 viDownSampleFactor(UINT32(ceil(vfDownSampleFactor.x)), 
-                                   UINT32(ceil(vfDownSampleFactor.y)), 
-                                   UINT32(ceil(vfDownSampleFactor.z)));
+    UINT64VECTOR3 viDownSampleFactor(UINT64(ceil(vfDownSampleFactor.x)), 
+                                   UINT64(ceil(vfDownSampleFactor.y)), 
+                                   UINT64(ceil(vfDownSampleFactor.z)));
     vI3MVolumeSize = vVolumeSize/viDownSampleFactor;
     pDenseData = new unsigned char[vI3MVolumeSize.volume()];
 
@@ -391,9 +391,9 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   // version
   TargetI3MFile.WriteData<UINT32>(I3M_VERSION, false);
   // (subsampled) domain size
-  TargetI3MFile.WriteData(vI3MVolumeSize.x, false);
-  TargetI3MFile.WriteData(vI3MVolumeSize.y, false);
-  TargetI3MFile.WriteData(vI3MVolumeSize.z, false);
+  TargetI3MFile.WriteData<UINT32>(UINT32(vI3MVolumeSize.x), false);
+  TargetI3MFile.WriteData<UINT32>(UINT32(vI3MVolumeSize.y), false);
+  TargetI3MFile.WriteData<UINT32>(UINT32(vI3MVolumeSize.z), false);
   // aspect ratio
   TargetI3MFile.WriteData(vVolumeAspect.x, false);
   TargetI3MFile.WriteData(vVolumeAspect.y, false);

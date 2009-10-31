@@ -270,7 +270,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     fs.close();
     MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());
 
-    UINTVECTOR3 iSize = pDICOMStack->m_ivSize;
+    UINT64VECTOR3 iSize = UINT64VECTOR3(pDICOMStack->m_ivSize);
     iSize.z *= UINT32(pDICOMStack->m_Elements.size());
 
     /// \todo evaluate pDICOMStack->m_strModality
@@ -317,7 +317,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
         fs.close();
         MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());
 
-        UINTVECTOR3 iSize = pStack->m_ivSize;
+        UINT64VECTOR3 iSize = UINT64VECTOR3(pStack->m_ivSize);
         iSize.z *= UINT32(pStack->m_Elements.size());
 
         bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, strTempDir, 0,
@@ -359,7 +359,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
   bool          bConvertEndianessG=false;
   bool          bSignedG=false;
   bool          bIsFloatG=false;
-  UINTVECTOR3   vVolumeSizeG(0,0,0);
+  UINT64VECTOR3   vVolumeSizeG(0,0,0);
   FLOATVECTOR3  vVolumeAspectG(0,0,0);
   string strTitleG      = "Merged data from multiple files";
   stringstream  ss;
@@ -395,7 +395,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
         bConvertEndianessG = !v.IsSameEndianness();
         bSignedG = v.GetIsSigned();
         bIsFloatG = v.GetIsFloat();
-        vVolumeSizeG = UINTVECTOR3(v.GetDomainSize(iLODLevel));
+        vVolumeSizeG = v.GetDomainSize(iLODLevel);
         vVolumeAspectG = FLOATVECTOR3(v.GetScale());
       } else {
         if (iComponentSizeG  != v.GetBitWidth() ||
@@ -403,7 +403,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
             bConvertEndianessG != !v.IsSameEndianness() ||
             bSignedG != v.GetIsSigned() ||
             bIsFloatG != v.GetIsFloat() ||
-            vVolumeSizeG != UINTVECTOR3(v.GetDomainSize(iLODLevel))) {
+            vVolumeSizeG != v.GetDomainSize(iLODLevel)) {
           bRAWCreated = false;
           break;
         }
@@ -426,7 +426,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
       bool          bConvertEndianess=false;
       bool          bSigned=false;
       bool          bIsFloat=false;
-      UINTVECTOR3   vVolumeSize(0,0,0);
+      UINT64VECTOR3 vVolumeSize(0,0,0);
       FLOATVECTOR3  vVolumeAspect(0,0,0);
       string        strTitle = "";
       string        strSource = "";
@@ -642,7 +642,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
     bool          bConvertEndianess=false;
     bool          bSigned=false;
     bool          bIsFloat=false;
-    UINTVECTOR3   vVolumeSize(0,0,0);
+    UINT64VECTOR3 vVolumeSize(0,0,0);
     FLOATVECTOR3  vVolumeAspect(0,0,0);
     string        strTitle = "";
     string        strSource = "";
@@ -664,7 +664,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
       bConvertEndianess = !v.IsSameEndianness();
       bSigned = v.GetIsSigned();
       bIsFloat = v.GetIsFloat();
-      vVolumeSize = UINTVECTOR3(v.GetDomainSize(iLODLevel));
+      vVolumeSize = v.GetDomainSize(iLODLevel);
       vVolumeAspect = FLOATVECTOR3(v.GetScale());
       eType             = UVFTables::ES_UNDEFINED;  /// \todo grab this data from the UVF file
       strTitle          = "UVF data";               /// \todo grab this data from the UVF file
@@ -842,7 +842,7 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel, c
                                 pSourceData->GetComponentCount(),
                                 pSourceData->GetIsSigned(),
                                 pSourceData->GetIsFloat(),
-                                UINTVECTOR3(pSourceData->GetDomainSize(iLODlevel)),
+                                pSourceData->GetDomainSize(iLODlevel),
                                 FLOATVECTOR3(pSourceData->GetRescaleFactors()),
                                 false);
 
@@ -993,7 +993,7 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info, 
     }
 
     info.m_vAspect = FLOATVECTOR3(v.GetScale());
-    info.m_vDomainSize = UINTVECTOR3(v.GetDomainSize());
+    info.m_vDomainSize = v.GetDomainSize();
     info.m_iComponentSize = v.GetBitWidth();
 
     return true;
