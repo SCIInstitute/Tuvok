@@ -34,6 +34,7 @@
   \date    January 2009
 */
 
+#include <cstdarg>
 #include <cstring>
 #include "AbstrDebugOut.h"
 
