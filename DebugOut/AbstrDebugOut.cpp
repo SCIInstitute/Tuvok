@@ -35,6 +35,7 @@
 */
 
 #include <cstdarg>
+#include <cstdio>
 #include <cstring>
 #include "AbstrDebugOut.h"
 
