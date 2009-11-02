@@ -1,15 +1,21 @@
 TEMPLATE          = lib
+win32:TEMPLATE    = vclib
 CONFIG           += warn_on create_prl qt static staticlib stl largefile
 CONFIG           += exceptions
 macx:DEFINES     += QT_MAC_USE_COCOA=0
 TARGET            = Build/Tuvok
+win32 {
+  DESTDIR         = Build
+  TARGET          = Tuvok
+}
 RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
 DEPENDPATH       += . Basics Controller DebugOut IO Renderer Scripting
 INCLUDEPATH      += . 3rdParty/GLEW IO/3rdParty/boost IO/3rdParty/zlib
 QT               += opengl
-LIBS             += -lz
+unix:LIBS        += -lz
 macx:LIBS        += -framework CoreFoundation
+win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 
