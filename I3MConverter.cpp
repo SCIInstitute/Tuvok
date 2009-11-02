@@ -156,7 +156,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
  
-  unsigned char* pData = new unsigned char[4*vVolumeSize.volume()];
+  unsigned char* pData = new unsigned char[4*size_t(vVolumeSize.volume())];
   // read the 4D vectors
   I3MFile.ReadRAW(pData, 4*vVolumeSize.volume());
   I3MFile.Close();
@@ -234,7 +234,7 @@ void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDense
         for (size_t w = 0;w<size_t(vDSFactor[2]);w++) {
           for (size_t v = 0;v<size_t(vDSFactor[1]);v++) {
             for (size_t u = 0;u<size_t(vDSFactor[0]);u++) {            
-                iSourceIndex = (x*vDSFactor[0]+u) + (y*vDSFactor[1]+v) * vVolumeSize[0] + (z*vDSFactor[2]+w) * vVolumeSize[0] * vVolumeSize[1];
+                iSourceIndex = size_t((x*vDSFactor[0]+u) + (y*vDSFactor[1]+v) * vVolumeSize[0] + (z*vDSFactor[2]+w) * vVolumeSize[0] * vVolumeSize[1]);
                 SourceRAWFile.Read<unsigned char>(&cValue, 1, iSourceIndex, 0);
                 fAccValue += cValue;
             }
@@ -351,7 +351,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   if (vfDownSampleFactor.x <= 1 && vfDownSampleFactor.y <= 1 && vfDownSampleFactor.z <= 1) {
     // volume is small enougth -> simply read the data into the array
     vI3MVolumeSize = vVolumeSize;
-    pDenseData = new unsigned char[vI3MVolumeSize.volume()];
+    pDenseData = new unsigned char[size_t(vI3MVolumeSize.volume())];
     UCharDataFile.ReadRAW(pDenseData, vI3MVolumeSize.volume());
   } else {
     // volume has to be downsampled
@@ -359,7 +359,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
                                    UINT64(ceil(vfDownSampleFactor.y)), 
                                    UINT64(ceil(vfDownSampleFactor.z)));
     vI3MVolumeSize = vVolumeSize/viDownSampleFactor;
-    pDenseData = new unsigned char[vI3MVolumeSize.volume()];
+    pDenseData = new unsigned char[size_t(vI3MVolumeSize.volume())];
 
     DownSample(UCharDataFile, pDenseData, vVolumeSize, viDownSampleFactor);
 
@@ -370,7 +370,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   if (bDelte8BitFile) UCharDataFile.Delete();
 
   // compute the gradients and expand data to vector format
-  unsigned char* pData = new unsigned char[4*vI3MVolumeSize.volume()];
+  unsigned char* pData = new unsigned char[size_t(4*vI3MVolumeSize.volume())];
   Compute8BitGradientVolumeInCore(pDenseData, pData, vI3MVolumeSize);
   delete [] pDenseData;
 
