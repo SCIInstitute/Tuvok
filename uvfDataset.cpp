@@ -111,16 +111,16 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite)
   GetHistograms();
 
   // print out data statistics
-  MESSAGE("  Dataset Size %u x %u x %u", m_aDomainSize[0].x,
-          m_aDomainSize[0].y, m_aDomainSize[0].z );
-  MESSAGE("  Bricklayout of highest resolution level %u x %u x %u",
-          m_vaBrickCount[0].x, m_vaBrickCount[0].y, m_vaBrickCount[0].z);
+  MESSAGE("  Dataset Size %i x %i x %i", int(m_aDomainSize[0].x),
+          int(m_aDomainSize[0].y), int(m_aDomainSize[0].z) );
+  MESSAGE("  Bricklayout of highest resolution level %i x %i x %i",
+          int(m_vaBrickCount[0].x), int(m_vaBrickCount[0].y), int(m_vaBrickCount[0].z));
   MESSAGE("  %i Bit, %i components", int(GetBitWidth()),
                                      int(GetComponentCount()));
-  MESSAGE("  LOD down to %u x %u x %u found",
-          m_vaBrickCount[m_vaBrickCount.size()-1].x,
-          m_vaBrickCount[m_vaBrickCount.size()-1].y,
-          m_vaBrickCount[m_vaBrickCount.size()-1].z);
+  MESSAGE("  LOD down to %i x %i x %i found",
+          int(m_vaBrickCount[m_vaBrickCount.size()-1].x),
+          int(m_vaBrickCount[m_vaBrickCount.size()-1].y),
+          int(m_vaBrickCount[m_vaBrickCount.size()-1].z));
 
   return true;
 }
