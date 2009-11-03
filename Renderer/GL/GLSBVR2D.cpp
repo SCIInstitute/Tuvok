@@ -160,7 +160,9 @@ void GLSBVR2D::SetDataDepShaderVars() {
 void GLSBVR2D::SetBrickDepShaderVars(const Brick& currentBrick) {
   FLOATVECTOR3 vStep(1.0f/currentBrick.vVoxelCount.x, 1.0f/currentBrick.vVoxelCount.y, 1.0f/currentBrick.vVoxelCount.z);
 
-  float fStepScale = m_SBVRGeogen.GetOpacityCorrection();
+  float fSampleRateModifier = m_fSampleRateModifier / ((m_bDecreaseSamplingRateNow) ? m_fSampleDecFactor : 1.0f);
+  float fStepScale = 1.0f/fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
+
 
   switch (m_eRenderMode) {
     case RM_1DTRANS: {
@@ -252,16 +254,51 @@ void GLSBVR2D::Render3DPreLoop() {
 }
 
 void GLSBVR2D::RenderProxyGeometry() {
-  glBegin(GL_TRIANGLES);
-    for (int i = int(m_SBVRGeogen.m_vSliceTriangles.size())-1;i>=0;i--) {
-      glTexCoord3f(m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.x,
-                   m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.y,
-                   m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.z);
-      glVertex3f(m_SBVRGeogen.m_vSliceTriangles[i].m_vPos.x,
-                 m_SBVRGeogen.m_vSliceTriangles[i].m_vPos.y,
-                 m_SBVRGeogen.m_vSliceTriangles[i].m_vPos.z);
+
+  for (UINT32 i = 0;i<3;i++) {
+
+    switch (m_SBVRGeogen.m_vSliceTrianglesOrder[i]) {
+      case SBVRGeogen2D::DIRECTION_X : {
+                                          glBegin(GL_TRIANGLES);
+                                            for (int i = int(m_SBVRGeogen.m_vSliceTrianglesX.size())-1;i>=0;i--) {
+                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x,
+                                                           m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
+                                                           m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z);
+                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
+                                                         m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
+                                                         m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
+                                            }
+                                          glEnd();
+                                       } break;
+      case SBVRGeogen2D::DIRECTION_Y : {
+                                          glBegin(GL_TRIANGLES);
+                                            for (int i = int(m_SBVRGeogen.m_vSliceTrianglesY.size())-1;i>=0;i--) {
+                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
+                                                           m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y,
+                                                           m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z);
+                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
+                                                         m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
+                                                         m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
+                                            }
+                                          glEnd();
+                                       } break;
+      case SBVRGeogen2D::DIRECTION_Z : {
+                                          glBegin(GL_TRIANGLES);
+                                            for (int i = int(m_SBVRGeogen.m_vSliceTrianglesZ.size())-1;i>=0;i--) {
+                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
+                                                           m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
+                                                           m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z);
+                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
+                                                         m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
+                                                         m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
+                                            }
+                                          glEnd();
+                                       } break;
     }
-  glEnd();
+  }
+
+
+
 }
 
 void GLSBVR2D::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
@@ -392,11 +429,14 @@ void GLSBVR2D::UpdateColorsInShaders() {
   FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
   FLOATVECTOR3 dir(0.0f,0.0f,-1.0f);  // so far the light source is always a headlight
 
+  FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
+
   m_pProgramIsoNoCompose->Enable();
   m_pProgramIsoNoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
   m_pProgramIsoNoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
   m_pProgramIsoNoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
   m_pProgramIsoNoCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+  m_pProgramIsoNoCompose->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
   m_pProgramIsoNoCompose->Disable();
 
   m_pProgramColorNoCompose->Enable();
@@ -404,6 +444,34 @@ void GLSBVR2D::UpdateColorsInShaders() {
   //m_pProgramColorNoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z); // only abient color is used in color-volume mode yet
   //m_pProgramColorNoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z); // only abient color is used in color-volume mode yet
   m_pProgramColorNoCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+  m_pProgramColorNoCompose->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
   m_pProgramColorNoCompose->Disable();
+}
 
+#include "GLTexture3D.h"
+
+bool GLSBVR2D::BindVolumeTex(const tuvok::BrickKey& bkey, const UINT64 iIntraFrameCounter) {
+  m_p3DVolTex = NULL;
+  return true;
+/*
+  m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, iIntraFrameCounter, m_iFrameCounter);
+  if(m_p3DVolTex) {
+    m_p3DVolTex->Bind(0);
+    return true;
+  } else {
+    return false;
+  }*/
+}
+
+bool GLSBVR2D::UnbindVolumeTex() {
+  m_p3DVolTex = NULL;
+  return true;
+/*
+  if(m_p3DVolTex) {
+    m_pMasterController->MemMan()->Release3DTexture(m_p3DVolTex);
+    m_p3DVolTex = NULL;
+    return true;
+  } else {
+    return false;
+  }*/
 }

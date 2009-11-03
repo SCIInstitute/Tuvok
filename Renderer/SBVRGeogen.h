@@ -35,6 +35,9 @@
 */
 #pragma once
 
+#ifndef SBVRGEOGEN_H
+#define SBVRGEOGEN_H
+
 #include <vector>
 #include "../Basics/Vectors.h"
 #include "../StdTuvokDefines.h"
@@ -61,6 +64,8 @@ public:
 
 /** \class SBVRGeoGen
  * Geometry generation for the slice-based volume renderer. */
+
+
 class SBVRGeogen
 {
 public:
@@ -77,12 +82,10 @@ public:
   void SetBrickData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize,
                     const FLOATVECTOR3& vTexCoordMin=FLOATVECTOR3(0,0,0),
                     const FLOATVECTOR3& vTexCoordMax=FLOATVECTOR3(1,1,1));
-  void ComputeGeometry();
+
+  virtual void ComputeGeometry() = 0;
   float GetOpacityCorrection() const;
-  void SetMinLayers(UINT32 iMinLayers) {
-    m_iMinLayers = iMinLayers;
-    ComputeGeometry();
-  }
+
   void DisableClipPlane() { m_bClipPlaneEnabled = false; }
   void EnableClipPlane() { m_bClipPlaneEnabled = true; }
   void SetClipPlane(const PLANE<float>& plane) {
@@ -92,36 +95,28 @@ public:
     }
   }
 
-  std::vector<POS3TEX3_VERTEX> m_vSliceTriangles;
-
-private:
-  void MatricesUpdated();
-
 protected:
 
   float             m_fSamplingModifier;
   FLOATMATRIX4      m_matWorld;
   FLOATMATRIX4      m_matView;
   FLOATMATRIX4      m_matViewTransform;
-  float             m_fMinZ;
+
+  UINTVECTOR3       m_vGlobalSize;
+  FLOATVECTOR3      m_vGlobalAspect;
+  UINTVECTOR3       m_vLODSize;
+
   POS3TEX3_VERTEX   m_pfBBOXVertex[8];
   FLOATVECTOR3      m_pfBBOXStaticVertex[8];
   FLOATVECTOR3      m_vAspect;
   UINTVECTOR3       m_vSize;
   FLOATVECTOR3      m_vTexCoordMin;
   FLOATVECTOR3      m_vTexCoordMax;
-  UINT32            m_iMinLayers; ///< allows the user to specifiy a minimum
-                                  ///  layer count to prevent small volumes
-                                  ///  from beeing sparsely sampled
-  FLOATVECTOR3      m_vGlobalAspect;
-  UINTVECTOR3       m_vGlobalSize;
-  UINTVECTOR3       m_vLODSize;
 
   PLANE<float>      m_ClipPlane;
   bool              m_bClipPlaneEnabled;
-
-  void InitBBOX();
-  bool ComputeLayerGeometry(float fDepth);
-  void Triangulate(std::vector<POS3TEX3_VERTEX> &fArray);
-  float GetLayerDistance() const;
+  virtual void InitBBOX();
+  void MatricesUpdated();
 };
+
+#endif // SBVRGEOGEN_H

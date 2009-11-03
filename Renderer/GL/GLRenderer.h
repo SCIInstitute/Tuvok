@@ -161,6 +161,10 @@ class GLRenderer : public AbstrRenderer {
     void ComputeViewAndProjection(float fAspect);
     virtual void UpdateColorsInShaders();
 
+    GLTexture3D*    m_p3DVolTex;
+    virtual bool BindVolumeTex(const tuvok::BrickKey& bkey, const UINT64 iIntraFrameCounter);
+    virtual bool UnbindVolumeTex();
+
   private:
     GLSLProgram*    m_pProgramTrans;
     GLSLProgram*    m_pProgram1DTransSlice;
@@ -175,7 +179,6 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramComposeAnaglyphs;
 
     float*          m_aDepthStorage;
-    GLTexture3D*    m_p3DVolTex;
 
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();
@@ -184,9 +187,6 @@ class GLRenderer : public AbstrRenderer {
     void SaveDepthBuffer();
     void CreateDepthStorage();
     void DeleteDepthStorage() {delete [] m_aDepthStorage;}
-
-    virtual bool BindVolumeTex(const tuvok::BrickKey& bkey);
-    virtual bool UnbindVolumeTex();
 
 };
 #endif // GLRenderer_H

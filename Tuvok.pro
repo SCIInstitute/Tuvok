@@ -156,6 +156,8 @@ HEADERS += \
            Renderer/GPUMemMan/GPUMemMan.h \
            Renderer/GPUObject.h \
            Renderer/SBVRGeoGen.h \
+           Renderer/SBVRGeoGen2D.h \
+           Renderer/SBVRGeoGen3D.h \
            Renderer/TFScaling.h \
            Scripting/Scriptable.h \
            Scripting/Scripting.h \
@@ -336,6 +338,8 @@ SOURCES += \
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
            Renderer/SBVRGeoGen.cpp \
+           Renderer/SBVRGeoGen2D.cpp \
+           Renderer/SBVRGeoGen3D.cpp \
            Renderer/TFScaling.cpp \
            Scripting/Scripting.cpp
 

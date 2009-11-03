@@ -41,7 +41,7 @@
 
 #include "../../StdTuvokDefines.h"
 #include "GLRenderer.h"
-#include "../SBVRGeogen.h"
+#include "../SBVRGeogen2D.h"
 
 /** \class GLSBVR2D
  * Slice-based GPU volume renderer.
@@ -73,7 +73,7 @@ class GLSBVR2D : public GLRenderer {
     virtual ERendererType GetRendererType() {return RT_SBVR;}
 
   protected:
-    SBVRGeogen    m_SBVRGeogen;
+    SBVRGeogen2D  m_SBVRGeogen;
     GLSLProgram*  m_pProgramIsoNoCompose;
     GLSLProgram*  m_pProgramColorNoCompose;
 
@@ -92,5 +92,8 @@ class GLSBVR2D : public GLRenderer {
 
     virtual void ComposeSurfaceImage(int iStereoID);
     virtual void UpdateColorsInShaders();
+
+    virtual bool BindVolumeTex(const tuvok::BrickKey& bkey, const UINT64 iIntraFrameCounter);
+    virtual bool UnbindVolumeTex();
 };
 #endif // GLSBVR2D_H

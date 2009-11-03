@@ -726,9 +726,9 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, double fSliceIndex,
   }
 }
 
-bool GLRenderer::BindVolumeTex(const tuvok::BrickKey& bkey) {
+bool GLRenderer::BindVolumeTex(const tuvok::BrickKey& bkey, const UINT64 iIntraFrameCounter) {
   // get the 3D texture from the memory manager
-  m_p3DVolTex = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, 0, m_iFrameCounter);
+  m_p3DVolTex = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, iIntraFrameCounter, m_iFrameCounter);
   if(m_p3DVolTex) {
     m_p3DVolTex->Bind(0);
     return true;
@@ -798,7 +798,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     // because the search above gives us the coarsest LOD!
     const BrickKey bkey(iCurrentLOD, 0);
 
-    if (!BindVolumeTex(bkey)) {
+    if (!BindVolumeTex(bkey,0)) {
       T_ERROR("Unable to bind volume to texture (LOD:%i, Brick:0)", int(iCurrentLOD));
     }
 
@@ -913,7 +913,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
 
       // get the 3D texture from the memory manager
 
-      if (!BindVolumeTex(key)) {
+      if (!BindVolumeTex(key,0)) {
         T_ERROR("Unable to bind volume to texture (LOD:%i, Brick:%i)", int(m_iCurrentLOD),int(iBrickIndex));
       }
       RenderHQMIPInLoop(m_vCurrentBrickList[iBrickIndex]);
@@ -2024,7 +2024,7 @@ float GLRenderer::Render3DView() {
     MESSAGE("  Brick %i of %i", int(m_iBricksRenderedInThisSubFrame+1),
                                 int(m_vCurrentBrickList.size()));
 
-    const BrickKey& key = m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
+    const BrickKey& bkey = m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
 
 
     // get the 3D texture from the memory manager
@@ -2032,14 +2032,9 @@ float GLRenderer::Render3DView() {
 
     MESSAGE("  Requesting texture from MemMan");
 
-    GLTexture3D* t = mm.Get3DTexture(m_pDataset, key,
-                                     m_bUseOnlyPowerOfTwo,
-                                     m_bDownSampleTo8Bits, m_bDisableBorder,
-                                     m_iIntraFrameCounter++, m_iFrameCounter);
-
-    if(t) {
+    
+    if(BindVolumeTex(bkey, m_iIntraFrameCounter++)) {
       MESSAGE("  Binding Texture");
-      t->Bind(0);
     } else {
       T_ERROR("Cannot bind texture, Get3DTexture returned invalid texture");
     }
@@ -2050,18 +2045,19 @@ float GLRenderer::Render3DView() {
           m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick) {
         const BrickKey& left_eye_key = m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
 
-        mm.Release3DTexture(t);
-        t = mm.Get3DTexture(m_pDataset, left_eye_key, m_bUseOnlyPowerOfTwo,
-                            m_bDownSampleTo8Bits, m_bDisableBorder,
-                            m_iIntraFrameCounter++, m_iFrameCounter);
-        if(t) { t->Bind(0); }
+        UnbindVolumeTex();
+        if(BindVolumeTex(left_eye_key, m_iIntraFrameCounter++)) {
+          MESSAGE("  Binding Texture (left eye)");
+        } else {
+          T_ERROR("Cannot bind texture (left eye), Get3DTexture returned invalid texture");
+        }
       }
 
       Render3DInLoop(m_iBricksRenderedInThisSubFrame,1);
     }
 
     // release the 3D texture
-    mm.Release3DTexture(t);
+    UnbindVolumeTex();
 
     // count the bricks rendered
     m_iBricksRenderedInThisSubFrame++;

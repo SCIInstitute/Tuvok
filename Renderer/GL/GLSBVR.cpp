@@ -409,7 +409,4 @@ void GLSBVR::UpdateColorsInShaders() {
   m_pProgramColorNoCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
   m_pProgramColorNoCompose->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
   m_pProgramColorNoCompose->Disable();
-
-
-
 }
