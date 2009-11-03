@@ -115,8 +115,8 @@ HEADERS += \
            IO/REKConverter.h \
            IO/StkConverter.h \
            IO/TiffVolumeConverter.h \
-           IO/Transferfunction1D.h \
-           IO/Transferfunction2D.h \
+           IO/TransferFunction1D.h \
+           IO/TransferFunction2D.h \
            IO/TuvokJPEG.h \
            IO/Tuvok_QtPlugins.h \
            IO/UVF/DataBlock.h \
@@ -305,8 +305,8 @@ SOURCES += \
            IO/REKConverter.cpp \
            IO/StkConverter.cpp \
            IO/TiffVolumeConverter.cpp \
-           IO/Transferfunction1D.cpp \
-           IO/Transferfunction2D.cpp \
+           IO/TransferFunction1D.cpp \
+           IO/TransferFunction2D.cpp \
            IO/TuvokJPEG.cpp \
            IO/UVF/DataBlock.cpp \
            IO/uvfDataset.cpp \
