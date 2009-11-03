@@ -125,7 +125,7 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
       break;
   }
   UINTVECTOR3 sz = this->GetBrickVoxelCounts(bk);
-  MESSAGE("Copied brick of size %u, dimensions %u %u %u", bytes,
+  MESSAGE("Copied brick of size %u, dimensions %u %u %u", UINT32(bytes),
           sz[0], sz[1], sz[2]);
   return true;
 }

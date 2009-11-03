@@ -78,7 +78,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     MESSAGE("Performing endianess conversion ...");
 
     if (iComponentSize != 16 && iComponentSize != 32 && iComponentSize != 64) {
-      T_ERROR("Unable to endian convert anything but 16bit, 32bit, or 64bit values (requested %i)", iComponentSize);
+      T_ERROR("Unable to endian convert anything but 16bit, 32bit, or 64bit values (requested %i)", int(iComponentSize));
       return false;
     }
 

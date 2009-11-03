@@ -129,9 +129,9 @@ void DICOMParser::GetDirInfo(string  strDirectory) {
     bool bFoundMatch = false;
     for (size_t j = 0; j<m_FileStacks.size(); j++) {
       if (((DICOMStackInfo*)m_FileStacks[j])->Match(&fileInfos[i])) {
-        MESSAGE("found match at %d(%s), dropping %i(%s) out.",
-                j, m_FileStacks[j]->m_strDesc.c_str(),
-                i, fileInfos[i].m_strDesc.c_str());
+        MESSAGE("found match at %i(%s), dropping %i(%s) out.",
+                int(j), m_FileStacks[j]->m_strDesc.c_str(),
+                int(i), fileInfos[i].m_strDesc.c_str());
         bFoundMatch = true;
         break;
       }
@@ -179,7 +179,7 @@ void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, shor
     eElementType = TYPE_Implicit;
     fileDICOM.read((char*)&iElemLength,4);
     if (bNeedsEndianConversion) iElemLength = EndianConvert::Swap<UINT32>(iElemLength);
-    DICOM_DBG("Reader read implict field iGroupID=%i, iElementID=%i, iElemLength=%i\n",iGroupID, iElementID, iElemLength);
+    DICOM_DBG("Reader read implict field iGroupID=%i, iElementID=%i, iElemLength=%i\n", int(iGroupID), int(iElementID), iElemLength);
   } else {
     fileDICOM.read(&typeString[0],2);
     short tmp;
@@ -195,9 +195,9 @@ void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, shor
       }
     }
     if (i==27) {
-      DICOM_DBG("WARNING: Reader could not interpret type %c%c (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], iGroupID, iElementID, iElemLength);
+      DICOM_DBG("WARNING: Reader could not interpret type %c%c (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], int(iGroupID), int(iElementID), iElemLength);
     } else {
-      DICOM_DBG("Read type %c%c field (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], iGroupID, iElementID, iElemLength);
+      DICOM_DBG("Read type %c%c field (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], int(iGroupID), int(iElementID), iElemLength);
     }
   }
 
@@ -734,7 +734,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
           offset = 4;  // make sure it won't underflow in the next line.
         }
         offset -= 4;
-        MESSAGE("JPEG is at offset: %u", offset);
+        MESSAGE("JPEG is at offset: %u", static_cast<UINT32>(offset));
         info.SetOffsetToData(static_cast<UINT32>(offset));
       } else {
         if (iPixelDataSize != iDataSizeInFile) {

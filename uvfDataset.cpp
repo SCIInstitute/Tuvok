@@ -364,7 +364,7 @@ UINT64 UVFDataset::FindSuitableRasterBlock() {
           pVolumeDataBlock->ulElementDimensionSize[0] != 4) {
         MESSAGE("Skipping UVF raster data block with %u elements; "
                 "only know how to handle scalar and color data.",
-                pVolumeDataBlock->ulElementDimensionSize[0]);
+                UINT32(pVolumeDataBlock->ulElementDimensionSize[0]));
         continue;
       }
 

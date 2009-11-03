@@ -168,7 +168,7 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
   std::string strQuantFile;
   // if file uses less or equal than 12 bits quit here
   if (!bSigned && iMax < 4096) {
-    MESSAGE("No quantization required (min=%i, max=%i)", iMin, iMax);
+    MESSAGE("No quantization required (min=%i, max=%i)", int(iMin), int(iMax));
     aHist.resize(iMax+1);  // size is the maximum value plus one (the zero value)
 
     delete [] pInData;
@@ -181,7 +181,7 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
               int(iMax)-std::numeric_limits<short>::max());
     } else {
       MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)",
-              iMin, iMax);
+              int(iMin), int(iMax));
     }
     std::fill(aHist.begin(), aHist.end(), 0);
 
@@ -221,7 +221,7 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
                   int((100*iPos)/iSize));
         } else {
           MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)"
-                  "\n%i%% complete", iMin, iMax, int((100*iPos)/iSize));
+                  "\n%i%% complete", int(iMin), int(iMax), int((100*iPos)/iSize));
         }
         iDivLast = (100*iPos)/iSize;
       }
@@ -292,7 +292,7 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
   // writing any data, and just tell our caller that our output is our input.
   bool new_file_required = bSigned || iMax >= 4096;
   if(!new_file_required) {
-    MESSAGE("No histogram quantization required (min=%i, max=%i)", iMin, iMax);
+    MESSAGE("No histogram quantization required (min=%i, max=%i)", int(iMin), int(iMax));
     aHist.resize(iMax+1); // size is the maximum value plus one (the zero value)
 
     delete [] pInData;
@@ -307,7 +307,7 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
     } else {
       MESSAGE("Quantizing histogram to 12 bit "
               "(input data has range from %i to %i)",
-              iMin, iMax);
+              int(iMin), int(iMax));
     }
     // Old histogram is invalid, as we'll be biasing || quantizing the data.
     std::fill(aHist.begin(), aHist.end(), 0);
@@ -358,7 +358,7 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
         } else {
           MESSAGE("Quantizing histogram to 12 bit "
                   "(input data has range from %i to %i)\n%i%% complete",
-                  iMin, iMax, int((100*iPos)/iSize));
+                  int(iMin), int(iMax), int((100*iPos)/iSize));
         }
         iDivLast = (100*iPos)/iSize;
       }
@@ -596,7 +596,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
                         int(iMax) - std::numeric_limits<int>::max());
   else
     dbg.Message(_func_, "Quantizing to 12 bit (input data has range from "
-                        "%i to %i)", iMin, iMax);
+                        "%i to %i)", int(iMin), int(iMax));
 
   std::fill(aHist.begin(), aHist.end(), 0);
 
@@ -640,7 +640,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
                     int((100*iPos)/iSize));
       else
         dbg.Message(_func_, "Quantizing to 12 bit (input data has range "
-                    "from %i to %i)\n%i%% complete", iMin, iMax,
+                    "from %i to %i)\n%i%% complete", int(iMin), int(iMax),
                     int((100*iPos)/iSize));
       iDivLast = (100*iPos)/iSize;
     }
@@ -714,7 +714,7 @@ AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip,
             int(iMax) - std::numeric_limits<int>::max());
   } else {
     MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)",
-            iMin, iMax);
+            int(iMin), int(iMax));
   }
   std::fill(aHist.begin(), aHist.end(), 0);
 
@@ -755,7 +755,7 @@ AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip,
                 int((100*iPos)/iSize));
       } else {
         MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)"
-                "\n%i%% complete", iMin, iMax, int((100*iPos)/iSize));
+                "\n%i%% complete", int(iMin), int(iMax), int((100*iPos)/iSize));
       }
       iDivLast = (100*iPos)/iSize;
     }
@@ -830,7 +830,7 @@ AbstrConverter::QuantizeShortTo8Bits(UINT64 iHeaderSkip,
             int(iMax)-std::numeric_limits<short>::max());
   } else {
     MESSAGE("Quantizing to 8 bit (input data has range from %i to %i)",
-            iMin, iMax);
+            int(iMin), int(iMax));
   }
   std::fill(aHist.begin(), aHist.end(), 0);
 
@@ -872,7 +872,7 @@ AbstrConverter::QuantizeShortTo8Bits(UINT64 iHeaderSkip,
                 int((100*iPos)/iSize));
       } else {
         MESSAGE("Quantizing to 8 bit (input data has range from %i to %i)"
-                "\n%i%% complete", iMin, iMax, int((100*iPos)/iSize));
+                "\n%i%% complete", int(iMin), int(iMax), int((100*iPos)/iSize));
       }
       iDivLast = (100*iPos)/iSize;
     }

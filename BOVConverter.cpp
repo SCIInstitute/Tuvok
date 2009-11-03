@@ -106,7 +106,7 @@ bool BOVConverter::ConvertToRAW(
     std::istringstream ss(size->strValue);
     ss >> vVolumeSize[0] >> vVolumeSize[1] >> vVolumeSize[2];
     MESSAGE("Dimensions: %ux%ux%u",
-            vVolumeSize[0], vVolumeSize[1], vVolumeSize[2]);
+            UINT32(vVolumeSize[0]), UINT32(vVolumeSize[1]), UINT32(vVolumeSize[2]));
     iHeaderSkip = 0;
   }
   {

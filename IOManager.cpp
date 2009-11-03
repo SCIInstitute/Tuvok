@@ -111,7 +111,7 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
         if(!tuvok::JPEG(f->m_Elements[i]->m_strFileName,
                         dynamic_cast<SimpleDICOMFileInfo*>
                           (f->m_Elements[i])->GetOffsetToData()).valid()) {
-          WARNING("Can't load JPEG in stack %d, element %u!", iStackID, i);
+          WARNING("Can't load JPEG in stack %i, element %u!", UINT32(iStackID), UINT32(i));
           // should probably be using ptr container lib here instead of trying to
           // explicitly manage this.
           delete *(parseDICOM.m_FileStacks.begin()+iStackID);
@@ -213,15 +213,15 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
                   pDICOMStack->m_Elements[j]->m_strFileName.c_str());
           return false;
         }
-        MESSAGE("jpg is: %u bytes (%ux%u, %u components)", jpg.size(),
-                jpg.width(), jpg.height(), jpg.components());
+        MESSAGE("jpg is: %u bytes (%ux%u, %u components)", UINT32(jpg.size()),
+                UINT32(jpg.width()), UINT32(jpg.height()), UINT32(jpg.components()));
 
         const char *jpeg_data = jpg.data();
         std::copy(jpeg_data, jpeg_data + jpg.size(), &vData[0]);
       } else {
         // the first call does a "new" on pData
         pDICOMStack->m_Elements[j]->GetData(vData);
-        MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), (100*j)/pDICOMStack->m_Elements.size());
+        MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), int((100*j)/pDICOMStack->m_Elements.size()));
       }
 
       if (pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian()) {
@@ -311,7 +311,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
           pStack->m_Elements[j]->GetData(vData);
 
           fs.write(&vData[0], iDataSize);
-          MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), (100*j)/pStack->m_Elements.size());
+          MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), int((100*j)/pStack->m_Elements.size()));
         }
 
         fs.close();
