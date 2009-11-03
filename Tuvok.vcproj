@@ -1477,11 +1477,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -3760,7 +3760,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4267"
+							DisableSpecificWarnings="4267;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3768,7 +3768,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4267"
+							DisableSpecificWarnings="4267;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3776,7 +3776,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4267"
+							DisableSpecificWarnings="4267;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3784,7 +3784,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4267"
+							DisableSpecificWarnings="4267;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3792,7 +3792,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4267"
+							DisableSpecificWarnings="4267;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3800,7 +3800,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4267"
+							DisableSpecificWarnings="4267;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3808,7 +3808,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4267"
+							DisableSpecificWarnings="4267;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3816,7 +3816,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4267"
+							DisableSpecificWarnings="4267;4100"
 						/>
 					</FileConfiguration>
 				</File>
@@ -3828,7 +3828,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3836,7 +3836,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3844,7 +3844,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3852,7 +3852,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3860,7 +3860,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3868,7 +3868,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3876,7 +3876,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -3884,7 +3884,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244"
+							DisableSpecificWarnings="4244;4100"
 						/>
 					</FileConfiguration>
 				</File>
@@ -4036,7 +4036,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244, 4267"
+							DisableSpecificWarnings="4244, 4267,4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -4044,7 +4044,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244, 4267"
+							DisableSpecificWarnings="4244, 4267,4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -4052,7 +4052,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244, 4267"
+							DisableSpecificWarnings="4244, 4267,4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -4060,7 +4060,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244, 4267"
+							DisableSpecificWarnings="4244, 4267,4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -4068,7 +4068,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244, 4267"
+							DisableSpecificWarnings="4244, 4267,4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -4076,7 +4076,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244, 4267"
+							DisableSpecificWarnings="4244, 4267,4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -4084,7 +4084,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244, 4267"
+							DisableSpecificWarnings="4244, 4267,4100"
 						/>
 					</FileConfiguration>
 					<FileConfiguration
@@ -4092,7 +4092,7 @@
 						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableSpecificWarnings="4244, 4267"
+							DisableSpecificWarnings="4244, 4267,4100"
 						/>
 					</FileConfiguration>
 				</File>
@@ -4335,6 +4335,70 @@
 				<File
 					RelativePath=".\IO\3rdParty\tiff\tif_zip.c"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4100"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4100"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4100"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4100"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (with DirectX)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4100"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug (with DirectX)|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4100"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (with DirectX)|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4100"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release (with DirectX)|x64"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableSpecificWarnings="4100"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath=".\IO\3rdParty\tiff\tiff.h"
