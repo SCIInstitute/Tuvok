@@ -1250,7 +1250,7 @@ bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea, float &fMsecPassed) {
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
       // show the timings as "other", to distinguish it from all those million messages
-      OTHER("The current subframe took %g ms to render (LOD Level %i)",m_fMsecPassedCurrentFrame+fMsecPassed, m_iCurrentLODOffset);
+      OTHER("The current subframe took %g ms to render (LOD Level %i)",m_fMsecPassedCurrentFrame+fMsecPassed, int(m_iCurrentLODOffset));
       PostSubframe();
       return true;
     }
@@ -2026,9 +2026,6 @@ float GLRenderer::Render3DView() {
 
     const BrickKey& bkey = m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
 
-
-    // get the 3D texture from the memory manager
-    GPUMemMan &mm = *(m_pMasterController->MemMan());
 
     MESSAGE("  Requesting texture from MemMan");
 

@@ -864,7 +864,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     // skip the brick if no data are visible in the current rendering mode.
     if(!bContainsData) {
       MESSAGE("Skipping brick <%u,%u> because it doesn't contain data "
-              "under the current %s.", brick->first.first, brick->first.second,
+              "under the current %s.", UINT32(brick->first.first), UINT32(brick->first.second),
               ((m_eRenderMode == RM_ISOSURFACE) ? "isovalue" : "tfqn"));
       continue;
     }
@@ -988,7 +988,7 @@ void AbstrRenderer::Plan3DFrame() {
       // build new brick todo-list
       MESSAGE("Building new brick list for LOD ...");
       m_vCurrentBrickList = BuildSubFrameBrickList();
-      MESSAGE("%u bricks made the cut.", m_vCurrentBrickList.size());
+      MESSAGE("%u bricks made the cut.", UINT32(m_vCurrentBrickList.size()));
       if (m_bDoStereoRendering) m_vLeftEyeBrickList = BuildLeftEyeSubFrameBrickList(m_vCurrentBrickList);
 
       m_iBricksRenderedInThisSubFrame = 0;
