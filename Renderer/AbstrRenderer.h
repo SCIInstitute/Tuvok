@@ -143,10 +143,32 @@ class AbstrRenderer {
       WM_INVALID
     };
 
-    EWindowMode Get2x2Windowmode(ERenderArea eArea) const
-        { return m_e2x2WindowMode[size_t(eArea)]; }
-    virtual void Set2x2Windowmode(ERenderArea eArea, EWindowMode eWindowMode);
-    EWindowMode GetFullWindowmode() const { return m_eFullWindowMode; }
+  struct RenderRegion {
+    UINTVECTOR2 minCoord, maxCoord;
+    EWindowMode windowMode;
+    bool redrawMask;
+
+    //for 2D window modes:
+    VECTOR2<bool>       flipView;
+    bool                useMIP;
+    UINT64              iSlice;
+
+    RenderRegion():
+      redrawMask(true),
+      useMIP(false),
+      iSlice(0)
+    {
+      flipView = VECTOR2<bool>(false, false);
+    }
+  };
+
+    EWindowMode Get2x2Windowmode(ERenderArea eArea) const {
+      return renderRegions[size_t(eArea)].windowMode;
+    }
+  //The set2x2 function is not used anywhere. In following commit 2x2
+  //mode will be removed from Tuvok anyway.
+//     virtual void Set2x2Windowmode(ERenderArea eArea, EWindowMode eWindowMode);
+    EWindowMode GetFullWindowmode() const { return renderRegions[4].windowMode;}
     virtual void SetFullWindowmode(EWindowMode eWindowMode);
     EWindowMode GetWindowUnderCursor(FLOATVECTOR2 vPos) const;
     FLOATVECTOR2 GetLocalCursorPos(FLOATVECTOR2 vPos) const;
@@ -195,7 +217,7 @@ class AbstrRenderer {
       // check if we are rendering a stereo frame
       m_bDoStereoRendering = m_bRequestStereoRendering &&
                              m_eViewMode == VM_SINGLE &&
-                             m_eFullWindowMode == WM_3D;
+                             renderRegions[4].windowMode == WM_3D;
     }
 
     virtual bool Initialize();
@@ -332,8 +354,8 @@ class AbstrRenderer {
     }
 
     void SetTimeSlice(UINT32 iMSecs) {m_iTimeSliceMSecs = iMSecs;}
-    void SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans, 
-                         float fScreenResDecFactor, 
+    void SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans,
+                         float fScreenResDecFactor,
                          float fSampleDecFactor, UINT32 iStartDelay);
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
       m_pDataset->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();
@@ -421,12 +443,31 @@ class AbstrRenderer {
     void SetWindowFraction2x2(FLOATVECTOR2 f) {
       m_vWinFraction = f;
       ScheduleCompleteRedraw();
+      updateWindowFraction();
     }
     FLOATVECTOR2 WindowFraction2x2() const { return m_vWinFraction; }
 
-    virtual void NewFrameClear(ERenderArea) { assert(1==0); }
+    virtual void NewFrameClear(const RenderRegion &) { assert(1==0); }
 
   protected:
+    //This method will go away once the client is updated to handle all the 2x2 code.
+  void updateWindowFraction() {
+      renderRegions[0].minCoord = UINTVECTOR2(0, m_vWinSize.y*m_vWinFraction.y);
+      renderRegions[0].maxCoord = UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y);
+
+      renderRegions[1].minCoord = UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y);
+      renderRegions[1].maxCoord = UINTVECTOR2(m_vWinSize.x, m_vWinSize.y);
+
+      renderRegions[2].minCoord = UINTVECTOR2(0, 0);
+      renderRegions[2].maxCoord = UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y);
+
+      renderRegions[3].minCoord = UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, 0);
+      renderRegions[3].maxCoord = UINTVECTOR2(m_vWinSize.x, m_vWinSize.y*m_vWinFraction.y);
+
+      renderRegions[4].minCoord = UINTVECTOR2(0,0);
+      renderRegions[4].maxCoord = UINTVECTOR2(m_vWinSize.x, m_vWinSize.y);
+  }
+
     /// Unsets the current transfer function, including deleting it from GPU
     /// memory.  It's expected you'll set another one directly afterwards.
     void Free1DTrans();
@@ -441,14 +482,8 @@ class AbstrRenderer {
     bool                m_bPerformRedraw;
     float               m_fMsecPassedCurrentFrame;
     float               m_fMsecPassed[2];
-    bool                m_bRedrawMask[4];
     ERenderMode         m_eRenderMode;
     EViewMode           m_eViewMode;
-    EWindowMode         m_e2x2WindowMode[4];
-    VECTOR2<bool>       m_bFlipView[3];
-    bool                m_bUseMIP[3];
-    EWindowMode         m_eFullWindowMode;
-    UINT64              m_piSlice[3];
     EBlendPrecision     m_eBlendPrecision;
     bool                m_bUseLighting;
     tuvok::Dataset*     m_pDataset;
@@ -545,6 +580,11 @@ class AbstrRenderer {
 
     int                 m_i2x2DividerWidth;
     FLOATVECTOR2        m_vWinFraction;
+
+    //Note: this will go away once the client is set up to use
+    //RenderRegions.  Elements [0-3] correspond to 2x2 ERenderAreas
+    //and element 4 is the full screen ERenderArea.
+    RenderRegion renderRegions[5];
 
     FLOATVECTOR4        m_cAmbient;
     FLOATVECTOR4        m_cDiffuse;

@@ -64,6 +64,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramIso(NULL),
   m_pProgramColor(NULL),
   m_pProgramHQMIPRot(NULL),
+  m_p3DVolTex(NULL),
   m_pProgramTrans(NULL),
   m_pProgram1DTransSlice(NULL),
   m_pProgram2DTransSlice(NULL),
@@ -75,8 +76,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramColorCompose(NULL),
   m_pProgramCVCompose(NULL),
   m_pProgramComposeAnaglyphs(NULL),
-  m_aDepthStorage(NULL),
-  m_p3DVolTex(NULL)
+  m_aDepthStorage(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
   m_pProgram1DTrans[1]   = NULL;
@@ -288,8 +288,8 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
 void GLRenderer::RenderSeperatingLines() {
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   // set render area to fullscreen
-  SetRenderTargetAreaScissor(RA_FULLSCREEN, m_bDecreaseScreenResNow);
-  SetRenderTargetArea(RA_FULLSCREEN, m_bDecreaseScreenResNow);
+  SetRenderTargetAreaScissor(renderRegions[4], m_bDecreaseScreenResNow);
+  SetRenderTargetArea(renderRegions[4], m_bDecreaseScreenResNow);
 
   // render seperating lines
   glDisable(GL_BLEND);
@@ -380,11 +380,11 @@ void GLRenderer::Paint() {
 
   bool bNewDataToShow = false;
   if (m_eViewMode == VM_SINGLE) {
-    SetRenderTargetArea(RA_FULLSCREEN, false);
-    switch (m_eFullWindowMode) {
+    SetRenderTargetArea(renderRegions[4], false);
+    switch (renderRegions[4].windowMode) {
       case WM_3D:
         if(OnlyRecomposite()) {
-          Recompose3DView(RA_FULLSCREEN);
+          Recompose3DView(renderRegions[4]);
           bNewDataToShow = true;
         } else {
           // plan the frame
@@ -393,11 +393,11 @@ void GLRenderer::Paint() {
           // have changed so update matrices (but not
           // LOD computation)
           if (m_bDecreaseScreenResNow) {
-            SetRenderTargetArea(RA_FULLSCREEN, true);
+            SetRenderTargetArea(renderRegions[4], true);
           }
           // execute the frame
           float fMsecPassed = 0.0f;
-          bNewDataToShow = Execute3DFrame(RA_FULLSCREEN, fMsecPassed);
+          bNewDataToShow = Execute3DFrame(renderRegions[4], fMsecPassed);
           m_fMsecPassedCurrentFrame += fMsecPassed;
         }
         break;
@@ -405,7 +405,7 @@ void GLRenderer::Paint() {
       case WM_AXIAL:   /* ... */
       case WM_SAGITTAL:
         if (m_bPerformRedraw) {
-          bNewDataToShow = Render2DView(RA_FULLSCREEN, m_eFullWindowMode, m_piSlice[size_t(m_eFullWindowMode)]);
+          bNewDataToShow = Render2DView(renderRegions[4]);
         }
         break;
       default:
@@ -421,42 +421,40 @@ void GLRenderer::Paint() {
 
     bool bForceCompleteRedrawDueToResChange = m_bDoAnotherRedrawDueToAllMeans;
     for (UINT32 i = 0;i<4;i++) {  // foreach of the 4 views ...
-      ERenderArea eArea = ERenderArea(int(RA_TOPLEFT)+i);
-
       // note: this line only works if the 3D view is drawn before the 2D
       //       views, as m_bDecreaseScreenResNow is changed in Plan3DFrame
       bForceCompleteRedrawDueToResChange = bForceCompleteRedrawDueToResChange || bPrevResType != m_bDecreaseScreenResNow;
 
-      if (m_bRedrawMask[size_t(m_e2x2WindowMode[i])] || bForceCompleteRedrawDueToResChange) {
+      if (renderRegions[i].redrawMask || bForceCompleteRedrawDueToResChange) {
         iActiveRenderWindows++;
         bool bLocalNewDataToShow;
-        switch (m_e2x2WindowMode[i]) {
+        switch (renderRegions[i].windowMode) {
           case WM_3D:
-            SetRenderTargetArea(eArea, false);
+            SetRenderTargetArea(renderRegions[i], false);
             if (!m_bPerformRedraw && m_bPerformReCompose && !bForceCompleteRedrawDueToResChange){
-              Recompose3DView(eArea);
+              Recompose3DView(renderRegions[i]);
               bLocalNewDataToShow = true;
             } else {
               // plan the frame
               Plan3DFrame();
               // if m_bDecreaseScreenResthe render target area may have changed
-              if (m_bDecreaseScreenResNow) SetRenderTargetArea(eArea, true);
+              if (m_bDecreaseScreenResNow) SetRenderTargetArea(renderRegions[i], true);
               // execute the frame0
               float fMsecPassed = 0.0f;
-              bLocalNewDataToShow = Execute3DFrame(eArea, fMsecPassed);
+              bLocalNewDataToShow = Execute3DFrame(renderRegions[i], fMsecPassed);
               m_fMsecPassedCurrentFrame += fMsecPassed;
             }
             // are we done traversing the LOD levels
-            m_bRedrawMask[size_t(m_e2x2WindowMode[i])] =
+            renderRegions[i].redrawMask =
               (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
               (m_iCurrentLODOffset > m_iMinLODForCurrentView);
             break;
           case WM_CORONAL:  /* FALL THROUGH */
           case WM_AXIAL:    /* ... */
           case WM_SAGITTAL:
-            SetRenderTargetArea(eArea, m_bDecreaseScreenResNow);
-            bLocalNewDataToShow = Render2DView(eArea, m_e2x2WindowMode[i], m_piSlice[size_t(m_e2x2WindowMode[i])]);
-            m_bRedrawMask[size_t(m_e2x2WindowMode[i])] = false;
+            SetRenderTargetArea(renderRegions[i], m_bDecreaseScreenResNow);
+            bLocalNewDataToShow = Render2DView(renderRegions[i]);
+            renderRegions[i].redrawMask = false;
             break;
           default:
             T_ERROR("Invalid Windowmode");
@@ -467,8 +465,8 @@ void GLRenderer::Paint() {
       } else {
         // blit the previous result quad to the entire screen but restrict drawing to the current subarea
         m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-        SetRenderTargetArea(RA_FULLSCREEN,false);
-        SetRenderTargetAreaScissor(eArea, false);
+        SetRenderTargetArea(renderRegions[4], false);
+        SetRenderTargetAreaScissor(renderRegions[i], false);
         RerenderPreviousResult(false);
         m_TargetBinder.Unbind();
       }
@@ -543,56 +541,20 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 }
 
 
-void GLRenderer::SetRenderTargetArea(ERenderArea eREnderArea, bool bDecreaseScreenResNow) {
-  switch (eREnderArea) {
-  case RA_TOPLEFT    : SetViewPort(UINTVECTOR2(0, m_vWinSize.y*m_vWinFraction.y),
-                                   UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y),
-                                   bDecreaseScreenResNow);
-    break;
-  case RA_TOPRIGHT   : SetViewPort(UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y),
-                                   m_vWinSize,
-                                   bDecreaseScreenResNow);
-    break;
-  case RA_LOWERLEFT  : SetViewPort(UINTVECTOR2(0,0),
-                                   UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y),
-                                   bDecreaseScreenResNow);
-    break;
-  case RA_LOWERRIGHT : SetViewPort(UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, 0),
-                                   UINTVECTOR2(m_vWinSize.x,m_vWinSize.y*m_vWinFraction.y),
-                                   bDecreaseScreenResNow);
-    break;
-  case RA_FULLSCREEN : SetViewPort(UINTVECTOR2(0,0), m_vWinSize,
-                                   bDecreaseScreenResNow); break;
-  default            : T_ERROR("Invalid render area set"); break;
-  }
+void GLRenderer::SetRenderTargetArea(const RenderRegion &renderRegion,
+                                     bool bDecreaseScreenResNow) {
+  SetViewPort(renderRegion.minCoord, renderRegion.maxCoord, bDecreaseScreenResNow);
 }
 
-void GLRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea, bool bDecreaseScreenResNow) {
-  UINTVECTOR2  vWinSize = (bDecreaseScreenResNow) ? m_vWinSize/m_fScreenResDecFactor : m_vWinSize;
+void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion &renderRegion, bool bDecreaseScreenResNow) {
+  const float rescale = (bDecreaseScreenResNow) ? 1.0f/m_fScreenResDecFactor : 1;
+  const UINTVECTOR2 minCoord = renderRegion.minCoord * rescale;
+  const UINTVECTOR2 maxCoord = renderRegion.maxCoord * rescale;
 
-  switch (eREnderArea) {
-    case RA_TOPLEFT    : glScissor(0, vWinSize.y*m_vWinFraction.y,
-                                   vWinSize.x*m_vWinFraction.x, vWinSize.y);
-                         glEnable( GL_SCISSOR_TEST );
-                         break;
-    case RA_TOPRIGHT   : glScissor(vWinSize.x*m_vWinFraction.x, vWinSize.y*m_vWinFraction.y,
-                                   vWinSize.x, vWinSize.y);
-                         glEnable( GL_SCISSOR_TEST );
-                         break;
-    case RA_LOWERLEFT  : glScissor(0, 0,
-                                   vWinSize.x*m_vWinFraction.x, vWinSize.y*m_vWinFraction.y);
-                         glEnable( GL_SCISSOR_TEST );
-                         break;
-    case RA_LOWERRIGHT : glScissor(vWinSize.x*m_vWinFraction.x, 0,
-                                   vWinSize.x, vWinSize.y*m_vWinFraction.y);
-                         glEnable( GL_SCISSOR_TEST );
-                         break;
-    case RA_FULLSCREEN : glScissor(0,0,vWinSize.x, vWinSize.y);
-                         glDisable( GL_SCISSOR_TEST );
-                         break;
-    default            : T_ERROR("Invalid render area set"); break;
-  }
+  const UINTVECTOR2 regionSize = maxCoord - minCoord;
 
+  glScissor(minCoord.x, minCoord.y, regionSize.x, regionSize.y);
+  glEnable( GL_SCISSOR_TEST );
 }
 
 void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight, bool bDecreaseScreenResNow) {
@@ -635,20 +597,20 @@ void GLRenderer::ComputeViewAndProjection(float fAspect) {
   }
 }
 
-void GLRenderer::RenderSlice(EWindowMode eDirection, double fSliceIndex,
+void GLRenderer::RenderSlice(const RenderRegion &region, double fSliceIndex,
                              FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                              DOUBLEVECTOR3 vAspectRatio,
                              DOUBLEVECTOR2 vWinAspectRatio) {
 
-  switch (eDirection) {
+  switch (region.windowMode) {
     case WM_AXIAL : {
-                          if (m_bFlipView[int(eDirection)].x) {
+                          if (region.flipView.x) {
                               float fTemp = vMinCoords.x;
                               vMinCoords.x = vMaxCoords.x;
                               vMaxCoords.x = fTemp;
                           }
 
-                          if (m_bFlipView[int(eDirection)].y) {
+                          if (region.flipView.y) {
                               float fTemp = vMinCoords.z;
                               vMinCoords.z = vMaxCoords.z;
                               vMaxCoords.z = fTemp;
@@ -669,13 +631,13 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, double fSliceIndex,
                           break;
                       }
     case WM_CORONAL : {
-                          if (m_bFlipView[int(eDirection)].x) {
+                          if (region.flipView.x) {
                               float fTemp = vMinCoords.x;
                               vMinCoords.x = vMaxCoords.x;
                               vMaxCoords.x = fTemp;
                           }
 
-                          if (m_bFlipView[int(eDirection)].y) {
+                          if (region.flipView.y) {
                               float fTemp = vMinCoords.y;
                               vMinCoords.y = vMaxCoords.y;
                               vMaxCoords.y = fTemp;
@@ -696,13 +658,13 @@ void GLRenderer::RenderSlice(EWindowMode eDirection, double fSliceIndex,
                           break;
                       }
     case WM_SAGITTAL : {
-                          if (m_bFlipView[int(eDirection)].x) {
+                          if (region.flipView.x) {
                               float fTemp = vMinCoords.y;
                               vMinCoords.y = vMaxCoords.y;
                               vMaxCoords.y = fTemp;
                           }
 
-                          if (m_bFlipView[int(eDirection)].y) {
+                          if (region.flipView.y) {
                               float fTemp = vMinCoords.z;
                               vMinCoords.z = vMaxCoords.z;
                               vMaxCoords.z = fTemp;
@@ -748,10 +710,10 @@ bool GLRenderer::UnbindVolumeTex() {
 }
 
 
-bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex) {
+bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
 
   // bind offscreen buffer
-  if (m_bUseMIP[size_t(eDirection)]) {
+  if (renderRegion.useMIP) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
   } else {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
@@ -760,8 +722,8 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
   SetDataDepShaderVars();
 
   // if we render a slice view or MIP preview
-  if (!m_bUseMIP[size_t(eDirection)] || !m_bCaptureMode)  {
-    if (!m_bUseMIP[size_t(eDirection)]) {
+  if (!renderRegion.useMIP || !m_bCaptureMode)  {
+    if (!renderRegion.useMIP) {
       switch (m_eRenderMode) {
         case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
                               m_pProgram2DTransSlice->Enable();
@@ -792,7 +754,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
       }
     }
 
-    if (!m_bUseMIP[size_t(eDirection)]) SetBrickDepShaderVarsSlice(vVoxelCount);
+    if (!renderRegion.useMIP) SetBrickDepShaderVarsSlice(vVoxelCount);
 
     // Get the brick at this LOD; note we're guaranteed this brick will cover the entire domain,
     // because the search above gives us the coarsest LOD!
@@ -803,7 +765,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     }
 
     // clear the target at the beginning
-    SetRenderTargetAreaScissor(eREnderArea, m_bDecreaseScreenResNow);
+    SetRenderTargetAreaScissor(renderRegion, m_bDecreaseScreenResNow);
 
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -826,45 +788,38 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
     DOUBLEVECTOR3 vAspectRatio = m_pDataset->GetScale() * DOUBLEVECTOR3(vDomainSize);
 
-    DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
-
-    switch (eREnderArea) {
-      case RA_TOPLEFT    : vWinAspectRatio /= DOUBLEVECTOR2(m_vWinFraction.x, 1.0f-m_vWinFraction.y); break;
-      case RA_TOPRIGHT   : vWinAspectRatio /= DOUBLEVECTOR2(1.0f-m_vWinFraction.x, 1.0f-m_vWinFraction.y); break;
-      case RA_LOWERLEFT  : vWinAspectRatio /= DOUBLEVECTOR2(m_vWinFraction.x, m_vWinFraction.y); break;
-      case RA_LOWERRIGHT : vWinAspectRatio /= DOUBLEVECTOR2(1.0f-m_vWinFraction.x, m_vWinFraction.y); break;
-      default: break;
-    }
+    DOUBLEVECTOR2 renderRegionSize(renderRegion.maxCoord - renderRegion.minCoord);
+    DOUBLEVECTOR2 vWinAspectRatio = 1.0 / renderRegionSize;
     vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
 
-    if (m_bUseMIP[size_t(eDirection)]) {
+    if (renderRegion.useMIP) {
       // Iterate; render all slices, and we'll figure out the 'M'(aximum) in
       // the shader.  Note that we iterate over all slices which have data
       // ("VoxelCount"), not over all slices ("RealVoxelCount").
-      for (UINT64 i = 0;i<vVoxelCount[size_t(eDirection)];i++) {
+      for (UINT64 i = 0;i<vVoxelCount[size_t(renderRegion.windowMode)];i++) {
         // First normalize to a [0..1] space
         double fSliceIndex = static_cast<double>(i) /
-                             vVoxelCount[static_cast<size_t>(eDirection)];
+                             vVoxelCount[static_cast<size_t>(renderRegion.windowMode)];
         // Now correct for PoT textures: a [0..1] space gives us the location
         // of the slice in a perfect world, but if we're using PoT textures we
         // might only access say [0..0.75] e.g. if we needed to increase the
         // 3Dtexture size by 25% to make it PoT.
         fSliceIndex *= static_cast<double>
-                       (vVoxelCount[static_cast<size_t>(eDirection)]) /
+                       (vVoxelCount[static_cast<size_t>(renderRegion.windowMode)]) /
                        static_cast<double>
-                       (vRealVoxelCount[static_cast<size_t>(eDirection)]);
-        RenderSlice(eDirection, fSliceIndex, vMinCoords, vMaxCoords,
+                       (vRealVoxelCount[static_cast<size_t>(renderRegion.windowMode)]);
+        RenderSlice(renderRegion, fSliceIndex, vMinCoords, vMaxCoords,
                     vAspectRatio, vWinAspectRatio);
       }
     } else {
       // same indexing fix as above.
-      double fSliceIndex = static_cast<double>(iSliceIndex) /
-                           vDomainSize[static_cast<size_t>(eDirection)];
+      double fSliceIndex = static_cast<double>(renderRegion.iSlice) /
+                           vDomainSize[static_cast<size_t>(renderRegion.windowMode)];
       fSliceIndex *= static_cast<double>
-                     (vVoxelCount[static_cast<size_t>(eDirection)]) /
+                     (vVoxelCount[static_cast<size_t>(renderRegion.windowMode)]) /
                      static_cast<double>
-                     (vRealVoxelCount[static_cast<size_t>(eDirection)]);
-      RenderSlice(eDirection, fSliceIndex, vMinCoords, vMaxCoords,
+                     (vRealVoxelCount[static_cast<size_t>(renderRegion.windowMode)]);
+      RenderSlice(renderRegion, fSliceIndex, vMinCoords, vMaxCoords,
                   vAspectRatio, vWinAspectRatio);
     }
 
@@ -873,7 +828,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     }
 
     glEnable(GL_DEPTH_TEST);
-    if (!m_bUseMIP[size_t(eDirection)]) {
+    if (!renderRegion.useMIP) {
       switch (m_eRenderMode) {
         case RM_2DTRANS    :  m_pProgram2DTransSlice->Disable(); break;
         default            :  m_pProgram1DTransSlice->Disable(); break;
@@ -898,7 +853,7 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
     glClearColor(0,0,0,0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    RenderHQMIPPreLoop(eDirection);
+    RenderHQMIPPreLoop(renderRegion);
 
     for (size_t iBrickIndex = 0;iBrickIndex<m_vCurrentBrickList.size();iBrickIndex++) {
       MESSAGE("Brick %i of %i", int(iBrickIndex+1),int(m_vCurrentBrickList.size()));
@@ -925,14 +880,14 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
   }
 
   // apply 1D transferfunction to MIP image
-  if (m_bUseMIP[size_t(eDirection)]) {
+  if (renderRegion.useMIP) {
     glBlendEquation(GL_FUNC_ADD);
     glDisable( GL_BLEND );
 
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
 
-    SetRenderTargetArea(RA_FULLSCREEN,false);
-    SetRenderTargetAreaScissor(eREnderArea, m_bDecreaseScreenResNow);
+    SetRenderTargetArea(renderRegions[4],false);
+    SetRenderTargetAreaScissor(renderRegion, m_bDecreaseScreenResNow);
 
     m_pFBO3DImageCurrent[1]->Read(0);
     m_p1DTransTex->Bind(1);
@@ -950,10 +905,10 @@ bool GLRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, U
   return true;
 }
 
-void GLRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
+void GLRenderer::RenderHQMIPPreLoop(const RenderRegion &region) {
   double dPI = 3.141592653589793238462643383;
   FLOATMATRIX4 matRotDir, matFlipX, matFlipY;
-  switch (eDirection) {
+  switch (region.windowMode) {
     case WM_SAGITTAL : {
                         matRotDir.RotationX(-dPI/2.0);
                         break;
@@ -970,10 +925,10 @@ void GLRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
                       }
     default        :  T_ERROR("Invalid windowmode set"); break;
   }
-  if (m_bFlipView[int(eDirection)].x) {
+  if (region.flipView.x) {
     matFlipY.Scaling(-1,1,1);
   }
-  if (m_bFlipView[int(eDirection)].y) {
+  if (region.flipView.y) {
     matFlipX.Scaling(1,-1,1);
   }
   m_maMIPRotation.RotationY(dPI*double(m_fMIPRotationAngle)/180.0);
@@ -1036,9 +991,9 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, cons
 
 }
 
-void GLRenderer::NewFrameClear(ERenderArea eREnderArea) {
+void GLRenderer::NewFrameClear(const RenderRegion & renderRegion) {
   m_iFilledBuffers = 0;
-  SetRenderTargetAreaScissor(eREnderArea, m_bDecreaseScreenResNow);
+  SetRenderTargetAreaScissor(renderRegion, m_bDecreaseScreenResNow);
 
   glClearColor(0,0,0,0);
 
@@ -1166,9 +1121,9 @@ void GLRenderer::RenderCoordArrows() {
 }
 
 /// Actions to perform every subframe (rendering of a complete LOD level).
-void GLRenderer::PreSubframe(ERenderArea eRenderArea)
+void GLRenderer::PreSubframe(const RenderRegion &renderRegion)
 {
-  NewFrameClear(eRenderArea);
+  NewFrameClear(renderRegion);
 
   // Render the coordinate cross (three arrows in upper right corner)
   if (m_bRenderCoordArrows) {
@@ -1221,11 +1176,12 @@ void GLRenderer::PostSubframe()
   m_TargetBinder.Unbind();
 }
 
-bool GLRenderer::Execute3DFrame(ERenderArea eRenderArea, float &fMsecPassed) {
+bool GLRenderer::Execute3DFrame(const RenderRegion &renderRegion,
+                                float &fMsecPassed) {
   // are we starting a new LOD level?
   if (m_iBricksRenderedInThisSubFrame == 0) {
     fMsecPassed = 0;
-    PreSubframe(eRenderArea);
+    PreSubframe(renderRegion);
   }
 
   // if zero bricks are to be rendered we have completed the draw job
@@ -1622,7 +1578,7 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const s
     return false;
 }
 
-bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,  
+bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
                                      GLSLProgram** pShaderProgram,
                                      bool bSearchSubdirs) {
 #ifdef DETECTED_OS_APPLE
@@ -1798,7 +1754,9 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
 
   FLOATVECTOR3 vMinPoint = -vExtend/2.0, vMaxPoint = vExtend/2.0;
 
-  FLOATVECTOR3 vfSliceIndex = FLOATVECTOR3(m_piSlice[0],m_piSlice[1],m_piSlice[2])/FLOATVECTOR3(vDomainSize);
+  FLOATVECTOR3 vfSliceIndex = FLOATVECTOR3(renderRegions[1].iSlice,
+                                           renderRegions[2].iSlice,
+                                           renderRegions[3].iSlice) / FLOATVECTOR3(vDomainSize);
 
 
   FLOATVECTOR3 vfPlanePos = vMinPoint * (1.0f-vfSliceIndex) + vMaxPoint * vfSliceIndex;
@@ -1979,9 +1937,9 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
   } else return false;
 }
 
-void GLRenderer::Recompose3DView(ERenderArea eArea) {
+void GLRenderer::Recompose3DView(const RenderRegion &renderRegion) {
   MESSAGE("Recomposing...");
-  NewFrameClear(eArea);
+  NewFrameClear(renderRegion);
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   m_mProjection[0].setProjection();
@@ -2029,7 +1987,7 @@ float GLRenderer::Render3DView() {
 
     MESSAGE("  Requesting texture from MemMan");
 
-    
+
     if(BindVolumeTex(bkey, m_iIntraFrameCounter++)) {
       MESSAGE("  Binding Texture");
     } else {

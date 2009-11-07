@@ -138,30 +138,12 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
 
-  m_e2x2WindowMode[0] = WM_3D;
-  m_e2x2WindowMode[1] = WM_SAGITTAL;
-  m_e2x2WindowMode[2] = WM_AXIAL;
-  m_e2x2WindowMode[3] = WM_CORONAL;
+  renderRegions[0].windowMode = WM_3D;
+  renderRegions[1].windowMode = WM_SAGITTAL;
+  renderRegions[2].windowMode = WM_AXIAL;
+  renderRegions[3].windowMode = WM_CORONAL;
+  renderRegions[4].windowMode = WM_3D; //full window
   RestartTimers();
-
-  m_eFullWindowMode   = WM_3D;
-
-  m_piSlice[0]     = 0;
-  m_piSlice[1]     = 0;
-  m_piSlice[2]     = 0;
-
-  m_bFlipView[0]   = VECTOR2<bool>(false, false);
-  m_bFlipView[1]   = VECTOR2<bool>(false, false);
-  m_bFlipView[2]   = VECTOR2<bool>(false, false);
-
-  m_bUseMIP[0]   = false;
-  m_bUseMIP[1]   = false;
-  m_bUseMIP[2]   = false;
-
-  m_bRedrawMask[0] = true;
-  m_bRedrawMask[1] = true;
-  m_bRedrawMask[2] = true;
-  m_bRedrawMask[3] = true;
 
   m_vShaderSearchDirs.push_back("Shaders");
   m_vShaderSearchDirs.push_back("Tuvok/Shaders");
@@ -198,9 +180,9 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   // find the maximum LOD index
   m_iMaxLODIndex = m_pDataset->GetLODLevelCount()-1;
 
-  m_piSlice[size_t(WM_CORONAL)]  = m_pDataset->GetDomainSize()[2]/2;
-  m_piSlice[size_t(WM_SAGITTAL)] = m_pDataset->GetDomainSize()[0]/2;
-  m_piSlice[size_t(WM_AXIAL)]    = m_pDataset->GetDomainSize()[1]/2;
+  renderRegions[3].iSlice = m_pDataset->GetDomainSize()[2]/2;
+  renderRegions[1].iSlice = m_pDataset->GetDomainSize()[0]/2;
+  renderRegions[2].iSlice = m_pDataset->GetDomainSize()[1]/2;
 
   // now that we know the range of the dataset, we can set the default
   // isoval to half the range.  For CV, we'll set the isovals to a bit above
@@ -263,18 +245,9 @@ void AbstrRenderer::SetViewmode(EViewMode eViewMode)
   }
 }
 
-void AbstrRenderer::Set2x2Windowmode(ERenderArea eArea, EWindowMode eWindowMode)
-{
-  /// \todo make sure every view is only assigned to one subwindow
-  if (m_e2x2WindowMode[size_t(eArea)] != eWindowMode) {
-    m_e2x2WindowMode[size_t(eArea)] = eWindowMode;
-    ScheduleWindowRedraw(eWindowMode);
-  }
-}
-
 void AbstrRenderer::SetFullWindowmode(EWindowMode eWindowMode) {
-  if (m_eFullWindowMode != eWindowMode) {
-    m_eFullWindowMode = eWindowMode;
+  if (renderRegions[4].windowMode != eWindowMode) {
+    renderRegions[4].windowMode = eWindowMode;
     ScheduleCompleteRedraw();
   }
 }
@@ -404,13 +377,13 @@ bool AbstrRenderer::CheckForRedraw() {
 AbstrRenderer::EWindowMode
 AbstrRenderer::GetWindowUnderCursor(FLOATVECTOR2 vPos) const {
   switch (m_eViewMode) {
-  case VM_SINGLE   : return m_eFullWindowMode;
+  case VM_SINGLE   : return renderRegions[4].windowMode;
   case VM_TWOBYTWO :
     {
-      const FLOATVECTOR2 halfWidth = 
+      const FLOATVECTOR2 halfWidth =
         FLOATVECTOR2(m_i2x2DividerWidth, m_i2x2DividerWidth) / FLOATVECTOR2(m_vWinSize*2);
       const bool isVertical   = (fabsf(vPos.x - m_vWinFraction.x) <= halfWidth.x);
-      const bool isHorizontal = 
+      const bool isHorizontal =
         (fabsf(vPos.y - (1-m_vWinFraction.y)) <= halfWidth.y);
 
       if (isVertical && isHorizontal) return WM_DIVIDER_BOTH;
@@ -418,15 +391,15 @@ AbstrRenderer::GetWindowUnderCursor(FLOATVECTOR2 vPos) const {
       if (isHorizontal)               return WM_DIVIDER_HORIZONTAL;
       if (vPos.y < 1-m_vWinFraction.y) {
         if (vPos.x < m_vWinFraction.x) {
-          return m_e2x2WindowMode[0];
+          return renderRegions[0].windowMode;
         } else {
-          return m_e2x2WindowMode[1];
+          return renderRegions[1].windowMode;
         }
       } else {
         if (vPos.x < m_vWinFraction.x) {
-          return m_e2x2WindowMode[2];
+          return renderRegions[2].windowMode;
         } else {
-          return m_e2x2WindowMode[3];
+          return renderRegions[3].windowMode;
         }
       }
     }
@@ -463,6 +436,8 @@ FLOATVECTOR2 AbstrRenderer::GetLocalCursorPos(FLOATVECTOR2 vPos) const {
 void AbstrRenderer::Resize(const UINTVECTOR2& vWinSize) {
   m_vWinSize = vWinSize;
   ScheduleCompleteRedraw();
+
+  updateWindowFraction();
 }
 
 void AbstrRenderer::SetRotation(const FLOATMATRIX4& mRotation) {
@@ -509,8 +484,8 @@ void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
 
 void AbstrRenderer::SetSliceDepth(EWindowMode eWindow, UINT64 iSliceDepth) {
   if (eWindow < WM_3D) {
-    if (m_piSlice[size_t(eWindow)] != iSliceDepth) {
-      m_piSlice[size_t(eWindow)] = iSliceDepth;
+    if (renderRegions[size_t(eWindow)+1].iSlice != iSliceDepth) {
+      renderRegions[size_t(eWindow)+1].iSlice = iSliceDepth;
       ScheduleWindowRedraw(eWindow);
       if (m_bRenderPlanesIn3D) ScheduleWindowRedraw(WM_3D);
     }
@@ -519,7 +494,7 @@ void AbstrRenderer::SetSliceDepth(EWindowMode eWindow, UINT64 iSliceDepth) {
 
 UINT64 AbstrRenderer::GetSliceDepth(EWindowMode eWindow) const {
   if (eWindow < WM_3D)
-    return m_piSlice[size_t(eWindow)];
+    return renderRegions[size_t(eWindow)+1].iSlice;
   else
     return 0;
 }
@@ -540,43 +515,41 @@ void AbstrRenderer::ScheduleCompleteRedraw() {
   m_bPerformRedraw   = true;
   m_iCheckCounter    = m_iStartDelay;
 
-  m_bRedrawMask[0] = true;
-  m_bRedrawMask[1] = true;
-  m_bRedrawMask[2] = true;
-  m_bRedrawMask[3] = true;
+  for (size_t i=0; i < 5; ++i)
+    renderRegions[i].redrawMask = true;
 }
 
 
 void AbstrRenderer::ScheduleWindowRedraw(EWindowMode eWindow) {
   m_bPerformRedraw      = true;
   m_iCheckCounter       = m_iStartDelay;
-  m_bRedrawMask[size_t(eWindow)] = true;
+  renderRegions[(size_t(eWindow)+1)%4].redrawMask = true;
 }
 
 void AbstrRenderer::ScheduleRecompose() {
   if(!m_bAvoidSeperateCompositing && // ensure we finished the current frame:
      m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
     m_bPerformReCompose = true;
-    m_bRedrawMask[WM_3D]  = true;
+    renderRegions[(size_t(WM_3D)+1)%4].redrawMask = true;
   } else {
     ScheduleWindowRedraw(WM_3D);
   }
 }
 
 void AbstrRenderer::CompletedASubframe() {
-  bool bRenderingFirstSubFrame = (m_iCurrentLODOffset == m_iStartLODOffset) && 
-                                 (!m_bDecreaseScreenRes || m_bDecreaseScreenResNow) && 
+  bool bRenderingFirstSubFrame = (m_iCurrentLODOffset == m_iStartLODOffset) &&
+                                 (!m_bDecreaseScreenRes || m_bDecreaseScreenResNow) &&
                                  (!m_bDecreaseSamplingRate || m_bDecreaseSamplingRateNow);
-  bool bSecondSubFrame = !bRenderingFirstSubFrame && 
-                         (m_iCurrentLODOffset == m_iStartLODOffset || 
+  bool bSecondSubFrame = !bRenderingFirstSubFrame &&
+                         (m_iCurrentLODOffset == m_iStartLODOffset ||
                          (m_iCurrentLODOffset == m_iStartLODOffset-1 && !(m_bDecreaseScreenRes || m_bDecreaseSamplingRate)));
 
   if (bRenderingFirstSubFrame) {   // time for current interaction LOD -> to detect if we are to slow
-    m_fMsecPassed[0] = m_fMsecPassedCurrentFrame;    
+    m_fMsecPassed[0] = m_fMsecPassedCurrentFrame;
   } else if(bSecondSubFrame) {
     m_fMsecPassed[1] = m_fMsecPassedCurrentFrame;
   }
- 
+
   m_fMsecPassedCurrentFrame = 0.0f;
 }
 
@@ -774,7 +747,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
   FLOATVECTOR3 vScale(m_pDataset->GetScale().x,
                       m_pDataset->GetScale().y,
                       m_pDataset->GetScale().z);
-  
+
   FLOATVECTOR3 vDomainSizeCorrectedScale = vScale * FLOATVECTOR3(vDomainSize)/vDomainSize.maxVal();
 
   vScale /= vDomainSizeCorrectedScale.maxVal();
@@ -1133,15 +1106,15 @@ void AbstrRenderer::SetLogoParams(string strLogoFilename, int iLogoPos) {
 void AbstrRenderer::Set2DFlipMode(EWindowMode eWindow, bool bFlipX, bool bFlipY) {
   // flipping is only possible for 2D views
   if (eWindow > WM_CORONAL) return;
-  m_bFlipView[size_t(eWindow)] = VECTOR2<bool>(bFlipX, bFlipY);
+  renderRegions[size_t(eWindow)+1].flipView= VECTOR2<bool>(bFlipX, bFlipY);
   ScheduleWindowRedraw(eWindow);
 }
 
 void AbstrRenderer::Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlipY) const {
   // flipping is only possible for 2D views
   if (eWindow > WM_CORONAL) return;
-  bFlipX = m_bFlipView[size_t(eWindow)].x;
-  bFlipY = m_bFlipView[size_t(eWindow)].y;
+  bFlipX = renderRegions[size_t(eWindow)+1].flipView.x;
+  bFlipY = renderRegions[size_t(eWindow)+1].flipView.y;
 }
 
 bool AbstrRenderer::GetUseMIP(EWindowMode eWindow) const {
@@ -1149,13 +1122,13 @@ bool AbstrRenderer::GetUseMIP(EWindowMode eWindow) const {
   if (eWindow > WM_CORONAL)
     return false;
   else
-    return m_bUseMIP[size_t(eWindow)];
+    return renderRegions[size_t(eWindow)+1].useMIP;
 }
 
 void AbstrRenderer::SetUseMIP(EWindowMode eWindow, bool bUseMIP) {
   // MIP is only possible for 2D views
   if (eWindow > WM_CORONAL) return;
-  m_bUseMIP[size_t(eWindow)] = bUseMIP;
+  renderRegions[size_t(eWindow)+1].useMIP = bUseMIP;
   ScheduleWindowRedraw(eWindow);
 }
 
@@ -1205,8 +1178,8 @@ void AbstrRenderer::SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans, flo
   ScheduleCompleteRedraw();
 }
 
-void AbstrRenderer::SetLODLimits(const UINTVECTOR2 iLODLimits) { 
-  m_iLODLimits = iLODLimits; 
+void AbstrRenderer::SetLODLimits(const UINTVECTOR2 iLODLimits) {
+  m_iLODLimits = iLODLimits;
   ScheduleCompleteRedraw();
 }
 

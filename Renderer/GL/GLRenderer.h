@@ -80,10 +80,10 @@ class GLRenderer : public AbstrRenderer {
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
 
-    void RenderSlice(EWindowMode eDirection, double fSliceIndex,
+    void RenderSlice(const RenderRegion &region, double fSliceIndex,
                      FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                      DOUBLEVECTOR3 vAspectRatio, DOUBLEVECTOR2 vWinAspectRatio);
-    virtual void NewFrameClear(ERenderArea eREnderArea);
+    virtual void NewFrameClear(const RenderRegion & renderRegion);
 
   protected:
     GLTargetBinder  m_TargetBinder;
@@ -104,16 +104,20 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramHQMIPRot;
     Timer           m_Timer;
 
-    void SetRenderTargetArea(ERenderArea eREnderArea, bool bDecreaseScreenResNow);
-    void SetRenderTargetAreaScissor(ERenderArea eREnderArea, bool bDecreaseScreenResNow);
-    void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight, bool bDecreaseScreenResNow);
+    void SetRenderTargetArea(const RenderRegion& renderRegion,
+                             bool bDecreaseScreenResNow);
+    void SetRenderTargetAreaScissor(const RenderRegion& renderRegion,
+                                    bool bDecreaseScreenResNow);
+    void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
+                     bool bDecreaseScreenResNow);
 
-    bool Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex);
-    void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1), bool bEpsilonOffset=true);
-    void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter,
-                    const FLOATVECTOR3& vExtend);
+    bool Render2DView(const RenderRegion& renderRegion);
+    void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1),
+                    bool bEpsilonOffset=true);
+    void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
+                    const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
     void RenderClipPlane(size_t iStereoID);
-    bool Execute3DFrame(ERenderArea eREnderArea, float &fMsecPassed);
+    bool Execute3DFrame(const RenderRegion &renderRegion, float &fMsecPassed);
     void RerenderPreviousResult(bool bTransferToFramebuffer);
     void DrawLogo();
     void DrawBackGradient();
@@ -129,9 +133,9 @@ class GLRenderer : public AbstrRenderer {
     virtual void Render3DInLoop(size_t iCurentBrick, int iStereoID) = 0;
     virtual void Render3DPostLoop() {}
     virtual void ComposeSurfaceImage(int iStereoID);
-    virtual void Recompose3DView(ERenderArea eArea);
+    virtual void Recompose3DView(const RenderRegion &renderRegion);
 
-    virtual void RenderHQMIPPreLoop(EWindowMode eDirection);
+    virtual void RenderHQMIPPreLoop(const RenderRegion &region);
     virtual void RenderHQMIPInLoop(const Brick& b) = 0;
     virtual void RenderHQMIPPostLoop() {}
 
@@ -152,9 +156,9 @@ class GLRenderer : public AbstrRenderer {
     virtual void StartFrame();
     virtual void EndFrame(bool bNewDataToShow);
 
-    void PreSubframe(ERenderArea);
+    void PreSubframe(const RenderRegion &renderRegion);
     void PostSubframe();
-    
+
     virtual void  CVFocusHasChanged();
 
     void FullscreenQuad(bool bUpscale);

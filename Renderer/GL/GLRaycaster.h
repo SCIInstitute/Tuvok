@@ -74,7 +74,7 @@ class GLRaycaster : public GLRenderer {
     virtual ERendererType GetRendererType() {return RT_RC;}
 
     virtual bool CanDoClipPlane() {return !m_bNoRCClipplanes;}
-   
+
 
   protected:
     GLFBOTex*       m_pFBORayEntry;
@@ -94,7 +94,7 @@ class GLRaycaster : public GLRenderer {
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
 
-    virtual void RenderHQMIPPreLoop(EWindowMode eDirection);
+    virtual void RenderHQMIPPreLoop(const RenderRegion &region);
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void RenderHQMIPPostLoop();
 

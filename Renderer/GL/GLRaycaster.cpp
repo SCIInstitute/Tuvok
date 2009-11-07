@@ -464,8 +464,8 @@ void GLRaycaster::Render3DPostLoop() {
   glEnable(GL_BLEND);
 }
 
-void GLRaycaster::RenderHQMIPPreLoop(EWindowMode eDirection) {
-  GLRenderer::RenderHQMIPPreLoop(eDirection);
+void GLRaycaster::RenderHQMIPPreLoop(const RenderRegion &region) {
+  GLRenderer::RenderHQMIPPreLoop(region);
   m_pProgramHQMIPRot->Enable();
   m_pProgramHQMIPRot->SetUniformVector("vScreensize",float(m_vWinSize.x), float(m_vWinSize.y));
   m_pProgramHQMIPRot->Disable();

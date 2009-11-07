@@ -275,7 +275,7 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   FLOATMATRIX4 maBricktModelView = maBricktTrans * m_matModelView[iStereoID];
   m_mProjection[iStereoID].setProjection();
   maBricktModelView.setModelview();
-  
+
   m_SBVRGeogen.SetWorld(maBricktTrans * m_mRotation * m_mTranslation);
   m_SBVRGeogen.SetView(m_mView[iStereoID], true);
 
@@ -338,8 +338,8 @@ void GLSBVR::Render3DPostLoop() {
   }
 }
 
-void GLSBVR::RenderHQMIPPreLoop(EWindowMode eDirection) {
-  GLRenderer::RenderHQMIPPreLoop(eDirection);
+void GLSBVR::RenderHQMIPPreLoop(const RenderRegion &region) {
+  GLRenderer::RenderHQMIPPreLoop(region);
   m_pProgramHQMIPRot->Enable();
 
   glBlendFunc(GL_ONE, GL_ONE);
