@@ -117,6 +117,23 @@ protected:
   bool              m_bClipPlaneEnabled;
   virtual void InitBBOX();
   void MatricesUpdated();
+
+
+  // static method for clipping compuation
+  static std::vector<POS3TEX3_VERTEX> SplitTriangle(POS3TEX3_VERTEX a,
+                                                  POS3TEX3_VERTEX b,
+                                                  POS3TEX3_VERTEX c,
+                                                  const VECTOR3<float> &normal,
+                                                  const float D);
+  static std::vector<POS3TEX3_VERTEX>
+  ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
+                const VECTOR3<float> &normal, const float D);
+
+  static bool RayPlaneIntersection(const POS3TEX3_VERTEX &la,
+                           const POS3TEX3_VERTEX &lb,
+                           const FLOATVECTOR3 &n, const float D,
+                           POS3TEX3_VERTEX &hit);
+
 };
 
 #endif // SBVRGEOGEN_H

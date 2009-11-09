@@ -81,7 +81,7 @@ void SBVRGeogen3D::InitBBOX() {
 }
 
 
-static bool ComputeIntersection(float z,
+bool SBVRGeogen3D::DepthPlaneIntersection(float z,
                                 const POS3TEX3_VERTEX &plA,
                                 const POS3TEX3_VERTEX &plB,
                                 std::vector<POS3TEX3_VERTEX>& vHits)
@@ -114,26 +114,6 @@ static bool ComputeIntersection(float z,
   return true;
 }
 
-// Calculates the intersection point of a line segment lb->la which crosses the
-// plane with normal `n'.
-static bool intersection(const POS3TEX3_VERTEX &la,
-                         const POS3TEX3_VERTEX &lb,
-                         const FLOATVECTOR3 &n, const float D,
-                         POS3TEX3_VERTEX &hit)
-{
-  const FLOATVECTOR3 &va = la.m_vPos;
-  const FLOATVECTOR3 &vb = lb.m_vPos;
-  const float denom = n ^ (va - vb);
-  if(EpsilonEqual(denom, 0.0f)) {
-    return false;
-  }
-  const float t = ((n ^ va) + D) / denom;
-
-  hit.m_vPos = va + (t*(vb - va));
-  hit.m_vTex = la.m_vTex + t*(lb.m_vTex - la.m_vTex);
-
-  return true;
-}
 
 // Functor to identify the point with the lowest `y' coordinate.
 struct vertex_min : public std::binary_function<POS3TEX3_VERTEX,
@@ -145,7 +125,7 @@ struct vertex_min : public std::binary_function<POS3TEX3_VERTEX,
 };
 
 // Sorts a vector
-static void SortByGradient(std::vector<POS3TEX3_VERTEX>& fArray)
+void SBVRGeogen3D::SortByGradient(std::vector<POS3TEX3_VERTEX>& fArray)
 {
   // move bottom element to front of array
   if(fArray.empty()) { return; }
@@ -168,140 +148,36 @@ void SBVRGeogen3D::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
   }
 }
 
-// Splits a triangle along a plane with the given normal.
-// Assumes: plane's D == 0.
-//          triangle does span the plane.
-static std::vector<POS3TEX3_VERTEX> SplitTriangle(POS3TEX3_VERTEX a,
-                                                  POS3TEX3_VERTEX b,
-                                                  POS3TEX3_VERTEX c,
-                                                  const VECTOR3<float> &normal,
-                                                  const float D)
-{
-  std::vector<POS3TEX3_VERTEX> out;
-  // We'll always throw away at least one of the generated triangles.
-  out.reserve(2);
-  float fa = (normal ^ a.m_vPos) + D;
-  float fb = (normal ^ b.m_vPos) + D;
-  float fc = (normal ^ c.m_vPos) + D;
-  if(fabs(fa) < (2 * std::numeric_limits<float>::epsilon())) { fa = 0; }
-  if(fabs(fb) < (2 * std::numeric_limits<float>::epsilon())) { fb = 0; }
-  if(fabs(fc) < (2 * std::numeric_limits<float>::epsilon())) { fc = 0; }
-
-  // rotation / mirroring.
-  //            c
-  //           o          Push `c' to be alone on one side of the plane, making
-  //          / \         `a' and `b' on the other.  Later we'll be able to
-  // plane ---------      assume that there will be an intersection with the
-  //        /     \       clip plane along the lines `ac' and `bc'.  This
-  //       o-------o      reduces the number of cases below.
-  //      a         b
-
-  // if fa*fc is non-negative, both have the same sign -- and thus are on the
-  // same side of the plane.
-  if(fa*fc >= 0) {
-    std::swap(fb, fc);
-    std::swap(b, c);
-    std::swap(fa, fb);
-    std::swap(a, b);
-  } else if(fb*fc >= 0) {
-    std::swap(fa, fc);
-    std::swap(a, c);
-    std::swap(fa, fb);
-    std::swap(a, b);
-  }
-
-  // Find the intersection points.
-  POS3TEX3_VERTEX A, B;
-#ifdef _DEBUG
-  const bool isect_a = intersection(a,c, normal,D, A);
-  const bool isect_b = intersection(b,c, normal,D, B);
-  assert(isect_a); // lines must cross plane
-  assert(isect_b);
-#else
-  intersection(a,c, normal,D, A);
-  intersection(b,c, normal,D, B);
-#endif
-
-  if(fc >= 0) {
-    out.push_back(a); out.push_back(b); out.push_back(A);
-    out.push_back(b); out.push_back(B); out.push_back(A);
-  } else {
-    out.push_back(A); out.push_back(B); out.push_back(c);
-  }
-  return out;
-}
-
-static std::vector<POS3TEX3_VERTEX>
-ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
-              const VECTOR3<float> &normal, const float D)
-{
-  std::vector<POS3TEX3_VERTEX> out;
-  assert(!in.empty() && in.size() > 2);
-  out.reserve(in.size());
-
-  for(std::vector<POS3TEX3_VERTEX>::const_iterator iter = in.begin();
-      iter < (in.end()-2);
-      iter += 3) {
-    const POS3TEX3_VERTEX &a = (*iter);
-    const POS3TEX3_VERTEX &b = (*(iter+1));
-    const POS3TEX3_VERTEX &c = (*(iter+2));
-    float fa = (normal ^ a.m_vPos) + D;
-    float fb = (normal ^ b.m_vPos) + D;
-    float fc = (normal ^ c.m_vPos) + D;
-    if(fabs(fa) < (2 * std::numeric_limits<float>::epsilon())) { fa = 0; }
-    if(fabs(fb) < (2 * std::numeric_limits<float>::epsilon())) { fb = 0; }
-    if(fabs(fc) < (2 * std::numeric_limits<float>::epsilon())) { fc = 0; }
-    if(fa >= 0 && fb >= 0 && fc >= 0) {        // trivial reject
-      // discard -- i.e. do nothing / ignore tri.
-    } else if(fa <= 0 && fb <= 0 && fc <= 0) { // trivial accept
-      out.push_back(a);
-      out.push_back(b);
-      out.push_back(c);
-    } else { // triangle spans plane -- must be split.
-      const std::vector<POS3TEX3_VERTEX>& tris = SplitTriangle(a,b,c,
-                                                               normal,D);
-      assert(!tris.empty());
-      assert(tris.size() <= 6); // vector is actually of points, not tris.
-
-      for(std::vector<POS3TEX3_VERTEX>::const_iterator tri = tris.begin();
-          tri != tris.end();
-          ++tri) {
-        out.push_back(*tri);
-      }
-    }
-  }
-  return out;
-}
 
 bool SBVRGeogen3D::ComputeLayerGeometry(float fDepth) {
   std::vector<POS3TEX3_VERTEX> vLayerPoints;
   vLayerPoints.reserve(12);
 
-  ComputeIntersection(fDepth, m_pfBBOXVertex[0], m_pfBBOXVertex[1],
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[0], m_pfBBOXVertex[1],
                       vLayerPoints);
-  ComputeIntersection(fDepth, m_pfBBOXVertex[1], m_pfBBOXVertex[2],
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[1], m_pfBBOXVertex[2],
                       vLayerPoints);
-  ComputeIntersection(fDepth, m_pfBBOXVertex[2], m_pfBBOXVertex[3],
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[2], m_pfBBOXVertex[3],
                       vLayerPoints);
-  ComputeIntersection(fDepth, m_pfBBOXVertex[3], m_pfBBOXVertex[0],
-                      vLayerPoints);
-
-  ComputeIntersection(fDepth, m_pfBBOXVertex[4], m_pfBBOXVertex[5],
-                      vLayerPoints);
-  ComputeIntersection(fDepth, m_pfBBOXVertex[5], m_pfBBOXVertex[6],
-                      vLayerPoints);
-  ComputeIntersection(fDepth, m_pfBBOXVertex[6], m_pfBBOXVertex[7],
-                      vLayerPoints);
-  ComputeIntersection(fDepth, m_pfBBOXVertex[7], m_pfBBOXVertex[4],
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[3], m_pfBBOXVertex[0],
                       vLayerPoints);
 
-  ComputeIntersection(fDepth, m_pfBBOXVertex[4], m_pfBBOXVertex[0],
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[4], m_pfBBOXVertex[5],
                       vLayerPoints);
-  ComputeIntersection(fDepth, m_pfBBOXVertex[5], m_pfBBOXVertex[1],
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[5], m_pfBBOXVertex[6],
                       vLayerPoints);
-  ComputeIntersection(fDepth, m_pfBBOXVertex[6], m_pfBBOXVertex[2],
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[6], m_pfBBOXVertex[7],
                       vLayerPoints);
-  ComputeIntersection(fDepth, m_pfBBOXVertex[7], m_pfBBOXVertex[3],
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[7], m_pfBBOXVertex[4],
+                      vLayerPoints);
+
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[4], m_pfBBOXVertex[0],
+                      vLayerPoints);
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[5], m_pfBBOXVertex[1],
+                      vLayerPoints);
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[6], m_pfBBOXVertex[2],
+                      vLayerPoints);
+  DepthPlaneIntersection(fDepth, m_pfBBOXVertex[7], m_pfBBOXVertex[3],
                       vLayerPoints);
 
   if (vLayerPoints.size() <= 2) {

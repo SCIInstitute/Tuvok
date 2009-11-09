@@ -58,6 +58,12 @@ protected:
   bool ComputeLayerGeometry(float fDepth);
   void Triangulate(std::vector<POS3TEX3_VERTEX> &fArray);
   float GetLayerDistance() const;
+
+  static bool DepthPlaneIntersection(float z,
+                                  const POS3TEX3_VERTEX &plA,
+                                  const POS3TEX3_VERTEX &plB,
+                                  std::vector<POS3TEX3_VERTEX>& vHits);
+  static void SortByGradient(std::vector<POS3TEX3_VERTEX>& fArray);
 };
 
 #endif // SBVRGEOGEN3D_H
