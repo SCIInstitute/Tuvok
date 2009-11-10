@@ -238,6 +238,12 @@ void AbstrRenderer::SetViewmode(EViewMode eViewMode)
 {
   if (m_eViewMode != eViewMode) {
 
+    //if going from full window mode to 2x2 mode...
+    if (m_eViewMode == VM_SINGLE && eViewMode == VM_TWOBYTWO) {
+      renderRegions[(size_t(renderRegions[4].windowMode)+1)%4] = renderRegions[4];
+      updateWindowFraction();
+    }
+
     m_eViewMode = eViewMode;
     ScheduleCompleteRedraw();
     Controller::Instance().Provenance("vmode", "viewmode",
@@ -246,10 +252,9 @@ void AbstrRenderer::SetViewmode(EViewMode eViewMode)
 }
 
 void AbstrRenderer::SetFullWindowmode(EWindowMode eWindowMode) {
-  if (renderRegions[4].windowMode != eWindowMode) {
-    renderRegions[4].windowMode = eWindowMode;
-    ScheduleCompleteRedraw();
-  }
+  renderRegions[4] = renderRegions[(size_t(eWindowMode)+1)%4];
+  updateWindowFraction();
+  ScheduleCompleteRedraw();
 }
 
 void AbstrRenderer::SetUseLighting(bool bUseLighting) {
@@ -484,8 +489,15 @@ void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
 
 void AbstrRenderer::SetSliceDepth(EWindowMode eWindow, UINT64 iSliceDepth) {
   if (eWindow < WM_3D) {
-    if (renderRegions[size_t(eWindow)+1].iSlice != iSliceDepth) {
-      renderRegions[size_t(eWindow)+1].iSlice = iSliceDepth;
+
+    RenderRegion *renderRegion = NULL;
+    if (m_eViewMode == VM_SINGLE)
+      renderRegion = &renderRegions[4];
+    else
+      renderRegion = &renderRegions[size_t(eWindow)+1];
+
+    if (renderRegion->iSlice != iSliceDepth) {
+      renderRegion->iSlice = iSliceDepth;
       ScheduleWindowRedraw(eWindow);
       if (m_bRenderPlanesIn3D) ScheduleWindowRedraw(WM_3D);
     }
@@ -493,8 +505,14 @@ void AbstrRenderer::SetSliceDepth(EWindowMode eWindow, UINT64 iSliceDepth) {
 }
 
 UINT64 AbstrRenderer::GetSliceDepth(EWindowMode eWindow) const {
+    const RenderRegion *renderRegion = NULL;
+    if (m_eViewMode == VM_SINGLE)
+      renderRegion = &renderRegions[4];
+    else
+      renderRegion = &renderRegions[size_t(eWindow)+1];
+
   if (eWindow < WM_3D)
-    return renderRegions[size_t(eWindow)+1].iSlice;
+    return renderRegion->iSlice;
   else
     return 0;
 }
@@ -523,7 +541,10 @@ void AbstrRenderer::ScheduleCompleteRedraw() {
 void AbstrRenderer::ScheduleWindowRedraw(EWindowMode eWindow) {
   m_bPerformRedraw      = true;
   m_iCheckCounter       = m_iStartDelay;
-  renderRegions[(size_t(eWindow)+1)%4].redrawMask = true;
+  if (m_eViewMode == VM_SINGLE)
+    renderRegions[4].redrawMask = true;
+  else
+    renderRegions[(size_t(eWindow)+1)%4].redrawMask = true;
 }
 
 void AbstrRenderer::ScheduleRecompose() {
@@ -1106,29 +1127,56 @@ void AbstrRenderer::SetLogoParams(string strLogoFilename, int iLogoPos) {
 void AbstrRenderer::Set2DFlipMode(EWindowMode eWindow, bool bFlipX, bool bFlipY) {
   // flipping is only possible for 2D views
   if (eWindow > WM_CORONAL) return;
-  renderRegions[size_t(eWindow)+1].flipView= VECTOR2<bool>(bFlipX, bFlipY);
+
+  RenderRegion *renderRegion = NULL;
+  if (m_eViewMode == VM_SINGLE)
+    renderRegion = &renderRegions[4];
+  else
+    renderRegion = &renderRegions[size_t(eWindow)+1];
+
+  renderRegion->flipView= VECTOR2<bool>(bFlipX, bFlipY);
   ScheduleWindowRedraw(eWindow);
 }
 
 void AbstrRenderer::Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlipY) const {
   // flipping is only possible for 2D views
   if (eWindow > WM_CORONAL) return;
-  bFlipX = renderRegions[size_t(eWindow)+1].flipView.x;
-  bFlipY = renderRegions[size_t(eWindow)+1].flipView.y;
+
+  const RenderRegion *renderRegion = NULL;
+  if (m_eViewMode == VM_SINGLE)
+    renderRegion = &renderRegions[4];
+  else
+    renderRegion = &renderRegions[size_t(eWindow)+1];
+
+  bFlipX = renderRegion->flipView.x;
+  bFlipY = renderRegion->flipView.y;
 }
 
 bool AbstrRenderer::GetUseMIP(EWindowMode eWindow) const {
   // MIP is only possible for 2D views
   if (eWindow > WM_CORONAL)
     return false;
+
+  const RenderRegion *renderRegion = NULL;
+  if (m_eViewMode == VM_SINGLE)
+    renderRegion = &renderRegions[4];
   else
-    return renderRegions[size_t(eWindow)+1].useMIP;
+    renderRegion = &renderRegions[size_t(eWindow)+1];
+
+    return renderRegion->useMIP;
 }
 
 void AbstrRenderer::SetUseMIP(EWindowMode eWindow, bool bUseMIP) {
   // MIP is only possible for 2D views
   if (eWindow > WM_CORONAL) return;
-  renderRegions[size_t(eWindow)+1].useMIP = bUseMIP;
+
+  RenderRegion *renderRegion = NULL;
+  if (m_eViewMode == VM_SINGLE)
+    renderRegion = &renderRegions[4];
+  else
+    renderRegion = &renderRegions[size_t(eWindow)+1];
+
+  renderRegion->useMIP = bUseMIP;
   ScheduleWindowRedraw(eWindow);
 }
 
