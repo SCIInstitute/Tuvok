@@ -220,6 +220,13 @@ class AbstrRenderer {
                              renderRegions[4].windowMode == WM_3D;
     }
 
+    virtual void Paint(std::vector<RenderRegion> &renderRegions) {
+      // check if we are rendering a stereo frame
+      m_bDoStereoRendering = m_bRequestStereoRendering &&
+                             renderRegions.size() == 1 &&
+                             renderRegions[0].windowMode == WM_3D;
+    }
+
     virtual bool Initialize();
 
     /** Deallocates GPU memory allocated during the rendering process. */
@@ -452,20 +459,26 @@ class AbstrRenderer {
   protected:
     //This method will go away once the client is updated to handle all the 2x2 code.
   void updateWindowFraction() {
-      renderRegions[0].minCoord = UINTVECTOR2(0, m_vWinSize.y*m_vWinFraction.y);
-      renderRegions[0].maxCoord = UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y);
+    const unsigned int verticalSplit = m_vWinSize.x*m_vWinFraction.x;
+    const unsigned int horizontalSplit = m_vWinSize.y*m_vWinFraction.y;
+    renderRegions[0].minCoord = UINTVECTOR2(0, horizontalSplit+m_i2x2DividerWidth/2);
+    renderRegions[0].maxCoord = UINTVECTOR2(verticalSplit-m_i2x2DividerWidth/2,
+                                            m_vWinSize.y);
 
-      renderRegions[1].minCoord = UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y);
-      renderRegions[1].maxCoord = UINTVECTOR2(m_vWinSize.x, m_vWinSize.y);
+    renderRegions[1].minCoord = UINTVECTOR2(verticalSplit+m_i2x2DividerWidth/2,
+                                            horizontalSplit+m_i2x2DividerWidth/2);
+    renderRegions[1].maxCoord = UINTVECTOR2(m_vWinSize.x, m_vWinSize.y);
 
-      renderRegions[2].minCoord = UINTVECTOR2(0, 0);
-      renderRegions[2].maxCoord = UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, m_vWinSize.y*m_vWinFraction.y);
+    renderRegions[2].minCoord = UINTVECTOR2(0, 0);
+    renderRegions[2].maxCoord = UINTVECTOR2(verticalSplit-m_i2x2DividerWidth/2,
+                                            horizontalSplit-m_i2x2DividerWidth/2);
 
-      renderRegions[3].minCoord = UINTVECTOR2(m_vWinSize.x*m_vWinFraction.x, 0);
-      renderRegions[3].maxCoord = UINTVECTOR2(m_vWinSize.x, m_vWinSize.y*m_vWinFraction.y);
+    renderRegions[3].minCoord = UINTVECTOR2(verticalSplit+m_i2x2DividerWidth/2, 0);
+    renderRegions[3].maxCoord = UINTVECTOR2(m_vWinSize.x,
+                                            horizontalSplit-m_i2x2DividerWidth/2);
 
-      renderRegions[4].minCoord = UINTVECTOR2(0,0);
-      renderRegions[4].maxCoord = UINTVECTOR2(m_vWinSize.x, m_vWinSize.y);
+    renderRegions[4].minCoord = UINTVECTOR2(0,0);
+    renderRegions[4].maxCoord = m_vWinSize;
   }
 
     /// Unsets the current transfer function, including deleting it from GPU

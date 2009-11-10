@@ -67,6 +67,7 @@ class GLRenderer : public AbstrRenderer {
 
     /** Paint the image */
     virtual void Paint();
+    virtual void Paint(std::vector<RenderRegion> &renderRegions);
 
     /** Sends a message to the master to ask for a dataset to be loaded.
      * The dataset is converted to UVF if it is not one already.
@@ -185,7 +186,7 @@ class GLRenderer : public AbstrRenderer {
     float*          m_aDepthStorage;
 
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
-    void RenderSeperatingLines();
+    void RenderSeparatingLines();
     void RenderCoordArrows();
     void SaveEmptyDepthBuffer();
     void SaveDepthBuffer();
