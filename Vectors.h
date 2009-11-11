@@ -1383,11 +1383,21 @@ template <class T> static bool EpsilonEqual(T a, T b) {
 template <class T> class PLANE : public VECTOR4<T> {
 public:
   PLANE<T>(): VECTOR4<T>(0,0,0,0) {}
+  // plane from paramters (usually all 4 are given)
   template <class S> explicit PLANE<T>( const std::vector<S>& v ) {
     this->x = T(v.size()>0 ? v[0] : 0);
     this->y = T(v.size()>1 ? v[1] : 0);
     this->z = T(v.size()>2 ? v[2] : 0);
     this->w = T(v.size()>3 ? v[3] : 0);
+  }
+  // plane from points
+  template <class S> explicit PLANE<T>( const VECTOR3<S>& v0, const VECTOR3<S>& v1, const VECTOR3<S>& v2 ) {
+    this->x =   T(v0.y) * (T(v1.z) - T(v2.z)) + T(v1.y) * (T(v2.z) - T(v0.z)) + T(v2.y) * (T(v0.z) - T(v1.z));
+    this->y =   T(v0.z) * (T(v1.x) - T(v2.x)) + T(v1.z) * (T(v2.x) - T(v0.x)) + T(v2.z) * (T(v0.x) - T(v1.x));
+    this->z =   T(v0.x) * (T(v1.y) - T(v2.y)) + T(v1.x) * (T(v2.y) - T(v0.y)) + T(v2.x) * (T(v0.y) - T(v1.y));
+    this->w = - (T(v0.x) * (T(v1.y) * T(v2.z) - T(v2.y) * T(v1.z)) +
+                 T(v1.x) * (T(v2.y) * T(v0.z) - T(v0.y) * T(v2.z)) + 
+                 T(v2.x) * (T(v0.y) * T(v1.z) - T(v1.y) * T(v0.z)));
   }
   PLANE<T>(const VECTOR2<T> &other, const T _z, const T _w):
     VECTOR4<T>(other, _z, _w) {}
@@ -1450,5 +1460,8 @@ public:
     return true;
   }
 };
+
+typedef PLANE<float>  FLOATPLANE;
+typedef PLANE<double> DOUBLEPLANE;
 
 #endif // VECTORS_H
