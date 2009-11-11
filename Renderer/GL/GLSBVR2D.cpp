@@ -161,7 +161,7 @@ void GLSBVR2D::SetBrickDepShaderVars(const Brick& currentBrick) {
   FLOATVECTOR3 vStep(1.0f/currentBrick.vVoxelCount.x, 1.0f/currentBrick.vVoxelCount.y, 1.0f/currentBrick.vVoxelCount.z);
 
   float fSampleRateModifier = m_fSampleRateModifier / ((m_bDecreaseSamplingRateNow) ? m_fSampleDecFactor : 1.0f);
-  float fStepScale = 1.0f/fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
+  float fStepScale =  sqrt(2.0)/fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
 
 
   switch (m_eRenderMode) {
@@ -448,30 +448,32 @@ void GLSBVR2D::UpdateColorsInShaders() {
   m_pProgramColorNoCompose->Disable();
 }
 
+/*
 #include "GLTexture3D.h"
 
 bool GLSBVR2D::BindVolumeTex(const tuvok::BrickKey& bkey, const UINT64 iIntraFrameCounter) {
   m_p3DVolTex = NULL;
   return true;
-/*
-  m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, iIntraFrameCounter, m_iFrameCounter);
-  if(m_p3DVolTex) {
-    m_p3DVolTex->Bind(0);
-    return true;
-  } else {
-    return false;
-  }*/
+
+  //m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, iIntraFrameCounter, m_iFrameCounter);
+  //if(m_p3DVolTex) {
+  //  m_p3DVolTex->Bind(0);
+  //  return true;
+  //} else {
+  //  return false;
+  //}
 }
 
 bool GLSBVR2D::UnbindVolumeTex() {
   m_p3DVolTex = NULL;
   return true;
-/*
-  if(m_p3DVolTex) {
-    m_pMasterController->MemMan()->Release3DTexture(m_p3DVolTex);
-    m_p3DVolTex = NULL;
-    return true;
-  } else {
-    return false;
-  }*/
+
+  //if(m_p3DVolTex) {
+  //  m_pMasterController->MemMan()->Release3DTexture(m_p3DVolTex);
+  //  m_p3DVolTex = NULL;
+  //  return true;
+  //} else {
+  //  return false;
+  //}
 }
+*/

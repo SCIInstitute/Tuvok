@@ -93,7 +93,7 @@ class GLSBVR2D : public GLRenderer {
     virtual void ComposeSurfaceImage(int iStereoID);
     virtual void UpdateColorsInShaders();
 
-    virtual bool BindVolumeTex(const tuvok::BrickKey& bkey, const UINT64 iIntraFrameCounter);
-    virtual bool UnbindVolumeTex();
+    //virtual bool BindVolumeTex(const tuvok::BrickKey& bkey, const UINT64 iIntraFrameCounter);
+    //virtual bool UnbindVolumeTex();
 };
 #endif // GLSBVR2D_H
