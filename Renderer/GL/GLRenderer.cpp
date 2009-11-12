@@ -291,12 +291,34 @@ void GLRenderer::RenderSeparatingLines() {
   SetRenderTargetAreaScissor(renderRegions[4], m_bDecreaseScreenResNow);
   SetRenderTargetArea(renderRegions[4], m_bDecreaseScreenResNow);
 
-  //Make the whole screen the color of the separating lines. After drawing the
-  //subregions, the resulting gaps between those subregions end up forming the
-  //lines.
-  glClearColor(1,1,1,1);
-  glClear(GL_COLOR_BUFFER_BIT);
+  // render seperating lines
+  glDisable(GL_BLEND);
 
+  glDisable(GL_DEPTH_TEST);
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+  glLoadIdentity();
+  glOrtho(0, 1, 0, 1, 0, 1);
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+
+  glLineWidth(m_i2x2DividerWidth);
+
+  glBegin(GL_LINES);
+    glColor4f(1.0f,1.0f,1.0f,1.0f);
+    glVertex3f(m_vWinFraction.x,-1,0);
+    glVertex3f(m_vWinFraction.x,1,0);
+    glVertex3f(-1,m_vWinFraction.y,0);
+    glVertex3f(1,m_vWinFraction.y,0);
+  glEnd();
+
+  glLineWidth(1);
+
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix();
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix();
   m_TargetBinder.Unbind();
 }
 
@@ -372,8 +394,6 @@ void GLRenderer::Paint(std::vector<RenderRegion> &renderRegions)
   AbstrRenderer::Paint(renderRegions);
 
   StartFrame();
-
-  RenderSeparatingLines();
 
   bool bNewDataToShow = false;
   int iActiveRenderWindows = 0;
@@ -470,6 +490,9 @@ void GLRenderer::Paint(std::vector<RenderRegion> &renderRegions)
     }
   }
   //TODO: Do we check if windowMode is something else, such as invalid?
+
+  if (renderRegions.size() > 1) //for now just assume it's single or 4x4...
+    RenderSeparatingLines();
 
   // if we had at least one renderwindow that was doing something and from those
   // all are finished then set a flag so that we can display the result to the
