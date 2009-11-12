@@ -142,7 +142,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   renderRegions[1].windowMode = WM_SAGITTAL;
   renderRegions[2].windowMode = WM_AXIAL;
   renderRegions[3].windowMode = WM_CORONAL;
-  renderRegions[4].windowMode = WM_3D; //full window
+  renderRegions[4].windowMode = WM_3D; // full window
   RestartTimers();
 
   m_vShaderSearchDirs.push_back("Shaders");
@@ -238,7 +238,7 @@ void AbstrRenderer::SetViewmode(EViewMode eViewMode)
 {
   if (m_eViewMode != eViewMode) {
 
-    //if going from full window mode to 2x2 mode...
+    // if going from full window mode to 2x2 mode...
     if (m_eViewMode == VM_SINGLE && eViewMode == VM_TWOBYTWO) {
       renderRegions[(size_t(renderRegions[4].windowMode)+1)%4] = renderRegions[4];
       updateWindowFraction();

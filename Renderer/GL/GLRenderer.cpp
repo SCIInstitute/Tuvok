@@ -379,8 +379,7 @@ void GLRenderer::Paint() {
     rRegions.push_back(renderRegions[4]);
     Paint(rRegions);
     renderRegions[4] = rRegions[0];
-  }
-  else {
+  } else {
     for (size_t i=0; i < 4; ++i)
       rRegions.push_back(renderRegions[i]);
     Paint(rRegions);
@@ -396,108 +395,89 @@ void GLRenderer::Paint(std::vector<RenderRegion> &renderRegions)
   StartFrame();
 
   bool bNewDataToShow = false;
-  int iActiveRenderWindows = 0;
-  int iReadyWindows = 0;
+  int iActiveRenderRegions = 0;
+  int iReadyRegions = 0;
 
   bool bPrevResType = m_bDecreaseScreenResNow;
 
   bool bForceCompleteRedrawDueToResChange = m_bDoAnotherRedrawDueToAllMeans;
 
-  //First we draw only the 3D views first as m_bDecreaseScreenResNow is changed
-  //in Plan3DFrame
-  for (size_t i=0; i < renderRegions.size(); ++i) {
-    if (renderRegions[i].windowMode != WM_3D)
-      continue;
 
-    // note: this line only works if the 3D view is drawn before the 2D views,
-    // as m_bDecreaseScreenResNow is changed in Plan3DFrame
-    bForceCompleteRedrawDueToResChange =
-      bForceCompleteRedrawDueToResChange || bPrevResType != m_bDecreaseScreenResNow;
+  // First we draw only the 3D views as m_bDecreaseScreenResNow is changed in
+  // Plan3DFrame, then we can draw the 2D views.
+  for (size_t pass=0; pass < 2; ++pass) {
+    for (size_t i=0; i < renderRegions.size(); ++i) {
 
-    if (renderRegions[i].redrawMask || bForceCompleteRedrawDueToResChange) {
-      iActiveRenderWindows++;
-      bool bLocalNewDataToShow;
+      if (pass == 0 && renderRegions[i].windowMode != WM_3D)
+        continue;
+      if (pass == 1 &&
+          (renderRegions[i].windowMode != WM_CORONAL &&
+           renderRegions[i].windowMode != WM_AXIAL &&
+           renderRegions[i].windowMode != WM_SAGITTAL))
+        continue;
 
-      SetRenderTargetArea(renderRegions[i], false);
-      if (!m_bPerformRedraw && m_bPerformReCompose &&
-          !bForceCompleteRedrawDueToResChange){
-        Recompose3DView(renderRegions[i]);
-        bLocalNewDataToShow = true;
+      // note: this line only works if the 3D view is drawn before the 2D
+      // views, as m_bDecreaseScreenResNow is changed in Plan3DFrame
+      bForceCompleteRedrawDueToResChange =
+        bForceCompleteRedrawDueToResChange || bPrevResType != m_bDecreaseScreenResNow;
+
+      if (renderRegions[i].redrawMask || bForceCompleteRedrawDueToResChange) {
+        iActiveRenderRegions++;
+        bool bLocalNewDataToShow;
+
+        if (pass == 0) { // WM_3D
+          SetRenderTargetArea(renderRegions[i], false);
+          if (!m_bPerformRedraw && m_bPerformReCompose &&
+              !bForceCompleteRedrawDueToResChange){
+            Recompose3DView(renderRegions[i]);
+            bLocalNewDataToShow = true;
+          } else {
+            // plan the frame
+            Plan3DFrame();
+            // if m_bDecreaseScreenRes the render target area may have changed
+            if (m_bDecreaseScreenResNow)
+              SetRenderTargetArea(renderRegions[i], true);
+            // execute the frame0
+            float fMsecPassed = 0.0f;
+            bLocalNewDataToShow = Execute3DFrame(renderRegions[i], fMsecPassed);
+            m_fMsecPassedCurrentFrame += fMsecPassed;
+          }
+          // are we done traversing the LOD levels
+          renderRegions[i].redrawMask =
+            (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
+            (m_iCurrentLODOffset > m_iMinLODForCurrentView);
+        } else if (pass == 1) {  // in a 2D view mode
+          // TODO: Do we check if windowMode is something else, such as invalid?
+
+          SetRenderTargetArea(renderRegions[i], m_bDecreaseScreenResNow);
+          bLocalNewDataToShow = Render2DView(renderRegions[i]);
+          renderRegions[i].redrawMask = false;
+        }
+
+        if (bLocalNewDataToShow) iReadyRegions++;
+
       } else {
-        // plan the frame
-        Plan3DFrame();
-        // if m_bDecreaseScreenRes the render target area may have changed
-        if (m_bDecreaseScreenResNow)
-          SetRenderTargetArea(renderRegions[i], true);
-        // execute the frame0
-        float fMsecPassed = 0.0f;
-        bLocalNewDataToShow = Execute3DFrame(renderRegions[i], fMsecPassed);
-        m_fMsecPassedCurrentFrame += fMsecPassed;
+        // blit the previous result quad to the entire screen but restrict
+        // drawing to the current subarea
+        m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
+
+        // TODO: Maybe add a SetRenderTargetArea that handles full screen?
+        SetViewPort(UINTVECTOR2(0,0), m_vWinSize, false); //SetRenderTargetArea(renderRegions[4], false);
+
+        SetRenderTargetAreaScissor(renderRegions[i], false);
+        RerenderPreviousResult(false);
+        m_TargetBinder.Unbind();
       }
-      // are we done traversing the LOD levels
-      renderRegions[i].redrawMask =
-        (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
-        (m_iCurrentLODOffset > m_iMinLODForCurrentView);
-
-      if (bLocalNewDataToShow) iReadyWindows++;
-    }
-    else {
-      // blit the previous result quad to the entire screen but restrict drawing
-      // to the current subarea
-      m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-
-      //TODO: Maybe add a SetRenderTargetArea that handles full screen?
-      SetViewPort(UINTVECTOR2(0,0), m_vWinSize, false); //SetRenderTargetArea(renderRegions[4], false);
-
-      SetRenderTargetAreaScissor(renderRegions[i], false);
-      RerenderPreviousResult(false);
-      m_TargetBinder.Unbind();
     }
   }
 
-  //After having drawn the 3D views, we can now draw the 2D views.
-  for (size_t i=0; i < renderRegions.size(); ++i) {
-    if (renderRegions[i].windowMode != WM_CORONAL &&
-        renderRegions[i].windowMode != WM_AXIAL &&
-        renderRegions[i].windowMode != WM_SAGITTAL)
-      continue;
-
-    // note: this line only works if the 3D view is drawn before the 2D
-    //       views, as m_bDecreaseScreenResNow is changed in Plan3DFrame
-    bForceCompleteRedrawDueToResChange =
-      bForceCompleteRedrawDueToResChange || bPrevResType != m_bDecreaseScreenResNow;
-
-    if (renderRegions[i].redrawMask || bForceCompleteRedrawDueToResChange) {
-      iActiveRenderWindows++;
-      bool bLocalNewDataToShow;
-
-      SetRenderTargetArea(renderRegions[i], m_bDecreaseScreenResNow);
-      bLocalNewDataToShow = Render2DView(renderRegions[i]);
-      renderRegions[i].redrawMask = false;
-      if (bLocalNewDataToShow) iReadyWindows++;
-    } else {
-      // blit the previous result quad to the entire screen but restrict drawing
-      // to the current subarea
-      m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-
-      //TODO: Maybe add a SetRenderTargetArea that handles full screen?
-      //SetRenderTargetArea(renderRegions[4], false);
-      SetViewPort(UINTVECTOR2(0,0), m_vWinSize, false);
-
-      SetRenderTargetAreaScissor(renderRegions[i], false);
-      RerenderPreviousResult(false);
-      m_TargetBinder.Unbind();
-    }
-  }
-  //TODO: Do we check if windowMode is something else, such as invalid?
-
-  if (renderRegions.size() > 1) //for now just assume it's single or 4x4...
+  if (renderRegions.size() > 1) // for now just assume it's single or 4x4...
     RenderSeparatingLines();
 
   // if we had at least one renderwindow that was doing something and from those
   // all are finished then set a flag so that we can display the result to the
   // user later
-  bNewDataToShow = (iActiveRenderWindows > 0) && (iReadyWindows==iActiveRenderWindows);
+  bNewDataToShow = (iActiveRenderRegions > 0) && (iReadyRegions==iActiveRenderRegions);
 
   EndFrame(bNewDataToShow);
 }
@@ -519,7 +499,7 @@ void GLRenderer::FullscreenQuad(bool bUpscale) {
 
 void GLRenderer::EndFrame(bool bNewDataToShow) {
 
-  //Reset rendering to the entire screen
+  // Reset rendering to the entire screen
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   SetRenderTargetAreaScissor(renderRegions[4], m_bDecreaseScreenResNow);
   SetRenderTargetArea(renderRegions[4], m_bDecreaseScreenResNow);

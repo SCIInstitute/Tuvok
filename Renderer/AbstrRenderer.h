@@ -148,7 +148,7 @@ class AbstrRenderer {
     EWindowMode windowMode;
     bool redrawMask;
 
-    //for 2D window modes:
+    // for 2D window modes:
     VECTOR2<bool>       flipView;
     bool                useMIP;
     UINT64              iSlice;
@@ -165,8 +165,8 @@ class AbstrRenderer {
     EWindowMode Get2x2Windowmode(ERenderArea eArea) const {
       return renderRegions[size_t(eArea)].windowMode;
     }
-  //The set2x2 function is not used anywhere. In following commit 2x2
-  //mode will be removed from Tuvok anyway.
+  // The set2x2 function is not used anywhere. In following commit 2x2 mode
+  // will be removed from Tuvok anyway.
 //     virtual void Set2x2Windowmode(ERenderArea eArea, EWindowMode eWindowMode);
     EWindowMode GetFullWindowmode() const { return renderRegions[4].windowMode;}
     virtual void SetFullWindowmode(EWindowMode eWindowMode);
@@ -457,7 +457,8 @@ class AbstrRenderer {
     virtual void NewFrameClear(const RenderRegion &) { assert(1==0); }
 
   protected:
-    //This method will go away once the client is updated to handle all the 2x2 code.
+    // This method will go away once the client is updated to handle all the
+    // 2x2 code.
   void updateWindowFraction() {
     const unsigned int verticalSplit = m_vWinSize.x*m_vWinFraction.x;
     const unsigned int horizontalSplit = m_vWinSize.y*m_vWinFraction.y;
@@ -594,9 +595,9 @@ class AbstrRenderer {
     int                 m_i2x2DividerWidth;
     FLOATVECTOR2        m_vWinFraction;
 
-    //Note: this will go away once the client is set up to use
-    //RenderRegions.  Elements [0-3] correspond to 2x2 ERenderAreas
-    //and element 4 is the full screen ERenderArea.
+    // Note: this will go away once the client is set up to use RenderRegions.
+    // Elements [0-3] correspond to 2x2 ERenderAreas and element 4 is the full
+    // screen ERenderArea.
     RenderRegion renderRegions[5];
 
     FLOATVECTOR4        m_cAmbient;
