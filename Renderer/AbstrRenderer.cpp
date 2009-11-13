@@ -551,7 +551,10 @@ void AbstrRenderer::ScheduleRecompose() {
   if(!m_bAvoidSeperateCompositing && // ensure we finished the current frame:
      m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
     m_bPerformReCompose = true;
-    renderRegions[(size_t(WM_3D)+1)%4].redrawMask = true;
+    if (m_eViewMode == VM_SINGLE)
+      renderRegions[4].redrawMask = true;
+    else
+      renderRegions[(size_t(WM_3D)+1)%4].redrawMask = true;
   } else {
     ScheduleWindowRedraw(WM_3D);
   }
