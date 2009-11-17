@@ -56,7 +56,7 @@ namespace tuvok {
 
 class UVFDataset : public BrickedDataset {
 public:
-  UVFDataset(const std::string& strFilename, bool bVerify);
+  UVFDataset(const std::string& strFilename, bool bVerify, bool bMustBeSameVersion = true);
   UVFDataset();
   virtual ~UVFDataset();
 
@@ -105,7 +105,7 @@ public:
 private:
   std::vector<UINT64> IndexToVector(const BrickKey &k) const;
   NDBrickKey IndexToVectorKey(const BrickKey &k) const;
-  bool Open(bool bVerify, bool bReadWrite);
+  bool Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion=true);
   void Close();
   UINT64 FindSuitableRasterBlock();
   void ComputeMetaData();

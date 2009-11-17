@@ -46,7 +46,7 @@ using namespace std;
 
 namespace tuvok {
 
-UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify) :
+UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify, bool bMustBeSameVersion) :
   m_fMaxGradMagnitude(0.0f),
   m_pVolumeDataBlock(NULL),
   m_pKVDataBlock(NULL),
@@ -59,7 +59,7 @@ UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify) :
   m_iRasterBlockIndex(0),
   m_CachedRange(make_pair(+1,-1))
 {
-  Open(bVerify, false);
+  Open(bVerify, false, bMustBeSameVersion);
 }
 
 UVFDataset::UVFDataset() :
@@ -82,16 +82,23 @@ UVFDataset::~UVFDataset()
   Close();
 }
 
-bool UVFDataset::Open(bool bVerify, bool bReadWrite)
+bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
 {
   // open the file
   std::wstring wstrFilename(m_strFilename.begin(),m_strFilename.end());
   m_pDatasetFile = new UVF(wstrFilename);
   std::string strError;
-  m_bIsOpen = m_pDatasetFile->Open(true, bVerify,bReadWrite,&strError);
+  m_bIsOpen = m_pDatasetFile->Open(bMustBeSameVersion,bVerify,bReadWrite,&strError);
   if (!m_bIsOpen) {
     T_ERROR(strError.c_str());
     return false;
+  }
+
+  if (m_pDatasetFile->ms_ulReaderVersion != m_pDatasetFile->GetGlobalHeader().ulFileVersion) {
+    // bMustBeSameVersion must not be set otherwise Open would have thrown an error
+    WARNING("WARNING: Opening UVF file with a version (%u) different from this program's (%u)!!!", 
+              unsigned(m_pDatasetFile->ms_ulReaderVersion), 
+              unsigned(m_pDatasetFile->GetGlobalHeader().ulFileVersion));
   }
 
   // analyze the main raster data blocks

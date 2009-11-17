@@ -653,7 +653,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
     bool bRAWCreated = false;
 
     if (strExt == "UVF") {
-      UVFDataset v(strFilename,false);
+      UVFDataset v(strFilename,false,false);
       if (!v.IsOpen()) return false;
 
       UINT64 iLODLevel = 0; // always extract the highest quality here
