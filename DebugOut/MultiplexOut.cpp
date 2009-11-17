@@ -56,14 +56,14 @@ using namespace std;
 
 MultiplexOut::~MultiplexOut() {
   for (size_t i = 0;i<m_vpDebugger.size();i++) {
-    m_vpDebugger[i]->Message(_func_, "Shutting down");
+    m_vpDebugger[i]->Other(_func_, "Shutting down");
     delete m_vpDebugger[i];
   }
 }
 
 void MultiplexOut::AddDebugOut(AbstrDebugOut* pDebugger) {
   m_vpDebugger.push_back(pDebugger);
-  pDebugger->Message(_func_,"Operating as part of a multiplexed debug out now.");
+  pDebugger->Other(_func_,"Operating as part of a multiplexed debug out now.");
 
   // Find the maximal set of channels to enable.
   m_bShowMessages |= pDebugger->ShowMessages();
