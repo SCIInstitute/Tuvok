@@ -346,9 +346,12 @@ void AbstrRenderer::SetIsoValue(float fIsovalue) {
 double AbstrRenderer::GetNormalizedIsovalue() const
 {
   if(m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) {
-    UINT64 mx = (m_pDataset->GetRange().first > m_pDataset->GetRange().second)
-                 ? m_p1DTrans->GetSize()
-                 : m_pDataset->GetRange().second;
+    double mx;
+    if(m_pDataset->GetRange().first > m_pDataset->GetRange().second) {
+      mx = m_p1DTrans->GetSize();
+    } else {
+      mx = m_pDataset->GetRange().second;
+    }
     return MathTools::lerp(m_fIsovalue, 0.f, static_cast<float>(mx), 0.f, 1.f);
   }
   return m_fIsovalue / (1 << m_pDataset->GetBitWidth());
