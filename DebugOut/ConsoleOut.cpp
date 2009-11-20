@@ -68,7 +68,7 @@ void ConsoleOut::printf(enum DebugChannel channel, const char* source,
 #else
   strncpy(buff, msg, 16384);
 #endif
-  ReplaceSpecialChars(buff, 16384);
+  //ReplaceSpecialChars(buff, 16384);
 #ifdef DETECTED_OS_WINDOWS
   Console::printf("%s (%s): %s\n", ChannelToString(channel), source, buff);
 #else
