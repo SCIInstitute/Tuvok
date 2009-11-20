@@ -52,9 +52,11 @@
 
 using namespace std;
 
+#if 0
 static bool CheckOrdering(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
                           const FLOATVECTOR3& c);
 static void SortPoints(vector<POS3TEX3_VERTEX> &fArray);
+#endif
 
 SBVRGeogen2D::SBVRGeogen2D(void) :
   SBVRGeogen()
