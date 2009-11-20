@@ -498,12 +498,7 @@ void GLRenderer::FullscreenQuad(bool bUpscale) {
 }
 
 void GLRenderer::EndFrame(bool bNewDataToShow) {
-
-  // Reset rendering to the entire screen
-  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-  SetRenderTargetAreaScissor(renderRegions[4], m_bDecreaseScreenResNow);
-  SetRenderTargetArea(renderRegions[4], m_bDecreaseScreenResNow);
-  m_TargetBinder.Unbind();
+  glDisable(GL_SCISSOR_TEST);
 
   // if the image is complete
   if (bNewDataToShow) {
@@ -553,9 +548,12 @@ void GLRenderer::SetRenderTargetArea(const RenderRegion &renderRegion,
 }
 
 void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion &renderRegion, bool bDecreaseScreenResNow) {
-  const float rescale = (bDecreaseScreenResNow) ? 1.0f/m_fScreenResDecFactor : 1;
-  const UINTVECTOR2 minCoord = renderRegion.minCoord * rescale;
-  const UINTVECTOR2 maxCoord = renderRegion.maxCoord * rescale;
+  float rescale = (bDecreaseScreenResNow) ? 1.0f/m_fScreenResDecFactor : 1;
+
+  const UINTVECTOR2 minCoord = UINTVECTOR2(
+                                 FLOATVECTOR2(renderRegion.minCoord) * rescale);
+  const UINTVECTOR2 maxCoord = UINTVECTOR2(
+                                 FLOATVECTOR2(renderRegion.maxCoord) * rescale);
 
   const UINTVECTOR2 regionSize = maxCoord - minCoord;
 
@@ -1035,7 +1033,9 @@ void GLRenderer::NewFrameClear(const RenderRegion &renderRegion) {
 
   m_TargetBinder.Unbind();
 
-  glDisable( GL_SCISSOR_TEST ); // since we do not clear anymore in this subframe we do not need the scissor test, maybe disabling it saves performacnce
+  // since we do not clear anymore in this subframe we do not need the scissor
+  // test, maybe disabling it saves performance
+  glDisable( GL_SCISSOR_TEST );
 }
 
 void GLRenderer::RenderCoordArrows() {
