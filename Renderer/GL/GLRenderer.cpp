@@ -423,7 +423,7 @@ void GLRenderer::Paint(std::vector<RenderRegion> &renderRegions)
 
       if (renderRegions[i].redrawMask || bForceCompleteRedrawDueToResChange) {
         iActiveRenderRegions++;
-        bool bLocalNewDataToShow;
+        bool bLocalNewDataToShow = false;
 
         if (pass == 0) { // WM_3D
           SetRenderTargetArea(renderRegions[i], false);
