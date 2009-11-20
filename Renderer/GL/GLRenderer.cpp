@@ -564,8 +564,10 @@ void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion &renderRegion, bo
 void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight, bool bDecreaseScreenResNow) {
 
   if (bDecreaseScreenResNow) {
-    viLowerLeft /= m_fScreenResDecFactor;
-    viUpperRight /= m_fScreenResDecFactor;
+    viLowerLeft = UINTVECTOR2(FLOATVECTOR2(viLowerLeft) /
+                              m_fScreenResDecFactor);
+    viUpperRight = UINTVECTOR2(FLOATVECTOR2(viUpperRight) /
+                               m_fScreenResDecFactor);
   }
 
   UINTVECTOR2 viSize = viUpperRight-viLowerLeft;

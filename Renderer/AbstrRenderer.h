@@ -460,8 +460,10 @@ class AbstrRenderer {
     // This method will go away once the client is updated to handle all the
     // 2x2 code.
   void updateWindowFraction() {
-    const unsigned int verticalSplit = m_vWinSize.x*m_vWinFraction.x;
-    const unsigned int horizontalSplit = m_vWinSize.y*m_vWinFraction.y;
+    const unsigned int verticalSplit = static_cast<unsigned>
+                                       (m_vWinSize.x*m_vWinFraction.x);
+    const unsigned int horizontalSplit = static_cast<unsigned>
+                                         (m_vWinSize.y*m_vWinFraction.y);
     renderRegions[0].minCoord = UINTVECTOR2(0, horizontalSplit+m_i2x2DividerWidth/2);
     renderRegions[0].maxCoord = UINTVECTOR2(verticalSplit-m_i2x2DividerWidth/2,
                                             m_vWinSize.y);
