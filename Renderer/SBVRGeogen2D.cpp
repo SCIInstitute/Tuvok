@@ -75,7 +75,7 @@ UINT32 SBVRGeogen2D::GetLayerCount(int iDir) const {
 }
 
 float SBVRGeogen2D::GetDelta(int iDir) const {
-  return 1.0f/(m_fSamplingModifier * m_vSize[iDir] * sqrt(3.0));
+  return 1.0f/(m_fSamplingModifier * m_vSize[iDir] * float(sqrt(3.0)));
 }
 
 
@@ -167,7 +167,7 @@ void SBVRGeogen2D::ComputeGeometry() {
   vector<FLOATPLANE> vInvPlanes;
   if (vIntersects.size() > 0)  {
     for (size_t i = 0;i<vIntersects.size();i++) {
-      int iIndex = vIntersects[i];
+      size_t iIndex = vIntersects[i];
       vPlanes.push_back(FLOATPLANE(m_pfBBOXVertex[vEdges[iIndex].first].m_vPos,
                                    m_pfBBOXVertex[vEdges[iIndex].second].m_vPos,
                                    m_pfBBOXVertex[vEdges[iIndex].second].m_vPos+vEdgeCenters[iIndex]));
