@@ -98,6 +98,8 @@ void SBVRGeogen2D::ComputeGeometry() {
   // state, but they still help to understand the 
   // orientation of the edges
 
+
+
   // cube's local coordinate frame
   FLOATVECTOR3 vCoordFrame[3] = {(m_pfBBOXVertex[0].m_vPos-m_pfBBOXVertex[1].m_vPos),  // X
                                  (m_pfBBOXVertex[0].m_vPos-m_pfBBOXVertex[4].m_vPos),  // Y
@@ -194,6 +196,11 @@ void SBVRGeogen2D::ComputeGeometry() {
   float fCosAngleY = max(vFaceVecY0^-vCoordFrame[1],vFaceVecY1^vCoordFrame[1]);
   float fCosAngleZ = max(vFaceVecZ0^vCoordFrame[2],vFaceVecZ1^-vCoordFrame[2]);
 
+  float normalization = sqrt(fCosAngleX*fCosAngleX+fCosAngleY*fCosAngleY+fCosAngleZ*fCosAngleZ);
+  fCosAngleX /= normalization;
+  fCosAngleY /= normalization;
+  fCosAngleZ /= normalization;
+
   m_vSliceTrianglesX.clear();
   m_vSliceTrianglesY.clear();
   m_vSliceTrianglesZ.clear();
@@ -202,13 +209,19 @@ void SBVRGeogen2D::ComputeGeometry() {
   if (fCosAngleX > 0.0001f) {
     float fDelta = GetDelta(0)*fCosAngleX;
     UINT32 iLayerCount = UINT32(floor(1.0f/fDelta));
+
     float a = 0;
+    if ((vFaceVecX0^vCoordFrame[0]) < 0.0f) {
+      fDelta *= -1;
+      a = 1;
+    }
+      
     for (UINT32 x = 0;x<iLayerCount;x++) {
 
-      InterpolateVertices(m_pfBBOXVertex[0], m_pfBBOXVertex[1], a, pfSliceVertex[0]);
-      InterpolateVertices(m_pfBBOXVertex[3], m_pfBBOXVertex[2], a, pfSliceVertex[1]);
-      InterpolateVertices(m_pfBBOXVertex[4], m_pfBBOXVertex[5], a, pfSliceVertex[2]);
-      InterpolateVertices(m_pfBBOXVertex[7], m_pfBBOXVertex[6], a, pfSliceVertex[3]);
+      InterpolateVertices(m_pfBBOXVertex[1], m_pfBBOXVertex[0], a, pfSliceVertex[0]);
+      InterpolateVertices(m_pfBBOXVertex[2], m_pfBBOXVertex[3], a, pfSliceVertex[1]);
+      InterpolateVertices(m_pfBBOXVertex[5], m_pfBBOXVertex[4], a, pfSliceVertex[2]);
+      InterpolateVertices(m_pfBBOXVertex[6], m_pfBBOXVertex[7], a, pfSliceVertex[3]);
 
       m_vSliceTrianglesX.push_back(pfSliceVertex[0]);
       m_vSliceTrianglesX.push_back(pfSliceVertex[1]);
@@ -220,8 +233,7 @@ void SBVRGeogen2D::ComputeGeometry() {
 
       a+=fDelta;
     }
-    if ((vFaceVecX1^vCoordFrame[0]) < 0.0f) 
-      std::reverse(m_vSliceTrianglesX.begin(), m_vSliceTrianglesX.end());
+    std::reverse(m_vSliceTrianglesX.begin(), m_vSliceTrianglesX.end());
 
     for (size_t i = 0;i<vPlanes.size();i++) {
       size_t edge = vIntersects[i];
@@ -235,7 +247,12 @@ void SBVRGeogen2D::ComputeGeometry() {
     float fDelta = GetDelta(1)*fCosAngleY;
     UINT32 iLayerCount = UINT32(floor(1.0f/fDelta));
     float a = 0;
-    //iLayerCount = GetLayerCount(1);
+
+    if ((vFaceVecY0^-vCoordFrame[1]) < 0.0f) {
+      fDelta *= -1;
+      a = 1;
+    }
+
     for (UINT32 y = 0;y<iLayerCount;y++) {
 
       InterpolateVertices(m_pfBBOXVertex[0], m_pfBBOXVertex[4], a, pfSliceVertex[0]);
@@ -252,8 +269,7 @@ void SBVRGeogen2D::ComputeGeometry() {
       m_vSliceTrianglesY.push_back(pfSliceVertex[2]);
       a+=fDelta;
     }
-    if ((vFaceVecY0^-vCoordFrame[1]) > 0.0f)
-      std::reverse(m_vSliceTrianglesY.begin(), m_vSliceTrianglesY.end());
+    std::reverse(m_vSliceTrianglesY.begin(), m_vSliceTrianglesY.end());
 
     for (size_t i = 0;i<vPlanes.size();i++) {
       size_t edge = vIntersects[i];
@@ -268,7 +284,12 @@ void SBVRGeogen2D::ComputeGeometry() {
     float fDelta = GetDelta(2)*fCosAngleZ;
     UINT32 iLayerCount = UINT32(floor(1.0f/fDelta));
     float a = 0;
-    //iLayerCount = GetLayerCount(2);
+
+    if ((vFaceVecZ0^-vCoordFrame[2]) < 0.0f){
+      fDelta *= -1;
+      a = 1;
+    }
+
     for (UINT32 z = 0;z<iLayerCount;z++) {
 
       InterpolateVertices(m_pfBBOXVertex[0], m_pfBBOXVertex[3], a, pfSliceVertex[0]);
@@ -285,8 +306,10 @@ void SBVRGeogen2D::ComputeGeometry() {
       m_vSliceTrianglesZ.push_back(pfSliceVertex[2]);
       a+=fDelta;
     }
-    if ((vFaceVecZ0^-vCoordFrame[2]) > 0.0f)
-      std::reverse(m_vSliceTrianglesZ.begin(), m_vSliceTrianglesZ.end());
+    std::reverse(m_vSliceTrianglesZ.begin(), m_vSliceTrianglesZ.end());
+
+
+
     for (size_t i = 0;i<vPlanes.size();i++) {
       size_t edge = vIntersects[i];
       if (edge == 0 || edge == 8 || edge == 9 || edge == 4 || 
@@ -294,5 +317,5 @@ void SBVRGeogen2D::ComputeGeometry() {
          m_vSliceTrianglesZ = ClipTriangles(m_vSliceTrianglesZ, vPlanes[i].xyz(), vPlanes[i].d());
     }
   }
-
 }
+
