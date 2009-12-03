@@ -133,9 +133,9 @@ void AbstrDebugOut::Error(const char* source, const char* format, ...)
 
 void AbstrDebugOut::PrintErrorList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::const_iterator i =
-            m_strLists[CHANNEL_ERROR].begin();
-       i < m_strLists[CHANNEL_ERROR].end(); ++i) {
+  for (std::deque<std::string>::const_iterator i =
+         m_strLists[CHANNEL_ERROR].begin();
+       i != m_strLists[CHANNEL_ERROR].end(); ++i) {
     printf( i->c_str() );
   }
   printf( "end of recorded errors" );
@@ -143,9 +143,9 @@ void AbstrDebugOut::PrintErrorList() {
 
 void AbstrDebugOut::PrintWarningList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::const_iterator i =
-            m_strLists[CHANNEL_WARNING].begin();
-       i < m_strLists[CHANNEL_WARNING].end(); ++i) {
+  for (std::deque<std::string>::const_iterator i =
+         m_strLists[CHANNEL_WARNING].begin();
+       i != m_strLists[CHANNEL_WARNING].end(); ++i) {
     printf( i->c_str() );
   }
   printf( "end of recorded errors" );
@@ -153,9 +153,9 @@ void AbstrDebugOut::PrintWarningList() {
 
 void AbstrDebugOut::PrintMessageList() {
   printf( "Printing recorded errors:" );
-  for (std::deque< std::string >::const_iterator i =
-            m_strLists[CHANNEL_MESSAGE].begin();
-       i < m_strLists[CHANNEL_MESSAGE].end(); ++i) {
+  for (std::deque<std::string>::const_iterator i =
+         m_strLists[CHANNEL_MESSAGE].begin();
+       i != m_strLists[CHANNEL_MESSAGE].end(); ++i) {
     printf( i->c_str() );
   }
   printf( "end of recorded errors" );
