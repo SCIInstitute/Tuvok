@@ -337,9 +337,9 @@ SOURCES += \
            Renderer/GL/GLTexture.cpp \
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
-           Renderer/SBVRGeoGen.cpp \
-           Renderer/SBVRGeoGen2D.cpp \
-           Renderer/SBVRGeoGen3D.cpp \
+           Renderer/SBVRGeogen.cpp \
+           Renderer/SBVRGeogen2D.cpp \
+           Renderer/SBVRGeogen3D.cpp \
            Renderer/TFScaling.cpp \
            Scripting/Scripting.cpp
 
