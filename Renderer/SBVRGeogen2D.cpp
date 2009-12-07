@@ -29,9 +29,9 @@
 /**
   \file    SBVRGeogen2D.cpp
   \author  Jens Krueger
-           SCI Institute
-           University of Utah
-  \date    September 2008
+           MMCI, DFKI Saarbruecken
+           SCI Institute, University of Utah
+  \date    December 2009
 */
 
 #include <algorithm>
@@ -52,14 +52,9 @@
 
 using namespace std;
 
-#if 0
-static bool CheckOrdering(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
-                          const FLOATVECTOR3& c);
-static void SortPoints(vector<POS3TEX3_VERTEX> &fArray);
-#endif
-
 SBVRGeogen2D::SBVRGeogen2D(void) :
-  SBVRGeogen()
+  SBVRGeogen(),
+  m_bUseOldMethod(false)
 {
   m_vSliceTrianglesOrder[0] = DIRECTION_X;
   m_vSliceTrianglesOrder[1] = DIRECTION_Y;
@@ -84,8 +79,121 @@ void SBVRGeogen2D::InterpolateVertices(const POS3TEX3_VERTEX& v1, const POS3TEX3
   r.m_vTex = (1.0f-a)*v1.m_vTex + a*v2.m_vTex;
 }
 
-
 void SBVRGeogen2D::ComputeGeometry() {
+  if (m_bUseOldMethod) 
+    ComputeGeometryOld();
+  else 
+    ComputeGeometryNew();    
+}
+
+
+/*
+  Compute 2D geometry via 
+  C. Rezk-Salama et al. 2000
+  "Interactive Volume Rendering on Standard PC Graphics Hardware Using Multi-Textures and Multi-Stage Rasterization"
+*/
+void SBVRGeogen2D::ComputeGeometryOld() {
+
+  // compute optimal stack
+  FLOATVECTOR3 vCenter = (m_pfBBOXVertex[0].m_vPos+m_pfBBOXVertex[6].m_vPos) / 2.0f; 
+  FLOATVECTOR3 vCoordFrame[3] = {(m_pfBBOXVertex[0].m_vPos-m_pfBBOXVertex[1].m_vPos),  // X
+                                 (m_pfBBOXVertex[0].m_vPos-m_pfBBOXVertex[4].m_vPos),  // Y
+                                 (m_pfBBOXVertex[0].m_vPos-m_pfBBOXVertex[3].m_vPos)}; // Z
+  for (size_t i = 0;i<3;i++) vCoordFrame[i].normalize();
+  float fCosX = vCenter^vCoordFrame[0];
+  float fCosY = vCenter^vCoordFrame[1];
+  float fCosZ = vCenter^vCoordFrame[2];
+  int iStack = 2; bool bFlipStack=fCosZ<0;
+
+  if (fabs(fCosX) > fabs(fCosY) && fabs(fCosX) > fabs(fCosZ)) {
+    iStack = 0; 
+    bFlipStack = fCosX>0;
+  } else {
+    if (fabs(fCosY) > fabs(fCosX) && fabs(fCosY) > fabs(fCosZ)) {
+      iStack = 1;
+      bFlipStack=fCosY<0;
+    }
+  }
+
+  m_vSliceTrianglesX.clear();
+  m_vSliceTrianglesY.clear();
+  m_vSliceTrianglesZ.clear();
+
+  POS3TEX3_VERTEX pfSliceVertex[4];
+  float fDelta = GetDelta(iStack);
+  UINT32 iLayerCount = UINT32(floor(1.0f/fDelta));
+  float fDepth = 0;
+  if (bFlipStack) {
+    fDelta *= -1;
+    fDepth = 1;
+  }
+
+  switch (iStack) {
+    case 0 :{      
+              for (UINT32 x = 0;x<iLayerCount;x++) {
+                InterpolateVertices(m_pfBBOXVertex[1], m_pfBBOXVertex[0], fDepth, pfSliceVertex[0]);
+                InterpolateVertices(m_pfBBOXVertex[2], m_pfBBOXVertex[3], fDepth, pfSliceVertex[1]);
+                InterpolateVertices(m_pfBBOXVertex[5], m_pfBBOXVertex[4], fDepth, pfSliceVertex[2]);
+                InterpolateVertices(m_pfBBOXVertex[6], m_pfBBOXVertex[7], fDepth, pfSliceVertex[3]);
+
+                m_vSliceTrianglesX.push_back(pfSliceVertex[0]);
+                m_vSliceTrianglesX.push_back(pfSliceVertex[1]);
+                m_vSliceTrianglesX.push_back(pfSliceVertex[2]);
+
+                m_vSliceTrianglesX.push_back(pfSliceVertex[1]);
+                m_vSliceTrianglesX.push_back(pfSliceVertex[3]);
+                m_vSliceTrianglesX.push_back(pfSliceVertex[2]);
+
+                fDepth+=fDelta;
+              }
+            } break;
+    case 1 :{      
+
+              for (UINT32 y = 0;y<iLayerCount;y++) {
+
+                InterpolateVertices(m_pfBBOXVertex[0], m_pfBBOXVertex[4], fDepth, pfSliceVertex[0]);
+                InterpolateVertices(m_pfBBOXVertex[1], m_pfBBOXVertex[5], fDepth, pfSliceVertex[1]);
+                InterpolateVertices(m_pfBBOXVertex[2], m_pfBBOXVertex[6], fDepth, pfSliceVertex[2]);
+                InterpolateVertices(m_pfBBOXVertex[3], m_pfBBOXVertex[7], fDepth, pfSliceVertex[3]);
+
+                m_vSliceTrianglesY.push_back(pfSliceVertex[2]);
+                m_vSliceTrianglesY.push_back(pfSliceVertex[1]);
+                m_vSliceTrianglesY.push_back(pfSliceVertex[0]);
+
+                m_vSliceTrianglesY.push_back(pfSliceVertex[0]);
+                m_vSliceTrianglesY.push_back(pfSliceVertex[3]);
+                m_vSliceTrianglesY.push_back(pfSliceVertex[2]);
+                fDepth+=fDelta;
+              }
+            }  break;
+    case 2 :{      
+              for (UINT32 z = 0;z<iLayerCount;z++) {
+                InterpolateVertices(m_pfBBOXVertex[0], m_pfBBOXVertex[3], fDepth, pfSliceVertex[0]);
+                InterpolateVertices(m_pfBBOXVertex[1], m_pfBBOXVertex[2], fDepth, pfSliceVertex[1]);
+                InterpolateVertices(m_pfBBOXVertex[4], m_pfBBOXVertex[7], fDepth, pfSliceVertex[2]);
+                InterpolateVertices(m_pfBBOXVertex[5], m_pfBBOXVertex[6], fDepth, pfSliceVertex[3]);
+
+                m_vSliceTrianglesZ.push_back(pfSliceVertex[0]);
+                m_vSliceTrianglesZ.push_back(pfSliceVertex[1]);
+                m_vSliceTrianglesZ.push_back(pfSliceVertex[2]);
+
+                m_vSliceTrianglesZ.push_back(pfSliceVertex[1]);
+                m_vSliceTrianglesZ.push_back(pfSliceVertex[3]);
+                m_vSliceTrianglesZ.push_back(pfSliceVertex[2]);
+                fDepth+=fDelta;
+              }
+            } break;
+  }
+}
+
+
+/*
+  Compute 2D geometry via 
+  Krüger 2010
+  "A new sampling scheme for slice based volume rendering"
+*/
+void SBVRGeogen2D::ComputeGeometryNew() {
+  static float fMinCos = 0.01f;
 
   // at first find the planes to clip the geometry with
   // this is done by shoting rays from the eye-point
@@ -97,7 +205,6 @@ void SBVRGeogen2D::ComputeGeometry() {
   // the annotations below are only for the untransformed 
   // state, but they still help to understand the 
   // orientation of the edges
-
 
 
   // cube's local coordinate frame
@@ -166,16 +273,13 @@ void SBVRGeogen2D::ComputeGeometry() {
   }
 
   vector<FLOATPLANE> vPlanes;
-  vector<FLOATPLANE> vInvPlanes;
-  if (vIntersects.size() > 0)  {
-    for (size_t i = 0;i<vIntersects.size();i++) {
-      size_t iIndex = vIntersects[i];
-      vPlanes.push_back(FLOATPLANE(m_pfBBOXVertex[vEdges[iIndex].first].m_vPos,
-                                   m_pfBBOXVertex[vEdges[iIndex].second].m_vPos,
-                                   m_pfBBOXVertex[vEdges[iIndex].second].m_vPos+vEdgeCenters[iIndex]));
+  for (size_t i = 0;i<vIntersects.size();i++) {
+    size_t iIndex = vIntersects[i];
+    vPlanes.push_back(FLOATPLANE(m_pfBBOXVertex[vEdges[iIndex].first].m_vPos,
+                                 m_pfBBOXVertex[vEdges[iIndex].second].m_vPos,
+                                 m_pfBBOXVertex[vEdges[iIndex].second].m_vPos+vEdgeCenters[iIndex]));
 
-      (vPlanes.end()-1)->normalize();
-    }
+    (vPlanes.end()-1)->normalize();
   }
 
   FLOATVECTOR3 vFaceVecX0 = (m_pfBBOXVertex[6].m_vPos+m_pfBBOXVertex[2].m_vPos+m_pfBBOXVertex[1].m_vPos+m_pfBBOXVertex[5].m_vPos)/4.0f;
@@ -206,13 +310,17 @@ void SBVRGeogen2D::ComputeGeometry() {
   m_vSliceTrianglesZ.clear();
 
   POS3TEX3_VERTEX pfSliceVertex[4];
-  if (fCosAngleX > 0.0001f) {
-    float fDelta = GetDelta(0)*fCosAngleX;
-    UINT32 iLayerCount = UINT32(floor(1.0f/fDelta));
+
+  m_fDelta.x = GetDelta(0)*fCosAngleX;
+  m_fDelta.y = GetDelta(1)*fCosAngleY;
+  m_fDelta.z = GetDelta(2)*fCosAngleZ;
+
+  if (fCosAngleX > fMinCos) {
+    UINT32 iLayerCount = UINT32(floor(1.0f/m_fDelta.x));
 
     float a = 0;
     if ((vFaceVecX0^vCoordFrame[0]) < 0.0f) {
-      fDelta *= -1;
+      m_fDelta.x *= -1;
       a = 1;
     }
       
@@ -231,7 +339,7 @@ void SBVRGeogen2D::ComputeGeometry() {
       m_vSliceTrianglesX.push_back(pfSliceVertex[3]);
       m_vSliceTrianglesX.push_back(pfSliceVertex[2]);
 
-      a+=fDelta;
+      a+=m_fDelta.x;
     }
     std::reverse(m_vSliceTrianglesX.begin(), m_vSliceTrianglesX.end());
 
@@ -243,13 +351,13 @@ void SBVRGeogen2D::ComputeGeometry() {
     }
   }
 
-  if (fCosAngleY > 0.0001f) {
-    float fDelta = GetDelta(1)*fCosAngleY;
-    UINT32 iLayerCount = UINT32(floor(1.0f/fDelta));
+  if (fCosAngleY > fMinCos) {
+   
+    UINT32 iLayerCount = UINT32(floor(1.0f/m_fDelta.y));
     float a = 0;
 
     if ((vFaceVecY0^-vCoordFrame[1]) < 0.0f) {
-      fDelta *= -1;
+      m_fDelta.y *= -1;
       a = 1;
     }
 
@@ -267,7 +375,7 @@ void SBVRGeogen2D::ComputeGeometry() {
       m_vSliceTrianglesY.push_back(pfSliceVertex[0]);
       m_vSliceTrianglesY.push_back(pfSliceVertex[3]);
       m_vSliceTrianglesY.push_back(pfSliceVertex[2]);
-      a+=fDelta;
+      a+=m_fDelta.y;
     }
     std::reverse(m_vSliceTrianglesY.begin(), m_vSliceTrianglesY.end());
 
@@ -280,13 +388,12 @@ void SBVRGeogen2D::ComputeGeometry() {
     }
   }
 
-  if (fCosAngleZ > 0.0001f) {
-    float fDelta = GetDelta(2)*fCosAngleZ;
-    UINT32 iLayerCount = UINT32(floor(1.0f/fDelta));
+  if (fCosAngleZ > fMinCos) {
+    UINT32 iLayerCount = UINT32(floor(1.0f/m_fDelta.z));
     float a = 0;
 
     if ((vFaceVecZ0^-vCoordFrame[2]) < 0.0f){
-      fDelta *= -1;
+      m_fDelta.z *= -1;
       a = 1;
     }
 
@@ -304,11 +411,9 @@ void SBVRGeogen2D::ComputeGeometry() {
       m_vSliceTrianglesZ.push_back(pfSliceVertex[1]);
       m_vSliceTrianglesZ.push_back(pfSliceVertex[3]);
       m_vSliceTrianglesZ.push_back(pfSliceVertex[2]);
-      a+=fDelta;
+      a+=m_fDelta.z;
     }
     std::reverse(m_vSliceTrianglesZ.begin(), m_vSliceTrianglesZ.end());
-
-
 
     for (size_t i = 0;i<vPlanes.size();i++) {
       size_t edge = vIntersects[i];
@@ -319,3 +424,8 @@ void SBVRGeogen2D::ComputeGeometry() {
   }
 }
 
+
+
+
+void SBVRGeogen2D::ComputeGeometryNewFast() {
+}

@@ -61,14 +61,18 @@ public:
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesX;
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesY;
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesZ;
-  float m_fDeltaX;
-  float m_fDeltaY;
-  float m_fDeltaZ;
+  FLOATVECTOR3 m_fDelta;
+  bool m_bUseOldMethod;
 
 protected:
   UINT32 GetLayerCount(int iDir) const;
   float GetDelta(int iDir) const;
   void InterpolateVertices(const POS3TEX3_VERTEX& v1, const POS3TEX3_VERTEX& v2, float a, POS3TEX3_VERTEX& r) const;
+
+private:
+  void ComputeGeometryNew();
+  void ComputeGeometryNewFast();
+  void ComputeGeometryOld();
 };
 
 #endif // SBVRGEOGEN2D_H

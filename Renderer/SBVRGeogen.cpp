@@ -200,7 +200,7 @@ std::vector<POS3TEX3_VERTEX> SBVRGeogen::SplitTriangle(POS3TEX3_VERTEX a,
 #else
   RayPlaneIntersection(a,c, normal,D, A);
   RayPlaneIntersection(b,c, normal,D, B);
-#endif
+ #endif
 
   if(fc >= 0) {
     out.push_back(a); out.push_back(b); out.push_back(A);
@@ -216,7 +216,12 @@ SBVRGeogen::ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
               const VECTOR3<float> &normal, const float D)
 {
   std::vector<POS3TEX3_VERTEX> out;
-  assert(!in.empty() && in.size() > 2);
+  if (in.empty()) return out;
+  assert(in.size() % 3 == 0);
+  
+  // bail out even in release (otherwise we would get a crash later)
+  if (in.size() % 3 != 0) return out;
+
   out.reserve(in.size());
 
   for(std::vector<POS3TEX3_VERTEX>::const_iterator iter = in.begin();
