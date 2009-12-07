@@ -52,8 +52,10 @@
 using namespace std;
 using namespace tuvok;
 
-GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
-  AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
+GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
+                       bool bDownSampleTo8Bits, bool bDisableBorder) :
+  AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+                bDisableBorder),
   m_TargetBinder(pMasterController),
   m_p1DTransTex(NULL),
   m_p2DTransTex(NULL),
@@ -150,7 +152,9 @@ bool GLRenderer::Initialize() {
     newSwatch.pGradientCoords[0] = FLOATVECTOR2(0.1f,0.5f);
     newSwatch.pGradientCoords[1] = FLOATVECTOR2(0.9f,0.5f);
 
-    GradientStop g1(0,FLOATVECTOR4(0,0,0,0)),g2(0.5f,FLOATVECTOR4(1,1,1,1)),g3(1,FLOATVECTOR4(0,0,0,0));
+    GradientStop g1(0,FLOATVECTOR4(0,0,0,0)),
+                 g2(0.5f,FLOATVECTOR4(1,1,1,1)),
+                 g3(1,FLOATVECTOR4(0,0,0,0));
     newSwatch.pGradientStops.push_back(g1);
     newSwatch.pGradientStops.push_back(g2);
     newSwatch.pGradientStops.push_back(g3);
@@ -285,43 +289,6 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
   CreateDepthStorage();
 }
 
-void GLRenderer::RenderSeparatingLines() {
-  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-  // set render area to fullscreen
-  SetRenderTargetAreaScissor(renderRegions[4], m_bDecreaseScreenResNow);
-  SetRenderTargetArea(renderRegions[4], m_bDecreaseScreenResNow);
-
-  // render seperating lines
-  glDisable(GL_BLEND);
-
-  glDisable(GL_DEPTH_TEST);
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix();
-  glLoadIdentity();
-  glOrtho(0, 1, 0, 1, 0, 1);
-  glMatrixMode(GL_MODELVIEW);
-  glPushMatrix();
-  glLoadIdentity();
-
-  glLineWidth(m_i2x2DividerWidth);
-
-  glBegin(GL_LINES);
-    glColor4f(1.0f,1.0f,1.0f,1.0f);
-    glVertex3f(m_vWinFraction.x,-1,0);
-    glVertex3f(m_vWinFraction.x,1,0);
-    glVertex3f(-1,m_vWinFraction.y,0);
-    glVertex3f(1,m_vWinFraction.y,0);
-  glEnd();
-
-  glLineWidth(1);
-
-  glMatrixMode(GL_PROJECTION);
-  glPopMatrix();
-  glMatrixMode(GL_MODELVIEW);
-  glPopMatrix();
-  m_TargetBinder.Unbind();
-}
-
 void GLRenderer::ClearDepthBuffer() {
   glClear(GL_DEPTH_BUFFER_BIT);
 }
@@ -334,7 +301,9 @@ void GLRenderer::ClearColorBuffer() {
     glClear(GL_COLOR_BUFFER_BIT);
   } else {
     if (m_vBackgroundColors[0] == m_vBackgroundColors[1]) {
-      glClearColor(m_vBackgroundColors[0].x,m_vBackgroundColors[0].y,m_vBackgroundColors[0].z,0);
+      glClearColor(m_vBackgroundColors[0].x,
+                   m_vBackgroundColors[0].y,
+                   m_vBackgroundColors[0].z, 0);
       glClear(GL_COLOR_BUFFER_BIT);
     } else {
       glDisable(GL_BLEND);
@@ -362,35 +331,18 @@ void GLRenderer::StartFrame() {
       m_pProgramCVCompose->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
       m_pProgramCVCompose->Disable();
     } else {
-      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIsoCompose : m_pProgramColorCompose;
+      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ?
+                            m_pProgramIsoCompose : m_pProgramColorCompose;
 
       shader->Enable();
       shader->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
       shader->Disable();
     }
-
   }
 }
 
 void GLRenderer::Paint() {
-
-  std::vector<RenderRegion> rRegions;
-  if (m_eViewMode == VM_SINGLE) {
-    rRegions.push_back(renderRegions[4]);
-    Paint(rRegions);
-    renderRegions[4] = rRegions[0];
-  } else {
-    for (size_t i=0; i < 4; ++i)
-      rRegions.push_back(renderRegions[i]);
-    Paint(rRegions);
-    for (size_t i=0; i < 4; ++i)
-      renderRegions[i] = rRegions[i];
-  }
-}
-
-void GLRenderer::Paint(std::vector<RenderRegion> &renderRegions)
-{
-  AbstrRenderer::Paint(renderRegions);
+  AbstrRenderer::Paint();
 
   StartFrame();
 
@@ -402,18 +354,17 @@ void GLRenderer::Paint(std::vector<RenderRegion> &renderRegions)
 
   bool bForceCompleteRedrawDueToResChange = m_bDoAnotherRedrawDueToAllMeans;
 
-
   // First we draw only the 3D views as m_bDecreaseScreenResNow is changed in
   // Plan3DFrame, then we can draw the 2D views.
   for (size_t pass=0; pass < 2; ++pass) {
     for (size_t i=0; i < renderRegions.size(); ++i) {
 
-      if (pass == 0 && renderRegions[i].windowMode != WM_3D)
+      if (pass == 0 && renderRegions[i]->windowMode != WM_3D)
         continue;
       if (pass == 1 &&
-          (renderRegions[i].windowMode != WM_CORONAL &&
-           renderRegions[i].windowMode != WM_AXIAL &&
-           renderRegions[i].windowMode != WM_SAGITTAL))
+          (renderRegions[i]->windowMode != WM_CORONAL &&
+           renderRegions[i]->windowMode != WM_AXIAL &&
+           renderRegions[i]->windowMode != WM_SAGITTAL))
         continue;
 
       // note: this line only works if the 3D view is drawn before the 2D
@@ -421,37 +372,37 @@ void GLRenderer::Paint(std::vector<RenderRegion> &renderRegions)
       bForceCompleteRedrawDueToResChange =
         bForceCompleteRedrawDueToResChange || bPrevResType != m_bDecreaseScreenResNow;
 
-      if (renderRegions[i].redrawMask || bForceCompleteRedrawDueToResChange) {
+      if (renderRegions[i]->redrawMask || bForceCompleteRedrawDueToResChange) {
         iActiveRenderRegions++;
         bool bLocalNewDataToShow = false;
 
         if (pass == 0) { // WM_3D
-          SetRenderTargetArea(renderRegions[i], false);
+          SetRenderTargetArea(*renderRegions[i], false);
           if (!m_bPerformRedraw && m_bPerformReCompose &&
               !bForceCompleteRedrawDueToResChange){
-            Recompose3DView(renderRegions[i]);
+            Recompose3DView(*renderRegions[i]);
             bLocalNewDataToShow = true;
           } else {
             // plan the frame
             Plan3DFrame();
             // if m_bDecreaseScreenRes the render target area may have changed
             if (m_bDecreaseScreenResNow)
-              SetRenderTargetArea(renderRegions[i], true);
+              SetRenderTargetArea(*renderRegions[i], true);
             // execute the frame0
             float fMsecPassed = 0.0f;
-            bLocalNewDataToShow = Execute3DFrame(renderRegions[i], fMsecPassed);
+            bLocalNewDataToShow = Execute3DFrame(*renderRegions[i], fMsecPassed);
             m_fMsecPassedCurrentFrame += fMsecPassed;
           }
           // are we done traversing the LOD levels
-          renderRegions[i].redrawMask =
+          renderRegions[i]->redrawMask =
             (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
             (m_iCurrentLODOffset > m_iMinLODForCurrentView);
         } else if (pass == 1) {  // in a 2D view mode
           // TODO: Do we check if windowMode is something else, such as invalid?
 
-          SetRenderTargetArea(renderRegions[i], m_bDecreaseScreenResNow);
-          bLocalNewDataToShow = Render2DView(renderRegions[i]);
-          renderRegions[i].redrawMask = false;
+          SetRenderTargetArea(*renderRegions[i], m_bDecreaseScreenResNow);
+          bLocalNewDataToShow = Render2DView(*renderRegions[i]);
+          renderRegions[i]->redrawMask = false;
         }
 
         if (bLocalNewDataToShow) iReadyRegions++;
@@ -460,19 +411,13 @@ void GLRenderer::Paint(std::vector<RenderRegion> &renderRegions)
         // blit the previous result quad to the entire screen but restrict
         // drawing to the current subarea
         m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-
-        // TODO: Maybe add a SetRenderTargetArea that handles full screen?
-        SetViewPort(UINTVECTOR2(0,0), m_vWinSize, false); //SetRenderTargetArea(renderRegions[4], false);
-
-        SetRenderTargetAreaScissor(renderRegions[i], false);
+        SetViewPort(UINTVECTOR2(0,0), m_vWinSize, false);
+        SetRenderTargetAreaScissor(*renderRegions[i], false);
         RerenderPreviousResult(false);
         m_TargetBinder.Unbind();
       }
     }
   }
-
-  if (renderRegions.size() > 1) // for now just assume it's single or 4x4...
-    RenderSeparatingLines();
 
   // if we had at least one renderwindow that was doing something and from those
   // all are finished then set a flag so that we can display the result to the
@@ -544,16 +489,30 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 
 void GLRenderer::SetRenderTargetArea(const RenderRegion &renderRegion,
                                      bool bDecreaseScreenResNow) {
-  SetViewPort(renderRegion.minCoord, renderRegion.maxCoord, bDecreaseScreenResNow);
+  SetRenderTargetArea(renderRegion.minCoord, renderRegion.maxCoord,
+                      bDecreaseScreenResNow);
 }
 
-void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion &renderRegion, bool bDecreaseScreenResNow) {
-  float rescale = (bDecreaseScreenResNow) ? 1.0f/m_fScreenResDecFactor : 1;
+void GLRenderer::SetRenderTargetArea(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
+                                     bool bDecreaseScreenResNow) {
+  SetViewPort(minCoord, maxCoord, bDecreaseScreenResNow);
+}
 
-  const UINTVECTOR2 minCoord = UINTVECTOR2(
-                                 FLOATVECTOR2(renderRegion.minCoord) * rescale);
-  const UINTVECTOR2 maxCoord = UINTVECTOR2(
-                                 FLOATVECTOR2(renderRegion.maxCoord) * rescale);
+void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion &renderRegion,
+                                            bool bDecreaseScreenResNow) {
+  SetRenderTargetAreaScissor(renderRegion.minCoord, renderRegion.maxCoord,
+                             bDecreaseScreenResNow);
+}
+
+void GLRenderer::SetRenderTargetAreaScissor(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
+                                            bool bDecreaseScreenResNow) {
+  const float rescale = (bDecreaseScreenResNow) ? 1.0f/m_fScreenResDecFactor : 1;
+
+  //Note, we round to the nearest int only for the maxCoord. This in effect
+  //expands the render region in all directions to the nearest int and so hides
+  //any possible gaps that could result.
+  minCoord = UINTVECTOR2(FLOATVECTOR2(minCoord) * rescale);
+  maxCoord = UINTVECTOR2((FLOATVECTOR2(maxCoord) * rescale) + FLOATVECTOR2(0.5, 0.5));
 
   const UINTVECTOR2 regionSize = maxCoord - minCoord;
 
@@ -561,13 +520,19 @@ void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion &renderRegion, bo
   glEnable( GL_SCISSOR_TEST );
 }
 
-void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight, bool bDecreaseScreenResNow) {
+
+void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
+                             bool bDecreaseScreenResNow) {
 
   if (bDecreaseScreenResNow) {
-    viLowerLeft = UINTVECTOR2(FLOATVECTOR2(viLowerLeft) /
-                              m_fScreenResDecFactor);
-    viUpperRight = UINTVECTOR2(FLOATVECTOR2(viUpperRight) /
-                               m_fScreenResDecFactor);
+    const float rescale = 1.0f/m_fScreenResDecFactor;
+
+    //Note, we round to the nearest int only for the top right coord. This in
+    //effect expands the render region in all directions to the nearest int and
+    //so hides any possible gaps that could result.
+    viLowerLeft = UINTVECTOR2(FLOATVECTOR2(viLowerLeft) * rescale);
+    viUpperRight = UINTVECTOR2((FLOATVECTOR2(viUpperRight) * rescale) +
+                               FLOATVECTOR2(0.5, 0.5));
   }
 
   UINTVECTOR2 viSize = viUpperRight-viLowerLeft;
@@ -609,94 +574,103 @@ void GLRenderer::RenderSlice(const RenderRegion &region, double fSliceIndex,
                              DOUBLEVECTOR2 vWinAspectRatio) {
 
   switch (region.windowMode) {
-    case WM_AXIAL : {
-                          if (region.flipView.x) {
-                              float fTemp = vMinCoords.x;
-                              vMinCoords.x = vMaxCoords.x;
-                              vMaxCoords.x = fTemp;
-                          }
+  case WM_AXIAL :
+    {
+      if (region.flipView.x) {
+        float fTemp = vMinCoords.x;
+        vMinCoords.x = vMaxCoords.x;
+        vMaxCoords.x = fTemp;
+      }
 
-                          if (region.flipView.y) {
-                              float fTemp = vMinCoords.z;
-                              vMinCoords.z = vMaxCoords.z;
-                              vMaxCoords.z = fTemp;
-                          }
+      if (region.flipView.y) {
+        float fTemp = vMinCoords.z;
+        vMinCoords.z = vMaxCoords.z;
+        vMaxCoords.z = fTemp;
+      }
 
-                          DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
-                          v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-                          glBegin(GL_QUADS);
-                            glTexCoord3d(vMinCoords.x,fSliceIndex,vMaxCoords.z);
-                            glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-                            glTexCoord3d(vMaxCoords.x,fSliceIndex,vMaxCoords.z);
-                            glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-                            glTexCoord3d(vMaxCoords.x,fSliceIndex,vMinCoords.z);
-                            glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-                            glTexCoord3d(vMinCoords.x,fSliceIndex,vMinCoords.z);
-                            glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-                          glEnd();
-                          break;
-                      }
-    case WM_CORONAL : {
-                          if (region.flipView.x) {
-                              float fTemp = vMinCoords.x;
-                              vMinCoords.x = vMaxCoords.x;
-                              vMaxCoords.x = fTemp;
-                          }
+      DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
+      v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+      glBegin(GL_QUADS);
+      glTexCoord3d(vMinCoords.x,fSliceIndex,vMaxCoords.z);
+      glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMaxCoords.x,fSliceIndex,vMaxCoords.z);
+      glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMaxCoords.x,fSliceIndex,vMinCoords.z);
+      glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMinCoords.x,fSliceIndex,vMinCoords.z);
+      glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glEnd();
+      break;
+    }
+  case WM_CORONAL :
+    {
+      if (region.flipView.x) {
+        float fTemp = vMinCoords.x;
+        vMinCoords.x = vMaxCoords.x;
+        vMaxCoords.x = fTemp;
+      }
 
-                          if (region.flipView.y) {
-                              float fTemp = vMinCoords.y;
-                              vMinCoords.y = vMaxCoords.y;
-                              vMaxCoords.y = fTemp;
-                          }
+      if (region.flipView.y) {
+        float fTemp = vMinCoords.y;
+        vMinCoords.y = vMaxCoords.y;
+        vMaxCoords.y = fTemp;
+      }
 
-                          DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xy()*DOUBLEVECTOR2(vWinAspectRatio);
-                          v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-                          glBegin(GL_QUADS);
-                            glTexCoord3d(vMinCoords.x,vMaxCoords.y,fSliceIndex);
-                            glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-                            glTexCoord3d(vMaxCoords.x,vMaxCoords.y,fSliceIndex);
-                            glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-                            glTexCoord3d(vMaxCoords.x,vMinCoords.y,fSliceIndex);
-                            glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-                            glTexCoord3d(vMinCoords.x,vMinCoords.y,fSliceIndex);
-                            glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-                          glEnd();
-                          break;
-                      }
-    case WM_SAGITTAL : {
-                          if (region.flipView.x) {
-                              float fTemp = vMinCoords.y;
-                              vMinCoords.y = vMaxCoords.y;
-                              vMaxCoords.y = fTemp;
-                          }
+      DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xy()*DOUBLEVECTOR2(vWinAspectRatio);
+      v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+      glBegin(GL_QUADS);
+      glTexCoord3d(vMinCoords.x,vMaxCoords.y,fSliceIndex);
+      glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMaxCoords.x,vMaxCoords.y,fSliceIndex);
+      glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMaxCoords.x,vMinCoords.y,fSliceIndex);
+      glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMinCoords.x,vMinCoords.y,fSliceIndex);
+      glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glEnd();
+      break;
+    }
+  case WM_SAGITTAL :
+    {
+      if (region.flipView.x) {
+        float fTemp = vMinCoords.y;
+        vMinCoords.y = vMaxCoords.y;
+        vMaxCoords.y = fTemp;
+      }
 
-                          if (region.flipView.y) {
-                              float fTemp = vMinCoords.z;
-                              vMinCoords.z = vMaxCoords.z;
-                              vMaxCoords.z = fTemp;
-                          }
+      if (region.flipView.y) {
+        float fTemp = vMinCoords.z;
+        vMinCoords.z = vMaxCoords.z;
+        vMaxCoords.z = fTemp;
+      }
 
-                          DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
-                          v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-                          glBegin(GL_QUADS);
-                            glTexCoord3d(fSliceIndex,vMinCoords.y,vMaxCoords.z);
-                            glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-                            glTexCoord3d(fSliceIndex,vMaxCoords.y,vMaxCoords.z);
-                            glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-                            glTexCoord3d(fSliceIndex,vMaxCoords.y,vMinCoords.z);
-                            glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-                            glTexCoord3d(fSliceIndex,vMinCoords.y,vMinCoords.z);
-                            glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-                          glEnd();
-                          break;
-                      }
-    default        :  T_ERROR("Invalid windowmode set"); break;
+      DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
+      v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+      glBegin(GL_QUADS);
+      glTexCoord3d(fSliceIndex,vMinCoords.y,vMaxCoords.z);
+      glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(fSliceIndex,vMaxCoords.y,vMaxCoords.z);
+      glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(fSliceIndex,vMaxCoords.y,vMinCoords.z);
+      glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(fSliceIndex,vMinCoords.y,vMinCoords.z);
+      glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glEnd();
+      break;
+    }
+  default :  T_ERROR("Invalid windowmode set"); break;
   }
 }
 
-bool GLRenderer::BindVolumeTex(const tuvok::BrickKey& bkey, const UINT64 iIntraFrameCounter) {
+bool GLRenderer::BindVolumeTex(const tuvok::BrickKey& bkey,
+                               const UINT64 iIntraFrameCounter) {
   // get the 3D texture from the memory manager
-  m_p3DVolTex = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, iIntraFrameCounter, m_iFrameCounter);
+  m_p3DVolTex = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey,
+                                                            m_bUseOnlyPowerOfTwo,
+                                                            m_bDownSampleTo8Bits,
+                                                            m_bDisableBorder,
+                                                            iIntraFrameCounter,
+                                                            m_iFrameCounter);
   if(m_p3DVolTex) {
     m_p3DVolTex->Bind(0);
     return true;
@@ -720,7 +694,8 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
 
   // bind offscreen buffer
   if (renderRegion.useMIP) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
+    // for MIP rendering "abuse" left-eye buffer for the itermediate results
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
   } else {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   }
@@ -749,9 +724,11 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
     glDisable(GL_DEPTH_TEST);
 
     UINT64 iCurrentLOD = 0;
-    UINTVECTOR3 vVoxelCount(1,1,1); // make sure we do not dive by zero later if no single-brick LOD exists
+    UINTVECTOR3 vVoxelCount(1,1,1); // make sure we do not dive by zero later
+                                    // if no single-brick LOD exists
 
-    // For now to make things simpler for the slice renderer we use the LOD level with just one brick
+    // For now to make things simpler for the slice renderer we use the LOD
+    // level with just one brick
     for (UINT64 i = 0;i<m_pDataset->GetLODLevelCount();i++) {
       if (m_pDataset->GetBrickCount(i) == 1) {
           iCurrentLOD = i;
@@ -762,8 +739,8 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
 
     if (!renderRegion.useMIP) SetBrickDepShaderVarsSlice(vVoxelCount);
 
-    // Get the brick at this LOD; note we're guaranteed this brick will cover the entire domain,
-    // because the search above gives us the coarsest LOD!
+    // Get the brick at this LOD; note we're guaranteed this brick will cover
+    // the entire domain, because the search above gives us the coarsest LOD!
     const BrickKey bkey(iCurrentLOD, 0);
 
     if (!BindVolumeTex(bkey,0)) {
@@ -798,33 +775,30 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
     DOUBLEVECTOR2 vWinAspectRatio = 1.0 / renderRegionSize;
     vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
 
+    const int sliceDir = static_cast<size_t>(renderRegion.windowMode);
+
     if (renderRegion.useMIP) {
       // Iterate; render all slices, and we'll figure out the 'M'(aximum) in
       // the shader.  Note that we iterate over all slices which have data
       // ("VoxelCount"), not over all slices ("RealVoxelCount").
-      for (UINT64 i = 0;i<vVoxelCount[size_t(renderRegion.windowMode)];i++) {
+      for (UINT64 i = 0;i<vVoxelCount[sliceDir];i++) {
         // First normalize to a [0..1] space
-        double fSliceIndex = static_cast<double>(i) /
-                             vVoxelCount[static_cast<size_t>(renderRegion.windowMode)];
+        double fSliceIndex = static_cast<double>(i) / vVoxelCount[sliceDir];
         // Now correct for PoT textures: a [0..1] space gives us the location
         // of the slice in a perfect world, but if we're using PoT textures we
         // might only access say [0..0.75] e.g. if we needed to increase the
         // 3Dtexture size by 25% to make it PoT.
-        fSliceIndex *= static_cast<double>
-                       (vVoxelCount[static_cast<size_t>(renderRegion.windowMode)]) /
-                       static_cast<double>
-                       (vRealVoxelCount[static_cast<size_t>(renderRegion.windowMode)]);
+        fSliceIndex *= static_cast<double> (vVoxelCount[sliceDir]) /
+                       static_cast<double> (vRealVoxelCount[sliceDir]);
         RenderSlice(renderRegion, fSliceIndex, vMinCoords, vMaxCoords,
                     vAspectRatio, vWinAspectRatio);
       }
     } else {
       // same indexing fix as above.
       double fSliceIndex = static_cast<double>(renderRegion.iSlice) /
-                           vDomainSize[static_cast<size_t>(renderRegion.windowMode)];
-      fSliceIndex *= static_cast<double>
-                     (vVoxelCount[static_cast<size_t>(renderRegion.windowMode)]) /
-                     static_cast<double>
-                     (vRealVoxelCount[static_cast<size_t>(renderRegion.windowMode)]);
+                           vDomainSize[sliceDir];
+      fSliceIndex *= static_cast<double> (vVoxelCount[sliceDir]) /
+                     static_cast<double> (vRealVoxelCount[sliceDir]);
       RenderSlice(renderRegion, fSliceIndex, vMinCoords, vMaxCoords,
                   vAspectRatio, vWinAspectRatio);
     }
@@ -846,7 +820,9 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
       UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
       DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
       vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
-      float fRoot2Scale = (vWinAspectRatio.x < vWinAspectRatio.y) ? max(1.0,1.414213f * vWinAspectRatio.x/vWinAspectRatio.y) : 1.414213f;
+      float fRoot2Scale = (vWinAspectRatio.x < vWinAspectRatio.y) ?
+                          max(1.0, 1.414213f * vWinAspectRatio.x/vWinAspectRatio.y) :
+                          1.414213f;
 
       maOrtho.Ortho(-0.5*fRoot2Scale/vWinAspectRatio.x, +0.5*fRoot2Scale/vWinAspectRatio.x,
                     -0.5*fRoot2Scale/vWinAspectRatio.y, +0.5*fRoot2Scale/vWinAspectRatio.y,
@@ -864,7 +840,8 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
     for (size_t iBrickIndex = 0;iBrickIndex<m_vCurrentBrickList.size();iBrickIndex++) {
       MESSAGE("Brick %i of %i", int(iBrickIndex+1),int(m_vCurrentBrickList.size()));
 
-      // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
+      // convert 3D variables to the more general ND scheme used in the memory
+      // manager, i.e. convert 3-vectors to stl vectors
       vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
       vector<UINT64> vBrick;
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.x);
@@ -875,7 +852,8 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
       // get the 3D texture from the memory manager
 
       if (!BindVolumeTex(key,0)) {
-        T_ERROR("Unable to bind volume to texture (LOD:%i, Brick:%i)", int(m_iCurrentLOD),int(iBrickIndex));
+        T_ERROR("Unable to bind volume to texture (LOD:%i, Brick:%i)",
+                int(m_iCurrentLOD),int(iBrickIndex));
       }
       RenderHQMIPInLoop(m_vCurrentBrickList[iBrickIndex]);
       if (!UnbindVolumeTex()) {
@@ -892,7 +870,7 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
 
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
 
-    SetRenderTargetArea(renderRegions[4],false);
+    SetRenderTargetArea(UINTVECTOR2(0,0), m_vWinSize, false);
     SetRenderTargetAreaScissor(renderRegion, m_bDecreaseScreenResNow);
 
     m_pFBO3DImageCurrent[1]->Read(0);
@@ -951,13 +929,13 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset) {
   RenderBBox(vColor, bEpsilonOffset, vCenter, vExtend);
 }
 
-void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend) {
+void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
+                            const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend) {
   FLOATVECTOR3 vMinPoint, vMaxPoint;
 
+  // increase the size of the bbox by epsilon = 0.003 to avoid the data
+  // z-fighting with the bbox when requested
   FLOATVECTOR3 vEExtend(vExtend+(bEpsilonOffset ? 0.003f : 0));
-                                         // increase the size of the bbox by
-                                         // epsilon = 0.003 to avoid the data
-                                         // z-fighting with the bbox when requested
 
   vMinPoint = (vCenter - vEExtend/2.0);
   vMaxPoint = (vCenter + vEExtend/2.0);
@@ -1214,7 +1192,8 @@ bool GLRenderer::Execute3DFrame(const RenderRegion &renderRegion,
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
       // show the timings as "other", to distinguish it from all those million messages
-      OTHER("The current subframe took %g ms to render (LOD Level %i)",m_fMsecPassedCurrentFrame+fMsecPassed, int(m_iCurrentLODOffset));
+      OTHER("The current subframe took %g ms to render (LOD Level %i)",
+            m_fMsecPassedCurrentFrame + fMsecPassed, int(m_iCurrentLODOffset));
       PostSubframe();
       return true;
     }
@@ -1235,12 +1214,11 @@ void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
   }
 
   m_pFBO3DImageLast->Read(0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (m_bOffscreenIsLowRes) ? GL_LINEAR : GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                  (m_bOffscreenIsLowRes) ? GL_LINEAR : GL_NEAREST);
   m_pFBO3DImageLast->ReadDepth(1);
 
-  // always clear the depth buffer
-  // since we are transporting
-  // new data from the FBO
+  // always clear the depth buffer since we are transporting new data from the FBO
   glClear(GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
   glDepthMask(GL_TRUE);
@@ -1331,10 +1309,14 @@ void GLRenderer::DrawBackGradient() {
   glDisable(GL_CULL_FACE);
 
   glBegin(GL_QUADS);
-    glColor4d(m_vBackgroundColors[0].x,m_vBackgroundColors[0].y,m_vBackgroundColors[0].z,0);
+    glColor4d(m_vBackgroundColors[0].x,
+              m_vBackgroundColors[0].y,
+              m_vBackgroundColors[0].z, 0);
     glVertex3d(-1.0, -1.0, -0.5);
     glVertex3d( 1.0, -1.0, -0.5);
-    glColor4d(m_vBackgroundColors[1].x,m_vBackgroundColors[1].y,m_vBackgroundColors[1].z,0);
+    glColor4d(m_vBackgroundColors[1].x,
+              m_vBackgroundColors[1].y,
+              m_vBackgroundColors[1].z,0);
     glVertex3d( 1.0,  1.0, -0.5);
     glVertex3d(-1.0,  1.0, -0.5);
   glEnd();
@@ -1470,7 +1452,8 @@ void GLRenderer::CreateOffscreenBuffers() {
 void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
   if (m_eRenderMode == RM_2DTRANS) {
     FLOATVECTOR3 vStep = 1.0f/FLOATVECTOR3(vVoxelCount);
-    m_pProgram2DTransSlice->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
+    m_pProgram2DTransSlice->SetUniformVector("vVoxelStepsize",
+                                             vStep.x, vStep.y, vStep.z);
   }
 }
 
@@ -1480,7 +1463,8 @@ float GLRenderer::CalculateScaling()
 {
   size_t iMaxValue     = size_t(MaxValue());
   UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetBitWidth());
-  return (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ? 1.0f : float(iMaxRange)/float(iMaxValue);
+  return (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ?
+    1.0f : float(iMaxRange)/float(iMaxValue);
 }
 
 void GLRenderer::SetDataDepShaderVars() {
@@ -1541,7 +1525,8 @@ void GLRenderer::SetDataDepShaderVars() {
       m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
       m_pProgram1DTransSlice3D->Disable();
 
-      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ?
+        m_pProgramIso : m_pProgramColor;
 
       shader->Enable();
       shader->SetUniformVector("fIsoval", static_cast<float>
@@ -1563,7 +1548,9 @@ void GLRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   }
 }
 
-bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, const std::vector<std::string>& strDirs, GLSLProgram** pShaderProgram) {
+bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
+                                     const std::vector<std::string>& strDirs,
+                                     GLSLProgram** pShaderProgram) {
   for (size_t i = 0;i<strDirs.size();i++) {
     string strCompleteVSFile = strDirs[i] + "/" + strVSFile;
     string strCompleteFSFile = strDirs[i] + "/" + strFSFile;
@@ -1594,7 +1581,8 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
     strVSFile = SysTools::GetFromResourceOnMac(strVSFile);
     MESSAGE("Found %s in bundle, using that.", strVSFile.c_str());
   }
-  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strFSFile))) strFSFile = SysTools::GetFromResourceOnMac(strFSFile);
+  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strFSFile)))
+    strFSFile = SysTools::GetFromResourceOnMac(strFSFile);
 #endif
 
   string strActualVSFile = "";
@@ -1614,10 +1602,12 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
     }
 
     if (strActualVSFile == "") {
-      T_ERROR("Unable to locate vertex shader %s (%s)",strDirlessVSFile.c_str(), strVSFile.c_str());
+      T_ERROR("Unable to locate vertex shader %s (%s)", strDirlessVSFile.c_str(),
+              strVSFile.c_str());
       return false;
     } else {
-      MESSAGE("Changed vertex shader %s to %s",strVSFile.c_str(), strActualVSFile.c_str());
+      MESSAGE("Changed vertex shader %s to %s", strVSFile.c_str(),
+              strActualVSFile.c_str());
     }
   } else {
     strActualVSFile = strVSFile;
@@ -1640,10 +1630,12 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
     }
 
     if (strActualFSFile == "") {
-      T_ERROR("Unable to locate fragment shader %s (%s)",strDirlessFSFile.c_str(), strFSFile.c_str());
+      T_ERROR("Unable to locate fragment shader %s (%s)", strDirlessFSFile.c_str(),
+              strFSFile.c_str());
       return false;
     } else
-      MESSAGE("Changed fragment shader %s to %s",strFSFile.c_str(), strActualFSFile.c_str());
+      MESSAGE("Changed fragment shader %s to %s", strFSFile.c_str(),
+              strActualFSFile.c_str());
 
   } else {
     strActualFSFile = strFSFile;
@@ -1651,10 +1643,12 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
 
 
   if (SysTools::FileExists(strActualVSFile) && SysTools::FileExists(strActualFSFile)) {
-    (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(strActualVSFile, strActualFSFile);
+    (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(strActualVSFile,
+                                                                      strActualFSFile);
 
     if ((*pShaderProgram) == NULL || !(*pShaderProgram)->IsValid()) {
-        T_ERROR("Error loading a shader combination VS %s and FS %s.", strActualVSFile.c_str(), strActualFSFile.c_str());
+        T_ERROR("Error loading a shader combination VS %s and FS %s.",
+                strActualVSFile.c_str(), strActualFSFile.c_str());
         m_pMasterController->MemMan()->FreeGLSLProgram(*pShaderProgram);
         return false;
     } else return true;
@@ -1663,7 +1657,6 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
     (*pShaderProgram) = NULL;
     return false;
   }
-
 }
 
 
@@ -1714,7 +1707,8 @@ void GLRenderer::BBoxPostRender() {
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
       for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1), false, m_vCurrentBrickList[iCurrentBrick].vCenter, m_vCurrentBrickList[iCurrentBrick].vExtension);
+        RenderBBox(FLOATVECTOR4(0,1,0,1), false, m_vCurrentBrickList[iCurrentBrick].vCenter,
+                   m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
     glDepthFunc(GL_LESS);
@@ -1759,40 +1753,52 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
 
-
   FLOATVECTOR3 vMinPoint = -vExtend/2.0, vMaxPoint = vExtend/2.0;
 
-  FLOATVECTOR3 vfSliceIndex = FLOATVECTOR3(renderRegions[1].iSlice,
-                                           renderRegions[2].iSlice,
-                                           renderRegions[3].iSlice) / FLOATVECTOR3(vDomainSize);
-
-
-  FLOATVECTOR3 vfPlanePos = vMinPoint * (1.0f-vfSliceIndex) + vMaxPoint * vfSliceIndex;
   glDisable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
 
   glDepthFunc(GL_LEQUAL);
   glLineWidth(2);
 
-  glBegin(GL_LINE_LOOP);
-    if (!bDepthPassOnly) glColor4f(1,1,1,1);
-    glVertex3f(vfPlanePos.x, vMinPoint.y, vMaxPoint.z);
-    glVertex3f(vfPlanePos.x, vMinPoint.y, vMinPoint.z);
-    glVertex3f(vfPlanePos.x, vMaxPoint.y, vMinPoint.z);
-    glVertex3f(vfPlanePos.x, vMaxPoint.y, vMaxPoint.z);
-  glEnd();
-  glBegin(GL_LINE_LOOP);
-    glVertex3f(vMaxPoint.x, vfPlanePos.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vfPlanePos.y, vMinPoint.z);
-    glVertex3f(vMinPoint.x, vfPlanePos.y, vMaxPoint.z);
-    glVertex3f(vMaxPoint.x, vfPlanePos.y, vMaxPoint.z);
-  glEnd();
-  glBegin(GL_LINE_LOOP);
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vfPlanePos.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vfPlanePos.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vfPlanePos.z);
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vfPlanePos.z);
-  glEnd();
+  if (!bDepthPassOnly) glColor4f(1,1,1,1);
+  for (size_t i=0; i < renderRegions.size(); ++i) {
+
+    int k=0;
+    switch (renderRegions[i]->windowMode) {
+    case WM_SAGITTAL: k=0; break;
+    case WM_AXIAL   : k=1; break;
+    case WM_CORONAL : k=2; break;
+    default: continue;
+    };
+
+    const float sliceIndex = static_cast<float>(renderRegions[i]->iSlice) / vDomainSize[k];
+    const float planePos = vMinPoint[k] * (1.0f-sliceIndex) + vMaxPoint[k] * sliceIndex;
+
+    glBegin(GL_LINE_LOOP);
+    switch (renderRegions[i]->windowMode) {
+    case WM_SAGITTAL   :
+      glVertex3f(planePos, vMinPoint.y, vMaxPoint.z);
+      glVertex3f(planePos, vMinPoint.y, vMinPoint.z);
+      glVertex3f(planePos, vMaxPoint.y, vMinPoint.z);
+      glVertex3f(planePos, vMaxPoint.y, vMaxPoint.z);
+      break;
+    case WM_AXIAL   :
+      glVertex3f(vMaxPoint.x, planePos, vMinPoint.z);
+      glVertex3f(vMinPoint.x, planePos, vMinPoint.z);
+      glVertex3f(vMinPoint.x, planePos, vMaxPoint.z);
+      glVertex3f(vMaxPoint.x, planePos, vMaxPoint.z);
+      break;
+    case WM_CORONAL :
+      glVertex3f(vMaxPoint.x, vMinPoint.y, planePos);
+      glVertex3f(vMinPoint.x, vMinPoint.y, planePos);
+      glVertex3f(vMinPoint.x, vMaxPoint.y, planePos);
+      glVertex3f(vMaxPoint.x, vMaxPoint.y, planePos);
+      break;
+    default: continue; // Should not get here.
+    };
+    glEnd();
+  }
 
   glLineWidth(1);
 
@@ -2067,7 +2073,7 @@ void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
   }
   if (m_strLogoFilename != "")
     m_pLogoTex = mm.Load2DTextureFromFile(m_strLogoFilename);
-  ScheduleWindowRedraw(WM_3D);
+  ScheduleCompleteRedraw();
 }
 
 void GLRenderer::ComposeSurfaceImage(int iStereoID) {
@@ -2080,8 +2086,10 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
 
   if (m_bDoClearView) {
     m_pProgramCVCompose->Enable();
-    m_pProgramCVCompose->SetUniformVector("vLightDiffuse", d.x*m_vIsoColor.x,d.y*m_vIsoColor.y,d.z*m_vIsoColor.z);
-    m_pProgramCVCompose->SetUniformVector("vLightDiffuse2",d.x*m_vCVColor.x,d.y*m_vCVColor.y,d.z*m_vCVColor.z);
+    m_pProgramCVCompose->SetUniformVector("vLightDiffuse", d.x*m_vIsoColor.x,
+                                          d.y*m_vIsoColor.y, d.z*m_vIsoColor.z);
+    m_pProgramCVCompose->SetUniformVector("vLightDiffuse2", d.x*m_vCVColor.x,
+                                          d.y*m_vCVColor.y, d.z*m_vCVColor.z);
     m_pProgramCVCompose->SetUniformVector("vCVParam",m_fCVSize,
                                           m_fCVContextScale, m_fCVBorderScale);
 
@@ -2095,7 +2103,8 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
   } else {
     if (m_pDataset->GetComponentCount() == 1) {
       m_pProgramIsoCompose->Enable();
-      m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",d.x*m_vIsoColor.x,d.y*m_vIsoColor.y,d.z*m_vIsoColor.z);
+      m_pProgramIsoCompose->SetUniformVector("vLightDiffuse", d.x*m_vIsoColor.x,
+                                             d.y*m_vIsoColor.y, d.z*m_vIsoColor.z);
     } else {
       m_pProgramColorCompose->Enable();
     }
@@ -2161,7 +2170,8 @@ void GLRenderer::SaveEmptyDepthBuffer() {
 
 void GLRenderer::SaveDepthBuffer() {
   if (m_aDepthStorage == NULL) return;
-  glReadPixels(0, 0, m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT, m_aDepthStorage);
+  glReadPixels(0, 0, m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT,
+               m_aDepthStorage);
 }
 
 

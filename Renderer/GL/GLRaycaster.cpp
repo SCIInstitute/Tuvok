@@ -591,8 +591,8 @@ FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR
 }
 
 
-void GLRaycaster::DisableClipPlane() {
-  AbstrRenderer::DisableClipPlane();
+void GLRaycaster::DisableClipPlane(RenderRegion* renderRegion) {
+  AbstrRenderer::DisableClipPlane(renderRegion);
   /// We always clip against the plane in the shader, so initialize the plane
   /// to be way out in left field, ensuring nothing will be clipped.
   ClipPlaneToShader(ExtendedPlane(PLANE<float>(0,0,1,-100000)),0,true);

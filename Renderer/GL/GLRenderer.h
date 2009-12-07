@@ -52,14 +52,16 @@ class GLSLProgram;
 
 class GLRenderer : public AbstrRenderer {
   public:
-    GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
+    GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
+               bool bDownSampleTo8Bits, bool bDisableBorder);
     virtual ~GLRenderer();
     virtual bool Initialize();
     virtual void Set1DTrans(const std::vector<unsigned char>&);
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();
 
-    /** Set the bit depth mode of the offscreen buffer used for blending.  Causes a full redraw. */
+    /** Set the bit depth mode of the offscreen buffer used for blending.
+        Causes a full redraw. */
     virtual void SetBlendPrecision(EBlendPrecision eBlendPrecision);
 
     /** Deallocates GPU memory allocated during the rendering process. */
@@ -67,7 +69,6 @@ class GLRenderer : public AbstrRenderer {
 
     /** Paint the image */
     virtual void Paint();
-    virtual void Paint(std::vector<RenderRegion> &renderRegions);
 
     /** Sends a message to the master to ask for a dataset to be loaded.
      * The dataset is converted to UVF if it is not one already.
@@ -84,7 +85,7 @@ class GLRenderer : public AbstrRenderer {
     void RenderSlice(const RenderRegion &region, double fSliceIndex,
                      FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                      DOUBLEVECTOR3 vAspectRatio, DOUBLEVECTOR2 vWinAspectRatio);
-    virtual void NewFrameClear(const RenderRegion & renderRegion);
+    virtual void NewFrameClear(const RenderRegion &renderRegion);
 
   protected:
     GLTargetBinder  m_TargetBinder;
@@ -105,14 +106,18 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramHQMIPRot;
     Timer           m_Timer;
 
-    void SetRenderTargetArea(const RenderRegion& renderRegion,
+    void SetRenderTargetArea(const RenderRegion &renderRegion,
                              bool bDecreaseScreenResNow);
-    void SetRenderTargetAreaScissor(const RenderRegion& renderRegion,
+    void SetRenderTargetArea(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
+                             bool bDecreaseScreenResNow);
+    void SetRenderTargetAreaScissor(const RenderRegion &renderRegion,
+                                    bool bDecreaseScreenResNow);
+    void SetRenderTargetAreaScissor(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
                                     bool bDecreaseScreenResNow);
     void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
                      bool bDecreaseScreenResNow);
 
-    bool Render2DView(const RenderRegion& renderRegion);
+    bool Render2DView(const RenderRegion &renderRegion);
     void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1),
                     bool bEpsilonOffset=true);
     void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
@@ -141,8 +146,12 @@ class GLRenderer : public AbstrRenderer {
     virtual void RenderHQMIPPostLoop() {}
 
     virtual void CreateOffscreenBuffers();
-    virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile, const std::vector<std::string>& strDirs, GLSLProgram** pShaderProgram);
-    virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs);
+    virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile,
+                                     const std::vector<std::string>& strDirs,
+                                     GLSLProgram** pShaderProgram);
+    virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile,
+                                     GLSLProgram** pShaderProgram,
+                                     bool bSearchSubdirs);
 
     void BBoxPreRender();
     void BBoxPostRender();
@@ -167,7 +176,8 @@ class GLRenderer : public AbstrRenderer {
     virtual void UpdateColorsInShaders();
 
     GLTexture3D*    m_p3DVolTex;
-    virtual bool BindVolumeTex(const tuvok::BrickKey& bkey, const UINT64 iIntraFrameCounter);
+    virtual bool BindVolumeTex(const tuvok::BrickKey& bkey,
+                               const UINT64 iIntraFrameCounter);
     virtual bool UnbindVolumeTex();
 
   private:
@@ -186,7 +196,6 @@ class GLRenderer : public AbstrRenderer {
     float*          m_aDepthStorage;
 
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
-    void RenderSeparatingLines();
     void RenderCoordArrows();
     void SaveEmptyDepthBuffer();
     void SaveDepthBuffer();

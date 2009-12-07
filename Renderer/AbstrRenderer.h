@@ -124,24 +124,19 @@ class AbstrRenderer {
     ERenderMode GetRendermode() {return m_eRenderMode;}
     virtual void SetRendermode(ERenderMode eRenderMode);
 
-    enum EViewMode {
-      VM_SINGLE = 0,  /**< a single large image */
-      VM_TWOBYTWO,    /**< four small images */
-      VM_INVALID
-    };
-    EViewMode GetViewmode() {return m_eViewMode;}
-    virtual void SetViewmode(EViewMode eViewMode);
-
     enum EWindowMode {
       WM_SAGITTAL = 0,
       WM_AXIAL    = 1,
       WM_CORONAL  = 2,
       WM_3D,
-      WM_DIVIDER_HORIZONTAL,
-      WM_DIVIDER_VERTICAL,
-      WM_DIVIDER_BOTH,
       WM_INVALID
     };
+
+    static bool Is2DWindowMode(EWindowMode mode) {
+      // note: Just to be more clear and avoid possible future bugs, we
+      // explicitly check the modes rather than doing:   return mode < WM_3D.
+      return (mode == WM_SAGITTAL) || (mode == WM_AXIAL) || (mode == WM_CORONAL);
+    }
 
   struct RenderRegion {
     UINTVECTOR2 minCoord, maxCoord;
@@ -160,18 +155,12 @@ class AbstrRenderer {
     {
       flipView = VECTOR2<bool>(false, false);
     }
-  };
 
-    EWindowMode Get2x2Windowmode(ERenderArea eArea) const {
-      return renderRegions[size_t(eArea)].windowMode;
+    bool ContainsPoint(UINTVECTOR2 pos) {
+      return (minCoord[0] < pos[0] && pos[0] < maxCoord[0]) &&
+             (minCoord[1] < pos[1] && pos[1] < maxCoord[1]);
     }
-  // The set2x2 function is not used anywhere. In following commit 2x2 mode
-  // will be removed from Tuvok anyway.
-//     virtual void Set2x2Windowmode(ERenderArea eArea, EWindowMode eWindowMode);
-    EWindowMode GetFullWindowmode() const { return renderRegions[4].windowMode;}
-    virtual void SetFullWindowmode(EWindowMode eWindowMode);
-    EWindowMode GetWindowUnderCursor(FLOATVECTOR2 vPos) const;
-    FLOATVECTOR2 GetLocalCursorPos(FLOATVECTOR2 vPos) const;
+  };
 
     enum EBlendPrecision {
       BP_8BIT = 0,
@@ -214,18 +203,19 @@ class AbstrRenderer {
     virtual bool CheckForRedraw();
 
     virtual void Paint() {
-      // check if we are rendering a stereo frame
-      m_bDoStereoRendering = m_bRequestStereoRendering &&
-                             m_eViewMode == VM_SINGLE &&
-                             renderRegions[4].windowMode == WM_3D;
-    }
+      if (renderRegions.empty()) {
+        renderRegions.push_back(&simpleRenderRegion);
+      }
+      if (renderRegions.size() == 1 && renderRegions[0] == &simpleRenderRegion) {
+        simpleRenderRegion.maxCoord = m_vWinSize; //minCoord is always (0,0)
+      }
 
-    virtual void Paint(std::vector<RenderRegion> &renderRegions) {
       // check if we are rendering a stereo frame
       m_bDoStereoRendering = m_bRequestStereoRendering &&
                              renderRegions.size() == 1 &&
-                             renderRegions[0].windowMode == WM_3D;
+                             renderRegions[0]->windowMode == WM_3D;
     }
+
 
     virtual bool Initialize();
 
@@ -294,20 +284,28 @@ class AbstrRenderer {
     virtual void SetRenderCoordArrows(bool bRenderCoordArrows);
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
 
-    virtual void Set2DPlanesIn3DView(bool bRenderPlanesIn3D);
-    virtual bool Get2DPlanesIn3DView() const {return m_bRenderPlanesIn3D;}
+    virtual void Set2DPlanesIn3DView(bool bRenderPlanesIn3D,
+                                     RenderRegion *renderRegion=NULL);
+    virtual bool Get2DPlanesIn3DView(RenderRegion *renderRegion=NULL) const {
+      /// @todo: Make this bool a per 3d render region toggle.
+      return m_bRenderPlanesIn3D;}
 
     /** Change the size of the render window.  Any previous image is
      * destroyed, causing a full redraw on the next render.
      * \param vWinSize  new width and height of the view window */
     virtual void Resize(const UINTVECTOR2& vWinSize);
 
-    virtual void SetRotation(const FLOATMATRIX4& mRotation);
-    virtual void SetTranslation(const FLOATMATRIX4& mTranslation);
-    void SetClipPlane(const ExtendedPlane& plane);
-    virtual void EnableClipPlane();
-    virtual void DisableClipPlane();
-    virtual void ShowClipPlane(bool);
+    virtual void SetRotation(const FLOATMATRIX4& mRotation,
+                             RenderRegion *renderRegion=NULL);
+    virtual void SetTranslation(const FLOATMATRIX4& mTranslation,
+                                RenderRegion *renderRegion=NULL);
+
+    void SetClipPlane(const ExtendedPlane& plane,
+                      RenderRegion *renderRegion=NULL);
+    virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
+    virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);
+    virtual void ShowClipPlane(bool, RenderRegion *renderRegion=NULL);
+
     virtual void ClipPlaneRelativeLock(bool);
     virtual bool CanDoClipPlane() {return true;}
     bool ClipPlaneEnabled() const { return m_bClipPlaneOn; }
@@ -315,8 +313,8 @@ class AbstrRenderer {
     bool ClipPlaneLocked() const  { return m_bClipPlaneLocked; }
 
     /// slice parameter for slice views.
-    virtual void SetSliceDepth(EWindowMode eWindow, UINT64 fSliceDepth);
-    virtual UINT64 GetSliceDepth(EWindowMode eWindow) const;
+    virtual void SetSliceDepth(UINT64 fSliceDepth, RenderRegion *renderRegion);
+    virtual UINT64 GetSliceDepth(const RenderRegion *renderRegion) const;
 
     void SetClearFramebuffer(bool bClearFramebuffer) {
       m_bClearFramebuffer = bClearFramebuffer;
@@ -328,10 +326,10 @@ class AbstrRenderer {
     bool GetLocalBBox() {return m_bRenderLocalBBox;}
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
-    void Set2DFlipMode(EWindowMode eWindow, bool bFlipX, bool bFlipY);
-    void Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlipY) const;
-    bool GetUseMIP(EWindowMode eWindow) const;
-    void SetUseMIP(EWindowMode eWindow, bool bUseMIP);
+    void Set2DFlipMode(bool bFlipX, bool bFlipY, RenderRegion *renderRegion);
+    void Get2DFlipMode(bool& bFlipX, bool& bFlipY, const RenderRegion *renderRegion) const;
+    bool GetUseMIP(const RenderRegion *renderRegion) const;
+    void SetUseMIP(bool bUseMIP, RenderRegion *renderRegion);
 
     UINT64 GetMaxLODIndex() const      { return m_iMaxLODIndex; }
     UINT64 GetMinLODIndex() const      { return m_iMinLODForCurrentView; }
@@ -411,7 +409,7 @@ class AbstrRenderer {
     virtual INTVECTOR2 GetCVFocusPos() const {return m_vCVMousePos;}
 
     virtual void ScheduleCompleteRedraw();
-    virtual void ScheduleWindowRedraw(EWindowMode eWindow);
+    virtual void ScheduleWindowRedraw(RenderRegion *renderRegion);
 
     void SetAvoidSeperateCompositing(bool bAvoidSeperateCompositing) {
       m_bAvoidSeperateCompositing = bAvoidSeperateCompositing;
@@ -447,43 +445,14 @@ class AbstrRenderer {
       this->m_TFScalingMethod = sm;
     }
 
-    void SetWindowFraction2x2(FLOATVECTOR2 f) {
-      m_vWinFraction = f;
-      ScheduleCompleteRedraw();
-      updateWindowFraction();
-    }
-    FLOATVECTOR2 WindowFraction2x2() const { return m_vWinFraction; }
-
     virtual void NewFrameClear(const RenderRegion &) { assert(1==0); }
 
+    /// @todo: Make this protected and add methods for interacting with this.
+    /// RenderRegions that are currently being rendered.
+    std::vector<RenderRegion*> renderRegions;
+
+
   protected:
-    // This method will go away once the client is updated to handle all the
-    // 2x2 code.
-  void updateWindowFraction() {
-    const unsigned int verticalSplit = static_cast<unsigned>
-                                       (m_vWinSize.x*m_vWinFraction.x);
-    const unsigned int horizontalSplit = static_cast<unsigned>
-                                         (m_vWinSize.y*m_vWinFraction.y);
-    renderRegions[0].minCoord = UINTVECTOR2(0, horizontalSplit+m_i2x2DividerWidth/2);
-    renderRegions[0].maxCoord = UINTVECTOR2(verticalSplit-m_i2x2DividerWidth/2,
-                                            m_vWinSize.y);
-
-    renderRegions[1].minCoord = UINTVECTOR2(verticalSplit+m_i2x2DividerWidth/2,
-                                            horizontalSplit+m_i2x2DividerWidth/2);
-    renderRegions[1].maxCoord = UINTVECTOR2(m_vWinSize.x, m_vWinSize.y);
-
-    renderRegions[2].minCoord = UINTVECTOR2(0, 0);
-    renderRegions[2].maxCoord = UINTVECTOR2(verticalSplit-m_i2x2DividerWidth/2,
-                                            horizontalSplit-m_i2x2DividerWidth/2);
-
-    renderRegions[3].minCoord = UINTVECTOR2(verticalSplit+m_i2x2DividerWidth/2, 0);
-    renderRegions[3].maxCoord = UINTVECTOR2(m_vWinSize.x,
-                                            horizontalSplit-m_i2x2DividerWidth/2);
-
-    renderRegions[4].minCoord = UINTVECTOR2(0,0);
-    renderRegions[4].maxCoord = m_vWinSize;
-  }
-
     /// Unsets the current transfer function, including deleting it from GPU
     /// memory.  It's expected you'll set another one directly afterwards.
     void Free1DTrans();
@@ -499,7 +468,6 @@ class AbstrRenderer {
     float               m_fMsecPassedCurrentFrame;
     float               m_fMsecPassed[2];
     ERenderMode         m_eRenderMode;
-    EViewMode           m_eViewMode;
     EBlendPrecision     m_eBlendPrecision;
     bool                m_bUseLighting;
     tuvok::Dataset*     m_pDataset;
@@ -594,19 +562,17 @@ class AbstrRenderer {
     float               m_fZNear, m_fZFar;
     ///@}
 
-    int                 m_i2x2DividerWidth;
-    FLOATVECTOR2        m_vWinFraction;
 
-    // Note: this will go away once the client is set up to use RenderRegions.
-    // Elements [0-3] correspond to 2x2 ERenderAreas and element 4 is the full
-    // screen ERenderArea.
-    RenderRegion renderRegions[5];
+   //For displaying a full screen window without the client needing to know
+   //about RenderRegions.
+    RenderRegion simpleRenderRegion;
+
 
     FLOATVECTOR4        m_cAmbient;
     FLOATVECTOR4        m_cDiffuse;
     FLOATVECTOR4        m_cSpecular;
 
-    virtual void        ScheduleRecompose();
+    virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);
     void                ComputeMinLODForCurrentView();
     void                ComputeMaxLODForCurrentView();
     void                Plan3DFrame();
@@ -622,6 +588,8 @@ class AbstrRenderer {
     virtual void        UpdateColorsInShaders() = 0;
     double              MaxValue() const;
     bool                OnlyRecomposite() const;
+
+    RenderRegion* GetFirst3DRegion();
 
   private:
     float               m_fIsovalue;

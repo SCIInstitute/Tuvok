@@ -67,8 +67,8 @@ class GLSBVR2D : public GLRenderer {
 
     virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing && m_pDataset->GetComponentCount() == 1;}
 
-    virtual void EnableClipPlane();
-    virtual void DisableClipPlane();
+    virtual void EnableClipPlane(RenderRegion *renderRegion);
+    virtual void DisableClipPlane(RenderRegion *renderRegion);
 
     virtual ERendererType GetRendererType() {return RT_SBVR;}
 

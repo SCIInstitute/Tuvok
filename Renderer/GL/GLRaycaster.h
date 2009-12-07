@@ -69,7 +69,7 @@ class GLRaycaster : public GLRenderer {
     /// they haven't been)
     virtual bool SupportsClearView() {return m_pDataset->GetComponentCount() == 1;}
 
-    virtual void DisableClipPlane();
+    virtual void DisableClipPlane(RenderRegion* renderRegion);
 
     virtual ERendererType GetRendererType() {return RT_RC;}
 

@@ -54,7 +54,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bPerformRedraw(true),
   m_fMsecPassedCurrentFrame(0.0f),
   m_eRenderMode(RM_1DTRANS),
-  m_eViewMode(VM_SINGLE),
   m_eBlendPrecision(BP_32BIT),
   m_bUseLighting(true),
   m_pDataset(NULL),
@@ -127,8 +126,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_fFOV(50.0f),
   m_fZNear(0.1f),
   m_fZFar(100.0f),
-  m_i2x2DividerWidth(6),
-  m_vWinFraction(0.5, 0.5),
   m_cAmbient(1.0f,1.0f,1.0f,0.2f),
   m_cDiffuse(1.0f,1.0f,1.0f,0.8f),
   m_cSpecular(1.0f,1.0f,1.0f,1.0f),
@@ -138,11 +135,10 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
 
-  renderRegions[0].windowMode = WM_3D;
-  renderRegions[1].windowMode = WM_SAGITTAL;
-  renderRegions[2].windowMode = WM_AXIAL;
-  renderRegions[3].windowMode = WM_CORONAL;
-  renderRegions[4].windowMode = WM_3D; // full window
+  simpleRenderRegion.windowMode = WM_3D;
+  simpleRenderRegion.minCoord = UINTVECTOR2(0,0); // maxCoord is updated in Paint().
+  renderRegions.push_back(&simpleRenderRegion);
+
   RestartTimers();
 
   m_vShaderSearchDirs.push_back("Shaders");
@@ -179,10 +175,6 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
 
   // find the maximum LOD index
   m_iMaxLODIndex = m_pDataset->GetLODLevelCount()-1;
-
-  renderRegions[3].iSlice = m_pDataset->GetDomainSize()[2]/2;
-  renderRegions[1].iSlice = m_pDataset->GetDomainSize()[0]/2;
-  renderRegions[2].iSlice = m_pDataset->GetDomainSize()[1]/2;
 
   // now that we know the range of the dataset, we can set the default
   // isoval to half the range.  For CV, we'll set the isovals to a bit above
@@ -225,42 +217,10 @@ void AbstrRenderer::SetRendermode(ERenderMode eRenderMode)
   }
 }
 
-static std::string view_mode(AbstrRenderer::EViewMode mode) {
-  switch(mode) {
-    case AbstrRenderer::VM_SINGLE: return "single"; break;
-    case AbstrRenderer::VM_TWOBYTWO: return "two-by-two"; break;
-    case AbstrRenderer::VM_INVALID: /* fall-through */
-    default: return "invalid"; break;
-  }
-}
-
-void AbstrRenderer::SetViewmode(EViewMode eViewMode)
-{
-  if (m_eViewMode != eViewMode) {
-
-    // if going from full window mode to 2x2 mode...
-    if (m_eViewMode == VM_SINGLE && eViewMode == VM_TWOBYTWO) {
-      renderRegions[(size_t(renderRegions[4].windowMode)+1)%4] = renderRegions[4];
-      updateWindowFraction();
-    }
-
-    m_eViewMode = eViewMode;
-    ScheduleCompleteRedraw();
-    Controller::Instance().Provenance("vmode", "viewmode",
-                                      view_mode(eViewMode));
-  }
-}
-
-void AbstrRenderer::SetFullWindowmode(EWindowMode eWindowMode) {
-  renderRegions[4] = renderRegions[(size_t(eWindowMode)+1)%4];
-  updateWindowFraction();
-  ScheduleCompleteRedraw();
-}
-
 void AbstrRenderer::SetUseLighting(bool bUseLighting) {
   if (m_bUseLighting != bUseLighting) {
     m_bUseLighting = bUseLighting;
-    ScheduleWindowRedraw(WM_3D);
+    ScheduleCompleteRedraw(); /// @todo: only redraw 3D regions.
     Controller::Instance().Provenance("light", "lighting");
   }
 }
@@ -332,14 +292,14 @@ void AbstrRenderer::Changed2DTrans() {
 void AbstrRenderer::SetSampleRateModifier(float fSampleRateModifier) {
   if(m_fSampleRateModifier != fSampleRateModifier) {
     m_fSampleRateModifier = fSampleRateModifier;
-    ScheduleWindowRedraw(WM_3D);
+    ScheduleCompleteRedraw(); /// @todo: only redraw 3D regions.
   }
 }
 
 void AbstrRenderer::SetIsoValue(float fIsovalue) {
   if(fIsovalue != m_fIsovalue) {
     m_fIsovalue = fIsovalue;
-    ScheduleWindowRedraw(WM_3D);
+    ScheduleCompleteRedraw(); /// @todo: only redraw 3D regions.
   }
 }
 
@@ -384,153 +344,118 @@ bool AbstrRenderer::CheckForRedraw() {
   return m_bPerformRedraw || m_bPerformReCompose;
 }
 
-AbstrRenderer::EWindowMode
-AbstrRenderer::GetWindowUnderCursor(FLOATVECTOR2 vPos) const {
-  switch (m_eViewMode) {
-  case VM_SINGLE   : return renderRegions[4].windowMode;
-  case VM_TWOBYTWO :
-    {
-      const FLOATVECTOR2 halfWidth =
-        FLOATVECTOR2(m_i2x2DividerWidth, m_i2x2DividerWidth) / FLOATVECTOR2(m_vWinSize*2);
-      const bool isVertical   = (fabsf(vPos.x - m_vWinFraction.x) <= halfWidth.x);
-      const bool isHorizontal =
-        (fabsf(vPos.y - (1-m_vWinFraction.y)) <= halfWidth.y);
-
-      if (isVertical && isHorizontal) return WM_DIVIDER_BOTH;
-      if (isVertical)                 return WM_DIVIDER_VERTICAL;
-      if (isHorizontal)               return WM_DIVIDER_HORIZONTAL;
-      if (vPos.y < 1-m_vWinFraction.y) {
-        if (vPos.x < m_vWinFraction.x) {
-          return renderRegions[0].windowMode;
-        } else {
-          return renderRegions[1].windowMode;
-        }
-      } else {
-        if (vPos.x < m_vWinFraction.x) {
-          return renderRegions[2].windowMode;
-        } else {
-          return renderRegions[3].windowMode;
-        }
-      }
-    }
-  default          : return WM_INVALID;
-  }
-}
-
-FLOATVECTOR2 AbstrRenderer::GetLocalCursorPos(FLOATVECTOR2 vPos) const {
-  switch (m_eViewMode) {
-  case VM_SINGLE   : return vPos;
-  case VM_TWOBYTWO : {
-    if (vPos.y < (1-m_vWinFraction.y)) {
-      if (vPos.x < m_vWinFraction.x) {
-        return FLOATVECTOR2(vPos.x/m_vWinFraction.x,
-                            vPos.y/(1-m_vWinFraction.y));
-      } else {
-        return FLOATVECTOR2((vPos.x-m_vWinFraction.x)/(1-m_vWinFraction.x),
-                            vPos.y/(1-m_vWinFraction.y));
-      }
-    } else {
-      if (vPos.x < m_vWinFraction.x) {
-        return FLOATVECTOR2((vPos.x)/m_vWinFraction.x,
-                            (vPos.y-(1-m_vWinFraction.y))/m_vWinFraction.y);
-      } else {
-        return FLOATVECTOR2((vPos.x-m_vWinFraction.x)/(1-m_vWinFraction.x),
-                            (vPos.y-(1-m_vWinFraction.y))/m_vWinFraction.y);
-      }
-    }
-  }
-  default          : return vPos;
-  }
-}
-
 void AbstrRenderer::Resize(const UINTVECTOR2& vWinSize) {
   m_vWinSize = vWinSize;
   ScheduleCompleteRedraw();
-
-  updateWindowFraction();
 }
 
-void AbstrRenderer::SetRotation(const FLOATMATRIX4& mRotation) {
-  m_mRotation = mRotation;
-  ScheduleWindowRedraw(WM_3D);
+AbstrRenderer::RenderRegion* AbstrRenderer::GetFirst3DRegion() {
+  for (size_t i=0; i < renderRegions.size(); ++i) {
+    if (renderRegions[i]->windowMode == WM_3D)
+      return renderRegions[i];
+  }
+  return NULL;
 }
 
-void AbstrRenderer::SetTranslation(const FLOATMATRIX4& mTranslation) {
-  m_mTranslation = mTranslation;
-  ScheduleWindowRedraw(WM_3D);
+void AbstrRenderer::SetRotation(const FLOATMATRIX4& mRotation,
+                                RenderRegion *renderRegion) {
+  if (!renderRegion)
+    renderRegion = GetFirst3DRegion();
+  if (renderRegion) {
+    m_mRotation = mRotation;
+    ScheduleWindowRedraw(renderRegion);
+  }
 }
 
-void AbstrRenderer::SetClipPlane(const ExtendedPlane& plane)
+void AbstrRenderer::SetTranslation(const FLOATMATRIX4& mTranslation,
+                                   RenderRegion *renderRegion) {
+  if (!renderRegion)
+    renderRegion = GetFirst3DRegion();
+  if (renderRegion) {
+    m_mTranslation = mTranslation;
+    ScheduleWindowRedraw(renderRegion);
+  }
+}
+
+void AbstrRenderer::SetClipPlane(const ExtendedPlane& plane,
+                                 RenderRegion *renderRegion)
 {
-  if(plane == m_ClipPlane) { return; }
-  m_ClipPlane = plane;
-  ScheduleWindowRedraw(WM_3D);
+  if (!renderRegion)
+    renderRegion = GetFirst3DRegion();
+  if (renderRegion) {
+    if(plane == m_ClipPlane) { return; }
+    m_ClipPlane = plane; /// @todo: Make this per RenderRegion.
+    ScheduleWindowRedraw(renderRegion);
+  }
 }
 
-void AbstrRenderer::EnableClipPlane() {
-  if(!m_bClipPlaneOn) {
-    m_bClipPlaneOn = true;
-    ScheduleWindowRedraw(WM_3D);
-    Controller::Instance().Provenance("clip", "clip", "enable");
+
+void AbstrRenderer::EnableClipPlane(RenderRegion *renderRegion) {
+  if (!renderRegion)
+    renderRegion = GetFirst3DRegion();
+  if (renderRegion) {
+    if(!m_bClipPlaneOn) {
+      m_bClipPlaneOn = true; /// @todo: Make this per RenderRegion.
+      ScheduleWindowRedraw(renderRegion);
+      Controller::Instance().Provenance("clip", "clip", "enable");
+    }
   }
 }
-void AbstrRenderer::DisableClipPlane() {
-  if(m_bClipPlaneOn) {
-    m_bClipPlaneOn = false;
-    ScheduleWindowRedraw(WM_3D);
-    Controller::Instance().Provenance("clip", "clip", "disable");
+void AbstrRenderer::DisableClipPlane(RenderRegion *renderRegion) {
+  if (!renderRegion)
+    renderRegion = GetFirst3DRegion();
+  if (renderRegion) {
+    if(m_bClipPlaneOn) {
+      m_bClipPlaneOn = false; /// @todo: Make this per RenderRegion.
+      ScheduleWindowRedraw(renderRegion);
+      Controller::Instance().Provenance("clip", "clip", "disable");
+    }
   }
 }
-void AbstrRenderer::ShowClipPlane(bool bShown) {
-  m_bClipPlaneDisplayed = bShown;
-  if(m_bClipPlaneOn) {
-    ScheduleWindowRedraw(WM_3D);
-    Controller::Instance().Provenance("clip", "showclip", "enable");
+void AbstrRenderer::ShowClipPlane(bool bShown,
+                                  RenderRegion *renderRegion) {
+  if (!renderRegion)
+    renderRegion = GetFirst3DRegion();
+  if (renderRegion) {
+    m_bClipPlaneDisplayed = bShown; /// @todo: Make this per RenderRegion.
+    if(m_bClipPlaneOn) {
+      ScheduleWindowRedraw(renderRegion);
+      Controller::Instance().Provenance("clip", "showclip", "enable");
+    }
   }
 }
 void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
-  m_bClipPlaneLocked = bRel;
+  m_bClipPlaneLocked = bRel;/// @todo: Make this per RenderRegion ?
 }
 
-void AbstrRenderer::SetSliceDepth(EWindowMode eWindow, UINT64 iSliceDepth) {
-  if (eWindow < WM_3D) {
-
-    RenderRegion *renderRegion = NULL;
-    if (m_eViewMode == VM_SINGLE)
-      renderRegion = &renderRegions[4];
-    else
-      renderRegion = &renderRegions[size_t(eWindow)+1];
-
+void AbstrRenderer::SetSliceDepth(UINT64 iSliceDepth, RenderRegion *renderRegion) {
+  if (Is2DWindowMode(renderRegion->windowMode)) {
     if (renderRegion->iSlice != iSliceDepth) {
       renderRegion->iSlice = iSliceDepth;
-      ScheduleWindowRedraw(eWindow);
-      if (m_bRenderPlanesIn3D) ScheduleWindowRedraw(WM_3D);
+      ScheduleWindowRedraw(renderRegion);
+      if (m_bRenderPlanesIn3D)
+        ScheduleCompleteRedraw();/// @todo: Replace with something that only
+                                 /// redraws relevant 3d windows.
     }
   }
 }
 
-UINT64 AbstrRenderer::GetSliceDepth(EWindowMode eWindow) const {
-    const RenderRegion *renderRegion = NULL;
-    if (m_eViewMode == VM_SINGLE)
-      renderRegion = &renderRegions[4];
-    else
-      renderRegion = &renderRegions[size_t(eWindow)+1];
-
-  if (eWindow < WM_3D)
+UINT64 AbstrRenderer::GetSliceDepth(const RenderRegion *renderRegion) const {
+  if (Is2DWindowMode(renderRegion->windowMode))
     return renderRegion->iSlice;
   else
     return 0;
 }
 
 void AbstrRenderer::SetGlobalBBox(bool bRenderBBox) {
-  m_bRenderGlobalBBox = bRenderBBox;
-  ScheduleWindowRedraw(WM_3D);
+  m_bRenderGlobalBBox = bRenderBBox; /// @todo: Make this per RenderRegion.
+  ScheduleCompleteRedraw();
   Controller::Instance().Provenance("boundingbox", "global_bbox");
 }
 
 void AbstrRenderer::SetLocalBBox(bool bRenderBBox) {
-  m_bRenderLocalBBox = bRenderBBox;
-  ScheduleWindowRedraw(WM_3D);
+  m_bRenderLocalBBox = bRenderBBox; /// @todo: Make this per RenderRegion.
+  ScheduleCompleteRedraw();
   Controller::Instance().Provenance("boundingbox", "local_bbox");
 }
 
@@ -538,32 +463,31 @@ void AbstrRenderer::ScheduleCompleteRedraw() {
   m_bPerformRedraw   = true;
   m_iCheckCounter    = m_iStartDelay;
 
-  for (size_t i=0; i < 5; ++i)
-    renderRegions[i].redrawMask = true;
+  for (size_t i=0; i < renderRegions.size(); ++i)
+    renderRegions[i]->redrawMask = true;
 }
 
 
-void AbstrRenderer::ScheduleWindowRedraw(EWindowMode eWindow) {
+void AbstrRenderer::ScheduleWindowRedraw(RenderRegion *renderRegion) {
   m_bPerformRedraw      = true;
   m_iCheckCounter       = m_iStartDelay;
-  if (m_eViewMode == VM_SINGLE)
-    renderRegions[4].redrawMask = true;
-  else
-    renderRegions[(size_t(eWindow)+1)%4].redrawMask = true;
+  renderRegion->redrawMask = true;
 }
 
-void AbstrRenderer::ScheduleRecompose() {
-  if(!m_bAvoidSeperateCompositing && // ensure we finished the current frame:
-     m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
-    m_bPerformReCompose = true;
-    if (m_eViewMode == VM_SINGLE)
-      renderRegions[4].redrawMask = true;
-    else
-      renderRegions[(size_t(WM_3D)+1)%4].redrawMask = true;
-  } else {
-    ScheduleWindowRedraw(WM_3D);
+void AbstrRenderer::ScheduleRecompose(RenderRegion *renderRegion) {
+  if (!renderRegion)
+    renderRegion = GetFirst3DRegion();
+  if (renderRegion) {
+    if(!m_bAvoidSeperateCompositing && // ensure we finished the current frame:
+       m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
+      m_bPerformReCompose = true;
+      renderRegion->redrawMask = true;
+    } else {
+      ScheduleWindowRedraw(renderRegion);
+    }
   }
 }
+
 
 void AbstrRenderer::CompletedASubframe() {
   bool bRenderingFirstSubFrame = (m_iCurrentLODOffset == m_iStartLODOffset) &&
@@ -693,7 +617,7 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
   vExtend /= vExtend.maxVal();
 
 
-  // TODO consider real extent not center
+  /// @todo consider real extent not center
 
   FLOATVECTOR3 vfCenter(0,0,0);
   m_iMinLODForCurrentView = max(int(m_iLODLimits.y), min<int>(m_pDataset->GetLODLevelCount()-1,
@@ -1042,14 +966,14 @@ void AbstrRenderer::SetCV(bool bEnable) {
   if (m_bDoClearView != bEnable) {
     m_bDoClearView = bEnable;
     if (m_eRenderMode == RM_ISOSURFACE)
-      ScheduleWindowRedraw(WM_3D);
+      ScheduleCompleteRedraw();
   }
 }
 
 void AbstrRenderer::SetIsosufaceColor(const FLOATVECTOR3& vColor) {
   m_vIsoColor = vColor;
   if (m_eRenderMode == RM_ISOSURFACE)
-    ScheduleRecompose();
+    ScheduleCompleteRedraw();
 }
 
 void AbstrRenderer::SetOrthoView(bool bOrthoView) {
@@ -1062,14 +986,19 @@ void AbstrRenderer::SetOrthoView(bool bOrthoView) {
 void AbstrRenderer::SetRenderCoordArrows(bool bRenderCoordArrows) {
   if (m_bRenderCoordArrows != bRenderCoordArrows) {
     m_bRenderCoordArrows = bRenderCoordArrows;
-    ScheduleWindowRedraw(WM_3D);
+    ScheduleCompleteRedraw();
   }
 }
 
-void AbstrRenderer::Set2DPlanesIn3DView(bool bRenderPlanesIn3D) {
-  if (m_bRenderPlanesIn3D != bRenderPlanesIn3D) {
-    m_bRenderPlanesIn3D = bRenderPlanesIn3D;
-    ScheduleWindowRedraw(WM_3D);
+void AbstrRenderer::Set2DPlanesIn3DView(bool bRenderPlanesIn3D,
+                                        RenderRegion *renderRegion) {
+  if (!renderRegion)
+    renderRegion = GetFirst3DRegion();
+  if (renderRegion) {
+    if (m_bRenderPlanesIn3D != bRenderPlanesIn3D) {
+      m_bRenderPlanesIn3D = bRenderPlanesIn3D;
+      ScheduleWindowRedraw(renderRegion);
+    }
   }
 }
 
@@ -1078,7 +1007,7 @@ void AbstrRenderer::SetCVIsoValue(float fIsovalue) {
     m_fCVIsovalue = fIsovalue;
 
     if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) {
-      ScheduleWindowRedraw(WM_3D);
+      ScheduleCompleteRedraw();
     }
     std::ostringstream prov;
     prov << fIsovalue;
@@ -1132,75 +1061,50 @@ void AbstrRenderer::SetLogoParams(string strLogoFilename, int iLogoPos) {
   m_iLogoPos        = iLogoPos;
 }
 
-void AbstrRenderer::Set2DFlipMode(EWindowMode eWindow, bool bFlipX, bool bFlipY) {
+void AbstrRenderer::Set2DFlipMode(bool bFlipX, bool bFlipY,
+                                  RenderRegion *renderRegion) {
   // flipping is only possible for 2D views
-  if (eWindow > WM_CORONAL) return;
-
-  RenderRegion *renderRegion = NULL;
-  if (m_eViewMode == VM_SINGLE)
-    renderRegion = &renderRegions[4];
-  else
-    renderRegion = &renderRegions[size_t(eWindow)+1];
+  if (renderRegion->windowMode > WM_CORONAL) return;
 
   renderRegion->flipView= VECTOR2<bool>(bFlipX, bFlipY);
-  ScheduleWindowRedraw(eWindow);
+  ScheduleWindowRedraw(renderRegion);
 }
 
-void AbstrRenderer::Get2DFlipMode(EWindowMode eWindow, bool& bFlipX, bool& bFlipY) const {
+void AbstrRenderer::Get2DFlipMode(bool& bFlipX, bool& bFlipY,
+                                  const RenderRegion *renderRegion) const {
   // flipping is only possible for 2D views
-  if (eWindow > WM_CORONAL) return;
-
-  const RenderRegion *renderRegion = NULL;
-  if (m_eViewMode == VM_SINGLE)
-    renderRegion = &renderRegions[4];
-  else
-    renderRegion = &renderRegions[size_t(eWindow)+1];
+  if (renderRegion->windowMode > WM_CORONAL) return;
 
   bFlipX = renderRegion->flipView.x;
   bFlipY = renderRegion->flipView.y;
 }
 
-bool AbstrRenderer::GetUseMIP(EWindowMode eWindow) const {
+bool AbstrRenderer::GetUseMIP(const RenderRegion *renderRegion) const {
   // MIP is only possible for 2D views
-  if (eWindow > WM_CORONAL)
-    return false;
-
-  const RenderRegion *renderRegion = NULL;
-  if (m_eViewMode == VM_SINGLE)
-    renderRegion = &renderRegions[4];
-  else
-    renderRegion = &renderRegions[size_t(eWindow)+1];
-
-    return renderRegion->useMIP;
+  if (renderRegion->windowMode > WM_CORONAL) return false;
+  return renderRegion->useMIP;
 }
 
-void AbstrRenderer::SetUseMIP(EWindowMode eWindow, bool bUseMIP) {
+void AbstrRenderer::SetUseMIP(bool bUseMIP, RenderRegion *renderRegion) {
   // MIP is only possible for 2D views
-  if (eWindow > WM_CORONAL) return;
-
-  RenderRegion *renderRegion = NULL;
-  if (m_eViewMode == VM_SINGLE)
-    renderRegion = &renderRegions[4];
-  else
-    renderRegion = &renderRegions[size_t(eWindow)+1];
-
+  if (renderRegion->windowMode > WM_CORONAL) return;
   renderRegion->useMIP = bUseMIP;
-  ScheduleWindowRedraw(eWindow);
+  ScheduleWindowRedraw(renderRegion);
 }
 
 void AbstrRenderer::SetStereo(bool bStereoRendering) {
   m_bRequestStereoRendering = bStereoRendering;
-  ScheduleWindowRedraw(WM_3D);
+  ScheduleCompleteRedraw();
 }
 
 void AbstrRenderer::SetStereoEyeDist(float fStereoEyeDist) {
   m_fStereoEyeDist = fStereoEyeDist;
-  if (m_bDoStereoRendering) ScheduleWindowRedraw(WM_3D);
+  if (m_bDoStereoRendering) ScheduleCompleteRedraw();
 }
 
 void AbstrRenderer::SetStereoFocalLength(float fStereoFocalLength) {
   m_fStereoFocalLength = fStereoFocalLength;
-  if (m_bDoStereoRendering) ScheduleWindowRedraw(WM_3D);
+  if (m_bDoStereoRendering) ScheduleCompleteRedraw();
 }
 
 void AbstrRenderer::CVFocusHasChanged() {
@@ -1247,7 +1151,7 @@ void AbstrRenderer::SetColors(const FLOATVECTOR4& ambient,
   m_cSpecular = specular;
 
   UpdateColorsInShaders();
-  if (m_bUseLighting) ScheduleWindowRedraw(WM_3D);
+  if (m_bUseLighting) ScheduleCompleteRedraw();
 }
 
 FLOATVECTOR4 AbstrRenderer::GetAmbient() const {

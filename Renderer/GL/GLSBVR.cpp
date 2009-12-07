@@ -194,18 +194,18 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
   }
 }
 
-void GLSBVR::EnableClipPlane() {
+void GLSBVR::EnableClipPlane(RenderRegion *renderRegion) {
   if(!m_bClipPlaneOn) {
-    AbstrRenderer::EnableClipPlane();
+    AbstrRenderer::EnableClipPlane(renderRegion);
     m_SBVRGeogen.EnableClipPlane();
     PLANE<float> plane(m_ClipPlane.Plane());
     m_SBVRGeogen.SetClipPlane(plane);
   }
 }
 
-void GLSBVR::DisableClipPlane() {
+void GLSBVR::DisableClipPlane(RenderRegion *renderRegion) {
   if(m_bClipPlaneOn) {
-    AbstrRenderer::DisableClipPlane();
+    AbstrRenderer::DisableClipPlane(renderRegion);
     m_SBVRGeogen.DisableClipPlane();
   }
 }
