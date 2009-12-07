@@ -409,6 +409,7 @@ class AbstrRenderer {
     virtual INTVECTOR2 GetCVFocusPos() const {return m_vCVMousePos;}
 
     virtual void ScheduleCompleteRedraw();
+    virtual void Schedule3DWindowRedraws(); // Redraw all 3D windows.
     virtual void ScheduleWindowRedraw(RenderRegion *renderRegion);
 
     void SetAvoidSeperateCompositing(bool bAvoidSeperateCompositing) {

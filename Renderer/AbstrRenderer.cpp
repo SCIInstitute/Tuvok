@@ -220,7 +220,7 @@ void AbstrRenderer::SetRendermode(ERenderMode eRenderMode)
 void AbstrRenderer::SetUseLighting(bool bUseLighting) {
   if (m_bUseLighting != bUseLighting) {
     m_bUseLighting = bUseLighting;
-    ScheduleCompleteRedraw(); /// @todo: only redraw 3D regions.
+    Schedule3DWindowRedraws();
     Controller::Instance().Provenance("light", "lighting");
   }
 }
@@ -292,14 +292,14 @@ void AbstrRenderer::Changed2DTrans() {
 void AbstrRenderer::SetSampleRateModifier(float fSampleRateModifier) {
   if(m_fSampleRateModifier != fSampleRateModifier) {
     m_fSampleRateModifier = fSampleRateModifier;
-    ScheduleCompleteRedraw(); /// @todo: only redraw 3D regions.
+    Schedule3DWindowRedraws();
   }
 }
 
 void AbstrRenderer::SetIsoValue(float fIsovalue) {
   if(fIsovalue != m_fIsovalue) {
     m_fIsovalue = fIsovalue;
-    ScheduleCompleteRedraw(); /// @todo: only redraw 3D regions.
+    Schedule3DWindowRedraws();
   }
 }
 
@@ -434,8 +434,7 @@ void AbstrRenderer::SetSliceDepth(UINT64 iSliceDepth, RenderRegion *renderRegion
       renderRegion->iSlice = iSliceDepth;
       ScheduleWindowRedraw(renderRegion);
       if (m_bRenderPlanesIn3D)
-        ScheduleCompleteRedraw();/// @todo: Replace with something that only
-                                 /// redraws relevant 3d windows.
+        Schedule3DWindowRedraws();
     }
   }
 }
@@ -449,13 +448,13 @@ UINT64 AbstrRenderer::GetSliceDepth(const RenderRegion *renderRegion) const {
 
 void AbstrRenderer::SetGlobalBBox(bool bRenderBBox) {
   m_bRenderGlobalBBox = bRenderBBox; /// @todo: Make this per RenderRegion.
-  ScheduleCompleteRedraw();
+  Schedule3DWindowRedraws();
   Controller::Instance().Provenance("boundingbox", "global_bbox");
 }
 
 void AbstrRenderer::SetLocalBBox(bool bRenderBBox) {
   m_bRenderLocalBBox = bRenderBBox; /// @todo: Make this per RenderRegion.
-  ScheduleCompleteRedraw();
+  Schedule3DWindowRedraws();
   Controller::Instance().Provenance("boundingbox", "local_bbox");
 }
 
@@ -467,6 +466,14 @@ void AbstrRenderer::ScheduleCompleteRedraw() {
     renderRegions[i]->redrawMask = true;
 }
 
+void AbstrRenderer::Schedule3DWindowRedraws() {
+  m_bPerformRedraw   = true;
+  m_iCheckCounter    = m_iStartDelay;
+
+  for (size_t i=0; i < renderRegions.size(); ++i)
+    if (renderRegions[i]->windowMode == WM_3D)
+      renderRegions[i]->redrawMask = true;
+}
 
 void AbstrRenderer::ScheduleWindowRedraw(RenderRegion *renderRegion) {
   m_bPerformRedraw      = true;
@@ -966,14 +973,14 @@ void AbstrRenderer::SetCV(bool bEnable) {
   if (m_bDoClearView != bEnable) {
     m_bDoClearView = bEnable;
     if (m_eRenderMode == RM_ISOSURFACE)
-      ScheduleCompleteRedraw();
+      Schedule3DWindowRedraws();
   }
 }
 
 void AbstrRenderer::SetIsosufaceColor(const FLOATVECTOR3& vColor) {
   m_vIsoColor = vColor;
   if (m_eRenderMode == RM_ISOSURFACE)
-    ScheduleCompleteRedraw();
+    ScheduleRecompose();
 }
 
 void AbstrRenderer::SetOrthoView(bool bOrthoView) {
@@ -986,7 +993,7 @@ void AbstrRenderer::SetOrthoView(bool bOrthoView) {
 void AbstrRenderer::SetRenderCoordArrows(bool bRenderCoordArrows) {
   if (m_bRenderCoordArrows != bRenderCoordArrows) {
     m_bRenderCoordArrows = bRenderCoordArrows;
-    ScheduleCompleteRedraw();
+    Schedule3DWindowRedraws();
   }
 }
 
@@ -1007,7 +1014,7 @@ void AbstrRenderer::SetCVIsoValue(float fIsovalue) {
     m_fCVIsovalue = fIsovalue;
 
     if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE) {
-      ScheduleCompleteRedraw();
+      Schedule3DWindowRedraws();
     }
     std::ostringstream prov;
     prov << fIsovalue;
@@ -1094,17 +1101,17 @@ void AbstrRenderer::SetUseMIP(bool bUseMIP, RenderRegion *renderRegion) {
 
 void AbstrRenderer::SetStereo(bool bStereoRendering) {
   m_bRequestStereoRendering = bStereoRendering;
-  ScheduleCompleteRedraw();
+  Schedule3DWindowRedraws();
 }
 
 void AbstrRenderer::SetStereoEyeDist(float fStereoEyeDist) {
   m_fStereoEyeDist = fStereoEyeDist;
-  if (m_bDoStereoRendering) ScheduleCompleteRedraw();
+  if (m_bDoStereoRendering) Schedule3DWindowRedraws();
 }
 
 void AbstrRenderer::SetStereoFocalLength(float fStereoFocalLength) {
   m_fStereoFocalLength = fStereoFocalLength;
-  if (m_bDoStereoRendering) ScheduleCompleteRedraw();
+  if (m_bDoStereoRendering) Schedule3DWindowRedraws();
 }
 
 void AbstrRenderer::CVFocusHasChanged() {
@@ -1151,7 +1158,7 @@ void AbstrRenderer::SetColors(const FLOATVECTOR4& ambient,
   m_cSpecular = specular;
 
   UpdateColorsInShaders();
-  if (m_bUseLighting) ScheduleCompleteRedraw();
+  if (m_bUseLighting) Schedule3DWindowRedraws();
 }
 
 FLOATVECTOR4 AbstrRenderer::GetAmbient() const {
