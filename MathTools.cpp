@@ -36,6 +36,7 @@
 */
 
 #include "MathTools.h"
+#include <algorithm>
 
 UINT32 MathTools::Log(UINT32 value, UINT32 base) {
   return UINT32(log(float(value)) / log(float(base)));
@@ -90,3 +91,16 @@ UINT32 MathTools::NextPow2(UINT32 n, bool bReturn_ID_on_Pow2) {
     if (bReturn_ID_on_Pow2 && IsPow2(n)) return n;
     return Pow2(Log2(n)+1);
 }
+
+float MathTools::Clamp(float val, float a, float b) {
+  return std::max(a, std::min(b, val));
+}
+
+UINT32 MathTools::Clamp(UINT32 val, UINT32 a, UINT32 b) {
+  return std::max(a, std::min(b, val));
+}
+
+UINT64 MathTools::Clamp(UINT64 val, UINT64 a, UINT64 b) {
+  return std::max(a, std::min(b, val));
+}
+

@@ -86,6 +86,10 @@ namespace MathTools {
     return ret;
   }
 
+  float Clamp(float val, float a, float b);
+  UINT32 Clamp(UINT32 val, UINT32 a, UINT32 b);
+  UINT64 Clamp(UINT64 val, UINT64 a, UINT64 b);
+
 };
 
 #endif // MATHTOOLS_H
