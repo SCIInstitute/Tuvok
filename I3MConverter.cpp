@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -53,9 +53,9 @@ I3MConverter::I3MConverter()
   m_vSupportedExt.push_back("I3M");
 }
 
-bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename, 
+bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir, bool,
-                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
+                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
@@ -67,7 +67,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   eType             = UVFTables::ES_UNDEFINED;
   strTitle          = "ImageVis3D Mobile data";
   iHeaderSkip       = 0;
-  
+
   // I3M files are always four component 8bit little endian
   // unsigned, whereas the first 3 component of the vector
   // are the normalized gradient/normal and the fourth is the
@@ -113,7 +113,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
   MESSAGE("I3M Version OK");
 
-  // get volume size -> every dimension must be MAX_I3M_VOLSIZE or less 
+  // get volume size -> every dimension must be MAX_I3M_VOLSIZE or less
   I3MFile.ReadData(vVolumeSize.x, false);
   I3MFile.ReadData(vVolumeSize.y, false);
   I3MFile.ReadData(vVolumeSize.z, false);
@@ -125,16 +125,16 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   MESSAGE("Volume Size (%i x %i x %i) in I3M file OK", int(vVolumeSize.x), int(vVolumeSize.y), int(vVolumeSize.z));
 
   // at this point we can check if the file has the correct size
-  if (  8*4                     /* eight 32bit fields in the header */ 
-      + 4*vVolumeSize.volume()  /* four component 8bit volume */ 
+  if (  8*4                     /* eight 32bit fields in the header */
+      + 4*vVolumeSize.volume()  /* four component 8bit volume */
       != ulFileLength) {
     I3MFile.Close();
     T_ERROR("The size of the I3M file %s does not match the information in its header.", strSourceFilename.c_str());
     return false;
   }
   MESSAGE("File Size (%i) of I3M file OK", int(ulFileLength));
-  
-  // get volume aspect 
+
+  // get volume aspect
   I3MFile.ReadData(vVolumeAspect.x, false);
   I3MFile.ReadData(vVolumeAspect.y, false);
   I3MFile.ReadData(vVolumeAspect.z, false);
@@ -155,7 +155,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
     return false;
   }
 
- 
+
   unsigned char* pData = new unsigned char[4*size_t(vVolumeSize.volume())];
   // read the 4D vectors
   I3MFile.ReadRAW(pData, 4*vVolumeSize.volume());
@@ -201,7 +201,7 @@ void I3MConverter::Compute8BitGradientVolumeInCore(unsigned char* pSourceData, u
         FLOATVECTOR3 vGradient((float(pSourceData[iLeft]) -float(pSourceData[iRight]) )/(255*vScale.x),
                                (float(pSourceData[iTop])  -float(pSourceData[iBottom]))/(255*vScale.y),
                                (float(pSourceData[iFront])-float(pSourceData[iBack])  )/(255*vScale.z));
-        // safe normalize 
+        // safe normalize
         vGradient.normalize(0);
 
         // quantize to 8bit
@@ -233,7 +233,7 @@ void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDense
 
         for (size_t w = 0;w<size_t(vDSFactor[2]);w++) {
           for (size_t v = 0;v<size_t(vDSFactor[1]);v++) {
-            for (size_t u = 0;u<size_t(vDSFactor[0]);u++) {            
+            for (size_t u = 0;u<size_t(vDSFactor[0]);u++) {
                 iSourceIndex = size_t((x*vDSFactor[0]+u) + (y*vDSFactor[1]+v) * vVolumeSize[0] + (z*vDSFactor[2]+w) * vVolumeSize[0] * vVolumeSize[1]);
                 SourceRAWFile.Read<unsigned char>(&cValue, 1, iSourceIndex, 0);
                 fAccValue += cValue;
@@ -249,10 +249,10 @@ void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDense
   }
 }
 
-bool I3MConverter::ConvertToNative(const std::string& strRawFilename, 
+bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
                                    const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                    UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
-                                   bool bFloatingPoint, UINT64VECTOR3 vVolumeSize, 
+                                   bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                                    FLOATVECTOR3 vVolumeAspect, bool ) {
 
   // some fitness checks first
@@ -269,10 +269,10 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   if (iComponentSize!=8 || bSigned) {
     str8BitFilename = strTargetFilename+".tmp";
 
-	  switch (iComponentSize) {
+      switch (iComponentSize) {
       case 8 :
         if (bFloatingPoint) {
-          T_ERROR("Unsupported data format"); 
+          T_ERROR("Unsupported data format");
           return false;
         }
         str8BitFilename = Process8Bits(iHeaderSkip,
@@ -283,30 +283,30 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
         break;
       case 16 :
         if (bFloatingPoint) {
-          T_ERROR("Unsupported data format"); 
+          T_ERROR("Unsupported data format");
           return false;
         }
-        str8BitFilename = QuantizeShortTo8Bits(iHeaderSkip, 
+        str8BitFilename = QuantizeShortTo8Bits(iHeaderSkip,
                                                strRawFilename,
                                                str8BitFilename,
                                                vVolumeSize.volume(),
                                                bSigned);
         break;
-		  case 32 :	
+          case 32 :
         if (bFloatingPoint)
           str8BitFilename = QuantizeFloatTo8Bits(iHeaderSkip,
                                                  strRawFilename,
                                                  str8BitFilename,
                                                  vVolumeSize.volume());
         else
-          str8BitFilename = QuantizeIntTo8Bits(iHeaderSkip, 
+          str8BitFilename = QuantizeIntTo8Bits(iHeaderSkip,
                                                strRawFilename,
                                                str8BitFilename,
                                                vVolumeSize.volume(),
                                                bSigned);
         break;
-		  case 64 :	
-        if (bFloatingPoint) 
+          case 64 :
+        if (bFloatingPoint)
           str8BitFilename = QuantizeDoubleTo8Bits(iHeaderSkip,
                                                   strRawFilename,
                                                   str8BitFilename,
@@ -329,21 +329,21 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
     str8BitFilename = strRawFilename;
     bDelte8BitFile = false;
   }
-                                     
-  // next check is size of the volume, if a dimension is bigger than 
+
+  // next check is size of the volume, if a dimension is bigger than
   // MAX_I3M_VOLSIZE -> downsample the volume, otherwise simply copy
 
   LargeRAWFile UCharDataFile(str8BitFilename, iHeaderSkip);
   UCharDataFile.Open(false);
 
   if (!UCharDataFile.IsOpen()) {
-    if (bDelte8BitFile) 
+    if (bDelte8BitFile)
       T_ERROR("Unable to open temp file for reading %s", str8BitFilename.c_str());
     else
       T_ERROR("Unable to open input file for reading %s", str8BitFilename.c_str());
     return false;
   }
- 
+
   FLOATVECTOR3 vfDownSampleFactor = FLOATVECTOR3(vVolumeSize)/float(MAX_I3M_VOLSIZE);
 
   unsigned char* pDenseData = NULL;
@@ -355,8 +355,8 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
     UCharDataFile.ReadRAW(pDenseData, vI3MVolumeSize.volume());
   } else {
     // volume has to be downsampled
-    UINT64VECTOR3 viDownSampleFactor(UINT64(ceil(vfDownSampleFactor.x)), 
-                                   UINT64(ceil(vfDownSampleFactor.y)), 
+    UINT64VECTOR3 viDownSampleFactor(UINT64(ceil(vfDownSampleFactor.x)),
+                                   UINT64(ceil(vfDownSampleFactor.y)),
                                    UINT64(ceil(vfDownSampleFactor.z)));
     vI3MVolumeSize = vVolumeSize/viDownSampleFactor;
     pDenseData = new unsigned char[size_t(vI3MVolumeSize.volume())];
@@ -366,7 +366,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
     // adjust aspect ratio
     vVolumeAspect *= FLOATVECTOR3(vVolumeSize) / FLOATVECTOR3(vI3MVolumeSize);
   }
-  UCharDataFile.Close();  
+  UCharDataFile.Close();
   if (bDelte8BitFile) UCharDataFile.Delete();
 
   // compute the gradients and expand data to vector format

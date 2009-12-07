@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -49,7 +49,7 @@ VFFConverter::VFFConverter()
 
 bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
                                 const std::string&, bool,
-                                UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
+                                UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
                                 bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                 FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                                 UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
@@ -57,7 +57,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   MESSAGE("Attempting to convert VFF dataset %s", strSourceFilename.c_str());
 
   // Check Magic value in VFF File first
-  ifstream fileData(strSourceFilename.c_str());  
+  ifstream fileData(strSourceFilename.c_str());
   string strFirstLine;
 
   if (fileData.is_open())
@@ -87,7 +87,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   // read data
   string strHeaderEnd;
-  strHeaderEnd.push_back(12);  // header end char of vffs is ^L = 0C = 12 
+  strHeaderEnd.push_back(12);  // header end char of vffs is ^L = 0C = 12
 
   KeyValueFileParser parser(strSourceFilename, false, "=", strHeaderEnd);
 
@@ -181,9 +181,9 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool) {
-                           
+
   // create header textfile from metadata
-  ofstream fAsciiTarget(strTargetFilename.c_str());  
+  ofstream fAsciiTarget(strTargetFilename.c_str());
   if (!fAsciiTarget.is_open()) {
     T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
     return false;
@@ -205,7 +205,7 @@ bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std:
 
   // add the ^L header delimiter
   string strHeaderEnd;
-  strHeaderEnd.push_back(12);  // header end char of vffs is ^L = 0C = 12 
+  strHeaderEnd.push_back(12);  // header end char of vffs is ^L = 0C = 12
   fAsciiTarget << strHeaderEnd << endl;
   fAsciiTarget.close();
 

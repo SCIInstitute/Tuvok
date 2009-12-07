@@ -4,7 +4,7 @@
    Copyright (c) 2009 Institut of Mechanics and Fluid Dynamics,
    TU Bergakademie Freiberg.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -27,7 +27,7 @@
 /**
   \file    REKConverter.cpp
   \author  Andre Liebscher
-           Institut of Mechanics and Fluid Dynamics 
+           Institut of Mechanics and Fluid Dynamics
            TU Bergakademie Freiberg
   \date    March 2009
 */
@@ -81,7 +81,7 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
     return false;
   }
   fileData.close();
-  
+
   // standard values which are always true (I guess)
   strTitle = "Fraunhofer EZRT";
   eType = UVFTables::ES_UNDEFINED;
@@ -91,11 +91,11 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
   iComponentCount = 1;
   strIntermediateFile = strSourceFilename;
   bDeleteIntermediateFile = false;
-  
+
   // read file format from header - first try to guess endieness from offset 4-5 (bits per pixel)
   // Anyway, I do not think that anyone would ever encounter such a file stored in big endian encoding.
   bConvertEndianess = Parse<boost::uint16_t, 2>( &buffer[4] ) > 32;
-  
+
   vVolumeSize[0] = Parse<boost::uint16_t, 2>( &buffer[0], bConvertEndianess );
   vVolumeSize[1] = Parse<boost::uint16_t, 2>( &buffer[2], bConvertEndianess );
   vVolumeSize[2] = Parse<boost::uint16_t, 2>( &buffer[6], bConvertEndianess );
@@ -109,7 +109,7 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
 bool
 REKConverter::ConvertToNative(const std::string&,
                                      const std::string&,
-                                     UINT64, UINT64, 
+                                     UINT64, UINT64,
                                      UINT64, bool,
                                      bool,
                                      UINT64VECTOR3,

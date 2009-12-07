@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -50,9 +50,9 @@ NRRDConverter::NRRDConverter()
   m_vSupportedExt.push_back("NHDR");
 }
 
-bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename, 
+bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
                                  const std::string& strTempDir, bool,
-                                 UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
+                                 UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
                                  bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                  FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                                  UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
@@ -190,12 +190,12 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     strRAWFile = strSourceFilename;
     bDetachedHeader = false;
   } else {
-    if (kvpDataFile1 && kvpDataFile2 && kvpDataFile1->strValue != kvpDataFile2->strValue) 
+    if (kvpDataFile1 && kvpDataFile2 && kvpDataFile1->strValue != kvpDataFile2->strValue)
       WARNING( "Found different 'data file' and 'datafiel' fields, using 'datafile'.");
 
     if (kvpDataFile1) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile1->strValue;
     if (kvpDataFile2) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile2->strValue;
-    
+
     iHeaderSkip = 0;
     bDetachedHeader = true;
   }
@@ -211,7 +211,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       }
     }
   }
-  
+
   int iLineSkip = 0;
   int iByteSkip = 0;
   KeyValPair* kvpLineSkip1 = parser.GetData("LINE SKIP");
@@ -219,7 +219,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvpLineSkip2 = parser.GetData("LINESKIP");
   if (kvpLineSkip2 != NULL) {
-    if (kvpLineSkip1 != NULL && iLineSkip != kvpLineSkip2->iValue) 
+    if (kvpLineSkip1 != NULL && iLineSkip != kvpLineSkip2->iValue)
       WARNING( "Found different 'line skip' and 'lineskip' fields, using 'lineskip'.");
     iLineSkip = kvpLineSkip2->iValue;
   }
@@ -229,7 +229,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   KeyValPair* kvpByteSkip2 = parser.GetData("BYTESKIP");
   if (kvpByteSkip2 != NULL) {
-    if (kvpByteSkip1 != NULL && iByteSkip != kvpByteSkip2->iValue) 
+    if (kvpByteSkip1 != NULL && iByteSkip != kvpByteSkip2->iValue)
       WARNING( "Found different 'byte skip' and 'byteskip' fields, using 'byteskip'.");
     iByteSkip = kvpByteSkip2->iValue;
   }
@@ -246,7 +246,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   std::streamoff iLineSkipBytes = 0;
   if (iLineSkip != 0) {
-    ifstream fileData(strRAWFile.c_str(),ios::binary);  
+    ifstream fileData(strRAWFile.c_str(),ios::binary);
     string line;
     if (fileData.is_open()) {
       int i = 0;
@@ -258,7 +258,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
           break;
         }
       }
-      if (iLineSkipBytes == 0) 
+      if (iLineSkipBytes == 0)
         WARNING( "Invalid 'line skip', file to short, ignoring 'line skip'.");
       fileData.close();
     } else {
@@ -289,7 +289,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         iHeaderSkip = iSize - (iComponentSize/8 * iComponentCount * UINT64(vVolumeSize.volume()));
       } else {
         if (iByteSkip != 0) {
-          if (bDetachedHeader) 
+          if (bDetachedHeader)
             iHeaderSkip = iByteSkip;
           else {
             WARNING( "Skip value in attached header found.");
@@ -304,7 +304,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       bDeleteIntermediateFile = false;
       return true;
     } else {
-      if (iByteSkip == -1) 
+      if (iByteSkip == -1)
         WARNING( "Found illegal -1 'byte skip' in non RAW mode, ignoring 'byte skip'.");
 
       if (kvpEncoding->strValueUpper == "TXT" || kvpEncoding->strValueUpper == "TEXT" || kvpEncoding->strValueUpper == "ASCII")  {
@@ -351,7 +351,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
 bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction) {
-  
+
   bool bDetached = SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)) == "nhdr";
 
   // compute fromat string
@@ -391,11 +391,11 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
   if (!bFormatOK) {
     T_ERROR("This data type is not supported by NRRD files.");
     return false;
-  }                               
-                               
+  }
+
   // create header textfile from metadata
 
-  ofstream fAsciiTarget(strTargetFilename.c_str());  
+  ofstream fAsciiTarget(strTargetFilename.c_str());
   if (!fAsciiTarget.is_open()) {
     T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
     return false;
@@ -431,7 +431,7 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     // add the "empty line" header delimiter
     fAsciiTarget << endl;
     fAsciiTarget.close();
- 
+
     // append RAW data using the parent's call
     bool bRAWSuccess = AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize);
 

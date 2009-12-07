@@ -96,8 +96,8 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
 
   if (m_pDatasetFile->ms_ulReaderVersion != m_pDatasetFile->GetGlobalHeader().ulFileVersion) {
     // bMustBeSameVersion must not be set otherwise Open would have thrown an error
-    WARNING("WARNING: Opening UVF file with a version (%u) different from this program's (%u)!!!", 
-              unsigned(m_pDatasetFile->ms_ulReaderVersion), 
+    WARNING("WARNING: Opening UVF file with a version (%u) different from this program's (%u)!!!",
+              unsigned(m_pDatasetFile->ms_ulReaderVersion),
               unsigned(m_pDatasetFile->GetGlobalHeader().ulFileVersion));
   }
 
@@ -106,7 +106,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
   if (m_iRasterBlockIndex == UINT64(-1)) {
     T_ERROR("No suitable volume block found in UVF file.  Check previous messages for rejected blocks.");
     return false;
-  } 
+  }
   MESSAGE("Open successfully found a suitable data block in the UVF file.");
   m_pVolumeDataBlock = static_cast<const RasterDataBlock*>
                              (m_pDatasetFile->GetDataBlock(m_iRasterBlockIndex));
@@ -301,7 +301,7 @@ BrickTable::size_type UVFDataset::GetBrickCount(size_t lod) const
 }
 
 
-UINT64VECTOR3 UVFDataset::GetDomainSize(const size_t lod) const 
+UINT64VECTOR3 UVFDataset::GetDomainSize(const size_t lod) const
 {
   return m_aDomainSize[lod];
 }
@@ -481,7 +481,7 @@ UVFDataset::GetBrick(const BrickKey& k,
   return m_pVolumeDataBlock->GetData(vData, key.first, key.second);
 }
 
-std::vector<UINT64> 
+std::vector<UINT64>
 UVFDataset::IndexToVector(const BrickKey &k) const {
   std::vector<UINT64> vBrick;
 
@@ -577,7 +577,7 @@ std::pair<double,double> UVFDataset::GetRange() {
 }
 
 
-bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const 
+bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
 {
   // if we have no max min data we have to assume that every block is visible
   if(NULL == m_pMaxMinData) {return true;}
@@ -601,7 +601,7 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
 
-bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const 
+bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const
 {
   // if we have no max min data we have to assume that every block is visible
   if(NULL == m_pMaxMinData) {return true;}

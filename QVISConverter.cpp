@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -49,9 +49,9 @@ QVISConverter::QVISConverter()
   m_vSupportedExt.push_back("DAT");
 }
 
-bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename, 
+bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
                             const std::string&, bool,
-                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
+                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
@@ -62,13 +62,13 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
   bDeleteIntermediateFile = false;
   eType             = UVFTables::ES_UNDEFINED;
   strTitle          = "Qvis data";
-  iHeaderSkip       = 0; 
+  iHeaderSkip       = 0;
   iComponentSize    = 8;
   iComponentCount   = 1;
   bSigned           = false;
-  /// \todo  detect big endian DAT/RAW combinations and set the conversion 
-  ///        parameter accordingly instead of always assuming it is little 
-  ///        endian and thus converting if the machine is big endian 
+  /// \todo  detect big endian DAT/RAW combinations and set the conversion
+  ///        parameter accordingly instead of always assuming it is little
+  ///        endian and thus converting if the machine is big endian
   bConvertEndianess = EndianConvert::IsBigEndian();
 
   KeyValueFileParser parser(strSourceFilename);
@@ -114,15 +114,15 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
     KeyValPair* objectfilename = parser.GetData("OBJECTFILENAME");
     if (objectfilename == NULL) {
       WARNING("This is not a valid QVIS dat file.");
-      return false; 
+      return false;
     } else
         strIntermediateFile = objectfilename->strValue;
 
     KeyValPair* resolution = parser.GetData("RESOLUTION");
     if (resolution == NULL || resolution->vuiValue.size() != 3) {
       WARNING("This is not a valid QVIS dat file.");
-      return false; 
-    } else 
+      return false;
+    } else
       vVolumeSize = UINT64VECTOR3(resolution->vuiValue);
 
     KeyValPair* sliceThickness = parser.GetData("SLICETHICKNESS");
@@ -150,29 +150,29 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   if (bFloatingPoint && bSigned && iComponentSize == 32 && iComponentCount == 1)
     strFormat = "FLOAT";
   else
-  if (!bFloatingPoint && bSigned && iComponentSize == 8 && iComponentCount == 1) 
+  if (!bFloatingPoint && bSigned && iComponentSize == 8 && iComponentCount == 1)
     strFormat = "CHAR";
   else
-  if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 1) 
+  if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 1)
     strFormat = "UCHAR";
   else
-  if (!bFloatingPoint && bSigned && iComponentSize == 16 && iComponentCount == 1) 
+  if (!bFloatingPoint && bSigned && iComponentSize == 16 && iComponentCount == 1)
     strFormat = "SHORT";
   else
-  if (!bFloatingPoint && !bSigned && iComponentSize == 16 && iComponentCount == 1) 
+  if (!bFloatingPoint && !bSigned && iComponentSize == 16 && iComponentCount == 1)
     strFormat = "USHORT";
   else
-  if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 4) 
+  if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 4)
     strFormat = "UCHAR4";
   else {
     T_ERROR("This data type is not supported by QVIS DAT/RAW files.");
     return false;
-  }                               
-                               
+  }
+
   // create DAT textfile from metadata
   string strTargetRAWFilename = strTargetFilename+".raw";
 
-  ofstream fTarget(strTargetFilename.c_str());  
+  ofstream fTarget(strTargetFilename.c_str());
   if (!fTarget.is_open()) {
     T_ERROR("Unable to open target file %s.", strTargetFilename.c_str());
     return false;

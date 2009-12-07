@@ -62,13 +62,13 @@ class AbstrConverter {
 public:
   virtual ~AbstrConverter() {}
 
-  virtual bool ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename, 
+  virtual bool ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename,
                             const std::string& strTempDir,
                             bool bNoUserInteraction) = 0;
 
-  virtual bool ConvertToRAW(const std::string& strSourceFilename, 
-                            const std::string& strTempDir, bool bNoUserInteraction,                                                       
-                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount, 
+  virtual bool ConvertToRAW(const std::string& strSourceFilename,
+                            const std::string& strTempDir, bool bNoUserInteraction,
+                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
@@ -79,9 +79,9 @@ public:
                                UINT64VECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect,
                                bool bNoUserInteraction) = 0;
 
-  virtual bool Analyze(const std::string& strSourceFilename, const std::string& strTempDir, 
+  virtual bool Analyze(const std::string& strSourceFilename, const std::string& strTempDir,
                        bool bNoUserInteraction, RangeInfo& info) = 0;
-  
+
   const std::vector<std::string>& SupportedExt() {return m_vSupportedExt;}
   virtual const std::string& GetDesc() {return m_vConverterDesc;}
 

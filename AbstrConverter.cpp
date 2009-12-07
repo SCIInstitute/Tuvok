@@ -910,10 +910,10 @@ AbstrConverter::QuantizeFloatTo8Bits(UINT64 iHeaderSkip,
 }
 
 const std::string
-AbstrConverter::QuantizeDoubleTo8Bits(UINT64 iHeaderSkip, 
-                                      const std::string& strFilename, 
+AbstrConverter::QuantizeDoubleTo8Bits(UINT64 iHeaderSkip,
+                                      const std::string& strFilename,
                                       const std::string& strTargetFilename,
-                                      UINT64 iSize, 
+                                      UINT64 iSize,
                                       Histogram1DDataBlock* Histogram1D) {
   /// \todo doing 2 quantizations is neither the most efficient nor the numerically best way
   ///       but it will do the trick until we templatize these methods

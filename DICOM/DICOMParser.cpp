@@ -48,7 +48,7 @@
   #define DICOM_DBG(...) Console::printf(__VA_ARGS__)
   #include <sstream>
 #else
-  #define DICOM_DBG(...) 
+  #define DICOM_DBG(...)
 #endif
 
 #ifdef DEBUG_DICOM
@@ -298,7 +298,7 @@ void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& , short& 
             ParseUndefLengthSequence(fileDICOM, iGroupID, iElementID, info, bImplicit, bNeedsEndianConversion);
           #endif
         } else {
-          if(iData > 0) {            
+          if(iData > 0) {
             value.resize(iData);
             fileDICOM.read(&value[0],iData);
             #ifdef DEBUG_DICOM
@@ -391,7 +391,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
               MESSAGE("Metaheader length field is invalid.");
               return false;
             }
-            int iMetaHeaderLength;            
+            int iMetaHeaderLength;
             fileDICOM.read((char*)&iMetaHeaderLength,4);
             iMetaHeaderEnd  = iMetaHeaderLength + UINT32(fileDICOM.tellg());
            } break;
@@ -443,7 +443,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
               return false; // unsupported file format
             }
             fileDICOM.seekg(iMetaHeaderEnd, std::ios_base::beg);
-            bParsingMetaHeader = false;            
+            bParsingMetaHeader = false;
            } break;
       default : {
         value.resize(iElemLength);

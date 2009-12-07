@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -30,7 +30,7 @@
 #include "gzio.h"
 
 #ifdef WIN32
-  #pragma warning( disable : 4706) // disable "assignment in conditional" warning 
+  #pragma warning( disable : 4706) // disable "assignment in conditional" warning
 #endif
 
 #define CHUNK (1024 * 1024 * 64)

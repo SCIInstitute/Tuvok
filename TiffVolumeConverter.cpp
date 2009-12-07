@@ -148,7 +148,7 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   binary.Create(iComponentSize/8 * iComponentCount * vVolumeSize.volume());
   if(!binary.IsOpen()) {
     T_ERROR("Could not create binary file %s", strIntermediateFile.c_str());
-       
+
     TIFFClose(tif);
     return false;
   }
@@ -184,7 +184,7 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
 bool
 TiffVolumeConverter::ConvertToNative(const std::string&,
                                      const std::string&,
-                                     UINT64, UINT64, 
+                                     UINT64, UINT64,
                                      UINT64, bool,
                                      bool,
                                      UINT64VECTOR3,

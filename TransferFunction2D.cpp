@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -256,7 +256,7 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
 
   m_pRCanvas->fill(0);
 
-  // render 1D trans 
+  // render 1D trans
   QRect imageRect(0, 0, int(vRS.x), int(vRS.y));
   m_Painter.begin(m_pRCanvas);
   m_Painter.drawImage(imageRect,m_Trans1DImage);
@@ -266,15 +266,15 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
   m_Painter.setPen(noBorderPen);
   for (size_t i = 0;i<m_Swatches.size();i++) {
     TFPolygon& currentSwatch = m_Swatches[i];
-    
+
     std::vector<QPoint> pointList(currentSwatch.pPoints.size());
-    for (size_t j = 0;j<currentSwatch.pPoints.size();j++) {    
+    for (size_t j = 0;j<currentSwatch.pPoints.size();j++) {
       INTVECTOR2 vPixelPos = Normalized2Offscreen(currentSwatch.pPoints[j],vRS);
       pointList[j] = QPoint(vPixelPos.x, vPixelPos.y);
     }
 
-    INTVECTOR2 vPixelPos0 = Normalized2Offscreen(currentSwatch.pGradientCoords[0],vRS), 
-               vPixelPos1 = Normalized2Offscreen(currentSwatch.pGradientCoords[1],vRS); 
+    INTVECTOR2 vPixelPos0 = Normalized2Offscreen(currentSwatch.pGradientCoords[0],vRS),
+               vPixelPos1 = Normalized2Offscreen(currentSwatch.pGradientCoords[1],vRS);
 
     QGradient* pGradientBrush;
     if (currentSwatch.bRadial) {
@@ -283,9 +283,9 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
     } else {
       pGradientBrush = new QLinearGradient(vPixelPos0.x, vPixelPos0.y, vPixelPos1.x, vPixelPos1.y);
     }
-    
-    for (size_t j = 0;j<currentSwatch.pGradientStops.size();j++) {      
-      pGradientBrush->setColorAt(currentSwatch.pGradientStops[j].first, 
+
+    for (size_t j = 0;j<currentSwatch.pGradientStops.size();j++) {
+      pGradientBrush->setColorAt(currentSwatch.pGradientStops[j].first,
                    QColor(int(currentSwatch.pGradientStops[j].second[0]*255),
                           int(currentSwatch.pGradientStops[j].second[1]*255),
                           int(currentSwatch.pGradientStops[j].second[2]*255),
@@ -312,7 +312,7 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
 }
 
 ColorData2D* TransferFunction2D::RenderTransferFunction() {
-  
+
   unsigned char* pPixelData = RenderTransferFunction8Bit();
 
   FLOATVECTOR4* p = (FLOATVECTOR4*)(m_pColorData->GetDataPointer());
@@ -326,7 +326,7 @@ ColorData2D* TransferFunction2D::RenderTransferFunction() {
   return m_pColorData;
 }
 
-void TransferFunction2D::ComputeNonZeroLimits() {   
+void TransferFunction2D::ComputeNonZeroLimits() {
   unsigned char* pPixelData = RenderTransferFunction8Bit();
 
   m_vValueBBox    = UINT64VECTOR4(UINT64(m_iSize.x),0,
@@ -415,5 +415,5 @@ void TFPolygon::Save(ofstream& file) const {
       file << pGradientStops[i].second[j] << " ";
     }
     file << endl;
-  }  
+  }
 }

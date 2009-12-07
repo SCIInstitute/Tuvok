@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -45,14 +45,14 @@
 
 using namespace std;
 
-ImageFileInfo::ImageFileInfo() : 
+ImageFileInfo::ImageFileInfo() :
   SimpleImageFileInfo(),
   m_ivSize(0,0),
   m_iAllocated(0),
   m_iComponentCount(1)
 {}
 
-ImageFileInfo::ImageFileInfo(const std::string& strFileName) : 
+ImageFileInfo::ImageFileInfo(const std::string& strFileName) :
   SimpleImageFileInfo(strFileName),
   m_ivSize(0,0),
   m_iAllocated(0),
@@ -60,7 +60,7 @@ ImageFileInfo::ImageFileInfo(const std::string& strFileName) :
 {}
 
 
-ImageFileInfo::ImageFileInfo(const std::wstring& wstrFileName) : 
+ImageFileInfo::ImageFileInfo(const std::wstring& wstrFileName) :
   SimpleImageFileInfo(wstrFileName),
   m_ivSize(0,0),
   m_iAllocated(0),
@@ -92,7 +92,7 @@ SimpleImageFileInfo::SimpleImageFileInfo(const SimpleImageFileInfo* info) :
 bool SimpleImageFileInfo::GetData(std::vector<char>& vData, UINT32 iLength,
                                   UINT32 iOffset) {
 #ifndef TUVOK_NO_QT
-  QImage qImage(m_strFileName.c_str()); 
+  QImage qImage(m_strFileName.c_str());
   if (qImage.isNull()) return false;
 
   int iCount = 0;
@@ -191,11 +191,11 @@ void ImageParser::GetDirInfo(string  strDirectory) {
   for (size_t i = 0;i<files.size();i++) {
     MESSAGE("Looking for image data in file %s", files[i].c_str());
 
-    QImage qImage(files[i].c_str()); 
+    QImage qImage(files[i].c_str());
     if (!qImage.isNull()) {
       ImageFileInfo info(files[i]);
       info.m_ivSize          = UINTVECTOR2(qImage.size().width(), qImage.size().height());
-      info.m_iAllocated      = 8;  // lets assume all images are 8 bit 
+      info.m_iAllocated      = 8;  // lets assume all images are 8 bit
       info.m_iComponentCount = 1;  // as qt converts any image to RGBA we also assume that the images were 1 component
 
       info.ComputeSize();
@@ -218,7 +218,7 @@ void ImageParser::GetDirInfo(string  strDirectory) {
         bFoundMatch = true;
         break;
       }
-    }  
+    }
     if (!bFoundMatch) {
       ImageStackInfo* newStack = new ImageStackInfo(&fileInfos[i]);
       m_FileStacks.push_back(newStack);

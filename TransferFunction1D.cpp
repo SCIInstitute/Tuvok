@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-  
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -79,11 +79,11 @@ void TransferFunction1D::SetStdFunction(float fCenterPoint, float fInvGradient, 
   size_t iCenterPoint = size_t((vColorData.size()-1) * float(std::min<float>(std::max<float>(0,fCenterPoint),1)));
   size_t iInvGradient = size_t((vColorData.size()-1) * float(std::min<float>(std::max<float>(0,fInvGradient),1)));
 
-  size_t iRampStartPoint = (iInvGradient/2 > iCenterPoint)                      ? 0                 : iCenterPoint-(iInvGradient/2); 
+  size_t iRampStartPoint = (iInvGradient/2 > iCenterPoint)                      ? 0                 : iCenterPoint-(iInvGradient/2);
   size_t iRampEndPoint   = (iInvGradient/2 + iCenterPoint > vColorData.size())  ? vColorData.size() : iCenterPoint+(iInvGradient/2);
 
   if (bInvertedStep) {
-    for (size_t i = 0;i<iRampStartPoint;i++)                  
+    for (size_t i = 0;i<iRampStartPoint;i++)
       vColorData[i][iComponent] = 1;
 
     for (size_t i = iRampStartPoint;i<iRampEndPoint;i++) {
@@ -94,7 +94,7 @@ void TransferFunction1D::SetStdFunction(float fCenterPoint, float fInvGradient, 
     for (size_t i = iRampEndPoint;i<vColorData.size();i++)
       vColorData[i][iComponent] = 0;
   } else {
-    for (size_t i = 0;i<iRampStartPoint;i++)                  
+    for (size_t i = 0;i<iRampStartPoint;i++)
       vColorData[i][iComponent] = 0;
 
     for (size_t i = iRampStartPoint;i<iRampEndPoint;i++) {
@@ -325,7 +325,7 @@ void TransferFunction1D::GetFloatArray(float** pfData) const {
 }
 
 
-void TransferFunction1D::ComputeNonZeroLimits() {   
+void TransferFunction1D::ComputeNonZeroLimits() {
   m_vValueBBox = UINT64VECTOR2(UINT64(vColorData.size()),0);
 
   for (size_t i = 0;i<vColorData.size();i++) {

@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -55,23 +55,23 @@ DirectoryParser::~DirectoryParser(void)
 
 /*************************************************************************************/
 
-SimpleFileInfo::SimpleFileInfo(const std::string& strFileName) :   
+SimpleFileInfo::SimpleFileInfo(const std::string& strFileName) :
   m_strFileName(strFileName),
   m_iImageIndex(0),
   m_iDataSize(0)
 {
-  m_wstrFileName = wstring(strFileName.begin(),strFileName.end());  
+  m_wstrFileName = wstring(strFileName.begin(),strFileName.end());
 }
 
-SimpleFileInfo::SimpleFileInfo(const std::wstring& wstrFileName) :   
+SimpleFileInfo::SimpleFileInfo(const std::wstring& wstrFileName) :
   m_wstrFileName(wstrFileName),
   m_iImageIndex(0),
   m_iDataSize(0)
 {
-  m_strFileName = string(wstrFileName.begin(),wstrFileName.end());  
+  m_strFileName = string(wstrFileName.begin(),wstrFileName.end());
 }
 
-SimpleFileInfo::SimpleFileInfo() :   
+SimpleFileInfo::SimpleFileInfo() :
   m_strFileName(""),
   m_wstrFileName(L""),
   m_iImageIndex(0),

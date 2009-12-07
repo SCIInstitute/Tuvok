@@ -131,7 +131,7 @@ public:
     virtual const char *what() const throw() { return msg; }
     private: const char *msg;
   };
-                 
+
   /// Important for correct 2D transfer function rendering.
   void SetGradientMagnitudeRange(float, float);
 

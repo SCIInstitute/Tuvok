@@ -636,7 +636,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
 
     if (m_pFinalConverter)
       return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, strTempDir, bNoUserInteraction);
-    else 
+    else
       return false;
   } else {
     UINT64        iHeaderSkip=0;

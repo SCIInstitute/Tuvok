@@ -154,7 +154,7 @@ public:
            } else {
              for (UINT64 j = 0;j<iCopySize;j++) {
                T b = T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j]+strFiles[i].fBias),
-				                        static_cast<double>(std::numeric_limits<T>::max())));
+                                        static_cast<double>(std::numeric_limits<T>::max())));
                T val = pTargetBuffer[j] + b;
 
                if (val < pTargetBuffer[j] || val < b) // overflow
@@ -213,8 +213,8 @@ public:
   }
 
   virtual ~MCDataTemplate() {
-		m_outStream << "end" << std::endl;
-		m_outStream.close();
+        m_outStream << "end" << std::endl;
+        m_outStream.close();
 
     delete m_pMarchingCubes;
     delete m_pData;
@@ -224,15 +224,15 @@ public:
 
     UINT64 uSize = 1;
     for (size_t i = 0;i<vBrickSize.size();i++) uSize *= vBrickSize[i];
-	// Can't use bricks that we can't store in a single array.
-	// Really, the whole reason we're bricking is to prevent larger-than-core
-	// data, so this should never happen anyway -- we'd have no way to create
-	// such a brick.
-	assert(uSize <= std::numeric_limits<size_t>::max());
+    // Can't use bricks that we can't store in a single array.
+    // Really, the whole reason we're bricking is to prevent larger-than-core
+    // data, so this should never happen anyway -- we'd have no way to create
+    // such a brick.
+    assert(uSize <= std::numeric_limits<size_t>::max());
 
-	size_t iSize = static_cast<size_t>(
-				     std::min<UINT64>(uSize, std::numeric_limits<size_t>::max())
-				   );
+    size_t iSize = static_cast<size_t>(
+                     std::min<UINT64>(uSize, std::numeric_limits<size_t>::max())
+                   );
     if (!m_pData) {   // since we know that no brick is larger than the first we can create a fixed array on first invocation
       m_pData = new T[iSize];
 
@@ -241,7 +241,7 @@ public:
       m_outStream << "###############################################" << std::endl;
       m_outStream << "# Mesh created via Marching Cubes by ImageVis3D" << std::endl;
       m_outStream << "###############################################" << std::endl << std::endl;
-  		m_outStream << "begin" << std::endl;
+        m_outStream << "begin" << std::endl;
     }
 
     pSourceFile->SeekStart();
@@ -252,7 +252,7 @@ public:
     m_pMarchingCubes->Process(m_TIsoValue);
 
     // apply scale
-  	m_pMarchingCubes->m_Isosurface->Transform(m_matScale);
+    m_pMarchingCubes->m_Isosurface->Transform(m_matScale);
 
     // scale brick offsets
     std::vector<float> vScaledBrickOffset(vBrickOffset.size());
@@ -262,22 +262,22 @@ public:
 
     m_outStream << "# Marching Cubes mesh from a " << vBrickSize[0] << " " << vBrickSize[1] << " " << vBrickSize[2] << " brick. At " << vScaledBrickOffset[0] << " " << vScaledBrickOffset[1] << " " << vScaledBrickOffset[2] << "." << std::endl;
 
-		//Saving to disk (1/3 vertices)
-		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
-			m_outStream << "v " << (m_pMarchingCubes->m_Isosurface->vfVertices[i].x + vScaledBrickOffset[0]) << " "
+        //Saving to disk (1/3 vertices)
+        for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
+            m_outStream << "v " << (m_pMarchingCubes->m_Isosurface->vfVertices[i].x + vScaledBrickOffset[0]) << " "
                           << (m_pMarchingCubes->m_Isosurface->vfVertices[i].y + vScaledBrickOffset[1]) << " "
                           << (m_pMarchingCubes->m_Isosurface->vfVertices[i].z + vScaledBrickOffset[2]) << std::endl;
-		}
-		// Saving to disk (2/3 normals)
-		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
-			m_outStream << "vn " << m_pMarchingCubes->m_Isosurface->vfNormals[i].x << " " << m_pMarchingCubes->m_Isosurface->vfNormals[i].y << " " << m_pMarchingCubes->m_Isosurface->vfNormals[i].z << std::endl;
-		}
-		// Saving to disk (3/3 faces)
-		for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iTriangles;i++) {
-			m_outStream << "f " << m_pMarchingCubes->m_Isosurface->viTriangles[i].x+1+m_iIndexoffset << " " <<
+        }
+        // Saving to disk (2/3 normals)
+        for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
+            m_outStream << "vn " << m_pMarchingCubes->m_Isosurface->vfNormals[i].x << " " << m_pMarchingCubes->m_Isosurface->vfNormals[i].y << " " << m_pMarchingCubes->m_Isosurface->vfNormals[i].z << std::endl;
+        }
+        // Saving to disk (3/3 faces)
+        for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iTriangles;i++) {
+            m_outStream << "f " << m_pMarchingCubes->m_Isosurface->viTriangles[i].x+1+m_iIndexoffset << " " <<
                            m_pMarchingCubes->m_Isosurface->viTriangles[i].z+1+m_iIndexoffset << " " <<
                            m_pMarchingCubes->m_Isosurface->viTriangles[i].y+1+m_iIndexoffset << std::endl;
-		}
+        }
 
     m_iIndexoffset += m_pMarchingCubes->m_Isosurface->iVertices;
 
