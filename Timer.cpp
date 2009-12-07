@@ -34,6 +34,7 @@
   \date    Januar 2009
 */
 
+#include <cassert>
 #include <cstdlib>
 #include "Timer.h"
 
@@ -74,5 +75,15 @@ double Timer::Elapsed() {
 
   return double(ticksPassed)/m_fTicksPerMSecond;
 #endif
+}
 
+double Timer::Now() {
+#ifndef DETECTED_OS_WINDOWS
+  struct timeval tm;
+  gettimeofday(&tm, NULL);
+  return tm.tv_sec + (tm.tv_usec/1000000);
+#else
+  assert(1 == 0); /// @todo implement
+  return -42.4242;
+#endif
 }

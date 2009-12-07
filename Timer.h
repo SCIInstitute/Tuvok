@@ -54,6 +54,7 @@ public:
   Timer();
   void Start();
   double Elapsed();
+  static double Now();
 private:
   #ifndef DETECTED_OS_WINDOWS
     timeval m_timeStart;
