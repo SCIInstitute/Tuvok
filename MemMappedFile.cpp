@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -53,7 +53,7 @@ using namespace std;
   #include <sys/mman.h>
   #include <unistd.h>
 #endif
- 
+
 
 MemMappedFile::MemMappedFile(const string strFilename, const MMFILE_ACCESS eAccesMode, const UINT64& iLengthForNewFile, const UINT64& iOffset, const UINT64& iBytesToMap) :
   m_strFilename(strFilename),
@@ -101,7 +101,7 @@ void  MemMappedFile::Flush() {
   if (m_pData) FlushViewOfFile(m_pData, 0);
 #else
   if (m_pData) msync(m_pData, m_dwFileMappingSize, MS_SYNC);
-#endif 
+#endif
 }
 
 void  MemMappedFile::Close() {
@@ -164,30 +164,30 @@ void* MemMappedFile::ReMap(const UINT64& iOffset, const UINT64& iBytesToMap) {
 
 int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode, const UINT64& iLengthForNewFile, const UINT64& iOffset, const UINT64& iBytesToMap) {
   m_id = rand();
- 
+
   bool bExists = true, bGrowFile = false;
   char buffer[4096];
   int res;
-    
+
   UINT64 iPosAdjustment = (iOffset % m_AllocationGranularity);
 
 #ifdef _WIN32
 
   struct _stati64 stat_buf;
-  
+
   HANDLE hFile;
   DWORD sz;
 
-  // check if file already exists and determine its length 
+  // check if file already exists and determine its length
   res = _stat64(strPath, &stat_buf);
   if (res < 0) {
-        if (errno == ENOENT) 
+        if (errno == ENOENT)
     bExists = false;
-        else 
+        else
     return -1;
   }
-  if (bExists) 
-    if (UINT64(stat_buf.st_size)>=iLengthForNewFile) 
+  if (bExists)
+    if (UINT64(stat_buf.st_size)>=iLengthForNewFile)
       m_dwFileSize = stat_buf.st_size;
     else {
       m_dwFileSize = iLengthForNewFile;
@@ -206,7 +206,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
   DWORD flProtect        = (!bExists || eAccesMode == MMFILE_ACCESS_READWRITE) ? PAGE_READWRITE : PAGE_READONLY;
   m_dwDesiredAccessMap    = (!bExists || eAccesMode == MMFILE_ACCESS_READWRITE) ? FILE_MAP_ALL_ACCESS : FILE_MAP_READ;
 
-    // create security descriptor (needed for Windows NT) 
+    // create security descriptor (needed for Windows NT)
     PSECURITY_DESCRIPTOR pSD = (PSECURITY_DESCRIPTOR) malloc(SECURITY_DESCRIPTOR_MIN_LENGTH);
     if(pSD == NULL) return -2;
 
@@ -219,7 +219,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
     sa.lpSecurityDescriptor = pSD;
     sa.bInheritHandle = TRUE;
 
-    // create or open file 
+    // create or open file
   hFile = CreateFileA (strPath, dwDesiredAccess, dwShareMode, &sa, bExists ? OPEN_EXISTING : OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (hFile == INVALID_HANDLE_VALUE) {
@@ -235,7 +235,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
       dwWriteSize = m_dwFileSize;
     }
 
-    // ensure that file is long enough and filled with zero 
+    // ensure that file is long enough and filled with zero
     memset(buffer, 0, sizeof(buffer));
     for (UINT64 i = 0; i < dwWriteSize/sizeof(buffer); ++i) {
         if (! WriteFile(hFile, buffer, sizeof(buffer), &sz, NULL)) {
@@ -246,8 +246,8 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
         return -3;
     }
   }
-        
-  // create file mapping 
+
+  // create file mapping
   sprintf_s(buffer, sizeof(buffer), "%d", m_id);
   m_hMem = CreateFileMappingA(hFile, &sa, flProtect, static_cast<DWORD>((m_dwFileSize & 0xFFFFFFFF00000000) >> 32), static_cast<DWORD>(m_dwFileSize & 0xFFFFFFFF), buffer);
   free(pSD);
@@ -256,7 +256,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
   DWORD dwHigh  = DWORD((((iOffset-iPosAdjustment) >> 32) & 0xFFFFFFFF));
   DWORD dwLow = DWORD(((iOffset-iPosAdjustment) & 0xFFFFFFFF));
 
-  // map the file to memory 
+  // map the file to memory
   m_pData = MapViewOfFile(m_hMem, m_dwDesiredAccessMap, dwHigh, dwLow, (iBytesToMap == 0) ? 0 : (size_t)(iBytesToMap+iPosAdjustment));
 
   CloseHandle(hFile);
@@ -272,13 +272,13 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
   // check if file already exists and determine its length
   res = stat(strPath, &stat_buf);
   if (res < 0) {
-    if (errno == ENOENT) 
+    if (errno == ENOENT)
       bExists = false;
-    else 
+    else
       return -1;
   }
   if (bExists) {
-    if (UINT64(stat_buf.st_size)>iLengthForNewFile) 
+    if (UINT64(stat_buf.st_size)>iLengthForNewFile)
       m_dwFileSize = stat_buf.st_size;
     else {
       m_dwFileSize = iLengthForNewFile;
@@ -290,17 +290,17 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
     else
       m_dwFileSize = iLengthForNewFile;
   }
- 
+
   int dwDesiredAccess = (!bExists || eAccesMode == MMFILE_ACCESS_READWRITE) ? O_RDWR : O_RDONLY;
   int dwShareMode      = (!bExists || eAccesMode == MMFILE_ACCESS_READWRITE) ? S_IRUSR | S_IWUSR  : S_IRUSR;
   m_dwMmmapMode    = (!bExists || eAccesMode == MMFILE_ACCESS_READWRITE) ? PROT_READ | PROT_WRITE : PROT_READ;
- 
-  // open / create mapped file 
+
+  // open / create mapped file
   m_fdes = open(strPath, (bExists) ? dwDesiredAccess : dwDesiredAccess | O_CREAT, dwShareMode);
   if (m_fdes < -1) return -1;
- 
-  // ensure that file is long enough and filled with zero 
-  if (! bExists || bGrowFile) {      
+
+  // ensure that file is long enough and filled with zero
+  if (! bExists || bGrowFile) {
     UINT64 dwWriteSize;
     if (bGrowFile) {
       lseek(m_fdes, 0, SEEK_END);
@@ -317,7 +317,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
       return -1;
     }
   }
-  // map the file to memory 
+  // map the file to memory
   m_pData = mmap(NULL, ((iBytesToMap == 0) ? (m_dwFileSize-iOffset) : iBytesToMap)+iPosAdjustment, m_dwMmmapMode, MAP_SHARED, m_fdes, iOffset-iPosAdjustment);
   if (m_pData == (void *)-1) return -1;
 #endif
@@ -332,7 +332,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
 void MemMappedFile::ComputeAllocationGranularity() {
 #ifdef _WIN32
   SYSTEM_INFO siSysInfo;
-  GetSystemInfo(&siSysInfo); 
+  GetSystemInfo(&siSysInfo);
   m_AllocationGranularity = siSysInfo.dwAllocationGranularity;
 #else
   m_AllocationGranularity = sysconf(_SC_PAGE_SIZE);

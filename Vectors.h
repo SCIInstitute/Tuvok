@@ -1396,7 +1396,7 @@ public:
     this->y =   T(v0.z) * (T(v1.x) - T(v2.x)) + T(v1.z) * (T(v2.x) - T(v0.x)) + T(v2.z) * (T(v0.x) - T(v1.x));
     this->z =   T(v0.x) * (T(v1.y) - T(v2.y)) + T(v1.x) * (T(v2.y) - T(v0.y)) + T(v2.x) * (T(v0.y) - T(v1.y));
     this->w = - (T(v0.x) * (T(v1.y) * T(v2.z) - T(v2.y) * T(v1.z)) +
-                 T(v1.x) * (T(v2.y) * T(v0.z) - T(v0.y) * T(v2.z)) + 
+                 T(v1.x) * (T(v2.y) * T(v0.z) - T(v0.y) * T(v2.z)) +
                  T(v2.x) * (T(v0.y) * T(v1.z) - T(v1.y) * T(v0.z)));
   }
   PLANE<T>(const VECTOR2<T> &other, const T _z, const T _w):

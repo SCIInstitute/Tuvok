@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -71,7 +71,7 @@ int Isosurface::AddTriangle(int a, int b, int c) {
 
 int Isosurface::AddVertex(VECTOR3<float> v, VECTOR3<float> n) {
   vfVertices[iVertices] = v;
-  vfNormals[iVertices++] = n; 
+  vfNormals[iVertices++] = n;
   return iVertices-1;
 }
 

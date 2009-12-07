@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -87,9 +87,9 @@ bool DynamicDX::InitializeDX() {
   if (!D3DX10CreateEffectFromFileW) return false;
   D3DX10CreateEffectFromFileA = ( LPD3DX10CREATEEFFECTFROMFILEA )GetProcAddress( m_hD3DX10, "D3DX10CreateEffectFromFileA" );
   if (!D3DX10CreateEffectFromFileA) return false;
-  
+
   m_bDynamicDXIsInitialized = true;
-  
+
   return true;
 }
 

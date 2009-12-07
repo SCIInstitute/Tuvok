@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -47,59 +47,59 @@
 
 template <class T=float> class LayerTempData {
 public:
-	T*	  pTBotData;
-	T*	  pTTopData;
-	int*	piEdges;  // tag indexing into vertex list
+    T*    pTBotData;
+    T*    pTTopData;
+    int*    piEdges;  // tag indexing into vertex list
 
   LayerTempData<T>(INTVECTOR3 vVolSize, T* pTVolume);
-	virtual ~LayerTempData();
-	void NextIteration();
+    virtual ~LayerTempData();
+    void NextIteration();
 
 private:
-	INTVECTOR3 m_vVolSize;
+    INTVECTOR3 m_vVolSize;
 };
 
 class Isosurface {
 public:
-	FLOATVECTOR3*	vfVertices;
-	FLOATVECTOR3*	vfNormals;
-	INTVECTOR3*		viTriangles;
-	int				    iVertices;
-	int				    iTriangles;
+    FLOATVECTOR3*   vfVertices;
+    FLOATVECTOR3*   vfNormals;
+    INTVECTOR3*     viTriangles;
+    int                 iVertices;
+    int                 iTriangles;
 
-	Isosurface();
-	Isosurface(int iMaxVertices, int iMaxTris);
-	virtual ~Isosurface();
+    Isosurface();
+    Isosurface(int iMaxVertices, int iMaxTris);
+    virtual ~Isosurface();
 
-	int AddTriangle(int a, int b, int c);
-	int AddVertex(FLOATVECTOR3 v, FLOATVECTOR3 n);
-	void AppendData(const Isosurface* other);
-	void Transform(const FLOATMATRIX4& matrix);
+    int AddTriangle(int a, int b, int c);
+    int AddVertex(FLOATVECTOR3 v, FLOATVECTOR3 n);
+    void AppendData(const Isosurface* other);
+    void Transform(const FLOATMATRIX4& matrix);
 };
 
 
 template <class T=float> class MarchingCubes {
 public:
-	Isosurface*		m_Isosurface;
+    Isosurface*     m_Isosurface;
 
-	MarchingCubes<T>(void);
-	virtual ~MarchingCubes<T>(void);
+    MarchingCubes<T>(void);
+    virtual ~MarchingCubes<T>(void);
 
-	virtual void SetVolume(int iSizeX, int iSizeY, int iSizeZ, T* pTVolume);
-	virtual void Process(T TIsoValue);
+    virtual void SetVolume(int iSizeX, int iSizeY, int iSizeZ, T* pTVolume);
+    virtual void Process(T TIsoValue);
 
 protected:
-	static int		ms_edgeTable[256];
-	static int		ms_triTable[256][16];
+    static int      ms_edgeTable[256];
+    static int      ms_triTable[256][16];
 
-	INTVECTOR3	  m_vVolSize;
-  INTVECTOR3	  m_vOffset;
-	T*			      m_pTVolume;
-	T			        m_TIsoValue;
+    INTVECTOR3    m_vVolSize;
+  INTVECTOR3      m_vOffset;
+    T*                m_pTVolume;
+    T                   m_TIsoValue;
 
-	virtual void MarchLayer(LayerTempData<T> *layer, int iLayer);
-	virtual int MakeVertex(int whichEdge, int i, int j, int k, Isosurface* sliceIso);
-	virtual FLOATVECTOR3 InterpolateNormal(T fValueAtPos, INTVECTOR3 vPosition);
+    virtual void MarchLayer(LayerTempData<T> *layer, int iLayer);
+    virtual int MakeVertex(int whichEdge, int i, int j, int k, Isosurface* sliceIso);
+    virtual FLOATVECTOR3 InterpolateNormal(T fValueAtPos, INTVECTOR3 vPosition);
 
 };
 

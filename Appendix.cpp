@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -76,12 +76,12 @@ Appendix::Appendix(string strTarget, const vector<string>& vstrSource) :
     target.WriteData<UINT64>(filename.length(), false);
     target.WriteRAW((unsigned char*)&(filename[0]), filename.length());
     target.WriteData<UINT64>(m_vHeaderData[i].m_iSize, false);
-  
+
     iMaxSize = max(iMaxSize, m_vHeaderData[i].m_iSize);
   }
   m_iHeaderLength = target.GetPos();
 
-  // append the files  
+  // append the files
   UINT64 iCopySize = min(iMaxSize,BLOCK_COPY_SIZE);
   unsigned char* pBuffer = new unsigned char[size_t(iCopySize)];
 
@@ -98,14 +98,14 @@ Appendix::Appendix(string strTarget, const vector<string>& vstrSource) :
     do {
       iCurrentCopySize = fInput.ReadRAW(pBuffer, iCurrentCopySize);
       target.WriteRAW(pBuffer, iCurrentCopySize);
-    } while (iCurrentCopySize > 0); 
+    } while (iCurrentCopySize > 0);
 
     fInput.Close();
 
     // remove path from file and leave only filename
     m_vHeaderData[i].m_strName = SysTools::GetFilename(m_vHeaderData[i].m_strName);
   }
-  delete [] pBuffer;    
+  delete [] pBuffer;
 
   // done
   target.Close();
@@ -115,7 +115,7 @@ Appendix::Appendix(string strTarget, const vector<string>& vstrSource) :
 Appendix::Appendix(string strAPXFile) :
   m_strAPXFile(strAPXFile),
   m_bOK(false)
-{  
+{
   LargeRAWFile fInput(m_strAPXFile);
   fInput.Open(false);
   if (!fInput.IsOpen()) {
@@ -139,7 +139,7 @@ Appendix::Appendix(string strAPXFile) :
 
     UINT64 iNameLength = 0;
     fInput.ReadData<UINT64>(iNameLength, false);
-    
+
     strName.resize(size_t(iNameLength));
     fInput.ReadRAW((unsigned char*)&(strName[0]), iNameLength);
     fInput.ReadData<UINT64>(iSize, false);
@@ -157,13 +157,13 @@ Appendix::Appendix(string strAPXFile) :
 std::vector<FileInfo> Appendix::ListFiles() {
   std::vector<FileInfo> list;
   for (size_t i = 0;i<m_vHeaderData.size();i++) {
-    list.push_back(FileInfo(m_vHeaderData[i].m_strName, m_vHeaderData[i].m_iSize)); 
+    list.push_back(FileInfo(m_vHeaderData[i].m_strName, m_vHeaderData[i].m_iSize));
   }
   return list;
 }
 
 bool Appendix::ExtractFile(size_t i, string strTarget) {
-  
+
   if (i >= m_vHeaderData.size()) return false;
 
   LargeRAWFile fInput(m_strAPXFile);
@@ -189,7 +189,7 @@ bool Appendix::ExtractFile(size_t i, string strTarget) {
     fOutput.WriteRAW(pBuffer, iCopySize);
     iWritten += iCopySize;
     if (m_vHeaderData[i].m_iSize - iWritten < iCopySize) iCopySize = m_vHeaderData[i].m_iSize - iWritten;
-  } while (iWritten < m_vHeaderData[i].m_iSize); 
+  } while (iWritten < m_vHeaderData[i].m_iSize);
   delete [] pBuffer;
 
   fInput.Close();

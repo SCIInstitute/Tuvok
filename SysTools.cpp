@@ -797,7 +797,7 @@ namespace SysTools {
 
       // Find where the numbers start.
       typename T::const_iterator numerals = fn.end()-1;
-	  while (numerals != fn.begin() && ::isdigit(*(numerals-1))) --numerals;
+      while (numerals != fn.begin() && ::isdigit(*(numerals-1))) --numerals;
 
       // convert it to a size_t and return that.
       size_t retval = 0;
@@ -908,10 +908,10 @@ namespace SysTools {
       if((result == 0) || (result >= tempPath.size())) return false;
       path = std::wstring( tempPath.begin(), tempPath.begin() + static_cast<std::size_t>(result)  );
       return true;
-  #else 
+  #else
       // too lazy to find the unicode version for linux and mac
       std::string astrPath;
-      if (!GetTempDirectory(astrPath)) return false;    
+      if (!GetTempDirectory(astrPath)) return false;
       path = std::wstring( astrPath.begin(), astrPath.end());
       return true;
   #endif

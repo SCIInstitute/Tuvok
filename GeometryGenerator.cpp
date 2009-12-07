@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -36,18 +36,18 @@
 
 #include "GeometryGenerator.h"
 #include<cmath>
-#define CONST_PI 3.14159265358979323846f 
+#define CONST_PI 3.14159265358979323846f
 
 using namespace std;
 
-vector<Triangle> GeometryGenerator::GenArrow(float  fOverallLength, 
+vector<Triangle> GeometryGenerator::GenArrow(float  fOverallLength,
                                              float  fShaftToHeadRatio,
                                              float  fShaftRadius,
                                              float  fHeadRadius,
                                              UINT32 iSegments) {
   vector<Triangle> vGeometry;
 
-  // compute helper vars  
+  // compute helper vars
   float fDegreePerSegment = (CONST_PI*2.0f)/float(iSegments);
   float fLengthShaft      = fOverallLength * fShaftToHeadRatio;
 
@@ -106,7 +106,7 @@ vector<Triangle> GeometryGenerator::GenArrow(float  fOverallLength,
     b.m_vPos.z = -fOverallLength/2.0f + fLengthShaft;
     c1.m_vPos.z = -fOverallLength/2.0f + fLengthShaft;
     vGeometry.push_back(Triangle(a, b, c1));
-    
+
     PosNormalVertex c2(vDisk[(i+1)%iSegments].m_vPos*fHeadRadius, FLOATVECTOR3(0,0,-1));
     c2.m_vPos.z = -fOverallLength/2.0f + fLengthShaft;
     vGeometry.push_back(Triangle(c1, b, c2));

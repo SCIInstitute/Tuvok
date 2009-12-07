@@ -216,7 +216,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
     HINSTANCE hD3D9 = LoadLibrary( L"d3d9.dll" );
     if (!hD3D9) return 0;
     pDirect3DCreate9 = ( LPDIRECT3DCREATE9 )GetProcAddress( hD3D9, "Direct3DCreate9" );
-    
+
     if (!pDirect3DCreate9) {
       FreeLibrary( hD3D9 );
       return 0;

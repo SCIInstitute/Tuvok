@@ -35,7 +35,7 @@
 
 #pragma once
 
-#ifndef TUVOK_PLANE_H 
+#ifndef TUVOK_PLANE_H
 #define TUVOK_PLANE_H
 
 #include <vector>

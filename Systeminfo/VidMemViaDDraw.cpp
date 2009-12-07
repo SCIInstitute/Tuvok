@@ -1,10 +1,10 @@
 //----------------------------------------------------------------------------
 // File: VidMemViaDDraw.cpp
 //
-// This method queries the DirectDraw 7 interfaces for the amount of available 
-// video memory. On a discrete video card, this is often close to the amount 
-// of dedicated video memory and usually does not take into account the amount 
-// of shared system memory. 
+// This method queries the DirectDraw 7 interfaces for the amount of available
+// video memory. On a discrete video card, this is often close to the amount
+// of dedicated video memory and usually does not take into account the amount
+// of shared system memory.
 //
 // Copyright (c) Microsoft Corp. All rights reserved.
 //-----------------------------------------------------------------------------
