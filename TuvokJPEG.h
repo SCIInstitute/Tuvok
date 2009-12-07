@@ -45,6 +45,11 @@
 namespace tuvok {
 
 /// Simple wrapper for reading a JPEG using libjpeg.
+/// There's an implicit assumption that the returned data will have 8bits per
+/// component.  Since we've only got one libjpeg library, this assumption is
+/// valid for our configuration; libjpeg will always downsample the data.
+/// Other libraries include multiple libjpegs, each with a modified #define for
+/// the number of bits in a component.
 class JPEG {
   public:
     /// Loads a JPEG from a file, starting at the given offset.

@@ -38,6 +38,7 @@
 #include <sstream>
 #include <map>
 #include "boost/cstdint.hpp"
+#include "3rdParty/jpeglib/jconfig.h"
 
 #include "IOManager.h"
 #include <Controller/Controller.h>
@@ -204,12 +205,12 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
       if (pDICOMStack->m_bIsJPEGEncoded) {
         MESSAGE("JPEG is %d bytes, offset %d", iDataSize,
                 dynamic_cast<SimpleDICOMFileInfo*>(pDICOMStack->m_Elements[j])
-                ->GetOffsetToData());
+                  ->GetOffsetToData());
         tuvok::JPEG jpg(pDICOMStack->m_Elements[j]->m_strFileName,
                         dynamic_cast<SimpleDICOMFileInfo*>
                           (pDICOMStack->m_Elements[j])->GetOffsetToData());
         if(!jpg.valid()) {
-          WARNING("'%s' reports an embedded JPEG, but the JPEG is invalid.",
+          T_ERROR("'%s' reports an embedded JPEG, but the JPEG is invalid.",
                   pDICOMStack->m_Elements[j]->m_strFileName.c_str());
           return false;
         }
@@ -218,10 +219,12 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 
         const char *jpeg_data = jpg.data();
         std::copy(jpeg_data, jpeg_data + jpg.size(), &vData[0]);
+        pDICOMStack->m_iAllocated = BITS_IN_JSAMPLE;
       } else {
-        // the first call does a "new" on pData
         pDICOMStack->m_Elements[j]->GetData(vData);
-        MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), int((100*j)/pDICOMStack->m_Elements.size()));
+        MESSAGE("Creating intermediate file %s\n%i%%",
+                strTempMergeFilename.c_str(),
+                int((100*j)/pDICOMStack->m_Elements.size()));
       }
 
       if (pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian()) {
