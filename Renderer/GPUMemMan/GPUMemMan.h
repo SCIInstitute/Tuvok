@@ -159,7 +159,7 @@ class GPUMemMan {
 
     std::vector<unsigned char> m_vUploadHub;
 
-    GLTexture3D* AllocOrGet3DTexture(tuvok::Dataset* pDataset, 
+    GLTexture3D* AllocOrGet3DTexture(tuvok::Dataset* pDataset,
                                      const tuvok::BrickKey& key,
                                      bool bUseOnlyPowerOfTwo,
                                      bool bDownSampleTo8Bits,

@@ -80,22 +80,22 @@ void SBVRGeogen2D::InterpolateVertices(const POS3TEX3_VERTEX& v1, const POS3TEX3
 }
 
 void SBVRGeogen2D::ComputeGeometry() {
-  if (m_bUseOldMethod) 
+  if (m_bUseOldMethod)
     ComputeGeometryOld();
-  else 
-    ComputeGeometryNew();    
+  else
+    ComputeGeometryNew();
 }
 
 
 /*
-  Compute 2D geometry via 
+  Compute 2D geometry via
   C. Rezk-Salama et al. 2000
   "Interactive Volume Rendering on Standard PC Graphics Hardware Using Multi-Textures and Multi-Stage Rasterization"
 */
 void SBVRGeogen2D::ComputeGeometryOld() {
 
   // compute optimal stack
-  FLOATVECTOR3 vCenter = (m_pfBBOXVertex[0].m_vPos+m_pfBBOXVertex[6].m_vPos) / 2.0f; 
+  FLOATVECTOR3 vCenter = (m_pfBBOXVertex[0].m_vPos+m_pfBBOXVertex[6].m_vPos) / 2.0f;
   FLOATVECTOR3 vCoordFrame[3] = {(m_pfBBOXVertex[0].m_vPos-m_pfBBOXVertex[1].m_vPos),  // X
                                  (m_pfBBOXVertex[0].m_vPos-m_pfBBOXVertex[4].m_vPos),  // Y
                                  (m_pfBBOXVertex[0].m_vPos-m_pfBBOXVertex[3].m_vPos)}; // Z
@@ -106,7 +106,7 @@ void SBVRGeogen2D::ComputeGeometryOld() {
   int iStack = 2; bool bFlipStack=fCosZ<0;
 
   if (fabs(fCosX) > fabs(fCosY) && fabs(fCosX) > fabs(fCosZ)) {
-    iStack = 0; 
+    iStack = 0;
     bFlipStack = fCosX>0;
   } else {
     if (fabs(fCosY) > fabs(fCosX) && fabs(fCosY) > fabs(fCosZ)) {
@@ -129,7 +129,7 @@ void SBVRGeogen2D::ComputeGeometryOld() {
   }
 
   switch (iStack) {
-    case 0 :{      
+    case 0 :{
               for (UINT32 x = 0;x<iLayerCount;x++) {
                 InterpolateVertices(m_pfBBOXVertex[1], m_pfBBOXVertex[0], fDepth, pfSliceVertex[0]);
                 InterpolateVertices(m_pfBBOXVertex[2], m_pfBBOXVertex[3], fDepth, pfSliceVertex[1]);
@@ -147,7 +147,7 @@ void SBVRGeogen2D::ComputeGeometryOld() {
                 fDepth+=fDelta;
               }
             } break;
-    case 1 :{      
+    case 1 :{
 
               for (UINT32 y = 0;y<iLayerCount;y++) {
 
@@ -166,7 +166,7 @@ void SBVRGeogen2D::ComputeGeometryOld() {
                 fDepth+=fDelta;
               }
             }  break;
-    case 2 :{      
+    case 2 :{
               for (UINT32 z = 0;z<iLayerCount;z++) {
                 InterpolateVertices(m_pfBBOXVertex[0], m_pfBBOXVertex[3], fDepth, pfSliceVertex[0]);
                 InterpolateVertices(m_pfBBOXVertex[1], m_pfBBOXVertex[2], fDepth, pfSliceVertex[1]);
@@ -188,7 +188,7 @@ void SBVRGeogen2D::ComputeGeometryOld() {
 
 
 /*
-  Compute 2D geometry via 
+  Compute 2D geometry via
   Krüger 2010
   "A new sampling scheme for slice based volume rendering"
 */
@@ -202,8 +202,8 @@ void SBVRGeogen2D::ComputeGeometryNew() {
   // we need to clip geometry at those edges
 
 
-  // the annotations below are only for the untransformed 
-  // state, but they still help to understand the 
+  // the annotations below are only for the untransformed
+  // state, but they still help to understand the
   // orientation of the edges
 
 
@@ -244,7 +244,7 @@ void SBVRGeogen2D::ComputeGeometryNew() {
                                  make_pair(1,5),
                                  make_pair(5,0)};
 
-    
+
   // centerpoints of the edges
   FLOATVECTOR3 vEdgeCenters[12];
   for (size_t i = 0;i<12;i++) {
@@ -323,7 +323,7 @@ void SBVRGeogen2D::ComputeGeometryNew() {
       m_fDelta.x *= -1;
       a = 1;
     }
-      
+
     for (UINT32 x = 0;x<iLayerCount;x++) {
 
       InterpolateVertices(m_pfBBOXVertex[1], m_pfBBOXVertex[0], a, pfSliceVertex[0]);
@@ -345,14 +345,14 @@ void SBVRGeogen2D::ComputeGeometryNew() {
 
     for (size_t i = 0;i<vPlanes.size();i++) {
       size_t edge = vIntersects[i];
-      if (edge == 3 || edge == 10 || edge == 9 || edge == 7 || 
-          edge == 8 || edge == 2 || edge == 11 || edge == 6) 
+      if (edge == 3 || edge == 10 || edge == 9 || edge == 7 ||
+          edge == 8 || edge == 2 || edge == 11 || edge == 6)
          m_vSliceTrianglesX = ClipTriangles(m_vSliceTrianglesX, -vPlanes[i].xyz(), vPlanes[i].d());
     }
   }
 
   if (fCosAngleY > fMinCos) {
-   
+
     UINT32 iLayerCount = UINT32(floor(1.0f/m_fDelta.y));
     float a = 0;
 
@@ -383,7 +383,7 @@ void SBVRGeogen2D::ComputeGeometryNew() {
       size_t edge = vIntersects[i];
       if (edge == 0 || edge == 4 || edge == 1 || edge == 5)
          m_vSliceTrianglesY = ClipTriangles(m_vSliceTrianglesY, -vPlanes[i].xyz(), vPlanes[i].d());
-      if (edge == 2 || edge == 6 || edge == 3 || edge == 7) 
+      if (edge == 2 || edge == 6 || edge == 3 || edge == 7)
          m_vSliceTrianglesY = ClipTriangles(m_vSliceTrianglesY, vPlanes[i].xyz(), vPlanes[i].d());
     }
   }
@@ -417,8 +417,8 @@ void SBVRGeogen2D::ComputeGeometryNew() {
 
     for (size_t i = 0;i<vPlanes.size();i++) {
       size_t edge = vIntersects[i];
-      if (edge == 0 || edge == 8 || edge == 9 || edge == 4 || 
-          edge == 11 || edge == 5 || edge == 10 || edge == 1) 
+      if (edge == 0 || edge == 8 || edge == 9 || edge == 4 ||
+          edge == 11 || edge == 5 || edge == 10 || edge == 1)
          m_vSliceTrianglesZ = ClipTriangles(m_vSliceTrianglesZ, vPlanes[i].xyz(), vPlanes[i].d());
     }
   }

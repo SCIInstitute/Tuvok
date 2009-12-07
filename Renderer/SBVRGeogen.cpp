@@ -218,7 +218,7 @@ SBVRGeogen::ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
   std::vector<POS3TEX3_VERTEX> out;
   if (in.empty()) return out;
   assert(in.size() % 3 == 0);
-  
+
   // bail out even in release (otherwise we would get a crash later)
   if (in.size() % 3 != 0) return out;
 
