@@ -255,7 +255,7 @@ tv_read_slice(TIFF *tif)
       tsize_t n_bytes;
       n_bytes = TIFFReadEncodedStrip(tif, s, buf, static_cast<tsize_t>(-1));
       std::memcpy(data, buf, n_bytes);
-      data += TIFFStripSize(tif);
+      data += n_bytes;
     }
     _TIFFfree(buf);
   }
