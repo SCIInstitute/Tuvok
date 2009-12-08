@@ -96,10 +96,12 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
     vVolumeSize[0] = UINT32(dims[0]);
     vVolumeSize[1] = UINT32(dims[1]);
     vVolumeSize[2] = UINT32(dims[2]);
-    MESSAGE("TiffVolume dimensions: %ux%ux%u", UINT32(dims[0]), UINT32(dims[1]), UINT32(dims[2]));
+    MESSAGE("TiffVolume dimensions: %ux%ux%u", UINT32(dims[0]),
+                                               UINT32(dims[1]),
+                                               UINT32(dims[2]));
     if(dims[2] <= 1) {
       T_ERROR("TIFF is not a volume; use "
-            "`Load Dataset from Directory' instead!");
+              "`Load Dataset from Directory' instead!");
       TIFFClose(tif);
       return false;
     }
@@ -120,13 +122,13 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
     iComponentCount = components;
     {
       std::ostringstream com;
-      com << iComponentCount << "component";
+      com << iComponentCount << " component";
       if(components > 1) { com << "s"; }
       com << ".";
       MESSAGE("%s", com.str().c_str());
     }
   }
-  // IIRC libtiff handles all the endian issues for us.
+  // Libtiff handles the endian issue for us.
   bConvertEndianess = false;
 
   // One might consider setting the values below explicitly as bugs, but we're
@@ -154,8 +156,8 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
   bDeleteIntermediateFile = true;
   // Populate the intermediate file.  We'll do this slice-by-slice, which isn't
-  // exactly kosher in Tuvok -- a slice could technically be larger than
-  // INCORESIZE.  But it won't be.
+  // exactly kosher for this library -- a slice could technically be larger
+  // than INCORESIZE.  But it won't be.
   do {
     BYTE* slice = tv_read_slice(tif);
     if(slice) {
@@ -237,6 +239,7 @@ tv_read_slice(TIFF *tif)
     T_ERROR("TIFFmalloc failed.");
     return NULL;
   }
+
   const tstrip_t n_strips = TIFFNumberOfStrips(tif);
   {
     BYTE *data = slice;
