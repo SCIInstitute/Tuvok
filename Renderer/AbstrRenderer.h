@@ -285,8 +285,8 @@ class AbstrRenderer {
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
 
     virtual void Set2DPlanesIn3DView(bool bRenderPlanesIn3D,
-                                     RenderRegion *renderRegion=NULL);
-    virtual bool Get2DPlanesIn3DView(RenderRegion *renderRegion=NULL) const {
+                                     RenderRegion* renderRegion=NULL);
+    virtual bool Get2DPlanesIn3DView(RenderRegion* = NULL) const {
       /// @todo: Make this bool a per 3d render region toggle.
       return m_bRenderPlanesIn3D;}
 
