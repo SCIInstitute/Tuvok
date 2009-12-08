@@ -252,10 +252,8 @@ tv_read_slice(TIFF *tif)
     BYTE *data = slice;
     tdata_t buf = static_cast<tdata_t>(_TIFFmalloc(TIFFStripSize(tif)));
     for(tstrip_t s=0; s < n_strips; ++s) {
-      /// @todo FIXME: don't assume the strip is raw; could be encoded.
-      /// There's a `compression scheme' tag which probably details this.
-      tsize_t n_bytes = TIFFReadRawStrip(tif, s, buf,
-                                         static_cast<tsize_t>(-1));
+      tsize_t n_bytes;
+      n_bytes = TIFFReadEncodedStrip(tif, s, buf, static_cast<tsize_t>(-1));
       std::memcpy(data, buf, n_bytes);
       data += TIFFStripSize(tif);
     }
