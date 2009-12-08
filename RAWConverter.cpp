@@ -51,9 +51,19 @@
 using namespace std;
 using boost::int64_t;
 
-bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& strTargetFilename, const string& strTempDir,
-                                     UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iComponentCount, bool bConvertEndianness, bool bSigned, bool bIsFloat,
-                                     UINT64VECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect, const string& strDesc, const string& strSource, UVFTables::ElementSemanticTable eType,
+bool RAWConverter::ConvertRAWDataset(const string& strFilename,
+                                     const string& strTargetFilename,
+                                     const string& strTempDir,
+                                     UINT64 iHeaderSkip,
+                                     UINT64 iComponentSize,
+                                     UINT64 iComponentCount,
+                                     bool bConvertEndianness, bool bSigned,
+                                     bool bIsFloat,
+                                     UINT64VECTOR3 vVolumeSize,
+                                     FLOATVECTOR3 vVolumeAspect,
+                                     const string& strDesc,
+                                     const string& strSource,
+                                     UVFTables::ElementSemanticTable eType,
                                      KVPairs* pKVPairs)
 {
   bool bMetadata_SourceIsLittleEndian = bConvertEndianness && EndianConvert::IsBigEndian();
@@ -66,7 +76,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename, const string& st
     return false;
   }
 
-  if (iComponentSize < 16) bConvertEndianness = false; // catch silly user input
+  if (iComponentSize < 16) { // catch silly user input
+    WARNING("Requested endian conversion for 8bit data... broken reader?");
+    bConvertEndianness = false;
+  }
 
   MESSAGE("Converting RAW dataset %s to %s", strFilename.c_str(), strTargetFilename.c_str());
 
@@ -816,8 +829,11 @@ bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std:
   return AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, EndianConvert::IsBigEndian());
 }
 
-bool RAWConverter::AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSkip, const std::string& strTargetFilename,
-                             UINT64 iComponentSize, bool bChangeEndianess, bool bToSigned) {
+bool RAWConverter::AppendRAW(const std::string& strRawFilename,
+                             UINT64 iHeaderSkip,
+                             const std::string& strTargetFilename,
+                             UINT64 iComponentSize, bool bChangeEndianess,
+                             bool bToSigned) {
   // open source file
   LargeRAWFile fSource(strRawFilename, iHeaderSkip);
   fSource.Open(false);
