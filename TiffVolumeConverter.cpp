@@ -165,7 +165,10 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   // Populate the intermediate file.  We'll do this slice-by-slice, which isn't
   // exactly kosher for this library -- a slice could technically be larger
   // than INCORESIZE.  But it won't be.
+  unsigned slice_idx=0;
   do {
+    MESSAGE("Reading %llux%llu TIFF slice %u of %llu",
+            vVolumeSize[0], vVolumeSize[1], slice_idx++, vVolumeSize[2]-1);
     BYTE* slice = tv_read_slice(tif);
     if(slice) {
       // assuming 8-bit monochrome data here, which might not always be valid.
@@ -241,7 +244,6 @@ tv_read_slice(TIFF *tif)
   TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
   TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
   TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bpp);
-  MESSAGE("Reading %ux%u TIFF slice.", width, height);
 
   const size_t slice_sz = width*height*(bpp/8) * sizeof(BYTE);
   slice = static_cast<BYTE*>(_TIFFmalloc(slice_sz));
