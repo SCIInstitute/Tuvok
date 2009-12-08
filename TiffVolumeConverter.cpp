@@ -131,11 +131,18 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   // Libtiff handles the endian issue for us.
   bConvertEndianess = false;
 
-  // One might consider setting the values below explicitly as bugs, but we're
-  // not quite sure where to read these from.  In any case, we don't have any
-  // data for which these settings are invalid.
-  bSigned = false;
-  bIsFloat = false;
+  // Data type/kind: signed or unsigned, floating point or not.
+  {
+    bSigned = false;
+    bIsFloat = false;
+    boost::uint16_t sf;
+    if(TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sf) != 0) {
+      bSigned = (sf == SAMPLEFORMAT_INT) || (sf == SAMPLEFORMAT_IEEEFP) ||
+                (sf == SAMPLEFORMAT_COMPLEXINT);
+      bIsFloat = (sf == SAMPLEFORMAT_IEEEFP);
+    }
+  }
+  // Not sure if these are readable/stored in a TIFF.
   vVolumeAspect[0] = 1;
   vVolumeAspect[1] = 1;
   vVolumeAspect[2] = 1;
