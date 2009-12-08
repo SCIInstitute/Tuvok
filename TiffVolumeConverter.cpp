@@ -237,11 +237,14 @@ tv_read_slice(TIFF *tif)
   BYTE *slice;
   UINT32 width;
   UINT32 height;
+  boost::uint16_t bpp;
   TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
   TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
-
+  TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bpp);
   MESSAGE("Reading %ux%u TIFF slice.", width, height);
-  slice = static_cast<BYTE*>(_TIFFmalloc((width*height) * sizeof(BYTE)));
+
+  const size_t slice_sz = width*height*(bpp/8) * sizeof(BYTE);
+  slice = static_cast<BYTE*>(_TIFFmalloc(slice_sz));
   if(slice == NULL) {
     T_ERROR("TIFFmalloc failed.");
     return NULL;
@@ -251,6 +254,8 @@ tv_read_slice(TIFF *tif)
   {
     BYTE *data = slice;
     tdata_t buf = static_cast<tdata_t>(_TIFFmalloc(TIFFStripSize(tif)));
+    // strips shouldn't be bigger than slices.
+    assert(static_cast<size_t>(TIFFStripSize(tif)) <= slice_sz);
     for(tstrip_t s=0; s < n_strips; ++s) {
       tsize_t n_bytes;
       n_bytes = TIFFReadEncodedStrip(tif, s, buf, static_cast<tsize_t>(-1));
