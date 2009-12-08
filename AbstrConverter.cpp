@@ -141,7 +141,6 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
   // determine max and min
   unsigned short iMax = 0;
   unsigned short iMin = std::numeric_limits<unsigned short>::max();
-  short* pInData = new short[INCORESIZE];
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
 
@@ -171,7 +170,6 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
     MESSAGE("No quantization required (min=%i, max=%i)", int(iMin), int(iMax));
     aHist.resize(iMax+1);  // size is the maximum value plus one (the zero value)
 
-    delete [] pInData;
     InputData.Close();
     strQuantFile = strFilename;
   } else {
@@ -184,6 +182,7 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
               int(iMin), int(iMax));
     }
     std::fill(aHist.begin(), aHist.end(), 0);
+    short* pInData = new short[INCORESIZE];
 
     // otherwise quantize
     LargeRAWFile OutputData(strTargetFilename);
@@ -259,7 +258,6 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
   // determine max and min
   unsigned short iMax = 0;
   unsigned short iMin = std::numeric_limits<unsigned short>::max();
-  short* pInData = new short[INCORESIZE];
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
 
@@ -295,7 +293,6 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
     MESSAGE("No histogram quantization required (min=%i, max=%i)", int(iMin), int(iMax));
     aHist.resize(iMax+1); // size is the maximum value plus one (the zero value)
 
-    delete [] pInData;
     InputData.Close();
     strQuantFile = strFilename;
   } else {
@@ -317,13 +314,13 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
     OutputData.Create(iSize*2);
     if (!OutputData.IsOpen()) {
       T_ERROR("Could not open output file %s", strTargetFilename.c_str());
-      delete [] pInData;
       InputData.Close();
       return "";
     }
 
     UINT64 iRange = iMax-iMin;
 
+    short* pInData = new short[INCORESIZE];
     InputData.SeekStart();
     iPos = 0;
     iDivLast = 0;
@@ -392,7 +389,6 @@ AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
   // determine max and min
   float fMax = -std::numeric_limits<float>::max();
   float fMin = std::numeric_limits<float>::max();
-  float* pInData = new float[INCORESIZE];
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
 
@@ -411,12 +407,12 @@ AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
   OutputData.Create(iSize*2);
 
   if (!OutputData.IsOpen()) {
-    delete [] pInData;
     InputData.Close();
     return "";
   }
 
   float fQuantFact = 4095.0f / float(fMax-fMin);
+  float* pInData = new float[INCORESIZE];
   unsigned short* pOutData = new unsigned short[INCORESIZE];
 
   InputData.SeekStart();
@@ -469,7 +465,6 @@ AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip,
   // determine max and min
   double fMax = -std::numeric_limits<double>::max();
   double fMin = std::numeric_limits<double>::max();
-  double* pInData = new double[INCORESIZE];
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
 
@@ -488,7 +483,6 @@ AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip,
   OutputData.Create(iSize*2);
 
   if (!OutputData.IsOpen()) {
-    delete [] pInData;
     InputData.Close();
     return "";
   }
@@ -497,6 +491,7 @@ AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip,
           fMin, fMax);
 
   double fQuantFact = 4095 / (fMax-fMin);
+  double* pInData = new double[INCORESIZE];
   unsigned short* pOutData = new unsigned short[INCORESIZE];
 
   InputData.SeekStart();
@@ -962,4 +957,3 @@ AbstrConverter::QuantizeIntTo8Bits(UINT64 iHeaderSkip,
 
   return QuantizeShortTo8Bits(0,intermFile,strTargetFilename,iSize,false,Histogram1D);
 }
-
