@@ -93,12 +93,12 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   {
     size_t dims[3];
     tv_dimensions(tif, dims);
-    vVolumeSize[0] = UINT32(dims[0]);
-    vVolumeSize[1] = UINT32(dims[1]);
-    vVolumeSize[2] = UINT32(dims[2]);
-    MESSAGE("TiffVolume dimensions: %ux%ux%u", UINT32(dims[0]),
-                                               UINT32(dims[1]),
-                                               UINT32(dims[2]));
+    vVolumeSize[0] = static_cast<UINT64>(dims[0]);
+    vVolumeSize[1] = static_cast<UINT64>(dims[1]);
+    vVolumeSize[2] = static_cast<UINT64>(dims[2]);
+    MESSAGE("TiffVolume dimensions: %ux%ux%u", static_cast<unsigned>(dims[0]),
+                                               static_cast<unsigned>(dims[1]),
+                                               static_cast<unsigned>(dims[2]));
     if(dims[2] <= 1) {
       T_ERROR("TIFF is not a volume; use "
               "`Load Dataset from Directory' instead!");
