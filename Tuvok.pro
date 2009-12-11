@@ -155,6 +155,7 @@ HEADERS += \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
            Renderer/GPUMemMan/GPUMemMan.h \
            Renderer/GPUObject.h \
+           Renderer/RenderRegion.h \
            Renderer/SBVRGeoGen.h \
            Renderer/SBVRGeoGen2D.h \
            Renderer/SBVRGeoGen3D.h \

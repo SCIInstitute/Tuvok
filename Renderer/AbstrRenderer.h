@@ -49,6 +49,7 @@
 
 #include "../StdTuvokDefines.h"
 #include "../Renderer/CullingLOD.h"
+#include "../Renderer/RenderRegion.h"
 #include "../IO/Dataset.h"
 #include "../Basics/Plane.h"
 #include "../Basics/GeometryGenerator.h"
@@ -124,43 +125,13 @@ class AbstrRenderer {
     ERenderMode GetRendermode() {return m_eRenderMode;}
     virtual void SetRendermode(ERenderMode eRenderMode);
 
-    enum EWindowMode {
-      WM_SAGITTAL = 0,
-      WM_AXIAL    = 1,
-      WM_CORONAL  = 2,
-      WM_3D,
-      WM_INVALID
-    };
-
-    static bool Is2DWindowMode(EWindowMode mode) {
+    static bool Is2DWindowMode(tuvok::RenderRegion::EWindowMode mode) {
       // note: Just to be more clear and avoid possible future bugs, we
       // explicitly check the modes rather than doing:   return mode < WM_3D.
-      return (mode == WM_SAGITTAL) || (mode == WM_AXIAL) || (mode == WM_CORONAL);
+      return (mode == tuvok::RenderRegion::WM_SAGITTAL) ||
+             (mode == tuvok::RenderRegion::WM_AXIAL) ||
+             (mode == tuvok::RenderRegion::WM_CORONAL);
     }
-
-  struct RenderRegion {
-    UINTVECTOR2 minCoord, maxCoord;
-    EWindowMode windowMode;
-    bool redrawMask;
-
-    // for 2D window modes:
-    VECTOR2<bool>       flipView;
-    bool                useMIP;
-    UINT64              iSlice;
-
-    RenderRegion():
-      redrawMask(true),
-      useMIP(false),
-      iSlice(0)
-    {
-      flipView = VECTOR2<bool>(false, false);
-    }
-
-    bool ContainsPoint(UINTVECTOR2 pos) {
-      return (minCoord[0] < pos[0] && pos[0] < maxCoord[0]) &&
-             (minCoord[1] < pos[1] && pos[1] < maxCoord[1]);
-    }
-  };
 
     enum EBlendPrecision {
       BP_8BIT = 0,
@@ -204,16 +175,16 @@ class AbstrRenderer {
 
     virtual void Paint() {
       if (renderRegions.empty()) {
-        renderRegions.push_back(&simpleRenderRegion);
+        renderRegions.push_back(&simpleRenderRegion3D);
       }
-      if (renderRegions.size() == 1 && renderRegions[0] == &simpleRenderRegion) {
-        simpleRenderRegion.maxCoord = m_vWinSize; //minCoord is always (0,0)
+      if (renderRegions.size() == 1 && renderRegions[0] == &simpleRenderRegion3D) {
+        simpleRenderRegion3D.maxCoord = m_vWinSize; //minCoord is always (0,0)
       }
 
       // check if we are rendering a stereo frame
       m_bDoStereoRendering = m_bRequestStereoRendering &&
                              renderRegions.size() == 1 &&
-                             renderRegions[0]->windowMode == WM_3D;
+                             renderRegions[0]->windowMode == tuvok::RenderRegion::WM_3D;
     }
 
 
@@ -285,8 +256,8 @@ class AbstrRenderer {
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
 
     virtual void Set2DPlanesIn3DView(bool bRenderPlanesIn3D,
-                                     RenderRegion* renderRegion=NULL);
-    virtual bool Get2DPlanesIn3DView(RenderRegion* = NULL) const {
+                                     tuvok::RenderRegion* renderRegion=NULL);
+    virtual bool Get2DPlanesIn3DView(tuvok::RenderRegion* = NULL) const {
       /// @todo: Make this bool a per 3d render region toggle.
       return m_bRenderPlanesIn3D;}
 
@@ -296,15 +267,15 @@ class AbstrRenderer {
     virtual void Resize(const UINTVECTOR2& vWinSize);
 
     virtual void SetRotation(const FLOATMATRIX4& mRotation,
-                             RenderRegion *renderRegion=NULL);
+                             tuvok::RenderRegion *renderRegion=NULL);
     virtual void SetTranslation(const FLOATMATRIX4& mTranslation,
-                                RenderRegion *renderRegion=NULL);
+                                tuvok::RenderRegion *renderRegion=NULL);
 
     void SetClipPlane(const ExtendedPlane& plane,
-                      RenderRegion *renderRegion=NULL);
-    virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
-    virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);
-    virtual void ShowClipPlane(bool, RenderRegion *renderRegion=NULL);
+                      tuvok::RenderRegion *renderRegion=NULL);
+    virtual void EnableClipPlane(tuvok::RenderRegion *renderRegion=NULL);
+    virtual void DisableClipPlane(tuvok::RenderRegion *renderRegion=NULL);
+    virtual void ShowClipPlane(bool, tuvok::RenderRegion *renderRegion=NULL);
 
     virtual void ClipPlaneRelativeLock(bool);
     virtual bool CanDoClipPlane() {return true;}
@@ -313,8 +284,8 @@ class AbstrRenderer {
     bool ClipPlaneLocked() const  { return m_bClipPlaneLocked; }
 
     /// slice parameter for slice views.
-    virtual void SetSliceDepth(UINT64 fSliceDepth, RenderRegion *renderRegion);
-    virtual UINT64 GetSliceDepth(const RenderRegion *renderRegion) const;
+    virtual void SetSliceDepth(UINT64 fSliceDepth, tuvok::RenderRegion *renderRegion);
+    virtual UINT64 GetSliceDepth(const tuvok::RenderRegion *renderRegion) const;
 
     void SetClearFramebuffer(bool bClearFramebuffer) {
       m_bClearFramebuffer = bClearFramebuffer;
@@ -326,10 +297,10 @@ class AbstrRenderer {
     bool GetLocalBBox() {return m_bRenderLocalBBox;}
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
-    void Set2DFlipMode(bool bFlipX, bool bFlipY, RenderRegion *renderRegion);
-    void Get2DFlipMode(bool& bFlipX, bool& bFlipY, const RenderRegion *renderRegion) const;
-    bool GetUseMIP(const RenderRegion *renderRegion) const;
-    void SetUseMIP(bool bUseMIP, RenderRegion *renderRegion);
+    void Set2DFlipMode(bool bFlipX, bool bFlipY, tuvok::RenderRegion *renderRegion);
+    void Get2DFlipMode(bool& bFlipX, bool& bFlipY, const tuvok::RenderRegion *renderRegion) const;
+    bool GetUseMIP(const tuvok::RenderRegion *renderRegion) const;
+    void SetUseMIP(bool bUseMIP, tuvok::RenderRegion *renderRegion);
 
     UINT64 GetMaxLODIndex() const      { return m_iMaxLODIndex; }
     UINT64 GetMinLODIndex() const      { return m_iMinLODForCurrentView; }
@@ -410,7 +381,7 @@ class AbstrRenderer {
 
     virtual void ScheduleCompleteRedraw();
     virtual void Schedule3DWindowRedraws(); // Redraw all 3D windows.
-    virtual void ScheduleWindowRedraw(RenderRegion *renderRegion);
+    virtual void ScheduleWindowRedraw(tuvok::RenderRegion *renderRegion);
 
     void SetAvoidSeperateCompositing(bool bAvoidSeperateCompositing) {
       m_bAvoidSeperateCompositing = bAvoidSeperateCompositing;
@@ -446,11 +417,11 @@ class AbstrRenderer {
       this->m_TFScalingMethod = sm;
     }
 
-    virtual void NewFrameClear(const RenderRegion &) { assert(1==0); }
+    virtual void NewFrameClear(const tuvok::RenderRegion &) { assert(1==0); }
 
     /// @todo: Make this protected and add methods for interacting with this.
     /// RenderRegions that are currently being rendered.
-    std::vector<RenderRegion*> renderRegions;
+    std::vector<tuvok::RenderRegion*> renderRegions;
 
 
   protected:
@@ -564,16 +535,16 @@ class AbstrRenderer {
     ///@}
 
 
-   //For displaying a full screen window without the client needing to know
-   //about RenderRegions.
-    RenderRegion simpleRenderRegion;
+   // For displaying a full single 3D view without the client needing to know
+   // about RenderRegions.
+    tuvok::RenderRegion simpleRenderRegion3D;
 
 
     FLOATVECTOR4        m_cAmbient;
     FLOATVECTOR4        m_cDiffuse;
     FLOATVECTOR4        m_cSpecular;
 
-    virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);
+    virtual void        ScheduleRecompose(tuvok::RenderRegion *renderRegion=NULL);
     void                ComputeMinLODForCurrentView();
     void                ComputeMaxLODForCurrentView();
     void                Plan3DFrame();
@@ -590,7 +561,7 @@ class AbstrRenderer {
     double              MaxValue() const;
     bool                OnlyRecomposite() const;
 
-    RenderRegion* GetFirst3DRegion();
+    tuvok::RenderRegion* GetFirst3DRegion();
 
   private:
     float               m_fIsovalue;

@@ -135,9 +135,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
 
-  simpleRenderRegion.windowMode = WM_3D;
-  simpleRenderRegion.minCoord = UINTVECTOR2(0,0); // maxCoord is updated in Paint().
-  renderRegions.push_back(&simpleRenderRegion);
+  simpleRenderRegion3D.windowMode = RenderRegion::WM_3D;
+  simpleRenderRegion3D.minCoord = UINTVECTOR2(0,0); // maxCoord is updated in Paint().
+  renderRegions.push_back(&simpleRenderRegion3D);
 
   RestartTimers();
 
@@ -349,9 +349,9 @@ void AbstrRenderer::Resize(const UINTVECTOR2& vWinSize) {
   ScheduleCompleteRedraw();
 }
 
-AbstrRenderer::RenderRegion* AbstrRenderer::GetFirst3DRegion() {
+RenderRegion* AbstrRenderer::GetFirst3DRegion() {
   for (size_t i=0; i < renderRegions.size(); ++i) {
-    if (renderRegions[i]->windowMode == WM_3D)
+    if (renderRegions[i]->windowMode == RenderRegion::WM_3D)
       return renderRegions[i];
   }
   return NULL;
@@ -428,10 +428,10 @@ void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
   m_bClipPlaneLocked = bRel;/// @todo: Make this per RenderRegion ?
 }
 
-void AbstrRenderer::SetSliceDepth(UINT64 iSliceDepth, RenderRegion *renderRegion) {
+void AbstrRenderer::SetSliceDepth(UINT64 sliceDepth, RenderRegion *renderRegion) {
   if (Is2DWindowMode(renderRegion->windowMode)) {
-    if (renderRegion->iSlice != iSliceDepth) {
-      renderRegion->iSlice = iSliceDepth;
+    if (renderRegion->sliceIndex != sliceDepth) {
+      renderRegion->sliceIndex = sliceDepth;
       ScheduleWindowRedraw(renderRegion);
       if (m_bRenderPlanesIn3D)
         Schedule3DWindowRedraws();
@@ -441,7 +441,7 @@ void AbstrRenderer::SetSliceDepth(UINT64 iSliceDepth, RenderRegion *renderRegion
 
 UINT64 AbstrRenderer::GetSliceDepth(const RenderRegion *renderRegion) const {
   if (Is2DWindowMode(renderRegion->windowMode))
-    return renderRegion->iSlice;
+    return renderRegion->sliceIndex;
   else
     return 0;
 }
@@ -471,7 +471,7 @@ void AbstrRenderer::Schedule3DWindowRedraws() {
   m_iCheckCounter    = m_iStartDelay;
 
   for (size_t i=0; i < renderRegions.size(); ++i)
-    if (renderRegions[i]->windowMode == WM_3D)
+    if (renderRegions[i]->windowMode == RenderRegion::WM_3D)
       renderRegions[i]->redrawMask = true;
 }
 
@@ -1071,7 +1071,7 @@ void AbstrRenderer::SetLogoParams(string strLogoFilename, int iLogoPos) {
 void AbstrRenderer::Set2DFlipMode(bool bFlipX, bool bFlipY,
                                   RenderRegion *renderRegion) {
   // flipping is only possible for 2D views
-  if (renderRegion->windowMode > WM_CORONAL) return;
+  if (renderRegion->windowMode > RenderRegion::WM_CORONAL) return;
 
   renderRegion->flipView= VECTOR2<bool>(bFlipX, bFlipY);
   ScheduleWindowRedraw(renderRegion);
@@ -1080,7 +1080,7 @@ void AbstrRenderer::Set2DFlipMode(bool bFlipX, bool bFlipY,
 void AbstrRenderer::Get2DFlipMode(bool& bFlipX, bool& bFlipY,
                                   const RenderRegion *renderRegion) const {
   // flipping is only possible for 2D views
-  if (renderRegion->windowMode > WM_CORONAL) return;
+  if (renderRegion->windowMode > RenderRegion::WM_CORONAL) return;
 
   bFlipX = renderRegion->flipView.x;
   bFlipY = renderRegion->flipView.y;
@@ -1088,13 +1088,13 @@ void AbstrRenderer::Get2DFlipMode(bool& bFlipX, bool& bFlipY,
 
 bool AbstrRenderer::GetUseMIP(const RenderRegion *renderRegion) const {
   // MIP is only possible for 2D views
-  if (renderRegion->windowMode > WM_CORONAL) return false;
+  if (renderRegion->windowMode > RenderRegion::WM_CORONAL) return false;
   return renderRegion->useMIP;
 }
 
 void AbstrRenderer::SetUseMIP(bool bUseMIP, RenderRegion *renderRegion) {
   // MIP is only possible for 2D views
-  if (renderRegion->windowMode > WM_CORONAL) return;
+  if (renderRegion->windowMode > RenderRegion::WM_CORONAL) return;
   renderRegion->useMIP = bUseMIP;
   ScheduleWindowRedraw(renderRegion);
 }

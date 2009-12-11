@@ -42,6 +42,8 @@
 #include "../../StdTuvokDefines.h"
 #include "GLRenderer.h"
 
+using namespace tuvok;
+
 class ExtendedPlane;
 
 /** \class GLRaycaster
@@ -69,7 +71,7 @@ class GLRaycaster : public GLRenderer {
     /// they haven't been)
     virtual bool SupportsClearView() {return m_pDataset->GetComponentCount() == 1;}
 
-    virtual void DisableClipPlane(RenderRegion* renderRegion);
+    virtual void DisableClipPlane(tuvok::RenderRegion* renderRegion);
 
     virtual ERendererType GetRendererType() {return RT_RC;}
 
@@ -94,7 +96,7 @@ class GLRaycaster : public GLRenderer {
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
 
-    virtual void RenderHQMIPPreLoop(const RenderRegion &region);
+    virtual void RenderHQMIPPreLoop(const tuvok::RenderRegion &region);
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void RenderHQMIPPostLoop();
 

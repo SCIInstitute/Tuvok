@@ -359,12 +359,12 @@ void GLRenderer::Paint() {
   for (size_t pass=0; pass < 2; ++pass) {
     for (size_t i=0; i < renderRegions.size(); ++i) {
 
-      if (pass == 0 && renderRegions[i]->windowMode != WM_3D)
+      if (pass == 0 && renderRegions[i]->windowMode != RenderRegion::WM_3D)
         continue;
       if (pass == 1 &&
-          (renderRegions[i]->windowMode != WM_CORONAL &&
-           renderRegions[i]->windowMode != WM_AXIAL &&
-           renderRegions[i]->windowMode != WM_SAGITTAL))
+          (renderRegions[i]->windowMode != RenderRegion::WM_CORONAL &&
+           renderRegions[i]->windowMode != RenderRegion::WM_AXIAL &&
+           renderRegions[i]->windowMode != RenderRegion::WM_SAGITTAL))
         continue;
 
       // note: this line only works if the 3D view is drawn before the 2D
@@ -572,9 +572,8 @@ void GLRenderer::RenderSlice(const RenderRegion &region, double fSliceIndex,
                              FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                              DOUBLEVECTOR3 vAspectRatio,
                              DOUBLEVECTOR2 vWinAspectRatio) {
-
   switch (region.windowMode) {
-  case WM_AXIAL :
+  case RenderRegion::WM_AXIAL :
     {
       if (region.flipView.x) {
         float fTemp = vMinCoords.x;
@@ -602,7 +601,7 @@ void GLRenderer::RenderSlice(const RenderRegion &region, double fSliceIndex,
       glEnd();
       break;
     }
-  case WM_CORONAL :
+  case RenderRegion::WM_CORONAL :
     {
       if (region.flipView.x) {
         float fTemp = vMinCoords.x;
@@ -630,7 +629,7 @@ void GLRenderer::RenderSlice(const RenderRegion &region, double fSliceIndex,
       glEnd();
       break;
     }
-  case WM_SAGITTAL :
+  case RenderRegion::WM_SAGITTAL :
     {
       if (region.flipView.x) {
         float fTemp = vMinCoords.y;
@@ -795,7 +794,7 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
       }
     } else {
       // same indexing fix as above.
-      double fSliceIndex = static_cast<double>(renderRegion.iSlice) /
+      double fSliceIndex = static_cast<double>(renderRegion.sliceIndex) /
                            vDomainSize[sliceDir];
       fSliceIndex *= static_cast<double> (vVoxelCount[sliceDir]) /
                      static_cast<double> (vRealVoxelCount[sliceDir]);
@@ -893,14 +892,14 @@ void GLRenderer::RenderHQMIPPreLoop(const RenderRegion &region) {
   double dPI = 3.141592653589793238462643383;
   FLOATMATRIX4 matRotDir, matFlipX, matFlipY;
   switch (region.windowMode) {
-    case WM_SAGITTAL : {
+    case RenderRegion::WM_SAGITTAL : {
                         matRotDir.RotationX(-dPI/2.0);
                         break;
                       }
-    case WM_AXIAL : {
+    case RenderRegion::WM_AXIAL : {
                         break;
                       }
-    case WM_CORONAL : {
+    case RenderRegion::WM_CORONAL : {
                          FLOATMATRIX4 matTemp;
                          matRotDir.RotationX(-dPI/2.0);
                          matTemp.RotationY(-dPI/2.0);
@@ -1766,30 +1765,31 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
 
     int k=0;
     switch (renderRegions[i]->windowMode) {
-    case WM_SAGITTAL: k=0; break;
-    case WM_AXIAL   : k=1; break;
-    case WM_CORONAL : k=2; break;
+    case RenderRegion::WM_SAGITTAL: k=0; break;
+    case RenderRegion::WM_AXIAL   : k=1; break;
+    case RenderRegion::WM_CORONAL : k=2; break;
     default: continue;
     };
 
-    const float sliceIndex = static_cast<float>(renderRegions[i]->iSlice) / vDomainSize[k];
+    const float sliceIndex =
+      static_cast<float>(renderRegions[i]->sliceIndex) / vDomainSize[k];
     const float planePos = vMinPoint[k] * (1.0f-sliceIndex) + vMaxPoint[k] * sliceIndex;
 
     glBegin(GL_LINE_LOOP);
     switch (renderRegions[i]->windowMode) {
-    case WM_SAGITTAL   :
+    case RenderRegion::WM_SAGITTAL   :
       glVertex3f(planePos, vMinPoint.y, vMaxPoint.z);
       glVertex3f(planePos, vMinPoint.y, vMinPoint.z);
       glVertex3f(planePos, vMaxPoint.y, vMinPoint.z);
       glVertex3f(planePos, vMaxPoint.y, vMaxPoint.z);
       break;
-    case WM_AXIAL   :
+    case RenderRegion::WM_AXIAL   :
       glVertex3f(vMaxPoint.x, planePos, vMinPoint.z);
       glVertex3f(vMinPoint.x, planePos, vMinPoint.z);
       glVertex3f(vMinPoint.x, planePos, vMaxPoint.z);
       glVertex3f(vMaxPoint.x, planePos, vMaxPoint.z);
       break;
-    case WM_CORONAL :
+    case RenderRegion::WM_CORONAL :
       glVertex3f(vMaxPoint.x, vMinPoint.y, planePos);
       glVertex3f(vMinPoint.x, vMinPoint.y, planePos);
       glVertex3f(vMinPoint.x, vMaxPoint.y, planePos);

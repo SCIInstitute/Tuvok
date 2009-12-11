@@ -44,6 +44,7 @@
 #include "Renderer/TFScaling.h"
 
 using namespace std;
+using namespace tuvok;
 
 GLSBVR2D::GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
   GLRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
