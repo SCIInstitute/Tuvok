@@ -83,9 +83,6 @@ class DXRenderer : public AbstrRenderer {
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
 
-    void RenderSlice(EWindowMode eDirection, double fSliceIndex,
-                     FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
-                     DOUBLEVECTOR3 vAspectRatio, DOUBLEVECTOR2 vWinAspectRatio);
 
     void SetWinID(HWND winId) {m_hWnd = winId;}
 
@@ -108,7 +105,6 @@ class DXRenderer : public AbstrRenderer {
     void SetRenderTargetAreaScissor(ERenderArea eREnderArea);
     void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight);
 
-    bool Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex);
     void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1), bool bEpsilonOffset=true);
     void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter,
                     const FLOATVECTOR3& vExtend);
@@ -127,7 +123,6 @@ class DXRenderer : public AbstrRenderer {
     virtual void ComposeSurfaceImage(int iStereoID);
     virtual void Recompose3DView(ERenderArea eArea);
 
-    virtual void RenderHQMIPPreLoop(EWindowMode eDirection);
     virtual void RenderHQMIPInLoop(const Brick& b) = 0;
     virtual void RenderHQMIPPostLoop() {}
 

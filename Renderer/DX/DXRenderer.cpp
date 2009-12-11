@@ -270,18 +270,6 @@ void DXRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
 void DXRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) {
 }
 
-void DXRenderer::RenderSlice(EWindowMode eDirection, double fSliceIndex,
-                             FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
-                             DOUBLEVECTOR3 vAspectRatio,
-                             DOUBLEVECTOR2 vWinAspectRatio) {
-}
-
-bool DXRenderer::Render2DView(ERenderArea eREnderArea, EWindowMode eDirection, UINT64 iSliceIndex) {
-  return true;
-}
-
-void DXRenderer::RenderHQMIPPreLoop(EWindowMode eDirection) {
-}
 
 void DXRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset) {
 }
