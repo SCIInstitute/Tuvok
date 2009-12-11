@@ -910,6 +910,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Renderer\RenderRegion.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Renderer\TFScaling.cpp"
 				>
 			</File>
