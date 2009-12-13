@@ -107,15 +107,6 @@ class AbstrRenderer {
 
     virtual ERendererType GetRendererType() {return RT_INVALID;}
 
-    enum ERenderArea {
-      RA_TOPLEFT = 0,
-      RA_TOPRIGHT,
-      RA_LOWERLEFT,
-      RA_LOWERRIGHT,
-      RA_FULLSCREEN,
-      RA_INVALID
-    };
-
     enum ERenderMode {
       RM_1DTRANS = 0,  /**< one dimensional transfer function */
       RM_2DTRANS,      /**< two dimensional transfer function */
