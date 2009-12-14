@@ -74,9 +74,9 @@ bool DXRenderer::Initialize() {
     return false;
   }
 
-  // next destroy the dx system we may have created already 
+  // next destroy the dx system we may have created already
   if (m_pd3dDevice) OnDestroyDevice();
-  
+
   // next initialize the DirectX subsystem
   HRESULT hr = S_OK;
   UINT createDeviceFlags = 0;
@@ -101,7 +101,7 @@ bool DXRenderer::Initialize() {
                             &m_pd3dDevice );
     if( SUCCEEDED( hr ) ) break;
   }
-  if( FAILED( hr ) ) return false; 
+  if( FAILED( hr ) ) return false;
   hr = DynamicDX::CreateDXGIFactory( IID_IDXGIFactory, ( void** )&m_pDXGIFactory );
   if( FAILED( hr ) ) return false;
 
@@ -125,10 +125,10 @@ void DXRenderer::Changed2DTrans() {
 void DXRenderer::Set1DTrans(const std::vector<unsigned char>&)
 {
   Free1DTrans();
-  
+
   std::pair<TransferFunction1D*, DXTexture1D*> tf;
   /// @todo FIXME GPUMemMan needs to account for DX.
-  assert(1 == 0); // make sure this comment gets noticed!  
+  assert(1 == 0); // make sure this comment gets noticed!
   //GPUMemMan& mm = *(Controller::Instance().MemMan());
   //tf = mm.SetExternal1DTrans(rgba, this);
 
@@ -140,7 +140,7 @@ void DXRenderer::Resize(const UINTVECTOR2& vWinSize) {
   // call the parent
   AbstrRenderer::Resize(vWinSize);
 
-  // next destroy screen dependent data we may have created already 
+  // next destroy screen dependent data we may have created already
   if (m_pSwapChain) OnReleasingSwapChain();
 
   // next create the DirectX swapchain subsystem
@@ -261,10 +261,10 @@ void DXRenderer::EndFrame(bool bNewDataToShow) {
   m_bPerformRedraw = false;
 }
 
-void DXRenderer::SetRenderTargetArea(ERenderArea eREnderArea) {
+void DXRenderer::SetRenderTargetArea(const tuvok::RenderRegion& renderRegion) {
 }
 
-void DXRenderer::SetRenderTargetAreaScissor(ERenderArea eREnderArea) {
+void DXRenderer::SetRenderTargetAreaScissor(const tuvok::RenderRegion& renderRegion) {
 }
 
 void DXRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) {
@@ -277,13 +277,13 @@ void DXRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset) {
 void DXRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend) {
 }
 
-void DXRenderer::NewFrameClear(ERenderArea eREnderArea) {
+void DXRenderer::NewFrameClear(const tuvok::RenderRegion& renderRegion) {
 }
 
 void DXRenderer::RenderCoordArrows() {
 }
 
-bool DXRenderer::Execute3DFrame(ERenderArea eREnderArea, float &fMsecPassed) {
+bool DXRenderer::Execute3DFrame(const tuvok::RenderRegion3D& renderRegion, float &fMsecPassed) {
   return true;
 }
 
@@ -336,7 +336,7 @@ bool DXRenderer::LoadDataset(const string& strFilename) {
   } else return false;
 }
 
-void DXRenderer::Recompose3DView(ERenderArea eArea) {
+void DXRenderer::Recompose3DView(const tuvok::RenderRegion3D& renderRegion) {
 }
 
 float DXRenderer::Render3DView() {

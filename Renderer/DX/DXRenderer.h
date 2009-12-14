@@ -101,15 +101,15 @@ class DXRenderer : public AbstrRenderer {
     void OnDestroyDevice();
 
 
-    void SetRenderTargetArea(ERenderArea eREnderArea);
-    void SetRenderTargetAreaScissor(ERenderArea eREnderArea);
+    void SetRenderTargetArea(const tuvok::RenderRegion& renderRegion);
+    void SetRenderTargetAreaScissor(const tuvok::RenderRegion& renderRegion);
     void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight);
 
     void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1), bool bEpsilonOffset=true);
     void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter,
                     const FLOATVECTOR3& vExtend);
-    void NewFrameClear(ERenderArea eREnderArea);
-    bool Execute3DFrame(ERenderArea eREnderArea, float &fMsecPassed);
+    void NewFrameClear(const tuvok::RenderRegion& renderRegion);
+    bool Execute3DFrame(const tuvok::RenderRegion3D& renderRegion, float &fMsecPassed);
     void RerenderPreviousResult(bool bTransferToFramebuffer);
     void DrawLogo();
     void DrawBackGradient();
@@ -121,7 +121,7 @@ class DXRenderer : public AbstrRenderer {
     virtual void Render3DInLoop(size_t iCurentBrick, int iStereoID) = 0;
     virtual void Render3DPostLoop() {}
     virtual void ComposeSurfaceImage(int iStereoID);
-    virtual void Recompose3DView(ERenderArea eArea);
+    virtual void Recompose3DView(const tuvok::RenderRegion3D& renderRegion);
 
     virtual void RenderHQMIPInLoop(const Brick& b) = 0;
     virtual void RenderHQMIPPostLoop() {}
