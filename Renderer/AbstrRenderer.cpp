@@ -135,7 +135,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
 
-  simpleRenderRegion3D.windowMode = RenderRegion::WM_3D;
   simpleRenderRegion3D.minCoord = UINTVECTOR2(0,0); // maxCoord is updated in Paint().
   renderRegions.push_back(&simpleRenderRegion3D);
 
@@ -429,21 +428,16 @@ void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
 }
 
 void AbstrRenderer::SetSliceDepth(UINT64 sliceDepth, RenderRegion *renderRegion) {
-  if (Is2DWindowMode(renderRegion->windowMode)) {
-    if (renderRegion->sliceIndex != sliceDepth) {
-      renderRegion->sliceIndex = sliceDepth;
-      ScheduleWindowRedraw(renderRegion);
-      if (m_bRenderPlanesIn3D)
-        Schedule3DWindowRedraws();
-    }
+  if (renderRegion->GetSliceIndex() != sliceDepth) {
+    renderRegion->SetSliceIndex(sliceDepth);
+    ScheduleWindowRedraw(renderRegion);
+    if (m_bRenderPlanesIn3D)
+      Schedule3DWindowRedraws();
   }
 }
 
 UINT64 AbstrRenderer::GetSliceDepth(const RenderRegion *renderRegion) const {
-  if (Is2DWindowMode(renderRegion->windowMode))
-    return renderRegion->sliceIndex;
-  else
-    return 0;
+  return renderRegion->GetSliceIndex();
 }
 
 void AbstrRenderer::SetGlobalBBox(bool bRenderBBox) {
@@ -1068,34 +1062,23 @@ void AbstrRenderer::SetLogoParams(string strLogoFilename, int iLogoPos) {
   m_iLogoPos        = iLogoPos;
 }
 
-void AbstrRenderer::Set2DFlipMode(bool bFlipX, bool bFlipY,
+void AbstrRenderer::Set2DFlipMode(bool flipX, bool flipY,
                                   RenderRegion *renderRegion) {
-  // flipping is only possible for 2D views
-  if (renderRegion->windowMode > RenderRegion::WM_CORONAL) return;
-
-  renderRegion->flipView= VECTOR2<bool>(bFlipX, bFlipY);
+  renderRegion->SetFlipView(flipX, flipY);
   ScheduleWindowRedraw(renderRegion);
 }
 
-void AbstrRenderer::Get2DFlipMode(bool& bFlipX, bool& bFlipY,
+void AbstrRenderer::Get2DFlipMode(bool& flipX, bool& flipY,
                                   const RenderRegion *renderRegion) const {
-  // flipping is only possible for 2D views
-  if (renderRegion->windowMode > RenderRegion::WM_CORONAL) return;
-
-  bFlipX = renderRegion->flipView.x;
-  bFlipY = renderRegion->flipView.y;
+  renderRegion->GetFlipView(flipX, flipY);
 }
 
 bool AbstrRenderer::GetUseMIP(const RenderRegion *renderRegion) const {
-  // MIP is only possible for 2D views
-  if (renderRegion->windowMode > RenderRegion::WM_CORONAL) return false;
-  return renderRegion->useMIP;
+  return renderRegion->GetUseMIP();
 }
 
-void AbstrRenderer::SetUseMIP(bool bUseMIP, RenderRegion *renderRegion) {
-  // MIP is only possible for 2D views
-  if (renderRegion->windowMode > RenderRegion::WM_CORONAL) return;
-  renderRegion->useMIP = bUseMIP;
+void AbstrRenderer::SetUseMIP(bool useMIP, RenderRegion *renderRegion) {
+  renderRegion->SetUseMIP(useMIP);
   ScheduleWindowRedraw(renderRegion);
 }
 

@@ -376,7 +376,7 @@ void GLSBVR2D::Render3DPostLoop() {
   }
 }
 
-void GLSBVR2D::RenderHQMIPPreLoop(const RenderRegion &region) {
+void GLSBVR2D::RenderHQMIPPreLoop(const RenderRegion2D &region) {
   GLRenderer::RenderHQMIPPreLoop(region);
   m_pProgramHQMIPRot->Enable();
 

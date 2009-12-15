@@ -359,12 +359,9 @@ void GLRenderer::Paint() {
   for (size_t pass=0; pass < 2; ++pass) {
     for (size_t i=0; i < renderRegions.size(); ++i) {
 
-      if (pass == 0 && renderRegions[i]->windowMode != RenderRegion::WM_3D)
+      if (pass == 0 && !renderRegions[i]->is3D())
         continue;
-      if (pass == 1 &&
-          (renderRegions[i]->windowMode != RenderRegion::WM_CORONAL &&
-           renderRegions[i]->windowMode != RenderRegion::WM_AXIAL &&
-           renderRegions[i]->windowMode != RenderRegion::WM_SAGITTAL))
+      if (pass == 1 && !renderRegions[i]->is2D())
         continue;
 
       // note: this line only works if the 3D view is drawn before the 2D
@@ -377,20 +374,23 @@ void GLRenderer::Paint() {
         bool bLocalNewDataToShow = false;
 
         if (pass == 0) { // WM_3D
-          SetRenderTargetArea(*renderRegions[i], false);
+          assert(renderRegions[i]->is3D());
+          RenderRegion3D *region3D = static_cast<RenderRegion3D*>(renderRegions[i]);
+
+          SetRenderTargetArea(*region3D, false);
           if (!m_bPerformRedraw && m_bPerformReCompose &&
               !bForceCompleteRedrawDueToResChange){
-            Recompose3DView(*renderRegions[i]);
+            Recompose3DView(*region3D);
             bLocalNewDataToShow = true;
           } else {
             // plan the frame
             Plan3DFrame();
             // if m_bDecreaseScreenRes the render target area may have changed
             if (m_bDecreaseScreenResNow)
-              SetRenderTargetArea(*renderRegions[i], true);
+              SetRenderTargetArea(*region3D, true);
             // execute the frame0
             float fMsecPassed = 0.0f;
-            bLocalNewDataToShow = Execute3DFrame(*renderRegions[i], fMsecPassed);
+            bLocalNewDataToShow = Execute3DFrame(*region3D, fMsecPassed);
             m_fMsecPassedCurrentFrame += fMsecPassed;
           }
           // are we done traversing the LOD levels
@@ -398,11 +398,11 @@ void GLRenderer::Paint() {
             (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
             (m_iCurrentLODOffset > m_iMinLODForCurrentView);
         } else if (pass == 1) {  // in a 2D view mode
-          // TODO: Do we check if windowMode is something else, such as invalid?
-
-          SetRenderTargetArea(*renderRegions[i], m_bDecreaseScreenResNow);
-          bLocalNewDataToShow = Render2DView(*renderRegions[i]);
-          renderRegions[i]->redrawMask = false;
+          assert(renderRegions[i]->is2D());
+          RenderRegion2D *region2D = static_cast<RenderRegion2D*>(renderRegions[i]);
+          SetRenderTargetArea(*region2D, m_bDecreaseScreenResNow);
+          bLocalNewDataToShow = Render2DView(*region2D);
+          region2D->redrawMask = false;
         }
 
         if (bLocalNewDataToShow) iReadyRegions++;
@@ -487,7 +487,7 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 }
 
 
-void GLRenderer::SetRenderTargetArea(const RenderRegion &renderRegion,
+void GLRenderer::SetRenderTargetArea(const RenderRegion& renderRegion,
                                      bool bDecreaseScreenResNow) {
   SetRenderTargetArea(renderRegion.minCoord, renderRegion.maxCoord,
                       bDecreaseScreenResNow);
@@ -498,7 +498,7 @@ void GLRenderer::SetRenderTargetArea(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
   SetViewPort(minCoord, maxCoord, bDecreaseScreenResNow);
 }
 
-void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion &renderRegion,
+void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion& renderRegion,
                                             bool bDecreaseScreenResNow) {
   SetRenderTargetAreaScissor(renderRegion.minCoord, renderRegion.maxCoord,
                              bDecreaseScreenResNow);
@@ -568,7 +568,7 @@ void GLRenderer::ComputeViewAndProjection(float fAspect) {
   }
 }
 
-void GLRenderer::RenderSlice(const RenderRegion &region, double fSliceIndex,
+void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
                              FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                              DOUBLEVECTOR3 vAspectRatio,
                              DOUBLEVECTOR2 vWinAspectRatio) {
@@ -689,10 +689,10 @@ bool GLRenderer::UnbindVolumeTex() {
 }
 
 
-bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
+bool GLRenderer::Render2DView(const RenderRegion2D& renderRegion) {
 
   // bind offscreen buffer
-  if (renderRegion.useMIP) {
+  if (renderRegion.GetUseMIP()) {
     // for MIP rendering "abuse" left-eye buffer for the itermediate results
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
   } else {
@@ -702,8 +702,8 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
   SetDataDepShaderVars();
 
   // if we render a slice view or MIP preview
-  if (!renderRegion.useMIP || !m_bCaptureMode)  {
-    if (!renderRegion.useMIP) {
+  if (!renderRegion.GetUseMIP() || !m_bCaptureMode)  {
+    if (!renderRegion.GetUseMIP()) {
       switch (m_eRenderMode) {
         case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
                               m_pProgram2DTransSlice->Enable();
@@ -736,7 +736,7 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
       }
     }
 
-    if (!renderRegion.useMIP) SetBrickDepShaderVarsSlice(vVoxelCount);
+    if (!renderRegion.GetUseMIP()) SetBrickDepShaderVarsSlice(vVoxelCount);
 
     // Get the brick at this LOD; note we're guaranteed this brick will cover
     // the entire domain, because the search above gives us the coarsest LOD!
@@ -776,7 +776,7 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
 
     const int sliceDir = static_cast<size_t>(renderRegion.windowMode);
 
-    if (renderRegion.useMIP) {
+    if (renderRegion.GetUseMIP()) {
       // Iterate; render all slices, and we'll figure out the 'M'(aximum) in
       // the shader.  Note that we iterate over all slices which have data
       // ("VoxelCount"), not over all slices ("RealVoxelCount").
@@ -794,7 +794,7 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
       }
     } else {
       // same indexing fix as above.
-      double fSliceIndex = static_cast<double>(renderRegion.sliceIndex) /
+      double fSliceIndex = static_cast<double>(renderRegion.GetSliceIndex()) /
                            vDomainSize[sliceDir];
       fSliceIndex *= static_cast<double> (vVoxelCount[sliceDir]) /
                      static_cast<double> (vRealVoxelCount[sliceDir]);
@@ -807,7 +807,7 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
     }
 
     glEnable(GL_DEPTH_TEST);
-    if (!renderRegion.useMIP) {
+    if (!renderRegion.GetUseMIP()) {
       switch (m_eRenderMode) {
         case RM_2DTRANS    :  m_pProgram2DTransSlice->Disable(); break;
         default            :  m_pProgram1DTransSlice->Disable(); break;
@@ -863,7 +863,7 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
   }
 
   // apply 1D transferfunction to MIP image
-  if (renderRegion.useMIP) {
+  if (renderRegion.GetUseMIP()) {
     glBlendEquation(GL_FUNC_ADD);
     glDisable( GL_BLEND );
 
@@ -888,7 +888,7 @@ bool GLRenderer::Render2DView(const RenderRegion& renderRegion) {
   return true;
 }
 
-void GLRenderer::RenderHQMIPPreLoop(const RenderRegion &region) {
+void GLRenderer::RenderHQMIPPreLoop(const RenderRegion2D& region) {
   double dPI = 3.141592653589793238462643383;
   FLOATMATRIX4 matRotDir, matFlipX, matFlipY;
   switch (region.windowMode) {
@@ -974,7 +974,7 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
 
 }
 
-void GLRenderer::NewFrameClear(const RenderRegion &renderRegion) {
+void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
   m_iFilledBuffers = 0;
   SetRenderTargetAreaScissor(renderRegion, m_bDecreaseScreenResNow);
 
@@ -1106,7 +1106,7 @@ void GLRenderer::RenderCoordArrows() {
 }
 
 /// Actions to perform every subframe (rendering of a complete LOD level).
-void GLRenderer::PreSubframe(const RenderRegion &renderRegion)
+void GLRenderer::PreSubframe(const RenderRegion& renderRegion)
 {
   NewFrameClear(renderRegion);
 
@@ -1161,8 +1161,8 @@ void GLRenderer::PostSubframe()
   m_TargetBinder.Unbind();
 }
 
-bool GLRenderer::Execute3DFrame(const RenderRegion &renderRegion,
-                                float &fMsecPassed) {
+bool GLRenderer::Execute3DFrame(const RenderRegion3D& renderRegion,
+                                float& fMsecPassed) {
   // are we starting a new LOD level?
   if (m_iBricksRenderedInThisSubFrame == 0) {
     fMsecPassed = 0;
@@ -1771,8 +1771,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     default: continue;
     };
 
-    const float sliceIndex =
-      static_cast<float>(renderRegions[i]->sliceIndex) / vDomainSize[k];
+    const float sliceIndex = static_cast<float>(renderRegions[i]->GetSliceIndex()) / vDomainSize[k];
     const float planePos = vMinPoint[k] * (1.0f-sliceIndex) + vMaxPoint[k] * sliceIndex;
 
     glBegin(GL_LINE_LOOP);
@@ -1951,7 +1950,7 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
   } else return false;
 }
 
-void GLRenderer::Recompose3DView(const RenderRegion &renderRegion) {
+void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
   MESSAGE("Recomposing...");
   NewFrameClear(renderRegion);
 

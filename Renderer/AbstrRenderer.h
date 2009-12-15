@@ -116,14 +116,6 @@ class AbstrRenderer {
     ERenderMode GetRendermode() {return m_eRenderMode;}
     virtual void SetRendermode(ERenderMode eRenderMode);
 
-    static bool Is2DWindowMode(tuvok::RenderRegion::EWindowMode mode) {
-      // note: Just to be more clear and avoid possible future bugs, we
-      // explicitly check the modes rather than doing:   return mode < WM_3D.
-      return (mode == tuvok::RenderRegion::WM_SAGITTAL) ||
-             (mode == tuvok::RenderRegion::WM_AXIAL) ||
-             (mode == tuvok::RenderRegion::WM_CORONAL);
-    }
-
     enum EBlendPrecision {
       BP_8BIT = 0,
       BP_16BIT,
@@ -410,10 +402,10 @@ class AbstrRenderer {
 
     virtual void NewFrameClear(const tuvok::RenderRegion &) { assert(1==0); }
 
-    /// @todo: Make this protected and add methods for interacting with this.
-    /// RenderRegions that are currently being rendered.
-    std::vector<tuvok::RenderRegion*> renderRegions;
-
+    const std::vector<tuvok::RenderRegion*>& GetRenderRegions() const {
+      return renderRegions; }
+    void SetRenderRegions(const std::vector<tuvok::RenderRegion*> &regions) {
+      renderRegions = regions; }
 
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
@@ -525,11 +517,11 @@ class AbstrRenderer {
     float               m_fZNear, m_fZFar;
     ///@}
 
+    std::vector<tuvok::RenderRegion*> renderRegions;
 
-   // For displaying a full single 3D view without the client needing to know
-   // about RenderRegions.
-    tuvok::RenderRegion simpleRenderRegion3D;
-
+    // For displaying a full single 3D view without the client needing to know
+    // about RenderRegions.
+    tuvok::RenderRegion3D simpleRenderRegion3D;
 
     FLOATVECTOR4        m_cAmbient;
     FLOATVECTOR4        m_cDiffuse;

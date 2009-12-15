@@ -31,6 +31,9 @@
 #ifndef RENDERREGION_H
 #define RENDERREGION_H
 
+class AbstrRenderer;
+class GLRenderer;
+
 namespace tuvok {
 
   class RenderRegion {
@@ -48,23 +51,89 @@ namespace tuvok {
     EWindowMode windowMode;
     bool redrawMask;
 
-    // for 2D window modes:
-    VECTOR2<bool> flipView;
-    bool useMIP;
-    UINT64 sliceIndex;
-
-    RenderRegion():
-      redrawMask(true),
-      useMIP(false),
-      sliceIndex(0)
+    RenderRegion(EWindowMode mode):
+      windowMode(mode),
+      redrawMask(true)
     {
-      flipView = VECTOR2<bool>(false, false);
     }
+    virtual ~RenderRegion() { /* nothing to destruct */ }
+
+    virtual bool is2D() const { return false; }
+    virtual bool is3D() const { return false; }
 
     bool ContainsPoint(UINTVECTOR2 pos) {
       return (minCoord[0] < pos[0] && pos[0] < maxCoord[0]) &&
         (minCoord[1] < pos[1] && pos[1] < maxCoord[1]);
     }
+
+  protected:
+    //These methods should be accessed through AbstrRenderer
+    friend class ::AbstrRenderer;
+    friend class ::GLRenderer;
+    virtual bool GetUseMIP() const = 0;
+    virtual void SetUseMIP(bool) = 0;
+    virtual UINT64 GetSliceIndex() const = 0;
+    virtual void SetSliceIndex(UINT64 index) = 0;
+    virtual void GetFlipView(bool &flipX, bool &flipY) const = 0;
+    virtual void SetFlipView(bool flipX, bool flipY) = 0;
+  };
+
+  class RenderRegion2D : public RenderRegion {
+  public:
+
+    VECTOR2<bool>       flipView;
+
+    RenderRegion2D(EWindowMode mode, UINT64 sliceIndex) :
+      RenderRegion(mode),
+      useMIP(false),
+      sliceIndex(sliceIndex)
+    {
+      flipView = VECTOR2<bool>(false, false);
+    }
+    virtual ~RenderRegion2D() { /* nothing to destruct */ }
+
+    virtual bool is2D() const { return true; }
+
+  protected:
+    //These methods should be accessed through AbstrRenderer
+    friend class ::AbstrRenderer;
+    friend class ::GLRenderer;
+    virtual bool GetUseMIP() const { return useMIP; }
+    virtual void SetUseMIP(bool useMIP_) { useMIP = useMIP_; }
+    virtual UINT64 GetSliceIndex() const { return sliceIndex; }
+    virtual void SetSliceIndex(UINT64 index) { sliceIndex = index; }
+    virtual void GetFlipView(bool &flipX, bool &flipY) const {
+      flipX = flipView.x;
+      flipY = flipView.y;
+    }
+    virtual void SetFlipView(bool flipX, bool flipY) {
+      flipView.x = flipX;
+      flipView.y = flipY;
+    }
+
+    bool useMIP;
+    UINT64 sliceIndex;
+  };
+
+  class RenderRegion3D : public RenderRegion {
+  public:
+    RenderRegion3D() : RenderRegion(WM_3D) { /*no code */ }
+    virtual ~RenderRegion3D() { /* nothing to destruct */ }
+
+    virtual bool is3D() const { return true; }
+
+  protected:
+    //These methods should be accessed through AbstrRenderer
+    friend class ::AbstrRenderer;
+    friend class ::GLRenderer;
+    // 3D regions don't do the following things:
+    virtual bool GetUseMIP() const { assert(false); return false; }
+    virtual void SetUseMIP(bool) { assert(false); }
+    virtual UINT64 GetSliceIndex() const { assert(false); return 0; }
+    virtual void SetSliceIndex(UINT64) { assert(false); }
+    virtual void SetFlipView(bool, bool) { assert(false); }
+    virtual void GetFlipView(bool &, bool &) const {assert(false); }
   };
 };
+
 #endif // RENDERREGION_H

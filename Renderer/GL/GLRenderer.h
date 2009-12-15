@@ -82,10 +82,10 @@ class GLRenderer : public AbstrRenderer {
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
 
-    void RenderSlice(const tuvok::RenderRegion &region, double fSliceIndex,
+    void RenderSlice(const tuvok::RenderRegion2D& region, double fSliceIndex,
                      FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                      DOUBLEVECTOR3 vAspectRatio, DOUBLEVECTOR2 vWinAspectRatio);
-    virtual void NewFrameClear(const tuvok::RenderRegion &renderRegion);
+    virtual void NewFrameClear(const tuvok::RenderRegion& renderRegion);
 
   protected:
     GLTargetBinder  m_TargetBinder;
@@ -106,24 +106,25 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramHQMIPRot;
     Timer           m_Timer;
 
-    void SetRenderTargetArea(const tuvok::RenderRegion &renderRegion,
+    void SetRenderTargetArea(const tuvok::RenderRegion& renderRegion,
                              bool bDecreaseScreenResNow);
     void SetRenderTargetArea(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
                              bool bDecreaseScreenResNow);
-    void SetRenderTargetAreaScissor(const tuvok::RenderRegion &renderRegion,
+    void SetRenderTargetAreaScissor(const tuvok::RenderRegion& renderRegion,
                                     bool bDecreaseScreenResNow);
     void SetRenderTargetAreaScissor(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
                                     bool bDecreaseScreenResNow);
     void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
                      bool bDecreaseScreenResNow);
 
-    bool Render2DView(const tuvok::RenderRegion &renderRegion);
+    bool Render2DView(const tuvok::RenderRegion2D& renderRegion);
     void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1),
                     bool bEpsilonOffset=true);
     void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
                     const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
     void RenderClipPlane(size_t iStereoID);
-    bool Execute3DFrame(const tuvok::RenderRegion &renderRegion, float &fMsecPassed);
+    bool Execute3DFrame(const tuvok::RenderRegion3D& renderRegion,
+                        float& fMsecPassed);
     void RerenderPreviousResult(bool bTransferToFramebuffer);
     void DrawLogo();
     void DrawBackGradient();
@@ -139,9 +140,9 @@ class GLRenderer : public AbstrRenderer {
     virtual void Render3DInLoop(size_t iCurentBrick, int iStereoID) = 0;
     virtual void Render3DPostLoop() {}
     virtual void ComposeSurfaceImage(int iStereoID);
-    virtual void Recompose3DView(const tuvok::RenderRegion &renderRegion);
+    virtual void Recompose3DView(const tuvok::RenderRegion3D& renderRegion);
 
-    virtual void RenderHQMIPPreLoop(const tuvok::RenderRegion &region);
+    virtual void RenderHQMIPPreLoop(const tuvok::RenderRegion2D& region);
     virtual void RenderHQMIPInLoop(const Brick& b) = 0;
     virtual void RenderHQMIPPostLoop() {}
 
@@ -166,7 +167,7 @@ class GLRenderer : public AbstrRenderer {
     virtual void StartFrame();
     virtual void EndFrame(bool bNewDataToShow);
 
-    void PreSubframe(const tuvok::RenderRegion &renderRegion);
+    void PreSubframe(const tuvok::RenderRegion& renderRegion);
     void PostSubframe();
 
     virtual void  CVFocusHasChanged();

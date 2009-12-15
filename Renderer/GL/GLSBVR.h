@@ -83,7 +83,7 @@ class GLSBVR : public GLRenderer {
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
 
-    virtual void RenderHQMIPPreLoop(const tuvok::RenderRegion &region);
+    virtual void RenderHQMIPPreLoop(const tuvok::RenderRegion2D &region);
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void RenderHQMIPPostLoop();
 
