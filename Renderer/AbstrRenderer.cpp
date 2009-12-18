@@ -350,7 +350,7 @@ void AbstrRenderer::Resize(const UINTVECTOR2& vWinSize) {
 
 RenderRegion* AbstrRenderer::GetFirst3DRegion() {
   for (size_t i=0; i < renderRegions.size(); ++i) {
-    if (renderRegions[i]->windowMode == RenderRegion::WM_3D)
+    if (renderRegions[i]->is3D())
       return renderRegions[i];
   }
   return NULL;
@@ -465,7 +465,7 @@ void AbstrRenderer::Schedule3DWindowRedraws() {
   m_iCheckCounter    = m_iStartDelay;
 
   for (size_t i=0; i < renderRegions.size(); ++i)
-    if (renderRegions[i]->windowMode == RenderRegion::WM_3D)
+    if (renderRegions[i]->is3D())
       renderRegions[i]->redrawMask = true;
 }
 

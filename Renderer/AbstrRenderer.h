@@ -167,7 +167,7 @@ class AbstrRenderer {
       // check if we are rendering a stereo frame
       m_bDoStereoRendering = m_bRequestStereoRendering &&
                              renderRegions.size() == 1 &&
-                             renderRegions[0]->windowMode == tuvok::RenderRegion::WM_3D;
+                             renderRegions[0]->is3D();
     }
 
 
