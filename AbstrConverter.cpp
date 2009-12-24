@@ -356,8 +356,7 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
 
       if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
         if (bSigned) {
-          MESSAGE("Removing sign from 16bit data and "
-                  "quantizing histogram to 12 bit\n"
+          MESSAGE("Removing sign from 16bit data and quantizing to 12 bit\n"
                   "(input data has range from %i to %i)\n%i%% complete",
                   int(iMin) - std::numeric_limits<short>::max(),
                   int(iMax) - std::numeric_limits<short>::max(),
@@ -388,6 +387,7 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
 
   return strQuantFile;
 }
+
 const std::string
 AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
                                       const std::string& strFilename,
