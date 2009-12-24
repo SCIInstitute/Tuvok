@@ -299,43 +299,45 @@ public:
   IOManager();
   ~IOManager();
 
-  std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory);
+  std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory) const;
   bool ConvertDataset(FileStackInfo* pStack,
                       const std::string& strTargetFilename,
-                      const std::string& strTempDir);
+                      const std::string& strTempDir) const;
   bool ConvertDataset(const std::string& strFilename,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
-                      bool bNoUserInteraction=false);
+                      bool bNoUserInteraction=false) const;
   bool MergeDatasets(const std::vector <std::string>& strFilenames,
                      const std::vector <double>& vScales,
                      const std::vector<double>& vBiases,
                      const std::string& strTargetFilename,
                      const std::string& strTempDir,
-                     bool bUseMaxMode=true, bool bNoUserInteraction=false);
+                     bool bUseMaxMode=true,
+                     bool bNoUserInteraction=false) const;
   tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
-                                    AbstrRenderer* requester);
+                                    AbstrRenderer* requester) const;
   tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
-                                    AbstrRenderer* requester);
+                                    AbstrRenderer* requester) const;
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
-                              AbstrRenderer* requester);
-  bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info, const std::string& strTempDir);
+                              AbstrRenderer* requester) const;
+  bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
+                      const std::string& strTempDir) const;
   bool NeedsConversion(const std::string& strFilename,
                        bool& bChecksumFail) const;
   bool NeedsConversion(const std::string& strFilename) const;
 
   bool ExportDataset(const tuvok::UVFDataset* pSourceData, UINT64 iLODlevel,
                      const std::string& strTargetFilename,
-                     const std::string& strTempDir);
+                     const std::string& strTempDir) const;
   bool ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
                          UINT64 iLODlevel, double fIsovalue,
                          const DOUBLEVECTOR3& vfRescaleFactors,
                          const std::string& strTargetFilename,
-                         const std::string& strTempDir);
+                         const std::string& strTempDir) const;
 
   void RegisterExternalConverter(AbstrConverter* pConverter);
   void RegisterFinalConverter(AbstrConverter* pConverter);

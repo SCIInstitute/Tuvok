@@ -93,7 +93,7 @@ IOManager::~IOManager()
   delete m_pFinalConverter;
 }
 
-vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
+vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) const {
 
   MESSAGE("Scanning directory %s", strDirectory.c_str());
 
@@ -171,8 +171,9 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) {
   #pragma warning(disable:4996)
 #endif
 
-bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, const std::string& strTempDir) {
-
+bool IOManager::ConvertDataset(FileStackInfo* pStack,
+                               const std::string& strTargetFilename,
+                               const std::string& strTempDir) const {
   MESSAGE("Request to convert stack of %s files to %s received", pStack->m_strDesc.c_str(), strTargetFilename.c_str());
 
   if (pStack->m_strFileType == "DICOM") {
@@ -362,10 +363,12 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
 #endif
 
 
-bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, const std::vector <double>& vScales,
-                              const std::vector<double>& vBiases, const std::string& strTargetFilename,
+bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
+                              const std::vector <double>& vScales,
+                              const std::vector<double>& vBiases,
+                              const std::string& strTargetFilename,
                               const std::string& strTempDir,
-                              bool bUseMaxMode, bool bNoUserInteraction) {
+                              bool bUseMaxMode, bool bNoUserInteraction) const {
   MESSAGE("Request to merge multiple data sets into %s received.", strTargetFilename.c_str());
 
   // convert the input files to RAW
@@ -620,9 +623,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames, con
 bool IOManager::ConvertDataset(const std::string& strFilename,
                                const std::string& strTargetFilename,
                                const std::string& strTempDir,
-                               bool bNoUserInteraction) {
-
-
+                               bool bNoUserInteraction) const {
   MESSAGE("Request to convert dataset %s to %s received.",
           strFilename.c_str(), strTargetFilename.c_str());
 
@@ -742,27 +743,38 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
   return false;
 }
 
-UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTargetFilename, const std::string& strTempDir, AbstrRenderer* requester) {
+UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack,
+                                      const std::string& strTargetFilename,
+                                      const std::string& strTempDir,
+                                      AbstrRenderer* requester) const {
   if (!ConvertDataset(pStack, strTargetFilename, strTempDir)) return NULL;
   return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
 
-UVFDataset* IOManager::ConvertDataset(const std::string& strFilename, const std::string& strTargetFilename, const std::string& strTempDir, AbstrRenderer* requester) {
+UVFDataset* IOManager::ConvertDataset(const std::string& strFilename,
+                                      const std::string& strTargetFilename,
+                                      const std::string& strTempDir,
+                                      AbstrRenderer* requester) const {
   if (!ConvertDataset(strFilename, strTargetFilename, strTempDir)) return NULL;
   return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
 
 Dataset* IOManager::LoadDataset(const std::string& strFilename,
-                                AbstrRenderer* requester) {
+                                AbstrRenderer* requester) const {
   return Controller::Instance().MemMan()->LoadDataset(strFilename, requester);
 }
 
-bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset, void* pUserContext ) {
+bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize,
+             const std::vector<UINT64> vBrickOffset, void* pUserContext) {
     MCData* pMCData = (MCData*)pUserContext;
     return pMCData->PerformMC(pSourceFile, vBrickSize, vBrickOffset);
 }
 
-bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData, UINT64 iLODlevel, double fIsovalue, const DOUBLEVECTOR3& vfRescaleFactors, const std::string& strTargetFilename, const std::string& strTempDir) {
+bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData,
+                                  UINT64 iLODlevel, double fIsovalue,
+                                  const DOUBLEVECTOR3& vfRescaleFactors,
+                                  const std::string& strTargetFilename,
+                                  const std::string& strTempDir) const {
   if (pSourceData->GetComponentCount() != 1) {
     T_ERROR("Isosurface extraction only supported for scalar volumes.");
     return false;
@@ -821,7 +833,9 @@ bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData, UINT64 iLODleve
 }
 
 
-bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel, const std::string& strTargetFilename, const std::string& strTempDir) {
+bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel,
+                              const std::string& strTargetFilename,
+                              const std::string& strTempDir) const {
   // find the right converter to handle the output
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
   AbstrConverter* pExporter = NULL;
@@ -974,7 +988,8 @@ std::vector< std::pair <std::string, std::string > > IOManager::GetImportFormatL
 }
 
 
-bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info, const std::string& strTempDir) {
+bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
+                               const std::string& strTempDir) const {
   // find the right converter to handle the dataset
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
 
