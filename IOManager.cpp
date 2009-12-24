@@ -292,38 +292,37 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     }
 
     return result;
-  } else {
-     if (pStack->m_strFileType == "IMAGE") {
-        MESSAGE("  Detected Image stack, starting image conversion");
-        MESSAGE("  Stack contains %i files",  int(pStack->m_Elements.size()));
+  } else if(pStack->m_strFileType == "IMAGE") {
+    MESSAGE("  Detected Image stack, starting image conversion");
+    MESSAGE("  Stack contains %i files",  int(pStack->m_Elements.size()));
 
-        string strTempMergeFilename = strTempDir + SysTools::GetFilename(strTargetFilename) + "~";
-        MESSAGE("Creating intermediate file %s", strTempMergeFilename.c_str());
+    string strTempMergeFilename = strTempDir + SysTools::GetFilename(strTargetFilename) + "~";
+    MESSAGE("Creating intermediate file %s", strTempMergeFilename.c_str());
 
-        ofstream fs;
-        fs.open(strTempMergeFilename.c_str(),fstream::binary);
-        if (fs.fail())  {
-          T_ERROR("Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
-          return false;
-        }
+    ofstream fs;
+    fs.open(strTempMergeFilename.c_str(),fstream::binary);
+    if (fs.fail())  {
+      T_ERROR("Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
+      return false;
+    }
 
-        std::vector<char> vData;
-        for (size_t j = 0;j<pStack->m_Elements.size();j++) {
-          UINT32 iDataSize = pStack->m_Elements[j]->GetDataSize();
-          vData.resize(iDataSize);
-          pStack->m_Elements[j]->GetData(vData);
+    std::vector<char> vData;
+    for (size_t j = 0;j<pStack->m_Elements.size();j++) {
+      UINT32 iDataSize = pStack->m_Elements[j]->GetDataSize();
+      vData.resize(iDataSize);
+      pStack->m_Elements[j]->GetData(vData);
 
-          fs.write(&vData[0], iDataSize);
-          MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), int((100*j)/pStack->m_Elements.size()));
-        }
+      fs.write(&vData[0], iDataSize);
+      MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), int((100*j)/pStack->m_Elements.size()));
+    }
 
-        fs.close();
-        MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());
+    fs.close();
+    MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());
 
-        UINT64VECTOR3 iSize = UINT64VECTOR3(pStack->m_ivSize);
-        iSize.z *= UINT32(pStack->m_Elements.size());
+    UINT64VECTOR3 iSize = UINT64VECTOR3(pStack->m_ivSize);
+    iSize.z *= UINT32(pStack->m_Elements.size());
 
-        bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, strTempDir, 0,
+    bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, strTempDir, 0,
                                         pStack->m_iAllocated, pStack->m_iComponentCount,
                                         pStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
                                         pStack->m_iComponentCount >= 32,
@@ -332,16 +331,15 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
                                         "Image stack", SysTools::GetFilename(pStack->m_Elements[0]->m_strFileName)
                                         + " to " + SysTools::GetFilename(pStack->m_Elements[pStack->m_Elements.size()-1]->m_strFileName));
 
-        if( remove(strTempMergeFilename.c_str()) != 0 ) {
-          WARNING("Unable to remove temp file %s", strTempMergeFilename.c_str());
-        }
+    if( remove(strTempMergeFilename.c_str()) != 0 ) {
+      WARNING("Unable to remove temp file %s", strTempMergeFilename.c_str());
+    }
 
-        return result;
-     }
+    return result;
+  } else {
+    T_ERROR("Unknown source stack type %s", pStack->m_strFileType.c_str());
+    return false;
   }
-
-
-  T_ERROR("Unknown source stack type %s", pStack->m_strFileType.c_str());
   return false;
 }
 
