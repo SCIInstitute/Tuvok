@@ -296,13 +296,16 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
     MESSAGE("  Detected Image stack, starting image conversion");
     MESSAGE("  Stack contains %i files",  int(pStack->m_Elements.size()));
 
-    string strTempMergeFilename = strTempDir + SysTools::GetFilename(strTargetFilename) + "~";
+    string strTempMergeFilename = strTempDir +
+                                  SysTools::GetFilename(strTargetFilename) +
+                                  "~";
     MESSAGE("Creating intermediate file %s", strTempMergeFilename.c_str());
 
     ofstream fs;
     fs.open(strTempMergeFilename.c_str(),fstream::binary);
     if (fs.fail())  {
-      T_ERROR("Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
+      T_ERROR("Could not create temp file %s aborted conversion.",
+              strTempMergeFilename.c_str());
       return false;
     }
 
@@ -313,25 +316,36 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack, const std::string& strTarg
       pStack->m_Elements[j]->GetData(vData);
 
       fs.write(&vData[0], iDataSize);
-      MESSAGE("Creating intermediate file %s\n%i%%", strTempMergeFilename.c_str(), int((100*j)/pStack->m_Elements.size()));
+      MESSAGE("Creating intermediate file %s\n%i%%",
+              strTempMergeFilename.c_str(),
+              int((100*j)/pStack->m_Elements.size()));
     }
 
     fs.close();
-    MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());
+    MESSAGE("    done creating intermediate file %s",
+            strTempMergeFilename.c_str());
 
     UINT64VECTOR3 iSize = UINT64VECTOR3(pStack->m_ivSize);
     iSize.z *= UINT32(pStack->m_Elements.size());
 
-    bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, strTempDir, 0,
-                                        pStack->m_iAllocated, pStack->m_iComponentCount,
-                                        pStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
-                                        pStack->m_iComponentCount >= 32,
-                                        false,
-                                        iSize, pStack->m_fvfAspect,
-                                        "Image stack", SysTools::GetFilename(pStack->m_Elements[0]->m_strFileName)
-                                        + " to " + SysTools::GetFilename(pStack->m_Elements[pStack->m_Elements.size()-1]->m_strFileName));
+    const std::string first_fn =
+      SysTools::GetFilename(pStack->m_Elements[0]->m_strFileName);
+    const size_t last_elem = pStack->m_Elements.size()-1;
+    const std::string last_fn =
+      SysTools::GetFilename(pStack->m_Elements[last_elem]->m_strFileName);
 
-    if( remove(strTempMergeFilename.c_str()) != 0 ) {
+    bool result =
+      RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename,
+                                      strTempDir, 0, pStack->m_iAllocated,
+                                      pStack->m_iComponentCount,
+                                      pStack->m_bIsBigEndian !=
+                                        EndianConvert::IsBigEndian(),
+                                      pStack->m_iComponentCount >= 32, false,
+                                      iSize, pStack->m_fvfAspect,
+                                      "Image stack",
+                                      first_fn + " to " + last_fn);
+
+    if(remove(strTempMergeFilename.c_str()) != 0) {
       WARNING("Unable to remove temp file %s", strTempMergeFilename.c_str());
     }
 
