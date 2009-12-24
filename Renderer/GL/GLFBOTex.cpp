@@ -167,9 +167,11 @@ GLFBOTex::~GLFBOTex(void) {
 /**
  * Build a dummy texture according to the parameters.
  */
-void GLFBOTex::initTextures(GLenum minfilter,GLenum magfilter,GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat) {
+void GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
+                            GLenum wrapmode, GLsizei width, GLsizei height,
+                            GLenum intformat) {
   MESSAGE("Initializing 2D texture of dimensions: %ux%u",
-          static_cast<unsigned int>(width), static_cast<unsigned int>(height));
+          static_cast<unsigned>(width), static_cast<unsigned>(height));
   glDeleteTextures(m_iNumBuffers,m_hTexture);
   glGenTextures(m_iNumBuffers,m_hTexture);
   for (int i=0; i<m_iNumBuffers; i++) {
