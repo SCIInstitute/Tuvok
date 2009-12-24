@@ -376,7 +376,6 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     return result;
   } else {
     T_ERROR("Unknown source stack type %s", pStack->m_strFileType.c_str());
-    return false;
   }
   return false;
 }
