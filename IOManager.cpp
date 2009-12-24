@@ -174,7 +174,8 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) const 
 bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                const std::string& strTargetFilename,
                                const std::string& strTempDir) const {
-  MESSAGE("Request to convert stack of %s files to %s received", pStack->m_strDesc.c_str(), strTargetFilename.c_str());
+  MESSAGE("Request to convert stack of %s files to %s received",
+          pStack->m_strDesc.c_str(), strTargetFilename.c_str());
 
   if (pStack->m_strFileType == "DICOM") {
     MESSAGE("  Detected DICOM stack, starting DICOM conversion");
@@ -182,19 +183,27 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     DICOMStackInfo* pDICOMStack = ((DICOMStackInfo*)pStack);
 
     MESSAGE("  Stack contains %i files",  int(pDICOMStack->m_Elements.size()));
-    MESSAGE("    Series: %i  Bits: %i (%i)", pDICOMStack->m_iSeries, pDICOMStack->m_iAllocated, pDICOMStack->m_iStored);
-    MESSAGE("    Date: %s  Time: %s", pDICOMStack->m_strAcquDate.c_str(), pDICOMStack->m_strAcquTime.c_str());
-    MESSAGE("    Modality: %s  Description: %s", pDICOMStack->m_strModality.c_str(), pDICOMStack->m_strDesc.c_str());
-    MESSAGE("    Aspect Ratio: %g %g %g", pDICOMStack->m_fvfAspect.x, pDICOMStack->m_fvfAspect.y, pDICOMStack->m_fvfAspect.z);
+    MESSAGE("    Series: %i  Bits: %i (%i)", pDICOMStack->m_iSeries,
+                                             pDICOMStack->m_iAllocated,
+                                             pDICOMStack->m_iStored);
+    MESSAGE("    Date: %s  Time: %s", pDICOMStack->m_strAcquDate.c_str(),
+                                      pDICOMStack->m_strAcquTime.c_str());
+    MESSAGE("    Modality: %s  Description: %s",
+            pDICOMStack->m_strModality.c_str(),
+            pDICOMStack->m_strDesc.c_str());
+    MESSAGE("    Aspect Ratio: %g %g %g", pDICOMStack->m_fvfAspect.x,
+            pDICOMStack->m_fvfAspect.y, pDICOMStack->m_fvfAspect.z);
 
-    string strTempMergeFilename = strTempDir + SysTools::GetFilename(strTargetFilename) + "~";
-
+    string strTempMergeFilename = strTempDir +
+                                  SysTools::GetFilename(strTargetFilename) +
+                                  "~";
     MESSAGE("Creating intermediate file %s", strTempMergeFilename.c_str());
 
     ofstream fs;
-    fs.open(strTempMergeFilename.c_str(),fstream::binary);
-    if (fs.fail())  {
-      T_ERROR("Could not create temp file %s aborted conversion.", strTempMergeFilename.c_str());
+    fs.open(strTempMergeFilename.c_str(), fstream::binary);
+    if (fs.fail()) {
+      T_ERROR("Could not create temp file %s aborted conversion.",
+              strTempMergeFilename.c_str());
       return false;
     }
 
@@ -279,16 +288,30 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
 
     /// \todo evaluate pDICOMStack->m_strModality
 
-    bool result = RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename, strTempDir, 0,
-                                    pDICOMStack->m_iAllocated, pDICOMStack->m_iComponentCount,
-                                    pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian(),
-                                    pDICOMStack->m_iAllocated >=32, /// \todo read sign property from DICOM file
-                                    false, /// \todo read float property from DICOM file
-                                    iSize, pDICOMStack->m_fvfAspect,
-                                    "DICOM stack", SysTools::GetFilename(pDICOMStack->m_Elements[0]->m_strFileName)
-                                    + " to " + SysTools::GetFilename(pDICOMStack->m_Elements[pDICOMStack->m_Elements.size()-1]->m_strFileName));
+    /// \todo read sign property from DICOM file, instead of using the
+    /// `m_iAllocated >= 32 heuristic.
+    /// \todo read `is floating point' property from DICOM, instead of assuming
+    /// false.
+    bool result =
+      RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename,
+                                      strTempDir, 0, pDICOMStack->m_iAllocated,
+                                      pDICOMStack->m_iComponentCount,
+                                      pDICOMStack->m_bIsBigEndian !=
+                                        EndianConvert::IsBigEndian(),
+                                      pDICOMStack->m_iAllocated >=32,
+                                      false, iSize, pDICOMStack->m_fvfAspect,
+                                      "DICOM stack",
+                                      SysTools::GetFilename(
+                                        pDICOMStack->m_Elements[0]->m_strFileName)
+                                      + " to " +
+                                      SysTools::GetFilename(
+                                        pDICOMStack->m_Elements[
+                                          pDICOMStack->m_Elements.size()-1
+                                        ]->m_strFileName
+                                      )
+                                     );
 
-    if( remove(strTempMergeFilename.c_str()) != 0 ) {
+    if(remove(strTempMergeFilename.c_str()) != 0) {
       WARNING("Unable to remove temp file %s", strTempMergeFilename.c_str());
     }
 
