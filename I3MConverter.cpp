@@ -54,13 +54,17 @@ I3MConverter::I3MConverter()
 }
 
 bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
-                            const std::string& strTempDir, bool,
-                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
-                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
-                            FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
-                            bool& bDeleteIntermediateFile) {
-
+                                const std::string& strTempDir, bool,
+                                UINT64& iHeaderSkip, UINT64& iComponentSize,
+                                UINT64& iComponentCount,
+                                bool& bConvertEndianess, bool& bSigned,
+                                bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
+                                FLOATVECTOR3& vVolumeAspect,
+                                std::string& strTitle,
+                                UVFTables::ElementSemanticTable& eType,
+                                std::string& strIntermediateFile,
+                                bool& bDeleteIntermediateFile)
+{
   MESSAGE("Attempting to convert an ImageVis3D mobile dataset %s", strSourceFilename.c_str());
 
   bDeleteIntermediateFile = true;
@@ -117,19 +121,24 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   I3MFile.ReadData(vVolumeSize.x, false);
   I3MFile.ReadData(vVolumeSize.y, false);
   I3MFile.ReadData(vVolumeSize.z, false);
-  if (vVolumeSize.x > MAX_I3M_VOLSIZE || vVolumeSize.y > MAX_I3M_VOLSIZE || vVolumeSize.z > MAX_I3M_VOLSIZE) {
+  if (vVolumeSize.x > MAX_I3M_VOLSIZE ||
+      vVolumeSize.y > MAX_I3M_VOLSIZE ||
+      vVolumeSize.z > MAX_I3M_VOLSIZE) {
     I3MFile.Close();
     T_ERROR("Invalid volume size detected in I3M file %s", strSourceFilename.c_str());
     return false;
   }
-  MESSAGE("Volume Size (%i x %i x %i) in I3M file OK", int(vVolumeSize.x), int(vVolumeSize.y), int(vVolumeSize.z));
+  MESSAGE("Volume Size (%i x %i x %i) in I3M file OK",
+          int(vVolumeSize.x), int(vVolumeSize.y), int(vVolumeSize.z));
 
   // at this point we can check if the file has the correct size
   if (  8*4                     /* eight 32bit fields in the header */
       + 4*vVolumeSize.volume()  /* four component 8bit volume */
       != ulFileLength) {
     I3MFile.Close();
-    T_ERROR("The size of the I3M file %s does not match the information in its header.", strSourceFilename.c_str());
+    T_ERROR("The size of the I3M file %s "
+            "does not match the information in its header.",
+            strSourceFilename.c_str());
     return false;
   }
   MESSAGE("File Size (%i) of I3M file OK", int(ulFileLength));
@@ -138,19 +147,23 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   I3MFile.ReadData(vVolumeAspect.x, false);
   I3MFile.ReadData(vVolumeAspect.y, false);
   I3MFile.ReadData(vVolumeAspect.z, false);
-  MESSAGE("Aspect Ration (%g x %g x %g)", vVolumeAspect.x, vVolumeAspect.y, vVolumeAspect.z);
+  MESSAGE("Aspect Ration (%g x %g x %g)",
+          vVolumeAspect.x, vVolumeAspect.y, vVolumeAspect.z);
 
-  // header is completed all test passed, now we can read the volume, simply copy every fourth byte to the target file
+  // header is completed all test passed, now we can read the volume,
+  // simply copy every fourth byte to the target file
 
   MESSAGE("I3M File header scan completed, converting volume...");
 
-  strIntermediateFile = strTempDir+SysTools::GetFilename(strSourceFilename)+".temp";
+  strIntermediateFile = strTempDir + SysTools::GetFilename(strSourceFilename) +
+                        ".temp";
 
   LargeRAWFile RAWFile(strIntermediateFile, 0);
   RAWFile.Create();
 
   if (!RAWFile.IsOpen()) {
-    T_ERROR("Unable to open intermediate file %s", strIntermediateFile.c_str());
+    T_ERROR("Unable to open intermediate file %s",
+            strIntermediateFile.c_str());
     I3MFile.Close();
     return false;
   }
@@ -167,7 +180,8 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   delete [] pData;
   RAWFile.Close();
 
-  MESSAGE("Intermediate RAW file %s from I3M file %s created.", strIntermediateFile.c_str(), strSourceFilename.c_str());
+  MESSAGE("Intermediate RAW file %s from I3M file %s created.",
+          strIntermediateFile.c_str(), strSourceFilename.c_str());
 
   return true;
 }
