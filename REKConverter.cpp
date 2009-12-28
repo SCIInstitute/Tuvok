@@ -50,17 +50,17 @@ REKConverter::REKConverter()
 
 bool
 REKConverter::ConvertToRAW(const std::string& strSourceFilename,
-                                  const std::string&,
-                                  bool, UINT64& iHeaderSkip,
-                                  UINT64& iComponentSize,
-                                  UINT64& iComponentCount,
-                                  bool& bConvertEndianess, bool& bSigned,
-                                  bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
-                                  FLOATVECTOR3& vVolumeAspect,
-                                  std::string& strTitle,
-                                  UVFTables::ElementSemanticTable& eType,
-                                  std::string& strIntermediateFile,
-                                  bool& bDeleteIntermediateFile)
+                           const std::string&,
+                           bool, UINT64& iHeaderSkip,
+                           UINT64& iComponentSize,
+                           UINT64& iComponentCount,
+                           bool& bConvertEndianess, bool& bSigned,
+                           bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
+                           FLOATVECTOR3& vVolumeAspect,
+                           std::string& strTitle,
+                           UVFTables::ElementSemanticTable& eType,
+                           std::string& strIntermediateFile,
+                           bool& bDeleteIntermediateFile)
 {
   MESSAGE("Attempting to convert REK dataset %s", strSourceFilename.c_str());
 
@@ -92,8 +92,10 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
   strIntermediateFile = strSourceFilename;
   bDeleteIntermediateFile = false;
 
-  // read file format from header - first try to guess endieness from offset 4-5 (bits per pixel)
-  // Anyway, I do not think that anyone would ever encounter such a file stored in big endian encoding.
+  // read file format from header - first try to guess endianness from offset
+  // 4-5 (bits per pixel)
+  // Anyway, I do not think that anyone would ever encounter such a file
+  // stored in big endian encoding.
   bConvertEndianess = Parse<boost::uint16_t, 2>( &buffer[4] ) > 32;
 
   vVolumeSize[0] = Parse<boost::uint16_t, 2>( &buffer[0], bConvertEndianess );
