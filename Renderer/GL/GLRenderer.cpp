@@ -284,7 +284,7 @@ void GLRenderer::Changed2DTrans() {
 
 void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
   AbstrRenderer::Resize(vWinSize);
-  MESSAGE("Resizing to %i x %i", vWinSize.x, vWinSize.y);
+  MESSAGE("Resizing to %u x %u", vWinSize.x, vWinSize.y);
   CreateOffscreenBuffers();
   CreateDepthStorage();
 }
@@ -743,7 +743,8 @@ bool GLRenderer::Render2DView(const RenderRegion2D& renderRegion) {
     const BrickKey bkey(iCurrentLOD, 0);
 
     if (!BindVolumeTex(bkey,0)) {
-      T_ERROR("Unable to bind volume to texture (LOD:%i, Brick:0)", int(iCurrentLOD));
+      T_ERROR("Unable to bind volume to texture (LOD:%u, Brick:0)",
+              static_cast<unsigned>(iCurrentLOD));
     }
 
     // clear the target at the beginning
@@ -837,7 +838,8 @@ bool GLRenderer::Render2DView(const RenderRegion2D& renderRegion) {
     RenderHQMIPPreLoop(renderRegion);
 
     for (size_t iBrickIndex = 0;iBrickIndex<m_vCurrentBrickList.size();iBrickIndex++) {
-      MESSAGE("Brick %i of %i", int(iBrickIndex+1),int(m_vCurrentBrickList.size()));
+      MESSAGE("Brick %u of %u", static_cast<unsigned>(iBrickIndex+1),
+              static_cast<unsigned>(m_vCurrentBrickList.size()));
 
       // convert 3D variables to the more general ND scheme used in the memory
       // manager, i.e. convert 3-vectors to stl vectors
@@ -851,8 +853,9 @@ bool GLRenderer::Render2DView(const RenderRegion2D& renderRegion) {
       // get the 3D texture from the memory manager
 
       if (!BindVolumeTex(key,0)) {
-        T_ERROR("Unable to bind volume to texture (LOD:%i, Brick:%i)",
-                int(m_iCurrentLOD),int(iBrickIndex));
+        T_ERROR("Unable to bind volume to texture (LOD:%u, Brick:%u)",
+                static_cast<unsigned>(m_iCurrentLOD),
+                static_cast<unsigned>(iBrickIndex));
       }
       RenderHQMIPInLoop(m_vCurrentBrickList[iBrickIndex]);
       if (!UnbindVolumeTex()) {
@@ -1178,9 +1181,9 @@ bool GLRenderer::Execute3DFrame(const RenderRegion3D& renderRegion,
 
   // if there is something left in the TODO list
   if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) {
-    MESSAGE("%i bricks left to render",
-            int(UINT64(m_vCurrentBrickList.size()) -
-                m_iBricksRenderedInThisSubFrame));
+    MESSAGE("%u bricks left to render",
+            static_cast<unsigned>(UINT64(m_vCurrentBrickList.size()) -
+                                  m_iBricksRenderedInThisSubFrame));
 
     // setup shaders vars
     SetDataDepShaderVars();
@@ -1191,8 +1194,9 @@ bool GLRenderer::Execute3DFrame(const RenderRegion3D& renderRegion,
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
       // show the timings as "other", to distinguish it from all those million messages
-      OTHER("The current subframe took %g ms to render (LOD Level %i)",
-            m_fMsecPassedCurrentFrame + fMsecPassed, int(m_iCurrentLODOffset));
+      OTHER("The current subframe took %g ms to render (LOD Level %u)",
+            m_fMsecPassedCurrentFrame + fMsecPassed,
+            static_cast<unsigned>(m_iCurrentLODOffset));
       PostSubframe();
       return true;
     }
@@ -1992,8 +1996,9 @@ float GLRenderer::Render3DView() {
 
   while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame &&
          fMsecPassed < m_iTimeSliceMSecs) {
-    MESSAGE("  Brick %i of %i", int(m_iBricksRenderedInThisSubFrame+1),
-                                int(m_vCurrentBrickList.size()));
+    MESSAGE("  Brick %u of %u",
+            static_cast<unsigned>(m_iBricksRenderedInThisSubFrame+1),
+            static_cast<unsigned>(m_vCurrentBrickList.size()));
 
     const BrickKey& bkey = m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
 

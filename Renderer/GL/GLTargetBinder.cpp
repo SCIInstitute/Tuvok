@@ -72,7 +72,8 @@ void GLTargetBinder::Bind(const std::vector<GLBufferID>& vpFBOs) {
               vpFBOs[3].pBuffer->Write(3,vpFBOs[3].iSubBuffer);
               GLFBOTex::FourDrawBuffers();
               break;
-    default : T_ERROR("Invalid number of FBOs %i", int(vpFBOs.size()));
+    default : T_ERROR("Invalid number of FBOs %u",
+                      static_cast<unsigned>(vpFBOs.size()));
               return;
   }
 
