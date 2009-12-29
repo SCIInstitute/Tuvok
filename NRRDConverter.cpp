@@ -52,12 +52,16 @@ NRRDConverter::NRRDConverter()
 
 bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
                                  const std::string& strTempDir, bool,
-                                 UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
-                                 bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
-                                 FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                                 UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
-                                 bool& bDeleteIntermediateFile) {
-
+                                 UINT64& iHeaderSkip, UINT64& iComponentSize,
+                                 UINT64& iComponentCount,
+                                 bool& bConvertEndianess, bool& bSigned,
+                                 bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
+                                 FLOATVECTOR3& vVolumeAspect,
+                                 std::string& strTitle,
+                                 UVFTables::ElementSemanticTable& eType,
+                                 std::string& strIntermediateFile,
+                                 bool& bDeleteIntermediateFile)
+{
   MESSAGE("Attempting to convert NRRD dataset %s", strSourceFilename.c_str());
 
   // Check Magic value in NRRD File first
