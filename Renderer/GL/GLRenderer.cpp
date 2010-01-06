@@ -896,20 +896,18 @@ void GLRenderer::RenderHQMIPPreLoop(const RenderRegion2D& region) {
   FLOATMATRIX4 matRotDir, matFlipX, matFlipY;
   switch (region.windowMode) {
     case RenderRegion::WM_SAGITTAL : {
-                        matRotDir.RotationX(-dPI/2.0);
-                        break;
-                      }
-    case RenderRegion::WM_AXIAL : {
-                        break;
-                      }
-    case RenderRegion::WM_CORONAL : {
-                         FLOATMATRIX4 matTemp;
-                         matRotDir.RotationX(-dPI/2.0);
-                         matTemp.RotationY(-dPI/2.0);
-                         matRotDir = matRotDir * matTemp;
-                         break;
-                      }
-    default        :  T_ERROR("Invalid windowmode set"); break;
+      FLOATMATRIX4 matTemp;
+      matRotDir.RotationX(-dPI/2.0);
+      matTemp.RotationY(-dPI/2.0);
+      matRotDir = matRotDir * matTemp;
+      break;
+    }
+    case RenderRegion::WM_AXIAL :
+      matRotDir.RotationX(-dPI/2.0);
+      break;
+    case RenderRegion::WM_CORONAL :
+      break;
+    default : T_ERROR("Invalid windowmode set"); break;
   }
   if (region.flipView.x) {
     matFlipY.Scaling(-1,1,1);

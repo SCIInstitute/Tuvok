@@ -348,10 +348,10 @@ void AbstrRenderer::Resize(const UINTVECTOR2& vWinSize) {
   ScheduleCompleteRedraw();
 }
 
-RenderRegion* AbstrRenderer::GetFirst3DRegion() {
+RenderRegion3D* AbstrRenderer::GetFirst3DRegion() {
   for (size_t i=0; i < renderRegions.size(); ++i) {
     if (renderRegions[i]->is3D())
-      return renderRegions[i];
+      return dynamic_cast<RenderRegion3D*>(renderRegions[i]);
   }
   return NULL;
 }

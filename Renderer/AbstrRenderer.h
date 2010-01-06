@@ -544,7 +544,7 @@ class AbstrRenderer {
     double              MaxValue() const;
     bool                OnlyRecomposite() const;
 
-    tuvok::RenderRegion* GetFirst3DRegion();
+    tuvok::RenderRegion3D* GetFirst3DRegion();
 
   private:
     float               m_fIsovalue;
