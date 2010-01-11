@@ -240,6 +240,8 @@ namespace SysTools {
       bool GetValue(const std::wstring& parameter, float& value);
       bool GetValue(const std::string& parameter, int& value);
       bool GetValue(const std::wstring& parameter, int& value);
+      bool GetValue(const std::string& parameter, unsigned int& value);
+      bool GetValue(const std::wstring& parameter, unsigned int& value);
       bool GetValue(const std::string& parameter, std::string& value);
       bool GetValue(const std::wstring& parameter, std::wstring& value);
 

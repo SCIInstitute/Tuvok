@@ -1114,6 +1114,19 @@ namespace SysTools {
     } else return false;
   }
 
+  bool CmdLineParams::GetValue(const wstring& parameter, unsigned int& value) {
+    string sParameter(parameter.begin(), parameter.end());
+    return GetValue(sParameter, value);
+  }
+
+  bool CmdLineParams::GetValue(const string& parameter, unsigned  int& value) {
+    string strValue;
+    if (GetValue(parameter, strValue)) {
+      value = (unsigned int)(atoi(strValue.c_str()));
+      return true;
+    } else return false;
+  }
+
   bool CmdLineParams::GetValue(const std::string& parameter, std::string& value) {
     string lowerParameter(parameter), lowerListParameter;
 
