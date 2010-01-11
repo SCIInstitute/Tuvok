@@ -64,7 +64,9 @@ public:
 
   virtual bool ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename,
                             const std::string& strTempDir,
-                            bool bNoUserInteraction) = 0;
+                            const bool bNoUserInteraction,
+                            const UINT64 iTargetBrickSize,
+                            const UINT64 iTargetBrickOverlap) = 0;
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir, bool bNoUserInteraction,

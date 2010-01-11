@@ -62,10 +62,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      FLOATVECTOR3 vVolumeAspect,
                                      const string& strDesc,
                                      const string& strSource,
-                                     UVFTables::ElementSemanticTable eType,
-                                     KVPairs* pKVPairs,
                                      const UINT64 iTargetBrickSize,
-                                     const UINT64 iTargetBrickOverlap)
+                                     const UINT64 iTargetBrickOverlap,
+                                     UVFTables::ElementSemanticTable eType,
+                                     KVPairs* pKVPairs)
 {
   bool bMetadata_SourceIsLittleEndian = bConvertEndianness && EndianConvert::IsBigEndian();
   bool bMetadata_Signed = bSigned;
@@ -77,7 +77,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     return false;
   }
 
-  if (iComponentSize < 16) { // catch silly user input
+  if (bConvertEndianness && iComponentSize < 16) { // catch silly user input
     WARNING("Requested endian conversion for 8bit data... broken reader?");
     bConvertEndianness = false;
   }
@@ -942,7 +942,9 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
 
 bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename,
                                 const std::string& strTempDir,
-                                bool bNoUserInteraction) {
+                                const bool bNoUserInteraction,
+                                const UINT64 iTargetBrickSize,
+                                const UINT64 iTargetBrickOverlap) {
 
   UINT64        iHeaderSkip;
   UINT64        iComponentSize;
@@ -973,7 +975,7 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   }
 
   bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir, iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned,
-                                       bIsFloat, vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename));
+                                       bIsFloat, vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename),iTargetBrickSize, iTargetBrickOverlap);
 
   if (bDeleteIntermediateFile) {
     Remove(strIntermediateFile, Controller::Debug::Out());

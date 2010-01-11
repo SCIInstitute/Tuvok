@@ -84,10 +84,10 @@ public:
                                 FLOATVECTOR3 vVolumeAspect,
                                 const std::string& strDesc,
                                 const std::string& strSource,
+                                const UINT64 iTargetBrickSize,
+                                const UINT64 iTargetBrickOverlap,
                                 UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED,
-                                KVPairs* pKVPairs = NULL,
-                                const UINT64 iTargetBrickSize=DEFAULT_BRICKSIZE,
-                                const UINT64 iTargetBrickOverlap=DEFAULT_BRICKOVERLAP);
+                                KVPairs* pKVPairs = NULL);
 
   static bool ExtractGZIPDataset(const std::string& strFilename,
                                  const std::string& strUncompressedFile,
@@ -120,7 +120,9 @@ public:
   virtual bool ConvertToUVF(const std::string& strSourceFilename,
                             const std::string& strTargetFilename,
                             const std::string& strTempDir,
-                            bool bNoUserInteraction);
+                            const bool bNoUserInteraction,
+                            const UINT64 iTargetBrickSize,
+                            const UINT64 iTargetBrickOverlap);
 
   virtual bool Analyze(const std::string& strSourceFilename,
                        const std::string& strTempDir,

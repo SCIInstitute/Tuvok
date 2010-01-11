@@ -107,6 +107,8 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
   m_iRasterBlockIndex = FindSuitableRasterBlock();
   if (m_iRasterBlockIndex == UINT64(-1)) {
     T_ERROR("No suitable volume block found in UVF file.  Check previous messages for rejected blocks.");
+    Close();
+    m_bIsOpen = false;
     return false;
   }
   MESSAGE("Open successfully found a suitable data block in the UVF file.");
@@ -506,6 +508,30 @@ NDBrickKey UVFDataset::IndexToVectorKey(const BrickKey &k) const {
   std::vector<UINT64> vBrick = IndexToVector(k);
   vLOD.push_back(k.first);
   return std::make_pair(vLOD, vBrick);
+}
+
+// determines the largest actually used brick dimensions
+// in the current dataset
+UINT64VECTOR3 UVFDataset::GetMaxUsedBrickSizes() const
+{
+  UINT64VECTOR3 vMaxSize(1,1,1);
+  UINT64VECTOR3 vAbsoluteMax(m_aMaxBrickSize);
+
+  for (size_t iLOD = 0;iLOD < m_vvaBrickSize.size();iLOD++) {
+    for (size_t iX = 0;iX < m_vvaBrickSize[iLOD].size();iX++) {
+      for (size_t iY = 0;iY < m_vvaBrickSize[iLOD][iX].size();iY++) {
+        for (size_t iZ = 0;iZ < m_vvaBrickSize[iLOD][iX][iY].size();iZ++) {
+          vMaxSize.StoreMax(m_vvaBrickSize[iLOD][iX][iY][iZ] );
+
+          // as no brick should be larger than vAbsoluteMax
+          // we can terminate the scan if we reached that size
+          if (vMaxSize == vAbsoluteMax) return vAbsoluteMax;
+        }
+      }
+    }
+  }
+
+  return vMaxSize;
 }
 
 UINTVECTOR3 UVFDataset::GetMaxBrickSize() const

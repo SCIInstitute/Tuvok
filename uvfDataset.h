@@ -79,6 +79,7 @@ public:
   std::string Filename() const { return m_strFilename; }
   float MaxGradientMagnitude() const { return m_fMaxGradMagnitude; }
   virtual UINTVECTOR3 GetMaxBrickSize() const;
+  virtual UINT64VECTOR3 GetMaxUsedBrickSizes() const;
   virtual UINTVECTOR3 GetBrickOverlapSize() const;
   virtual UINT64 GetLODLevelCount() const;
   virtual UINT64 GetBitWidth() const;

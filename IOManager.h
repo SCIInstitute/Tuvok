@@ -302,11 +302,16 @@ public:
   std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory) const;
   bool ConvertDataset(FileStackInfo* pStack,
                       const std::string& strTargetFilename,
-                      const std::string& strTempDir) const;
+                      const std::string& strTempDir,
+                      UINT64 iMaxBrickSize,
+                      UINT64 iBrickOverlap
+                      ) const;
   bool ConvertDataset(const std::string& strFilename,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
-                      bool bNoUserInteraction=false) const;
+                      const bool bNoUserInteraction,
+                      UINT64 iMaxBrickSize,
+                      UINT64 iBrickOverlap) const;
   bool MergeDatasets(const std::vector <std::string>& strFilenames,
                      const std::vector <double>& vScales,
                      const std::vector<double>& vBiases,
@@ -317,11 +322,43 @@ public:
   tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
-                                    AbstrRenderer* requester) const;
+                                    AbstrRenderer* requester,
+                                    UINT64 iMaxBrickSize,
+                                    UINT64 iBrickOverlap) const;
   tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
-                                    AbstrRenderer* requester) const;
+                                    AbstrRenderer* requester,
+                                    UINT64 iMaxBrickSize,
+                                    UINT64 iBrickOverlap) const;
+
+
+  // conveniance calls that use the default bricksizes and overlaps
+  tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
+                                    const std::string& strTargetFilename,
+                                    const std::string& strTempDir,
+                                    AbstrRenderer* requester) const {
+    return ConvertDataset(pStack,strTargetFilename,strTempDir,requester,m_iMaxBrickSize, m_iBrickOverlap);
+  }
+  tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
+                                    const std::string& strTargetFilename,
+                                    const std::string& strTempDir,
+                                    AbstrRenderer* requester) {
+    return ConvertDataset(strFilename,strTargetFilename,strTempDir,requester,m_iMaxBrickSize, m_iBrickOverlap);
+  }
+  bool ConvertDataset(FileStackInfo* pStack,
+                      const std::string& strTargetFilename,
+                      const std::string& strTempDir) const{
+    return ConvertDataset(pStack,strTargetFilename,strTempDir,m_iMaxBrickSize, m_iBrickOverlap);
+  }
+  bool ConvertDataset(const std::string& strFilename,
+                      const std::string& strTargetFilename,
+                      const std::string& strTempDir,
+                      const bool bNoUserInteraction=false) const {
+    return ConvertDataset(strFilename,strTargetFilename,strTempDir,bNoUserInteraction,m_iMaxBrickSize,m_iBrickOverlap);
+  }
+
+
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
                               AbstrRenderer* requester) const;
   bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
@@ -348,16 +385,9 @@ public:
   std::vector< std::pair <std::string, std::string > > GetImportFormatList() const;
   std::vector< std::pair <std::string, std::string > > GetExportFormatList() const;
 
-
   UINT64 m_iMaxBrickSize;
   UINT64 m_iBrickOverlap;
   UINT64 m_iIncoresize;
-
-/*
-#define BRICKSIZE (256)
-#define BRICKOVERLAP (4)
-#define INCORESIZE (BRICKSIZE*BRICKSIZE*BRICKSIZE)
-*/
 
 private:
   std::vector<AbstrConverter*>  m_vpConverters;
