@@ -52,16 +52,16 @@
 #endif
 
 #include "Basics/SystemInfo.h"
+#include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "GPUMemManDataStructs.h"
 #include "IO/uvfDataset.h"
+#include "IO/IOManager.h"
 #include "Renderer/AbstrRenderer.h"
 #include "Renderer/GL/GLError.h"
 #include "Renderer/GL/GLTexture1D.h"
 #include "Renderer/GL/GLTexture2D.h"
 #include "Renderer/GL/GLTexture3D.h"
-
-#include <IO/IOManager.h>
 
 using namespace std;
 using namespace std::tr1::placeholders;
@@ -72,10 +72,17 @@ GPUMemMan::GPUMemMan(MasterController* masterController) :
   m_SystemInfo(masterController->SysInfo()),
   m_iAllocatedGPUMemory(0),
   m_iAllocatedCPUMemory(0),
-  m_iFrameCounter(0)
+  m_iFrameCounter(0),
+  m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE),
+  m_iInCoreSize(DEFAULT_INCORESIZE)
 {
-  m_vUploadHub.resize(INCORESIZE*4);
-  m_iAllocatedCPUMemory = INCORESIZE*4;
+  if (masterController && masterController->IOMan()) {
+    m_iMaxAcceptableBricksize = masterController->IOMan()->m_iMaxBrickSize;
+    m_iInCoreSize = masterController->IOMan()->m_iIncoresize;
+  } 
+
+  m_vUploadHub.resize(size_t(m_iInCoreSize*4));
+  m_iAllocatedCPUMemory = size_t(m_iInCoreSize*4);
 }
 
 GPUMemMan::~GPUMemMan() {
@@ -153,7 +160,7 @@ GPUMemMan::~GPUMemMan() {
   }
 
   m_vUploadHub.resize(0);
-  m_iAllocatedCPUMemory -= INCORESIZE*4;
+  m_iAllocatedCPUMemory -= size_t(m_iInCoreSize*4);
 
   assert(m_iAllocatedGPUMemory == 0);
   assert(m_iAllocatedCPUMemory == 0);
@@ -187,7 +194,7 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
 
   MESSAGE("Loading %s", strFilename.c_str());
   // we assume the file has already been verified
-  UVFDataset* dataset = new UVFDataset(strFilename, false);
+  UVFDataset* dataset = new UVFDataset(strFilename, m_iMaxAcceptableBricksize, false);
 
   if (dataset->IsOpen()) {
     m_vpVolumeDatasets.push_back(VolDataListElem(dataset, requester));

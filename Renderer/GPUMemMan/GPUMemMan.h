@@ -45,6 +45,7 @@
 #include "Basics/Vectors.h"
 #include "GPUMemManDataStructs.h"
 
+
 class AbstrRenderer;
 class GLFBOTex;
 class GLSLProgram;
@@ -156,6 +157,9 @@ class GPUMemMan {
     UINT64            m_iAllocatedGPUMemory;
     UINT64            m_iAllocatedCPUMemory;
     UINT64            m_iFrameCounter;
+
+    UINT64            m_iMaxAcceptableBricksize;
+    UINT64            m_iInCoreSize;
 
     std::vector<unsigned char> m_vUploadHub;
 

@@ -193,15 +193,13 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
 
 
 bool Texture3DListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
-  /// @todo FIXME these keys are all wrong; we shouldn't be using N-dimensional
-  /// data structures for the keys here.
   const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
   UINT64 iByteWidth  = pDataset->GetBitWidth()/8;
   UINT64 iCompCount = pDataset->GetComponentCount();
 
   UINT64 iBrickSize = vSize[0]*vSize[1]*vSize[2]*iByteWidth * iCompCount;
 
-  if (!vUploadHub.empty() && iBrickSize <= UINT64(INCORESIZE*4)) {
+  if (!vUploadHub.empty() && iBrickSize <= UINT64(m_pMasterController->IOMan()->m_iIncoresize*4)) {
     m_bUsingHub = true;
     return pDataset->GetBrick(m_Key, vUploadHub);
   } else {
