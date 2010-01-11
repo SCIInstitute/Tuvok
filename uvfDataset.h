@@ -56,7 +56,7 @@ namespace tuvok {
 
 class UVFDataset : public BrickedDataset {
 public:
-  UVFDataset(const std::string& strFilename, bool bVerify, bool bMustBeSameVersion = true);
+  UVFDataset(const std::string& strFilename, UINT64 iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion = true);
   UVFDataset();
   virtual ~UVFDataset();
 
@@ -135,6 +135,8 @@ private:
   std::vector<UINT64VECTOR3> m_vaBrickCount;
   std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
   std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
+
+  UINT64                     m_iMaxAcceptableBricksize;
 };
 
 }

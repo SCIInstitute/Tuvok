@@ -40,7 +40,6 @@
 
 #include "RAWConverter.h"
 #include "Basics/SysTools.h"
-#include "IOManager.h"  // for the size defines
 #include "IO/gzio.h"
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
@@ -64,7 +63,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const string& strDesc,
                                      const string& strSource,
                                      UVFTables::ElementSemanticTable eType,
-                                     KVPairs* pKVPairs)
+                                     KVPairs* pKVPairs,
+                                     const UINT64 iTargetBrickSize,
+                                     const UINT64 iTargetBrickOverlap)
 {
   bool bMetadata_SourceIsLittleEndian = bConvertEndianness && EndianConvert::IsBigEndian();
   bool bMetadata_Signed = bSigned;
@@ -113,7 +114,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     }
 
     UINT64 ulFileLength = WrongEndianData.GetCurrentSize();
-    size_t iBufferSize = min<size_t>(size_t(ulFileLength), size_t(BRICKSIZE*BRICKSIZE*BRICKSIZE*iComponentSize/8)); // hint: this must fit into memory otherwise other subsystems would break
+    size_t iBufferSize = min<size_t>(size_t(ulFileLength), size_t(iTargetBrickSize*iTargetBrickSize*iTargetBrickSize*iComponentSize/8)); // hint: this must fit into memory otherwise other subsystems would break
     UINT64 ulBufferConverted = 0;
 
     unsigned char* pBuffer = new unsigned char[iBufferSize];
@@ -255,7 +256,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   UINT64 iLodLevelCount = 1;
   UINT64 iMaxVal = vVolumeSize.maxVal();
 
-  while (iMaxVal > BRICKSIZE) {
+  while (iMaxVal > iTargetBrickSize) {
     iMaxVal /= 2;
     iLodLevelCount++;
   }
@@ -314,13 +315,13 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                              bSigned,
                              vSem);
 
-  dataVolume.ulBrickSize.push_back(BRICKSIZE);
-  dataVolume.ulBrickSize.push_back(BRICKSIZE);
-  dataVolume.ulBrickSize.push_back(BRICKSIZE);
+  dataVolume.ulBrickSize.push_back(iTargetBrickSize);
+  dataVolume.ulBrickSize.push_back(iTargetBrickSize);
+  dataVolume.ulBrickSize.push_back(iTargetBrickSize);
 
-  dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
-  dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
-  dataVolume.ulBrickOverlap.push_back(BRICKOVERLAP);
+  dataVolume.ulBrickOverlap.push_back(iTargetBrickOverlap);
+  dataVolume.ulBrickOverlap.push_back(iTargetBrickOverlap);
+  dataVolume.ulBrickOverlap.push_back(iTargetBrickOverlap);
 
   vector<double> vScale;
   vScale.push_back(vVolumeAspect.x);
@@ -655,7 +656,8 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
 #else
   BZFILE *bzf;
   int bz_err;
-  std::vector<char> buffer(INCORESIZE);
+  size_t iCurrentIncoreSize = GetIncoreSize();
+  std::vector<char> buffer(iCurrentIncoreSize);
 
   FILE *f_compressed = fopen(strFilename.c_str(), "rb");
   FILE *f_inflated = fopen(strUncompressedFile.c_str(), "wb");
@@ -688,7 +690,7 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
   }
 
   do {
-    int nbytes = BZ2_bzRead(&bz_err, bzf, &buffer[0], INCORESIZE);
+    int nbytes = BZ2_bzRead(&bz_err, bzf, &buffer[0], int(iCurrentIncoreSize));
     if(bz_err != BZ_STREAM_END && bz_err_test(bz_err)) {
       T_ERROR("Bzip library error occurred; bailing.");
       fclose(f_inflated);

@@ -62,7 +62,10 @@ using namespace std;
 using namespace tuvok;
 
 IOManager::IOManager() :
-  m_pFinalConverter(NULL)
+  m_pFinalConverter(NULL),
+  m_iMaxBrickSize(256),
+  m_iBrickOverlap(4),
+  m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize)
 {
   m_vpConverters.push_back(new QVISConverter());
   m_vpConverters.push_back(new NRRDConverter());
@@ -422,7 +425,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
 
     if (strExt == "UVF") {
 
-      UVFDataset v(strFilenames[iInputData],false);
+      UVFDataset v(strFilenames[iInputData],m_iMaxBrickSize,false);
       if (!v.IsOpen()) break;
 
       UINT64 iLODLevel = 0; // always extract the highest quality here
@@ -1016,7 +1019,7 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
 
   if (strExt == "UVF") {
-    UVFDataset v(strFilename,false);
+    UVFDataset v(strFilename,m_iMaxBrickSize,false);
     if (!v.IsOpen()) return false;
 
     UINT64 iComponentCount = v.GetComponentCount();

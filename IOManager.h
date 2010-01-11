@@ -49,9 +49,9 @@
 #include "../Basics/SysTools.h"
 #include "../Basics/LargeRAWFile.h"
 
-#define BRICKSIZE (256)
-#define BRICKOVERLAP (4)
-#define INCORESIZE (BRICKSIZE*BRICKSIZE*BRICKSIZE)
+#define DEFAULT_BRICKSIZE (256)
+#define DEFAULT_BRICKOVERLAP (4)
+#define DEFAULT_INCORESIZE (DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE)
 
 class AbstrConverter;
 class AbstrRenderer;
@@ -347,6 +347,17 @@ public:
 
   std::vector< std::pair <std::string, std::string > > GetImportFormatList() const;
   std::vector< std::pair <std::string, std::string > > GetExportFormatList() const;
+
+
+  UINT64 m_iMaxBrickSize;
+  UINT64 m_iBrickOverlap;
+  UINT64 m_iIncoresize;
+
+/*
+#define BRICKSIZE (256)
+#define BRICKOVERLAP (4)
+#define INCORESIZE (BRICKSIZE*BRICKSIZE*BRICKSIZE)
+*/
 
 private:
   std::vector<AbstrConverter*>  m_vpConverters;

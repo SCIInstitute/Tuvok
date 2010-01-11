@@ -44,6 +44,7 @@
 #include "../StdTuvokDefines.h"
 #include "AbstrConverter.h"
 #include <Controller/Controller.h>
+#include "IOManager.h"  // for the size defines
 
 typedef std::vector< std::pair < std::string, std::string > > KVPairs;
 
@@ -84,7 +85,9 @@ public:
                                 const std::string& strDesc,
                                 const std::string& strSource,
                                 UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED,
-                                KVPairs* pKVPairs = NULL);
+                                KVPairs* pKVPairs = NULL,
+                                const UINT64 iTargetBrickSize=DEFAULT_BRICKSIZE,
+                                const UINT64 iTargetBrickOverlap=DEFAULT_BRICKOVERLAP);
 
   static bool ExtractGZIPDataset(const std::string& strFilename,
                                  const std::string& strUncompressedFile,

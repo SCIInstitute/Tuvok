@@ -46,7 +46,7 @@ using namespace std;
 
 namespace tuvok {
 
-UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify, bool bMustBeSameVersion) :
+UVFDataset::UVFDataset(const std::string& strFilename, UINT64 iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion) :
   m_fMaxGradMagnitude(0.0f),
   m_pVolumeDataBlock(NULL),
   m_pKVDataBlock(NULL),
@@ -57,7 +57,8 @@ UVFDataset::UVFDataset(const std::string& strFilename, bool bVerify, bool bMustB
   m_bIsOpen(false),
   m_strFilename(strFilename),
   m_iRasterBlockIndex(0),
-  m_CachedRange(make_pair(+1,-1))
+  m_CachedRange(make_pair(+1,-1)),
+  m_iMaxAcceptableBricksize(iMaxAcceptableBricksize)
 {
   Open(bVerify, false, bMustBeSameVersion);
 }
@@ -73,7 +74,8 @@ UVFDataset::UVFDataset() :
   m_bIsOpen(false),
   m_strFilename(""),
   m_iRasterBlockIndex(0),
-  m_CachedRange(make_pair(+1,-1))
+  m_CachedRange(make_pair(+1,-1)),
+  m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE)
 {
 }
 
@@ -380,7 +382,7 @@ UINT64 UVFDataset::FindSuitableRasterBlock() {
       std::vector<UINT64> vSmallLODBrick = pVolumeDataBlock->GetSmallestBrickSize();
       bool bToFewLODLevels = false;
       for (size_t i = 0;i<vSmallLODBrick.size();i++) {
-        if (vSmallLODBrick[i] > BRICKSIZE) {
+        if (vSmallLODBrick[i] > m_iMaxAcceptableBricksize) {
           MESSAGE("Raster data block with insufficient LOD levels found in "
                   "UVF file, skipping.");
           bToFewLODLevels = true;

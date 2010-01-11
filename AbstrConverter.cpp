@@ -47,6 +47,8 @@ AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
                                     const std::string& strTargetFilename,
                                     UINT64 iSize, bool bSigned,
                                     Histogram1DDataBlock* Histogram1D) {
+  size_t iCurrentIncoreSize = GetIncoreSize();
+
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -67,11 +69,11 @@ AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
       return "";
     }
 
-    signed char* pInData = new signed char[INCORESIZE];
+    signed char* pInData = new signed char[iCurrentIncoreSize];
 
     UINT64 iPos = 0;
     while (iPos < iSize)  {
-      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE);
+      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize);
       if (iRead == 0) break;
 
       for (size_t i = 0;i<iRead;i++) {
@@ -92,12 +94,12 @@ AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
   } else {
     if (Histogram1D) {
       MESSAGE("Computing 1D Histogram...");
-      unsigned char* pInData = new unsigned char[INCORESIZE];
+      unsigned char* pInData = new unsigned char[iCurrentIncoreSize];
 
       UINT64 iPos = 0;
       UINT64 iDivLast = 0;
       while (iPos < iSize)  {
-        size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE);
+        size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize);
         if (iRead == 0) break;
         for (size_t i = 0;i<iRead;i++) aHist[pInData[i]]++;
         iPos += UINT64(iRead);
@@ -132,6 +134,8 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
                                       const std::string& strTargetFilename,
                                       UINT64 iSize, bool bSigned,
                                       Histogram1DDataBlock* Histogram1D) {
+  size_t iCurrentIncoreSize = GetIncoreSize();
+
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -151,7 +155,8 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
     std::pair<short,short> minmax;
     minmax = io_minmax(raw_data_src<short>(InputData),
                        Unsigned12BitHistogram<short>(aHist),
-                       TuvokProgress<UINT64>(iSize));
+                       TuvokProgress<UINT64>(iSize),
+                       iCurrentIncoreSize);
 
     iMin = minmax.first+std::numeric_limits<short>::max();
     iMax = minmax.second+std::numeric_limits<short>::max();
@@ -159,7 +164,8 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
     std::pair<unsigned short,unsigned short> minmax;
     minmax = io_minmax(raw_data_src<unsigned short>(InputData),
                        Unsigned12BitHistogram<unsigned short>(aHist),
-                       TuvokProgress<UINT64>(iSize));
+                       TuvokProgress<UINT64>(iSize),
+                       iCurrentIncoreSize);
     iMin = minmax.first;
     iMax = minmax.second;
   }
@@ -182,7 +188,7 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
               int(iMin), int(iMax));
     }
     std::fill(aHist.begin(), aHist.end(), 0);
-    short* pInData = new short[INCORESIZE];
+    short* pInData = new short[iCurrentIncoreSize];
 
     // otherwise quantize
     LargeRAWFile OutputData(strTargetFilename);
@@ -200,7 +206,7 @@ AbstrConverter::QuantizeShortTo12Bits(UINT64 iHeaderSkip,
     iPos = 0;
     iDivLast = 0;
     while (iPos < iSize)  {
-      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*2)/2;
       if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
       for (size_t i = 0;i<iRead;i++) {
@@ -249,6 +255,8 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
                              const std::string& strTargetFilename,
                              UINT64 iSize, bool bSigned,
                              Histogram1DDataBlock* Histogram1D) {
+  size_t iCurrentIncoreSize = GetIncoreSize();
+
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -272,7 +280,8 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
     std::pair<short,short> minmax;
     minmax = io_minmax(raw_data_src<short>(InputData),
                        Unsigned12BitHistogram<short>(aHist),
-                       TuvokProgress<UINT64>(iSize));
+                       TuvokProgress<UINT64>(iSize),
+                       iCurrentIncoreSize);
 
     iMin = minmax.first+std::numeric_limits<short>::max();
     iMax = minmax.second+std::numeric_limits<short>::max();
@@ -281,7 +290,8 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
     std::pair<unsigned short,unsigned short> minmax;
     minmax = io_minmax(raw_data_src<unsigned short>(InputData),
                        Unsigned12BitHistogram<unsigned short>(aHist),
-                       TuvokProgress<UINT64>(iSize));
+                       TuvokProgress<UINT64>(iSize),
+                       iCurrentIncoreSize);
     iMin = minmax.first;
     iMax = minmax.second;
   }
@@ -328,12 +338,12 @@ AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
 
     UINT64 iRange = iMax-iMin;
 
-    short* pInData = new short[INCORESIZE];
+    short* pInData = new short[iCurrentIncoreSize];
     InputData.SeekStart();
     iPos = 0;
     iDivLast = 0;
     while (iPos < iSize) {
-      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*2)/2;
       if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
       for (size_t i = 0;i<iRead;i++) {
@@ -394,6 +404,7 @@ AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
                                       const std::string& strTargetFilename,
                                       UINT64 iSize,
                                       Histogram1DDataBlock* Histogram1D) {
+  size_t iCurrentIncoreSize = GetIncoreSize();
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -412,7 +423,8 @@ AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
   std::pair<float,float> minmax;
   minmax = io_minmax(raw_data_src<float>(InputData),
                      Unsigned12BitHistogram<float>(aHist),
-                     TuvokProgress<UINT64>(iSize));
+                     TuvokProgress<UINT64>(iSize),
+                       iCurrentIncoreSize);
   fMin = minmax.first;
   fMax = minmax.second;
 
@@ -426,14 +438,14 @@ AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
   }
 
   float fQuantFact = 4095.0f / float(fMax-fMin);
-  float* pInData = new float[INCORESIZE];
-  unsigned short* pOutData = new unsigned short[INCORESIZE];
+  float* pInData = new float[iCurrentIncoreSize];
+  unsigned short* pOutData = new unsigned short[iCurrentIncoreSize];
 
   InputData.SeekStart();
   iPos = 0;
   iDivLast = 0;
   while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*4)/4;
     if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
     for (size_t i = 0;i<iRead;i++) {
@@ -470,6 +482,7 @@ AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip,
                                        const std::string& strTargetFilename,
                                        UINT64 iSize,
                                        Histogram1DDataBlock* Histogram1D) {
+  size_t iCurrentIncoreSize = GetIncoreSize();
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -488,7 +501,8 @@ AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip,
   std::pair<double,double> minmax;
   minmax = io_minmax(raw_data_src<double>(InputData),
                      Unsigned12BitHistogram<double>(aHist),
-                     TuvokProgress<UINT64>(iSize));
+                     TuvokProgress<UINT64>(iSize),
+                     iCurrentIncoreSize);
   fMin = minmax.first;
   fMax = minmax.second;
 
@@ -505,14 +519,14 @@ AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip,
           fMin, fMax);
 
   double fQuantFact = 4095 / (fMax-fMin);
-  double* pInData = new double[INCORESIZE];
-  unsigned short* pOutData = new unsigned short[INCORESIZE];
+  double* pInData = new double[iCurrentIncoreSize];
+  unsigned short* pOutData = new unsigned short[iCurrentIncoreSize];
 
   InputData.SeekStart();
   iPos = 0;
   iDivLast = 0;
   while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*8)/8;
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*8)/8;
     if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
     for (size_t i = 0;i<iRead;i++) {
@@ -550,6 +564,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
                                      const std::string& strTargetFilename,
                                      UINT64 iSize, bool bSigned,
                                      Histogram1DDataBlock* Histogram1D) {
+  size_t iCurrentIncoreSize = GetIncoreSize();
   AbstrDebugOut &dbg = Controller::Debug::Out();
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
@@ -563,11 +578,11 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
   // determine max and min
   UINT64 iMax = 0;
   UINT64 iMin = std::numeric_limits<UINT64>::max();
-  UINT64* pInData = new UINT64[INCORESIZE];
+  UINT64* pInData = new UINT64[iCurrentIncoreSize];
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
   while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*8)/8;
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*8)/8;
     if (iRead == 0) break;
 
     for (size_t i = 0;i<iRead;i++) {
@@ -625,7 +640,7 @@ AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
   iPos = 0;
   iDivLast = 0;
   while (iPos < iSize) {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*8)/8;
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*8)/8;
     if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
     for (size_t i = 0; i < iRead; i++) {
@@ -674,6 +689,7 @@ AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip,
                                     const std::string& strTargetFilename,
                                     UINT64 iSize, bool bSigned,
                                     Histogram1DDataBlock* Histogram1D) {
+  size_t iCurrentIncoreSize = GetIncoreSize();
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -686,11 +702,11 @@ AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip,
   // determine max and min
   UINT32 iMax = 0;
   UINT32 iMin = std::numeric_limits<UINT32>::max();
-  UINT32* pInData = new UINT32[INCORESIZE];
+  UINT32* pInData = new UINT32[iCurrentIncoreSize];
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
   while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*4)/4;
     if (iRead == 0) break;
 
     for (size_t i = 0;i<iRead;i++) {
@@ -743,7 +759,7 @@ AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip,
   iPos = 0;
   iDivLast = 0;
   while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*4)/4;
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*4)/4;
     if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
     for (size_t i = 0;i<iRead;i++) {
@@ -791,6 +807,7 @@ AbstrConverter::QuantizeShortTo8Bits(UINT64 iHeaderSkip,
                                      const std::string& strTargetFilename,
                                      UINT64 iSize, bool bSigned,
                                      Histogram1DDataBlock* Histogram1D) {
+  size_t iCurrentIncoreSize = GetIncoreSize();
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
   UINT64 iPercent = iSize / 100;
@@ -803,12 +820,12 @@ AbstrConverter::QuantizeShortTo8Bits(UINT64 iHeaderSkip,
   // determine max and min
   unsigned short iMax = 0;
   unsigned short iMin = std::numeric_limits<unsigned short>::max();
-  short* pInData = new short[INCORESIZE];
-  unsigned char* pOutData = new unsigned char[INCORESIZE];
+  short* pInData = new short[iCurrentIncoreSize];
+  unsigned char* pOutData = new unsigned char[iCurrentIncoreSize];
   UINT64 iPos = 0;
   UINT64 iDivLast = 0;
   while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*2)/2;
     if (iRead == 0) break;
 
     for (size_t i = 0;i<iRead;i++) {
@@ -860,7 +877,7 @@ AbstrConverter::QuantizeShortTo8Bits(UINT64 iHeaderSkip,
   iPos = 0;
   iDivLast = 0;
   while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, INCORESIZE*2)/2;
+    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*2)/2;
     if(iRead == 0) { break; } // bail out if the read gave us nothing.
 
     for (size_t i = 0;i<iRead;i++) {
@@ -970,4 +987,12 @@ AbstrConverter::QuantizeIntTo8Bits(UINT64 iHeaderSkip,
                                                bSigned);
 
   return QuantizeShortTo8Bits(0,intermFile,strTargetFilename,iSize,false,Histogram1D);
+}
+
+
+size_t AbstrConverter::GetIncoreSize() {
+  if (Controller::Instance().IOMan())
+    return size_t(Controller::Instance().IOMan()->m_iIncoresize);
+  else
+    return DEFAULT_INCORESIZE;
 }
