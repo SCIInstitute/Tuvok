@@ -49,7 +49,7 @@
 #include "../Basics/SysTools.h"
 #include "../Basics/LargeRAWFile.h"
 
-#define DEFAULT_BRICKSIZE (64)
+#define DEFAULT_BRICKSIZE (256)
 #define DEFAULT_BRICKOVERLAP (4)
 #define DEFAULT_INCORESIZE (DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE)
 
