@@ -66,7 +66,8 @@ class GPUMemMan {
     virtual ~GPUMemMan();
 
     tuvok::Dataset* LoadDataset(const std::string& strFilename,
-                                AbstrRenderer* requester);
+                                AbstrRenderer* requester,
+                                bool& bOnlyBricksizeCheckFailed);
     void AddDataset(tuvok::Dataset* ds, AbstrRenderer *requester);
     void FreeAssociatedTextures(tuvok::Dataset* pDataset);
     void FreeDataset(tuvok::Dataset* pVolumeDataset, AbstrRenderer* requester);

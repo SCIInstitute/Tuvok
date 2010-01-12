@@ -74,7 +74,7 @@ class DXRenderer : public AbstrRenderer {
     /** Sends a message to the master to ask for a dataset to be loaded.
      * The dataset is converted to UVF if it is not one already.
      * @param strFilename path to a file */
-    virtual bool LoadDataset(const std::string& strFilename);
+    virtual bool LoadDataset(const std::string& strFilename, bool& bRebrickingRequired);
 
     /** Change the size of the FBO we render to.  Any previous image is
      * destroyed, causing a full redraw on the next render.

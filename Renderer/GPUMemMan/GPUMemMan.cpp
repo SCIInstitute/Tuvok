@@ -169,7 +169,8 @@ GPUMemMan::~GPUMemMan() {
 // ******************** Datasets
 
 Dataset* GPUMemMan::LoadDataset(const string& strFilename,
-                                AbstrRenderer* requester) {
+                                AbstrRenderer* requester,
+                                bool& bOnlyBricksizeCheckFailed) {
   // We want to reuse datasets which have already been loaded.  Yet we have a
   // list of `Dataset's, not `UVFDataset's, and so therefore we can't rely on
   // each element of the list having a file backing it up.
@@ -195,6 +196,7 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
   MESSAGE("Loading %s", strFilename.c_str());
   // we assume the file has already been verified
   UVFDataset* dataset = new UVFDataset(strFilename, m_iMaxAcceptableBricksize, false);
+  bOnlyBricksizeCheckFailed = dataset->OnlyBricksizeCheckFailed();
 
   if (dataset->IsOpen()) {
     m_vpVolumeDatasets.push_back(VolDataListElem(dataset, requester));

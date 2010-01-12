@@ -63,7 +63,7 @@ class GLSBVR2D : public GLRenderer {
     /** Sends a message to the master to ask for a dataset to be loaded.
      * The dataset is converted to UVF if it is not one already.
      * @param strFilename path to a file */
-    virtual bool LoadDataset(const std::string& strFilename);
+    virtual bool LoadDataset(const std::string& strFilename, bool& bRebrickingRequired);
 
     virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing && m_pDataset->GetComponentCount() == 1;}
 
