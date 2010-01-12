@@ -795,9 +795,23 @@ namespace SysTools {
       // get just the filename itself, without extension or path information.
       T fn = RemoveExt(GetFilename(filename));
 
+      if (fn.length() == 0) return 0;
+
       // Find where the numbers start.
       typename T::const_iterator numerals = fn.end()-1;
       while (numerals != fn.begin() && ::isdigit(*(numerals-1))) --numerals;
+
+
+      // the string should only contain the numbers or a _ otherweise the
+      // filename in question was just a prefix to another longer filename
+      size_t iNonNumeralCharCount = fn.length()-T(&*numerals).length();
+      if (iNonNumeralCharCount > 1) return 0;
+      if (iNonNumeralCharCount > 0) {
+        T leadingCharacter = fn.substr(0,1);
+        std::string tmp(leadingCharacter.begin(), leadingCharacter.end());
+        if (tmp != "_") return 0;
+      }
+
 
       // convert it to a size_t and return that.
       size_t retval = 0;
@@ -813,19 +827,25 @@ namespace SysTools {
     stringstream out;
     vector<string> files = GetDirContents(dir, fileName+"*", ext);
 
+    // chop of original filename (in case it also ends with numbers)
+    for (vector<string>::iterator i = files.begin();i<files.end();i++) {
+      std::string tmp = GetFilename(*i);
+      (*i) = tmp.substr(fileName.length(), tmp.length()-fileName.length());
+    }
+
     // Get a list of all the trailing numeric values.
     std::vector<size_t> values;
     values.reserve(files.size());
     std::transform(files.begin(), files.end(), std::back_inserter(values),
                    fileNumber<std::string>());
 
-    // No files in the dir?  Default to 0.
+    // No files in the dir?  Default to 1.
     if(values.empty()) {
-      out << dir << fileName << 0 << "." << ext;
+      out << dir << fileName << "_" << 1 << "." << ext;
     } else {
       // Otherwise, the next number is the current max + 1.
       size_t max_val = *(std::max_element(values.begin(), values.end()));
-      out << dir << fileName << max_val+1 << "." << ext;
+      out << dir << fileName << "_" << max_val+1 << "." << ext;
     }
 
     return out.str();
