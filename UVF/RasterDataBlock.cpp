@@ -639,6 +639,20 @@ const std::vector<UINT64>& RasterDataBlock::GetSmallestBrickSize() const {
   return GetBrickSize(vSmallestLOD, vFirstBrick);
 }
 
+const std::vector<UINT64> RasterDataBlock::GetLargestBrickSizes() const {
+  std::vector<UINT64> vMax(m_vBrickSizes[0][0]);
+
+  for (size_t i = 0;i<m_vBrickSizes.size();i++) {
+    for (size_t j = 0;j<m_vBrickSizes[i].size();j++) {      
+      for (size_t k = 0;k<m_vBrickSizes[i][j].size();k++) {
+        vMax[k] = std::max(m_vBrickSizes[i][j][k],vMax[k]);
+      }
+    }
+  }
+  
+  return vMax;
+}
+
 UINT64 RasterDataBlock::Serialize(const vector<UINT64>& vec,
                                   const vector<UINT64>& vSizes) const {
   UINT64 index = 0;

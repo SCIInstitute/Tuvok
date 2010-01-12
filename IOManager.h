@@ -49,7 +49,7 @@
 #include "../Basics/SysTools.h"
 #include "../Basics/LargeRAWFile.h"
 
-#define DEFAULT_BRICKSIZE (256)
+#define DEFAULT_BRICKSIZE (64)
 #define DEFAULT_BRICKOVERLAP (4)
 #define DEFAULT_INCORESIZE (DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE)
 
@@ -333,6 +333,12 @@ public:
                                     UINT64 iBrickOverlap) const;
 
 
+  bool ReBrickDataset(const std::string& strSourceFilename,
+                      const std::string& strTargetFilename,
+                      const std::string& strTempDir,
+                      const UINT64 iMaxBrickSize,
+                      const UINT64 iBrickOverlap) const;
+
   // conveniance calls that use the default bricksizes and overlaps
   tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
                                     const std::string& strTargetFilename,
@@ -357,10 +363,16 @@ public:
                       const bool bNoUserInteraction=false) const {
     return ConvertDataset(strFilename,strTargetFilename,strTempDir,bNoUserInteraction,m_iMaxBrickSize,m_iBrickOverlap);
   }
+  bool ReBrickDataset(const std::string& strSourceFilename,
+                      const std::string& strTargetFilename,
+                      const std::string& strTempDir) const {
+    return ReBrickDataset(strSourceFilename,strTargetFilename,strTempDir,m_iMaxBrickSize,m_iBrickOverlap);
+  }
 
 
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
-                              AbstrRenderer* requester) const;
+                              AbstrRenderer* requester,
+                              bool& bOnlyBricksizeCheckFailed) const;
   bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
                       const std::string& strTempDir) const;
   bool NeedsConversion(const std::string& strFilename,

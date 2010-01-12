@@ -58,7 +58,8 @@ UVFDataset::UVFDataset(const std::string& strFilename, UINT64 iMaxAcceptableBric
   m_strFilename(strFilename),
   m_iRasterBlockIndex(0),
   m_CachedRange(make_pair(+1,-1)),
-  m_iMaxAcceptableBricksize(iMaxAcceptableBricksize)
+  m_iMaxAcceptableBricksize(iMaxAcceptableBricksize),
+  m_bOnlyBricksizeCheckFailed(false)
 {
   Open(bVerify, false, bMustBeSameVersion);
 }
@@ -75,7 +76,8 @@ UVFDataset::UVFDataset() :
   m_strFilename(""),
   m_iRasterBlockIndex(0),
   m_CachedRange(make_pair(+1,-1)),
-  m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE)
+  m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE),
+  m_bOnlyBricksizeCheckFailed(false)
 {
 }
 
@@ -104,7 +106,13 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
   }
 
   // analyze the main raster data blocks
-  m_iRasterBlockIndex = FindSuitableRasterBlock();
+  m_iRasterBlockIndex = FindSuitableRasterBlock(m_bOnlyBricksizeCheckFailed);
+  if (m_bOnlyBricksizeCheckFailed) {
+    WARNING("No suitable volume block found in UVF file but rebricking would make this file usable.");
+    Close();
+    m_bIsOpen = false;
+    return false;
+  }
   if (m_iRasterBlockIndex == UINT64(-1)) {
     T_ERROR("No suitable volume block found in UVF file.  Check previous messages for rejected blocks.");
     Close();
@@ -310,7 +318,8 @@ UINT64VECTOR3 UVFDataset::GetDomainSize(const size_t lod) const
   return m_aDomainSize[lod];
 }
 
-UINT64 UVFDataset::FindSuitableRasterBlock() {
+UINT64 UVFDataset::FindSuitableRasterBlock(bool &bOnlyBricksizeCheckFailed) {
+  bOnlyBricksizeCheckFailed = false;
   UINT64 iRasterBlockIndex = UINT64(-1);
   for (size_t iBlocks = 0;
        iBlocks < m_pDatasetFile->GetDataBlockCount();
@@ -379,21 +388,28 @@ UINT64 UVFDataset::FindSuitableRasterBlock() {
         continue;
       }
 
-      // check if the data's smallest LOD level is not larger than our bricksize
-      /// \todo: if this fails we may want to convert the dataset
-      std::vector<UINT64> vSmallLODBrick = pVolumeDataBlock->GetSmallestBrickSize();
-      bool bToFewLODLevels = false;
-      for (size_t i = 0;i<vSmallLODBrick.size();i++) {
-        if (vSmallLODBrick[i] > m_iMaxAcceptableBricksize) {
-          MESSAGE("Raster data block with insufficient LOD levels found in "
-                  "UVF file, skipping.");
-          bToFewLODLevels = true;
+      // check if the data's coarsest LOD level contains only one brick
+      const vector<UINT64>& vSmallestLODBrickCount = pVolumeDataBlock->GetBrickCount(pVolumeDataBlock->GetSmallestBrickIndex());
+      UINT64 iSmallestLODBrickCount = vSmallestLODBrickCount[0];
+      for (size_t i = 1;i<3;i++) iSmallestLODBrickCount *= vSmallestLODBrickCount[i]; // currently we only care about the first 3 dimensions
+      if (iSmallestLODBrickCount > 1) {
+        MESSAGE("Raster data block with insufficient LOD levels found in "
+                "UVF file, skipping.");
+        continue;
+      }
+
+      // check if the data's biggest brick dimensions are smaler m_iMaxAcceptableBricksize
+      std::vector<UINT64> vMaxBrickSizes = pVolumeDataBlock->GetLargestBrickSizes();
+      for (size_t i = 0;i<3;i++) {  // currently we only care about the first 3 dimensions
+        if (vMaxBrickSizes[i] > m_iMaxAcceptableBricksize) {
+          WARNING("Raster data with too large bricks found in UVF file," 
+                  "re-bricking may be necessary.");
+          bOnlyBricksizeCheckFailed = true;
           break;
         }
       }
-      if (bToFewLODLevels) continue;
 
-      if (iRasterBlockIndex != UINT64(-1)) {
+      if (!bOnlyBricksizeCheckFailed && iRasterBlockIndex != UINT64(-1)) {
         WARNING("Multiple volume blocks found using last block.");
       }
       iRasterBlockIndex = iBlocks;

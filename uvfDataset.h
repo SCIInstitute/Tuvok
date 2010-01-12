@@ -102,13 +102,15 @@ public:
   virtual const std::vector< std::pair < std::string, std::string > > GetMetadata() const;
 
   virtual bool SaveRescaleFactors();
+  bool OnlyBricksizeCheckFailed() const {return m_bOnlyBricksizeCheckFailed;}
+
 
 private:
   std::vector<UINT64> IndexToVector(const BrickKey &k) const;
   NDBrickKey IndexToVectorKey(const BrickKey &k) const;
   bool Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion=true);
   void Close();
-  UINT64 FindSuitableRasterBlock();
+  UINT64 FindSuitableRasterBlock(bool &bOnlyBricksizeCheckFailed);
   void ComputeMetaData();
   void GetHistograms();
 
@@ -137,7 +139,8 @@ private:
   std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
   std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
 
-  UINT64                     m_iMaxAcceptableBricksize;
+  UINT64                       m_iMaxAcceptableBricksize;
+  bool                         m_bOnlyBricksizeCheckFailed;
 };
 
 }

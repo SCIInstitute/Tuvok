@@ -132,6 +132,7 @@ public:
 
   const std::vector<UINT64> GetSmallestBrickIndex() const;
   const std::vector<UINT64>& GetSmallestBrickSize() const;
+  const std::vector<UINT64> GetLargestBrickSizes() const;
 
   void FlatDataToBrickedLOD(const void* pSourceData, const std::string& strTempFile,
                             void (*combineFunc)(const std::vector<UINT64> &vSource, UINT64 iTarget, const void* pIn, const void* pOut),

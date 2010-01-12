@@ -63,8 +63,8 @@ using namespace tuvok;
 
 IOManager::IOManager() :
   m_pFinalConverter(NULL),
-  m_iMaxBrickSize(256),
-  m_iBrickOverlap(4),
+  m_iMaxBrickSize(DEFAULT_BRICKSIZE),
+  m_iBrickOverlap(DEFAULT_BRICKOVERLAP),
   m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize)
 {
   m_vpConverters.push_back(new QVISConverter());
@@ -702,7 +702,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
     bool bRAWCreated = false;
 
     if (strExt == "UVF") {
-      UVFDataset v(strFilename,iMaxBrickSize,false,false);
+      UVFDataset v(strFilename,numeric_limits<UINT64>::max(),false,false); // disable brichsize check
       if (!v.IsOpen()) return false;
 
       UINT64 iLODLevel = 0; // always extract the highest quality here
@@ -783,7 +783,8 @@ UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack,
                                       UINT64 iMaxBrickSize,
                                       UINT64 iBrickOverlap) const {
   if (!ConvertDataset(pStack, strTargetFilename,strTempDir,iMaxBrickSize,iBrickOverlap)) return NULL;
-  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
+  bool bDummy; // as we just converted the brick size is alwys ok so no need to pass that data on
+  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester, bDummy));
 }
 
 UVFDataset* IOManager::ConvertDataset(const std::string& strFilename,
@@ -793,12 +794,14 @@ UVFDataset* IOManager::ConvertDataset(const std::string& strFilename,
                                       UINT64 iMaxBrickSize,
                                       UINT64 iBrickOverlap) const {
   if (!ConvertDataset(strFilename, strTargetFilename, strTempDir,false,iMaxBrickSize, iBrickOverlap)) return NULL;
-  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
+  bool bDummy; // as we just converted the brick size is alwys ok so no need to pass that data on
+  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester, bDummy));
 }
 
 Dataset* IOManager::LoadDataset(const std::string& strFilename,
-                                AbstrRenderer* requester) const {
-  return Controller::Instance().MemMan()->LoadDataset(strFilename, requester);
+                                AbstrRenderer* requester,
+                                bool& bOnlyBricksizeCheckFailed) const {
+  return Controller::Instance().MemMan()->LoadDataset(strFilename, requester, bOnlyBricksizeCheckFailed);
 }
 
 bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize,
@@ -1083,4 +1086,33 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
 
     return bAnalyzed;
   }
+}
+
+
+
+bool IOManager::ReBrickDataset(const std::string& strSourceFilename,
+                               const std::string& strTargetFilename,
+                               const std::string& strTempDir,
+                               const UINT64 iMaxBrickSize,
+                               const UINT64 iBrickOverlap) const {
+  MESSAGE("Rebricking (Phase 1/2)...");
+
+  std::string filenameOnly = SysTools::GetFilename(strSourceFilename);
+  std::string tmpFile = strTempDir+SysTools::ChangeExt(filenameOnly,"nrrd"); /// use some simple format as intermediate file
+
+  if (!ConvertDataset(strSourceFilename, tmpFile, strTempDir)) {
+    T_ERROR("Unable to extract raw data from file %s to %s", strSourceFilename.c_str(),tmpFile.c_str());
+    return false;
+  }
+
+  MESSAGE("Rebricking (Phase 2/2)...");
+
+  if (!Controller::Instance().IOMan()->ConvertDataset(tmpFile, strTargetFilename, strTempDir, false, iMaxBrickSize, iBrickOverlap)) {
+    T_ERROR("Unable to convert raw data from file %s into new UVF file %s", tmpFile.c_str(),strTargetFilename.c_str());
+    if(std::remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
+    return false;
+  } 
+  if(std::remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
+
+  return true;
 }
