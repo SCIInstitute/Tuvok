@@ -59,7 +59,8 @@ public:
   /// unimplemented!
   virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                               UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction);
+                               UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction,
+                               const bool bQuantizeTo8Bit);
 
   virtual bool CanExportData() const {return false;}
 

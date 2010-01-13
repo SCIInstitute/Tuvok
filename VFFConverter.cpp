@@ -180,7 +180,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                             UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool) {
+                             UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool, bool bQuantizeTo8Bit) {
 
   // create header textfile from metadata
   ofstream fAsciiTarget(strTargetFilename.c_str());
@@ -210,7 +210,7 @@ bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std:
   fAsciiTarget.close();
 
   // append RAW data using the parent's call
-  bool bRAWSuccess = AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, !EndianConvert::IsBigEndian(), !bSigned);
+  bool bRAWSuccess = AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, !EndianConvert::IsBigEndian(), !bSigned, bQuantizeTo8Bit);
 
   if (bRAWSuccess) {
     return true;

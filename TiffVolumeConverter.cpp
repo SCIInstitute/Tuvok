@@ -201,6 +201,7 @@ TiffVolumeConverter::ConvertToNative(const std::string&,
                                      bool,
                                      UINT64VECTOR3,
                                      FLOATVECTOR3,
+                                     bool,
                                      bool)
 {
   return false;

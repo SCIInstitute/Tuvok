@@ -66,7 +66,8 @@ public:
                             const std::string& strTempDir,
                             const bool bNoUserInteraction,
                             const UINT64 iTargetBrickSize,
-                            const UINT64 iTargetBrickOverlap) = 0;
+                            const UINT64 iTargetBrickOverlap,
+                            const bool bQuantizeTo8Bit) = 0;
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir, bool bNoUserInteraction,
@@ -79,7 +80,8 @@ public:
   virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
                                UINT64VECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect,
-                               bool bNoUserInteraction) = 0;
+                               bool bNoUserInteraction,
+                               const bool bQuantizeTo8Bit) = 0;
 
   virtual bool Analyze(const std::string& strSourceFilename, const std::string& strTempDir,
                        bool bNoUserInteraction, RangeInfo& info) = 0;
@@ -111,6 +113,8 @@ protected:
   static const std::string QuantizeLongTo8Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock* Histogram1D=0);
   static const std::string QuantizeFloatTo8Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock* Histogram1D=0);
   static const std::string QuantizeDoubleTo8Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, Histogram1DDataBlock* Histogram1D=0);
+
+  static const std::string QuantizeTo8Bit(const std::string& strFilename,const std::string& strTargetFilename, UINT64 iHeaderSkip, UINT64 iComponentSize, UINT64 iSize, bool bSigned, bool bIsFloat, Histogram1DDataBlock* Histogram1D=0);
 
 };
 

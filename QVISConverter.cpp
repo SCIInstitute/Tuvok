@@ -142,7 +142,8 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                              UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                             UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction) {
+                             UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction,
+                             const bool bQuantizeTo8Bit) {
 
   // compute fromat string
   string strFormat;
@@ -195,7 +196,7 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   // copy RAW file using the parent's call
   bool bRAWSuccess = RAWConverter::ConvertToNative(strRawFilename, strTargetRAWFilename, iHeaderSkip,
                                                    iComponentSize, iComponentCount, bSigned, bFloatingPoint,
-                                                   vVolumeSize, vVolumeAspect, bNoUserInteraction);
+                                                   vVolumeSize, vVolumeAspect, bNoUserInteraction,bQuantizeTo8Bit);
 
   if (bRAWSuccess) {
     return true;

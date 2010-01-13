@@ -996,3 +996,31 @@ size_t AbstrConverter::GetIncoreSize() {
   else
     return DEFAULT_INCORESIZE;
 }
+
+const std::string
+AbstrConverter::QuantizeTo8Bit(const std::string& strFilename,
+                               const std::string& strTargetFilename,
+                               UINT64 iHeaderSkip,
+                               UINT64 iComponentSize,
+                               UINT64 iSize,
+                               bool bSigned,
+                               bool bIsFloat,
+                               Histogram1DDataBlock* Histogram1D) {
+  std::string intermFile = "";
+  switch (iComponentSize) {
+    case 16 : intermFile = QuantizeShortTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, bSigned, Histogram1D);
+              break;
+    case 32 : if (bIsFloat) 
+                intermFile = QuantizeFloatTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, Histogram1D);
+              else
+                intermFile = QuantizeIntTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, bSigned, Histogram1D);             
+              break;
+    case 64 : if (bIsFloat) 
+                intermFile = QuantizeDoubleTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, Histogram1D);
+              else
+                intermFile = QuantizeLongTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, bSigned, Histogram1D);
+              break;
+  }
+ 
+  return intermFile;
+}

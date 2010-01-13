@@ -304,14 +304,15 @@ public:
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       UINT64 iMaxBrickSize,
-                      UINT64 iBrickOverlap
-                      ) const;
+                      UINT64 iBrickOverlap,
+                      bool bQuantizeTo8Bit=false) const;
   bool ConvertDataset(const std::string& strFilename,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       const bool bNoUserInteraction,
                       UINT64 iMaxBrickSize,
-                      UINT64 iBrickOverlap) const;
+                      UINT64 iBrickOverlap,
+                      bool bQuantizeTo8Bit=false) const;
   bool MergeDatasets(const std::vector <std::string>& strFilenames,
                      const std::vector <double>& vScales,
                      const std::vector<double>& vBiases,
@@ -324,49 +325,57 @@ public:
                                     const std::string& strTempDir,
                                     AbstrRenderer* requester,
                                     UINT64 iMaxBrickSize,
-                                    UINT64 iBrickOverlap) const;
+                                    UINT64 iBrickOverlap,
+                                    bool bQuantizeTo8Bit=false) const;
   tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
                                     AbstrRenderer* requester,
                                     UINT64 iMaxBrickSize,
-                                    UINT64 iBrickOverlap) const;
+                                    UINT64 iBrickOverlap,
+                                    bool bQuantizeTo8Bit=false) const;
 
 
   bool ReBrickDataset(const std::string& strSourceFilename,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       const UINT64 iMaxBrickSize,
-                      const UINT64 iBrickOverlap) const;
+                      const UINT64 iBrickOverlap,
+                      bool bQuantizeTo8Bit=false) const;
 
   // conveniance calls that use the default bricksizes and overlaps
   tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
-                                    AbstrRenderer* requester) const {
-    return ConvertDataset(pStack,strTargetFilename,strTempDir,requester,m_iMaxBrickSize, m_iBrickOverlap);
+                                    AbstrRenderer* requester,
+                                    const bool bQuantizeTo8Bit=false) const {
+    return ConvertDataset(pStack,strTargetFilename,strTempDir,requester,m_iMaxBrickSize, m_iBrickOverlap, bQuantizeTo8Bit);
   }
   tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
-                                    AbstrRenderer* requester) {
-    return ConvertDataset(strFilename,strTargetFilename,strTempDir,requester,m_iMaxBrickSize, m_iBrickOverlap);
+                                    AbstrRenderer* requester,
+                                    const bool bQuantizeTo8Bit=false) {
+    return ConvertDataset(strFilename,strTargetFilename,strTempDir,requester,m_iMaxBrickSize, m_iBrickOverlap,bQuantizeTo8Bit);
   }
   bool ConvertDataset(FileStackInfo* pStack,
                       const std::string& strTargetFilename,
-                      const std::string& strTempDir) const{
-    return ConvertDataset(pStack,strTargetFilename,strTempDir,m_iMaxBrickSize, m_iBrickOverlap);
+                      const std::string& strTempDir,
+                      const bool bQuantizeTo8Bit=false) const{
+    return ConvertDataset(pStack,strTargetFilename,strTempDir,m_iMaxBrickSize, m_iBrickOverlap, bQuantizeTo8Bit);
   }
   bool ConvertDataset(const std::string& strFilename,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
-                      const bool bNoUserInteraction=false) const {
-    return ConvertDataset(strFilename,strTargetFilename,strTempDir,bNoUserInteraction,m_iMaxBrickSize,m_iBrickOverlap);
+                      const bool bNoUserInteraction=false,
+                      const bool bQuantizeTo8Bit=false) const {
+    return ConvertDataset(strFilename,strTargetFilename,strTempDir,bNoUserInteraction,m_iMaxBrickSize,m_iBrickOverlap, bQuantizeTo8Bit);
   }
   bool ReBrickDataset(const std::string& strSourceFilename,
                       const std::string& strTargetFilename,
-                      const std::string& strTempDir) const {
-    return ReBrickDataset(strSourceFilename,strTargetFilename,strTempDir,m_iMaxBrickSize,m_iBrickOverlap);
+                      const std::string& strTempDir,
+                      bool bQuantizeTo8Bit=false) const {
+    return ReBrickDataset(strSourceFilename,strTargetFilename,strTempDir,m_iMaxBrickSize,m_iBrickOverlap,bQuantizeTo8Bit);
   }
 
 

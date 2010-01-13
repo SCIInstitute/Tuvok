@@ -65,7 +65,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const UINT64 iTargetBrickSize,
                                      const UINT64 iTargetBrickOverlap,
                                      UVFTables::ElementSemanticTable eType,
-                                     KVPairs* pKVPairs)
+                                     KVPairs* pKVPairs,
+                                     const bool bQuantizeTo8Bit)
 {
   bool bMetadata_SourceIsLittleEndian = bConvertEndianness && EndianConvert::IsBigEndian();
   bool bMetadata_Signed = bSigned;
@@ -163,63 +164,72 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   Histogram1DDataBlock Histogram1D;
 
-  switch (iComponentSize) {
-    case 8 :
-      // do not run the Process8Bits when we are dealing with unsigned
-      // color data, in that case only the histogram would be computed
-      // and we do not use in that case.
-      /// \todo change this if we want to support non-color
-      /// multi-component data
-      MESSAGE("Dataset is 8bit.");
-      if (iComponentCount != 4 || bSigned) {
-        MESSAGE("%u component, %s data",
-                static_cast<unsigned>(iComponentCount),
-                (bSigned) ? "signed" : "unsigned");
-        strSourceFilename = Process8Bits(iHeaderSkip, strSourceFilename,
+  if (bQuantizeTo8Bit && iComponentSize > 8) {
+    strSourceFilename = QuantizeTo8Bit(strSourceFilename, tmpFilename1, iHeaderSkip, iComponentSize, iComponentCount*vVolumeSize.volume(), bSigned, bIsFloat, &Histogram1D);
+    if (strSourceFilename == "") {
+      T_ERROR("Unsupported source format"); 
+      return false;
+    }
+    iComponentSize = 8;
+  } else {
+    switch (iComponentSize) {
+      case 8 :
+        // do not run the Process8Bits when we are dealing with unsigned
+        // color data, in that case only the histogram would be computed
+        // and we do not use in that case.
+        /// \todo change this if we want to support non-color
+        /// multi-component data
+        MESSAGE("Dataset is 8bit.");
+        if (iComponentCount != 4 || bSigned) {
+          MESSAGE("%u component, %s data",
+                  static_cast<unsigned>(iComponentCount),
+                  (bSigned) ? "signed" : "unsigned");
+          strSourceFilename = Process8Bits(iHeaderSkip, strSourceFilename,
+                                           tmpFilename1,
+                                           iComponentCount*vVolumeSize.volume(),
+                                           bSigned, &Histogram1D);
+        }
+        break;
+      case 16 :
+        MESSAGE("Dataset is 16bit integers (shorts)");
+        strSourceFilename = ProcessShort(iHeaderSkip, strSourceFilename,
                                          tmpFilename1,
                                          iComponentCount*vVolumeSize.volume(),
                                          bSigned, &Histogram1D);
-      }
-      break;
-    case 16 :
-      MESSAGE("Dataset is 16bit integers (shorts)");
-      strSourceFilename = ProcessShort(iHeaderSkip, strSourceFilename,
-                                       tmpFilename1,
-                                       iComponentCount*vVolumeSize.volume(),
-                                       bSigned, &Histogram1D);
-      break;
-    case 32 :
-      if (bIsFloat) {
-        MESSAGE("Dataset is 32bit FP (floats)");
-        strSourceFilename =
-          QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
+        break;
+      case 32 :
+        if (bIsFloat) {
+          MESSAGE("Dataset is 32bit FP (floats)");
+          strSourceFilename =
+            QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
+                                  iComponentCount*vVolumeSize.volume(),
+                                  &Histogram1D);
+        } else {
+          MESSAGE("Dataset is 32bit integers.");
+          strSourceFilename =
+            QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
                                 iComponentCount*vVolumeSize.volume(),
-                                &Histogram1D);
-      } else {
-        MESSAGE("Dataset is 32bit integers.");
-        strSourceFilename =
-          QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
-                              iComponentCount*vVolumeSize.volume(),
-                              bSigned, &Histogram1D);
-      }
-      iComponentSize = 16;
-      break;
-    case 64 :
-      if (bIsFloat) {
-        MESSAGE("Dataset is 64bit FP (doubles).");
-        strSourceFilename =
-          QuantizeDoubleTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
+                                bSigned, &Histogram1D);
+        }
+        iComponentSize = 16;
+        break;
+      case 64 :
+        if (bIsFloat) {
+          MESSAGE("Dataset is 64bit FP (doubles).");
+          strSourceFilename =
+            QuantizeDoubleTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
+                                   iComponentCount*vVolumeSize.volume(),
+                                   &Histogram1D);
+        } else {
+          MESSAGE("Dataset is 64bit integers.");
+          strSourceFilename =
+            QuantizeLongTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
                                  iComponentCount*vVolumeSize.volume(),
-                                 &Histogram1D);
-      } else {
-        MESSAGE("Dataset is 64bit integers.");
-        strSourceFilename =
-          QuantizeLongTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
-                               iComponentCount*vVolumeSize.volume(),
-                               bSigned, &Histogram1D);
-      }
-      iComponentSize = 16;
-      break;
+                                 bSigned, &Histogram1D);
+        }
+        iComponentSize = 16;
+        break;
+    }
   }
 
   if (strSourceFilename == "")  {
@@ -845,7 +855,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
 
 bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                    UINT64 iComponentSize, UINT64 , bool , bool,
-                                   UINT64VECTOR3, FLOATVECTOR3, bool) {
+                                   UINT64VECTOR3, FLOATVECTOR3, bool, bool bQuantizeTo8Bit) {
   // convert raw to raw is easy :-), just copy the file and ignore the metadata
 
   // if the file exists, delete it first
@@ -856,14 +866,23 @@ bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std:
     return false;
   }
 
-  return AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, EndianConvert::IsBigEndian());
+  return AppendRAW(strRawFilename, iHeaderSkip, strTargetFilename, iComponentSize, EndianConvert::IsBigEndian(),bQuantizeTo8Bit);
 }
 
 bool RAWConverter::AppendRAW(const std::string& strRawFilename,
                              UINT64 iHeaderSkip,
                              const std::string& strTargetFilename,
                              UINT64 iComponentSize, bool bChangeEndianess,
-                             bool bToSigned) {
+                             bool bToSigned, bool bQuantizeTo8Bit) {
+
+  // TODO:
+  // should we ever need this combination 
+  // "append +quantize" the implemenation should be here :-)
+  if (bQuantizeTo8Bit) {
+    T_ERROR("Quantization to 8bit during append operations not supported.");
+    return false;
+  }
+
   // open source file
   LargeRAWFile fSource(strRawFilename, iHeaderSkip);
   fSource.Open(false);
@@ -944,7 +963,8 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
                                 const std::string& strTempDir,
                                 const bool bNoUserInteraction,
                                 const UINT64 iTargetBrickSize,
-                                const UINT64 iTargetBrickOverlap) {
+                                const UINT64 iTargetBrickOverlap,
+                                const bool bQuantizeTo8Bit) {
 
   UINT64        iHeaderSkip;
   UINT64        iComponentSize;
@@ -974,8 +994,14 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
     return false;
   }
 
-  bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir, iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned,
-                                       bIsFloat, vVolumeSize, vVolumeAspect, strTitle, SysTools::GetFilename(strSourceFilename),iTargetBrickSize, iTargetBrickOverlap);
+  bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir,
+                                       iHeaderSkip, iComponentSize, iComponentCount, 
+                                       bConvertEndianess, bSigned, bIsFloat, vVolumeSize, 
+                                       vVolumeAspect, strTitle, 
+                                       SysTools::GetFilename(strSourceFilename),
+                                       iTargetBrickSize, iTargetBrickOverlap,
+                                       UVFTables::ES_UNDEFINED, 0,
+                                       bQuantizeTo8Bit);
 
   if (bDeleteIntermediateFile) {
     Remove(strIntermediateFile, Controller::Debug::Out());

@@ -178,7 +178,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                const std::string& strTargetFilename,
                                const std::string& strTempDir,
                                UINT64 iMaxBrickSize,
-                               UINT64 iBrickOverlap) const {
+                               UINT64 iBrickOverlap,
+                               const bool bQuantizeTo8Bit) const {
 
   MESSAGE("Request to convert stack of %s files to %s received",
           pStack->m_strDesc.c_str(), strTargetFilename.c_str());
@@ -315,7 +316,9 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                           pDICOMStack->m_Elements.size()-1
                                         ]->m_strFileName
                                       ),
-                                      iMaxBrickSize, iBrickOverlap
+                                      iMaxBrickSize, iBrickOverlap,
+                                      UVFTables::ES_UNDEFINED,
+                                      0, bQuantizeTo8Bit
                                      );
 
     if(remove(strTempMergeFilename.c_str()) != 0) {
@@ -638,7 +641,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
         if (vStrSupportedExtTarget[l] == strExtTarget) {
           bTargetCreated = m_vpConverters[k]->ConvertToNative(strMergedFile, strTargetFilename, 0,
                                                               iComponentSizeG, iComponentCountG, bSignedG, bIsFloatG,
-                                                              vVolumeSizeG, vVolumeAspectG, bNoUserInteraction);
+                                                              vVolumeSizeG, vVolumeAspectG, bNoUserInteraction, false);
           if (bTargetCreated) break;
         }
       }
@@ -656,7 +659,8 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
                                const std::string& strTempDir,
                                const bool bNoUserInteraction,
                                const UINT64 iMaxBrickSize,
-                               const UINT64 iBrickOverlap) const {
+                               const UINT64 iBrickOverlap,
+                               const bool bQuantizeTo8Bit) const {
   MESSAGE("Request to convert dataset %s to %s received.",
           strFilename.c_str(), strTargetFilename.c_str());
 
@@ -673,7 +677,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
         MESSAGE("Comparing file extension to %s supported formats (%s)", m_vpConverters[i]->GetDesc().c_str(),
                 vStrSupportedExt[j].c_str());
         if (vStrSupportedExt[j] == strExt) {
-          if (m_vpConverters[i]->ConvertToUVF(strFilename, strTargetFilename, strTempDir, bNoUserInteraction, iMaxBrickSize, iBrickOverlap)) return true;
+          if (m_vpConverters[i]->ConvertToUVF(strFilename, strTargetFilename, strTempDir, bNoUserInteraction, iMaxBrickSize, iBrickOverlap, bQuantizeTo8Bit)) return true;
         }
       }
     }
@@ -681,7 +685,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
     MESSAGE("No suitable automatic converter found!");
 
     if (m_pFinalConverter)
-      return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, strTempDir, bNoUserInteraction, iMaxBrickSize, iBrickOverlap);
+      return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, strTempDir, bNoUserInteraction, iMaxBrickSize, iBrickOverlap, bQuantizeTo8Bit);
     else
       return false;
   } else {
@@ -764,7 +768,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
                                                iComponentCount, bSigned,
                                                bIsFloat, vVolumeSize,
                                                vVolumeAspect,
-                                               bNoUserInteraction);
+                                               bNoUserInteraction, bQuantizeTo8Bit);
           if (bTargetCreated) break;
         }
       }
@@ -781,8 +785,9 @@ UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack,
                                       const std::string& strTempDir,
                                       AbstrRenderer* requester,
                                       UINT64 iMaxBrickSize,
-                                      UINT64 iBrickOverlap) const {
-  if (!ConvertDataset(pStack, strTargetFilename,strTempDir,iMaxBrickSize,iBrickOverlap)) return NULL;
+                                      UINT64 iBrickOverlap,
+                                      const bool bQuantizeTo8Bit) const {
+  if (!ConvertDataset(pStack, strTargetFilename,strTempDir,iMaxBrickSize,iBrickOverlap,bQuantizeTo8Bit)) return NULL;
   bool bDummy; // as we just converted the brick size is alwys ok so no need to pass that data on
   return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester, bDummy));
 }
@@ -792,8 +797,9 @@ UVFDataset* IOManager::ConvertDataset(const std::string& strFilename,
                                       const std::string& strTempDir,
                                       AbstrRenderer* requester,
                                       UINT64 iMaxBrickSize,
-                                      UINT64 iBrickOverlap) const {
-  if (!ConvertDataset(strFilename, strTargetFilename, strTempDir,false,iMaxBrickSize, iBrickOverlap)) return NULL;
+                                      UINT64 iBrickOverlap,
+                                      const bool bQuantizeTo8Bit) const {
+  if (!ConvertDataset(strFilename, strTargetFilename, strTempDir,false,iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) return NULL;
   bool bDummy; // as we just converted the brick size is alwys ok so no need to pass that data on
   return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester, bDummy));
 }
@@ -913,7 +919,7 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel,
                                 pSourceData->GetIsFloat(),
                                 pSourceData->GetDomainSize(iLODlevel),
                                 FLOATVECTOR3(pSourceData->GetRescaleFactors()),
-                                false);
+                                false,false);
 
   remove(strTempFilename.c_str());
 
@@ -1094,7 +1100,8 @@ bool IOManager::ReBrickDataset(const std::string& strSourceFilename,
                                const std::string& strTargetFilename,
                                const std::string& strTempDir,
                                const UINT64 iMaxBrickSize,
-                               const UINT64 iBrickOverlap) const {
+                               const UINT64 iBrickOverlap,
+                               bool bQuantizeTo8Bit) const {
   MESSAGE("Rebricking (Phase 1/2)...");
 
   std::string filenameOnly = SysTools::GetFilename(strSourceFilename);
@@ -1107,7 +1114,7 @@ bool IOManager::ReBrickDataset(const std::string& strSourceFilename,
 
   MESSAGE("Rebricking (Phase 2/2)...");
 
-  if (!Controller::Instance().IOMan()->ConvertDataset(tmpFile, strTargetFilename, strTempDir, false, iMaxBrickSize, iBrickOverlap)) {
+  if (!Controller::Instance().IOMan()->ConvertDataset(tmpFile, strTargetFilename, strTempDir, false, iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
     T_ERROR("Unable to convert raw data from file %s into new UVF file %s", tmpFile.c_str(),strTargetFilename.c_str());
     if(std::remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
     return false;

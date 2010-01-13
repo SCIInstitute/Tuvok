@@ -87,7 +87,8 @@ public:
                                 const UINT64 iTargetBrickSize,
                                 const UINT64 iTargetBrickOverlap,
                                 UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED,
-                                KVPairs* pKVPairs = NULL);
+                                KVPairs* pKVPairs = NULL,
+                                const bool bQuantizeTo8Bit=false);
 
   static bool ExtractGZIPDataset(const std::string& strFilename,
                                  const std::string& strUncompressedFile,
@@ -107,7 +108,8 @@ public:
                         const std::string& strTargetFilename,
                         UINT64 iComponentSize,
                         bool bChangeEndianess=false,
-                        bool bToSigned=false);
+                        bool bToSigned=false,
+                        const bool bQuantizeTo8Bit=false);
 
   virtual bool ConvertToNative(const std::string& strRawFilename,
                                const std::string& strTargetFilename,
@@ -115,14 +117,16 @@ public:
                                UINT64 iComponentCount, bool bSigned,
                                bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
-                               bool bNoUserInteraction);
+                               bool bNoUserInteraction,
+                               const bool bQuantizeTo8Bit);
 
   virtual bool ConvertToUVF(const std::string& strSourceFilename,
                             const std::string& strTargetFilename,
                             const std::string& strTempDir,
                             const bool bNoUserInteraction,
                             const UINT64 iTargetBrickSize,
-                            const UINT64 iTargetBrickOverlap);
+                            const UINT64 iTargetBrickOverlap,
+                            const bool bQuantizeTo8Bit);
 
   virtual bool Analyze(const std::string& strSourceFilename,
                        const std::string& strTempDir,

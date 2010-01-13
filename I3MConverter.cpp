@@ -267,7 +267,8 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
                                    const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                    UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
                                    bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
-                                   FLOATVECTOR3 vVolumeAspect, bool ) {
+                                   FLOATVECTOR3 vVolumeAspect, bool ,
+                                   const bool ) {
 
   // some fitness checks first
   if (iComponentCount!=1) {
@@ -276,7 +277,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   }
 
   // next check the quantization and endianess of the volume
-  // if it is not 8bit unsigned char, little endian -> convert it
+  // if it is not 8bit unsigned char -> convert it
 
   bool bDelte8BitFile;
   string str8BitFilename ;

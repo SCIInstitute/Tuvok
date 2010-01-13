@@ -148,7 +148,8 @@ bool BOVConverter::ConvertToNative(const std::string& raw,
                                    UINT64 skip, UINT64 component_size,
                                    UINT64 n_components, bool is_signed,
                                    bool fp, UINT64VECTOR3 dimensions,
-                                   FLOATVECTOR3 aspect, bool batch)
+                                   FLOATVECTOR3 aspect, bool batch,
+                                   const bool bQuantizeTo8Bit)
 {
   std::string fn_data = SysTools::RemoveExt(target);
 
@@ -184,7 +185,7 @@ bool BOVConverter::ConvertToNative(const std::string& raw,
   // copy the raw file.
   return RAWConverter::ConvertToNative(raw, raw + ".data", skip,
                                        component_size, n_components, is_signed,
-                                       fp, dimensions, aspect, batch);
+                                       fp, dimensions, aspect, batch, bQuantizeTo8Bit);
 }
 
 static DataType
