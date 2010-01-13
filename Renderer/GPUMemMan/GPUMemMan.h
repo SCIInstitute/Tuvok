@@ -159,7 +159,6 @@ class GPUMemMan {
     UINT64            m_iAllocatedCPUMemory;
     UINT64            m_iFrameCounter;
 
-    UINT64            m_iMaxAcceptableBricksize;
     UINT64            m_iInCoreSize;
 
     std::vector<unsigned char> m_vUploadHub;
