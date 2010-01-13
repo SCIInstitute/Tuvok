@@ -251,6 +251,9 @@ class AbstrRenderer {
 
     virtual void SetRotation(const FLOATMATRIX4& mRotation,
                              tuvok::RenderRegion *renderRegion=NULL);
+    virtual const FLOATMATRIX4& GetRotation(
+                            const tuvok::RenderRegion *renderRegion=NULL) const;
+
     virtual void SetTranslation(const FLOATMATRIX4& mTranslation,
                                 tuvok::RenderRegion *renderRegion=NULL);
 
