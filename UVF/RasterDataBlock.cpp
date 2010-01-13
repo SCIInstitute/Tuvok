@@ -289,6 +289,8 @@ vector<vector<UINT64> > RasterDataBlock::ComputeBricks(const vector<UINT64>& vDo
     UINT64 iBrickSize     = ulBrickSize[iDomainDimension];
     UINT64 iBrickOverlap = ulBrickOverlap[iDomainDimension];
 
+    assert(iBrickSize>iBrickOverlap); // sanity check
+
     vector<UINT64> vBricks;
 
     if (iSize <= iBrickSize) {
@@ -829,7 +831,7 @@ void RasterDataBlock::AllocateTemp(const string& strTempFile, bool bBuildOffsetT
  * \return void
  * \see FlatDataToBrickedLOD
  */
-void RasterDataBlock::FlatDataToBrickedLOD(const void* pSourceData, const string& strTempFile,
+bool RasterDataBlock::FlatDataToBrickedLOD(const void* pSourceData, const string& strTempFile,
                                            void (*combineFunc)(const vector<UINT64>& vSource, UINT64 iTarget, const void* pIn, const void* pOut),
                                            void (*maxminFunc)(const void* pIn, size_t iStart,
                                                               size_t iCount,
@@ -849,10 +851,12 @@ void RasterDataBlock::FlatDataToBrickedLOD(const void* pSourceData, const string
   pSourceFile.WriteRAW((unsigned char*)pSourceData, iInPointerSize);
 
   // convert the flat file to our bricked LOD representation
-  FlatDataToBrickedLOD(&pSourceFile, strTempFile, combineFunc, maxminFunc, pMaxMinDatBlock, pDebugOut);
+  bool bResult = FlatDataToBrickedLOD(&pSourceFile, strTempFile, combineFunc, maxminFunc, pMaxMinDatBlock, pDebugOut);
 
   // delete tempfile
   pSourceFile.Delete();
+
+  return bResult;
 }
 
 
@@ -878,7 +882,7 @@ vector<UINT64> RasterDataBlock::GetLODDomainSize(const vector<UINT64>& vLOD) con
  * \return void
  * \see FlatDataToBrickedLOD
  */
-void
+bool
 RasterDataBlock::FlatDataToBrickedLOD(
   LargeRAWFile* pSourceData, const string& strTempFile,
   void (*combineFunc)(const vector<UINT64>& vSource, UINT64 iTarget,
@@ -887,6 +891,15 @@ RasterDataBlock::FlatDataToBrickedLOD(
                      std::vector<DOUBLEVECTOR4>& fMinMax),
   MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut)
 {
+
+  // parameter sanity checks
+  for (size_t i = 0;i<ulBrickSize.size();i++)  {
+    if (ulBrickSize[i] < ulBrickOverlap[i]) {
+      if (pDebugOut) pDebugOut->Error(_func_, "Invalid parameters: Bricksze is smaler than brick overlap");
+      return false;
+    }
+  }
+
   UINT64 uiBytesPerElement = ComputeElementSize()/8;
 
   if (m_pTempFile == NULL) {
@@ -931,7 +944,8 @@ RasterDataBlock::FlatDataToBrickedLOD(
         tempFile = new LargeRAWFile(SysTools::AppendFilename(strTempFile,"2"));
         if (!tempFile->Create(ComputeDataSize())) {
           delete tempFile;
-          throw "Unable To create Temp File";
+          if (pDebugOut) pDebugOut->Error(_func_, "Unable To create Temp File");
+          return false;
         }
         SubSample(pSourceData, tempFile, ulDomainSize, vReducedDomainSize,
                   combineFunc, pDebugOut, i, vLODCombis.size());
@@ -1059,6 +1073,8 @@ RasterDataBlock::FlatDataToBrickedLOD(
     delete tempFile;
     tempFile = NULL;
   }
+
+  return true;
 }
 
 void RasterDataBlock::CleanupTemp() {

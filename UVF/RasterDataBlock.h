@@ -134,13 +134,13 @@ public:
   const std::vector<UINT64>& GetSmallestBrickSize() const;
   const std::vector<UINT64> GetLargestBrickSizes() const;
 
-  void FlatDataToBrickedLOD(const void* pSourceData, const std::string& strTempFile,
+  bool FlatDataToBrickedLOD(const void* pSourceData, const std::string& strTempFile,
                             void (*combineFunc)(const std::vector<UINT64> &vSource, UINT64 iTarget, const void* pIn, const void* pOut),
                             void (*maxminFunc)(const void* pIn, size_t iStart,
                                                size_t iCount,
                                                std::vector<DOUBLEVECTOR4>& fMinMax),
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
-  void FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const std::string& strTempFile,
+  bool FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const std::string& strTempFile,
                             void (*combineFunc)(const std::vector<UINT64> &vSource, UINT64 iTarget, const void* pIn, const void* pOut),
                             void (*maxminFunc)(const void* pIn, size_t iStart,
                                                size_t iCount,
