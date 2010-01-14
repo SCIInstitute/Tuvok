@@ -199,7 +199,7 @@ bool Texture3DListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
 
   UINT64 iBrickSize = vSize[0]*vSize[1]*vSize[2]*iByteWidth * iCompCount;
 
-  if (!vUploadHub.empty() && iBrickSize <= UINT64(m_pMasterController->IOMan()->m_iIncoresize*4)) {
+  if (!vUploadHub.empty() && iBrickSize <= UINT64(m_pMasterController->IOMan()->GetIncoresize()*4)) {
     m_bUsingHub = true;
     return pDataset->GetBrick(m_Key, vUploadHub);
   } else {

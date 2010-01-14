@@ -76,7 +76,7 @@ GPUMemMan::GPUMemMan(MasterController* masterController) :
   m_iInCoreSize(DEFAULT_INCORESIZE)
 {
   if (masterController && masterController->IOMan()) {
-    m_iInCoreSize = masterController->IOMan()->m_iIncoresize;
+    m_iInCoreSize = masterController->IOMan()->GetIncoresize();
   } 
 
   m_vUploadHub.resize(size_t(m_iInCoreSize*4));
@@ -193,7 +193,7 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
 
   MESSAGE("Loading %s", strFilename.c_str());
   // we assume the file has already been verified
-  UVFDataset* dataset = new UVFDataset(strFilename, m_MasterController->IOMan()->m_iMaxBrickSize, false);
+  UVFDataset* dataset = new UVFDataset(strFilename, m_MasterController->IOMan()->GetMaxBrickSize(), false);
   bOnlyBricksizeCheckFailed = dataset->OnlyBricksizeCheckFailed();
 
   if (dataset->IsOpen()) {
