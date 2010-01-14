@@ -492,7 +492,6 @@ namespace SysTools {
   DIR* dirData=opendir(strDir.c_str());
 
   if (dirData != NULL) {
-
     struct dirent *inode;
 
     while ((inode=readdir(dirData)) != NULL) {
@@ -506,8 +505,8 @@ namespace SysTools {
           subDirs.push_back(wstrFilename);
         }
     }
+    closedir(dirData);
   }
-  closedir(dirData);
 #endif
 
     vector<wstring> completeSubDirs;
@@ -565,7 +564,6 @@ namespace SysTools {
   DIR* dirData=opendir(rootdir.c_str());
 
   if (dirData != NULL) {
-
     struct dirent *inode;
 
     while ((inode=readdir(dirData)) != NULL) {
@@ -578,8 +576,8 @@ namespace SysTools {
           subDirs.push_back(strFilenameLocal);
         }
     }
+    closedir(dirData);
   }
-  closedir(dirData);
 #endif
 
     vector<string> completeSubDirs;
@@ -676,9 +674,9 @@ namespace SysTools {
           files.push_back(wstrFilename);
         }
     }
+    closedir(dirData);
   }
   regfree(&preg);
-  closedir(dirData);
 #endif
 
     return files;
