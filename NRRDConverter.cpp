@@ -323,7 +323,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
         return bResult;
       } else
       if (kvpEncoding->strValueUpper == "HEX")  {
-        T_ERROR("NRRD data is in haxdecimal text format which is not supported at the moment.");
+        T_ERROR("NRRD data is in hexadecimal text format which is not supported at the moment.");
       } else
       if (kvpEncoding->strValueUpper == "GZ" || kvpEncoding->strValueUpper == "GZIP")  {
         MESSAGE("NRRD data is GZIP compressed RAW format.");
