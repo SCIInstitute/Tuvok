@@ -115,7 +115,8 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) const 
         if(!tuvok::JPEG(f->m_Elements[i]->m_strFileName,
                         dynamic_cast<SimpleDICOMFileInfo*>
                           (f->m_Elements[i])->GetOffsetToData()).valid()) {
-          WARNING("Can't load JPEG in stack %i, element %u!", UINT32(iStackID), UINT32(i));
+          WARNING("Can't load JPEG in stack %u, element %u!",
+                  static_cast<unsigned>(iStackID), static_cast<unsigned>(i));
           // should probably be using ptr container lib here instead of trying to
           // explicitly manage this.
           delete *(parseDICOM.m_FileStacks.begin()+iStackID);
@@ -130,10 +131,12 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) const 
   }
 
 
-  if (parseDICOM.m_FileStacks.size() == 1)
+  if (parseDICOM.m_FileStacks.size() == 1) {
     MESSAGE("  found a single DICOM stack");
-  else
-    MESSAGE("  found %i DICOM stacks", int(parseDICOM.m_FileStacks.size()));
+  } else {
+    MESSAGE("  found %u DICOM stacks",
+            static_cast<unsigned>(parseDICOM.m_FileStacks.size()));
+  }
 
   for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {
     DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
@@ -148,10 +151,12 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) const 
   ImageParser parseImages;
   parseImages.GetDirInfo(strDirectory);
 
-  if (parseImages.m_FileStacks.size() == 1)
+  if (parseImages.m_FileStacks.size() == 1) {
     MESSAGE("  found a single image stack");
-  else
-    MESSAGE("  found %i image stacks", int(parseImages.m_FileStacks.size()));
+  } else {
+    MESSAGE("  found %u image stacks",
+            static_cast<unsigned>(parseImages.m_FileStacks.size()));
+  }
 
   for (size_t iStackID = 0;iStackID < parseImages.m_FileStacks.size();iStackID++) {
     ImageStackInfo* f = new ImageStackInfo((ImageStackInfo*)parseImages.m_FileStacks[iStackID]);
@@ -189,8 +194,9 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
 
     DICOMStackInfo* pDICOMStack = ((DICOMStackInfo*)pStack);
 
-    MESSAGE("  Stack contains %i files",  int(pDICOMStack->m_Elements.size()));
-    MESSAGE("    Series: %i  Bits: %i (%i)", pDICOMStack->m_iSeries,
+    MESSAGE("  Stack contains %u files",
+            static_cast<unsigned>(pDICOMStack->m_Elements.size()));
+    MESSAGE("    Series: %u  Bits: %u (%u)", pDICOMStack->m_iSeries,
                                              pDICOMStack->m_iAllocated,
                                              pDICOMStack->m_iStored);
     MESSAGE("    Date: %s  Time: %s", pDICOMStack->m_strAcquDate.c_str(),
@@ -232,16 +238,17 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
           return false;
         }
         MESSAGE("jpg is: %u bytes (%ux%u, %u components)", UINT32(jpg.size()),
-                UINT32(jpg.width()), UINT32(jpg.height()), UINT32(jpg.components()));
+                UINT32(jpg.width()), UINT32(jpg.height()),
+                UINT32(jpg.components()));
 
         const char *jpeg_data = jpg.data();
         std::copy(jpeg_data, jpeg_data + jpg.size(), &vData[0]);
         pDICOMStack->m_iAllocated = BITS_IN_JSAMPLE;
       } else {
         pDICOMStack->m_Elements[j]->GetData(vData);
-        MESSAGE("Creating intermediate file %s\n%i%%",
+        MESSAGE("Creating intermediate file %s\n%u%%",
                 strTempMergeFilename.c_str(),
-                int((100*j)/pDICOMStack->m_Elements.size()));
+                static_cast<unsigned>((100*j)/pDICOMStack->m_Elements.size()));
       }
 
       if (pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian()) {
@@ -328,7 +335,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     return result;
   } else if(pStack->m_strFileType == "IMAGE") {
     MESSAGE("  Detected Image stack, starting image conversion");
-    MESSAGE("  Stack contains %i files",  int(pStack->m_Elements.size()));
+    MESSAGE("  Stack contains %u files",
+            static_cast<unsigned>(pStack->m_Elements.size()));
 
     string strTempMergeFilename = strTempDir +
                                   SysTools::GetFilename(strTargetFilename) +
@@ -350,9 +358,9 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
       pStack->m_Elements[j]->GetData(vData);
 
       fs.write(&vData[0], iDataSize);
-      MESSAGE("Creating intermediate file %s\n%i%%",
+      MESSAGE("Creating intermediate file %s\n%u%%",
               strTempMergeFilename.c_str(),
-              int((100*j)/pStack->m_Elements.size()));
+              static_cast<unsigned>((100*j)/pStack->m_Elements.size()));
     }
 
     fs.close();
