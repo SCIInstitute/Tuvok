@@ -130,6 +130,9 @@ public:
                             void* pUserContext = NULL,
                             UINT64 iOverlap=0) const;
 
+  const std::vector<UINT64> LargestSingleBrickLODBrickIndex() const;
+  const std::vector<UINT64>& LargestSingleBrickLODBrickSize() const;
+
   const std::vector<UINT64> GetSmallestBrickIndex() const;
   const std::vector<UINT64>& GetSmallestBrickSize() const;
   const std::vector<UINT64> GetLargestBrickSizes() const;

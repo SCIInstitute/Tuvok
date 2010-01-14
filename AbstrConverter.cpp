@@ -992,7 +992,7 @@ AbstrConverter::QuantizeIntTo8Bits(UINT64 iHeaderSkip,
 
 size_t AbstrConverter::GetIncoreSize() {
   if (Controller::Instance().IOMan())
-    return size_t(Controller::Instance().IOMan()->m_iIncoresize);
+    return size_t(Controller::Instance().IOMan()->GetIncoresize());
   else
     return DEFAULT_INCORESIZE;
 }

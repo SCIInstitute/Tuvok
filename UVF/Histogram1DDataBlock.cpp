@@ -56,7 +56,8 @@ bool Histogram1DDataBlock::Compute(RasterDataBlock* source) {
   // TODO: right now we can only compute Histograms of scalar data this should be changed to a more general approach
   if (source->ulElementDimension != 1 || source->ulElementDimensionSize.size() != 1) return false;
 
-  // TODO: right now compute Histogram assumes that the lowest LOD level consists only of a single brick, this brick is used for the hist. computation
+  /// \todo right now compute Histogram assumes that at least the lowest LOD level consists only 
+  //       of a single brick, this brick is used for the hist.-computation
   //       this should be changed to a more general approach
   vector<UINT64> vSmallestLOD = source->GetSmallestBrickIndex();
   const vector<UINT64>& vBricks = source->GetBrickCount(vSmallestLOD);
@@ -68,14 +69,14 @@ bool Histogram1DDataBlock::Compute(RasterDataBlock* source) {
   if (vTmpHist.size() != iValueRange) return false;
   for (size_t i = 0;i<iValueRange;i++) vTmpHist[i] = 0;
 
-  // find smallest brick in hierarchy
+  // LargestSingleBrickLODBrickIndex is well defined as we tested above if we have a single brick LOD
   std::vector<unsigned char> vcSourceData;
-  vector<UINT64> vLOD = source->GetSmallestBrickIndex();
+  vector<UINT64> vLOD = source->LargestSingleBrickLODBrickIndex();
   vector<UINT64> vOneAndOnly;
   for (size_t i = 0;i<vBricks.size();i++) vOneAndOnly.push_back(0);
   if (!source->GetData(vcSourceData, vLOD, vOneAndOnly)) return false;
 
-  vector<UINT64> vSize  = source->GetSmallestBrickSize();
+  vector<UINT64> vSize  = source->LargestSingleBrickLODBrickSize();
 
   UINT64 iDataSize = 1;
   for (size_t i = 0;i<vSize.size();i++) iDataSize*=vSize[i];

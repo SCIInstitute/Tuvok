@@ -406,13 +406,21 @@ public:
   std::vector< std::pair <std::string, std::string > > GetImportFormatList() const;
   std::vector< std::pair <std::string, std::string > > GetExportFormatList() const;
 
-  UINT64 m_iMaxBrickSize;
-  UINT64 m_iBrickOverlap;
-  UINT64 m_iIncoresize;
+  UINT64 GetMaxBrickSize() const {return m_iMaxBrickSize;}
+  UINT64 GetBrickOverlap() const {return m_iBrickOverlap;}
+  UINT64 GetIncoresize() const {return m_iIncoresize;}
+
+  bool SetMaxBrickSize(const UINT64 iMaxBrickSize);
+  bool SetBrickOverlap(const UINT64 iBrickOverlap);
 
 private:
   std::vector<AbstrConverter*>  m_vpConverters;
   AbstrConverter*               m_pFinalConverter;
+
+  UINT64 m_iMaxBrickSize;
+  UINT64 m_iBrickOverlap;
+  UINT64 m_iIncoresize;
+
 };
 
 #endif // IOMANAGER_H

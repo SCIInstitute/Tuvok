@@ -1114,7 +1114,7 @@ bool IOManager::ReBrickDataset(const std::string& strSourceFilename,
 
   MESSAGE("Rebricking (Phase 2/2)...");
 
-  if (!Controller::Instance().IOMan()->ConvertDataset(tmpFile, strTargetFilename, strTempDir, false, iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
+  if (!Controller::Instance().IOMan()->ConvertDataset(tmpFile, strTargetFilename, strTempDir, true, iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
     T_ERROR("Unable to convert raw data from file %s into new UVF file %s", tmpFile.c_str(),strTargetFilename.c_str());
     if(std::remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
     return false;
@@ -1122,4 +1122,18 @@ bool IOManager::ReBrickDataset(const std::string& strSourceFilename,
   if(std::remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
 
   return true;
+}
+
+bool IOManager::SetMaxBrickSize(const UINT64 iMaxBrickSize) {
+  if (iMaxBrickSize > m_iBrickOverlap) {
+    m_iMaxBrickSize = iMaxBrickSize;
+    return true;
+  } else return false;
+}
+
+bool IOManager::SetBrickOverlap(const UINT64 iBrickOverlap) {
+  if (m_iMaxBrickSize > iBrickOverlap) {
+    m_iBrickOverlap = iBrickOverlap;
+    return true;
+  } else return false;
 }

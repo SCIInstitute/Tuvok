@@ -628,6 +628,41 @@ void RasterDataBlock::SetTypeToDouble(ElementSemanticTable semantic) {
 }
 
 
+UINT64 Product(const std::vector<UINT64>& v) {
+  UINT64 s = 1;
+  for (size_t i = 0;i<v.size();i++) {
+    s *= v[i];
+  }
+  return s;
+}
+
+const std::vector<UINT64> RasterDataBlock::LargestSingleBrickLODBrickIndex() const {
+  std::vector<UINT64> vLargestSingleBrickLODIndex = GetSmallestBrickIndex();
+
+  // for this to work we require the smalest level to contain only a single brick
+  assert(Product(GetBrickCount(vLargestSingleBrickLODIndex)) == 1);
+
+  for (size_t iLODGroups = 0;iLODGroups<ulLODLevelCount.size();iLODGroups++) {
+    for (size_t iLOD = ulLODLevelCount[iLODGroups]; iLOD>0;  iLOD--) {  // being very carefull here as we are decrementing an unsigned value
+      vLargestSingleBrickLODIndex[iLODGroups] = iLOD-1;
+      if (Product(GetBrickCount(vLargestSingleBrickLODIndex)) > 1) {
+        vLargestSingleBrickLODIndex[iLODGroups] = iLOD;
+        break;
+      }
+    }
+  }
+
+  return vLargestSingleBrickLODIndex;
+}
+
+const std::vector<UINT64>& RasterDataBlock::LargestSingleBrickLODBrickSize() const {
+  std::vector<UINT64> vLargestSingleBrickLOD = LargestSingleBrickLODBrickIndex();
+  std::vector<UINT64> vFirstBrick(GetBrickCount(vLargestSingleBrickLOD).size());
+  for (size_t i = 0;i<vFirstBrick.size();i++) vFirstBrick[i] = 0; // get the size of the first brick
+  return GetBrickSize(vLargestSingleBrickLOD, vFirstBrick);
+}
+
+
 const std::vector<UINT64> RasterDataBlock::GetSmallestBrickIndex() const {
   std::vector<UINT64> vSmallestLOD = ulLODLevelCount;
   for (size_t i = 0;i<vSmallestLOD.size();i++) vSmallestLOD[i] -= 1; // convert "size" to "maxindex"

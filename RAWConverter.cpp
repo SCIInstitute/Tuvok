@@ -266,7 +266,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   UINT64 iLodLevelCount = 1;
   UINT64 iMaxVal = vVolumeSize.maxVal();
 
-  while (iMaxVal > iTargetBrickSize) {
+  while (iMaxVal > std::min<UINT64>(64, iTargetBrickSize)) { // generate LOD down to at least a 64^3 brick
     iMaxVal /= 2;
     iLodLevelCount++;
   }
