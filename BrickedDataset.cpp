@@ -63,7 +63,7 @@ FLOATVECTOR3 BrickedDataset::GetBrickExtents(const BrickKey &bk) const
   BrickTable::const_iterator iter = this->bricks.find(bk);
 #endif
   if(iter == this->bricks.end()) {
-    T_ERROR("Unknown brick (%u, %u", UINT32(bk.first), UINT32(bk.second));
+    T_ERROR("Unknown brick (%u, %u)", UINT32(bk.first), UINT32(bk.second));
     return FLOATVECTOR3(0.0f, 0.0f, 0.0f);
   }
   return iter->second.extents;
