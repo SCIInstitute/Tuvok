@@ -367,7 +367,7 @@ void AbstrRenderer::SetRotation(const FLOATMATRIX4& mRotation,
 }
 
 const FLOATMATRIX4&
-AbstrRenderer::GetRotation(const RenderRegion *renderRegion) const {
+AbstrRenderer::GetRotation(const RenderRegion*) const {
   return m_mRotation;
 }
 
