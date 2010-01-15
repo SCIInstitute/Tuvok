@@ -926,7 +926,7 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel,
                                 pSourceData->GetIsSigned(),
                                 pSourceData->GetIsFloat(),
                                 pSourceData->GetDomainSize(iLODlevel),
-                                FLOATVECTOR3(pSourceData->GetRescaleFactors()),
+                                FLOATVECTOR3(pSourceData->GetScale()),
                                 false,false);
 
   remove(strTempFilename.c_str());
