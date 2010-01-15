@@ -256,6 +256,8 @@ class AbstrRenderer {
 
     virtual void SetTranslation(const FLOATMATRIX4& mTranslation,
                                 tuvok::RenderRegion *renderRegion=NULL);
+    virtual const FLOATMATRIX4& GetTranslation(
+                            const tuvok::RenderRegion *renderRegion=NULL) const;
 
     void SetClipPlane(const ExtendedPlane& plane,
                       tuvok::RenderRegion *renderRegion=NULL);

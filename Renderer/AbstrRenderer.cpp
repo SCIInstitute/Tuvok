@@ -381,6 +381,11 @@ void AbstrRenderer::SetTranslation(const FLOATMATRIX4& mTranslation,
   }
 }
 
+const FLOATMATRIX4&
+AbstrRenderer::GetTranslation(const RenderRegion*) const {
+  return m_mTranslation;
+}
+
 void AbstrRenderer::SetClipPlane(const ExtendedPlane& plane,
                                  RenderRegion *renderRegion)
 {
