@@ -2153,9 +2153,6 @@ void GLRenderer::CVFocusHasChanged() {
   if (vec[3] != 0.0f) {
     m_vCVPos = FLOATVECTOR4(vec[0],vec[1],vec[2],1.0f) *
                m_matModelView[0].inverse();
-    MESSAGE("Setting new CV 3D pos (%g, %g, %g, %g) "
-            "at screen position (%i, %i)", vec[0], vec[1], vec[2], vec[3],
-            m_vCVMousePos.x, m_vWinSize.y - m_vCVMousePos.y);
   } else {
     // if we do not pick a valid point move CV pos to "nirvana"
     m_vCVPos = FLOATVECTOR4(10000000.0f, 10000000.0f, 10000000.0f, 0.0f);
