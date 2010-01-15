@@ -541,9 +541,9 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
         UINT64 iPerformanceBasedLODSkip =
           std::max<UINT64>(1, m_iPerformanceBasedLODSkip) - 1;
         if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) {
-          MESSAGE("Increasing start LOD to %i as it took %g ms "
+          MESSAGE("Increasing start LOD to %llu as it took %g ms "
                   "to render the first LOD level (max is %g) ",
-                  int(m_iPerformanceBasedLODSkip), m_fMsecPassed[0],
+                  m_iPerformanceBasedLODSkip, m_fMsecPassed[0],
                   m_fMaxMSPerFrame);
           m_fMsecPassed[0] = m_fMsecPassed[1];
           m_iPerformanceBasedLODSkip = iPerformanceBasedLODSkip;
@@ -596,9 +596,9 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
             std::min<UINT64>(m_iMaxLODIndex - m_iMinLODForCurrentView,
                              m_iPerformanceBasedLODSkip + 1);
           if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) {
-            MESSAGE("Decreasing start LOD to %i as it took only %g ms "
+            MESSAGE("Decreasing start LOD to %llu as it took only %g ms "
                     "to render the second LOD level",
-                    int(m_iPerformanceBasedLODSkip), m_fMsecPassed[1]);
+                    m_iPerformanceBasedLODSkip, m_fMsecPassed[1]);
             m_iPerformanceBasedLODSkip = iPerformanceBasedLODSkip;
           }
         }

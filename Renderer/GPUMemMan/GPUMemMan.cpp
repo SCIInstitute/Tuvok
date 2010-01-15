@@ -597,9 +597,9 @@ find_closest_texture(Texture3DList &lst, const UINTVECTOR3& vSize,
     }
   }
   if(iBestMatch != lst.end()) {
-    MESSAGE("  Found suitable target brick from frame %i with intraframe "
-            "counter %i.", int(iTargetFrameCounter),
-            int(iTargetIntraFrameCounter));
+    MESSAGE("  Found suitable target brick from frame %llu with intraframe "
+            "counter %llu.", iTargetFrameCounter,
+            iTargetIntraFrameCounter);
   }
   return iBestMatch;
 }
@@ -736,9 +736,9 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset, const BrickKey& k
   // for OpenGL we ignore the GPU memory load and let GL do the paging
   if (m_iAllocatedCPUMemory + iNeededCPUMemory >
       m_SystemInfo->GetMaxUsableCPUMem()) {
-    MESSAGE("Not enough memory for texture %i x %i x %i (%ibit * %i), "
-            "paging ...", int(sz[0]), int(sz[1]), int(sz[2]),
-            int(iBitWidth), int(iCompCount));
+    MESSAGE("Not enough memory for texture %u x %u x %u (%llubit * %llu), "
+            "paging ...", sz[0], sz[1], sz[2],
+            iBitWidth, iCompCount);
 
     // search for best brick to replace with this brick
     UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(key);
@@ -766,9 +766,9 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset, const BrickKey& k
         if (m_vpTex3DList.empty()) {
           // we do not have enough memory to page in even a single block...
           T_ERROR("Not enough memory to page a single brick into memory, "
-                  "aborting (MaxMem=%ikb, NeededMem=%ikb).",
-                  int(m_SystemInfo->GetMaxUsableCPUMem()/1024),
-                  int(iNeededCPUMemory/1024));
+                  "aborting (MaxMem=%llukb, NeededMem=%llukb).",
+                  m_SystemInfo->GetMaxUsableCPUMem()/1024,
+                  iNeededCPUMemory/1024);
           return NULL;
         }
 
@@ -777,8 +777,9 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset, const BrickKey& k
     }
   }
 
-  MESSAGE("Creating new texture %i x %i x %i, bitsize=%i, componentcount=%i",
-          int(sz[0]), int(sz[1]), int(sz[2]), int(iBitWidth), int(iCompCount));
+  MESSAGE("Creating new texture %llu x %llu x %llu, "
+          "bitsize=%llu, componentcount=%llu",
+          sz[0], sz[1], sz[2], iBitWidth, iCompCount);
 
   Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, key,
                                                        bUseOnlyPowerOfTwo,
@@ -843,16 +844,13 @@ void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset) {
   AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
 
   while(1) { // exit condition is checked for and `break'd in the loop.
-    /// @todo For some reason, `Texture3DListConstIter' cannot be used in place
-    /// of `const Texture3DListIter' here.  Investigate why they're not
-    /// equivalent.
     const Texture3DListIter& iter =
       std::find_if(m_vpTex3DList.begin(), m_vpTex3DList.end(),
                    std::tr1::bind(DatasetTexture(), _1, pDataset));
     if(iter == m_vpTex3DList.end()) {
       break;
     }
-    dbg.Message(_func_, "Deleting a 3D texture of size %i x %i x %i",
+    dbg.Message(_func_, "Deleting a 3D texture of size %u x %u x %u",
                 (*iter)->pTexture->GetSize().x,
                 (*iter)->pTexture->GetSize().y,
                 (*iter)->pTexture->GetSize().z);
@@ -885,9 +883,9 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
   // if we are running out of mem, kick out bricks to create room for the FBO
   while (m_iAllocatedCPUMemory + m_iCPUMemEstimate >
          m_SystemInfo->GetMaxUsableCPUMem() && m_vpTex3DList.size() > 0) {
-    MESSAGE("Not enough memory for FBO %i x %i (%ibit * %i), "
+    MESSAGE("Not enough memory for FBO %i x %i (%ubit * %i), "
             "paging out bricks ...", int(width), int(height),
-            int(iSizePerElement), int(iNumBuffers));
+            iSizePerElement, iNumBuffers);
 
     // search for best brick to replace with this brick
     UINT64 iMinTargetFrameCounter;
@@ -915,7 +913,7 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
         }
       }
     }
-    MESSAGE("   Deleting texture %i", int(iBestIndex));
+    MESSAGE("   Deleting texture %u", static_cast<unsigned>(iBestIndex));
     Delete3DTexture(iBestIndex);
   }
 

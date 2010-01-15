@@ -361,10 +361,18 @@ bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
       memcpy(pPaddedData+iTarget, pPaddedData+(iTarget-vPaddedSize[1]*iRowSizeTarget), vPaddedSize[1]*iRowSizeTarget);
     }
 
-    MESSAGE("Actually creating new texture %i x %i x %i, bitsize=%i, componentcount=%i due to compatibility settings", int(vPaddedSize[0]), int(vPaddedSize[1]), int(vPaddedSize[2]), int(iBitWidth), int(iCompCount));
+    MESSAGE("Actually creating new texture %u x %u x %u, bitsize=%llu, "
+            "componentcount=%llu due to compatibility settings",
+            vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
+            iBitWidth, iCompCount);
 
-    pTexture = new GLTexture3D(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2], glInternalformat, glFormat, glType, UINT32(iBitWidth/8*iCompCount), pPaddedData, GL_LINEAR, GL_LINEAR, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP, m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
-
+    pTexture = new GLTexture3D(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
+                               glInternalformat, glFormat, glType,
+                               UINT32(iBitWidth/8*iCompCount), pPaddedData,
+                               GL_LINEAR, GL_LINEAR,
+                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
     delete [] pPaddedData;
   }
 
