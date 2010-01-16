@@ -757,8 +757,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
   sourceFile.seekg(static_cast<std::streamoff>(iHeaderSkip));
   if (bIsFloat) {
     if (!bSigned) {
-      T_ERROR("Unsupported data type "
-                                                  "(unsigned float)");
+      T_ERROR("Unsupported data type (unsigned float)");
       sourceFile.close();
       binaryFile.Delete();
       return false;
