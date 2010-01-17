@@ -40,6 +40,8 @@
 
 #include "SBVRGeogen.h"
 
+namespace tuvok {
+
 /** \class SBVRGeogen3D
  * Geometry generation for the slice-based volume renderer. */
 class SBVRGeogen3D : public SBVRGeogen
@@ -65,5 +67,5 @@ protected:
                                   std::vector<POS3TEX3_VERTEX>& vHits);
   static void SortByGradient(std::vector<POS3TEX3_VERTEX>& fArray);
 };
-
+};
 #endif // SBVRGEOGEN3D_H

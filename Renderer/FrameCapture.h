@@ -42,6 +42,8 @@
 #include "../StdTuvokDefines.h"
 #include "../Basics/Vectors.h"
 
+namespace tuvok {
+
 class FrameCapture {
   public:
     FrameCapture() {}
@@ -63,5 +65,5 @@ class FrameCapture {
     bool SaveImage(const std::string& strFilename, const UINTVECTOR2& vSize,
                    unsigned char* pData, bool bPreserveTransparency) const;
 };
-
+};
 #endif // FRAMECAPTURE_H

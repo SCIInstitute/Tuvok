@@ -43,6 +43,8 @@
 #include "GLRenderer.h"
 #include "../SBVRGeogen2D.h"
 
+namespace tuvok {
+
 /** \class GLSBVR2D
  * Slice-based GPU volume renderer.
  *
@@ -95,5 +97,6 @@ class GLSBVR2D : public GLRenderer {
 
     //virtual bool BindVolumeTex(const tuvok::BrickKey& bkey, const UINT64 iIntraFrameCounter);
     //virtual bool UnbindVolumeTex();
+};
 };
 #endif // GLSBVR2D_H

@@ -37,6 +37,7 @@
 #include "GLTexture1D.h"
 #include "Controller/Controller.h"
 
+using namespace tuvok;
 
 GLTexture1D::GLTexture1D(UINT32 iSize, GLint internalformat, GLenum format,
                          GLenum type,  UINT32 iSizePerElement,

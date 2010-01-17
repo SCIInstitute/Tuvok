@@ -53,6 +53,8 @@
 
 #include "../Scripting/Scripting.h"
 
+using namespace tuvok;
+
 MasterController::MasterController() :
   m_bDeleteDebugOutOnExit(false),
   m_pProvenance(NULL)

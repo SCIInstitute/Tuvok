@@ -44,6 +44,8 @@
 #include <string>
 #include <vector>
 
+namespace tuvok {
+
 class Scripting;
 
 class Scriptable
@@ -56,5 +58,5 @@ class Scriptable
                          const std::vector<std::string>& strParams,
                          std::string& strMessage) = 0;
 };
-
+};
 #endif // SCRIPTABLE_H

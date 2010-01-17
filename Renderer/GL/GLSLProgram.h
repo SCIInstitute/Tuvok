@@ -74,6 +74,8 @@ typedef enum {
 #include "../../StdTuvokDefines.h"
 #include "GLObject.h"
 
+namespace tuvok {
+
 class MasterController;
 
 /**
@@ -179,5 +181,7 @@ private:
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
 #undef GLSL_ALLOW_IMPLICIT_CASTS
 #endif
+
+};
 
 #endif // GLSLPROGRAM_H

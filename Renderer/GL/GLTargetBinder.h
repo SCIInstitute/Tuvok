@@ -40,6 +40,9 @@
 
 #include <vector>
 #include "../../StdTuvokDefines.h"
+
+namespace tuvok {
+
 class GLFBOTex;
 class MasterController;
 
@@ -73,5 +76,6 @@ class GLTargetBinder {
     std::vector<GLBufferID>  m_vpBoundFBOs;
 
     void UnbindInternal();
+};
 };
 #endif // GLTARGETBINDER_H

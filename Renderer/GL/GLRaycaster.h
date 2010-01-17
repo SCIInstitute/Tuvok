@@ -42,9 +42,9 @@
 #include "../../StdTuvokDefines.h"
 #include "GLRenderer.h"
 
-using namespace tuvok;
-
 class ExtendedPlane;
+
+namespace tuvok {
 
 /** \class GLRaycaster
  * GPU Rayster.
@@ -110,5 +110,6 @@ class GLRaycaster : public GLRenderer {
                                            FLOATVECTOR3 p2, FLOATVECTOR3 t2,
                                            int iStereoID) const;
 
+};
 };
 #endif // GLRAYCASTER_H

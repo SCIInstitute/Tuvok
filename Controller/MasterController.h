@@ -49,11 +49,15 @@
 
 #include "../Scripting/Scriptable.h"
 
-class AbstrRenderer;
+class SystemInfo;
 class IOManager;
+
+namespace tuvok {
+
+class AbstrRenderer;
 class GPUMemMan;
 class Scripting;
-class SystemInfo;
+
 typedef std::deque<AbstrRenderer*> AbstrRendererList;
 
 /** \class MasterController
@@ -173,5 +177,5 @@ private:
 
   AbstrRendererList m_vVolumeRenderer;
 };
-
+};
 #endif // MASTERCONTROLLER_H

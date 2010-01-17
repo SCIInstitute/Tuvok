@@ -44,6 +44,8 @@
 #include "Controller/Controller.h"
 #include "Renderer/GL/GLError.h"
 
+using namespace tuvok;
+
 /// GL Extension Wrangler (glew) is initialized on first instantiation
 bool GLSLProgram::m_bGlewInitialized=true;
 bool GLSLProgram::m_bGLChecked=false;      ///< GL extension check

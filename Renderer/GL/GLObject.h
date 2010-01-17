@@ -43,6 +43,8 @@
 #include "../GPUObject.h"
 #include "GLInclude.h"
 
+namespace tuvok {
+
 /** Base for all OpenGL types which will utilize GPU memory.
  * Forces children to keep track of memory use on both the CPU and GPU,
  * allowing us to use as much memory as will be possible without swapping. */
@@ -50,5 +52,5 @@ class GLObject : public GPUObject {
 public:
     virtual ~GLObject() {}
 };
-
+};
 #endif // GLOBJECT_H

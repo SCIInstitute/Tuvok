@@ -51,16 +51,15 @@
 #include "../GL/GLFBOTex.h"
 #include "../GL/GLSLProgram.h"
 
-class AbstrRenderer;
-class GLTexture1D;
-class GLTexture2D;
-class GLTexture3D;
 class TransferFunction1D;
 class TransferFunction2D;
 class VolumeDataset;
 namespace tuvok {
   class Dataset;
-};
+  class AbstrRenderer;
+  class GLTexture1D;
+  class GLTexture2D;
+  class GLTexture3D;
 
 typedef std::deque< AbstrRenderer* > AbstrRendererList;
 typedef AbstrRendererList::iterator AbstrRendererListIter;
@@ -244,5 +243,6 @@ public:
 };
 typedef std::deque<GLSLListElem*> GLSLList;
 typedef GLSLList::iterator GLSLListIter;
+};
 
 #endif // GPUMEMMANDATASTRUCTS_H

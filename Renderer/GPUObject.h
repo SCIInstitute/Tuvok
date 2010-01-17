@@ -40,6 +40,8 @@
 
 #include "../StdTuvokDefines.h"
 
+namespace tuvok {
+
 /** Base for all types which will utilize GPU memory.
  * Forces children to keep track of memory use on both the CPU and GPU,
  * allowing us to use as much memory as will be possible without swapping. */
@@ -49,5 +51,5 @@ public:
     virtual UINT64 GetCPUSize() = 0;
     virtual UINT64 GetGPUSize() = 0;
 };
-
+};
 #endif // GPUOBJECT_H

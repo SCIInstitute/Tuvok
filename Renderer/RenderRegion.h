@@ -31,10 +31,10 @@
 #ifndef RENDERREGION_H
 #define RENDERREGION_H
 
+namespace tuvok {
+
 class AbstrRenderer;
 class GLRenderer;
-
-namespace tuvok {
 
   class RenderRegion {
   public:
@@ -68,8 +68,8 @@ namespace tuvok {
 
   protected:
     //These methods should be accessed through AbstrRenderer
-    friend class ::AbstrRenderer;
-    friend class ::GLRenderer;
+    friend class AbstrRenderer;
+    friend class GLRenderer;
     virtual bool GetUseMIP() const = 0;
     virtual void SetUseMIP(bool) = 0;
     virtual UINT64 GetSliceIndex() const = 0;
@@ -96,8 +96,8 @@ namespace tuvok {
 
   protected:
     //These methods should be accessed through AbstrRenderer
-    friend class ::AbstrRenderer;
-    friend class ::GLRenderer;
+    friend class AbstrRenderer;
+    friend class GLRenderer;
     virtual bool GetUseMIP() const { return useMIP; }
     virtual void SetUseMIP(bool useMIP_) { useMIP = useMIP_; }
     virtual UINT64 GetSliceIndex() const { return sliceIndex; }
@@ -124,8 +124,8 @@ namespace tuvok {
 
   protected:
     //These methods should be accessed through AbstrRenderer
-    friend class ::AbstrRenderer;
-    friend class ::GLRenderer;
+    friend class AbstrRenderer;
+    friend class GLRenderer;
     // 3D regions don't do the following things:
     virtual bool GetUseMIP() const { assert(false); return false; }
     virtual void SetUseMIP(bool) { assert(false); }

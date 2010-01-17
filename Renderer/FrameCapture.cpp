@@ -44,6 +44,8 @@
 #include "Basics/SysTools.h"
 #include "Basics/Vectors.h"
 
+using namespace tuvok;
+
 bool FrameCapture::CaptureSequenceFrame(const std::string& strFilename,
                                         bool bPreserveTransparency,
                                         std::string* strRealFilename) const

@@ -42,6 +42,8 @@
 #include "../Basics/Vectors.h"
 #include "../StdTuvokDefines.h"
 
+namespace tuvok {
+
 /** \class POS3TEX3_VERTEX
  * Position and texture coordinate. */
 class POS3TEX3_VERTEX
@@ -135,5 +137,5 @@ protected:
                            POS3TEX3_VERTEX &hit);
 
 };
-
+};
 #endif // SBVRGEOGEN_H

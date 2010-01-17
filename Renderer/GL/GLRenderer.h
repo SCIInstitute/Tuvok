@@ -44,6 +44,8 @@
 #include "../AbstrRenderer.h"
 #include "GLTargetBinder.h"
 
+namespace tuvok {
+
 class MasterController;
 class GLTexture1D;
 class GLTexture2D;
@@ -202,6 +204,8 @@ class GLRenderer : public AbstrRenderer {
     void SaveDepthBuffer();
     void CreateDepthStorage();
     void DeleteDepthStorage() {delete [] m_aDepthStorage;}
+
+};
 
 };
 #endif // GLRenderer_H

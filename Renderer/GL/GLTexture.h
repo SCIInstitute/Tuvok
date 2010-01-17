@@ -42,6 +42,8 @@
 #include "../../StdTuvokDefines.h"
 #include "GLObject.h"
 
+namespace tuvok {
+
 /** \class GLTexture
  * Abstracted texture usage.
  *
@@ -71,5 +73,6 @@ class GLTexture : public GLObject {
   protected:
     GLuint  m_iGLID;
     UINT32  m_iSizePerElement;
+};
 };
 #endif // GLTEXTURE_H

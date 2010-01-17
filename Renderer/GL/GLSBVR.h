@@ -47,6 +47,7 @@
  * Slice-based GPU volume renderer.
  *
  * GLSBVR is a slice based volume renderer which uses GLSL. */
+namespace tuvok {
 class GLSBVR : public GLRenderer {
   public:
     /** Constructs a VRer with immediate redraw, and
@@ -92,5 +93,6 @@ class GLSBVR : public GLRenderer {
 
     virtual void ComposeSurfaceImage(int iStereoID);
     virtual void UpdateColorsInShaders();
+};
 };
 #endif // GLSBVR_H

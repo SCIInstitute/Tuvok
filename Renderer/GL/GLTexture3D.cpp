@@ -38,6 +38,8 @@
 #include "GLError.h"
 #include "Controller/Controller.h"
 
+using namespace tuvok;
+
 GLTexture3D::GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
                          GLint internalformat, GLenum format, GLenum type,
                          UINT32 iSizePerElement, const GLvoid *pixels,

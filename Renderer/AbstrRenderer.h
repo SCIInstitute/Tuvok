@@ -57,6 +57,10 @@
 class TransferFunction1D;
 class TransferFunction2D;
 
+namespace tuvok {
+
+class MasterController;
+
 class Brick {
 public:
   Brick() :
@@ -91,8 +95,6 @@ inline bool operator < (const Brick& left, const Brick& right) {
   if  (left.fDistance < right.fDistance) return true;
   return false;
 }
-
-class MasterController;
 
 /** \class AbstrRenderer
  * Base for all renderers. */
@@ -555,5 +557,7 @@ class AbstrRenderer {
     float               m_fIsovalue;
     float               m_fCVIsovalue;
 };
+
+}; //namespace tuvok
 
 #endif // ABSTRRENDERER_H

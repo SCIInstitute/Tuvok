@@ -45,6 +45,8 @@
 #include <string>
 #include <vector>
 
+namespace tuvok {
+
 class MasterController;
 
 class ScriptableListElement {
@@ -87,5 +89,6 @@ class Scripting : public Scriptable
     ScriptList                          m_ScriptableList;
     bool                                m_bSorted;
     bool                                m_bEcho;
+};
 };
 #endif // SCRIPTING_H

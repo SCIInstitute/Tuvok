@@ -38,6 +38,8 @@
 #include "GLFBOTex.h"
 #include "Controller/Controller.h"
 
+using namespace tuvok;
+
 GLTargetBinder::GLTargetBinder(MasterController* pMasterController) :
   m_pMasterController(pMasterController)
 {

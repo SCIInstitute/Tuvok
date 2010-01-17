@@ -41,6 +41,8 @@
 #include "../../StdTuvokDefines.h"
 #include "GLTexture.h"
 
+namespace tuvok {
+
 class GLTexture1D : public GLTexture {
   public:
     GLTexture1D(UINT32 iSize, GLint internalformat, GLenum format, GLenum type,
@@ -67,5 +69,6 @@ class GLTexture1D : public GLTexture {
     GLint  m_internalformat;
     GLenum m_format;
     GLenum m_type;
+};
 };
 #endif // GLTEXTURE1D_H

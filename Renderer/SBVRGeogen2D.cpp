@@ -51,6 +51,7 @@
 #include "SBVRGeogen2D.h"
 
 using namespace std;
+using namespace tuvok;
 
 SBVRGeogen2D::SBVRGeogen2D(void) :
   SBVRGeogen(),

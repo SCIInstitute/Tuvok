@@ -41,6 +41,8 @@
 #include "../../StdTuvokDefines.h"
 #include "GLObject.h"
 
+namespace tuvok {
+
 class MasterController;
 
 class GLFBOTex : public GLObject {
@@ -88,5 +90,6 @@ private:
   bool                CheckFBO(const char* method);
   void                initFBO(void);
   void                initTextures(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat);
+};
 };
 #endif  // TUVOK_GLFBOTEX_H_

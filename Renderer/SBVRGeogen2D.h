@@ -40,6 +40,8 @@
 
 #include "SBVRGeogen.h"
 
+namespace tuvok {
+
 /** \class SBVRGeogen2D
  * Geometry generation for the slice-based volume renderer. */
 class SBVRGeogen2D : public SBVRGeogen
@@ -74,5 +76,5 @@ private:
   void ComputeGeometryNewFast();
   void ComputeGeometryOld();
 };
-
+};
 #endif // SBVRGEOGEN2D_H

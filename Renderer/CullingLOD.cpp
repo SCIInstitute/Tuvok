@@ -39,6 +39,7 @@
 #include "CullingLOD.h"
 
 using namespace std;
+using namespace tuvok;
 
 CullingLOD::CullingLOD(float fScreenSpaceError) :
     m_mModelViewProjectionMatrix(),

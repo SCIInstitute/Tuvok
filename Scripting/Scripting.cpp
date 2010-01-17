@@ -49,6 +49,7 @@
 #include "Controller/Controller.h"
 
 using namespace std;
+using namespace tuvok;
 
 ScriptableListElement::ScriptableListElement(Scriptable* source,
                                              const std::string& strCommand,

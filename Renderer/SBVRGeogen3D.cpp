@@ -50,6 +50,8 @@
 #include <limits>
 #include "SBVRGeogen3D.h"
 
+using namespace tuvok;
+
 static bool CheckOrdering(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
                           const FLOATVECTOR3& c);
 static void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray);

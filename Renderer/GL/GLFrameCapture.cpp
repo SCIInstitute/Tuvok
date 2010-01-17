@@ -38,6 +38,8 @@
 #include "GLFrameCapture.h"
 #include "GLInclude.h"
 
+using namespace tuvok;
+
 bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename, bool bPreserveTransparency) const {
   GLint viewport[4];
   glGetIntegerv(GL_VIEWPORT, viewport);

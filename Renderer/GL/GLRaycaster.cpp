@@ -46,6 +46,7 @@
 #include "GLTexture2D.h"
 
 using namespace std;
+using namespace tuvok;
 
 GLRaycaster::GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder, bool bNoRCClipplanes) :
   GLRenderer(pMasterController,bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),

@@ -50,6 +50,8 @@
 #include <limits>
 #include "SBVRGeogen.h"
 
+using namespace tuvok;
+
 SBVRGeogen::SBVRGeogen(void) :
   m_fSamplingModifier(1.0f),
   m_vGlobalSize(1,1,1),

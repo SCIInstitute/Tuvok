@@ -41,6 +41,8 @@
 #include "MasterController.h"
 #include "boost/serialization/singleton.hpp"
 
+namespace tuvok {
+
 namespace serial = boost::serialization;
 
 namespace Controller {
@@ -60,22 +62,23 @@ namespace Controller {
     }
   };
 };
+};
 
-#define T_ERROR(...)                                       \
-  do {                                                     \
-    Controller::Debug::Out().Error(_func_, __VA_ARGS__);   \
+#define T_ERROR(...)                                              \
+  do {                                                            \
+    tuvok::Controller::Debug::Out().Error(_func_, __VA_ARGS__);   \
   } while(0)
-#define WARNING(...)                                       \
-  do {                                                     \
-    Controller::Debug::Out().Warning(_func_, __VA_ARGS__); \
+#define WARNING(...)                                              \
+  do {                                                            \
+    tuvok::Controller::Debug::Out().Warning(_func_, __VA_ARGS__); \
   } while(0)
-#define MESSAGE(...)                                       \
-  do {                                                     \
-    Controller::Debug::Out().Message(_func_, __VA_ARGS__); \
+#define MESSAGE(...)                                              \
+  do {                                                            \
+    tuvok::Controller::Debug::Out().Message(_func_, __VA_ARGS__); \
   } while(0)
-#define OTHER(...)                                         \
-  do {                                                     \
-    Controller::Debug::Out().Other(_func_, __VA_ARGS__);   \
+#define OTHER(...)                                                \
+  do {                                                            \
+    tuvok::Controller::Debug::Out().Other(_func_, __VA_ARGS__);   \
   } while(0)
 
 #endif // TUVOK_CONTROLLER_H

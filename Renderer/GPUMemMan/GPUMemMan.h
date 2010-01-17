@@ -45,6 +45,11 @@
 #include "Basics/Vectors.h"
 #include "GPUMemManDataStructs.h"
 
+class SystemInfo;
+class TransferFunction1D;
+class TransferFunction2D;
+
+namespace tuvok {
 
 class AbstrRenderer;
 class GLFBOTex;
@@ -53,12 +58,8 @@ class GLTexture1D;
 class GLTexture2D;
 class GLTexture3D;
 class MasterController;
-class SystemInfo;
-class TransferFunction1D;
-class TransferFunction2D;
-namespace tuvok {
-  class Dataset;
-};
+
+class Dataset;
 
 class GPUMemMan {
   public:
@@ -175,5 +176,5 @@ class GPUMemMan {
     void Delete3DTexture(size_t iIndex);
     void Delete3DTexture(const Texture3DListIter &tex);
 };
-
+};
 #endif // TUVOK_GPUMEMMAN_H

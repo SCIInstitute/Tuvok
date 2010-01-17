@@ -37,6 +37,8 @@
 #include "GLTexture.h"
 #include <cassert>
 
+using namespace tuvok;
+
 GLTexture::~GLTexture() {
   /*! \todo We'd like to call ::Delete() here, but we're not guaranteed to be
    *        in the correct context.  Instead, we'll make sure the texture was

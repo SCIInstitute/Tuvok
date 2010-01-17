@@ -44,6 +44,8 @@
 #include "../Basics/Vectors.h"
 #include "../StdTuvokDefines.h"
 
+namespace tuvok {
+
 class CullingLOD
 {
   public:
@@ -78,5 +80,5 @@ class CullingLOD
     float        m_fLODFactor;
     bool         m_bPassAll;
 };
-
+};
 #endif // CULLINGLOD_H

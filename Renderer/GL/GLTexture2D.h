@@ -42,6 +42,8 @@
 #include "GLTexture.h"
 #include "../../Basics/Vectors.h"
 
+namespace tuvok {
+
 class GLTexture2D : public GLTexture {
   public:
     GLTexture2D(UINT32 iSizeX, UINT32 iSizeY, GLint internalformat, GLenum format, GLenum type,
@@ -67,5 +69,6 @@ class GLTexture2D : public GLTexture {
     GLint  m_internalformat;
     GLenum m_format;
     GLenum m_type;
+};
 };
 #endif // GLTEXTURE2D_H

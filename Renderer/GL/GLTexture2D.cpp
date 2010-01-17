@@ -36,6 +36,7 @@
 
 #include "GLTexture2D.h"
 
+using namespace tuvok;
 
 GLTexture2D::GLTexture2D(UINT32 iSizeX, UINT32 iSizeY, GLint internalformat, GLenum format, GLenum type,
              UINT32 iSizePerElement, const GLvoid *pixels, GLint iMagFilter, GLint iMinFilter, GLint wrapX, GLint wrapY) :

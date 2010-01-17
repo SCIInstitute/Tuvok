@@ -43,6 +43,8 @@
 #include <vector>
 #include "../FrameCapture.h"
 
+namespace tuvok {
+
 class GLFrameCapture : public FrameCapture {
   public:
     GLFrameCapture() : FrameCapture() {}
@@ -54,5 +56,5 @@ class GLFrameCapture : public FrameCapture {
     /// @arg image fill this buffer; existing data is overwritten.
     virtual void CaptureSingleFrame(std::vector<unsigned char>& image) const;
 };
-
+};
 #endif // GLFRAMECAPTURE_H

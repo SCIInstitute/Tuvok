@@ -44,6 +44,7 @@
   #endif
 #endif
 
+using namespace tuvok;
 
 GLuint  GLFBOTex::m_hFBO = 0;
 int    GLFBOTex::m_iCount = 0;
