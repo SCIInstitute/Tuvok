@@ -54,13 +54,14 @@
 #define DEFAULT_INCORESIZE (DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE)
 
 class AbstrConverter;
-class AbstrRenderer;
 class FileStackInfo;
 class RangeInfo;
 
 namespace tuvok {
+  class AbstrRenderer;
   class Dataset;
   class UVFDataset;
+  class MasterController;
 };
 
 class MergeDataset {
@@ -83,7 +84,7 @@ public:
 
 template <class T> class DataMerger {
 public:
-  DataMerger(const std::vector <MergeDataset>& strFiles, const std::string& strTarget, UINT64 iElemCount, MasterController* pMasterController, bool bUseMaxMode) :
+  DataMerger(const std::vector <MergeDataset>& strFiles, const std::string& strTarget, UINT64 iElemCount, tuvok::MasterController* pMasterController, bool bUseMaxMode) :
     bIsOK(false)
   {
     pMasterController->DebugOut()->Message(_func_,"Copying first file %s ...", SysTools::GetFilename(strFiles[0].strFilename).c_str());
@@ -323,14 +324,14 @@ public:
   tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
-                                    AbstrRenderer* requester,
+                                    tuvok::AbstrRenderer* requester,
                                     UINT64 iMaxBrickSize,
                                     UINT64 iBrickOverlap,
                                     bool bQuantizeTo8Bit=false) const;
   tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
-                                    AbstrRenderer* requester,
+                                    tuvok::AbstrRenderer* requester,
                                     UINT64 iMaxBrickSize,
                                     UINT64 iBrickOverlap,
                                     bool bQuantizeTo8Bit=false) const;
@@ -347,14 +348,14 @@ public:
   tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
-                                    AbstrRenderer* requester,
+                                    tuvok::AbstrRenderer* requester,
                                     const bool bQuantizeTo8Bit=false) const {
     return ConvertDataset(pStack,strTargetFilename,strTempDir,requester,m_iMaxBrickSize, m_iBrickOverlap, bQuantizeTo8Bit);
   }
   tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
-                                    AbstrRenderer* requester,
+                                    tuvok::AbstrRenderer* requester,
                                     const bool bQuantizeTo8Bit=false) {
     return ConvertDataset(strFilename,strTargetFilename,strTempDir,requester,m_iMaxBrickSize, m_iBrickOverlap,bQuantizeTo8Bit);
   }
@@ -380,7 +381,7 @@ public:
 
 
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
-                              AbstrRenderer* requester,
+                              tuvok::AbstrRenderer* requester,
                               bool& bOnlyBricksizeCheckFailed) const;
   bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
                       const std::string& strTempDir) const;

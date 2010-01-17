@@ -42,6 +42,8 @@
 #include "../Basics/SysTools.h"
 #include "../Controller/Controller.h"
 
+using namespace tuvok;
+
 struct stk {
   boost::uint32_t x,y,z;      ///< dimensions
   boost::uint16_t bpp;        ///< bits per pixel

@@ -41,6 +41,8 @@
 #include "UVF/Histogram1DDataBlock.h"
 #include "Quantize.h"
 
+using namespace tuvok;
+
 const std::string
 AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
                                     const std::string& strFilename,
@@ -1013,17 +1015,17 @@ AbstrConverter::QuantizeTo8Bit(const std::string& strFilename,
   switch (iComponentSize) {
     case 16 : intermFile = QuantizeShortTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, bSigned, Histogram1D);
               break;
-    case 32 : if (bIsFloat) 
+    case 32 : if (bIsFloat)
                 intermFile = QuantizeFloatTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, Histogram1D);
               else
-                intermFile = QuantizeIntTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, bSigned, Histogram1D);             
+                intermFile = QuantizeIntTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, bSigned, Histogram1D);
               break;
-    case 64 : if (bIsFloat) 
+    case 64 : if (bIsFloat)
                 intermFile = QuantizeDoubleTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, Histogram1D);
               else
                 intermFile = QuantizeLongTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, bSigned, Histogram1D);
               break;
   }
- 
+
   return intermFile;
 }

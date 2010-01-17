@@ -42,7 +42,7 @@
 #include "../StdTuvokDefines.h"
 #include "RAWConverter.h"
 
-class MasterController;
+class tuvok::MasterController;
 
 class VFFConverter : public RAWConverter {
 public:

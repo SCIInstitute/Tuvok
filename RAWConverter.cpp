@@ -49,6 +49,7 @@
 
 using namespace std;
 using boost::int64_t;
+using namespace tuvok;
 
 bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const string& strTargetFilename,
@@ -167,7 +168,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   if (bQuantizeTo8Bit && iComponentSize > 8) {
     strSourceFilename = QuantizeTo8Bit(strSourceFilename, tmpFilename1, iHeaderSkip, iComponentSize, iComponentCount*vVolumeSize.volume(), bSigned, bIsFloat, &Histogram1D);
     if (strSourceFilename == "") {
-      T_ERROR("Unsupported source format"); 
+      T_ERROR("Unsupported source format");
       return false;
     }
     iComponentSize = 8;
@@ -883,7 +884,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
                              bool bToSigned, bool bQuantizeTo8Bit) {
 
   // TODO:
-  // should we ever need this combination 
+  // should we ever need this combination
   // "append +quantize" the implemenation should be here :-)
   if (bQuantizeTo8Bit) {
     T_ERROR("Quantization to 8bit during append operations not supported.");
@@ -1002,9 +1003,9 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
   }
 
   bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir,
-                                       iHeaderSkip, iComponentSize, iComponentCount, 
-                                       bConvertEndianess, bSigned, bIsFloat, vVolumeSize, 
-                                       vVolumeAspect, strTitle, 
+                                       iHeaderSkip, iComponentSize, iComponentCount,
+                                       bConvertEndianess, bSigned, bIsFloat, vVolumeSize,
+                                       vVolumeAspect, strTitle,
                                        SysTools::GetFilename(strSourceFilename),
                                        iTargetBrickSize, iTargetBrickOverlap,
                                        UVFTables::ES_UNDEFINED, 0,
