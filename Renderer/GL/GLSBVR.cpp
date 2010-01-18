@@ -148,7 +148,7 @@ void GLSBVR::SetDataDepShaderVars() {
   }
 
   if(m_eRenderMode == RM_1DTRANS && m_TFScalingMethod == SMETH_BIAS_AND_SCALE) {
-    std::pair<float,float> bias_scale = tuvok::scale_bias_and_scale(*m_pDataset);
+    std::pair<float,float> bias_scale = scale_bias_and_scale(*m_pDataset);
     MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
             bias_scale.second);
     m_pProgram1DTrans[0]->Enable();

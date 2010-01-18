@@ -244,13 +244,13 @@ void AbstrRenderer::SetDataset(Dataset *vds)
 }
 
 /*
-void AbstrRenderer::UpdateData(const tuvok::BrickKey& bk,
+void AbstrRenderer::UpdateData(const BrickKey& bk,
                                std::tr1::shared_ptr<float> fp, size_t len)
 {
   MESSAGE("Updating data with %u element array", static_cast<UINT32>(len));
   // free old data; we know we'll never need it, at this point.
   Controller::Instance().MemMan()->FreeAssociatedTextures(m_pDataset);
-  dynamic_cast<tuvok::ExternalDataset*>(m_pDataset)->UpdateData(bk, fp, len);
+  dynamic_cast<ExternalDataset*>(m_pDataset)->UpdateData(bk, fp, len);
 }
 */
 

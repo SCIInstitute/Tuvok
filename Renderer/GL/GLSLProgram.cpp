@@ -737,7 +737,7 @@ void GLSLProgram::SetUniformVector(const char *name,
 
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
-  } catch(tuvok::GLError gl) {
+  } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
             name, m_sVS.c_str(), m_sFS.c_str());
     return;
@@ -796,7 +796,7 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
 
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
-  } catch(tuvok::GLError gl) {
+  } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
             name, m_sVS.c_str(), m_sFS.c_str());
     return;
@@ -846,7 +846,7 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
-  } catch(tuvok::GLError gl) {
+  } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
             name, m_sVS.c_str(), m_sFS.c_str());
     return;
@@ -905,7 +905,7 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
 
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
-  } catch(tuvok::GLError gl) {
+  } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
             name, m_sVS.c_str(), m_sFS.c_str());
     return;
@@ -964,7 +964,7 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
 
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
-  } catch(tuvok::GLError gl) {
+  } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
             name, m_sVS.c_str(), m_sFS.c_str());
     return;
@@ -1021,7 +1021,7 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
 
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
-  } catch(tuvok::GLError gl) {
+  } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
             name, m_sVS.c_str(), m_sFS.c_str());
     return;
@@ -1071,7 +1071,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
 
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
-  } catch(tuvok::GLError gl) {
+  } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
             name, m_sVS.c_str(), m_sFS.c_str());
     return;
@@ -1113,7 +1113,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
 
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
-  } catch(tuvok::GLError gl) {
+  } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
             name, m_sVS.c_str(), m_sFS.c_str());
     return;
@@ -1165,7 +1165,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
 
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
-  } catch(tuvok::GLError gl) {
+  } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
             name, m_sVS.c_str(), m_sFS.c_str());
     return;

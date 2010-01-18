@@ -67,13 +67,13 @@ typedef AbstrRendererList::iterator AbstrRendererListIter;
 // volume datasets
 class VolDataListElem {
 public:
-  VolDataListElem(tuvok::Dataset* _pVolumeDataset, AbstrRenderer* pUser) :
+  VolDataListElem(Dataset* _pVolumeDataset, AbstrRenderer* pUser) :
     pVolumeDataset(_pVolumeDataset)
   {
     qpUser.push_back(pUser);
   }
 
-  tuvok::Dataset*   pVolumeDataset;
+  Dataset* pVolumeDataset;
   AbstrRendererList qpUser;
 };
 typedef std::deque<VolDataListElem> VolDataList;
@@ -136,27 +136,27 @@ typedef Trans2DList::iterator Trans2DListIter;
 /// case would be a bad idea -- the copy might be large.
 class Texture3DListElem : boost::noncopyable {
 public:
-  Texture3DListElem(tuvok::Dataset* _pDataset, const tuvok::BrickKey&,
+  Texture3DListElem(Dataset* _pDataset, const BrickKey&,
                     bool bIsPaddedToPowerOfTwo, bool bDisableBorder,
                     bool bIsDownsampledTo8Bits, UINT64 iIntraFrameCounter,
                     UINT64 iFrameCounter, MasterController* pMasterController,
-                    const tuvok::CTContext &,
+                    const CTContext &,
                     std::vector<unsigned char>& vUploadHub);
   ~Texture3DListElem();
 
-  bool Equals(const tuvok::Dataset* _pDataset, const tuvok::BrickKey&,
+  bool Equals(const Dataset* _pDataset, const BrickKey&,
               bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
-              bool bDisableBorder, const tuvok::CTContext &);
-  bool Replace(tuvok::Dataset* _pDataset, const tuvok::BrickKey&,
+              bool bDisableBorder, const CTContext &);
+  bool Replace(Dataset* _pDataset, const BrickKey&,
                bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                bool bDisableBorder,
                UINT64 iIntraFrameCounter, UINT64 iFrameCounter,
-               const tuvok::CTContext &,
+               const CTContext &,
                std::vector<unsigned char>& vUploadHub);
   bool BestMatch(const UINTVECTOR3& vDimension,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, UINT64& iIntraFrameCounter,
-                 UINT64& iFrameCounter, const tuvok::CTContext &);
+                 UINT64& iFrameCounter, const CTContext &);
   void GetCounters(UINT64& iIntraFrameCounter, UINT64& iFrameCounter) {
     iIntraFrameCounter = m_iIntraFrameCounter;
     iFrameCounter = m_iFrameCounter;
@@ -172,7 +172,7 @@ public:
 
   std::vector<unsigned char> vData;
   GLTexture3D*        pTexture;
-  tuvok::Dataset*     pDataset;
+  Dataset*            pDataset;
   UINT32              iUserCount;
 
   UINT64 GetIntraFrameCounter() const {return m_iIntraFrameCounter;}
@@ -184,9 +184,9 @@ private:
   UINT64 m_iIntraFrameCounter;
   UINT64 m_iFrameCounter;
   MasterController* m_pMasterController;
-  const tuvok::CTContext m_Context;
+  const CTContext m_Context;
 
-  tuvok::BrickKey m_Key;
+  BrickKey m_Key;
   bool m_bIsPaddedToPowerOfTwo;
   bool m_bIsDownsampledTo8Bits;
   bool m_bDisableBorder;

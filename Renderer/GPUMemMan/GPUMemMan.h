@@ -66,12 +66,12 @@ class GPUMemMan {
     GPUMemMan(MasterController* masterController);
     virtual ~GPUMemMan();
 
-    tuvok::Dataset* LoadDataset(const std::string& strFilename,
-                                AbstrRenderer* requester,
-                                bool& bOnlyBricksizeCheckFailed);
-    void AddDataset(tuvok::Dataset* ds, AbstrRenderer *requester);
-    void FreeAssociatedTextures(tuvok::Dataset* pDataset);
-    void FreeDataset(tuvok::Dataset* pVolumeDataset, AbstrRenderer* requester);
+    Dataset* LoadDataset(const std::string& strFilename,
+                         AbstrRenderer* requester,
+                         bool& bOnlyBricksizeCheckFailed);
+    void AddDataset(Dataset* ds, AbstrRenderer *requester);
+    void FreeAssociatedTextures(Dataset* pDataset);
+    void FreeDataset(Dataset* pVolumeDataset, AbstrRenderer* requester);
 
     void Changed1DTrans(AbstrRenderer* requester,
                         TransferFunction1D* pTransferFunction1D);
@@ -108,12 +108,12 @@ class GPUMemMan {
     GLTexture2D* Load2DTextureFromFile(const std::string& strFilename);
     void FreeTexture(GLTexture2D* pTexture);
 
-    GLTexture3D* Get3DTexture(tuvok::Dataset* pDataset, const tuvok::BrickKey& key,
+    GLTexture3D* Get3DTexture(Dataset* pDataset, const BrickKey& key,
                               bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                               bool bDisableBorder, UINT64 iIntraFrameCounter,
                               UINT64 iFrameCounter);
-    bool IsResident(const tuvok::Dataset* pDataset,
-                    const tuvok::BrickKey& key, bool bUseOnlyPowerOfTwo,
+    bool IsResident(const Dataset* pDataset,
+                    const BrickKey& key, bool bUseOnlyPowerOfTwo,
                     bool bDownSampleTo8Bits, bool bDisableBorder) const;
 
     void Release3DTexture(GLTexture3D* pTexture);
@@ -164,8 +164,8 @@ class GPUMemMan {
 
     std::vector<unsigned char> m_vUploadHub;
 
-    GLTexture3D* AllocOrGet3DTexture(tuvok::Dataset* pDataset,
-                                     const tuvok::BrickKey& key,
+    GLTexture3D* AllocOrGet3DTexture(Dataset* pDataset,
+                                     const BrickKey& key,
                                      bool bUseOnlyPowerOfTwo,
                                      bool bDownSampleTo8Bits,
                                      bool bDisableBorder,

@@ -68,8 +68,8 @@ class GLSBVR : public GLRenderer {
 
     virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing && m_pDataset->GetComponentCount() == 1;}
 
-    virtual void EnableClipPlane(tuvok::RenderRegion *renderRegion);
-    virtual void DisableClipPlane(tuvok::RenderRegion *renderRegion);
+    virtual void EnableClipPlane(RenderRegion *renderRegion);
+    virtual void DisableClipPlane(RenderRegion *renderRegion);
 
     virtual ERendererType GetRendererType() {return RT_SBVR;}
 
@@ -84,7 +84,7 @@ class GLSBVR : public GLRenderer {
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
 
-    virtual void RenderHQMIPPreLoop(const tuvok::RenderRegion2D &region);
+    virtual void RenderHQMIPPreLoop(const RenderRegion2D &region);
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void RenderHQMIPPostLoop();
 

@@ -77,7 +77,7 @@ GPUMemMan::GPUMemMan(MasterController* masterController) :
 {
   if (masterController && masterController->IOMan()) {
     m_iInCoreSize = masterController->IOMan()->GetIncoresize();
-  } 
+  }
 
   m_vUploadHub.resize(size_t(m_iInCoreSize*4));
   m_iAllocatedCPUMemory = size_t(m_iInCoreSize*4);
@@ -685,7 +685,7 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset, const BrickKey& key,
                                        bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
                                        bDisableBorder,
                                        iIntraFrameCounter, iFrameCounter);
-    } catch(tuvok::OutOfMemory&) { // Texture allocation failed.
+    } catch(OutOfMemory&) { // Texture allocation failed.
       // If texture allocation failed and we had no bricks loaded, then the
       // system must be extremely memory limited.  Make a note and then bail.
       if(m_vpTex3DList.empty()) {

@@ -72,7 +72,7 @@ public:
 
   Brick(UINT32 x, UINT32 y, UINT32 z,
         UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
-        const tuvok::BrickKey& k) :
+        const BrickKey& k) :
     vCenter(0,0,0),
     vExtension(0,0,0),
     vVoxelCount(iSizeX, iSizeY, iSizeZ),
@@ -87,7 +87,7 @@ public:
   FLOATVECTOR3 vExtension;
   UINTVECTOR3 vVoxelCount;
   UINTVECTOR3 vCoords;
-  tuvok::BrickKey kBrick;
+  BrickKey kBrick;
   float fDistance;
 };
 
@@ -180,13 +180,13 @@ class AbstrRenderer {
 
     /// Sets the dataset from external source; only meant to be used by clients
     /// which don't want to use the LOD subsystem.
-    void SetDataset(tuvok::Dataset *vds);
+    void SetDataset(Dataset *vds);
 /*    /// Modifies previously uploaded data.
-    void UpdateData(const tuvok::BrickKey&,
+    void UpdateData(const BrickKey&,
                     std::tr1::shared_ptr<float> fp, size_t len);
 */
-    tuvok::Dataset&       GetDataset()       { return *m_pDataset; }
-    const tuvok::Dataset& GetDataset() const { return *m_pDataset; }
+    Dataset&       GetDataset()       { return *m_pDataset; }
+    const Dataset& GetDataset() const { return *m_pDataset; }
     void ClearBricks() { m_pDataset->Clear(); }
 
     TransferFunction1D* Get1DTrans() {return m_p1DTrans;}
@@ -241,8 +241,8 @@ class AbstrRenderer {
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
 
     virtual void Set2DPlanesIn3DView(bool bRenderPlanesIn3D,
-                                     tuvok::RenderRegion* renderRegion=NULL);
-    virtual bool Get2DPlanesIn3DView(tuvok::RenderRegion* = NULL) const {
+                                     RenderRegion* renderRegion=NULL);
+    virtual bool Get2DPlanesIn3DView(RenderRegion* = NULL) const {
       /// @todo: Make this bool a per 3d render region toggle.
       return m_bRenderPlanesIn3D;}
 
@@ -252,20 +252,20 @@ class AbstrRenderer {
     virtual void Resize(const UINTVECTOR2& vWinSize);
 
     virtual void SetRotation(const FLOATMATRIX4& mRotation,
-                             tuvok::RenderRegion *renderRegion=NULL);
+                             RenderRegion *renderRegion=NULL);
     virtual const FLOATMATRIX4& GetRotation(
-                            const tuvok::RenderRegion *renderRegion=NULL) const;
+                            const RenderRegion *renderRegion=NULL) const;
 
     virtual void SetTranslation(const FLOATMATRIX4& mTranslation,
-                                tuvok::RenderRegion *renderRegion=NULL);
+                                RenderRegion *renderRegion=NULL);
     virtual const FLOATMATRIX4& GetTranslation(
-                            const tuvok::RenderRegion *renderRegion=NULL) const;
+                            const RenderRegion *renderRegion=NULL) const;
 
     void SetClipPlane(const ExtendedPlane& plane,
-                      tuvok::RenderRegion *renderRegion=NULL);
-    virtual void EnableClipPlane(tuvok::RenderRegion *renderRegion=NULL);
-    virtual void DisableClipPlane(tuvok::RenderRegion *renderRegion=NULL);
-    virtual void ShowClipPlane(bool, tuvok::RenderRegion *renderRegion=NULL);
+                      RenderRegion *renderRegion=NULL);
+    virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
+    virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);
+    virtual void ShowClipPlane(bool, RenderRegion *renderRegion=NULL);
 
     virtual void ClipPlaneRelativeLock(bool);
     virtual bool CanDoClipPlane() {return true;}
@@ -274,8 +274,8 @@ class AbstrRenderer {
     bool ClipPlaneLocked() const  { return m_bClipPlaneLocked; }
 
     /// slice parameter for slice views.
-    virtual void SetSliceDepth(UINT64 fSliceDepth, tuvok::RenderRegion *renderRegion);
-    virtual UINT64 GetSliceDepth(const tuvok::RenderRegion *renderRegion) const;
+    virtual void SetSliceDepth(UINT64 fSliceDepth, RenderRegion *renderRegion);
+    virtual UINT64 GetSliceDepth(const RenderRegion *renderRegion) const;
 
     void SetClearFramebuffer(bool bClearFramebuffer) {
       m_bClearFramebuffer = bClearFramebuffer;
@@ -287,10 +287,10 @@ class AbstrRenderer {
     bool GetLocalBBox() {return m_bRenderLocalBBox;}
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
-    void Set2DFlipMode(bool bFlipX, bool bFlipY, tuvok::RenderRegion *renderRegion);
-    void Get2DFlipMode(bool& bFlipX, bool& bFlipY, const tuvok::RenderRegion *renderRegion) const;
-    bool GetUseMIP(const tuvok::RenderRegion *renderRegion) const;
-    void SetUseMIP(bool bUseMIP, tuvok::RenderRegion *renderRegion);
+    void Set2DFlipMode(bool bFlipX, bool bFlipY, RenderRegion *renderRegion);
+    void Get2DFlipMode(bool& bFlipX, bool& bFlipY, const RenderRegion *renderRegion) const;
+    bool GetUseMIP(const RenderRegion *renderRegion) const;
+    void SetUseMIP(bool bUseMIP, RenderRegion *renderRegion);
 
     UINT64 GetMaxLODIndex() const      { return m_iMaxLODIndex; }
     UINT64 GetMinLODIndex() const      { return m_iMinLODForCurrentView; }
@@ -371,7 +371,7 @@ class AbstrRenderer {
 
     virtual void ScheduleCompleteRedraw();
     virtual void Schedule3DWindowRedraws(); // Redraw all 3D windows.
-    virtual void ScheduleWindowRedraw(tuvok::RenderRegion *renderRegion);
+    virtual void ScheduleWindowRedraw(RenderRegion *renderRegion);
 
     void SetAvoidSeperateCompositing(bool bAvoidSeperateCompositing) {
       m_bAvoidSeperateCompositing = bAvoidSeperateCompositing;
@@ -407,11 +407,11 @@ class AbstrRenderer {
       this->m_TFScalingMethod = sm;
     }
 
-    virtual void NewFrameClear(const tuvok::RenderRegion &) { assert(1==0); }
+    virtual void NewFrameClear(const RenderRegion &) { assert(1==0); }
 
-    const std::vector<tuvok::RenderRegion*>& GetRenderRegions() const {
+    const std::vector<RenderRegion*>& GetRenderRegions() const {
       return renderRegions; }
-    void SetRenderRegions(const std::vector<tuvok::RenderRegion*> &regions) {
+    void SetRenderRegions(const std::vector<RenderRegion*> &regions) {
       renderRegions = regions; }
 
   protected:
@@ -432,7 +432,7 @@ class AbstrRenderer {
     ERenderMode         m_eRenderMode;
     EBlendPrecision     m_eBlendPrecision;
     bool                m_bUseLighting;
-    tuvok::Dataset*     m_pDataset;
+    Dataset*            m_pDataset;
     TransferFunction1D* m_p1DTrans;
     TransferFunction2D* m_p2DTrans;
     float               m_fSampleRateModifier;
@@ -524,17 +524,17 @@ class AbstrRenderer {
     float               m_fZNear, m_fZFar;
     ///@}
 
-    std::vector<tuvok::RenderRegion*> renderRegions;
+    std::vector<RenderRegion*> renderRegions;
 
     // For displaying a full single 3D view without the client needing to know
     // about RenderRegions.
-    tuvok::RenderRegion3D simpleRenderRegion3D;
+    RenderRegion3D simpleRenderRegion3D;
 
     FLOATVECTOR4        m_cAmbient;
     FLOATVECTOR4        m_cDiffuse;
     FLOATVECTOR4        m_cSpecular;
 
-    virtual void        ScheduleRecompose(tuvok::RenderRegion *renderRegion=NULL);
+    virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);
     void                ComputeMinLODForCurrentView();
     void                ComputeMaxLODForCurrentView();
     void                Plan3DFrame();
@@ -551,7 +551,7 @@ class AbstrRenderer {
     double              MaxValue() const;
     bool                OnlyRecomposite() const;
 
-    tuvok::RenderRegion3D* GetFirst3DRegion();
+    RenderRegion3D* GetFirst3DRegion();
 
   private:
     float               m_fIsovalue;

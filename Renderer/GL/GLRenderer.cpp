@@ -661,7 +661,7 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
   }
 }
 
-bool GLRenderer::BindVolumeTex(const tuvok::BrickKey& bkey,
+bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
                                const UINT64 iIntraFrameCounter) {
   // get the 3D texture from the memory manager
   m_p3DVolTex = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey,
