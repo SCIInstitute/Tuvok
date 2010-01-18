@@ -49,7 +49,7 @@
 class DXTexture2D : public DXTexture {
   public:
     DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, DXGI_FORMAT format);
-    DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, DXGI_FORMAT format, 
+    DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, DXGI_FORMAT format,
                 const void* pInitialData, bool bIsReadOnly=true);
     virtual ~DXTexture2D();
 

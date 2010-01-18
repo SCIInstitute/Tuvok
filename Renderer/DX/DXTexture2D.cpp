@@ -39,34 +39,37 @@
 #include "DXTexture2D.h"
 #include <cassert>
 
-DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, DXGI_FORMAT format) :
+DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
+                         DXGI_FORMAT format) :
   DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, false),
   m_iSizeX(iSizeX),
   m_iSizeY(iSizeY),
   m_pTexture(NULL)
 {
-	// create texture and fill with zeros
-	D3D10_TEXTURE2D_DESC texDesc = {
-		m_iSizeX,
-		m_iSizeY,
-		1, 1,
-		format,
-		1,0,
+  // create texture and fill with zeros
+  D3D10_TEXTURE2D_DESC texDesc = {
+    m_iSizeX,
+    m_iSizeY,
+    1, 1,
+    format,
+    1,0,
     D3D10_USAGE_DEFAULT,
-		D3D10_BIND_SHADER_RESOURCE,
-		0, 0
-	};
-	m_pd3dDevice->CreateTexture2D( &texDesc, NULL, &m_pTexture);
+    D3D10_BIND_SHADER_RESOURCE,
+    0, 0
+  };
+  m_pd3dDevice->CreateTexture2D( &texDesc, NULL, &m_pTexture);
 
-	// create shader resource views
-	D3D10_SHADER_RESOURCE_VIEW_DESC SRVDesc = {
-    texDesc.Format, 
+  // create shader resource views
+  D3D10_SHADER_RESOURCE_VIEW_DESC SRVDesc = {
+    texDesc.Format,
     D3D10_SRV_DIMENSION_TEXTURE2D, 0, 1
   };
-	m_pd3dDevice->CreateShaderResourceView( m_pTexture, &SRVDesc, &m_pTexture_SRV );
+  m_pd3dDevice->CreateShaderResourceView( m_pTexture, &SRVDesc, &m_pTexture_SRV );
 }
 
-DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, DXGI_FORMAT format, const void* pInitialData, bool bIsReadOnly) :
+DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
+                         DXGI_FORMAT format, const void* pInitialData,
+                         bool bIsReadOnly) :
   DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, bIsReadOnly),
   m_iSizeX(iSizeX),
   m_iSizeY(iSizeY),
@@ -74,31 +77,33 @@ DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
 {
   assert(pInitialData || !bIsReadOnly);
 
-	// create texture (if no inital data is specified the textures are filled with zeros)
-	D3D10_TEXTURE2D_DESC texDesc = {
-		m_iSizeX,
-		m_iSizeY,
-		1, 1,
-		format,
-		1,0,
+  // create texture (if no inital data is specified the textures are filled with zeros)
+  D3D10_TEXTURE2D_DESC texDesc = {
+    m_iSizeX,
+    m_iSizeY,
+    1, 1,
+    format,
+    1,0,
     bIsReadOnly ? D3D10_USAGE_IMMUTABLE : D3D10_USAGE_DEFAULT,
-		D3D10_BIND_SHADER_RESOURCE,
-		0, 0
-	};
+    D3D10_BIND_SHADER_RESOURCE,
+    0, 0
+  };
 
   D3D10_SUBRESOURCE_DATA vbInitDataTex = {
-	  pInitialData,
-		m_iSizePerElement*m_iSizeX,
-		0
-	};
-	m_pd3dDevice->CreateTexture2D( &texDesc, pInitialData == NULL ? NULL : &vbInitDataTex, &m_pTexture);
+    pInitialData,
+    m_iSizePerElement*m_iSizeX,
+    0
+  };
+  m_pd3dDevice->CreateTexture2D( &texDesc,
+                                 pInitialData == NULL ? NULL : &vbInitDataTex,
+                                 &m_pTexture);
 
-	// create shader resource views
-	D3D10_SHADER_RESOURCE_VIEW_DESC SRVDesc = {
-    texDesc.Format, 
+  // create shader resource views
+  D3D10_SHADER_RESOURCE_VIEW_DESC SRVDesc = {
+    texDesc.Format,
     D3D10_SRV_DIMENSION_TEXTURE2D, 0, 1
   };
-	m_pd3dDevice->CreateShaderResourceView( m_pTexture, &SRVDesc, &m_pTexture_SRV );
+  m_pd3dDevice->CreateShaderResourceView( m_pTexture, &SRVDesc, &m_pTexture_SRV );
 }
 
 
@@ -112,8 +117,8 @@ void DXTexture2D::SetData(const void *pData) {
   // Create a staging resource to copy the data
   ID3D10Texture2D* pStagingTexture = NULL;
 
-	D3D10_TEXTURE2D_DESC desc;
-	m_pTexture->GetDesc(&desc);
+  D3D10_TEXTURE2D_DESC desc;
+  m_pTexture->GetDesc(&desc);
   desc.Usage = D3D10_USAGE_STAGING;
   desc.BindFlags = 0;
   desc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
@@ -123,22 +128,22 @@ void DXTexture2D::SetData(const void *pData) {
 
   D3D10_MAPPED_TEXTURE2D map;
   pStagingTexture->Map(0, D3D10_MAP_WRITE, NULL, &map );
-    char *pStagingData = (char*)map.pData;
-    if (map.RowPitch == m_iSizePerElement * m_iSizeX) {
-      size_t iDataSize = m_iSizePerElement * m_iSizeX * m_iSizeY;
-      memcpy(pStagingData, pcData, iDataSize);
-    } else {
-      size_t iRowize = m_iSizePerElement * m_iSizeX;
-      for (unsigned int i = 0;i<m_iSizeY;i++) {
-        memcpy(pStagingData, pcData, iRowize);
-        pcData       += iRowize;
-        pStagingData += map.RowPitch;
-      }
+  char *pStagingData = (char*)map.pData;
+  if (map.RowPitch == m_iSizePerElement * m_iSizeX) {
+    size_t iDataSize = m_iSizePerElement * m_iSizeX * m_iSizeY;
+    memcpy(pStagingData, pcData, iDataSize);
+  } else {
+    size_t iRowize = m_iSizePerElement * m_iSizeX;
+    for (unsigned int i = 0;i<m_iSizeY;i++) {
+      memcpy(pStagingData, pcData, iRowize);
+      pcData       += iRowize;
+      pStagingData += map.RowPitch;
     }
-	pStagingTexture->Unmap(0);
+  }
+  pStagingTexture->Unmap(0);
 
   m_pd3dDevice->CopyResource(m_pTexture, pStagingTexture);
-	SAFE_RELEASE(pStagingTexture);
+  SAFE_RELEASE(pStagingTexture);
 }
 
 void DXTexture2D::Delete() {

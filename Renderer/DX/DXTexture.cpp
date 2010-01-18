@@ -47,7 +47,7 @@ void DXTexture::Delete() {
 }
 
 void DXTexture::Bind(ID3D10EffectShaderResourceVariable* pSRVar) {
-  m_pSRVarBound =  pSRVar; 
+  m_pSRVarBound =  pSRVar;
   m_pSRVarBound->SetResource( m_pTexture_SRV );
 }
 

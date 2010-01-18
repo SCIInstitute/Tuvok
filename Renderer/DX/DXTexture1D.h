@@ -48,7 +48,7 @@ class DXTexture1D : public DXTexture {
   public:
 
     DXTexture1D(ID3D10Device* pd3dDevice, UINT32 iSize, DXGI_FORMAT format);
-    DXTexture1D(ID3D10Device* pd3dDevice, UINT32 iSize, DXGI_FORMAT format, 
+    DXTexture1D(ID3D10Device* pd3dDevice, UINT32 iSize, DXGI_FORMAT format,
                 const void* pInitialData, bool bIsReadOnly=true);
     virtual ~DXTexture1D();
 

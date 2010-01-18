@@ -49,11 +49,11 @@ class DXContextID : ContextID<DXContextID> {
   public:
     /// Create an ID with the current context.
     DXContextID() : ContextID<DXContextID>(),
-                    ctx(NULL /** @todo fixme! */) {} 
+                    ctx(NULL /** @todo fixme! */) {}
     /// Create an ID from the given context.
     DXContextID(const void *c) : ContextID<DXContextID>(), ctx(c) {}
-	DXContextID(const DXContextID &dx) : ContextID<DXContextID>(),
-		                                 ctx(dx.ctx) { }
+    DXContextID(const DXContextID &dx) : ContextID<DXContextID>(),
+                                         ctx(dx.ctx) { }
 
     static DXContextID Current() { return DXContextID(); }
 
