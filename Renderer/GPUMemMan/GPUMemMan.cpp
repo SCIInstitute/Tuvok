@@ -709,7 +709,8 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset, const BrickKey& key,
   return NULL;
 }
 
-GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset, const BrickKey& key,
+GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
+                                            const BrickKey& key,
                                             bool bUseOnlyPowerOfTwo,
                                             bool bDownSampleTo8Bits,
                                             bool bDisableBorder,
