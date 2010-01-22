@@ -200,6 +200,7 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
     m_vpVolumeDatasets.push_back(VolDataListElem(dataset, requester));
     return dataset;
   } else {
+    delete dataset;
     T_ERROR("Error opening dataset %s", strFilename.c_str());
     return NULL;
   }
