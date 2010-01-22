@@ -86,8 +86,9 @@ UINT64 KeyValuePairDataBlock::GetOffsetToNextBlock() const {
 UINT64 KeyValuePairDataBlock::ComputeDataSize() const {
   UINT64 iCharCount = 0;
 
-  for (size_t i = 0;i<m_KeyValuePairs.size();i++)
+  for (size_t i = 0;i<m_KeyValuePairs.size();i++) {
     iCharCount += m_KeyValuePairs[i].strKey.length() + m_KeyValuePairs[i].strValue.length();
+  }
 
   return sizeof(UINT64) +                 // size of the vector
        iCharCount +                   // the strings themselves

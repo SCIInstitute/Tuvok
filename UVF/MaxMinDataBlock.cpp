@@ -91,7 +91,7 @@ UINT64 MaxMinDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bo
     UINT64 component_count = m_iComponentCount;
     pStreamFile->WriteData(component_count, bIsBigEndian);
   }
-  
+
   for (MaxMin::const_iterator i = m_vfMaxMinData.begin();
 	   i != m_vfMaxMinData.end(); ++i) {
     for (size_t j = 0;j<m_iComponentCount;j++) {

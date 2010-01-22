@@ -166,7 +166,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   Histogram1DDataBlock Histogram1D;
 
   if (bQuantizeTo8Bit && iComponentSize > 8) {
-    strSourceFilename = QuantizeTo8Bit(strSourceFilename, tmpFilename1, iHeaderSkip, iComponentSize, iComponentCount*vVolumeSize.volume(), bSigned, bIsFloat, &Histogram1D);
+    strSourceFilename = QuantizeTo8Bit(strSourceFilename, tmpFilename1,
+                                       iHeaderSkip, iComponentSize,
+                                       iComponentCount*vVolumeSize.volume(),
+                                       bSigned, bIsFloat, &Histogram1D);
     if (strSourceFilename == "") {
       T_ERROR("Unsupported source format");
       return false;
@@ -267,7 +270,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   UINT64 iLodLevelCount = 1;
   UINT64 iMaxVal = vVolumeSize.maxVal();
 
-  while (iMaxVal > std::min<UINT64>(64, iTargetBrickSize)) { // generate LOD down to at least a 64^3 brick
+  // generate LOD down to at least a 64^3 brick
+  while (iMaxVal > std::min<UINT64>(64, iTargetBrickSize)) {
     iMaxVal /= 2;
     iLodLevelCount++;
   }
@@ -408,7 +412,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   string strProblemDesc;
   if (!dataVolume.Verify(&strProblemDesc)) {
-    T_ERROR("Verify failed with the following reason: %s", strProblemDesc.c_str());
+    T_ERROR("Verify failed with the following reason: %s",
+            strProblemDesc.c_str());
     uvfFile.Close();
     SourceData.Close();
     if (bConvertEndianness) {
@@ -496,7 +501,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     else
       metaPairs.AddPair("Source Type","integer");
 
-  metaPairs.AddPair("Source Bitwidth",SysTools::ToString(iMetadata_ComponentSize));
+  metaPairs.AddPair("Source Bitwidth",
+                    SysTools::ToString(iMetadata_ComponentSize));
 
   if (pKVPairs) {
     for (size_t i = 0;i<pKVPairs->size();i++) {
@@ -506,7 +512,6 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   UINT64 iDataSize = metaPairs.ComputeDataSize();
   uvfFile.AddDataBlock(&metaPairs,iDataSize);
-
 
   MESSAGE("Writing UVF file...");
 
@@ -861,9 +866,12 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
   return true;
 }
 
-bool RAWConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
-                                   UINT64 iComponentSize, UINT64 , bool , bool,
-                                   UINT64VECTOR3, FLOATVECTOR3, bool, bool bQuantizeTo8Bit) {
+bool RAWConverter::ConvertToNative(const std::string& strRawFilename,
+                                   const std::string& strTargetFilename,
+                                   UINT64 iHeaderSkip,
+                                   UINT64 iComponentSize, UINT64, bool, bool,
+                                   UINT64VECTOR3, FLOATVECTOR3, bool,
+                                   bool bQuantizeTo8Bit) {
   // convert raw to raw is easy :-), just copy the file and ignore the metadata
 
   // if the file exists, delete it first
@@ -882,7 +890,6 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
                              const std::string& strTargetFilename,
                              UINT64 iComponentSize, bool bChangeEndianess,
                              bool bToSigned, bool bQuantizeTo8Bit) {
-
   // TODO:
   // should we ever need this combination
   // "append +quantize" the implemenation should be here :-)
@@ -967,7 +974,8 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
 }
 
 
-bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename,
+bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
+                                const std::string& strTargetFilename,
                                 const std::string& strTempDir,
                                 const bool bNoUserInteraction,
                                 const UINT64 iTargetBrickSize,
@@ -1002,9 +1010,10 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename, const std:
     return false;
   }
 
-  bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename, strTempDir,
-                                       iHeaderSkip, iComponentSize, iComponentCount,
-                                       bConvertEndianess, bSigned, bIsFloat, vVolumeSize,
+  bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename,
+                                       strTempDir, iHeaderSkip, iComponentSize,
+                                       iComponentCount, bConvertEndianess,
+                                       bSigned, bIsFloat, vVolumeSize,
                                        vVolumeAspect, strTitle,
                                        SysTools::GetFilename(strSourceFilename),
                                        iTargetBrickSize, iTargetBrickOverlap,
@@ -1197,8 +1206,8 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
 }
 
 
-  /// Uses remove(3) to remove the file.
-  /// @return true if the remove succeeded.
+/// Uses remove(3) to remove the file.
+/// @return true if the remove succeeded.
 bool RAWConverter::Remove(const std::string &path, AbstrDebugOut &dbg)
 {
   if(std::remove(path.c_str()) == -1) {
