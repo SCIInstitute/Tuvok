@@ -111,9 +111,20 @@ UINT64 MaxMinDataBlock::GetOffsetToNextBlock() const {
 }
 
 UINT64 MaxMinDataBlock::ComputeDataSize() const {
+  // We're writing 4 values per iteration in CopyToFile.  We used to use
+  // sizeof(InternalMaxMinElement) to compute the size of the data, but that's
+  // a bad idea because the compiler is free to pack the class however it
+  // wants.  We'll write out 4 64bit values regardless of the packing of that
+  // class.
+  // Still, if you ever add a new element to that class, you of course need to
+  // add a write for it in CopyToFile, but you also need to come here and
+  // increment the size by 8.  Hopefully this assert will clue you in if you
+  // forget to do that.
+  assert(sizeof(InternalMaxMinElement) == 32 &&
+         "assuming there are 4 values per element/component!");
   return sizeof(UINT64) +                                       // length of the vector
          sizeof(UINT64) +                                       // component count
-         sizeof(InternalMaxMinElement) * m_vfMaxMinData.size(); // the vector itself
+         32 * m_vfMaxMinData.size() * m_iComponentCount;        // vector of data
 }
 
 const InternalMaxMinElement& MaxMinDataBlock::GetValue(size_t iIndex, size_t iComponent) {
