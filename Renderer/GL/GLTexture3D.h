@@ -46,23 +46,33 @@ namespace tuvok {
 
 class GLTexture3D : public GLTexture {
   public:
-    GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ, GLint internalformat, GLenum format, GLenum type,
-          UINT32 iSizePerElement,
-          const GLvoid *pixels = 0,
-          GLint iMagFilter = GL_NEAREST,
-          GLint iMinFilter = GL_NEAREST,
-          GLint wrapX = GL_CLAMP_TO_EDGE,
-          GLint wrapY = GL_CLAMP_TO_EDGE,
-          GLint wrapZ = GL_CLAMP_TO_EDGE);
+    GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
+                GLint internalformat, GLenum format, GLenum type,
+                UINT32 iSizePerElement,
+                const GLvoid *pixels = 0,
+                GLint iMagFilter = GL_NEAREST,
+                GLint iMinFilter = GL_NEAREST,
+                GLint wrapX = GL_CLAMP_TO_EDGE,
+                GLint wrapY = GL_CLAMP_TO_EDGE,
+                GLint wrapZ = GL_CLAMP_TO_EDGE);
     virtual ~GLTexture3D() {}
 
-    virtual void Bind(UINT32 iUnit=0) {glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit)); glBindTexture(GL_TEXTURE_3D, m_iGLID);}
+    virtual void Bind(UINT32 iUnit=0) {
+      glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit));
+      glBindTexture(GL_TEXTURE_3D, m_iGLID);
+    }
     virtual void SetData(const void *pixels);
 
-    virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);}
-    virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);}
+    virtual UINT64 GetCPUSize() {
+      return UINT64(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);
+    }
+    virtual UINT64 GetGPUSize() {
+      return UINT64(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);
+    }
 
-    UINTVECTOR3 GetSize() const {return UINTVECTOR3(UINT32(m_iSizeX),UINT32(m_iSizeY),UINT32(m_iSizeZ));}
+    UINTVECTOR3 GetSize() const {
+      return UINTVECTOR3(UINT32(m_iSizeX),UINT32(m_iSizeY),UINT32(m_iSizeZ));
+    }
 
   protected:
     GLuint m_iSizeX;
