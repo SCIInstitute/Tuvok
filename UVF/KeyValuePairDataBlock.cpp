@@ -40,9 +40,15 @@ UINT64 KeyValuePairDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT6
     UINT64 iStrLength;
 
     pStreamFile->ReadData(iStrLength, bIsBigEndian);
+    // Use a damn RasterDataBlock if it doesn't, weirdo.  This isn't meant for
+    // storing gigabytes of data.
+    assert(iStrLength <= 4294967296ULL &&
+           "value must fit in 32bit address space.");
     pStreamFile->ReadData(key, iStrLength);
 
     pStreamFile->ReadData(iStrLength, bIsBigEndian);
+    assert(iStrLength <= 4294967296ULL &&
+           "value must fit in 32bit address space.");
     pStreamFile->ReadData(value, iStrLength);
 
     KeyValuePair p(key, value);
