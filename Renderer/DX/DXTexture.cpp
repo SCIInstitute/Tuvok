@@ -37,6 +37,7 @@
 #if defined(_WIN32) && defined(USE_DIRECTX)
 
 #include "DXTexture.h"
+using namespace tuvok;
 
 DXTexture::~DXTexture() {
   Delete();

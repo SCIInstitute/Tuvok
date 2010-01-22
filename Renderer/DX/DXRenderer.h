@@ -50,6 +50,8 @@
 #include "../AbstrRenderer.h"
 #include "../../Basics/DynamicDX.h"
 
+namespace tuvok {
+
 class DXTexture1D;
 class MasterController;
 
@@ -149,6 +151,9 @@ class DXRenderer : public AbstrRenderer {
     DXTexture1D*    m_p1DTransTex;
 
 };
+
+}; //namespace tuvok
+
 #endif // DXRENDERER_H
 
 #endif // _WIN32 && USE_DIRECTX

@@ -38,6 +38,8 @@
 
 #include "DXTexture3D.h"
 #include <cassert>
+using namespace tuvok;
+
 
 DXTexture3D::DXTexture3D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
                          UINT32 iSizeZ, DXGI_FORMAT format) :

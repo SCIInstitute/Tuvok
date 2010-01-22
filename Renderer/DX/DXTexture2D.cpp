@@ -38,6 +38,7 @@
 
 #include "DXTexture2D.h"
 #include <cassert>
+using namespace tuvok;
 
 DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
                          DXGI_FORMAT format) :

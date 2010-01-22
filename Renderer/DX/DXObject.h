@@ -45,6 +45,8 @@
 #include "../GPUObject.h"
 #include "../../Basics/DynamicDX.h"
 
+namespace tuvok {
+
 /** Base for all DirectX types which will utilize GPU memory.
  * Forces children to keep track of memory use on both the CPU and GPU,
  * allowing us to use as much memory as will be possible without swapping. */
@@ -52,6 +54,7 @@ class DXObject : public GPUObject {
 public:
     virtual ~DXObject() {}
 };
+}; //namespace tuvok
 
 #endif // DXOBJECT_H
 

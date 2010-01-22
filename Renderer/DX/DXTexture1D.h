@@ -44,6 +44,8 @@
 #include "../../StdTuvokDefines.h"
 #include "DXTexture.h"
 
+namespace tuvok {
+
 class DXTexture1D : public DXTexture {
   public:
 
@@ -64,6 +66,7 @@ class DXTexture1D : public DXTexture {
     UINT32 m_iSize;
     ID3D10Texture1D* m_pTexture;
 };
+}; //namespace tuvok
 
 #endif // DXTEXTURE1D_H
 

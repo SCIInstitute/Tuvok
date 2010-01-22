@@ -44,6 +44,8 @@
 #include "../../StdTuvokDefines.h"
 #include "DXObject.h"
 
+namespace tuvok {
+
 /** \class DXTexture
  * Abstracted texture usage.
  *
@@ -80,6 +82,7 @@ class DXTexture : public DXObject {
     ID3D10ShaderResourceView*           m_pTexture_SRV;
     ID3D10EffectShaderResourceVariable* m_pSRVarBound;
 };
+}; //namespace tuvok
 
 #endif // DXTEXTURE_H
 

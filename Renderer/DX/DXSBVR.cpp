@@ -44,6 +44,7 @@
 #include <ctime>
 
 using namespace std;
+using namespace tuvok;
 
 DXSBVR::DXSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
   DXRenderer(pMasterController,bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder)

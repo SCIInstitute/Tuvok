@@ -46,6 +46,8 @@
 #include "../../StdTuvokDefines.h"
 #include "DXRenderer.h"
 
+namespace tuvok {
+
 /** \class DXSBVR
  * DirectX 10 GPU SBVR.
  *
@@ -67,6 +69,8 @@ class DXSBVR : public DXRenderer {
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void UpdateColorsInShaders();
 };
+
+}; //namespace tuvok
 
 #endif // DXSBVR_H
 

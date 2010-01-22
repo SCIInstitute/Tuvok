@@ -38,6 +38,8 @@
 
 #include "DXTexture1D.h"
 #include <cassert>
+using namespace tuvok;
+
 
 DXTexture1D::DXTexture1D(ID3D10Device* pd3dDevice, UINT32 iSize, DXGI_FORMAT format) :
   DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, false),

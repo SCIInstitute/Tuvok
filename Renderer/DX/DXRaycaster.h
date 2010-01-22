@@ -46,6 +46,8 @@
 #include "../../StdTuvokDefines.h"
 #include "DXRenderer.h"
 
+namespace tuvok {
+
 /** \class DXRaycaster
  * GPU Rayster.
  *
@@ -67,6 +69,7 @@ class DXRaycaster : public DXRenderer {
     virtual void RenderHQMIPInLoop(const Brick& b);
     virtual void UpdateColorsInShaders();
 };
+}; //namespace tuvok
 
 #endif // DXRAYCASTER_H
 

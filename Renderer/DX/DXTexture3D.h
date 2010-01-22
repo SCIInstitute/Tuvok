@@ -46,6 +46,8 @@
 #include "DXTexture.h"
 #include "../../Basics/Vectors.h"
 
+namespace tuvok {
+
 class DXTexture3D : public DXTexture {
   public:
     DXTexture3D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ, DXGI_FORMAT format);
@@ -69,6 +71,7 @@ class DXTexture3D : public DXTexture {
 
     ID3D10Texture3D* m_pTexture;
 };
+}; //namespace tuvok
 
 #endif // DXTEXTURE3D_H
 
