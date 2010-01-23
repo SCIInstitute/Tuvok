@@ -356,14 +356,10 @@ RenderRegion3D* AbstrRenderer::GetFirst3DRegion() {
   return NULL;
 }
 
-void AbstrRenderer::SetRotation(const FLOATMATRIX4& mRotation,
-                                RenderRegion *renderRegion) {
-  if (!renderRegion)
-    renderRegion = GetFirst3DRegion();
-  if (renderRegion) {
+void AbstrRenderer::SetRotation(RenderRegion *renderRegion,
+                                const FLOATMATRIX4& mRotation) {
     m_mRotation = mRotation;
     ScheduleWindowRedraw(renderRegion);
-  }
 }
 
 const FLOATMATRIX4&
@@ -371,14 +367,10 @@ AbstrRenderer::GetRotation(const RenderRegion*) const {
   return m_mRotation;
 }
 
-void AbstrRenderer::SetTranslation(const FLOATMATRIX4& mTranslation,
-                                   RenderRegion *renderRegion) {
-  if (!renderRegion)
-    renderRegion = GetFirst3DRegion();
-  if (renderRegion) {
-    m_mTranslation = mTranslation;
-    ScheduleWindowRedraw(renderRegion);
-  }
+void AbstrRenderer::SetTranslation(RenderRegion *renderRegion,
+                                   const FLOATMATRIX4& mTranslation) {
+  m_mTranslation = mTranslation;
+  ScheduleWindowRedraw(renderRegion);
 }
 
 const FLOATMATRIX4&
@@ -386,16 +378,12 @@ AbstrRenderer::GetTranslation(const RenderRegion*) const {
   return m_mTranslation;
 }
 
-void AbstrRenderer::SetClipPlane(const ExtendedPlane& plane,
-                                 RenderRegion *renderRegion)
+void AbstrRenderer::SetClipPlane(RenderRegion *renderRegion,
+                                 const ExtendedPlane& plane)
 {
-  if (!renderRegion)
-    renderRegion = GetFirst3DRegion();
-  if (renderRegion) {
-    if(plane == m_ClipPlane) { return; }
-    m_ClipPlane = plane; /// @todo: Make this per RenderRegion.
-    ScheduleWindowRedraw(renderRegion);
-  }
+  if(plane == m_ClipPlane) { return; }
+  m_ClipPlane = plane; /// @todo: Make this per RenderRegion.
+  ScheduleWindowRedraw(renderRegion);
 }
 
 
@@ -437,7 +425,7 @@ void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
   m_bClipPlaneLocked = bRel;/// @todo: Make this per RenderRegion ?
 }
 
-void AbstrRenderer::SetSliceDepth(UINT64 sliceDepth, RenderRegion *renderRegion) {
+void AbstrRenderer::SetSliceDepth(RenderRegion *renderRegion, UINT64 sliceDepth) {
   if (renderRegion->GetSliceIndex() != sliceDepth) {
     renderRegion->SetSliceIndex(sliceDepth);
     ScheduleWindowRedraw(renderRegion);
@@ -1072,14 +1060,14 @@ void AbstrRenderer::SetLogoParams(string strLogoFilename, int iLogoPos) {
   m_iLogoPos        = iLogoPos;
 }
 
-void AbstrRenderer::Set2DFlipMode(bool flipX, bool flipY,
-                                  RenderRegion *renderRegion) {
+void AbstrRenderer::Set2DFlipMode(RenderRegion *renderRegion,
+                                  bool flipX, bool flipY) {
   renderRegion->SetFlipView(flipX, flipY);
   ScheduleWindowRedraw(renderRegion);
 }
 
-void AbstrRenderer::Get2DFlipMode(bool& flipX, bool& flipY,
-                                  const RenderRegion *renderRegion) const {
+void AbstrRenderer::Get2DFlipMode(const RenderRegion *renderRegion,
+                                  bool& flipX, bool& flipY) const {
   renderRegion->GetFlipView(flipX, flipY);
 }
 
@@ -1087,7 +1075,7 @@ bool AbstrRenderer::GetUseMIP(const RenderRegion *renderRegion) const {
   return renderRegion->GetUseMIP();
 }
 
-void AbstrRenderer::SetUseMIP(bool useMIP, RenderRegion *renderRegion) {
+void AbstrRenderer::SetUseMIP(RenderRegion *renderRegion, bool useMIP) {
   renderRegion->SetUseMIP(useMIP);
   ScheduleWindowRedraw(renderRegion);
 }

@@ -251,18 +251,17 @@ class AbstrRenderer {
      * \param vWinSize  new width and height of the view window */
     virtual void Resize(const UINTVECTOR2& vWinSize);
 
-    virtual void SetRotation(const FLOATMATRIX4& mRotation,
-                             RenderRegion *renderRegion=NULL);
-    virtual const FLOATMATRIX4& GetRotation(
-                            const RenderRegion *renderRegion=NULL) const;
+    virtual void SetRotation(RenderRegion *renderRegion,
+                             const FLOATMATRIX4& mRotation);
+    virtual const FLOATMATRIX4& GetRotation(const RenderRegion *renderRegion) const;
 
-    virtual void SetTranslation(const FLOATMATRIX4& mTranslation,
-                                RenderRegion *renderRegion=NULL);
+    virtual void SetTranslation(RenderRegion *renderRegion,
+                                const FLOATMATRIX4& mTranslation);
     virtual const FLOATMATRIX4& GetTranslation(
-                            const RenderRegion *renderRegion=NULL) const;
+                                        const RenderRegion *renderRegion) const;
 
-    void SetClipPlane(const ExtendedPlane& plane,
-                      RenderRegion *renderRegion=NULL);
+    void SetClipPlane(RenderRegion *renderRegion,
+                      const ExtendedPlane& plane);
     virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
     virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);
     virtual void ShowClipPlane(bool, RenderRegion *renderRegion=NULL);
@@ -274,7 +273,7 @@ class AbstrRenderer {
     bool ClipPlaneLocked() const  { return m_bClipPlaneLocked; }
 
     /// slice parameter for slice views.
-    virtual void SetSliceDepth(UINT64 fSliceDepth, RenderRegion *renderRegion);
+    virtual void SetSliceDepth(RenderRegion *renderRegion, UINT64 fSliceDepth);
     virtual UINT64 GetSliceDepth(const RenderRegion *renderRegion) const;
 
     void SetClearFramebuffer(bool bClearFramebuffer) {
@@ -287,10 +286,11 @@ class AbstrRenderer {
     bool GetLocalBBox() {return m_bRenderLocalBBox;}
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
-    void Set2DFlipMode(bool bFlipX, bool bFlipY, RenderRegion *renderRegion);
-    void Get2DFlipMode(bool& bFlipX, bool& bFlipY, const RenderRegion *renderRegion) const;
+    void Set2DFlipMode(RenderRegion *renderRegion, bool bFlipX, bool bFlipY);
+    void Get2DFlipMode(const RenderRegion *renderRegion, bool& bFlipX,
+                       bool& bFlipY) const;
     bool GetUseMIP(const RenderRegion *renderRegion) const;
-    void SetUseMIP(bool bUseMIP, RenderRegion *renderRegion);
+    void SetUseMIP(RenderRegion *renderRegion, bool bUseMIP);
 
     UINT64 GetMaxLODIndex() const      { return m_iMaxLODIndex; }
     UINT64 GetMinLODIndex() const      { return m_iMinLODForCurrentView; }
