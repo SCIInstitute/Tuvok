@@ -382,7 +382,7 @@ class AbstrRenderer {
 
     void SetMIPRotationAngle(float fAngle) {
       m_fMIPRotationAngle = fAngle;
-      m_bPerformRedraw = true;
+      ScheduleCompleteRedraw();
     }
 
     /// Prepends the given directory to the list of paths Tuvok will
