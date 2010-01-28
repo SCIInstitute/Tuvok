@@ -447,7 +447,6 @@ class AbstrRenderer {
     int                 m_iLogoPos;
     std::string         m_strLogoFilename;
 
-    bool                m_bStartingNewFrame;
     UINT32              m_iLODNotOKCounter;
     float               m_fMaxMSPerFrame;
     float               m_fScreenResDecFactor;

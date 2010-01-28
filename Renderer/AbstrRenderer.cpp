@@ -67,7 +67,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vWinSize(0,0),
   m_iLogoPos(3),
   m_strLogoFilename(""),
-  m_bStartingNewFrame(true),
   m_iLODNotOKCounter(0),
   m_fMaxMSPerFrame(10000),
   m_fScreenResDecFactor(2.0f),
@@ -604,7 +603,6 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
 
   m_iStartLODOffset = std::min(m_iStartLODOffset, UINT64(m_iMaxLODIndex-m_iLODLimits.x));
   m_iCurrentLODOffset = m_iStartLODOffset;
-  m_bStartingNewFrame = true;
   RestartTimers();
 }
 
@@ -888,8 +886,7 @@ void AbstrRenderer::Plan3DFrame() {
   if (m_bPerformRedraw || (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame)) {
 
     bool bBuildNewList = false;
-    if (m_bStartingNewFrame) {
-      m_bStartingNewFrame = false;
+    if (m_bPerformRedraw) {
       m_bDecreaseSamplingRateNow = m_bDecreaseSamplingRate;
       m_bDecreaseScreenResNow = m_bDecreaseScreenRes;
       bBuildNewList = true;
