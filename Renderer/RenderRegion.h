@@ -49,12 +49,29 @@ class GLRenderer;
 
     UINTVECTOR2 minCoord, maxCoord;
     EWindowMode windowMode;
+
+    // does drawing (possibly at higher quality settings) still need to be done?
     bool redrawMask;
+
+    // has this never been drawn (are we starting from scratch for this view)?
+    bool isBlank;
+
+    bool decreaseScreenRes;
+    bool decreaseScreenResNow;
+    bool doAnotherRedrawDueToAllMeans;
+    float msecPassed[2];
+    float msecPassedCurrentFrame;
 
     RenderRegion(EWindowMode mode):
       windowMode(mode),
-      redrawMask(true)
+      redrawMask(true),
+      isBlank(true),
+      decreaseScreenRes(false),
+      decreaseScreenResNow(false),
+      doAnotherRedrawDueToAllMeans(false),
+      msecPassedCurrentFrame(0.0f)
     {
+      msecPassed[0] = msecPassed[1] = -1.0f;
     }
     virtual ~RenderRegion() { /* nothing to destruct */ }
 

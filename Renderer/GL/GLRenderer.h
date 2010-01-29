@@ -174,7 +174,8 @@ class GLRenderer : public AbstrRenderer {
 
     virtual void  CVFocusHasChanged();
 
-    void FullscreenQuad(bool bUpscale);
+    void FullscreenQuad();
+    void FullscreenQuadRegions();
     void ComputeViewAndProjection(float fAspect);
     virtual void UpdateColorsInShaders();
 

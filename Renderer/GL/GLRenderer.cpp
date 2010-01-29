@@ -350,73 +350,56 @@ void GLRenderer::Paint() {
   int iActiveRenderRegions = 0;
   int iReadyRegions = 0;
 
-  bool bPrevResType = m_bDecreaseScreenResNow;
+  for (size_t i=0; i < renderRegions.size(); ++i) {
+    if (renderRegions[i]->redrawMask) {
+      iActiveRenderRegions++;
+      bool bLocalNewDataToShow = false;
 
-  bool bForceCompleteRedrawDueToResChange = m_bDoAnotherRedrawDueToAllMeans;
+      if (renderRegions[i]->is3D()) {
+        assert(renderRegions[i]->is3D());
+        RenderRegion3D &region3D = *static_cast<RenderRegion3D*>(renderRegions[i]);
 
-  // First we draw only the 3D views as m_bDecreaseScreenResNow is changed in
-  // Plan3DFrame, then we can draw the 2D views.
-  for (size_t pass=0; pass < 2; ++pass) {
-    for (size_t i=0; i < renderRegions.size(); ++i) {
+        if (!region3D.isBlank && m_bPerformReCompose){
+          SetRenderTargetArea(region3D, region3D.decreaseScreenResNow);
+          Recompose3DView(region3D);
+          bLocalNewDataToShow = true;
+        } else {
+          Plan3DFrame(region3D);
 
-      if (pass == 0 && !renderRegions[i]->is3D())
-        continue;
-      if (pass == 1 && !renderRegions[i]->is2D())
-        continue;
+          //region3D.decreaseScreenResNow could have changed after calling
+          //Plan3DFrame.
+          SetRenderTargetArea(region3D, region3D.decreaseScreenResNow);
 
-      // note: this line only works if the 3D view is drawn before the 2D
-      // views, as m_bDecreaseScreenResNow is changed in Plan3DFrame
-      bForceCompleteRedrawDueToResChange =
-        bForceCompleteRedrawDueToResChange || bPrevResType != m_bDecreaseScreenResNow;
-
-      if (renderRegions[i]->redrawMask || bForceCompleteRedrawDueToResChange) {
-        iActiveRenderRegions++;
-        bool bLocalNewDataToShow = false;
-
-        if (pass == 0) { // WM_3D
-          assert(renderRegions[i]->is3D());
-          RenderRegion3D *region3D = static_cast<RenderRegion3D*>(renderRegions[i]);
-
-          SetRenderTargetArea(*region3D, false);
-          if (!m_bPerformRedraw && m_bPerformReCompose &&
-              !bForceCompleteRedrawDueToResChange){
-            Recompose3DView(*region3D);
-            bLocalNewDataToShow = true;
-          } else {
-            // plan the frame
-            Plan3DFrame();
-            // if m_bDecreaseScreenRes the render target area may have changed
-            if (m_bDecreaseScreenResNow)
-              SetRenderTargetArea(*region3D, true);
-            // execute the frame0
-            float fMsecPassed = 0.0f;
-            bLocalNewDataToShow = Execute3DFrame(*region3D, fMsecPassed);
-            m_fMsecPassedCurrentFrame += fMsecPassed;
-          }
-          // are we done traversing the LOD levels
-          renderRegions[i]->redrawMask =
-            (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
-            (m_iCurrentLODOffset > m_iMinLODForCurrentView);
-        } else if (pass == 1) {  // in a 2D view mode
-          assert(renderRegions[i]->is2D());
-          RenderRegion2D *region2D = static_cast<RenderRegion2D*>(renderRegions[i]);
-          SetRenderTargetArea(*region2D, m_bDecreaseScreenResNow);
-          bLocalNewDataToShow = Render2DView(*region2D);
-          region2D->redrawMask = false;
+          // execute the frame0
+          float fMsecPassed = 0.0f;
+          bLocalNewDataToShow = Execute3DFrame(region3D, fMsecPassed);
+          region3D.msecPassedCurrentFrame += fMsecPassed;
         }
-
-        if (bLocalNewDataToShow) iReadyRegions++;
-
-      } else {
-        // blit the previous result quad to the entire screen but restrict
-        // drawing to the current subarea
-        m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-        SetViewPort(UINTVECTOR2(0,0), m_vWinSize, false);
-        SetRenderTargetAreaScissor(*renderRegions[i], false);
-        RerenderPreviousResult(false);
-        m_TargetBinder.Unbind();
+        // are we done rendering or do we need to render at higher quality?
+        region3D.redrawMask =
+          (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
+          (m_iCurrentLODOffset > m_iMinLODForCurrentView) ||
+          region3D.decreaseScreenResNow;
+      } else if (renderRegions[i]->is2D()) {  // in a 2D view mode
+        assert(renderRegions[i]->is2D());
+        RenderRegion2D& region2D = *static_cast<RenderRegion2D*>(renderRegions[i]);
+        SetRenderTargetArea(region2D, region2D.decreaseScreenResNow);
+        bLocalNewDataToShow = Render2DView(region2D);
+        region2D.redrawMask = false;
       }
+
+      if (bLocalNewDataToShow) iReadyRegions++;
+
+    } else {
+      // blit the previous result quad to the entire screen but restrict
+      // drawing to the current subarea
+      m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
+      SetViewPort(UINTVECTOR2(0,0), m_vWinSize, false);
+      SetRenderTargetAreaScissor(*renderRegions[i], false);
+      RerenderPreviousResult(false);
+      m_TargetBinder.Unbind();
     }
+    renderRegions[i]->isBlank = false;
   }
 
   // if we had at least one renderwindow that was doing something and from those
@@ -427,19 +410,46 @@ void GLRenderer::Paint() {
   EndFrame(bNewDataToShow);
 }
 
-void GLRenderer::FullscreenQuad(bool bUpscale) {
-  float fMaxCoord = (bUpscale) ? 1.0f/m_fScreenResDecFactor : 1.0f;
-
+void GLRenderer::FullscreenQuad() {
   glBegin(GL_QUADS);
-    glTexCoord2d(0,0);
+    glTexCoord2d(0, 0);
     glVertex3d(-1.0, -1.0, -0.5);
-    glTexCoord2d(fMaxCoord,0);
+    glTexCoord2d(1, 0);
     glVertex3d( 1.0, -1.0, -0.5);
-    glTexCoord2d(fMaxCoord,fMaxCoord);
+    glTexCoord2d(1, 1);
     glVertex3d( 1.0,  1.0, -0.5);
-    glTexCoord2d(0,fMaxCoord);
+    glTexCoord2d(0, 1);
     glVertex3d(-1.0,  1.0, -0.5);
   glEnd();
+}
+
+void GLRenderer::FullscreenQuadRegions() {
+  for (size_t i=0; i < renderRegions.size(); ++i) {
+    const float rescale = renderRegions[i]->decreaseScreenResNow ?
+      1.0f / m_fScreenResDecFactor : 1.0f;
+
+    FLOATVECTOR2 minCoord(renderRegions[i]->minCoord);
+    FLOATVECTOR2 maxCoord(renderRegions[i]->maxCoord);
+
+    //normalize to 0,1.
+    FLOATVECTOR2 minCoordNormalized = minCoord / FLOATVECTOR2(m_vWinSize);
+    FLOATVECTOR2 maxCoordNormalized = maxCoord / FLOATVECTOR2(m_vWinSize);
+
+    FLOATVECTOR2 minTexCoord = minCoordNormalized;
+    FLOATVECTOR2 maxTexCoord = minCoordNormalized +
+      (maxCoordNormalized-minCoordNormalized)*rescale;
+
+  glBegin(GL_QUADS);
+    glTexCoord2d(minTexCoord[0], minTexCoord[1]);
+    glVertex3d(minCoordNormalized[0]*2-1, minCoordNormalized[1]*2-1, -0.5);
+    glTexCoord2d(maxTexCoord[0], minTexCoord[1]);
+    glVertex3d(maxCoordNormalized[0]*2-1, minCoordNormalized[1]*2-1, -0.5);
+    glTexCoord2d(maxTexCoord[0], maxTexCoord[1]);
+    glVertex3d(maxCoordNormalized[0]*2-1, maxCoordNormalized[1]*2-1, -0.5);
+    glTexCoord2d(minTexCoord[0], maxTexCoord[1]);
+    glVertex3d(minCoordNormalized[0]*2-1, maxCoordNormalized[1]*2-1, -0.5);
+  glEnd();
+  }
 }
 
 void GLRenderer::EndFrame(bool bNewDataToShow) {
@@ -447,8 +457,6 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 
   // if the image is complete
   if (bNewDataToShow) {
-    m_bOffscreenIsLowRes = m_bDecreaseScreenResNow;
-
     // in stereo compose both images into one, in mono mode simply swap the pointers
     if (m_bDoStereoRendering) {
       m_pFBO3DImageCurrent[0]->Read(0);
@@ -459,7 +467,7 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
 
       m_pProgramComposeAnaglyphs->Enable();
       glDisable(GL_DEPTH_TEST);
-      FullscreenQuad(m_bOffscreenIsLowRes);
+      FullscreenQuadRegions();
       m_pProgramComposeAnaglyphs->Disable();
 
       m_TargetBinder.Unbind();
@@ -470,8 +478,10 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
       swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
     }
     m_iFilledBuffers = 0;
-    if(!OnlyRecomposite()) {
-      CompletedASubframe();
+    for (size_t i=0; i < renderRegions.size(); ++i) {
+      if(!OnlyRecomposite(renderRegions[i])) {
+        CompletedASubframe(renderRegions[i]);
+      }
     }
   }
 
@@ -480,8 +490,6 @@ void GLRenderer::EndFrame(bool bNewDataToShow) {
   if (bNewDataToShow || m_iFilledBuffers < 2)
     RerenderPreviousResult(true);
 
-  // no complete redraw is necessary as we just finished the first pass
-  m_bPerformRedraw = false;
   // we've definitely recomposed by now.
   m_bPerformReCompose = false;
 }
@@ -507,14 +515,12 @@ void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion& renderRegion,
 void GLRenderer::SetRenderTargetAreaScissor(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
                                             bool bDecreaseScreenResNow) {
   const float rescale = (bDecreaseScreenResNow) ? 1.0f/m_fScreenResDecFactor : 1;
-
-  //Note, we round to the nearest int only for the maxCoord. This in effect
+  UINTVECTOR2 regionSize = maxCoord - minCoord;
+  //Note, we round to the nearest int (the + 0.5 part). This in effect
   //expands the render region in all directions to the nearest int and so hides
   //any possible gaps that could result.
-  minCoord = UINTVECTOR2(FLOATVECTOR2(minCoord) * rescale);
-  maxCoord = UINTVECTOR2((FLOATVECTOR2(maxCoord) * rescale) + FLOATVECTOR2(0.5, 0.5));
-
-  const UINTVECTOR2 regionSize = maxCoord - minCoord;
+  regionSize = UINTVECTOR2((FLOATVECTOR2(regionSize) * rescale) +
+                           FLOATVECTOR2(0.5, 0.5));
 
   glScissor(minCoord.x, minCoord.y, regionSize.x, regionSize.y);
   glEnable( GL_SCISSOR_TEST );
@@ -524,18 +530,17 @@ void GLRenderer::SetRenderTargetAreaScissor(UINTVECTOR2 minCoord, UINTVECTOR2 ma
 void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
                              bool bDecreaseScreenResNow) {
 
+  UINTVECTOR2 viSize = viUpperRight-viLowerLeft;
+
   if (bDecreaseScreenResNow) {
     const float rescale = 1.0f/m_fScreenResDecFactor;
 
-    //Note, we round to the nearest int only for the top right coord. This in
+    //Note, we round to the nearest int (the + 0.5 part). This in
     //effect expands the render region in all directions to the nearest int and
     //so hides any possible gaps that could result.
-    viLowerLeft = UINTVECTOR2(FLOATVECTOR2(viLowerLeft) * rescale);
-    viUpperRight = UINTVECTOR2((FLOATVECTOR2(viUpperRight) * rescale) +
-                               FLOATVECTOR2(0.5, 0.5));
+    viSize = UINTVECTOR2((FLOATVECTOR2(viSize) * rescale) +
+                         FLOATVECTOR2(0.5, 0.5));
   }
-
-  UINTVECTOR2 viSize = viUpperRight-viLowerLeft;
 
   // viewport
   glViewport(viLowerLeft.x,viLowerLeft.y,viSize.x,viSize.y);
@@ -748,7 +753,7 @@ bool GLRenderer::Render2DView(const RenderRegion2D& renderRegion) {
     }
 
     // clear the target at the beginning
-    SetRenderTargetAreaScissor(renderRegion, m_bDecreaseScreenResNow);
+    SetRenderTargetAreaScissor(renderRegion, renderRegion.decreaseScreenResNow);
 
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -873,13 +878,13 @@ bool GLRenderer::Render2DView(const RenderRegion2D& renderRegion) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
 
     SetRenderTargetArea(UINTVECTOR2(0,0), m_vWinSize, false);
-    SetRenderTargetAreaScissor(renderRegion, m_bDecreaseScreenResNow);
+    SetRenderTargetAreaScissor(renderRegion, renderRegion.decreaseScreenResNow);
 
     m_pFBO3DImageCurrent[1]->Read(0);
     m_p1DTransTex->Bind(1);
     m_pProgramTransMIP->Enable();
     glDisable(GL_DEPTH_TEST);
-    FullscreenQuad(false);
+    FullscreenQuad();
     glDisable( GL_SCISSOR_TEST );
     m_pFBO3DImageCurrent[1]->FinishRead(0);
 
@@ -977,7 +982,7 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
 
 void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
   m_iFilledBuffers = 0;
-  SetRenderTargetAreaScissor(renderRegion, m_bDecreaseScreenResNow);
+  SetRenderTargetAreaScissor(renderRegion, renderRegion.decreaseScreenResNow);
 
   glClearColor(0,0,0,0);
 
@@ -1193,7 +1198,7 @@ bool GLRenderer::Execute3DFrame(const RenderRegion3D& renderRegion,
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
       // show the timings as "other", to distinguish it from all those million messages
       OTHER("The current subframe took %g ms to render (LOD Level %u)",
-            m_fMsecPassedCurrentFrame + fMsecPassed,
+            renderRegion.msecPassedCurrentFrame + fMsecPassed,
             static_cast<unsigned>(m_iCurrentLODOffset));
       PostSubframe();
       return true;
@@ -1227,7 +1232,7 @@ void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
 
   m_pProgramTrans->Enable();
 
-  FullscreenQuad(m_bOffscreenIsLowRes);
+  FullscreenQuadRegions();
 
   m_pProgramTrans->Disable();
 

@@ -426,9 +426,6 @@ class AbstrRenderer {
 
   protected:
     MasterController*   m_pMasterController;
-    bool                m_bPerformRedraw;
-    float               m_fMsecPassedCurrentFrame;
-    float               m_fMsecPassed[2];
     ERenderMode         m_eRenderMode;
     EBlendPrecision     m_eBlendPrecision;
     bool                m_bUseLighting;
@@ -453,11 +450,8 @@ class AbstrRenderer {
     float               m_fSampleDecFactor;
     bool                m_bUseAllMeans;
     bool                m_bDecreaseSamplingRate;
-    bool                m_bDecreaseScreenRes;
     bool                m_bDecreaseSamplingRateNow;
-    bool                m_bDecreaseScreenResNow;
     bool                m_bOffscreenIsLowRes;
-    bool                m_bDoAnotherRedrawDueToAllMeans;
     UINT32              m_iStartDelay;
     UINT64              m_iMinLODForCurrentView;
     UINT32              m_iTimeSliceMSecs;
@@ -535,20 +529,20 @@ class AbstrRenderer {
 
     virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);
     void                ComputeMinLODForCurrentView();
-    void                ComputeMaxLODForCurrentView();
-    void                Plan3DFrame();
+    void                ComputeMaxLODForCurrentView(RenderRegion& region);
+    void                Plan3DFrame(RenderRegion3D& region);
     void                PlanHQMIPFrame();
     std::vector<Brick>  BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion=false);
     std::vector<Brick>  BuildLeftEyeSubFrameBrickList(const std::vector<Brick>& vRightEyeBrickList);
     virtual void        ClearDepthBuffer() = 0;
     virtual void        ClearColorBuffer() = 0;
     virtual void        CVFocusHasChanged();
-    void                CompletedASubframe();
-    void                RestartTimer(const size_t iTimerIndex);
-    void                RestartTimers();
+    void                CompletedASubframe(RenderRegion* region);
+    void                RestartTimer(RenderRegion& region, const size_t iTimerIndex);
+    void                RestartTimers(RenderRegion& region);
     virtual void        UpdateColorsInShaders() = 0;
     double              MaxValue() const;
-    bool                OnlyRecomposite() const;
+    bool                OnlyRecomposite(RenderRegion* region) const;
 
     RenderRegion3D* GetFirst3DRegion();
 
