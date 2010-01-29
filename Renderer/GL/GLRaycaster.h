@@ -85,7 +85,8 @@ class GLRaycaster : public GLRenderer {
     bool            m_bNoRCClipplanes;
 
     /** Sets variables related to bricks in the shader. */
-    void SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurrentBrick);
+    void SetBrickDepShaderVars(RenderRegion3D& region, const Brick& currentBrick,
+                               size_t iCurrentBrick);
 
     virtual void CreateOffscreenBuffers();
     void RenderBox(RenderRegion& renderRegion,
@@ -93,7 +94,7 @@ class GLRaycaster : public GLRenderer {
                    const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords,
                    bool bCullBack, int iStereoID) const;
 
-    virtual void Render3DPreLoop();
+    virtual void Render3DPreLoop(RenderRegion3D& region);
     virtual void Render3DInLoop(RenderRegion3D& renderRegion,
                                 size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();

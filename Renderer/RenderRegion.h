@@ -62,6 +62,9 @@ class GLRenderer;
 
     bool decreaseScreenRes;
     bool decreaseScreenResNow;
+    bool decreaseSamplingRate;
+    bool decreaseSamplingRateNow;
+
     bool doAnotherRedrawDueToAllMeans;
     float msecPassed[2];
     float msecPassedCurrentFrame;
@@ -72,6 +75,8 @@ class GLRenderer;
       isBlank(true),
       decreaseScreenRes(false),
       decreaseScreenResNow(false),
+      decreaseSamplingRate(false),
+      decreaseSamplingRateNow(false),
       doAnotherRedrawDueToAllMeans(false),
       msecPassedCurrentFrame(0.0f)
     {

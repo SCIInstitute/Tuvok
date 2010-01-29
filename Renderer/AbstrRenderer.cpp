@@ -70,8 +70,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_fScreenResDecFactor(2.0f),
   m_fSampleDecFactor(2.0f),
   m_bUseAllMeans(false),
-  m_bDecreaseSamplingRate(false),
-  m_bDecreaseSamplingRateNow(false),
   m_bOffscreenIsLowRes(false),
   m_iStartDelay(1000),
   m_iMinLODForCurrentView(0),
@@ -503,12 +501,12 @@ void AbstrRenderer::CompletedASubframe(RenderRegion* region) {
   bool bRenderingFirstSubFrame =
     (m_iCurrentLODOffset == m_iStartLODOffset) &&
     (!region->decreaseScreenRes || region->decreaseScreenResNow) &&
-    (!m_bDecreaseSamplingRate || m_bDecreaseSamplingRateNow);
+    (!region->decreaseSamplingRate || region->decreaseSamplingRateNow);
   bool bSecondSubFrame =
     !bRenderingFirstSubFrame &&
     (m_iCurrentLODOffset == m_iStartLODOffset ||
      (m_iCurrentLODOffset == m_iStartLODOffset-1 &&
-      !(region->decreaseScreenRes || m_bDecreaseSamplingRate)));
+      !(region->decreaseScreenRes || region->decreaseSamplingRate)));
 
   if (bRenderingFirstSubFrame) {
     // time for current interaction LOD -> to detect if we are to slow
@@ -560,7 +558,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
                   "to render the first LOD level (max is %g) BUT CAN'T.",
                   region.msecPassed[0], m_fMaxMSPerFrame);
           if (m_bUseAllMeans) {
-            if (m_bDecreaseSamplingRate && region.decreaseScreenRes) {
+            if (region.decreaseSamplingRate && region.decreaseScreenRes) {
               MESSAGE("Even with UseAllMeans there is nothing that "
                       "can be done to meet the specified framerate.");
             } else {
@@ -571,7 +569,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
               } else {
                 MESSAGE("UseAllMeans enabled: decreasing sampling rate "
                         "to meet target framerate");
-                m_bDecreaseSamplingRate = true;
+                region.decreaseSamplingRate = true;
               }
             }
           } else {
@@ -588,11 +586,11 @@ void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
         m_iLODNotOKCounter = 0;
         // We're rendering fast, so lets step up the quality. Easiest thing to
         // try first is rendering at normal sampling rate and resolution.
-        if (m_bDecreaseSamplingRate || region.decreaseScreenRes) {
-          if (m_bDecreaseSamplingRate) {
+        if (region.decreaseSamplingRate || region.decreaseScreenRes) {
+          if (region.decreaseSamplingRate) {
             MESSAGE("Rendering at full resolution as this took only %g ms",
                     region.msecPassed[0]);
-            m_bDecreaseSamplingRate = false;
+            region.decreaseSamplingRate = false;
           } else {
             if (region.decreaseScreenRes) {
               MESSAGE("Rendering to full viewport as this took only %g ms",
@@ -916,15 +914,15 @@ void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
 
     bool bBuildNewList = false;
     if (region.isBlank) {
-      m_bDecreaseSamplingRateNow = m_bDecreaseSamplingRate;
+      region.decreaseSamplingRateNow = region.decreaseSamplingRate;
       region.decreaseScreenResNow = region.decreaseScreenRes;
       bBuildNewList = true;
-      if (m_bDecreaseSamplingRateNow || region.decreaseScreenResNow)
+      if (region.decreaseSamplingRateNow || region.decreaseScreenResNow)
         region.doAnotherRedrawDueToAllMeans = true;
     } else {
-      if (m_bDecreaseSamplingRateNow || region.decreaseScreenResNow) {
+      if (region.decreaseSamplingRateNow || region.decreaseScreenResNow) {
         region.decreaseScreenResNow = false;
-        m_bDecreaseSamplingRateNow = false;
+        region.decreaseSamplingRateNow = false;
         m_iBricksRenderedInThisSubFrame = 0;
         region.doAnotherRedrawDueToAllMeans = false;
       } else {
@@ -1145,13 +1143,12 @@ void AbstrRenderer::SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans,
   m_bUseAllMeans = bUseAllMeans;
 
   if (!m_bUseAllMeans) {
-    m_bDecreaseSamplingRate = false;
-    m_bDecreaseSamplingRateNow = false;
-
     for (size_t i=0; i < renderRegions.size(); ++i) {
       RenderRegion* region = renderRegions[i];
       region->decreaseScreenRes = false;
       region->decreaseScreenResNow = false;
+      region->decreaseSamplingRate = false;
+      region->decreaseSamplingRateNow = false;
       region->doAnotherRedrawDueToAllMeans = false;
     }
   }

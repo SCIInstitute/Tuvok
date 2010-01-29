@@ -182,10 +182,13 @@ bool GLRaycaster::Initialize() {
   return true;
 }
 
-void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurrentBrick) {
+void GLRaycaster::SetBrickDepShaderVars(RenderRegion3D& region,
+                                        const Brick& currentBrick,
+                                        size_t iCurrentBrick) {
   FLOATVECTOR3 vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(currentBrick.vVoxelCount);
 
-  float fSampleRateModifier = m_fSampleRateModifier / ((m_bDecreaseSamplingRateNow) ? m_fSampleDecFactor : 1.0f);
+  float fSampleRateModifier = m_fSampleRateModifier /
+    (region.decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
 
   float fRayStep = (currentBrick.vExtension*vVoxelSizeTexSpace * 0.5f * 1.0f/fSampleRateModifier).minVal();
   float fStepScale = 1.0f/fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
@@ -331,7 +334,7 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
 }
 
 
-void GLRaycaster::Render3DPreLoop() {
+void GLRaycaster::Render3DPreLoop(RenderRegion3D &) {
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_p1DTransTex->Bind(1);
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
@@ -402,7 +405,7 @@ void GLRaycaster::Render3DInLoop(RenderRegion3D& renderRegion,
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
     shader->Enable();
-    SetBrickDepShaderVars(b, iCurrentBrick);
+    SetBrickDepShaderVars(renderRegion, b, iCurrentBrick);
     m_pFBORayEntry->Read(2);
     RenderBox(renderRegion, b.vCenter, b.vExtension,
               b.vTexcoordsMin, b.vTexcoordsMax,
@@ -442,7 +445,7 @@ void GLRaycaster::Render3DInLoop(RenderRegion3D& renderRegion,
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
 
-    SetBrickDepShaderVars(b, iCurrentBrick);
+    SetBrickDepShaderVars(renderRegion, b, iCurrentBrick);
 
     m_pFBORayEntry->Read(2);
     RenderBox(renderRegion, b.vCenter, b.vExtension,

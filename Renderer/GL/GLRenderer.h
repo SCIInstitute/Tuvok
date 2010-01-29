@@ -137,7 +137,7 @@ class GLRenderer : public AbstrRenderer {
     virtual void SetDataDepShaderVars();
 
     virtual float Render3DView(RenderRegion3D& renderRegion);
-    virtual void Render3DPreLoop() {};
+    virtual void Render3DPreLoop(RenderRegion3D &) { };
     virtual void Render3DInLoop(RenderRegion3D& renderRegion,
                                 size_t iCurentBrick, int iStereoID) = 0;
     virtual void Render3DPostLoop() {}

@@ -158,11 +158,17 @@ void GLSBVR2D::SetDataDepShaderVars() {
   }
 }
 
-void GLSBVR2D::SetBrickDepShaderVars(const Brick& currentBrick) {
-  FLOATVECTOR3 vStep(1.0f/currentBrick.vVoxelCount.x, 1.0f/currentBrick.vVoxelCount.y, 1.0f/currentBrick.vVoxelCount.z);
+void GLSBVR2D::SetBrickDepShaderVars(RenderRegion3D& region,
+                                     const Brick& currentBrick) {
+  FLOATVECTOR3 vStep(1.0f/currentBrick.vVoxelCount.x,
+                     1.0f/currentBrick.vVoxelCount.y,
+                     1.0f/currentBrick.vVoxelCount.z);
 
-  float fSampleRateModifier = m_fSampleRateModifier / ((m_bDecreaseSamplingRateNow) ? m_fSampleDecFactor : 1.0f);
-  float fStepScale =  sqrt(2.0)/fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
+  float fSampleRateModifier = m_fSampleRateModifier /
+    (region.decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
+  float fStepScale =  sqrt(2.0)/fSampleRateModifier *
+    (FLOATVECTOR3(m_pDataset->GetDomainSize()) /
+     FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
 
 
   switch (m_eRenderMode) {
@@ -213,9 +219,9 @@ void GLSBVR2D::DisableClipPlane(RenderRegion *renderRegion) {
   }
 }
 
-void GLSBVR2D::Render3DPreLoop() {
+void GLSBVR2D::Render3DPreLoop(RenderRegion3D& region) {
 
-  m_SBVRGeogen.SetSamplingModifier(m_fSampleRateModifier / ((m_bDecreaseSamplingRateNow) ? m_fSampleDecFactor : 1.0f));
+  m_SBVRGeogen.SetSamplingModifier(m_fSampleRateModifier / ((region.decreaseSamplingRateNow) ? m_fSampleDecFactor : 1.0f));
 
   if(m_bClipPlaneOn) {
     m_SBVRGeogen.EnableClipPlane();
@@ -326,7 +332,7 @@ void GLSBVR2D::Render3DInLoop(RenderRegion3D& renderRegion,
 
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader->Enable();
-    SetBrickDepShaderVars(b);
+    SetBrickDepShaderVars(renderRegion, b);
     shader->SetUniformVector("fIsoval", static_cast<float>
                                         (this->GetNormalizedIsovalue()));
     RenderProxyGeometry();
@@ -346,7 +352,7 @@ void GLSBVR2D::Render3DInLoop(RenderRegion3D& renderRegion,
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
 
     glDepthMask(GL_FALSE);
-    SetBrickDepShaderVars(b);
+    SetBrickDepShaderVars(renderRegion, b);
     RenderProxyGeometry();
     glDepthMask(GL_TRUE);
   }

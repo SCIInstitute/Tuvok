@@ -1966,7 +1966,7 @@ void GLRenderer::Recompose3DView(RenderRegion3D& renderRegion) {
   renderRegion.modelView[0].setModelview();
   BBoxPreRender();
   PlaneIn3DPreRender();
-  Render3DPreLoop();
+  Render3DPreLoop(renderRegion);
   Render3DPostLoop();
   ComposeSurfaceImage(renderRegion, 0);
   BBoxPostRender();
@@ -1979,7 +1979,7 @@ void GLRenderer::Recompose3DView(RenderRegion3D& renderRegion) {
     renderRegion.modelView[1].setModelview();
     BBoxPreRender();
     PlaneIn3DPreRender();
-    Render3DPreLoop();
+    Render3DPreLoop(renderRegion);
     Render3DPostLoop();
     ComposeSurfaceImage(renderRegion, 1);
     BBoxPostRender();
@@ -1990,7 +1990,7 @@ void GLRenderer::Recompose3DView(RenderRegion3D& renderRegion) {
 }
 
 float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
-  Render3DPreLoop();
+  Render3DPreLoop(renderRegion);
 
   // loop over all bricks in the current LOD level
   m_Timer.Start();

@@ -447,8 +447,6 @@ class AbstrRenderer {
     float               m_fScreenResDecFactor;
     float               m_fSampleDecFactor;
     bool                m_bUseAllMeans;
-    bool                m_bDecreaseSamplingRate;
-    bool                m_bDecreaseSamplingRateNow;
     bool                m_bOffscreenIsLowRes;
     UINT32              m_iStartDelay;
     UINT64              m_iMinLODForCurrentView;

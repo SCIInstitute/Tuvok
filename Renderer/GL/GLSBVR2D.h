@@ -79,9 +79,9 @@ class GLSBVR2D : public GLRenderer {
     GLSLProgram*  m_pProgramIsoNoCompose;
     GLSLProgram*  m_pProgramColorNoCompose;
 
-    void SetBrickDepShaderVars(const Brick& currentBrick);
+    void SetBrickDepShaderVars(RenderRegion3D& region, const Brick& currentBrick);
 
-    virtual void Render3DPreLoop();
+    virtual void Render3DPreLoop(RenderRegion3D& region);
     virtual void Render3DInLoop(RenderRegion3D& renderRegion,
                                 size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
