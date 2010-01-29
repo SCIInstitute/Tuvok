@@ -141,7 +141,7 @@ class DXRenderer : public AbstrRenderer {
     virtual void ClearColorBuffer();
 
     virtual void StartFrame();
-    virtual void EndFrame(bool bNewDataToShow);
+    virtual void EndFrame(RenderRegion* region, bool bNewDataToShow);
   private:
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();
