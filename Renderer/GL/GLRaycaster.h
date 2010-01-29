@@ -88,16 +88,18 @@ class GLRaycaster : public GLRenderer {
     void SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurrentBrick);
 
     virtual void CreateOffscreenBuffers();
-    void RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend,
+    void RenderBox(RenderRegion& renderRegion,
+                   const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend,
                    const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords,
                    bool bCullBack, int iStereoID) const;
 
     virtual void Render3DPreLoop();
-    virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
+    virtual void Render3DInLoop(RenderRegion3D& renderRegion,
+                                size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
 
-    virtual void RenderHQMIPPreLoop(const RenderRegion2D &region);
-    virtual void RenderHQMIPInLoop(const Brick& b);
+    virtual void RenderHQMIPPreLoop(RenderRegion2D &region);
+    virtual void RenderHQMIPInLoop(RenderRegion2D &renderRegion, const Brick& b);
     virtual void RenderHQMIPPostLoop();
 
     /// Set the clip plane input variable in the shader.
@@ -106,7 +108,8 @@ class GLRaycaster : public GLRenderer {
     virtual void StartFrame();
     virtual void SetDataDepShaderVars();
 
-    FLOATMATRIX4 ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1,
+    FLOATMATRIX4 ComputeEyeToTextureMatrix(RenderRegion &renderRegion,
+                                           FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                            FLOATVECTOR3 p2, FLOATVECTOR3 t2,
                                            int iStereoID) const;
 

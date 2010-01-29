@@ -82,17 +82,18 @@ class GLSBVR2D : public GLRenderer {
     void SetBrickDepShaderVars(const Brick& currentBrick);
 
     virtual void Render3DPreLoop();
-    virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
+    virtual void Render3DInLoop(RenderRegion3D& renderRegion,
+                                size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
 
-    virtual void RenderHQMIPPreLoop(const RenderRegion2D &region);
-    virtual void RenderHQMIPInLoop(const Brick& b);
+    virtual void RenderHQMIPPreLoop(RenderRegion2D& region);
+    virtual void RenderHQMIPInLoop(RenderRegion2D& region, const Brick& b);
     virtual void RenderHQMIPPostLoop();
 
     void RenderProxyGeometry();
     virtual void Cleanup();
 
-    virtual void ComposeSurfaceImage(int iStereoID);
+    virtual void ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID);
     virtual void UpdateColorsInShaders();
 
     //virtual bool BindVolumeTex(const BrickKey& bkey, const UINT64 iIntraFrameCounter);

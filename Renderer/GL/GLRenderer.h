@@ -119,14 +119,13 @@ class GLRenderer : public AbstrRenderer {
     void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
                      bool bDecreaseScreenResNow);
 
-    bool Render2DView(const RenderRegion2D& renderRegion);
+    bool Render2DView(RenderRegion2D& renderRegion);
     void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1),
                     bool bEpsilonOffset=true);
     void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
                     const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
     void RenderClipPlane(size_t iStereoID);
-    bool Execute3DFrame(const RenderRegion3D& renderRegion,
-                        float& fMsecPassed);
+    bool Execute3DFrame(RenderRegion3D& renderRegion, float& fMsecPassed);
     void RerenderPreviousResult(bool bTransferToFramebuffer);
     void DrawLogo();
     void DrawBackGradient();
@@ -137,15 +136,16 @@ class GLRenderer : public AbstrRenderer {
     virtual float CalculateScaling();
     virtual void SetDataDepShaderVars();
 
-    virtual float Render3DView();
+    virtual float Render3DView(RenderRegion3D& renderRegion);
     virtual void Render3DPreLoop() {};
-    virtual void Render3DInLoop(size_t iCurentBrick, int iStereoID) = 0;
+    virtual void Render3DInLoop(RenderRegion3D& renderRegion,
+                                size_t iCurentBrick, int iStereoID) = 0;
     virtual void Render3DPostLoop() {}
-    virtual void ComposeSurfaceImage(int iStereoID);
-    virtual void Recompose3DView(const RenderRegion3D& renderRegion);
+    virtual void ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID);
+    virtual void Recompose3DView(RenderRegion3D& renderRegion);
 
-    virtual void RenderHQMIPPreLoop(const RenderRegion2D& region);
-    virtual void RenderHQMIPInLoop(const Brick& b) = 0;
+    virtual void RenderHQMIPPreLoop(RenderRegion2D& region);
+    virtual void RenderHQMIPInLoop(RenderRegion2D& renderRegion, const Brick& b) = 0;
     virtual void RenderHQMIPPostLoop() {}
 
     virtual void CreateOffscreenBuffers();
@@ -169,10 +169,10 @@ class GLRenderer : public AbstrRenderer {
     virtual void StartFrame();
     virtual void EndFrame(bool bNewDataToShow);
 
-    void PreSubframe(const RenderRegion& renderRegion);
-    void PostSubframe();
+    void PreSubframe(RenderRegion& renderRegion);
+    void PostSubframe(RenderRegion& renderRegion);
 
-    virtual void  CVFocusHasChanged();
+    virtual void  CVFocusHasChanged(RenderRegion& renderRegion);
 
     void FullscreenQuad();
     void FullscreenQuadRegions();
@@ -200,7 +200,7 @@ class GLRenderer : public AbstrRenderer {
     float*          m_aDepthStorage;
 
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
-    void RenderCoordArrows();
+    void RenderCoordArrows(const RenderRegion& renderRegion);
     void SaveEmptyDepthBuffer();
     void SaveDepthBuffer();
     void CreateDepthStorage();

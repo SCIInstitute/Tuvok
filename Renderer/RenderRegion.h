@@ -36,6 +36,10 @@ namespace tuvok {
 class AbstrRenderer;
 class GLRenderer;
 
+  // NOTE: client code should never directly modify a RenderRegion. Instead,
+  // modifications should be done through the tuvok API so that tuvok is aware
+  // of these changes.
+
   class RenderRegion {
   public:
 
@@ -83,10 +87,19 @@ class GLRenderer;
         (minCoord[1] < pos[1] && pos[1] < maxCoord[1]);
     }
 
+    // These really should just be for 3D and for 3D MIP. But because 3D MIP is
+    // considered 2D, we have to put this here for now...
+    FLOATMATRIX4 modelView[2]; // one for each eye (if in stereo mode).
+    FLOATMATRIX4 rotation;
+    FLOATMATRIX4 translation;
+
   protected:
-    //These methods should be accessed through AbstrRenderer
+
+    // These methods should be accessed through AbstrRenderer
     friend class AbstrRenderer;
     friend class GLRenderer;
+
+    // 2D methods
     virtual bool GetUseMIP() const = 0;
     virtual void SetUseMIP(bool) = 0;
     virtual UINT64 GetSliceIndex() const = 0;
@@ -97,9 +110,6 @@ class GLRenderer;
 
   class RenderRegion2D : public RenderRegion {
   public:
-
-    VECTOR2<bool>       flipView;
-
     RenderRegion2D(EWindowMode mode, UINT64 sliceIndex) :
       RenderRegion(mode),
       useMIP(false),
@@ -112,7 +122,7 @@ class GLRenderer;
     virtual bool is2D() const { return true; }
 
   protected:
-    //These methods should be accessed through AbstrRenderer
+    // These methods should be accessed through AbstrRenderer
     friend class AbstrRenderer;
     friend class GLRenderer;
     virtual bool GetUseMIP() const { return useMIP; }
@@ -128,6 +138,7 @@ class GLRenderer;
       flipView.y = flipY;
     }
 
+    VECTOR2<bool> flipView;
     bool useMIP;
     UINT64 sliceIndex;
   };
@@ -140,9 +151,10 @@ class GLRenderer;
     virtual bool is3D() const { return true; }
 
   protected:
-    //These methods should be accessed through AbstrRenderer
+    // These methods should be accessed through AbstrRenderer
     friend class AbstrRenderer;
     friend class GLRenderer;
+
     // 3D regions don't do the following things:
     virtual bool GetUseMIP() const { assert(false); return false; }
     virtual void SetUseMIP(bool) { assert(false); }

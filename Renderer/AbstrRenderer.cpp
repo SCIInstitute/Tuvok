@@ -365,25 +365,25 @@ RenderRegion3D* AbstrRenderer::GetFirst3DRegion() {
 }
 
 void AbstrRenderer::SetRotation(RenderRegion *renderRegion,
-                                const FLOATMATRIX4& mRotation) {
-    m_mRotation = mRotation;
-    ScheduleWindowRedraw(renderRegion);
-}
-
-const FLOATMATRIX4&
-AbstrRenderer::GetRotation(const RenderRegion*) const {
-  return m_mRotation;
-}
-
-void AbstrRenderer::SetTranslation(RenderRegion *renderRegion,
-                                   const FLOATMATRIX4& mTranslation) {
-  m_mTranslation = mTranslation;
+                                const FLOATMATRIX4& rotation) {
+  renderRegion->rotation = rotation;
   ScheduleWindowRedraw(renderRegion);
 }
 
 const FLOATMATRIX4&
-AbstrRenderer::GetTranslation(const RenderRegion*) const {
-  return m_mTranslation;
+AbstrRenderer::GetRotation(const RenderRegion* renderRegion) const {
+  return renderRegion->rotation;
+}
+
+void AbstrRenderer::SetTranslation(RenderRegion *renderRegion,
+                                   const FLOATMATRIX4& mTranslation) {
+  renderRegion->translation = mTranslation;
+  ScheduleWindowRedraw(renderRegion);
+}
+
+const FLOATMATRIX4&
+AbstrRenderer::GetTranslation(const RenderRegion* renderRegion) const {
+  return renderRegion->translation;
 }
 
 void AbstrRenderer::SetClipPlane(RenderRegion *renderRegion,
@@ -640,8 +640,11 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
   /// @todo consider real extent not center
 
   FLOATVECTOR3 vfCenter(0,0,0);
-  m_iMinLODForCurrentView = max(int(m_iLODLimits.y), min<int>(m_pDataset->GetLODLevelCount()-1,
-                                            m_FrustumCullingLOD.GetLODLevel(vfCenter,vExtend,vDomainSize)));
+  m_iMinLODForCurrentView = max(int(m_iLODLimits.y),
+                                min<int>(m_pDataset->GetLODLevelCount()-1,
+                                         m_FrustumCullingLOD.GetLODLevel(vfCenter,
+                                                                         vExtend,
+                                                                         vDomainSize)));
 }
 
 /// Calculates the distance to a given brick given the current view
@@ -683,6 +686,7 @@ brick_distance(const Brick &b, const FLOATMATRIX4 &mat_modelview)
 }
 
 vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
+                             RenderRegion& renderRegion,
                              const vector<Brick>& vRightEyeBrickList) {
   vector<Brick> vBrickList = vRightEyeBrickList;
 
@@ -690,7 +694,7 @@ vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
     // compute minimum distance to brick corners (offset slightly to
     // the center to resolve ambiguities).
     vBrickList[iBrick].fDistance = brick_distance(vBrickList[iBrick],
-                                                  m_matModelView[1]);
+                                                  renderRegion.modelView[1]);
   }
 
   sort(vBrickList.begin(), vBrickList.end());
@@ -712,7 +716,8 @@ bool AbstrRenderer::OnlyRecomposite(RenderRegion* region) const {
          !region->doAnotherRedrawDueToAllMeans;
 }
 
-vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
+vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRegion,
+                                                    bool bUseResidencyAsDistanceCriterion) {
   vector<Brick> vBrickList;
 
   UINTVECTOR3 vOverlap = m_pDataset->GetBrickOverlapSize();
@@ -763,7 +768,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
       };
 
       bool bClip = true;
-      FLOATMATRIX4 matWorld = m_mRotation * m_mTranslation;
+      FLOATMATRIX4 matWorld = renderRegion.rotation * renderRegion.translation;
       for (size_t i = 0;i<8;i++) {
         vBrickVertices[i] = (FLOATVECTOR4(vBrickVertices[i],1) * matWorld)
                             .dehomo();
@@ -870,7 +875,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     } else {
       // compute minimum distance to brick corners (offset
       // slightly to the center to resolve ambiguities)
-      b.fDistance = brick_distance(b, m_matModelView[0]);
+      b.fDistance = brick_distance(b, renderRegion.modelView[0]);
     }
 
     // add the brick to the list of active bricks
@@ -886,13 +891,13 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
 void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
   if (region.isBlank) {
     // compute modelviewmatrix and pass it to the culling object
-    m_matModelView[0] = m_mRotation*m_mTranslation*m_mView[0];
+    region.modelView[0] = region.rotation*region.translation*m_mView[0];
     if (m_bDoStereoRendering)
-      m_matModelView[1] = m_mRotation*m_mTranslation*m_mView[1];
+      region.modelView[1] = region.rotation*region.translation*m_mView[1];
 
     // we assume that the left and right eye's view are similar so we only
     // use one for culling
-    m_FrustumCullingLOD.SetViewMatrix(m_matModelView[0]);
+    m_FrustumCullingLOD.SetViewMatrix(region.modelView[0]);
     m_FrustumCullingLOD.Update();
 
     // figure out how fine we need to draw the data for the current view
@@ -934,9 +939,11 @@ void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
       m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,m_pDataset->GetLODLevelCount()-1);
       // build new brick todo-list
       MESSAGE("Building new brick list for LOD ...");
-      m_vCurrentBrickList = BuildSubFrameBrickList();
+      m_vCurrentBrickList = BuildSubFrameBrickList(region);
       MESSAGE("%u bricks made the cut.", UINT32(m_vCurrentBrickList.size()));
-      if (m_bDoStereoRendering) m_vLeftEyeBrickList = BuildLeftEyeSubFrameBrickList(m_vCurrentBrickList);
+      if (m_bDoStereoRendering)
+        m_vLeftEyeBrickList = BuildLeftEyeSubFrameBrickList(region,
+                                                            m_vCurrentBrickList);
 
       m_iBricksRenderedInThisSubFrame = 0;
     }
@@ -949,9 +956,9 @@ void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
   }
 }
 
-void AbstrRenderer::PlanHQMIPFrame() {
+void AbstrRenderer::PlanHQMIPFrame(RenderRegion& renderRegion) {
   // compute modelviewmatrix and pass it to the culling object
-  m_matModelView[0] = m_mRotation*m_mTranslation*m_mView[0];
+  renderRegion.modelView[0] = renderRegion.rotation*renderRegion.translation*m_mView[0];
 
   m_FrustumCullingLOD.SetPassAll(true);
 
@@ -972,7 +979,7 @@ void AbstrRenderer::PlanHQMIPFrame() {
   }
 
   // build new brick todo-list
-  m_vCurrentBrickList = BuildSubFrameBrickList(true);
+  m_vCurrentBrickList = BuildSubFrameBrickList(renderRegion, true);
 
   m_iBricksRenderedInThisSubFrame = 0;
 
@@ -1069,11 +1076,11 @@ void AbstrRenderer::SetCVBorderScale(float fScale) {
   }
 }
 
-void AbstrRenderer::SetCVFocusPos(INTVECTOR2 vPos) {
+void AbstrRenderer::SetCVFocusPos(RenderRegion& renderRegion, INTVECTOR2 vPos) {
   if (m_vCVMousePos!= vPos) {
     m_vCVMousePos = vPos;
     if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE)
-      CVFocusHasChanged();
+      CVFocusHasChanged(renderRegion);
   }
 }
 
@@ -1117,7 +1124,7 @@ void AbstrRenderer::SetStereoFocalLength(float fStereoFocalLength) {
   if (m_bDoStereoRendering) Schedule3DWindowRedraws();
 }
 
-void AbstrRenderer::CVFocusHasChanged() {
+void AbstrRenderer::CVFocusHasChanged(RenderRegion &) {
   ScheduleRecompose();
 }
 

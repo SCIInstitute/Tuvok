@@ -366,7 +366,7 @@ class AbstrRenderer {
     virtual float GetCVContextScale() const {return m_fCVContextScale;}
     virtual void SetCVBorderScale(float fScale);
     virtual float GetCVBorderScale() const {return m_fCVBorderScale;}
-    virtual void SetCVFocusPos(INTVECTOR2 vPos);
+    virtual void SetCVFocusPos(RenderRegion& renderRegion, INTVECTOR2 vPos);
     virtual INTVECTOR2 GetCVFocusPos() const {return m_vCVMousePos;}
 
     virtual void ScheduleCompleteRedraw();
@@ -436,8 +436,6 @@ class AbstrRenderer {
     FLOATVECTOR3        m_vIsoColor;
     FLOATVECTOR3        m_vBackgroundColors[2];
     FLOATVECTOR4        m_vTextColor;
-    FLOATMATRIX4        m_mRotation;
-    FLOATMATRIX4        m_mTranslation;
     bool                m_bRenderGlobalBBox;
     bool                m_bRenderLocalBBox;
     UINTVECTOR2         m_vWinSize;
@@ -502,7 +500,6 @@ class AbstrRenderer {
 
     FLOATMATRIX4        m_mProjection[2];
     FLOATMATRIX4        m_mView[2];
-    FLOATMATRIX4        m_matModelView[2];
     std::vector<std::string> m_vShaderSearchDirs;
 
     ExtendedPlane       m_ClipPlane;
@@ -531,12 +528,14 @@ class AbstrRenderer {
     void                ComputeMinLODForCurrentView();
     void                ComputeMaxLODForCurrentView(RenderRegion& region);
     void                Plan3DFrame(RenderRegion3D& region);
-    void                PlanHQMIPFrame();
-    std::vector<Brick>  BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion=false);
-    std::vector<Brick>  BuildLeftEyeSubFrameBrickList(const std::vector<Brick>& vRightEyeBrickList);
+    void                PlanHQMIPFrame(RenderRegion& renderRegion);
+    std::vector<Brick>  BuildSubFrameBrickList(const RenderRegion& renderRegion,
+                                               bool bUseResidencyAsDistanceCriterion=false);
+    std::vector<Brick>  BuildLeftEyeSubFrameBrickList(RenderRegion& renderRegion,
+                                                      const std::vector<Brick>& vRightEyeBrickList);
     virtual void        ClearDepthBuffer() = 0;
     virtual void        ClearColorBuffer() = 0;
-    virtual void        CVFocusHasChanged();
+    virtual void        CVFocusHasChanged(RenderRegion &);
     void                CompletedASubframe(RenderRegion* region);
     void                RestartTimer(RenderRegion& region, const size_t iTimerIndex);
     void                RestartTimers(RenderRegion& region);

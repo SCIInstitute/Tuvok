@@ -694,7 +694,7 @@ bool GLRenderer::UnbindVolumeTex() {
 }
 
 
-bool GLRenderer::Render2DView(const RenderRegion2D& renderRegion) {
+bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
 
   // bind offscreen buffer
   if (renderRegion.GetUseMIP()) {
@@ -835,7 +835,7 @@ bool GLRenderer::Render2DView(const RenderRegion2D& renderRegion) {
       maOrtho.setProjection();
     }
 
-    PlanHQMIPFrame();
+    PlanHQMIPFrame(renderRegion);
     m_iFilledBuffers = 0;
     glClearColor(0,0,0,0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -862,7 +862,7 @@ bool GLRenderer::Render2DView(const RenderRegion2D& renderRegion) {
                 static_cast<unsigned>(m_iCurrentLOD),
                 static_cast<unsigned>(iBrickIndex));
       }
-      RenderHQMIPInLoop(m_vCurrentBrickList[iBrickIndex]);
+      RenderHQMIPInLoop(renderRegion, m_vCurrentBrickList[iBrickIndex]);
       if (!UnbindVolumeTex()) {
         T_ERROR("Cannot unbind volume: No volume bound");
       }
@@ -896,7 +896,7 @@ bool GLRenderer::Render2DView(const RenderRegion2D& renderRegion) {
   return true;
 }
 
-void GLRenderer::RenderHQMIPPreLoop(const RenderRegion2D& region) {
+void GLRenderer::RenderHQMIPPreLoop(RenderRegion2D& region) {
   double dPI = 3.141592653589793238462643383;
   FLOATMATRIX4 matRotDir, matFlipX, matFlipY;
   switch (region.windowMode) {
@@ -1023,7 +1023,7 @@ void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
   glDisable( GL_SCISSOR_TEST );
 }
 
-void GLRenderer::RenderCoordArrows() {
+void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHT0);
   glEnable(GL_LIGHTING);
@@ -1053,7 +1053,7 @@ void GLRenderer::RenderCoordArrows() {
   mProjection = m_mProjection[0]*mTranslation;
   mProjection.setProjection();
   FLOATMATRIX4 mRotation;
-  matModelView = m_mRotation*m_mView[0];
+  matModelView = renderRegion.rotation*m_mView[0];
   matModelView.setModelview();
 
   glBegin(GL_TRIANGLES);
@@ -1071,7 +1071,7 @@ void GLRenderer::RenderCoordArrows() {
   glEnd();
 
   mRotation.RotationX(-3.1415f/2.0f);
-  matModelView = mRotation*m_mRotation*m_mView[0];
+  matModelView = mRotation*renderRegion.rotation*m_mView[0];
   matModelView.setModelview();
 
   glBegin(GL_TRIANGLES);
@@ -1089,7 +1089,7 @@ void GLRenderer::RenderCoordArrows() {
   glEnd();
 
   mRotation.RotationY(3.1415f/2.0f);
-  matModelView = mRotation*m_mRotation*m_mView[0];
+  matModelView = mRotation*renderRegion.rotation*m_mView[0];
   matModelView.setModelview();
 
   glBegin(GL_TRIANGLES);
@@ -1112,18 +1112,18 @@ void GLRenderer::RenderCoordArrows() {
 }
 
 /// Actions to perform every subframe (rendering of a complete LOD level).
-void GLRenderer::PreSubframe(const RenderRegion& renderRegion)
+void GLRenderer::PreSubframe(RenderRegion& renderRegion)
 {
   NewFrameClear(renderRegion);
 
   // Render the coordinate cross (three arrows in upper right corner)
   if (m_bRenderCoordArrows) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-    RenderCoordArrows();
+    RenderCoordArrows(renderRegion);
 
     if (m_bDoStereoRendering) {
       m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-      RenderCoordArrows();
+      RenderCoordArrows(renderRegion);
     }
     m_TargetBinder.Unbind();
   }
@@ -1132,13 +1132,13 @@ void GLRenderer::PreSubframe(const RenderRegion& renderRegion)
   // isosurfacing).
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   m_mProjection[0].setProjection();
-  m_matModelView[0].setModelview();
+  renderRegion.modelView[0].setModelview();
   BBoxPreRender();
   PlaneIn3DPreRender();
   if (m_bDoStereoRendering) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
     m_mProjection[1].setProjection();
-    m_matModelView[1].setModelview();
+    renderRegion.modelView[1].setModelview();
     BBoxPreRender();
     PlaneIn3DPreRender();
   }
@@ -1146,20 +1146,20 @@ void GLRenderer::PreSubframe(const RenderRegion& renderRegion)
 }
 
 /// Actions which should be performed when we declare a subframe complete.
-void GLRenderer::PostSubframe()
+void GLRenderer::PostSubframe(RenderRegion& renderRegion)
 {
   // render the bounding boxes and clip plane; these are essentially no
   // ops if they aren't enabled.
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   m_mProjection[0].setProjection();
-  m_matModelView[0].setModelview();
+  renderRegion.modelView[0].setModelview();
   BBoxPostRender();
   PlaneIn3DPostRender();
   RenderClipPlane(0);
   if (m_bDoStereoRendering) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
     m_mProjection[1].setProjection();
-    m_matModelView[1].setModelview();
+    renderRegion.modelView[1].setModelview();
     BBoxPostRender();
     PlaneIn3DPostRender();
     RenderClipPlane(1);
@@ -1167,7 +1167,7 @@ void GLRenderer::PostSubframe()
   m_TargetBinder.Unbind();
 }
 
-bool GLRenderer::Execute3DFrame(const RenderRegion3D& renderRegion,
+bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
                                 float& fMsecPassed) {
   // are we starting a new LOD level?
   if (m_iBricksRenderedInThisSubFrame == 0) {
@@ -1178,7 +1178,7 @@ bool GLRenderer::Execute3DFrame(const RenderRegion3D& renderRegion,
   // if zero bricks are to be rendered we have completed the draw job
   if (m_vCurrentBrickList.empty()) {
     MESSAGE("zero bricks are to be rendered, completed the draw job");
-    PostSubframe();
+    PostSubframe(renderRegion);
     return true;
   }
 
@@ -1192,7 +1192,7 @@ bool GLRenderer::Execute3DFrame(const RenderRegion3D& renderRegion,
     SetDataDepShaderVars();
 
     // Render a few bricks and return the time it took
-    fMsecPassed += Render3DView();
+    fMsecPassed += Render3DView(renderRegion);
 
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
@@ -1200,7 +1200,7 @@ bool GLRenderer::Execute3DFrame(const RenderRegion3D& renderRegion,
       OTHER("The current subframe took %g ms to render (LOD Level %u)",
             renderRegion.msecPassedCurrentFrame + fMsecPassed,
             static_cast<unsigned>(m_iCurrentLODOffset));
-      PostSubframe();
+      PostSubframe(renderRegion);
       return true;
     }
   }
@@ -1957,18 +1957,18 @@ bool GLRenderer::LoadDataset(const string& strFilename, bool& bRebrickingRequire
   } else return false;
 }
 
-void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
+void GLRenderer::Recompose3DView(RenderRegion3D& renderRegion) {
   MESSAGE("Recomposing...");
   NewFrameClear(renderRegion);
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   m_mProjection[0].setProjection();
-  m_matModelView[0].setModelview();
+  renderRegion.modelView[0].setModelview();
   BBoxPreRender();
   PlaneIn3DPreRender();
   Render3DPreLoop();
   Render3DPostLoop();
-  ComposeSurfaceImage(0);
+  ComposeSurfaceImage(renderRegion, 0);
   BBoxPostRender();
   PlaneIn3DPostRender();
   RenderClipPlane(0);
@@ -1976,12 +1976,12 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
   if (m_bDoStereoRendering) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
     m_mProjection[1].setProjection();
-    m_matModelView[1].setModelview();
+    renderRegion.modelView[1].setModelview();
     BBoxPreRender();
     PlaneIn3DPreRender();
     Render3DPreLoop();
     Render3DPostLoop();
-    ComposeSurfaceImage(1);
+    ComposeSurfaceImage(renderRegion, 1);
     BBoxPostRender();
     PlaneIn3DPostRender();
     RenderClipPlane(1);
@@ -1989,7 +1989,7 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
   m_TargetBinder.Unbind();
 }
 
-float GLRenderer::Render3DView() {
+float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
   Render3DPreLoop();
 
   // loop over all bricks in the current LOD level
@@ -2015,7 +2015,7 @@ float GLRenderer::Render3DView() {
       T_ERROR("Cannot bind texture, Get3DTexture returned invalid texture");
     }
 
-    Render3DInLoop(m_iBricksRenderedInThisSubFrame,0);
+    Render3DInLoop(renderRegion, m_iBricksRenderedInThisSubFrame,0);
     if (m_bDoStereoRendering) {
       if (m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].kBrick !=
           m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick) {
@@ -2029,7 +2029,7 @@ float GLRenderer::Render3DView() {
         }
       }
 
-      Render3DInLoop(m_iBricksRenderedInThisSubFrame,1);
+      Render3DInLoop(renderRegion, m_iBricksRenderedInThisSubFrame,1);
     }
 
     // release the 3D texture
@@ -2059,10 +2059,10 @@ float GLRenderer::Render3DView() {
   if (m_eRenderMode == RM_ISOSURFACE &&
       m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-    ComposeSurfaceImage(0);
+    ComposeSurfaceImage(renderRegion, 0);
     if (m_bDoStereoRendering) {
       m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-      ComposeSurfaceImage(1);
+      ComposeSurfaceImage(renderRegion, 1);
     }
     m_TargetBinder.Unbind();
   }
@@ -2083,7 +2083,7 @@ void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
   ScheduleCompleteRedraw();
 }
 
-void GLRenderer::ComposeSurfaceImage(int iStereoID) {
+void GLRenderer::ComposeSurfaceImage(RenderRegion &renderRegion, int iStereoID) {
   glEnable(GL_DEPTH_TEST);
 
   m_pFBOIsoHit[iStereoID]->Read(0, 0);
@@ -2100,7 +2100,7 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
     m_pProgramCVCompose->SetUniformVector("vCVParam",m_fCVSize,
                                           m_fCVContextScale, m_fCVBorderScale);
 
-    FLOATVECTOR4 transPos = m_vCVPos * m_matModelView[iStereoID];
+    FLOATVECTOR4 transPos = m_vCVPos * renderRegion.modelView[iStereoID];
     m_pProgramCVCompose->SetUniformVector("vCVPickPos", transPos.x,
                                                         transPos.y,
                                                         transPos.z);
@@ -2144,7 +2144,7 @@ void GLRenderer::ComposeSurfaceImage(int iStereoID) {
 }
 
 
-void GLRenderer::CVFocusHasChanged() {
+void GLRenderer::CVFocusHasChanged(RenderRegion &renderRegion) {
   // read back the 3D position from the framebuffer
   m_pFBOIsoHit[0]->Write(0,0,false);
   glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
@@ -2157,14 +2157,14 @@ void GLRenderer::CVFocusHasChanged() {
   // update m_vCVPos
   if (vec[3] != 0.0f) {
     m_vCVPos = FLOATVECTOR4(vec[0],vec[1],vec[2],1.0f) *
-               m_matModelView[0].inverse();
+               renderRegion.modelView[0].inverse();
   } else {
     // if we do not pick a valid point move CV pos to "nirvana"
     m_vCVPos = FLOATVECTOR4(10000000.0f, 10000000.0f, 10000000.0f, 0.0f);
   }
 
   // now let the parent do its part
-  AbstrRenderer::CVFocusHasChanged();
+  AbstrRenderer::CVFocusHasChanged(renderRegion);
 }
 
 void GLRenderer::SaveEmptyDepthBuffer() {

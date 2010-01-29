@@ -225,7 +225,12 @@ void GLRaycaster::SetBrickDepShaderVars(const Brick& currentBrick, size_t iCurre
 
 }
 
-void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend, const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords, bool bCullBack, int iStereoID) const  {
+void GLRaycaster::RenderBox(RenderRegion& renderRegion,
+                            const FLOATVECTOR3& vCenter,
+                            const FLOATVECTOR3& vExtend,
+                            const FLOATVECTOR3& vMinCoords,
+                            const FLOATVECTOR3& vMaxCoords, bool bCullBack,
+                            int iStereoID) const  {
   if (bCullBack) {
     glCullFace(GL_BACK);
   } else {
@@ -237,7 +242,8 @@ void GLRaycaster::RenderBox(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vEx
   vMaxPoint = (vCenter + vExtend/2.0);
 
   // \todo compute this only once per brick
-  FLOATMATRIX4 m = ComputeEyeToTextureMatrix(FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z),
+  FLOATMATRIX4 m = ComputeEyeToTextureMatrix(renderRegion,
+                                             FLOATVECTOR3(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z),
                                              FLOATVECTOR3(vMaxCoords.x, vMaxCoords.y, vMaxCoords.z),
                                              FLOATVECTOR3(vMinPoint.x, vMinPoint.y, vMinPoint.z),
                                              FLOATVECTOR3(vMinCoords.x, vMinCoords.y, vMinCoords.z),
@@ -346,7 +352,7 @@ void GLRaycaster::Render3DPreLoop() {
     // render nearplane into buffer
     float fNear = m_FrustumCullingLOD.GetNearPlane() + 0.01f;
 
-    FLOATMATRIX4 mInvModelView = m_matModelView[0].inverse();
+    FLOATMATRIX4 mInvModelView = renderRegion.modelView[0].inverse();
 
     FLOATVECTOR4 vMin(-1, -1, fNear, 1);
     FLOATVECTOR4 vMax( 1,  1, fNear, 1);
@@ -369,13 +375,14 @@ void GLRaycaster::Render3DPreLoop() {
   glEnable(GL_CULL_FACE);
 }
 
-void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
+void GLRaycaster::Render3DInLoop(RenderRegion3D& renderRegion,
+                                 size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
 
   glDisable(GL_BLEND);
   glDepthMask(GL_FALSE);
 
-  m_matModelView[iStereoID].setModelview();
+  renderRegion.modelView[iStereoID].setModelview();
   m_mProjection[iStereoID].setProjection();
 
   if (m_bClipPlaneOn) ClipPlaneToShader(m_ClipPlane, iStereoID);
@@ -383,7 +390,7 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
   // write frontfaces (ray entry points)
   m_TargetBinder.Bind(m_pFBORayEntry);
   m_pProgramRenderFrontFaces->Enable();
-  RenderBox(b.vCenter, b.vExtension,
+  RenderBox(renderRegion, b.vCenter, b.vExtension,
             b.vTexcoordsMin, b.vTexcoordsMax,
             false, iStereoID);
   m_pProgramRenderFrontFaces->Disable();
@@ -397,7 +404,7 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     shader->Enable();
     SetBrickDepShaderVars(b, iCurrentBrick);
     m_pFBORayEntry->Read(2);
-    RenderBox(b.vCenter, b.vExtension,
+    RenderBox(renderRegion, b.vCenter, b.vExtension,
               b.vTexcoordsMin, b.vTexcoordsMax,
               true, iStereoID);
     m_pFBORayEntry->FinishRead();
@@ -411,7 +418,7 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
       m_pFBORayEntry->Read(2);
       m_pFBOIsoHit[iStereoID]->Read(4, 0);
       m_pFBOIsoHit[iStereoID]->Read(5, 1);
-      RenderBox(b.vCenter, b.vExtension,
+      RenderBox(renderRegion, b.vCenter, b.vExtension,
                 b.vTexcoordsMin, b.vTexcoordsMax,
                 true, iStereoID);
       m_pFBOIsoHit[iStereoID]->FinishRead(1);
@@ -438,7 +445,7 @@ void GLRaycaster::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
     SetBrickDepShaderVars(b, iCurrentBrick);
 
     m_pFBORayEntry->Read(2);
-    RenderBox(b.vCenter, b.vExtension,
+    RenderBox(renderRegion, b.vCenter, b.vExtension,
               b.vTexcoordsMin, b.vTexcoordsMax,
               true, iStereoID);
     m_pFBORayEntry->FinishRead();
@@ -465,7 +472,7 @@ void GLRaycaster::Render3DPostLoop() {
   glEnable(GL_BLEND);
 }
 
-void GLRaycaster::RenderHQMIPPreLoop(const RenderRegion2D &region) {
+void GLRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
   GLRenderer::RenderHQMIPPreLoop(region);
   m_pProgramHQMIPRot->Enable();
   m_pProgramHQMIPRot->SetUniformVector("vScreensize",float(m_vWinSize.x), float(m_vWinSize.y));
@@ -474,21 +481,23 @@ void GLRaycaster::RenderHQMIPPreLoop(const RenderRegion2D &region) {
   glDepthMask(GL_FALSE);
 
   if (m_bOrthoView)
-    m_matModelView[0] = m_maMIPRotation;
+    region.modelView[0] = m_maMIPRotation;
   else
-    m_matModelView[0] = m_maMIPRotation * m_mView[0];
+    region.modelView[0] = m_maMIPRotation * m_mView[0];
 
-  m_matModelView[0].setModelview();
+  region.modelView[0].setModelview();
 }
 
-void GLRaycaster::RenderHQMIPInLoop(const Brick& b) {
+void GLRaycaster::RenderHQMIPInLoop(RenderRegion2D &renderRegion,
+                                    const Brick& b) {
   glDisable(GL_BLEND);
 
   // write frontfaces (ray entry points)
   m_TargetBinder.Bind(m_pFBORayEntry);
 
   m_pProgramRenderFrontFaces->Enable();
-  RenderBox(b.vCenter, b.vExtension, b.vTexcoordsMin, b.vTexcoordsMax, false, 0);
+  RenderBox(renderRegion, b.vCenter, b.vExtension, b.vTexcoordsMin,
+            b.vTexcoordsMax, false, 0);
   m_pProgramRenderFrontFaces->Disable();
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
@@ -503,7 +512,8 @@ void GLRaycaster::RenderHQMIPInLoop(const Brick& b) {
   m_pProgramHQMIPRot->SetUniformVector("fRayStepsize", fRayStep);
 
   m_pFBORayEntry->Read(2);
-  RenderBox(b.vCenter, b.vExtension,b.vTexcoordsMin, b.vTexcoordsMax, true, 0);
+  RenderBox(renderRegion, b.vCenter, b.vExtension,b.vTexcoordsMin,
+            b.vTexcoordsMax, true, 0);
   m_pFBORayEntry->FinishRead();
   m_pProgramHQMIPRot->Disable();
 }
@@ -567,12 +577,13 @@ void GLRaycaster::SetDataDepShaderVars() {
 }
 
 
-FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(FLOATVECTOR3 p1, FLOATVECTOR3 t1,
+FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(RenderRegion &renderRegion,
+                                                    FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                                     FLOATVECTOR3 p2, FLOATVECTOR3 t2,
                                                     int iStereoID) const {
   FLOATMATRIX4 m;
 
-  FLOATMATRIX4 mInvModelView = m_matModelView[iStereoID].inverse();
+  FLOATMATRIX4 mInvModelView = renderRegion.modelView[iStereoID].inverse();
 
   FLOATVECTOR3 vTrans1 = -p1;
   FLOATVECTOR3 vScale  = (t2-t1) / (p2-p1);

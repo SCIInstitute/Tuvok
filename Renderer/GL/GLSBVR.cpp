@@ -265,7 +265,8 @@ void GLSBVR::RenderProxyGeometry() {
   glEnd();
 }
 
-void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
+void GLSBVR::Render3DInLoop(RenderRegion3D& renderRegion,
+                            size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
 
   // setup the slice generator
@@ -273,11 +274,11 @@ void GLSBVR::Render3DInLoop(size_t iCurrentBrick, int iStereoID) {
                             b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
-  FLOATMATRIX4 maBricktModelView = maBricktTrans * m_matModelView[iStereoID];
+  FLOATMATRIX4 maBricktModelView = maBricktTrans * renderRegion.modelView[iStereoID];
   m_mProjection[iStereoID].setProjection();
   maBricktModelView.setModelview();
 
-  m_SBVRGeogen.SetWorld(maBricktTrans * m_mRotation * m_mTranslation);
+  m_SBVRGeogen.SetWorld(maBricktTrans * renderRegion.rotation*renderRegion.translation);
   m_SBVRGeogen.SetView(m_mView[iStereoID], true);
 
   if (!m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
@@ -339,7 +340,7 @@ void GLSBVR::Render3DPostLoop() {
   }
 }
 
-void GLSBVR::RenderHQMIPPreLoop(const RenderRegion2D &region) {
+void GLSBVR::RenderHQMIPPreLoop(RenderRegion2D &region) {
   GLRenderer::RenderHQMIPPreLoop(region);
   m_pProgramHQMIPRot->Enable();
 
@@ -349,7 +350,7 @@ void GLSBVR::RenderHQMIPPreLoop(const RenderRegion2D &region) {
   glDisable(GL_DEPTH_TEST);
 }
 
-void GLSBVR::RenderHQMIPInLoop(const Brick& b) {
+void GLSBVR::RenderHQMIPInLoop(RenderRegion2D &, const Brick& b) {
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
@@ -380,8 +381,9 @@ bool GLSBVR::LoadDataset(const string& strFilename, bool& bRebrickingRequired) {
   } else return false;
 }
 
-void GLSBVR::ComposeSurfaceImage(int iStereoID) {
-  if (!m_bAvoidSeperateCompositing) GLRenderer::ComposeSurfaceImage(iStereoID);
+void GLSBVR::ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID) {
+  if (!m_bAvoidSeperateCompositing)
+    GLRenderer::ComposeSurfaceImage(renderRegion, iStereoID);
 }
 
 
