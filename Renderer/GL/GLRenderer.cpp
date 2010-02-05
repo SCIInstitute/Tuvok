@@ -346,15 +346,10 @@ void GLRenderer::Paint() {
 
   StartFrame();
 
-  bool bNewDataToShow = false;
-  int iActiveRenderRegions = 0;
-  int iReadyRegions = 0;
+  vector<bool> justCompletedRegions(renderRegions.size(), false);
 
   for (size_t i=0; i < renderRegions.size(); ++i) {
     if (renderRegions[i]->redrawMask) {
-      iActiveRenderRegions++;
-      bool bLocalNewDataToShow = false;
-
       if (renderRegions[i]->is3D()) {
         assert(renderRegions[i]->is3D());
         RenderRegion3D &region3D = *static_cast<RenderRegion3D*>(renderRegions[i]);
@@ -362,7 +357,7 @@ void GLRenderer::Paint() {
         if (!region3D.isBlank && m_bPerformReCompose){
           SetRenderTargetArea(region3D, region3D.decreaseScreenResNow);
           Recompose3DView(region3D);
-          bLocalNewDataToShow = true;
+          justCompletedRegions[i] = true;
         } else {
           Plan3DFrame(region3D);
 
@@ -372,7 +367,7 @@ void GLRenderer::Paint() {
 
           // execute the frame0
           float fMsecPassed = 0.0f;
-          bLocalNewDataToShow = Execute3DFrame(region3D, fMsecPassed);
+          justCompletedRegions[i] = Execute3DFrame(region3D, fMsecPassed);
           region3D.msecPassedCurrentFrame += fMsecPassed;
         }
         // are we done rendering or do we need to render at higher quality?
@@ -384,30 +379,15 @@ void GLRenderer::Paint() {
         assert(renderRegions[i]->is2D());
         RenderRegion2D& region2D = *static_cast<RenderRegion2D*>(renderRegions[i]);
         SetRenderTargetArea(region2D, region2D.decreaseScreenResNow);
-        bLocalNewDataToShow = Render2DView(region2D);
+        justCompletedRegions[i] = Render2DView(region2D);
         region2D.redrawMask = false;
       }
-
-      if (bLocalNewDataToShow) iReadyRegions++;
-
     } else {
-      // blit the previous result quad to the entire screen but restrict
-      // drawing to the current subarea
-      m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-      SetViewPort(UINTVECTOR2(0,0), m_vWinSize, false);
-      SetRenderTargetAreaScissor(*renderRegions[i], false);
-      RerenderPreviousResult(false);
-      m_TargetBinder.Unbind();
+      justCompletedRegions[i] = false;
     }
     renderRegions[i]->isBlank = false;
   }
-
-  // if we had at least one renderwindow that was doing something and from those
-  // all are finished then set a flag so that we can display the result to the
-  // user later
-  bNewDataToShow = (iActiveRenderRegions > 0) && (iReadyRegions==iActiveRenderRegions);
-
-  EndFrame(bNewDataToShow);
+  EndFrame(justCompletedRegions);
 }
 
 void GLRenderer::FullscreenQuad() {
@@ -425,19 +405,24 @@ void GLRenderer::FullscreenQuad() {
 
 void GLRenderer::FullscreenQuadRegions() {
   for (size_t i=0; i < renderRegions.size(); ++i) {
-    const float rescale = renderRegions[i]->decreaseScreenResNow ?
-      1.0f / m_fScreenResDecFactor : 1.0f;
+    FullscreenQuadRegion(renderRegions[i], renderRegions[i]->decreaseScreenResNow);
+  }
+}
 
-    FLOATVECTOR2 minCoord(renderRegions[i]->minCoord);
-    FLOATVECTOR2 maxCoord(renderRegions[i]->maxCoord);
+void GLRenderer::FullscreenQuadRegion(const RenderRegion* region,
+                                      bool decreaseScreenRes) {
+  const float rescale = decreaseScreenRes ? 1.0f / m_fScreenResDecFactor : 1.0f;
 
-    //normalize to 0,1.
-    FLOATVECTOR2 minCoordNormalized = minCoord / FLOATVECTOR2(m_vWinSize);
-    FLOATVECTOR2 maxCoordNormalized = maxCoord / FLOATVECTOR2(m_vWinSize);
+  FLOATVECTOR2 minCoord(region->minCoord);
+  FLOATVECTOR2 maxCoord(region->maxCoord);
 
-    FLOATVECTOR2 minTexCoord = minCoordNormalized;
-    FLOATVECTOR2 maxTexCoord = minCoordNormalized +
-      (maxCoordNormalized-minCoordNormalized)*rescale;
+  //normalize to 0,1.
+  FLOATVECTOR2 minCoordNormalized = minCoord / FLOATVECTOR2(m_vWinSize);
+  FLOATVECTOR2 maxCoordNormalized = maxCoord / FLOATVECTOR2(m_vWinSize);
+
+  FLOATVECTOR2 minTexCoord = minCoordNormalized;
+  FLOATVECTOR2 maxTexCoord = minCoordNormalized +
+    (maxCoordNormalized-minCoordNormalized)*rescale;
 
   glBegin(GL_QUADS);
     glTexCoord2d(minTexCoord[0], minTexCoord[1]);
@@ -449,46 +434,103 @@ void GLRenderer::FullscreenQuadRegions() {
     glTexCoord2d(minTexCoord[0], maxTexCoord[1]);
     glVertex3d(minCoordNormalized[0]*2-1, maxCoordNormalized[1]*2-1, -0.5);
   glEnd();
-  }
 }
 
-void GLRenderer::EndFrame(bool bNewDataToShow) {
+void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
+  // copy the newly completed image into the buffer that stores completed images.
+
+  // write to FBO that contains final images.
+  m_TargetBinder.Bind(m_pFBO3DImageLast);
+
+  glEnable(GL_SCISSOR_TEST);
+
+  glDisable(GL_BLEND);
+
+  glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
+  glDepthFunc(GL_LEQUAL);
+
+  glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
+
+  SetRenderTargetAreaScissor(*region, false);
+
+  if (m_bClearFramebuffer)
+    ClearColorBuffer();
+
+  // always clear the depth buffer since we are transporting new data from the FBO
+  glClear(GL_DEPTH_BUFFER_BIT);
+
+  // Read newly completed image
+  m_pFBO3DImageCurrent[0]->Read(0);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                  (region->decreaseScreenResNow) ? GL_LINEAR : GL_NEAREST);
+  m_pFBO3DImageCurrent[0]->ReadDepth(1);
+
+  // Display this to the old buffer so we can reuse it in future frame.
+  m_pProgramTrans->Enable();
+  FullscreenQuadRegion(region, region->decreaseScreenResNow);
+  m_pProgramTrans->Disable();
+
+  m_TargetBinder.Unbind();
+  m_pFBO3DImageCurrent[0]->FinishRead();
+  m_pFBO3DImageCurrent[0]->FinishDepthRead();
+
+  glDepthFunc(GL_LESS);
+  glDisable(GL_SCISSOR_TEST);
+}
+
+void GLRenderer::EndFrame(const vector<bool>& justCompletedRegions) {
   glDisable(GL_SCISSOR_TEST);
 
-  // if the image is complete
-  if (bNewDataToShow) {
-    // in stereo compose both images into one, in mono mode simply swap the pointers
-    if (m_bDoStereoRendering) {
-      m_pFBO3DImageCurrent[0]->Read(0);
-      m_pFBO3DImageCurrent[1]->Read(1);
+  if (renderRegions.size() == 1) {
+    // For a single region we can support stereo and we can also optimize the
+    // code by swapping the buffers instead of copying data from one to the
+    // other.
 
-      m_TargetBinder.Bind(m_pFBO3DImageLast);
-      glClear(GL_COLOR_BUFFER_BIT);
+    // if the image is complete
+    if (justCompletedRegions[0]) {
+      // in stereo compose both images into one, in mono mode simply swap the pointers
+      if (m_bDoStereoRendering) {
+        m_pFBO3DImageCurrent[0]->Read(0);
+        m_pFBO3DImageCurrent[1]->Read(1);
 
-      m_pProgramComposeAnaglyphs->Enable();
-      glDisable(GL_DEPTH_TEST);
-      FullscreenQuadRegions();
-      m_pProgramComposeAnaglyphs->Disable();
+        m_TargetBinder.Bind(m_pFBO3DImageLast);
+        glClear(GL_COLOR_BUFFER_BIT);
 
-      m_TargetBinder.Unbind();
+        m_pProgramComposeAnaglyphs->Enable();
+        glDisable(GL_DEPTH_TEST);
+        FullscreenQuadRegions();
+        m_pProgramComposeAnaglyphs->Disable();
 
-      m_pFBO3DImageCurrent[0]->FinishRead();
-      m_pFBO3DImageCurrent[1]->FinishRead();
-    } else {
-      swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
-    }
-    m_iFilledBuffers = 0;
-    for (size_t i=0; i < renderRegions.size(); ++i) {
-      if(!OnlyRecomposite(renderRegions[i])) {
-        CompletedASubframe(renderRegions[i]);
+        m_TargetBinder.Unbind();
+
+        m_pFBO3DImageCurrent[0]->FinishRead();
+        m_pFBO3DImageCurrent[1]->FinishRead();
+      } else {
+        swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
+      }
+      m_iFilledBuffers = 0;
+      for (size_t i=0; i < renderRegions.size(); ++i) {
+        if(!OnlyRecomposite(renderRegions[i])) {
+          CompletedASubframe(renderRegions[i]);
+        }
       }
     }
+    // show the result
+    // HACK: this code assumes no more than double-buffering
+    if (justCompletedRegions[0] || m_iFilledBuffers < 2)
+      CopyImageToDisplayBuffer();
+  } else {
+    for (size_t i=0; i < renderRegions.size(); ++i) {
+      if(justCompletedRegions[i]) {
+        if (!OnlyRecomposite(renderRegions[i])) {
+          CompletedASubframe(renderRegions[i]);
+        }
+        CopyOverCompletedRegion(renderRegions[i]);
+      }
+    }
+    CopyImageToDisplayBuffer();
   }
-
-  // show the result
-  // HACK: this code assumes no more than double-buffering
-  if (bNewDataToShow || m_iFilledBuffers < 2)
-    RerenderPreviousResult(true);
 
   // we've definitely recomposed by now.
   m_bPerformReCompose = false;
@@ -1207,21 +1249,24 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
   return false;
 }
 
-void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
-  if (bTransferToFramebuffer) {
-    glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
-    m_iFilledBuffers++;
-    if (m_bClearFramebuffer) ClearColorBuffer();
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  } else {
-    if (m_bClearFramebuffer) ClearColorBuffer();
-    glDisable(GL_BLEND);
-  }
+void GLRenderer::CopyImageToDisplayBuffer() {
+  if (m_bClearFramebuffer)
+    ClearColorBuffer();
+
+  glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
+  m_iFilledBuffers++;
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   m_pFBO3DImageLast->Read(0);
+
+  // when we have more than 1 region the buffer already contains the normal
+  // sized region so there's no need to resize again.
+  bool decreaseRes = renderRegions.size() == 1 &&
+                     renderRegions[0]->decreaseScreenResNow;
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                  (m_bOffscreenIsLowRes) ? GL_LINEAR : GL_NEAREST);
+                  decreaseRes ? GL_LINEAR : GL_NEAREST);
+
   m_pFBO3DImageLast->ReadDepth(1);
 
   // always clear the depth buffer since we are transporting new data from the FBO
@@ -1232,7 +1277,10 @@ void GLRenderer::RerenderPreviousResult(bool bTransferToFramebuffer) {
 
   m_pProgramTrans->Enable();
 
-  FullscreenQuadRegions();
+  if (decreaseRes)
+    FullscreenQuadRegion(renderRegions[0], decreaseRes);
+  else
+    FullscreenQuad();
 
   m_pProgramTrans->Disable();
 

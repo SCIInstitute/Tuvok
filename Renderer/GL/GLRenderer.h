@@ -126,7 +126,7 @@ class GLRenderer : public AbstrRenderer {
                     const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
     void RenderClipPlane(size_t iStereoID);
     bool Execute3DFrame(RenderRegion3D& renderRegion, float& fMsecPassed);
-    void RerenderPreviousResult(bool bTransferToFramebuffer);
+    void CopyImageToDisplayBuffer();
     void DrawLogo();
     void DrawBackGradient();
 
@@ -167,7 +167,8 @@ class GLRenderer : public AbstrRenderer {
     virtual void ClearColorBuffer();
 
     virtual void StartFrame();
-    virtual void EndFrame(bool bNewDataToShow);
+    virtual void EndFrame(const std::vector<bool>& justCompletedRegions);
+    void CopyOverCompletedRegion(const RenderRegion* region);
 
     void PreSubframe(RenderRegion& renderRegion);
     void PostSubframe(RenderRegion& renderRegion);
@@ -176,6 +177,7 @@ class GLRenderer : public AbstrRenderer {
 
     void FullscreenQuad();
     void FullscreenQuadRegions();
+    void FullscreenQuadRegion(const RenderRegion* region, bool decreaseScreenRes);
     void ComputeViewAndProjection(float fAspect);
     virtual void UpdateColorsInShaders();
 
