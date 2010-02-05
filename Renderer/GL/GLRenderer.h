@@ -112,10 +112,7 @@ class GLRenderer : public AbstrRenderer {
                              bool bDecreaseScreenResNow);
     void SetRenderTargetArea(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
                              bool bDecreaseScreenResNow);
-    void SetRenderTargetAreaScissor(const RenderRegion& renderRegion,
-                                    bool bDecreaseScreenResNow);
-    void SetRenderTargetAreaScissor(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
-                                    bool bDecreaseScreenResNow);
+    void SetRenderTargetAreaScissor(const RenderRegion& renderRegion);
     void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
                      bool bDecreaseScreenResNow);
 

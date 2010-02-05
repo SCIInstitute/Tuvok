@@ -442,8 +442,6 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
   // write to FBO that contains final images.
   m_TargetBinder.Bind(m_pFBO3DImageLast);
 
-  glEnable(GL_SCISSOR_TEST);
-
   glDisable(GL_BLEND);
 
   glEnable(GL_DEPTH_TEST);
@@ -452,7 +450,7 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
 
   glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
 
-  SetRenderTargetAreaScissor(*region, false);
+  SetRenderTargetAreaScissor(*region);
 
   if (m_bClearFramebuffer)
     ClearColorBuffer();
@@ -548,26 +546,12 @@ void GLRenderer::SetRenderTargetArea(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
   SetViewPort(minCoord, maxCoord, bDecreaseScreenResNow);
 }
 
-void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion& renderRegion,
-                                            bool bDecreaseScreenResNow) {
-  SetRenderTargetAreaScissor(renderRegion.minCoord, renderRegion.maxCoord,
-                             bDecreaseScreenResNow);
-}
-
-void GLRenderer::SetRenderTargetAreaScissor(UINTVECTOR2 minCoord, UINTVECTOR2 maxCoord,
-                                            bool bDecreaseScreenResNow) {
-  const float rescale = (bDecreaseScreenResNow) ? 1.0f/m_fScreenResDecFactor : 1;
-  UINTVECTOR2 regionSize = maxCoord - minCoord;
-  //Note, we round to the nearest int (the + 0.5 part). This in effect
-  //expands the render region in all directions to the nearest int and so hides
-  //any possible gaps that could result.
-  regionSize = UINTVECTOR2((FLOATVECTOR2(regionSize) * rescale) +
-                           FLOATVECTOR2(0.5, 0.5));
-
-  glScissor(minCoord.x, minCoord.y, regionSize.x, regionSize.y);
+void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion& renderRegion) {
+  UINTVECTOR2 regionSize = renderRegion.maxCoord - renderRegion.minCoord;
+  glScissor(renderRegion.minCoord.x, renderRegion.minCoord.y,
+            regionSize.x, regionSize.y);
   glEnable( GL_SCISSOR_TEST );
 }
-
 
 void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
                              bool bDecreaseScreenResNow) {
@@ -795,7 +779,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     }
 
     // clear the target at the beginning
-    SetRenderTargetAreaScissor(renderRegion, renderRegion.decreaseScreenResNow);
+    SetRenderTargetAreaScissor(renderRegion);
 
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -920,7 +904,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
 
     SetRenderTargetArea(UINTVECTOR2(0,0), m_vWinSize, false);
-    SetRenderTargetAreaScissor(renderRegion, renderRegion.decreaseScreenResNow);
+    SetRenderTargetAreaScissor(renderRegion);
 
     m_pFBO3DImageCurrent[1]->Read(0);
     m_p1DTransTex->Bind(1);
@@ -1024,7 +1008,7 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
 
 void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
   m_iFilledBuffers = 0;
-  SetRenderTargetAreaScissor(renderRegion, renderRegion.decreaseScreenResNow);
+  SetRenderTargetAreaScissor(renderRegion);
 
   glClearColor(0,0,0,0);
 
