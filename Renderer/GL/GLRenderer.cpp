@@ -487,6 +487,9 @@ void GLRenderer::EndFrame(const vector<bool>& justCompletedRegions) {
 
     // if the image is complete
     if (justCompletedRegions[0]) {
+
+      m_bOffscreenIsLowRes = renderRegions[0]->decreaseScreenResNow;
+
       // in stereo compose both images into one, in mono mode simply swap the pointers
       if (m_bDoStereoRendering) {
         m_pFBO3DImageCurrent[0]->Read(0);
@@ -1246,8 +1249,13 @@ void GLRenderer::CopyImageToDisplayBuffer() {
 
   // when we have more than 1 region the buffer already contains the normal
   // sized region so there's no need to resize again.
-  bool decreaseRes = renderRegions.size() == 1 &&
-                     renderRegions[0]->decreaseScreenResNow;
+  //
+  // Note: We check m_bOffscreenIsLowRes instead of the
+  // RenderRegion::decreaseScreenResNow because the low res image we are trying
+  // to display might have been rendered a while ago and now the render region
+  // has decreaseScreenResNow set to false while it's in the midst of trying to
+  // render a new image.
+  bool decreaseRes = renderRegions.size() == 1 && m_bOffscreenIsLowRes;
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                   decreaseRes ? GL_LINEAR : GL_NEAREST);
 
