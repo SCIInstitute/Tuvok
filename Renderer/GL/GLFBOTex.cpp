@@ -55,7 +55,10 @@ bool  GLFBOTex::m_bInitialized = true;
  * In any case a new dummy texture according to the parameters is generated.
  */
 
-GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, unsigned int iSizePerElement, bool bHaveDepth, int iNumBuffers) :
+GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
+                   GLenum magfilter, GLenum wrapmode, GLsizei width,
+                   GLsizei height, GLenum intformat, unsigned int iSizePerElement,
+                   bool bHaveDepth, int iNumBuffers) :
   m_pMasterController(pMasterController),
   m_iSizePerElement(iSizePerElement),
   m_iSizeX(width),
@@ -121,7 +124,8 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter, GLenum
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT,width,height,0,GL_DEPTH_COMPONENT,GL_FLOAT,NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0,
+                 GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 #endif
   }
   else m_hDepthBuffer=0;
@@ -256,8 +260,11 @@ void GLFBOTex::Write(unsigned int iTargetBuffer, int iBuffer, bool bCheckBuffer)
   assert(iBuffer>=0);
   assert(iBuffer<m_iNumBuffers);
   m_LastAttachment[iBuffer]=target;
-  glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, target, GL_TEXTURE_2D, m_hTexture[iBuffer], 0);
-  if (m_hDepthBuffer) glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,GL_DEPTH_ATTACHMENT_EXT,GL_TEXTURE_2D,m_hDepthBuffer,0);
+  glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, target, GL_TEXTURE_2D,
+                            m_hTexture[iBuffer], 0);
+  if (m_hDepthBuffer)
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
+                              GL_TEXTURE_2D, m_hDepthBuffer, 0);
   if (bCheckBuffer) {
 #ifdef _DEBUG
   if (!CheckFBO("Write")) return;
@@ -269,9 +276,12 @@ void GLFBOTex::FinishWrite(int iBuffer) {
   glGetError();
   assert(iBuffer>=0);
   assert(iBuffer<m_iNumBuffers);
-  glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,m_LastAttachment[iBuffer],GL_TEXTURE_2D,0,0);
-  if (m_hDepthBuffer) glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT,GL_DEPTH_ATTACHMENT_EXT,GL_TEXTURE_2D,0,0);
-  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,0);
+  glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, m_LastAttachment[iBuffer],
+                            GL_TEXTURE_2D, 0, 0);
+  if (m_hDepthBuffer)
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,
+                              GL_TEXTURE_2D, 0, 0);
+  glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 }
 
 void GLFBOTex::Read(unsigned int iTargetUnit, int iBuffer) {
