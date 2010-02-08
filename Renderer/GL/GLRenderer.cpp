@@ -346,7 +346,7 @@ void GLRenderer::Paint() {
 
   StartFrame();
 
-  vector<bool> justCompletedRegions(renderRegions.size(), false);
+  vector<char> justCompletedRegions(renderRegions.size(), false);
 
   for (size_t i=0; i < renderRegions.size(); ++i) {
     if (renderRegions[i]->redrawMask) {
@@ -478,7 +478,7 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
   glDisable(GL_SCISSOR_TEST);
 }
 
-void GLRenderer::EndFrame(const vector<bool>& justCompletedRegions) {
+void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
   glDisable(GL_SCISSOR_TEST);
 
   // For a single region we can support stereo and we can also optimize the

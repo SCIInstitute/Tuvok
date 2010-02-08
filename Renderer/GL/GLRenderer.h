@@ -38,6 +38,7 @@
 #define GLRENDERER_H
 
 #include <string>
+#include <vector>
 
 #include "../../StdTuvokDefines.h"
 #include <Basics/Timer.h>
@@ -164,7 +165,7 @@ class GLRenderer : public AbstrRenderer {
     virtual void ClearColorBuffer();
 
     virtual void StartFrame();
-    virtual void EndFrame(const std::vector<bool>& justCompletedRegions);
+    virtual void EndFrame(const std::vector<char>& justCompletedRegions);
     void CopyOverCompletedRegion(const RenderRegion* region);
 
     void PreSubframe(RenderRegion& renderRegion);
