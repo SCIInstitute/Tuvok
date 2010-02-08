@@ -813,7 +813,8 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
     // skip the brick if no data are visible in the current rendering mode.
     if(!bContainsData) {
       MESSAGE("Skipping brick <%u,%u> because it doesn't contain data "
-              "under the current %s.", UINT32(brick->first.first), UINT32(brick->first.second),
+              "under the current %s.", UINT32(brick->first.first),
+              UINT32(brick->first.second),
               ((m_eRenderMode == RM_ISOSURFACE) ? "isovalue" : "tfqn"));
       continue;
     }

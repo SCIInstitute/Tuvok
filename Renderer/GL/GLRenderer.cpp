@@ -436,9 +436,9 @@ void GLRenderer::FullscreenQuadRegion(const RenderRegion* region,
   glEnd();
 }
 
+/// copy the newly completed image into the buffer that stores completed
+/// images.
 void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
-  // copy the newly completed image into the buffer that stores completed images.
-
   // write to FBO that contains final images.
   m_TargetBinder.Bind(m_pFBO3DImageLast);
 
@@ -452,8 +452,9 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
 
   SetRenderTargetAreaScissor(*region);
 
-  if (m_bClearFramebuffer)
+  if (m_bClearFramebuffer) {
     ClearColorBuffer();
+  }
 
   // always clear the depth buffer since we are transporting new data from the FBO
   glClear(GL_DEPTH_BUFFER_BIT);
@@ -480,17 +481,16 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
 void GLRenderer::EndFrame(const vector<bool>& justCompletedRegions) {
   glDisable(GL_SCISSOR_TEST);
 
+  // For a single region we can support stereo and we can also optimize the
+  // code by swapping the buffers instead of copying data from one to the
+  // other.
   if (renderRegions.size() == 1) {
-    // For a single region we can support stereo and we can also optimize the
-    // code by swapping the buffers instead of copying data from one to the
-    // other.
-
     // if the image is complete
     if (justCompletedRegions[0]) {
-
       m_bOffscreenIsLowRes = renderRegions[0]->decreaseScreenResNow;
 
-      // in stereo compose both images into one, in mono mode simply swap the pointers
+      // in stereo compose both images into one, in mono mode simply swap the
+      // pointers
       if (m_bDoStereoRendering) {
         m_pFBO3DImageCurrent[0]->Read(0);
         m_pFBO3DImageCurrent[1]->Read(1);
@@ -519,8 +519,9 @@ void GLRenderer::EndFrame(const vector<bool>& justCompletedRegions) {
     }
     // show the result
     // HACK: this code assumes no more than double-buffering
-    if (justCompletedRegions[0] || m_iFilledBuffers < 2)
+    if (justCompletedRegions[0] || m_iFilledBuffers < 2) {
       CopyImageToDisplayBuffer();
+    }
   } else {
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if(justCompletedRegions[i]) {
