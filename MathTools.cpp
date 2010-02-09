@@ -104,3 +104,6 @@ UINT64 MathTools::Clamp(UINT64 val, UINT64 a, UINT64 b) {
   return std::max(a, std::min(b, val));
 }
 
+int MathTools::Clamp(int val, int a, int b) {
+  return std::max(a, std::min(b, val));
+}
