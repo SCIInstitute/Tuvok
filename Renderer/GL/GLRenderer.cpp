@@ -452,10 +452,6 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
 
   SetRenderTargetAreaScissor(*region);
 
-  if (m_bClearFramebuffer) {
-    ClearColorBuffer();
-  }
-
   // always clear the depth buffer since we are transporting new data from the FBO
   glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -1238,10 +1234,11 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
 }
 
 void GLRenderer::CopyImageToDisplayBuffer() {
+  glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
+
   if (m_bClearFramebuffer)
     ClearColorBuffer();
 
-  glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
   m_iFilledBuffers++;
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
