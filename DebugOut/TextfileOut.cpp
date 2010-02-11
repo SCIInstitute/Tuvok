@@ -79,7 +79,7 @@ void TextfileOut::printf(enum DebugChannel channel, const char* source,
   if(strftime(datetime, 64, "(%d.%m.%Y %H:%M:%S)", ADDR_NOW) > 0) {
     fs << datetime << " ";
   }
-  fs << ChannelToString(channel) << " (" << source << ")" << buff << std::endl;
+  fs << ChannelToString(channel) << " (" << source << ") " << buff << std::endl;
 
   fs.flush();
   fs.close();
