@@ -62,7 +62,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vTextColor(1,1,1,1),
   m_bRenderGlobalBBox(false),
   m_bRenderLocalBBox(false),
-  m_vWinSize(0,0),
+  m_vWinSize(400,400),
   m_iLogoPos(3),
   m_strLogoFilename(""),
   m_iLODNotOKCounter(0),
@@ -140,6 +140,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vShaderSearchDirs.push_back("../../../Tuvok/Shaders");
 
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
+
+  m_FrustumCullingLOD.SetScreenParams(m_fFOV, 1.0f, m_fZNear, m_fZFar,
+                                      m_vWinSize[1]);
 }
 
 bool AbstrRenderer::Initialize() {
@@ -531,7 +534,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
     // if rendering is too slow use a lower resolution during interaction
     if (region.msecPassed[0] > m_fMaxMSPerFrame) {
       // wait for 3 frames before switching to lower lod (3 here is
-      // choosen more or less arbitrary, can be changed if needed)
+      // chosen more or less arbitrary, can be changed if needed)
       if (m_iLODNotOKCounter < 3) {
         MESSAGE("Would increase start LOD but will give the renderer %u "
                 "more frame(s) time to become faster", 3 - m_iLODNotOKCounter);
@@ -582,7 +585,8 @@ void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
       // from the last frame, not the new one we are about to start) and did
       // this fast enough, use a higher resolution during interaction.
       if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame &&
-          region.msecPassed[1] >= 0.0f && region.msecPassed[1] <= m_fMaxMSPerFrame) {
+          region.msecPassed[1] >= 0.0f &&
+          region.msecPassed[1] <= m_fMaxMSPerFrame) {
         m_iLODNotOKCounter = 0;
         // We're rendering fast, so lets step up the quality. Easiest thing to
         // try first is rendering at normal sampling rate and resolution.
@@ -617,12 +621,15 @@ void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
       }
     }
 
-    m_iStartLODOffset = std::max(m_iMinLODForCurrentView,m_iMaxLODIndex-m_iPerformanceBasedLODSkip);
+    m_iStartLODOffset = std::max(m_iMinLODForCurrentView,
+                                 m_iMaxLODIndex - m_iPerformanceBasedLODSkip);
   } else {
     m_iStartLODOffset = m_iMinLODForCurrentView;
   }
 
-  m_iStartLODOffset = std::min(m_iStartLODOffset, UINT64(m_iMaxLODIndex-m_iLODLimits.x));
+  m_iStartLODOffset = std::min(m_iStartLODOffset,
+                               static_cast<UINT64>(m_iMaxLODIndex -
+                                                   m_iLODLimits.x));
   m_iCurrentLODOffset = m_iStartLODOffset;
   RestartTimers(region);
 }
@@ -634,15 +641,16 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
 
-
   /// @todo consider real extent not center
-
   FLOATVECTOR3 vfCenter(0,0,0);
-  m_iMinLODForCurrentView = max(int(m_iLODLimits.y),
-                                min<int>(m_pDataset->GetLODLevelCount()-1,
-                                         m_FrustumCullingLOD.GetLODLevel(vfCenter,
-                                                                         vExtend,
-                                                                         vDomainSize)));
+  m_iMinLODForCurrentView = std::max(
+    static_cast<UINT64>(m_iLODLimits.y),
+    std::min<UINT64>(m_pDataset->GetLODLevelCount()-1,
+                     static_cast<UINT64>(
+                      m_FrustumCullingLOD.GetLODLevel(vfCenter, vExtend,
+                                                       vDomainSize)
+                    ))
+  );
 }
 
 /// Calculates the distance to a given brick given the current view
@@ -889,6 +897,9 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
 
 void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
   if (region.isBlank) {
+    // Initialize viewport, to ensure matrices get set.
+    SetViewPort(region.minCoord, region.maxCoord, false);
+
     // compute modelviewmatrix and pass it to the culling object
     region.modelView[0] = region.rotation*region.translation*m_mView[0];
     if (m_bDoStereoRendering)
@@ -935,14 +946,16 @@ void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
     }
 
     if (bBuildNewList) {
-      m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,m_pDataset->GetLODLevelCount()-1);
+      m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,
+                                       m_pDataset->GetLODLevelCount()-1);
       // build new brick todo-list
       MESSAGE("Building new brick list for LOD ...");
       m_vCurrentBrickList = BuildSubFrameBrickList(region);
       MESSAGE("%u bricks made the cut.", UINT32(m_vCurrentBrickList.size()));
-      if (m_bDoStereoRendering)
-        m_vLeftEyeBrickList = BuildLeftEyeSubFrameBrickList(region,
-                                                            m_vCurrentBrickList);
+      if (m_bDoStereoRendering) {
+        m_vLeftEyeBrickList =
+          BuildLeftEyeSubFrameBrickList(region, m_vCurrentBrickList);
+      }
 
       m_iBricksRenderedInThisSubFrame = 0;
     }

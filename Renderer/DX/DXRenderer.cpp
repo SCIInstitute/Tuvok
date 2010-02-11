@@ -268,7 +268,7 @@ void DXRenderer::SetRenderTargetArea(const tuvok::RenderRegion& renderRegion) {
 void DXRenderer::SetRenderTargetAreaScissor(const tuvok::RenderRegion& renderRegion) {
 }
 
-void DXRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight) {
+void DXRenderer::SetViewPort(UINTVECTOR2, UINTVECTOR2, bool) {
 }
 
 

@@ -237,6 +237,9 @@ class AbstrRenderer {
     virtual void SetOrthoView(bool bOrthoView);
     virtual bool GetOrthoView() const {return m_bOrthoView;}
 
+    virtual void SetViewPort(UINTVECTOR2 lower_left, UINTVECTOR2 upper_right,
+                             bool decrease_screen_res) = 0;
+
     virtual void SetRenderCoordArrows(bool bRenderCoordArrows);
     virtual bool GetRenderCoordArrows() const {return m_bRenderCoordArrows;}
 

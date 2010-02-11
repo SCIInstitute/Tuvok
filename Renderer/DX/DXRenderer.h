@@ -105,7 +105,8 @@ class DXRenderer : public AbstrRenderer {
 
     void SetRenderTargetArea(const tuvok::RenderRegion& renderRegion);
     void SetRenderTargetAreaScissor(const tuvok::RenderRegion& renderRegion);
-    void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight);
+    void SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
+                     bool decreaseScreenRes);
 
     void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1), bool bEpsilonOffset=true);
     void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset, const FLOATVECTOR3& vCenter,
