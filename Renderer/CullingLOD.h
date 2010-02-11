@@ -35,7 +35,6 @@
   \version 1.4
   \date    July 2008
 */
-
 #pragma once
 
 #ifndef CULLINGLOD_H
@@ -80,5 +79,7 @@ class CullingLOD
     float        m_fLODFactor;
     bool         m_bPassAll;
 };
-};
+
+}
+
 #endif // CULLINGLOD_H

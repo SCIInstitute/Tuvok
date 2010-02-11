@@ -65,7 +65,8 @@ void CullingLOD::SetScreenParams(float fFOVY, float fAspect, float fNearPlane, f
   m_fFarPlane = fFarPlane;
   m_iPixelCountY = iPixelCountY;
 
-  m_fLODFactor = 2.0f * tan(fFOVY * ((3.1416f/180.0f) / 2.0f)) * m_fScreenSpaceError / float(m_iPixelCountY);
+  m_fLODFactor = 2.0f * tan(fFOVY * ((3.1416f/180.0f) / 2.0f)) *
+                 m_fScreenSpaceError / float(m_iPixelCountY);
 }
 
 FLOATVECTOR2 CullingLOD::GetDepthScaleParams() const {
@@ -124,15 +125,19 @@ void CullingLOD::Update()
   m_Planes[5].w = -m_mModelViewProjectionMatrix.m43 + m_mModelViewProjectionMatrix.m44;
 }
 
-int CullingLOD::GetLODLevel(const FLOATVECTOR3& vfCenter, const FLOATVECTOR3& vfExtent, const UINTVECTOR3& viVoxelCount) const {
+int CullingLOD::GetLODLevel(const FLOATVECTOR3& vfCenter,
+                            const FLOATVECTOR3& vfExtent,
+                            const UINTVECTOR3& viVoxelCount) const {
   FLOATVECTOR3 vHalfExtent = 0.5f * vfExtent;
-  float fLevelZeroWorldSpaceError = (vfExtent/FLOATVECTOR3(viVoxelCount)).minVal();
+  float fLevelZeroWorldSpaceError =
+    (vfExtent/FLOATVECTOR3(viVoxelCount)).minVal();
 
   float zCenter = (FLOATVECTOR4(vfCenter,1) * m_mModelViewMatrix).z;
   float zMinBrick = -zCenter;
   float fZ = max(m_fNearPlane, zMinBrick);
 
-  return (int)floor(log(m_fLODFactor * fZ / fLevelZeroWorldSpaceError) / log(2.0f));
+  return static_cast<int>(floor(log(m_fLODFactor * fZ /
+                                    fLevelZeroWorldSpaceError) / log(2.0f)));
 }
 
 
