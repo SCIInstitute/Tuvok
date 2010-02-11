@@ -2036,7 +2036,7 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
   float fMsecPassed = 0;
 
   while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame &&
-         fMsecPassed < m_iTimeSliceMSecs) {
+         (fMsecPassed < m_iTimeSliceMSecs || m_bCaptureMode)) {
     MESSAGE("  Brick %u of %u",
             static_cast<unsigned>(m_iBricksRenderedInThisSubFrame+1),
             static_cast<unsigned>(m_vCurrentBrickList.size()));
