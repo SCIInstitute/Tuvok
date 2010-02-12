@@ -948,7 +948,7 @@ void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
       m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,
                                        m_pDataset->GetLODLevelCount()-1);
       // build new brick todo-list
-      MESSAGE("Building new brick list for LOD ...");
+      MESSAGE("Building new brick list for LOD %llu...", m_iCurrentLOD);
       m_vCurrentBrickList = BuildSubFrameBrickList(region);
       MESSAGE("%u bricks made the cut.", UINT32(m_vCurrentBrickList.size()));
       if (m_bDoStereoRendering) {
