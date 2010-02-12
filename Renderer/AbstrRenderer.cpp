@@ -62,7 +62,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vTextColor(1,1,1,1),
   m_bRenderGlobalBBox(false),
   m_bRenderLocalBBox(false),
-  m_vWinSize(400,400),
+  m_vWinSize(0,0),
   m_iLogoPos(3),
   m_strLogoFilename(""),
   m_iLODNotOKCounter(0),
@@ -141,8 +141,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
 
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
 
-  m_FrustumCullingLOD.SetScreenParams(m_fFOV, 1.0f, m_fZNear, m_fZFar,
-                                      m_vWinSize[1]);
+  m_FrustumCullingLOD.SetScreenParams(m_fFOV, 1.0f, m_fZNear, m_fZFar, 1);
 }
 
 bool AbstrRenderer::Initialize() {
