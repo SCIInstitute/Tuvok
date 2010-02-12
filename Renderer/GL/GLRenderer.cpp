@@ -1426,9 +1426,9 @@ void GLRenderer::CreateOffscreenBuffers() {
       m_pFBOCVHit[i] = NULL;
     }
   }
-  MESSAGE("Creating FBOs...");
 
   if (m_vWinSize.area() > 0) {
+    MESSAGE("Creating FBOs...");
     for (UINT32 i = 0;i<2;i++) {
       switch (m_eBlendPrecision) {
         case BP_8BIT  : if (i==0) {
