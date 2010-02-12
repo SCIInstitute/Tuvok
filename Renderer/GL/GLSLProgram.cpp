@@ -348,7 +348,6 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
       if (hFS) {
         glDeleteShader(hFS);
       }
-      MESSAGE("linked: %d", static_cast<int>(iLinked));
       if (CheckGLError("Load()") || iLinked!=GLint(GL_TRUE)) {
         glDeleteProgram(m_hProgram);
         m_hProgram=0;
@@ -419,8 +418,10 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject,
       return true;
 #endif
     }
+#ifdef _DEBUG
   } else {
     MESSAGE("No info log available.");
+#endif
   }
   return !bool(bAtMostWarnings==GL_TRUE); // error occured?
 }
