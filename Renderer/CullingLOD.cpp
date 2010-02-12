@@ -58,7 +58,8 @@ CullingLOD::CullingLOD(float fScreenSpaceError) :
 {
 }
 
-void CullingLOD::SetScreenParams(float fFOVY, float fAspect, float fNearPlane, float fFarPlane, UINT32 iPixelCountY) {
+void CullingLOD::SetScreenParams(float fFOVY, float fAspect, float fNearPlane,
+                                 float fFarPlane, UINT32 iPixelCountY) {
   m_fFOVY = fFOVY;
   m_fAspect = fAspect;
   m_fNearPlane = fNearPlane;
@@ -70,7 +71,8 @@ void CullingLOD::SetScreenParams(float fFOVY, float fAspect, float fNearPlane, f
 }
 
 FLOATVECTOR2 CullingLOD::GetDepthScaleParams() const {
-  return FLOATVECTOR2(m_fFarPlane / (m_fFarPlane - m_fNearPlane), (m_fFarPlane * m_fNearPlane / (m_fNearPlane - m_fFarPlane)));
+  return FLOATVECTOR2(m_fFarPlane / (m_fFarPlane - m_fNearPlane),
+                      (m_fFarPlane * m_fNearPlane / (m_fNearPlane - m_fFarPlane)));
 }
 
 
@@ -141,7 +143,8 @@ int CullingLOD::GetLODLevel(const FLOATVECTOR3& vfCenter,
 }
 
 
-bool CullingLOD::IsVisible(const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vfExtent)  const
+bool CullingLOD::IsVisible(const FLOATVECTOR3& vCenter,
+                           const FLOATVECTOR3& vfExtent)  const
 {
   if (m_bPassAll) return true;
 
