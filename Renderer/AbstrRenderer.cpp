@@ -140,8 +140,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vShaderSearchDirs.push_back("../../../Tuvok/Shaders");
 
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
-
-  m_FrustumCullingLOD.SetScreenParams(m_fFOV, 1.0f, m_fZNear, m_fZFar, 1);
 }
 
 bool AbstrRenderer::Initialize() {
@@ -326,6 +324,9 @@ double AbstrRenderer::GetNormalizedCVIsovalue() const
 }
 
 bool AbstrRenderer::CheckForRedraw() {
+  if (m_vWinSize.area() == 0)
+    return false; // can't draw to a size zero window.
+
   bool decrementCounter = false;
   bool redrawRequired = false;
   redrawRequired = m_bPerformReCompose;
@@ -622,8 +623,11 @@ void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
 
     m_iStartLODOffset = std::max(m_iMinLODForCurrentView,
                                  m_iMaxLODIndex - m_iPerformanceBasedLODSkip);
-  } else {
+  } else if (m_bCaptureMode){
     m_iStartLODOffset = m_iMinLODForCurrentView;
+  } else {
+    // This is our very first render, let's take it easy.
+    m_iStartLODOffset = m_iMaxLODIndex;
   }
 
   m_iStartLODOffset = std::min(m_iStartLODOffset,
@@ -642,14 +646,11 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
 
   /// @todo consider real extent not center
   FLOATVECTOR3 vfCenter(0,0,0);
-  m_iMinLODForCurrentView = std::max(
-    static_cast<UINT64>(m_iLODLimits.y),
-    std::min<UINT64>(m_pDataset->GetLODLevelCount()-1,
-                     static_cast<UINT64>(
-                      m_FrustumCullingLOD.GetLODLevel(vfCenter, vExtend,
-                                                       vDomainSize)
-                    ))
-  );
+  m_iMinLODForCurrentView = static_cast<UINT64>(
+    MathTools::Clamp(m_FrustumCullingLOD.GetLODLevel(vfCenter, vExtend,
+                                                     vDomainSize),
+                     static_cast<int>(m_iLODLimits.y),
+                     static_cast<int>(m_pDataset->GetLODLevelCount()-1)));
 }
 
 /// Calculates the distance to a given brick given the current view
@@ -896,9 +897,6 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
 
 void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
   if (region.isBlank) {
-    // Initialize viewport, to ensure matrices get set.
-    SetViewPort(region.minCoord, region.maxCoord, false);
-
     // compute modelviewmatrix and pass it to the culling object
     region.modelView[0] = region.rotation*region.translation*m_mView[0];
     if (m_bDoStereoRendering)

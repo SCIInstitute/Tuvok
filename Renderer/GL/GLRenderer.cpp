@@ -61,7 +61,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_p2DTransTex(NULL),
   m_p2DData(NULL),
   m_pFBO3DImageLast(NULL),
-  m_iFilledBuffers(0),
+  displayBufferIsGarbage(true),
   m_pLogoTex(NULL),
   m_pProgramIso(NULL),
   m_pProgramColor(NULL),
@@ -285,6 +285,10 @@ void GLRenderer::Changed2DTrans() {
 void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
   AbstrRenderer::Resize(vWinSize);
   MESSAGE("Resizing to %u x %u", vWinSize.x, vWinSize.y);
+
+  glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
+  ClearColorBuffer();
+
   CreateOffscreenBuffers();
   CreateDepthStorage();
 }
@@ -316,6 +320,13 @@ void GLRenderer::ClearColorBuffer() {
 
 
 void GLRenderer::StartFrame() {
+  // Is this the very first render? Then let's clear the window since it
+  // contains garbage.
+  if (displayBufferIsGarbage) {
+    ClearColorBuffer();
+    displayBufferIsGarbage = false;
+  }
+
   // clear the framebuffer (if requested)
   if (m_bClearFramebuffer) {
     ClearDepthBuffer();
@@ -350,12 +361,11 @@ void GLRenderer::Paint() {
 
   for (size_t i=0; i < renderRegions.size(); ++i) {
     if (renderRegions[i]->redrawMask) {
+      SetRenderTargetArea(*renderRegions[i], renderRegions[i]->decreaseScreenResNow);
       if (renderRegions[i]->is3D()) {
         assert(renderRegions[i]->is3D());
         RenderRegion3D &region3D = *static_cast<RenderRegion3D*>(renderRegions[i]);
-
         if (!region3D.isBlank && m_bPerformReCompose){
-          SetRenderTargetArea(region3D, region3D.decreaseScreenResNow);
           Recompose3DView(region3D);
           justCompletedRegions[i] = true;
         } else {
@@ -378,7 +388,6 @@ void GLRenderer::Paint() {
       } else if (renderRegions[i]->is2D()) {  // in a 2D view mode
         assert(renderRegions[i]->is2D());
         RenderRegion2D& region2D = *static_cast<RenderRegion2D*>(renderRegions[i]);
-        SetRenderTargetArea(region2D, region2D.decreaseScreenResNow);
         justCompletedRegions[i] = Render2DView(region2D);
         region2D.redrawMask = false;
       }
@@ -506,16 +515,13 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
       } else {
         swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
       }
-      m_iFilledBuffers = 0;
       for (size_t i=0; i < renderRegions.size(); ++i) {
         if(!OnlyRecomposite(renderRegions[i])) {
           CompletedASubframe(renderRegions[i]);
         }
       }
     }
-    // show the result
-    // HACK: this code assumes no more than double-buffering
-    if (justCompletedRegions[0] || m_iFilledBuffers < 2) {
+    if (justCompletedRegions[0]) {
       CopyImageToDisplayBuffer();
     }
   } else {
@@ -555,9 +561,8 @@ void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion& renderRegion) {
 
 void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
                              bool bDecreaseScreenResNow) {
-
   UINTVECTOR2 viSize = viUpperRight-viLowerLeft;
-
+  const UINT originalPixelsY = viSize.y;
   if (bDecreaseScreenResNow) {
     const float rescale = 1.0f/m_fScreenResDecFactor;
 
@@ -574,11 +579,11 @@ void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
   float fAspect =(float)viSize.x/(float)viSize.y;
   ComputeViewAndProjection(fAspect);
 
-  if (!bDecreaseScreenResNow) {
-    // forward the projection matrix to the culling object
-    m_FrustumCullingLOD.SetProjectionMatrix(m_mProjection[0]);
-    m_FrustumCullingLOD.SetScreenParams(m_fFOV, fAspect, m_fZNear, m_fZFar, viSize.y);
-  }
+  // forward the projection matrix to the culling object
+  m_FrustumCullingLOD.SetProjectionMatrix(m_mProjection[0]);
+  m_FrustumCullingLOD.SetScreenParams(m_fFOV, fAspect, m_fZNear, m_fZFar,
+                                      originalPixelsY);
+
 }
 
 void GLRenderer::ComputeViewAndProjection(float fAspect) {
@@ -862,7 +867,6 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     }
 
     PlanHQMIPFrame(renderRegion);
-    m_iFilledBuffers = 0;
     glClearColor(0,0,0,0);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -1007,7 +1011,6 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
 }
 
 void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
-  m_iFilledBuffers = 0;
   SetRenderTargetAreaScissor(renderRegion);
 
   glClearColor(0,0,0,0);
@@ -1239,7 +1242,6 @@ void GLRenderer::CopyImageToDisplayBuffer() {
   if (m_bClearFramebuffer)
     ClearColorBuffer();
 
-  m_iFilledBuffers++;
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
