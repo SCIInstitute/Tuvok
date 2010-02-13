@@ -56,7 +56,9 @@ bool LargeRAWFile::Open(bool bReadWrite) {
   #else
     m_StreamFile = fopen(m_strFilename.c_str(), (bReadWrite) ? "r+b" : "rb");
     if(m_StreamFile == NULL) {
-      perror("fopen");
+      std::ostringstream err_file;
+      err_file << "fopen '" << m_strFilename << "'";
+      perror(err_file.str().c_str());
     }
     m_bIsOpen = m_StreamFile != NULL;
   #endif
