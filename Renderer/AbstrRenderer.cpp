@@ -945,8 +945,12 @@ void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
     }
 
     if (bBuildNewList) {
-      m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,
-                                       m_pDataset->GetLODLevelCount()-1);
+      if(m_bCaptureMode) {
+        m_iCurrentLOD = 0;
+      } else {
+        m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,
+                                         m_pDataset->GetLODLevelCount()-1);
+      }
       // build new brick todo-list
       MESSAGE("Building new brick list for LOD %llu...", m_iCurrentLOD);
       m_vCurrentBrickList = BuildSubFrameBrickList(region);
