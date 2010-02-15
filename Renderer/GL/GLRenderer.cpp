@@ -386,7 +386,6 @@ void GLRenderer::Paint() {
           (m_iCurrentLODOffset > m_iMinLODForCurrentView) ||
           region3D.decreaseScreenResNow;
       } else if (renderRegions[i]->is2D()) {  // in a 2D view mode
-        assert(renderRegions[i]->is2D());
         RenderRegion2D& region2D = *static_cast<RenderRegion2D*>(renderRegions[i]);
         justCompletedRegions[i] = Render2DView(region2D);
         region2D.redrawMask = false;
