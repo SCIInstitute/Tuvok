@@ -51,6 +51,7 @@
   #include <regex.h>
   #include <dirent.h>
   #include <unistd.h>
+  #include <pwd.h>
 #else
   #include <shlwapi.h>
 #endif
@@ -898,6 +899,57 @@ namespace SysTools {
 
     return iMaxIndex;
   }
+
+  #define INFO_BUFFER_SIZE 32767
+  bool GetHomeDirectory(std::string& path) {
+    #ifdef DETECTED_OS_WINDOWS
+      // try the HOMEPATH env. var.
+      char infoBuf[INFO_BUFFER_SIZE];
+      DWORD dwRet = GetEnvironmentVariableA("HOMEPATH", infoBuf, INFO_BUFFER_SIZE);
+      if (dwRet) {
+        path = std::string(infoBuf);
+        return true;
+      } else {
+        return false;
+      }
+    #else
+      // first try the HOME env. var.
+      const char *strHomeFromEnv = getenv("HOME");
+      // check if that was defined
+      if (strHomeFromEnv) {
+        path = std::string(strHomeFromEnv);
+        return true;
+      } else {
+        // if not read the homedir from the passwd file
+        const struct passwd *userpwuid = getpwuid(geteuid());
+        if (userpwuid) {
+          path = std::string( userpwuid->pw_dir );
+          return true;
+        } else return false;
+      }
+    #endif
+  }
+
+  bool GetHomeDirectory(std::wstring& path) {
+    #ifdef DETECTED_OS_WINDOWS
+      // try the HOMEPATH env. var.
+      WCHAR infoBuf[INFO_BUFFER_SIZE];
+      DWORD dwRet = GetEnvironmentVariableW(L"HOMEPATH", infoBuf, INFO_BUFFER_SIZE);
+      if (dwRet) {
+        path = std::wstring(infoBuf);
+        return true;
+      } else {
+        return false;
+      }
+    #else
+      // too lazy to find the unicode version for linux and mac
+      std::string astrPath;
+      if (!GetHomeDirectory(astrPath)) return false;
+      path = std::wstring( astrPath.begin(), astrPath.end());
+      return true;
+    #endif
+  }
+
 
   bool GetTempDirectory(std::string& path) {
   #ifdef DETECTED_OS_WINDOWS

@@ -183,6 +183,8 @@ namespace SysTools {
                                      const std::wstring& ext,
                                      const std::wstring& dir=L"");
 
+  bool GetHomeDirectory(std::string& path);
+  bool GetHomeDirectory(std::wstring& path);
   bool GetTempDirectory(std::string& path);
   bool GetTempDirectory(std::wstring& path);
 
