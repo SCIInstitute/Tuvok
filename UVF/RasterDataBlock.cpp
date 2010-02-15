@@ -643,7 +643,7 @@ const std::vector<UINT64> RasterDataBlock::LargestSingleBrickLODBrickIndex() con
   assert(Product(GetBrickCount(vLargestSingleBrickLODIndex)) == 1);
 
   for (size_t iLODGroups = 0;iLODGroups<ulLODLevelCount.size();iLODGroups++) {
-    for (size_t iLOD = ulLODLevelCount[iLODGroups]; iLOD>0;  iLOD--) {  // being very carefull here as we are decrementing an unsigned value
+    for (size_t iLOD = size_t(ulLODLevelCount[iLODGroups]); iLOD>0;  iLOD--) {  // being very carefull here as we are decrementing an unsigned value
       vLargestSingleBrickLODIndex[iLODGroups] = iLOD-1;
       if (Product(GetBrickCount(vLargestSingleBrickLODIndex)) > 1) {
         vLargestSingleBrickLODIndex[iLODGroups] = iLOD;
