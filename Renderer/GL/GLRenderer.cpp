@@ -61,7 +61,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_p2DTransTex(NULL),
   m_p2DData(NULL),
   m_pFBO3DImageLast(NULL),
-  displayBufferIsGarbage(true),
+  m_bDisplayIsUninitialized(true),
   m_pLogoTex(NULL),
   m_pProgramIso(NULL),
   m_pProgramColor(NULL),
@@ -322,9 +322,9 @@ void GLRenderer::ClearColorBuffer() {
 void GLRenderer::StartFrame() {
   // Is this the very first render? Then let's clear the window since it
   // contains garbage.
-  if (displayBufferIsGarbage) {
+  if (m_bDisplayIsUninitialized) {
     ClearColorBuffer();
-    displayBufferIsGarbage = false;
+    m_bDisplayIsUninitialized = false;
   }
 
   // clear the framebuffer (if requested)
@@ -363,7 +363,6 @@ void GLRenderer::Paint() {
     if (renderRegions[i]->redrawMask) {
       SetRenderTargetArea(*renderRegions[i], renderRegions[i]->decreaseScreenResNow);
       if (renderRegions[i]->is3D()) {
-        assert(renderRegions[i]->is3D());
         RenderRegion3D &region3D = *static_cast<RenderRegion3D*>(renderRegions[i]);
         if (!region3D.isBlank && m_bPerformReCompose){
           Recompose3DView(region3D);
@@ -520,9 +519,7 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
         }
       }
     }
-    if (justCompletedRegions[0]) {
-      CopyImageToDisplayBuffer();
-    }
+    CopyImageToDisplayBuffer();
   } else {
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if(justCompletedRegions[i]) {
