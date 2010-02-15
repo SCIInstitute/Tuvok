@@ -903,11 +903,16 @@ namespace SysTools {
   #define INFO_BUFFER_SIZE 32767
   bool GetHomeDirectory(std::string& path) {
     #ifdef DETECTED_OS_WINDOWS
-      // try the HOMEPATH env. var.
       char infoBuf[INFO_BUFFER_SIZE];
-      DWORD dwRet = GetEnvironmentVariableA("HOMEPATH", infoBuf, INFO_BUFFER_SIZE);
+      DWORD dwRet = GetEnvironmentVariableA("HOMEDRIVE", infoBuf, INFO_BUFFER_SIZE);
       if (dwRet) {
         path = std::string(infoBuf);
+      } else {
+        return false;
+      }
+      dwRet = GetEnvironmentVariableA("HOMEPATH", infoBuf, INFO_BUFFER_SIZE);
+      if (dwRet) {
+        path = path + std::string(infoBuf);
         return true;
       } else {
         return false;
@@ -932,11 +937,16 @@ namespace SysTools {
 
   bool GetHomeDirectory(std::wstring& path) {
     #ifdef DETECTED_OS_WINDOWS
-      // try the HOMEPATH env. var.
       WCHAR infoBuf[INFO_BUFFER_SIZE];
-      DWORD dwRet = GetEnvironmentVariableW(L"HOMEPATH", infoBuf, INFO_BUFFER_SIZE);
+      DWORD dwRet = GetEnvironmentVariableW(L"HOMEDRIVE", infoBuf, INFO_BUFFER_SIZE);
       if (dwRet) {
         path = std::wstring(infoBuf);
+      } else {
+        return false;
+      }
+      dwRet = GetEnvironmentVariableW(L"HOMEPATH", infoBuf, INFO_BUFFER_SIZE);
+      if (dwRet) {
+        path = path + std::wstring(infoBuf);
         return true;
       } else {
         return false;
