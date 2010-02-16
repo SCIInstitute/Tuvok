@@ -40,12 +40,16 @@
 #define SYSTEMINFO_H
 
 #include "StdDefines.h"
+#include <string>
 
 class SystemInfo
 {
 public:
-  SystemInfo(UINT64 iDefaultCPUMemSize=UINT64(32)*UINT64(1024)*UINT64(1024)*UINT64(1024), UINT64 iDefaultGPUMemSize=UINT64(8)*UINT64(1024)*UINT64(1024)*UINT64(1024));
+  SystemInfo(std::string strProgramPath="", UINT64 iDefaultCPUMemSize=UINT64(32)*UINT64(1024)*UINT64(1024)*UINT64(1024), UINT64 iDefaultGPUMemSize=UINT64(8)*UINT64(1024)*UINT64(1024)*UINT64(1024));
 
+  void SetProgramPath(std::string strProgramPath) {m_strProgramPath = strProgramPath;}
+
+  std::string GetProgramPath() const {return m_strProgramPath;}
   UINT32 GetProgrammBitWith() const {return m_iProgrammBitWith;}
   UINT64 GetCPUMemSize() const {return m_iCPUMemSize;}
   UINT64 GetGPUMemSize() const {return m_iGPUMemSize;}
@@ -64,6 +68,7 @@ private:
   UINT64 ComputeCPUMemSize();
   UINT64 ComputeGPUMemory();
 
+  std::string m_strProgramPath;
   UINT32  m_iProgrammBitWith;
   UINT64  m_iUseMaxCPUMem;
   UINT64  m_iUseMaxGPUMem;
