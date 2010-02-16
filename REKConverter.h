@@ -29,11 +29,9 @@
   \author  Andre Liebscher
            Institut of Mechanics and Fluid Dynamics
            TU Bergakademie Freiberg
-  \version 1.0
+  \version 1.1
   \date    March 2009
 */
-
-
 #pragma once
 
 #ifndef REKCONVERTER_H
@@ -49,17 +47,26 @@ public:
   virtual ~REKConverter() {}
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
-                            const std::string& strTempDir, bool bNoUserInteraction,
-                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
-                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
+                            const std::string& strTempDir,
+                            bool bNoUserInteraction,
+                            UINT64& iHeaderSkip, UINT64& iComponentSize,
+                            UINT64& iComponentCount, bool& bConvertEndianess,
+                            bool& bSigned, bool& bIsFloat,
+                            UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
+                            UVFTables::ElementSemanticTable& eType,
+                            std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile);
 
-  /// unimplemented!
-  virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
-                               UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                               UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction,
+  /// @todo unimplemented!
+  virtual bool ConvertToNative(const std::string& strRawFilename,
+                               const std::string& strTargetFilename,
+                               UINT64 iHeaderSkip, UINT64 iComponentSize,
+                               UINT64 iComponentCount, bool bSigned,
+                               bool bFloatingPoint,
+                               UINT64VECTOR3 vVolumeSize,
+                               FLOATVECTOR3 vVolumeAspect,
+                               bool bNoUserInteraction,
                                const bool bQuantizeTo8Bit);
 
   virtual bool CanExportData() const {return false;}
