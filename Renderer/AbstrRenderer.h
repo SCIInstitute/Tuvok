@@ -372,6 +372,7 @@ class AbstrRenderer {
     virtual void SetCVFocusPos(RenderRegion& renderRegion, INTVECTOR2 vPos);
     virtual INTVECTOR2 GetCVFocusPos() const {return m_vCVMousePos;}
 
+    virtual void ScheduleDisplayClearing() { m_bDisplayIsUninitialized = true; }
     virtual void ScheduleCompleteRedraw();
     virtual void Schedule3DWindowRedraws(); // Redraw all 3D windows.
     virtual void ScheduleWindowRedraw(RenderRegion *renderRegion);
@@ -477,6 +478,7 @@ class AbstrRenderer {
     bool                m_bOrthoView;
     bool                m_bRenderCoordArrows;
     bool                m_bRenderPlanesIn3D;
+    bool                m_bDisplayIsUninitialized;
 
     bool                m_bDoClearView;
     FLOATVECTOR3        m_vCVColor;

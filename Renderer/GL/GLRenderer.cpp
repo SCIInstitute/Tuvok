@@ -61,7 +61,6 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_p2DTransTex(NULL),
   m_p2DData(NULL),
   m_pFBO3DImageLast(NULL),
-  m_bDisplayIsUninitialized(true),
   m_pLogoTex(NULL),
   m_pProgramIso(NULL),
   m_pProgramColor(NULL),
@@ -286,9 +285,6 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
   AbstrRenderer::Resize(vWinSize);
   MESSAGE("Resizing to %u x %u", vWinSize.x, vWinSize.y);
 
-  glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
-  ClearColorBuffer();
-
   CreateOffscreenBuffers();
   CreateDepthStorage();
 }
@@ -320,10 +316,21 @@ void GLRenderer::ClearColorBuffer() {
 
 
 void GLRenderer::StartFrame() {
-  // Is this the very first render? Then let's clear the window since it
-  // contains garbage.
+  // If the display is uninitialized (this is usually do to a resize or when
+  // the display is first created) then lets clear it so we don't show garbage.
   if (m_bDisplayIsUninitialized) {
-    ClearColorBuffer();
+    if (renderRegions.size() > 1) {
+      // If we have multiple render regions, then we clear the alpha so that
+      // when ClearColorBuffer is called later on (with alpha blending), it
+      // clears the entire window and not just random bits of it.
+      m_TargetBinder.Bind(m_pFBO3DImageLast);
+      glClearColor(0,0,0,0);
+      glClear(GL_COLOR_BUFFER_BIT);
+      m_TargetBinder.Unbind();
+    } else {
+      glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
+      ClearColorBuffer();
+    }
     m_bDisplayIsUninitialized = false;
   }
 
@@ -519,7 +526,8 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
         }
       }
     }
-    CopyImageToDisplayBuffer();
+    if (justCompletedRegions[0])
+      CopyImageToDisplayBuffer();
   } else {
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if(justCompletedRegions[i]) {
@@ -1233,10 +1241,17 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
 }
 
 void GLRenderer::CopyImageToDisplayBuffer() {
-  glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
+  if (m_bClearFramebuffer) {
+    // Need to do this per region in case the clear color is a gradient.
+    for (size_t i=0; i < renderRegions.size(); ++i) {
+      UINTVECTOR2 size = renderRegions[i]->maxCoord - renderRegions[i]->minCoord;
+      glViewport(renderRegions[i]->minCoord.x, renderRegions[i]->minCoord.y,
+                 size.x, size.y);
+      ClearColorBuffer();
+    }
+  }
 
-  if (m_bClearFramebuffer)
-    ClearColorBuffer();
+  glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -92,6 +92,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bOrthoView(false),
   m_bRenderCoordArrows(false),
   m_bRenderPlanesIn3D(false),
+  m_bDisplayIsUninitialized(true),
   m_bDoClearView(false),
   m_vCVColor(1,0,0),
   m_fCVSize(5.5f),
@@ -355,6 +356,7 @@ bool AbstrRenderer::CheckForRedraw() {
 void AbstrRenderer::Resize(const UINTVECTOR2& vWinSize) {
   m_vWinSize = vWinSize;
   ScheduleCompleteRedraw();
+  ScheduleDisplayClearing();
 }
 
 RenderRegion3D* AbstrRenderer::GetFirst3DRegion() {
