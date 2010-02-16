@@ -43,6 +43,7 @@
 #include "GLTexture2D.h"
 #include "GLTexture3D.h"
 #include <Controller/Controller.h>
+#include <Basics/SystemInfo.h>
 #include <Basics/SysTools.h>
 #include <Basics/MathTools.h>
 #include "IO/uvfDataset.h"
@@ -1660,9 +1661,10 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
 
   string strActualVSFile = "";
   if (!SysTools::FileExists(strVSFile) && bSearchSubdirs) {
-    // if vertex shader is not found in the given directory, probe all subdirectories
-    vector<string> subdirs = SysTools::GetSubDirList("");
-    subdirs.push_back(".");
+    // if vertex shader is not found in the given directory, 
+    // probe all subdirectories of the program's directory
+    vector<string> subdirs = SysTools::GetSubDirList(Controller::Instance().SysInfo()->GetProgramPath());
+    subdirs.push_back(Controller::Instance().SysInfo()->GetProgramPath());
 
     string strDirlessVSFile = SysTools::GetFilename(strVSFile);
     for (size_t i = 0;i<subdirs.size();i++) {
@@ -1689,8 +1691,8 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
   string strActualFSFile = "";
   if (!SysTools::FileExists(strFSFile) && bSearchSubdirs) {
     // if fragment shader is not found in the given directory, probe all subdirectories
-    vector<string> subdirs = SysTools::GetSubDirList("");
-    subdirs.push_back(".");
+    vector<string> subdirs = SysTools::GetSubDirList(Controller::Instance().SysInfo()->GetProgramPath());
+    subdirs.push_back(Controller::Instance().SysInfo()->GetProgramPath());
 
     string strDirlessFSFile = SysTools::GetFilename(strFSFile);
     for (size_t i = 0;i<subdirs.size();i++) {
