@@ -61,6 +61,8 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_p2DTransTex(NULL),
   m_p2DData(NULL),
   m_pFBO3DImageLast(NULL),
+  m_pFBOResizeQuickBlit(NULL),
+  m_bFirstDrawAfterResize(true),
   m_pLogoTex(NULL),
   m_pProgramIso(NULL),
   m_pProgramColor(NULL),
@@ -285,8 +287,9 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
   AbstrRenderer::Resize(vWinSize);
   MESSAGE("Resizing to %u x %u", vWinSize.x, vWinSize.y);
 
-  CreateOffscreenBuffers();
-  CreateDepthStorage();
+  glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
+  ClearColorBuffer();
+  m_bFirstDrawAfterResize = true;
 }
 
 void GLRenderer::ClearDepthBuffer() {
@@ -296,7 +299,7 @@ void GLRenderer::ClearDepthBuffer() {
 void GLRenderer::ClearColorBuffer() {
   glDepthMask(GL_FALSE);
   if (m_bDoStereoRendering) {
-    // render anaglyphs agains a black background only
+    // render anaglyphs against a black background only
     glClearColor(0,0,0,0);
     glClear(GL_COLOR_BUFFER_BIT);
   } else {
@@ -316,24 +319,6 @@ void GLRenderer::ClearColorBuffer() {
 
 
 void GLRenderer::StartFrame() {
-  // If the display is uninitialized (this is usually do to a resize or when
-  // the display is first created) then lets clear it so we don't show garbage.
-  if (m_bDisplayIsUninitialized) {
-    if (renderRegions.size() > 1) {
-      // If we have multiple render regions, then we clear the alpha so that
-      // when ClearColorBuffer is called later on (with alpha blending), it
-      // clears the entire window and not just random bits of it.
-      m_TargetBinder.Bind(m_pFBO3DImageLast);
-      glClearColor(0,0,0,0);
-      glClear(GL_COLOR_BUFFER_BIT);
-      m_TargetBinder.Unbind();
-    } else {
-      glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
-      ClearColorBuffer();
-    }
-    m_bDisplayIsUninitialized = false;
-  }
-
   // clear the framebuffer (if requested)
   if (m_bClearFramebuffer) {
     ClearDepthBuffer();
@@ -362,44 +347,80 @@ void GLRenderer::StartFrame() {
 void GLRenderer::Paint() {
   AbstrRenderer::Paint();
 
-  StartFrame();
-
   vector<char> justCompletedRegions(renderRegions.size(), false);
 
-  for (size_t i=0; i < renderRegions.size(); ++i) {
-    if (renderRegions[i]->redrawMask) {
-      SetRenderTargetArea(*renderRegions[i], renderRegions[i]->decreaseScreenResNow);
-      if (renderRegions[i]->is3D()) {
-        RenderRegion3D &region3D = *static_cast<RenderRegion3D*>(renderRegions[i]);
-        if (!region3D.isBlank && m_bPerformReCompose){
-          Recompose3DView(region3D);
-          justCompletedRegions[i] = true;
-        } else {
-          Plan3DFrame(region3D);
+  // if we are drawing for the first time after a resize we do want to 
+  // start a full redraw loop but rather just blit the last valud image
+  // onto the screen, this makes resizing more responsive
+  if (m_bFirstDrawAfterResize) {
+    CreateOffscreenBuffers();
+    CreateDepthStorage();
+    StartFrame();
 
-          //region3D.decreaseScreenResNow could have changed after calling
-          //Plan3DFrame.
-          SetRenderTargetArea(region3D, region3D.decreaseScreenResNow);
+    if (m_pFBOResizeQuickBlit) {
+      m_pFBO3DImageLast->Write();
+      glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
+      glDisable(GL_BLEND);
 
-          // execute the frame0
-          float fMsecPassed = 0.0f;
-          justCompletedRegions[i] = Execute3DFrame(region3D, fMsecPassed);
-          region3D.msecPassedCurrentFrame += fMsecPassed;
-        }
-        // are we done rendering or do we need to render at higher quality?
-        region3D.redrawMask =
-          (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
-          (m_iCurrentLODOffset > m_iMinLODForCurrentView) ||
-          region3D.decreaseScreenResNow;
-      } else if (renderRegions[i]->is2D()) {  // in a 2D view mode
-        RenderRegion2D& region2D = *static_cast<RenderRegion2D*>(renderRegions[i]);
-        justCompletedRegions[i] = Render2DView(region2D);
-        region2D.redrawMask = false;
-      }
-    } else {
-      justCompletedRegions[i] = false;
+      m_pFBOResizeQuickBlit->Read(0);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      m_pFBOResizeQuickBlit->ReadDepth(1);
+
+      glClearColor(1,0,0,1);
+      glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+      glDisable(GL_DEPTH_TEST);
+      glClearColor(0,0,0,0);
+
+      m_pProgramTrans->Enable();
+      FullscreenQuad();
+      m_pProgramTrans->Disable();
+
+      m_pFBOResizeQuickBlit->FinishRead();
+      m_pFBOResizeQuickBlit->FinishDepthRead();
+      m_pFBO3DImageLast->FinishWrite();
+
+      m_pMasterController->MemMan()->FreeFBO(m_pFBOResizeQuickBlit);
+      m_pFBOResizeQuickBlit = NULL;
     }
-    renderRegions[i]->isBlank = false;
+    m_bFirstDrawAfterResize = false;
+  } else {
+    StartFrame();
+
+    for (size_t i=0; i < renderRegions.size(); ++i) {
+      if (renderRegions[i]->redrawMask) {
+        SetRenderTargetArea(*renderRegions[i], renderRegions[i]->decreaseScreenResNow);
+        if (renderRegions[i]->is3D()) {
+          RenderRegion3D &region3D = *static_cast<RenderRegion3D*>(renderRegions[i]);
+          if (!region3D.isBlank && m_bPerformReCompose){
+            Recompose3DView(region3D);
+            justCompletedRegions[i] = true;
+          } else {
+            Plan3DFrame(region3D);
+
+            //region3D.decreaseScreenResNow could have changed after calling
+            //Plan3DFrame.
+            SetRenderTargetArea(region3D, region3D.decreaseScreenResNow);
+
+            // execute the frame0
+            float fMsecPassed = 0.0f;
+            justCompletedRegions[i] = Execute3DFrame(region3D, fMsecPassed);
+            region3D.msecPassedCurrentFrame += fMsecPassed;
+          }
+          // are we done rendering or do we need to render at higher quality?
+          region3D.redrawMask =
+            (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
+            (m_iCurrentLODOffset > m_iMinLODForCurrentView) ||
+            region3D.decreaseScreenResNow;
+        } else if (renderRegions[i]->is2D()) {  // in a 2D view mode
+          RenderRegion2D& region2D = *static_cast<RenderRegion2D*>(renderRegions[i]);
+          justCompletedRegions[i] = Render2DView(region2D);
+          region2D.redrawMask = false;
+        }
+      } else {
+        justCompletedRegions[i] = false;
+      }
+      renderRegions[i]->isBlank = false;
+    }
   }
   EndFrame(justCompletedRegions);
 }
@@ -526,8 +547,6 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
         }
       }
     }
-    if (justCompletedRegions[0])
-      CopyImageToDisplayBuffer();
   } else {
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if(justCompletedRegions[i]) {
@@ -537,8 +556,8 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
         CopyOverCompletedRegion(renderRegions[i]);
       }
     }
-    CopyImageToDisplayBuffer();
   }
+  CopyImageToDisplayBuffer();
 
   // we've definitely recomposed by now.
   m_bPerformReCompose = false;
@@ -1241,17 +1260,10 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
 }
 
 void GLRenderer::CopyImageToDisplayBuffer() {
-  if (m_bClearFramebuffer) {
-    // Need to do this per region in case the clear color is a gradient.
-    for (size_t i=0; i < renderRegions.size(); ++i) {
-      UINTVECTOR2 size = renderRegions[i]->maxCoord - renderRegions[i]->minCoord;
-      glViewport(renderRegions[i]->minCoord.x, renderRegions[i]->minCoord.y,
-                 size.x, size.y);
-      ClearColorBuffer();
-    }
-  }
+  glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
 
-  glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
+  if (m_bClearFramebuffer)
+    ClearColorBuffer();
 
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1421,12 +1433,16 @@ void GLRenderer::CreateOffscreenBuffers() {
   GPUMemMan &mm = *(Controller::Instance().MemMan());
 
   if (m_pFBO3DImageLast) {
-    mm.FreeFBO(m_pFBO3DImageLast);
+    if (m_pFBOResizeQuickBlit) {
+      mm.FreeFBO(m_pFBOResizeQuickBlit);
+      m_pFBOResizeQuickBlit = NULL;
+    }
+    m_pFBOResizeQuickBlit = m_pFBO3DImageLast;
     m_pFBO3DImageLast = NULL;
   }
 
   for (UINT32 i=0; i < 2; i++) {
-    if (m_pFBO3DImageCurrent[i]) {
+    if (m_pFBO3DImageCurrent[i]) {    
       mm.FreeFBO(m_pFBO3DImageCurrent[i]);
       m_pFBO3DImageCurrent[i] = NULL;
     }
