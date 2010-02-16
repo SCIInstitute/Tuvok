@@ -618,14 +618,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Basics\GLWindow.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Basics\GLWindow.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Basics\Grids.h"
 				>
 			</File>
