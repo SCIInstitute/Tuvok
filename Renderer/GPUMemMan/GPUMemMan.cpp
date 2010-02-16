@@ -923,6 +923,14 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
   FBOListElem* e = new FBOListElem(m_MasterController, minfilter, magfilter,
                                    wrapmode, width, height, intformat,
                                    iSizePerElement, bHaveDepth, iNumBuffers);
+  
+  // clear the buffer, on some GPUs new FBOs are not zeroed out
+  e->pFBOTex->Write();
+  glClearColor(0,0,0,0);
+  glClear(GL_COLOR_BUFFER_BIT);
+  e->pFBOTex->FinishWrite();
+
+
   m_vpFBOList.push_back(e);
 
   m_iAllocatedGPUMemory += e->pFBOTex->GetCPUSize();
