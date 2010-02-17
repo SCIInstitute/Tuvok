@@ -54,7 +54,7 @@
 #define TUVOK_MINOR 3
 #define TUVOK_PATCH 0
 #define TUVOK_VERSION "1.3"
-#define TUVOK_VERSION_TYPE "Release Candidate"
+#define TUVOK_VERSION_TYPE "Release"
 
 #ifdef _MSC_VER
 # define _func_ __FUNCTION__
