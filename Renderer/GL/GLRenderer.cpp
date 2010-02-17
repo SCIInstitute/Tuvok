@@ -2083,7 +2083,7 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
   float fMsecPassed = 0;
 
   while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame &&
-         (fMsecPassed < m_iTimeSliceMSecs || m_bCaptureMode)) {
+         fMsecPassed < m_iTimeSliceMSecs) {
     MESSAGE("  Brick %u of %u",
             static_cast<unsigned>(m_iBricksRenderedInThisSubFrame+1),
             static_cast<unsigned>(m_vCurrentBrickList.size()));
@@ -2132,10 +2132,9 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
       // let's pretend this actually does what it should
       glFinish();
 #endif
-
-      // time this loop
-      fMsecPassed = m_Timer.Elapsed();
     }
+    // time this loop
+    fMsecPassed = m_Timer.Elapsed();
     ++bricks_this_call;
   }
 
