@@ -60,6 +60,10 @@ class GLRenderer;
     // has this never been drawn (are we starting from scratch for this view)?
     bool isBlank;
 
+    // no LOD has been completed (this is different from "isBlank" above as 
+    // it considers what is visible to the user not what is in the backbuffer)
+    bool isTargetBlank;
+
     bool decreaseScreenRes;
     bool decreaseScreenResNow;
     bool decreaseSamplingRate;
@@ -73,6 +77,7 @@ class GLRenderer;
       windowMode(mode),
       redrawMask(true),
       isBlank(true),
+      isTargetBlank(true),
       decreaseScreenRes(false),
       decreaseScreenResNow(false),
       decreaseSamplingRate(false),

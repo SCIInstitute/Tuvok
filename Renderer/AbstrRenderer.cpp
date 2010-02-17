@@ -135,10 +135,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
 
   m_vShaderSearchDirs.push_back("Shaders");
   m_vShaderSearchDirs.push_back("Tuvok/Shaders");
-  m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
-  m_vShaderSearchDirs.push_back("../../Tuvok/Shaders");
-  m_vShaderSearchDirs.push_back("../../../Tuvok/Shaders");
-
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
 }
 
@@ -465,6 +461,7 @@ void AbstrRenderer::ScheduleCompleteRedraw() {
   for (size_t i=0; i < renderRegions.size(); ++i) {
     renderRegions[i]->redrawMask = true;
     renderRegions[i]->isBlank = true;
+    renderRegions[i]->isTargetBlank = true;
   }
 }
 
@@ -475,6 +472,7 @@ void AbstrRenderer::Schedule3DWindowRedraws() {
     if (renderRegions[i]->is3D()) {
       renderRegions[i]->redrawMask = true;
       renderRegions[i]->isBlank = true;
+      renderRegions[i]->isTargetBlank = true;
     }
   }
 }
@@ -483,6 +481,7 @@ void AbstrRenderer::ScheduleWindowRedraw(RenderRegion *renderRegion) {
   m_iCheckCounter = m_iStartDelay;
   renderRegion->redrawMask = true;
   renderRegion->isBlank = true;
+  renderRegion->isTargetBlank = true;
 }
 
 void AbstrRenderer::ScheduleRecompose(RenderRegion *renderRegion) {
@@ -518,6 +517,7 @@ void AbstrRenderer::CompletedASubframe(RenderRegion* region) {
     region->msecPassed[1] = region->msecPassedCurrentFrame;
   }
   region->msecPassedCurrentFrame = 0.0f;
+  region->isTargetBlank = false;
 }
 
 void AbstrRenderer::RestartTimer(RenderRegion& region, const size_t iTimerIndex) {

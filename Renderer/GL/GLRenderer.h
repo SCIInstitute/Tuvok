@@ -207,6 +207,8 @@ class GLRenderer : public AbstrRenderer {
     void CreateDepthStorage();
     void DeleteDepthStorage() {delete [] m_aDepthStorage;}
 
+    void TargetIsBlankButFrameIsNotFinished(const RenderRegion* region);
+
 };
 
 };

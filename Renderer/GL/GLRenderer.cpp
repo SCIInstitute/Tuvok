@@ -510,6 +510,10 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
   glDisable(GL_SCISSOR_TEST);
 }
 
+void GLRenderer::TargetIsBlankButFrameIsNotFinished(const RenderRegion* region) {
+  CopyOverCompletedRegion(region);
+}
+
 void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
   glDisable(GL_SCISSOR_TEST);
 
@@ -547,6 +551,10 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
           CompletedASubframe(renderRegions[i]);
         }
       }
+    } else {
+      if (!renderRegions[0]->isBlank && renderRegions[0]->isTargetBlank) {
+        TargetIsBlankButFrameIsNotFinished(renderRegions[0]);
+      }
     }
   } else {
     for (size_t i=0; i < renderRegions.size(); ++i) {
@@ -555,6 +563,10 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
           CompletedASubframe(renderRegions[i]);
         }
         CopyOverCompletedRegion(renderRegions[i]);
+      } else {
+        if (!renderRegions[0]->isBlank && renderRegions[i]->isTargetBlank) {
+          TargetIsBlankButFrameIsNotFinished(renderRegions[i]);
+        }
       }
     }
   }
