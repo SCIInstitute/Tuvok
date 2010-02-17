@@ -389,20 +389,22 @@ void GLRenderer::Paint() {
 
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if (renderRegions[i]->redrawMask) {
-        SetRenderTargetArea(*renderRegions[i], renderRegions[i]->decreaseScreenResNow);
+        SetRenderTargetArea(*renderRegions[i],
+                            renderRegions[i]->decreaseScreenResNow);
         if (renderRegions[i]->is3D()) {
-          RenderRegion3D &region3D = *static_cast<RenderRegion3D*>(renderRegions[i]);
+          RenderRegion3D &region3D = *static_cast<RenderRegion3D*>
+                                                 (renderRegions[i]);
           if (!region3D.isBlank && m_bPerformReCompose){
             Recompose3DView(region3D);
             justCompletedRegions[i] = true;
           } else {
             Plan3DFrame(region3D);
 
-            //region3D.decreaseScreenResNow could have changed after calling
-            //Plan3DFrame.
+            // region3D.decreaseScreenResNow could have changed after calling
+            // Plan3DFrame.
             SetRenderTargetArea(region3D, region3D.decreaseScreenResNow);
 
-            // execute the frame0
+            // execute the frame
             float fMsecPassed = 0.0f;
             justCompletedRegions[i] = Execute3DFrame(region3D, fMsecPassed);
             region3D.msecPassedCurrentFrame += fMsecPassed;
@@ -2090,9 +2092,7 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
 
     const BrickKey& bkey = m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
 
-
     MESSAGE("  Requesting texture from MemMan");
-
 
     if(BindVolumeTex(bkey, m_iIntraFrameCounter++)) {
       MESSAGE("  Binding Texture");
@@ -2135,8 +2135,10 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
     }
     // time this loop
     fMsecPassed = m_Timer.Elapsed();
+
     ++bricks_this_call;
   }
+  MESSAGE("Rendered %u bricks this call.", bricks_this_call);
 
   Render3DPostLoop();
 

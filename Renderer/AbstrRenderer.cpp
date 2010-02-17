@@ -337,10 +337,12 @@ bool AbstrRenderer::CheckForRedraw() {
         AbstrDebugOut *dbg = m_pMasterController->DebugOut();
         dbg->Message(_func_,"Still drawing...");
         return true;
-      } else
+      } else {
         decrementCounter = true;
+      }
     }
-    redrawRequired = redrawRequired || region->isBlank; // region is completely blank
+    // region is completely blank?
+    redrawRequired |= region->isBlank;
   }
   /// @todo Is this logic for how/when to decrement correct?
   if (decrementCounter)
