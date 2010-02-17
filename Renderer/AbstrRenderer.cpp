@@ -330,12 +330,15 @@ bool AbstrRenderer::CheckForRedraw() {
 
   for (size_t i=0; i < renderRegions.size(); ++i) {
     const RenderRegion* region = renderRegions[i];
-    if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame || // bricks left
-        m_iCurrentLODOffset > m_iMinLODForCurrentView || // higher quality LOD left
-        region->doAnotherRedrawDueToAllMeans) { // need to redraw at normal quality
-      if (m_iCheckCounter == 0) {
-        AbstrDebugOut *dbg = m_pMasterController->DebugOut();
-        dbg->Message(_func_,"Still drawing...");
+    // need to redraw for 1 of three reasons:
+    //   didn't finish last paint call; bricks remain.
+    //   haven't rendered the finest LOD for the current view
+    //   last draw was low res or sample rate for interactivity
+    if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame ||
+        m_iCurrentLODOffset > m_iMinLODForCurrentView ||
+        region->doAnotherRedrawDueToAllMeans) {
+      if (m_iCheckCounter == 0 || m_bCaptureMode) {
+        MESSAGE("Still drawing...");
         return true;
       } else {
         decrementCounter = true;
