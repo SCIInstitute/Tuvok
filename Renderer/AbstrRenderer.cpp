@@ -135,6 +135,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
 
   m_vShaderSearchDirs.push_back("Shaders");
   m_vShaderSearchDirs.push_back("Tuvok/Shaders");
+  m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
 }
 
