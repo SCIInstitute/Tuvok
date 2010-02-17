@@ -537,6 +537,7 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
         m_pProgramComposeAnaglyphs->Enable();
         glDisable(GL_DEPTH_TEST);
         FullscreenQuadRegions();
+        glEnable(GL_DEPTH_TEST);
         m_pProgramComposeAnaglyphs->Disable();
 
         m_TargetBinder.Unbind();
@@ -1752,6 +1753,8 @@ void GLRenderer::BBoxPreRender() {
   // pass once to init the depth buffer.  for isosurface rendering we can go
   // ahead and render the bbox directly as isosurfacing writes out correct
   // depth values
+  glEnable(GL_DEPTH_TEST);
+  glDepthMask(GL_TRUE);
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView ||
       m_bAvoidSeperateCompositing) {
     glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
@@ -1790,6 +1793,7 @@ void GLRenderer::BBoxPostRender() {
   // occluding/showing the bbox's outline.
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
     glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {

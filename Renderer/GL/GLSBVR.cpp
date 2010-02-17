@@ -252,6 +252,7 @@ void GLSBVR::Render3DPreLoop(RenderRegion3D& region) {
   }
 
   m_SBVRGeogen.SetLODData( UINTVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))  );
+  glEnable(GL_DEPTH_TEST);
 }
 
 void GLSBVR::RenderProxyGeometry() {

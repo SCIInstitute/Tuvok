@@ -384,6 +384,7 @@ void GLRaycaster::Render3DInLoop(RenderRegion3D& renderRegion,
 
   glDisable(GL_BLEND);
   glDepthMask(GL_FALSE);
+  glEnable(GL_DEPTH_TEST);
 
   renderRegion.modelView[iStereoID].setModelview();
   m_mProjection[iStereoID].setProjection();
@@ -400,6 +401,7 @@ void GLRaycaster::Render3DInLoop(RenderRegion3D& renderRegion,
 
   if (m_eRenderMode == RM_ISOSURFACE) {
     glDepthMask(GL_TRUE);
+
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
 
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
