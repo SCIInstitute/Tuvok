@@ -333,8 +333,9 @@ namespace SysTools {
     }
 #ifdef DETECTED_OS_WINDOWS
     char buffer[MAX_PATH_LENGTH];
+    const wchar_t *res_ptr = resolved;
     mbstate_t mbs = {0};
-    wcsrtombs(buffer, (const wchar_t**)&resolved, MAX_PATH_LENGTH, &mbs);
+    wcsrtombs(buffer, &res_ptr, MAX_PATH_LENGTH, &mbs);
     return std::string(buffer);
 #else
     return std::string(resolved);
