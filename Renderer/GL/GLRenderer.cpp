@@ -350,7 +350,6 @@ void GLRenderer::Paint() {
 
   vector<char> justCompletedRegions(renderRegions.size(), false);
 
-
   // if we are drawing for the first time after a resize we do want to 
   // start a full redraw loop but rather just blit the last valud image
   // onto the screen, this makes resizing more responsive
@@ -359,21 +358,17 @@ void GLRenderer::Paint() {
     CreateDepthStorage();
     StartFrame();
 
-
     if (m_pFBOResizeQuickBlit) {
       m_pFBO3DImageLast->Write();
       glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
-      ClearColorBuffer();
-
-      // release 1.3: excluded the show previous result feature
-
-/*
       glDisable(GL_BLEND);
+
       m_pFBOResizeQuickBlit->Read(0);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       m_pFBOResizeQuickBlit->ReadDepth(1);
 
-      glClear(GL_DEPTH_BUFFER_BIT);
+      glClearColor(1,0,0,1);
+      glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
       glDisable(GL_DEPTH_TEST);
       glClearColor(0,0,0,0);
 
@@ -382,8 +377,7 @@ void GLRenderer::Paint() {
       m_pProgramTrans->Disable();
 
       m_pFBOResizeQuickBlit->FinishRead();
-      m_pFBOResizeQuickBlit->FinishDepthRead();*/
-
+      m_pFBOResizeQuickBlit->FinishDepthRead();
       m_pFBO3DImageLast->FinishWrite();
 
       m_pMasterController->MemMan()->FreeFBO(m_pFBOResizeQuickBlit);
@@ -519,15 +513,7 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
 }
 
 void GLRenderer::TargetIsBlankButFrameIsNotFinished(const RenderRegion* region) {
-  //CopyOverCompletedRegion(region);
-
-  // release 1.3: excluded the show intermediate result feature
-  SetRenderTargetAreaScissor(*region);
-  m_pFBO3DImageLast->Write();
-  glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
-  ClearColorBuffer();
-  m_pFBO3DImageLast->FinishWrite();
-  glDisable(GL_SCISSOR_TEST);
+  CopyOverCompletedRegion(region);
 }
 
 void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
