@@ -513,7 +513,13 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
 }
 
 void GLRenderer::TargetIsBlankButFrameIsNotFinished(const RenderRegion* region) {
-  CopyOverCompletedRegion(region);
+  // In stereo, we just clear; otherwise we'll see a rendering for just one of
+  // the eyes.
+  if(m_bDoStereoRendering) {
+    ClearColorBuffer();
+  } else {
+    CopyOverCompletedRegion(region);
+  }
 }
 
 void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
