@@ -7,6 +7,7 @@
 #else
 # include <tr1/random>
 #endif
+using namespace tuvok;
 
 static size_t filesize(const char fn[]) {
   std::ifstream ifs(fn, std::ios::binary);
