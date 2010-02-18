@@ -567,7 +567,7 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
         }
         CopyOverCompletedRegion(renderRegions[i]);
       } else {
-        if (!renderRegions[0]->isBlank && renderRegions[i]->isTargetBlank) {
+        if (!renderRegions[i]->isBlank && renderRegions[i]->isTargetBlank) {
           TargetIsBlankButFrameIsNotFinished(renderRegions[i]);
         }
       }
