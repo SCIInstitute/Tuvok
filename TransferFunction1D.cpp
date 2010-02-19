@@ -293,10 +293,15 @@ void TransferFunction1D::GetByteArray(std::vector<unsigned char>& vData,
 
   unsigned char *pcDataIterator = &vData.at(0);
   for (size_t i = 0;i<vColorData.size();i++) {
-    *pcDataIterator++ = (unsigned char)(vColorData[i][0]*cUsedRange);
-    *pcDataIterator++ = (unsigned char)(vColorData[i][1]*cUsedRange);
-    *pcDataIterator++ = (unsigned char)(vColorData[i][2]*cUsedRange);
-    *pcDataIterator++ = (unsigned char)(vColorData[i][3]*cUsedRange);
+    unsigned char r = (unsigned char)(std::max(0.0f,std::min(vColorData[i][0],1.0f))*cUsedRange);
+    unsigned char g = (unsigned char)(std::max(0.0f,std::min(vColorData[i][1],1.0f))*cUsedRange);
+    unsigned char b = (unsigned char)(std::max(0.0f,std::min(vColorData[i][2],1.0f))*cUsedRange);
+    unsigned char a = (unsigned char)(std::max(0.0f,std::min(vColorData[i][3],1.0f))*cUsedRange);
+
+    *pcDataIterator++ = r;
+    *pcDataIterator++ = g;
+    *pcDataIterator++ = b;
+    *pcDataIterator++ = a;
   }
 }
 
@@ -309,10 +314,15 @@ void TransferFunction1D::GetShortArray(unsigned short** psData,
 
   unsigned short *psDataIterator = *psData;
   for (size_t i = 0;i<vColorData.size();i++) {
-    *psDataIterator++ = (unsigned short)(vColorData[i][0]*sUsedRange);
-    *psDataIterator++ = (unsigned short)(vColorData[i][1]*sUsedRange);
-    *psDataIterator++ = (unsigned short)(vColorData[i][2]*sUsedRange);
-    *psDataIterator++ = (unsigned short)(vColorData[i][3]*sUsedRange);
+    unsigned short r = (unsigned short)(std::max(0.0f,std::min(vColorData[i][0],1.0f))*sUsedRange);
+    unsigned short g = (unsigned short)(std::max(0.0f,std::min(vColorData[i][1],1.0f))*sUsedRange);
+    unsigned short b = (unsigned short)(std::max(0.0f,std::min(vColorData[i][2],1.0f))*sUsedRange);
+    unsigned short a = (unsigned short)(std::max(0.0f,std::min(vColorData[i][3],1.0f))*sUsedRange);
+
+    *psDataIterator++ = r;
+    *psDataIterator++ = g;
+    *psDataIterator++ = b;
+    *psDataIterator++ = a;
   }
 }
 

@@ -355,10 +355,12 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
 
   m_Trans1DImage = QImage(int(iSize), 1, QImage::Format_ARGB32);
   for (size_t i = 0;i<iSize;i++) {
-    m_Trans1DImage.setPixel(int(i),0,qRgba(int(m_Trans1D.vColorData[i][0]*255),
-                                           int(m_Trans1D.vColorData[i][1]*255),
-                                           int(m_Trans1D.vColorData[i][2]*255),
-                                           int(m_Trans1D.vColorData[i][3]*255)));
+    float r = std::max(0.0f,std::min(m_Trans1D.vColorData[i][0],1.0f));
+    float g = std::max(0.0f,std::min(m_Trans1D.vColorData[i][1],1.0f));
+    float b = std::max(0.0f,std::min(m_Trans1D.vColorData[i][2],1.0f));
+    float a = std::max(0.0f,std::min(m_Trans1D.vColorData[i][3],1.0f));
+
+    m_Trans1DImage.setPixel(int(i),0,qRgba(int(r*255),int(g*255),int(b*255),int(a*255)));
   }
 #else
   T_ERROR("Unsupported without Qt.");
