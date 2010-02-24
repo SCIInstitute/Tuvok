@@ -102,12 +102,6 @@ template<> struct ctti<unsigned int> : ctti_base<unsigned int> {
   typedef unsigned int size_type;
   typedef int signed_type;
 };
-#if 1
-template<> struct ctti<boost::uint64_t> : ctti_base<boost::uint64_t> {
-  typedef boost::uint64_t size_type;
-  typedef boost::int64_t signed_type;
-};
-#endif
 template<> struct ctti<UINT64> : ctti_base<UINT64> {
   typedef UINT64 size_type;
   typedef INT64 signed_type;
