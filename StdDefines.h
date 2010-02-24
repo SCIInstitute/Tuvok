@@ -39,17 +39,11 @@
 #ifndef STDDEFINES_H
 #define STDDEFINES_H
 
-#ifdef _WIN32
-  typedef unsigned __int64 UINT64;
-#else
-  typedef unsigned long long UINT64;
-#endif
-#ifdef _WIN32
-  typedef __int64 INT64;
-#else
-  typedef long long INT64;
-#endif
-typedef unsigned int UINT32;
+#include "boost/cstdint.hpp"
+
+typedef boost::int64_t  INT64;
+typedef boost::uint64_t UINT64;
+typedef boost::uint32_t UINT32;
 typedef unsigned int UINT;
 typedef unsigned char BYTE;
 
