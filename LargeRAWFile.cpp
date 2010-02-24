@@ -20,29 +20,17 @@ LargeRAWFile::LargeRAWFile(const std::wstring& wstrFilename, UINT64 iHeaderSize)
   m_strFilename = strFilename;
 }
 
-LargeRAWFile::LargeRAWFile(LargeRAWFile &other) :
+LargeRAWFile::LargeRAWFile(const LargeRAWFile &other) :
+  m_StreamFile(NULL),
   m_strFilename(other.m_strFilename),
   m_bIsOpen(other.m_bIsOpen),
   m_bWritable(other.m_bWritable),
   m_iHeaderSize(other.m_iHeaderSize)
 {
   /// @todo !?!? need a better fix, a copy constructor shouldn't be expensive.
-  if (m_bIsOpen && m_bWritable) {
-    m_strFilename += "~";
-    UINT64 iDataSize = other.GetCurrentSize();
-    Create(iDataSize);
-
-    other.SeekStart();
-
-    unsigned char* pData = new unsigned char[size_t(min(iDataSize,
-                                                        BLOCK_COPY_SIZE))];
-    for (UINT64 i = 0;i<iDataSize;i+=BLOCK_COPY_SIZE) {
-      UINT64 iCopySize = min(BLOCK_COPY_SIZE, iDataSize-i);
-
-      other.ReadRAW(pData, iCopySize);
-      WriteRAW(pData, iCopySize);
-    }
-    delete [] pData;
+  assert(!m_bWritable && "Copying a file in write mode is too expensive.");
+  if(m_bIsOpen) {
+    Open(false);
   }
 }
 

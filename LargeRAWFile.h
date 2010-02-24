@@ -38,7 +38,7 @@ class LargeRAWFile {
 public:
   LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize=0);
   LargeRAWFile(const std::wstring& wstrFilename, UINT64 iHeaderSize=0);
-  LargeRAWFile(LargeRAWFile &other);
+  LargeRAWFile(const LargeRAWFile &other);
   virtual ~LargeRAWFile() {Close();}
 
   bool Open(bool bReadWrite=false);
