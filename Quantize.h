@@ -86,6 +86,14 @@ template<> struct ctti<int> : ctti_base<int> {
   typedef unsigned int size_type;
   typedef int signed_type;
 };
+template<> struct ctti<long> : ctti_base<long> {
+  typedef unsigned long size_type;
+  typedef long signed_type;
+};
+template<> struct ctti<unsigned long> : ctti_base<unsigned long> {
+  typedef unsigned long size_type;
+  typedef long signed_type;
+};
 template<> struct ctti<boost::int64_t> : ctti_base<boost::int64_t> {
   typedef boost::uint64_t size_type;
   typedef boost::int64_t signed_type;
