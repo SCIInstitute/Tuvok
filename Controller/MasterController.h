@@ -164,6 +164,8 @@ public:
                   const std::string args = std::string());
   ///@}
 
+  bool ExperimentalFeatures() const;
+  void ExperimentalFeatures(bool b);
 
 private:
   SystemInfo*      m_pSystemInfo;
@@ -174,6 +176,7 @@ private:
   Scripting*       m_pScriptEngine;
   bool             m_bDeleteDebugOutOnExit;
   provenance_func* m_pProvenance;
+  bool             m_bExperimentalFeatures;
 
   AbstrRendererList m_vVolumeRenderer;
 };

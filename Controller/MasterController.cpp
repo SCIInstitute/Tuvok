@@ -57,7 +57,8 @@ using namespace tuvok;
 
 MasterController::MasterController() :
   m_bDeleteDebugOutOnExit(false),
-  m_pProvenance(NULL)
+  m_pProvenance(NULL),
+  m_bExperimentalFeatures(false)
 {
   m_pSystemInfo   = new SystemInfo();
   m_pIOManager    = new IOManager();
@@ -321,4 +322,12 @@ void MasterController::Provenance(const std::string kind,
   if(this->m_pProvenance) {
     this->m_pProvenance(kind, cmd, args);
   }
+}
+
+bool MasterController::ExperimentalFeatures() const {
+  return m_bExperimentalFeatures;
+}
+
+void MasterController::ExperimentalFeatures(bool b) {
+  m_bExperimentalFeatures = b;
 }
