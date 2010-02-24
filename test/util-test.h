@@ -9,6 +9,9 @@
 #endif
 using namespace tuvok;
 
+typedef unsigned char ubyte;
+typedef signed char byte;
+
 static size_t filesize(const char fn[]) {
   std::ifstream ifs(fn, std::ios::binary);
   ifs.seekg(0, std::ios::end);
@@ -62,7 +65,7 @@ namespace {
   // Generates data with a constant value
   template <typename T>
   void gen_constant(std::ostream& os, const size_t sz, const T& val) {
-    for(size_t i=0; i < sz/sizeof(T); ++i) {
+    for(size_t i=0; i < sz; ++i) {
       os.write(reinterpret_cast<const char*>(&val), sizeof(T));
     }
   }
