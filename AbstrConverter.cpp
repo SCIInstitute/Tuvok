@@ -45,11 +45,11 @@ using namespace tuvok;
 
 const std::string
 AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
-                                    const std::string& strFilename,
-                                    const std::string& strTargetFilename,
-                                    UINT64 iSize, bool bSigned,
-                                    Histogram1DDataBlock* Histogram1D) {
-  size_t iCurrentIncoreSize = GetIncoreSize();
+                             const std::string& strFilename,
+                             const std::string& strTargetFilename,
+                             UINT64 iSize, bool bSigned,
+                             Histogram1DDataBlock* Histogram1D) {
+  size_t iCurrentInCoreSize = GetIncoreSize();
 
   LargeRAWFile InputData(strFilename, iHeaderSkip);
   InputData.Open(false);
@@ -71,15 +71,15 @@ AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
       return "";
     }
 
-    signed char* pInData = new signed char[iCurrentIncoreSize];
+    signed char* pInData = new signed char[iCurrentInCoreSize];
 
     UINT64 iPos = 0;
     while (iPos < iSize)  {
-      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize);
+      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentInCoreSize);
       if (iRead == 0) break;
 
       for (size_t i = 0;i<iRead;i++) {
-        pInData[i] += 127;
+        pInData[i] += 128;
         if (Histogram1D) aHist[(unsigned char)pInData[i]]++;
       }
       OutputData.WriteRAW((unsigned char*)pInData, iRead);
@@ -96,12 +96,12 @@ AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
   } else {
     if (Histogram1D) {
       MESSAGE("Computing 1D Histogram...");
-      unsigned char* pInData = new unsigned char[iCurrentIncoreSize];
+      unsigned char* pInData = new unsigned char[iCurrentInCoreSize];
 
       UINT64 iPos = 0;
       UINT64 iDivLast = 0;
       while (iPos < iSize)  {
-        size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize);
+        size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentInCoreSize);
         if (iRead == 0) break;
         for (size_t i = 0;i<iRead;i++) aHist[pInData[i]]++;
         iPos += UINT64(iRead);
@@ -130,752 +130,7 @@ AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
 }
 
 
-/// For signed data, biases and quantizes to 12 bit.
-/// For unsigned data, we calculate a quantized histogram, but leave the data
-/// intact.
-const std::string
-AbstrConverter::ProcessShort(UINT64 iHeaderSkip,
-                             const std::string& strFilename,
-                             const std::string& strTargetFilename,
-                             UINT64 iSize, bool bSigned,
-                             Histogram1DDataBlock* Histogram1D) {
-  size_t iCurrentIncoreSize = GetIncoreSize();
-
-  LargeRAWFile InputData(strFilename, iHeaderSkip);
-  InputData.Open(false);
-  UINT64 iPercent = iSize / 100;
-
-  if (!InputData.IsOpen()) {
-    T_ERROR("Could not open input file: %s", strFilename.c_str());
-    return "";
-  }
-
-  // determine max and min
-  unsigned short iMax = 0;
-  unsigned short iMin = std::numeric_limits<unsigned short>::max();
-  UINT64 iPos = 0;
-  UINT64 iDivLast = 0;
-
-  std::vector<UINT64> aHist(4096);
-  std::fill(aHist.begin(), aHist.end(), 0);
-
-  if (bSigned) {
-    MESSAGE("16bit data is signed");
-    std::pair<short,short> minmax;
-    minmax = io_minmax(raw_data_src<short>(InputData),
-                       Unsigned12BitHistogram<short>(aHist),
-                       TuvokProgress<UINT64>(iSize),
-                       iCurrentIncoreSize);
-
-    iMin = minmax.first+std::numeric_limits<short>::max();
-    iMax = minmax.second+std::numeric_limits<short>::max();
-  } else {
-    MESSAGE("16bit data is unsigned");
-    std::pair<unsigned short,unsigned short> minmax;
-    minmax = io_minmax(raw_data_src<unsigned short>(InputData),
-                       Unsigned12BitHistogram<unsigned short>(aHist),
-                       TuvokProgress<UINT64>(iSize),
-                       iCurrentIncoreSize);
-    iMin = minmax.first;
-    iMax = minmax.second;
-  }
-
-  std::string strQuantFile;
-
-  // if the data are signed, we'll need to bias it.  if the data exceed 4096,
-  // then we'll need to quantize at least the histogram.
-  // In the ideal case, we have unsigned data that fit in 12 bits.  Then our
-  // output is simply our input, and we can bail out here.
-  bool new_file_required = bSigned || iMax >= 4096;
-  if(!new_file_required) {
-    MESSAGE("No histogram quantization required (min=%hu, max=%hu)",
-            iMin, iMax);
-    aHist.resize(iMax+1); // size is the maximum value plus one (the zero value)
-
-    if (Histogram1D) {
-      Histogram1D->SetHistogram(aHist);
-    }
-    InputData.Close();
-    return strFilename;
-  } else {
-    LargeRAWFile OutputData(strTargetFilename);
-
-    if (bSigned) {
-      MESSAGE("Quantizing data to 12 bit "
-              "(input data has range from %i to %i)",
-              int(iMin)-std::numeric_limits<short>::max(),
-              int(iMax)-std::numeric_limits<short>::max());
-      OutputData.Create(iSize*2);
-      if (!OutputData.IsOpen()) {
-        T_ERROR("Could not open output file %s", strTargetFilename.c_str());
-        InputData.Close();
-        return "";
-      }
-    } else {
-      MESSAGE("Quantizing histogram to 12 bit "
-              "(input data has range from %hu to %hu)", iMin, iMax);
-      strQuantFile = strFilename; // output = input;
-    }
-    // Old histogram is invalid, as we'll be biasing || quantizing the data.
-    std::fill(aHist.begin(), aHist.end(), 0);
-
-    UINT64 iRange = iMax-iMin;
-
-    short* pInData = new short[iCurrentIncoreSize];
-    InputData.SeekStart();
-    iPos = 0;
-    iDivLast = 0;
-    while (iPos < iSize) {
-      size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*2)/2;
-      if(iRead == 0) { break; } // bail out if the read gave us nothing.
-
-      for (size_t i = 0;i<iRead;i++) {
-        unsigned short iValue = (bSigned) ?
-                                pInData[i] + std::numeric_limits<short>::max()
-                              : pInData[i];
-        unsigned short iNewVal = std::min<unsigned short>(4095,
-                                         static_cast<unsigned short>
-                                                    ((static_cast<UINT64>
-                                                      (iValue-iMin) * 4095) /
-                                                              iRange
-                                                    )
-                                         );
-        if(bSigned) {
-          pInData[i] = iNewVal;
-        }
-        aHist[iNewVal]++;
-      }
-      iPos += UINT64(iRead);
-
-      if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-        if (bSigned) {
-          MESSAGE("Removing sign from 16bit data and quantizing to 12 bit\n"
-                  "(input data has range from %i to %i)\n%i%% complete",
-                  int(iMin) - std::numeric_limits<short>::max(),
-                  int(iMax) - std::numeric_limits<short>::max(),
-                  int((100*iPos)/iSize));
-        } else {
-          MESSAGE("Quantizing histogram to 12 bit "
-                  "(input data has range from %hu to %hu)\n%u%% complete",
-                  iMin, iMax, static_cast<unsigned>((100*iPos)/iSize));
-        }
-        iDivLast = (100*iPos)/iSize;
-      }
-
-      if(bSigned) {
-        OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
-      }
-    }
-
-    delete [] pInData;
-    OutputData.Close();
-    InputData.Close();
-
-    if(bSigned) {
-      strQuantFile = strTargetFilename;
-    }
-  }
-
-  if (Histogram1D) Histogram1D->SetHistogram(aHist);
-
-  return strQuantFile;
-}
-
-const std::string
-AbstrConverter::QuantizeFloatTo12Bits(UINT64 iHeaderSkip,
-                                      const std::string& strFilename,
-                                      const std::string& strTargetFilename,
-                                      UINT64 iSize,
-                                      Histogram1DDataBlock* Histogram1D) {
-  size_t iCurrentIncoreSize = GetIncoreSize();
-  LargeRAWFile InputData(strFilename, iHeaderSkip);
-  InputData.Open(false);
-  UINT64 iPercent = iSize / 100;
-
-  if (!InputData.IsOpen()) return "";
-
-  // determine max and min
-  float fMax = -std::numeric_limits<float>::max();
-  float fMin = std::numeric_limits<float>::max();
-  UINT64 iPos = 0;
-  UINT64 iDivLast = 0;
-
-  std::vector<UINT64> aHist(4096);
-  std::fill(aHist.begin(), aHist.end(), 0);
-
-  std::pair<float,float> minmax;
-  minmax = io_minmax(raw_data_src<float>(InputData),
-                     Unsigned12BitHistogram<float>(aHist),
-                     TuvokProgress<UINT64>(iSize),
-                       iCurrentIncoreSize);
-  fMin = minmax.first;
-  fMax = minmax.second;
-
-  // quantize
-  LargeRAWFile OutputData(strTargetFilename);
-  OutputData.Create(iSize*2);
-
-  if (!OutputData.IsOpen()) {
-    InputData.Close();
-    return "";
-  }
-
-  float fQuantFact = 4095.0f / float(fMax-fMin);
-  float* pInData = new float[iCurrentIncoreSize];
-  unsigned short* pOutData = new unsigned short[iCurrentIncoreSize];
-
-  InputData.SeekStart();
-  iPos = 0;
-  iDivLast = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*4)/4;
-    if(iRead == 0) { break; } // bail out if the read gave us nothing.
-
-    for (size_t i = 0;i<iRead;i++) {
-      unsigned short iNewVal = std::min<unsigned short>(4095,
-                                   static_cast<unsigned short>
-                                   ((pInData[i]-fMin) * fQuantFact));
-      pOutData[i] = iNewVal;
-      aHist[iNewVal]++;
-    }
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)\n"
-              "%u%% complete", fMin, fMax,
-              static_cast<unsigned>((100*iPos)/iSize));
-      iDivLast = (100*iPos)/iSize;
-    }
-
-    OutputData.WriteRAW((unsigned char*)pOutData, 2*iRead);
-  }
-
-  delete [] pInData;
-  delete [] pOutData;
-  OutputData.Close();
-  InputData.Close();
-
-  if (Histogram1D) Histogram1D->SetHistogram(aHist);
-
-  return strTargetFilename;
-}
-
-const std::string
-AbstrConverter::QuantizeDoubleTo12Bits(UINT64 iHeaderSkip,
-                                       const std::string& strFilename,
-                                       const std::string& strTargetFilename,
-                                       UINT64 iSize,
-                                       Histogram1DDataBlock* Histogram1D) {
-  size_t iCurrentIncoreSize = GetIncoreSize();
-  LargeRAWFile InputData(strFilename, iHeaderSkip);
-  InputData.Open(false);
-  UINT64 iPercent = iSize / 100;
-
-  if (!InputData.IsOpen()) return "";
-
-  // determine max and min
-  double fMax = -std::numeric_limits<double>::max();
-  double fMin = std::numeric_limits<double>::max();
-  UINT64 iPos = 0;
-  UINT64 iDivLast = 0;
-
-  std::vector<UINT64> aHist(4096);
-  std::fill(aHist.begin(), aHist.end(), 0);
-
-  std::pair<double,double> minmax;
-  minmax = io_minmax(raw_data_src<double>(InputData),
-                     Unsigned12BitHistogram<double>(aHist),
-                     TuvokProgress<UINT64>(iSize),
-                     iCurrentIncoreSize);
-  fMin = minmax.first;
-  fMax = minmax.second;
-
-  // quantize
-  LargeRAWFile OutputData(strTargetFilename);
-  OutputData.Create(iSize*2);
-
-  if (!OutputData.IsOpen()) {
-    InputData.Close();
-    return "";
-  }
-
-  MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)",
-          fMin, fMax);
-
-  double fQuantFact = 4095 / (fMax-fMin);
-  double* pInData = new double[iCurrentIncoreSize];
-  unsigned short* pOutData = new unsigned short[iCurrentIncoreSize];
-
-  InputData.SeekStart();
-  iPos = 0;
-  iDivLast = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*8)/8;
-    if(iRead == 0) { break; } // bail out if the read gave us nothing.
-
-    for (size_t i = 0;i<iRead;i++) {
-      unsigned short iNewVal = std::min<unsigned short>(4095,
-                                   static_cast<unsigned short>
-                                   ((pInData[i]-fMin) * fQuantFact));
-      pOutData[i] = iNewVal;
-      aHist[iNewVal]++;
-    }
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Quantizing to 12 bit (input data has range from %g to %g)\n"
-              "%u%% complete", fMin, fMax,
-              static_cast<unsigned>((100*iPos)/iSize));
-      iDivLast = (100*iPos)/iSize;
-    }
-
-    OutputData.WriteRAW((unsigned char*)pOutData, 2*iRead);
-  }
-
-  delete [] pInData;
-  delete [] pOutData;
-  OutputData.Close();
-  InputData.Close();
-
-  if (Histogram1D) Histogram1D->SetHistogram(aHist);
-
-  return strTargetFilename;
-}
-
-
-const std::string
-AbstrConverter::QuantizeLongTo12Bits(UINT64 iHeaderSkip,
-                                     const std::string& strFilename,
-                                     const std::string& strTargetFilename,
-                                     UINT64 iSize, bool bSigned,
-                                     Histogram1DDataBlock* Histogram1D) {
-  size_t iCurrentIncoreSize = GetIncoreSize();
-  AbstrDebugOut &dbg = Controller::Debug::Out();
-  LargeRAWFile InputData(strFilename, iHeaderSkip);
-  InputData.Open(false);
-  UINT64 iPercent = iSize / 100;
-
-  if (!InputData.IsOpen()) return "";
-
-  std::vector<UINT64> aHist(4096);
-  std::fill(aHist.begin(), aHist.end(), 0);
-
-  // determine max and min
-  UINT64 iMax = 0;
-  UINT64 iMin = std::numeric_limits<UINT64>::max();
-  UINT64* pInData = new UINT64[iCurrentIncoreSize];
-  UINT64 iPos = 0;
-  UINT64 iDivLast = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*8)/8;
-    if (iRead == 0) break;
-
-    for (size_t i = 0;i<iRead;i++) {
-      UINT64 iValue = (bSigned) ? pInData[i] + std::numeric_limits<int>::max()
-                                : pInData[i];
-      if (iMax < iValue)  iMax = iValue;
-      if (iMin > iValue)  iMin = iValue;
-      if (iMax < 4096) {
-        aHist[static_cast<size_t>(iValue)]++;
-      }
-    }
-
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      dbg.Message(_func_, "Computing value range (%u%% complete)",
-                  static_cast<unsigned>((100*iPos)/iSize));
-      iDivLast = (100*iPos)/iSize;
-    }
-
-    if (iMin == 0 && iMax == std::numeric_limits<UINT64>::max()) break;
-  }
-
-  if (iPos < iSize) {
-    dbg.Warning(_func_, "Specified size and real datasize mismatch");
-    iSize = iPos;
-  }
-
-  std::string strQuantFile;
-
-  if (bSigned)
-    dbg.Message(_func_, "Quantizing to 12 bit (input data has range from "
-                        "%i to %i)",
-                        int(iMin) - std::numeric_limits<int>::max(),
-                        int(iMax) - std::numeric_limits<int>::max());
-  else
-    dbg.Message(_func_, "Quantizing to 12 bit (input data has range from "
-                        "%llu to %llu)", iMin, iMax);
-
-  std::fill(aHist.begin(), aHist.end(), 0);
-
-  // otherwise quantize
-  LargeRAWFile OutputData(strTargetFilename);
-  OutputData.Create(iSize*2);
-
-  if (!OutputData.IsOpen()) {
-    delete [] pInData;
-    InputData.Close();
-    return "";
-  }
-
-  UINT64 iRange = iMax-iMin;
-
-  InputData.SeekStart();
-  iPos = 0;
-  iDivLast = 0;
-  while (iPos < iSize) {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*8)/8;
-    if(iRead == 0) { break; } // bail out if the read gave us nothing.
-
-    for (size_t i = 0; i < iRead; i++) {
-      UINT64 iValue = (bSigned) ? pInData[i] + std::numeric_limits<int>::max()
-                                : pInData[i];
-      // if the range fits into 12 bits do only bias not rescale
-      UINT64 iNewVal = (iRange < 4096) ?
-                        iValue-iMin :
-                        std::min<UINT64>(4095, (UINT32)((UINT64(iValue-iMin) * 4095)/iRange));
-      ((unsigned short*)pInData)[i] = (unsigned short)iNewVal;
-      aHist[static_cast<size_t>(iNewVal)]++;
-    }
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      if (bSigned)
-        dbg.Message(_func_, "Quantizing to 12 bit (input data has range "
-                    "from %i to %i)\n%u%% complete",
-                    int(iMin) - std::numeric_limits<int>::max(),
-                    int(iMax) - std::numeric_limits<int>::max(),
-                    static_cast<unsigned>((100*iPos)/iSize));
-      else
-        dbg.Message(_func_, "Quantizing to 12 bit (input data has range "
-                    "from %llu to %llu)\n%u%% complete", iMin, iMax,
-                    static_cast<unsigned>((100*iPos)/iSize));
-      iDivLast = (100*iPos)/iSize;
-    }
-
-    OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
-  }
-
-  delete [] pInData;
-  OutputData.Close();
-  InputData.Close();
-
-  strQuantFile = strTargetFilename;
-
-  if (Histogram1D) Histogram1D->SetHistogram(aHist);
-
-  return strQuantFile;
-}
-
-const std::string
-AbstrConverter::QuantizeIntTo12Bits(UINT64 iHeaderSkip,
-                                    const std::string& strFilename,
-                                    const std::string& strTargetFilename,
-                                    UINT64 iSize, bool bSigned,
-                                    Histogram1DDataBlock* Histogram1D) {
-  size_t iCurrentIncoreSize = GetIncoreSize();
-  LargeRAWFile InputData(strFilename, iHeaderSkip);
-  InputData.Open(false);
-  UINT64 iPercent = iSize / 100;
-
-  if (!InputData.IsOpen()) return "";
-
-  std::vector<UINT64> aHist(4096);
-  std::fill(aHist.begin(), aHist.end(), 0);
-
-  // determine max and min
-  UINT32 iMax = 0;
-  UINT32 iMin = std::numeric_limits<UINT32>::max();
-  UINT32* pInData = new UINT32[iCurrentIncoreSize];
-  UINT64 iPos = 0;
-  UINT64 iDivLast = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*4)/4;
-    if (iRead == 0) break;
-
-    for (size_t i = 0;i<iRead;i++) {
-      UINT32 iValue = (bSigned) ? pInData[i] + std::numeric_limits<int>::max() : pInData[i];
-      if (iMax < iValue)  iMax = iValue;
-      if (iMin > iValue)  iMin = iValue;
-      if (iMax < 4096)    aHist[iValue]++;
-    }
-
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Computing value range (%u%% complete)",
-              static_cast<unsigned>((100*iPos)/iSize));
-      iDivLast = (100*iPos)/iSize;
-    }
-
-    if (iMin == 0 && iMax == std::numeric_limits<UINT32>::max()) break;
-  }
-
-  if (iPos < iSize) {
-    WARNING("Specified size and real datasize mismatch");
-    iSize = iPos;
-  }
-
-  std::string strQuantFile;
-  if (bSigned) {
-    MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)",
-            int(iMin) - std::numeric_limits<int>::max(),
-            int(iMax) - std::numeric_limits<int>::max());
-  } else {
-    MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)",
-            iMin, iMax);
-  }
-  std::fill(aHist.begin(), aHist.end(), 0);
-
-  // otherwise quantize
-  LargeRAWFile OutputData(strTargetFilename);
-  OutputData.Create(iSize*2);
-
-  if (!OutputData.IsOpen()) {
-    delete [] pInData;
-    InputData.Close();
-    return "";
-  }
-
-  UINT64 iRange = iMax-iMin;
-
-  InputData.SeekStart();
-  iPos = 0;
-  iDivLast = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*4)/4;
-    if(iRead == 0) { break; } // bail out if the read gave us nothing.
-
-    for (size_t i = 0;i<iRead;i++) {
-      UINT32 iValue = (bSigned) ? pInData[i] + std::numeric_limits<int>::max() : pInData[i];
-      // if the range fits into 12 bits do only bias not rescale
-      UINT32 iNewVal = (iRange < 4096) ? iValue-iMin : std::min<UINT32>(4095, (UINT32)((UINT64(iValue-iMin) * 4095)/iRange));
-      ((unsigned short*)pInData)[i] = (unsigned short)iNewVal;
-      aHist[iNewVal]++;
-    }
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      if (bSigned) {
-        MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)"
-                "\n%i%% complete",
-                int(iMin) - std::numeric_limits<int>::max(),
-                int(iMax) - std::numeric_limits<int>::max(),
-                int((100*iPos)/iSize));
-      } else {
-        MESSAGE("Quantizing to 12 bit (input data has range from %i to %i)"
-                "\n%u%% complete", iMin, iMax,
-                static_cast<unsigned>((100*iPos)/iSize));
-      }
-      iDivLast = (100*iPos)/iSize;
-    }
-
-    OutputData.WriteRAW((unsigned char*)pInData, 2*iRead);
-  }
-
-  delete [] pInData;
-  OutputData.Close();
-  InputData.Close();
-
-  strQuantFile = strTargetFilename;
-
-  if (Histogram1D) Histogram1D->SetHistogram(aHist);
-
-  return strQuantFile;
-}
-
 /********************************************************************/
-
-const std::string
-AbstrConverter::QuantizeShortTo8Bits(UINT64 iHeaderSkip,
-                                     const std::string& strFilename,
-                                     const std::string& strTargetFilename,
-                                     UINT64 iSize, bool bSigned,
-                                     Histogram1DDataBlock* Histogram1D) {
-  size_t iCurrentIncoreSize = GetIncoreSize();
-  LargeRAWFile InputData(strFilename, iHeaderSkip);
-  InputData.Open(false);
-  UINT64 iPercent = iSize / 100;
-
-  if (!InputData.IsOpen()) return "";
-
-  std::vector<UINT64> aHist(4096);
-  std::fill(aHist.begin(), aHist.end(), 0);
-
-  // determine max and min
-  unsigned short iMax = 0;
-  unsigned short iMin = std::numeric_limits<unsigned short>::max();
-  short* pInData = new short[iCurrentIncoreSize];
-  unsigned char* pOutData = new unsigned char[iCurrentIncoreSize];
-  UINT64 iPos = 0;
-  UINT64 iDivLast = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*2)/2;
-    if (iRead == 0) break;
-
-    for (size_t i = 0;i<iRead;i++) {
-      unsigned short iValue = (bSigned) ? pInData[i] + std::numeric_limits<short>::max() : pInData[i];
-      if (iMax < iValue)  iMax = iValue;
-      if (iMin > iValue)  iMin = iValue;
-    }
-
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      MESSAGE("Computing value range (%u%% complete)",
-              static_cast<unsigned>((100*iPos)/iSize));
-      iDivLast = (100*iPos)/iSize;
-    }
-
-    if (iMin == 0 && iMax == 65535) break;
-  }
-
-  if (iPos < iSize) {
-    WARNING("Specified size and real datasize mismatch");
-    iSize = iPos;
-  }
-
-  if (bSigned) {
-    MESSAGE("Quantizing to 8 bit (input data has range from %i to %i)",
-            int(iMin)-std::numeric_limits<short>::max(),
-            int(iMax)-std::numeric_limits<short>::max());
-  } else {
-    MESSAGE("Quantizing to 8 bit (input data has range from %hu to %hu)",
-            iMin, iMax);
-  }
-  std::fill(aHist.begin(), aHist.end(), 0);
-
-  // quantize
-  LargeRAWFile OutputData(strTargetFilename);
-  OutputData.Create(iSize);
-
-  if (!OutputData.IsOpen()) {
-    delete [] pInData;
-    delete [] pOutData;
-    InputData.Close();
-    return "";
-  }
-
-  UINT64 iRange = iMax-iMin;
-
-  InputData.SeekStart();
-  iPos = 0;
-  iDivLast = 0;
-  while (iPos < iSize)  {
-    size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentIncoreSize*2)/2;
-    if(iRead == 0) { break; } // bail out if the read gave us nothing.
-
-    for (size_t i = 0;i<iRead;i++) {
-      unsigned short iValue = (bSigned) ? pInData[i] + std::numeric_limits<short>::max() : pInData[i];
-      unsigned char iNewVal = std::min<unsigned char>(255,
-                                      (unsigned char)((UINT64(iValue-iMin) * 255)/iRange));
-      pOutData[i] = iNewVal;
-      aHist[iNewVal]++;
-    }
-    iPos += UINT64(iRead);
-
-    if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
-      if (bSigned) {
-        MESSAGE("Quantizing to 8 bit (input data has range from %i to %i)"
-                "\n%i%% complete",
-                int(iMin) - std::numeric_limits<short>::max(),
-                int(iMax) - std::numeric_limits<short>::max(),
-                int((100*iPos)/iSize));
-      } else {
-        MESSAGE("Quantizing to 8 bit (input data has range from %hu to %hu)"
-                "\n%u%% complete", iMin, iMax,
-                static_cast<unsigned>((100*iPos)/iSize));
-      }
-      iDivLast = (100*iPos)/iSize;
-    }
-
-    OutputData.WriteRAW((unsigned char*)pOutData, iRead);
-  }
-
-  delete [] pInData;
-  delete [] pOutData;
-
-  OutputData.Close();
-  InputData.Close();
-
-
-  if (Histogram1D) Histogram1D->SetHistogram(aHist);
-
-  return strTargetFilename;
-}
-
-const std::string
-AbstrConverter::QuantizeFloatTo8Bits(UINT64 iHeaderSkip,
-                                     const std::string& strFilename,
-                                     const std::string& strTargetFilename,
-                                     UINT64 iSize,
-                                     Histogram1DDataBlock* Histogram1D) {
-  /// \todo doing 2 quantizations is neither the most efficient nor the numerically best way
-  ///       but it will do the trick until we templatize these methods
-
-  std::string intermFile = QuantizeFloatTo12Bits(iHeaderSkip,
-                                                 strFilename,
-                                                 strTargetFilename+".temp",
-                                                 iSize);
-
-  return QuantizeShortTo8Bits(0,intermFile,strTargetFilename,iSize,false,Histogram1D);
-}
-
-const std::string
-AbstrConverter::QuantizeDoubleTo8Bits(UINT64 iHeaderSkip,
-                                      const std::string& strFilename,
-                                      const std::string& strTargetFilename,
-                                      UINT64 iSize,
-                                      Histogram1DDataBlock* Histogram1D) {
-  /// \todo doing 2 quantizations is neither the most efficient nor the numerically best way
-  ///       but it will do the trick until we templatize these methods
-
-  std::string intermFile = QuantizeDoubleTo12Bits(iHeaderSkip,
-                                                  strFilename,
-                                                  strTargetFilename+".temp",
-                                                  iSize);
-
-  return QuantizeShortTo8Bits(0,intermFile,strTargetFilename,iSize,false,Histogram1D);
-}
-
-
-const std::string
-AbstrConverter::QuantizeLongTo8Bits(UINT64 iHeaderSkip,
-                                    const std::string& strFilename,
-                                    const std::string& strTargetFilename,
-                                    UINT64 iSize, bool bSigned,
-                                    Histogram1DDataBlock* Histogram1D) {
-  /// \todo doing 2 quantizations is neither the most efficient nor the numerically best way
-  ///       but it will do the trick until we templatize these methods
-
-  std::string intermFile = QuantizeLongTo12Bits(iHeaderSkip,
-                                                strFilename,
-                                                strTargetFilename+".temp",
-                                                iSize,
-                                                bSigned);
-
-  return QuantizeShortTo8Bits(0,intermFile,strTargetFilename,iSize,false,Histogram1D);
-}
-
-const std::string
-AbstrConverter::QuantizeIntTo8Bits(UINT64 iHeaderSkip,
-                                   const std::string& strFilename,
-                                   const std::string& strTargetFilename,
-                                   UINT64 iSize, bool bSigned,
-                                   Histogram1DDataBlock* Histogram1D) {
-  /// \todo doing 2 quantizations is neither the most efficient nor the numerically best way
-  ///       but it will do the trick until we templatize these methods
-
-  std::string intermFile = QuantizeIntTo12Bits(iHeaderSkip,
-                                               strFilename,
-                                               strTargetFilename+".temp",
-                                               iSize,
-                                               bSigned);
-
-  return QuantizeShortTo8Bits(0,intermFile,strTargetFilename,iSize,false,Histogram1D);
-}
-
 
 size_t AbstrConverter::GetIncoreSize() {
   if (Controller::Instance().IOMan())
@@ -885,9 +140,9 @@ size_t AbstrConverter::GetIncoreSize() {
 }
 
 const std::string
-AbstrConverter::QuantizeTo8Bit(const std::string& strFilename,
+AbstrConverter::QuantizeTo8Bit(UINT64 iHeaderSkip,
+                               const std::string& strFilename,
                                const std::string& strTargetFilename,
-                               UINT64 iHeaderSkip,
                                UINT64 iComponentSize,
                                UINT64 iSize,
                                bool bSigned,
@@ -895,18 +150,55 @@ AbstrConverter::QuantizeTo8Bit(const std::string& strFilename,
                                Histogram1DDataBlock* Histogram1D) {
   std::string intermFile = "";
   switch (iComponentSize) {
-    case 16 : intermFile = QuantizeShortTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, bSigned, Histogram1D);
-              break;
-    case 32 : if (bIsFloat)
-                intermFile = QuantizeFloatTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, Histogram1D);
-              else
-                intermFile = QuantizeIntTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, bSigned, Histogram1D);
-              break;
-    case 64 : if (bIsFloat)
-                intermFile = QuantizeDoubleTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, Histogram1D);
-              else
-                intermFile = QuantizeLongTo8Bits(iHeaderSkip, strFilename, strTargetFilename, iSize, bSigned, Histogram1D);
-              break;
+    case 8:
+      intermFile = Process8Bits(iHeaderSkip, strFilename,
+                                strTargetFilename, iSize, bSigned,
+                                Histogram1D);
+      break;
+    case 16 :
+      if(bSigned) {
+        intermFile = Quantize<short, unsigned char>(iHeaderSkip, strFilename,
+                                                    strTargetFilename, iSize,
+                                                    Histogram1D);
+      } else {
+        intermFile = Quantize<unsigned short, unsigned char>
+                             (iHeaderSkip, strFilename,
+                              strTargetFilename, iSize, Histogram1D);
+      }
+      break;
+    case 32 :
+      if (bIsFloat) {
+        intermFile = Quantize<float, unsigned char>(iHeaderSkip, strFilename,
+                                          strTargetFilename, iSize,
+                                          Histogram1D);
+      } else {
+        if(bSigned) {
+          intermFile = Quantize<int, unsigned char>(iHeaderSkip, strFilename,
+                                          strTargetFilename, iSize, Histogram1D);
+        } else {
+          intermFile = Quantize<unsigned, unsigned char>(iHeaderSkip, strFilename,
+                                               strTargetFilename, iSize,
+                                               Histogram1D);
+        }
+      }
+      break;
+    case 64 :
+      if (bIsFloat) {
+        intermFile = Quantize<double, unsigned char>(iHeaderSkip, strFilename,
+                                           strTargetFilename, iSize,
+                                           Histogram1D);
+      } else {
+        if(bSigned) {
+          intermFile = Quantize<boost::int64_t, unsigned char>(
+            iHeaderSkip, strFilename, strTargetFilename, iSize, Histogram1D
+          );
+        } else {
+          intermFile = Quantize<UINT64, unsigned char>(iHeaderSkip, strFilename,
+                                             strTargetFilename, iSize,
+                                             Histogram1D);
+        }
+      }
+      break;
   }
 
   return intermFile;

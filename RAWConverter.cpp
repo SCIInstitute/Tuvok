@@ -166,8 +166,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   Histogram1DDataBlock Histogram1D;
 
   if (bQuantizeTo8Bit && iComponentSize > 8) {
-    strSourceFilename = QuantizeTo8Bit(strSourceFilename, tmpFilename1,
-                                       iHeaderSkip, iComponentSize,
+    strSourceFilename = QuantizeTo8Bit(iHeaderSkip, strSourceFilename, tmpFilename1,
+                                       iComponentSize,
                                        iComponentCount*vVolumeSize.volume(),
                                        bSigned, bIsFloat, &Histogram1D);
     if (strSourceFilename == "") {
@@ -196,24 +196,42 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         break;
       case 16 :
         MESSAGE("Dataset is 16bit integers (shorts)");
-        strSourceFilename = ProcessShort(iHeaderSkip, strSourceFilename,
-                                         tmpFilename1,
-                                         iComponentCount*vVolumeSize.volume(),
-                                         bSigned, &Histogram1D);
+        if(bSigned) {
+          strSourceFilename =
+            Quantize<short, unsigned short>(iHeaderSkip, strSourceFilename,
+                                  tmpFilename1,
+                                  iComponentCount*vVolumeSize.volume(),
+                                  &Histogram1D
+            );
+        } else {
+          strSourceFilename =
+            Quantize<unsigned short, unsigned short>(
+              iHeaderSkip, strSourceFilename, tmpFilename1,
+              iComponentCount*vVolumeSize.volume(), &Histogram1D
+            );
+        }
         break;
       case 32 :
         if (bIsFloat) {
           MESSAGE("Dataset is 32bit FP (floats)");
           strSourceFilename =
-            QuantizeFloatTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
+            Quantize<float, unsigned short>(iHeaderSkip, strSourceFilename, tmpFilename1,
                                   iComponentCount*vVolumeSize.volume(),
                                   &Histogram1D);
         } else {
           MESSAGE("Dataset is 32bit integers.");
-          strSourceFilename =
-            QuantizeIntTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
-                                iComponentCount*vVolumeSize.volume(),
-                                bSigned, &Histogram1D);
+          if(bSigned) {
+            strSourceFilename =
+              Quantize<int, unsigned short>(iHeaderSkip, strSourceFilename, tmpFilename1,
+                                  iComponentCount*vVolumeSize.volume(),
+                                  &Histogram1D);
+          } else {
+            strSourceFilename =
+              Quantize<unsigned, unsigned short>(
+                iHeaderSkip, strSourceFilename, tmpFilename1,
+                iComponentCount*vVolumeSize.volume(), &Histogram1D
+              );
+          }
         }
         iComponentSize = 16;
         break;
@@ -221,15 +239,24 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         if (bIsFloat) {
           MESSAGE("Dataset is 64bit FP (doubles).");
           strSourceFilename =
-            QuantizeDoubleTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
+            Quantize<double, unsigned short>(iHeaderSkip, strSourceFilename, tmpFilename1,
                                    iComponentCount*vVolumeSize.volume(),
                                    &Histogram1D);
         } else {
           MESSAGE("Dataset is 64bit integers.");
-          strSourceFilename =
-            QuantizeLongTo12Bits(iHeaderSkip, strSourceFilename, tmpFilename1,
-                                 iComponentCount*vVolumeSize.volume(),
-                                 bSigned, &Histogram1D);
+          if(bSigned) {
+            strSourceFilename =
+              Quantize<long, unsigned short>(iHeaderSkip, strSourceFilename, tmpFilename1,
+                                   iComponentCount*vVolumeSize.volume(),
+                                   &Histogram1D);
+          } else {
+            strSourceFilename =
+              Quantize<unsigned long, unsigned short>(
+                iHeaderSkip, strSourceFilename, tmpFilename1,
+                iComponentCount*vVolumeSize.volume(),
+                &Histogram1D
+              );
+          }
         }
         iComponentSize = 16;
         break;

@@ -283,70 +283,25 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   // next check the quantization and endianess of the volume
   // if it is not 8bit unsigned char -> convert it
 
-  bool bDelte8BitFile;
+  bool bDelete8BitFile;
   string str8BitFilename ;
   if (iComponentSize!=8 || bSigned) {
-    str8BitFilename = strTargetFilename+".tmp";
-
-      switch (iComponentSize) {
-      case 8 :
-        if (bFloatingPoint) {
-          T_ERROR("Unsupported data format");
-          return false;
-        }
-        str8BitFilename = Process8Bits(iHeaderSkip,
-                                              strRawFilename,
-                                              str8BitFilename,
-                                              vVolumeSize.volume(),
-                                              bSigned);
-        break;
-      case 16 :
-        if (bFloatingPoint) {
-          T_ERROR("Unsupported data format");
-          return false;
-        }
-        str8BitFilename = QuantizeShortTo8Bits(iHeaderSkip,
-                                               strRawFilename,
-                                               str8BitFilename,
-                                               vVolumeSize.volume(),
-                                               bSigned);
-        break;
-          case 32 :
-        if (bFloatingPoint)
-          str8BitFilename = QuantizeFloatTo8Bits(iHeaderSkip,
-                                                 strRawFilename,
-                                                 str8BitFilename,
-                                                 vVolumeSize.volume());
-        else
-          str8BitFilename = QuantizeIntTo8Bits(iHeaderSkip,
-                                               strRawFilename,
-                                               str8BitFilename,
-                                               vVolumeSize.volume(),
-                                               bSigned);
-        break;
-          case 64 :
-        if (bFloatingPoint)
-          str8BitFilename = QuantizeDoubleTo8Bits(iHeaderSkip,
-                                                  strRawFilename,
-                                                  str8BitFilename,
-                                                  vVolumeSize.volume());
-        else
-          str8BitFilename = QuantizeLongTo8Bits(iHeaderSkip,
-                                                strRawFilename,
-                                                str8BitFilename,
-                                                vVolumeSize.volume(),
-                                                bSigned);
-        break;
-      default:
-        T_ERROR("Unsupported data format");
-        return false;
-    }
+    str8BitFilename = QuantizeTo8Bit(iHeaderSkip,
+                                     strRawFilename,
+                                     strTargetFilename+".tmp",
+                                     iComponentSize,
+                                     vVolumeSize.volume(),
+                                     bSigned,
+                                     bFloatingPoint);
 
     iHeaderSkip = 0;
-    bDelte8BitFile = true;
+    iComponentSize = 8;
+    bSigned = false;
+    bFloatingPoint = false;
+    bDelete8BitFile = true;
   } else {
     str8BitFilename = strRawFilename;
-    bDelte8BitFile = false;
+    bDelete8BitFile = false;
   }
 
   // next check is size of the volume, if a dimension is bigger than
@@ -356,7 +311,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   UCharDataFile.Open(false);
 
   if (!UCharDataFile.IsOpen()) {
-    if (bDelte8BitFile)
+    if (bDelete8BitFile)
       T_ERROR("Unable to open temp file for reading %s", str8BitFilename.c_str());
     else
       T_ERROR("Unable to open input file for reading %s", str8BitFilename.c_str());
@@ -386,7 +341,7 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
     vVolumeAspect *= FLOATVECTOR3(vVolumeSize) / FLOATVECTOR3(vI3MVolumeSize);
   }
   UCharDataFile.Close();
-  if (bDelte8BitFile) UCharDataFile.Delete();
+  if (bDelete8BitFile) UCharDataFile.Delete();
 
   // compute the gradients and expand data to vector format
   unsigned char* pData = new unsigned char[size_t(4*vI3MVolumeSize.volume())];

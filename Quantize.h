@@ -33,6 +33,10 @@
            University of Utah
   \brief   Quantization routines.
 */
+#pragma once
+
+#ifndef SCIO_QUANTIZE_H
+#define SCIO_QUANTIZE_H
 
 #include <algorithm>
 #include <stdexcept>
@@ -67,36 +71,54 @@ template<> struct ctti<bool> : ctti_base<bool> {
 };
 template<> struct ctti<char> : ctti_base<char> {
   typedef unsigned char size_type;
+  typedef signed char signed_type;
 };
 template<> struct ctti<signed char> : ctti_base<signed char> {
   typedef unsigned char size_type;
+  typedef signed char signed_type;
+  static const bool is_signed = true;
 };
 template<> struct ctti<short> : ctti_base<short> {
   typedef unsigned short size_type;
+  typedef short signed_type;
 };
 template<> struct ctti<int> : ctti_base<int> {
   typedef unsigned int size_type;
+  typedef int signed_type;
 };
 template<> struct ctti<boost::int64_t> : ctti_base<boost::int64_t> {
   typedef boost::uint64_t size_type;
+  typedef boost::int64_t signed_type;
 };
 template<> struct ctti<unsigned char> : ctti_base<unsigned char> {
   typedef unsigned char size_type;
+  typedef signed char signed_type;
 };
 template<> struct ctti<unsigned short> : ctti_base<unsigned short> {
   typedef unsigned short size_type;
+  typedef short signed_type;
 };
 template<> struct ctti<unsigned int> : ctti_base<unsigned int> {
   typedef unsigned int size_type;
+  typedef int signed_type;
 };
+#if 1
 template<> struct ctti<boost::uint64_t> : ctti_base<boost::uint64_t> {
   typedef boost::uint64_t size_type;
+  typedef boost::int64_t signed_type;
+};
+#endif
+template<> struct ctti<UINT64> : ctti_base<UINT64> {
+  typedef UINT64 size_type;
+  typedef INT64 signed_type;
 };
 template<> struct ctti<float> : ctti_base<float> {
   typedef float size_type;
+  typedef float signed_type;
 };
 template<> struct ctti<double> : ctti_base<double> {
   typedef double size_type;
+  typedef double signed_type;
 };
 ///@}
 };
@@ -109,6 +131,7 @@ template<> struct ctti<double> : ctti_base<double> {
 ///@{
 template <typename T>
 struct NullProgress {
+  NullProgress() {};
   NullProgress(T) {};
   static void notify(T) {}
 };
@@ -169,6 +192,44 @@ struct raw_data_src {
   }
   private: LargeRAWFile& raw;
 };
+
+template <typename T>
+struct multi_raw_data_src {
+  multi_raw_data_src(std::vector<LargeRAWFile> f) : files(f), cur_file(0),
+                                                    total_size(0) {
+    for(std::vector<LargeRAWFile>::const_iterator rf = files.begin();
+        rf != files.end(); ++rf) {
+      if(!rf->IsOpen()) {
+        throw std::runtime_error(__FILE__ ": file not open");
+      }
+    }
+  }
+
+  boost::uint64_t size() {
+    if(total_size == 0) {
+      for(std::vector<LargeRAWFile>::iterator rf = files.begin();
+          rf != files.end(); ++rf) {
+        total_size += rf->GetCurrentSize() / sizeof(T);
+      }
+    }
+    return total_size;
+  }
+
+  size_t read(unsigned char *data, size_t max_bytes) {
+    size_t bytes = files[cur_file].ReadRAW(data, max_bytes);
+    while(bytes == 0) {
+      cur_file++;
+      if(cur_file >= files.size()) { return 0; }
+      bytes = files[cur_file].ReadRAW(data, max_bytes);
+    }
+    return bytes / sizeof(T);
+  }
+
+  private:
+    std::vector<LargeRAWFile> files;
+    size_t cur_file;
+    boost::uint64_t total_size;
+};
 ///@}
 
 /// If we just do a standard "is the value of type T <= 4096?" then compilers
@@ -176,10 +237,11 @@ struct raw_data_src {
 /// thanks, I didn't know that.  So, this basically gets around a warning.
 /// I love C++ sometimes.
 namespace { namespace Fits {
-  template<typename T> bool in12bits(T v) { return v <= 4096; }
-  template<> bool in12bits(signed char)   { return true; }
-  template<> bool in12bits(unsigned char) { return true; }
-  template<> bool in12bits(char)          { return true; }
+  template<typename T, size_t sz> bool inXBits(T v) {
+    return v <= static_cast<T>(sz);
+  }
+  template<> bool inXBits<signed char, 256>(signed char) { return true; }
+  template<> bool inXBits<signed char, 4096>(signed char) { return true; }
 }; };
 
 /// Histogram policies.  minmax can sometimes compute a 1D histogram as it
@@ -193,12 +255,13 @@ template<typename T> struct NullHistogram {
 };
 // Calculate a 12Bit histogram, but when we encounter a value which does not
 // fit (i.e., we know we'll need to quantize), don't bother anymore.
-template<typename T> struct Unsigned12BitHistogram {
-  Unsigned12BitHistogram(std::vector<UINT64>& h)
+template<typename T, size_t sz>
+struct UnsignedHistogram {
+  UnsignedHistogram(std::vector<UINT64>& h)
     : histo(h), calculate(true) {}
 
   bool bin(T value) {
-    if(!calculate || !Fits::in12bits<T>(value)) {
+    if(!calculate || !Fits::inXBits<T, sz>(value)) {
       calculate = false;
     } else {
       update(value);
@@ -211,7 +274,7 @@ template<typename T> struct Unsigned12BitHistogram {
     typename ctti<T>::size_type bias;
     bias = static_cast<typename ctti<T>::size_type>
                       (std::fabs(static_cast<double>
-                                 (-(std::numeric_limits<T>::max()-1))));
+                                 (-(std::numeric_limits<T>::max()))));
 
     typename ctti<T>::size_type u_value;
     u_value = ctti<T>::is_signed ? value + bias : value;
@@ -236,11 +299,11 @@ template<typename T> struct Unsigned12BitHistogram {
 /// Computes the minimum and maximum of a conceptually one dimensional dataset.
 /// Takes policies tell it how to access data && notify external entities of
 /// progress.
-template <typename T,
+template <typename T, size_t sz,
           template <typename T> class DataSrc,
-          template <typename T> class Histogram,
+          template <typename T, size_t> class Histogram,
           class Progress>
-std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T> histogram,
+std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
                          const Progress& progress, size_t iCurrentIncoreSize)
 {
   std::vector<T> data(iCurrentIncoreSize);
@@ -250,7 +313,7 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T> histogram,
   // Default min is the max value representable by the data type.  Default max
   // is the smallest value representable by the data type.
   std::pair<T,T> t_minmax(std::numeric_limits<T>::max(),
-                          -(std::numeric_limits<T>::max()-1));
+                          -(std::numeric_limits<T>::max()+1));
   // ... but if the data type is unsigned, the correct default 'max' is 0.
   if(!ctti<T>::is_signed) {
     t_minmax.second = std::numeric_limits<T>::min(); // ... == 0.
@@ -275,3 +338,5 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T> histogram,
   }
   return t_minmax;
 }
+
+#endif // SCIO_QUANTIZE_H
