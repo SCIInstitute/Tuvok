@@ -298,11 +298,11 @@ template <typename T, size_t sz,
           template <typename T, size_t> class Histogram,
           class Progress>
 std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
-                         const Progress& progress, size_t iCurrentIncoreSize)
+                         const Progress& progress, UINT64 iSize,
+                         size_t iCurrentIncoreSize)
 {
   std::vector<T> data(iCurrentIncoreSize);
   UINT64 iPos = 0;
-  UINT64 iSize = ds.size();
 
   // Default min is the max value representable by the data type.  Default max
   // is the smallest value representable by the data type.
@@ -314,9 +314,14 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
   }
 
   while(iPos < iSize) {
-    size_t n_records = ds.read((unsigned char*)(&(data.at(0))), iCurrentIncoreSize);
+    size_t n_records = ds.read((unsigned char*)(&(data.at(0))),
+                               std::min((iSize - iPos)*sizeof(T),
+                                        iCurrentIncoreSize));
+    if(n_records == 0) {
+      WARNING("Short file..");
+      break; // bail out if the read gave us nothing.
+    }
     data.resize(n_records);
-    if(n_records == 0) { break; } // bail out if the read gave us nothing.
 
     iPos += UINT64(n_records);
     progress.notify(iPos);

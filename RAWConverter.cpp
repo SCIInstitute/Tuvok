@@ -1065,6 +1065,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
   if (!success) {
     T_ERROR("Convert to RAW step failed, aborting.");
     std::for_each(strIntermediateFile.begin(), strIntermediateFile.end(),
+
                   RemoveStdString);
     return false;
   }
@@ -1073,6 +1074,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
   std::string dataSource;
   if(files.size() > 1) {
     merged_fn = strTempDir + ".merged_time_filename";
+    remove(merged_fn.c_str());
     // copy all of the data to a single file
     LargeRAWFile merged(merged_fn);
     merged.Create();
@@ -1119,7 +1121,8 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
   }
 
   bool bUVFCreated = ConvertRAWDataset(merged_fn, strTargetFilename,
-                                       strTempDir, *header_skip.begin(), iComponentSize,
+                                       strTempDir, *header_skip.begin(),
+                                       iComponentSize,
                                        iComponentCount, bConvertEndianess,
                                        bSigned, bIsFloat, vVolumeSize,
                                        vVolumeAspect, strTitle,
@@ -1198,7 +1201,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
 
   if (bFloatingPoint) {
     if (!bSigned) {
-      T_ERROR( "Unable unsupported data type. (unsiged float)");
+      T_ERROR("Unable unsupported data type. (unsiged float)");
       fSource.Close();
       return false;
     }

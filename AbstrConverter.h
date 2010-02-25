@@ -129,7 +129,8 @@ public:
     const size_t sz = (sizeof(U) == 2 ? 4096 : 256);
     minmax = io_minmax(raw_data_src<T>(InputData),
                        UnsignedHistogram<T, sz>(aHist),
-                       TuvokProgress<UINT64>(iSize), iCurrentInCoreSize);
+                       TuvokProgress<UINT64>(iSize), iSize,
+                       iCurrentInCoreSize);
     assert(minmax.second >= minmax.first);
 
     // Unsigned N bit data does not need to be biased/quantized.
@@ -171,7 +172,8 @@ public:
 
     while(iPos < iSize) {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData,
-                                       iCurrentInCoreSize) / sizeof(T);
+                                       std::min((iSize - iPos)*sizeof(T),
+                                        iCurrentInCoreSize)) / sizeof(T);
       if(iRead == 0) { break; } // bail if the read gave us nothing
 
       // calculate hist + quantize to output file.
