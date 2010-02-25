@@ -44,6 +44,7 @@
 typedef boost::int64_t  INT64;
 typedef boost::uint64_t UINT64;
 typedef boost::uint32_t UINT32;
+typedef boost::int32_t INT32;
 typedef unsigned int UINT;
 typedef unsigned char BYTE;
 
