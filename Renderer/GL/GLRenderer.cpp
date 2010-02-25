@@ -810,7 +810,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     // For now to make things simpler for the slice renderer we use the LOD
     // level with just one brick
     for (UINT64 i = 0;i<m_pDataset->GetLODLevelCount();i++) {
-      if (m_pDataset->GetBrickCount(i) == 1) {
+      if (m_pDataset->GetBrickCount(i, m_iTimestep) == 1) {
           iCurrentLOD = i;
           vVoxelCount = UINTVECTOR3(m_pDataset->GetDomainSize(i));
           break;
@@ -821,7 +821,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
 
     // Get the brick at this LOD; note we're guaranteed this brick will cover
     // the entire domain, because the search above gives us the coarsest LOD!
-    const BrickKey bkey(iCurrentLOD, 0);
+    const BrickKey bkey(m_iTimestep, iCurrentLOD, 0);
 
     if (!BindVolumeTex(bkey,0)) {
       T_ERROR("Unable to bind volume to texture (LOD:%u, Brick:0)",

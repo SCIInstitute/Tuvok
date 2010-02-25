@@ -82,6 +82,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_iPerformanceBasedLODSkip(0),
   m_iCurrentLODOffset(0),
   m_iStartLODOffset(0),
+  m_iTimestep(0),
   m_bClearFramebuffer(true),
   m_bConsiderPreviousDepthbuffer(true),
   m_iCurrentLOD(0),
@@ -745,12 +746,14 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
   FLOATVECTOR3 vBrickCorner;
 
   MESSAGE("Building active brick list from %u active bricks.",
-          static_cast<unsigned>(m_pDataset->GetBrickCount(m_iCurrentLOD)));
+          static_cast<unsigned>(m_pDataset->GetBrickCount(m_iCurrentLOD,
+                                                          m_iTimestep)));
 
   BrickTable::const_iterator brick = m_pDataset->BricksBegin();
   for(; brick != m_pDataset->BricksEnd(); ++brick) {
-    // skip over the brick if it's for the wrong LOD.
-    if(brick->first.first != m_iCurrentLOD) {
+    // skip over the brick if it's for the wrong timestep or LOD
+    if(std::tr1::get<0>(brick->first) != m_iTimestep ||
+       std::tr1::get<1>(brick->first) != m_iCurrentLOD) {
       continue;
     }
     const BrickMD& bmd = brick->second;
@@ -826,9 +829,11 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
 
     // skip the brick if no data are visible in the current rendering mode.
     if(!bContainsData) {
-      MESSAGE("Skipping brick <%u,%u> because it doesn't contain data "
-              "under the current %s.", UINT32(brick->first.first),
-              UINT32(brick->first.second),
+      MESSAGE("Skipping brick <%u,%u,%u> because it doesn't contain data "
+              "under the current %s.",
+              static_cast<unsigned>(std::tr1::get<0>(brick->first)),
+              static_cast<unsigned>(std::tr1::get<1>(brick->first)),
+              static_cast<unsigned>(std::tr1::get<2>(brick->first)),
               ((m_eRenderMode == RM_ISOSURFACE) ? "isovalue" : "tfqn"));
       continue;
     }
