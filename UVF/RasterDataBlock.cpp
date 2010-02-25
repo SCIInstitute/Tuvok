@@ -6,6 +6,7 @@
 #include "DebugOut/AbstrDebugOut.h"
 #include <Basics/MathTools.h>
 #include <Basics/SysTools.h>
+#include "Controller/Controller.h"
 
 using namespace std;
 using namespace UVFTables;
