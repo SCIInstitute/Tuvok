@@ -35,6 +35,8 @@
 */
 #include <cerrno>
 #include <cstring>
+#include <iterator>
+#include <list>
 #include "3rdParty/bzip2/bzlib.h"
 #include "boost/cstdint.hpp"
 
@@ -1007,9 +1009,24 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
                                 const bool bNoUserInteraction,
                                 const UINT64 iTargetBrickSize,
                                 const UINT64 iTargetBrickOverlap,
-                                const bool bQuantizeTo8Bit) {
+                                const bool bQuantizeTo8Bit)
+{
+  std::list<std::string> files;
+  files.push_front(strSourceFilename);
+  return ConvertToUVF(files, strTargetFilename, strTempDir, bNoUserInteraction,
+                      iTargetBrickSize, iTargetBrickOverlap, bQuantizeTo8Bit);
+}
 
-  UINT64        iHeaderSkip;
+static void RemoveStdString(std::string s) { remove(s.c_str()); }
+
+bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
+                                const std::string& strTargetFilename,
+                                const std::string& strTempDir,
+                                const bool bNoUserInteraction,
+                                const UINT64 iTargetBrickSize,
+                                const UINT64 iTargetBrickOverlap,
+                                const bool bQuantizeTo8Bit)
+{
   UINT64        iComponentSize;
   UINT64        iComponentCount;
   bool          bConvertEndianess;
@@ -1018,37 +1035,101 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
   UINT64VECTOR3 vVolumeSize;
   FLOATVECTOR3  vVolumeAspect;
   string        strTitle;
-  string        strSource;
   UVFTables::ElementSemanticTable eType;
-  string        strIntermediateFile;
-  bool          bDeleteIntermediateFile;
+  std::list<string> strIntermediateFile;
+  std::list<bool>   bDeleteIntermediateFile;
+  std::list<UINT64> header_skip;
 
-  bool bRAWCreated = ConvertToRAW(strSourceFilename, strTempDir,
-                                  bNoUserInteraction,
-                                  iHeaderSkip, iComponentSize, iComponentCount,
-                                  bConvertEndianess, bSigned, bIsFloat,
-                                  vVolumeSize, vVolumeAspect, strTitle,
-                                  eType, strIntermediateFile,
-                                  bDeleteIntermediateFile);
-  strSource = SysTools::GetFilename(strSourceFilename);
+  bool success = true;
+  for(std::list<std::string>::const_iterator fn = files.begin();
+      fn != files.end(); ++fn) {
+    std::string intermediate;
+    bool bDelete;
+    UINT64 iHeaderSkip;
+    /// @todo assuming iComponentSize, etc. are the same for all files; should
+    /// really be a list for each of them, like for intermediate, iHeaderskip,
+    /// etc.
+    success &= ConvertToRAW(*fn, strTempDir,
+                            bNoUserInteraction,
+                            iHeaderSkip, iComponentSize, iComponentCount,
+                            bConvertEndianess, bSigned, bIsFloat,
+                            vVolumeSize, vVolumeAspect, strTitle,
+                            eType, intermediate, bDelete);
+    if(!success) { break; }
+    strIntermediateFile.push_front(intermediate);
+    bDeleteIntermediateFile.push_front(bDelete);
+    header_skip.push_front(iHeaderSkip);
+  }
+  // then rewrite convertrawdataset to take the new list
 
-  if (!bRAWCreated) {
+  if (!success) {
     T_ERROR("Convert to RAW step failed, aborting.");
+    std::for_each(strIntermediateFile.begin(), strIntermediateFile.end(),
+                  RemoveStdString);
     return false;
   }
 
-  bool bUVFCreated = ConvertRAWDataset(strIntermediateFile, strTargetFilename,
-                                       strTempDir, iHeaderSkip, iComponentSize,
+  std::string merged_fn;
+  std::string dataSource;
+  if(files.size() > 1) {
+    merged_fn = strTempDir + ".merged_time_filename";
+    // copy all of the data to a single file
+    LargeRAWFile merged(merged_fn);
+    merged.Create();
+
+    std::list<bool>::const_iterator del = bDeleteIntermediateFile.begin();
+    std::list<UINT64>::const_iterator hdr = header_skip.begin();
+    const UINT64 payload_sz = vVolumeSize.volume() * iComponentSize/8 *
+                              iComponentCount;
+    for(std::list<std::string>::const_iterator fn = strIntermediateFile.begin();
+        fn != strIntermediateFile.end(); ++fn, ++del, ++hdr) {
+      LargeRAWFile input(*fn, *hdr);
+      input.Open(false);
+
+      unsigned char *data = new unsigned char[GetIncoreSize()];
+      size_t bytes_written =0;
+      do {
+        size_t elems = input.ReadRAW(data, GetIncoreSize());
+        if(elems == 0) {
+          WARNING("Input file '%s' ended before we expected.", fn->c_str());
+          break;
+        }
+        merged.WriteRAW(data, std::min(payload_sz - bytes_written, elems));
+        bytes_written += elems;
+      } while(bytes_written < payload_sz);
+
+      if(*del) {
+        input.Delete();
+      } else {
+        input.Close();
+      }
+    }
+    *bDeleteIntermediateFile.begin() = true;
+    *header_skip.begin() = 0;
+    {
+      ostringstream strlist;
+      strlist << "Merged from ";
+      std::copy(files.begin(), files.end(),
+                std::ostream_iterator<std::string>(strlist, ", "));
+      dataSource = strlist.str();
+    }
+  } else {
+    merged_fn = *strIntermediateFile.begin();
+    dataSource = SysTools::GetFilename(*files.begin());
+  }
+
+  bool bUVFCreated = ConvertRAWDataset(merged_fn, strTargetFilename,
+                                       strTempDir, *header_skip.begin(), iComponentSize,
                                        iComponentCount, bConvertEndianess,
                                        bSigned, bIsFloat, vVolumeSize,
                                        vVolumeAspect, strTitle,
-                                       SysTools::GetFilename(strSourceFilename),
+                                       dataSource,
                                        iTargetBrickSize, iTargetBrickOverlap,
                                        UVFTables::ES_UNDEFINED, 0,
                                        bQuantizeTo8Bit);
 
-  if (bDeleteIntermediateFile) {
-    Remove(strIntermediateFile, Controller::Debug::Out());
+  if (*bDeleteIntermediateFile.begin()) {
+    Remove(merged_fn, Controller::Debug::Out());
   }
 
   return bUVFCreated;

@@ -73,13 +73,21 @@ public:
                             const UINT64 iTargetBrickOverlap,
                             const bool bQuantizeTo8Bit) = 0;
 
+  virtual bool ConvertToUVF(const std::list<std::string>& files,
+                            const std::string& strTargetFilename,
+                            const std::string& strTempDir,
+                            const bool bNoUserInteraction,
+                            const UINT64 iTargetBrickSize,
+                            const UINT64 iTargetBrickOverlap,
+                            const bool bQuantizeTo8Bit) = 0;
+
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir, bool bNoUserInteraction,
                             UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
-                            bool& bDeleteIntermediateFile)  = 0;
+                            bool& bDeleteIntermediateFile) = 0;
 
   virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
                                UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,

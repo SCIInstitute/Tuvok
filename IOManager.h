@@ -43,6 +43,7 @@
 #include <fstream>
 #include <limits>
 #include <string>
+#include <list>
 #include "../StdTuvokDefines.h"
 #include "../Controller/MasterController.h"
 #include "../Basics/MC.h"
@@ -314,6 +315,13 @@ public:
                       UINT64 iMaxBrickSize,
                       UINT64 iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
+  bool ConvertDataset(const std::list<std::string>& files,
+                      const std::string& strTargetFilename,
+                      const std::string& strTempDir,
+                      const bool bNoUserInteraction,
+                      UINT64 iMaxBrickSize,
+                      UINT64 iBrickOverlap,
+                      bool bQuantizeTo8Bit=false) const;
   bool MergeDatasets(const std::vector <std::string>& strFilenames,
                      const std::vector <double>& vScales,
                      const std::vector<double>& vBiases,
@@ -371,6 +379,13 @@ public:
                       const bool bNoUserInteraction=false,
                       const bool bQuantizeTo8Bit=false) const {
     return ConvertDataset(strFilename,strTargetFilename,strTempDir,bNoUserInteraction,m_iMaxBrickSize,m_iBrickOverlap, bQuantizeTo8Bit);
+  }
+  bool ConvertDataset(const std::list<std::string>& files,
+                      const std::string& strTargetFilename,
+                      const std::string& strTempDir,
+                      const bool bNoUserInteraction=false,
+                      const bool bQuantizeTo8Bit=false) const {
+    return ConvertDataset(files,strTargetFilename,strTempDir,bNoUserInteraction,m_iMaxBrickSize,m_iBrickOverlap, bQuantizeTo8Bit);
   }
   bool ReBrickDataset(const std::string& strSourceFilename,
                       const std::string& strTargetFilename,

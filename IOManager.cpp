@@ -669,14 +669,41 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
                                const UINT64 iMaxBrickSize,
                                const UINT64 iBrickOverlap,
                                const bool bQuantizeTo8Bit) const {
-  MESSAGE("Request to convert dataset %s to %s received.",
-          strFilename.c_str(), strTargetFilename.c_str());
+  std::list<std::string> files;
+  files.push_back(strFilename);
+  return ConvertDataset(files, strTargetFilename, strTempDir,
+                        bNoUserInteraction, iMaxBrickSize, iBrickOverlap,
+                        bQuantizeTo8Bit);
+}
 
-  string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
+bool IOManager::ConvertDataset(const std::list<std::string>& files,
+                               const std::string& strTargetFilename,
+                               const std::string& strTempDir,
+                               const bool bNoUserInteraction,
+                               UINT64 iMaxBrickSize,
+                               UINT64 iBrickOverlap,
+                               bool bQuantizeTo8Bit) const
+{
+  if(files.empty()) {
+    T_ERROR("No files to convert?!");
+    return false;
+  }
+  {
+    std::ostringstream request;
+    request << "Request to convert datasets ";
+    std::copy(files.begin(), files.end(),
+              std::ostream_iterator<std::string>(request, ", "));
+    request << "to " << strTargetFilename << " received.";
+    MESSAGE("%s", request.str().c_str());
+  }
+
+  /// @todo verify the list of files is `compatible':
+  ///   dimensions are the same
+  ///   all from the same file format
+  ///   all have equivalent bit depth, or at least something that'll convert to
+  ///    the same depth
+  string strExt = SysTools::ToUpperCase(SysTools::GetExt(*files.begin()));
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
-
-  MESSAGE("ext: %s, target: %s", strExt.c_str(), strExtTarget.c_str());
-
 
   if (strExtTarget == "UVF") {
     for (size_t i = 0;i<m_vpConverters.size();i++) {
@@ -685,7 +712,7 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
         MESSAGE("Comparing file extension to %s supported formats (%s)", m_vpConverters[i]->GetDesc().c_str(),
                 vStrSupportedExt[j].c_str());
         if (vStrSupportedExt[j] == strExt) {
-          if (m_vpConverters[i]->ConvertToUVF(strFilename, strTargetFilename, strTempDir, bNoUserInteraction, iMaxBrickSize, iBrickOverlap, bQuantizeTo8Bit)) return true;
+          if (m_vpConverters[i]->ConvertToUVF(files, strTargetFilename, strTempDir, bNoUserInteraction, iMaxBrickSize, iBrickOverlap, bQuantizeTo8Bit)) return true;
         }
       }
     }
@@ -693,98 +720,105 @@ bool IOManager::ConvertDataset(const std::string& strFilename,
     MESSAGE("No suitable automatic converter found!");
 
     if (m_pFinalConverter)
-      return m_pFinalConverter->ConvertToUVF(strFilename, strTargetFilename, strTempDir, bNoUserInteraction, iMaxBrickSize, iBrickOverlap, bQuantizeTo8Bit);
+      return m_pFinalConverter->ConvertToUVF(files, strTargetFilename, strTempDir, bNoUserInteraction, iMaxBrickSize, iBrickOverlap, bQuantizeTo8Bit);
     else
       return false;
-  } else {
-    UINT64        iHeaderSkip=0;
-    UINT64        iComponentSize=0;
-    UINT64        iComponentCount=0;
-    bool          bConvertEndianess=false;
-    bool          bSigned=false;
-    bool          bIsFloat=false;
-    UINT64VECTOR3 vVolumeSize(0,0,0);
-    FLOATVECTOR3  vVolumeAspect(0,0,0);
-    string        strTitle = "";
-    string        strSource = "";
-    UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
-    string        strIntermediateFile = "";
-    bool          bDeleteIntermediateFile = false;
-
-    bool bRAWCreated = false;
-
-    if (strExt == "UVF") {
-      UVFDataset v(strFilename,numeric_limits<UINT64>::max(),false,false); // disable brichsize check
-      if (!v.IsOpen()) return false;
-
-      UINT64 iLODLevel = 0; // always extract the highest quality here
-
-      iHeaderSkip = 0;
-      iComponentSize = v.GetBitWidth();
-      iComponentCount = v.GetComponentCount();
-      bConvertEndianess = !v.IsSameEndianness();
-      bSigned = v.GetIsSigned();
-      bIsFloat = v.GetIsFloat();
-      vVolumeSize = v.GetDomainSize(iLODLevel);
-      vVolumeAspect = FLOATVECTOR3(v.GetScale());
-      eType             = UVFTables::ES_UNDEFINED;  /// \todo grab this data from the UVF file
-      strTitle          = "UVF data";               /// \todo grab this data from the UVF file
-      strSource         = SysTools::GetFilename(strFilename);
-
-      strIntermediateFile = strTempDir + strSource +".raw";
-      bDeleteIntermediateFile = true;
-
-      if (!v.Export(iLODLevel, strIntermediateFile, false)) {
-        if (SysTools::FileExists(strIntermediateFile)) {
-          RAWConverter::Remove(strIntermediateFile.c_str(),
-                           Controller::Debug::Out());
-        }
-        return false;
-      } else bRAWCreated = true;
-
-    } else {
-      for (size_t i = 0;i<m_vpConverters.size();i++) {
-        const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
-        for (size_t j = 0;j<vStrSupportedExt.size();j++) {
-          if (vStrSupportedExt[j] == strExt) {
-            bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, strTempDir, bNoUserInteraction,
-                                            iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                            strTitle, eType, strIntermediateFile, bDeleteIntermediateFile);
-            if (bRAWCreated) break;
-          }
-        }
-        if (bRAWCreated) break;
-      }
-
-      if (!bRAWCreated && m_pFinalConverter) {
-        bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, strTempDir, bNoUserInteraction,
-                                        iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-                                        strTitle, eType, strIntermediateFile, bDeleteIntermediateFile);
-      }
-    }
-    if (!bRAWCreated) return false;
-
-    bool bTargetCreated = false;
-    for (size_t k = 0;k<m_vpConverters.size();k++) {
-      const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
-      for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
-        if (vStrSupportedExtTarget[l] == strExtTarget) {
-          bTargetCreated =
-            m_vpConverters[k]->ConvertToNative(strIntermediateFile,
-                                               strTargetFilename,
-                                               iHeaderSkip, iComponentSize,
-                                               iComponentCount, bSigned,
-                                               bIsFloat, vVolumeSize,
-                                               vVolumeAspect,
-                                               bNoUserInteraction, bQuantizeTo8Bit);
-          if (bTargetCreated) break;
-        }
-      }
-      if (bTargetCreated) break;
-    }
-    if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
-    if (bTargetCreated) return true;
   }
+  if(files.size() > 1) {
+    T_ERROR("Cannot convert multiple files to anything but UVF.");
+    return false;
+  }
+
+  // Everything below if for exporting to non-UVF formats.
+  std::string   strFilename = *files.begin();
+  UINT64        iHeaderSkip=0;
+  UINT64        iComponentSize=0;
+  UINT64        iComponentCount=0;
+  bool          bConvertEndianess=false;
+  bool          bSigned=false;
+  bool          bIsFloat=false;
+  UINT64VECTOR3 vVolumeSize(0,0,0);
+  FLOATVECTOR3  vVolumeAspect(0,0,0);
+  string        strTitle = "";
+  string        strSource = "";
+  UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
+  string        strIntermediateFile = "";
+  bool          bDeleteIntermediateFile = false;
+
+  bool bRAWCreated = false;
+
+  // source is UVF
+  if (strExt == "UVF") {
+    UVFDataset v(strFilename,numeric_limits<UINT64>::max(),false,false); // disable brichsize check
+    if (!v.IsOpen()) return false;
+
+    UINT64 iLODLevel = 0; // always extract the highest quality here
+
+    iHeaderSkip = 0;
+    iComponentSize = v.GetBitWidth();
+    iComponentCount = v.GetComponentCount();
+    bConvertEndianess = !v.IsSameEndianness();
+    bSigned = v.GetIsSigned();
+    bIsFloat = v.GetIsFloat();
+    vVolumeSize = v.GetDomainSize(iLODLevel);
+    vVolumeAspect = FLOATVECTOR3(v.GetScale());
+    eType             = UVFTables::ES_UNDEFINED;  /// \todo grab this data from the UVF file
+    strTitle          = "UVF data";               /// \todo grab this data from the UVF file
+    strSource         = SysTools::GetFilename(strFilename);
+
+    strIntermediateFile = strTempDir + strSource +".raw";
+    bDeleteIntermediateFile = true;
+
+    if (!v.Export(iLODLevel, strIntermediateFile, false)) {
+      if (SysTools::FileExists(strIntermediateFile)) {
+        RAWConverter::Remove(strIntermediateFile.c_str(),
+                         Controller::Debug::Out());
+      }
+      return false;
+    } else bRAWCreated = true;
+  } else { // for non-UVF source data
+    for (size_t i = 0;i<m_vpConverters.size();i++) {
+      const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+      for (size_t j = 0;j<vStrSupportedExt.size();j++) {
+        if (vStrSupportedExt[j] == strExt) {
+          bRAWCreated = m_vpConverters[i]->ConvertToRAW(strFilename, strTempDir, bNoUserInteraction,
+                                          iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
+                                          strTitle, eType, strIntermediateFile, bDeleteIntermediateFile);
+          if (bRAWCreated) break;
+        }
+      }
+      if (bRAWCreated) break;
+    }
+
+    if (!bRAWCreated && m_pFinalConverter) {
+      bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, strTempDir, bNoUserInteraction,
+                                      iHeaderSkip, iComponentSize, iComponentCount, bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
+                                      strTitle, eType, strIntermediateFile, bDeleteIntermediateFile);
+    }
+  }
+  if (!bRAWCreated) return false;
+
+  bool bTargetCreated = false;
+  for (size_t k = 0;k<m_vpConverters.size();k++) {
+    const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();
+    for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
+      if (vStrSupportedExtTarget[l] == strExtTarget) {
+        bTargetCreated =
+          m_vpConverters[k]->ConvertToNative(strIntermediateFile,
+                                             strTargetFilename,
+                                             iHeaderSkip, iComponentSize,
+                                             iComponentCount, bSigned,
+                                             bIsFloat, vVolumeSize,
+                                             vVolumeAspect,
+                                             bNoUserInteraction, bQuantizeTo8Bit);
+        if (bTargetCreated) break;
+      }
+    }
+    if (bTargetCreated) break;
+  }
+  if (bDeleteIntermediateFile) remove(strIntermediateFile.c_str());
+  if (bTargetCreated) return true;
+
   return false;
 }
 

@@ -42,8 +42,9 @@
 #define RAWCONVERTER_H
 
 #include "../StdTuvokDefines.h"
+#include <list>
 #include "AbstrConverter.h"
-#include <Controller/Controller.h>
+#include "Controller/Controller.h"
 #include "IOManager.h"  // for the size defines
 
 typedef std::vector< std::pair < std::string, std::string > > KVPairs;
@@ -121,6 +122,14 @@ public:
                                const bool bQuantizeTo8Bit);
 
   virtual bool ConvertToUVF(const std::string& strSourceFilename,
+                            const std::string& strTargetFilename,
+                            const std::string& strTempDir,
+                            const bool bNoUserInteraction,
+                            const UINT64 iTargetBrickSize,
+                            const UINT64 iTargetBrickOverlap,
+                            const bool bQuantizeTo8Bit);
+
+  virtual bool ConvertToUVF(const std::list<std::string>& files,
                             const std::string& strTargetFilename,
                             const std::string& strTempDir,
                             const bool bNoUserInteraction,

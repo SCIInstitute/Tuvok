@@ -86,17 +86,9 @@ template<> struct ctti<int> : ctti_base<int> {
   typedef unsigned int size_type;
   typedef int signed_type;
 };
-template<> struct ctti<long> : ctti_base<long> {
-  typedef unsigned long size_type;
-  typedef long signed_type;
-};
-template<> struct ctti<unsigned long> : ctti_base<unsigned long> {
-  typedef unsigned long size_type;
-  typedef long signed_type;
-};
-template<> struct ctti<boost::int64_t> : ctti_base<boost::int64_t> {
-  typedef boost::uint64_t size_type;
-  typedef boost::int64_t signed_type;
+template<> struct ctti<INT64> : ctti_base<INT64> {
+  typedef UINT64 size_type;
+  typedef INT64 signed_type;
 };
 template<> struct ctti<unsigned char> : ctti_base<unsigned char> {
   typedef unsigned char size_type;
@@ -164,10 +156,10 @@ struct ios_data_src {
     }
   }
 
-  boost::uint64_t size() {
+  UINT64 size() {
     std::streampos cur = ifs.tellg();
     ifs.seekg(0, std::ios::end);
-    boost::uint64_t retval = ifs.tellg();
+    UINT64 retval = ifs.tellg();
     ifs.seekg(cur, std::ios::beg);
     return retval/sizeof(T);
   }
@@ -188,7 +180,7 @@ struct raw_data_src {
     }
   }
 
-  boost::uint64_t size() { return raw.GetCurrentSize() / sizeof(T); }
+  UINT64 size() { return raw.GetCurrentSize() / sizeof(T); }
   size_t read(unsigned char *data, size_t max_bytes) {
     return raw.ReadRAW(data, max_bytes)/sizeof(T);
   }
@@ -207,7 +199,7 @@ struct multi_raw_data_src {
     }
   }
 
-  boost::uint64_t size() {
+  UINT64 size() {
     if(total_size == 0) {
       for(std::vector<LargeRAWFile>::iterator rf = files.begin();
           rf != files.end(); ++rf) {
@@ -230,7 +222,7 @@ struct multi_raw_data_src {
   private:
     std::vector<LargeRAWFile> files;
     size_t cur_file;
-    boost::uint64_t total_size;
+    UINT64 total_size;
 };
 ///@}
 
@@ -309,8 +301,8 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
                          const Progress& progress, size_t iCurrentIncoreSize)
 {
   std::vector<T> data(iCurrentIncoreSize);
-  boost::uint64_t iPos = 0;
-  boost::uint64_t iSize = ds.size();
+  UINT64 iPos = 0;
+  UINT64 iSize = ds.size();
 
   // Default min is the max value representable by the data type.  Default max
   // is the smallest value representable by the data type.
@@ -326,7 +318,7 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
     data.resize(n_records);
     if(n_records == 0) { break; } // bail out if the read gave us nothing.
 
-    iPos += boost::uint64_t(n_records);
+    iPos += UINT64(n_records);
     progress.notify(iPos);
 
     typedef typename std::vector<T>::const_iterator iterator;
