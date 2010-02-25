@@ -82,29 +82,29 @@ template<> struct ctti<short> : ctti_base<short> {
   typedef unsigned short size_type;
   typedef short signed_type;
 };
-template<> struct ctti<int> : ctti_base<int> {
-  typedef unsigned int size_type;
-  typedef int signed_type;
+template<> struct ctti<unsigned short> : ctti_base<unsigned short> {
+  typedef unsigned short size_type;
+  typedef short signed_type;
 };
-template<> struct ctti<INT64> : ctti_base<INT64> {
-  typedef UINT64 size_type;
-  typedef INT64 signed_type;
+template<> struct ctti<boost::uint32_t> : ctti_base<boost::uint32_t> {
+  typedef boost::uint32_t size_type;
+  typedef boost::int32_t signed_type;
+};
+template<> struct ctti<boost::int32_t> : ctti_base<boost::int32_t> {
+  typedef boost::uint32_t size_type;
+  typedef boost::int32_t signed_type;
+};
+template<> struct ctti<boost::int64_t> : ctti_base<boost::int64_t> {
+  typedef boost::uint64_t size_type;
+  typedef boost::int64_t signed_type;
 };
 template<> struct ctti<unsigned char> : ctti_base<unsigned char> {
   typedef unsigned char size_type;
   typedef signed char signed_type;
 };
-template<> struct ctti<unsigned short> : ctti_base<unsigned short> {
-  typedef unsigned short size_type;
-  typedef short signed_type;
-};
-template<> struct ctti<unsigned int> : ctti_base<unsigned int> {
-  typedef unsigned int size_type;
-  typedef int signed_type;
-};
-template<> struct ctti<UINT64> : ctti_base<UINT64> {
-  typedef UINT64 size_type;
-  typedef INT64 signed_type;
+template<> struct ctti<boost::uint64_t> : ctti_base<boost::uint64_t> {
+  typedef boost::uint64_t size_type;
+  typedef boost::int64_t signed_type;
 };
 template<> struct ctti<float> : ctti_base<float> {
   typedef float size_type;
