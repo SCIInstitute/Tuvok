@@ -1136,7 +1136,8 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
           WARNING("Input file '%s' ended before we expected.", fn->c_str());
           break;
         }
-        merged.WriteRAW(data, std::min(payload_sz - bytes_written, elems));
+        merged.WriteRAW(data, std::min(payload_sz - bytes_written,
+                                       static_cast<UINT64>(elems)));
         bytes_written += elems;
       } while(bytes_written < payload_sz);
 
