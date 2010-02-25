@@ -173,7 +173,7 @@ public:
     while(iPos < iSize) {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData,
                                        std::min((iSize - iPos)*sizeof(T),
-                                        iCurrentInCoreSize)) / sizeof(T);
+                                        UINT64(iCurrentInCoreSize)))/sizeof(T);
       if(iRead == 0) { break; } // bail if the read gave us nothing
 
       // calculate hist + quantize to output file.
