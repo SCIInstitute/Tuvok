@@ -90,11 +90,21 @@ template<> struct ctti<unsigned short> : ctti_base<unsigned short> {
   typedef unsigned short size_type;
   typedef short signed_type;
 };
-template<> struct ctti<boost::uint32_t> : ctti_base<boost::uint32_t> {
+#ifdef DETECTED_OS_WINDOWS
+template<> struct ctti<int> : ctti_base<int> {
+  typedef unsigned int size_type;
+  typedef int  signed_type;
+};
+template<> struct ctti<UINT32> : ctti_base<UINT32> {
+  typedef UINT32 size_type;
+  typedef boost::int32_t signed_type;
+};
+#endif
+template<> struct ctti<boost::int32_t> : ctti_base<boost::int32_t> {
   typedef boost::uint32_t size_type;
   typedef boost::int32_t signed_type;
 };
-template<> struct ctti<boost::int32_t> : ctti_base<boost::int32_t> {
+template<> struct ctti<boost::uint32_t> : ctti_base<boost::uint32_t> {
   typedef boost::uint32_t size_type;
   typedef boost::int32_t signed_type;
 };
