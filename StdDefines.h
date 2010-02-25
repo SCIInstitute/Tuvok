@@ -40,10 +40,17 @@
 #define STDDEFINES_H
 
 #include "boost/cstdint.hpp"
+#undef UINT32
 
 typedef boost::int64_t  INT64;
 typedef boost::uint64_t UINT64;
+#ifndef UINT32
+# ifdef _WIN32
+typedef unsigned int UINT32;
+# else
 typedef boost::uint32_t UINT32;
+# endif
+#endif
 typedef unsigned int UINT;
 typedef unsigned char BYTE;
 
