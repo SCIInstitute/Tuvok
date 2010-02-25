@@ -9,8 +9,8 @@ Histogram2DDataBlock::Histogram2DDataBlock() :
   DataBlock(),
   m_fMaxGradMagnitude(0)
 {
-  ulBlockSemantics = BS_2D_Histogram;
-  strBlockID       = "2D Histrogram";
+  ulBlockSemantics = BS_2D_HISTOGRAM;
+  strBlockID       = "2D Histogram";
 }
 
 Histogram2DDataBlock::Histogram2DDataBlock(const Histogram2DDataBlock &other) :

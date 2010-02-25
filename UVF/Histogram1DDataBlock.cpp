@@ -5,8 +5,8 @@ using namespace std;
 using namespace UVFTables;
 
 Histogram1DDataBlock::Histogram1DDataBlock() : DataBlock() {
-  ulBlockSemantics = BS_1D_Histogram;
-  strBlockID       = "1D Histrogram";
+  ulBlockSemantics = BS_1D_HISTOGRAM;
+  strBlockID       = "1D Histogram";
 }
 
 Histogram1DDataBlock::Histogram1DDataBlock(const Histogram1DDataBlock &other) :

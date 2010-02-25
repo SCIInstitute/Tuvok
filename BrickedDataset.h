@@ -54,8 +54,9 @@ public:
   /// @return an iterator that can be used to visit every brick in the dataset.
   virtual BrickTable::const_iterator BricksBegin() const;
   virtual BrickTable::const_iterator BricksEnd() const;
-  /// @return the number of bricks at the given LOD.
-  virtual BrickTable::size_type GetBrickCount(size_t lod) const;
+  /// @return the number of bricks at the given LOD + timestep
+  /// @todo FIXME make the argument a brickKey && just ignore the brick index.
+  virtual BrickTable::size_type GetBrickCount(size_t lod, size_t ts) const;
 
   virtual const BrickMD& GetBrickMetadata(const BrickKey&) const;
 

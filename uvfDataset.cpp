@@ -47,16 +47,11 @@ using namespace std;
 namespace tuvok {
 
 UVFDataset::UVFDataset(const std::string& strFilename, UINT64 iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion) :
-  m_fMaxGradMagnitude(0.0f),
-  m_pVolumeDataBlock(NULL),
   m_pKVDataBlock(NULL),
-  m_pHist1DDataBlock(NULL),
-  m_pHist2DDataBlock(NULL),
-  m_pMaxMinData(NULL),
+  m_bIsSameEndianness(true),
   m_pDatasetFile(NULL),
   m_bIsOpen(false),
   m_strFilename(strFilename),
-  m_iRasterBlockIndex(0),
   m_CachedRange(make_pair(+1,-1)),
   m_iMaxAcceptableBricksize(iMaxAcceptableBricksize),
   m_bOnlyBricksizeCheckFailed(false)
@@ -65,16 +60,11 @@ UVFDataset::UVFDataset(const std::string& strFilename, UINT64 iMaxAcceptableBric
 }
 
 UVFDataset::UVFDataset() :
-  m_fMaxGradMagnitude(0.0f),
-  m_pVolumeDataBlock(NULL),
   m_pKVDataBlock(NULL),
-  m_pHist1DDataBlock(NULL),
-  m_pHist2DDataBlock(NULL),
-  m_pMaxMinData(NULL),
+  m_bIsSameEndianness(true),
   m_pDatasetFile(NULL),
   m_bIsOpen(false),
   m_strFilename(""),
-  m_iRasterBlockIndex(0),
   m_CachedRange(make_pair(+1,-1)),
   m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE),
   m_bOnlyBricksizeCheckFailed(false)
@@ -101,133 +91,165 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
   if (m_pDatasetFile->ms_ulReaderVersion != m_pDatasetFile->GetGlobalHeader().ulFileVersion) {
     // bMustBeSameVersion must not be set otherwise Open would have thrown an error
     WARNING("WARNING: Opening UVF file with a version (%u) different from this program's (%u)!!!",
-              unsigned(m_pDatasetFile->ms_ulReaderVersion),
-              unsigned(m_pDatasetFile->GetGlobalHeader().ulFileVersion));
+            unsigned(m_pDatasetFile->ms_ulReaderVersion),
+            unsigned(m_pDatasetFile->GetGlobalHeader().ulFileVersion));
   }
 
+  size_t n_timesteps = DetermineNumberOfTimesteps();
+  if (n_timesteps == 0) {
+    T_ERROR("No suitable volume block found in UVF file.  Check previous messages for rejected blocks.");
+    Close();
+    m_bIsOpen = false;
+    return false;
+  }
+  m_timesteps.resize(n_timesteps);
+
   // analyze the main raster data blocks
-  m_iRasterBlockIndex = FindSuitableRasterBlock(m_bOnlyBricksizeCheckFailed);
+  FindSuitableRasterBlocks(m_bOnlyBricksizeCheckFailed);
+
   if (m_bOnlyBricksizeCheckFailed) {
     WARNING("No suitable volume block found in UVF file but rebricking would make this file usable.");
     Close();
     m_bIsOpen = false;
     return false;
   }
-  if (m_iRasterBlockIndex == UINT64(-1)) {
-    T_ERROR("No suitable volume block found in UVF file.  Check previous messages for rejected blocks.");
-    Close();
-    m_bIsOpen = false;
-    return false;
-  }
-  MESSAGE("Open successfully found a suitable data block in the UVF file.");
-  m_pVolumeDataBlock = static_cast<const RasterDataBlock*>
-                             (m_pDatasetFile->GetDataBlock(m_iRasterBlockIndex));
+  MESSAGE("Open successfully found %u suitable data block in the UVF file.",
+          static_cast<unsigned>(n_timesteps));
 
   MESSAGE("Analyzing data...");
 
+  m_bIsSameEndianness = m_pDatasetFile->GetGlobalHeader().bIsBigEndian ==
+                          EndianConvert::IsBigEndian();
+
+  SetRescaleFactors(DOUBLEVECTOR3(1.0,1.0,1.0));
   // get the metadata and the histograms
-  ComputeMetaData();
-  GetHistograms();
+  for(size_t i=0; i < n_timesteps; ++i) {
+    ComputeMetaData(i);
+    GetHistograms(i);
+  }
 
   // print out data statistics
-  MESSAGE("  Dataset Size %llu x %llu x %llu", m_aDomainSize[0].x,
-          m_aDomainSize[0].y, m_aDomainSize[0].z);
-  MESSAGE("  Bricklayout of highest resolution level %llu x %llu x %llu",
-          m_vaBrickCount[0].x, m_vaBrickCount[0].y, m_vaBrickCount[0].z);
-  MESSAGE("  %llu Bit, %llu components", GetBitWidth(),
-                                         GetComponentCount());
-  MESSAGE("  LOD down to %llu x %llu x %llu found",
-          m_vaBrickCount[m_vaBrickCount.size()-1].x,
-          m_vaBrickCount[m_vaBrickCount.size()-1].y,
-          m_vaBrickCount[m_vaBrickCount.size()-1].z);
-
+  MESSAGE("  %u timesteps found in the UVF.",
+          static_cast<unsigned>(n_timesteps));
+  for(size_t tsi=0; tsi < n_timesteps; ++tsi) {
+    Timestep& ts = m_timesteps[tsi];
+    ostringstream stats;
+    stats << "Timestep " << tsi << ":\n"
+          << "  Dataset size: "
+          << ts.m_aDomainSize[0].x << " x "
+          << ts.m_aDomainSize[0].y << " x "
+          << ts.m_aDomainSize[0].z << "\n"
+          << "  Brick layout of highest resolution level: "
+          << ts.m_vaBrickCount[0].x << " x "
+          << ts.m_vaBrickCount[0].y << " x "
+          << ts.m_vaBrickCount[0].z << "\n  "
+          << GetBitWidth() << " bit, "
+          << GetComponentCount() << " components\n"
+          << "  LOD down to "
+          << ts.m_vaBrickCount[ts.m_vaBrickCount.size()-1].x << " x "
+          << ts.m_vaBrickCount[ts.m_vaBrickCount.size()-1].y << " x "
+          << ts.m_vaBrickCount[ts.m_vaBrickCount.size()-1].z
+          << " found.";
+    MESSAGE("%s", stats.str().c_str());
+  }
   return true;
 }
 
 void UVFDataset::Close() {
   delete m_pDatasetFile;
 
-  m_fMaxGradMagnitude = 0.0f;
-  m_pVolumeDataBlock = NULL;
+  for(std::vector<Timestep>::iterator ts = m_timesteps.begin();
+      ts != m_timesteps.end(); ++ts) {
+    ts->m_fMaxGradMagnitude = 0.0f;
+    ts->m_pVolumeDataBlock = NULL;
+    ts->m_pHist1DDataBlock = NULL;
+    ts->m_pHist2DDataBlock = NULL;
+    ts->m_pMaxMinData= NULL;
+  }
+
   m_pKVDataBlock= NULL;
-  m_pHist1DDataBlock= NULL;
-  m_pHist2DDataBlock= NULL;
-  m_pMaxMinData= NULL;
   m_pDatasetFile= NULL;
   m_bIsOpen= false;
 }
 
-void UVFDataset::ComputeMetaData() {
+void UVFDataset::ComputeMetaData(size_t timestep) {
   std::vector<double> vfScale;
-  size_t iSize = m_pVolumeDataBlock->ulDomainSize.size();
+  const RasterDataBlock* pVolumeDataBlock =
+    m_timesteps[timestep].m_pVolumeDataBlock;
+
+  struct Timestep& ts = m_timesteps[timestep];
+
+  size_t iSize = pVolumeDataBlock->ulDomainSize.size();
 
   // we require the data to be at least 3D
   assert(iSize >= 3);
 
-  m_bIsSameEndianness = m_pDatasetFile->GetGlobalHeader().bIsBigEndian ==
-                          EndianConvert::IsBigEndian();
-
   // we also assume that x,y,z are in the first 3 components and
   // we have no anisotropy (i.e. ulLODLevelCount.size=1)
-  size_t iLODLevel = static_cast<size_t>(m_pVolumeDataBlock->ulLODLevelCount[0]);
-  for (size_t i = 0;i<3;i++) {
-    m_aOverlap[i] = m_pVolumeDataBlock->ulBrickOverlap[i];
-    m_aMaxBrickSize[i] = m_pVolumeDataBlock->ulBrickSize[i];
-    m_DomainScale[i] = m_pVolumeDataBlock->dDomainTransformation[i+(iSize+1)*i];
+  size_t iLODLevel = static_cast<size_t>(pVolumeDataBlock->ulLODLevelCount[0]);
+  for (size_t i=0; i < 3 ; i++) {
+    ts.m_aOverlap[i] = pVolumeDataBlock->ulBrickOverlap[i];
+    /// @todo FIXME badness -- assume domain scaling information is the
+    /// same across all raster data blocks (across all timesteps
+    m_DomainScale[i] = pVolumeDataBlock->dDomainTransformation[i+(iSize+1)*i];
   }
+  m_aMaxBrickSize.StoreMax(UINTVECTOR3(pVolumeDataBlock->ulBrickSize[0],
+                                       pVolumeDataBlock->ulBrickSize[1],
+                                       pVolumeDataBlock->ulBrickSize[2]));
 
-  m_vvaBrickSize.resize(iLODLevel);
-  if (m_pMaxMinData) m_vvaMaxMin.resize(iLODLevel);
+  ts.m_vvaBrickSize.resize(iLODLevel);
+  if (ts.m_pMaxMinData) {
+    ts.m_vvaMaxMin.resize(iLODLevel);
+  }
 
   for (size_t j = 0;j<iLODLevel;j++) {
     std::vector<UINT64> vLOD;  vLOD.push_back(j);
-    std::vector<UINT64> vDomSize = m_pVolumeDataBlock->GetLODDomainSize(vLOD);
-    m_aDomainSize.push_back(UINT64VECTOR3(vDomSize[0], vDomSize[1],
-                                          vDomSize[2]));
+    std::vector<UINT64> vDomSize = pVolumeDataBlock->GetLODDomainSize(vLOD);
+    ts.m_aDomainSize.push_back(UINT64VECTOR3(vDomSize[0], vDomSize[1], vDomSize[2]));
 
-    std::vector<UINT64> vBrickCount = m_pVolumeDataBlock->GetBrickCount(vLOD);
-    m_vaBrickCount.push_back(UINT64VECTOR3(vBrickCount[0], vBrickCount[1],
-                                           vBrickCount[2]));
+    std::vector<UINT64> vBrickCount = pVolumeDataBlock->GetBrickCount(vLOD);
+    ts.m_vaBrickCount.push_back(UINT64VECTOR3(vBrickCount[0], vBrickCount[1], vBrickCount[2]));
 
-    m_vvaBrickSize[j].resize(size_t(m_vaBrickCount[j].x));
-    if (m_pMaxMinData) {
-      m_vvaMaxMin[j].resize(size_t(m_vaBrickCount[j].x));
+    ts.m_vvaBrickSize[j].resize(size_t(ts.m_vaBrickCount[j].x));
+    if (ts.m_pMaxMinData) {
+      ts.m_vvaMaxMin[j].resize(size_t(ts.m_vaBrickCount[j].x));
     }
 
     FLOATVECTOR3 vBrickCorner;
 
-    FLOATVECTOR3 vNormalizedDomainSize = FLOATVECTOR3(GetDomainSize(j));
+    FLOATVECTOR3 vNormalizedDomainSize = FLOATVECTOR3(GetDomainSize(j, timestep));
     vNormalizedDomainSize /= vNormalizedDomainSize.maxVal();
 
     BrickMD bmd;
-    for (UINT64 x=0; x < m_vaBrickCount[j].x; x++) {
-      m_vvaBrickSize[j][size_t(x)].resize(size_t(m_vaBrickCount[j].y));
-      if (m_pMaxMinData) {
-        m_vvaMaxMin[j][size_t(x)].resize(size_t(m_vaBrickCount[j].y));
+    for (UINT64 x=0; x < ts.m_vaBrickCount[j].x; x++) {
+      ts.m_vvaBrickSize[j][size_t(x)].resize(size_t(ts.m_vaBrickCount[j].y));
+      if (ts.m_pMaxMinData) {
+        ts.m_vvaMaxMin[j][size_t(x)].resize(size_t(ts.m_vaBrickCount[j].y));
       }
 
       vBrickCorner.y = 0;
-      for (UINT64 y=0; y < m_vaBrickCount[j].y; y++) {
-        if (m_pMaxMinData) {
-          m_vvaMaxMin[j][size_t(x)][size_t(y)].resize(size_t(m_vaBrickCount[j].z));
+      for (UINT64 y=0; y < ts.m_vaBrickCount[j].y; y++) {
+        if (ts.m_pMaxMinData) {
+          ts.m_vvaMaxMin[j][size_t(x)][size_t(y)].resize(size_t(ts.m_vaBrickCount[j].z));
         }
 
         vBrickCorner.z = 0;
-        for (UINT64 z=0; z < m_vaBrickCount[j].z; z++) {
+        for (UINT64 z=0; z < ts.m_vaBrickCount[j].z; z++) {
           std::vector<UINT64> vBrick;
           vBrick.push_back(x);
           vBrick.push_back(y);
           vBrick.push_back(z);
           std::vector<UINT64> vBrickSize =
-            m_pVolumeDataBlock->GetBrickSize(vLOD, vBrick);
+            pVolumeDataBlock->GetBrickSize(vLOD, vBrick);
 
-          m_vvaBrickSize[j][size_t(x)][size_t(y)].push_back(
+          ts.m_vvaBrickSize[j][size_t(x)][size_t(y)].push_back(
             UINT64VECTOR3(vBrickSize[0], vBrickSize[1], vBrickSize[2]));
 
-          const BrickKey k = BrickKey(j, z*m_vaBrickCount[j].x*m_vaBrickCount[j].y + y*m_vaBrickCount[j].x + x);
+          const BrickKey k = BrickKey(timestep, j, z*ts.m_vaBrickCount[j].x*ts.m_vaBrickCount[j].y +
+                                                   y*ts.m_vaBrickCount[j].x + x);
 
           bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) /
-                         float(GetDomainSize(j).maxVal());
+                         float(GetDomainSize(j, timestep).maxVal());
           bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) -
                          vNormalizedDomainSize * 0.5f;
           bmd.n_voxels = UINTVECTOR3(vBrickSize[0], vBrickSize[1],
@@ -242,27 +264,25 @@ void UVFDataset::ComputeMetaData() {
   }
 
   size_t iSerializedIndex = 0;
-  if (m_pMaxMinData) {
+  if (ts.m_pMaxMinData) {
     for (size_t lod=0; lod < iLODLevel; lod++) {
-      for (UINT64 z=0; z < m_vaBrickCount[lod].z; z++) {
-        for (UINT64 y=0; y < m_vaBrickCount[lod].y; y++) {
-          for (UINT64 x=0; x < m_vaBrickCount[lod].x; x++) {
+      for (UINT64 z=0; z < ts.m_vaBrickCount[lod].z; z++) {
+        for (UINT64 y=0; y < ts.m_vaBrickCount[lod].y; y++) {
+          for (UINT64 x=0; x < ts.m_vaBrickCount[lod].x; x++) {
             // for four-component data we use the fourth component
             // (presumably the alpha channel); for all other data we use
             // the first component
             /// \todo we may have to change this if we add support for other
             /// kinds of multicomponent data.
-            m_vvaMaxMin[lod][size_t(x)][size_t(y)][size_t(z)] =
-              m_pMaxMinData->GetValue(iSerializedIndex++,
-                 (m_pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0
+            ts.m_vvaMaxMin[lod][size_t(x)][size_t(y)][size_t(z)] =
+              ts.m_pMaxMinData->GetValue(iSerializedIndex++,
+                 (pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0
               );
           }
         }
       }
     }
   }
-
-  SetRescaleFactors(DOUBLEVECTOR3(1.0,1.0,1.0));
 }
 
 
@@ -283,166 +303,214 @@ void UVFDataset::FixOverlap(UINT64& v, UINT64 brickIndex, UINT64 maxindex, UINT6
   }
 }
 
+size_t UVFDataset::DetermineNumberOfTimesteps()
+{
+  size_t raster, hist1d, hist2d, accel;
+  raster = hist1d = hist2d = accel = 0;
+  for(size_t block=0; block < m_pDatasetFile->GetDataBlockCount(); ++block) {
+    switch(m_pDatasetFile->GetDataBlock(block)->GetBlockSemantic()) {
+      case UVFTables::BS_1D_HISTOGRAM: hist1d++; break;
+      case UVFTables::BS_2D_HISTOGRAM: hist2d++; break;
+      case UVFTables::BS_MAXMIN_VALUES: accel++; break;
+      case UVFTables::BS_REG_NDIM_GRID:
+        {
+          const RasterDataBlock *rdb =
+            static_cast<const RasterDataBlock*>
+                       (m_pDatasetFile->GetDataBlock(block));
+          if(VerifyRasterDataBlock(rdb)) {
+            ++raster;
+          }
+        }
+        break;
+      default: break;
+    }
+  }
+  MESSAGE("Block counts (raster, hist1, hist2, accel): (%u, %u, %u, %u)",
+          static_cast<unsigned>(raster),
+          static_cast<unsigned>(hist1d),
+          static_cast<unsigned>(hist2d),
+          static_cast<unsigned>(accel));
+  if(raster == hist1d && hist1d == hist2d && hist2d == accel) {
+    return raster;
+  }
+  // if the number of blocks don't match, say we have 0 valid timesteps.
+  T_ERROR("UVF Block combinations do not match; "
+          "do not know how to interpret data."
+          "Block counts (raster, hist1, hist2, accel): (%u, %u, %u, %u)",
+          static_cast<unsigned>(raster),
+          static_cast<unsigned>(hist1d),
+          static_cast<unsigned>(hist2d),
+          static_cast<unsigned>(accel));
+  return 0;
+}
+
+bool UVFDataset::VerifyRasterDataBlock(const RasterDataBlock* rdb) const
+{
+  if((rdb->ulDomainSize.size() < 3) ||
+     (rdb->ulElementDimension != 1) ||
+     (rdb->ulLODGroups[0] != rdb->ulLODGroups[1]) ||
+     (rdb->ulLODGroups[1] != rdb->ulLODGroups[2])) {
+    return false;
+  }
+
+  /// \todo: change this if we want to support vector data
+  // check if we have anything other than scalars or color
+  if (rdb->ulElementDimensionSize[0] != 1 &&
+      rdb->ulElementDimensionSize[0] != 4) {
+    // check if the data's coarsest LOD level contains only one brick
+    const vector<UINT64>& vSmallestLODBrickCount = rdb->GetBrickCount(rdb->GetSmallestBrickIndex());
+    UINT64 iSmallestLODBrickCount = vSmallestLODBrickCount[0];
+    for (size_t i = 1;i<3;i++) iSmallestLODBrickCount *= vSmallestLODBrickCount[i]; // currently we only care about the first 3 dimensions
+    if (iSmallestLODBrickCount > 1) {
+      return false;
+    }
+  }
+  return true;
+}
+
 
 // Gives the size of a brick in real space.
 UINT64VECTOR3 UVFDataset::GetEffectiveBrickSize(const BrickKey &k) const
 {
   const NDBrickKey& key = IndexToVectorKey(k);
-  UINT64 iLOD = k.first;
-  UINT64VECTOR3 vBrickSize = m_vvaBrickSize[iLOD][key.second[0]][key.second[1]][key.second[2]];
+  UINT64 iLOD = std::tr1::get<1>(k);
+  UINT64VECTOR3 vBrickSize =
+    m_timesteps[key.timestep].
+      m_vvaBrickSize[iLOD][key.brick[0]][key.brick[1]][key.brick[2]];
+
+  const Timestep& ts = m_timesteps[key.timestep];
 
   // If this is an internal brick, the size is a bit smaller based on the
   // amount of overlap per-brick.
-  if (m_vaBrickCount[iLOD].x > 1) {
-    FixOverlap(vBrickSize.x, key.second[0], m_vaBrickCount[iLOD].x-1, m_aOverlap.x);
+  if (ts.m_vaBrickCount[iLOD].x > 1) {
+    FixOverlap(vBrickSize.x, key.brick[0], ts.m_vaBrickCount[iLOD].x-1, ts.m_aOverlap.x);
   }
-  if (m_vaBrickCount[iLOD].y > 1) {
-    FixOverlap(vBrickSize.y, key.second[1], m_vaBrickCount[iLOD].y-1, m_aOverlap.y);
+  if (ts.m_vaBrickCount[iLOD].y > 1) {
+    FixOverlap(vBrickSize.y, key.brick[1], ts.m_vaBrickCount[iLOD].y-1, ts.m_aOverlap.y);
   }
-  if (m_vaBrickCount[iLOD].z > 1) {
-    FixOverlap(vBrickSize.z, key.second[2], m_vaBrickCount[iLOD].z-1, m_aOverlap.z);
+  if (ts.m_vaBrickCount[iLOD].z > 1) {
+    FixOverlap(vBrickSize.z, key.brick[2], ts.m_vaBrickCount[iLOD].z-1, ts.m_aOverlap.z);
   }
 
   return vBrickSize;
 }
 
 
-BrickTable::size_type UVFDataset::GetBrickCount(size_t lod) const
+BrickTable::size_type UVFDataset::GetBrickCount(size_t lod, size_t ts) const
 {
-  return BrickTable::size_type(m_vaBrickCount[lod].volume());
+  return BrickTable::size_type(m_timesteps[ts].m_vaBrickCount[lod].volume());
 }
 
 
-UINT64VECTOR3 UVFDataset::GetDomainSize(const size_t lod) const
+UINT64VECTOR3 UVFDataset::GetDomainSize(const size_t lod, const size_t ts) const
 {
-  return m_aDomainSize[lod];
+  return m_timesteps[ts].m_aDomainSize[lod];
 }
 
-UINT64 UVFDataset::FindSuitableRasterBlock(bool &bOnlyBricksizeCheckFailed) {
+float UVFDataset::MaxGradientMagnitude() const
+{
+  float mx = -std::numeric_limits<float>::max();
+  for(std::vector<Timestep>::const_iterator ts = m_timesteps.begin();
+      ts != m_timesteps.end(); ++ts) {
+    mx = std::max(mx, ts->m_fMaxGradMagnitude);
+  }
+  return mx;
+}
+
+void UVFDataset::FindSuitableRasterBlocks(bool &bOnlyBricksizeCheckFailed) {
   bOnlyBricksizeCheckFailed = false;
-  UINT64 iRasterBlockIndex = UINT64(-1);
+  // keep a count of each type of block.  We require that the number of blocks
+  // match, or put another way, that all blocks exist for all timesteps.  This
+  // isn't strictly necessary; we could still, technically, work with a
+  // timestep that was missing acceleration structures.
+  size_t raster=0, hist1d=0, hist2d=0, accel=0;
+
   for (size_t iBlocks = 0;
        iBlocks < m_pDatasetFile->GetDataBlockCount();
        iBlocks++) {
-    if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
-        UVFTables::BS_1D_Histogram) {
-      if (m_pHist1DDataBlock != NULL) {
-        WARNING("Multiple 1D Histograms found; using last block.");
-      }
-      m_pHist1DDataBlock = static_cast<const Histogram1DDataBlock*>
-                                      (m_pDatasetFile->GetDataBlock(iBlocks));
-    } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
-               UVFTables::BS_2D_Histogram) {
-      if (m_pHist2DDataBlock != NULL) {
-        WARNING("Multiple 2D Histograms found; using last block.");
-      }
-      m_pHist2DDataBlock = static_cast<const Histogram2DDataBlock*>
-                                      (m_pDatasetFile->GetDataBlock(iBlocks));
-    } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
-               UVFTables::BS_KEY_VALUE_PAIRS) {
-      if (m_pKVDataBlock != NULL) {
-        WARNING("Multiple key/value-pair data blocks found; using last block.");
-      }
-      m_pKVDataBlock = (KeyValuePairDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
-    } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
-               UVFTables::BS_MAXMIN_VALUES) {
-      if (m_pMaxMinData != NULL) {
-        WARNING("Multiple MaxMinData Blocks found; using last block.");
-      }
-      m_pMaxMinData = (MaxMinDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
-    } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
-               UVFTables::BS_REG_NDIM_GRID) {
-      const RasterDataBlock* pVolumeDataBlock =
-                         static_cast<const RasterDataBlock*>
-                                    (m_pDatasetFile->GetDataBlock(iBlocks));
-
-      // check if the block is at least 3 dimensional
-      if (pVolumeDataBlock->ulDomainSize.size() < 3) {
-        MESSAGE("%i-D raster data block found in UVF file, skipping.",
-                int(pVolumeDataBlock->ulDomainSize.size()));
-        continue;
-      }
-
-      // check if the ulElementDimension = 1 e.g. we can deal with scalars and vectors
-      if (pVolumeDataBlock->ulElementDimension != 1) {
-        MESSAGE("Non scalar/vector raster data block found in UVF file,"
-                " skipping.");
-        continue;
-      }
-
-      /// \todo: rethink this for time dependent data
-      if (pVolumeDataBlock->ulLODGroups[0] != pVolumeDataBlock->ulLODGroups[1] ||
-          pVolumeDataBlock->ulLODGroups[1] != pVolumeDataBlock->ulLODGroups[2]) {
-        MESSAGE("Raster data block with unsupported LOD layout found in "
-                "UVF file, skipping.");
-        continue;
-      }
-
-      /// \todo: change this if we want to support vector data
-      // check if we have anything other than scalars or color
-      if (pVolumeDataBlock->ulElementDimensionSize[0] != 1 &&
-          pVolumeDataBlock->ulElementDimensionSize[0] != 4) {
-        MESSAGE("Skipping UVF raster data block with %u elements; "
-                "only know how to handle scalar and color data.",
-                UINT32(pVolumeDataBlock->ulElementDimensionSize[0]));
-        continue;
-      }
-
-      // check if the data's coarsest LOD level contains only one brick
-      const vector<UINT64>& vSmallestLODBrickCount = pVolumeDataBlock->GetBrickCount(pVolumeDataBlock->GetSmallestBrickIndex());
-      UINT64 iSmallestLODBrickCount = vSmallestLODBrickCount[0];
-      for (size_t i = 1;i<3;i++) iSmallestLODBrickCount *= vSmallestLODBrickCount[i]; // currently we only care about the first 3 dimensions
-      if (iSmallestLODBrickCount > 1) {
-        MESSAGE("Raster data block with insufficient LOD levels found in "
-                "UVF file, skipping.");
-        continue;
-      }
-
-      // check if the data's biggest brick dimensions are smaler m_iMaxAcceptableBricksize
-      std::vector<UINT64> vMaxBrickSizes = pVolumeDataBlock->GetLargestBrickSizes();
-      for (size_t i = 0;i<3;i++) {  // currently we only care about the first 3 dimensions
-        if (vMaxBrickSizes[i] > m_iMaxAcceptableBricksize) {
-          WARNING("Raster data with too large bricks found in UVF file," 
-                  "re-bricking may be necessary.");
-          bOnlyBricksizeCheckFailed = true;
-          break;
+    switch(m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic()) {
+      case UVFTables::BS_1D_HISTOGRAM:
+        m_timesteps[hist1d++].m_pHist1DDataBlock =
+          static_cast<const Histogram1DDataBlock*>
+                     (m_pDatasetFile->GetDataBlock(iBlocks));
+        break;
+      case UVFTables::BS_2D_HISTOGRAM:
+        m_timesteps[hist2d++].m_pHist2DDataBlock =
+          static_cast<const Histogram2DDataBlock*>
+                     (m_pDatasetFile->GetDataBlock(iBlocks));
+        break;
+      case UVFTables::BS_KEY_VALUE_PAIRS:
+        if(m_pKVDataBlock != NULL) {
+          WARNING("Multiple Key-Value pair blocks; using first!");
+          continue;
         }
-      }
+        m_pKVDataBlock = (KeyValuePairDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
+        break;
+      case UVFTables::BS_MAXMIN_VALUES:
+        m_timesteps[accel++].m_pMaxMinData = (MaxMinDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
+        break;
+      case UVFTables::BS_REG_NDIM_GRID:
+        {
+          const RasterDataBlock* pVolumeDataBlock =
+                             static_cast<const RasterDataBlock*>
+                                        (m_pDatasetFile->GetDataBlock(iBlocks));
 
-      if (!bOnlyBricksizeCheckFailed && iRasterBlockIndex != UINT64(-1)) {
-        WARNING("Multiple volume blocks found using last block.");
-      }
-      iRasterBlockIndex = iBlocks;
-    } else {
-      MESSAGE("Non-volume block found in UVF file, skipping.");
+          if(!VerifyRasterDataBlock(pVolumeDataBlock)) {
+            WARNING("A RasterDataBlock failed verification; skipping it");
+            continue;
+          }
+
+          // check if the data's biggest brick dimensions are
+          // smaller than m_iMaxAcceptableBricksize
+          std::vector<UINT64> vMaxBrickSizes = pVolumeDataBlock->GetLargestBrickSizes();
+          for (size_t i=0; i < 3; i++) {  // currently we only care about the first 3 dimensions
+            if (vMaxBrickSizes[i] > m_iMaxAcceptableBricksize) {
+              WARNING("Raster data with too large bricks found in UVF file,"
+                      "re-bricking may be necessary.");
+              bOnlyBricksizeCheckFailed = true;
+              break;
+            }
+          }
+
+          m_timesteps[raster++].m_pVolumeDataBlock = pVolumeDataBlock;
+        }
+        break;
+      default:
+        MESSAGE("Non-volume block found in UVF file, skipping.");
+        break;
     }
   }
-  return iRasterBlockIndex;
 }
 
 
-void UVFDataset::GetHistograms() {
-
+/// @todo fixme (hack): we only look at the first timestep for the
+/// histograms.  should really set a vector of histograms, one per timestep.
+void UVFDataset::GetHistograms(size_t) {
   m_pHist1D = NULL;
-  if (m_pHist1DDataBlock != NULL) {
-    const std::vector<UINT64>& vHist1D = m_pHist1DDataBlock->GetHistogram();
+
+
+  struct Timestep& ts = m_timesteps[0];
+  if (ts.m_pHist1DDataBlock != NULL) {
+    const std::vector<UINT64>& vHist1D = ts.m_pHist1DDataBlock->GetHistogram();
     m_pHist1D = new Histogram1D(vHist1D.size());
-    for (size_t i = 0;i<m_pHist1D->GetSize();i++) {
+    for (size_t i = 0;i < m_pHist1D->GetSize(); i++) {
       m_pHist1D->Set(i, UINT32(vHist1D[i]));
     }
   } else {
     // generate a zero 1D histogram (max 4k) if none is found in the file
     m_pHist1D = new Histogram1D(std::min(4096, 1<<GetBitWidth()));
+
+    // set all values to one so "getFilledsize" later does not return a
+    // completely empty dataset
     for (size_t i = 0;i<m_pHist1D->GetSize();i++) {
-      // set all values to one so "getFilledsize" later does not return a
-      // completely empty dataset
       m_pHist1D->Set(i, 1);
     }
   }
 
   m_pHist2D = NULL;
-  if (m_pHist2DDataBlock != NULL) {
-    const std::vector< std::vector<UINT64> >& vHist2D = m_pHist2DDataBlock->GetHistogram();
+  if (ts.m_pHist2DDataBlock != NULL) {
+    const std::vector< std::vector<UINT64> >& vHist2D =
+      ts.m_pHist2DDataBlock->GetHistogram();
 
     VECTOR2<size_t> vSize(vHist2D.size(),vHist2D[0].size());
 
@@ -451,29 +519,29 @@ void UVFDataset::GetHistograms() {
       for (size_t x = 0;x<m_pHist2D->GetSize().x;x++)
         m_pHist2D->Set(x,y,UINT32(vHist2D[x][y]));
 
-    m_fMaxGradMagnitude = m_pHist2DDataBlock->GetMaxGradMagnitude();
+    ts.m_fMaxGradMagnitude = ts.m_pHist2DDataBlock->GetMaxGradMagnitude();
   } else {
     // generate a zero 2D histogram (max 4k) if none is found in the file
-    VECTOR2<size_t> vec(256, std::min(4096,
-                                      1<<GetBitWidth()));
+    VECTOR2<size_t> vec(256, std::min(4096, 1<<GetBitWidth()));
+
     m_pHist2D = new Histogram2D(vec);
-    for (size_t y = 0;y<m_pHist2D->GetSize().y;y++) {
-      for (size_t x = 0;x<m_pHist2D->GetSize().x;x++) {
-        // set all values to one so "getFilledsize" later does not return a
-        // completely empty dataset
+    for (size_t y=0; y < m_pHist2D->GetSize().y; y++) {
+      // set all values to one so "getFilledsize" later does not return a
+      // completely empty dataset
+      for (size_t x=0; x < m_pHist2D->GetSize().x; x++) {
         m_pHist2D->Set(x,y,1);
       }
     }
 
-    m_fMaxGradMagnitude = 0;
+    ts.m_fMaxGradMagnitude = 0;
   }
 }
 
 UINTVECTOR3 UVFDataset::GetBrickVoxelCounts(const BrickKey& k) const
 {
-  UINT64 iLOD = k.first;
+  UINT64 iLOD = std::tr1::get<1>(k);
   const NDBrickKey& key = IndexToVectorKey(k);
-  return UINTVECTOR3(m_vvaBrickSize[iLOD][key.second[0]][key.second[1]][key.second[2]]);
+  return UINTVECTOR3(m_timesteps[key.timestep].m_vvaBrickSize[iLOD][key.brick[0]][key.brick[1]][key.brick[2]]);
 }
 
 bool UVFDataset::Export(UINT64 iLODLevel, const std::string& targetFilename,
@@ -486,30 +554,45 @@ bool UVFDataset::Export(UINT64 iLODLevel, const std::string& targetFilename,
                         UINT64 iOverlap) const
 {
   std::vector<UINT64> vLOD; vLOD.push_back(iLODLevel);
-  return m_pVolumeDataBlock->BrickedLODToFlatData(vLOD, targetFilename,
-                                                  bAppend,
-                                                  &Controller::Debug::Out(),
-                                                  brickFunc, pUserContext,
-                                                  iOverlap);
+
+  bool okay = true;
+  for(std::vector<Timestep>::const_iterator ts = m_timesteps.begin();
+      ts != m_timesteps.end(); ++ts) {
+    // Unbrick each timestep.  Append the data if the user asks, but we must
+    // always append on second and subsequent timesteps!
+    okay &= ts->m_pVolumeDataBlock->BrickedLODToFlatData(
+              vLOD, targetFilename, bAppend || ts != m_timesteps.begin(),
+              &Controller::Debug::Out(), brickFunc, pUserContext, iOverlap
+            );
+  }
+  return okay;
 }
 
 
 bool
 UVFDataset::GetBrick(const BrickKey& k,
-                      std::vector<unsigned char>& vData) const {
+                     std::vector<unsigned char>& vData) const {
   const NDBrickKey& key = this->IndexToVectorKey(k);
-  return m_pVolumeDataBlock->GetData(vData, key.first, key.second);
+  const Timestep& ts = m_timesteps[key.timestep];
+  return ts.m_pVolumeDataBlock->GetData(vData, key.lod, key.brick);
 }
 
+// BrickKey's index is 1D.  For UVF, we've got a 3D index.  When we create the
+// brick index to satisfy the interface, we do so in a reversible way.  This
+// methods reverses the 1D into into UVF's 3D index.
 std::vector<UINT64>
 UVFDataset::IndexToVector(const BrickKey &k) const {
   std::vector<UINT64> vBrick;
+  const Timestep& ts = m_timesteps[std::tr1::get<0>(k)];
+  const size_t lod = std::tr1::get<1>(k);
 
-  UINT64 iIndex = UINT64(k.second);
-  UINT64 iZIndex = UINT64(iIndex / (m_vaBrickCount[k.first].x*m_vaBrickCount[k.first].y));
-  iIndex = iIndex % (m_vaBrickCount[k.first].x*m_vaBrickCount[k.first].y);
-  UINT64 iYIndex = UINT64(iIndex / m_vaBrickCount[k.first].x);
-  iIndex = iIndex % m_vaBrickCount[k.first].x;
+  UINT64 iIndex = UINT64(std::tr1::get<2>(k));
+  UINT64 iZIndex = UINT64(iIndex / (ts.m_vaBrickCount[lod].x *
+                                    ts.m_vaBrickCount[lod].y));
+  iIndex = iIndex % (ts.m_vaBrickCount[lod].x *
+                     ts.m_vaBrickCount[lod].y);
+  UINT64 iYIndex = UINT64(iIndex / ts.m_vaBrickCount[lod].x);
+  iIndex = iIndex % ts.m_vaBrickCount[lod].x;
   UINT64 iXIndex = iIndex;
 
   vBrick.push_back(iXIndex);
@@ -520,10 +603,11 @@ UVFDataset::IndexToVector(const BrickKey &k) const {
 }
 
 NDBrickKey UVFDataset::IndexToVectorKey(const BrickKey &k) const {
-  std::vector<UINT64> vLOD;
-  std::vector<UINT64> vBrick = IndexToVector(k);
-  vLOD.push_back(k.first);
-  return std::make_pair(vLOD, vBrick);
+  NDBrickKey ndk;
+  ndk.timestep = std::tr1::get<0>(k);
+  ndk.lod.push_back(std::tr1::get<1>(k));
+  ndk.brick = IndexToVector(k);
+  return ndk;
 }
 
 // determines the largest actually used brick dimensions
@@ -533,15 +617,19 @@ UINT64VECTOR3 UVFDataset::GetMaxUsedBrickSizes() const
   UINT64VECTOR3 vMaxSize(1,1,1);
   UINT64VECTOR3 vAbsoluteMax(m_aMaxBrickSize);
 
-  for (size_t iLOD = 0;iLOD < m_vvaBrickSize.size();iLOD++) {
-    for (size_t iX = 0;iX < m_vvaBrickSize[iLOD].size();iX++) {
-      for (size_t iY = 0;iY < m_vvaBrickSize[iLOD][iX].size();iY++) {
-        for (size_t iZ = 0;iZ < m_vvaBrickSize[iLOD][iX][iY].size();iZ++) {
-          vMaxSize.StoreMax(m_vvaBrickSize[iLOD][iX][iY][iZ] );
+  for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
+    const Timestep& ts = m_timesteps[tsi];
 
-          // as no brick should be larger than vAbsoluteMax
-          // we can terminate the scan if we reached that size
-          if (vMaxSize == vAbsoluteMax) return vAbsoluteMax;
+    for (size_t iLOD=0;iLOD < ts.m_vvaBrickSize.size(); iLOD++) {
+      for (size_t iX=0; iX < ts.m_vvaBrickSize[iLOD].size(); iX++) {
+        for (size_t iY=0; iY < ts.m_vvaBrickSize[iLOD][iX].size(); iY++) {
+          for (size_t iZ=0; iZ < ts.m_vvaBrickSize[iLOD][iX][iY].size(); iZ++) {
+            vMaxSize.StoreMax(ts.m_vvaBrickSize[iLOD][iX][iY][iZ]);
+
+            // as no brick should be larger than vAbsoluteMax
+            // we can terminate the scan if we reached that size
+            if (vMaxSize == vAbsoluteMax) return vAbsoluteMax;
+          }
         }
       }
     }
@@ -557,38 +645,57 @@ UINTVECTOR3 UVFDataset::GetMaxBrickSize() const
 
 UINTVECTOR3 UVFDataset::GetBrickOverlapSize() const
 {
-  return m_aOverlap;
+  /// @todo HACK fixme: should take into account the LOD and timestep, probably
+  /// need them as arguments.
+  assert(!m_timesteps.empty() && "no data, haven't analyzed UVF?");
+  return m_timesteps[0].m_aOverlap;
 }
 
 UINT64 UVFDataset::GetLODLevelCount() const
 {
-  return m_vvaBrickSize.size();
+  /// @todo HACK fixme: should take into account the timestep, needed as arg
+  assert(!m_timesteps.empty() && "no data, haven't analyzed UVF?");
+  return m_timesteps[0].m_vvaBrickSize.size();
 }
 
 /// \todo change this if we want to support data where elements are of
 // different size
 UINT64 UVFDataset::GetBitWidth() const
 {
-  return m_pVolumeDataBlock->ulElementBitSize[0][0];
+  assert(!m_timesteps.empty() && "no data, haven't analyzed UVF?");
+  // All data in the time series should have the same bit width, so any
+  // timestep we choose to query the bit width from should be fine.
+  return m_timesteps[0].m_pVolumeDataBlock->ulElementBitSize[0][0];
 }
 
 UINT64 UVFDataset::GetComponentCount() const
 {
-  return m_pVolumeDataBlock->ulElementDimensionSize[0];
+  assert(!m_timesteps.empty() && "no data, haven't analyzed UVF?");
+  // All data in the time series should have the same bit number of
+  // components, so any timestep we choose to query the component count
+  // from should be fine.
+  return m_timesteps[0].m_pVolumeDataBlock->ulElementDimensionSize[0];
 }
 
 /// \todo change this if we want to support data where elements are of
 /// different type
 bool UVFDataset::GetIsSigned() const
 {
-  return m_pVolumeDataBlock->bSignedElement[0][0];
+  assert(!m_timesteps.empty() && "no data, haven't analyzed UVF?");
+  // All data in the time series should have the same signedness,
+  // so any timestep we choose to query the signedness from should be fine.
+  return m_timesteps[0].m_pVolumeDataBlock->bSignedElement[0][0];
 }
 
 /// \todo change this if we want to support data where elements are of
 ///  different type
 bool UVFDataset::GetIsFloat() const
 {
-  return GetBitWidth() != m_pVolumeDataBlock->ulElementBitSize[0][0];
+  assert(!m_timesteps.empty() && "no data, haven't analyzed UVF?");
+  // All data in the time series should have the same type, so any timestep
+  // we choose to query the type from should be fine.
+  return GetBitWidth() !=
+         m_timesteps[0].m_pVolumeDataBlock->ulElementBitSize[0][0];
 }
 
 bool UVFDataset::IsSameEndianness() const
@@ -597,24 +704,42 @@ bool UVFDataset::IsSameEndianness() const
 }
 
 std::pair<double,double> UVFDataset::GetRange() {
-  if (m_pMaxMinData && m_CachedRange.second < m_CachedRange.first) {
-
-    // to find the range of values we simply traverse all the bricks in LOD level 0 (highest res) and compute the max & min
-    std::pair<double,double> limits;
-    for (size_t i = 0;i<GetBrickCount(0);i++) {
-      BrickKey k(0,i);
-      const NDBrickKey& key = IndexToVectorKey(k);
-
-      const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[0][key.second[0]][key.second[1]][key.second[2]];
-
-      if (i>0) {
-        limits.first  = min(limits.first, maxMinElement.minScalar);
-        limits.second = max(limits.second, maxMinElement.maxScalar);
-      } else {
-        limits = make_pair(maxMinElement.minScalar, maxMinElement.maxScalar);
-      }
+  // If we're missing MaxMin data for any timestep, we don't have maxmin data.
+  bool have_maxmin_data = true;
+  for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
+    if(m_timesteps[tsi].m_pMaxMinData == NULL) {
+      WARNING("Missing acceleration structure for timestep %u",
+              static_cast<unsigned>(tsi));
+      have_maxmin_data = false;
     }
-    m_CachedRange = limits;
+  }
+
+  // second < first is a convention we use to indicate "haven't figured this
+  // out yet".  We might not have MaxMin data though; in some cases, we'll
+  // never figure it out.
+  if (have_maxmin_data && m_CachedRange.second < m_CachedRange.first) {
+    // to find the range of values we simply traverse all the bricks in
+    // LOD level 0 (highest res) and compute the max & min
+    std::pair<double,double> limits;
+
+    for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
+      const Timestep& ts = m_timesteps[tsi];
+      for (size_t i=0; i < GetBrickCount(0, tsi); i++) {
+        BrickKey k(tsi,0,i);
+        const NDBrickKey& key = IndexToVectorKey(k);
+
+        const InternalMaxMinElement& maxMinElement =
+          ts.m_vvaMaxMin[0][key.brick[0]][key.brick[1]][key.brick[2]];
+
+        if (i>0) {
+          limits.first  = min(limits.first, maxMinElement.minScalar);
+          limits.second = max(limits.second, maxMinElement.maxScalar);
+        } else {
+          limits = make_pair(maxMinElement.minScalar, maxMinElement.maxScalar);
+        }
+      }
+      m_CachedRange = limits;
+    }
   }
 
   return m_CachedRange;
@@ -624,11 +749,12 @@ std::pair<double,double> UVFDataset::GetRange() {
 bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
 {
   // if we have no max min data we have to assume that every block is visible
-  if(NULL == m_pMaxMinData) {return true;}
+  if(NULL == m_timesteps[std::tr1::get<0>(k)].m_pMaxMinData) {return true;}
 
   const NDBrickKey& key = IndexToVectorKey(k);
-  UINT64 iLOD = k.first;
-  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[iLOD][key.second[0]][key.second[1]][key.second[2]];
+  UINT64 iLOD = std::tr1::get<1>(k);
+  const InternalMaxMinElement& maxMinElement =
+    m_timesteps[key.timestep].m_vvaMaxMin[iLOD][key.brick[0]][key.brick[1]][key.brick[2]];
 
   return (isoval <= maxMinElement.maxScalar);
 }
@@ -636,11 +762,12 @@ bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
 bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
 {
   // if we have no max min data we have to assume that every block is visible
-  if(NULL == m_pMaxMinData) {return true;}
+  if(NULL == m_timesteps[std::tr1::get<0>(k)].m_pMaxMinData) {return true;}
 
   const NDBrickKey& key = IndexToVectorKey(k);
-  UINT64 iLOD = k.first;
-  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[iLOD][key.second[0]][key.second[1]][key.second[2]];
+  UINT64 iLOD = std::tr1::get<1>(k);
+  const InternalMaxMinElement& maxMinElement =
+    m_timesteps[key.timestep].m_vvaMaxMin[iLOD][key.brick[0]][key.brick[1]][key.brick[2]];
 
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
@@ -648,11 +775,12 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
 bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const
 {
   // if we have no max min data we have to assume that every block is visible
-  if(NULL == m_pMaxMinData) {return true;}
+  if(NULL == m_timesteps[std::tr1::get<0>(k)].m_pMaxMinData) {return true;}
 
   const NDBrickKey& key = IndexToVectorKey(k);
-  UINT64 iLOD = k.first;
-  const InternalMaxMinElement& maxMinElement = m_vvaMaxMin[iLOD][key.second[0]][key.second[1]][key.second[2]];
+  UINT64 iLOD = std::tr1::get<1>(k);
+  const InternalMaxMinElement& maxMinElement =
+    m_timesteps[key.timestep].m_vvaMaxMin[iLOD][key.brick[0]][key.brick[1]][key.brick[2]];
 
   return (fMax >= maxMinElement.minScalar &&
           fMin <= maxMinElement.maxScalar)
@@ -685,17 +813,23 @@ bool UVFDataset::SaveRescaleFactors() {
     Open(false,false);
     return false;
   } else {
-    MESSAGE("Successfully reopend file in readwrite mode.");
+    MESSAGE("Successfully reopened file in readwrite mode.");
 
-    RasterDataBlock* pVolumeDataBlockRW = static_cast<RasterDataBlock*>(m_pDatasetFile->GetDataBlockRW(m_iRasterBlockIndex,true));
+    std::vector<RasterDataBlock*> RW_blocks;
+    for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
+      RasterDataBlock* rdb =
+        static_cast<RasterDataBlock*>
+                   (m_pDatasetFile->GetDataBlockRW(tsi, true));
 
-    size_t iSize = pVolumeDataBlockRW->ulDomainSize.size();
-    for (size_t i = 0;i<3;i++) {
-      m_DomainScale[i] = saveUserScale[i];
-      // matrix multiplication with scale factors
-      pVolumeDataBlockRW->dDomainTransformation[0+(iSize+1)*i] *= saveUserScale[0];
-      pVolumeDataBlockRW->dDomainTransformation[1+(iSize+1)*i] *= saveUserScale[1];
-      pVolumeDataBlockRW->dDomainTransformation[2+(iSize+1)*i] *= saveUserScale[2];
+      size_t iSize = rdb->ulDomainSize.size();
+      for (size_t i=0; i < 3; i++) {
+        m_DomainScale[i] = saveUserScale[i];
+        // matrix multiplication with scale factors
+        rdb->dDomainTransformation[0+(iSize+1)*i] *= saveUserScale[0];
+        rdb->dDomainTransformation[1+(iSize+1)*i] *= saveUserScale[1];
+        rdb->dDomainTransformation[2+(iSize+1)*i] *= saveUserScale[2];
+      }
+      RW_blocks.push_back(rdb);
     }
 
     MESSAGE("Writing changes to disk");

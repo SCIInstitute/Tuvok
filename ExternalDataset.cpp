@@ -60,9 +60,10 @@ ExternalDataset::~ExternalDataset() {}
 
 UINTVECTOR3 ExternalDataset::GetBrickVoxelCounts(const BrickKey& bk) const
 {
-  MESSAGE("looking up brick with key: (%u, %u)",
-          static_cast<unsigned>(bk.first),
-          static_cast<unsigned>(bk.second));
+  MESSAGE("looking up brick with key: (%u, %u, %u)",
+          static_cast<unsigned>(std::tr1::get<0>(bk)),
+          static_cast<unsigned>(std::tr1::get<1>(bk)),
+          static_cast<unsigned>(std::tr1::get<2>(bk)));
 #ifdef TR1_NOT_CONST_CORRECT
   ExternalDataset* cthis = const_cast<ExternalDataset*>(this);
   BrickTable::const_iterator iter = cthis->bricks.find(bk);
@@ -70,16 +71,18 @@ UINTVECTOR3 ExternalDataset::GetBrickVoxelCounts(const BrickKey& bk) const
   BrickTable::const_iterator iter = this->bricks.find(bk);
 #endif
   if(iter == this->bricks.end()) {
-    // HACK!
+    /// @todo FIXME HACK!
     char *k = static_cast<char*>(malloc(1024)); // leaked, oh well.
 #ifdef DETECTED_OS_WINDOWS
-  _snprintf_s(k, 1024,1024, "GetBrickSize: no brick w/ key (%u, %u)",
-             static_cast<unsigned>(bk.first),
-             static_cast<unsigned>(bk.second));
+  _snprintf_s(k, 1024,1024, "GetBrickSize: no brick w/ key (%u, %u, %u)",
+              static_cast<unsigned>(std::tr1::get<0>(bk)),
+              static_cast<unsigned>(std::tr1::get<1>(bk)),
+              static_cast<unsigned>(std::tr1::get<2>(bk)));
 #else
-    snprintf(k, 1024, "GetBrickSize: no brick w/ key (%u, %u)",
-             static_cast<unsigned>(bk.first),
-             static_cast<unsigned>(bk.second));
+    snprintf(k, 1024, "GetBrickSize: no brick w/ key (%u, %u, %u)",
+             static_cast<unsigned>(std::tr1::get<0>(bk)),
+             static_cast<unsigned>(std::tr1::get<1>(bk)),
+             static_cast<unsigned>(std::tr1::get<2>(bk)));
 #endif
     throw BrickNotFound(k);
   }
@@ -181,8 +184,10 @@ add_brick(ExternalDataset &ds, const BrickKey& bk,
   VariantArray varr;
   varr.set(data, len);
   table.insert(std::pair<BrickKey, VariantArray>(bk, varr));
-  MESSAGE("added %u-elem brick with key: (%u, %u)", static_cast<unsigned>(len),
-          static_cast<unsigned>(bk.first), static_cast<unsigned>(bk.second));
+  MESSAGE("added %u-elem brick with key: (%u, %u, %u)", static_cast<unsigned>(len),
+          static_cast<unsigned>(std::tr1::get<0>(bk)),
+          static_cast<unsigned>(std::tr1::get<1>(bk)),
+          static_cast<unsigned>(std::tr1::get<2>(bk)));
   update_metadata(ds, brick_min, brick_max);
 }
 

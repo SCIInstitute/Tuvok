@@ -42,7 +42,12 @@
 
 /// For UVF, a brick key has to be a list for the LOD indicators and a
 /// list of brick indices for the brick itself.
-typedef std::pair<std::vector<UINT64>,std::vector<UINT64> > NDBrickKey;
+struct NDBrickKey {
+  size_t timestep;
+  std::vector<UINT64> lod;
+  std::vector<UINT64> brick;
+};
+//typedef std::pair<std::vector<UINT64>,std::vector<UINT64> > NDBrickKey;
 
 
 class VolumeDatasetInfo;
@@ -71,13 +76,18 @@ public:
   virtual bool ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const;
 
   // LOD Data
-  virtual BrickTable::size_type GetBrickCount(size_t lod) const;
-  virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0) const;
+  /// @todo fixme -- this should take a brick key and just ignore the spatial
+  /// indices.
+  ///@{
+  virtual BrickTable::size_type GetBrickCount(size_t lod, size_t ts) const;
+  virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0, const size_t ts=0) const;
+  ///@}
+  virtual UINT64 GetNumberOfTimesteps() const { return m_timesteps.size(); }
 
   // Global Data
   bool IsOpen() const { return m_bIsOpen; }
   std::string Filename() const { return m_strFilename; }
-  float MaxGradientMagnitude() const { return m_fMaxGradMagnitude; }
+  float MaxGradientMagnitude() const;
   virtual UINTVECTOR3 GetMaxBrickSize() const;
   virtual UINT64VECTOR3 GetMaxUsedBrickSizes() const;
   virtual UINTVECTOR3 GetBrickOverlapSize() const;
@@ -110,34 +120,39 @@ private:
   NDBrickKey IndexToVectorKey(const BrickKey &k) const;
   bool Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion=true);
   void Close();
-  UINT64 FindSuitableRasterBlock(bool &bOnlyBricksizeCheckFailed);
-  void ComputeMetaData();
-  void GetHistograms();
+  void FindSuitableRasterBlocks(bool &bOnlyBricksizeCheckFailed);
+  void ComputeMetaData(size_t ts);
+  void GetHistograms(size_t ts);
 
   void FixOverlap(UINT64& v, UINT64 brickIndex, UINT64 maxindex, UINT64 overlap) const;
 
+  size_t DetermineNumberOfTimesteps();
+  bool VerifyRasterDataBlock(const RasterDataBlock*) const;
 
 private:
-  float                        m_fMaxGradMagnitude;
-  const RasterDataBlock*       m_pVolumeDataBlock;
+  struct Timestep {
+    float                        m_fMaxGradMagnitude;
+    const RasterDataBlock*       m_pVolumeDataBlock;
+    const Histogram1DDataBlock*  m_pHist1DDataBlock;
+    const Histogram2DDataBlock*  m_pHist2DDataBlock;
+    MaxMinDataBlock*             m_pMaxMinData;
+    UINT64                       m_iRasterBlockIndex;
+
+    UINTVECTOR3                  m_aOverlap;
+    std::vector<UINT64VECTOR3>   m_aDomainSize;
+    std::vector<UINT64VECTOR3>   m_vaBrickCount;
+    std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
+    std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
+  };
+  std::vector<Timestep>        m_timesteps;
   const KeyValuePairDataBlock* m_pKVDataBlock;
-  const Histogram1DDataBlock*  m_pHist1DDataBlock;
-  const Histogram2DDataBlock*  m_pHist2DDataBlock;
-  MaxMinDataBlock*             m_pMaxMinData;
+  UINTVECTOR3                  m_aMaxBrickSize;
+  bool                         m_bIsSameEndianness;
+
   UVF*                         m_pDatasetFile;
   bool                         m_bIsOpen;
   std::string                  m_strFilename;
-  UINT64                       m_iRasterBlockIndex;
   std::pair<double,double>     m_CachedRange;
-
-
-  UINTVECTOR3                m_aOverlap;
-  bool                       m_bIsSameEndianness;
-  std::vector<UINT64VECTOR3> m_aDomainSize;
-  UINTVECTOR3                m_aMaxBrickSize;
-  std::vector<UINT64VECTOR3> m_vaBrickCount;
-  std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
-  std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
 
   UINT64                       m_iMaxAcceptableBricksize;
   bool                         m_bOnlyBricksizeCheckFailed;

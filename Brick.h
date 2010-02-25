@@ -41,10 +41,12 @@
 #ifdef DETECTED_OS_WINDOWS
 # include <functional>
 # include <memory>
+# include <tuple>
 # include <unordered_map>
 #else
 # include <tr1/functional>
 # include <tr1/memory>
+# include <tr1/tuple>
 # include <tr1/unordered_map>
 #endif
 #include "Basics/Vectors.h"
@@ -55,7 +57,11 @@ namespace tuvok {
 /// into this table consists of an LOD index plus a brick index; at some
 /// point we'll likely add a time index.  An element in the table contains
 /// brick metadata, but no data; to obtain the data one must query the dataset.
-typedef std::pair<size_t, size_t> BrickKey; ///< LOD + 1D brick index
+/// @todo FIXME: this can be a tuple internally, but the interface should be a
+///  struct or similar: if a new component gets added to the key which is not
+///  the last component, it shifts all the indices, necessitating massive code
+///  changes.
+typedef std::tr1::tuple<size_t, size_t, size_t> BrickKey; ///< timestep + LOD + 1D brick index
 struct BrickMD {
   FLOATVECTOR3 center; ///< center of the brick, in world coords
   FLOATVECTOR3 extents; ///< width/height/depth of the brick.
@@ -63,10 +69,12 @@ struct BrickMD {
 };
 struct BKeyHash : std::unary_function<BrickKey, std::size_t> {
   std::size_t operator()(const BrickKey& bk) const {
-    size_t h_lod = std::tr1::hash<size_t>()(bk.first);
-    size_t brick = std::tr1::hash<size_t>()(bk.second);
+    size_t ts    = std::tr1::hash<size_t>()(std::tr1::get<0>(bk));
+    size_t h_lod = std::tr1::hash<size_t>()(std::tr1::get<1>(bk));
+    size_t brick = std::tr1::hash<size_t>()(std::tr1::get<2>(bk));
     size_t seed = h_lod;
     seed ^= brick + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    seed ^= ts + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     return seed;
   }
 };

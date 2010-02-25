@@ -28,8 +28,8 @@ namespace UVFTables {
     BS_NDIM_TRANSFER_FUNC,
     BS_PREVIEW_IMAGE,
     BS_KEY_VALUE_PAIRS,
-    BS_1D_Histogram,
-    BS_2D_Histogram,
+    BS_1D_HISTOGRAM,
+    BS_2D_HISTOGRAM,
     BS_MAXMIN_VALUES,
     BS_UNKNOWN
   };

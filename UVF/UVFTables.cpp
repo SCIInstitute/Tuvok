@@ -49,15 +49,15 @@ wstring UVFTables::CompressionSemanticToString(CompressionSemanticTable uiTable)
 
 string UVFTables::BlockSemanticTableToCharString(BlockSemanticTable uiTable) {
   switch (uiTable) {
-    case (BS_EMPTY)                : return "Empty";
-    case (BS_REG_NDIM_GRID)        : return "Regular N-Dimensional Grid";
-    case (BS_NDIM_TRANSFER_FUNC)  : return "N-Dimensional Transfer function";
-    case (BS_PREVIEW_IMAGE)        : return "Preview Image";
-    case (BS_KEY_VALUE_PAIRS)      : return "8bit String Key/Value Pairs";
-    case (BS_1D_Histogram)        : return "Histogram (1D)";
-    case (BS_2D_Histogram)        : return "Histogram (2D)";
-    case (BS_MAXMIN_VALUES)       : return "Brick Max/Min Values";
-    default                        : return "Unknown";
+    case (BS_EMPTY)              : return "Empty";
+    case (BS_REG_NDIM_GRID)      : return "Regular N-Dimensional Grid";
+    case (BS_NDIM_TRANSFER_FUNC) : return "N-Dimensional Transfer function";
+    case (BS_PREVIEW_IMAGE)      : return "Preview Image";
+    case (BS_KEY_VALUE_PAIRS)    : return "8bit String Key/Value Pairs";
+    case (BS_1D_HISTOGRAM)       : return "Histogram (1D)";
+    case (BS_2D_HISTOGRAM)       : return "Histogram (2D)";
+    case (BS_MAXMIN_VALUES)      : return "Brick Max/Min Values";
+    default                      : return "Unknown";
   }
 }
 
@@ -69,15 +69,15 @@ wstring UVFTables::BlockSemanticTableToString(BlockSemanticTable uiTable) {
 
 DataBlock* UVFTables::CreateBlockFromSemanticEntry(BlockSemanticTable uiTable, LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian) {
   switch (uiTable) {
-    case (BS_EMPTY)                : return new DataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_REG_NDIM_GRID)        : 
-    case (BS_NDIM_TRANSFER_FUNC)  : 
-    case (BS_PREVIEW_IMAGE)        : return new RasterDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_1D_Histogram)        : return new Histogram1DDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_2D_Histogram)        : return new Histogram2DDataBlock(pStreamFile, iOffset, bIsBigEndian);
-     case (BS_KEY_VALUE_PAIRS)      : return new KeyValuePairDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_MAXMIN_VALUES)       : return new MaxMinDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    default                        : throw "CreateBlockFromSemanticEntry: Unknown block semantic";
+    case (BS_EMPTY)              : return new DataBlock(pStreamFile, iOffset, bIsBigEndian);
+    case (BS_REG_NDIM_GRID)      : /* fall through */
+    case (BS_NDIM_TRANSFER_FUNC) : /* fall through */
+    case (BS_PREVIEW_IMAGE)      : return new RasterDataBlock(pStreamFile, iOffset, bIsBigEndian);
+    case (BS_1D_HISTOGRAM)       : return new Histogram1DDataBlock(pStreamFile, iOffset, bIsBigEndian);
+    case (BS_2D_HISTOGRAM)       : return new Histogram2DDataBlock(pStreamFile, iOffset, bIsBigEndian);
+    case (BS_KEY_VALUE_PAIRS)    : return new KeyValuePairDataBlock(pStreamFile, iOffset, bIsBigEndian);
+    case (BS_MAXMIN_VALUES)      : return new MaxMinDataBlock(pStreamFile, iOffset, bIsBigEndian);
+    default                      : throw "CreateBlockFromSemanticEntry: Unknown block semantic";
   }
 }
 

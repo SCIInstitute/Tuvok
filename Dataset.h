@@ -88,7 +88,7 @@ public:
                         std::vector<unsigned char>&) const = 0;
   virtual BrickTable::const_iterator BricksBegin() const = 0;
   virtual BrickTable::const_iterator BricksEnd() const = 0;
-  virtual BrickTable::size_type GetBrickCount(size_t lod) const = 0;
+  virtual BrickTable::size_type GetBrickCount(size_t lod, size_t ts) const = 0;
 
   virtual bool BrickIsFirstInDimension(size_t, const BrickKey&) const = 0;
   virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const = 0;
@@ -98,7 +98,10 @@ public:
   virtual bool SaveRescaleFactors() {return false;}
 
   virtual UINT64 GetLODLevelCount() const = 0;
-  virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0) const = 0;
+  /// @todo FIXME, should be pure virtual && overridden in derived
+  virtual UINT64 GetNumberOfTimesteps() const { return 1; }
+  virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0,
+                                      const size_t ts=0) const = 0;
   DOUBLEVECTOR3 GetScale() const {return m_DomainScale * m_UserScale;}
   virtual UINTVECTOR3 GetBrickOverlapSize() const = 0;
   /// @return the number of voxels for the given brick, per dimension, taking
