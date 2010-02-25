@@ -306,6 +306,7 @@ void UVFDataset::FixOverlap(UINT64& v, UINT64 brickIndex, UINT64 maxindex, UINT6
 size_t UVFDataset::DetermineNumberOfTimesteps()
 {
   size_t raster, hist1d, hist2d, accel;
+  bool is_color = false;
   raster = hist1d = hist2d = accel = 0;
   for(size_t block=0; block < m_pDatasetFile->GetDataBlockCount(); ++block) {
     switch(m_pDatasetFile->GetDataBlock(block)->GetBlockSemantic()) {
@@ -319,6 +320,7 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
                        (m_pDatasetFile->GetDataBlock(block));
           if(VerifyRasterDataBlock(rdb)) {
             ++raster;
+            if (rdb->ulElementDimensionSize[0] == 4) { is_color = true; }
           }
         }
         break;
@@ -341,6 +343,10 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
           static_cast<unsigned>(hist1d),
           static_cast<unsigned>(hist2d),
           static_cast<unsigned>(accel));
+  if(is_color) {
+    WARNING("Hack -- assuming 1 timestep in color data");
+    return 1;
+  }
   return 0;
 }
 
