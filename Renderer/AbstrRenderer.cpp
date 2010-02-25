@@ -1212,5 +1212,10 @@ FLOATVECTOR4 AbstrRenderer::GetSpecular()const {
   return m_cSpecular;
 }
 
-void AbstrRenderer::Timestep(size_t t) { m_iTimestep = t; }
+void AbstrRenderer::Timestep(size_t t) {
+  if(t != m_iTimestep) {
+    m_iTimestep = t;
+    ScheduleCompleteRedraw();
+  }
+}
 size_t AbstrRenderer::Timestep() const { return m_iTimestep; }
