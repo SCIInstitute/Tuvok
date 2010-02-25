@@ -327,27 +327,27 @@ UINT64 UVFDataset::FindSuitableRasterBlock(bool &bOnlyBricksizeCheckFailed) {
     if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
         UVFTables::BS_1D_Histogram) {
       if (m_pHist1DDataBlock != NULL) {
-        WARNING("Multiple 1D Histograms found using last block.");
+        WARNING("Multiple 1D Histograms found; using last block.");
       }
       m_pHist1DDataBlock = static_cast<const Histogram1DDataBlock*>
                                       (m_pDatasetFile->GetDataBlock(iBlocks));
     } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
                UVFTables::BS_2D_Histogram) {
       if (m_pHist2DDataBlock != NULL) {
-        WARNING("Multiple 2D Histograms found using last block.");
+        WARNING("Multiple 2D Histograms found; using last block.");
       }
       m_pHist2DDataBlock = static_cast<const Histogram2DDataBlock*>
                                       (m_pDatasetFile->GetDataBlock(iBlocks));
     } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
                UVFTables::BS_KEY_VALUE_PAIRS) {
       if (m_pKVDataBlock != NULL) {
-        WARNING("Multiple key/value-pair data blocks found using last block.");
+        WARNING("Multiple key/value-pair data blocks found; using last block.");
       }
       m_pKVDataBlock = (KeyValuePairDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
     } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
                UVFTables::BS_MAXMIN_VALUES) {
       if (m_pMaxMinData != NULL) {
-        WARNING("Multiple MaxMinData Blocks found using last block.");
+        WARNING("Multiple MaxMinData Blocks found; using last block.");
       }
       m_pMaxMinData = (MaxMinDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks);
     } else if (m_pDatasetFile->GetDataBlock(iBlocks)->GetBlockSemantic() ==
