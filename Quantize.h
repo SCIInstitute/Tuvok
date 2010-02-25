@@ -78,6 +78,10 @@ template<> struct ctti<signed char> : ctti_base<signed char> {
   typedef signed char signed_type;
   static const bool is_signed = true;
 };
+template<> struct ctti<unsigned char> : ctti_base<unsigned char> {
+  typedef unsigned char size_type;
+  typedef signed char signed_type;
+};
 template<> struct ctti<short> : ctti_base<short> {
   typedef unsigned short size_type;
   typedef short signed_type;
@@ -97,10 +101,6 @@ template<> struct ctti<boost::int32_t> : ctti_base<boost::int32_t> {
 template<> struct ctti<boost::int64_t> : ctti_base<boost::int64_t> {
   typedef boost::uint64_t size_type;
   typedef boost::int64_t signed_type;
-};
-template<> struct ctti<unsigned char> : ctti_base<unsigned char> {
-  typedef unsigned char size_type;
-  typedef signed char signed_type;
 };
 template<> struct ctti<boost::uint64_t> : ctti_base<boost::uint64_t> {
   typedef boost::uint64_t size_type;

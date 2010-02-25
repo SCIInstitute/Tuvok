@@ -33,6 +33,7 @@
            University of Utah
   \date    December 2008
 */
+#include "Basics/StdDefines.h"
 #include <cerrno>
 #include <cstring>
 #include <iterator>
@@ -237,14 +238,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           MESSAGE("Dataset is 32bit integers.");
           if(bSigned) {
             strSourceFilename =
-              Quantize<int, unsigned short>(
+              Quantize<INT32, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D
               );
           } else {
             strSourceFilename =
-              Quantize<unsigned, unsigned short>(
+              Quantize<UINT32, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D
               );
@@ -265,14 +266,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           MESSAGE("Dataset is 64bit integers.");
           if(bSigned) {
             strSourceFilename =
-              Quantize<long, unsigned short>(
+              Quantize<INT64, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D
               );
           } else {
             strSourceFilename =
-              Quantize<unsigned long, unsigned short>(
+              Quantize<UINT64, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D
