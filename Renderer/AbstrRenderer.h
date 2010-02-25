@@ -417,6 +417,9 @@ class AbstrRenderer {
     void SetRenderRegions(const std::vector<RenderRegion*> &regions) {
       renderRegions = regions; }
 
+    void Timestep(size_t);
+    size_t Timestep() const;
+
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
     /// memory.  It's expected you'll set another one directly afterwards.

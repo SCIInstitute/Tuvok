@@ -1211,3 +1211,6 @@ FLOATVECTOR4 AbstrRenderer::GetDiffuse() const {
 FLOATVECTOR4 AbstrRenderer::GetSpecular()const {
   return m_cSpecular;
 }
+
+void AbstrRenderer::Timestep(size_t t) { m_iTimestep = t; }
+size_t AbstrRenderer::Timestep() const { return m_iTimestep; }
