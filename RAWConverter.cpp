@@ -238,7 +238,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           MESSAGE("Dataset is 32bit integers.");
           if(bSigned) {
             strSourceFilename =
-              Quantize<INT32, unsigned short>(
+              Quantize<boost::int32_t, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D
