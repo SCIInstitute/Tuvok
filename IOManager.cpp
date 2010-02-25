@@ -306,10 +306,12 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     /// `m_iAllocated >= 32 heuristic.
     /// \todo read `is floating point' property from DICOM, instead of assuming
     /// false.
+    const UINT64 timesteps = 1;
     bool result =
       RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename,
                                       strTempDir, 0, pDICOMStack->m_iAllocated,
                                       pDICOMStack->m_iComponentCount,
+                                      timesteps,
                                       pDICOMStack->m_bIsBigEndian !=
                                         EndianConvert::IsBigEndian(),
                                       pDICOMStack->m_iAllocated >=32,
@@ -376,10 +378,12 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     const std::string last_fn =
       SysTools::GetFilename(pStack->m_Elements[last_elem]->m_strFileName);
 
+    const UINT64 timesteps = 1;
     bool result =
       RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename,
                                       strTempDir, 0, pStack->m_iAllocated,
                                       pStack->m_iComponentCount,
+                                      timesteps,
                                       pStack->m_bIsBigEndian !=
                                         EndianConvert::IsBigEndian(),
                                       pStack->m_iComponentCount >= 32, false,
@@ -637,11 +641,13 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
   bool bTargetCreated = false;
   if (strExtTarget == "UVF") {
-    bTargetCreated = RAWConverter::ConvertRAWDataset(strMergedFile, strTargetFilename, strTempDir, 0,
-                                       iComponentSizeG, iComponentCountG, bConvertEndianessG, bSignedG,
-                                       bIsFloatG, vVolumeSizeG, vVolumeAspectG, strTitleG, SysTools::GetFilename(strMergedFile),
-                                       m_iMaxBrickSize, m_iBrickOverlap);
-
+    const UINT64 timesteps = 1;
+    bTargetCreated = RAWConverter::ConvertRAWDataset(
+        strMergedFile, strTargetFilename, strTempDir, 0,
+        iComponentSizeG, iComponentCountG, timesteps, bConvertEndianessG,
+        bSignedG, bIsFloatG, vVolumeSizeG, vVolumeAspectG, strTitleG,
+        SysTools::GetFilename(strMergedFile), m_iMaxBrickSize,
+        m_iBrickOverlap);
   } else {
     for (size_t k = 0;k<m_vpConverters.size();k++) {
       const std::vector<std::string>& vStrSupportedExtTarget = m_vpConverters[k]->SupportedExt();

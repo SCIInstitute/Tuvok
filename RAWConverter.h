@@ -80,6 +80,7 @@ public:
                                 const std::string& strTempDir,
                                 UINT64 iHeaderSkip, UINT64 iComponentSize,
                                 UINT64 iComponentCount,
+                                UINT64 timesteps,
                                 bool bConvertEndianness, bool bSigned,
                                 bool bIsFloat, UINT64VECTOR3 vVolumeSize,
                                 FLOATVECTOR3 vVolumeAspect,
