@@ -327,11 +327,16 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
       default: break;
     }
   }
-  MESSAGE("Block counts (raster, hist1, hist2, accel): (%u, %u, %u, %u)",
-          static_cast<unsigned>(raster),
-          static_cast<unsigned>(hist1d),
-          static_cast<unsigned>(hist2d),
-          static_cast<unsigned>(accel));
+  if(!is_color) {
+    MESSAGE("Block counts (raster, hist1, hist2, accel): (%u, %u, %u, %u)",
+            static_cast<unsigned>(raster),
+            static_cast<unsigned>(hist1d),
+            static_cast<unsigned>(hist2d),
+            static_cast<unsigned>(accel));
+  }
+  if(is_color && raster == accel) {
+    return raster;
+  }
   if(raster == hist1d && hist1d == hist2d && hist2d == accel) {
     return raster;
   }
@@ -343,10 +348,6 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
           static_cast<unsigned>(hist1d),
           static_cast<unsigned>(hist2d),
           static_cast<unsigned>(accel));
-  if(is_color) {
-    WARNING("Hack -- assuming 1 timestep in color data");
-    return 1;
-  }
   return 0;
 }
 
