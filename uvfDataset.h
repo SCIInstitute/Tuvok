@@ -82,7 +82,7 @@ public:
   virtual BrickTable::size_type GetBrickCount(size_t lod, size_t ts) const;
   virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0, const size_t ts=0) const;
   ///@}
-  virtual UINT64 GetNumberOfTimesteps() const { return m_timesteps.size(); }
+  virtual UINT64 GetNumberOfTimesteps() const;
 
   // Global Data
   bool IsOpen() const { return m_bIsOpen; }

@@ -413,6 +413,11 @@ UINT64VECTOR3 UVFDataset::GetDomainSize(const size_t lod, const size_t ts) const
   return m_timesteps[ts].m_aDomainSize[lod];
 }
 
+UINT64 UVFDataset::GetNumberOfTimesteps() const {
+  return m_timesteps.size();
+}
+
+
 float UVFDataset::MaxGradientMagnitude() const
 {
   float mx = -std::numeric_limits<float>::max();
