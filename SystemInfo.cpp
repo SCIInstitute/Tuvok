@@ -180,9 +180,12 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
   #else
     #ifdef DETECTED_OS_APPLE
       UINT64 phys = 0;
-      int mib[2] = { CTL_HW, HW_PHYSMEM };
+      int mib[2] = { CTL_HW, HW_MEMSIZE };
       size_t len = sizeof(phys);
-      if (sysctl(mib, 2, &phys, &len, NULL, 0) != 0) return 0;
+      if(sysctl(mib, sizeof(mib)/sizeof(mib[0]), &phys, &len, NULL, 0) != 0) {
+        perror("max memory query");
+        return 0;
+      }
       return phys;
     #elif defined(__linux__)
       return static_cast<UINT64>(lnx_mem());
