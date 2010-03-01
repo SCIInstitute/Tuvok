@@ -152,7 +152,7 @@ public:
       return "";
     }
 
-    int max_output_val = 65535;
+    size_t max_output_val = 65535;
     if(hist_size == 256) { max_output_val = 255; }
     double fQuantFact = max_output_val / static_cast<double>(minmax.second -
                                                              minmax.first);
@@ -178,10 +178,10 @@ public:
 
       // calculate hist + quantize to output file.
       for(size_t i=0; i < iRead; ++i) {
-        U iNewVal = std::min<U>(max_output_val,
+        U iNewVal = std::min<U>(static_cast<U>(max_output_val),
           static_cast<U>((pInData[i]-minmax.first) * fQuantFact)
         );
-        U iHistIndex = std::min<U>(hist_size-1,
+        U iHistIndex = std::min<U>(static_cast<U>(hist_size-1),
                                    static_cast<U>((pInData[i]-minmax.first) *
                                      fQuantFactHist)
         );

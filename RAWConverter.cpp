@@ -1068,11 +1068,11 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                 const UINT64 iTargetBrickOverlap,
                                 const bool bQuantizeTo8Bit)
 {
-  UINT64        iComponentSize;
-  UINT64        iComponentCount;
-  bool          bConvertEndianess;
-  bool          bSigned;
-  bool          bIsFloat;
+  UINT64        iComponentSize=8;
+  UINT64        iComponentCount=1;
+  bool          bConvertEndianess=false;
+  bool          bSigned=true;
+  bool          bIsFloat=false;
   UINT64VECTOR3 vVolumeSize;
   FLOATVECTOR3  vVolumeAspect;
   string        strTitle;
