@@ -43,6 +43,21 @@
 
 using namespace tuvok;
 
+bool AbstrConverter::CanRead(const std::string& fn,
+                             const std::tr1::array<int8_t, 512>&) const
+{
+  return SupportedExtension(SysTools::GetExt(fn));
+}
+
+/// @param ext the extension for the filename
+/// @return true if the filename is a supported extension for this converter
+bool AbstrConverter::SupportedExtension(const std::string& ext) const
+{
+  return std::find(m_vSupportedExt.begin(), m_vSupportedExt.end(), ext) !=
+          m_vSupportedExt.end();
+}
+
+
 const std::string
 AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
                              const std::string& strFilename,
@@ -128,9 +143,6 @@ AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
 
   return strSignChangedFile;
 }
-
-
-/********************************************************************/
 
 size_t AbstrConverter::GetIncoreSize() {
   if (Controller::Instance().IOMan())

@@ -49,6 +49,7 @@
 #include "UVF/Histogram1DDataBlock.h"
 
 using boost::int64_t;
+using boost::int8_t;
 class Histogram1DDataBlock;
 
 class RangeInfo {
@@ -107,6 +108,12 @@ public:
   virtual bool Analyze(const std::string& strSourceFilename,
                        const std::string& strTempDir,
                        bool bNoUserInteraction, RangeInfo& info) = 0;
+
+  /// @param filename the file in question
+  /// @param start the first few bytes of the file
+  /// @return SupportedExtension() for the file's extension; ignores "start".
+  virtual bool CanRead(const std::string& fn,
+                       const std::tr1::array<int8_t, 512>& start) const;
 
   const std::vector<std::string>& SupportedExt() { return m_vSupportedExt; }
   virtual const std::string& GetDesc() { return m_vConverterDesc; }
@@ -235,6 +242,11 @@ public:
                                           UINT64 iComponentSize, UINT64 iSize,
                                           bool bSigned, bool bIsFloat,
                                           Histogram1DDataBlock* Histogram1D=0);
+
+protected:
+  /// @param ext the extension for the filename
+  /// @return true if the filename is a supported extension for this converter
+  bool SupportedExtension(const std::string& ext) const;
 
 protected:
   std::string               m_vConverterDesc;
