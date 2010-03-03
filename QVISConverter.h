@@ -62,7 +62,7 @@ public:
                                UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction,
                                const bool bQuantizeTo8Bit);
 
-  virtual bool CanExportData() const {return true;}
+  virtual bool CanExportData() const { return true; }
 };
 
 #endif // QVISCONVERTER_H

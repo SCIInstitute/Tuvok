@@ -148,13 +148,12 @@ public:
                       UINT64VECTOR3 vVolumeSize,
                       RangeInfo& info);
 
-  virtual bool CanExportData() const {return true;}
+  virtual bool CanExportData() const { return true; }
 
   /// Removes the given file or directory.  Warns if the file could not be
   /// deleted.
   /// @return true if the remove succeeded.
   static bool Remove(const std::string &, AbstrDebugOut &);
-
 };
 
 #endif // RAWCONVERTER_H

@@ -66,7 +66,8 @@ class AbstrConverter {
 public:
   virtual ~AbstrConverter() {}
 
-  virtual bool ConvertToUVF(const std::string& strSourceFilename, const std::string& strTargetFilename,
+  virtual bool ConvertToUVF(const std::string& strSourceFilename,
+                            const std::string& strTargetFilename,
                             const std::string& strTempDir,
                             const bool bNoUserInteraction,
                             const UINT64 iTargetBrickSize,
@@ -82,26 +83,35 @@ public:
                             const bool bQuantizeTo8Bit) = 0;
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
-                            const std::string& strTempDir, bool bNoUserInteraction,
-                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
-                            bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
+                            const std::string& strTempDir,
+                            bool bNoUserInteraction,
+                            UINT64& iHeaderSkip, UINT64& iComponentSize,
+                            UINT64& iComponentCount,
+                            bool& bConvertEndianess, bool& bSigned,
+                            bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
+                            UVFTables::ElementSemanticTable& eType,
+                            std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile) = 0;
 
-  virtual bool ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
-                               UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
-                               UINT64VECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect,
+  virtual bool ConvertToNative(const std::string& strRawFilename,
+                               const std::string& strTargetFilename,
+                               UINT64 iHeaderSkip, UINT64 iComponentSize,
+                               UINT64 iComponentCount, bool bSigned,
+                               bool bFloatingPoint,
+                               UINT64VECTOR3 vVolumeSize,
+                               FLOATVECTOR3 vVolumeAspect,
                                bool bNoUserInteraction,
                                const bool bQuantizeTo8Bit) = 0;
 
-  virtual bool Analyze(const std::string& strSourceFilename, const std::string& strTempDir,
+  virtual bool Analyze(const std::string& strSourceFilename,
+                       const std::string& strTempDir,
                        bool bNoUserInteraction, RangeInfo& info) = 0;
 
-  const std::vector<std::string>& SupportedExt() {return m_vSupportedExt;}
-  virtual const std::string& GetDesc() {return m_vConverterDesc;}
+  const std::vector<std::string>& SupportedExt() { return m_vSupportedExt; }
+  virtual const std::string& GetDesc() { return m_vConverterDesc; }
 
-  virtual bool CanExportData() const {return false;}
+  virtual bool CanExportData() const { return false; }
 
   template <typename T, typename U>
   static const std::string Quantize(UINT64 iHeaderSkip,
@@ -213,9 +223,18 @@ public:
     return strTargetFilename;
   }
 
-  static const std::string Process8Bits(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iSize, bool bSigned, Histogram1DDataBlock* Histogram1D=0);
+  static const std::string Process8Bits(UINT64 iHeaderSkip,
+                                        const std::string& strFilename,
+                                        const std::string& strTargetFilename,
+                                        UINT64 iSize, bool bSigned,
+                                        Histogram1DDataBlock* Histogram1D=0);
 
-  static const std::string QuantizeTo8Bit(UINT64 iHeaderSkip, const std::string& strFilename, const std::string& strTargetFilename, UINT64 iComponentSize, UINT64 iSize, bool bSigned, bool bIsFloat, Histogram1DDataBlock* Histogram1D=0);
+  static const std::string QuantizeTo8Bit(UINT64 iHeaderSkip,
+                                          const std::string& strFilename,
+                                          const std::string& strTargetFilename,
+                                          UINT64 iComponentSize, UINT64 iSize,
+                                          bool bSigned, bool bIsFloat,
+                                          Histogram1DDataBlock* Histogram1D=0);
 
 protected:
   std::string               m_vConverterDesc;
