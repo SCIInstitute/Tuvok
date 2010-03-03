@@ -122,6 +122,7 @@ set(TUVOK_SRCS ./3rdParty/GLEW/GL/glew.c
 ./IO/DICOM/DICOMParser.cpp
 ./IO/DirectoryParser.cpp
 ./IO/ExternalDataset.cpp
+./IO/FileBackedDataset.cpp
 ./IO/Images/ImageParser.cpp
 ./IO/KeyValueFileParser.cpp
 ./IO/NRRDConverter.cpp

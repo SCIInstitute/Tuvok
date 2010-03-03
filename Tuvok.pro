@@ -103,6 +103,7 @@ HEADERS += \
            IO/DICOM/DICOMParser.h \
            IO/DirectoryParser.h \
            IO/ExternalDataset.h \
+           IO/FileBackedDataset.h \
            IO/gzio.h \
            IO/I3MConverter.h \
            IO/Images/ImageParser.h \
@@ -295,6 +296,7 @@ SOURCES += \
            IO/DICOM/DICOMParser.cpp \
            IO/DirectoryParser.cpp \
            IO/ExternalDataset.cpp \
+           IO/FileBackedDataset.cpp \
            IO/gzio.c \
            IO/I3MConverter.cpp \
            IO/Images/ImageParser.cpp \
