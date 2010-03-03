@@ -825,23 +825,34 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
       return false;
     } else bRAWCreated = true;
   } else { // for non-UVF source data
-    for (size_t i = 0;i<m_vpConverters.size();i++) {
-      const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
-      for (size_t j = 0;j<vStrSupportedExt.size();j++) {
-        if (vStrSupportedExt[j] == strExt) {
-          bRAWCreated = m_vpConverters[i]->ConvertToRAW(
-            strFilename, strTempDir, bNoUserInteraction, iHeaderSkip,
-            iComponentSize, iComponentCount, bConvertEndianess, bSigned,
-            bIsFloat, vVolumeSize, vVolumeAspect, strTitle, eType,
-            strIntermediateFile, bDeleteIntermediateFile
-          );
-          if (bRAWCreated) { break; }
+    std::tr1::array<int8_t, 512> bytes;
+    {
+      std::ifstream ifs(strFilename.c_str(), std::ifstream::in |
+                                             std::ifstream::binary);
+      ifs.read(reinterpret_cast<char*>(bytes.data()), 512);
+      ifs.close();
+    }
+
+    for(std::vector<AbstrConverter*>::const_iterator conv =
+          m_vpConverters.begin(); conv != m_vpConverters.end(); ++conv) {
+      if((*conv)->CanRead(strFilename, bytes)) {
+        if((bRAWCreated = (*conv)->ConvertToRAW(strFilename, strTempDir,
+                                                bNoUserInteraction,
+                                                iHeaderSkip,
+                                                iComponentSize,
+                                                iComponentCount,
+                                                bConvertEndianess, bSigned,
+                                                bIsFloat, vVolumeSize,
+                                                vVolumeAspect, strTitle, eType,
+                                                strIntermediateFile,
+                                                bDeleteIntermediateFile))) {
+          break;
         }
       }
-      if (bRAWCreated) { break; }
     }
 
     if (!bRAWCreated && m_pFinalConverter) {
+      MESSAGE("No converter can read the data.  Trying fallback converter.");
       bRAWCreated = m_pFinalConverter->ConvertToRAW(strFilename, strTempDir,
                                                     bNoUserInteraction,
                                                     iHeaderSkip,
