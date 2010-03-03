@@ -36,7 +36,7 @@
 #define TUVOK_UVF_DATASET_H
 
 #include <vector>
-#include "BrickedDataset.h"
+#include "FileBackedDataset.h"
 #include "UVF/RasterDataBlock.h"
 #include "UVF/MaxMinDataBlock.h"
 
@@ -59,7 +59,7 @@ class UVF;
 
 namespace tuvok {
 
-class UVFDataset : public BrickedDataset {
+class UVFDataset : public FileBackedDataset {
 public:
   UVFDataset(const std::string& strFilename, UINT64 iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion = true);
   UVFDataset();
@@ -85,8 +85,6 @@ public:
   virtual UINT64 GetNumberOfTimesteps() const;
 
   // Global Data
-  bool IsOpen() const { return m_bIsOpen; }
-  std::string Filename() const { return m_strFilename; }
   float MaxGradientMagnitude() const;
   virtual UINTVECTOR3 GetMaxBrickSize() const;
   virtual UINT64VECTOR3 GetMaxUsedBrickSizes() const;
@@ -150,8 +148,6 @@ private:
   bool                         m_bIsSameEndianness;
 
   UVF*                         m_pDatasetFile;
-  bool                         m_bIsOpen;
-  std::string                  m_strFilename;
   std::pair<double,double>     m_CachedRange;
 
   UINT64                       m_iMaxAcceptableBricksize;

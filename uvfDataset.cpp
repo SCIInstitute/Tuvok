@@ -47,11 +47,10 @@ using namespace std;
 namespace tuvok {
 
 UVFDataset::UVFDataset(const std::string& strFilename, UINT64 iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion) :
+  FileBackedDataset(strFilename),
   m_pKVDataBlock(NULL),
   m_bIsSameEndianness(true),
   m_pDatasetFile(NULL),
-  m_bIsOpen(false),
-  m_strFilename(strFilename),
   m_CachedRange(make_pair(+1,-1)),
   m_iMaxAcceptableBricksize(iMaxAcceptableBricksize),
   m_bOnlyBricksizeCheckFailed(false)
@@ -60,11 +59,10 @@ UVFDataset::UVFDataset(const std::string& strFilename, UINT64 iMaxAcceptableBric
 }
 
 UVFDataset::UVFDataset() :
+  FileBackedDataset(""),
   m_pKVDataBlock(NULL),
   m_bIsSameEndianness(true),
   m_pDatasetFile(NULL),
-  m_bIsOpen(false),
-  m_strFilename(""),
   m_CachedRange(make_pair(+1,-1)),
   m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE),
   m_bOnlyBricksizeCheckFailed(false)
@@ -79,7 +77,8 @@ UVFDataset::~UVFDataset()
 bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
 {
   // open the file
-  std::wstring wstrFilename(m_strFilename.begin(),m_strFilename.end());
+  const std::string& fn = Filename();
+  std::wstring wstrFilename(fn.begin(), fn.end());
   m_pDatasetFile = new UVF(wstrFilename);
   std::string strError;
   m_bIsOpen = m_pDatasetFile->Open(bMustBeSameVersion,bVerify,bReadWrite,&strError);
@@ -90,7 +89,9 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
 
   if (m_pDatasetFile->ms_ulReaderVersion != m_pDatasetFile->GetGlobalHeader().ulFileVersion) {
     // bMustBeSameVersion must not be set otherwise Open would have thrown an error
-    WARNING("WARNING: Opening UVF file with a version (%u) different from this program's (%u)!!!",
+    assert(!bMustBeSameVersion && "Open should have failed!");
+    WARNING("WARNING: Opening UVF file with a version (%u) "
+            "different from this program's (%u)!!!",
             unsigned(m_pDatasetFile->ms_ulReaderVersion),
             unsigned(m_pDatasetFile->GetGlobalHeader().ulFileVersion));
   }
