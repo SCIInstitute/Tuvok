@@ -727,20 +727,33 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
 
   if (strExtTarget == "UVF") {
-    for (size_t i = 0;i<m_vpConverters.size();i++) {
-      const std::vector<std::string>& vStrSupportedExt =
-        m_vpConverters[i]->SupportedExt();
-      for (size_t j = 0;j<vStrSupportedExt.size();j++) {
-        MESSAGE("Comparing file extension to %s supported formats (%s)",
-                m_vpConverters[i]->GetDesc().c_str(),
-                vStrSupportedExt[j].c_str());
-        if (vStrSupportedExt[j] == strExt) {
-          if (m_vpConverters[i]->ConvertToUVF(files,strTargetFilename,
-                                              strTempDir, bNoUserInteraction,
-                                              iMaxBrickSize, iBrickOverlap,
-                                              bQuantizeTo8Bit)) {
-            return true;
-          }
+    // CanRead can use the file's first block to help identify the file.  Read
+    // in one block of the first file to use for that purpose.
+    /// @todo consider what we should do when converting multiple files which
+    ///       utilize different converters.
+    std::tr1::array<int8_t, 512> bytes;
+    {
+      std::ifstream ifs(files.begin()->c_str(), std::ifstream::in |
+                                                std::ifstream::binary);
+      ifs.read(reinterpret_cast<char*>(bytes.data()), 512);
+      ifs.close();
+    }
+
+    // Now iterate through all our converters, stopping when one successfully
+    // converts our data.
+    for(std::vector<AbstrConverter*>::const_iterator conv =
+          m_vpConverters.begin(); conv != m_vpConverters.end(); ++conv) {
+      MESSAGE("Attempting converter '%s'", (*conv)->GetDesc().c_str());
+      if((*conv)->CanRead(*files.begin(), bytes)) {
+        MESSAGE("Converter '%s' can read '%s'!",
+                (*conv)->GetDesc().c_str(), files.begin()->c_str());
+        if((*conv)->ConvertToUVF(files, strTargetFilename, strTempDir,
+                                 bNoUserInteraction, iMaxBrickSize,
+                                 iBrickOverlap, bQuantizeTo8Bit)) {
+          return true;
+        } else {
+          WARNING("Converter %s can read files, but conversion failed!",
+                  (*conv)->GetDesc().c_str());
         }
       }
     }
@@ -748,6 +761,7 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     MESSAGE("No suitable automatic converter found!");
 
     if (m_pFinalConverter) {
+      MESSAGE("Attempting fallback converter.");
       return m_pFinalConverter->ConvertToUVF(files, strTargetFilename,
                                              strTempDir, bNoUserInteraction,
                                              iMaxBrickSize, iBrickOverlap,

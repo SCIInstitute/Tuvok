@@ -34,7 +34,16 @@
   \date    December 2008
 */
 
+#include "StdTuvokDefines.h"
+
 #include <algorithm>
+#include <iterator>
+#include <string>
+#ifdef DETECTED_OS_WINDOWS
+# include <array>
+#else
+# include <tr1/array>
+#endif
 #include "AbstrConverter.h"
 #include "IOManager.h"  // for the size defines
 #include "Controller/Controller.h"
@@ -46,7 +55,10 @@ using namespace tuvok;
 bool AbstrConverter::CanRead(const std::string& fn,
                              const std::tr1::array<int8_t, 512>&) const
 {
-  return SupportedExtension(SysTools::GetExt(fn));
+  std::string ext = SysTools::GetExt(fn);
+  std::transform(ext.begin(), ext.end(), ext.begin(),
+                 (int(*)(int))std::toupper);
+  return SupportedExtension(ext);
 }
 
 /// @param ext the extension for the filename
