@@ -93,7 +93,8 @@ GPUMemMan::~GPUMemMan() {
   for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
     try {
       dbg.Warning(_func_, "Detected unfreed dataset %s.",
-                  dynamic_cast<UVFDataset&>(*(i->pVolumeDataset)).Filename().c_str());
+                  dynamic_cast<FileBackedDataset&>
+                              (*(i->pVolumeDataset)).Filename().c_str());
     } catch(std::bad_cast) {
       dbg.Warning(_func_, "Detected unfreed dataset %p.", i->pVolumeDataset);
     }
@@ -169,19 +170,22 @@ GPUMemMan::~GPUMemMan() {
 Dataset* GPUMemMan::LoadDataset(const string& strFilename,
                                 AbstrRenderer* requester,
                                 bool& bOnlyBricksizeCheckFailed) {
-  // We want to reuse datasets which have already been loaded.  Yet we have a
-  // list of `Dataset's, not `UVFDataset's, and so therefore we can't rely on
-  // each element of the list having a file backing it up.
+  // We want to reuse datasets which have already been loaded.  Yet
+  // we have a list of `Dataset's, not `FileBackedDataset's, and so
+  // therefore we can't rely on each element of the list having a file
+  // backing it up.
   //
   // Yet they all will; this method is never going to get called for datasets
   // which are given from clients via an in-memory transfer.  Thus nothing is
-  // ever going to get added to the list which isn't a UVFDataset.
+  // ever going to get added to the list which isn't a FileBackedDataset.
   //
-  // We could make the list be composed only of UVFDatasets.  Eventually we'd
-  // like to do dataset caching for any client though, not just ImageVis3D.
+  // We could make the list be composed only of FileBackedDatasets.
+  // Eventually we'd like to do dataset caching for any client though,
+  // not just ImageVis3D.
   for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
     // Given the above, this cast is guaranteed to succeed.
-    UVFDataset *dataset = dynamic_cast<UVFDataset*>(i->pVolumeDataset);
+    FileBackedDataset *dataset = dynamic_cast<FileBackedDataset*>
+                                             (i->pVolumeDataset);
     assert(dataset != NULL);
 
     if (dataset->Filename() == strFilename) {
@@ -226,7 +230,8 @@ void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
   // store a name conditional for later logging
   std::string ds_name;
   try {
-    const UVFDataset& ds = dynamic_cast<UVFDataset&>(*pVolumeDataset);
+    const FileBackedDataset& ds = dynamic_cast<FileBackedDataset&>
+                                              (*pVolumeDataset);
     ds_name = ds.Filename();
   } catch(std::bad_cast) {
     ds_name = "(unnamed dataset)";

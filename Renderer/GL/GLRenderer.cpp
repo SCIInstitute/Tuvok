@@ -46,7 +46,7 @@
 #include <Basics/SystemInfo.h>
 #include <Basics/SysTools.h>
 #include <Basics/MathTools.h>
-#include "IO/uvfDataset.h"
+#include "IO/FileBackedDataset.h"
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../../Basics/GeometryGenerator.h"
 
@@ -113,7 +113,7 @@ bool GLRenderer::Initialize() {
   std::string strPotential1DTransName;
   std::string strPotential2DTransName;
   try {
-    UVFDataset& ds = dynamic_cast<UVFDataset&>(*m_pDataset);
+    FileBackedDataset& ds = dynamic_cast<FileBackedDataset&>(*m_pDataset);
     strPotential1DTransName = SysTools::ChangeExt(ds.Filename(), "1dt");
     strPotential2DTransName = SysTools::ChangeExt(ds.Filename(), "2dt");
   } catch(std::bad_cast) {
