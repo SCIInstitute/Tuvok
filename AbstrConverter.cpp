@@ -44,6 +44,7 @@
 #else
 # include <tr1/array>
 #endif
+#include <cctype>
 #include "AbstrConverter.h"
 #include "IOManager.h"  // for the size defines
 #include "Controller/Controller.h"
