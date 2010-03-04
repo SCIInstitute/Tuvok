@@ -141,7 +141,7 @@ class GPUMemMan {
     UINT64 GetGPUMem() const;
     UINT64 GetAllocatedCPUMem() const {return m_iAllocatedCPUMemory;}
     UINT64 GetAllocatedGPUMem() const {return m_iAllocatedGPUMemory;}
-    UINT32 GetBitWithMem() const;
+    UINT32 GetBitWidthMem() const;
     UINT32 GetNumCPUs() const;
     ///@}
 
