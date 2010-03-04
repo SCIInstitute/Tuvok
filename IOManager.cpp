@@ -735,7 +735,7 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     {
       std::ifstream ifs(files.begin()->c_str(), std::ifstream::in |
                                                 std::ifstream::binary);
-      ifs.read(reinterpret_cast<char*>(bytes.data()), 512);
+      ifs.read(reinterpret_cast<char*>(&bytes[0]), 512);
       ifs.close();
     }
 
@@ -829,7 +829,7 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     {
       std::ifstream ifs(strFilename.c_str(), std::ifstream::in |
                                              std::ifstream::binary);
-      ifs.read(reinterpret_cast<char*>(bytes.data()), 512);
+      ifs.read(reinterpret_cast<char*>(&bytes[0]), 512);
       ifs.close();
     }
 
