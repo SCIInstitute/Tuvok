@@ -59,6 +59,7 @@ namespace {
 /// is_signed: tr1's is_signed only returns true for *integral* signed types..
 ///            ridiculous.  so we use this as a replacement.
 /// size_type: unsigned variant of 'T'.
+/// signed_type: signed variant of 'T'.
 ///@{
 template <typename T> struct ctti_base {
   enum { is_signed = std::tr1::is_signed<T>::value ||
@@ -126,6 +127,29 @@ template<> struct ctti<double> : ctti_base<double> {
 };
 ///@}
 };
+
+/// Type tagging.
+namespace {
+  using boost::int32_t;
+  using boost::uint32_t;
+  using boost::int64_t;
+  using boost::uint64_t;
+
+  struct signed_type {};
+  struct unsigned_type {};
+  signed_type   type_category(signed char)    { return signed_type(); }
+  unsigned_type type_category(unsigned char)  { return unsigned_type(); }
+  signed_type   type_category(short)          { return signed_type(); }
+  unsigned_type type_category(unsigned short) { return unsigned_type(); }
+  signed_type   type_category(int)            { return signed_type(); }
+  unsigned_type type_category(UINT32)         { return unsigned_type(); }
+  signed_type   type_category(int32_t)        { return signed_type(); }
+  unsigned_type type_category(uint32_t)       { return unsigned_type(); }
+  signed_type   type_category(int64_t)        { return signed_type(); }
+  unsigned_type type_category(uint64_t)       { return unsigned_type(); }
+  signed_type   type_category(float)          { return signed_type(); }
+  signed_type   type_category(double)         { return signed_type(); }
+}
 
 /// Progress policies.  Must implement a constructor and `notify' method which
 /// both take a `T'.  The constructor is given the max value; the notify method
@@ -276,9 +300,11 @@ struct UnsignedHistogram {
   void update(T value) {
     // Calculate our bias factor up front.
     typename ctti<T>::size_type bias;
-    bias = static_cast<typename ctti<T>::size_type>
-                      (std::fabs(static_cast<double>
-                                 (-(std::numeric_limits<T>::max()))));
+    bias = static_cast<typename ctti<T>::size_type>(
+            std::fabs(static_cast<double>(
+              initialmax<T>(type_category(T()))
+            ))
+           );
 
     typename ctti<T>::size_type u_value;
     u_value = ctti<T>::is_signed ? value + bias : value;
@@ -300,8 +326,20 @@ struct UnsignedHistogram {
     bool calculate;
 };
 
+// For minmax ranges, we want to initialize the "max" to be the smallest value
+// which can be held by the type.  e.g. a `short' should get -32768, whereas
+// an `unsigned short' should get 0.
+namespace {
+  template<typename T> T initialmax(const unsigned_type&) {
+    return 0;
+  }
+  template<typename T> T initialmax(const signed_type&) {
+    return -(std::numeric_limits<T>::max()+1);
+  }
+}
+
 /// Computes the minimum and maximum of a conceptually one dimensional dataset.
-/// Takes policies tell it how to access data && notify external entities of
+/// Takes policies to tell it how to access data && notify external entities of
 /// progress.
 template <typename T, size_t sz,
           template <typename T> class DataSrc,
@@ -317,7 +355,7 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
   // Default min is the max value representable by the data type.  Default max
   // is the smallest value representable by the data type.
   std::pair<T,T> t_minmax(std::numeric_limits<T>::max(),
-                          -(std::numeric_limits<T>::max()+1));
+                          initialmax<T>(type_category(T())));
   // ... but if the data type is unsigned, the correct default 'max' is 0.
   if(!ctti<T>::is_signed) {
     t_minmax.second = std::numeric_limits<T>::min(); // ... == 0.
