@@ -50,7 +50,7 @@ public:
   void SetProgramPath(std::string strProgramPath) {m_strProgramPath = strProgramPath;}
 
   std::string GetProgramPath() const {return m_strProgramPath;}
-  UINT32 GetProgrammBitWith() const {return m_iProgrammBitWith;}
+  UINT32 GetProgramBitWidth() const {return m_iProgramBitWidth;}
   UINT64 GetCPUMemSize() const {return m_iCPUMemSize;}
   UINT64 GetGPUMemSize() const {return m_iGPUMemSize;}
   bool IsCPUSizeComputed() const {return m_bIsCPUSizeComputed;}
@@ -69,7 +69,7 @@ private:
   UINT64 ComputeGPUMemory();
 
   std::string m_strProgramPath;
-  UINT32  m_iProgrammBitWith;
+  UINT32  m_iProgramBitWidth;
   UINT64  m_iUseMaxCPUMem;
   UINT64  m_iUseMaxGPUMem;
   UINT64  m_iCPUMemSize;

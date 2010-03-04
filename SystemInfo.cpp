@@ -58,7 +58,7 @@ SystemInfo::SystemInfo(std::string strProgramPath,
                        UINT64 iDefaultCPUMemSize, 
                        UINT64 iDefaultGPUMemSize) :
   m_strProgramPath(strProgramPath),
-  m_iProgrammBitWith(sizeof(void*)*8),
+  m_iProgramBitWidth(sizeof(void*)*8),
   m_iUseMaxCPUMem(iDefaultCPUMemSize),
   m_iUseMaxGPUMem(iDefaultGPUMemSize),
   m_iCPUMemSize(iDefaultCPUMemSize),
