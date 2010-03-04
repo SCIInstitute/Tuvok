@@ -141,14 +141,28 @@ namespace {
   unsigned_type type_category(unsigned char)  { return unsigned_type(); }
   signed_type   type_category(short)          { return signed_type(); }
   unsigned_type type_category(unsigned short) { return unsigned_type(); }
+#ifdef DETECTED_OS_WINDOWS
   signed_type   type_category(int)            { return signed_type(); }
   unsigned_type type_category(UINT32)         { return unsigned_type(); }
+#endif
   signed_type   type_category(int32_t)        { return signed_type(); }
   unsigned_type type_category(uint32_t)       { return unsigned_type(); }
   signed_type   type_category(int64_t)        { return signed_type(); }
   unsigned_type type_category(uint64_t)       { return unsigned_type(); }
   signed_type   type_category(float)          { return signed_type(); }
   signed_type   type_category(double)         { return signed_type(); }
+}
+
+// For minmax ranges, we want to initialize the "max" to be the smallest value
+// which can be held by the type.  e.g. a `short' should get -32768, whereas
+// an `unsigned short' should get 0.
+namespace {
+  template<typename T> T initialmax(const unsigned_type&) {
+    return 0;
+  }
+  template<typename T> T initialmax(const signed_type&) {
+    return -(std::numeric_limits<T>::max()+1);
+  }
 }
 
 /// Progress policies.  Must implement a constructor and `notify' method which
@@ -325,18 +339,6 @@ struct UnsignedHistogram {
     std::vector<UINT64>& histo;
     bool calculate;
 };
-
-// For minmax ranges, we want to initialize the "max" to be the smallest value
-// which can be held by the type.  e.g. a `short' should get -32768, whereas
-// an `unsigned short' should get 0.
-namespace {
-  template<typename T> T initialmax(const unsigned_type&) {
-    return 0;
-  }
-  template<typename T> T initialmax(const signed_type&) {
-    return -(std::numeric_limits<T>::max()+1);
-  }
-}
 
 /// Computes the minimum and maximum of a conceptually one dimensional dataset.
 /// Takes policies to tell it how to access data && notify external entities of
