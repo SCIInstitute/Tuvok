@@ -731,7 +731,7 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     // in one block of the first file to use for that purpose.
     /// @todo consider what we should do when converting multiple files which
     ///       utilize different converters.
-    std::tr1::array<int8_t, 512> bytes;
+    std::vector<int8_t> bytes(512);
     {
       std::ifstream ifs(files.begin()->c_str(), std::ifstream::in |
                                                 std::ifstream::binary);
@@ -825,7 +825,7 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
       return false;
     } else bRAWCreated = true;
   } else { // for non-UVF source data
-    std::tr1::array<int8_t, 512> bytes;
+    std::vector<int8_t> bytes(512);
     {
       std::ifstream ifs(strFilename.c_str(), std::ifstream::in |
                                              std::ifstream::binary);

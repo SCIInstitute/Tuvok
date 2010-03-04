@@ -113,7 +113,7 @@ public:
   /// @param start the first few bytes of the file
   /// @return SupportedExtension() for the file's extension; ignores "start".
   virtual bool CanRead(const std::string& fn,
-                       const std::tr1::array<int8_t, 512>& start) const;
+                       const std::vector<int8_t>& start) const;
 
   const std::vector<std::string>& SupportedExt() { return m_vSupportedExt; }
   virtual const std::string& GetDesc() { return m_vConverterDesc; }

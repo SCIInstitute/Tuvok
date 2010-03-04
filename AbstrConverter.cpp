@@ -37,14 +37,10 @@
 #include "StdTuvokDefines.h"
 
 #include <algorithm>
+#include <cctype>
 #include <iterator>
 #include <string>
-#ifdef DETECTED_OS_WINDOWS
-# include <array>
-#else
-# include <tr1/array>
-#endif
-#include <cctype>
+#include <vector>
 #include "AbstrConverter.h"
 #include "IOManager.h"  // for the size defines
 #include "Controller/Controller.h"
@@ -54,7 +50,7 @@
 using namespace tuvok;
 
 bool AbstrConverter::CanRead(const std::string& fn,
-                             const std::tr1::array<int8_t, 512>&) const
+                             const std::vector<int8_t>&) const
 {
   std::string ext = SysTools::GetExt(fn);
   std::transform(ext.begin(), ext.end(), ext.begin(),
