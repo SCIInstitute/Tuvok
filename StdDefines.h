@@ -105,8 +105,13 @@ typedef unsigned char BYTE;
 # define _POSIX_C_SOURCE 200112L
 #endif
 
+// Disable the "secure CRT" garbage warnings.
 #undef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS 1
+// The above is the documented way to do it, but doesn't work.  This does:
+#ifdef DETECTED_OS_WINDOWS
+# pragma warning(disable: 4996)
+#endif
 
 // set some strings to reflect that OS
 #ifdef DETECTED_OS_WINDOWS
