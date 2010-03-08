@@ -67,7 +67,6 @@ FileBackedDataset* DSFactory::Create(const std::string& filename,
     }
   }
   throw DSOpenFailed("No reader can read this data!");
-  return NULL;
 }
 
 void DSFactory::AddReader(std::tr1::shared_ptr<FileBackedDataset> ds)
