@@ -47,6 +47,11 @@
 #include <stdexcept>
 #include "TuvokIOError.h"
 
+// Get rid of the warning about "non-empty throw specification".
+#ifdef DETECTED_OS_WINDOWS
+  #pragma warning(disable:4290)
+#endif
+
 namespace tuvok {
 
 class FileBackedDataset;
