@@ -39,6 +39,7 @@
 #ifndef IOMANAGER_H
 #define IOMANAGER_H
 
+#include "../StdTuvokDefines.h"
 #ifdef DETECTED_OS_WINDOWS
 # include <memory>
 #else
@@ -49,7 +50,6 @@
 #include <limits>
 #include <list>
 #include <string>
-#include "../StdTuvokDefines.h"
 #include "../Controller/MasterController.h"
 #include "../Basics/MC.h"
 #include "../Basics/SysTools.h"
