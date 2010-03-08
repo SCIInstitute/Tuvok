@@ -105,6 +105,9 @@ typedef unsigned char BYTE;
 # define _POSIX_C_SOURCE 200112L
 #endif
 
+#undef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
+
 // set some strings to reflect that OS
 #ifdef DETECTED_OS_WINDOWS
   #ifdef _WIN64
