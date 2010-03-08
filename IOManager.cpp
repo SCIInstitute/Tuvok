@@ -47,6 +47,7 @@
 #include <Basics/SysTools.h>
 #include <Renderer/GPUMemMan/GPUMemMan.h>
 #include "TuvokJPEG.h"
+#include "DSFactory.h"
 #include "uvfDataset.h"
 
 #include "BOVConverter.h"
@@ -63,6 +64,7 @@ using namespace tuvok;
 
 IOManager::IOManager() :
   m_pFinalConverter(NULL),
+  m_dsFactory(new io::DSFactory()),
   m_iMaxBrickSize(DEFAULT_BRICKSIZE),
   m_iBrickOverlap(DEFAULT_BRICKOVERLAP),
   m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize)
@@ -75,6 +77,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new BOVConverter());
   m_vpConverters.push_back(new REKConverter());
   m_vpConverters.push_back(new I3MConverter());
+  m_dsFactory->AddReader(std::tr1::shared_ptr<UVFDataset>(new UVFDataset()));
 }
 
 
@@ -934,6 +937,16 @@ Dataset* IOManager::LoadDataset(const std::string& strFilename,
                                                       bOnlyBricksizeCheckFailed);
 }
 
+Dataset* IOManager::CreateDataset(const std::string& filename,
+                                  UINT64 max_brick_size, bool verify) const {
+  return m_dsFactory->Create(filename, max_brick_size, verify);
+}
+
+void IOManager::AddReader(std::tr1::shared_ptr<FileBackedDataset> ds)
+{
+  m_dsFactory->AddReader(ds);
+}
+
 bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize,
              const std::vector<UINT64> vBrickOffset, void* pUserContext) {
     MCData* pMCData = (MCData*)pUserContext;
@@ -1241,7 +1254,7 @@ bool IOManager::ReBrickDataset(const std::string& strSourceFilename,
     T_ERROR("Unable to convert raw data from file %s into new UVF file %s", tmpFile.c_str(),strTargetFilename.c_str());
     if(std::remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
     return false;
-  } 
+  }
   if(std::remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
 
   return true;

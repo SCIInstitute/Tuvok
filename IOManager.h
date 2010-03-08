@@ -39,11 +39,16 @@
 #ifndef IOMANAGER_H
 #define IOMANAGER_H
 
+#ifdef DETECTED_OS_WINDOWS
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
 #include <algorithm>
 #include <fstream>
 #include <limits>
-#include <string>
 #include <list>
+#include <string>
 #include "../StdTuvokDefines.h"
 #include "../Controller/MasterController.h"
 #include "../Basics/MC.h"
@@ -61,9 +66,13 @@ class RangeInfo;
 namespace tuvok {
   class AbstrRenderer;
   class Dataset;
+  class FileBackedDataset;
   class UVFDataset;
   class MasterController;
-};
+  namespace io {
+    class DSFactory;
+  }
+}
 
 class MergeDataset {
 public:
@@ -398,6 +407,9 @@ public:
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
                               tuvok::AbstrRenderer* requester,
                               bool& bOnlyBricksizeCheckFailed) const;
+  tuvok::Dataset* CreateDataset(const std::string& filename,
+                                UINT64 max_brick_size, bool verify) const;
+  void AddReader(std::tr1::shared_ptr<tuvok::FileBackedDataset>);
   bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
                       const std::string& strTempDir) const;
   bool NeedsConversion(const std::string& strFilename,
@@ -430,8 +442,9 @@ public:
   bool SetBrickOverlap(const UINT64 iBrickOverlap);
 
 private:
-  std::vector<AbstrConverter*>  m_vpConverters;
-  AbstrConverter*               m_pFinalConverter;
+  std::vector<AbstrConverter*>    m_vpConverters;
+  AbstrConverter*                 m_pFinalConverter;
+  std::auto_ptr<tuvok::io::DSFactory> m_dsFactory;
 
   UINT64 m_iMaxBrickSize;
   UINT64 m_iBrickOverlap;
