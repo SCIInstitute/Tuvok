@@ -1501,11 +1501,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -1567,6 +1567,14 @@
 			</File>
 			<File
 				RelativePath=".\IO\DirectoryParser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\DSFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\DSFactory.h"
 				>
 			</File>
 			<File
@@ -1691,6 +1699,10 @@
 			</File>
 			<File
 				RelativePath=".\IO\Tuvok_QtPlugins.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\TuvokIOError.h"
 				>
 			</File>
 			<File
