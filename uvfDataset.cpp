@@ -854,4 +854,23 @@ bool UVFDataset::SaveRescaleFactors() {
   }
 }
 
+bool UVFDataset::CanRead(const std::string&,
+                         const std::vector<int8_t>& bytes) const
+{
+  return bytes[0] == 0x55 && // 'U'
+         bytes[1] == 0x56 && // 'V'
+         bytes[2] == 0x46 && // 'F'
+         bytes[3] == 0x2D && // '-'
+         bytes[4] == 0x44 && // 'D'
+         bytes[5] == 0x41 && // 'A'
+         bytes[6] == 0x54 && // 'T'
+         bytes[7] == 0x41;   // 'A'
+}
+
+FileBackedDataset* UVFDataset::Create(const std::string& filename,
+                                      UINT64 max_brick_size, bool verify) const
+{
+  return new UVFDataset(filename, max_brick_size, verify);
+}
+
 }; // tuvok namespace.

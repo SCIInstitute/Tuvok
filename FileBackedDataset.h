@@ -35,9 +35,13 @@
 #ifndef TUVOK_FILE_BACKED_DATASET_H
 #define TUVOK_FILE_BACKED_DATASET_H
 
+#include <string>
+#include <boost/cstdint.hpp>
 #include "BrickedDataset.h"
 
 namespace tuvok {
+
+using boost::int8_t;
 
 /// Abstract base for IO layers which support bricked datasets.
 class FileBackedDataset : public BrickedDataset {
@@ -48,6 +52,9 @@ public:
 
   virtual bool IsOpen() const;
   virtual std::string Filename() const;
+
+  virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const=0;
+  virtual FileBackedDataset* Create(const std::string&, UINT64, bool) const=0;
 
 protected:
   bool                         m_bIsOpen;
