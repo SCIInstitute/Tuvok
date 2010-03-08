@@ -196,9 +196,19 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
   }
 
   MESSAGE("Loading %s", strFilename.c_str());
-  // we assume the file has already been verified
-  UVFDataset* dataset = new UVFDataset(strFilename, m_MasterController->IOMan()->GetMaxBrickSize(), false);
-  bOnlyBricksizeCheckFailed = dataset->OnlyBricksizeCheckFailed();
+  const IOManager& mgr = *(m_MasterController->IOMan());
+  /// @todo fixme: just use `Dataset's here; instead of explicitly doing the
+  /// IsOpen check, below, just rely on an exception being thrown.
+  // false: assume the file has already been verified
+  FileBackedDataset* dataset = dynamic_cast<FileBackedDataset*>
+                                           (mgr.CreateDataset(strFilename,
+                                                              mgr.GetMaxBrickSize(),
+                                                              false));
+  if(dynamic_cast<UVFDataset*>(dataset)) {
+    // HACK!!! get rid of the OnlyBricksizeCheckFailed and just throw an
+    // exception up.  let the caller determine behavior!
+    bOnlyBricksizeCheckFailed = dynamic_cast<UVFDataset*>(dataset)->OnlyBricksizeCheckFailed();
+  }
 
   if (dataset->IsOpen()) {
     m_vpVolumeDatasets.push_back(VolDataListElem(dataset, requester));
