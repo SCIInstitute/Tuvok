@@ -102,6 +102,7 @@ HEADERS += \
            IO/Dataset.h \
            IO/DICOM/DICOMParser.h \
            IO/DirectoryParser.h \
+           IO/DSFactory.h \
            IO/ExternalDataset.h \
            IO/FileBackedDataset.h \
            IO/gzio.h \
@@ -118,6 +119,7 @@ HEADERS += \
            IO/TiffVolumeConverter.h \
            IO/TransferFunction1D.h \
            IO/TransferFunction2D.h \
+           IO/TuvokIOError.h \
            IO/TuvokJPEG.h \
            IO/Tuvok_QtPlugins.h \
            IO/UVF/DataBlock.h \
@@ -295,6 +297,7 @@ SOURCES += \
            IO/Dataset.cpp \
            IO/DICOM/DICOMParser.cpp \
            IO/DirectoryParser.cpp \
+           IO/DSFactory.cpp \
            IO/ExternalDataset.cpp \
            IO/FileBackedDataset.cpp \
            IO/gzio.c \
