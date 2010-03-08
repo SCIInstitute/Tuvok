@@ -78,12 +78,10 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
     if (format == NULL)
       return false;
     else {
-      if (format->strValueUpper == "CHAR") {
-        bSigned = false;
-        iComponentSize = 8;
-        iComponentCount = 1;
-        bIsFloat = false;
-      } else if (format->strValueUpper == "UCHAR" || format->strValueUpper == "BYTE") {
+      // The "CHAR" here is correct; QVis cannot store signed 8bit data.
+      if(format->strValueUpper == "CHAR" ||
+         format->strValueUpper == "UCHAR" ||
+         format->strValueUpper == "BYTE") {
         bSigned = false;
         iComponentSize = 8;
         iComponentCount = 1;
