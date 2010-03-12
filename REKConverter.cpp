@@ -44,7 +44,7 @@ using namespace std;
 
 REKConverter::REKConverter()
 {
-  m_vConverterDesc = "Fraunhofer EZRT Volume";
+  m_vConverterDesc = "Fraunhofer Raw Volume";
   m_vSupportedExt.push_back("REK");
 }
 
