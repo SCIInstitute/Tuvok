@@ -323,9 +323,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   uvfGlobalHeader.ulChecksumSemanticsEntry = UVFTables::CS_MD5;
   uvfFile.SetGlobalHeader(uvfGlobalHeader);
 
-  std::vector<struct TimestepBlocks> blocks(timesteps);
+  std::vector<struct TimestepBlocks> blocks(static_cast<size_t>(timesteps));
 
-  for(UINT64 ts=0; ts < timesteps; ++ts) {
+  for(size_t ts=0; ts < static_cast<size_t>(timesteps); ++ts) {
     blocks[ts].rdb = new RasterDataBlock();
     blocks[ts].maxmin = new MaxMinDataBlock(
                           static_cast<size_t>(iComponentCount)

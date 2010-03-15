@@ -365,8 +365,8 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
 
   while(iPos < iSize) {
     size_t n_records = ds.read((unsigned char*)(&(data.at(0))),
-                               std::min((iSize - iPos)*sizeof(T),
-                                        UINT64(iCurrentIncoreSize)));
+                               std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
+                                        iCurrentIncoreSize));
     if(n_records == 0) {
       WARNING("Short file..");
       break; // bail out if the read gave us nothing.
