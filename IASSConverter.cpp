@@ -32,6 +32,7 @@
   \date    March 2010
 */
 
+#include <cctype>
 #include <cstring>
 #include <fstream>
 #include <sstream>
