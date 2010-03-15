@@ -80,6 +80,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramColorCompose(NULL),
   m_pProgramCVCompose(NULL),
   m_pProgramComposeAnaglyphs(NULL),
+  m_pProgramComposeScanlineStereo(NULL),
   m_aDepthStorage(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
@@ -186,7 +187,9 @@ bool GLRenderer::Initialize() {
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",
                            m_vShaderSearchDirs, &(m_pProgramCVCompose))    ||
       !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgramComposeAnaglyphs)))
+                           m_vShaderSearchDirs, &(m_pProgramComposeAnaglyphs)) ||
+      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Scanline-FS.glsl",
+                           m_vShaderSearchDirs, &(m_pProgramComposeScanlineStereo)))                           
   {
       T_ERROR("Error loading transfer shaders.");
       return false;
@@ -251,6 +254,11 @@ bool GLRenderer::Initialize() {
     m_pProgramComposeAnaglyphs->SetUniformVector("texLeftEye",0);
     m_pProgramComposeAnaglyphs->SetUniformVector("texRightEye",1);
     m_pProgramComposeAnaglyphs->Disable();
+
+    m_pProgramComposeScanlineStereo->Enable();
+    m_pProgramComposeScanlineStereo->SetUniformVector("texLeftEye",0);
+    m_pProgramComposeScanlineStereo->SetUniformVector("texRightEye",1);
+    m_pProgramComposeScanlineStereo->Disable();    
   }
 
   return true;
@@ -536,17 +544,35 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
       // in stereo compose both images into one, in mono mode simply swap the
       // pointers
       if (m_bDoStereoRendering) {
-        m_pFBO3DImageCurrent[0]->Read(0);
-        m_pFBO3DImageCurrent[1]->Read(1);
+        if (m_bStereoEyeSwap) {
+          m_pFBO3DImageCurrent[0]->Read(1);
+          m_pFBO3DImageCurrent[1]->Read(0);
+        } else {
+          m_pFBO3DImageCurrent[0]->Read(0);
+          m_pFBO3DImageCurrent[1]->Read(1);
+        }
 
         m_TargetBinder.Bind(m_pFBO3DImageLast);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        m_pProgramComposeAnaglyphs->Enable();
+        switch (m_eStereoMode) {
+          case SM_RB : m_pProgramComposeAnaglyphs->Enable(); break;
+          default    : {
+                        m_pProgramComposeScanlineStereo->Enable(); 
+                        FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
+                        m_pProgramComposeScanlineStereo->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+                        break;
+                       }
+        }
+
         glDisable(GL_DEPTH_TEST);
         FullscreenQuadRegions();
         glEnable(GL_DEPTH_TEST);
-        m_pProgramComposeAnaglyphs->Disable();
+
+        switch (m_eStereoMode) {
+          case SM_RB : m_pProgramComposeAnaglyphs->Disable(); break;
+          default    : m_pProgramComposeScanlineStereo->Disable(); break;
+        }
 
         m_TargetBinder.Unbind();
 
@@ -1447,6 +1473,7 @@ void GLRenderer::Cleanup() {
   if (m_pProgramColorCompose)  {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorCompose); m_pProgramColorCompose = NULL;}
   if (m_pProgramCVCompose)     {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramCVCompose); m_pProgramCVCompose = NULL;}
   if (m_pProgramComposeAnaglyphs){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeAnaglyphs); m_pProgramComposeAnaglyphs = NULL;}
+  if (m_pProgramComposeScanlineStereo){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeScanlineStereo); m_pProgramComposeScanlineStereo = NULL;}
 
   if (m_pLogoTex)             {m_pMasterController->MemMan()->FreeTexture(m_pLogoTex); m_pLogoTex =NULL;}
 }

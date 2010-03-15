@@ -107,6 +107,11 @@ class AbstrRenderer {
       RT_INVALID
     };
 
+    enum EStereoMode {
+      SM_RB = 0,
+      SM_SCANLINE,
+      SM_INVALID
+    };
     virtual ERendererType GetRendererType() {return RT_INVALID;}
 
     enum ERenderMode {
@@ -339,9 +344,14 @@ class AbstrRenderer {
     virtual void  SetStereo(bool bStereoRendering);
     virtual void  SetStereoEyeDist(float fStereoEyeDist);
     virtual void  SetStereoFocalLength(float fStereoFocalLength);
+    virtual void  SetStereoMode(EStereoMode mode);
+    virtual void  SetStereoEyeSwap(bool bSwap);
     virtual bool  GetStereo() {return m_bRequestStereoRendering;}
-    virtual float GetStereoEyeDist() {return m_fStereoEyeDist;}
-    virtual float GetStereoFocalLength() {return m_fStereoFocalLength;}
+    virtual float GetStereoEyeDist() const {return m_fStereoEyeDist;}
+    virtual float GetStereoFocalLength() const {return m_fStereoFocalLength;}
+    virtual EStereoMode GetStereoMode() const {return m_eStereoMode;}
+    virtual bool  GetStereoEyeSwap() const {return m_bStereoEyeSwap;}
+
 
     virtual void  SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbuffer);
     virtual bool  GetConsiderPreviousDepthbuffer() {return m_bConsiderPreviousDepthbuffer;}
@@ -494,6 +504,8 @@ class AbstrRenderer {
     bool                m_bDoStereoRendering;
     float               m_fStereoEyeDist;
     float               m_fStereoFocalLength;
+    EStereoMode         m_eStereoMode;
+    bool                m_bStereoEyeSwap;
     std::vector<Triangle> m_vArrowGeometry;
 
     // compatibility settings

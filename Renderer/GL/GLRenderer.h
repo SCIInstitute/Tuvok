@@ -197,6 +197,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramColorCompose;
     GLSLProgram*    m_pProgramCVCompose;
     GLSLProgram*    m_pProgramComposeAnaglyphs;
+    GLSLProgram*    m_pProgramComposeScanlineStereo;
 
     float*          m_aDepthStorage;
 

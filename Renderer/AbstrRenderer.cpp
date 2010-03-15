@@ -105,6 +105,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bDoStereoRendering(false),
   m_fStereoEyeDist(0.02f),
   m_fStereoFocalLength(1.0f),
+  m_eStereoMode(SM_RB),
+  m_bStereoEyeSwap(false),
   m_bUseOnlyPowerOfTwo(bUseOnlyPowerOfTwo),
   m_bDownSampleTo8Bits(bDownSampleTo8Bits),
   m_bDisableBorder(bDisableBorder),
@@ -1145,6 +1147,16 @@ void AbstrRenderer::SetStereoEyeDist(float fStereoEyeDist) {
 
 void AbstrRenderer::SetStereoFocalLength(float fStereoFocalLength) {
   m_fStereoFocalLength = fStereoFocalLength;
+  if (m_bDoStereoRendering) Schedule3DWindowRedraws();
+}
+
+void AbstrRenderer::SetStereoMode(EStereoMode mode) {
+  m_eStereoMode = mode;
+  if (m_bDoStereoRendering) Schedule3DWindowRedraws();
+}
+
+void AbstrRenderer::SetStereoEyeSwap(bool bSwap) {
+  m_bStereoEyeSwap = bSwap;
   if (m_bDoStereoRendering) Schedule3DWindowRedraws();
 }
 
