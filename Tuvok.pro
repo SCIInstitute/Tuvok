@@ -106,6 +106,7 @@ HEADERS += \
            IO/ExternalDataset.h \
            IO/FileBackedDataset.h \
            IO/gzio.h \
+           IO/IASSConverter.h \
            IO/I3MConverter.h \
            IO/Images/ImageParser.h \
            IO/IOManager.h \
@@ -301,6 +302,7 @@ SOURCES += \
            IO/ExternalDataset.cpp \
            IO/FileBackedDataset.cpp \
            IO/gzio.c \
+           IO/IASSConverter.cpp \
            IO/I3MConverter.cpp \
            IO/Images/ImageParser.cpp \
            IO/IOManager.cpp \
