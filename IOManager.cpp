@@ -54,6 +54,7 @@
 #include "NRRDConverter.h"
 #include "QVISConverter.h"
 #include "REKConverter.h"
+#include "IASSConverter.h"
 #include "I3MConverter.h"
 #include "StkConverter.h"
 #include "TiffVolumeConverter.h"
@@ -76,6 +77,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new VFFConverter());
   m_vpConverters.push_back(new BOVConverter());
   m_vpConverters.push_back(new REKConverter());
+  m_vpConverters.push_back(new IASSConverter());
   m_vpConverters.push_back(new I3MConverter());
   m_dsFactory->AddReader(std::tr1::shared_ptr<UVFDataset>(new UVFDataset()));
 }
