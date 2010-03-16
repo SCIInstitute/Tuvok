@@ -151,10 +151,10 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   UINT64 strideZ = header.size.x*header.size.y*header.bpp-header.bpp;
   UINT64 sliceSize = header.size.y * header.size.z * header.bpp;
-  unsigned char* sliceBuffer = new unsigned char[sliceSize];
+  unsigned char* sliceBuffer = new unsigned char[static_cast<size_t>(sliceSize)];
 
   if (header.type == MONO) {
-    unsigned char* rleBuffer = new unsigned char[header.rleLength];
+    unsigned char* rleBuffer = new unsigned char[static_cast<size_t>(header.rleLength)];
     zLocalData.ReadRAW(rleBuffer,header.rleLength);
 
     UINT64 posRLEStream = 0;
@@ -171,7 +171,7 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
 
         // Set these remaining pixels
         memset(&sliceBuffer[posOutStream],
-               static_cast<unsigned char>((currValue%2)*0xff), restLength);
+               static_cast<unsigned char>((currValue%2)*0xff), static_cast<size_t>(restLength));
 
         for (UINT64 y = 0; y < header.size.y; y++) {
           xLocalData.SeekPos(y*header.size.x+sliceIndex);
@@ -189,7 +189,7 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
       // Set pixels of required length
       if (currLength > 0) {
         memset(&sliceBuffer[posOutStream],
-               static_cast<unsigned char>((currValue%2)*0xff), currLength);
+               static_cast<unsigned char>((currValue%2)*0xff), static_cast<size_t>(currLength));
         posOutStream += currLength;
       }
 
