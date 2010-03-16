@@ -139,7 +139,12 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
       bSigned = true;
       iComponentSize = 32;
       bIsFloat = true;
+    } else if (ElementType->strValueUpper == "MET_DOUBLE") {
+      bSigned = true;
+      iComponentSize = 64;
+      bIsFloat = true;
     }
+
 
     if (ElementNumberOfChannels == NULL) {
       MESSAGE("Unable to find 'ElementNumberOfChannels ' tag in file %s assuming scalar data.", strSourceFilename.c_str());
@@ -234,6 +239,9 @@ bool KitwareConverter::ConvertToNative(const std::string& strRawFilename, const 
   // compute fromat string
   string strFormat;
   if (!bQuantizeTo8Bit) {
+    if (bFloatingPoint && bSigned && iComponentSize == 64)
+      strFormat = "MET_DOUBLE";
+    else
     if (bFloatingPoint && bSigned && iComponentSize == 32)
       strFormat = "MET_FLOAT";
     else
