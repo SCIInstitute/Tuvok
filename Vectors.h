@@ -103,9 +103,9 @@ public:
   T x,y;
 
   VECTOR2<T>(): x(0), y(0) {}
-  template <class S> explicit VECTOR2<T>( const std::vector<S>& v ) {
-    x = T(v.size()>0 ? v[0] : 0);
-    y = T(v.size()>1 ? v[1] : 0);
+  template <class S> explicit VECTOR2<T>( const std::vector<S>& v, const T& defaultVal = T(0) ) {
+    x = T(v.size()>0 ? v[0] : defaultVal);
+    y = T(v.size()>1 ? v[1] : defaultVal);
   }
   VECTOR2<T>(const VECTOR2<T> &other): x(other.x), y(other.y) {}
   template <class S> explicit VECTOR2<T>(const VECTOR2<S> &other): x(T(other.x)), y(T(other.y)) {}
@@ -215,10 +215,10 @@ public:
   T x,y,z;
 
   VECTOR3<T>(): x(0), y(0),z(0) {}
-  template <class S> explicit VECTOR3<T>( const std::vector<S>& v ) {
-    x = T(v.size()>0 ? v[0] : 0);
-    y = T(v.size()>1 ? v[1] : 0);
-    z = T(v.size()>2 ? v[2] : 0);
+  template <class S> explicit VECTOR3<T>( const std::vector<S>& v, const T& defaultVal = T(0) ) {
+    x = T(v.size()>0 ? v[0] : defaultVal);
+    y = T(v.size()>1 ? v[1] : defaultVal);
+    z = T(v.size()>2 ? v[2] : defaultVal);
   }
 
   VECTOR3<T>(const VECTOR3<T> &other): x(other.x), y(other.y), z(other.z) {}
@@ -375,11 +375,11 @@ public:
   T x,y,z,w;
 
   VECTOR4<T>(): x(0), y(0),z(0), w(0) {}
-  template <class S> explicit VECTOR4<T>( const std::vector<S>& v ) {
-    x = T(v.size()>0 ? v[0] : 0);
-    y = T(v.size()>1 ? v[1] : 0);
-    z = T(v.size()>2 ? v[2] : 0);
-    w = T(v.size()>3 ? v[3] : 0);
+  template <class S> explicit VECTOR4<T>( const std::vector<S>& v, const T& defaultVal = T(0) ) {
+    x = T(v.size()>0 ? v[0] : defaultVal);
+    y = T(v.size()>1 ? v[1] : defaultVal);
+    z = T(v.size()>2 ? v[2] : defaultVal);
+    w = T(v.size()>3 ? v[3] : defaultVal);
   }
   VECTOR4<T>(const VECTOR2<T> &other, const T _z, const T _w): x(other.x), y(other.y), z(_z), w(_w) {}
   VECTOR4<T>(const VECTOR3<T> &other, const T _w): x(other.x), y(other.y), z(other.z), w(_w) {}
