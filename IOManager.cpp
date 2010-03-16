@@ -53,6 +53,7 @@
 #include "BOVConverter.h"
 #include "NRRDConverter.h"
 #include "QVISConverter.h"
+#include "KitwareConverter.h"
 #include "REKConverter.h"
 #include "IASSConverter.h"
 #include "I3MConverter.h"
@@ -79,6 +80,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new REKConverter());
   m_vpConverters.push_back(new IASSConverter());
   m_vpConverters.push_back(new I3MConverter());
+  m_vpConverters.push_back(new KitwareConverter());
   m_dsFactory->AddReader(std::tr1::shared_ptr<UVFDataset>(new UVFDataset()));
 }
 

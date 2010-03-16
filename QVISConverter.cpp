@@ -146,26 +146,33 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   // compute fromat string
   string strFormat;
 
-  if (bFloatingPoint && bSigned && iComponentSize == 32 && iComponentCount == 1)
-    strFormat = "FLOAT";
-  else
-  if (!bFloatingPoint && bSigned && iComponentSize == 8 && iComponentCount == 1)
-    strFormat = "CHAR";
-  else
-  if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 1)
-    strFormat = "UCHAR";
-  else
-  if (!bFloatingPoint && bSigned && iComponentSize == 16 && iComponentCount == 1)
-    strFormat = "SHORT";
-  else
-  if (!bFloatingPoint && !bSigned && iComponentSize == 16 && iComponentCount == 1)
-    strFormat = "USHORT";
-  else
-  if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 4)
-    strFormat = "UCHAR4";
-  else {
-    T_ERROR("This data type is not supported by QVIS DAT/RAW files.");
-    return false;
+  if (!bQuantizeTo8Bit) {
+    if (!bFloatingPoint && bSigned && iComponentSize == 32 && iComponentCount == 1)
+      strFormat = "FLOAT";
+    else
+    if (!bFloatingPoint && bSigned && iComponentSize == 8 && iComponentCount == 1)
+      strFormat = "CHAR";
+    else
+    if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 1)
+      strFormat = "UCHAR";
+    else
+    if (!bFloatingPoint && bSigned && iComponentSize == 16 && iComponentCount == 1)
+      strFormat = "SHORT";
+    else
+    if (!bFloatingPoint && !bSigned && iComponentSize == 16 && iComponentCount == 1)
+      strFormat = "USHORT";
+    else
+    if (!bFloatingPoint && !bSigned && iComponentSize == 8 && iComponentCount == 4)
+      strFormat = "UCHAR4";
+    else {
+      T_ERROR("This data type is not supported by QVIS DAT/RAW files.");
+      return false;
+    }
+  } else {
+    if (bSigned)
+      strFormat = "CHAR";
+    else
+      strFormat = "UCHAR";
   }
 
   // create DAT textfile from metadata
