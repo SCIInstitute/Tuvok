@@ -114,6 +114,7 @@ HEADERS += \
            IO/NRRDConverter.h \
            IO/Quantize.h \
            IO/QVISConverter.h \
+           IO/KitwareConverter.h \
            IO/RAWConverter.h \
            IO/REKConverter.h \
            IO/StkConverter.h \
@@ -309,6 +310,7 @@ SOURCES += \
            IO/KeyValueFileParser.cpp \
            IO/NRRDConverter.cpp \
            IO/QVISConverter.cpp \
+           IO/KitwareConverter.cpp \
            IO/RAWConverter.cpp \
            IO/REKConverter.cpp \
            IO/StkConverter.cpp \
