@@ -83,6 +83,10 @@ public:
   MasterController();
   virtual ~MasterController();
 
+  /// Deallocate any memory we're holding; rendering or doing any real work is
+  /// undefined after this operation.
+  void Cleanup();
+
   /// Create a new renderer.
   AbstrRenderer* RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
                                           bool bUseOnlyPowerOfTwo,

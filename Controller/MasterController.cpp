@@ -69,18 +69,24 @@ MasterController::MasterController() :
 
 
 MasterController::~MasterController() {
-  for (AbstrRendererListIter i = m_vVolumeRenderer.begin();
-       i<m_vVolumeRenderer.end();
-       ++i)
-    delete (*i);
-
-  m_vVolumeRenderer.resize(0);
-
-  delete m_pSystemInfo;
-  delete m_pIOManager;
-  delete m_pGPUMemMan;
-  delete m_pScriptEngine;
+  Cleanup();
   m_DebugOut.clear();
+}
+
+void MasterController::Cleanup() {
+  for (AbstrRendererListIter i = m_vVolumeRenderer.begin();
+       i < m_vVolumeRenderer.end(); ++i) {
+    delete (*i);
+  }
+  m_vVolumeRenderer.clear();
+  delete m_pSystemInfo;
+  m_pSystemInfo = NULL;
+  delete m_pIOManager;
+  m_pIOManager = NULL;
+  delete m_pGPUMemMan;
+  m_pGPUMemMan = NULL;
+  delete m_pScriptEngine;
+  m_pScriptEngine = NULL;
 }
 
 
