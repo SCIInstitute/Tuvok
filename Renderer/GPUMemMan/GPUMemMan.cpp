@@ -158,7 +158,7 @@ GPUMemMan::~GPUMemMan() {
     delete (*i);
   }
 
-  m_vUploadHub.resize(0);
+  m_vUploadHub.clear();
   m_iAllocatedCPUMemory -= size_t(m_iInCoreSize*4);
 
   assert(m_iAllocatedGPUMemory == 0);
