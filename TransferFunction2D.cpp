@@ -47,10 +47,8 @@ TransferFunction2D::TransferFunction2D() :
   m_pColorData(NULL),
   m_pPixelData(NULL),
   m_pRCanvas(NULL),
-  m_vValueBBox(0,0),
   m_bUseCachedData(false)
 {
-  Resize(m_iSize);
 }
 
 TransferFunction2D::TransferFunction2D(const std::string& filename):
