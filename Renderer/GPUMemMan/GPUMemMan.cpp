@@ -499,10 +499,18 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize, AbstrRenderer* req
 
 void GPUMemMan::Get2DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction2D** ppTransferFunction2D, GLTexture2D** tex, const VECTOR2<size_t>& vSize) {
   MESSAGE("Loading 2D transfer function from file");
-  *ppTransferFunction2D = new TransferFunction2D(strFilename);
+  *ppTransferFunction2D = new TransferFunction2D();
+
+  if(!(*ppTransferFunction2D)->Load(strFilename)) {
+    T_ERROR("Loading failed.");
+    delete *ppTransferFunction2D;
+    *ppTransferFunction2D = NULL;
+    return;
+  }
 
   if ((vSize.x != 0 || vSize.y != 0) &&
       (*ppTransferFunction2D)->GetSize() != vSize) {
+    MESSAGE("2D transfer function needs resampling...");
     (*ppTransferFunction2D)->Resample(vSize);
   }
 

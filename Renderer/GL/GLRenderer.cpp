@@ -140,6 +140,11 @@ bool GLRenderer::Initialize() {
     mm.Get2DTransFromFile(strPotential2DTransName, this,
                           &m_p2DTrans, &m_p2DTransTex,
                           m_pDataset->Get2DHistogram().GetFilledSize());
+    if(m_p2DTrans == NULL) {
+      WARNING("Falling back to empty 2D TFqn...");
+      mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram().GetFilledSize(), this,
+                         &m_p2DTrans, &m_p2DTransTex);
+    }
   } else {
     mm.GetEmpty2DTrans(m_pDataset->Get2DHistogram().GetFilledSize(), this,
                        &m_p2DTrans, &m_p2DTransTex);
