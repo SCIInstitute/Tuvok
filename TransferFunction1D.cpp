@@ -224,6 +224,7 @@ void TransferFunction1D::Resample(size_t iTargetSize) {
 
 bool TransferFunction1D::Load(const std::string& filename, size_t iTargetSize) {
   if (!Load(filename)) {
+    T_ERROR("Load from %s failed", filename.c_str());
     return false;
   } else {
     Resample(iTargetSize);
@@ -234,7 +235,10 @@ bool TransferFunction1D::Load(const std::string& filename, size_t iTargetSize) {
 
 bool TransferFunction1D::Load(const std::string& filename) {
   ifstream file(filename.c_str());
-  if (!Load(file)) return false;
+  if (!Load(file)) {
+    T_ERROR("Load of '%s' failed.", filename.c_str());
+    return false;
+  }
   file.close();
   ComputeNonZeroLimits();
   return true;
@@ -242,6 +246,7 @@ bool TransferFunction1D::Load(const std::string& filename) {
 
 bool TransferFunction1D::Load(std::istream& tf, size_t iTargetSize) {
   if (!Load(tf)) {
+    T_ERROR("Load from stream failed.");
     return false;
   } else {
     Resample(iTargetSize);
@@ -259,6 +264,10 @@ bool TransferFunction1D::Save(const std::string& filename) const {
 bool TransferFunction1D::Load(std::istream& tf) {
   UINT32 iSize;
   tf >> iSize;
+  if(!tf) {
+    T_ERROR("Size information invalid.");
+    return false;
+  }
   vColorData.resize(iSize);
 
   for(size_t i=0;i<vColorData.size();++i){
@@ -267,7 +276,7 @@ bool TransferFunction1D::Load(std::istream& tf) {
     }
   }
 
-  return true;
+  return tf.good();
 }
 
 

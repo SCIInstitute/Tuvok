@@ -69,7 +69,7 @@ class TFPolygon {
   public:
     TFPolygon() : bRadial(false) {}
 
-    void Load(std::ifstream& file);
+    bool Load(std::ifstream& file);
     void Save(std::ofstream& file) const;
 
     bool                        bRadial;

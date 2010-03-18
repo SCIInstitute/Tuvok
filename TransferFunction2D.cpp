@@ -108,16 +108,38 @@ bool TransferFunction2D::Load(const std::string& filename, const VECTOR2<size_t>
   VECTOR2<size_t> vSizeInFile;
   file >> vSizeInFile.x >> vSizeInFile.y;
 
+  if(!file) {
+    T_ERROR("2DTF '%s' ends after file size!", filename.c_str());
+    return false;
+  }
+
   // load 1D Trans
-  m_Trans1D.Load(file, vTargetSize.x);
+  if(!m_Trans1D.Load(file, vTargetSize.x)) {
+    T_ERROR("Failed loading 1DTF within 2DTF! (in %s)", filename.c_str());
+    return false;
+  }
 
   // load swatch count
   UINT32 iSwatchCount;
   file >> iSwatchCount;
+
+  if(!file) {
+    T_ERROR("Swatch count is missing in %s.", filename.c_str());
+    return false;
+  }
+
   m_Swatches.resize(iSwatchCount);
 
   // load Swatches
-  for (size_t i = 0;i<m_Swatches.size();i++) m_Swatches[i].Load(file);
+  for (size_t i = 0;i<m_Swatches.size();i++) {
+    if(!m_Swatches[i].Load(file)) {
+      T_ERROR("Failed loading swatch %u/%u in %s",
+              static_cast<unsigned>(i),
+              static_cast<unsigned>(m_Swatches.size()-1),
+              filename.c_str());
+      return false;
+    }
+  }
 
   file.close();
 
@@ -133,16 +155,40 @@ bool TransferFunction2D::Load(const std::string& filename) {
   // load size
   file >> m_iSize.x >> m_iSize.y;
 
+  if(!file) {
+    T_ERROR("Could not get 1D TF size from stream (in %s).", filename.c_str());
+    return false;
+  }
+
   // load 1D Trans
-  m_Trans1D.Load(file, m_iSize.x);
+  if(!m_Trans1D.Load(file, m_iSize.x)) {
+    T_ERROR("2DTF '%s': Could not load 1D TF.", filename.c_str());
+    return false;
+  }
 
   // load swatch count
   UINT32 iSwatchCount;
   file >> iSwatchCount;
+  if(!file) {
+    T_ERROR("Invalid swatch count in %s", filename.c_str());
+    return false;
+  }
   m_Swatches.resize(iSwatchCount);
+  if(iSwatchCount == 0) {
+    WARNING("No swatches?!  Ridiculous 2D TFqn, bailing...");
+    return false;
+  }
 
   // load Swatches
-  for (size_t i = 0;i<m_Swatches.size();i++) m_Swatches[i].Load(file);
+  for (size_t i = 0;i<m_Swatches.size();i++) {
+    if(!m_Swatches[i].Load(file)) {
+      T_ERROR("Failed loading swatch %u/%u in %s",
+              static_cast<unsigned>(i),
+              static_cast<unsigned>(m_Swatches.size()-1),
+              filename.c_str());
+      return false;
+    }
+  }
 
   file.close();
 
@@ -367,11 +413,18 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
 
 // ***************************************************************************
 
-void TFPolygon::Load(ifstream& file) {
+bool TFPolygon::Load(ifstream& file) {
   UINT32 iSize;
   file >> bRadial;
   file >> iSize;
+  if(!file) { return false; }
   pPoints.resize(iSize);
+
+  if(iSize == 0) {
+    // We don't want to bail, though, because we should still read the
+    // gradient stop information.
+    WARNING("polygon with no points...");
+  }
 
   for(size_t i=0;i<pPoints.size();++i){
     for(size_t j=0;j<2;++j){
@@ -383,6 +436,7 @@ void TFPolygon::Load(ifstream& file) {
   file >> pGradientCoords[1][0] >> pGradientCoords[1][1];
 
   file >> iSize;
+  if(!file) { return false; }
   pGradientStops.resize(iSize);
   for(size_t i=0;i<pGradientStops.size();++i){
     file >> pGradientStops[i].first;
@@ -390,7 +444,7 @@ void TFPolygon::Load(ifstream& file) {
       file >> pGradientStops[i].second[j];
     }
   }
-
+  return file;
 }
 
 void TFPolygon::Save(ofstream& file) const {
