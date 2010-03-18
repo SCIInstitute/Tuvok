@@ -64,8 +64,10 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
   m_iSizeX(width),
   m_iSizeY(height),
   m_hTexture(new GLuint[iNumBuffers]),
+  m_LastTexUnit(NULL),
   m_LastDepthTextUnit(0),
-  m_iNumBuffers(iNumBuffers)
+  m_iNumBuffers(iNumBuffers),
+  m_LastAttachment(NULL)
 {
   if (width<1) width=1;
   if (height<1) height=1;
@@ -144,14 +146,12 @@ GLFBOTex::~GLFBOTex(void) {
     delete[] m_hTexture;
     m_hTexture=NULL;
   }
-  if (m_LastTexUnit) {
-    delete[] m_LastTexUnit;
-    m_LastTexUnit=NULL;
-  }
-  if (m_LastAttachment) {
-    delete[] m_LastAttachment;
-    m_LastAttachment=NULL;
-  }
+  delete[] m_LastTexUnit;
+  m_LastTexUnit=NULL;
+
+  delete[] m_LastAttachment;
+  m_LastAttachment=NULL;
+
 #ifdef GLFBOTEX_DEPTH_RENDERBUFFER
   if (m_hDepthBuffer) glDeleteRenderbuffersEXT(1,&m_hDepthBuffer);
 #else
