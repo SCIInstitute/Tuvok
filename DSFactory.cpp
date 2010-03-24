@@ -37,6 +37,7 @@
 #include <fstream>
 
 #include "DSFactory.h"
+#include "Controller/Controller.h"
 #include "FileBackedDataset.h"
 
 namespace tuvok {
@@ -62,7 +63,9 @@ FileBackedDataset* DSFactory::Create(const std::string& filename,
   typedef std::list<std::tr1::shared_ptr<FileBackedDataset> > DSList;
   for(DSList::const_iterator ds = datasets.begin(); ds != datasets.end(); ++ds)
   {
+    MESSAGE("Seeing if %s can open %s", (*ds)->Name(), filename.c_str());
     if((*ds)->CanRead(filename, bytes)) {
+      MESSAGE("Instantiating a %s reader", (*ds)->Name());
       return (*ds)->Create(filename, max_brick_size, verify);
     }
   }

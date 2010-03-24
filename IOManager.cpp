@@ -452,7 +452,6 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
     IntermediateFile.fBias = vBiases[iInputData];
 
     if (strExt == "UVF") {
-
       UVFDataset v(strFilenames[iInputData],m_iMaxBrickSize,false);
       if (!v.IsOpen()) break;
 
@@ -501,7 +500,6 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
       string        strTitle = "";
       string        strSource = "";
       UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
-
 
       for (size_t i = 0;i<m_vpConverters.size();i++) {
         const std::vector<std::string>& vStrSupportedExt =
@@ -943,6 +941,7 @@ Dataset* IOManager::LoadDataset(const std::string& strFilename,
 
 Dataset* IOManager::CreateDataset(const std::string& filename,
                                   UINT64 max_brick_size, bool verify) const {
+  MESSAGE("Searching for appropriate DS for '%s'", filename.c_str());
   return m_dsFactory->Create(filename, max_brick_size, verify);
 }
 
