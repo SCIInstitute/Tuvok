@@ -134,6 +134,11 @@ public:
                       void *pUserContext = NULL,
                       UINT64 iOverlap=0) const;
 
+  /// A user-visible name for your format.  This might get displayed in UI
+  /// elements; e.g. the GUI might ask if the user wants to use the "Name()
+  /// reader" to open a particular file.
+  virtual const char* Name() const { return "Generic"; }
+
 protected:
   Histogram1D*       m_pHist1D;
   Histogram2D*       m_pHist2D;

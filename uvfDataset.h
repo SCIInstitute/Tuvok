@@ -129,6 +129,8 @@ private:
   size_t DetermineNumberOfTimesteps();
   bool VerifyRasterDataBlock(const RasterDataBlock*) const;
 
+  virtual const char* Name() const { return "UVF"; }
+
 private:
   struct Timestep {
     float                        m_fMaxGradMagnitude;
