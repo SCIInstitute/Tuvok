@@ -53,26 +53,43 @@ static void first_block(const std::string& filename,
   ifs.close();
 }
 
-FileBackedDataset* DSFactory::Create(const std::string& filename,
-                                     UINT64 max_brick_size,
-                                     bool verify) const throw(DSOpenFailed)
+Dataset* DSFactory::Create(const std::string& filename,
+                           UINT64 max_brick_size,
+                           bool verify) const throw(DSOpenFailed)
 {
   std::vector<int8_t> bytes(512);
   first_block(filename, bytes);
 
-  typedef std::list<std::tr1::shared_ptr<FileBackedDataset> > DSList;
-  for(DSList::const_iterator ds = datasets.begin(); ds != datasets.end(); ++ds)
-  {
-    MESSAGE("Seeing if %s can open %s", (*ds)->Name(), filename.c_str());
-    if((*ds)->CanRead(filename, bytes)) {
-      MESSAGE("Instantiating a %s reader", (*ds)->Name());
-      return (*ds)->Create(filename, max_brick_size, verify);
-    }
+  const std::tr1::weak_ptr<Dataset> ds = this->Reader(filename);
+  if(!ds.expired()) {
+    return ds.lock()->Create(filename, max_brick_size, verify);
   }
   throw DSOpenFailed("No reader can read this data!");
 }
 
-void DSFactory::AddReader(std::tr1::shared_ptr<FileBackedDataset> ds)
+const std::tr1::weak_ptr<Dataset>
+DSFactory::Reader(const std::string& filename) const
+{
+  std::vector<int8_t> bytes(512);
+  first_block(filename, bytes);
+
+  typedef std::list<std::tr1::shared_ptr<Dataset> > DSList;
+  for(DSList::const_iterator ds = datasets.begin(); ds != datasets.end(); ++ds)
+  {
+    MESSAGE("Seeing if %s can open %s", (*ds)->Name(), filename.c_str());
+    /// downcast to FileBackedDataset for now.  We could move CanRead
+    /// up into Dataset, but there's currently no need and that doesn't
+    /// make much sense.
+    const std::tr1::shared_ptr<FileBackedDataset> fds =
+      std::tr1::dynamic_pointer_cast<FileBackedDataset>(*ds);
+    if(fds->CanRead(filename, bytes)) {
+      return *ds;
+    }
+  }
+  return std::tr1::weak_ptr<Dataset>();
+}
+
+void DSFactory::AddReader(std::tr1::shared_ptr<Dataset> ds)
 {
   this->datasets.push_front(ds);
 }

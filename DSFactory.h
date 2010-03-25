@@ -54,7 +54,7 @@
 
 namespace tuvok {
 
-class FileBackedDataset;
+class Dataset;
 
 namespace io {
 
@@ -65,14 +65,17 @@ public:
   /// @param maximum brick size allowed by the caller
   /// @param whether the dataset should do expensive work to verify that the
   ///        file is valid/correct.
-  FileBackedDataset* Create(const std::string&, UINT64, bool) const
-                     throw(DSOpenFailed);
+  Dataset* Create(const std::string&, UINT64, bool) const throw(DSOpenFailed);
 
-  void AddReader(std::tr1::shared_ptr<FileBackedDataset>);
+  /// Identify the reader which can read the given file.
+  /// @return The dataset if we find a match, or NULL if not.
+  const std::tr1::weak_ptr<Dataset> Reader(const std::string&) const;
+
+  void AddReader(std::tr1::shared_ptr<Dataset>);
 
 private:
   // We can't copy datasets.  So we store pointers to them instead.
-  std::list<std::tr1::shared_ptr<FileBackedDataset> > datasets;
+  std::list<std::tr1::shared_ptr<Dataset> > datasets;
 };
 
 } // io
