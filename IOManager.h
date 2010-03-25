@@ -412,9 +412,8 @@ public:
   void AddReader(std::tr1::shared_ptr<tuvok::FileBackedDataset>);
   bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
                       const std::string& strTempDir) const;
-  bool NeedsConversion(const std::string& strFilename,
-                       bool& bChecksumFail) const;
   bool NeedsConversion(const std::string& strFilename) const;
+  bool Verify(const std::string& strFilename) const;
 
   bool ExportDataset(const tuvok::UVFDataset* pSourceData, UINT64 iLODlevel,
                      const std::string& strTargetFilename,

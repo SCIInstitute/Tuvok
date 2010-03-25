@@ -1074,15 +1074,32 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel,
 }
 
 
-bool IOManager::NeedsConversion(const std::string& strFilename,
-                                bool& bChecksumFail) const {
-  wstring wstrFilename(strFilename.begin(), strFilename.end());
-  return !UVF::IsUVFFile(wstrFilename, bChecksumFail);
+// Try to find the reader for the filename.  If we get back garbage, that must
+// mean we can't read this.  If we can't read it, it needs to be converted.
+// All your data are belong to us.
+bool IOManager::NeedsConversion(const std::string& strFilename) const {
+  const std::tr1::weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
+  return reader.expired();
 }
 
-bool IOManager::NeedsConversion(const std::string& strFilename) const {
-  wstring wstrFilename(strFilename.begin(), strFilename.end());
-  return !UVF::IsUVFFile(wstrFilename);
+// Some readers checksum the data.  If they do, this is how the UI will access
+// that verification method.
+bool IOManager::Verify(const std::string& strFilename) const
+{
+  const std::tr1::weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
+
+  // I swear I did not purposely choose words so that this text aligned.
+  assert(!reader.expired() && "Impossible; we wouldn't have reached this code "
+                              "unless we thought that the format doesn't need "
+                              "conversion.  But we only think it doesn't need "
+                              "conversion when there's a known reader for the "
+                              "file.");
+
+  // Upcast it.  Hard to verify a checksum on an abstract entity.
+  const std::tr1::shared_ptr<FileBackedDataset> fileds =
+    std::tr1::dynamic_pointer_cast<FileBackedDataset>(reader.lock());
+
+  return fileds->Verify(strFilename);
 }
 
 
