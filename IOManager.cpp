@@ -64,6 +64,16 @@
 using namespace std;
 using namespace tuvok;
 
+static void read_first_block(const std::string& filename,
+                             std::vector<int8_t>& block)
+{
+  std::ifstream ifs(filename.c_str(), std::ifstream::in |
+                                      std::ifstream::binary);
+  block.resize(512);
+  ifs.read(reinterpret_cast<char*>(&block[0]), 512);
+  ifs.close();
+}
+
 IOManager::IOManager() :
   m_pFinalConverter(NULL),
   m_dsFactory(new io::DSFactory()),
@@ -737,12 +747,7 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     /// @todo consider what we should do when converting multiple files which
     ///       utilize different converters.
     std::vector<int8_t> bytes(512);
-    {
-      std::ifstream ifs(files.begin()->c_str(), std::ifstream::in |
-                                                std::ifstream::binary);
-      ifs.read(reinterpret_cast<char*>(&bytes[0]), 512);
-      ifs.close();
-    }
+    read_first_block(*files.begin(), bytes);
 
     // Now iterate through all our converters, stopping when one successfully
     // converts our data.
@@ -831,12 +836,7 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     } else bRAWCreated = true;
   } else { // for non-UVF source data
     std::vector<int8_t> bytes(512);
-    {
-      std::ifstream ifs(strFilename.c_str(), std::ifstream::in |
-                                             std::ifstream::binary);
-      ifs.read(reinterpret_cast<char*>(&bytes[0]), 512);
-      ifs.close();
-    }
+    read_first_block(strFilename, bytes);
 
     for(std::vector<AbstrConverter*>::const_iterator conv =
           m_vpConverters.begin(); conv != m_vpConverters.end(); ++conv) {
