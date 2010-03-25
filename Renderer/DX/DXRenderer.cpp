@@ -330,8 +330,8 @@ void DXRenderer::PlaneIn3DPreRender() {
 void DXRenderer::PlaneIn3DPostRender() {
 }
 
-bool DXRenderer::LoadDataset(const string& strFilename, bool& bRebrickingRequired) {
-  if (AbstrRenderer::LoadDataset(strFilename, bRebrickingRequired)) {
+bool DXRenderer::LoadDataset(const string& strFilename) {
+  if (AbstrRenderer::LoadDataset(strFilename)) {
     // TODO
     return true;
   } else return false;
