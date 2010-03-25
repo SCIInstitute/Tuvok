@@ -867,6 +867,15 @@ bool UVFDataset::CanRead(const std::string&,
          bytes[7] == 0x41;   // 'A'
 }
 
+bool UVFDataset::Verify(const std::string& filename) const
+{
+  std::wstring wstrFilename(filename.begin(), filename.end());
+  bool checksum=false;
+  UVF::IsUVFFile(wstrFilename, checksum);
+  // negate it; IsUVFFile sets the argument if the checksum *fails*!
+  return !checksum;
+}
+
 FileBackedDataset* UVFDataset::Create(const std::string& filename,
                                       UINT64 max_brick_size, bool verify) const
 {

@@ -54,6 +54,9 @@ public:
   virtual std::string Filename() const;
 
   virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const=0;
+  /// Use to verify checksum.  Default implementation says the checksum is
+  /// always valid.
+  virtual bool Verify(const std::string&) const;
   virtual FileBackedDataset* Create(const std::string&, UINT64, bool) const=0;
 
 protected:

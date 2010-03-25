@@ -113,6 +113,7 @@ public:
   bool OnlyBricksizeCheckFailed() const {return m_bOnlyBricksizeCheckFailed;}
 
   virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
+  virtual bool Verify(const std::string&) const;
   virtual FileBackedDataset* Create(const std::string&, UINT64, bool) const;
 
 private:
