@@ -168,8 +168,7 @@ GPUMemMan::~GPUMemMan() {
 // ******************** Datasets
 
 Dataset* GPUMemMan::LoadDataset(const string& strFilename,
-                                AbstrRenderer* requester,
-                                bool& bOnlyBricksizeCheckFailed) {
+                                AbstrRenderer* requester) {
   // We want to reuse datasets which have already been loaded.  Yet
   // we have a list of `Dataset's, not `FileBackedDataset's, and so
   // therefore we can't rely on each element of the list having a file
@@ -204,12 +203,9 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
                                            (mgr.CreateDataset(strFilename,
                                                               mgr.GetMaxBrickSize(),
                                                               false));
-  if(dynamic_cast<UVFDataset*>(dataset)) {
-    // HACK!!! get rid of the OnlyBricksizeCheckFailed and just throw an
-    // exception up.  let the caller determine behavior!
-    bOnlyBricksizeCheckFailed = dynamic_cast<UVFDataset*>(dataset)->OnlyBricksizeCheckFailed();
-  }
 
+  // We might not need this check anymore; CreateDataset should throw an
+  // exception, and we'll never get here, if opening fails.
   if (dataset->IsOpen()) {
     m_vpVolumeDatasets.push_back(VolDataListElem(dataset, requester));
     return dataset;

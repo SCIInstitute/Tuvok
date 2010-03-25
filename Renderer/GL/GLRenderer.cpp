@@ -2075,8 +2075,8 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   glDisable(GL_BLEND);
 }
 
-bool GLRenderer::LoadDataset(const string& strFilename, bool& bRebrickingRequired) {
-  if (AbstrRenderer::LoadDataset(strFilename, bRebrickingRequired)) {
+bool GLRenderer::LoadDataset(const string& strFilename) {
+  if (AbstrRenderer::LoadDataset(strFilename)) {
     if (m_pProgram1DTrans[0] != NULL) SetDataDepShaderVars();
     return true;
   } else return false;

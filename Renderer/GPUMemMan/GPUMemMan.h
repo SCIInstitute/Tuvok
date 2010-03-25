@@ -67,8 +67,7 @@ class GPUMemMan {
     virtual ~GPUMemMan();
 
     Dataset* LoadDataset(const std::string& strFilename,
-                         AbstrRenderer* requester,
-                         bool& bOnlyBricksizeCheckFailed);
+                         AbstrRenderer* requester);
     void AddDataset(Dataset* ds, AbstrRenderer *requester);
     void FreeAssociatedTextures(Dataset* pDataset);
     void FreeDataset(Dataset* pVolumeDataset, AbstrRenderer* requester);

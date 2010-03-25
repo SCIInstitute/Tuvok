@@ -373,8 +373,8 @@ void GLSBVR::RenderHQMIPPostLoop() {
 }
 
 
-bool GLSBVR::LoadDataset(const string& strFilename, bool& bRebrickingRequired) {
-  if (GLRenderer::LoadDataset(strFilename, bRebrickingRequired)) {
+bool GLSBVR::LoadDataset(const string& strFilename) {
+  if (GLRenderer::LoadDataset(strFilename)) {
     UINTVECTOR3    vSize = UINTVECTOR3(m_pDataset->GetDomainSize());
     FLOATVECTOR3 vAspect = FLOATVECTOR3(m_pDataset->GetScale());
     vAspect /= vAspect.maxVal();

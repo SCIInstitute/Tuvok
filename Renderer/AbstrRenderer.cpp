@@ -146,7 +146,7 @@ bool AbstrRenderer::Initialize() {
   return m_pDataset != NULL;
 }
 
-bool AbstrRenderer::LoadDataset(const string& strFilename, bool& bRebrickingRequired) {
+bool AbstrRenderer::LoadDataset(const string& strFilename) {
   if (m_pMasterController == NULL) return false;
 
   if (m_pMasterController->IOMan() == NULL) {
@@ -154,7 +154,7 @@ bool AbstrRenderer::LoadDataset(const string& strFilename, bool& bRebrickingRequ
     return false;
   }
 
-  m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this, bRebrickingRequired);
+  m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this);
 
   if (m_pDataset == NULL) {
     T_ERROR("IOManager call to load dataset failed.");
