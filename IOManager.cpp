@@ -909,10 +909,7 @@ UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack,
                       iBrickOverlap,bQuantizeTo8Bit)) {
     return NULL;
   }
-  // we just converted the data, and thus the brick size is always OK; no need
-  // to pass that data on
-  bool bDummy;
-  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester, bDummy));
+  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
 
 UVFDataset* IOManager::ConvertDataset(const std::string& strFilename,
@@ -926,17 +923,12 @@ UVFDataset* IOManager::ConvertDataset(const std::string& strFilename,
                       iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
     return NULL;
   }
-  // we just converted the data, and thus the brick size is always OK; no need
-  // to pass that data on
-  bool bDummy;
-  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester, bDummy));
+  return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
 
 Dataset* IOManager::LoadDataset(const std::string& strFilename,
-                                AbstrRenderer* requester,
-                                bool& bOnlyBricksizeCheckFailed) const {
-  return Controller::Instance().MemMan()->LoadDataset(strFilename, requester,
-                                                      bOnlyBricksizeCheckFailed);
+                                AbstrRenderer* requester) const {
+  return Controller::Instance().MemMan()->LoadDataset(strFilename, requester);
 }
 
 Dataset* IOManager::CreateDataset(const std::string& filename,

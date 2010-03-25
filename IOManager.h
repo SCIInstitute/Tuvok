@@ -405,8 +405,7 @@ public:
 
 
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
-                              tuvok::AbstrRenderer* requester,
-                              bool& bOnlyBricksizeCheckFailed) const;
+                              tuvok::AbstrRenderer* requester) const;
   tuvok::Dataset* CreateDataset(const std::string& filename,
                                 UINT64 max_brick_size, bool verify) const;
   void AddReader(std::tr1::shared_ptr<tuvok::FileBackedDataset>);

@@ -37,6 +37,7 @@
 
 #include "IOManager.h"
 #include "Controller/Controller.h"
+#include "TuvokIOError.h"
 #include "UVF/UVF.h"
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/KeyValuePairDataBlock.h"
@@ -52,8 +53,7 @@ UVFDataset::UVFDataset(const std::string& strFilename, UINT64 iMaxAcceptableBric
   m_bIsSameEndianness(true),
   m_pDatasetFile(NULL),
   m_CachedRange(make_pair(+1,-1)),
-  m_iMaxAcceptableBricksize(iMaxAcceptableBricksize),
-  m_bOnlyBricksizeCheckFailed(false)
+  m_iMaxAcceptableBricksize(iMaxAcceptableBricksize)
 {
   Open(bVerify, false, bMustBeSameVersion);
 }
@@ -64,8 +64,7 @@ UVFDataset::UVFDataset() :
   m_bIsSameEndianness(true),
   m_pDatasetFile(NULL),
   m_CachedRange(make_pair(+1,-1)),
-  m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE),
-  m_bOnlyBricksizeCheckFailed(false)
+  m_iMaxAcceptableBricksize(DEFAULT_BRICKSIZE)
 {
 }
 
@@ -106,14 +105,8 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
   m_timesteps.resize(n_timesteps);
 
   // analyze the main raster data blocks
-  FindSuitableRasterBlocks(m_bOnlyBricksizeCheckFailed);
+  FindSuitableRasterBlocks();
 
-  if (m_bOnlyBricksizeCheckFailed) {
-    WARNING("No suitable volume block found in UVF file but rebricking would make this file usable.");
-    Close();
-    m_bIsOpen = false;
-    return false;
-  }
   MESSAGE("Open successfully found %u suitable data block in the UVF file.",
           static_cast<unsigned>(n_timesteps));
 
@@ -430,8 +423,7 @@ float UVFDataset::MaxGradientMagnitude() const
   return mx;
 }
 
-void UVFDataset::FindSuitableRasterBlocks(bool &bOnlyBricksizeCheckFailed) {
-  bOnlyBricksizeCheckFailed = false;
+void UVFDataset::FindSuitableRasterBlocks() {
   // keep a count of each type of block.  We require that the number of blocks
   // match, or put another way, that all blocks exist for all timesteps.  This
   // isn't strictly necessary; we could still, technically, work with a
@@ -478,10 +470,12 @@ void UVFDataset::FindSuitableRasterBlocks(bool &bOnlyBricksizeCheckFailed) {
           std::vector<UINT64> vMaxBrickSizes = pVolumeDataBlock->GetLargestBrickSizes();
           for (size_t i=0; i < 3; i++) {  // currently we only care about the first 3 dimensions
             if (vMaxBrickSizes[i] > m_iMaxAcceptableBricksize) {
-              WARNING("Raster data with too large bricks found in UVF file,"
-                      "re-bricking may be necessary.");
-              bOnlyBricksizeCheckFailed = true;
-              break;
+              std::string large = "Brick size used in UVF file is too large;"
+                                  " rebricking necessary.";
+              WARNING("%s", large.c_str());
+              throw tuvok::io::DSBricksOversized(
+                large.c_str(),m_iMaxAcceptableBricksize, _func_, __LINE__
+              );
             }
           }
 
