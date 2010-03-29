@@ -118,9 +118,10 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   MESSAGE("I3M Version OK");
 
   // get volume size -> every dimension must be MAX_I3M_VOLSIZE or less
-  I3MFile.ReadData(vVolumeSize.x, false);
-  I3MFile.ReadData(vVolumeSize.y, false);
-  I3MFile.ReadData(vVolumeSize.z, false);
+  UINT32 iSize;
+  I3MFile.ReadData(iSize, false); vVolumeSize.x = iSize;
+  I3MFile.ReadData(iSize, false); vVolumeSize.y = iSize;
+  I3MFile.ReadData(iSize, false); vVolumeSize.z = iSize;
   if (vVolumeSize.x > MAX_I3M_VOLSIZE ||
       vVolumeSize.y > MAX_I3M_VOLSIZE ||
       vVolumeSize.z > MAX_I3M_VOLSIZE) {
