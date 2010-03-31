@@ -47,48 +47,51 @@
 
 namespace tuvok {
 
-class MasterController;
+  class MasterController;
 
-class ScriptableListElement {
-  public:
-    ScriptableListElement(Scriptable* const source,
-                          const std::string& strCommand,
-                          const std::string& strParameters,
-                          std::string strDescription);
+  class ScriptableListElement {
+    public:
+      ScriptableListElement(Scriptable* const source,
+                            const std::string& strCommand,
+                            const std::string& strParameters,
+                            std::string strDescription);
 
-    Scriptable* const m_source;
-    const std::string m_strCommand;
-    std::vector<std::string> m_vParameters;
-    UINT32 m_iMaxParam;
-    UINT32 m_iMinParam;
-    const std::string m_strDescription;
-};
+      Scriptable* const m_source;
+      const std::string m_strCommand;
+      std::vector<std::string> m_vParameters;
+      UINT32 m_iMaxParam;
+      UINT32 m_iMinParam;
+      const std::string m_strDescription;
+  };
 
-class Scripting : public Scriptable
-{
-  public:
-    Scripting();
-    ~Scripting();
+  class Scripting : public Scriptable
+  {
+    public:
+      Scripting();
+      ~Scripting();
 
-    bool ParseCommand(const std::vector< std::string >& strTokenized, std::string& strMessage);
-    bool ParseLine(const std::string& strLine);
-    bool ParseFile(const std::string& strFilename);
+      bool ParseCommand(const std::vector< std::string >& strTokenized,
+                        std::string& strMessage);
+      bool ParseLine(const std::string& strLine);
+      bool ParseFile(const std::string& strFilename);
 
-    bool RegisterCommand(Scriptable* source, const std::string& strCommand,
-                         const std::string& strParameters,
-                         std::string strDescription);
+      bool RegisterCommand(Scriptable* source, const std::string& strCommand,
+                           const std::string& strParameters,
+                           std::string strDescription);
 
-    // Scriptable
-    virtual void RegisterCalls(Scripting* pScriptEngine);
-    virtual bool Execute(const std::string& strCommand,
-                         const std::vector<std::string>& strParams,
-                         std::string& strMessage);
+      // Scriptable
+      virtual void RegisterCalls(Scripting* pScriptEngine);
+      virtual bool Execute(const std::string& strCommand,
+                           const std::vector<std::string>& strParams,
+                           std::string& strMessage);
 
-  private:
-    typedef std::list<ScriptableListElement*> ScriptList;
-    ScriptList                          m_ScriptableList;
-    bool                                m_bSorted;
-    bool                                m_bEcho;
-};
+    private:
+      typedef std::list<ScriptableListElement*> ScriptList;
+      ScriptList                                m_ScriptableList;
+      bool                                      m_bSorted;
+      bool                                      m_bEcho;
+      std::vector<std::string>                  m_vHistory;
+      bool                                      m_bDontStoreInHistory;
+  };
 };
 #endif // SCRIPTING_H

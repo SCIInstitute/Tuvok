@@ -38,6 +38,7 @@
 #include "StdTuvokDefines.h"
 #include <algorithm>
 #include <fstream>
+#include <iomanip>
 #include <limits>
 #ifndef TUVOK_NO_QT
 # include <QtCore/QTime>
@@ -69,13 +70,17 @@ ScriptableListElement::ScriptableListElement(Scriptable* source,
     if (m_vParameters[i] == "...") {
       m_iMaxParam = numeric_limits<UINT32>::max();
     } else {
-      if (m_vParameters[i][0] == '[' && m_vParameters[i][m_vParameters[i].size()-1] == ']') {
+      if (m_vParameters[i][0] == '[' && 
+          m_vParameters[i][m_vParameters[i].size()-1] == ']') {
         bFoundOptional = true;
-        m_vParameters[i] = string(m_vParameters[i].begin()+1, m_vParameters[i].end()-1);
+        m_vParameters[i] = string(m_vParameters[i].begin()+1,
+                           m_vParameters[i].end()-1);
       } else {
         if (!bFoundOptional)
           m_iMinParam++;
-        // else // this else would be an syntax error case but lets just assume all parameters after the first optional parameter are also optional
+        // else // this else would be an syntax error case but lets just
+                // assume all parameters after the first optional parameter
+                // are also optional
       }
     }
   }
@@ -84,7 +89,8 @@ ScriptableListElement::ScriptableListElement(Scriptable* source,
 
 Scripting::Scripting() :
   m_bSorted(false),
-  m_bEcho(false)
+  m_bEcho(false),
+  m_bDontStoreInHistory(false)
 {
   RegisterCalls(this);
 }
@@ -141,6 +147,12 @@ bool Scripting::ParseLine(const string& strLine) {
     else
       Controller::Debug::Out().printf(strMessage.c_str());
   } else {
+
+    if (m_bDontStoreInHistory) 
+      m_bDontStoreInHistory = false;
+    else
+      m_vHistory.push_back(strLine);
+
     if (m_bEcho) {
       std::ostringstream ok;
       ok << "OK (" << strLine << ")";
@@ -159,14 +171,14 @@ struct CmpByCmdName: public std::binary_function<bool, ScriptableListElement*,
   }
 };
 
-bool Scripting::ParseCommand(const vector<string>& strTokenized, string& strMessage) {
+bool Scripting::ParseCommand(const vector<string>& strTokenized,
+                             string& strMessage) {
 
   if (strTokenized.empty()) return false;
   string strCommand = strTokenized[0];
   vector<string> strParams(strTokenized.begin()+1, strTokenized.end());
 
   if(!m_bSorted) {
-    MESSAGE("Sorting command list...");
     m_ScriptableList.sort(CmpByCmdName());
     m_bSorted = true;
   }
@@ -204,7 +216,8 @@ bool Scripting::ParseFile(const std::string& strFilename) {
       if (line[0] == '#') continue;       // skip comments
 
       if (!ParseLine(line)) {
-        T_ERROR("Error executing line %i in file %s (%s)", iLine, strFilename.c_str(), line.c_str());
+        T_ERROR("Error executing line %i in file %s (%s)", iLine,
+                strFilename.c_str(), line.c_str());
         fileData.close();
         return false;
       }
@@ -219,16 +232,47 @@ bool Scripting::ParseFile(const std::string& strFilename) {
 }
 
 void Scripting::RegisterCalls(Scripting* pScriptEngine) {
-  pScriptEngine->RegisterCommand(this, "help", "", "show all commands");
-  pScriptEngine->RegisterCommand(this, "execute", "filename", "run the script saved as 'filename'");
-  pScriptEngine->RegisterCommand(this, "echo", "on/off", "turn feedback on successful command execution on or off");
-  pScriptEngine->RegisterCommand(this, "time", "","print out the current time");
-  pScriptEngine->RegisterCommand(this, "date", "","print out the current date");
-  pScriptEngine->RegisterCommand(this, "write", "test","print out 'text'");
+  pScriptEngine->RegisterCommand(this, "help",
+    "",
+    "show all commands");
+  pScriptEngine->RegisterCommand(this, "execute",
+    "filename",
+    "run the script saved as 'filename'");
+  pScriptEngine->RegisterCommand(this, "l",
+    "",
+    "re-execute last command");
+  pScriptEngine->RegisterCommand(this, "echo",
+    "on/off",
+    "turn feedback on successful command execution on or off");
+  pScriptEngine->RegisterCommand(this, "time",
+    "",
+    "print out the current time");
+  pScriptEngine->RegisterCommand(this, "date",
+    "",
+    "print out the current date");
+  pScriptEngine->RegisterCommand(this, "write",
+    "test",
+    "print out 'text'");
+  pScriptEngine->RegisterCommand(this, "clearhistory",
+    "",
+    "purge the command history");
+  pScriptEngine->RegisterCommand(this, "printhistory",
+    "",
+    "display the command history");
+  pScriptEngine->RegisterCommand(this, "exechistory",
+    "[a] [b]",
+    "execute line a to line b of the command history, "
+    "if both parameters are ommited the entire history is processed");
+  pScriptEngine->RegisterCommand(this, "storehistory",
+    "filename [a] [b]",
+    "store line a to line b of the command history to file 'filename', "
+    "if both parameters are ommited the entire history is processed");
 }
 
 
-bool Scripting::Execute(const std::string& strCommand, const std::vector< std::string >& strParams, std::string& strMessage) {
+bool Scripting::Execute(const std::string& strCommand, 
+                        const std::vector< std::string >& strParams, 
+                        std::string& strMessage) {
   strMessage = "";
   if (strCommand == "echo") {
     m_bEcho = SysTools::ToLowerCase(strParams[0]) == "on";
@@ -238,6 +282,7 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
     return ParseFile(strParams[0]);
   } else
   if (strCommand == "help") {
+    m_bDontStoreInHistory = true;
     Controller::Debug::Out().printf("Command Listing:");
     for(ScriptList::const_iterator cmd = m_ScriptableList.begin();
         cmd != m_ScriptableList.end(); ++cmd) {
@@ -282,6 +327,110 @@ bool Scripting::Execute(const std::string& strCommand, const std::vector< std::s
   } else
   if (strCommand == "write") {
     Controller::Debug::Out().printf(strParams[0].c_str());
+    return true;
+  } else
+  if (strCommand == "l") {
+    if (m_vHistory.size() > 0) {
+      bool bResult = ParseLine(m_vHistory[0]);
+      m_bDontStoreInHistory = true;
+      return bResult;
+    } else {
+      strMessage = "History is empty.";
+      return false;
+    }
+  } else
+  if (strCommand == "clearhistory") {
+    m_vHistory.clear();
+    m_bDontStoreInHistory = true;
+    return true;
+  } else
+  if (strCommand == "printhistory") {
+    for (size_t i = 0;i<m_vHistory.size();i++) {
+      std::ostringstream msg;
+      msg << setw( 3 ) << i << " : " << m_vHistory[i];
+      Controller::Debug::Out().printf(msg.str().c_str());
+    }
+    m_bDontStoreInHistory = true;
+    return true;
+  } else
+  if (strCommand == "exechistory") {
+    size_t p0, p1;
+    if (strParams.size() == 3) { 
+      int i0, i1;
+      SysTools::FromString(i0, strParams[0]);
+      SysTools::FromString(i1, strParams[1]);
+      p0 = (i0 < 0) 
+                      ? 0 
+                      : ((i0 >= m_vHistory.size()) 
+                          ? m_vHistory.size()-1 
+                          : static_cast<size_t>(i0));
+      p1 = (i1 < 0) 
+                      ? 0 
+                      : ((i1 >= m_vHistory.size()) 
+                          ? m_vHistory.size()-1 
+                          : static_cast<size_t>(i1));
+
+      if (p1 > p0) p0 = p1;
+    } else {
+      if (strParams.size() != 0) { 
+        strMessage = "Either specify both boundaries or none.";
+        return false;
+      }
+      p0 = 0;
+      p1 = m_vHistory.size()-1;
+    }
+
+    std::vector<std::string> vOldHist(m_vHistory);
+    for (size_t i = p0;i<=p1;i++) {
+      if (!ParseLine(vOldHist[i])) {
+        m_vHistory = vOldHist;
+        return false;
+      }
+    }
+
+    m_vHistory = vOldHist;
+    m_bDontStoreInHistory = true;
+    return true;
+  } else
+  if (strCommand == "storehistory") {
+    size_t p0, p1;
+    if (strParams.size() == 3) { 
+      int i0, i1;
+      SysTools::FromString(i0, strParams[1]);
+      SysTools::FromString(i1, strParams[2]);
+      p0 = (i0 < 0) 
+                      ? 0 
+                      : ((i0 >= m_vHistory.size()) 
+                          ? m_vHistory.size()-1 
+                          : static_cast<size_t>(i0));
+      p1 = (i1 < 0) 
+                      ? 0 
+                      : ((i1 >= m_vHistory.size()) 
+                          ? m_vHistory.size()-1 
+                          : static_cast<size_t>(i1));
+
+      if (p1 > p0) p0 = p1;
+    } else {
+      if (strParams.size() != 1) { 
+        strMessage = "Either specify both boundaries or none.";
+        return false;
+      }
+      p0 = 0;
+      p1 = m_vHistory.size()-1;
+    }
+
+    ofstream historyFile(strParams[0].c_str());
+    if (!historyFile.is_open()) {
+      strMessage = "Unable to create history file.";
+      return false;
+    }
+    for (size_t i = p0;i<=p1;i++) {
+      std::ostringstream msg;
+      historyFile << m_vHistory[i] << endl;
+    }
+    historyFile.close();
+    m_bDontStoreInHistory = true;
+
     return true;
   }
 
