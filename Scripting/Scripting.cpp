@@ -359,18 +359,14 @@ bool Scripting::Execute(const std::string& strCommand,
       int i0, i1;
       SysTools::FromString(i0, strParams[0]);
       SysTools::FromString(i1, strParams[1]);
-      p0 = (i0 < 0) 
-                      ? 0 
-                      : ((i0 >= m_vHistory.size()) 
-                          ? m_vHistory.size()-1 
-                          : static_cast<size_t>(i0));
-      p1 = (i1 < 0) 
-                      ? 0 
-                      : ((i1 >= m_vHistory.size()) 
-                          ? m_vHistory.size()-1 
-                          : static_cast<size_t>(i1));
-
-      if (p1 > p0) p0 = p1;
+      const int int_sz = m_vHistory.size();
+      p0 = (i0 < 0) ? 0 
+                    : ((i0 >= int_sz) ? m_vHistory.size()-1 
+                                      : static_cast<size_t>(i0));
+      p1 = (i1 < 0) ? 0 
+                    : ((i1 >= int_sz) ? m_vHistory.size()-1 
+                                      : static_cast<size_t>(i1));
+      if (p1 > p0) { p0 = p1; }
     } else {
       if (strParams.size() != 0) { 
         strMessage = "Either specify both boundaries or none.";
@@ -398,18 +394,15 @@ bool Scripting::Execute(const std::string& strCommand,
       int i0, i1;
       SysTools::FromString(i0, strParams[1]);
       SysTools::FromString(i1, strParams[2]);
-      p0 = (i0 < 0) 
-                      ? 0 
-                      : ((i0 >= m_vHistory.size()) 
-                          ? m_vHistory.size()-1 
-                          : static_cast<size_t>(i0));
-      p1 = (i1 < 0) 
-                      ? 0 
-                      : ((i1 >= m_vHistory.size()) 
-                          ? m_vHistory.size()-1 
-                          : static_cast<size_t>(i1));
+      const int int_sz = m_vHistory.size();
+      p0 = (i0 < 0) ? 0 
+                    : ((i0 >= int_sz) ? m_vHistory.size()-1 
+                                      : static_cast<size_t>(i0));
+      p1 = (i1 < 0) ? 0 
+                    : ((i1 >= int_sz) ? m_vHistory.size()-1 
+                                      : static_cast<size_t>(i1));
 
-      if (p1 > p0) p0 = p1;
+      if (p1 > p0) { p0 = p1; }
     } else {
       if (strParams.size() != 1) { 
         strMessage = "Either specify both boundaries or none.";
