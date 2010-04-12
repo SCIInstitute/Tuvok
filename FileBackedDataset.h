@@ -35,6 +35,7 @@
 #ifndef TUVOK_FILE_BACKED_DATASET_H
 #define TUVOK_FILE_BACKED_DATASET_H
 
+#include <list>
 #include <string>
 #include <boost/cstdint.hpp>
 #include "BrickedDataset.h"
@@ -58,6 +59,9 @@ public:
   /// always valid.
   virtual bool Verify(const std::string&) const;
   virtual FileBackedDataset* Create(const std::string&, UINT64, bool) const=0;
+
+  /// @return a list of file extensions readable by this format
+  virtual std::list<std::string> Extensions() const=0;
 
 protected:
   bool                         m_bIsOpen;

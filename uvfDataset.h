@@ -114,6 +114,7 @@ public:
   virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
   virtual bool Verify(const std::string&) const;
   virtual FileBackedDataset* Create(const std::string&, UINT64, bool) const;
+  virtual std::list<std::string> Extensions() const;
 
 private:
   std::vector<UINT64> IndexToVector(const BrickKey &k) const;
@@ -129,7 +130,7 @@ private:
   size_t DetermineNumberOfTimesteps();
   bool VerifyRasterDataBlock(const RasterDataBlock*) const;
 
-  virtual const char* Name() const { return "UVF"; }
+  virtual const char* Name() const { return "Universal Volume Format"; }
 
 private:
   struct Timestep {

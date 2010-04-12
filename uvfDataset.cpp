@@ -876,4 +876,11 @@ FileBackedDataset* UVFDataset::Create(const std::string& filename,
   return new UVFDataset(filename, max_brick_size, verify);
 }
 
+std::list<std::string> UVFDataset::Extensions() const
+{
+  std::list<std::string> retval;
+  retval.push_back("UVF");
+  return retval;
+}
+
 }; // tuvok namespace.
