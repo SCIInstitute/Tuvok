@@ -1094,12 +1094,29 @@ bool IOManager::Verify(const std::string& strFilename) const
   return fileds->Verify(strFilename);
 }
 
+using namespace tuvok;
+using namespace tuvok::io;
 
 std::string IOManager::GetLoadDialogString() const {
-  string strDialog = "All known Files (*.uvf ";
+  string strDialog = "All known Files (";
   map<string,string> descPairs;
 
   // first create the show all text entry
+  // native formats
+  const DSFactory::DSList& readers = m_dsFactory->Readers();
+  for(DSFactory::DSList::const_iterator rdr=readers.begin();
+      rdr != readers.end(); ++rdr) {
+    const std::tr1::shared_ptr<FileBackedDataset> fileds =
+      std::tr1::dynamic_pointer_cast<FileBackedDataset>(*rdr);
+    const std::list<std::string> extensions = fileds->Extensions();
+    for(std::list<std::string>::const_iterator ext = extensions.begin();
+        ext != extensions.end(); ++ext) {
+      strDialog += "*." + SysTools::ToLowerCase(*ext) + " ";
+      descPairs[*ext] = (*rdr)->Name();
+    }
+  }
+
+  // converters
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
       string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
@@ -1109,9 +1126,25 @@ std::string IOManager::GetLoadDialogString() const {
       }
     }
   }
-  strDialog += ");;Universal Volume Format (*.uvf);;";
+  strDialog += ");;";
 
-  // separate entries
+  // now create the separate entries, i.e. just UVFs, just TIFFs, etc.
+  // native formats
+  for(DSFactory::DSList::const_iterator rdr=readers.begin();
+      rdr != readers.end(); ++rdr) {
+    const std::tr1::shared_ptr<FileBackedDataset> fileds =
+      std::tr1::dynamic_pointer_cast<FileBackedDataset>(*rdr);
+    const std::list<std::string> extensions = fileds->Extensions();
+    strDialog += std::string(fileds->Name()) + " (";
+    for(std::list<std::string>::const_iterator ext = extensions.begin();
+        ext != extensions.end(); ++ext) {
+      strDialog += "*." + SysTools::ToLowerCase(*ext) + " ";
+      descPairs[*ext] = (*rdr)->Name();
+    }
+    strDialog += ");;";
+  }
+
+  // converters
   for (size_t i=0; i < m_vpConverters.size(); i++) {
     strDialog += m_vpConverters[i]->GetDesc() + " (";
     for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
