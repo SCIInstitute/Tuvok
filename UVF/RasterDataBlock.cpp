@@ -104,7 +104,7 @@ UINT64 RasterDataBlock::ComputeHeaderSize() const {
 
   return 1            * sizeof(UINT64) +    // ulDomainDimension
        ulDomainDimension    * sizeof(UINT64) +    // ulDomainSemantics
-       (ulDomainDimension+1)*(ulDomainDimension+1)  * sizeof(UINT64) +    // dDomainTransformation
+       (ulDomainDimension+1)*(ulDomainDimension+1)  * sizeof(double) +    // dDomainTransformation
        ulDomainDimension    * sizeof(UINT64) +    // ulDomainSize
        ulDomainDimension    * sizeof(UINT64) +    // ulBrickSize
        ulDomainDimension    * sizeof(UINT64) +    // ulBrickOverlap
