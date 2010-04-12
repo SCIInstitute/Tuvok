@@ -179,13 +179,15 @@ bool BOVConverter::ConvertToNative(const std::string& raw,
          << "VARIABLE: from_imagevis3d" << std::endl
          << "BRICK_SIZE: "
             << dimensions[0] << " " << dimensions[1] << " " << dimensions[2]
-         << std::endl;
+         << std::endl
+         << "CENTERING: nodal" << std::endl;
   header.close();
 
   // copy the raw file.
   return RAWConverter::ConvertToNative(raw, raw + ".data", skip,
                                        component_size, n_components, is_signed,
-                                       fp, dimensions, aspect, batch, bQuantizeTo8Bit);
+                                       fp, dimensions, aspect, batch,
+                                       bQuantizeTo8Bit);
 }
 
 static DataType
