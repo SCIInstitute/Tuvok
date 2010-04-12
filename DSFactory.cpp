@@ -94,5 +94,8 @@ void DSFactory::AddReader(std::tr1::shared_ptr<Dataset> ds)
   this->datasets.push_front(ds);
 }
 
+const DSFactory::DSList&
+DSFactory::Readers() const { return this->datasets; }
+
 } // io
 } // tuvok

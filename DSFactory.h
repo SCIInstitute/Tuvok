@@ -73,9 +73,12 @@ public:
 
   void AddReader(std::tr1::shared_ptr<Dataset>);
 
-private:
   // We can't copy datasets.  So we store pointers to them instead.
-  std::list<std::tr1::shared_ptr<Dataset> > datasets;
+  typedef std::list<std::tr1::shared_ptr<Dataset> > DSList;
+  const DSList& Readers() const;
+
+private:
+  DSList datasets;
 };
 
 } // io
