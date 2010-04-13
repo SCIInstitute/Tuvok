@@ -479,6 +479,7 @@ void UVFDataset::FindSuitableRasterBlocks() {
             }
           }
 
+          m_timesteps[raster].block_number = iBlocks;
           m_timesteps[raster++].m_pVolumeDataBlock = pVolumeDataBlock;
         }
         break;
@@ -825,8 +826,9 @@ bool UVFDataset::SaveRescaleFactors() {
     std::vector<RasterDataBlock*> RW_blocks;
     for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
       RasterDataBlock* rdb =
-        static_cast<RasterDataBlock*>
-                   (m_pDatasetFile->GetDataBlockRW(tsi, true));
+        static_cast<RasterDataBlock*>(
+          m_pDatasetFile->GetDataBlockRW(m_timesteps[tsi].block_number, true)
+        );
 
       size_t iSize = rdb->ulDomainSize.size();
       for (size_t i=0; i < 3; i++) {

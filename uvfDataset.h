@@ -146,6 +146,7 @@ private:
     std::vector<UINT64VECTOR3>   m_vaBrickCount;
     std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
     std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
+    size_t                       block_number;
   };
   std::vector<Timestep>        m_timesteps;
   const KeyValuePairDataBlock* m_pKVDataBlock;
