@@ -134,17 +134,23 @@ private:
 
 private:
   struct Timestep {
+    /// used for 2D TF scaling
     float                        m_fMaxGradMagnitude;
-    const RasterDataBlock*       m_pVolumeDataBlock;
+    const RasterDataBlock*       m_pVolumeDataBlock; ///< data
     const Histogram1DDataBlock*  m_pHist1DDataBlock;
     const Histogram2DDataBlock*  m_pHist2DDataBlock;
-    MaxMinDataBlock*             m_pMaxMinData;
-    UINT64                       m_iRasterBlockIndex;
+    MaxMinDataBlock*             m_pMaxMinData;      ///< acceleration info
 
+    /// number of voxels of overlap with neighboring bricks
     UINTVECTOR3                  m_aOverlap;
+    /// size of the domain for this timestep (i.e. n_voxels in finest LOD)
     std::vector<UINT64VECTOR3>   m_aDomainSize;
+    /// max values for logical brick indices; std::vector index gives LOD.
     std::vector<UINT64VECTOR3>   m_vaBrickCount;
+    /// the size of each individual brick.  Slowest moving dimension is LOD;
+    /// then x,y,z.
     std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
+    /// same layout as m_vvaBrickSize, but gives acceleration min/max info.
     std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
     size_t                       block_number;
   };
