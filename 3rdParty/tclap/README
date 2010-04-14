@@ -1,0 +1,26 @@
+--- Additional Note ---
+This is TCLAP version 1.2.0, as obtained from:
+
+  http://tclap.sourceforge.net/
+
+This is a "stripped" version of the code meant only for inclusion in
+ImageVis3D and related software.  If you would like to use this library
+for your own projects, you should go download the full distribution
+from the aforementioned website.
+--- Additional Note ---
+
+TCLAP - Templatized Command Line Argument Parser
+
+This is a simple C++ library that facilitates parsing command line
+arguments in a type independent manner.  It doesn't conform exactly
+to either the GNU or POSIX standards, although it is close.  See
+docs/manual.html for descriptions of how things work or look at the
+simple examples in the examples dir.
+
+To find out what the latest changes are read the NEWS file in this directory.
+
+
+Any and all feedback is welcome to:  Mike Smoot <mes@aescon.com>
+
+
+
