@@ -312,7 +312,7 @@ void GLRenderer::ClearDepthBuffer() {
 
 void GLRenderer::ClearColorBuffer() {
   glDepthMask(GL_FALSE);
-  if (m_bDoStereoRendering) {
+  if (m_bDoStereoRendering && m_eStereoMode == SM_RB) {
     // render anaglyphs against a black background only
     glClearColor(0,0,0,0);
     glClear(GL_COLOR_BUFFER_BIT);
