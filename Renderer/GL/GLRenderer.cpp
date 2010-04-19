@@ -160,9 +160,9 @@ bool GLRenderer::Initialize() {
     newSwatch.pGradientCoords[0] = FLOATVECTOR2(0.1f,0.5f);
     newSwatch.pGradientCoords[1] = FLOATVECTOR2(0.9f,0.5f);
 
-    GradientStop g1(0,FLOATVECTOR4(0,0,0,0)),
+    GradientStop g1(0.0f,FLOATVECTOR4(0,0,0,0)),
                  g2(0.5f,FLOATVECTOR4(1,1,1,1)),
-                 g3(1,FLOATVECTOR4(0,0,0,0));
+                 g3(1.0f,FLOATVECTOR4(0,0,0,0));
     newSwatch.pGradientStops.push_back(g1);
     newSwatch.pGradientStops.push_back(g2);
     newSwatch.pGradientStops.push_back(g3);
