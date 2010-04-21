@@ -1678,7 +1678,7 @@ void GLRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   }
 }
 
-static std::string find_shader(const std::string& file, bool subdirs)
+static std::string find_shader(std::string file, bool subdirs)
 {
 #ifdef DETECTED_OS_APPLE
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(file))) {
