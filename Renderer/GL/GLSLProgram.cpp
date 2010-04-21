@@ -684,8 +684,11 @@ GLuint GLSLProgram::LoadShader(const char *ShaderDesc, GLenum Type, GLSLPROGRAM_
  * \date Aug.2004
  */
 void GLSLProgram::Enable(void) {
+  if(glIsProgram(m_hProgram) != GL_TRUE) {
+    T_ERROR("not a program!");
+  }
   if (m_bInitialized) {
-    CheckGLError();
+    do { } while(CheckGLError());
     if (m_bGLUseARB)
       glUseProgramObjectARB(m_hProgram);
     else
