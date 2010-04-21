@@ -154,12 +154,6 @@ class GLRenderer : public AbstrRenderer {
     virtual bool LoadAndVerifyShader(GLSLProgram**,
                                      std::vector<std::string> vert,
                                      std::vector<std::string> frag) const;
-    virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile,
-                                     const std::vector<std::string>& strDirs,
-                                     GLSLProgram** pShaderProgram);
-    virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile,
-                                     GLSLProgram** pShaderProgram,
-                                     bool bSearchSubdirs);
 
     void BBoxPreRender();
     void BBoxPostRender();

@@ -1678,31 +1678,6 @@ void GLRenderer::SetBlendPrecision(EBlendPrecision eBlendPrecision) {
   }
 }
 
-bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
-                                     const std::vector<std::string>& strDirs,
-                                     GLSLProgram** pShaderProgram) {
-  for (size_t i = 0;i<strDirs.size();i++) {
-    string strCompleteVSFile = strDirs[i] + "/" + strVSFile;
-    string strCompleteFSFile = strDirs[i] + "/" + strFSFile;
-    MESSAGE("Searching for shaders in %s ...", strDirs[i].c_str());
-
-    if (LoadAndVerifyShader(strCompleteVSFile, strCompleteFSFile,
-                            pShaderProgram, false)) {
-      return true;
-    }
-  }
-
-  // if all else fails probe current directory and all of its subdirectories
-  WARNING("Shader combination %s and %s not found "
-          "in any of the given search directories, "
-          "now scanning current diretory and all of its subdirectories "
-          "as a final attempt.", strVSFile.c_str(), strFSFile.c_str());
-  if (LoadAndVerifyShader(strVSFile, strFSFile, pShaderProgram, true))
-    return true;
-  else
-    return false;
-}
-
 static std::string find_shader(const std::string& file, bool subdirs)
 {
 #ifdef DETECTED_OS_APPLE
@@ -1810,58 +1785,6 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
     T_ERROR("%s", shaders.str().c_str());
   }
   return false;
-}
-
-bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
-                                     GLSLProgram** pShaderProgram,
-                                     bool bSearchSubdirs) {
-#ifdef DETECTED_OS_APPLE
-  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strVSFile))) {
-    strVSFile = SysTools::GetFromResourceOnMac(strVSFile);
-    MESSAGE("Found %s in bundle, using that.", strVSFile.c_str());
-  }
-  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strFSFile)))
-    strFSFile = SysTools::GetFromResourceOnMac(strFSFile);
-#endif
-  std::string strActualVSFile = find_shader(strVSFile, bSearchSubdirs);
-  std::string strActualFSFile = find_shader(strFSFile, bSearchSubdirs);
-
-  if (strActualVSFile == "") {
-    T_ERROR("Unable to locate vertex shader %s", strVSFile.c_str());
-    return false;
-  } else {
-    MESSAGE("Changed vertex shader %s to %s", strVSFile.c_str(),
-            strActualVSFile.c_str());
-  }
-
-  if (strActualFSFile == "") {
-    T_ERROR("Unable to locate fragment shader %s", strFSFile.c_str());
-    return false;
-  } else {
-    MESSAGE("Changed fragment shader %s to %s", strFSFile.c_str(),
-            strActualFSFile.c_str());
-  }
-
-  if (SysTools::FileExists(strActualVSFile) && SysTools::FileExists(strActualFSFile)) {
-    GPUMemMan& mm = *(m_pMasterController->MemMan());
-    std::vector<std::string> vert(1);
-    std::vector<std::string> frag(1);
-    vert[0] = strActualVSFile;
-    frag[0] = strActualFSFile;
-
-    (*pShaderProgram) = mm.GetGLSLProgram(vert, frag);
-
-    if ((*pShaderProgram) == NULL || !(*pShaderProgram)->IsValid()) {
-        T_ERROR("Error loading a shader combination VS %s and FS %s.",
-                strActualVSFile.c_str(), strActualFSFile.c_str());
-        m_pMasterController->MemMan()->FreeGLSLProgram(*pShaderProgram);
-        return false;
-    } else return true;
-
-  } else {
-    (*pShaderProgram) = NULL;
-    return false;
-  }
 }
 
 bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
