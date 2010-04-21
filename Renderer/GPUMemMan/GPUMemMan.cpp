@@ -1005,6 +1005,37 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile,
   }
 }
 
+GLSLProgram* GPUMemMan::GetGLSLProgram(const std::vector<std::string>& vert,
+                                       const std::vector<std::string>& frag)
+{
+  /// HACK, this is complete garbage.
+  for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
+    if ((*i)->strVSFile == vert[0] && (*i)->strFSFile == frag[0]) {
+      MESSAGE("Reusing GLSL program from the VS %s and the FS %s",
+              (*i)->strVSFile.c_str(), (*i)->strFSFile.c_str());
+      (*i)->iAccessCounter++;
+      return (*i)->pGLSLProgram;
+    }
+  }
+
+  MESSAGE("Creating new GLSL program from %u-element VS and %u-element FS",
+          static_cast<unsigned>(vert.size()),
+          static_cast<unsigned>(frag.size()));
+
+  GLSLListElem* e = new GLSLListElem(m_MasterController, vert, frag);
+
+  if(e->pGLSLProgram == NULL) {
+    T_ERROR("Failed to create program!");
+    return NULL;
+  }
+
+  m_vpGLSLList.push_back(e);
+  m_iAllocatedCPUMemory += e->pGLSLProgram->GetCPUSize();
+  m_iAllocatedGPUMemory += e->pGLSLProgram->GetGPUSize();
+
+  return e->pGLSLProgram;
+}
+
 void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
   if (pGLSLProgram == NULL) return;
 
