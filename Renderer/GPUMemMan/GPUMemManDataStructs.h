@@ -220,24 +220,10 @@ typedef FBOList::iterator FBOListIter;
 // framebuffer objects
 class GLSLListElem {
 public:
-  GLSLListElem(MasterController* pMasterController,
-               const std::string& _strVSFile,
-               const std::string& _strFSFile) :
-    strVSFile(_strVSFile), strFSFile(_strFSFile),
-    iAccessCounter(1),
-    pGLSLProgram(new GLSLProgram(pMasterController, _strVSFile.c_str(),
-                                 _strFSFile.c_str()))
-  {
-    if (!pGLSLProgram->IsValid()) {
-      delete pGLSLProgram;
-      pGLSLProgram = NULL;
-    }
-  }
-
   GLSLListElem(MasterController* mc,
                const std::vector<std::string>& vert,
                const std::vector<std::string>& frag) :
-    strVSFile(vert[0]), strFSFile(frag[0]), // hack!
+    vertex(vert), fragment(frag),
     iAccessCounter(1),
     pGLSLProgram(new GLSLProgram(mc))
   {
@@ -253,8 +239,8 @@ public:
     delete pGLSLProgram;
   }
 
-  std::string   strVSFile;
-  std::string   strFSFile;
+  const std::vector<std::string> vertex;
+  const std::vector<std::string> fragment;
   UINT32        iAccessCounter;
   GLSLProgram*  pGLSLProgram;
 };

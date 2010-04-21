@@ -977,11 +977,13 @@ void GPUMemMan::FreeFBO(GLFBOTex* pFBO) {
 GLSLProgram* GPUMemMan::GetGLSLProgram(const std::vector<std::string>& vert,
                                        const std::vector<std::string>& frag)
 {
-  /// HACK, this is complete garbage.
   for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
-    if ((*i)->strVSFile == vert[0] && (*i)->strFSFile == frag[0]) {
-      MESSAGE("Reusing GLSL program from the VS %s and the FS %s",
-              (*i)->strVSFile.c_str(), (*i)->strFSFile.c_str());
+    if(vert.size() == (*i)->vertex.size() &&
+       frag.size() == (*i)->fragment.size() &&
+       std::equal(vert.begin(), vert.end(), (*i)->vertex.begin()) &&
+       std::equal(frag.begin(), frag.end(), (*i)->fragment.begin()))
+    {
+      MESSAGE("Reusing GLSL program.");
       (*i)->iAccessCounter++;
       return (*i)->pGLSLProgram;
     }
