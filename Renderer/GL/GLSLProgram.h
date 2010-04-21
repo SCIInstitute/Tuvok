@@ -84,7 +84,6 @@ class MasterController;
 /**
  * Wrapper for handling OpenGL 2.0 conformant program objects.
  * \class GLSLProgram
- * \version 1.0c
  * \warning include _before_ you include anything like gl.h, glut.h etc.
  * \warning requires the GL Extension Wrangler (GLEW) library.
  * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
@@ -92,19 +91,8 @@ class MasterController;
  */
 class GLSLProgram : public GLObject {
 public:
-  /// Standard Constructor.
   GLSLProgram(MasterController* pMasterController);
-  /// Constructor. Loads any combination of vertex (VPFile) and
-  /// fragment (FPFile) shaders either from disk or from a C-string.
-  GLSLProgram(MasterController* pMasterController,
-              const char *VSFile, const char *FSFile,
-              GLSLPROGRAM_SOURCE src = GLSLPROGRAM_DISK);
   virtual ~GLSLProgram();
-
-  /// Loads any combination of vertex (VPFile) and fragment (FPFile)
-  /// shaders either from disk or from a C-string.
-  void Load(const char *VSFile, const char *FSFile,
-            GLSLPROGRAM_SOURCE src=GLSLPROGRAM_DISK);
 
   /// Loads a series of shaders.
   /// @param vert a set of filenames to load the vertex shader from.
@@ -114,7 +102,7 @@ public:
 
   /// Enables this shader for rendering.
   void Enable(void);
-  /// Disables this shader for rendering (using fixed function pipeline again)
+  /// Disables this shader for rendering (use fixed function pipeline again)
   void Disable(void);
 
   /// Returns the handle of this shader.
