@@ -2186,7 +2186,7 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
 }
 
 void GLRenderer::Recompose3DView(RenderRegion3D& renderRegion) {
-  MESSAGE("Recomposing...");
+  MESSAGE("Recompositing...");
   NewFrameClear(renderRegion);
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
