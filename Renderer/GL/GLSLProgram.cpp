@@ -69,9 +69,11 @@ namespace gl {
   void ShaderSource(GLuint, GLsizei, const GLchar**, const GLint*);
   void CompileShader(GLuint);
   void AttachShader(GLuint, GLuint);
+  void DetachShader(GLuint, GLuint);
   void UseProgram(GLuint);
   void DeleteShader(GLuint);
   void DeleteProgram(GLuint);
+  void GetAttachedShaders(GLuint, GLsizei, GLsizei*, GLuint*);
 
   GLint GetUniformLocation(GLuint, const GLchar*);
 
@@ -100,6 +102,11 @@ namespace gl {
     if(arb) { glAttachObjectARB(program, shader); }
     else    { glAttachShader(program, shader); }
   }
+  void DetachShader(GLuint program, GLuint shader) {
+    if(arb) { glDetachObjectARB(program, shader); }
+    else    { glDetachShader(program, shader); }
+  }
+
   void LinkProgram(GLuint program) {
     if(arb) { glLinkProgramARB(program); }
     else    { glLinkProgram(program); }
@@ -118,6 +125,12 @@ namespace gl {
   void DeleteProgram(GLuint p) {
     if(arb) { glDeleteObjectARB(p); }
     else    { glDeleteProgram(p); }
+  }
+
+  void GetAttachedShaders(GLuint program, GLsizei mx, GLsizei* count,
+                          GLuint* objs) {
+    if(arb) { glGetAttachedObjectsARB(program, mx, count, objs); }
+    else    { glGetAttachedShaders(program, mx, count, objs); }
   }
 
   GLint GetUniformLocation(GLuint program, const GLchar* name) {
