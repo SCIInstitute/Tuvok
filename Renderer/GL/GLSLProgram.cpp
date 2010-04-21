@@ -765,35 +765,34 @@ static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
 
   gl_err = glGetError();
   if(gl_err != GL_NO_ERROR) {
-    T_ERROR("Error getting type.");
-    throw GL_ERROR(gl_err);
+      T_ERROR("Error getting type.");
+      throw GL_ERROR(gl_err);
+    }
+
+    return location;
   }
 
-  return location;
-}
+  /**
+   * Sets an uniform vector parameter.
+   * \warning uses glGetError();
+   * \param name - name of the parameter
+   * \param x,y,z,w - up to four float components of the vector to set.
+   * \return void
+   * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
+   * \date Aug.2004
+   */
+  void GLSLProgram::SetUniformVector(const char *name,
+                                     float x, float y, float z, float w) const {
+    assert(m_bEnabled);
+    CheckGLError();
 
-/**
- * Sets an uniform vector parameter.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param x,y,z,w - up to four float components of the vector to set.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Aug.2004
- */
-void GLSLProgram::SetUniformVector(const char *name,
-                                   float x, float y, float z, float w) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLenum iType;
-  GLint iLocation;
+    GLenum iType;
+    GLint iLocation;
 
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
   } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
-            name, m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
 
@@ -851,8 +850,7 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
   } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
-            name, m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
 
@@ -901,8 +899,7 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
   } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
-            name, m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
 
@@ -960,8 +957,7 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
   } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
-            name, m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
 
@@ -1019,8 +1015,7 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
   } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
-            name, m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
 
@@ -1076,8 +1071,7 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
   } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
-            name, m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
 
@@ -1126,8 +1120,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
   } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
-            name, m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
 
@@ -1168,8 +1161,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
   } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
-            name, m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
 
@@ -1220,8 +1212,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &iType);
   } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s in '%s' or '%s'.", gl.error(),
-            name, m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
 
@@ -1275,8 +1266,7 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
   }
 
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error getting address for %s.", name);
     return;
   }
 
@@ -1376,8 +1366,7 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
   }
 
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error getting address for %s.", name);
     return;
   }
 
@@ -1477,8 +1466,7 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
   }
 
   if(iLocation==-1) {
-    T_ERROR("Error getting address for %s in '%s' or '%s'.", name,
-            m_sVS.c_str(), m_sFS.c_str());
+    T_ERROR("Error getting address for %s.", name);
     return;
   }
 
