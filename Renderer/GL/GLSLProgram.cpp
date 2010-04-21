@@ -131,7 +131,7 @@ namespace gl {
                           GLuint* objs) {
     if(arb) {
       glGetAttachedObjectsARB(static_cast<GLhandleARB>(program), mx, count,
-                              objs);
+                              reinterpret_cast<GLhandleARB*>(objs));
     } else {
       glGetAttachedShaders(program, mx, count, objs);
     }
