@@ -172,30 +172,32 @@ bool GLRenderer::Initialize() {
     m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
   }
 
-  if (!LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgramTrans))        ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "1D-slice-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgram1DTransSlice)) ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "2D-slice-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgram2DTransSlice)) ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "MIP-slice-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgramMIPSlice))     ||
-      !LoadAndVerifyShader("SlicesIn3D.glsl", "1D-slice-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgram1DTransSlice3D)) ||
-      !LoadAndVerifyShader("SlicesIn3D.glsl", "2D-slice-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgram2DTransSlice3D)) ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Transfer-MIP-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgramTransMIP))     ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgramIsoCompose))   ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Color-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgramColorCompose))   ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-CV-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgramCVCompose))    ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgramComposeAnaglyphs)) ||
-      !LoadAndVerifyShader("Transfer-VS.glsl", "Compose-Scanline-FS.glsl",
-                           m_vShaderSearchDirs, &(m_pProgramComposeScanlineStereo)))                           
+  if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Transfer-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram1DTransSlice, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "1D-slice-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "2D-slice-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramMIPSlice, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "MIP-slice-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
+                          "SlicesIn3D.glsl", "1D-slice-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
+                          "SlicesIn3D.glsl", "2D-slice-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramTransMIP, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Transfer-MIP-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramIsoCompose, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Compose-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramColorCompose, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Compose-Color-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramCVCompose, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Compose-CV-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramComposeAnaglyphs, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",
+                          NULL)                                              ||
+     !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
+                          m_vShaderSearchDirs, "Transfer-VS.glsl",
+                          "Compose-Scanline-FS.glsl", NULL))
   {
       T_ERROR("Error loading transfer shaders.");
       return false;
