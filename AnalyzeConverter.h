@@ -72,6 +72,6 @@ public:
                                bool bNoUserInteraction,
                                const bool bQuantizeTo8Bit);
 
-  virtual bool CanExportData() const { return false; }
+  virtual bool CanExportData() const { return true; }
 };
 #endif // TUVOK_IO_ANALYZE_CONVERTER_H

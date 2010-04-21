@@ -214,13 +214,59 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-bool AnalyzeConverter::ConvertToNative(const std::string& ,
-                               const std::string& ,
-                               UINT64 , UINT64 ,
-                               UINT64 , bool ,
-                               bool , UINT64VECTOR3 ,
-                               FLOATVECTOR3 ,
-                               bool ,
-                               const bool ) {
-  return false;
+bool AnalyzeConverter::ConvertToNative(
+  const std::string& strRawFilename,
+  const std::string& strTargetFilename,
+  UINT64 iHeaderSkip,
+  UINT64 iComponentSize, UINT64 iComponentCount,
+  bool bSigned, bool bIsFloat,
+  UINT64VECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect,
+  bool bNoUserInteraction,
+  const bool bQuantizeTo8Bit)
+{
+  std::ofstream hdr(strTargetFilename.c_str(), std::ios::out);
+  if(!hdr.is_open()) {
+    T_ERROR("Unable to open target file %s", strTargetFilename.c_str());
+    return false;
+  }
+
+  hdr << "version 001.910\n"
+      << "number_of_dimensions 3\n"
+      << "x_dimension " << vVolumeSize[0] << "\n"
+      << "y_dimension " << vVolumeSize[1] << "\n"
+      << "z_dimension " << vVolumeSize[2] << "\n"
+      << "pixel_size_x " << vVolumeAspect[0] << "\n"
+      << "pixel_size_y " << vVolumeAspect[1] << "\n"
+      << "pixel_size_z " << vVolumeAspect[2] << "\n"
+      << "data_type ";
+  if(iComponentSize == 8) {
+    hdr << "1\n";
+  } else if(iComponentSize == 16 && EndianConvert::IsBigEndian()) {
+    hdr << "2\n";
+  } else if(iComponentSize == 32 && EndianConvert::IsBigEndian() && !bIsFloat) {
+    hdr << "3\n";
+  } else if(iComponentSize == 32 && EndianConvert::IsBigEndian() && bIsFloat) {
+    hdr << "4\n";
+  } else if(iComponentSize == 32 && !EndianConvert::IsBigEndian() && bIsFloat) {
+    hdr << "5\n";
+  } else if(iComponentSize == 16 && !EndianConvert::IsBigEndian() && !bIsFloat) {
+    hdr << "6\n";
+  } else if(iComponentSize == 32 && !EndianConvert::IsBigEndian() && !bIsFloat) {
+    hdr << "7\n";
+  } else {
+    T_ERROR("Unknown data type!\n");
+    hdr << "0\n";
+  }
+
+  std::string data_file = SysTools::RemoveExt(strTargetFilename.c_str());
+  if(!RAWConverter::ConvertToNative(
+      strRawFilename, data_file, iHeaderSkip,  iComponentSize, iComponentCount,
+      bSigned, bIsFloat, vVolumeSize, vVolumeAspect, bNoUserInteraction,
+      bQuantizeTo8Bit)) {
+    T_ERROR("Error creating raw file '%s'", data_file.c_str());
+    remove(data_file.c_str());
+    return false;
+  }
+
+  return true;
 }
