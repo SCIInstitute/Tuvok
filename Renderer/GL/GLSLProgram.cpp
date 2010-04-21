@@ -552,10 +552,19 @@ static bool addshader(GLuint program, const std::string& filename,
       glGetObjectParameterivARB(sh, GL_OBJECT_COMPILE_STATUS_ARB, success);
     }
     if(success == GL_FALSE) {
-      T_ERROR("Compilation error in '%s'", filename.c_str());
-      /// @todo fixme GL_INFO_LOG_LENGTH + glGetShaderInfoLog so that we can
-      /// report the error.
+      std::ostringstream errmsg;
+      errmsg << "Compilation error in '" << filename << "': ";
+
+      if(gl::arb) { // retrieve the error message
+        GLint log_length;
+        glGetShaderiv(sh, GL_INFO_LOG_LENGTH, &log_length);
+        std::vector<GLchar> log(log_length);
+        glGetShaderInfoLog(sh, log.size(), NULL, &log[0]);
+        errmsg << &log[0];
+      }
+
       gl::DeleteShader(sh);
+      T_ERROR("%s", errmsg.str().c_str());
       return false;
     }
   }
