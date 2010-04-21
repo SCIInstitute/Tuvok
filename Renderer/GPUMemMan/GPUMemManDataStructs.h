@@ -220,10 +220,13 @@ typedef FBOList::iterator FBOListIter;
 // framebuffer objects
 class GLSLListElem {
 public:
-  GLSLListElem(MasterController* pMasterController, const std::string& _strVSFile, const std::string& _strFSFile) :
+  GLSLListElem(MasterController* pMasterController,
+               const std::string& _strVSFile,
+               const std::string& _strFSFile) :
     strVSFile(_strVSFile), strFSFile(_strFSFile),
     iAccessCounter(1),
-    pGLSLProgram(new GLSLProgram(pMasterController, _strVSFile.c_str(), _strFSFile.c_str()))
+    pGLSLProgram(new GLSLProgram(pMasterController, _strVSFile.c_str(),
+                                 _strFSFile.c_str()))
   {
     if (!pGLSLProgram->IsValid()) {
       delete pGLSLProgram;
@@ -243,6 +246,7 @@ public:
 };
 typedef std::deque<GLSLListElem*> GLSLList;
 typedef GLSLList::iterator GLSLListIter;
+typedef GLSLList::const_iterator GLSLConstListIter;
 };
 
 #endif // GPUMEMMANDATASTRUCTS_H
