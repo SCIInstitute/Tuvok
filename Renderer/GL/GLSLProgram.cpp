@@ -358,7 +358,7 @@ static bool addshader(GLuint program, const std::string& filename,
         GLint log_length;
         glGetShaderiv(sh, GL_INFO_LOG_LENGTH, &log_length);
         std::vector<GLchar> log(log_length);
-        glGetShaderInfoLog(sh, log.size(), NULL, &log[0]);
+        glGetShaderInfoLog(sh, static_cast<GLsizei>(log.size()), NULL, &log[0]);
         errmsg << &log[0];
       }
 
