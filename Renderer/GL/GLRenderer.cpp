@@ -199,7 +199,7 @@ bool GLRenderer::Initialize() {
                           m_vShaderSearchDirs, "Transfer-VS.glsl",
                           "Compose-Scanline-FS.glsl", NULL))
   {
-      T_ERROR("Error loading transfer shaders.");
+      T_ERROR("Error loading transfer function shaders.");
       return false;
   } else {
     m_pProgramTrans->Enable();
@@ -1801,7 +1801,14 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
     }
   }
 
-  MESSAGE("Shaders not found!");
+  {
+    std::ostringstream shaders;
+    shaders << "Shaders [" << vertex << ", ";
+    std::copy(frag.begin(), frag.end(),
+              std::ostream_iterator<std::string>(shaders, ", "));
+    shaders << "] not found!";
+    T_ERROR("%s", shaders.str().c_str());
+  }
   return false;
 }
 
