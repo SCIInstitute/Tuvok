@@ -37,6 +37,10 @@
 #ifndef GLSLPROGRAM_H
 #define GLSLPROGRAM_H
 
+#include "StdTuvokDefines.h"
+#include <vector>
+#include <string>
+
 /// if enabled, SetUniformVector allows for implicit casting, which can
 /// impact performance
 #define GLSL_ALLOW_IMPLICIT_CASTS 1
@@ -71,7 +75,6 @@ typedef enum {
                            given C-string. */
 } GLSLPROGRAM_SOURCE;
 
-#include "../../StdTuvokDefines.h"
 #include "GLObject.h"
 
 namespace tuvok {
@@ -102,6 +105,13 @@ public:
   /// shaders either from disk or from a C-string.
   void Load(const char *VSFile, const char *FSFile,
             GLSLPROGRAM_SOURCE src=GLSLPROGRAM_DISK);
+
+  /// Loads a series of shaders.
+  /// @param vert a set of filenames to load the vertex shader from.
+  /// @param frag a set of filenames to load the fragment shaders from
+  void Load(const std::vector<std::string>& vert,
+            const std::vector<std::string>& frag);
+
   /// Enables this shader for rendering.
   void Enable(void);
   /// Disables this shader for rendering (using fixed function pipeline again)

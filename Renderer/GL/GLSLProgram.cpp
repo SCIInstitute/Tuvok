@@ -39,6 +39,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <sstream>
 #include "GLSLProgram.h"
 #include "Controller/Controller.h"
@@ -72,7 +73,9 @@ GLSLProgram::GLSLProgram(MasterController* pMasterController) :
   m_bEnabled(false),
   m_hProgram(0)
 {
-    Initialize();
+  if(!Initialize()) {
+    T_ERROR("GL initialization failed!");
+  }
 }
 
 /**
@@ -120,7 +123,6 @@ GLSLProgram::~GLSLProgram() {
 
 /**
  * Returns the handle to this shader.
- * \param void
  * \return a const handle. If this is an invalid shader, the handle will be 0.
  * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
  * \date Feb.2005
@@ -371,6 +373,129 @@ void GLSLProgram::Load(const char *VSFile, const char *FSFile, GLSLPROGRAM_SOURC
       }
     }
   }
+}
+
+// reads an entire file into a string.
+static std::string readshader(const std::string& filename)
+{
+  // open in append mode so the file pointer will be at EOF and we can
+  // therefore easily/quickly figure out the file size.
+  std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::ate);
+  if(!ifs.is_open()) {
+    T_ERROR("Could not open shader '%s'", filename.c_str());
+    return "";
+  }
+  std::ifstream::pos_type len = ifs.tellg();
+  ifs.seekg(0, std::ios::beg);
+
+  std::vector<char> shader(len+std::ifstream::pos_type(1));
+  ifs.read(&shader[0], len);
+  if(ifs.gcount() != len) {
+    WARNING("Short read for shader '%s'", filename.c_str());
+  }
+  shader[len] = 0;
+  return std::string(&shader[0]);
+}
+
+static bool addshader(GLuint program, const std::string& filename,
+                      GLenum shtype)
+{
+  std::string shader = readshader(filename);
+  if(shader.empty()) {
+    T_ERROR("Empty shader (type %d) '%s'!", static_cast<int>(shtype),
+            filename.c_str());
+    return false;
+  }
+
+  GLuint sh = glCreateShader(shtype);
+  if(sh == 0) {
+    T_ERROR("Error (%d) creating shader (type %d) '%s'",
+            static_cast<int>(glGetError()), static_cast<int>(shtype),
+            filename.c_str());
+    return false;
+  }
+
+  const GLchar* src[1] = { shader.c_str() };
+  const GLint lengths[1] = { static_cast<GLint>(shader.length()) };
+  glShaderSource(sh, 1, src, lengths);
+
+  if(glGetError() != GL_NO_ERROR) {
+    T_ERROR("Error uploading shader (type %d) source from '%s'",
+            static_cast<int>(shtype), filename.c_str());
+    glDeleteShader(sh);
+    return false;
+  }
+
+  glCompileShader(sh);
+  {
+    // did it compile successfully?
+    GLint success[1];
+    glGetShaderiv(sh, GL_COMPILE_STATUS, success);
+    if(success == GL_FALSE) {
+      T_ERROR("Compilation error in '%s'", filename.c_str());
+      /// @todo fixme GL_INFO_LOG_LENGTTH + glGetShaderInfoLog so that we can
+      /// report the error.
+      glDeleteShader(sh);
+      return false;
+    }
+  }
+
+  glAttachShader(program, sh);
+  if(glGetError() != GL_NO_ERROR) {
+    T_ERROR("Error attaching shader '%s'", filename.c_str());
+    glDeleteShader(sh);
+    return false;
+  }
+
+  // shaders are refcounted; it won't actually be deleted until it is
+  // detached from the program object.
+  glDeleteShader(sh);
+
+  return true;
+}
+
+void GLSLProgram::Load(const std::vector<std::string>& vert,
+                       const std::vector<std::string>& frag)
+{
+  CheckGLError(); // clear previous error status.
+
+  // create the shader program
+  this->m_hProgram = glCreateProgram();
+  if(this->m_hProgram == 0) {
+    T_ERROR("Error creating shader program.");
+    CheckGLError();
+    return;
+  }
+
+  // create a shader for each vertex shader, and attach it to the main program.
+  for(std::vector<std::string>::const_iterator vsh = vert.begin();
+      vsh != vert.end(); ++vsh) {
+    if(false == addshader(this->m_hProgram, *vsh, GL_VERTEX_SHADER)) {
+      T_ERROR("Attaching shader '%s' failed.", vsh->c_str());
+      return;
+    }
+  }
+
+  // create a shader for each fragment shader, and attach it to the main
+  // program.
+  for(std::vector<std::string>::const_iterator fsh = frag.begin();
+      fsh != frag.end(); ++fsh) {
+    if(false == addshader(this->m_hProgram, *fsh, GL_FRAGMENT_SHADER)) {
+      T_ERROR("Attaching shader '%s' failed.", fsh->c_str());
+      return;
+    }
+  }
+
+  glLinkProgram(this->m_hProgram);
+  if(CheckGLError()) {
+    T_ERROR("Program could not link.");
+    /// @todo FIXME delete all attached shader objects too
+    glDeleteProgram(this->m_hProgram);
+    this->m_hProgram = 0;
+    return;
+  }
+
+  m_bInitialized = true;
 }
 
 /**
