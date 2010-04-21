@@ -994,8 +994,8 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile,
   if (e->pGLSLProgram != NULL) {
     m_vpGLSLList.push_back(e);
 
-    m_iAllocatedGPUMemory += e->pGLSLProgram->GetCPUSize();
-    m_iAllocatedCPUMemory += e->pGLSLProgram->GetGPUSize();
+    m_iAllocatedCPUMemory += e->pGLSLProgram->GetCPUSize();
+    m_iAllocatedGPUMemory += e->pGLSLProgram->GetGPUSize();
 
     return e->pGLSLProgram;
   } else {
