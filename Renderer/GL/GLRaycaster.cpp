@@ -85,7 +85,7 @@ bool GLRaycaster::Initialize() {
 
   glShadeModel(GL_SMOOTH);
 
-  string shaderNames[7];
+  const char* shaderNames[7];
   if (m_bNoRCClipplanes) {
    shaderNames[0] = "GLRaycaster-1D-FS-NC.glsl";
    shaderNames[1] = "GLRaycaster-1D-light-FS-NC.glsl";
@@ -105,22 +105,32 @@ bool GLRaycaster::Initialize() {
   }
 
 
-  if (!LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-frontfaces-FS.glsl", m_vShaderSearchDirs, &(m_pProgramRenderFrontFaces)) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[0],   m_vShaderSearchDirs, &(m_pProgram1DTrans[0])) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[1],   m_vShaderSearchDirs, &(m_pProgram1DTrans[1])) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[2],   m_vShaderSearchDirs, &(m_pProgram2DTrans[0])) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[3],   m_vShaderSearchDirs, &(m_pProgram2DTrans[1])) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[6],   m_vShaderSearchDirs, &(m_pProgramIso)) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[4],   m_vShaderSearchDirs, &(m_pProgramColor)) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", shaderNames[5],   m_vShaderSearchDirs, &(m_pProgramIso2)) ||
-      !LoadAndVerifyShader("GLRaycaster-VS.glsl", "GLRaycaster-MIP-Rot-FS.glsl",    m_vShaderSearchDirs, &(m_pProgramHQMIPRot))) {
-
+  if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
+                          "GLRaycaster-VS.glsl",
+                          "GLRaycaster-frontfaces-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
+                          "GLRaycaster-VS.glsl", shaderNames[0],  NULL) ||
+     !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
+                          "GLRaycaster-VS.glsl", shaderNames[1], NULL) ||
+     !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
+                          "GLRaycaster-VS.glsl", shaderNames[2], NULL) ||
+     !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
+                          "GLRaycaster-VS.glsl", shaderNames[3], NULL) ||
+     !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
+                          "GLRaycaster-VS.glsl", shaderNames[6], NULL) ||
+     !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
+                          "GLRaycaster-VS.glsl", shaderNames[4], NULL) ||
+     !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
+                          "GLRaycaster-VS.glsl", shaderNames[5], NULL) ||
+     !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
+                          "GLRaycaster-VS.glsl",
+                          "GLRaycaster-MIP-Rot-FS.glsl", NULL))
+  {
       Cleanup();
 
       T_ERROR("Error loading a shader.");
       return false;
   } else {
-
     m_pProgram1DTrans[0]->Enable();
     m_pProgram1DTrans[0]->SetUniformVector("texVolume",0);
     m_pProgram1DTrans[0]->SetUniformVector("texTrans1D",1);
