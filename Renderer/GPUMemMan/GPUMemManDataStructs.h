@@ -234,6 +234,20 @@ public:
     }
   }
 
+  GLSLListElem(MasterController* mc,
+               const std::vector<std::string>& vert,
+               const std::vector<std::string>& frag) :
+    strVSFile(vert[0]), strFSFile(frag[0]), // hack!
+    iAccessCounter(1),
+    pGLSLProgram(new GLSLProgram(mc))
+  {
+    pGLSLProgram->Load(vert, frag);
+    if(!pGLSLProgram->IsValid()) {
+      delete pGLSLProgram;
+      pGLSLProgram = NULL;
+    }
+  }
+
   ~GLSLListElem()
   {
     delete pGLSLProgram;
