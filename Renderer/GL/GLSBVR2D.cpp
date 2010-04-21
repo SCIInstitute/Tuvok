@@ -68,16 +68,25 @@ bool GLSBVR2D::Initialize() {
     return false;
   }
 
-  if (!LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-1D-FS.glsl",       m_vShaderSearchDirs, &(m_pProgram1DTrans[0])) ||
-      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-1D-light-FS.glsl", m_vShaderSearchDirs, &(m_pProgram1DTrans[1])) ||
-      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl",       m_vShaderSearchDirs, &(m_pProgram2DTrans[0])) ||
-      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-2D-light-FS.glsl", m_vShaderSearchDirs, &(m_pProgram2DTrans[1])) ||
-      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl",  m_vShaderSearchDirs, &(m_pProgramHQMIPRot)) ||
-      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-ISO-FS.glsl",      m_vShaderSearchDirs, &(m_pProgramIso)) ||
-      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-Color-FS.glsl",    m_vShaderSearchDirs, &(m_pProgramColor)) ||
-      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-ISO-NC-FS.glsl",   m_vShaderSearchDirs, &(m_pProgramIsoNoCompose)) ||
-      !LoadAndVerifyShader("GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", m_vShaderSearchDirs, &(m_pProgramColorNoCompose))) {
-
+  if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
+                          "GLSBVR-VS.glsl", "GLSBVR-1D-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
+                          "GLSBVR-VS.glsl", "GLSBVR-1D-light-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
+                          "GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
+                          "GLSBVR-VS.glsl", "GLSBVR-2D-light-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
+                          "GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
+                          "GLSBVR-VS.glsl", "GLSBVR-ISO-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
+                          "GLSBVR-VS.glsl", "GLSBVR-Color-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramIsoNoCompose, m_vShaderSearchDirs,
+                          "GLSBVR-VS.glsl", "GLSBVR-ISO-NC-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramColorNoCompose, m_vShaderSearchDirs,
+                          "GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", NULL))
+  {
       Cleanup();
 
       T_ERROR("Error loading a shader.");
