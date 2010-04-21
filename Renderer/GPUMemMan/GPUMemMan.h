@@ -123,8 +123,6 @@ class GPUMemMan {
                      int iNumBuffers=1);
     void FreeFBO(GLFBOTex* pFBO);
 
-    GLSLProgram* GetGLSLProgram(const std::string& strVSFile,
-                                const std::string& strFSFile);
     GLSLProgram* GetGLSLProgram(const std::vector<std::string>& vert,
                                 const std::vector<std::string>& frag);
     void FreeGLSLProgram(GLSLProgram* pGLSLProgram);

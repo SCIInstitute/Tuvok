@@ -974,37 +974,6 @@ void GPUMemMan::FreeFBO(GLFBOTex* pFBO) {
   WARNING("FBO to free not found.");
 }
 
-GLSLProgram* GPUMemMan::GetGLSLProgram(const string& strVSFile,
-                                       const string& strFSFile) {
-  for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
-    if ((*i)->strVSFile == strVSFile && (*i)->strFSFile == strFSFile) {
-      MESSAGE("Reusing GLSL program from the VS %s and the FS %s",
-              (*i)->strVSFile.c_str(), (*i)->strFSFile.c_str());
-      (*i)->iAccessCounter++;
-      return (*i)->pGLSLProgram;
-    }
-  }
-
-  MESSAGE("Creating new GLSL program from the VS %s and the FS %s",
-          SysTools::GetFilename(strVSFile).c_str(),
-          SysTools::GetFilename(strFSFile).c_str());
-
-  GLSLListElem* e = new GLSLListElem(m_MasterController, strVSFile, strFSFile);
-
-  if (e->pGLSLProgram != NULL) {
-    m_vpGLSLList.push_back(e);
-
-    m_iAllocatedCPUMemory += e->pGLSLProgram->GetCPUSize();
-    m_iAllocatedGPUMemory += e->pGLSLProgram->GetGPUSize();
-
-    return e->pGLSLProgram;
-  } else {
-    T_ERROR("Failed to created GLSL program from the VS %s and the FS %s",
-            strVSFile.c_str(), strFSFile.c_str());
-    return NULL;
-  }
-}
-
 GLSLProgram* GPUMemMan::GetGLSLProgram(const std::vector<std::string>& vert,
                                        const std::vector<std::string>& frag)
 {
