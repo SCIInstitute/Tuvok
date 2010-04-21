@@ -50,6 +50,7 @@
 #include "DSFactory.h"
 #include "uvfDataset.h"
 
+#include "AnalyzeConverter.h"
 #include "BOVConverter.h"
 #include "NRRDConverter.h"
 #include "QVISConverter.h"
@@ -91,6 +92,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new IASSConverter());
   m_vpConverters.push_back(new I3MConverter());
   m_vpConverters.push_back(new KitwareConverter());
+  m_vpConverters.push_back(new AnalyzeConverter());
   m_dsFactory->AddReader(std::tr1::shared_ptr<UVFDataset>(new UVFDataset()));
 }
 
