@@ -129,8 +129,12 @@ namespace gl {
 
   void GetAttachedShaders(GLuint program, GLsizei mx, GLsizei* count,
                           GLuint* objs) {
-    if(arb) { glGetAttachedObjectsARB(program, mx, count, objs); }
-    else    { glGetAttachedShaders(program, mx, count, objs); }
+    if(arb) {
+      glGetAttachedObjectsARB(static_cast<GLhandleARB>(program), mx, count,
+                              objs);
+    } else {
+      glGetAttachedShaders(program, mx, count, objs);
+    }
   }
 
   GLint GetUniformLocation(GLuint program, const GLchar* name) {
