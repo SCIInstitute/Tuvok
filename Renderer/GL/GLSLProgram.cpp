@@ -103,20 +103,50 @@ GLSLProgram::GLSLProgram(MasterController* pMasterController, const char *VSFile
     Load(VSFile,FSFile,src);
 }
 
-/**
- * Standard Destructor.
- * Cleans up the memory automatically.
- * \param void
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Aug.2004
- */
+/// detaches all shaders attached to the given program ID
+static void detach_shaders(GLuint program)
+{
+  GLenum err;
+
+  // how many shaders are attached?
+  GLint num_shaders;
+  glGetProgramiv(program, GL_ATTACHED_SHADERS, &num_shaders);
+
+  if((err = glGetError()) != GL_NO_ERROR) {
+    WARNING("Error obtaining the number of shaders attached to program %u: %x",
+            static_cast<unsigned>(program), static_cast<unsigned>(err));
+  }
+
+  if(num_shaders > 0) {
+    // get the shader IDs
+    std::vector<GLuint> shaders(num_shaders);
+    glGetAttachedShaders(program, num_shaders, NULL, &shaders[0]);
+    if((err = glGetError()) != GL_NO_ERROR) {
+      WARNING("Error obtaining the shader IDs attached to program %u: %x",
+              static_cast<unsigned>(program), static_cast<unsigned>(err));
+    }
+
+    // detach each shader
+    for(std::vector<GLuint>::const_iterator sh = shaders.begin();
+        sh != shaders.end(); ++sh) {
+      glDetachShader(program, *sh);
+      if((err = glGetError()) != GL_NO_ERROR) {
+        WARNING("Error detaching shader %u from %u: %x",
+                static_cast<unsigned>(*sh),
+                static_cast<unsigned>(program), static_cast<unsigned>(err));
+      }
+    }
+  }
+}
+
 GLSLProgram::~GLSLProgram() {
   if (IsValid()) {
-    if (m_bGLUseARB)
+    if (m_bGLUseARB) {
       glDeleteObjectARB(m_hProgram);
-    else
+    } else {
+      detach_shaders(m_hProgram);
       glDeleteProgram(m_hProgram);
+    }
   }
   m_hProgram=0;
 }
