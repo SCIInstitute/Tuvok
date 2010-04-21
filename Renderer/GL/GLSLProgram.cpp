@@ -209,12 +209,11 @@ static void detach_shaders(GLuint program)
 
 GLSLProgram::~GLSLProgram() {
   if (IsValid()) {
-    if (m_bGLUseARB) {
-      glDeleteObjectARB(m_hProgram);
-    } else {
+    if(!gl::arb) {
+      // We don't know how to do this with ARB calls, currently.
       detach_shaders(m_hProgram);
-      glDeleteProgram(m_hProgram);
     }
+    gl::DeleteProgram(m_hProgram);
   }
   m_hProgram=0;
 }
@@ -505,7 +504,7 @@ static bool addshader(GLuint program, const std::string& filename,
     return false;
   }
 
-  GLuint sh = glCreateShader(shtype);
+  GLuint sh = gl::CreateShader(shtype);
   if(sh == 0) {
     T_ERROR("Error (%d) creating shader (type %d) '%s'",
             static_cast<int>(glGetError()), static_cast<int>(shtype),
@@ -515,39 +514,44 @@ static bool addshader(GLuint program, const std::string& filename,
 
   const GLchar* src[1] = { shader.c_str() };
   const GLint lengths[1] = { static_cast<GLint>(shader.length()) };
-  glShaderSource(sh, 1, src, lengths);
+  gl::ShaderSource(sh, 1, src, lengths);
 
   if(glGetError() != GL_NO_ERROR) {
     T_ERROR("Error uploading shader (type %d) source from '%s'",
             static_cast<int>(shtype), filename.c_str());
-    glDeleteShader(sh);
+    gl::DeleteShader(sh);
     return false;
   }
 
-  glCompileShader(sh);
+  gl::CompileShader(sh);
+
+  // did it compile successfully?
   {
-    // did it compile successfully?
     GLint success[1];
-    glGetShaderiv(sh, GL_COMPILE_STATUS, success);
+    if(gl::arb) {
+      glGetShaderiv(sh, GL_COMPILE_STATUS, success);
+    } else {
+      glGetObjectParameterivARB(sh, GL_OBJECT_COMPILE_STATUS_ARB, success);
+    }
     if(success == GL_FALSE) {
       T_ERROR("Compilation error in '%s'", filename.c_str());
-      /// @todo fixme GL_INFO_LOG_LENGTTH + glGetShaderInfoLog so that we can
+      /// @todo fixme GL_INFO_LOG_LENGTH + glGetShaderInfoLog so that we can
       /// report the error.
-      glDeleteShader(sh);
+      gl::DeleteShader(sh);
       return false;
     }
   }
 
-  glAttachShader(program, sh);
+  gl::AttachShader(program, sh);
   if(glGetError() != GL_NO_ERROR) {
     T_ERROR("Error attaching shader '%s'", filename.c_str());
-    glDeleteShader(sh);
+    gl::DeleteShader(sh);
     return false;
   }
 
   // shaders are refcounted; it won't actually be deleted until it is
   // detached from the program object.
-  glDeleteShader(sh);
+  gl::DeleteShader(sh);
 
   return true;
 }
@@ -558,10 +562,10 @@ void GLSLProgram::Load(const std::vector<std::string>& vert,
   CheckGLError(); // clear previous error status.
 
   // create the shader program
-  this->m_hProgram = glCreateProgram();
+  this->m_hProgram = gl::CreateProgram();
   if(this->m_hProgram == 0) {
     T_ERROR("Error creating shader program.");
-    CheckGLError();
+    CheckGLError(_func_);
     return;
   }
 
@@ -584,13 +588,24 @@ void GLSLProgram::Load(const std::vector<std::string>& vert,
     }
   }
 
-  glLinkProgram(this->m_hProgram);
-  if(CheckGLError()) {
-    T_ERROR("Program could not link.");
-    /// @todo FIXME delete all attached shader objects too
-    glDeleteProgram(this->m_hProgram);
-    this->m_hProgram = 0;
-    return;
+  gl::LinkProgram(this->m_hProgram);
+
+  { // figure out if the linking was successful.
+    GLint linked = GL_TRUE;
+    if(gl::arb) {
+      glGetObjectParameterivARB(this->m_hProgram, GL_OBJECT_LINK_STATUS_ARB,
+                                &linked);
+    } else {
+      glGetProgramiv(this->m_hProgram, GL_LINK_STATUS, &linked);
+    }
+
+    if(CheckGLError(_func_) || linked != 1) {
+      T_ERROR("Program could not link.");
+      /// @todo FIXME delete all attached shader objects too
+      gl::DeleteProgram(this->m_hProgram);
+      this->m_hProgram = 0;
+      return;
+    }
   }
 
   m_bInitialized = true;
@@ -787,10 +802,7 @@ void GLSLProgram::Enable(void) {
   }
   if (m_bInitialized) {
     do { } while(CheckGLError());
-    if (m_bGLUseARB)
-      glUseProgramObjectARB(m_hProgram);
-    else
-      glUseProgram(m_hProgram);
+    gl::UseProgram(m_hProgram);
     if (!CheckGLError("Enable()")) m_bEnabled=true;
   }
   else T_ERROR("No program loaded!");
@@ -808,10 +820,7 @@ void GLSLProgram::Enable(void) {
 void GLSLProgram::Disable(void) {
   if (m_bInitialized) {
     CheckGLError();
-    if (m_bGLUseARB)
-      glUseProgramObjectARB(0);
-    else
-      glUseProgram(0);
+    gl::UseProgram(0);
     if (!CheckGLError("Disable()")) m_bEnabled=false;
   }
   else T_ERROR("No program loaded!");
@@ -919,11 +928,7 @@ static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
   GLint location;
 
   // Get the position for the uniform var.
-  if(GLSLProgram::m_bGLUseARB) {
-    location=glGetUniformLocationARB(program, name);
-  } else {
-    location=glGetUniformLocation(program, name);
-  }
+  location = gl::GetUniformLocation(program, name);
   GLenum gl_err = glGetError();
   if(gl_err != GL_NO_ERROR || location == -1) {
     throw GL_ERROR(gl_err);
@@ -1441,11 +1446,7 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
   GLenum iType;
   GLint iLocation;
 
-  if (m_bGLUseARB) {
-    iLocation=glGetUniformLocationARB(m_hProgram,name);
-  } else {
-    iLocation=glGetUniformLocation(m_hProgram,name);
-  }
+  iLocation = gl::GetUniformLocation(m_hProgram, name);
 
   if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) {
     return;
@@ -1546,11 +1547,7 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
   GLenum iType;
   GLint iLocation;
 
-  if (m_bGLUseARB) {
-    iLocation=glGetUniformLocationARB(m_hProgram,name);
-  } else {
-    iLocation=glGetUniformLocation(m_hProgram,name);
-  }
+  iLocation = gl::GetUniformLocation(m_hProgram, name);
 
   if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) {
     return;
@@ -1651,11 +1648,7 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
   GLenum iType;
   GLint iLocation;
 
-  if (m_bGLUseARB) {
-    iLocation=glGetUniformLocationARB(m_hProgram,name);
-  } else {
-    iLocation=glGetUniformLocation(m_hProgram,name);
-  }
+  iLocation = gl::GetUniformLocation(m_hProgram, name);
 
   if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) {
     return;
