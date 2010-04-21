@@ -191,7 +191,12 @@ static void detach_shaders(GLuint program)
 
   // how many shaders are attached?
   GLint num_shaders;
-  glGetProgramiv(program, GL_ATTACHED_SHADERS, &num_shaders);
+  if(gl::arb) {
+    glGetProgramiv(program, GL_ATTACHED_SHADERS, &num_shaders);
+  } else {
+    glGetObjectParameterivARB(program, GL_OBJECT_ATTACHED_OBJECTS_ARB,
+                              &num_shaders);
+  }
 
   if((err = glGetError()) != GL_NO_ERROR) {
     WARNING("Error obtaining the number of shaders attached to program %u: %x",
@@ -201,7 +206,7 @@ static void detach_shaders(GLuint program)
   if(num_shaders > 0) {
     // get the shader IDs
     std::vector<GLuint> shaders(num_shaders);
-    glGetAttachedShaders(program, num_shaders, NULL, &shaders[0]);
+    gl::GetAttachedShaders(program, num_shaders, NULL, &shaders[0]);
     if((err = glGetError()) != GL_NO_ERROR) {
       WARNING("Error obtaining the shader IDs attached to program %u: %x",
               static_cast<unsigned>(program), static_cast<unsigned>(err));
@@ -210,7 +215,7 @@ static void detach_shaders(GLuint program)
     // detach each shader
     for(std::vector<GLuint>::const_iterator sh = shaders.begin();
         sh != shaders.end(); ++sh) {
-      glDetachShader(program, *sh);
+      gl::DetachShader(program, *sh);
       if((err = glGetError()) != GL_NO_ERROR) {
         WARNING("Error detaching shader %u from %u: %x",
                 static_cast<unsigned>(*sh),
