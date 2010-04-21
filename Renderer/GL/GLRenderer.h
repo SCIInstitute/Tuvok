@@ -148,6 +148,12 @@ class GLRenderer : public AbstrRenderer {
     virtual void RenderHQMIPPostLoop() {}
 
     virtual void CreateOffscreenBuffers();
+    virtual bool LoadAndVerifyShader(GLSLProgram**,
+                                     const std::vector<std::string>& strDirs,
+                                     const char* vert, ...);
+    virtual bool LoadAndVerifyShader(GLSLProgram**,
+                                     std::vector<std::string> vert,
+                                     std::vector<std::string> frag) const;
     virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile,
                                      const std::vector<std::string>& strDirs,
                                      GLSLProgram** pShaderProgram);

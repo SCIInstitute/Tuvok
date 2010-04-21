@@ -34,6 +34,7 @@
   \date    August 2008
 */
 
+#include <cstdarg>
 #include <typeinfo>
 #include "GLInclude.h"
 #include "GLFBOTex.h"
@@ -1700,6 +1701,108 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
     return false;
 }
 
+static std::string find_shader(const std::string& file, bool subdirs)
+{
+#ifdef DETECTED_OS_APPLE
+  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(file))) {
+    file = SysTools::GetFromResourceOnMac(file);
+    MESSAGE("Found %s in bundle, using that.", file.c_str());
+    return file;
+  }
+#endif
+
+  // if it doesn't exist, try our subdirs.
+  if(!SysTools::FileExists(file) && subdirs) {
+    std::vector<std::string> dirs = SysTools::GetSubDirList(
+      Controller::Instance().SysInfo()->GetProgramPath()
+    );
+    dirs.push_back(Controller::Instance().SysInfo()->GetProgramPath());
+
+    std::string raw_fn = SysTools::GetFilename(file);
+    for(std::vector<std::string>::const_iterator d = dirs.begin();
+        d != dirs.end(); ++d) {
+      std::string testfn = *d + "/" + raw_fn;
+      MESSAGE("searching %s", testfn.c_str());
+      if(SysTools::FileExists(testfn)) {
+        return testfn;
+      }
+    }
+    MESSAGE("Could not find '%s'", file.c_str());
+    return "";
+  }
+
+  return file;
+}
+
+namespace {
+  template <typename ForwIter>
+  bool all_exist(ForwIter bgn, ForwIter end) {
+    do {
+      if(!SysTools::FileExists(*bgn)) {
+        return false;
+      }
+      ++bgn;
+    } while(bgn != end);
+    return true;
+  }
+}
+
+
+bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
+                                     const std::vector<std::string>& strDirs,
+                                     const char* vertex, ...)
+{
+  // first build list of fragment shaders
+  std::vector<std::string> frag;
+
+  va_list args;
+  va_start(args, vertex);
+  {
+    const char* fp;
+    do {
+      fp = va_arg(args, const char*);
+      if(fp != NULL) {
+        std::string shader = find_shader(std::string(fp), false);
+        if(shader == "") {
+          T_ERROR("Could not find shader '%s'!", fp);
+          return false;
+        }
+        frag.push_back(shader);
+      }
+    } while(fp != NULL);
+  }
+  va_end(args);
+
+  // now iterate through all directories, looking for our shaders in them.
+  for (size_t i = 0;i<strDirs.size();i++) {
+    MESSAGE("Searching for shaders in %s ...", strDirs[i].c_str());
+
+    std::vector<std::string> fullVS(1);
+    std::vector<std::string> fullFS(frag.size());
+
+    fullVS[0] = strDirs[i] + "/" + vertex;
+    if(!SysTools::FileExists(fullVS[0])) {
+      MESSAGE("%s doesn't exist, skipping this directory...", fullVS[0].c_str());
+      continue;
+    }
+    for(size_t j=0; j < fullFS.size(); ++j) {
+      fullFS[j] = strDirs[i] + "/" + frag[j];
+    }
+    // if any of those files don't exist, skip this directory.
+    if(!all_exist(fullFS.begin(), fullFS.end())) {
+      MESSAGE("Not all fragment shaders present in %s, skipping...",
+              strDirs[i].c_str());
+    }
+
+    if (LoadAndVerifyShader(program, fullVS, fullFS)) {
+      return true;
+    }
+  }
+
+  MESSAGE("Shaders not found!");
+  return false;
+}
+
 bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
                                      GLSLProgram** pShaderProgram,
                                      bool bSearchSubdirs) {
@@ -1711,68 +1814,33 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
   if (SysTools::FileExists(SysTools::GetFromResourceOnMac(strFSFile)))
     strFSFile = SysTools::GetFromResourceOnMac(strFSFile);
 #endif
+  std::string strActualVSFile = find_shader(strVSFile, bSearchSubdirs);
+  std::string strActualFSFile = find_shader(strFSFile, bSearchSubdirs);
 
-  string strActualVSFile = "";
-  if (!SysTools::FileExists(strVSFile) && bSearchSubdirs) {
-    // if vertex shader is not found in the given directory, 
-    // probe all subdirectories of the program's directory
-    vector<string> subdirs = SysTools::GetSubDirList(Controller::Instance().SysInfo()->GetProgramPath());
-    subdirs.push_back(Controller::Instance().SysInfo()->GetProgramPath());
-
-    string strDirlessVSFile = SysTools::GetFilename(strVSFile);
-    for (size_t i = 0;i<subdirs.size();i++) {
-      string strTestVSFile = subdirs[i] + "/" + strDirlessVSFile;
-
-      if (SysTools::FileExists(strTestVSFile)) {
-        strActualVSFile = strTestVSFile;
-        break;
-      }
-    }
-
-    if (strActualVSFile == "") {
-      T_ERROR("Unable to locate vertex shader %s (%s)", strDirlessVSFile.c_str(),
-              strVSFile.c_str());
-      return false;
-    } else {
-      MESSAGE("Changed vertex shader %s to %s", strVSFile.c_str(),
-              strActualVSFile.c_str());
-    }
+  if (strActualVSFile == "") {
+    T_ERROR("Unable to locate vertex shader %s", strVSFile.c_str());
+    return false;
   } else {
-    strActualVSFile = strVSFile;
+    MESSAGE("Changed vertex shader %s to %s", strVSFile.c_str(),
+            strActualVSFile.c_str());
   }
 
-  string strActualFSFile = "";
-  if (!SysTools::FileExists(strFSFile) && bSearchSubdirs) {
-    // if fragment shader is not found in the given directory, probe all subdirectories
-    vector<string> subdirs = SysTools::GetSubDirList(Controller::Instance().SysInfo()->GetProgramPath());
-    subdirs.push_back(Controller::Instance().SysInfo()->GetProgramPath());
-
-    string strDirlessFSFile = SysTools::GetFilename(strFSFile);
-    for (size_t i = 0;i<subdirs.size();i++) {
-      string strTestFSFile = subdirs[i] + "/" + strDirlessFSFile;
-
-      if (SysTools::FileExists(strTestFSFile)) {
-        strActualFSFile = strTestFSFile;
-        break;
-      }
-    }
-
-    if (strActualFSFile == "") {
-      T_ERROR("Unable to locate fragment shader %s (%s)", strDirlessFSFile.c_str(),
-              strFSFile.c_str());
-      return false;
-    } else
-      MESSAGE("Changed fragment shader %s to %s", strFSFile.c_str(),
-              strActualFSFile.c_str());
-
+  if (strActualFSFile == "") {
+    T_ERROR("Unable to locate fragment shader %s", strFSFile.c_str());
+    return false;
   } else {
-    strActualFSFile = strFSFile;
+    MESSAGE("Changed fragment shader %s to %s", strFSFile.c_str(),
+            strActualFSFile.c_str());
   }
-
 
   if (SysTools::FileExists(strActualVSFile) && SysTools::FileExists(strActualFSFile)) {
-    (*pShaderProgram) = m_pMasterController->MemMan()->GetGLSLProgram(strActualVSFile,
-                                                                      strActualFSFile);
+    GPUMemMan& mm = *(m_pMasterController->MemMan());
+    std::vector<std::string> vert(1);
+    std::vector<std::string> frag(1);
+    vert[0] = strActualVSFile;
+    frag[0] = strActualFSFile;
+
+    (*pShaderProgram) = mm.GetGLSLProgram(vert, frag);
 
     if ((*pShaderProgram) == NULL || !(*pShaderProgram)->IsValid()) {
         T_ERROR("Error loading a shader combination VS %s and FS %s.",
@@ -1787,6 +1855,32 @@ bool GLRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile,
   }
 }
 
+bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
+                                     std::vector<std::string> vert,
+                                     std::vector<std::string> frag) const
+{
+  vert[0] = find_shader(std::string(vert[0]), false);
+  if(vert[0] == "") {
+    T_ERROR("Could not find vertex shader '%s'!", vert[0].c_str());
+    return false;
+  }
+  for(std::vector<std::string>::iterator f = frag.begin(); f != frag.end();
+      ++f) {
+    *f = find_shader(*f, false);
+  }
+
+  GPUMemMan& mm = *(m_pMasterController->MemMan());
+  (*program) = mm.GetGLSLProgram(vert, frag);
+
+  if((*program) == NULL || !(*program)->IsValid()) {
+    /// @todo fixme report *which* shaders!
+    T_ERROR("Error loading shaders.");
+    mm.FreeGLSLProgram(*program);
+    return false;
+  }
+
+  return true;
+}
 
 void GLRenderer::BBoxPreRender() {
   // for rendering modes other than isosurface render the bbox in the first
