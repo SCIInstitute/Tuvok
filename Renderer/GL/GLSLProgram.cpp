@@ -58,6 +58,74 @@ bool GLSLProgram::m_bGLUseARB=false;       ///< use pre GL 2.0 syntax
 GLsizei AtiHackLen;
 GLchar AtiHackChar;
 
+// Abstract out the basic ARB/OGL 2.0 shader API differences.  Does not attempt
+// to unify the APIs; some calls actually do differ, and error checking changed
+// when standardizing,  Clients should check gl::arb and handle these
+// differences manually.
+namespace gl {
+  static bool arb = false;
+  GLuint CreateProgram();
+  GLuint CreateShader(GLenum type);
+  void ShaderSource(GLuint, GLsizei, const GLchar**, const GLint*);
+  void CompileShader(GLuint);
+  void AttachShader(GLuint, GLuint);
+  void UseProgram(GLuint);
+  void DeleteShader(GLuint);
+  void DeleteProgram(GLuint);
+
+  GLint GetUniformLocation(GLuint, const GLchar*);
+
+  GLuint CreateProgram() {
+    if(arb) { return glCreateProgramObjectARB(); }
+    else    { return glCreateProgram(); }
+  }
+
+  GLuint CreateShader(GLenum type) {
+    assert(type == GL_VERTEX_SHADER || type == GL_FRAGMENT_SHADER);
+    if(arb) { return glCreateShaderObjectARB(type); }
+    else    { return glCreateShader(type); }
+  }
+
+  void ShaderSource(GLuint shader, GLsizei count, const GLchar** str,
+                    const GLint*length) {
+    if(arb) { glShaderSourceARB(shader, count, str, length); }
+    else    { glShaderSource(shader, count, str, length); }
+  }
+
+  void CompileShader(GLuint shader) {
+    if(arb) { glCompileShaderARB(shader); }
+    else    { glCompileShader(shader); }
+  }
+  void AttachShader(GLuint program, GLuint shader) {
+    if(arb) { glAttachObjectARB(program, shader); }
+    else    { glAttachShader(program, shader); }
+  }
+  void LinkProgram(GLuint program) {
+    if(arb) { glLinkProgramARB(program); }
+    else    { glLinkProgram(program); }
+  }
+
+  void UseProgram(GLuint shader) {
+    if(arb) { glUseProgramObjectARB(shader); }
+    else    { glUseProgram(shader); }
+  }
+
+  void DeleteShader(GLuint shader) {
+    if(arb) { glDeleteObjectARB(shader); }
+    else    { glDeleteShader(shader); }
+  }
+
+  void DeleteProgram(GLuint p) {
+    if(arb) { glDeleteObjectARB(p); }
+    else    { glDeleteProgram(p); }
+  }
+
+  GLint GetUniformLocation(GLuint program, const GLchar* name) {
+    if(arb) { return glGetUniformLocationARB(program, name); }
+    else    { return glGetUniformLocation(program, name); }
+  }
+}
+
 /**
  * Default Constructor.
  * Initializes glew on first instantiation.
@@ -190,7 +258,7 @@ bool GLSLProgram::Initialize(void) {
             (const char*)glGetString(GL_VENDOR));
     if (atof((const char*)glGetString(GL_VERSION)) >= 2.0) {
       MESSAGE("OpenGL 2.0 supported");
-      m_bGLUseARB = false;
+      gl::arb = m_bGLUseARB = false;
     } else { // check for ARB extensions
       if (glewGetExtension("GL_ARB_shader_objects"))
         MESSAGE("ARB_shader_objects supported.");
@@ -219,7 +287,7 @@ bool GLSLProgram::Initialize(void) {
       glUniformMatrix3fv = glUniformMatrix3fvARB;
       glUniformMatrix4fv = glUniformMatrix4fvARB;
 
-      m_bGLUseARB = true;
+      gl::arb = m_bGLUseARB = true;
     }
   }
   return true;
