@@ -276,7 +276,7 @@ void GLSBVR2D::RenderProxyGeometry() {
     switch (m_SBVRGeogen.m_vSliceTrianglesOrder[i]) {
       case SBVRGeogen2D::DIRECTION_X : {
                                           glBegin(GL_TRIANGLES);
-                                            for (int i = int(m_SBVRGeogen.m_vSliceTrianglesX.size())-1;i>=0;i--) {
+                                            for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
                                               glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x,
                                                            m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
                                                            m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z);
@@ -288,7 +288,7 @@ void GLSBVR2D::RenderProxyGeometry() {
                                        } break;
       case SBVRGeogen2D::DIRECTION_Y : {
                                           glBegin(GL_TRIANGLES);
-                                            for (int i = int(m_SBVRGeogen.m_vSliceTrianglesY.size())-1;i>=0;i--) {
+                                            for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
                                               glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
                                                            m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y,
                                                            m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z);
@@ -300,7 +300,7 @@ void GLSBVR2D::RenderProxyGeometry() {
                                        } break;
       case SBVRGeogen2D::DIRECTION_Z : {
                                           glBegin(GL_TRIANGLES);
-                                            for (int i = int(m_SBVRGeogen.m_vSliceTrianglesZ.size())-1;i>=0;i--) {
+                                            for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
                                               glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
                                                            m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
                                                            m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z);

@@ -54,6 +54,12 @@ public:
     DIRECTION_Z
   };
 
+  enum ESliceMethod {
+    METHOD_REZK=0,
+    METHOD_KRUEGER,
+    METHOD_KRUEGER_FAST
+  };
+
   SBVRGeogen2D(void);
   virtual ~SBVRGeogen2D(void);
   virtual void ComputeGeometry();
@@ -64,7 +70,7 @@ public:
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesY;
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesZ;
   FLOATVECTOR3 m_fDelta;
-  bool m_bUseOldMethod;
+  ESliceMethod m_eMethod;
 
 protected:
   UINT32 GetLayerCount(int iDir) const;
@@ -72,9 +78,9 @@ protected:
   void InterpolateVertices(const POS3TEX3_VERTEX& v1, const POS3TEX3_VERTEX& v2, float a, POS3TEX3_VERTEX& r) const;
 
 private:
-  void ComputeGeometryNew();
-  void ComputeGeometryNewFast();
-  void ComputeGeometryOld();
+  void ComputeGeometryRezk();
+  void ComputeGeometryKrueger();
+  void ComputeGeometryKruegerFast();
 };
 };
 #endif // SBVRGEOGEN2D_H
