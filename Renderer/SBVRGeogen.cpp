@@ -194,15 +194,8 @@ std::vector<POS3TEX3_VERTEX> SBVRGeogen::SplitTriangle(POS3TEX3_VERTEX a,
 
   // Find the intersection points.
   POS3TEX3_VERTEX A, B;
-#ifdef _DEBUG
-  const bool isect_a = RayPlaneIntersection(a,c, normal,D, A);
-  const bool isect_b = RayPlaneIntersection(b,c, normal,D, B);
-  assert(isect_a); // lines must cross plane
-  assert(isect_b);
-#else
   RayPlaneIntersection(a,c, normal,D, A);
   RayPlaneIntersection(b,c, normal,D, B);
- #endif
 
   if(fc >= 0) {
     out.push_back(a); out.push_back(b); out.push_back(A);
