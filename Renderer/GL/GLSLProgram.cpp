@@ -302,12 +302,17 @@ static std::string readshader(const std::string& filename)
   std::ifstream::pos_type len = ifs.tellg();
   ifs.seekg(0, std::ios::beg);
 
-  std::vector<char> shader(len+std::ifstream::pos_type(1));
+  std::vector<char> shader(len+std::ifstream::pos_type(1), 0);
   ifs.read(&shader[0], len);
-  if(ifs.gcount() != len) {
+  if(ifs.gcount() != len
+#ifdef DETECTED_OS_WINDOWS
+     && !ifs.eof()
+#endif
+     ) {
     WARNING("Short read for shader '%s'", filename.c_str());
   }
-  shader[len] = 0;
+  ifs.close();
+
   return std::string(&shader[0]);
 }
 
