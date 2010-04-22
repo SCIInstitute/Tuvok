@@ -798,7 +798,7 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
     }
   }
 
-  MESSAGE("Creating new texture %llu x %llu x %llu, "
+  MESSAGE("Creating new texture %u x %u x %u, "
           "bitsize=%llu, componentcount=%llu",
           sz[0], sz[1], sz[2], iBitWidth, iCompCount);
 
