@@ -34,6 +34,7 @@
   \date    December 2009
 */
 
+#include "StdTuvokDefines.h"
 #include <algorithm>
 #include <cassert>
 #include <StdTuvokDefines.h>
@@ -50,7 +51,9 @@
 #include <limits>
 #include "SBVRGeogen2D.h"
 
-#include <Windows.h>
+#ifdef DETECTED_OS_WINDOWS
+# include <Windows.h>
+#endif
 
 using namespace std;
 using namespace tuvok;
