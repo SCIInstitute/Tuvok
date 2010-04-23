@@ -1449,16 +1449,30 @@ public:
   /// Determine the intersection point of the plane and a line `ab'.
   /// @return whether or not the two intersect.  If false, `hit' will not be
   ///         valid.
-  bool intersect(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
-                 FLOATVECTOR3& hit) const {
-    const float denom = (*this) ^ (a - b);
+  bool intersect(const VECTOR3<T>& a, const VECTOR3<T>& b,
+                 VECTOR3<T>& hit) const {
+    const T denom = (*this) ^ (a - b);
     if(EpsilonEqual(denom, 0.0f)) {
       return false;
     }
-    const float t = (((*this) ^ a) + this->d()) / denom;
+    const T t = (((*this) ^ a) + this->d()) / denom;
     hit = a + (t*(b - a));
     return true;
   }
+
+  /// Determine the parametric intersection point of the plane and a line `ab'.
+  /// @return whether or not the two intersect.  If false, `hit' will not be
+  ///         valid.
+  bool intersect(const VECTOR3<T>& a, const VECTOR3<T>& b,
+                 T& hit) const {
+    const T denom = (*this) ^ (a - b);
+    if(EpsilonEqual(denom, 0.0f)) {
+      return false;
+    }
+    hit = (((*this) ^ a) + this->d()) / denom;
+    return true;
+  }
+
 };
 
 typedef PLANE<float>  FLOATPLANE;
