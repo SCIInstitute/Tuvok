@@ -205,11 +205,8 @@ static void detach_shaders(GLuint program)
 }
 
 GLSLProgram::~GLSLProgram() {
-  if (IsValid()) {
-    if(!gl::arb) {
-      // We don't know how to do this with ARB calls, currently.
-      detach_shaders(m_hProgram);
-    }
+  if (IsValid() && m_hProgram != 0) {
+    detach_shaders(m_hProgram);
     gl::DeleteProgram(m_hProgram);
   }
   m_hProgram=0;
@@ -440,7 +437,7 @@ void GLSLProgram::Load(const std::vector<std::string>& vert,
       glGetProgramInfoLog(this->m_hProgram, 2047, &len, linkerr);
       linkerr[len] = 0;
       T_ERROR("Program could not link (%d): '%s'", len, linkerr);
-      /// @todo FIXME delete all attached shader objects too
+      detach_shaders(this->m_hProgram);
       gl::DeleteProgram(this->m_hProgram);
       this->m_hProgram = 0;
       return;
