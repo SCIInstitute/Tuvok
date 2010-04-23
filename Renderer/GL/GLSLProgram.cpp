@@ -70,6 +70,7 @@ namespace gl {
   void CompileShader(GLuint);
   void AttachShader(GLuint, GLuint);
   void DetachShader(GLuint, GLuint);
+  GLboolean IsShader(GLuint);
   void UseProgram(GLuint);
   void DeleteShader(GLuint);
   void DeleteProgram(GLuint);
@@ -105,6 +106,13 @@ namespace gl {
   void DetachShader(GLuint program, GLuint shader) {
     if(arb) { glDetachObjectARB(program, shader); }
     else    { glDetachShader(program, shader); }
+  }
+
+  // There's no function of this type in the ARB whatsoever.  So we just hack
+  // it for the ARB case.
+  GLboolean IsShader(GLuint shader) {
+    if(arb) { return shader != 0; }
+    else    { return glIsShader(shader); }
   }
 
   void LinkProgram(GLuint program) {
@@ -191,14 +199,19 @@ static void detach_shaders(GLuint program)
               static_cast<unsigned>(program), static_cast<unsigned>(err));
     }
 
+    MESSAGE("%d shaders attached to %u", static_cast<int>(num_shaders),
+            static_cast<unsigned>(program));
+           
     // detach each shader
     for(std::vector<GLuint>::const_iterator sh = shaders.begin();
         sh != shaders.end(); ++sh) {
-      gl::DetachShader(program, *sh);
-      if((err = glGetError()) != GL_NO_ERROR) {
-        WARNING("Error detaching shader %u from %u: %x",
-                static_cast<unsigned>(*sh),
-                static_cast<unsigned>(program), static_cast<unsigned>(err));
+      if(gl::IsShader(*sh)) {
+        gl::DetachShader(program, *sh);
+        if((err = glGetError()) != GL_NO_ERROR) {
+          WARNING("Error detaching shader %u from %u: %x",
+                  static_cast<unsigned>(*sh),
+                  static_cast<unsigned>(program), static_cast<unsigned>(err));
+        }
       }
     }
   }
