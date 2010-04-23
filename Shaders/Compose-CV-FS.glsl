@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -68,21 +68,21 @@ void main(void){
 
   // get hitposition and check if a isosurface hit for this ray was found
   vec4  vPosition = texture2D(texRayHitPos, vFragCoords);
-  
+
   if (vPosition.a == 0.0) discard;
-  
+
   // get hit normal
-  vec3  vNormal  = texture2D(texRayHitNormal, vFragCoords).xyz;  
+  vec3  vNormal  = texture2D(texRayHitNormal, vFragCoords).xyz;
 
   // compute lighting
   vec4 vContextColor = vec4(Lighting(vPosition.xyz, vNormal, vLightAmbient, vLightDiffuse, vLightSpecular),1.0);
 
   // compute non linear depth from linear eye depth
-  gl_FragDepth = vProjParam.x + (vProjParam.y / -vPosition.z);  
-  
+  gl_FragDepth = vProjParam.x + (vProjParam.y / -vPosition.z);
+
   // get 2nd hitposition and normal
   vec4  vPosition2 = texture2D(texRayHitPos2, vFragCoords);
-  vec3  vNormal2   = texture2D(texRayHitNormal2, vFragCoords).xyz;  
+  vec3  vNormal2   = texture2D(texRayHitNormal2, vFragCoords).xyz;
 
   // estimate the curvature of the context surface
   float fCurvatureEstimate = length(

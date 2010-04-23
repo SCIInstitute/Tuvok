@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -50,22 +50,22 @@ void main(void){
 
   // get hitposition and check if a isosurface hit for this ray was found
   vec4  vPosition = texture2D(texRayHitPos, vFragCoords);
-  
+
   if (vPosition.a == 0.0) discard;
-  
+
   // get hit normal
   vec4  vNormalFetch = texture2D(texRayHitNormal, vFragCoords);
   vec3  vNormal  = vec3(vNormalFetch.xy,abs(vNormalFetch.z));
 
   // recover color from the two alpha channels
-  vec3 vColor = vec3(vPosition.a-1.0, 
-                     floor(vNormalFetch.a/2.0)/256.0, 
+  vec3 vColor = vec3(vPosition.a-1.0,
+                     floor(vNormalFetch.a/2.0)/256.0,
                      vNormalFetch.a-floor(vNormalFetch.a));
 
   // compute lighting
   vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition.xyz);
   float l = length(vNormal);
-  
+
   vNormal.z = abs(vNormal.z);
   vec3 vLightColor = vColor.rgb*(vLightAmbient + clamp(abs(dot(vNormal, -vLightDir)),0.0,1.0));
 

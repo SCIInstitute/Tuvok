@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -64,14 +64,14 @@ vec3 RefineIsosurface(vec3 vRayDir, vec3 vCurrentPos) {
 	return vCurrentPos;
 }
 
-vec3 ComputeNormal(vec3 vHitPosTex) { 
+vec3 ComputeNormal(vec3 vHitPosTex) {
   float fVolumValXp = texture3D(texVolume, vHitPosTex+vec3(+vVoxelStepsize.x,0,0)).x;
   float fVolumValXm = texture3D(texVolume, vHitPosTex+vec3(-vVoxelStepsize.x,0,0)).x;
   float fVolumValYp = texture3D(texVolume, vHitPosTex+vec3(0,-vVoxelStepsize.y,0)).x;
   float fVolumValYm = texture3D(texVolume, vHitPosTex+vec3(0,+vVoxelStepsize.y,0)).x;
   float fVolumValZp = texture3D(texVolume, vHitPosTex+vec3(0,0,+vVoxelStepsize.z)).x;
   float fVolumValZm = texture3D(texVolume, vHitPosTex+vec3(0,0,-vVoxelStepsize.z)).x;
-  vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp); 
+  vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp);
   vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
   float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
   return vNormal;
@@ -83,16 +83,16 @@ void main(void)
   vec2 vFragCoords = vec2(gl_FragCoord.x / vScreensize.x , gl_FragCoord.y / vScreensize.y);
 
   // compute the ray parameters
-  vec3  vRayEntry     = vEyePos;  
-  vec3  vRayExit      = texture2D(texRayExitPos, vFragCoords).xyz;  
+  vec3  vRayEntry     = vEyePos;
+  vec3  vRayExit      = texture2D(texRayExitPos, vFragCoords).xyz;
 
   vec3  vRayEntryTex  = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
   vec3  vRayExitTex   = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
   float fRayLength    = length(vRayExit - vRayEntry);
   float fRayLengthTex = length(vRayExitTex - vRayEntryTex);
-  
+
   // compute the maximum number of steps before the domain is left
-  int iStepCount = int(fRayLength/fRayStepsize)+1; 
+  int iStepCount = int(fRayLength/fRayStepsize)+1;
   vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
 
   // do the actual raycasting
@@ -107,13 +107,13 @@ void main(void)
     }
     vCurrentPosTex += vRayIncTex;
   }
-  
+
   // store surface hit if one is found
-  if (vHitPosTex.a != 0.0) 
-    vHitPosTex.xyz = RefineIsosurface(vRayIncTex, vHitPosTex.xyz); 
-  else 
+  if (vHitPosTex.a != 0.0)
+    vHitPosTex.xyz = RefineIsosurface(vRayIncTex, vHitPosTex.xyz);
+  else
     discard;
-  
+
   // interpolate eye space position
   float fInterpolParam = length(vHitPosTex.xyz-vRayEntryTex)/fRayLengthTex;
   vec3 vHitPos = vRayEntry * (1.0-fInterpolParam) + vRayExit * fInterpolParam;
@@ -123,6 +123,6 @@ void main(void)
   gl_FragDepth = vProjParam.x + (vProjParam.y / -vHitPos.z);
 
   // store normal
-  vec3 vNormal =  ComputeNormal(vHitPosTex.xyz);  
+  vec3 vNormal =  ComputeNormal(vHitPosTex.xyz);
   gl_FragData[1] = vec4(vNormal,float(iTileID));
 }

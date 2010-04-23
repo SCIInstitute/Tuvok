@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -72,14 +72,14 @@ vec4 ColorBlend(vec4 src, vec4 dst) {
 	return result;
 }
 
-vec3 ComputeNormal(vec3 vHitPosTex) { 
+vec3 ComputeNormal(vec3 vHitPosTex) {
   float fVolumValXp = texture3D(texVolume, vHitPosTex+vec3(+vVoxelStepsize.x,0,0)).x;
   float fVolumValXm = texture3D(texVolume, vHitPosTex+vec3(-vVoxelStepsize.x,0,0)).x;
   float fVolumValYp = texture3D(texVolume, vHitPosTex+vec3(0,-vVoxelStepsize.y,0)).x;
   float fVolumValYm = texture3D(texVolume, vHitPosTex+vec3(0,+vVoxelStepsize.y,0)).x;
   float fVolumValZp = texture3D(texVolume, vHitPosTex+vec3(0,0,+vVoxelStepsize.z)).x;
   float fVolumValZm = texture3D(texVolume, vHitPosTex+vec3(0,0,-vVoxelStepsize.z)).x;
-  vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp); 
+  vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp);
   vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
   float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
   return vNormal;
@@ -92,19 +92,19 @@ void main(void)
   vec2 vFragCoords = vec2(gl_FragCoord.x / vScreensize.x , gl_FragCoord.y / vScreensize.y);
 
   // compute the ray parameters
-  vec3  vRayEntry    = vEyePos;  
-  vec3  vRayExit     = texture2D(texRayExitPos, vFragCoords).xyz;  
+  vec3  vRayEntry    = vEyePos;
+  vec3  vRayExit     = texture2D(texRayExitPos, vFragCoords).xyz;
 
   vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
   vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
   vec3  vRayDir      = vRayExit - vRayEntry;
-  
+
   float fRayLength = length(vRayDir);
   vRayDir /= fRayLength;
 
   // compute the maximum number of steps before the domain is left
   int iStepCount = int(fRayLength/fRayStepsize)+1;
-  
+
   vec3  fRayInc    = vRayDir*fRayStepsize;
   vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
 
@@ -117,13 +117,13 @@ void main(void)
 
     /// apply 1D transfer function
     vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
-  
+
     // compute lighting
     vec3 vNormal     = ComputeNormal(vCurrentPosTex);
     vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient, vLightDiffuse*vTransVal.xyz, vLightSpecular);
-    
+
     /// apply opacity correction
-    vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);    
+    vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
     vTransVal = vec4(vLightColor.x, vLightColor.y, vLightColor.z, vTransVal.a);
     vColor = ColorBlend(vTransVal,vColor);
 
@@ -132,6 +132,6 @@ void main(void)
 
     if (vColor.a >= 0.99) break;
   }
-  
+
   gl_FragColor = vColor;
 }

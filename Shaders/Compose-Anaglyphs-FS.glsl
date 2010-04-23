@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -36,7 +36,7 @@
 */
 
 uniform sampler2D texRightEye;
-uniform sampler2D texLeftEye;  
+uniform sampler2D texLeftEye;
 
 void main(void){
   vec4 vLeftEye = texture2D(texLeftEye,  gl_TexCoord[0].xy);

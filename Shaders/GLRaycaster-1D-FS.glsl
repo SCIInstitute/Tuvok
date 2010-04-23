@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -62,16 +62,16 @@ void main(void)
   vec2 vFragCoords = vec2(gl_FragCoord.x / vScreensize.x , gl_FragCoord.y / vScreensize.y);
 
   // compute the ray parameters
-  vec3  vRayEntry    = vEyePos;  
-  vec3  vRayExit     = texture2D(texRayExitPos, vFragCoords).xyz;  
+  vec3  vRayEntry    = vEyePos;
+  vec3  vRayExit     = texture2D(texRayExitPos, vFragCoords).xyz;
   if (ClipByPlane(vRayEntry, vRayExit, vClipPlane)) {
 
     vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
     vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
     float fRayLength   = length(vRayExit - vRayEntry);
-    
+
     // compute the maximum number of steps before the domain is left
-    int iStepCount = int(fRayLength/fRayStepsize)+1; 
+    int iStepCount = int(fRayLength/fRayStepsize)+1;
     vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
 
     // do the actual raycasting
@@ -85,14 +85,14 @@ void main(void)
 
       /// apply opacity correction
       vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
-      
+
       vColor = ColorBlend(vTransVal,vColor);
 
       if (vColor.a >= 0.99) break;
 
       vCurrentPosTex += vRayIncTex;
     }
-    
+
     gl_FragColor  = vColor;
   } else {
     discard;

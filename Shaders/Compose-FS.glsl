@@ -6,7 +6,7 @@
    Copyright (c) 2008 Scientific Computing and Imaging Institute,
    University of Utah.
 
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -62,9 +62,9 @@ void main(void){
 
   // get hitposition and check if a isosurface hit for this ray was found
   vec4  vPosition = texture2D(texRayHitPos, vFragCoords);
-  
+
   if (vPosition.a == 0.0) discard;
-  
+
   // get hit normal
   vec3  vNormal  = texture2D(texRayHitNormal, vFragCoords).xyz;
 
