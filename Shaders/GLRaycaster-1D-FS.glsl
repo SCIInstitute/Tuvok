@@ -46,30 +46,8 @@ uniform vec4 vClipPlane;
 
 varying vec3 vEyePos;
 
-bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit) {
-  float denom = dot(vClipPlane.xyz , (vRayEntry-vRayExit));
-  float tPlane = (dot(vClipPlane.xyz, vRayEntry) + vClipPlane.w) / denom;
-
-  if (tPlane > 1.0) {
-    if (denom < 0.0) 
-      return true;
-    else
-      return false;
-  } else {
-    if (tPlane < 0.0) {
-      if (denom <= 0.0) 
-        return false;
-      else
-        return true;
-    } else {
-      if (denom > 0.0)
-        vRayEntry = vRayEntry + (vRayExit-vRayEntry)*tPlane;
-      else
-        vRayExit  = vRayEntry + (vRayExit-vRayEntry)*tPlane;
-      return true;
-    }
-  } 
-}
+bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
+                 in vec4 clip_plane);
 
 vec4 ColorBlend(vec4 src, vec4 dst) {
 	vec4 result = dst;
@@ -86,7 +64,7 @@ void main(void)
   // compute the ray parameters
   vec3  vRayEntry    = vEyePos;  
   vec3  vRayExit     = texture2D(texRayExitPos, vFragCoords).xyz;  
-  if (ClipByPlane(vRayEntry, vRayExit)) {
+  if (ClipByPlane(vRayEntry, vRayExit, vClipPlane)) {
 
     vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
     vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;

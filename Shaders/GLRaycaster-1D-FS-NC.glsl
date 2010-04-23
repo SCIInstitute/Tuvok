@@ -46,11 +46,6 @@ uniform vec4 vClipPlane;
 
 varying vec3 vEyePos;
 
-bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit) {
-  return true;
-}
-
-
 vec4 ColorBlend(vec4 src, vec4 dst) {
 	vec4 result = dst;
 	result.rgb   += src.rgb*(1.0-dst.a)*src.a;
@@ -66,37 +61,34 @@ void main(void)
   // compute the ray parameters
   vec3  vRayEntry    = vEyePos;
   vec3  vRayExit     = texture2D(texRayExitPos, vFragCoords).xyz;
-  if (ClipByPlane(vRayEntry, vRayExit)) {
 
-    vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
-    vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
-    float fRayLength   = length(vRayExit - vRayEntry);
 
-    // compute the maximum number of steps before the domain is left
-    int iStepCount = int(fRayLength/fRayStepsize)+1;
-    vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
+  vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
+  vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
+  float fRayLength   = length(vRayExit - vRayEntry);
 
-    // do the actual raycasting
-    vec4  vColor = vec4(0.0,0.0,0.0,0.0);
-    vec3  vCurrentPosTex = vRayEntryTex;
-    for (int i = 0;i<iStepCount;i++) {
-      float fVolumVal = texture3D(texVolume, vCurrentPosTex).x;	
+  // compute the maximum number of steps before the domain is left
+  int iStepCount = int(fRayLength/fRayStepsize)+1;
+  vec3  vRayIncTex = (vRayExitTex-vRayEntryTex)/(fRayLength/fRayStepsize);
 
-      /// apply 1D transfer function
-	    vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
+  // do the actual raycasting
+  vec4  vColor = vec4(0.0,0.0,0.0,0.0);
+  vec3  vCurrentPosTex = vRayEntryTex;
+  for (int i = 0;i<iStepCount;i++) {
+    float fVolumVal = texture3D(texVolume, vCurrentPosTex).x;	
 
-      /// apply opacity correction
-      vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
+    /// apply 1D transfer function
+    vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
 
-      vColor = ColorBlend(vTransVal,vColor);
+    /// apply opacity correction
+    vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
 
-      if (vColor.a >= 0.99) break;
+    vColor = ColorBlend(vTransVal,vColor);
 
-      vCurrentPosTex += vRayIncTex;
-    }
+    if (vColor.a >= 0.99) break;
 
-    gl_FragColor  = vColor;
-  } else {
-    discard;
+    vCurrentPosTex += vRayIncTex;
   }
+
+  gl_FragColor  = vColor;
 }

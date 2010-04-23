@@ -55,6 +55,8 @@ uniform vec4 vClipPlane;
 
 varying vec3 vEyePos;
 
+bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
+                 in vec4 clip_plane);
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
 	vNormal.z = abs(vNormal.z);
@@ -87,31 +89,6 @@ vec3 ComputeNormal(vec3 vHitPosTex) {
 }
 
 
-bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit) {
-  float denom = dot(vClipPlane.xyz , (vRayEntry-vRayExit));
-  float tPlane = (dot(vClipPlane.xyz, vRayEntry) + vClipPlane.w) / denom;
-
-  if (tPlane > 1.0) {
-    if (denom < 0.0) 
-      return true;
-    else
-      return false;
-  } else {
-    if (tPlane < 0.0) {
-      if (denom <= 0.0) 
-        return false;
-      else
-        return true;
-    } else {
-      if (denom > 0.0)
-        vRayEntry = vRayEntry + (vRayExit-vRayEntry)*tPlane;
-      else
-        vRayExit  = vRayEntry + (vRayExit-vRayEntry)*tPlane;
-      return true;
-    }
-  } 
-}
-
 void main(void)
 {
   // compute the coordinates to look up the previous pass
@@ -121,8 +98,7 @@ void main(void)
   vec3  vRayEntry    = vEyePos;  
   vec3  vRayExit     = texture2D(texRayExitPos, vFragCoords).xyz;  
 
-  if (ClipByPlane(vRayEntry, vRayExit)) {
-
+  if (ClipByPlane(vRayEntry, vRayExit, vClipPlane)) {
     vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
     vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
     vec3  vRayDir      = vRayExit - vRayEntry;
