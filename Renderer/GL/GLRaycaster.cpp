@@ -110,28 +110,29 @@ bool GLRaycaster::Initialize() {
                           "GLRaycaster-frontfaces-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          shaderNames[0],  NULL) ||
+                          "lighting.glsl", shaderNames[0],  NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          shaderNames[1], NULL) ||
+                          "lighting.glsl", shaderNames[1], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          shaderNames[2], NULL) ||
+                          "lighting.glsl", shaderNames[2], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          shaderNames[3], NULL) ||
+                          "lighting.glsl", shaderNames[3], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          shaderNames[6], NULL) ||
+                          "lighting.glsl", shaderNames[6], NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          shaderNames[4], NULL) ||
+                          "lighting.glsl", shaderNames[4], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          shaderNames[5], NULL) ||
+                          "lighting.glsl", shaderNames[5], NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          "GLRaycaster-MIP-Rot-FS.glsl", NULL))
+                          "lighting.glsl", "GLRaycaster-MIP-Rot-FS.glsl",
+                          NULL))
   {
       Cleanup();
 

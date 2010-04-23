@@ -71,19 +71,24 @@ bool GLSBVR::Initialize() {
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl", "GLSBVR-1D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-1D-light-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-2D-light-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-ISO-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-Color-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-Color-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIsoNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-ISO-NC-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-ISO-NC-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColorNoCompose, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", NULL))
   {

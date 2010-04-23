@@ -50,13 +50,7 @@ varying vec3 vEyePos;
 
 bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
                  in vec4 clip_plane);
-
-vec4 ColorBlend(vec4 src, vec4 dst) {
-	vec4 result = dst;
-	result.rgb   += src.rgb*(1.0-dst.a)*src.a;
-	result.a     += (1.0-dst.a)*src.a;
-	return result;
-}
+vec4 ColorBlend(vec4 src, vec4 dst);
 
 void main(void)
 {

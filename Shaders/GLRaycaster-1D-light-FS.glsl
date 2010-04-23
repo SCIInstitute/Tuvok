@@ -57,37 +57,11 @@ varying vec3 vEyePos;
 
 bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
                  in vec4 clip_plane);
-
-vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
-	vNormal.z = abs(vNormal.z);
-
-	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
-	vec3 vReflection = normalize(reflect(vViewDir, vNormal));
-	return clamp(vLightAmbient+
-			     vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
-				 vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0),0.0,1.0);
-}
-
-vec4 ColorBlend(vec4 src, vec4 dst) {
-	vec4 result = dst;
-	result.rgb   += src.rgb*(1.0-dst.a)*src.a;
-	result.a     += (1.0-dst.a)*src.a;
-	return result;
-}
-
-vec3 ComputeNormal(vec3 vHitPosTex) {
-  float fVolumValXp = texture3D(texVolume, vHitPosTex+vec3(+vVoxelStepsize.x,0,0)).x;
-  float fVolumValXm = texture3D(texVolume, vHitPosTex+vec3(-vVoxelStepsize.x,0,0)).x;
-  float fVolumValYp = texture3D(texVolume, vHitPosTex+vec3(0,-vVoxelStepsize.y,0)).x;
-  float fVolumValYm = texture3D(texVolume, vHitPosTex+vec3(0,+vVoxelStepsize.y,0)).x;
-  float fVolumValZp = texture3D(texVolume, vHitPosTex+vec3(0,0,+vVoxelStepsize.z)).x;
-  float fVolumValZm = texture3D(texVolume, vHitPosTex+vec3(0,0,-vVoxelStepsize.z)).x;
-  vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp);
-  vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
-  float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
-  return vNormal;
-}
-
+vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
+              vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
+vec3 ComputeNormal(vec3 vHitPosTex, sampler3D volume, vec3 StepSize,
+                   vec3 DomainScale);
+vec4 ColorBlend(vec4 src, vec4 dst);
 
 void main(void)
 {
@@ -123,8 +97,11 @@ void main(void)
 	    vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
 
       // compute lighting
-      vec3 vNormal     = ComputeNormal(vCurrentPosTex);
-      vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient, vLightDiffuse*vTransVal.xyz, vLightSpecular);
+      vec3 vNormal     = ComputeNormal(vCurrentPosTex, texVolume,
+                                       vVoxelStepsize, vDomainScale);
+      vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient,
+                                  vLightDiffuse*vTransVal.xyz, vLightSpecular,
+                                  vLightDir);
 
       /// apply opacity correction
       vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);

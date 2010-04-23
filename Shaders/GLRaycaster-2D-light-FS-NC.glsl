@@ -55,22 +55,9 @@ uniform vec4 vClipPlane;
 varying vec3 vEyePos;
 
 
-vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
-	vNormal.z = abs(vNormal.z);
-
-	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
-	vec3 vReflection = normalize(reflect(vViewDir, vNormal));
-	return clamp(vLightAmbient+
-		   vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
-		   vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0), 0.0,1.0);
-}
-
-vec4 ColorBlend(vec4 src, vec4 dst) {
-	vec4 result = dst;
-	result.rgb   += src.rgb*(1.0-dst.a)*src.a;
-	result.a     += (1.0-dst.a)*src.a;
-	return result;
-}
+vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
+              vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
+vec4 ColorBlend(vec4 src, vec4 dst);
 
 void main(void)
 {
@@ -119,7 +106,9 @@ void main(void)
     /// compute lighting
     vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
     float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
-    vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient, vLightDiffuse*vTransVal.xyz, vLightSpecular);
+    vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient,
+                                vLightDiffuse*vTransVal.xyz, vLightSpecular,
+                                vLightDir);
 
     /// apply opacity correction
     vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);

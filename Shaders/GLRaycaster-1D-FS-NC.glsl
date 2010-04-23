@@ -46,12 +46,7 @@ uniform vec4 vClipPlane;
 
 varying vec3 vEyePos;
 
-vec4 ColorBlend(vec4 src, vec4 dst) {
-	vec4 result = dst;
-	result.rgb   += src.rgb*(1.0-dst.a)*src.a;
-	result.a     += (1.0-dst.a)*src.a;
-	return result;
-}
+vec4 ColorBlend(vec4 src, vec4 dst);
 
 void main(void)
 {
