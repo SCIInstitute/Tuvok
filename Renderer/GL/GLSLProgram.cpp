@@ -373,6 +373,9 @@ static bool addshader(GLuint program, const std::string& filename,
     }
   }
 
+  MESSAGE("Adding shader %s to program %u", filename.c_str(),
+          static_cast<unsigned>(program));
+
   gl::AttachShader(program, sh);
   if(glGetError() != GL_NO_ERROR) {
     T_ERROR("Error attaching shader '%s'", filename.c_str());
@@ -430,8 +433,13 @@ void GLSLProgram::Load(const std::vector<std::string>& vert,
       glGetProgramiv(this->m_hProgram, GL_LINK_STATUS, &linked);
     }
 
-    if(CheckGLError(_func_) || linked != 1) {
-      T_ERROR("Program could not link.");
+    if(linked != GL_TRUE) {
+      GLchar linkerr[2048];
+      linkerr[2047]=0;
+      GLsizei len=256;
+      glGetProgramInfoLog(this->m_hProgram, 2047, &len, linkerr);
+      linkerr[len] = 0;
+      T_ERROR("Program could not link (%d): '%s'", len, linkerr);
       /// @todo FIXME delete all attached shader objects too
       gl::DeleteProgram(this->m_hProgram);
       this->m_hProgram = 0;
