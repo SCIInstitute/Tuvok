@@ -62,7 +62,6 @@ public:
                             std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile);
 
-  /// unimplemented!
   virtual bool ConvertToNative(const std::string& strRawFilename,
                                const std::string& strTargetFilename,
                                UINT64 iHeaderSkip, UINT64 iComponentSize,
