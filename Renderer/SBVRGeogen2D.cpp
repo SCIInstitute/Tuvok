@@ -51,10 +51,6 @@
 #include <limits>
 #include "SBVRGeogen2D.h"
 
-#ifdef DETECTED_OS_WINDOWS
-# include <Windows.h>
-#endif
-
 using namespace std;
 using namespace tuvok;
 
