@@ -55,6 +55,8 @@
 #include "TransferFunction2D.h"
 #include "Basics/tr1.h"
 
+#define MAX_TFSIZE 4096
+
 class LargeRAWFile;
 
 namespace tuvok {

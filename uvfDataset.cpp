@@ -500,13 +500,62 @@ void UVFDataset::GetHistograms(size_t) {
   struct Timestep& ts = m_timesteps[0];
   if (ts.m_pHist1DDataBlock != NULL) {
     const std::vector<UINT64>& vHist1D = ts.m_pHist1DDataBlock->GetHistogram();
-    m_pHist1D = new Histogram1D(vHist1D.size());
-    for (size_t i = 0;i < m_pHist1D->GetSize(); i++) {
-      m_pHist1D->Set(i, UINT32(vHist1D[i]));
+
+    m_pHist1D = new Histogram1D(std::min<size_t>(vHist1D.size(),
+                                     std::min<size_t>(MAX_TFSIZE, 
+                                                      1<<GetBitWidth())));
+    
+    if ( m_pHist1D->GetSize() != vHist1D.size()) {
+      MESSAGE("Histogram to big, resampling.");
+      // "resample" the histogramm
+
+      float sampleFactor = static_cast<float>(vHist1D.size()) /
+                           static_cast<float>(m_pHist1D->GetSize());
+
+      float accWeight = 0.0f;
+      float currWeight = 1.0f;
+      float accValue = 0.0f;
+      size_t j  = 0;
+      bool bLast = false;
+
+      for (size_t i = 0;i < vHist1D.size(); i++) {
+
+        if (bLast) {
+            m_pHist1D->Set(j, UINT32( accValue ));
+
+            currWeight = 1.0f - currWeight;
+            j++;
+            i--;
+            bLast = false;
+            accValue = 0;
+            accWeight = 0;
+        } else {
+          if (sampleFactor-accWeight > 1) {
+            currWeight = 1.0f;
+          } else {
+            currWeight = sampleFactor-accWeight;
+            bLast = true;
+          }
+        }
+
+        accValue  += static_cast<float>(vHist1D[i]) * currWeight;
+        accWeight += currWeight;
+
+        // make sure we are not writing beyond m_pHist1D's end
+        // due to accumulated float errors in the sampling computation above
+        if (j == m_pHist1D->GetSize() - 1) break;
+      }
+
+
+
+    } else {
+      for (size_t i = 0;i < m_pHist1D->GetSize(); i++) {
+        m_pHist1D->Set(i, UINT32(vHist1D[i]));
+      }
     }
   } else {
     // generate a zero 1D histogram (max 4k) if none is found in the file
-    m_pHist1D = new Histogram1D(std::min(4096, 1<<GetBitWidth()));
+    m_pHist1D = new Histogram1D(std::min(MAX_TFSIZE, 1<<GetBitWidth()));
 
     // set all values to one so "getFilledsize" later does not return a
     // completely empty dataset
@@ -530,7 +579,7 @@ void UVFDataset::GetHistograms(size_t) {
     ts.m_fMaxGradMagnitude = ts.m_pHist2DDataBlock->GetMaxGradMagnitude();
   } else {
     // generate a zero 2D histogram (max 4k) if none is found in the file
-    VECTOR2<size_t> vec(256, std::min(4096, 1<<GetBitWidth()));
+    VECTOR2<size_t> vec(256, std::min(MAX_TFSIZE, 1<<GetBitWidth()));
 
     m_pHist2D = new Histogram2D(vec);
     for (size_t y=0; y < m_pHist2D->GetSize().y; y++) {

@@ -108,9 +108,13 @@ public:
 
   const VECTOR2<size_t> GetSize() const {return m_iSize;}
   const VECTOR2<size_t> GetRenderSize() const {
-    return m_iSize.x > m_iSize.y ?
-           VECTOR2<size_t>(m_iSize.x, static_cast<size_t>(m_iSize.x/2.0)) :
-           VECTOR2<size_t>(m_iSize.y*2, m_iSize.y);
+
+    VECTOR2<size_t> vSize = m_iSize;
+    vSize.StoreMin(VECTOR2<size_t>(4096, 4096));
+
+    return vSize.x > vSize.y ?
+           VECTOR2<size_t>(vSize.x, static_cast<size_t>(vSize.x/2.0)) :
+           VECTOR2<size_t>(vSize.y*2, vSize.y);
   }
 
   void ComputeNonZeroLimits();
