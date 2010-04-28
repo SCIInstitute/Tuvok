@@ -242,10 +242,11 @@ bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
       return false;
     }
 
-    size_t iMax = pDataset->Get1DHistogram().GetFilledSize();
+    double fMin = pDataset->GetRange().first;
+    double fMax = pDataset->GetRange().second;
 
     for (size_t i = 0;i<vSize[0]*vSize[1]*vSize[2]*iCompCount;i++) {
-      unsigned char iQuantizedVal = (unsigned char)(255.0*((unsigned short*)pRawData)[i]/float(iMax));
+      unsigned char iQuantizedVal = (unsigned char)((255.0*((unsigned short*)pRawData)[i] - fMin) / (fMax-fMin));
       pRawData[i] = iQuantizedVal;
     }
 
