@@ -55,7 +55,7 @@
 #include "TransferFunction2D.h"
 #include "Basics/tr1.h"
 
-#define MAX_TFSIZE 4096
+#define MAX_TRANSFERFUNCTION_SIZE 4096
 
 class LargeRAWFile;
 

@@ -502,11 +502,11 @@ void UVFDataset::GetHistograms(size_t) {
     const std::vector<UINT64>& vHist1D = ts.m_pHist1DDataBlock->GetHistogram();
 
     m_pHist1D = new Histogram1D(std::min<size_t>(vHist1D.size(),
-                                     std::min<size_t>(MAX_TFSIZE, 
+                                    std::min<size_t>(MAX_TRANSFERFUNCTION_SIZE, 
                                                       1<<GetBitWidth())));
     
     if ( m_pHist1D->GetSize() != vHist1D.size()) {
-      MESSAGE("Histogram to big, resampling.");
+      MESSAGE("1D Histogram to big to drawn efficiently, resampling.");
       // "resample" the histogramm
 
       float sampleFactor = static_cast<float>(vHist1D.size()) /
@@ -546,8 +546,6 @@ void UVFDataset::GetHistograms(size_t) {
         if (j == m_pHist1D->GetSize() - 1) break;
       }
 
-
-
     } else {
       for (size_t i = 0;i < m_pHist1D->GetSize(); i++) {
         m_pHist1D->Set(i, UINT32(vHist1D[i]));
@@ -555,7 +553,7 @@ void UVFDataset::GetHistograms(size_t) {
     }
   } else {
     // generate a zero 1D histogram (max 4k) if none is found in the file
-    m_pHist1D = new Histogram1D(std::min(MAX_TFSIZE, 1<<GetBitWidth()));
+    m_pHist1D = new Histogram1D(std::min(MAX_TRANSFERFUNCTION_SIZE, 1<<GetBitWidth()));
 
     // set all values to one so "getFilledsize" later does not return a
     // completely empty dataset
@@ -569,17 +567,33 @@ void UVFDataset::GetHistograms(size_t) {
     const std::vector< std::vector<UINT64> >& vHist2D =
       ts.m_pHist2DDataBlock->GetHistogram();
 
+    
     VECTOR2<size_t> vSize(vHist2D.size(),vHist2D[0].size());
 
+    vSize.x = min<size_t>(MAX_TRANSFERFUNCTION_SIZE, vSize.x);
+    vSize.y = min<size_t>(256, vSize.y);
     m_pHist2D = new Histogram2D(vSize);
-    for (size_t y = 0;y<m_pHist2D->GetSize().y;y++)
-      for (size_t x = 0;x<m_pHist2D->GetSize().x;x++)
-        m_pHist2D->Set(x,y,UINT32(vHist2D[x][y]));
+
+    if (vSize.x != vHist2D.size() || vSize.y != vHist2D[0].size() ) {
+      MESSAGE("2D Histogram to big to be drawn efficiently, resampling.");
+
+      // TODO: implement the same linear resampling as above
+      //       for now we just clear the histogram with ones
+
+
+      for (size_t y = 0;y<m_pHist2D->GetSize().y;y++)
+        for (size_t x = 0;x<m_pHist2D->GetSize().x;x++)
+          m_pHist2D->Set(x,y,1);
+    } else {
+      for (size_t y = 0;y<m_pHist2D->GetSize().y;y++)
+        for (size_t x = 0;x<m_pHist2D->GetSize().x;x++)
+          m_pHist2D->Set(x,y,UINT32(vHist2D[x][y]));
+    }
 
     ts.m_fMaxGradMagnitude = ts.m_pHist2DDataBlock->GetMaxGradMagnitude();
   } else {
     // generate a zero 2D histogram (max 4k) if none is found in the file
-    VECTOR2<size_t> vec(256, std::min(MAX_TFSIZE, 1<<GetBitWidth()));
+    VECTOR2<size_t> vec(256, std::min(MAX_TRANSFERFUNCTION_SIZE, 1<<GetBitWidth()));
 
     m_pHist2D = new Histogram2D(vec);
     for (size_t y=0; y < m_pHist2D->GetSize().y; y++) {

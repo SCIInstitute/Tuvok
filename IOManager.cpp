@@ -1231,23 +1231,19 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
     bool bIsFloat = v.GetIsFloat();
 
     if (iComponentCount != 1) return false;  // only scalar data supported at the moment
-    const Histogram1D& pHist = v.Get1DHistogram();
+
+    info.m_fRange.first = v.GetRange().first;
+    info.m_fRange.second = v.GetRange().second;
 
     // as our UVFs are always quantized to either 8bit or 16bit right now only the
     // nonfloat + unsigned path is taken, the others are for future extensions
     if (bIsFloat) {
       info.m_iValueType = 0;
-      info.m_fRange.first = 0.0;
-      info.m_fRange.second = double(pHist.GetFilledSize()-1);
     } else {
       if (bSigned) {
         info.m_iValueType = 1;
-        info.m_iRange.first = 0;
-        info.m_iRange.second = int64_t(pHist.GetFilledSize()-1);
       } else {
         info.m_iValueType = 2;
-        info.m_uiRange.first = 0;
-        info.m_uiRange.second = UINT64(pHist.GetFilledSize()-1);
       }
     }
 
