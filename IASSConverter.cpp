@@ -198,7 +198,7 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
       currLength = *(rleBuffer + posRLEStream);
     } while (posRLEStream < header.rleLength);
    
-    delete rleBuffer;
+    delete[] rleBuffer;
   } else {
     for (UINT64 x = 0; x < header.size.x; x++) {
       zLocalData.ReadRAW(sliceBuffer,sliceSize);
@@ -212,7 +212,7 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
       }
     }
   }
-  delete sliceBuffer;
+  delete[] sliceBuffer;
 
   if ( strInputFile != strSourceFilename )
     Remove(strInputFile, Controller::Debug::Out());
