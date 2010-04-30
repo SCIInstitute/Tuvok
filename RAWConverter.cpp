@@ -642,6 +642,8 @@ bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
     /// \todo use strerror(errno) and actually report the damn error.
     T_ERROR("Seek failed");
     fclose(f_compressed);
+    fclose(f_inflated);
+    remove(strUncompressedFile.c_str());
     return false;
   }
 
