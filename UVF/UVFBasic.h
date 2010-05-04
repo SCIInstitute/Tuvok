@@ -11,10 +11,10 @@
   #endif
 #endif
 
-#include "../../StdTuvokDefines.h"
+#include "StdTuvokDefines.h"
 #define UVF_INVALID UINT64_INVALID
 
-#include "../../Basics/LargeRAWFile.h"
+#include "Basics/LargeRAWFile.h"
 class DataBlock;
 
 #endif // UVFBASIC_H

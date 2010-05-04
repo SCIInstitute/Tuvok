@@ -41,9 +41,9 @@
 
 #include <string>
 #include <vector>
-#include "../StdTuvokDefines.h"
-#include "../Basics/Vectors.h"
-#include "../Basics/Grids.h"
+#include "StdTuvokDefines.h"
+#include "Basics/Vectors.h"
+#include "Basics/Grids.h"
 
 typedef VECTOR2<UINT64> UINT64VECTOR2;
 typedef Grid1D<UINT32> Histogram1D;

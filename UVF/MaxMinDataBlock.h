@@ -4,7 +4,7 @@
 #define MAXMINDATABLOCK_H
 
 #include "DataBlock.h"
-#include "../../Basics/Vectors.h"
+#include "Basics/Vectors.h"
 
 template<class T, class S> class MaxMinElemen {
 public:

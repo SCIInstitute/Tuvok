@@ -51,9 +51,9 @@ typedef void* QPainter;
 # include <QtGui/QImage>
 # include <QtGui/QPainter>
 #endif
-#include "../StdTuvokDefines.h"
-#include "../Basics/Vectors.h"
-#include "../Basics/Grids.h"
+#include "StdTuvokDefines.h"
+#include "Basics/Vectors.h"
+#include "Basics/Grids.h"
 
 #include "TransferFunction1D.h"
 

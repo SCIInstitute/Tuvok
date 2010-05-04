@@ -39,7 +39,7 @@
 #ifndef IOMANAGER_H
 #define IOMANAGER_H
 
-#include "../StdTuvokDefines.h"
+#include "StdTuvokDefines.h"
 #ifdef DETECTED_OS_WINDOWS
 # include <memory>
 #else
@@ -50,10 +50,10 @@
 #include <limits>
 #include <list>
 #include <string>
-#include "../Controller/MasterController.h"
-#include "../Basics/MC.h"
-#include "../Basics/SysTools.h"
-#include "../Basics/LargeRAWFile.h"
+#include "Controller/MasterController.h"
+#include "Basics/MC.h"
+#include "Basics/SysTools.h"
+#include "Basics/LargeRAWFile.h"
 
 #define DEFAULT_BRICKSIZE (256)
 #define DEFAULT_BRICKOVERLAP (4)
