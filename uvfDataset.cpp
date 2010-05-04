@@ -182,14 +182,16 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
   // we have no anisotropy (i.e. ulLODLevelCount.size=1)
   size_t iLODLevel = static_cast<size_t>(pVolumeDataBlock->ulLODLevelCount[0]);
   for (size_t i=0; i < 3 ; i++) {
-    ts.m_aOverlap[i] = pVolumeDataBlock->ulBrickOverlap[i];
+    ts.m_aOverlap[i] = static_cast<UINT32>(pVolumeDataBlock->ulBrickOverlap[i]);
     /// @todo FIXME badness -- assume domain scaling information is the
     /// same across all raster data blocks (across all timesteps
     m_DomainScale[i] = pVolumeDataBlock->dDomainTransformation[i+(iSize+1)*i];
   }
-  m_aMaxBrickSize.StoreMax(UINTVECTOR3(pVolumeDataBlock->ulBrickSize[0],
-                                       pVolumeDataBlock->ulBrickSize[1],
-                                       pVolumeDataBlock->ulBrickSize[2]));
+  m_aMaxBrickSize.StoreMax(UINTVECTOR3(
+    static_cast<unsigned>(pVolumeDataBlock->ulBrickSize[0]),
+    static_cast<unsigned>(pVolumeDataBlock->ulBrickSize[1]),
+    static_cast<unsigned>(pVolumeDataBlock->ulBrickSize[2])
+  ));
 
   ts.m_vvaBrickSize.resize(iLODLevel);
   if (ts.m_pMaxMinData) {
@@ -246,8 +248,9 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
                          float(GetDomainSize(j, timestep).maxVal());
           bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) -
                          vNormalizedDomainSize * 0.5f;
-          bmd.n_voxels = UINTVECTOR3(vBrickSize[0], vBrickSize[1],
-                                     vBrickSize[2]);
+          bmd.n_voxels = UINTVECTOR3(static_cast<unsigned>(vBrickSize[0]),
+                                     static_cast<unsigned>(vBrickSize[1]),
+                                     static_cast<unsigned>(vBrickSize[2]));
           AddBrick(k, bmd);
           vBrickCorner.z += bmd.extents.z;
         }
