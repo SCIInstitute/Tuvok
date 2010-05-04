@@ -310,12 +310,12 @@ class AbstrRenderer {
     UINT64 GetCurrentSubFrameCount() const
         { return 1+m_iMaxLODIndex-m_iMinLODForCurrentView; }
     UINT32 GetWorkingSubFrame() const
-        { return 1+m_iMaxLODIndex-m_iCurrentLOD; }
+        { return 1+static_cast<UINT32>(m_iMaxLODIndex-m_iCurrentLOD); }
 
     UINT32 GetCurrentBrickCount() const
         { return UINT32(m_vCurrentBrickList.size()); }
     UINT32 GetWorkingBrick() const
-        { return m_iBricksRenderedInThisSubFrame; }
+        { return static_cast<UINT32>(m_iBricksRenderedInThisSubFrame); }
 
     UINT32 GetFrameProgress() const {
         return UINT32(100.0f * float(GetWorkingSubFrame()) /

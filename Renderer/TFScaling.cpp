@@ -60,11 +60,11 @@ scale_bias_and_scale(Dataset& ds)
   std::pair<float,float> retval;
 
   // bias by the minimum value in the dataset.
-  retval.first = -(ds.GetRange().first);
+  retval.first = static_cast<float>(-(ds.GetRange().first));
 
   // scale by the full range of the data
-  retval.second = fabsf(ds.GetRange().first) +
-                  fabsf(ds.GetRange().second);
+  retval.second = fabsf(static_cast<float>(ds.GetRange().first)) +
+                  fabsf(static_cast<float>(ds.GetRange().second));
   return retval;
 }
 
