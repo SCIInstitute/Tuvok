@@ -32,7 +32,6 @@
            University of Utah
 */
 #include "FileBackedDataset.h"
-#include "Controller/Controller.h"
 
 namespace tuvok {
 

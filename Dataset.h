@@ -49,14 +49,15 @@
 # include <tr1/unordered_map>
 #endif
 #include "boost/noncopyable.hpp"
+#include "Basics/Grids.h"
 #include "Basics/Vectors.h"
 #include "Brick.h"
-#include "TransferFunction1D.h"
-#include "TransferFunction2D.h"
 #include "Basics/tr1.h"
 
 #define MAX_TRANSFERFUNCTION_SIZE 4096
 
+typedef Grid1D<UINT32> Histogram1D;
+typedef Grid2D<UINT32> Histogram2D;
 class LargeRAWFile;
 
 namespace tuvok {
