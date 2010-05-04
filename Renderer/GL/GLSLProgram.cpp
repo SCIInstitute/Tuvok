@@ -771,7 +771,7 @@ bool GLSLProgram::IsValid(void) const {
 
 static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
 {
-  glGetError();  // flush current error state.
+  while(glGetError() != GL_NO_ERROR) {;}  // flush current error state.
 
   GLint size;
   GLint location;
