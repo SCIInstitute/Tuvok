@@ -49,7 +49,7 @@
   #include <iostream>
 #endif
 
-#include "../StdTuvokDefines.h"
+#include "StdTuvokDefines.h"
 
 #if defined(__GNUC__) && __GNUC__ > 3 || \
     (__GNUC__ == 3 && __GNUC_MINOR_ >= 4)

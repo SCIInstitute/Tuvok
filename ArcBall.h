@@ -42,7 +42,7 @@
 #define ARCBALL_H
 
 #include "StdDefines.h"
-#include "../Basics/Vectors.h"
+#include "Basics/Vectors.h"
 
 /** \class ArcBall */
 class ArcBall

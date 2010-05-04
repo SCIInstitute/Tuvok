@@ -40,7 +40,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include "../Basics/StdDefines.h"
+#include "Basics/StdDefines.h"
 
 #ifndef DETECTED_OS_WINDOWS
   #include <sys/time.h>
