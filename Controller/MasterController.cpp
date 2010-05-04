@@ -39,6 +39,7 @@
 #include "../Basics/SystemInfo.h"
 #include "../DebugOut/TextfileOut.h"
 #include "../IO/IOManager.h"
+#include "IO/TransferFunction1D.h"
 #include "../Renderer/GPUMemMan/GPUMemMan.h"
 #include "../Renderer/GPUMemMan/GPUMemManDataStructs.h"
 #include "../Renderer/GL/GLRaycaster.h"

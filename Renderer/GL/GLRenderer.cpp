@@ -48,6 +48,8 @@
 #include <Basics/SysTools.h>
 #include <Basics/MathTools.h>
 #include "IO/FileBackedDataset.h"
+#include "IO/TransferFunction1D.h"
+#include "IO/TransferFunction2D.h"
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../../Basics/GeometryGenerator.h"
 

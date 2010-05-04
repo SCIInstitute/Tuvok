@@ -43,6 +43,8 @@
 #include "Basics/MathTools.h"
 #include "Basics/GeometryGenerator.h"
 #include "IO/ExternalDataset.h"
+#include "IO/TransferFunction1D.h"
+#include "IO/TransferFunction2D.h"
 
 using namespace std;
 using namespace tuvok;
