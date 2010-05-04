@@ -792,12 +792,12 @@ static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
 
   gl_err = glGetError();
   if(gl_err != GL_NO_ERROR) {
-      T_ERROR("Error getting type.");
-      throw GL_ERROR(gl_err);
-    }
-
-    return location;
+    T_ERROR("Error getting type.");
+    throw GL_ERROR(gl_err);
   }
+
+  return location;
+}
 
   /**
    * Sets an uniform vector parameter.
