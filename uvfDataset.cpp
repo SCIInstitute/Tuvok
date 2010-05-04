@@ -89,7 +89,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
   if (m_pDatasetFile->ms_ulReaderVersion != m_pDatasetFile->GetGlobalHeader().ulFileVersion) {
     // bMustBeSameVersion must not be set otherwise Open would have thrown an error
     assert(!bMustBeSameVersion && "Open should have failed!");
-    WARNING("WARNING: Opening UVF file with a version (%u) "
+    WARNING("Opening UVF file with a version (%u) "
             "different from this program's (%u)!!!",
             unsigned(m_pDatasetFile->ms_ulReaderVersion),
             unsigned(m_pDatasetFile->GetGlobalHeader().ulFileVersion));
