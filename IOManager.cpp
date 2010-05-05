@@ -843,16 +843,15 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     for(std::vector<AbstrConverter*>::const_iterator conv =
           m_vpConverters.begin(); conv != m_vpConverters.end(); ++conv) {
       if((*conv)->CanRead(strFilename, bytes)) {
-        if((bRAWCreated = (*conv)->ConvertToRAW(strFilename, strTempDir,
-                                                bNoUserInteraction,
-                                                iHeaderSkip,
-                                                iComponentSize,
-                                                iComponentCount,
-                                                bConvertEndianess, bSigned,
-                                                bIsFloat, vVolumeSize,
-                                                vVolumeAspect, strTitle, eType,
-                                                strIntermediateFile,
-                                                bDeleteIntermediateFile))) {
+        if((*conv)->ConvertToRAW(strFilename, strTempDir,
+                                 bNoUserInteraction,iHeaderSkip,
+                                 iComponentSize, iComponentCount,
+                                 bConvertEndianess, bSigned,
+                                 bIsFloat, vVolumeSize,
+                                 vVolumeAspect, strTitle, eType,
+                                 strIntermediateFile,
+                                 bDeleteIntermediateFile)) {
+          bRAWCreated = true;
           break;
         }
       }
