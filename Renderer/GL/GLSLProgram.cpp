@@ -696,51 +696,65 @@ bool GLSLProgram::CheckGLError(const char*, const char*) const {
 bool GLSLProgram::CheckGLError(const char *pcError,
                                const char *pcAdditional) const {
   if (pcError==NULL) {  // Simply check for error, true if an error occured.
-    return (glGetError()!=GL_NO_ERROR);
-  }
-  else {  // print out error
+
+    // is there and error in the stack
+    bool bError = glGetError()!=GL_NO_ERROR ;
+
+    // clear all other errors in the stack
+    while (glGetError() != GL_NO_ERROR ) {}
+
+    return bError;
+  } else {  // print out error
     GLenum iError=glGetError();
-    char *pcMessage;
-    if (pcAdditional) {
-      size_t len=16+strlen(pcError)+(pcAdditional ? strlen(pcAdditional) : 0);
-      pcMessage=new char[len];
-      sprintf(pcMessage,pcError,pcAdditional);
-    }
-    else pcMessage=(char*)pcError;
+  
+    if (iError==GL_NO_ERROR ) return false;
 
-    std::ostringstream msg;
-    msg << pcMessage << " - ";
-    switch (iError) {
-      case GL_NO_ERROR:
-        if (pcMessage!=pcError) delete[] pcMessage;
-        return false;
-        break;
-      case GL_INVALID_ENUM:
-        msg << "GL_INVALID_ENUM";
-        break;
-      case GL_INVALID_VALUE:
-        msg << "GL_INVALID_VALUE";
-        break;
-      case GL_INVALID_OPERATION:
-        msg << "GL_INVALID_OPERATION";
-        break;
-      case GL_STACK_OVERFLOW:
-        msg << "GL_STACK_OVERFLOW";
-        break;
-      case GL_STACK_UNDERFLOW:
-        msg << "GL_STACK_UNDERFLOW";
-        break;
-      case GL_OUT_OF_MEMORY:
-        msg << "GL_OUT_OF_MEMORY";
-        break;
-      default:
-        msg << "unknown GL_ERROR " << iError;
-        break;
-    }
-    if (pcMessage!=pcError) delete[] pcMessage;
+    while (iError !=GL_NO_ERROR ) {
+      char *pcMessage;
+      if (pcAdditional) {
+        size_t len=16+strlen(pcError)+(pcAdditional ? strlen(pcAdditional) : 0);
+        pcMessage=new char[len];
+        sprintf(pcMessage,pcError,pcAdditional);
+      }
+      else pcMessage=(char*)pcError;
 
-    // display the error.
-    T_ERROR("%s", msg.str().c_str());
+      std::ostringstream msg;
+      msg << pcMessage << " - ";
+      switch (iError) {
+        case GL_NO_ERROR:
+          if (pcMessage!=pcError) delete[] pcMessage;
+          return false;
+          break;
+        case GL_INVALID_ENUM:
+          msg << "GL_INVALID_ENUM";
+          break;
+        case GL_INVALID_VALUE:
+          msg << "GL_INVALID_VALUE";
+          break;
+        case GL_INVALID_OPERATION:
+          msg << "GL_INVALID_OPERATION";
+          break;
+        case GL_STACK_OVERFLOW:
+          msg << "GL_STACK_OVERFLOW";
+          break;
+        case GL_STACK_UNDERFLOW:
+          msg << "GL_STACK_UNDERFLOW";
+          break;
+        case GL_OUT_OF_MEMORY:
+          msg << "GL_OUT_OF_MEMORY";
+          break;
+        default:
+          msg << "unknown GL_ERROR " << iError;
+          break;
+      }
+      if (pcMessage!=pcError) delete[] pcMessage;
+
+      // display the error.
+      T_ERROR("%s", msg.str().c_str());
+
+      // fetch the next error from the stack
+      iError=glGetError();
+    }
 
     return true;
   }
