@@ -175,7 +175,7 @@ void GLSBVR2D::SetBrickDepShaderVars(RenderRegion3D& region,
 
   float fSampleRateModifier = m_fSampleRateModifier /
     (region.decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
-  float fStepScale =  sqrt(2.0)/fSampleRateModifier *
+  float fStepScale =  1.414213562f/fSampleRateModifier * //1.414213562 = sqrt(2)
     (FLOATVECTOR3(m_pDataset->GetDomainSize()) /
      FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
 
