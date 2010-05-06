@@ -1452,7 +1452,7 @@ public:
   bool intersect(const VECTOR3<T>& a, const VECTOR3<T>& b,
                  VECTOR3<T>& hit) const {
     T t;
-    bool bIntersect = intersect(a,b,t)
+    bool bIntersect = intersect(a,b,t);
     if (!bIntersect) return false;
     hit = a + (t*(b - a));
     return true;
