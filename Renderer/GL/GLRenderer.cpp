@@ -1752,17 +1752,22 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   }
   va_end(args);
 
+  std::vector<std::string> fullVS(1);
+  fullVS[0] = find_shader(vertex, false);
+
   // now iterate through all directories, looking for our shaders in them.
   for (size_t i = 0;i<strDirs.size();i++) {
     MESSAGE("Searching for shaders in %s ...", strDirs[i].c_str());
 
-    std::vector<std::string> fullVS(1);
     std::vector<std::string> fullFS(frag.size());
 
-    fullVS[0] = strDirs[i] + "/" + vertex;
     if(!SysTools::FileExists(fullVS[0])) {
-      MESSAGE("%s doesn't exist, skipping this directory...", fullVS[0].c_str());
-      continue;
+      fullVS[0] = strDirs[i] + "/" + vertex;
+      if(!SysTools::FileExists(fullVS[0])) {
+        MESSAGE("%s doesn't exist, skipping this directory...",
+                fullVS[0].c_str());
+        continue;
+      }
     }
     for(size_t j=0; j < fullFS.size(); ++j) {
       fullFS[j] = strDirs[i] + "/" + frag[j];
