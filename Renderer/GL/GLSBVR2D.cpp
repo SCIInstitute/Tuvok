@@ -35,7 +35,6 @@
 */
 #include "GLInclude.h"
 #include "GLSBVR2D.h"
-#include "GLTExture3D.h"
 
 #include "Controller/Controller.h"
 #include "Renderer/GL/GLSLProgram.h"
