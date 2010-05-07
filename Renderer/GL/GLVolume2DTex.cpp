@@ -38,6 +38,16 @@
 
 using namespace tuvok;
 
+GLVolume2DTex::GLVolume2DTex(UINT32 , UINT32 , UINT32 ,
+                             GLint , GLenum , GLenum ,
+                             UINT32 ,
+                             const GLvoid *,
+                             GLint ,
+                             GLint ,
+                             GLint ,
+                             GLint ,
+                             GLint )
+/*
 GLVolume2DTex::GLVolume2DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
                              GLint internalformat, GLenum format, GLenum type,
                              UINT32 iSizePerElement,
@@ -47,6 +57,7 @@ GLVolume2DTex::GLVolume2DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
                              GLint wrapX,
                              GLint wrapY,
                              GLint wrapZ)
+                             */
 {
   m_pTextures.resize(3);
 
@@ -79,7 +90,7 @@ void GLVolume2DTex::FreeGLResources() {
   }
 }
 
-void GLVolume2DTex::SetData(const void *voxels) {
+void GLVolume2DTex::SetData(const void *) {
   // TODO
 }
 
