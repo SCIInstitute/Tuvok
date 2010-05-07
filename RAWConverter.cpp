@@ -842,20 +842,22 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
     }
     switch (iComponentSize) {
       case 32 : {
-                  while (! sourceFile.eof() )
-                  {
-                    float tmp;
+                  float tmp;
+                  while (sourceFile) {
                     sourceFile >> tmp;
-                    binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                    if(sourceFile) {
+                      binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                    }
                   }
                  break;
                }
       case 64 : {
-                  while (! sourceFile.eof() )
-                  {
-                    double tmp;
+                  double tmp;
+                  while (sourceFile) {
                     sourceFile >> tmp;
-                    binaryFile.WriteRAW((unsigned char*)&tmp,8);
+                    if(sourceFile) {
+                      binaryFile.WriteRAW((unsigned char*)&tmp,8);
+                    }
                   }
                  break;
                }
@@ -869,57 +871,62 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
   } else {
     switch (iComponentSize) {
       case 8 : {
+                  int tmp=0;
                   if (bSigned) {
-                    while (! sourceFile.eof() )
-                    {
-                      int tmp;
+                    while (sourceFile) {
                       sourceFile >> tmp;
-                      signed char tmp2 = static_cast<signed char>(tmp);
-                      binaryFile.WriteRAW((unsigned char*)&tmp2,1);
+                      if(sourceFile) {
+                        signed char tmp2 = static_cast<signed char>(tmp);
+                        binaryFile.WriteRAW((unsigned char*)&tmp2,1);
+                      }
                     }
                   } else {
-                    while (! sourceFile.eof() )
-                    {
-                      int tmp;
+                    while (sourceFile) {
                       sourceFile >> tmp;
-                      unsigned char tmp2 = static_cast<unsigned char>(tmp);
-                      binaryFile.WriteRAW((unsigned char*)&tmp2,1);
+                      if(sourceFile) {
+                        unsigned char tmp2 = static_cast<unsigned char>(tmp);
+                        binaryFile.WriteRAW(&tmp2,1);
+                      }
                     }
                   }
                  break;
                }
       case 16 : {
                   if (bSigned) {
-                    while (! sourceFile.eof() )
-                    {
-                      signed short tmp;
+                    signed short tmp;
+                    while (sourceFile) {
                       sourceFile >> tmp;
-                      binaryFile.WriteRAW((unsigned char*)&tmp,2);
+                      if(sourceFile) {
+                        binaryFile.WriteRAW((unsigned char*)&tmp,2);
+                      }
                     }
                   } else {
-                    while (! sourceFile.eof() )
-                    {
-                      unsigned short tmp;
+                    unsigned short tmp;
+                    while (sourceFile) {
                       sourceFile >> tmp;
-                      binaryFile.WriteRAW((unsigned char*)&tmp,2);
+                      if(sourceFile) {
+                        binaryFile.WriteRAW((unsigned char*)&tmp,2);
+                      }
                     }
                   }
                  break;
                }
       case 32 : {
                   if (bSigned) {
-                    while (! sourceFile.eof() )
-                    {
-                      signed int tmp;
+                    signed int tmp;
+                    while (sourceFile) {
                       sourceFile >> tmp;
-                      binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                      if(sourceFile) {
+                        binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                      }
                     }
                   } else {
-                    while (! sourceFile.eof() )
-                    {
-                      UINT32 tmp;
+                    UINT32 tmp;
+                    while (sourceFile) {
                       sourceFile >> tmp;
-                      binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                      if(sourceFile) {
+                        binaryFile.WriteRAW((unsigned char*)&tmp,4);
+                      }
                     }
                   }
                  break;
