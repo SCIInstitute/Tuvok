@@ -69,7 +69,6 @@ public:
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesX;
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesY;
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesZ;
-  FLOATVECTOR3 m_fDelta;
   ESliceMethod m_eMethod;
 
 protected:
@@ -81,6 +80,16 @@ private:
   void ComputeGeometryRezk();
   void ComputeGeometryKrueger();
   void ComputeGeometryKruegerFast();
+  void BuildStackQuads(const int iDirIndex,
+                       const float fDelta,
+                       const size_t *vertexIndices,
+                       const size_t *edgeIndices,
+                       const FLOATVECTOR3* vFaceVec,
+                       const std::vector<size_t>& vIntersects,
+                       const std::vector<FLOATPLANE>& vIntersectPlanes,
+                       const FLOATVECTOR3* vCoordFrame,
+                       std::vector<POS3TEX3_VERTEX>& m_vSliceTriangles);
+
 };
 };
 #endif // SBVRGEOGEN2D_H
