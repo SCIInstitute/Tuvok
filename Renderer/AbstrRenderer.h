@@ -562,6 +562,8 @@ class AbstrRenderer {
 
     RenderRegion3D* GetFirst3DRegion();
 
+    virtual bool IsVolumeResident(const BrickKey& key);
+
   private:
     float               m_fIsovalue;
     float               m_fCVIsovalue;

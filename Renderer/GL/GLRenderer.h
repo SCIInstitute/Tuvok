@@ -50,7 +50,7 @@ namespace tuvok {
 class MasterController;
 class GLTexture1D;
 class GLTexture2D;
-class GLTexture3D;
+class GLVolume;
 class GLSLProgram;
 
 class GLRenderer : public AbstrRenderer {
@@ -180,7 +180,7 @@ class GLRenderer : public AbstrRenderer {
     void ComputeViewAndProjection(float fAspect);
     virtual void UpdateColorsInShaders();
 
-    GLTexture3D*    m_p3DVolTex;
+    GLVolume*    m_pGLVolume;
     virtual bool BindVolumeTex(const BrickKey& bkey,
                                const UINT64 iIntraFrameCounter);
     virtual bool UnbindVolumeTex();

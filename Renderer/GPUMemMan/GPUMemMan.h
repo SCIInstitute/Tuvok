@@ -56,7 +56,6 @@ class GLFBOTex;
 class GLSLProgram;
 class GLTexture1D;
 class GLTexture2D;
-class GLTexture3D;
 class MasterController;
 
 class Dataset;
@@ -107,15 +106,16 @@ class GPUMemMan {
     GLTexture2D* Load2DTextureFromFile(const std::string& strFilename);
     void FreeTexture(GLTexture2D* pTexture);
 
-    GLTexture3D* Get3DTexture(Dataset* pDataset, const BrickKey& key,
-                              bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
-                              bool bDisableBorder, UINT64 iIntraFrameCounter,
-                              UINT64 iFrameCounter);
+    GLVolume* GetVolume(Dataset* pDataset, const BrickKey& key,
+                        bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
+                        bool bDisableBorder, bool bEmulate3DWith2DStacks,
+                        UINT64 iIntraFrameCounter, UINT64 iFrameCounter);
     bool IsResident(const Dataset* pDataset,
                     const BrickKey& key, bool bUseOnlyPowerOfTwo,
-                    bool bDownSampleTo8Bits, bool bDisableBorder) const;
+                    bool bDownSampleTo8Bits, bool bDisableBorder,
+                    bool bEmulate3DWith2DStacks) const;
 
-    void Release3DTexture(GLTexture3D* pTexture);
+    void Release3DTexture(GLVolume* pGLVolume);
 
     GLFBOTex* GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode,
                      GLsizei width, GLsizei height, GLenum intformat,
@@ -149,7 +149,7 @@ class GPUMemMan {
     SimpleTextureList m_vpSimpleTextures;
     Trans1DList       m_vpTrans1DList;
     Trans2DList       m_vpTrans2DList;
-    Texture3DList     m_vpTex3DList;
+    GLVolumeList     m_vpTex3DList;
     FBOList           m_vpFBOList;
     GLSLList          m_vpGLSLList;
     MasterController* m_MasterController;
@@ -163,17 +163,18 @@ class GPUMemMan {
 
     std::vector<unsigned char> m_vUploadHub;
 
-    GLTexture3D* AllocOrGet3DTexture(Dataset* pDataset,
-                                     const BrickKey& key,
-                                     bool bUseOnlyPowerOfTwo,
-                                     bool bDownSampleTo8Bits,
-                                     bool bDisableBorder,
-                                     UINT64 iIntraFrameCounter,
-                                     UINT64 iFrameCounter);
+    GLVolume* AllocOrGetVolume(Dataset* pDataset,
+                               const BrickKey& key,
+                               bool bUseOnlyPowerOfTwo,
+                               bool bDownSampleTo8Bits,
+                               bool bDisableBorder,
+                               bool bEmulate3DWith2DStacks,
+                               UINT64 iIntraFrameCounter,
+                               UINT64 iFrameCounter);
     size_t DeleteUnusedBricks();
     void DeleteArbitraryBrick();
     void Delete3DTexture(size_t iIndex);
-    void Delete3DTexture(const Texture3DListIter &tex);
+    void Delete3DTexture(const GLVolumeListIter &tex);
 };
 };
 #endif // TUVOK_GPUMEMMAN_H

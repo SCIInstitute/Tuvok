@@ -35,6 +35,7 @@
 */
 #include "GLInclude.h"
 #include "GLSBVR2D.h"
+#include "GLTExture3D.h"
 
 #include "Controller/Controller.h"
 #include "Renderer/GL/GLSLProgram.h"
@@ -470,33 +471,28 @@ void GLSBVR2D::UpdateColorsInShaders() {
   m_pProgramColorNoCompose->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
   m_pProgramColorNoCompose->Disable();
 }
-
 /*
-#include "GLTexture3D.h"
-
-bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey, const UINT64 iIntraFrameCounter) {
-  m_p3DVolTex = NULL;
-  return true;
-
-  //m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, iIntraFrameCounter, m_iFrameCounter);
-  //if(m_p3DVolTex) {
-  //  m_p3DVolTex->Bind(0);
-  //  return true;
-  //} else {
-  //  return false;
-  //}
+bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,
+                             const UINT64 iIntraFrameCounter) {
+  m_pMasterController->MemMan()->GetVolume(m_pDataset, bkey,
+                                              m_bUseOnlyPowerOfTwo, 
+                                              m_bDownSampleTo8Bits, 
+                                              true,
+                                              m_bDisableBorder,
+                                              iIntraFrameCounter, 
+                                              m_iFrameCounter);
+  if(m_pGLVolume) {
+    return true;
+  } else {
+    return false;
+  }
 }
 
-bool GLSBVR2D::UnbindVolumeTex() {
-  m_p3DVolTex = NULL;
-  return true;
-
-  //if(m_p3DVolTex) {
-  //  m_pMasterController->MemMan()->Release3DTexture(m_p3DVolTex);
-  //  m_p3DVolTex = NULL;
-  //  return true;
-  //} else {
-  //  return false;
-  //}
+bool GLSBVR2D::IsVolumeResident(const BrickKey& key) {
+  return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
+                                                m_bUseOnlyPowerOfTwo,
+                                                m_bDownSampleTo8Bits,
+                                                m_bDisableBorder,
+                                                true);
 }
 */

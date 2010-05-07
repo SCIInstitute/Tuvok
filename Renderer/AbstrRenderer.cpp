@@ -886,10 +886,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
     // sort based on which bricks are already resident, to get a
     // good cache hit rate.
     if (bUseResidencyAsDistanceCriterion) {
-      if (m_pMasterController->MemMan()->IsResident(m_pDataset, brick->first,
-                                                    m_bUseOnlyPowerOfTwo,
-                                                    m_bDownSampleTo8Bits,
-                                                    m_bDisableBorder)) {
+      if (IsVolumeResident(brick->first)) {
         b.fDistance = 0;
       } else {
         b.fDistance = 1;
@@ -909,6 +906,17 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
 
   return vBrickList;
 }
+
+bool AbstrRenderer::IsVolumeResident(const BrickKey& key) {
+  // normaly we use "real" 3D textures so implement this method
+  // for 3D textures, it is overriden by 2D texture children
+  return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
+                                                m_bUseOnlyPowerOfTwo,
+                                                m_bDownSampleTo8Bits,
+                                                m_bDisableBorder,
+                                                false);
+}
+
 
 void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
   if (region.isBlank) {

@@ -157,6 +157,9 @@ HEADERS += \
            Renderer/GL/GLTexture2D.h \
            Renderer/GL/GLTexture3D.h \
            Renderer/GL/GLTexture.h \
+           Renderer/GL/GLVolume.h \
+           Renderer/GL/GLVolume2DTex.h \
+           Renderer/GL/GLVolume3DTex.h \
            Renderer/GL/QtGLContextID.h \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
            Renderer/GPUMemMan/GPUMemMan.h \
@@ -347,6 +350,9 @@ SOURCES += \
            Renderer/GL/GLTexture2D.cpp \
            Renderer/GL/GLTexture3D.cpp \
            Renderer/GL/GLTexture.cpp \
+           Renderer/GL/GLVolume.cpp \
+           Renderer/GL/GLVolume2DTex.cpp \
+           Renderer/GL/GLVolume3DTex.cpp \
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
            Renderer/SBVRGeogen.cpp \

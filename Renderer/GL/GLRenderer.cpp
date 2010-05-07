@@ -42,7 +42,7 @@
 #include "GLSLProgram.h"
 #include "GLTexture1D.h"
 #include "GLTexture2D.h"
-#include "GLTexture3D.h"
+#include "GLVolume3DTex.h"
 #include <Controller/Controller.h>
 #include <Basics/SystemInfo.h>
 #include <Basics/SysTools.h>
@@ -71,7 +71,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramIso(NULL),
   m_pProgramColor(NULL),
   m_pProgramHQMIPRot(NULL),
-  m_p3DVolTex(NULL),
+  m_pGLVolume(NULL),
   m_pProgramTrans(NULL),
   m_pProgram1DTransSlice(NULL),
   m_pProgram2DTransSlice(NULL),
@@ -781,14 +781,15 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
                                const UINT64 iIntraFrameCounter) {
   // get the 3D texture from the memory manager
-  m_p3DVolTex = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, bkey,
+  m_pGLVolume = m_pMasterController->MemMan()->GetVolume(m_pDataset, bkey,
                                                             m_bUseOnlyPowerOfTwo,
                                                             m_bDownSampleTo8Bits,
                                                             m_bDisableBorder,
+                                                            false,
                                                             iIntraFrameCounter,
                                                             m_iFrameCounter);
-  if(m_p3DVolTex) {
-    m_p3DVolTex->Bind(0);
+  if(m_pGLVolume) {
+    static_cast<GLVolume3DTex*>(m_pGLVolume)->Bind(0);
     return true;
   } else {
     return false;
@@ -796,9 +797,9 @@ bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
 }
 
 bool GLRenderer::UnbindVolumeTex() {
-  if(m_p3DVolTex) {
-    m_pMasterController->MemMan()->Release3DTexture(m_p3DVolTex);
-    m_p3DVolTex = NULL;
+  if(m_pGLVolume) {
+    m_pMasterController->MemMan()->Release3DTexture(m_pGLVolume);
+    m_pGLVolume = NULL;
     return true;
   } else {
     return false;
@@ -2001,7 +2002,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     vBrick.push_back(0);vBrick.push_back(0);vBrick.push_back(0);
 
     // get the 3D texture from the memory manager
-    t = m_pMasterController->MemMan()->Get3DTexture(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, 0, m_iFrameCounter);
+    t = m_pMasterController->MemMan()->GetVolume(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, 0, m_iFrameCounter);
     if(t) t->Bind(0);
   }
 
@@ -2168,7 +2169,7 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
     if(BindVolumeTex(bkey, m_iIntraFrameCounter++)) {
       MESSAGE("  Binding Texture");
     } else {
-      T_ERROR("Cannot bind texture, Get3DTexture returned invalid texture");
+      T_ERROR("Cannot bind texture, GetVolume returned invalid volume");
     }
 
     Render3DInLoop(renderRegion, m_iBricksRenderedInThisSubFrame,0);
@@ -2181,7 +2182,7 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
         if(BindVolumeTex(left_eye_key, m_iIntraFrameCounter++)) {
           MESSAGE("  Binding Texture (left eye)");
         } else {
-          T_ERROR("Cannot bind texture (left eye), Get3DTexture returned invalid texture");
+          T_ERROR("Cannot bind texture (left eye), GetVolume returned invalid volume");
         }
       }
 

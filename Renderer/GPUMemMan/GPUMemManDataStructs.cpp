@@ -43,19 +43,24 @@
 #include "Controller/Controller.h"
 #include "IO/uvfDataset.h"
 #include "Renderer/GL/GLTexture3D.h"
+#include "Renderer/GL/GLTexture2D.h"
+#include "Renderer/GL/GLVolume3DTex.h"
+#include "Renderer/GL/GLVolume2DTex.h"
+
 using namespace tuvok;
 
 
-Texture3DListElem::Texture3DListElem(Dataset* _pDataset, const BrickKey& key,
+GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
                                      bool bIsPaddedToPowerOfTwo,
                                      bool bIsDownsampledTo8Bits,
                                      bool bDisableBorder,
+                                     bool bEmulate3DWith2DStacks, 
                                      UINT64 iIntraFrameCounter,
                                      UINT64 iFrameCounter,
                                      MasterController* pMasterController,
                                      const CTContext &ctx,
                                      std::vector<unsigned char>& vUploadHub) :
-  pTexture(NULL),
+  pGLVolume(NULL),
   pDataset(_pDataset),
   iUserCount(1),
   m_iIntraFrameCounter(iIntraFrameCounter),
@@ -66,23 +71,23 @@ Texture3DListElem::Texture3DListElem(Dataset* _pDataset, const BrickKey& key,
   m_bIsPaddedToPowerOfTwo(bIsPaddedToPowerOfTwo),
   m_bIsDownsampledTo8Bits(bIsDownsampledTo8Bits),
   m_bDisableBorder(bDisableBorder),
+  m_bEmulate3DWith2DStacks(bEmulate3DWith2DStacks),
   m_bUsingHub(false)
 {
-  if (!CreateTexture(vUploadHub) && pTexture) {
-    pTexture->Delete();
-    delete pTexture;
-    pTexture = NULL;
+  if (!CreateTexture(vUploadHub) && pGLVolume) {
+    FreeTexture();
   }
 }
 
-Texture3DListElem::~Texture3DListElem() {
+GLVolumeListElem::~GLVolumeListElem() {
   FreeData();
   FreeTexture();
 }
 
-bool Texture3DListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
+bool GLVolumeListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
                                bool bIsPaddedToPowerOfTwo,
                                bool bIsDownsampledTo8Bits, bool bDisableBorder,
+                               bool bEmulate3DWith2DStacks, 
                                const CTContext &cid)
 {
   if (_pDataset != pDataset ||
@@ -90,6 +95,7 @@ bool Texture3DListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
       m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo ||
       m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits ||
       m_bDisableBorder != bDisableBorder ||
+      m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks ||
       m_Context != cid) {
     return false;
   }
@@ -97,18 +103,19 @@ bool Texture3DListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
   return true;
 }
 
-GLTexture3D* Texture3DListElem::Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter) {
+GLVolume* GLVolumeListElem::Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter) {
   m_iIntraFrameCounter = iIntraFrameCounter;
   m_iFrameCounter = iFrameCounter;
   iUserCount++;
 
-  return pTexture;
+  return pGLVolume;
 }
 
-bool Texture3DListElem::BestMatch(const UINTVECTOR3& vDimension,
+bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
                                   bool bIsPaddedToPowerOfTwo,
                                   bool bIsDownsampledTo8Bits,
                                   bool bDisableBorder,
+                                  bool bEmulate3DWith2DStacks, 
                                   UINT64& iIntraFrameCounter,
                                   UINT64& iFrameCounter,
                                   const CTContext &cid)
@@ -117,6 +124,7 @@ bool Texture3DListElem::BestMatch(const UINTVECTOR3& vDimension,
       || m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo
       || m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits
       || m_bDisableBorder != bDisableBorder
+      || m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks
       || m_Context != cid) {
     return false;
   }
@@ -144,8 +152,8 @@ bool Texture3DListElem::BestMatch(const UINTVECTOR3& vDimension,
 
 
 
-bool Texture3DListElem::Match(const UINTVECTOR3& vDimension) {
-  if (pTexture == NULL) return false;
+bool GLVolumeListElem::Match(const UINTVECTOR3& vDimension) {
+  if (pGLVolume == NULL) return false;
 
   const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
 
@@ -158,14 +166,16 @@ bool Texture3DListElem::Match(const UINTVECTOR3& vDimension) {
   return true;
 }
 
-bool Texture3DListElem::Replace(Dataset* _pDataset,
+bool GLVolumeListElem::Replace(Dataset* _pDataset,
                                 const BrickKey& key,
                                 bool bIsPaddedToPowerOfTwo,
                                 bool bIsDownsampledTo8Bits,
-                                bool bDisableBorder, UINT64 iIntraFrameCounter,
+                                bool bDisableBorder,
+                                bool bEmulate3DWith2DStacks, 
+                                UINT64 iIntraFrameCounter,
                                 UINT64 iFrameCounter, const CTContext &cid,
                                 std::vector<unsigned char>& vUploadHub) {
-  if (pTexture == NULL) return false;
+  if (pGLVolume == NULL) return false;
   if (m_Context != cid) {
     T_ERROR("Trying to replace texture in one context"
             "with a texture from a second context!");
@@ -174,9 +184,10 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
 
   pDataset = _pDataset;
   m_Key    = key;
-  m_bIsPaddedToPowerOfTwo = bIsPaddedToPowerOfTwo;
-  m_bIsDownsampledTo8Bits = bIsDownsampledTo8Bits;
-  m_bDisableBorder        = bDisableBorder;
+  m_bIsPaddedToPowerOfTwo  = bIsPaddedToPowerOfTwo;
+  m_bIsDownsampledTo8Bits  = bIsDownsampledTo8Bits;
+  m_bDisableBorder         = bDisableBorder;
+  m_bEmulate3DWith2DStacks = bEmulate3DWith2DStacks;
 
   m_iIntraFrameCounter = iIntraFrameCounter;
   m_iFrameCounter = iFrameCounter;
@@ -185,14 +196,15 @@ bool Texture3DListElem::Replace(Dataset* _pDataset,
     T_ERROR("LoadData call failed, system may be out of memory");
     return false;
   }
-  glGetError();  // clear gl error flags
-  pTexture->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
+  while (glGetError() != GL_NO_ERROR) {};  // clear gl error flags
+  
+  pGLVolume->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
 
   return GL_NO_ERROR==glGetError();
 }
 
 
-bool Texture3DListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
+bool GLVolumeListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
   const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
   UINT64 iByteWidth  = pDataset->GetBitWidth()/8;
   UINT64 iCompCount = pDataset->GetComponentCount();
@@ -207,12 +219,12 @@ bool Texture3DListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
   }
 }
 
-void  Texture3DListElem::FreeData() {
+void  GLVolumeListElem::FreeData() {
   vData.resize(0);
 }
 
 
-bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
+bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
                                       bool bDeleteOldTexture) {
   if (bDeleteOldTexture) FreeTexture();
 
@@ -307,14 +319,26 @@ bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
       (MathTools::IsPow2(UINT32(vSize[0])) &&
        MathTools::IsPow2(UINT32(vSize[1])) &&
        MathTools::IsPow2(UINT32(vSize[2])))) {
-    pTexture = new GLTexture3D(UINT32(vSize[0]), UINT32(vSize[1]),
-                               UINT32(vSize[2]),
-                               glInternalformat, glFormat, glType,
-                               UINT32(iBitWidth/8*iCompCount), pRawData,
-                               GL_LINEAR, GL_LINEAR,
-                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+
+    if (m_bEmulate3DWith2DStacks) {
+      pGLVolume = new GLVolume2DTex(UINT32(vSize[0]), UINT32(vSize[1]),
+                                UINT32(vSize[2]),
+                                glInternalformat, glFormat, glType,
+                                UINT32(iBitWidth/8*iCompCount), pRawData,
+                                GL_LINEAR, GL_LINEAR,
+                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+    } else {
+      pGLVolume = new GLVolume3DTex(UINT32(vSize[0]), UINT32(vSize[1]),
+                                UINT32(vSize[2]),
+                                glInternalformat, glFormat, glType,
+                                UINT32(iBitWidth/8*iCompCount), pRawData,
+                                GL_LINEAR, GL_LINEAR,
+                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+    }
   } else {
     // pad the data to a power of two
     UINTVECTOR3 vPaddedSize(MathTools::NextPow2(UINT32(vSize[0])), MathTools::NextPow2(UINT32(vSize[1])), MathTools::NextPow2(UINT32(vSize[2])));
@@ -367,13 +391,17 @@ bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
             vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
             iBitWidth, iCompCount);
 
-    pTexture = new GLTexture3D(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
-                               glInternalformat, glFormat, glType,
-                               UINT32(iBitWidth/8*iCompCount), pPaddedData,
-                               GL_LINEAR, GL_LINEAR,
-                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                               m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+    if (m_bEmulate3DWith2DStacks) {
+      // TODO
+    } else {
+      pGLVolume = new GLVolume3DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
+                                 glInternalformat, glFormat, glType,
+                                 UINT32(iBitWidth/8*iCompCount), pPaddedData,
+                                 GL_LINEAR, GL_LINEAR,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+    }
     delete [] pPaddedData;
   }
 
@@ -381,10 +409,11 @@ bool Texture3DListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
   return GL_NO_ERROR==glGetError();
 }
 
-void Texture3DListElem::FreeTexture() {
-  if (pTexture != NULL) {
-    pTexture->Delete();
-    delete pTexture;
+void GLVolumeListElem::FreeTexture() {
+  if (pGLVolume) {
+    pGLVolume->FreeGLResources();
+    delete pGLVolume;
+    pGLVolume = NULL;
   }
-  pTexture = NULL;
+
 }

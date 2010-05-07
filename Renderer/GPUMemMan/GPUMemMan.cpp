@@ -63,7 +63,7 @@
 #include "Renderer/GL/GLError.h"
 #include "Renderer/GL/GLTexture1D.h"
 #include "Renderer/GL/GLTexture2D.h"
-#include "Renderer/GL/GLTexture3D.h"
+#include "Renderer/GL/GLVolume.h"
 
 using namespace std;
 using namespace std::tr1::placeholders;
@@ -133,11 +133,11 @@ GPUMemMan::~GPUMemMan() {
     delete i->pTransferFunction2D;
   }
 
-  for (Texture3DListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
+  for (GLVolumeListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
     dbg.Warning(_func_, "Detected unfreed 3D texture.");
 
-    m_iAllocatedGPUMemory -= (*i)->pTexture->GetCPUSize();
-    m_iAllocatedCPUMemory -= (*i)->pTexture->GetGPUSize();
+    m_iAllocatedGPUMemory -= (*i)->pGLVolume->GetCPUSize();
+    m_iAllocatedCPUMemory -= (*i)->pGLVolume->GetGPUSize();
 
     delete (*i);
   }
@@ -571,16 +571,18 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D,
   dbg.Warning(_func_, "2D TF not found or not in use by requester.");
 }
 
-// ******************** 3D Textures
+// ******************** Volumes
 
 bool GPUMemMan::IsResident(const Dataset* pDataset,
                            const BrickKey& key,
                            bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
-                           bool bDisableBorder) const {
-  for(Texture3DListConstIter i = m_vpTex3DList.begin();
+                           bool bDisableBorder, 
+                           bool bEmulate3DWith2DStacks) const {
+  for(GLVolumeListConstIter i = m_vpTex3DList.begin();
       i < m_vpTex3DList.end(); ++i) {
     if((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                     bDownSampleTo8Bits, bDisableBorder,
+                    bEmulate3DWith2DStacks, 
                     CTContext::Current())) {
       return true;
     }
@@ -603,16 +605,18 @@ required_cpu_memory(const Dataset& ds, const BrickKey& key)
 
 /// Searches the texture list for a texture which matches the given criterion.
 /// @return matching texture, or lst.end() if no texture matches.
-static Texture3DListIter
-find_closest_texture(Texture3DList &lst, const UINTVECTOR3& vSize,
-                     bool use_pot, bool downsample, bool disable_border)
+static GLVolumeListIter
+find_closest_texture(GLVolumeList &lst, const UINTVECTOR3& vSize,
+                     bool use_pot, bool downsample, bool disable_border,
+                     bool bEmulate3DWith2DStacks)
 {
   UINT64 iTargetFrameCounter = UINT64_INVALID;
   UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
 
-  Texture3DListIter iBestMatch = lst.end();
-  for (Texture3DListIter i=lst.begin(); i < lst.end(); ++i) {
+  GLVolumeListIter iBestMatch = lst.end();
+  for (GLVolumeListIter i=lst.begin(); i < lst.end(); ++i) {
     if ((*i)->BestMatch(vSize, use_pot, downsample, disable_border,
+                        bEmulate3DWith2DStacks,
                         iTargetIntraFrameCounter, iTargetFrameCounter,
                         CTContext::Current())) {
       iBestMatch = i;
@@ -653,7 +657,7 @@ size_t GPUMemMan::DeleteUnusedBricks() {
   bool found;
   do {
     found = false;
-    const Texture3DListIter& iter = find_brick_with_usercount(
+    const GLVolumeListIter& iter = find_brick_with_usercount(
                                       m_vpTex3DList.begin(),
                                       m_vpTex3DList.end(), 0
                                     );
@@ -677,7 +681,7 @@ void GPUMemMan::DeleteArbitraryBrick() {
   // We don't want to use 2^32 though, because then the application would feel
   // like it hung if we had some other bug.
   for(UINT32 in_use_by=0; in_use_by < 128; ++in_use_by) {
-    const Texture3DListIter& iter = find_brick_with_usercount(
+    const GLVolumeListIter& iter = find_brick_with_usercount(
                                       m_vpTex3DList.begin(),
                                       m_vpTex3DList.end(), in_use_by
                                     );
@@ -692,10 +696,11 @@ void GPUMemMan::DeleteArbitraryBrick() {
           "cannot make space for a new brick.");
 }
 
-GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset, const BrickKey& key,
+GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
                                      bool bUseOnlyPowerOfTwo,
                                      bool bDownSampleTo8Bits,
                                      bool bDisableBorder,
+                                     bool bEmulate3DWith2DStacks,
                                      UINT64 iIntraFrameCounter,
                                      UINT64 iFrameCounter) {
   // It can occur that we can create the brick in CPU memory but OpenGL must
@@ -703,10 +708,10 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset, const BrickKey& key,
   // delete any brick and then try again.
   do {
     try {
-      return this->AllocOrGet3DTexture(pDataset, key,
-                                       bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
-                                       bDisableBorder,
-                                       iIntraFrameCounter, iFrameCounter);
+      return this->AllocOrGetVolume(pDataset, key,
+                                    bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+                                    bDisableBorder, bEmulate3DWith2DStacks,
+                                    iIntraFrameCounter, iFrameCounter);
     } catch(OutOfMemory&) { // Texture allocation failed.
       // If texture allocation failed and we had no bricks loaded, then the
       // system must be extremely memory limited.  Make a note and then bail.
@@ -731,17 +736,19 @@ GLTexture3D* GPUMemMan::Get3DTexture(Dataset* pDataset, const BrickKey& key,
   return NULL;
 }
 
-GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
-                                            const BrickKey& key,
-                                            bool bUseOnlyPowerOfTwo,
-                                            bool bDownSampleTo8Bits,
-                                            bool bDisableBorder,
-                                            UINT64 iIntraFrameCounter,
-                                            UINT64 iFrameCounter) {
-  for (Texture3DListIter i = m_vpTex3DList.begin();
+GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
+                                      const BrickKey& key,
+                                      bool bUseOnlyPowerOfTwo,
+                                      bool bDownSampleTo8Bits,
+                                      bool bDisableBorder,
+                                      bool bEmulate3DWith2DStacks,
+                                      UINT64 iIntraFrameCounter,
+                                      UINT64 iFrameCounter) {
+  for (GLVolumeListIter i = m_vpTex3DList.begin();
        i < m_vpTex3DList.end(); i++) {
     if ((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                      bDownSampleTo8Bits, bDisableBorder,
+                     bEmulate3DWith2DStacks,
                      CTContext::Current())) {
       MESSAGE("Reusing 3D texture");
       return (*i)->Access(iIntraFrameCounter, iFrameCounter);
@@ -765,18 +772,20 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
 
     // search for best brick to replace with this brick
     UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(key);
-    Texture3DListIter iBestMatch = find_closest_texture(m_vpTex3DList, vSize,
+    GLVolumeListIter iBestMatch = find_closest_texture(m_vpTex3DList, vSize,
                                                         bUseOnlyPowerOfTwo,
                                                         bDownSampleTo8Bits,
-                                                        bDisableBorder);
+                                                        bDisableBorder,
+                                                        bEmulate3DWith2DStacks);
     if (iBestMatch != m_vpTex3DList.end()) {
       // found a suitable brick that can be replaced
       (*iBestMatch)->Replace(pDataset, key, bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits, bDisableBorder,
+                             bEmulate3DWith2DStacks,
                              iIntraFrameCounter, iFrameCounter,
                              CTContext::Current(), m_vUploadHub);
       (*iBestMatch)->iUserCount++;
-      return (*iBestMatch)->pTexture;
+      return (*iBestMatch)->pGLVolume;
     } else {
       // We know the brick doesn't fit in memory, and we know there's no
       // existing texture which matches enough that we could overwrite it with
@@ -800,52 +809,54 @@ GLTexture3D* GPUMemMan::AllocOrGet3DTexture(Dataset* pDataset,
     }
   }
 
-  MESSAGE("Creating new texture %u x %u x %u, "
+  MESSAGE("Creating new gl volume %u x %u x %u, "
           "bitsize=%llu, componentcount=%llu",
           sz[0], sz[1], sz[2], iBitWidth, iCompCount);
 
-  Texture3DListElem* pNew3DTex = new Texture3DListElem(pDataset, key,
+  GLVolumeListElem* pNew3DTex = new GLVolumeListElem(pDataset, key,
                                                        bUseOnlyPowerOfTwo,
                                                        bDownSampleTo8Bits,
                                                        bDisableBorder,
+                                                       bEmulate3DWith2DStacks,
                                                        iIntraFrameCounter,
                                                        iFrameCounter,
                                                        m_MasterController,
                                                        CTContext::Current(),
                                                        m_vUploadHub);
-  if (pNew3DTex->pTexture == NULL) {
-    T_ERROR("Failed to create OpenGL texture.");
+  if (pNew3DTex->pGLVolume == NULL) {
+    T_ERROR("Failed to create OpenGL resource for volume.");
     delete pNew3DTex;
     return NULL;
   }
-  MESSAGE("texture created.");
+  MESSAGE("texture(s) created.");
   pNew3DTex->iUserCount = 1;
 
-  m_iAllocatedGPUMemory += pNew3DTex->pTexture->GetGPUSize();
-  m_iAllocatedCPUMemory += pNew3DTex->pTexture->GetCPUSize();
+  m_iAllocatedGPUMemory += pNew3DTex->pGLVolume->GetGPUSize();
+  m_iAllocatedCPUMemory += pNew3DTex->pGLVolume->GetCPUSize();
 
   m_vpTex3DList.push_back(pNew3DTex);
-  return (*(m_vpTex3DList.end()-1))->pTexture;
+  return (*(m_vpTex3DList.end()-1))->pGLVolume;
 }
 
-void GPUMemMan::Release3DTexture(GLTexture3D* pTexture) {
+void GPUMemMan::Release3DTexture(GLVolume* pGLVolume) {
   for (size_t i = 0;i<m_vpTex3DList.size();i++) {
-    if (m_vpTex3DList[i]->pTexture == pTexture) {
+    if (m_vpTex3DList[i]->pGLVolume == pGLVolume) {
       if (m_vpTex3DList[i]->iUserCount > 0) {
           m_vpTex3DList[i]->iUserCount--;
       } else {
-        WARNING("Attempting to release a 3D texture that is not in use.");
+        WARNING("Attempting to release a 3D volume that is not in use.");
       }
     }
   }
 }
 
-void GPUMemMan::Delete3DTexture(const Texture3DListIter &tex) {
-  m_iAllocatedGPUMemory -= (*tex)->pTexture->GetCPUSize();
-  m_iAllocatedCPUMemory -= (*tex)->pTexture->GetGPUSize();
+
+void GPUMemMan::Delete3DTexture(const GLVolumeListIter &tex) {
+  m_iAllocatedGPUMemory -= (*tex)->pGLVolume->GetCPUSize();
+  m_iAllocatedCPUMemory -= (*tex)->pGLVolume->GetGPUSize();
 
   if((*tex)->iUserCount != 0) {
-    WARNING("Freeing used 3D texture!");
+    WARNING("Freeing used GL volume!");
   }
   delete *tex;
   m_vpTex3DList.erase(tex);
@@ -856,8 +867,8 @@ void GPUMemMan::Delete3DTexture(size_t iIndex) {
 }
 
 // Functor to identify a texture that belongs to a particular dataset.
-struct DatasetTexture: std::binary_function<Dataset, Texture3DListElem, bool> {
-  bool operator()(const Texture3DListElem* tex, const Dataset* ds) const {
+struct DatasetTexture: std::binary_function<Dataset, GLVolumeListElem, bool> {
+  bool operator()(const GLVolumeListElem* tex, const Dataset* ds) const {
     return tex->pDataset == ds;
   }
 };
@@ -867,16 +878,13 @@ void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset) {
   AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
 
   while(1) { // exit condition is checked for and `break'd in the loop.
-    const Texture3DListIter& iter =
+    const GLVolumeListIter& iter =
       std::find_if(m_vpTex3DList.begin(), m_vpTex3DList.end(),
                    std::tr1::bind(DatasetTexture(), _1, pDataset));
     if(iter == m_vpTex3DList.end()) {
       break;
     }
-    dbg.Message(_func_, "Deleting a 3D texture of size %u x %u x %u",
-                (*iter)->pTexture->GetSize().x,
-                (*iter)->pTexture->GetSize().y,
-                (*iter)->pTexture->GetSize().z);
+    dbg.Message(_func_, "Deleting a gl volume");
     Delete3DTexture(iter);
   }
 }
@@ -918,7 +926,7 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
     size_t iIndex = 0;
     size_t iBestIndex = 0;
 
-    for (Texture3DListIter i = m_vpTex3DList.begin()+1;i<m_vpTex3DList.end();i++) {
+    for (GLVolumeListIter i = m_vpTex3DList.begin()+1;i<m_vpTex3DList.end();i++) {
       UINT64 iTargetFrameCounter = UINT64_INVALID;
       UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
       (*i)->GetCounters(iTargetIntraFrameCounter, iTargetFrameCounter);

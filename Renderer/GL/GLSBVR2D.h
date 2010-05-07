@@ -44,60 +44,61 @@
 #include "../SBVRGeogen2D.h"
 
 namespace tuvok {
+  /** \class GLSBVR2D
+   * Slice-based GPU volume renderer.
+   *
+   * GLSBVR2D is a slice based volume renderer which uses GLSL
+   * and emulates 3D volumes with three stacks of 2D textures. */
+  class GLSBVR2D : public GLRenderer {
+    public:
+      /** Constructs a VRer with immediate redraw, and
+       * wireframe mode off.
+       * \param pMasterController message routing object */
+      GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
+      virtual ~GLSBVR2D();
 
-/** \class GLSBVR2D
- * Slice-based GPU volume renderer.
- *
- * GLSBVR2D is a slice based volume renderer which uses GLSL. */
-class GLSBVR2D : public GLRenderer {
-  public:
-    /** Constructs a VRer with immediate redraw, and
-     * wireframe mode off.
-     * \param pMasterController message routing object */
-    GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
-    virtual ~GLSBVR2D();
+      /** Loads GLSL vertex and fragment shaders. */
+      virtual bool Initialize();
 
-    /** Loads GLSL vertex and fragment shaders. */
-    virtual bool Initialize();
+      virtual void SetDataDepShaderVars();
 
-    virtual void SetDataDepShaderVars();
+      /** Sends a message to the master to ask for a dataset to be loaded.
+       * The dataset is converted to UVF if it is not one already.
+       * @param strFilename path to a file */
+      virtual bool LoadDataset(const std::string& strFilename);
 
-    /** Sends a message to the master to ask for a dataset to be loaded.
-     * The dataset is converted to UVF if it is not one already.
-     * @param strFilename path to a file */
-    virtual bool LoadDataset(const std::string& strFilename);
+      virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing && m_pDataset->GetComponentCount() == 1;}
 
-    virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing && m_pDataset->GetComponentCount() == 1;}
+      virtual void EnableClipPlane(RenderRegion *renderRegion);
+      virtual void DisableClipPlane(RenderRegion *renderRegion);
 
-    virtual void EnableClipPlane(RenderRegion *renderRegion);
-    virtual void DisableClipPlane(RenderRegion *renderRegion);
+      virtual ERendererType GetRendererType() {return RT_SBVR;}
 
-    virtual ERendererType GetRendererType() {return RT_SBVR;}
+    protected:
+      SBVRGeogen2D  m_SBVRGeogen;
+      GLSLProgram*  m_pProgramIsoNoCompose;
+      GLSLProgram*  m_pProgramColorNoCompose;
 
-  protected:
-    SBVRGeogen2D  m_SBVRGeogen;
-    GLSLProgram*  m_pProgramIsoNoCompose;
-    GLSLProgram*  m_pProgramColorNoCompose;
+      void SetBrickDepShaderVars(RenderRegion3D& region, const Brick& currentBrick);
 
-    void SetBrickDepShaderVars(RenderRegion3D& region, const Brick& currentBrick);
+      virtual void Render3DPreLoop(RenderRegion3D& region);
+      virtual void Render3DInLoop(RenderRegion3D& renderRegion,
+                                  size_t iCurrentBrick, int iStereoID);
+      virtual void Render3DPostLoop();
 
-    virtual void Render3DPreLoop(RenderRegion3D& region);
-    virtual void Render3DInLoop(RenderRegion3D& renderRegion,
-                                size_t iCurrentBrick, int iStereoID);
-    virtual void Render3DPostLoop();
+      virtual void RenderHQMIPPreLoop(RenderRegion2D& region);
+      virtual void RenderHQMIPInLoop(RenderRegion2D& region, const Brick& b);
+      virtual void RenderHQMIPPostLoop();
 
-    virtual void RenderHQMIPPreLoop(RenderRegion2D& region);
-    virtual void RenderHQMIPInLoop(RenderRegion2D& region, const Brick& b);
-    virtual void RenderHQMIPPostLoop();
+      void RenderProxyGeometry();
+      virtual void Cleanup();
 
-    void RenderProxyGeometry();
-    virtual void Cleanup();
-
-    virtual void ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID);
-    virtual void UpdateColorsInShaders();
-
-    //virtual bool BindVolumeTex(const BrickKey& bkey, const UINT64 iIntraFrameCounter);
-    //virtual bool UnbindVolumeTex();
-};
+      virtual void ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID);
+      virtual void UpdateColorsInShaders();
+  /*
+      virtual bool BindVolumeTex(const BrickKey& bkey, const UINT64 iIntraFrameCounter);
+      virtual bool IsVolumeResident(const BrickKey& key);
+  */
+  };
 };
 #endif // GLSBVR2D_H
