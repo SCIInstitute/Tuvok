@@ -652,8 +652,6 @@ void SBVRGeogen2D::ComputeGeometryKruegerFast() {
   m_vSliceTrianglesY.clear();
   m_vSliceTrianglesZ.clear();
 
-  POS3TEX3_VERTEX pfSliceVertex[4];
-
   FLOATVECTOR3 fDelta;
   fDelta.x = GetDelta(0)*fCosAngleX;
   fDelta.y = GetDelta(1)*fCosAngleY;
