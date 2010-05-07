@@ -122,6 +122,10 @@ JPEG::JPEG(const std::string &fn, std::streamoff offset) :
   w(0), h(0), bpp(0), jpeg_impl(new j_implementation)
 {
   fill_buffer_from_file(this->buffer, fn.c_str(), offset);
+  if(this->buffer.empty()) {
+    T_ERROR("No data in %s", fn.c_str());
+    return;
+  }
   this->initialize();
 }
 
