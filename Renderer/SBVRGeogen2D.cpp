@@ -92,6 +92,16 @@ void SBVRGeogen2D::ComputeGeometry() {
     case METHOD_KRUEGER : ComputeGeometryKrueger(); break;
     default : ComputeGeometryKruegerFast(); break;
   }
+
+  if(m_bClipPlaneEnabled) {
+    PLANE<float> transformed = m_ClipPlane * m_matView;
+    const FLOATVECTOR3 normal(transformed.xyz());
+    const float d = transformed.d();
+    m_vSliceTrianglesX = ClipTriangles(m_vSliceTrianglesX, normal, d);
+    m_vSliceTrianglesY = ClipTriangles(m_vSliceTrianglesY, normal, d);
+    m_vSliceTrianglesZ = ClipTriangles(m_vSliceTrianglesZ, normal, d);
+  }
+
 }
 
 
