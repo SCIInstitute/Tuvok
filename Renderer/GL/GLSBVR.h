@@ -91,7 +91,7 @@ class GLSBVR : public GLRenderer {
     virtual void RenderHQMIPPostLoop();
 
     void RenderProxyGeometry();
-    virtual void Cleanup();
+    virtual void CleanupShaders();
 
     virtual void ComposeSurfaceImage(RenderRegion &renderRegion, int iStereoID);
     virtual void UpdateColorsInShaders();

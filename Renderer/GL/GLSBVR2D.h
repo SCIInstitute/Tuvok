@@ -100,7 +100,7 @@ namespace tuvok {
       void RenderProxyGeometry();
       void RenderProxyGeometry2D();
       void RenderProxyGeometry3D();
-      virtual void Cleanup();
+      virtual void CleanupShaders();
 
       virtual void ComposeSurfaceImage(RenderRegion& renderRegion,
                                        int iStereoID);

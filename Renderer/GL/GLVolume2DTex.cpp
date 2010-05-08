@@ -35,6 +35,7 @@
 
 #include "GLVolume2DTex.h"
 #include "GLTexture2D.h"
+#include <cstring> // for memcpy
 
 using namespace tuvok;
 

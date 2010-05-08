@@ -63,8 +63,8 @@ class GLRaycaster : public GLRenderer {
     /** Loads GLSL vertex and fragment shaders. */
     virtual bool Initialize();
 
-    /** Deallocates GPU memory allocated during the rendering process. */
-    virtual void Cleanup();
+    /** Deallocates Shaders */
+    virtual void CleanupShaders();
 
     /// Can only use CV on scalar datasets.  There's nothing really preventing
     /// its application to RGBA datasets, but shaders would need updating (and

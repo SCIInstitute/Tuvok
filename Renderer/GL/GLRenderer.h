@@ -70,6 +70,9 @@ class GLRenderer : public AbstrRenderer {
     /** Deallocates GPU memory allocated during the rendering process. */
     virtual void Cleanup();
 
+    /** Deallocates shaders. */
+    virtual void CleanupShaders();
+
     /** Paint the image */
     virtual void Paint();
 

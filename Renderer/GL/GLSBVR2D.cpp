@@ -57,22 +57,24 @@ GLSBVR2D::GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
 GLSBVR2D::~GLSBVR2D() {
 }
 
-void GLSBVR2D::Cleanup() {
-  GLRenderer::Cleanup();
+void GLSBVR2D::CleanupShaders() {
+  GLRenderer::CleanupShaders();
   if (m_pProgramIsoNoCompose)   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIsoNoCompose); m_pProgramIsoNoCompose =NULL;}
   if (m_pProgramColorNoCompose) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorNoCompose); m_pProgramColorNoCompose =NULL;}
 }
 
 void GLSBVR2D::SetUse3DTexture(bool bUse3DTexture) {
-  m_bUse3DTexture = bUse3DTexture;
-  // TODO switch shaders
+
+  if (bUse3DTexture != m_bUse3DTexture) {
+    m_bUse3DTexture = bUse3DTexture;
+    CleanupShaders();
+    LoadShaders();
+  }
 }
 
 bool GLSBVR2D::LoadShaders() {
   // do not call GLRenderer::LoadShaders as we want to control 
   // what volume access function is linked (Volume3D or Volume2D)
-
-  // TODO load shaders depending on m_bUse3DTexture
 
   string volumeAccessFunction = m_bUse3DTexture ? "Volume3D.glsl" 
                                                 : "Volume2D.glsl";
@@ -107,6 +109,10 @@ bool GLSBVR2D::LoadShaders() {
       T_ERROR("Error loading transfer function shaders.");
       return false;
   } else {
+
+    // TODO load shaders depending on m_bUse3DTexture
+
+
     m_pProgramTrans->Enable();
     m_pProgramTrans->SetUniformVector("texColor",0);
     m_pProgramTrans->SetUniformVector("texDepth",1);

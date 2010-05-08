@@ -56,8 +56,8 @@ GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, boo
 GLSBVR::~GLSBVR() {
 }
 
-void GLSBVR::Cleanup() {
-  GLRenderer::Cleanup();
+void GLSBVR::CleanupShaders() {
+  GLRenderer::CleanupShaders();
   if (m_pProgramIsoNoCompose)   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIsoNoCompose); m_pProgramIsoNoCompose =NULL;}
   if (m_pProgramColorNoCompose) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorNoCompose); m_pProgramColorNoCompose =NULL;}
 }

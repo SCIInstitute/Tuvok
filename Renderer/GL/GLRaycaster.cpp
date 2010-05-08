@@ -61,8 +61,8 @@ GLRaycaster::~GLRaycaster() {
 }
 
 
-void GLRaycaster::Cleanup() {
-  GLRenderer::Cleanup();
+void GLRaycaster::CleanupShaders() {
+  GLRenderer::CleanupShaders();
 
   if (m_pFBORayEntry){m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); m_pFBORayEntry = NULL;}
   if (m_pProgramRenderFrontFaces){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramRenderFrontFaces); m_pProgramRenderFrontFaces = NULL;}
