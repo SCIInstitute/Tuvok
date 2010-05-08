@@ -107,31 +107,40 @@ bool GLRaycaster::Initialize() {
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
-                          "GLRaycaster-frontfaces-FS.glsl", NULL) ||
+                          "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
+                          NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          "lighting.glsl", shaderNames[0],  NULL) ||
+                          "lighting.glsl", "Volume3D.glsl",
+                          shaderNames[0],  NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          "lighting.glsl", shaderNames[1], NULL) ||
+                          "lighting.glsl", "Volume3D.glsl",
+                          shaderNames[1], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          "lighting.glsl", shaderNames[2], NULL) ||
+                          "lighting.glsl", "Volume3D.glsl",
+                          shaderNames[2], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          "lighting.glsl", shaderNames[3], NULL) ||
+                          "lighting.glsl", "Volume3D.glsl",
+                          shaderNames[3], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          "lighting.glsl", shaderNames[6], NULL) ||
+                          "lighting.glsl", "Volume3D.glsl",
+                          shaderNames[6], NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          "lighting.glsl", shaderNames[4], NULL) ||
+                          "lighting.glsl", "Volume3D.glsl",
+                          shaderNames[4], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          "lighting.glsl", shaderNames[5], NULL) ||
+                          "lighting.glsl", "Volume3D.glsl",
+                          shaderNames[5], NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl", "clip-plane.glsl",
-                          "lighting.glsl", "GLRaycaster-MIP-Rot-FS.glsl",
+                          "lighting.glsl", "Volume3D.glsl",
+                          "GLRaycaster-MIP-Rot-FS.glsl",
                           NULL))
   {
       Cleanup();

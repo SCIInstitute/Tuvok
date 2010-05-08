@@ -35,7 +35,8 @@
   \date    October 2008
 */
 
-uniform sampler3D texVolume;     ///< the data volume
+vec4 sampleVolume(vec3 coords);
+
 uniform sampler1D texTrans1D;    ///< the 1D Transfer function
 uniform sampler2D texRayExit; ///< the backface (or ray exit point) texture in texcoords
 uniform sampler2D texRayExitPos; ///< the backface (or ray exit point) texture in eyecoords
@@ -57,7 +58,7 @@ varying vec3 vEyePos;
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
-vec3 ComputeNormal(vec3 vHitPosTex, sampler3D volume, vec3 StepSize,
+vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
                    vec3 DomainScale);
 vec4 ColorBlend(vec4 src, vec4 dst);
 
@@ -88,13 +89,13 @@ void main(void)
   vec3  vCurrentPosTex = vRayEntryTex;
   vec3  vCurrentPos    = vRayEntry;
   for (int i = 0;i<iStepCount;i++) {
-    float fVolumVal = texture3D(texVolume, vCurrentPosTex).x;	
+    float fVolumVal = sampleVolume( vCurrentPosTex).x;	
 
     /// apply 1D transfer function
     vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
 
     // compute lighting
-    vec3 vNormal     = ComputeNormal(vCurrentPosTex, texVolume, vVoxelStepsize,
+    vec3 vNormal     = ComputeNormal(vCurrentPosTex, vVoxelStepsize,
                                      vDomainScale);
     vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient,
                                 vLightDiffuse*vTransVal.xyz, vLightSpecular,

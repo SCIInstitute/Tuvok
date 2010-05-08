@@ -30,6 +30,8 @@
   \file  lighting.glsl
 */
 
+vec4 sampleVolume(vec3 coords);
+
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir) {
 	vNormal.z = abs(vNormal.z);
@@ -43,14 +45,13 @@ vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
   );
 }
 
-vec3 ComputeNormal(vec3 vHitPosTex, sampler3D volume, vec3 StepSize,
-                   vec3 DomainScale) {
-  float fVolumValXp = texture3D(volume, vHitPosTex+vec3(+StepSize.x,0,0)).x;
-  float fVolumValXm = texture3D(volume, vHitPosTex+vec3(-StepSize.x,0,0)).x;
-  float fVolumValYp = texture3D(volume, vHitPosTex+vec3(0,-StepSize.y,0)).x;
-  float fVolumValYm = texture3D(volume, vHitPosTex+vec3(0,+StepSize.y,0)).x;
-  float fVolumValZp = texture3D(volume, vHitPosTex+vec3(0,0,+StepSize.z)).x;
-  float fVolumValZm = texture3D(volume, vHitPosTex+vec3(0,0,-StepSize.z)).x;
+vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize, vec3 DomainScale) {
+  float fVolumValXp = sampleVolume( vHitPosTex+vec3(+StepSize.x,0,0)).x;
+  float fVolumValXm = sampleVolume( vHitPosTex+vec3(-StepSize.x,0,0)).x;
+  float fVolumValYp = sampleVolume( vHitPosTex+vec3(0,-StepSize.y,0)).x;
+  float fVolumValYm = sampleVolume( vHitPosTex+vec3(0,+StepSize.y,0)).x;
+  float fVolumValZp = sampleVolume( vHitPosTex+vec3(0,0,+StepSize.z)).x;
+  float fVolumValZm = sampleVolume( vHitPosTex+vec3(0,0,-StepSize.z)).x;
   vec3 vGradient = vec3(fVolumValXm - fVolumValXp,
                         fVolumValYp - fVolumValYm,
                         fVolumValZm - fVolumValZp);

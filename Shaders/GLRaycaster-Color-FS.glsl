@@ -35,7 +35,8 @@
   \date    October 2008
 */
 
-uniform sampler3D texVolume;   ///< the data volume
+vec4 sampleVolume(vec3 coords);
+
 uniform sampler2D texRayExitPos; ///< the backface (or ray exit point) texture in eyecoords
 uniform vec3 vVoxelStepsize;   ///< Stepsize (in texcoord) to get to the next voxel
 uniform float fRayStepsize;    ///< stepsize along the ray
@@ -49,7 +50,7 @@ uniform vec4 vClipPlane;
 
 bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
                  in vec4 clip_plane);
-vec3 ComputeNormal(vec3 vHitPosTex, sampler3D volume, vec3 StepSize,
+vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
                    vec3 DomainScale);
 
 vec3 RefineIsosurface(vec3 vRayDir, vec3 vCurrentPos) {
@@ -57,7 +58,7 @@ vec3 RefineIsosurface(vec3 vRayDir, vec3 vCurrentPos) {
 	vCurrentPos -= vRayDir;
 	for (int i = 0; i < 5; i++) {
 		vRayDir /= 2.0;
-		float voxel = texture3D(texVolume, vCurrentPos).x;
+		float voxel = sampleVolume( vCurrentPos).x;
 		if (voxel >= fIsoval) {
 			vCurrentPos -= vRayDir;
 		} else {
@@ -89,7 +90,7 @@ void main(void)
     vec4  vHitPosTex     = vec4(0.0,0.0,0.0,0.0);
     vec3  vCurrentPosTex = vRayEntryTex;
     for (int i = 0;i<iStepCount;i++) {
-      float fVolumVal = texture3D(texVolume, vCurrentPosTex).a;	
+      float fVolumVal = sampleVolume( vCurrentPosTex).a;	
 
       if (fVolumVal >= fIsoval) {
         vHitPosTex = vec4(vCurrentPosTex.x, vCurrentPosTex.y, vCurrentPosTex.z, 1);
@@ -104,7 +105,7 @@ void main(void)
     else
       discard;
 
-    vec3 fVolumeColor = texture3D(texVolume, vCurrentPosTex).rgb;	
+    vec3 fVolumeColor = sampleVolume( vCurrentPosTex).rgb;	
 
     // interpolate eye space position
     float fInterpolParam = length(vHitPosTex.xyz-vRayEntryTex)/fRayLengthTex;
@@ -117,7 +118,7 @@ void main(void)
     gl_FragDepth = vProjParam.x + (vProjParam.y / -vHitPos.z);
 
     // store normal and green and blue channel
-    vec3 vNormal =  ComputeNormal(vHitPosTex.xyz, texVolume, vVoxelStepsize,
+    vec3 vNormal =  ComputeNormal(vHitPosTex.xyz, vVoxelStepsize,
                                   vDomainScale);
                                   // do a floor just to be sure
     gl_FragData[1] = vec4(vNormal,floor(fVolumeColor.g*512.0)+fVolumeColor.b);

@@ -54,11 +54,12 @@ namespace tuvok {
       /** Constructs a VRer with immediate redraw, and
        * wireframe mode off.
        * \param pMasterController message routing object */
-      GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
+      GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
+               bool bDownSampleTo8Bits, bool bDisableBorder);
       virtual ~GLSBVR2D();
 
       /** Loads GLSL vertex and fragment shaders. */
-      virtual bool Initialize();
+      virtual bool LoadShaders();
 
       virtual void SetDataDepShaderVars();
 
@@ -67,19 +68,25 @@ namespace tuvok {
        * @param strFilename path to a file */
       virtual bool LoadDataset(const std::string& strFilename);
 
-      virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing && m_pDataset->GetComponentCount() == 1;}
+      virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing &&
+                                        m_pDataset->GetComponentCount() == 1;}
 
       virtual void EnableClipPlane(RenderRegion *renderRegion);
       virtual void DisableClipPlane(RenderRegion *renderRegion);
 
       virtual ERendererType GetRendererType() {return RT_SBVR;}
 
+      bool GetUse3DTexture() {return m_bUse3DTexture;}
+      void SetUse3DTexture(bool bUse3DTexture);
+
     protected:
       SBVRGeogen2D  m_SBVRGeogen;
       GLSLProgram*  m_pProgramIsoNoCompose;
       GLSLProgram*  m_pProgramColorNoCompose;
+      bool          m_bUse3DTexture;
 
-      void SetBrickDepShaderVars(RenderRegion3D& region, const Brick& currentBrick);
+      void SetBrickDepShaderVars(RenderRegion3D& region,
+                                 const Brick& currentBrick);
 
       virtual void Render3DPreLoop(RenderRegion3D& region);
       virtual void Render3DInLoop(RenderRegion3D& renderRegion,
@@ -91,14 +98,17 @@ namespace tuvok {
       virtual void RenderHQMIPPostLoop();
 
       void RenderProxyGeometry();
+      void RenderProxyGeometry2D();
+      void RenderProxyGeometry3D();
       virtual void Cleanup();
 
-      virtual void ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID);
+      virtual void ComposeSurfaceImage(RenderRegion& renderRegion,
+                                       int iStereoID);
       virtual void UpdateColorsInShaders();
-  /*
-      virtual bool BindVolumeTex(const BrickKey& bkey, const UINT64 iIntraFrameCounter);
+  
+      virtual bool BindVolumeTex(const BrickKey& bkey, 
+                                 const UINT64 iIntraFrameCounter);
       virtual bool IsVolumeResident(const BrickKey& key);
-  */
   };
 };
 #endif // GLSBVR2D_H

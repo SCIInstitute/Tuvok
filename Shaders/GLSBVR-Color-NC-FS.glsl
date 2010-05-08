@@ -35,7 +35,8 @@
   \date    October 2008
 */
 
-uniform sampler3D texVolume;  ///< the data volume
+vec4 sampleVolume(vec3 coords);
+
 uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next voxel
 uniform float fIsoval;        ///< the isovalue
 uniform vec3 vDomainScale;
@@ -48,17 +49,17 @@ varying vec3 vPosition;
 void main(void)
 {
   /// get volume value
-	vec4 fVolumVal = texture3D(texVolume, gl_TexCoord[0].xyz);	
+	vec4 fVolumVal = sampleVolume( gl_TexCoord[0].xyz);	
 
   // if we hit (or shot over) an isosurface
   if (fVolumVal.a >= fIsoval) {
     // compute the gradient/normal
-	float fVolumValXp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).a;
-	float fVolumValXm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).a;
-	float fVolumValYp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).a;
-	float fVolumValYm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).a;
-	float fVolumValZp = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).a;
-	float fVolumValZm = texture3D(texVolume, gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).a;
+	float fVolumValXp = sampleVolume( gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).a;
+	float fVolumValXm = sampleVolume( gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).a;
+	float fVolumValYp = sampleVolume( gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).a;
+	float fVolumValYm = sampleVolume( gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).a;
+	float fVolumValZp = sampleVolume( gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).a;
+	float fVolumValZm = sampleVolume( gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).a;
     vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp);
 
     // compute lighting

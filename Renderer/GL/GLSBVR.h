@@ -57,7 +57,7 @@ class GLSBVR : public GLRenderer {
     virtual ~GLSBVR();
 
     /** Loads GLSL vertex and fragment shaders. */
-    virtual bool Initialize();
+    virtual bool LoadShaders();
 
     virtual void SetDataDepShaderVars();
 

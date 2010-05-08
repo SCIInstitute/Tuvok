@@ -35,20 +35,21 @@
   \date    October 2008
 */
 
-uniform sampler3D texVolume;  ///< the data volume
+vec4 sampleVolume(vec3 coords);
+
 uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next voxel
 uniform float fIsoval;        ///< the isovalue
 uniform vec3 vDomainScale;
 
 varying vec3 vPosition;
 
-vec3 ComputeNormal(vec3 vHitPosTex, sampler3D volume, vec3 StepSize,
+vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
                    vec3 DomainScale);
 
 void main(void)
 {
   /// get volume value
-	vec4 fVolumVal = texture3D(texVolume, gl_TexCoord[0].xyz);	
+	vec4 fVolumVal = sampleVolume( gl_TexCoord[0].xyz);	
 
   // if we hit (or shot over) an isosurface
   if (fVolumVal.a >= fIsoval) {
@@ -56,8 +57,8 @@ void main(void)
     gl_FragData[0] = vec4(vPosition.xyz,fVolumVal.r+1.0); // red chanel plus one (to make sure this value is not accideantially zero)
 
     // store normal and green and blue channel
-    gl_FragData[1] = vec4(ComputeNormal(gl_TexCoord[0].xyz, texVolume,
-                                        vVoxelStepsize, vDomainScale),
+    gl_FragData[1] = vec4(ComputeNormal(gl_TexCoord[0].xyz, vVoxelStepsize,
+						  vDomainScale),
                           floor(fVolumVal.g * 512.0) + fVolumVal.b);
   } else {
     discard;

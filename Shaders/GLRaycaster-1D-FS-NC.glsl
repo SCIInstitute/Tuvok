@@ -35,7 +35,7 @@
   \date    October 2008
 */
 
-uniform sampler3D texVolume;  ///< the data volume
+vec4 sampleVolume(vec3 coords);
 uniform sampler1D texTrans1D; ///< the 1D Transfer function
 uniform sampler2D texRayExitPos; ///< the backface (or ray exit point) texture in eyecoords
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
@@ -70,7 +70,7 @@ void main(void)
   vec4  vColor = vec4(0.0,0.0,0.0,0.0);
   vec3  vCurrentPosTex = vRayEntryTex;
   for (int i = 0;i<iStepCount;i++) {
-    float fVolumVal = texture3D(texVolume, vCurrentPosTex).x;	
+    float fVolumVal = sampleVolume( vCurrentPosTex).x;	
 
     /// apply 1D transfer function
     vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);

@@ -184,8 +184,8 @@ class GLRenderer : public AbstrRenderer {
     virtual bool BindVolumeTex(const BrickKey& bkey,
                                const UINT64 iIntraFrameCounter);
     virtual bool UnbindVolumeTex();
+    virtual bool LoadShaders();
 
-  private:
     GLSLProgram*    m_pProgramTrans;
     GLSLProgram*    m_pProgram1DTransSlice;
     GLSLProgram*    m_pProgram2DTransSlice;
@@ -198,6 +198,8 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramCVCompose;
     GLSLProgram*    m_pProgramComposeAnaglyphs;
     GLSLProgram*    m_pProgramComposeScanlineStereo;
+
+  private:
 
     float*          m_aDepthStorage;
 

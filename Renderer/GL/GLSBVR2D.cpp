@@ -49,7 +49,8 @@ using namespace tuvok;
 GLSBVR2D::GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
   GLRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
   m_pProgramIsoNoCompose(NULL),
-  m_pProgramColorNoCompose(NULL)
+  m_pProgramColorNoCompose(NULL),
+  m_bUse3DTexture(true)
 {
 }
 
@@ -62,35 +63,141 @@ void GLSBVR2D::Cleanup() {
   if (m_pProgramColorNoCompose) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorNoCompose); m_pProgramColorNoCompose =NULL;}
 }
 
-bool GLSBVR2D::Initialize() {
-  if (!GLRenderer::Initialize()) {
-    T_ERROR("Error in parent call -> aborting");
-    return false;
+void GLSBVR2D::SetUse3DTexture(bool bUse3DTexture) {
+  m_bUse3DTexture = bUse3DTexture;
+  // TODO switch shaders
+}
+
+bool GLSBVR2D::LoadShaders() {
+  // do not call GLRenderer::LoadShaders as we want to control 
+  // what volume access function is linked (Volume3D or Volume2D)
+
+  // TODO load shaders depending on m_bUse3DTexture
+
+  string volumeAccessFunction = m_bUse3DTexture ? "Volume3D.glsl" 
+                                                : "Volume2D.glsl";
+
+  if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Transfer-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram1DTransSlice, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+     !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+     !LoadAndVerifyShader(&m_pProgramMIPSlice, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+     !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
+                          "SlicesIn3D.glsl", "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+     !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
+                          "SlicesIn3D.glsl", "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+     !LoadAndVerifyShader(&m_pProgramTransMIP, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Transfer-MIP-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramIsoCompose, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Compose-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramColorCompose, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Compose-Color-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramCVCompose, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Compose-CV-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramComposeAnaglyphs, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",
+                          NULL)                                              ||
+     !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
+                          m_vShaderSearchDirs, "Transfer-VS.glsl",
+                          "Compose-Scanline-FS.glsl", NULL))
+  {
+      T_ERROR("Error loading transfer function shaders.");
+      return false;
+  } else {
+    m_pProgramTrans->Enable();
+    m_pProgramTrans->SetUniformVector("texColor",0);
+    m_pProgramTrans->SetUniformVector("texDepth",1);
+    m_pProgramTrans->Disable();
+
+    m_pProgram1DTransSlice->Enable();
+    m_pProgram1DTransSlice->SetUniformVector("texVolume",0);
+    m_pProgram1DTransSlice->SetUniformVector("texTrans1D",1);
+    m_pProgram1DTransSlice->Disable();
+
+    m_pProgram2DTransSlice->Enable();
+    m_pProgram2DTransSlice->SetUniformVector("texVolume",0);
+    m_pProgram2DTransSlice->SetUniformVector("texTrans2D",1);
+    m_pProgram2DTransSlice->Disable();
+
+    m_pProgram1DTransSlice3D->Enable();
+    m_pProgram1DTransSlice3D->SetUniformVector("texVolume",0);
+    m_pProgram1DTransSlice3D->SetUniformVector("texTrans1D",1);
+    m_pProgram1DTransSlice3D->Disable();
+
+    m_pProgram2DTransSlice3D->Enable();
+    m_pProgram2DTransSlice3D->SetUniformVector("texVolume",0);
+    m_pProgram2DTransSlice3D->SetUniformVector("texTrans2D",1);
+    m_pProgram2DTransSlice3D->Disable();
+
+    m_pProgramMIPSlice->Enable();
+    m_pProgramMIPSlice->SetUniformVector("texVolume",0);
+    m_pProgramMIPSlice->Disable();
+
+    m_pProgramTransMIP->Enable();
+    m_pProgramTransMIP->SetUniformVector("texLast",0);
+    m_pProgramTransMIP->SetUniformVector("texTrans1D",1);
+    m_pProgramTransMIP->Disable();
+
+    FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
+
+    m_pProgramIsoCompose->Enable();
+    m_pProgramIsoCompose->SetUniformVector("texRayHitPos",0);
+    m_pProgramIsoCompose->SetUniformVector("texRayHitNormal",1);
+    m_pProgramIsoCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
+    m_pProgramIsoCompose->Disable();
+
+    m_pProgramColorCompose->Enable();
+    m_pProgramColorCompose->SetUniformVector("texRayHitPos",0);
+    m_pProgramColorCompose->SetUniformVector("texRayHitNormal",1);
+    m_pProgramColorCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
+    m_pProgramColorCompose->Disable();
+
+    m_pProgramCVCompose->Enable();
+    m_pProgramCVCompose->SetUniformVector("texRayHitPos",0);
+    m_pProgramCVCompose->SetUniformVector("texRayHitNormal",1);
+    m_pProgramCVCompose->SetUniformVector("texRayHitPos2",2);
+    m_pProgramCVCompose->SetUniformVector("texRayHitNormal2",3);
+    m_pProgramCVCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
+    m_pProgramCVCompose->Disable();
+
+    m_pProgramComposeAnaglyphs->Enable();
+    m_pProgramComposeAnaglyphs->SetUniformVector("texLeftEye",0);
+    m_pProgramComposeAnaglyphs->SetUniformVector("texRightEye",1);
+    m_pProgramComposeAnaglyphs->Disable();
+
+    m_pProgramComposeScanlineStereo->Enable();
+    m_pProgramComposeScanlineStereo->SetUniformVector("texLeftEye",0);
+    m_pProgramComposeScanlineStereo->SetUniformVector("texRightEye",1);
+    m_pProgramComposeScanlineStereo->Disable();    
   }
 
+
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-1D-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "GLSBVR-1D-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-Color-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIsoNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-ISO-NC-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColorNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", NULL))
+                          "GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", volumeAccessFunction.c_str(), NULL))
   {
       Cleanup();
 
@@ -275,6 +382,57 @@ void GLSBVR2D::Render3DPreLoop(RenderRegion3D& region) {
 }
 
 void GLSBVR2D::RenderProxyGeometry() {
+  if (m_bUse3DTexture) RenderProxyGeometry3D(); else RenderProxyGeometry2D();
+}
+
+void GLSBVR2D::RenderProxyGeometry2D() {
+  for (UINT32 i = 0;i<3;i++) {
+
+    switch (m_SBVRGeogen.m_vSliceTrianglesOrder[i]) {
+      case SBVRGeogen2D::DIRECTION_X : {
+                                          for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
+                                            // TODO bind textures
+                                            glBegin(GL_TRIANGLES);
+                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x,
+                                                           m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
+                                                           m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z);
+                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
+                                                         m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
+                                                         m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
+                                            glEnd();
+                                          }
+                                       } break;
+      case SBVRGeogen2D::DIRECTION_Y : {
+                                          for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
+                                            // TODO bind textures
+                                            glBegin(GL_TRIANGLES);
+                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
+                                                           m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y,
+                                                           m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z);
+                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
+                                                         m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
+                                                         m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
+                                            glEnd();
+                                          }
+                                       } break;
+      case SBVRGeogen2D::DIRECTION_Z : {
+                                          for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
+                                            // TODO bind textures
+                                            glBegin(GL_TRIANGLES);
+                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
+                                                           m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
+                                                           m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z);
+                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
+                                                         m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
+                                                         m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
+                                            glEnd();
+                                          }
+                                       } break;
+    }
+  }
+}
+
+void GLSBVR2D::RenderProxyGeometry3D() {
 
   for (UINT32 i = 0;i<3;i++) {
 
@@ -470,9 +628,12 @@ void GLSBVR2D::UpdateColorsInShaders() {
   m_pProgramColorNoCompose->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
   m_pProgramColorNoCompose->Disable();
 }
-/*
+
 bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,
                              const UINT64 iIntraFrameCounter) {
+
+  if (m_bUse3DTexture) return GLRenderer::BindVolumeTex(bkey,iIntraFrameCounter);
+
   m_pMasterController->MemMan()->GetVolume(m_pDataset, bkey,
                                               m_bUseOnlyPowerOfTwo, 
                                               m_bDownSampleTo8Bits, 
@@ -488,10 +649,11 @@ bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,
 }
 
 bool GLSBVR2D::IsVolumeResident(const BrickKey& key) {
+  if (m_bUse3DTexture) return GLRenderer::IsVolumeResident(key);
+
   return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
                                                 m_bUseOnlyPowerOfTwo,
                                                 m_bDownSampleTo8Bits,
                                                 m_bDisableBorder,
                                                 true);
 }
-*/

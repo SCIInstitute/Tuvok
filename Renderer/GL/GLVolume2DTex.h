@@ -49,7 +49,7 @@ namespace tuvok {
       GLVolume2DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
                     GLint internalformat, GLenum format, GLenum type,
                     UINT32 iSizePerElement,
-                    const GLvoid *pixels = 0,
+                    const GLvoid *voxels = 0,
                     GLint iMagFilter = GL_NEAREST,
                     GLint iMinFilter = GL_NEAREST,
                     GLint wrapX = GL_CLAMP_TO_EDGE,
@@ -67,6 +67,24 @@ namespace tuvok {
 
     private:
       std::vector< std::vector<GLTexture2D*> > m_pTextures;
+
+      UINT32 m_iSizeX;
+      UINT32 m_iSizeY;
+      UINT32 m_iSizeZ;
+      GLint  m_internalformat;
+      GLenum m_format;
+      GLenum m_type;
+      UINT32 m_iSizePerElement;
+      GLint  m_iMagFilter;
+      GLint  m_iMinFilter;
+      GLint  m_wrapX;
+      GLint  m_wrapY;
+      GLint  m_wrapZ;
+
+      UINT64 m_iGPUSize;
+      UINT64 m_iCPUSize;
+
+      void CreateGLResources();
   };
 };
 #endif // GLVOLUME2DTEX_H

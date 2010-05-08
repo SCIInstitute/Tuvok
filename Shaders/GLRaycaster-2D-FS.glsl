@@ -35,7 +35,7 @@
   \date    October 2008
 */
 
-uniform sampler3D texVolume;  ///< the data volume
+vec4 sampleVolume(vec3 coords);
 uniform sampler2D texTrans2D; ///< the 2D Transfer function
 uniform sampler2D texRayExitPos; ///< the backface (or ray exit point) texture in eyecoords
 uniform float fTransScale;    ///< value scale for 2D Transfer function lookup
@@ -73,15 +73,15 @@ void main(void)
     vec4  vColor = vec4(0.0,0.0,0.0,0.0);
     vec3  vCurrentPosTex = vRayEntryTex;
     for (int i = 0;i<iStepCount;i++) {
-      float fVolumVal = texture3D(texVolume, vCurrentPosTex).x;	
+      float fVolumVal = sampleVolume( vCurrentPosTex).x;	
 
       // compute the gradient/normal
-      float fVolumValXp = texture3D(texVolume, vCurrentPosTex+vec3(+vVoxelStepsize.x,0,0)).x;
-      float fVolumValXm = texture3D(texVolume, vCurrentPosTex+vec3(-vVoxelStepsize.x,0,0)).x;
-      float fVolumValYp = texture3D(texVolume, vCurrentPosTex+vec3(0,-vVoxelStepsize.y,0)).x;
-      float fVolumValYm = texture3D(texVolume, vCurrentPosTex+vec3(0,+vVoxelStepsize.y,0)).x;
-      float fVolumValZp = texture3D(texVolume, vCurrentPosTex+vec3(0,0,+vVoxelStepsize.z)).x;
-      float fVolumValZm = texture3D(texVolume, vCurrentPosTex+vec3(0,0,-vVoxelStepsize.z)).x;
+      float fVolumValXp = sampleVolume( vCurrentPosTex+vec3(+vVoxelStepsize.x,0,0)).x;
+      float fVolumValXm = sampleVolume( vCurrentPosTex+vec3(-vVoxelStepsize.x,0,0)).x;
+      float fVolumValYp = sampleVolume( vCurrentPosTex+vec3(0,-vVoxelStepsize.y,0)).x;
+      float fVolumValYm = sampleVolume( vCurrentPosTex+vec3(0,+vVoxelStepsize.y,0)).x;
+      float fVolumValZp = sampleVolume( vCurrentPosTex+vec3(0,0,+vVoxelStepsize.z)).x;
+      float fVolumValZm = sampleVolume( vCurrentPosTex+vec3(0,0,-vVoxelStepsize.z)).x;
       vec3  vGradient = vec3((fVolumValXm-fVolumValXp)/2.0,
                              (fVolumValYp-fVolumValYm)/2.0,
                              (fVolumValZm-fVolumValZp)/2.0);

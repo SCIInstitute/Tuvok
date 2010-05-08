@@ -62,35 +62,35 @@ void GLSBVR::Cleanup() {
   if (m_pProgramColorNoCompose) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorNoCompose); m_pProgramColorNoCompose =NULL;}
 }
 
-bool GLSBVR::Initialize() {
-  if (!GLRenderer::Initialize()) {
+bool GLSBVR::LoadShaders() {
+  if (!GLRenderer::LoadShaders()) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
 
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-1D-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "GLSBVR-1D-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-VS.glsl", "lighting.glsl", "Volume3D.glsl",
                           "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-VS.glsl", "lighting.glsl", "Volume3D.glsl",
                           "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl", NULL) ||
+                          "GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-VS.glsl", "lighting.glsl", "Volume3D.glsl",
                           "GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-VS.glsl", "lighting.glsl", "Volume3D.glsl",
                           "GLSBVR-Color-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIsoNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl",
+                          "GLSBVR-VS.glsl", "lighting.glsl", "Volume3D.glsl",
                           "GLSBVR-ISO-NC-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColorNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", NULL))
+                          "GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", "Volume3D.glsl", NULL))
   {
       Cleanup();
 

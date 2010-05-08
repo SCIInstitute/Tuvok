@@ -35,7 +35,8 @@
   \date    December 2008
 */
 
-uniform sampler3D texVolume;     ///< the data volume
+vec4 sampleVolume(vec3 coords);
+
 uniform sampler2D texRayExitPos; ///< the backface (or ray exit point) texture in eyecoords
 uniform vec3 vVoxelStepsize;     ///< Stepsize (in texcoord) to get to the next voxel
 uniform float fRayStepsize;      ///< stepsize along the ray
@@ -64,7 +65,7 @@ void main(void)
   float fMaxVal = 0.0;
   vec3  vCurrentPosTex = vRayEntryTex;
   for (int i = 0;i<iStepCount;i++) {
-    float fVolumVal = texture3D(texVolume, vCurrentPosTex).x;	
+    float fVolumVal = sampleVolume( vCurrentPosTex).x;	
 
     fMaxVal = max(fMaxVal, fVolumVal);
     vCurrentPosTex += vRayIncTex;

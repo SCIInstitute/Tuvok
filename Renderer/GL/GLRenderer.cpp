@@ -174,18 +174,22 @@ bool GLRenderer::Initialize() {
     m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
   }
 
+  return LoadShaders();
+}
+
+bool GLRenderer::LoadShaders() {
   if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,
                           "Transfer-VS.glsl", "Transfer-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "1D-slice-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl", "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "2D-slice-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl", "2D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramMIPSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "MIP-slice-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl", "MIP-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
-                          "SlicesIn3D.glsl", "1D-slice-FS.glsl", NULL) ||
+                          "SlicesIn3D.glsl", "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
-                          "SlicesIn3D.glsl", "2D-slice-FS.glsl", NULL) ||
+                          "SlicesIn3D.glsl", "2D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramTransMIP, m_vShaderSearchDirs,
                           "Transfer-VS.glsl", "Transfer-MIP-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIsoCompose, m_vShaderSearchDirs,
@@ -270,7 +274,6 @@ bool GLRenderer::Initialize() {
     m_pProgramComposeScanlineStereo->SetUniformVector("texRightEye",1);
     m_pProgramComposeScanlineStereo->Disable();    
   }
-
   return true;
 }
 

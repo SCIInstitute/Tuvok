@@ -38,34 +38,53 @@
 
 using namespace tuvok;
 
-GLVolume2DTex::GLVolume2DTex(UINT32 , UINT32 , UINT32 ,
-                             GLint , GLenum , GLenum ,
-                             UINT32 ,
-                             const GLvoid *,
-                             GLint ,
-                             GLint ,
-                             GLint ,
-                             GLint ,
-                             GLint )
-/*
+
 GLVolume2DTex::GLVolume2DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
                              GLint internalformat, GLenum format, GLenum type,
                              UINT32 iSizePerElement,
-                             const GLvoid *pixels,
+                             const GLvoid *voxels,
                              GLint iMagFilter,
                              GLint iMinFilter,
                              GLint wrapX,
                              GLint wrapY,
-                             GLint wrapZ)
-                             */
+                             GLint wrapZ) :
+      m_iSizeX(iSizeX),
+      m_iSizeY(iSizeY),
+      m_iSizeZ(iSizeZ),
+      m_internalformat(internalformat),
+      m_format(format),
+      m_type(type),
+      m_iSizePerElement(iSizePerElement),
+      m_iMagFilter(iMagFilter),
+      m_iMinFilter(iMinFilter),
+      m_wrapX(wrapX),
+      m_wrapY(wrapY),
+      m_wrapZ(wrapZ),
+      m_iGPUSize(0),
+      m_iCPUSize(0)
 {
   m_pTextures.resize(3);
-
-  // TODO
+  CreateGLResources();
+  SetData(voxels);
 }
 
-GLVolume2DTex::GLVolume2DTex()
+GLVolume2DTex::GLVolume2DTex() :
+      m_iSizeX(0),
+      m_iSizeY(0),
+      m_iSizeZ(0),
+      m_internalformat(0),
+      m_format(0),
+      m_type(0),
+      m_iSizePerElement(0),
+      m_iMagFilter(GL_NEAREST),
+      m_iMinFilter(GL_NEAREST),
+      m_wrapX(GL_CLAMP_TO_EDGE),
+      m_wrapY(GL_CLAMP_TO_EDGE),
+      m_wrapZ(GL_CLAMP_TO_EDGE),
+      m_iGPUSize(0),
+      m_iCPUSize(0)
 {
+    m_pTextures.resize(3);
 }
 
 GLVolume2DTex::~GLVolume2DTex() {
@@ -75,6 +94,30 @@ void GLVolume2DTex::Bind(UINT32 iUnit,
                          size_t depth,
                          size_t iStack) {
   m_pTextures[iStack][depth]->Bind(iUnit);
+}
+
+void GLVolume2DTex::CreateGLResources() {
+  m_pTextures[0].resize(m_iSizeX);
+  for (size_t i = 0;i<m_pTextures[0].size();i++){
+    m_pTextures[0][i] = new GLTexture2D(m_iSizeZ, m_iSizeY, m_internalformat,
+                                        m_format, m_type, m_iSizePerElement,
+                                        NULL, m_iMagFilter, m_iMinFilter,
+                                        m_wrapZ, m_wrapY);
+  }
+  m_pTextures[1].resize(m_iSizeY);
+  for (size_t i = 0;i<m_pTextures[1].size();i++){
+    m_pTextures[1][i] = new GLTexture2D(m_iSizeZ, m_iSizeY, m_internalformat,
+                                        m_format, m_type, m_iSizePerElement,
+                                        NULL, m_iMagFilter, m_iMinFilter,
+                                        m_wrapZ, m_wrapX);
+  }
+  m_pTextures[2].resize(m_iSizeZ);
+  for (size_t i = 0;i<m_pTextures[2].size();i++){
+    m_pTextures[2][i] = new GLTexture2D(m_iSizeX, m_iSizeY, m_internalformat,
+                                        m_format, m_type, m_iSizePerElement,
+                                        NULL, m_iMagFilter, m_iMinFilter,
+                                        m_wrapX, m_wrapY);
+  }
 }
 
 void GLVolume2DTex::FreeGLResources() {
@@ -88,16 +131,90 @@ void GLVolume2DTex::FreeGLResources() {
     }
     m_pTextures[iDir].resize(0);
   }
+  m_iCPUSize = 0;
+  m_iGPUSize = 0;
 }
 
-void GLVolume2DTex::SetData(const void *) {
-  // TODO
+void GLVolume2DTex::SetData(const void *voxels) {
+  // push data into the stacks
+  // z is easy as this matches the data layout
+  // x and y are more nasty and require a
+  // random acces traversal througth the data, hence
+  // the complicated indexing
+
+
+  const char* charPtr = static_cast<const char*>(voxels);
+  char* copyBuffer = new char[m_pTextures[0][0]->GetCPUSize()];
+  size_t sliceElemCount = m_iSizeY*m_iSizeX;
+
+  for (size_t i = 0;i<m_pTextures[0].size();i++){
+    size_t targetPos = 0;
+    size_t sourcePos = 0;
+    for (size_t y = 0;y<m_iSizeY;y++) {
+      for (size_t z = 0;z<m_iSizeZ;z++) {
+        // compute position in source array
+        sourcePos = (i+y*m_iSizeX+z*sliceElemCount)*m_iSizePerElement;
+        // copy one element into the target buffer
+        memcpy(copyBuffer+targetPos,charPtr+sourcePos,m_iSizePerElement);
+        targetPos += m_iSizePerElement;
+      }
+    }
+    // copy into 2D texture slice
+    m_pTextures[0][i]->SetData(copyBuffer);
+  }
+
+  if (m_pTextures[0][0]->GetCPUSize() != m_pTextures[1][0]->GetCPUSize()) {
+    delete[] copyBuffer;
+    copyBuffer = new char[m_pTextures[1][0]->GetCPUSize()];
+  }
+
+  for (size_t i = 0;i<m_pTextures[1].size();i++){
+    size_t targetPos = 0;
+    size_t sourcePos = 0;
+    for (size_t z = 0;z<m_iSizeZ;z++) {
+      for (size_t x = 0;x<m_iSizeX;x++) {
+        // compute position in source array
+        sourcePos = (x+i*m_iSizeX+z*sliceElemCount)*m_iSizePerElement;
+        // copy one element into the target buffer
+        memcpy(copyBuffer+targetPos,charPtr+sourcePos,m_iSizePerElement);
+        targetPos += m_iSizePerElement;
+      }
+    }
+    // copy into 2D texture slice
+    m_pTextures[1][i]->SetData(copyBuffer);
+  }
+
+  delete[] copyBuffer;
+
+  // z direction is easy 
+  size_t stepping = m_pTextures[2][0]->GetCPUSize();
+
+  for (size_t i = 0;i<m_pTextures[2].size();i++){
+    m_pTextures[2][i]->SetData(charPtr);
+    charPtr += stepping;
+  }
 }
 
 UINT64 GLVolume2DTex::GetCPUSize() {
-  return 0; // TODO
+  if (m_iCPUSize) return m_iCPUSize;
+
+  UINT64 iSize = 0;
+  for (size_t iDir = 0;iDir<m_pTextures.size();iDir++){
+    for (size_t i = 0;i<m_pTextures[iDir].size();i++){
+      iSize += m_pTextures[iDir][i]->GetCPUSize();
+    }
+  }
+  return iSize;
 }
 
 UINT64 GLVolume2DTex::GetGPUSize() {
-  return 0; // TODO
+  if (m_iGPUSize) return m_iGPUSize;
+
+  UINT64 iSize = 0;
+  for (size_t iDir = 0;iDir<m_pTextures.size();iDir++){
+    for (size_t i = 0;i<m_pTextures[iDir].size();i++){
+      iSize += m_pTextures[iDir][i]->GetGPUSize();
+    }
+  }
+  return iSize;
 }

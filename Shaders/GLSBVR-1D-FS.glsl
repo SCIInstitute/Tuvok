@@ -33,7 +33,6 @@
  *          University of Utah
  */
 
-uniform sampler3D texVolume;  ///< the data volume
 uniform sampler1D texTrans1D; ///< the 1D Transfer function
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
 uniform float fStepScale;     ///< opacity correction quotient
@@ -41,10 +40,12 @@ uniform float fStepScale;     ///< opacity correction quotient
   uniform float TFuncBias;    ///< bias amount for transfer func
 #endif
 
+vec4 sampleVolume(vec3 coords);
+
 /* bias and scale method for mapping a TF to a value. */
 vec4 bias_scale(const float bias, const float scale)
 {
-  float vol_val = texture3D(texVolume, gl_TexCoord[0].xyz).x;
+  float vol_val = sampleVolume(gl_TexCoord[0].xyz).x;
   vol_val = (vol_val + bias) / scale;
 
   return texture1D(texTrans1D, vol_val);
@@ -52,7 +53,7 @@ vec4 bias_scale(const float bias, const float scale)
 
 vec4 bit_width(const float tf_scale)
 {
-  float fVolumVal = texture3D(texVolume, gl_TexCoord[0].xyz).x;
+  float fVolumVal = sampleVolume(gl_TexCoord[0].xyz).x;
   return texture1D(texTrans1D, fVolumVal * tf_scale);
 }
 
@@ -70,5 +71,6 @@ void main(void)
   // premultiply color with alpha
   vTransVal.xyz *= vTransVal.a;
 
-	gl_FragColor = vTransVal;
+  gl_FragColor = vTransVal;
 }
+

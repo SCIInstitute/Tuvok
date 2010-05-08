@@ -35,9 +35,9 @@
   \date    October 2008
 */
 
-uniform sampler3D texVolume;  ///< the data volume
+vec4 sampleVolume(vec3 coords);
 
 void main(void)
 {
-	gl_FragColor = vec4(texture3D(texVolume, gl_TexCoord[0].xyz).xxx,1);
+	gl_FragColor = vec4(sampleVolume( gl_TexCoord[0].xyz).xxx,1);
 }
