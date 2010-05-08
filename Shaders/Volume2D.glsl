@@ -38,9 +38,9 @@
 uniform sampler2D texSlice0;
 uniform sampler2D texSlice1;
 
-float4 sampleVolume(float3 coords){
-	float4 v0 texture2D(texSlice0, coords.xy);
-	float4 v1 texture2D(texSlice1, coords.xy);
+vec4 sampleVolume(vec3 coords){
+	vec4 v0 = texture2D(texSlice0, coords.xy);
+	vec4 v1 = texture2D(texSlice1, coords.xy);
 	
 	return (1.0-coords.z) * v0 + coords.z * v1;
 }
