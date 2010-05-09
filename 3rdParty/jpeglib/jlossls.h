@@ -153,7 +153,7 @@ EXTERN(void) jinit_undifferencer JPP((j_decompress_ptr cinfo));
 EXTERN(void) jinit_d_scaler JPP((j_decompress_ptr cinfo));
 
 #ifdef __cplusplus
-extern "C"
+}
 #endif // cplusplus
 
 #endif /* JLOSSLS_H */

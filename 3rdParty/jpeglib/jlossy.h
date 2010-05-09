@@ -121,7 +121,7 @@ EXTERN(void) jinit_phuff_decoder JPP((j_decompress_ptr cinfo));
 EXTERN(void) jinit_inverse_dct JPP((j_decompress_ptr cinfo));
 
 #ifdef __cplusplus
-extern "C"
+}
 #endif // cplusplus
 
 #endif /* JLOSSY_H */

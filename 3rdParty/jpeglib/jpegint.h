@@ -368,5 +368,5 @@ struct jvirt_barray_control { long dummy; };
 #endif /* INCOMPLETE_TYPES_BROKEN */
 
 #ifdef __cplusplus
-extern "C"
+}
 #endif // cplusplus
