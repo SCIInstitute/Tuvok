@@ -40,6 +40,7 @@
 #include "Renderer/GL/GLSLProgram.h"
 #include "Renderer/GL/GLTexture1D.h"
 #include "Renderer/GL/GLTexture2D.h"
+#include "Renderer/GL/GLVolume2DTex.h"
 #include "Renderer/GPUMemMan/GPUMemMan.h"
 #include "Renderer/TFScaling.h"
 
@@ -50,7 +51,7 @@ GLSBVR2D::GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
   GLRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
   m_pProgramIsoNoCompose(NULL),
   m_pProgramColorNoCompose(NULL),
-  m_bUse3DTexture(true)
+  m_bUse3DTexture(false)
 {
 }
 
@@ -69,6 +70,16 @@ void GLSBVR2D::SetUse3DTexture(bool bUse3DTexture) {
     m_bUse3DTexture = bUse3DTexture;
     CleanupShaders();
     LoadShaders();
+  }
+}
+
+void GLSBVR2D::BindVolumeStringsToTexUnit(GLSLProgram* program, 
+                                          int iUnit0, int iUnit1) {
+  if (m_bUse3DTexture ) {
+    program->SetUniformVector("texVolume",iUnit0);
+  } else {
+    program->SetUniformVector("texSlice0",iUnit0);
+    program->SetUniformVector("texSlice1",iUnit1);
   }
 }
 
@@ -110,36 +121,33 @@ bool GLSBVR2D::LoadShaders() {
       return false;
   } else {
 
-    // TODO load shaders depending on m_bUse3DTexture
-
-
     m_pProgramTrans->Enable();
     m_pProgramTrans->SetUniformVector("texColor",0);
     m_pProgramTrans->SetUniformVector("texDepth",1);
     m_pProgramTrans->Disable();
 
     m_pProgram1DTransSlice->Enable();
-    m_pProgram1DTransSlice->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgram1DTransSlice,0,2);
     m_pProgram1DTransSlice->SetUniformVector("texTrans1D",1);
     m_pProgram1DTransSlice->Disable();
 
     m_pProgram2DTransSlice->Enable();
-    m_pProgram2DTransSlice->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgram2DTransSlice,0,2);
     m_pProgram2DTransSlice->SetUniformVector("texTrans2D",1);
     m_pProgram2DTransSlice->Disable();
 
     m_pProgram1DTransSlice3D->Enable();
-    m_pProgram1DTransSlice3D->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgram1DTransSlice3D,0,2);
     m_pProgram1DTransSlice3D->SetUniformVector("texTrans1D",1);
     m_pProgram1DTransSlice3D->Disable();
 
     m_pProgram2DTransSlice3D->Enable();
-    m_pProgram2DTransSlice3D->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgram2DTransSlice3D,0,2);
     m_pProgram2DTransSlice3D->SetUniformVector("texTrans2D",1);
     m_pProgram2DTransSlice3D->Disable();
 
     m_pProgramMIPSlice->Enable();
-    m_pProgramMIPSlice->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgramMIPSlice,0,2);
     m_pProgramMIPSlice->Disable();
 
     m_pProgramTransMIP->Enable();
@@ -211,47 +219,46 @@ bool GLSBVR2D::LoadShaders() {
       return false;
   } else {
     m_pProgram1DTrans[0]->Enable();
-    m_pProgram1DTrans[0]->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgram1DTrans[0],0,2);
     m_pProgram1DTrans[0]->SetUniformVector("texTrans1D",1);
     m_pProgram1DTrans[0]->Disable();
 
     m_pProgram1DTrans[1]->Enable();
-    m_pProgram1DTrans[1]->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgram1DTrans[1],0,2);
     m_pProgram1DTrans[1]->SetUniformVector("texTrans1D",1);
     m_pProgram1DTrans[1]->Disable();
 
     m_pProgram2DTrans[0]->Enable();
-    m_pProgram2DTrans[0]->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgram2DTrans[0],0,2);
     m_pProgram2DTrans[0]->SetUniformVector("texTrans2D",1);
     m_pProgram2DTrans[0]->Disable();
 
     m_pProgram2DTrans[1]->Enable();
-    m_pProgram2DTrans[1]->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgram2DTrans[1],0,2);
     m_pProgram2DTrans[1]->SetUniformVector("texTrans2D",1);
     m_pProgram2DTrans[1]->Disable();
 
     m_pProgramIso->Enable();
-    m_pProgramIso->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgramIso,0,2);
     m_pProgramIso->Disable();
 
     m_pProgramColor->Enable();
-    m_pProgramColor->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgramColor,0,2);
     m_pProgramColor->Disable();
 
     m_pProgramHQMIPRot->Enable();
-    m_pProgramHQMIPRot->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgramHQMIPRot,0,2);
     m_pProgramHQMIPRot->Disable();
 
     m_pProgramIsoNoCompose->Enable();
-    m_pProgramIsoNoCompose->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgramIsoNoCompose,0,2);
     m_pProgramIsoNoCompose->Disable();
 
     m_pProgramColorNoCompose->Enable();
-    m_pProgramColorNoCompose->SetUniformVector("texVolume",0);
+    BindVolumeStringsToTexUnit(m_pProgramColorNoCompose,0,2);
     m_pProgramColorNoCompose->Disable();
 
     UpdateColorsInShaders();
-
   }
 
   return true;
@@ -392,48 +399,116 @@ void GLSBVR2D::RenderProxyGeometry() {
 }
 
 void GLSBVR2D::RenderProxyGeometry2D() {
+  GLVolume2DTex* pGLVolume =  static_cast<GLVolume2DTex*>(m_pGLVolume);
+
   for (UINT32 i = 0;i<3;i++) {
 
     switch (m_SBVRGeogen.m_vSliceTrianglesOrder[i]) {
       case SBVRGeogen2D::DIRECTION_X : {
-                                          for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
-                                            // TODO bind textures
-                                            glBegin(GL_TRIANGLES);
-                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x,
-                                                           m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
-                                                           m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z);
-                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
-                                                         m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
-                                                         m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
-                                            glEnd();
-                                          }
-                                       } break;
+
+        // set coordinate shuffle matrix
+        float m[16] = {0,0,1,0,
+                       0,1,0,0,
+                       1,0,0,0,
+                       0,0,0,1};
+        glActiveTextureARB(GL_TEXTURE0);
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glLoadMatrixf(m);
+
+        int iLastTexID = -1;
+        glBegin(GL_TRIANGLES);
+        for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
+          float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x;
+          int iCurrentTexID =  int(depth*pGLVolume->GetSizeX());
+          if (iCurrentTexID != iLastTexID) {
+            glEnd();        
+            pGLVolume->Bind(0, iCurrentTexID, 0);
+            pGLVolume->Bind(2, iCurrentTexID+1, 0); 
+            iLastTexID = iCurrentTexID;
+            glBegin(GL_TRIANGLES);
+          }
+
+          float fraction = depth*pGLVolume->GetSizeX() - iCurrentTexID;
+
+          glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z,
+                       m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
+                       fraction);
+          glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
+                     m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
+                     m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
+        }
+        glEnd();
+      } break;
       case SBVRGeogen2D::DIRECTION_Y : {
-                                          for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
-                                            // TODO bind textures
-                                            glBegin(GL_TRIANGLES);
-                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
-                                                           m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y,
-                                                           m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z);
-                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
-                                                         m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
-                                                         m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
-                                            glEnd();
-                                          }
-                                       } break;
+
+        // set coordinate shuffle matrix
+        float m[16] = {1,0,0,0,
+                       0,0,1,0,
+                       0,1,0,0,
+                       0,0,0,1};
+        glActiveTextureARB(GL_TEXTURE0);
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glLoadMatrixf(m);
+
+
+        int iLastTexID = -1;
+        glBegin(GL_TRIANGLES);
+        for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
+          float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y;
+          int iCurrentTexID =  int(depth*pGLVolume->GetSizeY());
+          if (iCurrentTexID != iLastTexID) {
+            glEnd();        
+            pGLVolume->Bind(0, iCurrentTexID, 1);
+            pGLVolume->Bind(2, iCurrentTexID+1, 1); 
+            iLastTexID = iCurrentTexID;
+            glBegin(GL_TRIANGLES);
+          }
+
+          float fraction = depth*pGLVolume->GetSizeY() - iCurrentTexID;
+
+          glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
+                       m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z,
+                       fraction);
+          glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
+                     m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
+                     m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
+        }
+        glEnd();
+      } break;
       case SBVRGeogen2D::DIRECTION_Z : {
-                                          for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
-                                            // TODO bind textures
-                                            glBegin(GL_TRIANGLES);
-                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
-                                                           m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
-                                                           m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z);
-                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
-                                                         m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
-                                                         m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
-                                            glEnd();
-                                          }
-                                       } break;
+
+        // set coordinate shuffle matrix
+        glActiveTextureARB(GL_TEXTURE0);
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+
+
+        int iLastTexID = -1;
+        glBegin(GL_TRIANGLES);
+        for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
+          float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z;
+          int iCurrentTexID =  int(depth*pGLVolume->GetSizeZ());
+          if (iCurrentTexID != iLastTexID) {
+            glEnd();        
+            pGLVolume->Bind(0, iCurrentTexID, 2);
+            pGLVolume->Bind(2, iCurrentTexID+1, 2);
+            iLastTexID = iCurrentTexID;
+            glBegin(GL_TRIANGLES);
+          }
+
+          float fraction = depth*pGLVolume->GetSizeZ() - iCurrentTexID;
+
+          glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
+                       m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
+                       fraction);
+          glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
+                     m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
+                     m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
+        }
+        glEnd();
+      } break;
     }
   }
 }
@@ -572,6 +647,8 @@ void GLSBVR2D::RenderHQMIPPreLoop(RenderRegion2D& region) {
 }
 
 void GLSBVR2D::RenderHQMIPInLoop(RenderRegion2D&, const Brick& b) {
+  // TODO: fix orthographic MIP rotations
+
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
@@ -628,8 +705,6 @@ void GLSBVR2D::UpdateColorsInShaders() {
 
   m_pProgramColorNoCompose->Enable();
   m_pProgramColorNoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  //m_pProgramColorNoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z); // only abient color is used in color-volume mode yet
-  //m_pProgramColorNoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z); // only abient color is used in color-volume mode yet
   m_pProgramColorNoCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
   m_pProgramColorNoCompose->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
   m_pProgramColorNoCompose->Disable();
@@ -640,13 +715,13 @@ bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,
 
   if (m_bUse3DTexture) return GLRenderer::BindVolumeTex(bkey,iIntraFrameCounter);
 
-  m_pMasterController->MemMan()->GetVolume(m_pDataset, bkey,
-                                              m_bUseOnlyPowerOfTwo, 
-                                              m_bDownSampleTo8Bits, 
-                                              true,
-                                              m_bDisableBorder,
-                                              iIntraFrameCounter, 
-                                              m_iFrameCounter);
+  m_pGLVolume = m_pMasterController->MemMan()->GetVolume(m_pDataset, bkey,
+                                            m_bUseOnlyPowerOfTwo, 
+                                            m_bDownSampleTo8Bits, 
+                                            m_bDisableBorder,
+                                            true,
+                                            iIntraFrameCounter, 
+                                            m_iFrameCounter);
   if(m_pGLVolume) {
     return true;
   } else {
@@ -662,4 +737,114 @@ bool GLSBVR2D::IsVolumeResident(const BrickKey& key) {
                                                 m_bDownSampleTo8Bits,
                                                 m_bDisableBorder,
                                                 true);
+}
+
+void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
+                             FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
+                             DOUBLEVECTOR3 vAspectRatio,
+                             DOUBLEVECTOR2 vWinAspectRatio) {
+  GLVolume2DTex* pGLVolume =  static_cast<GLVolume2DTex*>(m_pGLVolume);
+  switch (region.windowMode) {
+    case RenderRegion::WM_AXIAL :
+    {
+      if (region.flipView.x) {
+        float fTemp = vMinCoords.x;
+        vMinCoords.x = vMaxCoords.x;
+        vMaxCoords.x = fTemp;
+      }
+
+      if (region.flipView.y) {
+        float fTemp = vMinCoords.z;
+        vMinCoords.z = vMaxCoords.z;
+        vMaxCoords.z = fTemp;
+      }
+
+      int iCurrentTexID =  int(fSliceIndex*pGLVolume->GetSizeY());
+      pGLVolume->Bind(0, iCurrentTexID, 1);
+      pGLVolume->Bind(2, iCurrentTexID+1, 1); 
+      float fraction = float(fSliceIndex*pGLVolume->GetSizeY() - iCurrentTexID);
+
+      DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
+      v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+      glBegin(GL_QUADS);
+      glTexCoord3d(vMinCoords.x,vMaxCoords.z,fraction);
+      glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMaxCoords.x,vMaxCoords.z,fraction);
+      glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMaxCoords.x,vMinCoords.z,fraction);
+      glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMinCoords.x,vMinCoords.z,fraction);
+      glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glEnd();
+      break;
+    }
+  case RenderRegion::WM_CORONAL :
+    {
+      if (region.flipView.x) {
+        float fTemp = vMinCoords.x;
+        vMinCoords.x = vMaxCoords.x;
+        vMaxCoords.x = fTemp;
+      }
+
+      if (region.flipView.y) {
+        float fTemp = vMinCoords.y;
+        vMinCoords.y = vMaxCoords.y;
+        vMaxCoords.y = fTemp;
+      }
+
+      DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xy()*DOUBLEVECTOR2(vWinAspectRatio);
+      v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+
+      int iCurrentTexID =  int(fSliceIndex*pGLVolume->GetSizeZ());
+      pGLVolume->Bind(0, iCurrentTexID, 2);
+      pGLVolume->Bind(2, iCurrentTexID+1, 2); 
+      float fraction = float(fSliceIndex*pGLVolume->GetSizeZ() - iCurrentTexID);
+
+      glBegin(GL_QUADS);
+      glTexCoord3d(vMinCoords.x,vMaxCoords.y,fraction);
+      glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMaxCoords.x,vMaxCoords.y,fraction);
+      glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMaxCoords.x,vMinCoords.y,fraction);
+      glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMinCoords.x,vMinCoords.y,fraction);
+      glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glEnd();
+      break;
+    }
+  case RenderRegion::WM_SAGITTAL :
+    {
+      if (region.flipView.x) {
+        float fTemp = vMinCoords.y;
+        vMinCoords.y = vMaxCoords.y;
+        vMaxCoords.y = fTemp;
+      }
+
+      if (region.flipView.y) {
+        float fTemp = vMinCoords.z;
+        vMinCoords.z = vMaxCoords.z;
+        vMaxCoords.z = fTemp;
+      }
+
+      int iCurrentTexID =  int(fSliceIndex*pGLVolume->GetSizeX());
+      pGLVolume->Bind(0, iCurrentTexID, 0);
+      pGLVolume->Bind(2, iCurrentTexID+1, 0); 
+      float fraction = float(fSliceIndex*pGLVolume->GetSizeX() - iCurrentTexID);
+
+      DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
+      v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+      glBegin(GL_QUADS);
+      glTexCoord3d(vMaxCoords.z,vMinCoords.y,fraction);
+      glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMaxCoords.z,vMaxCoords.y,fraction);
+      glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMinCoords.z,vMaxCoords.y,fraction);
+      glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glTexCoord3d(vMinCoords.z,vMinCoords.y,fraction);
+      glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+      glEnd();
+      break;
+    }
+  default :  T_ERROR("Invalid windowmode set"); break;
+  }
 }

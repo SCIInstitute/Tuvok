@@ -72,7 +72,6 @@ public:
   ESliceMethod m_eMethod;
 
 protected:
-  UINT32 GetLayerCount(int iDir) const;
   float GetDelta(int iDir) const;
   void InterpolateVertices(const POS3TEX3_VERTEX& v1, const POS3TEX3_VERTEX& v2, float a, POS3TEX3_VERTEX& r) const;
 

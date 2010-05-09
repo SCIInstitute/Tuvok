@@ -36,6 +36,7 @@
 */
 
 vec4 sampleVolume(vec3 coords);
+vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale);
 
 uniform sampler1D texTrans1D; ///< the 1D Transfer function
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
@@ -60,17 +61,7 @@ void main(void)
   vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
 
   // compute the gradient/normal
-	float fVolumValXp = sampleVolume( gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).x;
-	float fVolumValXm = sampleVolume( gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).x;
-	float fVolumValYp = sampleVolume( gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).x;
-	float fVolumValYm = sampleVolume( gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).x;
-	float fVolumValZp = sampleVolume( gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).x;
-	float fVolumValZm = sampleVolume( gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).x;
-  vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp);
-
-  // compute lighting
-  vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
-  float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
+  vec3 vNormal = ComputeNormal(gl_TexCoord[0].xyz,vVoxelStepsize,vDomainScale);
 
   vec3 vLightColor = Lighting(vPosition.xyz, vNormal, vLightAmbient,
                               vLightDiffuse*vTransVal.xyz, vLightSpecular,

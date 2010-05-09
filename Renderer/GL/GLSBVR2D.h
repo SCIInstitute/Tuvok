@@ -109,6 +109,15 @@ namespace tuvok {
       virtual bool BindVolumeTex(const BrickKey& bkey, 
                                  const UINT64 iIntraFrameCounter);
       virtual bool IsVolumeResident(const BrickKey& key);
+      virtual void RenderSlice(const RenderRegion2D& region, 
+                       double fSliceIndex,
+                       FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
+                       DOUBLEVECTOR3 vAspectRatio, 
+                       DOUBLEVECTOR2 vWinAspectRatio);
+    private:
+      void GLSBVR2D::BindVolumeStringsToTexUnit(GLSLProgram* program, 
+                                                 int iUnit0, int iUnit1);
+
   };
 };
 #endif // GLSBVR2D_H

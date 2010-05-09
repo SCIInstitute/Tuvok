@@ -35,6 +35,7 @@ namespace tuvok {
 
 class AbstrRenderer;
 class GLRenderer;
+class GLSBVR2D;
 
   // NOTE: client code should never directly modify a RenderRegion. Instead,
   // modifications should be done through the tuvok API so that tuvok is aware
@@ -135,6 +136,7 @@ class GLRenderer;
     // These methods should be accessed through AbstrRenderer
     friend class AbstrRenderer;
     friend class GLRenderer;
+    friend class GLSBVR2D;
     virtual bool GetUseMIP() const { return useMIP; }
     virtual void SetUseMIP(bool useMIP_) { useMIP = useMIP_; }
     virtual UINT64 GetSliceIndex() const { return sliceIndex; }

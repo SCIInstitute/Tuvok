@@ -36,7 +36,7 @@
 */
 
 vec4 sampleVolume(vec3 coords);
-
+vec3 ComputeGradient(vec3 vCenter, vec3 StepSize);
 
 uniform sampler2D texTrans2D; ///< the 2D Transfer function
 uniform float fTransScale;    ///< value scale for 2D Transfer function lookup
@@ -46,30 +46,22 @@ uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next vox
 
 void main(void)
 {
-  /// get volume value
-	float fVolumVal = sampleVolume( gl_TexCoord[0].xyz).x;	
+  // get volume value
+  float fVolumVal = sampleVolume( gl_TexCoord[0].xyz).x;	
 
-  /// compute the gradient
-	float fVolumValXp  = sampleVolume( gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).x;
-	float fVolumValXm  = sampleVolume( gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).x;
-	float fVolumValYp  = sampleVolume( gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).x;
-	float fVolumValYm  = sampleVolume( gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).x;
-	float fVolumValZp  = sampleVolume( gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).x;
-	float fVolumValZm  = sampleVolume( gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).x;
-  vec3  vGradient = vec3((fVolumValXm-fVolumValXp)/2.0,
-                         (fVolumValYp-fVolumValYm)/2.0,
-                         (fVolumValZm-fVolumValZp)/2.0);
+  // compute the gradient
+  vec3  vGradient = ComputeGradient(gl_TexCoord[0].xyz, vVoxelStepsize);
   float fGradientMag = length(vGradient);
 
-  /// apply 2D transfer function
-	vec4  vTransVal = texture2D(texTrans2D, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
+  // apply 2D transfer function
+  vec4  vTransVal = texture2D(texTrans2D, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
 
-  /// apply opacity correction
+  // apply opacity correction
   vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
 
-  // premultiply color with alpha (for front to back)
+  // pre-multiply color with alpha (for front to back)
   vTransVal.xyz *= vTransVal.a;
 
-  /// write result to fragment color
+  // write result to fragment color
   gl_FragColor    = vTransVal;
 }

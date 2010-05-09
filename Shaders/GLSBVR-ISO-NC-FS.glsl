@@ -51,6 +51,9 @@ varying vec3 vPosition;
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
 
+vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
+                   vec3 DomainScale);
+
 void main(void)
 {
   // get volume value
@@ -58,18 +61,8 @@ void main(void)
 
   // if we hit (or shot over) an isosurface
   if (fVolumVal >= fIsoval) {
-    // compute the gradient/normal
-	float fVolumValXp = sampleVolume( gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).x;
-	float fVolumValXm = sampleVolume( gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).x;
-	float fVolumValYp = sampleVolume( gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).x;
-	float fVolumValYm = sampleVolume( gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).x;
-	float fVolumValZp = sampleVolume( gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).x;
-	float fVolumValZm = sampleVolume( gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).x;
-    vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp);
-
-    // compute normal
-    vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
-    float l = length(vNormal); if (l>0.0) vNormal /= l; // secure normalization
+	// compute the normal
+	vec3 vNormal = ComputeNormal(gl_TexCoord[0].xyz,vVoxelStepsize,vDomainScale);
 
     // write result to fragment color
 	gl_FragColor = vec4(Lighting(vPosition.xyz, vNormal, vLightAmbient,

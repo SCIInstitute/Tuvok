@@ -1408,6 +1408,7 @@ void GLRenderer::DrawLogo() {
   glDisable(GL_TEXTURE_3D);
   glEnable(GL_TEXTURE_2D);
 
+  glActiveTextureARB(GL_TEXTURE0_ARB);
   glMatrixMode(GL_TEXTURE);
   glLoadIdentity();
 

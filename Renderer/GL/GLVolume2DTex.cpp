@@ -38,6 +38,7 @@
 #include <cstring> // for memcpy
 
 using namespace tuvok;
+using namespace std;
 
 
 GLVolume2DTex::GLVolume2DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
@@ -92,9 +93,15 @@ GLVolume2DTex::~GLVolume2DTex() {
 }
 
 void GLVolume2DTex::Bind(UINT32 iUnit,
-                         size_t depth,
-                         size_t iStack) {
-  m_pTextures[iStack][depth]->Bind(iUnit);
+                         int depth,
+                         int iStack) {
+  if (depth < 0) 
+    m_pTextures[iStack][0]->Bind(iUnit);
+  else 
+  if (depth < m_pTextures[iStack].size()) 
+    m_pTextures[iStack][depth]->Bind(iUnit);
+  else
+    m_pTextures[iStack][m_pTextures[iStack].size()-1]->Bind(iUnit);
 }
 
 void GLVolume2DTex::CreateGLResources() {
@@ -107,10 +114,10 @@ void GLVolume2DTex::CreateGLResources() {
   }
   m_pTextures[1].resize(m_iSizeY);
   for (size_t i = 0;i<m_pTextures[1].size();i++){
-    m_pTextures[1][i] = new GLTexture2D(m_iSizeZ, m_iSizeY, m_internalformat,
+    m_pTextures[1][i] = new GLTexture2D(m_iSizeX, m_iSizeZ, m_internalformat,
                                         m_format, m_type, m_iSizePerElement,
                                         NULL, m_iMagFilter, m_iMinFilter,
-                                        m_wrapZ, m_wrapX);
+                                        m_wrapX, m_wrapZ);
   }
   m_pTextures[2].resize(m_iSizeZ);
   for (size_t i = 0;i<m_pTextures[2].size();i++){
@@ -145,7 +152,8 @@ void GLVolume2DTex::SetData(const void *voxels) {
 
 
   const char* charPtr = static_cast<const char*>(voxels);
-  char* copyBuffer = new char[m_pTextures[0][0]->GetCPUSize()];
+  char* copyBuffer = new char[max(m_pTextures[0][0]->GetCPUSize(),
+                                  m_pTextures[1][0]->GetCPUSize())];
   size_t sliceElemCount = m_iSizeY*m_iSizeX;
 
   for (size_t i = 0;i<m_pTextures[0].size();i++){
@@ -162,11 +170,6 @@ void GLVolume2DTex::SetData(const void *voxels) {
     }
     // copy into 2D texture slice
     m_pTextures[0][i]->SetData(copyBuffer);
-  }
-
-  if (m_pTextures[0][0]->GetCPUSize() != m_pTextures[1][0]->GetCPUSize()) {
-    delete[] copyBuffer;
-    copyBuffer = new char[m_pTextures[1][0]->GetCPUSize()];
   }
 
   for (size_t i = 0;i<m_pTextures[1].size();i++){

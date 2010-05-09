@@ -48,8 +48,8 @@ vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
 
 void main(void)
 {
-  /// get volume value
-	float fVolumVal = sampleVolume( gl_TexCoord[0].xyz).x;	
+  // get volume value
+  float fVolumVal = sampleVolume( gl_TexCoord[0].xyz).x;	
 
   // if we hit (or shot over) an isosurface
   if (fVolumVal >= fIsoval) {

@@ -49,6 +49,7 @@ uniform vec4 vClipPlane;
 varying vec3 vEyePos;
 
 vec4 ColorBlend(vec4 src, vec4 dst);
+vec3 ComputeGradient(vec3 vCenter, vec3 StepSize);
 
 void main(void)
 {
@@ -75,15 +76,7 @@ void main(void)
     float fVolumVal = sampleVolume( vCurrentPosTex).x;	
 
     // compute the gradient/normal
-    float fVolumValXp = sampleVolume( vCurrentPosTex+vec3(+vVoxelStepsize.x,0,0)).x;
-    float fVolumValXm = sampleVolume( vCurrentPosTex+vec3(-vVoxelStepsize.x,0,0)).x;
-    float fVolumValYp = sampleVolume( vCurrentPosTex+vec3(0,-vVoxelStepsize.y,0)).x;
-    float fVolumValYm = sampleVolume( vCurrentPosTex+vec3(0,+vVoxelStepsize.y,0)).x;
-    float fVolumValZp = sampleVolume( vCurrentPosTex+vec3(0,0,+vVoxelStepsize.z)).x;
-    float fVolumValZm = sampleVolume( vCurrentPosTex+vec3(0,0,-vVoxelStepsize.z)).x;
-    vec3  vGradient = vec3((fVolumValXm-fVolumValXp)/2.0,
-                           (fVolumValYp-fVolumValYm)/2.0,
-                           (fVolumValZm-fVolumValZp)/2.0);
+    vec3  vGradient = ComputeGradient(vCurrentPosTex, vVoxelStepsize);
     float fGradientMag = length(vGradient);
 
     /// apply 2D transfer function

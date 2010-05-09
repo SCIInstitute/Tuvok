@@ -70,12 +70,8 @@ SBVRGeogen2D::~SBVRGeogen2D(void)
 {
 }
 
-UINT32 SBVRGeogen2D::GetLayerCount(int iDir) const {
-  return UINT32(ceil(m_fSamplingModifier * m_vSize[iDir] * sqrt(3.0)));
-}
-
 float SBVRGeogen2D::GetDelta(int iDir) const {
-  return 1.0f/(m_fSamplingModifier * m_vSize[iDir] * float(sqrt(3.0)));
+  return 1.0f/(m_fSamplingModifier * m_vSize[iDir] * 1.732508f); // = sqrt(3)
 }
 
 
@@ -106,8 +102,7 @@ void SBVRGeogen2D::ComputeGeometry() {
 
 
 /*
-  Compute 2D geometry via
-  C. Rezk-Salama et al. 2000
+  Compute 2D geometry via C. Rezk-Salama et al. 2000
   "Interactive Volume Rendering on Standard PC Graphics Hardware 
    Using Multi-Textures and Multi-Stage Rasterization"
 */
@@ -222,8 +217,7 @@ void SBVRGeogen2D::ComputeGeometryRezk() {
 }
 
 /*
-  Compute 2D geometry alike
-  Krüger 2010
+  Compute 2D geometry alike Krüger 2010
   "A new sampling scheme for slice based volume rendering"
   but with a very slow approach, should be used only for demonstation
 */
@@ -517,8 +511,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
 }
 
 /*
-  Compute 2D geometry via
-  Krüger 2010
+  Compute 2D geometry via Krüger 2010
   "A new sampling scheme for slice based volume rendering"
 */
 void SBVRGeogen2D::ComputeGeometryKruegerFast() {

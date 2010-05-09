@@ -44,3 +44,26 @@ vec4 sampleVolume(vec3 coords){
 	
 	return (1.0-coords.z) * v0 + coords.z * v1;
 }
+
+vec3 ComputeGradient(vec3 vCenter, vec3 StepSize) {
+  float fVolumValXp = sampleVolume( vCenter+vec3(+StepSize.x,0,0)).x;
+  float fVolumValXm = sampleVolume( vCenter+vec3(-StepSize.x,0,0)).x;
+  float fVolumValYp = sampleVolume( vCenter+vec3(0,-StepSize.y,0)).x;
+  float fVolumValYm = sampleVolume( vCenter+vec3(0,+StepSize.y,0)).x;
+
+  float fVolumValZm = texture2D(texSlice0, vCenter.xy).x;
+  float fVolumValZp = texture2D(texSlice1, vCenter.xy).x;
+
+  return (gl_TextureMatrix[0] *
+          vec4((fVolumValXm - fVolumValXp)/2.0f,
+               (fVolumValYp - fVolumValYm)/2.0f,
+                fVolumValZm - fVolumValZp,1.0)).xyz; // forward differences
+}
+
+vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale) {
+  vec3 vGradient =  ComputeGradient(vCenter, StepSize);
+  vec3 vNormal     = gl_NormalMatrix * (vGradient * DomainScale);
+  float l = length(vNormal); if (l>0.0) vNormal /= l; // safe normalization
+  return vNormal;
+}
+

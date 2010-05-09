@@ -393,6 +393,10 @@ class AbstrRenderer {
       return m_bAvoidSeperateCompositing;
     }
 
+    bool GetUseOnlyPowerOfTwo() const {return m_bUseOnlyPowerOfTwo;}
+    bool GetDownSampleTo8Bits() const {return m_bDownSampleTo8Bits;}
+    bool GetDisableBorder() const {return m_bDisableBorder;}
+
     void SetMIPRotationAngle(float fAngle) {
       m_fMIPRotationAngle = fAngle;
       ScheduleCompleteRedraw();

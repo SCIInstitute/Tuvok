@@ -58,12 +58,16 @@ namespace tuvok {
       GLVolume2DTex();
       virtual ~GLVolume2DTex();
 
-      virtual void Bind(UINT32 iUnit, size_t depth, size_t iStack);
+      virtual void Bind(UINT32 iUnit, int depth, int iStack);
       virtual void SetData(const void *voxels);
 
       virtual void FreeGLResources();
       virtual UINT64 GetCPUSize();
       virtual UINT64 GetGPUSize();
+
+      UINT32 GetSizeX() {return m_iSizeX;}
+      UINT32 GetSizeY() {return m_iSizeY;}
+      UINT32 GetSizeZ() {return m_iSizeZ;}
 
     private:
       std::vector< std::vector<GLTexture2D*> > m_pTextures;

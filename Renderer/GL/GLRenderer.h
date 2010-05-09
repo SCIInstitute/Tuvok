@@ -88,7 +88,7 @@ class GLRenderer : public AbstrRenderer {
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
 
-    void RenderSlice(const RenderRegion2D& region, double fSliceIndex,
+    virtual void RenderSlice(const RenderRegion2D& region, double fSliceIndex,
                      FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                      DOUBLEVECTOR3 vAspectRatio, DOUBLEVECTOR2 vWinAspectRatio);
     virtual void NewFrameClear(const RenderRegion& renderRegion);

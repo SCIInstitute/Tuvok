@@ -392,7 +392,13 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
             iBitWidth, iCompCount);
 
     if (m_bEmulate3DWith2DStacks) {
-      // TODO
+      pGLVolume = new GLVolume2DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
+                                 glInternalformat, glFormat, glType,
+                                 UINT32(iBitWidth/8*iCompCount), pPaddedData,
+                                 GL_LINEAR, GL_LINEAR,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
     } else {
       pGLVolume = new GLVolume3DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
                                  glInternalformat, glFormat, glType,
