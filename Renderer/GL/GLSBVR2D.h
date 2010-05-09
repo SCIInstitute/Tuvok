@@ -115,8 +115,8 @@ namespace tuvok {
                        DOUBLEVECTOR3 vAspectRatio, 
                        DOUBLEVECTOR2 vWinAspectRatio);
     private:
-      void GLSBVR2D::BindVolumeStringsToTexUnit(GLSLProgram* program, 
-                                                 int iUnit0, int iUnit1);
+      void BindVolumeStringsToTexUnit(GLSLProgram* program, 
+                                       int iUnit0, int iUnit1);
 
   };
 };
