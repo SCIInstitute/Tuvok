@@ -652,14 +652,17 @@ void GLSBVR2D::RenderHQMIPPreLoop(RenderRegion2D& region) {
 }
 
 void GLSBVR2D::RenderHQMIPInLoop(RenderRegion2D&, const Brick& b) {
-  // TODO: fix orthographic MIP rotations
-
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
-  if (m_bOrthoView)
-    m_SBVRGeogen.SetView(FLOATMATRIX4());
-  else
+  if (m_bOrthoView) {
+    // here we push the volume back by one to make sure 
+    // the viewing direction computation in the geometry generator
+    // works 
+    FLOATMATRIX4 m;
+    m.Translation(0,0,1);
+    m_SBVRGeogen.SetView(m);
+ }  else
     m_SBVRGeogen.SetView(m_mView[0]);
 
   m_SBVRGeogen.SetWorld(maBricktTrans * m_maMIPRotation, true);

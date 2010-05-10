@@ -977,7 +977,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
 
       maOrtho.Ortho(-0.5*fRoot2Scale/vWinAspectRatio.x, +0.5*fRoot2Scale/vWinAspectRatio.x,
                     -0.5*fRoot2Scale/vWinAspectRatio.y, +0.5*fRoot2Scale/vWinAspectRatio.y,
-                    -1.0, 1.0);
+                    -100.0, 100.0);
       maOrtho.setProjection();
     }
 
