@@ -388,8 +388,8 @@ void GLRenderer::StartFrame() {
   }
 }
 
-void GLRenderer::Paint() {
-  AbstrRenderer::Paint();
+bool GLRenderer::Paint() {
+  if (!AbstrRenderer::Paint()) return false;
 
   vector<char> justCompletedRegions(renderRegions.size(), false);
 
@@ -449,7 +449,12 @@ void GLRenderer::Paint() {
 
             // execute the frame
             float fMsecPassed = 0.0f;
-            justCompletedRegions[i] = Execute3DFrame(region3D, fMsecPassed);
+            bool bJobDone = false;
+            if (!Execute3DFrame(region3D, fMsecPassed, bJobDone) ) {
+              T_ERROR("Could not execute the 3D frame, aborting.");
+              return false;
+            }
+            justCompletedRegions[i] = static_cast<char>(bJobDone);
             region3D.msecPassedCurrentFrame += fMsecPassed;
           }
           // are we done rendering or do we need to render at higher quality?
@@ -469,6 +474,7 @@ void GLRenderer::Paint() {
     }
   }
   EndFrame(justCompletedRegions);
+  return true;
 }
 
 void GLRenderer::FullscreenQuad() {
@@ -807,12 +813,12 @@ bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
                                const UINT64 iIntraFrameCounter) {
   // get the 3D texture from the memory manager
   m_pGLVolume = m_pMasterController->MemMan()->GetVolume(m_pDataset, bkey,
-                                                            m_bUseOnlyPowerOfTwo,
-                                                            m_bDownSampleTo8Bits,
-                                                            m_bDisableBorder,
-                                                            false,
-                                                            iIntraFrameCounter,
-                                                            m_iFrameCounter);
+                                                         m_bUseOnlyPowerOfTwo,
+                                                         m_bDownSampleTo8Bits,
+                                                         m_bDisableBorder,
+                                                         false,
+                                                         iIntraFrameCounter,
+                                                         m_iFrameCounter);
   if(m_pGLVolume) {
     static_cast<GLVolume3DTex*>(m_pGLVolume)->Bind(0);
     return true;
@@ -888,6 +894,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     if (!BindVolumeTex(bkey,0)) {
       T_ERROR("Unable to bind volume to texture (LOD:%u, Brick:0)",
               static_cast<unsigned>(iCurrentLOD));
+      return false;
     }
 
     // clear the target at the beginning
@@ -948,6 +955,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
 
     if (!UnbindVolumeTex()) {
       T_ERROR("Cannot unbind volume: No volume bound");
+      return false;
     }
 
     glEnable(GL_DEPTH_TEST);
@@ -998,10 +1006,12 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
         T_ERROR("Unable to bind volume to texture (LOD:%u, Brick:%u)",
                 static_cast<unsigned>(m_iCurrentLOD),
                 static_cast<unsigned>(iBrickIndex));
+        return false;
       }
       RenderHQMIPInLoop(renderRegion, m_vCurrentBrickList[iBrickIndex]);
       if (!UnbindVolumeTex()) {
         T_ERROR("Cannot unbind volume: No volume bound");
+        return false;
       }
     }
     RenderHQMIPPostLoop();
@@ -1304,7 +1314,7 @@ void GLRenderer::PostSubframe(RenderRegion& renderRegion)
 }
 
 bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
-                                float& fMsecPassed) {
+                                float& fMsecPassed, bool& completedJob) {
   // are we starting a new LOD level?
   if (m_iBricksRenderedInThisSubFrame == 0) {
     fMsecPassed = 0;
@@ -1315,6 +1325,7 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
   if (m_vCurrentBrickList.empty()) {
     MESSAGE("zero bricks are to be rendered, completed the draw job");
     PostSubframe(renderRegion);
+    completedJob = true;
     return true;
   }
 
@@ -1328,7 +1339,12 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
     SetDataDepShaderVars();
 
     // Render a few bricks and return the time it took
-    fMsecPassed += Render3DView(renderRegion);
+    float fMsecPassedInThisPass = 0;
+    if (!Render3DView(renderRegion, fMsecPassedInThisPass)) {
+      completedJob = false;
+      return false;
+    }
+    fMsecPassed += fMsecPassedInThisPass;
 
     // if there is nothing left todo in this subframe -> present the result
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
@@ -1337,10 +1353,12 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
             renderRegion.msecPassedCurrentFrame + fMsecPassed,
             static_cast<unsigned>(m_iCurrentLODOffset));
       PostSubframe(renderRegion);
+      completedJob = true;
       return true;
     }
   }
-  return false;
+  completedJob = false;
+  return true;
 }
 
 void GLRenderer::CopyImageToDisplayBuffer() {
@@ -2156,13 +2174,13 @@ void GLRenderer::Recompose3DView(RenderRegion3D& renderRegion) {
   m_TargetBinder.Unbind();
 }
 
-float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
+bool GLRenderer::Render3DView(RenderRegion3D& renderRegion, float& fMsecPassed) {
   Render3DPreLoop(renderRegion);
 
   // loop over all bricks in the current LOD level
   m_Timer.Start();
   UINT32 bricks_this_call = 0;
-  float fMsecPassed = 0;
+  fMsecPassed = 0;
 
   while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame &&
          fMsecPassed < m_iTimeSliceMSecs) {
@@ -2178,6 +2196,7 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
       MESSAGE("  Binding Texture");
     } else {
       T_ERROR("Cannot bind texture, GetVolume returned invalid volume");
+      return false;
     }
 
     Render3DInLoop(renderRegion, m_iBricksRenderedInThisSubFrame,0);
@@ -2191,6 +2210,7 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
           MESSAGE("  Binding Texture (left eye)");
         } else {
           T_ERROR("Cannot bind texture (left eye), GetVolume returned invalid volume");
+          return false;
         }
       }
 
@@ -2198,7 +2218,10 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
     }
 
     // release the 3D texture
-    UnbindVolumeTex();
+    if (!UnbindVolumeTex()) {
+      T_ERROR("Cannot unbind volume.");
+      return false;
+    }
 
     // count the bricks rendered
     m_iBricksRenderedInThisSubFrame++;
@@ -2233,7 +2256,7 @@ float GLRenderer::Render3DView(RenderRegion3D& renderRegion) {
     m_TargetBinder.Unbind();
   }
 
-  return fMsecPassed;
+  return true;
 }
 
 void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {

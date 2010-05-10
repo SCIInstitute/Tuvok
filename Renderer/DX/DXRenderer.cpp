@@ -242,8 +242,8 @@ void DXRenderer::ClearColorBuffer() {
 void DXRenderer::StartFrame() {
 }
 
-void DXRenderer::Paint() {
-  AbstrRenderer::Paint();
+bool DXRenderer::Paint() {
+  return AbstrRenderer::Paint();
   // TODO
 }
 
@@ -340,8 +340,8 @@ bool DXRenderer::LoadDataset(const string& strFilename) {
 void DXRenderer::Recompose3DView(const tuvok::RenderRegion3D& renderRegion) {
 }
 
-float DXRenderer::Render3DView() {
-  return 0.0f;
+bool DXRenderer::Render3DView() {
+  return true;
 }
 
 void DXRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {

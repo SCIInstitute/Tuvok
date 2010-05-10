@@ -74,7 +74,7 @@ class GLRenderer : public AbstrRenderer {
     virtual void CleanupShaders();
 
     /** Paint the image */
-    virtual void Paint();
+    virtual bool Paint();
 
     /** Sends a message to the master to ask for a dataset to be loaded.
      * The dataset is converted to UVF if it is not one already.
@@ -127,7 +127,8 @@ class GLRenderer : public AbstrRenderer {
     void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
                     const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
     void RenderClipPlane(size_t iStereoID);
-    bool Execute3DFrame(RenderRegion3D& renderRegion, float& fMsecPassed);
+    bool Execute3DFrame(RenderRegion3D& renderRegion, float& fMsecPassed,
+                        bool& completedJob);
     void CopyImageToDisplayBuffer();
     void DrawLogo();
     void DrawBackGradient();
@@ -138,7 +139,7 @@ class GLRenderer : public AbstrRenderer {
     virtual float CalculateScaling();
     virtual void SetDataDepShaderVars();
 
-    virtual float Render3DView(RenderRegion3D& renderRegion);
+    virtual bool Render3DView(RenderRegion3D& renderRegion, float& fMsecPassed);
     virtual void Render3DPreLoop(RenderRegion3D &) { };
     virtual void Render3DInLoop(RenderRegion3D& renderRegion,
                                 size_t iCurentBrick, int iStereoID) = 0;

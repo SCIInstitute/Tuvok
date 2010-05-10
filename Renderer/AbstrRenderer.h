@@ -163,7 +163,7 @@ class AbstrRenderer {
      * is not complete yet. */
     virtual bool CheckForRedraw();
 
-    virtual void Paint() {
+    virtual bool Paint() {
       if (renderRegions.empty()) {
         renderRegions.push_back(&simpleRenderRegion3D);
       }
@@ -175,6 +175,8 @@ class AbstrRenderer {
       m_bDoStereoRendering = m_bRequestStereoRendering &&
                              renderRegions.size() == 1 &&
                              renderRegions[0]->is3D();
+
+      return true; // nothin can go wrong here
     }
 
 

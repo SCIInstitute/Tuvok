@@ -71,7 +71,7 @@ class DXRenderer : public AbstrRenderer {
     virtual void Cleanup();
 
     /** Paint the image */
-    virtual void Paint();
+    virtual bool Paint();
 
     /** Sends a message to the master to ask for a dataset to be loaded.
      * The dataset is converted to UVF if it is not one already.
@@ -119,7 +119,7 @@ class DXRenderer : public AbstrRenderer {
 
     virtual void SetDataDepShaderVars();
 
-    virtual float Render3DView();
+    virtual bool Render3DView();
     virtual void Render3DPreLoop() {};
     virtual void Render3DInLoop(size_t iCurentBrick, int iStereoID) = 0;
     virtual void Render3DPostLoop() {}

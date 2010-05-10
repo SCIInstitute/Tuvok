@@ -395,6 +395,11 @@ void GLSBVR2D::Render3DPreLoop(RenderRegion3D& region) {
 }
 
 void GLSBVR2D::RenderProxyGeometry() {
+  if (!m_pGLVolume) {
+    T_ERROR("Volume data invalid, unable to render.");
+    return;
+  }
+
   if (m_bUse3DTexture) RenderProxyGeometry3D(); else RenderProxyGeometry2D();
 }
 
