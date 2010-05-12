@@ -34,7 +34,7 @@
   \date    May 2010
 */
 
-
+uniform sampler2D texSlicem1;
 uniform sampler2D texSlice0;
 uniform sampler2D texSlice1;
 
@@ -51,13 +51,17 @@ vec3 ComputeGradient(vec3 vCenter, vec3 StepSize) {
   float fVolumValYp = sampleVolume( vCenter+vec3(0,-StepSize.y,0)).x;
   float fVolumValYm = sampleVolume( vCenter+vec3(0,+StepSize.y,0)).x;
 
-  float fVolumValZm = texture2D(texSlice0, vCenter.xy).x;
-  float fVolumValZp = texture2D(texSlice1, vCenter.xy).x;
+  float t = vCenter.z;
+
+  float fVolumValZm = (1.0-t) * texture2D(texSlicem1, vCenter.xy).x +
+                         t    * texture2D(texSlice0, vCenter.xy).x;
+  float fVolumValZp = (1.0-t) * texture2D(texSlice0, vCenter.xy).x +
+                         t    * texture2D(texSlice1, vCenter.xy).x;
 
   return (gl_TextureMatrix[0] *
           vec4((fVolumValXm - fVolumValXp)/2.0f,
                (fVolumValYp - fVolumValYm)/2.0f,
-                fVolumValZm - fVolumValZp,1.0)).xyz; // forward differences
+                fVolumValZm - fVolumValZp,1.0)).xyz;
 }
 
 vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale) {
@@ -66,4 +70,3 @@ vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale) {
   float l = length(vNormal); if (l>0.0) vNormal /= l; // safe normalization
   return vNormal;
 }
-

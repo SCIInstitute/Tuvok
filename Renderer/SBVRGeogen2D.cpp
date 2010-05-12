@@ -71,7 +71,7 @@ SBVRGeogen2D::~SBVRGeogen2D(void)
 }
 
 float SBVRGeogen2D::GetDelta(int iDir) const {
-  return 1.0f/(m_fSamplingModifier * m_vSize[iDir] * 1.732508f); // = sqrt(3)
+  return 1.0f/(m_fSamplingModifier * m_vSize[iDir] * 1.414213562f); // = sqrt(2)
 }
 
 

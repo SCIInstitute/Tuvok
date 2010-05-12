@@ -93,16 +93,18 @@ GLVolume2DTex::~GLVolume2DTex() {
 }
 
 void GLVolume2DTex::Bind(UINT32 iUnit,
-                         int depth,
+                         int iDepth,
                          int iStack) {
-  if (depth < 0) 
-    m_pTextures[iStack][1]->Bind(iUnit); // resembles mirrored repeat
-  else 
-  if (static_cast<size_t>(depth) < m_pTextures[iStack].size()) 
-    m_pTextures[iStack][depth]->Bind(iUnit);
-  else
-    m_pTextures[iStack][m_pTextures[iStack].size()-2]->Bind(iUnit);
-                                        // resembles mirrored repeat
+  
+  if (iDepth > 0 && iDepth < m_pTextures[iStack].size()) {
+    m_pTextures[iStack][iDepth]->Bind(iUnit);
+  } else {
+    // mirrored clamp
+    if (iDepth < 0) 
+      m_pTextures[iStack][0]->Bind(iUnit);
+    else
+      m_pTextures[iStack][m_pTextures[iStack].size()-1]->Bind(iUnit);
+  }
 }
 
 void GLVolume2DTex::CreateGLResources() {

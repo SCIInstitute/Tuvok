@@ -73,13 +73,13 @@ void GLSBVR2D::SetUse3DTexture(bool bUse3DTexture) {
   }
 }
 
-void GLSBVR2D::BindVolumeStringsToTexUnit(GLSLProgram* program, 
-                                          int iUnit0, int iUnit1) {
-  if (m_bUse3DTexture ) {
-    program->SetUniformVector("texVolume",iUnit0);
+void GLSBVR2D::BindVolumeStringsToTexUnit(GLSLProgram* program, bool bGradients) {
+  if (m_bUse3DTexture) {
+    program->SetUniformVector("texVolume",0);
   } else {
-    program->SetUniformVector("texSlice0",iUnit0);
-    program->SetUniformVector("texSlice1",iUnit1);
+    program->SetUniformVector("texSlice0",0);
+    program->SetUniformVector("texSlice1",2);
+    if (bGradients) program->SetUniformVector("texSlicem1",3);
   }
 }
 
@@ -127,27 +127,27 @@ bool GLSBVR2D::LoadShaders() {
     m_pProgramTrans->Disable();
 
     m_pProgram1DTransSlice->Enable();
-    BindVolumeStringsToTexUnit(m_pProgram1DTransSlice,0,2);
+    BindVolumeStringsToTexUnit(m_pProgram1DTransSlice, false);
     m_pProgram1DTransSlice->SetUniformVector("texTrans1D",1);
     m_pProgram1DTransSlice->Disable();
 
     m_pProgram2DTransSlice->Enable();
-    BindVolumeStringsToTexUnit(m_pProgram2DTransSlice,0,2);
+    BindVolumeStringsToTexUnit(m_pProgram2DTransSlice, false);
     m_pProgram2DTransSlice->SetUniformVector("texTrans2D",1);
     m_pProgram2DTransSlice->Disable();
 
     m_pProgram1DTransSlice3D->Enable();
-    BindVolumeStringsToTexUnit(m_pProgram1DTransSlice3D,0,2);
+    BindVolumeStringsToTexUnit(m_pProgram1DTransSlice3D, false);
     m_pProgram1DTransSlice3D->SetUniformVector("texTrans1D",1);
     m_pProgram1DTransSlice3D->Disable();
 
     m_pProgram2DTransSlice3D->Enable();
-    BindVolumeStringsToTexUnit(m_pProgram2DTransSlice3D,0,2);
+    BindVolumeStringsToTexUnit(m_pProgram2DTransSlice3D, false);
     m_pProgram2DTransSlice3D->SetUniformVector("texTrans2D",1);
     m_pProgram2DTransSlice3D->Disable();
 
     m_pProgramMIPSlice->Enable();
-    BindVolumeStringsToTexUnit(m_pProgramMIPSlice,0,2);
+    BindVolumeStringsToTexUnit(m_pProgramMIPSlice, false);
     m_pProgramMIPSlice->Disable();
 
     m_pProgramTransMIP->Enable();
@@ -219,43 +219,43 @@ bool GLSBVR2D::LoadShaders() {
       return false;
   } else {
     m_pProgram1DTrans[0]->Enable();
-    BindVolumeStringsToTexUnit(m_pProgram1DTrans[0],0,2);
+    BindVolumeStringsToTexUnit(m_pProgram1DTrans[0],false);
     m_pProgram1DTrans[0]->SetUniformVector("texTrans1D",1);
     m_pProgram1DTrans[0]->Disable();
 
     m_pProgram1DTrans[1]->Enable();
-    BindVolumeStringsToTexUnit(m_pProgram1DTrans[1],0,2);
+    BindVolumeStringsToTexUnit(m_pProgram1DTrans[1]);
     m_pProgram1DTrans[1]->SetUniformVector("texTrans1D",1);
     m_pProgram1DTrans[1]->Disable();
 
     m_pProgram2DTrans[0]->Enable();
-    BindVolumeStringsToTexUnit(m_pProgram2DTrans[0],0,2);
+    BindVolumeStringsToTexUnit(m_pProgram2DTrans[0]);
     m_pProgram2DTrans[0]->SetUniformVector("texTrans2D",1);
     m_pProgram2DTrans[0]->Disable();
 
     m_pProgram2DTrans[1]->Enable();
-    BindVolumeStringsToTexUnit(m_pProgram2DTrans[1],0,2);
+    BindVolumeStringsToTexUnit(m_pProgram2DTrans[1]);
     m_pProgram2DTrans[1]->SetUniformVector("texTrans2D",1);
     m_pProgram2DTrans[1]->Disable();
 
     m_pProgramIso->Enable();
-    BindVolumeStringsToTexUnit(m_pProgramIso,0,2);
+    BindVolumeStringsToTexUnit(m_pProgramIso);
     m_pProgramIso->Disable();
 
     m_pProgramColor->Enable();
-    BindVolumeStringsToTexUnit(m_pProgramColor,0,2);
+    BindVolumeStringsToTexUnit(m_pProgramColor);
     m_pProgramColor->Disable();
 
     m_pProgramHQMIPRot->Enable();
-    BindVolumeStringsToTexUnit(m_pProgramHQMIPRot,0,2);
+    BindVolumeStringsToTexUnit(m_pProgramHQMIPRot, false);
     m_pProgramHQMIPRot->Disable();
 
     m_pProgramIsoNoCompose->Enable();
-    BindVolumeStringsToTexUnit(m_pProgramIsoNoCompose,0,2);
+    BindVolumeStringsToTexUnit(m_pProgramIsoNoCompose);
     m_pProgramIsoNoCompose->Disable();
 
     m_pProgramColorNoCompose->Enable();
-    BindVolumeStringsToTexUnit(m_pProgramColorNoCompose,0,2);
+    BindVolumeStringsToTexUnit(m_pProgramColorNoCompose, false);
     m_pProgramColorNoCompose->Disable();
 
     UpdateColorsInShaders();
@@ -425,11 +425,12 @@ void GLSBVR2D::RenderProxyGeometry2D() {
         glBegin(GL_TRIANGLES);
         for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
           float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x;
-          int iCurrentTexID =  int(depth*pGLVolume->GetSizeX());
+          int iCurrentTexID =  int(depth*(pGLVolume->GetSizeX()));
           if (iCurrentTexID != iLastTexID) {
             glEnd();        
-            pGLVolume->Bind(0, iCurrentTexID, 0);
-            pGLVolume->Bind(2, iCurrentTexID+1, 0); 
+            pGLVolume->Bind(3, iCurrentTexID-1, 0);
+            pGLVolume->Bind(0, iCurrentTexID,   0);
+            pGLVolume->Bind(2, iCurrentTexID+1, 0);
             iLastTexID = iCurrentTexID;
             glBegin(GL_TRIANGLES);
           }
@@ -462,11 +463,12 @@ void GLSBVR2D::RenderProxyGeometry2D() {
         glBegin(GL_TRIANGLES);
         for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
           float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y;
-          int iCurrentTexID =  int(depth*pGLVolume->GetSizeY());
+          int iCurrentTexID =  int(depth*(pGLVolume->GetSizeY()));
           if (iCurrentTexID != iLastTexID) {
             glEnd();        
-            pGLVolume->Bind(0, iCurrentTexID, 1);
-            pGLVolume->Bind(2, iCurrentTexID+1, 1); 
+            pGLVolume->Bind(3, iCurrentTexID-1, 1);
+            pGLVolume->Bind(0, iCurrentTexID,   1);
+            pGLVolume->Bind(2, iCurrentTexID+1, 1);
             iLastTexID = iCurrentTexID;
             glBegin(GL_TRIANGLES);
           }
@@ -494,10 +496,11 @@ void GLSBVR2D::RenderProxyGeometry2D() {
         glBegin(GL_TRIANGLES);
         for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
           float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z;
-          int iCurrentTexID =  int(depth*pGLVolume->GetSizeZ());
+          int iCurrentTexID =  int(depth*(pGLVolume->GetSizeZ()));
           if (iCurrentTexID != iLastTexID) {
             glEnd();        
-            pGLVolume->Bind(0, iCurrentTexID, 2);
+            pGLVolume->Bind(3, iCurrentTexID-1, 2);
+            pGLVolume->Bind(0, iCurrentTexID,   2);
             pGLVolume->Bind(2, iCurrentTexID+1, 2);
             iLastTexID = iCurrentTexID;
             glBegin(GL_TRIANGLES);
