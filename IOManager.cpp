@@ -1157,7 +1157,7 @@ std::string IOManager::GetLoadDialogString() const {
     strDialog += ");;";
   }
 
-  strDialog += "All Files (*.*)";
+  strDialog += "All Files (*)";
 
   return strDialog;
 }
