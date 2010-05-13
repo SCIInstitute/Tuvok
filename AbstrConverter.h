@@ -120,6 +120,34 @@ public:
 
   virtual bool CanExportData() const { return false; }
 
+  // Figure out what factor we should multiply each element in the data set by
+  // to quantize it.
+  template <typename T, typename U>
+  static double QuantizationFactor(size_t max_out, double mn, double mx)
+  {
+    double quant = max_out / (mx - mn);
+    // ensure we don't "stretch" the data values, only "compress" them if
+    // necessary.
+    return std::min(quant, 1.0);
+  }
+
+  // For FP data we allow the range to be stretched.  Even if the
+  // max/min range is 0.3, we could still have a million different
+  // values in there.  Attempting to `compress' the range and that to
+  // integers is going to leave us with 1 value.
+  template <float&, typename U>
+  static double QuantizationFactor(size_t max_out, double mn, double mx)
+  {
+    return max_out / (mx - mn);
+  }
+  // Side note: we use references here because constant template parameters
+  // must be integral or reference types.
+  template <double&, typename U>
+  static double QuantizationFactor(size_t max_out, double mn, double mx)
+  {
+    return max_out / (mx - mn);
+  }
+
   template <typename T, typename U>
   static const std::string Quantize(UINT64 iHeaderSkip,
                                     const std::string& strFilename,
@@ -171,14 +199,10 @@ public:
 
     size_t max_output_val = 65535;
     if(hist_size == 256) { max_output_val = 255; }
-    double fQuantFact = max_output_val / static_cast<double>(minmax.second -
-                                                             minmax.first);
-    // Make sure we do not `stretch' the data values, only `compress' them if
-    // necessary.
-    fQuantFact = std::min(fQuantFact, 1.0);
-    double fQuantFactHist = hist_size-1 / static_cast<double>(minmax.second -
-                                                              minmax.first);
-    fQuantFactHist = std::min(fQuantFactHist, 1.0);
+    double fQuantFact = QuantizationFactor<T,U>(max_output_val, minmax.first,
+                                                 minmax.second);
+    double fQuantFactHist = QuantizationFactor<T,U>(hist_size-1, minmax.first,
+                                                     minmax.second);
 
     T* pInData = new T[iCurrentInCoreElems];
     U* pOutData = new U[iCurrentInCoreElems];
