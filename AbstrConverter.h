@@ -197,7 +197,7 @@ public:
       return "";
     }
 
-    size_t max_output_val = 65535;
+    size_t max_output_val = (1 << (sizeof(U)*8)) - 1;
     if(hist_size == 256) { max_output_val = 255; }
     double fQuantFact = QuantizationFactor<T,U>(max_output_val, minmax.first,
                                                  minmax.second);
