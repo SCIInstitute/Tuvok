@@ -63,6 +63,38 @@ public:
   std::pair<UINT64, UINT64>   m_uiRange;
 };
 
+namespace { // force internal linkage.
+  // Figure out what factor we should multiply each element in the data set by
+  // to quantize it.
+  template <typename T>
+  double QuantizationFactor(size_t max_out,
+                                   const T& mn, const T& mx)
+  {
+    double quant = max_out / (static_cast<double>(mx) - mn);
+    // ensure we don't "stretch" the data values, only "compress" them if
+    // necessary.
+    return std::min(quant, 1.0);
+  }
+  // For FP data we allow the range to be stretched.  Even if the
+  // max/min range is 0.3, we could still have a million different
+  // values in there.  Attempting to `compress' the range and that to
+  // integers is going to leave us with 1 value.
+  template <>
+  double QuantizationFactor(size_t max_out,
+                                   const float& mn, const float& mx)
+  {
+    return max_out / (mx - mn);
+  }
+  // Side note: we use references here because constant template parameters
+  // must be integral or reference types.
+  template <>
+  double QuantizationFactor(size_t max_out,
+                                   const double& mn, const double& mx)
+  {
+    return max_out / (mx - mn);
+  }
+}
+
 class AbstrConverter {
 public:
   virtual ~AbstrConverter() {}
@@ -120,34 +152,6 @@ public:
 
   virtual bool CanExportData() const { return false; }
 
-  // Figure out what factor we should multiply each element in the data set by
-  // to quantize it.
-  template <typename T, typename U>
-  static double QuantizationFactor(size_t max_out, double mn, double mx)
-  {
-    double quant = max_out / (mx - mn);
-    // ensure we don't "stretch" the data values, only "compress" them if
-    // necessary.
-    return std::min(quant, 1.0);
-  }
-
-  // For FP data we allow the range to be stretched.  Even if the
-  // max/min range is 0.3, we could still have a million different
-  // values in there.  Attempting to `compress' the range and that to
-  // integers is going to leave us with 1 value.
-  template <float&, typename U>
-  static double QuantizationFactor(size_t max_out, double mn, double mx)
-  {
-    return max_out / (mx - mn);
-  }
-  // Side note: we use references here because constant template parameters
-  // must be integral or reference types.
-  template <double&, typename U>
-  static double QuantizationFactor(size_t max_out, double mn, double mx)
-  {
-    return max_out / (mx - mn);
-  }
-
   template <typename T, typename U>
   static const std::string Quantize(UINT64 iHeaderSkip,
                                     const std::string& strFilename,
@@ -199,10 +203,10 @@ public:
 
     size_t max_output_val = (1 << (sizeof(U)*8)) - 1;
     if(hist_size == 256) { max_output_val = 255; }
-    double fQuantFact = QuantizationFactor<T,U>(max_output_val, minmax.first,
-                                                 minmax.second);
-    double fQuantFactHist = QuantizationFactor<T,U>(hist_size-1, minmax.first,
-                                                     minmax.second);
+    double fQuantFact = QuantizationFactor(max_output_val, minmax.first,
+                                           minmax.second);
+    double fQuantFactHist = QuantizationFactor(hist_size-1, minmax.first,
+                                               minmax.second);
 
     T* pInData = new T[iCurrentInCoreElems];
     U* pOutData = new U[iCurrentInCoreElems];
