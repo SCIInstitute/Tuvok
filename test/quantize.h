@@ -10,7 +10,7 @@
 #include "AbstrConverter.h"
 #include "Controller/Controller.h"
 #include "UVF/Histogram1DDataBlock.h"
-#include "Quantize.h"
+#include "../Quantize.h"
 
 #include "util-test.h"
 
