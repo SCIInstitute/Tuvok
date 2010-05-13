@@ -93,8 +93,12 @@ void verify_type() {
   }
 
   Histogram1DDataBlock hist1d;
+  std::string old_outfn = outfn;
   outfn = quantize<T>(static_cast<UINT64>(0), fn, outfn,
                       static_cast<UINT64>(N_VALUES), &hist1d, T());
+  if(outfn != old_outfn) {
+    remove(old_outfn.c_str());
+  }
 
   // verify data
   std::ifstream outdata;
@@ -175,8 +179,12 @@ void verify_8b_type() {
   }
 
   Histogram1DDataBlock hist1d;
+  std::string old_outfn = outfn;
   outfn = quantize8<T>(static_cast<UINT64>(0), fn, outfn,
                       static_cast<UINT64>(N_VALUES), &hist1d, T());
+  if(outfn != old_outfn) {
+    remove(old_outfn.c_str());
+  }
 
   // verify data
   std::ifstream outdata;
