@@ -9,8 +9,10 @@
 #endif
 using namespace tuvok;
 
-typedef unsigned char ubyte;
-typedef signed char byte;
+// "tuvok" ubyte, "tuvok" byte.
+// we can't just use byte because MS' compiler defines it.
+typedef unsigned char tubyte;
+typedef signed char tbyte;
 
 static size_t filesize(const char fn[]) {
   std::ifstream ifs(fn, std::ios::binary);

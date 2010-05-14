@@ -28,7 +28,7 @@ std::string quantize(UINT64 iHeader, const std::string& input,
 template <>
 std::string quantize(UINT64 iHeader, const std::string& input,
                      const std::string& outfn, UINT64 values,
-                     Histogram1DDataBlock* hist, byte)
+                     Histogram1DDataBlock* hist, tbyte)
 {
   return AbstrConverter::Process8Bits(iHeader, input, outfn, values, true, hist);
 }
@@ -37,7 +37,7 @@ std::string quantize(UINT64 iHeader, const std::string& input,
 template <>
 std::string quantize(UINT64 iHeader, const std::string& input,
                      const std::string& outfn, UINT64 values,
-                     Histogram1DDataBlock* hist, ubyte)
+                     Histogram1DDataBlock* hist, tubyte)
 {
   return AbstrConverter::Process8Bits(iHeader, input, outfn, values, false, hist);
 }
@@ -53,7 +53,7 @@ std::string quantize8(UINT64 iHeader, const std::string& input,
 template <>
 std::string quantize8(UINT64 iHeader, const std::string& input,
                      const std::string& outfn, UINT64 values,
-                     Histogram1DDataBlock* hist, byte)
+                     Histogram1DDataBlock* hist, tbyte)
 {
   return AbstrConverter::Process8Bits(iHeader, input, outfn, values, true, hist);
 }
@@ -61,7 +61,7 @@ std::string quantize8(UINT64 iHeader, const std::string& input,
 template <>
 std::string quantize8(UINT64 iHeader, const std::string& input,
                      const std::string& outfn, UINT64 values,
-                     Histogram1DDataBlock* hist, ubyte)
+                     Histogram1DDataBlock* hist, tubyte)
 {
   return AbstrConverter::Process8Bits(iHeader, input, outfn, values, false, hist);
 }
@@ -69,8 +69,8 @@ std::string quantize8(UINT64 iHeader, const std::string& input,
 
 
 template<typename T> bool is_8bit(T) { return false; }
-template<> bool is_8bit(byte) { return true; }
-template<> bool is_8bit(ubyte) { return true; }
+template<> bool is_8bit(tbyte) { return true; }
+template<> bool is_8bit(tubyte) { return true; }
 
 template<typename T>
 void verify_type() {
@@ -114,7 +114,7 @@ void verify_type() {
       if(ctti<T>::is_signed) {
         TS_ASSERT_EQUALS(val, STARTING_NEG+i+128);
       } else {
-        TS_ASSERT_EQUALS(val, static_cast<ubyte>(STARTING_NEG+i));
+        TS_ASSERT_EQUALS(val, static_cast<tubyte>(STARTING_NEG+i));
       }
     } else if(!std::tr1::is_floating_point<T>::value) {
       // Don't test this part when we've got FP data; we allow "expanding"
@@ -210,7 +210,7 @@ void verify_8b_type() {
                                          ((STARTING_NEG+i+bias) * quant));
       }
     } else {
-      TS_ASSERT_EQUALS(val, static_cast<ubyte>(STARTING_NEG+i));
+      TS_ASSERT_EQUALS(val, static_cast<tubyte>(STARTING_NEG+i));
     }
   }
   outdata.close();
@@ -248,19 +248,19 @@ void verify_8b_type() {
 
 class QuantizeTests : public CxxTest::TestSuite {
 public:
-  void test_byte() { verify_type<byte>(); }
+  void test_byte() { verify_type<tbyte>(); }
   void test_short() { verify_type<short>(); }
   void test_float() { verify_type<float>(); }
   void test_double() { verify_type<double>(); }
-  void test_ubyte() { verify_type<ubyte>(); }
+  void test_ubyte() { verify_type<tubyte>(); }
   void test_ushort() { verify_type<unsigned short>(); }
   void test_int() { verify_type<int>(); }
   void test_uint() { verify_type<unsigned int>(); }
   void test_long() { verify_type<long>(); }
   void test_ulong() { verify_type<unsigned long>(); }
 
-  void test_8b_byte() { verify_8b_type<byte>(); }
-  void test_8b_ubyte() { verify_8b_type<ubyte>(); }
+  void test_8b_byte() { verify_8b_type<tbyte>(); }
+  void test_8b_ubyte() { verify_8b_type<tubyte>(); }
   void test_8b_short() { verify_8b_type<short>(); }
   void test_8b_ushort() { verify_8b_type<unsigned short>(); }
   void test_8b_int() { verify_8b_type<int>(); }

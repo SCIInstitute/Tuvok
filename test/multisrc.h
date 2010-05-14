@@ -27,13 +27,13 @@ class MultiDataSrcTesting: public CxxTest::TestSuite {
     files.push_back(f1);
     files.push_back(f2);
 
-    multi_raw_data_src<ubyte> multisrc((files));
-    NullProgress<ubyte> np;
+    multi_raw_data_src<tubyte> multisrc((files));
+    NullProgress<tubyte> np;
 
-    std::pair<ubyte, ubyte> mm =
-      io_minmax(multisrc, NullHistogram<ubyte>(), np,
+    std::pair<tubyte, tubyte> mm =
+      io_minmax(multisrc, NullHistogram<tubyte>(), np,
                 static_cast<size_t>(DEFAULT_INCORESIZE));
-    check_equality<ubyte>(mm.first, 0);
-    check_equality<ubyte>(mm.second, 254);
+    check_equality<tubyte>(mm.first, 0);
+    check_equality<tubyte>(mm.second, 254);
   }
 };

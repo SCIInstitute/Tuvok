@@ -140,19 +140,20 @@ class MinMaxTesting : public CxxTest::TestSuite {
     //      pathological cases: all the same neg/pos value, all 0.
     //   file < in core size, file == in core size, file > in core size
 
-    typedef signed char byte;
+    // "tuvok byte" -- "byte" is defined by MS' compiler.
+    typedef signed char tbyte;
     // byte, (they always fit in 12 bits :), all neg, small file
-    void test_byte_neg_lt_incore() { t<byte>(DEFAULT_INCORESIZE/64, -90, 2); }
+    void test_byte_neg_lt_incore() { t<tbyte>(DEFAULT_INCORESIZE/64, -90, 2); }
     // byte, (always fits in 12 bits ;), all neg, == DEFAULT_INCORESIZE.
-    void test_byte_neg_eq_incore() { t<byte>(DEFAULT_INCORESIZE,    -90, 2); }
+    void test_byte_neg_eq_incore() { t<tbyte>(DEFAULT_INCORESIZE,    -90, 2); }
     // byte, (always fit in 12 bits ;), all neg, > DEFAULT_INCORESIZE.
-    void test_byte_neg_gt_incore() { t<byte>(DEFAULT_INCORESIZE*2,  -90, 2); }
+    void test_byte_neg_gt_incore() { t<tbyte>(DEFAULT_INCORESIZE*2,  -90, 2); }
     // byte, (always fits in 12 bits ;), spans 0, < DEFAULT_INCORESIZE
-    void test_byte_span_lt_incore() { t<byte>(DEFAULT_INCORESIZE/64,  0, 3); }
+    void test_byte_span_lt_incore() { t<tbyte>(DEFAULT_INCORESIZE/64,  0, 3); }
     // byte, (always fits in 12 bits ;), spans 0, == DEFAULT_INCORESIZE
-    void test_byte_span_eq_incore() { t<byte>(DEFAULT_INCORESIZE,     0, 3); }
+    void test_byte_span_eq_incore() { t<tbyte>(DEFAULT_INCORESIZE,     0, 3); }
     // byte, (always fits in 12 bits ;), spans 0, > DEFAULT_INCORESIZE
-    void test_byte_span_gt_incore() { t<byte>(DEFAULT_INCORESIZE*2,   0, 3); }
+    void test_byte_span_gt_incore() { t<tbyte>(DEFAULT_INCORESIZE*2,   0, 3); }
 
     void test_char_neg_lt_incore() { t<char>(DEFAULT_INCORESIZE/64,  -90, 2); }
     void test_char_neg_eq_incore() { t<char>(DEFAULT_INCORESIZE,     -90, 2); }
@@ -165,15 +166,15 @@ class MinMaxTesting : public CxxTest::TestSuite {
     void test_char_pos_gt_incore() { t<char>(DEFAULT_INCORESIZE*2,    90, 4); }
 
     typedef unsigned char ubyte;
-    void test_ubyte_neg_lt_incore() { t<ubyte>(DEFAULT_INCORESIZE/64,  -90, 2); }
-    void test_ubyte_neg_eq_incore() { t<ubyte>(DEFAULT_INCORESIZE,     -90, 2); }
-    void test_ubyte_neg_gt_incore() { t<ubyte>(DEFAULT_INCORESIZE*2,   -90, 2); }
-    void test_ubyte_span_lt_incore() { t<ubyte>(DEFAULT_INCORESIZE/64,   0, 3); }
-    void test_ubyte_span_eq_incore() { t<ubyte>(DEFAULT_INCORESIZE,      0, 3); }
-    void test_ubyte_span_gt_incore() { t<ubyte>(DEFAULT_INCORESIZE*2,    0, 3); }
-    void test_ubyte_pos_lt_incore() { t<ubyte>(DEFAULT_INCORESIZE/64,   90, 4); }
-    void test_ubyte_pos_eq_incore() { t<ubyte>(DEFAULT_INCORESIZE,      90, 4); }
-    void test_ubyte_pos_gt_incore() { t<ubyte>(DEFAULT_INCORESIZE*2,    90, 4); }
+    void test_ubyte_neg_lt_incore() { t<tubyte>(DEFAULT_INCORESIZE/64,  -90, 2); }
+    void test_ubyte_neg_eq_incore() { t<tubyte>(DEFAULT_INCORESIZE,     -90, 2); }
+    void test_ubyte_neg_gt_incore() { t<tubyte>(DEFAULT_INCORESIZE*2,   -90, 2); }
+    void test_ubyte_span_lt_incore() { t<tubyte>(DEFAULT_INCORESIZE/64,   0, 3); }
+    void test_ubyte_span_eq_incore() { t<tubyte>(DEFAULT_INCORESIZE,      0, 3); }
+    void test_ubyte_span_gt_incore() { t<tubyte>(DEFAULT_INCORESIZE*2,    0, 3); }
+    void test_ubyte_pos_lt_incore() { t<tubyte>(DEFAULT_INCORESIZE/64,   90, 4); }
+    void test_ubyte_pos_eq_incore() { t<tubyte>(DEFAULT_INCORESIZE,      90, 4); }
+    void test_ubyte_pos_gt_incore() { t<tubyte>(DEFAULT_INCORESIZE*2,    90, 4); }
 
     void test_short_neg_12bit_lt_incore() {
       t<short>(DEFAULT_INCORESIZE/64, -4096, 32);
@@ -356,11 +357,11 @@ class MinMaxTesting : public CxxTest::TestSuite {
     void test_double_p_n12b_gti() { t<double>(DEFAULT_INCORESIZE*2, 123984.4, 3456.7);}
 
     // Ridiculous cases: i.e. all the same value
-    void test_byte_neg() { t_constant<byte>(DEFAULT_INCORESIZE/64, -42); }
-    void test_byte_0()   { t_constant<byte>(DEFAULT_INCORESIZE/64,   0); }
-    void test_byte_pos() { t_constant<byte>(DEFAULT_INCORESIZE/64,  42); }
-    void test_ubyte_0()   { t_constant<ubyte>(DEFAULT_INCORESIZE/64,  0); }
-    void test_ubyte_pos() { t_constant<ubyte>(DEFAULT_INCORESIZE/64, 42); }
+    void test_byte_neg() { t_constant<tbyte>(DEFAULT_INCORESIZE/64, -42); }
+    void test_byte_0()   { t_constant<tbyte>(DEFAULT_INCORESIZE/64,   0); }
+    void test_byte_pos() { t_constant<tbyte>(DEFAULT_INCORESIZE/64,  42); }
+    void test_ubyte_0()   { t_constant<tubyte>(DEFAULT_INCORESIZE/64,  0); }
+    void test_ubyte_pos() { t_constant<tubyte>(DEFAULT_INCORESIZE/64, 42); }
     void test_short_neg() { t_constant<short>(DEFAULT_INCORESIZE/64, -5192); }
     void test_short_0()   { t_constant<short>(DEFAULT_INCORESIZE/64,     0); }
     void test_short_pos() { t_constant<short>(DEFAULT_INCORESIZE/64,  1296); }
