@@ -55,7 +55,7 @@ inline void check_equality<double>(double a, double b) {
 static std::string mk_tmpfile(std::ofstream& ofs, std::ios_base::openmode mode)
 {
 #ifdef _WIN32
-  char *templ = tmpnam(templ);
+  char *templ = tmpnam(NULL);
   ofs.open(templ, mode);
 #else
   char templ[64];
