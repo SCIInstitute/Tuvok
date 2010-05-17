@@ -54,11 +54,16 @@ inline void check_equality<double>(double a, double b) {
 // but there's no (standard) way to turn a file descriptor into a std::fstream.
 static std::string mk_tmpfile(std::ofstream& ofs, std::ios_base::openmode mode)
 {
+#ifdef _WIN32
+  char *templ = tmpnam(templ);
+  ofs.open(templ, mode);
+#else
   char templ[64];
   strcpy(templ, "iotest.XXXXXX");
   int fd = mkstemp(templ);
   close(fd);
   ofs.open(templ, mode);
+#endif
   return std::string(templ);
 }
 
