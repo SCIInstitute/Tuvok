@@ -176,6 +176,14 @@ static void detach_shaders(GLuint program)
 {
   GLenum err;
 
+  // clear all other errors in the stack
+  do {
+    err = glGetError();
+    if(err != GL_NO_ERROR) {
+      WARNING("Previous GL error: %#x", static_cast<unsigned>(err));
+    }
+  } while(err != GL_NO_ERROR);
+
   // how many shaders are attached?
   GLint num_shaders;
   if(gl::arb) {
