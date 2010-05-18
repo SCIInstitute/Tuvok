@@ -45,6 +45,8 @@
 
 namespace tuvok {
 
+class GLFBOTex;
+
 class GLFrameCapture : public FrameCapture {
   public:
     GLFrameCapture() : FrameCapture() {}
@@ -52,9 +54,15 @@ class GLFrameCapture : public FrameCapture {
 
     virtual bool CaptureSingleFrame(const std::string& strFilename,
                                     bool bPreserveTransparency) const;
+
+    virtual bool CaptureSingleFrame(const std::string& filename,
+                                    GLFBOTex* from,
+                                    bool transparency=false) const;
+
     /// Read the image into an in-memory buffer.  Image data is 32bpp RGBA.
     /// @arg image fill this buffer; existing data is overwritten.
     virtual void CaptureSingleFrame(std::vector<unsigned char>& image) const;
 };
-};
+
+}
 #endif // GLFRAMECAPTURE_H

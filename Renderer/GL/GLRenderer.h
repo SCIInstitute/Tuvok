@@ -93,6 +93,8 @@ class GLRenderer : public AbstrRenderer {
                      DOUBLEVECTOR3 vAspectRatio, DOUBLEVECTOR2 vWinAspectRatio);
     virtual void NewFrameClear(const RenderRegion& renderRegion);
 
+    GLFBOTex* GetLastFBO() { return m_pFBO3DImageLast; }
+
   protected:
     GLTargetBinder  m_TargetBinder;
     GLTexture1D*    m_p1DTransTex;

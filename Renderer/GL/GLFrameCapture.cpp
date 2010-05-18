@@ -33,10 +33,13 @@
            University of Utah
   \date    August 2008
 */
+#include "GLFrameCapture.h"
 
 #include "Basics/Vectors.h"
-#include "GLFrameCapture.h"
+#include "Controller/Controller.h"
 #include "GLInclude.h"
+#include "GLFBOTex.h"
+#include "GLTargetBinder.h"
 
 using namespace tuvok;
 
@@ -53,6 +56,17 @@ bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename, bool bPr
   delete[] image;
 
   return bResult;
+}
+
+bool GLFrameCapture::CaptureSingleFrame(const std::string& filename,
+                                        GLFBOTex* from,
+                                        bool transparency) const
+{
+  GLTargetBinder bind(&Controller::Instance());
+  bind.Bind(from);
+  bool rv = this->CaptureSingleFrame(filename, transparency);
+  bind.Unbind();
+  return rv;
 }
 
 /// Reads the image into an in-memory buffer.  Image data is 32bpp RGBA.
