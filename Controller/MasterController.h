@@ -33,8 +33,6 @@
 //!    Date   : September 2008
 //
 //!    Copyright (C) 2008 SCI Institute
-
-
 #pragma once
 
 #ifndef MASTERCONTROLLER_H
@@ -64,8 +62,8 @@ typedef std::deque<AbstrRenderer*> AbstrRendererList;
  * Centralized controller for Tuvok.
  *
  * MasterController is a router for all of the components of
- * Tuvok.  Modules only depend on / utilize the controller,
- * never other modules.
+ * Tuvok.  We try to keep modules communicating through this controller,
+ * as opposed to directly with other modules.
  * You probably don't want to create an instance directly.  Use the singleton
  * provided by Controller::Instance(). */
 class MasterController : public Scriptable {
@@ -168,6 +166,8 @@ public:
                   const std::string args = std::string());
   ///@}
 
+  /// Whether or not to expose certain features which aren't actually ready for
+  /// users.
   bool ExperimentalFeatures() const;
   void ExperimentalFeatures(bool b);
 
@@ -184,5 +184,6 @@ private:
 
   AbstrRendererList m_vVolumeRenderer;
 };
-};
+
+}
 #endif // MASTERCONTROLLER_H
