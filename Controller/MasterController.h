@@ -96,7 +96,7 @@ public:
                                           bool bBiasAndScaleTF=false);
 
   /// Indicate that a renderer is no longer needed.
-  void ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer);
+  void ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer);
 
   /// Add another debug output
   /// \param debugOut      the new stream

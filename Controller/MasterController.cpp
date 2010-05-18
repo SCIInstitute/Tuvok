@@ -198,7 +198,7 @@ MasterController::RequestNewVolumeRenderer(
 }
 
 
-void MasterController::ReleaseVolumerenderer(AbstrRenderer* pVolumeRenderer) {
+void MasterController::ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer) {
   for (AbstrRendererListIter i = m_vVolumeRenderer.begin();
        i < m_vVolumeRenderer.end();
        ++i) {
