@@ -368,11 +368,19 @@ static bool addshader(GLuint program, const std::string& filename,
 
   // did it compile successfully?
   {
-    GLint success[1];
+    GLint success[1] = { GL_TRUE };
     if(gl::arb) {
       glGetShaderiv(sh, GL_COMPILE_STATUS, success);
     } else {
       glGetObjectParameterivARB(sh, GL_OBJECT_COMPILE_STATUS_ARB, success);
+    }
+    {
+      GLenum glerr = glGetError();
+      if(glerr != GL_NO_ERROR) {
+        WARNING("GL error looking up compilation status: %#x",
+                static_cast<unsigned>(glerr));
+        success[0] = GL_FALSE;
+      }
     }
     if(success == GL_FALSE) {
       std::ostringstream errmsg;
