@@ -273,7 +273,7 @@ bool GLSLProgram::Initialize(void) {
             (const char*)glGetString(GL_VENDOR));
     if (atof((const char*)glGetString(GL_VERSION)) >= 2.0) {
       MESSAGE("OpenGL 2.0 supported");
-      gl::arb = m_bGLUseARB = false;
+      gl::arb = m_bGLUseARB = true;
     } else { // check for ARB extensions
       if (glewGetExtension("GL_ARB_shader_objects"))
         MESSAGE("ARB_shader_objects supported.");
