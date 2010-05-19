@@ -1,10 +1,12 @@
 TEMPLATE          = app
-CONFIG           += staticlib static create_prl warn_on stl exceptions
+win32:TEMPLATE    = vcapp
+CONFIG           += exceptions largefile link_prl static stl warn_on
 TARGET            = cxxtester
 DEPENDPATH       += . ../
 INCLUDEPATH      += ../ ../../ ../3rdParty/boost ../3rdParty/cxxtest
 QT               += opengl
-LIBS             += -L../../Build -lTuvok -lz
+LIBS             += -L../../Build -lTuvok
+unix:LIBS        += -lz
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -D_GLIBCXX_DEBUG
