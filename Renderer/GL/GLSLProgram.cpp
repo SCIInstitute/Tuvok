@@ -382,7 +382,7 @@ static bool addshader(GLuint program, const std::string& filename,
         success[0] = GL_FALSE;
       }
     }
-    if(success == GL_FALSE) {
+    if(success[0] == GL_FALSE) {
       std::ostringstream errmsg;
       errmsg << "Compilation error in '" << filename << "': ";
 
