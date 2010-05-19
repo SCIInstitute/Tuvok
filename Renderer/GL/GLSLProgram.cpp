@@ -185,7 +185,7 @@ static void detach_shaders(GLuint program)
   } while(err != GL_NO_ERROR);
 
   // how many shaders are attached?
-  GLint num_shaders;
+  GLint num_shaders=0;
   if(gl::arb) {
     glGetProgramiv(program, GL_ATTACHED_SHADERS, &num_shaders);
   } else {
@@ -196,6 +196,7 @@ static void detach_shaders(GLuint program)
   if((err = glGetError()) != GL_NO_ERROR) {
     WARNING("Error obtaining the number of shaders attached to program %u: %x",
             static_cast<unsigned>(program), static_cast<unsigned>(err));
+    num_shaders=0;
   }
 
   if(num_shaders > 0) {
