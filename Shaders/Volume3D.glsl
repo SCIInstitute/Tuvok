@@ -50,7 +50,7 @@ vec3 ComputeGradient(vec3 vCenter, vec3 StepSize) {
   float fVolumValZm = sampleVolume( vCenter+vec3(0,0,-StepSize.z)).x;
   return vec3(fVolumValXm - fVolumValXp,
               fVolumValYp - fVolumValYm,
-              fVolumValZm - fVolumValZp)/2.0f;
+              fVolumValZm - fVolumValZp) / 2.0;
 }
 
 vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale) {
