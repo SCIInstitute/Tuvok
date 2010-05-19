@@ -109,6 +109,10 @@ x_connect()
   struct xinfo rv;
 
   rv.display = XOpenDisplay(NULL);
+  if(rv.display == NULL) {
+    T_ERROR("Could not connect to display: '%s'!", XDisplayName(NULL));
+    throw NoAvailableContext();
+  }
   XSynchronize(rv.display, True);
 
   rv.visual = find_visual(rv.display);

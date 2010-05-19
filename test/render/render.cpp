@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     return EXIT_FAILURE;
   }
 
-  {
+  try {
     std::auto_ptr<TvkContext> ctx(TvkContext::Create());
 
     GLenum err = glewInit();
@@ -97,6 +97,9 @@ int main(int argc, char *argv[])
 
     ren->Cleanup();
     Controller::Instance().ReleaseVolumeRenderer(ren);
+  } catch(const std::exception& e) {
+    std::cerr << "Exception: " << e.what() << "\n";
+    return EXIT_FAILURE;
   }
 
   return EXIT_SUCCESS;

@@ -36,12 +36,21 @@
 #ifndef TUVOK_TEST_CONTEXT_H
 #define TUVOK_TEST_CONTEXT_H
 
+#include <exception>
 #include "StdTuvokDefines.h"
 
 class TvkContext {
   public:
     virtual ~TvkContext();
     static TvkContext* Create();
+};
+
+class NoAvailableContext : public std::exception {
+  public:
+    virtual ~NoAvailableContext() throw() {}
+    virtual const char* what() const throw() {
+      return "No context was available to utilize.";
+    }
 };
 
 #endif // TUVOK_TEST_CONTEXT_H
