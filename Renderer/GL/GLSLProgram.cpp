@@ -273,7 +273,7 @@ bool GLSLProgram::Initialize(void) {
             (const char*)glGetString(GL_VENDOR));
     if (atof((const char*)glGetString(GL_VERSION)) >= 2.0) {
       MESSAGE("OpenGL 2.0 supported");
-      gl::arb = m_bGLUseARB = true;
+      gl::arb = m_bGLUseARB = false;
     } else { // check for ARB extensions
       if (glewGetExtension("GL_ARB_shader_objects"))
         MESSAGE("ARB_shader_objects supported.");
@@ -369,7 +369,7 @@ static bool addshader(GLuint program, const std::string& filename,
   // did it compile successfully?
   {
     GLint success[1] = { GL_TRUE };
-    if(gl::arb) {
+    if(!gl::arb) {
       glGetShaderiv(sh, GL_COMPILE_STATUS, success);
     } else {
       glGetObjectParameterivARB(sh, GL_OBJECT_COMPILE_STATUS_ARB, success);
@@ -386,7 +386,7 @@ static bool addshader(GLuint program, const std::string& filename,
       std::ostringstream errmsg;
       errmsg << "Compilation error in '" << filename << "': ";
 
-      if(gl::arb) { // retrieve the error message
+      if(!gl::arb) { // retrieve the error message
         GLint log_length;
         glGetShaderiv(sh, GL_INFO_LOG_LENGTH, &log_length);
         std::vector<GLchar> log(log_length);
