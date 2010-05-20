@@ -187,10 +187,10 @@ static void detach_shaders(GLuint program)
   // how many shaders are attached?
   GLint num_shaders=0;
   if(gl::arb) {
-    glGetProgramiv(program, GL_ATTACHED_SHADERS, &num_shaders);
-  } else {
     glGetObjectParameterivARB(program, GL_OBJECT_ATTACHED_OBJECTS_ARB,
                               &num_shaders);
+  } else {
+    glGetProgramiv(program, GL_ATTACHED_SHADERS, &num_shaders);
   }
 
   if((err = glGetError()) != GL_NO_ERROR) {
