@@ -1502,15 +1502,32 @@ void GLRenderer::DrawBackGradient() {
 }
 
 void GLRenderer::Cleanup() {
-  if (m_pFBO3DImageLast)      {m_pMasterController->MemMan()->FreeFBO(m_pFBO3DImageLast); m_pFBO3DImageLast =NULL;}
+  GPUMemMan& mm = *(m_pMasterController->MemMan());
 
-  for (UINT32 i = 0;i<2;i++) {
-    if (m_pFBO3DImageCurrent[i])   {m_pMasterController->MemMan()->FreeFBO(m_pFBO3DImageCurrent[i]); m_pFBO3DImageCurrent[i] = NULL;}
-    if (m_pFBOIsoHit[i])           {m_pMasterController->MemMan()->FreeFBO(m_pFBOIsoHit[i]);m_pFBOIsoHit[i] = NULL;}
-    if (m_pFBOCVHit[i])            {m_pMasterController->MemMan()->FreeFBO(m_pFBOCVHit[i]);m_pFBOCVHit[i] = NULL;}
+  if (m_pFBO3DImageLast) {
+    mm.FreeFBO(m_pFBO3DImageLast);
+    m_pFBO3DImageLast =NULL;
   }
 
-  if (m_pLogoTex)             {m_pMasterController->MemMan()->FreeTexture(m_pLogoTex); m_pLogoTex =NULL;}
+  for (UINT32 i = 0;i<2;i++) {
+    if (m_pFBO3DImageCurrent[i]) {
+      mm.FreeFBO(m_pFBO3DImageCurrent[i]);
+      m_pFBO3DImageCurrent[i] = NULL;
+    }
+    if (m_pFBOIsoHit[i]) {
+      mm.FreeFBO(m_pFBOIsoHit[i]);
+      m_pFBOIsoHit[i] = NULL;
+    }
+    if (m_pFBOCVHit[i]) {
+      mm.FreeFBO(m_pFBOCVHit[i]);
+      m_pFBOCVHit[i] = NULL;
+    }
+  }
+
+  if (m_pLogoTex) {
+    mm.FreeTexture(m_pLogoTex);
+    m_pLogoTex =NULL;
+  }
 
   CleanupShaders();
 }
