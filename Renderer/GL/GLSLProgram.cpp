@@ -204,7 +204,7 @@ static void detach_shaders(GLuint program)
     std::vector<GLuint> shaders(num_shaders);
     gl::GetAttachedShaders(program, num_shaders, NULL, &shaders[0]);
     if((err = glGetError()) != GL_NO_ERROR) {
-      WARNING("Error obtaining the shader IDs attached to program %u: %x",
+      WARNING("Error obtaining the shader IDs attached to program %u: %#x",
               static_cast<unsigned>(program), static_cast<unsigned>(err));
     }
 
@@ -217,7 +217,7 @@ static void detach_shaders(GLuint program)
       if(gl::IsShader(*sh)) {
         gl::DetachShader(program, *sh);
         if((err = glGetError()) != GL_NO_ERROR) {
-          WARNING("Error detaching shader %u from %u: %x",
+          WARNING("Error detaching shader %u from %u: %#x",
                   static_cast<unsigned>(*sh),
                   static_cast<unsigned>(program), static_cast<unsigned>(err));
         }
@@ -386,7 +386,8 @@ static bool addshader(GLuint program, const std::string& filename,
       std::ostringstream errmsg;
       errmsg << "Compilation error in '" << filename << "': ";
 
-      if(!gl::arb) { // retrieve the error message
+      // retrieve the error message
+      if(!gl::arb) { // ARB calls are different, not used much, we don't care.
         GLint log_length;
         glGetShaderiv(sh, GL_INFO_LOG_LENGTH, &log_length);
         std::vector<GLchar> log(log_length);
@@ -427,6 +428,8 @@ void GLSLProgram::Load(const std::vector<std::string>& vert,
   if(this->m_hProgram == 0) {
     T_ERROR("Error creating shader program.");
     CheckGLError(_func_);
+    gl::DeleteProgram(this->m_hProgram);
+    this->m_hProgram = 0;
     return;
   }
 
@@ -435,6 +438,9 @@ void GLSLProgram::Load(const std::vector<std::string>& vert,
       vsh != vert.end(); ++vsh) {
     if(false == addshader(this->m_hProgram, *vsh, GL_VERTEX_SHADER)) {
       T_ERROR("Attaching shader '%s' failed.", vsh->c_str());
+      detach_shaders(this->m_hProgram);
+      gl::DeleteProgram(this->m_hProgram);
+      this->m_hProgram = 0;
       return;
     }
   }
@@ -445,6 +451,8 @@ void GLSLProgram::Load(const std::vector<std::string>& vert,
       fsh != frag.end(); ++fsh) {
     if(false == addshader(this->m_hProgram, *fsh, GL_FRAGMENT_SHADER)) {
       T_ERROR("Attaching shader '%s' failed.", fsh->c_str());
+      detach_shaders(this->m_hProgram);
+      gl::DeleteProgram(this->m_hProgram);
       return;
     }
   }
