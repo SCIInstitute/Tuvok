@@ -368,9 +368,17 @@ template <class T> VECTOR3<T> operator * ( T scalar, const VECTOR3<T>& vec ) {re
 template <class T> VECTOR3<T> operator / ( T scalar, const VECTOR3<T>& vec ) {return VECTOR3<T>(scalar/vec.x,scalar/vec.y,scalar/vec.z);}
 template <class T> VECTOR3<T> operator % ( T scalar, const VECTOR3<T>& vec ) {return VECTOR3<T>(scalar%vec.x,scalar%vec.y,scalar%vec.z);}
 
+// RedHat's patched gcc warns on the operator>> below if we don't explicitly
+// mark the symbol as hidden, despite -fvisibility settings.
+#if defined(__GNUC__) && __GNUC__ >= 4
+# define HIDDEN __attribute__ ((visibility("hidden")))
+#else
+# define HIDDEN /* nothing */
+#endif
+
 template <class T=int> class VECTOR4 {
   template <class U>
-  friend std::istream& operator >>(std::istream &, VECTOR4<U>&);
+  HIDDEN friend std::istream& operator >>(std::istream &, VECTOR4<U>&);
 public:
   T x,y,z,w;
 
