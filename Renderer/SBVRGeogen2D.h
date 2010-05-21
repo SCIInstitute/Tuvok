@@ -44,10 +44,10 @@ namespace tuvok {
 
 //! Geometry generation for 2D texture based the slice-based volume renderer. 
 /** \class SBVRGeogen2D
- * This class implements 3 differnt algorithms to generate the object aligned
+ * This class implements 3 different algorithms to generate the object aligned
  * geometry for a 2D texture slice-based volume renderer. Those three methods
  * are Christoph Resz's "traditional" stack switching method, where the one 
- * stack three object alligned stacks is choosen for rendering that is most
+ * stack three object aligned stacks is chosen for rendering that is most
  * perpendicular to the viewing direction (i.e. the normal to viewing direction
  * dot product is minimal). The other two approaches are the naive slow and the 
  * optimized fast implementation of Jens Krueger's new sampling scheme for slice
@@ -82,8 +82,8 @@ public:
 
   //! This call does the actual geometry generation
   /*! 
-   * Overriden ComputeGeometry call, this call does the actual work
-   * of computing the object alligned slices interally it calls either
+   * Overridden ComputeGeometry call, this call does the actual work
+   * of computing the object aligned slices internally it calls either
    * ComputeGeometryRezk(), ComputeGeometryKrueger() or
    * ComputeGeometryKruegerFast() depending on m_eMethod
    \post stores the slice geometry in m_vSliceTrianglesX, m_vSliceTrianglesY
