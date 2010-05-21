@@ -4,6 +4,7 @@ TARGET            = tuvok
 DEPENDPATH       += . ../../
 INCLUDEPATH      += ../../ ../../IO/3rdParty/boost
 INCLUDEPATH      += ../../Basics/3rdParty
+INCLUDEPATH      += ../../3rdParty/GLEW
 LIBPATH          += ../../Build
 QT               += opengl
 LIBS             += -lTuvok -lz
