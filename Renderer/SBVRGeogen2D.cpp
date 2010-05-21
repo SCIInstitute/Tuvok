@@ -27,11 +27,11 @@
 */
 
 /**
-  \file    SBVRGeogen2D.cpp
+  \file    SBVRGeogen2D.h
   \author  Jens Krueger
-           MMCI, DFKI Saarbruecken
-           SCI Institute, University of Utah
-  \date    December 2009
+           SCI Institute
+           DFKI Saarbruecken & University of Utah
+  \date    March 2010
 */
 
 #include "StdTuvokDefines.h"
@@ -61,9 +61,6 @@ SBVRGeogen2D::SBVRGeogen2D(void) :
   SBVRGeogen(),
   m_eMethod(METHOD_KRUEGER_FAST)
 {
-  m_vSliceTrianglesOrder[0] = DIRECTION_X;
-  m_vSliceTrianglesOrder[1] = DIRECTION_Y;
-  m_vSliceTrianglesOrder[2] = DIRECTION_Z;
 }
 
 SBVRGeogen2D::~SBVRGeogen2D(void)
@@ -738,7 +735,7 @@ void SBVRGeogen2D::BuildStackQuads(
                      const vector<FLOATPLANE>& vIntersectPlanes,
                      const FLOATVECTOR3* vCoordFrame,
 
-                     vector<POS3TEX3_VERTEX>& m_vSliceTriangles
+                     vector<POS3TEX3_VERTEX>& vSliceTriangles
                      ) {
   POS3TEX3_VERTEX pVertices[8];
   size_t pEdges[8];
@@ -834,7 +831,7 @@ void SBVRGeogen2D::BuildStackQuads(
   // compute number of layers to cover depth
   UINT32 iLayerCount = UINT32(floor(fDistScale/fDelta));
 
-  m_vSliceTriangles.resize(iLayerCount*6);
+  vSliceTriangles.resize(iLayerCount*6);
   size_t iVectorIndex = 0;
 
   // interpolate the required stack quads
@@ -846,12 +843,12 @@ void SBVRGeogen2D::BuildStackQuads(
     InterpolateVertices(pVertices[2], pVertices[6], t, pfSliceVertex[2]);
     InterpolateVertices(pVertices[3], pVertices[7], t, pfSliceVertex[3]);
 
-    m_vSliceTriangles[iVectorIndex++] = pfSliceVertex[2];
-    m_vSliceTriangles[iVectorIndex++] = pfSliceVertex[1];
-    m_vSliceTriangles[iVectorIndex++] = pfSliceVertex[0];
+    vSliceTriangles[iVectorIndex++] = pfSliceVertex[2];
+    vSliceTriangles[iVectorIndex++] = pfSliceVertex[1];
+    vSliceTriangles[iVectorIndex++] = pfSliceVertex[0];
 
-    m_vSliceTriangles[iVectorIndex++] = pfSliceVertex[0];
-    m_vSliceTriangles[iVectorIndex++] = pfSliceVertex[3];
-    m_vSliceTriangles[iVectorIndex++] = pfSliceVertex[2];      
+    vSliceTriangles[iVectorIndex++] = pfSliceVertex[0];
+    vSliceTriangles[iVectorIndex++] = pfSliceVertex[3];
+    vSliceTriangles[iVectorIndex++] = pfSliceVertex[2];      
   }
 }

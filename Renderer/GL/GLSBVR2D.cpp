@@ -406,167 +406,151 @@ void GLSBVR2D::RenderProxyGeometry() {
 void GLSBVR2D::RenderProxyGeometry2D() {
   GLVolume2DTex* pGLVolume =  static_cast<GLVolume2DTex*>(m_pGLVolume);
 
-  for (UINT32 i = 0;i<3;i++) {
+  if (m_SBVRGeogen.m_vSliceTrianglesX.size()) {
+    // set coordinate shuffle matrix
+    float m[16] = {0,0,1,0,
+                   0,1,0,0,
+                   1,0,0,0,
+                   0,0,0,1};
+    glActiveTextureARB(GL_TEXTURE0);
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glLoadMatrixf(m);
 
-    switch (m_SBVRGeogen.m_vSliceTrianglesOrder[i]) {
-      case SBVRGeogen2D::DIRECTION_X : {
-
-        // set coordinate shuffle matrix
-        float m[16] = {0,0,1,0,
-                       0,1,0,0,
-                       1,0,0,0,
-                       0,0,0,1};
-        glActiveTextureARB(GL_TEXTURE0);
-        glMatrixMode(GL_TEXTURE);
-        glLoadIdentity();
-        glLoadMatrixf(m);
-
-        int iLastTexID = -1;
+    int iLastTexID = -1;
+    glBegin(GL_TRIANGLES);
+    for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
+      float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x;
+      int iCurrentTexID =  int(depth*(pGLVolume->GetSizeX()));
+      if (iCurrentTexID != iLastTexID) {
+        glEnd();        
+        pGLVolume->Bind(3, iCurrentTexID-1, 0);
+        pGLVolume->Bind(0, iCurrentTexID,   0);
+        pGLVolume->Bind(2, iCurrentTexID+1, 0);
+        iLastTexID = iCurrentTexID;
         glBegin(GL_TRIANGLES);
-        for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
-          float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x;
-          int iCurrentTexID =  int(depth*(pGLVolume->GetSizeX()));
-          if (iCurrentTexID != iLastTexID) {
-            glEnd();        
-            pGLVolume->Bind(3, iCurrentTexID-1, 0);
-            pGLVolume->Bind(0, iCurrentTexID,   0);
-            pGLVolume->Bind(2, iCurrentTexID+1, 0);
-            iLastTexID = iCurrentTexID;
-            glBegin(GL_TRIANGLES);
-          }
+      }
 
-          float fraction = depth*pGLVolume->GetSizeX() - iCurrentTexID;
+      float fraction = depth*pGLVolume->GetSizeX() - iCurrentTexID;
 
-          glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z,
-                       m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
-                       fraction);
-          glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
-                     m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
-                     m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
-        }
-        glEnd();
-      } break;
-      case SBVRGeogen2D::DIRECTION_Y : {
-
-        // set coordinate shuffle matrix
-        float m[16] = {1,0,0,0,
-                       0,0,1,0,
-                       0,1,0,0,
-                       0,0,0,1};
-        glActiveTextureARB(GL_TEXTURE0);
-        glMatrixMode(GL_TEXTURE);
-        glLoadIdentity();
-        glLoadMatrixf(m);
-
-
-        int iLastTexID = -1;
-        glBegin(GL_TRIANGLES);
-        for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
-          float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y;
-          int iCurrentTexID =  int(depth*(pGLVolume->GetSizeY()));
-          if (iCurrentTexID != iLastTexID) {
-            glEnd();        
-            pGLVolume->Bind(3, iCurrentTexID-1, 1);
-            pGLVolume->Bind(0, iCurrentTexID,   1);
-            pGLVolume->Bind(2, iCurrentTexID+1, 1);
-            iLastTexID = iCurrentTexID;
-            glBegin(GL_TRIANGLES);
-          }
-
-          float fraction = depth*pGLVolume->GetSizeY() - iCurrentTexID;
-
-          glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
-                       m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z,
-                       fraction);
-          glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
-                     m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
-                     m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
-        }
-        glEnd();
-      } break;
-      case SBVRGeogen2D::DIRECTION_Z : {
-
-        // set coordinate shuffle matrix
-        glActiveTextureARB(GL_TEXTURE0);
-        glMatrixMode(GL_TEXTURE);
-        glLoadIdentity();
-
-
-        int iLastTexID = -1;
-        glBegin(GL_TRIANGLES);
-        for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
-          float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z;
-          int iCurrentTexID =  int(depth*(pGLVolume->GetSizeZ()));
-          if (iCurrentTexID != iLastTexID) {
-            glEnd();        
-            pGLVolume->Bind(3, iCurrentTexID-1, 2);
-            pGLVolume->Bind(0, iCurrentTexID,   2);
-            pGLVolume->Bind(2, iCurrentTexID+1, 2);
-            iLastTexID = iCurrentTexID;
-            glBegin(GL_TRIANGLES);
-          }
-
-          float fraction = depth*pGLVolume->GetSizeZ() - iCurrentTexID;
-
-          glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
-                       m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
-                       fraction);
-          glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
-                     m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
-                     m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
-        }
-        glEnd();
-      } break;
+      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z,
+                   m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
+                   fraction);
+      glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
+                 m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
+                 m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
     }
+    glEnd();
+  }
+  if (m_SBVRGeogen.m_vSliceTrianglesY.size()) {
+    // set coordinate shuffle matrix
+    float m[16] = {1,0,0,0,
+                   0,0,1,0,
+                   0,1,0,0,
+                   0,0,0,1};
+    glActiveTextureARB(GL_TEXTURE0);
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glLoadMatrixf(m);
+
+
+    int iLastTexID = -1;
+    glBegin(GL_TRIANGLES);
+    for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
+      float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y;
+      int iCurrentTexID =  int(depth*(pGLVolume->GetSizeY()));
+      if (iCurrentTexID != iLastTexID) {
+        glEnd();        
+        pGLVolume->Bind(3, iCurrentTexID-1, 1);
+        pGLVolume->Bind(0, iCurrentTexID,   1);
+        pGLVolume->Bind(2, iCurrentTexID+1, 1);
+        iLastTexID = iCurrentTexID;
+        glBegin(GL_TRIANGLES);
+      }
+
+      float fraction = depth*pGLVolume->GetSizeY() - iCurrentTexID;
+
+      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
+                   m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z,
+                   fraction);
+      glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
+                 m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
+                 m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
+    }
+    glEnd();
+  } 
+  if (m_SBVRGeogen.m_vSliceTrianglesZ.size()) {
+
+    // set coordinate shuffle matrix
+    glActiveTextureARB(GL_TEXTURE0);
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+
+
+    int iLastTexID = -1;
+    glBegin(GL_TRIANGLES);
+    for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
+      float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z;
+      int iCurrentTexID =  int(depth*(pGLVolume->GetSizeZ()));
+      if (iCurrentTexID != iLastTexID) {
+        glEnd();        
+        pGLVolume->Bind(3, iCurrentTexID-1, 2);
+        pGLVolume->Bind(0, iCurrentTexID,   2);
+        pGLVolume->Bind(2, iCurrentTexID+1, 2);
+        iLastTexID = iCurrentTexID;
+        glBegin(GL_TRIANGLES);
+      }
+
+      float fraction = depth*pGLVolume->GetSizeZ() - iCurrentTexID;
+
+      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
+                   m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
+                   fraction);
+      glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
+                 m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
+                 m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
+    }
+    glEnd();
   }
 }
 
 void GLSBVR2D::RenderProxyGeometry3D() {
-
-  for (UINT32 i = 0;i<3;i++) {
-
-    switch (m_SBVRGeogen.m_vSliceTrianglesOrder[i]) {
-      case SBVRGeogen2D::DIRECTION_X : {
-                                          glBegin(GL_TRIANGLES);
-                                            for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
-                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x,
-                                                           m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
-                                                           m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z);
-                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
-                                                         m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
-                                                         m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
-                                            }
-                                          glEnd();
-                                       } break;
-      case SBVRGeogen2D::DIRECTION_Y : {
-                                          glBegin(GL_TRIANGLES);
-                                            for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
-                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
-                                                           m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y,
-                                                           m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z);
-                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
-                                                         m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
-                                                         m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
-                                            }
-                                          glEnd();
-                                       } break;
-      case SBVRGeogen2D::DIRECTION_Z : {
-                                          glBegin(GL_TRIANGLES);
-                                            for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
-                                              glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
-                                                           m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
-                                                           m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z);
-                                              glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
-                                                         m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
-                                                         m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
-                                            }
-                                          glEnd();
-                                       } break;
-    }
+  if(m_SBVRGeogen.m_vSliceTrianglesX.size()) {
+    glBegin(GL_TRIANGLES);
+      for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
+        glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x,
+                     m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
+                     m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z);
+        glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
+                   m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
+                   m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
+      }
+    glEnd();
+  } 
+  if(m_SBVRGeogen.m_vSliceTrianglesY.size()) {
+    glBegin(GL_TRIANGLES);
+      for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
+        glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
+                     m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y,
+                     m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z);
+        glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
+                   m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
+                   m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
+      }
+    glEnd();
   }
-
-
-
+  if(m_SBVRGeogen.m_vSliceTrianglesZ.size()) {
+    glBegin(GL_TRIANGLES);
+      for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
+        glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
+                     m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
+                     m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z);
+        glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
+                   m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
+                   m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
+      }
+    glEnd();
+  }
 }
 
 void GLSBVR2D::Render3DInLoop(RenderRegion3D& renderRegion,

@@ -30,8 +30,8 @@
   \file    SBVRGeogen2D.h
   \author  Jens Krueger
            SCI Institute
-           University of Utah
-  \date    September 2008
+           DFKI Saarbruecken & University of Utah
+  \date    March 2010
 */
 #pragma once
 
@@ -42,43 +42,124 @@
 
 namespace tuvok {
 
+//! Geometry generation for 2D texture based the slice-based volume renderer. 
 /** \class SBVRGeogen2D
- * Geometry generation for the slice-based volume renderer. */
+ * This class implements 3 differnt algorithms to generate the object aligned
+ * geometry for a 2D texture slice-based volume renderer. Those three methods
+ * are Christoph Resz's "traditional" stack switching method, where the one 
+ * stack three object alligned stacks is choosen for rendering that is most
+ * perpendicular to the viewing direction (i.e. the normal to viewing direction
+ * dot product is minimal). The other two approaches are the naive slow and the 
+ * optimized fast implementation of Jens Krueger's new sampling scheme for slice
+ * based volume rendering. Which of the three methods is used can be controlled
+ * by setting m_eMethod.
+ */
 class SBVRGeogen2D : public SBVRGeogen
 {
 public:
 
-  enum EDirection {
-    DIRECTION_X=0,
-    DIRECTION_Y,
-    DIRECTION_Z
-  };
-
+  //! An enum specifing the three geometry generation modes
+  /*! 
+   * METHOD_REZK is Christoph Rezk-Salama et al.'s 2000 method
+   * METHOD_KRUEGER is Jens Krueger's 2010 naive method
+   * METHOD_KRUEGER_FAST is Jens Krueger's 2010 optimized method
+   */
   enum ESliceMethod {
     METHOD_REZK=0,
     METHOD_KRUEGER,
     METHOD_KRUEGER_FAST
   };
 
+  //! The Standard and also the only constructor  
+  /*! 
+   * SBVRGeogen2D takes no parameters in the constructor as
+   * the geometry mode is by modifing m_eMethod and the view
+   * parametes are set via visous accesor methods in the parent
+   * class
+   */
   SBVRGeogen2D(void);
   virtual ~SBVRGeogen2D(void);
+
+  //! This call does the actual geometry generation
+  /*! 
+   * Overriden ComputeGeometry call, this call does the actual work
+   * of computing the object alligned slices interally it calls either
+   * ComputeGeometryRezk(), ComputeGeometryKrueger() or
+   * ComputeGeometryKruegerFast() depending on m_eMethod
+   \post stores the slice geometry in m_vSliceTrianglesX, m_vSliceTrianglesY
+   and m_vSliceTrianglesZ
+   \sa ComputeGeometryRezk() ComputeGeometryKrueger()
+   ComputeGeometryKruegerFast() m_eMethod
+  */
   virtual void ComputeGeometry();
 
-  EDirection m_vSliceTrianglesOrder[3];
-
+  //! Vector holding the slices that access the X axis aligned textures
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesX;
+  //! Vector holding the slices that access the Y axis aligned textures
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesY;
+  //! Vector holding the slices that access the Z axis aligned textures
   std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesZ;
+  
+  //! Holds the Geometry generation method
+  /*! 
+   * Geometry generation method, for values see ESliceMethod enum above
+   * if this value is changed ComputeGeometry() has to be called to update
+   * m_vSliceTrianglesX, m_vSliceTrianglesY, and m_vSliceTrianglesZ vectors
+  */
   ESliceMethod m_eMethod;
 
 protected:
+  //! Computes the normalized distance between two object aligned slices
+  /** 
+    \param iDir the direction (0=x, 1=y, 2=z)
+    \return the slice distance in direction iDir
+  */
   float GetDelta(int iDir) const;
-  void InterpolateVertices(const POS3TEX3_VERTEX& v1, const POS3TEX3_VERTEX& v2, float a, POS3TEX3_VERTEX& r) const;
+  
+  //! Interpolates POS3TEX3_VERTEX r between v1 and v2 with parameter a
+  /** 
+    \param v1 the first vertex
+    \param v2 the second vertex
+    \param a the interpolation parameter a (should be in [0..1])
+    \param r the interpolated vertex structure
+  */
+  void InterpolateVertices(const POS3TEX3_VERTEX& v1, 
+                           const POS3TEX3_VERTEX& v2, 
+                           float a, POS3TEX3_VERTEX& r) const;
 
 private:
+  //! Computes 2D geometry via C. Rezk-Salama et al. 2000
+  /*! 
+   Computes 2D geometry via C. Rezk-Salama et al. 2000
+   "Interactive Volume Rendering on Standard PC Graphics Hardware 
+   Using Multi-Textures and Multi-Stage Rasterization"
+  */
   void ComputeGeometryRezk();
+  //! Computes 2D geometry alike Krüger 2010
+  /*! 
+   Computes 2D geometry alike Krüger 2010
+   "A new sampling scheme for slice based volume rendering"
+   but with a very slow approach, should be used only for demonstation
+   */
   void ComputeGeometryKrueger();
+  //! Computes 2D geometry via Krüger 2010
+  /*! 
+    Computes 2D geometry via Krüger 2010
+    "A new sampling scheme for slice based volume rendering"
+  */
   void ComputeGeometryKruegerFast();
+  //! Computes the geometry for one direction used by ComputeGeometryKruegerFast
+  /*! 
+    \param iDirIndex the direction (x=0, y=1, z=2)
+    \param fDelta the slice distance
+    \param vertexIndices bounding box indices as seen from direction iDirIndex
+    \param edgeIndices edge indices as seen from direction iDirIndex
+    \param vFaceVec connection vector from the eye point to the face centers
+    \param vIntersects front-edge-plane / edge intersctions
+    \param vIntersectPlanes front-edge-planes that cause intersections
+    \param vCoordFrame transformed local coordinate frame
+    \param vSliceTriangles the computed geometry is stored in this vector
+  */
   void BuildStackQuads(const int iDirIndex,
                        const float fDelta,
                        const size_t *vertexIndices,
@@ -87,7 +168,7 @@ private:
                        const std::vector<size_t>& vIntersects,
                        const std::vector<FLOATPLANE>& vIntersectPlanes,
                        const FLOATVECTOR3* vCoordFrame,
-                       std::vector<POS3TEX3_VERTEX>& m_vSliceTriangles);
+                       std::vector<POS3TEX3_VERTEX>& vSliceTriangles);
 
 };
 };
