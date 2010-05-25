@@ -79,7 +79,8 @@ struct vertex_min_z : public std::binary_function<POS3TEX3_VERTEX,
 void SBVRGeogen3D::InitBBOX() {
   SBVRGeogen::InitBBOX();
   // find the minimum z value
-  m_fMinZ = (*std::min_element(m_pfBBOXVertex, m_pfBBOXVertex+8, vertex_min_z())).m_vPos.z;
+  m_fMinZ = (*std::min_element(m_pfBBOXVertex, m_pfBBOXVertex+8,
+                                               vertex_min_z())).m_vPos.z;
 }
 
 
@@ -92,7 +93,8 @@ bool SBVRGeogen3D::DepthPlaneIntersection(float z,
      returns NO INTERSECTION if the line of the 2 points a,b is
      1. in front of the intersection plane
      2. behind the intersection plane
-     3. parallel to the intersection plane (both points have "pretty much" the same z)
+     3. parallel to the intersection plane (both points have 
+        "pretty much" the same z)
   */
   if ((z > plA.m_vPos.z && z > plB.m_vPos.z) ||
       (z < plA.m_vPos.z && z < plB.m_vPos.z) ||
@@ -191,7 +193,8 @@ bool SBVRGeogen3D::ComputeLayerGeometry(float fDepth) {
 }
 
 float SBVRGeogen3D::GetLayerDistance() const {
-  return (0.5f * 1.0f/m_fSamplingModifier * (m_vAspect/FLOATVECTOR3(m_vSize))).minVal();
+  return (0.5f * 1.0f/m_fSamplingModifier * 
+          (m_vAspect/FLOATVECTOR3(m_vSize))).minVal();
 }
 
 
