@@ -360,12 +360,14 @@ class AbstrRenderer {
 
     void SetColors(const FLOATVECTOR4& ambient,
                    const FLOATVECTOR4& diffuse,
-                   const FLOATVECTOR4& specular);
+                   const FLOATVECTOR4& specular,
+                   const FLOATVECTOR3& lightDir);
 
 
     FLOATVECTOR4 GetAmbient() const;
     FLOATVECTOR4 GetDiffuse() const;
     FLOATVECTOR4 GetSpecular()const;
+    FLOATVECTOR3 GetLightDir()const;
 
     // ClearView
     virtual bool SupportsClearView() {return false;}
@@ -546,6 +548,7 @@ class AbstrRenderer {
     FLOATVECTOR4        m_cAmbient;
     FLOATVECTOR4        m_cDiffuse;
     FLOATVECTOR4        m_cSpecular;
+    FLOATVECTOR3        m_vLightDir;
 
     virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);
     void                ComputeMinLODForCurrentView();

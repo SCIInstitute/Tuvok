@@ -126,6 +126,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_cAmbient(1.0f,1.0f,1.0f,0.2f),
   m_cDiffuse(1.0f,1.0f,1.0f,0.8f),
   m_cSpecular(1.0f,1.0f,1.0f,1.0f),
+  m_vLightDir(0.0f,0.0f,-1.0f),
   m_fIsovalue(0.5f),
   m_fCVIsovalue(0.8f)
 {
@@ -1212,11 +1213,13 @@ void AbstrRenderer::SetLODLimits(const UINTVECTOR2 iLODLimits) {
 }
 
 void AbstrRenderer::SetColors(const FLOATVECTOR4& ambient,
-                       const FLOATVECTOR4& diffuse,
-                       const FLOATVECTOR4& specular) {
+                              const FLOATVECTOR4& diffuse,
+                              const FLOATVECTOR4& specular,
+                              const FLOATVECTOR3& lightDir) {
   m_cAmbient = ambient;
   m_cDiffuse = diffuse;
   m_cSpecular = specular;
+  m_vLightDir = lightDir;
 
   UpdateColorsInShaders();
   if (m_bUseLighting) Schedule3DWindowRedraws();
@@ -1232,6 +1235,10 @@ FLOATVECTOR4 AbstrRenderer::GetDiffuse() const {
 
 FLOATVECTOR4 AbstrRenderer::GetSpecular()const {
   return m_cSpecular;
+}
+
+FLOATVECTOR3 AbstrRenderer::GetLightDir()const {
+  return m_vLightDir;
 }
 
 void AbstrRenderer::Timestep(size_t t) {

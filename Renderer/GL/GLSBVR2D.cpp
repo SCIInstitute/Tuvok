@@ -686,7 +686,6 @@ void GLSBVR2D::UpdateColorsInShaders() {
   FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
   FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
   FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
-  FLOATVECTOR3 dir(0.0f,0.0f,-1.0f);  // so far the light source is always a headlight
 
   FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
 
@@ -694,14 +693,22 @@ void GLSBVR2D::UpdateColorsInShaders() {
   m_pProgramIsoNoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
   m_pProgramIsoNoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
   m_pProgramIsoNoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-  m_pProgramIsoNoCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
-  m_pProgramIsoNoCompose->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+  m_pProgramIsoNoCompose->SetUniformVector("vLightDir",m_vLightDir.x,
+                                                       m_vLightDir.y,
+                                                       m_vLightDir.z);
+  m_pProgramIsoNoCompose->SetUniformVector("vDomainScale",scale.x,
+                                                          scale.y,
+                                                          scale.z);
   m_pProgramIsoNoCompose->Disable();
 
   m_pProgramColorNoCompose->Enable();
   m_pProgramColorNoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  m_pProgramColorNoCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
-  m_pProgramColorNoCompose->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+  m_pProgramColorNoCompose->SetUniformVector("vLightDir",m_vLightDir.x,
+                                                         m_vLightDir.y,
+                                                         m_vLightDir.z);
+  m_pProgramColorNoCompose->SetUniformVector("vDomainScale",scale.x,
+                                                            scale.y,
+                                                            scale.z);
   m_pProgramColorNoCompose->Disable();
 }
 

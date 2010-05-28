@@ -2396,7 +2396,6 @@ void GLRenderer::UpdateColorsInShaders() {
     FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
     FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
     FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
-    FLOATVECTOR3 dir(0.0f,0.0f,-1.0f);  // so far the light source is always a headlight
 
     FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
 
@@ -2404,7 +2403,7 @@ void GLRenderer::UpdateColorsInShaders() {
     m_pProgram1DTrans[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
     m_pProgram1DTrans[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
     m_pProgram1DTrans[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+    m_pProgram1DTrans[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
     m_pProgram1DTrans[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
     m_pProgram1DTrans[1]->Disable();
 
@@ -2412,7 +2411,7 @@ void GLRenderer::UpdateColorsInShaders() {
     m_pProgram2DTrans[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
     m_pProgram2DTrans[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
     m_pProgram2DTrans[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+    m_pProgram2DTrans[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
     m_pProgram2DTrans[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
     m_pProgram2DTrans[1]->Disable();
 
@@ -2420,21 +2419,21 @@ void GLRenderer::UpdateColorsInShaders() {
     m_pProgramIsoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
     m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
     m_pProgramIsoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-    m_pProgramIsoCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+    m_pProgramIsoCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
     m_pProgramIsoCompose->Disable();
 
     m_pProgramColorCompose->Enable();
     m_pProgramColorCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
 //    m_pProgramColorCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
 //    m_pProgramColorCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-    m_pProgramColorCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+    m_pProgramColorCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
     m_pProgramColorCompose->Disable();
 
     m_pProgramCVCompose->Enable();
     m_pProgramCVCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
     m_pProgramCVCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
     m_pProgramCVCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-    m_pProgramCVCompose->SetUniformVector("vLightDir",dir.x,dir.y,dir.z);
+    m_pProgramCVCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
     m_pProgramCVCompose->Disable();
 
     m_pProgramIso->Enable();
