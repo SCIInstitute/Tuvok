@@ -74,7 +74,6 @@ class DXRenderer : public AbstrRenderer {
     virtual bool Paint();
 
     /** Sends a message to the master to ask for a dataset to be loaded.
-     * The dataset is converted to UVF if it is not one already.
      * @param strFilename path to a file */
     virtual bool LoadDataset(const std::string& strFilename);
 
