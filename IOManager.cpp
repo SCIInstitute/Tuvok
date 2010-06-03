@@ -735,6 +735,13 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     MESSAGE("%s", request.str().c_str());
   }
 
+  // this might actually be a valid test case, if you want to compare
+  // performance across brick sizes.  However it's completely ridiculous in
+  // actual use, and catches a confusing bug if you forget an argument in the
+  // API call (which still compiles due to default arguments!).
+  assert(iMaxBrickSize >= 32 &&
+         "Incredibly small bricks -- are you sure?");
+
   /// @todo verify the list of files is `compatible':
   ///   dimensions are the same
   ///   all from the same file format
