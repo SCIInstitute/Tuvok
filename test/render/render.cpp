@@ -40,7 +40,9 @@
 #include <GL/glew.h>
 #include <tclap/CmdLine.h>
 
+#include "Basics/SysTools.h"
 #include "Controller/Controller.h"
+#include "IO/IOManager.h"
 #include "Renderer/AbstrRenderer.h"
 #include "Renderer/GL/GLFBOTex.h"
 #include "Renderer/GL/GLFrameCapture.h"
@@ -74,12 +76,22 @@ int main(int argc, char *argv[])
       T_ERROR("Error initializing GLEW: %s", glewGetErrorString(err));
       return EXIT_FAILURE;
     }
+    Controller::Instance().DebugOut()->SetOutput(true,true,true,true);
+
+    // Convert the data into a UVF.
+    std::string uvf_file;
+    uvf_file = SysTools::RemoveExt(filename) + ".uvf";
+    const std::string tmpdir = "/tmp/";
+    const bool quantize8 = false;
+    Controller::Instance().IOMan()->ConvertDataset(
+      filename, uvf_file, tmpdir, true, 256, 4, quantize8
+    );
 
     AbstrRenderer* ren;
     ren = Controller::Instance().RequestNewVolumeRenderer(
       MasterController::OPENGL_SBVR, false, false, false, false, false
     );
-    ren->LoadDataset(filename);
+    ren->LoadDataset(uvf_file);
     ren->AddShaderPath("../../Shaders");
     ren->Resize(UINTVECTOR2(300,300));
     ren->Initialize();
