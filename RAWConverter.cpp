@@ -130,7 +130,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     }
 
     UINT64 ulFileLength = WrongEndianData.GetCurrentSize();
-    size_t iBufferSize = min<size_t>(size_t(ulFileLength), size_t(iTargetBrickSize*iTargetBrickSize*iTargetBrickSize*iComponentSize/8)); // hint: this must fit into memory otherwise other subsystems would break
+    // hint: this must fit into memory otherwise other subsystems would break
+    size_t iBufferSize = std::min<size_t>(
+      size_t(ulFileLength),
+      size_t(iTargetBrickSize * iTargetBrickSize * iTargetBrickSize *
+             iComponentSize/8)
+    );
     UINT64 ulBufferConverted = 0;
 
     unsigned char* pBuffer = new unsigned char[iBufferSize];
@@ -153,7 +158,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       size_t iBytesWritten = ConvEndianData.WriteRAW(pBuffer, iBytesRead);
 
       if (iBytesRead != iBytesWritten)  {
-        T_ERROR("Read/Write error converting endianess from %s to %s", strFilename.c_str(), tmpFilename0.c_str());
+        T_ERROR("Read/Write error converting endianess from %s to %s",
+                strFilename.c_str(), tmpFilename0.c_str());
         WrongEndianData.Close();
         ConvEndianData.Close();
         Remove(tmpFilename0, Controller::Debug::Out());
@@ -164,16 +170,15 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       ulBufferConverted += UINT64(iBytesWritten);
 
       MESSAGE("Performing endianess conversion"
-              "\n%i%% complete",int(float(ulBufferConverted)/float(ulFileLength)*100.0f));
-
+              "\n%i%% complete",
+              int(float(ulBufferConverted) / float(ulFileLength)*100.0f));
     }
 
     delete [] pBuffer;
-
     WrongEndianData.Close();
     ConvEndianData.Close();
     strSourceFilename = tmpFilename0;
-    iHeaderSkip = 0;  // the new file is straigt raw without any header
+    iHeaderSkip = 0;  // the new file is straight raw without any header
   } else strSourceFilename = strFilename;
 
   Histogram1DDataBlock Histogram1D;
@@ -308,7 +313,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   wstring wstrUVFName(strTargetFilename.begin(), strTargetFilename.end());
   UVF uvfFile(wstrUVFName);
 
-  // assume all timesteps have some dimensions / etc, so the LOD calculation
+  // assume all timesteps have same dimensions / etc, so the LOD calculation
   // applies to all TSs.
   UINT64 iLodLevelCount = 1;
   UINT64 iMaxVal = vVolumeSize.maxVal();
