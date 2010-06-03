@@ -153,7 +153,10 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   } else {
     vVolumeSize[0] = kvp->viValue[0];
     vVolumeSize[1] = kvp->viValue[1];
+    vVolumeSize[2] = 1;
     if (iDim == 3) vVolumeSize[2] = kvp->viValue[2];
+    MESSAGE("%llu x %llu x %llu volume.", vVolumeSize[0], vVolumeSize[1],
+            vVolumeSize[2]);
   }
 
   kvp = parser.GetData("SPACING");
