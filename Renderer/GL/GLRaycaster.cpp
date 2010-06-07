@@ -148,56 +148,40 @@ bool GLRaycaster::Initialize() {
       T_ERROR("Error loading a shader.");
       return false;
   } else {
-    m_pProgram1DTrans[0]->Enable();
-    m_pProgram1DTrans[0]->SetUniformVector("texVolume",0);
-    m_pProgram1DTrans[0]->SetUniformVector("texTrans1D",1);
-    m_pProgram1DTrans[0]->SetUniformVector("texRayExitPos",2);
-    m_pProgram1DTrans[0]->Disable();
+    m_pProgram1DTrans[0]->ConnectTextureID("texVolume",0);
+    m_pProgram1DTrans[0]->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTrans[0]->ConnectTextureID("texRayExitPos",2);
 
-    m_pProgram1DTrans[1]->Enable();
-    m_pProgram1DTrans[1]->SetUniformVector("texVolume",0);
-    m_pProgram1DTrans[1]->SetUniformVector("texTrans1D",1);
-    m_pProgram1DTrans[1]->SetUniformVector("texRayExitPos",2);
-    m_pProgram1DTrans[1]->Disable();
+    m_pProgram1DTrans[1]->ConnectTextureID("texVolume",0);
+    m_pProgram1DTrans[1]->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTrans[1]->ConnectTextureID("texRayExitPos",2);
 
-    m_pProgram2DTrans[0]->Enable();
-    m_pProgram2DTrans[0]->SetUniformVector("texVolume",0);
-    m_pProgram2DTrans[0]->SetUniformVector("texTrans2D",1);
-    m_pProgram2DTrans[0]->SetUniformVector("texRayExitPos",2);
-    m_pProgram2DTrans[0]->Disable();
+    m_pProgram2DTrans[0]->ConnectTextureID("texVolume",0);
+    m_pProgram2DTrans[0]->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTrans[0]->ConnectTextureID("texRayExitPos",2);
 
-    m_pProgram2DTrans[1]->Enable();
-    m_pProgram2DTrans[1]->SetUniformVector("texVolume",0);
-    m_pProgram2DTrans[1]->SetUniformVector("texTrans2D",1);
-    m_pProgram2DTrans[1]->SetUniformVector("texRayExitPos",2);
-    m_pProgram2DTrans[1]->Disable();
+    m_pProgram2DTrans[1]->ConnectTextureID("texVolume",0);
+    m_pProgram2DTrans[1]->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTrans[1]->ConnectTextureID("texRayExitPos",2);
 
     FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
 
-    m_pProgramIso->Enable();
-    m_pProgramIso->SetUniformVector("texVolume",0);
-    m_pProgramIso->SetUniformVector("texRayExitPos",2);
+    m_pProgramIso->ConnectTextureID("texVolume",0);
+    m_pProgramIso->ConnectTextureID("texRayExitPos",2);
     m_pProgramIso->SetUniformVector("vProjParam",vParams.x, vParams.y);
     m_pProgramIso->SetUniformVector("iTileID", 1); // just to make sure it is never 0
-    m_pProgramIso->Disable();
 
-    m_pProgramColor->Enable();
-    m_pProgramColor->SetUniformVector("texVolume",0);
-    m_pProgramColor->SetUniformVector("texRayExitPos",2);
+    m_pProgramColor->ConnectTextureID("texVolume",0);
+    m_pProgramColor->ConnectTextureID("texRayExitPos",2);
     m_pProgramColor->SetUniformVector("vProjParam",vParams.x, vParams.y);
-    m_pProgramColor->Disable();
 
-    m_pProgramHQMIPRot->Enable();
-    m_pProgramHQMIPRot->SetUniformVector("texVolume",0);
-    m_pProgramHQMIPRot->SetUniformVector("texRayExitPos",2);
-    m_pProgramHQMIPRot->Disable();
+    m_pProgramHQMIPRot->ConnectTextureID("texVolume",0);
+    m_pProgramHQMIPRot->ConnectTextureID("texRayExitPos",2);
 
-    m_pProgramIso2->Enable();
-    m_pProgramIso2->SetUniformVector("texVolume",0);
-    m_pProgramIso2->SetUniformVector("texRayExitPos",2);
-    m_pProgramIso2->SetUniformVector("texLastHit",4);
-    m_pProgramIso2->SetUniformVector("texLastHitPos",5);
-    m_pProgramIso2->Disable();
+    m_pProgramIso2->ConnectTextureID("texVolume",0);
+    m_pProgramIso2->ConnectTextureID("texRayExitPos",2);
+    m_pProgramIso2->ConnectTextureID("texLastHit",4);
+    m_pProgramIso2->ConnectTextureID("texLastHitPos",5);
 
     UpdateColorsInShaders();
 
@@ -373,8 +357,7 @@ void GLRaycaster::Render3DPreLoop(RenderRegion3D &) {
     default    :          T_ERROR("Invalid rendermode set");
                           break;
   }
-
-
+  
   /*
   if (m_iBricksRenderedInThisSubFrame == 0) {
     m_TargetBinder.Bind(m_pFBORayEntry);

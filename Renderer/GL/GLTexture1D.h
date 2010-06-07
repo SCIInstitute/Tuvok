@@ -53,7 +53,7 @@ class GLTexture1D : public GLTexture {
           GLint wrap = GL_CLAMP_TO_EDGE);
     virtual ~GLTexture1D() {}
 
-    virtual void Bind(UINT32 iUnit=0) {
+    virtual void Bind(UINT32 iUnit=0) const {
         glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit));
         glBindTexture(GL_TEXTURE_1D, m_iGLID);
     }

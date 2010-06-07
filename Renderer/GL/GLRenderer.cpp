@@ -208,71 +208,47 @@ bool GLRenderer::LoadShaders() {
       T_ERROR("Error loading transfer function shaders.");
       return false;
   } else {
-    m_pProgramTrans->Enable();
-    m_pProgramTrans->SetUniformVector("texColor",0);
-    m_pProgramTrans->SetUniformVector("texDepth",1);
-    m_pProgramTrans->Disable();
+    m_pProgramTrans->ConnectTextureID("texColor",0);
+    m_pProgramTrans->ConnectTextureID("texDepth",1);
 
-    m_pProgram1DTransSlice->Enable();
-    m_pProgram1DTransSlice->SetUniformVector("texVolume",0);
-    m_pProgram1DTransSlice->SetUniformVector("texTrans1D",1);
-    m_pProgram1DTransSlice->Disable();
+    m_pProgram1DTransSlice->ConnectTextureID("texVolume",0);
+    m_pProgram1DTransSlice->ConnectTextureID("texTrans1D",1);
 
-    m_pProgram2DTransSlice->Enable();
-    m_pProgram2DTransSlice->SetUniformVector("texVolume",0);
-    m_pProgram2DTransSlice->SetUniformVector("texTrans2D",1);
-    m_pProgram2DTransSlice->Disable();
+    m_pProgram2DTransSlice->ConnectTextureID("texVolume",0);
+    m_pProgram2DTransSlice->ConnectTextureID("texTrans2D",1);
 
-    m_pProgram1DTransSlice3D->Enable();
-    m_pProgram1DTransSlice3D->SetUniformVector("texVolume",0);
-    m_pProgram1DTransSlice3D->SetUniformVector("texTrans1D",1);
-    m_pProgram1DTransSlice3D->Disable();
+    m_pProgram1DTransSlice3D->ConnectTextureID("texVolume",0);
+    m_pProgram1DTransSlice3D->ConnectTextureID("texTrans1D",1);
 
-    m_pProgram2DTransSlice3D->Enable();
-    m_pProgram2DTransSlice3D->SetUniformVector("texVolume",0);
-    m_pProgram2DTransSlice3D->SetUniformVector("texTrans2D",1);
-    m_pProgram2DTransSlice3D->Disable();
+    m_pProgram2DTransSlice3D->ConnectTextureID("texVolume",0);
+    m_pProgram2DTransSlice3D->ConnectTextureID("texTrans2D",1);
 
-    m_pProgramMIPSlice->Enable();
-    m_pProgramMIPSlice->SetUniformVector("texVolume",0);
-    m_pProgramMIPSlice->Disable();
+    m_pProgramMIPSlice->ConnectTextureID("texVolume",0);
 
-    m_pProgramTransMIP->Enable();
-    m_pProgramTransMIP->SetUniformVector("texLast",0);
-    m_pProgramTransMIP->SetUniformVector("texTrans1D",1);
-    m_pProgramTransMIP->Disable();
+    m_pProgramTransMIP->ConnectTextureID("texLast",0);
+    m_pProgramTransMIP->ConnectTextureID("texTrans1D",1);
 
     FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
 
-    m_pProgramIsoCompose->Enable();
-    m_pProgramIsoCompose->SetUniformVector("texRayHitPos",0);
-    m_pProgramIsoCompose->SetUniformVector("texRayHitNormal",1);
+    m_pProgramIsoCompose->ConnectTextureID("texRayHitPos",0);
+    m_pProgramIsoCompose->ConnectTextureID("texRayHitNormal",1);
     m_pProgramIsoCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
-    m_pProgramIsoCompose->Disable();
 
-    m_pProgramColorCompose->Enable();
-    m_pProgramColorCompose->SetUniformVector("texRayHitPos",0);
-    m_pProgramColorCompose->SetUniformVector("texRayHitNormal",1);
+    m_pProgramColorCompose->ConnectTextureID("texRayHitPos",0);
+    m_pProgramColorCompose->ConnectTextureID("texRayHitNormal",1);
     m_pProgramColorCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
-    m_pProgramColorCompose->Disable();
 
-    m_pProgramCVCompose->Enable();
-    m_pProgramCVCompose->SetUniformVector("texRayHitPos",0);
-    m_pProgramCVCompose->SetUniformVector("texRayHitNormal",1);
-    m_pProgramCVCompose->SetUniformVector("texRayHitPos2",2);
-    m_pProgramCVCompose->SetUniformVector("texRayHitNormal2",3);
+    m_pProgramCVCompose->ConnectTextureID("texRayHitPos",0);
+    m_pProgramCVCompose->ConnectTextureID("texRayHitNormal",1);
+    m_pProgramCVCompose->ConnectTextureID("texRayHitPos2",2);
+    m_pProgramCVCompose->ConnectTextureID("texRayHitNormal2",3);
     m_pProgramCVCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
-    m_pProgramCVCompose->Disable();
 
-    m_pProgramComposeAnaglyphs->Enable();
-    m_pProgramComposeAnaglyphs->SetUniformVector("texLeftEye",0);
-    m_pProgramComposeAnaglyphs->SetUniformVector("texRightEye",1);
-    m_pProgramComposeAnaglyphs->Disable();
+    m_pProgramComposeAnaglyphs->ConnectTextureID("texLeftEye",0);
+    m_pProgramComposeAnaglyphs->ConnectTextureID("texRightEye",1);
 
-    m_pProgramComposeScanlineStereo->Enable();
-    m_pProgramComposeScanlineStereo->SetUniformVector("texLeftEye",0);
-    m_pProgramComposeScanlineStereo->SetUniformVector("texRightEye",1);
-    m_pProgramComposeScanlineStereo->Disable();    
+    m_pProgramComposeScanlineStereo->ConnectTextureID("texLeftEye",0);
+    m_pProgramComposeScanlineStereo->ConnectTextureID("texRightEye",1);
   }
   return true;
 }

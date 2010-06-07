@@ -44,8 +44,10 @@
 #include "GLSLProgram.h"
 #include "Controller/Controller.h"
 #include "Renderer/GL/GLError.h"
+#include "Renderer/GL/GLTexture.h"
 
 using namespace tuvok;
+using namespace std;
 
 /// GL Extension Wrangler (glew) is initialized on first instantiation
 bool GLSLProgram::m_bGlewInitialized=true;
@@ -1635,4 +1637,33 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformArray(%s,bool*)",name);
 #endif
+}
+
+
+void GLSLProgram::ConnectTextureID(const string& name,
+                                   const int iUnit) {
+  Enable();
+  m_mBindings[name] = iUnit;
+  SetUniformVector(name.c_str(),iUnit);
+}
+
+void GLSLProgram::SetTexture(const string& name,
+                             const GLTexture& pTexture) {
+
+  if (m_mBindings.find(name) == m_mBindings.end ()) {
+
+    // find a free texture unit
+    int iUnusedTexUnit = 0;
+    for (texMap::iterator i = m_mBindings.begin();i != m_mBindings.end();++i){
+      if (i->second <= iUnusedTexUnit) 
+        iUnusedTexUnit = i->second+1;
+    }
+ 
+    Enable();
+    SetUniformVector(name.c_str(),iUnusedTexUnit);
+    m_mBindings[name] = iUnusedTexUnit;
+    pTexture.Bind(iUnusedTexUnit);
+  } else {
+    pTexture.Bind(m_mBindings[name]);
+  }
 }

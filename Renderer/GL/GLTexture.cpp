@@ -37,6 +37,8 @@
 #include "GLTexture.h"
 #include <cassert>
 
+#include "GLSLProgram.h"
+
 using namespace tuvok;
 
 GLTexture::~GLTexture() {
@@ -49,4 +51,9 @@ GLTexture::~GLTexture() {
 void GLTexture::Delete() {
   glDeleteTextures(1,&m_iGLID);
   m_iGLID = UINT32_INVALID;
+}
+
+
+void GLTexture::Bind(GLSLProgram& shader, const std::string& name) const {
+  shader.SetTexture(name, (*this));
 }

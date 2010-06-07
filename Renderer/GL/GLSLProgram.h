@@ -76,10 +76,15 @@ typedef enum {
 } GLSLPROGRAM_SOURCE;
 
 #include "GLObject.h"
+#include <string>
+#include <map>
 
 namespace tuvok {
 
 class MasterController;
+class GLTexture;
+
+typedef std::map<std::string, int> texMap;
 
 /**
  * Wrapper for handling OpenGL 2.0 conformant program objects.
@@ -132,6 +137,12 @@ public:
   void SetUniformMatrix(const char *name, const float *m,
                         bool bTranspose=false) const;
 
+  /// Sets an texture parameter.
+  void SetTexture(const std::string& name, const GLTexture& pTexture);
+  /// Force a specific name/texID binding
+  void ConnectTextureID(const std::string& name, const int iUnit);
+
+
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
   /// Sets an uniform matrix. Matrices are always float.
   void SetUniformMatrix(const char *name, const int *m,
@@ -172,6 +183,7 @@ private:
   GLuint              m_hProgram;
   static bool         m_bGlewInitialized;
   static bool         m_bGLChecked;
+  texMap              m_mBindings;
 };
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS

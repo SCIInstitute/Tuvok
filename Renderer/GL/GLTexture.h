@@ -41,8 +41,11 @@
 
 #include "../../StdTuvokDefines.h"
 #include "GLObject.h"
+#include <string>
 
 namespace tuvok {
+
+class GLSLProgram;
 
 /** \class GLTexture
  * Abstracted texture usage.
@@ -65,7 +68,12 @@ class GLTexture : public GLObject {
 
     /** Initializes the texture data with the given data. */
     virtual void SetData(const void *pixels) = 0;
-    virtual void Bind(UINT32 iUnit=0) = 0;
+    
+    /// bind this texture to the given texture unit
+    virtual void Bind(UINT32 iUnit=0) const  = 0;
+
+    /// bind this texture the given texture in a specific shader
+    void Bind(GLSLProgram& shader, const std::string& name) const;
 
     /** \return The OpenGL identifier for this texture. */
     GLuint GetGLID() const {return m_iGLID;}
