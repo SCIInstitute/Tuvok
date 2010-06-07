@@ -2366,8 +2366,7 @@ FLOATVECTOR3 GLRenderer::Pick(const UINTVECTOR2& mousePos) const
   if(vec[3] == 0.0f) {
     throw std::range_error("No intersection.");
   }
-  FLOATVECTOR4 pos = FLOATVECTOR4(vec[0], vec[1], vec[2], 1.0f);
-  return FLOATVECTOR3(pos[0], pos[1], pos[2]);
+  return FLOATVECTOR3(vec[0], vec[1], vec[2]);
 }
 
 void GLRenderer::SaveEmptyDepthBuffer() {
