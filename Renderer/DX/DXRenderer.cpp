@@ -36,6 +36,8 @@
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
 #include <cassert>
+#include <ctime>
+#include <stdexcept>
 
 #include <Basics/DynamicDX.h>
 #include "DXRenderer.h"
@@ -43,7 +45,6 @@
 #include "DXTexture1D.h"
 #include <Controller/Controller.h>
 #include <Basics/SysTools.h>
-#include <ctime>
 
 using namespace std;
 using namespace tuvok;
@@ -260,6 +261,13 @@ void DXRenderer::EndFrame(RenderRegion* region, bool bNewDataToShow) {
 
   // no complete redraw is necessary as we just finished the first pass
   region->isBlank = false;
+}
+
+FLOATVECTOR3 DXRenderer::Pick(const UINTVECTOR2&) const
+{
+  T_ERROR("Unimplemented.");
+  // should probably be a logic_error, but catch code isn't expecting that.
+  throw std::runtime_error("Unimplemented.");
 }
 
 void DXRenderer::SetRenderTargetArea(const tuvok::RenderRegion& renderRegion) {

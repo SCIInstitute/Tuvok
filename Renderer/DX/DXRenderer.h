@@ -142,6 +142,9 @@ class DXRenderer : public AbstrRenderer {
 
     virtual void StartFrame();
     virtual void EndFrame(RenderRegion* region, bool bNewDataToShow);
+
+    virtual FLOATVECTOR3 Pick(const UINTVECTOR2&) const;
+
   private:
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
     void RenderSeperatingLines();

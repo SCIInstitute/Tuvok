@@ -35,6 +35,7 @@
 */
 
 #include <cstdarg>
+#include <stdexcept>
 #include <typeinfo>
 #include "GLInclude.h"
 #include "GLFBOTex.h"
@@ -2348,6 +2349,25 @@ void GLRenderer::CVFocusHasChanged(RenderRegion &renderRegion) {
 
   // now let the parent do its part
   AbstrRenderer::CVFocusHasChanged(renderRegion);
+}
+
+FLOATVECTOR3 GLRenderer::Pick(const UINTVECTOR2& mousePos) const
+{
+  if(m_eRenderMode != RM_ISOSURFACE) {
+    throw std::runtime_error("Can only determine pick locations in "
+                             "isosurface rendering mode.");
+  }
+
+  // readback the pos from the FB
+  float vec[4];
+  m_pFBOIsoHit[0]->ReadBackPixels(mousePos.x, m_vWinSize.y-mousePos.y,
+                                  1, 1, vec);
+
+  if(vec[3] == 0.0f) {
+    throw std::range_error("No intersection.");
+  }
+  FLOATVECTOR4 pos = FLOATVECTOR4(vec[0], vec[1], vec[2], 1.0f);
+  return FLOATVECTOR3(pos[0], pos[1], pos[2]);
 }
 
 void GLRenderer::SaveEmptyDepthBuffer() {

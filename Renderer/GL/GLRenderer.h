@@ -178,6 +178,8 @@ class GLRenderer : public AbstrRenderer {
 
     virtual void  CVFocusHasChanged(RenderRegion& renderRegion);
 
+    virtual FLOATVECTOR3 Pick(const UINTVECTOR2&) const;
+
     void FullscreenQuad();
     void FullscreenQuadRegions();
     void FullscreenQuadRegion(const RenderRegion* region, bool decreaseScreenRes);
