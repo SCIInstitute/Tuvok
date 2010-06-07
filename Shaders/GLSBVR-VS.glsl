@@ -39,7 +39,7 @@ varying vec3 vPosition;
 
 void main(void)
 {
-  gl_Position = gl_ProjectionMatrix * vec4(gl_Vertex.xyz,1.0);
+  gl_Position = gl_ProjectionMatrix * gl_Vertex;
   gl_TexCoord[0] = gl_MultiTexCoord0;
   vPosition = gl_Vertex.xyz;
 }

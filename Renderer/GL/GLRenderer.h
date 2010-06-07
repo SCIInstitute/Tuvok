@@ -123,9 +123,8 @@ class GLRenderer : public AbstrRenderer {
                      bool bDecreaseScreenResNow);
 
     bool Render2DView(RenderRegion2D& renderRegion);
-    void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1),
-                    bool bEpsilonOffset=true);
-    void RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
+    void RenderBBox(const FLOATVECTOR4 vColor = FLOATVECTOR4(1,0,0,1));
+    void RenderBBox(const FLOATVECTOR4 vColor,
                     const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend);
     void RenderClipPlane(size_t iStereoID);
     bool Execute3DFrame(RenderRegion3D& renderRegion, float& fMsecPassed,
@@ -203,6 +202,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramCVCompose;
     GLSLProgram*    m_pProgramComposeAnaglyphs;
     GLSLProgram*    m_pProgramComposeScanlineStereo;
+    GLSLProgram*    m_pProgramBBox;
 
   private:
 

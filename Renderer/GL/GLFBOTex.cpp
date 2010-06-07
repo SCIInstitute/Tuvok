@@ -354,3 +354,13 @@ void GLFBOTex::FinishRead(int iBuffer) {
   glBindTexture(GL_TEXTURE_2D,0);
   m_LastTexUnit[iBuffer]=0;
 }
+
+
+void GLFBOTex::ReadBackPixels(int x, int y, int sX, int sY, void* pData) {
+  // read back the 3D position from the framebuffer
+  Write(0,0,false);
+  glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+  glReadPixels(x, y, sX, sY, GL_RGBA, GL_FLOAT, pData);
+  glReadBuffer(GL_BACK);
+  FinishWrite(0);
+}

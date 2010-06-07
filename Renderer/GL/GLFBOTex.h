@@ -72,6 +72,10 @@ public:
   static void ThreeDrawBuffers();
   static void FourDrawBuffers();
 
+  void ReadBackPixels(int x, int y, int sX, int sY, void* pData);
+  GLuint Width() const {return m_iSizeX;}
+  GLuint Height() const {return m_iSizeY;}
+
 private:
   MasterController*   m_pMasterController;
   unsigned int        m_iSizePerElement;

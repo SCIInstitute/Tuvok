@@ -84,6 +84,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramCVCompose(NULL),
   m_pProgramComposeAnaglyphs(NULL),
   m_pProgramComposeScanlineStereo(NULL),
+  m_pProgramBBox(NULL),
   m_aDepthStorage(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
@@ -203,7 +204,10 @@ bool GLRenderer::LoadShaders() {
                           NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
                           m_vShaderSearchDirs, "Transfer-VS.glsl",
-                          "Compose-Scanline-FS.glsl", NULL))
+                          "Compose-Scanline-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramBBox,
+                          m_vShaderSearchDirs, "BBox-VS.glsl",
+                          "BBox-FS.glsl", NULL))
   {
       T_ERROR("Error loading transfer function shaders.");
       return false;
@@ -273,6 +277,7 @@ void GLRenderer::CleanupShaders() {
   if (m_pProgramCVCompose)     {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramCVCompose); m_pProgramCVCompose = NULL;}
   if (m_pProgramComposeAnaglyphs){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeAnaglyphs); m_pProgramComposeAnaglyphs = NULL;}
   if (m_pProgramComposeScanlineStereo){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeScanlineStereo); m_pProgramComposeScanlineStereo = NULL;}
+  if (m_pProgramBBox){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramBBox); m_pProgramBBox = NULL;}  
 }
 
 void GLRenderer::Set1DTrans(const std::vector<unsigned char>& rgba)
@@ -1047,26 +1052,24 @@ void GLRenderer::RenderHQMIPPreLoop(RenderRegion2D& region) {
   m_maMIPRotation = matRotDir * matFlipX * matFlipY * m_maMIPRotation;
 }
 
-void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset) {
+void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor) {
   UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
   FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetScale());
   FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
   vExtend /= vExtend.maxVal();
 
   FLOATVECTOR3 vCenter(0,0,0);
-  RenderBBox(vColor, bEpsilonOffset, vCenter, vExtend);
+  RenderBBox(vColor, vCenter, vExtend);
 }
 
-void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
+void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor,
                             const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend) {
   FLOATVECTOR3 vMinPoint, vMaxPoint;
 
-  // increase the size of the bbox by epsilon = 0.003 to avoid the data
-  // z-fighting with the bbox when requested
-  FLOATVECTOR3 vEExtend(vExtend+(bEpsilonOffset ? 0.003f : 0));
+  vMinPoint = (vCenter - vExtend/2.0);
+  vMaxPoint = (vCenter + vExtend/2.0);
 
-  vMinPoint = (vCenter - vEExtend/2.0);
-  vMaxPoint = (vCenter + vEExtend/2.0);
+  m_pProgramBBox->Enable();
 
   glBegin(GL_LINES);
     glColor4f(vColor.x,vColor.y,vColor.z,vColor.w);
@@ -1101,6 +1104,7 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor, bool bEpsilonOffset,
     glVertex3f( vMaxPoint.x, vMaxPoint.y,vMinPoint.z);
   glEnd();
 
+  m_pProgramBBox->Disable();
 }
 
 void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
@@ -1843,7 +1847,7 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
 
 void GLRenderer::BBoxPreRender() {
   // for rendering modes other than isosurface render the bbox in the first
-  // pass once to init the depth buffer.  for isosurface rendering we can go
+  // pass once, to init the depth buffer.  for isosurface rendering we can go
   // ahead and render the bbox directly as isosurfacing writes out correct
   // depth values
   glEnable(GL_DEPTH_TEST);
@@ -1857,7 +1861,7 @@ void GLRenderer::BBoxPreRender() {
       for (UINT64 iCurrentBrick = 0;
            iCurrentBrick < m_vCurrentBrickList.size();
            iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1), false,
+        RenderBBox(FLOATVECTOR4(0,1,0,1),
                    m_vCurrentBrickList[iCurrentBrick].vCenter,
                    m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
@@ -1870,7 +1874,7 @@ void GLRenderer::BBoxPreRender() {
       for (UINT64 iCurrentBrick = 0;
            iCurrentBrick < m_vCurrentBrickList.size();
            iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1), false,
+        RenderBBox(FLOATVECTOR4(0,1,0,1),
                    m_vCurrentBrickList[iCurrentBrick].vCenter,
                    m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
@@ -1891,7 +1895,7 @@ void GLRenderer::BBoxPostRender() {
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
       for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1), false, m_vCurrentBrickList[iCurrentBrick].vCenter,
+        RenderBBox(FLOATVECTOR4(0,1,0,1), m_vCurrentBrickList[iCurrentBrick].vCenter,
                    m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
@@ -2328,13 +2332,10 @@ void GLRenderer::ComposeSurfaceImage(RenderRegion &renderRegion, int iStereoID) 
 
 void GLRenderer::CVFocusHasChanged(RenderRegion &renderRegion) {
   // read back the 3D position from the framebuffer
-  m_pFBOIsoHit[0]->Write(0,0,false);
-  glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
   float vec[4];
-  glReadPixels(m_vCVMousePos.x, m_vWinSize.y-m_vCVMousePos.y, 1, 1,
-               GL_RGBA, GL_FLOAT, vec);
-  glReadBuffer(GL_BACK);
-  m_pFBOIsoHit[0]->FinishWrite(0);
+  m_pFBOIsoHit[0]->ReadBackPixels(m_vCVMousePos.x, 
+                                  m_vWinSize.y-m_vCVMousePos.y,
+                                  1, 1, vec);
 
   // update m_vCVPos
   if (vec[3] != 0.0f) {

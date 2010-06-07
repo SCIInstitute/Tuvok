@@ -52,6 +52,7 @@ GLRaycaster::GLRaycaster(MasterController* pMasterController, bool bUseOnlyPower
   GLRenderer(pMasterController,bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
   m_pFBORayEntry(NULL),
   m_pProgramRenderFrontFaces(NULL),
+  m_pProgramRenderFrontFacesNT(NULL),
   m_pProgramIso2(NULL),
   m_bNoRCClipplanes(bNoRCClipplanes)
 {
@@ -64,9 +65,22 @@ GLRaycaster::~GLRaycaster() {
 void GLRaycaster::CleanupShaders() {
   GLRenderer::CleanupShaders();
 
-  if (m_pFBORayEntry){m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); m_pFBORayEntry = NULL;}
-  if (m_pProgramRenderFrontFaces){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramRenderFrontFaces); m_pProgramRenderFrontFaces = NULL;}
-  if (m_pProgramIso2) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIso2); m_pProgramIso2 = NULL;}
+  if (m_pFBORayEntry){
+    m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); 
+    m_pFBORayEntry = NULL;
+  }
+  if (m_pProgramRenderFrontFaces){
+    m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramRenderFrontFaces);
+    m_pProgramRenderFrontFaces = NULL;
+  }
+  if (m_pProgramRenderFrontFacesNT){
+    m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramRenderFrontFacesNT);
+    m_pProgramRenderFrontFacesNT = NULL;
+  }
+  if (m_pProgramIso2) {
+    m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIso2); 
+    m_pProgramIso2 = NULL;
+  }
 }
 
 void GLRaycaster::CreateOffscreenBuffers() {
@@ -107,6 +121,10 @@ bool GLRaycaster::Initialize() {
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
+                          "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
+                          NULL) ||
+     !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNT, m_vShaderSearchDirs,
+                          "GLRaycasterNoTransform-VS.glsl",
                           "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
                           NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
@@ -246,9 +264,9 @@ void GLRaycaster::RenderBox(RenderRegion& renderRegion,
                             const FLOATVECTOR3& vMaxCoords, bool bCullBack,
                             int iStereoID) const  {
   if (bCullBack) {
-    glCullFace(GL_BACK);
-  } else {
     glCullFace(GL_FRONT);
+  } else {
+    glCullFace(GL_BACK);
   }
 
   FLOATVECTOR3 vMinPoint, vMaxPoint;
@@ -346,6 +364,35 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
 
 
 void GLRaycaster::Render3DPreLoop(RenderRegion3D &) {
+
+  // render nearplane into buffer
+  if (m_iBricksRenderedInThisSubFrame == 0) {
+    m_TargetBinder.Bind(m_pFBORayEntry);
+  
+    FLOATMATRIX4 mInvProj = m_mProjection[0].inverse();
+    mInvProj.setProjection();
+
+    glDisable(GL_BLEND);
+    glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+    m_pProgramRenderFrontFacesNT->Enable();
+
+    glBegin(GL_QUADS);
+      glVertex3d(-1.0,  1.0, -0.5);
+      glVertex3d( 1.0,  1.0, -0.5);
+      glVertex3d( 1.0, -1.0, -0.5);
+      glVertex3d(-1.0, -1.0, -0.5);
+    glEnd();
+
+    glDepthMask(GL_TRUE);
+    glEnable(GL_DEPTH_TEST);
+    m_TargetBinder.Unbind();
+  }
+
+  glEnable(GL_CULL_FACE);
+
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_p1DTransTex->Bind(1);
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
@@ -357,35 +404,6 @@ void GLRaycaster::Render3DPreLoop(RenderRegion3D &) {
     default    :          T_ERROR("Invalid rendermode set");
                           break;
   }
-  
-  /*
-  if (m_iBricksRenderedInThisSubFrame == 0) {
-    m_TargetBinder.Bind(m_pFBORayEntry);
-
-    // render nearplane into buffer
-    float fNear = m_FrustumCullingLOD.GetNearPlane() + 0.01f;
-
-    FLOATMATRIX4 mInvModelView = renderRegion.modelView[0].inverse();
-
-    FLOATVECTOR4 vMin(-1, -1, fNear, 1);
-    FLOATVECTOR4 vMax( 1,  1, fNear, 1);
-
-    vMin = vMin * mInvModelView;
-    vMax = vMax * mInvModelView;
-
-    m_pProgramRenderFrontFaces->Enable();
-    glBegin(GL_QUADS);
-      glVertex4f(  vMax.x,  vMax.y, vMax.z, vMax.w);
-      glVertex4f(  vMin.x, vMax.y, vMax.z, vMax.w);
-      glVertex4f(  vMin.x, vMin.y, vMax.z, vMax.w);
-      glVertex4f(  vMax.x, vMin.y, vMax.z, vMax.w);
-    glEnd();
-    m_pProgramRenderFrontFaces->Disable();
-
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent);
-  }*/
-
-  glEnable(GL_CULL_FACE);
 }
 
 void GLRaycaster::Render3DInLoop(RenderRegion3D& renderRegion,
@@ -408,6 +426,12 @@ void GLRaycaster::Render3DInLoop(RenderRegion3D& renderRegion,
             b.vTexcoordsMin, b.vTexcoordsMax,
             false, iStereoID);
   m_pProgramRenderFrontFaces->Disable();
+
+/*
+  float* vec = new float[m_pFBORayEntry->Width()*m_pFBORayEntry->Height()*4];
+  m_pFBORayEntry->ReadBackPixels(0,0,m_pFBORayEntry->Width(),m_pFBORayEntry->Height(), vec);
+  delete [] vec;
+*/
 
   if (m_eRenderMode == RM_ISOSURFACE) {
     glDepthMask(GL_TRUE);

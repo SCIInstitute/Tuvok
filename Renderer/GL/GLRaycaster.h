@@ -81,6 +81,7 @@ class GLRaycaster : public GLRenderer {
   protected:
     GLFBOTex*       m_pFBORayEntry;
     GLSLProgram*    m_pProgramRenderFrontFaces;
+    GLSLProgram*    m_pProgramRenderFrontFacesNT;
     GLSLProgram*    m_pProgramIso2;
     bool            m_bNoRCClipplanes;
 
