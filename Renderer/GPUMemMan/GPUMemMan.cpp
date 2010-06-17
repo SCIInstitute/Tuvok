@@ -598,7 +598,7 @@ required_cpu_memory(const Dataset& ds, const BrickKey& key)
   UINT64 mem = 1;
   const UINTVECTOR3 size = ds.GetBrickVoxelCounts(key);
   mem = size[0] * size[1] * size[2];
-  mem *= ds.GetBitWidth();
+  mem *= ds.GetBitWidth()/8;
   mem *= ds.GetComponentCount();
   return mem;
 }
