@@ -59,8 +59,8 @@ vec3 ComputeGradient(vec3 vCenter, vec3 StepSize) {
                          t    * texture2D(texSlice1, vCenter.xy).x;
 
   return (gl_TextureMatrix[0] *
-          vec4((fVolumValXm - fVolumValXp)/2.0f,
-               (fVolumValYp - fVolumValYm)/2.0f,
+          vec4((fVolumValXm - fVolumValXp)/2.0,
+               (fVolumValYp - fVolumValYm)/2.0,
                 fVolumValZm - fVolumValZp,1.0)).xyz;
 }
 
