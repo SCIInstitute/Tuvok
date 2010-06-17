@@ -112,9 +112,11 @@ HEADERS += \
            IO/Images/ImageParser.h \
            IO/IOManager.h \
            IO/KeyValueFileParser.h \
+           IO/VGIHeaderParser.h \
            IO/NRRDConverter.h \
            IO/Quantize.h \
            IO/QVISConverter.h \
+           IO/VGStudioConverter.h \
            IO/KitwareConverter.h \
            IO/RAWConverter.h \
            IO/REKConverter.h \
@@ -313,8 +315,10 @@ SOURCES += \
            IO/Images/ImageParser.cpp \
            IO/IOManager.cpp \
            IO/KeyValueFileParser.cpp \
+           IO/VGIHeaderParser.cpp \
            IO/NRRDConverter.cpp \
            IO/QVISConverter.cpp \
+           IO/VGStudioConverter.cpp \
            IO/KitwareConverter.cpp \
            IO/RAWConverter.cpp \
            IO/REKConverter.cpp \

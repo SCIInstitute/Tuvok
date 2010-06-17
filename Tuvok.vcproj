@@ -1553,11 +1553,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -1811,6 +1811,22 @@
 			</File>
 			<File
 				RelativePath=".\IO\VFFConverter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\VGIHeaderParser.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\VGIHeaderParser.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\VGStudioConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\VGStudioConverter.h"
 				>
 			</File>
 			<Filter
