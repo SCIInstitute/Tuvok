@@ -51,6 +51,7 @@
 #include "uvfDataset.h"
 
 #include "AnalyzeConverter.h"
+#include "VGStudioConverter.h"
 #include "BOVConverter.h"
 #include "NRRDConverter.h"
 #include "QVISConverter.h"
@@ -82,6 +83,7 @@ IOManager::IOManager() :
   m_iBrickOverlap(DEFAULT_BRICKOVERLAP),
   m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize)
 {
+  m_vpConverters.push_back(new VGStudioConverter());
   m_vpConverters.push_back(new QVISConverter());
   m_vpConverters.push_back(new NRRDConverter());
   m_vpConverters.push_back(new StkConverter());

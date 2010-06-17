@@ -37,7 +37,6 @@
 #include "KeyValueFileParser.h"
 
 #include <algorithm>
-#include <fstream>
 #include <functional>
 #include <Basics/SysTools.h>
 
@@ -123,42 +122,80 @@ void KeyValPair::FillDerivedData() {
 }
 
 
-KeyValueFileParser::KeyValueFileParser(const string& strFilename, bool bStopOnEmptyLine, const string& strToken, const std::string& strEndToken)
+KeyValueFileParser::KeyValueFileParser(const string& strFilename,
+                                       bool bStopOnEmptyLine,
+                                       const string& strToken,
+                                       const std::string& strEndToken)
 {
-  m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken, strEndToken);
+  m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine,
+                              strToken, strEndToken);
 }
 
-KeyValueFileParser::KeyValueFileParser(const wstring& wstrFilename, bool bStopOnEmptyLine, const wstring& wstrToken, const std::wstring& wstrEndToken)
+KeyValueFileParser::KeyValueFileParser(const wstring& wstrFilename,
+                                       bool bStopOnEmptyLine,
+                                       const wstring& wstrToken,
+                                       const std::wstring& wstrEndToken)
 {
   string strFilename(wstrFilename.begin(), wstrFilename.end());
   string strToken(wstrToken.begin(), wstrToken.end());
   string strEndToken(wstrEndToken.begin(), wstrEndToken.end());
 
-  m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine, strToken, strEndToken);
+  m_bFileReadable = ParseFile(strFilename, bStopOnEmptyLine,
+                              strToken, strEndToken);
 }
+
+
+KeyValueFileParser::KeyValueFileParser(ifstream& fileData,
+                                       bool bStopOnEmptyLine, 
+                                       const wstring& wstrToken, 
+                                       const wstring& wstrEndToken)
+{
+
+  string strToken(wstrToken.begin(), wstrToken.end());
+  string strEndToken(wstrEndToken.begin(), wstrEndToken.end());
+
+  m_bFileReadable = ParseFile(fileData, bStopOnEmptyLine,
+                              strToken, strEndToken);
+}
+
+KeyValueFileParser::KeyValueFileParser(ifstream& fileData,
+                                       bool bStopOnEmptyLine, 
+                                       const string& strToken, 
+                                       const string& strEndToken)
+{
+  m_bFileReadable = ParseFile(fileData, bStopOnEmptyLine,
+                              strToken, strEndToken);
+}
+
 
 KeyValueFileParser::~KeyValueFileParser()
 {
 }
 
-KeyValPair* KeyValueFileParser::GetData(const string&  strKey, const bool bCaseSensitive) {
+KeyValPair* KeyValueFileParser::GetData(const string&  strKey,
+                                        const bool bCaseSensitive) {
   if (!bCaseSensitive) {
     string upperKey(strKey);
     transform(upperKey.begin(), upperKey.end(), upperKey.begin(), ::toupper);
-    for (UINT32 i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].strKeyUpper == upperKey) return &m_vecTokens[i];
+    for (UINT32 i = 0;i<m_vecTokens.size();i++) 
+      if (m_vecTokens[i].strKeyUpper == upperKey) return &m_vecTokens[i];
   } else {
-    for (UINT32 i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].strKey == strKey) return &m_vecTokens[i];
+    for (UINT32 i = 0;i<m_vecTokens.size();i++) 
+      if (m_vecTokens[i].strKey == strKey) return &m_vecTokens[i];
   }
   return NULL;
 }
 
-KeyValPair* KeyValueFileParser::GetData(const wstring& wstrKey, const bool bCaseSensitive) {
+KeyValPair* KeyValueFileParser::GetData(const wstring& wstrKey,
+                                        const bool bCaseSensitive) {
   if (!bCaseSensitive) {
     wstring wupperKey(wstrKey);
     transform(wupperKey.begin(), wupperKey.end(), wupperKey.begin(), ::toupper);
-    for (UINT32 i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].wstrKeyUpper == wupperKey) return &m_vecTokens[i];
+    for (UINT32 i = 0;i<m_vecTokens.size();i++) 
+      if (m_vecTokens[i].wstrKeyUpper == wupperKey) return &m_vecTokens[i];
   } else {
-    for (UINT32 i = 0;i<m_vecTokens.size();i++) if (m_vecTokens[i].wstrKey == wstrKey) return &m_vecTokens[i];
+    for (UINT32 i = 0;i<m_vecTokens.size();i++) 
+      if (m_vecTokens[i].wstrKey == wstrKey) return &m_vecTokens[i];
   }
   return NULL;
 }
@@ -189,45 +226,72 @@ const KeyValPair* KeyValueFileParser::GetData(const std::string& strKey,
   return &(*iter);
 }
 
-
-bool KeyValueFileParser::ParseFile(const std::string& strFilename, bool bStopOnEmptyLine, const std::string& strToken, const std::string& strEndToken) {
-  string line;
+bool KeyValueFileParser::ParseFile(const std::string& strFilename,
+                                   bool bStopOnEmptyLine,
+                                   const std::string& strToken,
+                                   const std::string& strEndToken) {
   ifstream fileData(strFilename.c_str(),ios::binary);
+  bool result = ParseFile(fileData, bStopOnEmptyLine, strToken, strEndToken);
+  fileData.close();
+  return result;
+}
+
+bool KeyValueFileParser::ParseKeyValueLine(std::string line,
+                                           bool bStopOnEmptyLine,
+                                           bool bStopOnInvalidLine,
+                                           const std::string& strToken,
+                                           const std::string& strEndToken) {
+    RemoveLeadingWhitespace(line);
+
+    // remove windows line endings
+    if (line.length() > 0 && line[line.length()-1] == 13)
+      line = line.substr(0,line.length()-1);
+
+    if ((strEndToken != "" && strEndToken == line) ||
+        (bStopOnEmptyLine && line.empty()))  {
+      return false;
+    }
+
+    // skip comments
+    if (line[0] == '#') return true;
+    // skip invalid lines
+    if (line.find_first_of(strToken) == string::npos) 
+      return !bStopOnInvalidLine;
+
+    string strKey = line.substr(0, line.find_first_of(strToken));
+    RemoveTailingWhitespace(strKey);
+
+    line = line.substr(line.find_first_of(strToken)+strToken.length(),
+                       line.length());
+    RemoveLeadingWhitespace(line);
+    RemoveTailingWhitespace(line);
+
+    if (strKey.length() == 0 || line.length() == 0) return true;
+
+    KeyValPair newKey(strKey, line);
+    m_vecTokens.push_back(newKey);
+
+    return true;
+}
+
+
+bool KeyValueFileParser::ParseFile(ifstream& fileData, bool bStopOnEmptyLine,
+                                   const std::string& strToken,
+                                   const std::string& strEndToken) {
+  string line;
 
   m_iStopPos = 0;
   if (fileData.is_open())
   {
-    while (! fileData.eof() )
+    bool bContinue = true;
+    while (! fileData.eof() && bContinue )
     {
       getline (fileData,line);
-      RemoveLeadingWhitespace(line);
+      bContinue = ParseKeyValueLine(line, bStopOnEmptyLine, false,
+                                    strToken, strEndToken);
 
-      // remove windows line endings
-      if (line.length() > 0 && line[line.length()-1] == 13)
-        line = line.substr(0,line.length()-1);
-
-      if ((strEndToken != "" && strEndToken == line) ||
-          (bStopOnEmptyLine && line.empty()))  {
-        m_iStopPos = fileData.tellg();
-        break;
-      }
-
-      if (line[0] == '#') continue;        // skip comments
-      if (line.find_first_of(strToken) == string::npos) continue;  // skip invalid lines
-
-      string strKey = line.substr(0, line.find_first_of(strToken));
-      RemoveTailingWhitespace(strKey);
-
-      line = line.substr(line.find_first_of(strToken)+strToken.length(), line.length());
-      RemoveLeadingWhitespace(line);
-      RemoveTailingWhitespace(line);
-
-      if (strKey.length() == 0 || line.length() == 0) continue;
-
-      KeyValPair newKey(strKey, line);
-      m_vecTokens.push_back(newKey);
+      if (!bContinue) m_iStopPos = fileData.tellg();
     }
-    fileData.close();
   } else return false;
 
   return true;
