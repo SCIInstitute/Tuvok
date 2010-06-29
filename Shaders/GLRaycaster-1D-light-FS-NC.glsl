@@ -58,7 +58,7 @@ varying vec3 vEyePos;
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
-vec4 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
+vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
                    vec3 DomainScale);
 vec4 ColorBlend(vec4 src, vec4 dst);
 
@@ -96,7 +96,7 @@ void main(void)
 
     // compute lighting
     vec3 vNormal     = ComputeNormal(vCurrentPosTex, vVoxelStepsize,
-                                     vDomainScale).xyz;
+                                     vDomainScale);
     vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient,
                                 vLightDiffuse*vTransVal.xyz, vLightSpecular,
                                 vLightDir);
