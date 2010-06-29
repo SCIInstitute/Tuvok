@@ -1189,19 +1189,13 @@ std::string IOManager::GetExportDialogString() const {
 
 std::vector< std::pair <std::string, std::string > > IOManager::GetExportFormatList() const {
   std::vector< std::pair <std::string, std::string > > v;
-
-  std::pair <std::string, std::string > p;
-  p.first = "UVF";
-  p.second = "Universal Volume Format";
-  v.push_back(p);
-
+  v.push_back(make_pair("UVF", "Universal Volume Format"));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
       if (m_vpConverters[i]->CanExportData()) {
-        std::pair <std::string, std::string > p;
-        p.first = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
-        p.second = m_vpConverters[i]->GetDesc();
-        v.push_back(p);
+        v.push_back(
+          make_pair(SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]),
+                    m_vpConverters[i]->GetDesc()));
       }
     }
   }
@@ -1210,16 +1204,30 @@ std::vector< std::pair <std::string, std::string > > IOManager::GetExportFormatL
 
 std::vector< std::pair <std::string, std::string > > IOManager::GetImportFormatList() const {
   std::vector< std::pair <std::string, std::string > > v;
-  std::pair <std::string, std::string > p;
-  p.first = "UVF";
-  p.second = "Universal Volume Format";
-  v.push_back(p);
+  v.push_back(make_pair("UVF", "Universal Volume Format"));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
-      std::pair <std::string, std::string > p;
-      p.first = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
-      p.second = m_vpConverters[i]->GetDesc();
-      v.push_back(p);
+      v.push_back(
+        make_pair(SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]),
+                  m_vpConverters[i]->GetDesc()));
+    }
+  }
+  return v;
+}
+
+
+std::vector< tVolumeFormat > IOManager::GetFormatList() const {
+
+  std::vector< tVolumeFormat > v;
+  v.push_back(tr1::make_tuple("UVF", "Universal Volume Format", true));
+  for (size_t i = 0;i<m_vpConverters.size();i++) {
+    for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
+      v.push_back(tr1::make_tuple(
+                      SysTools::ToLowerCase(
+                        m_vpConverters[i]->SupportedExt()[j]
+                      ), 
+                      m_vpConverters[i]->GetDesc(), 
+                      m_vpConverters[i]->CanExportData()));
     }
   }
   return v;

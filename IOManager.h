@@ -55,6 +55,14 @@
 #include "Basics/SysTools.h"
 #include "Basics/LargeRAWFile.h"
 
+#ifdef _MSC_VER
+# include <tuple>
+#else
+# include <tr1/tuple>
+#endif
+
+typedef std::tr1::tuple<std::string , std::string, bool> tVolumeFormat;
+
 #define DEFAULT_BRICKSIZE (256)
 #define DEFAULT_BRICKOVERLAP (4)
 #define DEFAULT_INCORESIZE (DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE)
@@ -429,8 +437,14 @@ public:
   std::string GetLoadDialogString() const;
   std::string GetExportDialogString() const;
 
-  std::vector< std::pair <std::string, std::string > > GetImportFormatList() const;
-  std::vector< std::pair <std::string, std::string > > GetExportFormatList() const;
+  std::vector< std::pair <std::string, std::string > >
+    GetImportFormatList() const;
+  std::vector< std::pair <std::string, std::string > > 
+    GetExportFormatList() const;
+
+  std::vector< tVolumeFormat > GetFormatList() const;
+
+  
 
   UINT64 GetMaxBrickSize() const {return m_iMaxBrickSize;}
   UINT64 GetBrickOverlap() const {return m_iBrickOverlap;}
