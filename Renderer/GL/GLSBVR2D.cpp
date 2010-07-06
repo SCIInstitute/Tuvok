@@ -250,7 +250,7 @@ void GLSBVR2D::SetDataDepShaderVars() {
   }
 }
 
-void GLSBVR2D::SetBrickDepShaderVars(RenderRegion3D& region,
+void GLSBVR2D::SetBrickDepShaderVars(const RenderRegion3D& region,
                                      const Brick& currentBrick) {
   FLOATVECTOR3 vStep(1.0f/currentBrick.vVoxelCount.x,
                      1.0f/currentBrick.vVoxelCount.y,
@@ -311,8 +311,7 @@ void GLSBVR2D::DisableClipPlane(RenderRegion *renderRegion) {
   }
 }
 
-void GLSBVR2D::Render3DPreLoop(RenderRegion3D& region) {
-
+void GLSBVR2D::Render3DPreLoop(const RenderRegion3D& region) {
   m_SBVRGeogen.SetSamplingModifier(m_fSampleRateModifier / ((region.decreaseSamplingRateNow) ? m_fSampleDecFactor : 1.0f));
 
   if(m_bClipPlaneOn) {
@@ -352,7 +351,7 @@ void GLSBVR2D::Render3DPreLoop(RenderRegion3D& region) {
   m_SBVRGeogen.SetLODData( UINTVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))  );
 }
 
-void GLSBVR2D::RenderProxyGeometry() {
+void GLSBVR2D::RenderProxyGeometry() const {
   if (!m_pGLVolume) {
     T_ERROR("Volume data invalid, unable to render.");
     return;
@@ -361,7 +360,7 @@ void GLSBVR2D::RenderProxyGeometry() {
   if (m_bUse3DTexture) RenderProxyGeometry3D(); else RenderProxyGeometry2D();
 }
 
-void GLSBVR2D::RenderProxyGeometry2D() {
+void GLSBVR2D::RenderProxyGeometry2D() const {
   GLVolume2DTex* pGLVolume =  static_cast<GLVolume2DTex*>(m_pGLVolume);
 
   if (m_SBVRGeogen.m_vSliceTrianglesX.size()) {
@@ -472,7 +471,7 @@ void GLSBVR2D::RenderProxyGeometry2D() {
   }
 }
 
-void GLSBVR2D::RenderProxyGeometry3D() {
+void GLSBVR2D::RenderProxyGeometry3D() const {
   if(m_SBVRGeogen.m_vSliceTrianglesX.size()) {
     glBegin(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
@@ -511,7 +510,7 @@ void GLSBVR2D::RenderProxyGeometry3D() {
   }
 }
 
-void GLSBVR2D::Render3DInLoop(RenderRegion3D& renderRegion,
+void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
                               size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
 
@@ -596,7 +595,7 @@ void GLSBVR2D::RenderHQMIPPreLoop(RenderRegion2D& region) {
   glDisable(GL_DEPTH_TEST);
 }
 
-void GLSBVR2D::RenderHQMIPInLoop(RenderRegion2D&, const Brick& b) {
+void GLSBVR2D::RenderHQMIPInLoop(const RenderRegion2D&, const Brick& b) {
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);

@@ -1162,7 +1162,7 @@ void AbstrRenderer::SetCVBorderScale(float fScale) {
   }
 }
 
-void AbstrRenderer::SetCVFocusPos(RenderRegion& renderRegion, INTVECTOR2 vPos) {
+void AbstrRenderer::SetCVFocusPos(const RenderRegion& renderRegion, INTVECTOR2 vPos) {
   if (m_vCVMousePos!= vPos) {
     m_vCVMousePos = vPos;
     if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE)
@@ -1220,7 +1220,7 @@ void AbstrRenderer::SetStereoEyeSwap(bool bSwap) {
   if (m_bDoStereoRendering) Schedule3DWindowRedraws();
 }
 
-void AbstrRenderer::CVFocusHasChanged(RenderRegion &) {
+void AbstrRenderer::CVFocusHasChanged(const RenderRegion &) {
   ScheduleRecompose();
 }
 

@@ -69,11 +69,11 @@ class GLRaycaster : public GLRenderer {
     /// Can only use CV on scalar datasets.  There's nothing really preventing
     /// its application to RGBA datasets, but shaders would need updating (and
     /// they haven't been)
-    virtual bool SupportsClearView() {return m_pDataset->GetComponentCount() == 1;}
+    virtual bool SupportsClearView() const {return m_pDataset->GetComponentCount() == 1;}
 
     virtual void DisableClipPlane(RenderRegion* renderRegion);
 
-    virtual ERendererType GetRendererType() {return RT_RC;}
+    virtual ERendererType GetRendererType() const {return RT_RC;}
 
     virtual bool CanDoClipPlane() {return !m_bNoRCClipplanes;}
 
@@ -86,22 +86,23 @@ class GLRaycaster : public GLRenderer {
     bool            m_bNoRCClipplanes;
 
     /** Sets variables related to bricks in the shader. */
-    void SetBrickDepShaderVars(RenderRegion3D& region, const Brick& currentBrick,
+    void SetBrickDepShaderVars(const RenderRegion3D& region,
+                               const Brick& currentBrick,
                                size_t iCurrentBrick);
 
     virtual void CreateOffscreenBuffers();
-    void RenderBox(RenderRegion& renderRegion,
+    void RenderBox(const RenderRegion& renderRegion,
                    const FLOATVECTOR3& vCenter, const FLOATVECTOR3& vExtend,
                    const FLOATVECTOR3& vMinCoords, const FLOATVECTOR3& vMaxCoords,
                    bool bCullBack, int iStereoID) const;
 
-    virtual void Render3DPreLoop(RenderRegion3D& region);
-    virtual void Render3DInLoop(RenderRegion3D& renderRegion,
+    virtual void Render3DPreLoop(const RenderRegion3D& region);
+    virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
                                 size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
 
     virtual void RenderHQMIPPreLoop(RenderRegion2D &region);
-    virtual void RenderHQMIPInLoop(RenderRegion2D &renderRegion, const Brick& b);
+    virtual void RenderHQMIPInLoop(const RenderRegion2D &renderRegion, const Brick& b);
     virtual void RenderHQMIPPostLoop();
 
     /// Set the clip plane input variable in the shader.
@@ -110,11 +111,10 @@ class GLRaycaster : public GLRenderer {
     virtual void StartFrame();
     virtual void SetDataDepShaderVars();
 
-    FLOATMATRIX4 ComputeEyeToTextureMatrix(RenderRegion &renderRegion,
+    FLOATMATRIX4 ComputeEyeToTextureMatrix(const RenderRegion &renderRegion,
                                            FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                            FLOATVECTOR3 p2, FLOATVECTOR3 t2,
                                            int iStereoID) const;
-
 };
-};
+} // tuvok namespace.
 #endif // GLRAYCASTER_H

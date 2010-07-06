@@ -318,11 +318,11 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
   m_bFirstDrawAfterResize = true;
 }
 
-void GLRenderer::ClearDepthBuffer() {
+void GLRenderer::ClearDepthBuffer() const {
   glClear(GL_DEPTH_BUFFER_BIT);
 }
 
-void GLRenderer::ClearColorBuffer() {
+void GLRenderer::ClearColorBuffer() const {
   glDepthMask(GL_FALSE);
   if (m_bDoStereoRendering && m_eStereoMode == SM_RB) {
     // render anaglyphs against a black background only
@@ -370,14 +370,28 @@ void GLRenderer::StartFrame() {
   }
 }
 
+void GLRenderer::RecomposeView(const RenderRegion& rgn)
+{
+  MESSAGE("Recomposing region {(%u,%u), (%u,%u)}",
+          static_cast<unsigned>(rgn.minCoord[0]),
+          static_cast<unsigned>(rgn.minCoord[1]),
+          static_cast<unsigned>(rgn.maxCoord[0]),
+          static_cast<unsigned>(rgn.maxCoord[1]));
+  if(rgn.is3D()) {
+    Recompose3DView(dynamic_cast<const RenderRegion3D&>(rgn));
+  }
+}
+
 bool GLRenderer::Paint() {
   if (!AbstrRenderer::Paint()) return false;
 
+  // we want vector<bool>, but of course that's a bad idea.
   vector<char> justCompletedRegions(renderRegions.size(), false);
 
-  // if we are drawing for the first time after a resize we do want to 
-  // start a full redraw loop but rather just blit the last valud image
-  // onto the screen, this makes resizing more responsive
+  // if we are drawing for the first time after a resize we do not want to
+  // start a full redraw loop, rather we just blit the last valid image
+  // onto the screen.  This makes resizing more responsive.  We'll schedule a
+  // complete redraw after, no worries.
   if (m_bFirstDrawAfterResize) {
     CreateOffscreenBuffers();
     CreateDepthStorage();
@@ -459,7 +473,7 @@ bool GLRenderer::Paint() {
   return true;
 }
 
-void GLRenderer::FullscreenQuad() {
+void GLRenderer::FullscreenQuad() const {
   glBegin(GL_QUADS);
     glTexCoord2d(0, 0);
     glVertex3d(-1.0, -1.0, -0.5);
@@ -472,14 +486,14 @@ void GLRenderer::FullscreenQuad() {
   glEnd();
 }
 
-void GLRenderer::FullscreenQuadRegions() {
+void GLRenderer::FullscreenQuadRegions() const {
   for (size_t i=0; i < renderRegions.size(); ++i) {
     FullscreenQuadRegion(renderRegions[i], renderRegions[i]->decreaseScreenResNow);
   }
 }
 
 void GLRenderer::FullscreenQuadRegion(const RenderRegion* region,
-                                      bool decreaseScreenRes) {
+                                      bool decreaseScreenRes) const {
   const float rescale = decreaseScreenRes ? 1.0f / m_fScreenResDecFactor : 1.0f;
 
   FLOATVECTOR2 minCoord(region->minCoord);
@@ -1150,7 +1164,7 @@ void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
   glDisable( GL_SCISSOR_TEST );
 }
 
-void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) {
+void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHT0);
   glEnable(GL_LIGHTING);
@@ -1239,7 +1253,7 @@ void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) {
 }
 
 /// Actions to perform every subframe (rendering of a complete LOD level).
-void GLRenderer::PreSubframe(RenderRegion& renderRegion)
+void GLRenderer::PreSubframe(const RenderRegion& renderRegion)
 {
   NewFrameClear(renderRegion);
 
@@ -1273,7 +1287,7 @@ void GLRenderer::PreSubframe(RenderRegion& renderRegion)
 }
 
 /// Actions which should be performed when we declare a subframe complete.
-void GLRenderer::PostSubframe(RenderRegion& renderRegion)
+void GLRenderer::PostSubframe(const RenderRegion& renderRegion)
 {
   // render the bounding boxes and clip plane; these are essentially no
   // ops if they aren't enabled.
@@ -1389,7 +1403,7 @@ void GLRenderer::CopyImageToDisplayBuffer() {
 }
 
 
-void GLRenderer::DrawLogo() {
+void GLRenderer::DrawLogo() const {
   if (m_pLogoTex == NULL) return;
 
   glEnable(GL_BLEND);
@@ -1446,7 +1460,7 @@ void GLRenderer::DrawLogo() {
   glPopMatrix();
 }
 
-void GLRenderer::DrawBackGradient() {
+void GLRenderer::DrawBackGradient() const {
   glDisable(GL_DEPTH_TEST);
 
   glMatrixMode(GL_PROJECTION);
@@ -1606,7 +1620,9 @@ void GLRenderer::CreateOffscreenBuffers() {
   }
 }
 
-void GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) {
+void
+GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const
+{
   if (m_eRenderMode == RM_2DTRANS) {
     FLOATVECTOR3 vStep = 1.0f/FLOATVECTOR3(vVoxelCount);
     m_pProgram2DTransSlice->SetUniformVector("vVoxelStepsize",
@@ -2140,7 +2156,7 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
   } else return false;
 }
 
-void GLRenderer::Recompose3DView(RenderRegion3D& renderRegion) {
+void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
   MESSAGE("Recompositing...");
   NewFrameClear(renderRegion);
 
@@ -2172,7 +2188,8 @@ void GLRenderer::Recompose3DView(RenderRegion3D& renderRegion) {
   m_TargetBinder.Unbind();
 }
 
-bool GLRenderer::Render3DView(RenderRegion3D& renderRegion, float& fMsecPassed) {
+bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
+                              float& fMsecPassed) {
   Render3DPreLoop(renderRegion);
 
   // loop over all bricks in the current LOD level
@@ -2270,7 +2287,7 @@ void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
   ScheduleCompleteRedraw();
 }
 
-void GLRenderer::ComposeSurfaceImage(RenderRegion &renderRegion, int iStereoID) {
+void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iStereoID) {
   glEnable(GL_DEPTH_TEST);
 
   m_pFBOIsoHit[iStereoID]->Read(0, 0);
@@ -2331,7 +2348,7 @@ void GLRenderer::ComposeSurfaceImage(RenderRegion &renderRegion, int iStereoID) 
 }
 
 
-void GLRenderer::CVFocusHasChanged(RenderRegion &renderRegion) {
+void GLRenderer::CVFocusHasChanged(const RenderRegion &renderRegion) {
   // read back the 3D position from the framebuffer
   float vec[4];
   m_pFBOIsoHit[0]->ReadBackPixels(m_vCVMousePos.x, 
@@ -2388,7 +2405,6 @@ void GLRenderer::CreateDepthStorage() {
 
 
 void GLRenderer::UpdateColorsInShaders() {
-
     FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
     FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
     FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;

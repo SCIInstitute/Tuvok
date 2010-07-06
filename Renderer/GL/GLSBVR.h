@@ -66,12 +66,15 @@ class GLSBVR : public GLRenderer {
      * @param strFilename path to a file */
     virtual bool LoadDataset(const std::string& strFilename);
 
-    virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing && m_pDataset->GetComponentCount() == 1;}
+    virtual bool SupportsClearView() const {
+      return !m_bAvoidSeperateCompositing &&
+             m_pDataset->GetComponentCount() == 1;
+    }
 
     virtual void EnableClipPlane(RenderRegion *renderRegion);
     virtual void DisableClipPlane(RenderRegion *renderRegion);
 
-    virtual ERendererType GetRendererType() {return RT_SBVR;}
+    virtual ERendererType GetRendererType() const {return RT_SBVR;}
 
   protected:
     SBVRGeogen3D  m_SBVRGeogen;
@@ -80,17 +83,17 @@ class GLSBVR : public GLRenderer {
 
     void SetBrickDepShaderVars(const Brick& currentBrick);
 
-    virtual void Render3DPreLoop(RenderRegion3D& region);
-    virtual void Render3DInLoop(RenderRegion3D& renderRegion,
+    virtual void Render3DPreLoop(const RenderRegion3D& region);
+    virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
                                 size_t iCurrentBrick, int iStereoID);
     virtual void Render3DPostLoop();
 
     virtual void RenderHQMIPPreLoop(RenderRegion2D& renderRegion);
-    virtual void RenderHQMIPInLoop(RenderRegion2D& renderRegion,
+    virtual void RenderHQMIPInLoop(const RenderRegion2D& renderRegion,
                                    const Brick& b);
     virtual void RenderHQMIPPostLoop();
 
-    void RenderProxyGeometry();
+    void RenderProxyGeometry() const;
     virtual void CleanupShaders();
 
     virtual void ComposeSurfaceImage(RenderRegion &renderRegion, int iStereoID);

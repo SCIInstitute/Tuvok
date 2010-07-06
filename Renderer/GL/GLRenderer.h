@@ -130,8 +130,8 @@ class GLRenderer : public AbstrRenderer {
     bool Execute3DFrame(RenderRegion3D& renderRegion, float& fMsecPassed,
                         bool& completedJob);
     void CopyImageToDisplayBuffer();
-    void DrawLogo();
-    void DrawBackGradient();
+    void DrawLogo() const;
+    void DrawBackGradient() const;
 
     /// Defines a value to use for scaling the TF.  Client apps which hand us
     /// over the raw data will usually want to override this to be 1, since
@@ -139,16 +139,17 @@ class GLRenderer : public AbstrRenderer {
     virtual float CalculateScaling();
     virtual void SetDataDepShaderVars();
 
-    virtual bool Render3DView(RenderRegion3D& renderRegion, float& fMsecPassed);
-    virtual void Render3DPreLoop(RenderRegion3D &) { };
-    virtual void Render3DInLoop(RenderRegion3D& renderRegion,
+    virtual bool Render3DView(const RenderRegion3D& renderRegion, float& fMsecPassed);
+    virtual void Render3DPreLoop(const RenderRegion3D &) { };
+    virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
                                 size_t iCurentBrick, int iStereoID) = 0;
     virtual void Render3DPostLoop() {}
-    virtual void ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID);
-    virtual void Recompose3DView(RenderRegion3D& renderRegion);
+    virtual void ComposeSurfaceImage(const RenderRegion& renderRegion, int iStereoID);
+    virtual void RecomposeView(const RenderRegion&);
+    virtual void Recompose3DView(const RenderRegion3D& renderRegion);
 
     virtual void RenderHQMIPPreLoop(RenderRegion2D& region);
-    virtual void RenderHQMIPInLoop(RenderRegion2D& renderRegion, const Brick& b) = 0;
+    virtual void RenderHQMIPInLoop(const RenderRegion2D& renderRegion, const Brick& b) = 0;
     virtual void RenderHQMIPPostLoop() {}
 
     virtual void CreateOffscreenBuffers();
@@ -166,23 +167,24 @@ class GLRenderer : public AbstrRenderer {
     void PlaneIn3DPostRender();
     void RenderPlanesIn3D(bool bDepthPassOnly);
 
-    virtual void ClearDepthBuffer();
-    virtual void ClearColorBuffer();
+    virtual void ClearDepthBuffer() const;
+    virtual void ClearColorBuffer() const;
 
     virtual void StartFrame();
     virtual void EndFrame(const std::vector<char>& justCompletedRegions);
     void CopyOverCompletedRegion(const RenderRegion* region);
 
-    void PreSubframe(RenderRegion& renderRegion);
-    void PostSubframe(RenderRegion& renderRegion);
+    void PreSubframe(const RenderRegion& renderRegion);
+    void PostSubframe(const RenderRegion& renderRegion);
 
-    virtual void  CVFocusHasChanged(RenderRegion& renderRegion);
+    virtual void CVFocusHasChanged(const RenderRegion& renderRegion);
 
     virtual FLOATVECTOR3 Pick(const UINTVECTOR2&) const;
 
-    void FullscreenQuad();
-    void FullscreenQuadRegions();
-    void FullscreenQuadRegion(const RenderRegion* region, bool decreaseScreenRes);
+    void FullscreenQuad() const;
+    void FullscreenQuadRegions() const;
+    void FullscreenQuadRegion(const RenderRegion* region,
+                              bool decreaseScreenRes) const;
     void ComputeViewAndProjection(float fAspect);
     virtual void UpdateColorsInShaders();
 
@@ -210,16 +212,15 @@ class GLRenderer : public AbstrRenderer {
 
     float*          m_aDepthStorage;
 
-    void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount);
-    void RenderCoordArrows(const RenderRegion& renderRegion);
+    void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const;
+    void RenderCoordArrows(const RenderRegion& renderRegion) const;
     void SaveEmptyDepthBuffer();
     void SaveDepthBuffer();
     void CreateDepthStorage();
     void DeleteDepthStorage() {delete [] m_aDepthStorage;}
 
     void TargetIsBlankButFrameIsNotFinished(const RenderRegion* region);
-
 };
 
-};
+} // tuvok namespace
 #endif // GLRenderer_H

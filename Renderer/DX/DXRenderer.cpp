@@ -234,10 +234,10 @@ void DXRenderer::OnDestroyDevice() {
 void DXRenderer::RenderSeperatingLines() {
 }
 
-void DXRenderer::ClearDepthBuffer() {
+void DXRenderer::ClearDepthBuffer() const {
 }
 
-void DXRenderer::ClearColorBuffer() {
+void DXRenderer::ClearColorBuffer() const {
 }
 
 void DXRenderer::StartFrame() {

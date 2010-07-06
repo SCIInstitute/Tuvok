@@ -112,7 +112,7 @@ class AbstrRenderer {
       SM_SCANLINE,
       SM_INVALID
     };
-    virtual ERendererType GetRendererType() {return RT_INVALID;}
+    virtual ERendererType GetRendererType() const {return RT_INVALID;}
 
     enum ERenderMode {
       RM_1DTRANS = 0,  /**< one dimensional transfer function */
@@ -370,7 +370,7 @@ class AbstrRenderer {
     FLOATVECTOR3 GetLightDir()const;
 
     // ClearView
-    virtual bool SupportsClearView() {return false;}
+    virtual bool SupportsClearView() const {return false;}
     virtual void SetCV(bool bEnable);
     virtual bool GetCV() const {return m_bDoClearView;}
     virtual void SetCVIsoValue(float fIsovalue);
@@ -383,7 +383,8 @@ class AbstrRenderer {
     virtual float GetCVContextScale() const {return m_fCVContextScale;}
     virtual void SetCVBorderScale(float fScale);
     virtual float GetCVBorderScale() const {return m_fCVBorderScale;}
-    virtual void SetCVFocusPos(RenderRegion& renderRegion, INTVECTOR2 vPos);
+    virtual void SetCVFocusPos(const RenderRegion& renderRegion,
+                               INTVECTOR2 vPos);
     virtual INTVECTOR2 GetCVFocusPos() const {return m_vCVMousePos;}
 
     virtual FLOATVECTOR3 Pick(const UINTVECTOR2&) const = 0;
@@ -452,10 +453,10 @@ class AbstrRenderer {
     /// @return the current clearview iso value, normalized to be in [0,1]
     double GetNormalizedCVIsovalue() const;
 
-    virtual void        ClearDepthBuffer() = 0;
-    virtual void        ClearColorBuffer() = 0;
+    virtual void        ClearDepthBuffer() const = 0;
+    virtual void        ClearColorBuffer() const = 0;
     virtual void        UpdateColorsInShaders() = 0;
-    virtual void        CVFocusHasChanged(RenderRegion &);
+    virtual void        CVFocusHasChanged(const RenderRegion &);
 
   protected:
     MasterController*   m_pMasterController;

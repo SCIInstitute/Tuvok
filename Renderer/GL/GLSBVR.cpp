@@ -206,8 +206,7 @@ void GLSBVR::DisableClipPlane(RenderRegion *renderRegion) {
   }
 }
 
-void GLSBVR::Render3DPreLoop(RenderRegion3D& region) {
-
+void GLSBVR::Render3DPreLoop(const RenderRegion3D& region) {
   m_SBVRGeogen.SetSamplingModifier(
     m_fSampleRateModifier / (region.decreaseSamplingRateNow ?
                              m_fSampleDecFactor : 1.0f));
@@ -250,7 +249,7 @@ void GLSBVR::Render3DPreLoop(RenderRegion3D& region) {
   glEnable(GL_DEPTH_TEST);
 }
 
-void GLSBVR::RenderProxyGeometry() {
+void GLSBVR::RenderProxyGeometry() const {
   glBegin(GL_TRIANGLES);
     for (int i = int(m_SBVRGeogen.m_vSliceTriangles.size())-1;i>=0;i--) {
       glTexCoord3f(m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.x,
@@ -263,7 +262,7 @@ void GLSBVR::RenderProxyGeometry() {
   glEnd();
 }
 
-void GLSBVR::Render3DInLoop(RenderRegion3D& renderRegion,
+void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
                             size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
 
@@ -348,7 +347,7 @@ void GLSBVR::RenderHQMIPPreLoop(RenderRegion2D &region) {
   glDisable(GL_DEPTH_TEST);
 }
 
-void GLSBVR::RenderHQMIPInLoop(RenderRegion2D &, const Brick& b) {
+void GLSBVR::RenderHQMIPInLoop(const RenderRegion2D &, const Brick& b) {
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);

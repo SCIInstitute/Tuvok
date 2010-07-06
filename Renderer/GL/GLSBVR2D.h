@@ -68,15 +68,17 @@ namespace tuvok {
        * @param strFilename path to a file */
       virtual bool LoadDataset(const std::string& strFilename);
 
-      virtual bool SupportsClearView() {return !m_bAvoidSeperateCompositing &&
-                                        m_pDataset->GetComponentCount() == 1;}
+      virtual bool SupportsClearView() const {
+        return !m_bAvoidSeperateCompositing &&
+               m_pDataset->GetComponentCount() == 1;
+      }
 
       virtual void EnableClipPlane(RenderRegion *renderRegion);
       virtual void DisableClipPlane(RenderRegion *renderRegion);
 
-      virtual ERendererType GetRendererType() {return RT_SBVR;}
+      virtual ERendererType GetRendererType() const {return RT_SBVR;}
 
-      bool GetUse3DTexture() {return m_bUse3DTexture;}
+      bool GetUse3DTexture() const {return m_bUse3DTexture;}
       void SetUse3DTexture(bool bUse3DTexture);
 
     protected:
@@ -85,21 +87,21 @@ namespace tuvok {
       GLSLProgram*  m_pProgramColorNoCompose;
       bool          m_bUse3DTexture;
 
-      void SetBrickDepShaderVars(RenderRegion3D& region,
+      void SetBrickDepShaderVars(const RenderRegion3D& region,
                                  const Brick& currentBrick);
 
-      virtual void Render3DPreLoop(RenderRegion3D& region);
-      virtual void Render3DInLoop(RenderRegion3D& renderRegion,
+      virtual void Render3DPreLoop(const RenderRegion3D& region);
+      virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
                                   size_t iCurrentBrick, int iStereoID);
       virtual void Render3DPostLoop();
 
       virtual void RenderHQMIPPreLoop(RenderRegion2D& region);
-      virtual void RenderHQMIPInLoop(RenderRegion2D& region, const Brick& b);
+      virtual void RenderHQMIPInLoop(const RenderRegion2D& region, const Brick& b);
       virtual void RenderHQMIPPostLoop();
 
-      void RenderProxyGeometry();
-      void RenderProxyGeometry2D();
-      void RenderProxyGeometry3D();
+      void RenderProxyGeometry() const;
+      void RenderProxyGeometry2D() const;
+      void RenderProxyGeometry3D() const;
       virtual void CleanupShaders();
 
       virtual void ComposeSurfaceImage(RenderRegion& renderRegion,
@@ -118,5 +120,5 @@ namespace tuvok {
       void BindVolumeStringsToTexUnit(GLSLProgram* program, bool bGradients=true);
 
   };
-};
+} // tuvok namespace
 #endif // GLSBVR2D_H

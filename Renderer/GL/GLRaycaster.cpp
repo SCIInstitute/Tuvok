@@ -211,7 +211,7 @@ bool GLRaycaster::Initialize() {
   return true;
 }
 
-void GLRaycaster::SetBrickDepShaderVars(RenderRegion3D& region,
+void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D& region,
                                         const Brick& currentBrick,
                                         size_t iCurrentBrick) {
   FLOATVECTOR3 vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(currentBrick.vVoxelCount);
@@ -254,10 +254,9 @@ void GLRaycaster::SetBrickDepShaderVars(RenderRegion3D& region,
                           }
     case RM_INVALID    :  T_ERROR("Invalid rendermode set"); break;
   }
-
 }
 
-void GLRaycaster::RenderBox(RenderRegion& renderRegion,
+void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
                             const FLOATVECTOR3& vCenter,
                             const FLOATVECTOR3& vExtend,
                             const FLOATVECTOR3& vMinCoords,
@@ -363,7 +362,7 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
 }
 
 
-void GLRaycaster::Render3DPreLoop(RenderRegion3D &) {
+void GLRaycaster::Render3DPreLoop(const RenderRegion3D &) {
 
   // render nearplane into buffer
   if (m_iBricksRenderedInThisSubFrame == 0) {
@@ -406,7 +405,7 @@ void GLRaycaster::Render3DPreLoop(RenderRegion3D &) {
   }
 }
 
-void GLRaycaster::Render3DInLoop(RenderRegion3D& renderRegion,
+void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
                                  size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
 
@@ -527,7 +526,7 @@ void GLRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
   region.modelView[0].setModelview();
 }
 
-void GLRaycaster::RenderHQMIPInLoop(RenderRegion2D &renderRegion,
+void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
                                     const Brick& b) {
   glDisable(GL_BLEND);
 
@@ -616,7 +615,7 @@ void GLRaycaster::SetDataDepShaderVars() {
 }
 
 
-FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(RenderRegion &renderRegion,
+FLOATMATRIX4 GLRaycaster::ComputeEyeToTextureMatrix(const RenderRegion &renderRegion,
                                                     FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                                     FLOATVECTOR3 p2, FLOATVECTOR3 t2,
                                                     int iStereoID) const {
