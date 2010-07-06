@@ -809,17 +809,17 @@ public:
       m31 = T(M[8]); m32 = T(M[9]); m33 = T(M[10]);
     }
 
-    void multModelview() {
+    void multModelview() const {
       float M[16];
-       M[0] = float(m11);  M[1] = float(m12);  M[2] = float(m13);  M[3] = 0;
-       M[4] = float(m21);  M[5] = float(m22);  M[6] = float(m23);  M[7] = 0;
-       M[8] = float(m31);  M[9] = float(m32); M[10] = float(m33); M[11] = 0;
+      M[0] = float(m11);  M[1] = float(m12);  M[2] = float(m13);  M[3] = 0;
+      M[4] = float(m21);  M[5] = float(m22);  M[6] = float(m23);  M[7] = 0;
+      M[8] = float(m31);  M[9] = float(m32); M[10] = float(m33); M[11] = 0;
       M[12] = 0; M[13] = 0; M[14] = 0; M[15] =1;
       glMatrixMode(GL_MODELVIEW);
       glMultMatrixf(M);
     }
 
-    void setModelview() {
+    void setModelview() const {
       float M[16];
       M[0] = float(m11);  M[1] = float(m12);  M[2] = float(m13);  M[3] = 0;
       M[4] = float(m21);  M[5] = float(m22);  M[6] = float(m23);  M[7] = 0;
@@ -1269,28 +1269,28 @@ public:
       for (int i=0;i<16;i++) array[i] = T(M[i]);
     }
 
-    void multModelview() {
+    void multModelview() const {
       float M[16];
       for (int i=0;i<16;i++) M[i] = float(array[i]);
       glMatrixMode(GL_MODELVIEW);
       glMultMatrixf(M);
     }
 
-    void setProjection() {
+    void setProjection() const {
       float M[16];
       for (int i=0;i<16;i++) M[i] = float(array[i]);
       glMatrixMode(GL_PROJECTION);
       glLoadMatrixf(M);
     }
 
-    void setModelview() {
+    void setModelview() const {
       float M[16];
       for (int i=0;i<16;i++) M[i] = float(array[i]);
       glMatrixMode(GL_MODELVIEW);
       glLoadMatrixf(M);
     }
 
-    void setTextureMatrix(int iUnit = 0) {
+    void setTextureMatrix(int iUnit = 0) const {
       float M[16];
       for (int i=0;i<16;i++) M[i] = float(array[i]);
       glActiveTextureARB(GL_TEXTURE0_ARB+iUnit);
