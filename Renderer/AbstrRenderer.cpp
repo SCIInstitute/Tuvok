@@ -839,8 +839,7 @@ bool AbstrRenderer::ContainsData(const BrickKey& key) const
   return bContainsData;
 }
 
-vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRegion,
-                                                    bool bUseResidencyAsDistanceCriterion) {
+vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
   vector<Brick> vBrickList;
 
   UINTVECTOR3 vOverlap = m_pDataset->GetBrickOverlapSize();
@@ -939,7 +938,8 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
     } else {
       // compute minimum distance to brick corners (offset
       // slightly to the center to resolve ambiguities)
-      b.fDistance = brick_distance(b, renderRegion.modelView[0]);
+      // "GetFirst" region: see FIXME below.
+      b.fDistance = brick_distance(b, GetFirst3DRegion()->modelView[0]);
     }
 
     // add the brick to the list of active bricks
@@ -947,6 +947,12 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
   }
 
   // depth sort bricks
+
+  /// @todo FIXME?: we need to do smarter sorting.  If we've got multiple 3D
+  /// regions, they might need different orderings.  However, we want to try to
+  /// traverse bricks in a similar order, because the IO will rape us
+  /// otherwise.
+  /// For now, IV3D doesn't support multiple 3D regions in a single renderer.
   sort(vBrickList.begin(), vBrickList.end());
 
   return vBrickList;
@@ -1019,7 +1025,7 @@ void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
       }
       // build new brick todo-list
       MESSAGE("Building new brick list for LOD %llu...", m_iCurrentLOD);
-      m_vCurrentBrickList = BuildSubFrameBrickList(region);
+      m_vCurrentBrickList = BuildSubFrameBrickList();
       MESSAGE("%u bricks made the cut.", UINT32(m_vCurrentBrickList.size()));
       if (m_bDoStereoRendering) {
         m_vLeftEyeBrickList =
@@ -1060,7 +1066,7 @@ void AbstrRenderer::PlanHQMIPFrame(RenderRegion& renderRegion) {
   }
 
   // build new brick todo-list
-  m_vCurrentBrickList = BuildSubFrameBrickList(renderRegion, true);
+  m_vCurrentBrickList = BuildSubFrameBrickList(true);
 
   m_iBricksRenderedInThisSubFrame = 0;
 

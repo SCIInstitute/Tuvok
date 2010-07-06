@@ -571,8 +571,7 @@ class AbstrRenderer {
     bool Clipped(const RenderRegion&, const Brick&) const;
     /// does the current brick contain relevant data?
     bool ContainsData(const BrickKey&) const;
-    std::vector<Brick>  BuildSubFrameBrickList(const RenderRegion& renderRegion,
-                                               bool bUseResidencyAsDistanceCriterion=false);
+    std::vector<Brick>  BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion=false);
     std::vector<Brick>  BuildLeftEyeSubFrameBrickList(RenderRegion& renderRegion,
                                                       const std::vector<Brick>& vRightEyeBrickList);
     void                CompletedASubframe(RenderRegion* region);
