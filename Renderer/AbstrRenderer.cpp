@@ -853,8 +853,6 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
 
   vScale /= vDomainSizeCorrectedScale.maxVal();
 
-  FLOATVECTOR3 vBrickCorner;
-
   MESSAGE("Building active brick list from %u active bricks.",
           static_cast<unsigned>(m_pDataset->GetBrickCount(m_iCurrentLOD,
                                                           m_iTimestep)));
@@ -873,9 +871,16 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
     b.vVoxelCount = bmd.n_voxels;
     b.kBrick = brick->first;
 
-    if(!RegionNeedsBrick(renderRegion, brick->first, brick->second)) {
-      MESSAGE("Skipping brick <%u,%u,%u> because it isn't relevant for "
-              "this region.",
+    bool needed = false;
+    for(std::vector<RenderRegion*>::const_iterator reg = renderRegions.begin();
+        reg != renderRegions.end(); ++reg) {
+      if(RegionNeedsBrick(**reg, brick->first, brick->second)) {
+        needed = true;
+        break;
+      }
+    }
+    if(!needed) {
+      MESSAGE("Skipping brick <%u,%u,%u> because it isn't relevant.",
               static_cast<unsigned>(std::tr1::get<0>(brick->first)),
               static_cast<unsigned>(std::tr1::get<1>(brick->first)),
               static_cast<unsigned>(std::tr1::get<2>(brick->first)));
