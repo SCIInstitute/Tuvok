@@ -288,11 +288,11 @@ class AbstrRenderer {
     void SetClearFramebuffer(bool bClearFramebuffer) {
       m_bClearFramebuffer = bClearFramebuffer;
     }
-    bool GetClearFramebuffer() {return m_bClearFramebuffer;}
+    bool GetClearFramebuffer() const {return m_bClearFramebuffer;}
     void SetGlobalBBox(bool bRenderBBox);
-    bool GetGlobalBBox() {return m_bRenderGlobalBBox;}
+    bool GetGlobalBBox() const {return m_bRenderGlobalBBox;}
     void SetLocalBBox(bool bRenderBBox);
-    bool GetLocalBBox() {return m_bRenderLocalBBox;}
+    bool GetLocalBBox() const {return m_bRenderLocalBBox;}
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
     void Set2DFlipMode(RenderRegion *renderRegion, bool bFlipX, bool bFlipY);
@@ -301,10 +301,10 @@ class AbstrRenderer {
     bool GetUseMIP(const RenderRegion *renderRegion) const;
     void SetUseMIP(RenderRegion *renderRegion, bool bUseMIP);
 
-    UINT64 GetMaxLODIndex() const      { return m_iMaxLODIndex; }
-    UINT64 GetMinLODIndex() const      { return m_iMinLODForCurrentView; }
+    UINT64 GetMaxLODIndex() const { return m_iMaxLODIndex; }
+    UINT64 GetMinLODIndex() const { return m_iMinLODForCurrentView; }
 
-    UINTVECTOR2 GetLODLimits() const      { return m_iLODLimits; }
+    UINTVECTOR2 GetLODLimits() const { return m_iLODLimits; }
     void SetLODLimits(const UINTVECTOR2 iLODLimits);
 
     // scheduling routines
@@ -335,7 +335,7 @@ class AbstrRenderer {
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
       m_pDataset->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();
     }
-    DOUBLEVECTOR3 GetRescaleFactors() {
+    DOUBLEVECTOR3 GetRescaleFactors() const {
       return m_pDataset->GetRescaleFactors();
     }
 
@@ -347,7 +347,7 @@ class AbstrRenderer {
     virtual void  SetStereoFocalLength(float fStereoFocalLength);
     virtual void  SetStereoMode(EStereoMode mode);
     virtual void  SetStereoEyeSwap(bool bSwap);
-    virtual bool  GetStereo() {return m_bRequestStereoRendering;}
+    virtual bool  GetStereo() const {return m_bRequestStereoRendering;}
     virtual float GetStereoEyeDist() const {return m_fStereoEyeDist;}
     virtual float GetStereoFocalLength() const {return m_fStereoFocalLength;}
     virtual EStereoMode GetStereoMode() const {return m_eStereoMode;}
@@ -355,13 +355,14 @@ class AbstrRenderer {
 
 
     virtual void  SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbuffer);
-    virtual bool  GetConsiderPreviousDepthbuffer() {return m_bConsiderPreviousDepthbuffer;}
+    virtual bool  GetConsiderPreviousDepthbuffer() const {
+      return m_bConsiderPreviousDepthbuffer;
+    }
 
     void SetColors(const FLOATVECTOR4& ambient,
                    const FLOATVECTOR4& diffuse,
                    const FLOATVECTOR4& specular,
                    const FLOATVECTOR3& lightDir);
-
 
     FLOATVECTOR4 GetAmbient() const;
     FLOATVECTOR4 GetDiffuse() const;
@@ -432,9 +433,11 @@ class AbstrRenderer {
     virtual void NewFrameClear(const RenderRegion &) { assert(1==0); }
 
     const std::vector<RenderRegion*>& GetRenderRegions() const {
-      return renderRegions; }
+      return renderRegions;
+    }
     void SetRenderRegions(const std::vector<RenderRegion*> &regions) {
-      renderRegions = regions; }
+      renderRegions = regions;
+    }
 
     void Timestep(size_t);
     size_t Timestep() const;
@@ -448,6 +451,11 @@ class AbstrRenderer {
     double GetNormalizedIsovalue() const;
     /// @return the current clearview iso value, normalized to be in [0,1]
     double GetNormalizedCVIsovalue() const;
+
+    virtual void        ClearDepthBuffer() = 0;
+    virtual void        ClearColorBuffer() = 0;
+    virtual void        UpdateColorsInShaders() = 0;
+    virtual void        CVFocusHasChanged(RenderRegion &);
 
   protected:
     MasterController*   m_pMasterController;
@@ -560,13 +568,9 @@ class AbstrRenderer {
                                                bool bUseResidencyAsDistanceCriterion=false);
     std::vector<Brick>  BuildLeftEyeSubFrameBrickList(RenderRegion& renderRegion,
                                                       const std::vector<Brick>& vRightEyeBrickList);
-    virtual void        ClearDepthBuffer() = 0;
-    virtual void        ClearColorBuffer() = 0;
-    virtual void        CVFocusHasChanged(RenderRegion &);
     void                CompletedASubframe(RenderRegion* region);
     void                RestartTimer(RenderRegion& region, const size_t iTimerIndex);
     void                RestartTimers(RenderRegion& region);
-    virtual void        UpdateColorsInShaders() = 0;
     double              MaxValue() const;
     bool                OnlyRecomposite(RenderRegion* region) const;
 

@@ -854,7 +854,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     glDisable(GL_DEPTH_TEST);
 
     UINT64 iCurrentLOD = 0;
-    UINTVECTOR3 vVoxelCount(1,1,1); // make sure we do not dive by zero later
+    UINTVECTOR3 vVoxelCount(1,1,1); // make sure we do not divide by zero later
                                     // if no single-brick LOD exists
 
     // For now to make things simpler for the slice renderer we use the LOD
