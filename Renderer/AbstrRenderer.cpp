@@ -734,6 +734,111 @@ bool AbstrRenderer::OnlyRecomposite(RenderRegion* region) const {
          !region->doAnotherRedrawDueToAllMeans;
 }
 
+bool AbstrRenderer::RegionNeedsBrick(const RenderRegion& rr,
+                                     const BrickKey& key,
+                                     const BrickMD& bmd) const
+{
+  if(rr.is2D()) {
+    return std::tr1::get<1>(key) == m_pDataset->GetLODLevelCount()-1;
+  }
+
+  FLOATVECTOR3 vScale(m_pDataset->GetScale().x,
+                      m_pDataset->GetScale().y,
+                      m_pDataset->GetScale().z);
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize(m_iCurrentLOD);
+  FLOATVECTOR3 vDomainSizeCorrectedScale =
+    vScale * FLOATVECTOR3(vDomainSize)/vDomainSize.maxVal();
+  vScale /= vDomainSizeCorrectedScale.maxVal();
+  Brick b;
+  b.vExtension = bmd.extents * vScale;
+  b.vCenter = bmd.center * vScale;
+  b.vVoxelCount = bmd.n_voxels;
+
+  // skip the brick if it is outside the current view frustum
+  if (!m_FrustumCullingLOD.IsVisible(b.vCenter, b.vExtension)) {
+    return false;
+  }
+
+  // skip the brick if the clipping plane removes it.
+  if(m_bClipPlaneOn && Clipped(rr, b)) {
+    return false;
+  }
+
+  // finally, query the data in the brick; if no data can possibly be visible,
+  // don't render this brick.
+  return ContainsData(key);
+}
+
+/// @return true if this brick is clipped by a clipping plane.
+bool AbstrRenderer::Clipped(const RenderRegion& rr, const Brick& b) const
+{
+  FLOATVECTOR3 vBrickVertices[8] = {
+    b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
+    b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
+    b.vCenter + FLOATVECTOR3(-b.vExtension.x,+b.vExtension.y,-b.vExtension.z) * 0.5f,
+    b.vCenter + FLOATVECTOR3(-b.vExtension.x,+b.vExtension.y,+b.vExtension.z) * 0.5f,
+    b.vCenter + FLOATVECTOR3(+b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
+    b.vCenter + FLOATVECTOR3(+b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
+    b.vCenter + FLOATVECTOR3(+b.vExtension.x,+b.vExtension.y,-b.vExtension.z) * 0.5f,
+    b.vCenter + FLOATVECTOR3(+b.vExtension.x,+b.vExtension.y,+b.vExtension.z) * 0.5f,
+  };
+
+  FLOATMATRIX4 matWorld = rr.rotation * rr.translation;
+  // project the 8 corners of the brick.  If we find just a single corner
+  // which isn't clipped by our plane, we need this brick.
+  for (size_t i=0; i < 8; i++) {
+    vBrickVertices[i] = (FLOATVECTOR4(vBrickVertices[i],1) * matWorld)
+                        .dehomo();
+    if (!m_ClipPlane.Plane().clip(vBrickVertices[i])) {
+      return false;
+    }
+  }
+  // no corner was found; must be clipped.
+  return true;
+}
+
+// checks if the given brick contains useful data.  As one example, a brick
+// that has data between 608-912 will not be relevant if we are rendering an
+// isosurface of 42.
+bool AbstrRenderer::ContainsData(const BrickKey& key) const
+{
+  double fMaxValue = MaxValue();
+  double fRescaleFactor = fMaxValue / double(m_p1DTrans->GetSize());
+
+  bool bContainsData;
+  // render mode dictates how we look at data ...
+  switch (m_eRenderMode) {
+    case RM_1DTRANS:
+      // ... in 1D we only care about the range of data in a brick
+      bContainsData = m_pDataset->ContainsData(
+                        key,
+                        double(m_p1DTrans->GetNonZeroLimits().x) * fRescaleFactor,
+                        double(m_p1DTrans->GetNonZeroLimits().y) * fRescaleFactor
+                      );
+      break;
+    case RM_2DTRANS:
+      // ... in 2D we also need to concern ourselves w/ min/max gradients
+      bContainsData = m_pDataset->ContainsData(
+                        key,
+                        double(m_p2DTrans->GetNonZeroLimits().x) * fRescaleFactor,
+                        double(m_p2DTrans->GetNonZeroLimits().y) * fRescaleFactor,
+                        double(m_p2DTrans->GetNonZeroLimits().z),
+                        double(m_p2DTrans->GetNonZeroLimits().w)
+                      );
+      break;
+    case RM_ISOSURFACE:
+      // ... and in isosurface mode we only care about a single value.
+      bContainsData = m_pDataset->ContainsData(key, m_fIsovalue);
+      break;
+    default:
+      T_ERROR("Unhandled rendering mode.  Skipping brick!");
+      bContainsData = false;
+      break;
+  }
+
+  return bContainsData;
+}
+
 vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRegion,
                                                     bool bUseResidencyAsDistanceCriterion) {
   vector<Brick> vBrickList;
@@ -768,78 +873,12 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(const RenderRegion& renderRe
     b.vVoxelCount = bmd.n_voxels;
     b.kBrick = brick->first;
 
-
-    // skip the brick if it is outside the current view frustum
-    if (!m_FrustumCullingLOD.IsVisible(b.vCenter, b.vExtension)) {
-      continue;
-    }
-
-    // skip the brick if it is clipped by the clipping plane
-    if (m_bClipPlaneOn) {
-      FLOATVECTOR3 vBrickVertices[8] = {
-        b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
-        b.vCenter + FLOATVECTOR3(-b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
-        b.vCenter + FLOATVECTOR3(-b.vExtension.x,+b.vExtension.y,-b.vExtension.z) * 0.5f,
-        b.vCenter + FLOATVECTOR3(-b.vExtension.x,+b.vExtension.y,+b.vExtension.z) * 0.5f,
-        b.vCenter + FLOATVECTOR3(+b.vExtension.x,-b.vExtension.y,-b.vExtension.z) * 0.5f,
-        b.vCenter + FLOATVECTOR3(+b.vExtension.x,-b.vExtension.y,+b.vExtension.z) * 0.5f,
-        b.vCenter + FLOATVECTOR3(+b.vExtension.x,+b.vExtension.y,-b.vExtension.z) * 0.5f,
-        b.vCenter + FLOATVECTOR3(+b.vExtension.x,+b.vExtension.y,+b.vExtension.z) * 0.5f,
-      };
-
-      bool bClip = true;
-      FLOATMATRIX4 matWorld = renderRegion.rotation * renderRegion.translation;
-      for (size_t i = 0;i<8;i++) {
-        vBrickVertices[i] = (FLOATVECTOR4(vBrickVertices[i],1) * matWorld)
-                            .dehomo();
-        if (!m_ClipPlane.Plane().clip(vBrickVertices[i])) {
-          bClip = false;
-          break;
-        }
-      }
-      if (bClip) {
-        continue;
-      }
-    }
-
-    double fMaxValue = MaxValue();
-    double fRescaleFactor = fMaxValue / double(m_p1DTrans->GetSize());
-
-    // check if the brick contains any data worth rendering.
-    bool bContainsData;
-    switch (m_eRenderMode) {
-      case RM_1DTRANS:
-        bContainsData = m_pDataset->ContainsData(
-                          brick->first,
-                          double(m_p1DTrans->GetNonZeroLimits().x) * fRescaleFactor,
-                          double(m_p1DTrans->GetNonZeroLimits().y) * fRescaleFactor
-                        );
-        break;
-      case RM_2DTRANS:
-        bContainsData = m_pDataset->ContainsData(
-                          brick->first,
-                          double(m_p2DTrans->GetNonZeroLimits().x) * fRescaleFactor,
-                          double(m_p2DTrans->GetNonZeroLimits().y) * fRescaleFactor,
-                          double(m_p2DTrans->GetNonZeroLimits().z),
-                          double(m_p2DTrans->GetNonZeroLimits().w)
-                        );
-        break;
-      case RM_ISOSURFACE:
-        bContainsData = m_pDataset->ContainsData(brick->first, m_fIsovalue);
-        break;
-      default:
-        bContainsData = false;
-        break;
-    }
-
-    // skip the brick if no data are visible in the current rendering mode.
-    if(!bContainsData) {
-      MESSAGE("Skipping brick <%u,%u,%u> because it doesn't contain data "
-              "under the current %s.",
+    if(!RegionNeedsBrick(renderRegion, brick->first, brick->second)) {
+      MESSAGE("Skipping brick <%u,%u,%u> because it isn't relevant for "
+              "this region.",
               static_cast<unsigned>(std::tr1::get<0>(brick->first)),
               static_cast<unsigned>(std::tr1::get<1>(brick->first)),
-              static_cast<unsigned>(std::tr1::get<2>(brick->first)),
-              ((m_eRenderMode == RM_ISOSURFACE) ? "isovalue" : "tfqn"));
+              static_cast<unsigned>(std::tr1::get<2>(brick->first)));
       continue;
     }
 

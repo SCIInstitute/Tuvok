@@ -564,6 +564,13 @@ class AbstrRenderer {
     void                ComputeMaxLODForCurrentView(RenderRegion& region);
     void                Plan3DFrame(RenderRegion3D& region);
     void                PlanHQMIPFrame(RenderRegion& renderRegion);
+    /// @return true if the brick is needed to render the given region
+    bool RegionNeedsBrick(const RenderRegion&, const BrickKey&,
+                          const BrickMD&) const;
+    /// @return true if this brick is clipped by a clipping plane.
+    bool Clipped(const RenderRegion&, const Brick&) const;
+    /// does the current brick contain relevant data?
+    bool ContainsData(const BrickKey&) const;
     std::vector<Brick>  BuildSubFrameBrickList(const RenderRegion& renderRegion,
                                                bool bUseResidencyAsDistanceCriterion=false);
     std::vector<Brick>  BuildLeftEyeSubFrameBrickList(RenderRegion& renderRegion,
