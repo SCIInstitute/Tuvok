@@ -562,7 +562,7 @@ class AbstrRenderer {
     virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);
     void                ComputeMinLODForCurrentView();
     void                ComputeMaxLODForCurrentView(RenderRegion& region);
-    void                Plan3DFrame(RenderRegion3D& region);
+    void                PlanFrame(RenderRegion3D& region);
     void                PlanHQMIPFrame(RenderRegion& renderRegion);
     /// @return true if the brick is needed to render the given region
     bool RegionNeedsBrick(const RenderRegion&, const BrickKey&,

@@ -423,10 +423,10 @@ bool GLRenderer::Paint() {
             Recompose3DView(region3D);
             justCompletedRegions[i] = true;
           } else {
-            Plan3DFrame(region3D);
+            PlanFrame(region3D);
 
             // region3D.decreaseScreenResNow could have changed after calling
-            // Plan3DFrame.
+            // PlanFrame.
             SetRenderTargetArea(region3D, region3D.decreaseScreenResNow);
 
             // execute the frame

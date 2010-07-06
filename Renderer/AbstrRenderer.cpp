@@ -968,8 +968,7 @@ bool AbstrRenderer::IsVolumeResident(const BrickKey& key) {
                                                 false);
 }
 
-
-void AbstrRenderer::Plan3DFrame(RenderRegion3D& region) {
+void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
   if (region.isBlank) {
     // compute modelviewmatrix and pass it to the culling object
     region.modelView[0] = region.rotation*region.translation*m_mView[0];
