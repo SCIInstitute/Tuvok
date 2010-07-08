@@ -210,10 +210,12 @@ namespace SysTools {
   bool GetFileStats(const std::string& strFileName, struct stat& stat_buf);
   bool GetFileStats(const std::wstring& wstrFileName, struct stat& stat_buf);
 
-  void RemoveLeadingWhitespace(std::wstring &str);
-  void RemoveLeadingWhitespace(std::string &str);
-  void RemoveTailingWhitespace(std::wstring &str);
-  void RemoveTailingWhitespace(std::string &str);
+  void TrimStrLeft(std::wstring &str, const std::string& c = " \r\n\t");
+  void TrimStrLeft(std::string &str, const std::string& c = " \r\n\t");
+  void TrimStrRight(std::wstring &str, const std::string& c = " \r\n\t");
+  void TrimStrRight(std::string &str, const std::string& c = " \r\n\t");
+  void TrimStr(std::wstring &str, const std::string& c = " \r\n\t");
+  void TrimStr(std::string &str, const std::string& c = " \r\n\t");
 
 #ifdef _WIN32
   bool GetFilenameDialog(const std::string& lpstrTitle,

@@ -193,37 +193,54 @@ namespace SysTools {
   inline int myTolower(int c) {return tolower(static_cast<unsigned char>(c));}
   inline int myToupper(int c) {return toupper(static_cast<unsigned char>(c));}
 
-  void RemoveLeadingWhitespace(wstring &str) {
-    while (int(str.find_first_not_of(L" ")) > 0 || int(str.find_first_not_of(L"\t")) > 0
-           || int(str.find_first_not_of(L"\r")) > 0 || int(str.find_first_not_of(L"\n")) > 0)  {
-      str = str.substr(str.find_first_not_of(L" "), str.length());
-      str = str.substr(str.find_first_not_of(L"\t"), str.length());
-      str = str.substr(str.find_first_not_of(L"\n"), str.length());
-      str = str.substr(str.find_first_not_of(L"\r"), str.length());
-    }
+  void TrimStrLeft( std::string& Src, const std::string& c)
+  {
+    size_t p1 = Src.find_first_not_of(c);
+    if (p1 == std::string::npos) {Src = std::string(); return;}
+    Src = Src.substr(p1);
   }
 
-  void RemoveLeadingWhitespace(string &str) {
-    while (int(str.find_first_not_of(" ")) > 0 || int(str.find_first_not_of("\t")) > 0
-           || int(str.find_first_not_of("\r")) > 0 || int(str.find_first_not_of("\n")) > 0)  {
-      str = str.substr(str.find_first_not_of(" "), str.length());
-      str = str.substr(str.find_first_not_of("\t"), str.length());
-      str = str.substr(str.find_first_not_of("\n"), str.length());
-      str = str.substr(str.find_first_not_of("\r"), str.length());
-    }
+  void TrimStrRight( std::string& Src, const std::string& c)
+  {
+    size_t p2 = Src.find_last_not_of(c);
+    if (p2 == std::string::npos) {Src = std::string(); return;}
+    size_t p1 = Src.find_first_not_of(c);
+    if (p1 == std::string::npos) p1 = 0;
+    Src = Src.substr(0, p2+1);
   }
 
-
-  void RemoveTailingWhitespace(wstring &str) {
-    reverse(str.begin(), str.end());
-    RemoveLeadingWhitespace(str);
-    reverse(str.begin(), str.end());
+  void TrimStr( std::string& Src, const std::string& c)
+  {
+    size_t p2 = Src.find_last_not_of(c);
+    if (p2 == std::string::npos) {Src = std::string(); return;}
+    size_t p1 = Src.find_first_not_of(c);
+    if (p1 == std::string::npos) p1 = 0;
+    Src = Src.substr(p1, (p2-p1)+1);
   }
 
-  void RemoveTailingWhitespace(string &str) {
-    reverse(str.begin(), str.end());
-    RemoveLeadingWhitespace(str);
-    reverse(str.begin(), str.end());
+  void TrimStrLeft( std::wstring& Src, const std::wstring& c)
+  {
+    size_t p1 = Src.find_first_not_of(c);
+    if (p1 == std::wstring::npos) {Src = std::wstring(); return;}
+    Src = Src.substr(p1);
+  }
+
+  void TrimStrRight( std::wstring& Src, const std::wstring& c)
+  {
+    size_t p2 = Src.find_last_not_of(c);
+    if (p2 == std::wstring::npos) {Src = std::wstring(); return;}
+    size_t p1 = Src.find_first_not_of(c);
+    if (p1 == std::wstring::npos) p1 = 0;
+    Src = Src.substr(0, p2+1);
+  }
+
+  void TrimStr( std::wstring& Src, const std::wstring& c)
+  {
+    size_t p2 = Src.find_last_not_of(c);
+    if (p2 == std::wstring::npos) {Src = std::wstring(); return;}
+    size_t p1 = Src.find_first_not_of(c);
+    if (p1 == std::wstring::npos) p1 = 0;
+    Src = Src.substr(p1, (p2-p1)+1);
   }
 
   bool GetFileStats(const string& strFileName, struct ::stat& stat_buf) {
