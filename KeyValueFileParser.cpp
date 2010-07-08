@@ -241,7 +241,7 @@ bool KeyValueFileParser::ParseKeyValueLine(std::string line,
                                            bool bStopOnInvalidLine,
                                            const std::string& strToken,
                                            const std::string& strEndToken) {
-    RemoveLeadingWhitespace(line);
+    TrimStrLeft(line);
 
     // remove windows line endings
     if (line.length() > 0 && line[line.length()-1] == 13)
@@ -259,12 +259,11 @@ bool KeyValueFileParser::ParseKeyValueLine(std::string line,
       return !bStopOnInvalidLine;
 
     string strKey = line.substr(0, line.find_first_of(strToken));
-    RemoveTailingWhitespace(strKey);
+    TrimStrRight(strKey);
 
     line = line.substr(line.find_first_of(strToken)+strToken.length(),
                        line.length());
-    RemoveLeadingWhitespace(line);
-    RemoveTailingWhitespace(line);
+    TrimStr(line);
 
     if (strKey.length() == 0 || line.length() == 0) return true;
 
