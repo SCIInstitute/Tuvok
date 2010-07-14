@@ -573,8 +573,10 @@ class AbstrRenderer {
     /// does the current brick contain relevant data?
     bool ContainsData(const BrickKey&) const;
     std::vector<Brick>  BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion=false);
-    std::vector<Brick>  BuildLeftEyeSubFrameBrickList(RenderRegion& renderRegion,
-                                                      const std::vector<Brick>& vRightEyeBrickList);
+    std::vector<Brick>  BuildLeftEyeSubFrameBrickList(
+                          const FLOATMATRIX4& modelview,
+                          const std::vector<Brick>& vRightEyeBrickList
+                        ) const;
     void                CompletedASubframe(RenderRegion* region);
     void                RestartTimer(RenderRegion& region, const size_t iTimerIndex);
     void                RestartTimers(RenderRegion& region);

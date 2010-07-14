@@ -704,15 +704,15 @@ brick_distance(const Brick &b, const FLOATMATRIX4 &mat_modelview)
 }
 
 vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
-                             RenderRegion& renderRegion,
-                             const vector<Brick>& vRightEyeBrickList) {
+                             const FLOATMATRIX4& modelView,
+                             const vector<Brick>& vRightEyeBrickList) const {
   vector<Brick> vBrickList = vRightEyeBrickList;
 
   for (UINT32 iBrick = 0;iBrick<vBrickList.size();iBrick++) {
     // compute minimum distance to brick corners (offset slightly to
     // the center to resolve ambiguities).
     vBrickList[iBrick].fDistance = brick_distance(vBrickList[iBrick],
-                                                  renderRegion.modelView[1]);
+                                                  modelView);
   }
 
   sort(vBrickList.begin(), vBrickList.end());
@@ -1028,7 +1028,7 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
       MESSAGE("%u bricks made the cut.", UINT32(m_vCurrentBrickList.size()));
       if (m_bDoStereoRendering) {
         m_vLeftEyeBrickList =
-          BuildLeftEyeSubFrameBrickList(region, m_vCurrentBrickList);
+          BuildLeftEyeSubFrameBrickList(region.modelView[1], m_vCurrentBrickList);
       }
 
       m_iBricksRenderedInThisSubFrame = 0;
