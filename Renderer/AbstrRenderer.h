@@ -581,8 +581,8 @@ class AbstrRenderer {
                           const std::vector<Brick>& vRightEyeBrickList
                         ) const;
     void                CompletedASubframe(RenderRegion* region);
-    void                RestartTimer(RenderRegion& region, const size_t iTimerIndex);
-    void                RestartTimers(RenderRegion& region);
+    void                RestartTimer(const size_t iTimerIndex);
+    void                RestartTimers();
     double              MaxValue() const;
     bool                OnlyRecomposite(RenderRegion* region) const;
 

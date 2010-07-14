@@ -137,14 +137,12 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   simpleRenderRegion3D.minCoord = UINTVECTOR2(0,0); // maxCoord is updated in Paint().
   renderRegions.push_back(&simpleRenderRegion3D);
 
-  for (size_t i=0; i < renderRegions.size(); ++i)
-    RestartTimers(*renderRegions[i]);
+  RestartTimers();
 
   m_vShaderSearchDirs.push_back("Shaders");
   m_vShaderSearchDirs.push_back("Tuvok/Shaders");
   m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
-  msecPassed[0] = msecPassed[1] = -1.0f;
 }
 
 bool AbstrRenderer::Initialize() {
@@ -534,13 +532,13 @@ void AbstrRenderer::CompletedASubframe(RenderRegion* region) {
   region->isTargetBlank = false;
 }
 
-void AbstrRenderer::RestartTimer(RenderRegion&, const size_t iTimerIndex) {
+void AbstrRenderer::RestartTimer(const size_t iTimerIndex) {
   this->msecPassed[iTimerIndex] = -1.0f;
 }
 
-void AbstrRenderer::RestartTimers(RenderRegion& region) {
-  RestartTimer(region, 0);
-  RestartTimer(region, 1);
+void AbstrRenderer::RestartTimers() {
+  RestartTimer(0);
+  RestartTimer(1);
 }
 
 void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
@@ -648,7 +646,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
                                static_cast<UINT64>(m_iMaxLODIndex -
                                                    m_iLODLimits.x));
   m_iCurrentLODOffset = m_iStartLODOffset;
-  RestartTimers(region);
+  RestartTimers();
 }
 
 void AbstrRenderer::ComputeMinLODForCurrentView() {
@@ -1297,7 +1295,7 @@ AbstrRenderer::SetRenderRegions(const std::vector<RenderRegion*> &regions)
 {
   this->renderRegions = regions;
 
-  this->msecPassed[0] = this->msecPassed[1] = -1.0f;
+  this->RestartTimers();
   this->msecPassedCurrentFrame = -1.0f;
 }
 
