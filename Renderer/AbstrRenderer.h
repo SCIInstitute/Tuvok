@@ -479,6 +479,13 @@ class AbstrRenderer {
     float  msecPassed[2]; // time taken for last two frames
     float  msecPassedCurrentFrame; // time taken for our current rendering
     UINT32 m_iLODNotOKCounter; // n frames waited for render to become faster
+    bool decreaseScreenRes; ///< dec.'d display resolution (lower n_fragments)
+    bool decreaseScreenResNow;
+    bool decreaseSamplingRate; ///< dec.'d sampling rate (less shader work)
+    bool decreaseSamplingRateNow;
+    bool doAnotherRedrawDueToAllMeans; ///< previous subframe had res or rate
+                                       ///  reduced; we need another render to
+                                       ///  complete finish up.
     float  m_fMaxMSPerFrame;
     float  m_fScreenResDecFactor;
     float  m_fSampleDecFactor;

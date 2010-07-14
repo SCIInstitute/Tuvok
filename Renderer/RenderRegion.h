@@ -65,28 +65,12 @@ class GLSBVR2D;
     // it considers what is visible to the user not what is in the backbuffer)
     bool isTargetBlank;
 
-    bool decreaseScreenRes;
-    bool decreaseScreenResNow;
-    bool decreaseSamplingRate;
-    bool decreaseSamplingRateNow;
-
-    bool doAnotherRedrawDueToAllMeans;
-    float msecPassed[2];
-    float msecPassedCurrentFrame;
-
     RenderRegion(EWindowMode mode):
       windowMode(mode),
       redrawMask(true),
       isBlank(true),
-      isTargetBlank(true),
-      decreaseScreenRes(false),
-      decreaseScreenResNow(false),
-      decreaseSamplingRate(false),
-      decreaseSamplingRateNow(false),
-      doAnotherRedrawDueToAllMeans(false),
-      msecPassedCurrentFrame(0.0f)
+      isTargetBlank(true)
     {
-      msecPassed[0] = msecPassed[1] = -1.0f;
     }
     virtual ~RenderRegion() { /* nothing to destruct */ }
 

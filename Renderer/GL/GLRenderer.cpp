@@ -428,8 +428,7 @@ bool GLRenderer::Paint() {
 
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if (renderRegions[i]->redrawMask) {
-        SetRenderTargetArea(*renderRegions[i],
-                            renderRegions[i]->decreaseScreenResNow);
+        SetRenderTargetArea(*renderRegions[i], this->decreaseScreenResNow);
         if (renderRegions[i]->is3D()) {
           RenderRegion3D &region3D = *static_cast<RenderRegion3D*>
                                                  (renderRegions[i]);
@@ -439,9 +438,8 @@ bool GLRenderer::Paint() {
           } else {
             PlanFrame(region3D);
 
-            // region3D.decreaseScreenResNow could have changed after calling
-            // PlanFrame.
-            SetRenderTargetArea(region3D, region3D.decreaseScreenResNow);
+            // decreaseScreenResNow could have changed after calling PlanFrame.
+            SetRenderTargetArea(region3D, this->decreaseScreenResNow);
 
             // execute the frame
             float fMsecPassed = 0.0f;
@@ -457,11 +455,16 @@ bool GLRenderer::Paint() {
           region3D.redrawMask =
             (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) ||
             (m_iCurrentLODOffset > m_iMinLODForCurrentView) ||
-            region3D.decreaseScreenResNow;
+            this->decreaseScreenResNow;
         } else if (renderRegions[i]->is2D()) {  // in a 2D view mode
           RenderRegion2D& region2D = *static_cast<RenderRegion2D*>(renderRegions[i]);
           justCompletedRegions[i] = Render2DView(region2D);
           region2D.redrawMask = false;
+          if(this->decreaseScreenResNow) {
+            // if we just rendered at reduced res, we've got to do another
+            // render later.
+            region2D.redrawMask = true;
+          }
         }
       } else {
         justCompletedRegions[i] = false;
@@ -488,7 +491,7 @@ void GLRenderer::FullscreenQuad() const {
 
 void GLRenderer::FullscreenQuadRegions() const {
   for (size_t i=0; i < renderRegions.size(); ++i) {
-    FullscreenQuadRegion(renderRegions[i], renderRegions[i]->decreaseScreenResNow);
+    FullscreenQuadRegion(renderRegions[i], this->decreaseScreenResNow);
   }
 }
 
@@ -541,12 +544,12 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
   // Read newly completed image
   m_pFBO3DImageCurrent[0]->Read(0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                  (region->decreaseScreenResNow) ? GL_LINEAR : GL_NEAREST);
+                  (this->decreaseScreenResNow) ? GL_LINEAR : GL_NEAREST);
   m_pFBO3DImageCurrent[0]->ReadDepth(1);
 
   // Display this to the old buffer so we can reuse it in future frame.
   m_pProgramTrans->Enable();
-  FullscreenQuadRegion(region, region->decreaseScreenResNow);
+  FullscreenQuadRegion(region, this->decreaseScreenResNow);
   m_pProgramTrans->Disable();
 
   m_TargetBinder.Unbind();
@@ -576,7 +579,7 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
   if (renderRegions.size() == 1) {
     // if the image is complete
     if (justCompletedRegions[0]) {
-      m_bOffscreenIsLowRes = renderRegions[0]->decreaseScreenResNow;
+      m_bOffscreenIsLowRes = this->decreaseScreenResNow;
 
       // in stereo compose both images into one, in mono mode simply swap the
       // pointers
@@ -1371,7 +1374,7 @@ void GLRenderer::CopyImageToDisplayBuffer() {
   // sized region so there's no need to resize again.
   //
   // Note: We check m_bOffscreenIsLowRes instead of the
-  // RenderRegion::decreaseScreenResNow because the low res image we are trying
+  // ::decreaseScreenResNow because the low res image we are trying
   // to display might have been rendered a while ago and now the render region
   // has decreaseScreenResNow set to false while it's in the midst of trying to
   // render a new image.

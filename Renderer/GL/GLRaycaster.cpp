@@ -211,13 +211,13 @@ bool GLRaycaster::Initialize() {
   return true;
 }
 
-void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D& region,
+void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D&,
                                         const Brick& currentBrick,
                                         size_t iCurrentBrick) {
   FLOATVECTOR3 vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(currentBrick.vVoxelCount);
 
   float fSampleRateModifier = m_fSampleRateModifier /
-    (region.decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
+    (this->decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
 
   float fRayStep = (currentBrick.vExtension*vVoxelSizeTexSpace * 0.5f * 1.0f/fSampleRateModifier).minVal();
   float fStepScale = 1.0f/fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();

@@ -69,6 +69,10 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_strLogoFilename(""),
   msecPassedCurrentFrame(-1.0f),
   m_iLODNotOKCounter(0),
+  decreaseScreenRes(false),
+  decreaseScreenResNow(false),
+  decreaseSamplingRate(false),
+  decreaseSamplingRateNow(false),
   m_fMaxMSPerFrame(10000),
   m_fScreenResDecFactor(2.0f),
   m_fSampleDecFactor(2.0f),
@@ -342,7 +346,7 @@ bool AbstrRenderer::CheckForRedraw() {
     //   last draw was low res or sample rate for interactivity
     if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame ||
         m_iCurrentLODOffset > m_iMinLODForCurrentView ||
-        region->doAnotherRedrawDueToAllMeans) {
+        this->doAnotherRedrawDueToAllMeans) {
       if (m_iCheckCounter == 0 || m_bCaptureMode) {
         MESSAGE("Still drawing...");
         return true;
@@ -514,13 +518,13 @@ void AbstrRenderer::ScheduleRecompose(RenderRegion *renderRegion) {
 void AbstrRenderer::CompletedASubframe(RenderRegion* region) {
   bool bRenderingFirstSubFrame =
     (m_iCurrentLODOffset == m_iStartLODOffset) &&
-    (!region->decreaseScreenRes || region->decreaseScreenResNow) &&
-    (!region->decreaseSamplingRate || region->decreaseSamplingRateNow);
+    (!this->decreaseScreenRes || this->decreaseScreenResNow) &&
+    (!this->decreaseSamplingRate || this->decreaseSamplingRateNow);
   bool bSecondSubFrame =
     !bRenderingFirstSubFrame &&
     (m_iCurrentLODOffset == m_iStartLODOffset ||
      (m_iCurrentLODOffset == m_iStartLODOffset-1 &&
-      !(region->decreaseScreenRes || region->decreaseSamplingRate)));
+      !(this->decreaseScreenRes || this->decreaseSamplingRate)));
 
   if (bRenderingFirstSubFrame) {
     // time for current interaction LOD -> to detect if we are too slow
@@ -541,7 +545,7 @@ void AbstrRenderer::RestartTimers() {
   RestartTimer(1);
 }
 
-void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
+void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion&) {
   if (!m_bCaptureMode && this->msecPassed[0]>=0.0f) {
     // if rendering is too slow use a lower resolution during interaction
     if (this->msecPassed[0] > m_fMaxMSPerFrame) {
@@ -573,18 +577,18 @@ void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
                   "to render the first LOD level (max is %g) BUT CAN'T.",
                   this->msecPassed[0], m_fMaxMSPerFrame);
           if (m_bUseAllMeans) {
-            if (region.decreaseSamplingRate && region.decreaseScreenRes) {
+            if (this->decreaseSamplingRate && this->decreaseScreenRes) {
               MESSAGE("Even with UseAllMeans there is nothing that "
                       "can be done to meet the specified framerate.");
             } else {
-              if (!region.decreaseScreenRes) {
+              if (!this->decreaseScreenRes) {
                 MESSAGE("UseAllMeans enabled: decreasing resolution "
                         "to meet target framerate");
-                region.decreaseScreenRes = true;
+                this->decreaseScreenRes = true;
               } else {
                 MESSAGE("UseAllMeans enabled: decreasing sampling rate "
                         "to meet target framerate");
-                region.decreaseSamplingRate = true;
+                this->decreaseSamplingRate = true;
               }
             }
           } else {
@@ -602,16 +606,16 @@ void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion& region) {
         m_iLODNotOKCounter = 0;
         // We're rendering fast, so lets step up the quality. Easiest thing to
         // try first is rendering at normal sampling rate and resolution.
-        if (region.decreaseSamplingRate || region.decreaseScreenRes) {
-          if (region.decreaseSamplingRate) {
+        if (this->decreaseSamplingRate || this->decreaseScreenRes) {
+          if (this->decreaseSamplingRate) {
             MESSAGE("Rendering at full resolution as this took only %g ms",
                     this->msecPassed[0]);
-            region.decreaseSamplingRate = false;
+            this->decreaseSamplingRate = false;
           } else {
-            if (region.decreaseScreenRes) {
+            if (this->decreaseScreenRes) {
               MESSAGE("Rendering to full viewport as this took only %g ms",
                       this->msecPassed[0]);
-              region.decreaseScreenRes = false;
+              this->decreaseScreenRes = false;
             }
           }
         } else {
@@ -731,7 +735,7 @@ double AbstrRenderer::MaxValue() const {
 bool AbstrRenderer::OnlyRecomposite(RenderRegion* region) const {
   return !region->isBlank &&
           m_bPerformReCompose &&
-         !region->doAnotherRedrawDueToAllMeans;
+         !this->doAnotherRedrawDueToAllMeans;
 }
 
 bool AbstrRenderer::RegionNeedsBrick(const RenderRegion& rr,
@@ -996,17 +1000,17 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
 
     bool bBuildNewList = false;
     if (region.isBlank) {
-      region.decreaseSamplingRateNow = region.decreaseSamplingRate;
-      region.decreaseScreenResNow = region.decreaseScreenRes;
+      this->decreaseSamplingRateNow = this->decreaseSamplingRate;
+      this->decreaseScreenResNow = this->decreaseScreenRes;
       bBuildNewList = true;
-      if (region.decreaseSamplingRateNow || region.decreaseScreenResNow)
-        region.doAnotherRedrawDueToAllMeans = true;
+      if (this->decreaseSamplingRateNow || this->decreaseScreenResNow)
+        this->doAnotherRedrawDueToAllMeans = true;
     } else {
-      if (region.decreaseSamplingRateNow || region.decreaseScreenResNow) {
-        region.decreaseScreenResNow = false;
-        region.decreaseSamplingRateNow = false;
+      if (this->decreaseSamplingRateNow || this->decreaseScreenResNow) {
+        this->decreaseScreenResNow = false;
+        this->decreaseSamplingRateNow = false;
         m_iBricksRenderedInThisSubFrame = 0;
-        region.doAnotherRedrawDueToAllMeans = false;
+        this->doAnotherRedrawDueToAllMeans = false;
       } else {
         if (m_iCurrentLODOffset > m_iMinLODForCurrentView) {
           bBuildNewList = true;
@@ -1241,14 +1245,11 @@ void AbstrRenderer::SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans,
   m_bUseAllMeans = bUseAllMeans;
 
   if (!m_bUseAllMeans) {
-    for (size_t i=0; i < renderRegions.size(); ++i) {
-      RenderRegion* region = renderRegions[i];
-      region->decreaseScreenRes = false;
-      region->decreaseScreenResNow = false;
-      region->decreaseSamplingRate = false;
-      region->decreaseSamplingRateNow = false;
-      region->doAnotherRedrawDueToAllMeans = false;
-    }
+    this->decreaseScreenRes = false;
+    this->decreaseScreenResNow = false;
+    this->decreaseSamplingRate = false;
+    this->decreaseSamplingRateNow = false;
+    this->doAnotherRedrawDueToAllMeans = false;
   }
 
   m_iStartDelay = iStartDelay;

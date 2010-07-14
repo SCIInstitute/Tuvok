@@ -206,9 +206,9 @@ void GLSBVR::DisableClipPlane(RenderRegion *renderRegion) {
   }
 }
 
-void GLSBVR::Render3DPreLoop(const RenderRegion3D& region) {
+void GLSBVR::Render3DPreLoop(const RenderRegion3D&) {
   m_SBVRGeogen.SetSamplingModifier(
-    m_fSampleRateModifier / (region.decreaseSamplingRateNow ?
+    m_fSampleRateModifier / (this->decreaseSamplingRateNow ?
                              m_fSampleDecFactor : 1.0f));
 
   if(m_bClipPlaneOn) {

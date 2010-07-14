@@ -250,14 +250,14 @@ void GLSBVR2D::SetDataDepShaderVars() {
   }
 }
 
-void GLSBVR2D::SetBrickDepShaderVars(const RenderRegion3D& region,
+void GLSBVR2D::SetBrickDepShaderVars(const RenderRegion3D&,
                                      const Brick& currentBrick) {
   FLOATVECTOR3 vStep(1.0f/currentBrick.vVoxelCount.x,
                      1.0f/currentBrick.vVoxelCount.y,
                      1.0f/currentBrick.vVoxelCount.z);
 
   float fSampleRateModifier = m_fSampleRateModifier /
-    (region.decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
+    (this->decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
   float fStepScale =  1.414213562f/fSampleRateModifier * //1.414213562 = sqrt(2)
     (FLOATVECTOR3(m_pDataset->GetDomainSize()) /
      FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
@@ -311,8 +311,8 @@ void GLSBVR2D::DisableClipPlane(RenderRegion *renderRegion) {
   }
 }
 
-void GLSBVR2D::Render3DPreLoop(const RenderRegion3D& region) {
-  m_SBVRGeogen.SetSamplingModifier(m_fSampleRateModifier / ((region.decreaseSamplingRateNow) ? m_fSampleDecFactor : 1.0f));
+void GLSBVR2D::Render3DPreLoop(const RenderRegion3D&) {
+  m_SBVRGeogen.SetSamplingModifier(m_fSampleRateModifier / ((this->decreaseSamplingRateNow) ? m_fSampleDecFactor : 1.0f));
 
   if(m_bClipPlaneOn) {
     m_SBVRGeogen.EnableClipPlane();
