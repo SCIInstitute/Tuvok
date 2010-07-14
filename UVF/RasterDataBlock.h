@@ -175,7 +175,7 @@ protected:
   friend class Histogram1DDataBlock;
   friend class Histogram2DDataBlock;
 
-  // CONVENIANCE FUNCTION HELPERS
+  // CONVENIENCE FUNCTION HELPERS
   std::vector<UINT64> m_vLODOffsets;
   std::vector<std::vector<UINT64> > m_vBrickCount;
   std::vector<std::vector<UINT64> > m_vBrickOffsets;
