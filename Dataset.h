@@ -82,23 +82,28 @@ public:
 
   virtual void AddBrick(const BrickKey&, const BrickMD&) = 0;
   /// Gets the number of voxels, per dimension.
-  // (temp note): was GetBrickSize, renaming to make it more obvious what
-  // information it's retrieving, and to differentiate from 'effective' brick
-  // size.
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const = 0;
+  /// World space extents.
   virtual FLOATVECTOR3 GetBrickExtents(const BrickKey &) const = 0;
   virtual bool GetBrick(const BrickKey&,
                         std::vector<unsigned char>&) const = 0;
   virtual BrickTable::const_iterator BricksBegin() const = 0;
   virtual BrickTable::const_iterator BricksEnd() const = 0;
+  /// @return the number of bricks in a given LoD + timestep.
   virtual BrickTable::size_type GetBrickCount(size_t lod, size_t ts) const = 0;
 
   virtual bool BrickIsFirstInDimension(size_t, const BrickKey&) const = 0;
   virtual bool BrickIsLastInDimension(size_t, const BrickKey&) const = 0;
 
+  /// User rescaling factors.
+  ///@{
   void SetRescaleFactors(const DOUBLEVECTOR3&);
   DOUBLEVECTOR3 GetRescaleFactors() const;
+  /// If the underlying file format supports it, save the current scaling
+  /// factors to the file.  The format should implicitly load and apply the
+  /// scaling factors when opening the file.
   virtual bool SaveRescaleFactors() {return false;}
+  ///@}
 
   virtual UINT64 GetLODLevelCount() const = 0;
   /// @todo FIXME, should be pure virtual && overridden in derived
@@ -127,7 +132,8 @@ public:
   virtual bool ContainsData(const BrickKey&, double /*fMin*/, double /*fMax*/) const {return true;}
   virtual bool ContainsData(const BrickKey&, double /*fMin*/, double /*fMax*/, double /*fMinGradient*/, double /*fMaxGradient*/) const {return true;}
 
-  /// unimplemented!
+  /// unimplemented!  Override this if you want tools built on this IO layer
+  /// to be able to create data in your format.
   virtual bool Export(UINT64 iLODLevel, const std::string& targetFilename,
                       bool bAppend,
                       bool (*brickFunc)(LargeRAWFile* pSourceFile,
