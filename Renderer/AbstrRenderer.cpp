@@ -545,7 +545,7 @@ void AbstrRenderer::RestartTimers() {
   RestartTimer(1);
 }
 
-void AbstrRenderer::ComputeMaxLODForCurrentView(RenderRegion&) {
+void AbstrRenderer::ComputeMaxLODForCurrentView() {
   if (!m_bCaptureMode && this->msecPassed[0]>=0.0f) {
     // if rendering is too slow use a lower resolution during interaction
     if (this->msecPassed[0] > m_fMaxMSPerFrame) {
@@ -991,7 +991,7 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
     // figure out at what coarse level we need to start for the current view
     // this method takes the rendermode (capture or not) and the time it took
     // to render the last subframe into account
-    ComputeMaxLODForCurrentView(region);
+    ComputeMaxLODForCurrentView();
   }
 
   // plan if the frame is to be redrawn
