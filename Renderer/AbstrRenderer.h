@@ -436,9 +436,7 @@ class AbstrRenderer {
     const std::vector<RenderRegion*>& GetRenderRegions() const {
       return renderRegions;
     }
-    void SetRenderRegions(const std::vector<RenderRegion*> &regions) {
-      renderRegions = regions;
-    }
+    void SetRenderRegions(const std::vector<RenderRegion*>&);
 
     void Timestep(size_t);
     size_t Timestep() const;
@@ -476,15 +474,20 @@ class AbstrRenderer {
     int                 m_iLogoPos;
     std::string         m_strLogoFilename;
 
-    UINT32              m_iLODNotOKCounter;
-    float               m_fMaxMSPerFrame;
-    float               m_fScreenResDecFactor;
-    float               m_fSampleDecFactor;
-    bool                m_bUseAllMeans;
-    bool                m_bOffscreenIsLowRes;
-    UINT32              m_iStartDelay;
-    UINT64              m_iMinLODForCurrentView;
-    UINT32              m_iTimeSliceMSecs;
+    /// parameters for dynamic resolution adjustments
+    ///@{
+    float  msecPassed[2]; // time taken for last two frames
+    float  msecPassedCurrentFrame; // time taken for our current rendering
+    UINT32 m_iLODNotOKCounter; // n frames waited for render to become faster
+    float  m_fMaxMSPerFrame;
+    float  m_fScreenResDecFactor;
+    float  m_fSampleDecFactor;
+    bool   m_bUseAllMeans;
+    bool   m_bOffscreenIsLowRes;
+    UINT32 m_iStartDelay;
+    UINT64 m_iMinLODForCurrentView;
+    UINT32 m_iTimeSliceMSecs;
+    ///@}
 
     UINT64              m_iIntraFrameCounter;
     UINT64              m_iFrameCounter;

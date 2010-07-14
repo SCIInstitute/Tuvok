@@ -451,7 +451,7 @@ bool GLRenderer::Paint() {
               return false;
             }
             justCompletedRegions[i] = static_cast<char>(bJobDone);
-            region3D.msecPassedCurrentFrame += fMsecPassed;
+            this->msecPassedCurrentFrame += fMsecPassed;
           }
           // are we done rendering or do we need to render at higher quality?
           region3D.redrawMask =
@@ -1345,7 +1345,7 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
     if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
       // show the timings as "other", to distinguish it from all those million messages
       OTHER("The current subframe took %g ms to render (LOD Level %u)",
-            renderRegion.msecPassedCurrentFrame + fMsecPassed,
+            this->msecPassedCurrentFrame + fMsecPassed,
             static_cast<unsigned>(m_iCurrentLODOffset));
       PostSubframe(renderRegion);
       completedJob = true;
