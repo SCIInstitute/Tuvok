@@ -743,7 +743,8 @@ bool AbstrRenderer::RegionNeedsBrick(const RenderRegion& rr,
                                      const BrickMD& bmd) const
 {
   if(rr.is2D()) {
-    return std::tr1::get<1>(key) == m_pDataset->GetLODLevelCount()-1;
+    return rr.GetUseMIP() ||
+           std::tr1::get<1>(key) == m_pDataset->GetLODLevelCount()-1;
   }
 
   FLOATVECTOR3 vScale(m_pDataset->GetScale().x,
@@ -997,7 +998,6 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
   // or if we have completed the last subframe but not the entire frame
   if (region.isBlank ||
       (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame)) {
-
     bool bBuildNewList = false;
     if (region.isBlank) {
       this->decreaseSamplingRateNow = this->decreaseSamplingRate;
