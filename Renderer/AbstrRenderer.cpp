@@ -974,24 +974,38 @@ bool AbstrRenderer::IsVolumeResident(const BrickKey& key) {
 }
 
 void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
-  if (region.isBlank) {
-    // compute modelviewmatrix and pass it to the culling object
-    region.modelView[0] = region.rotation*region.translation*m_mView[0];
-    if (m_bDoStereoRendering)
-      region.modelView[1] = region.rotation*region.translation*m_mView[1];
-
-    // we assume that the left and right eye's view are similar so we only
-    // use one for culling
-    m_FrustumCullingLOD.SetViewMatrix(region.modelView[0]);
-    m_FrustumCullingLOD.Update();
-
-    // figure out how fine we need to draw the data for the current view
-    // this method takes the size of a voxel in screen space into account
-    ComputeMinLODForCurrentView();
-    // figure out at what coarse level we need to start for the current view
-    // this method takes the rendermode (capture or not) and the time it took
-    // to render the last subframe into account
-    ComputeMaxLODForCurrentView();
+  {
+    bool blank = false; // any regions blank?
+    typedef std::vector<RenderRegion*>::iterator r_iter;
+    for(r_iter r = this->renderRegions.begin(); r != this->renderRegions.end();
+        ++r) {
+      RenderRegion& rr = **r;
+      if(rr.isBlank) {
+        rr.modelView[0] = rr.rotation * rr.translation * m_mView[0];
+        if(m_bDoStereoRendering) {
+          rr.modelView[1] = rr.rotation * rr.translation * m_mView[1];
+        }
+        blank = true;
+      }
+      // HACK.  We know there will only be one 3D region.  However, this logic is
+      // really too simple; we can't just throw away a brick if it is outside a
+      // region's view frustum: it must be outside *all* regions' view frustums.
+      if(rr.is3D()) {
+        m_FrustumCullingLOD.SetViewMatrix(region.modelView[0]);
+        m_FrustumCullingLOD.Update();
+      }
+    }
+    // if we found a blank region, we need to reset and do some actual
+    // planning.
+    if(blank) {
+      // figure out how fine we need to draw the data for the current view
+      // this method takes the size of a voxel in screen space into account
+      ComputeMinLODForCurrentView();
+      // figure out at what coarse level we need to start for the current view
+      // this method takes the rendermode (capture or not) and the time it took
+      // to render the last subframe into account
+      ComputeMaxLODForCurrentView();
+    }
   }
 
   // plan if the frame is to be redrawn
