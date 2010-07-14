@@ -964,13 +964,13 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
 }
 
 bool AbstrRenderer::IsVolumeResident(const BrickKey& key) {
-  // normaly we use "real" 3D textures so implement this method
+  // normally we use "real" 3D textures so implement this method
   // for 3D textures, it is overriden by 2D texture children
   return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
-                                                m_bUseOnlyPowerOfTwo,
-                                                m_bDownSampleTo8Bits,
-                                                m_bDisableBorder,
-                                                false);
+                                                   m_bUseOnlyPowerOfTwo,
+                                                   m_bDownSampleTo8Bits,
+                                                   m_bDisableBorder,
+                                                   false);
 }
 
 void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
