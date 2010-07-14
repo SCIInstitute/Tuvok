@@ -665,8 +665,10 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
     if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename))
       remove(vIntermediateFiles[i].strFilename.c_str());
   }
-  if (!bIsMerged) return false;
-
+  if (!bIsMerged) {
+    WARNING("Merged failed, see other debug messages.");
+    return false;
+  }
 
   // convert that single RAW file to the target data
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
