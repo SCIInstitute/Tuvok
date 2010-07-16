@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   Copyright (c) 2010 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    AnalyzeConverter.cpp
+  \file    InveonConverter.cpp
   \author  Tom Fogal
            SCI Institute
            University of Utah
@@ -41,12 +41,12 @@
 #endif
 #include <sstream>
 #include <string>
-#include "AnalyzeConverter.h"
+#include "InveonConverter.h"
 #include <Basics/EndianConvert.h>
 
-AnalyzeConverter::AnalyzeConverter()
+InveonConverter::InveonConverter()
 {
-  m_vConverterDesc = "Analyze";
+  m_vConverterDesc = "Inveon";
   m_vSupportedExt.push_back("HDR");
 }
 
@@ -96,7 +96,7 @@ namespace {
   }
 }
 
-bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
+bool InveonConverter::ConvertToRAW(const std::string& strSourceFilename,
                                     const std::string&,
                                     bool /* bNoUserInteraction */,
                                     UINT64& iHeaderSkip,
@@ -121,7 +121,7 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   eType = UVFTables::ES_UNDEFINED;
   bDeleteIntermediateFile = false;
   bSigned = true; // format does not distinguish
-  strTitle = "Analyze";
+  strTitle = "Inveon";
 
   // The filename is actually stored in the header, but it includes
   // a full pathname and is thus garbage in many instances; e.g. the
@@ -214,7 +214,7 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-bool AnalyzeConverter::ConvertToNative(
+bool InveonConverter::ConvertToNative(
   const std::string& strRawFilename,
   const std::string& strTargetFilename,
   UINT64 iHeaderSkip,

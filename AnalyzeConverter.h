@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   Copyright (c) 2010 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -27,28 +27,25 @@
 */
 
 /**
-  \file    AnalyzeConverter.h
+  \file    InveonConverter.h
   \author  Tom Fogal
            SCI Institute
            University of Utah
 */
 #pragma once
 
-#ifndef TUVOK_IO_ANALYZE_CONVERTER_H
-#define TUVOK_IO_ANALYZE_CONVERTER_H
+#ifndef TUVOK_IO_INVEON_CONVERTER_H
+#define TUVOK_IO_INVEON_CONVERTER_H
 
 #include "../StdTuvokDefines.h"
 #include "RAWConverter.h"
 
-/** A converter for `hdr' and `img' files, potentially the Analyze 7.5
- * format.  What little documentation could be found about the format made it
- * look like it was *not* the Analyze 7.5 format, but the source of the data
- * seemed to think that's what it was and no other information was available,
- * so... */
-class AnalyzeConverter : public RAWConverter {
+/** A converter for `hdr' and `img' files, which seems to come out of an
+ * 'Inveon' scanner. */
+class InveonConverter : public RAWConverter {
 public:
-  AnalyzeConverter();
-  virtual ~AnalyzeConverter() {}
+  InveonConverter();
+  virtual ~InveonConverter() {}
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir,
@@ -73,4 +70,4 @@ public:
 
   virtual bool CanExportData() const { return true; }
 };
-#endif // TUVOK_IO_ANALYZE_CONVERTER_H
+#endif // TUVOK_IO_INVEON_CONVERTER_H

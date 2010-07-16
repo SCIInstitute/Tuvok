@@ -51,7 +51,6 @@
 #include "uvfDataset.h"
 #include "UVF/TriangleSoupBlock.h"
 
-#include "AnalyzeConverter.h"
 #include "VGStudioConverter.h"
 #include "BOVConverter.h"
 #include "NRRDConverter.h"
@@ -60,6 +59,7 @@
 #include "REKConverter.h"
 #include "IASSConverter.h"
 #include "I3MConverter.h"
+#include "InveonConverter.h"
 #include "StkConverter.h"
 #include "TiffVolumeConverter.h"
 #include "VFFConverter.h"
@@ -95,7 +95,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new IASSConverter());
   m_vpConverters.push_back(new I3MConverter());
   m_vpConverters.push_back(new KitwareConverter());
-  m_vpConverters.push_back(new AnalyzeConverter());
+  m_vpConverters.push_back(new InveonConverter());
   m_dsFactory->AddReader(std::tr1::shared_ptr<UVFDataset>(new UVFDataset()));
 }
 
