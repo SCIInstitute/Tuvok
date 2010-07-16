@@ -973,47 +973,52 @@ bool AbstrRenderer::IsVolumeResident(const BrickKey& key) {
                                                    false);
 }
 
+struct Blank: public std::unary_function<RenderRegion, bool> {
+  bool operator()(const RenderRegion* rr) const { return rr->isBlank; }
+};
+
 void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
-  {
-    bool blank = false; // any regions blank?
-    typedef std::vector<RenderRegion*>::iterator r_iter;
-    for(r_iter r = this->renderRegions.begin(); r != this->renderRegions.end();
-        ++r) {
-      RenderRegion& rr = **r;
-      if(rr.isBlank) {
-        rr.modelView[0] = rr.rotation * rr.translation * m_mView[0];
-        if(m_bDoStereoRendering) {
-          rr.modelView[1] = rr.rotation * rr.translation * m_mView[1];
-        }
-        blank = true;
-      }
-      // HACK.  We know there will only be one 3D region.  However, this logic is
-      // really too simple; we can't just throw away a brick if it is outside a
-      // region's view frustum: it must be outside *all* regions' view frustums.
-      if(rr.is3D()) {
-        m_FrustumCullingLOD.SetViewMatrix(region.modelView[0]);
-        m_FrustumCullingLOD.Update();
+  typedef std::vector<RenderRegion*>::iterator r_iter;
+  for(r_iter r = renderRegions.begin(); r != renderRegions.end(); ++r) {
+    RenderRegion& rr = **r;
+    if(rr.isBlank) {
+      rr.modelView[0] = rr.rotation * rr.translation * m_mView[0];
+      if(m_bDoStereoRendering) {
+        rr.modelView[1] = rr.rotation * rr.translation * m_mView[1];
       }
     }
-    // if we found a blank region, we need to reset and do some actual
-    // planning.
-    if(blank) {
-      // figure out how fine we need to draw the data for the current view
-      // this method takes the size of a voxel in screen space into account
-      ComputeMinLODForCurrentView();
-      // figure out at what coarse level we need to start for the current view
-      // this method takes the rendermode (capture or not) and the time it took
-      // to render the last subframe into account
-      ComputeMaxLODForCurrentView();
+    // HACK.  We know there will only be one 3D region.  However, this logic is
+    // really too simple; we can't just throw away a brick if it is outside a
+    // region's view frustum: it must be outside *all* regions' view frustums.
+    if(rr.is3D()) {
+      m_FrustumCullingLOD.SetViewMatrix(rr.modelView[0]);
+      m_FrustumCullingLOD.Update();
     }
+  }
+
+  // are any regions blank?
+  bool blank = std::find_if(this->renderRegions.begin(),
+                            this->renderRegions.end(),
+                            Blank()) != this->renderRegions.end();
+
+  // if we found a blank region, we need to reset and do some actual
+  // planning.
+  if(blank) {
+    // figure out how fine we need to draw the data for the current view
+    // this method takes the size of a voxel in screen space into account
+    ComputeMinLODForCurrentView();
+    // figure out at what coarse level we need to start for the current view
+    // this method takes the rendermode (capture or not) and the time it took
+    // to render the last subframe into account
+    ComputeMaxLODForCurrentView();
   }
 
   // plan if the frame is to be redrawn
   // or if we have completed the last subframe but not the entire frame
-  if (region.isBlank ||
+  if (blank ||
       (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame)) {
     bool bBuildNewList = false;
-    if (region.isBlank) {
+    if (blank) {
       this->decreaseSamplingRateNow = this->decreaseSamplingRate;
       this->decreaseScreenResNow = this->decreaseScreenRes;
       bBuildNewList = true;
@@ -1053,7 +1058,7 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
     }
   }
 
-  if (region.isBlank) {
+  if(blank) {
     // update frame states
     m_iIntraFrameCounter = 0;
     m_iFrameCounter = m_pMasterController->MemMan()->UpdateFrameCounter();
