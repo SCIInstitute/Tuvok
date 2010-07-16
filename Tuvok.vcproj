@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Tuvok"
 	ProjectGUID="{D474A1E1-2ED3-42E6-826C-372430E549B9}"
 	RootNamespace="Tuvoc"
@@ -1553,11 +1553,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -1910,6 +1910,14 @@
 				</File>
 				<File
 					RelativePath=".\IO\UVF\RasterDataBlock.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\UVF\TriangleSoupBlock.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\UVF\TriangleSoupBlock.h"
 					>
 				</File>
 				<File
