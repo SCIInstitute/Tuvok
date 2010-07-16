@@ -135,6 +135,7 @@ HEADERS += \
            IO/UVF/KeyValuePairDataBlock.h \
            IO/UVF/MaxMinDataBlock.h \
            IO/UVF/RasterDataBlock.h \
+           IO/UVF/TriangleSoupBlock.h \
            IO/UVF/UVFBasic.h \
            IO/UVF/UVF.h \
            IO/UVF/UVFTables.h \
@@ -335,6 +336,7 @@ SOURCES += \
            IO/UVF/KeyValuePairDataBlock.cpp \
            IO/UVF/MaxMinDataBlock.cpp \
            IO/UVF/RasterDataBlock.cpp \
+           IO/UVF/TriangleSoupBlock.cpp \
            IO/UVF/UVF.cpp \
            IO/UVF/UVFTables.cpp \
            IO/VariantArray.cpp \
