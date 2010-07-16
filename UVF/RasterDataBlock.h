@@ -98,7 +98,7 @@ public:
 
   virtual bool SetBlockSemantic(UVFTables::BlockSemanticTable bs);
 
-  // CONVENIANCE FUNCTIONS
+  // CONVENIENCE FUNCTIONS
   void SetScaleOnlyTransformation(const std::vector<double>& vScale);
   void SetIdentityTransformation();
   void SetTypeToScalar(UINT64 iBitWith, UINT64 iMantissa, bool bSigned, UVFTables::ElementSemanticTable semantic);
