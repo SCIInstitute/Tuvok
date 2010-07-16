@@ -479,7 +479,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
         bConvertEndianessG = !v.IsSameEndianness();
         bSignedG = v.GetIsSigned();
         bIsFloatG = v.GetIsFloat();
-        vVolumeSizeG = v.GetDomainSize(iLODLevel);
+        vVolumeSizeG = v.GetDomainSize(static_cast<size_t>(iLODLevel));
         vVolumeAspectG = FLOATVECTOR3(v.GetScale());
       } else {
         if (iComponentSizeG  != v.GetBitWidth() ||
@@ -487,7 +487,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
             bConvertEndianessG != !v.IsSameEndianness() ||
             bSignedG != v.GetIsSigned() ||
             bIsFloatG != v.GetIsFloat() ||
-            vVolumeSizeG != v.GetDomainSize(iLODLevel)) {
+            vVolumeSizeG != v.GetDomainSize(static_cast<size_t>(iLODLevel))) {
           bRAWCreated = false;
           break;
         }
@@ -831,7 +831,7 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     bConvertEndianess = !v.IsSameEndianness();
     bSigned = v.GetIsSigned();
     bIsFloat = v.GetIsFloat();
-    vVolumeSize = v.GetDomainSize(iLODLevel);
+    vVolumeSize = v.GetDomainSize(static_cast<size_t>(iLODLevel));
     vVolumeAspect = FLOATVECTOR3(v.GetScale());
     eType             = UVFTables::ES_UNDEFINED;  /// \todo grab this data from the UVF file
     strTitle          = "UVF data";               /// \todo grab this data from the UVF file
@@ -1056,15 +1056,15 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel,
   MESSAGE("Writing Target Dataset");
 
   bool bTargetCreated = pExporter->ConvertToNative(
-                                strTempFilename, strTargetFilename, 0,
-                                pSourceData->GetBitWidth(),
-                                pSourceData->GetComponentCount(),
-                                pSourceData->GetIsSigned(),
-                                pSourceData->GetIsFloat(),
-                                pSourceData->GetDomainSize(iLODlevel),
-                                FLOATVECTOR3(pSourceData->GetScale()),
-                                false, false
-                        );
+                    strTempFilename, strTargetFilename, 0,
+                    pSourceData->GetBitWidth(),
+                    pSourceData->GetComponentCount(),
+                    pSourceData->GetIsSigned(),
+                    pSourceData->GetIsFloat(),
+                    pSourceData->GetDomainSize(static_cast<size_t>(iLODlevel)),
+                    FLOATVECTOR3(pSourceData->GetScale()),
+                    false, false
+                  );
   remove(strTempFilename.c_str());
 
   if (!bTargetCreated) {

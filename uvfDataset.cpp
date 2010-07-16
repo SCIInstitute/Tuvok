@@ -241,8 +241,9 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
           ts.m_vvaBrickSize[j][size_t(x)][size_t(y)].push_back(
             UINT64VECTOR3(vBrickSize[0], vBrickSize[1], vBrickSize[2]));
 
-          const BrickKey k = BrickKey(timestep, j, z*ts.m_vaBrickCount[j].x*ts.m_vaBrickCount[j].y +
-                                                   y*ts.m_vaBrickCount[j].x + x);
+          const BrickKey k = BrickKey(timestep, j, 
+            static_cast<size_t>(z*ts.m_vaBrickCount[j].x*ts.m_vaBrickCount[j].y+
+                                y*ts.m_vaBrickCount[j].x + x));
 
           bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) /
                          float(GetDomainSize(j, timestep).maxVal());
@@ -377,10 +378,13 @@ bool UVFDataset::VerifyRasterDataBlock(const RasterDataBlock* rdb) const
 UINT64VECTOR3 UVFDataset::GetEffectiveBrickSize(const BrickKey &k) const
 {
   const NDBrickKey& key = IndexToVectorKey(k);
-  UINT64 iLOD = std::tr1::get<1>(k);
+  size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
   UINT64VECTOR3 vBrickSize =
     m_timesteps[key.timestep].
-      m_vvaBrickSize[iLOD][key.brick[0]][key.brick[1]][key.brick[2]];
+      m_vvaBrickSize[iLOD]
+                    [static_cast<size_t>(key.brick[0])]
+                    [static_cast<size_t>(key.brick[1])]
+                    [static_cast<size_t>(key.brick[2])];
 
   const Timestep& ts = m_timesteps[key.timestep];
 
@@ -477,7 +481,7 @@ void UVFDataset::FindSuitableRasterBlocks() {
                                   " rebricking necessary.";
               WARNING("%s", large.c_str());
               throw tuvok::io::DSBricksOversized(
-                large.c_str(),m_iMaxAcceptableBricksize, _func_, __LINE__
+                large.c_str(),static_cast<size_t>(m_iMaxAcceptableBricksize), _func_, __LINE__
               );
             }
           }
@@ -613,9 +617,13 @@ void UVFDataset::GetHistograms(size_t) {
 
 UINTVECTOR3 UVFDataset::GetBrickVoxelCounts(const BrickKey& k) const
 {
-  UINT64 iLOD = std::tr1::get<1>(k);
+  size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
   const NDBrickKey& key = IndexToVectorKey(k);
-  return UINTVECTOR3(m_timesteps[key.timestep].m_vvaBrickSize[iLOD][key.brick[0]][key.brick[1]][key.brick[2]]);
+
+  return UINTVECTOR3(m_timesteps[key.timestep].m_vvaBrickSize[iLOD]
+                                         [static_cast<size_t>(key.brick[0])]
+                                         [static_cast<size_t>(key.brick[1])]
+                                         [static_cast<size_t>(key.brick[2])]);
 }
 
 bool UVFDataset::Export(UINT64 iLODLevel, const std::string& targetFilename,
@@ -803,7 +811,10 @@ std::pair<double,double> UVFDataset::GetRange() {
         const NDBrickKey& key = IndexToVectorKey(k);
 
         const InternalMaxMinElement& maxMinElement =
-          ts.m_vvaMaxMin[0][key.brick[0]][key.brick[1]][key.brick[2]];
+          ts.m_vvaMaxMin[0]
+                        [static_cast<size_t>(key.brick[0])]
+                        [static_cast<size_t>(key.brick[1])]
+                        [static_cast<size_t>(key.brick[2])];
 
         if (i>0) {
           limits.first  = min(limits.first, maxMinElement.minScalar);
@@ -826,9 +837,12 @@ bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
   if(NULL == m_timesteps[std::tr1::get<0>(k)].m_pMaxMinData) {return true;}
 
   const NDBrickKey& key = IndexToVectorKey(k);
-  UINT64 iLOD = std::tr1::get<1>(k);
+  size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
   const InternalMaxMinElement& maxMinElement =
-    m_timesteps[key.timestep].m_vvaMaxMin[iLOD][key.brick[0]][key.brick[1]][key.brick[2]];
+    m_timesteps[key.timestep].m_vvaMaxMin[iLOD]
+                                         [static_cast<size_t>(key.brick[0])]
+                                         [static_cast<size_t>(key.brick[1])]
+                                         [static_cast<size_t>(key.brick[2])];
 
   return (isoval <= maxMinElement.maxScalar);
 }
@@ -839,9 +853,12 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
   if(NULL == m_timesteps[std::tr1::get<0>(k)].m_pMaxMinData) {return true;}
 
   const NDBrickKey& key = IndexToVectorKey(k);
-  UINT64 iLOD = std::tr1::get<1>(k);
+  size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
   const InternalMaxMinElement& maxMinElement =
-    m_timesteps[key.timestep].m_vvaMaxMin[iLOD][key.brick[0]][key.brick[1]][key.brick[2]];
+    m_timesteps[key.timestep].m_vvaMaxMin[iLOD]
+                                         [static_cast<size_t>(key.brick[0])]
+                                         [static_cast<size_t>(key.brick[1])]
+                                         [static_cast<size_t>(key.brick[2])];
 
   return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
@@ -852,9 +869,12 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double
   if(NULL == m_timesteps[std::tr1::get<0>(k)].m_pMaxMinData) {return true;}
 
   const NDBrickKey& key = IndexToVectorKey(k);
-  UINT64 iLOD = std::tr1::get<1>(k);
+  size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
   const InternalMaxMinElement& maxMinElement =
-    m_timesteps[key.timestep].m_vvaMaxMin[iLOD][key.brick[0]][key.brick[1]][key.brick[2]];
+    m_timesteps[key.timestep].m_vvaMaxMin[iLOD]
+                                         [static_cast<size_t>(key.brick[0])]
+                                         [static_cast<size_t>(key.brick[1])]
+                                         [static_cast<size_t>(key.brick[2])];
 
   return (fMax >= maxMinElement.minScalar &&
           fMin <= maxMinElement.maxScalar)
