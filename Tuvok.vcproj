@@ -1553,11 +1553,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -1679,6 +1679,14 @@
 			</File>
 			<File
 				RelativePath=".\IO\IASSConverter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\InveonConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\InveonConverter.h"
 				>
 			</File>
 			<File
