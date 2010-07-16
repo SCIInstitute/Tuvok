@@ -345,7 +345,7 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
 
     size_t iTarget = 0;
     size_t iSource = 0;
-    size_t iElementSize = iBitWidth/8*iCompCount;
+    size_t iElementSize = static_cast<size_t>(iBitWidth/8*iCompCount);
     size_t iRowSizeSource = vSize[0]*iElementSize;
     size_t iRowSizeTarget = vPaddedSize[0]*iElementSize;
 

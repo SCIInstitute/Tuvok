@@ -155,8 +155,8 @@ void GLVolume2DTex::SetData(const void *voxels) {
 
 
   const char* charPtr = static_cast<const char*>(voxels);
-  char* copyBuffer = new char[max(m_pTextures[0][0]->GetCPUSize(),
-                                  m_pTextures[1][0]->GetCPUSize())];
+  char* copyBuffer = new char[static_cast<size_t>(max(m_pTextures[0][0]->GetCPUSize(),
+                                  m_pTextures[1][0]->GetCPUSize()))];
   size_t sliceElemCount = m_iSizeY*m_iSizeX;
 
   for (size_t i = 0;i<m_pTextures[0].size();i++){
@@ -194,7 +194,7 @@ void GLVolume2DTex::SetData(const void *voxels) {
   delete[] copyBuffer;
 
   // z direction is easy 
-  size_t stepping = m_pTextures[2][0]->GetCPUSize();
+  size_t stepping = static_cast<size_t>(m_pTextures[2][0]->GetCPUSize());
 
   for (size_t i = 0;i<m_pTextures[2].size();i++){
     m_pTextures[2][i]->SetData(charPtr);

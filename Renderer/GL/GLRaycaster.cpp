@@ -220,7 +220,7 @@ void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D&,
     (this->decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
 
   float fRayStep = (currentBrick.vExtension*vVoxelSizeTexSpace * 0.5f * 1.0f/fSampleRateModifier).minVal();
-  float fStepScale = 1.0f/fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
+  float fStepScale = 1.0f/fSampleRateModifier * (FLOATVECTOR3(m_pDataset->GetDomainSize())/FLOATVECTOR3(m_pDataset->GetDomainSize(static_cast<size_t>(m_iCurrentLOD)))).maxVal();
 
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  {

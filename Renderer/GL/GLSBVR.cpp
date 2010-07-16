@@ -245,7 +245,7 @@ void GLSBVR::Render3DPreLoop(const RenderRegion3D&) {
                           break;
   }
 
-  m_SBVRGeogen.SetLODData( UINTVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))  );
+  m_SBVRGeogen.SetLODData( UINTVECTOR3(m_pDataset->GetDomainSize(static_cast<size_t>(m_iCurrentLOD))));
   glEnable(GL_DEPTH_TEST);
 }
 

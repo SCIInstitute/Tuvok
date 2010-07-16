@@ -260,7 +260,9 @@ void GLSBVR2D::SetBrickDepShaderVars(const RenderRegion3D&,
     (this->decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
   float fStepScale =  1.414213562f/fSampleRateModifier * //1.414213562 = sqrt(2)
     (FLOATVECTOR3(m_pDataset->GetDomainSize()) /
-     FLOATVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))).maxVal();
+     FLOATVECTOR3(m_pDataset->GetDomainSize(
+                              static_cast<size_t>(m_iCurrentLOD))
+                              )).maxVal();
 
 
   switch (m_eRenderMode) {
@@ -348,7 +350,7 @@ void GLSBVR2D::Render3DPreLoop(const RenderRegion3D&) {
                           break;
   }
 
-  m_SBVRGeogen.SetLODData( UINTVECTOR3(m_pDataset->GetDomainSize(m_iCurrentLOD))  );
+  m_SBVRGeogen.SetLODData(UINTVECTOR3(m_pDataset->GetDomainSize(static_cast<size_t>(m_iCurrentLOD))));
 }
 
 void GLSBVR2D::RenderProxyGeometry() const {
