@@ -1321,6 +1321,69 @@ bool IOManager::ReBrickDataset(const std::string& strSourceFilename,
   return true;
 }
 
+void IOManager::AddTriSurf(const std::string& trisoup_fn,
+                           const std::string&) const
+{
+  /// HACK: we should really have a dynamic registration interface, like we do
+  /// for converters.  Or, better, just expand the notion of converter to be
+  /// able to generate raw trisoup files as well.
+  /// Instead, here we're just hacking in support for a specific file type as
+  /// generated for the vis contest.
+  std::ifstream trisoup(trisoup_fn.c_str(), std::ios::binary);
+  if(!trisoup) {
+    // hack, we really want some kind of 'file not found' exception.
+    throw tuvok::io::DSOpenFailed(trisoup_fn.c_str(), __FILE__, __LINE__);
+  }
+
+  unsigned n_vertices;
+  unsigned n_triangles;
+  trisoup.read(reinterpret_cast<char*>(&n_vertices), sizeof(unsigned));
+  trisoup.read(reinterpret_cast<char*>(&n_triangles), sizeof(unsigned));
+
+  MESSAGE("%u vertices and %u triangles.", n_vertices, n_triangles);
+
+  assert(n_vertices > 0);
+  assert(n_triangles > 0);
+
+  std::vector<std::tr1::array<float, 3> > vertices(n_vertices);
+
+  // read in the world space coords of each vertex
+  MESSAGE("reading %u vertices (each 3x floats)...", n_vertices);
+  for(unsigned i=0; trisoup && i < n_vertices; ++i) {
+    trisoup.read(reinterpret_cast<char*>(&(vertices[i][0])), sizeof(float));
+    trisoup.read(reinterpret_cast<char*>(&(vertices[i][1])), sizeof(float));
+    trisoup.read(reinterpret_cast<char*>(&(vertices[i][2])), sizeof(float));
+  }
+
+  if(!trisoup) {
+    throw tuvok::io::DSVerificationFailed("file ends before triangle indices.",
+                                          __FILE__, __LINE__);
+  }
+
+  // the values in 'tri_idx' will be indices into 'vertices'.
+  std::vector<std::tr1::array<unsigned, 3> > tri_idx(n_triangles);
+  // read in the triangle indices
+  MESSAGE("reading %u triangles...", n_triangles);
+  for(unsigned i=0; trisoup && i < n_triangles; ++i) {
+    trisoup.read(reinterpret_cast<char*>(&(tri_idx[i][0])), sizeof(unsigned));
+    trisoup.read(reinterpret_cast<char*>(&(tri_idx[i][1])), sizeof(unsigned));
+    trisoup.read(reinterpret_cast<char*>(&(tri_idx[i][2])), sizeof(unsigned));
+  }
+  trisoup.close();
+
+  // now create the actual triangle soup.
+  std::vector<std::tr1::array<std::tr1::array<float, 3>, 3> >
+    triangles(n_triangles);
+  for(unsigned i=0; i < n_triangles; ++i) {
+    triangles[i][0] = vertices[tri_idx[i][0]];
+    triangles[i][1] = vertices[tri_idx[i][1]];
+    triangles[i][2] = vertices[tri_idx[i][2]];
+  }
+
+  // It would be smarter to create 'triangles' as we created 'trisoup', and
+  // forget about creating 'trisoup' at all.  Oh well.
+}
+
 bool IOManager::SetMaxBrickSize(const UINT64 iMaxBrickSize) {
   if (iMaxBrickSize > m_iBrickOverlap) {
     m_iMaxBrickSize = iMaxBrickSize;

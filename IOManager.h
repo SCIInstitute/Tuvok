@@ -440,6 +440,8 @@ public:
     return ReBrickDataset(strSourceFilename,strTargetFilename,strTempDir,m_iMaxBrickSize,m_iBrickOverlap,bQuantizeTo8Bit);
   }
 
+  void AddTriSurf(const std::string& trisoup_file,
+                  const std::string& uvf) const;
 
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
                               tuvok::AbstrRenderer* requester) const;
