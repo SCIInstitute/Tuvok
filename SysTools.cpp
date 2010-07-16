@@ -204,8 +204,6 @@ namespace SysTools {
   {
     size_t p2 = Src.find_last_not_of(c);
     if (p2 == std::string::npos) {Src = std::string(); return;}
-    size_t p1 = Src.find_first_not_of(c);
-    if (p1 == std::string::npos) p1 = 0;
     Src = Src.substr(0, p2+1);
   }
 
