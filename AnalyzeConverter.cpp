@@ -99,7 +99,13 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   analyze.read(reinterpret_cast<char*>(&hdr.session_err), 2);
   analyze.read(&hdr.regular, 1);
   analyze.read(&hdr.hkey_un0, 1);
-  for(size_t i=0; i < 8; ++i) {
+  short num_dimensions;
+  analyze.read(reinterpret_cast<char*>(&num_dimensions), 2);
+  if(num_dimensions <= 2) {
+    T_ERROR("%dd data; must have at least 3 dimensions!");
+    return false;
+  }
+  for(size_t i=0; i < 7; ++i) {
     analyze.read(reinterpret_cast<char*>(&hdr.dim[i]), 2);
   }
   // 14 bytes of unused garbage.
@@ -107,10 +113,12 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   analyze.read(reinterpret_cast<char*>(&hdr.datatype), 2); // DT_xxx ..
   analyze.read(reinterpret_cast<char*>(&hdr.bpp), 2);
   analyze.seekg(2, std::ios_base::cur); // "dim_un0", unused.
+  float num_aspect;
+  analyze.read(reinterpret_cast<char*>(&num_aspect), 4);
   analyze.read(reinterpret_cast<char*>(&hdr.aspect[0]), 4);
   analyze.read(reinterpret_cast<char*>(&hdr.aspect[1]), 4);
   analyze.read(reinterpret_cast<char*>(&hdr.aspect[2]), 4);
-  analyze.seekg(16, std::ios_base::cur); // 4 unused aspect values
+  analyze.seekg(12, std::ios_base::cur); // 4 unused aspect values
   // 'voxel_offset' really is a float that stores a byte offset.  Seriously.
   // Maybe some of the same people that wrote DICOM made Analyze as well.
   analyze.read(reinterpret_cast<char*>(&hdr.voxel_offset), 4);
@@ -138,16 +146,6 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   iComponentSize = hdr.bpp;
   vVolumeSize = UINT64VECTOR3(hdr.dim[0], hdr.dim[1], hdr.dim[2]);
   vVolumeAspect = FLOATVECTOR3(hdr.aspect[0], hdr.aspect[1], hdr.aspect[2]);
-  {
-    // Check to make sure the aspect ratios make sense.  Sometimes analyze
-    // seems to fill them with zeroes...
-    for(size_t i=0; i < 3; ++i) {
-      if(vVolumeAspect[i] == 0.0) {
-        WARNING("Aspect ratio is 0 for dimension %u, resetting to 1...", i);
-        vVolumeAspect[i] = 1.0f;
-      }
-    }
-  }
   MESSAGE("%gx%gx%g aspect ratio", vVolumeAspect[0], vVolumeAspect[1],
           vVolumeAspect[2]);
   MESSAGE("%llu-bit %llux%llux%llu data.", iComponentSize,
@@ -158,22 +156,27 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
       case DT_BINARY:        bits =  1;
                              bSigned = false;
                              bIsFloat = false;
+                             MESSAGE("binary");
                              break;
       case DT_UNSIGNED_CHAR: bits =  8;
                              bSigned = false;
                              bIsFloat = false;
+                             MESSAGE("uchar");
                              break;
       case DT_SIGNED_SHORT:  bits = 16;
                              bSigned = true;
                              bIsFloat = false;
+                             MESSAGE("signed short");
                              break;
       case DT_SIGNED_INT:    bits = 32;
                              bSigned = true;
                              bIsFloat = false;
+                             MESSAGE("int");
                              break;
       case DT_FLOAT:         bits = 32;
                              bSigned = true;
                              bIsFloat = true;
+                             MESSAGE("float");
                              break;
       case DT_COMPLEX:
         T_ERROR("Don't know how to handle complex data.");
@@ -182,6 +185,7 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
       case DT_DOUBLE:        bits = 64;
                              bSigned = true;
                              bIsFloat = true;
+                             MESSAGE("double");
                              break;
       default:
         WARNING("Unknown data type.");
