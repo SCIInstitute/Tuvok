@@ -49,6 +49,7 @@
 #include "TuvokJPEG.h"
 #include "DSFactory.h"
 #include "uvfDataset.h"
+#include "UVF/TriangleSoupBlock.h"
 
 #include "AnalyzeConverter.h"
 #include "VGStudioConverter.h"
@@ -1322,7 +1323,7 @@ bool IOManager::ReBrickDataset(const std::string& strSourceFilename,
 }
 
 void IOManager::AddTriSurf(const std::string& trisoup_fn,
-                           const std::string&) const
+                           const std::string& uvf_fn) const
 {
   /// HACK: we should really have a dynamic registration interface, like we do
   /// for converters.  Or, better, just expand the notion of converter to be
@@ -1379,9 +1380,24 @@ void IOManager::AddTriSurf(const std::string& trisoup_fn,
     triangles[i][1] = vertices[tri_idx[i][1]];
     triangles[i][2] = vertices[tri_idx[i][2]];
   }
-
   // It would be smarter to create 'triangles' as we created 'trisoup', and
   // forget about creating 'trisoup' at all.  Oh well.
+
+  // Now create the new block in the UVF.
+  TriangleSoupBlock tsb;
+  tsb.triangles.swap(triangles);
+
+  std::wstring wuvf(uvf_fn.begin(), uvf_fn.end());
+  UVF* uvf = new UVF(wuvf);
+  std::string err;
+  if(!uvf->Open(false, false, true, &err)) {
+    throw std::runtime_error(err.c_str());
+    return;
+  }
+  MESSAGE("Adding TS block...");
+  uvf->AddDataBlock(&tsb, tsb.ComputeDataSize());
+  MESSAGE("Rewriting...");
+  uvf->Close();
 }
 
 bool IOManager::SetMaxBrickSize(const UINT64 iMaxBrickSize) {

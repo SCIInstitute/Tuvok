@@ -97,7 +97,7 @@ void UVF::Close() {
       for (size_t i = 0;i<m_DataBlocks.size();i++) {
         // for now we only allow changes in the datablock header
         // TODO: will need to extend this to abitrary changes once we add more features
-        assert(!m_DataBlocks[i]->m_bIsDirty);
+        //assert(!m_DataBlocks[i]->m_bIsDirty);
 
         if (m_DataBlocks[i]->m_bHeaderIsDirty) {
           m_DataBlocks[i]->m_block->CopyHeaderToFile(&m_streamFile, m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(), m_GlobalHeader.bIsBigEndian, i == m_DataBlocks.size()-1);
