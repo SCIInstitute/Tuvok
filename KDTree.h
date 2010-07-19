@@ -43,8 +43,10 @@ public:
 
   void Save(std::ofstream& kdfile) const {
     int iAxis = m_Axis;
-    kdfile << iAxis << " " << m_SplitPos << " " << m_bIsLeaf << " " << (unsigned int)(m_items.size()) << std::endl;
-    for (unsigned int i=0;i<(unsigned int)m_items.size();i++) kdfile << m_items[i] << " ";
+    kdfile << iAxis << " " << m_SplitPos << " " << m_bIsLeaf 
+           << " " << (unsigned int)(m_items.size()) << std::endl;
+    for (unsigned int i=0;i<(unsigned int)m_items.size();i++) 
+      kdfile << m_items[i] << " ";
     kdfile << std::endl;
     if (!m_bIsLeaf) { 
       m_leftChild->Save(kdfile);
@@ -52,20 +54,21 @@ public:
     }
   }
 
-  void GetGeometry(VertVec& vertices, NormVec& normals, TexCoordVec& texcoords, 
-                   IndexVec& vIndices, IndexVec& nIndices, IndexVec& tIndices,
-                   const FLOATVECTOR3& min, const FLOATVECTOR3& max, unsigned int iDepth) {
-    size_t sNormals = normals.size();
-    INTVECTOR3 iNormals(sNormals,sNormals,sNormals);
+  void GetGeometry(VertVec& vertices, NormVec& normals,
+                   IndexVec& vIndices, IndexVec& nIndices,
+                   const FLOATVECTOR3& min, const FLOATVECTOR3& max,
+                   unsigned int iDepth) {
+    UINT32 sNormals = UINT32(normals.size());
+    UINTVECTOR3 iNormals(sNormals,sNormals,sNormals);
     nIndices.push_back(iNormals);
     nIndices.push_back(iNormals);
     FLOATVECTOR3 normal(0,0,0);
     normal[m_Axis] = 1.0;
     normals.push_back(normal);
 
-    size_t sVertices = vertices.size();
-    INTVECTOR3 iVertices1(sVertices,sVertices+1,sVertices+3);
-    INTVECTOR3 iVertices2(sVertices+2,sVertices+3,sVertices+0);
+    UINT32 sVertices = UINT32(vertices.size());
+    UINTVECTOR3 iVertices1(sVertices,sVertices+1,sVertices+3);
+    UINTVECTOR3 iVertices2(sVertices+2,sVertices+3,sVertices+0);
     vIndices.push_back(iVertices1);
     vIndices.push_back(iVertices2);
 
@@ -93,8 +96,12 @@ public:
       FLOATVECTOR3 max1 = max; max1[m_Axis] = float(m_SplitPos);
       FLOATVECTOR3 min2 = min; min2[m_Axis] = float(m_SplitPos);
 
-      m_leftChild->GetGeometry(vertices, normals, texcoords, vIndices, nIndices, tIndices, min, max1, iDepth-1);
-      m_rightChild->GetGeometry(vertices, normals, texcoords, vIndices, nIndices, tIndices, min2, max, iDepth-1);
+      m_leftChild->GetGeometry(vertices, normals,
+                               vIndices, nIndices,
+                               min, max1, iDepth-1);
+      m_rightChild->GetGeometry(vertices, normals,
+                                vIndices, nIndices,
+                                min2, max, iDepth-1);
     }
 
   }
@@ -125,18 +132,22 @@ private:
 class KDTree
 {
 public:
-  KDTree(Mesh* mesh, const std::string& filename = "", unsigned int maxDepth = 20);
+  KDTree(Mesh* mesh, const std::string& filename = "",
+         unsigned int maxDepth = 20);
   ~KDTree(void);
 
-  double Intersect(const Ray& ray, FLOATVECTOR3& normal, FLOATVECTOR2& tc, double tmin, double tmax) const;
-  Mesh* GetGeometry(unsigned int iDepth) const;
+  double Intersect(const Ray& ray, FLOATVECTOR3& normal,
+                   FLOATVECTOR2& tc, FLOATVECTOR4& color,
+                   double tmin, double tmax) const;
+  Mesh* GetGeometry(unsigned int iDepth, bool buildKDTree) const;
 
 private:
   Mesh*        m_mesh;
   unsigned int m_maxDepth;
   KDTreeNode*  m_Root;
 
-  void Subdivide(KDTreeNode* node, const FLOATVECTOR3& min, const FLOATVECTOR3& max, int recDepth);
+  void Subdivide(KDTreeNode* node, const DOUBLEVECTOR3& min,
+                 const DOUBLEVECTOR3& max, int recDepth);
 };
 
 #endif // KDTREE_H

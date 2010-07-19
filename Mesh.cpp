@@ -1,66 +1,157 @@
+/*
+   For more information, please see: http://software.sci.utah.edu
+
+   The MIT License
+
+   Copyright (c) 2010 Interactive Visualization and Data Analysis Group.
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/
+
+//!    File   : Mesh.cpp
+//!    Author : Jens Krueger
+//!             IVCI & DFKI & MMCI, Saarbruecken
+//!             SCI Institute, University of Utah
+//!    Date   : July 2010
+//
+//!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
+
 #include "Mesh.h"
-#include <fstream>
-#include <iostream>
 #include <algorithm>
 #include "KDTree.h"
 
-inline int myTolower(int c) {return tolower(static_cast<unsigned char>(c));}
-
-Mesh::Mesh(const VertVec& vertices, const NormVec& normals, const TexCoordVec& texcoords, 
-           const IndexVec& vIndices, const IndexVec& nIndices, const IndexVec& tIndices) :
+Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
+           const TexCoordVec& texcoords, const ColorVec& colors,
+           const IndexVec& vIndices, const IndexVec& nIndices,
+           const IndexVec& tIndices, const IndexVec& cIndices,
+           bool bBuildKDTree, bool bScaleToUnitCube) :
   m_KDTree(0),
   m_vertices(vertices),
   m_normals(normals),
   m_texcoords(texcoords),
+  m_colors(colors),
   m_VertIndices(vIndices),
   m_NormalIndices(nIndices),
-  m_TCIndices(tIndices)
+  m_TCIndices(tIndices),
+  m_COLIndices(cIndices)
 {
-  m_KDTree = new KDTree(this);
-
-  if (m_vertices.size() > 0) {
-    m_Bounds[0] = m_vertices[0];
-    m_Bounds[1] = m_vertices[0];
-
-    for (VertVec::iterator i = m_vertices.begin()+1;i<m_vertices.end();i++) {
-      if (i->x < m_Bounds[0].x) m_Bounds[0].x = i->x;
-      if (i->x > m_Bounds[1].x) m_Bounds[1].x = i->x;
-      if (i->y < m_Bounds[0].y) m_Bounds[0].y = i->y;
-      if (i->y > m_Bounds[1].y) m_Bounds[1].y = i->y;
-      if (i->z < m_Bounds[0].z) m_Bounds[0].z = i->z;
-      if (i->z > m_Bounds[1].z) m_Bounds[1].z = i->z;
-    }
-  }
+  if (bScaleToUnitCube) ScaleToUnitCube(); else ComputeAABB();
+  if (bBuildKDTree) m_KDTree = new KDTree(this);
 }
 
 
-Mesh::Mesh(const std::string& filename, bool bFlipNormals, const FLOATVECTOR3& translation, const FLOATVECTOR3& scale) : 
-  m_KDTree(0)
-{
-  LoadFile(filename,bFlipNormals,translation,scale);
-//  m_KDTree = new KDTree(this, filename+".kdt");
+void Mesh::ComputeAABB() {
+  m_Bounds[0] = m_vertices[0];
+  m_Bounds[1] = m_vertices[0];
+
+  for (VertVec::iterator i = m_vertices.begin()+1;i<m_vertices.end();i++) {
+    if (i->x < m_Bounds[0].x) m_Bounds[0].x = i->x;
+    if (i->x > m_Bounds[1].x) m_Bounds[1].x = i->x;
+    if (i->y < m_Bounds[0].y) m_Bounds[0].y = i->y;
+    if (i->y > m_Bounds[1].y) m_Bounds[1].y = i->y;
+    if (i->z < m_Bounds[0].z) m_Bounds[0].z = i->z;
+    if (i->z > m_Bounds[1].z) m_Bounds[1].z = i->z;
+  }
+}
+
+void Mesh::ScaleToUnitCube(const FLOATVECTOR3& translation,
+                           const FLOATVECTOR3& scale) {
+  if (m_vertices.size() > 0) {
+    ComputeAABB();
+
+	  FLOATVECTOR3 maxExtensionV = (m_Bounds[1]-m_Bounds[0])/scale;
+
+    float maxExtension = (maxExtensionV.x > maxExtensionV.y)
+                            ? ((maxExtensionV.x > maxExtensionV.z) ?
+                                    maxExtensionV.x : maxExtensionV.z)
+                            : ((maxExtensionV.y > maxExtensionV.z) ? 
+                                    maxExtensionV.y : maxExtensionV.z);
+
+	  m_Bounds[0] = m_Bounds[0]/maxExtension;
+	  m_Bounds[1] = m_Bounds[1]/maxExtension;
+	  FLOATVECTOR3 center = (m_Bounds[1]+m_Bounds[0])/2;
+
+    for (VertVec::iterator i = m_vertices.begin();i<m_vertices.end();i++) {
+		  *i = (*i/maxExtension) - center + translation;
+	  }
+
+    m_Bounds[0] = (m_Bounds[0] - center) + translation;
+    m_Bounds[1] = (m_Bounds[1] - center) + translation;
+  }
+
+  // any change to the geometry invalidates the KD Tree
+  // TODO: technically here a resacle and shift 
+  //       of the kd-tree would be sufficient
+  delete m_KDTree; m_KDTree = NULL;
 }
 
 Mesh::~Mesh() {
   delete m_KDTree;
 }
 
-double Mesh::IntersectInternal(const Ray& ray, FLOATVECTOR3& normal, FLOATVECTOR2& tc, double tmin, double tmax) const {
+void Mesh::RecomputeNormals() {
+  m_normals.resize(m_vertices.size());
+  for(size_t i = 0;i<m_normals.size();i++) m_normals[i] = FLOATVECTOR3();
+
+  for(IndexVec::iterator triIter = m_VertIndices.begin();
+      triIter<m_VertIndices.end();
+      triIter++) {
+    UINTVECTOR3 indices = (*triIter);
+
+    FLOATVECTOR3 tang = m_vertices[indices.x]-m_vertices[indices.y];
+    FLOATVECTOR3 bin  = m_vertices[indices.x]-m_vertices[indices.z];
+
+    FLOATVECTOR3 norm = bin % tang;
+  	
+    m_normals[indices.x] = m_normals[indices.x]+norm;
+    m_normals[indices.y] = m_normals[indices.y]+norm;
+    m_normals[indices.z] = m_normals[indices.z]+norm;
+  }
+  for(size_t i = 0;i<m_normals.size();i++) {
+    float l = m_normals[i].length();
+    if (l > 0) m_normals[i] = m_normals[i] / l;;
+  }
+
+  m_NormalIndices = m_VertIndices;
+}
+
+
+double Mesh::IntersectInternal(const Ray& ray, FLOATVECTOR3& normal,
+                               FLOATVECTOR2& tc, FLOATVECTOR4& color, 
+                               double tmin, double tmax) const {
 
   if (m_KDTree) {
-    return m_KDTree->Intersect(ray, normal, tc, tmin, tmax);
+    return m_KDTree->Intersect(ray, normal, tc, color, tmin, tmax);
   } else {
     double t = std::numeric_limits<double>::max();
     FLOATVECTOR3 _normal;
     FLOATVECTOR2 _tc;
+    FLOATVECTOR4 _color;
 
     for (size_t i = 0;i<m_VertIndices.size();i++) {
-      double currentT = IntersectTriangle(i, ray, _normal, _tc);
+      double currentT = IntersectTriangle(i, ray, _normal, _tc, _color);
 
       if (currentT < t) {
         normal = _normal;
         t = currentT;
         tc = _tc;
+        color = _color;
       }
 
     }
@@ -68,8 +159,9 @@ double Mesh::IntersectInternal(const Ray& ray, FLOATVECTOR3& normal, FLOATVECTOR
   }
 }
 
-
-double Mesh::IntersectTriangle(size_t i, const Ray& ray, FLOATVECTOR3& normal, FLOATVECTOR2& tc) const {
+double Mesh::IntersectTriangle(size_t i, const Ray& ray, 
+                               FLOATVECTOR3& normal, 
+                               FLOATVECTOR2& tc, FLOATVECTOR4& color) const {
 
   double t = std::numeric_limits<double>::max();
 
@@ -120,7 +212,7 @@ double Mesh::IntersectTriangle(size_t i, const Ray& ray, FLOATVECTOR3& normal, F
     
     normal = normal0 + du * float(u) + dv * float(v);
   } else {
-    // compute face normal
+    // compute face normal if no normals are given
     normal = FLOATVECTOR3(edge1 % edge2);
   }
   normal.normalize();
@@ -144,233 +236,30 @@ double Mesh::IntersectTriangle(size_t i, const Ray& ray, FLOATVECTOR3& normal, F
     tc.y = 0;
   }
 
+  // interpolate color
+  if (m_COLIndices.size()) {
+    FLOATVECTOR4 col0 = m_colors[m_TCIndices[i].x];
+    FLOATVECTOR4 col1 = m_colors[m_TCIndices[i].y];
+    FLOATVECTOR4 col2 = m_colors[m_TCIndices[i].z];
+
+    double dtu1 = col1.x - col0.x;
+    double dtu2 = col2.x - col0.x;
+    double dtv1 = col1.y - col0.y;
+    double dtv2 = col2.y - col0.y;
+    color.x = float(col0.x  + u * dtu1 + v * dtu2);
+    color.y = float(col0.y + u * dtv1 + v * dtv2);
+  } else {
+    color.x = 0;
+    color.y = 0;
+  }
+
   return t;
 }
 
 
-inline std::string Mesh::TrimLeft(const std::string& Src, const std::string& c)
-{
-  size_t p1 = Src.find_first_not_of(c);
-  if (p1 == std::string::npos) return std::string();
-  return Src.substr(p1);
-}
-
-inline std::string Mesh::TrimRight(const std::string& Src, const std::string& c)
-{
-  size_t p2 = Src.find_last_not_of(c);
-  if (p2 == std::string::npos) return std::string();
-  return Src.substr(0, p2+1);
-}
-
-inline std::string Mesh::TrimToken(const std::string& Src, const std::string& c, bool bOnlyFirst)
-{
-  size_t off = Src.find_first_of(c);
-  if (off == std::string::npos) off = 0;
-  if (bOnlyFirst) {
-    return Src.substr(off+1);
-  } else {
-    size_t p1 = Src.find_first_not_of(c,off);
-    if (p1 == std::string::npos) return std::string();
-    return Src.substr(p1);
-  }
-}
-
-inline std::string Mesh::Trim(const std::string& Src, const std::string& c)
-{
-  size_t p2 = Src.find_last_not_of(c);
-  if (p2 == std::string::npos) return std::string();
-  size_t p1 = Src.find_first_not_of(c);
-  if (p1 == std::string::npos) p1 = 0;
-  return Src.substr(p1, (p2-p1)+1);
-}
-
-inline std::string Mesh::ToLowerCase(const std::string& str) {
-  std::string result(str);
-  transform(str.begin(), str.end(), result.begin(), myTolower);
-  return result;
-}
-
-inline int Mesh::CountOccurences(const std::string& str, const std::string& substr) {
-  size_t found = str.find_first_of(substr);
-  int count = 0;
-  while (found!=std::string::npos)
-  {
-    count++;
-    found=str.find_first_of(substr,found+1);
-  }
-  return count;
-}
-
-bool Mesh::LoadFile(const std::string& filename, bool bFlipNormals, const FLOATVECTOR3& translation, const FLOATVECTOR3& scale) {
-  std::cout << "Loading Mesh " << filename << std::endl;
-	std::ifstream fs;
-	std::string line;
-
-	fs.open(filename.c_str());
-	if (fs.fail()) return false;
-
-  double x,y,z;
-
-	while (!fs.fail()) {
-		getline(fs, line);
-		if (fs.fail()) break; // no more lines to read
-		line = ToLowerCase(Trim(line));
-
-    std::string linetype = TrimRight(line.substr(0,2));
-    if (linetype == "#") continue; // skip comment lines
-
-    line = TrimLeft(line.substr(linetype.length()));
-
-		if (linetype == "v") { // vertex attrib found
-				x = atof(line.c_str());
-				line = TrimToken(line);
-				y = atof(line.c_str());
-				line = TrimToken(line);
-				z = atof(line.c_str());
-				m_vertices.push_back(FLOATVECTOR3(x,y,(bFlipNormals) ? -z : z));
-  	} else
-	  if (linetype == "vt") {  // vertex texcoord found
-			x = atof(line.c_str());
-		  line = TrimToken(line);
-			y = atof(line.c_str());
-			m_texcoords.push_back(FLOATVECTOR2(x,y));
-		} else
-    if (linetype == "vn") { // vertex normal found
-			x = atof(line.c_str());
-      line = TrimToken(line);
-			y = atof(line.c_str());
-      line = TrimToken(line);
-      z = atof(line.c_str());
-      FLOATVECTOR3 n(x,y,z);
-      n.normalize();
-      m_normals.push_back(n);
-		} else 
-    if (linetype == "f") { // face found
-      
-      int indices[9] = {0,0,0,0,0,0,0,0,0};
-      int count = CountOccurences(line,"/");
-
-      switch (count) {
-        case 0 : {
-              indices[0] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[1] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[2] = atoi(line.c_str());
-
-              INTVECTOR3 index(indices[0]-1,indices[1]-1,indices[2]-1); 
-              m_VertIndices.push_back(index);
-              break;
-             }
-        case 3 : {
-              indices[0] = atoi(line.c_str());
-              line = TrimToken(line,"/");
-              indices[1] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[2] = atoi(line.c_str());
-              line = TrimToken(line,"/");
-              indices[3] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[4] = atoi(line.c_str());
-              line = TrimToken(line,"/");
-              indices[5] = atoi(line.c_str());
-              line = TrimToken(line);
-              INTVECTOR3 vIndex(indices[0]-1,indices[2]-1,indices[4]-1); 
-              m_VertIndices.push_back(vIndex);
-              INTVECTOR3 tIndex(indices[1]-1,indices[3]-1,indices[5]-1); 
-              m_TCIndices.push_back(tIndex);
-              break;
-             }
-        case 6 : {
-              indices[0] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[1] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[2] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[3] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[4] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[5] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[6] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[7] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[8] = atoi(line.c_str());
-              line = TrimToken(line);
-              INTVECTOR3 vIndex(indices[0]-1,indices[3]-1,indices[6]-1); 
-              if (indices[0]) m_VertIndices.push_back(vIndex);
-              INTVECTOR3 tIndex(indices[1]-1,indices[4]-1,indices[7]-1); 
-              if (indices[1]) m_TCIndices.push_back(tIndex);
-              INTVECTOR3 nIndex(indices[2]-1,indices[5]-1,indices[8]-1); 
-              if (indices[2]) m_NormalIndices.push_back(nIndex);
-              break;
-             }
-      }
-    }
-  }
-	fs.close();
-
-  if (m_vertices.size() > 0) {
-    m_Bounds[0] = m_vertices[0];
-    m_Bounds[1] = m_vertices[0];
-
-    for (VertVec::iterator i = m_vertices.begin()+1;i<m_vertices.end();i++) {
-      if (i->x < m_Bounds[0].x) m_Bounds[0].x = i->x;
-      if (i->x > m_Bounds[1].x) m_Bounds[1].x = i->x;
-      if (i->y < m_Bounds[0].y) m_Bounds[0].y = i->y;
-      if (i->y > m_Bounds[1].y) m_Bounds[1].y = i->y;
-      if (i->z < m_Bounds[0].z) m_Bounds[0].z = i->z;
-      if (i->z > m_Bounds[1].z) m_Bounds[1].z = i->z;
-    }
-
-	  DOUBLEVECTOR3 maxExtensionV = DOUBLEVECTOR3((m_Bounds[1]-m_Bounds[0])/scale);
-
-    double maxExtension = (maxExtensionV.x > maxExtensionV.y)
-                            ? ((maxExtensionV.x > maxExtensionV.z) ? maxExtensionV.x : maxExtensionV.z)
-                            : ((maxExtensionV.y > maxExtensionV.z) ? maxExtensionV.y : maxExtensionV.z);
-
-	  m_Bounds[0] = m_Bounds[0]/maxExtension;
-	  m_Bounds[1] = m_Bounds[1]/maxExtension;
-	  FLOATVECTOR3 center = (m_Bounds[1]+m_Bounds[0])/2;
-
-    for (VertVec::iterator i = m_vertices.begin();i<m_vertices.end();i++) {
-		  *i = (*i/maxExtension) - center + translation;
-	  }
-
-    m_Bounds[0] = (m_Bounds[0] - center) + translation;
-    m_Bounds[1] = (m_Bounds[1] - center) + translation;
-  }
-
-  // recompute normals if necessary
-  // if (m_NormalIndices.size() == 0) { // never trust the normals in the file
-    m_normals.resize(m_vertices.size());
-    for(size_t i = 0;i<m_normals.size();i++) m_normals[i] = FLOATVECTOR3();
-
-	  for(IndexVec::iterator triIter =  m_VertIndices.begin();triIter<m_VertIndices.end();triIter++) {
-		  INTVECTOR3 indices = (*triIter);
-
-		  FLOATVECTOR3 tang = m_vertices[indices.x]-m_vertices[indices.y];
-		  FLOATVECTOR3 bin  = m_vertices[indices.x]-m_vertices[indices.z];
-
-		  FLOATVECTOR3 norm = bin % tang;
-  		
-		  m_normals[indices.x] = m_normals[indices.x]+norm;
-		  m_normals[indices.y] = m_normals[indices.y]+norm;
-		  m_normals[indices.z] = m_normals[indices.z]+norm;
-	  }
-    for(size_t i = 0;i<m_normals.size();i++) {
-      float l = m_normals[i].length();
-      if (l > 0) m_normals[i] = m_normals[i] / l;;
-    }
-
-	  m_NormalIndices = m_VertIndices;
-  //}
-  
-  std::cout << "Done" << std::endl;
-  return true;
+void Mesh::ComputeKDTree() {
+  delete m_KDTree;
+  m_KDTree = new KDTree(this);
 }
 
 const KDTree* Mesh::GetKDTree() const {
@@ -405,4 +294,5 @@ bool Mesh::AABBIntersect(const Ray& r, double& tmin, double& tmax) {
     tmax = tzmax;
   return tmax > 0;
 }
+
 

@@ -5,7 +5,6 @@
 
    Copyright (c) 2010 Interactive Visualization and Data Analysis Group.
 
-
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
    to deal in the Software without restriction, including without limitation
@@ -45,65 +44,77 @@
 #include "Ray.h"
 
 class KDTree;
+class TriangleSoupBlock;
 
 typedef std::vector<FLOATVECTOR3> VertVec;
 typedef std::vector<FLOATVECTOR3> NormVec;
 typedef std::vector<FLOATVECTOR2> TexCoordVec;
-
-typedef std::vector<INTVECTOR3> IndexVec;
+typedef std::vector<FLOATVECTOR4> ColorVec;
+typedef std::vector<UINTVECTOR3> IndexVec;
 
 class Mesh 
 {
 public:
   Mesh(const VertVec& vertices, const NormVec& normals, 
-       const TexCoordVec& texcoords, const IndexVec& vIndices, 
-       const IndexVec& nIndices, const IndexVec& tIndices);
-  Mesh(const std::string& filename, bool bFlipNormals, 
-       const FLOATVECTOR3& translation = FLOATVECTOR3(), 
-       const FLOATVECTOR3& scale = FLOATVECTOR3(1,1,1));
-  ~Mesh();
+       const TexCoordVec& texcoords, const ColorVec& colors,
+       const IndexVec& vIndices, const IndexVec& nIndices, 
+       const IndexVec& tIndices, const IndexVec& cIndices,
+       bool bBuildKDTree, bool bScaleToUnitCube);
+  virtual ~Mesh();
 
-  double Intersect(const Ray& ray, FLOATVECTOR3& normal, FLOATVECTOR2& tc) {
+  void RecomputeNormals();
+  void ScaleToUnitCube(const FLOATVECTOR3& translation = FLOATVECTOR3(0,0,0),
+                       const FLOATVECTOR3& scale= FLOATVECTOR3(1,1,1));
+
+  double Pick(const Ray& ray, FLOATVECTOR3& normal, 
+              FLOATVECTOR2& tc, FLOATVECTOR4& color) {
     double tmin=0, tmax=0;
     if (!AABBIntersect(ray, tmin, tmax))
       return std::numeric_limits<double>::max();
     else
-      return IntersectInternal(ray, normal, tc, tmin, tmax); 
+      return IntersectInternal(ray, normal, tc, color, tmin, tmax); 
   }
-
+  void ComputeKDTree();
   const KDTree* GetKDTree() const;
-private:
+
+  const VertVec&       GetVertices() const {return m_vertices;}
+  const NormVec&       GetNormals() const {return m_normals;}
+  const TexCoordVec&   GetTexCoords() const {return m_texcoords;}
+  const ColorVec&      GetColors() const {return m_colors;}
+
+  const IndexVec& GetVertexIndices() const {return m_VertIndices;}
+  const IndexVec& GetNormalIndices() const {return m_NormalIndices;}
+  const IndexVec& GetTexCoordIndices() const {return m_TCIndices;}
+  const IndexVec& GetColorIndices() const {return m_COLIndices;}
+
+protected:
   KDTree*       m_KDTree;
 
   VertVec       m_vertices;
   NormVec       m_normals;
   TexCoordVec   m_texcoords;
+  ColorVec      m_colors;
 
   IndexVec      m_VertIndices;
   IndexVec      m_NormalIndices;
   IndexVec      m_TCIndices;
+  IndexVec      m_COLIndices;
 
+private:
+  // picking
   double IntersectInternal(const Ray& ray, FLOATVECTOR3& normal, 
-                           FLOATVECTOR2& tc, double tmin, double tmax) const;
-
+                           FLOATVECTOR2& tc, FLOATVECTOR4& color,
+                           double tmin, double tmax) const;
   double IntersectTriangle(size_t i, 
                            const Ray& ray, FLOATVECTOR3& normal, 
-                           FLOATVECTOR2& tc) const;
-
-  bool LoadFile(const std::string& filename, bool bFlipNormals,
-                const FLOATVECTOR3& translation, const FLOATVECTOR3& scale);
-  std::string TrimLeft(const std::string& Src, const std::string& c = " \r\n\t");
-  std::string TrimRight(const std::string& Src, const std::string& c = " \r\n\t");
-  std::string TrimToken(const std::string& Src, const std::string& c = " \r\n\t", bool bOnlyFirst = false);
-  std::string Trim(const std::string& Src, const std::string& c = " \r\n\t");
-  std::string ToLowerCase(const std::string& str);
-  int CountOccurences(const std::string& str, const std::string& substr);
-
-  friend class KDTree;
+                           FLOATVECTOR2& tc, FLOATVECTOR4& color) const;
 
   // AABB Test
+  void ComputeAABB();
   bool AABBIntersect(const Ray& r, double& tmin, double& tmax);
-  FLOATVECTOR3  m_Bounds[2];    
+  FLOATVECTOR3  m_Bounds[2];
+
+  friend class KDTree;
 
 };
 

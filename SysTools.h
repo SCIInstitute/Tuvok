@@ -210,12 +210,18 @@ namespace SysTools {
   bool GetFileStats(const std::string& strFileName, struct stat& stat_buf);
   bool GetFileStats(const std::wstring& wstrFileName, struct stat& stat_buf);
 
-  void TrimStrLeft(std::wstring &str, const std::string& c = " \r\n\t");
-  void TrimStrLeft(std::string &str, const std::string& c = " \r\n\t");
-  void TrimStrRight(std::wstring &str, const std::string& c = " \r\n\t");
-  void TrimStrRight(std::string &str, const std::string& c = " \r\n\t");
-  void TrimStr(std::wstring &str, const std::string& c = " \r\n\t");
-  void TrimStr(std::string &str, const std::string& c = " \r\n\t");
+  std::wstring TrimStrLeft(const std::wstring &str,
+                           const std::string& c = " \r\n\t");
+  std::string TrimStrLeft(const std::string &str,
+                          const std::string& c = " \r\n\t");
+  std::wstring TrimStrRight(const std::wstring &str,
+                            const std::string& c = " \r\n\t");
+  std::string TrimStrRight(const std::string &str,
+                           const std::string& c = " \r\n\t");
+  std::wstring TrimStr(const std::wstring &str,
+                       const std::string& c = " \r\n\t");
+  std::string TrimStr(const std::string &str,
+                      const std::string& c = " \r\n\t");
 
 #ifdef _WIN32
   bool GetFilenameDialog(const std::string& lpstrTitle,

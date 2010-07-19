@@ -193,52 +193,52 @@ namespace SysTools {
   inline int myTolower(int c) {return tolower(static_cast<unsigned char>(c));}
   inline int myToupper(int c) {return toupper(static_cast<unsigned char>(c));}
 
-  void TrimStrLeft( std::string& Src, const std::string& c)
+  std::string TrimStrLeft( const std::string& Src, const std::string& c)
   {
     size_t p1 = Src.find_first_not_of(c);
-    if (p1 == std::string::npos) {Src = std::string(); return;}
-    Src = Src.substr(p1);
+    if (p1 == std::string::npos) {return std::string();}
+    return Src.substr(p1);
   }
 
-  void TrimStrRight( std::string& Src, const std::string& c)
+  std::string TrimStrRight( const std::string& Src, const std::string& c)
   {
     size_t p2 = Src.find_last_not_of(c);
-    if (p2 == std::string::npos) {Src = std::string(); return;}
-    Src = Src.substr(0, p2+1);
+    if (p2 == std::string::npos) {return std::string();}
+    return Src.substr(0, p2+1);
   }
 
-  void TrimStr( std::string& Src, const std::string& c)
+  std::string TrimStr( const std::string& Src, const std::string& c)
   {
     size_t p2 = Src.find_last_not_of(c);
-    if (p2 == std::string::npos) {Src = std::string(); return;}
+    if (p2 == std::string::npos) {return std::string();}
     size_t p1 = Src.find_first_not_of(c);
     if (p1 == std::string::npos) p1 = 0;
-    Src = Src.substr(p1, (p2-p1)+1);
+    return Src.substr(p1, (p2-p1)+1);
   }
 
-  void TrimStrLeft( std::wstring& Src, const std::wstring& c)
+  std::wstring TrimStrLeft( const std::wstring& Src, const std::wstring& c)
   {
     size_t p1 = Src.find_first_not_of(c);
-    if (p1 == std::wstring::npos) {Src = std::wstring(); return;}
-    Src = Src.substr(p1);
+    if (p1 == std::wstring::npos) {return std::wstring();}
+    return Src.substr(p1);
   }
 
-  void TrimStrRight( std::wstring& Src, const std::wstring& c)
-  {
-    size_t p2 = Src.find_last_not_of(c);
-    if (p2 == std::wstring::npos) {Src = std::wstring(); return;}
-    size_t p1 = Src.find_first_not_of(c);
-    if (p1 == std::wstring::npos) p1 = 0;
-    Src = Src.substr(0, p2+1);
-  }
-
-  void TrimStr( std::wstring& Src, const std::wstring& c)
+  std::wstring TrimStrRight( const std::wstring& Src, const std::wstring& c)
   {
     size_t p2 = Src.find_last_not_of(c);
-    if (p2 == std::wstring::npos) {Src = std::wstring(); return;}
+    if (p2 == std::wstring::npos) {return std::wstring();}
     size_t p1 = Src.find_first_not_of(c);
     if (p1 == std::wstring::npos) p1 = 0;
-    Src = Src.substr(p1, (p2-p1)+1);
+    return Src.substr(0, p2+1);
+  }
+
+  std::wstring TrimStr( const std::wstring& Src, const std::wstring& c)
+  {
+    size_t p2 = Src.find_last_not_of(c);
+    if (p2 == std::wstring::npos) {return  std::wstring();}
+    size_t p1 = Src.find_first_not_of(c);
+    if (p1 == std::wstring::npos) p1 = 0;
+    return Src.substr(p1, (p2-p1)+1);
   }
 
   bool GetFileStats(const string& strFileName, struct ::stat& stat_buf) {

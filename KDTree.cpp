@@ -48,7 +48,8 @@ KDTree::KDTree(Mesh* mesh, const std::string& filename, unsigned int maxDepth) :
   std::cout << "Generating KD-Tree" << std::endl;
   m_Root = new KDTreeNode();
 	for ( size_t e = 0; e < m_mesh->m_VertIndices.size(); e++ ) m_Root->Add( e );
-  Subdivide( m_Root, m_mesh->m_Bounds[0], m_mesh->m_Bounds[1], m_maxDepth );
+  Subdivide( m_Root, DOUBLEVECTOR3(m_mesh->m_Bounds[0]),
+                     DOUBLEVECTOR3(m_mesh->m_Bounds[1]), m_maxDepth );
   std::cout << "Done" << std::endl;
 
   if (filename != "") {
@@ -78,7 +79,9 @@ struct StackElem {
   int prev;          // the pointer to the previous stack item 
 };
 
-double KDTree::Intersect(const Ray& ray, FLOATVECTOR3& normal, FLOATVECTOR2& tc, double tmin, double tmax) const {
+double KDTree::Intersect(const Ray& ray, FLOATVECTOR3& normal,
+                         FLOATVECTOR2& tc, FLOATVECTOR4& color,
+                         double tmin, double tmax) const {
 
   StackElem* stack = new StackElem[m_maxDepth+3];
 
@@ -89,7 +92,7 @@ double KDTree::Intersect(const Ray& ray, FLOATVECTOR3& normal, FLOATVECTOR2& tc,
 	KDTreeNode* farchild = 0, *currnode = m_Root;
 
 	stack[enPt].t    = tmin;
-  stack[enPt].pb   = (tmin > 0) ? (ray.start + ray.direction * tmin) : ray.start;
+  stack[enPt].pb   = (tmin > 0) ? (ray.start + ray.direction * tmin) :ray.start;
   stack[enPt].node = 0;
   stack[enPt].prev = 0;
 
@@ -138,14 +141,16 @@ double KDTree::Intersect(const Ray& ray, FLOATVECTOR3& normal, FLOATVECTOR2& tc,
 
     // check leaf cell
     double t = std::numeric_limits<double>::max();
-    FLOATVECTOR3 _normal;   FLOATVECTOR2 _tc;
+    FLOATVECTOR3 _normal;   FLOATVECTOR2 _tc; FLOATVECTOR4 _color;
 
     for (size_t i = 0;i<currnode->GetList().size();i++) {
-      double currentT = m_mesh->IntersectTriangle(currnode->GetList()[i], ray, _normal, _tc);
+      double currentT = m_mesh->IntersectTriangle(currnode->GetList()[i],
+                                                  ray, _normal, _tc, _color);
       if (currentT < t) {
         normal = _normal;
         t = currentT;
         tc = _tc;
+        color = _color;
       }
     }
     if (t != std::numeric_limits<double>::max()) {
@@ -162,11 +167,12 @@ double KDTree::Intersect(const Ray& ray, FLOATVECTOR3& normal, FLOATVECTOR2& tc,
 	return std::numeric_limits<double>::max();
 }
 
-void KDTree::Subdivide(KDTreeNode* node, const FLOATVECTOR3& min, const FLOATVECTOR3& max, int recDepth) {
+void KDTree::Subdivide(KDTreeNode* node, const DOUBLEVECTOR3& min,
+                       const DOUBLEVECTOR3& max, int recDepth) {
 	// determine split axis (always split along the longest axis)
-	FLOATVECTOR3 bboxSize = max-min;
+	DOUBLEVECTOR3 bboxSize = max-min;
 
-  int axis = 2;
+  unsigned char axis = 2;
 	if ((bboxSize.x >= bboxSize.y) && (bboxSize.x >= bboxSize.z))
     axis = 0;
 	else 
@@ -183,9 +189,11 @@ void KDTree::Subdivide(KDTreeNode* node, const FLOATVECTOR3& min, const FLOATVEC
   eventVec events;
   for (size_t i = 0;i<node->GetList().size();i++) {
     size_t triIndex = node->GetList()[i];
-    double vertices[3] = {m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].x][axis],
-                          m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].y][axis],
-                          m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].z][axis]};
+    double vertices[3] = {
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].x][axis],
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].y][axis],
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].z][axis]
+    };
 
     
     double pMin = vertices[0];
@@ -201,8 +209,11 @@ void KDTree::Subdivide(KDTreeNode* node, const FLOATVECTOR3& min, const FLOATVEC
     events.push_back(std::make_pair(pMin,pMax));
   }
 
-  // calculate the inverse half surface area for current node, used for normalization
-  double halfInverseArea = 1.0/(bboxSize[0]*bboxSize[1] + bboxSize[0]*bboxSize[2] + bboxSize[1]*bboxSize[2]);
+  // calculate the inverse half surface area for
+  // current node, used for normalization
+  double halfInverseArea = 1.0/(bboxSize[0]*bboxSize[1] + 
+                                bboxSize[0]*bboxSize[2] + 
+                                bboxSize[1]*bboxSize[2]);
   
   double minCost = std::numeric_limits<double>::max();
   double bestpos = 0;
@@ -213,22 +224,33 @@ void KDTree::Subdivide(KDTreeNode* node, const FLOATVECTOR3& min, const FLOATVEC
   sort(events.begin(), events.end(), compMin);
   sort(eventsMax.begin(), eventsMax.end(), compMax);
   for (size_t i = 0;i<splitCandidates.size();i++) {
-    splitCandidates[i].n1count = (upper_bound (events.begin(), events.end(), dPair(splitCandidates[i].pos, 0), compMin)-events.begin());
-    splitCandidates[i].n2count = eventsMax.size()-(upper_bound (eventsMax.begin(), eventsMax.end(), dPair(0, splitCandidates[i].pos), compMax)-eventsMax.begin());
+    splitCandidates[i].n1count = upper_bound(events.begin(), 
+                                             events.end(),
+                                             dPair(splitCandidates[i].pos, 0),
+                                             compMin)-events.begin();
+    splitCandidates[i].n2count = eventsMax.size()-
+                                   (upper_bound(eventsMax.begin(),
+                                                eventsMax.end(),
+                                                dPair(0,splitCandidates[i].pos),
+                                                compMax)-eventsMax.begin());
   }
 
   // compute costs for splits
-  for (slist::iterator candidate = splitCandidates.begin();candidate!=splitCandidates.end();candidate++) {
+  for (slist::iterator candidate = splitCandidates.begin();
+       candidate!=splitCandidates.end();
+       candidate++) {
 
-    FLOATVECTOR3 b1 = bboxSize;  b1[axis] = candidate->pos - min[axis];
-    FLOATVECTOR3 b2 = bboxSize;  b2[axis] -= b1[axis];
+    DOUBLEVECTOR3 b1 = bboxSize;  b1[axis] = candidate->pos - min[axis];
+    DOUBLEVECTOR3 b2 = bboxSize;  b2[axis] -= b1[axis];
 
     // compute the cost for this split
 		double halfArea1 = b1.x * b1.y + b1.y * b1.z + b1.x * b1.z;
 		double halfArea2 = b2.x * b2.y + b2.y * b2.z + b2.x * b2.z;
 
-    // HACK: the 0.3 is some wild guess for the tree (travesal/triangle intersect)-cost
-		double splitcost = 0.3 + halfInverseArea * (halfArea1 * candidate->n1count + halfArea2 * candidate->n2count);
+    // the 0.3 is some wild guess for the tree 
+    // (travesal/triangle intersect)-cost
+		double splitcost = 0.3 + halfInverseArea * 
+      (halfArea1 * candidate->n1count + halfArea2 * candidate->n2count);
 
 		// update best cost tracking variables
 		if (minCost > splitcost) {
@@ -250,9 +272,11 @@ void KDTree::Subdivide(KDTreeNode* node, const FLOATVECTOR3& min, const FLOATVEC
   // push objects into children
   for (size_t i = 0;i<node->GetList().size();i++) {
     size_t triIndex = node->GetList()[i];
-    double vertices[3] = {m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].x][axis],
-                          m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].y][axis],
-                          m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].z][axis]};
+    double vertices[3] = {
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].x][axis],
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].y][axis],
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].z][axis]
+    };
 
     if ( vertices[0] <= bestpos ||
          vertices[1] <= bestpos || 
@@ -272,26 +296,32 @@ void KDTree::Subdivide(KDTreeNode* node, const FLOATVECTOR3& min, const FLOATVEC
 
 	if (recDepth > 1)
 	{
-    FLOATVECTOR3 max1 = max; max1[axis] = bestpos;
+    DOUBLEVECTOR3 max1 = max; max1[axis] = bestpos;
 		if (left->GetList().size() > 2) Subdivide( left,  min,  max1, recDepth-1);
-    FLOATVECTOR3 min2 = min; min2[axis] = bestpos;
+    DOUBLEVECTOR3 min2 = min; min2[axis] = bestpos;
 		if (right->GetList().size() > 2) Subdivide( right, min2, max,  recDepth-1);
 	}
 }
 
-Mesh* KDTree::GetGeometry(unsigned int iDepth) const {
+Mesh* KDTree::GetGeometry(unsigned int iDepth, bool buildKDTree) const {
     VertVec       vertices;
     NormVec       normals;
     TexCoordVec   texcoords;
+    ColorVec      colors;
 
     IndexVec      vIndices;
     IndexVec      nIndices;
     IndexVec      tIndices;
+    IndexVec      cIndices;
 
-    m_Root->GetGeometry(vertices, normals, texcoords, 
-                        vIndices, nIndices, tIndices, 
+    // as the GetGeometry call does not create colors or texture coords
+    // we do not pass these two to this call but since the constructor
+    // requires them to be given we pass the empty vectors to it
+    m_Root->GetGeometry(vertices, normals,  
+                        vIndices, nIndices,
                         m_mesh->m_Bounds[0], m_mesh->m_Bounds[1], iDepth);
 
-    return new Mesh(vertices, normals, texcoords, vIndices,
-                    nIndices, tIndices);
+    return new Mesh(vertices, normals, texcoords, colors, 
+                    vIndices, nIndices, tIndices, cIndices,
+                    buildKDTree,false);
 }
