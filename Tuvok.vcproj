@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Tuvok"
 	ProjectGUID="{D474A1E1-2ED3-42E6-826C-372430E549B9}"
 	RootNamespace="Tuvoc"
@@ -722,6 +722,38 @@
 				</File>
 				<File
 					RelativePath=".\Basics\Checksums\MD5.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Mesh"
+				>
+				<File
+					RelativePath=".\Basics\KDTree.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Basics\KDTree.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Basics\Mesh.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Basics\Mesh.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Basics\Ray.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Basics\RenderMeshGL.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Basics\RenderMeshGL.h"
 					>
 				</File>
 			</Filter>
@@ -1586,6 +1618,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IO\AbstrGeoConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\AbstrGeoConverter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IO\AnalyzeConverter.cpp"
 				>
 			</File>
@@ -1719,6 +1759,14 @@
 			</File>
 			<File
 				RelativePath=".\IO\NRRDConverter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\OBJGeoConverter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\OBJGeoConverter.h"
 				>
 			</File>
 			<File
@@ -1910,6 +1958,14 @@
 				</File>
 				<File
 					RelativePath=".\IO\UVF\MaxMinDataBlock.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\MedAlyVisGeoConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\MedAlyVisGeoConverter.h"
 					>
 				</File>
 				<File

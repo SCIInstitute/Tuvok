@@ -61,6 +61,9 @@ HEADERS += \
            Basics/Timer.h \
            Basics/SysTools.h \
            Basics/Vectors.h \
+           Basics/Mesh.h \
+           Basics/KDTree.h \
+           Basics/RenderMeshGL.h \
            Controller/Controller.h \
            Controller/MasterController.h \
            DebugOut/AbstrDebugOut.h \
@@ -123,6 +126,9 @@ HEADERS += \
            IO/REKConverter.h \
            IO/StkConverter.h \
            IO/TiffVolumeConverter.h \
+           IO/AbstrGeoConverter.h \
+           IO/OBJGeoConverter.h \
+           IO/MedAlyVisGeoConverter.h \
            IO/TransferFunction1D.h \
            IO/TransferFunction2D.h \
            IO/TuvokIOError.h \
@@ -190,6 +196,9 @@ SOURCES += \
            Basics/SystemInfo.cpp \
            Basics/Timer.cpp \           
            Basics/SysTools.cpp \
+           Basics/Mesh.cpp \
+           Basics/KDTree.cpp \
+           Basics/RenderMeshGL.cpp \
            Controller/MasterController.cpp \
            DebugOut/AbstrDebugOut.cpp \
            DebugOut/ConsoleOut.cpp \
@@ -327,6 +336,9 @@ SOURCES += \
            IO/REKConverter.cpp \
            IO/StkConverter.cpp \
            IO/TiffVolumeConverter.cpp \
+           IO/AbstrGeoConverter.cpp \
+           IO/OBJGeoConverter.cpp \
+           IO/MedAlyVisGeoConverter.cpp \
            IO/TransferFunction1D.cpp \
            IO/TransferFunction2D.cpp \
            IO/TuvokJPEG.cpp \
