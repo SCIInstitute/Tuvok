@@ -294,5 +294,3 @@ bool Mesh::AABBIntersect(const Ray& r, double& tmin, double& tmax) {
     tmax = tzmax;
   return tmax > 0;
 }
-
-

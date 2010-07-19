@@ -53,5 +53,4 @@ class Ray
       return start+direction*d;
     }
 };
-
 #endif // RAY

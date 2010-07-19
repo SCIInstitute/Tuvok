@@ -149,5 +149,4 @@ private:
   void Subdivide(KDTreeNode* node, const DOUBLEVECTOR3& min,
                  const DOUBLEVECTOR3& max, int recDepth);
 };
-
 #endif // KDTREE_H
