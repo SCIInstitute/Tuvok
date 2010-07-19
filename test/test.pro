@@ -4,6 +4,7 @@ CONFIG           += exceptions largefile link_prl static stl warn_on
 TARGET            = cxxtester
 DEPENDPATH       += . ../
 INCLUDEPATH      += ../ ../../ ../3rdParty/boost ../3rdParty/cxxtest
+INCLUDEPATH      += ../../Basics
 QT               += opengl
 LIBS             += -L../../Build -lTuvok
 unix:LIBS        += -lz
