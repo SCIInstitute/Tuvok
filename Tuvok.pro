@@ -12,6 +12,7 @@ RCC_DIR           = Build/rcc
 OBJECTS_DIR       = Build/objects
 DEPENDPATH       += . Basics Controller DebugOut IO Renderer Scripting
 INCLUDEPATH      += . 3rdParty/GLEW IO/3rdParty/boost IO/3rdParty/zlib
+INCLUDEPATH      += Basics
 QT               += opengl
 unix:LIBS        += -lz
 macx:LIBS        += -framework CoreFoundation
