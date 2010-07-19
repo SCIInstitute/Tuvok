@@ -49,7 +49,7 @@ MaxMinDataBlock::~MaxMinDataBlock()
 {
 }
 
-DataBlock* MaxMinDataBlock::Clone() {
+DataBlock* MaxMinDataBlock::Clone() const {
   return new MaxMinDataBlock(*this);
 }
 

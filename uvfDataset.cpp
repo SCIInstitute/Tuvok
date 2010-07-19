@@ -92,8 +92,8 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
     assert(!bMustBeSameVersion && "Open should have failed!");
     WARNING("Opening UVF file with a version (%u) "
             "different from this program's (%u)!!!",
-            unsigned(m_pDatasetFile->ms_ulReaderVersion),
-            unsigned(m_pDatasetFile->GetGlobalHeader().ulFileVersion));
+            unsigned(m_pDatasetFile->GetGlobalHeader().ulFileVersion),
+            unsigned(m_pDatasetFile->ms_ulReaderVersion));
   }
 
   size_t n_timesteps = DetermineNumberOfTimesteps();
@@ -962,7 +962,7 @@ bool UVFDataset::Verify(const std::string& filename) const
 FileBackedDataset* UVFDataset::Create(const std::string& filename,
                                       UINT64 max_brick_size, bool verify) const
 {
-  return new UVFDataset(filename, max_brick_size, verify);
+  return new UVFDataset(filename, max_brick_size, verify, false);
 }
 
 std::list<std::string> UVFDataset::Extensions() const

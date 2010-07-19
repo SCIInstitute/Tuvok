@@ -54,6 +54,7 @@ public:
 
   // file creation routines
   bool SetGlobalHeader(const GlobalHeader& GlobalHeader);
+  bool AddConstDataBlock(const DataBlock* dataBlock, UINT64 iSizeofData);
   bool AddDataBlock(DataBlock* dataBlock, UINT64 iSizeofData, bool bUseSourcePointer=false);
   bool Create();
 

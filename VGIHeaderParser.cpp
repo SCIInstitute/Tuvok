@@ -93,10 +93,7 @@ void VGIHeaderParser::WaitForSection(ifstream& fileData, const string& match) {
     while (! fileData.eof()  )
     {
       getline (fileData,line);
-      TrimStrLeft(line);
-      TrimStrRight(line);
-
-      if (line == match)  return;
+      if (TrimStr(line) == match)  return;
     }
 
 }

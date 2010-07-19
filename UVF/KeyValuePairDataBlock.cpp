@@ -80,7 +80,7 @@ UINT64 KeyValuePairDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffs
   return pStreamFile->GetPos() - iOffset;
 }
 
-DataBlock* KeyValuePairDataBlock::Clone() {
+DataBlock* KeyValuePairDataBlock::Clone() const {
   return new KeyValuePairDataBlock(*this);
 }
 

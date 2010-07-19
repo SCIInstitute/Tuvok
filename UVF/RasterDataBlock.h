@@ -93,7 +93,8 @@ public:
   std::vector<std::vector<bool> > bSignedElement;
   UINT64 ulOffsetToDataBlock;
 
-  virtual UINT64 ComputeDataSize(std::string* pstrProblem = NULL) const ;
+  virtual UINT64 ComputeDataSize() const {return ComputeDataSize(NULL);}
+  virtual UINT64 ComputeDataSize(std::string* pstrProblem) const;
   virtual UINT64 ComputeHeaderSize() const;
 
   virtual bool SetBlockSemantic(UVFTables::BlockSemanticTable bs);
@@ -154,11 +155,13 @@ public:
 
 protected:
   LargeRAWFile* m_pTempFile;
+  LargeRAWFile* m_pSourceFile;
+  UINT64        m_iSourcePos;
 
   virtual void CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
   virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
   virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
-  virtual DataBlock* Clone();
+  virtual DataBlock* Clone() const;
   virtual UINT64 GetOffsetToNextBlock() const;
 
   std::vector<std::vector<UINT64> > CountToVectors(std::vector<UINT64> vCountVector) const ;

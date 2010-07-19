@@ -45,7 +45,7 @@ protected:
   virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
   virtual UINT64 GetOffsetToNextBlock() const;
 
-  virtual DataBlock* Clone();
+  virtual DataBlock* Clone() const;
 
   friend class UVF;
 };

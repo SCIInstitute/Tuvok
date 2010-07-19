@@ -1,3 +1,37 @@
+/*
+   For more information, please see: http://software.sci.utah.edu
+
+   The MIT License
+
+   Copyright (c) 2010 Interactive Visualization and Data Analysis Group.
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/
+
+//!    File   : TriangleSoupBlock.cpp
+//!    Author : Jens Krueger
+//!             IVCI & DFKI & MMCI, Saarbruecken
+//!             SCI Institute, University of Utah
+//!    Date   : July 2010
+//
+//!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
+
 #include <sstream>
 
 #include "TriangleSoupBlock.h"
@@ -6,10 +40,43 @@
 using namespace std;
 using namespace UVFTables;
 
-TriangleSoupBlock::TriangleSoupBlock() : DataBlock() {}
+TriangleSoupBlock::TriangleSoupBlock() : 
+  DataBlock(),
+  m_n_vertices(0),
+  m_n_normals(0),
+  m_n_texcoords(0),
+  m_n_colors(0),
+  m_n_vertex_indices(0),
+  m_n_normal_indices(0),
+  m_n_texcoord_indices(0),
+  m_n_color_indices(0)
+{
+  ulBlockSemantics = BS_TRIANGLE_SOUP;
+  strBlockID       = "Triangle Soup Block";
+}
 
 TriangleSoupBlock::TriangleSoupBlock(const TriangleSoupBlock& other) :
-  DataBlock(other) {}
+  DataBlock(other), 
+  vertices(other.GetVertices()),
+  normals(other.GetNormals()),
+  texcoords(other.GetTexCoords()),
+  colors(other.GetColors()),
+  vIndices(other.GetVertexIndices()),
+  nIndices(other.GetNormalIndices()),
+  tIndices(other.GetTexCoordIndices()),
+  cIndices(other.GetColorIndices()),
+  m_bIsBigEndian(other.m_bIsBigEndian),
+
+  m_n_vertices(0),
+  m_n_normals(0),
+  m_n_texcoords(0),
+  m_n_colors(0),
+  m_n_vertex_indices(0),
+  m_n_normal_indices(0),
+  m_n_texcoord_indices(0),
+  m_n_color_indices(0)
+{
+}
 
 TriangleSoupBlock::TriangleSoupBlock(LargeRAWFile* pStreamFile, UINT64 iOffset,
                                      bool bIsBigEndian) :
@@ -18,18 +85,46 @@ TriangleSoupBlock::TriangleSoupBlock(LargeRAWFile* pStreamFile, UINT64 iOffset,
   GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
 }
 
-TriangleSoupBlock::~TriangleSoupBlock() { triangles.clear(); }
+TriangleSoupBlock::~TriangleSoupBlock() {
+  vertices.clear();
+  normals.clear();
+  texcoords.clear();
+  colors.clear();
+
+  vIndices.clear();
+  nIndices.clear(); 
+  tIndices.clear(); 
+  cIndices.clear(); 
+}
 
 TriangleSoupBlock& TriangleSoupBlock::operator=(const TriangleSoupBlock& other)
 {
   strBlockID = other.strBlockID;
   ulBlockSemantics = other.ulBlockSemantics;
-  triangles = other.triangles;
+
+  vertices = other.GetVertices();
+  normals = other.GetNormals();
+  texcoords = other.GetTexCoords();
+  colors = other.GetColors();
+
+  vIndices = other.GetVertexIndices();
+  nIndices = other.GetNormalIndices();
+  tIndices = other.GetTexCoordIndices();
+  cIndices = other.GetColorIndices();
+
+  m_n_vertices = 0;
+  m_n_normals = 0;
+  m_n_texcoords = 0;
+  m_n_colors = 0;
+  m_n_vertex_indices = 0;
+  m_n_normal_indices = 0;
+  m_n_texcoord_indices = 0;
+  m_n_color_indices = 0;
 
   return *this;
 }
 
-bool TriangleSoupBlock::Verify(UINT64 iSizeofData, std::string* pstrProblem) const
+bool TriangleSoupBlock::Verify(UINT64 iSizeofData, string* pstrProblem) const
 {
   UINT64 iCorrectSize = ComputeDataSize();
   bool bResult = iCorrectSize == iSizeofData;
@@ -43,13 +138,26 @@ bool TriangleSoupBlock::Verify(UINT64 iSizeofData, std::string* pstrProblem) con
   return bResult;
 }
 
-UINT64 TriangleSoupBlock::ComputeDataSize() const
-{
-  return sizeof(UINT64) +  // n_triangles
-         sizeof(float) * 3 * this->triangles.size(); // triangles.
+UINT64 TriangleSoupBlock::ComputeHeaderSize() const {
+  // n_vertices + n_normals + n_texcoords + n_colors + n_vertices_indices + 
+  // n_normals_indices + n_texcoords_indices + n_colors_indices + 
+  return sizeof(UINT64) * 8;
 }
 
-DataBlock* TriangleSoupBlock::Clone()
+UINT64 TriangleSoupBlock::ComputeDataSize() const
+{
+  return sizeof(float) * ((vertices.size())  ? vertices.size()  : m_n_vertices) +  // 3d vertices
+         sizeof(float) * ((normals.size())   ? normals.size()   : m_n_normals) +   // 3d normals
+         sizeof(float) * ((texcoords.size()) ? texcoords.size() : m_n_texcoords) + // 2d texcoords
+         sizeof(float) * ((colors.size())    ? colors.size()    : m_n_colors) +    // 4d colors
+
+         sizeof(UINT32) * ((vIndices.size()) ? vIndices.size() : m_n_vertex_indices) + // vertex indices
+         sizeof(UINT32) * ((nIndices.size()) ? nIndices.size() : m_n_normal_indices) + // normal indices
+         sizeof(UINT32) * ((tIndices.size()) ? tIndices.size() : m_n_texcoord_indices) + // texcoord indices
+         sizeof(UINT32) * ((cIndices.size()) ? cIndices.size() : m_n_color_indices);  // color indices
+}
+
+DataBlock* TriangleSoupBlock::Clone() const 
 {
   return new TriangleSoupBlock(*this);
 }
@@ -61,36 +169,171 @@ UINT64 TriangleSoupBlock::GetHeaderFromFile(LargeRAWFile* stream,
                                                        big_endian);
   stream->SeekPos(start);
 
-  UINT64 n_triangles;
-  stream->ReadData(n_triangles, big_endian);
-  this->triangles.resize(n_triangles);
+  stream->ReadData(m_n_vertices, big_endian);
+  stream->ReadData(m_n_normals, big_endian);
+  stream->ReadData(m_n_texcoords, big_endian);
+  stream->ReadData(m_n_colors, big_endian);
 
-  // .. and now we read the data, too, despite the method name.
+  stream->ReadData(m_n_vertex_indices, big_endian);
+  stream->ReadData(m_n_normal_indices, big_endian);
+  stream->ReadData(m_n_texcoord_indices, big_endian);
+  stream->ReadData(m_n_color_indices, big_endian);
 
-  // This is actually UB.  But a standard implementor would have to
-  // really hate us to break it (it relies on the fact that '&x ==
-  // &x[0]' for an 'array<float, 3> x').  That is, an array consists of
-  // nothing more than its data.
-  // We should probably change the representation to just a ptr if we
-  // ever decide to play nicely; the corresponding loops would be slow.
-  stream->ReadData(this->triangles, n_triangles, big_endian);
-
+  m_bIsBigEndian = big_endian;
   return stream->GetPos() - offset;
 }
+
+void TriangleSoupBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  DataBlock::CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
+
+  m_n_vertices = vertices.size();
+  m_n_normals = normals.size();
+  m_n_texcoords  = texcoords.size();
+  m_n_colors = colors.size();
+  m_n_vertex_indices = vIndices.size();
+  m_n_normal_indices = nIndices.size();
+  m_n_texcoord_indices = tIndices.size();
+  m_n_color_indices = cIndices.size();
+
+  pStreamFile->WriteData(m_n_vertices,         bIsBigEndian);
+  pStreamFile->WriteData(m_n_normals,          bIsBigEndian);
+  pStreamFile->WriteData(m_n_texcoords,        bIsBigEndian);
+  pStreamFile->WriteData(m_n_colors,           bIsBigEndian);
+  pStreamFile->WriteData(m_n_vertex_indices,   bIsBigEndian);
+  pStreamFile->WriteData(m_n_normal_indices,   bIsBigEndian);
+  pStreamFile->WriteData(m_n_texcoord_indices, bIsBigEndian);
+  pStreamFile->WriteData(m_n_color_indices,    bIsBigEndian);
+}
+
 
 UINT64 TriangleSoupBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset,
                                      bool bIsBigEndian, bool bIsLastBlock)
 {
   CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
-  UINT64 sz = static_cast<UINT64>(this->triangles.size());
-  pStreamFile->WriteData(sz, bIsBigEndian);
 
-  // see GetHeader comment.
-  pStreamFile->WriteData(this->triangles, bIsBigEndian);
+  pStreamFile->WriteData(vertices, bIsBigEndian);
+  pStreamFile->WriteData(normals,  bIsBigEndian);
+  pStreamFile->WriteData(texcoords,bIsBigEndian);
+  pStreamFile->WriteData(colors,   bIsBigEndian);
+  pStreamFile->WriteData(vIndices, bIsBigEndian);
+  pStreamFile->WriteData(nIndices, bIsBigEndian);
+  pStreamFile->WriteData(tIndices, bIsBigEndian);
+  pStreamFile->WriteData(cIndices, bIsBigEndian);
+
+  m_bIsBigEndian = bIsBigEndian;
+
   return pStreamFile->GetPos() - iOffset;
 }
 
 UINT64 TriangleSoupBlock::GetOffsetToNextBlock() const
 {
-  return DataBlock::GetOffsetToNextBlock() + ComputeDataSize();
+  return DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize() + ComputeDataSize();
+}
+
+vector< float > TriangleSoupBlock::GetVertices() const {
+  vector< float > v;
+  if (vertices.size() == 0) {
+    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize());
+    m_pStreamFile->ReadData(v, m_n_vertices, m_bIsBigEndian);
+    return v;
+  } 
+  return vertices;
+}
+
+vector< float > TriangleSoupBlock::GetNormals() const {
+  vector< float > v;
+  if (normals.size() == 0) {
+    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+                           sizeof(float)*m_n_vertices);
+    m_pStreamFile->ReadData(v, m_n_normals, m_bIsBigEndian);
+    return v;
+  }
+  return normals;
+}
+
+vector< float > TriangleSoupBlock::GetTexCoords() const {
+  vector< float > v;
+  if (texcoords.size() == 0) {
+    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+                           sizeof(float)*m_n_vertices+
+                           sizeof(float)*m_n_normals);
+    m_pStreamFile->ReadData(v, m_n_texcoords, m_bIsBigEndian);
+    return v;
+  }
+  return texcoords;
+}
+
+vector< float > TriangleSoupBlock::GetColors() const {
+  vector< float > v;
+  if (colors.size() == 0) {
+    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+                           sizeof(float)*m_n_vertices+
+                           sizeof(float)*m_n_normals+
+                           sizeof(float)*m_n_texcoords);
+    m_pStreamFile->ReadData(v, m_n_colors, m_bIsBigEndian);
+    return v;
+  }
+  return colors;
+}
+
+vector< UINT32 > TriangleSoupBlock::GetVertexIndices() const {
+  vector< UINT32 > v;
+  if (vIndices.size() == 0) {
+    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+                           sizeof(float)*m_n_vertices+
+                           sizeof(float)*m_n_normals+
+                           sizeof(float)*m_n_texcoords+
+                           sizeof(float)*m_n_colors);
+    m_pStreamFile->ReadData(v, m_n_vertex_indices, m_bIsBigEndian);
+    return v;
+  }
+  return vIndices;
+}
+
+vector< UINT32 > TriangleSoupBlock::GetNormalIndices() const {
+  vector< UINT32 > v;
+  if (nIndices.size() == 0) {
+    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+                           sizeof(float)*m_n_vertices+
+                           sizeof(float)*m_n_normals+
+                           sizeof(float)*m_n_texcoords+
+                           sizeof(float)*m_n_colors+
+                           sizeof(UINT32)*m_n_vertex_indices);
+    m_pStreamFile->ReadData(v, m_n_normal_indices, m_bIsBigEndian);
+    return v;
+  }
+  return nIndices;
+}
+
+vector< UINT32 > TriangleSoupBlock::GetTexCoordIndices() const {
+  vector< UINT32 > v;
+  if (tIndices.size() == 0) {
+    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+                           sizeof(float)*m_n_vertices+
+                           sizeof(float)*m_n_normals+
+                           sizeof(float)*m_n_texcoords+
+                           sizeof(float)*m_n_colors+
+                           sizeof(UINT32)*m_n_vertex_indices+
+                           sizeof(UINT32)*m_n_normal_indices);
+    m_pStreamFile->ReadData(v, m_n_texcoord_indices, m_bIsBigEndian);
+    return v;
+  }
+  return tIndices;
+}
+
+vector< UINT32 > TriangleSoupBlock::GetColorIndices() const {
+  vector< UINT32 > v;
+  if (cIndices.size() == 0) {
+    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+                           sizeof(float)*m_n_vertices+
+                           sizeof(float)*m_n_normals+
+                           sizeof(float)*m_n_texcoords+
+                           sizeof(float)*m_n_colors+
+                           sizeof(UINT32)*m_n_vertex_indices+
+                           sizeof(UINT32)*m_n_normal_indices+
+                           sizeof(UINT32)*m_n_texcoord_indices);
+    m_pStreamFile->ReadData(v, m_n_color_indices, m_bIsBigEndian);
+    return v;
+  }
+  return cIndices;
 }

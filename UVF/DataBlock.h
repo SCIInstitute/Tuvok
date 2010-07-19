@@ -19,6 +19,7 @@ public:
 
   std::string strBlockID;
   UVFTables::CompressionSemanticTable ulCompressionScheme;
+  virtual UINT64 ComputeDataSize() const {return 0;}
 
 protected:
   LargeRAWFile*  m_pStreamFile;
@@ -32,9 +33,8 @@ protected:
   virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
   virtual UINT64 GetOffsetToNextBlock() const;
 
-  virtual DataBlock* Clone();
+  virtual DataBlock* Clone() const;
 
-  virtual UINT64 ComputeDataSize() const {return 0;}
 
   friend class UVF;
 };

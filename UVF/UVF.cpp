@@ -272,6 +272,19 @@ bool UVF::SetGlobalHeader(const GlobalHeader& globalHeader) {
   return true;
 }
 
+bool UVF::AddConstDataBlock(const DataBlock* dataBlock, UINT64 iSizeofData) {
+
+  if (!dataBlock->Verify(iSizeofData)) return false;
+
+  DataBlock* d = dataBlock->Clone();
+  
+  m_DataBlocks.push_back(new DataBlockListElem(d,true,true,m_iAccumOffsets, d->GetOffsetToNextBlock()));
+  d->ulOffsetToNextDataBlock = d->GetOffsetToNextBlock();
+  m_iAccumOffsets += d->ulOffsetToNextDataBlock;
+
+  return true;
+}
+
 bool UVF::AddDataBlock(DataBlock* dataBlock, UINT64 iSizeofData, bool bUseSourcePointer) {
 
   if (!dataBlock->Verify(iSizeofData)) return false;

@@ -41,7 +41,7 @@ Histogram2DDataBlock::~Histogram2DDataBlock()
 {
 }
 
-DataBlock* Histogram2DDataBlock::Clone() {
+DataBlock* Histogram2DDataBlock::Clone() const {
   return new Histogram2DDataBlock(*this);
 }
 

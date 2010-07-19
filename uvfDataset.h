@@ -115,6 +115,7 @@ public:
   virtual bool Verify(const std::string&) const;
   virtual FileBackedDataset* Create(const std::string&, UINT64, bool) const;
   virtual std::list<std::string> Extensions() const;
+  const UVF* GetUVFFile() const {return m_pDatasetFile;}
 
 private:
   std::vector<UINT64> IndexToVector(const BrickKey &k) const;
@@ -131,6 +132,7 @@ private:
   bool VerifyRasterDataBlock(const RasterDataBlock*) const;
 
   virtual const char* Name() const { return "Universal Volume Format"; }
+
 
 private:
   struct Timestep {

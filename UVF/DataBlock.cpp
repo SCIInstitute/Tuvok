@@ -44,7 +44,7 @@ DataBlock& DataBlock::operator=(const DataBlock& other)  {
   return *this;
 }
 
-DataBlock* DataBlock::Clone() {
+DataBlock* DataBlock::Clone() const {
   return new DataBlock(*this);
 }
 

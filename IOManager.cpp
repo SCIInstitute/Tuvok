@@ -49,6 +49,7 @@
 #include "TuvokJPEG.h"
 #include "DSFactory.h"
 #include "uvfDataset.h"
+#include "UVF/UVF.h"
 #include "UVF/TriangleSoupBlock.h"
 
 #include "AnalyzeConverter.h"
@@ -65,14 +66,18 @@
 #include "VFFConverter.h"
 #include "VGStudioConverter.h"
 
+#include "Mesh.h"
+#include "OBJGeoConverter.h"
+#include "MedAlyVisGeoConverter.h"
+
 using namespace std;
 using namespace tuvok;
 
-static void read_first_block(const std::string& filename,
-                             std::vector<int8_t>& block)
+static void read_first_block(const string& filename,
+                             vector<int8_t>& block)
 {
-  std::ifstream ifs(filename.c_str(), std::ifstream::in |
-                                      std::ifstream::binary);
+  ifstream ifs(filename.c_str(), ifstream::in |
+                                      ifstream::binary);
   block.resize(512);
   ifs.read(reinterpret_cast<char*>(&block[0]), 512);
   ifs.close();
@@ -85,6 +90,9 @@ IOManager::IOManager() :
   m_iBrickOverlap(DEFAULT_BRICKOVERLAP),
   m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize)
 {
+  m_vpGeoConverters.push_back(new OBJGeoConverter());
+  m_vpGeoConverters.push_back(new MedAlyVisGeoConverter());
+
   m_vpConverters.push_back(new VGStudioConverter());
   m_vpConverters.push_back(new QVISConverter());
   m_vpConverters.push_back(new NRRDConverter());
@@ -98,7 +106,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new KitwareConverter());
   m_vpConverters.push_back(new InveonConverter());
   m_vpConverters.push_back(new AnalyzeConverter());
-  m_dsFactory->AddReader(std::tr1::shared_ptr<UVFDataset>(new UVFDataset()));
+  m_dsFactory->AddReader(tr1::shared_ptr<UVFDataset>(new UVFDataset()));
 }
 
 
@@ -120,11 +128,11 @@ IOManager::~IOManager()
   delete m_pFinalConverter;
 }
 
-vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) const {
+vector<FileStackInfo*> IOManager::ScanDirectory(string strDirectory) const {
 
   MESSAGE("Scanning directory %s", strDirectory.c_str());
 
-  std::vector<FileStackInfo*> fileStacks;
+  vector<FileStackInfo*> fileStacks;
 
   DICOMParser parseDICOM;
   parseDICOM.GetDirInfo(strDirectory);
@@ -204,8 +212,8 @@ vector<FileStackInfo*> IOManager::ScanDirectory(std::string strDirectory) const 
 #endif
 
 bool IOManager::ConvertDataset(FileStackInfo* pStack,
-                               const std::string& strTargetFilename,
-                               const std::string& strTempDir,
+                               const string& strTargetFilename,
+                               const string& strTempDir,
                                UINT64 iMaxBrickSize,
                                UINT64 iBrickOverlap,
                                const bool bQuantizeTo8Bit) const {
@@ -244,7 +252,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
       return false;
     }
 
-    std::vector<char> vData;
+    vector<char> vData;
     for (size_t j=0; j < pDICOMStack->m_Elements.size(); j++) {
       UINT32 iDataSize = pDICOMStack->m_Elements[j]->GetDataSize();
       vData.resize(iDataSize);
@@ -266,7 +274,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                 UINT32(jpg.components()));
 
         const char *jpeg_data = jpg.data();
-        std::copy(jpeg_data, jpeg_data + jpg.size(), &vData[0]);
+        copy(jpeg_data, jpeg_data + jpg.size(), &vData[0]);
         pDICOMStack->m_iAllocated = BITS_IN_JSAMPLE;
       } else {
         pDICOMStack->m_Elements[j]->GetData(vData);
@@ -377,7 +385,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
       return false;
     }
 
-    std::vector<char> vData;
+    vector<char> vData;
     for (size_t j = 0;j<pStack->m_Elements.size();j++) {
       UINT32 iDataSize = pStack->m_Elements[j]->GetDataSize();
       vData.resize(iDataSize);
@@ -396,10 +404,10 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     UINT64VECTOR3 iSize = UINT64VECTOR3(pStack->m_ivSize);
     iSize.z *= UINT32(pStack->m_Elements.size());
 
-    const std::string first_fn =
+    const string first_fn =
       SysTools::GetFilename(pStack->m_Elements[0]->m_strFileName);
     const size_t last_elem = pStack->m_Elements.size()-1;
-    const std::string last_fn =
+    const string last_fn =
       SysTools::GetFilename(pStack->m_Elements[last_elem]->m_strFileName);
 
     const UINT64 timesteps = 1;
@@ -432,11 +440,11 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
 #endif
 
 
-bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
-                              const std::vector <double>& vScales,
-                              const std::vector<double>& vBiases,
-                              const std::string& strTargetFilename,
-                              const std::string& strTempDir,
+bool IOManager::MergeDatasets(const vector <string>& strFilenames,
+                              const vector <double>& vScales,
+                              const vector<double>& vBiases,
+                              const string& strTargetFilename,
+                              const string& strTempDir,
                               bool bUseMaxMode, bool bNoUserInteraction) const {
   MESSAGE("Request to merge multiple data sets into %s received.",
           strTargetFilename.c_str());
@@ -519,7 +527,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
       UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
 
       for (size_t i = 0;i<m_vpConverters.size();i++) {
-        const std::vector<std::string>& vStrSupportedExt =
+        const vector<string>& vStrSupportedExt =
           m_vpConverters[i]->SupportedExt();
         for (size_t j = 0;j<vStrSupportedExt.size();j++) {
           if (vStrSupportedExt[j] == strExt) {
@@ -686,7 +694,7 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
         m_iBrickOverlap);
   } else {
     for (size_t k = 0;k<m_vpConverters.size();k++) {
-      const std::vector<std::string>& vStrSupportedExtTarget =
+      const vector<string>& vStrSupportedExtTarget =
         m_vpConverters[k]->SupportedExt();
       for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
         if (vStrSupportedExtTarget[l] == strExtTarget) {
@@ -707,23 +715,23 @@ bool IOManager::MergeDatasets(const std::vector <std::string>& strFilenames,
 }
 
 
-bool IOManager::ConvertDataset(const std::string& strFilename,
-                               const std::string& strTargetFilename,
-                               const std::string& strTempDir,
+bool IOManager::ConvertDataset(const string& strFilename,
+                               const string& strTargetFilename,
+                               const string& strTempDir,
                                const bool bNoUserInteraction,
                                const UINT64 iMaxBrickSize,
                                const UINT64 iBrickOverlap,
                                const bool bQuantizeTo8Bit) const {
-  std::list<std::string> files;
+  list<string> files;
   files.push_back(strFilename);
   return ConvertDataset(files, strTargetFilename, strTempDir,
                         bNoUserInteraction, iMaxBrickSize, iBrickOverlap,
                         bQuantizeTo8Bit);
 }
 
-bool IOManager::ConvertDataset(const std::list<std::string>& files,
-                               const std::string& strTargetFilename,
-                               const std::string& strTempDir,
+bool IOManager::ConvertDataset(const list<string>& files,
+                               const string& strTargetFilename,
+                               const string& strTempDir,
                                const bool bNoUserInteraction,
                                UINT64 iMaxBrickSize,
                                UINT64 iBrickOverlap,
@@ -734,10 +742,10 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     return false;
   }
   {
-    std::ostringstream request;
+    ostringstream request;
     request << "Request to convert datasets ";
-    std::copy(files.begin(), files.end(),
-              std::ostream_iterator<std::string>(request, ", "));
+    copy(files.begin(), files.end(),
+              ostream_iterator<string>(request, ", "));
     request << "to " << strTargetFilename << " received.";
     MESSAGE("%s", request.str().c_str());
   }
@@ -762,12 +770,12 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
     // in one block of the first file to use for that purpose.
     /// @todo consider what we should do when converting multiple files which
     ///       utilize different converters.
-    std::vector<int8_t> bytes(512);
+    vector<int8_t> bytes(512);
     read_first_block(*files.begin(), bytes);
 
     // Now iterate through all our converters, stopping when one successfully
     // converts our data.
-    for(std::vector<AbstrConverter*>::const_iterator conv =
+    for(vector<AbstrConverter*>::const_iterator conv =
           m_vpConverters.begin(); conv != m_vpConverters.end(); ++conv) {
       MESSAGE("Attempting converter '%s'", (*conv)->GetDesc().c_str());
       if((*conv)->CanRead(*files.begin(), bytes)) {
@@ -803,7 +811,7 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
   }
   // Everything below is for exporting to non-UVF formats.
 
-  std::string   strFilename = *files.begin();
+  string   strFilename = *files.begin();
   UINT64        iHeaderSkip=0;
   UINT64        iComponentSize=0;
   UINT64        iComponentCount=0;
@@ -851,10 +859,10 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
       return false;
     } else bRAWCreated = true;
   } else { // for non-UVF source data
-    std::vector<int8_t> bytes(512);
+    vector<int8_t> bytes(512);
     read_first_block(strFilename, bytes);
 
-    for(std::vector<AbstrConverter*>::const_iterator conv =
+    for(vector<AbstrConverter*>::const_iterator conv =
           m_vpConverters.begin(); conv != m_vpConverters.end(); ++conv) {
       if((*conv)->CanRead(strFilename, bytes)) {
         if((*conv)->ConvertToRAW(strFilename, strTempDir,
@@ -890,7 +898,7 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
 
   bool bTargetCreated = false;
   for (size_t k = 0;k<m_vpConverters.size();k++) {
-    const std::vector<std::string>& vStrSupportedExtTarget =
+    const vector<string>& vStrSupportedExtTarget =
       m_vpConverters[k]->SupportedExt();
     for (size_t l = 0;l<vStrSupportedExtTarget.size();l++) {
       if (vStrSupportedExtTarget[l] == strExtTarget) {
@@ -914,8 +922,8 @@ bool IOManager::ConvertDataset(const std::list<std::string>& files,
 }
 
 UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack,
-                                      const std::string& strTargetFilename,
-                                      const std::string& strTempDir,
+                                      const string& strTargetFilename,
+                                      const string& strTempDir,
                                       AbstrRenderer* requester,
                                       UINT64 iMaxBrickSize,
                                       UINT64 iBrickOverlap,
@@ -927,9 +935,9 @@ UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack,
   return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
 
-UVFDataset* IOManager::ConvertDataset(const std::string& strFilename,
-                                      const std::string& strTargetFilename,
-                                      const std::string& strTempDir,
+UVFDataset* IOManager::ConvertDataset(const string& strFilename,
+                                      const string& strTargetFilename,
+                                      const string& strTempDir,
                                       AbstrRenderer* requester,
                                       UINT64 iMaxBrickSize,
                                       UINT64 iBrickOverlap,
@@ -941,24 +949,24 @@ UVFDataset* IOManager::ConvertDataset(const std::string& strFilename,
   return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
 
-Dataset* IOManager::LoadDataset(const std::string& strFilename,
+Dataset* IOManager::LoadDataset(const string& strFilename,
                                 AbstrRenderer* requester) const {
   return Controller::Instance().MemMan()->LoadDataset(strFilename, requester);
 }
 
-Dataset* IOManager::CreateDataset(const std::string& filename,
+Dataset* IOManager::CreateDataset(const string& filename,
                                   UINT64 max_brick_size, bool verify) const {
   MESSAGE("Searching for appropriate DS for '%s'", filename.c_str());
   return m_dsFactory->Create(filename, max_brick_size, verify);
 }
 
-void IOManager::AddReader(std::tr1::shared_ptr<FileBackedDataset> ds)
+void IOManager::AddReader(tr1::shared_ptr<FileBackedDataset> ds)
 {
   m_dsFactory->AddReader(ds);
 }
 
-bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize,
-             const std::vector<UINT64> vBrickOffset, void* pUserContext) {
+bool MCBrick(LargeRAWFile* pSourceFile, const vector<UINT64> vBrickSize,
+             const vector<UINT64> vBrickOffset, void* pUserContext) {
     MCData* pMCData = (MCData*)pUserContext;
     return pMCData->PerformMC(pSourceFile, vBrickSize, vBrickOffset);
 }
@@ -966,8 +974,8 @@ bool MCBrick(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize,
 bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData,
                                   UINT64 iLODlevel, double fIsovalue,
                                   const DOUBLEVECTOR3& vfRescaleFactors,
-                                  const std::string& strTargetFilename,
-                                  const std::string& strTempDir) const {
+                                  const string& strTargetFilename,
+                                  const string& strTempDir) const {
   if (pSourceData->GetComponentCount() != 1) {
     T_ERROR("Isosurface extraction only supported for scalar volumes.");
     return false;
@@ -1027,13 +1035,13 @@ bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData,
 
 
 bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel,
-                              const std::string& strTargetFilename,
-                              const std::string& strTempDir) const {
+                              const string& strTargetFilename,
+                              const string& strTempDir) const {
   // find the right converter to handle the output
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
   AbstrConverter* pExporter = NULL;
   for (size_t i = 0;i<m_vpConverters.size();i++) {
-    const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+    const vector<string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
     for (size_t j = 0;j<vStrSupportedExt.size();j++) {
       if (vStrSupportedExt[j] == strExt) {
         pExporter = m_vpConverters[i];
@@ -1084,16 +1092,16 @@ bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel,
 // Try to find the reader for the filename.  If we get back garbage, that must
 // mean we can't read this.  If we can't read it, it needs to be converted.
 // All your data are belong to us.
-bool IOManager::NeedsConversion(const std::string& strFilename) const {
-  const std::tr1::weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
+bool IOManager::NeedsConversion(const string& strFilename) const {
+  const tr1::weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
   return reader.expired();
 }
 
 // Some readers checksum the data.  If they do, this is how the UI will access
 // that verification method.
-bool IOManager::Verify(const std::string& strFilename) const
+bool IOManager::Verify(const string& strFilename) const
 {
-  const std::tr1::weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
+  const tr1::weak_ptr<Dataset> reader = m_dsFactory->Reader(strFilename);
 
   // I swear I did not purposely choose words so that this text aligned.
   assert(!reader.expired() && "Impossible; we wouldn't have reached this code "
@@ -1103,8 +1111,8 @@ bool IOManager::Verify(const std::string& strFilename) const
                               "file.");
 
   // Upcast it.  Hard to verify a checksum on an abstract entity.
-  const std::tr1::shared_ptr<FileBackedDataset> fileds =
-    std::tr1::dynamic_pointer_cast<FileBackedDataset>(reader.lock());
+  const tr1::shared_ptr<FileBackedDataset> fileds =
+    tr1::dynamic_pointer_cast<FileBackedDataset>(reader.lock());
 
   return fileds->Verify(strFilename);
 }
@@ -1112,7 +1120,7 @@ bool IOManager::Verify(const std::string& strFilename) const
 using namespace tuvok;
 using namespace tuvok::io;
 
-std::string IOManager::GetLoadDialogString() const {
+string IOManager::GetLoadDialogString() const {
   string strDialog = "All known Files (";
   map<string,string> descPairs;
 
@@ -1121,10 +1129,10 @@ std::string IOManager::GetLoadDialogString() const {
   const DSFactory::DSList& readers = m_dsFactory->Readers();
   for(DSFactory::DSList::const_iterator rdr=readers.begin();
       rdr != readers.end(); ++rdr) {
-    const std::tr1::shared_ptr<FileBackedDataset> fileds =
-      std::tr1::dynamic_pointer_cast<FileBackedDataset>(*rdr);
-    const std::list<std::string> extensions = fileds->Extensions();
-    for(std::list<std::string>::const_iterator ext = extensions.begin();
+    const tr1::shared_ptr<FileBackedDataset> fileds =
+      tr1::dynamic_pointer_cast<FileBackedDataset>(*rdr);
+    const list<string> extensions = fileds->Extensions();
+    for(list<string>::const_iterator ext = extensions.begin();
         ext != extensions.end(); ++ext) {
       strDialog += "*." + SysTools::ToLowerCase(*ext) + " ";
       descPairs[*ext] = (*rdr)->Name();
@@ -1147,11 +1155,11 @@ std::string IOManager::GetLoadDialogString() const {
   // native formats
   for(DSFactory::DSList::const_iterator rdr=readers.begin();
       rdr != readers.end(); ++rdr) {
-    const std::tr1::shared_ptr<FileBackedDataset> fileds =
-      std::tr1::dynamic_pointer_cast<FileBackedDataset>(*rdr);
-    const std::list<std::string> extensions = fileds->Extensions();
-    strDialog += std::string(fileds->Name()) + " (";
-    for(std::list<std::string>::const_iterator ext = extensions.begin();
+    const tr1::shared_ptr<FileBackedDataset> fileds =
+      tr1::dynamic_pointer_cast<FileBackedDataset>(*rdr);
+    const list<string> extensions = fileds->Extensions();
+    strDialog += string(fileds->Name()) + " (";
+    for(list<string>::const_iterator ext = extensions.begin();
         ext != extensions.end(); ++ext) {
       strDialog += "*." + SysTools::ToLowerCase(*ext) + " ";
       descPairs[*ext] = (*rdr)->Name();
@@ -1176,8 +1184,8 @@ std::string IOManager::GetLoadDialogString() const {
   return strDialog;
 }
 
-std::string IOManager::GetExportDialogString() const {
-  std::string strDialog;
+string IOManager::GetExportDialogString() const {
+  string strDialog;
   // seperate entries
   for (size_t i=0; i < m_vpConverters.size(); i++) {
     for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
@@ -1191,9 +1199,8 @@ std::string IOManager::GetExportDialogString() const {
   return strDialog;
 }
 
-
-std::vector< std::pair <std::string, std::string > > IOManager::GetExportFormatList() const {
-  std::vector< std::pair <std::string, std::string > > v;
+vector< pair <string, string > > IOManager::GetExportFormatList() const {
+  vector< pair <string, string > > v;
   v.push_back(make_pair("UVF", "Universal Volume Format"));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
@@ -1207,8 +1214,8 @@ std::vector< std::pair <std::string, std::string > > IOManager::GetExportFormatL
   return v;
 }
 
-std::vector< std::pair <std::string, std::string > > IOManager::GetImportFormatList() const {
-  std::vector< std::pair <std::string, std::string > > v;
+vector< pair <string, string > > IOManager::GetImportFormatList() const {
+  vector< pair <string, string > > v;
   v.push_back(make_pair("UVF", "Universal Volume Format"));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
@@ -1221,9 +1228,9 @@ std::vector< std::pair <std::string, std::string > > IOManager::GetImportFormatL
 }
 
 
-std::vector< tVolumeFormat > IOManager::GetFormatList() const {
+vector< tConverterFormat > IOManager::GetFormatList() const {
 
-  std::vector< tVolumeFormat > v;
+  vector< tConverterFormat > v;
   v.push_back(tr1::make_tuple("UVF", "Universal Volume Format", true));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
     for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
@@ -1238,8 +1245,101 @@ std::vector< tVolumeFormat > IOManager::GetFormatList() const {
   return v;
 }
 
-bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
-                               const std::string& strTempDir) const {
+
+string IOManager::GetLoadGeoDialogString() const {
+  string strDialog = "All known Geometry Files (";
+  map<string,string> descPairs;
+
+  // converters
+  for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
+    for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
+      string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
+      if (descPairs.count(strExt) == 0) {
+        strDialog = strDialog + "*." + strExt + " ";
+        descPairs[strExt] = m_vpGeoConverters[i]->GetDesc();
+      }
+    }
+  }
+  strDialog += ");;";
+
+  // now create the separate entries, i.e. just OBJs, TRIs, etc.
+  for (size_t i=0; i < m_vpGeoConverters.size(); i++) {
+    strDialog += m_vpGeoConverters[i]->GetDesc() + " (";
+    for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
+      string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
+      strDialog += "*." + strExt;
+      if (j<m_vpGeoConverters[i]->SupportedExt().size()-1)
+        strDialog += " ";
+    }
+    strDialog += ");;";
+  }
+
+  strDialog += "All Files (*)";
+
+  return strDialog;
+}
+
+string IOManager::GetGeoExportDialogString() const {
+  string strDialog;
+  // seperate entries
+  for (size_t i=0; i < m_vpGeoConverters.size(); i++) {
+    for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
+      if (m_vpGeoConverters[i]->CanExportData()) {
+        string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
+        strDialog += m_vpConverters[i]->GetDesc() + " (*." + strExt + ");;";
+      }
+    }
+  }
+
+  return strDialog;
+}
+
+
+
+vector< pair <string, string > > IOManager::GetGeoExportFormatList() const {
+  vector< pair <string, string > > v;
+  for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
+    for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
+      if (m_vpGeoConverters[i]->CanExportData()) {
+        v.push_back(
+          make_pair(SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]),
+                    m_vpGeoConverters[i]->GetDesc()));
+      }
+    }
+  }
+  return v;
+}
+
+vector< pair <string, string > > IOManager::GetGeoImportFormatList() const {
+  vector< pair <string, string > > v;
+  for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
+    for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
+      v.push_back(
+        make_pair(SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]),
+                  m_vpGeoConverters[i]->GetDesc()));
+    }
+  }
+  return v;
+}
+
+
+vector< tConverterFormat > IOManager::GetGeoFormatList() const {
+  vector< tConverterFormat > v;
+  for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
+    for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
+      v.push_back(tr1::make_tuple(
+                      SysTools::ToLowerCase(
+                        m_vpGeoConverters[i]->SupportedExt()[j]
+                      ), 
+                      m_vpGeoConverters[i]->GetDesc(), 
+                      m_vpGeoConverters[i]->CanExportData()));
+    }
+  }
+  return v;
+}
+
+bool IOManager::AnalyzeDataset(const string& strFilename, RangeInfo& info,
+                               const string& strTempDir) const {
   // find the right converter to handle the dataset
   string strExt = SysTools::ToUpperCase(SysTools::GetExt(strFilename));
 
@@ -1276,7 +1376,7 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
   } else {
     bool bAnalyzed = false;
     for (size_t i = 0;i<m_vpConverters.size();i++) {
-      const std::vector<std::string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
+      const vector<string>& vStrSupportedExt = m_vpConverters[i]->SupportedExt();
       for (size_t j = 0;j<vStrSupportedExt.size();j++) {
         if (vStrSupportedExt[j] == strExt) {
           bAnalyzed = m_vpConverters[i]->Analyze(strFilename, strTempDir, false, info);
@@ -1296,16 +1396,16 @@ bool IOManager::AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
 
 
 
-bool IOManager::ReBrickDataset(const std::string& strSourceFilename,
-                               const std::string& strTargetFilename,
-                               const std::string& strTempDir,
+bool IOManager::ReBrickDataset(const string& strSourceFilename,
+                               const string& strTargetFilename,
+                               const string& strTempDir,
                                const UINT64 iMaxBrickSize,
                                const UINT64 iBrickOverlap,
                                bool bQuantizeTo8Bit) const {
   MESSAGE("Rebricking (Phase 1/2)...");
 
-  std::string filenameOnly = SysTools::GetFilename(strSourceFilename);
-  std::string tmpFile = strTempDir+SysTools::ChangeExt(filenameOnly,"nrrd"); /// use some simple format as intermediate file
+  string filenameOnly = SysTools::GetFilename(strSourceFilename);
+  string tmpFile = strTempDir+SysTools::ChangeExt(filenameOnly,"nrrd"); /// use some simple format as intermediate file
 
   if (!ConvertDataset(strSourceFilename, tmpFile, strTempDir)) {
     T_ERROR("Unable to extract raw data from file %s to %s", strSourceFilename.c_str(),tmpFile.c_str());
@@ -1316,90 +1416,97 @@ bool IOManager::ReBrickDataset(const std::string& strSourceFilename,
 
   if (!Controller::Instance().IOMan()->ConvertDataset(tmpFile, strTargetFilename, strTempDir, true, iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
     T_ERROR("Unable to convert raw data from file %s into new UVF file %s", tmpFile.c_str(),strTargetFilename.c_str());
-    if(std::remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
+    if(remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
     return false;
   }
-  if(std::remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
+  if(remove(tmpFile.c_str()) == -1) WARNING("Unable to delete temp file %s", tmpFile.c_str());
 
   return true;
 }
 
-void IOManager::AddTriSurf(const std::string& trisoup_fn,
-                           const std::string& uvf_fn) const
+
+void IOManager::CopyToTSB(const Mesh* m, TriangleSoupBlock* tsb) const {
+  // source data
+  const VertVec&      v = m->GetVertices();
+  const NormVec&      n = m->GetNormals();
+  const TexCoordVec&  t = m->GetTexCoords();
+  const ColorVec&     c = m->GetColors();
+  const IndexVec&     vi = m->GetVertexIndices();
+  const IndexVec&     ni = m->GetNormalIndices();
+  const IndexVec&     ti = m->GetTexCoordIndices();
+  const IndexVec&     ci = m->GetColorIndices();
+
+  // target data
+  vector<float> fVec;
+  vector<UINT32> iVec;
+  
+  if (v.size()) {fVec.resize(v.size()*3); memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float)); tsb->SetVertices(fVec);}
+  if (n.size()) {fVec.resize(n.size()*3); memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float)); tsb->SetNormals(fVec);}
+  if (t.size()) {fVec.resize(t.size()*2); memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float)); tsb->SetTexCoords(fVec);}
+  if (c.size()) {fVec.resize(c.size()*3); memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float)); tsb->SetColors(fVec);}
+  if (vi.size()) {iVec.resize(vi.size()*3); memcpy(&iVec[0],&vi[0],vi.size()*3*sizeof(UINT32)); tsb->SetVertexIndices(iVec);}
+  if (ni.size()) {iVec.resize(ni.size()*3); memcpy(&iVec[0],&ni[0],ni.size()*3*sizeof(UINT32)); tsb->SetNormalIndices(iVec);}
+  if (ti.size()) {iVec.resize(ti.size()*3); memcpy(&iVec[0],&ti[0],ti.size()*3*sizeof(UINT32)); tsb->SetTexCoordIndices(iVec);}
+  if (ci.size()) {iVec.resize(ci.size()*3); memcpy(&iVec[0],&ci[0],ci.size()*3*sizeof(UINT32)); tsb->SetColorIndices(iVec);}
+}
+
+void IOManager::AddTriSurf(const UVF* sourceDataset,
+                           const string& trisoup_fn,
+                           const string& uvf_fn) const
 {
-  /// HACK: we should really have a dynamic registration interface, like we do
-  /// for converters.  Or, better, just expand the notion of converter to be
-  /// able to generate raw trisoup files as well.
-  /// Instead, here we're just hacking in support for a specific file type as
-  /// generated for the vis contest.
-  std::ifstream trisoup(trisoup_fn.c_str(), std::ios::binary);
-  if(!trisoup) {
-    // hack, we really want some kind of 'file not found' exception.
+  MESSAGE("Opening Mesh File ...");
+
+  // iterate through all our converters, stopping when one successfully
+  // converts our data.
+  Mesh* m = NULL;
+  for(vector<AbstrGeoConverter*>::const_iterator conv =
+      m_vpGeoConverters.begin(); conv != m_vpGeoConverters.end(); ++conv) {
+    MESSAGE("Attempting converter '%s'", (*conv)->GetDesc().c_str());
+    if((*conv)->CanRead(trisoup_fn)) {
+      MESSAGE("Converter '%s' can read '%s'!",
+              (*conv)->GetDesc().c_str(), trisoup_fn.c_str());
+      try {
+        m = (*conv)->ConvertToMesh(trisoup_fn);
+      } catch (const tuvok::io::DSOpenFailed& err) {
+        WARNING("Converter %s can read files, but conversion failed! %s",
+                (*conv)->GetDesc().c_str(), err.what());
+        throw;
+      }
+    }
+  }
+  
+  if (m == NULL) {
+    WARNING("No converter for geometry file %s can be found", trisoup_fn);
     throw tuvok::io::DSOpenFailed(trisoup_fn.c_str(), __FILE__, __LINE__);
   }
 
-  unsigned n_vertices;
-  unsigned n_triangles;
-  trisoup.read(reinterpret_cast<char*>(&n_vertices), sizeof(unsigned));
-  trisoup.read(reinterpret_cast<char*>(&n_triangles), sizeof(unsigned));
+  // make sure we have at least normals
+  if (m->GetNormalIndices().size() == 0) m->RecomputeNormals();
 
-  MESSAGE("%u vertices and %u triangles.", n_vertices, n_triangles);
-
-  assert(n_vertices > 0);
-  assert(n_triangles > 0);
-
-  std::vector<std::tr1::array<float, 3> > vertices(n_vertices);
-
-  // read in the world space coords of each vertex
-  MESSAGE("reading %u vertices (each 3x floats)...", n_vertices);
-  for(unsigned i=0; trisoup && i < n_vertices; ++i) {
-    trisoup.read(reinterpret_cast<char*>(&(vertices[i][0])), sizeof(float));
-    trisoup.read(reinterpret_cast<char*>(&(vertices[i][1])), sizeof(float));
-    trisoup.read(reinterpret_cast<char*>(&(vertices[i][2])), sizeof(float));
-  }
-
-  if(!trisoup) {
-    throw tuvok::io::DSVerificationFailed("file ends before triangle indices.",
-                                          __FILE__, __LINE__);
-  }
-
-  // the values in 'tri_idx' will be indices into 'vertices'.
-  std::vector<std::tr1::array<unsigned, 3> > tri_idx(n_triangles);
-  // read in the triangle indices
-  MESSAGE("reading %u triangles...", n_triangles);
-  for(unsigned i=0; trisoup && i < n_triangles; ++i) {
-    trisoup.read(reinterpret_cast<char*>(&(tri_idx[i][0])), sizeof(unsigned));
-    trisoup.read(reinterpret_cast<char*>(&(tri_idx[i][1])), sizeof(unsigned));
-    trisoup.read(reinterpret_cast<char*>(&(tri_idx[i][2])), sizeof(unsigned));
-  }
-  trisoup.close();
-
-  // now create the actual triangle soup.
-  std::vector<std::tr1::array<std::tr1::array<float, 3>, 3> >
-    triangles(n_triangles);
-  for(unsigned i=0; i < n_triangles; ++i) {
-    triangles[i][0] = vertices[tri_idx[i][0]];
-    triangles[i][1] = vertices[tri_idx[i][1]];
-    triangles[i][2] = vertices[tri_idx[i][2]];
-  }
-  // It would be smarter to create 'triangles' as we created 'trisoup', and
-  // forget about creating 'trisoup' at all.  Oh well.
-
-  // Now create the new block in the UVF.
+  // now create a TriangleSoupBlock ...
   TriangleSoupBlock tsb;
-  tsb.triangles.swap(triangles);
 
-  std::wstring wuvf(uvf_fn.begin(), uvf_fn.end());
-  UVF* uvf = new UVF(wuvf);
-  std::string err;
-  if(!uvf->Open(false, false, true, &err)) {
-    throw std::runtime_error(err.c_str());
-    return;
+  // ... and transfer the data from the mesh object
+  CopyToTSB(m, &tsb);
+
+  wstring wuvf(uvf_fn.begin(), uvf_fn.end());
+  UVF uvfFile(wuvf);
+  GlobalHeader uvfGlobalHeader;
+  uvfGlobalHeader.bIsBigEndian = EndianConvert::IsBigEndian();
+  uvfGlobalHeader.ulChecksumSemanticsEntry = UVFTables::CS_MD5;
+  uvfFile.SetGlobalHeader(uvfGlobalHeader);
+
+  for(UINT64 i = 0; i<sourceDataset->GetDataBlockCount(); i++) {
+    uvfFile.AddConstDataBlock(sourceDataset->GetDataBlock(i), 
+                              sourceDataset->GetDataBlock(i)->ComputeDataSize());
   }
-  MESSAGE("Adding TS block...");
-  uvf->AddDataBlock(&tsb, tsb.ComputeDataSize());
-  MESSAGE("Rewriting...");
-  uvf->Close();
+
+  MESSAGE("Adding triangle soup block...");
+  uvfFile.AddDataBlock(&tsb, tsb.ComputeDataSize(), true);
+
+  uvfFile.Create();
+  MESSAGE("Computing checksum...");
+  uvfFile.Close();
 }
 
 bool IOManager::SetMaxBrickSize(const UINT64 iMaxBrickSize) {

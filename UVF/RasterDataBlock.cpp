@@ -18,7 +18,9 @@ RasterDataBlock::RasterDataBlock() :
   ulElementDimension(0),
   ulOffsetToDataBlock(0),
 
-  m_pTempFile(NULL)
+  m_pTempFile(NULL),
+  m_pSourceFile(NULL),
+  m_iSourcePos(0)
 {
   ulBlockSemantics = BS_REG_NDIM_GRID;
 }
@@ -41,9 +43,16 @@ RasterDataBlock::RasterDataBlock(const RasterDataBlock &other) :
   bSignedElement(other.bSignedElement),
   ulOffsetToDataBlock(other.ulOffsetToDataBlock),
 
-  m_pTempFile(NULL)
+  m_pTempFile(NULL),
+  m_pSourceFile(NULL),
+  m_iSourcePos(0)
 {
-  if (other.m_pTempFile != NULL) m_pTempFile = new LargeRAWFile(*other.m_pTempFile);
+  if (other.m_pTempFile != NULL) 
+    m_pTempFile = new LargeRAWFile(*(other.m_pTempFile));
+  else {
+    m_pSourceFile = other.m_pStreamFile;
+    m_iSourcePos = other.m_iOffset + DataBlock::GetOffsetToNextBlock() + other.ComputeHeaderSize();
+  }
 }
 
 
@@ -70,6 +79,8 @@ RasterDataBlock& RasterDataBlock::operator=(const RasterDataBlock& other)  {
   ulOffsetToDataBlock = other.ulOffsetToDataBlock;
 
   m_pTempFile = NULL;
+  m_pSourceFile = other.m_pSourceFile;
+  m_iSourcePos = other.m_iSourcePos;
 
   return *this;
 }
@@ -88,7 +99,7 @@ RasterDataBlock::RasterDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool
   GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
 }
 
-DataBlock* RasterDataBlock::Clone() {
+DataBlock* RasterDataBlock::Clone() const {
   return new RasterDataBlock(*this);
 }
 
@@ -227,14 +238,24 @@ UINT64 RasterDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bo
 
   UINT64 iDataSize = ComputeDataSize();
 
-  m_pTempFile->SeekStart();
+  LargeRAWFile* pSourceFile;
+
+  if (m_pTempFile) {
+    m_pTempFile->SeekStart();
+    pSourceFile = m_pTempFile;
+  } else {
+    m_pSourceFile->SeekPos(m_iSourcePos);
+    pSourceFile = m_pSourceFile;
+  }
+
+
   pStreamFile->SeekPos( pStreamFile->GetPos() + ulOffsetToDataBlock);
 
   unsigned char* pData = new unsigned char[size_t(min(iDataSize, BLOCK_COPY_SIZE))];
   for (UINT64 i = 0;i<iDataSize;i+=BLOCK_COPY_SIZE) {
     UINT64 iCopySize = min(BLOCK_COPY_SIZE, iDataSize-i);
 
-    m_pTempFile->ReadRAW(pData, iCopySize);
+    pSourceFile->ReadRAW(pData, iCopySize);
     pStreamFile->WriteRAW(pData, iCopySize);
   }
   delete [] pData;
@@ -245,7 +266,7 @@ UINT64 RasterDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bo
 /**
  * Dumps the input data into a temp file and calls FlatDataToBrickedLOD
  * \param vElements - the input vectors of vector
- * \param iIndex - counter used internally to controll the recursion, defaults
+ * \param iIndex - counter used internally to control the recursion, defaults
  *                 to 0 and should not be set
  * \return - the cartesian product of the ordered elements in the input vectors
  *           as a vector of vectors

@@ -61,15 +61,19 @@
 # include <tr1/tuple>
 #endif
 
-typedef std::tr1::tuple<std::string , std::string, bool> tVolumeFormat;
+typedef std::tr1::tuple<std::string , std::string, bool> tConverterFormat;
 
 #define DEFAULT_BRICKSIZE (256)
 #define DEFAULT_BRICKOVERLAP (4)
 #define DEFAULT_INCORESIZE (DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE)
 
 class AbstrConverter;
+class AbstrGeoConverter;
 class FileStackInfo;
 class RangeInfo;
+class UVF;
+class TriangleSoupBlock;
+class Mesh;
 
 namespace tuvok {
   class AbstrRenderer;
@@ -440,7 +444,8 @@ public:
     return ReBrickDataset(strSourceFilename,strTargetFilename,strTempDir,m_iMaxBrickSize,m_iBrickOverlap,bQuantizeTo8Bit);
   }
 
-  void AddTriSurf(const std::string& trisoup_file,
+  void AddTriSurf(const UVF* sourceDataset,
+                  const std::string& trisoup_file,
                   const std::string& uvf) const;
 
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
@@ -467,14 +472,19 @@ public:
 
   std::string GetLoadDialogString() const;
   std::string GetExportDialogString() const;
-
   std::vector< std::pair <std::string, std::string > >
     GetImportFormatList() const;
   std::vector< std::pair <std::string, std::string > > 
     GetExportFormatList() const;
+  std::vector< tConverterFormat > GetFormatList() const;
 
-  std::vector< tVolumeFormat > GetFormatList() const;
-
+  std::string GetLoadGeoDialogString() const;
+  std::string GetGeoExportDialogString() const;
+  std::vector< std::pair <std::string, std::string > >
+    GetGeoImportFormatList() const;
+  std::vector< std::pair <std::string, std::string > > 
+    GetGeoExportFormatList() const;
+  std::vector< tConverterFormat > GetGeoFormatList() const;
   
 
   UINT64 GetMaxBrickSize() const {return m_iMaxBrickSize;}
@@ -485,6 +495,7 @@ public:
   bool SetBrickOverlap(const UINT64 iBrickOverlap);
 
 private:
+  std::vector<AbstrGeoConverter*> m_vpGeoConverters;
   std::vector<AbstrConverter*>    m_vpConverters;
   AbstrConverter*                 m_pFinalConverter;
   std::auto_ptr<tuvok::io::DSFactory> m_dsFactory;
@@ -493,6 +504,7 @@ private:
   UINT64 m_iBrickOverlap;
   UINT64 m_iIncoresize;
 
+  void CopyToTSB(const Mesh* m, TriangleSoupBlock* tsb) const;
 };
 
 #endif // IOMANAGER_H

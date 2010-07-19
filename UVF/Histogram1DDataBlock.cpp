@@ -35,7 +35,7 @@ Histogram1DDataBlock::~Histogram1DDataBlock()
 {
 }
 
-DataBlock* Histogram1DDataBlock::Clone() {
+DataBlock* Histogram1DDataBlock::Clone() const {
   return new Histogram1DDataBlock(*this);
 }
 
