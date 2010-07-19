@@ -32,14 +32,11 @@
 //
 //!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
 
+#include <algorithm>
+#include <cctype>
 #include <vector>
 #include "AbstrGeoConverter.h"
-#include "Controller/Controller.h"
 #include "SysTools.h"
-#include <cctype>
-
-using namespace tuvok;
-
 
 bool AbstrGeoConverter::ConvertToNative(const Mesh&, 
                                         const std::string&) {

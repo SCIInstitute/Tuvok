@@ -1476,7 +1476,8 @@ void IOManager::AddTriSurf(const UVF* sourceDataset,
   }
   
   if (m == NULL) {
-    WARNING("No converter for geometry file %s can be found", trisoup_fn);
+    WARNING("No converter for geometry file %s can be found",
+            trisoup_fn.c_str());
     throw tuvok::io::DSOpenFailed(trisoup_fn.c_str(), __FILE__, __LINE__);
   }
 

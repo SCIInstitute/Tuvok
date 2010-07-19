@@ -89,7 +89,6 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
   IndexVec      NormalIndices;
   IndexVec      TCIndices;
   IndexVec      COLIndices;  // no used here, passed on as empty vector
-  FLOATVECTOR3  bounds[2];
 
 	std::ifstream fs;
 	std::string line;
