@@ -46,7 +46,7 @@ using namespace std;
 MedAlyVisGeoConverter::MedAlyVisGeoConverter()
 {
   m_vConverterDesc = "MedAlyVis Hull File";
-  m_vSupportedExt.push_back("tri");
+  m_vSupportedExt.push_back("TRI");
 }
 
 
