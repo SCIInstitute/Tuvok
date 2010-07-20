@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    BBox-VS.glsl
+  \file    Mesh-VS.glsl
   \author    Jens Krueger
         SCI Institute
         University of Utah
@@ -38,6 +38,4 @@
 void main(void)
 {
   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-  gl_Position.z += 0.001;
-  gl_FrontColor = gl_Color;
 }
