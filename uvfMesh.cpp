@@ -35,6 +35,7 @@
 #include "uvfMesh.h"
 #include "UVF/TriangleSoupBlock.h"
 #include <cassert>
+#include <cstring>
 
 using namespace std;
 
