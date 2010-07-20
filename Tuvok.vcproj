@@ -906,6 +906,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Shaders\Mesh-FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\Mesh-VS.glsl"
+				>
+			</File>
+			<File
 				RelativePath=".\Shaders\MIP-slice-FS.glsl"
 				>
 			</File>
