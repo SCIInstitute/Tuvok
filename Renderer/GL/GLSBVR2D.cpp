@@ -53,6 +53,7 @@ GLSBVR2D::GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
   m_pProgramColorNoCompose(NULL),
   m_bUse3DTexture(false)
 {
+  m_bSupportsMeshes = true;
 }
 
 GLSBVR2D::~GLSBVR2D() {
@@ -115,7 +116,14 @@ bool GLSBVR2D::LoadShaders() {
                           NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
                           m_vShaderSearchDirs, "Transfer-VS.glsl",
-                          "Compose-Scanline-FS.glsl", NULL))
+                          "Compose-Scanline-FS.glsl", NULL) || 
+/*     !LoadAndVerifyShader(&m_pProgramBBox,
+                          m_vShaderSearchDirs, "BBox-VS.glsl",
+                          "BBox-FS.glsl", NULL) ||*/
+     !LoadAndVerifyShader(&m_pProgramMesh,
+                          m_vShaderSearchDirs, "Mesh-VS.glsl",
+                          "Mesh-FS.glsl","lighting.glsl", NULL))
+
   {
       T_ERROR("Error loading transfer function shaders.");
       return false;
