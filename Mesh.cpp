@@ -32,10 +32,9 @@
 //
 //!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
 
-#include "Mesh.h"
 #include <algorithm>
+#include "Mesh.h"
 #include "KDTree.h"
-
 
 Mesh::Mesh() :
   m_KDTree(0)

@@ -34,8 +34,8 @@
 
 #pragma once
 
-#ifndef MESH_H
-#define MESH_H
+#ifndef BASICS_MESH_H
+#define BASICS_MESH_H
 
 #include <vector>
 #include <string>
@@ -44,7 +44,6 @@
 #include "Ray.h"
 
 class KDTree;
-class TriangleSoupBlock;
 
 typedef std::vector<FLOATVECTOR3> VertVec;
 typedef std::vector<FLOATVECTOR3> NormVec;
@@ -119,7 +118,6 @@ private:
   FLOATVECTOR3  m_Bounds[2];
 
   friend class KDTree;
-
 };
 
-#endif // MESH_H
+#endif // BASICS_MESH_H
