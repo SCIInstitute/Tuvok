@@ -51,16 +51,6 @@ MedAlyVisGeoConverter::MedAlyVisGeoConverter()
 
 
 Mesh* MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
-  VertVec       vertices;
-  NormVec       normals;        // not used here, passed on as empty vector
-  TexCoordVec   texcoords;      // not used here, passed on as empty vector
-  ColorVec      colors;         // not used here, passed on as empty vector
-
-  IndexVec      VertIndices;
-  IndexVec      NormalIndices;   // not used here, passed on as empty vector
-  IndexVec      TCIndices;       // not used here, passed on as empty vector
-  IndexVec      COLIndices;      // not used here, passed on as empty vector
-
   ifstream trisoup(strFilename.c_str(), ios::binary);
   if(!trisoup) {
     // hack, we really want some kind of 'file not found' exception.
@@ -77,6 +67,8 @@ Mesh* MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
   assert(n_vertices > 0);
   assert(n_triangles > 0);
 
+  VertVec vertices(n_vertices);
+
   // read in the world space coords of each vertex
   MESSAGE("reading %u vertices (each 3x floats)...", n_vertices);
   for(unsigned i=0; trisoup && i < n_vertices; ++i) {
@@ -90,6 +82,8 @@ Mesh* MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
                                           __FILE__, __LINE__);
   }
 
+  IndexVec VertIndices(n_triangles);
+
   // read in the triangle indices
   MESSAGE("reading %u triangles...", n_triangles);
   for(unsigned i=0; trisoup && i < n_triangles; ++i) {
@@ -99,8 +93,8 @@ Mesh* MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
   }
   trisoup.close();
 
-  Mesh* m = new Mesh(vertices,normals,texcoords,colors,
-                     VertIndices,NormalIndices,TCIndices,COLIndices,
+  Mesh* m = new Mesh(vertices,NormVec(),TexCoordVec(),ColorVec(),
+                     VertIndices,IndexVec(),IndexVec(),IndexVec(),
                      false,false);
   return m;
 }
