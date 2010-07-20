@@ -89,7 +89,7 @@ bool VGStudioConverter::ConvertToRAW(const std::string& strSourceFilename,
       return false;
     }
     strIntermediateFile = SysTools::GetPath(strSourceFilename) + 
-                          filename->strValue;
+                          SysTools::GetFilename(filename->strValue);
 
     KeyValPair* resolution = parser.GetData("SIZE");
     if (resolution == NULL || resolution->vuiValue.size() != 3) {
