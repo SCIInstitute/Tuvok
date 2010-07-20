@@ -64,7 +64,6 @@ HEADERS += \
            Basics/Vectors.h \
            Basics/Mesh.h \
            Basics/KDTree.h \
-           Basics/RenderMeshGL.h \
            Controller/Controller.h \
            Controller/MasterController.h \
            DebugOut/AbstrDebugOut.h \
@@ -200,7 +199,6 @@ SOURCES += \
            Basics/SysTools.cpp \
            Basics/Mesh.cpp \
            Basics/KDTree.cpp \
-           Basics/RenderMeshGL.cpp \
            Controller/MasterController.cpp \
            DebugOut/AbstrDebugOut.cpp \
            DebugOut/ConsoleOut.cpp \
