@@ -748,14 +748,6 @@
 					RelativePath=".\Basics\Ray.h"
 					>
 				</File>
-				<File
-					RelativePath=".\Basics\RenderMeshGL.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Basics\RenderMeshGL.h"
-					>
-				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -1188,6 +1180,14 @@
 					RelativePath=".\Renderer\GL\QtGLContextID.h"
 					>
 				</File>
+				<File
+					RelativePath=".\Renderer\GL\RenderMeshGL.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Renderer\GL\RenderMeshGL.h"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="DX"
@@ -1585,11 +1585,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -1610,38 +1610,6 @@
 			Name="IO"
 			>
 			<File
-				RelativePath=".\IO\AbstrConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\AbstrConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\AbstrGeoConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\AbstrGeoConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\AnalyzeConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\AnalyzeConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\BOVConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\BOVConverter.h"
-				>
-			</File>
-			<File
 				RelativePath=".\IO\Brick.h"
 				>
 			</File>
@@ -1659,14 +1627,6 @@
 			</File>
 			<File
 				RelativePath=".\IO\Dataset.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\DirectoryParser.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\DirectoryParser.h"
 				>
 			</File>
 			<File
@@ -1706,30 +1666,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\IO\I3MConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\I3MConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\IASSConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\IASSConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\InveonConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\InveonConverter.h"
-				>
-			</File>
-			<File
 				RelativePath=".\IO\IOManager.cpp"
 				>
 			</File>
@@ -1738,79 +1674,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\IO\KeyValueFileParser.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\KeyValueFileParser.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\KitwareConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\KitwareConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\NRRDConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\NRRDConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\OBJGeoConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\OBJGeoConverter.h"
-				>
-			</File>
-			<File
 				RelativePath=".\IO\Quantize.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\QVISConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\QVISConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\RAWConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\RAWConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\REKConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\REKConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\StkConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\StkConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\TiffVolumeConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\TiffVolumeConverter.h"
 				>
 			</File>
 			<File
@@ -1854,35 +1718,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IO\uvfMesh.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\IO\uvfMesh.h"
+				>
+			</File>
+			<File
 				RelativePath=".\IO\VariantArray.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\IO\VariantArray.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\VFFConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\VFFConverter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\VGIHeaderParser.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\VGIHeaderParser.h"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\VGStudioConverter.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\IO\VGStudioConverter.h"
 				>
 			</File>
 			<Filter
@@ -1958,14 +1806,6 @@
 				</File>
 				<File
 					RelativePath=".\IO\UVF\MaxMinDataBlock.h"
-					>
-				</File>
-				<File
-					RelativePath=".\IO\MedAlyVisGeoConverter.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\IO\MedAlyVisGeoConverter.h"
 					>
 				</File>
 				<File
@@ -4938,6 +4778,186 @@
 				</File>
 				<File
 					RelativePath=".\IO\3rdParty\zlib\zlib.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Volume Converter"
+				>
+				<File
+					RelativePath=".\IO\AbstrConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\AbstrConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\AnalyzeConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\AnalyzeConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\BOVConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\BOVConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\I3MConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\I3MConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\IASSConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\IASSConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\InveonConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\InveonConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\KitwareConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\KitwareConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\NRRDConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\NRRDConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\QVISConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\QVISConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\RAWConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\RAWConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\REKConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\REKConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\StkConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\StkConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\TiffVolumeConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\TiffVolumeConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\VFFConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\VFFConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\VGStudioConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\VGStudioConverter.h"
+					>
+				</File>
+				<Filter
+					Name="Helper"
+					>
+					<File
+						RelativePath=".\IO\DirectoryParser.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\IO\DirectoryParser.h"
+						>
+					</File>
+					<File
+						RelativePath=".\IO\KeyValueFileParser.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\IO\KeyValueFileParser.h"
+						>
+					</File>
+					<File
+						RelativePath=".\IO\VGIHeaderParser.cpp"
+						>
+					</File>
+					<File
+						RelativePath=".\IO\VGIHeaderParser.h"
+						>
+					</File>
+				</Filter>
+			</Filter>
+			<Filter
+				Name="Geometry Converter"
+				>
+				<File
+					RelativePath=".\IO\AbstrGeoConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\AbstrGeoConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\MedAlyVisGeoConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\MedAlyVisGeoConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\OBJGeoConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\OBJGeoConverter.h"
 					>
 				</File>
 			</Filter>
