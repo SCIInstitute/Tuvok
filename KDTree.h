@@ -108,7 +108,7 @@ public:
 
 
   void SetAxis( unsigned char axis ) { m_Axis = axis; }
-  int GetAxis() const { return m_Axis; }
+  unsigned char GetAxis() const { return m_Axis; }
   void SetSplitPos( double pos ) { m_SplitPos = pos; }
   double GetSplitPos() const  { return m_SplitPos; }
   void SetLeft( KDTreeNode* leftChild ) { m_leftChild = leftChild; }
@@ -141,6 +141,11 @@ public:
                    double tmin, double tmax) const;
   Mesh* GetGeometry(unsigned int iDepth, bool buildKDTree) const;
 
+  void RescaleAndShift(const FLOATVECTOR3& translation,
+                       const FLOATVECTOR3& scale) {
+   RescaleAndShift(m_Root, translation, scale);
+  }
+
 private:
   Mesh*        m_mesh;
   unsigned int m_maxDepth;
@@ -148,5 +153,10 @@ private:
 
   void Subdivide(KDTreeNode* node, const DOUBLEVECTOR3& min,
                  const DOUBLEVECTOR3& max, int recDepth);
+
+  void RescaleAndShift(KDTreeNode* node,
+                       const FLOATVECTOR3& translation,
+                       const FLOATVECTOR3& scale);
+
 };
 #endif // KDTREE_H

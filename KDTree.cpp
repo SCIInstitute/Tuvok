@@ -325,3 +325,18 @@ Mesh* KDTree::GetGeometry(unsigned int iDepth, bool buildKDTree) const {
                     vIndices, nIndices, tIndices, cIndices,
                     buildKDTree,false);
 }
+
+void KDTree::RescaleAndShift(KDTreeNode* node, 
+                             const FLOATVECTOR3& translation,
+                             const FLOATVECTOR3& scale) {
+
+  unsigned char axis = node->GetAxis();
+	double pos = node->GetSplitPos();
+  pos = pos * scale[axis] + translation[axis];
+  node->SetSplitPos(pos);
+
+  if (!node->IsLeaf()) {
+    RescaleAndShift(node->GetLeft(), translation, scale);
+    RescaleAndShift(node->GetRight(), translation, scale);
+  }
+}

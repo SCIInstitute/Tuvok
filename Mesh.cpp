@@ -96,9 +96,8 @@ void Mesh::ScaleToUnitCube(const FLOATVECTOR3& translation,
   }
 
   // any change to the geometry invalidates the KD Tree
-  // TODO: technically here a resacle and shift 
-  //       of the kd-tree would be sufficient
-  delete m_KDTree; m_KDTree = NULL;
+  if (m_KDTree) 
+    m_KDTree->RescaleAndShift(translation, scale);
 }
 
 Mesh::~Mesh() {
