@@ -34,18 +34,20 @@
 
 #include "RenderMeshGL.h"
 #include "KDTree.h"
-#include "GLInclude.h"
 #include <cassert>
+
+using namespace tuvok;
 
 RenderMeshGL::RenderMeshGL(const Mesh& other) : 
   Mesh(other.GetVertices(),other.GetNormals(),
        other.GetTexCoords(),other.GetColors(),
        other.GetVertexIndices(),other.GetNormalIndices(),
        other.GetTexCoordIndices(),other.GetColorIndices(),
-       false, false) {
+       false, false),
+  m_bGLInitialized(false)
+{
   SplitOpaqueFromTransparent();
   if (other.GetKDTree()) ComputeKDTree();
-  PrepareOpaqueBuffers();
 }
 
 RenderMeshGL::RenderMeshGL(const VertVec& vertices, const NormVec& normals,
@@ -54,13 +56,13 @@ RenderMeshGL::RenderMeshGL(const VertVec& vertices, const NormVec& normals,
            const IndexVec& tIndices, const IndexVec& cIndices,
            bool bBuildKDTree, bool bScaleToUnitCube) :
   Mesh(vertices,normals,texcoords,colors,
-       vIndices,nIndices,tIndices,cIndices, false, bScaleToUnitCube)
+       vIndices,nIndices,tIndices,cIndices, false, bScaleToUnitCube),
+  m_bGLInitialized(false)
 {
   SplitOpaqueFromTransparent();
   // moved this computation after the resorting as it invalides the indices
   // stored in the KD-Tree
   if (bBuildKDTree) m_KDTree = new KDTree(this);
-  PrepareOpaqueBuffers();
 }
 
 void RenderMeshGL::Swap(size_t i, size_t j) {
@@ -72,7 +74,8 @@ void RenderMeshGL::Swap(size_t i, size_t j) {
 }
 
 RenderMeshGL::~RenderMeshGL() {
-  glDeleteBuffers(8, m_VBOs);
+  if (m_bGLInitialized) 
+    glDeleteBuffers(VBO_COUNT, m_VBOs);
 }
 
 bool RenderMeshGL::isTransparent(size_t i, float fTreshhold) {
@@ -82,7 +85,6 @@ bool RenderMeshGL::isTransparent(size_t i, float fTreshhold) {
 }
 
 void RenderMeshGL::SplitOpaqueFromTransparent() {
-
   if (m_COLIndices.size() == 0) {
     m_splitIndex = m_VertIndices.size();
     return;
@@ -109,43 +111,43 @@ void RenderMeshGL::SplitOpaqueFromTransparent() {
 
 
 void RenderMeshGL::PrepareOpaqueBuffers() {
-  glGenBuffers(8, m_VBOs);
+  glGenBuffers(VBO_COUNT, m_VBOs);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[POSITION_INDEX_VBO]);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_VertIndices[0], GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32)*3, &m_VertIndices[0], GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[POSITION_VBO]);
-  glBufferData(GL_ARRAY_BUFFER, m_vertices.size()*sizeof(float), &m_vertices[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, m_vertices.size()*sizeof(float)*3, &m_vertices[0], GL_STATIC_DRAW);
 
   if (m_NormalIndices.size() == m_VertIndices.size()) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[NORMAL_INDEX_VBO]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_NormalIndices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32)*3, &m_NormalIndices[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[NORMAL_VBO]);
-    glBufferData(GL_ARRAY_BUFFER, m_normals.size()*sizeof(float), &m_normals[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_normals.size()*sizeof(float)*3, &m_normals[0], GL_STATIC_DRAW);
     glNormalPointer(GL_FLOAT, 0, 0);
     glEnableClientState(GL_NORMAL_ARRAY);
   }
   if (m_TCIndices.size() == m_VertIndices.size()) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[TEXCOORD_INDEX_VBO]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_TCIndices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32)*3, &m_TCIndices[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[TEXCOORD_VBO]);
-    glBufferData(GL_ARRAY_BUFFER, m_texcoords.size()*sizeof(float), &m_texcoords[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_texcoords.size()*sizeof(float)*2, &m_texcoords[0], GL_STATIC_DRAW);
     glTexCoordPointer(2, GL_FLOAT, 0, 0);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   }
   if (m_COLIndices.size() == m_VertIndices.size()) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[COLOR_INDEX_VBO]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_COLIndices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32)*3, &m_COLIndices[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[COLOR_VBO]);
-    glBufferData(GL_ARRAY_BUFFER, m_colors.size()*sizeof(float), &m_colors[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_colors.size()*sizeof(float)*4, &m_colors[0], GL_STATIC_DRAW);
     glColorPointer(4, GL_FLOAT, 0, 0);
     glEnableClientState(GL_COLOR_ARRAY);
   }
 
-
 }
 
 void RenderMeshGL::RenderOpaqueGeometry() {
-
+  if (!m_bGLInitialized) return;
+  
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[POSITION_INDEX_VBO]);
   glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[POSITION_VBO]);
   glVertexPointer(3, GL_FLOAT, 0, 0);
@@ -170,7 +172,7 @@ void RenderMeshGL::RenderOpaqueGeometry() {
     glEnableClientState(GL_COLOR_ARRAY);
   }
 
-  glDrawArrays(GL_TRIANGLES, 0, m_splitIndex);
+  glDrawElements(GL_TRIANGLES, GLsizei(m_splitIndex*3), GL_UNSIGNED_INT, 0);
 
   glDisableClientState(GL_VERTEX_ARRAY);
   if (m_NormalIndices.size() == m_VertIndices.size())
@@ -179,4 +181,9 @@ void RenderMeshGL::RenderOpaqueGeometry() {
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   if (m_COLIndices.size() == m_VertIndices.size())
     glDisableClientState(GL_COLOR_ARRAY);
+}
+
+void RenderMeshGL::InitGL() {
+  m_bGLInitialized = true;
+  PrepareOpaqueBuffers();
 }

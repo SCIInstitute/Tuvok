@@ -53,6 +53,7 @@
 #include "IO/TransferFunction2D.h"
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../../Basics/GeometryGenerator.h"
+#include "RenderMeshGL.h"
 
 using namespace std;
 using namespace tuvok;
@@ -104,6 +105,13 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
 
 GLRenderer::~GLRenderer() {
   delete [] m_p2DData;
+
+  for (vector<RenderMeshGL*>::iterator mesh = m_Meshes.begin();
+       mesh != m_Meshes.end(); mesh++) {
+    delete (*mesh);
+  }
+  m_Meshes.clear();
+
   DeleteDepthStorage();
 }
 
@@ -176,6 +184,12 @@ bool GLRenderer::Initialize() {
     m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
   }
 
+  for (vector<RenderMeshGL*>::iterator mesh = m_Meshes.begin();
+       mesh != m_Meshes.end(); mesh++) {
+    (*mesh)->InitGL();
+  }
+
+
   return LoadShaders();
 }
 
@@ -208,7 +222,10 @@ bool GLRenderer::LoadShaders() {
                           "Compose-Scanline-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramBBox,
                           m_vShaderSearchDirs, "BBox-VS.glsl",
-                          "BBox-FS.glsl", NULL))
+                          "BBox-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramMesh,
+                          m_vShaderSearchDirs, "Mesh-VS.glsl",
+                          "Mesh-FS.glsl", NULL))
   {
       T_ERROR("Error loading transfer function shaders.");
       return false;
@@ -279,6 +296,7 @@ void GLRenderer::CleanupShaders() {
   if (m_pProgramComposeAnaglyphs){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeAnaglyphs); m_pProgramComposeAnaglyphs = NULL;}
   if (m_pProgramComposeScanlineStereo){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeScanlineStereo); m_pProgramComposeScanlineStereo = NULL;}
   if (m_pProgramBBox){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramBBox); m_pProgramBBox = NULL;}  
+  if (m_pProgramMesh){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramMesh); m_pProgramMesh = NULL;}    
 }
 
 void GLRenderer::Set1DTrans(const std::vector<unsigned char>& rgba)
@@ -1886,6 +1904,12 @@ void GLRenderer::BBoxPreRender() {
                    m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
+
+    for (vector<RenderMeshGL*>::iterator mesh = m_Meshes.begin();
+         mesh != m_Meshes.end(); mesh++) {
+      (*mesh)->RenderOpaqueGeometry();
+    }
+
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
   } else {
     glDisable(GL_BLEND);
@@ -1899,6 +1923,13 @@ void GLRenderer::BBoxPreRender() {
                    m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
+  
+    m_pProgramMesh->Enable();
+    for (vector<RenderMeshGL*>::iterator mesh = m_Meshes.begin();
+         mesh != m_Meshes.end(); mesh++) {
+      (*mesh)->RenderOpaqueGeometry();
+    }
+    m_pProgramMesh->Disable();
   }
 }
 
@@ -2155,6 +2186,15 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
 bool GLRenderer::LoadDataset(const string& strFilename) {
   if (AbstrRenderer::LoadDataset(strFilename)) {
     if (m_pProgram1DTrans[0] != NULL) SetDataDepShaderVars();
+
+    // convert meshes in dataset to RenderMeshes
+    const vector<Mesh*>& meshVec = m_pDataset->GetMeshes();
+    for (vector<Mesh*>::const_iterator mesh = meshVec.begin();
+         mesh != meshVec.end(); mesh++) {
+      m_Meshes.push_back(new RenderMeshGL(**mesh));
+    }
+    
+
     return true;
   } else return false;
 }

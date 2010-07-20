@@ -38,6 +38,9 @@
 #define RENDERMESHGL_H
 
 #include "Mesh.h"
+#include "GLInclude.h"
+
+namespace tuvok {
 
 class RenderMeshGL : public Mesh 
 {
@@ -50,11 +53,12 @@ public:
        bool bBuildKDTree, bool bScaleToUnitCube);
   ~RenderMeshGL();
 
+  void InitGL();
+
   void RenderOpaqueGeometry();
 
-  // TODO OpenGL Calls
-
 private:
+  bool   m_bGLInitialized;
   size_t m_splitIndex;
 
   enum
@@ -67,11 +71,10 @@ private:
       NORMAL_INDEX_VBO,
       TEXCOORD_INDEX_VBO,
       COLOR_INDEX_VBO,
-      MAX_VBO
+      VBO_COUNT
   };
 
-  unsigned int m_VBOs[MAX_VBO];
-
+  GLuint m_VBOs[VBO_COUNT];
 
   void Swap(size_t i, size_t j);
   bool isTransparent(size_t i, float fTreshhold = 1.0f);
@@ -80,4 +83,5 @@ private:
   void PrepareOpaqueBuffers();
 };
 
+}
 #endif // RENDERMESHGL_H
