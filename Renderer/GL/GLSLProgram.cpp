@@ -324,14 +324,12 @@ static std::string readshader(const std::string& filename)
   ifs.seekg(0, std::ios::beg);
 
   std::vector<char> shader(len+std::ifstream::pos_type(1), 0);
-  ifs.read(&shader[0], len);
-  if(ifs.gcount() != len
-#ifdef DETECTED_OS_WINDOWS
-     && !ifs.eof()
-#endif
-     ) {
-    WARNING("Short read for shader '%s'", filename.c_str());
-  }
+  size_t offset=0;
+  do {
+    std::streamsize length = len - std::streamsize(offset);
+    ifs.read(&shader[offset], length);
+    offset += ifs.gcount();
+  } while(!ifs.eof() && std::ifstream::pos_type(offset) < len);
   ifs.close();
 
   return std::string(&shader[0]);
