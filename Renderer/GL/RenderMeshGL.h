@@ -66,10 +66,11 @@ private:
       POSITION_INDEX_VBO,
       NORMAL_INDEX_VBO,
       TEXCOORD_INDEX_VBO,
-      COLOR_INDEX_VBO
+      COLOR_INDEX_VBO,
+      MAX_VBO
   };
 
-  unsigned int m_VBOs[4];
+  unsigned int m_VBOs[MAX_VBO];
 
 
   void Swap(size_t i, size_t j);
