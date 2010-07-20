@@ -74,7 +74,7 @@ public:
   Dataset();
   virtual ~Dataset();
 
-  const std::vector<Mesh*> GetMeshes() const { return m_vpMeshList; }
+  const std::vector<Mesh*>& GetMeshes() const { return m_vpMeshList; }
   const Histogram1D& Get1DHistogram() const { return *m_pHist1D; }
   const Histogram2D& Get2DHistogram() const { return *m_pHist2D; }
   virtual float MaxGradientMagnitude() const = 0;

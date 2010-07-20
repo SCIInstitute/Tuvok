@@ -233,7 +233,7 @@ UINT64 TriangleSoupBlock::GetOffsetToNextBlock() const
 vector< float > TriangleSoupBlock::GetVertices() const {
   vector< float > v;
   if (vertices.size() == 0) {
-    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize());
+    m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize());
     m_pStreamFile->ReadData(v, m_n_vertices, m_bIsBigEndian);
     return v;
   } 
@@ -243,7 +243,7 @@ vector< float > TriangleSoupBlock::GetVertices() const {
 vector< float > TriangleSoupBlock::GetNormals() const {
   vector< float > v;
   if (normals.size() == 0) {
-    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+    m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices);
     m_pStreamFile->ReadData(v, m_n_normals, m_bIsBigEndian);
     return v;
@@ -254,7 +254,7 @@ vector< float > TriangleSoupBlock::GetNormals() const {
 vector< float > TriangleSoupBlock::GetTexCoords() const {
   vector< float > v;
   if (texcoords.size() == 0) {
-    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+    m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals);
     m_pStreamFile->ReadData(v, m_n_texcoords, m_bIsBigEndian);
@@ -266,7 +266,7 @@ vector< float > TriangleSoupBlock::GetTexCoords() const {
 vector< float > TriangleSoupBlock::GetColors() const {
   vector< float > v;
   if (colors.size() == 0) {
-    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+    m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
                            sizeof(float)*m_n_texcoords);
@@ -279,7 +279,7 @@ vector< float > TriangleSoupBlock::GetColors() const {
 vector< UINT32 > TriangleSoupBlock::GetVertexIndices() const {
   vector< UINT32 > v;
   if (vIndices.size() == 0) {
-    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+    m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
                            sizeof(float)*m_n_texcoords+
@@ -293,7 +293,7 @@ vector< UINT32 > TriangleSoupBlock::GetVertexIndices() const {
 vector< UINT32 > TriangleSoupBlock::GetNormalIndices() const {
   vector< UINT32 > v;
   if (nIndices.size() == 0) {
-    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+    m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
                            sizeof(float)*m_n_texcoords+
@@ -308,7 +308,7 @@ vector< UINT32 > TriangleSoupBlock::GetNormalIndices() const {
 vector< UINT32 > TriangleSoupBlock::GetTexCoordIndices() const {
   vector< UINT32 > v;
   if (tIndices.size() == 0) {
-    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+    m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
                            sizeof(float)*m_n_texcoords+
@@ -324,7 +324,7 @@ vector< UINT32 > TriangleSoupBlock::GetTexCoordIndices() const {
 vector< UINT32 > TriangleSoupBlock::GetColorIndices() const {
   vector< UINT32 > v;
   if (cIndices.size() == 0) {
-    m_pStreamFile->SeekPos(m_iOffset+ComputeHeaderSize()+
+    m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
                            sizeof(float)*m_n_texcoords+
