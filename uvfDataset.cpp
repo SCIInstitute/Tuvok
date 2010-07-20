@@ -42,6 +42,8 @@
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/KeyValuePairDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
+#include "UVF/TriangleSoupBlock.h"
+#include "uvfMesh.h"
 
 using namespace std;
 
@@ -146,6 +148,28 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
           << ts.m_vaBrickCount[ts.m_vaBrickCount.size()-1].z
           << " found.";
     MESSAGE("%s", stats.str().c_str());
+  }
+  
+  if (m_TriSoupBlocks.size()) {
+    MESSAGE("Extracting Meshes.");
+    for (vector<TriangleSoupBlock*>::iterator tsb = m_TriSoupBlocks.begin();
+         tsb != m_TriSoupBlocks.end();
+         tsb++) {
+      uvfMesh* m = new uvfMesh(**tsb);
+      m_vpMeshList.push_back(m);
+
+      ostringstream stats;
+      stats << "Mesh Statistics:\n"
+            << "  Vertex count:"    << m->GetVertices().size() << "\n  "
+            << "  Normal count:"    << m->GetNormals().size() << "\n  "
+            << "  TexCoords count:" << m->GetTexCoords().size() << "\n  "
+            << "  Color count:"     << m->GetColors().size() << "\n  "
+            << "  Vertex Index count:"    << m->GetVertexIndices().size() << "\n  "
+            << "  Normal Index count:"    << m->GetNormalIndices().size() << "\n  "
+            << "  TexCoords Index count:" << m->GetTexCoordIndices().size() << "\n  "
+            << "  Color Index count:"     << m->GetColorIndices().size();
+      MESSAGE("%s", stats.str().c_str());
+    }
   }
   return true;
 }
@@ -491,6 +515,10 @@ void UVFDataset::FindSuitableRasterBlocks() {
           m_timesteps[raster++].m_pVolumeDataBlock = pVolumeDataBlock;
         }
         break;
+      case UVFTables::BS_TRIANGLE_SOUP: {
+        MESSAGE("Found triangle mesh.");
+        m_TriSoupBlocks.push_back((TriangleSoupBlock*)m_pDatasetFile->GetDataBlock(iBlocks));
+      }
       default:
         MESSAGE("Non-volume block found in UVF file, skipping.");
         break;

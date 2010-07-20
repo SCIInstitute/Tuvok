@@ -53,6 +53,7 @@
 #include "Basics/Vectors.h"
 #include "Brick.h"
 #include "Basics/tr1.h"
+#include "Basics/Mesh.h"
 
 #define MAX_TRANSFERFUNCTION_SIZE 4096
 
@@ -73,6 +74,7 @@ public:
   Dataset();
   virtual ~Dataset();
 
+  const std::vector<Mesh*> GetMeshes() const { return m_vpMeshList; }
   const Histogram1D& Get1DHistogram() const { return *m_pHist1D; }
   const Histogram2D& Get2DHistogram() const { return *m_pHist2D; }
   virtual float MaxGradientMagnitude() const = 0;
@@ -153,6 +155,7 @@ public:
 protected:
   Histogram1D*       m_pHist1D;
   Histogram2D*       m_pHist2D;
+  std::vector<Mesh*> m_vpMeshList;
 
   DOUBLEVECTOR3      m_UserScale;
   DOUBLEVECTOR3      m_DomainScale;

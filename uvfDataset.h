@@ -55,6 +55,7 @@ class KeyValuePairDataBlock;
 class Histogram1DDataBlock;
 class Histogram2DDataBlock;
 class MaxMinDataBlock;
+class TriangleSoupBlock;
 class UVF;
 
 namespace tuvok {
@@ -157,6 +158,7 @@ private:
     size_t                       block_number;
   };
   std::vector<Timestep>        m_timesteps;
+  std::vector<TriangleSoupBlock*> m_TriSoupBlocks;
   const KeyValuePairDataBlock* m_pKVDataBlock;
   UINTVECTOR3                  m_aMaxBrickSize;
   bool                         m_bIsSameEndianness;

@@ -46,8 +46,15 @@ Dataset::Dataset():
 
 Dataset::~Dataset()
 {
-  delete m_pHist1D;            m_pHist1D = NULL;
-  delete m_pHist2D;            m_pHist2D = NULL;
+  delete m_pHist1D;  m_pHist1D = NULL;
+  delete m_pHist2D;  m_pHist2D = NULL;
+
+  for (std::vector<Mesh*>::iterator i = m_vpMeshList.begin();
+       i != m_vpMeshList.end();
+       i++) {
+    delete (*i);
+  }
+  m_vpMeshList.clear();
 }
 
 /// unimplemented!
