@@ -36,6 +36,12 @@
 #include <algorithm>
 #include "KDTree.h"
 
+
+Mesh::Mesh() :
+  m_KDTree(0)
+{
+}
+
 Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
            const TexCoordVec& texcoords, const ColorVec& colors,
            const IndexVec& vIndices, const IndexVec& nIndices,
@@ -130,6 +136,45 @@ void Mesh::RecomputeNormals() {
   m_NormalIndices = m_VertIndices;
 }
 
+bool Mesh::Validate(bool bDeepValidation) {
+  // make sure the sizes of the vectors match
+  if (m_NormalIndices.size() != 0 && 
+      m_NormalIndices.size() != m_VertIndices.size()) return false;
+  if (m_TCIndices.size() != 0 && 
+      m_TCIndices.size() != m_VertIndices.size()) return false;
+  if (m_COLIndices.size() != 0 && 
+      m_COLIndices.size() != m_VertIndices.size()) return false;
+
+  if (!bDeepValidation) return true;
+
+  // in deep validation mode check if all the indices are within range
+  size_t count = m_vertices.size();
+  for (IndexVec::iterator i = m_VertIndices.begin();
+       i != m_VertIndices.end();
+       i++) {
+    if (i->x >= count || i->y >= count || i->z >= count) return false;
+  }
+  count = m_normals.size();
+  for (IndexVec::iterator i = m_NormalIndices.begin();
+       i != m_NormalIndices.end();
+       i++) {
+    if (i->x >= count || i->y >= count || i->z >= count) return false;
+  }
+  count = m_texcoords.size();
+  for (IndexVec::iterator i = m_TCIndices.begin();
+       i != m_TCIndices.end();
+       i++) {
+    if (i->x >= count || i->y >= count || i->z >= count) return false;
+  }
+  count = m_colors.size();
+  for (IndexVec::iterator i = m_COLIndices.begin();
+       i != m_COLIndices.end();
+       i++) {
+    if (i->x >= count || i->y >= count || i->z >= count) return false;
+  }
+
+  return true;
+}
 
 double Mesh::IntersectInternal(const Ray& ray, FLOATVECTOR3& normal,
                                FLOATVECTOR2& tc, FLOATVECTOR4& color, 

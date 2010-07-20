@@ -55,6 +55,7 @@ typedef std::vector<UINTVECTOR3> IndexVec;
 class Mesh 
 {
 public:
+  Mesh();
   Mesh(const VertVec& vertices, const NormVec& normals, 
        const TexCoordVec& texcoords, const ColorVec& colors,
        const IndexVec& vIndices, const IndexVec& nIndices, 
@@ -76,6 +77,8 @@ public:
   }
   void ComputeKDTree();
   const KDTree* GetKDTree() const;
+
+  bool Validate(bool bDeepValidation=false);
 
   const VertVec&       GetVertices() const {return m_vertices;}
   const NormVec&       GetNormals() const {return m_normals;}
@@ -100,6 +103,8 @@ protected:
   IndexVec      m_TCIndices;
   IndexVec      m_COLIndices;
 
+  void ComputeAABB();
+
 private:
   // picking
   double IntersectInternal(const Ray& ray, FLOATVECTOR3& normal, 
@@ -110,7 +115,6 @@ private:
                            FLOATVECTOR2& tc, FLOATVECTOR4& color) const;
 
   // AABB Test
-  void ComputeAABB();
   bool AABBIntersect(const Ray& r, double& tmin, double& tmax);
   FLOATVECTOR3  m_Bounds[2];
 
