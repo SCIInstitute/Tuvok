@@ -147,7 +147,7 @@ void RenderMeshGL::PrepareOpaqueBuffers() {
 
 void RenderMeshGL::RenderOpaqueGeometry() {
   if (!m_bGLInitialized) return;
-  
+
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[POSITION_INDEX_VBO]);
   glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[POSITION_VBO]);
   glVertexPointer(3, GL_FLOAT, 0, 0);

@@ -51,6 +51,7 @@ GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, boo
   m_pProgramIsoNoCompose(NULL),
   m_pProgramColorNoCompose(NULL)
 {
+  m_bSupportsMeshes = true;
 }
 
 GLSBVR::~GLSBVR() {

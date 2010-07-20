@@ -211,10 +211,12 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramComposeScanlineStereo;
     GLSLProgram*    m_pProgramBBox;
     GLSLProgram*    m_pProgramMesh;
+    bool            m_bSupportsMeshes;
 
   private:
 
     float*          m_aDepthStorage;
+
 
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const;
     void RenderCoordArrows(const RenderRegion& renderRegion) const;

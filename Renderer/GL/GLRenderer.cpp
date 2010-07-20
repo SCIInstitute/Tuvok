@@ -87,6 +87,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramComposeAnaglyphs(NULL),
   m_pProgramComposeScanlineStereo(NULL),
   m_pProgramBBox(NULL),
+  m_bSupportsMeshes(false),
   m_aDepthStorage(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
@@ -225,7 +226,7 @@ bool GLRenderer::LoadShaders() {
                           "BBox-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramMesh,
                           m_vShaderSearchDirs, "Mesh-VS.glsl",
-                          "Mesh-FS.glsl", NULL))
+                          "Mesh-FS.glsl","lighting.glsl", NULL))
   {
       T_ERROR("Error loading transfer function shaders.");
       return false;
@@ -1941,8 +1942,21 @@ void GLRenderer::BBoxPostRender() {
   // occluding/showing the bbox's outline.
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
     glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+
+    if (m_bSupportsMeshes) {
+      m_pProgramMesh->Enable();
+      m_pProgramMesh->SetUniformVector("fOffset",0.001f);
+      for (vector<RenderMeshGL*>::iterator mesh = m_Meshes.begin();
+           mesh != m_Meshes.end(); mesh++) {
+        (*mesh)->RenderOpaqueGeometry();
+      }
+      m_pProgramMesh->SetUniformVector("fOffset",0.0f);
+      m_pProgramMesh->Disable();
+    }
+
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
       for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
@@ -1950,6 +1964,7 @@ void GLRenderer::BBoxPostRender() {
                    m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
+
     glDepthFunc(GL_LESS);
     glDisable(GL_BLEND);
   }
@@ -2490,6 +2505,13 @@ void GLRenderer::UpdateColorsInShaders() {
     m_pProgramCVCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
     m_pProgramCVCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
     m_pProgramCVCompose->Disable();
+
+    m_pProgramMesh->Enable();
+    m_pProgramMesh->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+    m_pProgramMesh->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
+    m_pProgramMesh->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+    m_pProgramMesh->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+    m_pProgramMesh->Disable();
 
     m_pProgramIso->Enable();
     m_pProgramIso->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);

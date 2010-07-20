@@ -34,8 +34,26 @@
   \date    June 2010
 */
 
+uniform vec3 vLightAmbient;
+uniform vec3 vLightDiffuse;
+uniform vec3 vLightSpecular;
+uniform vec3 vLightDir;
+
+vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
+              vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
+
+
+varying vec3 normal;
+varying vec2 texture_coordinate;
+varying vec4 position;
 
 void main(void)
 {
-  gl_FragColor = vec4(1,1,1,1);
+  vec3 pos = position.xyz / position.w;
+  
+  vec3 vLightColor = Lighting(pos, normal, vLightAmbient,
+                              vLightDiffuse, vLightSpecular,
+                              vLightDir);
+  
+  gl_FragColor = vec4(vLightColor.x,vLightColor.y,vLightColor.z,1);
 }

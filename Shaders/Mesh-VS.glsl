@@ -34,8 +34,20 @@
   \date    June 2010
 */
 
+uniform float fOffset;
+
+varying vec3 normal;
+varying vec4 position;
+varying vec2 texture_coordinate;
 
 void main(void)
 {
   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+  gl_Position.z -= fOffset;
+
+  normal = gl_NormalMatrix * gl_Normal;
+  texture_coordinate = vec2(gl_MultiTexCoord0);
+  
+  gl_FrontColor = gl_Color;
+  position = gl_Vertex;
 }
