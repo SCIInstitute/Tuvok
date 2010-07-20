@@ -326,7 +326,7 @@ static std::string readshader(const std::string& filename)
   std::vector<char> shader(len+std::ifstream::pos_type(1), 0);
   size_t offset=0;
   do {
-    std::streamsize length = len - std::streamsize(offset);
+    std::streamsize length = std::streamsize(len) - std::streamsize(offset);
     ifs.read(&shader[offset], length);
     offset += ifs.gcount();
   } while(!ifs.eof() && std::ifstream::pos_type(offset) < len);
