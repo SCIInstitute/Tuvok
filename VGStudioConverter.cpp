@@ -52,15 +52,15 @@ VGStudioConverter::VGStudioConverter()
 bool VGStudioConverter::ConvertToRAW(const std::string& strSourceFilename,
                             const std::string&, bool,
                             UINT64& iHeaderSkip, UINT64& iComponentSize,
-                            UINT64& iComponentCount, bool& bConvertEndianess, 
-                            bool& bSigned, bool& bIsFloat, 
+                            UINT64& iComponentCount, bool& bConvertEndianess,
+                            bool& bSigned, bool& bIsFloat,
                             UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            UVFTables::ElementSemanticTable& eType, 
+                            UVFTables::ElementSemanticTable& eType,
                             std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile) {
 
-  MESSAGE("Attempting to convert VGStudio dataset %s", 
+  MESSAGE("Attempting to convert VGStudio dataset %s",
           strSourceFilename.c_str());
 
   bDeleteIntermediateFile = false;
@@ -88,7 +88,7 @@ bool VGStudioConverter::ConvertToRAW(const std::string& strSourceFilename,
       T_ERROR("Tag 'name' not found!");
       return false;
     }
-    strIntermediateFile = SysTools::GetPath(strSourceFilename) + 
+    strIntermediateFile = SysTools::GetPath(strSourceFilename) +
                           SysTools::GetFilename(filename->strValue);
 
     KeyValPair* resolution = parser.GetData("SIZE");

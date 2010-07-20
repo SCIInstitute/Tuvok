@@ -146,8 +146,8 @@ KeyValueFileParser::KeyValueFileParser(const wstring& wstrFilename,
 
 
 KeyValueFileParser::KeyValueFileParser(ifstream& fileData,
-                                       bool bStopOnEmptyLine, 
-                                       const wstring& wstrToken, 
+                                       bool bStopOnEmptyLine,
+                                       const wstring& wstrToken,
                                        const wstring& wstrEndToken)
 {
 
@@ -159,8 +159,8 @@ KeyValueFileParser::KeyValueFileParser(ifstream& fileData,
 }
 
 KeyValueFileParser::KeyValueFileParser(ifstream& fileData,
-                                       bool bStopOnEmptyLine, 
-                                       const string& strToken, 
+                                       bool bStopOnEmptyLine,
+                                       const string& strToken,
                                        const string& strEndToken)
 {
   m_bFileReadable = ParseFile(fileData, bStopOnEmptyLine,
@@ -177,10 +177,10 @@ KeyValPair* KeyValueFileParser::GetData(const string&  strKey,
   if (!bCaseSensitive) {
     string upperKey(strKey);
     transform(upperKey.begin(), upperKey.end(), upperKey.begin(), ::toupper);
-    for (UINT32 i = 0;i<m_vecTokens.size();i++) 
+    for (UINT32 i = 0;i<m_vecTokens.size();i++)
       if (m_vecTokens[i].strKeyUpper == upperKey) return &m_vecTokens[i];
   } else {
-    for (UINT32 i = 0;i<m_vecTokens.size();i++) 
+    for (UINT32 i = 0;i<m_vecTokens.size();i++)
       if (m_vecTokens[i].strKey == strKey) return &m_vecTokens[i];
   }
   return NULL;
@@ -191,10 +191,10 @@ KeyValPair* KeyValueFileParser::GetData(const wstring& wstrKey,
   if (!bCaseSensitive) {
     wstring wupperKey(wstrKey);
     transform(wupperKey.begin(), wupperKey.end(), wupperKey.begin(), ::toupper);
-    for (UINT32 i = 0;i<m_vecTokens.size();i++) 
+    for (UINT32 i = 0;i<m_vecTokens.size();i++)
       if (m_vecTokens[i].wstrKeyUpper == wupperKey) return &m_vecTokens[i];
   } else {
-    for (UINT32 i = 0;i<m_vecTokens.size();i++) 
+    for (UINT32 i = 0;i<m_vecTokens.size();i++)
       if (m_vecTokens[i].wstrKey == wstrKey) return &m_vecTokens[i];
   }
   return NULL;
@@ -255,7 +255,7 @@ bool KeyValueFileParser::ParseKeyValueLine(std::string line,
     // skip comments
     if (line[0] == '#') return true;
     // skip invalid lines
-    if (line.find_first_of(strToken) == string::npos) 
+    if (line.find_first_of(strToken) == string::npos)
       return !bStopOnInvalidLine;
 
     string strKey = TrimStrRight(line.substr(0, line.find_first_of(strToken)));

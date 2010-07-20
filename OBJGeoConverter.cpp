@@ -134,9 +134,8 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
       FLOATVECTOR3 n(x,y,z);
       n.normalize();
       normals.push_back(n);
-		} else 
+		} else
     if (linetype == "f") { // face found
-      
       int indices[9] = {0,0,0,0,0,0,0,0,0};
       int count = CountOccurences(line,"/");
 
@@ -148,7 +147,7 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
               line = TrimToken(line);
               indices[2] = atoi(line.c_str());
 
-              UINTVECTOR3 index(indices[0]-1,indices[1]-1,indices[2]-1); 
+              UINTVECTOR3 index(indices[0]-1,indices[1]-1,indices[2]-1);
               VertIndices.push_back(index);
               break;
              }
@@ -165,9 +164,9 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
               line = TrimToken(line,"/");
               indices[5] = atoi(line.c_str());
               line = TrimToken(line);
-              UINTVECTOR3 vIndex(indices[0]-1,indices[2]-1,indices[4]-1); 
+              UINTVECTOR3 vIndex(indices[0]-1,indices[2]-1,indices[4]-1);
               VertIndices.push_back(vIndex);
-              UINTVECTOR3 tIndex(indices[1]-1,indices[3]-1,indices[5]-1); 
+              UINTVECTOR3 tIndex(indices[1]-1,indices[3]-1,indices[5]-1);
               TCIndices.push_back(tIndex);
               break;
              }
@@ -190,11 +189,11 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
               line = TrimToken(line,"/",true);
               indices[8] = atoi(line.c_str());
               line = TrimToken(line);
-              UINTVECTOR3 vIndex(indices[0]-1,indices[3]-1,indices[6]-1); 
+              UINTVECTOR3 vIndex(indices[0]-1,indices[3]-1,indices[6]-1);
               if (indices[0]) VertIndices.push_back(vIndex);
-              UINTVECTOR3 tIndex(indices[1]-1,indices[4]-1,indices[7]-1); 
+              UINTVECTOR3 tIndex(indices[1]-1,indices[4]-1,indices[7]-1);
               if (indices[1]) TCIndices.push_back(tIndex);
-              UINTVECTOR3 nIndex(indices[2]-1,indices[5]-1,indices[8]-1); 
+              UINTVECTOR3 nIndex(indices[2]-1,indices[5]-1,indices[8]-1);
               if (indices[2]) NormalIndices.push_back(nIndex);
               break;
              }
@@ -203,7 +202,6 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
   }
 	fs.close();
 
- 
   Mesh* m = new Mesh(vertices,normals,texcoords,colors,
                      VertIndices,NormalIndices,TCIndices,COLIndices,
                      false, false);

@@ -474,7 +474,7 @@ public:
   std::string GetExportDialogString() const;
   std::vector< std::pair <std::string, std::string > >
     GetImportFormatList() const;
-  std::vector< std::pair <std::string, std::string > > 
+  std::vector< std::pair <std::string, std::string > >
     GetExportFormatList() const;
   std::vector< tConverterFormat > GetFormatList() const;
 
@@ -482,10 +482,9 @@ public:
   std::string GetGeoExportDialogString() const;
   std::vector< std::pair <std::string, std::string > >
     GetGeoImportFormatList() const;
-  std::vector< std::pair <std::string, std::string > > 
+  std::vector< std::pair <std::string, std::string > >
     GetGeoExportFormatList() const;
   std::vector< tConverterFormat > GetGeoFormatList() const;
-  
 
   UINT64 GetMaxBrickSize() const {return m_iMaxBrickSize;}
   UINT64 GetBrickOverlap() const {return m_iBrickOverlap;}

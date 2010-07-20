@@ -49,8 +49,8 @@ public:
   virtual Mesh* ConvertToMesh(const std::string& strFilename);
 protected:
   int CountOccurences(const std::string& str, const std::string& substr);
-  std::string TrimToken(const std::string& Src, 
-                        const std::string& c = " \r\n\t", 
+  std::string TrimToken(const std::string& Src,
+                        const std::string& c = " \r\n\t",
                         bool bOnlyFirst = false);
 
 };

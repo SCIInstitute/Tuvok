@@ -48,14 +48,14 @@ public:
   virtual ~VGStudioConverter() {}
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
-                            const std::string& strTempDir, 
+                            const std::string& strTempDir,
                             bool bNoUserInteraction,
                             UINT64& iHeaderSkip, UINT64& iComponentSize,
                             UINT64& iComponentCount,
-                            bool& bConvertEndianess, bool& bSigned, 
+                            bool& bConvertEndianess, bool& bSigned,
                             bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
-                            UVFTables::ElementSemanticTable& eType, 
+                            UVFTables::ElementSemanticTable& eType,
                             std::string& strIntermediateFile,
                             bool& bDeleteIntermediateFile);
 

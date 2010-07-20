@@ -44,14 +44,14 @@
 
 /** \class VGIHeaderParser
  * VGIHeaderParser parses VGStudio header file s(*.vgi)
- * essentailly these are simple text files strucutured as 
- * key = value [newline] 
+ * essentailly these are simple text files strucutured as
+ * key = value [newline]
  * but with sections marked by
  * {SECTIONNAME}
  * and with thse subsections marked by
  * [SUBSECTIONNAME]
- * for imagevis we are interested in the section 
- * {volumeN} 
+ * for imagevis we are interested in the section
+ * {volumeN}
  * where N is number starting at 1 (!!!)
  * and within those sections we are looking for the subsection
  * [fileN]

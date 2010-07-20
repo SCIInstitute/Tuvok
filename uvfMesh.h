@@ -41,7 +41,7 @@
 
 class TriangleSoupBlock;
 
-class uvfMesh : public Mesh 
+class uvfMesh : public Mesh
 {
 public:
   uvfMesh(const TriangleSoupBlock& tsb);

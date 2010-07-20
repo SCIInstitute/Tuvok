@@ -70,10 +70,10 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
     KeyValPair* dimsize        = parser.GetData("DIMSIZE");
     KeyValPair* ElementSpacing = parser.GetData("ELEMENTSPACING");
     KeyValPair* BigEndianFlag  = parser.GetData("ELEMENTBYTEORDERMSB");
-    if (BigEndianFlag == NULL) BigEndianFlag = parser.GetData("BINARYDATABYTEORDERMSB");    
+    if (BigEndianFlag == NULL) BigEndianFlag = parser.GetData("BINARYDATABYTEORDERMSB");
     KeyValPair* ElementType    = parser.GetData("ELEMENTTYPE");
     KeyValPair* CompressedData = parser.GetData("COMPRESSEDDATA");
-    KeyValPair* BinaryData      = parser.GetData("BINARYDATA");     
+    KeyValPair* BinaryData      = parser.GetData("BINARYDATA");
     KeyValPair* Position       = parser.GetData("POSITION");
     KeyValPair* ElementNumberOfChannels = parser.GetData("ELEMENTNUMBEROFCHANNELS");
     KeyValPair* ElementDataFile = parser.GetData("ELEMENTDATAFILE");
@@ -83,18 +83,18 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
     if (ObjectType && ObjectType->strValueUpper != "IMAGE") {
       T_ERROR("Only image type MHD file are currently supported.");
       return false;
-    } 
+    }
 
     if (ElementDataFile == NULL) {
       T_ERROR("Unable to find 'ElementDataFile' tag in file %s.", strSourceFilename.c_str());
       return false;
-    } 
-    
+    }
+
     if (dimsize == NULL) {
       T_ERROR("Unable to find 'DimSize' tag in file %s.", strSourceFilename.c_str());
       return false;
-    } 
-    
+    }
+
     if (ElementType == NULL) {
       T_ERROR("Unable to find 'ElementType' tag in file %s.", strSourceFilename.c_str());
       return false;
@@ -188,7 +188,6 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
       }
     }
 
-  
     // TODO: find a non binary MHD payload file and figure out its format
     if (BinaryData != NULL) {
       if(BinaryData->strValueUpper == "FALSE") {
@@ -205,7 +204,7 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
       }
     }
     bDeleteIntermediateFile = false;
-    
+
     strIntermediateFile = SysTools::GetPath(strSourceFilename) + strIntermediateFile;
 
     if (HeaderSize != NULL) {

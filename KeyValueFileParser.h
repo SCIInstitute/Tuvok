@@ -52,11 +52,11 @@
 #include "../StdTuvokDefines.h"
 
 /** \class KeyValPair
- * A key value pair used by the KeyValueFileParser class 
+ * A key value pair used by the KeyValueFileParser class
  * it stores the key in four formats:
- * as wide unicode and "normal" 8 bit strings 
+ * as wide unicode and "normal" 8 bit strings
  * both in uppercase letters and in the way the were discovered in the file
- * the values are stored in the same four string formats as well as 
+ * the values are stored in the same four string formats as well as
  * as int, unsigned int, float, and vectors in case of list values
  */
 class KeyValPair {
@@ -92,26 +92,26 @@ private:
 
 
 /** \class KeyValueFileParser
- * KeyValueFileParser parses simple text files strucutured as 
- * key [token] value [newline] 
+ * KeyValueFileParser parses simple text files strucutured as
+ * key [token] value [newline]
  */
 class KeyValueFileParser
 {
 public:
 
-  KeyValueFileParser(const std::string& strFilename, 
-                     bool bStopOnEmptyLine=false, 
-                     const std::string& strToken = ":", 
+  KeyValueFileParser(const std::string& strFilename,
+                     bool bStopOnEmptyLine=false,
+                     const std::string& strToken = ":",
                      const std::string& strEndToken = "");
-  KeyValueFileParser(const std::wstring& wstrFilename, 
-                     bool bStopOnEmptyLine=false, 
-                     const std::wstring& wstrToken = L":", 
+  KeyValueFileParser(const std::wstring& wstrFilename,
+                     bool bStopOnEmptyLine=false,
+                     const std::wstring& wstrToken = L":",
                      const std::wstring& wstrEndToken = L"");
   KeyValueFileParser(std::ifstream& fileData, bool bStopOnEmptyLine=false,
-                     const std::wstring& wstrToken = L":", 
+                     const std::wstring& wstrToken = L":",
                      const std::wstring& wstrEndToken = L"");
   KeyValueFileParser(std::ifstream& fileData, bool bStopOnEmptyLine=false,
-                     const std::string& strToken = ":", 
+                     const std::string& strToken = ":",
                      const std::string& strEndToken = "");
 
   ~KeyValueFileParser(void);

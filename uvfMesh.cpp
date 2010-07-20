@@ -56,7 +56,7 @@ uvfMesh::uvfMesh(const TriangleSoupBlock& tsb)
   if (fVec.size() > 0) { m_colors.resize(fVec.size()/4);  memcpy(&m_colors[0],&fVec[0],fVec.size()*sizeof(float));}
 
   fVec.clear();
-  vector<UINT32> iVec; 
+  vector<UINT32> iVec;
   iVec = tsb.GetVertexIndices();
   assert(iVec.size()%3 == 0);
   if (iVec.size() > 0) { m_VertIndices.resize(iVec.size()/3);  memcpy(&m_VertIndices[0],&iVec[0],iVec.size()*sizeof(UINT32));}

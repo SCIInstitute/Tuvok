@@ -149,7 +149,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
           << " found.";
     MESSAGE("%s", stats.str().c_str());
   }
-  
+
   if (m_TriSoupBlocks.size()) {
     MESSAGE("Extracting Meshes.");
     for (vector<TriangleSoupBlock*>::iterator tsb = m_TriSoupBlocks.begin();
@@ -266,7 +266,7 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
           ts.m_vvaBrickSize[j][size_t(x)][size_t(y)].push_back(
             UINT64VECTOR3(vBrickSize[0], vBrickSize[1], vBrickSize[2]));
 
-          const BrickKey k = BrickKey(timestep, j, 
+          const BrickKey k = BrickKey(timestep, j,
             static_cast<size_t>(z*ts.m_vaBrickCount[j].x*ts.m_vaBrickCount[j].y+
                                 y*ts.m_vaBrickCount[j].x + x));
 
@@ -538,9 +538,9 @@ void UVFDataset::GetHistograms(size_t) {
     const std::vector<UINT64>& vHist1D = ts.m_pHist1DDataBlock->GetHistogram();
 
     m_pHist1D = new Histogram1D(std::min<size_t>(vHist1D.size(),
-                                    std::min<size_t>(MAX_TRANSFERFUNCTION_SIZE, 
+                                    std::min<size_t>(MAX_TRANSFERFUNCTION_SIZE,
                                                       1<<GetBitWidth())));
-    
+
     if ( m_pHist1D->GetSize() != vHist1D.size()) {
       MESSAGE("1D Histogram to big to drawn efficiently, resampling.");
       // "resample" the histogramm
@@ -603,7 +603,6 @@ void UVFDataset::GetHistograms(size_t) {
     const std::vector< std::vector<UINT64> >& vHist2D =
       ts.m_pHist2DDataBlock->GetHistogram();
 
-    
     VECTOR2<size_t> vSize(vHist2D.size(),vHist2D[0].size());
 
     vSize.x = min<size_t>(MAX_TRANSFERFUNCTION_SIZE, vSize.x);

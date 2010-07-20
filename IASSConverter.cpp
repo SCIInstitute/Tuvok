@@ -197,7 +197,7 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
       posRLEStream++;
       currLength = *(rleBuffer + posRLEStream);
     } while (posRLEStream < header.rleLength);
-   
+
     delete[] rleBuffer;
   } else {
     for (UINT64 x = 0; x < header.size.x; x++) {

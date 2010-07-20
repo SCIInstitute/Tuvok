@@ -38,7 +38,7 @@
 #include "AbstrGeoConverter.h"
 #include "SysTools.h"
 
-bool AbstrGeoConverter::ConvertToNative(const Mesh&, 
+bool AbstrGeoConverter::ConvertToNative(const Mesh&,
                                         const std::string&) {
   return false;
 }

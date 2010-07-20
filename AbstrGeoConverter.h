@@ -49,7 +49,7 @@ public:
 
   virtual Mesh* ConvertToMesh(const std::string& strRawFilename) = 0;
 
-  virtual bool ConvertToNative(const Mesh& m, 
+  virtual bool ConvertToNative(const Mesh& m,
                                const std::string& strTargetFilename);
 
   /// @param filename the file in question

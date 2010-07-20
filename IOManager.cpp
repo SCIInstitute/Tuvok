@@ -1237,8 +1237,8 @@ vector< tConverterFormat > IOManager::GetFormatList() const {
       v.push_back(tr1::make_tuple(
                       SysTools::ToLowerCase(
                         m_vpConverters[i]->SupportedExt()[j]
-                      ), 
-                      m_vpConverters[i]->GetDesc(), 
+                      ),
+                      m_vpConverters[i]->GetDesc(),
                       m_vpConverters[i]->CanExportData()));
     }
   }
@@ -1330,8 +1330,8 @@ vector< tConverterFormat > IOManager::GetGeoFormatList() const {
       v.push_back(tr1::make_tuple(
                       SysTools::ToLowerCase(
                         m_vpGeoConverters[i]->SupportedExt()[j]
-                      ), 
-                      m_vpGeoConverters[i]->GetDesc(), 
+                      ),
+                      m_vpGeoConverters[i]->GetDesc(),
                       m_vpGeoConverters[i]->CanExportData()));
     }
   }
@@ -1439,7 +1439,7 @@ void IOManager::CopyToTSB(const Mesh* m, TriangleSoupBlock* tsb) const {
   // target data
   vector<float> fVec;
   vector<UINT32> iVec;
-  
+
   if (v.size()) {fVec.resize(v.size()*3); memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float)); tsb->SetVertices(fVec);}
   if (n.size()) {fVec.resize(n.size()*3); memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float)); tsb->SetNormals(fVec);}
   if (t.size()) {fVec.resize(t.size()*2); memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float)); tsb->SetTexCoords(fVec);}
@@ -1474,7 +1474,7 @@ void IOManager::AddTriSurf(const UVF* sourceDataset,
       }
     }
   }
-  
+
   if (m == NULL) {
     WARNING("No converter for geometry file %s can be found",
             trisoup_fn.c_str());
@@ -1498,7 +1498,7 @@ void IOManager::AddTriSurf(const UVF* sourceDataset,
   uvfFile.SetGlobalHeader(uvfGlobalHeader);
 
   for(UINT64 i = 0; i<sourceDataset->GetDataBlockCount(); i++) {
-    uvfFile.AddConstDataBlock(sourceDataset->GetDataBlock(i), 
+    uvfFile.AddConstDataBlock(sourceDataset->GetDataBlock(i),
                               sourceDataset->GetDataBlock(i)->ComputeDataSize());
   }
 
