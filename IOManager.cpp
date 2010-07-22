@@ -498,7 +498,6 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
     MESSAGE("Reading data sets %s...", strFilenames[iInputData].c_str());
     string strExt       = SysTools::ToUpperCase(SysTools::GetExt(strFilenames[iInputData]));
 
-    bRAWCreated = false;
     MergeDataset IntermediateFile;
     IntermediateFile.fScale = vScales[iInputData];
     IntermediateFile.fBias = vBiases[iInputData];
