@@ -439,7 +439,6 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
   #pragma warning(default:4996)
 #endif
 
-
 bool IOManager::MergeDatasets(const vector <string>& strFilenames,
                               const vector <double>& vScales,
                               const vector<double>& vBiases,
@@ -478,7 +477,10 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
 
     if (strExt == "UVF") {
       UVFDataset v(strFilenames[iInputData],m_iMaxBrickSize,false);
-      if (!v.IsOpen()) break;
+      if (!v.IsOpen()) {
+        T_ERROR("Could not open '%s'!", strFilenames[iInputData].c_str());
+        return false;
+      }
 
       UINT64 iLODLevel = 0; // always extract the highest quality here
 
@@ -493,13 +495,30 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
         vVolumeSizeG = v.GetDomainSize(static_cast<size_t>(iLODLevel));
         vVolumeAspectG = FLOATVECTOR3(v.GetScale());
       } else {
-        if (iComponentSizeG  != v.GetBitWidth() ||
-            iComponentCountG != v.GetComponentCount() ||
-            bConvertEndianessG != !v.IsSameEndianness() ||
-            bSignedG != v.GetIsSigned() ||
-            bIsFloatG != v.GetIsFloat() ||
-            vVolumeSizeG != v.GetDomainSize(static_cast<size_t>(iLODLevel))) {
-          bRAWCreated = false;
+#define DATA_TYPE_CHECK(a, b, errmsg) \
+  do { \
+    if(a != b) { \
+      T_ERROR("%s", errmsg); \
+      bRAWCreated = false; \
+    } \
+  } while(0)
+
+        DATA_TYPE_CHECK(iComponentSizeG, v.GetBitWidth(),
+                        "mismatched bit widths.");
+        DATA_TYPE_CHECK(iComponentCountG, v.GetComponentCount(),
+                        "different number of components.");
+        DATA_TYPE_CHECK(bConvertEndianessG, !v.IsSameEndianness(),
+                        "mismatched endianness.");
+        DATA_TYPE_CHECK(bSignedG, v.GetIsSigned(),
+                        "signedness differences");
+        DATA_TYPE_CHECK(bIsFloatG, v.GetIsFloat(),
+                        "some data float, other non-float.");
+        DATA_TYPE_CHECK(vVolumeSizeG,
+                        v.GetDomainSize(static_cast<size_t>(iLODLevel)),
+                        "different volume sizes");
+#undef DATA_TYPE_CHECK
+        if(bRAWCreated == false) {
+          T_ERROR("Incompatible data types.");
           break;
         }
         if (vVolumeAspectG != FLOATVECTOR3(v.GetScale()))
@@ -586,14 +605,15 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
           WARNING("Different aspect ratios found.");
       }
     }
-
   }
 
   if (!bRAWCreated) {
+    T_ERROR("No raw files.  Deleting temp files...");
     for (size_t i = 0;i<vIntermediateFiles.size();i++) {
       if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename))
         remove(vIntermediateFiles[i].strFilename.c_str());
     }
+    T_ERROR("...  and bailing.");
     return false;
   }
 
@@ -671,7 +691,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
     }
   }
 
-
+  MESSAGE("Removing temporary files...");
   for (size_t i = 0;i<vIntermediateFiles.size();i++) {
     if (vIntermediateFiles[i].bDelete && SysTools::FileExists(vIntermediateFiles[i].strFilename))
       remove(vIntermediateFiles[i].strFilename.c_str());
@@ -704,7 +724,12 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
             vVolumeAspectG, bNoUserInteraction, false
           );
 
-          if (bTargetCreated) { break; }
+          if(!bTargetCreated) {
+            WARNING("%s said it could convert to native, but failed!",
+                    m_vpConverters[k]->GetDesc().c_str());
+          } else {
+            break;
+          }
         }
       }
       if (bTargetCreated) break;
