@@ -52,6 +52,8 @@ public:
   void StartNewValue();
   void MergeData(const std::vector<DOUBLEVECTOR4>& fMaxMinData);
 
+  InternalMaxMinElement m_GlobalMaxMin;
+
 protected:
 	typedef std::vector<std::vector<InternalMaxMinElement> > MaxMin;
   std::vector< std::vector<InternalMaxMinElement> > m_vfMaxMinData;

@@ -289,6 +289,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         break;
     }
   }
+  
+  // if the data was signed before Quantize removed the sign
+  bSigned = false;
 
   if (strSourceFilename == "")  {
     T_ERROR("Read/Write error quantizing to %s", strFilename.c_str());
@@ -535,7 +538,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
       MESSAGE("Computing 2D Histogram...");
       Histogram2DDataBlock& Histogram2D = *blocks[ts].hist2d;
-      if (!Histogram2D.Compute(dataVolume, Histogram1D.GetHistogram().size())) {
+      if (!Histogram2D.Compute(dataVolume, Histogram1D.GetHistogram().size(), MaxMinData.m_GlobalMaxMin.maxScalar)) {
         T_ERROR("Computation of 2D Histogram failed!");
         uvfFile.Close();
         if (bConvertEndianness) {
@@ -1082,6 +1085,8 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                 const UINT64 iTargetBrickOverlap,
                                 const bool bQuantizeTo8Bit)
 {
+  // all the parameters set here are just defaults, they should all be
+  // overriden in ConvertToRAW which takes them as call by reference
   UINT64        iComponentSize=8;
   UINT64        iComponentCount=1;
   bool          bConvertEndianess=false;

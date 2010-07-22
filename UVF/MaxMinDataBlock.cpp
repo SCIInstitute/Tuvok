@@ -13,7 +13,11 @@ using namespace UVFTables;
 
 
 MaxMinDataBlock::MaxMinDataBlock(size_t iComponentCount) : 
-  DataBlock()
+  DataBlock(),
+  m_GlobalMaxMin( std::numeric_limits<double>::max(), 
+                 -std::numeric_limits<double>::max(), 
+                  std::numeric_limits<double>::max(), 
+                 -std::numeric_limits<double>::max())
 {
   ulBlockSemantics = BS_MAXMIN_VALUES;
   strBlockID       = "Brick Max/Min Values";
@@ -24,7 +28,8 @@ MaxMinDataBlock::MaxMinDataBlock(size_t iComponentCount) :
 MaxMinDataBlock::MaxMinDataBlock(const MaxMinDataBlock &other) :
   DataBlock(other),
   m_vfMaxMinData(other.m_vfMaxMinData),
-  m_iComponentCount(other.m_iComponentCount)
+  m_iComponentCount(other.m_iComponentCount),
+  m_GlobalMaxMin(other.m_GlobalMaxMin)
 {
 }
 
@@ -75,6 +80,8 @@ UINT64 MaxMinDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOff
       pStreamFile->ReadData((*i)[j].maxScalar, bIsBigEndian);
       pStreamFile->ReadData((*i)[j].minGradient, bIsBigEndian);
       pStreamFile->ReadData((*i)[j].maxGradient, bIsBigEndian);
+  
+      m_GlobalMaxMin.Merge((*i)[j]);
     }
   }
 
@@ -147,5 +154,6 @@ void MaxMinDataBlock::MergeData(const std::vector<DOUBLEVECTOR4>& fMaxMinData) {
 }
 
 void MaxMinDataBlock::MergeData(const InternalMaxMinElement& data, const size_t iComponent) {
+  m_GlobalMaxMin.Merge(data);
   m_vfMaxMinData[m_vfMaxMinData.size()-1][iComponent].Merge(data);
 }

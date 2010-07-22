@@ -66,7 +66,7 @@ UINT64 Histogram2DDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64
 
 /// \todo right now compute Histogram assumes that the lowest LOD level consists only of a single brick, this brick is used for the hist. computation
 //       this should be changed to a more general approach
-bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iHistoBinCount) {
+bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iHistoBinCount, double fMaxNonZeroValue) {
   /// \todo right now we can only compute Histograms of scalar data this should be changed to a more general approach
   if (source->ulElementDimension != 1 || source->ulElementDimensionSize.size() != 1) return false;
 
@@ -168,7 +168,6 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iHistoBinCoun
   } else {
     if (source->ulElementBitSize[0][0] == 16) {
       unsigned short *psSourceData = (unsigned short*)(&(vcSourceData.at(0)));
-      unsigned short iMaxValueInFile = 0;
       
       for (size_t z = 0;z<size_t(vSize[2]);z++) {
         for (size_t y = 0;y<size_t(vSize[1]);y++) {
@@ -195,7 +194,6 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iHistoBinCoun
                                      (float(psSourceData[iTop])-float(psSourceData[iBottom]))/(65535*vScale.y),
                                      (float(psSourceData[iFront])-float(psSourceData[iBack]))/(65535*vScale.z));
 
-            iMaxValueInFile = max(psSourceData[iCenter],iMaxValueInFile);
             
             if (vGradient.length() > m_fMaxGradMagnitude) m_fMaxGradMagnitude = vGradient.length();
           }
@@ -227,8 +225,9 @@ bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iHistoBinCoun
                                      (float(psSourceData[iFront])-float(psSourceData[iBack]))/(65535*vScale.z));
 
             unsigned char iGardientMagnitudeIndex = (unsigned char)(min<int>(255,int(vGradient.length()/m_fMaxGradMagnitude*255.0f)));
-            int iValue = (iMaxValueInFile <= iHistoBinCount) ? psSourceData[iCenter] 
-                                                             : min<int>(int(iHistoBinCount-1),int(float(psSourceData[iCenter] * float(iMaxValueInFile)/float(iHistoBinCount-1))));
+            int iValue = (fMaxNonZeroValue <= double(iHistoBinCount-1)) 
+                                                                ? psSourceData[iCenter] 
+                                                                : min<int>(int(iHistoBinCount-1),int(float(psSourceData[iCenter] * float(iHistoBinCount-1)/fMaxNonZeroValue)));
             m_vHistData[iValue][iGardientMagnitudeIndex]++;
           }
         }

@@ -16,7 +16,7 @@ public:
   virtual Histogram2DDataBlock& operator=(const Histogram2DDataBlock& other);
   virtual UINT64 ComputeDataSize() const;
 
-  bool Compute(RasterDataBlock* source, size_t iMaxValue);
+  bool Compute(RasterDataBlock* source, size_t iMaxValue, double fMaxNonZeroValue);
   const std::vector< std::vector<UINT64> >& GetHistogram() const {
     return m_vHistData;
   }
