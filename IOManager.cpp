@@ -147,11 +147,19 @@ void IOManager::RegisterFinalConverter(AbstrConverter* pConverter) {
   m_pFinalConverter = pConverter;
 }
 
+namespace {
+  template <typename T>
+  void Delete(T *t) { delete t; }
+}
 
 IOManager::~IOManager()
 {
-  for (size_t i = 0;i<m_vpConverters.size();i++) delete m_vpConverters[i];
+  std::for_each(m_vpConverters.begin(), m_vpConverters.end(),
+                Delete<AbstrConverter>);
+  std::for_each(m_vpGeoConverters.begin(), m_vpGeoConverters.end(),
+                Delete<AbstrGeoConverter>);
   m_vpConverters.clear();
+  m_vpGeoConverters.clear();
 
   delete m_pFinalConverter;
 }
