@@ -33,10 +33,13 @@
            University of Utah
 */
 #include "../StdTuvokDefines.h"
+#include <cctype>
 #include <fstream>
 #ifdef _MSC_VER
+# include <functional>
 # include <unordered_map>
 #else
+# include <tr1/functional>
 # include <tr1/unordered_map>
 #endif
 #include <sstream>
@@ -269,4 +272,25 @@ bool InveonConverter::ConvertToNative(
   }
 
   return true;
+}
+
+// checks for comment lines, ascii.
+bool InveonConverter::CanRead(const std::string&,
+                              const std::vector<int8_t>& start) const
+{
+  using namespace std::tr1::placeholders;
+
+  // Are there any non-ascii characters?
+  std::vector<int8_t>::const_iterator notascii = std::find_if(
+    start.begin(), start.end(),
+    std::tr1::bind(
+      std::not_equal_to<int>(),
+        std::tr1::bind(isascii, _1),
+        0
+      )
+  );
+
+  // first char is a comment, and we couldn't find a character which
+  // wasn't ascii.
+  return start[0] == '#' && notascii == start.end();
 }

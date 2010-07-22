@@ -68,6 +68,10 @@ public:
                                bool bNoUserInteraction,
                                const bool bQuantizeTo8Bit);
 
+  // checks for comment lines, ascii.
+  virtual bool CanRead(const std::string& fn,
+                       const std::vector<int8_t>& start) const;
+
   virtual bool CanExportData() const { return true; }
 };
 #endif // TUVOK_IO_INVEON_CONVERTER_H
