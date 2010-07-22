@@ -35,6 +35,7 @@
 */
 
 #include <fstream>
+#include <set>
 #include <sstream>
 #include <map>
 #include "boost/cstdint.hpp"
@@ -81,6 +82,33 @@ static void read_first_block(const string& filename,
   block.resize(512);
   ifs.read(reinterpret_cast<char*>(&block[0]), 512);
   ifs.close();
+}
+
+// Figure out the converters that can convert the given file.
+// Multiple formats might think they can do as much; we return all of them and
+// let the higher level figure it out.
+namespace {
+  template<typename ForwIter>
+  std::set<AbstrConverter*>
+  identify_converters(const std::string& filename,
+                      ForwIter cbegin, ForwIter cend)
+  {
+    std::set<AbstrConverter*> converters;
+
+    vector<int8_t> bytes(512);
+    read_first_block(filename, bytes);
+
+    while(cbegin != cend) {
+      MESSAGE("Attempting converter '%s'", (*cbegin)->GetDesc().c_str());
+      if((*cbegin)->CanRead(filename, bytes)) {
+        MESSAGE("Converter '%s' can read '%s'!",
+                (*cbegin)->GetDesc().c_str(), filename.c_str());
+        converters.insert(*cbegin);
+      }
+      ++cbegin;
+    }
+    return converters;
+  }
 }
 
 IOManager::IOManager() :
@@ -545,23 +573,23 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
       string        strSource = "";
       UVFTables::ElementSemanticTable eType = UVFTables::ES_UNDEFINED;
 
-      for (size_t i = 0;i<m_vpConverters.size();i++) {
-        const vector<string>& vStrSupportedExt =
-          m_vpConverters[i]->SupportedExt();
-        for (size_t j = 0;j<vStrSupportedExt.size();j++) {
-          if (vStrSupportedExt[j] == strExt) {
-            bRAWCreated = m_vpConverters[i]->ConvertToRAW(
-              strFilenames[iInputData], strTempDir, bNoUserInteraction,
-              IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount,
-              bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
-              strTitle, eType, IntermediateFile.strFilename,
-              IntermediateFile.bDelete
-            );
-            strSource = SysTools::GetFilename(strFilenames[iInputData]);
-            if (!bRAWCreated) {
-              continue;
-            }
-          }
+      std::set<AbstrConverter*> converters =
+        identify_converters(strFilenames[iInputData], m_vpConverters.begin(),
+                            m_vpConverters.end());
+      typedef std::set<AbstrConverter*>::const_iterator citer;
+      for(citer conv = converters.begin(); conv != converters.end(); ++conv) {
+        bRAWCreated = (*conv)->ConvertToRAW(
+          strFilenames[iInputData], strTempDir, bNoUserInteraction,
+          IntermediateFile.iHeaderSkip, iComponentSize, iComponentCount,
+          bConvertEndianess, bSigned, bIsFloat, vVolumeSize, vVolumeAspect,
+          strTitle, eType, IntermediateFile.strFilename,
+          IntermediateFile.bDelete
+        );
+        strSource = SysTools::GetFilename(strFilenames[iInputData]);
+        if(bRAWCreated) {
+          MESSAGE("Conversion using '%s' succeeded!",
+                  (*conv)->GetDesc().c_str());
+          break;
         }
       }
 
@@ -597,6 +625,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
             bSignedG != bSigned ||
             bIsFloatG != bIsFloat ||
             vVolumeSizeG != vVolumeSize) {
+          T_ERROR("Incompatible data types.");
           bRAWCreated = false;
           break;
         }
@@ -791,29 +820,20 @@ bool IOManager::ConvertDataset(const list<string>& files,
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
 
   if (strExtTarget == "UVF") {
-    // CanRead can use the file's first block to help identify the file.  Read
-    // in one block of the first file to use for that purpose.
-    /// @todo consider what we should do when converting multiple files which
-    ///       utilize different converters.
-    vector<int8_t> bytes(512);
-    read_first_block(*files.begin(), bytes);
-
-    // Now iterate through all our converters, stopping when one successfully
+    // Iterate through all our converters, stopping when one successfully
     // converts our data.
-    for(vector<AbstrConverter*>::const_iterator conv =
-          m_vpConverters.begin(); conv != m_vpConverters.end(); ++conv) {
-      MESSAGE("Attempting converter '%s'", (*conv)->GetDesc().c_str());
-      if((*conv)->CanRead(*files.begin(), bytes)) {
-        MESSAGE("Converter '%s' can read '%s'!",
-                (*conv)->GetDesc().c_str(), files.begin()->c_str());
-        if((*conv)->ConvertToUVF(files, strTargetFilename, strTempDir,
-                                 bNoUserInteraction, iMaxBrickSize,
-                                 iBrickOverlap, bQuantizeTo8Bit)) {
-          return true;
-        } else {
-          WARNING("Converter %s can read files, but conversion failed!",
-                  (*conv)->GetDesc().c_str());
-        }
+    std::set<AbstrConverter*> converters =
+      identify_converters(*files.begin(), m_vpConverters.begin(),
+                          m_vpConverters.end());
+    typedef std::set<AbstrConverter*>::const_iterator citer;
+    for(citer conv = converters.begin(); conv != converters.end(); ++conv) {
+      if((*conv)->ConvertToUVF(files, strTargetFilename, strTempDir,
+                               bNoUserInteraction, iMaxBrickSize, iBrickOverlap,
+                               bQuantizeTo8Bit)) {
+        return true;
+      } else {
+        WARNING("Converter %s can read files, but conversion failed!",
+                (*conv)->GetDesc().c_str());
       }
     }
 
@@ -887,20 +907,21 @@ bool IOManager::ConvertDataset(const list<string>& files,
     vector<int8_t> bytes(512);
     read_first_block(strFilename, bytes);
 
-    for(vector<AbstrConverter*>::const_iterator conv =
-          m_vpConverters.begin(); conv != m_vpConverters.end(); ++conv) {
-      if((*conv)->CanRead(strFilename, bytes)) {
-        if((*conv)->ConvertToRAW(strFilename, strTempDir,
-                                 bNoUserInteraction,iHeaderSkip,
-                                 iComponentSize, iComponentCount,
-                                 bConvertEndianess, bSigned,
-                                 bIsFloat, vVolumeSize,
-                                 vVolumeAspect, strTitle, eType,
-                                 strIntermediateFile,
-                                 bDeleteIntermediateFile)) {
-          bRAWCreated = true;
-          break;
-        }
+    std::set<AbstrConverter*> converters =
+      identify_converters(*files.begin(), m_vpConverters.begin(),
+                          m_vpConverters.end());
+    typedef std::set<AbstrConverter*>::const_iterator citer;
+    for(citer conv = converters.begin(); conv != converters.end(); ++conv) {
+      if((*conv)->ConvertToRAW(strFilename, strTempDir,
+                               bNoUserInteraction,iHeaderSkip,
+                               iComponentSize, iComponentCount,
+                               bConvertEndianess, bSigned,
+                               bIsFloat, vVolumeSize,
+                               vVolumeAspect, strTitle, eType,
+                               strIntermediateFile,
+                               bDeleteIntermediateFile)) {
+        bRAWCreated = true;
+        break;
       }
     }
 
@@ -1211,7 +1232,7 @@ string IOManager::GetLoadDialogString() const {
 
 string IOManager::GetExportDialogString() const {
   string strDialog;
-  // seperate entries
+  // separate entries
   for (size_t i=0; i < m_vpConverters.size(); i++) {
     for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
       if (m_vpConverters[i]->CanExportData()) {
@@ -1306,7 +1327,7 @@ string IOManager::GetLoadGeoDialogString() const {
 
 string IOManager::GetGeoExportDialogString() const {
   string strDialog;
-  // seperate entries
+  // separate entries
   for (size_t i=0; i < m_vpGeoConverters.size(); i++) {
     for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
       if (m_vpGeoConverters[i]->CanExportData()) {
