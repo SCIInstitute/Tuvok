@@ -69,18 +69,10 @@ void GLRaycaster::CleanupShaders() {
     m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); 
     m_pFBORayEntry = NULL;
   }
-  if (m_pProgramRenderFrontFaces){
-    m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramRenderFrontFaces);
-    m_pProgramRenderFrontFaces = NULL;
-  }
-  if (m_pProgramRenderFrontFacesNT){
-    m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramRenderFrontFacesNT);
-    m_pProgramRenderFrontFacesNT = NULL;
-  }
-  if (m_pProgramIso2) {
-    m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIso2); 
-    m_pProgramIso2 = NULL;
-  }
+
+  CleanupShader(&m_pProgramRenderFrontFaces);
+  CleanupShader(&m_pProgramRenderFrontFacesNT);
+  CleanupShader(&m_pProgramIso2);
 }
 
 void GLRaycaster::CreateOffscreenBuffers() {

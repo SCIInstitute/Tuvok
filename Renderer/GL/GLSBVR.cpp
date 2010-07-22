@@ -59,8 +59,8 @@ GLSBVR::~GLSBVR() {
 
 void GLSBVR::CleanupShaders() {
   GLRenderer::CleanupShaders();
-  if (m_pProgramIsoNoCompose)   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIsoNoCompose); m_pProgramIsoNoCompose =NULL;}
-  if (m_pProgramColorNoCompose) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorNoCompose); m_pProgramColorNoCompose =NULL;}
+  CleanupShader(&m_pProgramIsoNoCompose);
+  CleanupShader(&m_pProgramColorNoCompose);
 }
 
 bool GLSBVR::LoadShaders() {

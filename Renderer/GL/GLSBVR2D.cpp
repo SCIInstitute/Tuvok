@@ -61,8 +61,8 @@ GLSBVR2D::~GLSBVR2D() {
 
 void GLSBVR2D::CleanupShaders() {
   GLRenderer::CleanupShaders();
-  if (m_pProgramIsoNoCompose)   {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIsoNoCompose); m_pProgramIsoNoCompose =NULL;}
-  if (m_pProgramColorNoCompose) {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorNoCompose); m_pProgramColorNoCompose =NULL;}
+  CleanupShader(&m_pProgramIsoNoCompose);
+  CleanupShader(&m_pProgramColorNoCompose);
 }
 
 void GLSBVR2D::SetUse3DTexture(bool bUse3DTexture) {
@@ -114,6 +114,9 @@ bool GLSBVR2D::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgramComposeAnaglyphs, m_vShaderSearchDirs,
                           "Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",
                           NULL)                                              ||
+     !LoadAndVerifyShader(&m_pProgramSBSStereo, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Compose-SBS-FS.glsl",
+                          NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
                           m_vShaderSearchDirs, "Transfer-VS.glsl",
                           "Compose-Scanline-FS.glsl", NULL))
@@ -164,6 +167,9 @@ bool GLSBVR2D::LoadShaders() {
 
     m_pProgramComposeScanlineStereo->ConnectTextureID("texLeftEye",0);
     m_pProgramComposeScanlineStereo->ConnectTextureID("texRightEye",1);
+
+    m_pProgramSBSStereo->ConnectTextureID("texLeftEye",0);
+    m_pProgramSBSStereo->ConnectTextureID("texRightEye",1);    
   }
 
 

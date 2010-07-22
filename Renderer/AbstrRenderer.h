@@ -109,8 +109,9 @@ class AbstrRenderer {
     };
 
     enum EStereoMode {
-      SM_RB = 0,
-      SM_SCANLINE,
+      SM_RB = 0,        // red blue anaglyph
+      SM_SCANLINE,      // scan line interleave
+      SM_SBS,           // side by side
       SM_INVALID
     };
     virtual ERendererType GetRendererType() const {return RT_INVALID;}

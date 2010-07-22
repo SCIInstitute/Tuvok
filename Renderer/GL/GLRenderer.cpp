@@ -86,6 +86,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramCVCompose(NULL),
   m_pProgramComposeAnaglyphs(NULL),
   m_pProgramComposeScanlineStereo(NULL),
+  m_pProgramSBSStereo(NULL),
   m_pProgramBBox(NULL),
   m_bSupportsMeshes(false),
   m_aDepthStorage(NULL)
@@ -218,6 +219,9 @@ bool GLRenderer::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgramComposeAnaglyphs, m_vShaderSearchDirs,
                           "Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",
                           NULL)                                              ||
+     !LoadAndVerifyShader(&m_pProgramSBSStereo, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl", "Compose-SBS-FS.glsl",
+                          NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
                           m_vShaderSearchDirs, "Transfer-VS.glsl",
                           "Compose-Scanline-FS.glsl", NULL) ||
@@ -272,32 +276,43 @@ bool GLRenderer::LoadShaders() {
 
     m_pProgramComposeScanlineStereo->ConnectTextureID("texLeftEye",0);
     m_pProgramComposeScanlineStereo->ConnectTextureID("texRightEye",1);
+
+    m_pProgramSBSStereo->ConnectTextureID("texLeftEye",0);
+    m_pProgramSBSStereo->ConnectTextureID("texRightEye",1);    
   }
   return true;
 }
 
+void GLRenderer::CleanupShader(GLSLProgram** p) {
+  if (*p) {
+    m_pMasterController->MemMan()->FreeGLSLProgram(*p); 
+    *p =NULL;
+  }
+}
+
 void GLRenderer::CleanupShaders() {
-  if (m_pProgramTrans)         {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramTrans); m_pProgramTrans =NULL;}
-  if (m_pProgram1DTransSlice)  {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTransSlice); m_pProgram1DTransSlice =NULL;}
-  if (m_pProgram2DTransSlice)  {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTransSlice); m_pProgram2DTransSlice =NULL;}
-  if (m_pProgram1DTransSlice3D){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTransSlice3D); m_pProgram1DTransSlice3D =NULL;}
-  if (m_pProgram2DTransSlice3D){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTransSlice3D); m_pProgram2DTransSlice3D =NULL;}
-  if (m_pProgramMIPSlice)      {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramMIPSlice); m_pProgramMIPSlice =NULL;}
-  if (m_pProgramHQMIPRot)      {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramHQMIPRot); m_pProgramHQMIPRot =NULL;}
-  if (m_pProgramTransMIP)      {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramTransMIP); m_pProgramTransMIP =NULL;}
-  if (m_pProgram1DTrans[0])    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTrans[0]); m_pProgram1DTrans[0] =NULL;}
-  if (m_pProgram1DTrans[1])    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram1DTrans[1]); m_pProgram1DTrans[1] =NULL;}
-  if (m_pProgram2DTrans[0])    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTrans[0]); m_pProgram2DTrans[0] =NULL;}
-  if (m_pProgram2DTrans[1])    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgram2DTrans[1]); m_pProgram2DTrans[1] =NULL;}
-  if (m_pProgramIso)           {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIso); m_pProgramIso =NULL;}
-  if (m_pProgramColor)         {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColor); m_pProgramColor =NULL;}
-  if (m_pProgramIsoCompose)    {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramIsoCompose); m_pProgramIsoCompose = NULL;}
-  if (m_pProgramColorCompose)  {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramColorCompose); m_pProgramColorCompose = NULL;}
-  if (m_pProgramCVCompose)     {m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramCVCompose); m_pProgramCVCompose = NULL;}
-  if (m_pProgramComposeAnaglyphs){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeAnaglyphs); m_pProgramComposeAnaglyphs = NULL;}
-  if (m_pProgramComposeScanlineStereo){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramComposeScanlineStereo); m_pProgramComposeScanlineStereo = NULL;}
-  if (m_pProgramBBox){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramBBox); m_pProgramBBox = NULL;}  
-  if (m_pProgramMesh){m_pMasterController->MemMan()->FreeGLSLProgram(m_pProgramMesh); m_pProgramMesh = NULL;}    
+  CleanupShader(&m_pProgramTrans);
+  CleanupShader(&m_pProgram1DTransSlice);
+  CleanupShader(&m_pProgram2DTransSlice);
+  CleanupShader(&m_pProgram1DTransSlice3D);
+  CleanupShader(&m_pProgram2DTransSlice3D);
+  CleanupShader(&m_pProgramMIPSlice);
+  CleanupShader(&m_pProgramHQMIPRot);
+  CleanupShader(&m_pProgramTransMIP);
+  CleanupShader(&m_pProgram1DTrans[0]);
+  CleanupShader(&m_pProgram1DTrans[1]);
+  CleanupShader(&m_pProgram2DTrans[0]);
+  CleanupShader(&m_pProgram2DTrans[1]);
+  CleanupShader(&m_pProgramIso);
+  CleanupShader(&m_pProgramColor);
+  CleanupShader(&m_pProgramIsoCompose);
+  CleanupShader(&m_pProgramColorCompose);
+  CleanupShader(&m_pProgramCVCompose);
+  CleanupShader(&m_pProgramComposeAnaglyphs);
+  CleanupShader(&m_pProgramComposeScanlineStereo);
+  CleanupShader(&m_pProgramSBSStereo);
+  CleanupShader(&m_pProgramBBox);
+  CleanupShader(&m_pProgramMesh);
 }
 
 void GLRenderer::Set1DTrans(const std::vector<unsigned char>& rgba)
@@ -616,12 +631,14 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
 
         switch (m_eStereoMode) {
           case SM_RB : m_pProgramComposeAnaglyphs->Enable(); break;
-          default    : {
+          case SM_SCANLINE: {
                         m_pProgramComposeScanlineStereo->Enable(); 
                         FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
                         m_pProgramComposeScanlineStereo->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
                         break;
                        }
+          default : m_pProgramSBSStereo->Enable(); 
+                    break;
         }
 
         glDisable(GL_DEPTH_TEST);
@@ -629,8 +646,9 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
         glEnable(GL_DEPTH_TEST);
 
         switch (m_eStereoMode) {
-          case SM_RB : m_pProgramComposeAnaglyphs->Disable(); break;
-          default    : m_pProgramComposeScanlineStereo->Disable(); break;
+          case SM_RB       : m_pProgramComposeAnaglyphs->Disable(); break;
+          case SM_SCANLINE : m_pProgramComposeScanlineStereo->Disable(); break;
+          default          : m_pProgramSBSStereo->Disable(); break;
         }
 
         m_TargetBinder.Unbind();

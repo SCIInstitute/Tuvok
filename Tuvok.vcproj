@@ -786,6 +786,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Shaders\Compose-SBS.glsl"
+				>
+			</File>
+			<File
 				RelativePath=".\Shaders\Compose-Scanline-FS.glsl"
 				>
 			</File>

@@ -193,6 +193,7 @@ class GLRenderer : public AbstrRenderer {
                                const UINT64 iIntraFrameCounter);
     virtual bool UnbindVolumeTex();
     virtual bool LoadShaders();
+    void CleanupShader(GLSLProgram** p);
 
     GLSLProgram*    m_pProgramTrans;
     GLSLProgram*    m_pProgram1DTransSlice;
@@ -206,6 +207,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramCVCompose;
     GLSLProgram*    m_pProgramComposeAnaglyphs;
     GLSLProgram*    m_pProgramComposeScanlineStereo;
+    GLSLProgram*    m_pProgramSBSStereo;
     GLSLProgram*    m_pProgramBBox;
     GLSLProgram*    m_pProgramMesh;
     bool            m_bSupportsMeshes;
