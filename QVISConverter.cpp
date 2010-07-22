@@ -66,9 +66,6 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
   iComponentSize    = 8;
   iComponentCount   = 1;
   bSigned           = false;
-  /// \todo  detect big endian DAT/RAW combinations and set the conversion
-  ///        parameter accordingly instead of always assuming it is little
-  ///        endian and thus converting if the machine is big endian
   bConvertEndianess = EndianConvert::IsBigEndian();
 
   KeyValueFileParser parser(strSourceFilename);
@@ -122,6 +119,10 @@ bool QVISConverter::ConvertToRAW(const std::string& strSourceFilename,
       return false;
     } else
       vVolumeSize = UINT64VECTOR3(resolution->vuiValue);
+
+    KeyValPair* endianess = parser.GetData("ENDIANESS");
+    if (endianess && endianess->strValueUpper == "BIG")
+      bConvertEndianess = !bConvertEndianess;
 
     KeyValPair* sliceThickness = parser.GetData("SLICETHICKNESS");
     if (sliceThickness == NULL || sliceThickness->vuiValue.size() != 3) {
@@ -194,6 +195,8 @@ bool QVISConverter::ConvertToNative(const std::string& strRawFilename, const std
   fTarget << "ObjectType:     TEXTURE_VOLUME_OBJECT" << endl;
   fTarget << "ObjectModel:    RGBA" << endl;
   fTarget << "GridType:       EQUIDISTANT" << endl;
+  fTarget << "Endianess:      " << (EndianConvert::IsBigEndian() ? "BIG" : "LITTLE") << endl;
+
   fTarget.close();
 
   MESSAGE("Writing RAW File");
