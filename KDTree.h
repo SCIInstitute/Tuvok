@@ -4,7 +4,10 @@
 #include "Mesh.h"
 #include <fstream>
 
+namespace tuvok {
+
 typedef std::vector<size_t> triVec;
+
 
 class KDTreeNode
 {
@@ -159,4 +162,6 @@ private:
                        const FLOATVECTOR3& scale);
 
 };
+
+}
 #endif // KDTREE_H

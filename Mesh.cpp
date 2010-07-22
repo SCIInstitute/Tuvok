@@ -36,6 +36,8 @@
 #include "Mesh.h"
 #include "KDTree.h"
 
+using namespace tuvok;
+
 Mesh::Mesh() :
   m_KDTree(0)
 {

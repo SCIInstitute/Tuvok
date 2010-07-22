@@ -43,6 +43,8 @@
 #include "Basics/Vectors.h"
 #include "Ray.h"
 
+namespace tuvok {
+
 class KDTree;
 
 typedef std::vector<FLOATVECTOR3> VertVec;
@@ -119,5 +121,5 @@ private:
 
   friend class KDTree;
 };
-
+}
 #endif // BASICS_MESH_H

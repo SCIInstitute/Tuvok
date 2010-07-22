@@ -4,6 +4,8 @@
 #include <cassert>
 #include <iostream>
 
+using namespace tuvok;
+
 class splitElem {
 public:
   splitElem(double p=0) : pos(p), n1count(0), n2count(0) {}
