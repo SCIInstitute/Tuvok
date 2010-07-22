@@ -42,7 +42,6 @@
 using namespace tuvok;
 using namespace std;
 
-
 MedAlyVisGeoConverter::MedAlyVisGeoConverter()
 {
   m_vConverterDesc = "MedAlyVis Hull File";

@@ -40,6 +40,7 @@
 #include "../StdTuvokDefines.h"
 #include "AbstrGeoConverter.h"
 
+namespace tuvok {
 class Mesh;
 
 class OBJGeoConverter : public AbstrGeoConverter {
@@ -54,5 +55,5 @@ protected:
                         bool bOnlyFirst = false);
 
 };
-
+}
 #endif // OBJGEOCONVERTER_H

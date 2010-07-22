@@ -40,6 +40,7 @@
 #include "../StdTuvokDefines.h"
 #include "AbstrGeoConverter.h"
 
+namespace tuvok {
 class Mesh;
 
 class MedAlyVisGeoConverter : public AbstrGeoConverter {
@@ -48,5 +49,5 @@ public:
   virtual ~MedAlyVisGeoConverter() {}
   virtual Mesh* ConvertToMesh(const std::string& strFilename);
 };
-
+}
 #endif // MEDALYVISGEOCONVERTER_H

@@ -41,6 +41,7 @@
 #include <string>
 #include <vector>
 
+namespace tuvok {
 class Mesh;
 
 class AbstrGeoConverter {
@@ -70,5 +71,5 @@ protected:
   std::vector<std::string>  m_vSupportedExt;
 
 };
-
+}
 #endif // ABSTRGEOCONVERTER_H

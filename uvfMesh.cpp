@@ -38,6 +38,7 @@
 #include <cstring>
 
 using namespace std;
+using namespace tuvok;
 
 uvfMesh::uvfMesh(const TriangleSoupBlock& tsb)
 {

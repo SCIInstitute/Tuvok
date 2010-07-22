@@ -38,6 +38,8 @@
 #include "AbstrGeoConverter.h"
 #include "SysTools.h"
 
+using namespace tuvok;
+
 bool AbstrGeoConverter::ConvertToNative(const Mesh&,
                                         const std::string&) {
   return false;

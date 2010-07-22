@@ -68,19 +68,19 @@ typedef std::tr1::tuple<std::string , std::string, bool> tConverterFormat;
 #define DEFAULT_INCORESIZE (DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE)
 
 class AbstrConverter;
-class AbstrGeoConverter;
 class FileStackInfo;
 class RangeInfo;
 class UVF;
 class TriangleSoupBlock;
-class Mesh;
 
 namespace tuvok {
+  class AbstrGeoConverter;
   class AbstrRenderer;
   class Dataset;
   class FileBackedDataset;
   class UVFDataset;
   class MasterController;
+  class Mesh;
   namespace io {
     class DSFactory;
   }
@@ -494,7 +494,7 @@ public:
   bool SetBrickOverlap(const UINT64 iBrickOverlap);
 
 private:
-  std::vector<AbstrGeoConverter*> m_vpGeoConverters;
+  std::vector<tuvok::AbstrGeoConverter*> m_vpGeoConverters;
   std::vector<AbstrConverter*>    m_vpConverters;
   AbstrConverter*                 m_pFinalConverter;
   std::auto_ptr<tuvok::io::DSFactory> m_dsFactory;
@@ -503,7 +503,7 @@ private:
   UINT64 m_iBrickOverlap;
   UINT64 m_iIncoresize;
 
-  void CopyToTSB(const Mesh* m, TriangleSoupBlock* tsb) const;
+  void CopyToTSB(const tuvok::Mesh* m, TriangleSoupBlock* tsb) const;
 };
 
 #endif // IOMANAGER_H

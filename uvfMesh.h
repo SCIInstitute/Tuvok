@@ -41,10 +41,13 @@
 
 class TriangleSoupBlock;
 
+namespace tuvok {
+
 class uvfMesh : public Mesh
 {
 public:
   uvfMesh(const TriangleSoupBlock& tsb);
 };
 
+}
 #endif // UVFMESH_H
