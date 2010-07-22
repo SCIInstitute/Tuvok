@@ -140,6 +140,8 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
           << ts.m_vaBrickCount[0].x << " x "
           << ts.m_vaBrickCount[0].y << " x "
           << ts.m_vaBrickCount[0].z << "\n  "
+          << (ts.m_pVolumeDataBlock->bSignedElement[0][0] ?
+              std::string("signed ") : std::string("unsigned "))
           << GetBitWidth() << " bit, "
           << GetComponentCount() << " components\n"
           << "  LOD down to "
