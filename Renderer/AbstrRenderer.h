@@ -60,6 +60,7 @@ class TransferFunction2D;
 namespace tuvok {
 
 class MasterController;
+class RenderMesh;
 
 class Brick {
 public:
@@ -438,6 +439,8 @@ class AbstrRenderer {
     }
     void SetRenderRegions(const std::vector<RenderRegion*>&);
 
+    std::vector<RenderMesh*> GetMeshes() {return m_Meshes;}
+
     void Timestep(size_t);
     size_t Timestep() const;
 
@@ -473,6 +476,8 @@ class AbstrRenderer {
     UINTVECTOR2         m_vWinSize;
     int                 m_iLogoPos;
     std::string         m_strLogoFilename;
+
+    std::vector<RenderMesh*> m_Meshes;
 
     /// parameters for dynamic resolution adjustments
     ///@{

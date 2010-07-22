@@ -39,15 +39,9 @@
 using namespace tuvok;
 
 RenderMeshGL::RenderMeshGL(const Mesh& other) : 
-  Mesh(other.GetVertices(),other.GetNormals(),
-       other.GetTexCoords(),other.GetColors(),
-       other.GetVertexIndices(),other.GetNormalIndices(),
-       other.GetTexCoordIndices(),other.GetColorIndices(),
-       false, false),
+  RenderMesh(other),
   m_bGLInitialized(false)
 {
-  SplitOpaqueFromTransparent();
-  if (other.GetKDTree()) ComputeKDTree();
 }
 
 RenderMeshGL::RenderMeshGL(const VertVec& vertices, const NormVec& normals,
@@ -55,60 +49,16 @@ RenderMeshGL::RenderMeshGL(const VertVec& vertices, const NormVec& normals,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
            bool bBuildKDTree, bool bScaleToUnitCube) :
-  Mesh(vertices,normals,texcoords,colors,
-       vIndices,nIndices,tIndices,cIndices, false, bScaleToUnitCube),
+  RenderMesh(vertices,normals,texcoords,colors,
+       vIndices,nIndices,tIndices,cIndices, bBuildKDTree, bScaleToUnitCube),
   m_bGLInitialized(false)
 {
-  SplitOpaqueFromTransparent();
-  // moved this computation after the resorting as it invalides the indices
-  // stored in the KD-Tree
-  if (bBuildKDTree) m_KDTree = new KDTree(this);
-}
-
-void RenderMeshGL::Swap(size_t i, size_t j) {
-  std::swap(m_VertIndices[i], m_VertIndices[j]);
-  std::swap(m_COLIndices[i], m_COLIndices[j]);
-
-  if (m_NormalIndices.size()) std::swap(m_NormalIndices[i], m_NormalIndices[j]);
-  if (m_TCIndices.size())     std::swap(m_TCIndices[i], m_TCIndices[j]);
 }
 
 RenderMeshGL::~RenderMeshGL() {
   if (m_bGLInitialized) 
     glDeleteBuffers(VBO_COUNT, m_VBOs);
 }
-
-bool RenderMeshGL::isTransparent(size_t i, float fTreshhold) {
-  return m_colors[m_COLIndices[i].x].w < fTreshhold ||
-         m_colors[m_COLIndices[i].y].w < fTreshhold ||
-         m_colors[m_COLIndices[i].z].w < fTreshhold;
-}
-
-void RenderMeshGL::SplitOpaqueFromTransparent() {
-  if (m_COLIndices.size() == 0) {
-    m_splitIndex = m_VertIndices.size();
-    return;
-  }
-
-  assert(Validate(true));
-
-  // find first transparent triangle
-  size_t iTarget = 0;
-  for (;iTarget<m_COLIndices.size();iTarget++) {
-    if (isTransparent(iTarget)) break;
-  }
-
-  // swap opaque triangle with transparent
-  size_t iStart = iTarget;
-  for (size_t iSource = iStart+1;iSource<m_COLIndices.size();iSource++) {
-    if (!isTransparent(iSource)) {
-      Swap(iSource, iTarget);
-      iTarget++;
-    }
-  }
-  m_splitIndex = iTarget;
-}
-
 
 void RenderMeshGL::PrepareOpaqueBuffers() {
   glGenBuffers(VBO_COUNT, m_VBOs);
@@ -183,7 +133,7 @@ void RenderMeshGL::RenderOpaqueGeometry() {
     glDisableClientState(GL_COLOR_ARRAY);
 }
 
-void RenderMeshGL::InitGL() {
+void RenderMeshGL::InitRenderer() {
   m_bGLInitialized = true;
   PrepareOpaqueBuffers();
 }

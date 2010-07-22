@@ -52,7 +52,6 @@ class GLTexture1D;
 class GLTexture2D;
 class GLVolume;
 class GLSLProgram;
-class RenderMeshGL;
 
 class GLRenderer : public AbstrRenderer {
   public:
@@ -114,8 +113,6 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramColor;
     GLSLProgram*    m_pProgramHQMIPRot;
     Timer           m_Timer;
-
-    std::vector<RenderMeshGL*> m_Meshes;
 
     void SetRenderTargetArea(const RenderRegion& renderRegion,
                              bool bDecreaseScreenResNow);

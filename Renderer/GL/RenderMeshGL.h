@@ -37,12 +37,12 @@
 #ifndef RENDERMESHGL_H
 #define RENDERMESHGL_H
 
-#include "Mesh.h"
+#include "../RenderMesh.h"
 #include "GLInclude.h"
 
 namespace tuvok {
 
-class RenderMeshGL : public Mesh 
+class RenderMeshGL : public RenderMesh 
 {
 public:
   RenderMeshGL(const Mesh& other);
@@ -53,13 +53,11 @@ public:
        bool bBuildKDTree, bool bScaleToUnitCube);
   ~RenderMeshGL();
 
-  void InitGL();
-
-  void RenderOpaqueGeometry();
+  virtual void InitRenderer();
+  virtual void RenderOpaqueGeometry();
 
 private:
   bool   m_bGLInitialized;
-  size_t m_splitIndex;
 
   enum
   {
@@ -75,10 +73,6 @@ private:
   };
 
   GLuint m_VBOs[VBO_COUNT];
-
-  void Swap(size_t i, size_t j);
-  bool isTransparent(size_t i, float fTreshhold = 1.0f);
-  void SplitOpaqueFromTransparent();
 
   void PrepareOpaqueBuffers();
 };

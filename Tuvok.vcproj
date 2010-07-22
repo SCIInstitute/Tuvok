@@ -970,6 +970,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Renderer\RenderMesh.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Renderer\RenderMesh.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Renderer\RenderRegion.h"
 				>
 			</File>
@@ -1593,11 +1601,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File

@@ -107,7 +107,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
 GLRenderer::~GLRenderer() {
   delete [] m_p2DData;
 
-  for (vector<RenderMeshGL*>::iterator mesh = m_Meshes.begin();
+  for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
        mesh != m_Meshes.end(); mesh++) {
     delete (*mesh);
   }
@@ -185,9 +185,9 @@ bool GLRenderer::Initialize() {
     m_pMasterController->MemMan()->Changed2DTrans(NULL, m_p2DTrans);
   }
 
-  for (vector<RenderMeshGL*>::iterator mesh = m_Meshes.begin();
+  for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
        mesh != m_Meshes.end(); mesh++) {
-    (*mesh)->InitGL();
+    (*mesh)->InitRenderer();
   }
 
 
@@ -1906,8 +1906,9 @@ void GLRenderer::BBoxPreRender() {
       }
     }
 
-    for (vector<RenderMeshGL*>::iterator mesh = m_Meshes.begin();
+    for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
          mesh != m_Meshes.end(); mesh++) {
+     if ((*mesh)->GetActive()) 
       (*mesh)->RenderOpaqueGeometry();
     }
 
@@ -1926,9 +1927,10 @@ void GLRenderer::BBoxPreRender() {
     }
   
     m_pProgramMesh->Enable();
-    for (vector<RenderMeshGL*>::iterator mesh = m_Meshes.begin();
+    for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
          mesh != m_Meshes.end(); mesh++) {
-      (*mesh)->RenderOpaqueGeometry();
+      if ((*mesh)->GetActive()) 
+        (*mesh)->RenderOpaqueGeometry();
     }
     m_pProgramMesh->Disable();
   }
@@ -1949,9 +1951,10 @@ void GLRenderer::BBoxPostRender() {
     if (m_bSupportsMeshes) {
       m_pProgramMesh->Enable();
       m_pProgramMesh->SetUniformVector("fOffset",0.001f);
-      for (vector<RenderMeshGL*>::iterator mesh = m_Meshes.begin();
+      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
-        (*mesh)->RenderOpaqueGeometry();
+        if ((*mesh)->GetActive()) 
+          (*mesh)->RenderOpaqueGeometry();
       }
       m_pProgramMesh->SetUniformVector("fOffset",0.0f);
       m_pProgramMesh->Disable();

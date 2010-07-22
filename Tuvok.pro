@@ -181,6 +181,7 @@ HEADERS += \
            Renderer/SBVRGeoGen2D.h \
            Renderer/SBVRGeoGen3D.h \
            Renderer/TFScaling.h \
+           Renderer/RenderMesh.h \
            Scripting/Scriptable.h \
            Scripting/Scripting.h \
            StdTuvokDefines.h
@@ -381,6 +382,7 @@ SOURCES += \
            Renderer/SBVRGeogen.cpp \
            Renderer/SBVRGeogen2D.cpp \
            Renderer/SBVRGeogen3D.cpp \
+           Renderer/RenderMesh.cpp \
            Renderer/TFScaling.cpp \
            Scripting/Scripting.cpp
 
