@@ -27,9 +27,9 @@ MaxMinDataBlock::MaxMinDataBlock(size_t iComponentCount) :
 
 MaxMinDataBlock::MaxMinDataBlock(const MaxMinDataBlock &other) :
   DataBlock(other),
+  m_GlobalMaxMin(other.m_GlobalMaxMin),
   m_vfMaxMinData(other.m_vfMaxMinData),
-  m_iComponentCount(other.m_iComponentCount),
-  m_GlobalMaxMin(other.m_GlobalMaxMin)
+  m_iComponentCount(other.m_iComponentCount)
 {
 }
 
