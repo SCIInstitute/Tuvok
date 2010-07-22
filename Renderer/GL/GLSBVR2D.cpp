@@ -116,13 +116,7 @@ bool GLSBVR2D::LoadShaders() {
                           NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
                           m_vShaderSearchDirs, "Transfer-VS.glsl",
-                          "Compose-Scanline-FS.glsl", NULL) || 
-/*     !LoadAndVerifyShader(&m_pProgramBBox,
-                          m_vShaderSearchDirs, "BBox-VS.glsl",
-                          "BBox-FS.glsl", NULL) ||*/
-     !LoadAndVerifyShader(&m_pProgramMesh,
-                          m_vShaderSearchDirs, "Mesh-VS.glsl",
-                          "Mesh-FS.glsl","lighting.glsl", NULL))
+                          "Compose-Scanline-FS.glsl", NULL))
 
   {
       T_ERROR("Error loading transfer function shaders.");
@@ -195,7 +189,13 @@ bool GLSBVR2D::LoadShaders() {
                           "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-ISO-NC-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColorNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", volumeAccessFunction.c_str(), NULL))
+                          "GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", volumeAccessFunction.c_str(), NULL) || 
+     !LoadAndVerifyShader(&m_pProgramBBox,
+                          m_vShaderSearchDirs, "BBox-VS.glsl",
+                          "BBox-FS.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgramMesh,
+                          m_vShaderSearchDirs, "Mesh-VS.glsl",
+                          "Mesh-FS.glsl","lighting.glsl", NULL))
   {
       Cleanup();
 
