@@ -31,7 +31,7 @@ namespace UVFTables {
     BS_1D_HISTOGRAM,
     BS_2D_HISTOGRAM,
     BS_MAXMIN_VALUES,
-    BS_TRIANGLE_SOUP,
+    BS_GEOMETRY,
     BS_UNKNOWN
   };
 

@@ -8,7 +8,7 @@ using namespace std;
 #include "Histogram2DDataBlock.h"
 #include "KeyValuePairDataBlock.h"
 #include "MaxMinDataBlock.h"
-#include "TriangleSoupBlock.h"
+#include "GeometryDataBlock.h"
 
 string UVFTables::ChecksumSemanticToCharString(ChecksumSemanticTable uiTable) {
   switch (uiTable) {
@@ -58,7 +58,7 @@ string UVFTables::BlockSemanticTableToCharString(BlockSemanticTable uiTable) {
     case (BS_1D_HISTOGRAM)       : return "Histogram (1D)";
     case (BS_2D_HISTOGRAM)       : return "Histogram (2D)";
     case (BS_MAXMIN_VALUES)      : return "Brick Max/Min Values";
-    case (BS_TRIANGLE_SOUP)      : return "Triangle Soup";
+    case (BS_GEOMETRY)           : return "Geometry";
     default                      : return "Unknown";
   }
 }
@@ -79,7 +79,7 @@ DataBlock* UVFTables::CreateBlockFromSemanticEntry(BlockSemanticTable uiTable, L
     case (BS_2D_HISTOGRAM)       : return new Histogram2DDataBlock(pStreamFile, iOffset, bIsBigEndian);
     case (BS_KEY_VALUE_PAIRS)    : return new KeyValuePairDataBlock(pStreamFile, iOffset, bIsBigEndian);
     case (BS_MAXMIN_VALUES)      : return new MaxMinDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_TRIANGLE_SOUP)      : return new TriangleSoupBlock(pStreamFile, iOffset, bIsBigEndian);
+    case (BS_GEOMETRY)      : return new GeometryDataBlock(pStreamFile, iOffset, bIsBigEndian);
     default                      : throw "CreateBlockFromSemanticEntry: Unknown block semantic";
   }
 }

@@ -24,7 +24,7 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-//!    File   : TriangleSoupBlock.h
+//!    File   : GeometryDataBlock.h
 //!    Author : Jens Krueger
 //!             IVCI & DFKI & MMCI, Saarbruecken
 //!             SCI Institute, University of Utah
@@ -34,8 +34,8 @@
 
 #pragma once
 
-#ifndef UVF_TRIANGLE_SOUP_BLOCK_H
-#define UVF_TRIANGLE_SOUP_BLOCK_H
+#ifndef GEOMETRYDATABLOCK_H
+#define GEOMETRYDATABLOCK_H
 
 #include <string>
 #include <vector>
@@ -43,13 +43,13 @@
 
 class AbstrDebugOut;
 
-class TriangleSoupBlock : public DataBlock {
+class GeometryDataBlock : public DataBlock {
 public:
-  TriangleSoupBlock();
-  TriangleSoupBlock(const TriangleSoupBlock &other);
-  TriangleSoupBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
-  virtual TriangleSoupBlock& operator=(const TriangleSoupBlock& other);
-  virtual ~TriangleSoupBlock();
+  GeometryDataBlock();
+  GeometryDataBlock(const GeometryDataBlock &other);
+  GeometryDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
+  virtual GeometryDataBlock& operator=(const GeometryDataBlock& other);
+  virtual ~GeometryDataBlock();
 
   virtual bool Verify(UINT64 iSizeofData, std::string* pstrProblem = NULL) const;
   virtual UINT64 ComputeDataSize() const;
@@ -78,6 +78,8 @@ public:
   void SetDefaultColor(const std::vector< float >& color) {m_DefaultColor = color;}
 
   std::string m_Desc;
+  UINT64 GetPolySize() const {return m_PolySize;}
+  void SetPolySize(UINT64 polySize) {m_PolySize = polySize;}
   
 protected:
   UINT64 ComputeHeaderSize() const;
@@ -104,6 +106,8 @@ protected:
 
   std::vector< float > m_DefaultColor;
 
+  UINT64               m_PolySize;
+
 private:
   bool   m_bIsBigEndian;
 
@@ -118,4 +122,4 @@ private:
   UINT64 m_n_color_indices;
 
 };
-#endif // UVF_TRIANGLE_SOUP_BLOCK_H
+#endif // GEOMETRYDATABLOCK_H
