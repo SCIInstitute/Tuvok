@@ -88,6 +88,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramComposeScanlineStereo(NULL),
   m_pProgramSBSStereo(NULL),
   m_pProgramBBox(NULL),
+  m_pProgramMesh(NULL),
   m_bSupportsMeshes(false),
   m_aDepthStorage(NULL)
 {
@@ -230,7 +231,7 @@ bool GLRenderer::LoadShaders() {
                           "BBox-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramMesh,
                           m_vShaderSearchDirs, "Mesh-VS.glsl",
-                          "Mesh-FS.glsl","lighting.glsl", NULL))
+                          "Mesh-FS.glsl","lighting.glsl",NULL))
   {
       T_ERROR("Error loading transfer function shaders.");
       return false;
@@ -1924,10 +1925,15 @@ void GLRenderer::BBoxPreRender() {
       }
     }
 
-    for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-         mesh != m_Meshes.end(); mesh++) {
-     if ((*mesh)->GetActive()) 
-      (*mesh)->RenderOpaqueGeometry();
+    if (m_bSupportsMeshes) {
+      // no special shader needed as we are just looking for the depth here
+      m_pProgramMesh->Enable();
+      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+           mesh != m_Meshes.end(); mesh++) {
+       if ((*mesh)->GetActive()) 
+        (*mesh)->RenderOpaqueGeometry();
+      }
+      m_pProgramMesh->Disable();
     }
 
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
@@ -1944,13 +1950,20 @@ void GLRenderer::BBoxPreRender() {
       }
     }
   
-    m_pProgramMesh->Enable();
-    for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-         mesh != m_Meshes.end(); mesh++) {
-      if ((*mesh)->GetActive()) 
-        (*mesh)->RenderOpaqueGeometry();
+    if (m_bSupportsMeshes) {
+      m_pProgramMesh->Enable();
+      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+           mesh != m_Meshes.end(); mesh++) {
+        if ((*mesh)->GetActive()) {
+           if ((*mesh)->UseDefaultColor()) {
+             FLOATVECTOR4 c = (*mesh)->GetDefaultColor();
+             glColor4f(c.x,c.y,c.z,c.w);
+           } 
+          (*mesh)->RenderOpaqueGeometry();           
+        }
+      }
+      m_pProgramMesh->Disable();
     }
-    m_pProgramMesh->Disable();
   }
 }
 
@@ -1971,10 +1984,15 @@ void GLRenderer::BBoxPostRender() {
       m_pProgramMesh->SetUniformVector("fOffset",0.001f);
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
-        if ((*mesh)->GetActive()) 
-          (*mesh)->RenderOpaqueGeometry();
+        if ((*mesh)->GetActive()) {
+           if ((*mesh)->UseDefaultColor()) {
+             FLOATVECTOR4 c = (*mesh)->GetDefaultColor();
+             glColor4f(c.x,c.y,c.z,c.w);
+           } 
+          (*mesh)->RenderOpaqueGeometry();           
+        }
       }
-      m_pProgramMesh->SetUniformVector("fOffset",0.0f);
+      m_pProgramMesh->SetUniformVector("fOffset",0);
       m_pProgramMesh->Disable();
     }
 
