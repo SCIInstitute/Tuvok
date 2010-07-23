@@ -136,6 +136,4 @@ void RenderMesh::SetDefaultColor(const FLOATVECTOR4& color) {
     SplitOpaqueFromTransparent();
     if (m_KDTree) ComputeKDTree();
   } 
-
-
 }
