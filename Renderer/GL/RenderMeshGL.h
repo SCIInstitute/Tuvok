@@ -50,7 +50,8 @@ public:
        const TexCoordVec& texcoords, const ColorVec& colors,
        const IndexVec& vIndices, const IndexVec& nIndices, 
        const IndexVec& tIndices, const IndexVec& cIndices,
-       bool bBuildKDTree, bool bScaleToUnitCube);
+       bool bBuildKDTree, bool bScaleToUnitCube,
+       const std::string& desc);
   ~RenderMeshGL();
 
   virtual void InitRenderer();

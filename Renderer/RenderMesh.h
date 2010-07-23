@@ -50,6 +50,7 @@ public:
        const IndexVec& vIndices, const IndexVec& nIndices, 
        const IndexVec& tIndices, const IndexVec& cIndices,
        bool bBuildKDTree, bool bScaleToUnitCube,
+       const std::string& desc,
        float fTransTreshhold=1.0f);
 
   virtual void InitRenderer() = 0;

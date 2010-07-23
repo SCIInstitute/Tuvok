@@ -43,7 +43,7 @@ RenderMesh::RenderMesh(const Mesh& other, float fTransTreshhold) :
        other.GetTexCoords(),other.GetColors(),
        other.GetVertexIndices(),other.GetNormalIndices(),
        other.GetTexCoordIndices(),other.GetColorIndices(),
-       false, false),
+       false, false, other.Name()),
    m_bActive(true),
    m_fTransTreshhold(fTransTreshhold)
 {
@@ -55,9 +55,10 @@ RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
            const TexCoordVec& texcoords, const ColorVec& colors,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
-           bool bBuildKDTree, bool bScaleToUnitCube, float fTransTreshhold) :
+           bool bBuildKDTree, bool bScaleToUnitCube, const std::string& desc,
+           float fTransTreshhold) :
   Mesh(vertices,normals,texcoords,colors,
-       vIndices,nIndices,tIndices,cIndices, false, bScaleToUnitCube),
+       vIndices,nIndices,tIndices,cIndices, false, bScaleToUnitCube,desc),
    m_bActive(true),
    m_fTransTreshhold(fTransTreshhold)
 {

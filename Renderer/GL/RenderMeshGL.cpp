@@ -48,9 +48,11 @@ RenderMeshGL::RenderMeshGL(const VertVec& vertices, const NormVec& normals,
            const TexCoordVec& texcoords, const ColorVec& colors,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
-           bool bBuildKDTree, bool bScaleToUnitCube) :
+           bool bBuildKDTree, bool bScaleToUnitCube,
+           const std::string& desc) :
   RenderMesh(vertices,normals,texcoords,colors,
-       vIndices,nIndices,tIndices,cIndices, bBuildKDTree, bScaleToUnitCube),
+             vIndices,nIndices,tIndices,cIndices, 
+             bBuildKDTree, bScaleToUnitCube, desc),
   m_bGLInitialized(false)
 {
 }
