@@ -61,7 +61,8 @@ public:
        const TexCoordVec& texcoords, const ColorVec& colors,
        const IndexVec& vIndices, const IndexVec& nIndices, 
        const IndexVec& tIndices, const IndexVec& cIndices,
-       bool bBuildKDTree, bool bScaleToUnitCube);
+       bool bBuildKDTree, bool bScaleToUnitCube, 
+       const std::string& desc);
   virtual ~Mesh();
 
   void RecomputeNormals();
@@ -94,6 +95,8 @@ public:
   const FLOATVECTOR4& GetDefaultColor() const {return m_DefColor;}
   virtual void SetDefaultColor(const FLOATVECTOR4& color) {m_DefColor = color;}
 
+  const std::string& Name() const {return m_MeshDesc;}
+
 protected:
   KDTree*       m_KDTree;
 
@@ -108,6 +111,8 @@ protected:
   IndexVec      m_COLIndices;
 
   FLOATVECTOR4  m_DefColor;
+
+  std::string   m_MeshDesc;
 
   void ComputeAABB();
 

@@ -325,7 +325,7 @@ Mesh* KDTree::GetGeometry(unsigned int iDepth, bool buildKDTree) const {
 
     return new Mesh(vertices, normals, texcoords, colors, 
                     vIndices, nIndices, tIndices, cIndices,
-                    buildKDTree,false);
+                    buildKDTree,false,"KD-Tree Mesh");
 }
 
 void KDTree::RescaleAndShift(KDTreeNode* node, 
