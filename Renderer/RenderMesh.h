@@ -50,7 +50,7 @@ public:
        const IndexVec& vIndices, const IndexVec& nIndices, 
        const IndexVec& tIndices, const IndexVec& cIndices,
        bool bBuildKDTree, bool bScaleToUnitCube,
-       const std::string& desc,
+       const std::string& desc, EMeshType meshType,
        float fTransTreshhold=1.0f);
 
   virtual void InitRenderer() = 0;
@@ -68,8 +68,8 @@ protected:
   size_t m_splitIndex;
   float m_fTransTreshhold;
 
-  void Swap(size_t i, size_t j);
-  bool isTransparent(size_t i);
+  void Swap(size_t i, size_t j, size_t vertexCount);
+  bool isTransparent(size_t i, size_t vertexCount);
   void SplitOpaqueFromTransparent();
 
 };

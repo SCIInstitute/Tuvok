@@ -43,7 +43,7 @@ RenderMesh::RenderMesh(const Mesh& other, float fTransTreshhold) :
        other.GetTexCoords(),other.GetColors(),
        other.GetVertexIndices(),other.GetNormalIndices(),
        other.GetTexCoordIndices(),other.GetColorIndices(),
-       false, false, other.Name()),
+       false, false, other.Name(),other.GetMeshType()),
    m_bActive(true),
    m_fTransTreshhold(fTransTreshhold)
 {
@@ -56,9 +56,11 @@ RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
            bool bBuildKDTree, bool bScaleToUnitCube, const std::string& desc,
+           EMeshType meshType,
            float fTransTreshhold) :
   Mesh(vertices,normals,texcoords,colors,
-       vIndices,nIndices,tIndices,cIndices, false, bScaleToUnitCube,desc),
+       vIndices,nIndices,tIndices,cIndices,
+       false, bScaleToUnitCube,desc,meshType),
    m_bActive(true),
    m_fTransTreshhold(fTransTreshhold)
 {
@@ -68,19 +70,26 @@ RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
   if (bBuildKDTree) m_KDTree = new KDTree(this);
 }
 
-void RenderMesh::Swap(size_t i, size_t j) {
-  std::swap(m_VertIndices[i], m_VertIndices[j]);
-  std::swap(m_COLIndices[i], m_COLIndices[j]);
-
-  if (m_NormalIndices.size()) std::swap(m_NormalIndices[i], m_NormalIndices[j]);
-  if (m_TCIndices.size())     std::swap(m_TCIndices[i], m_TCIndices[j]);
+void RenderMesh::Swap(size_t i, size_t j, size_t vertexCount) {
+  for (size_t iVertex = 0;iVertex<vertexCount;iVertex++) {
+    std::swap(m_VertIndices[i+iVertex], m_VertIndices[j+iVertex]);
+    std::swap(m_COLIndices[i+iVertex], m_COLIndices[j+iVertex]);
+  
+    if (m_NormalIndices.size()) 
+      std::swap(m_NormalIndices[i+iVertex], m_NormalIndices[j+iVertex]);
+    if (m_TCIndices.size())     
+      std::swap(m_TCIndices[i+iVertex], m_TCIndices[j+iVertex]);
+  }
 }
 
-bool RenderMesh::isTransparent(size_t i) {
-  return m_colors[m_COLIndices[i].x].w < m_fTransTreshhold ||
-         m_colors[m_COLIndices[i].y].w < m_fTransTreshhold ||
-         m_colors[m_COLIndices[i].z].w < m_fTransTreshhold;
+bool RenderMesh::isTransparent(size_t i, size_t vertexCount) {
+  for (size_t iVertex = 0;iVertex<vertexCount;iVertex++) {
+    if (m_colors[m_COLIndices[i+iVertex]].w < m_fTransTreshhold)
+      return true;
+  }
+  return false;
 }
+
 
 void RenderMesh::SplitOpaqueFromTransparent() {
   if (m_COLIndices.size() == 0) {
@@ -93,18 +102,20 @@ void RenderMesh::SplitOpaqueFromTransparent() {
 
   assert(Validate(true));
 
-  // find first transparent triangle
+  size_t vertexCount = (m_meshType == MT_TRIANGLES) ? 3 : 2;
+  
+  // find first transparent polygon
   size_t iTarget = 0;
-  for (;iTarget<m_COLIndices.size();iTarget++) {
-    if (isTransparent(iTarget)) break;
+  for (;iTarget<m_COLIndices.size();iTarget+=vertexCount) {
+    if (isTransparent(iTarget,vertexCount)) break;
   }
 
-  // swap opaque triangle with transparent
+  // swap opaque poly with transparent
   size_t iStart = iTarget;
-  for (size_t iSource = iStart+1;iSource<m_COLIndices.size();iSource++) {
-    if (!isTransparent(iSource)) {
-      Swap(iSource, iTarget);
-      iTarget++;
+  for (size_t iSource = iStart+vertexCount;iSource<m_COLIndices.size();iSource+=vertexCount) {
+    if (!isTransparent(iSource,vertexCount)) {
+      Swap(iSource, iTarget, vertexCount);
+      iTarget+=vertexCount;
     }
   }
   m_splitIndex = iTarget;

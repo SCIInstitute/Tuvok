@@ -49,10 +49,10 @@ RenderMeshGL::RenderMeshGL(const VertVec& vertices, const NormVec& normals,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
            bool bBuildKDTree, bool bScaleToUnitCube,
-           const std::string& desc) :
+           const std::string& desc, EMeshType meshType) :
   RenderMesh(vertices,normals,texcoords,colors,
              vIndices,nIndices,tIndices,cIndices, 
-             bBuildKDTree, bScaleToUnitCube, desc),
+             bBuildKDTree, bScaleToUnitCube, desc, meshType),
   m_bGLInitialized(false)
 {
 }
@@ -66,13 +66,13 @@ void RenderMeshGL::PrepareOpaqueBuffers(bool bCreateBuffers) {
   if (bCreateBuffers) glGenBuffers(VBO_COUNT, m_VBOs);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[POSITION_INDEX_VBO]);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32)*3, &m_VertIndices[0], GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_VertIndices[0], GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[POSITION_VBO]);
   glBufferData(GL_ARRAY_BUFFER, m_vertices.size()*sizeof(float)*3, &m_vertices[0], GL_STATIC_DRAW);
 
   if (m_NormalIndices.size() == m_VertIndices.size()) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[NORMAL_INDEX_VBO]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32)*3, &m_NormalIndices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_NormalIndices[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[NORMAL_VBO]);
     glBufferData(GL_ARRAY_BUFFER, m_normals.size()*sizeof(float)*3, &m_normals[0], GL_STATIC_DRAW);
     glNormalPointer(GL_FLOAT, 0, 0);
@@ -80,7 +80,7 @@ void RenderMeshGL::PrepareOpaqueBuffers(bool bCreateBuffers) {
   }
   if (m_TCIndices.size() == m_VertIndices.size()) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[TEXCOORD_INDEX_VBO]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32)*3, &m_TCIndices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_TCIndices[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[TEXCOORD_VBO]);
     glBufferData(GL_ARRAY_BUFFER, m_texcoords.size()*sizeof(float)*2, &m_texcoords[0], GL_STATIC_DRAW);
     glTexCoordPointer(2, GL_FLOAT, 0, 0);
@@ -88,7 +88,7 @@ void RenderMeshGL::PrepareOpaqueBuffers(bool bCreateBuffers) {
   }
   if (m_COLIndices.size() == m_VertIndices.size()) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[COLOR_INDEX_VBO]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32)*3, &m_COLIndices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_COLIndices[0], GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[COLOR_VBO]);
     glBufferData(GL_ARRAY_BUFFER, m_colors.size()*sizeof(float)*4, &m_colors[0], GL_STATIC_DRAW);
     glColorPointer(4, GL_FLOAT, 0, 0);
@@ -124,7 +124,12 @@ void RenderMeshGL::RenderOpaqueGeometry() {
     glEnableClientState(GL_COLOR_ARRAY);
   }
 
-  glDrawElements(GL_TRIANGLES, GLsizei(m_splitIndex*3), GL_UNSIGNED_INT, 0);
+  switch (m_meshType) {
+    case MT_LINES :  glDrawElements(GL_LINES, GLsizei(m_splitIndex), GL_UNSIGNED_INT, 0); break;
+    case MT_TRIANGLES: glDrawElements(GL_TRIANGLES, GLsizei(m_splitIndex), GL_UNSIGNED_INT, 0); break;
+    default : throw std::runtime_error("rendering unsupported mesh type"); 
+  }
+  
 
   glDisableClientState(GL_VERTEX_ARRAY);
   if (m_NormalIndices.size() == m_VertIndices.size())
