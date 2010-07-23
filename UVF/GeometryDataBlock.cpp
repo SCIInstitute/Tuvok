@@ -71,8 +71,8 @@ GeometryDataBlock::GeometryDataBlock(const GeometryDataBlock& other) :
   tIndices(other.GetTexCoordIndices()),
   cIndices(other.GetColorIndices()),
   m_DefaultColor(other.m_DefaultColor),
-  m_bIsBigEndian(other.m_bIsBigEndian),
   m_PolySize(other.m_PolySize),
+  m_bIsBigEndian(other.m_bIsBigEndian),
 
   m_n_vertices(0),
   m_n_normals(0),
