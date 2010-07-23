@@ -129,6 +129,7 @@ HEADERS += \
            IO/AbstrGeoConverter.h \
            IO/OBJGeoConverter.h \
            IO/MedAlyVisGeoConverter.h \
+           IO/MedAlyVisFiberTractGeoConverter.h \
            IO/TransferFunction1D.h \
            IO/TransferFunction2D.h \
            IO/TuvokIOError.h \
@@ -143,7 +144,7 @@ HEADERS += \
            IO/UVF/KeyValuePairDataBlock.h \
            IO/UVF/MaxMinDataBlock.h \
            IO/UVF/RasterDataBlock.h \
-           IO/UVF/TriangleSoupBlock.h \
+           IO/UVF/GeometryDataBlock.h \
            IO/UVF/UVFBasic.h \
            IO/UVF/UVF.h \
            IO/UVF/UVFTables.h \
@@ -341,6 +342,7 @@ SOURCES += \
            IO/AbstrGeoConverter.cpp \
            IO/OBJGeoConverter.cpp \
            IO/MedAlyVisGeoConverter.cpp \
+           IO/MedAlyVisFiberTractGeoConverter.cpp \
            IO/TransferFunction1D.cpp \
            IO/TransferFunction2D.cpp \
            IO/TuvokJPEG.cpp \
@@ -353,7 +355,7 @@ SOURCES += \
            IO/UVF/KeyValuePairDataBlock.cpp \
            IO/UVF/MaxMinDataBlock.cpp \
            IO/UVF/RasterDataBlock.cpp \
-           IO/UVF/TriangleSoupBlock.cpp \
+           IO/UVF/GeometryDataBlock.cpp \
            IO/UVF/UVF.cpp \
            IO/UVF/UVFTables.cpp \
            IO/VariantArray.cpp \

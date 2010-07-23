@@ -1789,6 +1789,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\IO\UVF\GeometryDataBlock.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\UVF\GeometryDataBlock.h"
+					>
+				</File>
+				<File
 					RelativePath=".\IO\UVF\GlobalHeader.cpp"
 					>
 				</File>
@@ -1834,14 +1842,6 @@
 				</File>
 				<File
 					RelativePath=".\IO\UVF\RasterDataBlock.h"
-					>
-				</File>
-				<File
-					RelativePath=".\IO\UVF\TriangleSoupBlock.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\IO\UVF\TriangleSoupBlock.h"
 					>
 				</File>
 				<File
@@ -4962,6 +4962,14 @@
 				</File>
 				<File
 					RelativePath=".\IO\AbstrGeoConverter.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\MedAlyVisFiberTractGeoConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\MedAlyVisFiberTractGeoConverter.h"
 					>
 				</File>
 				<File
