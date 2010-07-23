@@ -154,7 +154,7 @@ Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilen
                                   vertices.push_back(linePosVec[0]);
                                   vertices.push_back(linePosVec[1]);
 
-                                  for (int i = 1;i<linePosVec.size();i++) {
+                                  for (size_t i = 1;i<linePosVec.size();i++) {
                                     VertIndices.push_back(UINT32(vertices.size()-1));
                                     VertIndices.push_back(UINT32(vertices.size()));
                                     vertices.push_back(linePosVec[i]);
