@@ -67,10 +67,10 @@ public:
 
   void RecomputeNormals();
   void ScaleToUnitCube();
-  void ComputeUnitCubeScale(FLOATVECTOR3& translation,
-                            FLOATVECTOR3& scale);
-  void ScaleAndBias(const FLOATVECTOR3& translation,
-                    const FLOATVECTOR3& scale);
+  void ComputeUnitCubeScale(FLOATVECTOR3& scale,
+                            FLOATVECTOR3& translation);
+  void ScaleAndBias(const FLOATVECTOR3& scale,
+                    const FLOATVECTOR3& translation);
 
   double Pick(const Ray& ray, FLOATVECTOR3& normal, 
               FLOATVECTOR2& tc, FLOATVECTOR4& color) {
@@ -100,6 +100,9 @@ public:
   bool UseDefaultColor() {return m_COLIndices.size() == 0;}
 
   const std::string& Name() const {return m_MeshDesc;}
+
+  const FLOATVECTOR3& GetMin() {return m_Bounds[0];}
+  const FLOATVECTOR3& GetMax() {return m_Bounds[1];}
 
 protected:
   KDTree*       m_KDTree;

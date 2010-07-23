@@ -83,8 +83,8 @@ void Mesh::ComputeAABB() {
   }
 }
 
-void Mesh::ComputeUnitCubeScale(FLOATVECTOR3& translation,
-                                FLOATVECTOR3& scale) {
+void Mesh::ComputeUnitCubeScale(FLOATVECTOR3& scale, 
+                                FLOATVECTOR3& translation) {
   if (m_vertices.size() == 0) {
     translation = FLOATVECTOR3(0,0,0);
     scale = FLOATVECTOR3(1,1,1);
@@ -104,8 +104,8 @@ void Mesh::ComputeUnitCubeScale(FLOATVECTOR3& translation,
 }
 
 
-void Mesh::ScaleAndBias(const FLOATVECTOR3& translation,
-                        const FLOATVECTOR3& scale) {
+void Mesh::ScaleAndBias(const FLOATVECTOR3& scale,
+                        const FLOATVECTOR3& translation) {
 
   for (VertVec::iterator i = m_vertices.begin();i<m_vertices.end();i++)
 	  *i = (*i*scale) + translation;
@@ -127,9 +127,9 @@ void Mesh::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
 }
 
 void Mesh::ScaleToUnitCube() {
-    FLOATVECTOR3 translation, scale;
-    ComputeUnitCubeScale(translation, scale);
-    ScaleAndBias(translation, scale);
+  FLOATVECTOR3 scale, translation;
+  ComputeUnitCubeScale(scale,translation);
+  ScaleAndBias(scale,translation);
 }
 
 Mesh::~Mesh() {
