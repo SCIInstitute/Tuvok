@@ -66,8 +66,11 @@ public:
   virtual ~Mesh();
 
   void RecomputeNormals();
-  void ScaleToUnitCube(const FLOATVECTOR3& translation = FLOATVECTOR3(0,0,0),
-                       const FLOATVECTOR3& scale= FLOATVECTOR3(1,1,1));
+  void ScaleToUnitCube();
+  void ComputeUnitCubeScale(FLOATVECTOR3& translation,
+                            FLOATVECTOR3& scale);
+  void ScaleAndBias(const FLOATVECTOR3& translation,
+                    const FLOATVECTOR3& scale);
 
   double Pick(const Ray& ray, FLOATVECTOR3& normal, 
               FLOATVECTOR2& tc, FLOATVECTOR4& color) {
@@ -116,6 +119,7 @@ protected:
   std::string   m_MeshDesc;
 
   void ComputeAABB();
+  virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
 
 private:
   // picking

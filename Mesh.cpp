@@ -63,7 +63,8 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
   m_DefColor(1,1,1,1),
   m_MeshDesc(desc)
 {
-  if (bScaleToUnitCube) ScaleToUnitCube(); else ComputeAABB();
+  ComputeAABB();
+  if (bScaleToUnitCube) ScaleToUnitCube(); 
   if (bBuildKDTree) m_KDTree = new KDTree(this);
 }
 
@@ -82,34 +83,53 @@ void Mesh::ComputeAABB() {
   }
 }
 
-void Mesh::ScaleToUnitCube(const FLOATVECTOR3& translation,
-                           const FLOATVECTOR3& scale) {
-  if (m_vertices.size() > 0) {
-    ComputeAABB();
-
-	  FLOATVECTOR3 maxExtensionV = (m_Bounds[1]-m_Bounds[0])/scale;
-
-    float maxExtension = (maxExtensionV.x > maxExtensionV.y)
-                            ? ((maxExtensionV.x > maxExtensionV.z) ?
-                                    maxExtensionV.x : maxExtensionV.z)
-                            : ((maxExtensionV.y > maxExtensionV.z) ? 
-                                    maxExtensionV.y : maxExtensionV.z);
-
-	  m_Bounds[0] = m_Bounds[0]/maxExtension;
-	  m_Bounds[1] = m_Bounds[1]/maxExtension;
-	  FLOATVECTOR3 center = (m_Bounds[1]+m_Bounds[0])/2;
-
-    for (VertVec::iterator i = m_vertices.begin();i<m_vertices.end();i++) {
-		  *i = (*i/maxExtension) - center + translation;
-	  }
-
-    m_Bounds[0] = (m_Bounds[0] - center) + translation;
-    m_Bounds[1] = (m_Bounds[1] - center) + translation;
+void Mesh::ComputeUnitCubeScale(FLOATVECTOR3& translation,
+                                FLOATVECTOR3& scale) {
+  if (m_vertices.size() == 0) {
+    translation = FLOATVECTOR3(0,0,0);
+    scale = FLOATVECTOR3(1,1,1);
+    return;
   }
+
+  FLOATVECTOR3 maxExtensionV = (m_Bounds[1]-m_Bounds[0]);
+
+  float maxExtension = (maxExtensionV.x > maxExtensionV.y)
+                          ? ((maxExtensionV.x > maxExtensionV.z) ?
+                              maxExtensionV.x : maxExtensionV.z)
+                          : ((maxExtensionV.y > maxExtensionV.z) ? 
+                              maxExtensionV.y : maxExtensionV.z);
+
+  scale = 1.0f/maxExtension;
+  translation = - (m_Bounds[1]+m_Bounds[0])/(2*maxExtension);
+}
+
+
+void Mesh::ScaleAndBias(const FLOATVECTOR3& translation,
+                        const FLOATVECTOR3& scale) {
+
+  for (VertVec::iterator i = m_vertices.begin();i<m_vertices.end();i++)
+	  *i = (*i*scale) + translation;
+
+  m_Bounds[0] = (m_Bounds[0] * scale) + translation;
+  m_Bounds[1] = (m_Bounds[1] * scale) + translation;
 
   // any change to the geometry invalidates the KD Tree
   if (m_KDTree) 
     m_KDTree->RescaleAndShift(translation, scale);
+
+  GeometryHasChanged(false, false);
+
+}
+
+void Mesh::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
+  if (bUpdateAABB) ComputeAABB();
+  if (bUpdateKDtree && m_KDTree) ComputeKDTree();
+}
+
+void Mesh::ScaleToUnitCube() {
+    FLOATVECTOR3 translation, scale;
+    ComputeUnitCubeScale(translation, scale);
+    ScaleAndBias(translation, scale);
 }
 
 Mesh::~Mesh() {
