@@ -39,14 +39,14 @@
 
 #include "Mesh.h"
 
-class TriangleSoupBlock;
+class GeometryDataBlock;
 
 namespace tuvok {
 
 class uvfMesh : public Mesh
 {
 public:
-  uvfMesh(const TriangleSoupBlock& tsb);
+  uvfMesh(const GeometryDataBlock& tsb);
 };
 
 }

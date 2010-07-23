@@ -42,7 +42,7 @@
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/KeyValuePairDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
-#include "UVF/TriangleSoupBlock.h"
+#include "UVF/GeometryDataBlock.h"
 #include "uvfMesh.h"
 
 using namespace std;
@@ -154,7 +154,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
 
   if (m_TriSoupBlocks.size()) {
     MESSAGE("Extracting Meshes.");
-    for (vector<TriangleSoupBlock*>::iterator tsb = m_TriSoupBlocks.begin();
+    for (vector<GeometryDataBlock*>::iterator tsb = m_TriSoupBlocks.begin();
          tsb != m_TriSoupBlocks.end();
          tsb++) {
       uvfMesh* m = new uvfMesh(**tsb);
@@ -517,9 +517,9 @@ void UVFDataset::FindSuitableRasterBlocks() {
           m_timesteps[raster++].m_pVolumeDataBlock = pVolumeDataBlock;
         }
         break;
-      case UVFTables::BS_TRIANGLE_SOUP: {
+      case UVFTables::BS_GEOMETRY: {
         MESSAGE("Found triangle mesh.");
-        m_TriSoupBlocks.push_back((TriangleSoupBlock*)m_pDatasetFile->GetDataBlock(iBlocks));
+        m_TriSoupBlocks.push_back((GeometryDataBlock*)m_pDatasetFile->GetDataBlock(iBlocks));
       }
       default:
         MESSAGE("Non-volume block found in UVF file, skipping.");

@@ -33,17 +33,23 @@
 //!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
 
 #include "uvfMesh.h"
-#include "UVF/TriangleSoupBlock.h"
+#include "UVF/GeometryDataBlock.h"
 #include <cassert>
 #include <cstring>
 
 using namespace std;
 using namespace tuvok;
 
-uvfMesh::uvfMesh(const TriangleSoupBlock& tsb)
+uvfMesh::uvfMesh(const GeometryDataBlock& tsb)
 {
   m_DefColor = FLOATVECTOR4(tsb.GetDefaultColor());
   m_MeshDesc = tsb.m_Desc;
+  
+  switch (tsb.GetPolySize()) {
+    case 2 :  m_meshType = MT_LINES; break;
+    case 3 :  m_meshType = MT_TRIANGLES; break;
+    default : throw std::runtime_error("reading unsupported mesh type"); 
+  }
 
   vector<float> fVec;
   fVec = tsb.GetVertices();
@@ -58,20 +64,15 @@ uvfMesh::uvfMesh(const TriangleSoupBlock& tsb)
   fVec = tsb.GetColors();
   assert(fVec.size()%4 == 0);
   if (fVec.size() > 0) { m_colors.resize(fVec.size()/4);  memcpy(&m_colors[0],&fVec[0],fVec.size()*sizeof(float));}
-
   fVec.clear();
-  vector<UINT32> iVec;
-  iVec = tsb.GetVertexIndices();
-  assert(iVec.size()%3 == 0);
-  if (iVec.size() > 0) { m_VertIndices.resize(iVec.size()/3);  memcpy(&m_VertIndices[0],&iVec[0],iVec.size()*sizeof(UINT32));}
-  iVec = tsb.GetNormalIndices();
-  assert(iVec.size()%3 == 0);
-  if (iVec.size() > 0) { m_NormalIndices.resize(iVec.size()/3);  memcpy(&m_NormalIndices[0],&iVec[0],iVec.size()*sizeof(UINT32));}
-  iVec = tsb.GetTexCoordIndices();
-  assert(iVec.size()%3 == 0);
-  if (iVec.size() > 0) { m_TCIndices.resize(iVec.size()/3);  memcpy(&m_TCIndices[0],&iVec[0],iVec.size()*sizeof(UINT32));}
-  iVec = tsb.GetColorIndices();
-  assert(iVec.size()%3 == 0);
-  if (iVec.size() > 0) { m_COLIndices.resize(iVec.size()/3);  memcpy(&m_COLIndices[0],&iVec[0],iVec.size()*sizeof(UINT32));}
+
+  m_VertIndices = tsb.GetVertexIndices();
+  assert(m_VertIndices.size()%tsb.GetPolySize() == 0);
+  m_NormalIndices = tsb.GetNormalIndices();
+  assert(m_NormalIndices.size()%tsb.GetPolySize() == 0);
+  m_TCIndices = tsb.GetTexCoordIndices();
+  assert(m_TCIndices.size()%tsb.GetPolySize() == 0);
+  m_COLIndices = tsb.GetColorIndices();
+  assert(m_COLIndices.size()%tsb.GetPolySize() == 0);
 }
 

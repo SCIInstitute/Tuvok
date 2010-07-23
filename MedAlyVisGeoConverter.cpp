@@ -81,14 +81,14 @@ Mesh* MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
                                           __FILE__, __LINE__);
   }
 
-  IndexVec VertIndices(n_triangles);
+  IndexVec VertIndices(n_triangles*3);
 
   // read in the triangle indices
   MESSAGE("reading %u triangles...", n_triangles);
   for(unsigned i=0; trisoup && i < n_triangles; ++i) {
-    trisoup.read(reinterpret_cast<char*>(&(VertIndices[i].x)), sizeof(unsigned));
-    trisoup.read(reinterpret_cast<char*>(&(VertIndices[i].y)), sizeof(unsigned));
-    trisoup.read(reinterpret_cast<char*>(&(VertIndices[i].z)), sizeof(unsigned));
+    trisoup.read(reinterpret_cast<char*>(&(VertIndices[i*3+0])), sizeof(unsigned));
+    trisoup.read(reinterpret_cast<char*>(&(VertIndices[i*3+1])), sizeof(unsigned));
+    trisoup.read(reinterpret_cast<char*>(&(VertIndices[i*3+2])), sizeof(unsigned));
   }
   trisoup.close();
 
@@ -96,6 +96,6 @@ Mesh* MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   Mesh* m = new Mesh(vertices,NormVec(),TexCoordVec(),ColorVec(),
                      VertIndices,IndexVec(),IndexVec(),IndexVec(),
-                     false,false,desc);
+                     false,false,desc,Mesh::MT_TRIANGLES);
   return m;
 }

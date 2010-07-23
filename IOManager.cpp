@@ -51,7 +51,7 @@
 #include "DSFactory.h"
 #include "uvfDataset.h"
 #include "UVF/UVF.h"
-#include "UVF/TriangleSoupBlock.h"
+#include "UVF/GeometryDataBlock.h"
 
 #include "AnalyzeConverter.h"
 #include "BOVConverter.h"
@@ -70,6 +70,7 @@
 #include "Mesh.h"
 #include "OBJGeoConverter.h"
 #include "MedAlyVisGeoConverter.h"
+#include "MedAlyVisFiberTractGeoConverter.h"
 
 using namespace std;
 using namespace tuvok;
@@ -120,6 +121,7 @@ IOManager::IOManager() :
 {
   m_vpGeoConverters.push_back(new OBJGeoConverter());
   m_vpGeoConverters.push_back(new MedAlyVisGeoConverter());
+  m_vpGeoConverters.push_back(new MedAlyVisFiberTractGeoConverter());
 
   m_vpConverters.push_back(new VGStudioConverter());
   m_vpConverters.push_back(new QVISConverter());
@@ -1478,29 +1480,27 @@ bool IOManager::ReBrickDataset(const string& strSourceFilename,
 }
 
 
-void IOManager::CopyToTSB(const Mesh* m, TriangleSoupBlock* tsb) const {
+void IOManager::CopyToTSB(const Mesh* m, GeometryDataBlock* tsb) const {
   // source data
   const VertVec&      v = m->GetVertices();
   const NormVec&      n = m->GetNormals();
   const TexCoordVec&  t = m->GetTexCoords();
   const ColorVec&     c = m->GetColors();
-  const IndexVec&     vi = m->GetVertexIndices();
-  const IndexVec&     ni = m->GetNormalIndices();
-  const IndexVec&     ti = m->GetTexCoordIndices();
-  const IndexVec&     ci = m->GetColorIndices();
 
   // target data
   vector<float> fVec;
-  vector<UINT32> iVec;
+  size_t iVerticesPerPoly = (m->GetMeshType() == Mesh::MT_TRIANGLES) ? 3 : 2;
+  tsb->SetPolySize(iVerticesPerPoly );
 
   if (v.size()) {fVec.resize(v.size()*3); memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float)); tsb->SetVertices(fVec);}
   if (n.size()) {fVec.resize(n.size()*3); memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float)); tsb->SetNormals(fVec);}
   if (t.size()) {fVec.resize(t.size()*2); memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float)); tsb->SetTexCoords(fVec);}
   if (c.size()) {fVec.resize(c.size()*3); memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float)); tsb->SetColors(fVec);}
-  if (vi.size()) {iVec.resize(vi.size()*3); memcpy(&iVec[0],&vi[0],vi.size()*3*sizeof(UINT32)); tsb->SetVertexIndices(iVec);}
-  if (ni.size()) {iVec.resize(ni.size()*3); memcpy(&iVec[0],&ni[0],ni.size()*3*sizeof(UINT32)); tsb->SetNormalIndices(iVec);}
-  if (ti.size()) {iVec.resize(ti.size()*3); memcpy(&iVec[0],&ti[0],ti.size()*3*sizeof(UINT32)); tsb->SetTexCoordIndices(iVec);}
-  if (ci.size()) {iVec.resize(ci.size()*3); memcpy(&iVec[0],&ci[0],ci.size()*3*sizeof(UINT32)); tsb->SetColorIndices(iVec);}
+
+  tsb->SetVertexIndices(m->GetVertexIndices());
+  tsb->SetNormalIndices(m->GetNormalIndices());
+  tsb->SetTexCoordIndices(m->GetTexCoordIndices());
+  tsb->SetColorIndices(m->GetColorIndices());
 
   tsb->m_Desc = m->Name();
 }
@@ -1539,8 +1539,8 @@ void IOManager::AddTriSurf(const UVF* sourceDataset,
   // make sure we have at least normals
   if (m->GetNormalIndices().size() == 0) m->RecomputeNormals();
 
-  // now create a TriangleSoupBlock ...
-  TriangleSoupBlock tsb;
+  // now create a GeometryDataBlock ...
+  GeometryDataBlock tsb;
 
   // ... and transfer the data from the mesh object
   CopyToTSB(m, &tsb);

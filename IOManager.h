@@ -71,7 +71,7 @@ class AbstrConverter;
 class FileStackInfo;
 class RangeInfo;
 class UVF;
-class TriangleSoupBlock;
+class GeometryDataBlock;
 
 namespace tuvok {
   class AbstrGeoConverter;
@@ -503,7 +503,7 @@ private:
   UINT64 m_iBrickOverlap;
   UINT64 m_iIncoresize;
 
-  void CopyToTSB(const tuvok::Mesh* m, TriangleSoupBlock* tsb) const;
+  void CopyToTSB(const tuvok::Mesh* m, GeometryDataBlock* tsb) const;
 };
 
 #endif // IOMANAGER_H
