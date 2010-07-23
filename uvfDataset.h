@@ -118,6 +118,13 @@ public:
   virtual std::list<std::string> Extensions() const;
   const UVF* GetUVFFile() const {return m_pDatasetFile;}
 
+  virtual const char* Name() const { 
+    if (m_timesteps.size()) 
+      return m_timesteps[0].m_pVolumeDataBlock->strBlockID.c_str(); 
+    else
+      return "Generic UVF Dataset"; 
+  }
+
 private:
   std::vector<UINT64> IndexToVector(const BrickKey &k) const;
   NDBrickKey IndexToVectorKey(const BrickKey &k) const;
@@ -131,9 +138,6 @@ private:
 
   size_t DetermineNumberOfTimesteps();
   bool VerifyRasterDataBlock(const RasterDataBlock*) const;
-
-  virtual const char* Name() const { return "Universal Volume Format"; }
-
 
 private:
   struct Timestep {

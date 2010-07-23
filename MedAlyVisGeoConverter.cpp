@@ -92,8 +92,10 @@ Mesh* MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
   }
   trisoup.close();
 
+  std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
+
   Mesh* m = new Mesh(vertices,NormVec(),TexCoordVec(),ColorVec(),
                      VertIndices,IndexVec(),IndexVec(),IndexVec(),
-                     false,false);
+                     false,false,desc);
   return m;
 }

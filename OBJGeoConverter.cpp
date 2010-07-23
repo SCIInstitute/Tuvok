@@ -201,8 +201,10 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
   }
 	fs.close();
 
+  std::string desc = "Converted from " + m_vConverterDesc + " data " + SysTools::GetFilename(strFilename);
+
   Mesh* m = new Mesh(vertices,normals,texcoords,colors,
                      VertIndices,NormalIndices,TCIndices,COLIndices,
-                     false, false);
+                     false, false, desc);
   return m;
 }

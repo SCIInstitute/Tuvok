@@ -77,6 +77,8 @@ public:
   const std::vector< float >& GetDefaultColor() const {return m_DefaultColor;}
   void SetDefaultColor(const std::vector< float >& color) {m_DefaultColor = color;}
 
+  std::string m_Desc;
+  
 protected:
   UINT64 ComputeHeaderSize() const;
   virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
@@ -87,7 +89,6 @@ protected:
   virtual DataBlock* Clone() const;
 
   friend class UVF;
-
 
   // raw floats
   std::vector< float > vertices;

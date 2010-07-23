@@ -147,8 +147,9 @@ bool TriangleSoupBlock::Verify(UINT64 iSizeofData, string* pstrProblem) const
 UINT64 TriangleSoupBlock::ComputeHeaderSize() const {
   // n_vertices + n_normals + n_texcoords + n_colors + n_vertices_indices + 
   // n_normals_indices + n_texcoords_indices + n_colors_indices + 
-  // m_DefaultColor
-  return sizeof(UINT64) * 8 + 4 * sizeof(float);
+  // m_DefaultColor + desc
+  return sizeof(UINT64) * 8 + 4 * sizeof(float) + 
+         sizeof(UINT64) + m_Desc.size() * sizeof(char);
 }
 
 UINT64 TriangleSoupBlock::ComputeDataSize() const
@@ -190,6 +191,10 @@ UINT64 TriangleSoupBlock::GetHeaderFromFile(LargeRAWFile* stream,
   stream->ReadData(m_DefaultColor[1], big_endian);
   stream->ReadData(m_DefaultColor[2], big_endian);
   stream->ReadData(m_DefaultColor[3], big_endian);
+
+  UINT64 ulStringLengthDesc;
+  m_pStreamFile->ReadData(ulStringLengthDesc, big_endian);
+  m_pStreamFile->ReadData(m_Desc, ulStringLengthDesc);
   
   m_bIsBigEndian = big_endian;
   return stream->GetPos() - offset;
@@ -219,6 +224,8 @@ void TriangleSoupBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffs
   pStreamFile->WriteData(m_DefaultColor[1],    bIsBigEndian);
   pStreamFile->WriteData(m_DefaultColor[2],    bIsBigEndian);
   pStreamFile->WriteData(m_DefaultColor[3],    bIsBigEndian);
+  pStreamFile->WriteData(UINT64(m_Desc.size()), bIsBigEndian);
+  pStreamFile->WriteData(m_Desc);
 }
 
 

@@ -1501,6 +1501,8 @@ void IOManager::CopyToTSB(const Mesh* m, TriangleSoupBlock* tsb) const {
   if (ni.size()) {iVec.resize(ni.size()*3); memcpy(&iVec[0],&ni[0],ni.size()*3*sizeof(UINT32)); tsb->SetNormalIndices(iVec);}
   if (ti.size()) {iVec.resize(ti.size()*3); memcpy(&iVec[0],&ti[0],ti.size()*3*sizeof(UINT32)); tsb->SetTexCoordIndices(iVec);}
   if (ci.size()) {iVec.resize(ci.size()*3); memcpy(&iVec[0],&ci[0],ci.size()*3*sizeof(UINT32)); tsb->SetColorIndices(iVec);}
+
+  tsb->m_Desc = m->Name();
 }
 
 void IOManager::AddTriSurf(const UVF* sourceDataset,
