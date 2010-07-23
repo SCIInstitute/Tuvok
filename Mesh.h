@@ -91,6 +91,9 @@ public:
   const IndexVec& GetTexCoordIndices() const {return m_TCIndices;}
   const IndexVec& GetColorIndices() const {return m_COLIndices;}
 
+  const FLOATVECTOR4& GetDefaultColor() const {return m_DefColor;}
+  virtual void SetDefaultColor(const FLOATVECTOR4& color) {m_DefColor = color;}
+
 protected:
   KDTree*       m_KDTree;
 
@@ -103,6 +106,8 @@ protected:
   IndexVec      m_NormalIndices;
   IndexVec      m_TCIndices;
   IndexVec      m_COLIndices;
+
+  FLOATVECTOR4  m_DefColor;
 
   void ComputeAABB();
 

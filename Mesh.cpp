@@ -39,7 +39,8 @@
 using namespace tuvok;
 
 Mesh::Mesh() :
-  m_KDTree(0)
+  m_KDTree(0),
+  m_DefColor(1,1,1,1)
 {
 }
 
@@ -56,7 +57,8 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
   m_VertIndices(vIndices),
   m_NormalIndices(nIndices),
   m_TCIndices(tIndices),
-  m_COLIndices(cIndices)
+  m_COLIndices(cIndices),
+  m_DefColor(1,1,1,1)
 {
   if (bScaleToUnitCube) ScaleToUnitCube(); else ComputeAABB();
   if (bBuildKDTree) m_KDTree = new KDTree(this);
