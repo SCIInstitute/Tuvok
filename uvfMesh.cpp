@@ -32,10 +32,11 @@
 //
 //!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
 
-#include "uvfMesh.h"
-#include "UVF/GeometryDataBlock.h"
 #include <cassert>
 #include <cstring>
+#include <stdexcept>
+#include "uvfMesh.h"
+#include "UVF/GeometryDataBlock.h"
 
 using namespace std;
 using namespace tuvok;
@@ -44,11 +45,11 @@ uvfMesh::uvfMesh(const GeometryDataBlock& tsb)
 {
   m_DefColor = FLOATVECTOR4(tsb.GetDefaultColor());
   m_MeshDesc = tsb.m_Desc;
-  
+
   switch (tsb.GetPolySize()) {
     case 2 :  m_meshType = MT_LINES; break;
     case 3 :  m_meshType = MT_TRIANGLES; break;
-    default : throw std::runtime_error("reading unsupported mesh type"); 
+    default : throw std::runtime_error("reading unsupported mesh type");
   }
 
   vector<float> fVec;
