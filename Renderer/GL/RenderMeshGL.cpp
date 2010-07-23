@@ -32,9 +32,10 @@
 //
 //!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
 
+#include <cassert>
+#include <stdexcept>
 #include "RenderMeshGL.h"
 #include "KDTree.h"
-#include <cassert>
 
 using namespace tuvok;
 
