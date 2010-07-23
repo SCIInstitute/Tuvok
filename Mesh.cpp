@@ -41,7 +41,8 @@ using namespace tuvok;
 Mesh::Mesh() :
   m_KDTree(0),
   m_DefColor(1,1,1,1),
-  m_MeshDesc("Generic Triangle Mesh")
+  m_MeshDesc("Generic Triangle Mesh"),
+  m_meshType(MT_TRIANGLES)
 {
 }
 
@@ -50,7 +51,7 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
            bool bBuildKDTree, bool bScaleToUnitCube,
-           const std::string& desc) :
+           const std::string& desc, EMeshType meshType) :
   m_KDTree(0),
   m_vertices(vertices),
   m_normals(normals),
@@ -61,7 +62,8 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
   m_TCIndices(tIndices),
   m_COLIndices(cIndices),
   m_DefColor(1,1,1,1),
-  m_MeshDesc(desc)
+  m_MeshDesc(desc),
+  m_meshType(meshType)
 {
   ComputeAABB();
   if (bScaleToUnitCube) ScaleToUnitCube(); 
@@ -137,13 +139,13 @@ Mesh::~Mesh() {
 }
 
 void Mesh::RecomputeNormals() {
+  if (m_meshType != MT_TRIANGLES) return;
+
   m_normals.resize(m_vertices.size());
   for(size_t i = 0;i<m_normals.size();i++) m_normals[i] = FLOATVECTOR3();
 
-  for(IndexVec::iterator triIter = m_VertIndices.begin();
-      triIter<m_VertIndices.end();
-      triIter++) {
-    UINTVECTOR3 indices = (*triIter);
+  for (size_t i = 0;i<m_VertIndices.size();i+=3) {
+    UINTVECTOR3 indices(m_VertIndices[i], m_VertIndices[i+1], m_VertIndices[i+2]);
 
     FLOATVECTOR3 tang = m_vertices[indices.x]-m_vertices[indices.y];
     FLOATVECTOR3 bin  = m_vertices[indices.x]-m_vertices[indices.z];
@@ -178,25 +180,25 @@ bool Mesh::Validate(bool bDeepValidation) {
   for (IndexVec::iterator i = m_VertIndices.begin();
        i != m_VertIndices.end();
        i++) {
-    if (i->x >= count || i->y >= count || i->z >= count) return false;
+    if ((*i) >= count) return false;
   }
   count = m_normals.size();
   for (IndexVec::iterator i = m_NormalIndices.begin();
        i != m_NormalIndices.end();
        i++) {
-    if (i->x >= count || i->y >= count || i->z >= count) return false;
+    if ((*i) >= count) return false;
   }
   count = m_texcoords.size();
   for (IndexVec::iterator i = m_TCIndices.begin();
        i != m_TCIndices.end();
        i++) {
-    if (i->x >= count || i->y >= count || i->z >= count) return false;
+    if ((*i) >= count) return false;
   }
   count = m_colors.size();
   for (IndexVec::iterator i = m_COLIndices.begin();
        i != m_COLIndices.end();
        i++) {
-    if (i->x >= count || i->y >= count || i->z >= count) return false;
+    if ((*i) >= count) return false;
   }
 
   return true;
@@ -205,16 +207,18 @@ bool Mesh::Validate(bool bDeepValidation) {
 double Mesh::IntersectInternal(const Ray& ray, FLOATVECTOR3& normal,
                                FLOATVECTOR2& tc, FLOATVECTOR4& color, 
                                double tmin, double tmax) const {
+  
+  if (m_meshType != MT_TRIANGLES) return noIntersection;
 
   if (m_KDTree) {
     return m_KDTree->Intersect(ray, normal, tc, color, tmin, tmax);
   } else {
-    double t = std::numeric_limits<double>::max();
+    double t = noIntersection;
     FLOATVECTOR3 _normal;
     FLOATVECTOR2 _tc;
     FLOATVECTOR4 _color;
 
-    for (size_t i = 0;i<m_VertIndices.size();i++) {
+    for (size_t i = 0;i<m_VertIndices.size();i+=3) {
       double currentT = IntersectTriangle(i, ray, _normal, _tc, _color);
 
       if (currentT < t) {
@@ -235,9 +239,9 @@ double Mesh::IntersectTriangle(size_t i, const Ray& ray,
 
   double t = std::numeric_limits<double>::max();
 
-  FLOATVECTOR3 vert0 = m_vertices[m_VertIndices[i].x];
-  FLOATVECTOR3 vert1 = m_vertices[m_VertIndices[i].y];
-  FLOATVECTOR3 vert2 = m_vertices[m_VertIndices[i].z];
+  FLOATVECTOR3 vert0 = m_vertices[m_VertIndices[i]];
+  FLOATVECTOR3 vert1 = m_vertices[m_VertIndices[i+1]];
+  FLOATVECTOR3 vert2 = m_vertices[m_VertIndices[i+2]];
 
   // find vectors for two edges sharing vert0
   DOUBLEVECTOR3 edge1 = DOUBLEVECTOR3(vert1 - vert0);
@@ -273,9 +277,9 @@ double Mesh::IntersectTriangle(size_t i, const Ray& ray,
 
   // interpolate normal
   if (m_NormalIndices.size()) {
-    FLOATVECTOR3 normal0 = m_normals[m_NormalIndices[i].x];
-    FLOATVECTOR3 normal1 = m_normals[m_NormalIndices[i].y];
-    FLOATVECTOR3 normal2 = m_normals[m_NormalIndices[i].z];
+    FLOATVECTOR3 normal0 = m_normals[m_NormalIndices[i]];
+    FLOATVECTOR3 normal1 = m_normals[m_NormalIndices[i+1]];
+    FLOATVECTOR3 normal2 = m_normals[m_NormalIndices[i+1]];
 
     FLOATVECTOR3 du = normal1 - normal0;
     FLOATVECTOR3 dv = normal2 - normal0;
@@ -291,9 +295,9 @@ double Mesh::IntersectTriangle(size_t i, const Ray& ray,
 
   // interpolate texture coordinates
   if (m_TCIndices.size()) {
-    FLOATVECTOR2 tc0 = m_texcoords[m_TCIndices[i].x];
-    FLOATVECTOR2 tc1 = m_texcoords[m_TCIndices[i].y];
-    FLOATVECTOR2 tc2 = m_texcoords[m_TCIndices[i].z];
+    FLOATVECTOR2 tc0 = m_texcoords[m_TCIndices[i]];
+    FLOATVECTOR2 tc1 = m_texcoords[m_TCIndices[i+1]];
+    FLOATVECTOR2 tc2 = m_texcoords[m_TCIndices[i+2]];
 
     double dtu1 = tc1.x - tc0.x;
     double dtu2 = tc2.x - tc0.x;
@@ -308,9 +312,9 @@ double Mesh::IntersectTriangle(size_t i, const Ray& ray,
 
   // interpolate color
   if (m_COLIndices.size()) {
-    FLOATVECTOR4 col0 = m_colors[m_TCIndices[i].x];
-    FLOATVECTOR4 col1 = m_colors[m_TCIndices[i].y];
-    FLOATVECTOR4 col2 = m_colors[m_TCIndices[i].z];
+    FLOATVECTOR4 col0 = m_colors[m_TCIndices[i]];
+    FLOATVECTOR4 col1 = m_colors[m_TCIndices[i+1]];
+    FLOATVECTOR4 col2 = m_colors[m_TCIndices[i+2]];
 
     double dtu1 = col1.x - col0.x;
     double dtu2 = col2.x - col0.x;

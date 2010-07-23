@@ -62,9 +62,9 @@ public:
                    const FLOATVECTOR3& min, const FLOATVECTOR3& max,
                    unsigned int iDepth) {
     UINT32 sNormals = UINT32(normals.size());
-    UINTVECTOR3 iNormals(sNormals,sNormals,sNormals);
-    nIndices.push_back(iNormals);
-    nIndices.push_back(iNormals);
+    // indices for two triangles
+    for (int i = 0;i<6;i++)
+      nIndices.push_back(sNormals);
     FLOATVECTOR3 normal(0,0,0);
     normal[m_Axis] = 1.0;
     normals.push_back(normal);
@@ -72,8 +72,13 @@ public:
     UINT32 sVertices = UINT32(vertices.size());
     UINTVECTOR3 iVertices1(sVertices,sVertices+1,sVertices+3);
     UINTVECTOR3 iVertices2(sVertices+2,sVertices+3,sVertices+0);
-    vIndices.push_back(iVertices1);
-    vIndices.push_back(iVertices2);
+    vIndices.push_back(sVertices);
+    vIndices.push_back(sVertices+1);
+    vIndices.push_back(sVertices+3);
+
+    vIndices.push_back(sVertices+2);
+    vIndices.push_back(sVertices+3);
+    vIndices.push_back(sVertices);
 
     FLOATVECTOR3 vertex1 = min;
     FLOATVECTOR3 vertex2 = min;

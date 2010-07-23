@@ -51,18 +51,26 @@ typedef std::vector<FLOATVECTOR3> VertVec;
 typedef std::vector<FLOATVECTOR3> NormVec;
 typedef std::vector<FLOATVECTOR2> TexCoordVec;
 typedef std::vector<FLOATVECTOR4> ColorVec;
-typedef std::vector<UINTVECTOR3> IndexVec;
+typedef std::vector<UINT32> IndexVec;
+
+#define noIntersection (std::numeric_limits<double>::max())
 
 class Mesh 
 {
 public:
+  enum EMeshType {
+    MT_TRIANGLES = 0,
+    MT_LINES,
+    MT_COUNT
+  };
+
   Mesh();
   Mesh(const VertVec& vertices, const NormVec& normals, 
        const TexCoordVec& texcoords, const ColorVec& colors,
        const IndexVec& vIndices, const IndexVec& nIndices, 
        const IndexVec& tIndices, const IndexVec& cIndices,
        bool bBuildKDTree, bool bScaleToUnitCube, 
-       const std::string& desc);
+       const std::string& desc, EMeshType meshType);
   virtual ~Mesh();
 
   void RecomputeNormals();
@@ -104,6 +112,8 @@ public:
   const FLOATVECTOR3& GetMin() {return m_Bounds[0];}
   const FLOATVECTOR3& GetMax() {return m_Bounds[1];}
 
+  EMeshType GetMeshType() const {return m_meshType;}
+
 protected:
   KDTree*       m_KDTree;
 
@@ -120,6 +130,7 @@ protected:
   FLOATVECTOR4  m_DefColor;
 
   std::string   m_MeshDesc;
+  EMeshType     m_meshType;
 
   void ComputeAABB();
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);

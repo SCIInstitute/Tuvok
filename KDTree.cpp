@@ -192,9 +192,9 @@ void KDTree::Subdivide(KDTreeNode* node, const DOUBLEVECTOR3& min,
   for (size_t i = 0;i<node->GetList().size();i++) {
     size_t triIndex = node->GetList()[i];
     double vertices[3] = {
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].x][axis],
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].y][axis],
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].z][axis]
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+0]][axis],
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+1]][axis],
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+2]][axis]
     };
 
     
@@ -275,9 +275,9 @@ void KDTree::Subdivide(KDTreeNode* node, const DOUBLEVECTOR3& min,
   for (size_t i = 0;i<node->GetList().size();i++) {
     size_t triIndex = node->GetList()[i];
     double vertices[3] = {
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].x][axis],
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].y][axis],
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex].z][axis]
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+0]][axis],
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+1]][axis],
+      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+2]][axis]
     };
 
     if ( vertices[0] <= bestpos ||
@@ -325,7 +325,7 @@ Mesh* KDTree::GetGeometry(unsigned int iDepth, bool buildKDTree) const {
 
     return new Mesh(vertices, normals, texcoords, colors, 
                     vIndices, nIndices, tIndices, cIndices,
-                    buildKDTree,false,"KD-Tree Mesh");
+                    buildKDTree,false,"KD-Tree Mesh", Mesh::MT_TRIANGLES);
 }
 
 void KDTree::RescaleAndShift(KDTreeNode* node, 
