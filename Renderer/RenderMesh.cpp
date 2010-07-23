@@ -38,13 +38,14 @@
 
 using namespace tuvok;
 
-RenderMesh::RenderMesh(const Mesh& other) : 
+RenderMesh::RenderMesh(const Mesh& other, float fTransTreshhold) : 
   Mesh(other.GetVertices(),other.GetNormals(),
        other.GetTexCoords(),other.GetColors(),
        other.GetVertexIndices(),other.GetNormalIndices(),
        other.GetTexCoordIndices(),other.GetColorIndices(),
        false, false),
-   m_bActive(true)
+   m_bActive(true),
+   m_fTransTreshhold(fTransTreshhold)
 {
   SplitOpaqueFromTransparent();
   if (other.GetKDTree()) ComputeKDTree();
@@ -54,10 +55,11 @@ RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
            const TexCoordVec& texcoords, const ColorVec& colors,
            const IndexVec& vIndices, const IndexVec& nIndices,
            const IndexVec& tIndices, const IndexVec& cIndices,
-           bool bBuildKDTree, bool bScaleToUnitCube) :
+           bool bBuildKDTree, bool bScaleToUnitCube, float fTransTreshhold) :
   Mesh(vertices,normals,texcoords,colors,
        vIndices,nIndices,tIndices,cIndices, false, bScaleToUnitCube),
-   m_bActive(true)
+   m_bActive(true),
+   m_fTransTreshhold(fTransTreshhold)
 {
   SplitOpaqueFromTransparent();
   // moved this computation after the resorting as it invalides the indices
@@ -73,15 +75,18 @@ void RenderMesh::Swap(size_t i, size_t j) {
   if (m_TCIndices.size())     std::swap(m_TCIndices[i], m_TCIndices[j]);
 }
 
-bool RenderMesh::isTransparent(size_t i, float fTreshhold) {
-  return m_colors[m_COLIndices[i].x].w < fTreshhold ||
-         m_colors[m_COLIndices[i].y].w < fTreshhold ||
-         m_colors[m_COLIndices[i].z].w < fTreshhold;
+bool RenderMesh::isTransparent(size_t i) {
+  return m_colors[m_COLIndices[i].x].w < m_fTransTreshhold ||
+         m_colors[m_COLIndices[i].y].w < m_fTransTreshhold ||
+         m_colors[m_COLIndices[i].z].w < m_fTransTreshhold;
 }
 
 void RenderMesh::SplitOpaqueFromTransparent() {
   if (m_COLIndices.size() == 0) {
-    m_splitIndex = m_VertIndices.size();
+    if (m_DefColor.w < m_fTransTreshhold ) 
+      m_splitIndex = 0;
+    else
+      m_splitIndex = m_VertIndices.size();
     return;
   }
 
@@ -102,4 +107,34 @@ void RenderMesh::SplitOpaqueFromTransparent() {
     }
   }
   m_splitIndex = iTarget;
+}
+
+void RenderMesh::SetTransTreshhold(float fTransTreshhold) {
+  if (m_fTransTreshhold != fTransTreshhold) {
+    m_fTransTreshhold = fTransTreshhold;
+    SplitOpaqueFromTransparent();
+    if (m_KDTree) ComputeKDTree();
+  }
+}
+
+
+void RenderMesh::SetDefaultColor(const FLOATVECTOR4& color) {
+  float prevAlpha = m_DefColor.w;
+  m_DefColor = color;
+
+  // now check if we need to rebin the colors in opaque and transparent:
+  // a) if the alpha component has changed
+  // b) if default color is used (i.e. if no colors are specified)
+  // c) if the change in alpha 
+  //      1) pushes the opacity above the threshold while it was below before
+  //      2) or below the threshold while it was above before
+  if (prevAlpha != color.w &&
+      m_COLIndices.size() == 0 &&
+      ((prevAlpha < m_fTransTreshhold && m_DefColor.w >= m_fTransTreshhold) ||
+       (prevAlpha >= m_fTransTreshhold && m_DefColor.w < m_fTransTreshhold))) {
+    SplitOpaqueFromTransparent();
+    if (m_KDTree) ComputeKDTree();
+  } 
+
+
 }

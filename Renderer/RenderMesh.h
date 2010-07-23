@@ -44,12 +44,13 @@ namespace tuvok {
 class RenderMesh : public Mesh 
 {
 public:
-  RenderMesh(const Mesh& other);
+  RenderMesh(const Mesh& other, float fTransTreshhold=1.0f);
   RenderMesh(const VertVec& vertices, const NormVec& normals, 
        const TexCoordVec& texcoords, const ColorVec& colors,
        const IndexVec& vIndices, const IndexVec& nIndices, 
        const IndexVec& tIndices, const IndexVec& cIndices,
-       bool bBuildKDTree, bool bScaleToUnitCube);
+       bool bBuildKDTree, bool bScaleToUnitCube,
+       float fTransTreshhold=1.0f);
 
   virtual void InitRenderer() = 0;
   virtual void RenderOpaqueGeometry() = 0;
@@ -57,12 +58,17 @@ public:
   void SetActive(bool bActive) {m_bActive = bActive;}
   bool GetActive() const {return m_bActive;}
 
+  void SetTransTreshhold(float fTransTreshhold);
+  float GetTransTreshhold() const {return m_fTransTreshhold;}
+  virtual void SetDefaultColor(const FLOATVECTOR4& color);
+
 protected:
   bool   m_bActive;
   size_t m_splitIndex;
+  float m_fTransTreshhold;
 
   void Swap(size_t i, size_t j);
-  bool isTransparent(size_t i, float fTreshhold = 1.0f);
+  bool isTransparent(size_t i);
   void SplitOpaqueFromTransparent();
 
 };
