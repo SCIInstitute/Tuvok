@@ -53,6 +53,10 @@ TriangleSoupBlock::TriangleSoupBlock() :
 {
   ulBlockSemantics = BS_TRIANGLE_SOUP;
   strBlockID       = "Triangle Soup Block";
+  m_DefaultColor.push_back(1);
+  m_DefaultColor.push_back(1);
+  m_DefaultColor.push_back(1);
+  m_DefaultColor.push_back(1);
 }
 
 TriangleSoupBlock::TriangleSoupBlock(const TriangleSoupBlock& other) :
@@ -65,6 +69,7 @@ TriangleSoupBlock::TriangleSoupBlock(const TriangleSoupBlock& other) :
   nIndices(other.GetNormalIndices()),
   tIndices(other.GetTexCoordIndices()),
   cIndices(other.GetColorIndices()),
+  m_DefaultColor(other.m_DefaultColor),
   m_bIsBigEndian(other.m_bIsBigEndian),
 
   m_n_vertices(0),
@@ -82,6 +87,7 @@ TriangleSoupBlock::TriangleSoupBlock(LargeRAWFile* pStreamFile, UINT64 iOffset,
                                      bool bIsBigEndian) :
   DataBlock(pStreamFile, iOffset, bIsBigEndian)
 {
+  m_DefaultColor.resize(4);
   GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
 }
 
@@ -141,7 +147,8 @@ bool TriangleSoupBlock::Verify(UINT64 iSizeofData, string* pstrProblem) const
 UINT64 TriangleSoupBlock::ComputeHeaderSize() const {
   // n_vertices + n_normals + n_texcoords + n_colors + n_vertices_indices + 
   // n_normals_indices + n_texcoords_indices + n_colors_indices + 
-  return sizeof(UINT64) * 8;
+  // m_DefaultColor
+  return sizeof(UINT64) * 8 + 4 * sizeof(float);
 }
 
 UINT64 TriangleSoupBlock::ComputeDataSize() const
@@ -179,6 +186,11 @@ UINT64 TriangleSoupBlock::GetHeaderFromFile(LargeRAWFile* stream,
   stream->ReadData(m_n_texcoord_indices, big_endian);
   stream->ReadData(m_n_color_indices, big_endian);
 
+  stream->ReadData(m_DefaultColor[0], big_endian);
+  stream->ReadData(m_DefaultColor[1], big_endian);
+  stream->ReadData(m_DefaultColor[2], big_endian);
+  stream->ReadData(m_DefaultColor[3], big_endian);
+  
   m_bIsBigEndian = big_endian;
   return stream->GetPos() - offset;
 }
@@ -203,6 +215,10 @@ void TriangleSoupBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffs
   pStreamFile->WriteData(m_n_normal_indices,   bIsBigEndian);
   pStreamFile->WriteData(m_n_texcoord_indices, bIsBigEndian);
   pStreamFile->WriteData(m_n_color_indices,    bIsBigEndian);
+  pStreamFile->WriteData(m_DefaultColor[0],    bIsBigEndian);
+  pStreamFile->WriteData(m_DefaultColor[1],    bIsBigEndian);
+  pStreamFile->WriteData(m_DefaultColor[2],    bIsBigEndian);
+  pStreamFile->WriteData(m_DefaultColor[3],    bIsBigEndian);
 }
 
 

@@ -42,6 +42,8 @@ using namespace tuvok;
 
 uvfMesh::uvfMesh(const TriangleSoupBlock& tsb)
 {
+  m_DefColor = FLOATVECTOR4(tsb.GetDefaultColor());
+
   vector<float> fVec;
   fVec = tsb.GetVertices();
   assert(fVec.size()%3 == 0);

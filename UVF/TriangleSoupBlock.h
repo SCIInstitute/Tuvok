@@ -74,6 +74,9 @@ public:
   void SetTexCoordIndices(const std::vector< UINT32 >& tcI) {tIndices = tcI;}
   void SetColorIndices(const std::vector< UINT32 >& cI) {cIndices = cI;}
 
+  const std::vector< float >& GetDefaultColor() const {return m_DefaultColor;}
+  void SetDefaultColor(const std::vector< float >& color) {m_DefaultColor = color;}
+
 protected:
   UINT64 ComputeHeaderSize() const;
   virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
@@ -97,6 +100,8 @@ protected:
   std::vector< UINT32 > nIndices;
   std::vector< UINT32 > tIndices;
   std::vector< UINT32 > cIndices;
+
+  std::vector< float > m_DefaultColor;
 
 private:
   bool   m_bIsBigEndian;
