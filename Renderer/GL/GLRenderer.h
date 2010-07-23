@@ -216,7 +216,6 @@ class GLRenderer : public AbstrRenderer {
 
     float*          m_aDepthStorage;
 
-
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const;
     void RenderCoordArrows(const RenderRegion& renderRegion) const;
     void SaveEmptyDepthBuffer();

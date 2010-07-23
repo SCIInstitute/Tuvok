@@ -56,6 +56,7 @@ public:
 
   virtual void InitRenderer();
   virtual void RenderOpaqueGeometry();
+  virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
 
 private:
   bool   m_bGLInitialized;
@@ -75,7 +76,7 @@ private:
 
   GLuint m_VBOs[VBO_COUNT];
 
-  void PrepareOpaqueBuffers();
+  void PrepareOpaqueBuffers(bool bCreateBuffers);
 };
 
 }

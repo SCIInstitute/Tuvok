@@ -62,8 +62,8 @@ RenderMeshGL::~RenderMeshGL() {
     glDeleteBuffers(VBO_COUNT, m_VBOs);
 }
 
-void RenderMeshGL::PrepareOpaqueBuffers() {
-  glGenBuffers(VBO_COUNT, m_VBOs);
+void RenderMeshGL::PrepareOpaqueBuffers(bool bCreateBuffers) {
+  if (bCreateBuffers) glGenBuffers(VBO_COUNT, m_VBOs);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[POSITION_INDEX_VBO]);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32)*3, &m_VertIndices[0], GL_STATIC_DRAW);
@@ -137,5 +137,10 @@ void RenderMeshGL::RenderOpaqueGeometry() {
 
 void RenderMeshGL::InitRenderer() {
   m_bGLInitialized = true;
-  PrepareOpaqueBuffers();
+  PrepareOpaqueBuffers(true);
+}
+
+void RenderMeshGL::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
+  Mesh::GeometryHasChanged(bUpdateAABB, bUpdateKDtree);
+  if (m_bGLInitialized) PrepareOpaqueBuffers(false);
 }
