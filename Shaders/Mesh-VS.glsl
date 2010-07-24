@@ -45,7 +45,11 @@ void main(void)
   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
   gl_Position.z -= fOffset;
 
-  normal = gl_NormalMatrix * gl_Normal;
+  if (gl_Normal == vec3(2,2,2)) {
+    normal = gl_Normal;
+  } else {
+    normal = gl_NormalMatrix * gl_Normal;
+  }
   texture_coordinate = vec2(gl_MultiTexCoord0);
   
   gl_FrontColor = gl_Color;

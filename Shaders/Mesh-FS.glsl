@@ -50,9 +50,12 @@ void main(void)
 {
   vec3 pos = position.xyz / position.w;
   
-  vec3 vLightColor = Lighting(pos, normal, vLightAmbient*gl_Color.xyz,
-                              vLightDiffuse*gl_Color.xyz, vLightSpecular,
-                              vLightDir);
-  
-  gl_FragColor = vec4(vLightColor.x,vLightColor.y,vLightColor.z,gl_Color.w);
+  if (normal == vec3(2,2,2)) {
+    gl_FragColor = gl_Color;
+  } else {
+    vec3 vLightColor = Lighting(pos, normal, vLightAmbient*gl_Color.xyz,
+                                vLightDiffuse*gl_Color.xyz, vLightSpecular,
+                                vLightDir);
+    gl_FragColor = vec4(vLightColor.x,vLightColor.y,vLightColor.z,gl_Color.w);
+  }
 }
