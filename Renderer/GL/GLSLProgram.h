@@ -107,9 +107,9 @@ public:
 
   /// Enables this shader for rendering.
   void Enable(void);
-  /// Disables this shader for rendering (use fixed function pipeline again)
-  void Disable(void);
-
+  /// Disables all shaders for rendering (use fixed function pipeline again)
+  static void Disable(void);
+  
   /// Returns the handle of this shader.
   operator GLuint(void) const;
   /// returns true if this program is valid

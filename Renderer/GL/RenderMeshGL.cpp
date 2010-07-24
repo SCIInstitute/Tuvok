@@ -111,24 +111,35 @@ void RenderMeshGL::RenderOpaqueGeometry() {
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[NORMAL_VBO]);
     glNormalPointer(GL_FLOAT, 0, 0);
     glEnableClientState(GL_NORMAL_ARRAY);
+  } else {
+    glNormal3f(2,2,2); // tells the shader to disable lighting
   }
   if (m_TCIndices.size() == m_VertIndices.size()) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[TEXCOORD_INDEX_VBO]);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[TEXCOORD_VBO]);
     glTexCoordPointer(2, GL_FLOAT, 0, 0);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  } else {
+    glTexCoord2f(0,0);
   }
   if (m_COLIndices.size() == m_VertIndices.size()) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_VBOs[COLOR_INDEX_VBO]);
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[COLOR_VBO]);
     glColorPointer(4, GL_FLOAT, 0, 0);
     glEnableClientState(GL_COLOR_ARRAY);
+  }  else {
+    glColor4f(m_DefColor.x, m_DefColor.y, m_DefColor.z, m_DefColor.w);
   }
 
   switch (m_meshType) {
-    case MT_LINES :  glDrawElements(GL_LINES, GLsizei(m_splitIndex), GL_UNSIGNED_INT, 0); break;
-    case MT_TRIANGLES: glDrawElements(GL_TRIANGLES, GLsizei(m_splitIndex), GL_UNSIGNED_INT, 0); break;
-    default : throw std::runtime_error("rendering unsupported mesh type"); 
+    case MT_LINES :  
+      glDrawElements(GL_LINES, GLsizei(m_splitIndex), GL_UNSIGNED_INT, 0);
+      break;
+    case MT_TRIANGLES:
+      glDrawElements(GL_TRIANGLES, GLsizei(m_splitIndex), GL_UNSIGNED_INT, 0);
+      break;
+    default :
+      throw std::runtime_error("rendering unsupported mesh type"); 
   }
   
 

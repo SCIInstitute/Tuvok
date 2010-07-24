@@ -1955,10 +1955,6 @@ void GLRenderer::BBoxPreRender() {
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
-           if ((*mesh)->UseDefaultColor()) {
-             FLOATVECTOR4 c = (*mesh)->GetDefaultColor();
-             glColor4f(c.x,c.y,c.z,c.w);
-           } 
           (*mesh)->RenderOpaqueGeometry();           
         }
       }
@@ -1985,10 +1981,6 @@ void GLRenderer::BBoxPostRender() {
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
-           if ((*mesh)->UseDefaultColor()) {
-             FLOATVECTOR4 c = (*mesh)->GetDefaultColor();
-             glColor4f(c.x,c.y,c.z,c.w);
-           } 
           (*mesh)->RenderOpaqueGeometry();           
         }
       }

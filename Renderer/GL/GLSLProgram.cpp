@@ -692,13 +692,9 @@ void GLSLProgram::Enable(void) {
  * \date Aug.2004
  */
 void GLSLProgram::Disable(void) {
-  if (m_bInitialized) {
-    CheckGLError();
-    gl::UseProgram(0);
-    if (!CheckGLError("Disable()")) m_bEnabled=false;
-  }
-  else T_ERROR("No program loaded!");
+  gl::UseProgram(0);
 }
+
 
 /**
  * Checks and handles glErrors.
