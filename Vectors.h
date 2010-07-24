@@ -306,6 +306,19 @@ public:
       z = replacement.z;
     }
   }
+  VECTOR3<T> normalized() {
+    T len = length(); 
+    return VECTOR3<T>(x/len,y/len,z/len);
+  }
+  VECTOR3<T> normalized(T epsilon, const VECTOR3<T> replacement=VECTOR3<T>(T(0),T(0),T(1))) {
+    T len = length(); 
+    if (len > epsilon) {
+      return VECTOR3<T>(x/len,y/len,z/len);
+    } else { // specify some arbitrary normal
+      return replacement;
+    }
+  }
+
 
   VECTOR2<T> xx() const {return VECTOR2<T>(x,x);}
   VECTOR2<T> xy() const {return VECTOR2<T>(x,y);}
