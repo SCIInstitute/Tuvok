@@ -310,7 +310,9 @@ public:
     T len = length(); 
     return VECTOR3<T>(x/len,y/len,z/len);
   }
-  VECTOR3<T> normalized(T epsilon, const VECTOR3<T> replacement=VECTOR3<T>(T(0),T(0),T(1))) {
+  VECTOR3<T> normalized(T epsilon,
+                        const VECTOR3<T> replacement =
+                          VECTOR3<T>(T(0),T(0),T(1))) const {
     T len = length(); 
     if (len > epsilon) {
       return VECTOR3<T>(x/len,y/len,z/len);
