@@ -52,14 +52,10 @@ MedAlyVisFiberTractGeoConverter::MedAlyVisFiberTractGeoConverter()
 Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename) {
   
   VertVec       vertices;
-  NormVec       normals;
-  TexCoordVec   texcoords;
-  ColorVec      colors;     // no used here, passed on as empty vector
+  ColorVec      colors;
 
   IndexVec      VertIndices;
-  IndexVec      NormalIndices;
-  IndexVec      TCIndices;
-  IndexVec      COLIndices;  // no used here, passed on as empty vector
+  IndexVec      COLIndices;
 
   std::ifstream fs;
 	std::string line;
@@ -74,9 +70,9 @@ Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilen
   FLOATVECTOR3 fScale;
   FLOATVECTOR3 fTranslation;
   INTVECTOR4 iMetadata;
-  int iElementCounter=0;
+  size_t iElementCounter=0;
+  size_t iElementReadCounter=0;
   int iLineCounter=-1;
-  std::vector<FLOATVECTOR3> linePosVec;
 
 	while (!fs.fail() || iLineCounter == iMetadata[2]) {
 		getline(fs, line);
@@ -131,36 +127,50 @@ Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilen
                            break;
       case PARSING_COUNTER : {
                               iElementCounter = atoi(line.c_str());
-                              linePosVec.resize(iElementCounter);
+                              iElementReadCounter = 0;
                               iReaderState++;
                            }
                            break;
       case PARSING_DATA : {
-                              size_t s = linePosVec.size();
-                              linePosVec[s-iElementCounter][0] = float(atof(line.c_str()));
+                              FLOATVECTOR3 vec;
+                              vec[0] = float(atof(line.c_str()));
                               line = TrimToken(line);
-                              linePosVec[s-iElementCounter][1] = float(atof(line.c_str()));
+                              vec[1] = float(atof(line.c_str()));
                               line = TrimToken(line);
-                              linePosVec[s-iElementCounter][2] = float(atof(line.c_str()));
+                              vec[2] = float(atof(line.c_str()));
 
-                              iElementCounter--;
-                              if (iElementCounter == 0) {
+                              // TODO: ask Dorit about this
+                              // bias and scale the vertices into unit cordinates
+                              // vec = (vec - fTranslation) / (FLOATVECTOR3(iDim)*fScale);
+
+                              vertices.push_back(vec);
+
+                              iElementReadCounter++;
+                              if (iElementCounter == iElementReadCounter) {
                                 // line to tri-mesh
+                                size_t iStartIndex = vertices.size() - iElementCounter; 
 
-                                if (linePosVec.size() > 1) { 
-                                  VertIndices.push_back(UINT32(vertices.size()));
-                                  VertIndices.push_back(UINT32(vertices.size()+1));
+                                for (size_t i = 0;i<iElementCounter-1;i++) {
+                                  VertIndices.push_back(UINT32(iStartIndex));
+                                  VertIndices.push_back(UINT32(iStartIndex+1));
+                                  COLIndices.push_back(UINT32(iStartIndex));
+                                  COLIndices.push_back(UINT32(iStartIndex+1));
 
-                                  vertices.push_back(linePosVec[0]);
-                                  vertices.push_back(linePosVec[1]);
-
-                                  for (size_t i = 1;i<linePosVec.size();i++) {
-                                    VertIndices.push_back(UINT32(vertices.size()-1));
-                                    VertIndices.push_back(UINT32(vertices.size()));
-                                    vertices.push_back(linePosVec[i]);
+                                  if (i == 0) {
+                                    FLOATVECTOR3 direction = (vertices[iStartIndex+1]-vertices[iStartIndex]).normalized();
+                                    colors.push_back((direction).abs());
+                                  } else if (i == iElementCounter-2) {
+                                     FLOATVECTOR3 directionB = (vertices[iStartIndex]-vertices[iStartIndex-1]).normalized();
+                                     FLOATVECTOR3 directionF = (vertices[iStartIndex+1]-vertices[iStartIndex]).normalized();
+                                     colors.push_back(((directionB+directionF)/2.0f).abs());
+                                     colors.push_back((directionF).abs());
+                                  } else {
+                                     FLOATVECTOR3 directionB = (vertices[iStartIndex]-vertices[iStartIndex-1]).normalized();
+                                     FLOATVECTOR3 directionF = (vertices[iStartIndex+1]-vertices[iStartIndex]).normalized();
+                                     colors.push_back(((directionB+directionF)/2.0f).abs());
                                   }
+                                  iStartIndex++;
                                 }
-
                                 iLineCounter++;
                                 iReaderState = PARSING_COUNTER;
                               }
@@ -168,14 +178,12 @@ Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilen
                            break;
       default : throw std::runtime_error("unknown parser state");
     }
-
   }
-
 
   std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
 
-  Mesh* m = new Mesh(vertices,NormVec(),TexCoordVec(),ColorVec(),
-                     VertIndices,IndexVec(),IndexVec(),IndexVec(),
+  Mesh* m = new Mesh(vertices,NormVec(),TexCoordVec(),colors,
+                     VertIndices,IndexVec(),IndexVec(),COLIndices,
                      false,false,desc,Mesh::MT_LINES);
   return m;
 }
