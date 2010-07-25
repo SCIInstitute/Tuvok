@@ -1489,7 +1489,7 @@ void IOManager::CopyToTSB(const Mesh* m, GeometryDataBlock* tsb) const {
 
   // target data
   vector<float> fVec;
-  size_t iVerticesPerPoly = (m->GetMeshType() == Mesh::MT_TRIANGLES) ? 3 : 2;
+  size_t iVerticesPerPoly = m->GetVerticesPerPoly();
   tsb->SetPolySize(iVerticesPerPoly );
 
   if (v.size()) {fVec.resize(v.size()*3); memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float)); tsb->SetVertices(fVec);}

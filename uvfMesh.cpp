@@ -75,5 +75,6 @@ uvfMesh::uvfMesh(const GeometryDataBlock& tsb)
   assert(m_TCIndices.size()%tsb.GetPolySize() == 0);
   m_COLIndices = tsb.GetColorIndices();
   assert(m_COLIndices.size()%tsb.GetPolySize() == 0);
-}
 
+  GeometryHasChanged(false, false);
+}
