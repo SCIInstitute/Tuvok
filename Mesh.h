@@ -112,7 +112,12 @@ public:
   const FLOATVECTOR3& GetMin() {return m_Bounds[0];}
   const FLOATVECTOR3& GetMax() {return m_Bounds[1];}
 
+  // currently these two calls are somewhat dedundant, but in the future we 
+  // may want to support curved surfaces, in that case the first call would
+  // be used during rendering while the second would be useful for list 
+  // traversal
   EMeshType GetMeshType() const {return m_meshType;}
+  size_t GetVerticesPerPoly() const {return m_VerticesPerPoly;}
 
 protected:
   KDTree*       m_KDTree;
@@ -131,6 +136,7 @@ protected:
 
   std::string   m_MeshDesc;
   EMeshType     m_meshType;
+  size_t        m_VerticesPerPoly;
 
   void ComputeAABB();
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);

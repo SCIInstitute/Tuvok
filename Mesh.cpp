@@ -44,6 +44,7 @@ Mesh::Mesh() :
   m_MeshDesc("Generic Triangle Mesh"),
   m_meshType(MT_TRIANGLES)
 {
+  m_VerticesPerPoly = (m_meshType == Mesh::MT_TRIANGLES) ? 3 : 2;
 }
 
 Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
@@ -65,6 +66,8 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
   m_MeshDesc(desc),
   m_meshType(meshType)
 {
+  m_VerticesPerPoly = (m_meshType == Mesh::MT_TRIANGLES) ? 3 : 2;
+
   ComputeAABB();
   if (bScaleToUnitCube) ScaleToUnitCube(); 
   if (bBuildKDTree) m_KDTree = new KDTree(this);
