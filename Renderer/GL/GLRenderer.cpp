@@ -2019,7 +2019,7 @@ void GLRenderer::GeometryPostRender() {
           (*mesh)->RenderOpaqueGeometry();        
         }
       }
-      m_pProgramMesh->SetUniformVector("fOffset",0);
+      m_pProgramMesh->SetUniformVector("fOffset",0.0f);
       m_pProgramMesh->Disable();
     }
 
