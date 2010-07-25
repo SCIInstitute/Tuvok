@@ -199,7 +199,7 @@ protected:
 
   void Front(int index,...);
 
-  friend SortIndex;
+  friend class SortIndex;
 };
 
 }
