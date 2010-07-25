@@ -53,5 +53,6 @@ void main(void)
   texture_coordinate = vec2(gl_MultiTexCoord0);
   
   gl_FrontColor = gl_Color;
+  gl_BackColor = gl_Color;
   position = gl_Vertex;
 }
