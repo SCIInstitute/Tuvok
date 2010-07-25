@@ -183,7 +183,7 @@ void RenderMesh::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
 
   // create sortindex list with all tris
   m_allPolys.clear();
-  for (size_t i = 0;i<m_VertIndices.size();i+=m_VerticesPerPoly) {
+  for (size_t i = m_splitIndex;i<m_VertIndices.size();i+=m_VerticesPerPoly) {
     m_allPolys.push_back(SortIndex(i, *this));
   }
 
