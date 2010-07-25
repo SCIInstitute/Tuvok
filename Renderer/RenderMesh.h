@@ -137,7 +137,7 @@ public:
    *        computed by SetUserPos 
    * \result the points inside the AABB
    */
-  const SortIndexPList& RenderMesh::GetSortedInPointList();
+  const SortIndexPList& GetSortedInPointList();
    
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
 
