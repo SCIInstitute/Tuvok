@@ -160,8 +160,8 @@ class GLRenderer : public AbstrRenderer {
                                      std::vector<std::string> vert,
                                      std::vector<std::string> frag) const;
 
-    void BBoxPreRender();
-    void BBoxPostRender();
+    void GeometryPreRender();
+    void GeometryPostRender();
 
     void PlaneIn3DPreRender();
     void PlaneIn3DPostRender();

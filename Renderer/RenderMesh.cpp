@@ -35,21 +35,29 @@
 #include "RenderMesh.h"
 #include "KDTree.h"
 #include <cassert>
+#include <algorithm>
 
 using namespace tuvok;
 
-SortIndex::SortIndex(size_t index, const Mesh& m) :
-  m_index(index)  
+
+SortIndex::SortIndex(size_t index, const RenderMesh* m) :
+  m_index(index),
+  m_mesh(m)
 {
-  ComputeCentroid(m);
+  ComputeCentroid();
 }
 
-void SortIndex::ComputeCentroid(const Mesh& m) {
-  size_t vertexCount = m.GetVerticesPerPoly();
+void SortIndex::UpdateDistance() {
+  fDistance = (m_mesh->m_viewPoint-m_centroid).length();
+}
+
+
+void SortIndex::ComputeCentroid() {
+  size_t vertexCount = m_mesh->GetVerticesPerPoly();
 
   m_centroid = FLOATVECTOR3(0,0,0);
   for (size_t iVertex = 0;iVertex<vertexCount;iVertex++) {
-    m_centroid = m_centroid + m.GetVertices()[m.GetVertexIndices()[m_index+iVertex]];
+    m_centroid = m_centroid + m_mesh->GetVertices()[m_mesh->GetVertexIndices()[m_index+iVertex]];
   }
   m_centroid /= float(vertexCount);
 }
@@ -62,6 +70,7 @@ RenderMesh::RenderMesh(const Mesh& other, float fTransTreshhold) :
        false, false, other.Name(),other.GetMeshType()),
    m_bActive(true),
    m_fTransTreshhold(fTransTreshhold),
+   m_bSortOver(false),
    m_viewPoint(FLOATVECTOR3(0,0,0)),
    m_VolumeMin(FLOATVECTOR3(0,0,0)),
    m_VolumeMax(FLOATVECTOR3(0,0,0)),
@@ -85,6 +94,7 @@ RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
        false, bScaleToUnitCube,desc,meshType),
    m_bActive(true),
    m_fTransTreshhold(fTransTreshhold),
+   m_bSortOver(false),
    m_viewPoint(FLOATVECTOR3(0,0,0)),
    m_VolumeMin(FLOATVECTOR3(0,0,0)),
    m_VolumeMax(FLOATVECTOR3(0,0,0)),
@@ -93,7 +103,7 @@ RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
 {
   m_Quadrants.resize(27);
   SplitOpaqueFromTransparent();
-  GeometryHasChanged(bBuildKDTree, bBuildKDTree);
+  if (bBuildKDTree) ComputeKDTree();
 }
 
 void RenderMesh::Swap(size_t i, size_t j) {
@@ -184,7 +194,7 @@ void RenderMesh::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
   // create sortindex list with all tris
   m_allPolys.clear();
   for (size_t i = m_splitIndex;i<m_VertIndices.size();i+=m_VerticesPerPoly) {
-    m_allPolys.push_back(SortIndex(i, *this));
+    m_allPolys.push_back(SortIndex(i, this));
   }
 
   m_QuadrantsDirty = true;
@@ -229,7 +239,7 @@ void RenderMesh::SortTransparentDataIntoQuadrants() {
        poly++) {
 
     size_t index = PosToQuadrant(poly->m_centroid);
-    m_Quadrants[index].push_back(*poly);
+    m_Quadrants[index].push_back(&(*poly));
   }
 
   m_InPointList = m_Quadrants[13];
@@ -275,11 +285,16 @@ void RenderMesh::Front(int index,...)
 void RenderMesh::RehashTransparentData() {
   m_FIBHashDirty = false;
 
-  // is the entire mesh opaque ?
-  if (m_splitIndex == m_VertIndices.size()) return;
-
+  for (SortIndexList::iterator poly = m_allPolys.begin();
+       poly != m_allPolys.end();
+       poly++) {
+    poly->UpdateDistance();
+  }
   m_FrontPointList.clear();
   m_BehindPointList.clear();
+
+  // is the entire mesh opaque ?
+  if (m_splitIndex == m_VertIndices.size()) return;
 
   size_t index = PosToQuadrant(m_viewPoint);
 
@@ -609,22 +624,43 @@ void RenderMesh::RehashTransparentData() {
                     END);
               break;
   }
+
+
+  // depth sort
+  if (m_bSortOver) {
+    std::sort(m_FrontPointList.begin(), m_FrontPointList.end(), DistanceSortOver);
+    std::sort(m_BehindPointList.begin(), m_BehindPointList.end(), DistanceSortOver);
+  } else {
+    std::sort(m_FrontPointList.begin(), m_FrontPointList.end(), DistanceSortUnder);
+    std::sort(m_BehindPointList.begin(), m_BehindPointList.end(), DistanceSortUnder);
+  }
 }
 
-const SortIndexList& RenderMesh::GetFrontPointList() {
+const SortIndexPList& RenderMesh::GetFrontPointList() {
   if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
   if (m_FIBHashDirty) RehashTransparentData();
   return m_FrontPointList;
 }
 
-const SortIndexList& RenderMesh::GetInPointList() {
+const SortIndexPList& RenderMesh::GetInPointList() {
   if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
   if (m_FIBHashDirty) RehashTransparentData();
   return m_InPointList;
 }
 
-const SortIndexList& RenderMesh::GetBehindPointList() {
+const SortIndexPList& RenderMesh::GetBehindPointList() {
   if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
   if (m_FIBHashDirty) RehashTransparentData();
   return m_BehindPointList;
+}
+
+const SortIndexPList& RenderMesh::GetSortedInPointList() {
+  if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
+  if (m_FIBHashDirty) RehashTransparentData();
+  if (m_bSortOver) {
+    std::sort(m_InPointList.begin(), m_InPointList.end(), DistanceSortOver);
+  } else {
+    std::sort(m_InPointList.begin(), m_InPointList.end(), DistanceSortUnder);
+  }
+  return m_InPointList;
 }

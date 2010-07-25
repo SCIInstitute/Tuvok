@@ -480,7 +480,9 @@ class AbstrRenderer {
     std::string         m_strLogoFilename;
 
     bool                m_bSupportsMeshes;
+    bool                m_bMeshUseLightColors;
     std::vector<RenderMesh*> m_Meshes;
+
 
     /// parameters for dynamic resolution adjustments
     ///@{

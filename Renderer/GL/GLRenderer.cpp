@@ -1310,13 +1310,13 @@ void GLRenderer::PreSubframe(const RenderRegion& renderRegion)
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   m_mProjection[0].setProjection();
   renderRegion.modelView[0].setModelview();
-  BBoxPreRender();
+  GeometryPreRender();
   PlaneIn3DPreRender();
   if (m_bDoStereoRendering) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
     m_mProjection[1].setProjection();
     renderRegion.modelView[1].setModelview();
-    BBoxPreRender();
+    GeometryPreRender();
     PlaneIn3DPreRender();
   }
   m_TargetBinder.Unbind();
@@ -1330,14 +1330,14 @@ void GLRenderer::PostSubframe(const RenderRegion& renderRegion)
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   m_mProjection[0].setProjection();
   renderRegion.modelView[0].setModelview();
-  BBoxPostRender();
+  GeometryPostRender();
   PlaneIn3DPostRender();
   RenderClipPlane(0);
   if (m_bDoStereoRendering) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
     m_mProjection[1].setProjection();
     renderRegion.modelView[1].setModelview();
-    BBoxPostRender();
+    GeometryPostRender();
     PlaneIn3DPostRender();
     RenderClipPlane(1);
   }
@@ -1898,15 +1898,36 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   return true;
 }
 
-void GLRenderer::BBoxPreRender() {
+void GLRenderer::GeometryPreRender() {
   // for rendering modes other than isosurface render the bbox in the first
   // pass once, to init the depth buffer.  for isosurface rendering we can go
   // ahead and render the bbox directly as isosurfacing writes out correct
   // depth values
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_TRUE);
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView ||
       m_bAvoidSeperateCompositing) {
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+
+    // first render the pars of the meshes that are in front of the volume
+    // remember the volume uses front to back compositing
+    if (m_bSupportsMeshes) {
+      m_pProgramMesh->Enable();
+      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+           mesh != m_Meshes.end(); mesh++) {
+        if ((*mesh)->GetActive()) {
+          (*mesh)->EnableOverSorting(false);
+          (*mesh)->RenderTransGeometryFront();
+        }
+      }
+      m_pProgramMesh->Disable();
+    }
+
+    // now write the depth mask of the opaque geomentry into the buffer
+    // as we do front to back compositing we can not write the colors 
+    // into the buffer yet
+    // start with the bboxes
+    glDepthMask(GL_TRUE);
     glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
     if (m_bRenderGlobalBBox)
       RenderBBox();
@@ -1920,20 +1941,29 @@ void GLRenderer::BBoxPreRender() {
       }
     }
 
+    // now the opaque parts of the mesh
     if (m_bSupportsMeshes) {
-      // no special shader needed as we are just looking for the depth here
       m_pProgramMesh->Enable();
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
-       if ((*mesh)->GetActive()) 
-        (*mesh)->RenderOpaqueGeometry();
+        if ((*mesh)->GetActive()) {
+          (*mesh)->RenderOpaqueGeometry();
+        }
       }
       m_pProgramMesh->Disable();
     }
 
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
   } else {
+    // if we are in isosurface mode none of the complicated stuff from 
+    // above applies, as the volume is opqaue we can just use regular
+    // depth testing and the order of the opaque elements does not matter
+    // so we might as well now write all the opaque geoemtry into the color
+    // and depth buffer
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
+    // first the bboxes
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
       for (UINT64 iCurrentBrick = 0;
@@ -1944,13 +1974,14 @@ void GLRenderer::BBoxPreRender() {
                    m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
-  
+    // the the opaque parts of the meshes
     if (m_bSupportsMeshes) {
       m_pProgramMesh->Enable();
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
           (*mesh)->RenderOpaqueGeometry(); 
+          (*mesh)->EnableOverSorting(true);
         }
       }
       m_pProgramMesh->Disable();
@@ -1961,27 +1992,15 @@ void GLRenderer::BBoxPreRender() {
 // For volume rendering, we render the bounding box again after rendering the
 // dataset.  This is because we want the box lines which are in front of the
 // dataset to appear .. well, in front of the dataset.
-void GLRenderer::BBoxPostRender() {
+void GLRenderer::GeometryPostRender() {
   // Not required for isosurfacing, since we use the depth buffer for
   // occluding/showing the bbox's outline.
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
-
-    if (m_bSupportsMeshes) {
-      m_pProgramMesh->Enable();
-      m_pProgramMesh->SetUniformVector("fOffset",0.001f);
-      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-           mesh != m_Meshes.end(); mesh++) {
-        if ((*mesh)->GetActive()) {
-          (*mesh)->RenderOpaqueGeometry();           
-        }
-      }
-      m_pProgramMesh->SetUniformVector("fOffset",0);
-      m_pProgramMesh->Disable();
-    }
+    glDepthMask(GL_TRUE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
 
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
@@ -1991,8 +2010,68 @@ void GLRenderer::BBoxPostRender() {
       }
     }
 
+    if (m_bSupportsMeshes) {
+      m_pProgramMesh->Enable();
+      m_pProgramMesh->SetUniformVector("fOffset",0.001f);
+      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+           mesh != m_Meshes.end(); mesh++) {
+        if ((*mesh)->GetActive()) {
+          (*mesh)->RenderOpaqueGeometry();        
+        }
+      }
+      m_pProgramMesh->SetUniformVector("fOffset",0);
+      m_pProgramMesh->Disable();
+    }
+
+    if (m_bSupportsMeshes) {
+      m_pProgramMesh->Enable();
+      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+           mesh != m_Meshes.end(); mesh++) {
+        if ((*mesh)->GetActive()) {
+          (*mesh)->RenderTransGeometryBehind();
+        }
+      }
+      m_pProgramMesh->Disable();
+    }
+
     glDepthFunc(GL_LESS);
     glDisable(GL_BLEND);
+  } else {
+    if (m_bSupportsMeshes) {
+      glEnable(GL_BLEND);
+      // "over"-compositing with proper alpha
+      glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                          GL_ONE, GL_ONE_MINUS_SRC_ALPHA); 
+      glEnable(GL_DEPTH_TEST);
+      glDepthFunc(GL_LESS);
+      glDepthMask(GL_FALSE);
+      glDisable(GL_CULL_FACE);
+
+      m_pProgramMesh->Enable();
+
+      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+           mesh != m_Meshes.end(); mesh++) {
+       if ((*mesh)->GetActive()) 
+         (*mesh)->RenderTransGeometryBehind();
+      }
+
+      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+           mesh != m_Meshes.end(); mesh++) {
+       if ((*mesh)->GetActive()) 
+         (*mesh)->RenderTransGeometryInside();
+      }
+
+      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+           mesh != m_Meshes.end(); mesh++) {
+       if ((*mesh)->GetActive()) 
+         (*mesh)->RenderTransGeometryFront();
+      }
+
+      m_pProgramMesh->Disable();
+
+      glDepthMask(GL_TRUE);
+      glDisable(GL_BLEND);
+    }
   }
 }
 
@@ -2245,12 +2324,12 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
   m_mProjection[0].setProjection();
   renderRegion.modelView[0].setModelview();
-  BBoxPreRender();
+  GeometryPreRender();
   PlaneIn3DPreRender();
   Render3DPreLoop(renderRegion);
   Render3DPostLoop();
   ComposeSurfaceImage(renderRegion, 0);
-  BBoxPostRender();
+  GeometryPostRender();
   PlaneIn3DPostRender();
   RenderClipPlane(0);
 
@@ -2258,12 +2337,12 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
     m_mProjection[1].setProjection();
     renderRegion.modelView[1].setModelview();
-    BBoxPreRender();
+    GeometryPreRender();
     PlaneIn3DPreRender();
     Render3DPreLoop(renderRegion);
     Render3DPostLoop();
     ComposeSurfaceImage(renderRegion, 1);
-    BBoxPostRender();
+    GeometryPostRender();
     PlaneIn3DPostRender();
     RenderClipPlane(1);
   }
@@ -2531,9 +2610,15 @@ void GLRenderer::UpdateColorsInShaders() {
     m_pProgramCVCompose->Disable();
 
     m_pProgramMesh->Enable();
-    m_pProgramMesh->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-    m_pProgramMesh->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-    m_pProgramMesh->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+    if (m_bMeshUseLightColors) {
+      m_pProgramMesh->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+      m_pProgramMesh->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
+      m_pProgramMesh->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+
+      // HACK: for now disable this property after the first init to pick up the defaults
+      //       but not use the light colors afterwards
+      m_bMeshUseLightColors = false;
+    }
     m_pProgramMesh->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
     m_pProgramMesh->Disable();
 

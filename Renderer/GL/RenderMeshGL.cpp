@@ -64,6 +64,7 @@ RenderMeshGL::~RenderMeshGL() {
     glDeleteBuffers(INDEX_VBO_COUNT, m_IndexVBOsOpaque);
     glDeleteBuffers(INDEX_VBO_COUNT, m_IndexVBOsFront);
     glDeleteBuffers(INDEX_VBO_COUNT, m_IndexVBOsBehind);
+    glDeleteBuffers(INDEX_VBO_COUNT, m_IndexVBOsInside);
   }
 }
 
@@ -160,6 +161,11 @@ void RenderMeshGL::RenderTransGeometryBehind() {
   RenderGeometry(m_IndexVBOsBehind, m_BehindPointList.size()*m_VerticesPerPoly);
 }
 
+void RenderMeshGL::RenderTransGeometryInside() {
+  PrepareTransBuffers(m_IndexVBOsInside, GetSortedInPointList());
+  RenderGeometry(m_IndexVBOsInside, m_InPointList.size()*m_VerticesPerPoly);
+}
+
 void RenderMeshGL::InitRenderer() {
   m_bGLInitialized = true;
 
@@ -167,6 +173,7 @@ void RenderMeshGL::InitRenderer() {
   glGenBuffers(INDEX_VBO_COUNT, m_IndexVBOsOpaque);
   glGenBuffers(INDEX_VBO_COUNT, m_IndexVBOsFront);
   glGenBuffers(INDEX_VBO_COUNT, m_IndexVBOsBehind);
+  glGenBuffers(INDEX_VBO_COUNT, m_IndexVBOsInside);
 
   PrepareOpaqueBuffers();
 }
@@ -176,7 +183,7 @@ void RenderMeshGL::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
   if (m_bGLInitialized) PrepareOpaqueBuffers();
 }
 
-void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const SortIndexList& list) {
+void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const SortIndexPList& list) {
   if (list.size() == 0) return;
 
   IndexVec      VertIndices;
@@ -185,10 +192,10 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const 
   IndexVec      COLIndices;
 
   VertIndices.reserve(list.size());
-  for (SortIndexList::const_iterator index = list.begin();
+  for (SortIndexPList::const_iterator index = list.begin();
        index != list.end();
        index++) {
-    size_t iIndex = index->m_index;
+    size_t iIndex = (*index)->m_index;
     for (size_t i = 0;i<m_VerticesPerPoly;i++)
       VertIndices.push_back(m_VertIndices[iIndex+i]);
   }
@@ -198,10 +205,10 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const 
 
   if (m_NormalIndices.size() == m_VertIndices.size()) {
     NormalIndices.reserve(list.size());
-    for (SortIndexList::const_iterator index = list.begin();
+    for (SortIndexPList::const_iterator index = list.begin();
          index != list.end();
          index++) {
-      size_t iIndex = index->m_index;
+      size_t iIndex = (*index)->m_index;
       for (size_t i = 0;i<m_VerticesPerPoly;i++)
         NormalIndices.push_back(m_NormalIndices[iIndex+i]);
     }
@@ -210,10 +217,10 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const 
   }
   if (m_TCIndices.size() == m_VertIndices.size()) {
     TCIndices.reserve(list.size());
-    for (SortIndexList::const_iterator index = list.begin();
+    for (SortIndexPList::const_iterator index = list.begin();
          index != list.end();
          index++) {
-      size_t iIndex = index->m_index;
+      size_t iIndex = (*index)->m_index;
       for (size_t i = 0;i<m_VerticesPerPoly;i++)
         TCIndices.push_back(m_TCIndices[iIndex+i]);
     }
@@ -222,10 +229,10 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const 
   }
   if (m_COLIndices.size() == m_VertIndices.size()) {
     COLIndices.reserve(list.size());
-    for (SortIndexList::const_iterator index = list.begin();
+    for (SortIndexPList::const_iterator index = list.begin();
          index != list.end();
          index++) {
-      size_t iIndex = index->m_index;
+      size_t iIndex = (*index)->m_index;
       for (size_t i = 0;i<m_VerticesPerPoly;i++)
         COLIndices.push_back(m_COLIndices[iIndex+i]);
     }

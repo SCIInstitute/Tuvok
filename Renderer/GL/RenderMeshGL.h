@@ -58,6 +58,7 @@ public:
   virtual void RenderOpaqueGeometry();
   virtual void RenderTransGeometryFront();
   virtual void RenderTransGeometryBehind();
+  virtual void RenderTransGeometryInside();
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
 
 private:
@@ -85,10 +86,11 @@ private:
   GLuint m_IndexVBOsOpaque[INDEX_VBO_COUNT];
   GLuint m_IndexVBOsFront[INDEX_VBO_COUNT];
   GLuint m_IndexVBOsBehind[INDEX_VBO_COUNT];
+  GLuint m_IndexVBOsInside[INDEX_VBO_COUNT];
 
   void PrepareOpaqueBuffers();
   void PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT],
-                           const SortIndexList& list);
+                           const SortIndexPList& list);
   void RenderGeometry(GLuint VBOs[INDEX_VBO_COUNT], size_t count);
 };
 

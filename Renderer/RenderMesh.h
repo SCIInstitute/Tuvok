@@ -43,18 +43,35 @@
 
 namespace tuvok {
 
+class RenderMesh;
+
 class SortIndex {
 public:
   size_t m_index;
   FLOATVECTOR3 m_centroid;
+  const RenderMesh* m_mesh;
+  float fDistance;
 
-  SortIndex(size_t index, const Mesh& m);
+  SortIndex(size_t index, const RenderMesh* m);
+  void UpdateDistance();
 
 protected:
-  void ComputeCentroid(const Mesh& m);
+  void ComputeCentroid();
 };
 
+inline bool DistanceSortOver(const SortIndex* e1, const SortIndex* e2)
+{
+  return e1->fDistance > e2->fDistance;
+}
+
+inline bool DistanceSortUnder(const SortIndex* e1, const SortIndex* e2)
+{
+  return e1->fDistance < e2->fDistance;
+}
+
+
 typedef std::vector< SortIndex > SortIndexList;
+typedef std::vector< SortIndex* > SortIndexPList;
 
 
 class RenderMesh : public Mesh 
@@ -73,6 +90,7 @@ public:
   virtual void RenderOpaqueGeometry() = 0;
   virtual void RenderTransGeometryFront() = 0;
   virtual void RenderTransGeometryBehind() = 0;
+  virtual void RenderTransGeometryInside() = 0;
 
   void SetActive(bool bActive) {m_bActive = bActive;}
   bool GetActive() const {return m_bActive;}
@@ -103,24 +121,33 @@ public:
    *        computed by SetUserPos 
    * \result the points in front of the AABB
    */
-  const SortIndexList& GetFrontPointList();
+  const SortIndexPList& GetFrontPointList();
   /**\brief Returns the list of all polygons inside the AABB as 
    *        computed by SetUserPos 
    * \result the points inside the AABB
    */
-  const SortIndexList& GetInPointList();
+  const SortIndexPList& GetInPointList();
   /**\brief Returns the list of all polygons behind the AABB as 
-   *        computed by SetUserPos 
+   *        computed by SetUserPos this list is nor depth sorted
    * \result the points behind the AABB
    */
-  const SortIndexList& GetBehindPointList();
+  const SortIndexPList& GetBehindPointList();
+  
+  /**\brief Returns the list of all polygons inside the AABB as 
+   *        computed by SetUserPos 
+   * \result the points inside the AABB
+   */
+  const SortIndexPList& RenderMesh::GetSortedInPointList();
    
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
+
+  void EnableOverSorting(bool bOver) {m_bSortOver = bOver;}
 
 protected:
   bool   m_bActive;
   size_t m_splitIndex;
   float  m_fTransTreshhold;
+  bool   m_bSortOver;
 
   void Swap(size_t i, size_t j);
   bool isTransparent(size_t i);
@@ -134,10 +161,10 @@ protected:
   bool         m_FIBHashDirty;
 
   SortIndexList m_allPolys;
-  std::vector< SortIndexList > m_Quadrants;
-  SortIndexList m_FrontPointList;
-  SortIndexList m_InPointList;
-  SortIndexList m_BehindPointList;
+  std::vector< SortIndexPList > m_Quadrants;
+  SortIndexPList m_FrontPointList;
+  SortIndexPList m_InPointList;
+  SortIndexPList m_BehindPointList;
 
 
   /**\brief If the mesh contains transparent parts this call creates 
@@ -163,7 +190,7 @@ protected:
    * \param target the list to append to
    * \param index the index of the quadrant to be appended to "target"
    */
-  void Append(SortIndexList& target, size_t index) {
+  void Append(SortIndexPList& target, size_t index) {
     target.insert(target.end(), 
                   m_Quadrants[index].begin(),
                   m_Quadrants[index].end());
@@ -171,6 +198,8 @@ protected:
 
 
   void Front(int index,...);
+
+  friend SortIndex;
 };
 
 }
