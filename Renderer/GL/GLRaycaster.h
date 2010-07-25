@@ -77,6 +77,7 @@ class GLRaycaster : public GLRenderer {
 
     virtual bool CanDoClipPlane() {return !m_bNoRCClipplanes;}
 
+    virtual void SetRendermode(ERenderMode eRenderMode);
 
   protected:
     GLFBOTex*       m_pFBORayEntry;

@@ -45,6 +45,7 @@
 #include "IO/ExternalDataset.h"
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
+#include "RenderMesh.h"
 
 using namespace std;
 using namespace tuvok;
@@ -67,6 +68,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vWinSize(0,0),
   m_iLogoPos(3),
   m_strLogoFilename(""),
+  m_bSupportsMeshes(false),
   msecPassedCurrentFrame(-1.0f),
   m_iLODNotOKCounter(0),
   decreaseScreenRes(false),
@@ -973,9 +975,19 @@ bool AbstrRenderer::IsVolumeResident(const BrickKey& key) {
                                                    false);
 }
 
+void AbstrRenderer::GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend) {
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
+  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetScale());
+  
+  vExtend = FLOATVECTOR3(vDomainSize) * vScale;
+  vExtend /= vExtend.maxVal();
+  vCenter = FLOATVECTOR3(0,0,0);
+}
+
 struct Blank: public std::unary_function<RenderRegion, bool> {
   bool operator()(const RenderRegion* rr) const { return rr->isBlank; }
 };
+
 
 void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
   typedef std::vector<RenderRegion*>::iterator r_iter;
@@ -993,6 +1005,27 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
     if(rr.is3D()) {
       m_FrustumCullingLOD.SetViewMatrix(rr.modelView[0]);
       m_FrustumCullingLOD.Update();
+    }
+  }
+
+  // let the mesh know about our current state, technically
+  // SetVolumeAABB only needs to be called when the geometry of volume
+  // has changed (rescale) and SetUserPos only when the view has 
+  // changed (matrix update) but the mesh class is smart enougth to catch 
+  // redundant changes so we just leave the code here for now
+  if (m_bSupportsMeshes) {
+    FLOATVECTOR3 vCenter, vExtend;
+    GetVolumeAABB(vCenter, vExtend);
+    FLOATVECTOR3 vMinPoint = vCenter-vExtend/2.0, 
+                 vMaxPoint = vCenter+vExtend/2.0;
+
+     for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+         mesh != m_Meshes.end(); mesh++) {
+      if ((*mesh)->GetActive()) {
+        (*mesh)->SetVolumeAABB(vMinPoint, vMaxPoint);
+        (*mesh)->SetUserPos( (FLOATVECTOR4(0,0,0,1)*
+                               region.modelView[0].inverse()).xyz() );
+      }
     }
   }
 

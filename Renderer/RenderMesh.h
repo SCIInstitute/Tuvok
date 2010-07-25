@@ -38,8 +38,24 @@
 #define RENDERMESH_H
 
 #include "../Basics/Mesh.h"
+#include <list>
+#include <stdarg.h>
 
 namespace tuvok {
+
+class SortIndex {
+public:
+  size_t m_index;
+  FLOATVECTOR3 m_centroid;
+
+  SortIndex(size_t index, const Mesh& m);
+
+protected:
+  void ComputeCentroid(const Mesh& m);
+};
+
+typedef std::vector< SortIndex > SortIndexList;
+
 
 class RenderMesh : public Mesh 
 {
@@ -55,6 +71,8 @@ public:
 
   virtual void InitRenderer() = 0;
   virtual void RenderOpaqueGeometry() = 0;
+  virtual void RenderTransGeometryFront() = 0;
+  virtual void RenderTransGeometryBehind() = 0;
 
   void SetActive(bool bActive) {m_bActive = bActive;}
   bool GetActive() const {return m_bActive;}
@@ -63,15 +81,96 @@ public:
   float GetTransTreshhold() const {return m_fTransTreshhold;}
   virtual void SetDefaultColor(const FLOATVECTOR4& color);
 
+  // *******************************************************************
+  // ****** the calls below are only used for transparent meshes *******
+  // *******************************************************************
+
+  /**\brief Specifies the position of the volume's AABB 
+   * \param min the min coodinates of the AABB
+   * \param max the max coodinates of the AABB
+   */
+  void SetVolumeAABB(const FLOATVECTOR3& min, 
+                     const FLOATVECTOR3& max);
+
+  /**\brief Accepts the transformed position of the viewer relative to the 
+   *        untransformed volume
+   * \param viewPoint the transformedposition of the viewer relative to the 
+   *                  untransformed volume
+   */
+  void SetUserPos(const FLOATVECTOR3& viewPoint);
+
+  /**\brief Returns the list of all polygons in front of the AABB as 
+   *        computed by SetUserPos 
+   * \result the points in front of the AABB
+   */
+  const SortIndexList& GetFrontPointList();
+  /**\brief Returns the list of all polygons inside the AABB as 
+   *        computed by SetUserPos 
+   * \result the points inside the AABB
+   */
+  const SortIndexList& GetInPointList();
+  /**\brief Returns the list of all polygons behind the AABB as 
+   *        computed by SetUserPos 
+   * \result the points behind the AABB
+   */
+  const SortIndexList& GetBehindPointList();
+   
+  virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
+
 protected:
   bool   m_bActive;
   size_t m_splitIndex;
-  float m_fTransTreshhold;
+  float  m_fTransTreshhold;
 
-  void Swap(size_t i, size_t j, size_t vertexCount);
-  bool isTransparent(size_t i, size_t vertexCount);
+  void Swap(size_t i, size_t j);
+  bool isTransparent(size_t i);
   void SplitOpaqueFromTransparent();
 
+  // transparent meshes
+  FLOATVECTOR3 m_viewPoint;
+  FLOATVECTOR3 m_VolumeMin; 
+  FLOATVECTOR3 m_VolumeMax;
+  bool         m_QuadrantsDirty;
+  bool         m_FIBHashDirty;
+
+  SortIndexList m_allPolys;
+  std::vector< SortIndexList > m_Quadrants;
+  SortIndexList m_FrontPointList;
+  SortIndexList m_InPointList;
+  SortIndexList m_BehindPointList;
+
+
+  /**\brief If the mesh contains transparent parts this call creates 
+   *        27 lists pointing to parts of the transparent mesh in the 27 
+   *        quadrants defined by the 6 planes of the volume's AABB
+   */
+  void SortTransparentDataIntoQuadrants();
+
+  /**\brief If the mesh contains transparent parts this call creates 
+   *        three lists pointing to parts of the transparent mesh
+   *        one list conatins all triangles in front of the AABB specified 
+   *        by min and max as viewed from viewPoint. 
+   */
+  void RehashTransparentData();
+
+  /**\brief Sorts a point into one of the 27 quadrants in and around the volume 
+   * \param pos of the point to be sorted
+   * \result the quadrant index
+   */
+  size_t PosToQuadrant(const FLOATVECTOR3& pos);
+
+  /**\brief Appends a quadrant with index "index" to "target"
+   * \param target the list to append to
+   * \param index the index of the quadrant to be appended to "target"
+   */
+  void Append(SortIndexList& target, size_t index) {
+    target.insert(target.end(), 
+                  m_Quadrants[index].begin(),
+                  m_Quadrants[index].end());
+  }
+
+
+  void Front(int index,...);
 };
 
 }

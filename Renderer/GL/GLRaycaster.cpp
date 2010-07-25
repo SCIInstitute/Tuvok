@@ -355,7 +355,6 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
 
 
 void GLRaycaster::Render3DPreLoop(const RenderRegion3D &) {
-  m_bSupportsMeshes = m_eRenderMode == RM_ISOSURFACE;
 
   // render nearplane into buffer
   if (m_iBricksRenderedInThisSubFrame == 0) {
@@ -554,6 +553,13 @@ void GLRaycaster::RenderHQMIPPostLoop() {
   glDisable(GL_CULL_FACE);
   glDepthMask(GL_TRUE);
 }
+
+void GLRaycaster::SetRendermode(ERenderMode eRenderMode)
+{
+  AbstrRenderer::SetRendermode(eRenderMode);
+  m_bSupportsMeshes = m_eRenderMode == RM_ISOSURFACE;
+}
+
 
 void GLRaycaster::StartFrame() {
   GLRenderer::StartFrame();

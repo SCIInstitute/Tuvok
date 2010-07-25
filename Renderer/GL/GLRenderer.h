@@ -210,7 +210,6 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramSBSStereo;
     GLSLProgram*    m_pProgramBBox;
     GLSLProgram*    m_pProgramMesh;
-    bool            m_bSupportsMeshes;
 
   private:
 

@@ -38,6 +38,22 @@
 
 using namespace tuvok;
 
+SortIndex::SortIndex(size_t index, const Mesh& m) :
+  m_index(index)  
+{
+  ComputeCentroid(m);
+}
+
+void SortIndex::ComputeCentroid(const Mesh& m) {
+  size_t vertexCount = m.GetVerticesPerPoly();
+
+  m_centroid = FLOATVECTOR3(0,0,0);
+  for (size_t iVertex = 0;iVertex<vertexCount;iVertex++) {
+    m_centroid = m_centroid + m.GetVertices()[m.GetVertexIndices()[m_index+iVertex]];
+  }
+  m_centroid /= float(vertexCount);
+}
+
 RenderMesh::RenderMesh(const Mesh& other, float fTransTreshhold) : 
   Mesh(other.GetVertices(),other.GetNormals(),
        other.GetTexCoords(),other.GetColors(),
@@ -45,10 +61,16 @@ RenderMesh::RenderMesh(const Mesh& other, float fTransTreshhold) :
        other.GetTexCoordIndices(),other.GetColorIndices(),
        false, false, other.Name(),other.GetMeshType()),
    m_bActive(true),
-   m_fTransTreshhold(fTransTreshhold)
+   m_fTransTreshhold(fTransTreshhold),
+   m_viewPoint(FLOATVECTOR3(0,0,0)),
+   m_VolumeMin(FLOATVECTOR3(0,0,0)),
+   m_VolumeMax(FLOATVECTOR3(0,0,0)),
+   m_QuadrantsDirty(true),
+   m_FIBHashDirty(true)
 {
+  m_Quadrants.resize(27);
   SplitOpaqueFromTransparent();
-  if (other.GetKDTree()) ComputeKDTree();
+  GeometryHasChanged(other.GetKDTree() != 0, other.GetKDTree() != 0);
 }
 
 RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
@@ -62,16 +84,20 @@ RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
        vIndices,nIndices,tIndices,cIndices,
        false, bScaleToUnitCube,desc,meshType),
    m_bActive(true),
-   m_fTransTreshhold(fTransTreshhold)
+   m_fTransTreshhold(fTransTreshhold),
+   m_viewPoint(FLOATVECTOR3(0,0,0)),
+   m_VolumeMin(FLOATVECTOR3(0,0,0)),
+   m_VolumeMax(FLOATVECTOR3(0,0,0)),
+   m_QuadrantsDirty(true),
+   m_FIBHashDirty(true)
 {
+  m_Quadrants.resize(27);
   SplitOpaqueFromTransparent();
-  // moved this computation after the resorting as it invalides the indices
-  // stored in the KD-Tree
-  if (bBuildKDTree) m_KDTree = new KDTree(this);
+  GeometryHasChanged(bBuildKDTree, bBuildKDTree);
 }
 
-void RenderMesh::Swap(size_t i, size_t j, size_t vertexCount) {
-  for (size_t iVertex = 0;iVertex<vertexCount;iVertex++) {
+void RenderMesh::Swap(size_t i, size_t j) {
+  for (size_t iVertex = 0;iVertex<m_VerticesPerPoly;iVertex++) {
     std::swap(m_VertIndices[i+iVertex], m_VertIndices[j+iVertex]);
     std::swap(m_COLIndices[i+iVertex], m_COLIndices[j+iVertex]);
   
@@ -82,8 +108,8 @@ void RenderMesh::Swap(size_t i, size_t j, size_t vertexCount) {
   }
 }
 
-bool RenderMesh::isTransparent(size_t i, size_t vertexCount) {
-  for (size_t iVertex = 0;iVertex<vertexCount;iVertex++) {
+bool RenderMesh::isTransparent(size_t i) {
+  for (size_t iVertex = 0;iVertex<m_VerticesPerPoly;iVertex++) {
     if (m_colors[m_COLIndices[i+iVertex]].w < m_fTransTreshhold)
       return true;
   }
@@ -92,33 +118,36 @@ bool RenderMesh::isTransparent(size_t i, size_t vertexCount) {
 
 
 void RenderMesh::SplitOpaqueFromTransparent() {
+  size_t prevIndex  = m_splitIndex;
+
   if (m_COLIndices.size() == 0) {
     if (m_DefColor.w < m_fTransTreshhold ) 
       m_splitIndex = 0;
     else
       m_splitIndex = m_VertIndices.size();
-    return;
-  }
+  } else {
+    assert(Validate(true));
 
-  assert(Validate(true));
-
-  size_t vertexCount = (m_meshType == MT_TRIANGLES) ? 3 : 2;
-  
-  // find first transparent polygon
-  size_t iTarget = 0;
-  for (;iTarget<m_COLIndices.size();iTarget+=vertexCount) {
-    if (isTransparent(iTarget,vertexCount)) break;
-  }
-
-  // swap opaque poly with transparent
-  size_t iStart = iTarget;
-  for (size_t iSource = iStart+vertexCount;iSource<m_COLIndices.size();iSource+=vertexCount) {
-    if (!isTransparent(iSource,vertexCount)) {
-      Swap(iSource, iTarget, vertexCount);
-      iTarget+=vertexCount;
+    // find first transparent polygon
+    size_t iTarget = 0;
+    for (;iTarget<m_COLIndices.size();iTarget+=m_VerticesPerPoly) {
+      if (isTransparent(iTarget)) break;
     }
+
+    // swap opaque poly with transparent
+    size_t iStart = iTarget;
+    for (size_t iSource = iStart+m_VerticesPerPoly;iSource<m_COLIndices.size();iSource+=m_VerticesPerPoly) {
+      if (!isTransparent(iSource)) {
+        Swap(iSource, iTarget);
+        iTarget+=m_VerticesPerPoly;
+      }
+    }
+    m_splitIndex = iTarget;
   }
-  m_splitIndex = iTarget;
+
+  if (prevIndex != m_splitIndex) {
+    GeometryHasChanged(false,false);
+  }
 }
 
 void RenderMesh::SetTransTreshhold(float fTransTreshhold) {
@@ -147,4 +176,455 @@ void RenderMesh::SetDefaultColor(const FLOATVECTOR4& color) {
     SplitOpaqueFromTransparent();
     if (m_KDTree) ComputeKDTree();
   } 
+}
+
+void RenderMesh::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
+  Mesh::GeometryHasChanged(bUpdateAABB, bUpdateKDtree);
+
+  // create sortindex list with all tris
+  m_allPolys.clear();
+  for (size_t i = 0;i<m_VertIndices.size();i+=m_VerticesPerPoly) {
+    m_allPolys.push_back(SortIndex(i, *this));
+  }
+
+  m_QuadrantsDirty = true;
+  m_FIBHashDirty = true;
+}
+
+
+void RenderMesh::SetVolumeAABB(const FLOATVECTOR3& min, 
+                               const FLOATVECTOR3& max) {
+  if (m_VolumeMin != min || m_VolumeMax != max) {
+    m_VolumeMin = min;
+    m_VolumeMax = max;
+    m_QuadrantsDirty = true;
+  }
+}
+
+void RenderMesh::SetUserPos(const FLOATVECTOR3& viewPoint) {
+  if (m_viewPoint != viewPoint) {
+    m_viewPoint = viewPoint;
+    m_FIBHashDirty = true;
+  }
+}
+
+// This code sorts the polygons (or more precisely their centroids) into the
+// 27 quadrants "around and inside" the axis aligned volume. The quadrants
+// are created by the 6 clip planes of the cube, they are enumarted
+// 0 : x<box   , y<box   , z<box
+// 1 : x inside, y<box   , z<box
+// 2 : x>box   , y<box   , z<box
+// 3 : x<box   , y inside, z<box
+// ...
+// so x is fastes, then y and finally z
+void RenderMesh::SortTransparentDataIntoQuadrants() {
+  m_QuadrantsDirty = false;
+  for (int i = 0;i<27;i++) m_Quadrants[i].clear();
+
+  // is the entire mesh opaque ?
+  if (m_splitIndex == m_VertIndices.size()) return;
+
+  for (SortIndexList::iterator poly = m_allPolys.begin();
+       poly != m_allPolys.end();
+       poly++) {
+
+    size_t index = PosToQuadrant(poly->m_centroid);
+    m_Quadrants[index].push_back(*poly);
+  }
+
+  m_InPointList = m_Quadrants[13];
+}
+
+inline size_t RenderMesh::PosToQuadrant(const FLOATVECTOR3& pos) {
+  size_t index = 0;
+
+  if (pos.x < m_VolumeMin.x) index = 0; else 
+  if (pos.x > m_VolumeMax.x) index = 2; else index = 1;
+
+  if (pos.y < m_VolumeMin.y) index += 0; else 
+  if (pos.y > m_VolumeMax.y) index += 6; else index += 3;
+
+  if (pos.z < m_VolumeMin.z) index += 0; else 
+  if (pos.z > m_VolumeMax.z) index += 18; else index += 9;
+
+  return index;
+}
+
+#define END 27
+
+void RenderMesh::Front(int index,...)
+{
+  va_list indices;
+  va_start(indices,index);
+
+  for (int i = 0;i<27;i++) {
+    if (i == 13) continue; // center quadrant
+
+    if (i == index) {
+      Append(m_FrontPointList, i);
+      index = va_arg(indices,int);
+    } else {
+      Append(m_BehindPointList, i);
+    }
+  }
+
+  va_end(indices);
+}
+
+
+void RenderMesh::RehashTransparentData() {
+  m_FIBHashDirty = false;
+
+  // is the entire mesh opaque ?
+  if (m_splitIndex == m_VertIndices.size()) return;
+
+  m_FrontPointList.clear();
+  m_BehindPointList.clear();
+
+  size_t index = PosToQuadrant(m_viewPoint);
+
+  switch (index) {
+    case  0 : Front( 0, 1, 2,
+                     3, 4, 5,
+                     6, 7, 8,
+
+                     9,10,11,
+                    12,
+                    15,
+
+                    18,19,20,
+                    21,
+                    24,
+                    END);
+              break;
+    case  1 : Front( 0, 1, 2,
+                     3, 4, 5,
+                     6, 7, 8,
+
+                     9,10,11,
+                      
+                      
+
+                    18,19,20,
+
+
+                    END);
+              break;
+    case  2 : Front( 0, 1, 2,
+                     3, 4, 5,
+                     6, 7, 8,
+
+                     9,10,11,
+                          14,
+                          17,
+
+                    18,19,20,
+                          23,
+                          26,
+                    END);
+              break;
+    case  3 : Front( 0, 1, 2,
+                     3, 4, 5,
+                     6, 7, 8,
+
+                     9,      
+                    12,      
+                    15,   
+
+                    18,   
+                    21,   
+                    24,   
+                    END);
+              break;
+    case  4 : Front( 0, 1, 2,
+                     3, 4, 5,
+                     6, 7, 8,
+                    END);
+              break;
+    case  5 : Front( 0, 1, 2,
+                     3, 4, 5,
+                     6, 7, 8,
+
+                          11,
+                          14,
+                          17,
+
+                          20,
+                          23,
+                          26,
+                    END);
+              break;
+    case  6 : Front( 0, 1, 2,
+                     3, 4, 5,
+                     6, 7, 8,
+
+                     9,   
+                    12,      
+                    15,16,17,
+
+                    18,      
+                    21,
+                    24,25,26,
+                    END);
+              break;
+    case  7 : Front( 0, 1, 2,
+                     3, 4, 5,
+                     6, 7, 8,
+
+                          
+                    
+                    15,16,17,
+
+                    
+                    
+                    24,25,26,
+                    END);
+              break;
+    case  8 : Front( 0, 1, 2,
+                     3, 4, 5,
+                     6, 7, 8,
+
+                          11,
+                          14,
+                    15,16,17,
+
+                          20,
+                          23,
+                    24,25,26,
+                    END);
+              break;
+    case  9 : Front( 0, 1, 2,
+                     3,
+                     6,
+
+                     9,10,11,
+                    12,
+                    15,
+
+                    18,19,20,
+                    21,
+                    24,
+                    END);
+              break;
+    case 10 : Front( 0, 1, 2,
+                     
+                     
+
+                     9,10,11,
+                    
+                    
+
+                    18,19,20,
+                    
+                    
+                    END);
+              break;
+    case 11 : Front( 0, 1, 2,
+                           5,
+                           8,
+
+                     9,10,11,
+                          14,
+                          17,
+
+                    18,19,20,
+                          23,
+                          26,
+                    END);
+              break;
+    case 12 : Front( 0,
+                     3,
+                     6,
+
+                     9,
+                    12,
+                    15,
+
+                    18,
+                    21,
+                    24,
+                    END);
+              break;
+    case 13 : Front(END);
+              break;
+    case 14 : Front(       2,
+                           5,
+                           8,
+
+                          11,
+                          14,
+                          17,
+
+                          20,
+                          23,
+                          26,
+                    END);
+              break;
+    case 15 : Front( 0,
+                     3,
+                     6, 7, 8,
+
+                     9,
+                    12,
+                    15,16,17,
+
+                    18,
+                    21,
+                    24,25,26,
+                    END);
+              break;
+    case 16 : Front( 
+                     
+                     6, 7, 8,
+
+                     
+                    
+                    15,16,17,
+
+                    
+                    
+                    24,25,26,
+                    END);
+              break;
+    case 17 : Front(       2,
+                           5,
+                     6, 7, 8,
+
+                          11,
+                          14,
+                    15,16,17,
+
+                          20,
+                          23,
+                    24,25,26,
+                    END);
+              break;
+    case 18 : Front( 0, 1, 2,
+                     3,
+                     6,
+
+                     9,10,11,
+                    12,
+                    15,
+
+                    18,19,20,
+                    21,22,23,
+                    24,25,26,
+                    END);
+              break;
+    case 19 : Front( 0, 1, 2,
+                     
+                     
+
+                     9,10,11,
+                    
+                    
+
+                    18,19,20,
+                    21,22,23,
+                    24,25,26,
+                    END);
+              break;
+    case 20 : Front( 0, 1, 2,
+                           5,
+                           8,
+
+                     9,10,11,
+                          14,
+                          17,
+
+                    18,19,20,
+                    21,22,23,
+                    24,25,26,
+                    END);
+              break;
+    case 21 : Front( 0,
+                     3,
+                     6,
+
+                     9,
+                    12,
+                    15,
+
+                    18,19,20,
+                    21,22,23,
+                    24,25,26,
+                    END);
+              break;
+    case 22 : Front(18,19,20,
+                    21,22,23,
+                    24,25,26,
+                    END);
+              break;
+    case 23 : Front(       2,
+                           5,
+                           8,
+
+                          11,
+                          14,
+                          17,
+
+                    18,19,20,
+                    21,22,23,
+                    24,25,26,
+                    END);
+              break;
+    case 24 : Front( 0,
+                     3,
+                     6, 7, 8,
+
+                     9,
+                    12,
+                    15,16,17,
+
+                    18,19,20,
+                    21,22,23,
+                    24,25,26,
+                    END);
+              break;
+    case 25 : Front( 
+                     
+                     6, 7, 8,
+
+                     
+                    
+                    15,16,17,
+
+                    18,19,20,
+                    21,22,23,
+                    24,25,26,
+                    END);
+              break;
+    case 26 : Front(       2,
+                           5,
+                     6, 7, 8,
+
+                          11,
+                          14,
+                    15,16,17,
+
+                    18,19,20,
+                    21,22,23,
+                    24,25,26,
+                    END);
+              break;
+  }
+}
+
+const SortIndexList& RenderMesh::GetFrontPointList() {
+  if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
+  if (m_FIBHashDirty) RehashTransparentData();
+  return m_FrontPointList;
+}
+
+const SortIndexList& RenderMesh::GetInPointList() {
+  if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
+  if (m_FIBHashDirty) RehashTransparentData();
+  return m_InPointList;
+}
+
+const SortIndexList& RenderMesh::GetBehindPointList() {
+  if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
+  if (m_FIBHashDirty) RehashTransparentData();
+  return m_BehindPointList;
 }

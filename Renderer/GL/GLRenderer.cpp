@@ -89,7 +89,6 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramSBSStereo(NULL),
   m_pProgramBBox(NULL),
   m_pProgramMesh(NULL),
-  m_bSupportsMeshes(false),
   m_aDepthStorage(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
@@ -1109,12 +1108,8 @@ void GLRenderer::RenderHQMIPPreLoop(RenderRegion2D& region) {
 }
 
 void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor) {
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
-  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetScale());
-  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
-  vExtend /= vExtend.maxVal();
-
-  FLOATVECTOR3 vCenter(0,0,0);
+  FLOATVECTOR3 vCenter, vExtend;
+  GetVolumeAABB(vCenter,vExtend);
   RenderBBox(vColor, vCenter, vExtend);
 }
 
@@ -1955,7 +1950,7 @@ void GLRenderer::BBoxPreRender() {
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
-          (*mesh)->RenderOpaqueGeometry();           
+          (*mesh)->RenderOpaqueGeometry(); 
         }
       }
       m_pProgramMesh->Disable();
@@ -2033,12 +2028,10 @@ void GLRenderer::PlaneIn3DPostRender() {
 }
 
 void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
-  FLOATVECTOR3 vScale = FLOATVECTOR3(m_pDataset->GetScale());
-  FLOATVECTOR3 vExtend = FLOATVECTOR3(vDomainSize) * vScale;
-  vExtend /= vExtend.maxVal();
+  FLOATVECTOR3 vCenter, vExtend;
+  GetVolumeAABB(vCenter, vExtend);
 
-  FLOATVECTOR3 vMinPoint = -vExtend/2.0, vMaxPoint = vExtend/2.0;
+  FLOATVECTOR3 vMinPoint = -vExtend/2.0f, vMaxPoint = vExtend/2.0f;
 
   glDisable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
@@ -2057,7 +2050,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     default: continue;
     };
 
-    const float sliceIndex = static_cast<float>(renderRegions[i]->GetSliceIndex()) / vDomainSize[k];
+    const float sliceIndex = static_cast<float>(renderRegions[i]->GetSliceIndex()) / m_pDataset->GetDomainSize()[k];
     const float planePos = vMinPoint[k] * (1.0f-sliceIndex) + vMaxPoint[k] * sliceIndex;
 
     glBegin(GL_LINE_LOOP);

@@ -335,7 +335,8 @@ class AbstrRenderer {
                          float fScreenResDecFactor,
                          float fSampleDecFactor, UINT32 iStartDelay);
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
-      m_pDataset->SetRescaleFactors(vfRescale); ScheduleCompleteRedraw();
+      m_pDataset->SetRescaleFactors(vfRescale);
+      ScheduleCompleteRedraw();
     }
     DOUBLEVECTOR3 GetRescaleFactors() const {
       return m_pDataset->GetRescaleFactors();
@@ -478,6 +479,7 @@ class AbstrRenderer {
     int                 m_iLogoPos;
     std::string         m_strLogoFilename;
 
+    bool                m_bSupportsMeshes;
     std::vector<RenderMesh*> m_Meshes;
 
     /// parameters for dynamic resolution adjustments
@@ -598,6 +600,7 @@ class AbstrRenderer {
     void                RestartTimers();
     double              MaxValue() const;
     bool                OnlyRecomposite(RenderRegion* region) const;
+    void GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend);
 
     RenderRegion3D* GetFirst3DRegion();
 
