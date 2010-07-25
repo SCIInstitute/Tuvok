@@ -132,8 +132,8 @@ class DXRenderer : public AbstrRenderer {
     virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile, const std::vector<std::string>& strDirs, GLSLProgram** pShaderProgram);
     virtual bool LoadAndVerifyShader(std::string strVSFile, std::string strFSFile, GLSLProgram** pShaderProgram, bool bSearchSubdirs);
 
-    void BBoxPreRender();
-    void BBoxPostRender();
+    void GeometryPreRender();
+    void GeometryPostRender();
     void PlaneIn3DPreRender();
     void PlaneIn3DPostRender();
 

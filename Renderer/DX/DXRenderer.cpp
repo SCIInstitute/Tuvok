@@ -326,10 +326,10 @@ bool DXRenderer::LoadAndVerifyShader(string strVSFile, string strFSFile, GLSLPro
   return true;
 }
 
-void DXRenderer::BBoxPreRender() {
+void DXRenderer::GeometryPreRender() {
 }
 
-void DXRenderer::BBoxPostRender() {
+void DXRenderer::GeometryPostRender() {
 }
 
 void DXRenderer::PlaneIn3DPreRender() {
