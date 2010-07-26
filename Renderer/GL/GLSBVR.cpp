@@ -227,6 +227,8 @@ void GLSBVR::SetDataDepShaderVars() {
       m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
       break;
     }
+
+    default : break; // suppress warnings 
   }
 
   if (m_eRenderMode == RM_ISOSURFACE && m_bAvoidSeperateCompositing) {
