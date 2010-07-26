@@ -67,7 +67,7 @@ class DXSBVR2D : public DXRenderer {
   protected:
     virtual void Render3DInLoop(size_t iCurrentBrick, int iStereoID);
     virtual void RenderHQMIPInLoop(const Brick& b);
-    virtual void UpdateColorsInShaders();
+    virtual void UpdateLightParamsInShaders();
 };
 
 }; //namespace tuvok

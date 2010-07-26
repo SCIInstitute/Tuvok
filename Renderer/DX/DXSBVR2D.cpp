@@ -64,7 +64,7 @@ void DXSBVR2D::RenderHQMIPInLoop(const Brick& b) {
 
 }
 
-void DXSBVR2D::UpdateColorsInShaders() {
+void DXSBVR2D::UpdateLightParamsInShaders() {
 
 }
 

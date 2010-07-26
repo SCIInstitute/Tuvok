@@ -64,7 +64,7 @@ void DXRaycaster::RenderHQMIPInLoop(const Brick& b) {
 
 }
 
-void DXRaycaster::UpdateColorsInShaders() {
+void DXRaycaster::UpdateLightParamsInShaders() {
 
 }
 
