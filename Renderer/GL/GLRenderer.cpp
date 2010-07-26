@@ -88,7 +88,8 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramComposeScanlineStereo(NULL),
   m_pProgramSBSStereo(NULL),
   m_pProgramBBox(NULL),
-  m_pProgramMesh(NULL),
+  m_pProgramMeshFTB(NULL),
+  m_pProgramMeshBTF(NULL),
   m_aDepthStorage(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
@@ -197,40 +198,76 @@ bool GLRenderer::Initialize() {
 
 bool GLRenderer::LoadShaders() {
   if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Transfer-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Transfer-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "2D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                           "2D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramMIPSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "MIP-slice-FS.glsl", "Volume3D.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                           "MIP-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
-                          "SlicesIn3D.glsl", "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
+                          "SlicesIn3D.glsl",
+                          NULL,
+                           "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
-                          "SlicesIn3D.glsl", "2D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
+                          "SlicesIn3D.glsl",
+                          NULL,
+                           "2D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramTransMIP, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Transfer-MIP-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                           "Transfer-MIP-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIsoCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Compose-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                           "Compose-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColorCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Compose-Color-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-Color-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramCVCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Compose-CV-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-CV-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramComposeAnaglyphs, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-Anaglyphs-FS.glsl",
                           NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramSBSStereo, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Compose-SBS-FS.glsl",
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-SBS-FS.glsl",
                           NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
-                          m_vShaderSearchDirs, "Transfer-VS.glsl",
+                          m_vShaderSearchDirs, 
+                          "Transfer-VS.glsl",
+                          NULL,
                           "Compose-Scanline-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramBBox,
-                          m_vShaderSearchDirs, "BBox-VS.glsl",
-                          "BBox-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramMesh,
-                          m_vShaderSearchDirs, "Mesh-VS.glsl",
-                          "Mesh-FS.glsl","lighting.glsl",NULL))
+                          m_vShaderSearchDirs, 
+                          "BBox-VS.glsl",
+                          NULL,
+                          "BBox-FS.glsl",
+                          NULL) ||
+     !LoadAndVerifyShader(&m_pProgramMeshFTB,
+                          m_vShaderSearchDirs,
+                          "Mesh-VS.glsl","FTB.glsl",
+                          NULL,                          
+                          "Mesh-FS.glsl","lighting.glsl",NULL) ||
+     !LoadAndVerifyShader(&m_pProgramMeshBTF,
+                          m_vShaderSearchDirs,
+                          "Mesh-VS.glsl","BTF.glsl",
+                          NULL,                          
+                          "Mesh-FS.glsl","lighting.glsl", NULL))
   {
       T_ERROR("Error loading transfer function shaders.");
       return false;
@@ -291,6 +328,7 @@ void GLRenderer::CleanupShader(GLSLProgram** p) {
 }
 
 void GLRenderer::CleanupShaders() {
+  GLSLProgram::Disable();
   CleanupShader(&m_pProgramTrans);
   CleanupShader(&m_pProgram1DTransSlice);
   CleanupShader(&m_pProgram2DTransSlice);
@@ -312,7 +350,8 @@ void GLRenderer::CleanupShaders() {
   CleanupShader(&m_pProgramComposeScanlineStereo);
   CleanupShader(&m_pProgramSBSStereo);
   CleanupShader(&m_pProgramBBox);
-  CleanupShader(&m_pProgramMesh);
+  CleanupShader(&m_pProgramMeshFTB);
+  CleanupShader(&m_pProgramMeshBTF);
 }
 
 void GLRenderer::Set1DTrans(const std::vector<unsigned char>& rgba)
@@ -392,14 +431,12 @@ void GLRenderer::StartFrame() {
     if (m_bDoClearView) {
       m_pProgramCVCompose->Enable();
       m_pProgramCVCompose->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
-      m_pProgramCVCompose->Disable();
     } else {
       GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ?
                             m_pProgramIsoCompose : m_pProgramColorCompose;
 
       shader->Enable();
       shader->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
-      shader->Disable();
     }
   }
 }
@@ -447,7 +484,6 @@ bool GLRenderer::Paint() {
 
       m_pProgramTrans->Enable();
       FullscreenQuad();
-      m_pProgramTrans->Disable();
 
       m_pFBOResizeQuickBlit->FinishRead();
       m_pFBOResizeQuickBlit->FinishDepthRead();
@@ -584,7 +620,6 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
   // Display this to the old buffer so we can reuse it in future frame.
   m_pProgramTrans->Enable();
   FullscreenQuadRegion(region, this->decreaseScreenResNow);
-  m_pProgramTrans->Disable();
 
   m_TargetBinder.Unbind();
   m_pFBO3DImageCurrent[0]->FinishRead();
@@ -645,11 +680,6 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
         FullscreenQuadRegions();
         glEnable(GL_DEPTH_TEST);
 
-        switch (m_eStereoMode) {
-          case SM_RB       : m_pProgramComposeAnaglyphs->Disable(); break;
-          case SM_SCANLINE : m_pProgramComposeScanlineStereo->Disable(); break;
-          default          : m_pProgramSBSStereo->Disable(); break;
-        }
 
         m_TargetBinder.Unbind();
 
@@ -995,12 +1025,6 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     }
 
     glEnable(GL_DEPTH_TEST);
-    if (!renderRegion.GetUseMIP()) {
-      switch (m_eRenderMode) {
-        case RM_2DTRANS    :  m_pProgram2DTransSlice->Disable(); break;
-        default            :  m_pProgram1DTransSlice->Disable(); break;
-      }
-    } else m_pProgramMIPSlice->Disable();
   } else {
     if (m_bOrthoView) {
       FLOATMATRIX4 maOrtho;
@@ -1070,8 +1094,6 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     FullscreenQuad();
     glDisable( GL_SCISSOR_TEST );
     m_pFBO3DImageCurrent[1]->FinishRead(0);
-
-    m_pProgramTransMIP->Disable();
   }
 
   m_TargetBinder.Unbind();
@@ -1154,8 +1176,6 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor,
     glVertex3f( vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
     glVertex3f( vMaxPoint.x, vMaxPoint.y,vMinPoint.z);
   glEnd();
-
-  m_pProgramBBox->Disable();
 }
 
 void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
@@ -1201,6 +1221,7 @@ void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
 }
 
 void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
+  GLSLProgram::Disable(); // switch to fixed function pipeline
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHT0);
   glEnable(GL_LIGHTING);
@@ -1430,8 +1451,6 @@ void GLRenderer::CopyImageToDisplayBuffer() {
   else
     FullscreenQuad();
 
-  m_pProgramTrans->Disable();
-
   m_pFBO3DImageLast->FinishRead();
   m_pFBO3DImageLast->FinishDepthRead();
 
@@ -1497,6 +1516,7 @@ void GLRenderer::DrawLogo() const {
 }
 
 void GLRenderer::DrawBackGradient() const {
+  GLSLProgram::Disable(); // switch to fixed function pipeline
   glDisable(GL_DEPTH_TEST);
 
   glMatrixMode(GL_PROJECTION);
@@ -1689,38 +1709,30 @@ void GLRenderer::SetDataDepShaderVars() {
 
   m_pProgramTransMIP->Enable();
   m_pProgramTransMIP->SetUniformVector("fTransScale",fScale);
-  m_pProgramTransMIP->Disable();
-
   switch (m_eRenderMode) {
     case RM_1DTRANS: {
       m_pProgram1DTransSlice->Enable();
       m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
-      m_pProgram1DTransSlice->Disable();
 
       m_pProgram1DTransSlice3D->Enable();
       m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
-      m_pProgram1DTransSlice3D->Disable();
 
       m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
       m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
-      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
       break;
     }
     case RM_2DTRANS: {
       m_pProgram2DTransSlice->Enable();
       m_pProgram2DTransSlice->SetUniformVector("fTransScale",fScale);
       m_pProgram2DTransSlice->SetUniformVector("fGradientScale",fGradientScale);
-      m_pProgram2DTransSlice->Disable();
 
       m_pProgram2DTransSlice3D->Enable();
       m_pProgram2DTransSlice3D->SetUniformVector("fTransScale",fScale);
       m_pProgram2DTransSlice3D->SetUniformVector("fGradientScale",fGradientScale);
-      m_pProgram2DTransSlice3D->Disable();
 
       m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
       m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
       m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
-      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
       break;
     }
     case RM_ISOSURFACE: {
@@ -1728,11 +1740,9 @@ void GLRenderer::SetDataDepShaderVars() {
       // in iso mode update that shader also
       m_pProgram1DTransSlice->Enable();
       m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
-      m_pProgram1DTransSlice->Disable();
 
       m_pProgram1DTransSlice3D->Enable();
       m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
-      m_pProgram1DTransSlice3D->Disable();
 
       GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ?
         m_pProgramIso : m_pProgramColor;
@@ -1740,7 +1750,6 @@ void GLRenderer::SetDataDepShaderVars() {
       shader->Enable();
       shader->SetUniformVector("fIsoval", static_cast<float>
                                           (this->GetNormalizedIsovalue()));
-      shader->Disable();
       break;
     }
     case RM_INVALID: T_ERROR("Invalid rendermode set"); break;
@@ -1806,53 +1815,71 @@ namespace {
 
 bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
                                      const std::vector<std::string>& strDirs,
-                                     const char* vertex, ...)
+                                     const char* shaderFiles, ...)
 {
   // first build list of fragment shaders
+  std::vector<std::string> vertex;
   std::vector<std::string> frag;
 
+  vertex.push_back(shaderFiles);
+
   va_list args;
-  va_start(args, vertex);
+  va_start(args, shaderFiles);
   {
-    const char* fp;
+    const char* filename;
     do {
-      fp = va_arg(args, const char*);
-      if(fp != NULL) {
-        std::string shader = find_shader(std::string(fp), false);
+      filename = va_arg(args, const char*);
+      if(filename != NULL) {
+        std::string shader = find_shader(std::string(filename), false);
         if(shader == "") {
-          T_ERROR("Could not find shader '%s'!", fp);
+          T_ERROR("Could not find VS shader '%s'!", filename);
+          return false;
+        }
+        vertex.push_back(shader);
+      }
+    } while(filename != NULL);
+
+    do {
+      filename = va_arg(args, const char*);
+      if(filename != NULL) {
+        std::string shader = find_shader(std::string(filename), false);
+        if(shader == "") {
+          T_ERROR("Could not find FS shader '%s'!", filename);
           return false;
         }
         frag.push_back(shader);
       }
-    } while(fp != NULL);
+    } while(filename != NULL);
   }
   va_end(args);
 
-  std::vector<std::string> fullVS(1);
-  fullVS[0] = find_shader(vertex, false);
 
   // now iterate through all directories, looking for our shaders in them.
   for (size_t i = 0;i<strDirs.size();i++) {
     MESSAGE("Searching for shaders in %s ...", strDirs[i].c_str());
 
+    std::vector<std::string> fullVS(vertex.size());
     std::vector<std::string> fullFS(frag.size());
 
-    if(!SysTools::FileExists(fullVS[0])) {
-      fullVS[0] = strDirs[i] + "/" + vertex;
-      if(!SysTools::FileExists(fullVS[0])) {
-        MESSAGE("%s doesn't exist, skipping this directory...",
-                fullVS[0].c_str());
-        continue;
-      }
+    for(size_t j=0; j < fullVS.size(); ++j) {
+      fullVS[j] = strDirs[i] + "/" + vertex[j];
     }
+    // if any of those files don't exist, skip this directory.
+    if(!all_exist(fullVS.begin(), fullVS.end())) {
+      MESSAGE("Not all vertex shaders present in %s, skipping...",
+              strDirs[i].c_str());
+      continue;
+    }
+
     for(size_t j=0; j < fullFS.size(); ++j) {
       fullFS[j] = strDirs[i] + "/" + frag[j];
     }
+
     // if any of those files don't exist, skip this directory.
     if(!all_exist(fullFS.begin(), fullFS.end())) {
       MESSAGE("Not all fragment shaders present in %s, skipping...",
               strDirs[i].c_str());
+      continue;
     }
 
     if (LoadAndVerifyShader(program, fullVS, fullFS)) {
@@ -1862,7 +1889,10 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
 
   {
     std::ostringstream shaders;
-    shaders << "Shaders [" << vertex << ", ";
+    shaders << "Shaders [VS: ";
+    std::copy(vertex.begin(), vertex.end(),
+              std::ostream_iterator<std::string>(shaders, ", "));
+    shaders << "  FS: ";
     std::copy(frag.begin(), frag.end(),
               std::ostream_iterator<std::string>(shaders, ", "));
     shaders << "] not found!";
@@ -1908,11 +1938,15 @@ void GLRenderer::GeometryPreRender() {
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
+    glDisable(GL_CULL_FACE);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
 
     // first render the pars of the meshes that are in front of the volume
     // remember the volume uses front to back compositing
     if (m_bSupportsMeshes) {
-      m_pProgramMesh->Enable();
+      m_pProgramMeshFTB->Enable();
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
@@ -1920,7 +1954,6 @@ void GLRenderer::GeometryPreRender() {
           (*mesh)->RenderTransGeometryFront();
         }
       }
-      m_pProgramMesh->Disable();
     }
 
     // now write the depth mask of the opaque geomentry into the buffer
@@ -1943,14 +1976,13 @@ void GLRenderer::GeometryPreRender() {
 
     // now the opaque parts of the mesh
     if (m_bSupportsMeshes) {
-      m_pProgramMesh->Enable();
+      m_pProgramMeshBTF->Enable(); // FTB and BTF both work, BTF is simpler
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
           (*mesh)->RenderOpaqueGeometry();
         }
       }
-      m_pProgramMesh->Disable();
     }
 
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
@@ -1976,15 +2008,14 @@ void GLRenderer::GeometryPreRender() {
     }
     // the the opaque parts of the meshes
     if (m_bSupportsMeshes) {
-      m_pProgramMesh->Enable();
+      m_pProgramMeshBTF->Enable(); // FTB and BTF both work, BTF is simpler
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
-          (*mesh)->RenderOpaqueGeometry(); 
           (*mesh)->EnableOverSorting(true);
+          (*mesh)->RenderOpaqueGeometry(); 
         }
       }
-      m_pProgramMesh->Disable();
     }
   }
 }
@@ -2011,27 +2042,28 @@ void GLRenderer::GeometryPostRender() {
     }
 
     if (m_bSupportsMeshes) {
-      m_pProgramMesh->Enable();
-      m_pProgramMesh->SetUniformVector("fOffset",0.001f);
+      m_pProgramMeshFTB->Enable();
+      m_pProgramMeshFTB->SetUniformVector("fOffset",0.001f);
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
           (*mesh)->RenderOpaqueGeometry();        
         }
       }
-      m_pProgramMesh->SetUniformVector("fOffset",0.0f);
-      m_pProgramMesh->Disable();
+      m_pProgramMeshFTB->SetUniformVector("fOffset",0.0f);
     }
 
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
+
     if (m_bSupportsMeshes) {
-      m_pProgramMesh->Enable();
+      m_pProgramMeshFTB->Enable();
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
           (*mesh)->RenderTransGeometryBehind();
         }
       }
-      m_pProgramMesh->Disable();
     }
 
     glDepthFunc(GL_LESS);
@@ -2047,7 +2079,7 @@ void GLRenderer::GeometryPostRender() {
       glDepthMask(GL_FALSE);
       glDisable(GL_CULL_FACE);
 
-      m_pProgramMesh->Enable();
+      m_pProgramMeshBTF->Enable();
 
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
@@ -2066,8 +2098,6 @@ void GLRenderer::GeometryPostRender() {
        if ((*mesh)->GetActive()) 
          (*mesh)->RenderTransGeometryFront();
       }
-
-      m_pProgramMesh->Disable();
 
       glDepthMask(GL_TRUE);
       glDisable(GL_BLEND);
@@ -2230,11 +2260,6 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
   glEnd();
 
   if (!bDepthPassOnly) {
-    switch (m_eRenderMode) {
-      case RM_2DTRANS    :  m_pProgram2DTransSlice3D->Disable(); break;
-      default            :  m_pProgram1DTransSlice3D->Disable(); break;
-    }
-
     m_pMasterController->MemMan()->Release3DTexture(t);
   }
 */
@@ -2496,13 +2521,7 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iSter
   if (m_bDoClearView) {
     m_pFBOCVHit[iStereoID]->FinishRead(0);
     m_pFBOCVHit[iStereoID]->FinishRead(1);
-    m_pProgramCVCompose->Disable();
-  } else {
-    if (m_pDataset->GetComponentCount() == 1)
-      m_pProgramIsoCompose->Disable();
-    else
-      m_pProgramColorCompose->Disable();
-  }
+  } 
 
   m_pFBOIsoHit[iStereoID]->FinishRead(1);
   m_pFBOIsoHit[iStereoID]->FinishRead(0);
@@ -2565,69 +2584,62 @@ void GLRenderer::CreateDepthStorage() {
 }
 
 
-void GLRenderer::UpdateColorsInShaders() {
-    FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
-    FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
-    FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
+void GLRenderer::UpdateLightParamsInShaders() {
+  FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
+  FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
+  FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
 
-    FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
+  FLOATVECTOR3 aM = m_cAmbientM.xyz()*m_cAmbientM.w;
+  FLOATVECTOR3 dM = m_cDiffuseM.xyz()*m_cDiffuseM.w;
+  FLOATVECTOR3 sM = m_cSpecularM.xyz()*m_cSpecularM.w;
 
-    m_pProgram1DTrans[1]->Enable();
-    m_pProgram1DTrans[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-    m_pProgram1DTrans[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-    m_pProgram1DTrans[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
-    m_pProgram1DTrans[1]->Disable();
+  FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
 
-    m_pProgram2DTrans[1]->Enable();
-    m_pProgram2DTrans[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-    m_pProgram2DTrans[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-    m_pProgram2DTrans[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
-    m_pProgram2DTrans[1]->Disable();
+  m_pProgram1DTrans[1]->Enable();
+  m_pProgram1DTrans[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+  m_pProgram1DTrans[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgram1DTrans[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+  m_pProgram1DTrans[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgram1DTrans[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
 
-    m_pProgramIsoCompose->Enable();
-    m_pProgramIsoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-    m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-    m_pProgramIsoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-    m_pProgramIsoCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-    m_pProgramIsoCompose->Disable();
+  m_pProgram2DTrans[1]->Enable();
+  m_pProgram2DTrans[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+  m_pProgram2DTrans[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgram2DTrans[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+  m_pProgram2DTrans[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgram2DTrans[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
 
-    m_pProgramColorCompose->Enable();
-    m_pProgramColorCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-//    m_pProgramColorCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-//    m_pProgramColorCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-    m_pProgramColorCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-    m_pProgramColorCompose->Disable();
+  m_pProgramIsoCompose->Enable();
+  m_pProgramIsoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+  m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgramIsoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+  m_pProgramIsoCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
-    m_pProgramCVCompose->Enable();
-    m_pProgramCVCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-    m_pProgramCVCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-    m_pProgramCVCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-    m_pProgramCVCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-    m_pProgramCVCompose->Disable();
+  m_pProgramColorCompose->Enable();
+  m_pProgramColorCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+  m_pProgramColorCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
-    m_pProgramMesh->Enable();
-    if (m_bMeshUseLightColors) {
-      m_pProgramMesh->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-      m_pProgramMesh->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-      m_pProgramMesh->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+  m_pProgramCVCompose->Enable();
+  m_pProgramCVCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+  m_pProgramCVCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgramCVCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+  m_pProgramCVCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
-      // HACK: for now disable this property after the first init to pick up the defaults
-      //       but not use the light colors afterwards
-      m_bMeshUseLightColors = false;
-    }
-    m_pProgramMesh->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-    m_pProgramMesh->Disable();
+  m_pProgramMeshBTF->Enable();
+  m_pProgramMeshBTF->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgramMeshBTF->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgramMeshBTF->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgramMeshBTF->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
-    m_pProgramIso->Enable();
-    m_pProgramIso->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
-    m_pProgramIso->Disable();
+  m_pProgramMeshFTB->Enable();
+  m_pProgramMeshFTB->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgramMeshFTB->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgramMeshFTB->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgramMeshFTB->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
-    m_pProgramColor->Enable();
-    m_pProgramColor->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
-    m_pProgramColor->Disable();
+  m_pProgramIso->Enable();
+  m_pProgramIso->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
 
+  m_pProgramColor->Enable();
+  m_pProgramColor->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
 }

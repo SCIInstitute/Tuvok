@@ -56,6 +56,8 @@ GLRaycaster::GLRaycaster(MasterController* pMasterController, bool bUseOnlyPower
   m_pProgramIso2(NULL),
   m_bNoRCClipplanes(bNoRCClipplanes)
 {
+  m_bSupportsMeshes = false; // for now we require full support 
+                             // otherweise we rather say no
 }
 
 GLRaycaster::~GLRaycaster() {
@@ -113,42 +115,60 @@ bool GLRaycaster::Initialize() {
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
+                          NULL,
                           "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
                           NULL) ||
      !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNT, m_vShaderSearchDirs,
                           "GLRaycasterNoTransform-VS.glsl",
+                          NULL,
                           "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
                           NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl", "clip-plane.glsl",
+                          "GLRaycaster-VS.glsl",
+                          NULL,
+                          "clip-plane.glsl",
                           "lighting.glsl", "Volume3D.glsl",
                           shaderNames[0],  NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl", "clip-plane.glsl",
+                          "GLRaycaster-VS.glsl",
+                          NULL,
+                          "clip-plane.glsl",
                           "lighting.glsl", "Volume3D.glsl",
                           shaderNames[1], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl", "clip-plane.glsl",
+                          "GLRaycaster-VS.glsl",
+                          NULL,
+                          "clip-plane.glsl",
                           "lighting.glsl", "Volume3D.glsl",
                           shaderNames[2], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl", "clip-plane.glsl",
+                          "GLRaycaster-VS.glsl",
+                          NULL,
+                          "clip-plane.glsl",
                           "lighting.glsl", "Volume3D.glsl",
                           shaderNames[3], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl", "clip-plane.glsl",
+                          "GLRaycaster-VS.glsl",
+                          NULL,
+                          "clip-plane.glsl",
                           "lighting.glsl", "Volume3D.glsl",
                           shaderNames[6], NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl", "clip-plane.glsl",
+                          "GLRaycaster-VS.glsl",
+                          NULL,
+                          "clip-plane.glsl",
                           "lighting.glsl", "Volume3D.glsl",
                           shaderNames[4], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl", "clip-plane.glsl",
+                          "GLRaycaster-VS.glsl",
+                          NULL,
+                          "clip-plane.glsl",
                           "lighting.glsl", "Volume3D.glsl",
                           shaderNames[5], NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
-                          "GLRaycaster-VS.glsl", "clip-plane.glsl",
+                          "GLRaycaster-VS.glsl",
+                          NULL,
+                          "clip-plane.glsl",
                           "lighting.glsl", "Volume3D.glsl",
                           "GLRaycaster-MIP-Rot-FS.glsl",
                           NULL))
@@ -193,7 +213,7 @@ bool GLRaycaster::Initialize() {
     m_pProgramIso2->ConnectTextureID("texLastHit",4);
     m_pProgramIso2->ConnectTextureID("texLastHitPos",5);
 
-    UpdateColorsInShaders();
+    UpdateLightParamsInShaders();
 
     /// We always clip against the plane in the shader, so initialize the plane
     /// to be way out in left field, ensuring nothing will be clipped.
@@ -235,7 +255,6 @@ void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D&,
                               m_pProgramIso2->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
                               m_pProgramIso2->SetUniformVector("fRayStepsize", fRayStep);
                               m_pProgramIso2->SetUniformVector("iTileID", int(iCurrentBrick));
-                              m_pProgramIso2->Disable();
                               shader->Enable();
                               shader->SetUniformVector("iTileID", int(iCurrentBrick));
                             }
@@ -348,7 +367,6 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
       vCurrentShader[i]->Enable();
       vCurrentShader[i]->SetUniformVector("vClipPlane", plane.x(), plane.y(),
                                                         plane.z(), plane.d());
-      vCurrentShader[i]->Disable();
     }
   }
 }
@@ -416,7 +434,6 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
   RenderBox(renderRegion, b.vCenter, b.vExtension,
             b.vTexcoordsMin, b.vTexcoordsMax,
             false, iStereoID);
-  m_pProgramRenderFrontFaces->Disable();
 
 /*
   float* vec = new float[m_pFBORayEntry->Width()*m_pFBORayEntry->Height()*4];
@@ -438,7 +455,6 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
               b.vTexcoordsMin, b.vTexcoordsMax,
               true, iStereoID);
     m_pFBORayEntry->FinishRead();
-    shader->Disable();
 
     if (m_bDoClearView) {
       m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
@@ -454,7 +470,6 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
       m_pFBOIsoHit[iStereoID]->FinishRead(1);
       m_pFBOIsoHit[iStereoID]->FinishRead(0);
       m_pFBORayEntry->FinishRead();
-      m_pProgramIso2->Disable();
     }
 
   } else {
@@ -480,14 +495,6 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
               true, iStereoID);
     m_pFBORayEntry->FinishRead();
 
-    switch (m_eRenderMode) {
-      case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
-                            break;
-      case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
-                            break;
-      default            :  T_ERROR("Invalid rendermode set");
-                            break;
-    }
     glDisable(GL_BLEND);
 
   }
@@ -506,7 +513,6 @@ void GLRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
   GLRenderer::RenderHQMIPPreLoop(region);
   m_pProgramHQMIPRot->Enable();
   m_pProgramHQMIPRot->SetUniformVector("vScreensize",float(m_vWinSize.x), float(m_vWinSize.y));
-  m_pProgramHQMIPRot->Disable();
   glDisable(GL_DEPTH_TEST);
   glDepthMask(GL_FALSE);
 
@@ -528,7 +534,6 @@ void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
   m_pProgramRenderFrontFaces->Enable();
   RenderBox(renderRegion, b.vCenter, b.vExtension, b.vTexcoordsMin,
             b.vTexcoordsMax, false, 0);
-  m_pProgramRenderFrontFaces->Disable();
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
   glBlendFunc(GL_ONE, GL_ONE);
@@ -545,7 +550,6 @@ void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
   RenderBox(renderRegion, b.vCenter, b.vExtension,b.vTexcoordsMin,
             b.vTexcoordsMax, true, 0);
   m_pFBORayEntry->FinishRead();
-  m_pProgramHQMIPRot->Disable();
 }
 
 void GLRaycaster::RenderHQMIPPostLoop() {
@@ -557,7 +561,7 @@ void GLRaycaster::RenderHQMIPPostLoop() {
 void GLRaycaster::SetRendermode(ERenderMode eRenderMode)
 {
   AbstrRenderer::SetRendermode(eRenderMode);
-  m_bSupportsMeshes = m_eRenderMode == RM_ISOSURFACE;
+  // m_bSupportsMeshes = m_eRenderMode == RM_ISOSURFACE;
 }
 
 
@@ -569,19 +573,15 @@ void GLRaycaster::StartFrame() {
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_pProgram1DTrans[0]->Enable();
                           m_pProgram1DTrans[0]->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
-                          m_pProgram1DTrans[0]->Disable();
 
                           m_pProgram1DTrans[1]->Enable();
                           m_pProgram1DTrans[1]->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
-                          m_pProgram1DTrans[1]->Disable();
                           break;
     case RM_2DTRANS    :  m_pProgram2DTrans[0]->Enable();
                           m_pProgram2DTrans[0]->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
-                          m_pProgram2DTrans[0]->Disable();
 
                           m_pProgram2DTrans[1]->Enable();
                           m_pProgram2DTrans[1]->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
-                          m_pProgram2DTrans[1]->Disable();
                           break;
     case RM_ISOSURFACE :  {
                            FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
@@ -589,13 +589,11 @@ void GLRaycaster::StartFrame() {
                               m_pProgramIso2->Enable();
                               m_pProgramIso2->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
                               m_pProgramIso2->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
-                              m_pProgramIso2->Disable();
                             }
                             GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
                             shader->Enable();
                             shader->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
                             shader->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
-                            shader->Disable();
                           }
                           break;
     default    :          T_ERROR("Invalid rendermode set");
@@ -609,7 +607,6 @@ void GLRaycaster::SetDataDepShaderVars() {
     m_pProgramIso2->Enable();
     m_pProgramIso2->SetUniformVector("fIsoval", static_cast<float>
                                                 (GetNormalizedCVIsovalue()));
-    m_pProgramIso2->Disable();
   }
 }
 

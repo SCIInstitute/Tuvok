@@ -441,7 +441,8 @@ class AbstrRenderer {
     }
     void SetRenderRegions(const std::vector<RenderRegion*>&);
 
-    std::vector<RenderMesh*> GetMeshes() {return m_Meshes;}
+    std::vector<RenderMesh*>& GetMeshes() {return m_Meshes;}
+    bool SupportsMeshes() const {return m_bSupportsMeshes;}
 
     void Timestep(size_t);
     size_t Timestep() const;
@@ -458,7 +459,7 @@ class AbstrRenderer {
 
     virtual void        ClearDepthBuffer() const = 0;
     virtual void        ClearColorBuffer() const = 0;
-    virtual void        UpdateColorsInShaders() = 0;
+    virtual void        UpdateLightParamsInShaders() = 0;
     virtual void        CVFocusHasChanged(const RenderRegion &);
 
   protected:
@@ -480,7 +481,6 @@ class AbstrRenderer {
     std::string         m_strLogoFilename;
 
     bool                m_bSupportsMeshes;
-    bool                m_bMeshUseLightColors;
     std::vector<RenderMesh*> m_Meshes;
 
 
@@ -575,9 +575,15 @@ class AbstrRenderer {
     // about RenderRegions.
     RenderRegion3D simpleRenderRegion3D;
 
+    // colors for the volume light
     FLOATVECTOR4        m_cAmbient;
     FLOATVECTOR4        m_cDiffuse;
     FLOATVECTOR4        m_cSpecular;
+    // colors for the mesh light
+    FLOATVECTOR4        m_cAmbientM;
+    FLOATVECTOR4        m_cDiffuseM;
+    FLOATVECTOR4        m_cSpecularM;
+    // light direction (for both)
     FLOATVECTOR3        m_vLightDir;
 
     virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);

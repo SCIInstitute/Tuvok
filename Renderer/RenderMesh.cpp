@@ -48,9 +48,8 @@ SortIndex::SortIndex(size_t index, const RenderMesh* m) :
 }
 
 void SortIndex::UpdateDistance() {
-  fDistance = (m_mesh->m_viewPoint-m_centroid).length();
+  fDepth = (m_mesh->m_viewPoint-m_centroid).length();
 }
-
 
 void SortIndex::ComputeCentroid() {
   size_t vertexCount = m_mesh->GetVerticesPerPoly();
@@ -109,6 +108,9 @@ RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
 void RenderMesh::Swap(size_t i, size_t j) {
   for (size_t iVertex = 0;iVertex<m_VerticesPerPoly;iVertex++) {
     std::swap(m_VertIndices[i+iVertex], m_VertIndices[j+iVertex]);
+    // we know that this mesh has to have colors otherwise 
+    // this method would not be called by the SplitOpaqueFromTransparent
+    // method
     std::swap(m_COLIndices[i+iVertex], m_COLIndices[j+iVertex]);
   
     if (m_NormalIndices.size()) 
@@ -230,6 +232,7 @@ void RenderMesh::SetUserPos(const FLOATVECTOR3& viewPoint) {
 void RenderMesh::SortTransparentDataIntoQuadrants() {
   m_QuadrantsDirty = false;
   for (int i = 0;i<27;i++) m_Quadrants[i].clear();
+  m_InPointList.clear();
 
   // is the entire mesh opaque ?
   if (m_splitIndex == m_VertIndices.size()) return;

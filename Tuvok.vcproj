@@ -898,6 +898,26 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Shaders\GLSBVR-Mesh-1D-FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\GLSBVR-Mesh-1D-light-FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\GLSBVR-Mesh-2D-FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\GLSBVR-Mesh-2D-light-FS.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\GLSBVR-Mesh-VS.glsl"
+				>
+			</File>
+			<File
 				RelativePath=".\Shaders\GLSBVR-MIP-Rot-FS.glsl"
 				>
 			</File>

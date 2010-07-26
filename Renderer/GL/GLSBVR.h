@@ -75,11 +75,17 @@ class GLSBVR : public GLRenderer {
     virtual void DisableClipPlane(RenderRegion *renderRegion);
 
     virtual ERendererType GetRendererType() const {return RT_SBVR;}
+    
+    /** Deallocates GPU memory allocated during the rendering process. */
+    virtual void Cleanup();
 
   protected:
     SBVRGeogen3D  m_SBVRGeogen;
     GLSLProgram*  m_pProgramIsoNoCompose;
     GLSLProgram*  m_pProgramColorNoCompose;
+    GLSLProgram*  m_pProgram1DTransMesh[2];
+    GLSLProgram*  m_pProgram2DTransMesh[2];
+    GLuint        m_GeoBuffer;
 
     void SetBrickDepShaderVars(const Brick& currentBrick);
 
@@ -91,13 +97,13 @@ class GLSBVR : public GLRenderer {
     virtual void RenderHQMIPPreLoop(RenderRegion2D& renderRegion);
     virtual void RenderHQMIPInLoop(const RenderRegion2D& renderRegion,
                                    const Brick& b);
-    virtual void RenderHQMIPPostLoop();
-
     void RenderProxyGeometry() const;
     virtual void CleanupShaders();
 
     virtual void ComposeSurfaceImage(RenderRegion &renderRegion, int iStereoID);
-    virtual void UpdateColorsInShaders();
+    virtual void UpdateLightParamsInShaders();
+    virtual bool Initialize();
+
 };
 };
 #endif // GLSBVR_H

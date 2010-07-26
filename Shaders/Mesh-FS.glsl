@@ -3,9 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
-   University of Utah.
-
+   Copyright (c) 2010 Interactive Visualization and Data Analysis Group.
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -26,18 +24,19 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-/**
-  \file    Mesh-FS.glsl
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \date    June 2010
-*/
+//!    File   : Mesh-FS.glsl
+//!    Author : Jens Krueger
+//!             IVCI & DFKI & MMCI, Saarbruecken
+//!             SCI Institute, University of Utah
+//!    Date   : July 2010
+//
+//!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
 
-uniform vec3 vLightAmbient;
-uniform vec3 vLightDiffuse;
-uniform vec3 vLightSpecular;
+uniform vec3 vLightAmbientM;
+uniform vec3 vLightDiffuseM;
+uniform vec3 vLightSpecularM;
 uniform vec3 vLightDir;
+
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
@@ -53,8 +52,8 @@ void main(void)
   if (normal == vec3(2,2,2)) {
     gl_FragColor = gl_Color;
   } else {
-    vec3 vLightColor = Lighting(pos, normal, vLightAmbient*gl_Color.xyz,
-                                vLightDiffuse*gl_Color.xyz, vLightSpecular,
+    vec3 vLightColor = Lighting(pos, normal, vLightAmbientM*gl_Color.xyz,
+                                vLightDiffuseM*gl_Color.xyz, vLightSpecularM,
                                 vLightDir);
     gl_FragColor = vec4(vLightColor.x,vLightColor.y,vLightColor.z,gl_Color.w);
   }

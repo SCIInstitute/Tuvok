@@ -3,9 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
-   University of Utah.
-
+   Copyright (c) 2010 Interactive Visualization and Data Analysis Group.
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -26,19 +24,21 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-/**
-  \file    Mesh-VS.glsl
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \date    June 2010
-*/
+//!    File   : Mesh-VS.glsl
+//!    Author : Jens Krueger
+//!             IVCI & DFKI & MMCI, Saarbruecken
+//!             SCI Institute, University of Utah
+//!    Date   : July 2010
+//
+//!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
 
 uniform float fOffset;
 
 varying vec3 normal;
 varying vec4 position;
 varying vec2 texture_coordinate;
+
+vec4 TraversalOrderDepColor(vec4 color);
 
 void main(void)
 {
@@ -52,7 +52,8 @@ void main(void)
   }
   texture_coordinate = vec2(gl_MultiTexCoord0);
   
-  gl_FrontColor = gl_Color;
-  gl_BackColor = gl_Color;
+  vec4 color = TraversalOrderDepColor(gl_Color);
+  gl_FrontColor = color;
+  gl_BackColor = color;
   position = gl_Vertex;
 }

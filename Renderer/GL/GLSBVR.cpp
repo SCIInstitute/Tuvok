@@ -49,7 +49,8 @@ using namespace tuvok;
 GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
   GLRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
   m_pProgramIsoNoCompose(NULL),
-  m_pProgramColorNoCompose(NULL)
+  m_pProgramColorNoCompose(NULL),
+  m_GeoBuffer(0)
 {
   m_bSupportsMeshes = true;
 }
@@ -57,44 +58,113 @@ GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, boo
 GLSBVR::~GLSBVR() {
 }
 
+void GLSBVR::Cleanup() {
+  GLRenderer::Cleanup();
+  glDeleteBuffers(1, &m_GeoBuffer);
+}
+
+
 void GLSBVR::CleanupShaders() {
   GLRenderer::CleanupShaders();
   CleanupShader(&m_pProgramIsoNoCompose);
   CleanupShader(&m_pProgramColorNoCompose);
+  CleanupShader(&m_pProgram1DTransMesh[0]);
+  CleanupShader(&m_pProgram1DTransMesh[1]);
+  CleanupShader(&m_pProgram2DTransMesh[0]);
+  CleanupShader(&m_pProgram2DTransMesh[1]);
+}
+
+bool GLSBVR::Initialize() {
+  bool bParentOK = GLRenderer::Initialize();
+  if (bParentOK) {
+    glGenBuffers(1, &m_GeoBuffer);
+    return true;
+  }
+  return false;
 }
 
 bool GLSBVR::LoadShaders() {
+
   if (!GLRenderer::LoadShaders()) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
 
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-1D-FS.glsl", "Volume3D.glsl", NULL) ||
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "GLSBVR-1D-FS.glsl",
+                          "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl", "Volume3D.glsl",
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "lighting.glsl", "Volume3D.glsl",
                           "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl", "Volume3D.glsl", NULL) ||
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "GLSBVR-2D-FS.glsl",
+                          "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl", "Volume3D.glsl",
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "lighting.glsl", "Volume3D.glsl",
                           "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl", "Volume3D.glsl", NULL) ||
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "GLSBVR-MIP-Rot-FS.glsl",
+                          "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl", "Volume3D.glsl",
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "lighting.glsl", "Volume3D.glsl",
                           "GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl", "Volume3D.glsl",
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "lighting.glsl", "Volume3D.glsl",
                           "GLSBVR-Color-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIsoNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl", "Volume3D.glsl",
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "lighting.glsl", "Volume3D.glsl",
                           "GLSBVR-ISO-NC-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColorNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", "Volume3D.glsl", NULL))
-  {
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "GLSBVR-Color-NC-FS.glsl", 
+                          "Volume3D.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram1DTransMesh[0], m_vShaderSearchDirs,
+                          "GLSBVR-Mesh-VS.glsl",
+                          "FTB.glsl",
+                          NULL,
+                          "lighting.glsl",
+                          "GLSBVR-Mesh-1D-FS.glsl",
+                          "Volume3D.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram1DTransMesh[1], m_vShaderSearchDirs,
+                          "GLSBVR-Mesh-VS.glsl",
+                          "FTB.glsl",
+                          NULL,
+                          "lighting.glsl",
+                          "Volume3D.glsl", "GLSBVR-Mesh-1D-light-FS.glsl",
+                          NULL) ||
+     !LoadAndVerifyShader(&m_pProgram2DTransMesh[0], m_vShaderSearchDirs,
+                          "GLSBVR-Mesh-VS.glsl",
+                          "FTB.glsl",
+                          NULL,
+                          "lighting.glsl",
+                          "GLSBVR-Mesh-2D-FS.glsl",
+                          "Volume3D.glsl", NULL) ||
+     !LoadAndVerifyShader(&m_pProgram2DTransMesh[1], m_vShaderSearchDirs,
+                          "GLSBVR-Mesh-VS.glsl",
+                          "FTB.glsl",
+                          NULL,
+                          "lighting.glsl", 
+                          "Volume3D.glsl", 
+                          "GLSBVR-Mesh-2D-light-FS.glsl",
+                          NULL)) {
       Cleanup();
-
       T_ERROR("Error loading a shader.");
       return false;
   } else {
@@ -110,6 +180,18 @@ bool GLSBVR::LoadShaders() {
     m_pProgram2DTrans[1]->ConnectTextureID("texVolume",0);
     m_pProgram2DTrans[1]->ConnectTextureID("texTrans2D",1);
 
+    m_pProgram1DTransMesh[0]->ConnectTextureID("texVolume",0);
+    m_pProgram1DTransMesh[0]->ConnectTextureID("texTrans1D",1);
+
+    m_pProgram1DTransMesh[1]->ConnectTextureID("texVolume",0);
+    m_pProgram1DTransMesh[1]->ConnectTextureID("texTrans1D",1);
+
+    m_pProgram2DTransMesh[0]->ConnectTextureID("texVolume",0);
+    m_pProgram2DTransMesh[0]->ConnectTextureID("texTrans2D",1);
+
+    m_pProgram2DTransMesh[1]->ConnectTextureID("texVolume",0);
+    m_pProgram2DTransMesh[1]->ConnectTextureID("texTrans2D",1);
+
     m_pProgramIso->ConnectTextureID("texVolume",0);
 
     m_pProgramColor->ConnectTextureID("texVolume",0);
@@ -120,7 +202,7 @@ bool GLSBVR::LoadShaders() {
 
     m_pProgramColorNoCompose->ConnectTextureID("texVolume",0);
 
-    UpdateColorsInShaders();
+    UpdateLightParamsInShaders();
   }
 
   return true;
@@ -128,6 +210,24 @@ bool GLSBVR::LoadShaders() {
 
 void GLSBVR::SetDataDepShaderVars() {
   GLRenderer::SetDataDepShaderVars();
+
+  // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
+  float fScale         = CalculateScaling();
+  float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
+                          1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
+  switch (m_eRenderMode) {
+    case RM_1DTRANS: {
+      m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0]->Enable();
+      m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+      break;
+    }
+    case RM_2DTRANS: {
+      m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->Enable();
+      m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+      m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
+      break;
+    }
+  }
 
   if (m_eRenderMode == RM_ISOSURFACE && m_bAvoidSeperateCompositing) {
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
@@ -140,7 +240,6 @@ void GLSBVR::SetDataDepShaderVars() {
     // this is not really a data dependent var but as we only need to
     // do it once per frame we may also do it here
     shader->SetUniformVector("vLightDiffuse",d.x*m_vIsoColor.x,d.y*m_vIsoColor.y,d.z*m_vIsoColor.z);
-    shader->Disable();
   }
 
   if(m_eRenderMode == RM_1DTRANS && m_TFScalingMethod == SMETH_BIAS_AND_SCALE) {
@@ -150,7 +249,6 @@ void GLSBVR::SetDataDepShaderVars() {
     m_pProgram1DTrans[0]->Enable();
     m_pProgram1DTrans[0]->SetUniformVector("TFuncBias", bias_scale.first);
     m_pProgram1DTrans[0]->SetUniformVector("fTransScale", bias_scale.second);
-    m_pProgram1DTrans[0]->Disable();
   }
 }
 
@@ -159,24 +257,29 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
 
   float fStepScale = m_SBVRGeogen.GetOpacityCorrection();
 
+  GLSLProgram *shader;
   switch (m_eRenderMode) {
     case RM_1DTRANS: {
-      GLSLProgram *shader = m_pProgram1DTrans[m_bUseLighting ? 1 : 0];
+      shader = (m_SBVRGeogen.HasMesh() 
+                   ? (m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0])
+                   : (m_pProgram1DTrans[m_bUseLighting ? 1 : 0]));
+      shader->Enable();
       shader->SetUniformVector("fStepScale", fStepScale);
       if (m_bUseLighting) {
-        m_pProgram1DTrans[1]->SetUniformVector("vVoxelStepsize",
-                                               vStep.x, vStep.y, vStep.z);
+        shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
       }
       break;
     }
     case RM_2DTRANS: {
-      GLSLProgram *shader = m_pProgram2DTrans[m_bUseLighting ? 1 : 0];
+      shader = (m_SBVRGeogen.HasMesh() 
+                    ? (m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0])
+                    : (m_pProgram2DTrans[m_bUseLighting ? 1 : 0]));
+      shader->Enable();
       shader->SetUniformVector("fStepScale", fStepScale);
       shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
       break;
     }
     case RM_ISOSURFACE: {
-      GLSLProgram *shader;
       if (m_bAvoidSeperateCompositing) {
         shader = (m_pDataset->GetComponentCount() == 1) ?
                  m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
@@ -187,7 +290,7 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
       shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
       break;
     }
-    case RM_INVALID: T_ERROR("Invalid rendermode set"); break;
+    default: T_ERROR("Invalid rendermode set"); break;
   }
 }
 
@@ -250,17 +353,27 @@ void GLSBVR::Render3DPreLoop(const RenderRegion3D&) {
   glEnable(GL_DEPTH_TEST);
 }
 
+
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
 void GLSBVR::RenderProxyGeometry() const {
-  glBegin(GL_TRIANGLES);
-    for (int i = int(m_SBVRGeogen.m_vSliceTriangles.size())-1;i>=0;i--) {
-      glTexCoord3f(m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.x,
-                   m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.y,
-                   m_SBVRGeogen.m_vSliceTriangles[i].m_vTex.z);
-      glVertex3f(m_SBVRGeogen.m_vSliceTriangles[i].m_vPos.x,
-                 m_SBVRGeogen.m_vSliceTriangles[i].m_vPos.y,
-                 m_SBVRGeogen.m_vSliceTriangles[i].m_vPos.z);
-    }
-  glEnd();
+  glBindBuffer(GL_ARRAY_BUFFER, m_GeoBuffer);
+  glBufferData(GL_ARRAY_BUFFER, m_SBVRGeogen.m_vSliceTriangles.size()*sizeof(float)*10, &m_SBVRGeogen.m_vSliceTriangles[0], GL_STREAM_DRAW);
+  glVertexPointer(3, GL_FLOAT, 40, BUFFER_OFFSET(0));
+  if (m_SBVRGeogen.HasMesh()) {
+    glTexCoordPointer(4 , GL_FLOAT, 40, BUFFER_OFFSET(12));
+    glNormalPointer(GL_FLOAT, 40, BUFFER_OFFSET(28));
+    glEnableClientState(GL_NORMAL_ARRAY);
+  } else {
+    glTexCoordPointer(3, GL_FLOAT, 40, BUFFER_OFFSET(12));
+  }
+  
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glDrawArrays(GL_TRIANGLES, 0, GLsizei(m_SBVRGeogen.m_vSliceTriangles.size()));
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
 }
 
 void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
@@ -272,12 +385,22 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
                             b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
-  FLOATMATRIX4 maBricktModelView = maBricktTrans * renderRegion.modelView[iStereoID];
   m_mProjection[iStereoID].setProjection();
-  maBricktModelView.setModelview();
+  renderRegion.modelView[iStereoID].setModelview();
 
-  m_SBVRGeogen.SetWorld(maBricktTrans * renderRegion.rotation*renderRegion.translation);
-  m_SBVRGeogen.SetView(m_mView[iStereoID], true);
+  m_SBVRGeogen.SetBrickTrans(b.vCenter);
+  m_SBVRGeogen.SetWorld(renderRegion.rotation*renderRegion.translation);
+  m_SBVRGeogen.SetView(m_mView[iStereoID]);
+  if (m_bSupportsMeshes) {
+    m_SBVRGeogen.ResetMesh();
+    for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+         mesh != m_Meshes.end(); mesh++) {
+      if ((*mesh)->GetActive()) {
+        m_SBVRGeogen.AddMesh((*mesh)->GetInPointList());
+      }
+    }
+  }
+  m_SBVRGeogen.ComputeGeometry();
 
   if (!m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);
@@ -289,9 +412,8 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
     shader->Enable();
     SetBrickDepShaderVars(b);
     shader->SetUniformVector("fIsoval", static_cast<float>
-                                        (this->GetNormalizedIsovalue()));
+                                        (this->GetNormalizedIsovalue()));    
     RenderProxyGeometry();
-    shader->Disable();
 
     if (m_bDoClearView) {
       m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
@@ -301,7 +423,6 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
       m_pProgramIso->SetUniformVector("fIsoval", static_cast<float>
                                                  (GetNormalizedCVIsovalue()));
       RenderProxyGeometry();
-      m_pProgramIso->Disable();
     }
   } else {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
@@ -320,17 +441,11 @@ void GLSBVR::Render3DPostLoop() {
 
   // disable the shader
   switch (m_eRenderMode) {
-    case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
-                          glDisable(GL_BLEND);
+    case RM_1DTRANS    :  glDisable(GL_BLEND);
                           break;
-    case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
-                          glDisable(GL_BLEND);
+    case RM_2DTRANS    :  glDisable(GL_BLEND);
                           break;
     case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
-                            if (m_pDataset->GetComponentCount() == 1)
-                              m_pProgramIsoNoCompose->Disable();
-                            else
-                              m_pProgramColorNoCompose->Disable();
                              glDisable(GL_BLEND);
                           }
                           break;
@@ -350,23 +465,18 @@ void GLSBVR::RenderHQMIPPreLoop(RenderRegion2D &region) {
 
 void GLSBVR::RenderHQMIPInLoop(const RenderRegion2D &, const Brick& b) {
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
-  FLOATMATRIX4 maBricktTrans;
-  maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
   if (m_bOrthoView)
     m_SBVRGeogen.SetView(FLOATMATRIX4());
   else
     m_SBVRGeogen.SetView(m_mView[0]);
 
-  m_SBVRGeogen.SetWorld(maBricktTrans * m_maMIPRotation, true);
+  m_SBVRGeogen.SetBrickTrans(b.vCenter);
+  m_SBVRGeogen.SetWorld(m_maMIPRotation);
+
+  m_SBVRGeogen.ComputeGeometry();
 
   RenderProxyGeometry();
 }
-
-void GLSBVR::RenderHQMIPPostLoop() {
-  GLRenderer::RenderHQMIPPostLoop();
-  m_pProgramHQMIPRot->Disable();
-}
-
 
 bool GLSBVR::LoadDataset(const string& strFilename) {
   if (GLRenderer::LoadDataset(strFilename)) {
@@ -385,12 +495,16 @@ void GLSBVR::ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID) {
 }
 
 
-void GLSBVR::UpdateColorsInShaders() {
-  GLRenderer::UpdateColorsInShaders();
+void GLSBVR::UpdateLightParamsInShaders() {
+  GLRenderer::UpdateLightParamsInShaders();
 
   FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
   FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
   FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
+
+  FLOATVECTOR3 aM = m_cAmbientM.xyz()*m_cAmbientM.w;
+  FLOATVECTOR3 dM = m_cDiffuseM.xyz()*m_cDiffuseM.w;
+  FLOATVECTOR3 sM = m_cSpecularM.xyz()*m_cSpecularM.w;
 
   FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
 
@@ -400,7 +514,6 @@ void GLSBVR::UpdateColorsInShaders() {
   m_pProgramIsoNoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
   m_pProgramIsoNoCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
   m_pProgramIsoNoCompose->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
-  m_pProgramIsoNoCompose->Disable();
 
   m_pProgramColorNoCompose->Enable();
   m_pProgramColorNoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
@@ -408,5 +521,36 @@ void GLSBVR::UpdateColorsInShaders() {
   //m_pProgramColorNoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z); // only abient color is used in color-volume mode yet
   m_pProgramColorNoCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
   m_pProgramColorNoCompose->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
-  m_pProgramColorNoCompose->Disable();
+
+  m_pProgram1DTransMesh[0]->Enable();
+  m_pProgram1DTransMesh[0]->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgram1DTransMesh[0]->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgram1DTransMesh[0]->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgram1DTransMesh[0]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+
+  m_pProgram2DTransMesh[0]->Enable();
+  m_pProgram2DTransMesh[0]->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgram2DTransMesh[0]->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgram2DTransMesh[0]->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgram2DTransMesh[0]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+
+  m_pProgram1DTransMesh[1]->Enable();
+  m_pProgram1DTransMesh[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+  m_pProgram1DTransMesh[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgram1DTransMesh[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+  m_pProgram1DTransMesh[1]->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgram1DTransMesh[1]->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgram1DTransMesh[1]->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgram1DTransMesh[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgram1DTransMesh[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+
+  m_pProgram2DTransMesh[1]->Enable();
+  m_pProgram2DTransMesh[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
+  m_pProgram2DTransMesh[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgram2DTransMesh[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
+  m_pProgram2DTransMesh[1]->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgram2DTransMesh[1]->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgram2DTransMesh[1]->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgram2DTransMesh[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgram2DTransMesh[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
 }

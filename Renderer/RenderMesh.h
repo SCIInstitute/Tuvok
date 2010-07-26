@@ -50,7 +50,7 @@ public:
   size_t m_index;
   FLOATVECTOR3 m_centroid;
   const RenderMesh* m_mesh;
-  float fDistance;
+  float fDepth;
 
   SortIndex(size_t index, const RenderMesh* m);
   void UpdateDistance();
@@ -61,12 +61,12 @@ protected:
 
 inline bool DistanceSortOver(const SortIndex* e1, const SortIndex* e2)
 {
-  return e1->fDistance > e2->fDistance;
+  return e1->fDepth > e2->fDepth;
 }
 
 inline bool DistanceSortUnder(const SortIndex* e1, const SortIndex* e2)
 {
-  return e1->fDistance < e2->fDistance;
+  return e1->fDepth < e2->fDepth;
 }
 
 
@@ -165,7 +165,6 @@ protected:
   SortIndexPList m_FrontPointList;
   SortIndexPList m_InPointList;
   SortIndexPList m_BehindPointList;
-
 
   /**\brief If the mesh contains transparent parts this call creates 
    *        27 lists pointing to parts of the transparent mesh in the 27 

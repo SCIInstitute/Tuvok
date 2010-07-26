@@ -95,38 +95,45 @@ float SBVRGeogen::GetOpacityCorrection() const {
 // to be recomputed with the updated matrices.
 void SBVRGeogen::MatricesUpdated()
 {
-  m_matWorldView = m_matWorld * m_matView;
-  InitBBOX();
-  ComputeGeometry();
+  FLOATMATRIX4 maBricktTrans;
+  maBricktTrans.Translation(m_brickTranslation.x, 
+                            m_brickTranslation.y, 
+                            m_brickTranslation.z);
+  m_matWorldView = maBricktTrans * m_matWorld * m_matView;
 }
 
-void SBVRGeogen::SetWorld(const FLOATMATRIX4& matWorld, bool bForceUpdate) {
-  if (bForceUpdate || m_matWorld != matWorld) {
+
+
+void SBVRGeogen::SetBrickTrans(const FLOATVECTOR3& brickTranslation) {
+  if (m_brickTranslation != brickTranslation) {
+    m_brickTranslation = brickTranslation;
+    MatricesUpdated();
+  }
+}
+
+void SBVRGeogen::SetWorld(const FLOATMATRIX4& matWorld) {
+  if (m_matWorld != matWorld) {
     m_matWorld = matWorld;
     MatricesUpdated();
   }
 }
-void SBVRGeogen::SetView(const FLOATMATRIX4& mTransform,
-                         bool forceUpdate)
+void SBVRGeogen::SetView(const FLOATMATRIX4& mTransform)
 {
-  if(forceUpdate || m_matView != mTransform) {
+  if(m_matView != mTransform) {
     m_matView = mTransform;
     MatricesUpdated();
   }
 }
 
 void SBVRGeogen::InitBBOX() {
-
-  FLOATVECTOR3 vVertexScale(m_vAspect);
-
-  m_pfBBOXVertex[0] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[0]*vVertexScale,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMax.y,m_vTexCoordMin.z));
-  m_pfBBOXVertex[1] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[1]*vVertexScale,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMax.y,m_vTexCoordMin.z));
-  m_pfBBOXVertex[2] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[2]*vVertexScale,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMax.y,m_vTexCoordMax.z));
-  m_pfBBOXVertex[3] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[3]*vVertexScale,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMax.y,m_vTexCoordMax.z));
-  m_pfBBOXVertex[4] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[4]*vVertexScale,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMin.y,m_vTexCoordMin.z));
-  m_pfBBOXVertex[5] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[5]*vVertexScale,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMin.y,m_vTexCoordMin.z));
-  m_pfBBOXVertex[6] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[6]*vVertexScale,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
-  m_pfBBOXVertex[7] = POS3TEX3_VERTEX(FLOATVECTOR4(m_pfBBOXStaticVertex[7]*vVertexScale,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
+  m_pfBBOXVertex[0] = VERTEX_FORMAT(FLOATVECTOR4(m_pfBBOXStaticVertex[0]*m_vAspect,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMax.y,m_vTexCoordMin.z));
+  m_pfBBOXVertex[1] = VERTEX_FORMAT(FLOATVECTOR4(m_pfBBOXStaticVertex[1]*m_vAspect,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMax.y,m_vTexCoordMin.z));
+  m_pfBBOXVertex[2] = VERTEX_FORMAT(FLOATVECTOR4(m_pfBBOXStaticVertex[2]*m_vAspect,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMax.y,m_vTexCoordMax.z));
+  m_pfBBOXVertex[3] = VERTEX_FORMAT(FLOATVECTOR4(m_pfBBOXStaticVertex[3]*m_vAspect,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMax.y,m_vTexCoordMax.z));
+  m_pfBBOXVertex[4] = VERTEX_FORMAT(FLOATVECTOR4(m_pfBBOXStaticVertex[4]*m_vAspect,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMin.y,m_vTexCoordMin.z));
+  m_pfBBOXVertex[5] = VERTEX_FORMAT(FLOATVECTOR4(m_pfBBOXStaticVertex[5]*m_vAspect,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMin.y,m_vTexCoordMin.z));
+  m_pfBBOXVertex[6] = VERTEX_FORMAT(FLOATVECTOR4(m_pfBBOXStaticVertex[6]*m_vAspect,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMax.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
+  m_pfBBOXVertex[7] = VERTEX_FORMAT(FLOATVECTOR4(m_pfBBOXStaticVertex[7]*m_vAspect,1.0f) * m_matWorldView, FLOATVECTOR3(m_vTexCoordMin.x,m_vTexCoordMin.y,m_vTexCoordMax.z));
 }
 
 void SBVRGeogen::SetVolumeData(const FLOATVECTOR3& vAspect, const UINTVECTOR3& vSize) {
@@ -153,13 +160,13 @@ void SBVRGeogen::SetBrickData(const FLOATVECTOR3& vAspect,
 // Splits a triangle along a plane with the given normal.
 // Assumes: plane's D == 0.
 //          triangle does span the plane.
-std::vector<POS3TEX3_VERTEX> SBVRGeogen::SplitTriangle(POS3TEX3_VERTEX a,
-                                                  POS3TEX3_VERTEX b,
-                                                  POS3TEX3_VERTEX c,
+std::vector<VERTEX_FORMAT> SBVRGeogen::SplitTriangle(VERTEX_FORMAT a,
+                                                  VERTEX_FORMAT b,
+                                                  VERTEX_FORMAT c,
                                                   const VECTOR3<float> &normal,
                                                   const float D)
 {
-  std::vector<POS3TEX3_VERTEX> out;
+  std::vector<VERTEX_FORMAT> out;
   // We'll always throw away at least one of the generated triangles.
   out.reserve(2);
   float fa = (normal ^ a.m_vPos) + D;
@@ -193,7 +200,7 @@ std::vector<POS3TEX3_VERTEX> SBVRGeogen::SplitTriangle(POS3TEX3_VERTEX a,
   }
 
   // Find the intersection points.
-  POS3TEX3_VERTEX A, B;
+  VERTEX_FORMAT A, B;
   RayPlaneIntersection(a,c, normal,D, A);
   RayPlaneIntersection(b,c, normal,D, B);
 
@@ -206,11 +213,11 @@ std::vector<POS3TEX3_VERTEX> SBVRGeogen::SplitTriangle(POS3TEX3_VERTEX a,
   return out;
 }
 
-std::vector<POS3TEX3_VERTEX>
-SBVRGeogen::ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
+std::vector<VERTEX_FORMAT>
+SBVRGeogen::ClipTriangles(const std::vector<VERTEX_FORMAT> &in,
               const VECTOR3<float> &normal, const float D)
 {
-  std::vector<POS3TEX3_VERTEX> out;
+  std::vector<VERTEX_FORMAT> out;
   if (in.empty()) return out;
   assert(in.size() % 3 == 0);
 
@@ -219,12 +226,12 @@ SBVRGeogen::ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
 
   out.reserve(in.size());
 
-  for(std::vector<POS3TEX3_VERTEX>::const_iterator iter = in.begin();
+  for(std::vector<VERTEX_FORMAT>::const_iterator iter = in.begin();
       iter < (in.end()-2);
       iter += 3) {
-    const POS3TEX3_VERTEX &a = (*iter);
-    const POS3TEX3_VERTEX &b = (*(iter+1));
-    const POS3TEX3_VERTEX &c = (*(iter+2));
+    const VERTEX_FORMAT &a = (*iter);
+    const VERTEX_FORMAT &b = (*(iter+1));
+    const VERTEX_FORMAT &c = (*(iter+2));
     float fa = (normal ^ a.m_vPos) + D;
     float fb = (normal ^ b.m_vPos) + D;
     float fc = (normal ^ c.m_vPos) + D;
@@ -238,12 +245,12 @@ SBVRGeogen::ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
       out.push_back(b);
       out.push_back(c);
     } else { // triangle spans plane -- must be split.
-      const std::vector<POS3TEX3_VERTEX>& tris = SplitTriangle(a,b,c,
+      const std::vector<VERTEX_FORMAT>& tris = SplitTriangle(a,b,c,
                                                                normal,D);
       assert(!tris.empty());
       assert(tris.size() <= 6); // vector is actually of points, not tris.
 
-      for(std::vector<POS3TEX3_VERTEX>::const_iterator tri = tris.begin();
+      for(std::vector<VERTEX_FORMAT>::const_iterator tri = tris.begin();
           tri != tris.end();
           ++tri) {
         out.push_back(*tri);
@@ -254,11 +261,11 @@ SBVRGeogen::ClipTriangles(const std::vector<POS3TEX3_VERTEX> &in,
 }
 
 // Calculates the intersection point of a line segment lb->la which crosses the
-// plane with normal `n'.
-bool SBVRGeogen::RayPlaneIntersection(const POS3TEX3_VERTEX &la,
-                         const POS3TEX3_VERTEX &lb,
+// plane with normal 'n'.
+bool SBVRGeogen::RayPlaneIntersection(const VERTEX_FORMAT &la,
+                         const VERTEX_FORMAT &lb,
                          const FLOATVECTOR3 &n, const float D,
-                         POS3TEX3_VERTEX &hit)
+                         VERTEX_FORMAT &hit)
 {
   const FLOATVECTOR3 &va = la.m_vPos;
   const FLOATVECTOR3 &vb = lb.m_vPos;
@@ -269,7 +276,35 @@ bool SBVRGeogen::RayPlaneIntersection(const POS3TEX3_VERTEX &la,
   const float t = ((n ^ va) + D) / denom;
 
   hit.m_vPos = va + (t*(vb - va));
-  hit.m_vTex = la.m_vTex + t*(lb.m_vTex - la.m_vTex);
+  hit.m_vVertexData = la.m_vVertexData + t*(lb.m_vVertexData - la.m_vVertexData);
 
   return true;
+}
+
+bool SBVRGeogen::isInsideAABB(const FLOATVECTOR3& min,
+                              const FLOATVECTOR3& max,
+                              const FLOATVECTOR3& point) {
+  return point.x >= min.x &&  point.x <= max.x &&
+         point.y >= min.y &&  point.y <= max.y &&
+         point.z >= min.z &&  point.z <= max.z;
+}
+
+void SBVRGeogen::AddMesh(const SortIndexPList& mesh) {
+
+  if (mesh.size() == 0) return;
+
+  // TODO: currently only triangles are supported
+  if (mesh[0]->m_mesh->GetVerticesPerPoly() != 3) return;
+
+  FLOATVECTOR3 min = ( m_vAspect * -0.5f) + m_brickTranslation;
+  FLOATVECTOR3 max = ( m_vAspect *  0.5f) + m_brickTranslation;
+
+  for (SortIndexPList::const_iterator index = mesh.begin();
+       index != mesh.end();
+       index++) {
+    
+    FLOATVECTOR3 c = (*index)->m_centroid;
+  
+    if (isInsideAABB(min, max, c)) m_mesh.push_back(*index);
+  }
 }

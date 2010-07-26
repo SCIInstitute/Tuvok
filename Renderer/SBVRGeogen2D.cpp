@@ -72,11 +72,11 @@ float SBVRGeogen2D::GetDelta(int iDir) const {
 }
 
 
-void SBVRGeogen2D::InterpolateVertices(const POS3TEX3_VERTEX& v1, 
-                                       const POS3TEX3_VERTEX& v2, 
-                                       float a, POS3TEX3_VERTEX& r) const {
+void SBVRGeogen2D::InterpolateVertices(const VERTEX_FORMAT& v1, 
+                                       const VERTEX_FORMAT& v2, 
+                                       float a, VERTEX_FORMAT& r) const {
   r.m_vPos = (1.0f-a)*v1.m_vPos + a*v2.m_vPos;
-  r.m_vTex = (1.0f-a)*v1.m_vTex + a*v2.m_vTex;
+  r.m_vVertexData = (1.0f-a)*v1.m_vVertexData + a*v2.m_vVertexData;
 }
 
 void SBVRGeogen2D::ComputeGeometry() {
@@ -134,7 +134,7 @@ void SBVRGeogen2D::ComputeGeometryRezk() {
   m_vSliceTrianglesY.clear();
   m_vSliceTrianglesZ.clear();
 
-  POS3TEX3_VERTEX pfSliceVertex[4];
+  VERTEX_FORMAT pfSliceVertex[4];
   float fDelta = GetDelta(iStack);
   UINT32 iLayerCount = UINT32(floor(1.0f/fDelta));
   float fDepth = 0;
@@ -357,7 +357,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
   m_vSliceTrianglesY.clear();
   m_vSliceTrianglesZ.clear();
 
-  POS3TEX3_VERTEX pfSliceVertex[4];
+  VERTEX_FORMAT pfSliceVertex[4];
 
   FLOATVECTOR3 fDelta;
   fDelta.x = GetDelta(0)*fCosAngleX;
@@ -735,9 +735,9 @@ void SBVRGeogen2D::BuildStackQuads(
                      const vector<FLOATPLANE>& vIntersectPlanes,
                      const FLOATVECTOR3* vCoordFrame,
 
-                     vector<POS3TEX3_VERTEX>& vSliceTriangles
+                     vector<VERTEX_FORMAT>& vSliceTriangles
                      ) {
-  POS3TEX3_VERTEX pVertices[8];
+  VERTEX_FORMAT pVertices[8];
   size_t pEdges[8];
 
   
@@ -757,7 +757,7 @@ void SBVRGeogen2D::BuildStackQuads(
   }
 
   // compute splice vertices 
-  POS3TEX3_VERTEX pfSliceVertex[4];
+  VERTEX_FORMAT pfSliceVertex[4];
   for (size_t i = 0;i<vIntersects.size();i++) {
     
     // get intersection planes

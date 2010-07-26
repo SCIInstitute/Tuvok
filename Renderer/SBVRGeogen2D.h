@@ -101,11 +101,11 @@ public:
   virtual void ComputeGeometry();
 
   //! Vector holding the slices that access the X axis aligned textures
-  std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesX;
+  std::vector<VERTEX_FORMAT> m_vSliceTrianglesX;
   //! Vector holding the slices that access the Y axis aligned textures
-  std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesY;
+  std::vector<VERTEX_FORMAT> m_vSliceTrianglesY;
   //! Vector holding the slices that access the Z axis aligned textures
-  std::vector<POS3TEX3_VERTEX> m_vSliceTrianglesZ;
+  std::vector<VERTEX_FORMAT> m_vSliceTrianglesZ;
   
   /** 
    \brief Holds the Geometry generation method
@@ -126,7 +126,7 @@ protected:
   float GetDelta(int iDir) const;
   
   /** 
-    \brief Interpolates POS3TEX3_VERTEX "r" between "v1" and 
+    \brief Interpolates VERTEX_FORMAT "r" between "v1" and 
     "v2" with parameter "a"
 
     \param v1 the first vertex
@@ -134,9 +134,9 @@ protected:
     \param a the interpolation parameter a (should be in [0..1])
     \param r the interpolated vertex structure
   */
-  void InterpolateVertices(const POS3TEX3_VERTEX& v1, 
-                           const POS3TEX3_VERTEX& v2, 
-                           float a, POS3TEX3_VERTEX& r) const;
+  void InterpolateVertices(const VERTEX_FORMAT& v1, 
+                           const VERTEX_FORMAT& v2, 
+                           float a, VERTEX_FORMAT& r) const;
 
 private:
   /** 
@@ -184,7 +184,7 @@ private:
                        const std::vector<size_t>& vIntersects,
                        const std::vector<FLOATPLANE>& vIntersectPlanes,
                        const FLOATVECTOR3* vCoordFrame,
-                       std::vector<POS3TEX3_VERTEX>& vSliceTriangles);
+                       std::vector<VERTEX_FORMAT>& vSliceTriangles);
 
 };
 };

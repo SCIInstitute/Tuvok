@@ -69,7 +69,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_iLogoPos(3),
   m_strLogoFilename(""),
   m_bSupportsMeshes(false),
-  m_bMeshUseLightColors(true),
   msecPassedCurrentFrame(-1.0f),
   m_iLODNotOKCounter(0),
   decreaseScreenRes(false),
@@ -134,6 +133,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_cAmbient(1.0f,1.0f,1.0f,0.2f),
   m_cDiffuse(1.0f,1.0f,1.0f,0.8f),
   m_cSpecular(1.0f,1.0f,1.0f,1.0f),
+  m_cAmbientM(1.0f,1.0f,1.0f,0.2f),
+  m_cDiffuseM(1.0f,1.0f,1.0f,0.8f),
+  m_cSpecularM(1.0f,1.0f,1.0f,1.0f),
   m_vLightDir(0.0f,0.0f,-1.0f),
   m_fIsovalue(0.5f),
   m_fCVIsovalue(0.8f)
@@ -1324,7 +1326,7 @@ void AbstrRenderer::SetColors(const FLOATVECTOR4& ambient,
   m_cSpecular = specular;
   m_vLightDir = lightDir;
 
-  UpdateColorsInShaders();
+  UpdateLightParamsInShaders();
   if (m_bUseLighting) Schedule3DWindowRedraws();
 }
 

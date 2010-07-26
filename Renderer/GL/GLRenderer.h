@@ -155,7 +155,7 @@ class GLRenderer : public AbstrRenderer {
     virtual void CreateOffscreenBuffers();
     virtual bool LoadAndVerifyShader(GLSLProgram**,
                                      const std::vector<std::string>& strDirs,
-                                     const char* vert, ...);
+                                     const char* shaderFiles, ...);
     virtual bool LoadAndVerifyShader(GLSLProgram**,
                                      std::vector<std::string> vert,
                                      std::vector<std::string> frag) const;
@@ -186,7 +186,7 @@ class GLRenderer : public AbstrRenderer {
     void FullscreenQuadRegion(const RenderRegion* region,
                               bool decreaseScreenRes) const;
     void ComputeViewAndProjection(float fAspect);
-    virtual void UpdateColorsInShaders();
+    virtual void UpdateLightParamsInShaders();
 
     GLVolume*    m_pGLVolume;
     virtual bool BindVolumeTex(const BrickKey& bkey,
@@ -209,7 +209,8 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramComposeScanlineStereo;
     GLSLProgram*    m_pProgramSBSStereo;
     GLSLProgram*    m_pProgramBBox;
-    GLSLProgram*    m_pProgramMesh;
+    GLSLProgram*    m_pProgramMeshFTB;
+    GLSLProgram*    m_pProgramMeshBTF;
 
   private:
 

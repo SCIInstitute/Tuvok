@@ -66,17 +66,17 @@ public:
   */
   virtual void ComputeGeometry();
   //! this is where ComputeGeometry() outputs the geometry to
-  std::vector<POS3TEX3_VERTEX> m_vSliceTriangles;
+  std::vector<VERTEX_FORMAT> m_vSliceTriangles;
 
 protected:
 
   //! depth of the slice closest to the viewer
-  float m_fMinZ;
+  float m_fMaxZ;
 
   /** 
    \brief Calls InitBBOX from the parent class which computes the transformed 
   vertices m_pfBBOXVertex from m_pfBBOXStaticVertex and in addition to this
-  updaes m_fMinZ
+  updates m_fMaxZ
   */
   virtual void InitBBOX();
   
@@ -98,7 +98,7 @@ protected:
 
    \param fArray the vertices of the polygon
   */
-  void Triangulate(std::vector<POS3TEX3_VERTEX> &fArray);
+  void Triangulate(std::vector<VERTEX_FORMAT> &fArray);
 
   //! returns the distance between two slices
   float GetLayerDistance() const;
@@ -116,9 +116,9 @@ protected:
    \result true if the plane intersects the line
   */
   static bool DepthPlaneIntersection(float z,
-                                  const POS3TEX3_VERTEX &plA,
-                                  const POS3TEX3_VERTEX &plB,
-                                  std::vector<POS3TEX3_VERTEX>& vHits);
+                                  const VERTEX_FORMAT &plA,
+                                  const VERTEX_FORMAT &plB,
+                                  std::vector<VERTEX_FORMAT>& vHits);
 
   /** 
    \brief inplace sorts a number lines by their gradient, the n-1 lines defined 
@@ -127,7 +127,7 @@ protected:
 
    \param fArray the vertices defining the lines
   */
-  static void SortByGradient(std::vector<POS3TEX3_VERTEX>& fArray);
+  static void SortByGradient(std::vector<VERTEX_FORMAT>& fArray);
 };
 };
 #endif // SBVRGEOGEN3D_H

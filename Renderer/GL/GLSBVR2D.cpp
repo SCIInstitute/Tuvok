@@ -53,7 +53,7 @@ GLSBVR2D::GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
   m_pProgramColorNoCompose(NULL),
   m_bUse3DTexture(false)
 {
-  m_bSupportsMeshes = true;
+  m_bSupportsMeshes = false; // not fully implemented yet
 }
 
 GLSBVR2D::~GLSBVR2D() {
@@ -92,33 +92,59 @@ bool GLSBVR2D::LoadShaders() {
                                                 : "Volume2D.glsl";
 
   if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Transfer-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Transfer-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramMIPSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
-                          "SlicesIn3D.glsl", "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "SlicesIn3D.glsl",
+                          NULL,
+                          "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
-                          "SlicesIn3D.glsl", "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "SlicesIn3D.glsl",
+                          NULL,
+                          "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramTransMIP, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Transfer-MIP-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Transfer-MIP-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIsoCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Compose-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColorCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Compose-Color-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-Color-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramCVCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Compose-CV-FS.glsl", NULL) ||
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-CV-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramComposeAnaglyphs, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Compose-Anaglyphs-FS.glsl",
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-Anaglyphs-FS.glsl",
                           NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramSBSStereo, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl", "Compose-SBS-FS.glsl",
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-SBS-FS.glsl",
                           NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
-                          m_vShaderSearchDirs, "Transfer-VS.glsl",
+                          m_vShaderSearchDirs,
+                          "Transfer-VS.glsl",
+                          NULL,                         
                           "Compose-Scanline-FS.glsl", NULL))
 
   {
@@ -174,33 +200,59 @@ bool GLSBVR2D::LoadShaders() {
 
 
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-1D-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "GLSBVR-1D-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-2D-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "GLSBVR-2D-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-MIP-Rot-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "GLSBVR-MIP-Rot-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-Color-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIsoNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "lighting.glsl", volumeAccessFunction.c_str(),
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-ISO-NC-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColorNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl", "GLSBVR-Color-NC-FS.glsl", volumeAccessFunction.c_str(), NULL) || 
+                          "GLSBVR-VS.glsl",
+                          NULL,
+                          "GLSBVR-Color-NC-FS.glsl", volumeAccessFunction.c_str(), NULL) || 
      !LoadAndVerifyShader(&m_pProgramBBox,
-                          m_vShaderSearchDirs, "BBox-VS.glsl",
+                          m_vShaderSearchDirs,
+                          "BBox-VS.glsl",
+                          NULL,                         
                           "BBox-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramMesh,
-                          m_vShaderSearchDirs, "Mesh-VS.glsl",
+     !LoadAndVerifyShader(&m_pProgramMeshBTF,
+                          m_vShaderSearchDirs,
+                          "Mesh-VS.glsl", "BTF.glsl",
+                          NULL,
+                          "Mesh-FS.glsl","lighting.glsl", NULL) || 
+     !LoadAndVerifyShader(&m_pProgramMeshFTB,
+                          m_vShaderSearchDirs, "Mesh-VS.glsl", "FTB.glsl",
+                          NULL,                         
                           "Mesh-FS.glsl","lighting.glsl", NULL))
   {
       Cleanup();
@@ -230,7 +282,7 @@ bool GLSBVR2D::LoadShaders() {
 
     BindVolumeStringsToTexUnit(m_pProgramColorNoCompose, false);
 
-    UpdateColorsInShaders();
+    UpdateLightParamsInShaders();
   }
 
   return true;
@@ -250,7 +302,6 @@ void GLSBVR2D::SetDataDepShaderVars() {
     // this is not really a data dependent var but as we only need to
     // do it once per frame we may also do it here
     shader->SetUniformVector("vLightDiffuse",d.x*m_vIsoColor.x,d.y*m_vIsoColor.y,d.z*m_vIsoColor.z);
-    shader->Disable();
   }
 
   if(m_eRenderMode == RM_1DTRANS && m_TFScalingMethod == SMETH_BIAS_AND_SCALE) {
@@ -260,7 +311,6 @@ void GLSBVR2D::SetDataDepShaderVars() {
     m_pProgram1DTrans[0]->Enable();
     m_pProgram1DTrans[0]->SetUniformVector("TFuncBias", bias_scale.first);
     m_pProgram1DTrans[0]->SetUniformVector("fTransScale", bias_scale.second);
-    m_pProgram1DTrans[0]->Disable();
   }
 }
 
@@ -393,7 +443,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     int iLastTexID = -1;
     glBegin(GL_TRIANGLES);
     for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
-      float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x;
+      float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.x;
       int iCurrentTexID =  int(depth*(pGLVolume->GetSizeX()));
       if (iCurrentTexID != iLastTexID) {
         glEnd();        
@@ -406,8 +456,8 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
 
       float fraction = depth*pGLVolume->GetSizeX() - iCurrentTexID;
 
-      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z,
-                   m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
+      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.z,
+                   m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.y,
                    fraction);
       glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
                  m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
@@ -430,7 +480,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     int iLastTexID = -1;
     glBegin(GL_TRIANGLES);
     for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
-      float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y;
+      float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.y;
       int iCurrentTexID =  int(depth*(pGLVolume->GetSizeY()));
       if (iCurrentTexID != iLastTexID) {
         glEnd();        
@@ -443,8 +493,8 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
 
       float fraction = depth*pGLVolume->GetSizeY() - iCurrentTexID;
 
-      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
-                   m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z,
+      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.x,
+                   m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.z,
                    fraction);
       glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
                  m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
@@ -463,7 +513,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     int iLastTexID = -1;
     glBegin(GL_TRIANGLES);
     for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
-      float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z;
+      float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.z;
       int iCurrentTexID =  int(depth*(pGLVolume->GetSizeZ()));
       if (iCurrentTexID != iLastTexID) {
         glEnd();        
@@ -476,8 +526,8 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
 
       float fraction = depth*pGLVolume->GetSizeZ() - iCurrentTexID;
 
-      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
-                   m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
+      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.x,
+                   m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.y,
                    fraction);
       glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
                  m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
@@ -491,9 +541,9 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
   if(m_SBVRGeogen.m_vSliceTrianglesX.size()) {
     glBegin(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
-        glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.x,
-                     m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.y,
-                     m_SBVRGeogen.m_vSliceTrianglesX[i].m_vTex.z);
+        glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.x,
+                     m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.y,
+                     m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.z);
         glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
                    m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
                    m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
@@ -503,9 +553,9 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
   if(m_SBVRGeogen.m_vSliceTrianglesY.size()) {
     glBegin(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
-        glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.x,
-                     m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.y,
-                     m_SBVRGeogen.m_vSliceTrianglesY[i].m_vTex.z);
+        glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.x,
+                     m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.y,
+                     m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.z);
         glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
                    m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
                    m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
@@ -515,9 +565,9 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
   if(m_SBVRGeogen.m_vSliceTrianglesZ.size()) {
     glBegin(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
-        glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.x,
-                     m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.y,
-                     m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vTex.z);
+        glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.x,
+                     m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.y,
+                     m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.z);
         glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
                    m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
                    m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
@@ -539,8 +589,10 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
   m_mProjection[iStereoID].setProjection();
   maBricktModelView.setModelview();
 
-  m_SBVRGeogen.SetWorld(maBricktTrans * renderRegion.rotation * renderRegion.translation);
-  m_SBVRGeogen.SetView(m_mView[iStereoID], true);
+  m_SBVRGeogen.SetBrickTrans(b.vCenter);
+  m_SBVRGeogen.SetWorld(renderRegion.rotation * renderRegion.translation);
+  m_SBVRGeogen.SetView(m_mView[iStereoID]);
+  m_SBVRGeogen.ComputeGeometry();
 
   if (! m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);
@@ -554,7 +606,6 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
     shader->SetUniformVector("fIsoval", static_cast<float>
                                         (this->GetNormalizedIsovalue()));
     RenderProxyGeometry();
-    shader->Disable();
 
     if (m_bDoClearView) {
       m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
@@ -564,7 +615,6 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
       m_pProgramIso->SetUniformVector("fIsoval", static_cast<float>
                                                  (GetNormalizedCVIsovalue()));
       RenderProxyGeometry();
-      m_pProgramIso->Disable();
     }
   } else {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
@@ -580,25 +630,7 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
 
 void GLSBVR2D::Render3DPostLoop() {
   GLRenderer::Render3DPostLoop();
-
-  // disable the shader
-  switch (m_eRenderMode) {
-    case RM_1DTRANS    :  m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Disable();
-                          glDisable(GL_BLEND);
-                          break;
-    case RM_2DTRANS    :  m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Disable();
-                          glDisable(GL_BLEND);
-                          break;
-    case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
-                            if (m_pDataset->GetComponentCount() == 1)
-                              m_pProgramIsoNoCompose->Disable();
-                            else
-                              m_pProgramColorNoCompose->Disable();
-                             glDisable(GL_BLEND);
-                          }
-                          break;
-    case RM_INVALID    :  T_ERROR("Invalid rendermode set"); break;
-  }
+  glDisable(GL_BLEND);
 }
 
 void GLSBVR2D::RenderHQMIPPreLoop(RenderRegion2D& region) {
@@ -613,8 +645,8 @@ void GLSBVR2D::RenderHQMIPPreLoop(RenderRegion2D& region) {
 
 void GLSBVR2D::RenderHQMIPInLoop(const RenderRegion2D&, const Brick& b) {
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
-  FLOATMATRIX4 maBricktTrans;
-  maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
+  m_SBVRGeogen.SetBrickTrans(b.vCenter);
+
   if (m_bOrthoView) {
     // here we push the volume back by one to make sure 
     // the viewing direction computation in the geometry generator
@@ -622,19 +654,15 @@ void GLSBVR2D::RenderHQMIPInLoop(const RenderRegion2D&, const Brick& b) {
     FLOATMATRIX4 m;
     m.Translation(0,0,1);
     m_SBVRGeogen.SetView(m);
- }  else
+  } else {
     m_SBVRGeogen.SetView(m_mView[0]);
-
-  m_SBVRGeogen.SetWorld(maBricktTrans * m_maMIPRotation, true);
+  }
+  
+  m_SBVRGeogen.SetWorld(m_maMIPRotation);
+  m_SBVRGeogen.ComputeGeometry();
 
   RenderProxyGeometry();
 }
-
-void GLSBVR2D::RenderHQMIPPostLoop() {
-  GLRenderer::RenderHQMIPPostLoop();
-  m_pProgramHQMIPRot->Disable();
-}
-
 
 bool GLSBVR2D::LoadDataset(const string& strFilename) {
   if (GLRenderer::LoadDataset(strFilename)) {
@@ -653,8 +681,8 @@ void GLSBVR2D::ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID) {
 }
 
 
-void GLSBVR2D::UpdateColorsInShaders() {
-  GLRenderer::UpdateColorsInShaders();
+void GLSBVR2D::UpdateLightParamsInShaders() {
+  GLRenderer::UpdateLightParamsInShaders();
 
   FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
   FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
@@ -672,8 +700,6 @@ void GLSBVR2D::UpdateColorsInShaders() {
   m_pProgramIsoNoCompose->SetUniformVector("vDomainScale",scale.x,
                                                           scale.y,
                                                           scale.z);
-  m_pProgramIsoNoCompose->Disable();
-
   m_pProgramColorNoCompose->Enable();
   m_pProgramColorNoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
   m_pProgramColorNoCompose->SetUniformVector("vLightDir",m_vLightDir.x,
@@ -682,7 +708,6 @@ void GLSBVR2D::UpdateColorsInShaders() {
   m_pProgramColorNoCompose->SetUniformVector("vDomainScale",scale.x,
                                                             scale.y,
                                                             scale.z);
-  m_pProgramColorNoCompose->Disable();
 }
 
 bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,

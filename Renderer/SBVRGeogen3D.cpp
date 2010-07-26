@@ -54,11 +54,11 @@ using namespace tuvok;
 
 static bool CheckOrdering(const FLOATVECTOR3& a, const FLOATVECTOR3& b,
                           const FLOATVECTOR3& c);
-static void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray);
+static void SortPoints(std::vector<VERTEX_FORMAT> &fArray);
 
 SBVRGeogen3D::SBVRGeogen3D(void) :
   SBVRGeogen(),
-  m_fMinZ(0)
+  m_fMaxZ(0)
 {
 }
 
@@ -67,27 +67,26 @@ SBVRGeogen3D::~SBVRGeogen3D(void)
 }
 
 // Finds the point with the minimum position in Z.
-struct vertex_min_z : public std::binary_function<POS3TEX3_VERTEX,
-                                                  POS3TEX3_VERTEX,
+struct vertex_min_z : public std::binary_function<VERTEX_FORMAT,
+                                                  VERTEX_FORMAT,
                                                   bool> {
-  bool operator()(const POS3TEX3_VERTEX &a, const POS3TEX3_VERTEX &b) const {
+  bool operator()(const VERTEX_FORMAT &a, const VERTEX_FORMAT &b) const {
     return (a.m_vPos.z < b.m_vPos.z);
   }
 };
 
-
 void SBVRGeogen3D::InitBBOX() {
   SBVRGeogen::InitBBOX();
-  // find the minimum z value
-  m_fMinZ = (*std::min_element(m_pfBBOXVertex, m_pfBBOXVertex+8,
+  // find the maximum z value
+  m_fMaxZ = (*std::max_element(m_pfBBOXVertex, m_pfBBOXVertex+8,
                                                vertex_min_z())).m_vPos.z;
 }
 
 
 bool SBVRGeogen3D::DepthPlaneIntersection(float z,
-                                const POS3TEX3_VERTEX &plA,
-                                const POS3TEX3_VERTEX &plB,
-                                std::vector<POS3TEX3_VERTEX>& vHits)
+                                const VERTEX_FORMAT &plA,
+                                const VERTEX_FORMAT &plB,
+                                std::vector<VERTEX_FORMAT>& vHits)
 {
   /*
      returns NO INTERSECTION if the line of the 2 points a,b is
@@ -105,13 +104,13 @@ bool SBVRGeogen3D::DepthPlaneIntersection(float z,
   float fAlpha = (z - plA.m_vPos.z) /
                  (plA.m_vPos.z - plB.m_vPos.z);
 
-  POS3TEX3_VERTEX vHit;
+  VERTEX_FORMAT vHit;
 
   vHit.m_vPos.x = plA.m_vPos.x + (plA.m_vPos.x - plB.m_vPos.x) * fAlpha;
   vHit.m_vPos.y = plA.m_vPos.y + (plA.m_vPos.y - plB.m_vPos.y) * fAlpha;
   vHit.m_vPos.z = z;
 
-  vHit.m_vTex = plA.m_vTex + (plA.m_vTex - plB.m_vTex) * fAlpha;
+  vHit.m_vVertexData = plA.m_vVertexData + (plA.m_vVertexData - plB.m_vVertexData) * fAlpha;
 
   vHits.push_back(vHit);
 
@@ -120,16 +119,16 @@ bool SBVRGeogen3D::DepthPlaneIntersection(float z,
 
 
 // Functor to identify the point with the lowest `y' coordinate.
-struct vertex_min : public std::binary_function<POS3TEX3_VERTEX,
-                                                POS3TEX3_VERTEX,
+struct vertex_min : public std::binary_function<VERTEX_FORMAT,
+                                                VERTEX_FORMAT,
                                                 bool> {
-  bool operator()(const POS3TEX3_VERTEX &a, const POS3TEX3_VERTEX &b) const {
+  bool operator()(const VERTEX_FORMAT &a, const VERTEX_FORMAT &b) const {
     return (a.m_vPos.y < b.m_vPos.y);
   }
 };
 
 // Sorts a vector
-void SBVRGeogen3D::SortByGradient(std::vector<POS3TEX3_VERTEX>& fArray)
+void SBVRGeogen3D::SortByGradient(std::vector<VERTEX_FORMAT>& fArray)
 {
   // move bottom element to front of array
   if(fArray.empty()) { return; }
@@ -141,7 +140,7 @@ void SBVRGeogen3D::SortByGradient(std::vector<POS3TEX3_VERTEX>& fArray)
   }
 }
 
-void SBVRGeogen3D::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
+void SBVRGeogen3D::Triangulate(std::vector<VERTEX_FORMAT> &fArray) {
   SortByGradient(fArray);
 
   // convert to triangles
@@ -154,7 +153,7 @@ void SBVRGeogen3D::Triangulate(std::vector<POS3TEX3_VERTEX> &fArray) {
 
 
 bool SBVRGeogen3D::ComputeLayerGeometry(float fDepth) {
-  std::vector<POS3TEX3_VERTEX> vLayerPoints;
+  std::vector<VERTEX_FORMAT> vLayerPoints;
   vLayerPoints.reserve(12);
 
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[0], m_pfBBOXVertex[1],
@@ -199,9 +198,11 @@ float SBVRGeogen3D::GetLayerDistance() const {
 
 
 void SBVRGeogen3D::ComputeGeometry() {
+  InitBBOX();
+
   m_vSliceTriangles.clear();
 
-  float fDepth = m_fMinZ;
+  float fDepth = m_fMaxZ;
   float fLayerDistance = GetLayerDistance();
 
   // I hit this every time I fiddle with the integration of an
@@ -217,13 +218,61 @@ void SBVRGeogen3D::ComputeGeometry() {
   assert(!std::tr1::isnan(fDepth));
 #endif
 
-  while (ComputeLayerGeometry(fDepth)) fDepth += fLayerDistance;
+  while (ComputeLayerGeometry(fDepth)) fDepth -= fLayerDistance;
 
   if(m_bClipPlaneEnabled) {
     PLANE<float> transformed = m_ClipPlane * m_matView;
     const FLOATVECTOR3 normal(transformed.xyz());
     const float d = transformed.d();
     m_vSliceTriangles = ClipTriangles(m_vSliceTriangles, normal, d);
+  }
+
+
+  if (m_mesh.size() > 0) {
+    VERTEX_FORMAT f;
+    for (SortIndexPList::const_iterator index = m_mesh.begin();
+         index != m_mesh.end();
+         index++) {
+      
+      const RenderMesh* mesh = (*index)->m_mesh;
+      size_t startIndex = (*index)->m_index;
+      
+      bool bHasNormal = mesh->GetNormalIndices().size() == mesh->GetVertexIndices().size();
+
+      if (mesh->UseDefaultColor()) {
+        f.m_vVertexData = mesh->GetDefaultColor().xyz();
+        f.m_fOpacity = mesh->GetDefaultColor().w;
+
+        for (size_t i = 0;i<3;i++) {
+          size_t vertexIndex =  mesh->GetVertexIndices()[startIndex+i];
+          f.m_vPos =  mesh->GetVertices()[vertexIndex];
+          if (bHasNormal) 
+            f.m_vNormal = mesh->GetNormals()[vertexIndex];
+          else
+            f.m_vNormal = FLOATVECTOR3(2,2,2);
+          m_vSliceTriangles.push_back(f);
+        }
+      } else {
+        for (size_t i = 0;i<3;i++) {
+          size_t vertexIndex =  mesh->GetVertexIndices()[startIndex+i];
+          f.m_vPos =  mesh->GetVertices()[vertexIndex];
+
+          f.m_vVertexData = mesh->GetColors()[vertexIndex].xyz();
+          f.m_fOpacity = mesh->GetColors()[vertexIndex].w;          
+          if (bHasNormal) 
+            f.m_vNormal = mesh->GetNormals()[vertexIndex];
+          else
+            f.m_vNormal = FLOATVECTOR3(2,2,2);
+
+          m_vSliceTriangles.push_back(f);
+        }
+      }
+
+      // currently we only support triangles
+
+
+
+    }
   }
 }
 
@@ -247,7 +296,7 @@ static bool CheckOrdering(const FLOATVECTOR3& a,
 }
 
 /// @todo: should be replaced with std::sort.
-static void SortPoints(std::vector<POS3TEX3_VERTEX> &fArray) {
+static void SortPoints(std::vector<VERTEX_FORMAT> &fArray) {
   // for small arrays, this bubble sort actually beats qsort.
   for (UINT32 i= 1;i<fArray.size();++i)
     for (UINT32 j = 1;j<fArray.size()-i;++j)

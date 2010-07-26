@@ -97,7 +97,6 @@ namespace tuvok {
 
       virtual void RenderHQMIPPreLoop(RenderRegion2D& region);
       virtual void RenderHQMIPInLoop(const RenderRegion2D& region, const Brick& b);
-      virtual void RenderHQMIPPostLoop();
 
       void RenderProxyGeometry() const;
       void RenderProxyGeometry2D() const;
@@ -106,7 +105,7 @@ namespace tuvok {
 
       virtual void ComposeSurfaceImage(RenderRegion& renderRegion,
                                        int iStereoID);
-      virtual void UpdateColorsInShaders();
+      virtual void UpdateLightParamsInShaders();
   
       virtual bool BindVolumeTex(const BrickKey& bkey, 
                                  const UINT64 iIntraFrameCounter);
