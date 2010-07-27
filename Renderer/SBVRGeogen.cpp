@@ -61,7 +61,9 @@ SBVRGeogen::SBVRGeogen(void) :
   m_vSize(1,1,1),
   m_vTexCoordMin(0,0,0),
   m_vTexCoordMax(1,1,1),
-  m_bClipPlaneEnabled(false)
+  m_bClipPlaneEnabled(false),
+  m_bClipVolume(true),
+  m_bClipMesh(false)
 {
   m_pfBBOXStaticVertex[0] = FLOATVECTOR3(-0.5, 0.5,-0.5);   // top,left,back
   m_pfBBOXStaticVertex[1] = FLOATVECTOR3( 0.5, 0.5,-0.5);   // top,right,back
@@ -229,9 +231,19 @@ SBVRGeogen::ClipTriangles(const std::vector<VERTEX_FORMAT> &in,
   for(std::vector<VERTEX_FORMAT>::const_iterator iter = in.begin();
       iter < (in.end()-2);
       iter += 3) {
+
     const VERTEX_FORMAT &a = (*iter);
     const VERTEX_FORMAT &b = (*(iter+1));
     const VERTEX_FORMAT &c = (*(iter+2));
+
+    // assume that either all or none of the tri vertices are to be clipped
+    if (!a.m_bClip) {
+      out.push_back(a);
+      out.push_back(b);
+      out.push_back(c);
+      continue;
+    }
+
     float fa = (normal ^ a.m_vPos) + D;
     float fb = (normal ^ b.m_vPos) + D;
     float fc = (normal ^ c.m_vPos) + D;
@@ -350,6 +362,8 @@ void SBVRGeogen::SortMeshWithoutVolume(std::vector<VERTEX_FORMAT>& list) {
             f.m_vNormal = mesh->GetNormals()[vertexIndex];
           else
             f.m_vNormal = FLOATVECTOR3(2,2,2);
+
+          f.m_bClip = m_bClipMesh;
 
           list.push_back(f);
         }

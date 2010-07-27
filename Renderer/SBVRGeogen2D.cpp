@@ -77,6 +77,7 @@ void SBVRGeogen2D::InterpolateVertices(const VERTEX_FORMAT& v1,
                                        float a, VERTEX_FORMAT& r) const {
   r.m_vPos = (1.0f-a)*v1.m_vPos + a*v2.m_vPos;
   r.m_vVertexData = (1.0f-a)*v1.m_vVertexData + a*v2.m_vVertexData;
+  r.m_bClip = m_bClipVolume;
 }
 
 void SBVRGeogen2D::ComputeGeometry(bool bMeshOnly) {
@@ -100,7 +101,7 @@ void SBVRGeogen2D::ComputeGeometry(bool bMeshOnly) {
     default : ComputeGeometryKruegerFast(); break;
   }
 
-  if(m_bClipPlaneEnabled) {
+  if(m_bClipPlaneEnabled && (m_bClipVolume || m_bClipMesh)) {
     PLANE<float> transformed = m_ClipPlane * m_matView;
     const FLOATVECTOR3 normal(transformed.xyz());
     const float d = transformed.d();

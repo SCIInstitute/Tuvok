@@ -57,7 +57,7 @@ namespace tuvok {
       \brief standard constructor
       initializes both the position as well as the texture coodinate to (0,0,0,0)
     */
-    VERTEX_FORMAT() : m_vPos(), m_vVertexData(), m_fOpacity(AS_TEXCOORD) {}
+    VERTEX_FORMAT() : m_vPos(), m_vVertexData(), m_fOpacity(AS_TEXCOORD), m_bClip(true) {}
     /**    
       \brief initializes both the position as well as the texture coodinate to the
       given parameters
@@ -65,7 +65,8 @@ namespace tuvok {
     VERTEX_FORMAT(const FLOATVECTOR3 &vPos, const FLOATVECTOR3 &vTex)
       : m_vPos(vPos),
         m_vVertexData(vTex),
-        m_fOpacity(AS_TEXCOORD) {}
+        m_fOpacity(AS_TEXCOORD),
+        m_bClip(true) {}
     /**    
       \brief initializes the position to the x,y,z coordinate of the give position 
       (IGNORING the w component) and the texture coodinate to the
@@ -74,7 +75,9 @@ namespace tuvok {
     VERTEX_FORMAT(const FLOATVECTOR4 &vPos, const FLOATVECTOR3 &vTex)
       : m_vPos(vPos.xyz()),
         m_vVertexData(vTex),
-        m_fOpacity(AS_TEXCOORD) {}
+        m_fOpacity(AS_TEXCOORD),
+        m_bClip(true)
+    {}
     /**    
       \brief initializes the position to give parameter and the texture coordinate
       to the position + 0.5
@@ -84,7 +87,8 @@ namespace tuvok {
     */
     VERTEX_FORMAT(const FLOATVECTOR3 &vPos) : 
       m_vPos(vPos),
-      m_fOpacity(AS_TEXCOORD)
+      m_fOpacity(AS_TEXCOORD),
+      m_bClip(true)
     {
       m_vVertexData = m_vPos + 0.5f;
     }
@@ -96,6 +100,7 @@ namespace tuvok {
     //  it stores AS_TEXCOORD 
     float m_fOpacity;
     FLOATVECTOR3 m_vNormal;
+    bool m_bClip;
   };
 
   /** \class SBVRGeoGen
@@ -218,6 +223,9 @@ namespace tuvok {
     void ResetMesh() {m_mesh.clear();}
     void AddMesh(const SortIndexPList& mesh);
 
+    bool ClipVolumeOnPlanes(bool bClipVolume) {m_bClipVolume = bClipVolume;}
+    bool ClipMeshOnPlanes(bool bClipMesh) {m_bClipMesh = bClipMesh;}
+
   protected:
     //! user specified oversampling (if > 1) or undersampling (if < 1) rate
     float             m_fSamplingModifier;
@@ -275,6 +283,12 @@ namespace tuvok {
 
     //! part of a transparent mesh to be interleaved with the volume
     SortIndexPList m_mesh;
+
+    //! should the volume be clipped on the clipping plane?
+    bool m_bClipVolume;
+
+    //! should the mesh be clipped on the clipping plane?
+    bool m_bClipMesh;
 
     //! Computes the transformed vertices m_pfBBOXVertex from m_pfBBOXStaticVertex
     virtual void InitBBOX();

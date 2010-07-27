@@ -118,7 +118,8 @@ protected:
   static bool DepthPlaneIntersection(float z,
                                   const VERTEX_FORMAT &plA,
                                   const VERTEX_FORMAT &plB,
-                                  std::vector<VERTEX_FORMAT>& vHits);
+                                  std::vector<VERTEX_FORMAT>& vHits,
+                                  bool bClip);
 
   /** 
    \brief inplace sorts a number lines by their gradient, the n-1 lines defined 

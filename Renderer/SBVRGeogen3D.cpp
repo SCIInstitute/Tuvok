@@ -86,7 +86,8 @@ void SBVRGeogen3D::InitBBOX() {
 bool SBVRGeogen3D::DepthPlaneIntersection(float z,
                                 const VERTEX_FORMAT &plA,
                                 const VERTEX_FORMAT &plB,
-                                std::vector<VERTEX_FORMAT>& vHits)
+                                std::vector<VERTEX_FORMAT>& vHits,
+                                bool bClip)
 {
   /*
      returns NO INTERSECTION if the line of the 2 points a,b is
@@ -111,6 +112,7 @@ bool SBVRGeogen3D::DepthPlaneIntersection(float z,
   vHit.m_vPos.z = z;
 
   vHit.m_vVertexData = plA.m_vVertexData + (plA.m_vVertexData - plB.m_vVertexData) * fAlpha;
+  vHit.m_bClip = bClip;
 
   vHits.push_back(vHit);
 
@@ -157,31 +159,31 @@ bool SBVRGeogen3D::ComputeLayerGeometry(float fDepth) {
   vLayerPoints.reserve(12);
 
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[0], m_pfBBOXVertex[1],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[1], m_pfBBOXVertex[2],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[2], m_pfBBOXVertex[3],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[3], m_pfBBOXVertex[0],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
 
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[4], m_pfBBOXVertex[5],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[5], m_pfBBOXVertex[6],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[6], m_pfBBOXVertex[7],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[7], m_pfBBOXVertex[4],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
 
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[4], m_pfBBOXVertex[0],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[5], m_pfBBOXVertex[1],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[6], m_pfBBOXVertex[2],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[7], m_pfBBOXVertex[3],
-                      vLayerPoints);
+                      vLayerPoints, m_bClipVolume);
 
   if (vLayerPoints.size() <= 2) {
     return false;
@@ -202,13 +204,10 @@ void SBVRGeogen3D::ComputeGeometry(bool bMeshOnly) {
 
   m_vSliceTriangles.clear();
 
-
   if (bMeshOnly)  {
     SortMeshWithoutVolume(m_vSliceTriangles);
     return;
   }
-
-  // TODO handle mesh when the volume is not empty
 
   float fDepth = m_fMaxZ;
   float fLayerDistance = GetLayerDistance();
@@ -228,13 +227,12 @@ void SBVRGeogen3D::ComputeGeometry(bool bMeshOnly) {
 
   while (ComputeLayerGeometry(fDepth)) fDepth -= fLayerDistance;
 
-  if(m_bClipPlaneEnabled) {
+  if(m_bClipPlaneEnabled && (m_bClipVolume || m_bClipMesh)) {
     PLANE<float> transformed = m_ClipPlane * m_matView;
     const FLOATVECTOR3 normal(transformed.xyz());
     const float d = transformed.d();
     m_vSliceTriangles = ClipTriangles(m_vSliceTriangles, normal, d);
   }
-
 
 }
 
