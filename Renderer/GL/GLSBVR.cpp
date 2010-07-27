@@ -361,6 +361,8 @@ void GLSBVR::Render3DPreLoop(const RenderRegion3D&) {
 GLsizei iStructSize = GLsizei(sizeof(VERTEX_FORMAT));
 
 void GLSBVR::RenderProxyGeometry() const {
+  if (m_SBVRGeogen.m_vSliceTriangles.size() == 0) return;
+
   glBindBuffer(GL_ARRAY_BUFFER, m_GeoBuffer);
   glBufferData(GL_ARRAY_BUFFER, GLsizei(m_SBVRGeogen.m_vSliceTriangles.size())*iStructSize, &m_SBVRGeogen.m_vSliceTriangles[0], GL_STREAM_DRAW);
   glVertexPointer(3, GL_FLOAT, iStructSize, BUFFER_OFFSET(0));
@@ -409,7 +411,7 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
   m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
   // neither mesh nor volume data for this brick -> skip the rest
-  if (b.bIsEmpty && !m_SBVRGeogen.HasMesh()) return;
+//  if (b.bIsEmpty && !m_SBVRGeogen.HasMesh()) return;
 
   if (!m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);

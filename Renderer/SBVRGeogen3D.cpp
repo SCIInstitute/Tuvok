@@ -190,7 +190,7 @@ bool SBVRGeogen3D::ComputeLayerGeometry(float fDepth) {
   }
 
   // insert mesh triangles
-  InsertMeshUpToSlice(fDepth);
+  if (HasMesh()) InsertMeshUpToSlice(fDepth);
 
   Triangulate(vLayerPoints);
 
