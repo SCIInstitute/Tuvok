@@ -358,17 +358,18 @@ void GLSBVR::Render3DPreLoop(const RenderRegion3D&) {
 
 
 #define BUFFER_OFFSET(i) ((char *)NULL + (i))
+GLsizei iStructSize = GLsizei(sizeof(VERTEX_FORMAT));
 
 void GLSBVR::RenderProxyGeometry() const {
   glBindBuffer(GL_ARRAY_BUFFER, m_GeoBuffer);
-  glBufferData(GL_ARRAY_BUFFER, m_SBVRGeogen.m_vSliceTriangles.size()*sizeof(float)*10, &m_SBVRGeogen.m_vSliceTriangles[0], GL_STREAM_DRAW);
-  glVertexPointer(3, GL_FLOAT, 40, BUFFER_OFFSET(0));
+  glBufferData(GL_ARRAY_BUFFER, GLsizei(m_SBVRGeogen.m_vSliceTriangles.size())*iStructSize, &m_SBVRGeogen.m_vSliceTriangles[0], GL_STREAM_DRAW);
+  glVertexPointer(3, GL_FLOAT, iStructSize, BUFFER_OFFSET(0));
   if (m_SBVRGeogen.HasMesh()) {
-    glTexCoordPointer(4 , GL_FLOAT, 40, BUFFER_OFFSET(12));
-    glNormalPointer(GL_FLOAT, 40, BUFFER_OFFSET(28));
+    glTexCoordPointer(4 , GL_FLOAT, iStructSize, BUFFER_OFFSET(12));
+    glNormalPointer(GL_FLOAT, iStructSize, BUFFER_OFFSET(28));
     glEnableClientState(GL_NORMAL_ARRAY);
   } else {
-    glTexCoordPointer(3, GL_FLOAT, 40, BUFFER_OFFSET(12));
+    glTexCoordPointer(3, GL_FLOAT, iStructSize, BUFFER_OFFSET(12));
   }
   
   glEnableClientState(GL_VERTEX_ARRAY);
