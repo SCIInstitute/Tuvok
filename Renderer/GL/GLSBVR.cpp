@@ -289,6 +289,7 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
         shader = (m_pDataset->GetComponentCount() == 1) ?
                  m_pProgramIso : m_pProgramColor;
       }
+      shader->Enable();
       shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
       break;
     }
@@ -381,6 +382,8 @@ void GLSBVR::RenderProxyGeometry() const {
 void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
                             size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
+  
+  if (!m_bSupportsMeshes && b.bIsEmpty) return;
 
   // setup the slice generator
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount,
@@ -402,17 +405,18 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
       }
     }
   }
-  m_SBVRGeogen.ComputeGeometry();
+  m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
+
+  // neither mesh nor volume data for this brick -> skip the rest
+  if (b.bIsEmpty && !m_SBVRGeogen.HasMesh()) return;
 
   if (!m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);
-    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
-
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
-
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    shader->Enable();
     SetBrickDepShaderVars(b);
+    
+    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
     shader->SetUniformVector("fIsoval", static_cast<float>
                                         (this->GetNormalizedIsovalue()));    
     RenderProxyGeometry();
@@ -428,7 +432,6 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
     }
   } else {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
-
     glDepthMask(GL_FALSE);
     SetBrickDepShaderVars(b);
     RenderProxyGeometry();
@@ -475,7 +478,7 @@ void GLSBVR::RenderHQMIPInLoop(const RenderRegion2D &, const Brick& b) {
   m_SBVRGeogen.SetBrickTrans(b.vCenter);
   m_SBVRGeogen.SetWorld(m_maMIPRotation);
 
-  m_SBVRGeogen.ComputeGeometry();
+  m_SBVRGeogen.ComputeGeometry(false);
 
   RenderProxyGeometry();
 }

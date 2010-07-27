@@ -98,7 +98,7 @@ public:
    \sa ComputeGeometryRezk() ComputeGeometryKrueger()
    ComputeGeometryKruegerFast() m_eMethod
   */
-  virtual void ComputeGeometry();
+  virtual void ComputeGeometry(bool bMeshOnly);
 
   //! Vector holding the slices that access the X axis aligned textures
   std::vector<VERTEX_FORMAT> m_vSliceTrianglesX;

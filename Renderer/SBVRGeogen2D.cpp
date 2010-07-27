@@ -79,7 +79,21 @@ void SBVRGeogen2D::InterpolateVertices(const VERTEX_FORMAT& v1,
   r.m_vVertexData = (1.0f-a)*v1.m_vVertexData + a*v2.m_vVertexData;
 }
 
-void SBVRGeogen2D::ComputeGeometry() {
+void SBVRGeogen2D::ComputeGeometry(bool bMeshOnly) {
+  if (bMeshOnly) {
+    m_vSliceTrianglesX.clear();
+    m_vSliceTrianglesY.clear();
+    m_vSliceTrianglesZ.clear();
+
+    SortMeshWithoutVolume(m_vSliceTrianglesX);
+    m_vSliceTrianglesY = m_vSliceTrianglesX;
+    m_vSliceTrianglesZ = m_vSliceTrianglesX;
+
+    return;
+  }
+
+  // TODO handle mesh when the volume is not empty
+ 
   switch (m_eMethod) {
     case METHOD_REZK : ComputeGeometryRezk(); break;
     case METHOD_KRUEGER : ComputeGeometryKrueger(); break;

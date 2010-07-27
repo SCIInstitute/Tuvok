@@ -67,7 +67,11 @@ public:
   Brick() :
     vCenter(0,0,0),
     vExtension(0,0,0),
-    vCoords(0,0,0)
+    vVoxelCount(0, 0, 0),
+    vCoords(0,0,0),
+    kBrick(),
+    fDistance(0),
+    bIsEmpty(false)
   {
   }
 
@@ -78,7 +82,9 @@ public:
     vExtension(0,0,0),
     vVoxelCount(iSizeX, iSizeY, iSizeZ),
     vCoords(x,y,z),
-    kBrick(k)
+    kBrick(k),
+    fDistance(0),
+    bIsEmpty(false)
   {
   }
 
@@ -90,6 +96,7 @@ public:
   UINTVECTOR3 vCoords;
   BrickKey kBrick;
   float fDistance;
+  bool bIsEmpty;
 };
 
 inline bool operator < (const Brick& left, const Brick& right) {
@@ -592,8 +599,9 @@ class AbstrRenderer {
     void                PlanFrame(RenderRegion3D& region);
     void                PlanHQMIPFrame(RenderRegion& renderRegion);
     /// @return true if the brick is needed to render the given region
-    bool RegionNeedsBrick(const RenderRegion&, const BrickKey&,
-                          const BrickMD&) const;
+    bool RegionNeedsBrick(const RenderRegion& rr, const BrickKey& key,
+                          const BrickMD& bmd,
+                          bool& bIsEmptyButInFrustum) const;
     /// @return true if this brick is clipped by a clipping plane.
     bool Clipped(const RenderRegion&, const Brick&) const;
     /// does the current brick contain relevant data?

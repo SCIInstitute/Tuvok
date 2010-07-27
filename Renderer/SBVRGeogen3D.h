@@ -64,7 +64,7 @@ public:
    \brief This call invokes the actual geometry generation of the view aligned
    slices
   */
-  virtual void ComputeGeometry();
+  virtual void ComputeGeometry(bool bMeshOnly);
   //! this is where ComputeGeometry() outputs the geometry to
   std::vector<VERTEX_FORMAT> m_vSliceTriangles;
 

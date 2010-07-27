@@ -308,3 +308,52 @@ void SBVRGeogen::AddMesh(const SortIndexPList& mesh) {
     if (isInsideAABB(min, max, c)) m_mesh.push_back(*index);
   }
 }
+
+
+void SBVRGeogen::SortMeshWithoutVolume(std::vector<VERTEX_FORMAT>& list) {
+  if (m_mesh.size() > 0) {
+    VERTEX_FORMAT f;
+
+    std::sort(m_mesh.begin(), m_mesh.end(), DistanceSortUnder);
+
+    for (SortIndexPList::const_iterator index = m_mesh.begin();
+         index != m_mesh.end();
+         index++) {
+      
+      const RenderMesh* mesh = (*index)->m_mesh;
+      size_t startIndex = (*index)->m_index;
+      
+      bool bHasNormal = mesh->GetNormalIndices().size() == mesh->GetVertexIndices().size();
+
+      if (mesh->UseDefaultColor()) {
+        f.m_vVertexData = mesh->GetDefaultColor().xyz();
+        f.m_fOpacity = mesh->GetDefaultColor().w;
+
+        // currently we only support triangles, hence the 3
+        for (size_t i = 0;i<3;i++) {
+          size_t vertexIndex =  mesh->GetVertexIndices()[startIndex+i];
+          f.m_vPos =  mesh->GetVertices()[vertexIndex];
+          if (bHasNormal) 
+            f.m_vNormal = mesh->GetNormals()[vertexIndex];
+          else
+            f.m_vNormal = FLOATVECTOR3(2,2,2);
+          list.push_back(f);
+        }
+      } else {
+        for (size_t i = 0;i<3;i++) {
+          size_t vertexIndex =  mesh->GetVertexIndices()[startIndex+i];
+          f.m_vPos =  mesh->GetVertices()[vertexIndex];
+
+          f.m_vVertexData = mesh->GetColors()[vertexIndex].xyz();
+          f.m_fOpacity = mesh->GetColors()[vertexIndex].w;          
+          if (bHasNormal) 
+            f.m_vNormal = mesh->GetNormals()[vertexIndex];
+          else
+            f.m_vNormal = FLOATVECTOR3(2,2,2);
+
+          list.push_back(f);
+        }
+      }
+    }
+  }
+}

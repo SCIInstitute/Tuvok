@@ -186,7 +186,7 @@ namespace tuvok {
      \brief abstract call the is supposed to do the actual 
      geometry computation in the derived classes
     */
-    virtual void ComputeGeometry() = 0;
+    virtual void ComputeGeometry(bool bMeshOnly) = 0;
 
     /** 
      \brief returns the opacity correction parameter based on the global
@@ -211,7 +211,6 @@ namespace tuvok {
     void SetClipPlane(const PLANE<float>& plane) {
       if(m_ClipPlane != plane) {
         m_ClipPlane = plane;
-        ComputeGeometry();
       }
     }
 
@@ -340,6 +339,8 @@ namespace tuvok {
     static bool isInsideAABB(const FLOATVECTOR3& min,
                              const FLOATVECTOR3& max,
                              const FLOATVECTOR3& point);
+
+    void SortMeshWithoutVolume(std::vector<VERTEX_FORMAT>& list);
   };
 };
 #endif // SBVRGEOGEN_H

@@ -418,6 +418,7 @@ void GLRaycaster::Render3DPreLoop(const RenderRegion3D &) {
 void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
                                  size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
+  if (b.bIsEmpty) return;
 
   glDisable(GL_BLEND);
   glDepthMask(GL_FALSE);

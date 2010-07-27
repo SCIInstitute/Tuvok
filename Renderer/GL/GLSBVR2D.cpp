@@ -579,6 +579,7 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
 void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
                               size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
+  if (b.bIsEmpty) return;
 
   // setup the slice generator
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount,
@@ -592,7 +593,7 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
   m_SBVRGeogen.SetBrickTrans(b.vCenter);
   m_SBVRGeogen.SetWorld(renderRegion.rotation * renderRegion.translation);
   m_SBVRGeogen.SetView(m_mView[iStereoID]);
-  m_SBVRGeogen.ComputeGeometry();
+  m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
   if (! m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);
@@ -659,7 +660,7 @@ void GLSBVR2D::RenderHQMIPInLoop(const RenderRegion2D&, const Brick& b) {
   }
   
   m_SBVRGeogen.SetWorld(m_maMIPRotation);
-  m_SBVRGeogen.ComputeGeometry();
+  m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
   RenderProxyGeometry();
 }

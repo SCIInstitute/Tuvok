@@ -197,10 +197,18 @@ float SBVRGeogen3D::GetLayerDistance() const {
 }
 
 
-void SBVRGeogen3D::ComputeGeometry() {
+void SBVRGeogen3D::ComputeGeometry(bool bMeshOnly) {
   InitBBOX();
 
   m_vSliceTriangles.clear();
+
+
+  if (bMeshOnly)  {
+    SortMeshWithoutVolume(m_vSliceTriangles);
+    return;
+  }
+
+  // TODO handle mesh when the volume is not empty
 
   float fDepth = m_fMaxZ;
   float fLayerDistance = GetLayerDistance();
@@ -228,52 +236,6 @@ void SBVRGeogen3D::ComputeGeometry() {
   }
 
 
-  if (m_mesh.size() > 0) {
-    VERTEX_FORMAT f;
-    for (SortIndexPList::const_iterator index = m_mesh.begin();
-         index != m_mesh.end();
-         index++) {
-      
-      const RenderMesh* mesh = (*index)->m_mesh;
-      size_t startIndex = (*index)->m_index;
-      
-      bool bHasNormal = mesh->GetNormalIndices().size() == mesh->GetVertexIndices().size();
-
-      if (mesh->UseDefaultColor()) {
-        f.m_vVertexData = mesh->GetDefaultColor().xyz();
-        f.m_fOpacity = mesh->GetDefaultColor().w;
-
-        for (size_t i = 0;i<3;i++) {
-          size_t vertexIndex =  mesh->GetVertexIndices()[startIndex+i];
-          f.m_vPos =  mesh->GetVertices()[vertexIndex];
-          if (bHasNormal) 
-            f.m_vNormal = mesh->GetNormals()[vertexIndex];
-          else
-            f.m_vNormal = FLOATVECTOR3(2,2,2);
-          m_vSliceTriangles.push_back(f);
-        }
-      } else {
-        for (size_t i = 0;i<3;i++) {
-          size_t vertexIndex =  mesh->GetVertexIndices()[startIndex+i];
-          f.m_vPos =  mesh->GetVertices()[vertexIndex];
-
-          f.m_vVertexData = mesh->GetColors()[vertexIndex].xyz();
-          f.m_fOpacity = mesh->GetColors()[vertexIndex].w;          
-          if (bHasNormal) 
-            f.m_vNormal = mesh->GetNormals()[vertexIndex];
-          else
-            f.m_vNormal = FLOATVECTOR3(2,2,2);
-
-          m_vSliceTriangles.push_back(f);
-        }
-      }
-
-      // currently we only support triangles
-
-
-
-    }
-  }
 }
 
 // Checks the ordering of two points relative to a third.

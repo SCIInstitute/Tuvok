@@ -1051,6 +1051,10 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
       MESSAGE("Brick %u of %u", static_cast<unsigned>(iBrickIndex+1),
               static_cast<unsigned>(m_vCurrentBrickList.size()));
 
+      // for MIP we do not consider empty bricks since we do not render 
+      // other geometry such as meshes anyway
+      if (m_vCurrentBrickList[iBrickIndex].bIsEmpty) continue;
+
       // convert 3D variables to the more general ND scheme used in the memory
       // manager, i.e. convert 3-vectors to stl vectors
       vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
@@ -1968,15 +1972,21 @@ void GLRenderer::GeometryPreRender() {
       for (UINT64 iCurrentBrick = 0;
            iCurrentBrick < m_vCurrentBrickList.size();
            iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1),
-                   m_vCurrentBrickList[iCurrentBrick].vCenter,
-                   m_vCurrentBrickList[iCurrentBrick].vExtension);
+        if (m_vCurrentBrickList[iCurrentBrick].bIsEmpty) 
+          RenderBBox(FLOATVECTOR4(1,1,0,1),
+                     m_vCurrentBrickList[iCurrentBrick].vCenter,
+                     m_vCurrentBrickList[iCurrentBrick].vExtension*0.99f);
+        else
+          RenderBBox(FLOATVECTOR4(0,1,0,1),
+                     m_vCurrentBrickList[iCurrentBrick].vCenter,
+                     m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
 
     // now the opaque parts of the mesh
     if (m_bSupportsMeshes) {
-      m_pProgramMeshBTF->Enable(); // FTB and BTF both work, BTF is simpler
+      // FTB and BTF would both be ok here, so we use BTF as it is simpler
+      m_pProgramMeshBTF->Enable(); 
       for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
            mesh != m_Meshes.end(); mesh++) {
         if ((*mesh)->GetActive()) {
@@ -2001,9 +2011,14 @@ void GLRenderer::GeometryPreRender() {
       for (UINT64 iCurrentBrick = 0;
            iCurrentBrick < m_vCurrentBrickList.size();
            iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1),
-                   m_vCurrentBrickList[iCurrentBrick].vCenter,
-                   m_vCurrentBrickList[iCurrentBrick].vExtension);
+        if (m_vCurrentBrickList[iCurrentBrick].bIsEmpty) 
+          RenderBBox(FLOATVECTOR4(1,1,0,1),
+                     m_vCurrentBrickList[iCurrentBrick].vCenter,
+                     m_vCurrentBrickList[iCurrentBrick].vExtension*0.99f);
+        else
+          RenderBBox(FLOATVECTOR4(0,1,0,1),
+                     m_vCurrentBrickList[iCurrentBrick].vCenter,
+                     m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
     // the the opaque parts of the meshes
@@ -2036,8 +2051,14 @@ void GLRenderer::GeometryPostRender() {
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
       for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
-        RenderBBox(FLOATVECTOR4(0,1,0,1), m_vCurrentBrickList[iCurrentBrick].vCenter,
-                   m_vCurrentBrickList[iCurrentBrick].vExtension);
+        if (m_vCurrentBrickList[iCurrentBrick].bIsEmpty) 
+          RenderBBox(FLOATVECTOR4(1,1,0,1),
+                     m_vCurrentBrickList[iCurrentBrick].vCenter,
+                     m_vCurrentBrickList[iCurrentBrick].vExtension*0.99f);
+        else
+          RenderBBox(FLOATVECTOR4(0,1,0,1),
+                     m_vCurrentBrickList[iCurrentBrick].vCenter,
+                     m_vCurrentBrickList[iCurrentBrick].vExtension);
       }
     }
 

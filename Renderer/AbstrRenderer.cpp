@@ -745,7 +745,8 @@ bool AbstrRenderer::OnlyRecomposite(RenderRegion* region) const {
 
 bool AbstrRenderer::RegionNeedsBrick(const RenderRegion& rr,
                                      const BrickKey& key,
-                                     const BrickMD& bmd) const
+                                     const BrickMD& bmd,
+                                     bool& bIsEmptyButInFrustum) const
 {
   if(rr.is2D()) {
     return rr.GetUseMIP() ||
@@ -776,7 +777,9 @@ bool AbstrRenderer::RegionNeedsBrick(const RenderRegion& rr,
 
   // finally, query the data in the brick; if no data can possibly be visible,
   // don't render this brick.
-  return ContainsData(key);
+  bIsEmptyButInFrustum = !ContainsData(key);
+
+  return true;
 }
 
 /// @return true if this brick is clipped by a clipping plane.
@@ -883,7 +886,7 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
     bool needed = false;
     for(std::vector<RenderRegion*>::const_iterator reg = renderRegions.begin();
         reg != renderRegions.end(); ++reg) {
-      if(RegionNeedsBrick(**reg, brick->first, brick->second)) {
+      if(RegionNeedsBrick(**reg, brick->first, brick->second, b.bIsEmpty)) {
         needed = true;
         break;
       }
@@ -894,62 +897,72 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
               static_cast<unsigned>(std::tr1::get<1>(brick->first)),
               static_cast<unsigned>(std::tr1::get<2>(brick->first)));
       continue;
-    }
-
-    bool first_x = m_pDataset->BrickIsFirstInDimension(0, brick->first);
-    bool first_y = m_pDataset->BrickIsFirstInDimension(1, brick->first);
-    bool first_z = m_pDataset->BrickIsFirstInDimension(2, brick->first);
-    bool last_x = m_pDataset->BrickIsLastInDimension(0, brick->first);
-    bool last_y = m_pDataset->BrickIsLastInDimension(1, brick->first);
-    bool last_z = m_pDataset->BrickIsLastInDimension(2, brick->first);
-    // compute texture coordinates
-    if (m_bUseOnlyPowerOfTwo) {
-      UINTVECTOR3 vRealVoxelCount(MathTools::NextPow2(b.vVoxelCount.x),
-                                  MathTools::NextPow2(b.vVoxelCount.y),
-                                  MathTools::NextPow2(b.vVoxelCount.z));
-      b.vTexcoordsMin = FLOATVECTOR3(
-        (first_x) ? 0.5f/vRealVoxelCount.x : vOverlap.x*0.5f/vRealVoxelCount.x,
-        (first_y) ? 0.5f/vRealVoxelCount.y : vOverlap.y*0.5f/vRealVoxelCount.y,
-        (first_z) ? 0.5f/vRealVoxelCount.z : vOverlap.z*0.5f/vRealVoxelCount.z
-      );
-      b.vTexcoordsMax = FLOATVECTOR3(
-        (last_x) ? 1.0f-0.5f/vRealVoxelCount.x : 1.0f-vOverlap.x*0.5f/vRealVoxelCount.x,
-        (last_y) ? 1.0f-0.5f/vRealVoxelCount.y : 1.0f-vOverlap.y*0.5f/vRealVoxelCount.y,
-        (last_z) ? 1.0f-0.5f/vRealVoxelCount.z : 1.0f-vOverlap.z*0.5f/vRealVoxelCount.z
-      );
-
-      b.vTexcoordsMax -= FLOATVECTOR3(vRealVoxelCount - b.vVoxelCount) /
-                         FLOATVECTOR3(vRealVoxelCount);
+    } 
+    
+    if(b.bIsEmpty) {
+      MESSAGE("Skipping further computations for brick <%u,%u,%u> "
+              "because it is empty/invisible given the current vis parameters "
+              "but we keep it in the list in case it overlaps with other data"
+              "e.g. a mesh",
+              static_cast<unsigned>(std::tr1::get<0>(brick->first)),
+              static_cast<unsigned>(std::tr1::get<1>(brick->first)),
+              static_cast<unsigned>(std::tr1::get<2>(brick->first)));
     } else {
+      bool first_x = m_pDataset->BrickIsFirstInDimension(0, brick->first);
+      bool first_y = m_pDataset->BrickIsFirstInDimension(1, brick->first);
+      bool first_z = m_pDataset->BrickIsFirstInDimension(2, brick->first);
+      bool last_x = m_pDataset->BrickIsLastInDimension(0, brick->first);
+      bool last_y = m_pDataset->BrickIsLastInDimension(1, brick->first);
+      bool last_z = m_pDataset->BrickIsLastInDimension(2, brick->first);
       // compute texture coordinates
-      b.vTexcoordsMin = FLOATVECTOR3(
-        (first_x) ? 0.5f/b.vVoxelCount.x : vOverlap.x*0.5f/b.vVoxelCount.x,
-        (first_y) ? 0.5f/b.vVoxelCount.y : vOverlap.y*0.5f/b.vVoxelCount.y,
-        (first_z) ? 0.5f/b.vVoxelCount.z : vOverlap.z*0.5f/b.vVoxelCount.z
-      );
-      // for padded volume adjust texcoords
-      b.vTexcoordsMax = FLOATVECTOR3(
-        (last_x) ? 1.0f-0.5f/b.vVoxelCount.x : 1.0f-vOverlap.x*0.5f/b.vVoxelCount.x,
-        (last_y) ? 1.0f-0.5f/b.vVoxelCount.y : 1.0f-vOverlap.y*0.5f/b.vVoxelCount.y,
-        (last_z) ? 1.0f-0.5f/b.vVoxelCount.z : 1.0f-vOverlap.z*0.5f/b.vVoxelCount.z
-      );
-    }
+      if (m_bUseOnlyPowerOfTwo) {
+        UINTVECTOR3 vRealVoxelCount(MathTools::NextPow2(b.vVoxelCount.x),
+                                    MathTools::NextPow2(b.vVoxelCount.y),
+                                    MathTools::NextPow2(b.vVoxelCount.z));
+        b.vTexcoordsMin = FLOATVECTOR3(
+          (first_x) ? 0.5f/vRealVoxelCount.x : vOverlap.x*0.5f/vRealVoxelCount.x,
+          (first_y) ? 0.5f/vRealVoxelCount.y : vOverlap.y*0.5f/vRealVoxelCount.y,
+          (first_z) ? 0.5f/vRealVoxelCount.z : vOverlap.z*0.5f/vRealVoxelCount.z
+        );
+        b.vTexcoordsMax = FLOATVECTOR3(
+          (last_x) ? 1.0f-0.5f/vRealVoxelCount.x : 1.0f-vOverlap.x*0.5f/vRealVoxelCount.x,
+          (last_y) ? 1.0f-0.5f/vRealVoxelCount.y : 1.0f-vOverlap.y*0.5f/vRealVoxelCount.y,
+          (last_z) ? 1.0f-0.5f/vRealVoxelCount.z : 1.0f-vOverlap.z*0.5f/vRealVoxelCount.z
+        );
 
-    // the depth order doesn't really matter for MIP rotations,
-    // since we need to traverse every brick anyway.  So we do a
-    // sort based on which bricks are already resident, to get a
-    // good cache hit rate.
-    if (bUseResidencyAsDistanceCriterion) {
-      if (IsVolumeResident(brick->first)) {
-        b.fDistance = 0;
+        b.vTexcoordsMax -= FLOATVECTOR3(vRealVoxelCount - b.vVoxelCount) /
+                           FLOATVECTOR3(vRealVoxelCount);
       } else {
-        b.fDistance = 1;
+        // compute texture coordinates
+        b.vTexcoordsMin = FLOATVECTOR3(
+          (first_x) ? 0.5f/b.vVoxelCount.x : vOverlap.x*0.5f/b.vVoxelCount.x,
+          (first_y) ? 0.5f/b.vVoxelCount.y : vOverlap.y*0.5f/b.vVoxelCount.y,
+          (first_z) ? 0.5f/b.vVoxelCount.z : vOverlap.z*0.5f/b.vVoxelCount.z
+        );
+        // for padded volume adjust texcoords
+        b.vTexcoordsMax = FLOATVECTOR3(
+          (last_x) ? 1.0f-0.5f/b.vVoxelCount.x : 1.0f-vOverlap.x*0.5f/b.vVoxelCount.x,
+          (last_y) ? 1.0f-0.5f/b.vVoxelCount.y : 1.0f-vOverlap.y*0.5f/b.vVoxelCount.y,
+          (last_z) ? 1.0f-0.5f/b.vVoxelCount.z : 1.0f-vOverlap.z*0.5f/b.vVoxelCount.z
+        );
       }
-    } else {
-      // compute minimum distance to brick corners (offset
-      // slightly to the center to resolve ambiguities)
-      // "GetFirst" region: see FIXME below.
-      b.fDistance = brick_distance(b, GetFirst3DRegion()->modelView[0]);
+
+      // the depth order doesn't really matter for MIP rotations,
+      // since we need to traverse every brick anyway.  So we do a
+      // sort based on which bricks are already resident, to get a
+      // good cache hit rate.
+      if (bUseResidencyAsDistanceCriterion) {
+        if (IsVolumeResident(brick->first)) {
+          b.fDistance = 0;
+        } else {
+          b.fDistance = 1;
+        }
+      } else {
+        // compute minimum distance to brick corners (offset
+        // slightly to the center to resolve ambiguities)
+        // "GetFirst" region: see FIXME below.
+        b.fDistance = brick_distance(b, GetFirst3DRegion()->modelView[0]);
+      }
     }
 
     // add the brick to the list of active bricks
