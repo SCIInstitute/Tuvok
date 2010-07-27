@@ -42,6 +42,8 @@
 
 enum DataType {
   UnknownType,
+  Short,
+  UShort, /* extension! */
   Float,
   Integer,
   Char
@@ -116,10 +118,30 @@ bool BOVConverter::ConvertToRAW(
     bIsFloat = false;
     bSigned = false;
 
-    if(bov_type(hdr) == Float) {
-      iComponentSize = 32;
-      bSigned = true;
-      bIsFloat = true;
+    switch(bov_type(hdr)) {
+      case Char:
+        iComponentSize = 8;
+        bSigned = true;
+        break;
+      case Short:
+        iComponentSize = 16;
+        bSigned = true;
+        break;
+      case UShort: // extension!
+        iComponentSize = 16;
+        break;
+      case Integer:
+        iComponentSize = 32;
+        bSigned = true;
+        break;
+      case Float:
+        iComponentSize = 32;
+        bSigned = true;
+        bIsFloat = true;
+        break;
+      default:
+        T_ERROR("Unknown BOV data type.");
+        return false;
     }
     MESSAGE("%lu-bit %s, %s data", iComponentSize,
             bSigned ? "signed" : "unsigned",
@@ -223,10 +245,15 @@ bov_type(const KeyValueFileParser &kvp)
       break;
     }
   }
+  if(format->strValueUpper == std::string("SHORT")) {
+    retval = Short;
+  }
+  if(format->strValueUpper == std::string("USHORT")) {
+    retval = UShort;
+  }
 
-  if(retval != Float) {
-    MESSAGE("Developer does not have integer or char datasets to test"
-            " with; such a dataset will be reported as unknown type!");
+  if(retval != Float || retval != Short) {
+    WARNING("Unknown BOV data type '%s'", format->strValue.c_str());
   }
   return retval;
 }
