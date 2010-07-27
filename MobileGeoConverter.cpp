@@ -42,7 +42,8 @@
 using namespace tuvok;
 using namespace std;
 
-MobileGeoConverter::MobileGeoConverter()
+MobileGeoConverter::MobileGeoConverter() :
+  AbstrGeoConverter()
 {
   m_vConverterDesc = "Mobile Geometry File";
   m_vSupportedExt.push_back("G3D");
