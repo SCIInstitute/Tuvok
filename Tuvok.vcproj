@@ -5009,6 +5009,14 @@
 					>
 				</File>
 				<File
+					RelativePath=".\IO\MobileGeoConverter.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\MobileGeoConverter.h"
+					>
+				</File>
+				<File
 					RelativePath=".\IO\OBJGeoConverter.cpp"
 					>
 				</File>
