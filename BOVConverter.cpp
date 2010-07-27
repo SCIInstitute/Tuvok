@@ -145,7 +145,7 @@ bool BOVConverter::ConvertToRAW(
     }
     MESSAGE("%lu-bit %s, %s data", iComponentSize,
             bSigned ? "signed" : "unsigned",
-            bIsFloat ? "floating point" : "integer(?)");
+            bIsFloat ? "floating point" : "integer");
   }
   {
     // e.g. "BRICK X_AXIS 1.000 0.000 0.000".  Might not exist.
@@ -252,7 +252,7 @@ bov_type(const KeyValueFileParser &kvp)
     retval = UShort;
   }
 
-  if(retval != Float || retval != Short) {
+  if(retval != Float && retval != Short) {
     WARNING("Unknown BOV data type '%s'", format->strValue.c_str());
   }
   return retval;
