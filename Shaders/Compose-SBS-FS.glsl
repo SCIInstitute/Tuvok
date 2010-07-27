@@ -39,5 +39,5 @@ void main(void){
   if (gl_TexCoord[0].x < 0.5) 
 	gl_FragColor = texture2D(texLeftEye,  vec2(gl_TexCoord[0].x*2,gl_TexCoord[0].y));
   else
-	gl_FragColor = texture2D(texRightEye, vec2((gl_TexCoord[0].x-0.5)*2,gl_TexCoord[0].y));
+	gl_FragColor = texture2D(texRightEye, vec2((gl_TexCoord[0].x-0.5)*2.0,gl_TexCoord[0].y));
 }
