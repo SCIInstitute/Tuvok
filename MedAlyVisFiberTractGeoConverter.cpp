@@ -42,7 +42,8 @@
 using namespace tuvok;
 using namespace std;
 
-MedAlyVisFiberTractGeoConverter::MedAlyVisFiberTractGeoConverter()
+MedAlyVisFiberTractGeoConverter::MedAlyVisFiberTractGeoConverter() :
+  AbstrGeoConverter()
 {
   m_vConverterDesc = "MedAlyVis Fiber Tract File";
   m_vSupportedExt.push_back("TRK");

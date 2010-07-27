@@ -41,7 +41,8 @@
 
 using namespace tuvok;
 
-OBJGeoConverter::OBJGeoConverter()
+OBJGeoConverter::OBJGeoConverter() :
+  AbstrGeoConverter()
 {
   m_vConverterDesc = "Alias|Wavefront Object File";
   m_vSupportedExt.push_back("OBJ");
