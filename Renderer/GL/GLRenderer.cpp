@@ -1777,6 +1777,8 @@ static std::string find_shader(std::string file, bool subdirs)
     file = SysTools::GetFromResourceOnMac(file);
     MESSAGE("Found %s in bundle, using that.", file.c_str());
     return file;
+  } else {
+    MESSAGE("%s not in bundle, searching filesystem.", file.c_str());
   }
 #endif
 
@@ -1831,13 +1833,14 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   va_start(args, shaderFiles);
   {
     const char* filename;
+    // We expect two NULLs; the first terminates the vertex shader list, the
+    // latter terminates the fragment shader list.
     do {
       filename = va_arg(args, const char*);
       if(filename != NULL) {
         std::string shader = find_shader(std::string(filename), false);
         if(shader == "") {
-          T_ERROR("Could not find VS shader '%s'!", filename);
-          return false;
+          WARNING("Could not find VS shader '%s'!", filename);
         }
         vertex.push_back(shader);
       }
@@ -1848,15 +1851,13 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
       if(filename != NULL) {
         std::string shader = find_shader(std::string(filename), false);
         if(shader == "") {
-          T_ERROR("Could not find FS shader '%s'!", filename);
-          return false;
+          WARNING("Could not find FS shader '%s'!", filename);
         }
         frag.push_back(shader);
       }
     } while(filename != NULL);
   }
   va_end(args);
-
 
   // now iterate through all directories, looking for our shaders in them.
   for (size_t i = 0;i<strDirs.size();i++) {
@@ -1866,7 +1867,11 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
     std::vector<std::string> fullFS(frag.size());
 
     for(size_t j=0; j < fullVS.size(); ++j) {
-      fullVS[j] = strDirs[i] + "/" + vertex[j];
+      if(SysTools::FileExists(vertex[j])) {
+        fullVS[j] = vertex[j];
+      } else {
+        fullVS[j] = strDirs[i] + "/" + vertex[j];
+      }
     }
     // if any of those files don't exist, skip this directory.
     if(!all_exist(fullVS.begin(), fullVS.end())) {
@@ -1876,7 +1881,11 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
     }
 
     for(size_t j=0; j < fullFS.size(); ++j) {
-      fullFS[j] = strDirs[i] + "/" + frag[j];
+      if(SysTools::FileExists(frag[j])) {
+        fullFS[j] = frag[j];
+      } else {
+        fullFS[j] = strDirs[i] + "/" + frag[j];
+      }
     }
 
     // if any of those files don't exist, skip this directory.
