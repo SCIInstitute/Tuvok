@@ -223,8 +223,8 @@ namespace tuvok {
     void ResetMesh() {m_mesh.clear();}
     void AddMesh(const SortIndexPList& mesh);
 
-    bool ClipVolumeOnPlanes(bool bClipVolume) {m_bClipVolume = bClipVolume;}
-    bool ClipMeshOnPlanes(bool bClipMesh) {m_bClipMesh = bClipMesh;}
+    void ClipVolumeOnPlanes(bool bClipVolume) {m_bClipVolume = bClipVolume;}
+    void ClipMeshOnPlanes(bool bClipMesh) {m_bClipMesh = bClipMesh;}
 
   protected:
     //! user specified oversampling (if > 1) or undersampling (if < 1) rate
