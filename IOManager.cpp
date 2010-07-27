@@ -69,6 +69,7 @@
 
 #include "Mesh.h"
 #include "OBJGeoConverter.h"
+#include "MobileGeoConverter.h"
 #include "MedAlyVisGeoConverter.h"
 #include "MedAlyVisFiberTractGeoConverter.h"
 
@@ -120,6 +121,7 @@ IOManager::IOManager() :
   m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize)
 {
   m_vpGeoConverters.push_back(new OBJGeoConverter());
+  m_vpGeoConverters.push_back(new MobileGeoConverter());
   m_vpGeoConverters.push_back(new MedAlyVisGeoConverter());
   m_vpGeoConverters.push_back(new MedAlyVisFiberTractGeoConverter());
 
