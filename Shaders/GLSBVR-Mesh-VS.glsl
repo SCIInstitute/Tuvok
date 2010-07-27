@@ -50,7 +50,7 @@ void main(void)
       normal = gl_NormalMatrix * gl_Normal;
     }
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-    vec4 color = TraversalOrderDepColor(gl_Color);
+    vec4 color = TraversalOrderDepColor(gl_MultiTexCoord0);
     gl_FrontColor = color;
     gl_BackColor = color;
   } else {
@@ -58,5 +58,4 @@ void main(void)
   }
   gl_TexCoord[0] = gl_MultiTexCoord0;
   vPosition = gl_Vertex.xyz;
-
 }

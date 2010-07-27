@@ -55,15 +55,13 @@ vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
 void main(void)
 {
   if (gl_TexCoord[0].a < 1.5) { // save way of testing for 2
-    vec4 color = gl_TexCoord[0].xyzw;
-   
     if (normal == vec3(2,2,2)) {
-      gl_FragColor = color;
+      gl_FragColor = gl_Color;
     } else {
-      vec3 vLightColor = Lighting(vPosition, normal, vLightAmbientM*color.xyz,
-                                  vLightDiffuseM*color.xyz, vLightSpecularM,
+      vec3 vLightColor = Lighting(vPosition, normal, vLightAmbientM*gl_Color.xyz,
+                                  vLightDiffuseM*gl_Color.xyz, vLightSpecularM,
                                   vLightDir);
-      gl_FragColor = vec4(vLightColor.x,vLightColor.y,vLightColor.z,color.w);
+      gl_FragColor = vec4(vLightColor.x,vLightColor.y,vLightColor.z,gl_Color.w);
     }
   } else {
     // get volume value
