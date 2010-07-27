@@ -189,7 +189,11 @@ bool SBVRGeogen3D::ComputeLayerGeometry(float fDepth) {
     return false;
   }
 
+  // insert mesh triangles
+  InsertMeshUpToSlice(fDepth);
+
   Triangulate(vLayerPoints);
+
   return true;
 }
 
@@ -198,6 +202,41 @@ float SBVRGeogen3D::GetLayerDistance() const {
           (m_vAspect/FLOATVECTOR3(m_vSize))).minVal();
 }
 
+
+void SBVRGeogen3D::InsertMeshUpToSlice(float fDepth) {
+  for (SortIndexPVec::const_iterator index = m_MeshTransferIter;
+       index != m_mesh.end();
+       index++) {
+    if ((*index)->fDepth <= fDepth) {
+      m_MeshTransferIter = index;
+      return;
+    }      
+    MeshEntryToVertexFormat(m_vSliceTriangles, (*index)->m_mesh, (*index)->m_index);
+  }
+}
+
+void SBVRGeogen3D::DepthSortMeshWithVolume() {
+
+  // this is m_matWorldView without the brick transformation
+  FLOATMATRIX4 matWorldView = m_matWorld * m_matView;
+
+  // change "depth" from "distance to eye z-depth
+  for (SortIndexPVec::iterator index = m_mesh.begin();
+       index != m_mesh.end();
+       index++) {
+    
+    // get poly centroid
+    FLOATVECTOR3 centroid = (*index)->m_centroid;
+
+    // transform it 
+    centroid = (FLOATVECTOR4(centroid,1) * matWorldView).xyz();
+
+    (*index)->fDepth = centroid.z;
+  }
+  // sort
+  std::sort(m_mesh.begin(), m_mesh.end(), DistanceSortOver);
+  m_MeshTransferIter = m_mesh.begin();
+}
 
 void SBVRGeogen3D::ComputeGeometry(bool bMeshOnly) {
   InitBBOX();
@@ -225,7 +264,19 @@ void SBVRGeogen3D::ComputeGeometry(bool bMeshOnly) {
   assert(!std::tr1::isnan(fDepth));
 #endif
 
+  // prepare mesh triangles for insertion (i.e. sort them)
+  if (HasMesh()) DepthSortMeshWithVolume();
+
   while (ComputeLayerGeometry(fDepth)) fDepth -= fLayerDistance;
+
+  // insert all the leftover triangles they must be behind the last plane
+  if (HasMesh()) { 
+    for (SortIndexPVec::const_iterator index = m_MeshTransferIter;
+         index != m_mesh.end();
+         index++) {
+      MeshEntryToVertexFormat(m_vSliceTriangles, (*index)->m_mesh, (*index)->m_index);
+    }
+  }
 
   if(m_bClipPlaneEnabled && (m_bClipVolume || m_bClipMesh)) {
     PLANE<float> transformed = m_ClipPlane * m_matView;

@@ -70,8 +70,8 @@ inline bool DistanceSortUnder(const SortIndex* e1, const SortIndex* e2)
 }
 
 
-typedef std::vector< SortIndex > SortIndexList;
-typedef std::vector< SortIndex* > SortIndexPList;
+typedef std::vector< SortIndex > SortIndexVec;
+typedef std::vector< SortIndex* > SortIndexPVec;
 
 
 class RenderMesh : public Mesh 
@@ -121,23 +121,23 @@ public:
    *        computed by SetUserPos 
    * \result the points in front of the AABB
    */
-  const SortIndexPList& GetFrontPointList();
+  const SortIndexPVec& GetFrontPointList();
   /**\brief Returns the list of all polygons inside the AABB as 
    *        computed by SetUserPos 
    * \result the points inside the AABB
    */
-  const SortIndexPList& GetInPointList();
+  const SortIndexPVec& GetInPointList();
   /**\brief Returns the list of all polygons behind the AABB as 
    *        computed by SetUserPos this list is nor depth sorted
    * \result the points behind the AABB
    */
-  const SortIndexPList& GetBehindPointList();
+  const SortIndexPVec& GetBehindPointList();
   
   /**\brief Returns the list of all polygons inside the AABB as 
    *        computed by SetUserPos 
    * \result the points inside the AABB
    */
-  const SortIndexPList& GetSortedInPointList();
+  const SortIndexPVec& GetSortedInPointList();
    
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
 
@@ -160,11 +160,11 @@ protected:
   bool         m_QuadrantsDirty;
   bool         m_FIBHashDirty;
 
-  SortIndexList m_allPolys;
-  std::vector< SortIndexPList > m_Quadrants;
-  SortIndexPList m_FrontPointList;
-  SortIndexPList m_InPointList;
-  SortIndexPList m_BehindPointList;
+  SortIndexVec m_allPolys;
+  std::vector< SortIndexPVec > m_Quadrants;
+  SortIndexPVec m_FrontPointList;
+  SortIndexPVec m_InPointList;
+  SortIndexPVec m_BehindPointList;
 
   /**\brief If the mesh contains transparent parts this call creates 
    *        27 lists pointing to parts of the transparent mesh in the 27 
@@ -189,7 +189,7 @@ protected:
    * \param target the list to append to
    * \param index the index of the quadrant to be appended to "target"
    */
-  void Append(SortIndexPList& target, size_t index) {
+  void Append(SortIndexPVec& target, size_t index) {
     target.insert(target.end(), 
                   m_Quadrants[index].begin(),
                   m_Quadrants[index].end());

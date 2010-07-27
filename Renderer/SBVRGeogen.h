@@ -221,7 +221,7 @@ namespace tuvok {
 
     virtual bool HasMesh() const {return m_mesh.size() != 0;}
     void ResetMesh() {m_mesh.clear();}
-    void AddMesh(const SortIndexPList& mesh);
+    void AddMesh(const SortIndexPVec& mesh);
 
     void ClipVolumeOnPlanes(bool bClipVolume) {m_bClipVolume = bClipVolume;}
     void ClipMeshOnPlanes(bool bClipMesh) {m_bClipMesh = bClipMesh;}
@@ -282,7 +282,7 @@ namespace tuvok {
     bool              m_bClipPlaneEnabled;
 
     //! part of a transparent mesh to be interleaved with the volume
-    SortIndexPList m_mesh;
+    SortIndexPVec m_mesh;
 
     //! should the volume be clipped on the clipping plane?
     bool m_bClipVolume;
@@ -355,6 +355,10 @@ namespace tuvok {
                              const FLOATVECTOR3& point);
 
     void SortMeshWithoutVolume(std::vector<VERTEX_FORMAT>& list);
+    void MeshEntryToVertexFormat(std::vector<VERTEX_FORMAT>& list, 
+                                 const RenderMesh* mesh,
+                                 size_t startIndex);
+
   };
 };
 #endif // SBVRGEOGEN_H

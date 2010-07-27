@@ -90,7 +90,7 @@ private:
 
   void PrepareOpaqueBuffers();
   void PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT],
-                           const SortIndexPList& list);
+                           const SortIndexPVec& list);
   void RenderGeometry(GLuint VBOs[INDEX_VBO_COUNT], size_t count);
 };
 

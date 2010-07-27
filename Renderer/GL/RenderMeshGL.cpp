@@ -183,7 +183,7 @@ void RenderMeshGL::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
   if (m_bGLInitialized) PrepareOpaqueBuffers();
 }
 
-void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const SortIndexPList& list) {
+void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const SortIndexPVec& list) {
   if (list.size() == 0) return;
 
   IndexVec      VertIndices;
@@ -192,7 +192,7 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const 
   IndexVec      COLIndices;
 
   VertIndices.reserve(list.size());
-  for (SortIndexPList::const_iterator index = list.begin();
+  for (SortIndexPVec::const_iterator index = list.begin();
        index != list.end();
        index++) {
     size_t iIndex = (*index)->m_index;
@@ -205,7 +205,7 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const 
 
   if (m_NormalIndices.size() == m_VertIndices.size()) {
     NormalIndices.reserve(list.size());
-    for (SortIndexPList::const_iterator index = list.begin();
+    for (SortIndexPVec::const_iterator index = list.begin();
          index != list.end();
          index++) {
       size_t iIndex = (*index)->m_index;
@@ -217,7 +217,7 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const 
   }
   if (m_TCIndices.size() == m_VertIndices.size()) {
     TCIndices.reserve(list.size());
-    for (SortIndexPList::const_iterator index = list.begin();
+    for (SortIndexPVec::const_iterator index = list.begin();
          index != list.end();
          index++) {
       size_t iIndex = (*index)->m_index;
@@ -229,7 +229,7 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT], const 
   }
   if (m_COLIndices.size() == m_VertIndices.size()) {
     COLIndices.reserve(list.size());
-    for (SortIndexPList::const_iterator index = list.begin();
+    for (SortIndexPVec::const_iterator index = list.begin();
          index != list.end();
          index++) {
       size_t iIndex = (*index)->m_index;

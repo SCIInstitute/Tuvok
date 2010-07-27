@@ -237,7 +237,7 @@ void RenderMesh::SortTransparentDataIntoQuadrants() {
   // is the entire mesh opaque ?
   if (m_splitIndex == m_VertIndices.size()) return;
 
-  for (SortIndexList::iterator poly = m_allPolys.begin();
+  for (SortIndexVec::iterator poly = m_allPolys.begin();
        poly != m_allPolys.end();
        poly++) {
 
@@ -288,7 +288,7 @@ void RenderMesh::Front(int index,...)
 void RenderMesh::RehashTransparentData() {
   m_FIBHashDirty = false;
 
-  for (SortIndexList::iterator poly = m_allPolys.begin();
+  for (SortIndexVec::iterator poly = m_allPolys.begin();
        poly != m_allPolys.end();
        poly++) {
     poly->UpdateDistance();
@@ -639,25 +639,25 @@ void RenderMesh::RehashTransparentData() {
   }
 }
 
-const SortIndexPList& RenderMesh::GetFrontPointList() {
+const SortIndexPVec& RenderMesh::GetFrontPointList() {
   if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
   if (m_FIBHashDirty) RehashTransparentData();
   return m_FrontPointList;
 }
 
-const SortIndexPList& RenderMesh::GetInPointList() {
+const SortIndexPVec& RenderMesh::GetInPointList() {
   if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
   if (m_FIBHashDirty) RehashTransparentData();
   return m_InPointList;
 }
 
-const SortIndexPList& RenderMesh::GetBehindPointList() {
+const SortIndexPVec& RenderMesh::GetBehindPointList() {
   if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
   if (m_FIBHashDirty) RehashTransparentData();
   return m_BehindPointList;
 }
 
-const SortIndexPList& RenderMesh::GetSortedInPointList() {
+const SortIndexPVec& RenderMesh::GetSortedInPointList() {
   if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
   if (m_FIBHashDirty) RehashTransparentData();
   if (m_bSortOver) {
