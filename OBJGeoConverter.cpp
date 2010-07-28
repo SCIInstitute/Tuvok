@@ -204,7 +204,7 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
           case 1 : {
                 int vI = atoi(line.c_str())-1;
                 v.push_back(vI);
-                line = TrimToken(line);
+                line = TrimToken(line,"/",true);
                 int vT = atoi(line.c_str())-1;
                 t.push_back(vT);
                 line = TrimToken(line);
@@ -213,10 +213,12 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
           case 2 : {
                 int vI = atoi(line.c_str())-1;
                 v.push_back(vI);
-                line = TrimToken(line);
-                int vT = atoi(line.c_str())-1;
-                t.push_back(vT);
-                line = TrimToken(line);
+                line = TrimToken(line,"/",true);
+                if (line[0] != '/') {
+                  int vT = atoi(line.c_str())-1;
+                  t.push_back(vT);
+                }
+                line = TrimToken(line,"/",true);
                 int vN = atoi(line.c_str())-1;
                 n.push_back(vN);
                 line = TrimToken(line);
@@ -225,13 +227,17 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
           case 3 : {
                 int vI = atoi(line.c_str())-1;
                 v.push_back(vI);
-                line = TrimToken(line);
-                int vT = atoi(line.c_str())-1;
-                t.push_back(vT);
-                line = TrimToken(line);
-                int vN = atoi(line.c_str())-1;
-                n.push_back(vN);
-                line = TrimToken(line);
+                line = TrimToken(line,"/",true);
+                if (line[0] != '/') {
+                  int vT = atoi(line.c_str())-1;
+                  t.push_back(vT);
+                }
+                line = TrimToken(line,"/",true);
+                if (line[0] != '/') {
+                  int vN = atoi(line.c_str())-1;
+                  n.push_back(vN);
+                }
+                line = TrimToken(line,"/",true);
                 int vC = atoi(line.c_str())-1;
                 c.push_back(vC);
                 line = TrimToken(line);
@@ -250,13 +256,13 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
       if (v.size() == 2) {
         if ( iVerticesPerPoly != 2 ) {
-          WARNING("Skipping a line in a file that also conatins polygons");
+          WARNING("Skipping a line in a file that also contains polygons");
           continue;
         }
         AddToMesh(vertices,v,n,t,c,VertIndices,NormalIndices,TCIndices,COLIndices);
       } else {
         if ( iVerticesPerPoly == 2 ) {
-          WARNING("Skipping polygon in file that also conatins lines");
+          WARNING("Skipping polygon in file that also contains lines");
           continue;
         }
         AddToMesh(vertices,v,n,t,c,VertIndices,NormalIndices,TCIndices,COLIndices);
@@ -286,7 +292,7 @@ bool OBJGeoConverter::ConvertToNative(const Mesh& m,
     std::ofstream outStream(strTargetFilename.c_str());
     if (outStream.fail()) return false;
     outStream << "###############################################" << std::endl;
-    outStream << m.Name() << std::endl;
+    outStream << "#" << m.Name() << std::endl;
     outStream << "###############################################" << std::endl << std::endl;
 
     // vertices
