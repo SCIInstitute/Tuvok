@@ -69,6 +69,8 @@ RenderMeshGL::~RenderMeshGL() {
 }
 
 void RenderMeshGL::PrepareOpaqueBuffers() {
+  if (m_VertIndices.size() == 0) return;
+
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexVBOsOpaque[POSITION_INDEX_VBO]);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_VertIndices[0], GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[POSITION_VBO]);
