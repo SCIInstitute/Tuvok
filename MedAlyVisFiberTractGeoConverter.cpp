@@ -83,7 +83,6 @@ Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilen
     size_t cPos = line.find_first_of('#');
     if (cPos != std::string::npos) line = line.substr(0,cPos);
     line = SysTools::TrimStr(line);
-
     if (line.length() == 0) continue; // skips empty and comment lines
 
     switch (iReaderState) {

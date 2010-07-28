@@ -57,3 +57,91 @@ bool AbstrGeoConverter::SupportedExtension(const std::string& ext) const
   return std::find(m_vSupportedExt.begin(), m_vSupportedExt.end(), ext) !=
           m_vSupportedExt.end();
 }
+
+// *******************************************
+// code to triangulate planar, convex polygons
+// *******************************************
+
+// swaps two index entries
+static void Swap(IndexVec& v, IndexVec& n, IndexVec& t, IndexVec& c, 
+          size_t sI, size_t tI) {
+  std::swap(v[sI],v[tI]);
+  if (v.size() == n.size()) std::swap(n[sI],n[tI]);
+  if (v.size() == t.size()) std::swap(t[sI],t[tI]);
+  if (v.size() == c.size()) std::swap(c[sI],c[tI]);
+}
+
+// Checks the ordering of two points relative to a third.
+static bool CheckOrdering(const FLOATVECTOR3& a,
+                          const FLOATVECTOR3& b,
+                          const FLOATVECTOR3& c,
+                          size_t iPlaneX, size_t iPlaneY) {
+  float g1 = (a[iPlaneY]-c[iPlaneY])/(a[iPlaneX]-c[iPlaneX]),
+        g2 = (b[iPlaneY]-c[iPlaneY])/(b[iPlaneX]-c[iPlaneX]);
+
+  if (EpsilonEqual(a[iPlaneX],c[iPlaneX]))
+    return (g2 < 0) || (EpsilonEqual(g2,0.0f) && b[iPlaneX] < c[iPlaneX]);
+  if (EpsilonEqual(b[iPlaneX],c[iPlaneX]))
+    return (g1 > 0) || (EpsilonEqual(g1,0.0f) && a[iPlaneX] > c[iPlaneX]);
+
+
+  if (a[iPlaneX] < c[iPlaneX])
+    if (b[iPlaneX] < c[iPlaneX]) return g1 < g2; else return false;
+  else
+    if (b[iPlaneX] < c[iPlaneX]) return true; else return g1 < g2;
+}
+
+static void SortPoints(const VertVec& vertices,
+                       IndexVec& v, IndexVec& n,
+                       IndexVec& t, IndexVec& c,
+                       size_t iPlaneX, size_t iPlaneY) {
+  // for small arrays, this bubble sort actually beats qsort.
+  for (size_t i= 1;i<v.size();++i) {
+    bool bDidSwap = false;
+    for (size_t j = 1;j<v.size()-i;++j)
+      if (!CheckOrdering(vertices[v[j]],vertices[v[j+1]],vertices[v[0]],iPlaneX,iPlaneY)) {
+        Swap(v,n,t,c,j,j+1);
+        bDidSwap = true;
+      }
+    if (!bDidSwap) return;
+  }
+
+}
+
+void AbstrGeoConverter::SortByGradient(const VertVec& vertices,
+                                       IndexVec& v, IndexVec& n,
+                                       IndexVec& t, IndexVec& c)
+{
+  if(v.size() < 2) return;
+
+  // find AA projection direction that is not coplanar to the polygon
+  size_t iPlane = 0;
+  size_t iPlaneX = 2;
+  size_t iPlaneY = 1;
+
+  FLOATVECTOR3 tan = (vertices[v[0]]-vertices[v[1]]).normalized();
+  FLOATVECTOR3 bin = (vertices[v[0]]-vertices[v[2]]).normalized();
+  FLOATVECTOR3 norm = tan%bin;
+
+  if (norm.y != 0) {
+    iPlane = 1; 
+    iPlaneX = 0; 
+    iPlaneY = 2; 
+  } else
+  if (norm.z != 0) {
+    iPlane = 2;
+    iPlaneX = 0; 
+    iPlaneY = 1; 
+  } // else use default wich is the x-plane
+
+  // move bottom element to front of array
+  for (size_t i = 1;i<v.size();i++) {
+    if (vertices[v[0]][iPlaneY] > vertices[v[i]][iPlaneY]) {
+      Swap(v,n,t,c,0,i);
+    }
+  }
+
+  // *** sort points according to gradient
+
+  SortPoints(vertices,v,n,t,c,iPlaneX,iPlaneY);
+}

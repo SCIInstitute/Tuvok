@@ -38,6 +38,7 @@
 #define ABSTRGEOCONVERTER_H
 
 #include "../StdTuvokDefines.h"
+#include "Mesh.h"
 #include <string>
 #include <vector>
 
@@ -66,6 +67,10 @@ protected:
   /// @param ext the extension for the filename
   /// @return true if the filename is a supported extension for this converter
   bool SupportedExtension(const std::string& ext) const;
+
+  void SortByGradient(const VertVec& vertices,
+                      IndexVec& v, IndexVec& n,
+                      IndexVec& t, IndexVec& c);
 
   std::string               m_vConverterDesc;
   std::vector<std::string>  m_vSupportedExt;

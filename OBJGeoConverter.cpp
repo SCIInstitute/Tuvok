@@ -65,7 +65,7 @@ inline std::string OBJGeoConverter::TrimToken(const std::string& Src,
                                               bool bOnlyFirst)
 {
   size_t off = Src.find_first_of(c);
-  if (off == std::string::npos) off = 0;
+  if (off == std::string::npos) return std::string();
   if (bOnlyFirst) {
     return Src.substr(off+1);
   } else {
@@ -75,6 +75,41 @@ inline std::string OBJGeoConverter::TrimToken(const std::string& Src,
   }
 }
 
+void OBJGeoConverter::AddToMesh(const VertVec& vertices,
+                                IndexVec& v, IndexVec& n,
+                                IndexVec& t, IndexVec& c,
+                                IndexVec& VertIndices, IndexVec& NormalIndices,
+                                IndexVec& TCIndices, IndexVec& COLIndices) {
+  if (v.size() > 3) {
+    // per OBJ definition any poly with more than 3 verices has
+    // to be planar and convex, so we can savely triangulate it
+
+    SortByGradient(vertices,v,n,t,c);
+
+    for (size_t i = 0;i<v.size()-2;i++) {
+      IndexVec mv, mn, mt, mc;
+      mv.push_back(v[0]);mv.push_back(v[i+1]);mv.push_back(v[i+2]);
+      if (n.size() == v.size()) {mn.push_back(n[i]);mn.push_back(n[i+1]);mn.push_back(n[i+2]);}
+      if (t.size() == v.size()) {mt.push_back(t[i]);mt.push_back(t[i+1]);mt.push_back(t[i+2]);}
+      if (c.size() == v.size()) {mc.push_back(c[i]);mc.push_back(c[i+1]);mc.push_back(c[i+2]);}
+
+      AddToMesh(vertices,
+                mv,mn,mt,mc,
+                VertIndices,
+                NormalIndices,
+                TCIndices,
+                COLIndices);
+    }
+
+  } else {
+    for (size_t i = 0;i<v.size();i++) {
+      VertIndices.push_back(v[i]);
+      if (n.size() == v.size()) NormalIndices.push_back(n[i]);
+      if (t.size() == v.size()) TCIndices.push_back(t[i]);
+      if (c.size() == v.size()) COLIndices.push_back(c[i]);
+    }
+  }
+}
 
 Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
@@ -83,12 +118,12 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
   VertVec       vertices;
   NormVec       normals;
   TexCoordVec   texcoords;
-  ColorVec      colors;     // no used here, passed on as empty vector
+  ColorVec      colors;
 
   IndexVec      VertIndices;
   IndexVec      NormalIndices;
   IndexVec      TCIndices;
-  IndexVec      COLIndices;  // no used here, passed on as empty vector
+  IndexVec      COLIndices;
 
 	std::ifstream fs;
 	std::string line;
@@ -100,17 +135,32 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
   }
 
   float x,y,z;
+  size_t iVerticesPerPoly = 0;
 
-	while (!fs.fail()) {
+  while (!fs.fail()) {
 		getline(fs, line);
 		if (fs.fail()) break; // no more lines to read
     line = SysTools::ToLowerCase(SysTools::TrimStr(line));
 
-    std::string linetype = SysTools::TrimStrRight(line.substr(0,2));
-    if (linetype == "#") continue; // skip comment lines
+    // remove comments
+    size_t cPos = line.find_first_of('#');
+    if (cPos != std::string::npos) line = line.substr(0,cPos);
+    line = SysTools::TrimStr(line);
+    if (line.length() == 0) continue; // skips empty and comment lines
 
-    line = SysTools::TrimStrLeft(line.substr(linetype.length()));
+    // find the linetpe
+    size_t off = line.find_first_of(" \r\n\t");
+    if (off == std::string::npos) continue;
+    std::string linetype = SysTools::TrimStrRight(line.substr(0,off));
 
+    line = SysTools::TrimStr(line.substr(linetype.length()));
+
+    if (linetype == "o") { 
+      WARNING("Skipping Object Tag in OBJ file");
+    } else
+    if (linetype == "mtllib") { 
+      WARNING("Skipping Material Library Tag in OBJ file");
+    } else
 		if (linetype == "v") { // vertex attrib found
 				x = float(atof(line.c_str()));
 				line = TrimToken(line);
@@ -135,78 +185,85 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
       n.normalize();
       normals.push_back(n);
 		} else
-    if (linetype == "f") { // face found
-      int indices[9] = {0,0,0,0,0,0,0,0,0};
-      int count = CountOccurences(line,"/");
+    if (linetype == "f" || linetype == "l") { // face or line found
+      size_t off = line.find_first_of(" \r\n\t");
+      if (off == std::string::npos) continue;
+      std::string analysis = SysTools::TrimStrRight(line.substr(0,off));
+      int count = CountOccurences(analysis,"/");
 
-      switch (count) {
-        case 0 : {
-              indices[0] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[1] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[2] = atoi(line.c_str());
-              VertIndices.push_back(indices[0]-1);
-              VertIndices.push_back(indices[1]-1);
-              VertIndices.push_back(indices[2]-1);
-              break;
-             }
-        case 3 : {
-              indices[0] = atoi(line.c_str());
-              line = TrimToken(line,"/");
-              indices[1] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[2] = atoi(line.c_str());
-              line = TrimToken(line,"/");
-              indices[3] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[4] = atoi(line.c_str());
-              line = TrimToken(line,"/");
-              indices[5] = atoi(line.c_str());
-              line = TrimToken(line);
-              VertIndices.push_back(indices[0]-1);
-              VertIndices.push_back(indices[2]-1);
-              VertIndices.push_back(indices[4]-1);
-
-              TCIndices.push_back(indices[1]-1);
-              TCIndices.push_back(indices[3]-1);
-              TCIndices.push_back(indices[5]-1);
-              break;
-             }
-        case 6 : {
-              indices[0] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[1] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[2] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[3] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[4] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[5] = atoi(line.c_str());
-              line = TrimToken(line);
-              indices[6] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[7] = atoi(line.c_str());
-              line = TrimToken(line,"/",true);
-              indices[8] = atoi(line.c_str());
-              line = TrimToken(line);
-
-              VertIndices.push_back(indices[0]-1);
-              VertIndices.push_back(indices[3]-1);
-              VertIndices.push_back(indices[6]-1);
-
-              TCIndices.push_back(indices[1]-1);
-              TCIndices.push_back(indices[4]-1);
-              TCIndices.push_back(indices[7]-1);
-
-              NormalIndices.push_back(indices[2]-1);
-              NormalIndices.push_back(indices[5]-1);
-              NormalIndices.push_back(indices[8]-1);
-              break;
-             }
+      IndexVec v, n, t, c;
+      
+      while (line.length() > 0)  {
+        switch (count) {
+          case 0 : {
+                int vI = atoi(line.c_str())-1;
+                v.push_back(vI);
+                line = TrimToken(line);
+                break;
+               }
+          case 1 : {
+                int vI = atoi(line.c_str())-1;
+                v.push_back(vI);
+                line = TrimToken(line);
+                int vT = atoi(line.c_str())-1;
+                t.push_back(vT);
+                line = TrimToken(line);
+                break;
+               }
+          case 2 : {
+                int vI = atoi(line.c_str())-1;
+                v.push_back(vI);
+                line = TrimToken(line);
+                int vT = atoi(line.c_str())-1;
+                t.push_back(vT);
+                line = TrimToken(line);
+                int vN = atoi(line.c_str())-1;
+                n.push_back(vN);
+                line = TrimToken(line);
+                break;
+               }
+          case 3 : {
+                int vI = atoi(line.c_str())-1;
+                v.push_back(vI);
+                line = TrimToken(line);
+                int vT = atoi(line.c_str())-1;
+                t.push_back(vT);
+                line = TrimToken(line);
+                int vN = atoi(line.c_str())-1;
+                n.push_back(vN);
+                line = TrimToken(line);
+                int vC = atoi(line.c_str())-1;
+                c.push_back(vC);
+                line = TrimToken(line);
+                break;
+               }
+        }
+        SysTools::TrimStrLeft(line);
       }
+
+      if (v.size() == 1) {
+        WARNING("Skipping points in OBJ file");
+        continue;
+      }
+
+      if (iVerticesPerPoly == 0) iVerticesPerPoly = v.size();
+
+      if (v.size() == 2) {
+        if ( iVerticesPerPoly != 2 ) {
+          WARNING("Skipping a line in a file that also conatins polygons");
+          continue;
+        }
+        AddToMesh(vertices,v,n,t,c,VertIndices,NormalIndices,TCIndices,COLIndices);
+      } else {
+        if ( iVerticesPerPoly == 2 ) {
+          WARNING("Skipping polygon in file that also conatins lines");
+          continue;
+        }
+        AddToMesh(vertices,v,n,t,c,VertIndices,NormalIndices,TCIndices,COLIndices);
+      }
+
+    } else {
+      WARNING("Skipping unknown tag %s in OBJ file", linetype.c_str());
     }
   }
 	fs.close();
@@ -215,6 +272,91 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   Mesh* m = new Mesh(vertices,normals,texcoords,colors,
                      VertIndices,NormalIndices,TCIndices,COLIndices,
-                     false, false, desc, Mesh::MT_TRIANGLES);
+                     false, false, desc, 
+                     ((iVerticesPerPoly == 2) 
+                            ? Mesh::MT_LINES 
+                            : Mesh::MT_TRIANGLES ));
   return m;
+}
+
+
+bool OBJGeoConverter::ConvertToNative(const Mesh& m,
+                                      const std::string& strTargetFilename) {
+
+    std::ofstream outStream(strTargetFilename.c_str());
+    if (outStream.fail()) return false;
+    outStream << "###############################################" << std::endl;
+    outStream << m.Name() << std::endl;
+    outStream << "###############################################" << std::endl << std::endl;
+
+    // vertices
+    for (size_t i = 0;i<m.GetVertices().size();i++) {
+        outStream << "v " 
+                    << m.GetVertices()[i].x << " "
+                    << m.GetVertices()[i].y << " "
+                    << m.GetVertices()[i].z << std::endl;;
+    }
+
+    for (size_t i = 0;i<m.GetNormals().size();i++) {
+        outStream << "vn " 
+                    << m.GetNormals()[i].x << " "
+                    << m.GetNormals()[i].y << " "
+                    << m.GetNormals()[i].z << std::endl;
+    }
+
+    for (size_t i = 0;i<m.GetTexCoords().size();i++) {
+        outStream << "vt " 
+                    << m.GetTexCoords()[i].x << " "
+                    << m.GetTexCoords()[i].y << std::endl;
+    }
+
+    // this is our own extension, originally colors are 
+    // not supported by OBJ files
+    for (size_t i = 0;i<m.GetColors().size();i++) {
+        outStream << "vc " 
+                    << m.GetColors()[i].x << " "
+                    << m.GetColors()[i].y << " "
+                    << m.GetColors()[i].z << " "
+                    << m.GetColors()[i].w << std::endl;
+    }
+
+    size_t iVPP = m.GetVerticesPerPoly();
+    for (size_t i = 0;i<m.GetVertexIndices().size();i+=iVPP) {
+        if (iVPP == 1)
+           outStream << "p "; else
+        if (iVPP == 2)
+           outStream << "l ";
+        else 
+           outStream << "f ";
+
+        for (int j = 0;j<iVPP;j++) {
+          outStream << m.GetVertexIndices()[i+j]+1;
+          if (m.GetTexCoordIndices().size() == m.GetVertexIndices().size() || 
+              m.GetNormalIndices().size() == m.GetVertexIndices().size() || 
+              m.GetColorIndices().size() == m.GetVertexIndices().size()) {
+              outStream << "/";
+              if (m.GetTexCoordIndices().size() == m.GetVertexIndices().size()) {
+                outStream << m.GetTexCoordIndices()[i+j]+1;
+              }
+          }
+          if (m.GetNormalIndices().size() == m.GetVertexIndices().size() || 
+              m.GetColorIndices().size() == m.GetVertexIndices().size()) {
+              outStream << "/";
+              if (m.GetNormalIndices().size() == m.GetVertexIndices().size()) {
+                outStream << m.GetNormalIndices()[i+j]+1;
+              }
+          }
+          if (m.GetColorIndices().size() == m.GetVertexIndices().size()) {
+              outStream << "/";
+              outStream << m.GetColorIndices()[i+j]+1;
+          }
+          if (j < iVPP-1) outStream << " ";
+        }
+        outStream << std::endl;
+    }
+
+    outStream.close();
+
+    return true;
+
 }
