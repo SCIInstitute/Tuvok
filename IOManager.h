@@ -271,7 +271,7 @@ public:
     m_conv->ConvertToNative(Mesh(m_vertices, m_normals, tuvok::TexCoordVec(), tuvok::ColorVec(),
                       m_indices, m_indices, tuvok::IndexVec(),tuvok::IndexVec(),
                       false,false,"Marching Cubes mesh by ImageVis3D",
-                      Mesh::MT_TRIANGLES), m_strTargetFile);
+                      tuvok::Mesh::MT_TRIANGLES), m_strTargetFile);
   }
 
   virtual bool PerformMC(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset) {
