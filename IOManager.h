@@ -268,7 +268,7 @@ public:
   virtual ~MCDataTemplate() {
     delete m_pMarchingCubes;
     delete m_pData;
-    m_conv->ConvertToNative(Mesh(m_vertices, m_normals, tuvok::TexCoordVec(), tuvok::ColorVec(),
+    m_conv->ConvertToNative(tuvok::Mesh(m_vertices, m_normals, tuvok::TexCoordVec(), tuvok::ColorVec(),
                       m_indices, m_indices, tuvok::IndexVec(),tuvok::IndexVec(),
                       false,false,"Marching Cubes mesh by ImageVis3D",
                       tuvok::Mesh::MT_TRIANGLES), m_strTargetFile);
