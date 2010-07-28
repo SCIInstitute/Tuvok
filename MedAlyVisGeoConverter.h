@@ -41,7 +41,6 @@
 #include "AbstrGeoConverter.h"
 
 namespace tuvok {
-class Mesh;
 
 class MedAlyVisGeoConverter : public AbstrGeoConverter {
 public:

@@ -43,7 +43,6 @@
 #include <vector>
 
 namespace tuvok {
-class Mesh;
 
 class AbstrGeoConverter {
 public:
