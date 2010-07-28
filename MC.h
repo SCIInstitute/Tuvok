@@ -64,8 +64,8 @@ public:
     FLOATVECTOR3*   vfVertices;
     FLOATVECTOR3*   vfNormals;
     INTVECTOR3*     viTriangles;
-    int                 iVertices;
-    int                 iTriangles;
+    int             iVertices;
+    int             iTriangles;
 
     Isosurface();
     Isosurface(int iMaxVertices, int iMaxTris);
