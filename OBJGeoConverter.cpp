@@ -44,7 +44,7 @@ using namespace tuvok;
 OBJGeoConverter::OBJGeoConverter() :
   AbstrGeoConverter()
 {
-  m_vConverterDesc = "Alias|Wavefront Object File";
+  m_vConverterDesc = "Wavefront Object File";
   m_vSupportedExt.push_back("OBJ");
 }
 
@@ -329,7 +329,7 @@ bool OBJGeoConverter::ConvertToNative(const Mesh& m,
         else 
            outStream << "f ";
 
-        for (int j = 0;j<iVPP;j++) {
+        for (size_t j = 0;j<iVPP;j++) {
           outStream << m.GetVertexIndices()[i+j]+1;
           if (m.GetTexCoordIndices().size() == m.GetVertexIndices().size() || 
               m.GetNormalIndices().size() == m.GetVertexIndices().size() || 
@@ -350,7 +350,7 @@ bool OBJGeoConverter::ConvertToNative(const Mesh& m,
               outStream << "/";
               outStream << m.GetColorIndices()[i+j]+1;
           }
-          if (j < iVPP-1) outStream << " ";
+          if (j+1 < iVPP) outStream << " ";
         }
         outStream << std::endl;
     }
