@@ -55,6 +55,7 @@
 #include "Basics/SysTools.h"
 #include "Basics/LargeRAWFile.h"
 #include "Basics/Mesh.h"
+#include "AbstrGeoConverter.h"
 
 #ifdef _MSC_VER
 # include <tuple>
