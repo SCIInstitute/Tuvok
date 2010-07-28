@@ -38,7 +38,7 @@
 #define ABSTRGEOCONVERTER_H
 
 #include "../StdTuvokDefines.h"
-#include "Mesh.h"
+#include "../Basics/Mesh.h"
 #include <string>
 #include <vector>
 
