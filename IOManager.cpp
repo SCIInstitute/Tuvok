@@ -1046,27 +1046,30 @@ bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData,
   UINT64  iComponentSize = pSourceData->GetBitWidth();
   FLOATVECTOR3 vScale    = FLOATVECTOR3(pSourceData->GetScale() * vfRescaleFactors);
 
+  AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true);
+    
+
   if (bFloatingPoint) {
     if (bSigned) {
       switch (iComponentSize) {
-        case 32 : pMCData = new MCDataTemplate<float>(strTargetFilename, float(fIsovalue), vScale); break;
-        case 64 : pMCData = new MCDataTemplate<double>(strTargetFilename, double(fIsovalue), vScale); break;
+        case 32 : pMCData = new MCDataTemplate<float>(strTargetFilename, float(fIsovalue), vScale, conv); break;
+        case 64 : pMCData = new MCDataTemplate<double>(strTargetFilename, double(fIsovalue), vScale, conv); break;
       }
     }
   } else {
     if (bSigned) {
       switch (iComponentSize) {
-        case  8 : pMCData = new MCDataTemplate<char>(strTargetFilename, char(fIsovalue), vScale); break;
-        case 16 : pMCData = new MCDataTemplate<short>(strTargetFilename, short(fIsovalue), vScale); break;
-        case 32 : pMCData = new MCDataTemplate<int>(strTargetFilename, int(fIsovalue), vScale); break;
-        case 64 : pMCData = new MCDataTemplate<int64_t>(strTargetFilename, int64_t(fIsovalue), vScale); break;
+        case  8 : pMCData = new MCDataTemplate<char>(strTargetFilename, char(fIsovalue), vScale, conv); break;
+        case 16 : pMCData = new MCDataTemplate<short>(strTargetFilename, short(fIsovalue), vScale, conv); break;
+        case 32 : pMCData = new MCDataTemplate<int>(strTargetFilename, int(fIsovalue), vScale, conv); break;
+        case 64 : pMCData = new MCDataTemplate<int64_t>(strTargetFilename, int64_t(fIsovalue), vScale, conv); break;
       }
     } else {
       switch (iComponentSize) {
-        case  8 : pMCData = new MCDataTemplate<unsigned char>(strTargetFilename, (unsigned char)(fIsovalue), vScale); break;
-        case 16 : pMCData = new MCDataTemplate<unsigned short>(strTargetFilename, (unsigned short)(fIsovalue), vScale); break;
-        case 32 : pMCData = new MCDataTemplate<UINT32>(strTargetFilename, UINT32(fIsovalue), vScale); break;
-        case 64 : pMCData = new MCDataTemplate<UINT64>(strTargetFilename, UINT64(fIsovalue), vScale); break;
+        case  8 : pMCData = new MCDataTemplate<unsigned char>(strTargetFilename, (unsigned char)(fIsovalue), vScale, conv); break;
+        case 16 : pMCData = new MCDataTemplate<unsigned short>(strTargetFilename, (unsigned short)(fIsovalue), vScale, conv); break;
+        case 32 : pMCData = new MCDataTemplate<UINT32>(strTargetFilename, UINT32(fIsovalue), vScale, conv); break;
+        case 64 : pMCData = new MCDataTemplate<UINT64>(strTargetFilename, UINT64(fIsovalue), vScale, conv); break;
       }
     }
   }
@@ -1302,6 +1305,17 @@ vector< tConverterFormat > IOManager::GetFormatList() const {
   return v;
 }
 
+AbstrGeoConverter* IOManager::GetGeoConverterForExt(std::string ext, bool bMustSupportExport) const {
+  for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
+    if (!bMustSupportExport || m_vpGeoConverters[i]->CanExportData()) {
+      for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
+        string convExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
+        if (ext == convExt) return m_vpGeoConverters[i];
+      }
+    }
+  }
+  return NULL;
+}
 
 string IOManager::GetLoadGeoDialogString() const {
   string strDialog = "All known Geometry Files (";
@@ -1343,7 +1357,7 @@ string IOManager::GetGeoExportDialogString() const {
     for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
       if (m_vpGeoConverters[i]->CanExportData()) {
         string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
-        strDialog += m_vpConverters[i]->GetDesc() + " (*." + strExt + ");;";
+        strDialog += m_vpGeoConverters[i]->GetDesc() + " (*." + strExt + ");;";
       }
     }
   }

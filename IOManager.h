@@ -54,6 +54,7 @@
 #include "Basics/MC.h"
 #include "Basics/SysTools.h"
 #include "Basics/LargeRAWFile.h"
+#include "Basics/Mesh.h"
 
 #ifdef _MSC_VER
 # include <tuple>
@@ -80,7 +81,6 @@ namespace tuvok {
   class FileBackedDataset;
   class UVFDataset;
   class MasterController;
-  class Mesh;
   namespace io {
     class DSFactory;
   }
@@ -254,22 +254,26 @@ protected:
 
 template <class T> class MCDataTemplate  : public MCData {
 public:
-  MCDataTemplate(const std::string& strTargetFile, T TIsoValue, FLOATVECTOR3 vScale) :
+  MCDataTemplate(const std::string& strTargetFile, T TIsoValue, FLOATVECTOR3 vScale, tuvok::AbstrGeoConverter* conv) :
     MCData(strTargetFile),
     m_TIsoValue(TIsoValue),
     m_pData(NULL),
     m_iIndexoffset(0),
-    m_pMarchingCubes(new MarchingCubes<T>())
+    m_pMarchingCubes(new MarchingCubes<T>()),
+    m_conv(conv)
   {
     m_matScale.Scaling(vScale.x, vScale.y, vScale.z);
   }
 
   virtual ~MCDataTemplate() {
-        m_outStream << "end" << std::endl;
-        m_outStream.close();
-
     delete m_pMarchingCubes;
     delete m_pData;
+
+
+    m_conv->ConvertToNative(Mesh(m_vertices, m_normals, tuvok::TexCoordVec(), tuvok::ColorVec(),
+                      m_indices, m_indices, tuvok::IndexVec(),tuvok::IndexVec(),
+                      false,false,"Marching Cubes mesh by ImageVis3D",
+                      Mesh::MT_TRIANGLES), m_strTargetFile);
   }
 
   virtual bool PerformMC(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset) {
@@ -287,13 +291,6 @@ public:
                    );
     if (!m_pData) {   // since we know that no brick is larger than the first we can create a fixed array on first invocation
       m_pData = new T[iSize];
-
-      m_outStream.open(m_strTargetFile.c_str());
-      if (m_outStream.fail()) return false;
-      m_outStream << "###############################################" << std::endl;
-      m_outStream << "# Mesh created via Marching Cubes by ImageVis3D" << std::endl;
-      m_outStream << "###############################################" << std::endl << std::endl;
-        m_outStream << "begin" << std::endl;
     }
 
     pSourceFile->SeekStart();
@@ -307,29 +304,24 @@ public:
     m_pMarchingCubes->m_Isosurface->Transform(m_matScale);
 
     // scale brick offsets
-    std::vector<float> vScaledBrickOffset(vBrickOffset.size());
-    vScaledBrickOffset[0] = static_cast<float>(vBrickOffset[0]) * m_matScale.m11;
-    vScaledBrickOffset[1] = static_cast<float>(vBrickOffset[1]) * m_matScale.m22;
-    vScaledBrickOffset[2] = static_cast<float>(vBrickOffset[2]) * m_matScale.m33;
+    FLOATVECTOR3 vecScaleVec(1.0f/(vBrickSize[0]-1),
+                             1.0f/(vBrickSize[1]-1),
+                             1.0f/(vBrickSize[2]-1));
+    FLOATVECTOR3 vecBrickOffset(vBrickOffset);
 
-    m_outStream << "# Marching Cubes mesh from a " << vBrickSize[0] << " " << vBrickSize[1] << " " << vBrickSize[2] << " brick. At " << vScaledBrickOffset[0] << " " << vScaledBrickOffset[1] << " " << vScaledBrickOffset[2] << "." << std::endl;
+    for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
+        m_vertices.push_back(m_pMarchingCubes->m_Isosurface->vfVertices[i]*vecScaleVec - 0.5);
+    }
 
-        //Saving to disk (1/3 vertices)
-        for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
-            m_outStream << "v " << (m_pMarchingCubes->m_Isosurface->vfVertices[i].x + vScaledBrickOffset[0]) << " "
-                          << (m_pMarchingCubes->m_Isosurface->vfVertices[i].y + vScaledBrickOffset[1]) << " "
-                          << (m_pMarchingCubes->m_Isosurface->vfVertices[i].z + vScaledBrickOffset[2]) << std::endl;
-        }
-        // Saving to disk (2/3 normals)
-        for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
-            m_outStream << "vn " << m_pMarchingCubes->m_Isosurface->vfNormals[i].x << " " << m_pMarchingCubes->m_Isosurface->vfNormals[i].y << " " << m_pMarchingCubes->m_Isosurface->vfNormals[i].z << std::endl;
-        }
-        // Saving to disk (3/3 faces)
-        for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iTriangles;i++) {
-            m_outStream << "f " << m_pMarchingCubes->m_Isosurface->viTriangles[i].x+1+m_iIndexoffset << " " <<
-                           m_pMarchingCubes->m_Isosurface->viTriangles[i].z+1+m_iIndexoffset << " " <<
-                           m_pMarchingCubes->m_Isosurface->viTriangles[i].y+1+m_iIndexoffset << std::endl;
-        }
+    for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
+      m_normals.push_back(m_pMarchingCubes->m_Isosurface->vfNormals[i]);
+    }    
+
+    for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iTriangles;i++) {
+      m_indices.push_back(m_pMarchingCubes->m_Isosurface->viTriangles[i].x+m_iIndexoffset);
+      m_indices.push_back(m_pMarchingCubes->m_Isosurface->viTriangles[i].y+m_iIndexoffset);
+      m_indices.push_back(m_pMarchingCubes->m_Isosurface->viTriangles[i].z+m_iIndexoffset);
+    }
 
     m_iIndexoffset += m_pMarchingCubes->m_Isosurface->iVertices;
 
@@ -338,12 +330,16 @@ public:
   }
 
 protected:
-  T                 m_TIsoValue;
-  T*                m_pData;
-  UINT64            m_iIndexoffset;
-  MarchingCubes<T>* m_pMarchingCubes;
-  FLOATMATRIX4      m_matScale;
-  std::ofstream     m_outStream;
+  T                  m_TIsoValue;
+  T*                 m_pData;
+  UINT32             m_iIndexoffset;
+  MarchingCubes<T>*  m_pMarchingCubes;
+  tuvok::AbstrGeoConverter* m_conv;
+  FLOATMATRIX4       m_matScale;
+  tuvok::VertVec     m_vertices;
+  tuvok::NormVec     m_normals;
+  tuvok::IndexVec    m_indices;
+
 };
 
 class IOManager {
@@ -485,6 +481,9 @@ public:
   std::vector< std::pair <std::string, std::string > >
     GetGeoExportFormatList() const;
   std::vector< tConverterFormat > GetGeoFormatList() const;
+  tuvok::AbstrGeoConverter* GetGeoConverterForExt(std::string ext,
+                                                  bool bMustSupportExport) const;
+
 
   UINT64 GetMaxBrickSize() const {return m_iMaxBrickSize;}
   UINT64 GetBrickOverlap() const {return m_iBrickOverlap;}
