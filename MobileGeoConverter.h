@@ -25,12 +25,11 @@
 */
 
 //!    File   : MobileGeoConverter.h
-//!    Author : Jens Krueger
-//!             IVCI & DFKI & MMCI, Saarbruecken
-//!             SCI Institute, University of Utah
+//!    Author : Georg Tamm
+//!             DFKI, Saarbruecken
 //!    Date   : July 2010
 //
-//!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
+//!    Copyright (C) 2010 DFKI Institute
 
 #pragma once
 
@@ -39,19 +38,21 @@
 
 #include "../StdTuvokDefines.h"
 #include "AbstrGeoConverter.h"
+#include "G3D.h"
 
 namespace tuvok {
+  class Mesh;
 
   class MobileGeoConverter : public AbstrGeoConverter {
+
   public:
     MobileGeoConverter();
     virtual ~MobileGeoConverter() {}
     virtual Mesh* ConvertToMesh(const std::string& strFilename);
-    virtual bool ConvertToNative(const Mesh& m,
+    virtual bool ConvertToNative(const Mesh& m, 
                                  const std::string& strTargetFilename);
 
     virtual bool CanExportData() const { return true; }
-
   };
 }
 #endif // MOBILEGEOCONVERTER_H

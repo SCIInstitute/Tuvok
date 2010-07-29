@@ -25,18 +25,16 @@
 */
 
 //!    File   : MobileGeoConverter.cpp
-//!    Author : Jens Krueger
-//!             IVCI & DFKI & MMCI, Saarbruecken
-//!             SCI Institute, University of Utah
+//!    Author : Georg Tamm
+//!             DFKI, Saarbruecken
 //!    Date   : July 2010
 //
-//!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
+//!    Copyright (C) 2010 DFKI Institute
 
 #include "MobileGeoConverter.h"
 #include "Controller/Controller.h"
 #include "SysTools.h"
 #include "Mesh.h"
-#include <fstream>
 #include "TuvokIOError.h"
 
 using namespace tuvok;
@@ -49,13 +47,50 @@ MobileGeoConverter::MobileGeoConverter() :
   m_vSupportedExt.push_back("G3D");
 }
 
+bool MobileGeoConverter::ConvertToNative(const Mesh& m,
+                                         const std::string& strTargetFilename) {
+  G3D::GeometrySoA geometry;
+  geometry.info.isOpaque = false;
+  geometry.info.numberPrimitives = 
+    UINT32(m.GetVertexIndices().size() / m.GetVerticesPerPoly());
+  geometry.info.primitiveType = (m.GetMeshType() == Mesh::MT_TRIANGLES) 
+                                      ? G3D::Triangle : G3D::Line;
+  geometry.info.numberIndices = UINT32(m.GetVertexIndices().size());
+  geometry.info.numberVertices = UINT32(m.GetVertices().size());
+  int vertexFloats = 0;
 
-bool MobileGeoConverter::ConvertToNative(const Mesh& ,
-                                         const std::string& ) {
-  // TODO: Georg Writer Code
-  return false;
+  if (m.GetVertices().size() > 0) 
+  {
+	  geometry.info.attributeSemantics.push_back(G3D::Position);
+	  geometry.vertexAttributes.push_back((float*)&m.GetVertices().at(0));
+	  vertexFloats += G3D::floats(G3D::Position);
+  }
+  else return false;
+  if (m.GetNormals().size() > 0) 
+  {
+	  geometry.info.attributeSemantics.push_back(G3D::Normal);
+	  geometry.vertexAttributes.push_back((float*)&m.GetNormals().at(0));
+	  vertexFloats += G3D::floats(G3D::Normal);
+  }
+  if (m.GetTexCoords().size() > 0) 
+  {
+	  geometry.info.attributeSemantics.push_back(G3D::Tex);
+	  geometry.vertexAttributes.push_back((float*)&m.GetTexCoords().at(0));
+	  vertexFloats += G3D::floats(G3D::Tex);
+  }
+  if (m.GetColors().size() > 0) 
+  {
+	  geometry.info.attributeSemantics.push_back(G3D::Color);
+	  geometry.vertexAttributes.push_back((float*)&m.GetColors().at(0));
+	  vertexFloats += G3D::floats(G3D::Color);
+  }
+  geometry.info.indexSize = sizeof(UINT32);
+  geometry.info.vertexSize = vertexFloats * sizeof(float);
+  geometry.indices = (UINT32*)&m.GetVertexIndices().at(0);
+  G3D::write(strTargetFilename, &geometry);
+
+  return true;
 }
-
 
 Mesh* MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
   VertVec       vertices;
@@ -68,12 +103,26 @@ Mesh* MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
   IndexVec      TCIndices;
   IndexVec      COLIndices; 
 
+  G3D::GeometrySoA geometry;
+  G3D::read(strFilename, &geometry);
+  if (geometry.info.indexSize == sizeof(USHORT))
+  {
+	  for (UINT32 i=0; i<geometry.info.numberIndices; ++i) VertIndices.push_back((UINT32)((USHORT*)geometry.indices)[i]);
+  }
+  else VertIndices = IndexVec(geometry.indices, (UINT32*)geometry.indices + geometry.info.numberIndices);
 
-  // TODO: Georg Reader Code
+  UINT32 i = 0;
+  for (std::vector<G3D::AttributeSemantic>::iterator it=geometry.info.attributeSemantics.begin(); it<geometry.info.attributeSemantics.end(); ++it)
+  {
+	  if (*it == G3D::Position) vertices = VertVec((FLOATVECTOR3*)geometry.vertexAttributes.at(i), (FLOATVECTOR3*)geometry.vertexAttributes.at(i) + geometry.info.numberVertices);
+	  else if (*it == G3D::Normal) normals = NormVec((FLOATVECTOR3*)geometry.vertexAttributes.at(i), (FLOATVECTOR3*)geometry.vertexAttributes.at(i) + geometry.info.numberVertices);
+	  else if (*it == G3D::Color) colors = ColorVec((FLOATVECTOR4*)geometry.vertexAttributes.at(i), (FLOATVECTOR4*)geometry.vertexAttributes.at(i) + geometry.info.numberVertices);
+	  else if (*it == G3D::Tex) texcoords = TexCoordVec((FLOATVECTOR2*)geometry.vertexAttributes.at(i), (FLOATVECTOR2*)geometry.vertexAttributes.at(i) + geometry.info.numberVertices);
+	  ++i;
+  }
+  G3D::clean(&geometry);
 
-
-  std::string desc = m_vConverterDesc + " data converted from " +
-                     SysTools::GetFilename(strFilename);
+  std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
   Mesh* m = new Mesh(vertices,normals,texcoords,colors,
                      VertIndices,NormalIndices,TCIndices,COLIndices,
                      false, false, desc, Mesh::MT_TRIANGLES);
