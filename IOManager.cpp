@@ -1047,7 +1047,11 @@ bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData,
   FLOATVECTOR3 vScale    = FLOATVECTOR3(pSourceData->GetScale() * vfRescaleFactors);
 
   AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true);
-    
+  
+  if (conv == NULL) {
+    T_ERROR("Unknown Mesh Format.");
+    return false;
+  }
 
   if (bFloatingPoint) {
     if (bSigned) {
@@ -1093,6 +1097,17 @@ bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData,
   }
 }
 
+bool IOManager::ExportMesh(const Mesh* mesh, 
+                           const std::string& strTargetFilename) {
+  AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true);
+
+  if (conv == NULL) {
+    T_ERROR("Unknown Mesh Format.");
+    return false;
+  }
+
+  return conv->ConvertToNative(*mesh, strTargetFilename);
+}
 
 bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel,
                               const string& strTargetFilename,

@@ -454,6 +454,7 @@ public:
   bool NeedsConversion(const std::string& strFilename) const;
   bool Verify(const std::string& strFilename) const;
 
+  bool ExportMesh(const tuvok::Mesh* mesh, const std::string& strTargetFilename);
   bool ExportDataset(const tuvok::UVFDataset* pSourceData, UINT64 iLODlevel,
                      const std::string& strTargetFilename,
                      const std::string& strTempDir) const;
