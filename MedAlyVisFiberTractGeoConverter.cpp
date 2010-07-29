@@ -145,7 +145,6 @@ Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilen
 
                               iElementReadCounter++;
                               if (iElementCounter == iElementReadCounter) {
-                                // line to tri-mesh
                                 size_t iStartIndex = vertices.size() - iElementCounter; 
 
                                 for (size_t i = 0;i<iElementCounter-1;i++) {
