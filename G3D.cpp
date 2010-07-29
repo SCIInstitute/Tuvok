@@ -138,7 +138,7 @@ void G3D::readHeader(std::fstream & fs, GeometryInfo & info)
 {
 	char * buffer = new char[8 * sizeof(UINT32) + sizeof(bool)];
 	fs.read(buffer, 8 * sizeof(UINT32) + sizeof(bool));
-	info.isOpaque = (buffer++)[0] == NULL;
+	info.isOpaque = (buffer++)[0] == 0;
 	info.numberPrimitives = ((UINT32*)buffer)[0];
 	info.primitiveType = ((PrimitiveType*)buffer)[1];
 	UINT32 numberSemantics = ((UINT32*)buffer)[2];

@@ -31,6 +31,7 @@
            SCI Institute
            University of Utah
 */
+#include <cstring>
 #include <sstream>
 
 #include "uvfDataset.h"
