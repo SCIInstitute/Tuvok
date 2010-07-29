@@ -2356,6 +2356,15 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   glDisable(GL_BLEND);
 }
 
+void GLRenderer::ScanForNewMeshes() {
+  const vector<Mesh*>& meshVec = m_pDataset->GetMeshes();
+  for (size_t i = m_Meshes.size(); i<meshVec.size();i++) {
+    m_Meshes.push_back(new RenderMeshGL(*meshVec[i]));
+    m_Meshes[m_Meshes.size()-1]->InitRenderer();
+  }
+  Schedule3DWindowRedraws();
+}
+
 bool GLRenderer::LoadDataset(const string& strFilename) {
   if (AbstrRenderer::LoadDataset(strFilename)) {
     if (m_pProgram1DTrans[0] != NULL) SetDataDepShaderVars();

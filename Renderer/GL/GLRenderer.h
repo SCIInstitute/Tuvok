@@ -93,6 +93,8 @@ class GLRenderer : public AbstrRenderer {
     virtual void NewFrameClear(const RenderRegion& renderRegion);
 
     GLFBOTex* GetLastFBO() { return m_pFBO3DImageLast; }
+    
+    virtual void ScanForNewMeshes();
 
   protected:
     GLTargetBinder  m_TargetBinder;

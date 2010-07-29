@@ -448,6 +448,7 @@ class AbstrRenderer {
     }
     void SetRenderRegions(const std::vector<RenderRegion*>&);
 
+    virtual void ScanForNewMeshes() {}
     std::vector<RenderMesh*>& GetMeshes() {return m_Meshes;}
     bool SupportsMeshes() const {return m_bSupportsMeshes;}
 
