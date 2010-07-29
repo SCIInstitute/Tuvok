@@ -80,7 +80,7 @@ void DataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool
   if (bIsLastBlock)
     pStreamFile->WriteData(UINT64(0), bIsBigEndian);
   else
-    pStreamFile->WriteData(ulOffsetToNextDataBlock, bIsBigEndian);
+    pStreamFile->WriteData(GetOffsetToNextBlock(), bIsBigEndian);
 }
 
 UINT64 DataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {

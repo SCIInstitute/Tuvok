@@ -111,6 +111,7 @@ public:
   virtual const std::vector< std::pair < std::string, std::string > > GetMetadata() const;
 
   virtual bool SaveRescaleFactors();
+  bool AppendMesh(Mesh* m);
 
   virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
   virtual bool Verify(const std::string&) const;

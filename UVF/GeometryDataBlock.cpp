@@ -210,14 +210,18 @@ UINT64 GeometryDataBlock::GetHeaderFromFile(LargeRAWFile* stream,
 void GeometryDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
   DataBlock::CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
-  m_n_vertices = vertices.size();
-  m_n_normals = normals.size();
-  m_n_texcoords  = texcoords.size();
-  m_n_colors = colors.size();
-  m_n_vertex_indices = vIndices.size();
-  m_n_normal_indices = nIndices.size();
-  m_n_texcoord_indices = tIndices.size();
-  m_n_color_indices = cIndices.size();
+  // have we read the data already, then use their size
+  // otherwise me might just be rewriting the header
+  if (vertices.size() != 0) {
+    m_n_vertices = vertices.size();
+    m_n_normals = normals.size();
+    m_n_texcoords  = texcoords.size();
+    m_n_colors = colors.size();
+    m_n_vertex_indices = vIndices.size();
+    m_n_normal_indices = nIndices.size();
+    m_n_texcoord_indices = tIndices.size();
+    m_n_color_indices = cIndices.size();
+  }
 
   pStreamFile->WriteData(m_n_vertices,         bIsBigEndian);
   pStreamFile->WriteData(m_n_normals,          bIsBigEndian);

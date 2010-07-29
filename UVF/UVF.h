@@ -57,6 +57,7 @@ public:
   bool AddConstDataBlock(const DataBlock* dataBlock, UINT64 iSizeofData);
   bool AddDataBlock(DataBlock* dataBlock, UINT64 iSizeofData, bool bUseSourcePointer=false);
   bool Create();
+  bool AppendBlockToFile(DataBlock* dataBlock);
 
   static bool IsUVFFile(const std::wstring& wstrFilename);
   static bool IsUVFFile(const std::wstring& wstrFilename, bool& bChecksumFail);

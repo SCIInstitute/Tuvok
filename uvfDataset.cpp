@@ -188,6 +188,9 @@ void UVFDataset::Close() {
     ts->m_pMaxMinData= NULL;
   }
 
+  m_TriSoupBlocks.clear();
+  DeleteMeshes();
+
   m_pKVDataBlock= NULL;
   m_pDatasetFile= NULL;
   m_bIsOpen= false;
@@ -925,16 +928,67 @@ const std::vector< std::pair < std::string, std::string > > UVFDataset::GetMetad
   return v;
 }
 
+bool UVFDataset::AppendMesh(Mesh* m) {
+  Close();
+
+  MESSAGE("Attempting to reopen file in readwrite mode.");
+
+  if (!Open(false,true,false)) {
+    T_ERROR("Readwrite mode failed, maybe file is write protected?");
+
+    Open(false,false,false);
+    return false;
+  } else {
+    MESSAGE("Successfully reopened file in readwrite mode.");
+
+    // now create a GeometryDataBlock ...
+    GeometryDataBlock tsb;
+
+    // ... and transfer the data from the mesh object
+    // source data
+    const VertVec&      v = m->GetVertices();
+    const NormVec&      n = m->GetNormals();
+    const TexCoordVec&  t = m->GetTexCoords();
+    const ColorVec&     c = m->GetColors();
+
+    // target data
+    vector<float> fVec;
+    size_t iVerticesPerPoly = m->GetVerticesPerPoly();
+    tsb.SetPolySize(iVerticesPerPoly);
+
+    if (v.size()) {fVec.resize(v.size()*3); memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float)); tsb.SetVertices(fVec);}
+    if (n.size()) {fVec.resize(n.size()*3); memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float)); tsb.SetNormals(fVec);}
+    if (t.size()) {fVec.resize(t.size()*2); memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float)); tsb.SetTexCoords(fVec);}
+    if (c.size()) {fVec.resize(c.size()*4); memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float)); tsb.SetColors(fVec);}
+
+    tsb.SetVertexIndices(m->GetVertexIndices());
+    tsb.SetNormalIndices(m->GetNormalIndices());
+    tsb.SetTexCoordIndices(m->GetTexCoordIndices());
+    tsb.SetColorIndices(m->GetColorIndices());
+
+    tsb.m_Desc = m->Name();
+    
+    m_pDatasetFile->AppendBlockToFile(&tsb);
+
+    MESSAGE("Writing changes to disk");
+    Close();
+    MESSAGE("Reopening in read-only mode");
+    
+    Open(false,false,false);
+    return true;
+  }
+}
+
 bool UVFDataset::SaveRescaleFactors() {
   DOUBLEVECTOR3 saveUserScale = m_UserScale;
   Close();
 
   MESSAGE("Attempting to reopen file in readwrite mode.");
 
-  if (!Open(false,true)) {
+  if (!Open(false,true,false)) {
     T_ERROR("Readwrite mode failed, maybe file is write protected?");
 
-    Open(false,false);
+    Open(false,false,false);
     return false;
   } else {
     MESSAGE("Successfully reopened file in readwrite mode.");
@@ -960,7 +1014,7 @@ bool UVFDataset::SaveRescaleFactors() {
     MESSAGE("Writing changes to disk");
     Close();
     MESSAGE("Reopening in read-only mode");
-    Open(false,false);
+    Open(false,false,false);
 
     return true;
   }

@@ -1521,9 +1521,8 @@ void IOManager::CopyToTSB(const Mesh* m, GeometryDataBlock* tsb) const {
   tsb->m_Desc = m->Name();
 }
 
-void IOManager::AddTriSurf(const UVF* sourceDataset,
-                           const string& trisoup_fn,
-                           const string& uvf_fn) const
+
+Mesh* IOManager::LoadMesh(const string& meshfile) const
 {
   MESSAGE("Opening Mesh File ...");
 
@@ -1533,11 +1532,11 @@ void IOManager::AddTriSurf(const UVF* sourceDataset,
   for(vector<AbstrGeoConverter*>::const_iterator conv =
       m_vpGeoConverters.begin(); conv != m_vpGeoConverters.end(); ++conv) {
     MESSAGE("Attempting converter '%s'", (*conv)->GetDesc().c_str());
-    if((*conv)->CanRead(trisoup_fn)) {
+    if((*conv)->CanRead(meshfile)) {
       MESSAGE("Converter '%s' can read '%s'!",
-              (*conv)->GetDesc().c_str(), trisoup_fn.c_str());
+              (*conv)->GetDesc().c_str(), meshfile.c_str());
       try {
-        m = (*conv)->ConvertToMesh(trisoup_fn);
+        m = (*conv)->ConvertToMesh(meshfile);
       } catch (const tuvok::io::DSOpenFailed& err) {
         WARNING("Converter %s can read files, but conversion failed! %s",
                 (*conv)->GetDesc().c_str(), err.what());
@@ -1545,11 +1544,19 @@ void IOManager::AddTriSurf(const UVF* sourceDataset,
       }
     }
   }
+  return m;
+}
+
+void IOManager::AddMesh(const UVF* sourceDataset,
+                           const string& meshfile,
+                           const string& uvf_fn) const
+{
+  Mesh* m = LoadMesh(meshfile);
 
   if (m == NULL) {
     WARNING("No converter for geometry file %s can be found",
-            trisoup_fn.c_str());
-    throw tuvok::io::DSOpenFailed(trisoup_fn.c_str(), __FILE__, __LINE__);
+            meshfile.c_str());
+    throw tuvok::io::DSOpenFailed(meshfile.c_str(), __FILE__, __LINE__);
   }
 
   // make sure we have at least normals

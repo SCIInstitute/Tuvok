@@ -159,6 +159,8 @@ protected:
 
   DOUBLEVECTOR3      m_UserScale;
   DOUBLEVECTOR3      m_DomainScale;
+
+  void DeleteMeshes();
 };
 
 };

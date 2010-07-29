@@ -438,7 +438,9 @@ public:
     return ReBrickDataset(strSourceFilename,strTargetFilename,strTempDir,m_iMaxBrickSize,m_iBrickOverlap,bQuantizeTo8Bit);
   }
 
-  void AddTriSurf(const UVF* sourceDataset,
+  tuvok::Mesh* LoadMesh(const std::string& meshfile) const;
+
+  void AddMesh(const UVF* sourceDataset,
                   const std::string& trisoup_file,
                   const std::string& uvf) const;
 

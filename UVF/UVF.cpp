@@ -349,3 +349,16 @@ DataBlock* UVF::GetDataBlockRW(UINT64 index, bool bOnlyChangeHeader) {
     m_DataBlocks[size_t(index)]->m_bIsDirty = true; 
   return m_DataBlocks[size_t(index)]->m_block;
 }
+
+
+bool UVF::AppendBlockToFile(DataBlock* dataBlock) {
+  if (!m_bFileIsReadWrite)  return false;
+  
+  DataBlockListElem* dble = new DataBlockListElem(dataBlock, false, false, m_streamFile.GetCurrentSize(), dataBlock->GetOffsetToNextBlock());
+  m_DataBlocks.push_back(dble);
+
+  m_DataBlocks[m_DataBlocks.size()-2]->m_bHeaderIsDirty = true; // needs to rewrite offset
+  dataBlock->CopyToFile(&m_streamFile, m_streamFile.GetCurrentSize(), m_GlobalHeader.bIsBigEndian, true);
+
+  return true;
+}
