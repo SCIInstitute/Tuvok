@@ -77,6 +77,7 @@ public:
   void ScaleToUnitCube();
   void ComputeUnitCubeScale(FLOATVECTOR3& scale,
                             FLOATVECTOR3& translation);
+  void Transform(const FLOATMATRIX4& m);
   void ScaleAndBias(const FLOATVECTOR3& scale,
                     const FLOATVECTOR3& translation);
 

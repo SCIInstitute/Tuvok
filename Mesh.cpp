@@ -108,6 +108,13 @@ void Mesh::ComputeUnitCubeScale(FLOATVECTOR3& scale,
   translation = - (m_Bounds[1]+m_Bounds[0])/(2*maxExtension);
 }
 
+void Mesh::Transform(const FLOATMATRIX4& m) {
+  for (VertVec::iterator i = m_vertices.begin();i<m_vertices.end();i++) {
+    *i = (FLOATVECTOR4((*i),1)*m).xyz();
+  }
+  GeometryHasChanged(true, true);
+}
+
 
 void Mesh::ScaleAndBias(const FLOATVECTOR3& scale,
                         const FLOATVECTOR3& translation) {
@@ -118,12 +125,7 @@ void Mesh::ScaleAndBias(const FLOATVECTOR3& scale,
   m_Bounds[0] = (m_Bounds[0] * scale) + translation;
   m_Bounds[1] = (m_Bounds[1] * scale) + translation;
 
-  // any change to the geometry invalidates the KD Tree
-  if (m_KDTree) 
-    m_KDTree->RescaleAndShift(translation, scale);
-
-  GeometryHasChanged(false, false);
-
+  GeometryHasChanged(false, true);
 }
 
 void Mesh::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
