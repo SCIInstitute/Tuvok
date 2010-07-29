@@ -139,10 +139,8 @@ Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilen
                               line = TrimToken(line);
                               vec[2] = float(atof(line.c_str()));
 
-                              // TODO: ask Dorit about this
-                              // bias and scale the vertices into unit cordinates
-                              // vec = (vec - fTranslation) / (FLOATVECTOR3(iDim)*fScale);
-
+                              vec = (vec + 0.5f*FLOATVECTOR3(iDim)*fScale) / (FLOATVECTOR3(iDim)*fScale) - 0.5f;
+                              
                               vertices.push_back(vec);
 
                               iElementReadCounter++;
