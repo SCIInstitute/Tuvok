@@ -105,9 +105,9 @@ Mesh* MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   G3D::GeometrySoA geometry;
   G3D::read(strFilename, &geometry);
-  if (geometry.info.indexSize == sizeof(USHORT))
+  if (geometry.info.indexSize == sizeof(unsigned short))
   {
-	  for (UINT32 i=0; i<geometry.info.numberIndices; ++i) VertIndices.push_back((UINT32)((USHORT*)geometry.indices)[i]);
+	  for (UINT32 i=0; i<geometry.info.numberIndices; ++i) VertIndices.push_back((UINT32)((unsigned short*)geometry.indices)[i]);
   }
   else VertIndices = IndexVec(geometry.indices, (UINT32*)geometry.indices + geometry.info.numberIndices);
 
