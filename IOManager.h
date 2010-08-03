@@ -254,13 +254,16 @@ protected:
 
 template <class T> class MCDataTemplate  : public MCData {
 public:
-  MCDataTemplate(const std::string& strTargetFile, T TIsoValue, FLOATVECTOR3 vScale, tuvok::AbstrGeoConverter* conv) :
+  MCDataTemplate(const std::string& strTargetFile, T TIsoValue, 
+                 const FLOATVECTOR3& vScale, tuvok::AbstrGeoConverter* conv,
+                 const FLOATVECTOR4& vColor) :
     MCData(strTargetFile),
     m_TIsoValue(TIsoValue),
     m_pData(NULL),
     m_iIndexoffset(0),
     m_pMarchingCubes(new MarchingCubes<T>()),
-    m_conv(conv)
+    m_conv(conv),
+    m_vColor(vColor)
   {
     m_matScale.Scaling(vScale.x, vScale.y, vScale.z);
   }
@@ -268,10 +271,13 @@ public:
   virtual ~MCDataTemplate() {
     delete m_pMarchingCubes;
     delete m_pData;
-    m_conv->ConvertToNative(tuvok::Mesh(m_vertices, m_normals, tuvok::TexCoordVec(), tuvok::ColorVec(),
-                      m_indices, m_indices, tuvok::IndexVec(),tuvok::IndexVec(),
-                      false,false,"Marching Cubes mesh by ImageVis3D",
-                      tuvok::Mesh::MT_TRIANGLES), m_strTargetFile);
+    Mesh m = tuvok::Mesh(m_vertices, m_normals, tuvok::TexCoordVec(),
+                         tuvok::ColorVec(), m_indices, m_indices, 
+                         tuvok::IndexVec(),tuvok::IndexVec(), 
+                         false,false,"Marching Cubes mesh by ImageVis3D",
+                         tuvok::Mesh::MT_TRIANGLES);
+    m.SetDefaultColor(m_vColor);
+    m_conv->ConvertToNative(m, m_strTargetFile);
   }
 
   virtual bool PerformMC(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset) {
@@ -333,6 +339,7 @@ protected:
   UINT32             m_iIndexoffset;
   MarchingCubes<T>*  m_pMarchingCubes;
   tuvok::AbstrGeoConverter* m_conv;
+  FLOATVECTOR4       m_vColor;
   FLOATMATRIX4       m_matScale;
   tuvok::VertVec     m_vertices;
   tuvok::NormVec     m_normals;
@@ -461,6 +468,7 @@ public:
   bool ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
                          UINT64 iLODlevel, double fIsovalue,
                          const DOUBLEVECTOR3& vfRescaleFactors,
+                         const FLOATVECTOR4& vfColor,
                          const std::string& strTargetFilename,
                          const std::string& strTempDir) const;
 
