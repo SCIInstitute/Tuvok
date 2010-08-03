@@ -1368,6 +1368,14 @@ AbstrRenderer::SetRenderRegions(const std::vector<RenderRegion*> &regions)
   this->msecPassedCurrentFrame = -1.0f;
 }
 
+void AbstrRenderer::RemoveMeshData(size_t index) {
+  delete m_Meshes[index];
+  m_Meshes[index] = NULL;
+  m_Meshes.erase(m_Meshes.begin()+index);
+  Schedule3DWindowRedraws();
+}
+
+
 void AbstrRenderer::Timestep(size_t t) {
   if(t != m_iTimestep) {
     m_iTimestep = t;
@@ -1375,3 +1383,5 @@ void AbstrRenderer::Timestep(size_t t) {
   }
 }
 size_t AbstrRenderer::Timestep() const { return m_iTimestep; }
+
+
