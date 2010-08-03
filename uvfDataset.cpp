@@ -929,6 +929,53 @@ const std::vector< std::pair < std::string, std::string > > UVFDataset::GetMetad
   return v;
 }
 
+bool UVFDataset::RemoveMesh(size_t iMeshIndex) {
+  Close();
+
+  MESSAGE("Attempting to reopen file in readwrite mode.");
+
+  if (!Open(false,true,false)) {
+    T_ERROR("Readwrite mode failed, maybe file is write protected?");
+
+    Open(false,false,false);
+    return false;
+  } else {
+    MESSAGE("Successfully reopened file in readwrite mode.");
+
+    // turn meshindex into block index, those are different as the
+    // uvf file most likely also contains data other than meshes
+    // such as the volume or histograms, etc.
+    size_t iBlockIndex = 0;
+    bool bFound = false;
+        
+    for(size_t block=0; block < m_pDatasetFile->GetDataBlockCount(); ++block) {
+      if (m_pDatasetFile->GetDataBlock(block)->GetBlockSemantic() 
+                                                  == UVFTables::BS_GEOMETRY) {        
+        if (iMeshIndex == 0) {
+          iBlockIndex = block;
+          bFound = true;
+          break;
+        }          
+        iMeshIndex--;
+      }
+    }
+
+    if (!bFound) {
+      T_ERROR("Unable to locate mesh data block %u", static_cast<unsigned>(iMeshIndex));
+      return false;
+    }
+
+    bool bResult = m_pDatasetFile->DropdBlockFromFile(iBlockIndex);
+
+    MESSAGE("Writing changes to disk");
+    Close();
+    MESSAGE("Reopening in read-only mode");
+    
+    Open(false,false,false);
+    return bResult;
+  }
+}
+
 bool UVFDataset::AppendMesh(Mesh* m) {
   Close();
 
@@ -1037,10 +1084,10 @@ bool UVFDataset::CanRead(const std::string&,
 bool UVFDataset::Verify(const std::string& filename) const
 {
   std::wstring wstrFilename(filename.begin(), filename.end());
-  bool checksum=false;
-  UVF::IsUVFFile(wstrFilename, checksum);
+  bool checksumFail=false;
+  UVF::IsUVFFile(wstrFilename, checksumFail);
   // negate it; IsUVFFile sets the argument if the checksum *fails*!
-  return !checksum;
+  return !checksumFail;
 }
 
 FileBackedDataset* UVFDataset::Create(const std::string& filename,

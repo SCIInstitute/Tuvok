@@ -112,6 +112,7 @@ public:
 
   virtual bool SaveRescaleFactors();
   bool AppendMesh(Mesh* m);
+  bool RemoveMesh(size_t iMeshIndex);
 
   virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
   virtual bool Verify(const std::string&) const;
