@@ -46,6 +46,7 @@ OBJGeoConverter::OBJGeoConverter() :
 {
   m_vConverterDesc = "Wavefront Object File";
   m_vSupportedExt.push_back("OBJ");
+  m_vSupportedExt.push_back("OBJX");
 }
 
 inline int OBJGeoConverter::CountOccurences(const std::string& str, const std::string& substr) {
@@ -289,33 +290,60 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
 bool OBJGeoConverter::ConvertToNative(const Mesh& m,
                                       const std::string& strTargetFilename) {
 
-    std::ofstream outStream(strTargetFilename.c_str());
-    if (outStream.fail()) return false;
-    outStream << "###############################################" << std::endl;
-    outStream << "#" << m.Name() << std::endl;
-    outStream << "###############################################" << std::endl << std::endl;
+  bool bUseExtension = SysTools::ToUpperCase(
+                            SysTools::GetExt(strTargetFilename)
+                                            ) == "OBJX";
 
-    // vertices
-    for (size_t i = 0;i<m.GetVertices().size();i++) {
-        outStream << "v " 
-                    << m.GetVertices()[i].x << " "
-                    << m.GetVertices()[i].y << " "
-                    << m.GetVertices()[i].z << std::endl;;
-    }
+  std::ofstream outStream(strTargetFilename.c_str());
+  if (outStream.fail()) return false;
 
-    for (size_t i = 0;i<m.GetNormals().size();i++) {
-        outStream << "vn " 
-                    << m.GetNormals()[i].x << " "
-                    << m.GetNormals()[i].y << " "
-                    << m.GetNormals()[i].z << std::endl;
-    }
+  std::stringstream statLine1, statLine2;
+  statLine1 << "Vertices: " << m.GetVertices().size();
+  statLine2 << "Primitives: " << m.GetVertexIndices().size();
+  size_t iCount = std::max(m.Name().size(), 
+                           std::max(statLine1.str().size(),
+                                    statLine2.str().size()
+                           ));
 
-    for (size_t i = 0;i<m.GetTexCoords().size();i++) {
-        outStream << "vt " 
-                    << m.GetTexCoords()[i].x << " "
-                    << m.GetTexCoords()[i].y << std::endl;
-    }
+  for (size_t i = 0;i<iCount+4;i++) outStream << "#";
+  outStream << std::endl;
+  outStream << "# " << m.Name();
+  for (size_t i = m.Name().size();i<iCount;i++) outStream << " ";
+  outStream << " #" << std::endl;
 
+  outStream << "# " << statLine1.str();
+  for (size_t i =statLine1.str().size();i<iCount;i++) outStream << " ";
+  outStream << " #" << std::endl;
+
+  outStream << "# " << statLine2.str();
+  for (size_t i = statLine2.str().size();i<iCount;i++) outStream << " ";
+  outStream << " #" << std::endl;
+
+  for (size_t i = 0;i<iCount+4;i++) outStream << "#";
+  outStream << std::endl;
+
+  // vertices
+  for (size_t i = 0;i<m.GetVertices().size();i++) {
+      outStream << "v " 
+                  << m.GetVertices()[i].x << " "
+                  << m.GetVertices()[i].y << " "
+                  << m.GetVertices()[i].z << std::endl;;
+  }
+
+  for (size_t i = 0;i<m.GetNormals().size();i++) {
+      outStream << "vn " 
+                  << m.GetNormals()[i].x << " "
+                  << m.GetNormals()[i].y << " "
+                  << m.GetNormals()[i].z << std::endl;
+  }
+
+  for (size_t i = 0;i<m.GetTexCoords().size();i++) {
+      outStream << "vt " 
+                  << m.GetTexCoords()[i].x << " "
+                  << m.GetTexCoords()[i].y << std::endl;
+  }
+
+  if (bUseExtension) {
     // this is our own extension, originally colors are 
     // not supported by OBJ files
     for (size_t i = 0;i<m.GetColors().size();i++) {
@@ -325,44 +353,49 @@ bool OBJGeoConverter::ConvertToNative(const Mesh& m,
                     << m.GetColors()[i].z << " "
                     << m.GetColors()[i].w << std::endl;
     }
+  } else {
+    if (m.GetColors().size() != 0) 
+      WARNING("Ignoring mesh colors for standart OBJ files, "
+              "use OBJX files to also export colors.");
+  }
 
-    size_t iVPP = m.GetVerticesPerPoly();
-    for (size_t i = 0;i<m.GetVertexIndices().size();i+=iVPP) {
-        if (iVPP == 1)
-           outStream << "p "; else
-        if (iVPP == 2)
-           outStream << "l ";
-        else 
-           outStream << "f ";
+  bool bHasTexCoords = m.GetTexCoordIndices().size() == m.GetVertexIndices().size();
+  bool bHasNormals = m.GetNormalIndices().size() == m.GetVertexIndices().size();
+  bool bHasColors = (bUseExtension && m.GetColorIndices().size() == m.GetVertexIndices().size());
 
-        for (size_t j = 0;j<iVPP;j++) {
-          outStream << m.GetVertexIndices()[i+j]+1;
-          if (m.GetTexCoordIndices().size() == m.GetVertexIndices().size() || 
-              m.GetNormalIndices().size() == m.GetVertexIndices().size() || 
-              m.GetColorIndices().size() == m.GetVertexIndices().size()) {
-              outStream << "/";
-              if (m.GetTexCoordIndices().size() == m.GetVertexIndices().size()) {
-                outStream << m.GetTexCoordIndices()[i+j]+1;
-              }
-          }
-          if (m.GetNormalIndices().size() == m.GetVertexIndices().size() || 
-              m.GetColorIndices().size() == m.GetVertexIndices().size()) {
-              outStream << "/";
-              if (m.GetNormalIndices().size() == m.GetVertexIndices().size()) {
-                outStream << m.GetNormalIndices()[i+j]+1;
-              }
-          }
-          if (m.GetColorIndices().size() == m.GetVertexIndices().size()) {
-              outStream << "/";
-              outStream << m.GetColorIndices()[i+j]+1;
-          }
-          if (j+1 < iVPP) outStream << " ";
+  size_t iVPP = m.GetVerticesPerPoly();
+  for (size_t i = 0;i<m.GetVertexIndices().size();i+=iVPP) {
+      if (iVPP == 1)
+         outStream << "p "; else
+      if (iVPP == 2)
+         outStream << "l ";
+      else 
+         outStream << "f ";
+
+      for (size_t j = 0;j<iVPP;j++) {
+        outStream << m.GetVertexIndices()[i+j]+1;
+        if (bHasTexCoords || bHasNormals || bHasColors) {
+            outStream << "/";
+            if (m.GetTexCoordIndices().size() == m.GetVertexIndices().size()) {
+              outStream << m.GetTexCoordIndices()[i+j]+1;
+            }
         }
-        outStream << std::endl;
-    }
+        if (bHasNormals || bHasColors) {
+            outStream << "/";
+            if (m.GetNormalIndices().size() == m.GetVertexIndices().size()) {
+              outStream << m.GetNormalIndices()[i+j]+1;
+            }
+        }
+        if (bHasColors) {
+            outStream << "/";
+            outStream << m.GetColorIndices()[i+j]+1;
+        }
+        if (j+1 < iVPP) outStream << " ";
+      }
+      outStream << std::endl;
+  }
 
-    outStream.close();
+  outStream.close();
 
-    return true;
-
+  return true;
 }
