@@ -33,7 +33,6 @@
 
 #include "G3D.h"
 
-#include "G3D.h"
 
 void G3D::writeHeader(std::fstream & fs, const GeometryInfo & info, const UINT32 * const vertexType)
 {
