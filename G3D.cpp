@@ -33,7 +33,9 @@
 
 #include "G3D.h"
 
-void G3D::writeHeader(std::fstream & fs, const GeometryInfo & info, const VertexType * const vertexType)
+#include "G3D.h"
+
+void G3D::writeHeader(std::fstream & fs, const GeometryInfo & info, const UINT32 * const vertexType)
 {
 	fs.write((char*)&info.isOpaque, sizeof(bool));
 	fs.write((char*)&info.numberPrimitives, sizeof(UINT32));
@@ -68,7 +70,7 @@ void G3D::writeContent(std::fstream & fs, const GeometryAoS & geometry)
 	writeVertices(fs, geometry.vertices, geometry.info);
 }
 
-void G3D::write(const std::string & file, const GeometryAoS * const geometry, const VertexType vertexType)
+void G3D::write(const std::string & file, const GeometryAoS * const geometry, const UINT32 vertexType)
 {
 	std::fstream fs;
 	fs.open(file.c_str(), std::fstream::out | std::fstream::binary | std::fstream::trunc);
@@ -96,7 +98,7 @@ void G3D::write(const std::string & file, const GeometryAoS * const geometry, co
 void G3D::writeVertices(std::fstream & fs, const std::vector<float*> & vertexAttributes, const GeometryInfo & info)
 {
 	UINT32 i = 0;
-	for (std::vector<AttributeSemantic>::const_iterator it=info.attributeSemantics.begin(); it!=info.attributeSemantics.end(); ++it) 
+	for (std::vector<UINT32>::const_iterator it=info.attributeSemantics.begin(); it!=info.attributeSemantics.end(); ++it) 
 	{
 		fs.write((char*)vertexAttributes.at(i), info.numberVertices * floats(*it) * sizeof(float));
 		++i;
@@ -109,7 +111,7 @@ void G3D::writeContent(std::fstream & fs, const GeometrySoA & geometry)
 	writeVertices(fs, geometry.vertexAttributes, geometry.info);
 }
 
-void G3D::write(const std::string & file, const GeometrySoA * const geometry, const VertexType vertexType)
+void G3D::write(const std::string & file, const GeometrySoA * const geometry, const UINT32 vertexType)
 {
 	std::fstream fs;
 	fs.open(file.c_str(), std::fstream::out | std::fstream::binary | std::fstream::trunc);
@@ -138,22 +140,22 @@ void G3D::readHeader(std::fstream & fs, GeometryInfo & info)
 {
 	char * buffer = new char[8 * sizeof(UINT32) + sizeof(bool)];
 	fs.read(buffer, 8 * sizeof(UINT32) + sizeof(bool));
-	info.isOpaque = (buffer++)[0] == 0;
+	info.isOpaque = ((buffer++)[0] == 1);
 	info.numberPrimitives = ((UINT32*)buffer)[0];
-	info.primitiveType = ((PrimitiveType*)buffer)[1];
+	info.primitiveType = ((UINT32*)buffer)[1];
 	UINT32 numberSemantics = ((UINT32*)buffer)[2];
 	info.numberIndices = ((UINT32*)buffer)[3];
 	info.indexSize = ((UINT32*)buffer)[4];
 	info.numberVertices = ((UINT32*)buffer)[5];
 	info.vertexSize = ((UINT32*)buffer)[6];
-	info.vertexType = ((VertexType*)buffer)[7];
+	info.vertexType = ((UINT32*)buffer)[7];
 	delete [] --buffer;
 
 	buffer = new char[numberSemantics * sizeof(UINT32)];
 	fs.read(buffer, numberSemantics * sizeof(UINT32));
 	for (UINT32 i=0; i<numberSemantics; ++i) 
 	{
-		info.attributeSemantics.push_back(((AttributeSemantic*)buffer)[i]);
+		info.attributeSemantics.push_back(((UINT32*)buffer)[i]);
 	}
 	delete [] buffer;
 }
@@ -185,7 +187,7 @@ void G3D::convertVertices(const std::vector<float*> & vertexAttributes, float *&
 	{
 		UINT32 offset = 0;
 		UINT32 attributeIndex = 0;
-		for (std::vector<AttributeSemantic>::const_iterator it=info.attributeSemantics.begin(); it!=info.attributeSemantics.end(); ++it)
+		for (std::vector<UINT32>::const_iterator it=info.attributeSemantics.begin(); it!=info.attributeSemantics.end(); ++it)
 		{
 			UINT32 attributeFloats = floats(*it);
 			for (UINT32 j=0; j<attributeFloats; ++j) vertices[j + offset + (i * vertexFloats)] = vertexAttributes[attributeIndex][j + (i * attributeFloats)];
@@ -219,7 +221,7 @@ void G3D::read(const std::string & file, GeometryAoS * const geometry)
 
 void G3D::readVertices(std::fstream & fs, std::vector<float*> & vertexAttributes, const GeometryInfo & info)
 {
-	for (UINT32 i=0; i<UINT32(info.attributeSemantics.size()); ++i) 
+	for (UINT32 i=0; i<info.attributeSemantics.size(); ++i) 
 	{
 		vertexAttributes.push_back(NULL);
 		UINT32 attributeFloats = floats(info.attributeSemantics.at(i));
@@ -237,7 +239,7 @@ void G3D::readContent(std::fstream & fs, GeometrySoA & geometry)
 void G3D::convertVertices(const float * const vertices, std::vector<float*> & vertexAttributes, const GeometryInfo & info)
 {
 	UINT32 i = 0;
-	for (std::vector<AttributeSemantic>::const_iterator it=info.attributeSemantics.begin(); it!=info.attributeSemantics.end(); ++it)
+	for (std::vector<UINT32>::const_iterator it=info.attributeSemantics.begin(); it!=info.attributeSemantics.end(); ++it)
 	{
 		vertexAttributes.push_back(NULL);
 		UINT32 attributeFloats = floats(*it);
@@ -250,7 +252,7 @@ void G3D::convertVertices(const float * const vertices, std::vector<float*> & ve
 	{
 		UINT32 offset = 0;
 		UINT32 attributeIndex = 0;
-		for (std::vector<AttributeSemantic>::const_iterator it=info.attributeSemantics.begin(); it!=info.attributeSemantics.end(); ++it)
+		for (std::vector<UINT32>::const_iterator it=info.attributeSemantics.begin(); it!=info.attributeSemantics.end(); ++it)
 		{
 			UINT32 attributeFloats = floats(*it);
 			for (UINT32 j=0; j<attributeFloats; ++j) vertexAttributes[attributeIndex][j + (i * attributeFloats)] = vertices[j + offset + (i * vertexFloats)];
@@ -316,7 +318,7 @@ void G3D::clean(GeometrySoA * geometry)
 	geometry = NULL;
 }
 
-void G3D::print(const Geometry * const geometry, std::ostream& output)
+void G3D::print(const Geometry * const geometry, std::ostream & output)
 {
 	if (geometry)
 	{
@@ -333,7 +335,7 @@ void G3D::print(const Geometry * const geometry, std::ostream& output)
 		output << "Vertex type: " << ((geometry->info.vertexType == AoS) ? "Array of Structs" : 
 				(geometry->info.vertexType == SoA) ? "Struct of Arrays" : "Unknown") << std::endl;
 		output << "Vertex attribute semantics:" << std::endl;
-		for (std::vector<AttributeSemantic>::const_iterator it=geometry->info.attributeSemantics.begin(); it!=geometry->info.attributeSemantics.end(); ++it)
+		for (std::vector<UINT32>::const_iterator it=geometry->info.attributeSemantics.begin(); it!=geometry->info.attributeSemantics.end(); ++it)
 		{
 			output << "\t" << (((*it) == Position) ? "Position" : 
 				((*it) == Normal) ? "Normal" :

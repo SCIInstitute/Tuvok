@@ -45,10 +45,19 @@ MobileGeoConverter::MobileGeoConverter() :
 {
   m_vConverterDesc = "Mobile Geometry File";
   m_vSupportedExt.push_back("G3D");
+  m_vSupportedExt.push_back("G3DX");
 }
 
 bool MobileGeoConverter::ConvertToNative(const Mesh& m,
                                          const std::string& strTargetFilename) {
+
+  if (m.GetVertices().size() == 0) return false;
+/*
+  // include this once we have mesh downsampling implemented
+  bool bSimplify = SysTools::ToUpperCase(
+                            SysTools::GetExt(strTargetFilename)
+                                            ) == "G3D";
+*/
   G3D::GeometrySoA geometry;
   geometry.info.isOpaque = false;
   geometry.info.numberPrimitives = 
@@ -57,33 +66,37 @@ bool MobileGeoConverter::ConvertToNative(const Mesh& m,
                                       ? G3D::Triangle : G3D::Line;
   geometry.info.numberIndices = UINT32(m.GetVertexIndices().size());
   geometry.info.numberVertices = UINT32(m.GetVertices().size());
-  int vertexFloats = 0;
+  UINT32 vertexFloats = 0;
 
-  if (m.GetVertices().size() > 0) 
-  {
-	  geometry.info.attributeSemantics.push_back(G3D::Position);
-	  geometry.vertexAttributes.push_back((float*)&m.GetVertices().at(0));
-	  vertexFloats += G3D::floats(G3D::Position);
-  }
-  else return false;
-  if (m.GetNormals().size() > 0) 
+  geometry.info.attributeSemantics.push_back(G3D::Position);
+  geometry.vertexAttributes.push_back((float*)&m.GetVertices().at(0));
+  vertexFloats += G3D::floats(G3D::Position);
+
+  if (m.GetNormals().size() == m.GetVertices().size()) 
   {
 	  geometry.info.attributeSemantics.push_back(G3D::Normal);
 	  geometry.vertexAttributes.push_back((float*)&m.GetNormals().at(0));
 	  vertexFloats += G3D::floats(G3D::Normal);
   }
-  if (m.GetTexCoords().size() > 0) 
+  if (m.GetTexCoords().size() == m.GetVertices().size()) 
   {
 	  geometry.info.attributeSemantics.push_back(G3D::Tex);
 	  geometry.vertexAttributes.push_back((float*)&m.GetTexCoords().at(0));
 	  vertexFloats += G3D::floats(G3D::Tex);
   }
-  if (m.GetColors().size() > 0) 
+  geometry.info.attributeSemantics.push_back(G3D::Color);
+  vertexFloats += G3D::floats(G3D::Color);
+  ColorVec colors;
+  if (m.GetColors().size() == m.GetVertices().size()) 
   {
-	  geometry.info.attributeSemantics.push_back(G3D::Color);
 	  geometry.vertexAttributes.push_back((float*)&m.GetColors().at(0));
-	  vertexFloats += G3D::floats(G3D::Color);
   }
+  else
+  {
+	  colors = ColorVec(m.GetVertices().size(), m.GetDefaultColor());
+	  geometry.vertexAttributes.push_back((float*)&colors.at(0));
+  }
+
   geometry.info.indexSize = sizeof(UINT32);
   geometry.info.vertexSize = vertexFloats * sizeof(float);
   geometry.indices = (UINT32*)&m.GetVertexIndices().at(0);
@@ -105,14 +118,14 @@ Mesh* MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   G3D::GeometrySoA geometry;
   G3D::read(strFilename, &geometry);
-  if (geometry.info.indexSize == sizeof(unsigned short))
+  if (geometry.info.indexSize == sizeof(UINT16))
   {
-	  for (UINT32 i=0; i<geometry.info.numberIndices; ++i) VertIndices.push_back((UINT32)((unsigned short*)geometry.indices)[i]);
+	  for (UINT32 i=0; i<geometry.info.numberIndices; ++i) VertIndices.push_back((UINT32)((UINT16*)geometry.indices)[i]);
   }
   else VertIndices = IndexVec(geometry.indices, (UINT32*)geometry.indices + geometry.info.numberIndices);
 
   UINT32 i = 0;
-  for (std::vector<G3D::AttributeSemantic>::iterator it=geometry.info.attributeSemantics.begin(); it<geometry.info.attributeSemantics.end(); ++it)
+  for (std::vector<UINT32>::iterator it=geometry.info.attributeSemantics.begin(); it<geometry.info.attributeSemantics.end(); ++it)
   {
 	  if (*it == G3D::Position) vertices = VertVec((FLOATVECTOR3*)geometry.vertexAttributes.at(i), (FLOATVECTOR3*)geometry.vertexAttributes.at(i) + geometry.info.numberVertices);
 	  else if (*it == G3D::Normal) normals = NormVec((FLOATVECTOR3*)geometry.vertexAttributes.at(i), (FLOATVECTOR3*)geometry.vertexAttributes.at(i) + geometry.info.numberVertices);
