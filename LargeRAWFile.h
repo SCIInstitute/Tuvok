@@ -48,6 +48,8 @@ public:
   bool Append();
   void Close();
   void Delete();
+  void Truncate();
+  void Truncate(UINT64 iPos);
   UINT64 GetCurrentSize();
   std::string GetFilename() const { return m_strFilename;}
 

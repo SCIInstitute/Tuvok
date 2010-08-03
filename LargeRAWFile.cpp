@@ -182,6 +182,24 @@ void LargeRAWFile::Delete() {
   remove(m_strFilename.c_str());
 }
 
+void LargeRAWFile::Truncate() {
+  #ifdef _WIN32
+    SetEndOfFile(m_StreamFile);
+  #else
+    UINT64 iPos = GetPos();
+    ftruncate(m_StreamFile, off_t(iPos));
+  #endif
+}
+
+void LargeRAWFile::Truncate(UINT64 iPos) {
+  #ifdef _WIN32
+    SeekPos(iPos);
+    SetEndOfFile(m_StreamFile);
+  #else
+    ftruncate(m_StreamFile, off_t(iPos+m_iHeaderSize));
+  #endif
+}
+
 
 
 bool LargeRAWFile::Copy(const std::string& strSource,
