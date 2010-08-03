@@ -692,7 +692,8 @@ void GLSLProgram::Enable(void) {
  * \date Aug.2004
  */
 void GLSLProgram::Disable(void) {
-  gl::UseProgram(0);
+  // opengl may not be enabed yet so be careful calling gl functions
+ if (glUseProgramObjectARB != NULL || glUseProgram != NULL) gl::UseProgram(0);
 }
 
 

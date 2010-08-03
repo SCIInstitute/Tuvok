@@ -60,7 +60,8 @@ GLSBVR::~GLSBVR() {
 
 void GLSBVR::Cleanup() {
   GLRenderer::Cleanup();
-  glDeleteBuffers(1, &m_GeoBuffer);
+  // opengl may not be enabed yet so be careful calling gl functions
+  if (glDeleteBuffers) glDeleteBuffers(1, &m_GeoBuffer);
 }
 
 
