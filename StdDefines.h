@@ -42,6 +42,13 @@
 #include "boost/cstdint.hpp"
 #undef UINT32
 
+#ifndef INT16
+typedef boost::int16_t  INT16;
+#endif
+#ifndef UINT16
+typedef boost::uint16_t UINT16;
+#endif
+
 typedef boost::int64_t  INT64;
 typedef boost::uint64_t UINT64;
 #ifndef UINT32
