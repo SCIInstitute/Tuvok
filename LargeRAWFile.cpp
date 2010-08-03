@@ -182,21 +182,21 @@ void LargeRAWFile::Delete() {
   remove(m_strFilename.c_str());
 }
 
-void LargeRAWFile::Truncate() {
+bool LargeRAWFile::Truncate() {
   #ifdef _WIN32
-    SetEndOfFile(m_StreamFile);
+    return 0 != SetEndOfFile(m_StreamFile);
   #else
     UINT64 iPos = GetPos();
-    ftruncate(fileno(m_StreamFile), off_t(iPos));
+    return 0 == ftruncate(fileno(m_StreamFile), off_t(iPos));
   #endif
 }
 
-void LargeRAWFile::Truncate(UINT64 iPos) {
+bool LargeRAWFile::Truncate(UINT64 iPos) {
   #ifdef _WIN32
     SeekPos(iPos);
-    SetEndOfFile(m_StreamFile);
+    return 0 != SetEndOfFile(m_StreamFile);
   #else
-    ftruncate(fileno(m_StreamFile), off_t(iPos+m_iHeaderSize));
+    return 0 == ftruncate(fileno(m_StreamFile), off_t(iPos+m_iHeaderSize));
   #endif
 }
 
