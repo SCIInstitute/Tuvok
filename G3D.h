@@ -112,7 +112,7 @@ public:
 		std::vector<float*> vertexAttributes;
 	};
 
-	static inline const UINT32 floats(const UINT32 semantic)
+	static UINT32 floats(UINT32 semantic)
 	{
 		switch (semantic)
 		{
