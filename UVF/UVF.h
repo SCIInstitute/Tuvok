@@ -16,16 +16,16 @@ class DataBlockListElem {
       m_bIsDirty(false),
       m_bHeaderIsDirty(false),
       m_iOffsetInFile(0),
-      m_iLastSize(0)
+      m_iBlockSize(0)
     {}
     
-    DataBlockListElem(DataBlock* block, bool bSelfCreatedPointer, bool bIsDirty, UINT64 iOffsetInFile, UINT64 iLastSize) :
+    DataBlockListElem(DataBlock* block, bool bSelfCreatedPointer, bool bIsDirty, UINT64 iOffsetInFile, UINT64 iBlockSize) :
       m_block(block),
       m_bSelfCreatedPointer(bSelfCreatedPointer),
       m_bIsDirty(bIsDirty),
       m_bHeaderIsDirty(bIsDirty),
       m_iOffsetInFile(iOffsetInFile),
-      m_iLastSize(iLastSize)
+      m_iBlockSize(iBlockSize)
     {}
 
   DataBlock* m_block;
@@ -33,7 +33,7 @@ class DataBlockListElem {
   bool m_bIsDirty;
   bool m_bHeaderIsDirty;
   UINT64 m_iOffsetInFile;
-  UINT64 m_iLastSize;
+  UINT64 m_iBlockSize;
 };
 
 class UVF
@@ -57,7 +57,10 @@ public:
   bool AddConstDataBlock(const DataBlock* dataBlock, UINT64 iSizeofData);
   bool AddDataBlock(DataBlock* dataBlock, UINT64 iSizeofData, bool bUseSourcePointer=false);
   bool Create();
+
+  // RW access routines
   bool AppendBlockToFile(DataBlock* dataBlock);
+  bool DropdBlockFromFile(size_t iBlockIndex);
 
   static bool IsUVFFile(const std::wstring& wstrFilename);
   static bool IsUVFFile(const std::wstring& wstrFilename, bool& bChecksumFail);

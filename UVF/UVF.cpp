@@ -93,7 +93,6 @@ bool UVF::Open(bool bMustBeSameVersion, bool bVerify, bool bReadWrite, std::stri
 void UVF::Close() {
   if (m_bFileIsLoaded) {
     if (m_bFileIsReadWrite) {
-      UpdateChecksum();
       for (size_t i = 0;i<m_DataBlocks.size();i++) {
         // for now we only allow changes in the datablock header
         // TODO: will need to extend this to abitrary changes once we add more features
@@ -104,6 +103,7 @@ void UVF::Close() {
         }
       }
     }
+    UpdateChecksum();
     m_streamFile.Close();
     m_bFileIsLoaded = false;
   }
@@ -285,7 +285,8 @@ bool UVF::AddConstDataBlock(const DataBlock* dataBlock, UINT64 iSizeofData) {
   return true;
 }
 
-bool UVF::AddDataBlock(DataBlock* dataBlock, UINT64 iSizeofData, bool bUseSourcePointer) {
+bool UVF::AddDataBlock(DataBlock* dataBlock, UINT64 iSizeofData,
+                       bool bUseSourcePointer) {
 
   if (!dataBlock->Verify(iSizeofData)) return false;
 
@@ -331,7 +332,9 @@ bool UVF::Create() {
     
     UINT64 iOffset = m_GlobalHeader.GetDataPos();
     for (size_t i = 0;i<m_DataBlocks.size();i++) {
-        iOffset += m_DataBlocks[i]->m_block->CopyToFile(&m_streamFile, iOffset, m_GlobalHeader.bIsBigEndian, i == m_DataBlocks.size()-1);
+        iOffset += m_DataBlocks[i]->m_block->CopyToFile(&m_streamFile, iOffset,
+                                                m_GlobalHeader.bIsBigEndian, 
+                                                i == m_DataBlocks.size()-1);
         m_DataBlocks[i]->m_bIsDirty = false;
     }
 
@@ -354,11 +357,61 @@ DataBlock* UVF::GetDataBlockRW(UINT64 index, bool bOnlyChangeHeader) {
 bool UVF::AppendBlockToFile(DataBlock* dataBlock) {
   if (!m_bFileIsReadWrite)  return false;
   
-  DataBlockListElem* dble = new DataBlockListElem(dataBlock, false, false, m_streamFile.GetCurrentSize(), dataBlock->GetOffsetToNextBlock());
+  // add new block to the datablock vector
+  DataBlockListElem* dble = new DataBlockListElem(dataBlock, false, false,
+                                           m_streamFile.GetCurrentSize(),
+                                           dataBlock->GetOffsetToNextBlock());
   m_DataBlocks.push_back(dble);
 
-  m_DataBlocks[m_DataBlocks.size()-2]->m_bHeaderIsDirty = true; // needs to rewrite offset
-  dataBlock->CopyToFile(&m_streamFile, m_streamFile.GetCurrentSize(), m_GlobalHeader.bIsBigEndian, true);
+  // the block before the last needs to rewrite offset
+  m_DataBlocks[m_DataBlocks.size()-2]->m_bHeaderIsDirty = true; 
+
+  // and the last block needs to written to file
+  dataBlock->CopyToFile(&m_streamFile, m_streamFile.GetCurrentSize(),
+                        m_GlobalHeader.bIsBigEndian, true);
+
+  return true;
+}
+
+
+bool UVF::DropdBlockFromFile(size_t iBlockIndex) {
+  if (!m_bFileIsReadWrite)  return false;
+
+  // create copy buffer
+  unsigned char* pBuffer = new unsigned char[BLOCK_COPY_SIZE];
+
+  // remove data from file, by shifting all blocks after the
+  // one to be removed towards the front of the file
+
+  UINT64 iShiftSize = m_DataBlocks[iBlockIndex]->m_block->GetOffsetToNextBlock();
+  for (size_t i = iBlockIndex+1;i<m_DataBlocks.size();i++) {
+    UINT64 iSourcePos = m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos();
+    UINT64 iTargetPos = iSourcePos-iShiftSize;
+    UINT64 iSize      = m_DataBlocks[i]->m_iBlockSize;
+    if (!m_streamFile.CopyRAW(iSize,iSourcePos,iTargetPos,
+                              pBuffer,BLOCK_COPY_SIZE)) {
+      return false;
+    }
+  }
+
+  // if block was last block in file, flag the previous block as last
+  // i.e. set offset to 0
+  if (iBlockIndex == m_DataBlocks.size()-1) {
+    m_DataBlocks[m_DataBlocks.size()-2]->m_bHeaderIsDirty = true;
+    m_streamFile.SeekPos(m_DataBlocks[iBlockIndex]->m_iOffsetInFile+m_GlobalHeader.GetDataPos());
+  }
+
+  // truncate file
+  m_streamFile.Truncate();
+
+  // free copy buffer
+  delete [] pBuffer;
+
+  // remove data from datablock vector
+  if (m_DataBlocks[iBlockIndex]->m_bSelfCreatedPointer) 
+    delete m_DataBlocks[iBlockIndex]->m_block; 
+  delete m_DataBlocks[iBlockIndex];
+  m_DataBlocks.erase(m_DataBlocks.begin()+iBlockIndex);
 
   return true;
 }
