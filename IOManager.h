@@ -271,11 +271,11 @@ public:
   virtual ~MCDataTemplate() {
     delete m_pMarchingCubes;
     delete m_pData;
-    Mesh m = tuvok::Mesh(m_vertices, m_normals, tuvok::TexCoordVec(),
-                         tuvok::ColorVec(), m_indices, m_indices, 
-                         tuvok::IndexVec(),tuvok::IndexVec(), 
-                         false,false,"Marching Cubes mesh by ImageVis3D",
-                         tuvok::Mesh::MT_TRIANGLES);
+    tuvok::Mesh m = tuvok::Mesh(m_vertices, m_normals, tuvok::TexCoordVec(),
+                                tuvok::ColorVec(), m_indices, m_indices, 
+                                tuvok::IndexVec(),tuvok::IndexVec(), 
+                                false,false,"Marching Cubes mesh by ImageVis3D",
+                                tuvok::Mesh::MT_TRIANGLES);
     m.SetDefaultColor(m_vColor);
     m_conv->ConvertToNative(m, m_strTargetFile);
   }
