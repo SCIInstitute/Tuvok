@@ -187,7 +187,7 @@ void LargeRAWFile::Truncate() {
     SetEndOfFile(m_StreamFile);
   #else
     UINT64 iPos = GetPos();
-    ftruncate(m_StreamFile, off_t(iPos));
+    ftruncate(fileno(m_StreamFile), off_t(iPos));
   #endif
 }
 
@@ -196,7 +196,7 @@ void LargeRAWFile::Truncate(UINT64 iPos) {
     SeekPos(iPos);
     SetEndOfFile(m_StreamFile);
   #else
-    ftruncate(m_StreamFile, off_t(iPos+m_iHeaderSize));
+    ftruncate(fileno(m_StreamFile), off_t(iPos+m_iHeaderSize));
   #endif
 }
 
