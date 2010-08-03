@@ -177,6 +177,23 @@ size_t LargeRAWFile::WriteRAW(const unsigned char* pData, UINT64 iCount) {
   #endif
 }
 
+bool LargeRAWFile::CopyRAW(UINT64 iCount, UINT64 iSourcePos, UINT64 iTargetPos, 
+                           unsigned char* pBuffer, UINT64 iBufferSize) {
+
+  UINT64 iBytesRead = 0;
+  do {
+    SeekPos(iSourcePos+iBytesRead);
+    UINT64 iBytesJustRead = ReadRAW(pBuffer,min(iBufferSize,iCount-iBytesRead));
+    SeekPos(iTargetPos+iBytesRead);
+    UINT64 iBytesJustWritten = WriteRAW(pBuffer, iBytesJustRead);
+    if (iBytesJustRead != iBytesJustWritten) return false;
+    iBytesRead += iBytesJustRead;
+  } while(iBytesRead < iCount);
+
+  return true;
+}
+
+
 void LargeRAWFile::Delete() {
   if (m_bIsOpen) Close();
   remove(m_strFilename.c_str());

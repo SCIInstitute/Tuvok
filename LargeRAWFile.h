@@ -59,6 +59,8 @@ public:
   void SeekPos(UINT64 iPos);
   size_t ReadRAW(unsigned char* pData, UINT64 iCount);
   size_t WriteRAW(const unsigned char* pData, UINT64 iCount);
+  bool CopyRAW(UINT64 iCount, UINT64 iSourcePos, UINT64 iTargetPos, 
+               unsigned char* pBuffer, UINT64 iBufferSize);
 
   template<class T> void Read(const T* pData, UINT64 iCount, UINT64 iPos,
                               UINT64 iOffset) {
