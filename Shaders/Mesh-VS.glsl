@@ -38,8 +38,6 @@ varying vec3 normal;
 varying vec4 position;
 varying vec2 texture_coordinate;
 
-vec4 TraversalOrderDepColor(vec4 color);
-
 void main(void)
 {
   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
@@ -52,8 +50,7 @@ void main(void)
   }
   texture_coordinate = vec2(gl_MultiTexCoord0);
   
-  vec4 color = TraversalOrderDepColor(gl_Color);
-  gl_FrontColor = color;
-  gl_BackColor = color;
+  gl_FrontColor = gl_Color;
+  gl_BackColor = gl_Color;
   position = gl_Vertex;
 }

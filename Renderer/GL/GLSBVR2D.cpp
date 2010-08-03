@@ -247,13 +247,13 @@ bool GLSBVR2D::LoadShaders() {
                           "BBox-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramMeshBTF,
                           m_vShaderSearchDirs,
-                          "Mesh-VS.glsl", "BTF.glsl",
+                          "Mesh-VS.glsl", 
                           NULL,
-                          "Mesh-FS.glsl","lighting.glsl", NULL) || 
+                          "BTF.glsl","Mesh-FS.glsl","lighting.glsl", NULL) || 
      !LoadAndVerifyShader(&m_pProgramMeshFTB,
-                          m_vShaderSearchDirs, "Mesh-VS.glsl", "FTB.glsl",
+                          m_vShaderSearchDirs, "Mesh-VS.glsl", 
                           NULL,                         
-                          "Mesh-FS.glsl","lighting.glsl", NULL))
+                          "FTB.glsl","Mesh-FS.glsl","lighting.glsl", NULL))
   {
       Cleanup();
 

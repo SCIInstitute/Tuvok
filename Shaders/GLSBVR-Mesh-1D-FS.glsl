@@ -67,6 +67,8 @@ vec4 bit_width(const float tf_scale)
   return texture1D(texTrans1D, fVolumVal * tf_scale);
 }
 
+vec4 TraversalOrderDepColor(vec4 color);
+
 void main(void)
 {
   if (gl_TexCoord[0].a < 1.5) { // save way of testing for 2
@@ -88,10 +90,9 @@ void main(void)
     // opacity correction
     vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
 
-    // premultiply color with alpha
-    vTransVal.xyz *= vTransVal.a;
-
     gl_FragColor = vTransVal;
   }
+
+  gl_FragColor = TraversalOrderDepColor(gl_FragColor);
 }
 

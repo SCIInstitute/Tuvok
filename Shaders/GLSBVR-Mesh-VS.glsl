@@ -38,8 +38,6 @@
 varying vec3 vPosition;
 varying vec3 normal;
 
-vec4 TraversalOrderDepColor(vec4 color);
-
 void main(void)
 {
 
@@ -50,9 +48,8 @@ void main(void)
       normal = gl_NormalMatrix * gl_Normal;
     }
     gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-    vec4 color = TraversalOrderDepColor(gl_MultiTexCoord0);
-    gl_FrontColor = color;
-    gl_BackColor = color;
+    gl_FrontColor = gl_MultiTexCoord0;
+    gl_BackColor = gl_MultiTexCoord0;
   } else {
     gl_Position = gl_ProjectionMatrix * gl_Vertex;    
   }

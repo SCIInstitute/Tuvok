@@ -51,6 +51,7 @@ varying vec3 normal;
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
 
+vec4 TraversalOrderDepColor(vec4 color);
 
 void main(void)
 {
@@ -77,10 +78,9 @@ void main(void)
     // apply opacity correction
     vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
 
-    // pre-multiply color with alpha (for front to back)
-    vTransVal.xyz *= vTransVal.a;
-
     // write result to fragment color
     gl_FragColor    = vTransVal;
   }
+
+  gl_FragColor = TraversalOrderDepColor(gl_FragColor);
 }

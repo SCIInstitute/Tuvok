@@ -58,6 +58,8 @@ varying vec3 normal;
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
 
+vec4 TraversalOrderDepColor(vec4 color);
+
 void main(void)
 {
   if (gl_TexCoord[0].a < 1.5) { // save way of testing for 2
@@ -91,6 +93,8 @@ void main(void)
     vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
 
     // write result to fragment color
-    gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0) * vTransVal.a;
+    gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, vTransVal.a);
   }
+
+  gl_FragColor = TraversalOrderDepColor(gl_FragColor);
 }

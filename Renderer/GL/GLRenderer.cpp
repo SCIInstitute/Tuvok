@@ -260,14 +260,14 @@ bool GLRenderer::LoadShaders() {
                           NULL) ||
      !LoadAndVerifyShader(&m_pProgramMeshFTB,
                           m_vShaderSearchDirs,
-                          "Mesh-VS.glsl","FTB.glsl",
+                          "Mesh-VS.glsl",
                           NULL,                          
-                          "Mesh-FS.glsl","lighting.glsl",NULL) ||
+                          "Mesh-FS.glsl","FTB.glsl","lighting.glsl",NULL) ||
      !LoadAndVerifyShader(&m_pProgramMeshBTF,
                           m_vShaderSearchDirs,
-                          "Mesh-VS.glsl","BTF.glsl",
+                          "Mesh-VS.glsl",
                           NULL,                          
-                          "Mesh-FS.glsl","lighting.glsl", NULL))
+                          "Mesh-FS.glsl","BTF.glsl","lighting.glsl", NULL))
   {
       T_ERROR("Error loading transfer function shaders.");
       return false;
