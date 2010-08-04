@@ -1592,7 +1592,7 @@ void IOManager::AddMesh(const UVF* sourceDataset,
   }
 
   // make sure we have at least normals
-  if (m->GetNormalIndices().size() == 0) m->RecomputeNormals();
+  if (m->GetNormalIndices().empty()) m->RecomputeNormals();
 
   // now create a GeometryDataBlock ...
   GeometryDataBlock tsb;

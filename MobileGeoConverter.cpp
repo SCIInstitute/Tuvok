@@ -51,7 +51,7 @@ MobileGeoConverter::MobileGeoConverter() :
 bool MobileGeoConverter::ConvertToNative(const Mesh& m,
                                          const std::string& strTargetFilename) {
 
-  if (m.GetVertices().size() == 0) return false;
+  if (m.GetVertices().empty()) return false;
 /*
   // include this once we have mesh downsampling implemented
   bool bSimplify = SysTools::ToUpperCase(

@@ -296,7 +296,7 @@ bool OBJGeoConverter::ConvertToNative(const Mesh& m,
                     << m.GetColors()[i].w << std::endl;
     }
   } else {
-    if (m.GetColors().size() != 0) 
+    if (!m.GetColors().empty()) 
       WARNING("Ignoring mesh colors for standart OBJ files, "
               "use OBJX files to also export colors.");
   }

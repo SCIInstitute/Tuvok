@@ -212,7 +212,7 @@ void GeometryDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffs
 
   // have we read the data already, then use their size
   // otherwise me might just be rewriting the header
-  if (vertices.size() != 0) {
+  if (!vertices.empty()) {
     m_n_vertices = vertices.size();
     m_n_normals = normals.size();
     m_n_texcoords  = texcoords.size();
@@ -267,7 +267,7 @@ UINT64 GeometryDataBlock::GetOffsetToNextBlock() const
 
 vector< float > GeometryDataBlock::GetVertices() const {
   vector< float > v;
-  if (vertices.size() == 0) {
+  if (vertices.empty()) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize());
     m_pStreamFile->ReadData(v, m_n_vertices, m_bIsBigEndian);
     return v;
@@ -277,7 +277,7 @@ vector< float > GeometryDataBlock::GetVertices() const {
 
 vector< float > GeometryDataBlock::GetNormals() const {
   vector< float > v;
-  if (normals.size() == 0) {
+  if (normals.empty()) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices);
     m_pStreamFile->ReadData(v, m_n_normals, m_bIsBigEndian);
@@ -288,7 +288,7 @@ vector< float > GeometryDataBlock::GetNormals() const {
 
 vector< float > GeometryDataBlock::GetTexCoords() const {
   vector< float > v;
-  if (texcoords.size() == 0) {
+  if (texcoords.empty()) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals);
@@ -300,7 +300,7 @@ vector< float > GeometryDataBlock::GetTexCoords() const {
 
 vector< float > GeometryDataBlock::GetColors() const {
   vector< float > v;
-  if (colors.size() == 0) {
+  if (colors.empty()) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
@@ -313,7 +313,7 @@ vector< float > GeometryDataBlock::GetColors() const {
 
 vector< UINT32 > GeometryDataBlock::GetVertexIndices() const {
   vector< UINT32 > v;
-  if (vIndices.size() == 0) {
+  if (vIndices.empty()) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
@@ -327,7 +327,7 @@ vector< UINT32 > GeometryDataBlock::GetVertexIndices() const {
 
 vector< UINT32 > GeometryDataBlock::GetNormalIndices() const {
   vector< UINT32 > v;
-  if (nIndices.size() == 0) {
+  if (nIndices.empty()) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
@@ -342,7 +342,7 @@ vector< UINT32 > GeometryDataBlock::GetNormalIndices() const {
 
 vector< UINT32 > GeometryDataBlock::GetTexCoordIndices() const {
   vector< UINT32 > v;
-  if (tIndices.size() == 0) {
+  if (tIndices.empty()) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
@@ -358,7 +358,7 @@ vector< UINT32 > GeometryDataBlock::GetTexCoordIndices() const {
 
 vector< UINT32 > GeometryDataBlock::GetColorIndices() const {
   vector< UINT32 > v;
-  if (cIndices.size() == 0) {
+  if (cIndices.empty()) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
