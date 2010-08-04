@@ -106,7 +106,7 @@ public:
 
   const FLOATVECTOR4& GetDefaultColor() const {return m_DefColor;}
   virtual void SetDefaultColor(const FLOATVECTOR4& color) {m_DefColor = color;}
-  bool UseDefaultColor() const {return m_COLIndices.size() == 0;}
+  bool UseDefaultColor() const {return m_COLIndices.empty();}
 
   const std::string& Name() const {return m_MeshDesc;}
 

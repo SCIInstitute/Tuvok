@@ -75,7 +75,7 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
 
 
 void Mesh::ComputeAABB() {
-  if (m_vertices.size() == 0) return;
+  if (m_vertices.empty()) return;
 
   m_Bounds[0] = m_vertices[0];
   m_Bounds[1] = m_vertices[0];
@@ -92,7 +92,7 @@ void Mesh::ComputeAABB() {
 
 void Mesh::ComputeUnitCubeScale(FLOATVECTOR3& scale, 
                                 FLOATVECTOR3& translation) {
-  if (m_vertices.size() == 0) {
+  if (m_vertices.empty()) {
     translation = FLOATVECTOR3(0,0,0);
     scale = FLOATVECTOR3(1,1,1);
     return;
@@ -173,11 +173,11 @@ void Mesh::RecomputeNormals() {
 
 bool Mesh::Validate(bool bDeepValidation) {
   // make sure the sizes of the vectors match
-  if (m_NormalIndices.size() != 0 && 
+  if (!m_NormalIndices.empty() && 
       m_NormalIndices.size() != m_VertIndices.size()) return false;
-  if (m_TCIndices.size() != 0 && 
+  if (!m_TCIndices.empty() && 
       m_TCIndices.size() != m_VertIndices.size()) return false;
-  if (m_COLIndices.size() != 0 && 
+  if (!m_COLIndices.empty() && 
       m_COLIndices.size() != m_VertIndices.size()) return false;
 
   if (!bDeepValidation) return true;
