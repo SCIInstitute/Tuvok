@@ -482,6 +482,8 @@ public:
   std::vector< std::pair <std::string, std::string > >
     GetExportFormatList() const;
   std::vector< tConverterFormat > GetFormatList() const;
+  AbstrConverter* GetConverterForExt(std::string ext,
+                                     bool bMustSupportExport) const;
 
   std::string GetLoadGeoDialogString() const;
   std::string GetGeoExportDialogString() const;

@@ -1321,6 +1321,20 @@ vector< tConverterFormat > IOManager::GetFormatList() const {
   return v;
 }
 
+AbstrConverter* IOManager::GetConverterForExt(std::string ext,
+                                              bool bMustSupportExport) const {
+  for (size_t i = 0;i<m_vpConverters.size();i++) {
+    if (!bMustSupportExport || m_vpConverters[i]->CanExportData()) {
+      for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
+        string convExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+        if (ext == convExt) return m_vpConverters[i];
+      }
+    }
+  }
+  return NULL;
+}
+
+
 AbstrGeoConverter* IOManager::GetGeoConverterForExt(std::string ext, bool bMustSupportExport) const {
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
     if (!bMustSupportExport || m_vpGeoConverters[i]->CanExportData()) {
