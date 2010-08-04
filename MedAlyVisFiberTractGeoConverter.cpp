@@ -184,14 +184,3 @@ Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilen
                      false,false,desc,Mesh::MT_LINES);
   return m;
 }
-
-
-std::string MedAlyVisFiberTractGeoConverter::TrimToken(const std::string& Src,
-                                              const std::string& c)
-{
-  size_t off = Src.find_first_of(c);
-  if (off == std::string::npos) off = 0;
-  size_t p1 = Src.find_first_not_of(c,off);
-  if (p1 == std::string::npos) return std::string();
-  return Src.substr(p1);
-}

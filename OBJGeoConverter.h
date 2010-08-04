@@ -47,20 +47,13 @@ namespace tuvok {
     OBJGeoConverter();
     virtual ~OBJGeoConverter() {}
     virtual Mesh* ConvertToMesh(const std::string& strFilename);
-  protected:
-    int CountOccurences(const std::string& str, const std::string& substr);
-    std::string TrimToken(const std::string& Src,
-                          const std::string& c = " \r\n\t",
-                          bool bOnlyFirst = false);
     virtual bool ConvertToNative(const Mesh& m,
                                  const std::string& strTargetFilename);
 
     virtual bool CanExportData() const { return true; }
-    void AddToMesh(const VertVec& vertices,
-                   IndexVec& v, IndexVec& n, 
-                   IndexVec& t, IndexVec& c, 
-                   IndexVec&  VertIndices, IndexVec& NormalIndices, 
-                   IndexVec&  TCIndices, IndexVec& COLIndices);
+
+  protected:
+    int CountOccurences(const std::string& str, const std::string& substr);
 
   };
 }

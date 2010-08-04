@@ -58,9 +58,6 @@ namespace tuvok {
       PARSING_DATA,
       STATE_COUNT
     };
-    std::string TrimToken(const std::string& Src,
-                          const std::string& c = " \r\n\t");
-
   };
 }
 #endif // MEDALYVISFIBERTRACTGEOCONVERTER_H

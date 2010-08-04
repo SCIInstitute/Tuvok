@@ -145,3 +145,72 @@ void AbstrGeoConverter::SortByGradient(const VertVec& vertices,
 
   SortPoints(vertices,v,n,t,c,iPlaneX,iPlaneY);
 }
+
+void AbstrGeoConverter::AddToMesh(const VertVec& vertices,
+                                IndexVec& v, IndexVec& n,
+                                IndexVec& t, IndexVec& c,
+                                IndexVec& VertIndices, IndexVec& NormalIndices,
+                                IndexVec& TCIndices, IndexVec& COLIndices) {
+  if (v.size() > 3) {
+    // per OBJ definition any poly with more than 3 verices has
+    // to be planar and convex, so we can savely triangulate it
+
+    SortByGradient(vertices,v,n,t,c);
+
+    for (size_t i = 0;i<v.size()-2;i++) {
+      IndexVec mv, mn, mt, mc;
+      mv.push_back(v[0]);mv.push_back(v[i+1]);mv.push_back(v[i+2]);
+      if (n.size() == v.size()) {mn.push_back(n[i]);mn.push_back(n[i+1]);mn.push_back(n[i+2]);}
+      if (t.size() == v.size()) {mt.push_back(t[i]);mt.push_back(t[i+1]);mt.push_back(t[i+2]);}
+      if (c.size() == v.size()) {mc.push_back(c[i]);mc.push_back(c[i+1]);mc.push_back(c[i+2]);}
+
+      AddToMesh(vertices,
+                mv,mn,mt,mc,
+                VertIndices,
+                NormalIndices,
+                TCIndices,
+                COLIndices);
+    }
+
+  } else {
+    for (size_t i = 0;i<v.size();i++) {
+      VertIndices.push_back(v[i]);
+      if (n.size() == v.size()) NormalIndices.push_back(n[i]);
+      if (t.size() == v.size()) TCIndices.push_back(t[i]);
+      if (c.size() == v.size()) COLIndices.push_back(c[i]);
+    }
+  }
+}
+
+// *******************************************
+// code to parse text files
+// *******************************************
+
+std::string AbstrGeoConverter::TrimToken(const std::string& Src,
+                                         const std::string& delim,
+                                         bool bOnlyFirst)
+{
+  size_t off = Src.find_first_of(delim);
+  if (off == std::string::npos) return std::string();
+  if (bOnlyFirst) {
+    return Src.substr(off+1);
+  } else {
+    size_t p1 = Src.find_first_not_of(delim,off);
+    if (p1 == std::string::npos) return std::string();
+    return Src.substr(p1);
+  }
+}
+
+std::string AbstrGeoConverter::GetToken(std::string& Src,
+                                        const std::string& delim,
+                                        bool bOnlyFirst) {
+    size_t off = Src.find_first_of(delim);
+    if (off == std::string::npos) {
+      std::string result = Src;
+      Src = "";
+      return result;
+    }
+    std::string result = SysTools::ToLowerCase(SysTools::TrimStrRight(Src.substr(0,off)));
+    Src = TrimToken(Src,delim,bOnlyFirst);
+    return result;
+}

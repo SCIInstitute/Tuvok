@@ -74,6 +74,20 @@ protected:
   std::string               m_vConverterDesc;
   std::vector<std::string>  m_vSupportedExt;
 
+  void AddToMesh(const VertVec& vertices,
+                 IndexVec& v, IndexVec& n, 
+                 IndexVec& t, IndexVec& c, 
+                 IndexVec&  VertIndices, IndexVec& NormalIndices, 
+                 IndexVec&  TCIndices, IndexVec& COLIndices);
+
+  // parser helper
+  std::string TrimToken(const std::string& Src, 
+                        const std::string& delim = " \r\n\t",
+                        bool bOnlyFirst = false);
+  std::string GetToken(std::string& Src, 
+                       const std::string& delim = " \r\n\t",
+                       bool bOnlyFirst = false);
+
 };
 }
 #endif // ABSTRGEOCONVERTER_H

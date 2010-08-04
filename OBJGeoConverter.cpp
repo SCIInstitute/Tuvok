@@ -60,58 +60,6 @@ inline int OBJGeoConverter::CountOccurences(const std::string& str, const std::s
   return count;
 }
 
-
-inline std::string OBJGeoConverter::TrimToken(const std::string& Src,
-                                              const std::string& c,
-                                              bool bOnlyFirst)
-{
-  size_t off = Src.find_first_of(c);
-  if (off == std::string::npos) return std::string();
-  if (bOnlyFirst) {
-    return Src.substr(off+1);
-  } else {
-    size_t p1 = Src.find_first_not_of(c,off);
-    if (p1 == std::string::npos) return std::string();
-    return Src.substr(p1);
-  }
-}
-
-void OBJGeoConverter::AddToMesh(const VertVec& vertices,
-                                IndexVec& v, IndexVec& n,
-                                IndexVec& t, IndexVec& c,
-                                IndexVec& VertIndices, IndexVec& NormalIndices,
-                                IndexVec& TCIndices, IndexVec& COLIndices) {
-  if (v.size() > 3) {
-    // per OBJ definition any poly with more than 3 verices has
-    // to be planar and convex, so we can savely triangulate it
-
-    SortByGradient(vertices,v,n,t,c);
-
-    for (size_t i = 0;i<v.size()-2;i++) {
-      IndexVec mv, mn, mt, mc;
-      mv.push_back(v[0]);mv.push_back(v[i+1]);mv.push_back(v[i+2]);
-      if (n.size() == v.size()) {mn.push_back(n[i]);mn.push_back(n[i+1]);mn.push_back(n[i+2]);}
-      if (t.size() == v.size()) {mt.push_back(t[i]);mt.push_back(t[i+1]);mt.push_back(t[i+2]);}
-      if (c.size() == v.size()) {mc.push_back(c[i]);mc.push_back(c[i+1]);mc.push_back(c[i+2]);}
-
-      AddToMesh(vertices,
-                mv,mn,mt,mc,
-                VertIndices,
-                NormalIndices,
-                TCIndices,
-                COLIndices);
-    }
-
-  } else {
-    for (size_t i = 0;i<v.size();i++) {
-      VertIndices.push_back(v[i]);
-      if (n.size() == v.size()) NormalIndices.push_back(n[i]);
-      if (t.size() == v.size()) TCIndices.push_back(t[i]);
-      if (c.size() == v.size()) COLIndices.push_back(c[i]);
-    }
-  }
-}
-
 Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   bool bFlipVertices = false;
@@ -135,7 +83,7 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
     throw tuvok::io::DSOpenFailed(strFilename.c_str(), __FILE__, __LINE__);
   }
 
-  float x,y,z;
+  float x,y,z,w;
   size_t iVerticesPerPoly = 0;
 
   while (!fs.fail()) {
@@ -149,7 +97,7 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
     line = SysTools::TrimStr(line);
     if (line.length() == 0) continue; // skips empty and comment lines
 
-    // find the linetpe
+    // find the linetype
     size_t off = line.find_first_of(" \r\n\t");
     if (off == std::string::npos) continue;
     std::string linetype = SysTools::TrimStrRight(line.substr(0,off));
@@ -163,25 +111,27 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
       WARNING("Skipping Material Library Tag in OBJ file");
     } else
 		if (linetype == "v") { // vertex attrib found
-				x = float(atof(line.c_str()));
-				line = TrimToken(line);
-				y = float(atof(line.c_str()));
-				line = TrimToken(line);
-				z = float(atof(line.c_str()));
-				vertices.push_back(FLOATVECTOR3(x,y,(bFlipVertices) ? -z : z));
+      x = float(atof(GetToken(line).c_str()));
+		  y = float(atof(GetToken(line).c_str()));
+		  z = float(atof(GetToken(line).c_str()));
+			vertices.push_back(FLOATVECTOR3(x,y,(bFlipVertices) ? -z : z));
   	} else
 	  if (linetype == "vt") {  // vertex texcoord found
-			x = float(atof(line.c_str()));
-		  line = TrimToken(line);
-			y = float(atof(line.c_str()));
+      x = float(atof(GetToken(line).c_str()));
+			y = float(atof(GetToken(line).c_str()));
 			texcoords.push_back(FLOATVECTOR2(x,y));
 		} else
+	  if (linetype == "vc") {  // vertex color found
+      x = float(atof(GetToken(line).c_str()));
+			y = float(atof(GetToken(line).c_str()));
+			z = float(atof(GetToken(line).c_str()));
+			w = float(atof(GetToken(line).c_str()));
+			colors.push_back(FLOATVECTOR4(x,y,z,w));
+		} else
     if (linetype == "vn") { // vertex normal found
-			x = float(atof(line.c_str()));
-      line = TrimToken(line);
-			y = float(atof(line.c_str()));
-      line = TrimToken(line);
-      z = float(atof(line.c_str()));
+      x = float(atof(GetToken(line).c_str()));
+			y = float(atof(GetToken(line).c_str()));
+			z = float(atof(GetToken(line).c_str()));
       FLOATVECTOR3 n(x,y,z);
       n.normalize();
       normals.push_back(n);
@@ -197,51 +147,42 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
       while (line.length() > 0)  {
         switch (count) {
           case 0 : {
-                int vI = atoi(line.c_str())-1;
+                int vI = atoi(GetToken(line).c_str())-1;
                 v.push_back(vI);
-                line = TrimToken(line);
                 break;
                }
           case 1 : {
-                int vI = atoi(line.c_str())-1;
+                int vI = atoi(GetToken(line,"/",true).c_str())-1;
                 v.push_back(vI);
-                line = TrimToken(line,"/",true);
-                int vT = atoi(line.c_str())-1;
+                int vT = atoi(GetToken(line).c_str())-1;
                 t.push_back(vT);
                 line = TrimToken(line);
                 break;
                }
           case 2 : {
-                int vI = atoi(line.c_str())-1;
+                int vI = atoi(GetToken(line,"/",true).c_str())-1;
                 v.push_back(vI);
-                line = TrimToken(line,"/",true);
                 if (line[0] != '/') {
-                  int vT = atoi(line.c_str())-1;
+                  int vT = atoi(GetToken(line,"/",true).c_str())-1;
                   t.push_back(vT);
-                }
-                line = TrimToken(line,"/",true);
-                int vN = atoi(line.c_str())-1;
+                }else line = TrimToken(line,"/",true);
+                int vN = atoi(GetToken(line).c_str())-1;
                 n.push_back(vN);
-                line = TrimToken(line);
                 break;
                }
           case 3 : {
-                int vI = atoi(line.c_str())-1;
+                int vI = atoi(GetToken(line,"/",true).c_str())-1;
                 v.push_back(vI);
-                line = TrimToken(line,"/",true);
                 if (line[0] != '/') {
-                  int vT = atoi(line.c_str())-1;
+                  int vT = atoi(GetToken(line,"/",true).c_str())-1;
                   t.push_back(vT);
-                }
-                line = TrimToken(line,"/",true);
+                }else line = TrimToken(line,"/",true);
                 if (line[0] != '/') {
-                  int vN = atoi(line.c_str())-1;
+                  int vN = atoi(GetToken(line,"/",true).c_str())-1;
                   n.push_back(vN);
-                }
-                line = TrimToken(line,"/",true);
-                int vC = atoi(line.c_str())-1;
+                } else line = TrimToken(line,"/",true);
+                int vC = atoi(GetToken(line).c_str())-1;
                 c.push_back(vC);
-                line = TrimToken(line);
                 break;
                }
         }
