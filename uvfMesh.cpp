@@ -52,7 +52,7 @@ uvfMesh::uvfMesh(const GeometryDataBlock& tsb)
     default : throw std::runtime_error("reading unsupported mesh type");
   }
 
-  m_VerticesPerPoly = tsb.GetPolySize();
+  m_VerticesPerPoly = size_t(tsb.GetPolySize());
 
   vector<float> fVec;
   fVec = tsb.GetVertices();
