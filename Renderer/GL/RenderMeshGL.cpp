@@ -236,7 +236,7 @@ void RenderMeshGL::UnrollArrays() {
   m_colors = colors;
 
   // effectively disable indices
-  for (size_t i = 0;i<m_VertIndices.size();i++)  m_VertIndices[i] = i;  
+  for (size_t i = 0;i<m_VertIndices.size();i++)  m_VertIndices[i] = UINT32(i);
 
   // equalize index arrays
   if (m_NormalIndices.size() == m_VertIndices.size()) m_NormalIndices = m_VertIndices;
