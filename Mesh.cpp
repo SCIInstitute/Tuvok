@@ -75,6 +75,8 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
 
 
 void Mesh::ComputeAABB() {
+  if (m_vertices.size() == 0) return;
+
   m_Bounds[0] = m_vertices[0];
   m_Bounds[1] = m_vertices[0];
 
