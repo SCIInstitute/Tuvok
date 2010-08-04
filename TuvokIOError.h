@@ -48,6 +48,9 @@ class DSOpenFailed : virtual public std::runtime_error {
     explicit DSOpenFailed(const char* s, const char* where=NULL,
                           size_t ln=0) : std::runtime_error(s), msg(s),
                                          location(where), line(ln) {}
+    explicit DSOpenFailed(const char* s, const char* what, const char* where=NULL,
+                          size_t ln=0) : std::runtime_error(s), msg(what),
+                                         location(where), line(ln) {}
     virtual ~DSOpenFailed() throw() {}
 
     virtual const char* what() const throw() { return this->msg; }
@@ -59,6 +62,18 @@ class DSOpenFailed : virtual public std::runtime_error {
     const char* location;
     const size_t line;
 };
+
+
+/// something went wrong in the parse process of a file
+class DSParseFailed : virtual public DSOpenFailed {
+  public:
+    explicit DSParseFailed(const char* s, const char* what, 
+                           const char* where=NULL, size_t ln=0) :
+                            std::runtime_error(s),
+                            DSOpenFailed(s, what, where, ln) {}
+    virtual ~DSParseFailed() throw() {}
+};
+
 
 /// any kind of dataset verification failed; e.g. a checksum for the
 /// file was invalid.
