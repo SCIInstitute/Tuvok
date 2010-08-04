@@ -128,6 +128,7 @@ HEADERS += \
            IO/TiffVolumeConverter.h \
            IO/AbstrGeoConverter.h \
            IO/OBJGeoConverter.h \
+           IO/PLYGeoConverter.h \
            IO/MobileGeoConverter.h \
            IO/G3D.h \           
            IO/MedAlyVisGeoConverter.h \
@@ -343,6 +344,7 @@ SOURCES += \
            IO/TiffVolumeConverter.cpp \
            IO/AbstrGeoConverter.cpp \
            IO/OBJGeoConverter.cpp \
+           IO/PLYGeoConverter.cpp \
            IO/MobileGeoConverter.cpp \
            IO/G3D.cpp \
            IO/MedAlyVisGeoConverter.cpp \
