@@ -299,7 +299,8 @@ bool OBJGeoConverter::ConvertToNative(const Mesh& m,
 
   std::stringstream statLine1, statLine2;
   statLine1 << "Vertices: " << m.GetVertices().size();
-  statLine2 << "Primitives: " << m.GetVertexIndices().size();
+  statLine2 << "Primitives: " << m.GetVertexIndices().size()/
+                                 m.GetVerticesPerPoly();
   size_t iCount = std::max(m.Name().size(), 
                            std::max(statLine1.str().size(),
                                     statLine2.str().size()
