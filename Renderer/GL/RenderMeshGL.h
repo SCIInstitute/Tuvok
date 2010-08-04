@@ -83,15 +83,17 @@ private:
   };
 
   GLuint m_VBOs[DATA_VBO_COUNT];
-  GLuint m_IndexVBOsOpaque[INDEX_VBO_COUNT];
-  GLuint m_IndexVBOsFront[INDEX_VBO_COUNT];
-  GLuint m_IndexVBOsBehind[INDEX_VBO_COUNT];
-  GLuint m_IndexVBOsInside[INDEX_VBO_COUNT];
+  GLuint m_IndexVBOOpaque;
+  GLuint m_IndexVBOFront;
+  GLuint m_IndexVBOBehind;
+  GLuint m_IndexVBOInside;
 
   void PrepareOpaqueBuffers();
-  void PrepareTransBuffers(GLuint IndexVBOs[INDEX_VBO_COUNT],
+  void PrepareTransBuffers(GLuint IndexVBO,
                            const SortIndexPVec& list);
-  void RenderGeometry(GLuint VBOs[INDEX_VBO_COUNT], size_t count);
+  void RenderGeometry(GLuint IndexVBO, size_t count);
+
+  void UnrollArrays();
 };
 
 }
