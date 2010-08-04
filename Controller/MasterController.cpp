@@ -112,11 +112,11 @@ void MasterController::RemoveDebugOut(AbstrDebugOut* debugOut) {
 /// Access the currently-active debug stream.
 AbstrDebugOut* MasterController::DebugOut()
 {
-  return (m_DebugOut.size() == 0) ? static_cast<AbstrDebugOut*>(&m_DefaultOut)
+  return (m_DebugOut.empty()) ? static_cast<AbstrDebugOut*>(&m_DefaultOut)
                                   : static_cast<AbstrDebugOut*>(&m_DebugOut);
 }
 const AbstrDebugOut *MasterController::DebugOut() const {
-  return (m_DebugOut.size() == 0)
+  return (m_DebugOut.empty())
            ? static_cast<const AbstrDebugOut*>(&m_DefaultOut)
            : static_cast<const AbstrDebugOut*>(&m_DebugOut);
 }

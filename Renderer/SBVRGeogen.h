@@ -219,7 +219,7 @@ namespace tuvok {
       }
     }
 
-    virtual bool HasMesh() const {return m_mesh.size() != 0;}
+    virtual bool HasMesh() const {return !m_mesh.empty();}
     void ResetMesh() {m_mesh.clear();}
     void AddMesh(const SortIndexPVec& mesh);
 

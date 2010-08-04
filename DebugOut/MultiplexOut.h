@@ -62,6 +62,7 @@ class MultiplexOut : public AbstrDebugOut {
     virtual void SetShowOther(bool bShowOther);
 
     size_t size() const { return m_vpDebugger.size(); }
+    bool empty() const { return m_vpDebugger.empty(); }
     void clear();
 
   private:

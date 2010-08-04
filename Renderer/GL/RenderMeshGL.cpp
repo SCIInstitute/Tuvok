@@ -71,7 +71,7 @@ RenderMeshGL::~RenderMeshGL() {
 }
 
 void RenderMeshGL::PrepareOpaqueBuffers() {
-  if (m_VertIndices.size() == 0) return;
+  if (m_VertIndices.empty()) return;
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexVBOOpaque);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_VertIndices[0], GL_STATIC_DRAW);
@@ -179,7 +179,7 @@ void RenderMeshGL::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
 }
 
 void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBO, const SortIndexPVec& list) {
-  if (list.size() == 0) return;
+  if (list.empty()) return;
 
   IndexVec      VertIndices;
 

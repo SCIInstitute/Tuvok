@@ -132,7 +132,7 @@ bool RenderMesh::isTransparent(size_t i) {
 void RenderMesh::SplitOpaqueFromTransparent() {
   size_t prevIndex  = m_splitIndex;
 
-  if (m_COLIndices.size() == 0) {
+  if (m_COLIndices.empty()) {
     if (m_DefColor.w < m_fTransTreshhold ) 
       m_splitIndex = 0;
     else
@@ -182,7 +182,7 @@ void RenderMesh::SetDefaultColor(const FLOATVECTOR4& color) {
   //      1) pushes the opacity above the threshold while it was below before
   //      2) or below the threshold while it was above before
   if (prevAlpha != color.w &&
-      m_COLIndices.size() == 0 &&
+      m_COLIndices.empty() &&
       ((prevAlpha < m_fTransTreshhold && m_DefColor.w >= m_fTransTreshhold) ||
        (prevAlpha >= m_fTransTreshhold && m_DefColor.w < m_fTransTreshhold))) {
     SplitOpaqueFromTransparent();

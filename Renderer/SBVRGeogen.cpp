@@ -303,7 +303,7 @@ bool SBVRGeogen::isInsideAABB(const FLOATVECTOR3& min,
 
 void SBVRGeogen::AddMesh(const SortIndexPVec& mesh) {
 
-  if (mesh.size() == 0) return;
+  if (mesh.empty()) return;
 
   // TODO: currently only triangles are supported
   if (mesh[0]->m_mesh->GetVerticesPerPoly() != 3) return;

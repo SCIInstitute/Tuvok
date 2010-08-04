@@ -362,7 +362,7 @@ void GLSBVR::Render3DPreLoop(const RenderRegion3D&) {
 GLsizei iStructSize = GLsizei(sizeof(VERTEX_FORMAT));
 
 void GLSBVR::RenderProxyGeometry() const {
-  if (m_SBVRGeogen.m_vSliceTriangles.size() == 0) return;
+  if (m_SBVRGeogen.m_vSliceTriangles.empty()) return;
 
   glBindBuffer(GL_ARRAY_BUFFER, m_GeoBuffer);
   glBufferData(GL_ARRAY_BUFFER, GLsizei(m_SBVRGeogen.m_vSliceTriangles.size())*iStructSize, &m_SBVRGeogen.m_vSliceTriangles[0], GL_STREAM_DRAW);

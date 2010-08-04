@@ -368,7 +368,7 @@ bool Scripting::Execute(const std::string& strCommand,
                                       : static_cast<size_t>(i1));
       if (p1 > p0) { p0 = p1; }
     } else {
-      if (strParams.size() != 0) { 
+      if (!strParams.empty()) { 
         strMessage = "Either specify both boundaries or none.";
         return false;
       }
