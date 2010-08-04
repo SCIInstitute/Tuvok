@@ -232,7 +232,7 @@ void GLSBVR::SetDataDepShaderVars() {
     default : break; // suppress warnings 
   }
 
-  if (m_eRenderMode == RM_ISOSURFACE && m_bAvoidSeperateCompositing) {
+  if (m_eRenderMode == RM_ISOSURFACE && m_bAvoidSeparateCompositing) {
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
 
     FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
@@ -283,7 +283,7 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
       break;
     }
     case RM_ISOSURFACE: {
-      if (m_bAvoidSeperateCompositing) {
+      if (m_bAvoidSeparateCompositing) {
         shader = (m_pDataset->GetComponentCount() == 1) ?
                  m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
       } else {
@@ -338,7 +338,7 @@ void GLSBVR::Render3DPreLoop(const RenderRegion3D&) {
                           glEnable(GL_BLEND);
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
-    case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
+    case RM_ISOSURFACE :  if (m_bAvoidSeparateCompositing) {
                             if (m_pDataset->GetComponentCount() == 1)
                               m_pProgramIsoNoCompose->Enable();
                             else
@@ -414,7 +414,7 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
   // neither mesh nor volume data for this brick -> skip the rest
 //  if (b.bIsEmpty && !m_SBVRGeogen.HasMesh()) return;
 
-  if (!m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
+  if (!m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
     if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -454,7 +454,7 @@ void GLSBVR::Render3DPostLoop() {
                           break;
     case RM_2DTRANS    :  glDisable(GL_BLEND);
                           break;
-    case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
+    case RM_ISOSURFACE :  if (m_bAvoidSeparateCompositing) {
                              glDisable(GL_BLEND);
                           }
                           break;
@@ -499,7 +499,7 @@ bool GLSBVR::LoadDataset(const string& strFilename) {
 }
 
 void GLSBVR::ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID) {
-  if (!m_bAvoidSeperateCompositing)
+  if (!m_bAvoidSeparateCompositing)
     GLRenderer::ComposeSurfaceImage(renderRegion, iStereoID);
 }
 

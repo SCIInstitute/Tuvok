@@ -1947,7 +1947,7 @@ void GLRenderer::GeometryPreRender() {
   // ahead and render the bbox directly as isosurfacing writes out correct
   // depth values
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView ||
-      m_bAvoidSeperateCompositing) {
+      m_bAvoidSeparateCompositing) {
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
@@ -2050,7 +2050,7 @@ void GLRenderer::GeometryPreRender() {
 void GLRenderer::GeometryPostRender() {
   // Not required for isosurfacing, since we use the depth buffer for
   // occluding/showing the bbox's outline.
-  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
+  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeparateCompositing) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glDepthMask(GL_TRUE);
@@ -2143,7 +2143,7 @@ void GLRenderer::PlaneIn3DPreRender() {
   // ahead and render the planes directly as isosurfacing writes out correct
   // depth values
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView ||
-      m_bAvoidSeperateCompositing) {
+      m_bAvoidSeparateCompositing) {
     glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
     RenderPlanesIn3D(true);
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
@@ -2157,7 +2157,7 @@ void GLRenderer::PlaneIn3DPostRender() {
   if (!m_bRenderPlanesIn3D) return;
   // Not required for isosurfacing, since we use the depth buffer for
   // occluding/showing the planes
-  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeperateCompositing) {
+  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeparateCompositing) {
     glEnable(GL_BLEND);
     glDisable(GL_DEPTH_TEST);
     RenderPlanesIn3D(false);

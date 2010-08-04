@@ -403,11 +403,11 @@ class AbstrRenderer {
     virtual void Schedule3DWindowRedraws(); // Redraw all 3D windows.
     virtual void ScheduleWindowRedraw(RenderRegion *renderRegion);
 
-    void SetAvoidSeperateCompositing(bool bAvoidSeperateCompositing) {
-      m_bAvoidSeperateCompositing = bAvoidSeperateCompositing;
+    void SetAvoidSeparateCompositing(bool bAvoidSeparateCompositing) {
+      m_bAvoidSeparateCompositing = bAvoidSeparateCompositing;
     }
-    bool GetAvoidSeperateCompositing() const {
-      return m_bAvoidSeperateCompositing;
+    bool GetAvoidSeparateCompositing() const {
+      return m_bAvoidSeparateCompositing;
     }
 
     bool GetUseOnlyPowerOfTwo() const {return m_bUseOnlyPowerOfTwo;}
@@ -559,7 +559,7 @@ class AbstrRenderer {
     bool                m_bUseOnlyPowerOfTwo;
     bool                m_bDownSampleTo8Bits;
     bool                m_bDisableBorder;
-    bool                m_bAvoidSeperateCompositing;
+    bool                m_bAvoidSeparateCompositing;
     enum ScalingMethod  m_TFScalingMethod;
 
     FLOATMATRIX4        m_mProjection[2];

@@ -291,7 +291,7 @@ bool GLSBVR2D::LoadShaders() {
 void GLSBVR2D::SetDataDepShaderVars() {
   GLRenderer::SetDataDepShaderVars();
 
-  if (m_eRenderMode == RM_ISOSURFACE && m_bAvoidSeperateCompositing) {
+  if (m_eRenderMode == RM_ISOSURFACE && m_bAvoidSeparateCompositing) {
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
 
     FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
@@ -347,7 +347,7 @@ void GLSBVR2D::SetBrickDepShaderVars(const RenderRegion3D&,
     }
     case RM_ISOSURFACE: {
       GLSLProgram *shader;
-      if (m_bAvoidSeperateCompositing) {
+      if (m_bAvoidSeparateCompositing) {
         shader = (m_pDataset->GetComponentCount() == 1) ?
                  m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
       } else {
@@ -399,7 +399,7 @@ void GLSBVR2D::Render3DPreLoop(const RenderRegion3D&) {
                           glEnable(GL_BLEND);
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
-    case RM_ISOSURFACE :  if (m_bAvoidSeperateCompositing) {
+    case RM_ISOSURFACE :  if (m_bAvoidSeparateCompositing) {
                             if (m_pDataset->GetComponentCount() == 1)
                               m_pProgramIsoNoCompose->Enable();
                             else
@@ -595,7 +595,7 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
   m_SBVRGeogen.SetView(m_mView[iStereoID]);
   m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
-  if (! m_bAvoidSeperateCompositing && m_eRenderMode == RM_ISOSURFACE) {
+  if (! m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
@@ -677,7 +677,7 @@ bool GLSBVR2D::LoadDataset(const string& strFilename) {
 }
 
 void GLSBVR2D::ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID) {
-  if (!m_bAvoidSeperateCompositing)
+  if (!m_bAvoidSeparateCompositing)
     GLRenderer::ComposeSurfaceImage(renderRegion, iStereoID);
 }
 

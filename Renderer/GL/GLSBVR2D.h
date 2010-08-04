@@ -69,7 +69,7 @@ namespace tuvok {
       virtual bool LoadDataset(const std::string& strFilename);
 
       virtual bool SupportsClearView() const {
-        return !m_bAvoidSeperateCompositing &&
+        return !m_bAvoidSeparateCompositing &&
                m_pDataset->GetComponentCount() == 1;
       }
 
