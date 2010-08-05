@@ -34,6 +34,7 @@
   \date    August 2008
 */
 
+#include <algorithm>
 #include <cstdarg>
 #include <stdexcept>
 #include <typeinfo>
