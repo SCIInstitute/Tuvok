@@ -49,8 +49,7 @@ using namespace tuvok;
 GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
   GLRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
   m_pProgramIsoNoCompose(NULL),
-  m_pProgramColorNoCompose(NULL),
-  m_GeoBuffer(0)
+  m_pProgramColorNoCompose(NULL)
 {
   m_bSupportsMeshes = true;
 }
@@ -60,8 +59,6 @@ GLSBVR::~GLSBVR() {
 
 void GLSBVR::Cleanup() {
   GLRenderer::Cleanup();
-  // opengl may not be enabed yet so be careful calling gl functions
-  if (glDeleteBuffers) glDeleteBuffers(1, &m_GeoBuffer);
 }
 
 
@@ -78,7 +75,6 @@ void GLSBVR::CleanupShaders() {
 bool GLSBVR::Initialize() {
   bool bParentOK = GLRenderer::Initialize();
   if (bParentOK) {
-    glGenBuffers(1, &m_GeoBuffer);
     return true;
   }
   return false;
@@ -400,19 +396,20 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
   m_SBVRGeogen.SetBrickTrans(b.vCenter);
   m_SBVRGeogen.SetWorld(renderRegion.rotation*renderRegion.translation);
   m_SBVRGeogen.SetView(m_mView[iStereoID]);
+
   if (m_bSupportsMeshes) {
     m_SBVRGeogen.ResetMesh();
-    for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-         mesh != m_Meshes.end(); mesh++) {
-      if ((*mesh)->GetActive()) {
-        m_SBVRGeogen.AddMesh((*mesh)->GetInPointList());
+    if (m_eRenderMode != RM_ISOSURFACE) {
+      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+           mesh != m_Meshes.end(); mesh++) {
+        if ((*mesh)->GetActive()) {
+          m_SBVRGeogen.AddMesh((*mesh)->GetInPointList(false));
+        }
       }
     }
   }
-  m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
-  // neither mesh nor volume data for this brick -> skip the rest
-//  if (b.bIsEmpty && !m_SBVRGeogen.HasMesh()) return;
+  m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
   if (!m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);

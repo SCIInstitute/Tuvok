@@ -355,9 +355,10 @@ namespace tuvok {
                              const FLOATVECTOR3& point);
 
     void SortMeshWithoutVolume(std::vector<VERTEX_FORMAT>& list);
-    void MeshEntryToVertexFormat(std::vector<VERTEX_FORMAT>& list, 
+    static void MeshEntryToVertexFormat(std::vector<VERTEX_FORMAT>& list, 
                                  const RenderMesh* mesh,
-                                 size_t startIndex);
+                                 size_t startIndex,
+                                 bool bClipMesh=false);
 
   };
 };

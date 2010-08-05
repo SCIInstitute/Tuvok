@@ -53,7 +53,7 @@
 #include "IO/TransferFunction2D.h"
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../../Basics/GeometryGenerator.h"
-#include "RenderMeshGL.h"
+#include "../SBVRGeogen.h"
 
 using namespace std;
 using namespace tuvok;
@@ -74,6 +74,10 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramColor(NULL),
   m_pProgramHQMIPRot(NULL),
   m_pGLVolume(NULL),
+  m_bSortMeshBTF(false),
+  m_GeoBuffer(0),
+  m_iNumTransMeshes(0),
+  m_iNumMeshes(0),
   m_pProgramTrans(NULL),
   m_pProgram1DTransSlice(NULL),
   m_pProgram2DTransSlice(NULL),
@@ -191,6 +195,8 @@ bool GLRenderer::Initialize() {
        mesh != m_Meshes.end(); mesh++) {
     (*mesh)->InitRenderer();
   }
+
+  glGenBuffers(1, &m_GeoBuffer);
 
 
   return LoadShaders();
@@ -1584,6 +1590,9 @@ void GLRenderer::Cleanup() {
     m_pLogoTex =NULL;
   }
 
+  // opengl may not be enabed yet so be careful calling gl functions
+  if (glDeleteBuffers) glDeleteBuffers(1, &m_GeoBuffer);
+
   CleanupShaders();
 }
 
@@ -1942,6 +1951,21 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
 }
 
 void GLRenderer::GeometryPreRender() {
+  // if we can do geometry then let's first find out information
+  // about the geometry to render
+  if (m_bSupportsMeshes) {
+    m_iNumTransMeshes = 0;
+    m_iNumMeshes = 0;
+    for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+         mesh != m_Meshes.end(); mesh++) {
+      if ((*mesh)->GetActive()) {
+        m_iNumMeshes++;
+        if (!(*mesh)->IsCompletelyOpaque()) 
+          m_iNumTransMeshes++;
+      }
+    }
+    MESSAGE("Found %u meshes %u of which contain transparent parts.",m_iNumTransMeshes);
+  }
   // for rendering modes other than isosurface render the bbox in the first
   // pass once, to init the depth buffer.  for isosurface rendering we can go
   // ahead and render the bbox directly as isosurfacing writes out correct
@@ -1958,15 +1982,9 @@ void GLRenderer::GeometryPreRender() {
 
     // first render the pars of the meshes that are in front of the volume
     // remember the volume uses front to back compositing
-    if (m_bSupportsMeshes) {
+    if (m_bSupportsMeshes && m_iNumMeshes) {
       m_pProgramMeshFTB->Enable();
-      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-           mesh != m_Meshes.end(); mesh++) {
-        if ((*mesh)->GetActive()) {
-          (*mesh)->EnableOverSorting(false);
-          (*mesh)->RenderTransGeometryFront();
-        }
-      }
+      RenderTransFrontGeometry();
     }
 
     // now write the depth mask of the opaque geomentry into the buffer
@@ -1993,15 +2011,10 @@ void GLRenderer::GeometryPreRender() {
     }
 
     // now the opaque parts of the mesh
-    if (m_bSupportsMeshes) {
+    if (m_bSupportsMeshes && m_iNumMeshes) {
       // FTB and BTF would both be ok here, so we use BTF as it is simpler
       m_pProgramMeshBTF->Enable(); 
-      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-           mesh != m_Meshes.end(); mesh++) {
-        if ((*mesh)->GetActive()) {
-          (*mesh)->RenderOpaqueGeometry();
-        }
-      }
+      RenderOpaqueGeometry();
     }
 
     glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
@@ -2031,15 +2044,10 @@ void GLRenderer::GeometryPreRender() {
       }
     }
     // the the opaque parts of the meshes
-    if (m_bSupportsMeshes) {
-      m_pProgramMeshBTF->Enable(); // FTB and BTF both work, BTF is simpler
-      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-           mesh != m_Meshes.end(); mesh++) {
-        if ((*mesh)->GetActive()) {
-          (*mesh)->EnableOverSorting(true);
-          (*mesh)->RenderOpaqueGeometry(); 
-        }
-      }
+    if (m_bSupportsMeshes && m_iNumMeshes) {
+      // FTB and BTF would both be ok here, so we use BTF as it is simpler
+      m_pProgramMeshBTF->Enable();
+      RenderOpaqueGeometry();
     }
   }
 }
@@ -2071,35 +2079,26 @@ void GLRenderer::GeometryPostRender() {
       }
     }
 
-    if (m_bSupportsMeshes) {
-      m_pProgramMeshFTB->Enable();
-      m_pProgramMeshFTB->SetUniformVector("fOffset",0.001f);
-      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-           mesh != m_Meshes.end(); mesh++) {
-        if ((*mesh)->GetActive()) {
-          (*mesh)->RenderOpaqueGeometry();        
-        }
-      }
-      m_pProgramMeshFTB->SetUniformVector("fOffset",0.0f);
+    if (m_bSupportsMeshes && m_iNumMeshes) {
+      // FTB and BTF would both be ok here, so we use BTF as it is simpler
+      m_pProgramMeshBTF->Enable();
+      m_pProgramMeshBTF->SetUniformVector("fOffset",0.001f);
+      RenderOpaqueGeometry();
+      m_pProgramMeshBTF->SetUniformVector("fOffset",0.0f);
     }
 
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
 
-    if (m_bSupportsMeshes) {
+    if (m_bSupportsMeshes && m_iNumMeshes) {
       m_pProgramMeshFTB->Enable();
-      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-           mesh != m_Meshes.end(); mesh++) {
-        if ((*mesh)->GetActive()) {
-          (*mesh)->RenderTransGeometryBehind();
-        }
-      }
+      RenderTransBackGeometry();
     }
 
     glDepthFunc(GL_LESS);
     glDisable(GL_BLEND);
   } else {
-    if (m_bSupportsMeshes) {
+    if (m_bSupportsMeshes && m_iNumMeshes) {
       glEnable(GL_BLEND);
       // "over"-compositing with proper alpha
       glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
@@ -2110,29 +2109,209 @@ void GLRenderer::GeometryPostRender() {
       glDisable(GL_CULL_FACE);
 
       m_pProgramMeshBTF->Enable();
-
-      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-           mesh != m_Meshes.end(); mesh++) {
-       if ((*mesh)->GetActive()) 
-         (*mesh)->RenderTransGeometryBehind();
-      }
-
-      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-           mesh != m_Meshes.end(); mesh++) {
-       if ((*mesh)->GetActive()) 
-         (*mesh)->RenderTransGeometryInside();
-      }
-
-      for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
-           mesh != m_Meshes.end(); mesh++) {
-       if ((*mesh)->GetActive()) 
-         (*mesh)->RenderTransGeometryFront();
-      }
+    
+      SetMeshBTFSorting(true);
+      RenderTransBackGeometry();
+      RenderTransInGeometry();
+      RenderTransFrontGeometry();
+      SetMeshBTFSorting(false);
 
       glDepthMask(GL_TRUE);
       glDisable(GL_BLEND);
     }
   }
+}
+
+void GLRenderer::SetMeshBTFSorting(bool bSortBTF) {
+  m_bSortMeshBTF = bSortBTF;
+  for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+       mesh != m_Meshes.end(); mesh++) {
+    (*mesh)->EnableOverSorting(bSortBTF);
+  }
+}
+
+void GLRenderer::RenderOpaqueGeometry() {
+  for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+       mesh != m_Meshes.end(); mesh++) {
+   if ((*mesh)->GetActive()) (*mesh)->RenderOpaqueGeometry();
+  }
+}
+
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
+struct MeshFormat {
+  FLOATVECTOR3 m_vPos;
+  FLOATVECTOR4 m_vColor;
+  FLOATVECTOR3 m_vNormal;
+  FLOATVECTOR2 m_vTexCoords;
+};
+
+static GLsizei iStructSize = GLsizei(sizeof(MeshFormat));
+
+void ListEntryToMeshFormat(std::vector<MeshFormat>& list, 
+                           const RenderMesh* mesh,
+                           size_t startIndex) {
+
+  bool bHasNormal = mesh->GetNormalIndices().size() == mesh->GetVertexIndices().size();
+  bool bHasTC     = mesh->GetTexCoordIndices().size() == mesh->GetVertexIndices().size();
+
+  MeshFormat f;
+
+  // currently we only support triangles, hence the 3
+  for (size_t i = 0;i<3;i++) {
+    size_t vertexIndex =  mesh->GetVertexIndices()[startIndex+i];
+    f.m_vPos =  mesh->GetVertices()[vertexIndex];
+
+    if (mesh->UseDefaultColor())
+      f.m_vColor = mesh->GetDefaultColor();
+    else
+      f.m_vColor = mesh->GetColors()[vertexIndex];
+
+    if (bHasNormal) 
+      f.m_vNormal = mesh->GetNormals()[vertexIndex];
+    else
+      f.m_vNormal = FLOATVECTOR3(2,2,2);
+
+    if (bHasNormal) 
+      f.m_vNormal = mesh->GetNormals()[vertexIndex];
+    else
+      f.m_vNormal = FLOATVECTOR3(2,2,2);
+
+    if (bHasTC) 
+      f.m_vTexCoords = mesh->GetTexCoords()[vertexIndex];
+    else
+      f.m_vTexCoords = FLOATVECTOR2(0,0);
+
+
+    list.push_back(f);
+  }
+}
+
+
+
+void GLRenderer::RenderMergedMesh(SortIndexPVec& mergedMesh) {
+  // terminate early if the mesh is empty
+  if (mergedMesh.empty()) return;
+
+  // sort the mesh
+  std::sort(mergedMesh.begin(), mergedMesh.end(), 
+           (m_bSortMeshBTF) ?  DistanceSortOver : DistanceSortUnder);
+
+  // turn it into something renderable
+  std::vector<MeshFormat> list;
+  for (SortIndexPVec::const_iterator index = mergedMesh.begin();
+       index != mergedMesh.end();
+       index++) {   
+    ListEntryToMeshFormat(list, (*index)->m_mesh, (*index)->m_index);
+  }
+
+  // render it
+
+  glBindBuffer(GL_ARRAY_BUFFER, m_GeoBuffer);
+  glBufferData(GL_ARRAY_BUFFER, GLsizei(list.size())*iStructSize, &list[0], GL_STREAM_DRAW);
+  glVertexPointer(  3,  GL_FLOAT, iStructSize, BUFFER_OFFSET( 0));
+  glColorPointer(   4,  GL_FLOAT, iStructSize, BUFFER_OFFSET( 3*sizeof(float)));
+  glNormalPointer(/*3*/ GL_FLOAT, iStructSize, BUFFER_OFFSET( 7*sizeof(float)));
+  glTexCoordPointer(2 , GL_FLOAT, iStructSize, BUFFER_OFFSET(10*sizeof(float)));
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_COLOR_ARRAY);
+  glEnableClientState(GL_NORMAL_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+  glDrawArrays(GL_TRIANGLES, 0, GLsizei(list.size()));
+  glDisableClientState(GL_VERTEX_ARRAY);
+  glDisableClientState(GL_COLOR_ARRAY);
+  glDisableClientState(GL_NORMAL_ARRAY);
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
+void GLRenderer::RenderTransBackGeometry() {
+  // no transparent mesh -> nothing todo
+  if (m_iNumTransMeshes == 0)  return;
+
+  // only one transparent mesh -> render it
+  if (m_iNumTransMeshes == 1)  {
+    for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+         mesh != m_Meshes.end(); mesh++) {
+     if ((*mesh)->GetActive()) (*mesh)->RenderTransGeometryBehind();
+    }
+    return;
+  }
+  
+  // more than one transparent mesh -> merge them before sorting and rendering
+  SortIndexPVec mergedMesh;
+  for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+       mesh != m_Meshes.end(); mesh++) {
+    if ((*mesh)->GetActive()) {
+      const SortIndexPVec& m = (*mesh)->GetBehindPointList(false);
+      // don't worry about empty meshes
+      if (m.empty()) continue;
+      // currently only triangles are supported
+      if (m[0]->m_mesh->GetVerticesPerPoly() != 3) continue;
+      // merge lists
+      mergedMesh.insert(mergedMesh.end(), m.begin(), m.end());   
+    }
+  }
+  RenderMergedMesh(mergedMesh);
+}
+
+void GLRenderer::RenderTransInGeometry() {
+  // no transparent mesh -> nothing todo
+  if (m_iNumTransMeshes == 0)  return;
+
+  // only one transparent mesh -> render it
+  if (m_iNumTransMeshes == 1)  {
+    for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+         mesh != m_Meshes.end(); mesh++) {
+     if ((*mesh)->GetActive()) (*mesh)->RenderTransGeometryInside();
+    }
+    return;
+  }
+  
+  // more than one transparent mesh -> merge them before sorting and rendering
+  SortIndexPVec mergedMesh;
+  for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+       mesh != m_Meshes.end(); mesh++) {
+    if ((*mesh)->GetActive()) {
+      const SortIndexPVec& m = (*mesh)->GetInPointList(false);
+      // don't worry about empty meshes
+      if (m.empty()) continue;
+      // currently only triangles are supported
+      if (m[0]->m_mesh->GetVerticesPerPoly() != 3) continue;
+      // merge lists
+      mergedMesh.insert(mergedMesh.end(), m.begin(), m.end());   
+    }
+  }
+  RenderMergedMesh(mergedMesh);
+}
+
+void GLRenderer::RenderTransFrontGeometry() {
+  // no transparent mesh -> nothing todo
+  if (m_iNumTransMeshes == 0)  return;
+
+  // only one transparent mesh -> render it
+  if (m_iNumTransMeshes == 1)  {
+    for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+          mesh != m_Meshes.end(); mesh++) {
+      if ((*mesh)->GetActive()) (*mesh)->RenderTransGeometryFront();
+    }
+    return;
+  }
+  
+  // more than one transparent mesh -> merge them before sorting and rendering
+  SortIndexPVec mergedMesh;
+  for (vector<RenderMesh*>::iterator mesh = m_Meshes.begin();
+       mesh != m_Meshes.end(); mesh++) {
+    if ((*mesh)->GetActive()) {
+      const SortIndexPVec& m = (*mesh)->GetFrontPointList(false);
+      // don't worry about empty meshes
+      if (m.empty()) continue;
+      // currently only triangles are supported
+      if (m[0]->m_mesh->GetVerticesPerPoly() != 3) continue;
+      // merge lists
+      mergedMesh.insert(mergedMesh.end(), m.begin(), m.end());   
+    }
+  }
+  RenderMergedMesh(mergedMesh);
 }
 
 void GLRenderer::PlaneIn3DPreRender() {
@@ -2312,6 +2491,8 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   ExtendedPlane transformed(m_ClipPlane);
   m_mView[iStereoID].setModelview();
 
+  GLSLProgram::Disable();
+
   /* transformed.Quad will give us back a list of triangle vertices; the return
    * value gives us the order we should render those so that we don't mess up
    * front/back faces. */
@@ -2330,18 +2511,23 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
 
-  // Now render the plane.
-  glEnable(GL_BLEND);
-  glBegin(GL_TRIANGLES);
-    glColor4f(vColorQuad.x, vColorQuad.y, vColorQuad.z, vColorQuad.w);
-    for(size_t i=0; i < 6; i+=3) { // 2 tris: 6 points.
-      glVertex3f(quad[i+0].x, quad[i+0].y, quad[i+0].z);
-      glVertex3f(quad[i+1].x, quad[i+1].y, quad[i+1].z);
-      glVertex3f(quad[i+2].x, quad[i+2].y, quad[i+2].z);
-    }
-  glEnd();
+  if (m_iNumMeshes == 0) {
+    // Now render the plane.
+    glEnable(GL_BLEND);
+    glBegin(GL_TRIANGLES);
+      glColor4f(vColorQuad.x, vColorQuad.y, vColorQuad.z, vColorQuad.w);
+      for(size_t i=0; i < 6; i+=3) { // 2 tris: 6 points.
+        glVertex3f(quad[i+0].x, quad[i+0].y, quad[i+0].z);
+        glVertex3f(quad[i+1].x, quad[i+1].y, quad[i+1].z);
+        glVertex3f(quad[i+2].x, quad[i+2].y, quad[i+2].z);
+      }
+    glEnd();
+    glEnable(GL_LINE_SMOOTH);
+  } else {
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+  }
 
-  glEnable(GL_LINE_SMOOTH);
   glLineWidth(4);
   glBegin(GL_LINES);
     glColor4f(vColorBorder.x, vColorBorder.y, vColorBorder.z, vColorBorder.w);
@@ -2351,9 +2537,8 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
     }
   glEnd();
   glLineWidth(1);
-  glDisable(GL_LINE_SMOOTH);
-
   glDisable(GL_BLEND);
+  glDisable(GL_LINE_SMOOTH);
 }
 
 void GLRenderer::ScanForNewMeshes() {

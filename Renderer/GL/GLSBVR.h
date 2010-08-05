@@ -48,62 +48,60 @@
  *
  * GLSBVR is a slice based volume renderer which uses GLSL. */
 namespace tuvok {
-class GLSBVR : public GLRenderer {
-  public:
-    /** Constructs a VRer with immediate redraw, and
-     * wireframe mode off.
-     * \param pMasterController message routing object */
-    GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
-    virtual ~GLSBVR();
+  class GLSBVR : public GLRenderer {
+    public:
+      /** Constructs a VRer with immediate redraw, and
+       * wireframe mode off.
+       * \param pMasterController message routing object */
+      GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
+      virtual ~GLSBVR();
 
-    /** Loads GLSL vertex and fragment shaders. */
-    virtual bool LoadShaders();
+      /** Loads GLSL vertex and fragment shaders. */
+      virtual bool LoadShaders();
 
-    virtual void SetDataDepShaderVars();
+      virtual void SetDataDepShaderVars();
 
-    /** Sends a message to the master to ask for a dataset to be loaded.
-     * The dataset is converted to UVF if it is not one already.
-     * @param strFilename path to a file */
-    virtual bool LoadDataset(const std::string& strFilename);
+      /** Sends a message to the master to ask for a dataset to be loaded.
+       * The dataset is converted to UVF if it is not one already.
+       * @param strFilename path to a file */
+      virtual bool LoadDataset(const std::string& strFilename);
 
-    virtual bool SupportsClearView() const {
-      return !m_bAvoidSeparateCompositing &&
-             m_pDataset->GetComponentCount() == 1;
-    }
+      virtual bool SupportsClearView() const {
+        return !m_bAvoidSeparateCompositing &&
+               m_pDataset->GetComponentCount() == 1;
+      }
 
-    virtual void EnableClipPlane(RenderRegion *renderRegion);
-    virtual void DisableClipPlane(RenderRegion *renderRegion);
+      virtual void EnableClipPlane(RenderRegion *renderRegion);
+      virtual void DisableClipPlane(RenderRegion *renderRegion);
 
-    virtual ERendererType GetRendererType() const {return RT_SBVR;}
-    
-    /** Deallocates GPU memory allocated during the rendering process. */
-    virtual void Cleanup();
+      virtual ERendererType GetRendererType() const {return RT_SBVR;}
+      
+      /** Deallocates GPU memory allocated during the rendering process. */
+      virtual void Cleanup();
 
-  protected:
-    SBVRGeogen3D  m_SBVRGeogen;
-    GLSLProgram*  m_pProgramIsoNoCompose;
-    GLSLProgram*  m_pProgramColorNoCompose;
-    GLSLProgram*  m_pProgram1DTransMesh[2];
-    GLSLProgram*  m_pProgram2DTransMesh[2];
-    GLuint        m_GeoBuffer;
+    protected:
+      SBVRGeogen3D  m_SBVRGeogen;
+      GLSLProgram*  m_pProgramIsoNoCompose;
+      GLSLProgram*  m_pProgramColorNoCompose;
+      GLSLProgram*  m_pProgram1DTransMesh[2];
+      GLSLProgram*  m_pProgram2DTransMesh[2];
 
-    void SetBrickDepShaderVars(const Brick& currentBrick);
+      void SetBrickDepShaderVars(const Brick& currentBrick);
 
-    virtual void Render3DPreLoop(const RenderRegion3D& region);
-    virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
-                                size_t iCurrentBrick, int iStereoID);
-    virtual void Render3DPostLoop();
+      virtual void Render3DPreLoop(const RenderRegion3D& region);
+      virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
+                                  size_t iCurrentBrick, int iStereoID);
+      virtual void Render3DPostLoop();
 
-    virtual void RenderHQMIPPreLoop(RenderRegion2D& renderRegion);
-    virtual void RenderHQMIPInLoop(const RenderRegion2D& renderRegion,
-                                   const Brick& b);
-    void RenderProxyGeometry() const;
-    virtual void CleanupShaders();
+      virtual void RenderHQMIPPreLoop(RenderRegion2D& renderRegion);
+      virtual void RenderHQMIPInLoop(const RenderRegion2D& renderRegion,
+                                     const Brick& b);
+      void RenderProxyGeometry() const;
+      virtual void CleanupShaders();
 
-    virtual void ComposeSurfaceImage(RenderRegion &renderRegion, int iStereoID);
-    virtual void UpdateLightParamsInShaders();
-    virtual bool Initialize();
-
-};
+      virtual void ComposeSurfaceImage(RenderRegion &renderRegion, int iStereoID);
+      virtual void UpdateLightParamsInShaders();
+      virtual bool Initialize();
+  };
 };
 #endif // GLSBVR_H

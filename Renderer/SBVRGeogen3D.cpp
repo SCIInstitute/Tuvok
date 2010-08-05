@@ -211,8 +211,9 @@ void SBVRGeogen3D::InsertMeshUpToSlice(float fDepth) {
       m_MeshTransferIter = index;
       return;
     }      
-    MeshEntryToVertexFormat(m_vSliceTriangles, (*index)->m_mesh, (*index)->m_index);
+    MeshEntryToVertexFormat(m_vSliceTriangles, (*index)->m_mesh, (*index)->m_index, m_bClipMesh);
   }
+  m_MeshTransferIter = m_mesh.end();
 }
 
 void SBVRGeogen3D::DepthSortMeshWithVolume() {
@@ -274,7 +275,7 @@ void SBVRGeogen3D::ComputeGeometry(bool bMeshOnly) {
     for (SortIndexPVec::const_iterator index = m_MeshTransferIter;
          index != m_mesh.end();
          index++) {
-      MeshEntryToVertexFormat(m_vSliceTriangles, (*index)->m_mesh, (*index)->m_index);
+      MeshEntryToVertexFormat(m_vSliceTriangles, (*index)->m_mesh, (*index)->m_index, m_bClipMesh);
     }
   }
 

@@ -235,7 +235,7 @@ void RenderMesh::SortTransparentDataIntoQuadrants() {
   m_InPointList.clear();
 
   // is the entire mesh opaque ?
-  if (m_splitIndex == m_VertIndices.size()) return;
+  if (IsCompletelyOpaque()) return;
 
   for (SortIndexVec::iterator poly = m_allPolys.begin();
        poly != m_allPolys.end();
@@ -297,7 +297,7 @@ void RenderMesh::RehashTransparentData() {
   m_BehindPointList.clear();
 
   // is the entire mesh opaque ?
-  if (m_splitIndex == m_VertIndices.size()) return;
+  if (IsCompletelyOpaque()) return;
 
   size_t index = PosToQuadrant(m_viewPoint);
 
@@ -628,42 +628,37 @@ void RenderMesh::RehashTransparentData() {
               break;
   }
 
-
-  // depth sort
-  if (m_bSortOver) {
-    std::sort(m_FrontPointList.begin(), m_FrontPointList.end(), DistanceSortOver);
-    std::sort(m_BehindPointList.begin(), m_BehindPointList.end(), DistanceSortOver);
-  } else {
-    std::sort(m_FrontPointList.begin(), m_FrontPointList.end(), DistanceSortUnder);
-    std::sort(m_BehindPointList.begin(), m_BehindPointList.end(), DistanceSortUnder);
-  }
+  m_BackSorted = false;
+  m_InSorted = false;
+  m_FrontSorted = false;
 }
 
-const SortIndexPVec& RenderMesh::GetFrontPointList() {
+const SortIndexPVec& RenderMesh::GetFrontPointList(bool bSorted) {
   if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
   if (m_FIBHashDirty) RehashTransparentData();
+  if (bSorted && !m_FrontSorted) {
+    std::sort(m_FrontPointList.begin(), m_FrontPointList.end(), (m_bSortOver) ? DistanceSortOver : DistanceSortUnder);
+    m_FrontSorted = true;
+  }
   return m_FrontPointList;
 }
 
-const SortIndexPVec& RenderMesh::GetInPointList() {
+const SortIndexPVec& RenderMesh::GetInPointList(bool bSorted) {
   if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
   if (m_FIBHashDirty) RehashTransparentData();
-  return m_InPointList;
-}
-
-const SortIndexPVec& RenderMesh::GetBehindPointList() {
-  if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
-  if (m_FIBHashDirty) RehashTransparentData();
-  return m_BehindPointList;
-}
-
-const SortIndexPVec& RenderMesh::GetSortedInPointList() {
-  if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
-  if (m_FIBHashDirty) RehashTransparentData();
-  if (m_bSortOver) {
-    std::sort(m_InPointList.begin(), m_InPointList.end(), DistanceSortOver);
-  } else {
-    std::sort(m_InPointList.begin(), m_InPointList.end(), DistanceSortUnder);
+  if (bSorted && !m_InSorted) {
+    std::sort(m_InPointList.begin(), m_InPointList.end(), (m_bSortOver) ? DistanceSortOver : DistanceSortUnder);
+    m_InSorted = true;
   }
   return m_InPointList;
+}
+
+const SortIndexPVec& RenderMesh::GetBehindPointList(bool bSorted) {
+  if (m_QuadrantsDirty) SortTransparentDataIntoQuadrants();
+  if (m_FIBHashDirty) RehashTransparentData();
+  if (bSorted && !m_BackSorted) {
+    std::sort(m_BehindPointList.begin(), m_BehindPointList.end(), (m_bSortOver) ? DistanceSortOver : DistanceSortUnder);
+    m_BackSorted = true;
+  }
+  return m_BehindPointList;
 }

@@ -44,6 +44,8 @@
 #include <Basics/Timer.h>
 #include "../AbstrRenderer.h"
 #include "GLTargetBinder.h"
+#include "RenderMeshGL.h"
+
 
 namespace tuvok {
 
@@ -197,6 +199,17 @@ class GLRenderer : public AbstrRenderer {
     virtual bool LoadShaders();
     void CleanupShader(GLSLProgram** p);
 
+    void RenderOpaqueGeometry();
+    void SetMeshBTFSorting(bool bSortBTF);
+    void RenderTransBackGeometry();
+    void RenderTransInGeometry();
+    void RenderTransFrontGeometry();
+    void RenderMergedMesh(SortIndexPVec& mergedMesh);
+
+    bool            m_bSortMeshBTF;
+    GLuint          m_GeoBuffer;
+    size_t          m_iNumTransMeshes;
+    size_t          m_iNumMeshes;
     GLSLProgram*    m_pProgramTrans;
     GLSLProgram*    m_pProgram1DTransSlice;
     GLSLProgram*    m_pProgram2DTransSlice;

@@ -147,17 +147,17 @@ void RenderMeshGL::RenderOpaqueGeometry() {
 }
 
 void RenderMeshGL::RenderTransGeometryFront() {
-  PrepareTransBuffers(m_IndexVBOFront, GetFrontPointList());
+  PrepareTransBuffers(m_IndexVBOFront, GetFrontPointList(true));
   RenderGeometry(m_IndexVBOFront, m_FrontPointList.size()*m_VerticesPerPoly);
 }
 
 void RenderMeshGL::RenderTransGeometryBehind() {
-  PrepareTransBuffers(m_IndexVBOBehind, GetBehindPointList());
+  PrepareTransBuffers(m_IndexVBOBehind, GetBehindPointList(true));
   RenderGeometry(m_IndexVBOBehind, m_BehindPointList.size()*m_VerticesPerPoly);
 }
 
 void RenderMeshGL::RenderTransGeometryInside() {
-  PrepareTransBuffers(m_IndexVBOInside, GetSortedInPointList());
+  PrepareTransBuffers(m_IndexVBOInside, GetInPointList(true));
   RenderGeometry(m_IndexVBOInside, m_InPointList.size()*m_VerticesPerPoly);
 }
 
@@ -181,8 +181,7 @@ void RenderMeshGL::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
 void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBO, const SortIndexPVec& list) {
   if (list.empty()) return;
 
-  IndexVec      VertIndices;
-
+  IndexVec VertIndices;
   VertIndices.reserve(list.size());
   for (SortIndexPVec::const_iterator index = list.begin();
        index != list.end();

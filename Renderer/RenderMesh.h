@@ -119,35 +119,46 @@ public:
 
   /**\brief Returns the list of all polygons in front of the AABB as 
    *        computed by SetUserPos 
+   * \param sorted if true then the resulting list is depth sorted
    * \result the points in front of the AABB
    */
-  const SortIndexPVec& GetFrontPointList();
+  const SortIndexPVec& GetFrontPointList(bool bSorted);
   /**\brief Returns the list of all polygons inside the AABB as 
    *        computed by SetUserPos 
+   * \param sorted if true then the resulting list is depth sorted
    * \result the points inside the AABB
    */
-  const SortIndexPVec& GetInPointList();
+  const SortIndexPVec& GetInPointList(bool bSorted);
   /**\brief Returns the list of all polygons behind the AABB as 
    *        computed by SetUserPos this list is nor depth sorted
+   * \param sorted if true then the resulting list is depth sorted
    * \result the points behind the AABB
    */
-  const SortIndexPVec& GetBehindPointList();
+  const SortIndexPVec& GetBehindPointList(bool bSorted);
   
-  /**\brief Returns the list of all polygons inside the AABB as 
-   *        computed by SetUserPos 
-   * \result the points inside the AABB
-   */
-  const SortIndexPVec& GetSortedInPointList();
-   
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
 
-  void EnableOverSorting(bool bOver) {m_bSortOver = bOver;}
+  void EnableOverSorting(bool bOver) {
+    if (m_bSortOver != bOver) {
+      m_BackSorted = false;
+      m_InSorted = false;
+      m_FrontSorted = false;
+      m_bSortOver = bOver;
+    }
+  }
+
+  bool IsCompletelyOpaque() {
+    return m_splitIndex == m_VertIndices.size();
+  }
 
 protected:
   bool   m_bActive;
   size_t m_splitIndex;
   float  m_fTransTreshhold;
   bool   m_bSortOver;
+  bool   m_BackSorted;
+  bool   m_InSorted;
+  bool   m_FrontSorted;
 
   void Swap(size_t i, size_t j);
   bool isTransparent(size_t i);
