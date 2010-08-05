@@ -447,6 +447,7 @@ class AbstrRenderer {
       return renderRegions;
     }
     void SetRenderRegions(const std::vector<RenderRegion*>&);
+    void GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend);
 
     virtual void ScanForNewMeshes() {}
     virtual void RemoveMeshData(size_t index);
@@ -618,7 +619,6 @@ class AbstrRenderer {
     void                RestartTimers();
     double              MaxValue() const;
     bool                OnlyRecomposite(RenderRegion* region) const;
-    void GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend);
 
     RenderRegion3D* GetFirst3DRegion();
 
