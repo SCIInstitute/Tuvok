@@ -66,9 +66,21 @@ namespace tuvok {
        * @param strFilename path to a file */
       virtual bool LoadDataset(const std::string& strFilename);
 
-      virtual bool SupportsClearView() const {
-        return !m_bAvoidSeparateCompositing &&
+      virtual bool SupportsClearView(){
+        CheckMeshStatus();
+        return m_iNumMeshes == 0 &&
+              !m_bAvoidSeparateCompositing &&
                m_pDataset->GetComponentCount() == 1;
+      }
+
+      virtual std::string ClearViewDisableReason() const {
+        if (m_iNumMeshes > 0) 
+          return "geometry is active";
+        if (m_bAvoidSeparateCompositing) 
+          return "'Avoid Compositing' is enabled";
+        if (m_pDataset->GetComponentCount() != 1) 
+          return "this dataset has more than one component";
+        return "";
       }
 
       virtual void EnableClipPlane(RenderRegion *renderRegion);

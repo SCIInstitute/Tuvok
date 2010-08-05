@@ -1147,7 +1147,7 @@ void AbstrRenderer::PlanHQMIPFrame(RenderRegion& renderRegion) {
 }
 
 void AbstrRenderer::SetCV(bool bEnable) {
-  if (!SupportsClearView()) return;
+  if (!SupportsClearView()) bEnable = false;
 
   if (m_bDoClearView != bEnable) {
     m_bDoClearView = bEnable;

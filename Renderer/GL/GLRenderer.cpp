@@ -1950,7 +1950,7 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   return true;
 }
 
-void GLRenderer::GeometryPreRender() {
+void GLRenderer::CheckMeshStatus() {
   // if we can do geometry then let's first find out information
   // about the geometry to render
   if (m_bSupportsMeshes) {
@@ -1966,6 +1966,10 @@ void GLRenderer::GeometryPreRender() {
     }
     MESSAGE("Found %u meshes %u of which contain transparent parts.",m_iNumTransMeshes);
   }
+}
+
+void GLRenderer::GeometryPreRender() {
+  CheckMeshStatus();
   // for rendering modes other than isosurface render the bbox in the first
   // pass once, to init the depth buffer.  for isosurface rendering we can go
   // ahead and render the bbox directly as isosurfacing writes out correct

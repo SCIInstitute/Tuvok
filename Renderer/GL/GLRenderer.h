@@ -205,6 +205,7 @@ class GLRenderer : public AbstrRenderer {
     void RenderTransInGeometry();
     void RenderTransFrontGeometry();
     void RenderMergedMesh(SortIndexPVec& mergedMesh);
+    void CheckMeshStatus();
 
     bool            m_bSortMeshBTF;
     GLuint          m_GeoBuffer;

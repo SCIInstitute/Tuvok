@@ -380,7 +380,11 @@ class AbstrRenderer {
     FLOATVECTOR3 GetLightDir()const;
 
     // ClearView
-    virtual bool SupportsClearView() const {return false;}
+    virtual bool SupportsClearView() {return false;}
+    virtual std::string ClearViewDisableReason() const {
+      return "this renderer does not support ClearView";
+    }
+
     virtual void SetCV(bool bEnable);
     virtual bool GetCV() const {return m_bDoClearView;}
     virtual void SetCVIsoValue(float fIsovalue);

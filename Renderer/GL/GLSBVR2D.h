@@ -73,10 +73,18 @@ namespace tuvok {
                m_pDataset->GetComponentCount() == 1;
       }
 
+      virtual std::string ClearViewDisableReason() const {
+        if (m_bAvoidSeparateCompositing) 
+          return "'Avoid Compositing' is enabled";
+        if (m_pDataset->GetComponentCount() != 1) 
+          return "this dataset has more than one component";
+        return "";
+      }
+
       virtual void EnableClipPlane(RenderRegion *renderRegion);
       virtual void DisableClipPlane(RenderRegion *renderRegion);
 
-      virtual ERendererType GetRendererType() const {return RT_SBVR;}
+      virtual ERendererType GetRendererType() {return RT_SBVR;}
 
       bool GetUse3DTexture() const {return m_bUse3DTexture;}
       void SetUse3DTexture(bool bUse3DTexture);
