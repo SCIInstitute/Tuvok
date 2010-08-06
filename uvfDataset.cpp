@@ -929,6 +929,90 @@ const std::vector< std::pair < std::string, std::string > > UVFDataset::GetMetad
   return v;
 }
 
+bool UVFDataset::GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& m) {
+  Close();
+
+  MESSAGE("Attempting to reopen file in readwrite mode.");
+
+  if (!Open(false,true,false)) {
+    T_ERROR("Readwrite mode failed, maybe file is write protected?");
+
+    Open(false,false,false);
+    return false;
+  } else {
+    MESSAGE("Successfully reopened file in readwrite mode.");
+
+    // turn meshindex into block index, those are different as the
+    // uvf file most likely also contains data other than meshes
+    // such as the volume or histograms, etc.
+    size_t iBlockIndex = 0;
+    bool bFound = false;
+        
+    for(size_t block=0; block < m_pDatasetFile->GetDataBlockCount(); ++block) {
+      if (m_pDatasetFile->GetDataBlock(block)->GetBlockSemantic() 
+                                                  == UVFTables::BS_GEOMETRY) {        
+        if (iMeshIndex == 0) {
+          iBlockIndex = block;
+          bFound = true;
+          break;
+        }          
+        iMeshIndex--;
+      }
+    }
+
+    if (!bFound) {
+      T_ERROR("Unable to locate mesh data block %u", static_cast<unsigned>(iBlockIndex));
+      return false;
+    }
+
+    GeometryDataBlock* block = dynamic_cast<GeometryDataBlock*>(m_pDatasetFile->GetDataBlockRW(iBlockIndex,false));
+    if (!block) {
+      T_ERROR("Inconsistent UVF block at index %u", static_cast<unsigned>(iBlockIndex));
+      return false;
+    }
+
+    MESSAGE("Transforming Vertices ...");
+    std::vector< float > vertices  = block->GetVertices();
+    if (vertices.size() % 3) {
+      T_ERROR("Inconsistent data vertex in UVF block at index %u", static_cast<unsigned>(iBlockIndex));
+      return false;
+    }  
+    for (size_t i = 0;i<vertices.size();i+=3) {
+      FLOATVECTOR3 v = (FLOATVECTOR4(vertices[i+0],vertices[i+1],vertices[i+2],1)*m).xyz();
+      vertices[i+0] = v.x;
+      vertices[i+1] = v.y;
+      vertices[i+2] = v.z;
+    }
+    block->SetVertices(vertices);
+
+    MESSAGE("Transforming Normals ...");
+    FLOATMATRIX4 invTranspose(m);
+    invTranspose = invTranspose.inverse();
+    invTranspose = invTranspose.Transpose();
+
+    std::vector< float > normals  = block->GetNormals();
+    if (normals.size() % 3) {
+      T_ERROR("Inconsistent normal data in UVF block at index %u", static_cast<unsigned>(iBlockIndex));
+      return false;
+    }  
+    for (size_t i = 0;i<normals.size();i+=3) {
+      FLOATVECTOR3 n = (FLOATVECTOR4(normals[i+0],normals[i+1],normals[i+2],0)*invTranspose).xyz();
+      n.normalize();
+      normals[i+0] = n.x;
+      normals[i+1] = n.y;
+      normals[i+2] = n.z;
+    }
+    block->SetNormals(normals);
+
+    MESSAGE("Writing changes to disk");
+    Close();
+    MESSAGE("Reopening in read-only mode");
+    
+    Open(false,false,false);
+    return true;
+  }
+}
+
 bool UVFDataset::RemoveMesh(size_t iMeshIndex) {
   Close();
 
@@ -1004,10 +1088,39 @@ bool UVFDataset::AppendMesh(Mesh* m) {
     size_t iVerticesPerPoly = m->GetVerticesPerPoly();
     tsb.SetPolySize(iVerticesPerPoly);
 
-    if (v.size()) {fVec.resize(v.size()*3); memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float)); tsb.SetVertices(fVec);}
-    if (n.size()) {fVec.resize(n.size()*3); memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float)); tsb.SetNormals(fVec);}
-    if (t.size()) {fVec.resize(t.size()*2); memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float)); tsb.SetTexCoords(fVec);}
-    if (c.size()) {fVec.resize(c.size()*4); memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float)); tsb.SetColors(fVec);}
+    if (v.size()) {
+      fVec.resize(v.size()*3);
+      memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float));
+      tsb.SetVertices(fVec);
+    } else {
+      // even if the vectors are empty still let the datablock know
+      tsb.SetVertices(vector<float>()); 
+    }
+
+    if (n.size()) {
+      fVec.resize(n.size()*3);
+      memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float));
+      tsb.SetNormals(fVec);
+    } else {
+      // even if the vectors are empty still let the datablock know
+      tsb.SetNormals(vector<float>());
+    }
+    if (t.size()) {
+      fVec.resize(t.size()*2);
+      memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float));
+      tsb.SetTexCoords(fVec);
+    } else {
+      // even if the vectors are empty still let the datablock know
+      tsb.SetTexCoords(vector<float>());
+    }
+    if (c.size()) {
+      fVec.resize(c.size()*4);
+      memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float));
+      tsb.SetColors(fVec);
+    } else {
+      // even if the vectors are empty still let the datablock know
+      tsb.SetColors(vector<float>());
+    }
 
     tsb.SetVertexIndices(m->GetVertexIndices());
     tsb.SetNormalIndices(m->GetNormalIndices());

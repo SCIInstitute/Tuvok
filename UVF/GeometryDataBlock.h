@@ -64,15 +64,15 @@ public:
   std::vector< UINT32 > GetTexCoordIndices() const;
   std::vector< UINT32 > GetColorIndices() const;
 
-  void SetVertices(const std::vector< float >& v) {vertices = v;}
-  void SetNormals(const std::vector< float >& n)  {normals = n;}
-  void SetTexCoords(const std::vector< float >& tc){texcoords = tc;}
-  void SetColors(const std::vector< float >& c) {colors = c;}
+  void SetVertices(const std::vector< float >& v);
+  void SetNormals(const std::vector< float >& n);
+  void SetTexCoords(const std::vector< float >& tc);
+  void SetColors(const std::vector< float >& c);
 
-  void SetVertexIndices(const std::vector< UINT32 >& vI) {vIndices = vI;}
-  void SetNormalIndices(const std::vector< UINT32 >& nI) {nIndices = nI;}
-  void SetTexCoordIndices(const std::vector< UINT32 >& tcI) {tIndices = tcI;}
-  void SetColorIndices(const std::vector< UINT32 >& cI) {cIndices = cI;}
+  void SetVertexIndices(const std::vector< UINT32 >& vI);
+  void SetNormalIndices(const std::vector< UINT32 >& nI);
+  void SetTexCoordIndices(const std::vector< UINT32 >& tcI);
+  void SetColorIndices(const std::vector< UINT32 >& cI);
 
   const std::vector< float >& GetDefaultColor() const {return m_DefaultColor;}
   void SetDefaultColor(const std::vector< float >& color) {m_DefaultColor = color;}
@@ -104,12 +104,23 @@ protected:
   std::vector< UINT32 > tIndices;
   std::vector< UINT32 > cIndices;
 
+  bool verticesValid;
+  bool normalsValid;
+  bool texcoordsValid;
+  bool colorsValid;
+
+  bool vertexIValid;
+  bool normalIValid;
+  bool texcoordIValid;
+  bool colorIValid;
+
   std::vector< float > m_DefaultColor;
 
   UINT64               m_PolySize;
 
 private:
   bool   m_bIsBigEndian;
+
 
   UINT64 m_n_vertices;
   UINT64 m_n_normals;

@@ -33,7 +33,13 @@ class DataBlockListElem {
   bool m_bIsDirty;
   bool m_bHeaderIsDirty;
   UINT64 m_iOffsetInFile;
-  UINT64 m_iBlockSize;
+
+  UINT64 GetBlockSize() {return m_iBlockSize;}
+
+  protected:
+    UINT64 m_iBlockSize;
+
+    friend class UVF;
 };
 
 class UVF

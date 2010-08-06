@@ -113,6 +113,7 @@ public:
   virtual bool SaveRescaleFactors();
   bool AppendMesh(Mesh* m);
   bool RemoveMesh(size_t iMeshIndex);
+  bool GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& m);
 
   virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
   virtual bool Verify(const std::string&) const;

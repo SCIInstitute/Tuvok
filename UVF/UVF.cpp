@@ -94,12 +94,21 @@ void UVF::Close() {
   if (m_bFileIsLoaded) {
     if (m_bFileIsReadWrite) {
       for (size_t i = 0;i<m_DataBlocks.size();i++) {
-        // for now we only allow changes in the datablock header
-        // TODO: will need to extend this to abitrary changes once we add more features
-        //assert(!m_DataBlocks[i]->m_bIsDirty);
-
         if (m_DataBlocks[i]->m_bHeaderIsDirty) {
-          m_DataBlocks[i]->m_block->CopyHeaderToFile(&m_streamFile, m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(), m_GlobalHeader.bIsBigEndian, i == m_DataBlocks.size()-1);
+          m_DataBlocks[i]->m_block->CopyHeaderToFile(&m_streamFile,
+                                                     m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(),
+                                                     m_GlobalHeader.bIsBigEndian,
+                                                     i == m_DataBlocks.size()-1);
+        } 
+        if (m_DataBlocks[i]->m_bIsDirty) {
+          // for now we only support changes in the datablock that do not influence its size
+          // TODO: will need to extend this to abitrary changes once we add more features
+          assert(m_DataBlocks[i]->m_block->GetOffsetToNextBlock() == m_DataBlocks[i]->GetBlockSize());
+
+          m_DataBlocks[i]->m_block->CopyToFile(&m_streamFile, 
+                                               m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(),
+                                               m_GlobalHeader.bIsBigEndian,
+                                               i == m_DataBlocks.size()-1);
         }
       }
     }
@@ -348,8 +357,9 @@ bool UVF::Create() {
 DataBlock* UVF::GetDataBlockRW(UINT64 index, bool bOnlyChangeHeader) {
   if (bOnlyChangeHeader)
     m_DataBlocks[size_t(index)]->m_bHeaderIsDirty = true; 
-  else 
+  else {
     m_DataBlocks[size_t(index)]->m_bIsDirty = true; 
+  }
   return m_DataBlocks[size_t(index)]->m_block;
 }
 
@@ -387,7 +397,7 @@ bool UVF::DropdBlockFromFile(size_t iBlockIndex) {
   for (size_t i = iBlockIndex+1;i<m_DataBlocks.size();i++) {
     UINT64 iSourcePos = m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos();
     UINT64 iTargetPos = iSourcePos-iShiftSize;
-    UINT64 iSize      = m_DataBlocks[i]->m_iBlockSize;
+    UINT64 iSize      = m_DataBlocks[i]->GetBlockSize();
     if (!m_streamFile.CopyRAW(iSize,iSourcePos,iTargetPos,
                               pBuffer,BLOCK_COPY_SIZE)) {
       return false;
