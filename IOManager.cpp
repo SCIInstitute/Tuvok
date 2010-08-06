@@ -1575,6 +1575,7 @@ Mesh* IOManager::LoadMesh(const string& meshfile) const
                 (*conv)->GetDesc().c_str(), err.what());
         throw;
       }
+      break;
     }
   }
   return m;
