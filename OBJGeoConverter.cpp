@@ -86,8 +86,18 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
   float x,y,z,w;
   size_t iVerticesPerPoly = 0;
 
+  fs.seekg(0,std::ios::end);
+  size_t iFileLength = fs.tellg();
+  fs.seekg(0,std::ios::beg);
+  size_t iBytesRead = 0;
+  size_t iLine = 0;
+
   while (!fs.fail()) {
 		getline(fs, line);
+
+    iBytesRead += line.size() + 1;
+    iLine++;
+
 		if (fs.fail()) break; // no more lines to read
     line = SysTools::ToLowerCase(SysTools::TrimStr(line));
 
@@ -213,6 +223,12 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
     } else {
       WARNING("Skipping unknown tag %s in OBJ file", linetype.c_str());
     }
+
+    if (iLine % 5000 == 0) {
+      MESSAGE("Reading line %u (%u / %u kb)", unsigned(iLine),
+              unsigned(iBytesRead/1024),unsigned(iFileLength/1024));
+    }
+
   }
 	fs.close();
 
