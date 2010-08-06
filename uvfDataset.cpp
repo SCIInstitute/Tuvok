@@ -160,7 +160,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
          tsb++) {
       uvfMesh* m = new uvfMesh(**tsb);
       m_vpMeshList.push_back(m);
-
+/*
       ostringstream stats;
       stats << "Mesh Statistics:\n"
             << "  Vertex count:"    << m->GetVertices().size() << "\n  "
@@ -171,7 +171,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
             << "  Normal Index count:"    << m->GetNormalIndices().size() << "\n  "
             << "  TexCoords Index count:" << m->GetTexCoordIndices().size() << "\n  "
             << "  Color Index count:"     << m->GetColorIndices().size();
-      MESSAGE("%s", stats.str().c_str());
+      MESSAGE("%s", stats.str().c_str());*/
     }
   }
   return true;
