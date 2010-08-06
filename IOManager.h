@@ -255,17 +255,19 @@ protected:
 template <class T> class MCDataTemplate  : public MCData {
 public:
   MCDataTemplate(const std::string& strTargetFile, T TIsoValue, 
-                 const FLOATVECTOR3& vScale, tuvok::AbstrGeoConverter* conv,
+                 const FLOATVECTOR3& vScale, 
+                 UINT64VECTOR3 vDataSize, tuvok::AbstrGeoConverter* conv,
                  const FLOATVECTOR4& vColor) :
     MCData(strTargetFile),
     m_TIsoValue(TIsoValue),
     m_pData(NULL),
     m_iIndexoffset(0),
     m_pMarchingCubes(new MarchingCubes<T>()),
+    m_vDataSize(vDataSize),
     m_conv(conv),
-    m_vColor(vColor)
+    m_vColor(vColor),
+    m_vScale(vScale)
   {
-    m_matScale.Scaling(vScale.x, vScale.y, vScale.z);
   }
 
   virtual ~MCDataTemplate() {
@@ -304,17 +306,17 @@ public:
     m_pMarchingCubes->SetVolume(int(vBrickSize[0]), int(vBrickSize[1]), int(vBrickSize[2]), m_pData);
     m_pMarchingCubes->Process(m_TIsoValue);
 
-    // apply scale
-    m_pMarchingCubes->m_Isosurface->Transform(m_matScale);
+    // brick scale
+    float fMaxSize = (FLOATVECTOR3(m_vDataSize) * m_vScale).maxVal();
 
-    // scale brick offsets
-    FLOATVECTOR3 vecScaleVec(1.0f/(vBrickSize[0]-1),
-                             1.0f/(vBrickSize[1]-1),
-                             1.0f/(vBrickSize[2]-1));
     FLOATVECTOR3 vecBrickOffset(vBrickOffset);
+    vecBrickOffset = vecBrickOffset * m_vScale;
+
+    FLOATVECTOR3 domShift = 0.5f * fMaxSize / FLOATVECTOR3(m_vDataSize);
+
 
     for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
-        m_vertices.push_back(m_pMarchingCubes->m_Isosurface->vfVertices[i]*vecScaleVec - 0.5);
+        m_vertices.push_back((m_pMarchingCubes->m_Isosurface->vfVertices[i]+vecBrickOffset-FLOATVECTOR3(m_vDataSize)/2.0f)/fMaxSize);
     }
 
     for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
@@ -330,7 +332,6 @@ public:
     m_iIndexoffset += m_pMarchingCubes->m_Isosurface->iVertices;
 
     return true;
-
   }
 
 protected:
@@ -338,9 +339,10 @@ protected:
   T*                 m_pData;
   UINT32             m_iIndexoffset;
   MarchingCubes<T>*  m_pMarchingCubes;
+  UINT64VECTOR3      m_vDataSize;
   tuvok::AbstrGeoConverter* m_conv;
   FLOATVECTOR4       m_vColor;
-  FLOATMATRIX4       m_matScale;
+  FLOATVECTOR3       m_vScale;
   tuvok::VertVec     m_vertices;
   tuvok::NormVec     m_normals;
   tuvok::IndexVec    m_indices;
@@ -467,7 +469,6 @@ public:
                      const std::string& strTempDir) const;
   bool ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
                          UINT64 iLODlevel, double fIsovalue,
-                         const DOUBLEVECTOR3& vfRescaleFactors,
                          const FLOATVECTOR4& vfColor,
                          const std::string& strTargetFilename,
                          const std::string& strTempDir) const;

@@ -1030,9 +1030,8 @@ bool MCBrick(LargeRAWFile* pSourceFile, const vector<UINT64> vBrickSize,
     return pMCData->PerformMC(pSourceFile, vBrickSize, vBrickOffset);
 }
 
-bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData,
+bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
                                   UINT64 iLODlevel, double fIsovalue,
-                                  const DOUBLEVECTOR3& vfRescaleFactors,
                                   const FLOATVECTOR4& vfColor,
                                   const string& strTargetFilename,
                                   const string& strTempDir) const {
@@ -1047,7 +1046,7 @@ bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData,
   bool   bFloatingPoint  = pSourceData->GetIsFloat();
   bool   bSigned         = pSourceData->GetIsSigned();
   UINT64  iComponentSize = pSourceData->GetBitWidth();
-  FLOATVECTOR3 vScale    = FLOATVECTOR3(pSourceData->GetScale() * vfRescaleFactors);
+  FLOATVECTOR3 vScale    = FLOATVECTOR3(pSourceData->GetScale());
 
   AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true);
   
@@ -1056,27 +1055,29 @@ bool IOManager::ExtractIsosurface(const UVFDataset* pSourceData,
     return false;
   }
 
+  UINT64VECTOR3 vDomainSize = pSourceData->GetDomainSize(iLODlevel);
+
   if (bFloatingPoint) {
     if (bSigned) {
       switch (iComponentSize) {
-        case 32 : pMCData = new MCDataTemplate<float>(strTargetFilename, float(fIsovalue), vScale, conv, vfColor); break;
-        case 64 : pMCData = new MCDataTemplate<double>(strTargetFilename, double(fIsovalue), vScale, conv, vfColor); break;
+        case 32 : pMCData = new MCDataTemplate<float>(strTargetFilename, float(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case 64 : pMCData = new MCDataTemplate<double>(strTargetFilename, double(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
       }
     }
   } else {
     if (bSigned) {
       switch (iComponentSize) {
-        case  8 : pMCData = new MCDataTemplate<char>(strTargetFilename, char(fIsovalue), vScale, conv, vfColor); break;
-        case 16 : pMCData = new MCDataTemplate<short>(strTargetFilename, short(fIsovalue), vScale, conv, vfColor); break;
-        case 32 : pMCData = new MCDataTemplate<int>(strTargetFilename, int(fIsovalue), vScale, conv, vfColor); break;
-        case 64 : pMCData = new MCDataTemplate<int64_t>(strTargetFilename, int64_t(fIsovalue), vScale, conv, vfColor); break;
+        case  8 : pMCData = new MCDataTemplate<char>(strTargetFilename, char(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case 16 : pMCData = new MCDataTemplate<short>(strTargetFilename, short(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case 32 : pMCData = new MCDataTemplate<int>(strTargetFilename, int(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case 64 : pMCData = new MCDataTemplate<int64_t>(strTargetFilename, int64_t(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
       }
     } else {
       switch (iComponentSize) {
-        case  8 : pMCData = new MCDataTemplate<unsigned char>(strTargetFilename, (unsigned char)(fIsovalue), vScale, conv, vfColor); break;
-        case 16 : pMCData = new MCDataTemplate<unsigned short>(strTargetFilename, (unsigned short)(fIsovalue), vScale, conv, vfColor); break;
-        case 32 : pMCData = new MCDataTemplate<UINT32>(strTargetFilename, UINT32(fIsovalue), vScale, conv, vfColor); break;
-        case 64 : pMCData = new MCDataTemplate<UINT64>(strTargetFilename, UINT64(fIsovalue), vScale, conv, vfColor); break;
+        case  8 : pMCData = new MCDataTemplate<unsigned char>(strTargetFilename, (unsigned char)(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case 16 : pMCData = new MCDataTemplate<unsigned short>(strTargetFilename, (unsigned short)(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case 32 : pMCData = new MCDataTemplate<UINT32>(strTargetFilename, UINT32(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case 64 : pMCData = new MCDataTemplate<UINT64>(strTargetFilename, UINT64(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
       }
     }
   }
