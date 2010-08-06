@@ -1375,6 +1375,10 @@ void AbstrRenderer::RemoveMeshData(size_t index) {
   Schedule3DWindowRedraws();
 }
 
+void AbstrRenderer::ReloadMesh(size_t index, const Mesh* m) {
+  m_Meshes[index]->Clone(m);
+  Schedule3DWindowRedraws();
+}
 
 void AbstrRenderer::Timestep(size_t t) {
   if(t != m_iTimestep) {
@@ -1382,6 +1386,8 @@ void AbstrRenderer::Timestep(size_t t) {
     ScheduleCompleteRedraw();
   }
 }
-size_t AbstrRenderer::Timestep() const { return m_iTimestep; }
+size_t AbstrRenderer::Timestep() const { 
+  return m_iTimestep; 
+}
 
 
