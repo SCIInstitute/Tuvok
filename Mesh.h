@@ -73,6 +73,7 @@ public:
        const std::string& desc, EMeshType meshType);
   virtual ~Mesh();
 
+  void Clone(const Mesh* other);
   void RecomputeNormals();
   void ScaleToUnitCube();
   void ComputeUnitCubeScale(FLOATVECTOR3& scale,
@@ -110,6 +111,9 @@ public:
 
   const std::string& Name() const {return m_MeshDesc;}
 
+  const FLOATMATRIX4& GetTransformFromOriginal() {return m_TransformFromOriginal;}
+  void DeleteTransformFromOriginal() {m_TransformFromOriginal = FLOATMATRIX4();}
+
   const FLOATVECTOR3& GetMin() {return m_Bounds[0];}
   const FLOATVECTOR3& GetMax() {return m_Bounds[1];}
 
@@ -138,6 +142,8 @@ protected:
   std::string   m_MeshDesc;
   EMeshType     m_meshType;
   size_t        m_VerticesPerPoly;
+
+  FLOATMATRIX4  m_TransformFromOriginal;
 
   void ComputeAABB();
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);

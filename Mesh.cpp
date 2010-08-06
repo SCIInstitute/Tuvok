@@ -114,6 +114,30 @@ void Mesh::Transform(const FLOATMATRIX4& m) {
   for (VertVec::iterator i = m_vertices.begin();i<m_vertices.end();i++) {
     *i = (FLOATVECTOR4((*i),1)*m).xyz();
   }
+
+  m_TransformFromOriginal = m_TransformFromOriginal * m;
+  GeometryHasChanged(true, true);
+}
+
+
+void Mesh::Clone(const Mesh* other) {
+  m_vertices = other->m_vertices;
+  m_normals = other->m_normals;
+  m_texcoords = other->m_texcoords;
+  m_colors = other->m_colors;
+
+  m_VertIndices = other->m_VertIndices;
+  m_NormalIndices = other->m_NormalIndices;
+  m_TCIndices = other->m_TCIndices;
+  m_COLIndices = other->m_COLIndices;
+
+  m_DefColor = other->m_DefColor;
+  m_MeshDesc = other->m_MeshDesc;
+  m_meshType = other->m_meshType;
+
+  m_VerticesPerPoly = other->m_VerticesPerPoly;
+  m_TransformFromOriginal = other->m_TransformFromOriginal;
+
   GeometryHasChanged(true, true);
 }
 
@@ -126,6 +150,10 @@ void Mesh::ScaleAndBias(const FLOATVECTOR3& scale,
 
   m_Bounds[0] = (m_Bounds[0] * scale) + translation;
   m_Bounds[1] = (m_Bounds[1] * scale) + translation;
+
+  FLOATMATRIX4 s;  s.Scaling(scale);
+  FLOATMATRIX4 b;  b.Translation(translation);
+  m_TransformFromOriginal = m_TransformFromOriginal * s * b;
 
   GeometryHasChanged(false, true);
 }
