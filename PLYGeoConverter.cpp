@@ -81,9 +81,22 @@ Mesh* PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   MESSAGE("Reading Header");
 
+  fs.seekg(0,std::ios::end);
+  size_t iFileLength = fs.tellg();
+  fs.seekg(0,std::ios::beg);
+  size_t iBytesRead = 0;
+  size_t iLine = 0;
+
 	while (!fs.fail() && iReaderState < PARSING_VERTEX_DATA) {
 		getline(fs, line);
 		if (fs.fail()) break; // no more lines to read
+
+    iBytesRead += line.size() + 1;
+    iLine++;
+    if (iLine % 5000 == 0) {
+        MESSAGE("Reading Header (Line %u %u/%u kb)", unsigned(iLine),
+                unsigned(iBytesRead/1024),unsigned(iFileLength/1024));
+    }
 
     // remove comments
     line = SysTools::TrimStr(line);
@@ -181,6 +194,18 @@ Mesh* PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
 	while (!fs.fail() && iReaderState != PARSING_DONE) {
 		getline(fs, line);
 		if (fs.fail()) break; // no more lines to read
+
+    iBytesRead += line.size() + 1;
+    iLine++;
+    if (iLine % 5000 == 0) {
+      if (PARSING_VERTEX_DATA) 
+        MESSAGE("Reading Vertices (Line %u %u/%u kb)", unsigned(iLine),
+                unsigned(iBytesRead/1024),unsigned(iFileLength/1024));
+      else
+        MESSAGE("Reading Indices (Line %u %u/%u kb)", unsigned(iLine),
+                unsigned(iBytesRead/1024),unsigned(iFileLength/1024));
+    }
+
 
     line = SysTools::TrimStr(line);
 
