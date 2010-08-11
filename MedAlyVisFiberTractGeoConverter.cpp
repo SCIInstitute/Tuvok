@@ -50,8 +50,9 @@ MedAlyVisFiberTractGeoConverter::MedAlyVisFiberTractGeoConverter() :
 }
 
 
-Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename) {
-  
+Mesh*
+MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename)
+{
   VertVec       vertices;
   ColorVec      colors;
 
@@ -139,13 +140,15 @@ Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilen
                               line = TrimToken(line);
                               vec[2] = float(atof(line.c_str()));
 
-                              vec = (vec + 0.5f*FLOATVECTOR3(iDim)*fScale) / (FLOATVECTOR3(iDim)*fScale) - 0.5f;
+                              vec = (vec + 0.5f*FLOATVECTOR3(iDim)*fScale) /
+                                    (FLOATVECTOR3(iDim)*fScale) - 0.5f;
                               
                               vertices.push_back(vec);
 
                               iElementReadCounter++;
                               if (iElementCounter == iElementReadCounter) {
-                                size_t iStartIndex = vertices.size() - iElementCounter; 
+                                size_t iStartIndex = vertices.size() -
+                                                     iElementCounter;
 
                                 for (size_t i = 0;i<iElementCounter-1;i++) {
                                   VertIndices.push_back(UINT32(iStartIndex));
@@ -177,7 +180,8 @@ Mesh* MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilen
     }
   }
 
-  std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
+  std::string desc = m_vConverterDesc + " data converted from " +
+                     SysTools::GetFilename(strFilename);
 
   Mesh* m = new Mesh(vertices,NormVec(),TexCoordVec(),colors,
                      VertIndices,IndexVec(),IndexVec(),COLIndices,
