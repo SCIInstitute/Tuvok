@@ -76,6 +76,12 @@ MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename)
   size_t iElementReadCounter=0;
   int iLineCounter=-1;
 
+  // get filesize.
+  fs.seekg(0, std::ios_base::end);
+  std::streampos sz = fs.tellg();
+  fs.seekg(0, std::ios_base::beg);
+  double prev_progress = 0.0;
+
 	while (!fs.fail() || iLineCounter == iMetadata[2]) {
 		getline(fs, line);
 		if (fs.fail()) break; // no more lines to read
@@ -85,6 +91,12 @@ MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename)
     if (cPos != std::string::npos) line = line.substr(0,cPos);
     line = SysTools::TrimStr(line);
     if (line.length() == 0) continue; // skips empty and comment lines
+
+    double progress = static_cast<double>(fs.tellg()) / static_cast<double>(sz);
+    if(progress - prev_progress > 0.01 || progress > 0.98) {
+      prev_progress = progress;
+      MESSAGE("Reading mesh... %g%%", progress*100.0);
+    }
 
     switch (iReaderState) {
       case SEARCHING_DIM : {
