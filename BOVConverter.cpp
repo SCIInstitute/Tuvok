@@ -251,8 +251,11 @@ bov_type(const KeyValueFileParser &kvp)
   if(format->strValueUpper == std::string("USHORT")) {
     retval = UShort;
   }
+  if(format->strValueUpper == std::string("BYTE")) {
+    retval = Char;
+  }
 
-  if(retval != Float && retval != Short) {
+  if(retval != Float && retval != Short && retval != Char) {
     WARNING("Unknown BOV data type '%s'", format->strValue.c_str());
   }
   return retval;
