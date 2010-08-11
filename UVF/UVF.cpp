@@ -93,12 +93,14 @@ bool UVF::Open(bool bMustBeSameVersion, bool bVerify, bool bReadWrite, std::stri
 void UVF::Close() {
   if (m_bFileIsLoaded) {
     if (m_bFileIsReadWrite) {
+      bool dirty = false;
       for (size_t i = 0;i<m_DataBlocks.size();i++) {
         if (m_DataBlocks[i]->m_bHeaderIsDirty) {
           m_DataBlocks[i]->m_block->CopyHeaderToFile(&m_streamFile,
                                                      m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(),
                                                      m_GlobalHeader.bIsBigEndian,
                                                      i == m_DataBlocks.size()-1);
+          dirty = true;
         } 
         if (m_DataBlocks[i]->m_bIsDirty) {
           // for now we only support changes in the datablock that do not influence its size
@@ -109,10 +111,13 @@ void UVF::Close() {
                                                m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(),
                                                m_GlobalHeader.bIsBigEndian,
                                                i == m_DataBlocks.size()-1);
+          dirty = true;
         }
       }
+      if(dirty) {
+        UpdateChecksum();
+      }
     }
-    UpdateChecksum();
     m_streamFile.Close();
     m_bFileIsLoaded = false;
   }
@@ -121,7 +126,7 @@ void UVF::Close() {
     if (m_DataBlocks[i]->m_bSelfCreatedPointer) delete m_DataBlocks[i]->m_block;
     delete m_DataBlocks[i];
   }
-  m_DataBlocks.resize(0);
+  m_DataBlocks.clear();
 }
 
 
