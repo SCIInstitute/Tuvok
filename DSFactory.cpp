@@ -76,7 +76,7 @@ DSFactory::Reader(const std::string& filename) const
   typedef std::list<std::tr1::shared_ptr<Dataset> > DSList;
   for(DSList::const_iterator ds = datasets.begin(); ds != datasets.end(); ++ds)
   {
-    MESSAGE("Seeing if %s can open %s", (*ds)->Name(), filename.c_str());
+    MESSAGE("Checking if %s can open %s", (*ds)->Name(), filename.c_str());
     /// downcast to FileBackedDataset for now.  We could move CanRead
     /// up into Dataset, but there's currently no need and that doesn't
     /// make much sense.
