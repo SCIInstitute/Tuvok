@@ -52,6 +52,10 @@ GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, boo
   m_pProgramColorNoCompose(NULL)
 {
   m_bSupportsMeshes = true;
+  m_pProgram1DTransMesh[0] = NULL;
+  m_pProgram1DTransMesh[1] = NULL;
+  m_pProgram2DTransMesh[0] = NULL;
+  m_pProgram2DTransMesh[1] = NULL;
 }
 
 GLSBVR::~GLSBVR() {
