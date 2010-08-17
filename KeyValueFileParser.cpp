@@ -41,7 +41,6 @@
 #include <Basics/SysTools.h>
 
 using namespace std;
-using namespace SysTools;
 
 KeyValPair::KeyValPair() :
   strKey(""),
@@ -61,7 +60,7 @@ KeyValPair::KeyValPair(const string& key, const string& value) :
   strValue(value),
   wstrValue(value.begin(), value.end())
 {
-  vstrValue = Tokenize(value);
+  vstrValue = SysTools::Tokenize(value);
   for (size_t i = 0;i<vstrValue.size();i++) {
     vwstrValue.push_back(wstring(vstrValue[i].begin(), vstrValue[i].end()));
   }
@@ -75,7 +74,7 @@ KeyValPair::KeyValPair(const wstring& key, const wstring& value) :
   strValue(value.begin(), value.end()),
   wstrValue(value)
 {
-  vwstrValue = Tokenize(value);
+  vwstrValue = SysTools::Tokenize(value);
   for (size_t i = 0;i<vwstrValue.size();i++) {
     vstrValue.push_back(string(vwstrValue[i].begin(), vwstrValue[i].end()));
   }
@@ -89,17 +88,17 @@ void KeyValPair::FillDerivedData() {
 
 
   for (size_t i = 0;i<vwstrValue.size();i++) {
-    if (FromString(_iValue, vstrValue[i]))
+    if (SysTools::FromString(_iValue, vstrValue[i]))
       viValue.push_back(_iValue);
     else
       viValue.push_back(0);
 
-    if (FromString(_uiValue, vstrValue[i]))
+    if (SysTools::FromString(_uiValue, vstrValue[i]))
       vuiValue.push_back(_uiValue);
     else
       vuiValue.push_back(0);
 
-    if (FromString(_fValue, vstrValue[i]))
+    if (SysTools::FromString(_fValue, vstrValue[i]))
       vfValue.push_back(_fValue);
     else
       vfValue.push_back(0.0f);
@@ -115,10 +114,10 @@ void KeyValPair::FillDerivedData() {
     fValue  = 0.0f;
   }
 
-  strKeyUpper  = ToUpperCase(strKey);
-  wstrKeyUpper = ToUpperCase(wstrKey);
-  strValueUpper  = ToUpperCase(strValue);
-  wstrValueUpper  = ToUpperCase(wstrValue);
+  strKeyUpper  = SysTools::ToUpperCase(strKey);
+  wstrKeyUpper = SysTools::ToUpperCase(wstrKey);
+  strValueUpper  = SysTools::ToUpperCase(strValue);
+  wstrValueUpper  = SysTools::ToUpperCase(wstrValue);
 }
 
 
@@ -241,7 +240,7 @@ bool KeyValueFileParser::ParseKeyValueLine(std::string line,
                                            bool bStopOnInvalidLine,
                                            const std::string& strToken,
                                            const std::string& strEndToken) {
-    line = TrimStrLeft(line);
+    line = SysTools::TrimStrLeft(line);
 
     // remove windows line endings
     if (line.length() > 0 && line[line.length()-1] == 13)
@@ -253,14 +252,18 @@ bool KeyValueFileParser::ParseKeyValueLine(std::string line,
     }
 
     // skip comments
-    if (line[0] == '#') return true;
+    size_t cPos = line.find_first_of('#');
+    if (cPos != std::string::npos) line = line.substr(0,cPos);
+    line = SysTools::TrimStr(line);
+    if (line.length() == 0) return true; // skips empty and comment lines
+
     // skip invalid lines
     if (line.find_first_of(strToken) == string::npos)
       return !bStopOnInvalidLine;
 
-    string strKey = TrimStrRight(line.substr(0, line.find_first_of(strToken)));
+    string strKey = SysTools::TrimStrRight(line.substr(0, line.find_first_of(strToken)));
 
-    line = TrimStr(line.substr(line.find_first_of(strToken)+strToken.length(),
+    line = SysTools::TrimStr(line.substr(line.find_first_of(strToken)+strToken.length(),
                        line.length()));
 
     if (strKey.length() == 0 || line.length() == 0) return true;
@@ -287,7 +290,7 @@ bool KeyValueFileParser::ParseFile(ifstream& fileData, bool bStopOnEmptyLine,
       bContinue = ParseKeyValueLine(line, bStopOnEmptyLine, false,
                                     strToken, strEndToken);
 
-      if (!bContinue) m_iStopPos = fileData.tellg();
+      if (!bContinue) m_iStopPos = size_t(fileData.tellg());
     }
   } else return false;
 
