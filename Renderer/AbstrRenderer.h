@@ -172,6 +172,8 @@ class AbstrRenderer {
     virtual bool CheckForRedraw();
 
     virtual bool Paint() {
+      if (m_bDatasetIsInvalid) return true;
+
       if (renderRegions.empty()) {
         renderRegions.push_back(&simpleRenderRegion3D);
       }
@@ -184,7 +186,11 @@ class AbstrRenderer {
                              renderRegions.size() == 1 &&
                              renderRegions[0]->is3D();
 
-      return true; // nothin can go wrong here
+      return true; // nothing can go wrong here
+    }
+
+    void SetDatasetIsInvalid(bool bDatasetIsInvalid) {
+      m_bDatasetIsInvalid = bDatasetIsInvalid;
     }
 
 
@@ -560,6 +566,7 @@ class AbstrRenderer {
     EStereoMode         m_eStereoMode;
     bool                m_bStereoEyeSwap;
     std::vector<Triangle> m_vArrowGeometry;
+    bool                m_bDatasetIsInvalid;
 
     // compatibility settings
     bool                m_bUseOnlyPowerOfTwo;

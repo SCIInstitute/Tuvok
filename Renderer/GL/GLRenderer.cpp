@@ -463,6 +463,8 @@ void GLRenderer::RecomposeView(const RenderRegion& rgn)
 bool GLRenderer::Paint() {
   if (!AbstrRenderer::Paint()) return false;
 
+  if (m_bDatasetIsInvalid) return true;
+
   // we want vector<bool>, but of course that's a bad idea.
   vector<char> justCompletedRegions(renderRegions.size(), false);
 
