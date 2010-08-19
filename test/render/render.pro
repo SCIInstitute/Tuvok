@@ -2,6 +2,7 @@ TEMPLATE          = app
 CONFIG           += staticlib static create_prl warn_on stl exceptions
 TARGET            = tuvok
 DEPENDPATH       += . ../../
+INCLUDEPATH      += ../
 INCLUDEPATH      += ../../ ../../IO/3rdParty/boost
 INCLUDEPATH      += ../../Basics/3rdParty
 INCLUDEPATH      += ../../3rdParty/GLEW
@@ -41,5 +42,5 @@ contains(QMAKE_PRL_CONFIG, shared) {
 }
 
 SOURCES += \
-  context.cpp \
+  ../context.cpp \
   render.cpp
