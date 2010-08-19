@@ -75,6 +75,7 @@ public:
     DIRECTX_RAYCASTER,
     OPENGL_2DSBVR,
     DIRECTX_2DSBVR,
+    RENDERER_LAST,
   };
 
   /// Defaults to using a Console-based debug output stream.
