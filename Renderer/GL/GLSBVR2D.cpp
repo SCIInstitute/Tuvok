@@ -581,18 +581,19 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
   if (b.bIsEmpty) return;
 
+
   // setup the slice generator
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount,
                             b.vTexcoordsMin, b.vTexcoordsMax);
   FLOATMATRIX4 maBricktTrans;
   maBricktTrans.Translation(b.vCenter.x, b.vCenter.y, b.vCenter.z);
-  FLOATMATRIX4 maBricktModelView = maBricktTrans * renderRegion.modelView[iStereoID];
   m_mProjection[iStereoID].setProjection();
-  maBricktModelView.setModelview();
+  renderRegion.modelView[iStereoID].setModelview();
 
   m_SBVRGeogen.SetBrickTrans(b.vCenter);
-  m_SBVRGeogen.SetWorld(renderRegion.rotation * renderRegion.translation);
+  m_SBVRGeogen.SetWorld(renderRegion.rotation*renderRegion.translation);
   m_SBVRGeogen.SetView(m_mView[iStereoID]);
+
   m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
   if (! m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE) {
