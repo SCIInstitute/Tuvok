@@ -1967,7 +1967,9 @@ void GLRenderer::CheckMeshStatus() {
           m_iNumTransMeshes++;
       }
     }
-    MESSAGE("Found %u meshes %u of which contain transparent parts.",m_iNumTransMeshes);
+    MESSAGE("Found %u meshes %u of which contain transparent parts.",
+            static_cast<unsigned>(m_iNumMeshes),
+            static_cast<unsigned>(m_iNumTransMeshes));
   }
 }
 
@@ -2567,7 +2569,6 @@ bool GLRenderer::LoadDataset(const string& strFilename) {
          mesh != meshVec.end(); mesh++) {
       m_Meshes.push_back(new RenderMeshGL(**mesh));
     }
-    
 
     return true;
   } else return false;
