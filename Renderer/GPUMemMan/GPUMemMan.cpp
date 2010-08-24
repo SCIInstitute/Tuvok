@@ -107,8 +107,8 @@ GPUMemMan::~GPUMemMan() {
     dbg.Warning(_func_, "Detected unfreed SimpleTexture %s.",
                 i->strFilename.c_str());
 
-    m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
-    m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
+    m_iAllocatedGPUMemory -= i->pTexture->GetGPUSize();
+    m_iAllocatedCPUMemory -= i->pTexture->GetCPUSize();
 
     delete i->pTexture;
   }
@@ -116,8 +116,8 @@ GPUMemMan::~GPUMemMan() {
   for (Trans1DListIter i = m_vpTrans1DList.begin();i<m_vpTrans1DList.end();i++) {
     dbg.Warning(_func_, "Detected unfreed 1D Transferfunction.");
 
-    m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
-    m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
+    m_iAllocatedGPUMemory -= i->pTexture->GetGPUSize();
+    m_iAllocatedCPUMemory -= i->pTexture->GetCPUSize();
 
     delete i->pTexture;
     delete i->pTransferFunction1D;
@@ -136,8 +136,8 @@ GPUMemMan::~GPUMemMan() {
   for (GLVolumeListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
     dbg.Warning(_func_, "Detected unfreed 3D texture.");
 
-    m_iAllocatedGPUMemory -= (*i)->pGLVolume->GetCPUSize();
-    m_iAllocatedCPUMemory -= (*i)->pGLVolume->GetGPUSize();
+    m_iAllocatedGPUMemory -= (*i)->pGLVolume->GetGPUSize();
+    m_iAllocatedCPUMemory -= (*i)->pGLVolume->GetCPUSize();
 
     delete (*i);
   }
@@ -145,8 +145,8 @@ GPUMemMan::~GPUMemMan() {
   for (FBOListIter i = m_vpFBOList.begin();i<m_vpFBOList.end();i++) {
     dbg.Warning(_func_, "Detected unfreed FBO.");
 
-    m_iAllocatedGPUMemory -= (*i)->pFBOTex->GetCPUSize();
-    m_iAllocatedCPUMemory -= (*i)->pFBOTex->GetGPUSize();
+    m_iAllocatedGPUMemory -= (*i)->pFBOTex->GetGPUSize();
+    m_iAllocatedCPUMemory -= (*i)->pFBOTex->GetCPUSize();
 
     delete (*i);
   }
@@ -154,8 +154,8 @@ GPUMemMan::~GPUMemMan() {
   for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
     dbg.Warning(_func_, "Detected unfreed GLSL program.");
 
-    m_iAllocatedGPUMemory -= (*i)->pGLSLProgram->GetCPUSize();
-    m_iAllocatedCPUMemory -= (*i)->pGLSLProgram->GetGPUSize();
+    m_iAllocatedGPUMemory -= (*i)->pGLSLProgram->GetGPUSize();
+    m_iAllocatedCPUMemory -= (*i)->pGLSLProgram->GetCPUSize();
 
     delete (*i);
   }
@@ -308,8 +308,8 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
 
   GLTexture2D* tex = new GLTexture2D(glimage.width(),glimage.height(), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, glimage.bits(), GL_LINEAR, GL_LINEAR);
 
-  m_iAllocatedGPUMemory += tex->GetCPUSize();
-  m_iAllocatedCPUMemory += tex->GetGPUSize();
+  m_iAllocatedGPUMemory += tex->GetGPUSize();
+  m_iAllocatedCPUMemory += tex->GetCPUSize();
 
   m_vpSimpleTextures.push_back(SimpleTextureListElem(1,tex,strFilename));
   return tex;
@@ -327,8 +327,8 @@ void GPUMemMan::FreeTexture(GLTexture2D* pTexture) {
       if (i->iAccessCounter == 0) {
         MESSAGE("Deleted texture %s", i->strFilename.c_str());
 
-        m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
-        m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
+        m_iAllocatedGPUMemory -= i->pTexture->GetGPUSize();
+        m_iAllocatedCPUMemory -= i->pTexture->GetCPUSize();
 
         i->pTexture->Delete();
         m_vpSimpleTextures.erase(i);
@@ -371,8 +371,8 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
                          GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0),
                          GL_LINEAR, GL_LINEAR);
 
-  m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
-  m_iAllocatedCPUMemory += (*tex)->GetGPUSize();
+  m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
+  m_iAllocatedCPUMemory += (*tex)->GetCPUSize();
 
   m_vpTrans1DList.push_back(Trans1DListElem(*ppTransferFunction1D, *tex,
                                             requester));
@@ -390,8 +390,8 @@ void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* req
                          GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0),
                          GL_LINEAR, GL_LINEAR);
 
-  m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
-  m_iAllocatedCPUMemory += (*tex)->GetGPUSize();
+  m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
+  m_iAllocatedCPUMemory += (*tex)->GetCPUSize();
 
   m_vpTrans1DList.push_back(Trans1DListElem(*ppTransferFunction1D, *tex, requester));
 }
@@ -411,8 +411,8 @@ GPUMemMan::SetExternal1DTrans(const std::vector<unsigned char>& rgba,
   GLTexture1D *tex = new GLTexture1D(static_cast<UINT32>(tf1d->GetSize()),
                                      GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4,
                                      &rgba.at(0), GL_LINEAR, GL_LINEAR);
-  m_iAllocatedGPUMemory += tex->GetCPUSize();
-  m_iAllocatedCPUMemory += tex->GetGPUSize();
+  m_iAllocatedGPUMemory += tex->GetGPUSize();
+  m_iAllocatedCPUMemory += tex->GetCPUSize();
 
   m_vpTrans1DList.push_back(Trans1DListElem(tf1d, tex, requester));
 
@@ -442,8 +442,8 @@ void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRender
           if (i->qpUser.empty()) {
             dbg.Message(_func_, "Released 1D TF");
 
-            m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
-            m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
+            m_iAllocatedGPUMemory -= i->pTexture->GetGPUSize();
+            m_iAllocatedCPUMemory -= i->pTexture->GetCPUSize();
 
             delete i->pTransferFunction1D;
             i->pTexture->Delete();
@@ -493,8 +493,8 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize,
                          GL_UNSIGNED_BYTE, 4, pcData);
   delete [] pcData;
 
-  m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
-  m_iAllocatedCPUMemory += (*tex)->GetGPUSize();
+  m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
+  m_iAllocatedCPUMemory += (*tex)->GetCPUSize();
 
   m_vpTrans2DList.push_back(Trans2DListElem(*ppTransferFunction2D, *tex, requester));
 }
@@ -523,8 +523,8 @@ void GPUMemMan::Get2DTransFromFile(const string& strFilename, AbstrRenderer* req
                          GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
   delete [] pcData;
 
-  m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
-  m_iAllocatedCPUMemory += (*tex)->GetGPUSize();
+  m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
+  m_iAllocatedCPUMemory += (*tex)->GetCPUSize();
 
   m_vpTrans2DList.push_back(Trans2DListElem(*ppTransferFunction2D, *tex,
                                             requester));
@@ -555,8 +555,8 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D,
           if (i->qpUser.empty()) {
             dbg.Message(_func_, "Released 2D TF");
 
-            m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
-            m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
+            m_iAllocatedGPUMemory -= i->pTexture->GetGPUSize();
+            m_iAllocatedCPUMemory -= i->pTexture->GetCPUSize();
 
             delete i->pTransferFunction2D;
             i->pTexture->Delete();
@@ -856,8 +856,8 @@ void GPUMemMan::Release3DTexture(GLVolume* pGLVolume) {
 
 
 void GPUMemMan::Delete3DTexture(const GLVolumeListIter &tex) {
-  m_iAllocatedGPUMemory -= (*tex)->pGLVolume->GetCPUSize();
-  m_iAllocatedCPUMemory -= (*tex)->pGLVolume->GetGPUSize();
+  m_iAllocatedGPUMemory -= (*tex)->pGLVolume->GetGPUSize();
+  m_iAllocatedCPUMemory -= (*tex)->pGLVolume->GetCPUSize();
 
   if((*tex)->iUserCount != 0) {
     WARNING("Freeing used GL volume!");
@@ -966,8 +966,8 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
 
   m_vpFBOList.push_back(e);
 
-  m_iAllocatedGPUMemory += e->pFBOTex->GetCPUSize();
-  m_iAllocatedCPUMemory += e->pFBOTex->GetGPUSize();
+  m_iAllocatedGPUMemory += e->pFBOTex->GetGPUSize();
+  m_iAllocatedCPUMemory += e->pFBOTex->GetCPUSize();
 
   return e->pFBOTex;
 }
@@ -976,8 +976,8 @@ void GPUMemMan::FreeFBO(GLFBOTex* pFBO) {
   for (size_t i = 0;i<m_vpFBOList.size();i++) {
     if (m_vpFBOList[i]->pFBOTex == pFBO) {
       MESSAGE("Freeing FBO ");
-      m_iAllocatedGPUMemory -= m_vpFBOList[i]->pFBOTex->GetCPUSize();
-      m_iAllocatedCPUMemory -= m_vpFBOList[i]->pFBOTex->GetGPUSize();
+      m_iAllocatedGPUMemory -= m_vpFBOList[i]->pFBOTex->GetGPUSize();
+      m_iAllocatedCPUMemory -= m_vpFBOList[i]->pFBOTex->GetCPUSize();
 
       delete m_vpFBOList[i];
 
@@ -1015,8 +1015,8 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const std::vector<std::string>& vert,
   }
 
   m_vpGLSLList.push_back(e);
-  m_iAllocatedCPUMemory += e->pGLSLProgram->GetCPUSize();
   m_iAllocatedGPUMemory += e->pGLSLProgram->GetGPUSize();
+  m_iAllocatedCPUMemory += e->pGLSLProgram->GetCPUSize();
 
   return e->pGLSLProgram;
 }
@@ -1029,8 +1029,8 @@ void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
       m_vpGLSLList[i]->iAccessCounter--;
       if (m_vpGLSLList[i]->iAccessCounter == 0) {
         MESSAGE("Freeing GLSL program");
-        m_iAllocatedGPUMemory -= m_vpGLSLList[i]->pGLSLProgram->GetCPUSize();
-        m_iAllocatedCPUMemory -= m_vpGLSLList[i]->pGLSLProgram->GetGPUSize();
+        m_iAllocatedGPUMemory -= m_vpGLSLList[i]->pGLSLProgram->GetGPUSize();
+        m_iAllocatedCPUMemory -= m_vpGLSLList[i]->pGLSLProgram->GetCPUSize();
 
         delete m_vpGLSLList[i];
 
