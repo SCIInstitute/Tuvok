@@ -81,6 +81,8 @@ void SBVRGeogen2D::InterpolateVertices(const VERTEX_FORMAT& v1,
 }
 
 void SBVRGeogen2D::ComputeGeometry(bool bMeshOnly) {
+  InitBBOX();
+
   if (bMeshOnly) {
     m_vSliceTrianglesX.clear();
     m_vSliceTrianglesY.clear();
