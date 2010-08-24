@@ -480,13 +480,17 @@ void GPUMemMan::Changed2DTrans(AbstrRenderer* requester, TransferFunction2D* pTr
 
 }
 
-void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize, AbstrRenderer* requester, TransferFunction2D** ppTransferFunction2D, GLTexture2D** tex) {
+void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize,
+                                AbstrRenderer* requester,
+                                TransferFunction2D** ppTransferFunction2D,
+                                GLTexture2D** tex) {
   MESSAGE("Creating new empty 2D transfer function");
   *ppTransferFunction2D = new TransferFunction2D(iSize);
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
-  *tex = new GLTexture2D(UINT32(iSize.x), UINT32(iSize.y), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
+  *tex = new GLTexture2D(UINT32(iSize.x), UINT32(iSize.y), GL_RGBA8, GL_RGBA,
+                         GL_UNSIGNED_BYTE, 4, pcData);
   delete [] pcData;
 
   m_iAllocatedGPUMemory += (*tex)->GetCPUSize();
