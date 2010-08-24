@@ -50,23 +50,23 @@ varying vec3 vPosition;
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
-
 vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
                    vec3 DomainScale);
 
 void main(void)
 {
   // get volume value
-  float fVolumVal = sampleVolume( gl_TexCoord[0].xyz).x;	
+  float fVolumVal = sampleVolume(gl_TexCoord[0].xyz).x;
 
   // if we hit (or shot over) an isosurface
   if (fVolumVal >= fIsoval) {
-	// compute the normal
-	vec3 vNormal = ComputeNormal(gl_TexCoord[0].xyz,vVoxelStepsize,vDomainScale);
+    // compute the normal
+    vec3 vNormal = ComputeNormal(gl_TexCoord[0].xyz,vVoxelStepsize,vDomainScale);
 
     // write result to fragment color
-	gl_FragColor = vec4(Lighting(vPosition.xyz, vNormal, vLightAmbient,
-                               vLightDiffuse, vLightSpecular, vLightDir), 1.0);
+    gl_FragColor = vec4(Lighting(vPosition.xyz, vNormal, vLightAmbient,
+                                 vLightDiffuse, vLightSpecular, vLightDir),
+                        1.0);
   } else {
     discard;
   }

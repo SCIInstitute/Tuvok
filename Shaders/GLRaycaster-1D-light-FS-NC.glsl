@@ -89,7 +89,7 @@ void main(void)
   vec3  vCurrentPosTex = vRayEntryTex;
   vec3  vCurrentPos    = vRayEntry;
   for (int i = 0;i<iStepCount;i++) {
-    float fVolumVal = sampleVolume( vCurrentPosTex).x;	
+    float fVolumVal = sampleVolume( vCurrentPosTex).x;
 
     /// apply 1D transfer function
     vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);

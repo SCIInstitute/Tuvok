@@ -35,7 +35,7 @@
 uniform sampler2D texRightEye;
 uniform sampler2D texLeftEye;
 
-void main(void){
+void main(void) {
   if (gl_TexCoord[0].x < 0.5)
     gl_FragColor = texture2D(texLeftEye,
                              vec2(gl_TexCoord[0].x*2.0,gl_TexCoord[0].y));

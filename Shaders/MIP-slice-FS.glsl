@@ -39,5 +39,5 @@ vec4 sampleVolume(vec3 coords);
 
 void main(void)
 {
-	gl_FragColor = sampleVolume( gl_TexCoord[0].xyz).xxxx;
+  gl_FragColor = sampleVolume(gl_TexCoord[0].xyz).xxxx;
 }

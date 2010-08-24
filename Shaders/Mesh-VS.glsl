@@ -49,7 +49,7 @@ void main(void)
     normal = gl_NormalMatrix * gl_Normal;
   }
   texture_coordinate = vec2(gl_MultiTexCoord0);
-  
+
   gl_FrontColor = gl_Color;
   gl_BackColor = gl_Color;
   position = gl_Vertex;

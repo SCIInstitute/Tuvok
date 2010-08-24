@@ -72,7 +72,7 @@ void main(void)
   vec4  vColor = vec4(0.0,0.0,0.0,0.0);
   vec3  vCurrentPosTex = vRayEntryTex;
   for (int i = 0;i<iStepCount;i++) {
-    float fVolumVal = sampleVolume( vCurrentPosTex).x;	
+    float fVolumVal = sampleVolume( vCurrentPosTex).x;
 
     // compute the gradient/normal
     vec3  vGradient = ComputeGradient(vCurrentPosTex, vVoxelStepsize);

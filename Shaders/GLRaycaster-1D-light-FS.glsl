@@ -65,14 +65,14 @@ vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
 vec4 ColorBlend(vec4 src, vec4 dst);
 
 void main(void)
-{  
+{
   // compute the coordinates to look up the previous pass
   vec2 vFragCoords = vec2(gl_FragCoord.x / vScreensize.x , gl_FragCoord.y / vScreensize.y);
 
   // compute the ray parameters
   vec3  vRayEntry    = texture2D(texRayExitPos, vFragCoords).xyz;
   vec3  vRayExit     = vEyePos;
-  
+
   if (ClipByPlane(vRayEntry, vRayExit, vClipPlane)) {
     vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
     vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
@@ -92,13 +92,13 @@ void main(void)
     vec3  vCurrentPosTex = vRayEntryTex;
     vec3  vCurrentPos    = vRayEntry;
     for (int i = 0;i<iStepCount;i++) {
-      float fVolumVal = sampleVolume( vCurrentPosTex).x;	
+      float fVolumVal = sampleVolume( vCurrentPosTex).x;
 
       /// apply 1D transfer function
-	    vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
+      vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
 
       // compute lighting
-      vec3 vNormal     = ComputeNormal(vCurrentPosTex, 
+      vec3 vNormal     = ComputeNormal(vCurrentPosTex,
                                        vVoxelStepsize, vDomainScale);
       vec3 vLightColor = Lighting(vCurrentPos, vNormal, vLightAmbient,
                                   vLightDiffuse*vTransVal.xyz, vLightSpecular,
@@ -106,7 +106,7 @@ void main(void)
 
       /// apply opacity correction
       vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
-  	  vTransVal = vec4(vLightColor.x, vLightColor.y, vLightColor.z, vTransVal.a);
+      vTransVal = vec4(vLightColor.x, vLightColor.y, vLightColor.z, vTransVal.a);
       vColor = ColorBlend(vTransVal,vColor);
 
       vCurrentPos    += fRayInc;

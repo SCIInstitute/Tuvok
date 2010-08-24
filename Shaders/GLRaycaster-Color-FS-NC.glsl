@@ -52,18 +52,18 @@ vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
                    vec3 DomainScale);
 
 vec3 RefineIsosurface(vec3 vRayDir, vec3 vCurrentPos) {
-	vRayDir /= 2.0;
-	vCurrentPos -= vRayDir;
-	for (int i = 0; i < 5; i++) {
-		vRayDir /= 2.0;
-		float voxel = sampleVolume( vCurrentPos).x;
-		if (voxel >= fIsoval) {
-			vCurrentPos -= vRayDir;
-		} else {
-			vCurrentPos += vRayDir;
-		}
-	}	
-	return vCurrentPos;
+  vRayDir /= 2.0;
+  vCurrentPos -= vRayDir;
+  for (int i = 0; i < 5; i++) {
+    vRayDir /= 2.0;
+    float voxel = sampleVolume( vCurrentPos).x;
+    if (voxel >= fIsoval) {
+      vCurrentPos -= vRayDir;
+    } else {
+      vCurrentPos += vRayDir;
+    }
+  }
+  return vCurrentPos;
 }
 
 void main(void)
@@ -88,7 +88,7 @@ void main(void)
   vec4  vHitPosTex     = vec4(0.0,0.0,0.0,0.0);
   vec3  vCurrentPosTex = vRayEntryTex;
   for (int i = 0;i<iStepCount;i++) {
-    float fVolumVal = sampleVolume( vCurrentPosTex).a;	
+    float fVolumVal = sampleVolume(vCurrentPosTex).a;
 
     if (fVolumVal >= fIsoval) {
       vHitPosTex = vec4(vCurrentPosTex.x, vCurrentPosTex.y, vCurrentPosTex.z, 1);
@@ -103,7 +103,7 @@ void main(void)
   else
     discard;
 
-  vec3 fVolumeColor = sampleVolume( vCurrentPosTex).rgb;	
+  vec3 fVolumeColor = sampleVolume(vCurrentPosTex).rgb;
 
   // interpolate eye space position
   float fInterpolParam = length(vHitPosTex.xyz-vRayEntryTex)/fRayLengthTex;

@@ -42,7 +42,7 @@ uniform float fTransScale;    ///< scale for 1D Transfer function lookup
 void main(void)
 {
   // get volume value
-  float fVolumVal = sampleVolume( gl_TexCoord[0].xyz).x;	
+  float fVolumVal = sampleVolume( gl_TexCoord[0].xyz).x;
 
   // apply 1D transfer function
   vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);

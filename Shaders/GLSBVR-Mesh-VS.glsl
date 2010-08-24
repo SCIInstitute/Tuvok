@@ -51,7 +51,7 @@ void main(void)
     gl_FrontColor = gl_MultiTexCoord0;
     gl_BackColor = gl_MultiTexCoord0;
   } else {
-    gl_Position = gl_ProjectionMatrix * gl_Vertex;    
+    gl_Position = gl_ProjectionMatrix * gl_Vertex;
   }
   gl_TexCoord[0] = gl_MultiTexCoord0;
   vPosition = gl_Vertex.xyz;

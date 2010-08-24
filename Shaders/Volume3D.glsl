@@ -37,17 +37,17 @@
 uniform sampler3D texVolume;  ///< the data volume
 uniform sampler1D texTrans1D; ///< the 1D Transfer function
 
-vec4 sampleVolume(vec3 coords){
-	return texture3D(texVolume, coords);
+vec4 sampleVolume(vec3 coords) {
+  return texture3D(texVolume, coords);
 }
 
 vec3 ComputeGradient(vec3 vCenter, vec3 StepSize) {
-  float fVolumValXp = sampleVolume( vCenter+vec3(+StepSize.x,0,0)).x;
-  float fVolumValXm = sampleVolume( vCenter+vec3(-StepSize.x,0,0)).x;
-  float fVolumValYp = sampleVolume( vCenter+vec3(0,-StepSize.y,0)).x;
-  float fVolumValYm = sampleVolume( vCenter+vec3(0,+StepSize.y,0)).x;
-  float fVolumValZp = sampleVolume( vCenter+vec3(0,0,+StepSize.z)).x;
-  float fVolumValZm = sampleVolume( vCenter+vec3(0,0,-StepSize.z)).x;
+  float fVolumValXp = sampleVolume(vCenter+vec3(+StepSize.x,0,0)).x;
+  float fVolumValXm = sampleVolume(vCenter+vec3(-StepSize.x,0,0)).x;
+  float fVolumValYp = sampleVolume(vCenter+vec3(0,-StepSize.y,0)).x;
+  float fVolumValYm = sampleVolume(vCenter+vec3(0,+StepSize.y,0)).x;
+  float fVolumValZp = sampleVolume(vCenter+vec3(0,0,+StepSize.z)).x;
+  float fVolumValZm = sampleVolume(vCenter+vec3(0,0,-StepSize.z)).x;
   return vec3(fVolumValXm - fVolumValXp,
               fVolumValYp - fVolumValYm,
               fVolumValZm - fVolumValZp) / 2.0;

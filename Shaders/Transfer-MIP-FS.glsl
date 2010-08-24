@@ -44,7 +44,7 @@ void main(void){
   vec2 fVLastVal = texture2D(texLast,  gl_TexCoord[0].xy).xw;
 
   // apply 1D transfer function but ignore opacity
-	if (fVLastVal.y > 0.5)  // this is a "very robust" float test for fVLastVal.y == 1 && fVLastVal.y != 0
+  if (fVLastVal.y > 0.5)  // this is a "very robust" float test for fVLastVal.y == 1 && fVLastVal.y != 0
     gl_FragColor = vec4(texture1D(texTrans1D, fVLastVal.x*fTransScale).rgb,1.0);
   else
     gl_FragColor = vec4(0.0,0.0,0.0,1.0);

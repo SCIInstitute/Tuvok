@@ -40,17 +40,17 @@ uniform sampler2D texSlice1;
 uniform sampler1D texTrans1D; ///< the 1D Transfer function
 
 vec4 sampleVolume(vec3 coords){
-	vec4 v0 = texture2D(texSlice0, coords.xy);
-	vec4 v1 = texture2D(texSlice1, coords.xy);
-	
-	return (1.0-coords.z) * v0 + coords.z * v1;
+  vec4 v0 = texture2D(texSlice0, coords.xy);
+  vec4 v1 = texture2D(texSlice1, coords.xy);
+
+  return (1.0-coords.z) * v0 + coords.z * v1;
 }
 
 vec3 ComputeGradient(vec3 vCenter, vec3 StepSize) {
-  float fVolumValXp = sampleVolume( vCenter+vec3(+StepSize.x,0,0)).x;
-  float fVolumValXm = sampleVolume( vCenter+vec3(-StepSize.x,0,0)).x;
-  float fVolumValYp = sampleVolume( vCenter+vec3(0,-StepSize.y,0)).x;
-  float fVolumValYm = sampleVolume( vCenter+vec3(0,+StepSize.y,0)).x;
+  float fVolumValXp = sampleVolume(vCenter+vec3(+StepSize.x,0,0)).x;
+  float fVolumValXm = sampleVolume(vCenter+vec3(-StepSize.x,0,0)).x;
+  float fVolumValYp = sampleVolume(vCenter+vec3(0,-StepSize.y,0)).x;
+  float fVolumValYm = sampleVolume(vCenter+vec3(0,+StepSize.y,0)).x;
 
   float t = vCenter.z;
 

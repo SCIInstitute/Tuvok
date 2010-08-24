@@ -60,7 +60,6 @@ void main(void)
   vec3  vRayEntry    = texture2D(texRayExitPos, vFragCoords).xyz;
   vec3  vRayExit     = vEyePos;
   if (ClipByPlane(vRayEntry, vRayExit, vClipPlane)) {
-
     vec3  vRayEntryTex = (gl_TextureMatrix[0] * vec4(vRayEntry,1.0)).xyz;
     vec3  vRayExitTex  = (gl_TextureMatrix[0] * vec4(vRayExit,1.0)).xyz;
     float fRayLength   = length(vRayExit - vRayEntry);

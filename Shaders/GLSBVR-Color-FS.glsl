@@ -49,7 +49,7 @@ vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
 void main(void)
 {
   /// get volume value
-	vec4 fVolumVal = sampleVolume( gl_TexCoord[0].xyz);	
+  vec4 fVolumVal = sampleVolume(gl_TexCoord[0].xyz);
 
   // if we hit (or shot over) an isosurface
   if (fVolumVal.a >= fIsoval) {
@@ -58,7 +58,7 @@ void main(void)
 
     // store normal and green and blue channel
     gl_FragData[1] = vec4(ComputeNormal(gl_TexCoord[0].xyz, vVoxelStepsize,
-						  vDomainScale),
+                                        vDomainScale),
                           floor(fVolumVal.g * 512.0) + fVolumVal.b);
   } else {
     discard;

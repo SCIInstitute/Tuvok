@@ -49,18 +49,19 @@ varying vec3 vPosition;
 void main(void)
 {
   /// get volume value
-	vec4 fVolumVal = sampleVolume( gl_TexCoord[0].xyz);	
+  vec4 fVolumVal = sampleVolume(gl_TexCoord[0].xyz);
 
   // if we hit (or shot over) an isosurface
   if (fVolumVal.a >= fIsoval) {
     // compute the gradient/normal
-	float fVolumValXp = sampleVolume( gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).a;
-	float fVolumValXm = sampleVolume( gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).a;
-	float fVolumValYp = sampleVolume( gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).a;
-	float fVolumValYm = sampleVolume( gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).a;
-	float fVolumValZp = sampleVolume( gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).a;
-	float fVolumValZm = sampleVolume( gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).a;
-    vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm, fVolumValZm-fVolumValZp);
+    float fVolumValXp = sampleVolume(gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).a;
+    float fVolumValXm = sampleVolume(gl_TexCoord[0].xyz+vec3(-vVoxelStepsize.x,0,0)).a;
+    float fVolumValYp = sampleVolume(gl_TexCoord[0].xyz+vec3(0,-vVoxelStepsize.y,0)).a;
+    float fVolumValYm = sampleVolume(gl_TexCoord[0].xyz+vec3(0,+vVoxelStepsize.y,0)).a;
+    float fVolumValZp = sampleVolume(gl_TexCoord[0].xyz+vec3(0,0,+vVoxelStepsize.z)).a;
+    float fVolumValZm = sampleVolume(gl_TexCoord[0].xyz+vec3(0,0,-vVoxelStepsize.z)).a;
+    vec3  vGradient = vec3(fVolumValXm-fVolumValXp, fVolumValYp-fVolumValYm,
+                           fVolumValZm-fVolumValZp);
 
     // compute lighting
     vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
@@ -71,7 +72,7 @@ void main(void)
                        fVolumVal.rgb*clamp(abs(dot(vNormal, -vLightDir)),0.0,1.0);
 
     /// write result to fragment color
-	  gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0);
+    gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0);
   } else {
     discard;
   }

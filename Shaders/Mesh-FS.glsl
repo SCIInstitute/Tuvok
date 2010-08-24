@@ -50,7 +50,7 @@ varying vec4 position;
 void main(void)
 {
   vec3 pos = position.xyz / position.w;
-  
+
   if (normal == vec3(2,2,2)) {
     gl_FragColor = TraversalOrderDepColor(gl_Color);
   } else {

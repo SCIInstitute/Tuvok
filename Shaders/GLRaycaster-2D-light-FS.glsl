@@ -58,9 +58,7 @@ bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
                  in vec4 clip_plane);
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
-              
 vec3 ComputeGradient(vec3 vCenter, vec3 StepSize);
-
 vec4 ColorBlend(vec4 src, vec4 dst);
 
 void main(void)
@@ -91,14 +89,14 @@ void main(void)
     vec3  vCurrentPosTex = vRayEntryTex;
     vec3  vCurrentPos    = vRayEntry;
     for (int i = 0;i<iStepCount;i++) {
-      float fVolumVal = sampleVolume( vCurrentPosTex).x;	
+      float fVolumVal = sampleVolume( vCurrentPosTex).x;
 
       // compute the gradient/normal
       vec3  vGradient = ComputeGradient(vCurrentPosTex, vVoxelStepsize);
       float fGradientMag = length(vGradient);
 
       // apply 2D transfer function
-	  vec4  vTransVal = texture2D(texTrans2D, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
+      vec4  vTransVal = texture2D(texTrans2D, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
 
       // compute lighting
       vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);

@@ -52,17 +52,17 @@ uniform vec3 vCVParam;         ///< X = m_fCVSize / Y = m_fCVContextScale / Z = 
 uniform vec3 vCVPickPos;       ///< 3D position under the mouse
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient, vec3 vLightDiffuse, vec3 vLightSpecular) {
-	vNormal.z = abs(vNormal.z);
+  vNormal.z = abs(vNormal.z);
 
-	vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
-	vec3 vReflection = normalize(reflect(vViewDir, vNormal));
-	return clamp(vLightAmbient+
-		   vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
-		   vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0), 0.0,1.0);
+  vec3 vViewDir    = normalize(vec3(0.0,0.0,0.0)-vPosition);
+  vec3 vReflection = normalize(reflect(vViewDir, vNormal));
+  return clamp(vLightAmbient+
+               vLightDiffuse*max(abs(dot(vNormal, -vLightDir)),0.0)+
+               vLightSpecular*pow(max(dot(vReflection, vLightDir),0.0),8.0), 0.0,1.0);
 }
 
 
-void main(void){
+void main(void) {
   // compute the coordinates to look up the previous pass
   vec2 vFragCoords = vec2(gl_FragCoord.x / vScreensize.x , gl_FragCoord.y / vScreensize.y);
 
@@ -86,14 +86,14 @@ void main(void){
 
   // estimate the curvature of the context surface
   float fCurvatureEstimate = length(
-								  abs(texture2D(texRayHitNormal,vFragCoords+vec2(+1.0/vScreensize.x,0.0)).xyz-vNormal.xyz) +
-								  abs(texture2D(texRayHitNormal,vFragCoords+vec2(-1.0/vScreensize.x,0.0)).xyz-vNormal.xyz) +
-								  abs(texture2D(texRayHitNormal,vFragCoords+vec2(0.0,+1.0/vScreensize.y)).xyz-vNormal.xyz) +
-								  abs(texture2D(texRayHitNormal,vFragCoords+vec2(0.0,-1.0/vScreensize.y)).xyz-vNormal.xyz)
-									  );
+    abs(texture2D(texRayHitNormal,vFragCoords+vec2(+1.0/vScreensize.x,0.0)).xyz-vNormal.xyz) +
+    abs(texture2D(texRayHitNormal,vFragCoords+vec2(-1.0/vScreensize.x,0.0)).xyz-vNormal.xyz) +
+    abs(texture2D(texRayHitNormal,vFragCoords+vec2(0.0,+1.0/vScreensize.y)).xyz-vNormal.xyz) +
+    abs(texture2D(texRayHitNormal,vFragCoords+vec2(0.0,-1.0/vScreensize.y)).xyz-vNormal.xyz)
+  );
 
   float fDistWeight  = length(vPosition.xyz-vCVPickPos) * vCVParam.x;
-  float blendFac = clamp(max(fCurvatureEstimate * vCVParam.y, clamp(fDistWeight,0.0,1.0)), 0.0,1.0);	
+  float blendFac = clamp(max(fCurvatureEstimate * vCVParam.y, clamp(fDistWeight,0.0,1.0)), 0.0,1.0);
 
   vec4 vFocusColor = vec4(0,0,0,0);
   if (vPosition2.a != 0.0) {
