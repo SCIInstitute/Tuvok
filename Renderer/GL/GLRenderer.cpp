@@ -473,6 +473,8 @@ bool GLRenderer::Paint() {
   // onto the screen.  This makes resizing more responsive.  We'll schedule a
   // complete redraw after, no worries.
   if (m_bFirstDrawAfterResize) {
+    m_bFirstDrawAfterResize = false;
+
     CreateOffscreenBuffers();
     CreateDepthStorage();
     StartFrame();
@@ -501,7 +503,6 @@ bool GLRenderer::Paint() {
       m_pMasterController->MemMan()->FreeFBO(m_pFBOResizeQuickBlit);
       m_pFBOResizeQuickBlit = NULL;
     }
-    m_bFirstDrawAfterResize = false;
   } else {
     StartFrame();
 

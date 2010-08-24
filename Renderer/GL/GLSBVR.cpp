@@ -387,6 +387,15 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
                             size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
   
+  if (m_iBricksRenderedInThisSubFrame == 0 && !m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE){
+    m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (m_bDoClearView) {
+      m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+  }
+
   if (!m_bSupportsMeshes && b.bIsEmpty) return;
 
   // setup the slice generator
@@ -418,7 +427,6 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
   if (!m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
-    if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     SetBrickDepShaderVars(b);
     
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
@@ -429,7 +437,6 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
     if (m_bDoClearView) {
       m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
 
-      if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       m_pProgramIso->Enable();
       m_pProgramIso->SetUniformVector("fIsoval", static_cast<float>
                                                  (GetNormalizedCVIsovalue()));

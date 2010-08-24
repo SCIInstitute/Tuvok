@@ -418,6 +418,16 @@ void GLRaycaster::Render3DPreLoop(const RenderRegion3D &) {
 void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
                                  size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
+
+  if (m_iBricksRenderedInThisSubFrame == 0 && m_eRenderMode == RM_ISOSURFACE){
+    m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (m_bDoClearView) {
+      m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+  }
+
   if (b.bIsEmpty) return;
 
   glDisable(GL_BLEND);
@@ -447,7 +457,6 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
 
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
 
-    if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
     shader->Enable();
     SetBrickDepShaderVars(renderRegion, b, iCurrentBrick);
@@ -460,7 +469,6 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
     if (m_bDoClearView) {
       m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
 
-      if (m_iBricksRenderedInThisSubFrame == 0) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       m_pProgramIso2->Enable();
       m_pFBORayEntry->Read(2);
       m_pFBOIsoHit[iStereoID]->Read(4, 0);
