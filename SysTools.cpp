@@ -84,7 +84,7 @@ namespace SysTools {
         string cleanBuf = buf;
         if (cleanBuf[0] == '\"')
           cleanBuf = cleanBuf.substr(1, cleanBuf.length()-1);
-        if (cleanBuf[cleanBuf.size()-1] == '\"')
+        if (!cleanBuf.empty() && cleanBuf[cleanBuf.size()-1] == '\"')
           cleanBuf = cleanBuf.substr(0, cleanBuf.length()-1);
 
         if (bProtected) {
