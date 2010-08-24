@@ -71,7 +71,7 @@ class GPUMemMan {
     void FreeAssociatedTextures(Dataset* pDataset);
     void FreeDataset(Dataset* pVolumeDataset, AbstrRenderer* requester);
 
-    void Changed1DTrans(AbstrRenderer* requester,
+    void Changed1DTrans(const AbstrRenderer* requester,
                         TransferFunction1D* pTransferFunction1D);
     void GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
                          TransferFunction1D** ppTransferFunction1D,
@@ -86,9 +86,9 @@ class GPUMemMan {
     GLTexture1D* Access1DTrans(TransferFunction1D* pTransferFunction1D,
                                AbstrRenderer* requester);
     void Free1DTrans(TransferFunction1D* pTransferFunction1D,
-                     AbstrRenderer* requester);
+                     const AbstrRenderer* requester);
 
-    void Changed2DTrans(AbstrRenderer* requester,
+    void Changed2DTrans(const AbstrRenderer* requester,
                         TransferFunction2D* pTransferFunction2D);
     void GetEmpty2DTrans(const VECTOR2<size_t>& vSize,
                          AbstrRenderer* requester,
@@ -101,7 +101,7 @@ class GPUMemMan {
     GLTexture2D* Access2DTrans(TransferFunction2D* pTransferFunction2D,
                                AbstrRenderer* requester);
     void Free2DTrans(TransferFunction2D* pTransferFunction2D,
-                     AbstrRenderer* requester);
+                     const AbstrRenderer* requester);
 
     GLTexture2D* Load2DTextureFromFile(const std::string& strFilename);
     void FreeTexture(GLTexture2D* pTexture);
@@ -149,7 +149,7 @@ class GPUMemMan {
     SimpleTextureList m_vpSimpleTextures;
     Trans1DList       m_vpTrans1DList;
     Trans2DList       m_vpTrans2DList;
-    GLVolumeList     m_vpTex3DList;
+    GLVolumeList      m_vpTex3DList;
     FBOList           m_vpFBOList;
     GLSLList          m_vpGLSLList;
     MasterController* m_MasterController;

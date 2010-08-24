@@ -92,7 +92,8 @@ GPUMemMan::~GPUMemMan() {
   // active debug output anyway.  This works because we know that the debug
   // outputs will be deleted last -- after the memory manager.
   AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
-  for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
+  for (VolDataListIter i = m_vpVolumeDatasets.begin();
+       i < m_vpVolumeDatasets.end(); ++i) {
     try {
       dbg.Warning(_func_, "Detected unfreed dataset %s.",
                   dynamic_cast<FileBackedDataset&>
@@ -103,7 +104,8 @@ GPUMemMan::~GPUMemMan() {
     delete i->pVolumeDataset;
   }
 
-  for (SimpleTextureListIter i = m_vpSimpleTextures.begin();i<m_vpSimpleTextures.end();i++) {
+  for (SimpleTextureListIter i = m_vpSimpleTextures.begin();
+       i < m_vpSimpleTextures.end(); ++i) {
     dbg.Warning(_func_, "Detected unfreed SimpleTexture %s.",
                 i->strFilename.c_str());
 
@@ -113,7 +115,8 @@ GPUMemMan::~GPUMemMan() {
     delete i->pTexture;
   }
 
-  for (Trans1DListIter i = m_vpTrans1DList.begin();i<m_vpTrans1DList.end();i++) {
+  for (Trans1DListIter i = m_vpTrans1DList.begin();
+       i < m_vpTrans1DList.end(); ++i) {
     dbg.Warning(_func_, "Detected unfreed 1D Transferfunction.");
 
     m_iAllocatedGPUMemory -= i->pTexture->GetGPUSize();
@@ -123,7 +126,8 @@ GPUMemMan::~GPUMemMan() {
     delete i->pTransferFunction1D;
   }
 
-  for (Trans2DListIter i = m_vpTrans2DList.begin();i<m_vpTrans2DList.end();i++) {
+  for (Trans2DListIter i = m_vpTrans2DList.begin();
+       i < m_vpTrans2DList.end(); ++i) {
     dbg.Warning(_func_, "Detected unfreed 2D Transferfunction.");
 
     m_iAllocatedGPUMemory -= i->pTexture->GetGPUSize();
@@ -133,7 +137,8 @@ GPUMemMan::~GPUMemMan() {
     delete i->pTransferFunction2D;
   }
 
-  for (GLVolumeListIter i = m_vpTex3DList.begin();i<m_vpTex3DList.end();i++) {
+  for (GLVolumeListIter i = m_vpTex3DList.begin();
+       i < m_vpTex3DList.end(); ++i) {
     dbg.Warning(_func_, "Detected unfreed 3D texture.");
 
     m_iAllocatedGPUMemory -= (*i)->pGLVolume->GetGPUSize();
@@ -142,7 +147,8 @@ GPUMemMan::~GPUMemMan() {
     delete (*i);
   }
 
-  for (FBOListIter i = m_vpFBOList.begin();i<m_vpFBOList.end();i++) {
+  for (FBOListIter i = m_vpFBOList.begin();
+       i < m_vpFBOList.end(); ++i) {
     dbg.Warning(_func_, "Detected unfreed FBO.");
 
     m_iAllocatedGPUMemory -= (*i)->pFBOTex->GetGPUSize();
@@ -151,7 +157,8 @@ GPUMemMan::~GPUMemMan() {
     delete (*i);
   }
 
-  for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
+  for (GLSLListIter i = m_vpGLSLList.begin();
+       i < m_vpGLSLList.end(); ++i) {
     dbg.Warning(_func_, "Detected unfreed GLSL program.");
 
     m_iAllocatedGPUMemory -= (*i)->pGLSLProgram->GetGPUSize();
@@ -183,7 +190,8 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
   // We could make the list be composed only of FileBackedDatasets.
   // Eventually we'd like to do dataset caching for any client though,
   // not just ImageVis3D.
-  for (VolDataListIter i = m_vpVolumeDatasets.begin();i<m_vpVolumeDatasets.end();i++) {
+  for (VolDataListIter i = m_vpVolumeDatasets.begin();
+       i < m_vpVolumeDatasets.end(); ++i) {
     // Given the above, this cast is guaranteed to succeed.
     FileBackedDataset *dataset = dynamic_cast<FileBackedDataset*>
                                              (i->pVolumeDataset);
@@ -201,10 +209,9 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
   /// @todo fixme: just use `Dataset's here; instead of explicitly doing the
   /// IsOpen check, below, just rely on an exception being thrown.
   // false: assume the file has already been verified
-  FileBackedDataset* dataset = dynamic_cast<FileBackedDataset*>
-                                           (mgr.CreateDataset(strFilename,
-                                                              mgr.GetMaxBrickSize(),
-                                                              false));
+  FileBackedDataset* dataset = dynamic_cast<FileBackedDataset*>(
+    mgr.CreateDataset(strFilename, mgr.GetMaxBrickSize(), false)
+  );
 
   // We might not need this check anymore; CreateDataset should throw an
   // exception, and we'll never get here, if opening fails.
@@ -288,7 +295,8 @@ void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
 // ******************** Simple Textures
 
 GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
-  for (SimpleTextureListIter i = m_vpSimpleTextures.begin();i<m_vpSimpleTextures.end();i++) {
+  for (SimpleTextureListIter i = m_vpSimpleTextures.begin();
+       i < m_vpSimpleTextures.end(); ++i) {
     if (i->strFilename == strFilename) {
       MESSAGE("Reusing %s", strFilename.c_str());
       i->iAccessCounter++;
@@ -306,7 +314,9 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
 
   QImage glimage = QGLWidget::convertToGLFormat(image);
 
-  GLTexture2D* tex = new GLTexture2D(glimage.width(),glimage.height(), GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4, glimage.bits(), GL_LINEAR, GL_LINEAR);
+  GLTexture2D* tex = new GLTexture2D(glimage.width(),glimage.height(),
+                                     GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4,
+                                     glimage.bits(), GL_LINEAR, GL_LINEAR);
 
   m_iAllocatedGPUMemory += tex->GetGPUSize();
   m_iAllocatedCPUMemory += tex->GetCPUSize();
@@ -321,7 +331,8 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
 
 
 void GPUMemMan::FreeTexture(GLTexture2D* pTexture) {
-  for (SimpleTextureListIter i = m_vpSimpleTextures.begin();i<m_vpSimpleTextures.end();i++) {
+  for (SimpleTextureListIter i = m_vpSimpleTextures.begin();
+       i < m_vpSimpleTextures.end(); ++i) {
     if (i->pTexture == pTexture) {
       i->iAccessCounter--;
       if (i->iAccessCounter == 0) {
@@ -333,7 +344,9 @@ void GPUMemMan::FreeTexture(GLTexture2D* pTexture) {
         i->pTexture->Delete();
         m_vpSimpleTextures.erase(i);
       } else {
-        MESSAGE("Decreased access count but the texture %s is still in use by another subsystem",i->strFilename.c_str());
+        MESSAGE("Decreased access count, "
+                "but the texture %s is still in use by another subsystem",
+                i->strFilename.c_str());
       }
       return;
     }
@@ -343,7 +356,8 @@ void GPUMemMan::FreeTexture(GLTexture2D* pTexture) {
 
 // ******************** 1D Trans
 
-void GPUMemMan::Changed1DTrans(AbstrRenderer* requester, TransferFunction1D* pTransferFunction1D) {
+void GPUMemMan::Changed1DTrans(const AbstrRenderer* requester,
+                               TransferFunction1D* pTransferFunction1D) {
   MESSAGE("Sending change notification for 1D transfer function");
 
   pTransferFunction1D->ComputeNonZeroLimits();
@@ -378,11 +392,16 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
                                             requester));
 }
 
-void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction1D** ppTransferFunction1D, GLTexture1D** tex, size_t iSize) {
+void GPUMemMan::Get1DTransFromFile(const string& strFilename,
+                                   AbstrRenderer* requester,
+                                   TransferFunction1D** ppTransferFunction1D,
+                                   GLTexture1D** tex, size_t iSize) {
   MESSAGE("Loading 1D transfer function from file");
   *ppTransferFunction1D = new TransferFunction1D(strFilename);
 
-  if (iSize != 0 && (*ppTransferFunction1D)->GetSize() != iSize) (*ppTransferFunction1D)->Resample(iSize);
+  if (iSize != 0 && (*ppTransferFunction1D)->GetSize() != iSize) {
+    (*ppTransferFunction1D)->Resample(iSize);
+  }
 
   std::vector<unsigned char> vTFData;
   (*ppTransferFunction1D)->GetByteArray(vTFData);
@@ -393,7 +412,8 @@ void GPUMemMan::Get1DTransFromFile(const string& strFilename, AbstrRenderer* req
   m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetCPUSize();
 
-  m_vpTrans1DList.push_back(Trans1DListElem(*ppTransferFunction1D, *tex, requester));
+  m_vpTrans1DList.push_back(Trans1DListElem(*ppTransferFunction1D, *tex,
+                                            requester));
 }
 
 std::pair<TransferFunction1D*, GLTexture1D*>
@@ -419,7 +439,8 @@ GPUMemMan::SetExternal1DTrans(const std::vector<unsigned char>& rgba,
   return std::make_pair(tf1d, tex);
 }
 
-GLTexture1D* GPUMemMan::Access1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRenderer* requester) {
+GLTexture1D* GPUMemMan::Access1DTrans(TransferFunction1D* pTransferFunction1D,
+                                      AbstrRenderer* requester) {
   for (Trans1DListIter i = m_vpTrans1DList.begin();i<m_vpTrans1DList.end();i++) {
     if (i->pTransferFunction1D == pTransferFunction1D) {
       MESSAGE("Accessing 1D transferfunction");
@@ -432,9 +453,11 @@ GLTexture1D* GPUMemMan::Access1DTrans(TransferFunction1D* pTransferFunction1D, A
   return NULL;
 }
 
-void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRenderer* requester) {
+void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D,
+                            const AbstrRenderer* requester) {
   AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
-  for (Trans1DListIter i = m_vpTrans1DList.begin();i<m_vpTrans1DList.end();i++) {
+  for (Trans1DListIter i = m_vpTrans1DList.begin();
+       i < m_vpTrans1DList.end(); ++i) {
     if (i->pTransferFunction1D == pTransferFunction1D) {
       for (AbstrRendererListIter j = i->qpUser.begin();j<i->qpUser.end();j++) {
         if (*j == requester) {
@@ -463,14 +486,15 @@ void GPUMemMan::Free1DTrans(TransferFunction1D* pTransferFunction1D, AbstrRender
 
 // ******************** 2D Trans
 
-void GPUMemMan::Changed2DTrans(AbstrRenderer* requester, TransferFunction2D* pTransferFunction2D) {
+void GPUMemMan::Changed2DTrans(const AbstrRenderer* requester,
+                               TransferFunction2D* pTransferFunction2D) {
   MESSAGE("Sending change notification for 2D transfer function");
 
   pTransferFunction2D->InvalidateCache();
-
   pTransferFunction2D->ComputeNonZeroLimits();
 
-  for (Trans2DListIter i = m_vpTrans2DList.begin();i<m_vpTrans2DList.end();i++) {
+  for (Trans2DListIter i = m_vpTrans2DList.begin();
+       i < m_vpTrans2DList.end(); ++i) {
     if (i->pTransferFunction2D == pTransferFunction2D) {
       for (AbstrRendererListIter j = i->qpUser.begin();j<i->qpUser.end();j++) {
         if (*j != requester) (*j)->Changed2DTrans();
@@ -499,7 +523,11 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize,
   m_vpTrans2DList.push_back(Trans2DListElem(*ppTransferFunction2D, *tex, requester));
 }
 
-void GPUMemMan::Get2DTransFromFile(const string& strFilename, AbstrRenderer* requester, TransferFunction2D** ppTransferFunction2D, GLTexture2D** tex, const VECTOR2<size_t>& vSize) {
+void GPUMemMan::Get2DTransFromFile(const string& strFilename,
+                                   AbstrRenderer* requester,
+                                   TransferFunction2D** ppTransferFunction2D,
+                                   GLTexture2D** tex,
+                                   const VECTOR2<size_t>& vSize) {
   MESSAGE("Loading 2D transfer function from file");
   *ppTransferFunction2D = new TransferFunction2D();
 
@@ -545,9 +573,10 @@ GLTexture2D* GPUMemMan::Access2DTrans(TransferFunction2D* pTransferFunction2D,
 }
 
 void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D,
-                            AbstrRenderer* requester) {
+                            const AbstrRenderer* requester) {
   AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
-  for (Trans2DListIter i = m_vpTrans2DList.begin();i<m_vpTrans2DList.end();i++) {
+  for (Trans2DListIter i = m_vpTrans2DList.begin();
+       i < m_vpTrans2DList.end(); ++i) {
     if (i->pTransferFunction2D == pTransferFunction2D) {
       for (AbstrRendererListIter j = i->qpUser.begin();j<i->qpUser.end();j++) {
         if (*j == requester) {
@@ -580,13 +609,13 @@ void GPUMemMan::Free2DTrans(TransferFunction2D* pTransferFunction2D,
 bool GPUMemMan::IsResident(const Dataset* pDataset,
                            const BrickKey& key,
                            bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
-                           bool bDisableBorder, 
+                           bool bDisableBorder,
                            bool bEmulate3DWith2DStacks) const {
   for(GLVolumeListConstIter i = m_vpTex3DList.begin();
       i < m_vpTex3DList.end(); ++i) {
     if((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                     bDownSampleTo8Bits, bDisableBorder,
-                    bEmulate3DWith2DStacks, 
+                    bEmulate3DWith2DStacks,
                     CTContext::Current())) {
       return true;
     }
@@ -701,12 +730,12 @@ void GPUMemMan::DeleteArbitraryBrick() {
 }
 
 GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
-                                     bool bUseOnlyPowerOfTwo,
-                                     bool bDownSampleTo8Bits,
-                                     bool bDisableBorder,
-                                     bool bEmulate3DWith2DStacks,
-                                     UINT64 iIntraFrameCounter,
-                                     UINT64 iFrameCounter) {
+                               bool bUseOnlyPowerOfTwo,
+                               bool bDownSampleTo8Bits,
+                               bool bDisableBorder,
+                               bool bEmulate3DWith2DStacks,
+                               UINT64 iIntraFrameCounter,
+                               UINT64 iFrameCounter) {
   // It can occur that we can create the brick in CPU memory but OpenGL must
   // perform a texture copy to obtain the texture.  If that happens, we'll
   // delete any brick and then try again.
@@ -818,15 +847,15 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
           sz[0], sz[1], sz[2], iBitWidth, iCompCount);
 
   GLVolumeListElem* pNew3DTex = new GLVolumeListElem(pDataset, key,
-                                                       bUseOnlyPowerOfTwo,
-                                                       bDownSampleTo8Bits,
-                                                       bDisableBorder,
-                                                       bEmulate3DWith2DStacks,
-                                                       iIntraFrameCounter,
-                                                       iFrameCounter,
-                                                       m_MasterController,
-                                                       CTContext::Current(),
-                                                       m_vUploadHub);
+                                                     bUseOnlyPowerOfTwo,
+                                                     bDownSampleTo8Bits,
+                                                     bDisableBorder,
+                                                     bEmulate3DWith2DStacks,
+                                                     iIntraFrameCounter,
+                                                     iFrameCounter,
+                                                     m_MasterController,
+                                                     CTContext::Current(),
+                                                     m_vUploadHub);
   if (pNew3DTex->pGLVolume == NULL) {
     T_ERROR("Failed to create OpenGL resource for volume.");
     delete pNew3DTex;
@@ -930,7 +959,8 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
     size_t iIndex = 0;
     size_t iBestIndex = 0;
 
-    for (GLVolumeListIter i = m_vpTex3DList.begin()+1;i<m_vpTex3DList.end();i++) {
+    for (GLVolumeListIter i = m_vpTex3DList.begin()+1;
+         i < m_vpTex3DList.end(); ++i) {
       UINT64 iTargetFrameCounter = UINT64_INVALID;
       UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
       (*i)->GetCounters(iTargetIntraFrameCounter, iTargetFrameCounter);
@@ -956,7 +986,7 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
   FBOListElem* e = new FBOListElem(m_MasterController, minfilter, magfilter,
                                    wrapmode, width, height, intformat,
                                    iSizePerElement, bHaveDepth, iNumBuffers);
-  
+
   // clear the buffer, on some GPUs new FBOs are not zeroed out
   e->pFBOTex->Write();
   glClearColor(0,0,0,0);
