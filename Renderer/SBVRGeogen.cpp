@@ -93,8 +93,6 @@ float SBVRGeogen::GetOpacityCorrection() const {
 }
 
 
-// Should be called after updating the world or view matrices.  Causes geometry
-// to be recomputed with the updated matrices.
 void SBVRGeogen::MatricesUpdated()
 {
   FLOATMATRIX4 maBricktTrans;
