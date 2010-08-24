@@ -126,8 +126,8 @@ GPUMemMan::~GPUMemMan() {
   for (Trans2DListIter i = m_vpTrans2DList.begin();i<m_vpTrans2DList.end();i++) {
     dbg.Warning(_func_, "Detected unfreed 2D Transferfunction.");
 
-    m_iAllocatedGPUMemory -= i->pTexture->GetCPUSize();
-    m_iAllocatedCPUMemory -= i->pTexture->GetGPUSize();
+    m_iAllocatedGPUMemory -= i->pTexture->GetGPUSize();
+    m_iAllocatedCPUMemory -= i->pTexture->GetCPUSize();
 
     delete i->pTexture;
     delete i->pTransferFunction2D;
