@@ -1055,7 +1055,7 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
     return false;
   }
 
-  UINT64VECTOR3 vDomainSize = pSourceData->GetDomainSize(iLODlevel);
+  UINT64VECTOR3 vDomainSize = pSourceData->GetDomainSize(size_t(iLODlevel));
 
   if (bFloatingPoint) {
     if (bSigned) {
