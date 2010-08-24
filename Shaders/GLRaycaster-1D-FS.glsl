@@ -49,6 +49,7 @@ varying vec3 vEyePos;
 bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
                  in vec4 clip_plane);
 vec4 ColorBlend(vec4 src, vec4 dst);
+vec4 VRender1D(const vec3 pos, in float tfqn_scale, in float opac);
 
 void main(void)
 {
@@ -72,15 +73,8 @@ void main(void)
     vec4  vColor = vec4(0.0,0.0,0.0,0.0);
     vec3  vCurrentPosTex = vRayEntryTex;
     for (int i = 0;i<iStepCount;i++) {
-      float fVolumVal = sampleVolume( vCurrentPosTex).x;	
-
-      /// apply 1D transfer function
-	  vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
-
-      /// apply opacity correction
-      vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
-
-      vColor = ColorBlend(vTransVal,vColor);
+      vColor = ColorBlend(VRender1D(vCurrentPosTex, fTransScale, fStepScale),
+                          vColor);
 
       if (vColor.a >= 0.99) break;
 

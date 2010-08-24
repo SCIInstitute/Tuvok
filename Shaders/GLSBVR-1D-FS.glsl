@@ -41,6 +41,7 @@ uniform float fStepScale;     ///< opacity correction quotient
 #endif
 
 vec4 sampleVolume(vec3 coords);
+vec4 VRender1D(const vec3 pos, in float tfqn_scale, in float opac);
 
 /* bias and scale method for mapping a TF to a value. */
 vec4 bias_scale(const float bias, const float scale)
@@ -65,12 +66,8 @@ void main(void)
   vec4 vTransVal = bit_width(fTransScale);
 #endif
 
-  // opacity correction
-  vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
+  gl_FragColor = VRender1D(gl_TexCoord[0].xyz, fTransScale, fStepScale);
 
   // premultiply color with alpha
-  vTransVal.xyz *= vTransVal.a;
-
-  gl_FragColor = vTransVal;
+  gl_FragColor.xyz *= gl_FragColor.a;
 }
-
