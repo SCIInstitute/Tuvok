@@ -95,4 +95,3 @@ void main(void)
 
   gl_FragColor = TraversalOrderDepColor(gl_FragColor);
 }
-

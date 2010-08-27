@@ -483,6 +483,9 @@ class AbstrRenderer {
     virtual void        UpdateLightParamsInShaders() = 0;
     virtual void        CVFocusHasChanged(const RenderRegion &);
 
+    /// @returns if the data we're rendering is RGBA or not.
+    virtual bool RGBAData() const;
+
   protected:
     MasterController*   m_pMasterController;
     ERenderMode         m_eRenderMode;

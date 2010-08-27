@@ -112,64 +112,69 @@ bool GLRaycaster::Initialize() {
    shaderNames[6] = "GLRaycaster-ISO-FS.glsl";
   }
 
+  const std::string tfqn = m_pDataset
+                           ? m_pDataset->GetComponentCount() == 4
+                              ? "vr-no-tfqn.glsl"
+                              : "vr-std.glsl"
+                           : "vr-std.glsl";
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
-                          NULL) ||
+                          tfqn.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNT, m_vShaderSearchDirs,
                           "GLRaycasterNoTransform-VS.glsl",
                           NULL,
                           "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
-                          NULL) ||
+                          tfqn.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           shaderNames[0],  NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           shaderNames[1], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           shaderNames[2], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           shaderNames[3], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           shaderNames[6], NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           shaderNames[4], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           shaderNames[5], NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           "GLRaycaster-MIP-Rot-FS.glsl",
                           NULL))
   {

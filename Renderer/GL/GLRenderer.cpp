@@ -199,11 +199,17 @@ bool GLRenderer::Initialize() {
 
   glGenBuffers(1, &m_GeoBuffer);
 
-
   return LoadShaders();
 }
 
 bool GLRenderer::LoadShaders() {
+  const std::string tfqn = m_pDataset
+                           ? m_pDataset->GetComponentCount() == 4
+                              ? "vr-no-tfqn.glsl"
+                              : "vr-std.glsl"
+                           : "vr-std.glsl";
+  MESSAGE("Loading '%s' volume rendering...", tfqn.c_str());
+
   if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
@@ -1725,17 +1731,23 @@ void GLRenderer::SetDataDepShaderVars() {
   MESSAGE("Gradient scaling factor: %5.3f", fGradientScale);
 
   m_pProgramTransMIP->Enable();
-  m_pProgramTransMIP->SetUniformVector("fTransScale",fScale);
+  // If we're rendering RGBA data, we don't scale the TFqn... because we
+  // don't even use a TFqn.
+  if(!this->RGBAData()) {
+    m_pProgramTransMIP->SetUniformVector("fTransScale",fScale);
+  }
   switch (m_eRenderMode) {
     case RM_1DTRANS: {
-      m_pProgram1DTransSlice->Enable();
-      m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
+      if(!this->RGBAData()) {
+        m_pProgram1DTransSlice->Enable();
+        m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
 
-      m_pProgram1DTransSlice3D->Enable();
-      m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
+        m_pProgram1DTransSlice3D->Enable();
+        m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
 
-      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+        m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
+        m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+      }
       break;
     }
     case RM_2DTRANS: {
@@ -2561,18 +2573,20 @@ void GLRenderer::ScanForNewMeshes() {
 }
 
 bool GLRenderer::LoadDataset(const string& strFilename) {
-  if (AbstrRenderer::LoadDataset(strFilename)) {
-    if (m_pProgram1DTrans[0] != NULL) SetDataDepShaderVars();
+  if(!AbstrRenderer::LoadDataset(strFilename)) {
+    return false;
+  }
 
-    // convert meshes in dataset to RenderMeshes
-    const vector<Mesh*>& meshVec = m_pDataset->GetMeshes();
-    for (vector<Mesh*>::const_iterator mesh = meshVec.begin();
-         mesh != meshVec.end(); mesh++) {
-      m_Meshes.push_back(new RenderMeshGL(**mesh));
-    }
+  if (m_pProgram1DTrans[0] != NULL) SetDataDepShaderVars();
 
-    return true;
-  } else return false;
+  // convert meshes in dataset to RenderMeshes
+  const vector<Mesh*>& meshVec = m_pDataset->GetMeshes();
+  for (vector<Mesh*>::const_iterator mesh = meshVec.begin();
+       mesh != meshVec.end(); mesh++) {
+    m_Meshes.push_back(new RenderMeshGL(**mesh));
+  }
+
+  return true;
 }
 
 void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {

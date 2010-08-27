@@ -91,63 +91,69 @@ bool GLSBVR::LoadShaders() {
     return false;
   }
 
+  const std::string tfqn = m_pDataset
+                           ? m_pDataset->GetComponentCount() == 4
+                              ? "vr-no-tfqn.glsl"
+                              : "vr-std.glsl"
+                           : "vr-std.glsl";
+
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
                           "GLSBVR-1D-FS.glsl",
-                          "Volume3D.glsl", NULL) ||
+                          "Volume3D.glsl", tfqn.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "GLSBVR-2D-FS.glsl",
+                          "GLSBVR-2D-FS.glsl", tfqn.c_str(),
                           "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "GLSBVR-MIP-Rot-FS.glsl",
+                          "GLSBVR-MIP-Rot-FS.glsl", tfqn.c_str(),
                           "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           "GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           "GLSBVR-Color-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIsoNoCompose, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl", "Volume3D.glsl",
+                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
                           "GLSBVR-ISO-NC-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColorNoCompose, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "GLSBVR-Color-NC-FS.glsl", 
+                          "GLSBVR-Color-NC-FS.glsl", tfqn.c_str(),
                           "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransMesh[0], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
                           NULL,
                           "FTB.glsl",
                           "lighting.glsl",
-                          "GLSBVR-Mesh-1D-FS.glsl",
+                          "GLSBVR-Mesh-1D-FS.glsl", tfqn.c_str(),
                           "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransMesh[1], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
                           NULL,
                           "FTB.glsl",
-                          "lighting.glsl",
+                          "lighting.glsl", tfqn.c_str(),
                           "Volume3D.glsl", "GLSBVR-Mesh-1D-light-FS.glsl",
                           NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransMesh[0], m_vShaderSearchDirs,
@@ -155,14 +161,14 @@ bool GLSBVR::LoadShaders() {
                           NULL,
                           "FTB.glsl",
                           "lighting.glsl",
-                          "GLSBVR-Mesh-2D-FS.glsl",
+                          "GLSBVR-Mesh-2D-FS.glsl", tfqn.c_str(),
                           "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransMesh[1], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
                           NULL,
                           "FTB.glsl",
-                          "lighting.glsl", 
-                          "Volume3D.glsl", 
+                          "lighting.glsl",
+                          "Volume3D.glsl", tfqn.c_str(),
                           "GLSBVR-Mesh-2D-light-FS.glsl",
                           NULL)) {
       Cleanup();
