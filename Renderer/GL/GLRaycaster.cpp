@@ -236,34 +236,45 @@ void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D&,
 
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  {
-                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
-                            m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fRayStepsize", fRayStep);
-                            if (m_bUseLighting)
-                                m_pProgram1DTrans[1]->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
-                            break;
-                          }
+      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
+      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fRayStepsize", fRayStep);
+      if (m_bUseLighting)
+        m_pProgram1DTrans[1]->SetUniformVector("vVoxelStepsize",
+          vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
+        );
+      break;
+    }
     case RM_2DTRANS    :  {
-                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
-                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
-                            m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fRayStepsize", fRayStep);
-                            break;
-                          }
+      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
+      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("vVoxelStepsize",
+        vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
+      );
+      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fRayStepsize", fRayStep);
+      break;
+    }
     case RM_ISOSURFACE : {
-                            GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
-                            if (m_bDoClearView) {
-                              m_pProgramIso2->Enable();
-                              m_pProgramIso2->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
-                              m_pProgramIso2->SetUniformVector("fRayStepsize", fRayStep);
-                              m_pProgramIso2->SetUniformVector("iTileID", int(iCurrentBrick));
-                              shader->Enable();
-                              shader->SetUniformVector("iTileID", int(iCurrentBrick));
-                            }
-                            shader->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
-                            shader->SetUniformVector("fRayStepsize", fRayStep);
-
-                            break;
-                          }
-    case RM_INVALID    :  T_ERROR("Invalid rendermode set"); break;
+      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1)
+                              ? m_pProgramIso
+                              : m_pProgramColor;
+      if (m_bDoClearView) {
+        m_pProgramIso2->Enable();
+        m_pProgramIso2->SetUniformVector("vVoxelStepsize",
+          vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
+        );
+        m_pProgramIso2->SetUniformVector("fRayStepsize", fRayStep);
+        m_pProgramIso2->SetUniformVector("iTileID", int(iCurrentBrick));
+        shader->Enable();
+        shader->SetUniformVector("iTileID", int(iCurrentBrick));
+      }
+      shader->SetUniformVector("vVoxelStepsize",
+        vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
+      );
+      shader->SetUniformVector("fRayStepsize", fRayStep);
+      break;
+    }
+    case RM_INVALID:
+      T_ERROR("Invalid rendermode set");
+      break;
   }
 }
 

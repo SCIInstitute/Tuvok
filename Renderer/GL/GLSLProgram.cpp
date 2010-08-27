@@ -264,9 +264,15 @@ bool GLSLProgram::Initialize(void) {
       m_bGlewInitialized=true;
     }
   }
-#ifdef GLSL_DEBUG  // just in case someone wants to handle GLEW himself (by setting the static var to true) but failed to do so properly
+  // just in case someone wants to handle GLEW himself (by setting the
+  // static var to true) but failed to do so properly
+#ifdef GLSL_DEBUG
   else {
-    if (glMultiTexCoord2f==NULL) T_ERROR("GLEW must be initialized. Set GLSLProgram::m_bGlewInitialized = false in GLSLProgram.cpp if you want this class to do it for you");
+    if (glMultiTexCoord2f==NULL) {
+      T_ERROR("GLEW must be initialized.  "
+              "Set GLSLProgram::m_bGlewInitialized = false "
+              "in GLSLProgram.cpp if you want this class to do it for you");
+    }
   }
 #endif
 

@@ -51,15 +51,15 @@ using namespace tuvok;
 
 
 GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
-                                     bool bIsPaddedToPowerOfTwo,
-                                     bool bIsDownsampledTo8Bits,
-                                     bool bDisableBorder,
-                                     bool bEmulate3DWith2DStacks, 
-                                     UINT64 iIntraFrameCounter,
-                                     UINT64 iFrameCounter,
-                                     MasterController* pMasterController,
-                                     const CTContext &ctx,
-                                     std::vector<unsigned char>& vUploadHub) :
+                                    bool bIsPaddedToPowerOfTwo,
+                                    bool bIsDownsampledTo8Bits,
+                                    bool bDisableBorder,
+                                    bool bEmulate3DWith2DStacks,
+                                    UINT64 iIntraFrameCounter,
+                                    UINT64 iFrameCounter,
+                                    MasterController* pMasterController,
+                                    const CTContext &ctx,
+                                    std::vector<unsigned char>& vUploadHub) :
   pGLVolume(NULL),
   pDataset(_pDataset),
   iUserCount(1),
@@ -85,10 +85,10 @@ GLVolumeListElem::~GLVolumeListElem() {
 }
 
 bool GLVolumeListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
-                               bool bIsPaddedToPowerOfTwo,
-                               bool bIsDownsampledTo8Bits, bool bDisableBorder,
-                               bool bEmulate3DWith2DStacks, 
-                               const CTContext &cid)
+                              bool bIsPaddedToPowerOfTwo,
+                              bool bIsDownsampledTo8Bits, bool bDisableBorder,
+                              bool bEmulate3DWith2DStacks,
+                              const CTContext &cid)
 {
   if (_pDataset != pDataset ||
       m_Key != key ||
@@ -112,13 +112,13 @@ GLVolume* GLVolumeListElem::Access(UINT64& iIntraFrameCounter, UINT64& iFrameCou
 }
 
 bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
-                                  bool bIsPaddedToPowerOfTwo,
-                                  bool bIsDownsampledTo8Bits,
-                                  bool bDisableBorder,
-                                  bool bEmulate3DWith2DStacks, 
-                                  UINT64& iIntraFrameCounter,
-                                  UINT64& iFrameCounter,
-                                  const CTContext &cid)
+                                 bool bIsPaddedToPowerOfTwo,
+                                 bool bIsDownsampledTo8Bits,
+                                 bool bDisableBorder,
+                                 bool bEmulate3DWith2DStacks,
+                                 UINT64& iIntraFrameCounter,
+                                 UINT64& iFrameCounter,
+                                 const CTContext &cid)
 {
   if (!Match(vDimension) || iUserCount > 0
       || m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo
@@ -167,14 +167,14 @@ bool GLVolumeListElem::Match(const UINTVECTOR3& vDimension) {
 }
 
 bool GLVolumeListElem::Replace(Dataset* _pDataset,
-                                const BrickKey& key,
-                                bool bIsPaddedToPowerOfTwo,
-                                bool bIsDownsampledTo8Bits,
-                                bool bDisableBorder,
-                                bool bEmulate3DWith2DStacks, 
-                                UINT64 iIntraFrameCounter,
-                                UINT64 iFrameCounter, const CTContext &cid,
-                                std::vector<unsigned char>& vUploadHub) {
+                               const BrickKey& key,
+                               bool bIsPaddedToPowerOfTwo,
+                               bool bIsDownsampledTo8Bits,
+                               bool bDisableBorder,
+                               bool bEmulate3DWith2DStacks,
+                               UINT64 iIntraFrameCounter,
+                               UINT64 iFrameCounter, const CTContext &cid,
+                               std::vector<unsigned char>& vUploadHub) {
   if (pGLVolume == NULL) return false;
   if (m_Context != cid) {
     T_ERROR("Trying to replace texture in one context"
@@ -197,7 +197,7 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
     return false;
   }
   while (glGetError() != GL_NO_ERROR) {};  // clear gl error flags
-  
+
   pGLVolume->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
 
   return GL_NO_ERROR==glGetError();
@@ -211,7 +211,8 @@ bool GLVolumeListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
 
   UINT64 iBrickSize = vSize[0]*vSize[1]*vSize[2]*iByteWidth * iCompCount;
 
-  if (!vUploadHub.empty() && iBrickSize <= UINT64(m_pMasterController->IOMan()->GetIncoresize()*4)) {
+  if (!vUploadHub.empty() && iBrickSize <=
+      UINT64(m_pMasterController->IOMan()->GetIncoresize()*4)) {
     m_bUsingHub = true;
     return pDataset->GetBrick(m_Key, vUploadHub);
   } else {
@@ -225,7 +226,7 @@ void  GLVolumeListElem::FreeData() {
 
 
 bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
-                                      bool bDeleteOldTexture) {
+                                     bool bDeleteOldTexture) {
   if (bDeleteOldTexture) FreeTexture();
 
   if (vData.empty()) {
@@ -264,7 +265,6 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
 
     iBitWidth = 8;
   }
-
 
   switch (iCompCount) {
     case 1 : glFormat = GL_LUMINANCE; break;
@@ -319,30 +319,28 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
       (MathTools::IsPow2(UINT32(vSize[0])) &&
        MathTools::IsPow2(UINT32(vSize[1])) &&
        MathTools::IsPow2(UINT32(vSize[2])))) {
+    GLenum clamp = m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP;
 
     if (m_bEmulate3DWith2DStacks) {
       pGLVolume = new GLVolume2DTex(UINT32(vSize[0]), UINT32(vSize[1]),
-                                UINT32(vSize[2]),
-                                glInternalformat, glFormat, glType,
-                                UINT32(iBitWidth/8*iCompCount), pRawData,
-                                GL_LINEAR, GL_LINEAR,
-                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+                                    UINT32(vSize[2]),
+                                    glInternalformat, glFormat, glType,
+                                    UINT32(iBitWidth/8*iCompCount), pRawData,
+                                    GL_LINEAR, GL_LINEAR,
+                                    clamp, clamp, clamp);
     } else {
       pGLVolume = new GLVolume3DTex(UINT32(vSize[0]), UINT32(vSize[1]),
-                                UINT32(vSize[2]),
-                                glInternalformat, glFormat, glType,
-                                UINT32(iBitWidth/8*iCompCount), pRawData,
-                                GL_LINEAR, GL_LINEAR,
-                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+                                    UINT32(vSize[2]),
+                                    glInternalformat, glFormat, glType,
+                                    UINT32(iBitWidth/8*iCompCount), pRawData,
+                                    GL_LINEAR, GL_LINEAR,
+                                    clamp, clamp, clamp);
     }
   } else {
     // pad the data to a power of two
-    UINTVECTOR3 vPaddedSize(MathTools::NextPow2(UINT32(vSize[0])), MathTools::NextPow2(UINT32(vSize[1])), MathTools::NextPow2(UINT32(vSize[2])));
-
+    UINTVECTOR3 vPaddedSize(MathTools::NextPow2(UINT32(vSize[0])),
+                            MathTools::NextPow2(UINT32(vSize[1])),
+                            MathTools::NextPow2(UINT32(vSize[2])));
     size_t iTarget = 0;
     size_t iSource = 0;
     size_t iElementSize = static_cast<size_t>(iBitWidth/8*iCompCount);
@@ -383,7 +381,9 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     // if the z sizes differ, duplicate the last element to make the texture
     // behave like clamp
     if (!m_bDisableBorder && vPaddedSize[2] > vSize[2]) {
-      memcpy(pPaddedData+iTarget, pPaddedData+(iTarget-vPaddedSize[1]*iRowSizeTarget), vPaddedSize[1]*iRowSizeTarget);
+      memcpy(pPaddedData+iTarget,
+             pPaddedData+(iTarget-vPaddedSize[1]*iRowSizeTarget),
+             vPaddedSize[1]*iRowSizeTarget);
     }
 
     MESSAGE("Actually creating new texture %u x %u x %u, bitsize=%llu, "
@@ -421,5 +421,4 @@ void GLVolumeListElem::FreeTexture() {
     delete pGLVolume;
     pGLVolume = NULL;
   }
-
 }
