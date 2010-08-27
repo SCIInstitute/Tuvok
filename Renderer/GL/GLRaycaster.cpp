@@ -121,11 +121,13 @@ bool GLRaycaster::Initialize() {
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
+                          "lighting.glsl",
                           "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
                           tfqn.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNT, m_vShaderSearchDirs,
                           "GLRaycasterNoTransform-VS.glsl",
                           NULL,
+                          "lighting.glsl",
                           "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
                           tfqn.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,

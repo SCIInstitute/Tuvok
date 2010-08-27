@@ -104,26 +104,31 @@ bool GLSBVR2D::LoadShaders() {
                           "Transfer-VS.glsl",
                           NULL,
                           tfqn.c_str(),
+                          "lighting.glsl",
                           "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
                           tfqn.c_str(),
+                          "lighting.glsl",
                           "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramMIPSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
                           tfqn.c_str(),
+                          "lighting.glsl",
                           "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
                           NULL,
                           tfqn.c_str(),
+                          "lighting.glsl",
                           "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
                           NULL,
                           tfqn.c_str(),
+                          "lighting.glsl",
                           "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramTransMIP, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
@@ -212,7 +217,7 @@ bool GLSBVR2D::LoadShaders() {
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          tfqn.c_str(),
+                          tfqn.c_str(), "lighting.glsl",
                           "GLSBVR-1D-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
@@ -224,6 +229,7 @@ bool GLSBVR2D::LoadShaders() {
                           "GLSBVR-VS.glsl",
                           NULL,
                           tfqn.c_str(),
+                          "lighting.glsl",
                           "GLSBVR-2D-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
@@ -257,6 +263,7 @@ bool GLSBVR2D::LoadShaders() {
                           "GLSBVR-VS.glsl",
                           NULL,
                           tfqn.c_str(),
+                          "lighting.glsl",
                           "GLSBVR-Color-NC-FS.glsl", volumeAccessFunction.c_str(), NULL) || 
      !LoadAndVerifyShader(&m_pProgramBBox,
                           m_vShaderSearchDirs,
