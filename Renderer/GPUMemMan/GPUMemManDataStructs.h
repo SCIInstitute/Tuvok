@@ -39,6 +39,11 @@
 #ifndef GPUMEMMANDATASTRUCTS_H
 #define GPUMEMMANDATASTRUCTS_H
 
+#ifdef _MSC_VER
+# include <array>
+#else
+# include <tr1/array>
+#endif
 #include <deque>
 #include <string>
 #include <vector>
@@ -166,18 +171,24 @@ namespace tuvok {
       iFrameCounter = m_iFrameCounter;
     }
 
+    /// Calculates the sizes for all GLVolume's we've currently got loaded.
+    ///@{
+    size_t GetGPUSize() const;
+    size_t GetCPUSize() const;
+    ///@}
+
     GLVolume* Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter);
 
     bool LoadData(std::vector<unsigned char>& vUploadHub);
-    void  FreeData();
+    void FreeData();
     bool CreateTexture(std::vector<unsigned char>& vUploadHub,
                        bool bDeleteOldTexture=true);
     void  FreeTexture();
 
-    std::vector<unsigned char> vData;
-    GLVolume*                  pGLVolume;
-    Dataset*                   pDataset;
-    UINT32                     iUserCount;
+    std::vector<unsigned char>    vData;
+    std::tr1::array<GLVolume*, 1> volumes;
+    Dataset*                      pDataset;
+    UINT32                        iUserCount;
 
     UINT64 GetIntraFrameCounter() const {return m_iIntraFrameCounter;}
     UINT64 GetFrameCounter() const {return m_iFrameCounter;}

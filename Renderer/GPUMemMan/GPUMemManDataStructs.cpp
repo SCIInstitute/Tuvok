@@ -34,8 +34,14 @@
   \date    August 2008
 */
 
+#ifdef _MSC_VER
+# include <tr1/functional>
+#else
+# include <functional>
+#endif
 #include <cstring>
 #include <new>
+#include <numeric>
 #include <typeinfo>
 #include <IO/IOManager.h>
 #include "GPUMemManDataStructs.h"
@@ -60,7 +66,6 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
                                     MasterController* pMasterController,
                                     const CTContext &ctx,
                                     std::vector<unsigned char>& vUploadHub) :
-  pGLVolume(NULL),
   pDataset(_pDataset),
   iUserCount(1),
   m_iIntraFrameCounter(iIntraFrameCounter),
@@ -74,7 +79,9 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
   m_bEmulate3DWith2DStacks(bEmulate3DWith2DStacks),
   m_bUsingHub(false)
 {
-  if (!CreateTexture(vUploadHub) && pGLVolume) {
+  // initialize the volumes to be null pointers.
+  std::fill(volumes.begin(), volumes.end(), static_cast<GLVolume*>(NULL));
+  if (!CreateTexture(vUploadHub) && volumes[0]) {
     FreeTexture();
   }
 }
@@ -108,7 +115,7 @@ GLVolume* GLVolumeListElem::Access(UINT64& iIntraFrameCounter, UINT64& iFrameCou
   m_iFrameCounter = iFrameCounter;
   iUserCount++;
 
-  return pGLVolume;
+  return volumes[0];
 }
 
 bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
@@ -150,10 +157,42 @@ bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
   return false;
 }
 
+namespace nonstd {
+  // an accumulate which follows the standard accumulate, except instead of:
+  //    result = result + *i
+  // at each iteration, it performs:
+  //    result = result + f(*i)
+  // i.e. it applies a unary op to the item iterated over.  How is this not
+  // part of the standard already??
+  template<class InputIter, typename T, class UnaryFunc>
+  T accumulate(InputIter first, InputIter last, T init, UnaryFunc uop) {
+    T rv = init;
+    for(; first != last; ++first) {
+      rv = rv + uop(*first);
+    }
+    return rv;
+  }
+}
+
+size_t GLVolumeListElem::GetGPUSize() const
+{
+  return static_cast<size_t>(nonstd::accumulate(
+    this->volumes.begin(), this->volumes.end(), 0,
+    std::tr1::mem_fn(&GLVolume::GetGPUSize))
+  );
+}
+size_t GLVolumeListElem::GetCPUSize() const
+{
+  return static_cast<size_t>(nonstd::accumulate(
+    this->volumes.begin(), this->volumes.end(), 0,
+    std::tr1::mem_fn(&GLVolume::GetCPUSize))
+  );
+}
+
 
 
 bool GLVolumeListElem::Match(const UINTVECTOR3& vDimension) {
-  if (pGLVolume == NULL) return false;
+  if(volumes.empty()) { return false; }
 
   const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
 
@@ -175,7 +214,7 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
                                UINT64 iIntraFrameCounter,
                                UINT64 iFrameCounter, const CTContext &cid,
                                std::vector<unsigned char>& vUploadHub) {
-  if (pGLVolume == NULL) return false;
+  if(volumes.empty()) { return false; }
   if (m_Context != cid) {
     T_ERROR("Trying to replace texture in one context"
             "with a texture from a second context!");
@@ -198,7 +237,7 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
   }
   while (glGetError() != GL_NO_ERROR) {};  // clear gl error flags
 
-  pGLVolume->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
+  volumes[0]->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
 
   return GL_NO_ERROR==glGetError();
 }
@@ -322,19 +361,19 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     GLenum clamp = m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP;
 
     if (m_bEmulate3DWith2DStacks) {
-      pGLVolume = new GLVolume2DTex(UINT32(vSize[0]), UINT32(vSize[1]),
-                                    UINT32(vSize[2]),
-                                    glInternalformat, glFormat, glType,
-                                    UINT32(iBitWidth/8*iCompCount), pRawData,
-                                    GL_LINEAR, GL_LINEAR,
-                                    clamp, clamp, clamp);
+      volumes[0] = new GLVolume2DTex(UINT32(vSize[0]), UINT32(vSize[1]),
+                                     UINT32(vSize[2]),
+                                     glInternalformat, glFormat, glType,
+                                     UINT32(iBitWidth/8*iCompCount), pRawData,
+                                     GL_LINEAR, GL_LINEAR,
+                                     clamp, clamp, clamp);
     } else {
-      pGLVolume = new GLVolume3DTex(UINT32(vSize[0]), UINT32(vSize[1]),
-                                    UINT32(vSize[2]),
-                                    glInternalformat, glFormat, glType,
-                                    UINT32(iBitWidth/8*iCompCount), pRawData,
-                                    GL_LINEAR, GL_LINEAR,
-                                    clamp, clamp, clamp);
+      volumes[0] = new GLVolume3DTex(UINT32(vSize[0]), UINT32(vSize[1]),
+                                     UINT32(vSize[2]),
+                                     glInternalformat, glFormat, glType,
+                                     UINT32(iBitWidth/8*iCompCount), pRawData,
+                                     GL_LINEAR, GL_LINEAR,
+                                     clamp, clamp, clamp);
     }
   } else {
     // pad the data to a power of two
@@ -392,21 +431,21 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
             iBitWidth, iCompCount);
 
     if (m_bEmulate3DWith2DStacks) {
-      pGLVolume = new GLVolume2DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
-                                 glInternalformat, glFormat, glType,
-                                 UINT32(iBitWidth/8*iCompCount), pPaddedData,
-                                 GL_LINEAR, GL_LINEAR,
-                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+      volumes[0] = new GLVolume2DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
+                                     glInternalformat, glFormat, glType,
+                                     UINT32(iBitWidth/8*iCompCount), pPaddedData,
+                                     GL_LINEAR, GL_LINEAR,
+                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
     } else {
-      pGLVolume = new GLVolume3DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
-                                 glInternalformat, glFormat, glType,
-                                 UINT32(iBitWidth/8*iCompCount), pPaddedData,
-                                 GL_LINEAR, GL_LINEAR,
-                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
-                                 m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
+      volumes[0] = new GLVolume3DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
+                                     glInternalformat, glFormat, glType,
+                                     UINT32(iBitWidth/8*iCompCount), pPaddedData,
+                                     GL_LINEAR, GL_LINEAR,
+                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
+                                     m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
     }
     delete [] pPaddedData;
   }
@@ -416,9 +455,9 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
 }
 
 void GLVolumeListElem::FreeTexture() {
-  if (pGLVolume) {
-    pGLVolume->FreeGLResources();
-    delete pGLVolume;
-    pGLVolume = NULL;
+  if (volumes[0]) {
+    volumes[0]->FreeGLResources();
+    delete volumes[0];
+    volumes[0] = NULL;
   }
 }

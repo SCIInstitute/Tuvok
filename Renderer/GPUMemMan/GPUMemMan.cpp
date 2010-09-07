@@ -141,8 +141,8 @@ GPUMemMan::~GPUMemMan() {
        i < m_vpTex3DList.end(); ++i) {
     dbg.Warning(_func_, "Detected unfreed 3D texture.");
 
-    m_iAllocatedGPUMemory -= (*i)->pGLVolume->GetGPUSize();
-    m_iAllocatedCPUMemory -= (*i)->pGLVolume->GetCPUSize();
+    m_iAllocatedGPUMemory -= (*i)->GetGPUSize();
+    m_iAllocatedCPUMemory -= (*i)->GetCPUSize();
 
     delete (*i);
   }
@@ -818,7 +818,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                              iIntraFrameCounter, iFrameCounter,
                              CTContext::Current(), m_vUploadHub);
       (*iBestMatch)->iUserCount++;
-      return (*iBestMatch)->pGLVolume;
+      return (*iBestMatch)->volumes[0];
     } else {
       // We know the brick doesn't fit in memory, and we know there's no
       // existing texture which matches enough that we could overwrite it with
@@ -856,7 +856,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                                      m_MasterController,
                                                      CTContext::Current(),
                                                      m_vUploadHub);
-  if (pNew3DTex->pGLVolume == NULL) {
+  if (pNew3DTex->volumes[0] == NULL) {
     T_ERROR("Failed to create OpenGL resource for volume.");
     delete pNew3DTex;
     return NULL;
@@ -864,16 +864,16 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
   MESSAGE("texture(s) created.");
   pNew3DTex->iUserCount = 1;
 
-  m_iAllocatedGPUMemory += pNew3DTex->pGLVolume->GetGPUSize();
-  m_iAllocatedCPUMemory += pNew3DTex->pGLVolume->GetCPUSize();
+  m_iAllocatedGPUMemory += pNew3DTex->GetGPUSize();
+  m_iAllocatedCPUMemory += pNew3DTex->GetCPUSize();
 
   m_vpTex3DList.push_back(pNew3DTex);
-  return (*(m_vpTex3DList.end()-1))->pGLVolume;
+  return (*(m_vpTex3DList.end()-1))->volumes[0];
 }
 
 void GPUMemMan::Release3DTexture(GLVolume* pGLVolume) {
   for (size_t i = 0;i<m_vpTex3DList.size();i++) {
-    if (m_vpTex3DList[i]->pGLVolume == pGLVolume) {
+    if (m_vpTex3DList[i]->volumes[0] == pGLVolume) {
       if (m_vpTex3DList[i]->iUserCount > 0) {
           m_vpTex3DList[i]->iUserCount--;
       } else {
@@ -885,8 +885,8 @@ void GPUMemMan::Release3DTexture(GLVolume* pGLVolume) {
 
 
 void GPUMemMan::Delete3DTexture(const GLVolumeListIter &tex) {
-  m_iAllocatedGPUMemory -= (*tex)->pGLVolume->GetGPUSize();
-  m_iAllocatedCPUMemory -= (*tex)->pGLVolume->GetCPUSize();
+  m_iAllocatedGPUMemory -= (*tex)->GetGPUSize();
+  m_iAllocatedCPUMemory -= (*tex)->GetCPUSize();
 
   if((*tex)->iUserCount != 0) {
     WARNING("Freeing used GL volume!");
