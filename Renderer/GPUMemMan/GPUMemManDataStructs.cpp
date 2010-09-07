@@ -35,9 +35,9 @@
 */
 
 #ifdef _MSC_VER
-# include <tr1/functional>
-#else
 # include <functional>
+#else
+# include <tr1/functional>
 #endif
 #include <cstring>
 #include <new>
