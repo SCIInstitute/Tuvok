@@ -474,12 +474,13 @@ static void submit_vert_arrays(const GLVolume2DTex* vol,
       // skip empty arrays.
       if(slice->texcoords.empty() || slice->tris.empty()) { continue; }
 
-      vol->Bind(3, slice->texid-1, dimension);
-      vol->Bind(0, slice->texid+0, dimension);
-      vol->Bind(2, slice->texid+1, dimension);
+      vol->Bind(3, static_cast<int>(slice->texid)-1, dimension);
+      vol->Bind(0, static_cast<int>(slice->texid)+0, dimension);
+      vol->Bind(2, static_cast<int>(slice->texid)+1, dimension);
       glTexCoordPointer(3, GL_FLOAT, 0, &(slice->texcoords[0]));
       glVertexPointer(3, GL_FLOAT, 0, &(slice->tris[0]));
-      glDrawArrays(GL_TRIANGLES, 0, slice->tris.size()/3);
+      glDrawArrays(GL_TRIANGLES, 0,
+                   static_cast<GLsizei>(slice->tris.size()/3));
     }
   glDisableClientState(GL_TEXTURE_COORD_ARRAY);
   glDisableClientState(GL_VERTEX_ARRAY);
