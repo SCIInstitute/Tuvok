@@ -31,6 +31,7 @@
   \author  Jens Krueger
            DFKI Saarbruecken & SCI Institute University of Utah
   \date    May 2010
+  \brief   Abstracts volume creation via 2D or 3D textures.
 */
 #pragma once
 
@@ -44,14 +45,14 @@ namespace tuvok {
   class GLVolume  {
     public:
       GLVolume(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
-                    GLint internalformat, GLenum format, GLenum type,
-                    UINT32 iSizePerElement,
-                    const GLvoid *pixels = 0,
-                    GLint iMagFilter = GL_NEAREST,
-                    GLint iMinFilter = GL_NEAREST,
-                    GLint wrapX = GL_CLAMP_TO_EDGE,
-                    GLint wrapY = GL_CLAMP_TO_EDGE,
-                    GLint wrapZ = GL_CLAMP_TO_EDGE);
+               GLint internalformat, GLenum format, GLenum type,
+               UINT32 iSizePerElement,
+               const GLvoid *pixels = 0,
+               GLint iMagFilter = GL_NEAREST,
+               GLint iMinFilter = GL_NEAREST,
+               GLint wrapX = GL_CLAMP_TO_EDGE,
+               GLint wrapY = GL_CLAMP_TO_EDGE,
+               GLint wrapZ = GL_CLAMP_TO_EDGE);
       GLVolume();
       virtual ~GLVolume();
       virtual void FreeGLResources() = 0;
@@ -60,5 +61,5 @@ namespace tuvok {
       virtual UINT64 GetCPUSize() = 0;
       virtual UINT64 GetGPUSize() = 0;
   };
-};
+}
 #endif // GLVOLUME_H

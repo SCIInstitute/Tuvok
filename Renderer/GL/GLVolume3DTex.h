@@ -43,6 +43,7 @@ namespace tuvok {
 
   class GLTexture3D;
 
+  /// Controls 3D volume data as a texture.
   class GLVolume3DTex : public GLVolume {
     public:
       GLVolume3DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,

@@ -44,6 +44,7 @@ namespace tuvok {
 
   class GLTexture2D;
 
+  /// Emulates a 3D volume using stacks of 3D textures.
   class GLVolume2DTex : public GLVolume {
     public:
       GLVolume2DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
