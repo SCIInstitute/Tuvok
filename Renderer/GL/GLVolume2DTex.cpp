@@ -94,8 +94,7 @@ GLVolume2DTex::~GLVolume2DTex() {
 
 void GLVolume2DTex::Bind(UINT32 iUnit,
                          int iDepth,
-                         int iStack) {
-  
+                         int iStack) const {
   if (iDepth > 0 && iDepth < static_cast<int>(m_pTextures[iStack].size())) {
     m_pTextures[iStack][iDepth]->Bind(iUnit);
   } else {

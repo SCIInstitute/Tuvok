@@ -59,7 +59,7 @@ namespace tuvok {
       GLVolume2DTex();
       virtual ~GLVolume2DTex();
 
-      virtual void Bind(UINT32 iUnit, int depth, int iStack);
+      virtual void Bind(UINT32 iUnit, int depth, int iStack) const;
       virtual void SetData(const void *voxels);
 
       virtual void FreeGLResources();
