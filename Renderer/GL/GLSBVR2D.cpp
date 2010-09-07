@@ -33,6 +33,7 @@
            University of Utah
   \date    August 2008
 */
+#include <algorithm>
 #include "GLInclude.h"
 #include "GLSBVR2D.h"
 
@@ -451,10 +452,52 @@ void GLSBVR2D::RenderProxyGeometry() const {
   if (m_bUse3DTexture) RenderProxyGeometry3D(); else RenderProxyGeometry2D();
 }
 
+// keeps track of slice geometry.  Meant to be an element in a larger
+// data structure; for each slice_geom, we store the texture to use, a
+// set of (3D) texture coords, and a set of (3D) vertices.
+struct slice_geom {
+  UINT32 texid;
+  std::vector<float> texcoords;
+  std::vector<float> tris;
+};
+
+// Iterate through the slices: bind the current slice and adjacent
+// slices, and then send the tex and vertex coords down via arrays.
+static void submit_vert_arrays(const GLVolume2DTex* vol,
+                               const std::vector<slice_geom>& slices,
+                               size_t dimension)
+{
+  glEnableClientState(GL_VERTEX_ARRAY);
+  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    for(std::vector<slice_geom>::const_iterator slice = slices.begin();
+        slice != slices.end(); ++slice) {
+      // skip empty arrays.
+      if(slice->texcoords.empty() || slice->tris.empty()) { continue; }
+
+      vol->Bind(3, slice->texid-1, dimension);
+      vol->Bind(0, slice->texid+0, dimension);
+      vol->Bind(2, slice->texid+1, dimension);
+      glTexCoordPointer(3, GL_FLOAT, 0, &(slice->texcoords[0]));
+      glVertexPointer(3, GL_FLOAT, 0, &(slice->tris[0]));
+      glDrawArrays(GL_TRIANGLES, 0, slice->tris.size()/3);
+    }
+  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+// assignment with move semantics; copies the data from "from" to "to", but in
+// doing so clobbers the values in "from".  This can be done considerably more
+// efficiently than a simple assignment, however.
+void move_slice(struct slice_geom& to, struct slice_geom& from) {
+  to.texid = from.texid;
+  to.texcoords.swap(from.texcoords);
+  to.tris.swap(from.tris);
+}
+
 void GLSBVR2D::RenderProxyGeometry2D() const {
   GLVolume2DTex* pGLVolume =  static_cast<GLVolume2DTex*>(m_pGLVolume);
 
-  if (m_SBVRGeogen.m_vSliceTrianglesX.size()) {
+  if (!m_SBVRGeogen.m_vSliceTrianglesX.empty()) {
     // set coordinate shuffle matrix
     float m[16] = {0,0,1,0,
                    0,1,0,0,
@@ -465,32 +508,40 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     glLoadIdentity();
     glLoadMatrixf(m);
 
+    std::vector<slice_geom> slices;
+    slices.reserve(pGLVolume->GetSizeX());
+
     int iLastTexID = -1;
-    glBegin(GL_TRIANGLES);
-    for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
-      float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.x;
-      int iCurrentTexID =  int(depth*(pGLVolume->GetSizeX()));
-      if (iCurrentTexID != iLastTexID) {
-        glEnd();        
-        pGLVolume->Bind(3, iCurrentTexID-1, 0);
-        pGLVolume->Bind(0, iCurrentTexID,   0);
-        pGLVolume->Bind(2, iCurrentTexID+1, 0);
+    size_t slc_idx = 0; // index into 'slices'.
+    slice_geom geom;
+    // Experimentally, I observed that the max we see is a little above
+    // 1800 entries (i.e. 600 verts).  So this should make sure we do
+    // all our allocations up front.
+    geom.texcoords.reserve(2048); geom.tris.reserve(2048);
+    for(size_t i=0; i < m_SBVRGeogen.m_vSliceTrianglesX.size(); ++i) {
+      const float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.x;
+      const unsigned iCurrentTexID = static_cast<unsigned>(depth*(pGLVolume->GetSizeX()));
+      if(static_cast<int>(iCurrentTexID) != iLastTexID) { // finished a slice
+        // copy the current geom over ...
+        slice_geom g;
+        slices.push_back(g);
+        // note that move_slice will clear geom.texcoords/tris, too!
+        move_slice(slices[slc_idx], geom);
+        slices[slc_idx++].texid = iCurrentTexID;
+        // .. and move on to the next slice.
         iLastTexID = iCurrentTexID;
-        glBegin(GL_TRIANGLES);
       }
-
-      float fraction = depth*pGLVolume->GetSizeX() - iCurrentTexID;
-
-      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.z,
-                   m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.y,
-                   fraction);
-      glVertex3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x,
-                 m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
-                 m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
+      const float fraction = depth*pGLVolume->GetSizeX() - iCurrentTexID;
+      geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.z);
+      geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.y);
+      geom.texcoords.push_back(fraction);
+      geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.x);
+      geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y);
+      geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
     }
-    glEnd();
+    submit_vert_arrays(pGLVolume, slices, 0);
   }
-  if (m_SBVRGeogen.m_vSliceTrianglesY.size()) {
+  if (!m_SBVRGeogen.m_vSliceTrianglesY.empty()) {
     // set coordinate shuffle matrix
     float m[16] = {1,0,0,0,
                    0,0,1,0,
@@ -501,64 +552,73 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     glLoadIdentity();
     glLoadMatrixf(m);
 
-
     int iLastTexID = -1;
-    glBegin(GL_TRIANGLES);
+    std::vector<slice_geom> slices;
+    slices.reserve(pGLVolume->GetSizeX());
+
+    size_t slc_idx = 0; // index into 'slices'.
+    slice_geom geom;
+    geom.texcoords.reserve(2048); geom.tris.reserve(2048);
     for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
-      float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.y;
-      int iCurrentTexID =  int(depth*(pGLVolume->GetSizeY()));
-      if (iCurrentTexID != iLastTexID) {
-        glEnd();        
-        pGLVolume->Bind(3, iCurrentTexID-1, 1);
-        pGLVolume->Bind(0, iCurrentTexID,   1);
-        pGLVolume->Bind(2, iCurrentTexID+1, 1);
+      const float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.y;
+      const unsigned iCurrentTexID = static_cast<unsigned>(depth*(pGLVolume->GetSizeY()));
+      if(static_cast<int>(iCurrentTexID) != iLastTexID) {
+        // we finished a slice.  copy the current geom over ...
+        slice_geom g;
+        slices.push_back(g);
+        // note that move_slice will clear geom.texcoords/tris, too!
+        move_slice(slices[slc_idx], geom);
+        slices[slc_idx++].texid = iCurrentTexID;
+        // .. and move on to the next slice.
         iLastTexID = iCurrentTexID;
-        glBegin(GL_TRIANGLES);
       }
+      const float fraction = depth*pGLVolume->GetSizeY() - iCurrentTexID;
 
-      float fraction = depth*pGLVolume->GetSizeY() - iCurrentTexID;
-
-      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.x,
-                   m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.z,
-                   fraction);
-      glVertex3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x,
-                 m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
-                 m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
+      geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.x);
+      geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.z);
+      geom.texcoords.push_back(fraction);
+      geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.x);
+      geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y);
+      geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
     }
-    glEnd();
+    submit_vert_arrays(pGLVolume, slices, 1);
   } 
-  if (m_SBVRGeogen.m_vSliceTrianglesZ.size()) {
-
+  if (!m_SBVRGeogen.m_vSliceTrianglesZ.empty()) {
     // set coordinate shuffle matrix
     glActiveTextureARB(GL_TEXTURE0);
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
 
-
     int iLastTexID = -1;
-    glBegin(GL_TRIANGLES);
+    std::vector<slice_geom> slices;
+    slices.reserve(pGLVolume->GetSizeX());
+
+    size_t slc_idx = 0; // index into 'slices'.
+    slice_geom geom;
+    geom.texcoords.reserve(2048); geom.tris.reserve(2048);
     for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
-      float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.z;
-      int iCurrentTexID =  int(depth*(pGLVolume->GetSizeZ()));
-      if (iCurrentTexID != iLastTexID) {
-        glEnd();        
-        pGLVolume->Bind(3, iCurrentTexID-1, 2);
-        pGLVolume->Bind(0, iCurrentTexID,   2);
-        pGLVolume->Bind(2, iCurrentTexID+1, 2);
+      const float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.z;
+      const unsigned iCurrentTexID = static_cast<unsigned>(depth*(pGLVolume->GetSizeZ()));
+      if(static_cast<int>(iCurrentTexID) != iLastTexID) {
+        // we finished a slice.  copy the current geom over ...
+        slice_geom g;
+        slices.push_back(g);
+        // note that move_slice will clear geom.texcoords/tris, too!
+        move_slice(slices[slc_idx], geom);
+        slices[slc_idx++].texid = iCurrentTexID;
+        // .. and move on to the next slice.
         iLastTexID = iCurrentTexID;
-        glBegin(GL_TRIANGLES);
       }
+      const float fraction = depth*pGLVolume->GetSizeZ() - iCurrentTexID;
 
-      float fraction = depth*pGLVolume->GetSizeZ() - iCurrentTexID;
-
-      glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.x,
-                   m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.y,
-                   fraction);
-      glVertex3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x,
-                 m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
-                 m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
+      geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.x);
+      geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.y);
+      geom.texcoords.push_back(fraction);
+      geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.x);
+      geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y);
+      geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
     }
-    glEnd();
+    submit_vert_arrays(pGLVolume, slices, 2);
   }
 }
 
