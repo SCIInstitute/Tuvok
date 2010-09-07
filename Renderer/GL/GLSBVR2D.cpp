@@ -623,7 +623,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
 }
 
 void GLSBVR2D::RenderProxyGeometry3D() const {
-  if(m_SBVRGeogen.m_vSliceTrianglesX.size()) {
+  if(!m_SBVRGeogen.m_vSliceTrianglesX.empty()) {
     glBegin(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
         glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.x,
@@ -635,7 +635,7 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
       }
     glEnd();
   } 
-  if(m_SBVRGeogen.m_vSliceTrianglesY.size()) {
+  if(!m_SBVRGeogen.m_vSliceTrianglesY.empty()) {
     glBegin(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
         glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.x,
@@ -647,7 +647,7 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
       }
     glEnd();
   }
-  if(m_SBVRGeogen.m_vSliceTrianglesZ.size()) {
+  if(!m_SBVRGeogen.m_vSliceTrianglesZ.empty()) {
     glBegin(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
         glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.x,
