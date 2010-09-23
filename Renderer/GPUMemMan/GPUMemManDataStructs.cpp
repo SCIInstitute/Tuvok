@@ -176,17 +176,34 @@ namespace nonstd {
 
 size_t GLVolumeListElem::GetGPUSize() const
 {
+  // Apprently MSVC fixed this in 2010, but 2008 is broken.
+#if defined(_MSC_VER) && _MSC_VER <= 1500
+  size_t sz=0;
+  for(size_t i=0; i < volumes.size(); ++i) {
+    sz += volumes[i]->GetGPUSize();
+  }
+  return sz;
+#else
   return static_cast<size_t>(nonstd::accumulate(
     this->volumes.begin(), this->volumes.end(), 0,
     std::tr1::mem_fn(&GLVolume::GetGPUSize))
   );
+#endif
 }
 size_t GLVolumeListElem::GetCPUSize() const
 {
+#if defined(_MSC_VER) && _MSC_VER <= 1500
+  size_t sz=0;
+  for(size_t i=0; i < volumes.size(); ++i) {
+    sz += volumes[i]->GetGPUSize();
+  }
+  return sz;
+#else
   return static_cast<size_t>(nonstd::accumulate(
     this->volumes.begin(), this->volumes.end(), 0,
     std::tr1::mem_fn(&GLVolume::GetCPUSize))
   );
+#endif
 }
 
 
