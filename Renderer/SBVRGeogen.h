@@ -46,7 +46,7 @@
 namespace tuvok {
   /**
    \class VERTEX_FORMAT
-   \brief simple aggregate class to hold 3D position and 
+   \brief simple aggregate class to hold 3D position and
    4D vertex info (either used as 3D texccords or 4d color)
   */
   #define AS_TEXCOORD 2
