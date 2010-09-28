@@ -180,7 +180,7 @@ size_t GLVolumeListElem::GetGPUSize() const
 #if defined(_MSC_VER) && _MSC_VER <= 1500
   size_t sz=0;
   for(size_t i=0; i < volumes.size(); ++i) {
-    sz += volumes[i]->GetGPUSize();
+    sz += size_t(volumes[i]->GetGPUSize());
   }
   return sz;
 #else
@@ -195,7 +195,7 @@ size_t GLVolumeListElem::GetCPUSize() const
 #if defined(_MSC_VER) && _MSC_VER <= 1500
   size_t sz=0;
   for(size_t i=0; i < volumes.size(); ++i) {
-    sz += volumes[i]->GetGPUSize();
+    sz += size_t(volumes[i]->GetGPUSize());
   }
   return sz;
 #else
