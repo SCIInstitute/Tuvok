@@ -87,7 +87,7 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
   size_t iVerticesPerPoly = 0;
 
   fs.seekg(0,std::ios::end);
-  size_t iFileLength = fs.tellg();
+  std::streamoff iFileLength = fs.tellg();
   fs.seekg(0,std::ios::beg);
   size_t iBytesRead = 0;
   size_t iLine = 0;

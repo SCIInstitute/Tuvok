@@ -82,7 +82,7 @@ Mesh* PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
   MESSAGE("Reading Header");
 
   fs.seekg(0,std::ios::end);
-  size_t iFileLength = fs.tellg();
+  streamoff iFileLength = fs.tellg();
   fs.seekg(0,std::ios::beg);
   size_t iBytesRead = 0;
   size_t iLine = 0;

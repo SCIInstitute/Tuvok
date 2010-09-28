@@ -111,7 +111,7 @@ void VGIHeaderParser::ParseUntilInvalid(ifstream& fileData) {
       getline (fileData,line);
       bContinue = ParseKeyValueLine(line, false, true, "=", "");
 
-      if (!bContinue) m_iStopPos = fileData.tellg();
+      if (!bContinue) m_iStopPos = static_cast<size_t>(fileData.tellg());
     }
   }
 }
