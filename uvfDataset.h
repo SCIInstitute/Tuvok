@@ -144,6 +144,9 @@ private:
 
 private:
   struct Timestep {
+	Timestep() : m_fMaxGradMagnitude(0), m_pVolumeDataBlock(NULL),
+				 m_pHist1DDataBlock(NULL), m_pHist2DDataBlock(NULL), 
+				 m_pMaxMinData(NULL) {}
     /// used for 2D TF scaling
     float                        m_fMaxGradMagnitude;
     const RasterDataBlock*       m_pVolumeDataBlock; ///< data
