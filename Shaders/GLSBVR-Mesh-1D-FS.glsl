@@ -67,7 +67,7 @@ vec4 bit_width(const float tf_scale)
   return texture1D(texTrans1D, fVolumVal * tf_scale);
 }
 
-vec4 TraversalOrderDepColor(vec4 color);
+vec4 TraversalOrderDepColor(const vec4 color);
 
 void main(void)
 {

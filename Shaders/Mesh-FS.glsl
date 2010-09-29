@@ -41,7 +41,7 @@ uniform vec3 vLightDir;
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
 
-vec4 TraversalOrderDepColor(vec4 color);
+vec4 TraversalOrderDepColor(const vec4 color);
 
 varying vec3 normal;
 varying vec2 texture_coordinate;

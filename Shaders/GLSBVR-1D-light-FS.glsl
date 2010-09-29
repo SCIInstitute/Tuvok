@@ -57,7 +57,7 @@ vec4 VRender1DLit(const vec3 tex_pos,
                   const vec3 l_diffuse,
                   const vec3 l_specular,
                   const vec3 l_direction);
-vec4 TraversalOrderDepColor(vec4 color);
+vec4 TraversalOrderDepColor(const vec4 color);
 
 void main(void)
 {

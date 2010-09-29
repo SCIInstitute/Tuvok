@@ -32,6 +32,6 @@
 //
 //!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
 
-vec4 TraversalOrderDepColor(vec4 color) {
+vec4 TraversalOrderDepColor(const vec4 color) {
   return color;
 }

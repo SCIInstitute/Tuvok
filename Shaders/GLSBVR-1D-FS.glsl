@@ -42,7 +42,7 @@ uniform float fStepScale;     ///< opacity correction quotient
 
 vec4 sampleVolume(vec3 coords);
 vec4 VRender1D(const vec3 pos, in float tfqn_scale, in float opac);
-vec4 TraversalOrderDepColor(vec4 color);
+vec4 TraversalOrderDepColor(const vec4 color);
 
 /* bias and scale method for mapping a TF to a value. */
 vec4 bias_scale(const float bias, const float scale)
