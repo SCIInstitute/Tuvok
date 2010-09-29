@@ -57,6 +57,7 @@ vec4 VRender1DLit(const vec3 tex_pos,
                   const vec3 l_diffuse,
                   const vec3 l_specular,
                   const vec3 l_direction);
+vec4 TraversalOrderDepColor(vec4 color);
 
 void main(void)
 {
@@ -66,6 +67,6 @@ void main(void)
     vPosition.xyz, vLightAmbient, vLightDiffuse, vLightSpecular, vLightDir
   );
 
-  // pre-multiplication for back to front compositing  
-  gl_FragColor.xyz *= gl_FragColor.a;
+  // pre-multiplication of alpha, if needed.
+  gl_FragColor = TraversalOrderDepColor(gl_FragColor);
 }

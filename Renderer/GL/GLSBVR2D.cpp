@@ -227,12 +227,15 @@ bool GLSBVR2D::LoadShaders() {
                           "GLSBVR-VS.glsl",
                           NULL,
                           tfqn.c_str(), "lighting.glsl",
-                          "GLSBVR-1D-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "GLSBVR-1D-FS.glsl",
+                          "FTB.glsl",
+                          volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
                           tfqn.c_str(),
                           "lighting.glsl", volumeAccessFunction.c_str(),
+                          "FTB.glsl",
                           "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",

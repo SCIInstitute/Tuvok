@@ -42,6 +42,7 @@ uniform float fStepScale;     ///< opacity correction quotient
 
 vec4 sampleVolume(vec3 coords);
 vec4 VRender1D(const vec3 pos, in float tfqn_scale, in float opac);
+vec4 TraversalOrderDepColor(vec4 color);
 
 /* bias and scale method for mapping a TF to a value. */
 vec4 bias_scale(const float bias, const float scale)
@@ -68,6 +69,6 @@ void main(void)
 
   gl_FragColor = VRender1D(gl_TexCoord[0].xyz, fTransScale, fStepScale);
 
-  // pre-multiplication for back to front compositing  
-  gl_FragColor.xyz *= gl_FragColor.a;
+  // pre-multiplication of alpha, if needed.
+  gl_FragColor = TraversalOrderDepColor(gl_FragColor);
 }

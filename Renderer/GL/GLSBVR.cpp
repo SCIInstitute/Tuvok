@@ -102,11 +102,13 @@ bool GLSBVR::LoadShaders() {
                           NULL,
                           "GLSBVR-1D-FS.glsl",
                           "lighting.glsl",
+                          "FTB.glsl",
                           "Volume3D.glsl", tfqn.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
                           "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "FTB.glsl",
                           "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
