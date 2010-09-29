@@ -68,6 +68,6 @@ void main(void)
 
   gl_FragColor = VRender1D(gl_TexCoord[0].xyz, fTransScale, fStepScale);
 
-  // premultiply color with alpha
+  // pre-multiplication for back to front compositing  
   gl_FragColor.xyz *= gl_FragColor.a;
 }

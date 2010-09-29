@@ -47,7 +47,7 @@ vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
 
 vec4 ColorBlend(vec4 src, vec4 dst) {
   vec4 result = dst;
-  result.rgb   += src.rgb*(1.0-dst.a)*src.a;
-  result.a     += (1.0-dst.a)*src.a;
+  result.rgb   += src.rgb * (1.0-dst.a)*src.a;
+  result.a     += src.a   * (1.0-dst.a);
   return result;
 }

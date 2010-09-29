@@ -83,5 +83,5 @@ vec4 VRender1DLit(const vec3 tex_pos,
   // opacity correction
   lut_v.a = 1.0 - pow(1.0 - lut_v.a, opacity_correction);
 
-  return vec4(light_color.x, light_color.y, light_color.z, 1.0) * lut_v.a;
+  return vec4(light_color.x, light_color.y, light_color.z, lut_v.a);
 }

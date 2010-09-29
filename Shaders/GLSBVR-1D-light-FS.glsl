@@ -65,4 +65,7 @@ void main(void)
     vVoxelStepsize, vDomainScale,
     vPosition.xyz, vLightAmbient, vLightDiffuse, vLightSpecular, vLightDir
   );
+
+  // pre-multiplication for back to front compositing  
+  gl_FragColor.xyz *= gl_FragColor.a;
 }
