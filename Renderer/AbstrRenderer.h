@@ -119,6 +119,7 @@ class AbstrRenderer {
       SM_RB = 0,        // red blue anaglyph
       SM_SCANLINE,      // scan line interleave
       SM_SBS,           // side by side
+      SM_AF,            // alternating frame
       SM_INVALID
     };
     virtual ERendererType GetRendererType() const {return RT_INVALID;}

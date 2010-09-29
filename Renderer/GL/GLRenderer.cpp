@@ -92,9 +92,11 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramComposeAnaglyphs(NULL),
   m_pProgramComposeScanlineStereo(NULL),
   m_pProgramSBSStereo(NULL),
+  m_pProgramAFStereo(NULL),
   m_pProgramBBox(NULL),
   m_pProgramMeshFTB(NULL),
   m_pProgramMeshBTF(NULL),
+  m_iAlternatingFrameID(0),
   m_aDepthStorage(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
@@ -260,6 +262,11 @@ bool GLRenderer::LoadShaders() {
                           NULL,
                           "Compose-SBS-FS.glsl",
                           NULL)                                              ||
+     !LoadAndVerifyShader(&m_pProgramAFStereo, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-AF-FS.glsl",
+                          NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
                           m_vShaderSearchDirs, 
                           "Transfer-VS.glsl",
@@ -329,6 +336,9 @@ bool GLRenderer::LoadShaders() {
 
     m_pProgramSBSStereo->ConnectTextureID("texLeftEye",0);
     m_pProgramSBSStereo->ConnectTextureID("texRightEye",1);    
+
+    m_pProgramAFStereo->ConnectTextureID("texLeftEye",0);
+    m_pProgramAFStereo->ConnectTextureID("texRightEye",1);    
   }
   return true;
 }
@@ -362,6 +372,7 @@ void GLRenderer::CleanupShaders() {
   CleanupShader(&m_pProgramComposeAnaglyphs);
   CleanupShader(&m_pProgramComposeScanlineStereo);
   CleanupShader(&m_pProgramSBSStereo);
+  CleanupShader(&m_pProgramAFStereo);
   CleanupShader(&m_pProgramBBox);
   CleanupShader(&m_pProgramMeshFTB);
   CleanupShader(&m_pProgramMeshBTF);
@@ -681,16 +692,23 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
         glClear(GL_COLOR_BUFFER_BIT);
 
         switch (m_eStereoMode) {
-          case SM_RB : m_pProgramComposeAnaglyphs->Enable(); break;
+          case SM_RB : m_pProgramComposeAnaglyphs->Enable(); 
+					   break;
           case SM_SCANLINE: {
                         m_pProgramComposeScanlineStereo->Enable(); 
                         FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
                         m_pProgramComposeScanlineStereo->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
                         break;
                        }
-          default : m_pProgramSBSStereo->Enable(); 
+          case SM_SBS:
+					m_pProgramSBSStereo->Enable(); 
                     break;
-        }
+          default : // SM_AF
+					m_pProgramAFStereo->Enable(); 
+					m_iAlternatingFrameID = 1-m_iAlternatingFrameID;
+					m_pProgramAFStereo->SetUniformVector("iAlternatingFrameID",m_iAlternatingFrameID);
+                    break;
+		}
 
         glDisable(GL_DEPTH_TEST);
         FullscreenQuadRegions();
@@ -732,6 +750,11 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
 
   // we've definitely recomposed by now.
   m_bPerformReCompose = false;
+  
+  if (m_eStereoMode == SM_AF) 
+	  if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame &&
+          m_iCurrentLODOffset == m_iMinLODForCurrentView)
+	     ScheduleRecompose();
 }
 
 
