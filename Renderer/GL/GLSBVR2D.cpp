@@ -86,10 +86,10 @@ void GLSBVR2D::BindVolumeStringsToTexUnit(GLSLProgram* program, bool bGradients)
 }
 
 bool GLSBVR2D::LoadShaders() {
-  // do not call GLRenderer::LoadShaders as we want to control 
+  // do not call GLRenderer::LoadShaders as we want to control
   // what volume access function is linked (Volume3D or Volume2D)
 
-  string volumeAccessFunction = m_bUse3DTexture ? "Volume3D.glsl" 
+  string volumeAccessFunction = m_bUse3DTexture ? "Volume3D.glsl"
                                                 : "Volume2D.glsl";
   const std::string tfqn = m_pDataset
                            ? m_pDataset->GetComponentCount() == 4
@@ -165,7 +165,7 @@ bool GLSBVR2D::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
                           m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
-                          NULL,                         
+                          NULL,
                           "Compose-Scanline-FS.glsl", NULL))
 
   {
@@ -216,10 +216,10 @@ bool GLSBVR2D::LoadShaders() {
     m_pProgramComposeScanlineStereo->ConnectTextureID("texRightEye",1);
 
     m_pProgramSBSStereo->ConnectTextureID("texLeftEye",0);
-    m_pProgramSBSStereo->ConnectTextureID("texRightEye",1);    
+    m_pProgramSBSStereo->ConnectTextureID("texRightEye",1);
 
     m_pProgramAFStereo->ConnectTextureID("texLeftEye",0);
-    m_pProgramAFStereo->ConnectTextureID("texRightEye",1);    
+    m_pProgramAFStereo->ConnectTextureID("texRightEye",1);
   }
 
 
@@ -239,7 +239,8 @@ bool GLSBVR2D::LoadShaders() {
                           NULL,
                           tfqn.c_str(),
                           "lighting.glsl",
-                          "GLSBVR-2D-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "GLSBVR-2D-FS.glsl",
+                          volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
@@ -249,7 +250,8 @@ bool GLSBVR2D::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "GLSBVR-MIP-Rot-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
+                          "GLSBVR-MIP-Rot-FS.glsl",
+                          volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
@@ -273,20 +275,21 @@ bool GLSBVR2D::LoadShaders() {
                           NULL,
                           tfqn.c_str(),
                           "lighting.glsl",
-                          "GLSBVR-Color-NC-FS.glsl", volumeAccessFunction.c_str(), NULL) || 
+                          "GLSBVR-Color-NC-FS.glsl",
+                          volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramBBox,
                           m_vShaderSearchDirs,
                           "BBox-VS.glsl",
-                          NULL,                         
+                          NULL,
                           "BBox-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramMeshBTF,
                           m_vShaderSearchDirs,
-                          "Mesh-VS.glsl", 
+                          "Mesh-VS.glsl",
                           NULL,
-                          "BTF.glsl","Mesh-FS.glsl","lighting.glsl", NULL) || 
+                          "BTF.glsl","Mesh-FS.glsl","lighting.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramMeshFTB,
-                          m_vShaderSearchDirs, "Mesh-VS.glsl", 
-                          NULL,                         
+                          m_vShaderSearchDirs, "Mesh-VS.glsl",
+                          NULL,
                           "FTB.glsl","Mesh-FS.glsl","lighting.glsl", NULL))
   {
       Cleanup();
@@ -591,7 +594,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
       geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
     }
     submit_vert_arrays(pGLVolume, slices, 1);
-  } 
+  }
   if (!m_SBVRGeogen.m_vSliceTrianglesZ.empty()) {
     // set coordinate shuffle matrix
     glActiveTextureARB(GL_TEXTURE0);
@@ -643,7 +646,7 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
                    m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
       }
     glEnd();
-  } 
+  }
   if(!m_SBVRGeogen.m_vSliceTrianglesY.empty()) {
     glBegin(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
@@ -673,7 +676,7 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
 void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
                               size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
-  
+
   if (m_iBricksRenderedInThisSubFrame == 0 && !m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE){
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -754,16 +757,16 @@ void GLSBVR2D::RenderHQMIPInLoop(const RenderRegion2D&, const Brick& b) {
   m_SBVRGeogen.SetBrickTrans(b.vCenter);
 
   if (m_bOrthoView) {
-    // here we push the volume back by one to make sure 
+    // here we push the volume back by one to make sure
     // the viewing direction computation in the geometry generator
-    // works 
+    // works
     FLOATMATRIX4 m;
     m.Translation(0,0,1);
     m_SBVRGeogen.SetView(m);
   } else {
     m_SBVRGeogen.SetView(m_mView[0]);
   }
-  
+
   m_SBVRGeogen.SetWorld(m_maMIPRotation);
   m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
@@ -822,11 +825,11 @@ bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,
   if (m_bUse3DTexture) return GLRenderer::BindVolumeTex(bkey,iIntraFrameCounter);
 
   m_pGLVolume = m_pMasterController->MemMan()->GetVolume(m_pDataset, bkey,
-                                            m_bUseOnlyPowerOfTwo, 
-                                            m_bDownSampleTo8Bits, 
+                                            m_bUseOnlyPowerOfTwo,
+                                            m_bDownSampleTo8Bits,
                                             m_bDisableBorder,
                                             true,
-                                            iIntraFrameCounter, 
+                                            iIntraFrameCounter,
                                             m_iFrameCounter);
   if(m_pGLVolume) {
     return true;
@@ -867,7 +870,7 @@ void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 
       int iCurrentTexID =  int(fSliceIndex*pGLVolume->GetSizeY());
       pGLVolume->Bind(0, iCurrentTexID, 1);
-      pGLVolume->Bind(2, iCurrentTexID+1, 1); 
+      pGLVolume->Bind(2, iCurrentTexID+1, 1);
       float fraction = float(fSliceIndex*pGLVolume->GetSizeY() - iCurrentTexID);
 
       DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
@@ -903,7 +906,7 @@ void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 
       int iCurrentTexID =  int(fSliceIndex*pGLVolume->GetSizeZ());
       pGLVolume->Bind(0, iCurrentTexID, 2);
-      pGLVolume->Bind(2, iCurrentTexID+1, 2); 
+      pGLVolume->Bind(2, iCurrentTexID+1, 2);
       float fraction = float(fSliceIndex*pGLVolume->GetSizeZ() - iCurrentTexID);
 
       glBegin(GL_QUADS);
@@ -934,7 +937,7 @@ void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 
       int iCurrentTexID =  int(fSliceIndex*pGLVolume->GetSizeX());
       pGLVolume->Bind(0, iCurrentTexID, 0);
-      pGLVolume->Bind(2, iCurrentTexID+1, 0); 
+      pGLVolume->Bind(2, iCurrentTexID+1, 0);
       float fraction = float(fSliceIndex*pGLVolume->GetSizeX() - iCurrentTexID);
 
       DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
