@@ -152,6 +152,11 @@ bool GLSBVR2D::LoadShaders() {
                           NULL,
                           "Compose-Anaglyphs-FS.glsl",
                           NULL)                                              ||
+     !LoadAndVerifyShader(&m_pProgramAFStereo, m_vShaderSearchDirs,
+                          "Transfer-VS.glsl",
+                          NULL,
+                          "Compose-AF-FS.glsl",
+                          NULL)                                              ||
      !LoadAndVerifyShader(&m_pProgramSBSStereo, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
@@ -212,6 +217,9 @@ bool GLSBVR2D::LoadShaders() {
 
     m_pProgramSBSStereo->ConnectTextureID("texLeftEye",0);
     m_pProgramSBSStereo->ConnectTextureID("texRightEye",1);    
+
+    m_pProgramAFStereo->ConnectTextureID("texLeftEye",0);
+    m_pProgramAFStereo->ConnectTextureID("texRightEye",1);    
   }
 
 
