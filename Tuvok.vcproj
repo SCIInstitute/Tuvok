@@ -977,6 +977,14 @@
 				RelativePath=".\Shaders\Volume3D.glsl"
 				>
 			</File>
+			<File
+				RelativePath=".\Shaders\vr-no-tfqn.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\vr-std.glsl"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Renderer"
@@ -1637,11 +1645,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
