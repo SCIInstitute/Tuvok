@@ -38,7 +38,7 @@ uniform int iAlternatingFrameID;
 
 void main(void) {
   if (iAlternatingFrameID == 0)
-    gl_FragColor = texture2D(texLeftEye,gl_TexCoord[0]);
+    gl_FragColor = texture2D(texLeftEye,gl_TexCoord[0].xy);
   else
-    gl_FragColor = texture2D(texRightEye,gl_TexCoord[0]);
+    gl_FragColor = texture2D(texRightEye,gl_TexCoord[0].xy);
 }
