@@ -98,6 +98,8 @@ class GLRenderer : public AbstrRenderer {
     
     virtual void ScanForNewMeshes();
 
+    void FixedFunctionality() const;
+
   protected:
     GLTargetBinder  m_TargetBinder;
     GLTexture1D*    m_p1DTransTex;

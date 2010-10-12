@@ -2595,6 +2595,10 @@ void GLRenderer::ScanForNewMeshes() {
   Schedule3DWindowRedraws();
 }
 
+void GLRenderer::FixedFunctionality() const {
+  GLSLProgram::Disable();
+}
+
 bool GLRenderer::LoadDataset(const string& strFilename) {
   if(!AbstrRenderer::LoadDataset(strFilename)) {
     return false;

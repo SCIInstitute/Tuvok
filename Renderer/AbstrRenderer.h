@@ -469,6 +469,8 @@ class AbstrRenderer {
     void Timestep(size_t);
     size_t Timestep() const;
 
+    virtual void FixedFunctionality() const = 0;
+
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
     /// memory.  It's expected you'll set another one directly afterwards.

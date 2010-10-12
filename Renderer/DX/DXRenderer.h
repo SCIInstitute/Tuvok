@@ -87,6 +87,8 @@ class DXRenderer : public AbstrRenderer {
 
     void SetWinID(HWND winId) {m_hWnd = winId;}
 
+    void FixedFunctionality() const { /** @todo implement */ }
+
   protected:
     HWND                    m_hWnd;
     HINSTANCE               m_hInst;
