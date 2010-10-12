@@ -224,11 +224,11 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramComposeAnaglyphs;
     GLSLProgram*    m_pProgramComposeScanlineStereo;
     GLSLProgram*    m_pProgramSBSStereo;
-	GLSLProgram*    m_pProgramAFStereo;
+  	GLSLProgram*    m_pProgramAFStereo;
     GLSLProgram*    m_pProgramBBox;
     GLSLProgram*    m_pProgramMeshFTB;
     GLSLProgram*    m_pProgramMeshBTF;
-	int				m_iAlternatingFrameID;
+  	int				      m_iAlternatingFrameID;
 
   private:
 
