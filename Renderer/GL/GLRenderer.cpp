@@ -2362,6 +2362,8 @@ void GLRenderer::RenderTransFrontGeometry() {
 void GLRenderer::PlaneIn3DPreRender() {
   if (!m_bRenderPlanesIn3D) return;
 
+  GLSLProgram::Disable();
+
   // for rendering modes other than isosurface render the planes in the first
   // pass once to init the depth buffer.  for isosurface rendering we can go
   // ahead and render the planes directly as isosurfacing writes out correct
@@ -2379,6 +2381,9 @@ void GLRenderer::PlaneIn3DPreRender() {
 
 void GLRenderer::PlaneIn3DPostRender() {
   if (!m_bRenderPlanesIn3D) return;
+
+  GLSLProgram::Disable();
+
   // Not required for isosurfacing, since we use the depth buffer for
   // occluding/showing the planes
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeparateCompositing) {
