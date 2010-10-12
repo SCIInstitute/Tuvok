@@ -394,8 +394,9 @@ static bool addshader(GLuint program, const std::string& filename,
 
       // retrieve the error message
       if(!gl::arb) { // ARB calls are different, not used much, we don't care.
-        GLint log_length;
+        GLint log_length=0;
         glGetShaderiv(sh, GL_INFO_LOG_LENGTH, &log_length);
+        log_length = std::min(4096, log_length); // cap it for crazy drivers.
         std::vector<GLchar> log(log_length);
         glGetShaderInfoLog(sh, static_cast<GLsizei>(log.size()), NULL, &log[0]);
         errmsg << &log[0];
