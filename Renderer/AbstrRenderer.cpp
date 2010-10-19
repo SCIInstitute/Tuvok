@@ -112,6 +112,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bPerformReCompose(false),
   m_bRequestStereoRendering(false),
   m_bDoStereoRendering(false),
+  m_iAlternatingFrameID(0),
   m_fStereoEyeDist(0.02f),
   m_fStereoFocalLength(1.0f),
   m_eStereoMode(SM_RB),
@@ -1399,4 +1400,13 @@ size_t AbstrRenderer::Timestep() const {
   return m_iTimestep; 
 }
 
+void AbstrRenderer::InitStereoFrame() {
+  m_iAlternatingFrameID = 0; 
+  Schedule3DWindowRedraws();
+}
+
+void AbstrRenderer::ToggleStereoFrame() {
+  m_iAlternatingFrameID = 1-m_iAlternatingFrameID;
+  ScheduleRecompose();
+}
 

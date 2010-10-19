@@ -59,7 +59,7 @@ static const float fMinCos = 0.01f;
 
 SBVRGeogen2D::SBVRGeogen2D(void) :
   SBVRGeogen(),
-  m_eMethod(METHOD_KRUEGER_FAST)
+  m_eMethod(METHOD_REZK/*METHOD_KRUEGER_FAST*/)
 {
 }
 

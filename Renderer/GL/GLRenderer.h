@@ -99,7 +99,7 @@ class GLRenderer : public AbstrRenderer {
     virtual void ScanForNewMeshes();
 
     void FixedFunctionality() const;
-
+    
   protected:
     GLTargetBinder  m_TargetBinder;
     GLTexture1D*    m_p1DTransTex;
@@ -230,7 +230,6 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramBBox;
     GLSLProgram*    m_pProgramMeshFTB;
     GLSLProgram*    m_pProgramMeshBTF;
-  	int				      m_iAlternatingFrameID;
 
   private:
 

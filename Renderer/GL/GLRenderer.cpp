@@ -96,7 +96,6 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pProgramBBox(NULL),
   m_pProgramMeshFTB(NULL),
   m_pProgramMeshBTF(NULL),
-  m_iAlternatingFrameID(0),
   m_aDepthStorage(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
@@ -110,7 +109,6 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_pFBO3DImageCurrent[1] = NULL;
   m_pFBOIsoHit[1] = NULL;
   m_pFBOCVHit[1] = NULL;
-
 }
 
 GLRenderer::~GLRenderer() {
@@ -705,7 +703,6 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
                     break;
           default : // SM_AF
 					m_pProgramAFStereo->Enable(); 
-					m_iAlternatingFrameID = 1-m_iAlternatingFrameID;
 					m_pProgramAFStereo->SetUniformVector("iAlternatingFrameID",m_iAlternatingFrameID);
                     break;
 		}
@@ -749,12 +746,7 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
   CopyImageToDisplayBuffer();
 
   // we've definitely recomposed by now.
-  m_bPerformReCompose = false;
-  
-  if (m_eStereoMode == SM_AF) 
-	  if (m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame &&
-          m_iCurrentLODOffset == m_iMinLODForCurrentView)
-	     ScheduleRecompose();
+  m_bPerformReCompose = false; 
 }
 
 

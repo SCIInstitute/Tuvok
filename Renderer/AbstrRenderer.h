@@ -370,6 +370,8 @@ class AbstrRenderer {
     virtual EStereoMode GetStereoMode() const {return m_eStereoMode;}
     virtual bool  GetStereoEyeSwap() const {return m_bStereoEyeSwap;}
 
+    virtual void InitStereoFrame();
+    virtual void ToggleStereoFrame();
 
     virtual void  SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbuffer);
     virtual bool  GetConsiderPreviousDepthbuffer() const {
@@ -567,6 +569,7 @@ class AbstrRenderer {
     bool                m_bPerformReCompose;
     bool                m_bRequestStereoRendering;
     bool                m_bDoStereoRendering;
+  	int				          m_iAlternatingFrameID;
     float               m_fStereoEyeDist;
     float               m_fStereoFocalLength;
     EStereoMode         m_eStereoMode;

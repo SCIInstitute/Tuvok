@@ -224,7 +224,7 @@ void MasterController::Filter(std::string, UINT32,
 void MasterController::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "seterrorlog", "on/off", "toggle recording of errors");
   pScriptEngine->RegisterCommand(this, "setwarninglog", "on/off", "toggle recording of warnings");
-  pScriptEngine->RegisterCommand(this, "setemessagelog", "on/off", "toggle recording of messages");
+  pScriptEngine->RegisterCommand(this, "setmessagelog", "on/off", "toggle recording of messages");
   pScriptEngine->RegisterCommand(this, "printerrorlog", "", "print recorded errors");
   pScriptEngine->RegisterCommand(this, "printwarninglog", "", "print recorded warnings");
   pScriptEngine->RegisterCommand(this, "printmessagelog", "", "print recorded messages");
