@@ -47,7 +47,6 @@ vec4 VRender1D(const vec3 tex_pos,
   vec4 v = sampleVolume(tex_pos);
   v = v * texture1D(texTrans1D, v.a);             // "TFqn" based on alpha
   v.a = 1.0 - pow(1.0 - v.a, opacity_correction); // opacity correction
-  v.xyz = v.xyz;
   return v;
 }
 
@@ -69,5 +68,5 @@ vec4 VRender1DLit(const vec3 tex_pos,
   vec3 normal = ComputeNormal(tex_pos, voxel_step_size, domain_scale);
   vec3 light_color = Lighting(position, normal, l_ambient,
                               l_diffuse * v.xyz, l_specular, l_direction);
-  return vec4(light_color.x, light_color.y, light_color.z, 1.0);
+  return vec4(light_color.x, light_color.y, light_color.z, v.a);
 }
