@@ -1860,16 +1860,14 @@ namespace {
 
 bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
                                      const std::vector<std::string>& strDirs,
-                                     const char* shaderFiles, ...)
+                                     ...)
 {
   // first build list of fragment shaders
   std::vector<std::string> vertex;
   std::vector<std::string> frag;
 
-  vertex.push_back(shaderFiles);
-
   va_list args;
-  va_start(args, shaderFiles);
+  va_start(args, strDirs);
   {
     const char* filename;
     // We expect two NULLs; the first terminates the vertex shader list, the
@@ -1947,7 +1945,7 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
       continue;
     }
 
-    if (LoadAndVerifyShader(program, fullVS, fullFS)) {
+    if (LoadAndVerifyShader(fullVS, fullFS, program)) {
       return true;
     }
   }
@@ -1966,9 +1964,9 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   return false;
 }
 
-bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
-                                     std::vector<std::string> vert,
-                                     std::vector<std::string> frag) const
+bool GLRenderer::LoadAndVerifyShader(std::vector<std::string> vert,
+                                     std::vector<std::string> frag,
+                                     GLSLProgram** program) const
 {
   for(std::vector<std::string>::iterator v = vert.begin(); v != vert.end(); ++v)
   {

@@ -161,10 +161,10 @@ class GLRenderer : public AbstrRenderer {
     virtual void CreateOffscreenBuffers();
     virtual bool LoadAndVerifyShader(GLSLProgram**,
                                      const std::vector<std::string>& strDirs,
-                                     const char* shaderFiles, ...);
-    virtual bool LoadAndVerifyShader(GLSLProgram**,
-                                     std::vector<std::string> vert,
-                                     std::vector<std::string> frag) const;
+                                     ...);
+    virtual bool LoadAndVerifyShader(std::vector<std::string> vert,
+                                     std::vector<std::string> frag,
+                                     GLSLProgram**) const;
 
     void GeometryPreRender();
     void GeometryPostRender();
