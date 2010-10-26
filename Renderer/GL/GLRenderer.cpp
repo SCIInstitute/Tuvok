@@ -1898,6 +1898,11 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   }
   va_end(args);
 
+  if(all_exist(vertex.begin(), vertex.end()) &&
+     all_exist(frag.begin(), frag.end())) {
+    return true;
+  }
+
   // now iterate through all directories, looking for our shaders in them.
   for (size_t i = 0;i<strDirs.size();i++) {
     if(!SysTools::FileExists(strDirs[i])) {
