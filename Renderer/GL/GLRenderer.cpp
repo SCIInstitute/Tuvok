@@ -1899,7 +1899,7 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
 
   if(all_exist(vertex.begin(), vertex.end()) &&
      all_exist(frag.begin(), frag.end())) {
-    return true;
+    return LoadAndVerifyShader(vertex, frag, program);
   }
 
   // now iterate through all directories, looking for our shaders in them.
