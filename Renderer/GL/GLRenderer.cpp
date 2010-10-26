@@ -1876,6 +1876,7 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
     // latter terminates the fragment shader list.
     do {
       filename = va_arg(args, const char*);
+      MESSAGE("looking for VS: %s", filename);
       if(filename != NULL) {
         std::string shader = find_shader(std::string(filename), false);
         if(shader == "") {
