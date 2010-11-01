@@ -355,103 +355,117 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
 
   // open file
   ifstream fileDICOM(strFilename.c_str(), ios::in | ios::binary);
-
   fileDICOM.seekg(128);  // skip first 128 bytes
 
-  // check for file magic.
-  {
-    char DICM[4];
-    fileDICOM.read(DICM,4);
-    if (DICM[0] != 'D' || DICM[1] != 'I' || DICM[2] != 'C' || DICM[3] != 'M') {
-      MESSAGE("File '%s' can't be a DICOM -- magic value is wrong.",
-              strFilename.c_str());
-      return false;
-    }
-  }
-
-  // Ok, at this point we are very sure that we are dealing with a DICOM File,
-  // lets find out the dimensions, the sequence numbers
   string value;
   float fSliceSpacing = 0;
   short iGroupID, iElementID;
   UINT32 iElemLength;
-  DICOM_eType elementType;
-  int iMetaHeaderEnd=0;
+  DICOM_eType elementType;  
 
-  bool bParsingMetaHeader = true;
+  // check for DICM magic.
+  char DICM[4];
+  fileDICOM.read(DICM,4);
+  if (DICM[0] != 'D' || DICM[1] != 'I' || DICM[2] != 'C' || DICM[3] != 'M') {
+    MESSAGE("File '%s' does not conatin DICM meta header.", strFilename.c_str());
 
-  // read metadata block
-  ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType,
-                      iElemLength, bImplicit, info.m_bIsBigEndian);
+    // DICOM supports files without the meta header, 
+    // in that case you have to guess the parameters
+    // we guess Implicit VR Little Endian as this is 
+    // the most common type
 
-  while (bParsingMetaHeader && iGroupID == 0x2 && !fileDICOM.eof()) {
-    switch (iElementID) {
-      case 0x0 : {  // File Meta Elements Group Len
-            if (iElemLength != 4) {
-              MESSAGE("Metaheader length field is invalid.");
-              return false;
-            }
-            int iMetaHeaderLength;
-            fileDICOM.read((char*)&iMetaHeaderLength,4);
-            iMetaHeaderEnd  = iMetaHeaderLength + UINT32(fileDICOM.tellg());
-           } break;
-      case 0x1 : {  // Version
-            assert(iElemLength > 0);
-            if(iElemLength == 0) { iElemLength = 1; } // guarantee progress.
-            value.resize(iElemLength);
-            fileDICOM.read(&value[0],iElemLength);
-           } break;
-      case 0x10 : {  // Parse Type to find out endianess
-            value.resize(iElemLength);
-            fileDICOM.read(&value[0],iElemLength);
-            if (value[iElemLength-1] == 0) value.resize(iElemLength-1);
+    fileDICOM.seekg(0);
+    bImplicit = true;
 
-            if (value == "1.2.840.10008.1.2") {   // Implicit VR Little Endian
-              bImplicit = true;
-              bNeedsEndianConversion = EndianConvert::IsBigEndian();
-              info.m_bIsBigEndian = false;
-              DICOM_DBG("DICOM file is Implicit VR Little Endian\n");
-            } else if (value == "1.2.840.10008.1.2.1") { // Explicit VR Little Endian
-              bImplicit = false;
-              bNeedsEndianConversion = EndianConvert::IsBigEndian();
-              info.m_bIsBigEndian = false;
-              DICOM_DBG("DICOM file is Explicit VR Little Endian\n");
-            } else if (value == "1.2.840.10008.1.2.2") { // Explicit VR Big Endian
-              bImplicit = false;
-              bNeedsEndianConversion = EndianConvert::IsLittleEndian();
-              info.m_bIsBigEndian = true;
-              DICOM_DBG("DICOM file is Explicit VR Big Endian\n");
-            } else if (value == "1.2.840.10008.1.2.4.50" ||   // JPEG Baseline            ( untested due to lack of example DICOMS)
-                       value == "1.2.840.10008.1.2.4.51" ||   // JPEG Extended            ( untested due to lack of example DICOMS)
-                       value == "1.2.840.10008.1.2.4.55" ||   // JPEG Progressive         ( untested due to lack of example DICOMS)
-                       value == "1.2.840.10008.1.2.4.57" ||   // JPEG Lossless            ( untested due to lack of example DICOMS)
-                       value == "1.2.840.10008.1.2.4.58" ||   // JPEG Lossless            ( untested due to lack of example DICOMS)
-                       value == "1.2.840.10008.1.2.4.70" ||   // JPEG Lossless            ( untested due to lack of example DICOMS)
-                       value == "1.2.840.10008.1.2.4.80" ||   // JPEG-LS Lossless         ( untested due to lack of example DICOMS)
-                       value == "1.2.840.10008.1.2.4.81" ||   // JPEG-LS Near-lossless    ( untested due to lack of example DICOMS)
-                       value == "1.2.840.10008.1.2.4.90" ||   // JPEG 2000 Lossless       ( untested due to lack of example DICOMS)
-                       value == "1.2.840.10008.1.2.4.90" ) {  // JPEG 2000                ( untested due to lack of example DICOMS)
-              info.m_bIsJPEGEncoded = true;
-              bImplicit = false;
-              bNeedsEndianConversion = EndianConvert::IsBigEndian();
-              info.m_bIsBigEndian = false;
-              DICOM_DBG("DICOM file is JPEG Explicit VR Big Endian\n");
-            } else {
-              WARNING("Unknown DICOM type '%s' -- not a DICOM? "
-                      "Might just be something we haven't seen: please "
-                      "send a debug log.", value.c_str());
-              return false; // unsupported file format
-            }
-            fileDICOM.seekg(iMetaHeaderEnd, std::ios_base::beg);
-            bParsingMetaHeader = false;
-           } break;
-      default : {
-        value.resize(iElemLength);
-        fileDICOM.read(&value[0],iElemLength);
-      } break;
-    }
     ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType,
                         iElemLength, bImplicit, bNeedsEndianConversion);
+
+    if (iGroupID != 0x08) {
+      MESSAGE("File '%s' is not a DICM file.", strFilename.c_str());
+      return false;
+    }
+
+  } else {
+    // Ok, at this point we are very sure that we are dealing with a DICOM File,
+    // lets find out the dimensions, the sequence numbers
+    fSliceSpacing = 0;
+    int iMetaHeaderEnd=0;
+    bool bParsingMetaHeader = true;
+
+
+    // read metadata block
+    ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType,
+                        iElemLength, bImplicit, info.m_bIsBigEndian);
+
+    while (bParsingMetaHeader && iGroupID == 0x2 && !fileDICOM.eof()) {
+      switch (iElementID) {
+        case 0x0 : {  // File Meta Elements Group Len
+              if (iElemLength != 4) {
+                MESSAGE("Metaheader length field is invalid.");
+                return false;
+              }
+              int iMetaHeaderLength;
+              fileDICOM.read((char*)&iMetaHeaderLength,4);
+              iMetaHeaderEnd  = iMetaHeaderLength + UINT32(fileDICOM.tellg());
+             } break;
+        case 0x1 : {  // Version
+              assert(iElemLength > 0);
+              if(iElemLength == 0) { iElemLength = 1; } // guarantee progress.
+              value.resize(iElemLength);
+              fileDICOM.read(&value[0],iElemLength);
+             } break;
+        case 0x10 : {  // Parse Type to find out endianess
+              value.resize(iElemLength);
+              fileDICOM.read(&value[0],iElemLength);
+              if (value[iElemLength-1] == 0) value.resize(iElemLength-1);
+
+              if (value == "1.2.840.10008.1.2") {   // Implicit VR Little Endian
+                bImplicit = true;
+                bNeedsEndianConversion = EndianConvert::IsBigEndian();
+                info.m_bIsBigEndian = false;
+                DICOM_DBG("DICOM file is Implicit VR Little Endian\n");
+              } else if (value == "1.2.840.10008.1.2.1") { // Explicit VR Little Endian
+                bImplicit = false;
+                bNeedsEndianConversion = EndianConvert::IsBigEndian();
+                info.m_bIsBigEndian = false;
+                DICOM_DBG("DICOM file is Explicit VR Little Endian\n");
+              } else if (value == "1.2.840.10008.1.2.2") { // Explicit VR Big Endian
+                bImplicit = false;
+                bNeedsEndianConversion = EndianConvert::IsLittleEndian();
+                info.m_bIsBigEndian = true;
+                DICOM_DBG("DICOM file is Explicit VR Big Endian\n");
+              } else if (value == "1.2.840.10008.1.2.4.50" ||   // JPEG Baseline            ( untested due to lack of example DICOMs)
+                         value == "1.2.840.10008.1.2.4.51" ||   // JPEG Extended            ( untested due to lack of example DICOMs)
+                         value == "1.2.840.10008.1.2.4.55" ||   // JPEG Progressive         ( untested due to lack of example DICOMs)
+                         value == "1.2.840.10008.1.2.4.57" ||   // JPEG Lossless            ( untested due to lack of example DICOMs)
+                         value == "1.2.840.10008.1.2.4.58" ||   // JPEG Lossless            ( untested due to lack of example DICOMs)
+                         value == "1.2.840.10008.1.2.4.70" ||   // JPEG Lossless            ( untested due to lack of example DICOMs)
+                         value == "1.2.840.10008.1.2.4.80" ||   // JPEG-LS Lossless         ( untested due to lack of example DICOMs)
+                         value == "1.2.840.10008.1.2.4.81" ||   // JPEG-LS Near-lossless    ( untested due to lack of example DICOMs)
+                         value == "1.2.840.10008.1.2.4.90" ||   // JPEG 2000 Lossless       ( untested due to lack of example DICOMs)
+                         value == "1.2.840.10008.1.2.4.90" ) {  // JPEG 2000                ( untested due to lack of example DICOMs)
+                info.m_bIsJPEGEncoded = true;
+                bImplicit = false;
+                bNeedsEndianConversion = EndianConvert::IsBigEndian();
+                info.m_bIsBigEndian = false;
+                DICOM_DBG("DICOM file is JPEG Explicit VR Big Endian\n");
+              } else {
+                WARNING("Unknown DICOM type '%s' -- not a DICOM? "
+                        "Might just be something we haven't seen: please "
+                        "send a debug log.", value.c_str());
+                return false; // unsupported file format
+              }
+              fileDICOM.seekg(iMetaHeaderEnd, std::ios_base::beg);
+              bParsingMetaHeader = false;
+             } break;
+        default : {
+          value.resize(iElemLength);
+          fileDICOM.read(&value[0],iElemLength);
+        } break;
+      }
+      ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType,
+                          iElemLength, bImplicit, bNeedsEndianConversion);
+    }
   }
 
   do {
