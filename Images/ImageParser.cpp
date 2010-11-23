@@ -46,14 +46,14 @@
 using namespace std;
 
 ImageFileInfo::ImageFileInfo() :
-  SimpleImageFileInfo(),
+  SimpleFileInfo(),
   m_ivSize(0,0),
   m_iAllocated(0),
   m_iComponentCount(1)
 {}
 
 ImageFileInfo::ImageFileInfo(const std::string& strFileName) :
-  SimpleImageFileInfo(strFileName),
+  SimpleFileInfo(strFileName),
   m_ivSize(0,0),
   m_iAllocated(0),
   m_iComponentCount(1)
@@ -61,7 +61,7 @@ ImageFileInfo::ImageFileInfo(const std::string& strFileName) :
 
 
 ImageFileInfo::ImageFileInfo(const std::wstring& wstrFileName) :
-  SimpleImageFileInfo(wstrFileName),
+  SimpleFileInfo(wstrFileName),
   m_ivSize(0,0),
   m_iAllocated(0),
   m_iComponentCount(1)
@@ -71,56 +71,56 @@ void ImageFileInfo::ComputeSize() {
   m_iDataSize = m_iComponentCount*m_ivSize.area()*m_iAllocated/8;
 }
 
-/*************************************************************************************/
+SimpleFileInfo* ImageFileInfo::clone() {
+  SimpleFileInfo* sinfo = new ImageFileInfo(*this);
+  return sinfo;
+}
 
-SimpleImageFileInfo::SimpleImageFileInfo() :
-  SimpleFileInfo()
-{}
+uint32_t ImageFileInfo::GetComponentCount() const { return m_iComponentCount; }
 
-SimpleImageFileInfo::SimpleImageFileInfo(const std::string& strFileName) :
-  SimpleFileInfo(strFileName)
-{}
-
-SimpleImageFileInfo::SimpleImageFileInfo(const std::wstring& wstrFileName) :
-  SimpleFileInfo(wstrFileName)
-{}
-
-SimpleImageFileInfo::SimpleImageFileInfo(const SimpleImageFileInfo* info) :
-  SimpleFileInfo(info)
-{}
-
-bool SimpleImageFileInfo::GetData(std::vector<char>& vData, UINT32 iLength,
-                                  UINT32 iOffset) {
+bool ImageFileInfo::GetData(std::vector<char>& vData, UINT32 iLength,
+                            UINT32 iOffset) {
 #ifndef TUVOK_NO_QT
   QImage qImage(m_strFileName.c_str());
   if (qImage.isNull()) return false;
 
-  int iCount = 0;
-  for (int y = 0;y<qImage.height();y++) {
-    for (int x = 0;x<qImage.width();x++) {
-      if (int(iOffset) > iCount) { continue; }
+  if(qImage.depth() == 32) {
+    T_ERROR("TEST: 32bit image...");
+    m_iComponentCount = 4;
+    ComputeSize();
+    vData.resize(GetDataSize());
+    size_t w = static_cast<size_t>(qImage.width());
+    size_t h = static_cast<size_t>(qImage.height());
 
-      QColor pixel(qImage.pixel(x,y));
-      unsigned char cValue = (unsigned char)((pixel.red() + pixel.green() + pixel.blue()) / 3);
-      unsigned char *pData = reinterpret_cast<unsigned char*>(&vData[0]);
-      pData[iCount-iOffset] = cValue;
+    std::copy(qImage.bits(), qImage.bits()+(w*h*m_iComponentCount),
+              vData.begin());
+    return true;
+  } else {
+    int iCount = 0;
+    for (int y = 0;y<qImage.height();y++) {
+      for (int x = 0;x<qImage.width();x++) {
+        if (int(iOffset) > iCount) { continue; }
 
-      if (int(iLength) == iCount-int(iOffset)) break;
-      iCount++;
+        QColor pixel(qImage.pixel(x,y));
+        unsigned char cValue = (unsigned char)((pixel.red() + pixel.green() +
+pixel.blue()) /
+ 3);
+        unsigned char *pData = reinterpret_cast<unsigned char*>(&vData[0]);
+        pData[iCount-iOffset] = cValue;
+
+        if (int(iLength) == iCount-int(iOffset)) break;
+        iCount++;
+      }
     }
-  }
 
-  return true;
+    return true;
+  }
 #else
   T_ERROR("Qt needed/used to load image data!");
-  return false;
 #endif
+  return false;
 }
 
-SimpleFileInfo* SimpleImageFileInfo::clone() {
-  SimpleImageFileInfo* pSimpleImageFileInfo = new SimpleImageFileInfo(this);
-  return (SimpleFileInfo*)pSimpleImageFileInfo;
-}
 
 
 /*************************************************************************************/
@@ -133,7 +133,7 @@ ImageStackInfo::ImageStackInfo(const ImageFileInfo* fileInfo) :
   FileStackInfo(UINTVECTOR3(fileInfo->m_ivSize,1), FLOATVECTOR3(1,1,1), fileInfo->m_iAllocated, fileInfo->m_iAllocated,
                 fileInfo->m_iComponentCount, false, false, "image file", "IMAGE")
 {
-  m_Elements.push_back(new SimpleImageFileInfo(fileInfo));
+  m_Elements.push_back(new ImageFileInfo(*fileInfo));
 }
 
 ImageStackInfo::ImageStackInfo(const ImageStackInfo* other)
@@ -149,7 +149,9 @@ ImageStackInfo::ImageStackInfo(const ImageStackInfo* other)
   m_strFileType     = other->m_strFileType;
 
   for (size_t i=0;i<other->m_Elements.size();i++) {
-    SimpleImageFileInfo* e = new SimpleImageFileInfo((SimpleImageFileInfo*)other->m_Elements[i]);
+    ImageFileInfo* e = new ImageFileInfo(
+      *dynamic_cast<ImageFileInfo*>(other->m_Elements[i])
+    );
     m_Elements.push_back(e);
   }
 }
@@ -166,7 +168,7 @@ bool ImageStackInfo::Match(const ImageFileInfo* info) {
       if ((*iter)->m_iImageIndex > info->m_iImageIndex) break;
     }
 
-    m_Elements.insert(iter,new SimpleImageFileInfo(info));
+    m_Elements.insert(iter,new ImageFileInfo(*info));
 
     return true;
   } else return false;

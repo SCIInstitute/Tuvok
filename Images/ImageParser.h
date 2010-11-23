@@ -50,24 +50,16 @@
   //#define DEBUG_DICOM
 #endif
 
-class SimpleImageFileInfo : public SimpleFileInfo {
-public:
-  SimpleImageFileInfo();
-  SimpleImageFileInfo(const std::string& strFileName);
-  SimpleImageFileInfo(const std::wstring& wstrFileName);
-  SimpleImageFileInfo(const SimpleImageFileInfo* info);
-  virtual ~SimpleImageFileInfo() {}
-
-  virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset);
-  virtual SimpleFileInfo* clone();
-};
-
-class ImageFileInfo : public SimpleImageFileInfo {
+class ImageFileInfo : public SimpleFileInfo {
 public:
   ImageFileInfo();
   ImageFileInfo(const std::string& strFileName);
   ImageFileInfo(const std::wstring& wstrFileName);
   virtual ~ImageFileInfo() {}
+
+  virtual uint32_t GetComponentCount() const;
+  virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset);
+  virtual SimpleFileInfo* clone();
 
   UINTVECTOR2 m_ivSize;
   UINT32      m_iAllocated;
