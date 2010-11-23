@@ -75,6 +75,8 @@ bool LargeRAWFile::Create(UINT64 iInitialSize) {
     SeekStart();
   }
 
+  m_bWritable = m_bIsOpen;
+
   return m_bIsOpen;
 }
 
@@ -90,6 +92,8 @@ bool LargeRAWFile::Append() {
 #endif
 
   if (m_bIsOpen) SeekEnd();
+
+  m_bWritable = m_bIsOpen;
 
   return m_bIsOpen;
 }
