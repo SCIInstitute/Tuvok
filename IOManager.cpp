@@ -170,18 +170,20 @@ IOManager::~IOManager()
   delete m_pFinalConverter;
 }
 
-vector<FileStackInfo*> IOManager::ScanDirectory(string strDirectory) const {
-
+vector<std::tr1::shared_ptr<FileStackInfo> >
+IOManager::ScanDirectory(string strDirectory) const {
   MESSAGE("Scanning directory %s", strDirectory.c_str());
 
-  vector<FileStackInfo*> fileStacks;
+  vector<std::tr1::shared_ptr<FileStackInfo> > fileStacks;
 
   DICOMParser parseDICOM;
   parseDICOM.GetDirInfo(strDirectory);
 
   // Sort out DICOMs with embedded images that we can't read.
-  for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {
-    DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
+  for (size_t stack=0; stack < parseDICOM.m_FileStacks.size(); ++stack) {
+    std::auto_ptr<DICOMStackInfo> f = std::auto_ptr<DICOMStackInfo>(
+      new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[stack])
+    );
 
     // if trying to load JPEG files. check if we can handle the JPEG payload
     if (f->m_bIsJPEGEncoded) {
@@ -190,20 +192,17 @@ vector<FileStackInfo*> IOManager::ScanDirectory(string strDirectory) const {
                         dynamic_cast<SimpleDICOMFileInfo*>
                           (f->m_Elements[i])->GetOffsetToData()).valid()) {
           WARNING("Can't load JPEG in stack %u, element %u!",
-                  static_cast<unsigned>(iStackID), static_cast<unsigned>(i));
-          // should probably be using ptr container lib here instead of trying to
-          // explicitly manage this.
-          delete *(parseDICOM.m_FileStacks.begin()+iStackID);
-          parseDICOM.m_FileStacks.erase(parseDICOM.m_FileStacks.begin()+iStackID);
-          iStackID--;
+                  static_cast<unsigned>(stack), static_cast<unsigned>(i));
+          // should probably be using ptr container lib here instead of
+          // trying to explicitly manage this.
+          delete *(parseDICOM.m_FileStacks.begin()+stack);
+          parseDICOM.m_FileStacks.erase(parseDICOM.m_FileStacks.begin()+stack);
+          stack--;
           break;
         }
       }
     }
-
-    delete f;
   }
-
 
   if (parseDICOM.m_FileStacks.size() == 1) {
     MESSAGE("  found a single DICOM stack");
@@ -212,8 +211,11 @@ vector<FileStackInfo*> IOManager::ScanDirectory(string strDirectory) const {
             static_cast<unsigned>(parseDICOM.m_FileStacks.size()));
   }
 
-  for (size_t iStackID = 0;iStackID < parseDICOM.m_FileStacks.size();iStackID++) {
-    DICOMStackInfo* f = new DICOMStackInfo((DICOMStackInfo*)parseDICOM.m_FileStacks[iStackID]);
+  for (size_t stack=0; stack < parseDICOM.m_FileStacks.size(); ++stack) {
+    std::tr1::shared_ptr<FileStackInfo> f =
+      std::tr1::shared_ptr<FileStackInfo>(new DICOMStackInfo(
+        static_cast<DICOMStackInfo*>(parseDICOM.m_FileStacks[stack])
+      ));
 
     stringstream s;
     s << f->m_strFileType << " Stack: " << f->m_strDesc;
@@ -232,8 +234,11 @@ vector<FileStackInfo*> IOManager::ScanDirectory(string strDirectory) const {
             static_cast<unsigned>(parseImages.m_FileStacks.size()));
   }
 
-  for (size_t iStackID = 0;iStackID < parseImages.m_FileStacks.size();iStackID++) {
-    ImageStackInfo* f = new ImageStackInfo((ImageStackInfo*)parseImages.m_FileStacks[iStackID]);
+  for (size_t stack=0; stack < parseImages.m_FileStacks.size(); ++stack) {
+    std::tr1::shared_ptr<FileStackInfo> f =
+      std::tr1::shared_ptr<FileStackInfo>(new ImageStackInfo(
+        dynamic_cast<ImageStackInfo*>(parseImages.m_FileStacks[stack])
+      ));
 
     stringstream s;
     s << f->m_strFileType << " Stack: " << f->m_strDesc;

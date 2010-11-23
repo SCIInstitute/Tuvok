@@ -354,7 +354,8 @@ public:
   IOManager();
   ~IOManager();
 
-  std::vector<FileStackInfo*> ScanDirectory(std::string strDirectory) const;
+  std::vector<std::tr1::shared_ptr<FileStackInfo> >
+    ScanDirectory(std::string strDirectory) const;
   bool ConvertDataset(FileStackInfo* pStack,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
