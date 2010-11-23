@@ -1,4 +1,5 @@
 #include <cmath>
+#include <numeric>
 #include <sstream>
 
 #include "RasterDataBlock.h"
@@ -744,12 +745,21 @@ RasterDataBlock::GetBrickCount(const vector<UINT64>& vLOD) const {
   return m_vBrickCount[size_t(Serialize(vLOD, ulLODLevelCount))];
 }
 
-const vector<UINT64>& RasterDataBlock::GetBrickSize(const vector<UINT64>& vLOD, const vector<UINT64>& vBrick) const {
-  UINT64 iLODIndex = Serialize(vLOD, ulLODLevelCount);
-  return m_vBrickSizes[size_t(iLODIndex)][size_t(Serialize(vBrick, m_vBrickCount[size_t(iLODIndex)]))];
+const vector<UINT64>& RasterDataBlock::GetBrickSize(const vector<UINT64>& vLOD,
+                                                    const vector<UINT64>& vBrick) const
+{
+  const UINT64 iLODIndex = Serialize(vLOD, ulLODLevelCount);
+  const size_t brick_index = static_cast<size_t>(
+    Serialize(vBrick, m_vBrickCount[size_t(iLODIndex)])
+  );
+  return m_vBrickSizes[size_t(iLODIndex)][brick_index];
 }
 
-UINT64 RasterDataBlock::GetLocalDataPointerOffset(const vector<UINT64>& vLOD, const vector<UINT64>& vBrick) const {
+UINT64
+RasterDataBlock::GetLocalDataPointerOffset(const vector<UINT64>& vLOD,
+                                           const vector<UINT64>& vBrick) const
+{
+  assert(!vLOD.empty() && !vBrick.empty());
   if (vLOD.size() != ulLODLevelCount.size()) return 0;
   UINT64 iLODIndex = Serialize(vLOD, ulLODLevelCount);
   if (iLODIndex > m_vLODOffsets.size()) return 0;
@@ -1157,16 +1167,33 @@ void RasterDataBlock::CleanupTemp() {
   }
 }
 
+namespace {
+  template<typename T>
+  void size_vector_for_io(std::vector<T>& v, size_t sz)
+  {
+    v.resize(sz / sizeof(T));
+  }
+}
 
-bool RasterDataBlock::GetData(std::vector<unsigned char>& vData,
-                              const std::vector<UINT64>& vLOD,
-                              const std::vector<UINT64>& vBrick) const
+size_t
+RasterDataBlock::GetBrickByteSize(const std::vector<UINT64>& vLOD,
+                                  const std::vector<UINT64>& vBrick) const
+{
+  vector<UINT64> vSize = GetBrickSize(vLOD,vBrick);
+  UINT64 iSize = ComputeElementSize()/8;
+  for (size_t i = 0;i<vSize.size();i++) iSize *= vSize[i];
+  return static_cast<size_t>(iSize);
+}
+
+LargeRAWFile*
+RasterDataBlock::SeekToBrick(const std::vector<UINT64>& vLOD,
+                             const std::vector<UINT64>& vBrick) const
 {
   if (m_pTempFile == NULL && m_pStreamFile == NULL) return false;
   if (m_vLODOffsets.empty()) { return false; }
 
   LargeRAWFile*  pStreamFile;
-   UINT64 iOffset = GetLocalDataPointerOffset(vLOD, vBrick)/8;
+  UINT64 iOffset = GetLocalDataPointerOffset(vLOD, vBrick)/8;
 
   if (m_pStreamFile != NULL) {
     // add global offset
@@ -1177,50 +1204,223 @@ bool RasterDataBlock::GetData(std::vector<unsigned char>& vData,
   } else {
     pStreamFile = m_pTempFile;
   }
-
-  // new - memory if needed
-  vector<UINT64> vSize = GetBrickSize(vLOD,vBrick);
-  UINT64 iSize = ComputeElementSize()/8;
-  for (size_t i = 0;i<vSize.size();i++) iSize *= vSize[i];
-
-  vData.resize(size_t(iSize));
-
-  // copy data from file
   pStreamFile->SeekPos(iOffset);
-  pStreamFile->ReadRAW(&vData.at(0), iSize);
+  return pStreamFile;
+}
+
+bool RasterDataBlock::GetData(uint8_t* vData, size_t bytes,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick) const
+{
+  LargeRAWFile* pStreamFile = SeekToBrick(vLOD, vBrick);
+  if(pStreamFile == NULL) { return false; }
+
+  pStreamFile->ReadRAW(vData, bytes);
+  return true;
+}
+
+bool RasterDataBlock::ValidLOD(const std::vector<UINT64>& vLOD) const
+{
+  const UINT64 lod = Serialize(vLOD, ulLODLevelCount);
+  const size_t lod_s = static_cast<size_t>(lod);
+  if(lod_s >= m_vBrickSizes.size()) { return false; }
 
   return true;
 }
 
+bool RasterDataBlock::ValidBrickIndex(const std::vector<UINT64>& vLOD,
+                                      const std::vector<UINT64>& vBrick) const
+{
+  const UINT64 lod = Serialize(vLOD, ulLODLevelCount);
+  const size_t lod_s = static_cast<size_t>(lod);
+  if(lod_s >= m_vBrickSizes.size()) { return false; }
 
-bool RasterDataBlock::SetData(unsigned char* pData, const vector<UINT64>& vLOD,
+  const UINT64 b_idx = Serialize(vBrick, m_vBrickCount[lod_s]);
+  const size_t b_idx_s = static_cast<size_t>(b_idx);
+  const UINT64 count = std::accumulate(m_vBrickCount[lod_s].begin(),
+                                       m_vBrickCount[lod_s].end(), 1,
+                                       std::multiplies<UINT64>());
+  if(b_idx_s >= count) { return false; }
+
+  return true;
+}
+
+bool RasterDataBlock::GetData(std::vector<uint8_t>& vData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick) const
+{
+  if(!ValidBrickIndex(vLOD, vBrick)) { return false; }
+  size_t iSize = GetBrickByteSize(vLOD, vBrick);
+  size_vector_for_io(vData, iSize);
+  return GetData(&vData[0], iSize, vLOD, vBrick);
+}
+bool RasterDataBlock::GetData(std::vector<int8_t>& vData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick) const
+{
+  if(!ValidBrickIndex(vLOD, vBrick)) { return false; }
+  const size_t bytes = GetBrickByteSize(vLOD, vBrick);
+  size_vector_for_io(vData, bytes);
+  return GetData(reinterpret_cast<uint8_t*>(&vData[0]), bytes, vLOD, vBrick);
+}
+
+bool RasterDataBlock::GetData(std::vector<uint16_t>& vData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick) const
+{
+  if(!ValidBrickIndex(vLOD, vBrick)) { return false; }
+  const size_t bytes = GetBrickByteSize(vLOD, vBrick);
+  size_vector_for_io(vData, bytes);
+  return GetData(reinterpret_cast<uint8_t*>(&vData[0]), bytes, vLOD, vBrick);
+}
+bool RasterDataBlock::GetData(std::vector<int16_t>& vData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick) const
+{
+  if(!ValidBrickIndex(vLOD, vBrick)) { return false; }
+  const size_t bytes = GetBrickByteSize(vLOD, vBrick);
+  size_vector_for_io(vData, bytes);
+  return GetData(reinterpret_cast<uint8_t*>(&vData[0]), bytes, vLOD, vBrick);
+}
+
+bool RasterDataBlock::GetData(std::vector<boost::uint32_t>& vData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick) const
+{
+  if(!ValidBrickIndex(vLOD, vBrick)) { return false; }
+  const size_t bytes = GetBrickByteSize(vLOD, vBrick);
+  size_vector_for_io(vData, bytes);
+  return GetData(reinterpret_cast<uint8_t*>(&vData[0]), bytes, vLOD, vBrick);
+}
+bool RasterDataBlock::GetData(std::vector<boost::int32_t>& vData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick) const
+{
+  if(!ValidBrickIndex(vLOD, vBrick)) { return false; }
+  const size_t bytes = GetBrickByteSize(vLOD, vBrick);
+  size_vector_for_io(vData, bytes);
+  return GetData(reinterpret_cast<uint8_t*>(&vData[0]), bytes, vLOD, vBrick);
+}
+
+bool RasterDataBlock::GetData(std::vector<float>& vData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick) const
+{
+  if(!ValidBrickIndex(vLOD, vBrick)) { return false; }
+  const size_t bytes = GetBrickByteSize(vLOD, vBrick);
+  size_vector_for_io(vData, bytes);
+  return GetData(reinterpret_cast<uint8_t*>(&vData[0]), bytes, vLOD, vBrick);
+}
+bool RasterDataBlock::GetData(std::vector<double>& vData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick) const
+{
+  if(!ValidBrickIndex(vLOD, vBrick)) { return false; }
+  const size_t bytes = GetBrickByteSize(vLOD, vBrick);
+  size_vector_for_io(vData, bytes);
+  return GetData(reinterpret_cast<uint8_t*>(&vData[0]), bytes, vLOD, vBrick);
+}
+
+bool RasterDataBlock::Settable() const {
+  return m_pStreamFile != NULL &&
+         m_pStreamFile->IsWritable() &&
+         !m_vLODOffsets.empty();
+}
+
+bool RasterDataBlock::SetData( int8_t* pData, const vector<UINT64>& vLOD,
                               const vector<UINT64>& vBrick) {
-  if (m_pStreamFile == NULL ||
-      !m_pStreamFile->IsWritable() ||
-      m_vLODOffsets.empty()) {
-    return false;
+  if(!Settable()) { return false; }
+
+  SeekToBrick(vLOD, vBrick);
+  UINT64 sz = GetBrickByteSize(vLOD, vBrick);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+}
+bool RasterDataBlock::SetData(uint8_t* pData, const vector<UINT64>& vLOD,
+                              const vector<UINT64>& vBrick) {
+  if(!Settable()) { return false; }
+
+  SeekToBrick(vLOD, vBrick);
+  UINT64 sz = GetBrickByteSize(vLOD, vBrick);
+  return m_pStreamFile->WriteRAW(pData, sz);
+}
+
+bool RasterDataBlock::SetData(int16_t* pData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick)
+{
+  if(!Settable()) { return false; }
+
+  SeekToBrick(vLOD, vBrick);
+  UINT64 sz = GetBrickByteSize(vLOD, vBrick);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+}
+bool RasterDataBlock::SetData(uint16_t* pData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick)
+{
+  if(!Settable()) { return false; }
+
+  SeekToBrick(vLOD, vBrick);
+  UINT64 sz = GetBrickByteSize(vLOD, vBrick);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+}
+
+bool RasterDataBlock::SetData(int32_t* pData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick)
+{
+  if(!Settable()) { return false; }
+
+  SeekToBrick(vLOD, vBrick);
+  UINT64 sz = GetBrickByteSize(vLOD, vBrick);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+}
+bool RasterDataBlock::SetData(uint32_t* pData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick)
+{
+  if(!Settable()) { return false; }
+
+  SeekToBrick(vLOD, vBrick);
+  UINT64 sz = GetBrickByteSize(vLOD, vBrick);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+}
+
+bool RasterDataBlock::SetData(float* pData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick)
+{
+  if(!Settable()) { return false; }
+
+  SeekToBrick(vLOD, vBrick);
+  UINT64 sz = GetBrickByteSize(vLOD, vBrick);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+}
+bool RasterDataBlock::SetData(double* pData,
+                              const std::vector<UINT64>& vLOD,
+                              const std::vector<UINT64>& vBrick)
+{
+  if(!Settable()) { return false; }
+
+  SeekToBrick(vLOD, vBrick);
+  UINT64 sz = GetBrickByteSize(vLOD, vBrick);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+}
+
+void RasterDataBlock::ResetFile(LargeRAWFile* raw)
+{
+  CleanupTemp();
+  if(m_pSourceFile) {
+    m_pSourceFile->Close();
+    delete m_pSourceFile;
+  }
+  if(m_pStreamFile) {
+    m_pStreamFile->Close();
+    delete m_pStreamFile;
   }
 
-  UINT64 iOffset = GetLocalDataPointerOffset(vLOD, vBrick)/8;
-
-  // add global offset
-  iOffset += m_iOffset;
-
-  // add size of header
-  iOffset += DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize();
-
-  // new - memory if needed
-  vector<UINT64> vSize = GetBrickSize(vLOD,vBrick);
-  UINT64 iSize = ComputeElementSize()/8;
-  for (size_t i = 0;i<vSize.size();i++) iSize *= vSize[i];
-
-  // copy data from file
-  m_pStreamFile->SeekPos(iOffset);
-  m_pStreamFile->WriteRAW(pData, iSize);
-
-  return true;
+  m_pStreamFile = m_pSourceFile = raw;
 }
-
 
 bool RasterDataBlock::BrickedLODToFlatData(const vector<UINT64>& vLOD, const std::string& strTargetFile,
                                            bool bAppend, AbstrDebugOut* pDebugOut,

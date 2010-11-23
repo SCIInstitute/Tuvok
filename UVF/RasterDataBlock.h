@@ -108,8 +108,10 @@ public:
   // CONVENIENCE FUNCTIONS
   void SetScaleOnlyTransformation(const std::vector<double>& vScale);
   void SetIdentityTransformation();
-  void SetTypeToScalar(UINT64 iBitWith, UINT64 iMantissa, bool bSigned, UVFTables::ElementSemanticTable semantic);
-  void SetTypeToVector(UINT64 iBitWith, UINT64 iMantissa, bool bSigned, std::vector<UVFTables::ElementSemanticTable> semantic);
+  void SetTypeToScalar(UINT64 iBitWith, UINT64 iMantissa, bool bSigned,
+                       UVFTables::ElementSemanticTable semantic);
+  void SetTypeToVector(UINT64 iBitWith, UINT64 iMantissa, bool bSigned,
+                       std::vector<UVFTables::ElementSemanticTable> semantic);
   void SetTypeToUByte(UVFTables::ElementSemanticTable semantic);
   void SetTypeToUShort(UVFTables::ElementSemanticTable semantic);
   void SetTypeToFloat(UVFTables::ElementSemanticTable semantic);
@@ -119,10 +121,52 @@ public:
   void SetTypeToUInt32(UVFTables::ElementSemanticTable semantic);
   void SetTypeToUInt64(UVFTables::ElementSemanticTable semantic);
 
-  bool GetData(std::vector<unsigned char>& vData,
+  bool GetData(std::vector<boost::uint8_t>& vData,
                const std::vector<UINT64>& vLOD,
                const std::vector<UINT64>& vBrick) const;
-  bool SetData(unsigned char* pData, const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick);
+  bool GetData(std::vector<boost::int8_t>& vData,
+               const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick) const;
+  bool GetData(std::vector<boost::uint16_t>& vData,
+               const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick) const;
+  bool GetData(std::vector<boost::int16_t>& vData,
+               const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick) const;
+  bool GetData(std::vector<boost::uint32_t>& vData,
+               const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick) const;
+  bool GetData(std::vector<boost::int32_t>& vData,
+               const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick) const;
+  bool GetData(std::vector<float>& vData,
+               const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick) const;
+  bool GetData(std::vector<double>& vData,
+               const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick) const;
+  bool SetData( int8_t* pData, const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick);
+  bool SetData(uint8_t* pData, const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick);
+  bool SetData( int16_t*, const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick);
+  bool SetData(uint16_t*, const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick);
+  bool SetData( int32_t*, const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick);
+  bool SetData(uint32_t*, const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick);
+  bool SetData( float*, const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick);
+  bool SetData(double*, const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick);
+
+  /// Change the file we're reading/writing to.  Closes any open
+  /// temporary file.  Maintains file position information.
+  /// Useful for writing a raster data block into a new file.
+  /// NOTE: steals pointer; LargeRAWFile must live as long as the RDB.
+  void ResetFile(LargeRAWFile*);
 
   const std::vector<UINT64>& GetBrickCount(const std::vector<UINT64>& vLOD) const;
   const std::vector<UINT64>& GetBrickSize(const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const;
@@ -157,6 +201,9 @@ public:
                                                std::vector<DOUBLEVECTOR4>& fMinMax),
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
   void AllocateTemp(const std::string& strTempFile, bool bBuildOffsetTables=false);
+  bool ValidLOD(const std::vector<UINT64>& vLOD) const;
+  bool ValidBrickIndex(const std::vector<UINT64>& vLOD,
+                       const std::vector<UINT64>& vBrick) const;
 
 
 protected:
@@ -225,6 +272,17 @@ protected:
                         const std::vector<UINT64>& vPrefixProd,
                         const std::vector<UINT64>& vPrefixProdBrick,
                         bool bDoSeek) const;
+private:
+  LargeRAWFile* SeekToBrick(const std::vector<UINT64>& vLOD,
+                            const std::vector<UINT64>& vBrick) const;
+  bool GetData(unsigned char*, size_t bytes,
+               const std::vector<UINT64>& vLOD,
+               const std::vector<UINT64>& vBrick) const;
+
+  size_t GetBrickByteSize(const std::vector<UINT64>& vLOD,
+                          const std::vector<UINT64>& vBrick) const;
+  /// @return true if 'SetData' can work given current state.
+  bool Settable() const;
 };
 
 enum RDBResolution {
