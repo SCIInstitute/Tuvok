@@ -38,39 +38,39 @@
 
 #include "StdTuvokDefines.h"
 #include <stdexcept>
+#include "IOException.h"
 
 namespace tuvok {
 namespace io {
 
 /// Generic base for a failed open
-class DSOpenFailed : virtual public std::runtime_error {
+class DSOpenFailed : virtual public IOException {
   public:
-    explicit DSOpenFailed(const char* s, const char* where=NULL,
-                          size_t ln=0) : std::runtime_error(s), msg(s),
-                                         location(where), line(ln) {}
-    explicit DSOpenFailed(const char* s, const char* what, const char* where=NULL,
-                          size_t ln=0) : std::runtime_error(s), msg(what),
-                                         location(where), line(ln) {}
+    DSOpenFailed(const char* s, const char* where=NULL,
+                 size_t ln=0) : IOException(s, where, ln) {}
+    DSOpenFailed(const char* filename, const char* s,
+                 const char* where=NULL, size_t ln=0)
+                 : IOException(s, where, ln),
+                   file(filename) {}
     virtual ~DSOpenFailed() throw() {}
 
-    virtual const char* what() const throw() { return this->msg; }
-    const char* where() const { return this->location; }
-    size_t lineno() const { return this->line; }
+    const char* File() const { return file; }
 
   private:
-    const char* msg;
-    const char* location;
-    const size_t line;
+    const char* file;
 };
 
 
 /// something went wrong in the parse process of a file
 class DSParseFailed : virtual public DSOpenFailed {
   public:
-    explicit DSParseFailed(const char* s, const char* what, 
-                           const char* where=NULL, size_t ln=0) :
-                            std::runtime_error(s),
-                            DSOpenFailed(s, what, where, ln) {}
+    DSParseFailed(const char* s, const char* where=NULL,
+                  size_t ln=0) : IOException(s, where, ln),
+                                 DSOpenFailed(s, where, ln) {}
+    DSParseFailed(const char* f, const char* s,
+                  const char* where=NULL, size_t ln=0)
+                  : IOException(s, where, ln),
+                    DSOpenFailed(f, s, where, ln) {}
     virtual ~DSParseFailed() throw() {}
 };
 
@@ -79,22 +79,22 @@ class DSParseFailed : virtual public DSOpenFailed {
 /// file was invalid.
 class DSVerificationFailed : virtual public DSOpenFailed {
   public:
-    explicit DSVerificationFailed(const char* s, const char* where=NULL,
-                                  size_t ln=0)
-                                  : std::runtime_error(s),
-                                    DSOpenFailed(s, where, ln) {}
+    DSVerificationFailed(const char* s, const char* where=NULL,
+                         size_t ln=0) : IOException(s, where, ln),
+                                        DSOpenFailed(s, where, ln) {}
+    virtual ~DSVerificationFailed() throw() {}
 };
 
 /// Oversized bricks; needs re-bricking
 class DSBricksOversized : virtual public DSOpenFailed {
   public:
-    explicit DSBricksOversized(const char* s,
-                               size_t bsz,
-                               const char* where=NULL,
-                               size_t ln=0)
-                               : std::runtime_error(s),
-                                 DSOpenFailed(s, where, ln),
-                                 brick_size(bsz) {}
+    DSBricksOversized(const char* s,
+                      size_t bsz,
+                      const char* where=NULL,
+                      size_t ln=0)
+                      : IOException(s, where, ln),
+                        DSOpenFailed(s, where, ln),
+                        brick_size(bsz) {}
     size_t BrickSize() const { return this->brick_size; }
 
   private:
