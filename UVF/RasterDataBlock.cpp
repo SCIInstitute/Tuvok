@@ -78,6 +78,11 @@ RasterDataBlock& RasterDataBlock::operator=(const RasterDataBlock& other)  {
   bSignedElement = other.bSignedElement;
   ulOffsetToDataBlock = other.ulOffsetToDataBlock;
 
+  m_vLODOffsets = other.m_vLODOffsets;
+  m_vBrickCount = other.m_vBrickCount;
+  m_vBrickOffsets = other.m_vBrickOffsets;
+  m_vBrickSizes = other.m_vBrickSizes;
+
   m_pTempFile = NULL;
   m_pSourceFile = other.m_pSourceFile;
   m_iSourcePos = other.m_iSourcePos;
