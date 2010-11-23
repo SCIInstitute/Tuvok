@@ -1,16 +1,9 @@
+#define _NOMINMAX
+#include <stdexcept>
 #include "MaxMinDataBlock.h"
 
 using namespace std;
 using namespace UVFTables;
-
-#ifdef min
-  #undef min
-#endif
-
-#ifdef max
-  #undef max
-#endif
-
 
 MaxMinDataBlock::MaxMinDataBlock(size_t iComponentCount) : 
   DataBlock(),
@@ -135,6 +128,10 @@ UINT64 MaxMinDataBlock::ComputeDataSize() const {
 }
 
 const InternalMaxMinElement& MaxMinDataBlock::GetValue(size_t iIndex, size_t iComponent) {
+  if(iIndex >= m_vfMaxMinData.size() ||
+     iComponent >= m_vfMaxMinData[iIndex].size()) {
+    throw std::length_error("MaxMinDataBlock: Invalid maxmin index.");
+  }
   return m_vfMaxMinData[iIndex][iComponent];
 }
 

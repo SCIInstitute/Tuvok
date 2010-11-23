@@ -303,10 +303,21 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
             // the first component
             /// \todo we may have to change this if we add support for other
             /// kinds of multicomponent data.
-            ts.m_vvaMaxMin[lod][size_t(x)][size_t(y)][size_t(z)] =
-              ts.m_pMaxMinData->GetValue(iSerializedIndex++,
-                 (pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0
+            try {
+              ts.m_vvaMaxMin[lod][size_t(x)][size_t(y)][size_t(z)] =
+                ts.m_pMaxMinData->GetValue(iSerializedIndex++,
+                   (pVolumeDataBlock->ulElementDimensionSize[0] == 4) ? 3 : 0
+                );
+            } catch(const std::length_error&) {
+              InternalMaxMinElement elem;
+              const std::pair<double,double> mm = std::make_pair(
+                -std::numeric_limits<double>::max(),
+                 std::numeric_limits<double>::max()
               );
+              elem.minScalar = elem.minGradient = mm.first;
+              elem.maxScalar = elem.maxGradient = mm.second;
+              ts.m_vvaMaxMin[lod][size_t(x)][size_t(y)][size_t(z)] = elem;
+            }
           }
         }
       }
