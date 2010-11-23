@@ -1060,7 +1060,7 @@ bool UVFDataset::RemoveMesh(size_t iMeshIndex) {
       return false;
     }
 
-    bool bResult = m_pDatasetFile->DropdBlockFromFile(iBlockIndex);
+    bool bResult = m_pDatasetFile->DropBlockFromFile(iBlockIndex);
 
     MESSAGE("Writing changes to disk");
     Close();

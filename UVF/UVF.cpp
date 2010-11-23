@@ -389,7 +389,7 @@ bool UVF::AppendBlockToFile(DataBlock* dataBlock) {
 }
 
 
-bool UVF::DropdBlockFromFile(size_t iBlockIndex) {
+bool UVF::DropBlockFromFile(size_t iBlockIndex) {
   if (!m_bFileIsReadWrite)  return false;
 
   // create copy buffer

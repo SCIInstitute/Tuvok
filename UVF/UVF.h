@@ -66,7 +66,7 @@ public:
 
   // RW access routines
   bool AppendBlockToFile(DataBlock* dataBlock);
-  bool DropdBlockFromFile(size_t iBlockIndex);
+  bool DropBlockFromFile(size_t iBlockIndex);
 
   static bool IsUVFFile(const std::wstring& wstrFilename);
   static bool IsUVFFile(const std::wstring& wstrFilename, bool& bChecksumFail);
