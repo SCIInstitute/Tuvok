@@ -3,6 +3,7 @@
 #ifndef MAXMINDATABLOCK_H
 #define MAXMINDATABLOCK_H
 
+#include <algorithm>
 #include "DataBlock.h"
 #include "Basics/Vectors.h"
 
@@ -15,7 +16,7 @@ public:
    maxGradient(0)
   {}
 
-  MaxMinElemen( T _minScalar, T _maxScalar, S _minGradient, S _maxGradient) :
+  MaxMinElemen(T _minScalar, T _maxScalar, S _minGradient, S _maxGradient) :
    minScalar(_minScalar),
    maxScalar(_maxScalar),
    minGradient(_minGradient),
@@ -23,10 +24,10 @@ public:
   {}
 
   void Merge(const MaxMinElemen<T,S>& other) {
-    minScalar = (minScalar > other.minScalar) ? other.minScalar : minScalar;
-    maxScalar = (maxScalar < other.maxScalar) ? other.maxScalar : maxScalar;
-    minGradient = (minGradient > other.minGradient) ? other.minGradient : minGradient;
-    maxGradient = (maxGradient < other.maxGradient) ? other.maxGradient : maxGradient;
+    minScalar = std::min(minScalar, other.minScalar);
+    maxScalar = std::max(maxScalar, other.maxScalar);
+    minGradient = std::min(minGradient, other.minGradient);
+    maxGradient = std::max(maxGradient, other.maxGradient);
   }
 
   T minScalar;
@@ -56,11 +57,13 @@ public:
 
 protected:
 	typedef std::vector<std::vector<InternalMaxMinElement> > MaxMin;
-  std::vector< std::vector<InternalMaxMinElement> > m_vfMaxMinData;
+  std::vector<std::vector<InternalMaxMinElement> >  m_vfMaxMinData;
   size_t                                            m_iComponentCount;
 
-  virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
-  virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset,
+                                   bool bIsBigEndian);
+  virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset,
+                            bool bIsBigEndian, bool bIsLastBlock);
   virtual UINT64 GetOffsetToNextBlock() const;
 
   virtual DataBlock* Clone() const;
