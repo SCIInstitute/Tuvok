@@ -187,7 +187,7 @@ public:
   void SetRange(double low, double high) {
     this->SetRange(std::make_pair(low, high));
   }
-  virtual std::pair<double,double> GetRange();
+  virtual std::pair<double,double> GetRange() const;
 
   typedef std::tr1::unordered_map<BrickKey, VariantArray, BKeyHash> DataTable;
 

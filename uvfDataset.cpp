@@ -830,7 +830,9 @@ bool UVFDataset::IsSameEndianness() const
   return m_bIsSameEndianness;
 }
 
-std::pair<double,double> UVFDataset::GetRange() {
+std::pair<double,double> UVFDataset::GetRange() const { return m_CachedRange; }
+
+void UVFDataset::ComputeRange() {
   // If we're missing MaxMin data for any timestep, we don't have maxmin data.
   bool have_maxmin_data = true;
   for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
@@ -871,8 +873,6 @@ std::pair<double,double> UVFDataset::GetRange() {
       m_CachedRange = limits;
     }
   }
-
-  return m_CachedRange;
 }
 
 

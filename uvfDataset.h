@@ -96,7 +96,10 @@ public:
   virtual bool GetIsSigned() const;
   virtual bool GetIsFloat() const;
   virtual bool IsSameEndianness() const;
-  virtual std::pair<double,double> GetRange();
+  virtual std::pair<double,double> GetRange() const;
+  // computes the range and caches it internally for the next call to
+  // 'GetRange'.
+  void ComputeRange();
 
   // Global "Operations" and additional data not from the UVF file
   virtual bool Export(UINT64 iLODLevel, const std::string& targetFilename,

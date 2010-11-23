@@ -123,7 +123,7 @@ public:
   virtual bool GetIsSigned() const = 0;
   virtual bool GetIsFloat() const = 0;
   virtual bool IsSameEndianness() const = 0;
-  virtual std::pair<double,double> GetRange() = 0;
+  virtual std::pair<double,double> GetRange() const = 0;
   virtual const std::vector< std::pair < std::string, std::string > > GetMetadata() const {
     std::vector< std::pair < std::string, std::string > > v;
     return v;
