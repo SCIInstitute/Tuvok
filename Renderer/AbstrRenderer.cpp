@@ -422,7 +422,7 @@ void AbstrRenderer::EnableClipPlane(RenderRegion *renderRegion) {
     if(!m_bClipPlaneOn) {
       m_bClipPlaneOn = true; /// @todo: Make this per RenderRegion.
       ScheduleWindowRedraw(renderRegion);
-      Controller::Instance().Provenance("clip", "clip", "enable");
+      Controller::Instance().Provenance("clip", "clip", "0.0");
     }
   }
 }
@@ -449,6 +449,11 @@ void AbstrRenderer::ShowClipPlane(bool bShown,
     }
   }
 }
+
+const ExtendedPlane& AbstrRenderer::GetClipPlane() const {
+  return m_ClipPlane;
+}
+
 void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
   m_bClipPlaneLocked = bRel;/// @todo: Make this per RenderRegion ?
 }
