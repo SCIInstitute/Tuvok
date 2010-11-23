@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   Copyright (c) 2010 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -28,27 +28,30 @@
 
 /**
   \file    MathTools.h
-  \author    Jens Krueger
-        SCI Institute
-        University of Utah
-  \version  1.11
+  \author  Jens Krueger
+           SCI Institute
+           University of Utah
   \date    October 2008
 */
-
 #pragma once
 
 #ifndef MATHTOOLS_H
 #define MATHTOOLS_H
 
 #include "StdDefines.h"
-#if defined(_MSC_VER) ||                                              \
-  (defined(__GNUC__) && ( (__GNUC__ == 4 && (__GNUC_MINOR__ == 0 ||   \
-                                             __GNUC_MINOR__ == 1)) || \
-                          defined(DETECTED_OS_APPLE)))
-//Apple supplies a gcc 4.2 on 10.5 that also does not include tr1/cmath
+
+// Old gcc's have some tr1 missing features/bugs.  Apple didn't fix
+// these even with their compiler upgrade, however.
+#if defined(_MSC_VER) ||                                             \
+    defined(DETECTED_OS_APPLE) ||                                    \
+    (defined(__GNUC__) && ((__GNUC__ == 4 && (__GNUC_MINOR__ == 0 || \
+                                              __GNUC_MINOR__ == 1))))
 # include <cmath>
 #else
 # include <tr1/cmath>
+#endif
+#ifdef _DEBUG
+# include <stdexcept>
 #endif
 
 #define ROOT3 1.732050f
@@ -79,9 +82,11 @@ namespace MathTools {
   {
     out ret = out(omin + (value-imin) * (static_cast<double>(omax-omin) /
                                                             (imax-imin)));
-#if 0
-    // Very useful while debugging.
-    if(std::tr1::isnan(ret) || std::tr1::isinf(ret)) { return 0; }
+#ifdef _DEBUG
+    // Very useful while debugging, but too expensive for general use.
+    if(std::tr1::isnan(ret) || std::tr1::isinf(ret)) {
+      throw std::range_error("NaN or infinity!");
+    }
 #endif
     return ret;
   }
@@ -90,7 +95,6 @@ namespace MathTools {
   UINT32 Clamp(UINT32 val, UINT32 a, UINT32 b);
   UINT64 Clamp(UINT64 val, UINT64 a, UINT64 b);
   int Clamp(int val, int a, int b);
-
 };
 
 #endif // MATHTOOLS_H
