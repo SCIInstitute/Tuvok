@@ -51,8 +51,15 @@ RasterDataBlock::RasterDataBlock(const RasterDataBlock &other) :
     m_pTempFile = new LargeRAWFile(*(other.m_pTempFile));
   else {
     m_pSourceFile = other.m_pStreamFile;
-    m_iSourcePos = other.m_iOffset + DataBlock::GetOffsetToNextBlock() + other.ComputeHeaderSize();
+    m_iSourcePos = other.m_iOffset +
+                   DataBlock::GetOffsetToNextBlock() +
+                   other.ComputeHeaderSize();
   }
+
+  m_vLODOffsets = other.m_vLODOffsets;
+  m_vBrickCount = other.m_vBrickCount;
+  m_vBrickOffsets = other.m_vBrickOffsets;
+  m_vBrickSizes = other.m_vBrickSizes;
 }
 
 
@@ -363,7 +370,9 @@ UINT64 RasterDataBlock::ComputeLODLevelSizeAndOffsetTables(const vector<UINT64>&
   vector<vector<UINT64> > vBricks = ComputeBricks(vReducedDomainSize);
   vector<vector<UINT64> > vBrickPermutation = GenerateCartesianProduct(vBricks);
 
-  for (size_t i = 0;i<vBricks.size();i++)m_vBrickCount[size_t(iLOD)].push_back(vBricks[i].size());
+  for (size_t i=0; i < vBricks.size(); i++) {
+    m_vBrickCount[size_t(iLOD)].push_back(vBricks[i].size());
+  }
   m_vBrickOffsets[size_t(iLOD)].push_back(0);
   m_vBrickSizes[size_t(iLOD)] = vBrickPermutation;
 
