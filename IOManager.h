@@ -40,10 +40,12 @@
 #define IOMANAGER_H
 
 #include "StdTuvokDefines.h"
-#ifdef DETECTED_OS_WINDOWS
+#ifdef _MSC_VER
 # include <memory>
+# include <tuple>
 #else
 # include <tr1/memory>
+# include <tr1/tuple>
 #endif
 #include <algorithm>
 #include <fstream>
@@ -56,12 +58,6 @@
 #include "Basics/LargeRAWFile.h"
 #include "Basics/Mesh.h"
 #include "AbstrGeoConverter.h"
-
-#ifdef _MSC_VER
-# include <tuple>
-#else
-# include <tr1/tuple>
-#endif
 
 typedef std::tr1::tuple<std::string , std::string, bool> tConverterFormat;
 
