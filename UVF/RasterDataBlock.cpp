@@ -99,7 +99,8 @@ RasterDataBlock::RasterDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool
   ulElementDimension(0),
   ulOffsetToDataBlock(0),
 
-  m_pTempFile(NULL)
+  m_pTempFile(NULL),
+  m_pSourceFile(NULL)
 {
   GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
 }
