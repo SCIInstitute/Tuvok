@@ -60,11 +60,13 @@ namespace tuvok {
  * and a poor choice when your data are small or you frequently only need to
  * access a small subset of the data.
  * \note A VariantArray only holds one data type at a time; telling it to hold
- *       a different type will invalidate access to other data. */
+ *       a different type will invalidate access to other data.  It is
+ *       runtime-typed and will give errors if you try to access data in a
+ *       manner which is not type safe. */
 class VariantArray {
 public:
   enum DataType {
-    DT_FLOAT=0, DT_UBYTE, DT_SHORT, DT_USHORT
+    DT_UBYTE=0, DT_BYTE, DT_USHORT, DT_SHORT, DT_FLOAT
   };
 
 public:
@@ -72,17 +74,19 @@ public:
   VariantArray(const VariantArray &);
   ~VariantArray();
 
+  void set(const std::tr1::shared_ptr<uint8_t>, size_t len);
+  void set(const std::tr1::shared_ptr<int8_t>, size_t len);
+  void set(const std::tr1::shared_ptr<uint16_t>, size_t len);
+  void set(const std::tr1::shared_ptr<int16_t>, size_t len);
   void set(const std::tr1::shared_ptr<float>, size_t len);
-  void set(const std::tr1::shared_ptr<unsigned char>, size_t len);
-  void set(const std::tr1::shared_ptr<short>, size_t len);
-  void set(const std::tr1::shared_ptr<unsigned short>, size_t len);
 
   size_t size() const { return length; }
 
+  const uint8_t* getub() const;
+  const int8_t* getb() const;
+  const uint16_t* getus() const;
+  const int16_t* gets() const;
   const float* getf() const;
-  const unsigned char* getub() const;
-  const short* gets() const;
-  const unsigned short* getus() const;
   DataType type() const;
 
   VariantArray& operator=(const VariantArray &);
@@ -91,12 +95,13 @@ private:
   void reset(); ///< set all internal pointers to null.
 
 private:
-  std::tr1::shared_ptr<float>          scalar_f;
-  std::tr1::shared_ptr<unsigned char>  scalar_ub;
-  std::tr1::shared_ptr<short>          scalar_s;
-  std::tr1::shared_ptr<unsigned short> scalar_us;
-  size_t                              length;
-  enum DataType                       data_type;
+  std::tr1::shared_ptr<uint8_t>  scalar_ub;
+  std::tr1::shared_ptr<int8_t>   scalar_b;
+  std::tr1::shared_ptr<int16_t>  scalar_s;
+  std::tr1::shared_ptr<uint16_t> scalar_us;
+  std::tr1::shared_ptr<float>    scalar_f;
+  size_t                         length;
+  enum DataType                  data_type;
 };
 
 }; // namespace tuvok
