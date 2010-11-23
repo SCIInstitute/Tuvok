@@ -837,6 +837,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
 SimpleDICOMFileInfo::SimpleDICOMFileInfo(const std::string& strFileName) :
   SimpleFileInfo(strFileName),
   m_fvPatientPosition(0,0,0),
+  m_iComponentCount(1),
   m_iOffsetToData(0)
 {
 }
@@ -844,6 +845,7 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo(const std::string& strFileName) :
 SimpleDICOMFileInfo::SimpleDICOMFileInfo(const std::wstring& wstrFileName) :
   SimpleFileInfo(wstrFileName),
   m_fvPatientPosition(0,0,0),
+  m_iComponentCount(1),
   m_iOffsetToData(0)
 {
 }
@@ -851,6 +853,7 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo(const std::wstring& wstrFileName) :
 SimpleDICOMFileInfo::SimpleDICOMFileInfo() :
   SimpleFileInfo(),
   m_fvPatientPosition(0,0,0),
+  m_iComponentCount(1),
   m_iOffsetToData(0)
 {
 }
@@ -858,8 +861,13 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo() :
 SimpleDICOMFileInfo::SimpleDICOMFileInfo(const SimpleDICOMFileInfo* other) :
   SimpleFileInfo(other),
   m_fvPatientPosition(other->m_fvPatientPosition),
+  m_iComponentCount(1),
   m_iOffsetToData(other->m_iOffsetToData)
 {
+}
+
+uint32_t SimpleDICOMFileInfo::GetComponentCount() const {
+  return m_iComponentCount;
 }
 
 bool SimpleDICOMFileInfo::GetData(std::vector<char>& vData, UINT32 iLength,
@@ -891,7 +899,6 @@ DICOMFileInfo::DICOMFileInfo() :
   m_fvfAspect(1,1,1),
   m_iAllocated(0),
   m_iStored(0),
-  m_iComponentCount(1),
   m_bIsBigEndian(false),
   m_bIsJPEGEncoded(false),
   m_strAcquDate(""),
@@ -907,7 +914,6 @@ DICOMFileInfo::DICOMFileInfo(const std::string& strFileName) :
   m_fvfAspect(1,1,1),
   m_iAllocated(0),
   m_iStored(0),
-  m_iComponentCount(1),
   m_bIsBigEndian(false),
   m_bIsJPEGEncoded(false),
   m_strAcquDate(""),
@@ -924,7 +930,6 @@ DICOMFileInfo::DICOMFileInfo(const std::wstring& wstrFileName) :
   m_fvfAspect(1,1,1),
   m_iAllocated(0),
   m_iStored(0),
-  m_iComponentCount(1),
   m_bIsBigEndian(false),
   m_bIsJPEGEncoded(false),
   m_strAcquDate(""),

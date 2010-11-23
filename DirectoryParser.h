@@ -61,6 +61,7 @@ public:
   UINT32 GetDataSize() const {
     return m_iDataSize; /* = m_iComponentCount*m_ivSize.volume()*m_iAllocated/8; */
   }
+  virtual uint32_t GetComponentCount() const = 0;
 
   virtual bool GetData(std::vector<char>&);
   virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset) = 0;
@@ -85,6 +86,8 @@ public:
   FLOATVECTOR3 m_fvfAspect;
   UINT32       m_iAllocated;
   UINT32       m_iStored;
+  /// @todo get rid of this, read it from the first file in the sequence
+  /// instead.
   UINT32       m_iComponentCount;
   bool         m_bIsBigEndian;
   bool         m_bIsJPEGEncoded;

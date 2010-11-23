@@ -62,13 +62,16 @@ public:
   SimpleDICOMFileInfo(const SimpleDICOMFileInfo* info);
   virtual ~SimpleDICOMFileInfo() {}
 
-  // this data is needed to fix aspect ratio which is broken in many DICOM
-  // files ... idiots
-  FLOATVECTOR3 m_fvPatientPosition;
+  virtual uint32_t GetComponentCount() const;
 
   virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset);
   virtual UINT32 GetOffsetToData() const { return m_iOffsetToData; }
   virtual SimpleFileInfo* clone();
+
+  // this data is needed to fix aspect ratio which is broken in many DICOM
+  // files ... idiots
+  FLOATVECTOR3 m_fvPatientPosition;
+  UINT32 m_iComponentCount;
 
 protected:
   UINT32 m_iOffsetToData;
@@ -87,7 +90,6 @@ public:
   FLOATVECTOR3 m_fvfAspect;
   UINT32       m_iAllocated;
   UINT32       m_iStored;
-  UINT32       m_iComponentCount;
   bool         m_bIsBigEndian;
   bool         m_bIsJPEGEncoded;
   std::string  m_strAcquDate;
