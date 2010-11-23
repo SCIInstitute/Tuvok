@@ -61,8 +61,7 @@ namespace Controller {
       return *(Controller::ConstInstance().DebugOut());
     }
   };
-};
-};
+}}
 
 #define T_ERROR(...)                                              \
   do {                                                            \
