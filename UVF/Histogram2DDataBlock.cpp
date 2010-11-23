@@ -64,9 +64,13 @@ UINT64 Histogram2DDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64
   return pStreamFile->GetPos() - iOffset;
 }
 
-/// \todo right now compute Histogram assumes that the lowest LOD level consists only of a single brick, this brick is used for the hist. computation
+/// \todo right now compute Histogram assumes that the lowest LOD level
+/// consists only of a single brick, this brick is used for the hist.
+/// computation
 //       this should be changed to a more general approach
-bool Histogram2DDataBlock::Compute(RasterDataBlock* source, size_t iHistoBinCount, double fMaxNonZeroValue) {
+bool Histogram2DDataBlock::Compute(const RasterDataBlock* source,
+                                   size_t iHistoBinCount,
+                                   double fMaxNonZeroValue) {
   /// \todo right now we can only compute Histograms of scalar data this should be changed to a more general approach
   if (source->ulElementDimension != 1 || source->ulElementDimensionSize.size() != 1) return false;
 

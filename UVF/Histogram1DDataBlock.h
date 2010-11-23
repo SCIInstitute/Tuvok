@@ -16,7 +16,7 @@ public:
   virtual Histogram1DDataBlock& operator=(const Histogram1DDataBlock& other);
   virtual UINT64 ComputeDataSize() const;
 
-  bool Compute(RasterDataBlock* source);
+  bool Compute(const RasterDataBlock* source);
   const std::vector<UINT64>& GetHistogram() const {return m_vHistData;}
   void SetHistogram(std::vector<UINT64>& vHistData) {m_vHistData = vHistData;}
 

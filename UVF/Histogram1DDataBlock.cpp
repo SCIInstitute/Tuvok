@@ -51,7 +51,7 @@ UINT64 Histogram1DDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64
   return pStreamFile->GetPos() - iOffset;
 }
 
-bool Histogram1DDataBlock::Compute(RasterDataBlock* source) {
+bool Histogram1DDataBlock::Compute(const RasterDataBlock* source) {
 
   // TODO: right now we can only compute Histograms of scalar data this should be changed to a more general approach
   if (source->ulElementDimension != 1 || source->ulElementDimensionSize.size() != 1) return false;
