@@ -811,7 +811,7 @@ bool UVFDataset::GetIsFloat() const
   // All data in the time series should have the same type, so any timestep
   // we choose to query the type from should be fine.
   return GetBitWidth() !=
-         m_timesteps[0].m_pVolumeDataBlock->ulElementBitSize[0][0];
+         m_timesteps[0].m_pVolumeDataBlock->ulElementMantissa[0][0];
 }
 
 bool UVFDataset::IsSameEndianness() const
