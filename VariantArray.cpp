@@ -34,6 +34,7 @@
 
 #include <cassert>
 #include "VariantArray.h"
+using namespace boost;
 
 namespace tuvok {
 

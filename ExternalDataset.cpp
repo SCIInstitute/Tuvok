@@ -39,6 +39,8 @@
 #include "ExternalDataset.h"
 #include <Controller/Controller.h>
 
+using namespace boost;
+
 namespace tuvok {
 
 typedef std::vector<std::vector<UINT32> > hist2d;

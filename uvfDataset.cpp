@@ -46,6 +46,7 @@
 #include "UVF/GeometryDataBlock.h"
 #include "uvfMesh.h"
 
+using namespace boost;
 using namespace std;
 
 namespace tuvok {
