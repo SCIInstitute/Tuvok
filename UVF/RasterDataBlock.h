@@ -1,3 +1,4 @@
+#include <iterator>
 #pragma once
 
 #ifndef UVF_RASTERDATABLOCK_H
@@ -225,4 +226,108 @@ protected:
                         const std::vector<UINT64>& vPrefixProdBrick,
                         bool bDoSeek) const;
 };
+
+enum RDBResolution {
+  FINEST_RESOLUTION=-2,
+  COARSEST_RESOLUTION=-1,
+};
+
+/// An input iterator which iterates over all data in a given LoD.  The
+/// order of bricks is unspecified.  Access is done in an out-of-core manner;
+/// only one brick will ever be loaded at any given time.
+/// The LoD argument gives the level of detail; higher numbers are coarser
+/// representations.
+template <typename T, int LoD=FINEST_RESOLUTION>
+class LODBrickIterator : public std::iterator<std::input_iterator_tag, T> {
+  public:
+    /// Constructs an end-of-stream iterator.
+    LODBrickIterator(): rdb(NULL), brick(0), iter(0), eos(true) {}
+
+    /// Constructs an iterator which is at the start of the DS.
+    LODBrickIterator(const RasterDataBlock* b) : rdb(b), brick(0), iter(0),
+                                                 eos(false) {}
+
+    T& operator*() {
+      assert(!this->eos); // can't deref end-of-stream iterator.
+      if(this->buffer.empty()) {
+        NextBrick();
+      }
+      return this->buffer[this->iter];
+    }
+
+    void operator++() {
+      ++iter;
+      if(this->buffer.empty() || this->iter >= this->buffer.size()) {
+        NextBrick();
+      }
+    }
+    void operator++(int) { LODBrickIterator<T, LoD>::operator++(); }
+
+    /// Two end-of-stream iterators are always equal.
+    /// An end-of-stream iterator is not equal to a non-end-of-stream iterator.
+    /// Two non-EOS iterators are equal when they are constructed from the same
+    /// stream.
+    ///@{
+    bool operator==(const LODBrickIterator<T, LoD> bi) const {
+      return (this->eos && bi.eos) ||
+             (this->rdb == bi.rdb && !this->eos && !bi.eos);
+    }
+    bool operator!=(const LODBrickIterator<T, LoD> bi) const {
+      return !(*this == bi);
+    }
+    ///@}
+
+  private:
+    void NextBrick() {
+      this->iter = 0;
+      std::vector<UINT64> vl(1);
+      std::vector<UINT64> b = this->NDBrickIndex(brick);
+      vl[0] = this->LODIndex();
+      /// FIXME -- this getdata fails when we hit the 10th brick in a 9-brick
+      /// dataset.  either fix GetData or test to make sure we're not beyond
+      /// the end of our bricks first!
+      if(!this->rdb->GetData(buffer, vl, b)) {
+        this->eos = true;
+      }
+      this->brick++;
+    }
+
+    /// RDB doesn't expose a linear counter for bricks.  Instead it
+    /// keeps separate counts for each dimension.  Thus we need to be
+    /// able to take our linear counter and convert it to RDB indices.
+    std::vector<UINT64> NDBrickIndex(size_t b) {
+      UINT64 brick = static_cast<UINT64>(b);
+      std::vector<UINT64> lod(1);
+      lod[0] = LODIndex();
+      const std::vector<UINT64>& counts = rdb->GetBrickCount(lod);
+
+      UINT64 z = static_cast<UINT64>(brick / (counts[0] * counts[1]));
+      brick = brick % (counts[0] * counts[1]);
+      UINT64 y = static_cast<UINT64>(brick / counts[0]);
+      brick = brick % counts[0];
+      UINT64 x = brick;
+
+      std::vector<UINT64> vec(3);
+      vec[0] = x;
+      vec[1] = y;
+      vec[2] = z;
+      return vec;
+    }
+
+    size_t LODIndex() const {
+      switch(LoD) {
+        case FINEST_RESOLUTION: return 0;
+        case COARSEST_RESOLUTION: return rdb->ulLODLevelCount[0];
+        default: return LoD;
+      }
+    }
+
+  private:
+    const RasterDataBlock* rdb;
+    std::vector<T> buffer;
+    size_t brick;
+    size_t iter;
+    bool eos; // end-of-stream.
+};
+
 #endif // UVF_RASTERDATABLOCK_H
