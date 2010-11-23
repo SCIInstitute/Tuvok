@@ -3,3 +3,4 @@ Build
 .gitignore
 Basics
 IO
+*.o
