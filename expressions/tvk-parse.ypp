@@ -1,0 +1,158 @@
+/*
+   For more information, please see: http://software.sci.utah.edu
+
+   The MIT License
+
+   Copyright (c) 2010 Scientific Computing and Imaging Institute,
+   University of Utah.
+
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the "Software"),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included
+   in all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/
+%{
+#define YYPARSE_PARAM scanner
+#define YYLEX_PARAM   scanner
+#include <cassert>
+#include <cstdio>
+#include <iostream>
+
+#include "treenode.h"
+
+#include "binary-expression.h"
+#include "constant.h"
+#include "volume.h"
+%}
+%glr-parser
+%locations
+%pure-parser
+%defines
+%glr-parser
+%error-verbose
+// expr ? expr : expr produces conflicts after the first expr:
+//  shift the question mark?
+//  reduce the just-parsed expression?
+// These end up leading to 16 situations where we could either shift or reduce.
+%expect 16
+
+%union {
+  double y_dbl;
+  tuvok::expression::Node* y_tree;
+  enum tuvok::expression::OpType y_otype;
+}
+
+%{
+#include "parser.h"
+static tuvok::expression::Node* root = NULL;
+
+tuvok::expression::Node* parser_tree_root() { return root; }
+void parser_free() { yylex_destroy(); delete root; root = NULL; }
+
+using namespace tuvok::expression;
+%}
+%start tuvok_expression
+
+%token <y_dbl> INTEGER DOUBLE
+%token VOLUME OPEN_BRACKET CLOSE_BRACKET OPEN_PAREN CLOSE_PAREN
+%token QUESTION_MARK COLON
+%token BAD
+
+%left PLUS MINUS DIVIDE MULTIPLY GREATER_THAN LESS_THAN EQUAL_TO
+
+%type <y_tree> binary_expression expression unary_expression constant
+%type <y_tree> tuvok_expression conditional_expression
+%type <y_tree> volume
+%type <y_otype> PLUS MINUS DIVIDE MULTIPLY GREATER_THAN LESS_THAN EQUAL_TO oper
+
+%destructor {
+  delete $$;
+  $$ = NULL;
+} binary_expression volume constant
+
+%%
+
+tuvok_expression
+  : expression {
+    $$ = root = $1;
+  }
+  ;
+
+expression
+  : unary_expression { $$ = $1; }
+  | conditional_expression { $$ = $1; } %dprec 2
+  | binary_expression { $$ = $1; }      %dprec 1
+  | OPEN_PAREN expression CLOSE_PAREN { $$ = $2; }
+  ;
+
+conditional_expression
+  : expression QUESTION_MARK expression COLON expression {
+    root = $$ = make_node(EXPR_CONDITIONAL, $1, $3, $5, NULL);
+  }
+  ;
+
+binary_expression
+  : expression oper expression {
+    root = $$ = make_node(EXPR_BINARY, $1, $3, NULL);
+    BinaryExpression* be = dynamic_cast<BinaryExpression*>($$);
+    be->SetOperator($2);
+  }
+  ;
+
+unary_expression
+  : constant { $$ = $1; }
+  | volume   { $$ = $1; }
+  ;
+
+oper
+  : PLUS { $$ = OP_PLUS; }
+  | MINUS { $$ = OP_MINUS; }
+  | DIVIDE { $$ = OP_DIVIDE; }
+  | MULTIPLY { $$ = OP_MULTIPLY; }
+  | GREATER_THAN { $$ = OP_GREATER_THAN; }
+  | LESS_THAN { $$ = OP_LESS_THAN; }
+  | EQUAL_TO { $$ = OP_EQUAL_TO; }
+  ;
+
+volume
+  : VOLUME OPEN_BRACKET DOUBLE CLOSE_BRACKET {
+    root = $$ = make_node(EXPR_VOLUME, NULL);
+    Volume* v = dynamic_cast<Volume*>($$);
+    v->SetIndex($3);
+  }
+  ;
+
+constant
+  : DOUBLE {
+    root = $$ = make_node(EXPR_CONSTANT, NULL);
+    Constant* c = dynamic_cast<Constant*>($$);
+    c->SetValue($1);
+  }
+  | MINUS DOUBLE {
+    root = $$ = make_node(EXPR_CONSTANT, NULL);
+    Constant* c = dynamic_cast<Constant*>($$);
+    c->SetValue(-$2);
+  }
+  ;
+
+%%
+
+void yyerror(YYLTYPE* loc, const char* msg) {
+  std::cerr << "error: " << msg << " at: "
+            << loc->first_column << ":" << loc->last_column << "\n";
+  /* should throw... */
+}
