@@ -41,12 +41,12 @@ class Exception : virtual public std::exception {
       : std::exception(), error(e), location(where), line(ln) { }
     virtual ~Exception() throw() { }
 
-    virtual const char* what() const throw() { return this->error; }
+    virtual const char* what() const throw() { return this->error.c_str(); }
     const char* where() const { return this->location; }
     size_t lineno() const { return this->line; }
 
-  private:
-    const char* error;
+  protected:
+    std::string error;
     const char* location;
     size_t line;
 };
