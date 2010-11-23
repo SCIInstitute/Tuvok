@@ -1819,7 +1819,6 @@ static std::string find_shader(std::string file, bool subdirs)
     return file;
   }
 #endif
-  MESSAGE("Searching filesystem for shader '%s'", file.c_str());
 
   // if it doesn't exist, try our subdirs.
   if(!SysTools::FileExists(file) && subdirs) {
@@ -1832,7 +1831,6 @@ static std::string find_shader(std::string file, bool subdirs)
     for(std::vector<std::string>::const_iterator d = dirs.begin();
         d != dirs.end(); ++d) {
       std::string testfn = *d + "/" + raw_fn;
-      MESSAGE("searching %s", testfn.c_str());
       if(SysTools::FileExists(testfn)) {
         return testfn;
       }
@@ -1874,7 +1872,6 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
     // latter terminates the fragment shader list.
     do {
       filename = va_arg(args, const char*);
-      MESSAGE("looking for VS: %s", filename);
       if(filename != NULL) {
         std::string shader = find_shader(std::string(filename), false);
         if(shader == "") {
@@ -1905,11 +1902,8 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   // now iterate through all directories, looking for our shaders in them.
   for (size_t i = 0;i<strDirs.size();i++) {
     if(!SysTools::FileExists(strDirs[i])) {
-      WARNING("Skipping '%s' directory since it does not exist.",
-              strDirs[i].c_str());
       continue;
     }
-    MESSAGE("Searching for shaders in %s ...", strDirs[i].c_str());
 
     std::vector<std::string> fullVS(vertex.size());
     std::vector<std::string> fullFS(frag.size());
