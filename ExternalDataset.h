@@ -67,7 +67,15 @@ public:
   virtual float MaxGradientMagnitude() const;
 
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<unsigned char>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int8_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint16_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int16_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint32_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int32_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<float>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<double>&) const;
+
   virtual UINTVECTOR3 GetBrickOverlapSize() const {
     // Hack; should have a setter for this, and query the info it sets here.
     return UINTVECTOR3(1,1,1);
@@ -145,10 +153,11 @@ public:
     assert(!this->m_Data.empty());
     DataTable::const_iterator iter = this->m_Data.begin();
     switch(iter->second.type()) {
-      case VariantArray::DT_FLOAT:  return 32;
       case VariantArray::DT_UBYTE:  return  8;
-      case VariantArray::DT_SHORT:  return 16;
+      case VariantArray::DT_BYTE:   return  8;
       case VariantArray::DT_USHORT: return 16;
+      case VariantArray::DT_SHORT:  return 16;
+      case VariantArray::DT_FLOAT:  return 32;
     }
     assert(1==0);
     return 42;
@@ -162,10 +171,11 @@ public:
     assert(!this->m_Data.empty());
     DataTable::const_iterator iter = this->m_Data.begin();
     switch(iter->second.type()) {
-      case VariantArray::DT_FLOAT:  return true;
       case VariantArray::DT_UBYTE:  return false;
-      case VariantArray::DT_SHORT:  return true;
+      case VariantArray::DT_BYTE:   return true;
       case VariantArray::DT_USHORT: return false;
+      case VariantArray::DT_SHORT:  return true;
+      case VariantArray::DT_FLOAT:  return true;
     }
     return true;
   }
@@ -195,6 +205,8 @@ protected:
   /// Should the data change and the client isn't going to supply a histogram,
   /// we should supply one ourself.
   void Recalculate1DHistogram();
+
+  DataTable::const_iterator Lookup(const BrickKey& k) const;
 
 private:
   DataTable                m_Data;

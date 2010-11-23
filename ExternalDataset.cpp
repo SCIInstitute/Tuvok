@@ -92,17 +92,23 @@ UINTVECTOR3 ExternalDataset::GetBrickVoxelCounts(const BrickKey& bk) const
   return iter->second.n_voxels;
 }
 
+ExternalDataset::DataTable::const_iterator
+ExternalDataset::Lookup(const BrickKey& k) const
+{
+#ifdef TR1_NOT_CONST_CORRECT
+  ExternalDataset* cthis = const_cast<ExternalDataset*>(this);
+  return cthis->m_Data.find(k);
+#else
+  return this->m_Data.find(k);
+#endif
+}
+
 bool ExternalDataset::GetBrick(const BrickKey& bk,
-                               std::vector<unsigned char>& brick) const
+                               std::vector<uint8_t>& brick) const
 {
   size_t bytes=0;
 
-#ifdef TR1_NOT_CONST_CORRECT
-  ExternalDataset* cthis = const_cast<ExternalDataset*>(this);
-  DataTable::const_iterator brick_data = cthis->m_Data.find(bk);
-#else
-  DataTable::const_iterator brick_data = this->m_Data.find(bk);
-#endif
+  DataTable::const_iterator brick_data = this->Lookup(bk);
   assert(brick_data != this->m_Data.end());
   const VariantArray &varray = brick_data->second;
 
@@ -116,6 +122,11 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
       bytes = brick_data->second.size() * sizeof(unsigned char);
       brick.resize(bytes);
       std::memcpy(&brick.at(0), varray.getub(), bytes);
+      break;
+    case VariantArray::DT_BYTE:
+      bytes = brick_data->second.size() * sizeof(char);
+      brick.resize(bytes);
+      std::memcpy(&brick.at(0), varray.getb(), bytes);
       break;
     case VariantArray::DT_SHORT:
       bytes = brick_data->second.size() * sizeof(short);
@@ -131,6 +142,57 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
   UINTVECTOR3 sz = this->GetBrickVoxelCounts(bk);
   MESSAGE("Copied brick of size %u, dimensions %u %u %u", UINT32(bytes),
           sz[0], sz[1], sz[2]);
+  return true;
+}
+
+bool ExternalDataset::GetBrick(const BrickKey& bk,
+                               std::vector<int8_t>& brick) const
+{
+  DataTable::const_iterator brick_data = this->Lookup(bk);
+  assert(this->m_Data.end() != brick_data);
+  const VariantArray& varray = brick_data->second;
+  brick.resize(varray.size());
+
+  assert(varray.type() == VariantArray::DT_BYTE);
+  std::memcpy(&brick[0], varray.getb(), varray.size()*sizeof(int8_t));
+  return true;
+}
+
+bool ExternalDataset::GetBrick(const BrickKey& bk,
+                               std::vector<uint16_t>& brick) const
+{
+  DataTable::const_iterator brick_data = this->Lookup(bk);
+  assert(this->m_Data.end() != brick_data);
+  const VariantArray& varray = brick_data->second;
+  brick.resize(varray.size());
+
+  assert(varray.type() == VariantArray::DT_USHORT);
+  std::memcpy(&brick[0], varray.getus(), varray.size()*sizeof(uint16_t));
+  return true;
+}
+bool ExternalDataset::GetBrick(const BrickKey& bk,
+                               std::vector<int16_t>& brick) const
+{
+  DataTable::const_iterator brick_data = this->Lookup(bk);
+  assert(this->m_Data.end() != brick_data);
+  const VariantArray& varray = brick_data->second;
+  brick.resize(varray.size());
+
+  assert(varray.type() == VariantArray::DT_SHORT);
+  std::memcpy(&brick[0], varray.gets(), varray.size()*sizeof(int16_t));
+  return true;
+}
+
+bool ExternalDataset::GetBrick(const BrickKey& bk,
+                               std::vector<float>& brick) const
+{
+  DataTable::const_iterator brick_data = this->Lookup(bk);
+  assert(this->m_Data.end() != brick_data);
+  const VariantArray& varray = brick_data->second;
+  brick.resize(varray.size());
+
+  assert(varray.type() == VariantArray::DT_FLOAT);
+  std::memcpy(&brick[0], varray.getf(), varray.size()*sizeof(float));
   return true;
 }
 

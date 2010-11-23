@@ -47,8 +47,6 @@ struct NDBrickKey {
   std::vector<UINT64> lod;
   std::vector<UINT64> brick;
 };
-//typedef std::pair<std::vector<UINT64>,std::vector<UINT64> > NDBrickKey;
-
 
 class VolumeDatasetInfo;
 class KeyValuePairDataBlock;
@@ -68,7 +66,14 @@ public:
 
   // Brick Data
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
-  virtual bool GetBrick(const BrickKey& k, std::vector<unsigned char>& vData) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int8_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint16_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int16_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint32_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int32_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<float>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<double>&) const;
   virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const;
 
   /// Acceleration queries.
@@ -111,7 +116,7 @@ public:
                       void *pUserContext = NULL,
                       UINT64 iOverlap=0) const;
 
-  virtual const std::vector< std::pair < std::string, std::string > > GetMetadata() const;
+  virtual const std::vector<std::pair<std::string, std::string> > GetMetadata() const;
 
   virtual bool SaveRescaleFactors();
   bool AppendMesh(Mesh* m);

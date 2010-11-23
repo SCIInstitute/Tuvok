@@ -695,10 +695,61 @@ bool UVFDataset::Export(UINT64 iLODLevel, const std::string& targetFilename,
   return okay;
 }
 
-
 bool
 UVFDataset::GetBrick(const BrickKey& k,
-                     std::vector<unsigned char>& vData) const {
+                     std::vector<uint8_t>& vData) const {
+  const NDBrickKey& key = this->IndexToVectorKey(k);
+  const Timestep& ts = m_timesteps[key.timestep];
+  return ts.m_pVolumeDataBlock->GetData(vData, key.lod, key.brick);
+}
+bool UVFDataset::GetBrick(const BrickKey& k,
+                          std::vector<int8_t>& vData) const
+{
+  const NDBrickKey& key = this->IndexToVectorKey(k);
+  const Timestep& ts = m_timesteps[key.timestep];
+  return ts.m_pVolumeDataBlock->GetData(vData, key.lod, key.brick);
+}
+
+bool UVFDataset::GetBrick(const BrickKey& k,
+                          std::vector<uint16_t>& vData) const
+{
+  const NDBrickKey& key = this->IndexToVectorKey(k);
+  const Timestep& ts = m_timesteps[key.timestep];
+  return ts.m_pVolumeDataBlock->GetData(vData, key.lod, key.brick);
+}
+bool UVFDataset::GetBrick(const BrickKey& k,
+                          std::vector<int16_t>& vData) const
+{
+  const NDBrickKey& key = this->IndexToVectorKey(k);
+  const Timestep& ts = m_timesteps[key.timestep];
+  return ts.m_pVolumeDataBlock->GetData(vData, key.lod, key.brick);
+}
+
+bool UVFDataset::GetBrick(const BrickKey& k,
+                          std::vector<uint32_t>& vData) const
+{
+  const NDBrickKey& key = this->IndexToVectorKey(k);
+  const Timestep& ts = m_timesteps[key.timestep];
+  return ts.m_pVolumeDataBlock->GetData(vData, key.lod, key.brick);
+}
+bool UVFDataset::GetBrick(const BrickKey& k,
+                          std::vector<int32_t>& vData) const
+{
+  const NDBrickKey& key = this->IndexToVectorKey(k);
+  const Timestep& ts = m_timesteps[key.timestep];
+  return ts.m_pVolumeDataBlock->GetData(vData, key.lod, key.brick);
+}
+
+bool UVFDataset::GetBrick(const BrickKey& k,
+                          std::vector<float>& vData) const
+{
+  const NDBrickKey& key = this->IndexToVectorKey(k);
+  const Timestep& ts = m_timesteps[key.timestep];
+  return ts.m_pVolumeDataBlock->GetData(vData, key.lod, key.brick);
+}
+bool UVFDataset::GetBrick(const BrickKey& k,
+                          std::vector<double>& vData) const
+{
   const NDBrickKey& key = this->IndexToVectorKey(k);
   const Timestep& ts = m_timesteps[key.timestep];
   return ts.m_pVolumeDataBlock->GetData(vData, key.lod, key.brick);

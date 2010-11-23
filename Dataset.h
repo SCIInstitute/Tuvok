@@ -87,8 +87,17 @@ public:
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const = 0;
   /// World space extents.
   virtual FLOATVECTOR3 GetBrickExtents(const BrickKey &) const = 0;
-  virtual bool GetBrick(const BrickKey&,
-                        std::vector<unsigned char>&) const = 0;
+  /// Data access
+  ///@{
+  virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const = 0;
+  virtual bool GetBrick(const BrickKey&, std::vector<int8_t>&) const = 0;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint16_t>&) const = 0;
+  virtual bool GetBrick(const BrickKey&, std::vector<int16_t>&) const = 0;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint32_t>&) const = 0;
+  virtual bool GetBrick(const BrickKey&, std::vector<int32_t>&) const = 0;
+  virtual bool GetBrick(const BrickKey&, std::vector<float>&) const = 0;
+  virtual bool GetBrick(const BrickKey&, std::vector<double>&) const = 0;
+  ///@}
   virtual BrickTable::const_iterator BricksBegin() const = 0;
   virtual BrickTable::const_iterator BricksEnd() const = 0;
   /// @return the number of bricks in a given LoD + timestep.
