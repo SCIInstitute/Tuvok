@@ -35,23 +35,34 @@
 */
 
 #include <fstream>
+#include <float.h>
+#include <iterator>
 #include <set>
 #include <sstream>
 #include <map>
+#include <memory>
 #include "boost/cstdint.hpp"
 #include "3rdParty/jpeglib/jconfig.h"
 
 #include "IOManager.h"
-#include <Controller/Controller.h>
-#include <IO/DICOM/DICOMParser.h>
-#include <IO/Images/ImageParser.h>
-#include <Basics/SysTools.h>
-#include <Renderer/GPUMemMan/GPUMemMan.h>
-#include "TuvokJPEG.h"
+
+#include "Basics/SysTools.h"
+#include "Controller/Controller.h"
 #include "DSFactory.h"
+#include "exception/UnmergeableDatasets.h"
+#include "expressions/parser.h"
+#include "expressions/syntax.h"
+#include "expressions/treenode.h"
+#include "IO/DICOM/DICOMParser.h"
+#include "IO/Images/ImageParser.h"
+#include "Quantize.h"
+#include "Renderer/GPUMemMan/GPUMemMan.h"
+#include "TuvokJPEG.h"
 #include "uvfDataset.h"
 #include "UVF/UVF.h"
 #include "UVF/GeometryDataBlock.h"
+#include "UVF/Histogram1DDataBlock.h"
+#include "UVF/Histogram2DDataBlock.h"
 
 #include "AnalyzeConverter.h"
 #include "BOVConverter.h"
@@ -1504,7 +1515,518 @@ bool IOManager::AnalyzeDataset(const string& strFilename, RangeInfo& info,
   }
 }
 
+struct MergeableDatasets : public std::binary_function<Dataset, Dataset, bool> {
+  bool operator()(const Dataset& a, const Dataset& b) const {
+    if(a.GetComponentCount() != b.GetComponentCount() ||
+       a.GetBrickOverlapSize() != b.GetBrickOverlapSize()) {
+      return false;
+    }
 
+    const UINT64 timesteps = a.GetNumberOfTimesteps();
+    if(timesteps != b.GetNumberOfTimesteps()) { return false; }
+
+    const UINT64 LoDs = a.GetLODLevelCount();
+    if(LoDs != b.GetLODLevelCount()) { return false; }
+
+    for(UINT64 ts=0; ts < timesteps; ++ts) {
+      for(UINT64 level=0; level < LoDs; ++level) {
+        if(a.GetDomainSize() != b.GetDomainSize() ||
+           a.GetBrickCount(level, ts) != b.GetBrickCount(level, ts)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+};
+
+namespace {
+  // interpolate a chunk of data into a new range.
+  template<typename IForwIter, typename OForwIter, typename U>
+  void interpolate(IForwIter ibeg, IForwIter iend,
+                   const std::pair<double,double>& src_range,
+                   OForwIter obeg)
+  {
+    const U max_out = std::numeric_limits<U>::max();
+    assert(src_range.second >= src_range.first);
+    const double diff = src_range.second - src_range.first;
+    const U ifactor = max_out / diff;
+    while(ibeg != iend) {
+      U value = *ibeg;
+      *obeg = (value - src_range.first) * ifactor;
+      ++obeg;
+      ++ibeg;
+    }
+  }
+}
+
+const RasterDataBlock* GetFirstRDB(const UVF& uvf)
+{
+  for(UINT64 i=0; i < uvf.GetDataBlockCount(); ++i) {
+    if(uvf.GetDataBlock(i)->GetBlockSemantic() == UVFTables::BS_REG_NDIM_GRID)
+    {
+      return dynamic_cast<const RasterDataBlock*>(uvf.GetDataBlock(i));
+    }
+  }
+  return NULL;
+}
+
+namespace {
+  // a minmax algorithm that doesn't suck.  Namely, it takes an input iterator
+  // instead of a forward iterator, *as it should*.  Jesus.
+  // Also it returns 'T's, so you don't have to deref the return value.
+  template<typename T, typename InputIterator>
+  std::pair<T,T> minmax_input(InputIterator begin, InputIterator end) {
+    std::pair<T,T> retval = std::make_pair( std::numeric_limits<T>::max(),
+                                           -std::numeric_limits<T>::max());
+    while(begin != end) {
+      retval.first  = std::min(*begin, retval.first);
+      retval.second = std::max(*begin, retval.second);
+      ++begin;
+    }
+    return retval;
+  }
+}
+
+// converts 1D brick indices into RDB's indices.
+std::vector<UINT64> NDBrickIndex(const RasterDataBlock* rdb,
+                                 size_t LoD, size_t b) {
+  UINT64 brick = static_cast<UINT64>(b);
+  std::vector<UINT64> lod(1);
+  lod[0] = LoD;
+  const std::vector<UINT64>& counts = rdb->GetBrickCount(lod);
+
+  UINT64 z = static_cast<UINT64>(brick / (counts[0] * counts[1]));
+  brick = brick % (counts[0] * counts[1]);
+  UINT64 y = static_cast<UINT64>(brick / counts[0]);
+  brick = brick % counts[0];
+  UINT64 x = brick;
+
+  std::vector<UINT64> vec(3);
+  vec[0] = x;
+  vec[1] = y;
+  vec[2] = z;
+  return vec;
+}
+
+namespace {
+  /// Computes the minimum and maximum for a single brick in a raster data block.
+  template<typename T>
+  DOUBLEVECTOR4 get_brick_minmax(const RasterDataBlock* rdb,
+                                 const std::vector<UINT64>& vLOD,
+                                 const std::vector<UINT64>& vBrick)
+  {
+    DOUBLEVECTOR4 mmv;
+    // min/max of gradients not supported...
+    mmv.z = -std::numeric_limits<double>::max();
+    mmv.w =  std::numeric_limits<double>::max();
+
+    std::vector<T> data;
+    rdb->GetData(data, vLOD, vBrick);
+    std::pair<T,T> mm = minmax_input<T>(data.begin(), data.end());
+    mmv.x = mm.first;
+    mmv.y = mm.second;
+
+    return mmv;
+  }
+}
+
+/// Calculates the min/max scalar and gradient for every brick in a data set.
+std::vector<DOUBLEVECTOR4>
+MaxMin(const RasterDataBlock* rdb)
+{
+  const bool is_float = rdb->ulElementMantissa[0][0];
+  const bool is_signed = rdb->bSignedElement[0][0];
+  const UINT64 bit_width = rdb->ulElementBitSize[0][0];
+  std::vector<DOUBLEVECTOR4> mm;
+
+  // We iterate over each LoD.  At each one, we iterate through the bricks.
+  // When a GetData fails for that brick, we know we need to move on to the
+  // next LoD.  When a GetData fails and we're at brick 0, we know we're done
+  // with all of the LoDs.
+  std::vector<UINT64> vLOD(1);
+  size_t brick;
+  vLOD[0] = 0;
+  do {
+    brick = 0;
+    do {
+      assert(rdb->ValidBrickIndex(vLOD, NDBrickIndex(rdb, vLOD[0], brick)));
+      std::vector<UINT64> b_idx = NDBrickIndex(rdb, vLOD[0], brick);
+      MESSAGE("%llu,%zu -> %llu,%llu,%llu", vLOD[0], brick,
+              b_idx[0], b_idx[1], b_idx[2]);
+
+      if(is_float && bit_width == 32) {
+        assert(is_signed);
+        mm.push_back(get_brick_minmax<float>(rdb, vLOD, b_idx));
+      } else if(is_float && bit_width == 64) {
+        assert(is_signed);
+        mm.push_back(get_brick_minmax<double>(rdb, vLOD, b_idx));
+      } else if( is_signed &&  8 == bit_width) {
+        mm.push_back(get_brick_minmax<int8_t>(rdb, vLOD, b_idx));
+      } else if(!is_signed &&  8 == bit_width) {
+        mm.push_back(get_brick_minmax<uint8_t>(rdb, vLOD, b_idx));
+      } else if( is_signed && 16 == bit_width) {
+        mm.push_back(get_brick_minmax<int16_t>(rdb, vLOD, b_idx));
+      } else if(!is_signed && 16 == bit_width) {
+        mm.push_back(get_brick_minmax<uint16_t>(rdb, vLOD, b_idx));
+      } else if( is_signed && 32 == bit_width) {
+        mm.push_back(get_brick_minmax<int32_t>(rdb, vLOD, b_idx));
+      } else if(!is_signed && 32 == bit_width) {
+        mm.push_back(get_brick_minmax<uint32_t>(rdb, vLOD, b_idx));
+      } else if( is_signed && 64 == bit_width) {
+        T_ERROR("int64_t unsupported...");
+        double mn = -std::numeric_limits<double>::max();
+        double mx =  std::numeric_limits<double>::max();
+        mm.push_back(DOUBLEVECTOR4(mn,mx, mn,mx));
+        assert(1 == 0);
+      } else if(!is_signed && 64 == bit_width) {
+        T_ERROR("uint64_t unsupported...");
+        double mn = -std::numeric_limits<double>::max();
+        double mx =  std::numeric_limits<double>::max();
+        mm.push_back(DOUBLEVECTOR4(mn,mx, mn,mx));
+        assert(1 == 0);
+      } else {
+        T_ERROR("Unsupported data type!");
+        assert(1 == 0);
+      }
+      MESSAGE("Finished lod,brick %u,%u", static_cast<unsigned>(vLOD[0]),
+              static_cast<unsigned>(brick));
+      ++brick;
+    } while(rdb->ValidBrickIndex(vLOD, NDBrickIndex(rdb, vLOD[0], brick)));
+    vLOD[0]++;
+  } while(rdb->ValidLOD(vLOD));
+  return mm;
+}
+
+void
+CreateUVFFromRDB(const std::string& filename,
+                 const RasterDataBlock* rdb)
+{
+  std::wstring wide_fn(filename.begin(), filename.end());
+  UVF outuvf(wide_fn);
+  outuvf.Create();
+
+  GlobalHeader gh;
+  gh.bIsBigEndian = EndianConvert::IsBigEndian();
+  gh.ulChecksumSemanticsEntry = UVFTables::CS_MD5;
+  outuvf.SetGlobalHeader(gh);
+
+  outuvf.AddConstDataBlock(rdb);
+
+  // create maxmin accel structures.  We'll need the maximum scalar
+  // later, too, for computation of the 2D histogram.
+  double max_val = DBL_MAX;
+  {
+    const size_t components = rdb->ulElementDimensionSize[0];
+    MaxMinDataBlock mmdb(components);
+    std::vector<DOUBLEVECTOR4> minmax = MaxMin(rdb);
+    MESSAGE("found %u brick min/maxes...",
+            static_cast<unsigned>(minmax.size()));
+    for(std::vector<DOUBLEVECTOR4>::const_iterator i = minmax.begin();
+        i != minmax.end(); ++i) {
+      // get the maximum maximum (that makes sense, I swear ;)
+      max_val = std::max(max_val, i->y);
+
+      // merge in the current brick's minmax.
+      mmdb.StartNewValue();
+      std::vector<DOUBLEVECTOR4> tmp(1);
+      tmp[0] = *i;
+      mmdb.MergeData(tmp);
+    }
+
+    outuvf.AddDataBlock(&mmdb);
+  }
+
+  { // histograms
+    Histogram1DDataBlock hist1d;
+    hist1d.Compute(rdb);
+    outuvf.AddDataBlock(&hist1d);
+    {
+      Histogram2DDataBlock hist2d;
+      hist2d.Compute(rdb, hist1d.GetHistogram().size(), max_val);
+      outuvf.AddDataBlock(&hist2d);
+    }
+  }
+
+  outuvf.Close();
+}
+
+
+// Identifies the 'widest' type that is utilized in a series of UVFs.
+// For example, if we've got FP data in one UVF and unsigned bytes in
+// another, the 'widest' type is FP.
+void IdentifyType(const std::vector<std::tr1::shared_ptr<UVFDataset> >& uvf,
+                  size_t& bit_width, bool& is_float, bool &is_signed)
+{
+  bit_width = 0;
+  is_float = false;
+  is_signed = false;
+
+  for(size_t i=0; i < uvf.size(); ++i) {
+    bit_width = std::max(bit_width, uvf[i]->GetBitWidth());
+    assert(true > false);
+    is_float = std::max(is_float, uvf[i]->GetIsFloat());
+    is_signed = std::max(is_signed, uvf[i]->GetIsSigned());
+  }
+}
+
+// Reads in data of the given type.  If data is not stored that way in
+// the file, it will expand it out to the given type.  Assumes it will
+// always be expanding data, never compressing it!
+template<typename T>
+void TypedRead(std::vector<T>& data,
+               const Dataset& ds,
+               const BrickKey& key)
+{
+  size_t width = ds.GetBitWidth();
+  bool is_signed = ds.GetIsSigned();
+  bool is_float = ds.GetIsFloat();
+
+  size_t dest_width = sizeof(T) * 8;
+  bool dest_signed = ctti<T>::is_signed;
+  bool dest_float = std::tr1::is_floating_point<T>::value;
+
+  // fp data implies signed data.
+  assert(is_float ? is_signed : true);
+  assert(dest_float ? dest_signed : true);
+
+  MESSAGE(" [Source Data] Signed: %d  Float: %d  Width: %u",
+          is_signed, is_float, static_cast<unsigned>(width));
+  MESSAGE(" [Destination] Signed: %d  Float: %d  Width: %u",
+          dest_signed, dest_float, static_cast<unsigned>(dest_width));
+
+  // If we're lucky, we can just read the data and be done with it.
+  if(dest_width == width && dest_signed == is_signed &&
+     dest_float == is_float) {
+    MESSAGE("Data is stored the way we need it!  Yay.");
+    ds.GetBrick(key, data);
+    return;
+  }
+
+  // Otherwise we'll need to read it into a temporary buffer and expand
+  // it into the argument vector.
+  std::pair<double, double> range = ds.GetRange();
+
+  if(is_float && width == 32) {
+    std::vector<float> tmpdata;
+    ds.GetBrick(key, tmpdata);
+    data.resize(tmpdata.size() / (width/8));
+    interpolate<float*, typename std::vector<T>::iterator, T>(
+      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
+    );
+  } else if(is_float && width == 64) {
+    // Can this happen?  What would we expand double into?
+    std::vector<double> tmpdata;
+    ds.GetBrick(key, tmpdata);
+    data.resize(tmpdata.size() / (width/8));
+    interpolate<double*, typename std::vector<T>::iterator, T>(
+      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
+    );
+  } else if( is_signed &&  8 == width) {
+    std::vector<int8_t> tmpdata;
+    ds.GetBrick(key, tmpdata);
+    data.resize(tmpdata.size() / (width/8));
+    interpolate<int8_t*, typename std::vector<T>::iterator, T>(
+      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
+    );
+  } else if(!is_signed &&  8 == width) {
+    std::vector<uint8_t> tmpdata;
+    ds.GetBrick(key, tmpdata);
+    data.resize(tmpdata.size() / (width/8));
+    interpolate<uint8_t*, typename std::vector<T>::iterator, T>(
+      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
+    );
+  } else if( is_signed && 16 == width) {
+    std::vector<int16_t> tmpdata;
+    ds.GetBrick(key, tmpdata);
+    data.resize(tmpdata.size() / (width/8));
+    interpolate<int16_t*, typename std::vector<T>::iterator, T>(
+      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
+    );
+  } else if(!is_signed && 16 == width) {
+    std::vector<uint16_t> tmpdata;
+    ds.GetBrick(key, tmpdata);
+    data.resize(tmpdata.size() / (width/8));
+    interpolate<uint16_t*, typename std::vector<T>::iterator, T>(
+      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
+    );
+  } else if( is_signed && 32 == width) {
+    std::vector<int32_t> tmpdata;
+    ds.GetBrick(key, tmpdata);
+    data.resize(tmpdata.size() / (width/8));
+    interpolate<int32_t*, typename std::vector<T>::iterator, T>(
+      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
+    );
+  } else if(!is_signed && 32 == width) {
+    std::vector<uint32_t> tmpdata;
+    ds.GetBrick(key, tmpdata);
+    data.resize(tmpdata.size() / (width/8));
+    interpolate<uint32_t*, typename std::vector<T>::iterator, T>(
+      &tmpdata[0], (&tmpdata[0]) + tmpdata.size(), range, data.begin()
+    );
+  } else {
+    T_ERROR("Unhandled data type!  Width: %u, Signed: %d, Float: %d",
+            static_cast<unsigned>(width), is_signed, is_float);
+  }
+}
+
+namespace {
+  template<typename T>
+  void ReadAndEvalBrick(
+    RasterDataBlock* rdb,
+    const std::vector<std::tr1::shared_ptr<UVFDataset> >& uvfs,
+    const std::vector<BrickTable::const_iterator>& iters,
+    tuvok::expression::Node* tree
+  ) {
+    std::vector<std::vector<T> > involumes(uvfs.size());
+    std::vector<T> output;
+    for(size_t i=0; i < uvfs.size(); ++i) {
+      MESSAGE("Reading brick from volume %u/%u...", static_cast<unsigned>(i+1),
+              static_cast<unsigned>(uvfs.size()));
+      TypedRead<T>(involumes[i], *uvfs[i], iters[i]->first);
+    }
+    MESSAGE("Evaluating expression ...");
+    tuvok::expression::evaluate(*tree, involumes, output);
+
+    MESSAGE("Writing ...");
+    NDBrickKey nk = uvfs[0]->IndexToVectorKey(iters[0]->first);
+    if(false == rdb->SetData(&output[0], nk.lod, nk.brick)) {
+      T_ERROR("Write failed!");
+    }
+  }
+}
+
+struct cleanup_parser {
+  ~cleanup_parser() { parser_free(); }
+};
+
+void
+IOManager::EvaluateExpression(const char* expr,
+                              const std::vector<std::string> volumes,
+                              const std::string& out_fn) const
+                              throw(tuvok::Exception)
+{
+  parser_set_string(expr);
+  int parse_err = yyparse();
+  std::auto_ptr<cleanup_parser> p(new cleanup_parser());
+  assert(!volumes.empty());
+
+  if(parse_err == 1) {
+    throw tuvok::expression::SyntaxError("", 0, 2, __FILE__, __LINE__);
+  }
+
+  // open all of those files and get UVF datasets for each of them.
+  const bool verify=false;
+  std::vector<std::tr1::shared_ptr<UVFDataset> > uvf;
+  typedef std::vector<std::string>::const_iterator citer;
+  for(citer f = volumes.begin(); f != volumes.end(); ++f) {
+    uvf.push_back(std::tr1::shared_ptr<UVFDataset>(
+      dynamic_cast<UVFDataset*>(
+        m_dsFactory->Create(*f, 256 /* hack! */, verify)
+      )
+    ));
+    uvf[uvf.size()-1]->ComputeRange();
+  }
+  // ensure those UVFs are "equal" in some sense (same number of voxels, etc).
+  MergeableDatasets mergeable;
+  typedef std::vector<std::tr1::shared_ptr<UVFDataset> >::const_iterator uiter;
+  for(uiter u = uvf.begin(); u != uvf.end(); ++u) {
+    if(!mergeable(**uvf.begin(), **u)) {
+      throw tuvok::io::UnmergeableDatasets("Incompatible input volumes",
+                                           __FILE__, __LINE__);
+    }
+  }
+
+  tuvok::expression::Node* tree = parser_tree_root();
+
+  // volume iterators
+  std::vector<BrickTable::const_iterator> viters(uvf.size());
+  for(size_t i=0; i < viters.size(); ++i) { // initialize
+    viters[i] = uvf[i]->BricksBegin();
+  }
+
+  RasterDataBlock* rdb = new RasterDataBlock();
+  rdb->SetBlockSemantic(UVFTables::BS_REG_NDIM_GRID);
+  rdb->SetIdentityTransformation();
+  rdb->SetTypeToUShort(UVFTables::ES_RED);
+
+  { // Copy the other basic info from the first input volume.
+    std::wstring wide_vol(volumes[0].begin(), volumes[0].end());
+    UVF firstvol(wide_vol);
+    firstvol.Open(false, false, false);
+    const RasterDataBlock* rdb1 = GetFirstRDB(firstvol);
+    assert(rdb1);
+    *rdb = *rdb1;
+  }
+
+  std::string tmp_fn = SysTools::RemoveExt(out_fn) + ".rdb";
+  std::auto_ptr<LargeRAWFile> lout = std::auto_ptr<LargeRAWFile>
+                                                  (new LargeRAWFile(tmp_fn));
+  lout->Create();
+  rdb->ResetFile(&*lout);
+
+  // Figure out which what type our output data should be.
+  size_t bit_width;
+  bool is_float, is_signed;
+  IdentifyType(uvf, bit_width, is_float, is_signed);
+
+  //     foreach brick:
+  //       load brick into 'involumes'
+  //       evaluate(tree, input-bricks-in-a-vector, output)
+  //       write output somewhere
+  /// @todo FIXME: we should query bit_width, is_float, is_signed to create different
+  /// 'involumes' based on the type we need...
+  size_t brick = 0;
+  while(viters[0] != uvf[0]->BricksEnd()) {
+    for(size_t i=0; i < uvf.size(); ++i) {
+      MESSAGE("Brick %u (file %03u/%03u)...", static_cast<unsigned>(brick),
+              static_cast<unsigned>(i+1), static_cast<unsigned>(uvf.size()));
+      // Read in the data we need.
+      if(is_float && bit_width == 32) {
+        ReadAndEvalBrick<float>(rdb, uvf, viters, tree);
+      } else if(is_float && bit_width == 64) {
+        // Not implemented in UVF...
+        T_ERROR("double format data not supported!");
+        continue;
+      } else if( is_signed && bit_width ==  8) {
+        ReadAndEvalBrick< int8_t>(rdb, uvf, viters, tree);
+      } else if(!is_signed && bit_width ==  8) {
+        ReadAndEvalBrick<uint8_t>(rdb, uvf, viters, tree);
+      } else if( is_signed && bit_width == 16) {
+        ReadAndEvalBrick< int16_t>(rdb, uvf, viters, tree);
+      } else if(!is_signed && bit_width == 16) {
+        ReadAndEvalBrick<uint16_t>(rdb, uvf, viters, tree);
+      // These types aren't yet implemented in UVF/RasterDataBlock.
+      } else if( is_signed && bit_width == 32) {
+        T_ERROR("32bit signed int data not implemented!");
+        //ReadAndEvalBrick< int32_t>(rdb, uvf, viters, tree);
+      } else if(!is_signed && bit_width == 32) {
+        T_ERROR("32bit unsigned data not implemented!");
+        //ReadAndEvalBrick<uint32_t>(rdb, uvf, viters, tree);
+      } else if( is_signed && bit_width == 64) {
+        T_ERROR("64bit signed int data not implemented!");
+        //ReadAndEvalBrick< int64_t>(rdb, uvf, viters, tree);
+      } else if(!is_signed && bit_width == 64) {
+        T_ERROR("64bit unsigned data not implemented!");
+        //ReadAndEvalBrick<uint64_t>(rdb, uvf, viters, tree);
+      } else {
+        T_ERROR("Could not figure out destination data type!");
+      }
+    }
+    MESSAGE("Brick %u (evaluation)...", static_cast<unsigned>(brick));
+
+    using namespace std::tr1::placeholders;
+    // advance each brick iterator by one.
+    std::for_each(viters.begin(), viters.end(),
+                  std::tr1::bind(std::advance<BrickTable::const_iterator,int>,
+                                 _1, 1));
+  }
+
+  CreateUVFFromRDB(out_fn, rdb);
+
+  delete rdb;
+}
 
 bool IOManager::ReBrickDataset(const string& strSourceFilename,
                                const string& strTargetFilename,

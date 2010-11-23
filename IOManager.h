@@ -57,6 +57,7 @@
 #include "Basics/SysTools.h"
 #include "Basics/LargeRAWFile.h"
 #include "Basics/Mesh.h"
+#include "Basics/TuvokException.h"
 #include "AbstrGeoConverter.h"
 
 typedef std::tr1::tuple<std::string , std::string, bool> tConverterFormat;
@@ -393,6 +394,13 @@ public:
                                     UINT64 iMaxBrickSize,
                                     UINT64 iBrickOverlap,
                                     bool bQuantizeTo8Bit=false) const;
+
+  /// evaluates the given expression. v[n] in the expression refers to
+  /// the volume given by volumes[n].
+  void EvaluateExpression(const char* expr,
+                          const std::vector<std::string> volumes,
+                          const std::string& out_fn) const
+                          throw(tuvok::Exception);
 
 
   bool ReBrickDataset(const std::string& strSourceFilename,
