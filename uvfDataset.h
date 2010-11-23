@@ -136,9 +136,10 @@ public:
       return "Generic UVF Dataset"; 
   }
 
+  NDBrickKey IndexToVectorKey(const BrickKey &k) const;
+
 private:
   std::vector<UINT64> IndexToVector(const BrickKey &k) const;
-  NDBrickKey IndexToVectorKey(const BrickKey &k) const;
   bool Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion=true);
   void Close();
   void FindSuitableRasterBlocks();
