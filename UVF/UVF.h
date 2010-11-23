@@ -60,8 +60,8 @@ public:
 
   // file creation routines
   bool SetGlobalHeader(const GlobalHeader& GlobalHeader);
-  bool AddConstDataBlock(const DataBlock* dataBlock, UINT64 iSizeofData);
-  bool AddDataBlock(DataBlock* dataBlock, UINT64 iSizeofData, bool bUseSourcePointer=false);
+  bool AddConstDataBlock(const DataBlock* dataBlock);
+  bool AddDataBlock(DataBlock* dataBlock, bool bUseSourcePointer=false);
   bool Create();
 
   // RW access routines

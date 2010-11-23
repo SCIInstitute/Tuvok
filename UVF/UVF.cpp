@@ -286,8 +286,8 @@ bool UVF::SetGlobalHeader(const GlobalHeader& globalHeader) {
   return true;
 }
 
-bool UVF::AddConstDataBlock(const DataBlock* dataBlock, UINT64 iSizeofData) {
-
+bool UVF::AddConstDataBlock(const DataBlock* dataBlock) {
+  const UINT64 iSizeofData = dataBlock->ComputeDataSize();
   if (!dataBlock->Verify(iSizeofData)) return false;
 
   DataBlock* d = dataBlock->Clone();
@@ -299,8 +299,9 @@ bool UVF::AddConstDataBlock(const DataBlock* dataBlock, UINT64 iSizeofData) {
   return true;
 }
 
-bool UVF::AddDataBlock(DataBlock* dataBlock, UINT64 iSizeofData,
+bool UVF::AddDataBlock(DataBlock* dataBlock,
                        bool bUseSourcePointer) {
+  const UINT64 iSizeofData = dataBlock->ComputeDataSize();
 
   if (!dataBlock->Verify(iSizeofData)) return false;
 

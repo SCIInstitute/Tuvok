@@ -1611,12 +1611,11 @@ void IOManager::AddMesh(const UVF* sourceDataset,
   uvfFile.SetGlobalHeader(uvfGlobalHeader);
 
   for(UINT64 i = 0; i<sourceDataset->GetDataBlockCount(); i++) {
-    uvfFile.AddConstDataBlock(sourceDataset->GetDataBlock(i),
-                              sourceDataset->GetDataBlock(i)->ComputeDataSize());
+    uvfFile.AddConstDataBlock(sourceDataset->GetDataBlock(i));
   }
 
   MESSAGE("Adding triangle soup block...");
-  uvfFile.AddDataBlock(&tsb, tsb.ComputeDataSize(), true);
+  uvfFile.AddDataBlock(&tsb, true);
 
   uvfFile.Create();
   MESSAGE("Computing checksum...");

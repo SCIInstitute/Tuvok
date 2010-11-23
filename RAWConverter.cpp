@@ -504,7 +504,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       return false;
     }
 
-    if (!uvfFile.AddDataBlock(dataVolume,dataVolume->ComputeDataSize(), true)) {
+    if (!uvfFile.AddDataBlock(dataVolume, true)) {
       T_ERROR("AddDataBlock failed!");
       uvfFile.Close();
       if (bConvertEndianness) {
@@ -550,12 +550,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         return false;
       }
       MESSAGE("Storing histogram data...");
-      uvfFile.AddDataBlock(&Histogram1D,Histogram1D.ComputeDataSize());
-      uvfFile.AddDataBlock(&Histogram2D,Histogram2D.ComputeDataSize());
+      uvfFile.AddDataBlock(&Histogram1D);
+      uvfFile.AddDataBlock(&Histogram2D);
     }
 
     MESSAGE("Storing acceleration data...");
-    uvfFile.AddDataBlock(&MaxMinData, MaxMinData.ComputeDataSize());
+    uvfFile.AddDataBlock(&MaxMinData);
     SourceData.Close();
   }
 
@@ -588,8 +588,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     }
   }
 
-  UINT64 iDataSize = metaPairs.ComputeDataSize();
-  uvfFile.AddDataBlock(&metaPairs,iDataSize);
+  uvfFile.AddDataBlock(&metaPairs);
 
   MESSAGE("Writing UVF file...");
 
