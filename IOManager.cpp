@@ -259,7 +259,6 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                UINT64 iMaxBrickSize,
                                UINT64 iBrickOverlap,
                                const bool bQuantizeTo8Bit) const {
-
   MESSAGE("Request to convert stack of %s files to %s received",
           pStack->m_strDesc.c_str(), strTargetFilename.c_str());
 
@@ -451,10 +450,14 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
       SysTools::GetFilename(pStack->m_Elements[last_elem]->m_strFileName);
 
     const UINT64 timesteps = 1;
+
+    // grab the number of components from the first file in the set.
+    UINT64 components = pStack->m_Elements[0]->GetComponentCount();
+
     bool result =
       RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename,
                                       strTempDir, 0, pStack->m_iAllocated,
-                                      pStack->m_iComponentCount,
+                                      components,
                                       timesteps,
                                       pStack->m_bIsBigEndian !=
                                         EndianConvert::IsBigEndian(),
