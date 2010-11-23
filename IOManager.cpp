@@ -429,11 +429,9 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
 
     vector<char> vData;
     for (size_t j = 0;j<pStack->m_Elements.size();j++) {
-      UINT32 iDataSize = pStack->m_Elements[j]->GetDataSize();
-      vData.resize(iDataSize);
       pStack->m_Elements[j]->GetData(vData);
 
-      fs.write(&vData[0], iDataSize);
+      fs.write(&vData[0], vData.size());
       MESSAGE("Creating intermediate file %s\n%u%%",
               strTempMergeFilename.c_str(),
               static_cast<unsigned>((100*j)/pStack->m_Elements.size()));
