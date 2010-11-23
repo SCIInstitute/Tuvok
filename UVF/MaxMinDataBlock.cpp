@@ -145,9 +145,12 @@ void MaxMinDataBlock::StartNewValue() {
   m_vfMaxMinData.push_back(elems);
 }
 
-void MaxMinDataBlock::MergeData(const std::vector<DOUBLEVECTOR4>& fMaxMinData) {
-  for (size_t i = 0;i<m_iComponentCount;i++) 
-    MergeData(InternalMaxMinElement(fMaxMinData[i].x, fMaxMinData[i].y, fMaxMinData[i].z, fMaxMinData[i].w), i);
+void MaxMinDataBlock::MergeData(const std::vector<DOUBLEVECTOR4>& fMaxMinData)
+{
+  for (size_t i = 0;i<m_iComponentCount;i++) {
+    MergeData(InternalMaxMinElement(fMaxMinData[i].x, fMaxMinData[i].y,
+                                    fMaxMinData[i].z, fMaxMinData[i].w), i);
+  }
 }
 
 void MaxMinDataBlock::MergeData(const InternalMaxMinElement& data, const size_t iComponent) {
