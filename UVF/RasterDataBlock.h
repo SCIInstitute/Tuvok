@@ -3,6 +3,7 @@
 #ifndef UVF_RASTERDATABLOCK_H
 #define UVF_RASTERDATABLOCK_H
 
+#include <algorithm>
 #include <string>
 #include "DataBlock.h"
 #include "Basics/Vectors.h"
@@ -17,18 +18,22 @@ void SimpleMaxMin(const void* pIn, size_t iStart, size_t iCount,
   fMinMax.resize(iVecLength);
 
   for (size_t i = 0;i<iVecLength;i++) {
-    fMinMax[i].x = pDataIn[iStart+i];
-    fMinMax[i].y = pDataIn[iStart+i];
+    fMinMax[i].x = pDataIn[iStart+i]; // .x will be the minimum
+    fMinMax[i].y = pDataIn[iStart+i]; // .y will be the max
 
     /// \todo remove this if the gradient computations is implemented below
-    fMinMax[i].z = -std::numeric_limits<double>::max();
-    fMinMax[i].w = std::numeric_limits<double>::max();
+    fMinMax[i].z = -std::numeric_limits<double>::max(); // min gradient
+    fMinMax[i].w = std::numeric_limits<double>::max();  // max gradient
   }
 
   for (size_t i = iStart+iVecLength;i<iStart+iCount;i++) {
     for (size_t iComponent = 0;iComponent<iVecLength;iComponent++) {
-      if (fMinMax[iComponent].x > pDataIn[i*iVecLength+iComponent]) fMinMax[iComponent].x = pDataIn[i*iVecLength+iComponent];
-      if (fMinMax[iComponent].y < pDataIn[i*iVecLength+iComponent]) fMinMax[iComponent].y = pDataIn[i*iVecLength+iComponent];
+        fMinMax[iComponent].x = std::min(fMinMax[iComponent].x,
+                                         static_cast<double>
+                                         (pDataIn[i*iVecLength+iComponent]));
+        fMinMax[iComponent].y = std::max(fMinMax[iComponent].y,
+                                         static_cast<double>
+                                         (pDataIn[i*iVecLength+iComponent]));
       /// \todo compute gradients
     }
   }
