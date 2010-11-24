@@ -40,7 +40,6 @@
 #include <ostream>
 
 #include "semantic.h"
-#include "expr-template.h"
 #include "IO/VariantArray.h"
 
 namespace tuvok { namespace expression {
@@ -110,19 +109,6 @@ void evaluate(Node& tree,
     *o = tree.Evaluate(std::distance(output.begin(), o));
   }
 }
-
-template<typename L, typename R>
-etBinaryExpression<L, R, etAdd> operator+(const L& l, const R& r)
-{
-  return etBinaryExpression<L, R, etAdd>(l, r);
-}
-
-template<typename L, typename R>
-etBinaryExpression<L, R, etSubtract> operator-(const L& l, const R& r)
-{
-  return etBinaryExpression<L, R, etSubtract>(l, r);
-}
-
 
 enum OpType {
   OP_PLUS,
