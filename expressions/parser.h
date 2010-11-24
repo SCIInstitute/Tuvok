@@ -38,7 +38,7 @@ union YYSTYPE;
 
 extern int yyparse(void);
 extern void yyerror(YYLTYPE*, const char*);
-extern void yylex_destroy();
+extern int yylex_destroy();
 extern int yylex(YYSTYPE*, YYLTYPE*);
 
 tuvok::expression::Node* parser_tree_root();
