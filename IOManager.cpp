@@ -1667,9 +1667,10 @@ MaxMin(const RasterDataBlock* rdb)
   vLOD[0] = 0;
   do {
     brick = 0;
+    size_t st_lod = static_cast<size_t>(vLOD[0]);
     do {
-      assert(rdb->ValidBrickIndex(vLOD, NDBrickIndex(rdb, vLOD[0], brick)));
-      std::vector<UINT64> b_idx = NDBrickIndex(rdb, vLOD[0], brick);
+      std::vector<UINT64> b_idx = NDBrickIndex(rdb, st_lod, brick);
+      assert(rdb->ValidBrickIndex(vLOD, b_idx));
       MESSAGE("%llu,%zu -> %llu,%llu,%llu", vLOD[0], brick,
               b_idx[0], b_idx[1], b_idx[2]);
 
@@ -1710,8 +1711,9 @@ MaxMin(const RasterDataBlock* rdb)
       MESSAGE("Finished lod,brick %u,%u", static_cast<unsigned>(vLOD[0]),
               static_cast<unsigned>(brick));
       ++brick;
-    } while(rdb->ValidBrickIndex(vLOD, NDBrickIndex(rdb, vLOD[0], brick)));
+    } while(rdb->ValidBrickIndex(vLOD, NDBrickIndex(rdb, st_lod, brick)));
     vLOD[0]++;
+    st_lod = static_cast<size_t>(vLOD[0]);
   } while(rdb->ValidLOD(vLOD));
   return mm;
 }
