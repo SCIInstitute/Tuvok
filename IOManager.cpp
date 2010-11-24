@@ -1532,8 +1532,10 @@ struct MergeableDatasets : public std::binary_function<Dataset, Dataset, bool> {
 
     for(UINT64 ts=0; ts < timesteps; ++ts) {
       for(UINT64 level=0; level < LoDs; ++level) {
+        const size_t st_ts = static_cast<size_t>(ts);
+        const size_t st_level = static_cast<size_t>(level);
         if(a.GetDomainSize() != b.GetDomainSize() ||
-           a.GetBrickCount(level, ts) != b.GetBrickCount(level, ts)) {
+           a.GetBrickCount(st_level, st_ts) != b.GetBrickCount(st_level, st_ts)) {
           return false;
         }
       }
