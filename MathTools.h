@@ -48,6 +48,7 @@
                                               __GNUC_MINOR__ == 1))))
 # include <cmath>
 #else
+# define USABLE_TR1
 # include <tr1/cmath>
 #endif
 #ifdef _DEBUG
@@ -82,8 +83,7 @@ namespace MathTools {
   {
     out ret = out(omin + (value-imin) * (static_cast<double>(omax-omin) /
                                                             (imax-imin)));
-    // Both msvc' and mac's old gcc lack these functions.
-#if defined(_DEBUG) && defined(DETECTED_OS_LINUX)
+#if defined(_DEBUG) && defined(USABLE_TR1)
     // Very useful while debugging, but too expensive for general use.
     if(std::tr1::isnan(ret) || std::tr1::isinf(ret)) {
       throw std::range_error("NaN or infinity!");
