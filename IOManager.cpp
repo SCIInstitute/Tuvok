@@ -1737,7 +1737,7 @@ CreateUVFFromRDB(const std::string& filename,
   // later, too, for computation of the 2D histogram.
   double max_val = DBL_MAX;
   {
-    const size_t components = rdb->ulElementDimensionSize[0];
+    const size_t components = static_cast<size_t>(rdb->ulElementDimensionSize[0]);
     MaxMinDataBlock mmdb(components);
     std::vector<DOUBLEVECTOR4> minmax = MaxMin(rdb);
     MESSAGE("found %u brick min/maxes...",
@@ -1798,7 +1798,7 @@ void TypedRead(std::vector<T>& data,
                const Dataset& ds,
                const BrickKey& key)
 {
-  size_t width = ds.GetBitWidth();
+  size_t width = static_cast<size_t>(ds.GetBitWidth());
   bool is_signed = ds.GetIsSigned();
   bool is_float = ds.GetIsFloat();
 
