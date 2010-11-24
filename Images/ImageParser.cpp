@@ -43,6 +43,7 @@
 #include <Basics/SysTools.h>
 #include <Controller/Controller.h>
 
+using namespace boost;
 using namespace std;
 
 ImageFileInfo::ImageFileInfo() :

@@ -38,11 +38,12 @@
 
 #include <StdTuvokDefines.h>
 
-#ifdef DETECTED_OS_WINDOWS
+#ifdef _MSC_VER
 # include <memory>
 #else
 # include <tr1/memory>
 #endif
+#include "boost/cstdint.hpp"
 
 namespace tuvok {
 

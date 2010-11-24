@@ -48,6 +48,7 @@
 # include <tr1/memory>
 # include <tr1/unordered_map>
 #endif
+#include "boost/cstdint.hpp"
 #include "boost/noncopyable.hpp"
 #include "Basics/Grids.h"
 #include "Basics/Vectors.h"

@@ -61,7 +61,7 @@ public:
   UINT32 GetDataSize() const {
     return m_iDataSize; /* = m_iComponentCount*m_ivSize.volume()*m_iAllocated/8; */
   }
-  virtual uint32_t GetComponentCount() const = 0;
+  virtual boost::uint32_t GetComponentCount() const = 0;
 
   virtual bool GetData(std::vector<char>&);
   virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset) = 0;

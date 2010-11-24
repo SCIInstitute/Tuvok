@@ -57,7 +57,7 @@ public:
   ImageFileInfo(const std::wstring& wstrFileName);
   virtual ~ImageFileInfo() {}
 
-  virtual uint32_t GetComponentCount() const;
+  virtual boost::uint32_t GetComponentCount() const;
   virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset);
   virtual SimpleFileInfo* clone();
 

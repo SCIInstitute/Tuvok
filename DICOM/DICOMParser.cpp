@@ -55,6 +55,7 @@
   #include <Basics/Console.h>
 #endif
 
+using namespace boost;
 
 std::string DICOM_TypeStrings[28] = {
   "AE", // Application Entity string 16 bytes maximum

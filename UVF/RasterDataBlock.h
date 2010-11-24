@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <string>
+#include "boost/cstdint.hpp"
 #include "DataBlock.h"
 #include "Basics/Vectors.h"
 
