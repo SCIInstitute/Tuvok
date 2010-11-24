@@ -19,7 +19,6 @@ SOURCES += \
   binary-expression.cpp \
   conditional-expression.cpp \
   constant.cpp          \
-  test.cpp              \
   treenode.cpp          \
   ../IO/VariantArray.cpp \
   volume.cpp
