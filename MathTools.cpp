@@ -72,11 +72,7 @@ UINT64 MathTools::Log2(UINT64 n) {
 }
 
 UINT64 MathTools::Pow2(UINT64 e) {
-#ifdef WIN32
-  return 1i64<<e;
-#else
-  return 1<<e;
-#endif
+  return static_cast<UINT64>(1) << e;
 }
 
 UINT32 MathTools::GaussianSum(UINT32 n) {
