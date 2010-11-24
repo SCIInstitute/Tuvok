@@ -1653,9 +1653,9 @@ namespace {
 std::vector<DOUBLEVECTOR4>
 MaxMin(const RasterDataBlock* rdb)
 {
-  const bool is_float = rdb->ulElementMantissa[0][0];
   const bool is_signed = rdb->bSignedElement[0][0];
   const UINT64 bit_width = rdb->ulElementBitSize[0][0];
+  const bool is_float = bit_width != rdb->ulElementMantissa[0][0];
   std::vector<DOUBLEVECTOR4> mm;
 
   // We iterate over each LoD.  At each one, we iterate through the bricks.
