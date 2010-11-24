@@ -186,6 +186,31 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
 }
 
 bool ExternalDataset::GetBrick(const BrickKey& bk,
+                               std::vector<uint32_t>& brick) const
+{
+  DataTable::const_iterator brick_data = this->Lookup(bk);
+  assert(this->m_Data.end() != brick_data);
+  const VariantArray& varray = brick_data->second;
+  brick.resize(varray.size());
+
+  //assert(varray.type() == VariantArray::DT_UINT);
+  //std::memcpy(&brick[0], varray.getui(), varray.size()*sizeof(uint32_t));
+  return false;
+}
+bool ExternalDataset::GetBrick(const BrickKey& bk,
+                               std::vector<int32_t>& brick) const
+{
+  DataTable::const_iterator brick_data = this->Lookup(bk);
+  assert(this->m_Data.end() != brick_data);
+  const VariantArray& varray = brick_data->second;
+  brick.resize(varray.size());
+
+  //assert(varray.type() == VariantArray::DT_INT);
+  //std::memcpy(&brick[0], varray.geti(), varray.size()*sizeof(int32_t));
+  return false;
+}
+
+bool ExternalDataset::GetBrick(const BrickKey& bk,
                                std::vector<float>& brick) const
 {
   DataTable::const_iterator brick_data = this->Lookup(bk);
@@ -196,6 +221,18 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
   assert(varray.type() == VariantArray::DT_FLOAT);
   std::memcpy(&brick[0], varray.getf(), varray.size()*sizeof(float));
   return true;
+}
+bool ExternalDataset::GetBrick(const BrickKey& bk,
+                               std::vector<double>& brick) const
+{
+  DataTable::const_iterator brick_data = this->Lookup(bk);
+  assert(this->m_Data.end() != brick_data);
+  const VariantArray& varray = brick_data->second;
+  brick.resize(varray.size());
+
+  //assert(varray.type() == VariantArray::DT_DOUBLE);
+  //std::memcpy(&brick[0], varray.getd(), varray.size()*sizeof(double));
+  return false;
 }
 
 float ExternalDataset::MaxGradientMagnitude() const
