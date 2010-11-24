@@ -53,6 +53,9 @@
 #include "IOManager.h"  // for the size defines
 #include "Basics/LargeRAWFile.h"
 
+struct signed_tag {};
+struct unsigned_tag {};
+
 namespace {
 /// "Compile time type info"
 /// Metaprogramming type traits that we need but aren't in tr1.
@@ -69,61 +72,75 @@ template <typename T> struct ctti : ctti_base<T> { };
 
 template<> struct ctti<bool> : ctti_base<bool> {
   typedef bool size_type;
+  typedef signed_tag sign_tag;
 };
 template<> struct ctti<char> : ctti_base<char> {
   typedef unsigned char size_type;
   typedef signed char signed_type;
+  typedef signed_tag sign_tag ;
 };
 template<> struct ctti<signed char> : ctti_base<signed char> {
   typedef unsigned char size_type;
   typedef signed char signed_type;
   static const bool is_signed = true;
+  typedef signed_tag sign_tag;
 };
 template<> struct ctti<unsigned char> : ctti_base<unsigned char> {
   typedef unsigned char size_type;
   typedef signed char signed_type;
+  typedef unsigned_tag sign_tag;
 };
 template<> struct ctti<short> : ctti_base<short> {
   typedef unsigned short size_type;
   typedef short signed_type;
+  typedef signed_tag sign_tag;
 };
 template<> struct ctti<unsigned short> : ctti_base<unsigned short> {
   typedef unsigned short size_type;
   typedef short signed_type;
+  typedef unsigned_tag sign_tag;
 };
 #ifdef DETECTED_OS_WINDOWS
 template<> struct ctti<int> : ctti_base<int> {
   typedef unsigned int size_type;
   typedef int  signed_type;
+  typedef signed_tag sign_tag;
 };
 template<> struct ctti<UINT32> : ctti_base<UINT32> {
   typedef UINT32 size_type;
   typedef boost::int32_t signed_type;
+  typedef unsigned_tag sign_tag;
 };
 #endif
 template<> struct ctti<boost::int32_t> : ctti_base<boost::int32_t> {
   typedef boost::uint32_t size_type;
   typedef boost::int32_t signed_type;
+  typedef signed_tag sign_tag;
 };
 template<> struct ctti<boost::uint32_t> : ctti_base<boost::uint32_t> {
   typedef boost::uint32_t size_type;
   typedef boost::int32_t signed_type;
+  typedef unsigned_tag sign_tag;
 };
 template<> struct ctti<boost::int64_t> : ctti_base<boost::int64_t> {
   typedef boost::uint64_t size_type;
   typedef boost::int64_t signed_type;
+  typedef signed_tag sign_tag;
 };
 template<> struct ctti<boost::uint64_t> : ctti_base<boost::uint64_t> {
   typedef boost::uint64_t size_type;
   typedef boost::int64_t signed_type;
+  typedef unsigned_tag sign_tag;
 };
 template<> struct ctti<float> : ctti_base<float> {
   typedef float size_type;
   typedef float signed_type;
+  typedef signed_tag sign_tag;
 };
 template<> struct ctti<double> : ctti_base<double> {
   typedef double size_type;
   typedef double signed_type;
+  typedef signed_tag sign_tag;
 };
 ///@}
 };

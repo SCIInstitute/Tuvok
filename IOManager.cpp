@@ -87,6 +87,7 @@
 #include "MedAlyVisFiberTractGeoConverter.h"
 
 using namespace std;
+using namespace boost;
 using namespace tuvok;
 
 static void read_first_block(const string& filename,
@@ -1573,13 +1574,29 @@ const RasterDataBlock* GetFirstRDB(const UVF& uvf)
 }
 
 namespace {
+  template<typename T>
+  std::pair<T,T> mm_init_dispatch(signed_tag) {
+    return std::make_pair( std::numeric_limits<T>::max(),
+                          -std::numeric_limits<T>::max());
+  }
+  template<typename T>
+  std::pair<T,T> mm_init_dispatch(unsigned_tag) {
+    return std::make_pair(std::numeric_limits<T>::min(),
+                          std::numeric_limits<T>::max());
+  }
+  template<typename T>
+  std::pair<T,T> mm_init() {
+    typedef typename ctti<T>::sign_tag signedness;
+    signedness s;
+    return mm_init_dispatch<T>(s);
+  }
+
   // a minmax algorithm that doesn't suck.  Namely, it takes an input iterator
   // instead of a forward iterator, *as it should*.  Jesus.
   // Also it returns 'T's, so you don't have to deref the return value.
   template<typename T, typename InputIterator>
   std::pair<T,T> minmax_input(InputIterator begin, InputIterator end) {
-    std::pair<T,T> retval = std::make_pair( std::numeric_limits<T>::max(),
-                                           -std::numeric_limits<T>::max());
+    std::pair<T,T> retval = mm_init<T>();
     while(begin != end) {
       retval.first  = std::min(*begin, retval.first);
       retval.second = std::max(*begin, retval.second);

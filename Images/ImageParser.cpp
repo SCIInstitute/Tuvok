@@ -95,7 +95,6 @@ bool ImageFileInfo::GetData(std::vector<char>& vData, UINT32 iLength,
 
     std::copy(qImage.bits(), qImage.bits()+(w*h*m_iComponentCount),
               vData.begin());
-    return true;
   } else {
     int iCount = 0;
     for (int y = 0;y<qImage.height();y++) {
@@ -113,13 +112,12 @@ pixel.blue()) /
         iCount++;
       }
     }
-
-    return true;
   }
+  return true;
 #else
   T_ERROR("Qt needed/used to load image data!");
-#endif
   return false;
+#endif
 }
 
 
