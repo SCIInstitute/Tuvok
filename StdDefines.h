@@ -64,8 +64,6 @@ typedef unsigned char BYTE;
 #endif
 // Get rid of stupid warnings.
 #define _CRT_SECURE_NO_WARNINGS 1
-// prevent MSVC from complaining that it doesn't implement checked exceptions.
-#pragma warning(disable: 4290)
 
 #define UNUSED (0)
 #define UNUSED_FLOAT (0.0f)
@@ -110,9 +108,11 @@ typedef unsigned char BYTE;
 // Disable the "secure CRT" garbage warnings.
 #undef _CRT_SECURE_NO_WARNINGS
 #define _CRT_SECURE_NO_WARNINGS 1
+#ifdef _MSC_VER
 // The above is the documented way to do it, but doesn't work.  This does:
-#ifdef DETECTED_OS_WINDOWS
 # pragma warning(disable: 4996)
+// prevent MSVC from complaining that it doesn't implement checked exceptions.
+# pragma warning(disable: 4290)
 #endif
 
 // set some strings to reflect that OS
