@@ -20,5 +20,4 @@ SOURCES += \
   conditional-expression.cpp \
   constant.cpp          \
   treenode.cpp          \
-  ../IO/VariantArray.cpp \
   volume.cpp
