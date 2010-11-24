@@ -1239,7 +1239,8 @@ bool RasterDataBlock::ValidBrickIndex(const std::vector<UINT64>& vLOD,
   const UINT64 b_idx = Serialize(vBrick, m_vBrickCount[lod_s]);
   const size_t b_idx_s = static_cast<size_t>(b_idx);
   const UINT64 count = std::accumulate(m_vBrickCount[lod_s].begin(),
-                                       m_vBrickCount[lod_s].end(), 1,
+                                       m_vBrickCount[lod_s].end(),
+                                       static_cast<UINT64>(1),
                                        std::multiplies<UINT64>());
   if(b_idx_s >= count) { return false; }
 
