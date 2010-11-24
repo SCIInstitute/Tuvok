@@ -42,7 +42,6 @@
 #include "boost/cstdint.hpp"
 #undef UINT32
 
-
 typedef boost::int64_t  INT64;
 typedef boost::uint64_t UINT64;
 #ifndef UINT32
@@ -65,6 +64,8 @@ typedef unsigned char BYTE;
 #endif
 // Get rid of stupid warnings.
 #define _CRT_SECURE_NO_WARNINGS 1
+// prevent MSVC from complaining that it doesn't implement checked exceptions.
+#pragma warning(disable: 4290)
 
 #define UNUSED (0)
 #define UNUSED_FLOAT (0.0f)

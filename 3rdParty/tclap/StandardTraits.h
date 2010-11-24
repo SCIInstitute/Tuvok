@@ -114,6 +114,18 @@ struct ArgTraits<unsigned char> {
     typedef ValueLike ValueCategory;
 };
 
+/** Microsoft implements size_t awkwardly. */
+#ifdef _MSC_VER
+/**
+ * size_ts have value-like semantics.
+ */
+template<>
+struct ArgTraits<size_t> {
+    typedef ValueLike ValueCategory;
+};
+#endif
+
+
 #ifdef HAVE_LONG_LONG
 /**
  * unsigned long longs have value-like semantics.
