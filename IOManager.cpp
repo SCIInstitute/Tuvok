@@ -1552,10 +1552,9 @@ namespace {
     const U max_out = std::numeric_limits<U>::max();
     assert(src_range.second >= src_range.first);
     const double diff = src_range.second - src_range.first;
-    const U ifactor = max_out / diff;
+    const double ifactor = max_out / diff;
     while(ibeg != iend) {
-      U value = *ibeg;
-      *obeg = (value - src_range.first) * ifactor;
+      *obeg = static_cast<U>((*ibeg - src_range.first) * ifactor);
       ++obeg;
       ++ibeg;
     }
