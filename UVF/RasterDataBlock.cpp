@@ -9,6 +9,7 @@
 #include <Basics/SysTools.h>
 #include "Controller/Controller.h"
 
+using namespace boost;
 using namespace std;
 using namespace UVFTables;
 

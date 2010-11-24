@@ -4,6 +4,8 @@
 #ifndef UVF_RASTERDATABLOCK_H
 #define UVF_RASTERDATABLOCK_H
 
+#include "boost/cstdint.hpp"
+
 #include <algorithm>
 #include <string>
 #include "DataBlock.h"
@@ -145,17 +147,17 @@ public:
   bool GetData(std::vector<double>& vData,
                const std::vector<UINT64>& vLOD,
                const std::vector<UINT64>& vBrick) const;
-  bool SetData( int8_t* pData, const std::vector<UINT64>& vLOD,
+  bool SetData(boost::int8_t* pData, const std::vector<UINT64>& vLOD,
                const std::vector<UINT64>& vBrick);
-  bool SetData(uint8_t* pData, const std::vector<UINT64>& vLOD,
+  bool SetData(boost::uint8_t* pData, const std::vector<UINT64>& vLOD,
                const std::vector<UINT64>& vBrick);
-  bool SetData( int16_t*, const std::vector<UINT64>& vLOD,
+  bool SetData(boost::int16_t*, const std::vector<UINT64>& vLOD,
                const std::vector<UINT64>& vBrick);
-  bool SetData(uint16_t*, const std::vector<UINT64>& vLOD,
+  bool SetData(boost::uint16_t*, const std::vector<UINT64>& vLOD,
                const std::vector<UINT64>& vBrick);
-  bool SetData( int32_t*, const std::vector<UINT64>& vLOD,
+  bool SetData(boost::int32_t*, const std::vector<UINT64>& vLOD,
                const std::vector<UINT64>& vBrick);
-  bool SetData(uint32_t*, const std::vector<UINT64>& vLOD,
+  bool SetData(boost::uint32_t*, const std::vector<UINT64>& vLOD,
                const std::vector<UINT64>& vBrick);
   bool SetData( float*, const std::vector<UINT64>& vLOD,
                const std::vector<UINT64>& vBrick);
