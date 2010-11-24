@@ -1334,7 +1334,7 @@ bool RasterDataBlock::SetData( int8_t* pData, const vector<UINT64>& vLOD,
 
   SeekToBrick(vLOD, vBrick);
   UINT64 sz = GetBrickByteSize(vLOD, vBrick);
-  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz) == sz;
 }
 bool RasterDataBlock::SetData(uint8_t* pData, const vector<UINT64>& vLOD,
                               const vector<UINT64>& vBrick) {
@@ -1342,7 +1342,7 @@ bool RasterDataBlock::SetData(uint8_t* pData, const vector<UINT64>& vLOD,
 
   SeekToBrick(vLOD, vBrick);
   UINT64 sz = GetBrickByteSize(vLOD, vBrick);
-  return m_pStreamFile->WriteRAW(pData, sz);
+  return m_pStreamFile->WriteRAW(pData, sz) == sz;;
 }
 
 bool RasterDataBlock::SetData(int16_t* pData,
@@ -1353,7 +1353,7 @@ bool RasterDataBlock::SetData(int16_t* pData,
 
   SeekToBrick(vLOD, vBrick);
   UINT64 sz = GetBrickByteSize(vLOD, vBrick);
-  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz) == sz;
 }
 bool RasterDataBlock::SetData(uint16_t* pData,
                               const std::vector<UINT64>& vLOD,
@@ -1363,7 +1363,7 @@ bool RasterDataBlock::SetData(uint16_t* pData,
 
   SeekToBrick(vLOD, vBrick);
   UINT64 sz = GetBrickByteSize(vLOD, vBrick);
-  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz) == sz;
 }
 
 bool RasterDataBlock::SetData(int32_t* pData,
@@ -1374,7 +1374,7 @@ bool RasterDataBlock::SetData(int32_t* pData,
 
   SeekToBrick(vLOD, vBrick);
   UINT64 sz = GetBrickByteSize(vLOD, vBrick);
-  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz) == sz;
 }
 bool RasterDataBlock::SetData(uint32_t* pData,
                               const std::vector<UINT64>& vLOD,
@@ -1384,7 +1384,7 @@ bool RasterDataBlock::SetData(uint32_t* pData,
 
   SeekToBrick(vLOD, vBrick);
   UINT64 sz = GetBrickByteSize(vLOD, vBrick);
-  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz) == sz;
 }
 
 bool RasterDataBlock::SetData(float* pData,
@@ -1395,7 +1395,7 @@ bool RasterDataBlock::SetData(float* pData,
 
   SeekToBrick(vLOD, vBrick);
   UINT64 sz = GetBrickByteSize(vLOD, vBrick);
-  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz) == sz;
 }
 bool RasterDataBlock::SetData(double* pData,
                               const std::vector<UINT64>& vLOD,
@@ -1405,7 +1405,7 @@ bool RasterDataBlock::SetData(double* pData,
 
   SeekToBrick(vLOD, vBrick);
   UINT64 sz = GetBrickByteSize(vLOD, vBrick);
-  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz);
+  return m_pStreamFile->WriteRAW(reinterpret_cast<uint8_t*>(pData), sz) == sz;
 }
 
 void RasterDataBlock::ResetFile(LargeRAWFile* raw)
