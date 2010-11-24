@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR32)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR32)/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR64)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR64)/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -188,7 +188,7 @@
 				AdditionalOptions="/U&quot;_SECURE_SCL&quot; /D&quot;_SECURE_SCL=0&quot;"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR32)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR32)/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -258,7 +258,7 @@
 				AdditionalOptions="/U&quot;_SECURE_SCL&quot; /D&quot;_SECURE_SCL=0&quot;"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR64)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR64)/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -324,7 +324,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR32)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR32)/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -392,7 +392,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR64)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR64)/include&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;USE_DIRECTX"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -462,7 +462,7 @@
 				AdditionalOptions="/U&quot;_SECURE_SCL&quot; /D&quot;_SECURE_SCL=0&quot;"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR32)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR32)/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -532,7 +532,7 @@
 				AdditionalOptions="/U&quot;_SECURE_SCL&quot; /D&quot;_SECURE_SCL=0&quot;"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR64)\include&quot;"
+				AdditionalIncludeDirectories="3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;&quot;$(QTDIR64)/include&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;USE_DIRECTX"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -748,6 +748,110 @@
 					RelativePath=".\Basics\Ray.h"
 					>
 				</File>
+			</Filter>
+			<Filter
+				Name="3rdParty"
+				>
+				<Filter
+					Name="tclap"
+					>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\Arg.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\ArgException.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\ArgTraits.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\CmdLine.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\CmdLineInterface.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\CmdLineOutput.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\Constraint.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\DocBookOutput.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\HelpVisitor.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\IgnoreRestVisitor.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\MultiArg.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\MultiSwitchArg.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\OptionalUnlabeledTracker.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\StandardTraits.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\StdOutput.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\SwitchArg.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\UnlabeledMultiArg.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\UnlabeledValueArg.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\ValueArg.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\ValuesConstraint.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\VersionVisitor.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\Visitor.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\XorHandler.h"
+						>
+					</File>
+					<File
+						RelativePath=".\Basics\3rdParty\tclap\ZshCompletionOutput.h"
+						>
+					</File>
+				</Filter>
 			</Filter>
 		</Filter>
 		<Filter
@@ -5050,6 +5154,82 @@
 				</File>
 				<File
 					RelativePath=".\IO\PLYGeoConverter.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="expressions"
+				>
+				<File
+					RelativePath=".\IO\expressions\binary-expression.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\binary-expression.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\conditional-expression.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\conditional-expression.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\constant.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\constant.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\expr-template.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\expression.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\parser.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\semantic.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\syntax.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\treenode.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\treenode.h"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\tvk-parse.parser.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\tvk-parse.parser.hpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\tvk-scan.lexer.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\volume.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\expressions\volume.h"
 					>
 				</File>
 			</Filter>
