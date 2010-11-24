@@ -106,7 +106,15 @@ void evaluate(Node& tree,
   typedef typename std::vector<T>::iterator oiter;
   for(oiter o = output.begin(); o != output.end(); ++o) {
     // iter through each, create expression, eval.
-    *o = tree.Evaluate(std::distance(output.begin(), o));
+    // This cast isn't strictly valid.  True, we calculated the width of T
+    // before calling this, but we based that purely on the types: a
+    // combination of three uint16_t volumes will give a uint16_t volume, even
+    // though it might need a uint32_t volume to represent that data.  A
+    // division would mean we'd probably want to output a floating point
+    // volume, too.
+    // Anyway, we'll want this cast to shut the compiler up even after we fix
+    // type calculation (see IdentifyType).
+    *o = static_cast<T>(tree.Evaluate(std::distance(output.begin(), o)));
   }
 }
 
