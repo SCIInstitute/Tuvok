@@ -378,7 +378,8 @@ class LODBrickIterator : public std::iterator<std::input_iterator_tag, T> {
     size_t LODIndex() const {
       switch(LoD) {
         case FINEST_RESOLUTION: return 0;
-        case COARSEST_RESOLUTION: return rdb->ulLODLevelCount[0];
+        case COARSEST_RESOLUTION:
+          return static_cast<size_t>(rdb->ulLODLevelCount[0]);
         default: return static_cast<size_t>(LoD);
       }
     }
