@@ -14,6 +14,7 @@
 /** Scanner for Tuvok expressions. */
 #include <cstdio>
 #include <sstream>
+#include "treenode.h"
 #include "tvk-parse.parser.hpp"
 
 #ifdef DEBUG_LEX
