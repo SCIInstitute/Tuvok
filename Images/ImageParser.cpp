@@ -79,8 +79,13 @@ SimpleFileInfo* ImageFileInfo::clone() {
 
 uint32_t ImageFileInfo::GetComponentCount() const { return m_iComponentCount; }
 
+#ifdef TUVOK_NO_QT
+bool ImageFileInfo::GetData(std::vector<char>&, UINT32, UINT32)
+#else
 bool ImageFileInfo::GetData(std::vector<char>& vData, UINT32 iLength,
-                            UINT32 iOffset) {
+                            UINT32 iOffset)
+#endif
+{
 #ifndef TUVOK_NO_QT
   QImage qImage(m_strFileName.c_str());
   if (qImage.isNull()) return false;

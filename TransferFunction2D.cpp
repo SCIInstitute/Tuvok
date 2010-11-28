@@ -390,7 +390,11 @@ void TransferFunction2D::ComputeNonZeroLimits() {
   }
 }
 
+#ifdef TUVOK_NO_QT
+void TransferFunction2D::Update1DTrans(const TransferFunction1D*) {
+#else
 void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
+#endif
 #ifndef TUVOK_NO_QT
   m_Trans1D = TransferFunction1D(*p1DTrans);
 
