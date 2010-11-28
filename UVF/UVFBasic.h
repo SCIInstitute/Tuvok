@@ -11,7 +11,7 @@
   #endif
 #endif
 
-#include "StdTuvokDefines.h"
+#include "StdDefines.h"
 #define UVF_INVALID UINT64_INVALID
 
 #include "Basics/LargeRAWFile.h"
