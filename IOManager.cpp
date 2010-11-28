@@ -35,6 +35,7 @@
 */
 
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <float.h>
 #include <iterator>
