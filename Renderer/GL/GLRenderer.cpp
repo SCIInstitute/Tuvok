@@ -1857,7 +1857,7 @@ namespace {
 
 
 bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
-                                     const std::vector<std::string>& strDirs,
+                                     const std::vector<std::string> strDirs,
                                      ...)
 {
   // first build list of fragment shaders
