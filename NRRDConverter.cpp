@@ -39,6 +39,8 @@
 #include <Controller/Controller.h>
 #include <Basics/SysTools.h>
 #include <IO/KeyValueFileParser.h>
+#include <cctype>
+#include "TuvokIOError.h"
 
 using namespace std;
 
@@ -193,9 +195,18 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     iHeaderSkip = UINT64(parser.GetStopPos());
     strRAWFile = strSourceFilename;
     bDetachedHeader = false;
+
+    if (iHeaderSkip == 0) { // parser read the entire file and did not find a 
+                            // data part (seperated by an empty line) 
+      T_ERROR("NRRD file does neither specify detached data file nor does it "
+              "contain data after the header, separated by an empty line.");
+      return false;
+    }
+
+
   } else {
     if (kvpDataFile1 && kvpDataFile2 && kvpDataFile1->strValue != kvpDataFile2->strValue)
-      WARNING( "Found different 'data file' and 'datafiel' fields, using 'datafile'.");
+      WARNING( "Found different 'data file' and 'datafile' fields, using 'datafile'.");
 
     if (kvpDataFile1) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile1->strValue;
     if (kvpDataFile2) strRAWFile = SysTools::GetPath(strSourceFilename) + kvpDataFile2->strValue;
@@ -215,6 +226,57 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       }
     }
   }
+  
+  try {
+    KeyValPair* kvpSpaceDirs = parser.GetData("SPACE DIRECTIONS");
+    if (kvpSpaceDirs != NULL) {
+      std::vector<std::string> dirs = kvpSpaceDirs->vstrValue;
+        
+      if (dirs.size() == 3) {
+      
+        for (size_t dim = 0;dim<3;dim++) {
+          FLOATVECTOR3 axis;
+
+          size_t iStart = 0;
+
+          for (size_t vDim = 0;vDim<3;vDim++) {
+
+            while (!isdigit(dirs[dim][iStart]) &&
+                   '.' != dirs[dim][iStart] &&
+                   '-' != dirs[dim][iStart] &&
+                   'e' != dirs[dim][iStart] ) {
+              iStart++;
+              if (iStart >= dirs[dim].length()) {
+                throw tuvok::io::DSParseFailed("Ignoring malformed 'space directions' tag.");
+              }
+            }
+
+            size_t iEnd = iStart+1;
+            while (isdigit(dirs[dim][iEnd]) ||
+                   '.' == dirs[dim][iEnd] ||
+                   '-' == dirs[dim][iEnd] ||
+                   'e' == dirs[dim][iEnd]) {
+              iEnd++;
+              if (iEnd >= dirs[dim].length()) {
+                throw tuvok::io::DSParseFailed("Ignoring malformed 'space directions' tag.");
+              }
+            }
+            
+            axis[vDim] = SysTools::FromString<float>(dirs[dim].substr(iStart, 1+iStart-iEnd));
+
+            iStart = iEnd;
+          }
+          vVolumeAspect[dim] *= axis.length();
+        }
+
+      } else {
+        WARNING("Ignoring malformed 'space directions' tag.");
+      }
+    }
+  } catch (const tuvok::io::DSParseFailed& err) {
+    WARNING(err.what());
+  }
+
 
   int iLineSkip = 0;
   int iByteSkip = 0;
