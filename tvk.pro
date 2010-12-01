@@ -312,11 +312,13 @@ SOURCES += \
            IO/3rdParty/tiff/tif_swab.c \
            IO/3rdParty/tiff/tif_thunder.c \
            IO/3rdParty/tiff/tif_tile.c \
-           IO/3rdParty/tiff/tif_unix.c \
            IO/3rdParty/tiff/tif_version.c \
            IO/3rdParty/tiff/tif_warning.c \
            IO/3rdParty/tiff/tif_write.c \
            IO/3rdParty/tiff/tif_zip.c \
+           IO/3rdParty/tiff/tif_jbig.c \
+           IO/3rdParty/tiff/tif_jpeg.c \
+           IO/3rdParty/tiff/tif_ojpeg.c \
            IO/AbstrConverter.cpp \
            IO/AnalyzeConverter.cpp \
            IO/BOVConverter.cpp \
@@ -395,6 +397,8 @@ SOURCES += \
            Renderer/TFScaling.cpp \
            Scripting/Scripting.cpp
 
+unix:SOURCES += IO/3rdParty/tiff/tif_unix.c
+
 win32 {
   HEADERS += \
              Basics/DynamicDX.h \
@@ -410,6 +414,7 @@ win32 {
 
   SOURCES += \
              Basics/DynamicDX.cpp \
+             IO/3rdParty/tiff/tif_win32.c \
              Renderer/DX/DXRaycaster.cpp \
              Renderer/DX/DXRenderer.cpp \
              Renderer/DX/DXSBVR.cpp \
