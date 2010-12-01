@@ -1749,11 +1749,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -3965,6 +3965,14 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\IO\3rdParty\tiff\tif_jbig.c"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\3rdParty\tiff\tif_jpeg.c"
+					>
+				</File>
+				<File
 					RelativePath=".\IO\3rdParty\tiff\tif_luv.c"
 					>
 					<FileConfiguration
@@ -4102,6 +4110,10 @@
 				</File>
 				<File
 					RelativePath=".\IO\3rdParty\tiff\tif_next.c"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\3rdParty\tiff\tif_ojpeg.c"
 					>
 				</File>
 				<File
@@ -4538,6 +4550,10 @@
 				</File>
 				<File
 					RelativePath=".\IO\3rdParty\tiff\tif_warning.c"
+					>
+				</File>
+				<File
+					RelativePath=".\IO\3rdParty\tiff\tif_win32.c"
 					>
 				</File>
 				<File
