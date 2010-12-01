@@ -1845,12 +1845,13 @@ static std::string find_shader(std::string file, bool subdirs)
 namespace {
   template <typename ForwIter>
   bool all_exist(ForwIter bgn, ForwIter end) {
-    do {
+    if(bgn == end) { WARNING("Odd, empty range..."); }
+    while(bgn != end) {
       if(!SysTools::FileExists(*bgn)) {
         return false;
       }
       ++bgn;
-    } while(bgn != end);
+    }
     return true;
   }
 }
