@@ -38,7 +38,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
-#if defined(HAVE_UNISTD_H) && !defined(_WIN32)
+#ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif
 
@@ -88,10 +88,6 @@ _tiffSizeProc(thandle_t fd)
 	return (toff_t) (fstat((int) fd, &sb) < 0 ? 0 : sb.st_size);
 #endif
 }
-
-#ifdef _WIN32
-#   undef HAVE_MMAP
-#endif
 
 #ifdef HAVE_MMAP
 #include <sys/mman.h>

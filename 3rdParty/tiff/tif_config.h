@@ -9,7 +9,7 @@
 #define CHECK_JPEG_YCBCR_SUBSAMPLING 1
 
 /* Support C++ stream API (requires C++ compiler) */
-#define CXX_SUPPORT 1
+#define CXX_SUPPORT 0
 
 /* Treat extra sample as alpha (default enabled). The RGBA interface will
    treat a fourth sample with no EXTRASAMPLE_ value as being ASSOCALPHA. Many
@@ -132,6 +132,9 @@
 
 /* Define to 1 if you have the <windows.h> header file. */
 /* #undef HAVE_WINDOWS_H */
+#ifdef _MSC_VER
+# define HAVE_WINDOWS_H
+#endif
 
 #define LOGLUV_SUPPORT 1
 
@@ -165,13 +168,13 @@
 #define PACKAGE_NAME "LibTIFF Software"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "LibTIFF Software 3.8.2"
+#define PACKAGE_STRING "LibTIFF Software 3.9.2"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "tiff"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "3.8.2"
+#define PACKAGE_VERSION "3.9.2"
 
 /* Support Macintosh PackBits algorithm */
 #define PACKBITS_SUPPORT 1
@@ -206,7 +209,7 @@
 /* #undef TM_IN_SYS_TIME */
 
 /* Version number of package */
-#define VERSION "3.8.2"
+#define VERSION "3.9.2"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
