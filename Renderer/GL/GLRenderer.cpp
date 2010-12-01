@@ -1894,7 +1894,7 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   }
   va_end(args);
 
-  if(all_exist(vertex.begin(), vertex.end()) &&
+  if(!frag.empty() && all_exist(vertex.begin(), vertex.end()) &&
      all_exist(frag.begin(), frag.end())) {
     return LoadAndVerifyShader(vertex, frag, program);
   }
@@ -1917,7 +1917,7 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
       }
     }
     // if any of those files don't exist, skip this directory.
-    if(!all_exist(fullVS.begin(), fullVS.end())) {
+    if(fullVS.empty() || !all_exist(fullVS.begin(), fullVS.end())) {
       WARNING("Not all vertex shaders present in %s, skipping...",
               strDirs[i].c_str());
       continue;
@@ -1933,7 +1933,7 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
     }
 
     // if any of those files don't exist, skip this directory.
-    if(!all_exist(fullFS.begin(), fullFS.end())) {
+    if(fullFS.empty() || !all_exist(fullFS.begin(), fullFS.end())) {
       WARNING("Not all fragment shaders present in %s, skipping...",
               strDirs[i].c_str());
       continue;
