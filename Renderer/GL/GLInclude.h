@@ -36,13 +36,14 @@
 
 #pragma once
 
-#ifndef GLINCLUDE_H
-#define GLINCLUDE_H
+#ifndef TUVOK_GLINCLUDE_H
+#define TUVOK_GLINCLUDE_H
 
 #include "../../StdTuvokDefines.h"
 #include <GL/glew.h>
 
 #ifdef WIN32
+  #define NOMINMAX
   #include <GL/wglew.h>
   #include <windows.h>
   // undef stupid windows defines to max and min
@@ -55,10 +56,24 @@
   #endif
 #endif
 
-#ifdef DETECTED_OS_APPLE
-  #include <OpenGL/gl.h>
+#include "Controller/Controller.h"
+
+#ifdef _DEBUG
+# define GL(stmt)                                                      \
+  do {                                                                 \
+    GLenum glerr;                                                      \
+    while((glerr = glGetError()) != GL_NO_ERROR) {                     \
+      T_ERROR("GL error before line %u: %#x", __LINE__,                \
+              static_cast<unsigned>(glerr));                           \
+    }                                                                  \
+    stmt;                                                              \
+    while((glerr = glGetError()) != GL_NO_ERROR) {                     \
+      T_ERROR("'%s' on line %u caused GL error: %#x", #stmt, __LINE__, \
+              static_cast<unsigned>(glerr));                           \
+    }                                                                  \
+  } while(0)
 #else
-  #include <GL/gl.h>
+# define GL(stmt) do { stmt; } while(0)
 #endif
 
-#endif // GLINCLUDE_H
+#endif // TUVOK_GLINCLUDE_H
