@@ -1894,7 +1894,8 @@ bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
   }
   va_end(args);
 
-  if(!frag.empty() && all_exist(vertex.begin(), vertex.end()) &&
+  if(!vertex.empty() && !frag.empty() &&
+     all_exist(vertex.begin(), vertex.end()) &&
      all_exist(frag.begin(), frag.end())) {
     return LoadAndVerifyShader(vertex, frag, program);
   }
