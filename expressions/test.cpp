@@ -1,7 +1,10 @@
+// Small/hacky test program for expressions.
 #include <iostream>
+#include "boost/cstdint.hpp"
 #include "parser.h"
 #include "treenode.h"
 
+using namespace boost;
 using namespace tuvok::expression;
 extern Node* parser_tree_root();
 extern void parser_free();
