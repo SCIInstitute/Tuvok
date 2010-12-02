@@ -401,10 +401,10 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
   
   if (m_iBricksRenderedInThisSubFrame == 0 && !m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE){
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     if (m_bDoClearView) {
       m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
     }
   }
 
@@ -437,7 +437,7 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
   m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
   if (!m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE) {
-    glDisable(GL_BLEND);
+    GL(glDisable(GL_BLEND));
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
     SetBrickDepShaderVars(b);
     
@@ -455,11 +455,12 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
       RenderProxyGeometry();
     }
   } else {
+    GL((void)0);
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
-    glDepthMask(GL_FALSE);
+    GL(glDepthMask(GL_FALSE));
     SetBrickDepShaderVars(b);
     RenderProxyGeometry();
-    glDepthMask(GL_TRUE);
+    GL(glDepthMask(GL_TRUE));
   }
   m_TargetBinder.Unbind();
 }

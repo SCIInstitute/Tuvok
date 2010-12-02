@@ -53,21 +53,21 @@ GLTexture3D::GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
   m_format(format),
   m_type(type)
 {
-  glGenTextures(1, &m_iGLID);
-  glBindTexture(GL_TEXTURE_3D, m_iGLID);
+  GL(glGenTextures(1, &m_iGLID));
+  GL(glBindTexture(GL_TEXTURE_3D, m_iGLID));
 
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, wrapX);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, wrapY);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, wrapZ);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, iMagFilter);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, iMinFilter);
+  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, wrapX));
+  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, wrapY));
+  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, wrapZ));
+  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, iMagFilter));
+  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, iMinFilter));
 
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
-  glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat,
-               m_iSizeX, m_iSizeY, m_iSizeZ,
-               0, m_format, m_type, (GLvoid*)pixels);
+  GL(glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat,
+                  m_iSizeX, m_iSizeY, m_iSizeZ,
+                  0, m_format, m_type, (GLvoid*)pixels));
   GLenum err = glGetError();
   if(err == GL_OUT_OF_MEMORY) {
     this->Delete();
@@ -79,13 +79,13 @@ GLTexture3D::GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
 }
 
 void GLTexture3D::SetData(const void *pixels) {
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
-  glBindTexture(GL_TEXTURE_3D, m_iGLID);
-  glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat,
-               m_iSizeX, m_iSizeY, m_iSizeZ,
-               0, m_format, m_type, (GLvoid*)pixels);
+  GL(glBindTexture(GL_TEXTURE_3D, m_iGLID));
+  GL(glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat,
+                  m_iSizeX, m_iSizeY, m_iSizeZ,
+                  0, m_format, m_type, (GLvoid*)pixels));
   GLenum err = glGetError();
   if(err == GL_OUT_OF_MEMORY) {
     this->Delete();

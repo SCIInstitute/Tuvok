@@ -54,8 +54,8 @@ class GLTexture1D : public GLTexture {
     virtual ~GLTexture1D() {}
 
     virtual void Bind(UINT32 iUnit=0) const {
-        glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit));
-        glBindTexture(GL_TEXTURE_1D, m_iGLID);
+      GL(glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit)));
+      GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
     }
     virtual void SetData(const void *pixels);
 

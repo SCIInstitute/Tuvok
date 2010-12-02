@@ -47,23 +47,26 @@ GLTexture2D::GLTexture2D(UINT32 iSizeX, UINT32 iSizeY, GLint internalformat, GLe
   m_format(format),
   m_type(type)
 {
-  glGenTextures(1, &m_iGLID);
-  glBindTexture(GL_TEXTURE_2D, m_iGLID);
+  GL(glGenTextures(1, &m_iGLID));
+  GL(glBindTexture(GL_TEXTURE_2D, m_iGLID));
 
-  glPixelStorei(GL_PACK_ALIGNMENT ,1);
-  glPixelStorei(GL_UNPACK_ALIGNMENT ,1);
+  GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapX);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapY);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, iMagFilter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, iMinFilter);
-  glTexImage2D(GL_TEXTURE_2D, 0, m_internalformat, GLuint(m_iSizeX), GLuint(m_iSizeY), 0, m_format, m_type, (GLvoid*)pixels);
+  GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapX));
+  GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapY));
+  GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, iMagFilter));
+  GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, iMinFilter));
+  GL(glTexImage2D(GL_TEXTURE_2D, 0, m_internalformat,
+                  GLuint(m_iSizeX),GLuint(m_iSizeY), 0, m_format, m_type,
+                  (GLvoid*)pixels));
 }
 
 void GLTexture2D::SetData(const void *pixels) {
-  glPixelStorei(GL_PACK_ALIGNMENT ,1);
-  glPixelStorei(GL_UNPACK_ALIGNMENT ,1);
+  GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));
 
-  glBindTexture(GL_TEXTURE_2D, m_iGLID);
-  glTexImage2D(GL_TEXTURE_2D, 0, m_internalformat, m_iSizeX, m_iSizeY, 0, m_format, m_type, (GLvoid*)pixels);
+  GL(glBindTexture(GL_TEXTURE_2D, m_iGLID));
+  GL(glTexImage2D(GL_TEXTURE_2D, 0, m_internalformat, m_iSizeX, m_iSizeY,
+                  0, m_format, m_type, (GLvoid*)pixels));
 }

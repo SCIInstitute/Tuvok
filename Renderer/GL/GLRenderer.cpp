@@ -197,7 +197,7 @@ bool GLRenderer::Initialize() {
     (*mesh)->InitRenderer();
   }
 
-  glGenBuffers(1, &m_GeoBuffer);
+  GL(glGenBuffers(1, &m_GeoBuffer));
 
   return LoadShaders();
 }
@@ -1216,35 +1216,37 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor,
 void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
   SetRenderTargetAreaScissor(renderRegion);
 
-  glClearColor(0,0,0,0);
+  GL(glClearColor(0,0,0,0));
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
 
   if (m_bConsiderPreviousDepthbuffer && m_aDepthStorage) {
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glRasterPos2f(-1.0,-1.0);
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-    glDrawPixels(m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT, m_aDepthStorage);
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    GL(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
+    GL(glMatrixMode(GL_PROJECTION));
+    GL(glLoadIdentity());
+    GL(glMatrixMode(GL_MODELVIEW));
+    GL(glLoadIdentity());
+    GL(glRasterPos2f(-1.0,-1.0));
+    GL(glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE));
+    GL(glDrawPixels(m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT,
+                    m_aDepthStorage));
+    GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
   } else {
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    GL(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
   }
 
   if (m_bDoStereoRendering) {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
 
     if (m_bConsiderPreviousDepthbuffer && m_aDepthStorage) {
-      glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-      glRasterPos2f(-1.0,-1.0);
-      glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-      glDrawPixels(m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT, m_aDepthStorage);
-      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+      GL(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
+      GL(glRasterPos2f(-1.0,-1.0));
+      GL(glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE));
+      GL(glDrawPixels(m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT,
+                      m_aDepthStorage));
+      GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
     } else {
-      glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+      GL(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
     }
   }
 
@@ -1252,7 +1254,7 @@ void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
 
   // since we do not clear anymore in this subframe we do not need the scissor
   // test, maybe disabling it saves performance
-  glDisable( GL_SCISSOR_TEST );
+  GL(glDisable(GL_SCISSOR_TEST));
 }
 
 void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
@@ -1449,13 +1451,13 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
 }
 
 void GLRenderer::CopyImageToDisplayBuffer() {
-  glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
+  GL(glViewport(0,0,m_vWinSize.x,m_vWinSize.y));
 
   if (m_bClearFramebuffer)
     ClearColorBuffer();
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  GL(glEnable(GL_BLEND));
+  GL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
   m_pFBO3DImageLast->Read(0);
 
@@ -1468,16 +1470,16 @@ void GLRenderer::CopyImageToDisplayBuffer() {
   // has decreaseScreenResNow set to false while it's in the midst of trying to
   // render a new image.
   bool decreaseRes = renderRegions.size() == 1 && m_bOffscreenIsLowRes;
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                  decreaseRes ? GL_LINEAR : GL_NEAREST);
+  GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                     decreaseRes ? GL_LINEAR : GL_NEAREST));
 
   m_pFBO3DImageLast->ReadDepth(1);
 
   // always clear the depth buffer since we are transporting new data from the FBO
-  glClear(GL_DEPTH_BUFFER_BIT);
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_TRUE);
-  glDepthFunc(GL_LEQUAL);
+  GL(glClear(GL_DEPTH_BUFFER_BIT));
+  GL(glEnable(GL_DEPTH_TEST));
+  GL(glDepthMask(GL_TRUE));
+  GL(glDepthFunc(GL_LEQUAL));
 
   m_pProgramTrans->Enable();
 
@@ -1489,7 +1491,7 @@ void GLRenderer::CopyImageToDisplayBuffer() {
   m_pFBO3DImageLast->FinishRead();
   m_pFBO3DImageLast->FinishDepthRead();
 
-  glDepthFunc(GL_LESS);
+  GL(glDepthFunc(GL_LESS));
 }
 
 
@@ -1616,7 +1618,7 @@ void GLRenderer::Cleanup() {
   }
 
   // opengl may not be enabed yet so be careful calling gl functions
-  if (glDeleteBuffers) glDeleteBuffers(1, &m_GeoBuffer);
+  if (glDeleteBuffers) GL(glDeleteBuffers(1, &m_GeoBuffer));
 
   CleanupShaders();
 }
@@ -2022,12 +2024,12 @@ void GLRenderer::GeometryPreRender() {
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView ||
       m_bAvoidSeparateCompositing) {
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
-    glDisable(GL_CULL_FACE);
+    GL(glEnable(GL_DEPTH_TEST));
+    GL(glDepthMask(GL_FALSE));
+    GL(glDisable(GL_CULL_FACE));
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+    GL(glEnable(GL_BLEND));
+    GL(glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE));
 
     // first render the pars of the meshes that are in front of the volume
     // remember the volume uses front to back compositing
@@ -2040,8 +2042,8 @@ void GLRenderer::GeometryPreRender() {
     // as we do front to back compositing we can not write the colors 
     // into the buffer yet
     // start with the bboxes
-    glDepthMask(GL_TRUE);
-    glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
+    GL(glDepthMask(GL_TRUE));
+    GL(glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE));
     if (m_bRenderGlobalBBox)
       RenderBBox();
     if (m_bRenderLocalBBox) {
@@ -2066,16 +2068,16 @@ void GLRenderer::GeometryPreRender() {
       RenderOpaqueGeometry();
     }
 
-    glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+    GL(glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE));
   } else {
     // if we are in isosurface mode none of the complicated stuff from 
     // above applies, as the volume is opqaue we can just use regular
     // depth testing and the order of the opaque elements does not matter
     // so we might as well now write all the opaque geoemtry into the color
     // and depth buffer
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
+    GL(glEnable(GL_DEPTH_TEST));
+    GL(glDepthMask(GL_TRUE));
+    GL(glDisable(GL_BLEND));
     // first the bboxes
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
@@ -2108,11 +2110,11 @@ void GLRenderer::GeometryPostRender() {
   // Not required for isosurfacing, since we use the depth buffer for
   // occluding/showing the bbox's outline.
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView || m_bAvoidSeparateCompositing) {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LEQUAL);
-    glDepthMask(GL_TRUE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+    GL(glEnable(GL_DEPTH_TEST));
+    GL(glDepthFunc(GL_LEQUAL));
+    GL(glDepthMask(GL_TRUE));
+    GL(glEnable(GL_BLEND));
+    GL(glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE));
 
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
@@ -2136,26 +2138,26 @@ void GLRenderer::GeometryPostRender() {
       m_pProgramMeshBTF->SetUniformVector("fOffset",0.0f);
     }
 
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
+    GL(glDisable(GL_CULL_FACE));
+    GL(glDisable(GL_DEPTH_TEST));
 
     if (m_bSupportsMeshes && m_iNumMeshes) {
       m_pProgramMeshFTB->Enable();
       RenderTransBackGeometry();
     }
 
-    glDepthFunc(GL_LESS);
-    glDisable(GL_BLEND);
+    GL(glDepthFunc(GL_LESS));
+    GL(glDisable(GL_BLEND));
   } else {
     if (m_bSupportsMeshes && m_iNumMeshes) {
-      glEnable(GL_BLEND);
+      GL(glEnable(GL_BLEND));
       // "over"-compositing with proper alpha
-      glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                          GL_ONE, GL_ONE_MINUS_SRC_ALPHA); 
-      glEnable(GL_DEPTH_TEST);
-      glDepthFunc(GL_LESS);
-      glDepthMask(GL_FALSE);
-      glDisable(GL_CULL_FACE);
+      GL(glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                             GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
+      GL(glEnable(GL_DEPTH_TEST));
+      GL(glDepthFunc(GL_LESS));
+      GL(glDepthMask(GL_FALSE));
+      GL(glDisable(GL_CULL_FACE));
 
       m_pProgramMeshBTF->Enable();
     
@@ -2165,8 +2167,8 @@ void GLRenderer::GeometryPostRender() {
       RenderTransFrontGeometry();
       SetMeshBTFSorting(false);
 
-      glDepthMask(GL_TRUE);
-      glDisable(GL_BLEND);
+      GL(glDepthMask(GL_TRUE));
+      GL(glDisable(GL_BLEND));
     }
   }
 }
@@ -2195,7 +2197,7 @@ struct MeshFormat {
   FLOATVECTOR2 m_vTexCoords;
 };
 
-static GLsizei iStructSize = GLsizei(sizeof(MeshFormat));
+static const GLsizei iStructSize = GLsizei(sizeof(MeshFormat));
 
 void ListEntryToMeshFormat(std::vector<MeshFormat>& list, 
                            const RenderMesh* mesh,
@@ -2231,7 +2233,6 @@ void ListEntryToMeshFormat(std::vector<MeshFormat>& list,
     else
       f.m_vTexCoords = FLOATVECTOR2(0,0);
 
-
     list.push_back(f);
   }
 }
@@ -2256,21 +2257,23 @@ void GLRenderer::RenderMergedMesh(SortIndexPVec& mergedMesh) {
 
   // render it
 
-  glBindBuffer(GL_ARRAY_BUFFER, m_GeoBuffer);
-  glBufferData(GL_ARRAY_BUFFER, GLsizei(list.size())*iStructSize, &list[0], GL_STREAM_DRAW);
-  glVertexPointer(  3,  GL_FLOAT, iStructSize, BUFFER_OFFSET( 0));
-  glColorPointer(   4,  GL_FLOAT, iStructSize, BUFFER_OFFSET( 3*sizeof(float)));
-  glNormalPointer(/*3*/ GL_FLOAT, iStructSize, BUFFER_OFFSET( 7*sizeof(float)));
-  glTexCoordPointer(2 , GL_FLOAT, iStructSize, BUFFER_OFFSET(10*sizeof(float)));
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_COLOR_ARRAY);
-  glEnableClientState(GL_NORMAL_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glDrawArrays(GL_TRIANGLES, 0, GLsizei(list.size()));
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
-  glDisableClientState(GL_NORMAL_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+  GL(glBindBuffer(GL_ARRAY_BUFFER, m_GeoBuffer));
+  GL(glBufferData(GL_ARRAY_BUFFER, GLsizei(list.size())*iStructSize,
+                  &list[0], GL_STREAM_DRAW));
+  GL(glVertexPointer(3, GL_FLOAT, iStructSize, BUFFER_OFFSET(0)));
+  GL(glColorPointer(4, GL_FLOAT, iStructSize, BUFFER_OFFSET(3*sizeof(float))));
+  GL(glNormalPointer(GL_FLOAT, iStructSize, BUFFER_OFFSET(7*sizeof(float))));
+  GL(glTexCoordPointer(2, GL_FLOAT, iStructSize,
+                       BUFFER_OFFSET(10*sizeof(float))));
+  GL(glEnableClientState(GL_VERTEX_ARRAY));
+  GL(glEnableClientState(GL_COLOR_ARRAY));
+  GL(glEnableClientState(GL_NORMAL_ARRAY));
+  GL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+  GL(glDrawArrays(GL_TRIANGLES, 0, GLsizei(list.size())));
+  GL(glDisableClientState(GL_VERTEX_ARRAY));
+  GL(glDisableClientState(GL_COLOR_ARRAY));
+  GL(glDisableClientState(GL_NORMAL_ARRAY));
+  GL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
 }
 
 void GLRenderer::RenderTransBackGeometry() {
