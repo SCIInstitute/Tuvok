@@ -1,2 +1,3 @@
 TEMPLATE   = subdirs
-SUBDIRS    = libexpr.pro debug.pro
+SUBDIRS    = libexpr.pro
+unix:SUBDIRS += debug.pro
