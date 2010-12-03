@@ -63,17 +63,36 @@
   do {                                                                 \
     GLenum glerr;                                                      \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
-      T_ERROR("GL error before line %u: %#x", __LINE__,                \
+      T_ERROR("GL error before line %u: %#x", __LINE__, __FILE__,      \
               static_cast<unsigned>(glerr));                           \
     }                                                                  \
     stmt;                                                              \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
-      T_ERROR("'%s' on line %u caused GL error: %#x", #stmt, __LINE__, \
-              static_cast<unsigned>(glerr));                           \
+      T_ERROR("'%s' on line %u (%s) caused GL error: %#x", #stmt,      \
+              __LINE__, __FILE__,  static_cast<unsigned>(glerr));      \
     }                                                                  \
   } while(0)
 #else
 # define GL(stmt) do { stmt; } while(0)
+#endif
+
+#ifdef _DEBUG
+  #define GLBEGIN(mode)                                                  \
+    do {                                                                 \
+        MESSAGE("glBegin(%s) on line %u (%s) called ", #mode,            \
+                __LINE__,  __FILE__  );                                  \
+        glBegin(mode);                                                   \
+    } while(0)                                                           
+
+  #define GLEND()                                                        \
+    do {                                                                 \
+        MESSAGE("glEnd() on line %u (%s) called ",                       \
+                __LINE__,  __FILE__  );                                  \
+        glEnd();                                                         \
+    } while(0)                                                           
+#else
+  #define GLBEGIN(mode) glBegin(mode)
+  #define GLEND() glEnd()                                                
 #endif
 
 #endif // TUVOK_GLINCLUDE_H

@@ -572,7 +572,7 @@ bool GLRenderer::Paint() {
 }
 
 void GLRenderer::FullscreenQuad() const {
-  glBegin(GL_QUADS);
+  GLBEGIN(GL_QUADS);
     glTexCoord2d(0, 0);
     glVertex3d(-1.0, -1.0, -0.5);
     glTexCoord2d(1, 0);
@@ -581,7 +581,7 @@ void GLRenderer::FullscreenQuad() const {
     glVertex3d( 1.0,  1.0, -0.5);
     glTexCoord2d(0, 1);
     glVertex3d(-1.0,  1.0, -0.5);
-  glEnd();
+  GLEND();
 }
 
 void GLRenderer::FullscreenQuadRegions() const {
@@ -605,7 +605,7 @@ void GLRenderer::FullscreenQuadRegion(const RenderRegion* region,
   FLOATVECTOR2 maxTexCoord = minCoordNormalized +
     (maxCoordNormalized-minCoordNormalized)*rescale;
 
-  glBegin(GL_QUADS);
+  GLBEGIN(GL_QUADS);
     glTexCoord2d(minTexCoord[0], minTexCoord[1]);
     glVertex3d(minCoordNormalized[0]*2-1, minCoordNormalized[1]*2-1, -0.5);
     glTexCoord2d(maxTexCoord[0], minTexCoord[1]);
@@ -614,7 +614,7 @@ void GLRenderer::FullscreenQuadRegion(const RenderRegion* region,
     glVertex3d(maxCoordNormalized[0]*2-1, maxCoordNormalized[1]*2-1, -0.5);
     glTexCoord2d(minTexCoord[0], maxTexCoord[1]);
     glVertex3d(minCoordNormalized[0]*2-1, maxCoordNormalized[1]*2-1, -0.5);
-  glEnd();
+  GLEND();
 }
 
 /// copy the newly completed image into the buffer that stores completed
@@ -834,7 +834,7 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 
       DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
       v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-      glBegin(GL_QUADS);
+      GLBEGIN(GL_QUADS);
         glTexCoord3d(vMinCoords.x,fSliceIndex,vMaxCoords.z);
         glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
         glTexCoord3d(vMaxCoords.x,fSliceIndex,vMaxCoords.z);
@@ -843,7 +843,7 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
         glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
         glTexCoord3d(vMinCoords.x,fSliceIndex,vMinCoords.z);
         glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glEnd();
+      GLEND();
       break;
     }
   case RenderRegion::WM_CORONAL :
@@ -862,7 +862,7 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 
       DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xy()*DOUBLEVECTOR2(vWinAspectRatio);
       v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-      glBegin(GL_QUADS);
+      GLBEGIN(GL_QUADS);
         glTexCoord3d(vMinCoords.x,vMaxCoords.y,fSliceIndex);
         glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
         glTexCoord3d(vMaxCoords.x,vMaxCoords.y,fSliceIndex);
@@ -871,7 +871,7 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
         glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
         glTexCoord3d(vMinCoords.x,vMinCoords.y,fSliceIndex);
         glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glEnd();
+      GLEND();
       break;
     }
   case RenderRegion::WM_SAGITTAL :
@@ -890,7 +890,7 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 
       DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
       v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-      glBegin(GL_QUADS);
+      GLBEGIN(GL_QUADS);
         glTexCoord3d(fSliceIndex,vMinCoords.y,vMaxCoords.z);
         glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
         glTexCoord3d(fSliceIndex,vMaxCoords.y,vMaxCoords.z);
@@ -899,7 +899,7 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
         glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
         glTexCoord3d(fSliceIndex,vMinCoords.y,vMinCoords.z);
         glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glEnd();
+      GLEND();
       break;
     }
   default :  T_ERROR("Invalid windowmode set"); break;
@@ -1179,7 +1179,7 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor,
 
   m_pProgramBBox->Enable();
 
-  glBegin(GL_LINES);
+  GLBEGIN(GL_LINES);
     glColor4f(vColor.x,vColor.y,vColor.z,vColor.w);
     // FRONT
     glVertex3f( vMaxPoint.x,vMinPoint.y,vMinPoint.z);
@@ -1210,7 +1210,7 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor,
     glVertex3f( vMaxPoint.x,vMinPoint.y,vMinPoint.z);
     glVertex3f( vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
     glVertex3f( vMaxPoint.x, vMaxPoint.y,vMinPoint.z);
-  glEnd();
+  GLEND();
 }
 
 void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
@@ -1291,7 +1291,7 @@ void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
   matModelView = renderRegion.rotation*m_mView[0];
   matModelView.setModelview();
 
-  glBegin(GL_TRIANGLES);
+  GLBEGIN(GL_TRIANGLES);
     glColor4f(0.0f,0.0f,1.0f,1.0f);
     for (size_t i = 0;i<m_vArrowGeometry.size();i++) {
       for (size_t j = 0;j<3;j++) {
@@ -1303,13 +1303,13 @@ void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
                    m_vArrowGeometry[i].m_vertices[j].m_vPos.z);
       }
     }
-  glEnd();
+  GLEND();
 
   mRotation.RotationX(-3.1415f/2.0f);
   matModelView = mRotation*renderRegion.rotation*m_mView[0];
   matModelView.setModelview();
 
-  glBegin(GL_TRIANGLES);
+  GLBEGIN(GL_TRIANGLES);
     glColor4f(0.0f,1.0f,0.0f,1.0f);
     for (size_t i = 0;i<m_vArrowGeometry.size();i++) {
       for (size_t j = 0;j<3;j++) {
@@ -1321,13 +1321,13 @@ void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
                    m_vArrowGeometry[i].m_vertices[j].m_vPos.z);
       }
     }
-  glEnd();
+  GLEND();
 
   mRotation.RotationY(3.1415f/2.0f);
   matModelView = mRotation*renderRegion.rotation*m_mView[0];
   matModelView.setModelview();
 
-  glBegin(GL_TRIANGLES);
+  GLBEGIN(GL_TRIANGLES);
     glColor4f(1.0f,0.0f,0.0f,1.0f);
     for (size_t i = 0;i<m_vArrowGeometry.size();i++) {
       for (size_t j = 0;j<3;j++) {
@@ -1339,7 +1339,7 @@ void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
                    m_vArrowGeometry[i].m_vertices[j].m_vPos.z);
       }
     }
-  glEnd();
+  GLEND();
 
   glDisable(GL_LIGHTING);
   glDisable(GL_COLOR_MATERIAL);
@@ -1532,7 +1532,7 @@ void GLRenderer::DrawLogo() const {
     default : vCenter = FLOATVECTOR2( 0.50f-vExtend.x, -0.50f+vExtend.y); break;
   }
 
-  glBegin(GL_QUADS);
+  GLBEGIN(GL_QUADS);
     glColor4d(1,1,1,1);
     glTexCoord2d(0+vTexelSize.x,1-vTexelSize.y);
     glVertex3f(vCenter.x-vExtend.x, vCenter.y+vExtend.y, -0.5);
@@ -1542,7 +1542,7 @@ void GLRenderer::DrawLogo() const {
     glVertex3f(vCenter.x+vExtend.x, vCenter.y-vExtend.y, -0.5);
     glTexCoord2d(0+vTexelSize.x,0+vTexelSize.y);
     glVertex3f(vCenter.x-vExtend.x, vCenter.y-vExtend.y, -0.5);
-  glEnd();
+  GLEND();
 
   glDisable(GL_TEXTURE_2D);
 
@@ -1568,7 +1568,7 @@ void GLRenderer::DrawBackGradient() const {
   glDisable(GL_TEXTURE_2D);
   glDisable(GL_CULL_FACE);
 
-  glBegin(GL_QUADS);
+  GLBEGIN(GL_QUADS);
     glColor4d(m_vBackgroundColors[0].x,
               m_vBackgroundColors[0].y,
               m_vBackgroundColors[0].z, 0);
@@ -1579,7 +1579,7 @@ void GLRenderer::DrawBackGradient() const {
               m_vBackgroundColors[1].z,0);
     glVertex3d( 1.0,  1.0, -0.5);
     glVertex3d(-1.0,  1.0, -0.5);
-  glEnd();
+  GLEND();
 
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
@@ -2428,7 +2428,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     const float sliceIndex = static_cast<float>(renderRegions[i]->GetSliceIndex()) / m_pDataset->GetDomainSize()[k];
     const float planePos = vMinPoint[k] * (1.0f-sliceIndex) + vMaxPoint[k] * sliceIndex;
 
-    glBegin(GL_LINE_LOOP);
+    GLBEGIN(GL_LINE_LOOP);
       switch (renderRegions[i]->windowMode) {
         case RenderRegion::WM_SAGITTAL   :
           glVertex3f(planePos, vMinPoint.y, vMaxPoint.z);
@@ -2450,7 +2450,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
           break;
         default: break; // Should not get here.
       };
-    glEnd();
+    GLEND();
   }
 
   glLineWidth(1);
@@ -2494,7 +2494,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     if(t) t->Bind(0);
   }
 
-  glBegin(GL_QUADS);
+  GLBEGIN(GL_QUADS);
     glTexCoord3f(vfSliceIndex.x,0,1);
     glVertex3f(vfPlanePos.x, vMinPoint.y, vMaxPoint.z);
     glTexCoord3f(vfSliceIndex.x,0,0);
@@ -2503,8 +2503,8 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     glVertex3f(vfPlanePos.x, vMaxPoint.y, vMinPoint.z);
     glTexCoord3f(vfSliceIndex.x,1,1);
     glVertex3f(vfPlanePos.x, vMaxPoint.y, vMaxPoint.z);
-  glEnd();
-  glBegin(GL_QUADS);
+  GLEND();
+  GLBEGIN(GL_QUADS);
     glTexCoord3f(1,vfSliceIndex.y,0);
     glVertex3f(vMaxPoint.x, vfPlanePos.y, vMinPoint.z);
     glTexCoord3f(0,vfSliceIndex.y,0);
@@ -2513,8 +2513,8 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     glVertex3f(vMinPoint.x, vfPlanePos.y, vMaxPoint.z);
     glTexCoord3f(1,vfSliceIndex.y,1);
     glVertex3f(vMaxPoint.x, vfPlanePos.y, vMaxPoint.z);
-  glEnd();
-  glBegin(GL_QUADS);
+  GLEND();
+  GLBEGIN(GL_QUADS);
     glTexCoord3f(1,0,vfSliceIndex.z);
     glVertex3f(vMaxPoint.x, vMinPoint.y, vfPlanePos.z);
     glTexCoord3f(0,0,vfSliceIndex.z);
@@ -2523,7 +2523,7 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     glVertex3f(vMinPoint.x, vMaxPoint.y, vfPlanePos.z);
     glTexCoord3f(1,1,vfSliceIndex.z);
     glVertex3f(vMaxPoint.x, vMaxPoint.y, vfPlanePos.z);
-  glEnd();
+  GLEND();
 
   if (!bDepthPassOnly) {
     m_pMasterController->MemMan()->Release3DTexture(t);
@@ -2571,14 +2571,14 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   if (m_iNumMeshes == 0) {
     // Now render the plane.
     glEnable(GL_BLEND);
-    glBegin(GL_TRIANGLES);
+    GLBEGIN(GL_TRIANGLES);
       glColor4f(vColorQuad.x, vColorQuad.y, vColorQuad.z, vColorQuad.w);
       for(size_t i=0; i < 6; i+=3) { // 2 tris: 6 points.
         glVertex3f(quad[i+0].x, quad[i+0].y, quad[i+0].z);
         glVertex3f(quad[i+1].x, quad[i+1].y, quad[i+1].z);
         glVertex3f(quad[i+2].x, quad[i+2].y, quad[i+2].z);
       }
-    glEnd();
+    GLEND();
     glEnable(GL_LINE_SMOOTH);
   } else {
     glEnable(GL_DEPTH_TEST);
@@ -2586,13 +2586,13 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   }
 
   glLineWidth(4);
-  glBegin(GL_LINES);
+  GLBEGIN(GL_LINES);
     glColor4f(vColorBorder.x, vColorBorder.y, vColorBorder.z, vColorBorder.w);
     for(size_t i = 6; i<14 ; i += 2) {
       glVertex3f(quad[i+0].x, quad[i+0].y, quad[i+0].z);
       glVertex3f(quad[i+1].x, quad[i+1].y, quad[i+1].z);
     }
-  glEnd();
+  GLEND();
   glLineWidth(1);
   glDisable(GL_BLEND);
   glDisable(GL_LINE_SMOOTH);
@@ -2793,7 +2793,7 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iSter
     }
   }
 
-  glBegin(GL_QUADS);
+  GLBEGIN(GL_QUADS);
     glTexCoord2d(0,1);
     glVertex3d(-1.0,  1.0, -0.5);
     glTexCoord2d(1,1);
@@ -2802,7 +2802,7 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iSter
     glVertex3d( 1.0, -1.0, -0.5);
     glTexCoord2d(0,0);
     glVertex3d(-1.0, -1.0, -0.5);
-  glEnd();
+  GLEND();
 
   if (m_bDoClearView) {
     m_pFBOCVHit[iStereoID]->FinishRead(0);

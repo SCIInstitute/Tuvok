@@ -639,7 +639,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
 
 void GLSBVR2D::RenderProxyGeometry3D() const {
   if(!m_SBVRGeogen.m_vSliceTrianglesX.empty()) {
-    glBegin(GL_TRIANGLES);
+    GLBEGIN(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesX.size();i++) {
         glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.x,
                      m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.y,
@@ -648,10 +648,10 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
                    m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y,
                    m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
       }
-    glEnd();
+    GLEND();
   }
   if(!m_SBVRGeogen.m_vSliceTrianglesY.empty()) {
-    glBegin(GL_TRIANGLES);
+    GLBEGIN(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
         glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.x,
                      m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.y,
@@ -660,10 +660,10 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
                    m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y,
                    m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
       }
-    glEnd();
+    GLEND();
   }
   if(!m_SBVRGeogen.m_vSliceTrianglesZ.empty()) {
-    glBegin(GL_TRIANGLES);
+    GLBEGIN(GL_TRIANGLES);
       for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
         glTexCoord3f(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.x,
                      m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.y,
@@ -672,7 +672,7 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
                    m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y,
                    m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
       }
-    glEnd();
+    GLEND();
   }
 }
 
@@ -878,7 +878,7 @@ void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 
       DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
       v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-      glBegin(GL_QUADS);
+      GLBEGIN(GL_QUADS);
       glTexCoord3d(vMinCoords.x,vMaxCoords.z,fraction);
       glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
       glTexCoord3d(vMaxCoords.x,vMaxCoords.z,fraction);
@@ -887,7 +887,7 @@ void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
       glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
       glTexCoord3d(vMinCoords.x,vMinCoords.z,fraction);
       glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glEnd();
+      GLEND();
       break;
     }
   case RenderRegion::WM_CORONAL :
@@ -912,7 +912,7 @@ void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
       pGLVolume->Bind(2, iCurrentTexID+1, 2);
       float fraction = float(fSliceIndex*pGLVolume->GetSizeZ() - iCurrentTexID);
 
-      glBegin(GL_QUADS);
+      GLBEGIN(GL_QUADS);
       glTexCoord3d(vMinCoords.x,vMaxCoords.y,fraction);
       glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
       glTexCoord3d(vMaxCoords.x,vMaxCoords.y,fraction);
@@ -921,7 +921,7 @@ void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
       glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
       glTexCoord3d(vMinCoords.x,vMinCoords.y,fraction);
       glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glEnd();
+      GLEND();
       break;
     }
   case RenderRegion::WM_SAGITTAL :
@@ -945,7 +945,7 @@ void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 
       DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
       v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-      glBegin(GL_QUADS);
+      GLBEGIN(GL_QUADS);
       glTexCoord3d(vMaxCoords.z,vMinCoords.y,fraction);
       glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
       glTexCoord3d(vMaxCoords.z,vMaxCoords.y,fraction);
@@ -954,7 +954,7 @@ void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
       glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
       glTexCoord3d(vMinCoords.z,vMinCoords.y,fraction);
       glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glEnd();
+      GLEND();
       break;
     }
   default :  T_ERROR("Invalid windowmode set"); break;
