@@ -1001,7 +1001,7 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 
   int iType = eType;
 
-  T_ERROR("Trying to match type %x to %x for variable %s", eType, name, GL_SAMPLER_2D);
+  T_ERROR("Trying to match type %x to %x for variable %s", eType, GL_SAMPLER_2D,name);
   if (eType == GL_SAMPLER_2D)  T_ERROR("OK 1");
   if (iType == GL_SAMPLER_2D)  T_ERROR("OK 2");
   if (eType == 0x8B5E)  T_ERROR("OK 3");
