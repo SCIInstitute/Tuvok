@@ -903,7 +903,8 @@ static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
 #endif
 
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, float, float, float, float)"
+              " Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -952,7 +953,8 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
 #endif
 
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, bool, bool, bool, bool)"
+              " Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1010,7 +1012,8 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 #endif
 
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, int, int, int, int)"
+              " Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1068,7 +1071,8 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
 #endif
 
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, const float*)"
+              " Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1124,7 +1128,8 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,float(i[0]),float(i[1]),float(i[2]),float(i[3])); break;
 #endif
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, const int*)"
+              " Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1171,7 +1176,8 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,(b[0] ? 1.0f : 0.0f),(b[1] ? 1.0f : 0.0f),(b[2] ? 1.0f : 0.0f),(b[3] ? 1.0f : 0.0f)); break;
 #endif
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, const bool*)"
+              " Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1209,7 +1215,8 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
     case GL_FLOAT_MAT3:          glUniformMatrix3fv(iLocation,1,bTranspose,m); break;
     case GL_FLOAT_MAT4:          glUniformMatrix4fv(iLocation,1,bTranspose,m); break;
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, const float*, bool)"
+              " Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1260,7 +1267,8 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
       glUniformMatrix4fv(iLocation,1,bTranspose,M);
       break;
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, const int*, bool)"
+              " Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1311,7 +1319,8 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
       glUniformMatrix4fv(iLocation,1,bTranspose,M);
       break;
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, const bool*, bool)"
+              " Unknown type (%d) for %s.", iType, name);
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1413,7 +1422,9 @@ void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
 #endif
 
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, const float*)"
+              " Unknown type (%d) for %s.", iType, name);
+
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1512,7 +1523,9 @@ void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
 #endif
 
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, const int*)"
+              " Unknown type (%d) for %s.", iType, name);
+
       break;
   }
 #ifdef GLSL_DEBUG
@@ -1643,7 +1656,9 @@ void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
 #endif
 
     default:
-      T_ERROR("Unknown type (%d) for %s.", iType, name);
+      T_ERROR("(const char*, const bool*)"
+              " Unknown type (%d) for %s.", iType, name);
+
       break;
   }
 #ifdef GLSL_DEBUG
