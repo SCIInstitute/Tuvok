@@ -140,6 +140,13 @@ namespace gl {
 
   void GetAttachedShaders(GLuint program, GLsizei mx, GLsizei* count,
                           GLuint* objs) {
+    
+    // workaround for broken GL implementations
+    // some implementations crash if count is a NULL pointer
+    // althougth this is perfectly valid according to the spec
+    GLsizei dummyCount;   
+    if (count == NULL) count = &dummyCount;
+
     if(arb) {
       glGetAttachedObjectsARB(static_cast<GLhandleARB>(program), mx, count,
                               reinterpret_cast<GLhandleARB*>(objs));
@@ -204,7 +211,7 @@ static void detach_shaders(GLuint program)
 
   if(num_shaders > 0) {
     // get the shader IDs
-    std::vector<GLuint> shaders(num_shaders);
+    std::vector<GLuint> shaders(num_shaders);    
     gl::GetAttachedShaders(program, num_shaders, NULL, &shaders[0]);
     if((err = glGetError()) != GL_NO_ERROR) {
       WARNING("Error obtaining the shader IDs attached to program %u: %#x",
@@ -212,7 +219,8 @@ static void detach_shaders(GLuint program)
     }
 
     MESSAGE("%d shaders attached to %u", static_cast<int>(num_shaders),
-            static_cast<unsigned>(program));
+          static_cast<unsigned>(program));
+
            
     // detach each shader
     for(std::vector<GLuint>::const_iterator sh = shaders.begin();
