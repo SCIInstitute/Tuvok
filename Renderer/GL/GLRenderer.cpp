@@ -835,14 +835,14 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
       DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
       v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
       glBegin(GL_QUADS);
-      glTexCoord3d(vMinCoords.x,fSliceIndex,vMaxCoords.z);
-      glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-      glTexCoord3d(vMaxCoords.x,fSliceIndex,vMaxCoords.z);
-      glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-      glTexCoord3d(vMaxCoords.x,fSliceIndex,vMinCoords.z);
-      glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glTexCoord3d(vMinCoords.x,fSliceIndex,vMinCoords.z);
-      glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(vMinCoords.x,fSliceIndex,vMaxCoords.z);
+        glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(vMaxCoords.x,fSliceIndex,vMaxCoords.z);
+        glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(vMaxCoords.x,fSliceIndex,vMinCoords.z);
+        glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(vMinCoords.x,fSliceIndex,vMinCoords.z);
+        glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
       glEnd();
       break;
     }
@@ -863,14 +863,14 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
       DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xy()*DOUBLEVECTOR2(vWinAspectRatio);
       v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
       glBegin(GL_QUADS);
-      glTexCoord3d(vMinCoords.x,vMaxCoords.y,fSliceIndex);
-      glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-      glTexCoord3d(vMaxCoords.x,vMaxCoords.y,fSliceIndex);
-      glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-      glTexCoord3d(vMaxCoords.x,vMinCoords.y,fSliceIndex);
-      glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glTexCoord3d(vMinCoords.x,vMinCoords.y,fSliceIndex);
-      glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(vMinCoords.x,vMaxCoords.y,fSliceIndex);
+        glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(vMaxCoords.x,vMaxCoords.y,fSliceIndex);
+        glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(vMaxCoords.x,vMinCoords.y,fSliceIndex);
+        glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(vMinCoords.x,vMinCoords.y,fSliceIndex);
+        glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
       glEnd();
       break;
     }
@@ -891,14 +891,14 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
       DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
       v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
       glBegin(GL_QUADS);
-      glTexCoord3d(fSliceIndex,vMinCoords.y,vMaxCoords.z);
-      glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-      glTexCoord3d(fSliceIndex,vMaxCoords.y,vMaxCoords.z);
-      glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-      glTexCoord3d(fSliceIndex,vMaxCoords.y,vMinCoords.z);
-      glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glTexCoord3d(fSliceIndex,vMinCoords.y,vMinCoords.z);
-      glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(fSliceIndex,vMinCoords.y,vMaxCoords.z);
+        glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(fSliceIndex,vMaxCoords.y,vMaxCoords.z);
+        glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(fSliceIndex,vMaxCoords.y,vMinCoords.z);
+        glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+        glTexCoord3d(fSliceIndex,vMinCoords.y,vMinCoords.z);
+        glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
       glEnd();
       break;
     }
@@ -2429,27 +2429,27 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
     const float planePos = vMinPoint[k] * (1.0f-sliceIndex) + vMaxPoint[k] * sliceIndex;
 
     glBegin(GL_LINE_LOOP);
-    switch (renderRegions[i]->windowMode) {
-    case RenderRegion::WM_SAGITTAL   :
-      glVertex3f(planePos, vMinPoint.y, vMaxPoint.z);
-      glVertex3f(planePos, vMinPoint.y, vMinPoint.z);
-      glVertex3f(planePos, vMaxPoint.y, vMinPoint.z);
-      glVertex3f(planePos, vMaxPoint.y, vMaxPoint.z);
-      break;
-    case RenderRegion::WM_AXIAL   :
-      glVertex3f(vMaxPoint.x, planePos, vMinPoint.z);
-      glVertex3f(vMinPoint.x, planePos, vMinPoint.z);
-      glVertex3f(vMinPoint.x, planePos, vMaxPoint.z);
-      glVertex3f(vMaxPoint.x, planePos, vMaxPoint.z);
-      break;
-    case RenderRegion::WM_CORONAL :
-      glVertex3f(vMaxPoint.x, vMinPoint.y, planePos);
-      glVertex3f(vMinPoint.x, vMinPoint.y, planePos);
-      glVertex3f(vMinPoint.x, vMaxPoint.y, planePos);
-      glVertex3f(vMaxPoint.x, vMaxPoint.y, planePos);
-      break;
-    default: continue; // Should not get here.
-    };
+      switch (renderRegions[i]->windowMode) {
+        case RenderRegion::WM_SAGITTAL   :
+          glVertex3f(planePos, vMinPoint.y, vMaxPoint.z);
+          glVertex3f(planePos, vMinPoint.y, vMinPoint.z);
+          glVertex3f(planePos, vMaxPoint.y, vMinPoint.z);
+          glVertex3f(planePos, vMaxPoint.y, vMaxPoint.z);
+          break;
+        case RenderRegion::WM_AXIAL   :
+          glVertex3f(vMaxPoint.x, planePos, vMinPoint.z);
+          glVertex3f(vMinPoint.x, planePos, vMinPoint.z);
+          glVertex3f(vMinPoint.x, planePos, vMaxPoint.z);
+          glVertex3f(vMaxPoint.x, planePos, vMaxPoint.z);
+          break;
+        case RenderRegion::WM_CORONAL :
+          glVertex3f(vMaxPoint.x, vMinPoint.y, planePos);
+          glVertex3f(vMinPoint.x, vMinPoint.y, planePos);
+          glVertex3f(vMinPoint.x, vMaxPoint.y, planePos);
+          glVertex3f(vMaxPoint.x, vMaxPoint.y, planePos);
+          break;
+        default: break; // Should not get here.
+      };
     glEnd();
   }
 
