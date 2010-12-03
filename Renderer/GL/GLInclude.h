@@ -76,6 +76,8 @@
 # define GL(stmt) do { stmt; } while(0)
 #endif
 
+/// macros for tracking glbegin and glend
+
 #ifdef _DEBUG
   #define GLBEGIN(mode)                                                  \
     do {                                                                 \
@@ -91,8 +93,8 @@
         glEnd();                                                         \
     } while(0)                                                           
 #else
-  #define GLBEGIN(mode) glBegin(mode)
-  #define GLEND() glEnd()                                                
+  #define glBegin(mode) glBegin(mode)
+  #define glEnd() glEnd()                                                
 #endif
 
 #endif // TUVOK_GLINCLUDE_H

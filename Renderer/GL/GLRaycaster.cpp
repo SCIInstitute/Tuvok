@@ -311,7 +311,7 @@ void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
 
   m.setTextureMatrix();
 
-  GLBEGIN(GL_QUADS);
+  glBegin(GL_QUADS);
     // BACK
     glVertex3f(vMaxPoint.x, vMinPoint.y, vMinPoint.z);
     glVertex3f(vMinPoint.x, vMinPoint.y, vMinPoint.z);
@@ -342,7 +342,7 @@ void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
     glVertex3f(vMinPoint.x, vMaxPoint.y, vMinPoint.z);
     glVertex3f(vMinPoint.x, vMaxPoint.y, vMaxPoint.z);
     glVertex3f(vMaxPoint.x, vMaxPoint.y, vMaxPoint.z);
-  GLEND();
+  glEnd();
 }
 
 
@@ -406,12 +406,12 @@ void GLRaycaster::Render3DPreLoop(const RenderRegion3D &) {
 
     m_pProgramRenderFrontFacesNT->Enable();
 
-    GLBEGIN(GL_QUADS);
+    glBegin(GL_QUADS);
       glVertex3d(-1.0,  1.0, -0.5);
       glVertex3d( 1.0,  1.0, -0.5);
       glVertex3d( 1.0, -1.0, -0.5);
       glVertex3d(-1.0, -1.0, -0.5);
-    GLEND();
+    glEnd();
 
     glDepthMask(GL_TRUE);
     glEnable(GL_DEPTH_TEST);
