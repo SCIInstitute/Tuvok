@@ -36,7 +36,7 @@
 */
 
 uniform sampler2D texLast;    ///< the maximum value from the previous passes
-uniform sampler1D texTrans1D; ///< the 1D Transfer function
+uniform sampler1D texTrans; ///< the 1D Transfer function
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
 
 void main(void){
@@ -45,7 +45,7 @@ void main(void){
 
   // apply 1D transfer function but ignore opacity
   if (fVLastVal.y > 0.5)  // this is a "very robust" float test for fVLastVal.y == 1 && fVLastVal.y != 0
-    gl_FragColor = vec4(texture1D(texTrans1D, fVLastVal.x*fTransScale).rgb,1.0);
+    gl_FragColor = vec4(texture1D(texTrans, fVLastVal.x*fTransScale).rgb,1.0);
   else
     gl_FragColor = vec4(0.0,0.0,0.0,1.0);
 }

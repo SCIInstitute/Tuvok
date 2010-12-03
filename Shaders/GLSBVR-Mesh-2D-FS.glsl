@@ -35,7 +35,7 @@
 vec4 sampleVolume(vec3 coords);
 vec3 ComputeGradient(vec3 vCenter, vec3 StepSize);
 
-uniform sampler2D texTrans2D; ///< the 2D Transfer function
+uniform sampler2D texTrans; ///< the 2D Transfer function
 uniform float fTransScale;    ///< value scale for 2D Transfer function lookup
 uniform float fGradientScale; ///< gradient scale for 2D Transfer function lookup
 uniform float fStepScale;   ///< opacity correction quotient
@@ -73,7 +73,7 @@ void main(void)
     float fGradientMag = length(vGradient);
 
     // apply 2D transfer function
-    vec4  vTransVal = texture2D(texTrans2D, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
+    vec4  vTransVal = texture2D(texTrans, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
 
     // apply opacity correction
     vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);

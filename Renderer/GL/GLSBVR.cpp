@@ -114,12 +114,14 @@ bool GLSBVR::LoadShaders() {
                           "GLSBVR-VS.glsl",
                           NULL,
                           "lighting.glsl",
-                          "GLSBVR-2D-FS.glsl", tfqn.c_str(),
+                          "FTB.glsl",
+                          "GLSBVR-2D-FS.glsl",
                           "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "lighting.glsl", "Volume3D.glsl",
+                          "FTB.glsl",
                           "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
@@ -167,14 +169,14 @@ bool GLSBVR::LoadShaders() {
                           NULL,
                           "FTB.glsl",
                           "lighting.glsl",
-                          "GLSBVR-Mesh-2D-FS.glsl", tfqn.c_str(),
+                          "GLSBVR-Mesh-2D-FS.glsl",
                           "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransMesh[1], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
                           NULL,
                           "FTB.glsl",
                           "lighting.glsl",
-                          "Volume3D.glsl", tfqn.c_str(),
+                          "Volume3D.glsl", 
                           "GLSBVR-Mesh-2D-light-FS.glsl",
                           NULL)) {
       Cleanup();
@@ -182,28 +184,28 @@ bool GLSBVR::LoadShaders() {
       return false;
   } else {
     m_pProgram1DTrans[0]->ConnectTextureID("texVolume",0);
-    m_pProgram1DTrans[0]->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTrans[0]->ConnectTextureID("texTrans",1);
 
     m_pProgram1DTrans[1]->ConnectTextureID("texVolume",0);
-    m_pProgram1DTrans[1]->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTrans[1]->ConnectTextureID("texTrans",1);
 
     m_pProgram2DTrans[0]->ConnectTextureID("texVolume",0);
-    m_pProgram2DTrans[0]->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTrans[0]->ConnectTextureID("texTrans",1);
 
     m_pProgram2DTrans[1]->ConnectTextureID("texVolume",0);
-    m_pProgram2DTrans[1]->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTrans[1]->ConnectTextureID("texTrans",1);
 
     m_pProgram1DTransMesh[0]->ConnectTextureID("texVolume",0);
-    m_pProgram1DTransMesh[0]->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTransMesh[0]->ConnectTextureID("texTrans",1);
 
     m_pProgram1DTransMesh[1]->ConnectTextureID("texVolume",0);
-    m_pProgram1DTransMesh[1]->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTransMesh[1]->ConnectTextureID("texTrans",1);
 
     m_pProgram2DTransMesh[0]->ConnectTextureID("texVolume",0);
-    m_pProgram2DTransMesh[0]->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTransMesh[0]->ConnectTextureID("texTrans",1);
 
     m_pProgram2DTransMesh[1]->ConnectTextureID("texVolume",0);
-    m_pProgram2DTransMesh[1]->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTransMesh[1]->ConnectTextureID("texTrans",1);
 
     m_pProgramIso->ConnectTextureID("texVolume",0);
 

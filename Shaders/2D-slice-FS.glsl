@@ -36,7 +36,7 @@
 */
 
 vec4 sampleVolume(vec3 coords);
-uniform sampler2D texTrans2D; ///< the 2D Transfer function
+uniform sampler2D texTrans; ///< the 2D Transfer function
 uniform float fTransScale;    ///< value scale for 2D Transfer function lookup
 uniform float fGradientScale; ///< gradient scale for 2D Transfer function lookup
 uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next voxel
@@ -59,7 +59,7 @@ void main(void)
   float fGradientMag = length(vGradient);
 
   /// apply 2D transfer function
-  vec4  vTransVal = texture2D(texTrans2D, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
+  vec4  vTransVal = texture2D(texTrans, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
 
   /// write result to fragment color
   gl_FragColor    = vec4(vTransVal.r,vTransVal.g,vTransVal.b,1);

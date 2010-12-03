@@ -35,7 +35,7 @@
 vec4 sampleVolume(vec3 coords);
 vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale);
 
-uniform sampler1D texTrans1D; ///< the 1D Transfer function
+uniform sampler1D texTrans; ///< the 1D Transfer function
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
 uniform float fStepScale;   ///< opacity correction quotient
 uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next voxel
@@ -73,7 +73,7 @@ void main(void)
   } else {
     // get volume value
     float fVolumVal = sampleVolume(gl_TexCoord[0].xyz).x;
-    vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
+    vec4  vTransVal = texture1D(texTrans, fVolumVal*fTransScale);
 
     // compute the gradient/normal
     vec3 vNormal = ComputeNormal(gl_TexCoord[0].xyz,vVoxelStepsize,vDomainScale);

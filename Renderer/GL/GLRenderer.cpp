@@ -217,6 +217,7 @@ bool GLRenderer::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgram1DTransSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
+                          tfqn.c_str(),
                           "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
@@ -229,6 +230,7 @@ bool GLRenderer::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
                           NULL,
+                          tfqn.c_str(),
                            "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
@@ -294,21 +296,21 @@ bool GLRenderer::LoadShaders() {
     m_pProgramTrans->ConnectTextureID("texDepth",1);
 
     m_pProgram1DTransSlice->ConnectTextureID("texVolume",0);
-    m_pProgram1DTransSlice->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTransSlice->ConnectTextureID("texTrans",1);
 
     m_pProgram2DTransSlice->ConnectTextureID("texVolume",0);
-    m_pProgram2DTransSlice->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTransSlice->ConnectTextureID("texTrans",1);
 
     m_pProgram1DTransSlice3D->ConnectTextureID("texVolume",0);
-    m_pProgram1DTransSlice3D->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTransSlice3D->ConnectTextureID("texTrans",1);
 
     m_pProgram2DTransSlice3D->ConnectTextureID("texVolume",0);
-    m_pProgram2DTransSlice3D->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTransSlice3D->ConnectTextureID("texTrans",1);
 
     m_pProgramMIPSlice->ConnectTextureID("texVolume",0);
 
     m_pProgramTransMIP->ConnectTextureID("texLast",0);
-    m_pProgramTransMIP->ConnectTextureID("texTrans1D",1);
+    m_pProgramTransMIP->ConnectTextureID("texTrans",1);
 
     FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
 

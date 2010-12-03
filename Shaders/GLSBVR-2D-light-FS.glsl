@@ -38,7 +38,7 @@
 vec4 sampleVolume(vec3 coords);
 vec3 ComputeGradient(vec3 vCenter, vec3 StepSize);
 
-uniform sampler2D texTrans2D; ///< the 2D Transfer function
+uniform sampler2D texTrans;   ///< the 2D Transfer function
 uniform float fTransScale;    ///< value scale for 2D Transfer function lookup
 uniform float fGradientScale; ///< gradient scale for 2D Transfer function lookup
 uniform float fStepScale;     ///< opacity correction quotient
@@ -54,6 +54,7 @@ varying vec3 vPosition;
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
+vec4 TraversalOrderDepColor(const vec4 color);
 
 void main(void)
 {
@@ -65,7 +66,7 @@ void main(void)
   float fGradientMag = length(vGradient);
 
   // apply 2D transfer function
-  vec4  vTransVal = texture2D(texTrans2D, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
+  vec4  vTransVal = texture2D(texTrans, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
 
   // compute lighting
   vec3 vNormal     = gl_NormalMatrix * (vGradient * vDomainScale);
@@ -78,5 +79,8 @@ void main(void)
   vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
 
   // write result to fragment color
-  gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, 1.0) * vTransVal.a;
+  gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, vTransVal.a);
+
+  // pre-multiplication of alpha, if needed.
+  gl_FragColor = TraversalOrderDepColor(gl_FragColor);
 }

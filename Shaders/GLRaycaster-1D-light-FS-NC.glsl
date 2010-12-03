@@ -37,7 +37,7 @@
 
 vec4 sampleVolume(vec3 coords);
 
-uniform sampler1D texTrans1D;    ///< the 1D Transfer function
+uniform sampler1D texTrans;    ///< the 1D Transfer function
 uniform sampler2D texRayExit; ///< the backface (or ray exit point) texture in texcoords
 uniform sampler2D texRayExitPos; ///< the backface (or ray exit point) texture in eyecoords
 uniform float fTransScale;       ///< scale for 1D Transfer function lookup
@@ -92,7 +92,7 @@ void main(void)
     float fVolumVal = sampleVolume( vCurrentPosTex).x;
 
     /// apply 1D transfer function
-    vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
+    vec4  vTransVal = texture1D(texTrans, fVolumVal*fTransScale);
 
     // compute lighting
     vec3 vNormal     = ComputeNormal(vCurrentPosTex, vVoxelStepsize,

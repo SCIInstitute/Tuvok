@@ -110,13 +110,11 @@ bool GLSBVR2D::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
-                          tfqn.c_str(),
                           "lighting.glsl",
                           "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramMIPSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
-                          tfqn.c_str(),
                           "lighting.glsl",
                           "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
@@ -128,7 +126,6 @@ bool GLSBVR2D::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
                           NULL,
-                          tfqn.c_str(),
                           "lighting.glsl",
                           "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramTransMIP, m_vShaderSearchDirs,
@@ -177,21 +174,21 @@ bool GLSBVR2D::LoadShaders() {
     m_pProgramTrans->ConnectTextureID("texDepth",1);
 
     BindVolumeStringsToTexUnit(m_pProgram1DTransSlice, false);
-    m_pProgram1DTransSlice->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTransSlice->ConnectTextureID("texTrans",1);
 
     BindVolumeStringsToTexUnit(m_pProgram2DTransSlice, false);
-    m_pProgram2DTransSlice->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTransSlice->ConnectTextureID("texTrans",1);
 
     BindVolumeStringsToTexUnit(m_pProgram1DTransSlice3D, false);
-    m_pProgram1DTransSlice3D->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTransSlice3D->ConnectTextureID("texTrans",1);
 
     BindVolumeStringsToTexUnit(m_pProgram2DTransSlice3D, false);
-    m_pProgram2DTransSlice3D->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTransSlice3D->ConnectTextureID("texTrans",1);
 
     BindVolumeStringsToTexUnit(m_pProgramMIPSlice, false);
 
     m_pProgramTransMIP->ConnectTextureID("texLast",0);
-    m_pProgramTransMIP->ConnectTextureID("texTrans1D",1);
+    m_pProgramTransMIP->ConnectTextureID("texTrans",1);
 
     FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
 
@@ -240,14 +237,14 @@ bool GLSBVR2D::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          tfqn.c_str(),
+                          "FTB.glsl",
                           "lighting.glsl",
                           "GLSBVR-2D-FS.glsl",
                           volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          tfqn.c_str(),
+                          "FTB.glsl",
                           "lighting.glsl", volumeAccessFunction.c_str(),
                           "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
@@ -301,16 +298,16 @@ bool GLSBVR2D::LoadShaders() {
       return false;
   } else {
     BindVolumeStringsToTexUnit(m_pProgram1DTrans[0],false);
-    m_pProgram1DTrans[0]->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTrans[0]->ConnectTextureID("texTrans",1);
 
     BindVolumeStringsToTexUnit(m_pProgram1DTrans[1]);
-    m_pProgram1DTrans[1]->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTrans[1]->ConnectTextureID("texTrans",1);
 
     BindVolumeStringsToTexUnit(m_pProgram2DTrans[0]);
-    m_pProgram2DTrans[0]->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTrans[0]->ConnectTextureID("texTrans",1);
 
     BindVolumeStringsToTexUnit(m_pProgram2DTrans[1]);
-    m_pProgram2DTrans[1]->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTrans[1]->ConnectTextureID("texTrans",1);
 
     BindVolumeStringsToTexUnit(m_pProgramIso);
 

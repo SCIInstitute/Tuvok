@@ -36,16 +36,12 @@
 */
 
 vec4 sampleVolume(vec3 coords);
-uniform sampler1D texTrans1D; ///< the 1D Transfer function
+uniform sampler1D texTrans; ///< the 1D Transfer function
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
+vec4 VRender1D(const vec3 pos, in float tfqn_scale, in float opac);
 
 void main(void)
 {
-  // get volume value
-  float fVolumVal = sampleVolume( gl_TexCoord[0].xyz).x;
-
-  // apply 1D transfer function
-  vec4  vTransVal = texture1D(texTrans1D, fVolumVal*fTransScale);
-
-  gl_FragColor    = vec4(vTransVal.r, vTransVal.g, vTransVal.b, 1);
+  gl_FragColor = VRender1D(gl_TexCoord[0].xyz, fTransScale, 1.0);
+  gl_FragColor.a = 1;;
 }

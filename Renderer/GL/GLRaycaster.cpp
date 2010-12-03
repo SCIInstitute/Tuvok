@@ -121,15 +121,11 @@ bool GLRaycaster::Initialize() {
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "lighting.glsl",
-                          "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
-                          tfqn.c_str(), NULL) ||
+                          "GLRaycaster-frontfaces-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramRenderFrontFacesNT, m_vShaderSearchDirs,
                           "GLRaycasterNoTransform-VS.glsl",
                           NULL,
-                          "lighting.glsl",
-                          "GLRaycaster-frontfaces-FS.glsl", "Volume3D.glsl",
-                          tfqn.c_str(), NULL) ||
+                          "GLRaycaster-frontfaces-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
@@ -146,13 +142,13 @@ bool GLRaycaster::Initialize() {
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "lighting.glsl", "Volume3D.glsl", 
                           shaderNames[2], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "lighting.glsl", "Volume3D.glsl", 
                           shaderNames[3], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
@@ -186,19 +182,19 @@ bool GLRaycaster::Initialize() {
       return false;
   } else {
     m_pProgram1DTrans[0]->ConnectTextureID("texVolume",0);
-    m_pProgram1DTrans[0]->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTrans[0]->ConnectTextureID("texTrans",1);
     m_pProgram1DTrans[0]->ConnectTextureID("texRayExitPos",2);
 
     m_pProgram1DTrans[1]->ConnectTextureID("texVolume",0);
-    m_pProgram1DTrans[1]->ConnectTextureID("texTrans1D",1);
+    m_pProgram1DTrans[1]->ConnectTextureID("texTrans",1);
     m_pProgram1DTrans[1]->ConnectTextureID("texRayExitPos",2);
 
     m_pProgram2DTrans[0]->ConnectTextureID("texVolume",0);
-    m_pProgram2DTrans[0]->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTrans[0]->ConnectTextureID("texTrans",1);
     m_pProgram2DTrans[0]->ConnectTextureID("texRayExitPos",2);
 
     m_pProgram2DTrans[1]->ConnectTextureID("texVolume",0);
-    m_pProgram2DTrans[1]->ConnectTextureID("texTrans2D",1);
+    m_pProgram2DTrans[1]->ConnectTextureID("texTrans",1);
     m_pProgram2DTrans[1]->ConnectTextureID("texRayExitPos",2);
 
     FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();

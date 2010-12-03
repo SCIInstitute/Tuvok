@@ -33,7 +33,7 @@
  *          University of Utah
  */
 
-uniform sampler1D texTrans1D; ///< the 1D Transfer function
+uniform sampler1D texTrans; ///< the 1D Transfer function
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
 uniform float fStepScale;     ///< opacity correction quotient
 #ifdef BIAS_SCALE
@@ -50,13 +50,13 @@ vec4 bias_scale(const float bias, const float scale)
   float vol_val = sampleVolume(gl_TexCoord[0].xyz).x;
   vol_val = (vol_val + bias) / scale;
 
-  return texture1D(texTrans1D, vol_val);
+  return texture1D(texTrans, vol_val);
 }
 
 vec4 bit_width(const float tf_scale)
 {
   float fVolumVal = sampleVolume(gl_TexCoord[0].xyz).x;
-  return texture1D(texTrans1D, fVolumVal * tf_scale);
+  return texture1D(texTrans, fVolumVal * tf_scale);
 }
 
 void main(void)

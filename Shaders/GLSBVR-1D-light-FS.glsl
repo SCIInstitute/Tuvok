@@ -34,7 +34,7 @@
   \version  1.0
   \date    October 2008
 */
-uniform sampler1D texTrans1D; ///< the 1D Transfer function
+uniform sampler1D texTrans; ///< the 1D Transfer function
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
 uniform float fStepScale;   ///< opacity correction quotient
 uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next voxel
