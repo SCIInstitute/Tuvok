@@ -376,23 +376,23 @@ GLsizei iStructSize = GLsizei(sizeof(VERTEX_FORMAT));
 void GLSBVR::RenderProxyGeometry() const {
   if (m_SBVRGeogen.m_vSliceTriangles.empty()) return;
 
-  glBindBuffer(GL_ARRAY_BUFFER, m_GeoBuffer);
-  glBufferData(GL_ARRAY_BUFFER, GLsizei(m_SBVRGeogen.m_vSliceTriangles.size())*iStructSize, &m_SBVRGeogen.m_vSliceTriangles[0], GL_STREAM_DRAW);
-  glVertexPointer(3, GL_FLOAT, iStructSize, BUFFER_OFFSET(0));
+  GL(glBindBuffer(GL_ARRAY_BUFFER, m_GeoBuffer));
+  GL(glBufferData(GL_ARRAY_BUFFER, GLsizei(m_SBVRGeogen.m_vSliceTriangles.size())*iStructSize, &m_SBVRGeogen.m_vSliceTriangles[0], GL_STREAM_DRAW));
+  GL(glVertexPointer(3, GL_FLOAT, iStructSize, BUFFER_OFFSET(0)));
   if (m_SBVRGeogen.HasMesh()) {
-    glTexCoordPointer(4 , GL_FLOAT, iStructSize, BUFFER_OFFSET(12));
-    glNormalPointer(GL_FLOAT, iStructSize, BUFFER_OFFSET(28));
-    glEnableClientState(GL_NORMAL_ARRAY);
+    GL(glTexCoordPointer(4 , GL_FLOAT, iStructSize, BUFFER_OFFSET(12)));
+    GL(glNormalPointer(GL_FLOAT, iStructSize, BUFFER_OFFSET(28)));
+    GL(glEnableClientState(GL_NORMAL_ARRAY));
   } else {
-    glTexCoordPointer(3, GL_FLOAT, iStructSize, BUFFER_OFFSET(12));
+    GL(glTexCoordPointer(3, GL_FLOAT, iStructSize, BUFFER_OFFSET(12)));
   }
   
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  glDrawArrays(GL_TRIANGLES, 0, GLsizei(m_SBVRGeogen.m_vSliceTriangles.size()));
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  glDisableClientState(GL_NORMAL_ARRAY);
+  GL(glEnableClientState(GL_VERTEX_ARRAY));
+  GL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
+  GL(glDrawArrays(GL_TRIANGLES, 0, GLsizei(m_SBVRGeogen.m_vSliceTriangles.size())));
+  GL(glDisableClientState(GL_VERTEX_ARRAY));
+  GL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+  GL(glDisableClientState(GL_NORMAL_ARRAY));
 }
 
 void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
