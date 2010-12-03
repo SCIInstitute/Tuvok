@@ -989,77 +989,65 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
   assert(m_bEnabled);
   CheckGLError();
 
-  GLenum iType;
+  GLenum eType;
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+    iLocation = get_uniform_vector(name, m_hProgram, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
 
-  if (iType == GL_INT || 
-      iType == GL_SAMPLER_1D || 
-      iType == GL_SAMPLER_2D || 
-      iType == GL_SAMPLER_3D || 
-      iType == GL_SAMPLER_CUBE || 
-      iType == GL_SAMPLER_1D_SHADOW || 
-      iType == GL_SAMPLER_2D_SHADOW || 
-      iType == GL_SAMPLER_2D_RECT_ARB || 
-      iType == GL_SAMPLER_2D_RECT_SHADOW_ARB) {
-    glUniform1i(iLocation,x);
-  } else 
-  if (iType == GL_INT_VEC2) {
-    glUniform2i(iLocation,x,y);
-  } else
-  if (iType == GL_INT_VEC3) {
-    glUniform3i(iLocation,x,y,z);
-  } else
-  if (iType == GL_INT_VEC4) {
-    glUniform4i(iLocation,x,y,z,w);
-  } else
+  int iType = eType;
+
+  T_ERROR("Trying to match type %x to %x for variable %s", eType, name, GL_SAMPLER_2D);
+  if (eType == GL_SAMPLER_2D)  T_ERROR("OK 1");
+  if (iType == GL_SAMPLER_2D)  T_ERROR("OK 2");
+  if (eType == 0x8B5E)  T_ERROR("OK 3");
+  if (iType == 0x8B5E)  T_ERROR("OK 4");
+
+  switch (iType) {
+    case GL_INT:
+    case GL_SAMPLER_1D:
+    case GL_SAMPLER_2D:
+    case GL_SAMPLER_3D:
+    case GL_SAMPLER_CUBE:
+    case GL_SAMPLER_1D_SHADOW:
+    case GL_SAMPLER_2D_SHADOW:
+    case GL_SAMPLER_2D_RECT_ARB:
+    case GL_SAMPLER_2D_RECT_SHADOW_ARB:  glUniform1i(iLocation,x); break;
+
+    case GL_INT_VEC2:          glUniform2i(iLocation,x,y); break;
+    case GL_INT_VEC3:          glUniform3i(iLocation,x,y,z); break;
+    case GL_INT_VEC4:          glUniform4i(iLocation,x,y,z,w); break;
+
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
-  if (iType == GL_BOOL) {
-    glUniform1i(iLocation,x);
-  } else
-  if (iType == GL_BOOL_VEC2) {
-    glUniform2i(iLocation,x,y);
-  } else
-  if (iType == GL_BOOL_VEC3) {
-    glUniform3i(iLocation,x,y,z);
-  } else
-  if (iType == GL_BOOL_VEC4) {
-    glUniform4i(iLocation,x,y,z,w);
-  } else
-  if (iType == GL_FLOAT) {
-    glUniform1f(iLocation,float(x));
-  } else
-  if (iType == GL_FLOAT_VEC2) {
-    glUniform2f(iLocation,float(x),float(y));
-  } else
-  if (iType == GL_FLOAT_VEC3) {
-    glUniform3f(iLocation,float(x),float(y),float(z));
-  } else
-  if (iType == GL_FLOAT_VEC4) {
-    glUniform4f(iLocation,float(x),float(y),float(z),float(w));
-  } else {
+    case GL_BOOL:            glUniform1i(iLocation,x); break;
+    case GL_BOOL_VEC2:          glUniform2i(iLocation,x,y); break;
+    case GL_BOOL_VEC3:          glUniform3i(iLocation,x,y,z); break;
+    case GL_BOOL_VEC4:          glUniform4i(iLocation,x,y,z,w); break;
+    case GL_FLOAT:            glUniform1f(iLocation,float(x)); break;
+    case GL_FLOAT_VEC2:          glUniform2f(iLocation,float(x),float(y)); break;
+    case GL_FLOAT_VEC3:          glUniform3f(iLocation,float(x),float(y),float(z)); break;
+    case GL_FLOAT_VEC4:          glUniform4f(iLocation,float(x),float(y),float(z),float(w)); break;
+    default:
       T_ERROR("(const char*, int, int, int, int)"
               " Unknown type (%d) for %s.", iType, name);
-  }
+      break;
 #else
-  {
+    default:
       T_ERROR("(const char*, int, int, int, int)"
-              " Unknown type (%x) for %s."
-              " (expecting %x, %x, %x, %x, %x, %x, %x, %x, %x, %x, %x, or %x)", 
+              " Unknown type (%d) for %s."
+              " (expecting %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, or %d)", 
               iType, name, 
               GL_INT, GL_SAMPLER_1D, GL_SAMPLER_2D, GL_SAMPLER_3D,
               GL_SAMPLER_CUBE, GL_SAMPLER_1D_SHADOW, GL_SAMPLER_2D_SHADOW,
               GL_SAMPLER_2D_RECT_ARB, GL_SAMPLER_2D_RECT_SHADOW_ARB,
               GL_INT_VEC2, GL_INT_VEC3, GL_INT_VEC4);
-  }
+      break;
 #endif
-
+  }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,int,...)",name);
 #endif
