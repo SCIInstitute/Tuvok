@@ -852,29 +852,30 @@ static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
   return location;
 }
 
-  /**
-   * Sets an uniform vector parameter.
-   * \warning uses glGetError();
-   * \param name - name of the parameter
-   * \param x,y,z,w - up to four float components of the vector to set.
-   * \return void
-   * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
-   * \date Aug.2004
-   */
-  void GLSLProgram::SetUniformVector(const char *name,
-                                     float x, float y, float z, float w) const {
-    assert(m_bEnabled);
-    CheckGLError();
+/**
+ * Sets an uniform vector parameter.
+ * \warning uses glGetError();
+ * \param name - name of the parameter
+ * \param x,y,z,w - up to four float components of the vector to set.
+ * \return void
+ * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
+ * \date Aug.2004
+ */
+void GLSLProgram::SetUniformVector(const char *name,
+                                   float x, float y, float z, float w) const {
+  assert(m_bEnabled);
+  CheckGLError();
 
-    GLenum iType;
-    GLint iLocation;
+  GLenum eType;
+  GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+    iLocation = get_uniform_vector(name, m_hProgram, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
+  int iType = eType;
 
   switch (iType) {
     case GL_FLOAT:      glUniform1f(iLocation,x); break;
@@ -932,15 +933,16 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
   assert(m_bEnabled);
   CheckGLError();
 
-  GLenum iType;
+  GLenum eType;
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+    iLocation = get_uniform_vector(name, m_hProgram, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
+  int iType = eType;
 
   switch (iType) {
     case GL_BOOL:            glUniform1i(iLocation,(x ? 1 : 0)); break;
@@ -991,21 +993,13 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 
   GLenum eType;
   GLint iLocation;
-
   try {
     iLocation = get_uniform_vector(name, m_hProgram, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
-
   int iType = eType;
-
-  T_ERROR("Trying to match type %x to %x for variable %s", eType, GL_SAMPLER_2D,name);
-  if (eType == GL_SAMPLER_2D)  T_ERROR("OK 1");
-  if (iType == GL_SAMPLER_2D)  T_ERROR("OK 2");
-  if (eType == 0x8B5E)  T_ERROR("OK 3");
-  if (iType == 0x8B5E)  T_ERROR("OK 4");
 
   switch (iType) {
     case GL_INT:
@@ -1066,15 +1060,16 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
   assert(m_bEnabled);
   CheckGLError();
 
-  GLenum iType;
+  GLenum eType;
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+    iLocation = get_uniform_vector(name, m_hProgram, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
+  int iType = eType;
 
   switch (iType) {
     case GL_FLOAT:            glUniform1fv(iLocation,1,v); break;
@@ -1125,15 +1120,16 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
   assert(m_bEnabled);
   CheckGLError();
 
-  GLenum iType;
+  GLenum eType;
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+    iLocation = get_uniform_vector(name, m_hProgram, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
+  int iType = eType;
 
   switch (iType) {
     case GL_INT:
@@ -1182,15 +1178,16 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
   assert(m_bEnabled);
   CheckGLError();
 
-  GLenum iType;
+  GLenum eType;
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+    iLocation = get_uniform_vector(name, m_hProgram, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
+  int iType = eType;
 
   switch (iType) {
     case GL_BOOL:            glUniform1i(iLocation,(b[0] ? 1 : 0)); break;
@@ -1232,15 +1229,16 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
   assert(m_bEnabled);
   CheckGLError();
 
-  GLenum iType;
+  GLenum eType;
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+    iLocation = get_uniform_vector(name, m_hProgram, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
+  int iType = eType;
 
   switch (iType) {
     case GL_FLOAT_MAT2:          glUniformMatrix2fv(iLocation,1,bTranspose,m); break;
@@ -1274,15 +1272,16 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
   assert(m_bEnabled);
   CheckGLError();
 
-  GLenum iType;
+  GLenum eType;
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+    iLocation = get_uniform_vector(name, m_hProgram, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
+  int iType = eType;
 
   float M[16];
   switch (iType) {
@@ -1326,15 +1325,16 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
   assert(m_bEnabled);
   CheckGLError();
 
-  GLenum iType;
+  GLenum eType;
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &iType);
+    iLocation = get_uniform_vector(name, m_hProgram, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
   }
+  int iType = eType;
 
   float M[16];
   switch (iType) {
