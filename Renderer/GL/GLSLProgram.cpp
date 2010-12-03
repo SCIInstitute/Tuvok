@@ -900,12 +900,19 @@ static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
     case GL_BOOL_VEC2:  glUniform2f(iLocation,x,y); break;
     case GL_BOOL_VEC3:  glUniform3f(iLocation,x,y,z); break;
     case GL_BOOL_VEC4:  glUniform4f(iLocation,x,y,z,w); break;
-#endif
 
     default:
       T_ERROR("(const char*, float, float, float, float)"
               " Unknown type (%d) for %s.", iType, name);
       break;
+#else
+    default:
+      T_ERROR("(const char*, float, float, float, float)"
+              " Unknown type (%d) for %s."
+              " (expecting %d, %d, %d, or %d)", iType, name, 
+              GL_FLOAT, GL_FLOAT_VEC2, GL_FLOAT_VEC3, GL_FLOAT_VEC4);
+      break;
+#endif
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,float,...)",name);
@@ -950,12 +957,19 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
     case GL_INT_VEC2:          glUniform2i(iLocation,(x ? 1 : 0),(y ? 1 : 0)); break;
     case GL_INT_VEC3:          glUniform3i(iLocation,(x ? 1 : 0),(y ? 1 : 0),(z ? 1 : 0)); break;
     case GL_INT_VEC4:          glUniform4i(iLocation,(x ? 1 : 0),(y ? 1 : 0),(z ? 1 : 0),(w ? 1 : 0)); break;
-#endif
-
     default:
       T_ERROR("(const char*, bool, bool, bool, bool)"
               " Unknown type (%d) for %s.", iType, name);
       break;
+#else
+    default:
+      T_ERROR("(const char*, bool, bool, bool, bool)"
+              " Unknown type (%d) for %s."
+              " (expecting %d, %d, %d, or %d)", iType, name, 
+              GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4);
+      break;
+#endif
+
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,bool,...)",name);
@@ -1009,12 +1023,22 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
     case GL_FLOAT_VEC2:          glUniform2f(iLocation,float(x),float(y)); break;
     case GL_FLOAT_VEC3:          glUniform3f(iLocation,float(x),float(y),float(z)); break;
     case GL_FLOAT_VEC4:          glUniform4f(iLocation,float(x),float(y),float(z),float(w)); break;
-#endif
-
     default:
       T_ERROR("(const char*, int, int, int, int)"
               " Unknown type (%d) for %s.", iType, name);
       break;
+#else
+    default:
+      T_ERROR("(const char*, int, int, int, int)"
+              " Unknown type (%d) for %s."
+              " (expecting %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, or %d)", 
+              iType, name, 
+              GL_INT, GL_SAMPLER_1D, GL_SAMPLER_2D, GL_SAMPLER_3D,
+              GL_SAMPLER_CUBE, GL_SAMPLER_1D_SHADOW, GL_SAMPLER_2D_SHADOW,
+              GL_SAMPLER_2D_RECT_ARB, GL_SAMPLER_2D_RECT_SHADOW_ARB,
+              GL_INT_VEC2, GL_INT_VEC3, GL_INT_VEC4);
+      break;
+#endif
   }
 #ifdef GLSL_DEBUG
   CheckGLError("SetUniformVector(%s,int,...)",name);
