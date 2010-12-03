@@ -63,13 +63,13 @@
   do {                                                                 \
     GLenum glerr;                                                      \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
-      T_ERROR("GL error before line %u: %#x", __LINE__, __FILE__,      \
+      T_ERROR("GL error before line %u (%s): %#x", __LINE__, __FILE__, \
               static_cast<unsigned>(glerr));                           \
     }                                                                  \
     stmt;                                                              \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
       T_ERROR("'%s' on line %u (%s) caused GL error: %#x", #stmt,      \
-              __LINE__, __FILE__,  static_cast<unsigned>(glerr));      \
+              __LINE__, __FILE__, static_cast<unsigned>(glerr));       \
     }                                                                  \
   } while(0)
 #else
