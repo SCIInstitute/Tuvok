@@ -43,5 +43,5 @@ vec4 VRender1D(const vec3 pos, in float tfqn_scale, in float opac);
 void main(void)
 {
   gl_FragColor = VRender1D(gl_TexCoord[0].xyz, fTransScale, 1.0);
-  gl_FragColor.a = 1;;
+  gl_FragColor.a = 1.0;
 }

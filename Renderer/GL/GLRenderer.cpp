@@ -217,7 +217,7 @@ bool GLRenderer::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgram1DTransSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
-                          tfqn.c_str(),
+                          tfqn.c_str(), "lighting.glsl",
                           "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
@@ -230,7 +230,7 @@ bool GLRenderer::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
                           NULL,
-                          tfqn.c_str(),
+                          tfqn.c_str(), "lighting.glsl",
                            "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
