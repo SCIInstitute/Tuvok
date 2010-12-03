@@ -283,6 +283,7 @@ void GLFBOTex::Write(unsigned int iTargetBuffer, int iBuffer, bool bCheckBuffer)
 void GLFBOTex::FinishWrite(int iBuffer) {
   assert(iBuffer>=0);
   assert(iBuffer<m_iNumBuffers);
+  GL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,m_hFBO));
   GL(glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, m_LastAttachment[iBuffer],
                                GL_TEXTURE_2D, 0, 0));
   if (m_hDepthBuffer)

@@ -107,7 +107,6 @@ void GLTargetBinder::Bind(GLFBOTex* pFBO0, GLFBOTex* pFBO1, GLFBOTex* pFBO2, GLF
 
 void GLTargetBinder::Unbind() {
   UnbindInternal();
-  GLFBOTex::OneDrawBuffer();
 }
 
 void GLTargetBinder::UnbindInternal() {
