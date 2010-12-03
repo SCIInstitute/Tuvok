@@ -1000,19 +1000,19 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
   }
 
   switch (iType) {
-    case GL_INT:
-    case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D:
-    case GL_SAMPLER_3D:
-    case GL_SAMPLER_CUBE:
-    case GL_SAMPLER_1D_SHADOW:
-    case GL_SAMPLER_2D_SHADOW:
-    case GL_SAMPLER_2D_RECT_ARB:
-    case GL_SAMPLER_2D_RECT_SHADOW_ARB:  glUniform1i(iLocation,x); break;
+    case (GLenum)GL_INT:
+    case (GLenum)GL_SAMPLER_1D:
+    case (GLenum)GL_SAMPLER_2D:
+    case (GLenum)GL_SAMPLER_3D:
+    case (GLenum)GL_SAMPLER_CUBE:
+    case (GLenum)GL_SAMPLER_1D_SHADOW:
+    case (GLenum)GL_SAMPLER_2D_SHADOW:
+    case (GLenum)GL_SAMPLER_2D_RECT_ARB:
+    case (GLenum)GL_SAMPLER_2D_RECT_SHADOW_ARB:  glUniform1i(iLocation,x); break;
 
-    case GL_INT_VEC2:          glUniform2i(iLocation,x,y); break;
-    case GL_INT_VEC3:          glUniform3i(iLocation,x,y,z); break;
-    case GL_INT_VEC4:          glUniform4i(iLocation,x,y,z,w); break;
+    case (GLenum)GL_INT_VEC2:          glUniform2i(iLocation,x,y); break;
+    case (GLenum)GL_INT_VEC3:          glUniform3i(iLocation,x,y,z); break;
+    case (GLenum)GL_INT_VEC4:          glUniform4i(iLocation,x,y,z,w); break;
 
 #ifdef GLSL_ALLOW_IMPLICIT_CASTS
     case GL_BOOL:            glUniform1i(iLocation,x); break;
@@ -1030,8 +1030,8 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
 #else
     default:
       T_ERROR("(const char*, int, int, int, int)"
-              " Unknown type (%d) for %s."
-              " (expecting %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, or %d)", 
+              " Unknown type (%x) for %s."
+              " (expecting %x, %x, %x, %x, %x, %x, %x, %x, %x, %x, %x, or %x)", 
               iType, name, 
               GL_INT, GL_SAMPLER_1D, GL_SAMPLER_2D, GL_SAMPLER_3D,
               GL_SAMPLER_CUBE, GL_SAMPLER_1D_SHADOW, GL_SAMPLER_2D_SHADOW,
