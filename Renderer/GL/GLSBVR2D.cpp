@@ -92,7 +92,8 @@ bool GLSBVR2D::LoadShaders() {
   string volumeAccessFunction = m_bUse3DTexture ? "Volume3D.glsl"
                                                 : "Volume2D.glsl";
   const std::string tfqn = m_pDataset
-                           ? m_pDataset->GetComponentCount() == 4
+                           ? (m_pDataset->GetComponentCount() == 3 ||
+                              m_pDataset->GetComponentCount() == 4)
                               ? "vr-no-tfqn.glsl"
                               : "vr-std.glsl"
                            : "vr-std.glsl";
