@@ -171,9 +171,10 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
             vVolumeSize[0], vVolumeSize[1], slice_idx++, vVolumeSize[2]-1);
     BYTE* slice = tv_read_slice(tif);
     if(slice) {
-      // assuming 8-bit monochrome data here, which might not always be valid.
+      // assuming 8-bit data here, which might not always be valid.
       binary.WriteRAW(static_cast<unsigned char*>(slice),
-                      vVolumeSize[0]*vVolumeSize[1]*sizeof(BYTE));
+                      vVolumeSize[0]*vVolumeSize[1] *
+                      sizeof(BYTE)*iComponentCount);
       _TIFFfree(slice);
     } else {
       binary.Close();
@@ -242,11 +243,21 @@ tv_read_slice(TIFF *tif)
   UINT32 width;
   UINT32 height;
   boost::uint16_t bpp;
+  boost::uint16_t components;
   TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
   TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
   TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bpp);
+  TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &components);
 
-  const tsize_t slice_sz = width*height*(bpp/8) * sizeof(BYTE);
+  if(bpp != 8) {
+    T_ERROR("%hu-bit data is unsupported!", bpp);
+    // Actually, this routine should handle it fine,
+    // it's just that the caller and probably the rest
+    // of Tuvok doesn't handle this well.
+    return NULL;
+  }
+
+  const tsize_t slice_sz = width*height*(bpp/8)*components * sizeof(BYTE);
   slice = static_cast<BYTE*>(_TIFFmalloc(slice_sz));
   if(slice == NULL) {
     T_ERROR("TIFFmalloc failed.");
