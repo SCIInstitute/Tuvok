@@ -223,6 +223,11 @@ tv_dimensions(TIFF *tif, size_t dims[3])
   // tiff calls the height "length" for some reason.
   TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &y);
   do {
+    uint32_t tmpx, tmpy;
+    TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &tmpx);
+    TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &tmpy);
+    if(tmpx != x) { WARNING("TIFF x dimension changes in stack!"); }
+    if(tmpy != y) { WARNING("TIFF x dimension changes in stack!"); }
     ++z;
   } while(TIFFReadDirectory(tif));
   TIFFSetDirectory(tif, 0);
