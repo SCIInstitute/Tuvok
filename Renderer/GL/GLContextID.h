@@ -56,9 +56,9 @@ class GLContextID : ContextID<GLContextID> {
     GLContextID() : ContextID<GLContextID>(), ctx(wglGetCurrentContext()) {}
 #else
     GLContextID() : ContextID<GLContextID>(), ctx(glXGetCurrentContext()) {}
+    GLContextID(GLXContext c) : ContextID<GLContextID>(), ctx(c) {}
 #endif
     /// Create an ID from the given context.
-    GLContextID(GLXContext c) : ContextID<GLContextID>(), ctx(c) {}
     GLContextID(const GLContextID& ct) : ContextID<GLContextID>(),
                                          ctx(ct.ctx) {}
 
