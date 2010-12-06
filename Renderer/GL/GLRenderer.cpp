@@ -977,13 +977,13 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
 
     glDisable(GL_DEPTH_TEST);
 
-    UINT64 iCurrentLOD = 0;
+    size_t iCurrentLOD = 0;
     UINTVECTOR3 vVoxelCount(1,1,1); // make sure we do not divide by zero later
                                     // if no single-brick LOD exists
 
     // For now to make things simpler for the slice renderer we use the LOD
     // level with just one brick
-    for (UINT64 i = 0;i<m_pDataset->GetLODLevelCount();i++) {
+    for (size_t i = 0;i<size_t(m_pDataset->GetLODLevelCount());i++) {
       if (m_pDataset->GetBrickCount(i, m_iTimestep) == 1) {
           iCurrentLOD = i;
           vVoxelCount = UINTVECTOR3(m_pDataset->GetDomainSize(i));
@@ -1072,12 +1072,14 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
       DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
       vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
       float fRoot2Scale = (vWinAspectRatio.x < vWinAspectRatio.y) ?
-                          max(1.0, 1.414213f * vWinAspectRatio.x/vWinAspectRatio.y) :
+                          max(1.0f, 1.414213f * float(vWinAspectRatio.x/vWinAspectRatio.y)) :
                           1.414213f;
 
-      maOrtho.Ortho(-0.5*fRoot2Scale/vWinAspectRatio.x, +0.5*fRoot2Scale/vWinAspectRatio.x,
-                    -0.5*fRoot2Scale/vWinAspectRatio.y, +0.5*fRoot2Scale/vWinAspectRatio.y,
-                    -100.0, 100.0);
+      maOrtho.Ortho(-0.5f*fRoot2Scale/float(vWinAspectRatio.x), 
+                    +0.5f*fRoot2Scale/float(vWinAspectRatio.x),
+                    -0.5f*fRoot2Scale/float(vWinAspectRatio.y), 
+                    +0.5f*fRoot2Scale/float(vWinAspectRatio.y),
+                    -100.0f, 100.0f);
       maOrtho.setProjection();
     }
 
@@ -2056,7 +2058,7 @@ void GLRenderer::GeometryPreRender() {
     if (m_bRenderGlobalBBox)
       RenderBBox();
     if (m_bRenderLocalBBox) {
-      for (UINT64 iCurrentBrick = 0;
+      for (size_t iCurrentBrick = 0;
            iCurrentBrick < m_vCurrentBrickList.size();
            iCurrentBrick++) {
         if (m_vCurrentBrickList[iCurrentBrick].bIsEmpty) 
@@ -2090,7 +2092,7 @@ void GLRenderer::GeometryPreRender() {
     // first the bboxes
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
-      for (UINT64 iCurrentBrick = 0;
+      for (size_t iCurrentBrick = 0;
            iCurrentBrick < m_vCurrentBrickList.size();
            iCurrentBrick++) {
         if (m_vCurrentBrickList[iCurrentBrick].bIsEmpty) 
@@ -2127,7 +2129,7 @@ void GLRenderer::GeometryPostRender() {
 
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
-      for (UINT64 iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
+      for (size_t iCurrentBrick = 0;iCurrentBrick<m_vCurrentBrickList.size();iCurrentBrick++) {
         if (m_vCurrentBrickList[iCurrentBrick].bIsEmpty) 
           RenderBBox(FLOATVECTOR4(1,1,0,1),
                      m_vCurrentBrickList[iCurrentBrick].vCenter,
@@ -2684,7 +2686,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
             static_cast<unsigned>(m_iBricksRenderedInThisSubFrame+1),
             static_cast<unsigned>(m_vCurrentBrickList.size()));
 
-    const BrickKey& bkey = m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
+    const BrickKey& bkey = m_vCurrentBrickList[size_t(m_iBricksRenderedInThisSubFrame)].kBrick;
 
     MESSAGE("  Requesting texture from MemMan");
 
@@ -2695,11 +2697,11 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
       return false;
     }
 
-    Render3DInLoop(renderRegion, m_iBricksRenderedInThisSubFrame,0);
+    Render3DInLoop(renderRegion, size_t(m_iBricksRenderedInThisSubFrame),0);
     if (m_bDoStereoRendering) {
-      if (m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].kBrick !=
-          m_vCurrentBrickList[m_iBricksRenderedInThisSubFrame].kBrick) {
-        const BrickKey& left_eye_key = m_vLeftEyeBrickList[m_iBricksRenderedInThisSubFrame].kBrick;
+      if (m_vLeftEyeBrickList[size_t(m_iBricksRenderedInThisSubFrame)].kBrick !=
+          m_vCurrentBrickList[size_t(m_iBricksRenderedInThisSubFrame)].kBrick) {
+        const BrickKey& left_eye_key = m_vLeftEyeBrickList[size_t(m_iBricksRenderedInThisSubFrame)].kBrick;
 
         UnbindVolumeTex();
         if(BindVolumeTex(left_eye_key, m_iIntraFrameCounter++)) {
@@ -2710,7 +2712,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
         }
       }
 
-      Render3DInLoop(renderRegion, m_iBricksRenderedInThisSubFrame,1);
+      Render3DInLoop(renderRegion, size_t(m_iBricksRenderedInThisSubFrame),1);
     }
 
     // release the 3D texture
@@ -2733,7 +2735,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
 #endif
     }
     // time this loop
-    fMsecPassed = m_Timer.Elapsed();
+    fMsecPassed = float(m_Timer.Elapsed());
 
     ++bricks_this_call;
   }

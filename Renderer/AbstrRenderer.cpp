@@ -190,9 +190,9 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
   // It can happen that we don't know the range; old UVFs, for example.  We'll
   // know this because the minimum will be g.t. the maximum.
   if(rng.first > rng.second) {
-    m_fIsovalue = rng.second / 2.0f;
+    m_fIsovalue = float(rng.second) / 2.0f;
   } else {
-    m_fIsovalue = (rng.second-rng.first) / 2.0f;
+    m_fIsovalue = float(rng.second-rng.first) / 2.0f;
   }
   m_fCVIsovalue = m_fIsovalue + (m_fIsovalue/2.0f);
 
@@ -314,7 +314,7 @@ double AbstrRenderer::GetNormalizedIsovalue() const
   if(m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) {
     double mx;
     if(m_pDataset->GetRange().first > m_pDataset->GetRange().second) {
-      mx = m_p1DTrans->GetSize();
+      mx = double(m_p1DTrans->GetSize());
     } else {
       mx = m_pDataset->GetRange().second;
     }
@@ -328,7 +328,7 @@ double AbstrRenderer::GetNormalizedCVIsovalue() const
   if(m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) {
     double mx;
     if(m_pDataset->GetRange().first > m_pDataset->GetRange().second) {
-      mx = m_p1DTrans->GetSize();
+      mx = double(m_p1DTrans->GetSize());
     } else {
       mx = m_pDataset->GetRange().second;
     }
@@ -760,12 +760,12 @@ bool AbstrRenderer::RegionNeedsBrick(const RenderRegion& rr,
            std::tr1::get<1>(key) == m_pDataset->GetLODLevelCount()-1;
   }
 
-  FLOATVECTOR3 vScale(m_pDataset->GetScale().x,
-                      m_pDataset->GetScale().y,
-                      m_pDataset->GetScale().z);
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize(m_iCurrentLOD);
+  FLOATVECTOR3 vScale(float(m_pDataset->GetScale().x),
+                      float(m_pDataset->GetScale().y),
+                      float(m_pDataset->GetScale().z));
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize(size_t(m_iCurrentLOD));
   FLOATVECTOR3 vDomainSizeCorrectedScale =
-    vScale * FLOATVECTOR3(vDomainSize)/vDomainSize.maxVal();
+    vScale * FLOATVECTOR3(vDomainSize)/float(vDomainSize.maxVal());
   vScale /= vDomainSizeCorrectedScale.maxVal();
   Brick b;
   b.vExtension = bmd.extents * vScale;
@@ -863,17 +863,19 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
   vector<Brick> vBrickList;
 
   UINTVECTOR3 vOverlap = m_pDataset->GetBrickOverlapSize();
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize(m_iCurrentLOD);
-  FLOATVECTOR3 vScale(m_pDataset->GetScale().x,
-                      m_pDataset->GetScale().y,
-                      m_pDataset->GetScale().z);
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize(size_t(m_iCurrentLOD));
+  FLOATVECTOR3 vScale(float(m_pDataset->GetScale().x),
+                      float(m_pDataset->GetScale().y),
+                      float(m_pDataset->GetScale().z));
 
-  FLOATVECTOR3 vDomainSizeCorrectedScale = vScale * FLOATVECTOR3(vDomainSize)/vDomainSize.maxVal();
+  FLOATVECTOR3 vDomainSizeCorrectedScale = vScale * 
+                                           FLOATVECTOR3(vDomainSize)/
+                                           float(vDomainSize.maxVal());
 
   vScale /= vDomainSizeCorrectedScale.maxVal();
 
   MESSAGE("Building active brick list from %u active bricks.",
-          static_cast<unsigned>(m_pDataset->GetBrickCount(m_iCurrentLOD,
+          static_cast<unsigned>(m_pDataset->GetBrickCount(size_t(m_iCurrentLOD),
                                                           m_iTimestep)));
 
   BrickTable::const_iterator brick = m_pDataset->BricksBegin();
@@ -1140,7 +1142,8 @@ void AbstrRenderer::PlanHQMIPFrame(RenderRegion& renderRegion) {
   }
 
   if (m_iCurrentLOD > 0) {
-    m_iCurrentLOD = min<int>(m_pDataset->GetLODLevelCount()-1,m_iCurrentLOD-1);
+    m_iCurrentLOD = min<UINT64>(m_pDataset->GetLODLevelCount()-1,
+                                m_iCurrentLOD-1);
   }
 
   // build new brick todo-list
