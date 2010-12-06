@@ -205,9 +205,16 @@ bool GLRenderer::Initialize() {
 bool GLRenderer::LoadShaders() {
   const std::string tfqn = m_pDataset
                            ? m_pDataset->GetComponentCount() == 4
-                              ? "vr-no-tfqn.glsl"
-                              : "vr-std.glsl"
-                           : "vr-std.glsl";
+                              ? "vr-col-tfqn.glsl"
+                              : "vr-scal-tfqn.glsl"
+                           : "vr-scal-tfqn.glsl";
+  const std::string tfqnLit = m_pDataset
+                           ? (m_pDataset->GetComponentCount() == 3 ||
+                              m_pDataset->GetComponentCount() == 4)
+                              ? "vr-col-tfqn-lit.glsl"
+                              : "vr-scal-tfqn-lit.glsl"
+                           : "vr-scal-tfqn.glsl";
+
   MESSAGE("Loading '%s' volume rendering...", tfqn.c_str());
 
   if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,

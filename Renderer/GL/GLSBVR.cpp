@@ -94,9 +94,15 @@ bool GLSBVR::LoadShaders() {
   const std::string tfqn = m_pDataset
                            ? (m_pDataset->GetComponentCount() == 3 ||
                               m_pDataset->GetComponentCount() == 4)
-                              ? "vr-no-tfqn.glsl"
-                              : "vr-std.glsl"
-                           : "vr-std.glsl";
+                              ? "vr-col-tfqn.glsl"
+                              : "vr-scal-tfqn.glsl"
+                           : "vr-scal-tfqn.glsl";
+  const std::string tfqnLit = m_pDataset
+                           ? (m_pDataset->GetComponentCount() == 3 ||
+                              m_pDataset->GetComponentCount() == 4)
+                              ? "vr-col-tfqn-lit.glsl"
+                              : "vr-scal-tfqn-lit.glsl"
+                           : "vr-scal-tfqn.glsl";
 
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
@@ -109,7 +115,7 @@ bool GLSBVR::LoadShaders() {
                           "GLSBVR-VS.glsl",
                           NULL,                          
                           "Volume3D.glsl",      // SampleVolume
-                          tfqn.c_str(),         // VRender1DLit
+                          tfqnLit.c_str(),      // VRender1DLit
                           "lighting.glsl",      // Lighting
                           "FTB.glsl",           // TraversalOrderDepColor
                           "GLSBVR-1D-light-FS.glsl", NULL) ||
@@ -164,7 +170,7 @@ bool GLSBVR::LoadShaders() {
                           "GLSBVR-Mesh-VS.glsl",
                           NULL,
                           "Volume3D.glsl",      // SampleVolume
-                          tfqn.c_str(),         // VRender1DLit
+                          tfqnLit.c_str(),      // VRender1DLit
                           "lighting.glsl",      // Lighting
                           "FTB.glsl",           // TraversalOrderDepColor
                           "GLSBVR-Mesh-1D-light-FS.glsl", NULL) ||

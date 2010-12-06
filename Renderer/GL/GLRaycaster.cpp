@@ -115,9 +115,16 @@ bool GLRaycaster::Initialize() {
   const std::string tfqn = m_pDataset
                            ? (m_pDataset->GetComponentCount() == 3 ||
                               m_pDataset->GetComponentCount() == 4)
-                              ? "vr-no-tfqn.glsl"
-                              : "vr-std.glsl"
-                           : "vr-std.glsl";
+                              ? "vr-col-tfqn.glsl"
+                              : "vr-scal-tfqn.glsl"
+                           : "vr-scal-tfqn.glsl";
+
+  const std::string tfqnLit = m_pDataset
+                           ? (m_pDataset->GetComponentCount() == 3 ||
+                              m_pDataset->GetComponentCount() == 4)
+                              ? "vr-col-tfqn-lit.glsl"
+                              : "vr-scal-tfqn-lit.glsl"
+                           : "vr-scal-tfqn.glsl";
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
@@ -137,7 +144,7 @@ bool GLRaycaster::Initialize() {
                           "GLRaycaster-VS.glsl",
                           NULL,
                           "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "lighting.glsl", "Volume3D.glsl", tfqnLit.c_str(),
                           shaderNames[1], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",

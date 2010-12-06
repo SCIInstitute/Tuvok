@@ -29,20 +29,32 @@
 /**
   \author  Tom Fogal
            University of Utah
-  \brief   Performs volume rendering w/o applying a transfer function
+  \brief   Function for performing "standard" volume rendering.
 */
 
+uniform sampler3D texVolume;  ///< the data volume
 uniform sampler1D texTrans; ///< the 1D Transfer function
 
 vec4 sampleVolume(vec3);
-vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale);
-vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
-              vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
+
+/* bias and scale method for mapping a TF to a value. */
+vec4 bias_scale(const vec3 tex_pos, const float bias, const float scale)
+{
+  float vol_val = sampleVolume(tex_pos).x;
+  vol_val = (vol_val + bias) / scale;
+
+  return texture1D(texTrans, vol_val);
+}
+
+vec4 bit_width(const vec3 tex_pos, const float tf_scale)
+{
+  float fVolumVal = sampleVolume(tex_pos).x;
+  return texture1D(texTrans, fVolumVal * tf_scale);
+}
 
 
-// TODO:
-// do something with scale and bias 
-
+/* Performs the basic 1D volume rendering; sampling, looking up the value in
+ * the LUT (tfqn), and doing opacity correction. */
 vec4 VRender1D(const vec3 tex_pos,
                in float tf_scale,
 #if defined(BIAS_SCALE)
@@ -50,32 +62,15 @@ vec4 VRender1D(const vec3 tex_pos,
 #endif
                in float opacity_correction)
 {
-  vec4 v = sampleVolume(tex_pos);
-  v = v * texture1D(texTrans, (v.r+v.g+v.b)/3.0);
-  v.a = 1.0 - pow(1.0 - v.a, opacity_correction); // opacity correction
-  return v;
-}
 
-vec4 VRender1DLit(const vec3 tex_pos,
-                  in float tf_scale,
 #if defined(BIAS_SCALE)
-                  in float tf_bias,
+  vec4 lut_v = bias_scale(tex_pos, tf_bias, tf_scale);
+#else
+  vec4 lut_v = bit_width(tex_pos,tf_scale);
 #endif
-                  in float opacity_correction,
-                  const vec3 voxel_step_size,
-                  const vec3 domain_scale,
-                  const vec3 position,
-                  const vec3 l_ambient,
-                  const vec3 l_diffuse,
-                  const vec3 l_specular,
-                  const vec3 l_direction)
-{
-  vec4 v = sampleVolume(tex_pos);
-  v = v * texture1D(texTrans, (v.r+v.g+v.b)/3.0);
-  v.a = 1.0 - pow(1.0 - v.a, opacity_correction); // opacity correction
 
-  vec3 normal = ComputeNormal(tex_pos, voxel_step_size, domain_scale);
-  vec3 light_color = Lighting(position, normal, l_ambient,
-                              l_diffuse * v.xyz, l_specular, l_direction);
-  return vec4(light_color.x, light_color.y, light_color.z, v.a);
+  // apply opacity correction
+  lut_v.a = 1.0 - pow(1.0 - lut_v.a, opacity_correction);
+
+  return lut_v;
 }

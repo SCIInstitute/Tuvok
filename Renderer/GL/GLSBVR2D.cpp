@@ -94,9 +94,15 @@ bool GLSBVR2D::LoadShaders() {
   const std::string tfqn = m_pDataset
                            ? (m_pDataset->GetComponentCount() == 3 ||
                               m_pDataset->GetComponentCount() == 4)
-                              ? "vr-no-tfqn.glsl"
-                              : "vr-std.glsl"
-                           : "vr-std.glsl";
+                              ? "vr-col-tfqn.glsl"
+                              : "vr-scal-tfqn.glsl"
+                           : "vr-scal-tfqn.glsl";
+  const std::string tfqnLit = m_pDataset
+                           ? (m_pDataset->GetComponentCount() == 3 ||
+                              m_pDataset->GetComponentCount() == 4)
+                              ? "vr-col-tfqn-lit.glsl"
+                              : "vr-scal-tfqn-lit.glsl"
+                           : "vr-scal-tfqn.glsl";
 
   if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
@@ -232,7 +238,7 @@ bool GLSBVR2D::LoadShaders() {
                           "GLSBVR-VS.glsl",
                           NULL,                          
                           volumeAccessFunction.c_str(), // SampleVolume
-                          tfqn.c_str(),         // VRender1DLit
+                          tfqnLit.c_str(),         // VRender1DLit
                           "lighting.glsl",      // Lighting
                           "FTB.glsl",           // TraversalOrderDepColor
                           "GLSBVR-1D-light-FS.glsl", NULL) ||

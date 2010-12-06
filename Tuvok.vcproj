@@ -1090,11 +1090,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Shaders\vr-no-tfqn.glsl"
+				RelativePath=".\Shaders\vr-col-tfqn-lit.glsl"
 				>
 			</File>
 			<File
-				RelativePath=".\Shaders\vr-std.glsl"
+				RelativePath=".\Shaders\vr-col-tfqn.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\vr-scal-tfqn-lit.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\vr-scal-tfqn.glsl"
 				>
 			</File>
 		</Filter>
