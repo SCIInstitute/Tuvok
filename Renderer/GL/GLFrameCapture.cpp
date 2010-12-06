@@ -79,5 +79,6 @@ void GLFrameCapture::CaptureSingleFrame(std::vector<unsigned char>& image) const
   image.resize(viewport[2]*viewport[3]*4);
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glReadBuffer(GL_FRONT);
   glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_BYTE,&image.at(0));
 }
