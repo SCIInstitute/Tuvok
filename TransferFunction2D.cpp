@@ -290,10 +290,11 @@ INTVECTOR2 TransferFunction2D::Normalized2Offscreen(FLOATVECTOR2 vfCoord, VECTOR
 }
 
 unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
-#ifndef TUVOK_NO_QT
   VECTOR2<size_t> vRS = GetRenderSize();
   if (m_pColorData == NULL ) m_pColorData = new ColorData2D(m_iSize);
   if (m_pPixelData == NULL ) m_pPixelData = new unsigned char[4*m_iSize.area()];
+
+#ifndef TUVOK_NO_QT
   if (m_pRCanvas == NULL )   m_pRCanvas   = new QImage(int(vRS.x), int(vRS.y), QImage::Format_ARGB32);
 
   if (m_pPixelData != NULL && m_bUseCachedData) return m_pPixelData;
@@ -346,12 +347,14 @@ unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
 
   memcpy(m_pPixelData, m_pRCanvas->scaled(int(m_iSize.x), int(m_iSize.y)).bits(), 4*m_iSize.area());
   m_bUseCachedData = true;
-
-  return m_pPixelData;
 #else
-  T_ERROR("Cannot render transfer functions without Qt.");
-  return NULL;
+  if (!m_Swatches.empty()) {
+	m_Swatches.clear();
+	WARNING("Cannot render transfer functions without Qt, returning empty transfer function.");
+	memset(m_pPixelData, 0, 4*m_iSize.area());	
+  }
 #endif
+  return m_pPixelData;
 }
 
 ColorData2D* TransferFunction2D::RenderTransferFunction() {
