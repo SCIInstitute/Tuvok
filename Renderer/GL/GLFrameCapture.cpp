@@ -50,6 +50,7 @@ bool GLFrameCapture::CaptureSingleFrame(const std::string& strFilename, bool bPr
   unsigned char *image = new unsigned char[viewport[2]*viewport[3]*4];
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glReadBuffer(GL_FRONT);
   glReadPixels(0,0,viewport[2],viewport[3],GL_RGBA,GL_UNSIGNED_BYTE,image);
 
   bool bResult = SaveImage(strFilename, UINTVECTOR2(viewport[2], viewport[3]), image, bPreserveTransparency);

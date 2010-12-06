@@ -369,6 +369,5 @@ void GLFBOTex::ReadBackPixels(int x, int y, int sX, int sY, void* pData) {
   Write(0,0,false);
   GL(glReadBuffer(GL_COLOR_ATTACHMENT0_EXT));
   GL(glReadPixels(x, y, sX, sY, GL_RGBA, GL_FLOAT, pData));
-  GL(glReadBuffer(GL_BACK));
   FinishWrite(0);
 }
