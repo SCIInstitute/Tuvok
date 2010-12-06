@@ -32,9 +32,6 @@
 //
 //!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
 
-vec4 sampleVolume(vec3 coords);
-vec3 ComputeGradient(vec3 vCenter, vec3 StepSize);
-
 uniform sampler2D texTrans;   ///< the 2D Transfer function
 uniform float fTransScale;    ///< value scale for 2D Transfer function lookup
 uniform float fGradientScale; ///< gradient scale for 2D Transfer function lookup
@@ -55,9 +52,10 @@ uniform vec3 vDomainScale;
 varying vec3 vPosition;
 varying vec3 normal;
 
+vec4 sampleVolume(vec3 coords);
+vec3 ComputeGradient(vec3 vCenter, vec3 StepSize);
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
-
 vec4 TraversalOrderDepColor(const vec4 color);
 
 void main(void)

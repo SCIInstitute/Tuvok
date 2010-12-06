@@ -910,6 +910,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Shaders\Compositing.glsl"
+				>
+			</File>
+			<File
 				RelativePath=".\Shaders\FTB.glsl"
 				>
 			</File>

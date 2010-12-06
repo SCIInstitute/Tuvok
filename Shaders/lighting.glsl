@@ -30,8 +30,6 @@
   \file  lighting.glsl
 */
 
-vec4 sampleVolume(vec3 coords);
-
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir) {
   vNormal.z = abs(vNormal.z);
@@ -43,11 +41,4 @@ vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
     vLightDiffuse * max(abs(dot(vNormal, -vLightDir)),0.0) +
     vLightSpecular * pow(max(dot(vReflection, vLightDir),0.0),8.0), 0.0,1.0
   );
-}
-
-vec4 ColorBlend(vec4 src, vec4 dst) {
-  vec4 result = dst;
-  result.rgb   += src.rgb * (1.0-dst.a)*src.a;
-  result.a     += src.a   * (1.0-dst.a);
-  return result;
 }

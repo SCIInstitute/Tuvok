@@ -39,9 +39,15 @@ vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale);
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
 
-/* just pass what we get back from the texture lookup verbatim. */
+
+// TODO:
+// do something with scale and bias 
+
 vec4 VRender1D(const vec3 tex_pos,
                in float tf_scale,
+#if defined(BIAS_SCALE)
+               in float tf_bias,
+#endif
                in float opacity_correction)
 {
   vec4 v = sampleVolume(tex_pos);
@@ -52,6 +58,9 @@ vec4 VRender1D(const vec3 tex_pos,
 
 vec4 VRender1DLit(const vec3 tex_pos,
                   in float tf_scale,
+#if defined(BIAS_SCALE)
+                  in float tf_bias,
+#endif
                   in float opacity_correction,
                   const vec3 voxel_step_size,
                   const vec3 domain_scale,

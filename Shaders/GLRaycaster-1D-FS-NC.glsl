@@ -46,7 +46,7 @@ uniform vec4 vClipPlane;
 varying vec3 vEyePos;
 
 vec4 sampleVolume(vec3 coords);
-vec4 ColorBlend(vec4 src, vec4 dst);
+vec4 UnderCompositing(vec4 src, vec4 dst);
 vec4 VRender1D(const vec3 pos, in float tfqn_scale, in float opac);
 
 void main(void)
@@ -71,7 +71,7 @@ void main(void)
   vec4  vColor = vec4(0.0,0.0,0.0,0.0);
   vec3  vCurrentPosTex = vRayEntryTex;
   for (int i = 0;i<iStepCount;i++) {
-    vColor = ColorBlend(VRender1D(vCurrentPosTex, fTransScale, fStepScale),
+    vColor = UnderCompositing(VRender1D(vCurrentPosTex, fTransScale, fStepScale),
                         vColor);
 
     if (vColor.a >= 0.99) break;

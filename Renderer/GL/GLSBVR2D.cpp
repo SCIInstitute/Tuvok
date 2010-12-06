@@ -346,9 +346,9 @@ void GLSBVR2D::SetDataDepShaderVars() {
     std::pair<float,float> bias_scale = scale_bias_and_scale(*m_pDataset);
     MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
             bias_scale.second);
-    m_pProgram1DTrans[0]->Enable();
-    m_pProgram1DTrans[0]->SetUniformVector("TFuncBias", bias_scale.first);
-    m_pProgram1DTrans[0]->SetUniformVector("fTransScale", bias_scale.second);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("TFuncBias", bias_scale.first);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale", bias_scale.second);
   }
 }
 

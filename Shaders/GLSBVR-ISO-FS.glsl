@@ -35,14 +35,13 @@
   \date    October 2008
 */
 
-vec4 sampleVolume(vec3 coords);
-
 uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next voxel
 uniform float fIsoval;        ///< the isovalue
 uniform vec3 vDomainScale;
 
 varying vec3 vPosition;
 
+vec4 sampleVolume(vec3 coords);
 vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
                    vec3 DomainScale);
 

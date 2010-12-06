@@ -50,7 +50,7 @@ varying vec3 vEyePos;
 
 bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
                  in vec4 clip_plane);
-vec4 ColorBlend(vec4 src, vec4 dst);
+vec4 UnderCompositing(vec4 src, vec4 dst);
 vec3 ComputeGradient(vec3 vCenter, vec3 StepSize);
 
 void main(void)
@@ -87,7 +87,7 @@ void main(void)
       // apply opacity correction
       vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
 
-      vColor = ColorBlend(vTransVal,vColor);
+      vColor = UnderCompositing(vTransVal,vColor);
 
       vCurrentPosTex += vRayIncTex;
 

@@ -57,7 +57,7 @@ varying vec3 vEyePos;
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
-vec4 ColorBlend(vec4 src, vec4 dst);
+vec4 UnderCompositing(vec4 src, vec4 dst);
 vec3 ComputeGradient(vec3 vCenter, vec3 StepSize);
 
 void main(void)
@@ -107,7 +107,7 @@ void main(void)
     vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
 
     vTransVal = clamp(vec4(vLightColor.x, vLightColor.y, vLightColor.z, vTransVal.a),0.0,1.0);
-    vColor = ColorBlend(vTransVal,vColor);
+    vColor = UnderCompositing(vTransVal,vColor);
 
     vCurrentPos    += fRayInc;
     vCurrentPosTex += vRayIncTex;

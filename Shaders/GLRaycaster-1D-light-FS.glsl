@@ -58,7 +58,7 @@ varying vec3 vEyePos;
 
 bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
                  in vec4 clip_plane);
-vec4 ColorBlend(vec4 src, vec4 dst);
+vec4 UnderCompositing(vec4 src, vec4 dst);
 vec4 VRender1DLit(const vec3 tex_pos,
                   in float tf_scale,
                   in float opacity_correction,
@@ -98,7 +98,7 @@ void main(void)
     vec3  vCurrentPosTex = vRayEntryTex;
     vec3  vCurrentPos    = vRayEntry;
     for (int i = 0;i<iStepCount;i++) {
-      vColor = ColorBlend(VRender1DLit(vCurrentPosTex, fTransScale,
+      vColor = UnderCompositing(VRender1DLit(vCurrentPosTex, fTransScale,
                                        fStepScale, vVoxelStepsize,
                                        vDomainScale, vCurrentPos,
                                        vLightAmbient, vLightDiffuse,

@@ -57,6 +57,32 @@ varying vec3 normal;
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
 
+#ifdef BIAS_SCALE
+  uniform float TFuncBias;    ///< bias amount for transfer func
+  vec4 VRender1DLit(const vec3 tex_pos,
+                    in float tf_scale,
+                    in float tf_bias,
+                    in float opacity_correction,
+                    const vec3 voxel_step_size,
+                    const vec3 domain_scale,
+                    const vec3 position,
+                    const vec3 l_ambient,
+                    const vec3 l_diffuse,
+                    const vec3 l_specular,
+                    const vec3 l_direction);
+#else
+  vec4 VRender1DLit(const vec3 tex_pos,
+                    in float tf_scale,
+                    in float opacity_correction,
+                    const vec3 voxel_step_size,
+                    const vec3 domain_scale,
+                    const vec3 position,
+                    const vec3 l_ambient,
+                    const vec3 l_diffuse,
+                    const vec3 l_specular,
+                    const vec3 l_direction);
+#endif
+
 vec4 TraversalOrderDepColor(const vec4 color);
 
 void main(void)
@@ -71,22 +97,21 @@ void main(void)
       gl_FragColor = vec4(vLightColor.x,vLightColor.y,vLightColor.z,gl_Color.w);
     }
   } else {
-    // get volume value
-    float fVolumVal = sampleVolume(gl_TexCoord[0].xyz).x;
-    vec4  vTransVal = texture1D(texTrans, fVolumVal*fTransScale);
-
-    // compute the gradient/normal
-    vec3 vNormal = ComputeNormal(gl_TexCoord[0].xyz,vVoxelStepsize,vDomainScale);
-
-    vec3 vLightColor = Lighting(vPosition.xyz, vNormal, vLightAmbient,
-                                vLightDiffuse*vTransVal.xyz, vLightSpecular,
-                                vLightDir);
-
-    /// apply opacity correction
-    vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
-
-    /// write result to fragment color
-    gl_FragColor    = vec4(vLightColor.x, vLightColor.y, vLightColor.z, vTransVal.a);
+    #if defined(BIAS_SCALE)
+      gl_FragColor = VRender1DLit(
+        gl_TexCoord[0].xyz, fTransScale, TFuncBias, fStepScale,
+        vVoxelStepsize, vDomainScale,
+        vPosition.xyz, vLightAmbient, vLightDiffuse, vLightSpecular, vLightDir
+      );
+    #else
+      gl_FragColor = VRender1DLit(
+        gl_TexCoord[0].xyz, fTransScale, fStepScale,
+        vVoxelStepsize, vDomainScale,
+        vPosition.xyz, vLightAmbient, vLightDiffuse, vLightSpecular, vLightDir
+      );
+    #endif
   }
+
+  // pre-multiplication of alpha, if needed.
   gl_FragColor = TraversalOrderDepColor(gl_FragColor);
 }

@@ -60,7 +60,7 @@ vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
 vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
                    vec3 DomainScale);
-vec4 ColorBlend(vec4 src, vec4 dst);
+vec4 UnderCompositing(vec4 src, vec4 dst);
 
 void main(void)
 {
@@ -104,7 +104,7 @@ void main(void)
     /// apply opacity correction
     vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
     vTransVal = vec4(vLightColor.x, vLightColor.y, vLightColor.z, vTransVal.a);
-    vColor = ColorBlend(vTransVal,vColor);
+    vColor = UnderCompositing(vTransVal,vColor);
 
     vCurrentPos    += fRayInc;
     vCurrentPosTex += vRayIncTex;

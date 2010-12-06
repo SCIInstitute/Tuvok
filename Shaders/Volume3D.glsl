@@ -58,3 +58,22 @@ vec3 ComputeNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale) {
   float l = length(vNormal); if (l>0.0) vNormal /= l; // safe normalization
   return vNormal;
 }
+
+vec3 ComputeAlphaGradient(vec3 vCenter, vec3 StepSize) {
+  float fVolumValXp = sampleVolume(vCenter+vec3(+StepSize.x,0,0)).a;
+  float fVolumValXm = sampleVolume(vCenter+vec3(-StepSize.x,0,0)).a;
+  float fVolumValYp = sampleVolume(vCenter+vec3(0,-StepSize.y,0)).a;
+  float fVolumValYm = sampleVolume(vCenter+vec3(0,+StepSize.y,0)).a;
+  float fVolumValZp = sampleVolume(vCenter+vec3(0,0,+StepSize.z)).a;
+  float fVolumValZm = sampleVolume(vCenter+vec3(0,0,-StepSize.z)).a;
+  return vec3(fVolumValXm - fVolumValXp,
+              fVolumValYp - fVolumValYm,
+              fVolumValZm - fVolumValZp) / 2.0;
+}
+
+vec3 ComputeAlphaNormal(vec3 vCenter, vec3 StepSize, vec3 DomainScale) {
+  vec3 vGradient = ComputeAlphaGradient(vCenter, StepSize);
+  vec3 vNormal   = gl_NormalMatrix * (vGradient * DomainScale);
+  float l = length(vNormal); if (l>0.0) vNormal /= l; // safe normalization
+  return vNormal;
+}

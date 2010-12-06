@@ -24,22 +24,13 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-//!    File   : Mesh-VS.glsl
+//!    File   : GLSBVR-Mesh-1D-FS.glsl
 //!    Author : Jens Krueger
 //!             IVCI & DFKI & MMCI, Saarbruecken
 //!             SCI Institute, University of Utah
 //!    Date   : July 2010
 //
 //!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
-
-uniform sampler1D texTrans; ///< the 1D Transfer function
-uniform float fTransScale;    ///< scale for 1D Transfer function lookup
-uniform float fStepScale;     ///< opacity correction quotient
-#ifdef BIAS_SCALE
-  uniform float TFuncBias;    ///< bias amount for transfer func
-#endif
-
-vec4 sampleVolume(vec3 coords);
 
 uniform vec3 vLightAmbientM;
 uniform vec3 vLightDiffuseM;
@@ -48,24 +39,24 @@ uniform vec3 vLightDir;
 varying vec3 vPosition;
 varying vec3 normal;
 
+uniform sampler1D texTrans; ///< the 1D Transfer function
+uniform float fTransScale;    ///< scale for 1D Transfer function lookup
+uniform float fStepScale;     ///< opacity correction quotient
+
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
 
-
-/* bias and scale method for mapping a TF to a value. */
-vec4 bias_scale(const float bias, const float scale)
-{
-  float vol_val = sampleVolume(gl_TexCoord[0].xyz).x;
-  vol_val = (vol_val + bias) / scale;
-
-  return texture1D(texTrans, vol_val);
-}
-
-vec4 bit_width(const float tf_scale)
-{
-  float fVolumVal = sampleVolume(gl_TexCoord[0].xyz).x;
-  return texture1D(texTrans, fVolumVal * tf_scale);
-}
+#ifdef BIAS_SCALE
+  uniform float TFuncBias;    ///< bias amount for transfer func
+  vec4 VRender1D(const vec3 tex_pos,
+                 in float tf_scale,
+                 in float tf_bias,
+                 in float opacity_correction);
+#else
+  vec4 VRender1D(const vec3 tex_pos,
+                 in float tf_scale,
+                 in float opacity_correction);
+#endif
 
 vec4 TraversalOrderDepColor(const vec4 color);
 
@@ -81,17 +72,15 @@ void main(void)
       gl_FragColor = vec4(vLightColor.x,vLightColor.y,vLightColor.z,gl_Color.w);
     }
   } else {
-  #if defined(BIAS_SCALE)
-    vec4 vTransVal = bias_scale(TFuncBias, fTransScale);
-  #else
-    vec4 vTransVal = bit_width(fTransScale);
-  #endif
-
-    // opacity correction
-    vTransVal.a = 1.0 - pow(1.0 - vTransVal.a, fStepScale);
-
-    gl_FragColor = vTransVal;
+    #if defined(BIAS_SCALE)
+      gl_FragColor = VRender1D(gl_TexCoord[0].xyz,
+                               fTransScale, TFuncBias, fStepScale);
+    #else
+      gl_FragColor = VRender1D(gl_TexCoord[0].xyz, 
+                               fTransScale, fStepScale);
+    #endif
   }
 
+  // pre-multiplication of alpha, if needed.
   gl_FragColor = TraversalOrderDepColor(gl_FragColor);
 }

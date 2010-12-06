@@ -47,25 +47,50 @@ uniform vec3 vLightDir;
 
 varying vec3 vPosition;
 
-vec4 VRender1DLit(const vec3 tex_pos,
-                  in float tf_scale,
-                  in float opacity_correction,
-                  const vec3 voxel_step_size,
-                  const vec3 domain_scale,
-                  const vec3 position,
-                  const vec3 l_ambient,
-                  const vec3 l_diffuse,
-                  const vec3 l_specular,
-                  const vec3 l_direction);
+#ifdef BIAS_SCALE
+  uniform float TFuncBias;    ///< bias amount for transfer func
+  vec4 VRender1DLit(const vec3 tex_pos,
+                    in float tf_scale,
+                    in float tf_bias,
+                    in float opacity_correction,
+                    const vec3 voxel_step_size,
+                    const vec3 domain_scale,
+                    const vec3 position,
+                    const vec3 l_ambient,
+                    const vec3 l_diffuse,
+                    const vec3 l_specular,
+                    const vec3 l_direction);
+#else
+  vec4 VRender1DLit(const vec3 tex_pos,
+                    in float tf_scale,
+                    in float opacity_correction,
+                    const vec3 voxel_step_size,
+                    const vec3 domain_scale,
+                    const vec3 position,
+                    const vec3 l_ambient,
+                    const vec3 l_diffuse,
+                    const vec3 l_specular,
+                    const vec3 l_direction);
+#endif
+
 vec4 TraversalOrderDepColor(const vec4 color);
 
 void main(void)
 {
+#if defined(BIAS_SCALE)
+  gl_FragColor = VRender1DLit(
+    gl_TexCoord[0].xyz, fTransScale, TFuncBias, fStepScale,
+    vVoxelStepsize, vDomainScale,
+    vPosition.xyz, vLightAmbient, vLightDiffuse, vLightSpecular, vLightDir
+  );
+#else
   gl_FragColor = VRender1DLit(
     gl_TexCoord[0].xyz, fTransScale, fStepScale,
     vVoxelStepsize, vDomainScale,
     vPosition.xyz, vLightAmbient, vLightDiffuse, vLightSpecular, vLightDir
   );
+#endif
+
 
   // pre-multiplication of alpha, if needed.
   gl_FragColor = TraversalOrderDepColor(gl_FragColor);

@@ -101,85 +101,87 @@ bool GLSBVR::LoadShaders() {
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "GLSBVR-1D-FS.glsl",
-                          "lighting.glsl",
-                          "FTB.glsl",
-                          "Volume3D.glsl", tfqn.c_str(), NULL) ||
+                          "Volume3D.glsl",      // SampleVolume
+                          tfqn.c_str(),         // VRender1D
+                          "FTB.glsl",           // TraversalOrderDepColor
+                          "GLSBVR-1D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
-                          NULL,
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
-                          "FTB.glsl",
+                          NULL,                          
+                          "Volume3D.glsl",      // SampleVolume
+                          tfqn.c_str(),         // VRender1DLit
+                          "lighting.glsl",      // Lighting
+                          "FTB.glsl",           // TraversalOrderDepColor
                           "GLSBVR-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl",
-                          "FTB.glsl",
-                          "GLSBVR-2D-FS.glsl",
-                          "Volume3D.glsl", NULL) ||
+                          "Volume3D.glsl",      // SampleVolume, ComputeGradient
+                          "FTB.glsl",           // TraversalOrderDepColor
+                          "GLSBVR-2D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl", "Volume3D.glsl",
-                          "FTB.glsl",
+                          "Volume3D.glsl",      // SampleVolume, ComputeGradient
+                          "lighting.glsl",      // Lighting
+                          "FTB.glsl",           // TraversalOrderDepColor
                           "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl",
-                          "GLSBVR-MIP-Rot-FS.glsl", tfqn.c_str(),
-                          "Volume3D.glsl", NULL) ||
+                          "Volume3D.glsl",      // SampleVolume
+                          "GLSBVR-MIP-Rot-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "Volume3D.glsl",      // SampleVolume, ComputeNormal
                           "GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "Volume3D.glsl",      // SampleVolume, ComputeNormal
                           "GLSBVR-Color-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIsoNoCompose, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "Volume3D.glsl",      // SampleVolume, ComputeNormal
+                          "lighting.glsl",      // Lighting
                           "GLSBVR-ISO-NC-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColorNoCompose, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          "lighting.glsl",
-                          "GLSBVR-Color-NC-FS.glsl", tfqn.c_str(),
-                          "Volume3D.glsl", NULL) ||
+                          "Volume3D.glsl",      // SampleVolume
+                          "GLSBVR-Color-NC-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransMesh[0], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
                           NULL,
-                          "FTB.glsl",
-                          "lighting.glsl",
-                          "GLSBVR-Mesh-1D-FS.glsl", tfqn.c_str(),
-                          "Volume3D.glsl", NULL) ||
+                          "Volume3D.glsl",      // SampleVolume
+                          tfqn.c_str(),         // VRender1D
+                          "FTB.glsl",           // TraversalOrderDepColor
+                          "lighting.glsl",      // Lighting (for Mesh)
+                          "GLSBVR-Mesh-1D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransMesh[1], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
                           NULL,
-                          "FTB.glsl",
-                          "lighting.glsl", tfqn.c_str(),
-                          "Volume3D.glsl", "GLSBVR-Mesh-1D-light-FS.glsl",
-                          NULL) ||
+                          "Volume3D.glsl",      // SampleVolume
+                          tfqn.c_str(),         // VRender1DLit
+                          "lighting.glsl",      // Lighting
+                          "FTB.glsl",           // TraversalOrderDepColor
+                          "GLSBVR-Mesh-1D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransMesh[0], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
                           NULL,
-                          "FTB.glsl",
-                          "lighting.glsl",
-                          "GLSBVR-Mesh-2D-FS.glsl",
-                          "Volume3D.glsl", NULL) ||
+                          "Volume3D.glsl",      // SampleVolume, ComputeNormal
+                          "lighting.glsl",      // Lighting (for Mesh)
+                          "FTB.glsl",           // TraversalOrderDepColor
+                          "GLSBVR-Mesh-2D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransMesh[1], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",
                           NULL,
-                          "FTB.glsl",
-                          "lighting.glsl",
-                          "Volume3D.glsl", 
-                          "GLSBVR-Mesh-2D-light-FS.glsl",
-                          NULL)) {
+                          "Volume3D.glsl",      // SampleVolume
+                          "lighting.glsl",      // Lighting
+                          "FTB.glsl",           // TraversalOrderDepColor
+                          "GLSBVR-Mesh-2D-light-FS.glsl", NULL)) {
       Cleanup();
       T_ERROR("Error loading a shader.");
       return false;
@@ -264,9 +266,9 @@ void GLSBVR::SetDataDepShaderVars() {
     std::pair<float,float> bias_scale = scale_bias_and_scale(*m_pDataset);
     MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
             bias_scale.second);
-    m_pProgram1DTrans[0]->Enable();
-    m_pProgram1DTrans[0]->SetUniformVector("TFuncBias", bias_scale.first);
-    m_pProgram1DTrans[0]->SetUniformVector("fTransScale", bias_scale.second);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("TFuncBias", bias_scale.first);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale", bias_scale.second);
   }
 }
 
