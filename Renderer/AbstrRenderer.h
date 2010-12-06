@@ -407,9 +407,11 @@ class AbstrRenderer {
     virtual float GetCVContextScale() const {return m_fCVContextScale;}
     virtual void SetCVBorderScale(float fScale);
     virtual float GetCVBorderScale() const {return m_fCVBorderScale;}
+    virtual void SetCVFocusPos(const FLOATVECTOR4& vCVPos);
     virtual void SetCVFocusPos(const RenderRegion& renderRegion,
-                               INTVECTOR2 vPos);
-    virtual INTVECTOR2 GetCVFocusPos() const {return m_vCVMousePos;}
+                               const INTVECTOR2& vPos);
+    virtual FLOATVECTOR4 GetCVFocusPos() const {return m_vCVPos;}
+    virtual INTVECTOR2 GetCVMousePos() const {return m_vCVMousePos;}
 
     virtual FLOATVECTOR3 Pick(const UINTVECTOR2&) const = 0;
 

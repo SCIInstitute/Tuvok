@@ -1241,7 +1241,13 @@ void AbstrRenderer::SetCVBorderScale(float fScale) {
   }
 }
 
-void AbstrRenderer::SetCVFocusPos(const RenderRegion& renderRegion, INTVECTOR2 vPos) {
+void AbstrRenderer::SetCVFocusPos(const FLOATVECTOR4& vCVPos) {
+  m_vCVMousePos = INTVECTOR2(-1,-1);
+  m_vCVPos = vCVPos;
+}
+
+void AbstrRenderer::SetCVFocusPos(const RenderRegion& renderRegion,
+                                  const INTVECTOR2& vPos) {
   if (m_vCVMousePos!= vPos) {
     m_vCVMousePos = vPos;
     if (m_bDoClearView && m_eRenderMode == RM_ISOSURFACE)
