@@ -45,9 +45,20 @@ uniform vec4 vClipPlane;
 
 varying vec3 vEyePos;
 
+#ifdef BIAS_SCALE
+  uniform float TFuncBias;    ///< bias amount for transfer func
+  vec4 VRender1D(const vec3 tex_pos,
+                 in float tf_scale,
+                 in float tf_bias,
+                 in float opacity_correction);
+#else
+  vec4 VRender1D(const vec3 tex_pos,
+                 in float tf_scale,
+                 in float opacity_correction);
+#endif
+
 vec4 sampleVolume(vec3 coords);
 vec4 UnderCompositing(vec4 src, vec4 dst);
-vec4 VRender1D(const vec3 pos, in float tfqn_scale, in float opac);
 
 void main(void)
 {
@@ -71,11 +82,16 @@ void main(void)
   vec4  vColor = vec4(0.0,0.0,0.0,0.0);
   vec3  vCurrentPosTex = vRayEntryTex;
   for (int i = 0;i<iStepCount;i++) {
-    vColor = UnderCompositing(VRender1D(vCurrentPosTex, fTransScale, fStepScale),
-                        vColor);
 
+#if defined(BIAS_SCALE)
+  vec4 stepColor = VRender1D(vCurrentPosTex, fTransScale, 
+                             TFuncBias, fStepScale);
+#else
+  vec4 stepColor = VRender1D(vCurrentPosTex, fTransScale, 
+                             fStepScale);
+#endif
+    vColor = UnderCompositing(stepColor, vColor);
     if (vColor.a >= 0.99) break;
-
     vCurrentPosTex += vRayIncTex;
   }
 

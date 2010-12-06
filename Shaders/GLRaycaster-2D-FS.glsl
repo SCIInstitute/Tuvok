@@ -35,7 +35,6 @@
   \date    October 2008
 */
 
-vec4 sampleVolume(vec3 coords);
 uniform sampler2D texTrans; ///< the 2D Transfer function
 uniform sampler2D texRayExitPos; ///< the backface (or ray exit point) texture in eyecoords
 uniform float fTransScale;    ///< value scale for 2D Transfer function lookup
@@ -48,6 +47,7 @@ uniform vec4 vClipPlane;
 
 varying vec3 vEyePos;
 
+vec4 sampleVolume(vec3 coords);
 bool ClipByPlane(inout vec3 vRayEntry, inout vec3 vRayExit,
                  in vec4 clip_plane);
 vec4 UnderCompositing(vec4 src, vec4 dst);

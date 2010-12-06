@@ -50,21 +50,9 @@ uniform vec4 vClipPlane;
 
 vec3 ComputeNormal(vec3 vHitPosTex, vec3 StepSize,
                    vec3 DomainScale);
-
-vec3 RefineIsosurface(vec3 vRayDir, vec3 vCurrentPos) {
-  vRayDir /= 2.0;
-  vCurrentPos -= vRayDir;
-  for (int i = 0; i < 5; i++) {
-    vRayDir /= 2.0;
-    float voxel = sampleVolume( vCurrentPos).x;
-    if (voxel >= fIsoval) {
-      vCurrentPos -= vRayDir;
-    } else {
-      vCurrentPos += vRayDir;
-    }
-  }
-  return vCurrentPos;
-}
+vec3 RefineIsosurface(in vec3 vRayDir, 
+                      inout vec3 vCurrentPos, 
+                      in float fIsoval);
 
 void main(void)
 {
@@ -99,7 +87,7 @@ void main(void)
 
   // store surface hit if one is found
   if (vHitPosTex.a != 0.0)
-    vHitPosTex.xyz = RefineIsosurface(vRayIncTex, vHitPosTex.xyz);
+    vHitPosTex.xyz = RefineIsosurface(vRayIncTex, vHitPosTex.xyz, fIsoval);
   else
     discard;
 

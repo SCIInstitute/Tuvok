@@ -1066,6 +1066,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Shaders\RefineIsosurface.glsl"
+				>
+			</File>
+			<File
 				RelativePath=".\Shaders\SlicesIn3D.glsl"
 				>
 			</File>

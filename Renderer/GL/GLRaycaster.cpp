@@ -44,6 +44,7 @@
 #include "GLSLProgram.h"
 #include "GLTexture1D.h"
 #include "GLTexture2D.h"
+#include "Renderer/TFScaling.h"
 
 using namespace std;
 using namespace tuvok;
@@ -137,55 +138,64 @@ bool GLRaycaster::Initialize() {
      !LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "Compositing.glsl",   // UnderCompositing
+                          "clip-plane.glsl",    // ClipByPlane
+                          "Volume3D.glsl",      // SampleVolume
+                          tfqn.c_str(),         // VRender1D
                           shaderNames[0],  NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", tfqnLit.c_str(),
+                          "Compositing.glsl",   // UnderCompositing
+                          "clip-plane.glsl",    // ClipByPlane
+                          "Volume3D.glsl",      // SampleVolume
+                          "lighting.glsl",      // Lighting
+                          tfqnLit.c_str(),      // VRender1DLit
                           shaderNames[1], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", 
+                          "Compositing.glsl",   // UnderCompositing
+                          "clip-plane.glsl",    // ClipByPlane
+                          "Volume3D.glsl",      // SampleVolume, ComputeGradient
                           shaderNames[2], NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", 
+                          "Compositing.glsl",   // UnderCompositing
+                          "clip-plane.glsl",    // ClipByPlane
+                          "Volume3D.glsl",      // SampleVolume, ComputeGradient
+                          "lighting.glsl",      // Lighting
                           shaderNames[3], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "clip-plane.glsl",       // ClipByPlane
+                          "RefineIsosurface.glsl", // RefineIsosurface
+                          "Volume3D.glsl",        // SampleVolume, ComputeNormal
                           shaderNames[6], NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "clip-plane.glsl",       // ClipByPlane
+                          "RefineIsosurface.glsl", // RefineIsosurface
+                          "Volume3D.glsl",        // SampleVolume, ComputeNormal
                           shaderNames[4], NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso2, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "clip-plane.glsl",       // ClipByPlane
+                          "RefineIsosurface.glsl", // RefineIsosurface
+                          "Volume3D.glsl",        // SampleVolume, ComputeNormal
                           shaderNames[5], NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,
-                          "clip-plane.glsl",
-                          "lighting.glsl", "Volume3D.glsl", tfqn.c_str(),
+                          "Volume3D.glsl",      // SampleVolume
                           "GLRaycaster-MIP-Rot-FS.glsl",
                           NULL))
   {
       Cleanup();
-
       T_ERROR("Error loading a shader.");
       return false;
   } else {
@@ -639,6 +649,16 @@ void GLRaycaster::SetDataDepShaderVars() {
     m_pProgramIso2->SetUniformVector("fIsoval", static_cast<float>
                                                 (GetNormalizedCVIsovalue()));
   }
+
+  if(m_eRenderMode == RM_1DTRANS && m_TFScalingMethod == SMETH_BIAS_AND_SCALE) {
+    std::pair<float,float> bias_scale = scale_bias_and_scale(*m_pDataset);
+    MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
+            bias_scale.second);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("TFuncBias", bias_scale.first);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale", bias_scale.second);
+  }
+
 }
 
 
