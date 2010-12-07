@@ -59,7 +59,7 @@ static const float fMinCos = 0.01f;
 
 SBVRGeogen2D::SBVRGeogen2D(void) :
   SBVRGeogen(),
-  m_eMethod(METHOD_REZK/*METHOD_KRUEGER_FAST*/)
+  m_eMethod(METHOD_KRUEGER_FAST)
 {
 }
 
@@ -154,6 +154,7 @@ void SBVRGeogen2D::ComputeGeometryRezk() {
   VERTEX_FORMAT pfSliceVertex[4];
   float fDelta = GetDelta(iStack);
   UINT32 iLayerCount = UINT32(floor(1.0f/fDelta));
+  fDelta = 1.0f / float(iLayerCount-1);
   float fDepth = 0;
   if (bFlipStack) {
     fDelta *= -1;
@@ -384,6 +385,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
   // if something of the x stack is visible
   if (fCosAngleX > fMinCos) {
     UINT32 iLayerCount = UINT32(floor(1.0f/fDelta.x));
+    fDelta.x = 1.0f / float(iLayerCount-1);
 
     // detemine if we a moving back to front or front to back
     // (as seen from the untransfrormed orientation)
@@ -433,6 +435,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
   if (fCosAngleY > fMinCos) {
 
     UINT32 iLayerCount = UINT32(floor(1.0f/fDelta.y));
+    fDelta.y = 1.0f / float(iLayerCount-1);
     float a = 0;
 
     // detemine if we a moving back to front or front to back
@@ -480,6 +483,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
   // if something of the z stack is visible
   if (fCosAngleZ > fMinCos) {
     UINT32 iLayerCount = UINT32(floor(1.0f/fDelta.z));
+    fDelta.z = 1.0f / float(iLayerCount-1);
     float a = 0;
 
     // detemine if we a moving back to front or front to back
@@ -743,7 +747,7 @@ public:
 
 void SBVRGeogen2D::BuildStackQuads(
                      const int iDirIndex,
-                     const float fDelta,
+                     float fDelta,
                      const size_t *vertexIndices,
                      const size_t *edgeIndices,
 
@@ -756,7 +760,6 @@ void SBVRGeogen2D::BuildStackQuads(
                      ) {
   VERTEX_FORMAT pVertices[8];
   size_t pEdges[8];
-
   
   // set unclipped front and back vertices
   if ((vFaceVec[iDirIndex*2]^vCoordFrame[iDirIndex]) <= 0.0f){
@@ -847,13 +850,14 @@ void SBVRGeogen2D::BuildStackQuads(
 
   // compute number of layers to cover depth
   UINT32 iLayerCount = UINT32(floor(fDistScale/fDelta));
+  fDelta = 1.0f / float(iLayerCount-1);
 
   vSliceTriangles.resize(iLayerCount*6);
   size_t iVectorIndex = 0;
 
   // interpolate the required stack quads
   while (iVectorIndex < iLayerCount*6) {
-    float t  = (iVectorIndex/6) * fDelta/fDistScale;
+    float t  = (iVectorIndex/6) * fDelta;
 
     InterpolateVertices(pVertices[0], pVertices[4], t, pfSliceVertex[0]);
     InterpolateVertices(pVertices[1], pVertices[5], t, pfSliceVertex[1]);

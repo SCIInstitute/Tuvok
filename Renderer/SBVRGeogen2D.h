@@ -177,7 +177,7 @@ private:
     \param vSliceTriangles the computed geometry is stored in this vector
   */
   void BuildStackQuads(const int iDirIndex,
-                       const float fDelta,
+                       float fDelta,
                        const size_t *vertexIndices,
                        const size_t *edgeIndices,
                        const FLOATVECTOR3* vFaceVec,

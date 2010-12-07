@@ -553,8 +553,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
         // .. and move on to the next slice.
         iLastTexID = iCurrentTexID;
       }
-
-      const float fraction = depth*pGLVolume->GetSizeX() - iCurrentTexID;
+      const float fraction = depth*(pGLVolume->GetSizeX()-1) - iCurrentTexID;
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.z);
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.y);
       geom.texcoords.push_back(fraction);
@@ -571,6 +570,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
 
     submit_vert_arrays(pGLVolume, slices, 0);
   }
+
   if (!m_SBVRGeogen.m_vSliceTrianglesY.empty()) {
     // set coordinate shuffle matrix
     float m[16] = {1,0,0,0,
@@ -603,8 +603,8 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
         // .. and move on to the next slice.
         iLastTexID = iCurrentTexID;
       }
-      const float fraction = depth*pGLVolume->GetSizeY() - iCurrentTexID;
-
+      
+      const float fraction = depth*(pGLVolume->GetSizeY()-1) - iCurrentTexID;
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.x);
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.z);
       geom.texcoords.push_back(fraction);
@@ -646,8 +646,8 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
         // .. and move on to the next slice.
         iLastTexID = iCurrentTexID;
       }
-      const float fraction = depth*pGLVolume->GetSizeZ() - iCurrentTexID;
 
+      const float fraction = depth*(pGLVolume->GetSizeZ()-1) - iCurrentTexID;
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.x);
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.y);
       geom.texcoords.push_back(fraction);
