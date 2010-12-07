@@ -541,16 +541,19 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     for(size_t i=0; i < m_SBVRGeogen.m_vSliceTrianglesX.size(); ++i) {
       const float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.x;
       const unsigned iCurrentTexID = static_cast<unsigned>(depth*(pGLVolume->GetSizeX()));
+
+      if (i == 0) iLastTexID = iCurrentTexID;
       if(static_cast<int>(iCurrentTexID) != iLastTexID) { // finished a slice
         // copy the current geom over ...
         slice_geom g;
         slices.push_back(g);
         // note that move_slice will clear geom.texcoords/tris, too!
         move_slice(slices[slc_idx], geom);
-        slices[slc_idx++].texid = iCurrentTexID;
+        slices[slc_idx++].texid = iLastTexID;
         // .. and move on to the next slice.
         iLastTexID = iCurrentTexID;
       }
+
       const float fraction = depth*pGLVolume->GetSizeX() - iCurrentTexID;
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.z);
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.y);
@@ -559,6 +562,13 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
       geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.y);
       geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vPos.z);
     }
+
+    // copy the last geom over
+    slice_geom g;
+    slices.push_back(g);
+    move_slice(slices[slc_idx], geom);
+    slices[slc_idx++].texid = iLastTexID;
+
     submit_vert_arrays(pGLVolume, slices, 0);
   }
   if (!m_SBVRGeogen.m_vSliceTrianglesY.empty()) {
@@ -582,13 +592,14 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
       const float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.y;
       const unsigned iCurrentTexID = static_cast<unsigned>(depth*(pGLVolume->GetSizeY()));
+      if (i == 0) iLastTexID = iCurrentTexID;
       if(static_cast<int>(iCurrentTexID) != iLastTexID) {
         // we finished a slice.  copy the current geom over ...
         slice_geom g;
         slices.push_back(g);
         // note that move_slice will clear geom.texcoords/tris, too!
         move_slice(slices[slc_idx], geom);
-        slices[slc_idx++].texid = iCurrentTexID;
+        slices[slc_idx++].texid = iLastTexID;
         // .. and move on to the next slice.
         iLastTexID = iCurrentTexID;
       }
@@ -601,6 +612,11 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
       geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.y);
       geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vPos.z);
     }
+    // copy the last geom over
+    slice_geom g;
+    slices.push_back(g);
+    move_slice(slices[slc_idx], geom);
+    slices[slc_idx++].texid = iLastTexID;
     submit_vert_arrays(pGLVolume, slices, 1);
   }
   if (!m_SBVRGeogen.m_vSliceTrianglesZ.empty()) {
@@ -619,13 +635,14 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
       const float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.z;
       const unsigned iCurrentTexID = static_cast<unsigned>(depth*(pGLVolume->GetSizeZ()));
+      if (i == 0) iLastTexID = iCurrentTexID;
       if(static_cast<int>(iCurrentTexID) != iLastTexID) {
         // we finished a slice.  copy the current geom over ...
         slice_geom g;
         slices.push_back(g);
         // note that move_slice will clear geom.texcoords/tris, too!
         move_slice(slices[slc_idx], geom);
-        slices[slc_idx++].texid = iCurrentTexID;
+        slices[slc_idx++].texid = iLastTexID;
         // .. and move on to the next slice.
         iLastTexID = iCurrentTexID;
       }
@@ -638,6 +655,12 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
       geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.y);
       geom.tris.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vPos.z);
     }
+    // copy the last geom over
+    slice_geom g;
+    slices.push_back(g);
+    move_slice(slices[slc_idx], geom);
+    slices[slc_idx++].texid = iLastTexID;
+
     submit_vert_arrays(pGLVolume, slices, 2);
   }
 }
