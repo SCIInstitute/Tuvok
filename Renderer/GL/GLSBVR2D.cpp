@@ -81,7 +81,7 @@ void GLSBVR2D::BindVolumeStringsToTexUnit(GLSLProgram* program, bool bGradients)
   } else {
     program->ConnectTextureID("texSlice0",0);
     program->ConnectTextureID("texSlice1",2);
-    if (bGradients) program->ConnectTextureID("texSlicem1",3);
+    if (bGradients) program->ConnectTextureID("texSlice2",3);
   }
 }
 
@@ -493,9 +493,9 @@ static void submit_vert_arrays(const GLVolume2DTex* vol,
       // skip empty arrays.
       if(slice->texcoords.empty() || slice->tris.empty()) { continue; }
 
-      vol->Bind(3, static_cast<int>(slice->texid)-1, static_cast<int>(dimension));
       vol->Bind(0, static_cast<int>(slice->texid)+0, static_cast<int>(dimension));
       vol->Bind(2, static_cast<int>(slice->texid)+1, static_cast<int>(dimension));
+      vol->Bind(3, static_cast<int>(slice->texid)+2, static_cast<int>(dimension));
       glTexCoordPointer(3, GL_FLOAT, 0, &(slice->texcoords[0]));
       glVertexPointer(3, GL_FLOAT, 0, &(slice->tris[0]));
       glDrawArrays(GL_TRIANGLES, 0,
@@ -539,7 +539,9 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     // all our allocations up front.
     geom.texcoords.reserve(2048); geom.tris.reserve(2048);
     for(size_t i=0; i < m_SBVRGeogen.m_vSliceTrianglesX.size(); ++i) {
-      const float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.x;
+      const float depth = m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.x -
+                          0.5f/pGLVolume->GetSizeX(); // compensate for OpenGL sampling at the texel center
+
       const unsigned iCurrentTexID = static_cast<unsigned>(depth*(pGLVolume->GetSizeX()));
 
       if (i == 0) iLastTexID = iCurrentTexID;
@@ -553,7 +555,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
         // .. and move on to the next slice.
         iLastTexID = iCurrentTexID;
       }
-      const float fraction = depth*(pGLVolume->GetSizeX()-1) - iCurrentTexID;
+      const float fraction = depth*(pGLVolume->GetSizeX()) - iCurrentTexID;
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.z);
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesX[i].m_vVertexData.y);
       geom.texcoords.push_back(fraction);
@@ -590,7 +592,9 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     slice_geom geom;
     geom.texcoords.reserve(2048); geom.tris.reserve(2048);
     for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesY.size();i++) {
-      const float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.y;
+      const float depth = m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.y -
+                          0.5f/pGLVolume->GetSizeY(); // compensate for OpenGL sampling at the texel center
+
       const unsigned iCurrentTexID = static_cast<unsigned>(depth*(pGLVolume->GetSizeY()));
       if (i == 0) iLastTexID = iCurrentTexID;
       if(static_cast<int>(iCurrentTexID) != iLastTexID) {
@@ -604,7 +608,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
         iLastTexID = iCurrentTexID;
       }
       
-      const float fraction = depth*(pGLVolume->GetSizeY()-1) - iCurrentTexID;
+      const float fraction = depth*(pGLVolume->GetSizeY()) - iCurrentTexID;
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.x);
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesY[i].m_vVertexData.z);
       geom.texcoords.push_back(fraction);
@@ -633,7 +637,8 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     slice_geom geom;
     geom.texcoords.reserve(2048); geom.tris.reserve(2048);
     for (size_t i = 0;i<m_SBVRGeogen.m_vSliceTrianglesZ.size();i++) {
-      const float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.z;
+      const float depth = m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.z -
+                          0.5f/pGLVolume->GetSizeZ(); // compensate for OpenGL sampling at the texel center
       const unsigned iCurrentTexID = static_cast<unsigned>(depth*(pGLVolume->GetSizeZ()));
       if (i == 0) iLastTexID = iCurrentTexID;
       if(static_cast<int>(iCurrentTexID) != iLastTexID) {
@@ -647,7 +652,7 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
         iLastTexID = iCurrentTexID;
       }
 
-      const float fraction = depth*(pGLVolume->GetSizeZ()-1) - iCurrentTexID;
+      const float fraction = depth*(pGLVolume->GetSizeZ()) - iCurrentTexID;
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.x);
       geom.texcoords.push_back(m_SBVRGeogen.m_vSliceTrianglesZ[i].m_vVertexData.y);
       geom.texcoords.push_back(fraction);
