@@ -60,7 +60,8 @@ void main(void)
 
   /// apply 2D transfer function
   vec4  vTransVal = texture2D(texTrans, vec2(fVolumVal*fTransScale, 1.0-fGradientMag*fGradientScale));
-
+  vTransVal.rgb *= vTransVal.a;
+  vTransVal.a = 1.0;
   /// write result to fragment color
-  gl_FragColor    = vec4(vTransVal.r,vTransVal.g,vTransVal.b,1);
+  gl_FragColor    = vTransVal;
 }
