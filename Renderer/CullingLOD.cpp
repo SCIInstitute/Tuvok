@@ -130,9 +130,8 @@ void CullingLOD::Update()
 int CullingLOD::GetLODLevel(const FLOATVECTOR3& vfCenter,
                             const FLOATVECTOR3& vfExtent,
                             const UINTVECTOR3& viVoxelCount) const {
-  FLOATVECTOR3 vHalfExtent = 0.5f * vfExtent;
   float fLevelZeroWorldSpaceError =
-    (vfExtent/FLOATVECTOR3(viVoxelCount)).minVal();
+    (vfExtent/FLOATVECTOR3(viVoxelCount)).maxVal();
 
   float zCenter = (FLOATVECTOR4(vfCenter,1) * m_mModelViewMatrix).z;
   float zMinBrick = -zCenter;
