@@ -550,7 +550,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     info.m_fvfAspect.z = float(atof(value.c_str()));
                     #ifdef DEBUG_DICOM
                     {
-                        stringstream ss;
+                      stringstream ss;
                       ss << info.m_fvfAspect.z << " (Slice Thinkness: recognized and stored)";
                       value = ss.str();
                     }
@@ -562,8 +562,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     fSliceSpacing = float(atof(value.c_str()));
                     #ifdef DEBUG_DICOM
                     {
-                        stringstream ss;
-                      ss << info.m_fvfAspect.z << " (Slice Spacing: recognized and stored)";
+                      stringstream ss;
+                      ss << fSliceSpacing << " (Slice Spacing: recognized)";
                       value = ss.str();
                     }
                     #endif
@@ -612,7 +612,10 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     #ifdef DEBUG_DICOM
                     {
                         stringstream ss;
-                      ss << info.m_fvfAspect.x << ", " << info.m_fvfAspect.y << " (x,y,z Patient Position: recognized and stored)";
+                      ss << info.m_fvPatientPosition.x << ", " <<
+                            info.m_fvPatientPosition.y << ", " <<
+                            info.m_fvPatientPosition.z <<
+                            " (x,y,z Patient Position: recognized and stored)";
                       value = ss.str();
                     }
                     #endif
