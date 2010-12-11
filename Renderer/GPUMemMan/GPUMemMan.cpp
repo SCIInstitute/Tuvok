@@ -987,6 +987,11 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
                                    wrapmode, width, height, intformat,
                                    iSizePerElement, bHaveDepth, iNumBuffers);
 
+  if(!e->pFBOTex->Valid()) {
+    T_ERROR("FBO creation failed!");
+    return NULL;
+  }
+
   // clear the buffer, on some GPUs new FBOs are not zeroed out
   e->pFBOTex->Write();
   glClearColor(0,0,0,0);
