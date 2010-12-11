@@ -833,8 +833,17 @@ static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
   // Get the position for the uniform var.
   location = gl::GetUniformLocation(program, name);
   GLenum gl_err = glGetError();
-  if(gl_err != GL_NO_ERROR || location == -1) {
+  if(gl_err != GL_NO_ERROR) {
     throw GL_ERROR(gl_err);
+  }
+
+  if(location == -1) {
+    throw GL_ERROR(0);
+  }
+
+  // fix for Intel integrated GL driver
+  if(location >= 65535) {
+   location /= 65535;
   }
 
   if (GLSLProgram::m_bGLUseARB) {
