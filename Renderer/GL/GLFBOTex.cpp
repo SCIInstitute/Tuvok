@@ -115,6 +115,8 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
       GL(glDeleteTextures(m_iNumBuffers,m_hTexture));
       delete[] m_hTexture;
       m_hTexture=NULL;
+      GL(glDeleteFramebuffersEXT(1,&m_hFBO));
+      m_hFBO=0;
       return;
     }
   }
@@ -257,12 +259,10 @@ bool GLFBOTex::CheckFBO(const char* method) {
 void GLFBOTex::Write(unsigned int iTargetBuffer, int iBuffer, bool bCheckBuffer) {
   GLenum target = GL_COLOR_ATTACHMENT0_EXT + iTargetBuffer;
 
-#ifdef _DEBUG
   if (!m_hFBO) {
     T_ERROR("FBO not initialized!");
     return;
   }
-#endif
 
   GL(glBindFramebufferEXT(GL_FRAMEBUFFER_EXT,m_hFBO));
   assert(iBuffer>=0);

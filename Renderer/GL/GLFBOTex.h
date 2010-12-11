@@ -65,6 +65,7 @@ public:
   static UINT64 EstimateCPUSize(GLsizei width, GLsizei height, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1) {return iNumBuffers*width*height*iSizePerElement + ((bHaveDepth) ? width*height*4 : 0);}
   static UINT64 EstimateGPUSize(GLsizei width, GLsizei height, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1) {return EstimateCPUSize(width, height, iSizePerElement, bHaveDepth, iNumBuffers);}
 
+  bool Valid() const { return m_hFBO != 0; }
 
   static void NoDrawBuffer();
   static void OneDrawBuffer();
@@ -95,5 +96,5 @@ private:
   void                initFBO(void);
   void                initTextures(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat);
 };
-};
+} // tuvok namespace
 #endif  // TUVOK_GLFBOTEX_H_
