@@ -107,18 +107,13 @@ GLFBOTex::GLFBOTex(MasterController* pMasterController, GLenum minfilter,
   }
 
   while(glGetError() != GL_NO_ERROR) { ; } // clear error state.
-  initTextures(minfilter,magfilter,wrapmode,width,height,intformat);
+  if (!initTextures(minfilter,magfilter,wrapmode,width,height,intformat)) 
   {
-    GLenum glerr = glGetError();
-    if(GL_NO_ERROR != glerr) {
-      T_ERROR("Error '%d' during texture creation!", static_cast<int>(glerr));
+      T_ERROR("GL Error during texture creation!");
       GL(glDeleteTextures(m_iNumBuffers,m_hTexture));
       delete[] m_hTexture;
       m_hTexture=NULL;
-      GL(glDeleteFramebuffersEXT(1,&m_hFBO));
-      m_hFBO=0;
       return;
-    }
   }
   if (bHaveDepth) {
 #ifdef GLFBOTEX_DEPTH_RENDERBUFFER
@@ -178,21 +173,22 @@ GLFBOTex::~GLFBOTex(void) {
 /**
  * Build a dummy texture according to the parameters.
  */
-void GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
+bool GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
                             GLenum wrapmode, GLsizei width, GLsizei height,
                             GLenum intformat) {
-  // Don't wrap these with `GL()'!  The caller is expected to query the GL
-  // error state to see if this worked.
-  MESSAGE("Initializing 2D texture of dimensions: %ux%u",
-          static_cast<unsigned>(width), static_cast<unsigned>(height));
-  glDeleteTextures(m_iNumBuffers,m_hTexture);
-  glGenTextures(m_iNumBuffers,m_hTexture);
+  MESSAGE("Initializing %u 2D texture(s) of size %ux%u (MinFilter=%#x MinFilter=%#x WrapMode=%#x, IntFormat=%#x)",
+          static_cast<unsigned>(m_iNumBuffers),
+          static_cast<unsigned>(width), static_cast<unsigned>(height),
+	  static_cast<unsigned>(minfilter), static_cast<unsigned>(magfilter),
+          static_cast<unsigned>(wrapmode), static_cast<unsigned>(intformat));
+  //glDeleteTextures(m_iNumBufers,m_hTexture);
+  GL(glGenTextures(m_iNumBuffers,m_hTexture));
   for (int i=0; i<m_iNumBuffers; i++) {
-    glBindTexture(GL_TEXTURE_2D, m_hTexture[i]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minfilter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapmode);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapmode);
+    GL_RET(glBindTexture(GL_TEXTURE_2D, m_hTexture[i]));
+    GL_RET(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minfilter));
+    GL_RET(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magfilter));
+    GL_RET(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapmode));
+    GL_RET(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapmode));
     int level=0;
     switch (minfilter) {
       case GL_NEAREST_MIPMAP_NEAREST:
@@ -200,8 +196,8 @@ void GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
       case GL_NEAREST_MIPMAP_LINEAR:
       case GL_LINEAR_MIPMAP_LINEAR:
         do {
-          glTexImage2D(GL_TEXTURE_2D, level, intformat, width, height, 0,
-                       GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+          GL_RET(glTexImage2D(GL_TEXTURE_2D, level, intformat, width, height, 0,
+                       GL_RGBA, GL_UNSIGNED_BYTE, NULL));
           width/=2;
           height/=2;
           if (width==0 && height>0) width=1;
@@ -209,11 +205,13 @@ void GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
           ++level;
         } while (width>=1 && height>=1);
         break;
-      default:
-        glTexImage2D(GL_TEXTURE_2D, 0, intformat, width, height, 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+      default:	
+	GL_RET(glTexImage2D(GL_TEXTURE_2D, 0, intformat, width, height, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+	break;
     }
   }
+  return true;
 }
 
 
