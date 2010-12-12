@@ -69,8 +69,8 @@
     }                                                                  \
     stmt;                                                              \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
-      T_ERROR("GL error calling %s before line %u (%s): %s (%#x)",     \
-              #stmt, __LINE__, __FILE__,                               \
+      T_ERROR("'%s' on line %u (%s) caused GL error: %s (%#x)", #stmt, \
+              __LINE__, __FILE__,                                      \
               gluErrorString(glerr),                                   \
               static_cast<unsigned>(glerr));                           \
       return false;                                                    \
