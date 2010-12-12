@@ -71,6 +71,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="glu32.lib"
 				AdditionalLibraryDirectories="&quot;$(QTDIR32)\lib&quot;"
 			/>
 			<Tool
@@ -139,6 +140,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="glu32.lib"
 				AdditionalLibraryDirectories="&quot;$(QTDIR64)\lib&quot;"
 			/>
 			<Tool
@@ -208,6 +210,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="glu32.lib"
 				AdditionalLibraryDirectories="&quot;$(QTDIR32)\lib&quot;"
 			/>
 			<Tool
@@ -278,6 +281,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="glu32.lib"
 				AdditionalLibraryDirectories="&quot;$(QTDIR64)\lib&quot;"
 			/>
 			<Tool
@@ -345,6 +349,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="glu32.lib"
 				AdditionalLibraryDirectories="&quot;$(QTDIR32)\lib&quot;"
 			/>
 			<Tool
@@ -413,6 +418,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="glu32.lib"
 				AdditionalLibraryDirectories="&quot;$(QTDIR64)\lib&quot;"
 			/>
 			<Tool
@@ -482,6 +488,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="glu32.lib"
 				AdditionalLibraryDirectories="&quot;$(QTDIR32)\lib&quot;"
 			/>
 			<Tool
@@ -552,6 +559,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="glu32.lib"
 				AdditionalLibraryDirectories="&quot;$(QTDIR64)\lib&quot;"
 			/>
 			<Tool
@@ -1769,11 +1777,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
