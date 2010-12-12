@@ -1758,55 +1758,82 @@ void GLRenderer::SetDataDepShaderVars() {
   MESSAGE("Transfer function scaling factor: %5.3f", fScale);
   MESSAGE("Gradient scaling factor: %5.3f", fGradientScale);
 
-  m_pProgramTransMIP->Enable();
+  bool bMipViewActive = false;
+  bool bSliceViewActive = false;
+  bool b3DViewActive = false;
+  for (size_t i=0; i < renderRegions.size(); ++i) {
+    if (renderRegions[i]->is2D()) {
+      bSliceViewActive = true;
+      if (renderRegions[i]->GetUseMIP()) {
+        bMipViewActive = true;
+      } 
+    } else {
+      b3DViewActive = true;
+    }
+  }
+
+
+
   // If we're rendering RGBA data, we don't scale the TFqn... because we
   // don't even use a TFqn.
-  if(!this->RGBAData()) {
+  if(!this->RGBAData() && bMipViewActive) {
+    m_pProgramTransMIP->Enable();
     m_pProgramTransMIP->SetUniformVector("fTransScale",fScale);
   }
+
+
   switch (m_eRenderMode) {
     case RM_1DTRANS: {
       if(!this->RGBAData()) {
+        if (bSliceViewActive) {
+          m_pProgram1DTransSlice->Enable();
+          m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
+
+          m_pProgram1DTransSlice3D->Enable();
+          m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
+        }
+        if (b3DViewActive) {
+          m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
+          m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+        }
+      }
+      break;
+    }
+    case RM_2DTRANS: {
+      if (bSliceViewActive) {
+        m_pProgram2DTransSlice->Enable();
+        m_pProgram2DTransSlice->SetUniformVector("fTransScale",fScale);
+        m_pProgram2DTransSlice->SetUniformVector("fGradientScale",fGradientScale);
+
+        m_pProgram2DTransSlice3D->Enable();
+        m_pProgram2DTransSlice3D->SetUniformVector("fTransScale",fScale);
+        m_pProgram2DTransSlice3D->SetUniformVector("fGradientScale",fGradientScale);
+      }
+      if (b3DViewActive) {
+        m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
+        m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+        m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
+      }
+      break;
+    }
+    case RM_ISOSURFACE: {
+      // as we are rendering the 2 slices with the 1d transferfunction in iso 
+      // mode, we need update that shader, too
+      if (bSliceViewActive) {
         m_pProgram1DTransSlice->Enable();
         m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
 
         m_pProgram1DTransSlice3D->Enable();
         m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
-
-        m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-        m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
       }
-      break;
-    }
-    case RM_2DTRANS: {
-      m_pProgram2DTransSlice->Enable();
-      m_pProgram2DTransSlice->SetUniformVector("fTransScale",fScale);
-      m_pProgram2DTransSlice->SetUniformVector("fGradientScale",fGradientScale);
-
-      m_pProgram2DTransSlice3D->Enable();
-      m_pProgram2DTransSlice3D->SetUniformVector("fTransScale",fScale);
-      m_pProgram2DTransSlice3D->SetUniformVector("fGradientScale",fGradientScale);
-
-      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
-      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
-      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
-      break;
-    }
-    case RM_ISOSURFACE: {
-      // as we are rendering the 2 slices with the 1d transferfunction
-      // in iso mode update that shader also
-      m_pProgram1DTransSlice->Enable();
-      m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
-
-      m_pProgram1DTransSlice3D->Enable();
-      m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
-
-      GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ?
+      if (b3DViewActive) {
+        GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ?
         m_pProgramIso : m_pProgramColor;
 
-      shader->Enable();
-      shader->SetUniformVector("fIsoval", static_cast<float>
-                                          (this->GetNormalizedIsovalue()));
+        shader->Enable();
+        shader->SetUniformVector("fIsoval", static_cast<float>
+                                            (this->GetNormalizedIsovalue()));
+      }
       break;
     }
     case RM_INVALID: T_ERROR("Invalid rendermode set"); break;

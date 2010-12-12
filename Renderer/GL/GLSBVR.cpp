@@ -235,24 +235,26 @@ bool GLSBVR::LoadShaders() {
 void GLSBVR::SetDataDepShaderVars() {
   GLRenderer::SetDataDepShaderVars();
 
-  // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
-  float fScale         = CalculateScaling();
-  float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
-                          1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
-  switch (m_eRenderMode) {
-    case RM_1DTRANS: {
-      m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0]->Enable();
-      m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
-      break;
-    }
-    case RM_2DTRANS: {
-      m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->Enable();
-      m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
-      m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
-      break;
-    }
+  if (m_SBVRGeogen.HasMesh()) {
+    // if m_bDownSampleTo8Bits is enabled the full range from 0..255 -> 0..1 is used
+    float fScale         = CalculateScaling();
+    float fGradientScale = (m_pDataset->MaxGradientMagnitude() == 0) ?
+                            1.0f : 1.0f/m_pDataset->MaxGradientMagnitude();
+    switch (m_eRenderMode) {
+      case RM_1DTRANS: {
+        m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0]->Enable();
+        m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+        break;
+      }
+      case RM_2DTRANS: {
+        m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->Enable();
+        m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+        m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
+        break;
+      }
 
-    default : break; // suppress warnings 
+      default : break; // suppress warnings 
+    }
   }
 
   if (m_eRenderMode == RM_ISOSURFACE && m_bAvoidSeparateCompositing) {
