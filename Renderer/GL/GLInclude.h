@@ -62,10 +62,10 @@
   do {                                                                 \
     GLenum glerr;                                                      \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
-      T_ERROR("GL error before line %u (%s): %s %#x",                  \
+      T_ERROR("GL error before line %u (%s): %s (%#x)",                \
               __LINE__, __FILE__,                                      \
-              static_cast<unsigned>(glerr),                            \
-              gluErrorString(glerr));                                  \
+              gluErrorString(glerr),                                   \
+              static_cast<unsigned>(glerr));                           \
     }                                                                  \
     stmt;                                                              \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
@@ -80,16 +80,17 @@
   do {                                                                 \
     GLenum glerr;                                                      \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
-      T_ERROR("GL error before line %u (%s): %s %#x",                  \
+      T_ERROR("GL error before line %u (%s): %s (%#x)",                \
               __LINE__, __FILE__,                                      \
-              static_cast<unsigned>(glerr),                            \
-              gluErrorString(glerr));                                  \
+              gluErrorString(glerr),                                   \
+              static_cast<unsigned>(glerr));                           \
     }                                                                  \
     stmt;                                                              \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
       T_ERROR("'%s' on line %u (%s) caused GL error: %s (%#x)", #stmt, \
-              __LINE__, __FILE__, static_cast<unsigned>(glerr),        \
-              gluErrorString(glerr));                                  \
+              __LINE__, __FILE__,                                      \
+              gluErrorString(glerr),                                   \
+              static_cast<unsigned>(glerr));                           \
     }                                                                  \
   } while(0)
 #else
