@@ -58,6 +58,22 @@
 
 #include "Controller/Controller.h"
 
+# define GL_RET(stmt)                                                  \
+  do {                                                                 \
+    GLenum glerr;                                                      \
+    while((glerr = glGetError()) != GL_NO_ERROR) {                     \
+      T_ERROR("GL error before line %u (%s): %#x", __LINE__, __FILE__, \
+              static_cast<unsigned>(glerr));                           \
+    }                                                                  \
+    stmt;                                                              \
+    while((glerr = glGetError()) != GL_NO_ERROR) {                     \
+      T_ERROR("'%s' on line %u (%s) caused GL error: %#x", #stmt,      \
+              __LINE__, __FILE__, static_cast<unsigned>(glerr));       \
+      return false;                                                    \
+    }                                                                  \
+  } while(0)
+
+
 #ifdef _DEBUG
 # define GL(stmt)                                                      \
   do {                                                                 \
