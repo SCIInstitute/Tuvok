@@ -94,7 +94,7 @@ private:
 
   bool                CheckFBO(const char* method);
   void                initFBO(void);
-  void                initTextures(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat);
+  bool                initTextures(GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat);
 };
 } // tuvok namespace
 #endif  // TUVOK_GLFBOTEX_H_
