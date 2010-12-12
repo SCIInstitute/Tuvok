@@ -843,9 +843,13 @@ static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
 
   // fix for Intel integrated GL driver
   if(location >= 65535) {
-    WARNING("Abormal location ID (%i) found, assuming this is the broken"
-            " Intel driver and acting accordingly.");
+    WARNING("Abnormal location ID (%i) for uniform %s "
+            "found! Assuming this is the broken Intel "
+            "driver and acting accordingly (%i -> %i).",
+            location, name, location, location/65535);
     location /= 65535;
+  } else {
+    MESSAGE("Located uniform %s", name);
   }
 
   if (GLSLProgram::m_bGLUseARB) {
