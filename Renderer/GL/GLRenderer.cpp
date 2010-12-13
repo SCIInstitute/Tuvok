@@ -497,12 +497,12 @@ bool GLRenderer::Paint() {
   // onto the screen.  This makes resizing more responsive.  We'll schedule a
   // complete redraw after, no worries.
   if (m_bFirstDrawAfterResize) {
-    m_bFirstDrawAfterResize = false;
-
     CreateOffscreenBuffers();
     CreateDepthStorage();
     StartFrame();
+  }
 
+  if (m_bFirstDrawAfterResize && m_eRendererTarget != RT_HEADLESS) {
     if (m_pFBOResizeQuickBlit) {
       m_pFBO3DImageLast->Write();
       glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
@@ -528,8 +528,6 @@ bool GLRenderer::Paint() {
       m_pFBOResizeQuickBlit = NULL;
     }
   } else {
-    StartFrame();
-
     for (size_t i=0; i < renderRegions.size(); ++i) {
       if (renderRegions[i]->redrawMask) {
         SetRenderTargetArea(*renderRegions[i], this->decreaseScreenResNow);
@@ -577,6 +575,7 @@ bool GLRenderer::Paint() {
     }
   }
   EndFrame(justCompletedRegions);
+  m_bFirstDrawAfterResize = false;
   return true;
 }
 
@@ -957,7 +956,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
   SetDataDepShaderVars();
 
   // if we render a slice view or MIP preview
-  if (!renderRegion.GetUseMIP() || !m_bCaptureMode)  {
+  if (!renderRegion.GetUseMIP() || m_eRendererTarget != RT_CAPTURE)  {
     if (!renderRegion.GetUseMIP()) {
       switch (m_eRenderMode) {
         case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
@@ -2708,7 +2707,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
   fMsecPassed = 0;
 
   while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame &&
-         fMsecPassed < m_iTimeSliceMSecs) {
+         (m_eRendererTarget == RT_HEADLESS || fMsecPassed < m_iTimeSliceMSecs)) {
     MESSAGE("  Brick %u of %u",
             static_cast<unsigned>(m_iBricksRenderedInThisSubFrame+1),
             static_cast<unsigned>(m_vCurrentBrickList.size()));
@@ -2751,7 +2750,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
     // count the bricks rendered
     m_iBricksRenderedInThisSubFrame++;
 
-    if (!m_bCaptureMode) {
+    if (m_eRendererTarget != RT_CAPTURE) {
 #ifdef DETECTED_OS_APPLE
       // really (hopefully) force a pipleine flush
       unsigned char dummy[4];

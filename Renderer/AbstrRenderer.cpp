@@ -96,7 +96,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bConsiderPreviousDepthbuffer(true),
   m_iCurrentLOD(0),
   m_iBricksRenderedInThisSubFrame(0),
-  m_bCaptureMode(false),
+  m_eRendererTarget(RT_INTERACTIVE),
   m_bMIPLOD(true),
   m_fMIPRotationAngle(0.0f),
   m_bOrthoView(false),
@@ -354,7 +354,7 @@ bool AbstrRenderer::CheckForRedraw() {
     if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame ||
         m_iCurrentLODOffset > m_iMinLODForCurrentView ||
         this->doAnotherRedrawDueToAllMeans) {
-      if (m_iCheckCounter == 0 || m_bCaptureMode) {
+      if (m_iCheckCounter == 0 || m_eRendererTarget != RT_INTERACTIVE) {
         MESSAGE("Still drawing...");
         return true;
       } else {
@@ -558,7 +558,7 @@ void AbstrRenderer::RestartTimers() {
 }
 
 void AbstrRenderer::ComputeMaxLODForCurrentView() {
-  if (!m_bCaptureMode && this->msecPassed[0]>=0.0f) {
+  if (m_eRendererTarget != RT_CAPTURE && this->msecPassed[0]>=0.0f) {
     // if rendering is too slow use a lower resolution during interaction
     if (this->msecPassed[0] > m_fMaxMSPerFrame) {
       // wait for 3 frames before switching to lower lod (3 here is
@@ -651,10 +651,10 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
 
     m_iStartLODOffset = std::max(m_iMinLODForCurrentView,
                                  m_iMaxLODIndex - m_iPerformanceBasedLODSkip);
-  } else if (m_bCaptureMode){
+  } else if (m_eRendererTarget != RT_INTERACTIVE){
     m_iStartLODOffset = m_iMinLODForCurrentView;
   } else {
-    // This is our very first render, let's take it easy.
+    // This is our very first frame, let's take it easy.
     m_iStartLODOffset = m_iMaxLODIndex;
   }
 
@@ -1097,7 +1097,7 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
     }
 
     if (bBuildNewList) {
-      if(m_bCaptureMode) {
+      if(m_eRendererTarget == RT_CAPTURE) {
         m_iCurrentLOD = 0;
       } else {
         m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,

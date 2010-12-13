@@ -109,6 +109,13 @@ inline bool operator < (const Brick& left, const Brick& right) {
 class AbstrRenderer {
   public:
 
+    enum ERendererTarget {
+      RT_INTERACTIVE = 0,
+      RT_CAPTURE,
+      RT_HEADLESS,
+      RT_INVALID_MODE
+    };
+
     enum ERendererType {
       RT_SBVR = 0,
       RT_RC,
@@ -357,7 +364,12 @@ class AbstrRenderer {
       return m_pDataset->GetRescaleFactors();
     }
 
-    void SetCaptureMode(bool bCaptureMode) {m_bCaptureMode = bCaptureMode;}
+    void SetRendererTarget(ERendererTarget eRendererTarget) {
+      m_eRendererTarget = eRendererTarget;
+    }
+    ERendererTarget GetRendererTarget() const {
+      return m_eRendererTarget;
+    }
     void SetMIPLOD(bool bMIPLOD) {m_bMIPLOD = bMIPLOD;}
 
     virtual void  SetStereo(bool bStereoRendering);
@@ -554,7 +566,7 @@ class AbstrRenderer {
     UINT64              m_iBricksRenderedInThisSubFrame;
     std::vector<Brick>  m_vCurrentBrickList;
     std::vector<Brick>  m_vLeftEyeBrickList;
-    bool                m_bCaptureMode;
+    ERendererTarget     m_eRendererTarget;
     bool                m_bMIPLOD;
     float               m_fMIPRotationAngle;
     FLOATMATRIX4        m_maMIPRotation;
