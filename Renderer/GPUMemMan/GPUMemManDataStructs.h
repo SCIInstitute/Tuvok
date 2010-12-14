@@ -47,7 +47,7 @@
 #include <deque>
 #include <string>
 #include <vector>
-#include "GL/glew.h"
+#include "3rdParty/GLEW/GL/glew.h"
 #include "boost/noncopyable.hpp"
 #include "Basics/Vectors.h"
 #include "IO/Brick.h"

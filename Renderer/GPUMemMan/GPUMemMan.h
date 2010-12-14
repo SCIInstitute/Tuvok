@@ -41,7 +41,7 @@
 #include <deque>
 #include <utility>
 #include "../../StdTuvokDefines.h"
-#include "GL/glew.h"
+#include "3rdParty/GLEW/GL/glew.h"
 #include "Basics/Vectors.h"
 #include "GPUMemManDataStructs.h"
 

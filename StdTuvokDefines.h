@@ -38,6 +38,11 @@
 #ifndef STDTUVOKDEFINES_H
 #define STDTUVOKDEFINES_H
 
+// To compile Tuvok without the Qt dependency
+// enable the following macro. Be aware that 
+// for use in ImageVis3D Qt in Tuvok is required
+// #define TUVOK_NO_QT 1
+
 #include "Basics/StdDefines.h"
 
 // Make sure windows doesn't give us stupid macros.

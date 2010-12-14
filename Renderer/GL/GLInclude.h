@@ -40,11 +40,11 @@
 #define TUVOK_GLINCLUDE_H
 
 #include "../../StdTuvokDefines.h"
-#include <GL/glew.h>
+#include "3rdParty/GLEW/GL/glew.h"
 
 #ifdef WIN32
   #define NOMINMAX
-  #include <GL/wglew.h>
+  #include "3rdParty/GLEW/GL/wglew.h"
   #include <windows.h>
   // undef stupid windows defines to max and min
   #ifdef max
