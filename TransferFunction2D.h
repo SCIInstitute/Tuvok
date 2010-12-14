@@ -40,9 +40,12 @@
 #ifndef TRANSFERFUNCTION2D
 #define TRANSFERFUNCTION2D
 
+#include "StdTuvokDefines.h"
+
 #include <fstream>
 #include <string>
 #include <vector>
+
 /// @todo FIXME remove this dependency:
 #ifdef TUVOK_NO_QT
 typedef void* QImage;
@@ -51,7 +54,7 @@ typedef void* QPainter;
 # include <QtGui/QImage>
 # include <QtGui/QPainter>
 #endif
-#include "StdTuvokDefines.h"
+
 #include "Basics/Vectors.h"
 #include "Basics/Grids.h"
 

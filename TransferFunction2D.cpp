@@ -37,7 +37,6 @@
 
 #include <memory.h>
 #include "TransferFunction2D.h"
-
 #include "Controller/Controller.h"
 
 using namespace std;
