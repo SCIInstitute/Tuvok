@@ -97,11 +97,9 @@ int main(int argc, char *argv[])
     );
     ren->LoadDataset(uvf_file);
     ren->AddShaderPath("../../Shaders");
-    ren->Resize(UINTVECTOR2(300,300));
+    ren->Resize(UINTVECTOR2(640,480));
     ren->Initialize();
-    ren->SetTimeSlice(9000000);
-    ren->Paint();
-    ren->Paint();
+    ren->SetRendererTarget(AbstrRenderer::RT_HEADLESS);
     ren->Paint();
 
     GLRenderer* glren = dynamic_cast<GLRenderer*>(ren);
