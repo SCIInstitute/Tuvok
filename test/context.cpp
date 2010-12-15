@@ -107,7 +107,7 @@ TvkContext* TvkContext::Create(uint32_t width, uint32_t height,
 #ifdef DETECTED_OS_LINUX
 static struct xinfo x_connect(uint32_t, uint32_t, bool);
 static XVisualInfo* find_visual(Display*, bool);
-static void glx_init(Display*, XVisualInfo*, Window, GLXContext&);
+static void glx_init(Display*, XVisualInfo*, GLXContext&);
 
 TvkGLXContext::TvkGLXContext(uint32_t w, uint32_t h, uint8_t,
                              uint8_t, uint8_t,
@@ -119,7 +119,9 @@ TvkGLXContext::TvkGLXContext(uint32_t w, uint32_t h, uint8_t,
   WARNING("Ignoring color, depth, stencil bits.  For many applications, it "
           "is better to let the GLX library choose the \"best\" visual.");
   this->xi = x_connect(w, h, double_buffer);
-  glx_init(xi.display, xi.visual, xi.win, xi.ctx);
+  glx_init(xi.display, xi.visual, xi.ctx);
+  this->makeCurrent();
+  MESSAGE("Current context: %p", glXGetCurrentContext());
 }
 
 TvkGLXContext::~TvkGLXContext()
@@ -187,7 +189,7 @@ x_connect(uint32_t width, uint32_t height, bool dbl_buffer)
 }
 
 static void
-glx_init(Display *disp, XVisualInfo *visual, Window win, GLXContext& ctx)
+glx_init(Display *disp, XVisualInfo *visual, GLXContext& ctx)
 {
   if(!glXQueryExtension(disp, NULL, NULL)) {
     T_ERROR("Display does not support glX.");
@@ -197,13 +199,6 @@ glx_init(Display *disp, XVisualInfo *visual, Window win, GLXContext& ctx)
   ctx = glXCreateContext(disp, visual, 0, GL_TRUE);
   if(!ctx) {
     T_ERROR("glX Context creation failed.");
-  }
-
-  if(glXMakeCurrent(disp, win, ctx) == True) {
-    MESSAGE("Make current succeeded: %p", glXGetCurrentContext());
-  } else {
-    T_ERROR("make current FAILED: %p", glXGetCurrentContext());
-    return;
   }
 }
 
