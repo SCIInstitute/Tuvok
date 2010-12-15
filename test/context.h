@@ -36,13 +36,21 @@
 #ifndef TUVOK_TEST_CONTEXT_H
 #define TUVOK_TEST_CONTEXT_H
 
-#include <exception>
 #include "StdTuvokDefines.h"
+#include <exception>
+#include "boost/cstdint.hpp"
 
 class TvkContext {
   public:
     virtual ~TvkContext();
-    static TvkContext* Create();
+    // Virtual coonstructor for appropriate kind of context.
+    static TvkContext* Create(uint32_t width, uint32_t height,
+                              uint8_t color_bits=32, uint8_t depth_bits=24,
+                              uint8_t stencil_bits=8, bool double_buffer=true);
+
+    virtual bool isValid() const=0;
+    virtual bool makeCurrent()=0;
+    virtual bool swapBuffers()=0;
 };
 
 class NoAvailableContext : public std::exception {

@@ -36,6 +36,7 @@
 #include "StdTuvokDefines.h"
 #ifdef DETECTED_OS_WINDOWS
 # include <GL/wgl.h>
+# include <windows.h>
 #elif defined(DETECTED_OS_LINUX)
 # include <GL/glx.h>
 # include <X11/Xlib.h>
@@ -54,44 +55,70 @@ struct xinfo {
   GLXContext ctx;
   Colormap cmap;
 };
-#endif
 
 class TvkGLXContext: public TvkContext {
   public:
-    TvkGLXContext();
+    TvkGLXContext(uint32_t w, uint32_t h, uint8_t color_bits,
+                  uint8_t depth_bits, uint8_t stencil_bits,
+                  bool double_buffer);
     virtual ~TvkGLXContext();
+
+    bool isValid() const;
+    bool makeCurrent();
+    bool swapBuffers();
 
   private:
     struct xinfo xi;
 };
+#endif
 
 class TvkWGLContext: public TvkContext {
   public:
-    TvkWGLContext() {}
+    TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
+                  uint8_t depth_bits, uint8_t stencil_bits,
+                  bool double_buffer);
     virtual ~TvkWGLContext() {}
 
+    bool isValid() const;
+    bool makeCurrent();
+    bool swapBuffers();
+
   private:
+#ifdef DETECTED_OS_WINDOWS
+    HDC deviceContext;
+    HGLRC renderingContext;
+    HWND window;
+#endif
 };
 
-TvkContext* TvkContext::Create() {
+TvkContext* TvkContext::Create(uint32_t width, uint32_t height,
+                               uint8_t color_bits, uint8_t depth_bits,
+                               uint8_t stencil_bits, bool double_buffer)
+{
 #ifdef DETECTED_OS_WINDOWS
-  return new TvkWGLContext();
+  return new TvkWGLContext(width, height, color_bits, depth_bits, stencil_bits,
+                           double_buffer);
 #else
-  return new TvkGLXContext();
+  return new TvkGLXContext(width, height, color_bits, depth_bits, stencil_bits,
+                           double_buffer);
 #endif
 }
 
-#ifdef DETECTED_OS_WINDOWS
-// wgl init helpers..
-#else
-
-static struct xinfo x_connect();
-static XVisualInfo* find_visual(Display*);
+#ifdef DETECTED_OS_LINUX
+static struct xinfo x_connect(uint32_t, uint32_t, bool);
+static XVisualInfo* find_visual(Display*, bool);
 static void glx_init(Display*, XVisualInfo*, Window, GLXContext&);
 
-TvkGLXContext::TvkGLXContext()
+TvkGLXContext::TvkGLXContext(uint32_t w, uint32_t h, uint8_t,
+                             uint8_t, uint8_t,
+                             bool double_buffer)
 {
-  this->xi = x_connect();
+  // if you *really* require a specific value... just hack this class
+  // to your liking.  You probably want to add those parameters to x_connect
+  // and use them there.
+  WARNING("Ignoring color, depth, stencil bits.  For many applications, it "
+          "is better to let the GLX library choose the \"best\" visual.");
+  this->xi = x_connect(w, h, double_buffer);
   glx_init(xi.display, xi.visual, xi.win, xi.ctx);
 }
 
@@ -103,8 +130,29 @@ TvkGLXContext::~TvkGLXContext()
   XCloseDisplay(xi.display);
 }
 
+bool TvkGLXContext::isValid() const
+{
+  return this->xi.display != NULL && this->xi.ctx != NULL;
+}
+
+bool TvkGLXContext::makeCurrent()
+{
+  if(glXMakeCurrent(this->xi.display, this->xi.win, this->xi.ctx) != True) {
+    T_ERROR("Could not make context current!");
+    return false;
+  }
+  return true;
+}
+
+bool TvkGLXContext::swapBuffers()
+{
+  glXSwapBuffers(this->xi.display, this->xi.win);
+  // SwapBuffers generates an X error if it fails.
+  return true;
+}
+
 static struct xinfo
-x_connect()
+x_connect(uint32_t width, uint32_t height, bool dbl_buffer)
 {
   struct xinfo rv;
 
@@ -115,7 +163,7 @@ x_connect()
   }
   XSynchronize(rv.display, True);
 
-  rv.visual = find_visual(rv.display);
+  rv.visual = find_visual(rv.display, dbl_buffer);
 
   Window parent = RootWindow(rv.display, rv.visual->screen);
 
@@ -126,7 +174,8 @@ x_connect()
                                      AllocNone);
   xw_attr.event_mask = StructureNotifyMask | ExposureMask;
 
-  rv.win = XCreateWindow(rv.display, parent, 0,0, 320,240, 0, rv.visual->depth,
+  rv.win = XCreateWindow(rv.display, parent, 0,0, width,height, 0,
+                         rv.visual->depth,
                          InputOutput, rv.visual->visual,
                          CWBackPixel | CWBorderPixel | CWColormap |
                          CWOverrideRedirect | CWEventMask,
@@ -159,11 +208,15 @@ glx_init(Display *disp, XVisualInfo *visual, Window win, GLXContext& ctx)
 }
 
 static XVisualInfo *
-find_visual(Display *d)
+find_visual(Display *d, bool double_buffered)
 {
     XVisualInfo *ret_v;
+    // GLX_USE_GL is basically a no-op, so this provides a convenient
+    // way of specifying double buffering or not.
+    int att_buf = double_buffered ? GLX_DOUBLEBUFFER : GLX_USE_GL;
     int attr[] = {
       GLX_RGBA,
+      att_buf,
       GLX_RED_SIZE,         5,
       GLX_GREEN_SIZE,       6,
       GLX_BLUE_SIZE,        5,
@@ -179,4 +232,7 @@ find_visual(Display *d)
     MESSAGE("ChooseVisual got us %p", (const void*)ret_v);
     return ret_v;
 }
+#endif
+
+#ifdef DETECTED_OS_WINDOWS
 #endif

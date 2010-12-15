@@ -69,7 +69,11 @@ int main(int argc, char *argv[])
   }
 
   try {
-    std::auto_ptr<TvkContext> ctx(TvkContext::Create());
+    std::auto_ptr<TvkContext> ctx(TvkContext::Create(640,480, 32,24,8, true));
+    if(!ctx->isValid() || ctx->makeCurrent() == false) {
+      T_ERROR("Could not utilize context.");
+      return EXIT_FAILURE;
+    }
 
     GLenum err = glewInit();
     if(err != GLEW_OK) {
