@@ -1963,10 +1963,18 @@ IOManager::EvaluateExpression(const char* expr,
   tuvok::expression::Node* tree = parser_tree_root();
 
   // volume iterators
-  std::vector<BrickTable::const_iterator> viters(uvf.size());
+  std::vector<BrickTable::const_iterator> viters;
+#ifdef DETECTED_OS_APPLE
+  viters.reserve(uvf.size());
+  for(size_t i=0; i < uvf.size(); ++i) {
+    viters.push_back(uvf[i]->BricksBegin());
+  }
+#else
+  viters.resize(uvf.size());
   for(size_t i=0; i < viters.size(); ++i) { // initialize
     viters[i] = uvf[i]->BricksBegin();
   }
+#endif
 
   RasterDataBlock* rdb = new RasterDataBlock();
   rdb->SetBlockSemantic(UVFTables::BS_REG_NDIM_GRID);
