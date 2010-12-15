@@ -230,4 +230,174 @@ find_visual(Display *d, bool double_buffered)
 #endif
 
 #ifdef DETECTED_OS_WINDOWS
+
+static void outputLastError() {
+  DWORD lastError = GetLastError();
+  LPVOID msgBuffer;
+  FormatMessageW(
+    FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+    FORMAT_MESSAGE_IGNORE_INSERTS,
+    NULL,
+    lastError,
+    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+    (LPTSTR)&msgBuffer,
+    0, NULL
+  );
+  T_ERROR("Win32 error: %s", std::string((LPSTR)msgBuffer));
+  LocalFree(msgBuffer);
+}
+
+TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
+                             uint8_t depth_bits, uint8_t stencil_bits,
+                             bool double_buffer) :
+  deviceContext(NULL),
+  renderingContext(NULL),
+  window(NULL)
+{
+  if(w == 0 || h == 0 ||
+     !(color_bits==8 || color_bits==16 || color_bits==24 || color_bits==32) ||
+     !(depth_bits==8 || depth_bits==16 || depth_bits==24 || depth_bits==32 ||
+       depth_bits==0) ||
+     !(stencil_bits == 0 || stencil_bits == 8)) {
+    T_ERROR("Invalid parameters passed to constructor.");
+    throw NoAvailableContext();
+  }
+
+  window = CreateWindowExW(WS_EX_TOOLWINDOW, L"Static", L"GLContextWindow",
+                WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN ,
+                0, 0, width, height, 0, 0, GetModuleHandle(NULL), 0);
+  if (!window)
+  {
+    outputLastError();
+    return;
+  }
+  ShowWindow(window, SW_HIDE);
+
+  deviceContext = GetDC(window);
+  if(!deviceContext) {
+    // GetDC doesn't SetLastError, but this still works anyway...
+    outputLastError();
+    DestroyWindow(window);
+    throw NoAvailableContext();
+  }
+
+  PIXELFORMATDESCRIPTOR pfd;
+  pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+  pfd.nVersion = 1;
+  pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_TYPE_RGBA;
+  if (useDoubleBuffer) pfd.dwFlags |= PFD_DOUBLEBUFFER;
+  pfd.iPixelType = PFD_TYPE_RGBA;
+  pfd.cColorBits = colorBits;
+  pfd.cRedBits = 0;
+  pfd.cRedShift = 0;
+  pfd.cGreenBits = 0;
+  pfd.cGreenShift = 0;
+  pfd.cBlueBits = 0;
+  pfd.cBlueShift = 0;
+  pfd.cAlphaBits = 0;
+  pfd.cAlphaShift = 0;
+  pfd.cAccumBits = 0;
+  pfd.cAccumRedBits = 0;
+  pfd.cAccumGreenBits = 0;
+  pfd.cAccumBlueBits = 0;
+  pfd.cAccumAlphaBits = 0;
+  pfd.cDepthBits = depthBits;
+  pfd.cStencilBits = stencilBits;
+  pfd.cAuxBuffers = 0;
+  pfd.iLayerType = PFD_MAIN_PLANE;
+  pfd.bReserved = 0;
+  pfd.dwLayerMask = 0;
+  pfd.dwVisibleMask = 0;
+  pfd.dwDamageMask = 0;
+
+  int pixelFormat = ChoosePixelFormat(deviceContext, &pfd);
+
+  if (!pixelFormat)
+  {
+    outputLastError();
+    ReleaseDC(window, deviceContext);
+    DestroyWindow(window);
+    throw NoAvailableContext();
+  }
+
+  PIXELFORMATDESCRIPTOR pfdResult;
+  DescribePixelFormat(deviceContext, pixelFormat,
+                      sizeof(PIXELFORMATDESCRIPTOR), &pfdResult);
+
+  if (!(pfdResult.dwFlags & PFD_SUPPORT_OPENGL))
+  {
+    T_ERROR("No OpenGL support.");
+    ReleaseDC(window, deviceContext);
+    DestroyWindow(window);
+    throw NoAvailableContext();
+  }
+
+  if (useDoubleBuffer && !(pfdResult.dwFlags & PFD_DOUBLEBUFFER)) {
+    WARNING("No double buffer support!");
+  }
+
+  std::ostringstream ss;
+  if (pfdResult.cColorBits != colorBits) {
+    ss << "Color bits requested: " << colorBits << ", actual color bits: "
+       << pfdResult.cColorBits << "\n";
+  }
+  if (pfdResult.cDepthBits != depthBits) {
+    ss << "Depth bits requested " << depthBits << ", actual depth bits: "
+       << pfdResult.cDepthBits << "\n";
+  }
+  if (pfdResult.cStencilBits != stencilBits) {
+    ss << "Stencil bits requested " << stencilBits << ", actual stencil bits:"
+       << pfdResult.cStencilBits << "\n";
+  }
+  MESSAGE("%s", ss.str().c_str());
+
+  if (!SetPixelFormat(deviceContext, pixelFormat, &pfd)) {
+    outputLastError();
+    ReleaseDC(window, deviceContext);
+    DestroyWindow(window);
+    throw NoAvailableContext();
+  }
+
+  renderingContext = wglCreateContext(deviceContext);
+
+  if (!renderingContext) {
+    outputLastError();
+    ReleaseDC(window, deviceContext);
+    DestroyWindow(window);
+    throw NoAvailableContext();
+  }
+}
+
+TvkWGLContext::~TvkWGLContext()
+{
+  wglDeleteContext(renderingContext);
+  ReleaseDC(window, deviceContext);
+  DestroyWindow(window);
+}
+
+bool TvkWGLContext::isValid() const
+{
+  // Object would not be created otherwise (throw in constructor)
+  return true;
+}
+
+bool TvkWGLContext::makeCurrent()
+{
+  if(!wglMakeCurrent(deviceContext, renderingContext)) {
+    outputLastError();
+    return false;
+  }
+  return true;
+}
+
+bool TvkWGLContext::swapBuffers()
+{
+  if(!isValid()) { return false; }
+
+  if(!wglSwapBuffers(deviceContext, WGL_SWAP_MAIN_PLANE)) {
+    outputLastError();
+    return false;
+  }
+  return true;
+}
 #endif
