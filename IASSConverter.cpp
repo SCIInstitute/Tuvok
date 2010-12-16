@@ -37,7 +37,9 @@
 #include <fstream>
 #include <sstream>
 #include "boost/cstdint.hpp"
-#include "3rdParty/zlib/zlib.h"
+#ifndef TUVOK_NO_ZLIB
+# include "3rdParty/zlib/zlib.h"
+#endif
 #include "IASSConverter.h"
 #include <Basics/EndianConvert.h>
 #include <Controller/Controller.h>
@@ -256,6 +258,10 @@ IASSConverter::CanRead(const std::string& fn,
 bool
 IASSConverter::IsZipped(const std::string& strFile)
 {
+#ifdef TUVOK_NO_ZLIB
+  T_ERROR("No zlib support!  Faking this...");
+  return false;
+#else
   gzFile file = gzopen(strFile.c_str(), "rb");
   if (file==0)
     return false;
@@ -263,6 +269,7 @@ IASSConverter::IsZipped(const std::string& strFile)
   int rt = gzdirect(file);
   gzclose(file);
   return rt == 1 ? false : true;
+#endif
 }
 
 IASSConverter::stHeader::stHeader()
