@@ -97,8 +97,8 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   KeyValPair* kvp = parser.GetData("TYPE");
-  if (kvp == NULL) {
-    T_ERROR("Could not find token \"type\" in file %s", strSourceFilename.c_str());
+  if (kvp == NULL || kvp->strValue == ";") {
+    T_ERROR("Could not find valid token \"type\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->strValueUpper != "RASTER;")  {
@@ -109,16 +109,16 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   int iDim;
   kvp = parser.GetData("RANK");
-  if (kvp == NULL) {
-    T_ERROR("Could not find token \"rank\" in file %s", strSourceFilename.c_str());
+  if (kvp == NULL || kvp->strValue == ";") {
+    T_ERROR("Could not find valid token \"rank\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     iDim = kvp->iValue;
   }
 
   kvp = parser.GetData("BANDS");
-  if (kvp == NULL) {
-    T_ERROR("Could not find token \"bands\" in file %s", strSourceFilename.c_str());
+  if (kvp == NULL || kvp->strValue == ";") {
+    T_ERROR("Could not find valid token \"bands\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->iValue != 1)  {
@@ -128,8 +128,8 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   kvp = parser.GetData("FORMAT");
-  if (kvp == NULL) {
-    T_ERROR("Could not find token \"format\" in file %s", strSourceFilename.c_str());
+  if (kvp == NULL || kvp->strValue == ";") {
+    T_ERROR("Could not find valid token \"format\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     if (kvp->strValueUpper != "SLICE;")  {
@@ -139,16 +139,16 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   kvp = parser.GetData("BITS");
-  if (kvp == NULL) {
-    T_ERROR("Could not find token \"bands\" in file %s", strSourceFilename.c_str());
+  if (kvp == NULL || kvp->strValue == ";") {
+    T_ERROR("Could not find valid token \"bands\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     iComponentSize = kvp->iValue;
   }
 
   kvp = parser.GetData("SIZE");
-  if (kvp == NULL) {
-    T_ERROR("Could not find token \"size\" in file %s", strSourceFilename.c_str());
+  if (kvp == NULL || kvp->strValue == ";") {
+    T_ERROR("Could not find valid token \"size\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     vVolumeSize[0] = kvp->viValue[0];
@@ -160,8 +160,8 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   kvp = parser.GetData("SPACING");
-  if (kvp == NULL) {
-    T_ERROR("Could not find token \"size\" in file %s", strSourceFilename.c_str());
+  if (kvp == NULL || kvp->strValue == ";") {
+    T_ERROR("Could not find valid token \"size\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
     vVolumeAspect[0] = kvp->vfValue[0];
@@ -170,7 +170,7 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   kvp = parser.GetData("TITLE");
-  if (kvp == NULL) {
+  if (kvp == NULL || kvp->strValue == ";") {
     strTitle = "VFF data";
   } else {
     strTitle = kvp->strValue;
