@@ -126,6 +126,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
     ComputeMetaData(i);
     GetHistograms(i);
   }
+  ComputeRange();
 
   // print out data statistics
   MESSAGE("  %u timesteps found in the UVF.",
@@ -175,6 +176,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
       MESSAGE("%s", stats.str().c_str());*/
     }
   }
+
   return true;
 }
 

@@ -1948,7 +1948,6 @@ IOManager::EvaluateExpression(const char* expr,
         m_dsFactory->Create(*f, 256 /* hack! */, verify)
       )
     ));
-    uvf[uvf.size()-1]->ComputeRange();
   }
   // ensure those UVFs are "equal" in some sense (same number of voxels, etc).
   MergeableDatasets mergeable;
