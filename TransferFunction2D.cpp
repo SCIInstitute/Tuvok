@@ -449,7 +449,7 @@ bool TFPolygon::Load(ifstream& file) {
       file >> pGradientStops[i].second[j];
     }
   }
-  return file == NULL;
+  return file != NULL;
 }
 
 void TFPolygon::Save(ofstream& file) const {
