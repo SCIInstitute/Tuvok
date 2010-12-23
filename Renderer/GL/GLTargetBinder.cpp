@@ -125,7 +125,7 @@ void GLTargetBinder::UnbindInternal() {
     m_vpBoundFBOs[1].pBuffer->FinishWrite(m_vpBoundFBOs[1].iSubBuffer);
     m_vpBoundFBOs[0].pBuffer->FinishWrite(m_vpBoundFBOs[0].iSubBuffer);
   } else
-  if (m_vpBoundFBOs.size() == 3) {
+  if (m_vpBoundFBOs.size() == 4) {
     GLFBOTex::NoDrawBuffer();
     m_vpBoundFBOs[3].pBuffer->FinishWrite(m_vpBoundFBOs[3].iSubBuffer);
     m_vpBoundFBOs[2].pBuffer->FinishWrite(m_vpBoundFBOs[2].iSubBuffer);
