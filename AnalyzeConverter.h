@@ -41,6 +41,10 @@ class AnalyzeConverter : public RAWConverter {
 public:
    AnalyzeConverter();
    virtual ~AnalyzeConverter() {}
+
+   virtual bool CanRead(const std::string& fn,
+                        const std::vector<int8_t>& start) const;
+
    virtual bool ConvertToRAW(const std::string& strSourceFilename,
                              const std::string& strTempDir,
                              bool bNoUserInteraction,
