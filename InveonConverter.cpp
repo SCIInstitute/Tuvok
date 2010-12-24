@@ -286,11 +286,11 @@ bool InveonConverter::CanRead(const std::string&,
     std::tr1::bind(
       std::not_equal_to<int>(),
         std::tr1::bind(isascii, _1),
-        0
+        1
       )
   );
 
-  // first char is a comment, and we couldn't find a character which
-  // wasn't ascii.
-  return start[0] == '#' && notascii == start.end();
+  // first char is nothing/comment, and we couldn't find a character
+  // which wasn't ascii.
+  return (std::isspace(start[0]) || start[0] == '#') && notascii == start.end();
 }
