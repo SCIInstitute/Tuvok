@@ -233,7 +233,8 @@ bool InveonConverter::ConvertToNative(
     return false;
   }
 
-  hdr << "version 001.910\n"
+  hdr << "#\n" // we use this to check if it's an Inveon file
+      << "version 001.910\n"
       << "number_of_dimensions 3\n"
       << "x_dimension " << vVolumeSize[0] << "\n"
       << "y_dimension " << vVolumeSize[1] << "\n"
