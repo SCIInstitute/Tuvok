@@ -238,7 +238,7 @@ bool GLRaycaster::Initialize() {
 
     /// We always clip against the plane in the shader, so initialize the plane
     /// to be way out in left field, ensuring nothing will be clipped.
-    ClipPlaneToShader(ExtendedPlane(PLANE<float>(0,0,1,-100000)),0,true);
+    ClipPlaneToShader(ExtendedPlane::FarawayPlane(),0,true);
   }
 
   return true;
@@ -394,7 +394,7 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
   if (bForce || m_bClipPlaneOn) {
     ExtendedPlane plane(clipPlane);
 
-    plane.Transform(m_mView[iStereoID]);
+    plane.Transform(m_mView[iStereoID], false);
     for (size_t i = 0;i<vCurrentShader.size();i++) {
       vCurrentShader[i]->Enable();
       vCurrentShader[i]->SetUniformVector("vClipPlane", plane.x(), plane.y(),
@@ -692,5 +692,5 @@ void GLRaycaster::DisableClipPlane(RenderRegion* renderRegion) {
   AbstrRenderer::DisableClipPlane(renderRegion);
   /// We always clip against the plane in the shader, so initialize the plane
   /// to be way out in left field, ensuring nothing will be clipped.
-  ClipPlaneToShader(ExtendedPlane(PLANE<float>(0,0,1,-100000)),0,true);
+  ClipPlaneToShader(ExtendedPlane::FarawayPlane(),0,true);
 }
