@@ -39,30 +39,45 @@ const PLANE<float> ExtendedPlane::ms_Plane(0,0,1,0);
 const FLOATVECTOR3 ExtendedPlane::ms_Perpendicular(0,1,0);
 const FLOATVECTOR3 ExtendedPlane::ms_Point(0,0,0);
 
-ExtendedPlane::ExtendedPlane(const PLANE<float>& p,
-                             const FLOATVECTOR3& perp,
-                             const FLOATVECTOR3& pt): m_Plane(p),
-                                                      m_Perpendicular(perp),
-                                                      m_Point(pt) {
+ExtendedPlane::ExtendedPlane(): m_Plane(ms_Plane),
+                                m_Perpendicular(ms_Perpendicular),
+                                m_Point(ms_Point) {
+
+  m_mat[0] = FLOATMATRIX4();
+  m_mat[1] = FLOATMATRIX4();
 }
 
-void ExtendedPlane::Transform(const FLOATMATRIX4& mat)
+
+ExtendedPlane ExtendedPlane::FarawayPlane() {
+  ExtendedPlane p;
+  FLOATMATRIX4 translation;
+  translation.Translation(0,0,-100000);
+  p.Transform(translation,false);
+  return p;
+}
+
+void ExtendedPlane::Transform(const FLOATMATRIX4& mat, bool bSecondary)
 {
-  m_Plane = m_Plane * mat;
-  m_Perpendicular = (FLOATVECTOR4(m_Perpendicular,0) * mat).xyz();
-  m_Perpendicular.normalize();
-  m_Point = (FLOATVECTOR4(m_Point,1) * mat).xyz();
+  m_mat[(bSecondary) ? 1 : 0] = m_mat[(bSecondary) ? 1 : 0] * mat;
+  UpdatePlane();
 }
 
-void ExtendedPlane::TransformIT(const FLOATMATRIX4& mat)
+void ExtendedPlane::TransformIT(const FLOATMATRIX4& mat, bool bSecondary)
 {
   FLOATMATRIX4 mIT(mat.inverse());
   mIT = mIT.Transpose();
-  m_Plane = m_Plane * mIT;
-  m_Perpendicular = (FLOATVECTOR4(m_Perpendicular,0) * mIT).xyz();
-  m_Perpendicular.normalize();
-  m_Point = (FLOATVECTOR4(m_Point,1) * mIT).xyz();
+  m_mat[(bSecondary) ? 1 : 0] = m_mat[(bSecondary) ? 1 : 0] * mIT;
+  UpdatePlane();
 }
+
+void ExtendedPlane::UpdatePlane() {
+  FLOATMATRIX4 complete = m_mat[1] * m_mat[0];
+  m_Plane = ms_Plane * complete;
+  m_Perpendicular = (FLOATVECTOR4(ms_Perpendicular,0) * complete).xyz();
+  m_Perpendicular.normalize();
+  m_Point = (FLOATVECTOR4(ms_Point,1) * complete).xyz();
+}
+
 
 bool ExtendedPlane::Quad(const FLOATVECTOR3& vEye,
                          std::vector<FLOATVECTOR3>& quad,
@@ -109,9 +124,8 @@ bool ExtendedPlane::Quad(const FLOATVECTOR3& vEye,
 }
 
 /// Sets the plane back to default values.
-void ExtendedPlane::Default()
+void ExtendedPlane::Default(bool bSecondary)
 {
-  m_Plane = ms_Plane;
-  m_Perpendicular = ms_Perpendicular;
-  m_Point = ms_Point;
+  m_mat[(bSecondary) ? 1 : 0] = FLOATMATRIX4();
+  UpdatePlane();
 }

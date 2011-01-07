@@ -47,14 +47,14 @@
 /// can ensure that both are always transformed equally, keeping them in sync.
 class ExtendedPlane {
   public:
-    ExtendedPlane(const PLANE<float>& p = ms_Plane,
-                  const FLOATVECTOR3& perp = ms_Perpendicular,
-                  const FLOATVECTOR3& pt = ms_Point);
+    ExtendedPlane();
+
+    static ExtendedPlane FarawayPlane();
 
     /// Transform the plane by the given matrix.
-    void Transform(const FLOATMATRIX4&);
+    void Transform(const FLOATMATRIX4&, bool bSecondar);
     /// Transform the plane by the inverse transpose of the given matrix.
-    void TransformIT(const FLOATMATRIX4&);
+    void TransformIT(const FLOATMATRIX4&, bool bSecondary);
 
     /// Figures out the appropriate quadrilateral for rendering this plane (the
     /// quad's normal will be the plane's normal).
@@ -63,17 +63,8 @@ class ExtendedPlane {
     bool Quad(const FLOATVECTOR3& vEye, std::vector<FLOATVECTOR3>& quad,
               const float fWidgetSize=0.5f) const;
 
-    /// The default / initial settings for the plane and its perpendicular
-    /// vector.  Use these when constructing initial copies of an
-    /// ExtendedPlane (the default if you're using the default constructor).
-    ///@{
-    static const PLANE<float> ms_Plane;
-    static const FLOATVECTOR3 ms_Perpendicular;
-    static const FLOATVECTOR3 ms_Point;
-    ///@}
-
     /// Sets the plane back to default values.
-    void Default();
+    void Default(bool bSecondary=false);
 
     float& d() { return m_Plane.w; }
     const float& d() const { return m_Plane.w; }
@@ -85,19 +76,25 @@ class ExtendedPlane {
     const PLANE<float>& Plane() const { return m_Plane; }
     const FLOATVECTOR3& Point() const { return m_Point; }
 
-    ExtendedPlane operator *(const FLOATMATRIX4 &m) const {
-      return ExtendedPlane(m_Plane * m,
-                           (FLOATVECTOR4(m_Perpendicular,0) * m).xyz(),
-                           (FLOATVECTOR4(m_Point,1) * m).xyz());
-    }
-
     bool operator ==(const ExtendedPlane &ep) const {
       return m_Plane == ep.m_Plane && m_Point == ep.m_Point;
     }
 
   private:
+    void UpdatePlane();
+
+    /// The default / initial settings for the plane and its perpendicular
+    /// vector.  Use these when constructing initial copies of an
+    /// ExtendedPlane (the default if you're using the default constructor).
+    ///@{
+    static const PLANE<float> ms_Plane;
+    static const FLOATVECTOR3 ms_Perpendicular;
+    static const FLOATVECTOR3 ms_Point;
+    ///@}
+
     PLANE<float> m_Plane;         ///< the plane's normal
     FLOATVECTOR3 m_Perpendicular; ///< a vector perpendicular to the normal
     FLOATVECTOR3 m_Point;         ///< a point on the plane
+    FLOATMATRIX4 m_mat[2];        ///< accumulated plane transformations
 };
 #endif // TUVOK_PLANE_H
