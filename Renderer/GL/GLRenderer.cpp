@@ -484,6 +484,14 @@ void GLRenderer::RecomposeView(const RenderRegion& rgn)
   }
 }
 
+template<typename I> static bool all_blank(I begin, I end) {
+  while(begin != end) {
+    if(!((*begin)->isBlank)) { return false; }
+    ++begin;
+  }
+  return true;
+}
+
 bool GLRenderer::Paint() {
   if (!AbstrRenderer::Paint()) return false;
 
@@ -499,6 +507,9 @@ bool GLRenderer::Paint() {
   if (m_bFirstDrawAfterResize) {
     CreateOffscreenBuffers();
     CreateDepthStorage();
+    StartFrame();
+  }
+  if(all_blank(this->renderRegions.begin(), this->renderRegions.end())) {
     StartFrame();
   }
 
