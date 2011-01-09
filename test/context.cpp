@@ -217,9 +217,9 @@ find_visual(Display *d, bool double_buffered)
       GLX_BLUE_SIZE,        5,
       GLX_ALPHA_SIZE,       8,
       GLX_DEPTH_SIZE,       8,
-      GLX_ACCUM_RED_SIZE,   1,
-      GLX_ACCUM_GREEN_SIZE, 1,
-      GLX_ACCUM_BLUE_SIZE,  1,
+      GLX_ACCUM_RED_SIZE,   0,
+      GLX_ACCUM_GREEN_SIZE, 0,
+      GLX_ACCUM_BLUE_SIZE,  0,
       None
     };
 
