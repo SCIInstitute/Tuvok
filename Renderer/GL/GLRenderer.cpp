@@ -2582,7 +2582,6 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
 
   FLOATVECTOR4 vColorQuad(0.0f,0.0f,0.8f,0.4f);
   FLOATVECTOR4 vColorBorder(1.0f,1.0f,0.0f,1.0f);
-  FLOATVECTOR3 vTransformedCenter;
 
   ExtendedPlane transformed(m_ClipPlane);
   m_mView[iStereoID].setModelview();
