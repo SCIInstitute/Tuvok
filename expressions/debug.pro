@@ -6,7 +6,6 @@ macx:DEFINES     += QT_MAC_USE_COCOA=1
 TARGET            = lexdbg
 DEPENDPATH       += . ../../Basics ../
 INCLUDEPATH      += ../../ ../../Basics ../ ../3rdParty/boost
-unix:LIBS        += -lz
 macx:LIBS        += -framework CoreFoundation
 win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
