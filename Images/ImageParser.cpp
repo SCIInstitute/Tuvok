@@ -91,7 +91,6 @@ bool ImageFileInfo::GetData(std::vector<char>& vData, UINT32 iLength,
   if (qImage.isNull()) return false;
 
   if(qImage.depth() == 32) {
-    T_ERROR("TEST: 32bit image...");
     m_iComponentCount = 4;
     ComputeSize();
     vData.resize(GetDataSize());
