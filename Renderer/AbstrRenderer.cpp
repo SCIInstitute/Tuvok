@@ -55,6 +55,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
                              bool bDisableBorder, enum ScalingMethod sm) :
   m_pMasterController(pMasterController),
   m_eRenderMode(RM_1DTRANS),
+  m_bFirstDrawAfterModeChange(true),
+  m_bFirstDrawAfterResize(true),
   m_eBlendPrecision(BP_32BIT),
   m_bUseLighting(true),
   m_pDataset(NULL),
@@ -218,6 +220,7 @@ void AbstrRenderer::SetRendermode(ERenderMode eRenderMode)
 {
   if (m_eRenderMode != eRenderMode) {
     m_eRenderMode = eRenderMode;
+    m_bFirstDrawAfterModeChange = true;
     ScheduleCompleteRedraw();
     Controller::Instance().Provenance("mode", render_mode(eRenderMode));
   }
@@ -373,6 +376,7 @@ bool AbstrRenderer::CheckForRedraw() {
 
 void AbstrRenderer::Resize(const UINTVECTOR2& vWinSize) {
   m_vWinSize = vWinSize;
+  m_bFirstDrawAfterResize = true;
   ScheduleCompleteRedraw();
 }
 
@@ -1424,3 +1428,7 @@ void AbstrRenderer::ToggleStereoFrame() {
   ScheduleRecompose();
 }
 
+void AbstrRenderer::ResetRenderStates() {
+  m_bFirstDrawAfterResize = false;
+  m_bFirstDrawAfterModeChange = false;
+}

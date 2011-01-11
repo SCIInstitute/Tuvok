@@ -509,6 +509,8 @@ class AbstrRenderer {
   protected:
     MasterController*   m_pMasterController;
     ERenderMode         m_eRenderMode;
+    bool                m_bFirstDrawAfterModeChange;
+    bool                m_bFirstDrawAfterResize;
     EBlendPrecision     m_eBlendPrecision;
     bool                m_bUseLighting;
     Dataset*            m_pDataset;
@@ -655,6 +657,7 @@ class AbstrRenderer {
     void                RestartTimers();
     double              MaxValue() const;
     bool                OnlyRecomposite(RenderRegion* region) const;
+    void                ResetRenderStates();
 
     RenderRegion3D* GetFirst3DRegion();
 

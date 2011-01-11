@@ -69,7 +69,6 @@ GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOf
   m_p2DData(NULL),
   m_pFBO3DImageLast(NULL),
   m_pFBOResizeQuickBlit(NULL),
-  m_bFirstDrawAfterResize(true),
   m_pLogoTex(NULL),
   m_pProgramIso(NULL),
   m_pProgramColor(NULL),
@@ -419,7 +418,6 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
 
   glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
   ClearColorBuffer();
-  m_bFirstDrawAfterResize = true;
 }
 
 void GLRenderer::ClearDepthBuffer() const {
@@ -484,14 +482,6 @@ void GLRenderer::RecomposeView(const RenderRegion& rgn)
   }
 }
 
-template<typename I> static bool all_blank(I begin, I end) {
-  while(begin != end) {
-    if(!((*begin)->isBlank)) { return false; }
-    ++begin;
-  }
-  return true;
-}
-
 bool GLRenderer::Paint() {
   if (!AbstrRenderer::Paint()) return false;
 
@@ -507,9 +497,9 @@ bool GLRenderer::Paint() {
   if (m_bFirstDrawAfterResize) {
     CreateOffscreenBuffers();
     CreateDepthStorage();
-    StartFrame();
   }
-  if(all_blank(this->renderRegions.begin(), this->renderRegions.end())) {
+
+  if (m_bFirstDrawAfterResize || m_bFirstDrawAfterModeChange ) {
     StartFrame();
   }
 
@@ -586,7 +576,8 @@ bool GLRenderer::Paint() {
     }
   }
   EndFrame(justCompletedRegions);
-  m_bFirstDrawAfterResize = false;
+
+  ResetRenderStates();
   return true;
 }
 

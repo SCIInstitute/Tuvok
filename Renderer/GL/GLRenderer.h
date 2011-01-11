@@ -111,7 +111,6 @@ class GLRenderer : public AbstrRenderer {
     GLFBOTex*       m_pFBOResizeQuickBlit;
     GLFBOTex*       m_pFBOIsoHit[2];
     GLFBOTex*       m_pFBOCVHit[2];
-    bool            m_bFirstDrawAfterResize;
     GLTexture2D*    m_pLogoTex;
     GLSLProgram*    m_pProgram1DTrans[2];
     GLSLProgram*    m_pProgram2DTrans[2];
