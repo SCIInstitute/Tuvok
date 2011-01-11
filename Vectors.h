@@ -1494,11 +1494,11 @@ public:
   ///         valid.
   bool intersect(const VECTOR3<T>& a, const VECTOR3<T>& b,
                  T& hit) const {
-    const T denom = (*this) ^ (a - b);
+    const T denom = (*this).xyz() ^ (a - b);
     if(EpsilonEqual(denom, 0.0f)) {
       return false;
     }
-    hit = (((*this) ^ a) + this->d()) / denom;
+    hit = (((*this).xyz() ^ a) + this->d()) / denom;
     return true;
   }
 
