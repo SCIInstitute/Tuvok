@@ -1468,7 +1468,7 @@ public:
     (*this) /= length;
   }
   T d() const { return this->w; }
-  VECTOR3<T> normal() { return this->xyz(); }
+  VECTOR3<T> normal() const { return this->xyz(); }
 
   // binary operators with a matrix
   PLANE<T> operator * ( const MATRIX4<T>& matrix ) const {
