@@ -53,8 +53,6 @@ class ExtendedPlane {
 
     /// Transform the plane by the given matrix.
     void Transform(const FLOATMATRIX4&, bool bSecondar);
-    /// Transform the plane by the inverse transpose of the given matrix.
-    void TransformIT(const FLOATMATRIX4&, bool bSecondary);
 
     /// Figures out the appropriate quadrilateral for rendering this plane (the
     /// quad's normal will be the plane's normal).
@@ -74,10 +72,9 @@ class ExtendedPlane {
     float z() const { return m_Plane.z; }
 
     const PLANE<float>& Plane() const { return m_Plane; }
-    const FLOATVECTOR3& Point() const { return m_Point; }
 
     bool operator ==(const ExtendedPlane &ep) const {
-      return m_Plane == ep.m_Plane && m_Point == ep.m_Point;
+      return m_Plane == ep.m_Plane;
     }
 
   private:
@@ -88,13 +85,11 @@ class ExtendedPlane {
     /// ExtendedPlane (the default if you're using the default constructor).
     ///@{
     static const PLANE<float> ms_Plane;
-    static const FLOATVECTOR3 ms_Perpendicular;
-    static const FLOATVECTOR3 ms_Point;
     ///@}
 
+    FLOATMATRIX4 GetCompleteTransform() const;
+
     PLANE<float> m_Plane;         ///< the plane's normal
-    FLOATVECTOR3 m_Perpendicular; ///< a vector perpendicular to the normal
-    FLOATVECTOR3 m_Point;         ///< a point on the plane
     FLOATMATRIX4 m_mat[2];        ///< accumulated plane transformations
 };
 #endif // TUVOK_PLANE_H
