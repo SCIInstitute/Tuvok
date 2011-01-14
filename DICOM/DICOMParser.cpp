@@ -909,7 +909,7 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo() :
 SimpleDICOMFileInfo::SimpleDICOMFileInfo(const SimpleDICOMFileInfo* other) :
   SimpleFileInfo(other),
   m_fvPatientPosition(other->m_fvPatientPosition),
-  m_iComponentCount(1),
+  m_iComponentCount(other->m_iComponentCount),
   m_fScale(other->m_fScale),
   m_fBias(other->m_fBias),
   m_bSigned(other->m_bSigned),
