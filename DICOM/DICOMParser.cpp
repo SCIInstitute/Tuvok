@@ -198,11 +198,11 @@ void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, shor
     if (i==27) {
       DICOM_DBG("WARNING: Reader could not interpret type %c%c (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], int(iGroupID), int(iElementID), iElemLength);
     } else {
-      DICOM_DBG("Read type %c%c field (iGroupID=%i, iElementID=%i, iElemLength=%i)\n",typeString[0], typeString[1], int(iGroupID), int(iElementID), iElemLength);
+      DICOM_DBG("Read type %c%c field (iGroupID=%x (%i), iElementID= %x (%i), iElemLength=%i)\n",typeString[0], typeString[1], int(iGroupID), int(iGroupID), int(iElementID), int(iElementID), iElemLength);
     }
   }
 
-  if ((eElementType == TYPE_OB || eElementType == TYPE_UT) && iElemLength == 0) {
+  if ((eElementType == TYPE_OF || eElementType == TYPE_OW || eElementType == TYPE_OB || eElementType == TYPE_UT) && iElemLength == 0) {
     fileDICOM.read((char*)&iElemLength,4);
     if (bNeedsEndianConversion) iElemLength = EndianConvert::Swap<UINT32>(iElemLength);
     DICOM_DBG("Reader found zero length %c%c field and read the length again which is now (iElemLength=%i)\n", typeString[0], typeString[1], iElemLength);
@@ -734,8 +734,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
       // for an explicit file we can actually check if we found the pixel
       // data block (and not some color table)
       UINT32 iPixelDataSize = info.m_ivSize.volume() * info.m_iAllocated / 8;
-      UINT32 iDataSizeInFile;
-      fileDICOM.read((char*)&iDataSizeInFile,4);
+      UINT32 iDataSizeInFile = iElemLength;
+      if (iDataSizeInFile == 0) fileDICOM.read((char*)&iDataSizeInFile,4);
 
       if (info.m_bIsJPEGEncoded) {
         unsigned char iJPEGID[2];
