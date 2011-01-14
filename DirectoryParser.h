@@ -76,8 +76,11 @@ class FileStackInfo {
 public:
   FileStackInfo();
   FileStackInfo(const FileStackInfo* other);
-  FileStackInfo(UINTVECTOR3 ivSize, FLOATVECTOR3 fvfAspect, UINT32 iAllocated, UINT32 iStored,
-                UINT32 iComponentCount, bool bIsBigEndian, bool bIsJPEGEncoded, const std::string& strDesc, const std::string& strFileType);
+  FileStackInfo(UINTVECTOR3 ivSize, FLOATVECTOR3 fvfAspect, 
+                UINT32 iAllocated, UINT32 iStored,
+                UINT32 iComponentCount, bool bSigned, bool bIsBigEndian, 
+                bool bIsJPEGEncoded, const std::string& strDesc, 
+                const std::string& strFileType);
   virtual ~FileStackInfo();
 
   std::vector<SimpleFileInfo*>  m_Elements;
@@ -89,6 +92,7 @@ public:
   /// @todo get rid of this, read it from the first file in the sequence
   /// instead.
   UINT32       m_iComponentCount;
+  bool         m_bSigned;
   bool         m_bIsBigEndian;
   bool         m_bIsJPEGEncoded;
   std::string  m_strDesc;

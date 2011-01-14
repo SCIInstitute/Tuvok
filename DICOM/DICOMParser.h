@@ -72,9 +72,13 @@ public:
   // files ... idiots
   FLOATVECTOR3 m_fvPatientPosition;
   UINT32 m_iComponentCount;
+  float  m_fScale;
+  float  m_fBias;
+  bool   m_bSigned;
 
 protected:
   UINT32 m_iOffsetToData;
+
 };
 
 class DICOMFileInfo : public SimpleDICOMFileInfo {
@@ -103,7 +107,6 @@ public:
 
 class DICOMStackInfo : public FileStackInfo {
 public:
-
   DICOMStackInfo();
   DICOMStackInfo(const DICOMFileInfo* info);
   DICOMStackInfo(const DICOMStackInfo* other);

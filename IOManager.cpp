@@ -314,16 +314,19 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
 
     vector<char> vData;
     for (size_t j=0; j < pDICOMStack->m_Elements.size(); j++) {
+
+      SimpleDICOMFileInfo* pDICOMFileInfo = dynamic_cast<SimpleDICOMFileInfo*>(pDICOMStack->m_Elements[j]);
+
+      if (!pDICOMFileInfo) continue;
+
       UINT32 iDataSize = pDICOMStack->m_Elements[j]->GetDataSize();
       vData.resize(iDataSize);
 
       if (pDICOMStack->m_bIsJPEGEncoded) {
         MESSAGE("JPEG is %d bytes, offset %d", iDataSize,
-                dynamic_cast<SimpleDICOMFileInfo*>(pDICOMStack->m_Elements[j])
-                  ->GetOffsetToData());
+                pDICOMFileInfo->GetOffsetToData());
         tuvok::JPEG jpg(pDICOMStack->m_Elements[j]->m_strFileName,
-                        dynamic_cast<SimpleDICOMFileInfo*>
-                          (pDICOMStack->m_Elements[j])->GetOffsetToData());
+                        pDICOMFileInfo->GetOffsetToData());
         if(!jpg.valid()) {
           T_ERROR("'%s' reports an embedded JPEG, but the JPEG is invalid.",
                   pDICOMStack->m_Elements[j]->m_strFileName.c_str());
@@ -344,6 +347,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
       }
 
       if (pDICOMStack->m_bIsBigEndian != EndianConvert::IsBigEndian()) {
+        MESSAGE("Converting Endianess ...");
         switch (pDICOMStack->m_iAllocated) {
           case  8 : break;
           case 16 : {
@@ -352,13 +356,59 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                   pData[k] = EndianConvert::Swap<short>(pData[k]);
                 } break;
           case 32 : {
-                float *pData = reinterpret_cast<float*>(&vData[0]);
+                int *pData = reinterpret_cast<int*>(&vData[0]);
                 for (UINT32 k = 0;k<iDataSize/4;k++)
-                  pData[k] = EndianConvert::Swap<float>(pData[k]);
+                  pData[k] = EndianConvert::Swap<int>(pData[k]);
                 } break;
         }
       }
 
+ 
+    // removed this code for now, not sure if we really need it. 
+    // none of the other vis tools I looked at use the scale and bias 
+    // parameters
+
+     if (pDICOMFileInfo->m_fScale != 1.0f || pDICOMFileInfo->m_fBias != 0.0f) {
+        MESSAGE("Applying Scale and Bias  ...");
+        if (pDICOMStack->m_bSigned) {
+          switch (pDICOMStack->m_iAllocated) {
+            case  8 :{
+                  char *pData = reinterpret_cast<char*>(&vData[0]);
+                  for (UINT32 k = 0;k<iDataSize/2;k++)
+                    pData[k] = (char)(MAX(0.0, pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias));
+                  } break;
+            case 16 : {
+                  short *pData = reinterpret_cast<short*>(&vData[0]);
+                  for (UINT32 k = 0;k<iDataSize/2;k++)
+                    pData[k] = (short)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
+                  } break;
+            case 32 : {
+                  int *pData = reinterpret_cast<int*>(&vData[0]);
+                  for (UINT32 k = 0;k<iDataSize/4;k++)
+                    pData[k] = (int)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
+                  } break;
+          }
+        } else {
+          switch (pDICOMStack->m_iAllocated) {
+            case  8 :{
+                  unsigned char *pData = reinterpret_cast<unsigned char*>(&vData[0]);
+                  for (UINT32 k = 0;k<iDataSize/2;k++)
+                    pData[k] = (unsigned char)(MAX(0.0, pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias));
+                  } break;
+            case 16 : {
+                  unsigned short *pData = reinterpret_cast<unsigned short*>(&vData[0]);
+                  for (UINT32 k = 0;k<iDataSize/2;k++)
+                    pData[k] = (unsigned short)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
+                  } break;
+            case 32 : {
+                  unsigned int *pData = reinterpret_cast<unsigned int*>(&vData[0]);
+                  for (UINT32 k = 0;k<iDataSize/4;k++)
+                    pData[k] = (int)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
+                  } break;
+          }
+        }
+      }
+ 
       // Create temporary file with the DICOM (image) data.  We pretend 3
       // component data is 4 component data to simplify processing later.
       /// @todo FIXME: this code assumes 3 component data is always 3*char
@@ -393,9 +443,6 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     iSize.z *= UINT32(pDICOMStack->m_Elements.size());
 
     /// \todo evaluate pDICOMStack->m_strModality
-
-    /// \todo read sign property from DICOM file, instead of using the
-    /// `m_iAllocated >= 32 heuristic.
     /// \todo read `is floating point' property from DICOM, instead of assuming
     /// false.
     const UINT64 timesteps = 1;
@@ -405,8 +452,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                       pDICOMStack->m_iComponentCount,
                                       timesteps,
                                       pDICOMStack->m_bIsBigEndian !=
-                                        EndianConvert::IsBigEndian(),
-                                      pDICOMStack->m_iAllocated >=32,
+                                      EndianConvert::IsBigEndian(),
+                                      pDICOMStack->m_bSigned,
                                       false, iSize, pDICOMStack->m_fvfAspect,
                                       "DICOM stack",
                                       SysTools::GetFilename(

@@ -133,8 +133,10 @@ ImageStackInfo::ImageStackInfo() :
 {}
 
 ImageStackInfo::ImageStackInfo(const ImageFileInfo* fileInfo) :
-  FileStackInfo(UINTVECTOR3(fileInfo->m_ivSize,1), FLOATVECTOR3(1,1,1), fileInfo->m_iAllocated, fileInfo->m_iAllocated,
-                fileInfo->m_iComponentCount, false, false, "image file", "IMAGE")
+  FileStackInfo(UINTVECTOR3(fileInfo->m_ivSize,1), FLOATVECTOR3(1,1,1), 
+                fileInfo->m_iAllocated, fileInfo->m_iAllocated,
+                fileInfo->m_iComponentCount, false,
+                false, false, "image file", "IMAGE")
 {
   m_Elements.push_back(new ImageFileInfo(*fileInfo));
 }
@@ -146,6 +148,7 @@ ImageStackInfo::ImageStackInfo(const ImageStackInfo* other)
   m_iAllocated      = other->m_iAllocated;
   m_iStored         = other->m_iStored;
   m_iComponentCount = other->m_iComponentCount;
+  m_bSigned         = other->m_bSigned;
   m_bIsBigEndian    = other->m_bIsBigEndian;
   m_bIsJPEGEncoded  = other->m_bIsJPEGEncoded;
   m_strDesc         = other->m_strDesc;

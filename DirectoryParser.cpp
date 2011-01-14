@@ -101,6 +101,7 @@ FileStackInfo::FileStackInfo() :
   m_iAllocated(0),
   m_iStored(0),
   m_iComponentCount(1),
+  m_bSigned(false),
   m_bIsBigEndian(false),
   m_bIsJPEGEncoded(false),
   m_strDesc(""),
@@ -113,6 +114,7 @@ FileStackInfo::FileStackInfo(const FileStackInfo* other) :
   m_iAllocated(other->m_iAllocated),
   m_iStored(other->m_iStored),
   m_iComponentCount(other->m_iComponentCount),
+  m_bSigned(other->m_bSigned),
   m_bIsBigEndian(other->m_bIsBigEndian),
   m_bIsJPEGEncoded(other->m_bIsJPEGEncoded),
   m_strDesc(other->m_strDesc),
@@ -128,13 +130,18 @@ FileStackInfo::~FileStackInfo() {
   for (size_t i=0;i<m_Elements.size();i++) delete m_Elements[i];
 }
 
-FileStackInfo::FileStackInfo( UINTVECTOR3  ivSize, FLOATVECTOR3 fvfAspect, UINT32 iAllocated, UINT32 iStored,
-                              UINT32 iComponentCount, bool bIsBigEndian, bool bIsJPEGEncoded, const std::string& strDesc, const std::string& strFileType) :
+FileStackInfo::FileStackInfo( UINTVECTOR3  ivSize, FLOATVECTOR3 fvfAspect,
+                              UINT32 iAllocated, UINT32 iStored,
+                              UINT32 iComponentCount, 
+                              bool bSigned, bool bIsBigEndian, 
+                              bool bIsJPEGEncoded, const std::string& strDesc, 
+                              const std::string& strFileType) :
   m_ivSize(ivSize),
   m_fvfAspect(fvfAspect),
   m_iAllocated(iAllocated),
   m_iStored(iStored),
   m_iComponentCount(iComponentCount),
+  m_bSigned(bSigned),
   m_bIsBigEndian(bIsBigEndian),
   m_bIsJPEGEncoded(bIsJPEGEncoded),
   m_strDesc(strDesc),

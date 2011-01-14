@@ -693,7 +693,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     info.m_iAllocated = GetUInt(fileDICOM, elementType, iElemLength, bNeedsEndianConversion);
                     #ifdef DEBUG_DICOM
                     {
-                        stringstream ss;
+                      stringstream ss;
                       ss << info.m_iAllocated << " (Allocated bits: recognized and stored)";
                       value = ss.str();
                     }
@@ -706,6 +706,41 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     {
                       stringstream ss;
                       ss << info.m_iStored << " (Stored bits: recognized and stored)";
+                      value = ss.str();
+                    }
+                    #endif
+                    break;
+              case 0x0103 : // sign
+                    if (elementType == TYPE_Implicit) elementType = TYPE_US;
+                    info.m_bSigned = GetUInt(fileDICOM, elementType, iElemLength, bNeedsEndianConversion) == 1;
+                    #ifdef DEBUG_DICOM
+                    {
+                      stringstream ss;
+                      ss << info.m_bSigned << " (Sign bit: recognized and stored)";
+                      value = ss.str();
+                    }
+                    #endif
+                    break;
+              case 0x1052 : // Rescale Intercept (Bias)
+                    value.resize(iElemLength);
+                    fileDICOM.read(&value[0],iElemLength);
+                    info.m_fBias = float(atof(value.c_str()));
+                    #ifdef DEBUG_DICOM
+                    {
+                      stringstream ss;
+                      ss << info.m_fBias << " (Rescale Intercept (Bias): recognized and stored)";
+                      value = ss.str();
+                    }
+                    #endif
+                    break;
+              case 0x1053 : // Rescale Slope (Scale)
+                    value.resize(iElemLength);
+                    fileDICOM.read(&value[0],iElemLength);
+                    info.m_fScale = float(atof(value.c_str()));
+                    #ifdef DEBUG_DICOM
+                    {
+                      stringstream ss;
+                      ss << info.m_fScale << " (Rescale Slope (Scale): recognized and stored)";
                       value = ss.str();
                     }
                     #endif
@@ -842,7 +877,10 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo(const std::string& strFileName) :
   SimpleFileInfo(strFileName),
   m_fvPatientPosition(0,0,0),
   m_iComponentCount(1),
-  m_iOffsetToData(0)
+  m_iOffsetToData(0),
+  m_fScale(1.0f),
+  m_fBias(0.0f),
+  m_bSigned(false)
 {
 }
 
@@ -850,7 +888,10 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo(const std::wstring& wstrFileName) :
   SimpleFileInfo(wstrFileName),
   m_fvPatientPosition(0,0,0),
   m_iComponentCount(1),
-  m_iOffsetToData(0)
+  m_iOffsetToData(0),
+  m_fScale(1.0f),
+  m_fBias(0.0f),
+  m_bSigned(false)
 {
 }
 
@@ -858,7 +899,10 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo() :
   SimpleFileInfo(),
   m_fvPatientPosition(0,0,0),
   m_iComponentCount(1),
-  m_iOffsetToData(0)
+  m_iOffsetToData(0),
+  m_fScale(1.0f),
+  m_fBias(0.0f),
+  m_bSigned(false)
 {
 }
 
@@ -866,7 +910,10 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo(const SimpleDICOMFileInfo* other) :
   SimpleFileInfo(other),
   m_fvPatientPosition(other->m_fvPatientPosition),
   m_iComponentCount(1),
-  m_iOffsetToData(other->m_iOffsetToData)
+  m_iOffsetToData(other->m_iOffsetToData),
+  m_fScale(other->m_fScale),
+  m_fBias(other->m_fBias),
+  m_bSigned(other->m_bSigned)
 {
 }
 
@@ -958,8 +1005,11 @@ DICOMStackInfo::DICOMStackInfo() :
 {}
 
 DICOMStackInfo::DICOMStackInfo(const DICOMFileInfo* fileInfo) :
-  FileStackInfo(fileInfo->m_ivSize, fileInfo->m_fvfAspect, fileInfo->m_iAllocated, fileInfo->m_iStored,
-                fileInfo->m_iComponentCount, fileInfo->m_bIsBigEndian, fileInfo->m_bIsJPEGEncoded, fileInfo->m_strDesc, "DICOM"),
+  FileStackInfo(fileInfo->m_ivSize, fileInfo->m_fvfAspect, 
+                fileInfo->m_iAllocated, fileInfo->m_iStored,
+                fileInfo->m_iComponentCount, fileInfo->m_bSigned,
+                fileInfo->m_bIsBigEndian, 
+                fileInfo->m_bIsJPEGEncoded, fileInfo->m_strDesc, "DICOM"),
   m_iSeries(fileInfo->m_iSeries),
   m_strAcquDate(fileInfo->m_strAcquDate),
   m_strAcquTime(fileInfo->m_strAcquTime),
@@ -979,6 +1029,7 @@ DICOMStackInfo::DICOMStackInfo(const DICOMStackInfo* other) :
   m_iAllocated      = other->m_iAllocated;
   m_iStored         = other->m_iStored;
   m_iComponentCount = other->m_iComponentCount;
+  m_bSigned         = other->m_bSigned;
   m_bIsBigEndian    = other->m_bIsBigEndian;
   m_bIsJPEGEncoded  = other->m_bIsJPEGEncoded;
   m_strDesc         = other->m_strDesc;
@@ -997,6 +1048,7 @@ bool DICOMStackInfo::Match(const DICOMFileInfo* info) {
     m_iAllocated      == info->m_iAllocated &&
     m_iStored         == info->m_iStored &&
     m_iComponentCount == info->m_iComponentCount &&
+    m_bSigned         == info->m_bSigned &&
     m_fvfAspect       == info->m_fvfAspect &&
     m_bIsBigEndian    == info->m_bIsBigEndian &&
     m_bIsJPEGEncoded  == info->m_bIsJPEGEncoded &&
