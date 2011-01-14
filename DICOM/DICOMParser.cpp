@@ -877,10 +877,10 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo(const std::string& strFileName) :
   SimpleFileInfo(strFileName),
   m_fvPatientPosition(0,0,0),
   m_iComponentCount(1),
-  m_iOffsetToData(0),
   m_fScale(1.0f),
   m_fBias(0.0f),
-  m_bSigned(false)
+  m_bSigned(false),
+  m_iOffsetToData(0)
 {
 }
 
@@ -888,10 +888,10 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo(const std::wstring& wstrFileName) :
   SimpleFileInfo(wstrFileName),
   m_fvPatientPosition(0,0,0),
   m_iComponentCount(1),
-  m_iOffsetToData(0),
   m_fScale(1.0f),
   m_fBias(0.0f),
-  m_bSigned(false)
+  m_bSigned(false),
+  m_iOffsetToData(0)
 {
 }
 
@@ -899,10 +899,10 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo() :
   SimpleFileInfo(),
   m_fvPatientPosition(0,0,0),
   m_iComponentCount(1),
-  m_iOffsetToData(0),
   m_fScale(1.0f),
   m_fBias(0.0f),
-  m_bSigned(false)
+  m_bSigned(false),
+  m_iOffsetToData(0)
 {
 }
 
@@ -910,10 +910,10 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo(const SimpleDICOMFileInfo* other) :
   SimpleFileInfo(other),
   m_fvPatientPosition(other->m_fvPatientPosition),
   m_iComponentCount(1),
-  m_iOffsetToData(other->m_iOffsetToData),
   m_fScale(other->m_fScale),
   m_fBias(other->m_fBias),
-  m_bSigned(other->m_bSigned)
+  m_bSigned(other->m_bSigned),
+  m_iOffsetToData(other->m_iOffsetToData)
 {
 }
 
