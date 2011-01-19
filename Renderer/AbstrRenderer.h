@@ -179,6 +179,8 @@ class AbstrRenderer {
      * is not complete yet. */
     virtual bool CheckForRedraw();
 
+    UINTVECTOR2 GetSize() const {return m_vWinSize;}
+
     virtual bool Paint() {
       if (m_bDatasetIsInvalid) return true;
 
