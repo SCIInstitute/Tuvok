@@ -1183,6 +1183,14 @@ void AbstrRenderer::SetOrthoView(bool bOrthoView) {
   }
 }
 
+void AbstrRenderer::Transfer3DRotationToMIP() {
+  FLOATMATRIX4 rot = GetFirst3DRegion()->rotation;
+  for (size_t i=0; i < renderRegions.size(); ++i) {
+    if (!renderRegions[i]->is3D())
+      renderRegions[i]->rotation = rot;
+  }  
+}
+
 void AbstrRenderer::SetRenderCoordArrows(bool bRenderCoordArrows) {
   if (m_bRenderCoordArrows != bRenderCoordArrows) {
     m_bRenderCoordArrows = bRenderCoordArrows;

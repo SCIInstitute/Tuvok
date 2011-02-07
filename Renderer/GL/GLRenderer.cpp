@@ -1173,7 +1173,7 @@ void GLRenderer::RenderHQMIPPreLoop(RenderRegion2D& region) {
     matFlipX.Scaling(1,-1,1);
   }
   m_maMIPRotation.RotationY(dPI*double(m_fMIPRotationAngle)/180.0);
-  m_maMIPRotation = matRotDir * matFlipX * matFlipY * m_maMIPRotation;
+  m_maMIPRotation = matRotDir * region.rotation * matFlipX * matFlipY * m_maMIPRotation;
 }
 
 void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor) {
