@@ -121,10 +121,38 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
       WARNING("Skipping Material Library Tag in OBJ file");
     } else
 		if (linetype == "v") { // vertex attrib found
-      x = float(atof(GetToken(line).c_str()));
-		  y = float(atof(GetToken(line).c_str()));
-		  z = float(atof(GetToken(line).c_str()));
-			vertices.push_back(FLOATVECTOR3(x,y,(bFlipVertices) ? -z : z));
+      std::vector< std::string > pos = SysTools::Tokenize(line,false);
+
+      if (pos.size() < 3) {
+        WARNING("Found broken v tag (to little coordinates, "
+                "filling with zeroes");
+        x = (pos.size() > 0) ? SysTools::FromString<float>(pos[0]) : 0.0f;
+	      y = (pos.size() > 1) ? SysTools::FromString<float>(pos[1]) : 0.0f;
+	      z = 0.0f;
+      } else {
+        x = SysTools::FromString<float>(pos[0]);
+	      y = SysTools::FromString<float>(pos[1]);
+	      z = SysTools::FromString<float>(pos[2]);
+
+        if (pos.size() >= 6) {
+          // this is a "meshlab extended" obj file that includes vertex colors
+	        float r = SysTools::FromString<float>(pos[3]);
+	        float g = SysTools::FromString<float>(pos[4]);
+	        float b = SysTools::FromString<float>(pos[5]);
+          float a = (pos.size() > 6) ? SysTools::FromString<float>(pos[6]):1.0f;
+          colors.push_back(FLOATVECTOR4(r,g,b,a));
+        } else if (pos.size() == 3) {
+          // file specifies homogeneous coordinate
+	        float w = SysTools::FromString<float>(pos[3]);
+          if (w != 0) {
+            x /= w;
+            y /= w;
+            z /= w;
+          }
+        }
+      }
+      vertices.push_back(FLOATVECTOR3(x,y,(bFlipVertices) ? -z : z));
+
   	} else
 	  if (linetype == "vt") {  // vertex texcoord found
       x = float(atof(GetToken(line).c_str()));
@@ -233,6 +261,11 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
 	fs.close();
 
   std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
+
+  // generate color indies for "meshlab extended" format
+  if (COLIndices.size() == 0 && vertices.size() == colors.size()) 
+    COLIndices = VertIndices;
+
 
   Mesh* m = new Mesh(vertices,normals,texcoords,colors,
                      VertIndices,NormalIndices,TCIndices,COLIndices,
