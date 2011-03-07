@@ -95,8 +95,8 @@ bool MathTools::NaN(float f)
 #elif defined(_MSC_VER)
   return _finite(f);
 #else
-  // cannot check, bail.
-  return false;
+  // Hack, relies on 'f' being IEEE-754!
+  return f != f;
 #endif
 }
 
