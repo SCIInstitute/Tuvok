@@ -46,9 +46,12 @@
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
 #include "RenderMesh.h"
+#include "Scripting/Scripting.h"
 
 using namespace std;
 using namespace tuvok;
+
+static bool unregistered = true;
 
 AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
                              bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
@@ -156,6 +159,10 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vShaderSearchDirs.push_back("Tuvok/Shaders");
   m_vShaderSearchDirs.push_back("../Tuvok/Shaders");
   m_vArrowGeometry = GeometryGenerator::GenArrow(0.3f,0.8f,0.006f,0.012f,20);
+
+  if(unregistered) {
+    RegisterCalls(m_pMasterController->ScriptEngine());
+  }
 }
 
 bool AbstrRenderer::Initialize() {
@@ -1439,4 +1446,59 @@ void AbstrRenderer::ToggleStereoFrame() {
 void AbstrRenderer::ResetRenderStates() {
   m_bFirstDrawAfterResize = false;
   m_bFirstDrawAfterModeChange = false;
+}
+
+void AbstrRenderer::RegisterCalls(Scripting* eng) {
+  eng->RegisterCommand(this, "eye", "float float float", "set eye position");
+  eng->RegisterCommand(this, "ref", "float float float",
+                       "set camera focus position (what the camera points at)");
+  eng->RegisterCommand(this, "vup", "float float float", "set view up vector");
+  unregistered = false;
+}
+
+bool AbstrRenderer::Execute(const std::string& strCommand,
+                            const std::vector<std::string>& strParams,
+                            std::string& strMessage)
+{
+  strMessage = "";
+  std::istringstream is;
+
+  if(strCommand == "eye") {
+    float x,y,z;
+    if(strParams.size() != 3) {
+      strMessage = "Invalid number of parameters.";
+      return false;
+    }
+    is.str(strParams[0]); is >> x;
+    is.str(strParams[1]); is >> y;
+    is.str(strParams[2]); is >> z;
+    this->SetViewParameters(m_fFOV, m_fZNear, m_fZFar, FLOATVECTOR3(x,y,z),
+                            m_vAt, m_vUp);
+  } else if(strCommand == "ref") {
+    float x,y,z;
+    if(strParams.size() != 3) {
+      strMessage = "Invalid number of parameters.";
+      return false;
+    }
+    is.str(strParams[0]); is >> x;
+    is.str(strParams[1]); is >> y;
+    is.str(strParams[2]); is >> z;
+    this->SetViewParameters(m_fFOV, m_fZNear, m_fZFar, m_vEye,
+                            FLOATVECTOR3(x,y,z), m_vUp);
+  } else if(strCommand == "vup") {
+    float x,y,z;
+    if(strParams.size() != 3) {
+      strMessage = "Invalid number of parameters.";
+      return false;
+    }
+    is.str(strParams[0]); is >> x;
+    is.str(strParams[1]); is >> y;
+    is.str(strParams[2]); is >> z;
+    this->SetViewParameters(m_fFOV, m_fZNear, m_fZFar, m_vEye, m_vAt,
+                            FLOATVECTOR3(x,y,z));
+  } else {
+    strMessage = "Unhandled command.";
+    return false;
+  }
+  return true;
 }

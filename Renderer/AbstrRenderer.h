@@ -53,6 +53,7 @@
 #include "../IO/Dataset.h"
 #include "../Basics/Plane.h"
 #include "../Basics/GeometryGenerator.h"
+#include "../Scripting/Scriptable.h"
 
 class TransferFunction1D;
 class TransferFunction2D;
@@ -106,7 +107,7 @@ inline bool operator < (const Brick& left, const Brick& right) {
 
 /** \class AbstrRenderer
  * Base for all renderers. */
-class AbstrRenderer {
+class AbstrRenderer: public Scriptable {
   public:
 
     enum ERendererTarget {
@@ -466,6 +467,7 @@ class AbstrRenderer {
       m_fFOV = angle;
       m_fZNear = znear;
       m_fZFar = zfar;
+      this->ScheduleCompleteRedraw();
     }
 
     void SetScalingMethod(enum ScalingMethod sm) {
@@ -494,6 +496,9 @@ class AbstrRenderer {
 	const FLOATMATRIX4& GetProjectionMatrix(size_t eyeIndex = 0) const {return m_mProjection[eyeIndex];}
 	const FLOATMATRIX4& GetViewMatrix(size_t eyeIndex = 0) const {return m_mView[eyeIndex];}
 
+  bool Execute(const std::string& strCommand,
+               const std::vector<std::string>& strParams,
+               std::string& strMessage);
 
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
@@ -669,6 +674,8 @@ class AbstrRenderer {
     RenderRegion3D* GetFirst3DRegion();
 
     virtual bool IsVolumeResident(const BrickKey& key);
+
+    virtual void RegisterCalls(Scripting*);
 
   private:
     float               m_fIsovalue;
