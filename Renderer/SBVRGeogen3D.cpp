@@ -49,6 +49,7 @@
 #include <functional>
 #include <limits>
 #include "SBVRGeogen3D.h"
+#include "MathTools.h"
 
 using namespace tuvok;
 
@@ -158,6 +159,8 @@ bool SBVRGeogen3D::ComputeLayerGeometry(float fDepth) {
   std::vector<VERTEX_FORMAT> vLayerPoints;
   vLayerPoints.reserve(12);
 
+  assert(!MathTools::NaN(fDepth));
+
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[0], m_pfBBOXVertex[1],
                       vLayerPoints, m_bClipVolume);
   DepthPlaneIntersection(fDepth, m_pfBBOXVertex[1], m_pfBBOXVertex[2],
@@ -256,14 +259,7 @@ void SBVRGeogen3D::ComputeGeometry(bool bMeshOnly) {
   // application.  If an app doesn't set brick metadata properly, we'll
   // calculate a bad minimum Z value of nan. nan + anything is still nan,
   // so we end up with an infinite loop computing geometry below.
-#if defined(_MSC_VER)
-  assert(_finite(fDepth));
-#elif defined(__GNUC__) && (__GNUC__ == 4 && __GNUC_MINOR__ <= 1) || \
-      defined(DETECTED_OS_APPLE)
-  /* nothing... bleh. */
-#elif (defined(__GNUC__) && (__GNUC__ == 4 && __GNUC_MINOR__ <= 1))
-  assert(!std::tr1::isnan(fDepth));
-#endif
+  assert(!MathTools::NaN(fDepth));
 
   // prepare mesh triangles for insertion (i.e. sort them)
   if (HasMesh()) DepthSortMeshWithVolume();
