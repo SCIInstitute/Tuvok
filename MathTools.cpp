@@ -88,6 +88,18 @@ UINT32 MathTools::NextPow2(UINT32 n, bool bReturn_ID_on_Pow2) {
     return Pow2(Log2(n)+1);
 }
 
+bool MathTools::NaN(float f)
+{
+#ifdef USABLE_TR1
+  return std::tr1::isnan(f);
+#elif defined(_MSC_VER)
+  return _finite(f);
+#else
+  // cannot check, bail.
+  return false;
+#endif
+}
+
 float MathTools::Clamp(float val, float a, float b) {
   return std::max(a, std::min(b, val));
 }

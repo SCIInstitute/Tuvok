@@ -92,6 +92,10 @@ namespace MathTools {
     return ret;
   }
 
+  // Attempts to detect NaNs.  Imprecise; only useful for asserts and
+  // debugging, do not rely on it!
+  bool NaN(float f);
+
   float Clamp(float val, float a, float b);
   UINT32 Clamp(UINT32 val, UINT32 a, UINT32 b);
   UINT64 Clamp(UINT64 val, UINT64 a, UINT64 b);
