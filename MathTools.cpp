@@ -93,7 +93,7 @@ bool MathTools::NaN(float f)
 #ifdef USABLE_TR1
   return std::tr1::isnan(f);
 #elif defined(_MSC_VER)
-  return _finite(f) != 0;
+  return _finite(f) == 0;
 #else
   // Hack, relies on 'f' being IEEE-754!
   return f != f;
