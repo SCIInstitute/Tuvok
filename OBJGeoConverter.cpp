@@ -141,7 +141,7 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
 	        float b = SysTools::FromString<float>(pos[5]);
           float a = (pos.size() > 6) ? SysTools::FromString<float>(pos[6]):1.0f;
           colors.push_back(FLOATVECTOR4(r,g,b,a));
-        } else if (pos.size() == 3) {
+        } else if (pos.size() > 3) {
           // file specifies homogeneous coordinate
 	        float w = SysTools::FromString<float>(pos[3]);
           if (w != 0) {
