@@ -180,6 +180,18 @@ void TransferFunction1D::Clear() {
   m_vValueBBox = UINT64VECTOR2(0,0);
 }
 
+void TransferFunction1D::FillOrTruncate(size_t iTargetSize) {
+  vector< FLOATVECTOR4 > vTmpColorData(iTargetSize);  
+  for (size_t i = 0;i<vTmpColorData.size();i++) {   
+    if (i < vColorData.size()) 
+      vTmpColorData[i] = vColorData[i];
+    else
+      vTmpColorData[i] = FLOATVECTOR4(0,0,0,0);
+  }
+  vColorData = vTmpColorData;
+  ComputeNonZeroLimits();
+}
+
 void TransferFunction1D::Resample(size_t iTargetSize) {
   size_t iSourceSize = vColorData.size();
 

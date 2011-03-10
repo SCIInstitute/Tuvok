@@ -67,6 +67,7 @@ public:
   size_t GetSize() const {return vColorData.size();}
   void Resize(size_t iSize);
   void Resample(size_t iTargetSize);
+  void FillOrTruncate(size_t iTargetSize);
 
   bool Load(const std::string& filename);
   bool Load(const std::string& filename, size_t iTargetSize);
