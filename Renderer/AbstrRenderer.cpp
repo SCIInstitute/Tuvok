@@ -1172,6 +1172,7 @@ void AbstrRenderer::SetCV(bool bEnable) {
 
   if (m_bDoClearView != bEnable) {
     m_bDoClearView = bEnable;
+    m_bFirstDrawAfterModeChange = true;
     if (m_eRenderMode == RM_ISOSURFACE)
       Schedule3DWindowRedraws();
   }
