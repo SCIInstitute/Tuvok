@@ -493,12 +493,12 @@ class AbstrRenderer: public Scriptable {
 
     virtual void FixedFunctionality() const = 0;
 
-	const FLOATMATRIX4& GetProjectionMatrix(size_t eyeIndex = 0) const {return m_mProjection[eyeIndex];}
-	const FLOATMATRIX4& GetViewMatrix(size_t eyeIndex = 0) const {return m_mView[eyeIndex];}
+    const FLOATMATRIX4& GetProjectionMatrix(size_t eyeIndex = 0) const {return m_mProjection[eyeIndex];}
+    const FLOATMATRIX4& GetViewMatrix(size_t eyeIndex = 0) const {return m_mView[eyeIndex];}
 
-  bool Execute(const std::string& strCommand,
-               const std::vector<std::string>& strParams,
-               std::string& strMessage);
+    bool Execute(const std::string& strCommand,
+                 const std::vector<std::string>& strParams,
+                 std::string& strMessage);
 
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
