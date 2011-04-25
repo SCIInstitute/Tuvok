@@ -38,6 +38,14 @@
 #ifndef TUVOK_CONTEXT_ID_H
 #define TUVOK_CONTEXT_ID_H
 
+#include "StateManager.h"
+
+#ifdef _MSC_VER
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
+
 namespace tuvok {
 
 /// Defines an interface by which we can query and compare context
@@ -64,6 +72,7 @@ class ContextID {
 
   protected:
     ContextID() {}
+    std::tr1::shared_ptr<StateManager> m_pState;
 
   private:
     ContextID& operator=(const ContextID &); ///< undefined

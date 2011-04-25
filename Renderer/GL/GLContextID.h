@@ -53,14 +53,26 @@ class GLContextID : ContextID<GLContextID> {
   public:
     /// Create an ID with the current context.
 #ifdef DETECTED_OS_WINDOWS
-    GLContextID() : ContextID<GLContextID>(), ctx(wglGetCurrentContext()) {}
+    GLContextID() : ContextID<GLContextID>(), ctx(wglGetCurrentContext()) {
+      m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+    }
 #else
-    GLContextID() : ContextID<GLContextID>(), ctx(glXGetCurrentContext()) {}
-    GLContextID(GLXContext c) : ContextID<GLContextID>(), ctx(c) {}
+    GLContextID() : ContextID<GLContextID>(), ctx(glXGetCurrentContext()) {
+      m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+    }
+    GLContextID(GLXContext c) : ContextID<GLContextID>(), ctx(c) {
+      m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+    }
 #endif
     /// Create an ID from the given context.
     GLContextID(const GLContextID& ct) : ContextID<GLContextID>(),
-                                         ctx(ct.ctx) {}
+                                         ctx(ct.ctx) {
+      m_pState = ct.m_pState;
+    }
+
+    ~GLContextID(){
+      delete m_pState;
+    }
 
     static GLContextID Current() { return GLContextID(); }
 

@@ -154,11 +154,13 @@ HEADERS += \
            IO/UVF/UVFTables.h \
            IO/VariantArray.h \
            IO/VFFConverter.h \
+           Renderer/StateManager.h \
            Renderer/AbstrRenderer.h \
            Renderer/Context.h \
            Renderer/ContextID.h \
            Renderer/CullingLOD.h \
            Renderer/FrameCapture.h \
+           Renderer/GL/GLStateManager.h \
            Renderer/GL/GLContextID.h \
            Renderer/GL/GLFrameCapture.h \
            Renderer/GL/GLInclude.h \
@@ -372,6 +374,7 @@ SOURCES += \
            Renderer/AbstrRenderer.cpp \
            Renderer/CullingLOD.cpp \
            Renderer/FrameCapture.cpp \
+           Renderer/GL/GLStateManager.cpp \           
            Renderer/GL/GLFBOTex.cpp \
            Renderer/GL/GLFrameCapture.cpp \
            Renderer/GL/GLRaycaster.cpp \

@@ -47,11 +47,17 @@ namespace tuvok {
 class QtGLContextID : ContextID<QtGLContextID> {
   public:
     /// Create an ID with the current context.
-    QtGLContextID() : ctx((QGLContext::currentContext())) {}
+    QtGLContextID() : ctx((QGLContext::currentContext())) {
+      m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+    }
     /// Create an ID from the given context.
-    QtGLContextID(const QGLContext *c) : ContextID<QtGLContextID>(), ctx(c) {}
+    QtGLContextID(const QGLContext *c) : ContextID<QtGLContextID>(), ctx(c) {
+      m_pState = ct.m_pState;
+    }
     QtGLContextID(const QtGLContextID& ct) : ContextID<QtGLContextID>(),
-                                             ctx(ct.ctx) {}
+                                             ctx(ct.ctx) {
+      m_pState = ct.m_pState;
+    }
 
     static QtGLContextID Current() { return QtGLContextID(); }
 
