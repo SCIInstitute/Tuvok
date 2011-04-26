@@ -435,13 +435,6 @@ class AbstrRenderer: public Scriptable {
     virtual void Schedule3DWindowRedraws(); // Redraw all 3D windows.
     virtual void ScheduleWindowRedraw(RenderRegion *renderRegion);
 
-    void SetAvoidSeparateCompositing(bool bAvoidSeparateCompositing) {
-      m_bAvoidSeparateCompositing = bAvoidSeparateCompositing;
-    }
-    bool GetAvoidSeparateCompositing() const {
-      return m_bAvoidSeparateCompositing;
-    }
-
     bool GetUseOnlyPowerOfTwo() const {return m_bUseOnlyPowerOfTwo;}
     bool GetDownSampleTo8Bits() const {return m_bDownSampleTo8Bits;}
     bool GetDisableBorder() const {return m_bDisableBorder;}
@@ -610,7 +603,6 @@ class AbstrRenderer: public Scriptable {
     bool                m_bUseOnlyPowerOfTwo;
     bool                m_bDownSampleTo8Bits;
     bool                m_bDisableBorder;
-    bool                m_bAvoidSeparateCompositing;
     enum ScalingMethod  m_TFScalingMethod;
 
     FLOATMATRIX4        m_mProjection[2];

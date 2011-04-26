@@ -50,8 +50,6 @@ using namespace tuvok;
 
 GLSBVR2D::GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
   GLRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
-  m_pProgramIsoNoCompose(NULL),
-  m_pProgramColorNoCompose(NULL),
   m_bUse3DTexture(false)
 {
   m_bSupportsMeshes = false; // not fully implemented yet
@@ -62,8 +60,6 @@ GLSBVR2D::~GLSBVR2D() {
 
 void GLSBVR2D::CleanupShaders() {
   GLRenderer::CleanupShaders();
-  CleanupShader(&m_pProgramIsoNoCompose);
-  CleanupShader(&m_pProgramColorNoCompose);
 }
 
 void GLSBVR2D::SetUse3DTexture(bool bUse3DTexture) {
@@ -270,17 +266,6 @@ bool GLSBVR2D::LoadShaders() {
                           NULL,
                           volumeAccessFunction.c_str(), // SampleVolume, ComputeNormal
                           "GLSBVR-Color-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramIsoNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl",
-                          NULL,
-                          volumeAccessFunction.c_str(), // SampleVolume, ComputeNormal
-                          "lighting.glsl",      // Lighting
-                          "GLSBVR-ISO-NC-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramColorNoCompose, m_vShaderSearchDirs,
-                          "GLSBVR-VS.glsl",
-                          NULL,
-                          volumeAccessFunction.c_str(), // SampleVolume
-                          "GLSBVR-Color-NC-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramBBox,
                           m_vShaderSearchDirs,
                           "BBox-VS.glsl",
@@ -323,10 +308,6 @@ bool GLSBVR2D::LoadShaders() {
 
     BindVolumeStringsToTexUnit(m_pProgramHQMIPRot, false);
 
-    BindVolumeStringsToTexUnit(m_pProgramIsoNoCompose);
-
-    BindVolumeStringsToTexUnit(m_pProgramColorNoCompose, false);
-
     UpdateLightParamsInShaders();
   }
 
@@ -335,19 +316,6 @@ bool GLSBVR2D::LoadShaders() {
 
 void GLSBVR2D::SetDataDepShaderVars() {
   GLRenderer::SetDataDepShaderVars();
-
-  if (m_eRenderMode == RM_ISOSURFACE && m_bAvoidSeparateCompositing) {
-    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
-
-    FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
-
-    shader->Enable();
-    shader->SetUniformVector("fIsoval", static_cast<float>
-                                        (this->GetNormalizedIsovalue()));
-    // this is not really a data dependent var but as we only need to
-    // do it once per frame we may also do it here
-    shader->SetUniformVector("vLightDiffuse",d.x*m_vIsoColor.x,d.y*m_vIsoColor.y,d.z*m_vIsoColor.z);
-  }
 
   if(m_eRenderMode == RM_1DTRANS && m_TFScalingMethod == SMETH_BIAS_AND_SCALE) {
     std::pair<float,float> bias_scale = scale_bias_and_scale(*m_pDataset);
@@ -392,13 +360,8 @@ void GLSBVR2D::SetBrickDepShaderVars(const RenderRegion3D&,
     }
     case RM_ISOSURFACE: {
       GLSLProgram *shader;
-      if (m_bAvoidSeparateCompositing) {
-        shader = (m_pDataset->GetComponentCount() == 1) ?
-                 m_pProgramIsoNoCompose : m_pProgramColorNoCompose;
-      } else {
-        shader = (m_pDataset->GetComponentCount() == 1) ?
-                 m_pProgramIso : m_pProgramColor;
-      }
+      shader = (m_pDataset->GetComponentCount() == 1) ?
+               m_pProgramIso : m_pProgramColor;
       shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
       break;
     }
@@ -444,16 +407,7 @@ void GLSBVR2D::Render3DPreLoop(const RenderRegion3D&) {
                           glEnable(GL_BLEND);
                           glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
-    case RM_ISOSURFACE :  if (m_bAvoidSeparateCompositing) {
-                            if (m_pDataset->GetComponentCount() == 1)
-                              m_pProgramIsoNoCompose->Enable();
-                            else
-                              m_pProgramColorNoCompose->Enable();
-                            glEnable(GL_BLEND);
-                            glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-                          } else {
-                            glEnable(GL_DEPTH_TEST);
-                          }
+    case RM_ISOSURFACE :  glEnable(GL_DEPTH_TEST);
                           break;
     default    :  T_ERROR("Invalid rendermode set");
                           break;
@@ -713,7 +667,7 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
                               size_t iCurrentBrick, int iStereoID) {
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
 
-  if (m_iBricksRenderedInThisSubFrame == 0 && !m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE){
+  if (m_iBricksRenderedInThisSubFrame == 0 && m_eRenderMode == RM_ISOSURFACE){
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     if (m_bDoClearView) {
@@ -741,7 +695,7 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
 
   m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
-  if (! m_bAvoidSeparateCompositing && m_eRenderMode == RM_ISOSURFACE) {
+  if (m_eRenderMode == RM_ISOSURFACE) {
     glDisable(GL_BLEND);
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
 
@@ -821,38 +775,12 @@ bool GLSBVR2D::LoadDataset(const string& strFilename) {
 }
 
 void GLSBVR2D::ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID) {
-  if (!m_bAvoidSeparateCompositing)
-    GLRenderer::ComposeSurfaceImage(renderRegion, iStereoID);
+  GLRenderer::ComposeSurfaceImage(renderRegion, iStereoID);
 }
 
 
 void GLSBVR2D::UpdateLightParamsInShaders() {
   GLRenderer::UpdateLightParamsInShaders();
-
-  FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;
-  FLOATVECTOR3 d = m_cDiffuse.xyz()*m_cDiffuse.w;
-  FLOATVECTOR3 s = m_cSpecular.xyz()*m_cSpecular.w;
-
-  FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
-
-  m_pProgramIsoNoCompose->Enable();
-  m_pProgramIsoNoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  m_pProgramIsoNoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-  m_pProgramIsoNoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-  m_pProgramIsoNoCompose->SetUniformVector("vLightDir",m_vLightDir.x,
-                                                       m_vLightDir.y,
-                                                       m_vLightDir.z);
-  m_pProgramIsoNoCompose->SetUniformVector("vDomainScale",scale.x,
-                                                          scale.y,
-                                                          scale.z);
-  m_pProgramColorNoCompose->Enable();
-  m_pProgramColorNoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  m_pProgramColorNoCompose->SetUniformVector("vLightDir",m_vLightDir.x,
-                                                         m_vLightDir.y,
-                                                         m_vLightDir.z);
-  m_pProgramColorNoCompose->SetUniformVector("vDomainScale",scale.x,
-                                                            scale.y,
-                                                            scale.z);
 }
 
 bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,

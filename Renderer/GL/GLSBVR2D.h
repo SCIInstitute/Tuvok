@@ -69,13 +69,10 @@ namespace tuvok {
       virtual bool LoadDataset(const std::string& strFilename);
 
       virtual bool SupportsClearView() {
-        return !m_bAvoidSeparateCompositing &&
-               m_pDataset->GetComponentCount() == 1;
+        return m_pDataset->GetComponentCount() == 1;
       }
 
       virtual std::string ClearViewDisableReason() const {
-        if (m_bAvoidSeparateCompositing) 
-          return "'Avoid Compositing' is enabled";
         if (m_pDataset->GetComponentCount() != 1) 
           return "this dataset has more than one component";
         return "";
@@ -91,8 +88,6 @@ namespace tuvok {
 
     protected:
       SBVRGeogen2D  m_SBVRGeogen;
-      GLSLProgram*  m_pProgramIsoNoCompose;
-      GLSLProgram*  m_pProgramColorNoCompose;
       bool          m_bUse3DTexture;
 
       void SetBrickDepShaderVars(const RenderRegion3D& region,

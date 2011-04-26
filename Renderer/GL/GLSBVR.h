@@ -69,15 +69,12 @@ namespace tuvok {
       virtual bool SupportsClearView(){
         CheckMeshStatus();
         return m_iNumMeshes == 0 &&
-              !m_bAvoidSeparateCompositing &&
                m_pDataset->GetComponentCount() == 1;
       }
 
       virtual std::string ClearViewDisableReason() const {
         if (m_iNumMeshes > 0) 
           return "geometry is active";
-        if (m_bAvoidSeparateCompositing) 
-          return "'Avoid Compositing' is enabled";
         if (m_pDataset->GetComponentCount() != 1) 
           return "this dataset has more than one component";
         return "";
@@ -93,8 +90,6 @@ namespace tuvok {
 
     protected:
       SBVRGeogen3D  m_SBVRGeogen;
-      GLSLProgram*  m_pProgramIsoNoCompose;
-      GLSLProgram*  m_pProgramColorNoCompose;
       GLSLProgram*  m_pProgram1DTransMesh[2];
       GLSLProgram*  m_pProgram2DTransMesh[2];
 

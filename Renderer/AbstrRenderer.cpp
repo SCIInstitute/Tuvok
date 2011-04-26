@@ -126,7 +126,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bUseOnlyPowerOfTwo(bUseOnlyPowerOfTwo),
   m_bDownSampleTo8Bits(bDownSampleTo8Bits),
   m_bDisableBorder(bDisableBorder),
-  m_bAvoidSeparateCompositing(true),
   m_TFScalingMethod(sm),
   m_bClipPlaneOn(false),
   m_bClipPlaneDisplayed(true),
@@ -527,8 +526,8 @@ void AbstrRenderer::ScheduleRecompose(RenderRegion *renderRegion) {
   if (!renderRegion)
     renderRegion = GetFirst3DRegion();
   if (renderRegion) {
-    if(!m_bAvoidSeparateCompositing && // ensure we finished the current frame:
-       m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
+    // ensure we've finished the current frame:
+    if(m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
       m_bPerformReCompose = true;
       renderRegion->redrawMask = true;
     } else {
