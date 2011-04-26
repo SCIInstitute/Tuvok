@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   Copyright (c) 2011 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -25,51 +25,52 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
-/**
-  \file    GLStateManager.cpp
-  \author  Jens Schneider, Jens Krueger
-           SCI Institute, University of Utah
-  \date    October 2008
-*/
-
 #include "GLStateManager.h"
 #include "GLInclude.h"
 
 using namespace tuvok;
 
 GLState::GLState() {
+  GetFromOpenGL();
 }
 
 void GLState::Apply() {
-  if (enableDepth) glEnable(GL_DEPTH_TEST);
-              else glDisable(GL_DEPTH_TEST);
-  if (enableCull)  glEnable(GL_CULL_FACE); 
+  if (enableCull)  glEnable(GL_CULL_FACE);
               else glDisable(GL_CULL_FACE);
-  if (enableBlend) glEnable(GL_BLEND); 
+  if (enableBlend) glEnable(GL_BLEND);
               else glDisable(GL_BLEND);
-  if (enableScissor) glEnable(GL_SCISSOR_TEST); 
+  if (enableScissor) glEnable(GL_SCISSOR_TEST);
                 else glDisable( GL_SCISSOR_TEST);
-  if (enableLighting) glEnable(GL_LIGHTING); 
+  if (enableLighting) glEnable(GL_LIGHTING);
                  else glDisable(GL_LIGHTING);
-  if (enableColorMat) glEnable(GL_COLOR_MATERIAL); 
-                 else glDisable(GL_COLOR_MATERIAL);
-  if (enableLineSmooth) glEnable(GL_LINE_SMOOTH); 
+  if (enableColorMaterial) glEnable(GL_COLOR_MATERIAL);
+                      else glDisable(GL_COLOR_MATERIAL);
+  if (enableLineSmooth) glEnable(GL_LINE_SMOOTH);
                    else glDisable(GL_LINE_SMOOTH);
 
   for (size_t i = 0;i<StateLightCount;i++) {
-    if (enableLight[i]) 
-      glEnable(GLenum(GL_LIGHT0+i)); 
-    else 
+    if (enableLight[i])
+      glEnable(GLenum(GL_LIGHT0+i));
+    else
       glDisable(GLenum(GL_LIGHT0+i));
   }
 
   for (size_t i = 0;i<StateTUCount;i++) {
     glActiveTexture(GLenum(GL_TEXTURE+i));
     switch (enableTex[i]) {
-      case (TEX_1D) :  glEnable(GL_TEXTURE_1D); break;
-      case (TEX_2D) :  glEnable(GL_TEXTURE_2D); break;
-      case (TEX_3D) :  glEnable(GL_TEXTURE_3D); break;
+      case TEX_1D:      glEnable(GL_TEXTURE_1D);
+                        glDisable(GL_TEXTURE_2D);
+                        glDisable(GL_TEXTURE_3D);
+                        break;
+      case TEX_2D:      glEnable(GL_TEXTURE_2D);
+                        glDisable(GL_TEXTURE_3D);
+                        break;
+      case TEX_3D:      glEnable(GL_TEXTURE_3D);
+                        break;
+      case TEX_UNKNOWN: glDisable(GL_TEXTURE_1D);
+                        glDisable(GL_TEXTURE_2D);
+                        glDisable(GL_TEXTURE_3D);
+                        break;
     }
   }
 
@@ -84,7 +85,7 @@ void GLState::Apply(const GPUState& state) {
   SetEnableLighting(state.GetEnableLighting());
   SetEnableColorMaterial(state.GetEnableColorMaterial());
   SetEnableLineSmooth(state.GetEnableLineSmooth());
- 
+
   for (size_t i = 0;i<StateLightCount;i++) {
     SetEnableLight(i, state.GetEnableLight(i));
   }
@@ -96,15 +97,52 @@ void GLState::Apply(const GPUState& state) {
       glActiveTexture(GLenum(GL_TEXTURE+i));
       enableTex[i] = state.GetEnableTex(i);
       switch (enableTex[i]) {
-        case (TEX_1D) :  glEnable(GL_TEXTURE_1D); break;
-        case (TEX_2D) :  glEnable(GL_TEXTURE_2D); break;
-        case (TEX_3D) :  glEnable(GL_TEXTURE_3D); break;
+        case TEX_1D:      glEnable(GL_TEXTURE_1D);
+                          glDisable(GL_TEXTURE_2D);
+                          glDisable(GL_TEXTURE_3D);
+                          break;
+        case TEX_2D:      glEnable(GL_TEXTURE_2D);
+                          glDisable(GL_TEXTURE_3D);
+                          break;
+        case TEX_3D:      glEnable(GL_TEXTURE_3D);
+                          break;
+        case TEX_UNKNOWN: glDisable(GL_TEXTURE_1D);
+                          glDisable(GL_TEXTURE_2D);
+                          glDisable(GL_TEXTURE_3D);
+                          break;
       }
     }
   }
   activeTexUnit = state.GetActiveTexUnit();
   glActiveTexture(GLenum(GL_TEXTURE0 + activeTexUnit));
 
+}
+
+void GLState::GetFromOpenGL()
+{
+  enableDepth = glIsEnabled(GL_DEPTH_TEST);
+  enableCull = glIsEnabled(GL_CULL_FACE);
+  enableBlend = glIsEnabled(GL_BLEND);
+  enableScissor = glIsEnabled(GL_SCISSOR_TEST);
+  enableLighting = glIsEnabled(GL_LIGHTING);
+  enableColorMaterial = glIsEnabled(GL_COLOR_MATERIAL);
+  enableLineSmooth = glIsEnabled(GL_LINE_SMOOTH);
+
+  for(size_t i=0; i < StateLightCount; ++i) {
+    enableLight[i] = glIsEnabled(GL_LIGHT0 + (GLenum)i);
+  }
+  for(size_t i=0; i < StateTUCount; ++i) {
+    glActiveTexture(GL_TEXTURE0 + i);
+    if(glIsEnabled(GL_TEXTURE_3D)) {
+      enableTex[i] = TEX_3D;
+    } else if(glIsEnabled(GL_TEXTURE_2D)) {
+      enableTex[i] = TEX_2D;
+    } else if(glIsEnabled(GL_TEXTURE_1D)) {
+      enableTex[i] = TEX_1D;
+    } else {
+      enableTex[i] = TEX_UNKNOWN;
+    }
+  }
 }
 
 void GLState::SetEnableDepth(const bool& value) {
@@ -118,7 +156,7 @@ void GLState::SetEnableDepth(const bool& value) {
 void GLState::SetEnableCull(const bool& value) {
   if (value != enableCull) {
     enableCull = value;
-    if (enableCull)  glEnable(GL_CULL_FACE); 
+    if (enableCull)  glEnable(GL_CULL_FACE);
                 else glDisable(GL_CULL_FACE);
   }
 }
@@ -126,7 +164,7 @@ void GLState::SetEnableCull(const bool& value) {
 void GLState::SetEnableBlend(const bool& value) {
   if (value != enableBlend) {
     enableBlend = value;
-    if (enableBlend) glEnable(GL_BLEND); 
+    if (enableBlend) glEnable(GL_BLEND);
                 else glDisable(GL_BLEND);
   }
 }
@@ -134,7 +172,7 @@ void GLState::SetEnableBlend(const bool& value) {
 void GLState::SetEnableScissor(const bool& value) {
   if (value != enableScissor) {
     enableScissor = value;
-    if (enableScissor) glEnable(GL_SCISSOR_TEST); 
+    if (enableScissor) glEnable(GL_SCISSOR_TEST);
                   else glDisable( GL_SCISSOR_TEST);
   }
 }
@@ -142,24 +180,23 @@ void GLState::SetEnableScissor(const bool& value) {
 void GLState::SetEnableLighting(const bool& value) {
   if (value != enableLighting) {
     enableLighting = value;
-    if (enableLighting) glEnable(GL_LIGHTING); 
+    if (enableLighting) glEnable(GL_LIGHTING);
                    else glDisable(GL_LIGHTING);
   }
 }
 
 void GLState::SetEnableColorMaterial(const bool& value) {
-  if (value != enableColorMat) {
-    enableColorMat = value;
-    if (enableColorMat) glEnable(GL_COLOR_MATERIAL); 
-                   else glDisable(GL_COLOR_MATERIAL);
-
+  if (value != enableColorMaterial) {
+    enableColorMaterial = value;
+    if (enableColorMaterial) glEnable(GL_COLOR_MATERIAL);
+                        else glDisable(GL_COLOR_MATERIAL);
   }
 }
 
 void GLState::SetEnableLineSmooth(const bool& value) {
   if (value != enableLineSmooth) {
     enableLineSmooth = value;
-    if (enableLineSmooth) glEnable(GL_LINE_SMOOTH); 
+    if (enableLineSmooth) glEnable(GL_LINE_SMOOTH);
                      else glDisable(GL_LINE_SMOOTH);
   }
 }
@@ -167,21 +204,31 @@ void GLState::SetEnableLineSmooth(const bool& value) {
 void GLState::SetEnableLight(size_t i, const bool& value) {
   if (value != enableLight[i]) {
     enableLight[i] = value;
-    if (enableLight[i]) 
-      glEnable(GLenum(GL_LIGHT0+i)); 
-    else 
+    if (enableLight[i])
+      glEnable(GLenum(GL_LIGHT0+i));
+    else
       glDisable(GLenum(GL_LIGHT0+i));
   }
 }
 
 void GLState::SetEnableTex(size_t i, const STATE_TEX& value) {
   if (value != enableTex[i]) {
-    glActiveTexture(GLenum(GL_TEXTURE+i));
+    glActiveTexture(GLenum(GL_TEXTURE0+i));
     enableTex[i] = value;
     switch (enableTex[i]) {
-      case (TEX_1D) :  glEnable(GL_TEXTURE_1D); break;
-      case (TEX_2D) :  glEnable(GL_TEXTURE_2D); break;
-      case (TEX_3D) :  glEnable(GL_TEXTURE_3D); break;
+      case TEX_1D:      glEnable(GL_TEXTURE_1D);
+                        glDisable(GL_TEXTURE_2D);
+                        glDisable(GL_TEXTURE_3D);
+                        break;
+      case TEX_2D:      glEnable(GL_TEXTURE_2D);
+                        glDisable(GL_TEXTURE_3D);
+                        break;
+      case TEX_3D:      glEnable(GL_TEXTURE_3D);
+                        break;
+      case TEX_UNKNOWN: glDisable(GL_TEXTURE_1D);
+                        glDisable(GL_TEXTURE_2D);
+                        glDisable(GL_TEXTURE_3D);
+                        break;
     }
     glActiveTexture(GLenum(GL_TEXTURE0 + activeTexUnit));
   }
@@ -198,4 +245,3 @@ GLStateManager::GLStateManager() : StateManager() {
   m_InternalState = new GLState();
   m_InternalState->Apply();
 }
-

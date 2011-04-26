@@ -37,9 +37,11 @@
 #ifndef TUVOK_QT_GL_CONTEXT_ID_H
 #define TUVOK_QT_GL_CONTEXT_ID_H
 
-#include "../ContextID.h"
-#include "GL/glew.h"
+#include <GL/glew.h>
 #include <QtOpenGL/QGLContext>
+
+#include "../ContextID.h"
+#include "GLStateManager.h"
 
 namespace tuvok {
 
@@ -51,8 +53,9 @@ class QtGLContextID : ContextID<QtGLContextID> {
       m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
     }
     /// Create an ID from the given context.
-    QtGLContextID(const QGLContext *c) : ContextID<QtGLContextID>(), ctx(c) {
-      m_pState = ct.m_pState;
+    /// NOTE: Do not create multiple QtGLContextID's from the same QGLContext!
+    QtGLContextID(const QGLContext *ct) : ContextID<QtGLContextID>(), ctx(ct) {
+      m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
     }
     QtGLContextID(const QtGLContextID& ct) : ContextID<QtGLContextID>(),
                                              ctx(ct.ctx) {

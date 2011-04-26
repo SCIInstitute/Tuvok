@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   Copyright (c) 2011 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -24,13 +24,6 @@
    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
-*/
-
-/**
-  \file    GLStateManager.h
-  \author  Jens Krueger
-           IVDA, Saarbruecken
-           SCI Institute, University of Utah
 */
 #pragma once
 
@@ -70,6 +63,7 @@ namespace tuvok {
       virtual void Apply();
       virtual void Apply(const GPUState& state);
 
+      virtual void GetFromOpenGL();
   };
 
   /** \class GLStateManager
@@ -78,10 +72,9 @@ namespace tuvok {
      to the OpenGL subsystem.*/
   class GLStateManager : public StateManager {
     public:
-      GLStateManager();    
-
+      GLStateManager();
   };
 
-}; //namespace tuvok
+} //namespace tuvok
 
 #endif // GLSTATEMANAGER_H

@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   Copyright (c) 2011 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -47,7 +47,8 @@ namespace tuvok {
   enum STATE_TEX {
     TEX_1D,
     TEX_2D,
-    TEX_3D
+    TEX_3D,
+    TEX_UNKNOWN
   };
 
   class GLStateManager;
@@ -65,10 +66,10 @@ namespace tuvok {
         enableBlend(false),
         enableScissor(false),
         enableLighting(false),
-        enableColorMat(true),
+        enableColorMaterial(true),
         enableLineSmooth(false),
         activeTexUnit(0)
-      {  
+      {
         for (size_t i = 0;i<StateLightCount;i++) enableLight[i] = false;
         for (size_t i = 0;i<StateTUCount;i++) enableTex[i] = TEX_2D;
       }
@@ -89,7 +90,7 @@ namespace tuvok {
       bool GetEnableBlend() const {return enableBlend;}
       bool GetEnableScissor() const {return enableScissor;}
       bool GetEnableLighting() const {return enableLighting;}
-      bool GetEnableColorMaterial() const {return enableColorMat;}
+      bool GetEnableColorMaterial() const {return enableColorMaterial;}
       bool GetEnableLineSmooth() const {return enableLineSmooth;}
       bool GetEnableLight(size_t i) const {return enableLight[i];}
       STATE_TEX GetEnableTex(size_t i) const {return enableTex[i];}
@@ -102,11 +103,11 @@ namespace tuvok {
       bool enableScissor;
       bool enableLighting;
       bool enableLight[StateLightCount];
-      bool enableColorMat;
+      bool enableColorMaterial;
       bool enableLineSmooth;
       STATE_TEX enableTex[StateTUCount];
       size_t activeTexUnit;
-    
+
     private:
       friend class StateManager;
       friend class GLStateManager;
@@ -123,7 +124,7 @@ namespace tuvok {
      to the GPU.*/
   class StateManager {
     public:
-      StateManager() : m_InternalState(0) {} 
+      StateManager() : m_InternalState(0) {}
 
       /** Applies a given state to GPU pipleine this manager
        *  is associated with
