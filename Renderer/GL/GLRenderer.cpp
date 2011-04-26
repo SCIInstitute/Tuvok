@@ -2594,14 +2594,10 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   typedef std::vector<FLOATVECTOR3> TriList;
   TriList quad;
   bool ccw = transformed.Quad(m_vEye, quad);
-  if(m_eRenderMode != RM_ISOSURFACE) {
-    if(ccw) {
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    } else {
-      vColorQuad *= vColorQuad.w;
-      vColorBorder *= vColorBorder.w;
-      glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-    }
+  if((m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) && !ccw) {
+    vColorQuad *= vColorQuad.w;
+    vColorBorder *= vColorBorder.w;
+    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
   } else {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   }
