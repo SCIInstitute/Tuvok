@@ -48,6 +48,7 @@ namespace tuvok {
 
       virtual void SetEnableDepth(const bool& value);
       virtual void SetEnableCull(const bool& value);
+      virtual void SetCullState(const STATE_CULL& value);
       virtual void SetEnableBlend(const bool& value);
       virtual void SetEnableScissor(const bool& value);
       virtual void SetEnableLighting(const bool& value);
@@ -56,6 +57,10 @@ namespace tuvok {
       virtual void SetEnableLight(size_t i, const bool& value);
       virtual void SetEnableTex(size_t i, const STATE_TEX& value);
       virtual void SetActiveTexUnit(const size_t iUnit);
+      virtual void SetDepthMask(const bool value);
+      virtual void SetColorMask(const bool value);
+      virtual void SetBlendEquation(const BLEND_EQUATION value);
+      virtual void SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest);
 
     private:
       friend class StateManager;

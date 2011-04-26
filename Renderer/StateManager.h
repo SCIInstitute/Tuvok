@@ -44,11 +44,38 @@ namespace tuvok {
   #define StateLightCount 1
   #define StateTUCount 4
 
+  enum STATE_CULL {
+    CULL_FRONT,
+    CULL_BACK
+  };
+
   enum STATE_TEX {
     TEX_1D,
     TEX_2D,
     TEX_3D,
     TEX_UNKNOWN
+  };
+
+  enum BLEND_FUNC {
+    BF_ZERO,
+    BF_ONE,
+    BF_SRC_COLOR,
+    BF_ONE_MINUS_SRC_COLOR,
+    BF_DST_COLOR,
+    BF_ONE_MINUS_DST_COLOR,
+    BF_SRC_ALPHA,
+    BF_ONE_MINUS_SRC_ALPHA,
+    BF_DST_ALPHA,
+    BF_ONE_MINUS_DST_ALPHA,
+    BF_SRC_ALPHA_SATURATE
+  };
+
+  enum BLEND_EQUATION {
+    BE_FUNC_ADD,
+    BE_FUNC_SUBTRACT,
+    BE_FUNC_REVERSE_SUBTRACT,
+    BE_MIN,
+    BE_MAX
   };
 
   class GLStateManager;
@@ -63,12 +90,18 @@ namespace tuvok {
       GPUState() :
         enableDepth(true),
         enableCull(true),
+        cullState(CULL_BACK),
         enableBlend(false),
         enableScissor(false),
         enableLighting(false),
         enableColorMaterial(true),
         enableLineSmooth(false),
-        activeTexUnit(0)
+        activeTexUnit(0),
+        depthMask(true),
+        colorMask(true),
+        blendEquation(BE_FUNC_ADD),
+        blendFuncSrc(BF_ONE),
+        blendFuncDst(BF_ONE)
       {
         for (size_t i = 0;i<StateLightCount;i++) enableLight[i] = false;
         for (size_t i = 0;i<StateTUCount;i++) enableTex[i] = TEX_2D;
@@ -77,6 +110,7 @@ namespace tuvok {
 
       virtual void SetEnableDepth(const bool& value) = 0;
       virtual void SetEnableCull(const bool& value) = 0;
+      virtual void SetCullState(const STATE_CULL& value) = 0;
       virtual void SetEnableBlend(const bool& value) = 0;
       virtual void SetEnableScissor(const bool& value) = 0;
       virtual void SetEnableLighting(const bool& value) = 0;
@@ -85,9 +119,15 @@ namespace tuvok {
       virtual void SetEnableLight(size_t i, const bool& value) = 0;
       virtual void SetEnableTex(size_t i, const STATE_TEX& value) = 0;
       virtual void SetActiveTexUnit(const size_t iUnit) = 0;
+      virtual void SetDepthMask(const bool value) = 0;
+      virtual void SetColorMask(const bool value) = 0;
+      virtual void SetBlendEquation(const BLEND_EQUATION value) = 0;
+      virtual void SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest) = 0;
+      
 
       bool GetEnableDepth() const {return enableDepth;}
       bool GetEnableCull() const {return enableCull;}
+      STATE_CULL GetCullState() const {return cullState;}
       bool GetEnableBlend() const {return enableBlend;}
       bool GetEnableScissor() const {return enableScissor;}
       bool GetEnableLighting() const {return enableLighting;}
@@ -96,10 +136,16 @@ namespace tuvok {
       bool GetEnableLight(size_t i) const {return enableLight[i];}
       STATE_TEX GetEnableTex(size_t i) const {return enableTex[i];}
       size_t GetActiveTexUnit() const {return activeTexUnit;}
+      bool GetDepthMask() const {return depthMask;}
+      bool GetColorMask() const {return colorMask;}
+      BLEND_EQUATION GetBlendEquation() const {return blendEquation;}
+      BLEND_FUNC GetBlendFunctionSrc() const {return blendFuncSrc;}
+      BLEND_FUNC GetBlendFunctionDst() const {return blendFuncDst;}
 
     protected:
       bool enableDepth;
       bool enableCull;
+      STATE_CULL cullState;
       bool enableBlend;
       bool enableScissor;
       bool enableLighting;
@@ -108,6 +154,12 @@ namespace tuvok {
       bool enableLineSmooth;
       STATE_TEX enableTex[StateTUCount];
       size_t activeTexUnit;
+      bool depthMask;
+      bool colorMask;
+      BLEND_EQUATION blendEquation;
+      BLEND_FUNC blendFuncSrc;
+      BLEND_FUNC blendFuncDst;
+
 
     private:
       friend class StateManager;

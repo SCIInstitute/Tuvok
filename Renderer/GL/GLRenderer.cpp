@@ -357,7 +357,7 @@ void GLRenderer::CleanupShader(GLSLProgram** p) {
 }
 
 void GLRenderer::CleanupShaders() {
-  GLSLProgram::Disable();
+  FixedFunctionality();
   CleanupShader(&m_pProgramTrans);
   CleanupShader(&m_pProgram1DTransSlice);
   CleanupShader(&m_pProgram2DTransSlice);
@@ -1270,7 +1270,9 @@ void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
 }
 
 void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
-  GLSLProgram::Disable(); // switch to fixed function pipeline
+  FixedFunctionality();
+
+  // TODO get rid of all the fixed function lighting and use a shader
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_LIGHT0);
   glEnable(GL_LIGHTING);
@@ -1565,7 +1567,8 @@ void GLRenderer::DrawLogo() const {
 }
 
 void GLRenderer::DrawBackGradient() const {
-  GLSLProgram::Disable(); // switch to fixed function pipeline
+  FixedFunctionality();
+
   glDisable(GL_DEPTH_TEST);
 
   glMatrixMode(GL_PROJECTION);
@@ -2408,7 +2411,7 @@ void GLRenderer::RenderTransFrontGeometry() {
 void GLRenderer::PlaneIn3DPreRender() {
   if (!m_bRenderPlanesIn3D) return;
 
-  GLSLProgram::Disable();
+  FixedFunctionality();
 
   // for rendering modes other than isosurface render the planes in the first
   // pass once to init the depth buffer.  for isosurface rendering we can go
@@ -2428,7 +2431,7 @@ void GLRenderer::PlaneIn3DPreRender() {
 void GLRenderer::PlaneIn3DPostRender() {
   if (!m_bRenderPlanesIn3D) return;
 
-  GLSLProgram::Disable();
+  FixedFunctionality();
 
   // Not required for isosurfacing, since we use the depth buffer for
   // occluding/showing the planes
@@ -2586,7 +2589,7 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   ExtendedPlane transformed(m_ClipPlane);
   m_mView[iStereoID].setModelview();
 
-  GLSLProgram::Disable();
+  FixedFunctionality();
 
   /* transformed.Quad will give us back a list of triangle vertices; the return
    * value gives us the order we should render those so that we don't mess up
