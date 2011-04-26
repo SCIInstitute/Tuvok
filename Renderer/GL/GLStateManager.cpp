@@ -48,6 +48,7 @@ GLenum blendFuncToGL(const BLEND_FUNC& func) {
     case BF_ONE_MINUS_DST_ALPHA : return GL_ONE_MINUS_DST_ALPHA; break;
     case BF_SRC_ALPHA_SATURATE : return GL_SRC_ALPHA_SATURATE; break;
   }
+  return GL_ONE;
 }
 
 BLEND_FUNC GLtoBlendFunc(const GLenum& func) {
@@ -64,6 +65,8 @@ BLEND_FUNC GLtoBlendFunc(const GLenum& func) {
     case GL_ONE_MINUS_DST_ALPHA : return BF_ONE_MINUS_DST_ALPHA; break;
     case GL_SRC_ALPHA_SATURATE : return BF_SRC_ALPHA_SATURATE; break;
   }
+
+  return BF_ONE;
 }
 
 void GLState::Apply() {
@@ -139,7 +142,7 @@ void GLState::Apply() {
 
   glBlendFunc( blendFuncToGL(blendFuncSrc), blendFuncToGL(blendFuncDst) );
 
-  GLenum mode;
+  GLenum mode = GL_FUNC_ADD;
   switch (blendEquation) {
     case BE_FUNC_ADD : mode = GL_FUNC_ADD; break;
     case BE_FUNC_SUBTRACT : mode = GL_FUNC_SUBTRACT; break;
@@ -396,7 +399,7 @@ void GLState::SetColorMask(const bool value) {
 void GLState::SetBlendEquation(const BLEND_EQUATION value) {
   if (value != blendEquation) {
     blendEquation = value;
-    GLenum mode;
+    GLenum mode = GL_FUNC_ADD;
 
     switch (blendEquation) {
       case BE_FUNC_ADD : mode = GL_FUNC_ADD; break;
