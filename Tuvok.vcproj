@@ -926,15 +926,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Shaders\GLRaycaster-1D-FS-NC.glsl"
-				>
-			</File>
-			<File
 				RelativePath=".\Shaders\GLRaycaster-1D-FS.glsl"
-				>
-			</File>
-			<File
-				RelativePath=".\Shaders\GLRaycaster-1D-light-FS-NC.glsl"
 				>
 			</File>
 			<File
@@ -942,23 +934,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Shaders\GLRaycaster-2D-FS-NC.glsl"
-				>
-			</File>
-			<File
 				RelativePath=".\Shaders\GLRaycaster-2D-FS.glsl"
 				>
 			</File>
 			<File
-				RelativePath=".\Shaders\GLRaycaster-2D-light-FS-NC.glsl"
-				>
-			</File>
-			<File
 				RelativePath=".\Shaders\GLRaycaster-2D-light-FS.glsl"
-				>
-			</File>
-			<File
-				RelativePath=".\Shaders\GLRaycaster-Color-FS-NC.glsl"
 				>
 			</File>
 			<File
@@ -970,15 +950,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Shaders\GLRaycaster-ISO-CV-FS-NC.glsl"
-				>
-			</File>
-			<File
 				RelativePath=".\Shaders\GLRaycaster-ISO-CV-FS.glsl"
-				>
-			</File>
-			<File
-				RelativePath=".\Shaders\GLRaycaster-ISO-FS-NC.glsl"
 				>
 			</File>
 			<File
@@ -1018,15 +990,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Shaders\GLSBVR-Color-NC-FS.glsl"
-				>
-			</File>
-			<File
 				RelativePath=".\Shaders\GLSBVR-ISO-FS.glsl"
-				>
-			</File>
-			<File
-				RelativePath=".\Shaders\GLSBVR-ISO-NC-FS.glsl"
 				>
 			</File>
 			<File
