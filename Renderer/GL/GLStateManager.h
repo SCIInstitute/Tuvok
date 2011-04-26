@@ -41,9 +41,10 @@ namespace tuvok {
    * Base class for all OpenGL state this object holds
      the rendering pipleine's state in one single object
      to the GPU.*/
-  class GLState : public GPUState{
+  class GLState : public GPUState {
     public:
       GLState();
+      virtual ~GLState() {}
 
       virtual void SetEnableDepth(const bool& value);
       virtual void SetEnableCull(const bool& value);
@@ -73,6 +74,7 @@ namespace tuvok {
   class GLStateManager : public StateManager {
     public:
       GLStateManager();
+      virtual ~GLStateManager() {}
   };
 
 } //namespace tuvok

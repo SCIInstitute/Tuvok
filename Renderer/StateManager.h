@@ -73,6 +73,7 @@ namespace tuvok {
         for (size_t i = 0;i<StateLightCount;i++) enableLight[i] = false;
         for (size_t i = 0;i<StateTUCount;i++) enableTex[i] = TEX_2D;
       }
+      virtual ~GPUState() {}
 
       virtual void SetEnableDepth(const bool& value) = 0;
       virtual void SetEnableCull(const bool& value) = 0;
@@ -125,6 +126,7 @@ namespace tuvok {
   class StateManager {
     public:
       StateManager() : m_InternalState(0) {}
+      virtual ~StateManager() {}
 
       /** Applies a given state to GPU pipleine this manager
        *  is associated with
