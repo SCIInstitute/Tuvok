@@ -39,6 +39,12 @@
 
 #include "StdTuvokDefines.h"
 
+#ifdef _MSC_VER
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
+
 namespace tuvok {
 
   #define StateLightCount 1
@@ -94,17 +100,17 @@ namespace tuvok {
         enableBlend(false),
         enableScissor(false),
         enableLighting(false),
-        enableColorMaterial(true),
+        enableColorMaterial(false),
         enableLineSmooth(false),
         activeTexUnit(0),
         depthMask(true),
         colorMask(true),
         blendEquation(BE_FUNC_ADD),
-        blendFuncSrc(BF_ONE),
+        blendFuncSrc(BF_ONE_MINUS_DST_ALPHA),
         blendFuncDst(BF_ONE)
       {
         for (size_t i = 0;i<StateLightCount;i++) enableLight[i] = false;
-        for (size_t i = 0;i<StateTUCount;i++) enableTex[i] = TEX_2D;
+        for (size_t i = 0;i<StateTUCount;i++) enableTex[i] = TEX_UNKNOWN;
       }
       virtual ~GPUState() {}
 
@@ -192,8 +198,9 @@ namespace tuvok {
 
     protected:
        GPUState* m_InternalState;
-
   };
+
+  typedef std::tr1::shared_ptr<StateManager> StateManagerPtr; 
 
 }; //namespace tuvok
 

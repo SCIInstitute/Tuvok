@@ -49,7 +49,7 @@
 namespace tuvok {
 
 /// Context wrapper based on GLX.  See base class for details.
-class GLContextID : ContextID<GLContextID> {
+class GLContextID : public ContextID<GLContextID> {
   public:
     /// Create an ID with the current context.
 #ifdef DETECTED_OS_WINDOWS

@@ -40,12 +40,6 @@
 
 #include "StateManager.h"
 
-#ifdef _MSC_VER
-# include <memory>
-#else
-# include <tr1/memory>
-#endif
-
 namespace tuvok {
 
 /// Defines an interface by which we can query and compare context
@@ -69,6 +63,8 @@ class ContextID {
     static Context Current() {
       return Context::CurrentCtx();
     }
+
+    std::tr1::shared_ptr<StateManager> GetStateManger() {return m_pState;}
 
   protected:
     ContextID() {}

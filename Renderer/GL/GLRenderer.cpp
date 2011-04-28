@@ -59,9 +59,13 @@
 using namespace std;
 using namespace tuvok;
 
-GLRenderer::GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
-                       bool bDownSampleTo8Bits, bool bDisableBorder) :
-  AbstrRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+GLRenderer::GLRenderer(MasterController* pMasterController, 
+                       bool bUseOnlyPowerOfTwo,
+                       bool bDownSampleTo8Bits, 
+                       bool bDisableBorder) :
+  AbstrRenderer(pMasterController, 
+                bUseOnlyPowerOfTwo, 
+                bDownSampleTo8Bits,
                 bDisableBorder),
   m_TargetBinder(pMasterController),
   m_p1DTransTex(NULL),
@@ -201,7 +205,7 @@ bool GLRenderer::Initialize() {
   return LoadShaders();
 }
 
-bool GLRenderer::LoadShaders() {
+bool GLRenderer::LoadShaders(const string& volumeAccessFunction) {
   const std::string tfqn = m_pDataset
                            ? m_pDataset->GetComponentCount() == 4
                               ? "vr-col-tfqn.glsl"
@@ -224,24 +228,24 @@ bool GLRenderer::LoadShaders() {
                           "Transfer-VS.glsl",
                           NULL,
                           tfqn.c_str(), "lighting.glsl",
-                          "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
+                          "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
-                           "2D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
+                           "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramMIPSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
-                           "MIP-slice-FS.glsl", "Volume3D.glsl", NULL) ||
+                           "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
                           NULL,
                           tfqn.c_str(), "lighting.glsl",
-                           "1D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
+                           "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
                           NULL,
-                           "2D-slice-FS.glsl", "Volume3D.glsl", NULL) ||
+                           "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgramTransMIP, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
@@ -918,6 +922,8 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 
 bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
                                const UINT64 iIntraFrameCounter) {
+  GL_CHECK();
+
   // get the 3D texture from the memory manager
   m_pGLVolume = m_pMasterController->MemMan()->GetVolume(m_pDataset, bkey,
                                                          m_bUseOnlyPowerOfTwo,
@@ -926,6 +932,8 @@ bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
                                                          false,
                                                          iIntraFrameCounter,
                                                          m_iFrameCounter);
+
+  GL_CHECK();
   if(m_pGLVolume) {
     static_cast<GLVolume3DTex*>(m_pGLVolume)->Bind(0);
     return true;

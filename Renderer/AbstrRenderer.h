@@ -167,8 +167,10 @@ class AbstrRenderer: public Scriptable {
      *                           interpolation).
      * @param bDisableBorder     don't use OpenGL borders for textures.
      * @param smeth              method to scale values into TF range */
-    AbstrRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
-                  bool bDownSampleTo8Bits, bool bDisableBorder,
+    AbstrRenderer(MasterController* pMasterController,
+                  bool bUseOnlyPowerOfTwo,
+                  bool bDownSampleTo8Bits, 
+                  bool bDisableBorder,
                   enum ScalingMethod smeth = SMETH_BIT_WIDTH);
     /** Deallocates dataset and transfer functions. */
     virtual ~AbstrRenderer();

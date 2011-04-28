@@ -57,14 +57,21 @@ class GLRaycaster : public GLRenderer {
      * \param pMasterController message routing object
      * \param bUseOnlyPowerOfTwo force power of two textures (compatibility)
      * \param bDownSampleTo8Bits force 8bit textures (compatibility) */
-    GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder, bool bNoRCClipplanes);
+    GLRaycaster(MasterController* pMasterController, 
+                bool bUseOnlyPowerOfTwo, 
+                bool bDownSampleTo8Bits, 
+                bool bDisableBorder, 
+                bool bNoRCClipplanes);
     virtual ~GLRaycaster();
 
     /** Loads GLSL vertex and fragment shaders. */
-    virtual bool Initialize();
+    virtual bool LoadShaders();
 
     /** Deallocates Shaders */
     virtual void CleanupShaders();
+  
+    /** Deallocates GPU memory allocated during the rendering process. */
+    virtual void Cleanup();
 
     /// Can only use CV on scalar datasets.  There's nothing really preventing
     /// its application to RGBA datasets, but shaders would need updating (and

@@ -46,8 +46,14 @@
 using namespace std;
 using namespace tuvok;
 
-GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
-  GLRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder)
+GLSBVR::GLSBVR(MasterController* pMasterController,              
+               bool bUseOnlyPowerOfTwo, 
+               bool bDownSampleTo8Bits, 
+               bool bDisableBorder) :
+  GLRenderer(pMasterController, 
+             bUseOnlyPowerOfTwo,
+             bDownSampleTo8Bits, 
+             bDisableBorder)
 {
   m_bSupportsMeshes = true;
   m_pProgram1DTransMesh[0] = NULL;
@@ -59,10 +65,6 @@ GLSBVR::GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, boo
 GLSBVR::~GLSBVR() {
 }
 
-void GLSBVR::Cleanup() {
-  GLRenderer::Cleanup();
-}
-
 
 void GLSBVR::CleanupShaders() {
   GLRenderer::CleanupShaders();
@@ -70,14 +72,6 @@ void GLSBVR::CleanupShaders() {
   CleanupShader(&m_pProgram1DTransMesh[1]);
   CleanupShader(&m_pProgram2DTransMesh[0]);
   CleanupShader(&m_pProgram2DTransMesh[1]);
-}
-
-bool GLSBVR::Initialize() {
-  bool bParentOK = GLRenderer::Initialize();
-  if (bParentOK) {
-    return true;
-  }
-  return false;
 }
 
 bool GLSBVR::LoadShaders() {

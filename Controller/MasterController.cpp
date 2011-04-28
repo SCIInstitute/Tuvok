@@ -49,7 +49,6 @@
 #if defined(_WIN32) && defined(USE_DIRECTX)
 #include "../Renderer/DX/DXSBVR.h"
 #include "../Renderer/DX/DXRaycaster.h"
-#include "../Renderer/DX/DXSBVR2D.h"
 #endif
 
 #include "../Scripting/Scripting.h"
@@ -123,9 +122,12 @@ const AbstrDebugOut *MasterController::DebugOut() const {
 
 AbstrRenderer*
 MasterController::RequestNewVolumeRenderer(
-    EVolumeRendererType eRendererType, bool bUseOnlyPowerOfTwo,
-    bool bDownSampleTo8Bits, bool bDisableBorder,
-    bool bNoRCClipplanes, bool bBiasAndScaleTF)
+    EVolumeRendererType eRendererType, 
+    bool bUseOnlyPowerOfTwo,
+    bool bDownSampleTo8Bits, 
+    bool bDisableBorder,
+    bool bNoRCClipplanes, 
+    bool bBiasAndScaleTF)
 {
   std::string api;
   std::string method;
@@ -135,47 +137,53 @@ MasterController::RequestNewVolumeRenderer(
   case OPENGL_SBVR :
     api = "OpenGL";
     method = "Slice Based Volume Renderer";
-    retval = new GLSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+    retval = new GLSBVR(this, 
+                        bUseOnlyPowerOfTwo, 
+                        bDownSampleTo8Bits,
                         bDisableBorder);
     break;
 
   case OPENGL_2DSBVR :
     api = "OpenGL";
     method = "Axis Aligned 2D Slice Based Volume Renderer";
-    retval = new GLSBVR2D(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
-                        bDisableBorder);
+    retval = new GLSBVR2D(this, 
+                          bUseOnlyPowerOfTwo, 
+                          bDownSampleTo8Bits,
+                          bDisableBorder);
     break;
 
   case OPENGL_RAYCASTER :
     api = "OpenGL";
     method = "Raycaster";
-    retval = new GLRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
-                             bDisableBorder, bNoRCClipplanes);
+    retval = new GLRaycaster(this, 
+                             bUseOnlyPowerOfTwo, 
+                             bDownSampleTo8Bits,
+                             bDisableBorder, 
+                             bNoRCClipplanes);
     break;
 
 #if defined(_WIN32) && defined(USE_DIRECTX)
+  case DIRECTX_2DSBVR : // DX 10 always supports 3D textures, no need for a 2D tex renderer
   case DIRECTX_SBVR :
     api = "DirectX";
     method = "Slice Based Volume Renderer";
-    retval = new DXSBVR(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+    retval = new DXSBVR(this, 
+                        bUseOnlyPowerOfTwo, 
+                        bDownSampleTo8Bits,
                         bDisableBorder);
     break;
 
   case DIRECTX_RAYCASTER :
     api = "DirectX";
     method = "Raycaster";
-    retval = new DXRaycaster(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
-                             bDisableBorder);
-    break;
-
-  case DIRECTX_2DSBVR :
-    api = "DirectX";
-    method = "Axis Aligned 2D Slice Based Volume Renderer";
-    retval = new DXSBVR2D(this, bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
+    retval = new DXRaycaster(this, 
+                             bUseOnlyPowerOfTwo,
+                             bDownSampleTo8Bits,
                              bDisableBorder);
     break;
 #else
   case DIRECTX_RAYCASTER :
+  case DIRECTX_2DSBVR :
   case DIRECTX_SBVR :
     m_DebugOut.Error(_func_,"DirectX 10 renderer not yet implemented."
                             "Please select OpenGL as the render API "

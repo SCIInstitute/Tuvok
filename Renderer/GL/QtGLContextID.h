@@ -46,7 +46,7 @@
 namespace tuvok {
 
 /// GL context information based on the `QGLContext' class.
-class QtGLContextID : ContextID<QtGLContextID> {
+class QtGLContextID : public ContextID<QtGLContextID> {
   public:
     /// Create an ID with the current context.
     QtGLContextID() : ctx((QGLContext::currentContext())) {

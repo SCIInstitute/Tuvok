@@ -49,8 +49,15 @@
 using namespace std;
 using namespace tuvok;
 
-GLRaycaster::GLRaycaster(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder, bool bNoRCClipplanes) :
-  GLRenderer(pMasterController,bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
+GLRaycaster::GLRaycaster(MasterController* pMasterController, 
+                         bool bUseOnlyPowerOfTwo, 
+                         bool bDownSampleTo8Bits, 
+                         bool bDisableBorder, 
+                         bool bNoRCClipplanes) :
+  GLRenderer(pMasterController,
+             bUseOnlyPowerOfTwo, 
+             bDownSampleTo8Bits, 
+             bDisableBorder),
   m_pFBORayEntry(NULL),
   m_pProgramRenderFrontFaces(NULL),
   m_pProgramRenderFrontFacesNT(NULL),
@@ -68,14 +75,18 @@ GLRaycaster::~GLRaycaster() {
 void GLRaycaster::CleanupShaders() {
   GLRenderer::CleanupShaders();
 
+  CleanupShader(&m_pProgramRenderFrontFaces);
+  CleanupShader(&m_pProgramRenderFrontFacesNT);
+  CleanupShader(&m_pProgramIso2);
+}
+
+void GLRaycaster::Cleanup() {
+  GLRenderer::Cleanup();
+
   if (m_pFBORayEntry){
     m_pMasterController->MemMan()->FreeFBO(m_pFBORayEntry); 
     m_pFBORayEntry = NULL;
   }
-
-  CleanupShader(&m_pProgramRenderFrontFaces);
-  CleanupShader(&m_pProgramRenderFrontFacesNT);
-  CleanupShader(&m_pProgramIso2);
 }
 
 void GLRaycaster::CreateOffscreenBuffers() {
@@ -86,13 +97,13 @@ void GLRaycaster::CreateOffscreenBuffers() {
   }
 }
 
-bool GLRaycaster::Initialize() {
-  if (!GLRenderer::Initialize()) {
+
+
+bool GLRaycaster::LoadShaders() {
+  if (!GLRenderer::LoadShaders()) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
-
-  glShadeModel(GL_SMOOTH);
 
   const char* shaderNames[7];
   if (m_bNoRCClipplanes) {
@@ -239,9 +250,9 @@ bool GLRaycaster::Initialize() {
     /// We always clip against the plane in the shader, so initialize the plane
     /// to be way out in left field, ensuring nothing will be clipped.
     ClipPlaneToShader(ExtendedPlane::FarawayPlane(),0,true);
+    return true;
   }
 
-  return true;
 }
 
 void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D&,

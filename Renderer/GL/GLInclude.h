@@ -78,6 +78,21 @@
   } while(0)
 
 #ifdef _DEBUG
+# define GL_CHECK()                                                    \
+  do {                                                                 \
+    GLenum glerr;                                                      \
+    while((glerr = glGetError()) != GL_NO_ERROR) {                     \
+      T_ERROR("GL error before line %u (%s): %s (%#x)",                \
+              __LINE__, __FILE__,                                      \
+              gluErrorString(glerr),                                   \
+              static_cast<unsigned>(glerr));                           \
+    }                                                                  \
+  } while(0)
+#else
+# define GL_CHECK() 
+#endif
+
+#ifdef _DEBUG
 # define GL(stmt)                                                      \
   do {                                                                 \
     GLenum glerr;                                                      \

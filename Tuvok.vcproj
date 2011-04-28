@@ -1388,14 +1388,6 @@
 					RelativePath=".\Renderer\DX\DXSBVR.h"
 					>
 				</File>
-				<File
-					RelativePath=".\Renderer\DX\DXSBVR2D.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Renderer\DX\DXSBVR2D.h"
-					>
-				</File>
 			</Filter>
 			<Filter
 				Name="Capturing"
@@ -1753,11 +1745,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File

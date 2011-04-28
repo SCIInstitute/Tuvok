@@ -54,8 +54,10 @@ using namespace tuvok;
 static bool unregistered = true;
 
 AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
-                             bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
-                             bool bDisableBorder, enum ScalingMethod sm) :
+                             bool bUseOnlyPowerOfTwo, 
+                             bool bDownSampleTo8Bits,
+                             bool bDisableBorder, 
+                             enum ScalingMethod sm) :
   m_pMasterController(pMasterController),
   m_eRenderMode(RM_1DTRANS),
   m_bFirstDrawAfterModeChange(true),

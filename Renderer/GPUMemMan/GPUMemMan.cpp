@@ -777,12 +777,14 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                       bool bEmulate3DWith2DStacks,
                                       UINT64 iIntraFrameCounter,
                                       UINT64 iFrameCounter) {
+
   for (GLVolumeListIter i = m_vpTex3DList.begin();
        i < m_vpTex3DList.end(); i++) {
     if ((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                      bDownSampleTo8Bits, bDisableBorder,
                      bEmulate3DWith2DStacks,
                      CTContext::Current())) {
+      GL_CHECK();
       MESSAGE("Reusing 3D texture");
       return (*i)->Access(iIntraFrameCounter, iFrameCounter);
     }
@@ -842,6 +844,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
     }
   }
 
+
   MESSAGE("Creating new gl volume %u x %u x %u, "
           "bitsize=%llu, componentcount=%llu",
           sz[0], sz[1], sz[2], iBitWidth, iCompCount);
@@ -856,6 +859,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                                      m_MasterController,
                                                      CTContext::Current(),
                                                      m_vUploadHub);
+
   if (pNew3DTex->volumes[0] == NULL) {
     T_ERROR("Failed to create OpenGL resource for volume.");
     delete pNew3DTex;

@@ -52,8 +52,13 @@ namespace tuvok {
     public:
       /** Constructs a VRer with immediate redraw, and
        * wireframe mode off.
-       * \param pMasterController message routing object */
-      GLSBVR(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder);
+       * \param pMasterController message routing object 
+       * \param bUseOnlyPowerOfTwo force power of two textures (compatibility)
+       * \param bDownSampleTo8Bits force 8bit textures (compatibility) */
+      GLSBVR(MasterController* pMasterController,
+             bool bUseOnlyPowerOfTwo, 
+             bool bDownSampleTo8Bits, 
+             bool bDisableBorder);
       virtual ~GLSBVR();
 
       /** Loads GLSL vertex and fragment shaders. */
@@ -85,9 +90,6 @@ namespace tuvok {
 
       virtual ERendererType GetRendererType() const {return RT_SBVR;}
       
-      /** Deallocates GPU memory allocated during the rendering process. */
-      virtual void Cleanup();
-
     protected:
       SBVRGeogen3D  m_SBVRGeogen;
       GLSLProgram*  m_pProgram1DTransMesh[2];
@@ -108,7 +110,6 @@ namespace tuvok {
 
       virtual void ComposeSurfaceImage(RenderRegion &renderRegion, int iStereoID);
       virtual void UpdateLightParamsInShaders();
-      virtual bool Initialize();
   };
 };
 #endif // GLSBVR_H

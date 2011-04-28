@@ -53,9 +53,13 @@ namespace tuvok {
     public:
       /** Constructs a VRer with immediate redraw, and
        * wireframe mode off.
-       * \param pMasterController message routing object */
-      GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
-               bool bDownSampleTo8Bits, bool bDisableBorder);
+       * \param pMasterController message routing object 
+       * \param bUseOnlyPowerOfTwo force power of two textures (compatibility)
+       * \param bDownSampleTo8Bits force 8bit textures (compatibility) */
+      GLSBVR2D(MasterController* pMasterController, 
+               bool bUseOnlyPowerOfTwo,
+               bool bDownSampleTo8Bits, 
+               bool bDisableBorder);
       virtual ~GLSBVR2D();
 
       /** Loads GLSL vertex and fragment shaders. */

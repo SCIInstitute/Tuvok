@@ -48,8 +48,14 @@
 using namespace std;
 using namespace tuvok;
 
-GLSBVR2D::GLSBVR2D(MasterController* pMasterController, bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits, bool bDisableBorder) :
-  GLRenderer(pMasterController, bUseOnlyPowerOfTwo, bDownSampleTo8Bits, bDisableBorder),
+GLSBVR2D::GLSBVR2D(MasterController* pMasterController, 
+                   bool bUseOnlyPowerOfTwo,
+                   bool bDownSampleTo8Bits,
+                   bool bDisableBorder) :
+  GLRenderer(pMasterController, 
+             bUseOnlyPowerOfTwo,
+             bDownSampleTo8Bits,
+             bDisableBorder),
   m_bUse3DTexture(false)
 {
   m_bSupportsMeshes = false; // not fully implemented yet
@@ -87,6 +93,12 @@ bool GLSBVR2D::LoadShaders() {
 
   string volumeAccessFunction = m_bUse3DTexture ? "Volume3D.glsl"
                                                 : "Volume2D.glsl";
+
+  if (!GLRenderer::LoadShaders(volumeAccessFunction)) {
+    T_ERROR("Error in parent call -> aborting");
+    return false;
+  }
+
   const std::string tfqn = m_pDataset
                            ? (m_pDataset->GetComponentCount() == 3 ||
                               m_pDataset->GetComponentCount() == 4)
@@ -99,6 +111,9 @@ bool GLSBVR2D::LoadShaders() {
                               ? "vr-col-tfqn-lit.glsl"
                               : "vr-scal-tfqn-lit.glsl"
                            : "vr-scal-tfqn.glsl";
+
+
+/*
 
   if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
@@ -221,7 +236,7 @@ bool GLSBVR2D::LoadShaders() {
     m_pProgramAFStereo->ConnectTextureID("texLeftEye",0);
     m_pProgramAFStereo->ConnectTextureID("texRightEye",1);
   }
-
+*/
 
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",

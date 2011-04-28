@@ -45,6 +45,7 @@
 #include "../AbstrRenderer.h"
 #include "GLTargetBinder.h"
 #include "RenderMeshGL.h"
+#include "GLStateManager.h"
 
 
 namespace tuvok {
@@ -57,8 +58,14 @@ class GLSLProgram;
 
 class GLRenderer : public AbstrRenderer {
   public:
-    GLRenderer(MasterController* pMasterController, bool bUseOnlyPowerOfTwo,
-               bool bDownSampleTo8Bits, bool bDisableBorder);
+    /** Constructs a VRer 
+     * \param pMasterController message routing object 
+     * \param bUseOnlyPowerOfTwo force power of two textures (compatibility)
+     * \param bDownSampleTo8Bits force 8bit textures (compatibility) */
+    GLRenderer(MasterController* pMasterController,
+               bool bUseOnlyPowerOfTwo,
+               bool bDownSampleTo8Bits, 
+               bool bDisableBorder);
     virtual ~GLRenderer();
     virtual bool Initialize();
     virtual void Set1DTrans(const std::vector<unsigned char>&);
@@ -197,7 +204,8 @@ class GLRenderer : public AbstrRenderer {
     virtual bool BindVolumeTex(const BrickKey& bkey,
                                const UINT64 iIntraFrameCounter);
     virtual bool UnbindVolumeTex();
-    virtual bool LoadShaders();
+    virtual bool LoadShaders() { return LoadShaders("Volume3D.glsl"); }
+    virtual bool LoadShaders(const std::string& volumeAccessFunction);
     void CleanupShader(GLSLProgram** p);
 
     void RenderOpaqueGeometry();

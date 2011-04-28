@@ -82,7 +82,7 @@ void GLState::Apply() {
     glDisable(GL_CULL_FACE);
   }
 
-  glCullFace((cullState == CULL_FRONT) ? GL_FRONT : GL_BACK);
+  GL(glCullFace((cullState == CULL_FRONT) ? GL_FRONT : GL_BACK));
 
   if (enableScissor) {
     glEnable(GL_SCISSOR_TEST);
@@ -117,7 +117,7 @@ void GLState::Apply() {
   }
 
   for (size_t i = 0;i<StateTUCount;i++) {
-    glActiveTexture(GLenum(GL_TEXTURE+i));
+    glActiveTexture(GLenum(GL_TEXTURE0+i));
     switch (enableTex[i]) {
       case TEX_1D:      glEnable(GL_TEXTURE_1D);
                         glDisable(GL_TEXTURE_2D);
@@ -150,11 +150,14 @@ void GLState::Apply() {
     case BE_MIN : mode = GL_MIN; break;
     case BE_MAX : mode = GL_MAX; break;
   }
-  glBlendEquation  ( mode );
+  glBlendEquation(mode);
 
+  GL_CHECK();
 }
 
 void GLState::Apply(const GPUState& state) {
+  GL_CHECK();
+
   SetEnableDepth(state.GetEnableDepth());
   SetEnableCull(state.GetEnableCull());
   SetCullState(state.GetCullState());
@@ -172,7 +175,7 @@ void GLState::Apply(const GPUState& state) {
   // glActiveTexture calls
   for (size_t i = 0;i<StateTUCount;i++) {
     if (state.GetEnableTex(i) != enableTex[i]) {
-      glActiveTexture(GLenum(GL_TEXTURE+i));
+      glActiveTexture(GLenum(GL_TEXTURE0+i));
       enableTex[i] = state.GetEnableTex(i);
       switch (enableTex[i]) {
         case TEX_1D:      glEnable(GL_TEXTURE_1D);
@@ -198,10 +201,14 @@ void GLState::Apply(const GPUState& state) {
   SetColorMask(state.GetColorMask());
   SetBlendEquation(state.GetBlendEquation());
   SetBlendFunction(state.GetBlendFunctionSrc(), state.GetBlendFunctionDst());
+
+  GL_CHECK();
 }
 
 void GLState::GetFromOpenGL()
 {
+  GL_CHECK();
+
   enableDepth         = glIsEnabled(GL_DEPTH_TEST) != 0;
   enableCull          = glIsEnabled(GL_CULL_FACE)!= 0;
 
@@ -254,6 +261,8 @@ void GLState::GetFromOpenGL()
     case GL_MIN : blendEquation = BE_MIN; break;
     case GL_MAX : blendEquation = BE_MAX; break;
   }
+
+  GL_CHECK();
 }
 
 void GLState::SetEnableDepth(const bool& value) {
