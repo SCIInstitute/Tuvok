@@ -41,8 +41,10 @@
 
 #ifdef _MSC_VER
 # include <array>
+# include <memory>
 #else
 # include <tr1/array>
+# include <tr1/memory>
 #endif
 #include <deque>
 #include <string>
@@ -181,6 +183,12 @@ namespace tuvok {
 
     bool LoadData(std::vector<unsigned char>& vUploadHub);
     void FreeData();
+    std::pair<std::tr1::shared_ptr<unsigned char>, UINTVECTOR3> PadData(
+      unsigned char* pRawData,
+      UINTVECTOR3 vSize,
+      UINT64 iBitWidth,
+      UINT64 iCompCount
+    );
     bool CreateTexture(std::vector<unsigned char>& vUploadHub,
                        bool bDeleteOldTexture=true);
     void  FreeTexture();

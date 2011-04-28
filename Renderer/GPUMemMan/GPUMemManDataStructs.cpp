@@ -54,6 +54,7 @@
 #include "Renderer/GL/GLVolume2DTex.h"
 
 using namespace tuvok;
+using namespace std::tr1;
 
 
 GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
@@ -254,7 +255,14 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
   }
   while (glGetError() != GL_NO_ERROR) {};  // clear gl error flags
 
-  volumes[0]->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
+  std::pair<shared_ptr<unsigned char>, UINTVECTOR3> padded = PadData(
+    m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0),
+    pDataset->GetBrickVoxelCounts(m_Key),
+    pDataset->GetBitWidth(),
+    pDataset->GetComponentCount()
+  );
+
+  volumes[0]->SetData(padded.first.get());
 
   return GL_NO_ERROR==glGetError();
 }
@@ -280,6 +288,71 @@ void  GLVolumeListElem::FreeData() {
   vData.resize(0);
 }
 
+static void DeleteArray(unsigned char* p) { delete[] p; }
+
+std::pair<shared_ptr<unsigned char>, UINTVECTOR3>
+GLVolumeListElem::PadData(unsigned char* pRawData, UINTVECTOR3 vSize, UINT64 iBitWidth,
+                          UINT64 iCompCount)
+{
+  // pad the data to a power of two
+  UINTVECTOR3 vPaddedSize(MathTools::NextPow2(UINT32(vSize[0])),
+                          MathTools::NextPow2(UINT32(vSize[1])),
+                          MathTools::NextPow2(UINT32(vSize[2])));
+  size_t iTarget = 0;
+  size_t iSource = 0;
+  size_t iElementSize = static_cast<size_t>(iBitWidth/8*iCompCount);
+  size_t iRowSizeSource = vSize[0]*iElementSize;
+  size_t iRowSizeTarget = vPaddedSize[0]*iElementSize;
+
+  shared_ptr<unsigned char> pPaddedData;
+  try {
+    pPaddedData = shared_ptr<unsigned char>(
+      new unsigned char[iRowSizeTarget * vPaddedSize[1] * vPaddedSize[2]],
+      DeleteArray
+    );
+  } catch(std::bad_alloc&) {
+    return std::make_pair(shared_ptr<unsigned char>(), vPaddedSize);
+  }
+  memset(pPaddedData.get(), 0, iRowSizeTarget*vPaddedSize[1]*vPaddedSize[2]);
+
+  for (size_t z = 0;z<vSize[2];z++) {
+    for (size_t y = 0;y<vSize[1];y++) {
+      memcpy(pPaddedData.get()+iTarget, pRawData+iSource, iRowSizeSource);
+
+      // if the x sizes differ, duplicate the last element to make the
+      // texture behave like clamp
+      if (!m_bDisableBorder && iRowSizeTarget > iRowSizeSource)
+        memcpy(pPaddedData.get()+iTarget+iRowSizeSource,
+               pPaddedData.get()+iTarget+iRowSizeSource-iElementSize,
+               iElementSize);
+      iTarget += iRowSizeTarget;
+      iSource += iRowSizeSource;
+    }
+    // if the y sizes differ, duplicate the last element to make the texture
+    // behave like clamp
+    if (vPaddedSize[1] > vSize[1]) {
+      if (!m_bDisableBorder)
+        memcpy(pPaddedData.get()+iTarget, pPaddedData.get()+iTarget-iRowSizeTarget,
+               iRowSizeTarget);
+      iTarget += (vPaddedSize[1]-vSize[1])*iRowSizeTarget;
+    }
+  }
+
+  // if the z sizes differ, duplicate the last element to make the texture
+  // behave like clamp
+  if (!m_bDisableBorder && vPaddedSize[2] > vSize[2]) {
+    memcpy(pPaddedData.get()+iTarget,
+           pPaddedData.get()+(iTarget-vPaddedSize[1]*iRowSizeTarget),
+           vPaddedSize[1]*iRowSizeTarget);
+  }
+
+  MESSAGE("Actually using new texture %u x %u x %u, bitsize=%llu, "
+          "componentcount=%llu due to compatibility settings",
+          vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
+          iBitWidth, iCompCount);
+
+  return std::make_pair(pPaddedData, vPaddedSize);
+}
 
 bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
                                      bool bDeleteOldTexture) {
@@ -393,64 +466,16 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
                                      clamp, clamp, clamp);
     }
   } else {
-    // pad the data to a power of two
-    UINTVECTOR3 vPaddedSize(MathTools::NextPow2(UINT32(vSize[0])),
-                            MathTools::NextPow2(UINT32(vSize[1])),
-                            MathTools::NextPow2(UINT32(vSize[2])));
-    size_t iTarget = 0;
-    size_t iSource = 0;
-    size_t iElementSize = static_cast<size_t>(iBitWidth/8*iCompCount);
-    size_t iRowSizeSource = vSize[0]*iElementSize;
-    size_t iRowSizeTarget = vPaddedSize[0]*iElementSize;
-
-    unsigned char* pPaddedData;
-    try {
-      pPaddedData = new unsigned char[iRowSizeTarget *
-                                      vPaddedSize[1] *
-                                      vPaddedSize[2]];
-    } catch(std::bad_alloc&) {
-      return false;
-    }
-    memset(pPaddedData, 0, iRowSizeTarget*vPaddedSize[1]*vPaddedSize[2]);
-
-    for (size_t z = 0;z<vSize[2];z++) {
-      for (size_t y = 0;y<vSize[1];y++) {
-        memcpy(pPaddedData+iTarget, pRawData+iSource, iRowSizeSource);
-
-        // if the x sizes differ, duplicate the last element to make the
-        // texture behave like clamp
-        if (!m_bDisableBorder && iRowSizeTarget > iRowSizeSource)
-          memcpy(pPaddedData+iTarget+iRowSizeSource,
-                 pPaddedData+iTarget+iRowSizeSource-iElementSize,
-                 iElementSize);
-        iTarget += iRowSizeTarget;
-        iSource += iRowSizeSource;
-      }
-      // if the y sizes differ, duplicate the last element to make the texture
-      // behave like clamp
-      if (vPaddedSize[1] > vSize[1]) {
-        if (!m_bDisableBorder)
-          memcpy(pPaddedData+iTarget, pPaddedData+iTarget-iRowSizeTarget, iRowSizeTarget);
-        iTarget += (vPaddedSize[1]-vSize[1])*iRowSizeTarget;
-      }
-    }
-    // if the z sizes differ, duplicate the last element to make the texture
-    // behave like clamp
-    if (!m_bDisableBorder && vPaddedSize[2] > vSize[2]) {
-      memcpy(pPaddedData+iTarget,
-             pPaddedData+(iTarget-vPaddedSize[1]*iRowSizeTarget),
-             vPaddedSize[1]*iRowSizeTarget);
-    }
-
-    MESSAGE("Actually creating new texture %u x %u x %u, bitsize=%llu, "
-            "componentcount=%llu due to compatibility settings",
-            vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
-            iBitWidth, iCompCount);
+    std::pair<shared_ptr<unsigned char>, UINTVECTOR3> padded =
+      PadData(pRawData, vSize, iBitWidth, iCompCount);
+    const shared_ptr<unsigned char>& pPaddedData = padded.first;
+    const UINTVECTOR3& vPaddedSize = padded.second;
 
     if (m_bEmulate3DWith2DStacks) {
       volumes[0] = new GLVolume2DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
                                      glInternalformat, glFormat, glType,
-                                     UINT32(iBitWidth/8*iCompCount), pPaddedData,
+                                     UINT32(iBitWidth/8*iCompCount),
+                                     pPaddedData.get(),
                                      GL_LINEAR, GL_LINEAR,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
@@ -458,13 +483,13 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     } else {
       volumes[0] = new GLVolume3DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
                                      glInternalformat, glFormat, glType,
-                                     UINT32(iBitWidth/8*iCompCount), pPaddedData,
+                                     UINT32(iBitWidth/8*iCompCount),
+                                     pPaddedData.get(),
                                      GL_LINEAR, GL_LINEAR,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
     }
-    delete [] pPaddedData;
   }
 
   FreeData();
