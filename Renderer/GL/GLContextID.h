@@ -45,6 +45,7 @@
 # include <GL/glxew.h>
 #endif
 #include "../ContextID.h"
+#include "GLStateManager.h"
 
 namespace tuvok {
 
@@ -71,7 +72,6 @@ class GLContextID : public ContextID<GLContextID> {
     }
 
     ~GLContextID(){
-      delete m_pState;
     }
 
     static GLContextID Current() { return GLContextID(); }

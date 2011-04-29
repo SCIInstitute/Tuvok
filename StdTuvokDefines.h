@@ -43,6 +43,15 @@
 // for use in ImageVis3D Qt in Tuvok is required
 // #define TUVOK_NO_QT 1
 
+// CRT's memory leak detection on windows
+// only makes sense with TUVOK_NO_QT enabled
+// as otherwise Qt will trigger the memleak detection
+//#ifdef _WIN32
+//  #if defined(DEBUG) || defined(_DEBUG)
+//    #include <crtdbg.h>
+//  #endif
+//#endif
+
 #include "Basics/StdDefines.h"
 
 // Make sure windows doesn't give us stupid macros.
@@ -69,5 +78,8 @@
 # warning "unknown compiler!"
 # define _func_ "???"
 #endif
+
+
+
 
 #endif // STDTUVOKDEFINES_H
