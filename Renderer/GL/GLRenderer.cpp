@@ -1520,6 +1520,8 @@ void GLRenderer::CopyImageToDisplayBuffer() {
 void GLRenderer::DrawLogo() const {
   if (m_pLogoTex == NULL) return;
 
+  FixedFunctionality();
+
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
