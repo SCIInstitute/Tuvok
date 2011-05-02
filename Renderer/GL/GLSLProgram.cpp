@@ -339,12 +339,12 @@ static std::string readshader(const std::string& filename)
   std::ifstream::pos_type len = ifs.tellg();
   ifs.seekg(0, std::ios::beg);
 
-  std::vector<char> shader(len+std::ifstream::pos_type(1), 0);
+  std::vector<char> shader(size_t(len+std::ifstream::pos_type(1)), 0);
   size_t offset=0;
   do {
     std::streamsize length = std::streamsize(len) - std::streamsize(offset);
     ifs.read(&shader[offset], length);
-    offset += ifs.gcount();
+    offset += size_t(ifs.gcount());
   } while(!ifs.eof() && std::ifstream::pos_type(offset) < len);
   ifs.close();
 

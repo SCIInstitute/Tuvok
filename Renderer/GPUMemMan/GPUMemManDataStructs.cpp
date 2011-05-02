@@ -169,7 +169,7 @@ namespace nonstd {
   T accumulate(InputIter first, InputIter last, T init, UnaryFunc uop) {
     T rv = init;
     for(; first != last; ++first) {
-      rv = rv + uop(*first);
+      rv = rv + T(uop(*first));
     }
     return rv;
   }
