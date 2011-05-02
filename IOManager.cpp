@@ -33,8 +33,8 @@
            University of Utah
   \date    August 2008
 */
-#include "IOManager.h"
 
+#include "StdTuvokDefines.h"
 #include <algorithm>
 #include <cstring>
 #include <fstream>
@@ -46,6 +46,8 @@
 #include <memory>
 #include "boost/cstdint.hpp"
 #include "3rdParty/jpeglib/jconfig.h"
+
+#include "IOManager.h"
 
 #include "Basics/SysTools.h"
 #include "Controller/Controller.h"
