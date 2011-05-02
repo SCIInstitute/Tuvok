@@ -65,6 +65,9 @@ typedef unsigned char BYTE;
 // Get rid of stupid warnings.
 #define _CRT_SECURE_NO_WARNINGS 1
 
+// Get rid of stupid warnings Part 2.
+#define _SCL_SECURE_NO_WARNINGS 1
+
 #define UNUSED (0)
 #define UNUSED_FLOAT (0.0f)
 #define UNUSED_DOUBLE (0.0)
