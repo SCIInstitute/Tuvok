@@ -65,7 +65,7 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
                                     UINT64 iIntraFrameCounter,
                                     UINT64 iFrameCounter,
                                     MasterController* pMasterController,
-                                    const CTContext &ctx,
+                                    const CTGLContext &ctx,
                                     std::vector<unsigned char>& vUploadHub) :
   pDataset(_pDataset),
   iUserCount(1),
@@ -96,7 +96,7 @@ bool GLVolumeListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
                               bool bIsPaddedToPowerOfTwo,
                               bool bIsDownsampledTo8Bits, bool bDisableBorder,
                               bool bEmulate3DWith2DStacks,
-                              const CTContext &cid)
+                              const CTGLContext &cid)
 {
   if (_pDataset != pDataset ||
       m_Key != key ||
@@ -126,7 +126,7 @@ bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
                                  bool bEmulate3DWith2DStacks,
                                  UINT64& iIntraFrameCounter,
                                  UINT64& iFrameCounter,
-                                 const CTContext &cid)
+                                 const CTGLContext &cid)
 {
   if (!Match(vDimension) || iUserCount > 0
       || m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo
@@ -230,7 +230,7 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
                                bool bDisableBorder,
                                bool bEmulate3DWith2DStacks,
                                UINT64 iIntraFrameCounter,
-                               UINT64 iFrameCounter, const CTContext &cid,
+                               UINT64 iFrameCounter, const CTGLContext &cid,
                                std::vector<unsigned char>& vUploadHub) {
   if(volumes.empty()) { return false; }
   if (m_Context != cid) {

@@ -84,6 +84,7 @@ class DXRenderer : public AbstrRenderer {
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
 
+    virtual bool IsVolumeResident(const BrickKey& key) const;
 
     void SetWinID(HWND winId) {m_hWnd = winId;}
 
@@ -97,6 +98,7 @@ class DXRenderer : public AbstrRenderer {
     IDXGISwapChain*         m_pSwapChain;
     ID3D10RenderTargetView* m_pRenderTargetView;
     IDXGIFactory*           m_pDXGIFactory;
+    CTDXContext             m_Context;
 
     bool OnCreateDevice();
     bool OnResizedSwapChain();

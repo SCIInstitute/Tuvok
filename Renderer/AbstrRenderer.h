@@ -208,7 +208,7 @@ class AbstrRenderer: public Scriptable {
     }
 
 
-    virtual bool Initialize(CTContext ctx);
+    virtual bool Initialize();
 
     /** Deallocates GPU memory allocated during the rendering process. */
     virtual void Cleanup() = 0;
@@ -516,7 +516,6 @@ class AbstrRenderer: public Scriptable {
 
   protected:
     MasterController*   m_pMasterController;
-    CTContext           m_pContext;
     ERenderMode         m_eRenderMode;
     bool                m_bFirstDrawAfterModeChange;
     bool                m_bFirstDrawAfterResize;
@@ -669,7 +668,7 @@ class AbstrRenderer: public Scriptable {
 
     RenderRegion3D* GetFirst3DRegion();
 
-    virtual bool IsVolumeResident(const BrickKey& key);
+    virtual bool IsVolumeResident(const BrickKey& key) const = 0;
 
     virtual void RegisterCalls(Scripting*);
 

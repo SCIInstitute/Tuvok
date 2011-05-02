@@ -38,24 +38,26 @@
 #ifndef TUVOK_CONTEXT_H
 #define TUVOK_CONTEXT_H
 
+#ifdef USE_DIRECTX
+# include "DX/DXContextID.h"
+  namespace tuvok {
+    typedef DXContextID CTDXContext;
+  };
+#endif
+
 // We also have a `GLContextID' which is not based on Qt.  For most projects,
 // we can rely on Qt's presence, so it's better to use the Qt object for this.
 // If you're embedding Tuvok in another app though, you might want to replace
 // the Qt context implementation with the straight-GL implementation.
-#ifdef USE_DIRECTX
-# include "DX/DXContextID.h"
-  namespace tuvok {
-    typedef DXContextID CTContext;
-  };
-#elif defined(TUVOK_NO_QT)
+#ifdef TUVOK_NO_QT
 # include "GL/GLContextID.h"
   namespace tuvok {
-    typedef GLContextID CTContext;
+    typedef GLContextID CTGLContext;
   };
 #else
 # include "GL/QtGLContextID.h"
   namespace tuvok {
-    typedef QtGLContextID CTContext;
+    typedef QtGLContextID CTGLContext;
   };
 #endif
 

@@ -67,7 +67,7 @@ class GLRenderer : public AbstrRenderer {
                bool bDownSampleTo8Bits, 
                bool bDisableBorder);
     virtual ~GLRenderer();
-    virtual bool Initialize(CTContext ctx);
+    virtual bool Initialize(CTGLContext ctx);
     virtual void Set1DTrans(const std::vector<unsigned char>&);
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();
@@ -108,6 +108,7 @@ class GLRenderer : public AbstrRenderer {
     void FixedFunctionality() const;
     
   protected:
+    CTGLContext     m_Context;
     GLTargetBinder  m_TargetBinder;
     GLTexture1D*    m_p1DTransTex;
     GLTexture2D*    m_p2DTransTex;
@@ -144,6 +145,8 @@ class GLRenderer : public AbstrRenderer {
     void CopyImageToDisplayBuffer();
     void DrawLogo() const;
     void DrawBackGradient() const;
+
+    virtual bool IsVolumeResident(const BrickKey& key) const;
 
     /// Defines a value to use for scaling the TF.  Client apps which hand us
     /// over the raw data will usually want to override this to be 1, since

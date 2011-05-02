@@ -68,6 +68,7 @@ GLRenderer::GLRenderer(MasterController* pMasterController,
                 bUseOnlyPowerOfTwo, 
                 bDownSampleTo8Bits,
                 bDisableBorder),
+  m_Context(),
   m_TargetBinder(pMasterController),
   m_p1DTransTex(NULL),
   m_p2DTransTex(NULL),
@@ -127,11 +128,13 @@ GLRenderer::~GLRenderer() {
   DeleteDepthStorage();
 }
 
-bool GLRenderer::Initialize(CTContext ctx) {
-  if (!AbstrRenderer::Initialize( ctx )) {
+bool GLRenderer::Initialize(CTGLContext ctx) {
+  if (!AbstrRenderer::Initialize()) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
+
+  m_Context = ctx;
 
   // Try to guess filenames for a transfer functions.  We guess based on the
   // filename of the dataset, but it could be the case that our client gave us
@@ -933,7 +936,7 @@ bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
                                                          false,
                                                          iIntraFrameCounter,
                                                          m_iFrameCounter,
-                                                         m_pContext);
+                                                         m_Context);
 
   GL_CHECK();
   if(m_pGLVolume) {
@@ -2974,4 +2977,15 @@ void GLRenderer::UpdateLightParamsInShaders() {
 
   m_pProgramColor->Enable();
   m_pProgramColor->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+}
+
+bool GLRenderer::IsVolumeResident(const BrickKey& key) const {
+  // normally we use "real" 3D textures so implement this method
+  // for 3D textures, it is overriden by 2D texture children
+  return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
+                                                   m_bUseOnlyPowerOfTwo,
+                                                   m_bDownSampleTo8Bits,
+                                                   m_bDisableBorder,
+                                                   false,
+                                                   m_Context);
 }

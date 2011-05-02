@@ -59,7 +59,6 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
                              bool bDisableBorder, 
                              enum ScalingMethod sm) :
   m_pMasterController(pMasterController),
-  m_pContext(),
   m_eRenderMode(RM_1DTRANS),
   m_bFirstDrawAfterModeChange(true),
   m_bFirstDrawAfterResize(true),
@@ -167,8 +166,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   }
 }
 
-bool AbstrRenderer::Initialize(CTContext ctx) {
-  m_pContext = ctx;
+bool AbstrRenderer::Initialize() {
   return m_pDataset != NULL;
 }
 
@@ -1002,17 +1000,6 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
   sort(vBrickList.begin(), vBrickList.end());
 
   return vBrickList;
-}
-
-bool AbstrRenderer::IsVolumeResident(const BrickKey& key) {
-  // normally we use "real" 3D textures so implement this method
-  // for 3D textures, it is overriden by 2D texture children
-  return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
-                                                   m_bUseOnlyPowerOfTwo,
-                                                   m_bDownSampleTo8Bits,
-                                                   m_bDisableBorder,                                                   
-                                                   false,
-                                                   m_pContext);
 }
 
 void AbstrRenderer::GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend) {

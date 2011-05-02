@@ -110,12 +110,12 @@ class GPUMemMan {
                         bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                         bool bDisableBorder, bool bEmulate3DWith2DStacks,
                         UINT64 iIntraFrameCounter, UINT64 iFrameCounter,
-                        const CTContext &cid);
+                        const CTGLContext &cid);
     bool IsResident(const Dataset* pDataset,
                     const BrickKey& key, bool bUseOnlyPowerOfTwo,
                     bool bDownSampleTo8Bits, bool bDisableBorder,
                     bool bEmulate3DWith2DStacks,
-                    const CTContext &cid) const;
+                    const CTGLContext &cid) const;
 
     void Release3DTexture(GLVolume* pGLVolume);
 
@@ -173,7 +173,7 @@ class GPUMemMan {
                                bool bEmulate3DWith2DStacks,
                                UINT64 iIntraFrameCounter,
                                UINT64 iFrameCounter,
-                               const CTContext &cid);
+                               const CTGLContext &cid);
     size_t DeleteUnusedBricks();
     void DeleteArbitraryBrick();
     void Delete3DTexture(size_t iIndex);

@@ -116,7 +116,7 @@ namespace tuvok {
   
       virtual bool BindVolumeTex(const BrickKey& bkey, 
                                  const UINT64 iIntraFrameCounter);
-      virtual bool IsVolumeResident(const BrickKey& key);
+      virtual bool IsVolumeResident(const BrickKey& key) const;
       virtual void RenderSlice(const RenderRegion2D& region, 
                        double fSliceIndex,
                        FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,

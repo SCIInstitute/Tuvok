@@ -48,8 +48,8 @@ namespace tuvok {
 /// between contexts easily.
 ///
 /// You generally don't want to use this class directly.  Include
-/// `Context.h', which will create a `CTContext' (compile-time context)
-/// type, and use the CTContext type in your code.
+/// `Context.h', which will create a `CTGLContext' (compile-time context)
+/// type, and use the CTGLContext type in your code.
 ///
 /// To implement a new type of context, you must define the comparison
 /// operators (of course) and a `Current' method which obtains the

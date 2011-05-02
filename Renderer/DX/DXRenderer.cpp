@@ -76,6 +76,7 @@ bool DXRenderer::Initialize() {
     return false;
   }
 
+
   // next destroy the dx system we may have created already
   if (m_pd3dDevice) OnDestroyDevice();
 
@@ -106,6 +107,8 @@ bool DXRenderer::Initialize() {
   if( FAILED( hr ) ) return false;
   hr = DynamicDX::CreateDXGIFactory( IID_IDXGIFactory, ( void** )&m_pDXGIFactory );
   if( FAILED( hr ) ) return false;
+
+  m_Context = CTDXContext::Current(m_pd3dDevice);
 
   // finally initialize the renderer
   return OnCreateDevice();
@@ -359,5 +362,10 @@ void DXRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
 
 void DXRenderer::ComposeSurfaceImage(int iStereoID) {
 }
+
+bool DXRenderer::IsVolumeResident(const BrickKey& key) const{
+  return false;
+}
+
 
 #endif // _WIN32 && USE_DIRECTX

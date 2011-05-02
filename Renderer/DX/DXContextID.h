@@ -39,23 +39,24 @@
 
 #include "../ContextID.h"
 
+#include "../../Basics/DynamicDX.h"
+
 namespace tuvok {
 
 /// Abstraction for current DirectX context.  See base class for details.
 ///
 /// Currently unimplemented, just holds null; this means that all DirectX
 /// contexts will be considered equivalent.
-class DXContextID : ContextID<DXContextID> {
+class DXContextID : public ContextID<DXContextID> {
   public:
-    /// Create an ID with the current context.
     DXContextID() : ContextID<DXContextID>(),
-                    ctx(NULL /** @todo fixme! */) {}
+                    ctx(NULL) {}
     /// Create an ID from the given context.
-    DXContextID(const void *c) : ContextID<DXContextID>(), ctx(c) {}
+    DXContextID(ID3D10Device *c) : ContextID<DXContextID>(), ctx(c) {}
     DXContextID(const DXContextID &dx) : ContextID<DXContextID>(),
                                          ctx(dx.ctx) { }
 
-    static DXContextID Current() { return DXContextID(); }
+    static DXContextID Current(ID3D10Device *c) { return DXContextID(c); }
 
     bool operator==(const DXContextID &dx_cid) const {
       return this->ctx == dx_cid.ctx;
@@ -64,11 +65,13 @@ class DXContextID : ContextID<DXContextID> {
       return this->ctx != dx_cid.ctx;
     }
 
-  private:
-    DXContextID& operator=(const DXContextID &); ///< undefined
+    DXContextID& operator=(const DXContextID &ct) {
+      this->ctx = ct.ctx;
+      return *this;
+    }
 
   private:
-    const void *ctx;
+    const ID3D10Device* ctx;
 };
 
 };

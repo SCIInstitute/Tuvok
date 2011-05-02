@@ -611,7 +611,7 @@ bool GPUMemMan::IsResident(const Dataset* pDataset,
                            bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                            bool bDisableBorder,
                            bool bEmulate3DWith2DStacks,
-                           const CTContext &cid) const {
+                           const CTGLContext &cid) const {
   for(GLVolumeListConstIter i = m_vpTex3DList.begin();
       i < m_vpTex3DList.end(); ++i) {
     if((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
@@ -642,7 +642,7 @@ required_cpu_memory(const Dataset& ds, const BrickKey& key)
 static GLVolumeListIter
 find_closest_texture(GLVolumeList &lst, const UINTVECTOR3& vSize,
                      bool use_pot, bool downsample, bool disable_border,
-                     bool bEmulate3DWith2DStacks, const CTContext &cid)
+                     bool bEmulate3DWith2DStacks, const CTGLContext &cid)
 {
   UINT64 iTargetFrameCounter = UINT64_INVALID;
   UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
@@ -737,7 +737,7 @@ GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
                                bool bEmulate3DWith2DStacks,
                                UINT64 iIntraFrameCounter,
                                UINT64 iFrameCounter,
-                               const CTContext &cid) {
+                               const CTGLContext &cid) {
   // It can occur that we can create the brick in CPU memory but OpenGL must
   // perform a texture copy to obtain the texture.  If that happens, we'll
   // delete any brick and then try again.
@@ -779,7 +779,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                       bool bEmulate3DWith2DStacks,
                                       UINT64 iIntraFrameCounter,
                                       UINT64 iFrameCounter,
-                                      const CTContext &cid) {
+                                      const CTGLContext &cid) {
 
   for (GLVolumeListIter i = m_vpTex3DList.begin();
        i < m_vpTex3DList.end(); i++) {
