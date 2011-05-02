@@ -255,7 +255,7 @@ fill_buffer_from_file(std::vector<char>& buf, const char *fn,
     buf.resize(size_t(file_size));
   }
   ifs.read(&buf.at(0), size_t(file_size));
-  assert(ifs.gcount() == size_t(file_size));
+  assert(ifs.gcount() == file_size);
 }
 
 }; // namespace tuvok
