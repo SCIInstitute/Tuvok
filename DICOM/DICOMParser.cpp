@@ -806,9 +806,9 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
     // so lets just march througth the rest of the file and search the magic
     // 0x7fe0, then use the last one found
     DICOM_DBG("Manual search for GroupId 0x7fe0\n");
-    size_t iPosition   = fileDICOM.tellg();
+    size_t iPosition   = size_t(fileDICOM.tellg());
     fileDICOM.seekg(0,ios::end);
-    size_t iFileLength = fileDICOM.tellg();
+    size_t iFileLength = size_t(fileDICOM.tellg());
     fileDICOM.seekg(iPosition,ios::beg);
 
     DICOM_DBG("volume size: %u\n", info.m_ivSize.volume());
@@ -819,7 +819,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
     bool bOK = false;
     do {
       iGroupID = 0;
-      iPosition = fileDICOM.tellg();
+      iPosition = size_t(fileDICOM.tellg());
 
       while (!fileDICOM.eof() && iGroupID != 0x7fe0 &&
              iPosition+iPixelDataSize < iFileLength) {

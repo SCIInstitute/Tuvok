@@ -247,15 +247,15 @@ fill_buffer_from_file(std::vector<char>& buf, const char *fn,
 
   // resize our buffer to be big enough for the file
   try {
-    buf.resize(file_size);
+    buf.resize(size_t(file_size));
   } catch(std::bad_alloc &ba) {
     T_ERROR("Could not allocate JPEG buffer (%s)",ba.what());
     WARNING("Retrying with smaller buffer...");
     file_size = 256*256*256;
-    buf.resize(file_size);
+    buf.resize(size_t(file_size));
   }
-  ifs.read(&buf.at(0), file_size);
-  assert(ifs.gcount() == file_size);
+  ifs.read(&buf.at(0), size_t(file_size));
+  assert(ifs.gcount() == size_t(file_size));
 }
 
 }; // namespace tuvok
