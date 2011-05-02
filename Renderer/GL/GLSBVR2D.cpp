@@ -809,7 +809,8 @@ bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,
                                             m_bDisableBorder,
                                             true,
                                             iIntraFrameCounter,
-                                            m_iFrameCounter);
+                                            m_iFrameCounter,
+                                            m_pContext);
   if(m_pGLVolume) {
     return true;
   } else {
@@ -818,13 +819,15 @@ bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,
 }
 
 bool GLSBVR2D::IsVolumeResident(const BrickKey& key) {
-  if (m_bUse3DTexture) return GLRenderer::IsVolumeResident(key);
-
-  return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
-                                                m_bUseOnlyPowerOfTwo,
-                                                m_bDownSampleTo8Bits,
-                                                m_bDisableBorder,
-                                                true);
+  if (m_bUse3DTexture) 
+    return GLRenderer::IsVolumeResident(key);
+  else
+    return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
+                                                  m_bUseOnlyPowerOfTwo,
+                                                  m_bDownSampleTo8Bits,
+                                                  m_bDisableBorder,
+                                                  true,
+                                                  m_pContext);
 }
 
 void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,

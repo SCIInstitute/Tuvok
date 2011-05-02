@@ -54,6 +54,7 @@
 #include "../Basics/Plane.h"
 #include "../Basics/GeometryGenerator.h"
 #include "../Scripting/Scriptable.h"
+#include "Context.h"
 
 class TransferFunction1D;
 class TransferFunction2D;
@@ -207,7 +208,7 @@ class AbstrRenderer: public Scriptable {
     }
 
 
-    virtual bool Initialize();
+    virtual bool Initialize(CTContext ctx);
 
     /** Deallocates GPU memory allocated during the rendering process. */
     virtual void Cleanup() = 0;
@@ -515,6 +516,7 @@ class AbstrRenderer: public Scriptable {
 
   protected:
     MasterController*   m_pMasterController;
+    CTContext           m_pContext;
     ERenderMode         m_eRenderMode;
     bool                m_bFirstDrawAfterModeChange;
     bool                m_bFirstDrawAfterResize;

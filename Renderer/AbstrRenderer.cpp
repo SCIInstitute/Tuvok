@@ -59,6 +59,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
                              bool bDisableBorder, 
                              enum ScalingMethod sm) :
   m_pMasterController(pMasterController),
+  m_pContext(),
   m_eRenderMode(RM_1DTRANS),
   m_bFirstDrawAfterModeChange(true),
   m_bFirstDrawAfterResize(true),
@@ -166,7 +167,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   }
 }
 
-bool AbstrRenderer::Initialize() {
+bool AbstrRenderer::Initialize(CTContext ctx) {
+  m_pContext = ctx;
   return m_pDataset != NULL;
 }
 
@@ -1008,8 +1010,9 @@ bool AbstrRenderer::IsVolumeResident(const BrickKey& key) {
   return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
                                                    m_bUseOnlyPowerOfTwo,
                                                    m_bDownSampleTo8Bits,
-                                                   m_bDisableBorder,
-                                                   false);
+                                                   m_bDisableBorder,                                                   
+                                                   false,
+                                                   m_pContext);
 }
 
 void AbstrRenderer::GetVolumeAABB(FLOATVECTOR3& vCenter, FLOATVECTOR3& vExtend) {

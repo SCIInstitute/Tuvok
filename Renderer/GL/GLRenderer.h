@@ -67,7 +67,7 @@ class GLRenderer : public AbstrRenderer {
                bool bDownSampleTo8Bits, 
                bool bDisableBorder);
     virtual ~GLRenderer();
-    virtual bool Initialize();
+    virtual bool Initialize(CTContext ctx);
     virtual void Set1DTrans(const std::vector<unsigned char>&);
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();

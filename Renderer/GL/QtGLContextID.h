@@ -50,12 +50,18 @@ class QtGLContextID : public ContextID<QtGLContextID> {
   public:
     /// Create an ID with the current context.
     QtGLContextID() : ctx((QGLContext::currentContext())) {
-      m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+      if (ctx) 
+        m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+      else
+        m_pState = std::tr1::shared_ptr<StateManager>();
     }
     /// Create an ID from the given context.
     /// NOTE: Do not create multiple QtGLContextID's from the same QGLContext!
     QtGLContextID(const QGLContext *ct) : ContextID<QtGLContextID>(), ctx(ct) {
-      m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+      if (ctx) 
+        m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
+      else
+        m_pState = std::tr1::shared_ptr<StateManager>();
     }
     QtGLContextID(const QtGLContextID& ct) : ContextID<QtGLContextID>(),
                                              ctx(ct.ctx) {

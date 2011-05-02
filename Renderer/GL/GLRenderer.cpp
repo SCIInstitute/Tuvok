@@ -55,6 +55,7 @@
 #include "../GPUMemMan/GPUMemMan.h"
 #include "../../Basics/GeometryGenerator.h"
 #include "../SBVRGeogen.h"
+#include "../Context.h"
 
 using namespace std;
 using namespace tuvok;
@@ -126,8 +127,8 @@ GLRenderer::~GLRenderer() {
   DeleteDepthStorage();
 }
 
-bool GLRenderer::Initialize() {
-  if (!AbstrRenderer::Initialize()) {
+bool GLRenderer::Initialize(CTContext ctx) {
+  if (!AbstrRenderer::Initialize( ctx )) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
@@ -931,7 +932,8 @@ bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
                                                          m_bDisableBorder,
                                                          false,
                                                          iIntraFrameCounter,
-                                                         m_iFrameCounter);
+                                                         m_iFrameCounter,
+                                                         m_pContext);
 
   GL_CHECK();
   if(m_pGLVolume) {
