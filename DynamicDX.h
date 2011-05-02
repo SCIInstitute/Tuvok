@@ -36,10 +36,11 @@
 
 #pragma once
 
-#if defined(_WIN32) && defined(USE_DIRECTX)
 
 #ifndef DYNAMICDX_H
 #define DYNAMICDX_H
+
+#if defined(_WIN32) && defined(USE_DIRECTX)
 
 #include "StdDefines.h"
 
@@ -241,6 +242,11 @@ private:
 
 };
 
-#endif // DYNAMICDX_H
+
+#else // _WIN32 && USE_DIRECTX
+
+typedef void ID3D10Device;
 
 #endif // _WIN32 && USE_DIRECTX
+
+#endif // DYNAMICDX_H
