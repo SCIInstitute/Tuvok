@@ -1,0 +1,1212 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug (with DirectX)|Win32">
+      <Configuration>Debug (with DirectX)</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug (with DirectX)|x64">
+      <Configuration>Debug (with DirectX)</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release (with DirectX)|Win32">
+      <Configuration>Release (with DirectX)</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release (with DirectX)|x64">
+      <Configuration>Release (with DirectX)</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{D474A1E1-2ED3-42E6-826C-372430E549B9}</ProjectGuid>
+    <RootNamespace>Tuvoc</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Build\$(Platform)\$(Configuration)\objects\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Build\$(Platform)\$(Configuration)\objects\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Build\$(Platform)\$(Configuration)\objects\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Build\$(Platform)\$(Configuration)\objects\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">Build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">Build\$(Platform)\$(Configuration)\objects\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">Build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">Build\$(Platform)\$(Configuration)\objects\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">Build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">Build\$(Platform)\$(Configuration)\objects\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">Build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">Build\$(Platform)\$(Configuration)\objects\</IntDir>
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" />
+    <CodeAnalysisRuleSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRules Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+    <CodeAnalysisRuleAssemblies Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DisableSpecificWarnings>4127;4512;4006;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR32)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4127;4512;4006;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR64)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4127;4512;4006;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR32)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4127;4512;4006;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR64)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DisableSpecificWarnings>4127;4512;4006;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR32)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4127;4512;4006;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR64)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">
+    <ClCompile>
+      <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR32)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4127;4512;4006;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR32)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <AdditionalOptions>/U"_SECURE_SCL" /D"_SECURE_SCL=0" %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>3rdParty/GLEW;.;IO/3rdParty/boost;IO/3rdParty/zlib;IO/exception;Basics/;Basics/3rdParty/boost;$(QTDIR64)/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;USE_DIRECTX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level4</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4127;4512;4006;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <Lib>
+      <AdditionalDependencies>glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(QTDIR64)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Basics\Appendix.cpp" />
+    <ClCompile Include="Basics\ArcBall.cpp" />
+    <ClCompile Include="Basics\DynamicDX.cpp" />
+    <ClCompile Include="Basics\GeometryGenerator.cpp" />
+    <ClCompile Include="Basics\LargeRAWFile.cpp" />
+    <ClCompile Include="Basics\MathTools.cpp" />
+    <ClCompile Include="Basics\MC.cpp" />
+    <ClCompile Include="Basics\MemMappedFile.cpp" />
+    <ClCompile Include="Basics\Plane.cpp" />
+    <ClCompile Include="Basics\SystemInfo.cpp" />
+    <ClCompile Include="Basics\SysTools.cpp" />
+    <ClCompile Include="Basics\Timer.cpp" />
+    <ClCompile Include="Basics\Systeminfo\VidMemViaDDraw.cpp" />
+    <ClCompile Include="Basics\Systeminfo\VidMemViaDXGI.cpp" />
+    <ClCompile Include="Basics\Checksums\MD5.cpp" />
+    <ClCompile Include="Basics\KDTree.cpp" />
+    <ClCompile Include="Basics\Mesh.cpp" />
+    <ClCompile Include="Renderer\AbstrRenderer.cpp" />
+    <ClCompile Include="Renderer\CullingLOD.cpp" />
+    <ClCompile Include="Renderer\RenderMesh.cpp" />
+    <ClCompile Include="Renderer\TFScaling.cpp" />
+    <ClCompile Include="Renderer\GPUMemMan\GPUMemMan.cpp" />
+    <ClCompile Include="Renderer\GPUMemMan\GPUMemManDataStructs.cpp" />
+    <ClCompile Include="Renderer\GL\GLFBOTex.cpp" />
+    <ClCompile Include="Renderer\GL\GLSLProgram.cpp" />
+    <ClCompile Include="Renderer\GL\GLTargetBinder.cpp" />
+    <ClCompile Include="Renderer\GL\GLTexture.cpp" />
+    <ClCompile Include="Renderer\GL\GLTexture1D.cpp" />
+    <ClCompile Include="Renderer\GL\GLTexture2D.cpp" />
+    <ClCompile Include="Renderer\GL\GLTexture3D.cpp" />
+    <ClCompile Include="Renderer\GL\GLVolume.cpp" />
+    <ClCompile Include="Renderer\GL\GLVolume2DTex.cpp" />
+    <ClCompile Include="Renderer\GL\GLVolume3DTex.cpp" />
+    <ClCompile Include="Renderer\DX\DXTexture.cpp" />
+    <ClCompile Include="Renderer\DX\DXTexture1D.cpp" />
+    <ClCompile Include="Renderer\DX\DXTexture2D.cpp" />
+    <ClCompile Include="Renderer\DX\DXTexture3D.cpp" />
+    <ClCompile Include="Renderer\GL\GLRaycaster.cpp" />
+    <ClCompile Include="Renderer\GL\GLRenderer.cpp" />
+    <ClCompile Include="Renderer\GL\GLSBVR.cpp" />
+    <ClCompile Include="Renderer\GL\GLSBVR2D.cpp" />
+    <ClCompile Include="Renderer\GL\GLStateManager.cpp" />
+    <ClCompile Include="Renderer\GL\RenderMeshGL.cpp" />
+    <ClCompile Include="Renderer\DX\DXRaycaster.cpp" />
+    <ClCompile Include="Renderer\DX\DXRenderer.cpp" />
+    <ClCompile Include="Renderer\DX\DXSBVR.cpp" />
+    <ClCompile Include="Renderer\GL\GLFrameCapture.cpp" />
+    <ClCompile Include="Renderer\SBVRGeogen.cpp" />
+    <ClCompile Include="Renderer\SBVRGeogen2D.cpp" />
+    <ClCompile Include="Renderer\SBVRGeogen3D.cpp" />
+    <ClCompile Include="DebugOut\AbstrDebugOut.cpp" />
+    <ClCompile Include="DebugOut\ConsoleOut.cpp" />
+    <ClCompile Include="DebugOut\MultiplexOut.cpp" />
+    <ClCompile Include="DebugOut\TextfileOut.cpp" />
+    <ClCompile Include="3rdParty\GLEW\GL\glew.c" />
+    <ClCompile Include="IO\BrickedDataset.cpp" />
+    <ClCompile Include="IO\Dataset.cpp" />
+    <ClCompile Include="IO\DSFactory.cpp" />
+    <ClCompile Include="IO\ExternalDataset.cpp" />
+    <ClCompile Include="IO\FileBackedDataset.cpp" />
+    <ClCompile Include="Renderer\FrameCapture.cpp" />
+    <ClCompile Include="IO\gzio.c" />
+    <ClCompile Include="IO\IOManager.cpp" />
+    <ClCompile Include="IO\TransferFunction1D.cpp" />
+    <ClCompile Include="IO\TransferFunction2D.cpp" />
+    <ClCompile Include="IO\TuvokJPEG.cpp" />
+    <ClCompile Include="IO\uvfDataset.cpp" />
+    <ClCompile Include="IO\uvfMesh.cpp" />
+    <ClCompile Include="IO\VariantArray.cpp" />
+    <ClCompile Include="IO\DICOM\DICOMParser.cpp" />
+    <ClCompile Include="IO\Images\ImageParser.cpp" />
+    <ClCompile Include="IO\UVF\DataBlock.cpp" />
+    <ClCompile Include="IO\UVF\GeometryDataBlock.cpp" />
+    <ClCompile Include="IO\UVF\GlobalHeader.cpp" />
+    <ClCompile Include="IO\UVF\Histogram1DDataBlock.cpp" />
+    <ClCompile Include="IO\UVF\Histogram2DDataBlock.cpp" />
+    <ClCompile Include="IO\UVF\KeyValuePairDataBlock.cpp" />
+    <ClCompile Include="IO\UVF\MaxMinDataBlock.cpp" />
+    <ClCompile Include="IO\UVF\RasterDataBlock.cpp" />
+    <ClCompile Include="IO\UVF\UVF.cpp" />
+    <ClCompile Include="IO\UVF\UVFTables.cpp" />
+    <ClCompile Include="IO\3rdParty\jpeglib\cdjpeg.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcapimin.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcapistd.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jccoefct.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jccolor.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcdctmgr.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcdiffct.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jchuff.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcinit.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jclhuff.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jclossls.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jclossy.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcmainct.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcmarker.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcmaster.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcodec.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcomapi.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcparam.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcphuff.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcpred.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcprepct.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcsample.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcscale.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jcshuff.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4310; 4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jctrans.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdapimin.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdapistd.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdatadst.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdatasrc.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdcoefct.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4115;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdcolor.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jddctmgr.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jddiffct.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdhuff.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdinput.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdlhuff.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdlossls.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdlossy.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdmainct.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdmarker.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdmaster.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdmerge.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdphuff.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdpostct.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdpred.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdsample.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdscale.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdshuff.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jdtrans.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jerror.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jfdctflt.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jfdctfst.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jfdctint.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jidctflt.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jidctfst.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jidctint.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jidctred.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jmemmgr.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jmemnobs.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267; 4669;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267; 4669;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267; 4669;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267; 4669;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267; 4669;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267; 4669;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267; 4669;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267; 4669;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jmemsrc.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4310;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jquant1.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jquant2.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\jutils.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\rdcolmap.c" />
+    <ClCompile Include="IO\3rdParty\jpeglib\rdswitch.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\transupp.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_aux.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_close.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_codec.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_color.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_compress.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267; 4996;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267; 4996;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267; 4996;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267; 4996;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267; 4996;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267; 4996;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267; 4996;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267; 4996;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_dir.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267; 4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267; 4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267; 4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267; 4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267; 4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267; 4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267; 4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267; 4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_dirinfo.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267; 4133;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267; 4133;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267; 4133;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267; 4133;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267; 4133;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267; 4133;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267; 4133;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267; 4133;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_dirread.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_dirwrite.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267;4334;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267;4334;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267;4334;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267;4334;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267;4334;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267;4334;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267;4334;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267;4334;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_dumpmode.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_error.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_extension.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267; 4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267; 4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267; 4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267; 4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267; 4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267; 4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267; 4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267; 4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_fax3.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244;4305;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244;4305;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244;4305;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;4305;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4244;4305;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4244;4305;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4244;4305;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;4305;4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_fax3sm.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_flush.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_getimage.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4996;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4996;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4996;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4996;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4996;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4996;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4996;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4996;4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_jbig.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_jpeg.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_luv.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_lzw.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4244;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4244;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4244;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_next.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_ojpeg.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_open.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_packbits.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4244; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4244; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4244; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244; 4706;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_pixarlog.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244; 4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244; 4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244; 4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244; 4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4244; 4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4244; 4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4244; 4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244; 4267;4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_predict.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_print.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_read.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_strip.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_swab.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_thunder.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_tile.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_version.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_warning.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_win32.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_write.c" />
+    <ClCompile Include="IO\3rdParty\tiff\tif_zip.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4100;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\blocksort.c" />
+    <ClCompile Include="IO\3rdParty\bzip2\bzlib.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4100;4244;4267;4663;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4100;4244;4267;4663;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4100;4244;4267;4663;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4100;4244;4267;4663;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4100;4244;4267;4663;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4100;4244;4267;4663;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4100;4244;4267;4663;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4100;4244;4267;4663;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\compress.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\crctable.c" />
+    <ClCompile Include="IO\3rdParty\bzip2\decompress.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\huffman.c">
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release (with DirectX)|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\randtable.c" />
+    <ClCompile Include="IO\AbstrConverter.cpp" />
+    <ClCompile Include="IO\AnalyzeConverter.cpp" />
+    <ClCompile Include="IO\BOVConverter.cpp" />
+    <ClCompile Include="IO\I3MConverter.cpp" />
+    <ClCompile Include="IO\IASSConverter.cpp" />
+    <ClCompile Include="IO\InveonConverter.cpp" />
+    <ClCompile Include="IO\KitwareConverter.cpp" />
+    <ClCompile Include="IO\NRRDConverter.cpp" />
+    <ClCompile Include="IO\QVISConverter.cpp" />
+    <ClCompile Include="IO\RAWConverter.cpp" />
+    <ClCompile Include="IO\REKConverter.cpp" />
+    <ClCompile Include="IO\StkConverter.cpp" />
+    <ClCompile Include="IO\TiffVolumeConverter.cpp" />
+    <ClCompile Include="IO\VFFConverter.cpp" />
+    <ClCompile Include="IO\VGStudioConverter.cpp" />
+    <ClCompile Include="IO\DirectoryParser.cpp" />
+    <ClCompile Include="IO\KeyValueFileParser.cpp" />
+    <ClCompile Include="IO\VGIHeaderParser.cpp" />
+    <ClCompile Include="IO\AbstrGeoConverter.cpp" />
+    <ClCompile Include="IO\G3D.cpp" />
+    <ClCompile Include="IO\MedAlyVisFiberTractGeoConverter.cpp" />
+    <ClCompile Include="IO\MedAlyVisGeoConverter.cpp" />
+    <ClCompile Include="IO\MobileGeoConverter.cpp" />
+    <ClCompile Include="IO\OBJGeoConverter.cpp" />
+    <ClCompile Include="IO\PLYGeoConverter.cpp" />
+    <ClCompile Include="IO\expressions\binary-expression.cpp" />
+    <ClCompile Include="IO\expressions\conditional-expression.cpp" />
+    <ClCompile Include="IO\expressions\constant.cpp" />
+    <ClCompile Include="IO\expressions\treenode.cpp" />
+    <ClCompile Include="IO\expressions\tvk-parse.parser.cpp" />
+    <ClCompile Include="IO\expressions\tvk-scan.lexer.cpp" />
+    <ClCompile Include="IO\expressions\volume.cpp" />
+    <ClCompile Include="Controller\MasterController.cpp" />
+    <ClCompile Include="Scripting\Scripting.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Basics\Appendix.h" />
+    <ClInclude Include="Basics\ArcBall.h" />
+    <ClInclude Include="Basics\Console.h" />
+    <ClInclude Include="Basics\DynamicDX.h" />
+    <ClInclude Include="Basics\EndianConvert.h" />
+    <ClInclude Include="Basics\GeometryGenerator.h" />
+    <ClInclude Include="Basics\Grids.h" />
+    <ClInclude Include="Basics\LargeRAWFile.h" />
+    <ClInclude Include="Basics\MathTools.h" />
+    <ClInclude Include="Basics\MC.h" />
+    <ClInclude Include="Basics\MemMappedFile.h" />
+    <ClInclude Include="Basics\Plane.h" />
+    <ClInclude Include="Basics\StdDefines.h" />
+    <ClInclude Include="Basics\SystemInfo.h" />
+    <ClInclude Include="Basics\SysTools.h" />
+    <ClInclude Include="Basics\Timer.h" />
+    <ClInclude Include="Basics\Vectors.h" />
+    <ClInclude Include="Basics\Checksums\crc32.h" />
+    <ClInclude Include="Basics\Checksums\MD5.h" />
+    <ClInclude Include="Basics\KDTree.h" />
+    <ClInclude Include="Basics\Mesh.h" />
+    <ClInclude Include="Basics\Ray.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\Arg.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\ArgException.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\ArgTraits.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\CmdLine.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\CmdLineInterface.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\CmdLineOutput.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\Constraint.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\DocBookOutput.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\HelpVisitor.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\IgnoreRestVisitor.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\MultiArg.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\MultiSwitchArg.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\OptionalUnlabeledTracker.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\StandardTraits.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\StdOutput.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\SwitchArg.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\UnlabeledMultiArg.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\UnlabeledValueArg.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\ValueArg.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\ValuesConstraint.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\VersionVisitor.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\Visitor.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\XorHandler.h" />
+    <ClInclude Include="Basics\3rdParty\tclap\ZshCompletionOutput.h" />
+    <ClInclude Include="Renderer\AbstrRenderer.h" />
+    <ClInclude Include="Renderer\Context.h" />
+    <ClInclude Include="Renderer\ContextID.h" />
+    <ClInclude Include="Renderer\CullingLOD.h" />
+    <ClInclude Include="Renderer\RenderMesh.h" />
+    <ClInclude Include="Renderer\RenderRegion.h" />
+    <ClInclude Include="Renderer\StateManager.h" />
+    <ClInclude Include="Renderer\TFScaling.h" />
+    <ClInclude Include="Renderer\GPUMemMan\GPUMemMan.h" />
+    <ClInclude Include="Renderer\GPUMemMan\GPUMemManDataStructs.h" />
+    <ClInclude Include="Renderer\GL\GLFBOTex.h" />
+    <ClInclude Include="Renderer\GL\GLInclude.h" />
+    <ClInclude Include="Renderer\GL\GLObject.h" />
+    <ClInclude Include="Renderer\GL\GLSLProgram.h" />
+    <ClInclude Include="Renderer\GL\GLTargetBinder.h" />
+    <ClInclude Include="Renderer\GL\GLTexture.h" />
+    <ClInclude Include="Renderer\GL\GLTexture1D.h" />
+    <ClInclude Include="Renderer\GL\GLTexture2D.h" />
+    <ClInclude Include="Renderer\GL\GLTexture3D.h" />
+    <ClInclude Include="Renderer\GL\GLVolume.h" />
+    <ClInclude Include="Renderer\GL\GLVolume2DTex.h" />
+    <ClInclude Include="Renderer\GL\GLVolume3DTex.h" />
+    <ClInclude Include="Renderer\DX\DXObject.h" />
+    <ClInclude Include="Renderer\DX\DXTexture.h" />
+    <ClInclude Include="Renderer\DX\DXTexture1D.h" />
+    <ClInclude Include="Renderer\DX\DXTexture2D.h" />
+    <ClInclude Include="Renderer\DX\DXTexture3D.h" />
+    <ClInclude Include="Renderer\GPUObject.h" />
+    <ClInclude Include="Renderer\GL\GLContextID.h" />
+    <ClInclude Include="Renderer\GL\GLError.h" />
+    <ClInclude Include="Renderer\GL\GLRaycaster.h" />
+    <ClInclude Include="Renderer\GL\GLRenderer.h" />
+    <ClInclude Include="Renderer\GL\GLSBVR.h" />
+    <ClInclude Include="Renderer\GL\GLSBVR2D.h" />
+    <ClInclude Include="Renderer\GL\GLStateManager.h" />
+    <ClInclude Include="Renderer\GL\QtGLContextID.h" />
+    <ClInclude Include="Renderer\GL\RenderMeshGL.h" />
+    <ClInclude Include="Renderer\DX\DXContextID.h" />
+    <ClInclude Include="Renderer\DX\DXRaycaster.h" />
+    <ClInclude Include="Renderer\DX\DXRenderer.h" />
+    <ClInclude Include="Renderer\DX\DXSBVR.h" />
+    <ClInclude Include="Renderer\FrameCapture.h" />
+    <ClInclude Include="Renderer\GL\GLFrameCapture.h" />
+    <ClInclude Include="Renderer\SBVRGeogen.h" />
+    <ClInclude Include="Renderer\SBVRGeogen2D.h" />
+    <ClInclude Include="Renderer\SBVRGeogen3D.h" />
+    <ClInclude Include="DebugOut\AbstrDebugOut.h" />
+    <ClInclude Include="DebugOut\ConsoleOut.h" />
+    <ClInclude Include="DebugOut\MultiplexOut.h" />
+    <ClInclude Include="DebugOut\TextfileOut.h" />
+    <ClInclude Include="3rdParty\GLEW\GL\glew.h" />
+    <ClInclude Include="3rdParty\GLEW\GL\glxew.h" />
+    <ClInclude Include="3rdParty\GLEW\GL\wglew.h" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi_prefix.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi_suffix.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\aix.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\amigaos.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\auto_link.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\beos.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\borland.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi\borland_prefix.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi\borland_suffix.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\bsd.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\no_tr1\cmath.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\codegear.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\comeau.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\common_edg.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\compaq_cxx.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\no_tr1\complex.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\cstdint.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\cygwin.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\digitalmars.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\dinkumware.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\serialization\force_include.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\no_tr1\functional.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\gcc.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\gcc_xml.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\greenhills.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\hp_acc.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\hpux.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\intel.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\irix.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\kai.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\libcomo.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\libstdcpp3.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\linux.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\macos.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\no_tr1\memory.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\metrowerks.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\algorithm\minmax_element.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\modena.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\mpw.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\msl.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi\msvc_prefix.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi\msvc_suffix.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\noncopyable.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\pgi.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\posix_features.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\qnxnto.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\requires_threads.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\roguewave.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\select_compiler_config.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\select_platform_config.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\select_stdlib_config.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\sgi.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\sgi_mipspro.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\serialization\singleton.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\solaris.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\stlport.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\suffix.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\sunpro_cc.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\user.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\no_tr1\utility.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\vacpp.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\visualc.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\warning_disable.hpp" />
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\win32.hpp" />
+    <ClInclude Include="IO\Brick.h" />
+    <ClInclude Include="IO\BrickedDataset.h" />
+    <ClInclude Include="IO\Dataset.h" />
+    <ClInclude Include="IO\DSFactory.h" />
+    <ClInclude Include="IO\ExternalDataset.h" />
+    <ClInclude Include="IO\FileBackedDataset.h" />
+    <ClInclude Include="IO\gzio.h" />
+    <ClInclude Include="IO\IOManager.h" />
+    <ClInclude Include="IO\Quantize.h" />
+    <ClInclude Include="IO\TransferFunction1D.h" />
+    <ClInclude Include="IO\TransferFunction2D.h" />
+    <ClInclude Include="IO\Tuvok_QtPlugins.h" />
+    <ClInclude Include="IO\TuvokIOError.h" />
+    <ClInclude Include="IO\TuvokJPEG.h" />
+    <ClInclude Include="IO\uvfDataset.h" />
+    <ClInclude Include="IO\uvfMesh.h" />
+    <ClInclude Include="IO\VariantArray.h" />
+    <ClInclude Include="IO\DICOM\DICOMParser.h" />
+    <ClInclude Include="IO\Images\ImageParser.h" />
+    <ClInclude Include="IO\UVF\DataBlock.h" />
+    <ClInclude Include="IO\UVF\GeometryDataBlock.h" />
+    <ClInclude Include="IO\UVF\GlobalHeader.h" />
+    <ClInclude Include="IO\UVF\Histogram1DDataBlock.h" />
+    <ClInclude Include="IO\UVF\Histogram2DDataBlock.h" />
+    <ClInclude Include="IO\UVF\KeyValuePairDataBlock.h" />
+    <ClInclude Include="IO\UVF\MaxMinDataBlock.h" />
+    <ClInclude Include="IO\UVF\RasterDataBlock.h" />
+    <ClInclude Include="IO\UVF\UVF.h" />
+    <ClInclude Include="IO\UVF\UVFBasic.h" />
+    <ClInclude Include="IO\UVF\UVFTables.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\cderror.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\cdjpeg.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jchuff.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jconfig.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jdct.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jdhuff.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jerror.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jinclude.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jlossls.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jlossy.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jmemsys.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jmorecfg.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jpegint.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jpeglib.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\jversion.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\mangle_jpeg.h" />
+    <ClInclude Include="IO\3rdParty\jpeglib\transupp.h" />
+    <ClInclude Include="IO\3rdParty\tiff\t4.h" />
+    <ClInclude Include="IO\3rdParty\tiff\tif_config.h" />
+    <ClInclude Include="IO\3rdParty\tiff\tif_dir.h" />
+    <ClInclude Include="IO\3rdParty\tiff\tif_fax3.h" />
+    <ClInclude Include="IO\3rdParty\tiff\tif_predict.h" />
+    <ClInclude Include="IO\3rdParty\tiff\tiff.h" />
+    <ClInclude Include="IO\3rdParty\tiff\tiffconf.h" />
+    <ClInclude Include="IO\3rdParty\tiff\tiffio.h" />
+    <ClInclude Include="IO\3rdParty\tiff\tiffiop.h" />
+    <ClInclude Include="IO\3rdParty\tiff\tiffvers.h" />
+    <ClInclude Include="IO\3rdParty\tiff\uvcode.h" />
+    <ClInclude Include="IO\3rdParty\bzip2\bzlib.h" />
+    <ClInclude Include="IO\3rdParty\bzip2\bzlib_private.h" />
+    <ClInclude Include="IO\3rdParty\zlib\zconf.h" />
+    <ClInclude Include="IO\3rdParty\zlib\zlib.h" />
+    <ClInclude Include="IO\AbstrConverter.h" />
+    <ClInclude Include="IO\AnalyzeConverter.h" />
+    <ClInclude Include="IO\BOVConverter.h" />
+    <ClInclude Include="IO\I3MConverter.h" />
+    <ClInclude Include="IO\IASSConverter.h" />
+    <ClInclude Include="IO\InveonConverter.h" />
+    <ClInclude Include="IO\KitwareConverter.h" />
+    <ClInclude Include="IO\NRRDConverter.h" />
+    <ClInclude Include="IO\QVISConverter.h" />
+    <ClInclude Include="IO\RAWConverter.h" />
+    <ClInclude Include="IO\REKConverter.h" />
+    <ClInclude Include="IO\StkConverter.h" />
+    <ClInclude Include="IO\TiffVolumeConverter.h" />
+    <ClInclude Include="IO\VFFConverter.h" />
+    <ClInclude Include="IO\VGStudioConverter.h" />
+    <ClInclude Include="IO\DirectoryParser.h" />
+    <ClInclude Include="IO\KeyValueFileParser.h" />
+    <ClInclude Include="IO\VGIHeaderParser.h" />
+    <ClInclude Include="IO\AbstrGeoConverter.h" />
+    <ClInclude Include="IO\G3D.h" />
+    <ClInclude Include="IO\MedAlyVisFiberTractGeoConverter.h" />
+    <ClInclude Include="IO\MedAlyVisGeoConverter.h" />
+    <ClInclude Include="IO\MobileGeoConverter.h" />
+    <ClInclude Include="IO\OBJGeoConverter.h" />
+    <ClInclude Include="IO\PLYGeoConverter.h" />
+    <ClInclude Include="IO\expressions\binary-expression.h" />
+    <ClInclude Include="IO\expressions\conditional-expression.h" />
+    <ClInclude Include="IO\expressions\constant.h" />
+    <ClInclude Include="IO\expressions\expr-template.h" />
+    <ClInclude Include="IO\expressions\expression.h" />
+    <ClInclude Include="IO\expressions\parser.h" />
+    <ClInclude Include="IO\expressions\semantic.h" />
+    <ClInclude Include="IO\expressions\syntax.h" />
+    <ClInclude Include="IO\expressions\treenode.h" />
+    <ClInclude Include="IO\expressions\tvk-parse.parser.hpp" />
+    <ClInclude Include="IO\expressions\volume.h" />
+    <ClInclude Include="Controller\Controller.h" />
+    <ClInclude Include="Controller\MasterController.h" />
+    <ClInclude Include="Scripting\Scriptable.h" />
+    <ClInclude Include="Scripting\Scripting.h" />
+    <ClInclude Include="StdTuvokDefines.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Basics\MC.inl" />
+    <None Include="Shaders\1D-slice-FS.glsl" />
+    <None Include="Shaders\2D-slice-FS.glsl" />
+    <None Include="Shaders\BBox-FS.glsl" />
+    <None Include="Shaders\BBox-VS.glsl" />
+    <None Include="Shaders\BTF.glsl" />
+    <None Include="Shaders\clip-plane.glsl" />
+    <None Include="Shaders\Compose-AF-FS.glsl" />
+    <None Include="Shaders\Compose-Anaglyphs-FS.glsl" />
+    <None Include="Shaders\Compose-Color-FS.glsl" />
+    <None Include="Shaders\Compose-CV-FS.glsl" />
+    <None Include="Shaders\Compose-FS.glsl" />
+    <None Include="Shaders\Compose-SBS-FS.glsl" />
+    <None Include="Shaders\Compose-Scanline-FS.glsl" />
+    <None Include="Shaders\Compositing.glsl" />
+    <None Include="Shaders\FTB.glsl" />
+    <None Include="Shaders\GLRaycaster-1D-FS.glsl" />
+    <None Include="Shaders\GLRaycaster-1D-light-FS.glsl" />
+    <None Include="Shaders\GLRaycaster-2D-FS.glsl" />
+    <None Include="Shaders\GLRaycaster-2D-light-FS.glsl" />
+    <None Include="Shaders\GLRaycaster-Color-FS.glsl" />
+    <None Include="Shaders\GLRaycaster-frontfaces-FS.glsl" />
+    <None Include="Shaders\GLRaycaster-ISO-CV-FS.glsl" />
+    <None Include="Shaders\GLRaycaster-ISO-FS.glsl" />
+    <None Include="Shaders\GLRaycaster-MIP-Rot-FS.glsl" />
+    <None Include="Shaders\GLRaycaster-VS.glsl" />
+    <None Include="Shaders\GLRaycasterNoTransform-VS.glsl" />
+    <None Include="Shaders\GLSBVR-1D-FS.glsl" />
+    <None Include="Shaders\GLSBVR-1D-light-FS.glsl" />
+    <None Include="Shaders\GLSBVR-2D-FS.glsl" />
+    <None Include="Shaders\GLSBVR-2D-light-FS.glsl" />
+    <None Include="Shaders\GLSBVR-Color-FS.glsl" />
+    <None Include="Shaders\GLSBVR-ISO-FS.glsl" />
+    <None Include="Shaders\GLSBVR-Mesh-1D-FS.glsl" />
+    <None Include="Shaders\GLSBVR-Mesh-1D-light-FS.glsl" />
+    <None Include="Shaders\GLSBVR-Mesh-2D-FS.glsl" />
+    <None Include="Shaders\GLSBVR-Mesh-2D-light-FS.glsl" />
+    <None Include="Shaders\GLSBVR-Mesh-VS.glsl" />
+    <None Include="Shaders\GLSBVR-MIP-Rot-FS.glsl" />
+    <None Include="Shaders\GLSBVR-VS.glsl" />
+    <None Include="Shaders\lighting.glsl" />
+    <None Include="Shaders\Mesh-FS.glsl" />
+    <None Include="Shaders\Mesh-VS.glsl" />
+    <None Include="Shaders\MIP-slice-FS.glsl" />
+    <None Include="Shaders\RefineIsosurface.glsl" />
+    <None Include="Shaders\SlicesIn3D.glsl" />
+    <None Include="Shaders\Transfer-FS.glsl" />
+    <None Include="Shaders\Transfer-MIP-FS.glsl" />
+    <None Include="Shaders\Transfer-VS.glsl" />
+    <None Include="Shaders\Volume2D.glsl" />
+    <None Include="Shaders\Volume3D.glsl" />
+    <None Include="Shaders\vr-col-tfqn-lit.glsl" />
+    <None Include="Shaders\vr-col-tfqn.glsl" />
+    <None Include="Shaders\vr-scal-tfqn-lit.glsl" />
+    <None Include="Shaders\vr-scal-tfqn.glsl" />
+    <None Include="Tuvok.pro" />
+    <None Include="tvk.pro" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+  </ImportGroup>
+</Project>
