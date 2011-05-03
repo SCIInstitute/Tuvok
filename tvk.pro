@@ -157,11 +157,11 @@ HEADERS += \
            Renderer/StateManager.h \
            Renderer/AbstrRenderer.h \
            Renderer/Context.h \
-           Renderer/ContextID.h \
+           Renderer/ContextIdentification.h \
            Renderer/CullingLOD.h \
            Renderer/FrameCapture.h \
            Renderer/GL/GLStateManager.h \
-           Renderer/GL/GLContextID.h \
+           Renderer/GL/GLContext.h \
            Renderer/GL/GLFrameCapture.h \
            Renderer/GL/GLInclude.h \
            Renderer/GL/GLObject.h \
@@ -178,7 +178,7 @@ HEADERS += \
            Renderer/GL/GLVolume.h \
            Renderer/GL/GLVolume2DTex.h \
            Renderer/GL/GLVolume3DTex.h \
-           Renderer/GL/QtGLContextID.h \
+           Renderer/GL/QtGLContext.h \
            Renderer/GL/RenderMeshGL.h \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
            Renderer/GPUMemMan/GPUMemMan.h \
@@ -372,6 +372,7 @@ SOURCES += \
            IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
            Renderer/AbstrRenderer.cpp \
+           Renderer/Context.cpp \
            Renderer/CullingLOD.cpp \
            Renderer/FrameCapture.cpp \
            Renderer/GL/GLStateManager.cpp \           
@@ -405,7 +406,7 @@ unix:SOURCES += IO/3rdParty/tiff/tif_unix.c
 win32 {
   HEADERS += \
              Basics/DynamicDX.h \
-             Renderer/DX/DXContextID.h \
+             Renderer/DX/DXContext.h \
              Renderer/DX/DXObject.h \
              Renderer/DX/DXRaycaster.h \
              Renderer/DX/DXRenderer.h \

@@ -166,7 +166,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   }
 }
 
-bool AbstrRenderer::Initialize() {
+bool AbstrRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
+  m_pContext = ctx;
   return m_pDataset != NULL;
 }
 

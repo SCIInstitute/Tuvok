@@ -114,21 +114,21 @@ namespace tuvok {
       }
       virtual ~GPUState() {}
 
-      virtual void SetEnableDepth(const bool& value) = 0;
-      virtual void SetEnableCull(const bool& value) = 0;
-      virtual void SetCullState(const STATE_CULL& value) = 0;
-      virtual void SetEnableBlend(const bool& value) = 0;
-      virtual void SetEnableScissor(const bool& value) = 0;
-      virtual void SetEnableLighting(const bool& value) = 0;
-      virtual void SetEnableColorMaterial(const bool& value) = 0;
-      virtual void SetEnableLineSmooth(const bool& value) = 0;
-      virtual void SetEnableLight(size_t i, const bool& value) = 0;
-      virtual void SetEnableTex(size_t i, const STATE_TEX& value) = 0;
-      virtual void SetActiveTexUnit(const size_t iUnit) = 0;
-      virtual void SetDepthMask(const bool value) = 0;
-      virtual void SetColorMask(const bool value) = 0;
-      virtual void SetBlendEquation(const BLEND_EQUATION value) = 0;
-      virtual void SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest) = 0;
+      virtual void SetEnableDepth(const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableCull(const bool& value, bool bForce=false) = 0;
+      virtual void SetCullState(const STATE_CULL& value, bool bForce=false) = 0;
+      virtual void SetEnableBlend(const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableScissor(const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableLighting(const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableColorMaterial(const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableLineSmooth(const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableLight(size_t i, const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableTex(size_t i, const STATE_TEX& value, bool bForce=false) = 0;
+      virtual void SetActiveTexUnit(const size_t iUnit, bool bForce=false) = 0;
+      virtual void SetDepthMask(const bool value, bool bForce=false) = 0;
+      virtual void SetColorMask(const bool value, bool bForce=false) = 0;
+      virtual void SetBlendEquation(const BLEND_EQUATION value, bool bForce=false) = 0;
+      virtual void SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest, bool bForce=false) = 0;
       
 
       bool GetEnableDepth() const {return enableDepth;}
@@ -172,7 +172,7 @@ namespace tuvok {
       friend class GLStateManager;
 
       virtual void Apply() = 0;
-      virtual void Apply(const GPUState& state) = 0;
+      virtual void Apply(const GPUState& state, bool bForce) = 0;
 
 
   };
@@ -188,9 +188,10 @@ namespace tuvok {
 
       /** Applies a given state to GPU pipleine this manager
        *  is associated with
-       * @param state the GPU state to be applied */
-      void Apply(const GPUState& state) {
-        m_InternalState->Apply(state);
+       * @param state the GPU state to be applied 
+       * @param bForce apply the entire state even if that results in redundant state changes */
+      void Apply(const GPUState& state, bool bForce=false) {
+        m_InternalState->Apply(state, bForce);
       }
 
       virtual const GPUState* GetCurrentState() const {return m_InternalState;}

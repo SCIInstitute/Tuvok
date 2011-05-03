@@ -67,7 +67,7 @@ class GLRenderer : public AbstrRenderer {
                bool bDownSampleTo8Bits, 
                bool bDisableBorder);
     virtual ~GLRenderer();
-    virtual bool Initialize(CTGLContext ctx);
+    virtual bool Initialize(std::tr1::shared_ptr<Context> ctx);
     virtual void Set1DTrans(const std::vector<unsigned char>&);
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();
@@ -108,7 +108,6 @@ class GLRenderer : public AbstrRenderer {
     void FixedFunctionality() const;
     
   protected:
-    CTGLContext     m_Context;
     GLTargetBinder  m_TargetBinder;
     GLTexture1D*    m_p1DTransTex;
     GLTexture2D*    m_p2DTransTex;

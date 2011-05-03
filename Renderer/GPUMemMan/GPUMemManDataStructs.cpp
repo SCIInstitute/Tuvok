@@ -56,7 +56,6 @@
 using namespace tuvok;
 using namespace std::tr1;
 
-
 GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
                                     bool bIsPaddedToPowerOfTwo,
                                     bool bIsDownsampledTo8Bits,
@@ -65,14 +64,12 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
                                     UINT64 iIntraFrameCounter,
                                     UINT64 iFrameCounter,
                                     MasterController* pMasterController,
-                                    const CTGLContext &ctx,
                                     std::vector<unsigned char>& vUploadHub) :
   pDataset(_pDataset),
   iUserCount(1),
   m_iIntraFrameCounter(iIntraFrameCounter),
   m_iFrameCounter(iFrameCounter),
   m_pMasterController(pMasterController),
-  m_Context(ctx),
   m_Key(key),
   m_bIsPaddedToPowerOfTwo(bIsPaddedToPowerOfTwo),
   m_bIsDownsampledTo8Bits(bIsDownsampledTo8Bits),
@@ -95,16 +92,14 @@ GLVolumeListElem::~GLVolumeListElem() {
 bool GLVolumeListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
                               bool bIsPaddedToPowerOfTwo,
                               bool bIsDownsampledTo8Bits, bool bDisableBorder,
-                              bool bEmulate3DWith2DStacks,
-                              const CTGLContext &cid)
+                              bool bEmulate3DWith2DStacks)
 {
   if (_pDataset != pDataset ||
       m_Key != key ||
       m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo ||
       m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits ||
       m_bDisableBorder != bDisableBorder ||
-      m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks ||
-      m_Context != cid) {
+      m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks) {
     return false;
   }
 
@@ -125,15 +120,13 @@ bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
                                  bool bDisableBorder,
                                  bool bEmulate3DWith2DStacks,
                                  UINT64& iIntraFrameCounter,
-                                 UINT64& iFrameCounter,
-                                 const CTGLContext &cid)
+                                 UINT64& iFrameCounter)
 {
   if (!Match(vDimension) || iUserCount > 0
       || m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo
       || m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits
       || m_bDisableBorder != bDisableBorder
-      || m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks
-      || m_Context != cid) {
+      || m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks) {
     return false;
   }
 
@@ -230,14 +223,9 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
                                bool bDisableBorder,
                                bool bEmulate3DWith2DStacks,
                                UINT64 iIntraFrameCounter,
-                               UINT64 iFrameCounter, const CTGLContext &cid,
+                               UINT64 iFrameCounter,
                                std::vector<unsigned char>& vUploadHub) {
   if(volumes.empty()) { return false; }
-  if (m_Context != cid) {
-    T_ERROR("Trying to replace texture in one context"
-            "with a texture from a second context!");
-    return false;
-  }
 
   pDataset = _pDataset;
   m_Key    = key;

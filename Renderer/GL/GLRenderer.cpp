@@ -68,7 +68,6 @@ GLRenderer::GLRenderer(MasterController* pMasterController,
                 bUseOnlyPowerOfTwo, 
                 bDownSampleTo8Bits,
                 bDisableBorder),
-  m_Context(),
   m_TargetBinder(pMasterController),
   m_p1DTransTex(NULL),
   m_p2DTransTex(NULL),
@@ -128,13 +127,11 @@ GLRenderer::~GLRenderer() {
   DeleteDepthStorage();
 }
 
-bool GLRenderer::Initialize(CTGLContext ctx) {
-  if (!AbstrRenderer::Initialize()) {
+bool GLRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
+  if (!AbstrRenderer::Initialize(ctx)) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
-
-  m_Context = ctx;
 
   // Try to guess filenames for a transfer functions.  We guess based on the
   // filename of the dataset, but it could be the case that our client gave us
@@ -935,9 +932,7 @@ bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
                                                          m_bDisableBorder,
                                                          false,
                                                          iIntraFrameCounter,
-                                                         m_iFrameCounter,
-                                                         m_Context);
-
+                                                         m_iFrameCounter);
   GL_CHECK();
   if(m_pGLVolume) {
     static_cast<GLVolume3DTex*>(m_pGLVolume)->Bind(0);
@@ -2986,6 +2981,5 @@ bool GLRenderer::IsVolumeResident(const BrickKey& key) const {
                                                    m_bUseOnlyPowerOfTwo,
                                                    m_bDownSampleTo8Bits,
                                                    m_bDisableBorder,
-                                                   false,
-                                                   m_Context);
+                                                   false);
 }

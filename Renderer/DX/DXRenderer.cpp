@@ -45,6 +45,7 @@
 #include "DXTexture1D.h"
 #include <Controller/Controller.h>
 #include <Basics/SysTools.h>
+#include "DXContext.h"
 
 using namespace std;
 using namespace tuvok;
@@ -70,13 +71,6 @@ void DXRenderer::Cleanup() {
 }
 
 bool DXRenderer::Initialize() {
-  // call the parent
-  if (!AbstrRenderer::Initialize()) {
-    T_ERROR("Error in parent call -> aborting");
-    return false;
-  }
-
-
   // next destroy the dx system we may have created already
   if (m_pd3dDevice) OnDestroyDevice();
 
@@ -108,7 +102,12 @@ bool DXRenderer::Initialize() {
   hr = DynamicDX::CreateDXGIFactory( IID_IDXGIFactory, ( void** )&m_pDXGIFactory );
   if( FAILED( hr ) ) return false;
 
-  m_Context = CTDXContext::Current(m_pd3dDevice);
+    // call the parent
+  std::tr1::shared_ptr<DXContext> dxc = std::tr1::shared_ptr<DXContext>(new DXContext(m_pd3dDevice));
+  if (!AbstrRenderer::Initialize(dxc)) {
+    T_ERROR("Error in parent call -> aborting");
+    return false;
+  }
 
   // finally initialize the renderer
   return OnCreateDevice();

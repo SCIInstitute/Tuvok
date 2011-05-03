@@ -98,7 +98,6 @@ class DXRenderer : public AbstrRenderer {
     IDXGISwapChain*         m_pSwapChain;
     ID3D10RenderTargetView* m_pRenderTargetView;
     IDXGIFactory*           m_pDXGIFactory;
-    CTDXContext             m_Context;
 
     bool OnCreateDevice();
     bool OnResizedSwapChain();

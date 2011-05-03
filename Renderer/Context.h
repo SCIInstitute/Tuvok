@@ -31,34 +31,28 @@
   \author  Tom Fogal
            SCI Institute
            University of Utah
-  \brief   Includes the proper context code and typedefs the compile-time
-           context to the appropriate one.
+  \brief   Base class for holding comparative context information.
 */
 #pragma once
-#ifndef TUVOK_CONTEXT_H
-#define TUVOK_CONTEXT_H
 
-#ifdef USE_DIRECTX
-# include "DX/DXContextID.h"
-  namespace tuvok {
-    typedef DXContextID CTDXContext;
-  };
-#endif
+#ifndef TUVOK_CONTEXT_ID_H
+#define TUVOK_CONTEXT_ID_H
 
-// We also have a `GLContextID' which is not based on Qt.  For most projects,
-// we can rely on Qt's presence, so it's better to use the Qt object for this.
-// If you're embedding Tuvok in another app though, you might want to replace
-// the Qt context implementation with the straight-GL implementation.
-#ifdef TUVOK_NO_QT
-# include "GL/GLContextID.h"
-  namespace tuvok {
-    typedef GLContextID CTGLContext;
-  };
-#else
-# include "GL/QtGLContextID.h"
-  namespace tuvok {
-    typedef QtGLContextID CTGLContext;
-  };
-#endif
+#include "StateManager.h"
+#include <map>
 
-#endif // TUVOK_CONTEXT_H
+namespace tuvok {
+
+class Context {
+public:
+  virtual ~Context() {}
+
+protected:
+  static std::map<const void*, std::tr1::shared_ptr<Context> > contextMap;
+  static std::tr1::shared_ptr<StateManager> m_pState;
+  const void* ctx; /// will be GLXContext, HGLRC, or Device
+};
+
+}
+
+#endif // TUVOK_CONTEXT_ID_H

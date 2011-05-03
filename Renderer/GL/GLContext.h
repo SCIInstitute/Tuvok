@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    GLContextID.h
+  \file    GLContext.h
   \author  Tom Fogal
            SCI Institute
            University of Utah
@@ -44,70 +44,63 @@
 #else
 # include <GL/glxew.h>
 #endif
-#include "../ContextID.h"
+#include "../Context.h"
 #include "GLStateManager.h"
 
 namespace tuvok {
 
-/// Context wrapper based on GLX.  See base class for details.
-class GLContextID : public ContextID<GLContextID> {
-  public:
-    /// Create an ID with the current context.
+
+
+class GLContext : public Context {
+public:
 #ifdef DETECTED_OS_WINDOWS
-    GLContextID() : ContextID<GLContextID>(), ctx(wglGetCurrentContext()) {
-      if (ctx) 
-        m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
-      else
-        m_pState = std::tr1::shared_ptr<StateManager>();
-    }
+  #define GetContext wglGetCurrentContext
 #else
-    GLContextID() : ContextID<GLContextID>(), ctx(glXGetCurrentContext()) {
+  #define GetContext glXGetCurrentContext
+#endif  
+
+
+    GLContext() {
+      ctx = GetContext();
       if (ctx) 
         m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
       else
         m_pState = std::tr1::shared_ptr<StateManager>();
     }
-    GLContextID(GLXContext c) : ContextID<GLContextID>(), ctx(c) {
-      if (ctx) 
-        m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
-      else
-        m_pState = std::tr1::shared_ptr<StateManager>();
-    }
-#endif
+
     /// Create an ID from the given context.
-    GLContextID(const GLContextID& ct) : ContextID<GLContextID>(),
-                                         ctx(ct.ctx) {
+    GLContext(const GLContext& ct) {
+      ctx = ct.ctx;
       m_pState = ct.m_pState;
     }
-
-    ~GLContextID(){
+    
+    static std::tr1::shared_ptr<Context> Current() {
+       if(contextMap.find(GetContext()) == contextMap.end()) {
+         std::pair<const void*, std::tr1::shared_ptr<Context> > tmp(
+            GetContext(),
+            std::tr1::shared_ptr<Context>(new GLContext())
+         );
+         return contextMap.insert(tmp).first->second; // return what we're inserting
+       }
+       return contextMap[GetContext()];
     }
 
-    static GLContextID Current() { return GLContextID(); }
-
-    bool operator==(const GLContextID &gl_cid) const {
+    bool operator==(const GLContext &gl_cid) const {
       return this->ctx == gl_cid.ctx;
     }
-    bool operator!=(const GLContextID &gl_cid) const {
+    bool operator!=(const GLContext &gl_cid) const {
       return this->ctx != gl_cid.ctx;
     }
 
-    GLContextID& operator=(const GLContextID &ct) {
+    GLContext& operator=(const GLContext &ct) {
       this->ctx = ct.ctx;
       return *this;
     }
 
   private:
-    GLContextID(const ContextID<GLContextID>&); ///< unimplemented
-
-  private:
-#ifdef DETECTED_OS_WINDOWS
-    HGLRC ctx;
-#else
-    GLXContext ctx;
-#endif
+    GLContext(const Context&); ///< unimplemented
 };
 
-};
+}
 
 #endif // TUVOK_GL_CONTEXT_ID_H

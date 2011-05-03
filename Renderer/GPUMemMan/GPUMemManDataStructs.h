@@ -149,25 +149,22 @@ namespace tuvok {
                       bool bIsDownsampledTo8Bits, bool bEmulate3DWith2DStacks,
                       UINT64 iIntraFrameCounter,
                       UINT64 iFrameCounter, MasterController* pMasterController,
-                      const CTGLContext &,
                       std::vector<unsigned char>& vUploadHub);
     ~GLVolumeListElem();
 
     bool Equals(const Dataset* _pDataset, const BrickKey&,
                 bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
-                bool bDisableBorder, bool bEmulate3DWith2DStacks,
-                const CTGLContext &);
+                bool bDisableBorder, bool bEmulate3DWith2DStacks);
     bool Replace(Dataset* _pDataset, const BrickKey&,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, bool bEmulate3DWith2DStacks,
                  UINT64 iIntraFrameCounter, UINT64 iFrameCounter,
-                 const CTGLContext &,
                  std::vector<unsigned char>& vUploadHub);
     bool BestMatch(const UINTVECTOR3& vDimension,
                    bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                    bool bDisableBorder, bool bEmulate3DWith2DStacks,
                    UINT64& iIntraFrameCounter,
-                   UINT64& iFrameCounter, const CTGLContext &);
+                   UINT64& iFrameCounter);
     void GetCounters(UINT64& iIntraFrameCounter, UINT64& iFrameCounter) {
       iIntraFrameCounter = m_iIntraFrameCounter;
       iFrameCounter = m_iFrameCounter;
@@ -207,7 +204,6 @@ namespace tuvok {
     UINT64 m_iIntraFrameCounter;
     UINT64 m_iFrameCounter;
     MasterController* m_pMasterController;
-    const CTGLContext m_Context;
 
     BrickKey m_Key;
     bool m_bIsPaddedToPowerOfTwo;

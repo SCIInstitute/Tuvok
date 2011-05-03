@@ -335,6 +335,7 @@
     <ClCompile Include="Basics\KDTree.cpp" />
     <ClCompile Include="Basics\Mesh.cpp" />
     <ClCompile Include="Renderer\AbstrRenderer.cpp" />
+    <ClCompile Include="Renderer\Context.cpp" />
     <ClCompile Include="Renderer\CullingLOD.cpp" />
     <ClCompile Include="Renderer\RenderMesh.cpp" />
     <ClCompile Include="Renderer\TFScaling.cpp" />
@@ -925,8 +926,11 @@
     <ClInclude Include="Basics\3rdParty\tclap\ZshCompletionOutput.h" />
     <ClInclude Include="Renderer\AbstrRenderer.h" />
     <ClInclude Include="Renderer\Context.h" />
-    <ClInclude Include="Renderer\ContextID.h" />
+    <ClInclude Include="Renderer\ContextIdentification.h" />
     <ClInclude Include="Renderer\CullingLOD.h" />
+    <ClInclude Include="Renderer\DX\DXContext.h" />
+    <ClInclude Include="Renderer\GL\GLContext.h" />
+    <ClInclude Include="Renderer\GL\QtGLContext.h" />
     <ClInclude Include="Renderer\RenderMesh.h" />
     <ClInclude Include="Renderer\RenderRegion.h" />
     <ClInclude Include="Renderer\StateManager.h" />
@@ -951,16 +955,13 @@
     <ClInclude Include="Renderer\DX\DXTexture2D.h" />
     <ClInclude Include="Renderer\DX\DXTexture3D.h" />
     <ClInclude Include="Renderer\GPUObject.h" />
-    <ClInclude Include="Renderer\GL\GLContextID.h" />
     <ClInclude Include="Renderer\GL\GLError.h" />
     <ClInclude Include="Renderer\GL\GLRaycaster.h" />
     <ClInclude Include="Renderer\GL\GLRenderer.h" />
     <ClInclude Include="Renderer\GL\GLSBVR.h" />
     <ClInclude Include="Renderer\GL\GLSBVR2D.h" />
     <ClInclude Include="Renderer\GL\GLStateManager.h" />
-    <ClInclude Include="Renderer\GL\QtGLContextID.h" />
     <ClInclude Include="Renderer\GL\RenderMeshGL.h" />
-    <ClInclude Include="Renderer\DX\DXContextID.h" />
     <ClInclude Include="Renderer\DX\DXRaycaster.h" />
     <ClInclude Include="Renderer\DX\DXRenderer.h" />
     <ClInclude Include="Renderer\DX\DXSBVR.h" />

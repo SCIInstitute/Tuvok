@@ -37,7 +37,7 @@
 #ifndef TUVOK_DX_CONTEXT_ID_H
 #define TUVOK_DX_CONTEXT_ID_H
 
-#include "../ContextID.h"
+#include "../Context.h"
 
 #include "../../Basics/DynamicDX.h"
 
@@ -47,33 +47,31 @@ namespace tuvok {
 ///
 /// Currently unimplemented, just holds null; this means that all DirectX
 /// contexts will be considered equivalent.
-class DXContextID : public ContextID<DXContextID> {
+class DXContext : public Context {
   public:
-    DXContextID() : ContextID<DXContextID>(),
-                    ctx(NULL) {}
+    DXContext() { ctx = NULL; }
+
     /// Create an ID from the given context.
-    DXContextID(ID3D10Device *c) : ContextID<DXContextID>(), ctx(c) {}
-    DXContextID(const DXContextID &dx) : ContextID<DXContextID>(),
-                                         ctx(dx.ctx) { }
+    DXContext(ID3D10Device *c) {
+      ctx = c;
+    }
+    DXContext(const DXContext &dx) { ctx = dx.ctx; }
 
-    static DXContextID Current(ID3D10Device *c) { return DXContextID(c); }
+    static DXContext Current(ID3D10Device *c) { return DXContext(c); }
 
-    bool operator==(const DXContextID &dx_cid) const {
+    bool operator==(const DXContext &dx_cid) const {
       return this->ctx == dx_cid.ctx;
     }
-    bool operator!=(const DXContextID &dx_cid) const {
+    bool operator!=(const DXContext &dx_cid) const {
       return this->ctx != dx_cid.ctx;
     }
 
-    DXContextID& operator=(const DXContextID &ct) {
+    DXContext& operator=(const DXContext &ct) {
       this->ctx = ct.ctx;
       return *this;
     }
-
-  private:
-    const ID3D10Device* ctx;
 };
 
-};
+}
 
 #endif // TUVOK_DX_CONTEXT_ID_H

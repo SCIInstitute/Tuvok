@@ -155,26 +155,26 @@ void GLState::Apply() {
   GL_CHECK();
 }
 
-void GLState::Apply(const GPUState& state) {
+void GLState::Apply(const GPUState& state, bool bForce) {
   GL_CHECK();
 
-  SetEnableDepth(state.GetEnableDepth());
-  SetEnableCull(state.GetEnableCull());
-  SetCullState(state.GetCullState());
-  SetEnableBlend(state.GetEnableBlend());
-  SetEnableScissor(state.GetEnableScissor());
-  SetEnableLighting(state.GetEnableLighting());
-  SetEnableColorMaterial(state.GetEnableColorMaterial());
-  SetEnableLineSmooth(state.GetEnableLineSmooth());
+  SetEnableDepth(state.GetEnableDepth(), bForce);
+  SetEnableCull(state.GetEnableCull(), bForce);
+  SetCullState(state.GetCullState(), bForce);
+  SetEnableBlend(state.GetEnableBlend(), bForce);
+  SetEnableScissor(state.GetEnableScissor(), bForce);
+  SetEnableLighting(state.GetEnableLighting(), bForce);
+  SetEnableColorMaterial(state.GetEnableColorMaterial(), bForce);
+  SetEnableLineSmooth(state.GetEnableLineSmooth(), bForce);
 
   for (size_t i = 0;i<StateLightCount;i++) {
-    SetEnableLight(i, state.GetEnableLight(i));
+    SetEnableLight(i, state.GetEnableLight(i), bForce);
   }
 
   // do this by hand to avoid the redundant
   // glActiveTexture calls
   for (size_t i = 0;i<StateTUCount;i++) {
-    if (state.GetEnableTex(i) != enableTex[i]) {
+    if (bForce || state.GetEnableTex(i) != enableTex[i]) {
       glActiveTexture(GLenum(GL_TEXTURE0+i));
       enableTex[i] = state.GetEnableTex(i);
       switch (enableTex[i]) {
@@ -197,10 +197,10 @@ void GLState::Apply(const GPUState& state) {
   activeTexUnit = state.GetActiveTexUnit();
   glActiveTexture(GLenum(GL_TEXTURE0 + activeTexUnit));
 
-  SetDepthMask(state.GetDepthMask());
-  SetColorMask(state.GetColorMask());
-  SetBlendEquation(state.GetBlendEquation());
-  SetBlendFunction(state.GetBlendFunctionSrc(), state.GetBlendFunctionDst());
+  SetDepthMask(state.GetDepthMask(), bForce);
+  SetColorMask(state.GetColorMask(), bForce);
+  SetBlendEquation(state.GetBlendEquation(), bForce);
+  SetBlendFunction(state.GetBlendFunctionSrc(), state.GetBlendFunctionDst(), bForce);
 
   GL_CHECK();
 }
@@ -265,8 +265,8 @@ void GLState::GetFromOpenGL()
   GL_CHECK();
 }
 
-void GLState::SetEnableDepth(const bool& value) {
-  if (value != enableDepth) {
+void GLState::SetEnableDepth(const bool& value, bool bForce) {
+  if (bForce || value != enableDepth) {
     enableDepth = value;
     if (enableDepth) {
       glEnable(GL_DEPTH_TEST);
@@ -276,8 +276,8 @@ void GLState::SetEnableDepth(const bool& value) {
   }
 }
 
-void GLState::SetEnableCull(const bool& value) {
-  if (value != enableCull) {
+void GLState::SetEnableCull(const bool& value, bool bForce) {
+  if (bForce || value != enableCull) {
     enableCull = value;
     if (enableCull) {
       glEnable(GL_CULL_FACE);
@@ -287,15 +287,15 @@ void GLState::SetEnableCull(const bool& value) {
   }
 }
 
-void GLState::SetCullState(const STATE_CULL& value) {
-  if (value != cullState) {
+void GLState::SetCullState(const STATE_CULL& value, bool bForce) {
+  if (bForce || value != cullState) {
     cullState = value;
     glCullFace((cullState == CULL_FRONT) ? GL_FRONT : GL_BACK);
   }
 }
 
-void GLState::SetEnableBlend(const bool& value) {
-  if (value != enableBlend) {
+void GLState::SetEnableBlend(const bool& value, bool bForce) {
+  if (bForce || value != enableBlend) {
     enableBlend = value;
     if (enableBlend) {
       glEnable(GL_BLEND);
@@ -305,8 +305,8 @@ void GLState::SetEnableBlend(const bool& value) {
   }
 }
 
-void GLState::SetEnableScissor(const bool& value) {
-  if (value != enableScissor) {
+void GLState::SetEnableScissor(const bool& value, bool bForce) {
+  if (bForce || value != enableScissor) {
     enableScissor = value;
     if (enableScissor) {
       glEnable(GL_SCISSOR_TEST);
@@ -316,8 +316,8 @@ void GLState::SetEnableScissor(const bool& value) {
   }
 }
 
-void GLState::SetEnableLighting(const bool& value) {
-  if (value != enableLighting) {
+void GLState::SetEnableLighting(const bool& value, bool bForce) {
+  if (bForce || value != enableLighting) {
     enableLighting = value;
     if (enableLighting) {
       glEnable(GL_LIGHTING);
@@ -327,8 +327,8 @@ void GLState::SetEnableLighting(const bool& value) {
   }
 }
 
-void GLState::SetEnableColorMaterial(const bool& value) {
-  if (value != enableColorMaterial) {
+void GLState::SetEnableColorMaterial(const bool& value, bool bForce) {
+  if (bForce || value != enableColorMaterial) {
     enableColorMaterial = value;
     if (enableColorMaterial) {
       glEnable(GL_COLOR_MATERIAL);
@@ -338,8 +338,8 @@ void GLState::SetEnableColorMaterial(const bool& value) {
   }
 }
 
-void GLState::SetEnableLineSmooth(const bool& value) {
-  if (value != enableLineSmooth) {
+void GLState::SetEnableLineSmooth(const bool& value, bool bForce) {
+  if (bForce || value != enableLineSmooth) {
     enableLineSmooth = value;
     if (enableLineSmooth) {
       glEnable(GL_LINE_SMOOTH);
@@ -349,8 +349,8 @@ void GLState::SetEnableLineSmooth(const bool& value) {
   }
 }
 
-void GLState::SetEnableLight(size_t i, const bool& value) {
-  if (value != enableLight[i]) {
+void GLState::SetEnableLight(size_t i, const bool& value, bool bForce) {
+  if (bForce || value != enableLight[i]) {
     enableLight[i] = value;
     if (enableLight[i]) {
       glEnable(GLenum(GL_LIGHT0+i));
@@ -360,8 +360,8 @@ void GLState::SetEnableLight(size_t i, const bool& value) {
   }
 }
 
-void GLState::SetEnableTex(size_t i, const STATE_TEX& value) {
-  if (value != enableTex[i]) {
+void GLState::SetEnableTex(size_t i, const STATE_TEX& value, bool bForce) {
+  if (bForce || value != enableTex[i]) {
     glActiveTexture(GLenum(GL_TEXTURE0+i));
     enableTex[i] = value;
     switch (enableTex[i]) {
@@ -383,30 +383,30 @@ void GLState::SetEnableTex(size_t i, const STATE_TEX& value) {
   }
 }
 
-void GLState::SetActiveTexUnit(const size_t iUnit) {
-  if (iUnit != activeTexUnit) {
+void GLState::SetActiveTexUnit(const size_t iUnit, bool bForce) {
+  if (bForce || iUnit != activeTexUnit) {
     activeTexUnit = iUnit;
     glActiveTexture(GLenum(GL_TEXTURE0 + activeTexUnit));
   }
 }
 
-void GLState::SetDepthMask(const bool value) {
-  if (value != depthMask) {
+void GLState::SetDepthMask(const bool value, bool bForce) {
+  if (bForce || value != depthMask) {
     depthMask = value;
     glDepthMask(depthMask ? 1 : 0);
   }
 }
 
-void GLState::SetColorMask(const bool value) {
-  if (value != colorMask) {
+void GLState::SetColorMask(const bool value, bool bForce) {
+  if (bForce || value != colorMask) {
     colorMask = value;
     GLboolean b = colorMask ? 1 : 0;
     glColorMask(b,b,b,b);
   }
 }
 
-void GLState::SetBlendEquation(const BLEND_EQUATION value) {
-  if (value != blendEquation) {
+void GLState::SetBlendEquation(const BLEND_EQUATION value, bool bForce) {
+  if (bForce || value != blendEquation) {
     blendEquation = value;
     GLenum mode = GL_FUNC_ADD;
 
@@ -422,8 +422,8 @@ void GLState::SetBlendEquation(const BLEND_EQUATION value) {
   }
 }
 
-void GLState::SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest) {
-  if (src != blendFuncSrc || dest != blendFuncDst) {
+void GLState::SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest, bool bForce) {
+  if (bForce || (src != blendFuncSrc || dest != blendFuncDst)) {
     blendFuncSrc = src;
     blendFuncDst = dest;
     glBlendFunc( blendFuncToGL(blendFuncSrc), blendFuncToGL(blendFuncDst) );
@@ -433,4 +433,9 @@ void GLState::SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest) {
 GLStateManager::GLStateManager() : StateManager() {
   m_InternalState = new GLState();
   m_InternalState->Apply();
+}
+
+
+GLStateManager::~GLStateManager() {
+  delete m_InternalState;
 }

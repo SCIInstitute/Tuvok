@@ -610,14 +610,12 @@ bool GPUMemMan::IsResident(const Dataset* pDataset,
                            const BrickKey& key,
                            bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                            bool bDisableBorder,
-                           bool bEmulate3DWith2DStacks,
-                           const CTGLContext &cid) const {
+                           bool bEmulate3DWith2DStacks) const {
   for(GLVolumeListConstIter i = m_vpTex3DList.begin();
       i < m_vpTex3DList.end(); ++i) {
     if((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                     bDownSampleTo8Bits, bDisableBorder,
-                    bEmulate3DWith2DStacks,
-                    cid)) {
+                    bEmulate3DWith2DStacks)) {
       return true;
     }
   }
@@ -642,7 +640,7 @@ required_cpu_memory(const Dataset& ds, const BrickKey& key)
 static GLVolumeListIter
 find_closest_texture(GLVolumeList &lst, const UINTVECTOR3& vSize,
                      bool use_pot, bool downsample, bool disable_border,
-                     bool bEmulate3DWith2DStacks, const CTGLContext &cid)
+                     bool bEmulate3DWith2DStacks)
 {
   UINT64 iTargetFrameCounter = UINT64_INVALID;
   UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
@@ -651,8 +649,7 @@ find_closest_texture(GLVolumeList &lst, const UINTVECTOR3& vSize,
   for (GLVolumeListIter i=lst.begin(); i < lst.end(); ++i) {
     if ((*i)->BestMatch(vSize, use_pot, downsample, disable_border,
                         bEmulate3DWith2DStacks,
-                        iTargetIntraFrameCounter, iTargetFrameCounter,
-                        cid)) {
+                        iTargetIntraFrameCounter, iTargetFrameCounter)) {
       iBestMatch = i;
     }
   }
@@ -736,8 +733,7 @@ GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
                                bool bDisableBorder,
                                bool bEmulate3DWith2DStacks,
                                UINT64 iIntraFrameCounter,
-                               UINT64 iFrameCounter,
-                               const CTGLContext &cid) {
+                               UINT64 iFrameCounter) {
   // It can occur that we can create the brick in CPU memory but OpenGL must
   // perform a texture copy to obtain the texture.  If that happens, we'll
   // delete any brick and then try again.
@@ -746,7 +742,7 @@ GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
       return this->AllocOrGetVolume(pDataset, key,
                                     bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
                                     bDisableBorder, bEmulate3DWith2DStacks,
-                                    iIntraFrameCounter, iFrameCounter,cid);
+                                    iIntraFrameCounter, iFrameCounter);
     } catch(OutOfMemory&) { // Texture allocation failed.
       // If texture allocation failed and we had no bricks loaded, then the
       // system must be extremely memory limited.  Make a note and then bail.
@@ -778,15 +774,13 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                       bool bDisableBorder,
                                       bool bEmulate3DWith2DStacks,
                                       UINT64 iIntraFrameCounter,
-                                      UINT64 iFrameCounter,
-                                      const CTGLContext &cid) {
+                                      UINT64 iFrameCounter) {
 
   for (GLVolumeListIter i = m_vpTex3DList.begin();
        i < m_vpTex3DList.end(); i++) {
     if ((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                      bDownSampleTo8Bits, bDisableBorder,
-                     bEmulate3DWith2DStacks,
-                     cid)) {
+                     bEmulate3DWith2DStacks)) {
       GL_CHECK();
       MESSAGE("Reusing 3D texture");
       return (*i)->Access(iIntraFrameCounter, iFrameCounter);
@@ -814,14 +808,14 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                                         bUseOnlyPowerOfTwo,
                                                         bDownSampleTo8Bits,
                                                         bDisableBorder,
-                                                        bEmulate3DWith2DStacks,cid);
+                                                        bEmulate3DWith2DStacks);
     if (iBestMatch != m_vpTex3DList.end()) {
       // found a suitable brick that can be replaced
       (*iBestMatch)->Replace(pDataset, key, bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits, bDisableBorder,
                              bEmulate3DWith2DStacks,
                              iIntraFrameCounter, iFrameCounter,
-                             cid, m_vUploadHub);
+                             m_vUploadHub);
       (*iBestMatch)->iUserCount++;
       return (*iBestMatch)->volumes[0];
     } else {
@@ -860,7 +854,6 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                                      iIntraFrameCounter,
                                                      iFrameCounter,
                                                      m_MasterController,
-                                                     cid,
                                                      m_vUploadHub);
 
   if (pNew3DTex->volumes[0] == NULL) {

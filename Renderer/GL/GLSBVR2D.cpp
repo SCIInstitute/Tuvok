@@ -809,8 +809,7 @@ bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,
                                             m_bDisableBorder,
                                             true,
                                             iIntraFrameCounter,
-                                            m_iFrameCounter,
-                                            m_Context);
+                                            m_iFrameCounter);
   if(m_pGLVolume) {
     return true;
   } else {
@@ -826,8 +825,7 @@ bool GLSBVR2D::IsVolumeResident(const BrickKey& key) const{
                                                   m_bUseOnlyPowerOfTwo,
                                                   m_bDownSampleTo8Bits,
                                                   m_bDisableBorder,
-                                                  true,
-                                                  m_Context);
+                                                  true);
 }
 
 void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,

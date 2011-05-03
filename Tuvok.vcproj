@@ -1094,11 +1094,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Renderer\Context.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Renderer\Context.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Renderer\ContextID.h"
+				RelativePath=".\Renderer\ContextIdentification.h"
 				>
 			</File>
 			<File
@@ -1297,7 +1301,7 @@
 				Name="GL"
 				>
 				<File
-					RelativePath=".\Renderer\GL\GLContextID.h"
+					RelativePath=".\Renderer\GL\GLContext.h"
 					>
 				</File>
 				<File
@@ -1345,7 +1349,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Renderer\GL\QtGLContextID.h"
+					RelativePath=".\Renderer\GL\QtGLContext.h"
 					>
 				</File>
 				<File
@@ -1361,7 +1365,7 @@
 				Name="DX"
 				>
 				<File
-					RelativePath=".\Renderer\DX\DXContextID.h"
+					RelativePath=".\Renderer\DX\DXContext.h"
 					>
 				</File>
 				<File
@@ -1745,11 +1749,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File

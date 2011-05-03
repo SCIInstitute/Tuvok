@@ -40,54 +40,62 @@
 #include <GL/glew.h>
 #include <QtOpenGL/QGLContext>
 
-#include "../ContextID.h"
+#include "../Context.h"
 #include "GLStateManager.h"
 
 namespace tuvok {
 
 /// GL context information based on the `QGLContext' class.
-class QtGLContextID : public ContextID<QtGLContextID> {
+class QtGLContext : public Context {
   public:
     /// Create an ID with the current context.
-    QtGLContextID() : ctx((QGLContext::currentContext())) {
+    QtGLContext() {
+      ctx = QGLContext::currentContext();
       if (ctx) 
         m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
       else
         m_pState = std::tr1::shared_ptr<StateManager>();
     }
     /// Create an ID from the given context.
-    /// NOTE: Do not create multiple QtGLContextID's from the same QGLContext!
-    QtGLContextID(const QGLContext *ct) : ContextID<QtGLContextID>(), ctx(ct) {
+    /// NOTE: Do not create multiple QtGLContext's from the same QGLContext!
+    QtGLContext(const QGLContext *ct) {
+      ctx = ct;
       if (ctx) 
         m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
       else
         m_pState = std::tr1::shared_ptr<StateManager>();
     }
-    QtGLContextID(const QtGLContextID& ct) : ContextID<QtGLContextID>(),
-                                             ctx(ct.ctx) {
+    QtGLContext(const QtGLContext& ct) {
+      ctx = ct.ctx;
       m_pState = ct.m_pState;
     }
 
-    static QtGLContextID Current() { return QtGLContextID(); }
+    static std::tr1::shared_ptr<Context> Current() {
+       if(contextMap.find(QGLContext::currentContext()) == contextMap.end()) {
+         std::pair<const void*, std::tr1::shared_ptr<Context> > tmp(
+           QGLContext::currentContext(),
+           std::tr1::shared_ptr<Context>(new QtGLContext())
+         );
+         return contextMap.insert(tmp).first->second; // return what we're inserting
+       }
+       return contextMap[QGLContext::currentContext()];
+    }
 
-    bool operator==(const QtGLContextID &gl_cid) const {
+    bool operator==(const QtGLContext &gl_cid) const {
       return this->ctx == gl_cid.ctx;
     }
-    bool operator!=(const QtGLContextID &gl_cid) const {
+    bool operator!=(const QtGLContext &gl_cid) const {
       return this->ctx != gl_cid.ctx;
     }
 
-    QtGLContextID& operator=(const QtGLContextID &ct) {
+    QtGLContext& operator=(const QtGLContext &ct) {
       this->ctx = ct.ctx;
       return *this;
     }
 
   private:
-    QtGLContextID(const ContextID<QtGLContextID>&); ///< unimplemented
-
-  private:
-    const QGLContext *ctx;
+    QtGLContext(const Context&); ///< unimplemented
 };
 
-};
+}
 #endif // TUVOK_GL_CONTEXT_ID_H

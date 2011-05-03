@@ -208,7 +208,7 @@ class AbstrRenderer: public Scriptable {
     }
 
 
-    virtual bool Initialize();
+    virtual bool Initialize(std::tr1::shared_ptr<Context> ctx);
 
     /** Deallocates GPU memory allocated during the rendering process. */
     virtual void Cleanup() = 0;
@@ -516,6 +516,7 @@ class AbstrRenderer: public Scriptable {
 
   protected:
     MasterController*   m_pMasterController;
+    std::tr1::shared_ptr<Context> m_pContext;
     ERenderMode         m_eRenderMode;
     bool                m_bFirstDrawAfterModeChange;
     bool                m_bFirstDrawAfterResize;
