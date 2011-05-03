@@ -46,11 +46,15 @@
 // CRT's memory leak detection on windows
 // only makes sense with TUVOK_NO_QT enabled
 // as otherwise Qt will trigger the memleak detection
-//#ifdef _WIN32
-//  #if defined(DEBUG) || defined(_DEBUG)
-//    #include <crtdbg.h>
-//  #endif
-//#endif
+#ifdef TUVOK_NO_QT
+  #ifdef _WIN32
+    #if defined(DEBUG) || defined(_DEBUG)
+    #define _CRTDBG_MAP_ALLOC
+    #include <stdlib.h>
+    #include <crtdbg.h>
+    #endif
+  #endif
+#endif
 
 #include "Basics/StdDefines.h"
 
