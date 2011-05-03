@@ -1,0 +1,1763 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Basics">
+      <UniqueIdentifier>{9bff2b39-0d9e-415b-abf7-c5bf835d8128}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Basics\Systeminfo">
+      <UniqueIdentifier>{e014a01f-a848-4ece-9abc-5be11189a3b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Basics\Checksums">
+      <UniqueIdentifier>{320c9a95-e96a-4670-9bd1-d9d07b9c87c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Basics\Mesh">
+      <UniqueIdentifier>{06a6a28c-7006-4467-ad6e-ac4d8ae3d5ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Basics\3rdParty">
+      <UniqueIdentifier>{75821063-4f81-48b9-9ac8-894457ffa65b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Basics\3rdParty\tclap">
+      <UniqueIdentifier>{841ffddb-757d-4f22-820c-e6bcb66cb3f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{8145980f-8833-494b-ae5c-cd2a83926d6f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{48baf25f-8030-468c-9b3f-27f3f74cf2d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\MemMan">
+      <UniqueIdentifier>{5112d8a5-5258-4c61-9601-540752636dd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\MemMan\GL">
+      <UniqueIdentifier>{2d5b7469-4161-4d79-9625-f2cefaf8f07b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\MemMan\DX">
+      <UniqueIdentifier>{f70a3ed3-48e2-476b-a303-25b0a4d5d6e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\MemMan\API Independent">
+      <UniqueIdentifier>{b343b944-618f-4fd3-ade7-088d96f5bc13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\GL">
+      <UniqueIdentifier>{8caa5966-59f7-4d73-a237-0d8dd5df1a95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\DX">
+      <UniqueIdentifier>{86e74cef-71bd-463b-8bfa-ef85694721ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Capturing">
+      <UniqueIdentifier>{2560de00-0c50-4830-b15a-4cc5183f67ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Geometry Generators">
+      <UniqueIdentifier>{8ff196d7-9e8b-4123-ad7c-9a37978172a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DebugOut">
+      <UniqueIdentifier>{e9e91d52-9d81-449d-93bb-9b1315983cbb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd Party">
+      <UniqueIdentifier>{e75796d8-c7e3-4a45-98ac-49a6c7828f72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd Party\GLEW">
+      <UniqueIdentifier>{5bfecb6d-53fe-44aa-9c13-e49d58a762a2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd Party\GLEW\GL">
+      <UniqueIdentifier>{2f915819-6d19-4e8e-be37-516700d417ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3rd Party\boost">
+      <UniqueIdentifier>{8e402825-af76-455c-8b1d-75d1c83c706a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO">
+      <UniqueIdentifier>{5cc49d15-4c8b-45cc-8f5f-9b4c37b0f39c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\DICOM">
+      <UniqueIdentifier>{544845f0-8dde-415b-a39b-517452f51645}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\Images">
+      <UniqueIdentifier>{5aaa2a4c-0a76-45ea-ac14-ceab259954c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\UVF">
+      <UniqueIdentifier>{61403f19-546a-47ea-98cf-53eab8be6999}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\jpeglib">
+      <UniqueIdentifier>{3edf3d9a-31da-4c57-9aea-909ab8d60451}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\TIFF">
+      <UniqueIdentifier>{ba09eabc-65fa-4a96-a8af-c8aeb15ddc63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\bzip2">
+      <UniqueIdentifier>{47493534-2cc1-42b2-acf9-b746d07f3237}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\zlib">
+      <UniqueIdentifier>{de778f2f-80af-4be8-bc99-ba0de8c94f53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\Volume Converter">
+      <UniqueIdentifier>{008b546a-d825-4a8b-bf21-a2d52a2c718b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\Volume Converter\Helper">
+      <UniqueIdentifier>{b027d86a-f794-477a-8320-dec268444e48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\Geometry Converter">
+      <UniqueIdentifier>{45b9a6dd-a5b4-4973-9eb8-da3ef9371218}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IO\expressions">
+      <UniqueIdentifier>{106b191d-bc8b-4785-9610-6320a9c070fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Controller">
+      <UniqueIdentifier>{8aa5eec1-bd38-44ed-a2dd-309c6961ef7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scripting">
+      <UniqueIdentifier>{dc2eb033-ce87-46da-9c35-97260c5d26d0}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Basics\Appendix.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\ArcBall.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\DynamicDX.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\GeometryGenerator.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\LargeRAWFile.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\MathTools.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\MC.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\MemMappedFile.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\Plane.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\SystemInfo.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\SysTools.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\Timer.cpp">
+      <Filter>Basics</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\Systeminfo\VidMemViaDDraw.cpp">
+      <Filter>Basics\Systeminfo</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\Systeminfo\VidMemViaDXGI.cpp">
+      <Filter>Basics\Systeminfo</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\Checksums\MD5.cpp">
+      <Filter>Basics\Checksums</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\KDTree.cpp">
+      <Filter>Basics\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Basics\Mesh.cpp">
+      <Filter>Basics\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\AbstrRenderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\CullingLOD.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\RenderMesh.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\TFScaling.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GPUMemMan\GPUMemMan.cpp">
+      <Filter>Renderer\MemMan</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GPUMemMan\GPUMemManDataStructs.cpp">
+      <Filter>Renderer\MemMan</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLFBOTex.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLSLProgram.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLTargetBinder.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLTexture.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLTexture1D.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLTexture2D.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLTexture3D.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLVolume.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLVolume2DTex.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLVolume3DTex.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DX\DXTexture.cpp">
+      <Filter>Renderer\MemMan\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DX\DXTexture1D.cpp">
+      <Filter>Renderer\MemMan\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DX\DXTexture2D.cpp">
+      <Filter>Renderer\MemMan\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DX\DXTexture3D.cpp">
+      <Filter>Renderer\MemMan\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLRaycaster.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLRenderer.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLSBVR.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLSBVR2D.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLStateManager.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\RenderMeshGL.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DX\DXRaycaster.cpp">
+      <Filter>Renderer\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DX\DXRenderer.cpp">
+      <Filter>Renderer\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DX\DXSBVR.cpp">
+      <Filter>Renderer\DX</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLFrameCapture.cpp">
+      <Filter>Renderer\Capturing</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SBVRGeogen.cpp">
+      <Filter>Renderer\Geometry Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SBVRGeogen2D.cpp">
+      <Filter>Renderer\Geometry Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SBVRGeogen3D.cpp">
+      <Filter>Renderer\Geometry Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugOut\AbstrDebugOut.cpp">
+      <Filter>DebugOut</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugOut\ConsoleOut.cpp">
+      <Filter>DebugOut</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugOut\MultiplexOut.cpp">
+      <Filter>DebugOut</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugOut\TextfileOut.cpp">
+      <Filter>DebugOut</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\GLEW\GL\glew.c">
+      <Filter>3rd Party\GLEW\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\BrickedDataset.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Dataset.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\DSFactory.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\ExternalDataset.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\FileBackedDataset.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\FrameCapture.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\gzio.c">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\IOManager.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\TransferFunction1D.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\TransferFunction2D.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\TuvokJPEG.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\uvfDataset.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\uvfMesh.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\VariantArray.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\DICOM\DICOMParser.cpp">
+      <Filter>IO\DICOM</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\Images\ImageParser.cpp">
+      <Filter>IO\Images</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\DataBlock.cpp">
+      <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\GeometryDataBlock.cpp">
+      <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\GlobalHeader.cpp">
+      <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\Histogram1DDataBlock.cpp">
+      <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\Histogram2DDataBlock.cpp">
+      <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\KeyValuePairDataBlock.cpp">
+      <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\MaxMinDataBlock.cpp">
+      <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\RasterDataBlock.cpp">
+      <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\UVF.cpp">
+      <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\UVFTables.cpp">
+      <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\cdjpeg.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcapimin.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcapistd.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jccoefct.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jccolor.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcdctmgr.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcdiffct.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jchuff.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcinit.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jclhuff.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jclossls.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jclossy.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcmainct.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcmarker.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcmaster.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcodec.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcomapi.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcparam.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcphuff.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcpred.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcprepct.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcsample.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcscale.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jcshuff.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jctrans.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdapimin.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdapistd.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdatadst.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdatasrc.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdcoefct.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdcolor.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jddctmgr.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jddiffct.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdhuff.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdinput.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdlhuff.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdlossls.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdlossy.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdmainct.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdmarker.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdmaster.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdmerge.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdphuff.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdpostct.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdpred.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdsample.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdscale.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdshuff.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jdtrans.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jerror.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jfdctflt.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jfdctfst.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jfdctint.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jidctflt.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jidctfst.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jidctint.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jidctred.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jmemmgr.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jmemnobs.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jmemsrc.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jquant1.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jquant2.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\jutils.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\rdcolmap.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\rdswitch.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\jpeglib\transupp.c">
+      <Filter>IO\jpeglib</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_aux.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_close.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_codec.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_color.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_compress.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_dir.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_dirinfo.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_dirread.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_dirwrite.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_dumpmode.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_error.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_extension.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_fax3.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_fax3sm.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_flush.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_getimage.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_jbig.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_jpeg.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_luv.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_lzw.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_next.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_ojpeg.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_open.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_packbits.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_pixarlog.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_predict.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_print.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_read.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_strip.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_swab.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_thunder.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_tile.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_version.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_warning.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_win32.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_write.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\tiff\tif_zip.c">
+      <Filter>IO\TIFF</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\blocksort.c">
+      <Filter>IO\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\bzlib.c">
+      <Filter>IO\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\compress.c">
+      <Filter>IO\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\crctable.c">
+      <Filter>IO\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\decompress.c">
+      <Filter>IO\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\huffman.c">
+      <Filter>IO\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\3rdParty\bzip2\randtable.c">
+      <Filter>IO\bzip2</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\AbstrConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\AnalyzeConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\BOVConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\I3MConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\IASSConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\InveonConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\KitwareConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\NRRDConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\QVISConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\RAWConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\REKConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\StkConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\TiffVolumeConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\VFFConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\VGStudioConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\DirectoryParser.cpp">
+      <Filter>IO\Volume Converter\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\KeyValueFileParser.cpp">
+      <Filter>IO\Volume Converter\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\VGIHeaderParser.cpp">
+      <Filter>IO\Volume Converter\Helper</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\AbstrGeoConverter.cpp">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\G3D.cpp">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\MedAlyVisFiberTractGeoConverter.cpp">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\MedAlyVisGeoConverter.cpp">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\MobileGeoConverter.cpp">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\OBJGeoConverter.cpp">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\PLYGeoConverter.cpp">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\expressions\binary-expression.cpp">
+      <Filter>IO\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\expressions\conditional-expression.cpp">
+      <Filter>IO\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\expressions\constant.cpp">
+      <Filter>IO\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\expressions\treenode.cpp">
+      <Filter>IO\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\expressions\tvk-parse.parser.cpp">
+      <Filter>IO\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\expressions\tvk-scan.lexer.cpp">
+      <Filter>IO\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\expressions\volume.cpp">
+      <Filter>IO\expressions</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\MasterController.cpp">
+      <Filter>Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="Scripting\Scripting.cpp">
+      <Filter>Scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Context.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Basics\Appendix.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\ArcBall.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\Console.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\DynamicDX.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\EndianConvert.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\GeometryGenerator.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\Grids.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\LargeRAWFile.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\MathTools.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\MC.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\MemMappedFile.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\Plane.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\StdDefines.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\SystemInfo.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\SysTools.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\Timer.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\Vectors.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\Checksums\crc32.h">
+      <Filter>Basics\Checksums</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\Checksums\MD5.h">
+      <Filter>Basics\Checksums</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\KDTree.h">
+      <Filter>Basics\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\Mesh.h">
+      <Filter>Basics\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\Ray.h">
+      <Filter>Basics\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\Arg.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\ArgException.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\ArgTraits.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\CmdLine.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\CmdLineInterface.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\CmdLineOutput.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\Constraint.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\DocBookOutput.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\HelpVisitor.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\IgnoreRestVisitor.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\MultiArg.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\MultiSwitchArg.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\OptionalUnlabeledTracker.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\StandardTraits.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\StdOutput.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\SwitchArg.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\UnlabeledMultiArg.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\UnlabeledValueArg.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\ValueArg.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\ValuesConstraint.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\VersionVisitor.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\Visitor.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\XorHandler.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Basics\3rdParty\tclap\ZshCompletionOutput.h">
+      <Filter>Basics\3rdParty\tclap</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\AbstrRenderer.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\CullingLOD.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderMesh.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderRegion.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\StateManager.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\TFScaling.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GPUMemMan\GPUMemMan.h">
+      <Filter>Renderer\MemMan</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GPUMemMan\GPUMemManDataStructs.h">
+      <Filter>Renderer\MemMan</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLFBOTex.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLInclude.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLObject.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLSLProgram.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLTargetBinder.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLTexture.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLTexture1D.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLTexture2D.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLTexture3D.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLVolume.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLVolume2DTex.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLVolume3DTex.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DX\DXObject.h">
+      <Filter>Renderer\MemMan\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DX\DXTexture.h">
+      <Filter>Renderer\MemMan\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DX\DXTexture1D.h">
+      <Filter>Renderer\MemMan\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DX\DXTexture2D.h">
+      <Filter>Renderer\MemMan\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DX\DXTexture3D.h">
+      <Filter>Renderer\MemMan\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GPUObject.h">
+      <Filter>Renderer\MemMan\API Independent</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLError.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLRaycaster.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLRenderer.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLSBVR.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLSBVR2D.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLStateManager.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\RenderMeshGL.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DX\DXRaycaster.h">
+      <Filter>Renderer\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DX\DXRenderer.h">
+      <Filter>Renderer\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DX\DXSBVR.h">
+      <Filter>Renderer\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\FrameCapture.h">
+      <Filter>Renderer\Capturing</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLFrameCapture.h">
+      <Filter>Renderer\Capturing</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SBVRGeogen.h">
+      <Filter>Renderer\Geometry Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SBVRGeogen2D.h">
+      <Filter>Renderer\Geometry Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SBVRGeogen3D.h">
+      <Filter>Renderer\Geometry Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugOut\AbstrDebugOut.h">
+      <Filter>DebugOut</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugOut\ConsoleOut.h">
+      <Filter>DebugOut</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugOut\MultiplexOut.h">
+      <Filter>DebugOut</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugOut\TextfileOut.h">
+      <Filter>DebugOut</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\GLEW\GL\glew.h">
+      <Filter>3rd Party\GLEW\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\GLEW\GL\glxew.h">
+      <Filter>3rd Party\GLEW\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\GLEW\GL\wglew.h">
+      <Filter>3rd Party\GLEW\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi_prefix.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi_suffix.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\aix.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\amigaos.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\auto_link.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\beos.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\borland.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi\borland_prefix.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi\borland_suffix.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\bsd.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\no_tr1\cmath.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\codegear.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\comeau.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\common_edg.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\compaq_cxx.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\no_tr1\complex.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\cstdint.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\cygwin.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\digitalmars.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\dinkumware.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\serialization\force_include.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\no_tr1\functional.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\gcc.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\gcc_xml.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\greenhills.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\hp_acc.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\hpux.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\intel.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\irix.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\kai.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\libcomo.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\libstdcpp3.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\linux.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\macos.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\no_tr1\memory.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\metrowerks.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\algorithm\minmax_element.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\modena.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\mpw.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\msl.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi\msvc_prefix.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\abi\msvc_suffix.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\noncopyable.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\pgi.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\posix_features.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\qnxnto.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\requires_threads.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\roguewave.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\select_compiler_config.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\select_platform_config.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\select_stdlib_config.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\sgi.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\sgi_mipspro.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\serialization\singleton.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\solaris.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\stlport.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\suffix.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\sunpro_cc.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\user.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\no_tr1\utility.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\vacpp.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\compiler\visualc.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\warning_disable.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\boost\boost\config\platform\win32.hpp">
+      <Filter>3rd Party\boost</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Brick.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\BrickedDataset.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Dataset.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\DSFactory.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\ExternalDataset.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\FileBackedDataset.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\gzio.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\IOManager.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Quantize.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\TransferFunction1D.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\TransferFunction2D.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Tuvok_QtPlugins.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\TuvokIOError.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\TuvokJPEG.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\uvfDataset.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\uvfMesh.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\VariantArray.h">
+      <Filter>IO</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\DICOM\DICOMParser.h">
+      <Filter>IO\DICOM</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Images\ImageParser.h">
+      <Filter>IO\Images</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\DataBlock.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\GeometryDataBlock.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\GlobalHeader.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\Histogram1DDataBlock.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\Histogram2DDataBlock.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\KeyValuePairDataBlock.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\MaxMinDataBlock.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\RasterDataBlock.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\UVF.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\UVFBasic.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\UVFTables.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\cderror.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\cdjpeg.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jchuff.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jconfig.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jdct.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jdhuff.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jerror.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jinclude.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jlossls.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jlossy.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jmemsys.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jmorecfg.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jpegint.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jpeglib.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\jversion.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\mangle_jpeg.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\jpeglib\transupp.h">
+      <Filter>IO\jpeglib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\t4.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\tif_config.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\tif_dir.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\tif_fax3.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\tif_predict.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\tiff.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\tiffconf.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\tiffio.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\tiffiop.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\tiffvers.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\tiff\uvcode.h">
+      <Filter>IO\TIFF</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\bzip2\bzlib.h">
+      <Filter>IO\bzip2</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\bzip2\bzlib_private.h">
+      <Filter>IO\bzip2</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\zconf.h">
+      <Filter>IO\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\3rdParty\zlib\zlib.h">
+      <Filter>IO\zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\AbstrConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\AnalyzeConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\BOVConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\I3MConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\IASSConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\InveonConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\KitwareConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\NRRDConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\QVISConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\RAWConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\REKConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\StkConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\TiffVolumeConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\VFFConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\VGStudioConverter.h">
+      <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\DirectoryParser.h">
+      <Filter>IO\Volume Converter\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\KeyValueFileParser.h">
+      <Filter>IO\Volume Converter\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\VGIHeaderParser.h">
+      <Filter>IO\Volume Converter\Helper</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\AbstrGeoConverter.h">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\G3D.h">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\MedAlyVisFiberTractGeoConverter.h">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\MedAlyVisGeoConverter.h">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\MobileGeoConverter.h">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\OBJGeoConverter.h">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\PLYGeoConverter.h">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\binary-expression.h">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\conditional-expression.h">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\constant.h">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\expr-template.h">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\expression.h">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\parser.h">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\semantic.h">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\syntax.h">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\treenode.h">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\tvk-parse.parser.hpp">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\expressions\volume.h">
+      <Filter>IO\expressions</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\Controller.h">
+      <Filter>Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\MasterController.h">
+      <Filter>Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\Scriptable.h">
+      <Filter>Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="Scripting\Scripting.h">
+      <Filter>Scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="StdTuvokDefines.h" />
+    <ClInclude Include="Renderer\Context.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLContext.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\QtGLContext.h">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\DX\DXContext.h">
+      <Filter>Renderer\DX</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\ContextIdentification.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Basics\MC.inl">
+      <Filter>Basics</Filter>
+    </None>
+    <None Include="Shaders\1D-slice-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\2D-slice-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\BBox-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\BBox-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\BTF.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\clip-plane.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Compose-AF-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Compose-Anaglyphs-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Compose-Color-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Compose-CV-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Compose-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Compose-SBS-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Compose-Scanline-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Compositing.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\FTB.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycaster-1D-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycaster-1D-light-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycaster-2D-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycaster-2D-light-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycaster-Color-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycaster-frontfaces-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycaster-ISO-CV-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycaster-ISO-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycaster-MIP-Rot-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycaster-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLRaycasterNoTransform-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-1D-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-1D-light-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-2D-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-2D-light-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-Color-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-ISO-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-Mesh-1D-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-Mesh-1D-light-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-Mesh-2D-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-Mesh-2D-light-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-Mesh-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-MIP-Rot-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\GLSBVR-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\lighting.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Mesh-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Mesh-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\MIP-slice-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\RefineIsosurface.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\SlicesIn3D.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Transfer-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Transfer-MIP-FS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Transfer-VS.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Volume2D.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Volume3D.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\vr-col-tfqn-lit.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\vr-col-tfqn.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\vr-scal-tfqn-lit.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\vr-scal-tfqn.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Tuvok.pro" />
+    <None Include="tvk.pro" />
+  </ItemGroup>
+</Project>
