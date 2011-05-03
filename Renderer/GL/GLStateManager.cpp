@@ -70,6 +70,8 @@ BLEND_FUNC GLtoBlendFunc(const GLenum& func) {
 }
 
 void GLState::Apply() {
+  GL_CHECK();
+
   if (enableBlend) {
     glEnable(GL_BLEND); 
   } else {
@@ -82,7 +84,7 @@ void GLState::Apply() {
     glDisable(GL_CULL_FACE);
   }
 
-  GL(glCullFace((cullState == CULL_FRONT) ? GL_FRONT : GL_BACK));
+  glCullFace((cullState == CULL_FRONT) ? GL_FRONT : GL_BACK);
 
   if (enableScissor) {
     glEnable(GL_SCISSOR_TEST);
