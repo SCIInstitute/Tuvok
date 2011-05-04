@@ -95,12 +95,16 @@ GLVolume2DTex::~GLVolume2DTex() {
 void GLVolume2DTex::Bind(UINT32 iUnit,
                          int iDepth,
                          int iStack) const {
+  
+  GLint iPrevUint;
+  GL(glGetIntegerv(GL_ACTIVE_TEXTURE, &iPrevUint));
+
   if (iDepth >= 0 && iDepth < static_cast<int>(m_pTextures[iStack].size())) {
     m_pTextures[iStack][iDepth]->Bind(iUnit);
   } else {
     switch (m_wrapZ) {
       case GL_CLAMP :  
-               GL(glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit)));
+               GL(glActiveTexture(GLenum(GL_TEXTURE0 + iUnit)));
                GL(glBindTexture(GL_TEXTURE_2D, 0));
                break;
       case GL_CLAMP_TO_EDGE : 
@@ -111,11 +115,13 @@ void GLVolume2DTex::Bind(UINT32 iUnit,
                break;
       default:
                WARNING("Unsupported wrap mode, falling back to GL_CLAMP");
-               GL(glActiveTextureARB(GLenum(GL_TEXTURE0 + iUnit)));
+               GL(glActiveTexture(GLenum(GL_TEXTURE0 + iUnit)));
                GL(glBindTexture(GL_TEXTURE_2D, 0));
                break;
     }
   }
+
+  GL(glActiveTexture(iPrevUint));
 }
 
 void GLVolume2DTex::CreateGLResources() {

@@ -47,6 +47,9 @@ GLTexture2D::GLTexture2D(UINT32 iSizeX, UINT32 iSizeY, GLint internalformat, GLe
   m_format(format),
   m_type(type)
 {
+  GLint prevTex;
+  GL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex));
+
   GL(glGenTextures(1, &m_iGLID));
   GL(glBindTexture(GL_TEXTURE_2D, m_iGLID));
 
@@ -60,13 +63,20 @@ GLTexture2D::GLTexture2D(UINT32 iSizeX, UINT32 iSizeY, GLint internalformat, GLe
   GL(glTexImage2D(GL_TEXTURE_2D, 0, m_internalformat,
                   GLuint(m_iSizeX),GLuint(m_iSizeY), 0, m_format, m_type,
                   (GLvoid*)pixels));
+
+  GL(glBindTexture(GL_TEXTURE_2D, prevTex));
 }
 
 void GLTexture2D::SetData(const void *pixels) {
   GL(glPixelStorei(GL_PACK_ALIGNMENT ,1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT ,1));
 
+  GLint prevTex;
+  GL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &prevTex));
+
   GL(glBindTexture(GL_TEXTURE_2D, m_iGLID));
   GL(glTexImage2D(GL_TEXTURE_2D, 0, m_internalformat, m_iSizeX, m_iSizeY,
                   0, m_format, m_type, (GLvoid*)pixels));
+
+  GL(glBindTexture(GL_TEXTURE_2D, prevTex));
 }

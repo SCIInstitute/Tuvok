@@ -53,6 +53,9 @@ GLTexture3D::GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
   m_format(format),
   m_type(type)
 {
+  GLint prevTex;
+  GL(glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex));
+
   GL(glGenTextures(1, &m_iGLID));
   GL(glBindTexture(GL_TEXTURE_3D, m_iGLID));
 
@@ -76,11 +79,16 @@ GLTexture3D::GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
     WARNING("Unknown error (%x) occurred while setting 3D texture.",
             static_cast<unsigned int>(err));
   }
+
+  GL(glBindTexture(GL_TEXTURE_3D, prevTex));
 }
 
 void GLTexture3D::SetData(const void *pixels) {
   GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+
+  GLint prevTex;
+  GL(glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex));
 
   GL(glBindTexture(GL_TEXTURE_3D, m_iGLID));
   GL(glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat,
@@ -94,4 +102,6 @@ void GLTexture3D::SetData(const void *pixels) {
     WARNING("Unknown error (%x) occurred while setting 3D texture.",
             static_cast<unsigned int>(err));
   }
+
+  GL(glBindTexture(GL_TEXTURE_3D, prevTex));
 }

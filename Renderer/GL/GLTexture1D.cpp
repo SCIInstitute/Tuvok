@@ -66,8 +66,14 @@ void GLTexture1D::SetData(const void *pixels) {
   GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
+  GLint prevTex;
+  GL(glGetIntegerv(GL_TEXTURE_BINDING_1D, &prevTex));
+
   MESSAGE("Uploading new %u element 1D texture.", static_cast<UINT32>(m_iSize));
+
   GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
   GL(glTexImage1D(GL_TEXTURE_1D, 0, m_internalformat, m_iSize, 0, m_format,
                   m_type, (GLvoid*)pixels));
+
+  GL(glBindTexture(GL_TEXTURE_1D, prevTex));
 }
