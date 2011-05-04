@@ -65,7 +65,7 @@ class QtGLContext : public Context {
       else
         m_pState = std::tr1::shared_ptr<StateManager>();
     }
-    QtGLContext(const QtGLContext& ct) {
+    QtGLContext(const QtGLContext& ct) : Context(ct) {
       ctx = ct.ctx;
       m_pState = ct.m_pState;
     }
