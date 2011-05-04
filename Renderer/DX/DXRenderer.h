@@ -90,6 +90,8 @@ class DXRenderer : public AbstrRenderer {
 
     void FixedFunctionality() const { /** @todo implement */ }
 
+    virtual void SyncStateManager() { /** @todo implement */ }
+
   protected:
     HWND                    m_hWnd;
     HINSTANCE               m_hInst;
