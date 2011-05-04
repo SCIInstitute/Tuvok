@@ -58,7 +58,8 @@ using namespace tuvok;
 MasterController::MasterController() :
   m_bDeleteDebugOutOnExit(false),
   m_pProvenance(NULL),
-  m_bExperimentalFeatures(false)
+  m_bExperimentalFeatures(false),
+  m_pActiveRenderer(NULL)
 {
   m_pSystemInfo   = new SystemInfo();
   m_pIOManager    = new IOManager();
@@ -87,6 +88,7 @@ void MasterController::Cleanup() {
   m_pGPUMemMan = NULL;
   delete m_pScriptEngine;
   m_pScriptEngine = NULL;
+  m_pActiveRenderer = NULL;
 }
 
 
@@ -345,4 +347,38 @@ bool MasterController::ExperimentalFeatures() const {
 
 void MasterController::ExperimentalFeatures(bool b) {
   m_bExperimentalFeatures = b;
+}
+
+void MasterController::RegisterCommand(const std::string name, command& f)
+{
+  TuvokCommand c;
+  c.name = name;
+  c.cmd = f;
+  m_Commands.push_front(c);
+  m_Commands.sort();
+}
+
+CommandReturn MasterController::Command(const std::string cmd)
+  throw(FailedCommand)
+{
+  std::istringstream iss(cmd);
+  std::string cname;
+  iss >> cname;
+
+  std::list<TuvokCommand>::const_iterator iter =
+    std::find(m_Commands.begin(), m_Commands.end(), cname);
+  if(iter == m_Commands.end()) {
+    throw CommandNotFound();
+  }
+  const command& f = iter->cmd;
+  // remove the command itself from the arguments.
+  std::string args = cmd.substr(cname.length());
+  return this->Command(f, args);
+}
+
+CommandReturn MasterController::Command(const command& f,
+                                        const std::string args)
+                                        throw(FailedCommand)
+{
+  return f(m_pActiveRenderer, args);
 }

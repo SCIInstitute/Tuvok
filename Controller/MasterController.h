@@ -39,9 +39,17 @@
 #define MASTERCONTROLLER_H
 
 #include "../StdTuvokDefines.h"
-#include <vector>
+#ifdef _MSC_VER
+# include <functional>
+#else
+# include <tr1/functional>
+#endif
+#include <list>
 #include <string>
+#include <vector>
 
+#include "Basics/CommandReturn.h"
+#include "Basics/TuvokException.h"
 #include "../DebugOut/MultiplexOut.h"
 #include "../DebugOut/ConsoleOut.h"
 
@@ -172,6 +180,33 @@ public:
   bool ExperimentalFeatures() const;
   void ExperimentalFeatures(bool b);
 
+  /// Command execution.
+  ///@{
+  class FailedCommand: public Exception {};
+  class CommandNotFound: public FailedCommand {};
+  class ParseError: public FailedCommand {};
+  class SemanticError: public FailedCommand {};
+  /// Registers a new command.  The function is expected to take a string with
+  /// the arguments and both parse and execute it.
+  /// 'f' should throw 'ParseError' if the arguments do not parse.
+  /// 'f' should throw 'SemanticError' if the command makes no sense for the
+  /// current state of the system.
+  typedef std::tr1::function<CommandReturn (AbstrRenderer*, std::string)>
+    command;
+  void RegisterCommand(const std::string name, command& f);
+
+  /// Takes a string for a command, parses it, and executes it.
+  tuvok::CommandReturn Command(const std::string cmd) throw(FailedCommand);
+
+  /// For convenience.  Lets you invoke an unregistered command.
+  tuvok::CommandReturn Command(const command& f, const std::string args)
+    throw(FailedCommand);
+  ///@}
+
+private:
+  /// Initializer; add all our builtin commands.
+  void RegisterInternalCommands();
+
 private:
   SystemInfo*      m_pSystemInfo;
   GPUMemMan*       m_pGPUMemMan;
@@ -184,6 +219,16 @@ private:
   bool             m_bExperimentalFeatures;
 
   AbstrRendererList m_vVolumeRenderer;
+  // The active renderer should point into a member of the renderer list.
+  AbstrRenderer*   m_pActiveRenderer;
+  struct TuvokCommand {
+    std::string name;
+    command cmd;
+    bool operator<(const TuvokCommand& c) const { return name < c.name; }
+    bool operator==(const TuvokCommand& c) const { return name == c.name; }
+    bool operator==(const std::string & c) const { return name == c; }
+  };
+  std::list<TuvokCommand> m_Commands;
 };
 
 }
