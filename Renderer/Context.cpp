@@ -30,5 +30,5 @@
 
 using namespace tuvok;
 
-std::tr1::shared_ptr<StateManager> Context::m_pState;
 std::map<const void*, std::tr1::shared_ptr<Context> > Context::contextMap;
+

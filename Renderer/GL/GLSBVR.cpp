@@ -312,22 +312,18 @@ void GLSBVR::Render3DPreLoop(const RenderRegion3D&) {
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_p1DTransTex->Bind(1);
                           m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-                          glEnable(GL_BLEND);
-                          glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
     case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
                           m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
-                          glEnable(GL_BLEND);
-                          glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
-    case RM_ISOSURFACE :  glEnable(GL_DEPTH_TEST);
+    case RM_ISOSURFACE :  // can't set the shader here as multiple shaders
+                          // are used for that renderer
                           break;
     default    :  T_ERROR("Invalid rendermode set");
                           break;
   }
 
   m_SBVRGeogen.SetLODData( UINTVECTOR3(m_pDataset->GetDomainSize(static_cast<size_t>(m_iCurrentLOD))));
-  glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -358,6 +354,9 @@ void GLSBVR::RenderProxyGeometry() const {
 
 void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
                             size_t iCurrentBrick, int iStereoID) {
+
+  m_pContext->GetStateManager()->Apply(m_BaseState);
+
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
   
   if (m_iBricksRenderedInThisSubFrame == 0 && m_eRenderMode == RM_ISOSURFACE){
@@ -398,7 +397,8 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
   m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
   if (m_eRenderMode == RM_ISOSURFACE) {
-    GL(glDisable(GL_BLEND));
+    m_pContext->GetStateManager()->SetEnableBlend(false);
+
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
     SetBrickDepShaderVars(b);
     
@@ -416,39 +416,18 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
       RenderProxyGeometry();
     }
   } else {
-    GL((void)0);
+    m_pContext->GetStateManager()->SetDepthMask(false);
+
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
-    GL(glDepthMask(GL_FALSE));
     SetBrickDepShaderVars(b);
     RenderProxyGeometry();
-    GL(glDepthMask(GL_TRUE));
   }
   m_TargetBinder.Unbind();
-}
-
-
-void GLSBVR::Render3DPostLoop() {
-  GLRenderer::Render3DPostLoop();
-
-  // disable the shader
-  switch (m_eRenderMode) {
-    case RM_1DTRANS    :  glDisable(GL_BLEND);
-                          break;
-    case RM_2DTRANS    :  glDisable(GL_BLEND);
-                          break;
-    case RM_ISOSURFACE :  break;
-    case RM_INVALID    :  T_ERROR("Invalid rendermode set"); break;
-  }
 }
 
 void GLSBVR::RenderHQMIPPreLoop(RenderRegion2D &region) {
   GLRenderer::RenderHQMIPPreLoop(region);
   m_pProgramHQMIPRot->Enable();
-
-  glBlendFunc(GL_ONE, GL_ONE);
-  glBlendEquation(GL_MAX);
-  glEnable(GL_BLEND);
-  glDisable(GL_DEPTH_TEST);
 }
 
 void GLSBVR::RenderHQMIPInLoop(const RenderRegion2D &, const Brick& b) {
@@ -463,6 +442,12 @@ void GLSBVR::RenderHQMIPInLoop(const RenderRegion2D &, const Brick& b) {
 
   m_SBVRGeogen.ComputeGeometry(false);
 
+  GPUState localState = m_BaseState;
+  localState.blendFuncSrc = BF_ONE;
+  localState.blendEquation = BE_MAX;
+  localState.enableDepthTest = false;
+  m_pContext->GetStateManager()->Apply(localState);
+
   RenderProxyGeometry();
 }
 
@@ -476,11 +461,6 @@ bool GLSBVR::LoadDataset(const string& strFilename) {
     return true;
   } else return false;
 }
-
-void GLSBVR::ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID) {
-  GLRenderer::ComposeSurfaceImage(renderRegion, iStereoID);
-}
-
 
 void GLSBVR::UpdateLightParamsInShaders() {
   GLRenderer::UpdateLightParamsInShaders();

@@ -59,7 +59,7 @@ namespace tuvok {
     TEX_1D,
     TEX_2D,
     TEX_3D,
-    TEX_UNKNOWN
+    TEX_NONE
   };
 
   enum BLEND_FUNC {
@@ -84,8 +84,17 @@ namespace tuvok {
     BE_MAX
   };
 
-  class GLStateManager;
-  class StateManager;
+  enum DEPTH_FUNC {
+    DF_NEVER,
+    DF_LESS,
+    DF_EQUAL,
+    DF_LEQUAL,
+    DF_GREATER,
+    DF_NOTEQUAL,
+    DF_GEQUAL,
+    DF_ALWAYS
+  };
+
 
   /** \class GPUState
    * Base class for all GPU state this object holds
@@ -94,70 +103,36 @@ namespace tuvok {
   class GPUState {
     public:
       GPUState() :
-        enableDepth(true),
-        enableCull(true),
+        enableDepthTest(true),
+        depthFunc(DF_LESS),
+        enableCullFace(true),
         cullState(CULL_BACK),
         enableBlend(false),
         enableScissor(false),
         enableLighting(false),
         enableColorMaterial(false),
-        enableLineSmooth(false),
         activeTexUnit(0),
         depthMask(true),
         colorMask(true),
         blendEquation(BE_FUNC_ADD),
         blendFuncSrc(BF_ONE_MINUS_DST_ALPHA),
-        blendFuncDst(BF_ONE)
+        blendFuncDst(BF_ONE),
+        lineWidth(1.0f)
       {
         for (size_t i = 0;i<StateLightCount;i++) enableLight[i] = false;
-        for (size_t i = 0;i<StateTUCount;i++) enableTex[i] = TEX_UNKNOWN;
+        for (size_t i = 0;i<StateTUCount;i++) enableTex[i] = TEX_NONE;
       }
       virtual ~GPUState() {}
 
-      virtual void SetEnableDepth(const bool& value, bool bForce=false) = 0;
-      virtual void SetEnableCull(const bool& value, bool bForce=false) = 0;
-      virtual void SetCullState(const STATE_CULL& value, bool bForce=false) = 0;
-      virtual void SetEnableBlend(const bool& value, bool bForce=false) = 0;
-      virtual void SetEnableScissor(const bool& value, bool bForce=false) = 0;
-      virtual void SetEnableLighting(const bool& value, bool bForce=false) = 0;
-      virtual void SetEnableColorMaterial(const bool& value, bool bForce=false) = 0;
-      virtual void SetEnableLineSmooth(const bool& value, bool bForce=false) = 0;
-      virtual void SetEnableLight(size_t i, const bool& value, bool bForce=false) = 0;
-      virtual void SetEnableTex(size_t i, const STATE_TEX& value, bool bForce=false) = 0;
-      virtual void SetActiveTexUnit(const size_t iUnit, bool bForce=false) = 0;
-      virtual void SetDepthMask(const bool value, bool bForce=false) = 0;
-      virtual void SetColorMask(const bool value, bool bForce=false) = 0;
-      virtual void SetBlendEquation(const BLEND_EQUATION value, bool bForce=false) = 0;
-      virtual void SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest, bool bForce=false) = 0;
-      
-
-      bool GetEnableDepth() const {return enableDepth;}
-      bool GetEnableCull() const {return enableCull;}
-      STATE_CULL GetCullState() const {return cullState;}
-      bool GetEnableBlend() const {return enableBlend;}
-      bool GetEnableScissor() const {return enableScissor;}
-      bool GetEnableLighting() const {return enableLighting;}
-      bool GetEnableColorMaterial() const {return enableColorMaterial;}
-      bool GetEnableLineSmooth() const {return enableLineSmooth;}
-      bool GetEnableLight(size_t i) const {return enableLight[i];}
-      STATE_TEX GetEnableTex(size_t i) const {return enableTex[i];}
-      size_t GetActiveTexUnit() const {return activeTexUnit;}
-      bool GetDepthMask() const {return depthMask;}
-      bool GetColorMask() const {return colorMask;}
-      BLEND_EQUATION GetBlendEquation() const {return blendEquation;}
-      BLEND_FUNC GetBlendFunctionSrc() const {return blendFuncSrc;}
-      BLEND_FUNC GetBlendFunctionDst() const {return blendFuncDst;}
-
-    protected:
-      bool enableDepth;
-      bool enableCull;
+      bool enableDepthTest;
+      DEPTH_FUNC depthFunc;
+      bool enableCullFace;
       STATE_CULL cullState;
       bool enableBlend;
       bool enableScissor;
       bool enableLighting;
       bool enableLight[StateLightCount];
       bool enableColorMaterial;
-      bool enableLineSmooth;
       STATE_TEX enableTex[StateTUCount];
       size_t activeTexUnit;
       bool depthMask;
@@ -165,16 +140,7 @@ namespace tuvok {
       BLEND_EQUATION blendEquation;
       BLEND_FUNC blendFuncSrc;
       BLEND_FUNC blendFuncDst;
-
-
-    private:
-      friend class StateManager;
-      friend class GLStateManager;
-
-      virtual void Apply() = 0;
-      virtual void Apply(const GPUState& state, bool bForce) = 0;
-
-
+      float lineWidth;
   };
 
   /** \class StateManager
@@ -183,22 +149,31 @@ namespace tuvok {
      to the GPU.*/
   class StateManager {
     public:
-      StateManager() : m_InternalState(0) {}
+      StateManager() {}
       virtual ~StateManager() {}
 
-      /** Applies a given state to GPU pipleine this manager
-       *  is associated with
-       * @param state the GPU state to be applied 
-       * @param bForce apply the entire state even if that results in redundant state changes */
-      void Apply(const GPUState& state, bool bForce=false) {
-        m_InternalState->Apply(state, bForce);
-      }
+      virtual void Apply(const GPUState& state, bool bForce=false) = 0;
+      virtual const GPUState& GetCurrentState() const {return m_InternalState;}
 
-      virtual const GPUState* GetCurrentState() const {return m_InternalState;}
-      virtual GPUState* ChangeCurrentState() {return m_InternalState;}
+      virtual void SetEnableDepthTest(const bool& value, bool bForce=false) = 0;
+      virtual void SetDepthFunc(const DEPTH_FUNC& value, bool bForce=false) = 0;
+      virtual void SetEnableCullFace(const bool& value, bool bForce=false) = 0;
+      virtual void SetCullState(const STATE_CULL& value, bool bForce=false) = 0;
+      virtual void SetEnableBlend(const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableScissor(const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableLighting(const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableColorMaterial(const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableLight(size_t i, const bool& value, bool bForce=false) = 0;
+      virtual void SetEnableTex(size_t i, const STATE_TEX& value, bool bForce=false) = 0;
+      virtual void SetActiveTexUnit(const size_t iUnit, bool bForce=false) = 0;
+      virtual void SetDepthMask(const bool value, bool bForce=false) = 0;
+      virtual void SetColorMask(const bool value, bool bForce=false) = 0;
+      virtual void SetBlendEquation(const BLEND_EQUATION value, bool bForce=false) = 0;
+      virtual void SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest, bool bForce=false) = 0;
+      virtual void SetLineWidth(const float value, bool bForce=false) = 0;
 
     protected:
-       GPUState* m_InternalState;
+       GPUState m_InternalState;
   };
 
   typedef std::tr1::shared_ptr<StateManager> StateManagerPtr; 

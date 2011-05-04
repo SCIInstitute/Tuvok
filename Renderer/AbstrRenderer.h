@@ -470,7 +470,7 @@ class AbstrRenderer: public Scriptable {
       this->m_TFScalingMethod = sm;
     }
 
-    virtual void NewFrameClear(const RenderRegion &) { assert(1==0); }
+    virtual void NewFrameClear(const RenderRegion &) = 0;
 
     const std::vector<RenderRegion*>& GetRenderRegions() const {
       return renderRegions;
@@ -488,6 +488,7 @@ class AbstrRenderer: public Scriptable {
     size_t Timestep() const;
 
     virtual void FixedFunctionality() const = 0;
+    virtual void SyncStateManager() = 0;
 
     const FLOATMATRIX4& GetProjectionMatrix(size_t eyeIndex = 0) const {return m_mProjection[eyeIndex];}
     const FLOATMATRIX4& GetViewMatrix(size_t eyeIndex = 0) const {return m_mView[eyeIndex];}
@@ -506,7 +507,6 @@ class AbstrRenderer: public Scriptable {
     /// @return the current clearview iso value, normalized to be in [0,1]
     double GetNormalizedCVIsovalue() const;
 
-    virtual void        ClearDepthBuffer() const = 0;
     virtual void        ClearColorBuffer() const = 0;
     virtual void        UpdateLightParamsInShaders() = 0;
     virtual void        CVFocusHasChanged(const RenderRegion &);
@@ -665,7 +665,6 @@ class AbstrRenderer: public Scriptable {
     void                RestartTimers();
     double              MaxValue() const;
     bool                OnlyRecomposite(RenderRegion* region) const;
-    void                ResetRenderStates();
 
     RenderRegion3D* GetFirst3DRegion();
 

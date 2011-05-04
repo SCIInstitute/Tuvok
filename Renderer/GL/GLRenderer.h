@@ -67,7 +67,7 @@ class GLRenderer : public AbstrRenderer {
                bool bDownSampleTo8Bits, 
                bool bDisableBorder);
     virtual ~GLRenderer();
-    virtual bool Initialize(std::tr1::shared_ptr<Context> ctx);
+    virtual bool Initialize(std::tr1::shared_ptr<Context> ctx);    
     virtual void Set1DTrans(const std::vector<unsigned char>&);
     virtual void Changed1DTrans();
     virtual void Changed2DTrans();
@@ -105,7 +105,8 @@ class GLRenderer : public AbstrRenderer {
     
     virtual void ScanForNewMeshes();
 
-    void FixedFunctionality() const;
+    virtual void FixedFunctionality() const;
+    virtual void SyncStateManager();
     
   protected:
     GLTargetBinder  m_TargetBinder;
@@ -125,6 +126,7 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramColor;
     GLSLProgram*    m_pProgramHQMIPRot;
     Timer           m_Timer;
+    GPUState        m_BaseState;
 
     void SetRenderTargetArea(const RenderRegion& renderRegion,
                              bool bDecreaseScreenResNow);
@@ -181,7 +183,6 @@ class GLRenderer : public AbstrRenderer {
     void PlaneIn3DPostRender();
     void RenderPlanesIn3D(bool bDepthPassOnly);
 
-    virtual void ClearDepthBuffer() const;
     virtual void ClearColorBuffer() const;
 
     virtual void StartFrame();
@@ -208,6 +209,7 @@ class GLRenderer : public AbstrRenderer {
     virtual bool UnbindVolumeTex();
     virtual bool LoadShaders() { return LoadShaders("Volume3D.glsl"); }
     virtual bool LoadShaders(const std::string& volumeAccessFunction);
+    virtual void InitBaseState();
     void CleanupShader(GLSLProgram** p);
 
     void RenderOpaqueGeometry();

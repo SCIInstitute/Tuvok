@@ -1436,10 +1436,6 @@ void AbstrRenderer::ToggleStereoFrame() {
   ScheduleRecompose();
 }
 
-void AbstrRenderer::ResetRenderStates() {
-  m_bFirstDrawAfterResize = false;
-  m_bFirstDrawAfterModeChange = false;
-}
 
 void AbstrRenderer::RegisterCalls(Scripting* eng) {
   eng->RegisterCommand(this, "eye", "float float float", "set eye position");

@@ -46,10 +46,11 @@ namespace tuvok {
 class Context {
 public:
   virtual ~Context() {}
+  std::tr1::shared_ptr<StateManager> GetStateManager() {return m_pState;}
 
 protected:
   static std::map<const void*, std::tr1::shared_ptr<Context> > contextMap;
-  static std::tr1::shared_ptr<StateManager> m_pState;
+  std::tr1::shared_ptr<StateManager> m_pState;
   const void* ctx; /// will be GLXContext, HGLRC, or Device
 };
 

@@ -140,7 +140,6 @@ class DXRenderer : public AbstrRenderer {
     void PlaneIn3DPreRender();
     void PlaneIn3DPostRender();
 
-    virtual void ClearDepthBuffer() const;
     virtual void ClearColorBuffer() const;
 
     virtual void StartFrame();

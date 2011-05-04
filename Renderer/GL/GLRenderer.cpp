@@ -127,11 +127,37 @@ GLRenderer::~GLRenderer() {
   DeleteDepthStorage();
 }
 
+void GLRenderer::InitBaseState() {
+  // first get the current state
+  m_BaseState = GPUState(m_pContext->GetStateManager()->GetCurrentState());
+
+  // now set gl parameters how we use them most of the time
+  m_BaseState.enableDepthTest = true;
+  m_BaseState.depthFunc = DF_LESS;
+  m_BaseState.enableCullFace = false;
+  m_BaseState.cullState = CULL_BACK;
+  m_BaseState.enableBlend = true;
+  m_BaseState.enableScissor = false;
+  m_BaseState.enableLighting =false;
+  m_BaseState.enableColorMaterial = false;
+  m_BaseState.enableTex[0] = TEX_3D;
+  m_BaseState.enableTex[1] = TEX_2D;
+  m_BaseState.activeTexUnit = 0;
+  m_BaseState.depthMask = true;
+  m_BaseState.colorMask = true;
+  m_BaseState.blendEquation = BE_FUNC_ADD;
+  m_BaseState.blendFuncSrc = BF_ONE_MINUS_DST_ALPHA;;
+  m_BaseState.blendFuncDst = BF_ONE;
+  m_BaseState.lineWidth = 1.0f;
+}
+
 bool GLRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
   if (!AbstrRenderer::Initialize(ctx)) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
+
+  InitBaseState();
 
   // Try to guess filenames for a transfer functions.  We guess based on the
   // filename of the dataset, but it could be the case that our client gave us
@@ -294,7 +320,7 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction) {
                           "Mesh-VS.glsl",
                           NULL,                          
                           "Mesh-FS.glsl","FTB.glsl","lighting.glsl",NULL) ||
-     !LoadAndVerifyShader(&m_pProgramMeshBTF,
+    !LoadAndVerifyShader(&m_pProgramMeshBTF,
                           m_vShaderSearchDirs,
                           "Mesh-VS.glsl",
                           NULL,                          
@@ -425,36 +451,33 @@ void GLRenderer::Resize(const UINTVECTOR2& vWinSize) {
   ClearColorBuffer();
 }
 
-void GLRenderer::ClearDepthBuffer() const {
-  glClear(GL_DEPTH_BUFFER_BIT);
-}
-
 void GLRenderer::ClearColorBuffer() const {
-  glDepthMask(GL_FALSE);
+  m_pContext->GetStateManager()->Apply(m_BaseState);
+
   if (m_bDoStereoRendering && m_eStereoMode == SM_RB) {
     // render anaglyphs against a black background only
     glClearColor(0,0,0,0);
     glClear(GL_COLOR_BUFFER_BIT);
   } else {
+    // if top and bottom colors are the same simply clear ...
     if (m_vBackgroundColors[0] == m_vBackgroundColors[1]) {
       glClearColor(m_vBackgroundColors[0].x,
                    m_vBackgroundColors[0].y,
                    m_vBackgroundColors[0].z, 0);
       glClear(GL_COLOR_BUFFER_BIT);
     } else {
-      glDisable(GL_BLEND);
+      // ... draw a gradient image otherwise
       DrawBackGradient();
     }
   }
+  // finally blit the logo onto the screen (if present)
   DrawLogo();
-  glDepthMask(GL_TRUE);
 }
 
-
 void GLRenderer::StartFrame() {
-  // clear the framebuffer (if requested)
+  // clear the depthbuffer (if requested)
   if (m_bClearFramebuffer) {
-    ClearDepthBuffer();
+    glClear(GL_DEPTH_BUFFER_BIT);
     if (m_bConsiderPreviousDepthbuffer) SaveEmptyDepthBuffer();
   } else {
     if (m_bConsiderPreviousDepthbuffer) SaveDepthBuffer();
@@ -490,6 +513,8 @@ void GLRenderer::RecomposeView(const RenderRegion& rgn)
 bool GLRenderer::Paint() {
   if (!AbstrRenderer::Paint()) return false;
 
+  m_pContext->GetStateManager()->Apply(m_BaseState);
+
   if (m_bDatasetIsInvalid) return true;
 
   // we want vector<bool>, but of course that's a bad idea.
@@ -512,7 +537,8 @@ bool GLRenderer::Paint() {
     if (m_pFBOResizeQuickBlit) {
       m_pFBO3DImageLast->Write();
       glViewport(0,0,m_vWinSize.x,m_vWinSize.y);
-      glDisable(GL_BLEND);
+  
+      m_pContext->GetStateManager()->SetEnableBlend(false);
 
       m_pFBOResizeQuickBlit->Read(0);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -520,7 +546,8 @@ bool GLRenderer::Paint() {
 
       glClearColor(1,0,0,1);
       glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-      glDisable(GL_DEPTH_TEST);
+
+      m_pContext->GetStateManager()->SetEnableDepthTest(false);
       glClearColor(0,0,0,0);
 
       m_pProgramTrans->Enable();
@@ -582,7 +609,9 @@ bool GLRenderer::Paint() {
   }
   EndFrame(justCompletedRegions);
 
-  ResetRenderStates();
+  // reset render states
+  m_bFirstDrawAfterResize = false;
+  m_bFirstDrawAfterModeChange = false;
   return true;
 }
 
@@ -638,11 +667,11 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
   // write to FBO that contains final images.
   m_TargetBinder.Bind(m_pFBO3DImageLast);
 
-  glDisable(GL_BLEND);
-
-  glEnable(GL_DEPTH_TEST);
-  glDepthMask(GL_TRUE);
-  glDepthFunc(GL_LEQUAL);
+  GPUState localState = m_BaseState;
+  localState.enableBlend = false;
+  localState.depthFunc = DF_LEQUAL;
+  localState.enableScissor = true;
+  m_pContext->GetStateManager()->Apply(localState);
 
   glViewport(0, 0, m_vWinSize.x, m_vWinSize.y);
 
@@ -664,9 +693,6 @@ void GLRenderer::CopyOverCompletedRegion(const RenderRegion* region) {
   m_TargetBinder.Unbind();
   m_pFBO3DImageCurrent[0]->FinishRead();
   m_pFBO3DImageCurrent[0]->FinishDepthRead();
-
-  glDepthFunc(GL_LESS);
-  glDisable(GL_SCISSOR_TEST);
 }
 
 void GLRenderer::TargetIsBlankButFrameIsNotFinished(const RenderRegion* region) {
@@ -680,8 +706,6 @@ void GLRenderer::TargetIsBlankButFrameIsNotFinished(const RenderRegion* region) 
 }
 
 void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
-  glDisable(GL_SCISSOR_TEST);
-
   // For a single region we can support stereo and we can also optimize the
   // code by swapping the buffers instead of copying data from one to the
   // other.
@@ -693,6 +717,8 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
       // in stereo compose both images into one, in mono mode simply swap the
       // pointers
       if (m_bDoStereoRendering) {
+         m_pContext->GetStateManager()->Apply(m_BaseState);
+
         if (m_bStereoEyeSwap) {
           m_pFBO3DImageCurrent[0]->Read(1);
           m_pFBO3DImageCurrent[1]->Read(0);
@@ -720,12 +746,10 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
 					m_pProgramAFStereo->Enable(); 
 					m_pProgramAFStereo->SetUniformVector("iAlternatingFrameID",m_iAlternatingFrameID);
                     break;
-		}
+		    }
 
-        glDisable(GL_DEPTH_TEST);
+        m_pContext->GetStateManager()->SetEnableDepthTest(false);
         FullscreenQuadRegions();
-        glEnable(GL_DEPTH_TEST);
-
 
         m_TargetBinder.Unbind();
 
@@ -734,11 +758,13 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
       } else {
         swap(m_pFBO3DImageLast, m_pFBO3DImageCurrent[0]);
       }
+
       for (size_t i=0; i < renderRegions.size(); ++i) {
         if(!OnlyRecomposite(renderRegions[i])) {
           CompletedASubframe(renderRegions[i]);
         }
       }
+
     } else {
       if (!renderRegions[0]->isBlank && renderRegions[0]->isTargetBlank) {
         TargetIsBlankButFrameIsNotFinished(renderRegions[0]);
@@ -758,12 +784,12 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
       }
     }
   }
+
   CopyImageToDisplayBuffer();
 
   // we've definitely recomposed by now.
   m_bPerformReCompose = false; 
 }
-
 
 void GLRenderer::SetRenderTargetArea(const RenderRegion& renderRegion,
                                      bool bDecreaseScreenResNow) {
@@ -780,7 +806,6 @@ void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion& renderRegion) {
   UINTVECTOR2 regionSize = renderRegion.maxCoord - renderRegion.minCoord;
   glScissor(renderRegion.minCoord.x, renderRegion.minCoord.y,
             regionSize.x, regionSize.y);
-  glEnable( GL_SCISSOR_TEST );
 }
 
 void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
@@ -832,92 +857,93 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
                              FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                              DOUBLEVECTOR3 vAspectRatio,
                              DOUBLEVECTOR2 vWinAspectRatio) {
+  
   switch (region.windowMode) {
-  case RenderRegion::WM_AXIAL :
-    {
-      if (region.flipView.x) {
-        float fTemp = vMinCoords.x;
-        vMinCoords.x = vMaxCoords.x;
-        vMaxCoords.x = fTemp;
-      }
+    case RenderRegion::WM_AXIAL :
+      {
+        if (region.flipView.x) {
+          float fTemp = vMinCoords.x;
+          vMinCoords.x = vMaxCoords.x;
+          vMaxCoords.x = fTemp;
+        }
 
-      if (region.flipView.y) {
-        float fTemp = vMinCoords.z;
-        vMinCoords.z = vMaxCoords.z;
-        vMaxCoords.z = fTemp;
-      }
+        if (region.flipView.y) {
+          float fTemp = vMinCoords.z;
+          vMinCoords.z = vMaxCoords.z;
+          vMaxCoords.z = fTemp;
+        }
 
-      DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
-      v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-      glBegin(GL_QUADS);
-        glTexCoord3d(vMinCoords.x,fSliceIndex,vMaxCoords.z);
-        glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-        glTexCoord3d(vMaxCoords.x,fSliceIndex,vMaxCoords.z);
-        glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-        glTexCoord3d(vMaxCoords.x,fSliceIndex,vMinCoords.z);
-        glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-        glTexCoord3d(vMinCoords.x,fSliceIndex,vMinCoords.z);
-        glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glEnd();
-      break;
-    }
-  case RenderRegion::WM_CORONAL :
-    {
-      if (region.flipView.x) {
-        float fTemp = vMinCoords.x;
-        vMinCoords.x = vMaxCoords.x;
-        vMaxCoords.x = fTemp;
+        DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xz()*DOUBLEVECTOR2(vWinAspectRatio);
+        v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+        glBegin(GL_QUADS);
+          glTexCoord3d(vMinCoords.x,fSliceIndex,vMaxCoords.z);
+          glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+          glTexCoord3d(vMaxCoords.x,fSliceIndex,vMaxCoords.z);
+          glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+          glTexCoord3d(vMaxCoords.x,fSliceIndex,vMinCoords.z);
+          glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+          glTexCoord3d(vMinCoords.x,fSliceIndex,vMinCoords.z);
+          glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+        glEnd();
+        break;
       }
+    case RenderRegion::WM_CORONAL :
+      {
+        if (region.flipView.x) {
+          float fTemp = vMinCoords.x;
+          vMinCoords.x = vMaxCoords.x;
+          vMaxCoords.x = fTemp;
+        }
 
-      if (region.flipView.y) {
-        float fTemp = vMinCoords.y;
-        vMinCoords.y = vMaxCoords.y;
-        vMaxCoords.y = fTemp;
+        if (region.flipView.y) {
+          float fTemp = vMinCoords.y;
+          vMinCoords.y = vMaxCoords.y;
+          vMaxCoords.y = fTemp;
+        }
+
+        DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xy()*DOUBLEVECTOR2(vWinAspectRatio);
+        v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+        glBegin(GL_QUADS);
+          glTexCoord3d(vMinCoords.x,vMaxCoords.y,fSliceIndex);
+          glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+          glTexCoord3d(vMaxCoords.x,vMaxCoords.y,fSliceIndex);
+          glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+          glTexCoord3d(vMaxCoords.x,vMinCoords.y,fSliceIndex);
+          glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+          glTexCoord3d(vMinCoords.x,vMinCoords.y,fSliceIndex);
+          glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+        glEnd();
+        break;
       }
+    case RenderRegion::WM_SAGITTAL :
+      {
+        if (region.flipView.x) {
+          float fTemp = vMinCoords.y;
+          vMinCoords.y = vMaxCoords.y;
+          vMaxCoords.y = fTemp;
+        }
 
-      DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.xy()*DOUBLEVECTOR2(vWinAspectRatio);
-      v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-      glBegin(GL_QUADS);
-        glTexCoord3d(vMinCoords.x,vMaxCoords.y,fSliceIndex);
-        glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-        glTexCoord3d(vMaxCoords.x,vMaxCoords.y,fSliceIndex);
-        glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-        glTexCoord3d(vMaxCoords.x,vMinCoords.y,fSliceIndex);
-        glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-        glTexCoord3d(vMinCoords.x,vMinCoords.y,fSliceIndex);
-        glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glEnd();
-      break;
-    }
-  case RenderRegion::WM_SAGITTAL :
-    {
-      if (region.flipView.x) {
-        float fTemp = vMinCoords.y;
-        vMinCoords.y = vMaxCoords.y;
-        vMaxCoords.y = fTemp;
+        if (region.flipView.y) {
+          float fTemp = vMinCoords.z;
+          vMinCoords.z = vMaxCoords.z;
+          vMaxCoords.z = fTemp;
+        }
+
+        DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
+        v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
+        glBegin(GL_QUADS);
+          glTexCoord3d(fSliceIndex,vMinCoords.y,vMaxCoords.z);
+          glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+          glTexCoord3d(fSliceIndex,vMaxCoords.y,vMaxCoords.z);
+          glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
+          glTexCoord3d(fSliceIndex,vMaxCoords.y,vMinCoords.z);
+          glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+          glTexCoord3d(fSliceIndex,vMinCoords.y,vMinCoords.z);
+          glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
+        glEnd();
+        break;
       }
-
-      if (region.flipView.y) {
-        float fTemp = vMinCoords.z;
-        vMinCoords.z = vMaxCoords.z;
-        vMaxCoords.z = fTemp;
-      }
-
-      DOUBLEVECTOR2 v2AspectRatio = vAspectRatio.yz()*DOUBLEVECTOR2(vWinAspectRatio);
-      v2AspectRatio = v2AspectRatio / v2AspectRatio.maxVal();
-      glBegin(GL_QUADS);
-        glTexCoord3d(fSliceIndex,vMinCoords.y,vMaxCoords.z);
-        glVertex3d(-1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-        glTexCoord3d(fSliceIndex,vMaxCoords.y,vMaxCoords.z);
-        glVertex3d(+1.0f*v2AspectRatio.x, +1.0f*v2AspectRatio.y, -0.5f);
-        glTexCoord3d(fSliceIndex,vMaxCoords.y,vMinCoords.z);
-        glVertex3d(+1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-        glTexCoord3d(fSliceIndex,vMinCoords.y,vMinCoords.z);
-        glVertex3d(-1.0f*v2AspectRatio.x, -1.0f*v2AspectRatio.y, -0.5f);
-      glEnd();
-      break;
-    }
-  default :  T_ERROR("Invalid windowmode set"); break;
+    default :  T_ERROR("Invalid windowmode set"); break;
   }
 }
 
@@ -952,9 +978,8 @@ bool GLRenderer::UnbindVolumeTex() {
   }
 }
 
-
 bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
-
+  
   // bind offscreen buffer
   if (renderRegion.GetUseMIP()) {
     // for MIP rendering "abuse" left-eye buffer for the itermediate results
@@ -967,6 +992,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
 
   // if we render a slice view or MIP preview
   if (!renderRegion.GetUseMIP() || m_eRendererTarget != RT_CAPTURE)  {
+    GPUState localState = m_BaseState;
     if (!renderRegion.GetUseMIP()) {
       switch (m_eRenderMode) {
         case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
@@ -976,15 +1002,16 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
                               m_pProgram1DTransSlice->Enable();
                               break;
       }
-      glDisable(GL_BLEND);
+      localState.enableBlend = false;
     } else {
       m_pProgramMIPSlice->Enable();
-      glBlendFunc(GL_ONE, GL_ONE);
-      glBlendEquation(GL_MAX);
-      glEnable(GL_BLEND);
-    }
 
-    glDisable(GL_DEPTH_TEST);
+      localState.blendEquation = BE_MAX;
+      localState.blendFuncSrc = BF_ONE;
+      localState.blendFuncDst = BF_ONE;
+    }
+    localState.enableDepthTest = false;
+    m_pContext->GetStateManager()->Apply(localState);
 
     size_t iCurrentLOD = 0;
     UINTVECTOR3 vVoxelCount(1,1,1); // make sure we do not divide by zero later
@@ -1013,11 +1040,13 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     }
 
     // clear the target at the beginning
+    m_pContext->GetStateManager()->SetEnableScissor(true);
     SetRenderTargetAreaScissor(renderRegion);
 
     glClearColor(0,0,0,1);
     glClear(GL_COLOR_BUFFER_BIT);
-    glDisable(GL_SCISSOR_TEST);
+
+    m_pContext->GetStateManager()->SetEnableScissor(false);
 
     // 'VoxelCount' is the number of voxels in the brick which contain data.
     // 'RealVoxelCount' will be the actual number of voxels in the brick, which
@@ -1072,8 +1101,6 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
       T_ERROR("Cannot unbind volume: No volume bound");
       return false;
     }
-
-    glEnable(GL_DEPTH_TEST);
   } else {
     if (m_bOrthoView) {
       FLOATMATRIX4 maOrtho;
@@ -1099,7 +1126,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     RenderHQMIPPreLoop(renderRegion);
 
     for (size_t iBrickIndex = 0;iBrickIndex<m_vCurrentBrickList.size();iBrickIndex++) {
-      MESSAGE("Brick %u of %u", static_cast<unsigned>(iBrickIndex+1),
+      MESSAGE("Brick %u of %u in full resolution MIP mode", static_cast<unsigned>(iBrickIndex+1),
               static_cast<unsigned>(m_vCurrentBrickList.size()));
 
       // for MIP we do not consider empty bricks since we do not render 
@@ -1134,20 +1161,21 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
 
   // apply 1D transferfunction to MIP image
   if (renderRegion.GetUseMIP()) {
-    glBlendEquation(GL_FUNC_ADD);
-    glDisable( GL_BLEND );
+
+    GPUState localState = m_BaseState;
+    localState.enableBlend = false;
+    localState.enableDepthTest = false;
+    m_pContext->GetStateManager()->Apply(localState);
 
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
 
     SetRenderTargetArea(UINTVECTOR2(0,0), m_vWinSize, false);
+    m_pContext->GetStateManager()->SetEnableScissor(true);
     SetRenderTargetAreaScissor(renderRegion);
-
     m_pFBO3DImageCurrent[1]->Read(0);
     m_p1DTransTex->Bind(1);
     m_pProgramTransMIP->Enable();
-    glDisable(GL_DEPTH_TEST);
     FullscreenQuad();
-    glDisable( GL_SCISSOR_TEST );
     m_pFBO3DImageCurrent[1]->FinishRead(0);
   }
 
@@ -1234,60 +1262,43 @@ void GLRenderer::RenderBBox(const FLOATVECTOR4 vColor,
 }
 
 void GLRenderer::NewFrameClear(const RenderRegion& renderRegion) {
+  m_pContext->GetStateManager()->SetEnableScissor(true);
   SetRenderTargetAreaScissor(renderRegion);
 
   GL(glClearColor(0,0,0,0));
 
-  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-
-  if (m_bConsiderPreviousDepthbuffer && m_aDepthStorage) {
-    GL(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
-    GL(glMatrixMode(GL_PROJECTION));
-    GL(glLoadIdentity());
-    GL(glMatrixMode(GL_MODELVIEW));
-    GL(glLoadIdentity());
-    GL(glRasterPos2f(-1.0,-1.0));
-    GL(glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE));
-    GL(glDrawPixels(m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT,
-                    m_aDepthStorage));
-    GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
-  } else {
-    GL(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
-  }
-
-  if (m_bDoStereoRendering) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
+  size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
+  for (size_t i = 0;i<iStereoBufferCount;i++) {
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
 
     if (m_bConsiderPreviousDepthbuffer && m_aDepthStorage) {
       GL(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
+      GL(glMatrixMode(GL_PROJECTION));
+      GL(glLoadIdentity());
+      GL(glMatrixMode(GL_MODELVIEW));
+      GL(glLoadIdentity());
       GL(glRasterPos2f(-1.0,-1.0));
-      GL(glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE));
+      m_pContext->GetStateManager()->SetColorMask(false);
       GL(glDrawPixels(m_vWinSize.x, m_vWinSize.y, GL_DEPTH_COMPONENT, GL_FLOAT,
                       m_aDepthStorage));
-      GL(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
+      m_pContext->GetStateManager()->SetColorMask(true);
     } else {
       GL(glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT));
     }
   }
 
   m_TargetBinder.Unbind();
-
-  // since we do not clear anymore in this subframe we do not need the scissor
-  // test, maybe disabling it saves performance
-  GL(glDisable(GL_SCISSOR_TEST));
 }
 
 void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
-  FixedFunctionality();
+  GPUState localState = m_BaseState;
+  localState.enableLighting = true;
+  localState.enableLight[0] = true;
+  localState.enableCullFace = true;
+  m_pContext->GetStateManager()->Apply(localState);
 
   // TODO get rid of all the fixed function lighting and use a shader
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_LIGHT0);
-  glEnable(GL_LIGHTING);
-
-  glCullFace(GL_BACK);
-  glEnable(GL_CULL_FACE);
-
+  FixedFunctionality();
   GLfloat light_diffuse[4]  ={0.4f,0.4f,0.4f,1.0f};
   GLfloat light_specular[4] ={1.0f,1.0f,1.0f,1.0f};
   GLfloat global_ambient[4] ={0.1f,0.1f,0.1f,1.0f};
@@ -1362,10 +1373,6 @@ void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
       }
     }
   glEnd();
-
-  glDisable(GL_LIGHTING);
-  glDisable(GL_COLOR_MATERIAL);
-  glDisable(GL_CULL_FACE);
 }
 
 /// Actions to perform every subframe (rendering of a complete LOD level).
@@ -1373,29 +1380,19 @@ void GLRenderer::PreSubframe(const RenderRegion& renderRegion)
 {
   NewFrameClear(renderRegion);
 
-  // Render the coordinate cross (three arrows in upper right corner)
-  if (m_bRenderCoordArrows) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-    RenderCoordArrows(renderRegion);
-
-    if (m_bDoStereoRendering) {
-      m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
+  size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
+  for (size_t i = 0;i<iStereoBufferCount;i++) {
+    // Render the coordinate cross (three arrows in upper right corner)
+    if (m_bRenderCoordArrows) {
+      m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
       RenderCoordArrows(renderRegion);
     }
-    m_TargetBinder.Unbind();
-  }
 
-  // write the bounding boxes into the depth buffer (+ colorbuffer for
-  // isosurfacing).
-  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-  m_mProjection[0].setProjection();
-  renderRegion.modelView[0].setModelview();
-  GeometryPreRender();
-  PlaneIn3DPreRender();
-  if (m_bDoStereoRendering) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-    m_mProjection[1].setProjection();
-    renderRegion.modelView[1].setModelview();
+    // write the bounding boxes into the depth buffer 
+    // and the colorbuffer for isosurfacing.
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
+    m_mProjection[i].setProjection();
+    renderRegion.modelView[i].setModelview();
     GeometryPreRender();
     PlaneIn3DPreRender();
   }
@@ -1405,21 +1402,15 @@ void GLRenderer::PreSubframe(const RenderRegion& renderRegion)
 /// Actions which should be performed when we declare a subframe complete.
 void GLRenderer::PostSubframe(const RenderRegion& renderRegion)
 {
-  // render the bounding boxes and clip plane; these are essentially no
-  // ops if they aren't enabled.
-  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-  m_mProjection[0].setProjection();
-  renderRegion.modelView[0].setModelview();
-  GeometryPostRender();
-  PlaneIn3DPostRender();
-  RenderClipPlane(0);
-  if (m_bDoStereoRendering) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-    m_mProjection[1].setProjection();
-    renderRegion.modelView[1].setModelview();
+  // render the bounding boxes, clip plane, and geometry behind the volume
+  size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
+  for (size_t i = 0;i<iStereoBufferCount;i++) {
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
+    m_mProjection[i].setProjection();
+    renderRegion.modelView[i].setModelview();
     GeometryPostRender();
     PlaneIn3DPostRender();
-    RenderClipPlane(1);
+    RenderClipPlane(i);
   }
   m_TargetBinder.Unbind();
 }
@@ -1474,12 +1465,15 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
 
 void GLRenderer::CopyImageToDisplayBuffer() {
   GL(glViewport(0,0,m_vWinSize.x,m_vWinSize.y));
+  if (m_bClearFramebuffer) ClearColorBuffer();
 
-  if (m_bClearFramebuffer)
-    ClearColorBuffer();
-
-  GL(glEnable(GL_BLEND));
-  GL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+  GPUState localState = m_BaseState;
+  localState.blendFuncSrc = BF_SRC_ALPHA;
+  localState.blendFuncDst = BF_ONE_MINUS_SRC_ALPHA;
+  localState.depthFunc = DF_LEQUAL;
+  localState.enableTex[0] = TEX_2D;
+  localState.enableTex[1] = TEX_NONE;
+  m_pContext->GetStateManager()->Apply(localState);
 
   m_pFBO3DImageLast->Read(0);
 
@@ -1499,9 +1493,6 @@ void GLRenderer::CopyImageToDisplayBuffer() {
 
   // always clear the depth buffer since we are transporting new data from the FBO
   GL(glClear(GL_DEPTH_BUFFER_BIT));
-  GL(glEnable(GL_DEPTH_TEST));
-  GL(glDepthMask(GL_TRUE));
-  GL(glDepthFunc(GL_LEQUAL));
 
   m_pProgramTrans->Enable();
 
@@ -1512,18 +1503,21 @@ void GLRenderer::CopyImageToDisplayBuffer() {
 
   m_pFBO3DImageLast->FinishRead();
   m_pFBO3DImageLast->FinishDepthRead();
-
-  GL(glDepthFunc(GL_LESS));
 }
-
 
 void GLRenderer::DrawLogo() const {
   if (m_pLogoTex == NULL) return;
 
   FixedFunctionality();
 
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  GPUState localState = m_BaseState;
+  localState.depthMask = false; 
+  localState.blendFuncSrc = BF_SRC_ALPHA;
+  localState.blendFuncDst = BF_ONE_MINUS_SRC_ALPHA;
+  localState.enableDepthTest = false;
+  localState.enableTex[0] = TEX_2D;
+  localState.enableTex[1] = TEX_NONE;
+  m_pContext->GetStateManager()->Apply(localState);
 
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
@@ -1532,14 +1526,10 @@ void GLRenderer::DrawLogo() const {
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
   glLoadIdentity();
-
-  m_pLogoTex->Bind();
-  glDisable(GL_TEXTURE_3D);
-  glEnable(GL_TEXTURE_2D);
-
-  glActiveTextureARB(GL_TEXTURE0_ARB);
   glMatrixMode(GL_TEXTURE);
   glLoadIdentity();
+
+  m_pLogoTex->Bind();
 
   UINTVECTOR2 vSizes(m_pLogoTex->GetSize());
   FLOATVECTOR2 vTexelSize(1.0f/FLOATVECTOR2(vSizes));
@@ -1568,8 +1558,6 @@ void GLRenderer::DrawLogo() const {
     glVertex3f(vCenter.x-vExtend.x, vCenter.y-vExtend.y, -0.5);
   glEnd();
 
-  glDisable(GL_TEXTURE_2D);
-
   glMatrixMode(GL_PROJECTION);
   glPopMatrix();
   glMatrixMode(GL_MODELVIEW);
@@ -1579,7 +1567,13 @@ void GLRenderer::DrawLogo() const {
 void GLRenderer::DrawBackGradient() const {
   FixedFunctionality();
 
-  glDisable(GL_DEPTH_TEST);
+  GPUState localState = m_BaseState;
+  localState.depthMask = false; 
+  localState.enableBlend = false;
+  localState.enableDepthTest = false;
+  localState.enableTex[0] = TEX_NONE;
+  localState.enableTex[1] = TEX_NONE;
+  m_pContext->GetStateManager()->Apply(localState);
 
   glMatrixMode(GL_PROJECTION);
   glPushMatrix();
@@ -1588,10 +1582,6 @@ void GLRenderer::DrawBackGradient() const {
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
   glLoadIdentity();
-
-  glDisable(GL_TEXTURE_3D);
-  glDisable(GL_TEXTURE_2D);
-  glDisable(GL_CULL_FACE);
 
   glBegin(GL_QUADS);
     glColor4d(m_vBackgroundColors[0].x,
@@ -1610,8 +1600,6 @@ void GLRenderer::DrawBackGradient() const {
   glPopMatrix();
   glMatrixMode(GL_MODELVIEW);
   glPopMatrix();
-
-  glEnable(GL_DEPTH_TEST);
 }
 
 void GLRenderer::Cleanup() {
@@ -1910,7 +1898,6 @@ namespace {
   }
 }
 
-
 bool GLRenderer::LoadAndVerifyShader(GLSLProgram** program,
                                      const std::vector<std::string> strDirs,
                                      ...)
@@ -2074,12 +2061,11 @@ void GLRenderer::GeometryPreRender() {
   // ahead and render the bbox directly as isosurfacing writes out correct
   // depth values
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) {
-    GL(glEnable(GL_DEPTH_TEST));
-    GL(glDepthMask(GL_FALSE));
-    GL(glDisable(GL_CULL_FACE));
 
-    GL(glEnable(GL_BLEND));
-    GL(glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE));
+    GPUState localState = m_BaseState;
+    localState.enableBlend = false;
+    localState.depthMask = false;
+    m_pContext->GetStateManager()->Apply(localState);
 
     // first render the pars of the meshes that are in front of the volume
     // remember the volume uses front to back compositing
@@ -2092,8 +2078,9 @@ void GLRenderer::GeometryPreRender() {
     // as we do front to back compositing we can not write the colors 
     // into the buffer yet
     // start with the bboxes
-    GL(glDepthMask(GL_TRUE));
-    GL(glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE));
+    m_pContext->GetStateManager()->SetDepthMask(true);
+    m_pContext->GetStateManager()->SetColorMask(false);
+
     if (m_bRenderGlobalBBox)
       RenderBBox();
     if (m_bRenderLocalBBox) {
@@ -2117,17 +2104,17 @@ void GLRenderer::GeometryPreRender() {
       m_pProgramMeshBTF->Enable(); 
       RenderOpaqueGeometry();
     }
-
-    GL(glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE));
   } else {
     // if we are in isosurface mode none of the complicated stuff from 
     // above applies, as the volume is opqaue we can just use regular
     // depth testing and the order of the opaque elements does not matter
     // so we might as well now write all the opaque geoemtry into the color
     // and depth buffer
-    GL(glEnable(GL_DEPTH_TEST));
-    GL(glDepthMask(GL_TRUE));
-    GL(glDisable(GL_BLEND));
+
+    GPUState localState = m_BaseState;
+    localState.enableBlend = false;
+    m_pContext->GetStateManager()->Apply(localState);
+
     // first the bboxes
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
@@ -2160,11 +2147,10 @@ void GLRenderer::GeometryPostRender() {
   // Not required for isosurfacing, since we use the depth buffer for
   // occluding/showing the bbox's outline.
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) {
-    GL(glEnable(GL_DEPTH_TEST));
-    GL(glDepthFunc(GL_LEQUAL));
-    GL(glDepthMask(GL_TRUE));
-    GL(glEnable(GL_BLEND));
-    GL(glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE));
+
+    GPUState localState = m_BaseState;
+    localState.depthFunc = DF_LEQUAL;
+    m_pContext->GetStateManager()->Apply(localState);
 
     if (m_bRenderGlobalBBox) RenderBBox();
     if (m_bRenderLocalBBox) {
@@ -2188,26 +2174,24 @@ void GLRenderer::GeometryPostRender() {
       m_pProgramMeshBTF->SetUniformVector("fOffset",0.0f);
     }
 
-    GL(glDisable(GL_CULL_FACE));
-    GL(glDisable(GL_DEPTH_TEST));
+    m_pContext->GetStateManager()->SetEnableDepthTest(false);
 
     if (m_bSupportsMeshes && m_iNumMeshes) {
       m_pProgramMeshFTB->Enable();
       RenderTransBackGeometry();
     }
-
-    GL(glDepthFunc(GL_LESS));
-    GL(glDisable(GL_BLEND));
   } else {
     if (m_bSupportsMeshes && m_iNumMeshes) {
-      GL(glEnable(GL_BLEND));
+
+      GPUState localState = m_BaseState;
+      localState.depthMask = false;
+      m_pContext->GetStateManager()->Apply(localState);
+
       // "over"-compositing with proper alpha
+      // we only use this once in the project so we bypass 
+      // the state manager, be carfeull to reset it below
       GL(glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
                              GL_ONE, GL_ONE_MINUS_SRC_ALPHA));
-      GL(glEnable(GL_DEPTH_TEST));
-      GL(glDepthFunc(GL_LESS));
-      GL(glDepthMask(GL_FALSE));
-      GL(glDisable(GL_CULL_FACE));
 
       m_pProgramMeshBTF->Enable();
     
@@ -2217,8 +2201,8 @@ void GLRenderer::GeometryPostRender() {
       RenderTransFrontGeometry();
       SetMeshBTFSorting(false);
 
-      GL(glDepthMask(GL_TRUE));
-      GL(glDisable(GL_BLEND));
+      // reset the blending in the state manager
+      m_pContext->GetStateManager()->SetBlendFunction(BF_ONE,BF_ONE, true);
     }
   }
 }
@@ -2287,8 +2271,6 @@ void ListEntryToMeshFormat(std::vector<MeshFormat>& list,
   }
 }
 
-
-
 void GLRenderer::RenderMergedMesh(SortIndexPVec& mergedMesh) {
   // terminate early if the mesh is empty
   if (mergedMesh.empty()) return;
@@ -2306,7 +2288,7 @@ void GLRenderer::RenderMergedMesh(SortIndexPVec& mergedMesh) {
   }
 
   // render it
-
+  // all of the following calls are bypassing the state manager
   GL(glBindBuffer(GL_ARRAY_BUFFER, m_GeoBuffer));
   GL(glBufferData(GL_ARRAY_BUFFER, GLsizei(list.size())*iStructSize,
                   &list[0], GL_STREAM_DRAW));
@@ -2315,7 +2297,7 @@ void GLRenderer::RenderMergedMesh(SortIndexPVec& mergedMesh) {
   GL(glNormalPointer(GL_FLOAT, iStructSize, BUFFER_OFFSET(7*sizeof(float))));
   GL(glTexCoordPointer(2, GL_FLOAT, iStructSize,
                        BUFFER_OFFSET(10*sizeof(float))));
-  GL(glEnableClientState(GL_VERTEX_ARRAY));
+  GL(glEnableClientState(GL_VERTEX_ARRAY)); 
   GL(glEnableClientState(GL_COLOR_ARRAY));
   GL(glEnableClientState(GL_NORMAL_ARRAY));
   GL(glEnableClientState(GL_TEXTURE_COORD_ARRAY));
@@ -2323,7 +2305,7 @@ void GLRenderer::RenderMergedMesh(SortIndexPVec& mergedMesh) {
   GL(glDisableClientState(GL_VERTEX_ARRAY));
   GL(glDisableClientState(GL_COLOR_ARRAY));
   GL(glDisableClientState(GL_NORMAL_ARRAY));
-  GL(glDisableClientState(GL_TEXTURE_COORD_ARRAY));
+  GL(glDisableClientState(GL_TEXTURE_COORD_ARRAY)); 
 }
 
 void GLRenderer::RenderTransBackGeometry() {
@@ -2425,12 +2407,9 @@ void GLRenderer::PlaneIn3DPreRender() {
   // pass once to init the depth buffer.  for isosurface rendering we can go
   // ahead and render the planes directly as isosurfacing writes out correct
   // depth values
-  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) {
-    glColorMask(GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
+  if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) {  
     RenderPlanesIn3D(true);
-    glColorMask(GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
   } else {
-    glDisable(GL_BLEND);
     RenderPlanesIn3D(false);
   }
 }
@@ -2443,11 +2422,11 @@ void GLRenderer::PlaneIn3DPostRender() {
   // Not required for isosurfacing, since we use the depth buffer for
   // occluding/showing the planes
   if (m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) {
-    glEnable(GL_BLEND);
-    glDisable(GL_DEPTH_TEST);
+    GPUState localState = m_BaseState;
+    localState.enableDepthTest = false;
+    m_pContext->GetStateManager()->Apply(localState);
+    
     RenderPlanesIn3D(false);
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
   }
 }
 
@@ -2457,12 +2436,14 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
 
   FLOATVECTOR3 vMinPoint = -vExtend/2.0f, vMaxPoint = vExtend/2.0f;
 
-  glDisable(GL_CULL_FACE);
-  glEnable(GL_DEPTH_TEST);
-
-  glDepthFunc(GL_LEQUAL);
-  glLineWidth(2);
-
+  GPUState localState = m_BaseState;
+  localState.depthFunc = DF_LEQUAL;
+  localState.lineWidth = 2.0f;
+  localState.enableTex[0] = TEX_NONE;
+  localState.enableTex[1] = TEX_NONE;
+  localState.colorMask = !bDepthPassOnly;
+  m_pContext->GetStateManager()->Apply(localState);
+  
   if (!bDepthPassOnly) glColor4f(1,1,1,1);
   for (size_t i=0; i < renderRegions.size(); ++i) {
 
@@ -2501,84 +2482,6 @@ void GLRenderer::RenderPlanesIn3D(bool bDepthPassOnly) {
       };
     glEnd();
   }
-
-  glLineWidth(1);
-
-  /*
-
-  /// \todo fix this: this code fills the clip planes in 3D
-            view with the 3D texture sice, while this works
-            fine with the SBVR it does not work at present
-            with the ray-caster until the raycaster takes
-            the depth buffer into account for transferfunction
-            rendering (iso-surfaces work)
-
-  GLTexture3D* t = NULL;
-
-  if (!bDepthPassOnly) {
-    switch (m_eRenderMode) {
-      case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
-                            m_pProgram2DTransSlice3D->Enable();
-                            break;
-      default            :  m_p1DTransTex->Bind(1);
-                            m_pProgram1DTransSlice3D->Enable();
-                            break;
-    }
-
-    UINT64 iCurrentLOD = 0;
-    UINTVECTOR3 vVoxelCount;
-    for (UINT64 i = 0;i<m_pDataset->GetLODLevelCount();i++) {
-      if (m_pDataset->GetBrickCount(i).volume() == 1) {
-          iCurrentLOD = i;
-          vVoxelCount = UINTVECTOR3(m_pDataset->GetDomainSize(i));
-      }
-    }
-    // convert 3D variables to the more general ND scheme used in the memory manager, i.e. convert 3-vectors to stl vectors
-    vector<UINT64> vLOD; vLOD.push_back(iCurrentLOD);
-    vector<UINT64> vBrick;
-    vBrick.push_back(0);vBrick.push_back(0);vBrick.push_back(0);
-
-    // get the 3D texture from the memory manager
-    t = m_pMasterController->MemMan()->GetVolume(m_pDataset, vLOD, vBrick, m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, 0, m_iFrameCounter);
-    if(t) t->Bind(0);
-  }
-
-  glBegin(GL_QUADS);
-    glTexCoord3f(vfSliceIndex.x,0,1);
-    glVertex3f(vfPlanePos.x, vMinPoint.y, vMaxPoint.z);
-    glTexCoord3f(vfSliceIndex.x,0,0);
-    glVertex3f(vfPlanePos.x, vMinPoint.y, vMinPoint.z);
-    glTexCoord3f(vfSliceIndex.x,1,0);
-    glVertex3f(vfPlanePos.x, vMaxPoint.y, vMinPoint.z);
-    glTexCoord3f(vfSliceIndex.x,1,1);
-    glVertex3f(vfPlanePos.x, vMaxPoint.y, vMaxPoint.z);
-  glEnd();
-  glBegin(GL_QUADS);
-    glTexCoord3f(1,vfSliceIndex.y,0);
-    glVertex3f(vMaxPoint.x, vfPlanePos.y, vMinPoint.z);
-    glTexCoord3f(0,vfSliceIndex.y,0);
-    glVertex3f(vMinPoint.x, vfPlanePos.y, vMinPoint.z);
-    glTexCoord3f(0,vfSliceIndex.y,1);
-    glVertex3f(vMinPoint.x, vfPlanePos.y, vMaxPoint.z);
-    glTexCoord3f(1,vfSliceIndex.y,1);
-    glVertex3f(vMaxPoint.x, vfPlanePos.y, vMaxPoint.z);
-  glEnd();
-  glBegin(GL_QUADS);
-    glTexCoord3f(1,0,vfSliceIndex.z);
-    glVertex3f(vMaxPoint.x, vMinPoint.y, vfPlanePos.z);
-    glTexCoord3f(0,0,vfSliceIndex.z);
-    glVertex3f(vMinPoint.x, vMinPoint.y, vfPlanePos.z);
-    glTexCoord3f(0,1,vfSliceIndex.z);
-    glVertex3f(vMinPoint.x, vMaxPoint.y, vfPlanePos.z);
-    glTexCoord3f(1,1,vfSliceIndex.z);
-    glVertex3f(vMaxPoint.x, vMaxPoint.y, vfPlanePos.z);
-  glEnd();
-
-  if (!bDepthPassOnly) {
-    m_pMasterController->MemMan()->Release3DTexture(t);
-  }
-*/
-  glDepthFunc(GL_LESS);
 }
 
 /** Renders the currently configured clip plane.
@@ -2597,24 +2500,31 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
   m_mView[iStereoID].setModelview();
 
   FixedFunctionality();
+  GPUState localState = m_BaseState;	
+  localState.enableTex[0] = TEX_NONE;
+  localState.enableTex[1] = TEX_NONE;
 
-  /* transformed.Quad will give us back a list of triangle vertices; the return
-   * value gives us the order we should render those so that we don't mess up
-   * front/back faces. */
   typedef std::vector<FLOATVECTOR3> TriList;
   TriList quad;
+  /* transformed.Quad will give us back a list of triangle vertices; the return
+    * value gives us the order we should render those so that we don't mess up
+    * front/back faces. */ 
   bool ccw = transformed.Quad(m_vEye, quad);
-  if((m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) && !ccw) {
-    vColorQuad *= vColorQuad.w;
-    vColorBorder *= vColorBorder.w;
-    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-  } else {
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  }
 
   if (m_iNumMeshes == 0) {
+    if((m_eRenderMode != RM_ISOSURFACE || m_bDoClearView) && !ccw) {
+      vColorQuad *= vColorQuad.w;
+      vColorBorder *= vColorBorder.w;
+      localState.blendFuncSrc = BF_ONE_MINUS_DST_ALPHA;
+      localState.blendFuncDst = BF_ONE;
+    } else {
+      localState.blendFuncSrc = BF_SRC_ALPHA;
+      localState.blendFuncDst = BF_ONE_MINUS_SRC_ALPHA;
+    }
+
     // Now render the plane.
-    glEnable(GL_BLEND);
+    m_pContext->GetStateManager()->Apply(localState);
+
     glBegin(GL_TRIANGLES);
       glColor4f(vColorQuad.x, vColorQuad.y, vColorQuad.z, vColorQuad.w);
       for(size_t i=0; i < 6; i+=3) { // 2 tris: 6 points.
@@ -2623,13 +2533,13 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
         glVertex3f(quad[i+2].x, quad[i+2].y, quad[i+2].z);
       }
     glEnd();
-    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_LINE_SMOOTH); // bypassing the state manager here
   } else {
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
+    localState.enableBlend = false;
+    m_pContext->GetStateManager()->Apply(localState);
   }
 
-  glLineWidth(4);
+  m_pContext->GetStateManager()->SetLineWidth(4.0f);
   glBegin(GL_LINES);
     glColor4f(vColorBorder.x, vColorBorder.y, vColorBorder.z, vColorBorder.w);
     for(size_t i = 6; i<14 ; i += 2) {
@@ -2637,9 +2547,7 @@ void GLRenderer::RenderClipPlane(size_t iStereoID)
       glVertex3f(quad[i+1].x, quad[i+1].y, quad[i+1].z);
     }
   glEnd();
-  glLineWidth(1);
-  glDisable(GL_BLEND);
-  glDisable(GL_LINE_SMOOTH);
+  glDisable(GL_LINE_SMOOTH); // bypassing the state manager here
 }
 
 void GLRenderer::ScanForNewMeshes() {
@@ -2653,6 +2561,10 @@ void GLRenderer::ScanForNewMeshes() {
 
 void GLRenderer::FixedFunctionality() const {
   GLSLProgram::Disable();
+}
+
+void GLRenderer::SyncStateManager() {
+  m_pContext->GetStateManager()->Apply(m_BaseState, true);  
 }
 
 bool GLRenderer::LoadDataset(const string& strFilename) {
@@ -2676,30 +2588,19 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
   MESSAGE("Recompositing...");
   NewFrameClear(renderRegion);
 
-  m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-  m_mProjection[0].setProjection();
-  renderRegion.modelView[0].setModelview();
-  GeometryPreRender();
-  PlaneIn3DPreRender();
-  Render3DPreLoop(renderRegion);
-  Render3DPostLoop();
-  ComposeSurfaceImage(renderRegion, 0);
-  GeometryPostRender();
-  PlaneIn3DPostRender();
-  RenderClipPlane(0);
-
-  if (m_bDoStereoRendering) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-    m_mProjection[1].setProjection();
-    renderRegion.modelView[1].setModelview();
+  size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
+  for (size_t i = 0;i<iStereoBufferCount;i++) {
+    m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
+    m_mProjection[i].setProjection();
+    renderRegion.modelView[i].setModelview();
     GeometryPreRender();
     PlaneIn3DPreRender();
     Render3DPreLoop(renderRegion);
     Render3DPostLoop();
-    ComposeSurfaceImage(renderRegion, 1);
+    ComposeSurfaceImage(renderRegion, i);
     GeometryPostRender();
     PlaneIn3DPostRender();
-    RenderClipPlane(1);
+    RenderClipPlane(i);
   }
   m_TargetBinder.Unbind();
 }
@@ -2707,6 +2608,7 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
 bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
                               float& fMsecPassed) {
   Render3DPreLoop(renderRegion);
+  size_t iStereoBufferCount = (m_bDoStereoRendering) ? 2 : 1;
 
   // loop over all bricks in the current LOD level
   m_Timer.Start();
@@ -2778,13 +2680,13 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
 
   if (m_eRenderMode == RM_ISOSURFACE &&
       m_vCurrentBrickList.size() == m_iBricksRenderedInThisSubFrame) {
-    m_TargetBinder.Bind(m_pFBO3DImageCurrent[0]);
-    ComposeSurfaceImage(renderRegion, 0);
-    if (m_bDoStereoRendering) {
-      m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);
-      ComposeSurfaceImage(renderRegion, 1);
-    }
-    m_TargetBinder.Unbind();
+     
+      for (size_t i = 0;i<iStereoBufferCount;i++) {
+        m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
+        ComposeSurfaceImage(renderRegion, i);
+      } 
+
+      m_TargetBinder.Unbind();
   }
 
   return true;
@@ -2804,7 +2706,11 @@ void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
 }
 
 void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iStereoID) {
-  glEnable(GL_DEPTH_TEST);
+  GPUState localState = m_BaseState;
+  localState.enableTex[0] = TEX_2D;
+  localState.enableTex[1] = TEX_2D;
+  m_pContext->GetStateManager()->Apply(localState);
+
 
   m_pFBOIsoHit[iStereoID]->Read(0, 0);
   m_pFBOIsoHit[iStereoID]->Read(1, 1);
@@ -2826,7 +2732,6 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iSter
                                                         transPos.z);
     m_pFBOCVHit[iStereoID]->Read(2, 0);
     m_pFBOCVHit[iStereoID]->Read(3, 1);
-    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
   } else {
     if (m_pDataset->GetComponentCount() == 1) {
       m_pProgramIsoCompose->Enable();
@@ -2907,12 +2812,10 @@ void GLRenderer::SaveDepthBuffer() {
                m_aDepthStorage);
 }
 
-
 void GLRenderer::CreateDepthStorage() {
   DeleteDepthStorage();
   m_aDepthStorage = new float[m_vWinSize.area()];
 }
-
 
 void GLRenderer::UpdateLightParamsInShaders() {
   FLOATVECTOR3 a = m_cAmbient.xyz()*m_cAmbient.w;

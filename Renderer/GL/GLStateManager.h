@@ -35,43 +35,6 @@
 
 namespace tuvok {
 
-  class GLStateManager;
-
-  /** \class GLState
-   * Base class for all OpenGL state this object holds
-     the rendering pipleine's state in one single object
-     to the GPU.*/
-  class GLState : public GPUState {
-    public:
-      GLState();
-      virtual ~GLState() {}
-
-      virtual void SetEnableDepth(const bool& value, bool bForce=false);
-      virtual void SetEnableCull(const bool& value, bool bForce=false);
-      virtual void SetCullState(const STATE_CULL& value, bool bForce=false);
-      virtual void SetEnableBlend(const bool& value, bool bForce=false);
-      virtual void SetEnableScissor(const bool& value, bool bForce=false);
-      virtual void SetEnableLighting(const bool& value, bool bForce=false);
-      virtual void SetEnableColorMaterial(const bool& value, bool bForce=false);
-      virtual void SetEnableLineSmooth(const bool& value, bool bForce=false);
-      virtual void SetEnableLight(size_t i, const bool& value, bool bForce=false);
-      virtual void SetEnableTex(size_t i, const STATE_TEX& value, bool bForce=false);
-      virtual void SetActiveTexUnit(const size_t iUnit, bool bForce=false);
-      virtual void SetDepthMask(const bool value, bool bForce=false);
-      virtual void SetColorMask(const bool value, bool bForce=false);
-      virtual void SetBlendEquation(const BLEND_EQUATION value, bool bForce=false);
-      virtual void SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest, bool bForce=false);
-
-    private:
-      friend class StateManager;
-      friend class GLStateManager;
-
-      virtual void Apply();
-      virtual void Apply(const GPUState& state, bool bForce);
-
-      virtual void GetFromOpenGL();
-  };
-
   /** \class GLStateManager
    * OpenGL state managers.
      This state manager applies is state object's properties
@@ -79,7 +42,29 @@ namespace tuvok {
   class GLStateManager : public StateManager {
     public:
       GLStateManager();
-      virtual ~GLStateManager();
+     
+      virtual void Apply(const GPUState& state, bool bForce=false);
+
+      virtual void SetEnableDepthTest(const bool& value, bool bForce=false);
+      virtual void SetDepthFunc(const DEPTH_FUNC& value, bool bForce=false);
+      virtual void SetEnableCullFace(const bool& value, bool bForce=false);
+      virtual void SetCullState(const STATE_CULL& value, bool bForce=false);
+      virtual void SetEnableBlend(const bool& value, bool bForce=false);
+      virtual void SetEnableScissor(const bool& value, bool bForce=false);
+      virtual void SetEnableLighting(const bool& value, bool bForce=false);
+      virtual void SetEnableColorMaterial(const bool& value, bool bForce=false);
+      virtual void SetEnableLight(size_t i, const bool& value, bool bForce=false);
+      virtual void SetEnableTex(size_t i, const STATE_TEX& value, bool bForce=false);
+      virtual void SetActiveTexUnit(const size_t iUnit, bool bForce=false);
+      virtual void SetDepthMask(const bool value, bool bForce=false);
+      virtual void SetColorMask(const bool value, bool bForce=false);
+      virtual void SetBlendEquation(const BLEND_EQUATION value, bool bForce=false);
+      virtual void SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest, bool bForce=false);
+      virtual void SetLineWidth(const float value, bool bForce=false);
+
+  protected:
+      void GetFromOpenGL();
+
   };
 
 } //namespace tuvok

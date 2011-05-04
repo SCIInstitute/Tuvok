@@ -97,8 +97,6 @@ void GLRaycaster::CreateOffscreenBuffers() {
   }
 }
 
-
-
 bool GLRaycaster::LoadShaders() {
   if (!GLRenderer::LoadShaders()) {
     T_ERROR("Error in parent call -> aborting");
@@ -316,11 +314,8 @@ void GLRaycaster::RenderBox(const RenderRegion& renderRegion,
                             const FLOATVECTOR3& vMinCoords,
                             const FLOATVECTOR3& vMaxCoords, bool bCullBack,
                             int iStereoID) const  {
-  if (bCullBack) {
-    glCullFace(GL_FRONT);
-  } else {
-    glCullFace(GL_BACK);
-  }
+  
+  m_pContext->GetStateManager()->SetCullState(bCullBack ? CULL_FRONT : CULL_BACK);
 
   FLOATVECTOR3 vMinPoint, vMaxPoint;
   vMinPoint = (vCenter - vExtend/2.0);
@@ -414,21 +409,20 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
   }
 }
 
-
 void GLRaycaster::Render3DPreLoop(const RenderRegion3D &) {
 
   // render nearplane into buffer
   if (m_iBricksRenderedInThisSubFrame == 0) {
+    GPUState localState = m_BaseState;
+    localState.enableBlend = false;
+    localState.depthMask = false;
+    localState.enableDepthTest  = false;
+    m_pContext->GetStateManager()->Apply(localState);
+
     m_TargetBinder.Bind(m_pFBORayEntry);
   
     FLOATMATRIX4 mInvProj = m_mProjection[0].inverse();
     mInvProj.setProjection();
-
-    glDisable(GL_BLEND);
-    glDepthMask(GL_FALSE);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-
     m_pProgramRenderFrontFacesNT->Enable();
 
     glBegin(GL_QUADS);
@@ -438,28 +432,27 @@ void GLRaycaster::Render3DPreLoop(const RenderRegion3D &) {
       glVertex3d(-1.0, -1.0, -0.5);
     glEnd();
 
-    glDepthMask(GL_TRUE);
-    glEnable(GL_DEPTH_TEST);
     m_TargetBinder.Unbind();
   }
 
-  glEnable(GL_CULL_FACE);
-
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_p1DTransTex->Bind(1);
-                          glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
     case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
-                          glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
     case RM_ISOSURFACE :  break;
     default    :          T_ERROR("Invalid rendermode set");
                           break;
   }
+
 }
 
 void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
                                  size_t iCurrentBrick, int iStereoID) {
+
+
+  m_pContext->GetStateManager()->Apply(m_BaseState);
+                                                                    
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
 
   if (m_iBricksRenderedInThisSubFrame == 0 && m_eRenderMode == RM_ISOSURFACE){
@@ -473,9 +466,12 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
 
   if (b.bIsEmpty) return;
 
-  glDisable(GL_BLEND);
-  glDepthMask(GL_FALSE);
-  glEnable(GL_DEPTH_TEST);
+  GPUState localState = m_BaseState;
+  localState.enableBlend = false;
+  localState.depthMask = false;
+  localState.enableCullFace = true;
+  m_pContext->GetStateManager()->Apply(localState);
+  
 
   renderRegion.modelView[iStereoID].setModelview();
   m_mProjection[iStereoID].setProjection();
@@ -496,7 +492,7 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
 */
 
   if (m_eRenderMode == RM_ISOSURFACE) {
-    glDepthMask(GL_TRUE);
+    m_pContext->GetStateManager()->SetDepthMask(true);
 
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
 
@@ -536,8 +532,8 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
       default            :  T_ERROR("Invalid rendermode set");
                             break;
     }
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+
+    m_pContext->GetStateManager()->SetEnableBlend(true);
 
     SetBrickDepShaderVars(renderRegion, b, iCurrentBrick);
 
@@ -546,28 +542,16 @@ void GLRaycaster::Render3DInLoop(const RenderRegion3D& renderRegion,
               b.vTexcoordsMin, b.vTexcoordsMax,
               true, iStereoID);
     m_pFBORayEntry->FinishRead();
-
-    glDisable(GL_BLEND);
-
   }
   m_TargetBinder.Unbind();
 }
 
-void GLRaycaster::Render3DPostLoop() {
-  GLRenderer::Render3DPostLoop();
-
-  glDisable(GL_CULL_FACE);
-  glDepthMask(GL_TRUE);
-  glEnable(GL_BLEND);
-}
 
 void GLRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
   GLRenderer::RenderHQMIPPreLoop(region);
+
   m_pProgramHQMIPRot->Enable();
   m_pProgramHQMIPRot->SetUniformVector("vScreensize",float(m_vWinSize.x), float(m_vWinSize.y));
-  glDisable(GL_DEPTH_TEST);
-  glDepthMask(GL_FALSE);
-
   if (m_bOrthoView)
     region.modelView[0] = m_maMIPRotation;
   else
@@ -578,7 +562,14 @@ void GLRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
 
 void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
                                     const Brick& b) {
-  glDisable(GL_BLEND);
+
+  GPUState localState = m_BaseState;
+  localState.enableDepthTest = false;
+  localState.depthMask = false;
+  localState.enableCullFace = false;
+  localState.enableBlend = false;
+  m_pContext->GetStateManager()->Apply(localState);
+
 
   // write frontfaces (ray entry points)
   m_TargetBinder.Bind(m_pFBORayEntry);
@@ -588,9 +579,12 @@ void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
             b.vTexcoordsMax, false, 0);
 
   m_TargetBinder.Bind(m_pFBO3DImageCurrent[1]);  // for MIP rendering "abuse" left-eye buffer for the itermediate results
-  glBlendFunc(GL_ONE, GL_ONE);
-  glBlendEquation(GL_MAX);
-  glEnable(GL_BLEND);
+
+
+  localState.enableBlend = true;
+  localState.blendFuncSrc = BF_ONE;
+  localState.blendEquation = BE_MAX;
+  m_pContext->GetStateManager()->Apply(localState);
 
   m_pProgramHQMIPRot->Enable();
 
@@ -604,24 +598,10 @@ void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
   m_pFBORayEntry->FinishRead();
 }
 
-void GLRaycaster::RenderHQMIPPostLoop() {
-  GLRenderer::RenderHQMIPPostLoop();
-  glDisable(GL_CULL_FACE);
-  glDepthMask(GL_TRUE);
-}
-
-void GLRaycaster::SetRendermode(ERenderMode eRenderMode)
-{
-  AbstrRenderer::SetRendermode(eRenderMode);
-  // m_bSupportsMeshes = m_eRenderMode == RM_ISOSURFACE;
-}
-
-
 void GLRaycaster::StartFrame() {
   GLRenderer::StartFrame();
 
   FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
-
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_pProgram1DTrans[0]->Enable();
                           m_pProgram1DTrans[0]->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);

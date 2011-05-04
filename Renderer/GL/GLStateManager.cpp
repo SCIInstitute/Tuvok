@@ -30,11 +30,7 @@
 
 using namespace tuvok;
 
-GLState::GLState() {
-  GetFromOpenGL();
-}
-
-GLenum blendFuncToGL(const BLEND_FUNC& func) {
+GLenum BLEND_FUNCToGL(const BLEND_FUNC& func) {
   switch (func) {
     case BF_ZERO : return  GL_ZERO; break;
     case BF_ONE : return GL_ONE; break;
@@ -51,7 +47,7 @@ GLenum blendFuncToGL(const BLEND_FUNC& func) {
   return GL_ONE;
 }
 
-BLEND_FUNC GLtoBlendFunc(const GLenum& func) {
+BLEND_FUNC GLToBLEND_FUNC(const GLenum& func) {
   switch (func) {
     case GL_ZERO : return BF_ZERO; break;
     case GL_ONE : return BF_ONE; break;
@@ -65,212 +61,179 @@ BLEND_FUNC GLtoBlendFunc(const GLenum& func) {
     case GL_ONE_MINUS_DST_ALPHA : return BF_ONE_MINUS_DST_ALPHA; break;
     case GL_SRC_ALPHA_SATURATE : return BF_SRC_ALPHA_SATURATE; break;
   }
-
   return BF_ONE;
 }
 
-void GLState::Apply() {
-  GL_CHECK();
-
-  if (enableBlend) {
-    glEnable(GL_BLEND); 
-  } else {
-    glDisable(GL_BLEND);
+GLenum BLEND_EQUATIONToGL(const BLEND_EQUATION& func) {
+  switch (func) {
+    case BE_FUNC_ADD : return  GL_FUNC_ADD; break;
+    case BE_FUNC_SUBTRACT : return GL_FUNC_SUBTRACT; break;
+    case BE_FUNC_REVERSE_SUBTRACT : return GL_FUNC_REVERSE_SUBTRACT; break;
+    case BE_MIN : return GL_MIN; break;
+    case BE_MAX : return GL_MAX; break;
   }
-
-  if (enableCull) {
-    glEnable(GL_CULL_FACE);
-  } else {
-    glDisable(GL_CULL_FACE);
-  }
-
-  glCullFace((cullState == CULL_FRONT) ? GL_FRONT : GL_BACK);
-
-  if (enableScissor) {
-    glEnable(GL_SCISSOR_TEST);
-  } else {
-    glDisable( GL_SCISSOR_TEST);
-  }
-
-  if (enableLighting) {
-    glEnable(GL_LIGHTING);
-  } else {
-    glDisable(GL_LIGHTING);
-  }
-
-  if (enableColorMaterial) {
-    glEnable(GL_COLOR_MATERIAL);
-  } else {
-    glDisable(GL_COLOR_MATERIAL);
-  }
-
-  if (enableLineSmooth) {
-    glEnable(GL_LINE_SMOOTH);
-  } else {
-    glDisable(GL_LINE_SMOOTH);
-  }
-
-  for (size_t i = 0;i<StateLightCount;i++) {
-    if (enableLight[i]) {
-      glEnable(GLenum(GL_LIGHT0+i));
-    } else {
-      glDisable(GLenum(GL_LIGHT0+i));
-    }
-  }
-
-  for (size_t i = 0;i<StateTUCount;i++) {
-    glActiveTexture(GLenum(GL_TEXTURE0+i));
-    switch (enableTex[i]) {
-      case TEX_1D:      glEnable(GL_TEXTURE_1D);
-                        glDisable(GL_TEXTURE_2D);
-                        glDisable(GL_TEXTURE_3D);
-                        break;
-      case TEX_2D:      glEnable(GL_TEXTURE_2D);
-                        glDisable(GL_TEXTURE_3D);
-                        break;
-      case TEX_3D:      glEnable(GL_TEXTURE_3D);
-                        break;
-      case TEX_UNKNOWN: glDisable(GL_TEXTURE_1D);
-                        glDisable(GL_TEXTURE_2D);
-                        glDisable(GL_TEXTURE_3D);
-                        break;
-    }
-  }
-  glActiveTexture(GLenum(GL_TEXTURE0 + activeTexUnit));
-
-  glDepthMask(depthMask ? 1 : 0);
-  GLboolean b = colorMask ? 1 : 0;
-  glColorMask(b,b,b,b);
-
-  glBlendFunc( blendFuncToGL(blendFuncSrc), blendFuncToGL(blendFuncDst) );
-
-  GLenum mode = GL_FUNC_ADD;
-  switch (blendEquation) {
-    case BE_FUNC_ADD : mode = GL_FUNC_ADD; break;
-    case BE_FUNC_SUBTRACT : mode = GL_FUNC_SUBTRACT; break;
-    case BE_FUNC_REVERSE_SUBTRACT : mode = GL_FUNC_REVERSE_SUBTRACT; break;
-    case BE_MIN : mode = GL_MIN; break;
-    case BE_MAX : mode = GL_MAX; break;
-  }
-  glBlendEquation(mode);
-
-  GL_CHECK();
+  return GL_FUNC_ADD;
 }
 
-void GLState::Apply(const GPUState& state, bool bForce) {
+BLEND_EQUATION GLToBLEND_EQUATION(const GLenum& func) {
+  switch (func) {
+    case GL_FUNC_ADD : return  BE_FUNC_ADD; break;
+    case GL_FUNC_SUBTRACT : return BE_FUNC_SUBTRACT; break;
+    case GL_FUNC_REVERSE_SUBTRACT : return BE_FUNC_REVERSE_SUBTRACT; break;
+    case GL_MIN : return BE_MIN; break;
+    case GL_MAX : return BE_MAX; break;
+  }
+  return BE_FUNC_ADD;
+}
+
+
+GLenum DEPTH_FUNCToGL(const DEPTH_FUNC& func) {
+  switch (func) {
+    case DF_NEVER : return  GL_NEVER; break;
+    case DF_LESS : return GL_LESS; break;
+    case DF_EQUAL : return GL_EQUAL; break;
+    case DF_LEQUAL : return GL_LEQUAL; break;
+    case DF_GREATER : return GL_GREATER; break;
+    case DF_NOTEQUAL : return GL_NOTEQUAL; break;
+    case DF_GEQUAL : return GL_GEQUAL; break;
+    case DF_ALWAYS : return GL_ALWAYS; break;
+  }
+  return GL_LEQUAL;
+}
+
+DEPTH_FUNC GLToDEPTH_FUNC(const GLenum& func) {
+  switch (func) {
+    case GL_NEVER : return  DF_NEVER; break;
+    case GL_LESS : return DF_LESS; break;
+    case GL_EQUAL : return DF_EQUAL; break;
+    case GL_LEQUAL : return DF_LEQUAL; break;
+    case GL_GREATER : return DF_GREATER; break;
+    case GL_NOTEQUAL : return DF_NOTEQUAL; break;
+    case GL_GEQUAL : return DF_GEQUAL; break;
+    case GL_ALWAYS : return DF_ALWAYS; break;
+  }
+  return DF_LEQUAL;
+}
+
+void GLStateManager::Apply(const GPUState& state, bool bForce) {
   GL_CHECK();
 
-  SetEnableDepth(state.GetEnableDepth(), bForce);
-  SetEnableCull(state.GetEnableCull(), bForce);
-  SetCullState(state.GetCullState(), bForce);
-  SetEnableBlend(state.GetEnableBlend(), bForce);
-  SetEnableScissor(state.GetEnableScissor(), bForce);
-  SetEnableLighting(state.GetEnableLighting(), bForce);
-  SetEnableColorMaterial(state.GetEnableColorMaterial(), bForce);
-  SetEnableLineSmooth(state.GetEnableLineSmooth(), bForce);
+  SetEnableDepthTest(state.enableDepthTest, bForce);
+  SetDepthFunc(state.depthFunc, bForce);
+  SetEnableCullFace(state.enableCullFace, bForce);
+  SetCullState(state.cullState, bForce);
+  SetEnableBlend(state.enableBlend, bForce);
+  SetEnableScissor(state.enableScissor, bForce);
+  SetEnableLighting(state.enableLighting, bForce);
+  SetEnableColorMaterial(state.enableColorMaterial, bForce);
 
   for (size_t i = 0;i<StateLightCount;i++) {
-    SetEnableLight(i, state.GetEnableLight(i), bForce);
+    SetEnableLight(i, state.enableLight[i], bForce);
   }
 
   // do this by hand to avoid the redundant
   // glActiveTexture calls
   for (size_t i = 0;i<StateTUCount;i++) {
-    if (bForce || state.GetEnableTex(i) != enableTex[i]) {
+    if (bForce || state.enableTex[i] != m_InternalState.enableTex[i]) {
       glActiveTexture(GLenum(GL_TEXTURE0+i));
-      enableTex[i] = state.GetEnableTex(i);
-      switch (enableTex[i]) {
-        case TEX_1D:      glEnable(GL_TEXTURE_1D);
+      m_InternalState.enableTex[i] = state.enableTex[i];
+      switch (m_InternalState.enableTex[i]) {
+        case TEX_1D:      glDisable(GL_TEXTURE_2D);
+                          glDisable(GL_TEXTURE_3D);
+                          glDisable(GL_TEXTURE_CUBE_MAP);
+                          glEnable(GL_TEXTURE_1D);
+                          break;
+        case TEX_2D:      glDisable(GL_TEXTURE_3D);
+                          glDisable(GL_TEXTURE_CUBE_MAP);
+                          glEnable(GL_TEXTURE_2D);
+                          break;
+        case TEX_3D:      glDisable(GL_TEXTURE_CUBE_MAP);
+                          glEnable(GL_TEXTURE_3D);
+                          break;
+        case TEX_NONE:    glDisable(GL_TEXTURE_1D);
                           glDisable(GL_TEXTURE_2D);
                           glDisable(GL_TEXTURE_3D);
-                          break;
-        case TEX_2D:      glEnable(GL_TEXTURE_2D);
-                          glDisable(GL_TEXTURE_3D);
-                          break;
-        case TEX_3D:      glEnable(GL_TEXTURE_3D);
-                          break;
-        case TEX_UNKNOWN: glDisable(GL_TEXTURE_1D);
-                          glDisable(GL_TEXTURE_2D);
-                          glDisable(GL_TEXTURE_3D);
+                          glDisable(GL_TEXTURE_CUBE_MAP);
                           break;
       }
     }
   }
-  activeTexUnit = state.GetActiveTexUnit();
-  glActiveTexture(GLenum(GL_TEXTURE0 + activeTexUnit));
+  m_InternalState.activeTexUnit = state.activeTexUnit;
+  glActiveTexture(GLenum(GL_TEXTURE0 + m_InternalState.activeTexUnit));
 
-  SetDepthMask(state.GetDepthMask(), bForce);
-  SetColorMask(state.GetColorMask(), bForce);
-  SetBlendEquation(state.GetBlendEquation(), bForce);
-  SetBlendFunction(state.GetBlendFunctionSrc(), state.GetBlendFunctionDst(), bForce);
+  SetDepthMask(state.depthMask, bForce);
+  SetColorMask(state.colorMask, bForce);
+  SetBlendEquation(state.blendEquation, bForce);
+  SetBlendFunction(state.blendFuncSrc, state.blendFuncDst, bForce);
+  SetLineWidth(state.lineWidth, bForce);
 
   GL_CHECK();
 }
 
-void GLState::GetFromOpenGL()
+void GLStateManager::GetFromOpenGL()
 {
   GL_CHECK();
 
-  enableDepth         = glIsEnabled(GL_DEPTH_TEST) != 0;
-  enableCull          = glIsEnabled(GL_CULL_FACE)!= 0;
+  m_InternalState.enableDepthTest         = glIsEnabled(GL_DEPTH_TEST) != 0;
 
   GLint e;
-  glGetIntegerv(GL_CULL_FACE_MODE, &e);
-  cullState           = (e == GL_FRONT) ? CULL_FRONT : CULL_BACK;
+  glGetIntegerv(GL_DEPTH_FUNC, &e);
+  m_InternalState.depthFunc = GLToDEPTH_FUNC(e);
 
-  enableBlend         = glIsEnabled(GL_BLEND) != 0;
-  enableScissor       = glIsEnabled(GL_SCISSOR_TEST) != 0;
-  enableLighting      = glIsEnabled(GL_LIGHTING) != 0;
-  enableColorMaterial = glIsEnabled(GL_COLOR_MATERIAL) != 0;
-  enableLineSmooth    = glIsEnabled(GL_LINE_SMOOTH) != 0;
+  m_InternalState.enableCullFace          = glIsEnabled(GL_CULL_FACE)!= 0;
+
+  glGetIntegerv(GL_CULL_FACE_MODE, &e);
+  m_InternalState.cullState           = (e == GL_FRONT) ? CULL_FRONT : CULL_BACK;
+
+  m_InternalState.enableBlend         = glIsEnabled(GL_BLEND) != 0;
+  m_InternalState.enableScissor       = glIsEnabled(GL_SCISSOR_TEST) != 0;
+  m_InternalState.enableLighting      = glIsEnabled(GL_LIGHTING) != 0;
+  m_InternalState.enableColorMaterial = glIsEnabled(GL_COLOR_MATERIAL) != 0;
 
   for(size_t i=0; i < StateLightCount; ++i) {
-    enableLight[i] = glIsEnabled(GL_LIGHT0 + (GLenum)i)!= 0;
+    m_InternalState.enableLight[i] = glIsEnabled(GL_LIGHT0 + (GLenum)i)!= 0;
   }
   for(size_t i=0; i < StateTUCount; ++i) {
     glActiveTexture(GL_TEXTURE0 + GLenum(i));
     if(glIsEnabled(GL_TEXTURE_3D)) {
-      enableTex[i] = TEX_3D;
+      m_InternalState.enableTex[i] = TEX_3D;
     } else if(glIsEnabled(GL_TEXTURE_2D)) {
-      enableTex[i] = TEX_2D;
+      m_InternalState.enableTex[i] = TEX_2D;
     } else if(glIsEnabled(GL_TEXTURE_1D)) {
-      enableTex[i] = TEX_1D;
+      m_InternalState.enableTex[i] = TEX_1D;
     } else {
-      enableTex[i] = TEX_UNKNOWN;
+      m_InternalState.enableTex[i] = TEX_NONE;
     }
   }
   GLboolean	 b;
   glGetBooleanv(GL_DEPTH_WRITEMASK, &b);
-  depthMask = b != 0;
+  m_InternalState.depthMask = b != 0;
 
   GLboolean	 col[4];
   glGetBooleanv(GL_COLOR_WRITEMASK, col);
-  colorMask = col[0] != 0;  
+  m_InternalState.colorMask = col[0] != 0;  
 
   GLint src, dest;
   glGetIntegerv(GL_BLEND_SRC, &src);
   glGetIntegerv(GL_BLEND_DST, &dest);
-  blendFuncSrc = GLtoBlendFunc(src);
-  blendFuncDst = GLtoBlendFunc(dest);
+  m_InternalState.blendFuncSrc = GLToBLEND_FUNC(src);
+  m_InternalState.blendFuncDst = GLToBLEND_FUNC(dest);
 
   GLint equation;
-  glGetIntegerv(GL_BLEND_EQUATION_RGB, &equation);
- 
-  switch (equation) {
-    case GL_FUNC_ADD : blendEquation = BE_FUNC_ADD; break;
-    case GL_FUNC_SUBTRACT : blendEquation = BE_FUNC_SUBTRACT; break;
-    case GL_FUNC_REVERSE_SUBTRACT : blendEquation = BE_FUNC_REVERSE_SUBTRACT; break;
-    case GL_MIN : blendEquation = BE_MIN; break;
-    case GL_MAX : blendEquation = BE_MAX; break;
-  }
+  glGetIntegerv(GL_BLEND_EQUATION_RGB, &equation); 
+  m_InternalState.blendEquation = GLToBLEND_EQUATION(equation);
+
+  GLfloat f;
+  glGetFloatv(GL_LINE_WIDTH, &f); 
+  m_InternalState.lineWidth = f;
 
   GL_CHECK();
 }
 
-void GLState::SetEnableDepth(const bool& value, bool bForce) {
-  if (bForce || value != enableDepth) {
-    enableDepth = value;
-    if (enableDepth) {
+void GLStateManager::SetEnableDepthTest(const bool& value, bool bForce) {
+  if (bForce || value != m_InternalState.enableDepthTest) {
+    m_InternalState.enableDepthTest = value;
+    if (m_InternalState.enableDepthTest) {
       glEnable(GL_DEPTH_TEST);
     } else {
       glDisable(GL_DEPTH_TEST);
@@ -278,10 +241,17 @@ void GLState::SetEnableDepth(const bool& value, bool bForce) {
   }
 }
 
-void GLState::SetEnableCull(const bool& value, bool bForce) {
-  if (bForce || value != enableCull) {
-    enableCull = value;
-    if (enableCull) {
+void GLStateManager::SetDepthFunc(const DEPTH_FUNC& value, bool bForce) {
+  if (bForce || value != m_InternalState.depthFunc) {
+    m_InternalState.depthFunc = value;
+    glDepthFunc( DEPTH_FUNCToGL(m_InternalState.depthFunc) );
+  }
+}
+
+void GLStateManager::SetEnableCullFace(const bool& value, bool bForce) {
+  if (bForce || value != m_InternalState.enableCullFace) {
+    m_InternalState.enableCullFace = value;
+    if (m_InternalState.enableCullFace) {
       glEnable(GL_CULL_FACE);
     } else {
       glDisable(GL_CULL_FACE);
@@ -289,17 +259,17 @@ void GLState::SetEnableCull(const bool& value, bool bForce) {
   }
 }
 
-void GLState::SetCullState(const STATE_CULL& value, bool bForce) {
-  if (bForce || value != cullState) {
-    cullState = value;
-    glCullFace((cullState == CULL_FRONT) ? GL_FRONT : GL_BACK);
+void GLStateManager::SetCullState(const STATE_CULL& value, bool bForce) {
+  if (bForce || value != m_InternalState.cullState) {
+    m_InternalState.cullState = value;
+    glCullFace((m_InternalState.cullState == CULL_FRONT) ? GL_FRONT : GL_BACK);
   }
 }
 
-void GLState::SetEnableBlend(const bool& value, bool bForce) {
-  if (bForce || value != enableBlend) {
-    enableBlend = value;
-    if (enableBlend) {
+void GLStateManager::SetEnableBlend(const bool& value, bool bForce) {
+  if (bForce || value != m_InternalState.enableBlend) {
+    m_InternalState.enableBlend = value;
+    if (m_InternalState.enableBlend) {
       glEnable(GL_BLEND);
     } else {
       glDisable(GL_BLEND);
@@ -307,10 +277,10 @@ void GLState::SetEnableBlend(const bool& value, bool bForce) {
   }
 }
 
-void GLState::SetEnableScissor(const bool& value, bool bForce) {
-  if (bForce || value != enableScissor) {
-    enableScissor = value;
-    if (enableScissor) {
+void GLStateManager::SetEnableScissor(const bool& value, bool bForce) {
+  if (bForce || value != m_InternalState.enableScissor) {
+    m_InternalState.enableScissor = value;
+    if (m_InternalState.enableScissor) {
       glEnable(GL_SCISSOR_TEST);
     } else {
       glDisable( GL_SCISSOR_TEST);
@@ -318,10 +288,10 @@ void GLState::SetEnableScissor(const bool& value, bool bForce) {
   }
 }
 
-void GLState::SetEnableLighting(const bool& value, bool bForce) {
-  if (bForce || value != enableLighting) {
-    enableLighting = value;
-    if (enableLighting) {
+void GLStateManager::SetEnableLighting(const bool& value, bool bForce) {
+  if (bForce || value != m_InternalState.enableLighting) {
+    m_InternalState.enableLighting = value;
+    if (m_InternalState.enableLighting) {
       glEnable(GL_LIGHTING);
     } else {
       glDisable(GL_LIGHTING);
@@ -329,10 +299,10 @@ void GLState::SetEnableLighting(const bool& value, bool bForce) {
   }
 }
 
-void GLState::SetEnableColorMaterial(const bool& value, bool bForce) {
-  if (bForce || value != enableColorMaterial) {
-    enableColorMaterial = value;
-    if (enableColorMaterial) {
+void GLStateManager::SetEnableColorMaterial(const bool& value, bool bForce) {
+  if (bForce || value != m_InternalState.enableColorMaterial) {
+    m_InternalState.enableColorMaterial = value;
+    if (m_InternalState.enableColorMaterial) {
       glEnable(GL_COLOR_MATERIAL);
     } else {
       glDisable(GL_COLOR_MATERIAL);
@@ -340,21 +310,10 @@ void GLState::SetEnableColorMaterial(const bool& value, bool bForce) {
   }
 }
 
-void GLState::SetEnableLineSmooth(const bool& value, bool bForce) {
-  if (bForce || value != enableLineSmooth) {
-    enableLineSmooth = value;
-    if (enableLineSmooth) {
-      glEnable(GL_LINE_SMOOTH);
-    } else {
-      glDisable(GL_LINE_SMOOTH);
-    }
-  }
-}
-
-void GLState::SetEnableLight(size_t i, const bool& value, bool bForce) {
-  if (bForce || value != enableLight[i]) {
-    enableLight[i] = value;
-    if (enableLight[i]) {
+void GLStateManager::SetEnableLight(size_t i, const bool& value, bool bForce) {
+  if (bForce || value != m_InternalState.enableLight[i]) {
+    m_InternalState.enableLight[i] = value;
+    if (m_InternalState.enableLight[i]) {
       glEnable(GLenum(GL_LIGHT0+i));
     } else {
       glDisable(GLenum(GL_LIGHT0+i));
@@ -362,11 +321,11 @@ void GLState::SetEnableLight(size_t i, const bool& value, bool bForce) {
   }
 }
 
-void GLState::SetEnableTex(size_t i, const STATE_TEX& value, bool bForce) {
-  if (bForce || value != enableTex[i]) {
+void GLStateManager::SetEnableTex(size_t i, const STATE_TEX& value, bool bForce) {
+  if (bForce || value != m_InternalState.enableTex[i]) {
     glActiveTexture(GLenum(GL_TEXTURE0+i));
-    enableTex[i] = value;
-    switch (enableTex[i]) {
+    m_InternalState.enableTex[i] = value;
+    switch (m_InternalState.enableTex[i]) {
       case TEX_1D:      glEnable(GL_TEXTURE_1D);
                         glDisable(GL_TEXTURE_2D);
                         glDisable(GL_TEXTURE_3D);
@@ -376,68 +335,60 @@ void GLState::SetEnableTex(size_t i, const STATE_TEX& value, bool bForce) {
                         break;
       case TEX_3D:      glEnable(GL_TEXTURE_3D);
                         break;
-      case TEX_UNKNOWN: glDisable(GL_TEXTURE_1D);
+      case TEX_NONE: glDisable(GL_TEXTURE_1D);
                         glDisable(GL_TEXTURE_2D);
                         glDisable(GL_TEXTURE_3D);
                         break;
     }
-    glActiveTexture(GLenum(GL_TEXTURE0 + activeTexUnit));
+    glActiveTexture(GLenum(GL_TEXTURE0 + m_InternalState.activeTexUnit));
   }
 }
 
-void GLState::SetActiveTexUnit(const size_t iUnit, bool bForce) {
-  if (bForce || iUnit != activeTexUnit) {
-    activeTexUnit = iUnit;
-    glActiveTexture(GLenum(GL_TEXTURE0 + activeTexUnit));
+void GLStateManager::SetActiveTexUnit(const size_t iUnit, bool bForce) {
+  if (bForce || iUnit != m_InternalState.activeTexUnit) {
+    m_InternalState.activeTexUnit = iUnit;
+    glActiveTexture(GLenum(GL_TEXTURE0 + m_InternalState.activeTexUnit));
   }
 }
 
-void GLState::SetDepthMask(const bool value, bool bForce) {
-  if (bForce || value != depthMask) {
-    depthMask = value;
-    glDepthMask(depthMask ? 1 : 0);
+void GLStateManager::SetDepthMask(const bool value, bool bForce) {
+  if (bForce || value != m_InternalState.depthMask) {
+    m_InternalState.depthMask = value;
+    glDepthMask(m_InternalState.depthMask ? 1 : 0);
   }
 }
 
-void GLState::SetColorMask(const bool value, bool bForce) {
-  if (bForce || value != colorMask) {
-    colorMask = value;
-    GLboolean b = colorMask ? 1 : 0;
+void GLStateManager::SetColorMask(const bool value, bool bForce) {
+  if (bForce || value != m_InternalState.colorMask) {
+    m_InternalState.colorMask = value;
+    GLboolean b = m_InternalState.colorMask ? 1 : 0;
     glColorMask(b,b,b,b);
   }
 }
 
-void GLState::SetBlendEquation(const BLEND_EQUATION value, bool bForce) {
-  if (bForce || value != blendEquation) {
-    blendEquation = value;
-    GLenum mode = GL_FUNC_ADD;
-
-    switch (blendEquation) {
-      case BE_FUNC_ADD : mode = GL_FUNC_ADD; break;
-      case BE_FUNC_SUBTRACT : mode = GL_FUNC_SUBTRACT; break;
-      case BE_FUNC_REVERSE_SUBTRACT : mode = GL_FUNC_REVERSE_SUBTRACT; break;
-      case BE_MIN : mode = GL_MIN; break;
-      case BE_MAX : mode = GL_MAX; break;
-    }
-
-    glBlendEquation  ( mode );
+void GLStateManager::SetBlendEquation(const BLEND_EQUATION value, bool bForce) {
+  if (bForce || value != m_InternalState.blendEquation) {
+    m_InternalState.blendEquation = value;
+    glBlendEquation(BLEND_EQUATIONToGL(m_InternalState.blendEquation));
   }
 }
 
-void GLState::SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest, bool bForce) {
-  if (bForce || (src != blendFuncSrc || dest != blendFuncDst)) {
-    blendFuncSrc = src;
-    blendFuncDst = dest;
-    glBlendFunc( blendFuncToGL(blendFuncSrc), blendFuncToGL(blendFuncDst) );
+void GLStateManager::SetBlendFunction(const BLEND_FUNC src, const BLEND_FUNC dest, bool bForce) {
+  if (bForce || (src != m_InternalState.blendFuncSrc || dest != m_InternalState.blendFuncDst)) {
+    m_InternalState.blendFuncSrc = src;
+    m_InternalState.blendFuncDst = dest;
+    glBlendFunc( BLEND_FUNCToGL(m_InternalState.blendFuncSrc), 
+                 BLEND_FUNCToGL(m_InternalState.blendFuncDst) );
+  }
+}
+
+void GLStateManager::SetLineWidth(const float value, bool bForce) {
+  if (bForce || value != m_InternalState.lineWidth) {
+    m_InternalState.lineWidth = value;
+    glLineWidth(m_InternalState.lineWidth);
   }
 }
 
 GLStateManager::GLStateManager() : StateManager() {
-  m_InternalState = new GLState();
-  m_InternalState->Apply();
-}
-
-
-GLStateManager::~GLStateManager() {
-  delete m_InternalState;
+  GetFromOpenGL();
 }

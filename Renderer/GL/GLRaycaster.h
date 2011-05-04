@@ -64,14 +64,6 @@ class GLRaycaster : public GLRenderer {
                 bool bNoRCClipplanes);
     virtual ~GLRaycaster();
 
-    /** Loads GLSL vertex and fragment shaders. */
-    virtual bool LoadShaders();
-
-    /** Deallocates Shaders */
-    virtual void CleanupShaders();
-  
-    /** Deallocates GPU memory allocated during the rendering process. */
-    virtual void Cleanup();
 
     /// Can only use CV on scalar datasets.  There's nothing really preventing
     /// its application to RGBA datasets, but shaders would need updating (and
@@ -92,8 +84,6 @@ class GLRaycaster : public GLRenderer {
     virtual ERendererType GetRendererType() const {return RT_RC;}
 
     virtual bool CanDoClipPlane() {return !m_bNoRCClipplanes;}
-
-    virtual void SetRendermode(ERenderMode eRenderMode);
 
   protected:
     GLFBOTex*       m_pFBORayEntry;
@@ -116,11 +106,9 @@ class GLRaycaster : public GLRenderer {
     virtual void Render3DPreLoop(const RenderRegion3D& region);
     virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
                                 size_t iCurrentBrick, int iStereoID);
-    virtual void Render3DPostLoop();
 
     virtual void RenderHQMIPPreLoop(RenderRegion2D &region);
     virtual void RenderHQMIPInLoop(const RenderRegion2D &renderRegion, const Brick& b);
-    virtual void RenderHQMIPPostLoop();
 
     /// Set the clip plane input variable in the shader.
     void ClipPlaneToShader(const ExtendedPlane &clipPlane, int iStereoID=0, bool bForce = false);
@@ -132,6 +120,14 @@ class GLRaycaster : public GLRenderer {
                                            FLOATVECTOR3 p1, FLOATVECTOR3 t1,
                                            FLOATVECTOR3 p2, FLOATVECTOR3 t2,
                                            int iStereoID) const;
+    /** Loads GLSL vertex and fragment shaders. */
+    virtual bool LoadShaders();
+
+    /** Deallocates Shaders */
+    virtual void CleanupShaders();
+  
+    /** Deallocates GPU memory allocated during the rendering process. */
+    virtual void Cleanup();
 };
 } // tuvok namespace.
 #endif // GLRAYCASTER_H

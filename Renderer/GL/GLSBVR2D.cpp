@@ -111,133 +111,7 @@ bool GLSBVR2D::LoadShaders() {
                               ? "vr-col-tfqn-lit.glsl"
                               : "vr-scal-tfqn-lit.glsl"
                            : "vr-scal-tfqn.glsl";
-
-
-/*
-
-  if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Transfer-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgram1DTransSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          tfqn.c_str(),
-                          "lighting.glsl",
-                          "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
-     !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "lighting.glsl",
-                          "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
-     !LoadAndVerifyShader(&m_pProgramMIPSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "lighting.glsl",
-                          "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
-     !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
-                          "SlicesIn3D.glsl",
-                          NULL,
-                          tfqn.c_str(),
-                          "lighting.glsl",
-                          "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
-     !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
-                          "SlicesIn3D.glsl",
-                          NULL,
-                          "lighting.glsl",
-                          "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
-     !LoadAndVerifyShader(&m_pProgramTransMIP, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Transfer-MIP-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramIsoCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramColorCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-Color-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramCVCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-CV-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramComposeAnaglyphs, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-Anaglyphs-FS.glsl",
-                          NULL)                                              ||
-     !LoadAndVerifyShader(&m_pProgramAFStereo, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-AF-FS.glsl",
-                          NULL)                                              ||
-     !LoadAndVerifyShader(&m_pProgramSBSStereo, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-SBS-FS.glsl",
-                          NULL)                                              ||
-     !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
-                          m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-Scanline-FS.glsl", NULL))
-
-  {
-      T_ERROR("Error loading transfer function shaders.");
-      return false;
-  } else {
-
-    m_pProgramTrans->ConnectTextureID("texColor",0);
-    m_pProgramTrans->ConnectTextureID("texDepth",1);
-
-    BindVolumeStringsToTexUnit(m_pProgram1DTransSlice, false);
-    m_pProgram1DTransSlice->ConnectTextureID("texTrans",1);
-
-    BindVolumeStringsToTexUnit(m_pProgram2DTransSlice, false);
-    m_pProgram2DTransSlice->ConnectTextureID("texTrans",1);
-
-    BindVolumeStringsToTexUnit(m_pProgram1DTransSlice3D, false);
-    m_pProgram1DTransSlice3D->ConnectTextureID("texTrans",1);
-
-    BindVolumeStringsToTexUnit(m_pProgram2DTransSlice3D, false);
-    m_pProgram2DTransSlice3D->ConnectTextureID("texTrans",1);
-
-    BindVolumeStringsToTexUnit(m_pProgramMIPSlice, false);
-
-    m_pProgramTransMIP->ConnectTextureID("texLast",0);
-    m_pProgramTransMIP->ConnectTextureID("texTrans",1);
-
-    FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
-
-    m_pProgramIsoCompose->ConnectTextureID("texRayHitPos",0);
-    m_pProgramIsoCompose->ConnectTextureID("texRayHitNormal",1);
-    m_pProgramIsoCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
-
-    m_pProgramColorCompose->ConnectTextureID("texRayHitPos",0);
-    m_pProgramColorCompose->ConnectTextureID("texRayHitNormal",1);
-    m_pProgramColorCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
-
-    m_pProgramCVCompose->ConnectTextureID("texRayHitPos",0);
-    m_pProgramCVCompose->ConnectTextureID("texRayHitNormal",1);
-    m_pProgramCVCompose->ConnectTextureID("texRayHitPos2",2);
-    m_pProgramCVCompose->ConnectTextureID("texRayHitNormal2",3);
-    m_pProgramCVCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
-
-    m_pProgramComposeAnaglyphs->ConnectTextureID("texLeftEye",0);
-    m_pProgramComposeAnaglyphs->ConnectTextureID("texRightEye",1);
-
-    m_pProgramComposeScanlineStereo->ConnectTextureID("texLeftEye",0);
-    m_pProgramComposeScanlineStereo->ConnectTextureID("texRightEye",1);
-
-    m_pProgramSBSStereo->ConnectTextureID("texLeftEye",0);
-    m_pProgramSBSStereo->ConnectTextureID("texRightEye",1);
-
-    m_pProgramAFStereo->ConnectTextureID("texLeftEye",0);
-    m_pProgramAFStereo->ConnectTextureID("texRightEye",1);
-  }
-*/
-
+  
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
@@ -280,26 +154,7 @@ bool GLSBVR2D::LoadShaders() {
                           "GLSBVR-VS.glsl",
                           NULL,
                           volumeAccessFunction.c_str(), // SampleVolume, ComputeNormal
-                          "GLSBVR-Color-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramBBox,
-                          m_vShaderSearchDirs,
-                          "BBox-VS.glsl",
-                          NULL,
-                          "BBox-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramMeshBTF,
-                          m_vShaderSearchDirs,
-                          "Mesh-VS.glsl",
-                          NULL,
-                          "BTF.glsl",         // TraversalOrderDepColor
-                          "lighting.glsl",    // Lighting (for Mesh)
-                          "Mesh-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramMeshFTB,
-                          m_vShaderSearchDirs, 
-                          "Mesh-VS.glsl",
-                          NULL,
-                          "FTB.glsl",         // TraversalOrderDepColor
-                          "lighting.glsl",    // Lighting (for Mesh)
-                          "Mesh-FS.glsl", NULL))
+                          "GLSBVR-Color-FS.glsl", NULL))
   {
       Cleanup();
       T_ERROR("Error loading a shader.");
@@ -414,16 +269,11 @@ void GLSBVR2D::Render3DPreLoop(const RenderRegion3D&) {
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_p1DTransTex->Bind(1);
                           m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-                          glEnable(GL_BLEND);
-                          glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
     case RM_2DTRANS    :  m_p2DTransTex->Bind(1);
                           m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
-                          glEnable(GL_BLEND);
-                          glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
                           break;
-    case RM_ISOSURFACE :  glEnable(GL_DEPTH_TEST);
-                          break;
+    case RM_ISOSURFACE :  break;
     default    :  T_ERROR("Invalid rendermode set");
                           break;
   }
@@ -488,12 +338,11 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
 
   if (!m_SBVRGeogen.m_vSliceTrianglesX.empty()) {
     // set coordinate shuffle matrix
+    glMatrixMode(GL_TEXTURE);
     float m[16] = {0,0,1,0,
                    0,1,0,0,
                    1,0,0,0,
                    0,0,0,1};
-    glActiveTextureARB(GL_TEXTURE0);
-    glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glLoadMatrixf(m);
 
@@ -544,12 +393,11 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
 
   if (!m_SBVRGeogen.m_vSliceTrianglesY.empty()) {
     // set coordinate shuffle matrix
+    glMatrixMode(GL_TEXTURE);
     float m[16] = {1,0,0,0,
                    0,0,1,0,
                    0,1,0,0,
                    0,0,0,1};
-    glActiveTextureARB(GL_TEXTURE0);
-    glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
     glLoadMatrixf(m);
 
@@ -592,9 +440,9 @@ void GLSBVR2D::RenderProxyGeometry2D() const {
     slices[slc_idx++].texid = iLastTexID;
     submit_vert_arrays(pGLVolume, slices, 1);
   }
+
   if (!m_SBVRGeogen.m_vSliceTrianglesZ.empty()) {
     // set coordinate shuffle matrix
-    glActiveTextureARB(GL_TEXTURE0);
     glMatrixMode(GL_TEXTURE);
     glLoadIdentity();
 
@@ -680,6 +528,10 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
 
 void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
                               size_t iCurrentBrick, int iStereoID) {
+
+
+  m_pContext->GetStateManager()->Apply(m_BaseState);
+
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
 
   if (m_iBricksRenderedInThisSubFrame == 0 && m_eRenderMode == RM_ISOSURFACE){
@@ -711,9 +563,9 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
   m_SBVRGeogen.ComputeGeometry(b.bIsEmpty);
 
   if (m_eRenderMode == RM_ISOSURFACE) {
-    glDisable(GL_BLEND);
-    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
+    m_pContext->GetStateManager()->SetEnableBlend(false);
 
+    GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
     m_TargetBinder.Bind(m_pFBOIsoHit[iStereoID], 0, m_pFBOIsoHit[iStereoID], 1);
 
     shader->Enable();
@@ -733,31 +585,25 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
   } else {
     m_TargetBinder.Bind(m_pFBO3DImageCurrent[iStereoID]);
 
-    glDepthMask(GL_FALSE);
+    m_pContext->GetStateManager()->SetDepthMask(false);
     SetBrickDepShaderVars(renderRegion, b);
     RenderProxyGeometry();
-    glDepthMask(GL_TRUE);
   }
   m_TargetBinder.Unbind();
-}
-
-
-void GLSBVR2D::Render3DPostLoop() {
-  GLRenderer::Render3DPostLoop();
-  glDisable(GL_BLEND);
 }
 
 void GLSBVR2D::RenderHQMIPPreLoop(RenderRegion2D& region) {
   GLRenderer::RenderHQMIPPreLoop(region);
   m_pProgramHQMIPRot->Enable();
-
-  glBlendFunc(GL_ONE, GL_ONE);
-  glBlendEquation(GL_MAX);
-  glEnable(GL_BLEND);
-  glDisable(GL_DEPTH_TEST);
 }
 
 void GLSBVR2D::RenderHQMIPInLoop(const RenderRegion2D&, const Brick& b) {
+  GPUState localState = m_BaseState;
+  localState.blendFuncSrc = BF_ONE;
+  localState.blendEquation = BE_MAX;
+  localState.enableDepthTest = false;
+  m_pContext->GetStateManager()->Apply(localState);
+
   m_SBVRGeogen.SetBrickData(b.vExtension, b.vVoxelCount, b.vTexcoordsMin, b.vTexcoordsMax);
   m_SBVRGeogen.SetBrickTrans(b.vCenter);
 
@@ -792,7 +638,6 @@ bool GLSBVR2D::LoadDataset(const string& strFilename) {
 void GLSBVR2D::ComposeSurfaceImage(RenderRegion& renderRegion, int iStereoID) {
   GLRenderer::ComposeSurfaceImage(renderRegion, iStereoID);
 }
-
 
 void GLSBVR2D::UpdateLightParamsInShaders() {
   GLRenderer::UpdateLightParamsInShaders();

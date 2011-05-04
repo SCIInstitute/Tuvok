@@ -62,11 +62,6 @@ namespace tuvok {
                bool bDisableBorder);
       virtual ~GLSBVR2D();
 
-      /** Loads GLSL vertex and fragment shaders. */
-      virtual bool LoadShaders();
-
-      virtual void SetDataDepShaderVars();
-
       /** Sends a message to the master to ask for a dataset to be loaded.
        * The dataset is converted to UVF if it is not one already.
        * @param strFilename path to a file */
@@ -100,7 +95,6 @@ namespace tuvok {
       virtual void Render3DPreLoop(const RenderRegion3D& region);
       virtual void Render3DInLoop(const RenderRegion3D& renderRegion,
                                   size_t iCurrentBrick, int iStereoID);
-      virtual void Render3DPostLoop();
 
       virtual void RenderHQMIPPreLoop(RenderRegion2D& region);
       virtual void RenderHQMIPInLoop(const RenderRegion2D& region, const Brick& b);
@@ -122,7 +116,12 @@ namespace tuvok {
                        FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                        DOUBLEVECTOR3 vAspectRatio, 
                        DOUBLEVECTOR2 vWinAspectRatio);
-    private:
+      /** Loads GLSL vertex and fragment shaders. */
+      virtual bool LoadShaders();
+
+      virtual void SetDataDepShaderVars();
+
+  private:
       void BindVolumeStringsToTexUnit(GLSLProgram* program, bool bGradients=true);
 
   };
