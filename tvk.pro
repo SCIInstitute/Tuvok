@@ -54,6 +54,7 @@ HEADERS += \
            Basics/ArcBall.h \
            Basics/Checksums/crc32.h \
            Basics/Checksums/MD5.h \
+           Basics/CommandReturn.h \
            Basics/TuvokException.h \
            Basics/GeometryGenerator.h \
            Basics/Grids.h \
