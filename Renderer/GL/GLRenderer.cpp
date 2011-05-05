@@ -739,9 +739,12 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
                         m_pProgramComposeScanlineStereo->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
                         break;
                        }
-          case SM_SBS:
-					m_pProgramSBSStereo->Enable(); 
+          case SM_SBS: {
+					          m_pProgramSBSStereo->Enable(); 
+                    float fSplitCoord = (m_bOffscreenIsLowRes) ? 0.5f / m_fScreenResDecFactor : 0.5f;
+                    m_pProgramSBSStereo->SetUniformVector("fSplitCoord",fSplitCoord);
                     break;
+                       }
           default : // SM_AF
 					m_pProgramAFStereo->Enable(); 
 					m_pProgramAFStereo->SetUniformVector("iAlternatingFrameID",m_iAlternatingFrameID);
@@ -2595,8 +2598,6 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
     renderRegion.modelView[i].setModelview();
     GeometryPreRender();
     PlaneIn3DPreRender();
-    Render3DPreLoop(renderRegion);
-    Render3DPostLoop();
     ComposeSurfaceImage(renderRegion, i);
     GeometryPostRender();
     PlaneIn3DPostRender();

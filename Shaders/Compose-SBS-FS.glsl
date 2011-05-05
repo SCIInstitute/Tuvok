@@ -24,7 +24,7 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-//!    File   : Compose-SBSs-FS.glsl
+//!    File   : Compose-SBS-FS.glsl
 //!    Author : Jens Krueger
 //!             IVDA, MMCI, DFKI Saarbruecken
 //!             SCI Institute, University of Utah
@@ -34,12 +34,13 @@
 
 uniform sampler2D texRightEye;
 uniform sampler2D texLeftEye;
+uniform float fSplitCoord;
 
 void main(void) {
-  if (gl_TexCoord[0].x < 0.5)
+  if (gl_TexCoord[0].x < fSplitCoord)
     gl_FragColor = texture2D(texLeftEye,
                              vec2(gl_TexCoord[0].x*2.0,gl_TexCoord[0].y));
   else
     gl_FragColor = texture2D(texRightEye,
-                             vec2((gl_TexCoord[0].x-0.5)*2.0,gl_TexCoord[0].y));
+                             vec2((gl_TexCoord[0].x-fSplitCoord)*2.0,gl_TexCoord[0].y));
 }
