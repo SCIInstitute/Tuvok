@@ -2709,8 +2709,8 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iSter
   GPUState localState = m_BaseState;
   localState.enableTex[0] = TEX_2D;
   localState.enableTex[1] = TEX_2D;
+  localState.enableBlend = false;
   m_pContext->GetStateManager()->Apply(localState);
-
 
   m_pFBOIsoHit[iStereoID]->Read(0, 0);
   m_pFBOIsoHit[iStereoID]->Read(1, 1);
