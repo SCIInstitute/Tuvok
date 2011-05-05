@@ -2598,7 +2598,7 @@ void GLRenderer::Recompose3DView(const RenderRegion3D& renderRegion) {
     renderRegion.modelView[i].setModelview();
     GeometryPreRender();
     PlaneIn3DPreRender();
-    ComposeSurfaceImage(renderRegion, i);
+    ComposeSurfaceImage(renderRegion, int(i));
     GeometryPostRender();
     PlaneIn3DPostRender();
     RenderClipPlane(i);
@@ -2684,7 +2684,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
      
       for (size_t i = 0;i<iStereoBufferCount;i++) {
         m_TargetBinder.Bind(m_pFBO3DImageCurrent[i]);
-        ComposeSurfaceImage(renderRegion, i);
+        ComposeSurfaceImage(renderRegion, int(i));
       } 
 
       m_TargetBinder.Unbind();
