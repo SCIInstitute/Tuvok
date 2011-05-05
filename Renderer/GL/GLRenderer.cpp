@@ -1298,6 +1298,8 @@ void GLRenderer::RenderCoordArrows(const RenderRegion& renderRegion) const {
   localState.enableLighting = true;
   localState.enableLight[0] = true;
   localState.enableCullFace = true;
+  localState.enableTex[0] = TEX_NONE;
+  localState.enableTex[1] = TEX_NONE;
   m_pContext->GetStateManager()->Apply(localState);
 
   // TODO get rid of all the fixed function lighting and use a shader
