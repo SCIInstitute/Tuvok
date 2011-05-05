@@ -301,6 +301,7 @@ class AbstrRenderer: public Scriptable {
 
     void SetClipPlane(RenderRegion *renderRegion,
                       const ExtendedPlane& plane);
+    virtual bool IsClipPlaneEnabled(RenderRegion *renderRegion=NULL);
     virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
     virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);
     virtual void ShowClipPlane(bool, RenderRegion *renderRegion=NULL);
