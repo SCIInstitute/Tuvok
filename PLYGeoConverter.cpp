@@ -211,6 +211,7 @@ Mesh* PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
     if (iReaderState == PARSING_VERTEX_DATA) {
       FLOATVECTOR3 pos;
+      FLOATVECTOR3 normal(0,0,0);
       FLOATVECTOR4 color(0,0,0,1);
       
       for (size_t i = 0;i<vertexProps.size();i++) {
@@ -230,6 +231,9 @@ Mesh* PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
           case VPROP_X         : pos.x = float(fValue); break;
           case VPROP_Y         : pos.y = float(fValue); break;
           case VPROP_Z         : pos.z = float(fValue); break;
+          case VPROP_NX        : bNormalsFound = true; normal.x = float(fValue); break;
+          case VPROP_NY        : bNormalsFound = true; normal.y = float(fValue); break;
+          case VPROP_NZ        : bNormalsFound = true; normal.z = float(fValue); break;
           case VPROP_RED       : bColorsFound = true; color.x = (vertexProps[i].first <= PROPT_DOUBLE) ? float(fValue) : iValue/255.0f; break;
           case VPROP_GREEN     : bColorsFound = true; color.y = (vertexProps[i].first <= PROPT_DOUBLE) ? float(fValue) : iValue/255.0f; break;
           case VPROP_BLUE      : bColorsFound = true; color.z = (vertexProps[i].first <= PROPT_DOUBLE) ? float(fValue) : iValue/255.0f; break;
@@ -244,6 +248,7 @@ Mesh* PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
       vertices.push_back(pos);
       if (bColorsFound) colors.push_back(color);
+      if (bNormalsFound) normals.push_back(normal);
 
       if (vertices.size() == iVertexCount) {
         iReaderState = (iFaceCount > 0) ? PARSING_FACE_DATA : PARSING_EDGE_DATA;
@@ -349,6 +354,9 @@ PLYGeoConverter::vertexProp PLYGeoConverter::StringToVProp(const std::string& to
   if (token == "x") return VPROP_X;
   if (token == "y") return VPROP_Y;
   if (token == "z") return VPROP_Z;
+  if (token == "nx") return VPROP_NX;
+  if (token == "ny") return VPROP_NY;
+  if (token == "nz") return VPROP_NZ;
   if (token == "red") return VPROP_RED;
   if (token == "green") return VPROP_GREEN;
   if (token == "blue") return VPROP_BLUE;
@@ -399,6 +407,12 @@ bool PLYGeoConverter::ConvertToNative(const Mesh& m,
   outStream << "property float y" << std::endl;
   outStream << "property float z" << std::endl;
 
+  if (m.GetVertices().size() == m.GetNormals().size()) {
+    outStream << "property float nx" << std::endl;
+    outStream << "property float ny" << std::endl;
+    outStream << "property float nz" << std::endl;
+  }
+
   // face info
   if (m.GetMeshType() == Mesh::MT_TRIANGLES) {
     outStream << "element face " << m.GetVertexIndices().size()/
@@ -424,8 +438,15 @@ bool PLYGeoConverter::ConvertToNative(const Mesh& m,
 
   // vertex data
   const VertVec& v = m.GetVertices();
-  for (size_t i = 0;i<v.size();i++){    
-    outStream << v[i].x << " " << v[i].y << " " << v[i].z << " " << std::endl;    
+  const NormVec& n = m.GetNormals();
+  if (v.size() == n.size()) {
+    for (size_t i = 0;i<v.size();i++){
+      outStream << v[i].x << " " << v[i].y << " " << v[i].z << " " << n[i].x << " " << n[i].y << " " << n[i].z << " " <<  std::endl;
+    }
+  } else {
+    for (size_t i = 0;i<v.size();i++){
+      outStream << v[i].x << " " << v[i].y << " " << v[i].z << " " << std::endl;    
+    }
   }
 
   // face data
