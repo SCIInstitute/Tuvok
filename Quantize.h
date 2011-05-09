@@ -219,6 +219,7 @@ struct ios_data_src {
     if(!ifs.is_open()) {
       throw std::runtime_error(__FILE__);
     }
+    ifs.seekg(0, std::ios::cur);
   }
 
   UINT64 size() {
