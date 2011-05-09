@@ -290,7 +290,7 @@ public:
     std::map<T, size_t> binAssignments;
     size_t binID = 0;
 
-    for (std::map<T, UINT64>::iterator it=bins.begin();
+    for (typename std::map<T, UINT64>::iterator it=bins.begin();
          it != bins.end(); it++ ) {
       binAssignments[(*it).first] = binID;
       binID++;
