@@ -234,10 +234,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         if (bIsFloat) {
           MESSAGE("Dataset is 32bit FP (floats)");
           strSourceFilename =
-            Quantize<float, unsigned short>(
+            BinningQuantize<float, unsigned short>(
               iHeaderSkip, strSourceFilename, tmpFilename1,
               iComponentCount*vVolumeSize.volume()*timesteps,
-              &Histogram1D
+              iComponentSize, &Histogram1D
             );
         } else {
           MESSAGE("Dataset is 32bit integers.");
@@ -255,17 +255,17 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                 iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D
               );
           }
+          iComponentSize = 16;
         }
-        iComponentSize = 16;
         break;
       case 64 :
         if (bIsFloat) {
           MESSAGE("Dataset is 64bit FP (doubles).");
           strSourceFilename =
-            Quantize<double, unsigned short>(
+            BinningQuantize<double, unsigned short>(
               iHeaderSkip, strSourceFilename, tmpFilename1,
               iComponentCount*vVolumeSize.volume()*timesteps,
-              &Histogram1D
+              iComponentSize, &Histogram1D
             );
         } else {
           MESSAGE("Dataset is 64bit integers.");
@@ -284,8 +284,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                 &Histogram1D
               );
           }
+          iComponentSize = 16;
         }
-        iComponentSize = 16;
         break;
     }
   }

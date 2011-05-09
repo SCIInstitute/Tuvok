@@ -197,9 +197,9 @@ struct NullProgress {
 template <typename T>
 struct TuvokProgress {
   TuvokProgress(T total) : tMax(total) {}
-  void notify(T current) const {
-    MESSAGE("Computing value range (%5.3f%% complete).",
-            static_cast<double>(current) / static_cast<double>(tMax)*100.0);
+  void notify(const std::string& operation, T current) const {
+    MESSAGE("%s (%5.3f%% complete).",
+            operation.c_str(), static_cast<double>(current) / static_cast<double>(tMax)*100.0);
   }
   private: T tMax;
 };
@@ -243,11 +243,16 @@ struct raw_data_src {
     if(!raw.IsOpen()) {
       throw std::runtime_error(__FILE__);
     }
+    reset();
   }
 
   UINT64 size() { return raw.GetCurrentSize() / sizeof(T); }
   size_t read(unsigned char *data, size_t max_bytes) {
     return raw.ReadRAW(data, max_bytes)/sizeof(T);
+  }
+
+  void reset() {
+    raw.SeekStart();
   }
   private: LargeRAWFile& raw;
 };
@@ -366,9 +371,9 @@ template <typename T, size_t sz,
           class Progress>
 std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
                          const Progress& progress, UINT64 iSize,
-                         size_t iCurrentIncoreSize)
+                         size_t iCurrentInCoreSizeBytes)
 {
-  std::vector<T> data(iCurrentIncoreSize);
+  std::vector<T> data(iCurrentInCoreSizeBytes/sizeof(T));
   UINT64 iPos = 0;
 
   // Default min is the max value representable by the data type.  Default max
@@ -383,7 +388,7 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
   while(iPos < iSize) {
     size_t n_records = ds.read((unsigned char*)(&(data.at(0))),
                                std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
-                                        iCurrentIncoreSize));
+                                        iCurrentInCoreSizeBytes));
     if(n_records == 0) {
       WARNING("Short file..");
       break; // bail out if the read gave us nothing.
@@ -391,7 +396,7 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
     data.resize(n_records);
 
     iPos += UINT64(n_records);
-    progress.notify(iPos);
+    progress.notify("Computing value range",iPos);
 
     typedef typename std::vector<T>::const_iterator iterator;
     std::pair<iterator,iterator> cur_mm = boost::minmax_element(data.begin(),

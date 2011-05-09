@@ -40,6 +40,7 @@
 #define ABSTRCONVERTER_H
 
 #include "../StdTuvokDefines.h"
+#include <map>
 #include "boost/cstdint.hpp"
 
 #include "Basics/Vectors.h"
@@ -153,6 +154,168 @@ public:
   virtual bool CanExportData() const { return false; }
 
   template <typename T, typename U>
+  static const std::string ApplyMapping(const UINT64 iSize,
+                                        const size_t iCurrentInCoreSizeBytes,
+                                        raw_data_src<T>& ds,
+                                        const std::string& strTargetFilename,
+                                        std::map<T, size_t>& binAssignments,
+                                        TuvokProgress<UINT64> progress) {
+    
+    const size_t iCurrentInCoreElems = iCurrentInCoreSizeBytes / sizeof(U);
+
+    ds.reset();
+
+    LargeRAWFile TargetData(strTargetFilename);
+    TargetData.Create();
+
+    std::vector<U> targetData(iCurrentInCoreElems);
+    std::vector<T> sourceData(iCurrentInCoreElems);
+    UINT64 iPos = 0;
+
+    while(iPos < iSize) {
+      size_t n_records = ds.read((unsigned char*)(&(sourceData.at(0))),
+                                  std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
+                                          iCurrentInCoreElems));
+      if(n_records == 0) {
+        WARNING("Short file..");
+        break; // bail out if the read gave us nothing.
+      }
+      sourceData.resize(n_records);
+
+      iPos += UINT64(n_records);
+      progress.notify("Mapping data values to bins",iPos);
+
+      // Run over the in-core data and apply mapping
+      for(size_t i=0; i < n_records; ++i) {
+        targetData[i] = U(binAssignments[sourceData[i]]);
+      }
+
+      TargetData.WriteRAW((unsigned char*)&targetData[0], sizeof(U)*n_records);
+    }
+
+    TargetData.Close();
+
+    LargeRAWFile MappedData(strTargetFilename);
+    MappedData.Open(false);
+    if(!MappedData.IsOpen()) {
+      T_ERROR("Could not open intermediate file '%s'", strTargetFilename.c_str());
+      return "";
+    }
+
+    // now compute histogram
+    size_t hist_size = 4096;
+    if(sizeof(U) == 1) { hist_size = 256; }
+    assert(sizeof(U) <= 2);
+
+    std::vector<UINT64> aHist(hist_size, 0);
+    std::pair<T,T> minmax;
+    const size_t sz = (sizeof(U) == 2 ? 4096 : 256);
+    minmax = io_minmax(raw_data_src<T>(MappedData),
+                        UnsignedHistogram<T, sz>(aHist),
+                        TuvokProgress<UINT64>(iSize), iSize,
+                        iCurrentInCoreSizeBytes);
+    assert(minmax.second >= minmax.first);
+
+    MappedData.Close();
+
+    return strTargetFilename;
+
+  }
+
+  template <typename T, typename U>
+  static const std::string BinningQuantize(UINT64 iHeaderSkip,
+                                    const std::string& strFilename,
+                                    const std::string& strTargetFilename,
+                                    UINT64 iSize,
+                                    UINT64& iComponentSize,
+                                    Histogram1DDataBlock* Histogram1D=0)
+  {
+    MESSAGE("Attempting to recover integer values by binning the data.");
+
+    const size_t iCurrentInCoreSizeBytes = GetIncoreSize();
+    const size_t iCurrentInCoreElems = iCurrentInCoreSizeBytes / sizeof(T);
+    LargeRAWFile InputData(strFilename, iHeaderSkip);
+    InputData.Open(false);
+    if(!InputData.IsOpen()) {
+      T_ERROR("Could not open '%s'", strFilename.c_str());
+      return "";
+    }
+
+    MESSAGE("Counting number of unique values in the data");
+
+    raw_data_src<T> ds(InputData);
+    std::vector<T> data(iCurrentInCoreElems);
+    TuvokProgress<UINT64> progress(iSize);
+    UINT64 iPos = 0;
+    bool bBinningPossible = true;
+
+    std::map<T, UINT64> bins;
+
+
+    while(bBinningPossible && iPos < iSize) {
+      size_t n_records = ds.read((unsigned char*)(&(data.at(0))),
+                                  std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
+                                          iCurrentInCoreElems));
+      if(n_records == 0) {
+        WARNING("Short file..");
+        break; // bail out if the read gave us nothing.
+      }
+      data.resize(n_records);
+
+      iPos += UINT64(n_records);
+      progress.notify("Counting number of unique values in the data",iPos);
+
+
+      // Run over the in core data and sort it into bins
+      for(size_t i=0; i < n_records; ++i) {
+      
+          bins[data[i]]++;
+
+          if (bins.size() > 1<<(sizeof(U)*8) ) {
+            bBinningPossible = false;
+            break;
+          }
+      }
+    }
+
+    data.clear();
+
+    // too many values, need to actually quantize the data
+    if (!bBinningPossible)
+      return Quantize<T,U>(iHeaderSkip, strFilename,
+                      strTargetFilename, iSize,
+                      Histogram1D);
+    
+    // now compute the mapping from values to bins
+    std::map<T, size_t> binAssignments;
+    size_t binID = 0;
+
+    for (std::map<T, UINT64>::iterator it=bins.begin();
+         it != bins.end(); it++ ) {
+      binAssignments[(*it).first] = binID;
+      binID++;
+    }
+
+
+    bins.clear();
+
+    // apply this mapping
+    MESSAGE("Binning possible, applying mapping");
+    
+    
+    if (binAssignments.size() < 256) {
+      iComponentSize = 8;
+      return ApplyMapping<T,unsigned char>(iSize, iCurrentInCoreSizeBytes, ds, strTargetFilename, binAssignments, progress);
+    } else {
+      iComponentSize = sizeof(U)*8;
+      return ApplyMapping<T,U>(iSize, iCurrentInCoreSizeBytes, ds, strTargetFilename, binAssignments, progress);
+    }
+    
+    
+  }
+
+
+  template <typename T, typename U>
   static const std::string Quantize(UINT64 iHeaderSkip,
                                     const std::string& strFilename,
                                     const std::string& strTargetFilename,
@@ -163,8 +326,8 @@ public:
     if(sizeof(U) == 1) { hist_size = 256; }
     assert(sizeof(U) <= 2);
 
-    const size_t iCurrentInCoreSize = GetIncoreSize();
-    const size_t iCurrentInCoreElems = iCurrentInCoreSize / sizeof(T);
+    const size_t iCurrentInCoreSizeBytes = GetIncoreSize();
+    const size_t iCurrentInCoreElems = iCurrentInCoreSizeBytes / sizeof(T);
     LargeRAWFile InputData(strFilename, iHeaderSkip);
     InputData.Open(false);
     if(!InputData.IsOpen()) {
@@ -179,7 +342,7 @@ public:
     minmax = io_minmax(raw_data_src<T>(InputData),
                        UnsignedHistogram<T, sz>(aHist),
                        TuvokProgress<UINT64>(iSize), iSize,
-                       iCurrentInCoreSize);
+                       iCurrentInCoreSizeBytes);
     assert(minmax.second >= minmax.first);
 
     // Unsigned N bit data does not need to be biased/quantized.
@@ -218,7 +381,7 @@ public:
     while(iPos < iSize) {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData,
                                        std::min((iSize - iPos)*sizeof(T),
-                                        UINT64(iCurrentInCoreSize)))/sizeof(T);
+                                        UINT64(iCurrentInCoreSizeBytes)))/sizeof(T);
       if(iRead == 0) { break; } // bail if the read gave us nothing
 
       // calculate hist + quantize to output file.
