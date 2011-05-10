@@ -281,10 +281,12 @@ public:
     data.clear();
 
     // too many values, need to actually quantize the data
-    if (!bBinningPossible)
+    if (!bBinningPossible) {
+      iComponentSize = sizeof(U)*8;
       return Quantize<T,U>(iHeaderSkip, strFilename,
                       strTargetFilename, iSize,
                       Histogram1D);
+    }
     
     // now compute the mapping from values to bins
     std::map<T, size_t> binAssignments;
