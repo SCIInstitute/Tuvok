@@ -232,6 +232,7 @@ public:
   {
     MESSAGE("Attempting to recover integer values by binning the data.");
 
+    iComponentSize = sizeof(U)*8;
     const size_t iCurrentInCoreSizeBytes = GetIncoreSize();
     const size_t iCurrentInCoreElems = iCurrentInCoreSizeBytes / sizeof(T);
     LargeRAWFile InputData(strFilename, iHeaderSkip);
@@ -282,7 +283,6 @@ public:
 
     // too many values, need to actually quantize the data
     if (!bBinningPossible) {
-      iComponentSize = sizeof(U)*8;
       return Quantize<T,U>(iHeaderSkip, strFilename,
                       strTargetFilename, iSize,
                       Histogram1D);
@@ -306,14 +306,11 @@ public:
     
     
     if (binAssignments.size() < 256) {
-      iComponentSize = 8;
+      iComponentSize = 8; // now we are only using 8 bits
       return ApplyMapping<T,unsigned char>(iSize, iCurrentInCoreSizeBytes, ds, strTargetFilename, binAssignments, progress);
     } else {
-      iComponentSize = sizeof(U)*8;
       return ApplyMapping<T,U>(iSize, iCurrentInCoreSizeBytes, ds, strTargetFilename, binAssignments, progress);
-    }
-    
-    
+    }       
   }
 
 
