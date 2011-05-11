@@ -69,8 +69,9 @@ bool Histogram1DDataBlock::Compute(const RasterDataBlock* source) {
   
   // create temp histogram 
   size_t iValueRange = size_t(1<<(source->ulElementBitSize[0][0]));
-  vector<UINT64> vTmpHist(iValueRange, 0);
-  if (vTmpHist.size() != iValueRange) return false;
+  m_vHistData.resize(iValueRange);
+  if (m_vHistData.size() != iValueRange) return false;
+  std::fill(m_vHistData.begin(), m_vHistData.end(), 0);
 
   // LargestSingleBrickLODBrickIndex is well defined as we tested above
   // if we have a single brick LOD
@@ -89,13 +90,13 @@ bool Histogram1DDataBlock::Compute(const RasterDataBlock* source) {
   ///       changed to use a more general approach.
   if (source->ulElementBitSize[0][0] == 8) {
     for (UINT64 i = 0;i<iDataSize;i++) {
-       vTmpHist[vcSourceData[size_t(i)]]++;
+       m_vHistData[vcSourceData[size_t(i)]]++;
     }
   } else {
     if (source->ulElementBitSize[0][0] == 16) {
       unsigned short *psSourceData = (unsigned short*)(&(vcSourceData.at(0)));
       for (UINT64 i = 0;i<iDataSize;i++) {
-        vTmpHist[psSourceData[size_t(i)]]++;
+        m_vHistData[psSourceData[size_t(i)]]++;
       }
     } else {
       return false;
@@ -104,14 +105,9 @@ bool Histogram1DDataBlock::Compute(const RasterDataBlock* source) {
 
   // find maximum-index non zero entry
   size_t iSize = 0;
-  for (size_t i = 0;i<iValueRange;i++) if (vTmpHist[i] != 0) iSize = i+1;
+  for (size_t i = 0;i<iValueRange;i++) if (m_vHistData[i] != 0) iSize = i+1;
   iValueRange = iSize;
   
-  // copy non zero elements in temp histogram to histogram
-  m_vHistData.resize(iValueRange);
-  if (m_vHistData.size() != iValueRange) return false;
-  for (size_t i = 0;i<iValueRange;i++) m_vHistData[i] = vTmpHist[i];
-
   // set data block information
   strBlockID = "1D Histogram for datablock " + source->strBlockID;
 
