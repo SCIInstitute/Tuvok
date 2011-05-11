@@ -191,7 +191,8 @@ public:
   /// 'f' should throw 'ParseError' if the arguments do not parse.
   /// 'f' should throw 'SemanticError' if the command makes no sense for the
   /// current state of the system.
-  typedef std::tr1::function<CommandReturn (AbstrRenderer*, std::string)>
+  typedef std::tr1::function<CommandReturn (AbstrRenderer*,
+                                            std::vector<std::string> args)>
     command;
   void RegisterCommand(const std::string name, command& f);
 

@@ -349,6 +349,55 @@ void MasterController::ExperimentalFeatures(bool b) {
   m_bExperimentalFeatures = b;
 }
 
+// removes leading spaces from a string.
+static std::string ltrim(const std::string s)
+{
+  std::istringstream iss(s);
+  std::string nosp;
+  iss >> nosp;
+  return nosp;
+}
+
+static std::vector<std::string> split_string(const std::string s)
+{
+  enum ParserState { Normal, InQuotedString };
+  enum ParserState st = Normal;
+  std::string current;
+  std::vector<std::string> rv;
+
+  for(std::string::const_iterator is = s.begin(); is != s.end(); ++is) {
+    switch(st) {
+      case Normal:
+        if(*is == '\"') {
+          st = InQuotedString;
+        } else if(isspace(*is) && current != "") {
+          rv.push_back(ltrim(current));
+          current = "";
+        } else {
+          current += *is;
+        }
+        break;
+      case InQuotedString:
+        if(*is == '\"') {
+          st = Normal;
+          rv.push_back(current);
+          current = "";
+        } else {
+          current += *is;
+        }
+        break;
+    }
+  }
+  // we should not have ended inside a quoted string.
+  if(st == InQuotedString) {
+    throw MasterController::ParseError();
+  }
+
+  if(!current.empty()) { rv.push_back(ltrim(current)); }
+
+  return rv;
+}
+
 void MasterController::RegisterCommand(const std::string name, command& f)
 {
   TuvokCommand c;
@@ -380,5 +429,6 @@ CommandReturn MasterController::Command(const command& f,
                                         const std::string args)
                                         throw(FailedCommand)
 {
-  return f(m_pActiveRenderer, args);
+  std::vector<std::string> split_args = split_string(args);
+  return f(m_pActiveRenderer, split_args);
 }
