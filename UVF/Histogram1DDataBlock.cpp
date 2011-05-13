@@ -106,7 +106,7 @@ bool Histogram1DDataBlock::Compute(const RasterDataBlock* source) {
   // find maximum-index non zero entry
   size_t iSize = 0;
   for (size_t i = 0;i<iValueRange;i++) if (m_vHistData[i] != 0) iSize = i+1;
-  iValueRange = iSize;
+  m_vHistData.resize(iSize);
   
   // set data block information
   strBlockID = "1D Histogram for datablock " + source->strBlockID;

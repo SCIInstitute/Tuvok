@@ -159,6 +159,7 @@ public:
                                         raw_data_src<T>& ds,
                                         const std::string& strTargetFilename,
                                         std::map<T, size_t>& binAssignments,
+                                        Histogram1DDataBlock* Histogram1D,
                                         TuvokProgress<UINT64> progress) {
     
     const size_t iCurrentInCoreElems = iCurrentInCoreSizeBytes / sizeof(U);
@@ -177,7 +178,7 @@ public:
                                   std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
                                           iCurrentInCoreElems));
       if(n_records == 0) {
-        WARNING("Short file..");
+        WARNING("Short file during mapping.");
         break; // bail out if the read gave us nothing.
       }
       sourceData.resize(n_records);
@@ -203,23 +204,25 @@ public:
     }
 
     // now compute histogram
-    size_t hist_size = 4096;
+    size_t hist_size = binAssignments.size();
     if(sizeof(U) == 1) { hist_size = 256; }
     assert(sizeof(U) <= 2);
 
     std::vector<UINT64> aHist(hist_size, 0);
     std::pair<T,T> minmax;
+
     const size_t sz = (sizeof(U) == 2 ? 4096 : 256);
-    minmax = io_minmax(raw_data_src<T>(MappedData),
-                        UnsignedHistogram<T, sz>(aHist),
+    minmax = io_minmax(raw_data_src<U>(MappedData),
+                        UnsignedHistogram<U, sz>(aHist),
                         TuvokProgress<UINT64>(iSize), iSize,
                         iCurrentInCoreSizeBytes);
     assert(minmax.second >= minmax.first);
 
     MappedData.Close();
 
-    return strTargetFilename;
+    if(Histogram1D) { Histogram1D->SetHistogram(aHist); }
 
+    return strTargetFilename;
   }
 
   template <typename T, typename U>
@@ -258,7 +261,7 @@ public:
                                   std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
                                           iCurrentInCoreElems));
       if(n_records == 0) {
-        WARNING("Short file..");
+        WARNING("Short file during counting.");
         break; // bail out if the read gave us nothing.
       }
       data.resize(n_records);
@@ -277,6 +280,7 @@ public:
             break;
           }
       }
+
     }
 
     data.clear();
@@ -307,9 +311,9 @@ public:
     
     if (binAssignments.size() < 256) {
       iComponentSize = 8; // now we are only using 8 bits
-      return ApplyMapping<T,unsigned char>(iSize, iCurrentInCoreSizeBytes, ds, strTargetFilename, binAssignments, progress);
+      return ApplyMapping<T,unsigned char>(iSize, iCurrentInCoreSizeBytes, ds, strTargetFilename, binAssignments, Histogram1D, progress);
     } else {
-      return ApplyMapping<T,U>(iSize, iCurrentInCoreSizeBytes, ds, strTargetFilename, binAssignments, progress);
+      return ApplyMapping<T,U>(iSize, iCurrentInCoreSizeBytes, ds, strTargetFilename, binAssignments, Histogram1D, progress);
     }       
   }
 
