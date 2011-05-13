@@ -302,18 +302,20 @@ public:
       binID++;
     }
 
-
     bins.clear();
 
     // apply this mapping
     MESSAGE("Binning possible, applying mapping");
-    
-    
+
     if (binAssignments.size() < 256) {
       iComponentSize = 8; // now we are only using 8 bits
-      return ApplyMapping<T,unsigned char>(iSize, iCurrentInCoreSizeBytes, ds, strTargetFilename, binAssignments, Histogram1D, progress);
+      return ApplyMapping<T,unsigned char>(iSize, iCurrentInCoreSizeBytes, ds,
+                                           strTargetFilename, binAssignments,
+                                           Histogram1D, progress);
     } else {
-      return ApplyMapping<T,U>(iSize, iCurrentInCoreSizeBytes, ds, strTargetFilename, binAssignments, Histogram1D, progress);
+      return ApplyMapping<T,U>(iSize, iCurrentInCoreSizeBytes, ds,
+                               strTargetFilename, binAssignments, Histogram1D,
+                               progress);
     }       
   }
 
