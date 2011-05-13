@@ -303,10 +303,12 @@ struct multi_raw_data_src {
 /// I love C++ sometimes.
 namespace { namespace Fits {
   template<typename T, size_t sz> bool inXBits(T v) {
-    return v <= static_cast<T>(sz-1);
+    return v < static_cast<T>(sz);
   }
-  template<> bool inXBits<signed char, 256>(signed char) { return true; }
-  template<> bool inXBits<signed char, 4096>(signed char) { return true; }
+  template<> bool inXBits<boost::int8_t, 256>(boost::int8_t) { return true; }
+  template<> bool inXBits<boost::int8_t, 4096>(boost::int8_t) { return true; }
+  template<> bool inXBits<boost::uint8_t, 256>(boost::uint8_t) { return true; }
+  template<> bool inXBits<boost::uint8_t, 4096>(boost::uint8_t) { return true; }
 }; };
 
 /// Histogram policies.  minmax can sometimes compute a 1D histogram as it
