@@ -303,7 +303,7 @@ struct multi_raw_data_src {
 /// I love C++ sometimes.
 namespace { namespace Fits {
   template<typename T, size_t sz> bool inXBits(T v) {
-    return v <= static_cast<T>(sz);
+    return v <= static_cast<T>(sz-1);
   }
   template<> bool inXBits<signed char, 256>(signed char) { return true; }
   template<> bool inXBits<signed char, 4096>(signed char) { return true; }
@@ -391,7 +391,7 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
                                std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
                                         iCurrentInCoreSizeBytes));
     if(n_records == 0) {
-      WARNING("Short file..");
+      WARNING("Short file during quantization.");
       break; // bail out if the read gave us nothing.
     }
     data.resize(n_records);
