@@ -30,8 +30,12 @@ macx {
 # the QMAKE_PRL_CONFIG variable.
 TEMP = $$[QT_INSTALL_LIBS] libQtGui.prl
 PRL  = $$[QT_INSTALL_LIBS] QtGui.framework/QtGui.prl
-include($$join(TEMP, "/"))
-include($$join(PRL, "/"))
+exists($$TEMP) {
+  include($$join(TEMP, "/"))
+}
+exists($$PRL) {
+  include($$join(PRL, "/"))
+}
 
 # If that contains the `shared' configuration, the installed Qt is shared.
 # In that case, disable the image plugins.
