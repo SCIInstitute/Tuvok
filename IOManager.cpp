@@ -1322,7 +1322,7 @@ using namespace tuvok;
 using namespace tuvok::io;
 
 std::string IOManager::GetImageExportDialogString() const {
-  std::vector<std::pair<std::string,std::string>> formats = StackExporter::GetSuportedImageFormats();
+  std::vector<std::pair<std::string,std::string> > formats = StackExporter::GetSuportedImageFormats();
 
   string strDialog = "All known Files ( ";
   for(size_t i = 0; i< formats.size(); ++i) {
