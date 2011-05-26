@@ -26,10 +26,10 @@ macx {
 }
 
 ### Should we link Qt statically or as a shared lib?
-# Find the location of QtGui's prl file, and include it here so we can look at
+# Find the location of QtCore's prl file, and include it here so we can look at
 # the QMAKE_PRL_CONFIG variable.
-TEMP = $$[QT_INSTALL_LIBS] libQtGui.prl
-PRL  = $$[QT_INSTALL_LIBS] QtGui.framework/QtGui.prl
+TEMP = $$[QT_INSTALL_LIBS] libQtCore.prl
+PRL  = $$[QT_INSTALL_LIBS] QtCore.framework/QtCore.prl
 exists($$TEMP) {
   include($$join(TEMP, "/"))
 }
