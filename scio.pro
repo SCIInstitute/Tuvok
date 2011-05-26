@@ -154,6 +154,7 @@ SOURCES += \
   ./I3MConverter.cpp \
   ./IASSConverter.cpp \
   ./Images/ImageParser.cpp \
+  ./Images/StackExporter.cpp \
   ./InveonConverter.cpp \
   ./IOManager.cpp \
   ./KeyValueFileParser.cpp \
@@ -243,6 +244,7 @@ HEADERS += \
   ./I3MConverter.h \
   ./IASSConverter.h \
   ./Images/ImageParser.h \
+  ./Images/StackExporter.h \
   ./InveonConverter.h \
   ./IOManager.h \
   ./KeyValueFileParser.h \
