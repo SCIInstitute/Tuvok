@@ -16,9 +16,6 @@ LIBS             += -lTuvok -lz
 macx:LIBS        += -lX11 -lGL
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
 unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
-# Debug STL is broken on OS X.
-unix:!macx:QMAKE_CFLAGS += -D_GLIBCXX_DEBUG
-unix:!macx:QMAKE_CXXFLAGS += -D_GLIBCXX_DEBUG
 
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtCore's prl file, and include it here so we can look at
