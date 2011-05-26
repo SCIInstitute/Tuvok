@@ -58,6 +58,7 @@
 #include "Basics/LargeRAWFile.h"
 #include "Basics/Mesh.h"
 #include "Basics/TuvokException.h"
+#include "TransferFunction1D.h"
 #include "AbstrGeoConverter.h"
 
 typedef std::tr1::tuple<std::string , std::string, bool> tConverterFormat;
@@ -477,12 +478,21 @@ public:
                          const FLOATVECTOR4& vfColor,
                          const std::string& strTargetFilename,
                          const std::string& strTempDir) const;
+  bool ExtractImageStack(const tuvok::UVFDataset* pSourceData,
+                         const TransferFunction1D* pTrans,
+                         UINT64 iLODlevel, 
+                         const std::string& strTargetFilename,
+                         const std::string& strTempDir) const;
+
 
   void RegisterExternalConverter(AbstrConverter* pConverter);
   void RegisterFinalConverter(AbstrConverter* pConverter);
 
   std::string GetLoadDialogString() const;
   std::string GetExportDialogString() const;
+  std::string GetImageExportDialogString() const;
+
+
   std::vector< std::pair <std::string, std::string > >
     GetImportFormatList() const;
   std::vector< std::pair <std::string, std::string > >

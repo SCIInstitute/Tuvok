@@ -58,6 +58,7 @@
 #include "expressions/treenode.h"
 #include "IO/DICOM/DICOMParser.h"
 #include "IO/Images/ImageParser.h"
+#include "IO/Images/StackExporter.h"
 #include "Quantize.h"
 #include "Renderer/GPUMemMan/GPUMemMan.h"
 #include "TuvokJPEG.h"
@@ -1098,6 +1099,59 @@ bool MCBrick(LargeRAWFile* pSourceFile, const vector<UINT64> vBrickSize,
     return pMCData->PerformMC(pSourceFile, vBrickSize, vBrickOffset);
 }
 
+bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
+                                  const TransferFunction1D* pTrans,
+                                  UINT64 iLODlevel, 
+                                  const std::string& strTargetFilename,
+                                  const std::string& strTempDir) const {
+
+
+  string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
+  
+  if (pSourceData->GetIsFloat() || pSourceData->GetIsSigned()) {
+    T_ERROR("Stack export currently only supported for unsigned integer values.");
+    return false;
+  }
+
+  if (pSourceData->GetComponentCount() > 4) {
+    T_ERROR("Only up to four component data supported");
+    return false;
+  }
+
+
+  MESSAGE("Extracting Data");
+
+  bool bRAWCreated = pSourceData->Export(iLODlevel, strTempFilename, false);
+
+  if (!bRAWCreated) {
+    T_ERROR("Unable to write temp file %s", strTempFilename.c_str());
+    return false;
+  }
+
+  MESSAGE("Writing Target Dataset");
+
+  double fMaxActValue = (pSourceData->GetRange().first > pSourceData->GetRange().second) ? pTrans->GetSize() : pSourceData->GetRange().second;
+
+  bool bTargetCreated = StackExporter::WriteStacks(strTempFilename, 
+                                                   strTargetFilename,
+                                                   pTrans,
+                                                   pSourceData->GetBitWidth(),
+                                                   pSourceData->GetComponentCount(),
+                                                   float(pTrans->GetSize() / fMaxActValue),
+                                                   pSourceData->GetDomainSize(static_cast<size_t>(iLODlevel)));
+  remove(strTempFilename.c_str());
+
+  if (!bTargetCreated) {
+    T_ERROR("Unable to write target file %s", strTargetFilename.c_str());
+    return false;
+  }
+
+  MESSAGE("Done!");
+
+  return bTargetCreated;
+}
+
+
 bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
                                   UINT64 iLODlevel, double fIsovalue,
                                   const FLOATVECTOR4& vfColor,
@@ -1266,6 +1320,22 @@ bool IOManager::Verify(const string& strFilename) const
 
 using namespace tuvok;
 using namespace tuvok::io;
+
+std::string IOManager::GetImageExportDialogString() const {
+  std::vector<std::pair<std::string,std::string>> formats = StackExporter::GetSuportedImageFormats();
+
+  string strDialog = "All known Files ( ";
+  for(size_t i = 0; i< formats.size(); ++i) {
+    strDialog += "*." + SysTools::ToLowerCase(formats[i].first) + " ";
+  }
+  strDialog += ");;";
+
+  for(size_t i = 0; i< formats.size(); ++i) {
+    strDialog += formats[i].second + " (*." + SysTools::ToLowerCase(formats[i].first) + ");;";
+  }
+
+  return strDialog;
+}
 
 string IOManager::GetLoadDialogString() const {
   string strDialog = "All known Files (";
