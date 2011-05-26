@@ -8,22 +8,17 @@ p                += ../../IO/3rdParty/boost
 p                += ../../3rdParty/GLEW
 DEPENDPATH        = $$p
 INCLUDEPATH       = $$p
-LIBPATH          += ../../Build ../../IO/expressions
+macx:INCLUDEPATH += /usr/X11R6/include
+macx:QMAKE_LIBDIR+= /usr/X11R6/lib
+QMAKE_LIBDIR     += ../../Build ../../IO/expressions
 QT               += opengl
 LIBS             += -lTuvok -lz
-unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
-unix:QMAKE_CFLAGS += -fno-strict-aliasing
-unix:QMAKE_CFLAGS += -D_GLIBCXX_DEBUG -g
-unix:QMAKE_CXXFLAGS += -D_GLIBCXX_DEBUG -g
-
-# If this is a 10.5 machine, build for both x86 and x86_64.  Not
-# the best idea (there's no guarantee the machine will have a
-# 64bit compiler), but the best we can do via qmake.
-macx {
-    exists(/Developer/SDKs/MacOSX10.5.sdk/) {
-        CONFIG += x86 x86_64
-    }
-}
+macx:LIBS        += -lX11 -lGL
+unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
+unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
+# Debug STL is broken on OS X.
+unix:!macx:QMAKE_CFLAGS += -D_GLIBCXX_DEBUG
+unix:!macx:QMAKE_CXXFLAGS += -D_GLIBCXX_DEBUG
 
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtCore's prl file, and include it here so we can look at

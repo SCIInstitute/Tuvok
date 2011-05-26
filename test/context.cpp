@@ -37,7 +37,7 @@
 #ifdef DETECTED_OS_WINDOWS
 # include <GL/wgl.h>
 # include <windows.h>
-#elif defined(DETECTED_OS_LINUX)
+#else
 # include <GL/glx.h>
 # include <X11/Xlib.h>
 #endif
@@ -47,7 +47,7 @@
 
 TvkContext::~TvkContext() { }
 
-#ifdef DETECTED_OS_LINUX
+#ifndef DETECTED_OS_WINDOWS
 struct xinfo {
   Display *display;
   XVisualInfo *visual;
@@ -104,7 +104,7 @@ TvkContext* TvkContext::Create(uint32_t width, uint32_t height,
 #endif
 }
 
-#ifdef DETECTED_OS_LINUX
+#ifndef DETECTED_OS_WINDOWS
 static struct xinfo x_connect(uint32_t, uint32_t, bool);
 static XVisualInfo* find_visual(Display*, bool);
 static void glx_init(Display*, XVisualInfo*, GLXContext&);
