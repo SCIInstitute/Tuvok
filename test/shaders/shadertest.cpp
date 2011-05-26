@@ -43,6 +43,7 @@
 #include "Controller/Controller.h"
 #include "IO/IOManager.h"
 #include "Renderer/AbstrRenderer.h"
+#include "Renderer/ContextIdentification.h"
 #include "Renderer/GL/GLFBOTex.h"
 #include "Renderer/GL/GLFrameCapture.h"
 #include "Renderer/GL/GLRenderer.h"
@@ -68,7 +69,7 @@ int main(int argc, char *argv[])
   }
 
   try {
-    std::auto_ptr<TvkContext> ctx(TvkContext::Create());
+    std::auto_ptr<TvkContext> ctx(TvkContext::Create(320,240, 32,24,8, true));
 
     GLenum err = glewInit();
     if(err != GLEW_OK) {
@@ -97,7 +98,7 @@ int main(int argc, char *argv[])
         ren->LoadDataset(uvf_file);
         ren->AddShaderPath("../../Shaders");
         ren->Resize(UINTVECTOR2(100,100));
-        ren->Initialize();
+        ren->Initialize(GLContextID::Current());
         ren->Cleanup();
         Controller::Instance().ReleaseVolumeRenderer(ren);
       }
@@ -111,7 +112,7 @@ int main(int argc, char *argv[])
         ren->LoadDataset(uvf_file);
         ren->AddShaderPath("../../Shaders");
         ren->Resize(UINTVECTOR2(100,100));
-        ren->Initialize();
+        ren->Initialize(GLContextID::Current());
         ren->Cleanup();
         Controller::Instance().ReleaseVolumeRenderer(ren);
       }

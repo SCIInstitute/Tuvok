@@ -44,6 +44,7 @@
 #include "Controller/Controller.h"
 #include "IO/IOManager.h"
 #include "Renderer/AbstrRenderer.h"
+#include "Renderer/ContextIdentification.h"
 #include "Renderer/GL/GLFBOTex.h"
 #include "Renderer/GL/GLFrameCapture.h"
 #include "Renderer/GL/GLRenderer.h"
@@ -52,7 +53,7 @@
 
 using namespace tuvok;
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
   std::string filename;
   try {
@@ -98,7 +99,7 @@ int main(int argc, char *argv[])
     ren->LoadDataset(uvf_file);
     ren->AddShaderPath("../../Shaders");
     ren->Resize(UINTVECTOR2(640,480));
-    ren->Initialize();
+    ren->Initialize(GLContextID::Current());
     ren->SetRendererTarget(AbstrRenderer::RT_HEADLESS);
     ren->Paint();
 
