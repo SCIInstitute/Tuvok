@@ -1748,10 +1748,10 @@ GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const
 // to scale the TF in the same manner that we've scaled the data.
 float GLRenderer::CalculateScaling()
 {
-  size_t iMaxValue     = size_t(MaxValue());
+  double fMaxValue     = MaxValue();
   UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetBitWidth());
   return (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ?
-    1.0f : float(iMaxRange)/float(iMaxValue);
+    1.0f : float(iMaxRange/fMaxValue);
 }
 
 void GLRenderer::SetDataDepShaderVars() {
