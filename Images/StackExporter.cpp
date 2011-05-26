@@ -118,11 +118,14 @@ bool StackExporter::WriteSlice(unsigned char* pData,
                                UINT64 iComponentCount) {
     size_t iImageCompCount = (iComponentCount == 3 || iComponentCount == 2) ? 3 : 4;
 
+    using namespace boost; // for uintXX_t types.
     switch (iComponentCount)  {
       case 1 : switch (iBitWidth)  {
                 case 8 : ApplyTFInplace(pData, vSize, fRescale, pTrans); break;
-                case 16 : ApplyTFInplace((UINT16*)pData, vSize, fRescale, pTrans); break;
-                case 32 : ApplyTFInplace((UINT32*)pData, vSize, fRescale, pTrans); break;
+                case 16 : ApplyTFInplace(reinterpret_cast<uint16_t*>(pData),
+                                         vSize, fRescale, pTrans); break;
+                case 32 : ApplyTFInplace(reinterpret_cast<uint32_t*>(pData),
+                                         vSize, fRescale, pTrans); break;
                 default : return false; 
               }
               break;
