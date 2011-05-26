@@ -115,6 +115,7 @@ HEADERS += \
            IO/IASSConverter.h \
            IO/I3MConverter.h \
            IO/Images/ImageParser.h \
+           IO/Images/StackExporter.h \
            IO/InveonConverter.h \
            IO/IOManager.h \
            IO/KeyValueFileParser.h \
@@ -336,6 +337,7 @@ SOURCES += \
            IO/IASSConverter.cpp \
            IO/I3MConverter.cpp \
            IO/Images/ImageParser.cpp \
+           IO/Images/StackExporter.cpp \
            IO/InveonConverter.cpp \
            IO/IOManager.cpp \
            IO/KeyValueFileParser.cpp \
