@@ -786,6 +786,9 @@
     <ClCompile Include="Renderer\Context.cpp">
       <Filter>Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="IO\Images\StackExporter.cpp">
+      <Filter>IO\Images</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1589,6 +1592,9 @@
     </ClInclude>
     <ClInclude Include="Renderer\ContextIdentification.h">
       <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\Images\StackExporter.h">
+      <Filter>IO\Images</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

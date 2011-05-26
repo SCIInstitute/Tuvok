@@ -334,6 +334,7 @@
     <ClCompile Include="Basics\Checksums\MD5.cpp" />
     <ClCompile Include="Basics\KDTree.cpp" />
     <ClCompile Include="Basics\Mesh.cpp" />
+    <ClCompile Include="IO\Images\StackExporter.cpp" />
     <ClCompile Include="Renderer\AbstrRenderer.cpp" />
     <ClCompile Include="Renderer\Context.cpp" />
     <ClCompile Include="Renderer\CullingLOD.cpp" />
@@ -924,6 +925,7 @@
     <ClInclude Include="Basics\3rdParty\tclap\Visitor.h" />
     <ClInclude Include="Basics\3rdParty\tclap\XorHandler.h" />
     <ClInclude Include="Basics\3rdParty\tclap\ZshCompletionOutput.h" />
+    <ClInclude Include="IO\Images\StackExporter.h" />
     <ClInclude Include="Renderer\AbstrRenderer.h" />
     <ClInclude Include="Renderer\Context.h" />
     <ClInclude Include="Renderer\ContextIdentification.h" />
