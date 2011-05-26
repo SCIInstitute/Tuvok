@@ -33,12 +33,13 @@
         University of Utah
 */
 
-#include "StackExporter.h"
+#include "boost/cstdint.hpp"
 #ifndef TUVOK_NO_QT
  #include <QtGui/QImage>
  #include <QtGui/QImageWriter>
 #endif
 
+#include "StackExporter.h"
 #include <Basics/SysTools.h>
 #include <Basics/LargeRAWFile.h>
 
