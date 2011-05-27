@@ -85,6 +85,8 @@ namespace tuvok {
       bool GetUse3DTexture() const {return m_bUse3DTexture;}
       void SetUse3DTexture(bool bUse3DTexture);
 
+      virtual void SetInterpolant(Interpolant eInterpolant);
+
     protected:
       SBVRGeogen2D  m_SBVRGeogen;
       bool          m_bUse3DTexture;

@@ -80,8 +80,6 @@ namespace tuvok {
       GLenum m_format;
       GLenum m_type;
       UINT32 m_iSizePerElement;
-      GLint  m_iMagFilter;
-      GLint  m_iMinFilter;
       GLint  m_wrapX;
       GLint  m_wrapY;
       GLint  m_wrapZ;

@@ -55,6 +55,8 @@
 #include "../Basics/GeometryGenerator.h"
 #include "../Scripting/Scriptable.h"
 #include "Context.h"
+#include "Basics/Interpolant.h"
+
 
 class TransferFunction1D;
 class TransferFunction2D;
@@ -498,6 +500,9 @@ class AbstrRenderer: public Scriptable {
                  const std::vector<std::string>& strParams,
                  std::string& strMessage);
 
+    virtual void SetInterpolant(Interpolant eInterpolant);
+    Interpolant GetInterpolant() const {return m_eInterpolant;}
+
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
     /// memory.  It's expected you'll set another one directly afterwards.
@@ -535,6 +540,8 @@ class AbstrRenderer: public Scriptable {
     UINTVECTOR2         m_vWinSize;
     int                 m_iLogoPos;
     std::string         m_strLogoFilename;
+
+    Interpolant         m_eInterpolant;
 
     bool                m_bSupportsMeshes;
     std::vector<RenderMesh*> m_Meshes;

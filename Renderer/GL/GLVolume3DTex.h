@@ -49,7 +49,7 @@ namespace tuvok {
       GLVolume3DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
                     GLint internalformat, GLenum format, GLenum type,
                     UINT32 iSizePerElement,
-                    const GLvoid *pixels = 0,
+                    const GLvoid *voxels = 0,
                     GLint iMagFilter = GL_NEAREST,
                     GLint iMinFilter = GL_NEAREST,
                     GLint wrapX = GL_CLAMP_TO_EDGE,

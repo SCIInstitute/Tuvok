@@ -42,7 +42,6 @@
 #include <utility>
 #include "../../StdTuvokDefines.h"
 #include "3rdParty/GLEW/GL/glew.h"
-#include "Basics/Interpolant.h"
 #include "Basics/Vectors.h"
 #include "GPUMemManDataStructs.h"
 
@@ -115,8 +114,7 @@ class GPUMemMan {
     bool IsResident(const Dataset* pDataset,
                     const BrickKey& key, bool bUseOnlyPowerOfTwo,
                     bool bDownSampleTo8Bits, bool bDisableBorder,
-                    bool bEmulate3DWith2DStacks,
-                    enum Interpolant) const;
+                    bool bEmulate3DWith2DStacks) const;
 
     void Release3DTexture(GLVolume* pGLVolume);
 

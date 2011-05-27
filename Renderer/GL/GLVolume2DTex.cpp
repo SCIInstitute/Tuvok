@@ -50,6 +50,9 @@ GLVolume2DTex::GLVolume2DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
                              GLint wrapX,
                              GLint wrapY,
                              GLint wrapZ) :
+  GLVolume(iSizeX, iSizeY, iSizeZ, internalformat, format, type,
+           iSizePerElement, voxels, iMagFilter, iMinFilter,wrapX,
+           wrapY, wrapZ),
       m_iSizeX(iSizeX),
       m_iSizeY(iSizeY),
       m_iSizeZ(iSizeZ),
@@ -57,8 +60,6 @@ GLVolume2DTex::GLVolume2DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
       m_format(format),
       m_type(type),
       m_iSizePerElement(iSizePerElement),
-      m_iMagFilter(iMagFilter),
-      m_iMinFilter(iMinFilter),
       m_wrapX(wrapX),
       m_wrapY(wrapY),
       m_wrapZ(wrapZ),
@@ -78,8 +79,6 @@ GLVolume2DTex::GLVolume2DTex() :
       m_format(0),
       m_type(0),
       m_iSizePerElement(0),
-      m_iMagFilter(GL_NEAREST),
-      m_iMinFilter(GL_NEAREST),
       m_wrapX(GL_CLAMP_TO_EDGE),
       m_wrapY(GL_CLAMP_TO_EDGE),
       m_wrapZ(GL_CLAMP_TO_EDGE),
@@ -120,6 +119,8 @@ void GLVolume2DTex::Bind(UINT32 iUnit,
                break;
     }
   }
+  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, m_iMagFilter));
+  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, m_iMinFilter));
 
   GL(glActiveTexture(iPrevUint));
 }

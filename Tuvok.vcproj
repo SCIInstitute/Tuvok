@@ -630,6 +630,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Basics\Interpolant.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Basics\LargeRAWFile.cpp"
 				>
 			</File>
@@ -1058,7 +1062,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Shaders\Volume2D.glsl"
+				RelativePath=".\Shaders\Volume2D-linear.glsl"
+				>
+			</File>
+			<File
+				RelativePath=".\Shaders\Volume2D-nearest.glsl"
 				>
 			</File>
 			<File
@@ -1749,11 +1757,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File

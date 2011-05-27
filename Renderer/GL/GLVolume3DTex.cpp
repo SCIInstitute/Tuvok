@@ -39,6 +39,10 @@
 using namespace tuvok;
 
 GLVolume3DTex::GLVolume3DTex() :
+  GLVolume(0, 0, 0, 0, 0, 0,
+           0, NULL, GL_NEAREST, GL_NEAREST,
+           GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE,
+           GL_CLAMP_TO_EDGE),
   m_pTexture(NULL)
 {
 }
@@ -46,15 +50,18 @@ GLVolume3DTex::GLVolume3DTex() :
 GLVolume3DTex::GLVolume3DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
                              GLint internalformat, GLenum format, GLenum type,
                              UINT32 iSizePerElement,
-                             const GLvoid *pixels,
+                             const GLvoid *voxels,
                              GLint iMagFilter,
                              GLint iMinFilter,
                              GLint wrapX,
                              GLint wrapY,
                              GLint wrapZ) :
+  GLVolume(iSizeX, iSizeY, iSizeZ, internalformat, format, type,
+           iSizePerElement, voxels, iMagFilter, iMinFilter,wrapX,
+           wrapY, wrapZ),
   m_pTexture(new GLTexture3D(iSizeX,  iSizeY,  iSizeZ,
                              internalformat,  format,  type,
-                             iSizePerElement, pixels, iMagFilter,
+                             iSizePerElement, voxels, iMagFilter,
                              iMinFilter, wrapX, wrapY, wrapZ))
 {
 }
@@ -64,6 +71,8 @@ GLVolume3DTex::~GLVolume3DTex() {
 
 void GLVolume3DTex::Bind(UINT32 iUnit) {
   m_pTexture->Bind(iUnit);
+  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, m_iMagFilter));
+  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, m_iMinFilter));
 }
 
 void GLVolume3DTex::FreeGLResources() {

@@ -68,12 +68,21 @@ void GLSBVR2D::CleanupShaders() {
   GLRenderer::CleanupShaders();
 }
 
-void GLSBVR2D::SetUse3DTexture(bool bUse3DTexture) {
+void GLSBVR2D::SetInterpolant(Interpolant eInterpolant) {
+  if (m_eInterpolant != eInterpolant) {
+    m_eInterpolant = eInterpolant;
+    CleanupShaders();
+    LoadShaders();
+    ScheduleCompleteRedraw();
+  }
+}
 
+void GLSBVR2D::SetUse3DTexture(bool bUse3DTexture) {
   if (bUse3DTexture != m_bUse3DTexture) {
     m_bUse3DTexture = bUse3DTexture;
     CleanupShaders();
     LoadShaders();
+    ScheduleCompleteRedraw();
   }
 }
 
@@ -95,10 +104,11 @@ bool GLSBVR2D::LoadShaders() {
                                                 : "Volume2D";
   // add the appropriate suffix in 2D.  We need separate shaders because we do
   // manual sampling in the 2D shaders.
-  if(m_pDataset->InterpolationMethod() == Linear && !m_bUse3DTexture) {
-    volumeAccessFunction += "-linear";
-  } else {
-    volumeAccessFunction += "-nearest";
+  if (!m_bUse3DTexture) {
+    switch (m_eInterpolant) {
+      case Linear :          volumeAccessFunction += "-linear"; break;
+      case NearestNeighbor : volumeAccessFunction += "-nearest"; break;
+    }
   }
   volumeAccessFunction += ".glsl";
 
@@ -319,7 +329,7 @@ static void submit_vert_arrays(const GLVolume2DTex* vol,
         slice != slices.end(); ++slice) {
       // skip empty arrays.
       if(slice->texcoords.empty() || slice->tris.empty()) { continue; }
-
+    
       vol->Bind(0, static_cast<int>(slice->texid)+0, static_cast<int>(dimension));
       vol->Bind(2, static_cast<int>(slice->texid)+1, static_cast<int>(dimension));
       vol->Bind(3, static_cast<int>(slice->texid)+2, static_cast<int>(dimension));
@@ -662,6 +672,7 @@ bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,
                                             iIntraFrameCounter,
                                             m_iFrameCounter);
   if(m_pGLVolume) {
+    m_pGLVolume->SetFilter(ComputeGLFilter(), ComputeGLFilter());
     return true;
   } else {
     return false;
@@ -673,8 +684,7 @@ bool GLSBVR2D::IsVolumeResident(const BrickKey& key) const{
     return GLRenderer::IsVolumeResident(key);
   else
     return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
-      m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, true,
-      m_pDataset->InterpolationMethod()
+      m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, true
     );
 }
 
@@ -682,7 +692,9 @@ void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
                              FLOATVECTOR3 vMinCoords, FLOATVECTOR3 vMaxCoords,
                              DOUBLEVECTOR3 vAspectRatio,
                              DOUBLEVECTOR2 vWinAspectRatio) {
+  
   GLVolume2DTex* pGLVolume =  static_cast<GLVolume2DTex*>(m_pGLVolume);
+
   switch (region.windowMode) {
     case RenderRegion::WM_AXIAL :
     {

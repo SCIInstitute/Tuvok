@@ -64,8 +64,7 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
                                    UINT64 iIntraFrameCounter,
                                    UINT64 iFrameCounter,
                                    MasterController* pMasterController,
-                                   std::vector<unsigned char>& vUploadHub,
-                                   enum Interpolant interpolant) :
+                                   std::vector<unsigned char>& vUploadHub) :
   pDataset(_pDataset),
   iUserCount(1),
   m_iIntraFrameCounter(iIntraFrameCounter),
@@ -76,8 +75,7 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
   m_bIsDownsampledTo8Bits(bIsDownsampledTo8Bits),
   m_bDisableBorder(bDisableBorder),
   m_bEmulate3DWith2DStacks(bEmulate3DWith2DStacks),
-  m_bUsingHub(false),
-  m_Interpolant(interpolant)
+  m_bUsingHub(false)
 {
   // initialize the volumes to be null pointers.
   std::fill(volumes.begin(), volumes.end(), static_cast<GLVolume*>(NULL));
@@ -94,16 +92,14 @@ GLVolumeListElem::~GLVolumeListElem() {
 bool GLVolumeListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
                               bool bIsPaddedToPowerOfTwo,
                               bool bIsDownsampledTo8Bits, bool bDisableBorder,
-                              bool bEmulate3DWith2DStacks,
-                              enum Interpolant interp)
+                              bool bEmulate3DWith2DStacks)
 {
   if (_pDataset != pDataset ||
       m_Key != key ||
       m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo ||
       m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits ||
       m_bDisableBorder != bDisableBorder ||
-      m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks ||
-      m_Interpolant != interp) {
+      m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks) {
     return false;
   }
 
@@ -226,7 +222,6 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
                                bool bIsDownsampledTo8Bits,
                                bool bDisableBorder,
                                bool bEmulate3DWith2DStacks,
-                               enum Interpolant interp,
                                UINT64 iIntraFrameCounter,
                                UINT64 iFrameCounter,
                                std::vector<unsigned char>& vUploadHub) {
@@ -238,7 +233,6 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
   m_bIsDownsampledTo8Bits  = bIsDownsampledTo8Bits;
   m_bDisableBorder         = bDisableBorder;
   m_bEmulate3DWith2DStacks = bEmulate3DWith2DStacks;
-  m_Interpolant            = interp;
 
   m_iIntraFrameCounter = iIntraFrameCounter;
   m_iFrameCounter = iFrameCounter;
@@ -437,10 +431,6 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     }
   }
 
-  GLenum interp = GL_LINEAR;
-  if(NearestNeighbor == m_Interpolant) {
-    interp = GL_NEAREST;
-  }
 
   glGetError();
   if (!m_bIsPaddedToPowerOfTwo ||
@@ -454,14 +444,14 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
                                      UINT32(vSize[2]),
                                      glInternalformat, glFormat, glType,
                                      UINT32(iBitWidth/8*iCompCount), pRawData,
-                                     interp, interp,
+                                     GL_LINEAR, GL_LINEAR,
                                      clamp, clamp, clamp);
     } else {
       volumes[0] = new GLVolume3DTex(UINT32(vSize[0]), UINT32(vSize[1]),
                                      UINT32(vSize[2]),
                                      glInternalformat, glFormat, glType,
                                      UINT32(iBitWidth/8*iCompCount), pRawData,
-                                     interp, interp,
+                                     GL_LINEAR, GL_LINEAR,
                                      clamp, clamp, clamp);
     }
   } else {
@@ -475,7 +465,7 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
                                      glInternalformat, glFormat, glType,
                                      UINT32(iBitWidth/8*iCompCount),
                                      pPaddedData.get(),
-                                     interp, interp,
+                                     GL_LINEAR, GL_LINEAR,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
@@ -484,7 +474,7 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
                                      glInternalformat, glFormat, glType,
                                      UINT32(iBitWidth/8*iCompCount),
                                      pPaddedData.get(),
-                                     interp, interp,
+                                     GL_LINEAR, GL_LINEAR,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);

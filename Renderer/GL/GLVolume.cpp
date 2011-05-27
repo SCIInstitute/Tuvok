@@ -41,15 +41,23 @@ GLVolume::GLVolume(UINT32 , UINT32 , UINT32 ,
                     GLint , GLenum , GLenum ,
                     UINT32 ,
                     const GLvoid *,
+                    GLint iMagFilter,
+                    GLint iMinFilter,
                     GLint ,
                     GLint ,
-                    GLint ,
-                    GLint ,
-                    GLint ) {
+                    GLint ) :
+      m_iMagFilter(iMagFilter),
+      m_iMinFilter(iMinFilter)
+{
 }
 
 GLVolume::GLVolume() {
 }
 
 GLVolume::~GLVolume() {
+}
+
+void GLVolume::SetFilter(GLint iMagFilter, GLint iMinFilter) {
+  m_iMagFilter = iMagFilter;
+  m_iMinFilter = iMinFilter;
 }

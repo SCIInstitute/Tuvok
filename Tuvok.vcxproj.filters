@@ -1596,6 +1596,9 @@
     <ClInclude Include="IO\Images\StackExporter.h">
       <Filter>IO\Images</Filter>
     </ClInclude>
+    <ClInclude Include="Basics\Interpolant.h">
+      <Filter>Basics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Basics\MC.inl">
@@ -1745,9 +1748,6 @@
     <None Include="Shaders\Transfer-VS.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Shaders\Volume2D.glsl">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="Shaders\Volume3D.glsl">
       <Filter>Shaders</Filter>
     </None>
@@ -1765,5 +1765,11 @@
     </None>
     <None Include="Tuvok.pro" />
     <None Include="tvk.pro" />
+    <None Include="Shaders\Volume2D-linear.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\Volume2D-nearest.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

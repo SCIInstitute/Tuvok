@@ -47,7 +47,6 @@
 #include "RenderMeshGL.h"
 #include "GLStateManager.h"
 
-
 namespace tuvok {
 
 class MasterController;
@@ -107,7 +106,8 @@ class GLRenderer : public AbstrRenderer {
 
     virtual void FixedFunctionality() const;
     virtual void SyncStateManager();
-    
+
+   
   protected:
     GLTargetBinder  m_TargetBinder;
     GLTexture1D*    m_p1DTransTex;
@@ -219,6 +219,7 @@ class GLRenderer : public AbstrRenderer {
     void RenderTransFrontGeometry();
     void RenderMergedMesh(SortIndexPVec& mergedMesh);
     void CheckMeshStatus();
+    GLint ComputeGLFilter()  const;
 
     bool            m_bSortMeshBTF;
     GLuint          m_GeoBuffer;

@@ -75,6 +75,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_vWinSize(0,0),
   m_iLogoPos(3),
   m_strLogoFilename(""),
+  m_eInterpolant(Linear),
   m_bSupportsMeshes(false),
   msecPassedCurrentFrame(-1.0f),
   m_iLODNotOKCounter(0),
@@ -1499,4 +1500,12 @@ bool AbstrRenderer::Execute(const std::string& strCommand,
     return false;
   }
   return true;
+}
+
+
+void AbstrRenderer::SetInterpolant(Interpolant eInterpolant) {  
+  if (m_eInterpolant != eInterpolant) {
+      m_eInterpolant = eInterpolant; 
+      ScheduleCompleteRedraw();
+  }
 }

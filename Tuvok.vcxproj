@@ -886,6 +886,7 @@
     <ClInclude Include="Basics\EndianConvert.h" />
     <ClInclude Include="Basics\GeometryGenerator.h" />
     <ClInclude Include="Basics\Grids.h" />
+    <ClInclude Include="Basics\Interpolant.h" />
     <ClInclude Include="Basics\LargeRAWFile.h" />
     <ClInclude Include="Basics\MathTools.h" />
     <ClInclude Include="Basics\MC.h" />
@@ -1199,7 +1200,8 @@
     <None Include="Shaders\Transfer-FS.glsl" />
     <None Include="Shaders\Transfer-MIP-FS.glsl" />
     <None Include="Shaders\Transfer-VS.glsl" />
-    <None Include="Shaders\Volume2D.glsl" />
+    <None Include="Shaders\Volume2D-linear.glsl" />
+    <None Include="Shaders\Volume2D-nearest.glsl" />
     <None Include="Shaders\Volume3D.glsl" />
     <None Include="Shaders\vr-col-tfqn-lit.glsl" />
     <None Include="Shaders\vr-col-tfqn.glsl" />

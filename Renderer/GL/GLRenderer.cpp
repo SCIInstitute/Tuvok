@@ -964,7 +964,9 @@ bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
                                                          m_iFrameCounter);
   GL_CHECK();
   if(m_pGLVolume) {
+    m_pGLVolume->SetFilter(ComputeGLFilter(), ComputeGLFilter());
     static_cast<GLVolume3DTex*>(m_pGLVolume)->Bind(0);
+
     return true;
   } else {
     return false;
@@ -2884,7 +2886,15 @@ bool GLRenderer::IsVolumeResident(const BrickKey& key) const {
   // normally we use "real" 3D textures so implement this method
   // for 3D textures, it is overriden by 2D texture children
   return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
-    m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, false,
-    m_pDataset->InterpolationMethod()
+    m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, false
   );
+}
+
+GLint GLRenderer::ComputeGLFilter() const {
+  GLint iFilter = GL_LINEAR;
+  switch (m_eInterpolant) {
+    case Linear :          iFilter = GL_LINEAR; break;
+    case NearestNeighbor : iFilter = GL_NEAREST; break;
+  }    
+  return iFilter;
 }

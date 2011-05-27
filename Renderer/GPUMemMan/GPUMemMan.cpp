@@ -609,13 +609,12 @@ bool GPUMemMan::IsResident(const Dataset* pDataset,
                            const BrickKey& key,
                            bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                            bool bDisableBorder,
-                           bool bEmulate3DWith2DStacks,
-                           enum Interpolant interp) const {
+                           bool bEmulate3DWith2DStacks) const {
   for(GLVolumeListConstIter i = m_vpTex3DList.begin();
       i < m_vpTex3DList.end(); ++i) {
     if((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                     bDownSampleTo8Bits, bDisableBorder,
-                    bEmulate3DWith2DStacks, interp)) {
+                    bEmulate3DWith2DStacks)) {
       return true;
     }
   }
@@ -780,7 +779,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
        i < m_vpTex3DList.end(); i++) {
     if ((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                      bDownSampleTo8Bits, bDisableBorder,
-                     bEmulate3DWith2DStacks, pDataset->InterpolationMethod())) {
+                     bEmulate3DWith2DStacks)) {
       GL_CHECK();
       MESSAGE("Reusing 3D texture");
       return (*i)->Access(iIntraFrameCounter, iFrameCounter);
@@ -814,7 +813,6 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
       (*iBestMatch)->Replace(pDataset, key, bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits, bDisableBorder,
                              bEmulate3DWith2DStacks,
-                             pDataset->InterpolationMethod(),
                              iIntraFrameCounter, iFrameCounter,
                              m_vUploadHub);
       (*iBestMatch)->iUserCount++;
@@ -842,16 +840,11 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
     }
   }
 
-  enum Interpolant interp = pDataset->InterpolationMethod();
   {
     std::ostringstream newvol;
     newvol << "Creating new GL volume " << sz[0] << " x " << sz[1] << " x "
            << sz[2] << ", bitsize=" << iBitWidth << ", componentcount="
            << iCompCount << ", interpolation=";
-    switch(interp) {
-      case Linear: newvol << "Linear"; break;
-      case NearestNeighbor: newvol << "NearestNeighbor"; break;
-    }
     MESSAGE("%s", newvol.str().c_str());
   }
 
@@ -863,8 +856,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                                      iIntraFrameCounter,
                                                      iFrameCounter,
                                                      m_MasterController,
-                                                     m_vUploadHub,
-                                                     interp);
+                                                     m_vUploadHub);
 
   if (pNew3DTex->volumes[0] == NULL) {
     T_ERROR("Failed to create OpenGL resource for volume.");
