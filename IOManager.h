@@ -482,7 +482,8 @@ public:
                          const TransferFunction1D* pTrans,
                          UINT64 iLODlevel, 
                          const std::string& strTargetFilename,
-                         const std::string& strTempDir) const;
+                         const std::string& strTempDir,
+                         bool bAllDirs) const;
 
 
   void RegisterExternalConverter(AbstrConverter* pConverter);

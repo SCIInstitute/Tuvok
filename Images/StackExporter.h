@@ -56,7 +56,8 @@ public:
                           UINT64 iBitWidth,
                           UINT64 iComponentCount,
                           float fRescale,
-                          UINT64VECTOR3 vDomainSize);
+                          UINT64VECTOR3 vDomainSize,
+                          bool bAllDirs);
 
   static bool WriteImage(unsigned char* pData,
                   const std::string& strTargetFilename,

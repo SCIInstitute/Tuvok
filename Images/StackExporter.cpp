@@ -42,6 +42,7 @@
 #include "StackExporter.h"
 #include <Basics/SysTools.h>
 #include <Basics/LargeRAWFile.h>
+#include "Controller/Controller.h"
 
 
 std::vector<std::pair<std::string,std::string> > StackExporter::GetSuportedImageFormats() {
@@ -175,15 +176,19 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
                                 UINT64 iBitWidth,
                                 UINT64 iComponentCount,
                                 float fRescale,
-                                UINT64VECTOR3 vDomainSize) {
+                                UINT64VECTOR3 vDomainSize,
+                                bool bAllDirs) {
 
-  if (iComponentCount > 4)  return false;
+  if (iComponentCount > 4)  {
+    T_ERROR("Invalid channel count, no more than four components are accepted by the stack exporter.");
+    return false;
+  }
   
   size_t iDataByteWith = size_t(iBitWidth/8);
 
   // convert to 8bit for more than 1 comp data
   if (iBitWidth != 8 && iComponentCount > 1) {
-
+    T_ERROR("Invalid bit depth, only 8bit data is accepted by the stack exporter for multi channel data.");
     return false;
 /*
     LargeRAWFile quantizeDataSource(strRAWFilename);
@@ -208,31 +213,61 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
 
   UINT64VECTOR2 vSize(vDomainSize.z, vDomainSize.y);
   std::string strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, "_x");
- /* for (UINT64 x = 0;x<vDomainSize.x;x++) {
-    // TODO
-    if (!WriteSlice(pData, pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
-      delete [] pData;
-      dataSource.Close();
+  size_t elemSize = iComponentCount*iDataByteWith;
+
+  if (bAllDirs)  {
+    for (UINT64 x = 0;x<vDomainSize.x;x++) {
+      MESSAGE("Exporting X-Axis Stack. Processing Image %llu of %llu", x+1, vDomainSize.x);
+
+      UINT64 offset = 0;
+      for (UINT64 v = 0;v<vDomainSize.y;v++) {
+        for (UINT64 u = 0;u<vDomainSize.z;u++) {
+          dataSource.SeekPos(elemSize * (x+u*vDomainSize.x*vDomainSize.y+v*vDomainSize.x) );
+          dataSource.ReadRAW(pData+offset, elemSize);
+          offset += elemSize;
+        }
+      }
+
+      if (!WriteSlice(pData, pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
+        T_ERROR("Unable to write stack image %llu.",x);
+        delete [] pData;
+        dataSource.Close();
+      }
     }
+
+    vSize = UINT64VECTOR2(vDomainSize.x, vDomainSize.z);
+    strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, "_y");
+    for (UINT64 y = 0;y<vDomainSize.y;y++) {
+      MESSAGE("Exporting Y-Axis Stack. Processing Image %llu of %llu", y+1, vDomainSize.y);
+
+      UINT64 offset = 0;
+      for (UINT64 u = 0;u<vDomainSize.z;u++) {
+        dataSource.SeekPos(elemSize * (y*vDomainSize.x+u*vDomainSize.x*vDomainSize.y) );
+        dataSource.ReadRAW(pData+offset, vDomainSize.x*elemSize);
+        offset += vDomainSize.x*elemSize;
+      }
+
+      if (!WriteSlice(pData, pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
+        T_ERROR("Unable to write stack image %llu.",y);
+        delete [] pData;
+        dataSource.Close();
+      }
+    }
+
+    dataSource.SeekPos(0);
+    strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, "_z");
+  } else {
+    strCurrentDirTargetFilename = strTargetFilename;
   }
 
-  vSize = UINT64VECTOR2(vDomainSize.x, vDomainSize.z);
-  strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, "_y");
-  for (UINT64 y = 0;y<vDomainSize.y;y++) {
-    // TODO
-    if (!WriteSlice(pData, pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
-      delete [] pData;
-      dataSource.Close();
-    }
-  }*/
-
-  dataSource.SeekPos(0);
-  strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, "_z");
   vSize = UINT64VECTOR2(vDomainSize.x, vDomainSize.y);
   for (UINT64 z = 0;z<vDomainSize.z;z++) {
-    dataSource.ReadRAW(pData, vDomainSize.x*vDomainSize.y*iComponentCount*iDataByteWith);
+    MESSAGE("Exporting Z-Axis Stack. Processing Image %llu of %llu", z+1, vDomainSize.z);
+
+    dataSource.ReadRAW(pData, vDomainSize.x*vDomainSize.y*elemSize);
 
     if (!WriteSlice(pData, pTrans, iBitWidth, strCurrentDirTargetFilename, vSize, fRescale, iComponentCount)) {
+      T_ERROR("Unable to write stack image %llu.",z);
       delete [] pData;
       dataSource.Close();
     }

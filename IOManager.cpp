@@ -1103,7 +1103,8 @@ bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
                                   const TransferFunction1D* pTrans,
                                   UINT64 iLODlevel, 
                                   const std::string& strTargetFilename,
-                                  const std::string& strTempDir) const {
+                                  const std::string& strTempDir,
+                                  bool bAllDirs) const {
 
 
   string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
@@ -1128,7 +1129,7 @@ bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
     return false;
   }
 
-  MESSAGE("Writing Target Dataset");
+  MESSAGE("Writing stacks");
 
   double fMaxActValue = (pSourceData->GetRange().first > pSourceData->GetRange().second) ? pTrans->GetSize() : pSourceData->GetRange().second;
 
@@ -1138,7 +1139,8 @@ bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
                                                    pSourceData->GetBitWidth(),
                                                    pSourceData->GetComponentCount(),
                                                    float(pTrans->GetSize() / fMaxActValue),
-                                                   pSourceData->GetDomainSize(static_cast<size_t>(iLODlevel)));
+                                                   pSourceData->GetDomainSize(static_cast<size_t>(iLODlevel)),
+                                                   bAllDirs);
   remove(strTempFilename.c_str());
 
   if (!bTargetCreated) {
