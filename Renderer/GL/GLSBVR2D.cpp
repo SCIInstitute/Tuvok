@@ -91,8 +91,16 @@ bool GLSBVR2D::LoadShaders() {
   // do not call GLRenderer::LoadShaders as we want to control
   // what volume access function is linked (Volume3D or Volume2D)
 
-  string volumeAccessFunction = m_bUse3DTexture ? "Volume3D.glsl"
-                                                : "Volume2D.glsl";
+  string volumeAccessFunction = m_bUse3DTexture ? "Volume3D"
+                                                : "Volume2D";
+  // add the appropriate suffix in 2D.  We need separate shaders because we do
+  // manual sampling in the 2D shaders.
+  if(m_pDataset->InterpolationMethod() == Linear && !m_bUse3DTexture) {
+    volumeAccessFunction += "-linear";
+  } else {
+    volumeAccessFunction += "-nearest";
+  }
+  volumeAccessFunction += ".glsl";
 
   if (!GLRenderer::LoadShaders(volumeAccessFunction)) {
     T_ERROR("Error in parent call -> aborting");
@@ -115,14 +123,14 @@ bool GLSBVR2D::LoadShaders() {
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          volumeAccessFunction.c_str(), // SampleVolume
+                          volumeAccessFunction.c_str(), // sampleVolume
                           tfqn.c_str(),         // VRender1D
                           "FTB.glsl",           // TraversalOrderDepColor
                           "GLSBVR-1D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,                          
-                          volumeAccessFunction.c_str(), // SampleVolume
+                          volumeAccessFunction.c_str(),
                           tfqnLit.c_str(),         // VRender1DLit
                           "lighting.glsl",      // Lighting
                           "FTB.glsl",           // TraversalOrderDepColor
@@ -130,30 +138,30 @@ bool GLSBVR2D::LoadShaders() {
      !LoadAndVerifyShader(&m_pProgram2DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          volumeAccessFunction.c_str(), // SampleVolume, ComputeGradient
+                          volumeAccessFunction.c_str(),
                           "FTB.glsl",           // TraversalOrderDepColor
                           "GLSBVR-2D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTrans[1], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          volumeAccessFunction.c_str(), // SampleVolume, ComputeGradient
-                          "lighting.glsl",      // Lighting
+                          volumeAccessFunction.c_str(),
+                          "lighting.glsl",
                           "FTB.glsl",           // TraversalOrderDepColor
                           "GLSBVR-2D-light-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramHQMIPRot, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          volumeAccessFunction.c_str(), // SampleVolume
+                          volumeAccessFunction.c_str(),
                           "GLSBVR-MIP-Rot-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramIso, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          volumeAccessFunction.c_str(), // SampleVolume, ComputeNormal
+                          volumeAccessFunction.c_str(),
                           "GLSBVR-ISO-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgramColor, m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
-                          volumeAccessFunction.c_str(), // SampleVolume, ComputeNormal
+                          volumeAccessFunction.c_str(),
                           "GLSBVR-Color-FS.glsl", NULL))
   {
       Cleanup();
@@ -528,8 +536,6 @@ void GLSBVR2D::RenderProxyGeometry3D() const {
 
 void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
                               size_t iCurrentBrick, int iStereoID) {
-
-
   m_pContext->GetStateManager()->Apply(m_BaseState);
 
   const Brick& b = (iStereoID == 0) ? m_vCurrentBrickList[iCurrentBrick] : m_vLeftEyeBrickList[iCurrentBrick];
@@ -667,10 +673,9 @@ bool GLSBVR2D::IsVolumeResident(const BrickKey& key) const{
     return GLRenderer::IsVolumeResident(key);
   else
     return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
-                                                  m_bUseOnlyPowerOfTwo,
-                                                  m_bDownSampleTo8Bits,
-                                                  m_bDisableBorder,
-                                                  true);
+      m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, true,
+      m_pDataset->InterpolationMethod()
+    );
 }
 
 void GLSBVR2D::RenderSlice(const RenderRegion2D& region, double fSliceIndex,

@@ -50,7 +50,9 @@ namespace tuvok {
  * allowing us to use as much memory as will be possible without swapping. */
 class GLObject : public GPUObject {
 public:
-    virtual ~GLObject() {}
+  virtual ~GLObject() {}
+  virtual UINT64 GetCPUSize() = 0;
+  virtual UINT64 GetGPUSize() = 0;
 };
-};
+}
 #endif // GLOBJECT_H

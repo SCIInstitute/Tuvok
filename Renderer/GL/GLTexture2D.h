@@ -46,13 +46,14 @@ namespace tuvok {
 
 class GLTexture2D : public GLTexture {
   public:
-    GLTexture2D(UINT32 iSizeX, UINT32 iSizeY, GLint internalformat, GLenum format, GLenum type,
-          UINT32 iSizePerElement,
-          const GLvoid *pixels = 0,
-          GLint iMagFilter = GL_NEAREST,
-          GLint iMinFilter = GL_NEAREST,
-          GLint wrapX = GL_CLAMP_TO_EDGE,
-          GLint wrapY = GL_CLAMP_TO_EDGE);
+    GLTexture2D(UINT32 iSizeX, UINT32 iSizeY, GLint internalformat,
+      GLenum format, GLenum type, UINT32 iSizePerElement,
+      const GLvoid *pixels = 0,
+      GLint iMagFilter = GL_NEAREST,
+      GLint iMinFilter = GL_NEAREST,
+      GLint wrapX = GL_CLAMP_TO_EDGE,
+      GLint wrapY = GL_CLAMP_TO_EDGE
+    );
     virtual ~GLTexture2D() {}
 
     virtual void Bind(UINT32 iUnit=0) const {
@@ -78,5 +79,6 @@ class GLTexture2D : public GLTexture {
     GLenum m_format;
     GLenum m_type;
 };
-};
+
+}
 #endif // GLTEXTURE2D_H

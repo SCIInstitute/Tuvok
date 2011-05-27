@@ -42,6 +42,7 @@
 #include <utility>
 #include "../../StdTuvokDefines.h"
 #include "3rdParty/GLEW/GL/glew.h"
+#include "Basics/Interpolant.h"
 #include "Basics/Vectors.h"
 #include "GPUMemManDataStructs.h"
 
@@ -97,7 +98,8 @@ class GPUMemMan {
     void Get2DTransFromFile(const std::string& strFilename,
                             AbstrRenderer* requester,
                             TransferFunction2D** ppTransferFunction2D,
-                            GLTexture2D** tex, const VECTOR2<size_t>& iSize = VECTOR2<size_t>(0,0));
+                            GLTexture2D** tex,
+                            const VECTOR2<size_t>& iSize=VECTOR2<size_t>(0,0));
     GLTexture2D* Access2DTrans(TransferFunction2D* pTransferFunction2D,
                                AbstrRenderer* requester);
     void Free2DTrans(TransferFunction2D* pTransferFunction2D,
@@ -113,7 +115,8 @@ class GPUMemMan {
     bool IsResident(const Dataset* pDataset,
                     const BrickKey& key, bool bUseOnlyPowerOfTwo,
                     bool bDownSampleTo8Bits, bool bDisableBorder,
-                    bool bEmulate3DWith2DStacks) const;
+                    bool bEmulate3DWith2DStacks,
+                    enum Interpolant) const;
 
     void Release3DTexture(GLVolume* pGLVolume);
 
@@ -145,21 +148,21 @@ class GPUMemMan {
     ///@}
 
   private:
-    VolDataList       m_vpVolumeDatasets;
-    SimpleTextureList m_vpSimpleTextures;
-    Trans1DList       m_vpTrans1DList;
-    Trans2DList       m_vpTrans2DList;
-    GLVolumeList      m_vpTex3DList;
-    FBOList           m_vpFBOList;
-    GLSLList          m_vpGLSLList;
-    MasterController* m_MasterController;
-    SystemInfo*       m_SystemInfo;
+    VolDataList                m_vpVolumeDatasets;
+    SimpleTextureList          m_vpSimpleTextures;
+    Trans1DList                m_vpTrans1DList;
+    Trans2DList                m_vpTrans2DList;
+    GLVolumeList               m_vpTex3DList;
+    FBOList                    m_vpFBOList;
+    GLSLList                   m_vpGLSLList;
+    MasterController*          m_MasterController;
+    SystemInfo*                m_SystemInfo;
 
-    UINT64            m_iAllocatedGPUMemory;
-    UINT64            m_iAllocatedCPUMemory;
-    UINT64            m_iFrameCounter;
+    UINT64                     m_iAllocatedGPUMemory;
+    UINT64                     m_iAllocatedCPUMemory;
+    UINT64                     m_iFrameCounter;
 
-    UINT64            m_iInCoreSize;
+    UINT64                     m_iInCoreSize;
 
     std::vector<unsigned char> m_vUploadHub;
 
@@ -176,5 +179,5 @@ class GPUMemMan {
     void Delete3DTexture(size_t iIndex);
     void Delete3DTexture(const GLVolumeListIter &tex);
 };
-};
+}
 #endif // TUVOK_GPUMEMMAN_H

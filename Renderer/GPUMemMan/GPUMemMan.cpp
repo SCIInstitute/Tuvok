@@ -316,7 +316,7 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
 
   GLTexture2D* tex = new GLTexture2D(glimage.width(),glimage.height(),
                                      GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4,
-                                     glimage.bits(), GL_LINEAR, GL_LINEAR);
+                                     glimage.bits());
 
   m_iAllocatedGPUMemory += tex->GetGPUSize();
   m_iAllocatedCPUMemory += tex->GetCPUSize();
@@ -382,8 +382,7 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
   std::vector<unsigned char> vTFData;
   (*ppTransferFunction1D)->GetByteArray(vTFData);
   *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
-                         GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0),
-                         GL_LINEAR, GL_LINEAR);
+                         GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0));
 
   m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetCPUSize();
@@ -406,8 +405,7 @@ void GPUMemMan::Get1DTransFromFile(const string& strFilename,
   std::vector<unsigned char> vTFData;
   (*ppTransferFunction1D)->GetByteArray(vTFData);
   *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
-                         GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0),
-                         GL_LINEAR, GL_LINEAR);
+                         GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0));
 
   m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetCPUSize();
@@ -430,7 +428,7 @@ GPUMemMan::SetExternal1DTrans(const std::vector<unsigned char>& rgba,
 
   GLTexture1D *tex = new GLTexture1D(static_cast<UINT32>(tf1d->GetSize()),
                                      GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4,
-                                     &rgba.at(0), GL_LINEAR, GL_LINEAR);
+                                     &rgba.at(0));
   m_iAllocatedGPUMemory += tex->GetGPUSize();
   m_iAllocatedCPUMemory += tex->GetCPUSize();
 
@@ -520,7 +518,8 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize,
   m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
   m_iAllocatedCPUMemory += (*tex)->GetCPUSize();
 
-  m_vpTrans2DList.push_back(Trans2DListElem(*ppTransferFunction2D, *tex, requester));
+  m_vpTrans2DList.push_back(Trans2DListElem(*ppTransferFunction2D, *tex,
+                                            requester));
 }
 
 void GPUMemMan::Get2DTransFromFile(const string& strFilename,
@@ -610,12 +609,13 @@ bool GPUMemMan::IsResident(const Dataset* pDataset,
                            const BrickKey& key,
                            bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                            bool bDisableBorder,
-                           bool bEmulate3DWith2DStacks) const {
+                           bool bEmulate3DWith2DStacks,
+                           enum Interpolant interp) const {
   for(GLVolumeListConstIter i = m_vpTex3DList.begin();
       i < m_vpTex3DList.end(); ++i) {
     if((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                     bDownSampleTo8Bits, bDisableBorder,
-                    bEmulate3DWith2DStacks)) {
+                    bEmulate3DWith2DStacks, interp)) {
       return true;
     }
   }
@@ -780,7 +780,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
        i < m_vpTex3DList.end(); i++) {
     if ((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                      bDownSampleTo8Bits, bDisableBorder,
-                     bEmulate3DWith2DStacks)) {
+                     bEmulate3DWith2DStacks, pDataset->InterpolationMethod())) {
       GL_CHECK();
       MESSAGE("Reusing 3D texture");
       return (*i)->Access(iIntraFrameCounter, iFrameCounter);
@@ -805,15 +805,16 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
     // search for best brick to replace with this brick
     UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(key);
     GLVolumeListIter iBestMatch = find_closest_texture(m_vpTex3DList, vSize,
-                                                        bUseOnlyPowerOfTwo,
-                                                        bDownSampleTo8Bits,
-                                                        bDisableBorder,
-                                                        bEmulate3DWith2DStacks);
+                                                       bUseOnlyPowerOfTwo,
+                                                       bDownSampleTo8Bits,
+                                                       bDisableBorder,
+                                                       bEmulate3DWith2DStacks);
     if (iBestMatch != m_vpTex3DList.end()) {
       // found a suitable brick that can be replaced
       (*iBestMatch)->Replace(pDataset, key, bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits, bDisableBorder,
                              bEmulate3DWith2DStacks,
+                             pDataset->InterpolationMethod(),
                              iIntraFrameCounter, iFrameCounter,
                              m_vUploadHub);
       (*iBestMatch)->iUserCount++;
@@ -841,10 +842,18 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
     }
   }
 
-
-  MESSAGE("Creating new gl volume %u x %u x %u, "
-          "bitsize=%llu, componentcount=%llu",
-          sz[0], sz[1], sz[2], iBitWidth, iCompCount);
+  enum Interpolant interp = pDataset->InterpolationMethod();
+  {
+    std::ostringstream newvol;
+    newvol << "Creating new GL volume " << sz[0] << " x " << sz[1] << " x "
+           << sz[2] << ", bitsize=" << iBitWidth << ", componentcount="
+           << iCompCount << ", interpolation=";
+    switch(interp) {
+      case Linear: newvol << "Linear"; break;
+      case NearestNeighbor: newvol << "NearestNeighbor"; break;
+    }
+    MESSAGE("%s", newvol.str().c_str());
+  }
 
   GLVolumeListElem* pNew3DTex = new GLVolumeListElem(pDataset, key,
                                                      bUseOnlyPowerOfTwo,
@@ -854,7 +863,8 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                                      iIntraFrameCounter,
                                                      iFrameCounter,
                                                      m_MasterController,
-                                                     m_vUploadHub);
+                                                     m_vUploadHub,
+                                                     interp);
 
   if (pNew3DTex->volumes[0] == NULL) {
     T_ERROR("Failed to create OpenGL resource for volume.");

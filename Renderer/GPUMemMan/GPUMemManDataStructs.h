@@ -51,6 +51,7 @@
 #include <vector>
 #include "3rdParty/GLEW/GL/glew.h"
 #include "boost/noncopyable.hpp"
+#include "Basics/Interpolant.h"
 #include "Basics/Vectors.h"
 #include "IO/Brick.h"
 #include "../Context.h"
@@ -149,15 +150,18 @@ namespace tuvok {
                       bool bIsDownsampledTo8Bits, bool bEmulate3DWith2DStacks,
                       UINT64 iIntraFrameCounter,
                       UINT64 iFrameCounter, MasterController* pMasterController,
-                      std::vector<unsigned char>& vUploadHub);
+                      std::vector<unsigned char>& vUploadHub,
+                      enum Interpolant interpolant=Linear);
     ~GLVolumeListElem();
 
     bool Equals(const Dataset* _pDataset, const BrickKey&,
                 bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
-                bool bDisableBorder, bool bEmulate3DWith2DStacks);
+                bool bDisableBorder, bool bEmulate3DWith2DStacks,
+                enum Interpolant ti);
     bool Replace(Dataset* _pDataset, const BrickKey&,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, bool bEmulate3DWith2DStacks,
+                 enum Interpolant ti,
                  UINT64 iIntraFrameCounter, UINT64 iFrameCounter,
                  std::vector<unsigned char>& vUploadHub);
     bool BestMatch(const UINTVECTOR3& vDimension,
@@ -188,7 +192,7 @@ namespace tuvok {
     );
     bool CreateTexture(std::vector<unsigned char>& vUploadHub,
                        bool bDeleteOldTexture=true);
-    void  FreeTexture();
+    void FreeTexture();
 
     std::vector<unsigned char>    vData;
     std::tr1::array<GLVolume*, 1> volumes;
@@ -211,6 +215,7 @@ namespace tuvok {
     bool m_bDisableBorder;
     bool m_bEmulate3DWith2DStacks;
     bool m_bUsingHub;
+    enum Interpolant m_Interpolant;
   };
 
   typedef std::deque<GLVolumeListElem*> GLVolumeList;

@@ -36,12 +36,12 @@
 
 #pragma once
 
-#ifndef GLTEXTURE_H
-#define GLTEXTURE_H
+#ifndef TUVOK_GLTEXTURE_H
+#define TUVOK_GLTEXTURE_H
 
 #include "../../StdTuvokDefines.h"
-#include "GLObject.h"
 #include <string>
+#include "GLObject.h"
 
 namespace tuvok {
 
@@ -82,5 +82,5 @@ class GLTexture : public GLObject {
     GLuint  m_iGLID;
     UINT32  m_iSizePerElement;
 };
-};
-#endif // GLTEXTURE_H
+}
+#endif // TUVOK_GLTEXTURE_H

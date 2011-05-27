@@ -44,7 +44,7 @@ uniform vec3 vVoxelStepsize;  ///< Stepsize (in texcoord) to get to the next vox
 void main(void)
 {
   /// get volume value
-  float fVolumVal = sampleVolume( gl_TexCoord[0].xyz).x;
+  float fVolumVal = sampleVolume(gl_TexCoord[0].xyz).x;
 
   /// compute the gradient
   float fVolumValXp  = sampleVolume( gl_TexCoord[0].xyz+vec3(+vVoxelStepsize.x,0,0)).x;
