@@ -112,7 +112,7 @@ bool GLSBVR2D::LoadShaders() {
   }
   volumeAccessFunction += ".glsl";
 
-  if (!GLRenderer::LoadShaders(volumeAccessFunction)) {
+  if (!GLRenderer::LoadShaders(volumeAccessFunction, m_bUse3DTexture)) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }

@@ -59,8 +59,7 @@ class GLTexture : public GLObject {
      * texture in their constructor[s].
      * @param iSizePerElement bits per texel.  Used to track memory size of the
                               texture. */
-    GLTexture(UINT32 iSizePerElement) : m_iGLID(UINT32_INVALID),
-                                        m_iSizePerElement(iSizePerElement) {}
+    GLTexture(UINT32 iSizePerElement, GLint iMagFilter,GLint iMinFilter);
     virtual ~GLTexture();
 
     /** Removes this texture from the OpenGL context. */
@@ -75,12 +74,18 @@ class GLTexture : public GLObject {
     /// bind this texture the given texture in a specific shader
     void Bind(GLSLProgram& shader, const std::string& name) const;
 
+    /// set the texture filter mode (must be called before a bind call to be in effect)
+    void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
+
     /** \return The OpenGL identifier for this texture. */
     GLuint GetGLID() const {return m_iGLID;}
 
   protected:
     GLuint  m_iGLID;
     UINT32  m_iSizePerElement;
+    GLint  m_iMagFilter;
+    GLint  m_iMinFilter;
+
 };
 }
 #endif // TUVOK_GLTEXTURE_H

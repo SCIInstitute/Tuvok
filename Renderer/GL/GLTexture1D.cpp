@@ -43,7 +43,7 @@ GLTexture1D::GLTexture1D(UINT32 iSize, GLint internalformat, GLenum format,
                          GLenum type,  UINT32 iSizePerElement,
                          const GLvoid *pixels, GLint iMagFilter, GLint iMinFilter,
                          GLint wrap) :
-  GLTexture(iSizePerElement),
+  GLTexture(iSizePerElement, iMagFilter, iMinFilter),
   m_iSize(GLuint(iSize)),
   m_internalformat(internalformat),
   m_format(format),

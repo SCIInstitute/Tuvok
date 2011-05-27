@@ -64,6 +64,9 @@ class GLTexture3D : public GLTexture {
       GL(glActiveTexture(GLenum(GL_TEXTURE0 + iUnit)));
       GL(glBindTexture(GL_TEXTURE_3D, m_iGLID));
 
+      GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, m_iMagFilter));
+      GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, m_iMinFilter));
+
       GL(glActiveTexture(iPrevUint));
     }
     virtual void SetData(const void *pixels);

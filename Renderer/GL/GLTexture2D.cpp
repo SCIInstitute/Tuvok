@@ -43,7 +43,7 @@ GLTexture2D::GLTexture2D(UINT32 iSizeX, UINT32 iSizeY, GLint internalformat,
                          const GLvoid *pixels,
                          GLint iMagFilter, GLint iMinFilter,
                          GLint wrapX, GLint wrapY) :
-  GLTexture(iSizePerElement),
+  GLTexture(iSizePerElement, iMagFilter, iMinFilter),
   m_iSizeX(GLuint(iSizeX)),
   m_iSizeY(GLuint(iSizeY)),
   m_internalformat(internalformat),

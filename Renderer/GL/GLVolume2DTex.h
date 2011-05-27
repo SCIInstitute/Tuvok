@@ -70,6 +70,8 @@ namespace tuvok {
       UINT32 GetSizeY() {return m_iSizeY;}
       UINT32 GetSizeZ() {return m_iSizeZ;}
 
+      virtual void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
+
     private:
       std::vector< std::vector<GLTexture2D*> > m_pTextures;
 

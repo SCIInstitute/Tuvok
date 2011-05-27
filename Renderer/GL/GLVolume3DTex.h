@@ -65,6 +65,8 @@ namespace tuvok {
       virtual UINT64 GetCPUSize();
       virtual UINT64 GetGPUSize();
 
+      virtual void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
+
     private:
       GLTexture3D* m_pTexture;  
   };

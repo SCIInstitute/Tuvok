@@ -41,6 +41,16 @@
 
 using namespace tuvok;
 
+
+GLTexture::GLTexture(UINT32 iSizePerElement, GLint iMagFilter,
+                     GLint iMinFilter) : 
+m_iGLID(UINT32_INVALID),
+m_iSizePerElement(iSizePerElement),
+m_iMagFilter(iMagFilter),
+m_iMinFilter(iMinFilter)
+{
+}
+
 GLTexture::~GLTexture() {
   /*! \todo We'd like to call ::Delete() here, but we're not guaranteed to be
    *        in the correct context.  Instead, we'll make sure the texture was
@@ -56,4 +66,9 @@ void GLTexture::Delete() {
 
 void GLTexture::Bind(GLSLProgram& shader, const std::string& name) const {
   shader.SetTexture(name, (*this));
+}
+
+void GLTexture::SetFilter(GLint iMagFilter, GLint iMinFilter) {
+  m_iMagFilter = iMagFilter;
+  m_iMinFilter = iMinFilter;
 }

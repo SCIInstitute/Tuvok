@@ -59,10 +59,10 @@ namespace tuvok {
       virtual void SetData(const void *voxels) = 0;
       virtual void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
 
-
       virtual UINT64 GetCPUSize() = 0;
       virtual UINT64 GetGPUSize() = 0;
-    protected:
+
+  protected:
       GLint  m_iMagFilter;
       GLint  m_iMinFilter;
 

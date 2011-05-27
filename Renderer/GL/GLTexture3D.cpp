@@ -45,7 +45,7 @@ GLTexture3D::GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
                          UINT32 iSizePerElement, const GLvoid *pixels,
                          GLint iMagFilter, GLint iMinFilter, GLint wrapX,
                          GLint wrapY, GLint wrapZ) :
-  GLTexture(iSizePerElement),
+  GLTexture(iSizePerElement, iMagFilter, iMinFilter),
   m_iSizeX(GLuint(iSizeX)),
   m_iSizeY(GLuint(iSizeY)),
   m_iSizeZ(GLuint(iSizeZ)),

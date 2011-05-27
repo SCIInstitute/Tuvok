@@ -71,8 +71,6 @@ GLVolume3DTex::~GLVolume3DTex() {
 
 void GLVolume3DTex::Bind(UINT32 iUnit) {
   m_pTexture->Bind(iUnit);
-  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, m_iMagFilter));
-  GL(glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, m_iMinFilter));
 }
 
 void GLVolume3DTex::FreeGLResources() {
@@ -93,4 +91,10 @@ UINT64 GLVolume3DTex::GetCPUSize() {
 
 UINT64 GLVolume3DTex::GetGPUSize() {
   return (m_pTexture) ? m_pTexture->GetGPUSize() : 0;
+}
+
+void GLVolume3DTex::SetFilter(GLint iMagFilter, GLint iMinFilter) {
+  GLVolume::SetFilter(iMagFilter, iMinFilter);
+
+  if (m_pTexture) m_pTexture->SetFilter(m_iMagFilter, m_iMinFilter);
 }

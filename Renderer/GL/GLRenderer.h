@@ -207,8 +207,8 @@ class GLRenderer : public AbstrRenderer {
     virtual bool BindVolumeTex(const BrickKey& bkey,
                                const UINT64 iIntraFrameCounter);
     virtual bool UnbindVolumeTex();
-    virtual bool LoadShaders() { return LoadShaders("Volume3D.glsl"); }
-    virtual bool LoadShaders(const std::string& volumeAccessFunction);
+    virtual bool LoadShaders() { return LoadShaders("Volume3D.glsl", true); }
+    virtual bool LoadShaders(const std::string& volumeAccessFunction, bool bBindVolume);
     virtual void InitBaseState();
     void CleanupShader(GLSLProgram** p);
 

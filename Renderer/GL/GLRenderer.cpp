@@ -232,7 +232,7 @@ bool GLRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
   return LoadShaders();
 }
 
-bool GLRenderer::LoadShaders(const string& volumeAccessFunction) {
+bool GLRenderer::LoadShaders(const string& volumeAccessFunction, bool bBindVolume) {
   const std::string tfqn = m_pDataset
                            ? m_pDataset->GetComponentCount() == 4
                               ? "vr-col-tfqn.glsl"
@@ -332,19 +332,19 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction) {
     m_pProgramTrans->ConnectTextureID("texColor",0);
     m_pProgramTrans->ConnectTextureID("texDepth",1);
 
-    m_pProgram1DTransSlice->ConnectTextureID("texVolume",0);
+    if (bBindVolume) m_pProgram1DTransSlice->ConnectTextureID("texVolume",0);
     m_pProgram1DTransSlice->ConnectTextureID("texTrans",1);
 
-    m_pProgram2DTransSlice->ConnectTextureID("texVolume",0);
+    if (bBindVolume) m_pProgram2DTransSlice->ConnectTextureID("texVolume",0);
     m_pProgram2DTransSlice->ConnectTextureID("texTrans",1);
 
-    m_pProgram1DTransSlice3D->ConnectTextureID("texVolume",0);
+    if (bBindVolume) m_pProgram1DTransSlice3D->ConnectTextureID("texVolume",0);
     m_pProgram1DTransSlice3D->ConnectTextureID("texTrans",1);
 
-    m_pProgram2DTransSlice3D->ConnectTextureID("texVolume",0);
+    if (bBindVolume) m_pProgram2DTransSlice3D->ConnectTextureID("texVolume",0);
     m_pProgram2DTransSlice3D->ConnectTextureID("texTrans",1);
 
-    m_pProgramMIPSlice->ConnectTextureID("texVolume",0);
+    if (bBindVolume) m_pProgramMIPSlice->ConnectTextureID("texVolume",0);
 
     m_pProgramTransMIP->ConnectTextureID("texLast",0);
     m_pProgramTransMIP->ConnectTextureID("texTrans",1);

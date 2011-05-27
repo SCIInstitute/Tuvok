@@ -94,17 +94,21 @@ GLVolume2DTex::~GLVolume2DTex() {
 void GLVolume2DTex::Bind(UINT32 iUnit,
                          int iDepth,
                          int iStack) const {
-  
-  GLint iPrevUint;
-  GL(glGetIntegerv(GL_ACTIVE_TEXTURE, &iPrevUint));
 
   if (iDepth >= 0 && iDepth < static_cast<int>(m_pTextures[iStack].size())) {
     m_pTextures[iStack][iDepth]->Bind(iUnit);
   } else {
     switch (m_wrapZ) {
+      default:
+               WARNING("Unsupported wrap mode, falling back to GL_CLAMP");
       case GL_CLAMP :  
+               GLint iPrevUint;
+               GL(glGetIntegerv(GL_ACTIVE_TEXTURE, &iPrevUint));
+
                GL(glActiveTexture(GLenum(GL_TEXTURE0 + iUnit)));
                GL(glBindTexture(GL_TEXTURE_2D, 0));
+
+               GL(glActiveTexture(iPrevUint));
                break;
       case GL_CLAMP_TO_EDGE : 
                if (iDepth < 0) 
@@ -112,17 +116,9 @@ void GLVolume2DTex::Bind(UINT32 iUnit,
                else
                  m_pTextures[iStack][m_pTextures[iStack].size()-1]->Bind(iUnit);
                break;
-      default:
-               WARNING("Unsupported wrap mode, falling back to GL_CLAMP");
-               GL(glActiveTexture(GLenum(GL_TEXTURE0 + iUnit)));
-               GL(glBindTexture(GL_TEXTURE_2D, 0));
-               break;
     }
   }
-  GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, m_iMagFilter));
-  GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, m_iMinFilter));
 
-  GL(glActiveTexture(iPrevUint));
 }
 
 void GLVolume2DTex::CreateGLResources() {
@@ -242,4 +238,17 @@ UINT64 GLVolume2DTex::GetGPUSize() {
     }
   }
   return iSize;
+}
+
+
+void GLVolume2DTex::SetFilter(GLint iMagFilter, GLint iMinFilter) {
+  GLVolume::SetFilter(iMagFilter, iMinFilter);
+
+  for (size_t iDir = 0;iDir<m_pTextures.size();iDir++){
+    for (size_t i = 0;i<m_pTextures[iDir].size();i++){
+      if (m_pTextures[iDir][i]) {
+        m_pTextures[iDir][i]->SetFilter(m_iMagFilter, m_iMinFilter);
+      }
+    }
+  }
 }
