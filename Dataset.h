@@ -55,6 +55,7 @@
 #include "Brick.h"
 #include "Basics/tr1.h"
 #include "Basics/Mesh.h"
+#include "Basics/Interpolant.h"
 
 #define MAX_TRANSFERFUNCTION_SIZE 4096
 
@@ -162,6 +163,9 @@ public:
   /// Virtual constructor.
   virtual Dataset* Create(const std::string&, UINT64, bool) const=0;
 
+  Interpolant InterpolationMethod() const { return m_Interpolant; }
+  void SetInterpolant(enum Interpolant i) { m_Interpolant = i; }
+
 protected:
   Histogram1D*       m_pHist1D;
   Histogram2D*       m_pHist2D;
@@ -169,10 +173,11 @@ protected:
 
   DOUBLEVECTOR3      m_UserScale;
   DOUBLEVECTOR3      m_DomainScale;
+  Interpolant        m_Interpolant;
 
   void DeleteMeshes();
 };
 
-};
+}
 
 #endif // TUVOK_DATASET_H

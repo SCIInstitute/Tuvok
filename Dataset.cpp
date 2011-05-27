@@ -39,7 +39,8 @@ Dataset::Dataset():
   m_pHist1D(NULL),
   m_pHist2D(NULL),
   m_UserScale(1.0,1.0,1.0),
-  m_DomainScale(1.0, 1.0, 1.0)
+  m_DomainScale(1.0, 1.0, 1.0),
+  m_Interpolant(Linear)
 {
   m_DomainScale = DOUBLEVECTOR3(1.0, 1.0, 1.0);
 }
