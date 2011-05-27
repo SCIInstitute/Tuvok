@@ -1617,6 +1617,11 @@ void GLRenderer::Cleanup() {
     m_pFBO3DImageLast =NULL;
   }
 
+  if (m_pFBOResizeQuickBlit) {
+    mm.FreeFBO(m_pFBOResizeQuickBlit);
+    m_pFBOResizeQuickBlit =NULL;
+  }
+
   for (UINT32 i = 0;i<2;i++) {
     if (m_pFBO3DImageCurrent[i]) {
       mm.FreeFBO(m_pFBO3DImageCurrent[i]);
