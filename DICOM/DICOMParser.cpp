@@ -333,7 +333,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                                    DICOMFileInfo& info) {
   DICOM_DBG("Processing file %s\n",strFilename.c_str());
 
-  struct stat stat_buf;
+  LARGE_STAT_BUFFER stat_buf;
 
   bool bImplicit    = false;
   info.m_bIsJPEGEncoded = false;
