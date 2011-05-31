@@ -57,11 +57,18 @@ typedef unsigned char BYTE;
 // Make sure windows doesn't give us stupid macros that interfere with
 // functions in 'std'.
 #define NOMINMAX
-// Disable checked iterators on Windows.
+// Disable checked iterators on Windows, only necessary for 
+// pre VS2010 versions (VS2010 has _MSC_VER = 1600)
+// in VS 2010 MS finally realized that a 2x performance
+// penalty for STL operations sucks, more details can be found here
+// http://channel9.msdn.com/Shows/Going+Deep/C9-Lectures-Stephan-T-Lavavej-Advanced-STL-3-of-n
 #ifndef _DEBUG
-# undef _SECURE_SCL
-# define _SECURE_SCL 0
+#if _MSC_VER < 1600
+  # undef _SECURE_SCL
+  # define _SECURE_SCL 0
 #endif
+#endif
+
 // Get rid of stupid warnings.
 #define _CRT_SECURE_NO_WARNINGS 1
 
