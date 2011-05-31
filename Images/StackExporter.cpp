@@ -77,7 +77,7 @@ bool StackExporter::WriteImage(unsigned char* pData,
   }
 
 #ifndef TUVOK_NO_QT
-  QImage qTargetFile(QSize(vSize.x, vSize.y), iComponentCount == 4 ? QImage::Format_ARGB32 : QImage::Format_RGB32);
+  QImage qTargetFile(QSize(int(vSize.x), int(vSize.y)), iComponentCount == 4 ? QImage::Format_ARGB32 : QImage::Format_RGB32);
 
   size_t i = 0;
   if (iComponentCount == 4) {
