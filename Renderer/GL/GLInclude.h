@@ -58,17 +58,27 @@
 
 #include "Controller/Controller.h"
 
+// under some circumstances the glError loops below do not
+// terminate, either glError itself causes an erro or does 
+// not reset the error state. Neither should happen, but 
+// still do
+#define MAX_GL_ERROR_COUNT 10 
+
+
 # define GL_RET(stmt)                                                  \
   do {                                                                 \
     GLenum glerr;                                                      \
+    unsigned int iCounter = 0;                                         \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
       T_ERROR("GL error before line %u (%s): %s (%#x)",                \
               __LINE__, __FILE__,                                      \
               gluErrorString(glerr),                                   \
               static_cast<unsigned>(glerr));                           \
+      iCounter++;                                                      \
+      if (iCounter > MAX_GL_ERROR_COUNT) break;                        \
     }                                                                  \
     stmt;                                                              \
-    while((glerr = glGetError()) != GL_NO_ERROR) {                     \
+    if ((glerr = glGetError()) != GL_NO_ERROR) {                       \
       T_ERROR("'%s' on line %u (%s) caused GL error: %s (%#x)", #stmt, \
               __LINE__, __FILE__,                                      \
               gluErrorString(glerr),                                   \
@@ -81,11 +91,14 @@
 # define GL_CHECK()                                                    \
   do {                                                                 \
     GLenum glerr;                                                      \
+    unsigned int iCounter = 0;                                         \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
       T_ERROR("GL error before line %u (%s): %s (%#x)",                \
               __LINE__, __FILE__,                                      \
               gluErrorString(glerr),                                   \
               static_cast<unsigned>(glerr));                           \
+      iCounter++;                                                      \
+      if (iCounter > MAX_GL_ERROR_COUNT) break;                        \
     }                                                                  \
   } while(0)
 #else
@@ -96,18 +109,24 @@
 # define GL(stmt)                                                      \
   do {                                                                 \
     GLenum glerr;                                                      \
+    unsigned int iCounter = 0;                                         \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
       T_ERROR("GL error calling %s before line %u (%s): %s (%#x)",     \
               #stmt, __LINE__, __FILE__,                               \
               gluErrorString(glerr),                                   \
               static_cast<unsigned>(glerr));                           \
+      iCounter++;                                                      \
+      if (iCounter > MAX_GL_ERROR_COUNT) break;                        \
     }                                                                  \
     stmt;                                                              \
+    iCounter = 0;                                                      \
     while((glerr = glGetError()) != GL_NO_ERROR) {                     \
       T_ERROR("'%s' on line %u (%s) caused GL error: %s (%#x)", #stmt, \
               __LINE__, __FILE__,                                      \
               gluErrorString(glerr),                                   \
               static_cast<unsigned>(glerr));                           \
+      iCounter++;                                                      \
+      if (iCounter > MAX_GL_ERROR_COUNT) break;                        \
     }                                                                  \
   } while(0)
 #else
