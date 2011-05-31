@@ -55,10 +55,12 @@
     #undef min
   #endif
 
+  #define LARGE_STAT_BUFFER struct __stat64
 #else
   #include <wchar.h>
   typedef wchar_t WCHAR;
   typedef unsigned char CHAR;
+  #define LARGE_STAT_BUFFER struct stat
 #endif
 
 #include "StdDefines.h"
@@ -207,8 +209,8 @@ namespace SysTools {
   std::vector<std::wstring> GetSubDirList(const std::wstring& dir);
   std::vector<std::string> GetSubDirList(const std::string& dir);
 
-  bool GetFileStats(const std::string& strFileName, struct stat& stat_buf);
-  bool GetFileStats(const std::wstring& wstrFileName, struct stat& stat_buf);
+  bool GetFileStats(const std::string& strFileName, LARGE_STAT_BUFFER& stat_buf);
+  bool GetFileStats(const std::wstring& wstrFileName, LARGE_STAT_BUFFER& stat_buf);
 
   std::wstring TrimStrLeft(const std::wstring &str,
                            const std::string& c = " \r\n\t");

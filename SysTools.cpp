@@ -52,8 +52,10 @@
   #include <dirent.h>
   #include <unistd.h>
   #include <pwd.h>
+  #define LARGE_STAT(name,buffer) stat(name,buffer)
 #else
   #include <shlwapi.h>
+  #define LARGE_STAT(name,buffer) _stat64(name,buffer)
 #endif
 
 #ifdef DETECTED_OS_APPLE
@@ -241,22 +243,22 @@ namespace SysTools {
     return Src.substr(p1, (p2-p1)+1);
   }
 
-  bool GetFileStats(const string& strFileName, struct ::stat& stat_buf) {
-    return (::stat( strFileName.c_str(), &stat_buf) >= 0);
+  bool GetFileStats(const string& strFileName, LARGE_STAT_BUFFER& stat_buf) {
+    return (LARGE_STAT( strFileName.c_str(), &stat_buf) >= 0);
   }
 
-  bool GetFileStats(const wstring& wstrFileName, struct ::stat& stat_buf) {
+  bool GetFileStats(const wstring& wstrFileName, LARGE_STAT_BUFFER& stat_buf) {
     string strFileName(wstrFileName.begin(), wstrFileName.end());
-    return (::stat( strFileName.c_str(), &stat_buf) >= 0);
+    return (LARGE_STAT( strFileName.c_str(), &stat_buf) >= 0);
   }
 
   bool FileExists(const wstring& wstrFileName) {
-    struct ::stat stat_buf;
+    LARGE_STAT_BUFFER stat_buf;
     return GetFileStats(wstrFileName, stat_buf);
   }
 
   bool FileExists(const string& strFileName) {
-    struct ::stat stat_buf;
+    LARGE_STAT_BUFFER stat_buf;
     return GetFileStats(strFileName, stat_buf);
   }
 
