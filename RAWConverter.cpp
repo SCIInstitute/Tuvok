@@ -83,6 +83,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      KVPairs* pKVPairs,
                                      const bool bQuantizeTo8Bit)
 {
+
+  if (!SysTools::FileExists(strFilename)) {
+    T_ERROR("Data file %s not found; maybe there is an invalid reference in the header file?", strFilename.c_str());
+    return false;
+  }
+
   bool bMetadata_SourceIsLittleEndian = bConvertEndianness && EndianConvert::IsBigEndian();
   bool bMetadata_Signed = bSigned;
   bool bMetadata_IsFloat = bIsFloat;

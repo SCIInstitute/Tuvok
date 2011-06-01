@@ -522,11 +522,12 @@ void UVFDataset::FindSuitableRasterBlocks() {
           std::vector<UINT64> vMaxBrickSizes = pVolumeDataBlock->GetLargestBrickSizes();
           for (size_t i=0; i < 3; i++) {  // currently we only care about the first 3 dimensions
             if (vMaxBrickSizes[i] > m_iMaxAcceptableBricksize) {
-              std::string large = "Brick size used in UVF file is too large;"
-                                  " rebricking necessary.";
-              WARNING("%s", large.c_str());
+              std::stringstream large;
+              large << "Brick size used in UVF file is too large (" << vMaxBrickSizes[i]
+                    << " > " << m_iMaxAcceptableBricksize << "); rebricking necessary.";
+              WARNING("%s", large.str().c_str());
               throw tuvok::io::DSBricksOversized(
-                large.c_str(),static_cast<size_t>(m_iMaxAcceptableBricksize), _func_, __LINE__
+                large.str().c_str(),static_cast<size_t>(m_iMaxAcceptableBricksize), _func_, __LINE__
               );
             }
           }
