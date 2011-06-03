@@ -277,7 +277,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           MESSAGE("Dataset is 64bit integers.");
           if(bSigned) {
             strSourceFilename =
-              Quantize<INT64, unsigned short>(
+              Quantize<boost::int64_t, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D
