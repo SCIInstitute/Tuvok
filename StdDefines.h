@@ -42,7 +42,6 @@
 #include "boost/cstdint.hpp"
 #undef UINT32
 
-typedef boost::int64_t  INT64;
 typedef boost::uint64_t UINT64;
 #ifndef UINT32
 # ifdef _WIN32
