@@ -405,10 +405,17 @@ public:
 
       if((100*iPos)/iSize > iLastDisplayedPercent) {
         std::ostringstream qmsg;
-        qmsg << "Quantizing to " << max_output_val
-             << " integer values (input data has range from "
-             << minmax.first << " to " << minmax.second << ")\n"
-             << (100*iPos)/iSize << "% complete";
+
+        if (fQuantFact == 1.0) 
+          qmsg << "Quantizing to " << minmax.second-minmax.first
+               << " integer values (input data has range from "
+               << minmax.first << " to " << minmax.second << ")\n"
+               << (100*iPos)/iSize << "% complete";
+        else
+          qmsg << "Quantizing to " << max_output_val
+               << " integer values (input data has range from "
+               << minmax.first << " to " << minmax.second << ")\n"
+               << (100*iPos)/iSize << "% complete";
         MESSAGE("%s", qmsg.str().c_str());
         iLastDisplayedPercent = (100*iPos)/iSize;
       }
