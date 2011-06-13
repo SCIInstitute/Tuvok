@@ -213,17 +213,22 @@ namespace SysTools {
   bool GetFileStats(const std::wstring& wstrFileName, LARGE_STAT_BUFFER& stat_buf);
 
   std::wstring TrimStrLeft(const std::wstring &str,
-                           const std::string& c = " \r\n\t");
+                           const std::wstring& c = L" \r\n\t");
   std::string TrimStrLeft(const std::string &str,
                           const std::string& c = " \r\n\t");
   std::wstring TrimStrRight(const std::wstring &str,
-                            const std::string& c = " \r\n\t");
+                            const std::wstring& c = L" \r\n\t");
   std::string TrimStrRight(const std::string &str,
                            const std::string& c = " \r\n\t");
   std::wstring TrimStr(const std::wstring &str,
-                       const std::string& c = " \r\n\t");
+                       const std::wstring& c = L" \r\n\t");
   std::string TrimStr(const std::string &str,
                       const std::string& c = " \r\n\t");
+
+  void ReplaceAll(std::string& input, const std::string& search,
+                  const std::string& replace);
+  void ReplaceAll(std::wstring& input, const std::wstring& search, 
+                  const std::wstring& replace);
 
 #ifdef _WIN32
   bool GetFilenameDialog(const std::string& lpstrTitle,
