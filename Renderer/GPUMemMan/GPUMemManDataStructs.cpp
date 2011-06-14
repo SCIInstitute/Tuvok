@@ -243,14 +243,23 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
   }
   while (glGetError() != GL_NO_ERROR) {};  // clear gl error flags
 
-  std::pair<shared_ptr<unsigned char>, UINTVECTOR3> padded = PadData(
-    m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0),
-    pDataset->GetBrickVoxelCounts(m_Key),
-    pDataset->GetBitWidth(),
-    pDataset->GetComponentCount()
-  );
+  const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
 
-  volumes[0]->SetData(padded.first.get());
+  if (!m_bIsPaddedToPowerOfTwo ||
+      (MathTools::IsPow2(UINT32(vSize[0])) &&
+       MathTools::IsPow2(UINT32(vSize[1])) &&
+       MathTools::IsPow2(UINT32(vSize[2])))) {
+    volumes[0]->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
+  } else {
+    std::pair<shared_ptr<unsigned char>, UINTVECTOR3> padded = PadData(
+      m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0),
+      pDataset->GetBrickVoxelCounts(m_Key),
+      pDataset->GetBitWidth(),
+      pDataset->GetComponentCount()
+    );
+
+    volumes[0]->SetData(padded.first.get());
+  }
 
   return GL_NO_ERROR==glGetError();
 }
