@@ -1222,7 +1222,7 @@ bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir 
   MESSAGE("Regenerating UVF data");
   string strTempFilename = SysTools::FindNextSequenceName(Filename());
 
-  std::string strDesc = "Cropped "+std::string(Name());
+  std::string strDesc = std::string("Cropped ") + std::string(Name());
   std::string strSource = SysTools::GetFilename(Filename());
 
   if (!RAWConverter::ConvertRAWDataset(strTempRawFilename, strTempFilename, strTempDir, 0,
