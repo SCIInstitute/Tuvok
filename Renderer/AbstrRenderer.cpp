@@ -180,6 +180,8 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
     return false;
   }
 
+  if (m_pDataset) m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
+
   m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this);
 
   if (m_pDataset == NULL) {

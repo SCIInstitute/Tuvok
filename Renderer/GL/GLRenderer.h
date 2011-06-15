@@ -84,6 +84,8 @@ class GLRenderer : public AbstrRenderer {
     /** Paint the image */
     virtual bool Paint();
 
+    virtual bool CropDataset(const std::string& strTempDir);
+
     /** Sends a message to the master to ask for a dataset to be loaded.
      * @param strFilename path to a file */
     virtual bool LoadDataset(const std::string& strFilename);

@@ -78,8 +78,8 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
   m_bUsingHub(false)
 {
   // initialize the volumes to be null pointers.
-  std::fill(volumes.begin(), volumes.end(), static_cast<GLVolume*>(NULL));
-  if (!CreateTexture(vUploadHub) && volumes[0]) {
+  volume = NULL;
+  if (!CreateTexture(vUploadHub) && volume) {
     FreeTexture();
   }
 }
@@ -111,7 +111,7 @@ GLVolume* GLVolumeListElem::Access(UINT64& iIntraFrameCounter, UINT64& iFrameCou
   m_iFrameCounter = iFrameCounter;
   iUserCount++;
 
-  return volumes[0];
+  return volume;
 }
 
 bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
@@ -170,7 +170,9 @@ namespace nonstd {
 
 size_t GLVolumeListElem::GetGPUSize() const
 {
-  // Apprently MSVC fixed this in 2010, but 2008 is broken.
+  return size_t(volume->GetGPUSize());
+/*
+  // Apparently MSVC fixed this in 2010, but 2008 is broken.
 #if defined(_MSC_VER) && _MSC_VER <= 1500
   size_t sz=0;
   for(size_t i=0; i < volumes.size(); ++i) {
@@ -183,27 +185,32 @@ size_t GLVolumeListElem::GetGPUSize() const
     std::tr1::mem_fn(&GLVolume::GetGPUSize))
   );
 #endif
+  */
 }
 size_t GLVolumeListElem::GetCPUSize() const
 {
-#if defined(_MSC_VER) && _MSC_VER <= 1500
+  return size_t(volume->GetCPUSize());
+  /*
+
+  #if defined(_MSC_VER) && _MSC_VER <= 1500
   size_t sz=0;
   for(size_t i=0; i < volumes.size(); ++i) {
     sz += size_t(volumes[i]->GetGPUSize());
   }
   return sz;
 #else
-  return static_cast<size_t>(nonstd::accumulate(
+  return static_cast<size_t>(nonstd::accumulate( 
     this->volumes.begin(), this->volumes.end(), 0,
     std::tr1::mem_fn(&GLVolume::GetCPUSize))
   );
 #endif
+  */
 }
 
 
 
 bool GLVolumeListElem::Match(const UINTVECTOR3& vDimension) {
-  if(volumes.empty()) { return false; }
+  if(!volume) { return false; }
 
   const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
 
@@ -225,7 +232,8 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
                                UINT64 iIntraFrameCounter,
                                UINT64 iFrameCounter,
                                std::vector<unsigned char>& vUploadHub) {
-  if(volumes.empty()) { return false; }
+  
+  if(!volume) { return false; }
 
   pDataset = _pDataset;
   m_Key    = key;
@@ -249,7 +257,7 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
       (MathTools::IsPow2(UINT32(vSize[0])) &&
        MathTools::IsPow2(UINT32(vSize[1])) &&
        MathTools::IsPow2(UINT32(vSize[2])))) {
-    volumes[0]->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
+    volume->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
   } else {
     std::pair<shared_ptr<unsigned char>, UINTVECTOR3> padded = PadData(
       m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0),
@@ -258,7 +266,7 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
       pDataset->GetComponentCount()
     );
 
-    volumes[0]->SetData(padded.first.get());
+    volume->SetData(padded.first.get());
   }
 
   return GL_NO_ERROR==glGetError();
@@ -356,7 +364,10 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
   if (bDeleteOldTexture) FreeTexture();
 
   if (vData.empty()) {
+    MESSAGE("Completely reloading brick");
     if (!LoadData(vUploadHub)) { return false; }
+  } else {
+    MESSAGE("Reusing CPU copy of brick data");
   }
 
   unsigned char* pRawData = (m_bUsingHub) ? &vUploadHub.at(0) : &vData.at(0);
@@ -449,14 +460,14 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     GLenum clamp = m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP;
 
     if (m_bEmulate3DWith2DStacks) {
-      volumes[0] = new GLVolume2DTex(UINT32(vSize[0]), UINT32(vSize[1]),
+      volume = new GLVolume2DTex(UINT32(vSize[0]), UINT32(vSize[1]),
                                      UINT32(vSize[2]),
                                      glInternalformat, glFormat, glType,
                                      UINT32(iBitWidth/8*iCompCount), pRawData,
                                      GL_LINEAR, GL_LINEAR,
                                      clamp, clamp, clamp);
     } else {
-      volumes[0] = new GLVolume3DTex(UINT32(vSize[0]), UINT32(vSize[1]),
+      volume = new GLVolume3DTex(UINT32(vSize[0]), UINT32(vSize[1]),
                                      UINT32(vSize[2]),
                                      glInternalformat, glFormat, glType,
                                      UINT32(iBitWidth/8*iCompCount), pRawData,
@@ -470,7 +481,7 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     const UINTVECTOR3& vPaddedSize = padded.second;
 
     if (m_bEmulate3DWith2DStacks) {
-      volumes[0] = new GLVolume2DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
+      volume = new GLVolume2DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
                                      glInternalformat, glFormat, glType,
                                      UINT32(iBitWidth/8*iCompCount),
                                      pPaddedData.get(),
@@ -479,7 +490,7 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP);
     } else {
-      volumes[0] = new GLVolume3DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
+      volume = new GLVolume3DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
                                      glInternalformat, glFormat, glType,
                                      UINT32(iBitWidth/8*iCompCount),
                                      pPaddedData.get(),
@@ -490,14 +501,17 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     }
   }
 
+  // In the OpenGL case we can release the data at this point as we
+  // let the OpenGL subsystem handle the CPU/GPU paging, i.e. we ignore
+  // the GPU usage
   FreeData();
   return GL_NO_ERROR==glGetError();
 }
 
 void GLVolumeListElem::FreeTexture() {
-  if (volumes[0]) {
-    volumes[0]->FreeGLResources();
-    delete volumes[0];
-    volumes[0] = NULL;
+  if (volume) {
+    volume->FreeGLResources();
+    delete volume;
+    volume = NULL;
   }
 }

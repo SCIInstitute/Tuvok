@@ -191,7 +191,7 @@ namespace tuvok {
     void FreeTexture();
 
     std::vector<unsigned char>    vData;
-    std::tr1::array<GLVolume*, 1> volumes;
+    GLVolume* volume;
     Dataset*                      pDataset;
     UINT32                        iUserCount;
 

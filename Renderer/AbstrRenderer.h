@@ -237,6 +237,8 @@ class AbstrRenderer: public Scriptable {
      * the renderer to start anew. */
     virtual void Changed2DTrans();
 
+    virtual bool CropDataset(const std::string& strTempDir) = 0;
+
     /** Sets up a gradient background which fades vertically.
      * @param vColors[0] is the color at the bottom;
      * @param vColors[1] is the color at the top. */

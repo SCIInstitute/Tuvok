@@ -92,6 +92,7 @@ class DXRenderer : public AbstrRenderer {
 
     virtual void SyncStateManager() { /** @todo implement */ }
 
+    virtual bool CropDataset(const std::string&) { /** @todo implement */ return false;}
   protected:
     HWND                    m_hWnd;
     HINSTANCE               m_hInst;

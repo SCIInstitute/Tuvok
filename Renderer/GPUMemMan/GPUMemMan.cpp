@@ -816,7 +816,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                              iIntraFrameCounter, iFrameCounter,
                              m_vUploadHub);
       (*iBestMatch)->iUserCount++;
-      return (*iBestMatch)->volumes[0];
+      return (*iBestMatch)->volume;
     } else {
       // We know the brick doesn't fit in memory, and we know there's no
       // existing texture which matches enough that we could overwrite it with
@@ -858,7 +858,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                                      m_MasterController,
                                                      m_vUploadHub);
 
-  if (pNew3DTex->volumes[0] == NULL) {
+  if (pNew3DTex->volume == NULL) {
     T_ERROR("Failed to create OpenGL resource for volume.");
     delete pNew3DTex;
     return NULL;
@@ -870,12 +870,12 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
   m_iAllocatedCPUMemory += pNew3DTex->GetCPUSize();
 
   m_vpTex3DList.push_back(pNew3DTex);
-  return (*(m_vpTex3DList.end()-1))->volumes[0];
+  return (*(m_vpTex3DList.end()-1))->volume;
 }
 
 void GPUMemMan::Release3DTexture(GLVolume* pGLVolume) {
   for (size_t i = 0;i<m_vpTex3DList.size();i++) {
-    if (m_vpTex3DList[i]->volumes[0] == pGLVolume) {
+    if (m_vpTex3DList[i]->volume == pGLVolume) {
       if (m_vpTex3DList[i]->iUserCount > 0) {
           m_vpTex3DList[i]->iUserCount--;
       } else {
