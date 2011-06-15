@@ -89,7 +89,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     return false;
   }
 
-  bool bMetadata_SourceIsLittleEndian = bConvertEndianness && EndianConvert::IsBigEndian();
+  bool bMetadata_SourceIsLittleEndian = (bConvertEndianness && EndianConvert::IsBigEndian()) || (EndianConvert::IsLittleEndian() && !bConvertEndianness);
   bool bMetadata_Signed = bSigned;
   bool bMetadata_IsFloat = bIsFloat;
   UINT64 iMetadata_ComponentSize = iComponentSize;
@@ -1091,7 +1091,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                 const bool bQuantizeTo8Bit)
 {
   // all the parameters set here are just defaults, they should all be
-  // overriden in ConvertToRAW which takes them as call by reference
+  // overridden in ConvertToRAW which takes them as call by reference
   UINT64        iComponentSize=8;
   UINT64        iComponentCount=1;
   bool          bConvertEndianess=false;
