@@ -1215,7 +1215,7 @@ bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir 
   string strTempRawFilename = SysTools::FindNextSequenceName(strTempDir + "crop-tmp.raw");
   Export(0, strTempRawFilename , false);
 
-  MESSAGE("Cropping");
+  MESSAGE("Cropping at plane (%g %g %g %g)", plane.x, plane.y, plane.z, plane.w);
 
   // TODO
 
