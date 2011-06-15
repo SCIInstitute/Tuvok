@@ -119,6 +119,8 @@ public:
   virtual const std::vector<std::pair<std::string, std::string> > GetMetadata() const;
 
   virtual bool SaveRescaleFactors();
+  virtual bool Crop( const PLANE<float>& plane, const std::string& strTempDir);
+
   bool AppendMesh(Mesh* m);
   bool RemoveMesh(size_t iMeshIndex);
   bool GeometryTransformToFile(size_t iMeshIndex, const FLOATMATRIX4& m);

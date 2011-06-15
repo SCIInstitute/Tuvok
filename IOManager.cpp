@@ -1107,7 +1107,7 @@ bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
                                   bool bAllDirs) const {
 
 
-  string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
+  string strTempFilename = SysTools::FindNextSequenceName(strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw");
   
   if (pSourceData->GetIsFloat() || pSourceData->GetIsSigned()) {
     T_ERROR("Stack export currently only supported for unsigned integer values.");

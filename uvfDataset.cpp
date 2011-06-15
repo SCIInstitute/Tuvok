@@ -37,6 +37,7 @@
 #include "uvfDataset.h"
 
 #include "IOManager.h"
+#include "RAWConverter.h"
 #include "Controller/Controller.h"
 #include "TuvokIOError.h"
 #include "UVF/UVF.h"
@@ -564,7 +565,7 @@ void UVFDataset::GetHistograms(size_t) {
 
     if ( m_pHist1D->GetSize() != vHist1D.size()) {
       MESSAGE("1D Histogram to big to drawn efficiently, resampling.");
-      // "resample" the histogramm
+      // "resample" the histogram
 
       float sampleFactor = static_cast<float>(vHist1D.size()) /
                            static_cast<float>(m_pHist1D->GetSize());
@@ -1205,6 +1206,54 @@ bool UVFDataset::AppendMesh(Mesh* m) {
     return true;
   }
 }
+
+
+
+bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir )
+{
+  MESSAGE("Flattening dataset");
+  string strTempRawFilename = SysTools::FindNextSequenceName(strTempDir + "crop-tmp.raw");
+  Export(0, strTempRawFilename , false);
+
+  MESSAGE("Cropping");
+
+  // TODO
+
+  MESSAGE("Regenerating UVF data");
+  string strTempFilename = SysTools::FindNextSequenceName(Filename());
+
+  std::string strDesc = "Cropped "+std::string(Name());
+  std::string strSource = SysTools::GetFilename(Filename());
+
+  if (!RAWConverter::ConvertRAWDataset(strTempRawFilename, strTempFilename, strTempDir, 0,
+    GetBitWidth(), GetComponentCount(), 1, !IsSameEndianness(), GetIsSigned(), GetIsFloat(),
+    GetDomainSize(), FLOATVECTOR3(GetScale()), strDesc, strSource, 
+    Controller::Instance().IOMan()->GetMaxBrickSize(), 
+    Controller::Instance().IOMan()->GetBrickOverlap())) {
+    T_ERROR("Unabled to convert cropped data back to UVF");
+    if(remove(strTempRawFilename.c_str()) == -1) WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+    return false;
+  }
+  if(remove(strTempRawFilename.c_str()) == -1) WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+
+  MESSAGE("Replacing original UVF by the new one");
+  Close();
+  remove(Filename().c_str());
+
+  if (SysTools::FileExists(Filename())) {
+    T_ERROR("Unable to delete original UVF file, a new file (%s) has be created alongside the old.", strTempFilename.c_str());
+    Open(false,false,false);
+    return false;
+  }
+
+  rename(strTempFilename.c_str(), Filename().c_str());
+
+  MESSAGE("Opening new file");
+  Open(false,false,false);
+
+  return true;
+}
+
 
 bool UVFDataset::SaveRescaleFactors() {
   DOUBLEVECTOR3 saveUserScale = m_UserScale;

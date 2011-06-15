@@ -117,6 +117,11 @@ public:
   virtual bool SaveRescaleFactors() {return false;}
   ///@}
 
+  /// If the underlying file format supports it, crop the dataset at the
+  /// given plane, i.e. set all values one side to zero
+  virtual bool Crop( const PLANE<float>& , const std::string&) {return false;}
+  ///@}
+
   virtual UINT64 GetLODLevelCount() const = 0;
   /// @todo FIXME, should be pure virtual && overridden in derived
   virtual UINT64 GetNumberOfTimesteps() const { return 1; }
@@ -160,7 +165,7 @@ public:
   /// reader" to open a particular file.
   virtual const char* Name() const { return "Generic"; }
   /// Virtual constructor.
-  virtual Dataset* Create(const std::string&, UINT64, bool) const=0;
+  virtual Dataset* Create(const std::string&, UINT64, bool) const=0;  
 
 protected:
   Histogram1D*       m_pHist1D;
