@@ -1219,7 +1219,7 @@ bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir,
   MESSAGE("Cropping at plane (%g %g %g %g)", plane.x, plane.y, plane.z, plane.w);
 
   FLOATMATRIX4 m;
-  m.Scaling(FLOATVECTOR3(GetScale()) * FLOATVECTOR3(GetDomainSize()) /float(GetDomainSize().maxVal()) );
+  m.Scaling(FLOATVECTOR3(GetScale()/GetScale().maxVal()) * FLOATVECTOR3(GetDomainSize()) /float(GetDomainSize().maxVal()) );
   PLANE<float> scaleInvariantPlane = plane;
   scaleInvariantPlane.transformIT(m);
 

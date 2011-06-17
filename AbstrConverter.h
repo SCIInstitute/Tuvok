@@ -325,8 +325,11 @@ public:
                                     const std::string& strFilename,
                                     const std::string& strTargetFilename,
                                     UINT64 iSize,
-                                    Histogram1DDataBlock* Histogram1D=0)
+                                    Histogram1DDataBlock* Histogram1D=0,
+                                    size_t* iBinCount=0)
   {
+    if (iBinCount) 
+      *iBinCount = 0;
     size_t hist_size = 4096;
     if(sizeof(U) == 1) { hist_size = 256; }
     assert(sizeof(U) <= 2);
@@ -355,6 +358,14 @@ public:
        sizeof(T) <= ((hist_size == 256) ? 1 : 2)) {
       MESSAGE("Returning early; data does not need processing.");
       InputData.Close();
+
+      // if we have very few values, let the calling function know
+      // how much exactly, so we can reduce the the bit depth of 
+      // the data
+      if (iBinCount) {
+        for (size_t bin = 0;bin<aHist.size();++bin) 
+          if (aHist[bin] != 0) (*iBinCount)++;
+      }
       return strFilename;
     }
     // Reset the histogram.  We'll be quantizing the data.
@@ -407,7 +418,7 @@ public:
         std::ostringstream qmsg;
 
         if (fQuantFact == 1.0) 
-          qmsg << "Quantizing to " << minmax.second-minmax.first
+          qmsg << "Quantizing to " << (minmax.second-minmax.first)+1
                << " integer values (input data has range from "
                << minmax.first << " to " << minmax.second << ")\n"
                << (100*iPos)/iSize << "% complete";

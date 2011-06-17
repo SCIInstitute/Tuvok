@@ -229,11 +229,21 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
               iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D
             );
         } else {
+          size_t iBinCount = 0;
           strSourceFilename =
             Quantize<unsigned short, unsigned short>(
               iHeaderSkip, strSourceFilename, tmpFilename1,
-              iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D
+              iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, &iBinCount
             );
+          if (iBinCount <= 256) {
+            strSourceFilename =
+              BinningQuantize<unsigned short, unsigned char>(
+                iHeaderSkip, strSourceFilename, tmpFilename1,
+                iComponentCount*vVolumeSize.volume()*timesteps,
+                iComponentSize, &Histogram1D
+                );
+            break;
+          }
         }
         break;
       case 32 :
@@ -255,11 +265,22 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                 &Histogram1D
               );
           } else {
+            size_t iBinCount = 0;
             strSourceFilename =
               Quantize<UINT32, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
-                iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D
+                iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, 
+                &iBinCount
               );
+            if (iBinCount <= 256) {
+              strSourceFilename =
+                BinningQuantize<UINT32, unsigned char>(
+                  iHeaderSkip, strSourceFilename, tmpFilename1,
+                  iComponentCount*vVolumeSize.volume()*timesteps,
+                  iComponentSize, &Histogram1D
+                  );
+              break;
+            }
           }
           iComponentSize = 16;
         }
@@ -283,12 +304,22 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                 &Histogram1D
               );
           } else {
+            size_t iBinCount = 0;
             strSourceFilename =
               Quantize<UINT64, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps,
-                &Histogram1D
+                &Histogram1D, &iBinCount
               );
+            if (iBinCount <= 256) {
+              strSourceFilename =
+                BinningQuantize<UINT64, unsigned char>(
+                  iHeaderSkip, strSourceFilename, tmpFilename1,
+                  iComponentCount*vVolumeSize.volume()*timesteps,
+                  iComponentSize, &Histogram1D
+                  );
+              break;
+            }
           }
           iComponentSize = 16;
         }
@@ -314,7 +345,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       bConvertEndianness = false;
     }
 
-    iHeaderSkip = 0; // the new file is straigt raw without any header
+    iHeaderSkip = 0; // the new file is straight raw without any header
   } else {
     bQuantized = false;
   }
