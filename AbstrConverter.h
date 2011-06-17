@@ -446,6 +446,8 @@ public:
                                           bool bSigned, bool bIsFloat,
                                           Histogram1DDataBlock* Histogram1D=0);
 
+  static size_t GetIncoreSize();
+
 protected:
   /// @param ext the extension for the filename
   /// @return true if the filename is a supported extension for this converter
@@ -455,7 +457,6 @@ protected:
   std::string               m_vConverterDesc;
   std::vector<std::string>  m_vSupportedExt;
 
-  static size_t GetIncoreSize();
 };
 
 #endif // ABSTRCONVERTER_H

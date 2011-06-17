@@ -39,6 +39,7 @@
 #include "FileBackedDataset.h"
 #include "UVF/RasterDataBlock.h"
 #include "UVF/MaxMinDataBlock.h"
+#include "Controller/Controller.h"
 
 /// For UVF, a brick key has to be a list for the LOD indicators and a
 /// list of brick indices for the brick itself.
@@ -188,6 +189,68 @@ private:
   std::pair<double,double>     m_CachedRange;
 
   UINT64                       m_iMaxAcceptableBricksize;
+
+  FLOATVECTOR3 GetVolCoord(UINT64 pos, const UINT64VECTOR3& domSize) {
+    UINT64VECTOR3 domCoords;
+
+    domCoords.x = pos % domSize.x;
+    domCoords.y = (pos / domSize.x) % domSize.y;
+    domCoords.z = pos / (domSize.x*domSize.y);
+
+    FLOATVECTOR3 normCoords(float(domCoords.x) / float(domSize.x),
+                            float(domCoords.y) / float(domSize.y),
+                            float(domCoords.z) / float(domSize.z));
+    normCoords -= FLOATVECTOR3(0.5, 0.5, 0.5);
+    return normCoords;
+  }
+
+  template<typename T> 
+  bool CropData(LargeRAWFile& dataFile, const PLANE<float>& plane, const UINT64VECTOR3& domSize, const UINT64 iComponentCount) {
+
+    assert(iComponentCount == size_t(iComponentCount));
+
+    size_t iInCoreElemCount = AbstrConverter::GetIncoreSize()/sizeof(T);
+
+    // make sure iInCoreElemCount is a multiple of iComponentCount to
+    // read only entire tuples
+    iInCoreElemCount = size_t(iComponentCount)*(iInCoreElemCount/size_t(iComponentCount));
+
+    UINT64 iFileSize = dataFile.GetCurrentSize();
+    if (sizeof(T)*iComponentCount*domSize.volume() != iFileSize) {
+      return false;
+    }
+
+    T* data = new T[iInCoreElemCount];
+    size_t iElemsRead;
+    UINT64 iFilePos = 0;
+    do {
+      iElemsRead = dataFile.ReadRAW((unsigned char*)data, iInCoreElemCount*sizeof(T))/sizeof(T);
+
+      // march through the data tuple by tuple
+      // TODO: optimize this by computing the start and end of a scan line ad perform block operations
+      for (size_t elem = 0;elem<iElemsRead;elem+=size_t(iComponentCount)) {
+        FLOATVECTOR3 volCoord = GetVolCoord((iFilePos/sizeof(T)+elem)/iComponentCount, domSize);
+
+        if (plane.clip(volCoord)) {
+          for (size_t comp = 0;comp<size_t(iComponentCount);++comp)
+            data[elem+comp] = T(0);
+        } 
+
+      }
+
+      // in-place write data back
+      dataFile.SeekPos(iFilePos);
+      dataFile.WriteRAW((unsigned char*)data, iElemsRead*sizeof(T));
+      iFilePos += iElemsRead*sizeof(T);
+
+      MESSAGE("Cropping voxels (%g%% completed)", 100.0f*float(iFilePos)/float(iFileSize));
+
+
+    } while (iFilePos < iFileSize && iElemsRead > 0);
+    
+    delete [] data;
+    return true;
+  }
 };
 
 }

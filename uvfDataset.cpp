@@ -101,6 +101,7 @@ bool UVFDataset::Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion)
             unsigned(m_pDatasetFile->ms_ulReaderVersion));
   }
 
+  m_timesteps.clear();
   size_t n_timesteps = DetermineNumberOfTimesteps();
   if (n_timesteps == 0) {
     T_ERROR("No suitable volume block found in UVF file.  Check previous messages for rejected blocks.");
@@ -219,7 +220,7 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
   for (size_t i=0; i < 3 ; i++) {
     ts.m_aOverlap[i] = static_cast<UINT32>(pVolumeDataBlock->ulBrickOverlap[i]);
     /// @todo FIXME badness -- assume domain scaling information is the
-    /// same across all raster data blocks (across all timesteps
+    /// same across all raster data blocks (across all timesteps)
     m_DomainScale[i] = pVolumeDataBlock->dDomainTransformation[i+(iSize+1)*i];
   }
   m_aMaxBrickSize.StoreMax(UINTVECTOR3(
@@ -1217,9 +1218,71 @@ bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir 
 
   MESSAGE("Cropping at plane (%g %g %g %g)", plane.x, plane.y, plane.z, plane.w);
 
-  // TODO
+  FLOATMATRIX4 m;
+  m.Scaling(FLOATVECTOR3(GetScale()) * FLOATVECTOR3(GetDomainSize()) /float(GetDomainSize().maxVal()) );
+  PLANE<float> scaleInvariantPlane = plane;
+  scaleInvariantPlane.transformIT(m);
 
-  MESSAGE("Regenerating UVF data");
+  LargeRAWFile dataFile(strTempRawFilename);
+  if (!dataFile.Open(true)) {
+    T_ERROR("Unable to open flattened data.");
+    if(remove(strTempRawFilename.c_str()) == -1) WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+    return false;
+  }
+  
+  // crop data
+  bool bCroppingOK = false;
+  switch (GetBitWidth()) {
+    case 8:
+      if(GetIsSigned()) {
+        bCroppingOK = CropData<boost::int8_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+      } else {
+        bCroppingOK = CropData<boost::uint8_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+      }
+      break;
+    case 16 :
+      if(GetIsSigned()) {
+        bCroppingOK = CropData<boost::int16_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+      } else {
+        bCroppingOK = CropData<boost::uint16_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+      }
+      break;
+    case 32 :
+      if (GetIsFloat()) {
+        bCroppingOK = CropData<float>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+      } else {
+        if(GetIsSigned()) {
+          bCroppingOK = CropData<boost::int32_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+        } else {
+          bCroppingOK = CropData<boost::uint32_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+        }
+      }
+      break;
+    case 64 :
+      if (GetIsFloat()) {
+        bCroppingOK = CropData<double>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+      } else {
+        if(GetIsSigned()) {
+          bCroppingOK = CropData<boost::int64_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+        } else {
+          bCroppingOK = CropData<boost::uint64_t>(dataFile, scaleInvariantPlane, GetDomainSize(), GetComponentCount());
+        }
+      }
+      break;
+  }
+
+  if (!bCroppingOK)  {
+    if(remove(strTempRawFilename.c_str()) == -1) WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
+    return false;
+  }
+
+
+  // TODO shrink volume to the largest non-zero aabb
+
+
+  dataFile.Close();
+
+  MESSAGE("Rebuilding UVF data");
   string strTempFilename = SysTools::FindNextSequenceName(Filename());
 
   std::string strDesc = std::string("Cropped ") + std::string(Name());
@@ -1230,7 +1293,7 @@ bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir 
     GetDomainSize(), FLOATVECTOR3(GetScale()), strDesc, strSource, 
     Controller::Instance().IOMan()->GetMaxBrickSize(), 
     Controller::Instance().IOMan()->GetBrickOverlap())) {
-    T_ERROR("Unabled to convert cropped data back to UVF");
+    T_ERROR("Unable to convert cropped data back to UVF");
     if(remove(strTempRawFilename.c_str()) == -1) WARNING("Unable to delete temp file %s", strTempRawFilename.c_str());
     return false;
   }
