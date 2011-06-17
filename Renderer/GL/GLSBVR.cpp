@@ -42,7 +42,7 @@
 #include "Renderer/GL/GLTexture2D.h"
 #include "Renderer/GPUMemMan/GPUMemMan.h"
 #include "Renderer/TFScaling.h"
-
+#include "Basics/MathTools.h"
 using namespace std;
 using namespace tuvok;
 
@@ -243,7 +243,16 @@ void GLSBVR::SetDataDepShaderVars() {
 }
 
 void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
-  FLOATVECTOR3 vStep(1.0f/currentBrick.vVoxelCount.x, 1.0f/currentBrick.vVoxelCount.y, 1.0f/currentBrick.vVoxelCount.z);
+  FLOATVECTOR3 vVoxelSizeTexSpace;
+  if (m_bUseOnlyPowerOfTwo)  {
+    UINTVECTOR3 vP2VoxelCount(MathTools::NextPow2(currentBrick.vVoxelCount.x),
+                              MathTools::NextPow2(currentBrick.vVoxelCount.y),
+                              MathTools::NextPow2(currentBrick.vVoxelCount.z));
+
+    vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(vP2VoxelCount);
+  } else {
+    vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(currentBrick.vVoxelCount);
+  }
 
   float fStepScale = m_SBVRGeogen.GetOpacityCorrection();
 
@@ -256,7 +265,7 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
       shader->Enable();
       shader->SetUniformVector("fStepScale", fStepScale);
       if (m_bUseLighting) {
-        shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
+        shader->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
       }
       break;
     }
@@ -266,14 +275,14 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
                     : (m_pProgram2DTrans[m_bUseLighting ? 1 : 0]));
       shader->Enable();
       shader->SetUniformVector("fStepScale", fStepScale);
-      shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
+      shader->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
       break;
     }
     case RM_ISOSURFACE: {
       shader = (m_pDataset->GetComponentCount() == 1) ?
                m_pProgramIso : m_pProgramColor;
       shader->Enable();
-      shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
+      shader->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
       break;
     }
     default: T_ERROR("Invalid rendermode set"); break;

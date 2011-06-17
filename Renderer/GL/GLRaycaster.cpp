@@ -45,6 +45,7 @@
 #include "GLTexture1D.h"
 #include "GLTexture2D.h"
 #include "Renderer/TFScaling.h"
+#include "Basics/MathTools.h"
 
 using namespace std;
 using namespace tuvok;
@@ -256,7 +257,16 @@ bool GLRaycaster::LoadShaders() {
 void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D&,
                                         const Brick& currentBrick,
                                         size_t iCurrentBrick) {
-  FLOATVECTOR3 vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(currentBrick.vVoxelCount);
+  FLOATVECTOR3 vVoxelSizeTexSpace;
+  if (m_bUseOnlyPowerOfTwo)  {
+    UINTVECTOR3 vP2VoxelCount(MathTools::NextPow2(currentBrick.vVoxelCount.x),
+      MathTools::NextPow2(currentBrick.vVoxelCount.y),
+      MathTools::NextPow2(currentBrick.vVoxelCount.z));
+
+    vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(vP2VoxelCount);
+  } else {
+    vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(currentBrick.vVoxelCount);
+  }
 
   float fSampleRateModifier = m_fSampleRateModifier /
     (this->decreaseSamplingRateNow ? m_fSampleDecFactor : 1.0f);
