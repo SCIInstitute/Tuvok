@@ -2905,14 +2905,14 @@ GLint GLRenderer::ComputeGLFilter() const {
 }
 
 
-bool GLRenderer::CropDataset(const std::string& strTempDir) {
+bool GLRenderer::CropDataset(const std::string& strTempDir, bool bKeepOldData) {
   ExtendedPlane p = GetClipPlane();
   FLOATMATRIX4 trans = GetFirst3DRegion()->rotation * GetFirst3DRegion()->translation;
 
   // get rid of the viewing transformation in the plane
   p.Transform(trans.inverse(),false);
 
-  if (!m_pDataset->Crop(p.Plane(),strTempDir)) return false;
+  if (!m_pDataset->Crop(p.Plane(),strTempDir,bKeepOldData)) return false;
 
   FileBackedDataset* fbd = dynamic_cast<FileBackedDataset*>(m_pDataset);
   if (NULL != fbd)
