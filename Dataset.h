@@ -119,7 +119,7 @@ public:
 
   /// If the underlying file format supports it, crop the dataset at the
   /// given plane, i.e. set all values one side to zero
-  virtual bool Crop( const PLANE<float>& , const std::string&) {return false;}
+  virtual bool Crop( const PLANE<float>& , const std::string&, bool ) {return false;}
   ///@}
 
   virtual UINT64 GetLODLevelCount() const = 0;

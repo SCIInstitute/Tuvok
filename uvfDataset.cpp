@@ -1210,7 +1210,7 @@ bool UVFDataset::AppendMesh(Mesh* m) {
 
 
 
-bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir )
+bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir, bool bKeepOldData)
 {
   MESSAGE("Flattening dataset");
   string strTempRawFilename = SysTools::FindNextSequenceName(strTempDir + "crop-tmp.raw");
@@ -1301,7 +1301,15 @@ bool UVFDataset::Crop( const PLANE<float>& plane, const std::string& strTempDir 
 
   MESSAGE("Replacing original UVF by the new one");
   Close();
-  remove(Filename().c_str());
+  
+  if (bKeepOldData) {
+    std::string newFilename = SysTools::AppendFilename(Filename(),"-beforeCropping");
+    if (SysTools::FileExists(newFilename)) newFilename = SysTools::FindNextSequenceName(newFilename);
+    rename(Filename().c_str(),newFilename.c_str());
+  } else {
+    remove(Filename().c_str());
+  }
+
 
   if (SysTools::FileExists(Filename())) {
     T_ERROR("Unable to delete original UVF file, a new file (%s) has be created alongside the old.", strTempFilename.c_str());
