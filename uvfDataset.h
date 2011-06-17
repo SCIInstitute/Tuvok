@@ -40,6 +40,7 @@
 #include "UVF/RasterDataBlock.h"
 #include "UVF/MaxMinDataBlock.h"
 #include "Controller/Controller.h"
+#include "AbstrConverter.h"
 
 /// For UVF, a brick key has to be a list for the LOD indicators and a
 /// list of brick indices for the brick itself.
