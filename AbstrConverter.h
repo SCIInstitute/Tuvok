@@ -288,8 +288,8 @@ public:
     // too many values, need to actually quantize the data
     if (!bBinningPossible) {
       return Quantize<T,U>(iHeaderSkip, strFilename,
-                      strTargetFilename, iSize,
-                      Histogram1D);
+                           strTargetFilename, iSize,
+                           Histogram1D);
     }
     
     // now compute the mapping from values to bins
@@ -379,6 +379,9 @@ public:
       T_ERROR("Could not create output file '%s'", strTargetFilename.c_str());
       return "";
     }
+
+
+    if (iBinCount) (*iBinCount) = (minmax.second-minmax.first)+1;
 
     size_t max_output_val = (1 << (sizeof(U)*8)) - 1;
     if(hist_size == 256) { max_output_val = 255; }

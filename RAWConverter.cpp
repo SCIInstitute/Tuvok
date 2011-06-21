@@ -235,7 +235,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
               iHeaderSkip, strSourceFilename, tmpFilename1,
               iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, &iBinCount
             );
-          if (iBinCount <= 256) {
+          if (iBinCount > 0 && iBinCount <= 256) {
             strSourceFilename =
               BinningQuantize<unsigned short, unsigned char>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
@@ -272,7 +272,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                 iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, 
                 &iBinCount
               );
-            if (iBinCount <= 256) {
+            if (iBinCount > 0 && iBinCount <= 256) {
               strSourceFilename =
                 BinningQuantize<UINT32, unsigned char>(
                   iHeaderSkip, strSourceFilename, tmpFilename1,
@@ -311,7 +311,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D, &iBinCount
               );
-            if (iBinCount <= 256) {
+            if (iBinCount > 0 && iBinCount <= 256) {
               strSourceFilename =
                 BinningQuantize<UINT64, unsigned char>(
                   iHeaderSkip, strSourceFilename, tmpFilename1,
