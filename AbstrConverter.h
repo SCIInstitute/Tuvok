@@ -95,7 +95,7 @@ namespace { // force internal linkage.
     return max_out / (mx - mn);
   }
 
-  /// We'll need bin for each unique value of in the data... but
+  /// We'll need a bin for each unique value of in the data... but
   /// we can't easily compute that when the type is FP.  Just punt
   /// in that case.
   ///@{
