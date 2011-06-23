@@ -94,6 +94,22 @@ namespace { // force internal linkage.
   {
     return max_out / (mx - mn);
   }
+
+  /// We'll need bin for each unique value of in the data... but
+  /// we can't easily compute that when the type is FP.  Just punt
+  /// in that case.
+  ///@{
+  template<typename T>
+  size_t bins_needed(std::pair<T,T> minmax) {
+    return (minmax.second-minmax.first) + 1;
+  }
+  template<> size_t bins_needed(std::pair<float,float>) {
+    return std::numeric_limits<size_t>::max();
+  }
+  template<> size_t bins_needed(std::pair<double,double>) {
+    return std::numeric_limits<size_t>::max();
+  }
+  ///@}
 }
 
 class AbstrConverter {
@@ -319,7 +335,6 @@ public:
     }       
   }
 
-
   template <typename T, typename U>
   static const std::string Quantize(UINT64 iHeaderSkip,
                                     const std::string& strFilename,
@@ -380,8 +395,9 @@ public:
       return "";
     }
 
-
-    if (iBinCount) (*iBinCount) = (minmax.second-minmax.first)+1;
+    if(iBinCount != NULL) {
+      *iBinCount = bins_needed<T>(minmax);
+    }
 
     size_t max_output_val = (1 << (sizeof(U)*8)) - 1;
     if(hist_size == 256) { max_output_val = 255; }
