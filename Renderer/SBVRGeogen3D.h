@@ -72,6 +72,9 @@ namespace tuvok {
     //! depth of the slice closest to the viewer
     float m_fMaxZ;
 
+    //! depth of the slice furthest away from the viewer
+    float m_fMinZ;
+
     /** 
      \brief Calls InitBBOX from the parent class which computes the transformed 
     vertices m_pfBBOXVertex from m_pfBBOXStaticVertex and in addition to this

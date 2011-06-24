@@ -59,7 +59,8 @@ static void SortPoints(std::vector<VERTEX_FORMAT> &fArray);
 
 SBVRGeogen3D::SBVRGeogen3D(void) :
   SBVRGeogen(),
-  m_fMaxZ(0)
+  m_fMaxZ(0),
+  m_fMinZ(0)
 {
 }
 
@@ -68,7 +69,7 @@ SBVRGeogen3D::~SBVRGeogen3D(void)
 }
 
 // Finds the point with the minimum position in Z.
-struct vertex_min_z : public std::binary_function<VERTEX_FORMAT,
+struct vertex_max_z : public std::binary_function<VERTEX_FORMAT,
                                                   VERTEX_FORMAT,
                                                   bool> {
   bool operator()(const VERTEX_FORMAT &a, const VERTEX_FORMAT &b) const {
@@ -76,11 +77,23 @@ struct vertex_min_z : public std::binary_function<VERTEX_FORMAT,
   }
 };
 
+// Finds the point with the maximum position in Z.
+struct vertex_min_z : public std::binary_function<VERTEX_FORMAT,
+  VERTEX_FORMAT,
+  bool> {
+    bool operator()(const VERTEX_FORMAT &a, const VERTEX_FORMAT &b) const {
+      return (a.m_vPos.z > b.m_vPos.z);
+    }
+};
+
 void SBVRGeogen3D::InitBBOX() {
   SBVRGeogen::InitBBOX();
   // find the maximum z value
   m_fMaxZ = (*std::max_element(m_pfBBOXVertex, m_pfBBOXVertex+8,
-                                               vertex_min_z())).m_vPos.z;
+                                               vertex_max_z())).m_vPos.z;
+  m_fMinZ = (*std::max_element(m_pfBBOXVertex, m_pfBBOXVertex+8,
+    vertex_min_z())).m_vPos.z;
+
 }
 
 
@@ -264,7 +277,10 @@ void SBVRGeogen3D::ComputeGeometry(bool bMeshOnly) {
   // prepare mesh triangles for insertion (i.e. sort them)
   if (HasMesh()) DepthSortMeshWithVolume();
 
-  while (ComputeLayerGeometry(fDepth)) fDepth -= fLayerDistance;
+  do {
+    ComputeLayerGeometry(fDepth);
+    fDepth -= fLayerDistance;
+  } while (fDepth > m_fMinZ);
 
   // insert all the leftover triangles they must be behind the last plane
   if (HasMesh()) { 
