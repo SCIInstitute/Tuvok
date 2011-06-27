@@ -28,14 +28,17 @@ ${qm} \
   QMAKE_CXXFLAGS+="${VIS} ${INL} ${CF} ${CXF}" \
   QMAKE_LFLAGS+="${VIS} ${COVERAGE}" \
   -recursive Tuvok.pro || exit 1
-pushd IO/test &> /dev/null || exit 1
-  ${qm} \
-    QMAKE_CONFIG+="debug" \
-    QMAKE_CFLAGS+="${VIS} ${CF}" \
-    QMAKE_CXXFLAGS+="${VIS} ${INL} ${CF} ${CXF}" \
-    QMAKE_LFLAGS+="${VIS} ${COVERAGE}" \
-    -recursive test.pro || exit 1
-popd &>/dev/null
+if test $(uname -s) != "Darwin" ; then
+  # Darwin's messed up compiler has improper TR1 support; skip the IO tests.
+  pushd IO/test &> /dev/null || exit 1
+    ${qm} \
+      QMAKE_CONFIG+="debug" \
+      QMAKE_CFLAGS+="${VIS} ${CF}" \
+      QMAKE_CXXFLAGS+="${VIS} ${INL} ${CF} ${CXF}" \
+      QMAKE_LFLAGS+="${VIS} ${COVERAGE}" \
+      -recursive test.pro || exit 1
+  popd &>/dev/null
+fi
 
 # Unless the user gave us input as to options to use, default to a small-scale
 # parallel build.
