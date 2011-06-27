@@ -21,6 +21,8 @@ unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
 # the QMAKE_PRL_CONFIG variable.
 TEMP = $$[QT_INSTALL_LIBS] libQtCore.prl
 PRL  = $$[QT_INSTALL_LIBS] QtCore.framework/QtCore.prl
+TEMP = $$join(TEMP, "/")
+PRL  = $$join(PRL, "/")
 exists($$TEMP) {
   include($$join(TEMP, "/"))
 }
