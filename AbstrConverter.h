@@ -101,7 +101,7 @@ namespace { // force internal linkage.
   ///@{
   template<typename T>
   size_t bins_needed(std::pair<T,T> minmax) {
-    return (minmax.second-minmax.first) + 1;
+    return static_cast<size_t>(minmax.second-minmax.first) + 1;
   }
   template<> size_t bins_needed(std::pair<float,float>) {
     return std::numeric_limits<size_t>::max();
