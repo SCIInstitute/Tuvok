@@ -45,6 +45,7 @@
 #include "IO/IOManager.h"
 #include "Renderer/AbstrRenderer.h"
 #include "Renderer/ContextIdentification.h"
+#include "Renderer/GL/GLContext.h"
 #include "Renderer/GL/GLFBOTex.h"
 #include "Renderer/GL/GLFrameCapture.h"
 #include "Renderer/GL/GLRenderer.h"
@@ -98,8 +99,8 @@ int main(int argc, const char *argv[])
     );
     ren->LoadDataset(uvf_file);
     ren->AddShaderPath("../../Shaders");
+    ren->Initialize(GLContext::Current());
     ren->Resize(UINTVECTOR2(640,480));
-    ren->Initialize(GLContextID::Current());
     ren->SetRendererTarget(AbstrRenderer::RT_HEADLESS);
     ren->Paint();
 
