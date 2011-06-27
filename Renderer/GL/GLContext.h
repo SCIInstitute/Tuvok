@@ -69,7 +69,7 @@ public:
     }
 
     /// Create an ID from the given context.
-    GLContext(const GLContext& ct) {
+    GLContext(const GLContext& ct): Context() {
       ctx = ct.ctx;
       m_pState = ct.m_pState;
     }
