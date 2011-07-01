@@ -1,6 +1,6 @@
 TEMPLATE          = lib
 win32:TEMPLATE    = vclib
-CONFIG            = create_prl exceptions largefile static staticlib stl
+CONFIG            = exceptions largefile static staticlib stl
 CONFIG           += warn_on
 DEFINES          += YY_NO_UNPUT
 TARGET            = tuvokexpr
