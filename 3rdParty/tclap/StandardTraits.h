@@ -168,6 +168,7 @@ struct ArgTraits<bool> {
     typedef ValueLike ValueCategory;
 };
 
+#ifndef _MSC_VER
 /**
  * wchar_ts have value-like semantics.
  */
@@ -175,6 +176,7 @@ template<>
 struct ArgTraits<wchar_t> {
     typedef ValueLike ValueCategory;
 };
+#endif
 
 /**
  * Strings have string like argument traits.
