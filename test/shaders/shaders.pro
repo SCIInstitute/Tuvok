@@ -1,5 +1,5 @@
 TEMPLATE          = app
-CONFIG           += staticlib static create_prl warn_on stl exceptions
+CONFIG           += staticlib static warn_on stl exceptions
 TARGET            = shtest
 DEPENDPATH       += . ../../
 INCLUDEPATH      += ../
@@ -11,7 +11,7 @@ macx:INCLUDEPATH += /usr/X11R6/include
 macx:QMAKE_LIBDIR+= /usr/X11R6/lib
 QMAKE_LIBDIR     += ../../Build ../../IO/expressions
 QT               += opengl
-LIBS             += -lTuvok
+LIBS             += -lTuvok -ltuvokexpr
 macx:LIBS        += -lX11 -lGL
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
 unix:QMAKE_CFLAGS += -fno-strict-aliasing -g

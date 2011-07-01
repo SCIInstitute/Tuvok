@@ -1,6 +1,6 @@
 TEMPLATE          = lib
 win32:TEMPLATE    = vclib
-CONFIG           += warn_on create_prl qt static staticlib stl largefile
+CONFIG           += warn_on qt static staticlib stl largefile
 CONFIG           += exceptions
 macx:DEFINES     += QT_MAC_USE_COCOA=1
 TARGET            = Build/Tuvok
