@@ -9,7 +9,7 @@ qmake -tp vc ^
   -recursive ^
   Tuvok.pro
 REM hardcoding vs2008 for now =(
-bld="C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE\devenv.COM"
+set bld="C:\Program Files (x86)\Microsoft Visual Studio 9.0\Common7\IDE\devenv.COM"
 %bld% ^
   Tuvok.sln ^
   /nologo ^
@@ -35,6 +35,3 @@ pushd IO\test
     /nologo ^
     /Rebuild
 popd
-
-REM bundle it.
-iscc Scripts/installer/64.iss
