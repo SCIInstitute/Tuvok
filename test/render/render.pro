@@ -13,7 +13,7 @@ macx:QMAKE_LIBDIR+= /usr/X11R6/lib
 QMAKE_LIBDIR     += ../../Build ../../IO/expressions
 QT               += opengl
 LIBS             += -lTuvok -ltuvokexpr -lz
-macx:LIBS        += -lX11 -lGL
+macx:LIBS        += -lX11 -lGL -framework CoreFoundation
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
 unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
 
