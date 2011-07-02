@@ -9,6 +9,7 @@ QT               += opengl
 QMAKE_LIBDIR     += ../../Build ../expressions
 LIBS             += -lTuvok -ltuvokexpr
 unix:LIBS        += -lz
+win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -D_GLIBCXX_DEBUG
