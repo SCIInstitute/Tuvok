@@ -2,7 +2,12 @@
 #define SCIO_TEST_UTIL_H
 #include <cstring>
 #include <fstream>
-#ifdef _MSC_VER
+#if defined(__GNUC__) && (__GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ <= 1))
+# define BROKEN_TR1_RANDOM
+#endif
+#ifdef BROKEN_TR1_RANDOM
+  /* nothing */
+#elif defined(_MSC_VER)
 # include <random>
 #else
 # include <tr1/random>
@@ -88,13 +93,19 @@ namespace {
     );
     // double: tr1 RNGs are only defined for FP types.  We'll generate double
     // and just cast to T.
+#ifndef BROKEN_TR1_RANDOM
     std::tr1::variate_generator<std::tr1::mt19937,
                                 std::tr1::normal_distribution<double> > vg(
       std::tr1::mt19937(time(NULL)),
       std::tr1::normal_distribution<double>(mean, stddev)
     );
+#endif
     for(size_t i=0; i < sz/sizeof(T); ++i) {
+#ifndef BROKEN_TR1_RANDOM
       T v = static_cast<T>(vg());
+#else
+      T v = static_cast<T>(42);
+#endif
       minmax.first = std::min(minmax.first, v);
       minmax.second = std::max(minmax.second, v);
       os.write(reinterpret_cast<const char*>(&v), sizeof(T));
