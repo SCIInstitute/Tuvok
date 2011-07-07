@@ -799,17 +799,26 @@ bool AbstrRenderer::RegionNeedsBrick(const RenderRegion& rr,
 
   // skip the brick if it is outside the current view frustum
   if (!m_FrustumCullingLOD.IsVisible(b.vCenter, b.vExtension)) {
+    MESSAGE("Outside view frustum, skipping <%u,%u,%u>",
+            static_cast<unsigned>(std::tr1::get<0>(key)),
+            static_cast<unsigned>(std::tr1::get<1>(key)),
+            static_cast<unsigned>(std::tr1::get<2>(key)));
     return false;
   }
 
   // skip the brick if the clipping plane removes it.
   if(m_bClipPlaneOn && Clipped(rr, b)) {
+    MESSAGE("clipped by clip plane: skipping <%u,%u,%u>",
+            static_cast<unsigned>(std::tr1::get<0>(key)),
+            static_cast<unsigned>(std::tr1::get<1>(key)),
+            static_cast<unsigned>(std::tr1::get<2>(key)));
     return false;
   }
 
   // finally, query the data in the brick; if no data can possibly be visible,
   // don't render this brick.
   bIsEmptyButInFrustum = !ContainsData(key);
+  MESSAGE("empty but visible: %d", static_cast<int>(bIsEmptyButInFrustum));
 
   return true;
 }
@@ -847,6 +856,12 @@ bool AbstrRenderer::Clipped(const RenderRegion& rr, const Brick& b) const
 // isosurface of 42.
 bool AbstrRenderer::ContainsData(const BrickKey& key) const
 {
+  if(this->RGBAData()) {
+    // We don't have good metadata for color data currently, so it can never be
+    // skipped.
+    return true;
+  }
+
   double fMaxValue = MaxValue();
   double fRescaleFactor = fMaxValue / double(m_p1DTrans->GetSize());
 
