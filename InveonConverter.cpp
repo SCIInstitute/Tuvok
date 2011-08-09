@@ -294,5 +294,7 @@ bool InveonConverter::CanRead(const std::string&,
   // first char is nothing/comment, and we couldn't find a character
   // which wasn't ascii.
   return
-    std::isspace(static_cast<int>(static_cast<unsigned char>(start[0]))) && notascii == start.end();
+    (std::isspace(static_cast<int>(static_cast<unsigned char>(start[0]))) ||
+     static_cast<unsigned char>(start[0]) == '#') &&
+    notascii == start.end();
 }
