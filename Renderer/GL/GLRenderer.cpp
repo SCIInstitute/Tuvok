@@ -36,6 +36,7 @@
 
 #include <algorithm>
 #include <cstdarg>
+#include <iterator>
 #include <stdexcept>
 #include <typeinfo>
 #include "GLInclude.h"
