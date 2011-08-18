@@ -157,6 +157,7 @@ HEADERS += \
            IO/UVF/UVFTables.h \
            IO/VariantArray.h \
            IO/VFFConverter.h \
+           IO/XML3DGeoConverter.h \
            Renderer/StateManager.h \
            Renderer/AbstrRenderer.h \
            Renderer/Context.h \
@@ -375,6 +376,7 @@ SOURCES += \
            IO/UVF/UVFTables.cpp \
            IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
+           IO/XML3DGeoConverter.cpp \
            Renderer/AbstrRenderer.cpp \
            Renderer/Context.cpp \
            Renderer/CullingLOD.cpp \
