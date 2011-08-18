@@ -47,6 +47,9 @@ namespace tuvok {
     MedAlyVisFiberTractGeoConverter();
     virtual ~MedAlyVisFiberTractGeoConverter() {}
     virtual Mesh* ConvertToMesh(const std::string& strFilename);
+
+    virtual bool CanImportData() const { return true; }
+
   private:
     enum
     {

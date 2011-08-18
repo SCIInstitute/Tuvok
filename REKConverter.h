@@ -70,6 +70,7 @@ public:
                                const bool bQuantizeTo8Bit);
 
   virtual bool CanExportData() const {return false;}
+  virtual bool CanImportData() const { return true; }
 
 private:
   template<typename T, size_t N>

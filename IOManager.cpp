@@ -88,6 +88,7 @@
 #include "MobileGeoConverter.h"
 #include "MedAlyVisGeoConverter.h"
 #include "MedAlyVisFiberTractGeoConverter.h"
+#include "XML3DGeoConverter.h"
 
 using namespace std;
 using namespace boost;
@@ -142,6 +143,7 @@ IOManager::IOManager() :
   m_vpGeoConverters.push_back(new MobileGeoConverter());
   m_vpGeoConverters.push_back(new MedAlyVisGeoConverter());
   m_vpGeoConverters.push_back(new MedAlyVisFiberTractGeoConverter());
+  m_vpGeoConverters.push_back(new XML3DGeoConverter());
 
   m_vpConverters.push_back(new VGStudioConverter());
   m_vpConverters.push_back(new QVISConverter());
@@ -909,6 +911,8 @@ bool IOManager::ConvertDataset(const list<string>& files,
                           m_vpConverters.end());
     typedef std::set<AbstrConverter*>::const_iterator citer;
     for(citer conv = converters.begin(); conv != converters.end(); ++conv) {
+      if (!(*conv)->CanImportData()) continue;
+
       if((*conv)->ConvertToUVF(files, strTargetFilename, strTempDir,
                                bNoUserInteraction, iMaxBrickSize, iBrickOverlap,
                                bQuantizeTo8Bit)) {
@@ -1172,7 +1176,7 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
   UINT64  iComponentSize = pSourceData->GetBitWidth();
   FLOATVECTOR3 vScale    = FLOATVECTOR3(pSourceData->GetScale());
 
-  AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true);
+  AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true, false);
   
   if (conv == NULL) {
     T_ERROR("Unknown Mesh Format.");
@@ -1227,7 +1231,7 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
 
 bool IOManager::ExportMesh(const Mesh* mesh, 
                            const std::string& strTargetFilename) {
-  AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true);
+  AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true, false);
 
   if (conv == NULL) {
     T_ERROR("Unknown Mesh Format.");
@@ -1360,11 +1364,13 @@ string IOManager::GetLoadDialogString() const {
 
   // converters
   for (size_t i = 0;i<m_vpConverters.size();i++) {
-    for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
-      string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
-      if (descPairs.count(strExt) == 0) {
-        strDialog = strDialog + "*." + strExt + " ";
-        descPairs[strExt] = m_vpConverters[i]->GetDesc();
+    if (m_vpConverters[i]->CanImportData()) {
+      for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
+        string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+        if (descPairs.count(strExt) == 0) {
+          strDialog = strDialog + "*." + strExt + " ";
+          descPairs[strExt] = m_vpConverters[i]->GetDesc();
+        }
       }
     }
   }
@@ -1388,14 +1394,16 @@ string IOManager::GetLoadDialogString() const {
 
   // converters
   for (size_t i=0; i < m_vpConverters.size(); i++) {
-    strDialog += m_vpConverters[i]->GetDesc() + " (";
-    for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
-      string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
-      strDialog += "*." + strExt;
-      if (j<m_vpConverters[i]->SupportedExt().size()-1)
-        strDialog += " ";
+    if (m_vpConverters[i]->CanImportData()) {
+      strDialog += m_vpConverters[i]->GetDesc() + " (";
+      for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
+        string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
+        strDialog += "*." + strExt;
+        if (j<m_vpConverters[i]->SupportedExt().size()-1)
+          strDialog += " ";
+      }
+      strDialog += ");;";
     }
-    strDialog += ");;";
   }
 
   strDialog += "All Files (*)";
@@ -1407,8 +1415,8 @@ string IOManager::GetExportDialogString() const {
   string strDialog;
   // separate entries
   for (size_t i=0; i < m_vpConverters.size(); i++) {
-    for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
-      if (m_vpConverters[i]->CanExportData()) {
+    if (m_vpConverters[i]->CanExportData()) {
+      for (size_t j=0; j < m_vpConverters[i]->SupportedExt().size(); j++) {
         string strExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
         strDialog += m_vpConverters[i]->GetDesc() + " (*." + strExt + ");;";
       }
@@ -1422,8 +1430,8 @@ vector< pair <string, string > > IOManager::GetExportFormatList() const {
   vector< pair <string, string > > v;
   v.push_back(make_pair("UVF", "Universal Volume Format"));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
-    for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
-      if (m_vpConverters[i]->CanExportData()) {
+    if (m_vpConverters[i]->CanExportData()) {
+      for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
         v.push_back(
           make_pair(SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]),
                     m_vpConverters[i]->GetDesc()));
@@ -1437,10 +1445,12 @@ vector< pair <string, string > > IOManager::GetImportFormatList() const {
   vector< pair <string, string > > v;
   v.push_back(make_pair("UVF", "Universal Volume Format"));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
-    for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
-      v.push_back(
-        make_pair(SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]),
-                  m_vpConverters[i]->GetDesc()));
+    if (m_vpConverters[i]->CanImportData()) {
+      for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
+        v.push_back(
+          make_pair(SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]),
+                    m_vpConverters[i]->GetDesc()));
+      }
     }
   }
   return v;
@@ -1450,24 +1460,27 @@ vector< pair <string, string > > IOManager::GetImportFormatList() const {
 vector< tConverterFormat > IOManager::GetFormatList() const {
 
   vector< tConverterFormat > v;
-  v.push_back(tr1::make_tuple("UVF", "Universal Volume Format", true));
+  v.push_back(tr1::make_tuple("UVF", "Universal Volume Format", true, true));
   for (size_t i = 0;i<m_vpConverters.size();i++) {
-    for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
-      v.push_back(tr1::make_tuple(
-                      SysTools::ToLowerCase(
-                        m_vpConverters[i]->SupportedExt()[j]
-                      ),
-                      m_vpConverters[i]->GetDesc(),
-                      m_vpConverters[i]->CanExportData()));
+      for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
+        v.push_back(tr1::make_tuple(
+                        SysTools::ToLowerCase(
+                          m_vpConverters[i]->SupportedExt()[j]
+                        ),
+                        m_vpConverters[i]->GetDesc(),
+                        m_vpConverters[i]->CanExportData(),
+                        m_vpConverters[i]->CanImportData()));
     }
   }
   return v;
 }
 
 AbstrConverter* IOManager::GetConverterForExt(std::string ext,
-                                              bool bMustSupportExport) const {
+                                              bool bMustSupportExport,
+                                              bool bMustSupportImport) const {
   for (size_t i = 0;i<m_vpConverters.size();i++) {
-    if (!bMustSupportExport || m_vpConverters[i]->CanExportData()) {
+    if ((!bMustSupportExport || m_vpConverters[i]->CanExportData()) &&
+        (!bMustSupportImport || m_vpConverters[i]->CanImportData())) {
       for (size_t j = 0;j<m_vpConverters[i]->SupportedExt().size();j++) {
         string convExt = SysTools::ToLowerCase(m_vpConverters[i]->SupportedExt()[j]);
         if (ext == convExt) return m_vpConverters[i];
@@ -1478,9 +1491,12 @@ AbstrConverter* IOManager::GetConverterForExt(std::string ext,
 }
 
 
-AbstrGeoConverter* IOManager::GetGeoConverterForExt(std::string ext, bool bMustSupportExport) const {
+AbstrGeoConverter* IOManager::GetGeoConverterForExt(std::string ext, 
+                                                    bool bMustSupportExport,
+                                                    bool bMustSupportImport) const {
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
-    if (!bMustSupportExport || m_vpGeoConverters[i]->CanExportData()) {
+    if ((!bMustSupportExport || m_vpGeoConverters[i]->CanExportData()) &&
+        (!bMustSupportImport || m_vpGeoConverters[i]->CanImportData())) {
       for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
         string convExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
         if (ext == convExt) return m_vpGeoConverters[i];
@@ -1496,11 +1512,13 @@ string IOManager::GetLoadGeoDialogString() const {
 
   // converters
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
-    for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
-      string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
-      if (descPairs.count(strExt) == 0) {
-        strDialog = strDialog + "*." + strExt + " ";
-        descPairs[strExt] = m_vpGeoConverters[i]->GetDesc();
+    if (m_vpGeoConverters[i]->CanImportData()) {
+      for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
+        string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
+        if (descPairs.count(strExt) == 0) {
+          strDialog = strDialog + "*." + strExt + " ";
+          descPairs[strExt] = m_vpGeoConverters[i]->GetDesc();
+        }
       }
     }
   }
@@ -1508,14 +1526,16 @@ string IOManager::GetLoadGeoDialogString() const {
 
   // now create the separate entries, i.e. just OBJs, TRIs, etc.
   for (size_t i=0; i < m_vpGeoConverters.size(); i++) {
-    strDialog += m_vpGeoConverters[i]->GetDesc() + " (";
-    for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
-      string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
-      strDialog += "*." + strExt;
-      if (j<m_vpGeoConverters[i]->SupportedExt().size()-1)
-        strDialog += " ";
+    if (m_vpGeoConverters[i]->CanImportData()) {
+      strDialog += m_vpGeoConverters[i]->GetDesc() + " (";
+      for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
+        string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
+        strDialog += "*." + strExt;
+        if (j<m_vpGeoConverters[i]->SupportedExt().size()-1)
+          strDialog += " ";
+      }
+      strDialog += ");;";
     }
-    strDialog += ");;";
   }
 
   strDialog += "All Files (*)";
@@ -1527,8 +1547,8 @@ string IOManager::GetGeoExportDialogString() const {
   string strDialog;
   // separate entries
   for (size_t i=0; i < m_vpGeoConverters.size(); i++) {
-    for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
-      if (m_vpGeoConverters[i]->CanExportData()) {
+    if (m_vpGeoConverters[i]->CanExportData()) {
+      for (size_t j=0; j < m_vpGeoConverters[i]->SupportedExt().size(); j++) {
         string strExt = SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]);
         strDialog += m_vpGeoConverters[i]->GetDesc() + " (*." + strExt + ");;";
       }
@@ -1557,10 +1577,12 @@ vector< pair <string, string > > IOManager::GetGeoExportFormatList() const {
 vector< pair <string, string > > IOManager::GetGeoImportFormatList() const {
   vector< pair <string, string > > v;
   for (size_t i = 0;i<m_vpGeoConverters.size();i++) {
-    for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
-      v.push_back(
-        make_pair(SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]),
-                  m_vpGeoConverters[i]->GetDesc()));
+    if (m_vpGeoConverters[i]->CanImportData()) {
+      for (size_t j = 0;j<m_vpGeoConverters[i]->SupportedExt().size();j++) {
+        v.push_back(
+          make_pair(SysTools::ToLowerCase(m_vpGeoConverters[i]->SupportedExt()[j]),
+                    m_vpGeoConverters[i]->GetDesc()));
+      }
     }
   }
   return v;
@@ -1576,7 +1598,8 @@ vector< tConverterFormat > IOManager::GetGeoFormatList() const {
                         m_vpGeoConverters[i]->SupportedExt()[j]
                       ),
                       m_vpGeoConverters[i]->GetDesc(),
-                      m_vpGeoConverters[i]->CanExportData()));
+                      m_vpGeoConverters[i]->CanExportData(),                      
+                      m_vpGeoConverters[i]->CanImportData()));
     }
   }
   return v;

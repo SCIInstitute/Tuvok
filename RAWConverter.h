@@ -149,6 +149,7 @@ public:
                       RangeInfo& info);
 
   virtual bool CanExportData() const { return true; }
+  virtual bool CanImportData() const { return true; }
 
   /// Removes the given file or directory.  Warns if the file could not be
   /// deleted.

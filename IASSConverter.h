@@ -73,6 +73,7 @@ public:
                        const std::vector<int8_t>& start) const;
 
   virtual bool CanExportData() const {return false;}
+  virtual bool CanImportData() const { return true; }
 
 private:
   /// supported pixel types

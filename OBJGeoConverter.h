@@ -51,6 +51,7 @@ namespace tuvok {
                                  const std::string& strTargetFilename);
 
     virtual bool CanExportData() const { return true; }
+    virtual bool CanImportData() const { return true; }
 
   protected:
     int CountOccurences(const std::string& str, const std::string& substr);

@@ -68,5 +68,7 @@ public:
                                 const bool bQuantizeTo8Bit);
 
    virtual bool CanExportData() const { return false; }
+   virtual bool CanImportData() const { return true; }
+
 };
 #endif // TUVOK_ANALYZE_CONVERTER_H

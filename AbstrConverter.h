@@ -168,6 +168,7 @@ public:
   virtual const std::string& GetDesc() { return m_vConverterDesc; }
 
   virtual bool CanExportData() const { return false; }
+  virtual bool CanImportData() const { return true; }
 
   template <typename T, typename U>
   static const std::string ApplyMapping(const UINT64 iSize,

@@ -61,7 +61,7 @@
 #include "TransferFunction1D.h"
 #include "AbstrGeoConverter.h"
 
-typedef std::tr1::tuple<std::string , std::string, bool> tConverterFormat;
+typedef std::tr1::tuple<std::string,std::string,bool,bool> tConverterFormat;
 
 #define DEFAULT_BRICKSIZE (256)
 #define DEFAULT_BRICKOVERLAP (4)
@@ -500,7 +500,8 @@ public:
     GetExportFormatList() const;
   std::vector< tConverterFormat > GetFormatList() const;
   AbstrConverter* GetConverterForExt(std::string ext,
-                                     bool bMustSupportExport) const;
+                                     bool bMustSupportExport,
+                                     bool bMustSupportImport) const;
 
   std::string GetLoadGeoDialogString() const;
   std::string GetGeoExportDialogString() const;
@@ -510,7 +511,8 @@ public:
     GetGeoExportFormatList() const;
   std::vector< tConverterFormat > GetGeoFormatList() const;
   tuvok::AbstrGeoConverter* GetGeoConverterForExt(std::string ext,
-                                                  bool bMustSupportExport) const;
+                                                  bool bMustSupportExport,
+                                                  bool bMustSupportImport) const;
 
 
   UINT64 GetMaxBrickSize() const {return m_iMaxBrickSize;}

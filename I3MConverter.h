@@ -62,6 +62,7 @@ public:
                                const bool bQuantizeTo8Bit);
 
   virtual bool CanExportData() const {return true;}
+  virtual bool CanImportData() const { return true; }
 
 protected:
   static void Compute8BitGradientVolumeInCore(unsigned char* pSourceData, unsigned char* pTargetData, const UINT64VECTOR3& vVolumeSize);

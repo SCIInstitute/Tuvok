@@ -60,6 +60,7 @@ public:
                             bool& bDeleteIntermediateFile);
 
   virtual bool CanExportData() const { return false; }
+  virtual bool CanImportData() const { return true; }
 };
 
 #endif // VGSTUDIOCONVERTER_H

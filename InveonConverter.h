@@ -73,5 +73,7 @@ public:
                        const std::vector<int8_t>& start) const;
 
   virtual bool CanExportData() const { return true; }
+  virtual bool CanImportData() const { return true; }
+
 };
 #endif // TUVOK_IO_INVEON_CONVERTER_H

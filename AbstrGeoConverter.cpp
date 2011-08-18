@@ -40,6 +40,10 @@
 
 using namespace tuvok;
 
+Mesh* AbstrGeoConverter::ConvertToMesh(const std::string&) {
+  return NULL;
+}
+
 bool AbstrGeoConverter::ConvertToNative(const Mesh&,
                                         const std::string&) {
   return false;

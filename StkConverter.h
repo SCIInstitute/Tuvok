@@ -70,5 +70,7 @@ public:
                                bool bNoUserInteraction);
 
   virtual bool CanExportData() const { return false; }
+  virtual bool CanImportData() const { return true; }
 };
+
 #endif // STKCONVERTER_H

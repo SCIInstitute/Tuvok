@@ -47,6 +47,8 @@ public:
   MedAlyVisGeoConverter();
   virtual ~MedAlyVisGeoConverter() {}
   virtual Mesh* ConvertToMesh(const std::string& strFilename);
+
+  virtual bool CanImportData() const { return true; }
 };
 }
 #endif // MEDALYVISGEOCONVERTER_H

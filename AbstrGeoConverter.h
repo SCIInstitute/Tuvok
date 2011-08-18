@@ -48,7 +48,7 @@ class AbstrGeoConverter {
 public:
   virtual ~AbstrGeoConverter() {}
 
-  virtual Mesh* ConvertToMesh(const std::string& strRawFilename) = 0;
+  virtual Mesh* ConvertToMesh(const std::string& strRawFilename);
 
   virtual bool ConvertToNative(const Mesh& m,
                                const std::string& strTargetFilename);
@@ -61,6 +61,7 @@ public:
   const std::string& GetDesc() const { return m_vConverterDesc; }
 
   virtual bool CanExportData() const { return false; }
+  virtual bool CanImportData() const { return false; }
 
 protected:
   /// @param ext the extension for the filename

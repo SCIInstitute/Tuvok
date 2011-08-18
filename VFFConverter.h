@@ -61,6 +61,8 @@ public:
                                const bool bQuantizeTo8Bit);
 
   virtual bool CanExportData() const {return true;}
+  virtual bool CanImportData() const { return true; }
+
 };
 
 #endif // VFFCONVERTER_H

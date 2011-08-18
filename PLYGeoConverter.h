@@ -57,6 +57,7 @@ namespace tuvok {
                                  const std::string& strTargetFilename);
 
     virtual bool CanExportData() const { return true; }
+    virtual bool CanImportData() const { return true; }
 
   private:
     enum
