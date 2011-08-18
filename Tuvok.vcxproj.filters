@@ -789,6 +789,9 @@
     <ClCompile Include="IO\Images\StackExporter.cpp">
       <Filter>IO\Images</Filter>
     </ClCompile>
+    <ClCompile Include="IO\XML3DGeoConverter.cpp">
+      <Filter>IO\Geometry Converter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1598,6 +1601,9 @@
     </ClInclude>
     <ClInclude Include="Basics\Interpolant.h">
       <Filter>Basics</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\XML3DGeoConverter.h">
+      <Filter>IO\Geometry Converter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
