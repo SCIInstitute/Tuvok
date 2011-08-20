@@ -225,7 +225,7 @@ bool Mesh::UnifyIndices() {
 
   // compute an inverse lookup index, i.e. for each
   // vertex, store what indices point to it
-  std::vector<std::vector<size_t>> inverseIndex(m_Data.m_vertices.size());
+  std::vector< std::vector<size_t> > inverseIndex(m_Data.m_vertices.size());
   for (size_t i = 0;i<m_Data.m_VertIndices.size();++i) {
     inverseIndex[m_Data.m_VertIndices[i]].push_back(i);
   }
