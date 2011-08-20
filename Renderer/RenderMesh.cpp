@@ -109,22 +109,22 @@ RenderMesh::RenderMesh(const VertVec& vertices, const NormVec& normals,
 
 void RenderMesh::Swap(size_t i, size_t j) {
   for (size_t iVertex = 0;iVertex<m_VerticesPerPoly;iVertex++) {
-    std::swap(m_VertIndices[i+iVertex], m_VertIndices[j+iVertex]);
+    std::swap(m_Data.m_VertIndices[i+iVertex], m_Data.m_VertIndices[j+iVertex]);
     // we know that this mesh has to have colors otherwise 
     // this method would not be called by the SplitOpaqueFromTransparent
     // method
-    std::swap(m_COLIndices[i+iVertex], m_COLIndices[j+iVertex]);
+    std::swap(m_Data.m_COLIndices[i+iVertex], m_Data.m_COLIndices[j+iVertex]);
   
-    if (m_NormalIndices.size()) 
-      std::swap(m_NormalIndices[i+iVertex], m_NormalIndices[j+iVertex]);
-    if (m_TCIndices.size())     
-      std::swap(m_TCIndices[i+iVertex], m_TCIndices[j+iVertex]);
+    if (m_Data.m_NormalIndices.size()) 
+      std::swap(m_Data.m_NormalIndices[i+iVertex], m_Data.m_NormalIndices[j+iVertex]);
+    if (m_Data.m_TCIndices.size())     
+      std::swap(m_Data.m_TCIndices[i+iVertex], m_Data.m_TCIndices[j+iVertex]);
   }
 }
 
 bool RenderMesh::isTransparent(size_t i) {
   for (size_t iVertex = 0;iVertex<m_VerticesPerPoly;iVertex++) {
-    if (m_colors[m_COLIndices[i+iVertex]].w < m_fTransTreshhold)
+    if (m_Data.m_colors[m_Data.m_COLIndices[i+iVertex]].w < m_fTransTreshhold)
       return true;
   }
   return false;
@@ -134,23 +134,23 @@ bool RenderMesh::isTransparent(size_t i) {
 void RenderMesh::SplitOpaqueFromTransparent() {
   size_t prevIndex  = m_splitIndex;
 
-  if (m_COLIndices.empty()) {
+  if (m_Data.m_COLIndices.empty()) {
     if (m_DefColor.w < m_fTransTreshhold ) 
       m_splitIndex = 0;
     else
-      m_splitIndex = m_VertIndices.size();
+      m_splitIndex = m_Data.m_VertIndices.size();
   } else {
     assert(Validate(true));
 
     // find first transparent polygon
     size_t iTarget = 0;
-    for (;iTarget<m_COLIndices.size();iTarget+=m_VerticesPerPoly) {
+    for (;iTarget<m_Data.m_COLIndices.size();iTarget+=m_VerticesPerPoly) {
       if (isTransparent(iTarget)) break;
     }
 
     // swap opaque poly with transparent
     size_t iStart = iTarget;
-    for (size_t iSource = iStart+m_VerticesPerPoly;iSource<m_COLIndices.size();iSource+=m_VerticesPerPoly) {
+    for (size_t iSource = iStart+m_VerticesPerPoly;iSource<m_Data.m_COLIndices.size();iSource+=m_VerticesPerPoly) {
       if (!isTransparent(iSource)) {
         Swap(iSource, iTarget);
         iTarget+=m_VerticesPerPoly;
@@ -184,7 +184,7 @@ void RenderMesh::SetDefaultColor(const FLOATVECTOR4& color) {
   //      1) pushes the opacity above the threshold while it was below before
   //      2) or below the threshold while it was above before
   if (prevAlpha != color.w &&
-      m_COLIndices.empty() &&
+      m_Data.m_COLIndices.empty() &&
       ((prevAlpha < m_fTransTreshhold && m_DefColor.w >= m_fTransTreshhold) ||
        (prevAlpha >= m_fTransTreshhold && m_DefColor.w < m_fTransTreshhold))) {
     SplitOpaqueFromTransparent();
@@ -197,7 +197,7 @@ void RenderMesh::GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree) {
 
   // create sortindex list with all tris
   m_allPolys.clear();
-  for (size_t i = m_splitIndex;i<m_VertIndices.size();i+=m_VerticesPerPoly) {
+  for (size_t i = m_splitIndex;i<m_Data.m_VertIndices.size();i+=m_VerticesPerPoly) {
     m_allPolys.push_back(SortIndex(i, this));
   }
 

@@ -148,7 +148,7 @@ public:
   }
 
   bool IsCompletelyOpaque() {
-    return m_splitIndex == m_VertIndices.size();
+    return m_splitIndex == m_Data.m_VertIndices.size();
   }
 
 protected:

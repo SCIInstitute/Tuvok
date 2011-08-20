@@ -71,24 +71,24 @@ RenderMeshGL::~RenderMeshGL() {
 }
 
 void RenderMeshGL::PrepareOpaqueBuffers() {
-  if (m_VertIndices.empty()) return;
+  if (m_Data.m_VertIndices.empty()) return;
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexVBOOpaque);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_VertIndices[0], GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_Data.m_VertIndices[0], GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[POSITION_VBO]);
-  glBufferData(GL_ARRAY_BUFFER, m_vertices.size()*sizeof(float)*3, &m_vertices[0], GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, m_Data.m_vertices.size()*sizeof(float)*3, &m_Data.m_vertices[0], GL_STATIC_DRAW);
 
-  if (m_NormalIndices.size() == m_VertIndices.size()) {
+  if (m_Data.m_NormalIndices.size() == m_Data.m_VertIndices.size()) {
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[NORMAL_VBO]);
-    glBufferData(GL_ARRAY_BUFFER, m_normals.size()*sizeof(float)*3, &m_normals[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_Data.m_normals.size()*sizeof(float)*3, &m_Data.m_normals[0], GL_STATIC_DRAW);
   }
-  if (m_TCIndices.size() == m_VertIndices.size()) {
+  if (m_Data.m_TCIndices.size() == m_Data.m_VertIndices.size()) {
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[TEXCOORD_VBO]);
-    glBufferData(GL_ARRAY_BUFFER, m_texcoords.size()*sizeof(float)*2, &m_texcoords[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_Data.m_texcoords.size()*sizeof(float)*2, &m_Data.m_texcoords[0], GL_STATIC_DRAW);
   }
-  if (m_COLIndices.size() == m_VertIndices.size()) {
+  if (m_Data.m_COLIndices.size() == m_Data.m_VertIndices.size()) {
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[COLOR_VBO]);
-    glBufferData(GL_ARRAY_BUFFER, m_colors.size()*sizeof(float)*4, &m_colors[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_Data.m_colors.size()*sizeof(float)*4, &m_Data.m_colors[0], GL_STATIC_DRAW);
   }
 }
 
@@ -100,21 +100,21 @@ void RenderMeshGL::RenderGeometry(GLuint IndexVBO, size_t count) {
   glVertexPointer(3, GL_FLOAT, 0, 0);
   glEnableClientState(GL_VERTEX_ARRAY);
 
-  if (m_NormalIndices.size() == m_VertIndices.size()) {
+  if (m_Data.m_NormalIndices.size() == m_Data.m_VertIndices.size()) {
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[NORMAL_VBO]);
     glNormalPointer(GL_FLOAT, 0, 0);
     glEnableClientState(GL_NORMAL_ARRAY);
   } else {
     glNormal3f(2,2,2); // tells the shader to disable lighting
   }
-  if (m_TCIndices.size() == m_VertIndices.size()) {
+  if (m_Data.m_TCIndices.size() == m_Data.m_VertIndices.size()) {
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[TEXCOORD_VBO]);
     glTexCoordPointer(2, GL_FLOAT, 0, 0);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
   } else {
     glTexCoord2f(0,0);
   }
-  if (m_COLIndices.size() == m_VertIndices.size()) {
+  if (m_Data.m_COLIndices.size() == m_Data.m_VertIndices.size()) {
     glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[COLOR_VBO]);
     glColorPointer(4, GL_FLOAT, 0, 0);
     glEnableClientState(GL_COLOR_ARRAY);
@@ -134,11 +134,11 @@ void RenderMeshGL::RenderGeometry(GLuint IndexVBO, size_t count) {
   }
 
   glDisableClientState(GL_VERTEX_ARRAY);
-  if (m_NormalIndices.size() == m_VertIndices.size())
+  if (m_Data.m_NormalIndices.size() == m_Data.m_VertIndices.size())
     glDisableClientState(GL_NORMAL_ARRAY);
-  if (m_TCIndices.size() == m_VertIndices.size())
+  if (m_Data.m_TCIndices.size() == m_Data.m_VertIndices.size())
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  if (m_COLIndices.size() == m_VertIndices.size())
+  if (m_Data.m_COLIndices.size() == m_Data.m_VertIndices.size())
     glDisableClientState(GL_COLOR_ARRAY);
 }
 
@@ -188,7 +188,7 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBO, const SortIndexPVec& lis
        index++) {
     size_t iIndex = (*index)->m_index;
     for (size_t i = 0;i<m_VerticesPerPoly;i++)
-      VertIndices.push_back(m_VertIndices[iIndex+i]);
+      VertIndices.push_back(m_Data.m_VertIndices[iIndex+i]);
   }
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexVBO);
@@ -202,45 +202,45 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBO, const SortIndexPVec& lis
 // differ
 void RenderMeshGL::UnrollArrays() {
   bool bSeparateArraysNecessary = 
-    (m_NormalIndices.size() == m_VertIndices.size() && m_NormalIndices != m_VertIndices) ||
-    (m_COLIndices.size() == m_VertIndices.size() && m_COLIndices != m_VertIndices) ||
-    (m_TCIndices.size() == m_VertIndices.size() && m_TCIndices != m_VertIndices);
+    (m_Data.m_NormalIndices.size() == m_Data.m_VertIndices.size() && m_Data.m_NormalIndices != m_Data.m_VertIndices) ||
+    (m_Data.m_COLIndices.size() == m_Data.m_VertIndices.size() && m_Data.m_COLIndices != m_Data.m_VertIndices) ||
+    (m_Data.m_TCIndices.size() == m_Data.m_VertIndices.size() && m_Data.m_TCIndices != m_Data.m_VertIndices);
 
   if (!bSeparateArraysNecessary) return;
 
-  VertVec       vertices(m_VertIndices.size());
+  VertVec       vertices(m_Data.m_VertIndices.size());
   NormVec       normals;
-  if (m_NormalIndices.size() == m_VertIndices.size())
-    normals.resize(m_VertIndices.size());
+  if (m_Data.m_NormalIndices.size() == m_Data.m_VertIndices.size())
+    normals.resize(m_Data.m_VertIndices.size());
   ColorVec      colors;
-  if (m_COLIndices.size() == m_VertIndices.size())
-    colors.resize(m_VertIndices.size());
+  if (m_Data.m_COLIndices.size() == m_Data.m_VertIndices.size())
+    colors.resize(m_Data.m_VertIndices.size());
   TexCoordVec   texcoords;
-  if (m_TCIndices.size() == m_VertIndices.size())
-    texcoords.resize(m_VertIndices.size());
+  if (m_Data.m_TCIndices.size() == m_Data.m_VertIndices.size())
+    texcoords.resize(m_Data.m_VertIndices.size());
 
-  for (size_t i = 0;i<m_VertIndices.size();i++) {
-    vertices[i] = m_vertices[m_VertIndices[i]];
-    if (m_NormalIndices.size() == m_VertIndices.size()) 
-      normals[i] = m_normals[m_NormalIndices[i]];
-    if (m_COLIndices.size() == m_VertIndices.size()) 
-      colors[i] = m_colors[m_COLIndices[i]];
-    if (m_TCIndices.size() == m_VertIndices.size()) 
-      texcoords[i] = m_texcoords[m_TCIndices[i]];
+  for (size_t i = 0;i<m_Data.m_VertIndices.size();i++) {
+    vertices[i] = m_Data.m_vertices[m_Data.m_VertIndices[i]];
+    if (m_Data.m_NormalIndices.size() == m_Data.m_VertIndices.size()) 
+      normals[i] = m_Data.m_normals[m_Data.m_NormalIndices[i]];
+    if (m_Data.m_COLIndices.size() == m_Data.m_VertIndices.size()) 
+      colors[i] = m_Data.m_colors[m_Data.m_COLIndices[i]];
+    if (m_Data.m_TCIndices.size() == m_Data.m_VertIndices.size()) 
+      texcoords[i] = m_Data.m_texcoords[m_Data.m_TCIndices[i]];
   }
 
-  m_vertices = vertices;
-  m_normals = normals;
-  m_texcoords = texcoords;
-  m_colors = colors;
+  m_Data.m_vertices = vertices;
+  m_Data.m_normals = normals;
+  m_Data.m_texcoords = texcoords;
+  m_Data.m_colors = colors;
 
   // effectively disable indices
-  for (size_t i = 0;i<m_VertIndices.size();i++)  m_VertIndices[i] = UINT32(i);
+  for (size_t i = 0;i<m_Data.m_VertIndices.size();i++)  m_Data.m_VertIndices[i] = UINT32(i);
 
   // equalize index arrays
-  if (m_NormalIndices.size() == m_VertIndices.size()) m_NormalIndices = m_VertIndices;
-  if (m_COLIndices.size() == m_VertIndices.size()) m_COLIndices = m_VertIndices;
-  if (m_TCIndices.size() == m_VertIndices.size()) m_TCIndices = m_VertIndices;
+  if (m_Data.m_NormalIndices.size() == m_Data.m_VertIndices.size()) m_Data.m_NormalIndices = m_Data.m_VertIndices;
+  if (m_Data.m_COLIndices.size() == m_Data.m_VertIndices.size()) m_Data.m_COLIndices = m_Data.m_VertIndices;
+  if (m_Data.m_TCIndices.size() == m_Data.m_VertIndices.size()) m_Data.m_TCIndices = m_Data.m_VertIndices;
 
   GeometryHasChanged(false,false);
 }
