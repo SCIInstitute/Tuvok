@@ -49,7 +49,7 @@ KDTree::KDTree(Mesh* mesh, const std::string& filename, unsigned int maxDepth) :
 
   std::cout << "Generating KD-Tree" << std::endl;
   m_Root = new KDTreeNode();
-	for ( size_t e = 0; e < m_mesh->m_VertIndices.size(); e++ ) m_Root->Add( e );
+	for ( size_t e = 0; e < m_mesh->m_Data.m_VertIndices.size(); e++ ) m_Root->Add( e );
   Subdivide( m_Root, DOUBLEVECTOR3(m_mesh->m_Bounds[0]),
                      DOUBLEVECTOR3(m_mesh->m_Bounds[1]), m_maxDepth );
   std::cout << "Done" << std::endl;
@@ -192,9 +192,9 @@ void KDTree::Subdivide(KDTreeNode* node, const DOUBLEVECTOR3& min,
   for (size_t i = 0;i<node->GetList().size();i++) {
     size_t triIndex = node->GetList()[i];
     double vertices[3] = {
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+0]][axis],
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+1]][axis],
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+2]][axis]
+      m_mesh->m_Data.m_vertices[m_mesh->m_Data.m_VertIndices[triIndex*3+0]][axis],
+      m_mesh->m_Data.m_vertices[m_mesh->m_Data.m_VertIndices[triIndex*3+1]][axis],
+      m_mesh->m_Data.m_vertices[m_mesh->m_Data.m_VertIndices[triIndex*3+2]][axis]
     };
 
     
@@ -275,9 +275,9 @@ void KDTree::Subdivide(KDTreeNode* node, const DOUBLEVECTOR3& min,
   for (size_t i = 0;i<node->GetList().size();i++) {
     size_t triIndex = node->GetList()[i];
     double vertices[3] = {
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+0]][axis],
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+1]][axis],
-      m_mesh->m_vertices[m_mesh->m_VertIndices[triIndex*3+2]][axis]
+      m_mesh->m_Data.m_vertices[m_mesh->m_Data.m_VertIndices[triIndex*3+0]][axis],
+      m_mesh->m_Data.m_vertices[m_mesh->m_Data.m_VertIndices[triIndex*3+1]][axis],
+      m_mesh->m_Data.m_vertices[m_mesh->m_Data.m_VertIndices[triIndex*3+2]][axis]
     };
 
     if ( vertices[0] <= bestpos ||

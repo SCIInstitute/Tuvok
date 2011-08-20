@@ -47,6 +47,22 @@ Mesh::Mesh() :
   m_VerticesPerPoly = (m_meshType == Mesh::MT_TRIANGLES) ? 3 : 2;
 }
 
+Mesh::Mesh(const BasicMeshData& bmd,
+  bool bBuildKDTree, bool bScaleToUnitCube,
+  const std::string& desc, EMeshType meshType) :
+  m_KDTree(0),
+  m_Data(bmd),
+  m_DefColor(1,1,1,1),
+  m_MeshDesc(desc),
+  m_meshType(meshType)
+{
+  m_VerticesPerPoly = (m_meshType == Mesh::MT_TRIANGLES) ? 3 : 2;
+
+  ComputeAABB();
+  if (bScaleToUnitCube) ScaleToUnitCube(); 
+  if (bBuildKDTree) m_KDTree = new KDTree(this);
+}
+
 Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
            const TexCoordVec& texcoords, const ColorVec& colors,
            const IndexVec& vIndices, const IndexVec& nIndices,
@@ -54,14 +70,7 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
            bool bBuildKDTree, bool bScaleToUnitCube,
            const std::string& desc, EMeshType meshType) :
   m_KDTree(0),
-  m_vertices(vertices),
-  m_normals(normals),
-  m_texcoords(texcoords),
-  m_colors(colors),
-  m_VertIndices(vIndices),
-  m_NormalIndices(nIndices),
-  m_TCIndices(tIndices),
-  m_COLIndices(cIndices),
+  m_Data(vertices,normals,texcoords,colors,vIndices,nIndices,tIndices,cIndices),
   m_DefColor(1,1,1,1),
   m_MeshDesc(desc),
   m_meshType(meshType)
@@ -75,12 +84,12 @@ Mesh::Mesh(const VertVec& vertices, const NormVec& normals,
 
 
 void Mesh::ComputeAABB() {
-  if (m_vertices.empty()) return;
+  if (m_Data.m_vertices.empty()) return;
 
-  m_Bounds[0] = m_vertices[0];
-  m_Bounds[1] = m_vertices[0];
+  m_Bounds[0] = m_Data.m_vertices[0];
+  m_Bounds[1] = m_Data.m_vertices[0];
 
-  for (VertVec::iterator i = m_vertices.begin()+1;i<m_vertices.end();i++) {
+  for (VertVec::iterator i = m_Data.m_vertices.begin()+1;i<m_Data.m_vertices.end();i++) {
     if (i->x < m_Bounds[0].x) m_Bounds[0].x = i->x;
     if (i->x > m_Bounds[1].x) m_Bounds[1].x = i->x;
     if (i->y < m_Bounds[0].y) m_Bounds[0].y = i->y;
@@ -92,7 +101,7 @@ void Mesh::ComputeAABB() {
 
 void Mesh::ComputeUnitCubeScale(FLOATVECTOR3& scale, 
                                 FLOATVECTOR3& translation) {
-  if (m_vertices.empty()) {
+  if (m_Data.m_vertices.empty()) {
     translation = FLOATVECTOR3(0,0,0);
     scale = FLOATVECTOR3(1,1,1);
     return;
@@ -111,7 +120,7 @@ void Mesh::ComputeUnitCubeScale(FLOATVECTOR3& scale,
 }
 
 void Mesh::Transform(const FLOATMATRIX4& m) {
-  for (VertVec::iterator i = m_vertices.begin();i<m_vertices.end();i++) {
+  for (VertVec::iterator i = m_Data.m_vertices.begin();i<m_Data.m_vertices.end();i++) {
     *i = (FLOATVECTOR4((*i),1)*m).xyz();
   }
 
@@ -121,15 +130,15 @@ void Mesh::Transform(const FLOATMATRIX4& m) {
 
 
 void Mesh::Clone(const Mesh* other) {
-  m_vertices = other->m_vertices;
-  m_normals = other->m_normals;
-  m_texcoords = other->m_texcoords;
-  m_colors = other->m_colors;
+  m_Data.m_vertices = other->m_Data.m_vertices;
+  m_Data.m_normals = other->m_Data.m_normals;
+  m_Data.m_texcoords = other->m_Data.m_texcoords;
+  m_Data.m_colors = other->m_Data.m_colors;
 
-  m_VertIndices = other->m_VertIndices;
-  m_NormalIndices = other->m_NormalIndices;
-  m_TCIndices = other->m_TCIndices;
-  m_COLIndices = other->m_COLIndices;
+  m_Data.m_VertIndices = other->m_Data.m_VertIndices;
+  m_Data.m_NormalIndices = other->m_Data.m_NormalIndices;
+  m_Data.m_TCIndices = other->m_Data.m_TCIndices;
+  m_Data.m_COLIndices = other->m_Data.m_COLIndices;
 
   m_DefColor = other->m_DefColor;
   m_MeshDesc = other->m_MeshDesc;
@@ -145,7 +154,7 @@ void Mesh::Clone(const Mesh* other) {
 void Mesh::ScaleAndBias(const FLOATVECTOR3& scale,
                         const FLOATVECTOR3& translation) {
 
-  for (VertVec::iterator i = m_vertices.begin();i<m_vertices.end();i++)
+  for (VertVec::iterator i = m_Data.m_vertices.begin();i<m_Data.m_vertices.end();i++)
 	  *i = (*i*scale) + translation;
 
   m_Bounds[0] = (m_Bounds[0] * scale) + translation;
@@ -176,62 +185,256 @@ Mesh::~Mesh() {
 void Mesh::RecomputeNormals() {
   if (m_meshType != MT_TRIANGLES) return;
 
-  m_normals.resize(m_vertices.size());
-  for(size_t i = 0;i<m_normals.size();i++) m_normals[i] = FLOATVECTOR3();
+  m_Data.m_normals.resize(m_Data.m_vertices.size());
+  for(size_t i = 0;i<m_Data.m_normals.size();i++) m_Data.m_normals[i] = FLOATVECTOR3();
 
-  for (size_t i = 0;i<m_VertIndices.size();i+=3) {
-    UINTVECTOR3 indices(m_VertIndices[i], m_VertIndices[i+1], m_VertIndices[i+2]);
+  for (size_t i = 0;i<m_Data.m_VertIndices.size();i+=3) {
+    UINTVECTOR3 indices(m_Data.m_VertIndices[i], m_Data.m_VertIndices[i+1], m_Data.m_VertIndices[i+2]);
 
-    FLOATVECTOR3 tang = m_vertices[indices.x]-m_vertices[indices.y];
-    FLOATVECTOR3 bin  = m_vertices[indices.x]-m_vertices[indices.z];
+    FLOATVECTOR3 tang = m_Data.m_vertices[indices.x]-m_Data.m_vertices[indices.y];
+    FLOATVECTOR3 bin  = m_Data.m_vertices[indices.x]-m_Data.m_vertices[indices.z];
 
     FLOATVECTOR3 norm = bin % tang;
   	
-    m_normals[indices.x] = m_normals[indices.x]+norm;
-    m_normals[indices.y] = m_normals[indices.y]+norm;
-    m_normals[indices.z] = m_normals[indices.z]+norm;
+    m_Data.m_normals[indices.x] = m_Data.m_normals[indices.x]+norm;
+    m_Data.m_normals[indices.y] = m_Data.m_normals[indices.y]+norm;
+    m_Data.m_normals[indices.z] = m_Data.m_normals[indices.z]+norm;
   }
-  for(size_t i = 0;i<m_normals.size();i++) {
-    float l = m_normals[i].length();
-    if (l > 0) m_normals[i] = m_normals[i] / l;;
+  for(size_t i = 0;i<m_Data.m_normals.size();i++) {
+    float l = m_Data.m_normals[i].length();
+    if (l > 0) m_Data.m_normals[i] = m_Data.m_normals[i] / l;;
   }
 
-  m_NormalIndices = m_VertIndices;
+  m_Data.m_NormalIndices = m_Data.m_VertIndices;
+}
+
+bool Mesh::UnifyIndices() {
+
+  if (m_Data.m_NormalIndices.empty() &&
+      m_Data.m_TCIndices.empty() && 
+      m_Data.m_COLIndices.empty()) return true;
+
+
+  if (!Validate()) return false;
+  if (HasUniformIndices()) return true;
+
+  VertVec     vertices(m_Data.m_vertices);
+  NormVec     normals(m_Data.m_normals);
+  TexCoordVec texcoords(m_Data.m_texcoords);
+  ColorVec    colors(m_Data.m_colors);
+
+  // compute an inverse lookup index, i.e. for each
+  // vertex, store what indices point to it
+  std::vector<std::vector<size_t>> inverseIndex(m_Data.m_vertices.size());
+  for (size_t i = 0;i<m_Data.m_VertIndices.size();++i) {
+    inverseIndex[m_Data.m_VertIndices[i]].push_back(i);
+  }
+
+  for (size_t i = 0;i<m_Data.m_VertIndices.size();++i) {
+    UINT32 index = m_Data.m_VertIndices[i];
+
+    // simple resort
+    if (inverseIndex[index].size() == 1 || (inverseIndex[index].size() > 1 && inverseIndex[index][0] == i)) {      
+      if (!m_Data.m_NormalIndices.empty()) normals[index] = m_Data.m_normals[m_Data.m_NormalIndices[i]];
+      if (!m_Data.m_TCIndices.empty()) texcoords[index] = m_Data.m_texcoords[m_Data.m_TCIndices[i]];
+      if (!m_Data.m_COLIndices.empty()) colors[index] = m_Data.m_colors[m_Data.m_COLIndices[i]];
+      continue;
+    }
+
+    // more complicated case of a multiply used point
+    if (inverseIndex[index].size() > 1) {
+
+      if ((!m_Data.m_NormalIndices.empty() && m_Data.m_normals[m_Data.m_NormalIndices[i]] != m_Data.m_normals[m_Data.m_NormalIndices[inverseIndex[index][0]]]) ||
+          (!m_Data.m_TCIndices.empty() && m_Data.m_texcoords[m_Data.m_TCIndices[i]] != m_Data.m_texcoords[m_Data.m_TCIndices[inverseIndex[index][0]]]) ||
+          (!m_Data.m_COLIndices.empty() && m_Data.m_colors[m_Data.m_COLIndices[i]] != m_Data.m_colors[m_Data.m_COLIndices[inverseIndex[index][0]]])) {
+
+        m_Data.m_VertIndices[i] = vertices.size();
+        vertices.push_back(m_Data.m_vertices[index]);
+
+        if (!m_Data.m_NormalIndices.empty()) normals.push_back( m_Data.m_normals[m_Data.m_NormalIndices[i]]);
+        if (!m_Data.m_TCIndices.empty()) texcoords.push_back(m_Data.m_texcoords[m_Data.m_TCIndices[i]]);
+        if (!m_Data.m_COLIndices.empty()) colors.push_back(m_Data.m_colors[m_Data.m_COLIndices[i]]);
+      } else {
+        if (!m_Data.m_NormalIndices.empty()) normals[index] = m_Data.m_normals[m_Data.m_NormalIndices[inverseIndex[index][0]]];
+        if (!m_Data.m_TCIndices.empty()) texcoords[index] = m_Data.m_texcoords[m_Data.m_TCIndices[inverseIndex[index][0]]];
+        if (!m_Data.m_COLIndices.empty()) colors[index] = m_Data.m_colors[m_Data.m_COLIndices[inverseIndex[index][0]]];
+      }
+    }
+  }
+
+  m_Data.m_vertices = vertices;
+  m_Data.m_normals = normals;
+  m_Data.m_texcoords = texcoords;
+  m_Data.m_colors =colors;
+
+  m_Data.m_NormalIndices = m_Data.m_TCIndices = m_Data.m_COLIndices = m_Data.m_VertIndices;
+
+  return true;
+}
+
+std::vector<Mesh*> Mesh::PartitionMesh(size_t iMaxIndexCount, bool bOptimize) const {
+  const Mesh* source;
+  if (HasUniformIndices()) {
+    source = this;
+  } else {
+    Mesh* unifiedIndexMesh = new Mesh();
+    unifiedIndexMesh->Clone(this);
+    unifiedIndexMesh->UnifyIndices();
+    source = unifiedIndexMesh;
+  }
+
+  // march over all vertices and hash them into the sub-meshes
+  // based on their index modulo iMaxIndex, those primitives that
+  // have indices that spawn over multiple of those sub-meshes
+  // are stored in an boundary list
+  std::vector<size_t> boundaryList;
+  std::vector<BasicMeshData> basicMeshVec( size_t( ceil(source->m_Data.m_vertices.size() / double(iMaxIndexCount)) ) );
+
+  size_t iLastBinsize = source->m_Data.m_vertices.size()%iMaxIndexCount;
+
+  for (size_t i = 0;i<basicMeshVec.size();++i) {
+    size_t iBinsize = (i == basicMeshVec.size()-1 ) ? iLastBinsize : iMaxIndexCount;
+
+    basicMeshVec[i].m_vertices.resize(iBinsize);
+    if (!source->m_Data.m_NormalIndices.empty()) basicMeshVec[i].m_normals.resize(iBinsize);
+    if (!source->m_Data.m_TCIndices.empty())     basicMeshVec[i].m_texcoords.resize(iBinsize);
+    if (!source->m_Data.m_COLIndices.empty())    basicMeshVec[i].m_colors.resize(iBinsize);
+  }
+
+
+  for (size_t i = 0;i<source->m_Data.m_VertIndices.size();i+=m_VerticesPerPoly) {
+    bool bConsistentBin = true;
+    size_t iTargetBin = source->m_Data.m_VertIndices[i] / iMaxIndexCount;
+    for (size_t j = 1;j<m_VerticesPerPoly;++j) {
+      if (source->m_Data.m_VertIndices[i+j] / iMaxIndexCount != iTargetBin) {
+        bConsistentBin = false;
+        break;
+      }
+    }
+
+    if (!bConsistentBin) {
+      boundaryList.push_back(i);
+      continue;
+    }
+
+    size_t iIndexTransform = iMaxIndexCount*iTargetBin;    
+
+    for (size_t j = 0;j<m_VerticesPerPoly;++j) {
+      size_t iNewIndex = source->m_Data.m_VertIndices[i+j] - iIndexTransform;
+     
+      basicMeshVec[iTargetBin].m_VertIndices.push_back( iNewIndex );
+      basicMeshVec[iTargetBin].m_vertices[iNewIndex] = source->m_Data.m_vertices[source->m_Data.m_VertIndices[i+j]];
+
+      if (!source->m_Data.m_NormalIndices.empty()) {
+        basicMeshVec[iTargetBin].m_NormalIndices.push_back( iNewIndex );
+        basicMeshVec[iTargetBin].m_normals[iNewIndex] = source->m_Data.m_normals[source->m_Data.m_VertIndices[i+j]];
+      }
+      if (!source->m_Data.m_TCIndices.empty()) {
+        basicMeshVec[iTargetBin].m_TCIndices.push_back( iNewIndex );
+        basicMeshVec[iTargetBin].m_texcoords[iNewIndex] = source->m_Data.m_texcoords[source->m_Data.m_VertIndices[i+j]];
+      }
+      if (!source->m_Data.m_COLIndices.empty())  {
+        basicMeshVec[iTargetBin].m_COLIndices.push_back( iNewIndex );
+        basicMeshVec[iTargetBin].m_colors[iNewIndex] = source->m_Data.m_colors[source->m_Data.m_VertIndices[i+j]];
+      }
+    }
+  }
+
+  if (bOptimize) {
+    // remove unused items
+    for (size_t i = 0;i<basicMeshVec.size();++i) basicMeshVec[i].RemoveUnusedVertices();
+  }
+
+  // insert boundary items into meshes
+  size_t iTargetBin = 0;
+  for (size_t i = 0;i<boundaryList.size();++i) {
+    while (basicMeshVec[iTargetBin].m_VertIndices.size()+m_VerticesPerPoly > iMaxIndexCount) {
+      ++iTargetBin;
+      if (iTargetBin >= basicMeshVec.size()) {
+        basicMeshVec.push_back(BasicMeshData());
+        break;
+      }
+    }
+
+    for (size_t j = 0;j<m_VerticesPerPoly;++j) {
+      size_t sourceIndex = boundaryList[i]+j;
+      size_t iNewIndex = basicMeshVec[iTargetBin].m_vertices.size();
+
+      basicMeshVec[iTargetBin].m_VertIndices.push_back( iNewIndex );
+      basicMeshVec[iTargetBin].m_vertices.push_back(source->m_Data.m_vertices[source->m_Data.m_VertIndices[sourceIndex]]);
+
+      if (!source->m_Data.m_NormalIndices.empty()) {
+        basicMeshVec[iTargetBin].m_NormalIndices.push_back( iNewIndex );
+        basicMeshVec[iTargetBin].m_normals.push_back(source->m_Data.m_normals[source->m_Data.m_VertIndices[sourceIndex]]);
+      }
+      if (!source->m_Data.m_TCIndices.empty()) {
+        basicMeshVec[iTargetBin].m_TCIndices.push_back( iNewIndex );
+        basicMeshVec[iTargetBin].m_texcoords.push_back(source->m_Data.m_texcoords[source->m_Data.m_VertIndices[sourceIndex]]);
+      }
+      if (!source->m_Data.m_COLIndices.empty())  {
+        basicMeshVec[iTargetBin].m_COLIndices.push_back( iNewIndex );
+        basicMeshVec[iTargetBin].m_colors.push_back(source->m_Data.m_colors[source->m_Data.m_VertIndices[sourceIndex]]);
+      }
+    }
+  }
+
+  if (bOptimize) {
+    // TODO: remove duplicate vertices
+  }
+
+  // cleanup and convert BasicMeshData back to "full featured" mesh
+  if (source != this) delete source;
+  std::vector<Mesh*> meshVec(basicMeshVec.size());
+  for (size_t i = 0;i<meshVec.size();++i) {
+    meshVec[i] = new Mesh(basicMeshVec[i], m_KDTree != NULL, false, m_MeshDesc, m_meshType);
+  }
+  return meshVec;
+}
+
+bool Mesh::HasUniformIndices() const {
+  if (!m_Data.m_NormalIndices.empty() && 
+      m_Data.m_NormalIndices != m_Data.m_VertIndices) return false;
+  if (!m_Data.m_TCIndices.empty() && 
+      m_Data.m_TCIndices != m_Data.m_VertIndices) return false;
+  if (!m_Data.m_COLIndices.empty() && 
+      m_Data.m_COLIndices != m_Data.m_VertIndices) return false;
+
+  return true;
 }
 
 bool Mesh::Validate(bool bDeepValidation) {
   // make sure the sizes of the vectors match
-  if (!m_NormalIndices.empty() && 
-      m_NormalIndices.size() != m_VertIndices.size()) return false;
-  if (!m_TCIndices.empty() && 
-      m_TCIndices.size() != m_VertIndices.size()) return false;
-  if (!m_COLIndices.empty() && 
-      m_COLIndices.size() != m_VertIndices.size()) return false;
+  if (!m_Data.m_NormalIndices.empty() && 
+      m_Data.m_NormalIndices.size() != m_Data.m_VertIndices.size()) return false;
+  if (!m_Data.m_TCIndices.empty() && 
+      m_Data.m_TCIndices.size() != m_Data.m_VertIndices.size()) return false;
+  if (!m_Data.m_COLIndices.empty() && 
+      m_Data.m_COLIndices.size() != m_Data.m_VertIndices.size()) return false;
 
   if (!bDeepValidation) return true;
 
   // in deep validation mode check if all the indices are within range
-  size_t count = m_vertices.size();
-  for (IndexVec::iterator i = m_VertIndices.begin();
-       i != m_VertIndices.end();
+  size_t count = m_Data.m_vertices.size();
+  for (IndexVec::iterator i = m_Data.m_VertIndices.begin();
+       i != m_Data.m_VertIndices.end();
        i++) {
     if ((*i) >= count) return false;
   }
-  count = m_normals.size();
-  for (IndexVec::iterator i = m_NormalIndices.begin();
-       i != m_NormalIndices.end();
+  count = m_Data.m_normals.size();
+  for (IndexVec::iterator i = m_Data.m_NormalIndices.begin();
+       i != m_Data.m_NormalIndices.end();
        i++) {
     if ((*i) >= count) return false;
   }
-  count = m_texcoords.size();
-  for (IndexVec::iterator i = m_TCIndices.begin();
-       i != m_TCIndices.end();
+  count = m_Data.m_texcoords.size();
+  for (IndexVec::iterator i = m_Data.m_TCIndices.begin();
+       i != m_Data.m_TCIndices.end();
        i++) {
     if ((*i) >= count) return false;
   }
-  count = m_colors.size();
-  for (IndexVec::iterator i = m_COLIndices.begin();
-       i != m_COLIndices.end();
+  count = m_Data.m_colors.size();
+  for (IndexVec::iterator i = m_Data.m_COLIndices.begin();
+       i != m_Data.m_COLIndices.end();
        i++) {
     if ((*i) >= count) return false;
   }
@@ -253,7 +456,7 @@ double Mesh::IntersectInternal(const Ray& ray, FLOATVECTOR3& normal,
     FLOATVECTOR2 _tc;
     FLOATVECTOR4 _color;
 
-    for (size_t i = 0;i<m_VertIndices.size();i+=3) {
+    for (size_t i = 0;i<m_Data.m_VertIndices.size();i+=3) {
       double currentT = IntersectTriangle(i, ray, _normal, _tc, _color);
 
       if (currentT < t) {
@@ -274,9 +477,9 @@ double Mesh::IntersectTriangle(size_t i, const Ray& ray,
 
   double t = std::numeric_limits<double>::max();
 
-  FLOATVECTOR3 vert0 = m_vertices[m_VertIndices[i]];
-  FLOATVECTOR3 vert1 = m_vertices[m_VertIndices[i+1]];
-  FLOATVECTOR3 vert2 = m_vertices[m_VertIndices[i+2]];
+  FLOATVECTOR3 vert0 = m_Data.m_vertices[m_Data.m_VertIndices[i]];
+  FLOATVECTOR3 vert1 = m_Data.m_vertices[m_Data.m_VertIndices[i+1]];
+  FLOATVECTOR3 vert2 = m_Data.m_vertices[m_Data.m_VertIndices[i+2]];
 
   // find vectors for two edges sharing vert0
   DOUBLEVECTOR3 edge1 = DOUBLEVECTOR3(vert1 - vert0);
@@ -311,10 +514,10 @@ double Mesh::IntersectTriangle(size_t i, const Ray& ray,
   if (t<0) return std::numeric_limits<double>::max();
 
   // interpolate normal
-  if (m_NormalIndices.size()) {
-    FLOATVECTOR3 normal0 = m_normals[m_NormalIndices[i]];
-    FLOATVECTOR3 normal1 = m_normals[m_NormalIndices[i+1]];
-    FLOATVECTOR3 normal2 = m_normals[m_NormalIndices[i+1]];
+  if (m_Data.m_NormalIndices.size()) {
+    FLOATVECTOR3 normal0 = m_Data.m_normals[m_Data.m_NormalIndices[i]];
+    FLOATVECTOR3 normal1 = m_Data.m_normals[m_Data.m_NormalIndices[i+1]];
+    FLOATVECTOR3 normal2 = m_Data.m_normals[m_Data.m_NormalIndices[i+1]];
 
     FLOATVECTOR3 du = normal1 - normal0;
     FLOATVECTOR3 dv = normal2 - normal0;
@@ -329,10 +532,10 @@ double Mesh::IntersectTriangle(size_t i, const Ray& ray,
   if ((FLOATVECTOR3(ray.direction) ^ normal) > 0) normal = normal *-1; 
 
   // interpolate texture coordinates
-  if (m_TCIndices.size()) {
-    FLOATVECTOR2 tc0 = m_texcoords[m_TCIndices[i]];
-    FLOATVECTOR2 tc1 = m_texcoords[m_TCIndices[i+1]];
-    FLOATVECTOR2 tc2 = m_texcoords[m_TCIndices[i+2]];
+  if (m_Data.m_TCIndices.size()) {
+    FLOATVECTOR2 tc0 = m_Data.m_texcoords[m_Data.m_TCIndices[i]];
+    FLOATVECTOR2 tc1 = m_Data.m_texcoords[m_Data.m_TCIndices[i+1]];
+    FLOATVECTOR2 tc2 = m_Data.m_texcoords[m_Data.m_TCIndices[i+2]];
 
     double dtu1 = tc1.x - tc0.x;
     double dtu2 = tc2.x - tc0.x;
@@ -346,10 +549,10 @@ double Mesh::IntersectTriangle(size_t i, const Ray& ray,
   }
 
   // interpolate color
-  if (m_COLIndices.size()) {
-    FLOATVECTOR4 col0 = m_colors[m_TCIndices[i]];
-    FLOATVECTOR4 col1 = m_colors[m_TCIndices[i+1]];
-    FLOATVECTOR4 col2 = m_colors[m_TCIndices[i+2]];
+  if (m_Data.m_COLIndices.size()) {
+    FLOATVECTOR4 col0 = m_Data.m_colors[m_Data.m_TCIndices[i]];
+    FLOATVECTOR4 col1 = m_Data.m_colors[m_Data.m_TCIndices[i+1]];
+    FLOATVECTOR4 col2 = m_Data.m_colors[m_Data.m_TCIndices[i+2]];
 
     double dtu1 = col1.x - col0.x;
     double dtu2 = col2.x - col0.x;
@@ -402,4 +605,13 @@ bool Mesh::AABBIntersect(const Ray& r, double& tmin, double& tmax) {
   if (tzmax < tmax)
     tmax = tzmax;
   return tmax > 0;
+}
+
+
+
+void BasicMeshData::RemoveUnusedVertices() {
+  RemoveUnusedEntries(m_VertIndices, m_vertices);
+  if (!m_NormalIndices.empty()) RemoveUnusedEntries(m_NormalIndices, m_normals);
+  if (!m_TCIndices.empty()) RemoveUnusedEntries(m_TCIndices, m_texcoords);
+  if (!m_COLIndices.empty()) RemoveUnusedEntries(m_COLIndices, m_colors);
 }
