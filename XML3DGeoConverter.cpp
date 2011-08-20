@@ -35,6 +35,7 @@
 #include "XML3DGeoConverter.h"
 #include "Controller/Controller.h"
 #include "SysTools.h"
+#include "MathTools.h"
 #include "Mesh.h"
 #include <fstream>
 #include "TuvokIOError.h"
@@ -50,15 +51,39 @@ XML3DGeoConverter::XML3DGeoConverter() :
 }
 
 bool XML3DGeoConverter::ConvertToNative(const Mesh& m,
-                                      const std::string& strTargetFilename) {
+                                        const std::string& strTargetFilename) {
 
-  bool bHasTexCoords = m.GetTexCoordIndices().size() == m.GetVertexIndices().size();
-  bool bHasNormals = m.GetNormalIndices().size() == m.GetVertexIndices().size();
-  bool bHasColors = m.GetColorIndices().size() == m.GetVertexIndices().size();
+  MESSAGE("Writing Mesh to file %s",SysTools::GetFilename(strTargetFilename).c_str());
+
+  size_t iMaxIBSize = 65536;  
+  if (m.HasUniformIndices() && m.GetVertices().size() <= iMaxIBSize) {
+    std::ofstream outStream(strTargetFilename.c_str());
+    if (outStream.fail()) return false;
+    
+    WriteHeader(outStream);
+    ConvertToNative(m,0,outStream);
+    WriteFooter(outStream, 1);
+    outStream.close();
+    return true;
+  }
+
+  MESSAGE("Writing Mesh to file %s (Mesh is to large for single object, partitioning)",SysTools::GetFilename(strTargetFilename).c_str());
+
+  std::vector<Mesh*> subMeshes = m.PartitionMesh(iMaxIBSize, false);
+
+  MESSAGE("Writing Meshes to file %s",SysTools::GetFilename(strTargetFilename).c_str());
 
   std::ofstream outStream(strTargetFilename.c_str());
-  if (outStream.fail()) return false;
+  if (outStream.fail()) return false;   
+  WriteHeader(outStream);
+  for (size_t i = 0;i<subMeshes.size();++i) ConvertToNative(*(subMeshes[i]), i, outStream);
+  WriteFooter(outStream, subMeshes.size());
+  outStream.close();
 
+  return true;
+}
+
+void XML3DGeoConverter::WriteHeader(std::ofstream& outStream) {
   outStream << "<?xml version=\"1.0\" encoding=\"utf-8\"?>" << std::endl;
   outStream << "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">" << std::endl;
   outStream << "<html xmlns=\"http://www.w3.org/1999/xhtml\"> " << std::endl;
@@ -82,7 +107,37 @@ bool XML3DGeoConverter::ConvertToNative(const Mesh& m,
   outStream << "          <float3 name=\"intensity\">1.0 1.0 1.0</float3>" << std::endl;
   outStream << "          <float3 name=\"attenuation\">1.0 0.01 0.0</float3>" << std::endl;
   outStream << "        </lightshader>" << std::endl;
-  outStream << "        <data id=\"mesh\">" << std::endl;
+}
+
+void XML3DGeoConverter::WriteFooter(std::ofstream& outStream, size_t iMeshCount) {
+  outStream << "      </defs>" << std::endl;
+  outStream << "      <view id=\"defaultView\" position=\"0 0 2\" orientation=\"0 1 0 0\" />" << std::endl;
+  outStream << "      <group transform=\"#lightTransform1\">" << std::endl;
+  outStream << "        <light shader=\"#lightShader\" />" << std::endl;
+  outStream << "      </group>" << std::endl;
+  outStream << "      <group transform=\"#lightTransform2\">" << std::endl;
+  outStream << "        <light shader=\"#lightShader\" />" << std::endl;
+  outStream << "      </group>" << std::endl;
+
+  for (size_t i = 0;i<iMeshCount;++i) {
+    outStream << "      <group transform=\"#meshTransform\" style=\"shader:url(#meshShader)\">" << std::endl;
+    outStream << "        <mesh src=\"#mesh" << i << "\" type=\"triangles\" />" << std::endl;
+    outStream << "      </group>" << std::endl;
+  }
+
+  outStream << "    </xml3d>" << std::endl;
+  outStream << "  </body>" << std::endl;
+  outStream << "</html>" << std::endl;
+}
+
+
+void XML3DGeoConverter::ConvertToNative(const Mesh& m, size_t iMeshIndex, std::ofstream& outStream) const {
+
+  bool bHasTexCoords = m.GetTexCoordIndices().size() == m.GetVertexIndices().size();
+  bool bHasNormals = m.GetNormalIndices().size() == m.GetVertexIndices().size();
+  bool bHasColors = m.GetColorIndices().size() == m.GetVertexIndices().size();
+
+  outStream << "        <data id=\"mesh" << iMeshIndex << "\">" << std::endl;
   outStream << "          <int name=\"index\">";
   
   size_t iVPP = m.GetVerticesPerPoly();
@@ -126,21 +181,4 @@ bool XML3DGeoConverter::ConvertToNative(const Mesh& m,
     outStream << "</float4>" << std::endl;
   }
   outStream << "        </data>" << std::endl;
-  outStream << "      </defs>" << std::endl;
-  outStream << "      <view id=\"defaultView\" position=\"0 0 2\" orientation=\"0 1 0 0\" />" << std::endl;
-  outStream << "      <group transform=\"#lightTransform1\">" << std::endl;
-  outStream << "        <light shader=\"#lightShader\" />" << std::endl;
-  outStream << "      </group>" << std::endl;
-  outStream << "      <group transform=\"#lightTransform2\">" << std::endl;
-  outStream << "        <light shader=\"#lightShader\" />" << std::endl;
-  outStream << "      </group>" << std::endl;
-  outStream << "      <group transform=\"#meshTransform\" style=\"shader:url(#meshShader)\">" << std::endl;
-  outStream << "        <mesh src=\"#mesh\" type=\"triangles\" />" << std::endl;
-  outStream << "      </group>" << std::endl;
-  outStream << "    </xml3d>" << std::endl;
-  outStream << "  </body>" << std::endl;
-  outStream << "</html>" << std::endl;
-  outStream.close();
-
-  return true;
 }

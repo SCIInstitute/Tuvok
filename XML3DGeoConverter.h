@@ -52,6 +52,10 @@ namespace tuvok {
     virtual bool CanExportData() const { return true; }
 
   protected:
+    void ConvertToNative(const Mesh& m, size_t iMeshIndex, std::ofstream& outStream) const;
+
+    void WriteHeader(std::ofstream& outStream);
+    void WriteFooter(std::ofstream& outStream, size_t iMeshCount);
 
   };
 }

@@ -124,7 +124,7 @@ Mesh* OBJGeoConverter::ConvertToMesh(const std::string& strFilename) {
       std::vector< std::string > pos = SysTools::Tokenize(line,false);
 
       if (pos.size() < 3) {
-        WARNING("Found broken v tag (to little coordinates, "
+        WARNING("Found broken v tag (to few coordinates, "
                 "filling with zeroes");
         x = (pos.size() > 0) ? SysTools::FromString<float>(pos[0]) : 0.0f;
 	      y = (pos.size() > 1) ? SysTools::FromString<float>(pos[1]) : 0.0f;

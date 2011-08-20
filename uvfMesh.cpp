@@ -57,26 +57,26 @@ uvfMesh::uvfMesh(const GeometryDataBlock& tsb)
   vector<float> fVec;
   fVec = tsb.GetVertices();
   assert(fVec.size()%3 == 0);
-  if (fVec.size() > 0) { m_vertices.resize(fVec.size()/3);  memcpy(&m_vertices[0],&fVec[0],fVec.size()*sizeof(float));}
+  if (fVec.size() > 0) { m_Data.m_vertices.resize(fVec.size()/3);  memcpy(&m_Data.m_vertices[0],&fVec[0],fVec.size()*sizeof(float));}
   fVec = tsb.GetNormals();
   assert(fVec.size()%3 == 0);
-  if (fVec.size() > 0) { m_normals.resize(fVec.size()/3);  memcpy(&m_normals[0],&fVec[0],fVec.size()*sizeof(float));}
+  if (fVec.size() > 0) { m_Data.m_normals.resize(fVec.size()/3);  memcpy(&m_Data.m_normals[0],&fVec[0],fVec.size()*sizeof(float));}
   fVec = tsb.GetTexCoords();
   assert(fVec.size()%2 == 0);
-  if (fVec.size() > 0) { m_texcoords.resize(fVec.size()/2);  memcpy(&m_texcoords[0],&fVec[0],fVec.size()*sizeof(float));}
+  if (fVec.size() > 0) { m_Data.m_texcoords.resize(fVec.size()/2);  memcpy(&m_Data.m_texcoords[0],&fVec[0],fVec.size()*sizeof(float));}
   fVec = tsb.GetColors();
   assert(fVec.size()%4 == 0);
-  if (fVec.size() > 0) { m_colors.resize(fVec.size()/4);  memcpy(&m_colors[0],&fVec[0],fVec.size()*sizeof(float));}
+  if (fVec.size() > 0) { m_Data.m_colors.resize(fVec.size()/4);  memcpy(&m_Data.m_colors[0],&fVec[0],fVec.size()*sizeof(float));}
   fVec.clear();
 
-  m_VertIndices = tsb.GetVertexIndices();
-  assert(m_VertIndices.size()%tsb.GetPolySize() == 0);
-  m_NormalIndices = tsb.GetNormalIndices();
-  assert(m_NormalIndices.size()%tsb.GetPolySize() == 0);
-  m_TCIndices = tsb.GetTexCoordIndices();
-  assert(m_TCIndices.size()%tsb.GetPolySize() == 0);
-  m_COLIndices = tsb.GetColorIndices();
-  assert(m_COLIndices.size()%tsb.GetPolySize() == 0);
+  m_Data.m_VertIndices = tsb.GetVertexIndices();
+  assert(m_Data.m_VertIndices.size()%tsb.GetPolySize() == 0);
+  m_Data.m_NormalIndices = tsb.GetNormalIndices();
+  assert(m_Data.m_NormalIndices.size()%tsb.GetPolySize() == 0);
+  m_Data.m_TCIndices = tsb.GetTexCoordIndices();
+  assert(m_Data.m_TCIndices.size()%tsb.GetPolySize() == 0);
+  m_Data.m_COLIndices = tsb.GetColorIndices();
+  assert(m_Data.m_COLIndices.size()%tsb.GetPolySize() == 0);
 
   GeometryHasChanged(true, true);
 }
