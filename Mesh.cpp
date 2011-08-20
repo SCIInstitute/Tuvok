@@ -248,7 +248,7 @@ bool Mesh::UnifyIndices() {
           (!m_Data.m_TCIndices.empty() && m_Data.m_texcoords[m_Data.m_TCIndices[i]] != m_Data.m_texcoords[m_Data.m_TCIndices[inverseIndex[index][0]]]) ||
           (!m_Data.m_COLIndices.empty() && m_Data.m_colors[m_Data.m_COLIndices[i]] != m_Data.m_colors[m_Data.m_COLIndices[inverseIndex[index][0]]])) {
 
-        m_Data.m_VertIndices[i] = vertices.size();
+        m_Data.m_VertIndices[i] = UINT32(vertices.size());
         vertices.push_back(m_Data.m_vertices[index]);
 
         if (!m_Data.m_NormalIndices.empty()) normals.push_back( m_Data.m_normals[m_Data.m_NormalIndices[i]]);
@@ -320,7 +320,7 @@ std::vector<Mesh*> Mesh::PartitionMesh(size_t iMaxIndexCount, bool bOptimize) co
     size_t iIndexTransform = iMaxIndexCount*iTargetBin;    
 
     for (size_t j = 0;j<m_VerticesPerPoly;++j) {
-      size_t iNewIndex = source->m_Data.m_VertIndices[i+j] - iIndexTransform;
+      UINT32 iNewIndex = UINT32(source->m_Data.m_VertIndices[i+j] - iIndexTransform);
      
       basicMeshVec[iTargetBin].m_VertIndices.push_back( iNewIndex );
       basicMeshVec[iTargetBin].m_vertices[iNewIndex] = source->m_Data.m_vertices[source->m_Data.m_VertIndices[i+j]];
@@ -358,7 +358,7 @@ std::vector<Mesh*> Mesh::PartitionMesh(size_t iMaxIndexCount, bool bOptimize) co
 
     for (size_t j = 0;j<m_VerticesPerPoly;++j) {
       size_t sourceIndex = boundaryList[i]+j;
-      size_t iNewIndex = basicMeshVec[iTargetBin].m_vertices.size();
+      UINT32 iNewIndex = UINT32(basicMeshVec[iTargetBin].m_vertices.size());
 
       basicMeshVec[iTargetBin].m_VertIndices.push_back( iNewIndex );
       basicMeshVec[iTargetBin].m_vertices.push_back(source->m_Data.m_vertices[source->m_Data.m_VertIndices[sourceIndex]]);
