@@ -615,3 +615,4 @@ void BasicMeshData::RemoveUnusedVertices() {
   if (!m_TCIndices.empty()) RemoveUnusedEntries(m_TCIndices, m_texcoords);
   if (!m_COLIndices.empty()) RemoveUnusedEntries(m_COLIndices, m_colors);
 }
+
