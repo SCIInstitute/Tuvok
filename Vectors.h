@@ -1340,7 +1340,7 @@ public:
 
   QUATERNION4<T>(): x(0), y(0),z(0), w(0) {}
   QUATERNION4<T>(T _x, T _y, T _z, T _w): x(_x), y(_y), z(_z), w(_w) {}
-  QUATERNION4<T>(const T* other) : x(other.x), y(other.y), z(other.z), w(other.w) {}
+  QUATERNION4<T>(const T& other) : x(other.x), y(other.y), z(other.z), w(other.w) {}
 
   MATRIX4<T> ComputeRotation() {
     float n, s;
