@@ -289,7 +289,11 @@ public:
       for(size_t i=0; i < n_records; ++i) {
           bins[data[i]]++;
 
-          if (bins.size() > 1<<(sizeof(U)*8) ) {
+          // We max out at 4k bins for Tuvok, regardless of data size.
+          const size_t max_bins = 4096;
+          if (bins.size() >
+              std::min(max_bins, static_cast<size_t>(1 << (sizeof(U) * 8))))
+          {
             bBinningPossible = false;
             break;
           }
