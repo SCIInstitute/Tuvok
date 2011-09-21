@@ -198,8 +198,9 @@ template <typename T>
 struct TuvokProgress {
   TuvokProgress(T total) : tMax(total) {}
   void notify(const std::string& operation, T current) const {
-    MESSAGE("%s (%5.3f%% complete).",
-            operation.c_str(), static_cast<double>(current) / static_cast<double>(tMax)*100.0);
+    assert(current <= tMax);
+    MESSAGE("%s (%5.3f%% complete).", operation.c_str(),
+            static_cast<double>(current) / static_cast<double>(tMax)*100.0);
   }
   private: T tMax;
 };

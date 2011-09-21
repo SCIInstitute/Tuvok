@@ -272,7 +272,6 @@ public:
 
     std::map<T, UINT64> bins;
 
-
     while(bBinningPossible && iPos < iSize) {
       size_t n_records = ds.read((unsigned char*)(&(data.at(0))),
                                   std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
@@ -284,12 +283,10 @@ public:
       data.resize(n_records);
 
       iPos += UINT64(n_records);
-      progress.notify("Counting number of unique values in the data",iPos);
-
+      progress.notify("Counting number of unique values in the data", iPos);
 
       // Run over the in core data and sort it into bins
       for(size_t i=0; i < n_records; ++i) {
-      
           bins[data[i]]++;
 
           if (bins.size() > 1<<(sizeof(U)*8) ) {
@@ -297,7 +294,7 @@ public:
             break;
           }
       }
-
+      MESSAGE("%lu bins needed...", static_cast<unsigned long>(bins.size()));
     }
 
     data.clear();
@@ -344,8 +341,12 @@ public:
                                     Histogram1DDataBlock* Histogram1D=0,
                                     size_t* iBinCount=0)
   {
-    if (iBinCount) 
+    if (iBinCount) {
+      MESSAGE("Resetting bin count to 0.");
       *iBinCount = 0;
+    }
+    // this code won't behave correctly when quantizing to very wide data
+    // types.  Make sure we only deal with 8 and 16 bit outputs.
     size_t hist_size = 4096;
     if(sizeof(U) == 1) { hist_size = 256; }
     assert(sizeof(U) <= 2);
@@ -398,6 +399,7 @@ public:
 
     if(iBinCount != NULL) {
       *iBinCount = bins_needed<T>(minmax);
+      MESSAGE("We need %llu bins", static_cast<boost::uint64_t>(*iBinCount));
     }
 
     size_t max_output_val = (1 << (sizeof(U)*8)) - 1;
