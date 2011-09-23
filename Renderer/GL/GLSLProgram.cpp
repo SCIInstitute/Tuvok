@@ -892,7 +892,7 @@ void GLSLProgram::ConnectTextureID(const string& name,
     CheckSamplerType(location);
     glUniform1i(location,iUnit);    
   } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name.c_str());
     return;
   }
 }
