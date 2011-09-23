@@ -354,17 +354,17 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction, bool bBindVolum
 
     m_pProgramIsoCompose->ConnectTextureID("texRayHitPos",0);
     m_pProgramIsoCompose->ConnectTextureID("texRayHitNormal",1);
-    m_pProgramIsoCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
+    m_pProgramIsoCompose->Set("vProjParam",vParams.x, vParams.y);
 
     m_pProgramColorCompose->ConnectTextureID("texRayHitPos",0);
     m_pProgramColorCompose->ConnectTextureID("texRayHitNormal",1);
-    m_pProgramColorCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
+    m_pProgramColorCompose->Set("vProjParam",vParams.x, vParams.y);
 
     m_pProgramCVCompose->ConnectTextureID("texRayHitPos",0);
     m_pProgramCVCompose->ConnectTextureID("texRayHitNormal",1);
     m_pProgramCVCompose->ConnectTextureID("texRayHitPos2",2);
     m_pProgramCVCompose->ConnectTextureID("texRayHitNormal2",3);
-    m_pProgramCVCompose->SetUniformVector("vProjParam",vParams.x, vParams.y);
+    m_pProgramCVCompose->Set("vProjParam",vParams.x, vParams.y);
 
     m_pProgramComposeAnaglyphs->ConnectTextureID("texLeftEye",0);
     m_pProgramComposeAnaglyphs->ConnectTextureID("texRightEye",1);
@@ -488,13 +488,13 @@ void GLRenderer::StartFrame() {
     FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
     if (m_bDoClearView) {
       m_pProgramCVCompose->Enable();
-      m_pProgramCVCompose->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+      m_pProgramCVCompose->Set("vScreensize",vfWinSize.x, vfWinSize.y);
     } else {
       GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ?
                             m_pProgramIsoCompose : m_pProgramColorCompose;
 
       shader->Enable();
-      shader->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+      shader->Set("vScreensize",vfWinSize.x, vfWinSize.y);
     }
   }
 }
@@ -737,18 +737,18 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
           case SM_SCANLINE: {
                         m_pProgramComposeScanlineStereo->Enable(); 
                         FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
-                        m_pProgramComposeScanlineStereo->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+                        m_pProgramComposeScanlineStereo->Set("vScreensize",vfWinSize.x, vfWinSize.y);
                         break;
                        }
           case SM_SBS: {
 					          m_pProgramSBSStereo->Enable(); 
                     float fSplitCoord = (m_bOffscreenIsLowRes) ? 0.5f / m_fScreenResDecFactor : 0.5f;
-                    m_pProgramSBSStereo->SetUniformVector("fSplitCoord",fSplitCoord);
+                    m_pProgramSBSStereo->Set("fSplitCoord",fSplitCoord);
                     break;
                        }
           default : // SM_AF
 					m_pProgramAFStereo->Enable(); 
-					m_pProgramAFStereo->SetUniformVector("iAlternatingFrameID",m_iAlternatingFrameID);
+					m_pProgramAFStereo->Set("iAlternatingFrameID",m_iAlternatingFrameID);
                     break;
 		    }
 
@@ -1747,7 +1747,7 @@ GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const
 {
   if (m_eRenderMode == RM_2DTRANS) {
     FLOATVECTOR3 vStep = 1.0f/FLOATVECTOR3(vVoxelCount);
-    m_pProgram2DTransSlice->SetUniformVector("vVoxelStepsize",
+    m_pProgram2DTransSlice->Set("vVoxelStepsize",
                                              vStep.x, vStep.y, vStep.z);
   }
 }
@@ -1793,7 +1793,7 @@ void GLRenderer::SetDataDepShaderVars() {
   // don't even use a TFqn.
   if(!this->RGBAData() && bMipViewActive) {
     m_pProgramTransMIP->Enable();
-    m_pProgramTransMIP->SetUniformVector("fTransScale",fScale);
+    m_pProgramTransMIP->Set("fTransScale",fScale);
   }
 
 
@@ -1802,14 +1802,14 @@ void GLRenderer::SetDataDepShaderVars() {
       if(!this->RGBAData()) {
         if (bSliceViewActive) {
           m_pProgram1DTransSlice->Enable();
-          m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
+          m_pProgram1DTransSlice->Set("fTransScale",fScale);
 
           m_pProgram1DTransSlice3D->Enable();
-          m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
+          m_pProgram1DTransSlice3D->Set("fTransScale",fScale);
         }
         if (b3DViewActive) {
           m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-          m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+          m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("fTransScale",fScale);
         }
       }
       break;
@@ -1817,17 +1817,17 @@ void GLRenderer::SetDataDepShaderVars() {
     case RM_2DTRANS: {
       if (bSliceViewActive) {
         m_pProgram2DTransSlice->Enable();
-        m_pProgram2DTransSlice->SetUniformVector("fTransScale",fScale);
-        m_pProgram2DTransSlice->SetUniformVector("fGradientScale",fGradientScale);
+        m_pProgram2DTransSlice->Set("fTransScale",fScale);
+        m_pProgram2DTransSlice->Set("fGradientScale",fGradientScale);
 
         m_pProgram2DTransSlice3D->Enable();
-        m_pProgram2DTransSlice3D->SetUniformVector("fTransScale",fScale);
-        m_pProgram2DTransSlice3D->SetUniformVector("fGradientScale",fGradientScale);
+        m_pProgram2DTransSlice3D->Set("fTransScale",fScale);
+        m_pProgram2DTransSlice3D->Set("fGradientScale",fGradientScale);
       }
       if (b3DViewActive) {
         m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Enable();
-        m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
-        m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
+        m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Set("fTransScale",fScale);
+        m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Set("fGradientScale",fGradientScale);
       }
       break;
     }
@@ -1836,17 +1836,17 @@ void GLRenderer::SetDataDepShaderVars() {
       // mode, we need update that shader, too
       if (bSliceViewActive) {
         m_pProgram1DTransSlice->Enable();
-        m_pProgram1DTransSlice->SetUniformVector("fTransScale",fScale);
+        m_pProgram1DTransSlice->Set("fTransScale",fScale);
 
         m_pProgram1DTransSlice3D->Enable();
-        m_pProgram1DTransSlice3D->SetUniformVector("fTransScale",fScale);
+        m_pProgram1DTransSlice3D->Set("fTransScale",fScale);
       }
       if (b3DViewActive) {
         GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ?
         m_pProgramIso : m_pProgramColor;
 
         shader->Enable();
-        shader->SetUniformVector("fIsoval", static_cast<float>
+        shader->Set("fIsoval", static_cast<float>
                                             (this->GetNormalizedIsovalue()));
       }
       break;
@@ -2182,9 +2182,9 @@ void GLRenderer::GeometryPostRender() {
     if (m_bSupportsMeshes && m_iNumMeshes) {
       // FTB and BTF would both be ok here, so we use BTF as it is simpler
       m_pProgramMeshBTF->Enable();
-      m_pProgramMeshBTF->SetUniformVector("fOffset",0.001f);
+      m_pProgramMeshBTF->Set("fOffset",0.001f);
       RenderOpaqueGeometry();
-      m_pProgramMeshBTF->SetUniformVector("fOffset",0.0f);
+      m_pProgramMeshBTF->Set("fOffset",0.0f);
     }
 
     m_pContext->GetStateManager()->SetEnableDepthTest(false);
@@ -2730,15 +2730,15 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iSter
 
   if (m_bDoClearView) {
     m_pProgramCVCompose->Enable();
-    m_pProgramCVCompose->SetUniformVector("vLightDiffuse", d.x*m_vIsoColor.x,
+    m_pProgramCVCompose->Set("vLightDiffuse", d.x*m_vIsoColor.x,
                                           d.y*m_vIsoColor.y, d.z*m_vIsoColor.z);
-    m_pProgramCVCompose->SetUniformVector("vLightDiffuse2", d.x*m_vCVColor.x,
+    m_pProgramCVCompose->Set("vLightDiffuse2", d.x*m_vCVColor.x,
                                           d.y*m_vCVColor.y, d.z*m_vCVColor.z);
-    m_pProgramCVCompose->SetUniformVector("vCVParam",m_fCVSize,
+    m_pProgramCVCompose->Set("vCVParam",m_fCVSize,
                                           m_fCVContextScale, m_fCVBorderScale);
 
     FLOATVECTOR4 transPos = m_vCVPos * renderRegion.modelView[iStereoID];
-    m_pProgramCVCompose->SetUniformVector("vCVPickPos", transPos.x,
+    m_pProgramCVCompose->Set("vCVPickPos", transPos.x,
                                                         transPos.y,
                                                         transPos.z);
     m_pFBOCVHit[iStereoID]->Read(2, 0);
@@ -2746,7 +2746,7 @@ void GLRenderer::ComposeSurfaceImage(const RenderRegion &renderRegion, int iSter
   } else {
     if (m_pDataset->GetComponentCount() == 1) {
       m_pProgramIsoCompose->Enable();
-      m_pProgramIsoCompose->SetUniformVector("vLightDiffuse", d.x*m_vIsoColor.x,
+      m_pProgramIsoCompose->Set("vLightDiffuse", d.x*m_vIsoColor.x,
                                              d.y*m_vIsoColor.y, d.z*m_vIsoColor.z);
     } else {
       m_pProgramColorCompose->Enable();
@@ -2840,52 +2840,52 @@ void GLRenderer::UpdateLightParamsInShaders() {
   FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
 
   m_pProgram1DTrans[1]->Enable();
-  m_pProgram1DTrans[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  m_pProgram1DTrans[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-  m_pProgram1DTrans[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-  m_pProgram1DTrans[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-  m_pProgram1DTrans[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+  m_pProgram1DTrans[1]->Set("vLightAmbient",a.x,a.y,a.z);
+  m_pProgram1DTrans[1]->Set("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgram1DTrans[1]->Set("vLightSpecular",s.x,s.y,s.z);
+  m_pProgram1DTrans[1]->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgram1DTrans[1]->Set("vDomainScale",scale.x,scale.y,scale.z);
 
   m_pProgram2DTrans[1]->Enable();
-  m_pProgram2DTrans[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  m_pProgram2DTrans[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-  m_pProgram2DTrans[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-  m_pProgram2DTrans[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-  m_pProgram2DTrans[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+  m_pProgram2DTrans[1]->Set("vLightAmbient",a.x,a.y,a.z);
+  m_pProgram2DTrans[1]->Set("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgram2DTrans[1]->Set("vLightSpecular",s.x,s.y,s.z);
+  m_pProgram2DTrans[1]->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgram2DTrans[1]->Set("vDomainScale",scale.x,scale.y,scale.z);
 
   m_pProgramIsoCompose->Enable();
-  m_pProgramIsoCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  m_pProgramIsoCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-  m_pProgramIsoCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-  m_pProgramIsoCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgramIsoCompose->Set("vLightAmbient",a.x,a.y,a.z);
+  m_pProgramIsoCompose->Set("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgramIsoCompose->Set("vLightSpecular",s.x,s.y,s.z);
+  m_pProgramIsoCompose->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
   m_pProgramColorCompose->Enable();
-  m_pProgramColorCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  m_pProgramColorCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgramColorCompose->Set("vLightAmbient",a.x,a.y,a.z);
+  m_pProgramColorCompose->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
   m_pProgramCVCompose->Enable();
-  m_pProgramCVCompose->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  m_pProgramCVCompose->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-  m_pProgramCVCompose->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-  m_pProgramCVCompose->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgramCVCompose->Set("vLightAmbient",a.x,a.y,a.z);
+  m_pProgramCVCompose->Set("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgramCVCompose->Set("vLightSpecular",s.x,s.y,s.z);
+  m_pProgramCVCompose->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
   m_pProgramMeshBTF->Enable();
-  m_pProgramMeshBTF->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
-  m_pProgramMeshBTF->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
-  m_pProgramMeshBTF->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
-  m_pProgramMeshBTF->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgramMeshBTF->Set("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgramMeshBTF->Set("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgramMeshBTF->Set("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgramMeshBTF->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
   m_pProgramMeshFTB->Enable();
-  m_pProgramMeshFTB->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
-  m_pProgramMeshFTB->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
-  m_pProgramMeshFTB->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
-  m_pProgramMeshFTB->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgramMeshFTB->Set("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgramMeshFTB->Set("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgramMeshFTB->Set("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgramMeshFTB->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
   m_pProgramIso->Enable();
-  m_pProgramIso->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+  m_pProgramIso->Set("vDomainScale",scale.x,scale.y,scale.z);
 
   m_pProgramColor->Enable();
-  m_pProgramColor->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+  m_pProgramColor->Set("vDomainScale",scale.x,scale.y,scale.z);
 }
 
 bool GLRenderer::IsVolumeResident(const BrickKey& key) const {

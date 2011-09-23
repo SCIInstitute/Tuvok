@@ -115,49 +115,28 @@ public:
   /// returns true if this program is valid
   bool IsValid(void) const;
 
-  /// Sets an uniform parameter.
-  void SetUniformVector(const char *name,
-                        float x=0.0f, float y=0.0f,
-                        float z=0.0f, float w=0.0f) const;
-  /// Sets an uniform parameter.
-  void SetUniformVector(const char *name,
-                        int x=0, int y=0, int z=0, int w=0) const;
-  /// Sets an uniform parameter.
-  void SetUniformVector(const char *name,
-                        bool x=false, bool y=false,
-                        bool z=false, bool w=false) const;
-  /// Sets an uniform parameter.
-  void SetUniformVector(const char *name, const float *v) const;
-  /// Sets an uniform parameter.
-  void SetUniformVector(const char *name, const int *i) const;
-  /// Sets an uniform parameter.
-  void SetUniformVector(const char *name, const bool *b) const;
+  void Set(const char *name, float x) const;
+  void Set(const char *name, float x, float y) const;
+  void Set(const char *name, float x, float y, float z) const;
+  void Set(const char *name, float x, float y, float z, float w) const;
+  void Set(const char *name, const float *m, size_t size, bool bTranspose=false) const;
 
-  /// Sets an uniform matrix. Matrices are always float.
-  void SetUniformMatrix(const char *name, const float *m,
-                        bool bTranspose=false) const;
+  void Set(const char *name, int x) const;
+  void Set(const char *name, int x, int y) const;
+  void Set(const char *name, int x, int y, int z) const;
+  void Set(const char *name, int x, int y, int z, int w) const;
+  void Set(const char *name, const int *m, size_t size, bool bTranspose=false) const;
 
-  /// Sets an texture parameter.
+  void Set(const char *name, bool x) const;
+  void Set(const char *name, bool x, bool y) const;
+  void Set(const char *name, bool x, bool y, bool z) const;
+  void Set(const char *name, bool x, bool y, bool z, bool w) const;
+  void Set(const char *name, const bool *m, size_t size, bool bTranspose=false) const;
+
+  /// Sets a texture parameter.
   void SetTexture(const std::string& name, const GLTexture& pTexture);
   /// Force a specific name/texID binding
   void ConnectTextureID(const std::string& name, const int iUnit);
-
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-  /// Sets an uniform matrix. Matrices are always float.
-  void SetUniformMatrix(const char *name, const int *m,
-                        bool bTranspose=false) const;
-  /// Sets an uniform matrix. Matrices are always float.
-  void SetUniformMatrix(const char *name, const bool *m,
-                        bool bTranspose=false) const;
-#endif
-
-  /// Sets an uniform array. User has to take care that a is large enough.
-  void SetUniformArray(const char *name, const float *a) const;
-  /// Sets an uniform array. User has to take care that a is large enough.
-  void SetUniformArray(const char *name, const int   *a) const;
-  /// Sets an uniform array. User has to take care that a is large enough.
-  void SetUniformArray(const char *name, const bool  *a) const;
 
   /// assume near zero CPU memory cost for shaders to avoid any memory
   /// manager from paging out shaders, the 1 is basically only to
@@ -169,6 +148,47 @@ public:
   virtual UINT64 GetGPUSize() {return 1;}
 
   static bool         m_bGLUseARB;
+
+protected:
+  GLint get_uniform_vector(const char *name, GLenum *type) const;
+  GLint get_location(const char *name) const;
+
+
+  /// Sets a uniform parameter.
+  void SetUniformVector(const char *name,
+                        float x=0.0f, float y=0.0f,
+                        float z=0.0f, float w=0.0f) const;
+  /// Sets a uniform parameter.
+  void SetUniformVector(const char *name,
+                        int x=0, int y=0, int z=0, int w=0) const;
+  /// Sets a uniform parameter.
+  void SetUniformVector(const char *name,
+                        bool x=false, bool y=false,
+                        bool z=false, bool w=false) const;
+  /// Sets a uniform parameter.
+  void SetUniformVector(const char *name, const float *v) const;
+  /// Sets a uniform parameter.
+  void SetUniformVector(const char *name, const int *i) const;
+  /// Sets a uniform parameter.
+  void SetUniformVector(const char *name, const bool *b) const;
+
+  /// Sets a uniform matrix. Matrices are always float.
+  void SetUniformMatrix(const char *name, const float *m,
+                        bool bTranspose=false) const;
+  /// Sets an uniform matrix. Matrices are always float.
+  void SetUniformMatrix(const char *name, const int *m,
+                        bool bTranspose=false) const;
+  /// Sets an uniform matrix. Matrices are always float.
+  void SetUniformMatrix(const char *name, const bool *m,
+                        bool bTranspose=false) const;
+
+  /// Sets an uniform array. User has to take care that a is large enough.
+  void SetUniformArray(const char *name, const float *a) const;
+  /// Sets an uniform array. User has to take care that a is large enough.
+  void SetUniformArray(const char *name, const int   *a) const;
+  /// Sets an uniform array. User has to take care that a is large enough.
+  void SetUniformArray(const char *name, const bool  *a) const;
+
 
 private:
   bool    Initialize(void);
@@ -185,6 +205,7 @@ private:
   static bool         m_bGLChecked;
   texMap              m_mBindings;
 };
+
 
 //#ifdef GLSL_ALLOW_IMPLICIT_CASTS
 //#undef GLSL_ALLOW_IMPLICIT_CASTS

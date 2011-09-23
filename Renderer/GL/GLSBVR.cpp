@@ -218,13 +218,13 @@ void GLSBVR::SetDataDepShaderVars() {
     switch (m_eRenderMode) {
       case RM_1DTRANS: {
         m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0]->Enable();
-        m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
+        m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0]->Set("fTransScale",fScale);
         break;
       }
       case RM_2DTRANS: {
         m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->Enable();
-        m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale",fScale);
-        m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->SetUniformVector("fGradientScale",fGradientScale);
+        m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->Set("fTransScale",fScale);
+        m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0]->Set("fGradientScale",fGradientScale);
         break;
       }
 
@@ -237,8 +237,8 @@ void GLSBVR::SetDataDepShaderVars() {
     MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
             bias_scale.second);
     m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("TFuncBias", bias_scale.first);
-    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale", bias_scale.second);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("TFuncBias", bias_scale.first);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("fTransScale", bias_scale.second);
   }
 }
 
@@ -263,9 +263,9 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
                    ? (m_pProgram1DTransMesh[m_bUseLighting ? 1 : 0])
                    : (m_pProgram1DTrans[m_bUseLighting ? 1 : 0]));
       shader->Enable();
-      shader->SetUniformVector("fStepScale", fStepScale);
+      shader->Set("fStepScale", fStepScale);
       if (m_bUseLighting) {
-        shader->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
+        shader->Set("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
       }
       break;
     }
@@ -274,15 +274,15 @@ void GLSBVR::SetBrickDepShaderVars(const Brick& currentBrick) {
                     ? (m_pProgram2DTransMesh[m_bUseLighting ? 1 : 0])
                     : (m_pProgram2DTrans[m_bUseLighting ? 1 : 0]));
       shader->Enable();
-      shader->SetUniformVector("fStepScale", fStepScale);
-      shader->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
+      shader->Set("fStepScale", fStepScale);
+      shader->Set("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
       break;
     }
     case RM_ISOSURFACE: {
       shader = (m_pDataset->GetComponentCount() == 1) ?
                m_pProgramIso : m_pProgramColor;
       shader->Enable();
-      shader->SetUniformVector("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
+      shader->Set("vVoxelStepsize", vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z);
       break;
     }
     default: T_ERROR("Invalid rendermode set"); break;
@@ -412,7 +412,7 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
     SetBrickDepShaderVars(b);
     
     GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
-    shader->SetUniformVector("fIsoval", static_cast<float>
+    shader->Set("fIsoval", static_cast<float>
                                         (this->GetNormalizedIsovalue()));    
     RenderProxyGeometry();
 
@@ -420,7 +420,7 @@ void GLSBVR::Render3DInLoop(const RenderRegion3D& renderRegion,
       m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
 
       m_pProgramIso->Enable();
-      m_pProgramIso->SetUniformVector("fIsoval", static_cast<float>
+      m_pProgramIso->Set("fIsoval", static_cast<float>
                                                  (GetNormalizedCVIsovalue()));
       RenderProxyGeometry();
     }
@@ -485,34 +485,34 @@ void GLSBVR::UpdateLightParamsInShaders() {
   FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
 
   m_pProgram1DTransMesh[0]->Enable();
-  m_pProgram1DTransMesh[0]->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
-  m_pProgram1DTransMesh[0]->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
-  m_pProgram1DTransMesh[0]->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
-  m_pProgram1DTransMesh[0]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgram1DTransMesh[0]->Set("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgram1DTransMesh[0]->Set("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgram1DTransMesh[0]->Set("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgram1DTransMesh[0]->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
   m_pProgram2DTransMesh[0]->Enable();
-  m_pProgram2DTransMesh[0]->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
-  m_pProgram2DTransMesh[0]->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
-  m_pProgram2DTransMesh[0]->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
-  m_pProgram2DTransMesh[0]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgram2DTransMesh[0]->Set("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgram2DTransMesh[0]->Set("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgram2DTransMesh[0]->Set("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgram2DTransMesh[0]->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
 
   m_pProgram1DTransMesh[1]->Enable();
-  m_pProgram1DTransMesh[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  m_pProgram1DTransMesh[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-  m_pProgram1DTransMesh[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-  m_pProgram1DTransMesh[1]->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
-  m_pProgram1DTransMesh[1]->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
-  m_pProgram1DTransMesh[1]->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
-  m_pProgram1DTransMesh[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-  m_pProgram1DTransMesh[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+  m_pProgram1DTransMesh[1]->Set("vLightAmbient",a.x,a.y,a.z);
+  m_pProgram1DTransMesh[1]->Set("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgram1DTransMesh[1]->Set("vLightSpecular",s.x,s.y,s.z);
+  m_pProgram1DTransMesh[1]->Set("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgram1DTransMesh[1]->Set("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgram1DTransMesh[1]->Set("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgram1DTransMesh[1]->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgram1DTransMesh[1]->Set("vDomainScale",scale.x,scale.y,scale.z);
 
   m_pProgram2DTransMesh[1]->Enable();
-  m_pProgram2DTransMesh[1]->SetUniformVector("vLightAmbient",a.x,a.y,a.z);
-  m_pProgram2DTransMesh[1]->SetUniformVector("vLightDiffuse",d.x,d.y,d.z);
-  m_pProgram2DTransMesh[1]->SetUniformVector("vLightSpecular",s.x,s.y,s.z);
-  m_pProgram2DTransMesh[1]->SetUniformVector("vLightAmbientM",aM.x,aM.y,aM.z);
-  m_pProgram2DTransMesh[1]->SetUniformVector("vLightDiffuseM",dM.x,dM.y,dM.z);
-  m_pProgram2DTransMesh[1]->SetUniformVector("vLightSpecularM",sM.x,sM.y,sM.z);
-  m_pProgram2DTransMesh[1]->SetUniformVector("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
-  m_pProgram2DTransMesh[1]->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+  m_pProgram2DTransMesh[1]->Set("vLightAmbient",a.x,a.y,a.z);
+  m_pProgram2DTransMesh[1]->Set("vLightDiffuse",d.x,d.y,d.z);
+  m_pProgram2DTransMesh[1]->Set("vLightSpecular",s.x,s.y,s.z);
+  m_pProgram2DTransMesh[1]->Set("vLightAmbientM",aM.x,aM.y,aM.z);
+  m_pProgram2DTransMesh[1]->Set("vLightDiffuseM",dM.x,dM.y,dM.z);
+  m_pProgram2DTransMesh[1]->Set("vLightSpecularM",sM.x,sM.y,sM.z);
+  m_pProgram2DTransMesh[1]->Set("vLightDir",m_vLightDir.x,m_vLightDir.y,m_vLightDir.z);
+  m_pProgram2DTransMesh[1]->Set("vDomainScale",scale.x,scale.y,scale.z);
 }

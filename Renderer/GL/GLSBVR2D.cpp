@@ -210,8 +210,8 @@ void GLSBVR2D::SetDataDepShaderVars() {
     MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
             bias_scale.second);
     m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("TFuncBias", bias_scale.first);
-    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale", bias_scale.second);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("TFuncBias", bias_scale.first);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("fTransScale", bias_scale.second);
   }
 }
 
@@ -233,24 +233,24 @@ void GLSBVR2D::SetBrickDepShaderVars(const RenderRegion3D&,
   switch (m_eRenderMode) {
     case RM_1DTRANS: {
       GLSLProgram *shader = m_pProgram1DTrans[m_bUseLighting ? 1 : 0];
-      shader->SetUniformVector("fStepScale", fStepScale);
+      shader->Set("fStepScale", fStepScale);
       if (m_bUseLighting) {
-        m_pProgram1DTrans[1]->SetUniformVector("vVoxelStepsize",
+        m_pProgram1DTrans[1]->Set("vVoxelStepsize",
                                                vStep.x, vStep.y, vStep.z);
       }
       break;
     }
     case RM_2DTRANS: {
       GLSLProgram *shader = m_pProgram2DTrans[m_bUseLighting ? 1 : 0];
-      shader->SetUniformVector("fStepScale", fStepScale);
-      shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
+      shader->Set("fStepScale", fStepScale);
+      shader->Set("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
       break;
     }
     case RM_ISOSURFACE: {
       GLSLProgram *shader;
       shader = (m_pDataset->GetComponentCount() == 1) ?
                m_pProgramIso : m_pProgramColor;
-      shader->SetUniformVector("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
+      shader->Set("vVoxelStepsize", vStep.x, vStep.y, vStep.z);
       break;
     }
     case RM_INVALID: T_ERROR("Invalid rendermode set"); break;
@@ -586,7 +586,7 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
 
     shader->Enable();
     SetBrickDepShaderVars(renderRegion, b);
-    shader->SetUniformVector("fIsoval", static_cast<float>
+    shader->Set("fIsoval", static_cast<float>
                                         (this->GetNormalizedIsovalue()));
     RenderProxyGeometry();
 
@@ -594,7 +594,7 @@ void GLSBVR2D::Render3DInLoop(const RenderRegion3D& renderRegion,
       m_TargetBinder.Bind(m_pFBOCVHit[iStereoID], 0, m_pFBOCVHit[iStereoID], 1);
 
       m_pProgramIso->Enable();
-      m_pProgramIso->SetUniformVector("fIsoval", static_cast<float>
+      m_pProgramIso->Set("fIsoval", static_cast<float>
                                                  (GetNormalizedCVIsovalue()));
       RenderProxyGeometry();
     }

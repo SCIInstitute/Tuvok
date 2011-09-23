@@ -823,15 +823,13 @@ bool GLSLProgram::IsValid(void) const {
   return m_bInitialized;
 }
 
-static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
-{
+GLint GLSLProgram::get_location(const char *name) const {
   while(glGetError() != GL_NO_ERROR) {;}  // flush current error state.
 
-  GLint size;
   GLint location;
 
   // Get the position for the uniform var.
-  location = gl::GetUniformLocation(program, name);
+  location = gl::GetUniformLocation(m_hProgram, name);
   GLenum gl_err = glGetError();
   if(gl_err != GL_NO_ERROR) {
     throw GL_ERROR(gl_err);
@@ -852,14 +850,23 @@ static GLint get_uniform_vector(const char *name, GLuint program, GLenum *type)
     MESSAGE("Located uniform %s", name);
   }
 
+  return location;
+}
+
+
+GLint GLSLProgram::get_uniform_vector(const char *name, GLenum *type) const
+{
+  GLint location = get_location(name);
+  GLint size;
+
   if (GLSLProgram::m_bGLUseARB) {
-    glGetActiveUniformARB(program, location, 0, NULL, &size, type, NULL);
+    glGetActiveUniformARB(m_hProgram, location, 0, NULL, &size, type, NULL);
   } else {
-    glGetActiveUniform(program, location, 1, &AtiHackLen, &size, type,
+    glGetActiveUniform(m_hProgram, location, 1, &AtiHackLen, &size, type,
                        &AtiHackChar);
   }
 
-  gl_err = glGetError();
+  GLenum gl_err = glGetError();
   if(gl_err != GL_NO_ERROR) {
     T_ERROR("Error getting type.");
     throw GL_ERROR(gl_err);
@@ -886,7 +893,7 @@ void GLSLProgram::SetUniformVector(const char *name,
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &eType);
+    iLocation = get_uniform_vector(name, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -953,7 +960,7 @@ void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &eType);
+    iLocation = get_uniform_vector(name, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1010,7 +1017,7 @@ void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) con
   GLenum eType;
   GLint iLocation;
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &eType);
+    iLocation = get_uniform_vector(name, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1080,7 +1087,7 @@ void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &eType);
+    iLocation = get_uniform_vector(name, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1140,7 +1147,7 @@ void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &eType);
+    iLocation = get_uniform_vector(name, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1198,7 +1205,7 @@ void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &eType);
+    iLocation = get_uniform_vector(name, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1249,7 +1256,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspo
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &eType);
+    iLocation = get_uniform_vector(name, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1292,7 +1299,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspos
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &eType);
+    iLocation = get_uniform_vector(name, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1345,7 +1352,7 @@ void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspo
   GLint iLocation;
 
   try {
-    iLocation = get_uniform_vector(name, m_hProgram, &eType);
+    iLocation = get_uniform_vector(name, &eType);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
     return;
@@ -1741,4 +1748,136 @@ void GLSLProgram::SetTexture(const string& name,
   } else {
     pTexture.Bind(m_mBindings[name]);
   }
+}
+
+
+void GLSLProgram::Set(const char *name, float x) const {
+  try {
+    GLint location = get_location(name);
+    glUniform1f(location,x);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
+}
+
+void GLSLProgram::Set(const char *name, float x, float y) const {
+  try {
+    GLint location = get_location(name);
+    glUniform2f(location,x,y);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
+}
+
+void GLSLProgram::Set(const char *name, float x, float y, float z) const {
+  try {
+    GLint location = get_location(name);
+    glUniform3f(location,x,y,z);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
+}
+
+void GLSLProgram::Set(const char *name, float x, float y, float z, float w) const {
+  try {
+    GLint location = get_location(name);
+    glUniform4f(location,x,y,z,w);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
+}
+
+void GLSLProgram::Set(const char *name, const float *m, size_t size, bool bTranspose) const {
+  try {
+    GLint location = get_location(name);
+    switch (size) {
+      case 2 : glUniformMatrix2fv(location,1,bTranspose,m); break;
+      case 3 : glUniformMatrix3fv(location,1,bTranspose,m); break;
+      case 4 : glUniformMatrix4fv(location,1,bTranspose,m); break;
+      default: T_ERROR("Invalid size (%i) when setting matrix %s.", (int)size, name); return;
+    }
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }  
+}
+
+void GLSLProgram::Set(const char *name, int x) const {
+  try {
+    GLint location = get_location(name);
+    glUniform1i(location,x);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
+}
+
+void GLSLProgram::Set(const char *name, int x, int y) const {
+  try {
+    GLint location = get_location(name);
+    glUniform2i(location,x,y);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
+}
+
+void GLSLProgram::Set(const char *name, int x, int y, int z) const {
+  try {
+    GLint location = get_location(name);
+    glUniform3i(location,x,y,z);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
+}
+
+void GLSLProgram::Set(const char *name, int x, int y, int z, int w) const {
+  try {
+    GLint location = get_location(name);
+    glUniform4i(location,x,y,z,w);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
+}
+
+void GLSLProgram::Set(const char *name, const int *m, size_t size, bool bTranspose) const {
+  if (size < 2 || size > 4) {
+     T_ERROR("Invalid size (%i) when setting matrix %s.", (int)size, name);
+     return;
+  }
+  float mf[4];
+  for (size_t i = 0;i<size;++i) mf[i] = float(m[i]);
+  Set(name, mf, size, bTranspose);
+}
+
+void GLSLProgram::Set(const char *name, bool x) const {
+  Set(name,(int)x);
+}
+
+void GLSLProgram::Set(const char *name, bool x, bool y) const {
+  Set(name,(int)x,(int)y);
+}
+
+void GLSLProgram::Set(const char *name, bool x, bool y, bool z) const {
+  Set(name,(int)x,(int)y,(int)z);
+}
+
+void GLSLProgram::Set(const char *name, bool x, bool y, bool z, bool w) const {
+  Set(name,(int)x,(int)y,(int)z,(int)w);
+}
+
+void GLSLProgram::Set(const char *name, const bool *m, size_t size, bool bTranspose) const {
+  if (size < 2 || size > 4) {
+     T_ERROR("Invalid size (%i) when setting matrix %s.", (int)size, name);
+     return;
+  }
+  float mf[4];
+  for (size_t i = 0;i<size;++i) mf[i] = m[i] ? 1.0f : 0.0f;
+  Set(name, mf, size, bTranspose);
 }

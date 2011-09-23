@@ -229,12 +229,12 @@ bool GLRaycaster::LoadShaders() {
 
     m_pProgramIso->ConnectTextureID("texVolume",0);
     m_pProgramIso->ConnectTextureID("texRayExitPos",2);
-    m_pProgramIso->SetUniformVector("vProjParam",vParams.x, vParams.y);
-    m_pProgramIso->SetUniformVector("iTileID", 1); // just to make sure it is never 0
+    m_pProgramIso->Set("vProjParam",vParams.x, vParams.y);
+    m_pProgramIso->Set("iTileID", 1); // just to make sure it is never 0
 
     m_pProgramColor->ConnectTextureID("texVolume",0);
     m_pProgramColor->ConnectTextureID("texRayExitPos",2);
-    m_pProgramColor->SetUniformVector("vProjParam",vParams.x, vParams.y);
+    m_pProgramColor->Set("vProjParam",vParams.x, vParams.y);
 
     m_pProgramHQMIPRot->ConnectTextureID("texVolume",0);
     m_pProgramHQMIPRot->ConnectTextureID("texRayExitPos",2);
@@ -276,20 +276,20 @@ void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D&,
 
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  {
-      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
-      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fRayStepsize", fRayStep);
+      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("fStepScale", fStepScale);
+      m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("fRayStepsize", fRayStep);
       if (m_bUseLighting)
-        m_pProgram1DTrans[1]->SetUniformVector("vVoxelStepsize",
+        m_pProgram1DTrans[1]->Set("vVoxelStepsize",
           vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
         );
       break;
     }
     case RM_2DTRANS    :  {
-      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fStepScale", fStepScale);
-      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("vVoxelStepsize",
+      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Set("fStepScale", fStepScale);
+      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Set("vVoxelStepsize",
         vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
       );
-      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fRayStepsize", fRayStep);
+      m_pProgram2DTrans[m_bUseLighting ? 1 : 0]->Set("fRayStepsize", fRayStep);
       break;
     }
     case RM_ISOSURFACE : {
@@ -298,18 +298,18 @@ void GLRaycaster::SetBrickDepShaderVars(const RenderRegion3D&,
                               : m_pProgramColor;
       if (m_bDoClearView) {
         m_pProgramIso2->Enable();
-        m_pProgramIso2->SetUniformVector("vVoxelStepsize",
+        m_pProgramIso2->Set("vVoxelStepsize",
           vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
         );
-        m_pProgramIso2->SetUniformVector("fRayStepsize", fRayStep);
-        m_pProgramIso2->SetUniformVector("iTileID", int(iCurrentBrick));
+        m_pProgramIso2->Set("fRayStepsize", fRayStep);
+        m_pProgramIso2->Set("iTileID", int(iCurrentBrick));
         shader->Enable();
-        shader->SetUniformVector("iTileID", int(iCurrentBrick));
+        shader->Set("iTileID", int(iCurrentBrick));
       }
-      shader->SetUniformVector("vVoxelStepsize",
+      shader->Set("vVoxelStepsize",
         vVoxelSizeTexSpace.x, vVoxelSizeTexSpace.y, vVoxelSizeTexSpace.z
       );
-      shader->SetUniformVector("fRayStepsize", fRayStep);
+      shader->Set("fRayStepsize", fRayStep);
       break;
     }
     case RM_INVALID:
@@ -413,7 +413,7 @@ void GLRaycaster::ClipPlaneToShader(const ExtendedPlane& clipPlane, int iStereoI
     plane.Transform(m_mView[iStereoID], false);
     for (size_t i = 0;i<vCurrentShader.size();i++) {
       vCurrentShader[i]->Enable();
-      vCurrentShader[i]->SetUniformVector("vClipPlane", plane.x(), plane.y(),
+      vCurrentShader[i]->Set("vClipPlane", plane.x(), plane.y(),
                                                         plane.z(), plane.d());
     }
   }
@@ -561,7 +561,7 @@ void GLRaycaster::RenderHQMIPPreLoop(RenderRegion2D &region) {
   GLRenderer::RenderHQMIPPreLoop(region);
 
   m_pProgramHQMIPRot->Enable();
-  m_pProgramHQMIPRot->SetUniformVector("vScreensize",float(m_vWinSize.x), float(m_vWinSize.y));
+  m_pProgramHQMIPRot->Set("vScreensize",float(m_vWinSize.x), float(m_vWinSize.y));
   if (m_bOrthoView)
     region.modelView[0] = m_maMIPRotation;
   else
@@ -600,7 +600,7 @@ void GLRaycaster::RenderHQMIPInLoop(const RenderRegion2D &renderRegion,
 
   FLOATVECTOR3 vVoxelSizeTexSpace = 1.0f/FLOATVECTOR3(b.vVoxelCount);
   float fRayStep = (b.vExtension*vVoxelSizeTexSpace * 0.5f * 1.0f/m_fSampleRateModifier).minVal();
-  m_pProgramHQMIPRot->SetUniformVector("fRayStepsize", fRayStep);
+  m_pProgramHQMIPRot->Set("fRayStepsize", fRayStep);
 
   m_pFBORayEntry->Read(2);
   RenderBox(renderRegion, b.vCenter, b.vExtension,b.vTexcoordsMin,
@@ -614,28 +614,28 @@ void GLRaycaster::StartFrame() {
   FLOATVECTOR2 vfWinSize = FLOATVECTOR2(m_vWinSize);
   switch (m_eRenderMode) {
     case RM_1DTRANS    :  m_pProgram1DTrans[0]->Enable();
-                          m_pProgram1DTrans[0]->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+                          m_pProgram1DTrans[0]->Set("vScreensize",vfWinSize.x, vfWinSize.y);
 
                           m_pProgram1DTrans[1]->Enable();
-                          m_pProgram1DTrans[1]->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+                          m_pProgram1DTrans[1]->Set("vScreensize",vfWinSize.x, vfWinSize.y);
                           break;
     case RM_2DTRANS    :  m_pProgram2DTrans[0]->Enable();
-                          m_pProgram2DTrans[0]->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+                          m_pProgram2DTrans[0]->Set("vScreensize",vfWinSize.x, vfWinSize.y);
 
                           m_pProgram2DTrans[1]->Enable();
-                          m_pProgram2DTrans[1]->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
+                          m_pProgram2DTrans[1]->Set("vScreensize",vfWinSize.x, vfWinSize.y);
                           break;
     case RM_ISOSURFACE :  {
                            FLOATVECTOR3 scale = 1.0f/FLOATVECTOR3(m_pDataset->GetScale());
                             if (m_bDoClearView) {
                               m_pProgramIso2->Enable();
-                              m_pProgramIso2->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
-                              m_pProgramIso2->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+                              m_pProgramIso2->Set("vScreensize",vfWinSize.x, vfWinSize.y);
+                              m_pProgramIso2->Set("vDomainScale",scale.x,scale.y,scale.z);
                             }
                             GLSLProgram* shader = (m_pDataset->GetComponentCount() == 1) ? m_pProgramIso : m_pProgramColor;
                             shader->Enable();
-                            shader->SetUniformVector("vScreensize",vfWinSize.x, vfWinSize.y);
-                            shader->SetUniformVector("vDomainScale",scale.x,scale.y,scale.z);
+                            shader->Set("vScreensize",vfWinSize.x, vfWinSize.y);
+                            shader->Set("vDomainScale",scale.x,scale.y,scale.z);
                           }
                           break;
     default    :          T_ERROR("Invalid rendermode set");
@@ -647,7 +647,7 @@ void GLRaycaster::SetDataDepShaderVars() {
   GLRenderer::SetDataDepShaderVars();
   if (m_eRenderMode == RM_ISOSURFACE && m_bDoClearView) {
     m_pProgramIso2->Enable();
-    m_pProgramIso2->SetUniformVector("fIsoval", static_cast<float>
+    m_pProgramIso2->Set("fIsoval", static_cast<float>
                                                 (GetNormalizedCVIsovalue()));
   }
 
@@ -656,8 +656,8 @@ void GLRaycaster::SetDataDepShaderVars() {
     MESSAGE("setting TF bias (%5.3f) and scale (%5.3f)", bias_scale.first,
             bias_scale.second);
     m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Enable();
-    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("TFuncBias", bias_scale.first);
-    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->SetUniformVector("fTransScale", bias_scale.second);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("TFuncBias", bias_scale.first);
+    m_pProgram1DTrans[m_bUseLighting ? 1 : 0]->Set("fTransScale", bias_scale.second);
   }
 
 }
