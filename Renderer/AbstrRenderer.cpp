@@ -862,7 +862,8 @@ bool AbstrRenderer::ContainsData(const BrickKey& key) const
     return true;
   }
 
-  double fMaxValue = MaxValue();
+  double fMaxValue = (m_pDataset->GetRange().first > m_pDataset->GetRange().second) ?
+                          m_p1DTrans->GetSize() : m_pDataset->GetRange().second;
   double fRescaleFactor = fMaxValue / double(m_p1DTrans->GetSize());
 
   bool bContainsData;
