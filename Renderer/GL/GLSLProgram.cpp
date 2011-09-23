@@ -556,28 +556,7 @@ bool GLSLProgram::WriteInfoLog(const char* shaderdesc, GLuint hObject,
   return !bool(bAtMostWarnings==GL_TRUE); // error occured?
 }
 
-/**
- * Writes errors/information messages to stdout.
- * Gets the InfoLogARB and writes it to stdout.
- * Parameter is necessary for temporary objects (i.e. vertex / fragment shader)
- * \param hObject - a handle to the object.
- * \return true if InfoLogARB non-empty (i.e. error/info message), false otherwise
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Aug.2004
- */
-bool GLSLProgram::WriteError(GLhandleARB hObject) {
-  // Check for errors
-  GLint iLength;
-  glGetObjectParameterivARB(hObject,GL_OBJECT_INFO_LOG_LENGTH_ARB,&iLength);
-  if (iLength>1) {
-    GLcharARB *pcLogInfo=new GLcharARB[iLength];
-    glGetInfoLogARB(hObject,iLength,&iLength,pcLogInfo);
-    MESSAGE(pcLogInfo);
-    delete[] pcLogInfo;
-    return true;  // an error had occured.
-  }
-  return false;
-}
+
 
 /**
  * Loads a vertex or fragment shader.
@@ -854,896 +833,81 @@ GLint GLSLProgram::get_location(const char *name) const {
 }
 
 
-GLint GLSLProgram::get_uniform_vector(const char *name, GLenum *type) const
+GLenum GLSLProgram::get_type(GLint location) const
 {
-  GLint location = get_location(name);
   GLint size;
-
+  GLenum type;
   if (GLSLProgram::m_bGLUseARB) {
-    glGetActiveUniformARB(m_hProgram, location, 0, NULL, &size, type, NULL);
+    glGetActiveUniformARB(m_hProgram, location, 0, NULL, &size, &type, NULL);
   } else {
-    glGetActiveUniform(m_hProgram, location, 1, &AtiHackLen, &size, type,
+    glGetActiveUniform(m_hProgram, location, 1, &AtiHackLen, &size, &type,
                        &AtiHackChar);
   }
 
   GLenum gl_err = glGetError();
   if(gl_err != GL_NO_ERROR) {
-    T_ERROR("Error getting type.");
+    T_ERROR("Error getting uniform parameter type.");
     throw GL_ERROR(gl_err);
   }
 
-  return location;
+  return type;
 }
 
-/**
- * Sets an uniform vector parameter.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param x,y,z,w - up to four float components of the vector to set.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Aug.2004
- */
-void GLSLProgram::SetUniformVector(const char *name,
-                                   float x, float y, float z, float w) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLenum eType;
-  GLint iLocation;
-
-  try {
-    iLocation = get_uniform_vector(name, &eType);
-  } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
-    return;
-  }
-  int iType = eType;
-
-  switch (iType) {
-    case GL_FLOAT:      glUniform1f(iLocation,x); break;
-    case GL_FLOAT_VEC2: glUniform2f(iLocation,x,y); break;
-    case GL_FLOAT_VEC3: glUniform3f(iLocation,x,y,z); break;
-    case GL_FLOAT_VEC4: glUniform4f(iLocation,x,y,z,w); break;
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-    case GL_INT:
-    case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D:
-    case GL_SAMPLER_3D:
-    case GL_SAMPLER_CUBE:
-    case GL_SAMPLER_1D_SHADOW:
-    case GL_SAMPLER_2D_SHADOW:
-    case GL_SAMPLER_2D_RECT_ARB:
-    case GL_SAMPLER_2D_RECT_SHADOW_ARB:  glUniform1i(iLocation,int(x)); break;
-
-    case GL_INT_VEC2:   glUniform2i(iLocation,int(x),int(y)); break;
-    case GL_INT_VEC3:   glUniform3i(iLocation,int(x),int(y),int(z)); break;
-    case GL_INT_VEC4:   glUniform4i(iLocation,int(x),int(y),int(z),int(w)); break;
-    case GL_BOOL:       glUniform1f(iLocation,x); break;
-    case GL_BOOL_VEC2:  glUniform2f(iLocation,x,y); break;
-    case GL_BOOL_VEC3:  glUniform3f(iLocation,x,y,z); break;
-    case GL_BOOL_VEC4:  glUniform4f(iLocation,x,y,z,w); break;
-
-    default:
-      T_ERROR("(const char*, float, float, float, float)"
-              " Unknown type (%d) for %s.", iType, name);
-      break;
-#else
-    default:
-      T_ERROR("(const char*, float, float, float, float)"
-              " Unknown type (%d) for %s."
-              " (expecting %d, %d, %d, or %d)", iType, name, 
-              GL_FLOAT, GL_FLOAT_VEC2, GL_FLOAT_VEC3, GL_FLOAT_VEC4);
-      break;
-#endif
-  }
+void GLSLProgram::CheckType(GLint location, GLenum type) const {
 #ifdef GLSL_DEBUG
-  CheckGLError("SetUniformVector(%s,float,...)",name);
+  GLenum eTypeInShader = get_type(location);
+  if (eTypeInShader != type) {
+    WARNING("Requested uniform variable type (%i) does not "
+            "match shader definition (%i).",
+            type, eTypeInShader);
+  }
 #endif
 }
 
-/**
- * Sets an uniform vector parameter.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param x,y,z,w - up to four bool components of the vector to set.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Mar.2005
- */
-void GLSLProgram::SetUniformVector(const char *name,bool x, bool y, bool z, bool w) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLenum eType;
-  GLint iLocation;
-
-  try {
-    iLocation = get_uniform_vector(name, &eType);
-  } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
-    return;
-  }
-  int iType = eType;
-
-  switch (iType) {
-    case GL_BOOL:            glUniform1i(iLocation,(x ? 1 : 0)); break;
-    case GL_BOOL_VEC2:          glUniform2i(iLocation,(x ? 1 : 0),(y ? 1 : 0)); break;
-    case GL_BOOL_VEC3:          glUniform3i(iLocation,(x ? 1 : 0),(y ? 1 : 0),(z ? 1 : 0)); break;
-    case GL_BOOL_VEC4:          glUniform4i(iLocation,(x ? 1 : 0),(y ? 1 : 0),(z ? 1 : 0),(w ? 1 : 0)); break;
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-    case GL_FLOAT:            glUniform1f(iLocation,(x ? 1.0f : 0.0f)); break;
-    case GL_FLOAT_VEC2:          glUniform2f(iLocation,(x ? 1.0f : 0.0f),(y ? 1.0f : 0.0f)); break;
-    case GL_FLOAT_VEC3:          glUniform3f(iLocation,(x ? 1.0f : 0.0f),(y ? 1.0f : 0.0f),(z ? 1.0f : 0.0f)); break;
-    case GL_FLOAT_VEC4:          glUniform4f(iLocation,(x ? 1.0f : 0.0f),(y ? 1.0f : 0.0f),(z ? 1.0f : 0.0f),(w ? 1.0f : 0.0f)); break;
-    case GL_INT:            glUniform1i(iLocation,(x ? 1 : 0)); break;
-    case GL_INT_VEC2:          glUniform2i(iLocation,(x ? 1 : 0),(y ? 1 : 0)); break;
-    case GL_INT_VEC3:          glUniform3i(iLocation,(x ? 1 : 0),(y ? 1 : 0),(z ? 1 : 0)); break;
-    case GL_INT_VEC4:          glUniform4i(iLocation,(x ? 1 : 0),(y ? 1 : 0),(z ? 1 : 0),(w ? 1 : 0)); break;
-    default:
-      T_ERROR("(const char*, bool, bool, bool, bool)"
-              " Unknown type (%d) for %s.", iType, name);
-      break;
-#else
-    default:
-      T_ERROR("(const char*, bool, bool, bool, bool)"
-              " Unknown type (%d) for %s."
-              " (expecting %d, %d, %d, or %d)", iType, name, 
-              GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4);
-      break;
-#endif
-
-  }
+void GLSLProgram::CheckSamplerType(GLint location) const {
 #ifdef GLSL_DEBUG
-  CheckGLError("SetUniformVector(%s,bool,...)",name);
+  GLenum eTypeInShader = get_type(location);
+
+  if (eTypeInShader != GL_SAMPLER_1D &&
+      eTypeInShader != GL_SAMPLER_2D &&
+      eTypeInShader != GL_SAMPLER_3D &&
+      eTypeInShader != GL_SAMPLER_CUBE &&
+      eTypeInShader != GL_SAMPLER_1D_SHADOW &&
+      eTypeInShader != GL_SAMPLER_2D_SHADOW &&
+      eTypeInShader != GL_SAMPLER_2D_RECT_ARB &&
+      eTypeInShader != GL_SAMPLER_2D_RECT_SHADOW_ARB) {
+    WARNING("Shader definition (%i) does not match any "
+            "sampler type.", eTypeInShader);
+  }
 #endif
 }
-
-/**
- * Sets an uniform vector parameter.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param x,y,z,w - four int components of the vector to set.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Aug.2004
- */
-void GLSLProgram::SetUniformVector(const char *name,int x,int y,int z,int w) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLenum eType;
-  GLint iLocation;
-  try {
-    iLocation = get_uniform_vector(name, &eType);
-  } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
-    return;
-  }
-  int iType = eType;
-
-  switch (iType) {
-    case GL_INT:
-    case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D:
-    case GL_SAMPLER_3D:
-    case GL_SAMPLER_CUBE:
-    case GL_SAMPLER_1D_SHADOW:
-    case GL_SAMPLER_2D_SHADOW:
-    case GL_SAMPLER_2D_RECT_ARB:
-    case GL_SAMPLER_2D_RECT_SHADOW_ARB:  glUniform1i(iLocation,x); break;
-
-    case GL_INT_VEC2:          glUniform2i(iLocation,x,y); break;
-    case GL_INT_VEC3:          glUniform3i(iLocation,x,y,z); break;
-    case GL_INT_VEC4:          glUniform4i(iLocation,x,y,z,w); break;
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-    case GL_BOOL:            glUniform1i(iLocation,x); break;
-    case GL_BOOL_VEC2:          glUniform2i(iLocation,x,y); break;
-    case GL_BOOL_VEC3:          glUniform3i(iLocation,x,y,z); break;
-    case GL_BOOL_VEC4:          glUniform4i(iLocation,x,y,z,w); break;
-    case GL_FLOAT:            glUniform1f(iLocation,float(x)); break;
-    case GL_FLOAT_VEC2:          glUniform2f(iLocation,float(x),float(y)); break;
-    case GL_FLOAT_VEC3:          glUniform3f(iLocation,float(x),float(y),float(z)); break;
-    case GL_FLOAT_VEC4:          glUniform4f(iLocation,float(x),float(y),float(z),float(w)); break;
-    default:
-      T_ERROR("(const char*, int, int, int, int)"
-              " Unknown type (%d) for %s.", iType, name);
-      break;
-#else
-    default:
-      T_ERROR("(const char*, int, int, int, int)"
-              " Unknown type (%d) for %s."
-              " (expecting %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, or %d)", 
-              iType, name, 
-              GL_INT, GL_SAMPLER_1D, GL_SAMPLER_2D, GL_SAMPLER_3D,
-              GL_SAMPLER_CUBE, GL_SAMPLER_1D_SHADOW, GL_SAMPLER_2D_SHADOW,
-              GL_SAMPLER_2D_RECT_ARB, GL_SAMPLER_2D_RECT_SHADOW_ARB,
-              GL_INT_VEC2, GL_INT_VEC3, GL_INT_VEC4);
-      break;
-#endif
-  }
-#ifdef GLSL_DEBUG
-  CheckGLError("SetUniformVector(%s,int,...)",name);
-#endif
-}
-
-/**
- * Sets an uniform vector parameter.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param v - a float vector containing up to four elements.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Aug.2004
- */
-void GLSLProgram::SetUniformVector(const char *name,const float *v) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLenum eType;
-  GLint iLocation;
-
-  try {
-    iLocation = get_uniform_vector(name, &eType);
-  } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
-    return;
-  }
-  int iType = eType;
-
-  switch (iType) {
-    case GL_FLOAT:            glUniform1fv(iLocation,1,v); break;
-    case GL_FLOAT_VEC2:          glUniform2fv(iLocation,1,v); break;
-    case GL_FLOAT_VEC3:          glUniform3fv(iLocation,1,v); break;
-    case GL_FLOAT_VEC4:          glUniform4fv(iLocation,1,v); break;
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-    case GL_INT:
-    case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D:
-    case GL_SAMPLER_3D:
-    case GL_SAMPLER_CUBE:
-    case GL_SAMPLER_1D_SHADOW:
-    case GL_SAMPLER_2D_SHADOW:
-    case GL_SAMPLER_2D_RECT_ARB:
-    case GL_SAMPLER_2D_RECT_SHADOW_ARB:  glUniform1i(iLocation,int(v[0])); break;
-
-    case GL_INT_VEC2:          glUniform2i(iLocation,int(v[0]),int(v[1])); break;
-    case GL_INT_VEC3:          glUniform3i(iLocation,int(v[0]),int(v[1]),int(v[2])); break;
-    case GL_INT_VEC4:          glUniform4i(iLocation,int(v[0]),int(v[1]),int(v[2]),int(v[3])); break;
-    case GL_BOOL:            glUniform1fv(iLocation,1,v); break;
-    case GL_BOOL_VEC2:          glUniform2fv(iLocation,1,v); break;
-    case GL_BOOL_VEC3:          glUniform3fv(iLocation,1,v); break;
-    case GL_BOOL_VEC4:          glUniform4fv(iLocation,1,v); break;
-#endif
-
-    default:
-      T_ERROR("(const char*, const float*)"
-              " Unknown type (%d) for %s.", iType, name);
-      break;
-  }
-#ifdef GLSL_DEBUG
-  CheckGLError("SetUniformVector(%s,float*)",name);
-#endif
-}
-
-/**
- * Sets an uniform vector parameter.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param i - an int vector containing up to 4 elements.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Aug.2004
- */
-void GLSLProgram::SetUniformVector(const char *name,const int *i) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLenum eType;
-  GLint iLocation;
-
-  try {
-    iLocation = get_uniform_vector(name, &eType);
-  } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
-    return;
-  }
-  int iType = eType;
-
-  switch (iType) {
-    case GL_INT:
-    case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D:
-    case GL_SAMPLER_3D:
-    case GL_SAMPLER_CUBE:
-    case GL_SAMPLER_1D_SHADOW:
-    case GL_SAMPLER_2D_SHADOW:
-    case GL_SAMPLER_2D_RECT_ARB:
-    case GL_SAMPLER_2D_RECT_SHADOW_ARB:  glUniform1i(iLocation,i[0]); break;
-
-    case GL_INT_VEC2:          glUniform2iv(iLocation,1,(const GLint*)i); break;
-    case GL_INT_VEC3:          glUniform3iv(iLocation,1,(const GLint*)i); break;
-    case GL_INT_VEC4:          glUniform4iv(iLocation,1,(const GLint*)i); break;
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-    case GL_BOOL:            glUniform1iv(iLocation,1,(const GLint*)i); break;
-    case GL_BOOL_VEC2:          glUniform2iv(iLocation,1,(const GLint*)i); break;
-    case GL_BOOL_VEC3:          glUniform3iv(iLocation,1,(const GLint*)i); break;
-    case GL_BOOL_VEC4:          glUniform4iv(iLocation,1,(const GLint*)i); break;
-    case GL_FLOAT:            glUniform1f(iLocation,float(i[0])); break;
-    case GL_FLOAT_VEC2:          glUniform2f(iLocation,float(i[0]),float(i[1])); break;
-    case GL_FLOAT_VEC3:          glUniform3f(iLocation,float(i[0]),float(i[1]),float(i[2])); break;
-    case GL_FLOAT_VEC4:          glUniform4f(iLocation,float(i[0]),float(i[1]),float(i[2]),float(i[3])); break;
-#endif
-    default:
-      T_ERROR("(const char*, const int*)"
-              " Unknown type (%d) for %s.", iType, name);
-      break;
-  }
-#ifdef GLSL_DEBUG
-  CheckGLError("SetUniformVector(%s,int*)",name);
-#endif
-}
-
-/**
- * Sets an uniform vector parameter.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param b - a bool vector containing up to 4 elements.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Mar.2005
- */
-void GLSLProgram::SetUniformVector(const char *name,const bool *b) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLenum eType;
-  GLint iLocation;
-
-  try {
-    iLocation = get_uniform_vector(name, &eType);
-  } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
-    return;
-  }
-  int iType = eType;
-
-  switch (iType) {
-    case GL_BOOL:            glUniform1i(iLocation,(b[0] ? 1 : 0)); break;
-    case GL_BOOL_VEC2:          glUniform2i(iLocation,(b[0] ? 1 : 0),(b[1] ? 1 : 0)); break;
-    case GL_BOOL_VEC3:          glUniform3i(iLocation,(b[0] ? 1 : 0),(b[1] ? 1 : 0),(b[2] ? 1 : 0)); break;
-    case GL_BOOL_VEC4:          glUniform4i(iLocation,(b[0] ? 1 : 0),(b[1] ? 1 : 0),(b[2] ? 1 : 0),(b[3] ? 1 : 0)); break;
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-    case GL_INT:            glUniform1i(iLocation,(b[0] ? 1 : 0)); break;
-    case GL_INT_VEC2:          glUniform2i(iLocation,(b[0] ? 1 : 0),(b[1] ? 1 : 0)); break;
-    case GL_INT_VEC3:          glUniform3i(iLocation,(b[0] ? 1 : 0),(b[1] ? 1 : 0),(b[2] ? 1 : 0)); break;
-    case GL_INT_VEC4:          glUniform4i(iLocation,(b[0] ? 1 : 0),(b[1] ? 1 : 0),(b[2] ? 1 : 0),(b[3] ? 1 : 0)); break;
-    case GL_FLOAT:            glUniform1f(iLocation,(b[0] ? 1.0f : 0.0f)); break;
-    case GL_FLOAT_VEC2:          glUniform2f(iLocation,(b[0] ? 1.0f : 0.0f),(b[1] ? 1.0f : 0.0f)); break;
-    case GL_FLOAT_VEC3:          glUniform3f(iLocation,(b[0] ? 1.0f : 0.0f),(b[1] ? 1.0f : 0.0f),(b[2] ? 1.0f : 0.0f)); break;
-    case GL_FLOAT_VEC4:          glUniform4f(iLocation,(b[0] ? 1.0f : 0.0f),(b[1] ? 1.0f : 0.0f),(b[2] ? 1.0f : 0.0f),(b[3] ? 1.0f : 0.0f)); break;
-#endif
-    default:
-      T_ERROR("(const char*, const bool*)"
-              " Unknown type (%d) for %s.", iType, name);
-      break;
-  }
-#ifdef GLSL_DEBUG
-  CheckGLError("SetUniformVector(%s,bool*)",name);
-#endif
-}
-
-/**
- * Sets an uniform matrix.
- * Matrices are always of type float.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param m - a float array containing up to 16 floats for the matrix.
- * \param bTranspose - if true, the matrix will be transposed before uploading.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Mar.2005
- */
-void GLSLProgram::SetUniformMatrix(const char *name,const float *m,bool bTranspose) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLenum eType;
-  GLint iLocation;
-
-  try {
-    iLocation = get_uniform_vector(name, &eType);
-  } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
-    return;
-  }
-  int iType = eType;
-
-  switch (iType) {
-    case GL_FLOAT_MAT2:          glUniformMatrix2fv(iLocation,1,bTranspose,m); break;
-    case GL_FLOAT_MAT3:          glUniformMatrix3fv(iLocation,1,bTranspose,m); break;
-    case GL_FLOAT_MAT4:          glUniformMatrix4fv(iLocation,1,bTranspose,m); break;
-    default:
-      T_ERROR("(const char*, const float*, bool)"
-              " Unknown type (%d) for %s.", iType, name);
-      break;
-  }
-#ifdef GLSL_DEBUG
-  CheckGLError("SetUniformMatrix(%s,float*,bool)",name);
-#endif
-}
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-
-/**
- * Sets an uniform matrix.
- * Matrices are always of type float.
- * \warning uses glGetError();
- * \remark only available if GLSL_ALLOW_IMPLICIT_CASTS is defined.
- * \param name - name of the parameter
- * \param m - an int array containing up to 16 ints for the matrix. Ints are converted to float before uploading.
- * \param bTranspose - if true, the matrix will be transposed before uploading.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Mar.2005
- */
-void GLSLProgram::SetUniformMatrix(const char *name,const int *m, bool bTranspose) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLenum eType;
-  GLint iLocation;
-
-  try {
-    iLocation = get_uniform_vector(name, &eType);
-  } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
-    return;
-  }
-  int iType = eType;
-
-  float M[16];
-  switch (iType) {
-    case GL_FLOAT_MAT2:
-      for (unsigned int ui=0; ui<4; ui++) M[ui]=float(m[ui]);
-      glUniformMatrix2fv(iLocation,1,bTranspose,M);
-      break;
-    case GL_FLOAT_MAT3:
-      for (unsigned int ui=0; ui<9; ui++) M[ui]=float(m[ui]);
-      glUniformMatrix3fv(iLocation,1,bTranspose,M);
-      break;
-    case GL_FLOAT_MAT4:
-      for (unsigned int ui=0; ui<16; ui++) M[ui]=float(m[ui]);
-      glUniformMatrix4fv(iLocation,1,bTranspose,M);
-      break;
-    default:
-      T_ERROR("(const char*, const int*, bool)"
-              " Unknown type (%d) for %s.", iType, name);
-      break;
-  }
-#ifdef GLSL_DEBUG
-  CheckGLError("SetUniformMatrix(%s,int*,bool)",name);
-#endif
-}
-
-
-
-/**
- * Sets an uniform matrix.
- * Matrices are always of type float.
- * \warning uses glGetError();
- * \remark only available if GLSL_ALLOW_IMPLICIT_CASTS is defined.
- * \param name - name of the parameter
- * \param m - an int array containing up to 16 ints for the matrix. Ints are converted to float before uploading.
- * \param bTranspose - if true, the matrix will be transposed before uploading.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Mar.2005
- */
-void GLSLProgram::SetUniformMatrix(const char *name,const bool *m, bool bTranspose) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLenum eType;
-  GLint iLocation;
-
-  try {
-    iLocation = get_uniform_vector(name, &eType);
-  } catch(GLError gl) {
-    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
-    return;
-  }
-  int iType = eType;
-
-  float M[16];
-  switch (iType) {
-    case GL_FLOAT_MAT2:
-      for (unsigned int ui=0; ui<4; ui++) M[ui]=(m[ui] ? 1.0f : 0.0f);
-      glUniformMatrix2fv(iLocation,1,bTranspose,M);
-      break;
-    case GL_FLOAT_MAT3:
-      for (unsigned int ui=0; ui<9; ui++) M[ui]=(m[ui] ? 1.0f : 0.0f);
-      glUniformMatrix3fv(iLocation,1,bTranspose,M);
-      break;
-    case GL_FLOAT_MAT4:
-      for (unsigned int ui=0; ui<16; ui++) M[ui]=(m[ui] ? 1.0f : 0.0f);
-      glUniformMatrix4fv(iLocation,1,bTranspose,M);
-      break;
-    default:
-      T_ERROR("(const char*, const bool*, bool)"
-              " Unknown type (%d) for %s.", iType, name);
-      break;
-  }
-#ifdef GLSL_DEBUG
-  CheckGLError("SetUniformMatrix(%s,int*,bool)",name);
-#endif
-}
-
-#endif // GLSL_ALLOW_IMPLICIT_CASTS
-
-/**
- * Sets an uniform array.
- * Sets the entire array at once. Single positions can still be set using the other SetUniform*() methods.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param a - a float array containing enough floats to fill the entire uniform array.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Mar.2005
- */
-void GLSLProgram::SetUniformArray(const char *name,const float *a) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLint iSize;
-  GLenum iType;
-  GLint iLocation;
-
-  iLocation = gl::GetUniformLocation(m_hProgram, name);
-
-  if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) {
-    return;
-  }
-
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.", name);
-    return;
-  }
-
-  if (m_bGLUseARB) {
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  } else {
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,
-                       &AtiHackChar);
-  }
-
-  if (CheckGLError("SetUniformVector(%s,float,...) [getting type]",name)) {
-    return;
-  }
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-  GLint *iArray;
-#endif
-
-  switch (iType) {
-    case GL_FLOAT:            glUniform1fv(iLocation,iSize,a); break;
-    case GL_FLOAT_VEC2:          glUniform2fv(iLocation,iSize,a); break;
-    case GL_FLOAT_VEC3:          glUniform3fv(iLocation,iSize,a); break;
-    case GL_FLOAT_VEC4:          glUniform4fv(iLocation,iSize,a); break;
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-    case GL_BOOL:            glUniform1fv(iLocation,iSize,a); break;
-    case GL_BOOL_VEC2:          glUniform2fv(iLocation,iSize,a); break;
-    case GL_BOOL_VEC3:          glUniform3fv(iLocation,iSize,a); break;
-    case GL_BOOL_VEC4:          glUniform4fv(iLocation,iSize,a); break;
-
-    case GL_INT:
-    case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D:
-    case GL_SAMPLER_3D:
-    case GL_SAMPLER_CUBE:
-    case GL_SAMPLER_1D_SHADOW:
-    case GL_SAMPLER_2D_SHADOW:
-    case GL_SAMPLER_2D_RECT_ARB:
-    case GL_SAMPLER_2D_RECT_SHADOW_ARB:
-      iArray=new GLint[iSize];
-      for (int i=0; i<iSize; i++) iArray[i]=int(a[i]);
-      glUniform1iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-
-    case GL_INT_VEC2:
-      iArray=new GLint[2*iSize];
-      for (int i=0; i<2*iSize; i++) iArray[i]=int(a[i]);
-      glUniform2iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-    case GL_INT_VEC3:
-      iArray=new GLint[3*iSize];
-      for (int i=0; i<3*iSize; i++) iArray[i]=int(a[i]);
-      glUniform3iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-    case GL_INT_VEC4:
-      iArray=new GLint[4*iSize];
-      for (int i=0; i<4*iSize; i++) iArray[i]=int(a[i]);
-      glUniform4iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-#endif
-
-    default:
-      T_ERROR("(const char*, const float*)"
-              " Unknown type (%d) for %s.", iType, name);
-
-      break;
-  }
-#ifdef GLSL_DEBUG
-  CheckGLError("SetUniformArray(%s,float*)",name);
-#endif
-}
-
-/**
- * Sets an uniform array.
- * Sets the entire array at once. Single positions can still be set using the other SetUniform*() methods.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param a - an int array containing enough floats to fill the entire uniform array.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Mar.2005
- */
-void GLSLProgram::SetUniformArray(const char *name,const int *a) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLint iSize;
-  GLenum iType;
-  GLint iLocation;
-
-  iLocation = gl::GetUniformLocation(m_hProgram, name);
-
-  if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) {
-    return;
-  }
-
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.", name);
-    return;
-  }
-
-  if (m_bGLUseARB) {
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  } else {
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,
-                       &AtiHackChar);
-  }
-
-  if (CheckGLError("SetUniformVector(%s,float,...) [getting type]",name)) {
-    return;
-  }
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-  float *fArray;
-#endif
-
-  switch (iType) {
-    case GL_INT:
-    case GL_SAMPLER_1D:
-    case GL_SAMPLER_2D:
-    case GL_SAMPLER_3D:
-    case GL_SAMPLER_CUBE:
-    case GL_SAMPLER_1D_SHADOW:
-    case GL_SAMPLER_2D_SHADOW:
-    case GL_SAMPLER_2D_RECT_ARB:
-    case GL_SAMPLER_2D_RECT_SHADOW_ARB:  glUniform1iv(iLocation,iSize,(const GLint*)a); break;
-    case GL_INT_VEC2:          glUniform2iv(iLocation,iSize,(const GLint*)a); break;
-    case GL_INT_VEC3:          glUniform3iv(iLocation,iSize,(const GLint*)a); break;
-    case GL_INT_VEC4:          glUniform4iv(iLocation,iSize,(const GLint*)a); break;
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-    case GL_BOOL:            glUniform1iv(iLocation,iSize,(const GLint*)a); break;
-    case GL_BOOL_VEC2:          glUniform2iv(iLocation,iSize,(const GLint*)a); break;
-    case GL_BOOL_VEC3:          glUniform3iv(iLocation,iSize,(const GLint*)a); break;
-    case GL_BOOL_VEC4:          glUniform4iv(iLocation,iSize,(const GLint*)a); break;
-
-    case GL_FLOAT:
-      fArray=new float[iSize];
-      for (int i=0; i<iSize; i++) fArray[i]=float(a[i]);
-      glUniform1fv(iLocation,iSize,fArray);
-      delete[] fArray;
-      break;
-    case GL_FLOAT_VEC2:
-      fArray=new float[2*iSize];
-      for (int i=0; i<2*iSize; i++) fArray[i]=float(a[i]);
-      glUniform2fv(iLocation,iSize,fArray);
-      delete[] fArray;
-      break;
-    case GL_FLOAT_VEC3:
-      fArray=new float[3*iSize];
-      for (int i=0; i<3*iSize; i++) fArray[i]=float(a[i]);
-      glUniform3fv(iLocation,iSize,fArray);
-      delete[] fArray;
-      break;
-    case GL_FLOAT_VEC4:
-      fArray=new float[4*iSize];
-      for (int i=0; i<4*iSize; i++) fArray[i]=float(a[i]);
-      glUniform4fv(iLocation,iSize,fArray);
-      delete[] fArray;
-      break;
-#endif
-
-    default:
-      T_ERROR("(const char*, const int*)"
-              " Unknown type (%d) for %s.", iType, name);
-
-      break;
-  }
-#ifdef GLSL_DEBUG
-  CheckGLError("SetUniformArray(%s,int*)",name);
-#endif
-}
-
-
-/**
- * Sets an uniform array.
- * Sets the entire array at once. Single positions can still be set using the other SetUniform*() methods.
- * \warning uses glGetError();
- * \param name - name of the parameter
- * \param a - a bool array containing enough floats to fill the entire uniform array.
- * \return void
- * \author <a href="mailto:jens.schneider@in.tum.de">Jens Schneider</a>
- * \date Mar.2005
- */
-void GLSLProgram::SetUniformArray(const char *name,const bool  *a) const {
-  assert(m_bEnabled);
-  CheckGLError();
-
-  GLint iSize;
-  GLenum iType;
-  GLint iLocation;
-
-  iLocation = gl::GetUniformLocation(m_hProgram, name);
-
-  if (CheckGLError("SetUniformVector(%s,float,...) [getting adress]",name)) {
-    return;
-  }
-
-  if(iLocation==-1) {
-    T_ERROR("Error getting address for %s.", name);
-    return;
-  }
-
-  if (m_bGLUseARB) {
-    glGetActiveUniformARB(m_hProgram,iLocation,0,NULL,&iSize,&iType,NULL);
-  } else {
-    glGetActiveUniform(m_hProgram,iLocation,1,&AtiHackLen,&iSize,&iType,
-                       &AtiHackChar);
-  }
-
-  if (CheckGLError("SetUniformVector(%s,float,...) [getting type]",name)) {
-    return;
-  }
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-  float *fArray;
-#endif
-  GLint *iArray;
-  switch (iType) {
-    case GL_BOOL:
-      iArray=new GLint[iSize];
-      for (int i=0; i<iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform1iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-    case GL_BOOL_VEC2:
-      iArray=new GLint[2*iSize];
-      for (int i=0; i<2*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform2iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-    case GL_BOOL_VEC3:
-      iArray=new GLint[3*iSize];
-      for (int i=0; i<3*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform3iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-    case GL_BOOL_VEC4:
-      iArray=new GLint[4*iSize];
-      for (int i=0; i<4*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform4iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-    case GL_INT:
-      iArray=new GLint[iSize];
-      for (int i=0; i<iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform1iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-    case GL_INT_VEC2:
-      iArray=new GLint[2*iSize];
-      for (int i=0; i<2*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform2iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-    case GL_INT_VEC3:
-      iArray=new GLint[3*iSize];
-      for (int i=0; i<3*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform3iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-    case GL_INT_VEC4:
-      iArray=new GLint[4*iSize];
-      for (int i=0; i<4*iSize; i++) iArray[i]=(a[i] ? 1 : 0);
-      glUniform4iv(iLocation,iSize,iArray);
-      delete[] iArray;
-      break;
-    case GL_FLOAT:
-      fArray=new float[iSize];
-      for (int i=0; i<iSize; i++) fArray[i]=(a[i] ? 1.0f : 0.0f);
-      glUniform1fv(iLocation,iSize,fArray);
-      delete[] fArray;
-      break;
-    case GL_FLOAT_VEC2:
-      fArray=new float[2*iSize];
-      for (int i=0; i<2*iSize; i++) fArray[i]=(a[i] ? 1.0f : 0.0f);
-      glUniform2fv(iLocation,iSize,fArray);
-      delete[] fArray;
-      break;
-    case GL_FLOAT_VEC3:
-      fArray=new float[3*iSize];
-      for (int i=0; i<3*iSize; i++) fArray[i]=(a[i] ? 1.0f : 0.0f);
-      glUniform3fv(iLocation,iSize,fArray);
-      delete[] fArray;
-      break;
-    case GL_FLOAT_VEC4:
-      fArray=new float[4*iSize];
-      for (int i=0; i<4*iSize; i++) fArray[i]=(a[i] ? 1.0f : 0.0f);
-      glUniform4fv(iLocation,iSize,fArray);
-      delete[] fArray;
-      break;
-#endif
-
-    default:
-      T_ERROR("(const char*, const bool*)"
-              " Unknown type (%d) for %s.", iType, name);
-
-      break;
-  }
-#ifdef GLSL_DEBUG
-  CheckGLError("SetUniformArray(%s,bool*)",name);
-#endif
-}
-
 
 void GLSLProgram::ConnectTextureID(const string& name,
                                    const int iUnit) {
   Enable();
   m_mBindings[name] = iUnit;
-  Set(name.c_str(),iUnit);
+  
+  try {
+    GLint location = get_location(name.c_str());
+    CheckSamplerType(location);
+    glUniform1i(location,iUnit);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
 }
 
 void GLSLProgram::SetTexture(const string& name,
                              const GLTexture& pTexture) {
 
   if (m_mBindings.find(name) == m_mBindings.end ()) {
-
     // find a free texture unit
     int iUnusedTexUnit = 0;
     for (texMap::iterator i = m_mBindings.begin();i != m_mBindings.end();++i){
       if (i->second <= iUnusedTexUnit) 
         iUnusedTexUnit = i->second+1;
     }
- 
-    Enable();
-    Set(name.c_str(),iUnusedTexUnit);
-    m_mBindings[name] = iUnusedTexUnit;
+    ConnectTextureID(name, iUnusedTexUnit);
     pTexture.Bind(iUnusedTexUnit);
   } else {
     pTexture.Bind(m_mBindings[name]);
@@ -1753,7 +917,8 @@ void GLSLProgram::SetTexture(const string& name,
 
 void GLSLProgram::Set(const char *name, float x) const {
   try {
-    GLint location = get_location(name);
+    GLint location = get_location(name);    
+    CheckType(location, GL_FLOAT);
     glUniform1f(location,x);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1764,6 +929,7 @@ void GLSLProgram::Set(const char *name, float x) const {
 void GLSLProgram::Set(const char *name, float x, float y) const {
   try {
     GLint location = get_location(name);
+    CheckType(location, GL_FLOAT_VEC2);
     glUniform2f(location,x,y);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1774,6 +940,7 @@ void GLSLProgram::Set(const char *name, float x, float y) const {
 void GLSLProgram::Set(const char *name, float x, float y, float z) const {
   try {
     GLint location = get_location(name);
+    CheckType(location, GL_FLOAT_VEC3);
     glUniform3f(location,x,y,z);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1784,6 +951,7 @@ void GLSLProgram::Set(const char *name, float x, float y, float z) const {
 void GLSLProgram::Set(const char *name, float x, float y, float z, float w) const {
   try {
     GLint location = get_location(name);
+    CheckType(location, GL_FLOAT_VEC4);
     glUniform4f(location,x,y,z,w);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1795,9 +963,15 @@ void GLSLProgram::Set(const char *name, const float *m, size_t size, bool bTrans
   try {
     GLint location = get_location(name);
     switch (size) {
-      case 2 : glUniformMatrix2fv(location,1,bTranspose,m); break;
-      case 3 : glUniformMatrix3fv(location,1,bTranspose,m); break;
-      case 4 : glUniformMatrix4fv(location,1,bTranspose,m); break;
+      case 2 : CheckType(location, GL_FLOAT_MAT2);
+               glUniformMatrix2fv(location,1,bTranspose,m); 
+               break;
+      case 3 : CheckType(location, GL_FLOAT_MAT3);
+               glUniformMatrix3fv(location,1,bTranspose,m);
+               break;
+      case 4 : CheckType(location, GL_FLOAT_MAT4);
+               glUniformMatrix4fv(location,1,bTranspose,m);
+               break;
       default: T_ERROR("Invalid size (%i) when setting matrix %s.", (int)size, name); return;
     }
   } catch(GLError gl) {
@@ -1809,6 +983,7 @@ void GLSLProgram::Set(const char *name, const float *m, size_t size, bool bTrans
 void GLSLProgram::Set(const char *name, int x) const {
   try {
     GLint location = get_location(name);
+    CheckType(location, GL_INT);
     glUniform1i(location,x);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1819,6 +994,7 @@ void GLSLProgram::Set(const char *name, int x) const {
 void GLSLProgram::Set(const char *name, int x, int y) const {
   try {
     GLint location = get_location(name);
+    CheckType(location, GL_INT_VEC2);
     glUniform2i(location,x,y);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1829,6 +1005,7 @@ void GLSLProgram::Set(const char *name, int x, int y) const {
 void GLSLProgram::Set(const char *name, int x, int y, int z) const {
   try {
     GLint location = get_location(name);
+    CheckType(location, GL_INT_VEC3);
     glUniform3i(location,x,y,z);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1839,6 +1016,7 @@ void GLSLProgram::Set(const char *name, int x, int y, int z) const {
 void GLSLProgram::Set(const char *name, int x, int y, int z, int w) const {
   try {
     GLint location = get_location(name);
+    CheckType(location, GL_INT_VEC4);
     glUniform4i(location,x,y,z,w);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1857,19 +1035,47 @@ void GLSLProgram::Set(const char *name, const int *m, size_t size, bool bTranspo
 }
 
 void GLSLProgram::Set(const char *name, bool x) const {
-  Set(name,(int)x);
+  try {
+    GLint location = get_location(name);
+    CheckType(location, GL_BOOL);
+    glUniform1i(location,x?1:0);
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
 }
 
 void GLSLProgram::Set(const char *name, bool x, bool y) const {
-  Set(name,(int)x,(int)y);
+  try {
+    GLint location = get_location(name);
+    CheckType(location, GL_BOOL_VEC2);
+    glUniform2i(location,x?1:0,y?1:0);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
 }
 
 void GLSLProgram::Set(const char *name, bool x, bool y, bool z) const {
-  Set(name,(int)x,(int)y,(int)z);
+  try {
+    GLint location = get_location(name);
+    CheckType(location, GL_BOOL_VEC3);
+    glUniform3i(location,x?1:0,y?1:0,z?1:0);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
 }
 
 void GLSLProgram::Set(const char *name, bool x, bool y, bool z, bool w) const {
-  Set(name,(int)x,(int)y,(int)z,(int)w);
+  try {
+    GLint location = get_location(name);
+    CheckType(location, GL_BOOL_VEC4);
+    glUniform4i(location,x?1:0,y?1:0,z?1:0,w?1:0);    
+  } catch(GLError gl) {
+    T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
+    return;
+  }
 }
 
 void GLSLProgram::Set(const char *name, const bool *m, size_t size, bool bTranspose) const {

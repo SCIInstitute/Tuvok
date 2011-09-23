@@ -41,14 +41,10 @@
 #include <vector>
 #include <string>
 
-/// if enabled, SetUniformVector allows for implicit casting, which can
-/// impact performance
-#define GLSL_ALLOW_IMPLICIT_CASTS 1
 /// if enabled, GLSL-compiler warnings are treated as errors
 #define GLSLPROGRAM_STRICT
 
 #ifdef _DEBUG
-  /// switches on debugging output - can be changed per-class.
   #define GLSL_DEBUG 1
 #endif
 
@@ -146,57 +142,19 @@ public:
   /// manager from paging out shaders, the 1 is basically only to
   /// detect memory leaks
   virtual UINT64 GetGPUSize() {return 1;}
-
-  static bool         m_bGLUseARB;
-
-protected:
-  GLint get_uniform_vector(const char *name, GLenum *type) const;
-  GLint get_location(const char *name) const;
-
-
-  /// Sets a uniform parameter.
-  void SetUniformVector(const char *name,
-                        float x=0.0f, float y=0.0f,
-                        float z=0.0f, float w=0.0f) const;
-  /// Sets a uniform parameter.
-  void SetUniformVector(const char *name,
-                        int x=0, int y=0, int z=0, int w=0) const;
-  /// Sets a uniform parameter.
-  void SetUniformVector(const char *name,
-                        bool x=false, bool y=false,
-                        bool z=false, bool w=false) const;
-  /// Sets a uniform parameter.
-  void SetUniformVector(const char *name, const float *v) const;
-  /// Sets a uniform parameter.
-  void SetUniformVector(const char *name, const int *i) const;
-  /// Sets a uniform parameter.
-  void SetUniformVector(const char *name, const bool *b) const;
-
-  /// Sets a uniform matrix. Matrices are always float.
-  void SetUniformMatrix(const char *name, const float *m,
-                        bool bTranspose=false) const;
-  /// Sets an uniform matrix. Matrices are always float.
-  void SetUniformMatrix(const char *name, const int *m,
-                        bool bTranspose=false) const;
-  /// Sets an uniform matrix. Matrices are always float.
-  void SetUniformMatrix(const char *name, const bool *m,
-                        bool bTranspose=false) const;
-
-  /// Sets an uniform array. User has to take care that a is large enough.
-  void SetUniformArray(const char *name, const float *a) const;
-  /// Sets an uniform array. User has to take care that a is large enough.
-  void SetUniformArray(const char *name, const int   *a) const;
-  /// Sets an uniform array. User has to take care that a is large enough.
-  void SetUniformArray(const char *name, const bool  *a) const;
-
+  static bool m_bGLUseARB;
 
 private:
   bool    Initialize(void);
   GLuint  LoadShader(const char*, GLenum, GLSLPROGRAM_SOURCE src);
   bool    WriteInfoLog(const char*, GLuint, bool);
-  bool    WriteError(GLhandleARB hObject);
   bool    CheckGLError(const char *pcError=NULL,
                        const char *pcAdditional=NULL) const;
+  GLenum get_type(GLint location) const;
+  GLint get_location(const char *name) const;
+  void CheckType(GLint location, GLenum type) const;
+  void CheckSamplerType(GLint location) const;
+
   MasterController*   m_pMasterController;
   bool                m_bInitialized;
   bool                m_bEnabled;
