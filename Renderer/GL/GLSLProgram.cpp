@@ -1726,7 +1726,7 @@ void GLSLProgram::ConnectTextureID(const string& name,
                                    const int iUnit) {
   Enable();
   m_mBindings[name] = iUnit;
-  SetUniformVector(name.c_str(),iUnit);
+  Set(name.c_str(),iUnit);
 }
 
 void GLSLProgram::SetTexture(const string& name,
@@ -1742,7 +1742,7 @@ void GLSLProgram::SetTexture(const string& name,
     }
  
     Enable();
-    SetUniformVector(name.c_str(),iUnusedTexUnit);
+    Set(name.c_str(),iUnusedTexUnit);
     m_mBindings[name] = iUnusedTexUnit;
     pTexture.Bind(iUnusedTexUnit);
   } else {
