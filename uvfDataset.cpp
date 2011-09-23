@@ -962,14 +962,7 @@ bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
                                          [static_cast<size_t>(key.brick[1])]
                                          [static_cast<size_t>(key.brick[2])];
 
-  bool bContainsData = (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
-
-  if (bContainsData)
-    MESSAGE("About to ACCEPT a brick based on this data: tfmin=%lf, tfmax=%lf VS brickmin=%lf, brickmax=%lf", fMin, fMax, maxMinElement.minScalar, maxMinElement.maxScalar);
-  else
-    MESSAGE("About to REJECT a brick based on this data: tfmin=%lf, tfmax=%lf VS brickmin=%lf, brickmax=%lf", fMin, fMax, maxMinElement.minScalar, maxMinElement.maxScalar);
-
-  return bContainsData;
+  return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
 
 bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const
