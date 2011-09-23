@@ -186,9 +186,9 @@ private:
   texMap              m_mBindings;
 };
 
-#ifdef GLSL_ALLOW_IMPLICIT_CASTS
-#undef GLSL_ALLOW_IMPLICIT_CASTS
-#endif
+//#ifdef GLSL_ALLOW_IMPLICIT_CASTS
+//#undef GLSL_ALLOW_IMPLICIT_CASTS
+//#endif
 
 };
 
