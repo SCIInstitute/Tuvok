@@ -150,10 +150,10 @@ private:
   bool    WriteInfoLog(const char*, GLuint, bool);
   bool    CheckGLError(const char *pcError=NULL,
                        const char *pcAdditional=NULL) const;
-  GLenum get_type(GLint location) const;
+  GLenum get_type(const char *name) const;
   GLint get_location(const char *name) const;
-  void CheckType(GLint location, GLenum type) const;
-  void CheckSamplerType(GLint location) const;
+  void CheckType(const char *name, GLenum type) const;
+  void CheckSamplerType(const char *name) const;
 
   MasterController*   m_pMasterController;
   bool                m_bInitialized;

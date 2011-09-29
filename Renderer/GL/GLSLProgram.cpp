@@ -55,12 +55,6 @@ bool GLSLProgram::m_bGlewInitialized=true;
 bool GLSLProgram::m_bGLChecked=false;      ///< GL extension check
 bool GLSLProgram::m_bGLUseARB=false;       ///< use pre GL 2.0 syntax
 
-/* Hack: the ATI/AMD driver has a bug which requires the 3rd parameter of
- * glGetActiveUniform to be nonzero.  We use these two dummy vars in the
- * glGetActiveUniform calls to cope with it. */
-GLsizei AtiHackLen;
-GLchar AtiHackChar;
-
 // Abstract out the basic ARB/OGL 2.0 shader API differences.  Does not attempt
 // to unify the APIs; some calls actually do differ, and error checking changed
 // when standardizing,  Clients should check gl::arb and handle these
@@ -833,16 +827,29 @@ GLint GLSLProgram::get_location(const char *name) const {
 }
 
 
-GLenum GLSLProgram::get_type(GLint location) const
+GLenum GLSLProgram::get_type(const char *name) const
 {
-  GLint size;
-  GLenum type;
-  if (GLSLProgram::m_bGLUseARB) {
-    glGetActiveUniformARB(m_hProgram, location, 0, NULL, &size, &type, NULL);
-  } else {
-    glGetActiveUniform(m_hProgram, location, 1, &AtiHackLen, &size, &type,
-                       &AtiHackChar);
+  GLint numUniforms = 0;
+  glGetProgramiv( m_hProgram, GL_ACTIVE_UNIFORMS, &numUniforms );
+  GLint uniformMaxLength = 0;
+  glGetProgramiv( m_hProgram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength );
+  
+  GLint size = -1;
+  GLenum type = 0;
+  GLchar* uniformName = new GLchar[uniformMaxLength];
+  for ( GLint i = 0; i < numUniforms; ++i )
+  {
+    GLsizei length;
+    if (GLSLProgram::m_bGLUseARB)
+      glGetActiveUniformARB( m_hProgram, i, uniformMaxLength, &length, &size, &type, uniformName);
+    else
+      glGetActiveUniform( m_hProgram, i, uniformMaxLength, &length, &size, &type, uniformName);
+    if ( strcmp(uniformName, name) == 0 ) 
+      break;
+    else
+      type = 0;
   }
+  delete [] uniformName;
 
   GLenum gl_err = glGetError();
   if(gl_err != GL_NO_ERROR) {
@@ -853,9 +860,9 @@ GLenum GLSLProgram::get_type(GLint location) const
   return type;
 }
 
-void GLSLProgram::CheckType(GLint location, GLenum type) const {
+void GLSLProgram::CheckType(const char *name, GLenum type) const {
 #ifdef GLSL_DEBUG
-  GLenum eTypeInShader = get_type(location);
+  GLenum eTypeInShader = get_type(name);
   if (eTypeInShader != type) {
     WARNING("Requested uniform variable type (%i) does not "
             "match shader definition (%i).",
@@ -864,9 +871,9 @@ void GLSLProgram::CheckType(GLint location, GLenum type) const {
 #endif
 }
 
-void GLSLProgram::CheckSamplerType(GLint location) const {
+void GLSLProgram::CheckSamplerType(const char *name) const {
 #ifdef GLSL_DEBUG
-  GLenum eTypeInShader = get_type(location);
+  GLenum eTypeInShader = get_type(name);
 
   if (eTypeInShader != GL_SAMPLER_1D &&
       eTypeInShader != GL_SAMPLER_2D &&
@@ -889,7 +896,7 @@ void GLSLProgram::ConnectTextureID(const string& name,
   
   try {
     GLint location = get_location(name.c_str());
-    CheckSamplerType(location);
+    CheckSamplerType(name.c_str());
     glUniform1i(location,iUnit);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name.c_str());
@@ -918,7 +925,7 @@ void GLSLProgram::SetTexture(const string& name,
 void GLSLProgram::Set(const char *name, float x) const {
   try {
     GLint location = get_location(name);    
-    CheckType(location, GL_FLOAT);
+    CheckType(name, GL_FLOAT);
     glUniform1f(location,x);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -929,7 +936,7 @@ void GLSLProgram::Set(const char *name, float x) const {
 void GLSLProgram::Set(const char *name, float x, float y) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_FLOAT_VEC2);
+    CheckType(name, GL_FLOAT_VEC2);
     glUniform2f(location,x,y);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -940,7 +947,7 @@ void GLSLProgram::Set(const char *name, float x, float y) const {
 void GLSLProgram::Set(const char *name, float x, float y, float z) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_FLOAT_VEC3);
+    CheckType(name, GL_FLOAT_VEC3);
     glUniform3f(location,x,y,z);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -951,7 +958,7 @@ void GLSLProgram::Set(const char *name, float x, float y, float z) const {
 void GLSLProgram::Set(const char *name, float x, float y, float z, float w) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_FLOAT_VEC4);
+    CheckType(name, GL_FLOAT_VEC4);
     glUniform4f(location,x,y,z,w);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -963,13 +970,13 @@ void GLSLProgram::Set(const char *name, const float *m, size_t size, bool bTrans
   try {
     GLint location = get_location(name);
     switch (size) {
-      case 2 : CheckType(location, GL_FLOAT_MAT2);
+      case 2 : CheckType(name, GL_FLOAT_MAT2);
                glUniformMatrix2fv(location,1,bTranspose,m); 
                break;
-      case 3 : CheckType(location, GL_FLOAT_MAT3);
+      case 3 : CheckType(name, GL_FLOAT_MAT3);
                glUniformMatrix3fv(location,1,bTranspose,m);
                break;
-      case 4 : CheckType(location, GL_FLOAT_MAT4);
+      case 4 : CheckType(name, GL_FLOAT_MAT4);
                glUniformMatrix4fv(location,1,bTranspose,m);
                break;
       default: T_ERROR("Invalid size (%i) when setting matrix %s.", (int)size, name); return;
@@ -983,7 +990,7 @@ void GLSLProgram::Set(const char *name, const float *m, size_t size, bool bTrans
 void GLSLProgram::Set(const char *name, int x) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_INT);
+    CheckType(name, GL_INT);
     glUniform1i(location,x);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -994,7 +1001,7 @@ void GLSLProgram::Set(const char *name, int x) const {
 void GLSLProgram::Set(const char *name, int x, int y) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_INT_VEC2);
+    CheckType(name, GL_INT_VEC2);
     glUniform2i(location,x,y);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1005,7 +1012,7 @@ void GLSLProgram::Set(const char *name, int x, int y) const {
 void GLSLProgram::Set(const char *name, int x, int y, int z) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_INT_VEC3);
+    CheckType(name, GL_INT_VEC3);
     glUniform3i(location,x,y,z);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1016,7 +1023,7 @@ void GLSLProgram::Set(const char *name, int x, int y, int z) const {
 void GLSLProgram::Set(const char *name, int x, int y, int z, int w) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_INT_VEC4);
+    CheckType(name, GL_INT_VEC4);
     glUniform4i(location,x,y,z,w);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1037,7 +1044,7 @@ void GLSLProgram::Set(const char *name, const int *m, size_t size, bool bTranspo
 void GLSLProgram::Set(const char *name, bool x) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_BOOL);
+    CheckType(name, GL_BOOL);
     glUniform1i(location,x?1:0);
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1048,7 +1055,7 @@ void GLSLProgram::Set(const char *name, bool x) const {
 void GLSLProgram::Set(const char *name, bool x, bool y) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_BOOL_VEC2);
+    CheckType(name, GL_BOOL_VEC2);
     glUniform2i(location,x?1:0,y?1:0);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1059,7 +1066,7 @@ void GLSLProgram::Set(const char *name, bool x, bool y) const {
 void GLSLProgram::Set(const char *name, bool x, bool y, bool z) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_BOOL_VEC3);
+    CheckType(name, GL_BOOL_VEC3);
     glUniform3i(location,x?1:0,y?1:0,z?1:0);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
@@ -1070,7 +1077,7 @@ void GLSLProgram::Set(const char *name, bool x, bool y, bool z) const {
 void GLSLProgram::Set(const char *name, bool x, bool y, bool z, bool w) const {
   try {
     GLint location = get_location(name);
-    CheckType(location, GL_BOOL_VEC4);
+    CheckType(name, GL_BOOL_VEC4);
     glUniform4i(location,x?1:0,y?1:0,z?1:0,w?1:0);    
   } catch(GLError gl) {
     T_ERROR("Error (%d) obtaining uniform %s.", gl.error(), name);
