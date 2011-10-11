@@ -813,15 +813,6 @@ GLint GLSLProgram::get_location(const char *name) const {
     throw GL_ERROR(0);
   }
 
-  // fix for Intel integrated GL driver
-  if(location >= 65535) {
-    WARNING("Abnormal location ID (%i) for uniform %s "
-            "found! Assuming this is the broken Intel "
-            "driver and acting accordingly (%i -> %i).",
-            location, name, location, location/65535);
-    location /= 65535;
-  }
-
   return location;
 }
 
