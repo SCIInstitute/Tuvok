@@ -850,19 +850,21 @@ GLenum GLSLProgram::get_type(const char *name) const
   return type;
 }
 
-void GLSLProgram::CheckType(const char *name, GLenum type) const {
 #ifdef GLSL_DEBUG
+void GLSLProgram::CheckType(const char *name, GLenum type) const {
   GLenum eTypeInShader = get_type(name);
   if (eTypeInShader != type) {
     WARNING("Requested uniform variable type (%i) does not "
             "match shader definition (%i).",
             type, eTypeInShader);
   }
-#endif
 }
+#else
+void GLSLProgram::CheckType(const char *, GLenum) const { }
+#endif
 
-void GLSLProgram::CheckSamplerType(const char *name) const {
 #ifdef GLSL_DEBUG
+void GLSLProgram::CheckSamplerType(const char *name) const {
   GLenum eTypeInShader = get_type(name);
 
   if (eTypeInShader != GL_SAMPLER_1D &&
@@ -876,8 +878,10 @@ void GLSLProgram::CheckSamplerType(const char *name) const {
     WARNING("Shader definition (%i) does not match any "
             "sampler type.", eTypeInShader);
   }
-#endif
 }
+#else
+void GLSLProgram::CheckSamplerType(const char *) const { }
+#endif
 
 void GLSLProgram::ConnectTextureID(const string& name,
                                    const int iUnit) {
