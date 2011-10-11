@@ -101,6 +101,8 @@ GLRenderer::GLRenderer(MasterController* pMasterController,
   m_pProgramBBox(NULL),
   m_pProgramMeshFTB(NULL),
   m_pProgramMeshBTF(NULL),
+  m_texFormat16(GL_RGBA16),
+  m_texFormat32(GL_RGBA),
   m_aDepthStorage(NULL)
 {
   m_pProgram1DTrans[0]   = NULL;
@@ -150,6 +152,12 @@ void GLRenderer::InitBaseState() {
   m_BaseState.blendFuncSrc = BF_ONE_MINUS_DST_ALPHA;;
   m_BaseState.blendFuncDst = BF_ONE;
   m_BaseState.lineWidth = 1.0f;
+}
+
+// Some drivers do not support floating point textures.
+static GLenum driver_supports_fp_textures()
+{
+  return glewGetExtension("GL_ARB_texture_float");
 }
 
 bool GLRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
@@ -229,6 +237,14 @@ bool GLRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
   }
 
   GL(glGenBuffers(1, &m_GeoBuffer));
+
+  this->m_texFormat16 = GL_RGBA16;
+  this->m_texFormat32 = GL_RGBA;
+  if(driver_supports_fp_textures()) {
+    MESSAGE("Flaoting point textures supported (yay!)");
+    this->m_texFormat16 = GL_RGBA16F_ARB;
+    this->m_texFormat32 = GL_RGBA32F_ARB;
+  }
 
   return LoadShaders();
 }
@@ -1698,7 +1714,7 @@ void GLRenderer::CreateOffscreenBuffers() {
                           m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
                                                         GL_CLAMP, m_vWinSize.x,
                                                         m_vWinSize.y,
-                                                        GL_RGBA16F_ARB, 2*4,
+                                                        m_texFormat16, 2*4,
                                                         true);
                         }
                         m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
@@ -1706,7 +1722,7 @@ void GLRenderer::CreateOffscreenBuffers() {
                                                             GL_CLAMP,
                                                             m_vWinSize.x,
                                                             m_vWinSize.y,
-                                                            GL_RGBA16F_ARB,
+                                                            m_texFormat16,
                                                             2*4, true);
                         break;
 
@@ -1714,7 +1730,7 @@ void GLRenderer::CreateOffscreenBuffers() {
                           m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
                                                         GL_CLAMP, m_vWinSize.x,
                                                         m_vWinSize.y,
-                                                        GL_RGBA32F_ARB, 4*4,
+                                                        m_texFormat32, 4*4,
                                                         true);
                         }
                         m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
@@ -1722,7 +1738,7 @@ void GLRenderer::CreateOffscreenBuffers() {
                                                             GL_CLAMP,
                                                             m_vWinSize.x,
                                                             m_vWinSize.y,
-                                                            GL_RGBA32F_ARB,
+                                                            m_texFormat32,
                                                             4*4, true);
                         break;
 
@@ -1732,11 +1748,11 @@ void GLRenderer::CreateOffscreenBuffers() {
                         break;
       }
       m_pFBOIsoHit[i]   = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
-                                    m_vWinSize.x, m_vWinSize.y, GL_RGBA32F_ARB,
+                                    m_vWinSize.x, m_vWinSize.y, m_texFormat32,
                                     4*4, true, 2);
 
       m_pFBOCVHit[i]    = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
-                                    m_vWinSize.x, m_vWinSize.y, GL_RGBA16F_ARB,
+                                    m_vWinSize.x, m_vWinSize.y, m_texFormat16,
                                     2*4, true, 2);
     }
   }

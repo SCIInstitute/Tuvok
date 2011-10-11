@@ -108,7 +108,6 @@ class GLRenderer : public AbstrRenderer {
 
     virtual void FixedFunctionality() const;
     virtual void SyncStateManager();
-
    
   protected:
     GLTargetBinder  m_TargetBinder;
@@ -246,7 +245,8 @@ class GLRenderer : public AbstrRenderer {
     GLSLProgram*    m_pProgramMeshBTF;
 
   private:
-
+    GLenum          m_texFormat16; ///< 16bit internal texture format to use
+    GLenum          m_texFormat32; ///< 32bit internal texture format to use
     float*          m_aDepthStorage;
 
     void SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const;
