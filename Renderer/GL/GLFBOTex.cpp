@@ -176,10 +176,11 @@ GLFBOTex::~GLFBOTex(void) {
 bool GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
                             GLenum wrapmode, GLsizei width, GLsizei height,
                             GLenum intformat) {
-  MESSAGE("Initializing %u 2D texture(s) of size %ux%u (MinFilter=%#x MinFilter=%#x WrapMode=%#x, IntFormat=%#x)",
+  MESSAGE("Initializing %u 2D texture(s) of size %ux%u (MinFilter=%#x "
+          "MinFilter=%#x WrapMode=%#x, IntFormat=%#x)",
           static_cast<unsigned>(m_iNumBuffers),
           static_cast<unsigned>(width), static_cast<unsigned>(height),
-	  static_cast<unsigned>(minfilter), static_cast<unsigned>(magfilter),
+          static_cast<unsigned>(minfilter), static_cast<unsigned>(magfilter),
           static_cast<unsigned>(wrapmode), static_cast<unsigned>(intformat));
   //glDeleteTextures(m_iNumBufers,m_hTexture);
   GL(glGenTextures(m_iNumBuffers,m_hTexture));
@@ -205,10 +206,10 @@ bool GLFBOTex::initTextures(GLenum minfilter, GLenum magfilter,
           ++level;
         } while (width>=1 && height>=1);
         break;
-      default:	
-	GL_RET(glTexImage2D(GL_TEXTURE_2D, 0, intformat, width, height, 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, NULL));
-	break;
+      default:
+        GL_RET(glTexImage2D(GL_TEXTURE_2D, 0, intformat, width, height, 0,
+                            GL_RGBA, GL_UNSIGNED_BYTE, NULL));
+        break;
     }
   }
   return true;

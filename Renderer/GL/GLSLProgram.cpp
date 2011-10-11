@@ -313,6 +313,7 @@ bool GLSLProgram::Initialize(void) {
       glUniformMatrix3fv = glUniformMatrix3fvARB;
       glUniformMatrix4fv = glUniformMatrix4fvARB;
 
+      MESSAGE("Using ARB functions instead of builtin GL 2.0.");
       gl::arb = m_bGLUseARB = true;
     }
     m_bGLChecked = true;
