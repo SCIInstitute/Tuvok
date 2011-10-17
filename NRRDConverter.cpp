@@ -505,7 +505,8 @@ bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std
     if (bRAWSuccess) {
       return true;
     } else {
-      T_ERROR("Error appaneding raw data to header file %s.", strTargetFilename.c_str());
+      T_ERROR("Error appending raw data to header file %s.",
+              strTargetFilename.c_str());
       remove(strTargetFilename.c_str());
       return false;
     }
