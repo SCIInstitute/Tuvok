@@ -203,6 +203,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     }
     iComponentSize = 8;
   } else {
+    // keep strSourceFilename const within the switch; we'll quantize, and if
+    // the quantization bails early because it can bin, the BinningQuantize
+    // should use the original source filename.
+    std::string strQuantizedFilename = strSourceFilename;
     switch (iComponentSize) {
       case 8 :
         // do not run the Process8Bits when we are dealing with unsigned
@@ -225,20 +229,20 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       case 16 :
         MESSAGE("Dataset is 16bit integers (shorts)");
         if(bSigned) {
-          strSourceFilename =
+          strQuantizedFilename =
             Quantize<short, unsigned short>(
               iHeaderSkip, strSourceFilename, tmpFilename1,
               iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D
             );
         } else {
           size_t iBinCount = 0;
-          strSourceFilename =
+          strQuantizedFilename =
             Quantize<unsigned short, unsigned short>(
               iHeaderSkip, strSourceFilename, tmpFilename1,
               iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, &iBinCount
             );
           if (iBinCount > 0 && iBinCount <= 256) {
-            strSourceFilename =
+            strQuantizedFilename =
               BinningQuantize<unsigned short, unsigned char>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps,
@@ -251,7 +255,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       case 32 :
         if (bIsFloat) {
           MESSAGE("Dataset is 32bit FP (floats)");
-          strSourceFilename =
+          strQuantizedFilename =
             BinningQuantize<float, unsigned short>(
               iHeaderSkip, strSourceFilename, tmpFilename1,
               iComponentCount*vVolumeSize.volume()*timesteps,
@@ -260,7 +264,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         } else {
           MESSAGE("Dataset is 32bit integers.");
           if(bSigned) {
-            strSourceFilename =
+            strQuantizedFilename =
               Quantize<boost::int32_t, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps,
@@ -268,14 +272,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
               );
           } else {
             size_t iBinCount = 0;
-            strSourceFilename =
+            strQuantizedFilename =
               Quantize<UINT32, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, 
                 &iBinCount
               );
             if (iBinCount > 0 && iBinCount <= 256) {
-              strSourceFilename =
+              strQuantizedFilename =
                 BinningQuantize<UINT32, unsigned char>(
                   iHeaderSkip, strSourceFilename, tmpFilename1,
                   iComponentCount*vVolumeSize.volume()*timesteps,
@@ -290,7 +294,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       case 64 :
         if (bIsFloat) {
           MESSAGE("Dataset is 64bit FP (doubles).");
-          strSourceFilename =
+          strQuantizedFilename =
             BinningQuantize<double, unsigned short>(
               iHeaderSkip, strSourceFilename, tmpFilename1,
               iComponentCount*vVolumeSize.volume()*timesteps,
@@ -299,7 +303,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         } else {
           MESSAGE("Dataset is 64bit integers.");
           if(bSigned) {
-            strSourceFilename =
+            strQuantizedFilename =
               Quantize<boost::int64_t, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps,
@@ -307,14 +311,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
               );
           } else {
             size_t iBinCount = 0;
-            strSourceFilename =
+            strQuantizedFilename =
               Quantize<UINT64, unsigned short>(
                 iHeaderSkip, strSourceFilename, tmpFilename1,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D, &iBinCount
               );
             if (iBinCount > 0 && iBinCount <= 256) {
-              strSourceFilename =
+              strQuantizedFilename =
                 BinningQuantize<UINT64, unsigned char>(
                   iHeaderSkip, strSourceFilename, tmpFilename1,
                   iComponentCount*vVolumeSize.volume()*timesteps,
@@ -327,6 +331,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         }
         break;
     }
+    // the outcome of the above should be that 'strSourceFilename' holds the
+    // quantized, ready-to-downsample build.
+    strSourceFilename = strQuantizedFilename;
   }
   
   // if the data was signed before Quantize removed the sign
