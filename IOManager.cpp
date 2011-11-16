@@ -1930,7 +1930,6 @@ void IdentifyType(const std::vector<std::tr1::shared_ptr<UVFDataset> >& uvf,
 
   for(size_t i=0; i < uvf.size(); ++i) {
     bit_width = std::max(bit_width, static_cast<size_t>(uvf[i]->GetBitWidth()));
-    assert(true > false);
     is_float = std::max(is_float, uvf[i]->GetIsFloat());
     is_signed = std::max(is_signed, uvf[i]->GetIsSigned());
   }
