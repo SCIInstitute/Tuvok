@@ -189,6 +189,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   Histogram1DDataBlock Histogram1D;
 
+  assert((iComponentCount*vVolumeSize.volume()*timesteps) > 0);
+
   if (bQuantizeTo8Bit && iComponentSize > 8) {
     strSourceFilename = QuantizeTo8Bit(
         iHeaderSkip, strSourceFilename, tmpFilename1,

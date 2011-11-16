@@ -190,6 +190,8 @@ public:
     std::vector<T> sourceData(iCurrentInCoreElems);
     UINT64 iPos = 0;
 
+    assert(iSize > 0); // our minmax assert later will fail anyway, if false.
+
     while(iPos < iSize) {
       size_t n_records = ds.read((unsigned char*)(&(sourceData.at(0))),
                                   std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
