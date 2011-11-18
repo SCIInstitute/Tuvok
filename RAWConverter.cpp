@@ -512,10 +512,19 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                 break;
     }
 
-    dataVolume->SetTypeToVector(iComponentSize,
-                                iComponentSize == 32 ? 23 : iComponentSize,
-                                bSigned,
-                                vSem);
+    {
+      // The mantissa size really isn't used currently, other than
+      // getting stored in the UVF.  But be sure to set it 'correctly' anyway.
+      UINT64 mantissa_size = 0;
+      if(bIsFloat && iComponentSize == 64) {
+        mantissa_size = 52; // assume ieee-854
+      } else if(bIsFloat && iComponentSize == 32) {
+        mantissa_size = 23; // assume ieee-754
+      } else {
+        mantissa_size = iComponentSize;
+      }
+      dataVolume->SetTypeToVector(iComponentSize, mantissa_size, bSigned, vSem);
+    }
 
     dataVolume->ulBrickSize.push_back(iTargetBrickSize);
     dataVolume->ulBrickSize.push_back(iTargetBrickSize);
