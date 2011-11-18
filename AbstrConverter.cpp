@@ -46,6 +46,7 @@
 #include "Controller/Controller.h"
 #include "UVF/Histogram1DDataBlock.h"
 #include "Quantize.h"
+#include "TuvokIOError.h"
 
 using namespace tuvok;
 
@@ -67,32 +68,31 @@ bool AbstrConverter::SupportedExtension(const std::string& ext) const
 }
 
 
-const std::string
-AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
-                             const std::string& strFilename,
+/// @returns true if we generated 'strTargetFilename'.
+bool
+AbstrConverter::Process8Bits(LargeRAWFile& InputData,
                              const std::string& strTargetFilename,
                              UINT64 iSize, bool bSigned,
                              Histogram1DDataBlock* Histogram1D) {
   size_t iCurrentInCoreSize = GetIncoreSize();
 
-  LargeRAWFile InputData(strFilename, iHeaderSkip);
-  InputData.Open(false);
   UINT64 iPercent = iSize / 100;
 
-  if (!InputData.IsOpen()) return "";
+  if (!InputData.IsOpen()) return false;
 
   std::vector<UINT64> aHist(256);
   std::fill(aHist.begin(), aHist.end(), 0);
 
-  std::string strSignChangedFile;
+  bool generated_file = false;
   if (bSigned)  {
     MESSAGE("Changing signed to unsigned char and computing 1D histogram...");
     LargeRAWFile OutputData(strTargetFilename);
     OutputData.Create(iSize);
 
     if (!OutputData.IsOpen()) {
+      T_ERROR("Failed opening/creating '%s'", strTargetFilename.c_str());
       InputData.Close();
-      return "";
+      return false;
     }
 
     signed char* pInData = new signed char[iCurrentInCoreSize];
@@ -115,7 +115,7 @@ AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
     }
 
     delete [] pInData;
-    strSignChangedFile = strTargetFilename;
+    generated_file = true;
     OutputData.Close();
   } else {
     if (Histogram1D) {
@@ -144,13 +144,12 @@ AbstrConverter::Process8Bits(UINT64 iHeaderSkip,
       MESSAGE("1D Histogram complete");
       delete [] pInData;
     }
-    strSignChangedFile = strFilename;
+    generated_file = false;
   }
 
-  InputData.Close();
   if ( Histogram1D ) Histogram1D->SetHistogram(aHist);
 
-  return strSignChangedFile;
+  return generated_file;
 }
 
 size_t AbstrConverter::GetIncoreSize() {
@@ -160,67 +159,71 @@ size_t AbstrConverter::GetIncoreSize() {
     return DEFAULT_INCORESIZE;
 }
 
-const std::string
-AbstrConverter::QuantizeTo8Bit(UINT64 iHeaderSkip,
-                               const std::string& strFilename,
+bool
+AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
                                const std::string& strTargetFilename,
                                UINT64 iComponentSize,
                                UINT64 iSize,
                                bool bSigned,
                                bool bIsFloat,
                                Histogram1DDataBlock* Histogram1D) {
-  std::string intermFile = "";
+  bool generated_target = false;
+  if(!rawfile.IsOpen()) {
+    T_ERROR("Could not open '%s' for 8bit quantization.",
+            rawfile.GetFilename().c_str());
+    return false;
+  }
   switch (iComponentSize) {
     case 8:
-      intermFile = Process8Bits(iHeaderSkip, strFilename,
-                                strTargetFilename, iSize, bSigned,
-                                Histogram1D);
+      generated_target = Process8Bits(rawfile, strTargetFilename, iSize,
+                                      bSigned, Histogram1D);
       break;
     case 16 :
       if(bSigned) {
-        intermFile = Quantize<short, unsigned char>(iHeaderSkip, strFilename,
-                                                    strTargetFilename, iSize,
-                                                    Histogram1D);
+        generated_target =
+          Quantize<short, unsigned char>(rawfile, strTargetFilename, iSize,
+                                         Histogram1D);
       } else {
-        intermFile = Quantize<unsigned short, unsigned char>
-                             (iHeaderSkip, strFilename,
-                              strTargetFilename, iSize, Histogram1D);
+        generated_target =
+          Quantize<unsigned short, unsigned char>(rawfile, strTargetFilename,
+                                                  iSize, Histogram1D);
       }
       break;
     case 32 :
       if (bIsFloat) {
-        intermFile = Quantize<float, unsigned char>(iHeaderSkip, strFilename,
-                                          strTargetFilename, iSize,
-                                          Histogram1D);
+        generated_target =
+          Quantize<float, unsigned char>(rawfile, strTargetFilename, iSize,
+                                         Histogram1D);
       } else {
         if(bSigned) {
-          intermFile = Quantize<int, unsigned char>(iHeaderSkip, strFilename,
-                                          strTargetFilename, iSize, Histogram1D);
+          generated_target =
+            Quantize<int, unsigned char>(rawfile, strTargetFilename, iSize,
+                                         Histogram1D);
         } else {
-          intermFile = Quantize<unsigned, unsigned char>(iHeaderSkip, strFilename,
-                                               strTargetFilename, iSize,
-                                               Histogram1D);
+          generated_target =
+            Quantize<unsigned, unsigned char>(rawfile, strTargetFilename, iSize,
+                                              Histogram1D);
         }
       }
       break;
     case 64 :
       if (bIsFloat) {
-        intermFile = Quantize<double, unsigned char>(iHeaderSkip, strFilename,
-                                           strTargetFilename, iSize,
-                                           Histogram1D);
+        generated_target =
+          Quantize<double, unsigned char>(rawfile, strTargetFilename, iSize,
+                                          Histogram1D);
       } else {
         if(bSigned) {
-          intermFile = Quantize<boost::int64_t, unsigned char>(
-            iHeaderSkip, strFilename, strTargetFilename, iSize, Histogram1D
+          generated_target = Quantize<boost::int64_t, unsigned char>(
+            rawfile, strTargetFilename, iSize, Histogram1D
           );
         } else {
-          intermFile = Quantize<UINT64, unsigned char>(iHeaderSkip, strFilename,
-                                             strTargetFilename, iSize,
-                                             Histogram1D);
+          generated_target =
+            Quantize<UINT64, unsigned char>(rawfile, strTargetFilename, iSize,
+                                            Histogram1D);
         }
       }
       break;
   }
 
-  return intermFile;
+  return generated_target;
 }

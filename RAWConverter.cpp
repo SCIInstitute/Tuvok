@@ -99,7 +99,7 @@ static std::string convert_endianness(const std::string& strFilename,
     throw DSOpenFailed(tmp_file.c_str(), "Unable to create file",
                        __FILE__, __LINE__);
   }
-  MESSAGE("Performing endianess conversion ...");
+  MESSAGE("Performing endianness conversion ...");
 
   UINT64 byte_length = WrongEndianData.GetCurrentSize();
   size_t buffer_size = std::min<size_t>(static_cast<size_t>(byte_length),
@@ -146,7 +146,7 @@ static std::string convert_endianness(const std::string& strFilename,
     }
     bytes_converted += static_cast<UINT64>(bytes_written);
 
-    MESSAGE("Performing endianess conversion"
+    MESSAGE("Performing endianness conversion"
             "\n%i%% complete",
             int(float(bytes_converted) / float(byte_length)*100.0f));
   }
@@ -155,6 +155,18 @@ static std::string convert_endianness(const std::string& strFilename,
 
   return tmp_file;
 }
+
+// A TempFile is an RAII LargeRAWFile, which deletes itself when it
+// goes out of scope.  There shouldn't be any need to explicitly delete
+// it, but you can do so early with the 'Delete' call, if desired.
+class TempFile : public LargeRAWFile {
+public:
+  TempFile(const std::string& filename) : LargeRAWFile(filename, 0) {}
+  virtual ~TempFile() {
+    Close();
+    Delete();
+  }
+};
 
 bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const string& strTargetFilename,
@@ -199,7 +211,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   string strSourceFilename = strFilename;
   string tmpEndianConvertedFile;
-  string tmpFilename1 = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
+  string tmpQuantizedFile = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
+
+  std::tr1::shared_ptr<LargeRAWFile> sourceData;
 
   if (bConvertEndianness) {
     // the new data source is the endian-converted file.
@@ -208,28 +222,38 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                          iTargetBrickSize*iTargetBrickSize*iTargetBrickSize *
                            iComponentSize/8);
     iHeaderSkip = 0;  // the new file is straight raw without any header
+    sourceData = std::tr1::shared_ptr<LargeRAWFile>(
+      new TempFile(tmpEndianConvertedFile)
+    );
+  } else {
+    sourceData = std::tr1::shared_ptr<LargeRAWFile>(
+      new LargeRAWFile(strSourceFilename, iHeaderSkip)
+    );
+  }
+  sourceData->Open(false);
+  if(!sourceData->IsOpen()) {
+    using namespace tuvok::io;
+    throw DSOpenFailed(sourceData->GetFilename().c_str(), "Could not open data"
+                       " for processing.", __FILE__, __LINE__);
   }
 
   Histogram1DDataBlock Histogram1D;
 
   assert((iComponentCount*vVolumeSize.volume()*timesteps) > 0);
 
+  // we may do some processing here, into 'tmpQuantizedFile'.  The method we
+  // call will tell us whether we should use that generated file (true), or
+  // whether we should just stick with our old data source.
+  bool use_target = false;
+
   if (bQuantizeTo8Bit && iComponentSize > 8) {
-    strSourceFilename = QuantizeTo8Bit(
-        iHeaderSkip, strSourceFilename, tmpFilename1,
+    use_target = QuantizeTo8Bit(
+        *sourceData, tmpQuantizedFile,
         iComponentSize, iComponentCount*vVolumeSize.volume()*timesteps,
         bSigned, bIsFloat, &Histogram1D
     );
-    if (strSourceFilename == "") {
-      T_ERROR("Unsupported source format");
-      return false;
-    }
     iComponentSize = 8;
   } else {
-    // keep strSourceFilename const within the switch; we'll quantize, and if
-    // the quantization bails early because it can bin, the BinningQuantize
-    // should use the original source filename.
-    std::string strQuantizedFilename = strSourceFilename;
     switch (iComponentSize) {
       case 8 :
         // do not run the Process8Bits when we are dealing with unsigned
@@ -242,8 +266,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           MESSAGE("%u component, %s data",
                   static_cast<unsigned>(iComponentCount),
                   (bSigned) ? "signed" : "unsigned");
-          strSourceFilename = strQuantizedFilename = Process8Bits(
-            iHeaderSkip, strSourceFilename, tmpFilename1,
+          use_target = Process8Bits(
+            *sourceData, tmpQuantizedFile,
             iComponentCount*vVolumeSize.volume()*timesteps,
             bSigned, &Histogram1D
           );
@@ -252,22 +276,22 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       case 16 :
         MESSAGE("Dataset is 16bit integers (shorts)");
         if(bSigned) {
-          strQuantizedFilename =
+          use_target =
             Quantize<short, unsigned short>(
-              iHeaderSkip, strSourceFilename, tmpFilename1,
+              *sourceData, tmpQuantizedFile,
               iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D
             );
         } else {
           size_t iBinCount = 0;
-          strQuantizedFilename =
+          use_target =
             Quantize<unsigned short, unsigned short>(
-              iHeaderSkip, strSourceFilename, tmpFilename1,
+              *sourceData, tmpQuantizedFile,
               iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, &iBinCount
             );
           if (iBinCount > 0 && iBinCount <= 256) {
-            strQuantizedFilename =
+            use_target =
               BinningQuantize<unsigned short, unsigned char>(
-                iHeaderSkip, strSourceFilename, tmpFilename1,
+                *sourceData, tmpQuantizedFile,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 iComponentSize, &Histogram1D
                 );
@@ -278,33 +302,33 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       case 32 :
         if (bIsFloat) {
           MESSAGE("Dataset is 32bit FP (floats)");
-          strQuantizedFilename =
+          use_target =
             BinningQuantize<float, unsigned short>(
-              iHeaderSkip, strSourceFilename, tmpFilename1,
+              *sourceData, tmpQuantizedFile,
               iComponentCount*vVolumeSize.volume()*timesteps,
               iComponentSize, &Histogram1D
             );
         } else {
           MESSAGE("Dataset is 32bit integers.");
           if(bSigned) {
-            strQuantizedFilename =
+            use_target =
               Quantize<boost::int32_t, unsigned short>(
-                iHeaderSkip, strSourceFilename, tmpFilename1,
+                *sourceData, tmpQuantizedFile,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D
               );
           } else {
             size_t iBinCount = 0;
-            strQuantizedFilename =
+            use_target =
               Quantize<UINT32, unsigned short>(
-                iHeaderSkip, strSourceFilename, tmpFilename1,
+                *sourceData, tmpQuantizedFile,
                 iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, 
                 &iBinCount
               );
             if (iBinCount > 0 && iBinCount <= 256) {
-              strQuantizedFilename =
+              use_target =
                 BinningQuantize<UINT32, unsigned char>(
-                  iHeaderSkip, strSourceFilename, tmpFilename1,
+                  *sourceData, tmpQuantizedFile,
                   iComponentCount*vVolumeSize.volume()*timesteps,
                   iComponentSize, &Histogram1D
                   );
@@ -317,33 +341,33 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       case 64 :
         if (bIsFloat) {
           MESSAGE("Dataset is 64bit FP (doubles).");
-          strQuantizedFilename =
+          use_target =
             BinningQuantize<double, unsigned short>(
-              iHeaderSkip, strSourceFilename, tmpFilename1,
+              *sourceData, tmpQuantizedFile,
               iComponentCount*vVolumeSize.volume()*timesteps,
               iComponentSize, &Histogram1D
             );
         } else {
           MESSAGE("Dataset is 64bit integers.");
           if(bSigned) {
-            strQuantizedFilename =
+            use_target =
               Quantize<boost::int64_t, unsigned short>(
-                iHeaderSkip, strSourceFilename, tmpFilename1,
+                *sourceData, tmpQuantizedFile,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D
               );
           } else {
             size_t iBinCount = 0;
-            strQuantizedFilename =
+            use_target =
               Quantize<UINT64, unsigned short>(
-                iHeaderSkip, strSourceFilename, tmpFilename1,
+                *sourceData, tmpQuantizedFile,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D, &iBinCount
               );
             if (iBinCount > 0 && iBinCount <= 256) {
-              strQuantizedFilename =
+              use_target =
                 BinningQuantize<UINT64, unsigned char>(
-                  iHeaderSkip, strSourceFilename, tmpFilename1,
+                  *sourceData, tmpQuantizedFile,
                   iComponentCount*vVolumeSize.volume()*timesteps,
                   iComponentSize, &Histogram1D
                   );
@@ -354,32 +378,20 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         }
         break;
     }
-    // the outcome of the above should be that 'strSourceFilename' holds the
-    // quantized, ready-to-downsample build.
-    strSourceFilename = strQuantizedFilename;
   }
   
   // if the data was signed before Quantize removed the sign
   bSigned = false;
 
-  if (strSourceFilename == "")  {
-    T_ERROR("Read/Write error quantizing to %s", strFilename.c_str());
-    return false;
-  }
-
-  bool bQuantized;
-  if (strSourceFilename == tmpFilename1) {
-    bQuantized = true;
-
-    // if we actually created two temp file so far we can delete the first one
-    if (bConvertEndianness) {
-      Remove(tmpEndianConvertedFile, Controller::Debug::Out());
-      bConvertEndianness = false;
-    }
-
+  // Which file are we using next?  If we just quantized something, then it's
+  // the file we just generated.  Otherwise we're just going to reuse our
+  // previous file.
+  if(use_target) {
+    sourceData = std::tr1::shared_ptr<LargeRAWFile>(
+      new TempFile(tmpQuantizedFile)
+    );
+    sourceData->Open(false);
     iHeaderSkip = 0; // the new file is straight raw without any header
-  } else {
-    bQuantized = false;
   }
 
   wstring wstrUVFName(strTargetFilename.begin(), strTargetFilename.end());
@@ -488,14 +500,13 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     AbstrDebugOut *dbg = &Controller::Debug::Out();
 
     bool bBrickingOK = false;
-    LargeRAWFile SourceData(strSourceFilename, iHeaderSkip);
     // increment the header skip so the next iteration pulls out the next
     // timestep in our conglomeration of multiple TSs into a single file.
     iHeaderSkip += iComponentSize/8 * iComponentCount * vVolumeSize.volume();
-    SourceData.Open(false);
 
-    if (!SourceData.IsOpen()) {
-      T_ERROR("Unable to open source file %s", strSourceFilename.c_str());
+    if (!sourceData->IsOpen()) {
+      T_ERROR("Unable to open source file %s",
+              sourceData->GetFilename().c_str());
       return false;
     }
 
@@ -503,25 +514,25 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       case 8 :
         switch (iComponentCount) {
           case 1:
-            bBrickingOK =dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"1",
+            bBrickingOK =dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"1",
                                             CombineAverage<unsigned char,1>,
                                             SimpleMaxMin<unsigned char,1>,
                                             &MaxMinData, dbg);
             break;
           case 2:
-            bBrickingOK =dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"2",
+            bBrickingOK =dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"2",
                                             CombineAverage<unsigned char,2>,
                                             SimpleMaxMin<unsigned char,2>,
                                             &MaxMinData, dbg);
             break;
           case 3:
-            bBrickingOK =dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"3",
+            bBrickingOK =dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"3",
                                             CombineAverage<unsigned char,3>,
                                             SimpleMaxMin<unsigned char,3>,
                                             &MaxMinData, dbg);
             break;
           case 4:
-            bBrickingOK =dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"4",
+            bBrickingOK =dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"4",
                                             CombineAverage<unsigned char,4>,
                                             SimpleMaxMin<unsigned char,4>,
                                             &MaxMinData, dbg);
@@ -530,27 +541,41 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
             T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
                     int(iComponentCount), int(iComponentSize));
             uvfFile.Close();
-            SourceData.Close();
+            sourceData->Close();
             return false;
         }
         break;
       case 16:
             switch (iComponentCount) {
-              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"1", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short, 1>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"2", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short, 2>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"3", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short, 3>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"4", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short, 4>, &MaxMinData, &Controller::Debug::Out()); break;
-              default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"1", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short, 1>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"2", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short, 2>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"3", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short, 3>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"4", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short, 4>, &MaxMinData, &Controller::Debug::Out()); break;
+              default:
+                T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
+                        int(iComponentCount), int(iComponentSize));
+                uvfFile.Close();
+                sourceData->Close();
+                return false;
             } break;
       case 32 :
             switch (iComponentCount) {
-              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"1", CombineAverage<float,1>, SimpleMaxMin<float, 1>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"2", CombineAverage<float,2>, SimpleMaxMin<float, 2>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"3", CombineAverage<float,3>, SimpleMaxMin<float, 3>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(&SourceData, tmpfile+"4", CombineAverage<float,4>, SimpleMaxMin<float, 4>, &MaxMinData, &Controller::Debug::Out()); break;
-              default: T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.", int(iComponentCount), int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"1", CombineAverage<float,1>, SimpleMaxMin<float, 1>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"2", CombineAverage<float,2>, SimpleMaxMin<float, 2>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"3", CombineAverage<float,3>, SimpleMaxMin<float, 3>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"4", CombineAverage<float,4>, SimpleMaxMin<float, 4>, &MaxMinData, &Controller::Debug::Out()); break;
+              default:
+                T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
+                        int(iComponentCount), int(iComponentSize));
+                uvfFile.Close();
+                sourceData->Close();
+                return false;
             } break;
-      default: T_ERROR("Unsupported iComponentSize %i.", int(iComponentSize)); uvfFile.Close(); SourceData.Close(); return false;
+      default:
+        T_ERROR("Unsupported iComponentSize %i.", int(iComponentSize));
+        uvfFile.Close();
+        sourceData->Close();
+        return false;
     }
 
     if (!bBrickingOK) {
@@ -564,24 +589,12 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       T_ERROR("Verify failed with the following reason: %s",
               strProblemDesc.c_str());
       uvfFile.Close();
-      if (bConvertEndianness) {
-        Remove(tmpEndianConvertedFile, Controller::Debug::Out());
-      }
-      if (bQuantized) {
-        Remove(tmpFilename1, Controller::Debug::Out());
-      }
       return false;
     }
 
     if (!uvfFile.AddDataBlock(dataVolume, true)) {
       T_ERROR("AddDataBlock failed!");
       uvfFile.Close();
-      if (bConvertEndianness) {
-        Remove(tmpEndianConvertedFile, Controller::Debug::Out());
-      }
-      if (bQuantized) {
-        Remove(tmpFilename1, Controller::Debug::Out());
-      }
       return false;
     }
 
@@ -595,12 +608,6 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         if (!Histogram1D.Compute(dataVolume)) {
           T_ERROR("Computation of 1D Histogram failed!");
           uvfFile.Close();
-          if (bConvertEndianness) {
-            Remove(tmpEndianConvertedFile, Controller::Debug::Out());
-          }
-          if (bQuantized) {
-            Remove(tmpFilename1, Controller::Debug::Out());
-          }
           return false;
         }
       }
@@ -610,12 +617,6 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       if (!Histogram2D.Compute(dataVolume, Histogram1D.GetHistogram().size(), MaxMinData.m_GlobalMaxMin.maxScalar)) {
         T_ERROR("Computation of 2D Histogram failed!");
         uvfFile.Close();
-        if (bConvertEndianness) {
-          Remove(tmpEndianConvertedFile, Controller::Debug::Out());
-        }
-        if (bQuantized) {
-          Remove(tmpFilename1, Controller::Debug::Out());
-        }
         return false;
       }
       MESSAGE("Storing histogram data...");
@@ -625,7 +626,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
     MESSAGE("Storing acceleration data...");
     uvfFile.AddDataBlock(&MaxMinData);
-    SourceData.Close();
+    sourceData->Close();
   }
 
 
@@ -667,15 +668,6 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   uvfFile.Close();
   blocks.clear();
-
-  MESSAGE("Removing temporary files...");
-
-  if (bConvertEndianness) {
-    Remove(tmpEndianConvertedFile, Controller::Debug::Out());
-  }
-  if (bQuantized) {
-    Remove(tmpFilename1, Controller::Debug::Out());
-  }
 
   MESSAGE("Done!");
   return true;

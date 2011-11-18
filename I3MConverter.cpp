@@ -36,9 +36,10 @@
 
 #include <fstream>
 #include "I3MConverter.h"
-#include <Controller/Controller.h>
-#include <Basics/SysTools.h>
-#include <IO/KeyValueFileParser.h>
+#include "Basics/SysTools.h"
+#include "Controller/Controller.h"
+#include "IO/KeyValueFileParser.h"
+#include "TuvokIOError.h"
 
 using namespace std;
 
@@ -287,14 +288,20 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   bool bDelete8BitFile;
   string str8BitFilename ;
   if (iComponentSize!=8 || bSigned) {
-    str8BitFilename = QuantizeTo8Bit(iHeaderSkip,
-                                     strRawFilename,
+    LargeRAWFile rf(strRawFilename, iHeaderSkip);
+    if(!rf.IsOpen()) {
+      using namespace tuvok::io;
+      throw DSOpenFailed(strRawFilename.c_str(), "Could not quantize input.",
+                         __FILE__, __LINE__);
+    }
+    str8BitFilename = QuantizeTo8Bit(rf,
                                      strTargetFilename+".tmp",
                                      iComponentSize,
                                      vVolumeSize.volume(),
                                      bSigned,
                                      bFloatingPoint);
 
+    rf.Close();
     iHeaderSkip = 0;
     iComponentSize = 8;
     bSigned = false;

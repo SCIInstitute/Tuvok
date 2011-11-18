@@ -170,15 +170,16 @@ public:
   virtual bool CanExportData() const { return false; }
   virtual bool CanImportData() const { return true; }
 
+  /// @returns false on error; true if we successfully generated
+  /// 'strTargetFilename'.
   template <typename T, typename U>
-  static const std::string ApplyMapping(const UINT64 iSize,
-                                        const size_t iCurrentInCoreSizeBytes,
-                                        raw_data_src<T>& ds,
-                                        const std::string& strTargetFilename,
-                                        std::map<T, size_t>& binAssignments,
-                                        Histogram1DDataBlock* Histogram1D,
-                                        TuvokProgress<UINT64> progress) {
-    
+  static bool ApplyMapping(const UINT64 iSize,
+                           const size_t iCurrentInCoreSizeBytes,
+                           raw_data_src<T>& ds,
+                           const std::string& strTargetFilename,
+                           std::map<T, size_t>& binAssignments,
+                           Histogram1DDataBlock* Histogram1D,
+                           TuvokProgress<UINT64> progress) {
     const size_t iCurrentInCoreElems = iCurrentInCoreSizeBytes / sizeof(U);
 
     ds.reset();
@@ -218,8 +219,9 @@ public:
     LargeRAWFile MappedData(strTargetFilename);
     MappedData.Open(false);
     if(!MappedData.IsOpen()) {
-      T_ERROR("Could not open intermediate file '%s'", strTargetFilename.c_str());
-      return "";
+      T_ERROR("Could not open intermediate file '%s'",
+              strTargetFilename.c_str());
+      return false;
     }
 
     // now compute histogram
@@ -241,27 +243,26 @@ public:
 
     if(Histogram1D) { Histogram1D->SetHistogram(aHist); }
 
-    return strTargetFilename;
+    return true;
   }
 
+  /// @returns true if we generated 'strTargetFilename', false if the caller
+  /// can just use 'InputData' as-is or on error.
   template <typename T, typename U>
-  static const std::string BinningQuantize(UINT64 iHeaderSkip,
-                                    const std::string& strFilename,
-                                    const std::string& strTargetFilename,
-                                    UINT64 iSize,
-                                    UINT64& iComponentSize,
-                                    Histogram1DDataBlock* Histogram1D=0)
+  static bool BinningQuantize(LargeRAWFile& InputData,
+                              const std::string& strTargetFilename,
+                              UINT64 iSize,
+                              UINT64& iComponentSize,
+                              Histogram1DDataBlock* Histogram1D=0)
   {
     MESSAGE("Attempting to recover integer values by binning the data.");
 
     iComponentSize = sizeof(U)*8;
     const size_t iCurrentInCoreSizeBytes = GetIncoreSize();
     const size_t iCurrentInCoreElems = iCurrentInCoreSizeBytes / sizeof(T);
-    LargeRAWFile InputData(strFilename, iHeaderSkip);
-    InputData.Open(false);
     if(!InputData.IsOpen()) {
-      T_ERROR("Could not open '%s'", strFilename.c_str());
-      return "";
+      T_ERROR("'%s' is not open.", InputData.GetFilename().c_str());
+      return false;
     }
 
     MESSAGE("Counting number of unique values in the data");
@@ -277,7 +278,7 @@ public:
     while(bBinningPossible && iPos < iSize) {
       size_t n_records = ds.read((unsigned char*)(&(data.at(0))),
                                   std::min(static_cast<size_t>((iSize - iPos)*sizeof(T)),
-                                          iCurrentInCoreElems));
+                                           iCurrentInCoreElems));
       if(n_records == 0) {
         WARNING("Short file during counting.");
         break; // bail out if the read gave us nothing.
@@ -307,9 +308,8 @@ public:
 
     // too many values, need to actually quantize the data
     if (!bBinningPossible) {
-      return Quantize<T,U>(iHeaderSkip, strFilename,
-                           strTargetFilename, iSize,
-                           Histogram1D);
+      InputData.SeekStart();
+      return Quantize<T,U>(InputData, strTargetFilename, iSize, Histogram1D);
     }
     
     // now compute the mapping from values to bins
@@ -329,9 +329,10 @@ public:
 
     if (binAssignments.size() < 256) {
       iComponentSize = 8; // now we are only using 8 bits
-      return ApplyMapping<T,unsigned char>(iSize, iCurrentInCoreSizeBytes, ds,
-                                           strTargetFilename, binAssignments,
-                                           Histogram1D, progress);
+      using namespace boost;
+      return ApplyMapping<T,uint8_t>(iSize, iCurrentInCoreSizeBytes, ds,
+                                     strTargetFilename, binAssignments,
+                                     Histogram1D, progress);
     } else {
       return ApplyMapping<T,U>(iSize, iCurrentInCoreSizeBytes, ds,
                                strTargetFilename, binAssignments, Histogram1D,
@@ -339,13 +340,16 @@ public:
     }       
   }
 
+  /// Quantizes an (already-open) file to 'strTargetFilename'.  If 'InputData'
+  /// doesn't need any quantization, this might be a no-op.
+  /// @returns true if we generated 'strTargetFilename', false if the caller
+  /// can just use 'InputData' as-is or on error.
   template <typename T, typename U>
-  static const std::string Quantize(UINT64 iHeaderSkip,
-                                    const std::string& strFilename,
-                                    const std::string& strTargetFilename,
-                                    UINT64 iSize,
-                                    Histogram1DDataBlock* Histogram1D=0,
-                                    size_t* iBinCount=0)
+  static bool Quantize(LargeRAWFile& InputData,
+                       const std::string& strTargetFilename,
+                       UINT64 iSize,
+                       Histogram1DDataBlock* Histogram1D=0,
+                       size_t* iBinCount=0)
   {
     if (iBinCount) {
       MESSAGE("Resetting bin count to 0.");
@@ -359,11 +363,9 @@ public:
 
     const size_t iCurrentInCoreSizeBytes = GetIncoreSize();
     const size_t iCurrentInCoreElems = iCurrentInCoreSizeBytes / sizeof(T);
-    LargeRAWFile InputData(strFilename, iHeaderSkip);
-    InputData.Open(false);
     if(!InputData.IsOpen()) {
-      T_ERROR("Could not open '%s'", strFilename.c_str());
-      return "";
+      T_ERROR("Open the file before you call this.");
+      return false;
     }
 
     // figure out min/max
@@ -380,16 +382,15 @@ public:
     if(!ctti<T>::is_signed && minmax.second < static_cast<T>(hist_size) &&
        sizeof(T) <= ((hist_size == 256) ? 1 : 2)) {
       MESSAGE("Returning early; data does not need processing.");
-      InputData.Close();
 
       // if we have very few values, let the calling function know
-      // how much exactly, so we can reduce the the bit depth of 
+      // how much exactly, so we can reduce the bit depth of 
       // the data
       if (iBinCount) {
         for (size_t bin = 0;bin<aHist.size();++bin) 
           if (aHist[bin] != 0) (*iBinCount)++;
       }
-      return strFilename;
+      return false;
     }
     // Reset the histogram.  We'll be quantizing the data.
     std::fill(aHist.begin(), aHist.end(), 0);
@@ -425,7 +426,7 @@ public:
     while(iPos < iSize) {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData,
                                        std::min((iSize - iPos)*sizeof(T),
-                                        UINT64(iCurrentInCoreSizeBytes)))/sizeof(T);
+                                       UINT64(iCurrentInCoreSizeBytes)))/sizeof(T);
       if(iRead == 0) { break; } // bail if the read gave us nothing
 
       // calculate hist + quantize to output file.
@@ -469,21 +470,19 @@ public:
 
     if(Histogram1D) { Histogram1D->SetHistogram(aHist); }
 
-    return strTargetFilename;
+    return true;
   }
 
-  static const std::string Process8Bits(UINT64 iHeaderSkip,
-                                        const std::string& strFilename,
-                                        const std::string& strTargetFilename,
-                                        UINT64 iSize, bool bSigned,
-                                        Histogram1DDataBlock* Histogram1D=0);
+  static bool Process8Bits(LargeRAWFile& InputData,
+                           const std::string& strTargetFilename,
+                           UINT64 iSize, bool bSigned,
+                           Histogram1DDataBlock* Histogram1D=0);
 
-  static const std::string QuantizeTo8Bit(UINT64 iHeaderSkip,
-                                          const std::string& strFilename,
-                                          const std::string& strTargetFilename,
-                                          UINT64 iComponentSize, UINT64 iSize,
-                                          bool bSigned, bool bIsFloat,
-                                          Histogram1DDataBlock* Histogram1D=0);
+  static bool QuantizeTo8Bit(LargeRAWFile& rawfile,
+                             const std::string& strTargetFilename,
+                             UINT64 iComponentSize, UINT64 iSize,
+                             bool bSigned, bool bIsFloat,
+                             Histogram1DDataBlock* Histogram1D=0);
 
   static size_t GetIncoreSize();
 
