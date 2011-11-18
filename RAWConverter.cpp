@@ -252,15 +252,13 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   MESSAGE("Converting RAW dataset %s to %s", strFilename.c_str(), strTargetFilename.c_str());
 
-  string strSourceFilename = strFilename;
-  string tmpEndianConvertedFile;
   string tmpQuantizedFile = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
 
   std::tr1::shared_ptr<LargeRAWFile> sourceData;
 
   if (bConvertEndianness) {
     // the new data source is the endian-converted file.
-    strSourceFilename = tmpEndianConvertedFile =
+    string tmpEndianConvertedFile =
       convert_endianness(strFilename, strTempDir, iHeaderSkip, iComponentSize,
                          iTargetBrickSize*iTargetBrickSize*iTargetBrickSize *
                            iComponentSize/8);
@@ -270,7 +268,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     );
   } else {
     sourceData = std::tr1::shared_ptr<LargeRAWFile>(
-      new LargeRAWFile(strSourceFilename, iHeaderSkip)
+      new LargeRAWFile(strFilename, iHeaderSkip)
     );
   }
   sourceData->Open(false);
