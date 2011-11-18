@@ -168,6 +168,45 @@ public:
   }
 };
 
+static std::tr1::shared_ptr<KeyValuePairDataBlock> metadata(
+  const string& strDesc, const string& strSource,
+  bool bLittleEndian, bool bSigned, bool bIsFloat,
+  UINT64 iComponentSize,
+  KVPairs* pKVPairs
+)
+{
+  std::tr1::shared_ptr<KeyValuePairDataBlock> meta =
+    std::tr1::shared_ptr<KeyValuePairDataBlock>(new KeyValuePairDataBlock());
+
+  if(!strSource.empty()) { meta->AddPair("Data Source", strSource); }
+  if(!strDesc.empty()) { meta->AddPair("Description", strDesc); }
+
+  if(bLittleEndian) {
+    meta->AddPair("Source Endianness", "little");
+  } else {
+    meta->AddPair("Source Endianness", "big");
+  }
+
+  if(bIsFloat) {
+    meta->AddPair("Source Type", "float");
+  } else {
+    if(bSigned) {
+      meta->AddPair("Source Type", "signed integer");
+    } else {
+      meta->AddPair("Source Type", "integer");
+    }
+  }
+  meta->AddPair("Source Bitwidth", SysTools::ToString(iComponentSize));
+
+  if(pKVPairs) {
+    for (size_t i=0; i < pKVPairs->size(); i++) {
+      meta->AddPair(pKVPairs->at(i).first, pKVPairs->at(i).second);
+    }
+  }
+
+  return meta;
+}
+
 bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const string& strTargetFilename,
                                      const string& strTempDir,
@@ -192,10 +231,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     return false;
   }
 
-  bool bMetadata_SourceIsLittleEndian = (bConvertEndianness && EndianConvert::IsBigEndian()) || (EndianConvert::IsLittleEndian() && !bConvertEndianness);
-  bool bMetadata_Signed = bSigned;
-  bool bMetadata_IsFloat = bIsFloat;
-  UINT64 iMetadata_ComponentSize = iComponentSize;
+  // Save the original metadata now: as we quantize or whatnot, we will modify
+  // it, and we need to know the original settings for recording it in the UVF.
+  std::tr1::shared_ptr<KeyValuePairDataBlock> metaPairs = metadata(
+    strDesc, strSource,
+    (bConvertEndianness && EndianConvert::IsBigEndian()) ||
+      (EndianConvert::IsLittleEndian() && !bConvertEndianness),
+    bSigned, bIsFloat, iComponentSize, pKVPairs
+  );
 
   if (iComponentCount > 4) {
     T_ERROR("Currently, only up to four component data is supported.");
@@ -490,7 +533,6 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     vScale.push_back(vVolumeAspect.z);
     dataVolume->SetScaleOnlyTransformation(vScale);
 
-    MaxMinDataBlock& MaxMinData = *blocks[ts].maxmin;
     std::string tmpfile;
     {
       ostringstream tmpfn;
@@ -510,6 +552,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       return false;
     }
 
+    MaxMinDataBlock& MaxMinData = *blocks[ts].maxmin;
     switch (iComponentSize) {
       case 8 :
         switch (iComponentCount) {
@@ -598,7 +641,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       return false;
     }
 
-    // do compute histograms when we are dealing with color data
+    // do not compute histograms when we are dealing with color data
     /// \todo change this if we want to support non color multi component data
     if (iComponentCount != 4) {
       // if no resampling was perfomed above, we need to compute the
@@ -614,7 +657,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
       MESSAGE("Computing 2D Histogram...");
       Histogram2DDataBlock& Histogram2D = *blocks[ts].hist2d;
-      if (!Histogram2D.Compute(dataVolume, Histogram1D.GetHistogram().size(), MaxMinData.m_GlobalMaxMin.maxScalar)) {
+      if (!Histogram2D.Compute(dataVolume, Histogram1D.GetHistogram().size(),
+          MaxMinData.m_GlobalMaxMin.maxScalar)) {
         T_ERROR("Computation of 2D Histogram failed!");
         uvfFile.Close();
         return false;
@@ -632,33 +676,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   MESSAGE("Storing metadata...");
 
-  KeyValuePairDataBlock metaPairs;
-  if (strSource != "") metaPairs.AddPair("Data Source",strSource);
-  if (strDesc != "") metaPairs.AddPair("Description",strDesc);
-
-  if (bMetadata_SourceIsLittleEndian)
-    metaPairs.AddPair("Source Endianess","little");
-  else
-    metaPairs.AddPair("Source Endianess","big");
-
-  if (bMetadata_IsFloat)
-    metaPairs.AddPair("Source Type","float");
-  else
-    if (bMetadata_Signed)
-      metaPairs.AddPair("Source Type","signed integer");
-    else
-      metaPairs.AddPair("Source Type","integer");
-
-  metaPairs.AddPair("Source Bitwidth",
-                    SysTools::ToString(iMetadata_ComponentSize));
-
-  if (pKVPairs) {
-    for (size_t i = 0;i<pKVPairs->size();i++) {
-      metaPairs.AddPair(pKVPairs->at(i).first,pKVPairs->at(i).second);
-    }
-  }
-
-  uvfFile.AddDataBlock(&metaPairs);
+  uvfFile.AddDataBlock(metaPairs.get());
 
   MESSAGE("Writing UVF file...");
 
