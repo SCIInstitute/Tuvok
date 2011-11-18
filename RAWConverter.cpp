@@ -219,7 +219,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           MESSAGE("%u component, %s data",
                   static_cast<unsigned>(iComponentCount),
                   (bSigned) ? "signed" : "unsigned");
-          strSourceFilename = Process8Bits(
+          strSourceFilename = strQuantizedFilename = Process8Bits(
             iHeaderSkip, strSourceFilename, tmpFilename1,
             iComponentCount*vVolumeSize.volume()*timesteps,
             bSigned, &Histogram1D
