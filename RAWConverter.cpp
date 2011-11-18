@@ -49,6 +49,7 @@
 #include "UVF/MaxMinDataBlock.h"
 #include "UVF/RasterDataBlock.h"
 #include "UVF/KeyValuePairDataBlock.h"
+#include "TuvokIOError.h"
 
 using namespace std;
 using boost::int64_t;
@@ -63,6 +64,97 @@ struct TimestepBlocks {
   MaxMinDataBlock *maxmin;
   Histogram2DDataBlock *hist2d;
 };
+
+namespace { template<typename T> void DeleteArray(T *t) { delete[] t; } }
+
+static std::string convert_endianness(const std::string& strFilename,
+                                      const std::string& strTempDir,
+                                      UINT64 iHeaderSkip,
+                                      UINT64 iComponentSize,
+                                      size_t in_core_size)
+{
+  using namespace tuvok::io;
+  if(iComponentSize != 16 && iComponentSize != 32 && iComponentSize != 64) {
+    T_ERROR("Unable to endian convert anything but 16-, 32-, and 64-bit data"
+            "  (input data is %d-bit).", iComponentSize);
+    return "";
+  }
+
+  LargeRAWFile WrongEndianData(strFilename, iHeaderSkip);
+  WrongEndianData.Open(false);
+
+  if(!WrongEndianData.IsOpen()) {
+    T_ERROR("Unable to open source file '%s'", strFilename.c_str());
+    throw DSOpenFailed(strFilename.c_str(), "Unable to open source file",
+                       __FILE__, __LINE__);
+  }
+
+  const std::string tmp_file = strTempDir + SysTools::GetFilename(strFilename) +
+                               ".endianness";
+  LargeRAWFile ConvertedEndianData(tmp_file);
+  ConvertedEndianData.Create();
+
+  if(!ConvertedEndianData.IsOpen()) {
+    WrongEndianData.Close();
+    throw DSOpenFailed(tmp_file.c_str(), "Unable to create file",
+                       __FILE__, __LINE__);
+  }
+  MESSAGE("Performing endianess conversion ...");
+
+  UINT64 byte_length = WrongEndianData.GetCurrentSize();
+  size_t buffer_size = std::min<size_t>(static_cast<size_t>(byte_length),
+                                        static_cast<size_t>(in_core_size));
+  UINT64 bytes_converted = 0;
+
+  std::tr1::shared_ptr<unsigned char> buffer(new unsigned char[buffer_size],
+                                             DeleteArray<unsigned char>);
+
+  while(bytes_converted < byte_length) {
+    using namespace boost;
+    size_t bytes_read = WrongEndianData.ReadRAW(buffer.get(), buffer_size);
+    switch(iComponentSize) {
+      case 16:
+        for(size_t i=0; i < bytes_read; i+= 2) {
+          EndianConvert::Swap<uint16_t>(
+            reinterpret_cast<uint16_t*>((buffer.get())+i)
+          );
+        }
+        break;
+      case 32:
+        for(size_t i=0; i < bytes_read; i+= 4) {
+          EndianConvert::Swap<float>(
+            reinterpret_cast<float*>((buffer.get())+i)
+          );
+        }
+        break;
+      case 64:
+        for(size_t i=0; i < bytes_read; i+= 8) {
+          EndianConvert::Swap<double>(
+            reinterpret_cast<double*>((*buffer)+i)
+          );
+        }
+        break;
+    }
+    size_t bytes_written = ConvertedEndianData.WriteRAW(buffer.get(),
+                                                        bytes_read);
+    if(bytes_read != bytes_written) {
+      WrongEndianData.Close();
+      ConvertedEndianData.Close();
+      remove(tmp_file.c_str());
+      throw IOException("Write failed during endianness conversion.", __FILE__,
+                        __LINE__);
+    }
+    bytes_converted += static_cast<UINT64>(bytes_written);
+
+    MESSAGE("Performing endianess conversion"
+            "\n%i%% complete",
+            int(float(bytes_converted) / float(byte_length)*100.0f));
+  }
+  WrongEndianData.Close();
+  ConvertedEndianData.Close();
+
+  return tmp_file;
+}
 
 bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const string& strTargetFilename,
@@ -83,7 +175,6 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      KVPairs* pKVPairs,
                                      const bool bQuantizeTo8Bit)
 {
-
   if (!SysTools::FileExists(strFilename)) {
     T_ERROR("Data file %s not found; maybe there is an invalid reference in the header file?", strFilename.c_str());
     return false;
@@ -106,86 +197,18 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   MESSAGE("Converting RAW dataset %s to %s", strFilename.c_str(), strTargetFilename.c_str());
 
-  string strSourceFilename;
-  string tmpFilename0 = strTempDir+SysTools::GetFilename(strFilename)+".endianess";
+  string strSourceFilename = strFilename;
+  string tmpEndianConvertedFile;
   string tmpFilename1 = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
 
   if (bConvertEndianness) {
-    MESSAGE("Performing endianess conversion ...");
-
-    if (iComponentSize != 16 && iComponentSize != 32 && iComponentSize != 64) {
-      T_ERROR("Unable to endian convert anything but 16bit, 32bit, or 64bit values (requested %i)", int(iComponentSize));
-      return false;
-    }
-
-    LargeRAWFile WrongEndianData(strFilename, iHeaderSkip);
-    WrongEndianData.Open(false);
-
-    if (!WrongEndianData.IsOpen()) {
-      T_ERROR("Unable to open source file %s", strFilename.c_str());
-      return false;
-    }
-
-    LargeRAWFile ConvEndianData(tmpFilename0);
-    ConvEndianData.Create();
-
-    if (!ConvEndianData.IsOpen()) {
-      T_ERROR("Unable to open temp file %s for endianess conversion", tmpFilename0.c_str());
-      WrongEndianData.Close();
-      return false;
-    }
-
-    UINT64 ulFileLength = WrongEndianData.GetCurrentSize();
-    // hint: this must fit into memory otherwise other subsystems would break
-    size_t iBufferSize = std::min<size_t>(
-      size_t(ulFileLength),
-      size_t(iTargetBrickSize * iTargetBrickSize * iTargetBrickSize *
-             iComponentSize/8)
-    );
-    UINT64 ulBufferConverted = 0;
-
-    unsigned char* pBuffer = new unsigned char[iBufferSize];
-
-    while (ulBufferConverted < ulFileLength) {
-      size_t iBytesRead = WrongEndianData.ReadRAW(pBuffer, iBufferSize);
-
-      switch (iComponentSize) {
-        case 16 : for (size_t i = 0;i<iBytesRead;i+=2)
-                    EndianConvert::Swap<unsigned short>((unsigned short*)(pBuffer+i));
-                  break;
-        case 32 : for (size_t i = 0;i<iBytesRead;i+=4)
-                    EndianConvert::Swap<float>((float*)(pBuffer+i));
-                  break;
-        case 64 : for (size_t i = 0;i<iBytesRead;i+=8)
-                    EndianConvert::Swap<double>((double*)(pBuffer+i));
-                  break;
-      }
-
-      size_t iBytesWritten = ConvEndianData.WriteRAW(pBuffer, iBytesRead);
-
-      if (iBytesRead != iBytesWritten)  {
-        T_ERROR("Read/Write error converting endianess from %s to %s",
-                strFilename.c_str(), tmpFilename0.c_str());
-        WrongEndianData.Close();
-        ConvEndianData.Close();
-        Remove(tmpFilename0, Controller::Debug::Out());
-        delete [] pBuffer;
-        return false;
-      }
-
-      ulBufferConverted += UINT64(iBytesWritten);
-
-      MESSAGE("Performing endianess conversion"
-              "\n%i%% complete",
-              int(float(ulBufferConverted) / float(ulFileLength)*100.0f));
-    }
-
-    delete [] pBuffer;
-    WrongEndianData.Close();
-    ConvEndianData.Close();
-    strSourceFilename = tmpFilename0;
+    // the new data source is the endian-converted file.
+    strSourceFilename = tmpEndianConvertedFile =
+      convert_endianness(strFilename, strTempDir, iHeaderSkip, iComponentSize,
+                         iTargetBrickSize*iTargetBrickSize*iTargetBrickSize *
+                           iComponentSize/8);
     iHeaderSkip = 0;  // the new file is straight raw without any header
-  } else strSourceFilename = strFilename;
+  }
 
   Histogram1DDataBlock Histogram1D;
 
@@ -350,7 +373,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
     // if we actually created two temp file so far we can delete the first one
     if (bConvertEndianness) {
-      Remove(tmpFilename0, Controller::Debug::Out());
+      Remove(tmpEndianConvertedFile, Controller::Debug::Out());
       bConvertEndianness = false;
     }
 
@@ -542,7 +565,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
               strProblemDesc.c_str());
       uvfFile.Close();
       if (bConvertEndianness) {
-        Remove(tmpFilename0, Controller::Debug::Out());
+        Remove(tmpEndianConvertedFile, Controller::Debug::Out());
       }
       if (bQuantized) {
         Remove(tmpFilename1, Controller::Debug::Out());
@@ -554,7 +577,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       T_ERROR("AddDataBlock failed!");
       uvfFile.Close();
       if (bConvertEndianness) {
-        Remove(tmpFilename0, Controller::Debug::Out());
+        Remove(tmpEndianConvertedFile, Controller::Debug::Out());
       }
       if (bQuantized) {
         Remove(tmpFilename1, Controller::Debug::Out());
@@ -573,7 +596,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           T_ERROR("Computation of 1D Histogram failed!");
           uvfFile.Close();
           if (bConvertEndianness) {
-            Remove(tmpFilename0, Controller::Debug::Out());
+            Remove(tmpEndianConvertedFile, Controller::Debug::Out());
           }
           if (bQuantized) {
             Remove(tmpFilename1, Controller::Debug::Out());
@@ -588,7 +611,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         T_ERROR("Computation of 2D Histogram failed!");
         uvfFile.Close();
         if (bConvertEndianness) {
-          Remove(tmpFilename0, Controller::Debug::Out());
+          Remove(tmpEndianConvertedFile, Controller::Debug::Out());
         }
         if (bQuantized) {
           Remove(tmpFilename1, Controller::Debug::Out());
@@ -648,7 +671,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   MESSAGE("Removing temporary files...");
 
   if (bConvertEndianness) {
-    Remove(tmpFilename0, Controller::Debug::Out());
+    Remove(tmpEndianConvertedFile, Controller::Debug::Out());
   }
   if (bQuantized) {
     Remove(tmpFilename1, Controller::Debug::Out());
