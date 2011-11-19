@@ -18,55 +18,53 @@ using namespace tuvok;
 
 
 template<typename T>
-std::string quantize(UINT64 iHeader, const std::string& input,
-                     const std::string& outfn, UINT64 values,
-                     Histogram1DDataBlock* hist, T)
+bool quantize(LargeRAWFile& input,
+              const std::string& outfn, UINT64 values,
+              Histogram1DDataBlock* hist, T)
 {
-  return AbstrConverter::Quantize<T, unsigned short>(iHeader, input, outfn, values, hist);
+  return AbstrConverter::Quantize<T, unsigned short>(input, outfn, values, hist);
 }
 
 template <>
-std::string quantize(UINT64 iHeader, const std::string& input,
-                     const std::string& outfn, UINT64 values,
-                     Histogram1DDataBlock* hist, tbyte)
+bool quantize(LargeRAWFile& input,
+              const std::string& outfn, UINT64 values,
+              Histogram1DDataBlock* hist, tbyte)
 {
-  return AbstrConverter::Process8Bits(iHeader, input, outfn, values, true, hist);
+  return AbstrConverter::Process8Bits(input, outfn, values, true, hist);
 }
 
 
 template <>
-std::string quantize(UINT64 iHeader, const std::string& input,
-                     const std::string& outfn, UINT64 values,
-                     Histogram1DDataBlock* hist, tubyte)
+bool quantize(LargeRAWFile& input,
+              const std::string& outfn, UINT64 values,
+              Histogram1DDataBlock* hist, tubyte)
 {
-  return AbstrConverter::Process8Bits(iHeader, input, outfn, values, false, hist);
+  return AbstrConverter::Process8Bits(input, outfn, values, false, hist);
 }
 
 template<typename T>
-std::string quantize8(UINT64 iHeader, const std::string& input,
-                      const std::string& outfn, UINT64 values,
-                      Histogram1DDataBlock* hist, T)
+bool quantize8(LargeRAWFile& input,
+               const std::string& outfn, UINT64 values,
+               Histogram1DDataBlock* hist, T)
 {
-  return AbstrConverter::Quantize<T, unsigned char>(iHeader, input, outfn, values, hist);
+  return AbstrConverter::Quantize<T, unsigned char>(input, outfn, values, hist);
 }
 
 template <>
-std::string quantize8(UINT64 iHeader, const std::string& input,
-                     const std::string& outfn, UINT64 values,
-                     Histogram1DDataBlock* hist, tbyte)
+bool quantize8(LargeRAWFile& input,
+               const std::string& outfn, UINT64 values,
+               Histogram1DDataBlock* hist, tbyte)
 {
-  return AbstrConverter::Process8Bits(iHeader, input, outfn, values, true, hist);
+  return AbstrConverter::Process8Bits(input, outfn, values, true, hist);
 }
 
 template <>
-std::string quantize8(UINT64 iHeader, const std::string& input,
-                     const std::string& outfn, UINT64 values,
-                     Histogram1DDataBlock* hist, tubyte)
+bool quantize8(LargeRAWFile& input,
+               const std::string& outfn, UINT64 values,
+               Histogram1DDataBlock* hist, tubyte)
 {
-  return AbstrConverter::Process8Bits(iHeader, input, outfn, values, false, hist);
+  return AbstrConverter::Process8Bits(input, outfn, values, false, hist);
 }
-
-
 
 template<typename T> bool is_8bit(T) { return false; }
 template<> bool is_8bit(tbyte) { return true; }
@@ -93,11 +91,12 @@ void verify_type() {
   }
 
   Histogram1DDataBlock hist1d;
-  std::string old_outfn = outfn;
-  outfn = quantize<T>(static_cast<UINT64>(0), fn, outfn,
-                      static_cast<UINT64>(N_VALUES), &hist1d, T());
-  if(outfn != old_outfn) {
-    remove(old_outfn.c_str());
+  {
+    LargeRAWFile input(fn); input.Open(false);
+    if(!quantize<T>(input, outfn, static_cast<UINT64>(N_VALUES), &hist1d, T()))
+    {
+      TS_FAIL("Quantization failed, can't continue.");
+    }
   }
 
   // verify data
@@ -182,11 +181,12 @@ void verify_8b_type() {
   }
 
   Histogram1DDataBlock hist1d;
-  std::string old_outfn = outfn;
-  outfn = quantize8<T>(static_cast<UINT64>(0), fn, outfn,
-                      static_cast<UINT64>(N_VALUES), &hist1d, T());
-  if(outfn != old_outfn) {
-    remove(old_outfn.c_str());
+  {
+    LargeRAWFile input(fn); input.Open(false);
+    if(!quantize8<T>(input, outfn, static_cast<UINT64>(N_VALUES), &hist1d, T()))
+    {
+      TS_FAIL("8bit Quantization failed, can't continue.");
+    }
   }
 
   // verify data
