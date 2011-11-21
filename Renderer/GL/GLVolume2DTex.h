@@ -62,7 +62,6 @@ namespace tuvok {
       virtual void Bind(UINT32 iUnit, int depth, int iStack) const;
       virtual void SetData(const void *voxels);
 
-      virtual void FreeGLResources();
       virtual UINT64 GetCPUSize();
       virtual UINT64 GetGPUSize();
 
@@ -90,6 +89,7 @@ namespace tuvok {
       UINT64 m_iCPUSize;
 
       void CreateGLResources();
+      void FreeGLResources();
   };
 };
 #endif // GLVOLUME2DTEX_H

@@ -67,6 +67,7 @@ GLVolume3DTex::GLVolume3DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
 }
 
 GLVolume3DTex::~GLVolume3DTex() {
+  FreeGLResources();
 }
 
 void GLVolume3DTex::Bind(UINT32 iUnit) {

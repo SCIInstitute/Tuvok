@@ -61,7 +61,6 @@ namespace tuvok {
       virtual void Bind(UINT32 iUnit=0);
       virtual void SetData(const void *voxels);
 
-      virtual void FreeGLResources();
       virtual UINT64 GetCPUSize();
       virtual UINT64 GetGPUSize();
 
@@ -69,6 +68,7 @@ namespace tuvok {
 
     private:
       GLTexture3D* m_pTexture;  
+      void FreeGLResources();
   };
 };
 #endif // GLVOLUME3DTEX_H

@@ -55,7 +55,6 @@ namespace tuvok {
                GLint wrapZ = GL_CLAMP_TO_EDGE);
       GLVolume();
       virtual ~GLVolume();
-      virtual void FreeGLResources() = 0;
       virtual void SetData(const void *voxels) = 0;
       virtual void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
 

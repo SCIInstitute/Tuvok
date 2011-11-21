@@ -89,6 +89,7 @@ GLVolume2DTex::GLVolume2DTex() :
 }
 
 GLVolume2DTex::~GLVolume2DTex() {
+  FreeGLResources();
 }
 
 void GLVolume2DTex::Bind(UINT32 iUnit,
