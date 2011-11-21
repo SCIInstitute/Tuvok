@@ -62,18 +62,32 @@ GLTexture1D::GLTexture1D(UINT32 iSize, GLint internalformat, GLenum format,
                   m_type, (GLvoid*)pixels));
 }
 
-void GLTexture1D::SetData(const void *pixels) {
+void GLTexture1D::SetData(UINT32 offset, UINT32 size, const void *pixels, bool bRestoreBinding) {
   GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
-  GLint prevTex;
-  GL(glGetIntegerv(GL_TEXTURE_BINDING_1D, &prevTex));
+  GLint prevTex=0;
+  if (bRestoreBinding) GL(glGetIntegerv(GL_TEXTURE_BINDING_1D, &prevTex));
 
-  MESSAGE("Uploading new %u element 1D texture.", static_cast<UINT32>(m_iSize));
+  GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
+  GL(glTexSubImage1D(GL_TEXTURE_1D, 0, 
+                     offset,
+                     size,
+                     m_format, m_type, (GLvoid*)pixels));
+
+  if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_1D, prevTex));
+}
+
+void GLTexture1D::SetData(const void *pixels, bool bRestoreBinding) {
+  GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+
+  GLint prevTex=0;
+  if (bRestoreBinding) GL(glGetIntegerv(GL_TEXTURE_BINDING_1D, &prevTex));
 
   GL(glBindTexture(GL_TEXTURE_1D, m_iGLID));
   GL(glTexImage1D(GL_TEXTURE_1D, 0, m_internalformat, m_iSize, 0, m_format,
                   m_type, (GLvoid*)pixels));
 
-  GL(glBindTexture(GL_TEXTURE_1D, prevTex));
+  if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_1D, prevTex));
 }

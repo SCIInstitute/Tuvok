@@ -68,7 +68,9 @@ class GLTexture2D : public GLTexture {
 
       GL(glActiveTexture(iPrevUint));
     }
-    virtual void SetData(const void *pixels);
+
+    virtual void SetData(const void *pixels, bool bRestoreBinding=true);
+    void SetData(UINTVECTOR2 offset, UINTVECTOR2 size, const void *pixels, bool bRestoreBinding=true);
 
     virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement);}
     virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement);}

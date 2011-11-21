@@ -66,7 +66,7 @@ class GLTexture : public GLObject {
     virtual void Delete();
 
     /** Initializes the texture data with the given data. */
-    virtual void SetData(const void *pixels) = 0;
+    virtual void SetData(const void *pixels, bool bRestoreBinding=true) = 0;
     
     /// bind this texture to the given texture unit
     virtual void Bind(UINT32 iUnit=0) const  = 0;

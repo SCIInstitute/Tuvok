@@ -83,12 +83,28 @@ GLTexture3D::GLTexture3D(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
   GL(glBindTexture(GL_TEXTURE_3D, prevTex));
 }
 
-void GLTexture3D::SetData(const void *pixels) {
+void GLTexture3D::SetData(UINTVECTOR3 offset, UINTVECTOR3 size, const void *pixels, bool bRestoreBinding) {
   GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
-  GLint prevTex;
-  GL(glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex));
+  GLint prevTex=0;
+  if (bRestoreBinding) GL(glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex));
+
+  GL(glBindTexture(GL_TEXTURE_3D, m_iGLID));
+  GL(glTexSubImage3D(GL_TEXTURE_3D, 0, 
+                     offset.x, offset.y, offset.z,
+                     size.x, size.y, size.z,
+                     m_format, m_type, (GLvoid*)pixels));
+
+  if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_3D, prevTex));
+}
+
+void GLTexture3D::SetData(const void *pixels, bool bRestoreBinding) {
+  GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
+  GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+
+  GLint prevTex=0;
+  if (bRestoreBinding) GL(glGetIntegerv(GL_TEXTURE_BINDING_3D, &prevTex));
 
   GL(glBindTexture(GL_TEXTURE_3D, m_iGLID));
   GL(glTexImage3D(GL_TEXTURE_3D, 0, m_internalformat,
@@ -103,5 +119,5 @@ void GLTexture3D::SetData(const void *pixels) {
             static_cast<unsigned int>(err));
   }
 
-  GL(glBindTexture(GL_TEXTURE_3D, prevTex));
+  if (bRestoreBinding) GL(glBindTexture(GL_TEXTURE_3D, prevTex));
 }
