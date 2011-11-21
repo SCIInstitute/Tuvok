@@ -35,11 +35,10 @@
 */
 #include "StdTuvokDefines.h"
 #ifdef DETECTED_OS_WINDOWS
-# include <GL/wgl.h>
+# include <GL/wglew.h>
 # include <windows.h>
 #else
-# include <GL/glx.h>
-# include <X11/Xlib.h>
+# include <GL/glxew.h>
 #endif
 #include "Controller/Controller.h"
 
