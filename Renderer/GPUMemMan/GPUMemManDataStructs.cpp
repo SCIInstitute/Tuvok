@@ -510,7 +510,6 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
 
 void GLVolumeListElem::FreeTexture() {
   if (volume) {
-    volume->FreeGLResources();
     delete volume;
     volume = NULL;
   }
