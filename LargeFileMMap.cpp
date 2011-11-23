@@ -25,6 +25,7 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
+#define _POSIX_C_SOURCE 200112L
 #include "LargeFileMMap.h"
 
 #include <algorithm>
@@ -104,8 +105,8 @@ void LargeFileMMap::open(const char *file, std::ios_base::openmode mode)
     this->close();
   }
 
-  int mmap_prot, mmap_flags;
-  int access;
+  int mmap_prot = PROT_READ, mmap_flags = MAP_SHARED;
+  int access = O_RDONLY;
   using namespace std;
   if(mode & std::ios_base::in) {
     access = O_RDONLY;
@@ -134,11 +135,15 @@ void LargeFileMMap::open(const char *file, std::ios_base::openmode mode)
   }
   assert((this->length % u_page_size) == 0);
 
+  /* Hack.  This should actually be enabled anytime a system supports posix
+   * 2001... which Macs don't of course. */
+#ifdef DETECTED_OS_LINUX
   /* if they're going to write... make sure the disk space exists.  This should
    * help keep the file contiguous on disk. */
   if(mode | std::ios_base::out) {
     posix_fallocate(this->fd, 0, this->length+this->header_size);
   }
+#endif
 
   off_t begin = static_cast<off_t>(this->header_size);
   this->map = mmap(NULL, static_cast<size_t>(this->length), mmap_prot,
