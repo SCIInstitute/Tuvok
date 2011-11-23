@@ -35,7 +35,7 @@
 #include "LargeFile.h"
 
 // experimentally found to be the largest value we can mmap.
-const uint64_t UINT64_PAGE_MAX = 35184372088832ULL;
+const boost::uint64_t UINT64_PAGE_MAX = 35184372088832ULL;
 
 /** A large raw file backed by an 'mmap' implementation. */
 class LargeFileMMap : public LargeFile {
