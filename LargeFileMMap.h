@@ -30,6 +30,7 @@
 
 #include <iostream>
 #include <list>
+#include <boost/cstdint.hpp>
 
 #include "LargeFile.h"
 
