@@ -258,10 +258,11 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   if (bConvertEndianness) {
     // the new data source is the endian-converted file.
+    size_t core_size = static_cast<size_t>(iTargetBrickSize*iTargetBrickSize*
+                                           iTargetBrickSize * iComponentSize/8);
     string tmpEndianConvertedFile =
       convert_endianness(strFilename, strTempDir, iHeaderSkip, iComponentSize,
-                         iTargetBrickSize*iTargetBrickSize*iTargetBrickSize *
-                           iComponentSize/8);
+                         core_size);
     iHeaderSkip = 0;  // the new file is straight raw without any header
     sourceData = std::tr1::shared_ptr<LargeRAWFile>(
       new TempFile(tmpEndianConvertedFile)
