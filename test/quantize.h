@@ -93,22 +93,26 @@ void verify_type() {
   Histogram1DDataBlock hist1d;
   {
     LargeRAWFile input(fn); input.Open(false);
+    MESSAGE("quantizing %s to %s", fn.c_str(), outfn.c_str());
     if(!quantize<T>(input, outfn, static_cast<UINT64>(N_VALUES), &hist1d, T()))
     {
-      TS_FAIL("Quantization failed, can't continue.");
+      outfn = fn;
     }
   }
 
   // verify data
   std::ifstream outdata;
   outdata.clear();
-  outdata.open(outfn.c_str(), std::ios::in | std::ios::binary);
+  outdata.exceptions(std::fstream::failbit | std::fstream::badbit);
+  MESSAGE("reading %s for data", outfn.c_str());
+  outdata.open(outfn.c_str(), std::fstream::in | std::fstream::binary);
+  outdata.clear();
   assert(outdata.is_open());
   typedef typename ctti<T>::size_type uT;
   const uT bias = -STARTING_NEG;
   for(size_t i=0; i < N_VALUES; ++i) {
     if(is_8bit(T())) {
-      unsigned char val;
+      unsigned char val = 42;
       outdata.read(reinterpret_cast<char*>(&val), sizeof(unsigned char));
       if(ctti<T>::is_signed) {
         TS_ASSERT_EQUALS(val, STARTING_NEG+i+128);
@@ -185,19 +189,19 @@ void verify_8b_type() {
     LargeRAWFile input(fn); input.Open(false);
     if(!quantize8<T>(input, outfn, static_cast<UINT64>(N_VALUES), &hist1d, T()))
     {
-      TS_FAIL("8bit Quantization failed, can't continue.");
+      outfn = fn;
     }
   }
 
   // verify data
   std::ifstream outdata;
   outdata.clear();
+  outdata.exceptions(std::fstream::failbit | std::fstream::badbit);
   outdata.open(outfn.c_str(), std::ios::in | std::ios::binary);
   assert(outdata.is_open());
   typedef typename ctti<T>::size_type uT;
   const uT bias = -STARTING_NEG;
   for(size_t i=0; i < N_VALUES; ++i) {
-
     unsigned char val;
     outdata.read(reinterpret_cast<char*>(&val), sizeof(unsigned char));
     if(ctti<T>::is_signed) {
