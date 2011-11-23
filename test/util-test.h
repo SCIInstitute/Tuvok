@@ -12,6 +12,7 @@
 #else
 # include <tr1/random>
 #endif
+#include "Controller/Controller.h"
 using namespace tuvok;
 
 // "tuvok" ubyte, "tuvok" byte.
@@ -19,7 +20,7 @@ using namespace tuvok;
 typedef unsigned char tubyte;
 typedef signed char tbyte;
 
-static size_t filesize(const char fn[]) {
+size_t filesize(const char fn[]) {
   std::ifstream ifs(fn, std::ios::binary);
   ifs.seekg(0, std::ios::end);
   size_t retval = static_cast<size_t>(static_cast<int>(ifs.tellg()));
