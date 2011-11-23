@@ -562,10 +562,10 @@ void UVFDataset::GetHistograms(size_t) {
 
     m_pHist1D = new Histogram1D(std::min<size_t>(vHist1D.size(),
                                     std::min<size_t>(MAX_TRANSFERFUNCTION_SIZE,
-                                                      1<<GetBitWidth())));
+                                                     1<<GetBitWidth())));
 
-    if ( m_pHist1D->GetSize() != vHist1D.size()) {
-      MESSAGE("1D Histogram to big to drawn efficiently, resampling.");
+    if (m_pHist1D->GetSize() != vHist1D.size()) {
+      MESSAGE("1D Histogram too big to be drawn efficiently, resampling.");
       // "resample" the histogram
 
       float sampleFactor = static_cast<float>(vHist1D.size()) /
@@ -578,7 +578,6 @@ void UVFDataset::GetHistograms(size_t) {
       bool bLast = false;
 
       for (size_t i = 0;i < vHist1D.size(); i++) {
-
         if (bLast) {
             m_pHist1D->Set(j, UINT32( accValue ));
 
@@ -604,7 +603,6 @@ void UVFDataset::GetHistograms(size_t) {
         // due to accumulated float errors in the sampling computation above
         if (j == m_pHist1D->GetSize() - 1) break;
       }
-
     } else {
       for (size_t i = 0;i < m_pHist1D->GetSize(); i++) {
         m_pHist1D->Set(i, UINT32(vHist1D[i]));
@@ -633,11 +631,10 @@ void UVFDataset::GetHistograms(size_t) {
     m_pHist2D = new Histogram2D(vSize);
 
     if (vSize.x != vHist2D.size() || vSize.y != vHist2D[0].size() ) {
-      MESSAGE("2D Histogram to big to be drawn efficiently, resampling.");
+      MESSAGE("2D Histogram too big to be drawn efficiently, resampling.");
 
       // TODO: implement the same linear resampling as above
       //       for now we just clear the histogram with ones
-
 
       for (size_t y = 0;y<m_pHist2D->GetSize().y;y++)
         for (size_t x = 0;x<m_pHist2D->GetSize().x;x++)
