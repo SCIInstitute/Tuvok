@@ -60,6 +60,8 @@ HEADERS += \
            Basics/GeometryGenerator.h \
            Basics/Grids.h \
            Basics/LargeRAWFile.h \
+           Basics/LargeFile.h \
+           Basics/LargeFileMMap.h \
            Basics/MathTools.h \
            Basics/MC.h \
            Basics/Plane.h \
@@ -204,6 +206,8 @@ SOURCES += \
            Basics/Checksums/MD5.cpp \
            Basics/GeometryGenerator.cpp \
            Basics/LargeRAWFile.cpp \
+           Basics/LargeFile.cpp \
+           Basics/LargeFileMMap.cpp \
            Basics/MathTools.cpp \
            Basics/MC.cpp \
            Basics/Plane.cpp \
