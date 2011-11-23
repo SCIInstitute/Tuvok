@@ -2,7 +2,7 @@ TEMPLATE          = lib
 win32:TEMPLATE    = vclib
 CONFIG            = exceptions largefile static staticlib stl
 CONFIG           += warn_on
-DEFINES          += YY_NO_UNPUT
+DEFINES          += YY_NO_UNPUT _FILE_OFFSET_BITS=64
 TARGET            = tuvokexpr
 DEPENDPATH       += . ../../Basics ../
 INCLUDEPATH      += ../../ ../../Basics ../ ../3rdParty/boost

@@ -2,6 +2,7 @@ TEMPLATE          = app
 win32:TEMPLATE    = vcapp
 CONFIG           += exceptions largefile link_prl static stl warn_on
 TARGET            = cxxtester
+DEFINES          += _FILE_OFFSET_BITS=64
 DEPENDPATH       += . ../
 INCLUDEPATH      += ../ ../../ ../3rdParty/boost ../3rdParty/cxxtest
 INCLUDEPATH      += ../../Basics
