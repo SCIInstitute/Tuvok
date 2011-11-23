@@ -76,8 +76,8 @@ namespace {
   template<typename T>
   void t(size_t sz, T mean, T stddev) {
     std::ofstream dataf;
-    std::string fn = mk_tmpfile(dataf, std::ios::out | std::ios::binary);
-    std::pair<T,T> minmax = gen_normal<T>(dataf, sz, mean, stddev);
+    const std::string fn = mk_tmpfile(dataf, std::ios::out | std::ios::binary);
+    const std::pair<T,T> minmax = gen_normal<T>(dataf, sz, mean, stddev);
     dataf.close();
     {
       struct testfile<T> tf = { fn.c_str(), 0, minmax.first, minmax.second };
@@ -90,7 +90,7 @@ namespace {
   template <typename T>
   void t_constant(size_t sz, T value) {
     std::ofstream dataf;
-    std::string fn = mk_tmpfile(dataf, std::ios::out | std::ios::binary);
+    const std::string fn = mk_tmpfile(dataf, std::ios::out | std::ios::binary);
     gen_constant<T>(dataf, sz, value);
     dataf.close();
     {

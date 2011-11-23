@@ -12,7 +12,7 @@
 
 void lf_mmap_open() {
   std::ofstream ofs;
-  std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+  const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
 
   const uint64_t cval = 86;
   gen_constant<uint64_t>(ofs, 42, cval);
@@ -29,7 +29,7 @@ void lf_mmap_open() {
 
 void lf_mmap_read() {
   std::ofstream ofs;
-  std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+  const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
 
   const uint64_t cval = 86;
   gen_constant<uint64_t>(ofs, 42, cval);
@@ -54,7 +54,7 @@ static int64_t generate_constant(int64_t val) { return val; }
 static void lf_mmap_write() {
   EnableDebugMessages dbg;
   std::ofstream ofs;
-  std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+  const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
   ofs.close();
 
   const size_t N = 64;
@@ -76,6 +76,7 @@ static void lf_mmap_write() {
       TS_ASSERT_EQUALS(data[i], VALUE);
     }
   }
+  remove(tmpf.c_str());
 }
 
 class LargeFileTests : public CxxTest::TestSuite {
