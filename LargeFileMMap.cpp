@@ -63,37 +63,40 @@ LargeFileMMap::LargeFileMMap(const std::string fn,
                              std::ios_base::openmode mode,
                              boost::uint64_t header_size,
                              boost::uint64_t length) :
-  LargeFile(fn, header_size), fd(-1), map(NULL), length(length)
+  LargeFileFD(fn, mode, header_size), map(NULL), length(length)
 {
-  this->open(fn.c_str(), mode);
+  this->open(mode);
 }
 
-std::tr1::weak_ptr<const void> LargeFileMMap::read(boost::uint64_t offset,
-                                                   size_t len)
+LargeFileMMap::~LargeFileMMap()
+{
+  /* change the memory protection, if we can.  We might have given away
+   * pointers (on say a read() call) which won't be valid anymore, since we're
+   * destroying the map.
+   * With this, at least the user will get a segfault, instead of silently
+   * reading garbage data. */
+  mprotect(this->map, this->length, PROT_NONE);
+  this->close();
+}
+
+std::tr1::shared_ptr<const void> LargeFileMMap::read(boost::uint64_t offset,
+                                                     size_t len)
 {
   if(len == 0 || (!this->is_open())) {
-    return std::tr1::weak_ptr<void>();
+    return std::tr1::shared_ptr<const void>();
   }
 
-  /* We'll create a shared_ptr to the data they want, and then give them a
-   * weak_ptr.  When we die, we'll kill all our shared_ptr's.  So the pointer
-   * they get is only valid while this object is alive.
-   * This way, if this object goes out of scope, instead of all the pointers
-   * instantly becoming invalid... they just can't be lock()ed. */
+  /* Our shared_ptr here is a bit sketch.  We give them a pointer, but if
+   * 'this' dies we'll kill the mmap, thereby invalidating the pointer.  So,
+   * umm.. don't do that. */
   const char* bytes = static_cast<const char*>(this->map);
   std::tr1::shared_ptr<const void> mem(bytes+this->header_size+offset,
                                        null_deleter());
-  this->memory.push_front(mem);
 
   /* Note that we don't actually use the 'length' parameter.  We really can't.
    * It's up to the user to make sure they don't go beyond the length they gave
    * us... */
-  return std::tr1::weak_ptr<const void>(mem);
-}
-
-std::tr1::weak_ptr<const void> LargeFileMMap::read(size_t length)
-{
-  return this->read(this->offset, length);
+  return mem;
 }
 
 void LargeFileMMap::write(const std::tr1::shared_ptr<const void>& data,
@@ -119,34 +122,31 @@ void LargeFileMMap::write(const std::tr1::shared_ptr<const void>& data,
             dest_bytes + this->header_size + offset);
 }
 
-void LargeFileMMap::open(const char *file, std::ios_base::openmode mode)
+void LargeFileMMap::open(std::ios_base::openmode mode)
 {
-  if(file) {
-    this->m_filename = std::string(file);
+  LargeFileFD::open(mode);
+
+#if _POSIX_C_SOURCE >= 200112L
+  /* if they're going to write... make sure the disk space exists.  This should
+   * help keep the file contiguous on disk. */
+  if(mode & std::ios_base::out) {
+    posix_fallocate(this->fd, 0, this->length+this->header_size);
   }
-  if(this->is_open()) {
-    this->close();
-  }
+#endif
 
   int mmap_prot = PROT_READ, mmap_flags = MAP_SHARED;
-  int access = O_RDONLY;
-  using namespace std;
   if(mode & std::ios_base::in) {
-    access = O_RDONLY;
     mmap_prot = PROT_READ;
     mmap_flags = MAP_SHARED; /* MAP_PRIVATE? */
   } else if(mode & std::ios_base::out) {
-    /* even if we will only write and not read, mmap requires we open with
-     * O_RDWR when using PROT_WRITE. */
-    access = O_RDWR | O_CREAT;
     mmap_prot = PROT_WRITE;
     mmap_flags = MAP_SHARED;
   }
 
-  this->fd = ::open(this->m_filename.c_str(), access,
-                    S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-  if(this->fd == -1) {
-    return;
+  /* are we opening the file read only?  Truncate the length down to the file
+   * size, then -- mapping less memory is easier on the kernel. */
+  if(mode & std::ios_base::in) {
+    this->length = std::min(this->length, filesize(this->fd));
   }
 
   /* length must be a multiple of the page size.  Round it up. */
@@ -154,31 +154,20 @@ void LargeFileMMap::open(const char *file, std::ios_base::openmode mode)
   const boost::uint64_t u_page_size = static_cast<boost::uint64_t>(page_size);
   if(page_size != -1 && (this->length % u_page_size) != 0) {
     /* i.e. sysconf was successful and length isn't a multiple of page size. */
-    this->length += (length % u_page_size);
+    this->length += (u_page_size * ((this->length-1) / u_page_size)) +
+                    (u_page_size - this->length);
+    assert((this->length % u_page_size) == 0);
   }
-  assert((this->length % u_page_size) == 0);
   assert(this->length > 0);
 
   // what header size did they request?  Maybe we can just offset our
   // mmap a bit.  This is generally good because some mmap's don't like
   // the length of the map to get too long.
   off_t begin = 0;
-  if(this->offset > u_page_size) {
-    std::cerr << "adjusting offset from 0+" << this->offset << " to ";
-    begin = this->offset / u_page_size;
-    this->offset = this->offset % u_page_size;
-    std::cerr << begin << "+" << this->offset << "\n";
+  if(this->byte_offset > u_page_size) {
+    begin = this->byte_offset / u_page_size;
+    this->byte_offset = this->byte_offset % u_page_size;
   }
-
-  /* Hack.  This should actually be enabled anytime a system supports posix
-   * 2001... which Macs don't of course. */
-#ifdef DETECTED_OS_LINUX
-  /* if they're going to write... make sure the disk space exists.  This should
-   * help keep the file contiguous on disk. */
-  if(mode | std::ios_base::out) {
-    posix_fallocate(this->fd, 0, this->length+this->header_size);
-  }
-#endif
 
   this->map = mmap(NULL, static_cast<size_t>(this->length), mmap_prot,
                    mmap_flags, this->fd, begin);
@@ -191,11 +180,12 @@ void LargeFileMMap::open(const char *file, std::ios_base::openmode mode)
 
 bool LargeFileMMap::is_open() const
 {
-  return this->fd != -1 && this->map != NULL;
+  return LargeFileFD::is_open() && this->map != NULL;
 }
 
 void LargeFileMMap::close()
 {
+  if(!this->is_open()) { return; }
   if(this->map) {
     int mu = munmap(this->map, static_cast<size_t>(this->length));
     /* the only real errors that can occur here are programming errors; us not
@@ -208,17 +198,5 @@ void LargeFileMMap::close()
   }
   this->map = NULL;
 
-  if(this->fd != -1) {
-    int cl;
-    do {
-      cl = ::close(this->fd);
-    } while (cl == -1 && errno == EINTR);
-    assert(errno != EBADF);
-    if(errno == EBADF) {
-      throw std::invalid_argument("invalid file descriptor");
-    } else if(errno == EIO) {
-      throw std::runtime_error("I/O error.");
-    }
-  }
-  this->fd = -1;
+  LargeFileFD::close();
 }

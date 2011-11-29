@@ -28,6 +28,11 @@
 #ifndef BASICS_LARGEFILE_H
 #define BASICS_LARGEFILE_H
 
+#ifndef _LARGEFILE64_SOURCE
+# define _LARGEFILE64_SOURCE 1
+#endif
+
+#include <iostream>
 #include <string>
 #ifdef _MSC_VER
 # include <memory>
@@ -42,16 +47,21 @@ class LargeFile {
   public:
     /// @argument header_size is maintained as a "base" offset.  Seeking to
     /// byte 0 actually seeks to 'header_size'.
-    LargeFile(const std::string fn, boost::uint64_t header_size=0);
+    LargeFile(const std::string fn,
+              std::ios_base::openmode mode = std::ios_base::in,
+              boost::uint64_t header_size=0);
     virtual ~LargeFile() {}
 
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
-    virtual std::tr1::weak_ptr<const void> read(boost::uint64_t offset,
-                                                size_t len) = 0;
-    virtual std::tr1::weak_ptr<const void> read(size_t len) = 0;
+    /// The file's current byte offset is undefined after this operation.
+    virtual std::tr1::shared_ptr<const void> read(boost::uint64_t offset,
+                                                  size_t len) = 0;
+    /// Uses the current byte offset to read data from the file.
+    virtual std::tr1::shared_ptr<const void> read(size_t len);
 
     /// writes a block of data.
+    /// The file's current byte offset is undefined after this operation.
     virtual void write(const std::tr1::shared_ptr<const void>& data,
                        boost::uint64_t offset,
                        size_t len) = 0;
@@ -59,14 +69,18 @@ class LargeFile {
     std::string filename() const { return this->m_filename; }
 
     virtual void seek(boost::uint64_t);
+    virtual boost::uint64_t offset() const;
 
     virtual bool is_open() const = 0;
     virtual void close() = 0;
 
   protected:
+    virtual void open(std::ios_base::openmode mode = std::ios_base::in) = 0;
+
+  protected:
     std::string     m_filename;
     boost::uint64_t header_size;
-    boost::uint64_t offset;
+    boost::uint64_t byte_offset;
 };
 
 #endif /* BASICS_LARGEFILE_H */

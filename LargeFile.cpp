@@ -28,14 +28,23 @@
 
 #include "LargeFile.h"
 
-LargeFile::LargeFile(const std::string fn, boost::uint64_t hsz) :
+LargeFile::LargeFile(const std::string fn,
+                     std::ios_base::openmode,
+                     boost::uint64_t hsz) :
   m_filename(fn),
   header_size(hsz),
-  offset(0)
+  byte_offset(0)
 {
+}
+
+std::tr1::shared_ptr<const void> LargeFile::read(size_t length)
+{
+  return this->read(this->byte_offset, length);
 }
 
 void LargeFile::seek(boost::uint64_t to)
 {
-  offset = to;
+  byte_offset = to + this->header_size;
 }
+
+boost::uint64_t LargeFile::offset() const { return this->byte_offset; }
