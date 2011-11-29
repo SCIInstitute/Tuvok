@@ -43,6 +43,22 @@
 // a 'delete' functor that just does nothing.
 struct null_deleter { void operator()(const void*) const {} };
 
+static uint64_t filesize(int fd) {
+  off_t original = lseek(fd, 0, SEEK_CUR);
+  if(original == -1) {
+    throw std::runtime_error("could not get current file position");
+  }
+  off_t sz = lseek(fd, 0, SEEK_END);
+  if(sz == -1) {
+    throw std::runtime_error("could not get file size");
+  }
+  if(lseek(fd, original, SEEK_SET) == -1) {
+    throw std::runtime_error("could not reset file position.");
+  }
+  return static_cast<uint64_t>(sz);
+}
+
+
 LargeFileMMap::LargeFileMMap(const std::string fn,
                              std::ios_base::openmode mode,
                              boost::uint64_t header_size,
@@ -78,21 +94,6 @@ std::tr1::weak_ptr<const void> LargeFileMMap::read(boost::uint64_t offset,
 std::tr1::weak_ptr<const void> LargeFileMMap::read(size_t length)
 {
   return this->read(this->offset, length);
-}
-
-static uint64_t filesize(int fd) {
-  off_t original = lseek(fd, 0, SEEK_CUR);
-  if(original == -1) {
-    throw std::runtime_error("could not get current file position");
-  }
-  off_t sz = lseek(fd, 0, SEEK_END);
-  if(sz == -1) {
-    throw std::runtime_error("could not get file size");
-  }
-  if(lseek(fd, original, SEEK_SET) == -1) {
-    throw std::runtime_error("could not reset file position.");
-  }
-  return static_cast<uint64_t>(sz);
 }
 
 void LargeFileMMap::write(const std::tr1::shared_ptr<const void>& data,
@@ -156,6 +157,18 @@ void LargeFileMMap::open(const char *file, std::ios_base::openmode mode)
     this->length += (length % u_page_size);
   }
   assert((this->length % u_page_size) == 0);
+  assert(this->length > 0);
+
+  // what header size did they request?  Maybe we can just offset our
+  // mmap a bit.  This is generally good because some mmap's don't like
+  // the length of the map to get too long.
+  off_t begin = 0;
+  if(this->offset > u_page_size) {
+    std::cerr << "adjusting offset from 0+" << this->offset << " to ";
+    begin = this->offset / u_page_size;
+    this->offset = this->offset % u_page_size;
+    std::cerr << begin << "+" << this->offset << "\n";
+  }
 
   /* Hack.  This should actually be enabled anytime a system supports posix
    * 2001... which Macs don't of course. */
@@ -167,7 +180,6 @@ void LargeFileMMap::open(const char *file, std::ios_base::openmode mode)
   }
 #endif
 
-  off_t begin = static_cast<off_t>(this->header_size);
   this->map = mmap(NULL, static_cast<size_t>(this->length), mmap_prot,
                    mmap_flags, this->fd, begin);
   if(MAP_FAILED == this->map) {
