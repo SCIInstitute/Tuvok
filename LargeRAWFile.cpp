@@ -221,7 +221,9 @@ bool LargeRAWFile::Truncate(UINT64 iPos) {
   #endif
 }
 
-
+// no-op, but I want to leave the argument names in the header so it's nicer to
+// implement it here.
+void LargeRAWFile::Hint(IOHint, UINT64, UINT64) const { }
 
 bool LargeRAWFile::Copy(const std::string& strSource,
                         const std::string& strTarget, UINT64 iSourceHeaderSkip,

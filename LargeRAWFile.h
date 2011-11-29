@@ -12,6 +12,7 @@
 #include "EndianConvert.h"
 
 #ifdef _WIN32
+  #define NOMINMAX
   #include <windows.h>
   #include <io.h>
   #include <fcntl.h>
@@ -41,26 +42,26 @@ public:
   LargeRAWFile(const LargeRAWFile &other);
   virtual ~LargeRAWFile() {Close();}
 
-  bool Open(bool bReadWrite=false);
-  bool IsOpen() const { return m_bIsOpen;}
-  bool IsWritable() const { return m_bWritable;}
-  bool Create(UINT64 iInitialSize=0);
-  bool Append();
-  void Close();
-  void Delete();
-  bool Truncate();
-  bool Truncate(UINT64 iPos);
-  UINT64 GetCurrentSize();
+  virtual bool Open(bool bReadWrite=false);
+  virtual bool IsOpen() const { return m_bIsOpen;}
+  virtual bool IsWritable() const { return m_bWritable;}
+  virtual bool Create(UINT64 iInitialSize=0);
+  virtual bool Append();
+  virtual void Close();
+  virtual void Delete();
+  virtual bool Truncate();
+  virtual bool Truncate(UINT64 iPos);
+  virtual UINT64 GetCurrentSize();
   std::string GetFilename() const { return m_strFilename;}
 
-  void SeekStart();
-  UINT64 SeekEnd();
-  UINT64 GetPos();
-  void SeekPos(UINT64 iPos);
-  size_t ReadRAW(unsigned char* pData, UINT64 iCount);
-  size_t WriteRAW(const unsigned char* pData, UINT64 iCount);
-  bool CopyRAW(UINT64 iCount, UINT64 iSourcePos, UINT64 iTargetPos, 
-               unsigned char* pBuffer, UINT64 iBufferSize);
+  virtual void SeekStart();
+  virtual UINT64 SeekEnd();
+  virtual UINT64 GetPos();
+  virtual void SeekPos(UINT64 iPos);
+  virtual size_t ReadRAW(unsigned char* pData, UINT64 iCount);
+  virtual size_t WriteRAW(const unsigned char* pData, UINT64 iCount);
+  virtual bool CopyRAW(UINT64 iCount, UINT64 iSourcePos, UINT64 iTargetPos,
+                       unsigned char* pBuffer, UINT64 iBufferSize);
 
   template<class T> void Read(const T* pData, UINT64 iCount, UINT64 iPos,
                               UINT64 iOffset) {
@@ -118,16 +119,26 @@ public:
     }
   }
 
-  void ReadData(std::string &value, UINT64 count) {
+  virtual void ReadData(std::string &value, UINT64 count) {
     if (count == 0) return;
     value.resize(size_t(count));
     ReadRAW((unsigned char*)&value[0], sizeof(char)*size_t(count));
   }
 
-  void WriteData(const std::string &value) {
+  virtual void WriteData(const std::string &value) {
     if (value.empty()) return;
     WriteRAW((unsigned char*)&value[0], sizeof(char)*size_t(value.length()));
   }
+
+  enum IOHint {
+    NORMAL,     ///< reset back to default state
+    SEQUENTIAL, ///< going to access this sequentially
+    NOREUSE,    ///< will use this once and then it's useless.
+    WILLNEED,   ///< don't need this now, but will soon
+    DONTNEED    ///< no longer need this region
+  };
+  // Hint to the underlying driver how we'll access data
+  virtual void Hint(IOHint hint, UINT64 offset, UINT64 length) const;
 
   static bool Copy(const std::string& strSource, const std::string& strTarget,
                    UINT64 iSourceHeaderSkip=0, std::string* strMessage=NULL);
