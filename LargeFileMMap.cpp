@@ -32,7 +32,6 @@
 #include <cassert>
 #include <errno.h>
 #include <fcntl.h>
-#include <iostream>
 #include <stdexcept>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -81,6 +80,21 @@ std::tr1::weak_ptr<const void> LargeFileMMap::read(size_t length)
   return this->read(this->offset, length);
 }
 
+static uint64_t filesize(int fd) {
+  off_t original = lseek(fd, 0, SEEK_CUR);
+  if(original == -1) {
+    throw std::runtime_error("could not get current file position");
+  }
+  off_t sz = lseek(fd, 0, SEEK_END);
+  if(sz == -1) {
+    throw std::runtime_error("could not get file size");
+  }
+  if(lseek(fd, original, SEEK_SET) == -1) {
+    throw std::runtime_error("could not reset file position.");
+  }
+  return static_cast<uint64_t>(sz);
+}
+
 void LargeFileMMap::write(const std::tr1::shared_ptr<const void>& data,
                           boost::uint64_t offset, size_t len)
 {
@@ -89,13 +103,21 @@ void LargeFileMMap::write(const std::tr1::shared_ptr<const void>& data,
     throw std::invalid_argument("file is not open.");
   }
 
+  if(filesize(fd) < offset+this->header_size+len) {
+    /* extend the file because it is too small -- mmap cannot make files
+     * larger. */
+    if(ftruncate(fd, offset+this->header_size+len) != 0) {
+      assert(errno == 0 && "ftruncate failed");
+      throw std::runtime_error("could not extend file.");
+    }
+  }
+
   const char* bytes = static_cast<const char*>(data.get());
   char* dest_bytes = static_cast<char*>(this->map);
   std::copy(bytes, bytes + len,
             dest_bytes + this->header_size + offset);
 }
 
-#include <iostream>
 void LargeFileMMap::open(const char *file, std::ios_base::openmode mode)
 {
   if(file) {
@@ -149,7 +171,7 @@ void LargeFileMMap::open(const char *file, std::ios_base::openmode mode)
   this->map = mmap(NULL, static_cast<size_t>(this->length), mmap_prot,
                    mmap_flags, this->fd, begin);
   if(MAP_FAILED == this->map) {
-    std::cerr << "mapping failed, errno: " << errno << "\n";
+    assert(this->map != MAP_FAILED);
     this->close();
     return;
   }
@@ -166,12 +188,11 @@ void LargeFileMMap::close()
     int mu = munmap(this->map, static_cast<size_t>(this->length));
     /* the only real errors that can occur here are programming errors; us not
      * properly maintaining "length", for example. */
-    std::cerr << "mu: " << mu << "\n";
-    std::cerr << "errno: " << errno << "\n";
-    std::cerr << "addr: " << this->map << "\n";
-    std::cerr << "length: " << static_cast<size_t>(this->length) << "\n";
     assert(mu == 0 && "munmap can only fail due to a programming error.");
-    throw std::invalid_argument("mmap or munmap");
+    if(mu != 0) {
+      throw std::invalid_argument("could not unmap file; writes probably did "
+                                  "not propagate.");
+    }
   }
   this->map = NULL;
 
