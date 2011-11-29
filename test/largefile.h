@@ -50,6 +50,7 @@ void lf_mmap_read() {
 }
 
 static int64_t generate_constant(int64_t val) { return val; }
+static void null_deleter(void*) {}
 
 static void lf_mmap_write() {
   EnableDebugMessages dbg;
@@ -64,7 +65,8 @@ static void lf_mmap_write() {
 
     int64_t data[N];
     std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE));
-    lf.write(std::tr1::shared_ptr<const void>(data), 0, sizeof(int64_t)*N);
+    lf.write(std::tr1::shared_ptr<const void>(data, null_deleter), 0,
+                                              sizeof(int64_t)*N);
     lf.close();
   }
   MESSAGE("Closed.");
