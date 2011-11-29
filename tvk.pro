@@ -60,8 +60,6 @@ HEADERS += \
            Basics/GeometryGenerator.h \
            Basics/Grids.h \
            Basics/LargeRAWFile.h \
-           Basics/LargeFile.h \
-           Basics/LargeFileMMap.h \
            Basics/MathTools.h \
            Basics/MC.h \
            Basics/Plane.h \
@@ -199,6 +197,10 @@ HEADERS += \
            Scripting/Scripting.h \
            StdTuvokDefines.h
 
+unix:HEADERS += \
+  Basics/LargeFile.h \
+  Basics/LargeFileMMap.h
+
 SOURCES += \
            3rdParty/GLEW/GL/glew.c \
            Basics/Appendix.cpp \
@@ -206,8 +208,6 @@ SOURCES += \
            Basics/Checksums/MD5.cpp \
            Basics/GeometryGenerator.cpp \
            Basics/LargeRAWFile.cpp \
-           Basics/LargeFile.cpp \
-           Basics/LargeFileMMap.cpp \
            Basics/MathTools.cpp \
            Basics/MC.cpp \
            Basics/Plane.cpp \
@@ -411,7 +411,10 @@ SOURCES += \
            Renderer/TFScaling.cpp \
            Scripting/Scripting.cpp
 
-unix:SOURCES += IO/3rdParty/tiff/tif_unix.c
+unix:SOURCES += \
+  Basics/LargeFile.cpp \
+  Basics/LargeFileMMap.cpp \
+  IO/3rdParty/tiff/tif_unix.c
 
 win32 {
   HEADERS += \
