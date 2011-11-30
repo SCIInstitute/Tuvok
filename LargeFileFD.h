@@ -37,7 +37,8 @@ class LargeFileFD : public LargeFile {
     /// byte 0 actually seeks to 'header_size'.
     LargeFileFD(const std::string fn,
                 std::ios_base::openmode mode = std::ios_base::in,
-                boost::uint64_t header_size=0);
+                boost::uint64_t header_size=0,
+                boost::uint64_t length=0);
     virtual ~LargeFileFD();
 
     /// reads a block of data, returns a pointer to it.  User must cast it to

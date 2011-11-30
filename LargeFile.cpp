@@ -30,7 +30,8 @@
 
 LargeFile::LargeFile(const std::string fn,
                      std::ios_base::openmode,
-                     boost::uint64_t hsz) :
+                     boost::uint64_t hsz,
+                     boost::uint64_t /* length */) :
   m_filename(fn),
   header_size(hsz),
   byte_offset(0)
