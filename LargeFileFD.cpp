@@ -103,10 +103,8 @@ void LargeFileFD::write(const std::tr1::shared_ptr<const void>& data,
   }
   boost::uint64_t cur_offset = this->offset();
 
-  if(cur_offset != offset+this->header_size) {
-    if(lseek(this->fd, offset+this->header_size, SEEK_SET) < 0) {
-      throw std::ios_base::failure("could not seek to correct file position.");
-    }
+  if(lseek(this->fd, offset+this->header_size, SEEK_SET) < 0) {
+    throw std::ios_base::failure("could not seek to correct file position.");
   }
 
   const char* bytes = static_cast<const char*>(data.get());
