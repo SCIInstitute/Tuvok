@@ -200,6 +200,8 @@ HEADERS += \
 
 unix:HEADERS += \
   Basics/LargeFile.h \
+  Basics/LargeFileAIO.h \
+  Basics/LargeFileFD.h \
   Basics/LargeFileMMap.h
 
 SOURCES += \
@@ -414,6 +416,8 @@ SOURCES += \
 
 unix:SOURCES += \
   Basics/LargeFile.cpp \
+  Basics/LargeFileAIO.cpp \
+  Basics/LargeFileFD.cpp \
   Basics/LargeFileMMap.cpp \
   IO/3rdParty/tiff/tif_unix.c
 
