@@ -6,8 +6,9 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include "LargeFileMMap.h"
+#include "LargeFileAIO.h"
 #include "LargeFileFD.h"
+#include "LargeFileMMap.h"
 
 #include "util-test.h"
 
@@ -127,14 +128,14 @@ namespace {
         TS_ASSERT_EQUALS(elem, VALUE);
       }
     }
-    end:
-      remove(tmpf.c_str());
+    end: remove(tmpf.c_str());
   }
 }
 
 // make sure we respect header offsets.
 namespace {
   template<class T> void lf_generic_header() {
+    EnableDebugMessages dbg;
     std::ofstream ofs;
     const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
     ofs.close();
@@ -212,6 +213,49 @@ namespace {
   }
 }
 
+// tests AIO with the nocopy flag doing multiple writes.
+void lf_aio_nocopy() {
+  std::ofstream ofs;
+  const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+  ofs.close();
+
+  const size_t N = 64;
+  const int64_t VALUE[3] = { -42, 42, 19 };
+  const size_t offset = 32768;
+  int64_t data[3][N];
+  {
+    LargeFileAIO lf(tmpf, std::ios::out, 0, sizeof(int64_t)*N*3+offset);
+    lf.copy_writes(false);
+
+    // write 3 arrays of data, each array is filled with VALUE[i]
+    for(size_t i=0; i < 3; ++i) {
+      std::generate(data[i], data[i]+N,
+                    std::tr1::bind(generate_constant, VALUE[i]));
+      lf.write(std::tr1::shared_ptr<const void>(data[i], null_deleter),
+                                                offset + i*N*sizeof(int64_t),
+                                                sizeof(int64_t)*N);
+    }
+  }
+  {
+    std::ifstream ifs(tmpf.c_str(), std::ios::in | std::ios::binary);
+    ifs.exceptions(std::fstream::failbit | std::fstream::badbit);
+    if(!ifs.is_open()) {
+      TS_FAIL("Could not open the file we just wrote!");
+      goto end;
+    }
+    ifs.seekg(offset); // jump past the offset we should have skipped above
+    int64_t elem;
+    for(size_t j=0; j < 3; ++j) {
+      for(size_t i=0; i < N; ++i) {
+        elem = 0; // reset elem so we'll know if the read failed.
+        ifs.read(reinterpret_cast<char*>(&elem), sizeof(int64_t));
+        TS_ASSERT_EQUALS(elem, VALUE[j]);
+      }
+    }
+  }
+  end: remove(tmpf.c_str());
+}
+
 class LargeFileTests : public CxxTest::TestSuite {
 public:
   void test_mmap_open() { lf_generic_open<LargeFileMMap>(); }
@@ -226,4 +270,12 @@ public:
   void test_fd_large_header() { lf_generic_large_header<LargeFileFD>(); }
   void test_mmap_write_only() { lf_generic_write_only<LargeFileMMap>(); }
   void test_fd_write_only() { lf_generic_write_only<LargeFileFD>(); }
+
+  void test_aio_open() { lf_generic_open<LargeFileAIO>(); }
+  void test_aio_read() { lf_generic_read<LargeFileAIO>(); }
+  void test_aio_write() { lf_generic_write<LargeFileAIO>(); }
+  void test_aio_write_only() { lf_generic_write_only<LargeFileAIO>(); }
+  void test_aio_header() { lf_generic_header<LargeFileAIO>(); }
+  void test_aio_large_header() { lf_generic_large_header<LargeFileAIO>(); }
+  void test_aio_nocopy() { lf_aio_nocopy(); }
 };
