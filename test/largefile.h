@@ -111,6 +111,7 @@ static void lf_mmap_header() {
       TS_ASSERT_EQUALS(data[i], VALUE[1]);
     }
   }
+  remove(tmpf.c_str());
 }
 
 static void lf_mmap_large_header() {
@@ -147,8 +148,8 @@ static void lf_mmap_large_header() {
       TS_ASSERT_EQUALS(data[i], VALUE[1]);
     }
   }
+  remove(tmpf.c_str());
 }
-
 
 class LargeFileTests : public CxxTest::TestSuite {
   public:
