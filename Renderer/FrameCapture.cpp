@@ -66,6 +66,11 @@ bool FrameCapture::SaveImage(const std::string& filename,
   return false;
 }
 #else
+
+int DemultiplyAlpha(unsigned char cmp,  unsigned char alpha)  {
+  return int(0.5f+float(cmp)/(float(alpha)/255.0f));
+}
+
 bool FrameCapture::SaveImage(const std::string& strFilename,
                              const UINTVECTOR2& vSize,
                              unsigned char* pData,
@@ -78,9 +83,9 @@ bool FrameCapture::SaveImage(const std::string& strFilename,
     for (int y = 0;y<int(vSize.y);y++) {
       for (int x = 0;x<int(vSize.x);x++) {
         qTargetFile.setPixel(x,(vSize.y-1)-y,
-                             qRgba(int(pData[i+0]),
-                                   int(pData[i+1]),
-                                   int(pData[i+2]),
+                             qRgba(DemultiplyAlpha(pData[i+0],pData[i+3]),
+                                   DemultiplyAlpha(pData[i+1],pData[i+3]),
+                                   DemultiplyAlpha(pData[i+2],pData[i+3]),
                                    int(pData[i+3])));
         i+=4;
       }
