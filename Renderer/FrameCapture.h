@@ -51,16 +51,6 @@ class FrameCapture {
 
     virtual bool CaptureSingleFrame(const std::string& strFilename,
                                     bool bPreserveTransparency) const = 0;
-    /// Given a base filename, figures out the next appropriate name and writes
-    /// out the current image buffer to that file.
-    /// @param[in] strFilename the last filename which was written out.
-    /// @param[in] bPreserveTransparency  ... obvious.
-    /// @param[out] strRealFilename (optional) if nonnull, filename written is
-    ///             returned here.
-    /// @return true if image writing was successful.
-    bool CaptureSequenceFrame(const std::string& strFilename,
-                              bool bPreserveTransparency,
-                              std::string* strRealFilename=NULL) const;
   protected:
     bool SaveImage(const std::string& strFilename, const UINTVECTOR2& vSize,
                    unsigned char* pData, bool bPreserveTransparency) const;

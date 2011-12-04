@@ -46,15 +46,6 @@
 
 using namespace tuvok;
 
-bool FrameCapture::CaptureSequenceFrame(const std::string& strFilename,
-                                        bool bPreserveTransparency,
-                                        std::string* strRealFilename) const
-{
-  std::string strSequenceName = SysTools::FindNextSequenceName(strFilename);
-  if (strRealFilename) (*strRealFilename) = strSequenceName;
-  return CaptureSingleFrame(strSequenceName, bPreserveTransparency);
-}
-
 #ifdef TUVOK_NO_QT
 bool FrameCapture::SaveImage(const std::string& filename,
                              const UINTVECTOR2&,
