@@ -41,8 +41,8 @@
 #define GEOMETRYGENERATOR_H
 
 #include <vector>
-#include "Basics/StdDefines.h"
-#include "Basics/Vectors.h"
+#include "StdDefines.h"
+#include "Vectors.h"
 
 class PosNormalVertex {
 public:

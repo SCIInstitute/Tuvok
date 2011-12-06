@@ -39,7 +39,7 @@
 #ifndef STDDEFINES_H
 #define STDDEFINES_H
 
-#include "boost/cstdint.hpp"
+#include "3rdParty/boost/cstdint.hpp"
 #undef UINT32
 
 typedef boost::uint64_t UINT64;

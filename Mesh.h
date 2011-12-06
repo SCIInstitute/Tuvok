@@ -40,7 +40,7 @@
 #include <vector>
 #include <string>
 #include "StdDefines.h"
-#include "Basics/Vectors.h"
+#include "Vectors.h"
 #include "Ray.h"
 #include "boost/cstdint.hpp"
 
