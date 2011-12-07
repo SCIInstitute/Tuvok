@@ -25,6 +25,7 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
+#include "StdDefines.h"
 #include <aio.h>
 #include <assert.h>
 #include <cstring>
@@ -268,7 +269,16 @@ void LargeFileAIO::flush_writes()
     if(i->first->aio_lio_opcode == LIO_WRITE) {
       wait_on(i->first);
       delete i->first;
+#ifdef DETECTED_OS_APPLE
+      /// @todo FIXME apple's tr1 is broken again, at least on 10.5.  We no
+      /// longer support 10.5 anyway, so test on 10.6.  It's probably still
+      /// broken on 10.6; we should fix the define so it is a bit more
+      /// specific, instead of just blacklisting apple.
+      this->control.erase(i);
+      ++i;
+#else
       i = this->control.erase(i);
+#endif
     } else {
       ++i;
     }
