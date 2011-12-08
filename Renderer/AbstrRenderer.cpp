@@ -120,6 +120,7 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_bPerformReCompose(false),
   m_bRequestStereoRendering(false),
   m_bDoStereoRendering(false),
+  m_bUserMatrices(false),
   m_iAlternatingFrameID(0),
   m_fStereoEyeDist(0.02f),
   m_fStereoFocalLength(1.0f),
@@ -1453,6 +1454,26 @@ void AbstrRenderer::Timestep(size_t t) {
 size_t AbstrRenderer::Timestep() const { 
   return m_iTimestep; 
 }
+
+void AbstrRenderer::SetUserMatrices(const FLOATMATRIX4& view, const FLOATMATRIX4& projection,
+                                    const FLOATMATRIX4& viewLeft, const FLOATMATRIX4& projectionLeft,
+                                    const FLOATMATRIX4& viewRight, const FLOATMATRIX4& projectionRight) {
+  m_UserView = view;
+  m_UserProjection = projection;
+  m_UserViewLeft = viewLeft;
+  m_UserProjectionLeft = projectionLeft;
+  m_UserViewRight = viewRight;
+  m_UserProjectionRight = projectionRight;
+
+  m_bUserMatrices = true;
+  Schedule3DWindowRedraws();
+}
+
+void AbstrRenderer::UnsetUserMatrices() {
+  m_bUserMatrices = false;
+  Schedule3DWindowRedraws();
+}
+
 
 void AbstrRenderer::InitStereoFrame() {
   m_iAlternatingFrameID = 0; 

@@ -395,6 +395,11 @@ class AbstrRenderer: public Scriptable {
     virtual EStereoMode GetStereoMode() const {return m_eStereoMode;}
     virtual bool  GetStereoEyeSwap() const {return m_bStereoEyeSwap;}
 
+    virtual void SetUserMatrices(const FLOATMATRIX4& view, const FLOATMATRIX4& projection,
+                                 const FLOATMATRIX4& viewLeft, const FLOATMATRIX4& projectionLeft,
+                                 const FLOATMATRIX4& viewRight, const FLOATMATRIX4& projectionRight);
+    virtual void UnsetUserMatrices();
+
     virtual void InitStereoFrame();
     virtual void ToggleStereoFrame();
 
@@ -605,6 +610,13 @@ class AbstrRenderer: public Scriptable {
     bool                m_bPerformReCompose;
     bool                m_bRequestStereoRendering;
     bool                m_bDoStereoRendering;
+    bool                m_bUserMatrices;
+    FLOATMATRIX4        m_UserView;
+    FLOATMATRIX4        m_UserViewLeft;
+    FLOATMATRIX4        m_UserViewRight;
+    FLOATMATRIX4        m_UserProjection;
+    FLOATMATRIX4        m_UserProjectionLeft;
+    FLOATMATRIX4        m_UserProjectionRight;
   	int				          m_iAlternatingFrameID;
     float               m_fStereoEyeDist;
     float               m_fStereoFocalLength;

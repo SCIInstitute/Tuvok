@@ -856,20 +856,33 @@ void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
 }
 
 void GLRenderer::ComputeViewAndProjection(float fAspect) {
-  if (m_bDoStereoRendering) {
-    FLOATMATRIX4::BuildStereoLookAtAndProjection(m_vEye, m_vAt, m_vUp, m_fFOV,
-                                                 fAspect, m_fZNear, m_fZFar,
-                                                 m_fStereoFocalLength,
-                                                 m_fStereoEyeDist, m_mView[0],
-                                                 m_mView[1], m_mProjection[0],
-                                                 m_mProjection[1]);
+  if (m_bUserMatrices)  {
+    if (m_bDoStereoRendering) {
+      m_mView[0] = m_UserViewLeft;
+      m_mProjection[0] = m_UserProjectionLeft;
+      m_mView[1] = m_UserViewRight;
+      m_mProjection[1] = m_UserProjectionRight;
+    } else {
+      m_mView[0] = m_UserView;
+      m_mProjection[0] = m_UserProjection;
+      m_mProjection[0].setProjection();
+    }
   } else {
-    // view matrix
-    m_mView[0].BuildLookAt(m_vEye, m_vAt, m_vUp);
+    if (m_bDoStereoRendering) {
+      FLOATMATRIX4::BuildStereoLookAtAndProjection(m_vEye, m_vAt, m_vUp, m_fFOV,
+                                                   fAspect, m_fZNear, m_fZFar,
+                                                   m_fStereoFocalLength,
+                                                   m_fStereoEyeDist, m_mView[0],
+                                                   m_mView[1], m_mProjection[0],
+                                                   m_mProjection[1]);
+    } else {
+      // view matrix
+      m_mView[0].BuildLookAt(m_vEye, m_vAt, m_vUp);
 
-    // projection matrix
-    m_mProjection[0].Perspective(m_fFOV, fAspect, m_fZNear, m_fZFar);
-    m_mProjection[0].setProjection();
+      // projection matrix
+      m_mProjection[0].Perspective(m_fFOV, fAspect, m_fZNear, m_fZFar);
+      m_mProjection[0].setProjection();
+    }
   }
 }
 
