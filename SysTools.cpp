@@ -44,6 +44,7 @@
 #include <cctype>
 #include <functional>
 #include <iterator>
+#include <limits.h>
 #include <sstream>
 #include <sys/stat.h>
 
