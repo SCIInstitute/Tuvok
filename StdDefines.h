@@ -149,4 +149,8 @@ typedef unsigned char BYTE;
   #define TUVOK_DETAILS "Linux build"
 #endif
 
+#ifndef TUVOK_DETAILS
+# define TUVOK_DETAILS "Unsupported system build"
+#endif
+
 #endif // STDDEFINES_H
