@@ -119,7 +119,6 @@ void AbstrGeoConverter::SortByGradient(const VertVec& vertices,
   if(v.size() < 2) return;
 
   // find AA projection direction that is not coplanar to the polygon
-  size_t iPlane = 0;
   size_t iPlaneX = 2;
   size_t iPlaneY = 1;
 
@@ -128,15 +127,13 @@ void AbstrGeoConverter::SortByGradient(const VertVec& vertices,
   FLOATVECTOR3 norm = tan%bin;
 
   if (norm.y != 0) {
-    iPlane = 1; 
-    iPlaneX = 0; 
-    iPlaneY = 2; 
+    iPlaneX = 0;
+    iPlaneY = 2;
   } else
   if (norm.z != 0) {
-    iPlane = 2;
-    iPlaneX = 0; 
-    iPlaneY = 1; 
-  } // else use default wich is the x-plane
+    iPlaneX = 0;
+    iPlaneY = 1;
+  } // else use default which is the x-plane
 
   // move bottom element to front of array
   for (size_t i = 1;i<v.size();i++) {

@@ -359,7 +359,9 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
   fileDICOM.seekg(128);  // skip first 128 bytes
 
   string value;
+#ifdef DEBUG_DICOM
   float fSliceSpacing = 0;
+#endif
   short iGroupID, iElementID;
   UINT32 iElemLength;
   DICOM_eType elementType;  
@@ -389,7 +391,9 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
   } else {
     // Ok, at this point we are very sure that we are dealing with a DICOM File,
     // lets find out the dimensions, the sequence numbers
+#ifdef DEBUG_DICOM
     fSliceSpacing = 0;
+#endif
     int iMetaHeaderEnd=0;
     bool bParsingMetaHeader = true;
 
@@ -559,8 +563,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
               case 0x88 : { // Spacing
                     value.resize(iElemLength);
                     fileDICOM.read(&value[0],iElemLength);
-                    fSliceSpacing = float(atof(value.c_str()));
                     #ifdef DEBUG_DICOM
+                    fSliceSpacing = float(atof(value.c_str()));
                     {
                       stringstream ss;
                       ss << fSliceSpacing << " (Slice Spacing: recognized)";

@@ -310,9 +310,6 @@ public:
     FLOATVECTOR3 vecBrickOffset(vBrickOffset);
     vecBrickOffset = vecBrickOffset * m_vScale;
 
-    FLOATVECTOR3 domShift = 0.5f * fMaxSize / FLOATVECTOR3(m_vDataSize);
-
-
     for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
         m_vertices.push_back((m_pMarchingCubes->m_Isosurface->vfVertices[i]+vecBrickOffset-FLOATVECTOR3(m_vDataSize)/2.0f)/fMaxSize);
     }
@@ -344,7 +341,6 @@ protected:
   tuvok::VertVec     m_vertices;
   tuvok::NormVec     m_normals;
   tuvok::IndexVec    m_indices;
-
 };
 
 class IOManager {
