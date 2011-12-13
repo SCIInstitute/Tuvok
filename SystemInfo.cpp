@@ -192,7 +192,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
     #else
       std::cerr << "Unknown system, can't lookup max memory.  "
                 << "Using a hard setting of 10 gb." << std::endl;
-      return 1024*1024*1024*10;
+      return 1024ULL*1024ULL*1024ULL*10ULL;
     #endif
   #endif
 }
