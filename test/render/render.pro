@@ -1,5 +1,5 @@
 TEMPLATE          = app
-CONFIG           += staticlib static warn_on stl exceptions
+CONFIG           += qt staticlib static warn_on stl exceptions
 TARGET            = tuvok
 p                 = . ../ ../../
 p                += ../../Basics/3rdParty
@@ -13,7 +13,8 @@ macx:QMAKE_LIBDIR+= /usr/X11R6/lib
 QMAKE_LIBDIR     += ../../Build ../../IO/expressions
 QT               += opengl
 LIBS             += -lTuvok -ltuvokexpr -lz
-macx:LIBS        += -lX11 -lGL -framework CoreFoundation
+unix:LIBS        += -lGL -lGLU
+macx:LIBS        += -lX11 -framework CoreFoundation
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
 unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
 
