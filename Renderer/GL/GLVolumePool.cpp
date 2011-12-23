@@ -54,7 +54,7 @@ UINTVECTOR3 GetBrickSize(UINTVECTOR3 , UINT32 , UINTVECTOR3 , UINTVECTOR3 , UINT
 }
 
 
-GLVolumePool::GLVolumePool(UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, UINT32 overlap,
+GLVolumePool::GLVolumePool(UINTVECTOR3 , UINTVECTOR3 , UINT32 ,
                            const UINTVECTOR3& poolTexSize, const UINTVECTOR3& brickSize,
                            GLint internalformat, GLenum format, GLenum type,
                            UINT32 iSizePerElement) :
