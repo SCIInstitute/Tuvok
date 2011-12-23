@@ -41,7 +41,7 @@ struct test_quant : public std::unary_function<testfile<T>, void> {
     const size_t filesz = filesize(fn.c_str());
     const size_t n_elems = filesz / sizeof(T);
 
-    std::vector<UINT64> hist;
+    std::vector<uint64_t> hist;
     {
 #ifdef VERBOSE
       TS_TRACE("raw_data_src");
@@ -50,7 +50,7 @@ struct test_quant : public std::unary_function<testfile<T>, void> {
       LargeRAWFile raw(fn);
       raw.Open(false);
       std::pair<T,T> mm = io_minmax<T>(raw_data_src<T>(raw), histw,
-                                       TuvokProgress<UINT64>(n_elems), sz);
+                                       TuvokProgress<uint64_t>(n_elems), sz);
       check_equality(tf.data_min, mm.first);
       check_equality(tf.data_max, mm.second);
       raw.Close();
@@ -62,7 +62,7 @@ struct test_quant : public std::unary_function<testfile<T>, void> {
       Unsigned12BitHistogram<T> histw(hist);
       std::ifstream fs(fn.c_str());
       std::pair<T,T> mm = io_minmax<T>(ios_data_src<T>(fs), histw,
-                                       TuvokProgress<UINT64>(n_elems), sz);
+                                       TuvokProgress<uint64_t>(n_elems), sz);
       check_equality(tf.data_min, mm.first);
       check_equality(tf.data_max, mm.second);
       fs.close();

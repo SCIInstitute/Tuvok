@@ -19,7 +19,7 @@ using namespace tuvok;
 
 template<typename T>
 bool quantize(LargeRAWFile& input,
-              const std::string& outfn, UINT64 values,
+              const std::string& outfn, uint64_t values,
               Histogram1DDataBlock* hist, T)
 {
   return AbstrConverter::Quantize<T, unsigned short>(input, outfn, values, hist);
@@ -27,7 +27,7 @@ bool quantize(LargeRAWFile& input,
 
 template <>
 bool quantize(LargeRAWFile& input,
-              const std::string& outfn, UINT64 values,
+              const std::string& outfn, uint64_t values,
               Histogram1DDataBlock* hist, tbyte)
 {
   return AbstrConverter::Process8Bits(input, outfn, values, true, hist);
@@ -36,7 +36,7 @@ bool quantize(LargeRAWFile& input,
 
 template <>
 bool quantize(LargeRAWFile& input,
-              const std::string& outfn, UINT64 values,
+              const std::string& outfn, uint64_t values,
               Histogram1DDataBlock* hist, tubyte)
 {
   return AbstrConverter::Process8Bits(input, outfn, values, false, hist);
@@ -44,7 +44,7 @@ bool quantize(LargeRAWFile& input,
 
 template<typename T>
 bool quantize8(LargeRAWFile& input,
-               const std::string& outfn, UINT64 values,
+               const std::string& outfn, uint64_t values,
                Histogram1DDataBlock* hist, T)
 {
   return AbstrConverter::Quantize<T, unsigned char>(input, outfn, values, hist);
@@ -52,7 +52,7 @@ bool quantize8(LargeRAWFile& input,
 
 template <>
 bool quantize8(LargeRAWFile& input,
-               const std::string& outfn, UINT64 values,
+               const std::string& outfn, uint64_t values,
                Histogram1DDataBlock* hist, tbyte)
 {
   return AbstrConverter::Process8Bits(input, outfn, values, true, hist);
@@ -60,7 +60,7 @@ bool quantize8(LargeRAWFile& input,
 
 template <>
 bool quantize8(LargeRAWFile& input,
-               const std::string& outfn, UINT64 values,
+               const std::string& outfn, uint64_t values,
                Histogram1DDataBlock* hist, tubyte)
 {
   return AbstrConverter::Process8Bits(input, outfn, values, false, hist);
@@ -94,7 +94,7 @@ void verify_type() {
   {
     LargeRAWFile input(fn); input.Open(false);
     MESSAGE("quantizing %s to %s", fn.c_str(), outfn.c_str());
-    if(!quantize<T>(input, outfn, static_cast<UINT64>(N_VALUES), &hist1d, T()))
+    if(!quantize<T>(input, outfn, static_cast<uint64_t>(N_VALUES), &hist1d, T()))
     {
       outfn = fn;
     }
@@ -135,7 +135,7 @@ void verify_type() {
   remove(outfn.c_str());
 
   // now verify 1D histogram
-  const std::vector<UINT64>& histo = hist1d.GetHistogram();
+  const std::vector<uint64_t>& histo = hist1d.GetHistogram();
   for(size_t i=0; i < histo.size(); ++i) {
     // For data wider than 8 bit, we bias s.t. the minimum value ends up at 0.
     // Therefore the first N_VALUES of our histogram will have data.  For 8 bit
@@ -149,16 +149,16 @@ void verify_type() {
         low = 0;
       }
       if(static_cast<uT>(low) <= i && i < low+N_VALUES) {
-        TS_ASSERT_EQUALS(histo[i], static_cast<UINT64>(1));
+        TS_ASSERT_EQUALS(histo[i], static_cast<uint64_t>(1));
       } else {
-        TS_ASSERT_EQUALS(histo[i], static_cast<UINT64>(0));
+        TS_ASSERT_EQUALS(histo[i], static_cast<uint64_t>(0));
       }
     } else if(!std::tr1::is_floating_point<T>::value) {
       // we expand FP data; hard to assert a specific histogram in that case.
       if(static_cast<uT>(i < N_VALUES)) {
-        TS_ASSERT_EQUALS(histo[i], static_cast<UINT64>(1));
+        TS_ASSERT_EQUALS(histo[i], static_cast<uint64_t>(1));
       } else {
-        TS_ASSERT_EQUALS(histo[i], static_cast<UINT64>(0));
+        TS_ASSERT_EQUALS(histo[i], static_cast<uint64_t>(0));
       }
     }
   }
@@ -187,7 +187,7 @@ void verify_8b_type() {
   Histogram1DDataBlock hist1d;
   {
     LargeRAWFile input(fn); input.Open(false);
-    if(!quantize8<T>(input, outfn, static_cast<UINT64>(N_VALUES), &hist1d, T()))
+    if(!quantize8<T>(input, outfn, static_cast<uint64_t>(N_VALUES), &hist1d, T()))
     {
       outfn = fn;
     }
@@ -222,7 +222,7 @@ void verify_8b_type() {
   remove(outfn.c_str());
 
   // now verify 1D histogram
-  const std::vector<UINT64>& histo = hist1d.GetHistogram();
+  const std::vector<uint64_t>& histo = hist1d.GetHistogram();
   for(size_t i=0; i < histo.size(); ++i) {
     // For data wider than 8 bit, we bias s.t. the minimum value ends up at 0.
     // Therefore the first N_VALUES of our histogram will have data.  For 8 bit
@@ -236,15 +236,15 @@ void verify_8b_type() {
         low = 0;
       }
       if(static_cast<uT>(low) <= i && i < low+N_VALUES) {
-        TS_ASSERT_EQUALS(histo[i], static_cast<UINT64>(1));
+        TS_ASSERT_EQUALS(histo[i], static_cast<uint64_t>(1));
       } else {
-        TS_ASSERT_EQUALS(histo[i], static_cast<UINT64>(0));
+        TS_ASSERT_EQUALS(histo[i], static_cast<uint64_t>(0));
       }
     } else {
       if(static_cast<uT>(i < N_VALUES)) {
-        TS_ASSERT_EQUALS(histo[i], static_cast<UINT64>(1));
+        TS_ASSERT_EQUALS(histo[i], static_cast<uint64_t>(1));
       } else {
-        TS_ASSERT_EQUALS(histo[i], static_cast<UINT64>(0));
+        TS_ASSERT_EQUALS(histo[i], static_cast<uint64_t>(0));
       }
     }
   }
