@@ -27,6 +27,7 @@
 #ifndef EXTENDEDOCTREECONVERTER_H
 #define EXTENDEDOCTREECONVERTER_H
 
+#include <cstring>
 #include "ExtendedOctree.h"
 
 /*! \brief A single brick cache entry
