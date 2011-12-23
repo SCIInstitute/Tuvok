@@ -795,9 +795,6 @@
     <ClCompile Include="IO\XML3DGeoConverter.cpp">
       <Filter>IO\Geometry Converter</Filter>
     </ClCompile>
-    <ClCompile Include="Renderer\GL\GLTreeRaycaster.cpp">
-      <Filter>Renderer\MemMan\GL</Filter>
-    </ClCompile>
     <ClCompile Include="Renderer\GL\GLVolumePool.cpp">
       <Filter>Renderer\MemMan\GL</Filter>
     </ClCompile>
@@ -809,6 +806,9 @@
     </ClCompile>
     <ClCompile Include="IO\UVF\TOCBlock.cpp">
       <Filter>IO\UVF</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLTreeRaycaster.cpp">
+      <Filter>Renderer\GL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1623,9 +1623,6 @@
     <ClInclude Include="IO\XML3DGeoConverter.h">
       <Filter>IO\Geometry Converter</Filter>
     </ClInclude>
-    <ClInclude Include="Renderer\GL\GLTreeRaycaster.h">
-      <Filter>Renderer\MemMan\GL</Filter>
-    </ClInclude>
     <ClInclude Include="Renderer\GL\GLVolumePool.h">
       <Filter>Renderer\MemMan\GL</Filter>
     </ClInclude>
@@ -1637,6 +1634,9 @@
     </ClInclude>
     <ClInclude Include="IO\UVF\TOCBlock.h">
       <Filter>IO\UVF</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLTreeRaycaster.h">
+      <Filter>Renderer\GL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
