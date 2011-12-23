@@ -55,10 +55,10 @@
 #endif
 
 // for the LargeRawfile class
-#include "basics/LargeRAWFile.h"
+#include "../../../Basics/LargeRAWFile.h"
 
 // for the small fixed size vectors
-#include "basics/Vectors.h"
+#include "../../../Basics/Vectors.h"
 
 /*! \brief This structure holds information about a specific level in the tree
  *
