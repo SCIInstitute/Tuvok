@@ -189,7 +189,6 @@ HEADERS += \
            Renderer/GL/GLVolume3DTex.h \
            Renderer/GL/QtGLContext.h \
            Renderer/GL/RenderMeshGL.h \
-           Renderer/GL/GLTreeRaycaster.h \
            Renderer/GL/GLVolumePool.h \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
            Renderer/GPUMemMan/GPUMemMan.h \
@@ -401,7 +400,6 @@ SOURCES += \
            Renderer/GL/GLFBOTex.cpp \
            Renderer/GL/GLFrameCapture.cpp \
            Renderer/GL/GLRaycaster.cpp \
-           Renderer/GL/GLTreeRaycaster.cpp \
            Renderer/GL/GLRenderer.cpp \
            Renderer/GL/GLSBVR.cpp \
            Renderer/GL/GLSBVR2D.cpp \
