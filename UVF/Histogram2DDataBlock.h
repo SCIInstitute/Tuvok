@@ -110,7 +110,7 @@ protected:
                                                           iCompcount, bricksize, UINTVECTOR3(x,y,z));
                 size_t iCenter = size_t(x+bricksize.x*y+bricksize.x*bricksize.y*z);
 
-                size_t iGardientMagnitudeIndex = min<size_t>(255,size_t(vGradient.length()/fMaxGradMagnitude*255.0f));
+                size_t iGardientMagnitudeIndex = std::min<size_t>(255,size_t(vGradient.length()/fMaxGradMagnitude*255.0f));
                 size_t iValue = (fMaxNonZeroValue <= double(iHistoBinCount-1)) 
                                    ? size_t(pTempBrickData[iCenter]) 
                                    : size_t(double(pTempBrickData[iCenter]) * double(iHistoBinCount-1)/fMaxNonZeroValue);
