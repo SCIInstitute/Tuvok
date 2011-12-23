@@ -831,7 +831,7 @@ void GLRenderer::SetRenderTargetAreaScissor(const RenderRegion& renderRegion) {
 void GLRenderer::SetViewPort(UINTVECTOR2 viLowerLeft, UINTVECTOR2 viUpperRight,
                              bool bDecreaseScreenResNow) {
   UINTVECTOR2 viSize = viUpperRight-viLowerLeft;
-  const UINT originalPixelsY = viSize.y;
+  const uint32_t originalPixelsY = viSize.y;
   if (bDecreaseScreenResNow) {
     const float rescale = 1.0f/m_fScreenResDecFactor;
 
