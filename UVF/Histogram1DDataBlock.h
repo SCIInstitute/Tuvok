@@ -4,8 +4,9 @@
 #define HISTOGRAM1DDATABLOCK_H
 
 #include "DataBlock.h"
+#include "TOCBlock.h"
+
 class RasterDataBlock;
-class TOCBlock;
 
 class Histogram1DDataBlock : public DataBlock
 {
