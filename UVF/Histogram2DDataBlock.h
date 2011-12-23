@@ -4,10 +4,10 @@
 #define HISTOGRAM2DDATABLOCK_H
 
 #include "DataBlock.h"
+#include "TOCBlock.h"
 #include "../../Basics/Vectors.h"
 
 class RasterDataBlock;
-class TOCBlock;
 
 class Histogram2DDataBlock : public DataBlock
 {
