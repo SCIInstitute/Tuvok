@@ -50,7 +50,7 @@
 #endif
 
 static void tv_dimensions(TIFF *, size_t dims[3]);
-_malloc static BYTE* tv_read_slice(TIFF *);
+_malloc static uint8_t* tv_read_slice(TIFF *);
 
 TiffVolumeConverter::TiffVolumeConverter()
 {
@@ -168,12 +168,12 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   do {
     MESSAGE("Reading %llux%llu TIFF slice %u of %llu",
             vVolumeSize[0], vVolumeSize[1], slice_idx++, vVolumeSize[2]-1);
-    BYTE* slice = tv_read_slice(tif);
+    uint8_t* slice = tv_read_slice(tif);
     if(slice) {
       // assuming 8-bit data here, which might not always be valid.
       binary.WriteRAW(static_cast<unsigned char*>(slice),
                       vVolumeSize[0]*vVolumeSize[1] *
-                      sizeof(BYTE)*iComponentCount);
+                      sizeof(uint8_t)*iComponentCount);
       _TIFFfree(slice);
     } else {
       binary.Close();
@@ -237,13 +237,13 @@ tv_dimensions(TIFF *tif, size_t dims[3])
 #endif
 }
 
-_malloc static BYTE*
+_malloc static uint8_t*
 tv_read_slice(TIFF *tif)
 {
 #ifdef TUVOK_NO_IO
   return NULL;
 #else
-  BYTE *slice;
+  uint8_t *slice;
   uint32_t width;
   uint32_t height;
   uint16_t bpp;
@@ -261,8 +261,8 @@ tv_read_slice(TIFF *tif)
     return NULL;
   }
 
-  const tsize_t slice_sz = width*height*(bpp/8)*components * sizeof(BYTE);
-  slice = static_cast<BYTE*>(_TIFFmalloc(slice_sz));
+  const tsize_t slice_sz = width*height*(bpp/8)*components * sizeof(uint8_t);
+  slice = static_cast<uint8_t*>(_TIFFmalloc(slice_sz));
   if(slice == NULL) {
     T_ERROR("TIFFmalloc failed.");
     return NULL;
@@ -270,7 +270,7 @@ tv_read_slice(TIFF *tif)
 
   const tstrip_t n_strips = TIFFNumberOfStrips(tif);
   {
-    BYTE *data = slice;
+    uint8_t *data = slice;
     tdata_t buf = static_cast<tdata_t>(_TIFFmalloc(TIFFStripSize(tif)));
     // strips shouldn't be bigger than slices.
     assert(TIFFStripSize(tif) <= slice_sz);
