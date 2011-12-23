@@ -45,36 +45,36 @@
 class SystemInfo
 {
 public:
-  SystemInfo(std::string strProgramPath="", UINT64 iDefaultCPUMemSize=UINT64(32)*UINT64(1024)*UINT64(1024)*UINT64(1024), UINT64 iDefaultGPUMemSize=UINT64(8)*UINT64(1024)*UINT64(1024)*UINT64(1024));
+  SystemInfo(std::string strProgramPath="", uint64_t iDefaultCPUMemSize=uint64_t(32)*uint64_t(1024)*uint64_t(1024)*uint64_t(1024), uint64_t iDefaultGPUMemSize=uint64_t(8)*uint64_t(1024)*uint64_t(1024)*uint64_t(1024));
 
   void SetProgramPath(std::string strProgramPath) {m_strProgramPath = strProgramPath;}
 
   std::string GetProgramPath() const {return m_strProgramPath;}
-  UINT32 GetProgramBitWidth() const {return m_iProgramBitWidth;}
-  UINT64 GetCPUMemSize() const {return m_iCPUMemSize;}
-  UINT64 GetGPUMemSize() const {return m_iGPUMemSize;}
+  uint32_t GetProgramBitWidth() const {return m_iProgramBitWidth;}
+  uint64_t GetCPUMemSize() const {return m_iCPUMemSize;}
+  uint64_t GetGPUMemSize() const {return m_iGPUMemSize;}
   bool IsCPUSizeComputed() const {return m_bIsCPUSizeComputed;}
   bool IsGPUSizeComputed() const {return m_bIsGPUSizeComputed;}
-  UINT64 GetMaxUsableCPUMem() const {return m_iUseMaxCPUMem;}
-  UINT64 GetMaxUsableGPUMem() const {return m_iUseMaxGPUMem;}
-  void SetMaxUsableCPUMem(UINT64 iUseMaxCPUMem) {m_iUseMaxCPUMem = iUseMaxCPUMem;}
-  void SetMaxUsableGPUMem(UINT64 iUseMaxGPUMem) {m_iUseMaxGPUMem = iUseMaxGPUMem;}
+  uint64_t GetMaxUsableCPUMem() const {return m_iUseMaxCPUMem;}
+  uint64_t GetMaxUsableGPUMem() const {return m_iUseMaxGPUMem;}
+  void SetMaxUsableCPUMem(uint64_t iUseMaxCPUMem) {m_iUseMaxCPUMem = iUseMaxCPUMem;}
+  void SetMaxUsableGPUMem(uint64_t iUseMaxGPUMem) {m_iUseMaxGPUMem = iUseMaxGPUMem;}
   bool IsNumberOfCPUsComputed() const {return m_bIsNumberOfCPUsComputed;}
-  UINT32 GetNumberOfCPUs() const {return m_iNumberOfCPUs;}
+  uint32_t GetNumberOfCPUs() const {return m_iNumberOfCPUs;}
   bool IsDirectX10Capable() const {return m_bIsDirectX10Capable; }
 
 private:
-  UINT32 ComputeNumCPUs();
-  UINT64 ComputeCPUMemSize();
-  UINT64 ComputeGPUMemory();
+  uint32_t ComputeNumCPUs();
+  uint64_t ComputeCPUMemSize();
+  uint64_t ComputeGPUMemory();
 
   std::string m_strProgramPath;
-  UINT32  m_iProgramBitWidth;
-  UINT64  m_iUseMaxCPUMem;
-  UINT64  m_iUseMaxGPUMem;
-  UINT64  m_iCPUMemSize;
-  UINT64  m_iGPUMemSize;
-  UINT32  m_iNumberOfCPUs;
+  uint32_t  m_iProgramBitWidth;
+  uint64_t  m_iUseMaxCPUMem;
+  uint64_t  m_iUseMaxGPUMem;
+  uint64_t  m_iCPUMemSize;
+  uint64_t  m_iGPUMemSize;
+  uint32_t  m_iNumberOfCPUs;
 
   bool m_bIsCPUSizeComputed;
   bool m_bIsGPUSizeComputed;

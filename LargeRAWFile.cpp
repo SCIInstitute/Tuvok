@@ -3,7 +3,7 @@
 
 using namespace std;
 
-LargeRAWFile::LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize):
+LargeRAWFile::LargeRAWFile(const std::string& strFilename, uint64_t iHeaderSize):
   m_strFilename(strFilename),
   m_bIsOpen(false),
   m_bWritable(false),
@@ -11,7 +11,7 @@ LargeRAWFile::LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize):
 {
 }
 
-LargeRAWFile::LargeRAWFile(const std::wstring& wstrFilename, UINT64 iHeaderSize):
+LargeRAWFile::LargeRAWFile(const std::wstring& wstrFilename, uint64_t iHeaderSize):
   m_bIsOpen(false),
   m_bWritable(false),
   m_iHeaderSize(iHeaderSize)
@@ -58,7 +58,7 @@ bool LargeRAWFile::Open(bool bReadWrite) {
   return m_bIsOpen;
 }
 
-bool LargeRAWFile::Create(UINT64 iInitialSize) {
+bool LargeRAWFile::Create(uint64_t iInitialSize) {
 #ifdef _WIN32
   m_StreamFile = CreateFileA(m_strFilename.c_str(),
                              GENERIC_READ | GENERIC_WRITE, 0, NULL,
@@ -110,13 +110,13 @@ void LargeRAWFile::Close() {
   }
 }
 
-UINT64 LargeRAWFile::GetCurrentSize() {
-  UINT64 iPrevPos = GetPos();
+uint64_t LargeRAWFile::GetCurrentSize() {
+  uint64_t iPrevPos = GetPos();
 
   SeekStart();
-  UINT64 ulStart = GetPos();
-  UINT64 ulEnd   = SeekEnd();
-  UINT64 ulFileLength = ulEnd - ulStart;
+  uint64_t ulStart = GetPos();
+  uint64_t ulEnd   = SeekEnd();
+  uint64_t ulFileLength = ulEnd - ulStart;
 
   SeekPos(iPrevPos);
 
@@ -127,11 +127,11 @@ void LargeRAWFile::SeekStart() {
   SeekPos(0);
 }
 
-UINT64 LargeRAWFile::SeekEnd() {
+uint64_t LargeRAWFile::SeekEnd() {
   #ifdef _WIN32
     LARGE_INTEGER liTarget, liRealTarget; liTarget.QuadPart = 0;
     SetFilePointerEx(m_StreamFile, liTarget, &liRealTarget, FILE_END);
-    return UINT64(liRealTarget.QuadPart)-m_iHeaderSize;
+    return uint64_t(liRealTarget.QuadPart)-m_iHeaderSize;
   #else
     // get current position=file size!
     if(fseeko(m_StreamFile, 0, SEEK_END)==0)
@@ -141,18 +141,18 @@ UINT64 LargeRAWFile::SeekEnd() {
   #endif
 }
 
-UINT64 LargeRAWFile::GetPos() {
+uint64_t LargeRAWFile::GetPos() {
   #ifdef _WIN32
     LARGE_INTEGER liTarget, liRealTarget; liTarget.QuadPart = 0;
     SetFilePointerEx(m_StreamFile, liTarget, &liRealTarget, FILE_CURRENT);
-    return UINT64(liRealTarget.QuadPart)-m_iHeaderSize;
+    return uint64_t(liRealTarget.QuadPart)-m_iHeaderSize;
   #else
     //get current position=file size!
     return ftello(m_StreamFile)-m_iHeaderSize;
   #endif
 }
 
-void LargeRAWFile::SeekPos(UINT64 iPos) {
+void LargeRAWFile::SeekPos(uint64_t iPos) {
   #ifdef _WIN32
     LARGE_INTEGER liTarget; liTarget.QuadPart = LONGLONG(iPos+m_iHeaderSize);
     SetFilePointerEx(m_StreamFile, liTarget, NULL, FILE_BEGIN);
@@ -161,7 +161,7 @@ void LargeRAWFile::SeekPos(UINT64 iPos) {
   #endif
 }
 
-size_t LargeRAWFile::ReadRAW(unsigned char* pData, UINT64 iCount) {
+size_t LargeRAWFile::ReadRAW(unsigned char* pData, uint64_t iCount) {
   #ifdef _WIN32
     DWORD dwReadBytes;
     ReadFile(m_StreamFile, pData, DWORD(iCount), &dwReadBytes, NULL);
@@ -171,7 +171,7 @@ size_t LargeRAWFile::ReadRAW(unsigned char* pData, UINT64 iCount) {
   #endif
 }
 
-size_t LargeRAWFile::WriteRAW(const unsigned char* pData, UINT64 iCount) {
+size_t LargeRAWFile::WriteRAW(const unsigned char* pData, uint64_t iCount) {
   #ifdef _WIN32
     DWORD dwWrittenBytes;
     WriteFile(m_StreamFile, pData, DWORD(iCount), &dwWrittenBytes, NULL);
@@ -181,15 +181,15 @@ size_t LargeRAWFile::WriteRAW(const unsigned char* pData, UINT64 iCount) {
   #endif
 }
 
-bool LargeRAWFile::CopyRAW(UINT64 iCount, UINT64 iSourcePos, UINT64 iTargetPos, 
-                           unsigned char* pBuffer, UINT64 iBufferSize) {
+bool LargeRAWFile::CopyRAW(uint64_t iCount, uint64_t iSourcePos, uint64_t iTargetPos, 
+                           unsigned char* pBuffer, uint64_t iBufferSize) {
 
-  UINT64 iBytesRead = 0;
+  uint64_t iBytesRead = 0;
   do {
     SeekPos(iSourcePos+iBytesRead);
-    UINT64 iBytesJustRead = ReadRAW(pBuffer,min(iBufferSize,iCount-iBytesRead));
+    uint64_t iBytesJustRead = ReadRAW(pBuffer,min(iBufferSize,iCount-iBytesRead));
     SeekPos(iTargetPos+iBytesRead);
-    UINT64 iBytesJustWritten = WriteRAW(pBuffer, iBytesJustRead);
+    uint64_t iBytesJustWritten = WriteRAW(pBuffer, iBytesJustRead);
     if (iBytesJustRead != iBytesJustWritten) return false;
     iBytesRead += iBytesJustRead;
   } while(iBytesRead < iCount);
@@ -207,12 +207,12 @@ bool LargeRAWFile::Truncate() {
   #ifdef _WIN32
     return 0 != SetEndOfFile(m_StreamFile);
   #else
-    UINT64 iPos = GetPos();
+    uint64_t iPos = GetPos();
     return 0 == ftruncate(fileno(m_StreamFile), off_t(iPos));
   #endif
 }
 
-bool LargeRAWFile::Truncate(UINT64 iPos) {
+bool LargeRAWFile::Truncate(uint64_t iPos) {
   #ifdef _WIN32
     SeekPos(iPos);
     return 0 != SetEndOfFile(m_StreamFile);
@@ -223,10 +223,10 @@ bool LargeRAWFile::Truncate(UINT64 iPos) {
 
 // no-op, but I want to leave the argument names in the header so it's nicer to
 // implement it here.
-void LargeRAWFile::Hint(IOHint, UINT64, UINT64) const { }
+void LargeRAWFile::Hint(IOHint, uint64_t, uint64_t) const { }
 
 bool LargeRAWFile::Copy(const std::string& strSource,
-                        const std::string& strTarget, UINT64 iSourceHeaderSkip,
+                        const std::string& strTarget, uint64_t iSourceHeaderSkip,
                         std::string* strMessage) {
   std::wstring wstrSource(strSource.begin(), strSource.end());
   std::wstring wstrTarget(strTarget.begin(), strTarget.end());
@@ -244,7 +244,7 @@ bool LargeRAWFile::Copy(const std::string& strSource,
 
 bool LargeRAWFile::Copy(const std::wstring& wstrSource,
                         const std::wstring& wstrTarget,
-                        UINT64 iSourceHeaderSkip, std::wstring* wstrMessage) {
+                        uint64_t iSourceHeaderSkip, std::wstring* wstrMessage) {
   LargeRAWFile source(wstrSource, iSourceHeaderSkip);
   LargeRAWFile target(wstrTarget);
 
@@ -263,8 +263,8 @@ bool LargeRAWFile::Copy(const std::wstring& wstrSource,
     return false;
   }
 
-  UINT64 iFileSize = source.GetCurrentSize();
-  UINT64 iCopySize = min(iFileSize,BLOCK_COPY_SIZE);
+  uint64_t iFileSize = source.GetCurrentSize();
+  uint64_t iCopySize = min(iFileSize,BLOCK_COPY_SIZE);
   unsigned char* pBuffer = new unsigned char[size_t(iCopySize)];
 
   do {
@@ -320,12 +320,12 @@ bool LargeRAWFile::Compare(const std::wstring& wstrFirstFile,
     return false;
   }
 
-  UINT64 iFileSize = first.GetCurrentSize();
-  UINT64 iCopySize = min(iFileSize,BLOCK_COPY_SIZE/2);
+  uint64_t iFileSize = first.GetCurrentSize();
+  uint64_t iCopySize = min(iFileSize,BLOCK_COPY_SIZE/2);
   unsigned char* pBuffer1 = new unsigned char[size_t(iCopySize)];
   unsigned char* pBuffer2 = new unsigned char[size_t(iCopySize)];
-  UINT64 iCopiedSize = 0;
-  UINT64 iDiffCount = 0;
+  uint64_t iCopiedSize = 0;
+  uint64_t iDiffCount = 0;
 
   if (wstrMessage) (*wstrMessage) = L"";
 
@@ -333,7 +333,7 @@ bool LargeRAWFile::Compare(const std::wstring& wstrFirstFile,
     iCopySize = first.ReadRAW(pBuffer1, iCopySize);
     second.ReadRAW(pBuffer2, iCopySize);
 
-    for (UINT64 i = 0;i<iCopySize;i++) {
+    for (uint64_t i = 0;i<iCopySize;i++) {
       if (pBuffer1[i] != pBuffer2[i]) {
         if (wstrMessage) {
           wstringstream ss;

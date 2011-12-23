@@ -44,7 +44,7 @@ vector<Triangle> GeometryGenerator::GenArrow(float  fOverallLength,
                                              float  fShaftToHeadRatio,
                                              float  fShaftRadius,
                                              float  fHeadRadius,
-                                             UINT32 iSegments) {
+                                             uint32_t iSegments) {
   vector<Triangle> vGeometry;
 
   // compute helper vars
@@ -53,7 +53,7 @@ vector<Triangle> GeometryGenerator::GenArrow(float  fOverallLength,
 
   // compute coords on a circle
   vector<PosNormalVertex> vDisk;
-  for (UINT32 i = 0;i<iSegments;i++) {
+  for (uint32_t i = 0;i<iSegments;i++) {
     PosNormalVertex point(FLOATVECTOR3(cos(fDegreePerSegment*i),sin(fDegreePerSegment*i),0),
                           FLOATVECTOR3(cos(fDegreePerSegment*i),sin(fDegreePerSegment*i),0));
     vDisk.push_back(point);
@@ -64,7 +64,7 @@ vector<Triangle> GeometryGenerator::GenArrow(float  fOverallLength,
   // endcap
   PosNormalVertex center(FLOATVECTOR3(0,0,0), FLOATVECTOR3(0,0,-1));
   center.m_vPos.z = -fOverallLength/2.0f;
-  for (UINT32 i = 0;i<iSegments;i++) {
+  for (uint32_t i = 0;i<iSegments;i++) {
     PosNormalVertex a(vDisk[i].m_vPos*fShaftRadius, FLOATVECTOR3(0,0,-1));
     PosNormalVertex b(vDisk[(i+1)%iSegments].m_vPos*fShaftRadius, FLOATVECTOR3(0,0,-1));
 
@@ -73,7 +73,7 @@ vector<Triangle> GeometryGenerator::GenArrow(float  fOverallLength,
     vGeometry.push_back(Triangle(center, b, a));
   }
   // shaft
-  for (UINT32 i = 0;i<iSegments;i++) {
+  for (uint32_t i = 0;i<iSegments;i++) {
     PosNormalVertex a  = vDisk[i];
     PosNormalVertex b  = vDisk[(i+1)%iSegments];
     PosNormalVertex c1 = vDisk[i];
@@ -96,7 +96,7 @@ vector<Triangle> GeometryGenerator::GenArrow(float  fOverallLength,
   // arrowhead
   center.m_vPos.z = fOverallLength/2.0f;
   center.m_vNormal = FLOATVECTOR3(0,0,1);
-  for (UINT32 i = 0;i<iSegments;i++) {
+  for (uint32_t i = 0;i<iSegments;i++) {
 
     PosNormalVertex a(vDisk[i].m_vPos*fShaftRadius, FLOATVECTOR3(0,0,-1));
     PosNormalVertex b(vDisk[(i+1)%iSegments].m_vPos*fShaftRadius, FLOATVECTOR3(0,0,-1));

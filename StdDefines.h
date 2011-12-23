@@ -39,19 +39,19 @@
 #ifndef STDDEFINES_H
 #define STDDEFINES_H
 
-#include "3rdParty/boost/cstdint.hpp"
-#undef UINT32
-
-typedef boost::uint64_t UINT64;
-#ifndef UINT32
-# ifdef _WIN32
-typedef unsigned int UINT32;
-# else
-typedef boost::uint32_t UINT32;
-# endif
+#if _MSC_VER >= 1600 // VS 2010 or newer
+#include <cstdint>
+#else 
+#include "../3rdParty/boost/boost/cstdint.hpp"
+using boost::int64_t;
+using boost::int32_t;
+using boost::int16_t;
+using boost::int8_t;
+using boost::uint64_t;
+using boost::uint32_t;
+using boost::uint16_t;
+using boost::uint8_t;
 #endif
-typedef unsigned int UINT;
-typedef unsigned char BYTE;
 
 // Make sure windows doesn't give us stupid macros that interfere with
 // functions in 'std'.
@@ -77,10 +77,10 @@ typedef unsigned char BYTE;
 #define UNUSED (0)
 #define UNUSED_FLOAT (0.0f)
 #define UNUSED_DOUBLE (0.0)
-#define UINT32_INVALID (std::numeric_limits<UINT32>::max())
-#define UINT64_INVALID (std::numeric_limits<UINT64>::max())
+#define UINT32_INVALID (std::numeric_limits<uint32_t>::max())
+#define UINT64_INVALID (std::numeric_limits<uint64_t>::max())
 
-#define BLOCK_COPY_SIZE (UINT64(64*1024*1024))
+#define BLOCK_COPY_SIZE (uint64_t(64*1024*1024))
 
 // undef all OS types first
 #ifdef DETECTED_OS_WINDOWS

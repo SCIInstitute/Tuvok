@@ -47,21 +47,21 @@
 /** \class FileInfo */
 class FileInfo {
 public:
-  FileInfo(std::string strName, UINT64 iSize) :
+  FileInfo(std::string strName, uint64_t iSize) :
     m_strName(strName),
     m_iSize(iSize) {}
 
     std::string m_strName;
-    UINT64 m_iSize;
+    uint64_t m_iSize;
 };
 
 class InternalFileInfo : public FileInfo {
 public:
-  InternalFileInfo(std::string strName, UINT64 iSize, UINT64 iOffset) :
+  InternalFileInfo(std::string strName, uint64_t iSize, uint64_t iOffset) :
     FileInfo(strName, iSize),
     m_iOffset(iOffset) {}
 
-    UINT64 m_iOffset;
+    uint64_t m_iOffset;
 };
 
 /** \class Appendix */
@@ -78,7 +78,7 @@ class Appendix
 
   protected:
     std::string                   m_strAPXFile;
-    UINT64                        m_iHeaderLength;
+    uint64_t                        m_iHeaderLength;
     bool                          m_bOK;
     std::vector<InternalFileInfo> m_vHeaderData;
 

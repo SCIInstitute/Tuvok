@@ -70,7 +70,7 @@ public:
                                         float  fShaftToHeadRatio,
                                         float  fShaftRadius,
                                         float  fHeadRadius,
-                                        UINT32 iSegments);
+                                        uint32_t iSegments);
 
 };
 

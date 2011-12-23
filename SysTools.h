@@ -178,10 +178,10 @@ namespace SysTools {
                                     const std::wstring& ext,
                                     const std::wstring& dir=L"");
 
-  unsigned int FindNextSequenceIndex(const std::string& fileName,
+  uint32_t FindNextSequenceIndex(const std::string& fileName,
                                      const std::string& ext,
                                      const std::string& dir="");
-  unsigned int FindNextSequenceIndex(const std::wstring& fileName,
+  uint32_t FindNextSequenceIndex(const std::wstring& fileName,
                                      const std::wstring& ext,
                                      const std::wstring& dir=L"");
 

@@ -892,27 +892,27 @@ namespace SysTools {
   }
 
 
-  UINT32 FindNextSequenceIndex(const string& fileName, const string& ext, const string& dir) {
+  uint32_t FindNextSequenceIndex(const string& fileName, const string& ext, const string& dir) {
     vector<string> files = GetDirContents(dir, fileName+"*", ext);
 
-    UINT32 iMaxIndex = 0;
+    uint32_t iMaxIndex = 0;
     for (size_t i = 0; i<files.size();i++) {
       string curFilename = RemoveExt(files[i]);
-      UINT32 iCurrIndex = UINT32(atoi(curFilename.substr(fileName.length()).c_str()));
+      uint32_t iCurrIndex = uint32_t(atoi(curFilename.substr(fileName.length()).c_str()));
       iMaxIndex = (iMaxIndex <= iCurrIndex) ? iCurrIndex+1 : iMaxIndex;
     }
 
     return iMaxIndex;
   }
 
-  UINT32 FindNextSequenceIndex(const wstring& fileName, const wstring& ext, const wstring& dir) {
+  uint32_t FindNextSequenceIndex(const wstring& fileName, const wstring& ext, const wstring& dir) {
     vector<wstring> files = GetDirContents(dir, fileName+L"*", ext);
 
-    UINT32 iMaxIndex = 0;
+    uint32_t iMaxIndex = 0;
     for (size_t i = 0; i<files.size();i++) {
       wstring wcurFilename = RemoveExt(files[i]);
       string curFilename(wcurFilename.begin(), wcurFilename.end());
-      UINT32 iCurrIndex = UINT32(atoi(curFilename.substr(fileName.length()).c_str()));
+      uint32_t iCurrIndex = uint32_t(atoi(curFilename.substr(fileName.length()).c_str()));
       iMaxIndex = (iMaxIndex <= iCurrIndex) ? iCurrIndex+1 : iMaxIndex;
     }
 

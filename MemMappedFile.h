@@ -58,35 +58,35 @@ class MemMappedFile
 {
 public:
 
-  MemMappedFile(const std::wstring strFilename, const MMFILE_ACCESS eAccesMode = MMFILE_ACCESS_READONLY, const UINT64& iLengthForNewFile = 0, const UINT64& iOffset=0, const UINT64& iBytesToMap=0);
-  MemMappedFile(const std::string strFilename, const MMFILE_ACCESS eAccesMode = MMFILE_ACCESS_READONLY, const UINT64& iLengthForNewFile = 0, const UINT64& iOffset=0, const UINT64& iBytesToMap=0);
+  MemMappedFile(const std::wstring strFilename, const MMFILE_ACCESS eAccesMode = MMFILE_ACCESS_READONLY, const uint64_t& iLengthForNewFile = 0, const uint64_t& iOffset=0, const uint64_t& iBytesToMap=0);
+  MemMappedFile(const std::string strFilename, const MMFILE_ACCESS eAccesMode = MMFILE_ACCESS_READONLY, const uint64_t& iLengthForNewFile = 0, const uint64_t& iOffset=0, const uint64_t& iBytesToMap=0);
   ~MemMappedFile(void);
 
   void*  GetDataPointer() const {return m_pData;}
-  UINT64  GetFileMappingSize() const {return m_dwFileMappingSize;}
-  UINT64  GetFileLength() const {return m_dwFileSize;}
+  uint64_t  GetFileMappingSize() const {return m_dwFileMappingSize;}
+  uint64_t  GetFileLength() const {return m_dwFileSize;}
   bool  IsOpen() const {return m_bIsOpen;}
 
   void  Flush();
   void  Close();
   void  Erase();
-  void*  ReOpen(const UINT64& iOffset=0, const UINT64& iBytesToMap=0);
-  void*  ReMap(const UINT64& iOffset=0, const UINT64& iBytesToMap=0);
-  void  ChangeView(const UINT64& iOffset=0, const UINT64& iBytesToMap=0);
+  void*  ReOpen(const uint64_t& iOffset=0, const uint64_t& iBytesToMap=0);
+  void*  ReMap(const uint64_t& iOffset=0, const uint64_t& iBytesToMap=0);
+  void  ChangeView(const uint64_t& iOffset=0, const uint64_t& iBytesToMap=0);
 
 protected:
   bool  m_bIsOpen;
   void*  m_pData;
-  UINT64  m_dwFileMappingSize;
-  UINT64  m_dwFileSize;
+  uint64_t  m_dwFileMappingSize;
+  uint64_t  m_dwFileSize;
   int    m_id;
 
   // for reopen
   std::string      m_strFilename;
   MMFILE_ACCESS    m_eAccesMode;
-  UINT64        m_iLengthForNewFile;
+  uint64_t        m_iLengthForNewFile;
 
-  int    OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode, const UINT64& iLengthForNewFile = 0, const UINT64& iOffset=0, const UINT64& iBytesToMap=0);
+  int    OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode, const uint64_t& iLengthForNewFile = 0, const uint64_t& iOffset=0, const uint64_t& iBytesToMap=0);
 
 private:
   void ComputeAllocationGranularity();

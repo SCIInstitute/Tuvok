@@ -61,7 +61,7 @@ public:
                    IndexVec& vIndices, IndexVec& nIndices,
                    const FLOATVECTOR3& min, const FLOATVECTOR3& max,
                    unsigned int iDepth) {
-    UINT32 sNormals = UINT32(normals.size());
+    uint32_t sNormals = uint32_t(normals.size());
     // indices for two triangles
     for (int i = 0;i<6;i++)
       nIndices.push_back(sNormals);
@@ -69,7 +69,7 @@ public:
     normal[m_Axis] = 1.0;
     normals.push_back(normal);
 
-    UINT32 sVertices = UINT32(vertices.size());
+    uint32_t sVertices = uint32_t(vertices.size());
     UINTVECTOR3 iVertices1(sVertices,sVertices+1,sVertices+3);
     UINTVECTOR3 iVertices2(sVertices+2,sVertices+3,sVertices+0);
     vIndices.push_back(sVertices);

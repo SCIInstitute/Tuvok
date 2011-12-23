@@ -44,12 +44,12 @@ Appendix::Appendix(string strTarget, const vector<string>& vstrSource) :
   m_strAPXFile(strTarget),
   m_bOK(false)
 {
-  UINT64 iOffset=0;
+  uint64_t iOffset=0;
   for (size_t i = 0;i<vstrSource.size();i++) {
     LargeRAWFile inFile(vstrSource[i]);
     inFile.Open(false);
     if (inFile.IsOpen()) {
-      UINT64 iSize = inFile.GetCurrentSize();
+      uint64_t iSize = inFile.GetCurrentSize();
       inFile.Close();
       InternalFileInfo f(vstrSource[i], iSize, iOffset);
       m_vHeaderData.push_back(f);
@@ -69,24 +69,24 @@ Appendix::Appendix(string strTarget, const vector<string>& vstrSource) :
   // write the header
   string fileMagic = "APPENDIX";
   target.WriteRAW((unsigned char*)&(fileMagic[0]),8);
-  target.WriteData<UINT64>(m_vHeaderData.size(), false);
-  UINT64 iMaxSize = 0;
+  target.WriteData<uint64_t>(m_vHeaderData.size(), false);
+  uint64_t iMaxSize = 0;
   for (size_t i = 0;i<m_vHeaderData.size();i++) {
     string filename = SysTools::GetFilename(m_vHeaderData[i].m_strName);
-    target.WriteData<UINT64>(filename.length(), false);
+    target.WriteData<uint64_t>(filename.length(), false);
     target.WriteRAW((unsigned char*)&(filename[0]), filename.length());
-    target.WriteData<UINT64>(m_vHeaderData[i].m_iSize, false);
+    target.WriteData<uint64_t>(m_vHeaderData[i].m_iSize, false);
 
     iMaxSize = max(iMaxSize, m_vHeaderData[i].m_iSize);
   }
   m_iHeaderLength = target.GetPos();
 
   // append the files
-  UINT64 iCopySize = min(iMaxSize,BLOCK_COPY_SIZE);
+  uint64_t iCopySize = min(iMaxSize,BLOCK_COPY_SIZE);
   unsigned char* pBuffer = new unsigned char[size_t(iCopySize)];
 
   for (size_t i = 0;i<m_vHeaderData.size();i++) {
-    UINT64 iCurrentCopySize = iCopySize;
+    uint64_t iCurrentCopySize = iCopySize;
     LargeRAWFile fInput(m_vHeaderData[i].m_strName);
     fInput.Open(false);
 
@@ -130,19 +130,19 @@ Appendix::Appendix(string strAPXFile) :
     return;
   }
 
-  UINT64 iFileCount = 0;
-  UINT64 iOffset=0;
-  fInput.ReadData<UINT64>(iFileCount, false);
+  uint64_t iFileCount = 0;
+  uint64_t iOffset=0;
+  fInput.ReadData<uint64_t>(iFileCount, false);
   for (size_t i = 0;i<iFileCount;i++) {
     string strName;
-    UINT64 iSize;
+    uint64_t iSize;
 
-    UINT64 iNameLength = 0;
-    fInput.ReadData<UINT64>(iNameLength, false);
+    uint64_t iNameLength = 0;
+    fInput.ReadData<uint64_t>(iNameLength, false);
 
     strName.resize(size_t(iNameLength));
     fInput.ReadRAW((unsigned char*)&(strName[0]), iNameLength);
-    fInput.ReadData<UINT64>(iSize, false);
+    fInput.ReadData<uint64_t>(iSize, false);
 
     m_vHeaderData.push_back(InternalFileInfo(strName, iSize, iOffset));
     iOffset += iSize;
@@ -181,8 +181,8 @@ bool Appendix::ExtractFile(size_t i, string strTarget) {
     return false;
   }
 
-  UINT64 iCopySize = min(m_vHeaderData[i].m_iSize, BLOCK_COPY_SIZE);
-  UINT64 iWritten = 0;
+  uint64_t iCopySize = min(m_vHeaderData[i].m_iSize, BLOCK_COPY_SIZE);
+  uint64_t iWritten = 0;
   unsigned char* pBuffer = new unsigned char[size_t(iCopySize)];
   do {
     iCopySize = fInput.ReadRAW(pBuffer, iCopySize);

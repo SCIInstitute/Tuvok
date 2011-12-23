@@ -55,8 +55,8 @@
 
 
 SystemInfo::SystemInfo(std::string strProgramPath, 
-                       UINT64 iDefaultCPUMemSize, 
-                       UINT64 iDefaultGPUMemSize) :
+                       uint64_t iDefaultCPUMemSize, 
+                       uint64_t iDefaultGPUMemSize) :
   m_strProgramPath(strProgramPath),
   m_iProgramBitWidth(sizeof(void*)*8),
   m_iUseMaxCPUMem(iDefaultCPUMemSize),
@@ -68,26 +68,26 @@ SystemInfo::SystemInfo(std::string strProgramPath,
   m_bIsNumberOfCPUsComputed(false),
   m_bIsDirectX10Capable(false)
 {
-  UINT32 iNumberOfCPUs = ComputeNumCPUs();
+  uint32_t iNumberOfCPUs = ComputeNumCPUs();
   if (iNumberOfCPUs > 0) {
     m_iNumberOfCPUs = iNumberOfCPUs;
     m_bIsNumberOfCPUsComputed = true;
   }
 
-  UINT64 iCPUMemSize = ComputeCPUMemSize();
+  uint64_t iCPUMemSize = ComputeCPUMemSize();
   if (iCPUMemSize > 0) {
     m_iCPUMemSize = iCPUMemSize;
     m_bIsCPUSizeComputed = true;
   }
 
-  UINT64 iGPUMemSize = ComputeGPUMemory();  // also sets m_bIsDirectX10Capable
+  uint64_t iGPUMemSize = ComputeGPUMemory();  // also sets m_bIsDirectX10Capable
   if (iGPUMemSize > 0) {
     m_iGPUMemSize = iGPUMemSize;
     m_bIsGPUSizeComputed = true;
   }
 }
 
-UINT32 SystemInfo::ComputeNumCPUs() {
+uint32_t SystemInfo::ComputeNumCPUs() {
   #ifdef _WIN32
     SYSTEM_INFO siSysInfo;
     GetSystemInfo(&siSysInfo);
@@ -117,7 +117,7 @@ static unsigned long lnx_mem_sysinfo() {
   return si.totalram;
 }
 
-static UINT64 lnx_mem_rlimit() {
+static uint64_t lnx_mem_rlimit() {
     struct rlimit limit;
     // RLIMIT_MEMLOCK returns 32768 (that's *bytes*) on my 6gb-RAM system, so
     // that number is worthless to us.
@@ -136,7 +136,7 @@ static UINT64 lnx_mem_rlimit() {
     return limit.rlim_max;
 }
 
-static UINT64 lnx_mem_proc() {
+static uint64_t lnx_mem_proc() {
   KeyValueFileParser meminfo("/proc/meminfo");
 
   if(!meminfo.FileReadable()) {
@@ -150,13 +150,13 @@ static UINT64 lnx_mem_proc() {
     return 0;
   }
   std::istringstream mem_strm(mem_total->strValue);
-  UINT64 mem;
+  uint64_t mem;
   mem_strm >> mem;
   return mem * 1024;
 }
 
-static UINT64 lnx_mem() {
-  UINT64 m;
+static uint64_t lnx_mem() {
+  uint64_t m;
   if((m = lnx_mem_proc()) == 0) {
     DBG("proc failed, falling back to rlimit");
     if((m = lnx_mem_rlimit()) == 0) {
@@ -171,7 +171,7 @@ static UINT64 lnx_mem() {
 }
 #endif
 
-UINT64 SystemInfo::ComputeCPUMemSize() {
+uint64_t SystemInfo::ComputeCPUMemSize() {
   #ifdef _WIN32
     MEMORYSTATUSEX statex;
     statex.dwLength = sizeof (statex);
@@ -179,7 +179,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
     return statex.ullTotalPhys;
   #else
     #ifdef DETECTED_OS_APPLE
-      UINT64 phys = 0;
+      uint64_t phys = 0;
       int mib[2] = { CTL_HW, HW_MEMSIZE };
       size_t len = sizeof(phys);
       if(sysctl(mib, sizeof(mib)/sizeof(mib[0]), &phys, &len, NULL, 0) != 0) {
@@ -188,7 +188,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
       }
       return phys;
     #elif defined(__linux__)
-      return static_cast<UINT64>(lnx_mem());
+      return static_cast<uint64_t>(lnx_mem());
     #else
       std::cerr << "Unknown system, can't lookup max memory.  "
                 << "Using a hard setting of 10 gb." << std::endl;
@@ -217,7 +217,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
   typedef IDirect3D9* ( WINAPI* LPDIRECT3DCREATE9 )( UINT  );
   LPDIRECT3DCREATE9 pDirect3DCreate9;
 
-  UINT64 SystemInfo::ComputeGPUMemory( )
+  uint64_t SystemInfo::ComputeGPUMemory( )
   {
     HINSTANCE hD3D9 = LoadLibrary( L"d3d9.dll" );
     if (!hD3D9) return 0;
@@ -245,13 +245,13 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
             {
               m_bIsDirectX10Capable = true;
               SAFE_RELEASE( pD3D9 );
-              return UINT64(DedicatedVideoMemory);
+              return uint64_t(DedicatedVideoMemory);
             } else {
               DWORD dwAvailableVidMem;
               if( SUCCEEDED( GetVideoMemoryViaDirectDraw( hMonitor, &dwAvailableVidMem ) ) ) {
                 SAFE_RELEASE( pD3D9 );
                 FreeLibrary( hD3D9 );
-                return UINT64(dwAvailableVidMem);
+                return uint64_t(dwAvailableVidMem);
               } else {
                 SAFE_RELEASE( pD3D9 );
                 FreeLibrary( hD3D9 );
@@ -272,7 +272,7 @@ UINT64 SystemInfo::ComputeCPUMemSize() {
   }
 
 #else
-  UINT64 SystemInfo::ComputeGPUMemory( )
+  uint64_t SystemInfo::ComputeGPUMemory( )
   {
     #ifdef DETECTED_OS_APPLE
       return 0;

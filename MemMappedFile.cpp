@@ -55,7 +55,7 @@ using namespace std;
 #endif
 
 
-MemMappedFile::MemMappedFile(const string strFilename, const MMFILE_ACCESS eAccesMode, const UINT64& iLengthForNewFile, const UINT64& iOffset, const UINT64& iBytesToMap) :
+MemMappedFile::MemMappedFile(const string strFilename, const MMFILE_ACCESS eAccesMode, const uint64_t& iLengthForNewFile, const uint64_t& iOffset, const uint64_t& iBytesToMap) :
   m_strFilename(strFilename),
   m_eAccesMode(eAccesMode),
   m_iLengthForNewFile(iLengthForNewFile),
@@ -72,7 +72,7 @@ MemMappedFile::MemMappedFile(const string strFilename, const MMFILE_ACCESS eAcce
   m_bIsOpen = OpenFile(m_strFilename.c_str(), m_eAccesMode, m_iLengthForNewFile, iOffset, iBytesToMap) == 0;
 }
 
-MemMappedFile::MemMappedFile(const wstring strFilename, const MMFILE_ACCESS eAccesMode, const UINT64& iLengthForNewFile, const UINT64& iOffset, const UINT64& iBytesToMap):
+MemMappedFile::MemMappedFile(const wstring strFilename, const MMFILE_ACCESS eAccesMode, const uint64_t& iLengthForNewFile, const uint64_t& iOffset, const uint64_t& iBytesToMap):
   m_strFilename(strFilename.begin(), strFilename.end()),
   m_eAccesMode(eAccesMode),
   m_iLengthForNewFile(iLengthForNewFile),
@@ -124,7 +124,7 @@ void  MemMappedFile::Erase() {
   remove(m_strFilename.c_str());
 }
 
-void* MemMappedFile::ReOpen(const UINT64& iOffset, const UINT64& iBytesToMap) {
+void* MemMappedFile::ReOpen(const uint64_t& iOffset, const uint64_t& iBytesToMap) {
   if (m_bIsOpen) Close();
 
   m_bIsOpen = OpenFile(m_strFilename.c_str(), m_eAccesMode, m_iLengthForNewFile, iOffset, iBytesToMap) == 0;
@@ -133,10 +133,10 @@ void* MemMappedFile::ReOpen(const UINT64& iOffset, const UINT64& iBytesToMap) {
 }
 
 
-void* MemMappedFile::ReMap(const UINT64& iOffset, const UINT64& iBytesToMap) {
+void* MemMappedFile::ReMap(const uint64_t& iOffset, const uint64_t& iBytesToMap) {
   if (!m_bIsOpen) return ReOpen(iOffset, iBytesToMap);
 
-  UINT64 iPosAdjustment = (iOffset % UINT64(m_AllocationGranularity));
+  uint64_t iPosAdjustment = (iOffset % uint64_t(m_AllocationGranularity));
 
 #ifdef _WIN32
   if (m_pData) UnmapViewOfFile(m_pData);
@@ -162,14 +162,14 @@ void* MemMappedFile::ReMap(const UINT64& iOffset, const UINT64& iBytesToMap) {
 }
 
 
-int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode, const UINT64& iLengthForNewFile, const UINT64& iOffset, const UINT64& iBytesToMap) {
+int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode, const uint64_t& iLengthForNewFile, const uint64_t& iOffset, const uint64_t& iBytesToMap) {
   m_id = rand();
 
   bool bExists = true, bGrowFile = false;
   char buffer[4096];
   int res;
 
-  UINT64 iPosAdjustment = (iOffset % m_AllocationGranularity);
+  uint64_t iPosAdjustment = (iOffset % m_AllocationGranularity);
 
 #ifdef _WIN32
 
@@ -187,7 +187,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
     return -1;
   }
   if (bExists)
-    if (UINT64(stat_buf.st_size)>=iLengthForNewFile)
+    if (uint64_t(stat_buf.st_size)>=iLengthForNewFile)
       m_dwFileSize = stat_buf.st_size;
     else {
       m_dwFileSize = iLengthForNewFile;
@@ -227,7 +227,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
         return -3;
   }
   if (! bExists || bGrowFile) {
-    UINT64 dwWriteSize;
+    uint64_t dwWriteSize;
     if (bGrowFile) {
       SetFilePointer(hFile, 0, NULL, FILE_END);
       dwWriteSize = m_dwFileSize - stat_buf.st_size;
@@ -237,7 +237,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
 
     // ensure that file is long enough and filled with zero
     memset(buffer, 0, sizeof(buffer));
-    for (UINT64 i = 0; i < dwWriteSize/sizeof(buffer); ++i) {
+    for (uint64_t i = 0; i < dwWriteSize/sizeof(buffer); ++i) {
         if (! WriteFile(hFile, buffer, sizeof(buffer), &sz, NULL)) {
             return -3;
         }
@@ -278,7 +278,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
       return -1;
   }
   if (bExists) {
-    if (UINT64(stat_buf.st_size)>iLengthForNewFile)
+    if (uint64_t(stat_buf.st_size)>iLengthForNewFile)
       m_dwFileSize = stat_buf.st_size;
     else {
       m_dwFileSize = iLengthForNewFile;
@@ -301,7 +301,7 @@ int MemMappedFile::OpenFile(const char* strPath, const MMFILE_ACCESS eAccesMode,
 
   // ensure that file is long enough and filled with zero
   if (! bExists || bGrowFile) {
-    UINT64 dwWriteSize;
+    uint64_t dwWriteSize;
     if (bGrowFile) {
       lseek(m_fdes, 0, SEEK_END);
       dwWriteSize = m_dwFileSize - stat_buf.st_size;

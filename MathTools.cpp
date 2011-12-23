@@ -38,52 +38,52 @@
 #include "MathTools.h"
 #include <algorithm>
 
-UINT32 MathTools::Log(UINT32 value, UINT32 base) {
-  return UINT32(log(float(value)) / log(float(base)));
+uint32_t MathTools::Log(uint32_t value, uint32_t base) {
+  return uint32_t(log(float(value)) / log(float(base)));
 }
 
 float MathTools::Log(float value, float base) {
   return log(value) / log(base);
 }
 
-UINT32 MathTools::Pow(UINT32 base, UINT32 exponent) {
-  return UINT32(0.5f+pow(float(base), float(exponent)));
+uint32_t MathTools::Pow(uint32_t base, uint32_t exponent) {
+  return uint32_t(0.5f+pow(float(base), float(exponent)));
 }
 
-UINT64 MathTools::Pow(UINT64 base, UINT64 exponent) {
-  return UINT64(0.5+pow(double(base), double(exponent)));
+uint64_t MathTools::Pow(uint64_t base, uint64_t exponent) {
+  return uint64_t(0.5+pow(double(base), double(exponent)));
 }
 
-UINT32 MathTools::Log2(UINT32 n) {
+uint32_t MathTools::Log2(uint32_t n) {
   int iLog=0;
   while( n>>=1 ) iLog++;
   return iLog;
 }
 
-UINT32 MathTools::Pow2(UINT32 e) {
+uint32_t MathTools::Pow2(uint32_t e) {
   return 1<<e;
 }
 
 
-UINT64 MathTools::Log2(UINT64 n) {
+uint64_t MathTools::Log2(uint64_t n) {
   int iLog=0;
   while( n>>=1 ) iLog++;
   return iLog;
 }
 
-UINT64 MathTools::Pow2(UINT64 e) {
-  return static_cast<UINT64>(1) << e;
+uint64_t MathTools::Pow2(uint64_t e) {
+  return static_cast<uint64_t>(1) << e;
 }
 
-UINT32 MathTools::GaussianSum(UINT32 n) {
+uint32_t MathTools::GaussianSum(uint32_t n) {
   return n*(n+1)/2;
 }
 
-bool MathTools::IsPow2(UINT32 n) {
+bool MathTools::IsPow2(uint32_t n) {
     return ((n&(n-1))==0);
 };
 
-UINT32 MathTools::NextPow2(UINT32 n, bool bReturn_ID_on_Pow2) {
+uint32_t MathTools::NextPow2(uint32_t n, bool bReturn_ID_on_Pow2) {
     if (bReturn_ID_on_Pow2 && IsPow2(n)) return n;
     return Pow2(Log2(n)+1);
 }
@@ -104,11 +104,11 @@ float MathTools::Clamp(float val, float a, float b) {
   return std::max(a, std::min(b, val));
 }
 
-UINT32 MathTools::Clamp(UINT32 val, UINT32 a, UINT32 b) {
+uint32_t MathTools::Clamp(uint32_t val, uint32_t a, uint32_t b) {
   return std::max(a, std::min(b, val));
 }
 
-UINT64 MathTools::Clamp(UINT64 val, UINT64 a, UINT64 b) {
+uint64_t MathTools::Clamp(uint64_t val, uint64_t a, uint64_t b) {
   return std::max(a, std::min(b, val));
 }
 

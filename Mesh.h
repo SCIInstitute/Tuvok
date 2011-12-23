@@ -42,7 +42,6 @@
 #include "StdDefines.h"
 #include "Vectors.h"
 #include "Ray.h"
-#include "boost/cstdint.hpp"
 
 namespace tuvok {
 
@@ -52,7 +51,7 @@ typedef std::vector<FLOATVECTOR3> VertVec;
 typedef std::vector<FLOATVECTOR3> NormVec;
 typedef std::vector<FLOATVECTOR2> TexCoordVec;
 typedef std::vector<FLOATVECTOR4> ColorVec;
-typedef std::vector<UINT32> IndexVec;
+typedef std::vector<uint32_t> IndexVec;
 
 #define noIntersection (std::numeric_limits<double>::max())
 
@@ -93,7 +92,7 @@ protected:
       inverseIndex[indices[i]]++;
     }
 
-    for (boost::int64_t i = boost::int64_t(inverseIndex.size()-1);i>=0;--i) {
+    for (int64_t i = int64_t(inverseIndex.size()-1);i>=0;--i) {
       // unused vertex found, i.e. vertex that has no indices pointing to it
       if (inverseIndex[size_t(i)] == 0) {
         // shift all indices

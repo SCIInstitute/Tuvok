@@ -39,7 +39,7 @@
 
 float ArcBall::ms_fEpsilon = 1.0e-5f;
 
-ArcBall::ArcBall(UINT32 iWinWidth, UINT32 iWinHeight, int iWinOffsetX, int iWinOffsetY, bool bUseTranslation) :
+ArcBall::ArcBall(uint32_t iWinWidth, uint32_t iWinHeight, int iWinOffsetX, int iWinOffsetY, bool bUseTranslation) :
     m_vStartDrag(),
     m_iWinDim(iWinWidth, iWinHeight),
     m_iWinOffsets(iWinOffsetX, iWinOffsetY),
@@ -48,7 +48,7 @@ ArcBall::ArcBall(UINT32 iWinWidth, UINT32 iWinHeight, int iWinOffsetX, int iWinO
 {
 }
 
-void ArcBall::SetWindowSize(UINT32 iWinWidth, UINT32 iWinHeight) {
+void ArcBall::SetWindowSize(uint32_t iWinWidth, uint32_t iWinHeight) {
     m_iWinDim = UINTVECTOR2(iWinWidth, iWinHeight);
 }
 

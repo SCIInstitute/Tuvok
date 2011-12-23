@@ -58,18 +58,18 @@
 #define ROOT3 1.732050f
 
 namespace MathTools {
-  UINT32 Log(UINT32 value, UINT32 base);
+  uint32_t Log(uint32_t value, uint32_t base);
   float Log(float value, float base);
-  UINT32 Pow(UINT32 base, UINT32 exponent);
-  UINT64 Pow(UINT64 base, UINT64 exponent);
+  uint32_t Pow(uint32_t base, uint32_t exponent);
+  uint64_t Pow(uint64_t base, uint64_t exponent);
 
-  UINT32 Log2(UINT32 n);
-  UINT32 Pow2(UINT32 e);
-  UINT64 Log2(UINT64 n);
-  UINT64 Pow2(UINT64 e);
-  UINT32 GaussianSum(UINT32 n);
-  bool IsPow2(UINT32 n);
-  UINT32 NextPow2(UINT32 n, bool bReturn_ID_on_Pow2=true);
+  uint32_t Log2(uint32_t n);
+  uint32_t Pow2(uint32_t e);
+  uint64_t Log2(uint64_t n);
+  uint64_t Pow2(uint64_t e);
+  uint32_t GaussianSum(uint32_t n);
+  bool IsPow2(uint32_t n);
+  uint32_t NextPow2(uint32_t n, bool bReturn_ID_on_Pow2=true);
 
   template<class T> inline T sign(T v) { return T((v > T(0)) - (v < T(0))); }
 
@@ -97,8 +97,8 @@ namespace MathTools {
   bool NaN(float f);
 
   float Clamp(float val, float a, float b);
-  UINT32 Clamp(UINT32 val, UINT32 a, UINT32 b);
-  UINT64 Clamp(UINT64 val, UINT64 a, UINT64 b);
+  uint32_t Clamp(uint32_t val, uint32_t a, uint32_t b);
+  uint64_t Clamp(uint64_t val, uint64_t a, uint64_t b);
   int Clamp(int val, int a, int b);
 };
 

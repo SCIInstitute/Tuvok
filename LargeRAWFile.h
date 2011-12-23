@@ -37,40 +37,40 @@
 
 class LargeRAWFile {
 public:
-  LargeRAWFile(const std::string& strFilename, UINT64 iHeaderSize=0);
-  LargeRAWFile(const std::wstring& wstrFilename, UINT64 iHeaderSize=0);
+  LargeRAWFile(const std::string& strFilename, uint64_t iHeaderSize=0);
+  LargeRAWFile(const std::wstring& wstrFilename, uint64_t iHeaderSize=0);
   LargeRAWFile(const LargeRAWFile &other);
   virtual ~LargeRAWFile() {Close();}
 
   virtual bool Open(bool bReadWrite=false);
   virtual bool IsOpen() const { return m_bIsOpen;}
   virtual bool IsWritable() const { return m_bWritable;}
-  virtual bool Create(UINT64 iInitialSize=0);
+  virtual bool Create(uint64_t iInitialSize=0);
   virtual bool Append();
   virtual void Close();
   virtual void Delete();
   virtual bool Truncate();
-  virtual bool Truncate(UINT64 iPos);
-  virtual UINT64 GetCurrentSize();
+  virtual bool Truncate(uint64_t iPos);
+  virtual uint64_t GetCurrentSize();
   std::string GetFilename() const { return m_strFilename;}
 
   virtual void SeekStart();
-  virtual UINT64 SeekEnd();
-  virtual UINT64 GetPos();
-  virtual void SeekPos(UINT64 iPos);
-  virtual size_t ReadRAW(unsigned char* pData, UINT64 iCount);
-  virtual size_t WriteRAW(const unsigned char* pData, UINT64 iCount);
-  virtual bool CopyRAW(UINT64 iCount, UINT64 iSourcePos, UINT64 iTargetPos,
-                       unsigned char* pBuffer, UINT64 iBufferSize);
+  virtual uint64_t SeekEnd();
+  virtual uint64_t GetPos();
+  virtual void SeekPos(uint64_t iPos);
+  virtual size_t ReadRAW(unsigned char* pData, uint64_t iCount);
+  virtual size_t WriteRAW(const unsigned char* pData, uint64_t iCount);
+  virtual bool CopyRAW(uint64_t iCount, uint64_t iSourcePos, uint64_t iTargetPos,
+                       unsigned char* pBuffer, uint64_t iBufferSize);
 
-  template<class T> void Read(const T* pData, UINT64 iCount, UINT64 iPos,
-                              UINT64 iOffset) {
+  template<class T> void Read(const T* pData, uint64_t iCount, uint64_t iPos,
+                              uint64_t iOffset) {
     SeekPos(iOffset+sizeof(T)*iPos);
     ReadRAW((unsigned char*)pData, sizeof(T)*iCount);
   }
 
-  template<class T> void Write(const T* pData, UINT64 iCount, UINT64 iPos,
-                               UINT64 iOffset) {
+  template<class T> void Write(const T* pData, uint64_t iCount, uint64_t iPos,
+                               uint64_t iOffset) {
     SeekPos(iOffset+sizeof(T)*iPos);
     WriteRAW((unsigned char*)pData, sizeof(T)*iCount);
   }
@@ -89,7 +89,7 @@ public:
       EndianConvert::Swap<T>(value);
   }
 
-  template<class T> void ReadData(std::vector<T> &value, UINT64 count,
+  template<class T> void ReadData(std::vector<T> &value, uint64_t count,
                                   bool bIsBigEndian) {
     if (count == 0) return;
     value.resize(size_t(count));
@@ -103,7 +103,7 @@ public:
 
   template<class T> void WriteData(const std::vector<T> &value,
                                    bool bIsBigEndian) {
-    UINT64 count = value.size();
+    uint64_t count = value.size();
 
     if (count == 0) return;
     if (EndianConvert::IsBigEndian() != bIsBigEndian) {
@@ -119,7 +119,7 @@ public:
     }
   }
 
-  virtual void ReadData(std::string &value, UINT64 count) {
+  virtual void ReadData(std::string &value, uint64_t count) {
     if (count == 0) return;
     value.resize(size_t(count));
     ReadRAW((unsigned char*)&value[0], sizeof(char)*size_t(count));
@@ -138,12 +138,12 @@ public:
     DONTNEED    ///< no longer need this region
   };
   // Hint to the underlying driver how we'll access data
-  virtual void Hint(IOHint hint, UINT64 offset, UINT64 length) const;
+  virtual void Hint(IOHint hint, uint64_t offset, uint64_t length) const;
 
   static bool Copy(const std::string& strSource, const std::string& strTarget,
-                   UINT64 iSourceHeaderSkip=0, std::string* strMessage=NULL);
+                   uint64_t iSourceHeaderSkip=0, std::string* strMessage=NULL);
   static bool Copy(const std::wstring& wstrSource,
-                   const std::wstring& wstrTarget, UINT64 iSourceHeaderSkip=0,
+                   const std::wstring& wstrTarget, uint64_t iSourceHeaderSkip=0,
                    std::wstring* wstrMessage=NULL);
   static bool Compare(const std::string& strFirstFile,
                       const std::string& strSecondFile,
@@ -156,7 +156,15 @@ protected:
   std::string   m_strFilename;
   bool          m_bIsOpen;
   bool          m_bWritable;
-  UINT64        m_iHeaderSize;
+  uint64_t        m_iHeaderSize;
 };
+
+#ifdef _MSC_VER
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
+
+typedef std::tr1::shared_ptr<LargeRAWFile> LargeRAWFile_ptr;
 
 #endif // LARGERAWFILE_H
