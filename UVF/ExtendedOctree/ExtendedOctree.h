@@ -340,4 +340,4 @@ private:
   friend class ExtendedOctreeConverter;
 };
 
-#endif EXTENDEDOCTREE_H
+#endif //  EXTENDEDOCTREE_H
