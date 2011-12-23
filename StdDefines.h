@@ -42,7 +42,7 @@
 #if _MSC_VER >= 1600 // VS 2010 or newer
 #include <cstdint>
 #else 
-#include "../3rdParty/boost/boost/cstdint.hpp"
+#include "../IO/3rdParty/boost/boost/cstdint.hpp"
 using boost::int64_t;
 using boost::int32_t;
 using boost::int16_t;
