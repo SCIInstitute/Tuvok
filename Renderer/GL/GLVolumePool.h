@@ -95,8 +95,8 @@ namespace tuvok {
       void BindTexures(unsigned int iMetaTextureUnit, unsigned int iDataTextureUnit) const;
 
       virtual ~GLVolumePool();
-      virtual UINT64 GetCPUSize();
-      virtual UINT64 GetGPUSize();
+      virtual uint64_t GetCPUSize();
+      virtual uint64_t GetGPUSize();
 
 
   protected:

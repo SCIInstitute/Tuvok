@@ -132,12 +132,12 @@ void GLVolumePool::FreeGLResources() {
   m_metaTexSize = UINTVECTOR2(0,0);
 }
 
-UINT64 GLVolumePool::GetCPUSize() {
+uint64_t GLVolumePool::GetCPUSize() {
   return m_iSizePerElement * m_poolTexSize.volume() +
          m_metaTexSize.area(); // TODO: * metatex elemen size         
 }
 
-UINT64 GLVolumePool::GetGPUSize() {
+uint64_t GLVolumePool::GetGPUSize() {
   return GetCPUSize();
 }
 
