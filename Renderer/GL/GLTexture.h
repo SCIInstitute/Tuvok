@@ -59,7 +59,7 @@ class GLTexture : public GLObject {
      * texture in their constructor[s].
      * @param iSizePerElement bits per texel.  Used to track memory size of the
                               texture. */
-    GLTexture(UINT32 iSizePerElement, GLint iMagFilter,GLint iMinFilter);
+    GLTexture(uint32_t iSizePerElement, GLint iMagFilter,GLint iMinFilter);
     virtual ~GLTexture();
 
     /** Removes this texture from the OpenGL context. */
@@ -69,7 +69,7 @@ class GLTexture : public GLObject {
     virtual void SetData(const void *pixels, bool bRestoreBinding=true) = 0;
     
     /// bind this texture to the given texture unit
-    virtual void Bind(UINT32 iUnit=0) const  = 0;
+    virtual void Bind(uint32_t iUnit=0) const  = 0;
 
     /// bind this texture the given texture in a specific shader
     void Bind(GLSLProgram& shader, const std::string& name) const;
@@ -82,7 +82,7 @@ class GLTexture : public GLObject {
 
   protected:
     GLuint  m_iGLID;
-    UINT32  m_iSizePerElement;
+    uint32_t  m_iSizePerElement;
     GLint  m_iMagFilter;
     GLint  m_iMinFilter;
 

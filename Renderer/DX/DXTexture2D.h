@@ -50,22 +50,22 @@ namespace tuvok {
 
 class DXTexture2D : public DXTexture {
   public:
-    DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, DXGI_FORMAT format);
-    DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, DXGI_FORMAT format,
+    DXTexture2D(ID3D10Device* pd3dDevice, uint32_t iSizeX, uint32_t iSizeY, DXGI_FORMAT format);
+    DXTexture2D(ID3D10Device* pd3dDevice, uint32_t iSizeX, uint32_t iSizeY, DXGI_FORMAT format,
                 const void* pInitialData, bool bIsReadOnly=true);
     virtual ~DXTexture2D();
 
     virtual void SetData(const void *pixels);
     virtual void Delete();
 
-    virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement);}
-    virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizePerElement);}
+    virtual uint64_t GetCPUSize() {return uint64_t(m_iSizeX*m_iSizeY*m_iSizePerElement);}
+    virtual uint64_t GetGPUSize() {return uint64_t(m_iSizeX*m_iSizeY*m_iSizePerElement);}
 
-    UINTVECTOR2 GetSize() const {return UINTVECTOR2(UINT32(m_iSizeX), UINT32(m_iSizeY));}
+    UINTVECTOR2 GetSize() const {return UINTVECTOR2(uint32_t(m_iSizeX), uint32_t(m_iSizeY));}
 
   protected:
-    UINT32 m_iSizeX;
-    UINT32 m_iSizeY;
+    uint32_t m_iSizeX;
+    uint32_t m_iSizeY;
 
     ID3D10Texture2D* m_pTexture;
 };

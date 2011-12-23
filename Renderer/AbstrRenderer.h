@@ -79,8 +79,8 @@ public:
   {
   }
 
-  Brick(UINT32 x, UINT32 y, UINT32 z,
-        UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
+  Brick(uint32_t x, uint32_t y, uint32_t z,
+        uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
         const BrickKey& k) :
     vCenter(0,0,0),
     vExtension(0,0,0),
@@ -318,8 +318,8 @@ class AbstrRenderer: public Scriptable {
     bool ClipPlaneLocked() const  { return m_bClipPlaneLocked; }
 
     /// slice parameter for slice views.
-    virtual void SetSliceDepth(RenderRegion *renderRegion, UINT64 fSliceDepth);
-    virtual UINT64 GetSliceDepth(const RenderRegion *renderRegion) const;
+    virtual void SetSliceDepth(RenderRegion *renderRegion, uint64_t fSliceDepth);
+    virtual uint64_t GetSliceDepth(const RenderRegion *renderRegion) const;
 
     void SetClearFramebuffer(bool bClearFramebuffer) {
       m_bClearFramebuffer = bClearFramebuffer;
@@ -337,37 +337,37 @@ class AbstrRenderer: public Scriptable {
     bool GetUseMIP(const RenderRegion *renderRegion) const;
     void SetUseMIP(RenderRegion *renderRegion, bool bUseMIP);
 
-    UINT64 GetMaxLODIndex() const { return m_iMaxLODIndex; }
-    UINT64 GetMinLODIndex() const { return m_iMinLODForCurrentView; }
+    uint64_t GetMaxLODIndex() const { return m_iMaxLODIndex; }
+    uint64_t GetMinLODIndex() const { return m_iMinLODForCurrentView; }
 
     UINTVECTOR2 GetLODLimits() const { return m_iLODLimits; }
     void SetLODLimits(const UINTVECTOR2 iLODLimits);
 
     // scheduling routines
-    UINT64 GetCurrentSubFrameCount() const
+    uint64_t GetCurrentSubFrameCount() const
         { return 1+m_iMaxLODIndex-m_iMinLODForCurrentView; }
-    UINT32 GetWorkingSubFrame() const
-        { return 1+static_cast<UINT32>(m_iMaxLODIndex-m_iCurrentLOD); }
+    uint32_t GetWorkingSubFrame() const
+        { return 1+static_cast<uint32_t>(m_iMaxLODIndex-m_iCurrentLOD); }
 
-    UINT32 GetCurrentBrickCount() const
-        { return UINT32(m_vCurrentBrickList.size()); }
-    UINT32 GetWorkingBrick() const
-        { return static_cast<UINT32>(m_iBricksRenderedInThisSubFrame); }
+    uint32_t GetCurrentBrickCount() const
+        { return uint32_t(m_vCurrentBrickList.size()); }
+    uint32_t GetWorkingBrick() const
+        { return static_cast<uint32_t>(m_iBricksRenderedInThisSubFrame); }
 
-    UINT32 GetFrameProgress() const {
-        return UINT32(100.0f * float(GetWorkingSubFrame()) /
+    uint32_t GetFrameProgress() const {
+        return uint32_t(100.0f * float(GetWorkingSubFrame()) /
                       float(GetCurrentSubFrameCount()));
     }
-    UINT32 GetSubFrameProgress() const {
+    uint32_t GetSubFrameProgress() const {
         return (m_vCurrentBrickList.empty()) ? 100 :
-                UINT32(100.0f * m_iBricksRenderedInThisSubFrame /
+                uint32_t(100.0f * m_iBricksRenderedInThisSubFrame /
                 float(m_vCurrentBrickList.size()));
     }
 
-    void SetTimeSlice(UINT32 iMSecs) {m_iTimeSliceMSecs = iMSecs;}
-    void SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans,
+    void SetTimeSlice(uint32_t iMSecs) {m_iTimeSliceMSecs = iMSecs;}
+    void SetPerfMeasures(uint32_t iMinFramerate, bool bUseAllMeans,
                          float fScreenResDecFactor,
-                         float fSampleDecFactor, UINT32 iStartDelay);
+                         float fSampleDecFactor, uint32_t iStartDelay);
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
       m_pDataset->SetRescaleFactors(vfRescale);
       ScheduleCompleteRedraw();
@@ -558,7 +558,7 @@ class AbstrRenderer: public Scriptable {
     ///@{
     float  msecPassed[2]; // time taken for last two frames
     float  msecPassedCurrentFrame; // time taken for our current rendering
-    UINT32 m_iLODNotOKCounter; // n frames waited for render to become faster
+    uint32_t m_iLODNotOKCounter; // n frames waited for render to become faster
     bool decreaseScreenRes; ///< dec.'d display resolution (lower n_fragments)
     bool decreaseScreenResNow;
     bool decreaseSamplingRate; ///< dec.'d sampling rate (less shader work)
@@ -571,25 +571,25 @@ class AbstrRenderer: public Scriptable {
     float  m_fSampleDecFactor;
     bool   m_bUseAllMeans;
     bool   m_bOffscreenIsLowRes;
-    UINT32 m_iStartDelay;
-    UINT64 m_iMinLODForCurrentView;
-    UINT32 m_iTimeSliceMSecs;
+    uint32_t m_iStartDelay;
+    uint64_t m_iMinLODForCurrentView;
+    uint32_t m_iTimeSliceMSecs;
     ///@}
 
-    UINT64              m_iIntraFrameCounter;
-    UINT64              m_iFrameCounter;
-    UINT32              m_iCheckCounter;
-    UINT64              m_iMaxLODIndex;
+    uint64_t              m_iIntraFrameCounter;
+    uint64_t              m_iFrameCounter;
+    uint32_t              m_iCheckCounter;
+    uint64_t              m_iMaxLODIndex;
     UINTVECTOR2         m_iLODLimits;
-    UINT64              m_iPerformanceBasedLODSkip;
-    UINT64              m_iCurrentLODOffset;
-    UINT64              m_iStartLODOffset;
+    uint64_t              m_iPerformanceBasedLODSkip;
+    uint64_t              m_iCurrentLODOffset;
+    uint64_t              m_iStartLODOffset;
     size_t              m_iTimestep;
     CullingLOD          m_FrustumCullingLOD;
     bool                m_bClearFramebuffer;
     bool                m_bConsiderPreviousDepthbuffer;
-    UINT64              m_iCurrentLOD;
-    UINT64              m_iBricksRenderedInThisSubFrame;
+    uint64_t              m_iCurrentLOD;
+    uint64_t              m_iBricksRenderedInThisSubFrame;
     std::vector<Brick>  m_vCurrentBrickList;
     std::vector<Brick>  m_vLeftEyeBrickList;
     ERendererTarget     m_eRendererTarget;

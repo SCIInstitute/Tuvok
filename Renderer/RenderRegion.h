@@ -97,15 +97,15 @@ class GLSBVR2D;
     // 2D methods
     virtual bool GetUseMIP() const = 0;
     virtual void SetUseMIP(bool) = 0;
-    virtual UINT64 GetSliceIndex() const = 0;
-    virtual void SetSliceIndex(UINT64 index) = 0;
+    virtual uint64_t GetSliceIndex() const = 0;
+    virtual void SetSliceIndex(uint64_t index) = 0;
     virtual void GetFlipView(bool &flipX, bool &flipY) const = 0;
     virtual void SetFlipView(bool flipX, bool flipY) = 0;
   };
 
   class RenderRegion2D : public RenderRegion {
   public:
-    RenderRegion2D(EWindowMode mode, UINT64 sliceIndex) :
+    RenderRegion2D(EWindowMode mode, uint64_t sliceIndex) :
       RenderRegion(mode),
       useMIP(false),
       sliceIndex(sliceIndex)
@@ -123,8 +123,8 @@ class GLSBVR2D;
     friend class GLSBVR2D;
     virtual bool GetUseMIP() const { return useMIP; }
     virtual void SetUseMIP(bool useMIP_) { useMIP = useMIP_; }
-    virtual UINT64 GetSliceIndex() const { return sliceIndex; }
-    virtual void SetSliceIndex(UINT64 index) { sliceIndex = index; }
+    virtual uint64_t GetSliceIndex() const { return sliceIndex; }
+    virtual void SetSliceIndex(uint64_t index) { sliceIndex = index; }
     virtual void GetFlipView(bool &flipX, bool &flipY) const {
       flipX = flipView.x;
       flipY = flipView.y;
@@ -136,7 +136,7 @@ class GLSBVR2D;
 
     VECTOR2<bool> flipView;
     bool useMIP;
-    UINT64 sliceIndex;
+    uint64_t sliceIndex;
   };
 
   class RenderRegion3D : public RenderRegion {
@@ -154,8 +154,8 @@ class GLSBVR2D;
     // 3D regions don't do the following things:
     virtual bool GetUseMIP() const { assert(false); return false; }
     virtual void SetUseMIP(bool) { assert(false); }
-    virtual UINT64 GetSliceIndex() const { assert(false); return 0; }
-    virtual void SetSliceIndex(UINT64) { assert(false); }
+    virtual uint64_t GetSliceIndex() const { assert(false); return 0; }
+    virtual void SetSliceIndex(uint64_t) { assert(false); }
     virtual void SetFlipView(bool, bool) { assert(false); }
     virtual void GetFlipView(bool &, bool &) const {assert(false); }
   };

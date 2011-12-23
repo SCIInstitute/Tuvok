@@ -110,7 +110,7 @@ class GPUMemMan {
     GLVolume* GetVolume(Dataset* pDataset, const BrickKey& key,
                         bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                         bool bDisableBorder, bool bEmulate3DWith2DStacks,
-                        UINT64 iIntraFrameCounter, UINT64 iFrameCounter);
+                        uint64_t iIntraFrameCounter, uint64_t iFrameCounter);
     bool IsResident(const Dataset* pDataset,
                     const BrickKey& key, bool bUseOnlyPowerOfTwo,
                     bool bDownSampleTo8Bits, bool bDisableBorder,
@@ -120,7 +120,7 @@ class GPUMemMan {
 
     GLFBOTex* GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode,
                      GLsizei width, GLsizei height, GLenum intformat,
-                     UINT32 iSizePerElement, bool bHaveDepth=false,
+                     uint32_t iSizePerElement, bool bHaveDepth=false,
                      int iNumBuffers=1);
     void FreeFBO(GLFBOTex* pFBO);
 
@@ -130,19 +130,19 @@ class GPUMemMan {
 
     void MemSizesChanged();
 
-    // ok, i know this UINT64 could theoretically overflow but lets assume the
+    // ok, i know this uint64_t could theoretically overflow but lets assume the
     // universe collapses before that happens
     // Seems likely. -- TJF
-    UINT64 UpdateFrameCounter() {return ++m_iFrameCounter;}
+    uint64_t UpdateFrameCounter() {return ++m_iFrameCounter;}
 
     /// system statistics
     ///@{
-    UINT64 GetCPUMem() const;
-    UINT64 GetGPUMem() const;
-    UINT64 GetAllocatedCPUMem() const {return m_iAllocatedCPUMemory;}
-    UINT64 GetAllocatedGPUMem() const {return m_iAllocatedGPUMemory;}
-    UINT32 GetBitWidthMem() const;
-    UINT32 GetNumCPUs() const;
+    uint64_t GetCPUMem() const;
+    uint64_t GetGPUMem() const;
+    uint64_t GetAllocatedCPUMem() const {return m_iAllocatedCPUMemory;}
+    uint64_t GetAllocatedGPUMem() const {return m_iAllocatedGPUMemory;}
+    uint32_t GetBitWidthMem() const;
+    uint32_t GetNumCPUs() const;
     ///@}
 
   private:
@@ -156,11 +156,11 @@ class GPUMemMan {
     MasterController*          m_MasterController;
     SystemInfo*                m_SystemInfo;
 
-    UINT64                     m_iAllocatedGPUMemory;
-    UINT64                     m_iAllocatedCPUMemory;
-    UINT64                     m_iFrameCounter;
+    uint64_t                     m_iAllocatedGPUMemory;
+    uint64_t                     m_iAllocatedCPUMemory;
+    uint64_t                     m_iFrameCounter;
 
-    UINT64                     m_iInCoreSize;
+    uint64_t                     m_iInCoreSize;
 
     std::vector<unsigned char> m_vUploadHub;
 
@@ -170,8 +170,8 @@ class GPUMemMan {
                                bool bDownSampleTo8Bits,
                                bool bDisableBorder,
                                bool bEmulate3DWith2DStacks,
-                               UINT64 iIntraFrameCounter,
-                               UINT64 iFrameCounter);
+                               uint64_t iIntraFrameCounter,
+                               uint64_t iFrameCounter);
     size_t DeleteUnusedBricks();
     void DeleteArbitraryBrick();
     void Delete3DTexture(size_t iIndex);

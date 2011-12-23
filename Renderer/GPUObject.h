@@ -48,8 +48,8 @@ namespace tuvok {
 class GPUObject {
 public:
     virtual ~GPUObject() {}
-    virtual UINT64 GetCPUSize() = 0;
-    virtual UINT64 GetGPUSize() = 0;
+    virtual uint64_t GetCPUSize() = 0;
+    virtual uint64_t GetGPUSize() = 0;
 };
 };
 #endif // GPUOBJECT_H

@@ -106,6 +106,9 @@
     <Filter Include="Scripting">
       <UniqueIdentifier>{dc2eb033-ce87-46da-9c35-97260c5d26d0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IO\UVF\ExtendedOctree">
+      <UniqueIdentifier>{1e4cc322-e18f-4a8d-b2c8-1fcd1b0e6e47}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Basics\Appendix.cpp">
@@ -791,6 +794,21 @@
     </ClCompile>
     <ClCompile Include="IO\XML3DGeoConverter.cpp">
       <Filter>IO\Geometry Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLTreeRaycaster.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLVolumePool.cpp">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctree.cpp">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\TOCBlock.cpp">
+      <Filter>IO\UVF</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1605,6 +1623,21 @@
     <ClInclude Include="IO\XML3DGeoConverter.h">
       <Filter>IO\Geometry Converter</Filter>
     </ClInclude>
+    <ClInclude Include="Renderer\GL\GLTreeRaycaster.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLVolumePool.h">
+      <Filter>Renderer\MemMan\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctree.h">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\TOCBlock.h">
+      <Filter>IO\UVF</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Basics\MC.inl">
@@ -1776,6 +1809,9 @@
     </None>
     <None Include="Shaders\Volume2D-nearest.glsl">
       <Filter>Shaders</Filter>
+    </None>
+    <None Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.inc">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
     </None>
   </ItemGroup>
 </Project>

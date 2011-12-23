@@ -50,8 +50,8 @@ namespace tuvok {
 
 class DXTexture3D : public DXTexture {
   public:
-    DXTexture3D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ, DXGI_FORMAT format);
-    DXTexture3D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ, DXGI_FORMAT format,
+    DXTexture3D(ID3D10Device* pd3dDevice, uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ, DXGI_FORMAT format);
+    DXTexture3D(ID3D10Device* pd3dDevice, uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ, DXGI_FORMAT format,
                 const void* pInitialData, bool bIsReadOnly=true);
 
     virtual ~DXTexture3D();
@@ -59,15 +59,15 @@ class DXTexture3D : public DXTexture {
     virtual void SetData(const void *pData);
     virtual void Delete();
 
-    virtual UINT64 GetCPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);}
-    virtual UINT64 GetGPUSize() {return UINT64(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);}
+    virtual uint64_t GetCPUSize() {return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);}
+    virtual uint64_t GetGPUSize() {return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);}
 
-    UINTVECTOR3 GetSize() const {return UINTVECTOR3(UINT32(m_iSizeX),UINT32(m_iSizeY),UINT32(m_iSizeZ));}
+    UINTVECTOR3 GetSize() const {return UINTVECTOR3(uint32_t(m_iSizeX),uint32_t(m_iSizeY),uint32_t(m_iSizeZ));}
 
   protected:
-    UINT32 m_iSizeX;
-    UINT32 m_iSizeY;
-    UINT32 m_iSizeZ;
+    uint32_t m_iSizeX;
+    uint32_t m_iSizeY;
+    uint32_t m_iSizeZ;
 
     ID3D10Texture3D* m_pTexture;
 };

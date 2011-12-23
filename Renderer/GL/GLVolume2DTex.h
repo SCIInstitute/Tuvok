@@ -47,9 +47,9 @@ namespace tuvok {
   /// Emulates a 3D volume using stacks of 3D textures.
   class GLVolume2DTex : public GLVolume {
     public:
-      GLVolume2DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
+      GLVolume2DTex(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                     GLint internalformat, GLenum format, GLenum type,
-                    UINT32 iSizePerElement,
+                    uint32_t iSizePerElement,
                     const GLvoid *voxels = 0,
                     GLint iMagFilter = GL_NEAREST,
                     GLint iMinFilter = GL_NEAREST,
@@ -59,34 +59,34 @@ namespace tuvok {
       GLVolume2DTex();
       virtual ~GLVolume2DTex();
 
-      virtual void Bind(UINT32 iUnit, int depth, int iStack) const;
+      virtual void Bind(uint32_t iUnit, int depth, int iStack) const;
       virtual void SetData(const void *voxels);
 
-      virtual UINT64 GetCPUSize();
-      virtual UINT64 GetGPUSize();
+      virtual uint64_t GetCPUSize();
+      virtual uint64_t GetGPUSize();
 
-      UINT32 GetSizeX() {return m_iSizeX;}
-      UINT32 GetSizeY() {return m_iSizeY;}
-      UINT32 GetSizeZ() {return m_iSizeZ;}
+      uint32_t GetSizeX() {return m_iSizeX;}
+      uint32_t GetSizeY() {return m_iSizeY;}
+      uint32_t GetSizeZ() {return m_iSizeZ;}
 
       virtual void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
 
     private:
       std::vector< std::vector<GLTexture2D*> > m_pTextures;
 
-      UINT32 m_iSizeX;
-      UINT32 m_iSizeY;
-      UINT32 m_iSizeZ;
+      uint32_t m_iSizeX;
+      uint32_t m_iSizeY;
+      uint32_t m_iSizeZ;
       GLint  m_internalformat;
       GLenum m_format;
       GLenum m_type;
-      UINT32 m_iSizePerElement;
+      uint32_t m_iSizePerElement;
       GLint  m_wrapX;
       GLint  m_wrapY;
       GLint  m_wrapZ;
 
-      UINT64 m_iGPUSize;
-      UINT64 m_iCPUSize;
+      uint64_t m_iGPUSize;
+      uint64_t m_iCPUSize;
 
       void CreateGLResources();
       void FreeGLResources();

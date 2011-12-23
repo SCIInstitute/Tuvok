@@ -343,10 +343,15 @@
     <ClCompile Include="Basics\KDTree.cpp" />
     <ClCompile Include="Basics\Mesh.cpp" />
     <ClCompile Include="IO\Images\StackExporter.cpp" />
+    <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctree.cpp" />
+    <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp" />
+    <ClCompile Include="IO\UVF\TOCBlock.cpp" />
     <ClCompile Include="IO\XML3DGeoConverter.cpp" />
     <ClCompile Include="Renderer\AbstrRenderer.cpp" />
     <ClCompile Include="Renderer\Context.cpp" />
     <ClCompile Include="Renderer\CullingLOD.cpp" />
+    <ClCompile Include="Renderer\GL\GLTreeRaycaster.cpp" />
+    <ClCompile Include="Renderer\GL\GLVolumePool.cpp" />
     <ClCompile Include="Renderer\RenderMesh.cpp" />
     <ClCompile Include="Renderer\TFScaling.cpp" />
     <ClCompile Include="Renderer\GPUMemMan\GPUMemMan.cpp" />
@@ -936,6 +941,9 @@
     <ClInclude Include="Basics\3rdParty\tclap\XorHandler.h" />
     <ClInclude Include="Basics\3rdParty\tclap\ZshCompletionOutput.h" />
     <ClInclude Include="IO\Images\StackExporter.h" />
+    <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctree.h" />
+    <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h" />
+    <ClInclude Include="IO\UVF\TOCBlock.h" />
     <ClInclude Include="IO\XML3DGeoConverter.h" />
     <ClInclude Include="Renderer\AbstrRenderer.h" />
     <ClInclude Include="Renderer\Context.h" />
@@ -943,6 +951,8 @@
     <ClInclude Include="Renderer\CullingLOD.h" />
     <ClInclude Include="Renderer\DX\DXContext.h" />
     <ClInclude Include="Renderer\GL\GLContext.h" />
+    <ClInclude Include="Renderer\GL\GLTreeRaycaster.h" />
+    <ClInclude Include="Renderer\GL\GLVolumePool.h" />
     <ClInclude Include="Renderer\GL\QtGLContext.h" />
     <ClInclude Include="Renderer\RenderMesh.h" />
     <ClInclude Include="Renderer\RenderRegion.h" />
@@ -1162,6 +1172,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Basics\MC.inl" />
+    <None Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.inc" />
     <None Include="Shaders\1D-slice-FS.glsl" />
     <None Include="Shaders\2D-slice-FS.glsl" />
     <None Include="Shaders\BBox-FS.glsl" />

@@ -41,9 +41,9 @@ using namespace tuvok;
 using namespace std;
 
 
-GLVolume2DTex::GLVolume2DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
+GLVolume2DTex::GLVolume2DTex(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                              GLint internalformat, GLenum format, GLenum type,
-                             UINT32 iSizePerElement,
+                             uint32_t iSizePerElement,
                              const GLvoid *voxels,
                              GLint iMagFilter,
                              GLint iMinFilter,
@@ -92,7 +92,7 @@ GLVolume2DTex::~GLVolume2DTex() {
   FreeGLResources();
 }
 
-void GLVolume2DTex::Bind(UINT32 iUnit,
+void GLVolume2DTex::Bind(uint32_t iUnit,
                          int iDepth,
                          int iStack) const {
 
@@ -217,10 +217,10 @@ void GLVolume2DTex::SetData(const void *voxels) {
   }
 }
 
-UINT64 GLVolume2DTex::GetCPUSize() {
+uint64_t GLVolume2DTex::GetCPUSize() {
   if (m_iCPUSize) return m_iCPUSize;
 
-  UINT64 iSize = 0;
+  uint64_t iSize = 0;
   for (size_t iDir = 0;iDir<m_pTextures.size();iDir++){
     for (size_t i = 0;i<m_pTextures[iDir].size();i++){
       iSize += m_pTextures[iDir][i]->GetCPUSize();
@@ -229,10 +229,10 @@ UINT64 GLVolume2DTex::GetCPUSize() {
   return iSize;
 }
 
-UINT64 GLVolume2DTex::GetGPUSize() {
+uint64_t GLVolume2DTex::GetGPUSize() {
   if (m_iGPUSize) return m_iGPUSize;
 
-  UINT64 iSize = 0;
+  uint64_t iSize = 0;
   for (size_t iDir = 0;iDir<m_pTextures.size();iDir++){
     for (size_t i = 0;i<m_pTextures[iDir].size();i++){
       iSize += m_pTextures[iDir][i]->GetGPUSize();

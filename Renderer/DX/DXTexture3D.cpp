@@ -41,8 +41,8 @@
 using namespace tuvok;
 
 
-DXTexture3D::DXTexture3D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
-                         UINT32 iSizeZ, DXGI_FORMAT format) :
+DXTexture3D::DXTexture3D(ID3D10Device* pd3dDevice, uint32_t iSizeX, uint32_t iSizeY,
+                         uint32_t iSizeZ, DXGI_FORMAT format) :
   DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, false),
   m_iSizeX(iSizeX),
   m_iSizeY(iSizeY),
@@ -70,8 +70,8 @@ DXTexture3D::DXTexture3D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
   m_pd3dDevice->CreateShaderResourceView( m_pTexture, &SRVDesc, &m_pTexture_SRV );
 }
 
-DXTexture3D::DXTexture3D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
-                         UINT32 iSizeZ, DXGI_FORMAT format,
+DXTexture3D::DXTexture3D(ID3D10Device* pd3dDevice, uint32_t iSizeX, uint32_t iSizeY,
+                         uint32_t iSizeZ, DXGI_FORMAT format,
                          const void* pInitialData, bool bIsReadOnly) :
   DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, bIsReadOnly),
   m_iSizeX(iSizeX),

@@ -381,7 +381,7 @@ void GPUMemMan::GetEmpty1DTrans(size_t iSize, AbstrRenderer* requester,
 
   std::vector<unsigned char> vTFData;
   (*ppTransferFunction1D)->GetByteArray(vTFData);
-  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
+  *tex = new GLTexture1D(uint32_t((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
                          GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0));
 
   m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
@@ -404,7 +404,7 @@ void GPUMemMan::Get1DTransFromFile(const string& strFilename,
 
   std::vector<unsigned char> vTFData;
   (*ppTransferFunction1D)->GetByteArray(vTFData);
-  *tex = new GLTexture1D(UINT32((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
+  *tex = new GLTexture1D(uint32_t((*ppTransferFunction1D)->GetSize()), GL_RGBA8,
                          GL_RGBA, GL_UNSIGNED_BYTE, 4, &vTFData.at(0));
 
   m_iAllocatedGPUMemory += (*tex)->GetGPUSize();
@@ -420,13 +420,13 @@ GPUMemMan::SetExternal1DTrans(const std::vector<unsigned char>& rgba,
 {
   const size_t sz = rgba.size() / 4; // RGBA, i.e. 4 components.
   MESSAGE("Setting %u element 1D TF from external source.",
-          static_cast<UINT32>(sz));
+          static_cast<uint32_t>(sz));
   assert(!rgba.empty());
 
   TransferFunction1D *tf1d = new TransferFunction1D(sz);
   tf1d->Set(rgba);
 
-  GLTexture1D *tex = new GLTexture1D(static_cast<UINT32>(tf1d->GetSize()),
+  GLTexture1D *tex = new GLTexture1D(static_cast<uint32_t>(tf1d->GetSize()),
                                      GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, 4,
                                      &rgba.at(0));
   m_iAllocatedGPUMemory += tex->GetGPUSize();
@@ -511,7 +511,7 @@ void GPUMemMan::GetEmpty2DTrans(const VECTOR2<size_t>& iSize,
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
-  *tex = new GLTexture2D(UINT32(iSize.x), UINT32(iSize.y), GL_RGBA8, GL_RGBA,
+  *tex = new GLTexture2D(uint32_t(iSize.x), uint32_t(iSize.y), GL_RGBA8, GL_RGBA,
                          GL_UNSIGNED_BYTE, 4, pcData);
   delete [] pcData;
 
@@ -545,8 +545,8 @@ void GPUMemMan::Get2DTransFromFile(const string& strFilename,
 
   unsigned char* pcData = NULL;
   (*ppTransferFunction2D)->GetByteArray(&pcData);
-  *tex = new GLTexture2D(UINT32((*ppTransferFunction2D)->GetSize().x),
-                         UINT32((*ppTransferFunction2D)->GetSize().y),
+  *tex = new GLTexture2D(uint32_t((*ppTransferFunction2D)->GetSize().x),
+                         uint32_t((*ppTransferFunction2D)->GetSize().y),
                          GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE,4,pcData);
   delete [] pcData;
 
@@ -623,10 +623,10 @@ bool GPUMemMan::IsResident(const Dataset* pDataset,
 
 /// Calculates the amount of memory the given brick will take up.
 /// Slightly complicated because we might have an N-dimensional brick.
-static UINT64
+static uint64_t
 required_cpu_memory(const Dataset& ds, const BrickKey& key)
 {
-  UINT64 mem = 1;
+  uint64_t mem = 1;
   const UINTVECTOR3 size = ds.GetBrickVoxelCounts(key);
   mem = size[0] * size[1] * size[2];
   mem *= ds.GetBitWidth()/8;
@@ -641,8 +641,8 @@ find_closest_texture(GLVolumeList &lst, const UINTVECTOR3& vSize,
                      bool use_pot, bool downsample, bool disable_border,
                      bool bEmulate3DWith2DStacks)
 {
-  UINT64 iTargetFrameCounter = UINT64_INVALID;
-  UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
+  uint64_t iTargetFrameCounter = UINT64_INVALID;
+  uint64_t iTargetIntraFrameCounter = UINT64_INVALID;
 
   GLVolumeListIter iBestMatch = lst.end();
   for (GLVolumeListIter i=lst.begin(); i < lst.end(); ++i) {
@@ -666,7 +666,7 @@ find_closest_texture(GLVolumeList &lst, const UINTVECTOR3& vSize,
 // texes would be expensive.
 template <typename ForwIter> static ForwIter
 find_brick_with_usercount(ForwIter first, const ForwIter last,
-                          UINT32 user_count)
+                          uint32_t user_count)
 {
   while(first != last && (*first)->iUserCount != user_count) {
     ++first;
@@ -710,7 +710,7 @@ void GPUMemMan::DeleteArbitraryBrick() {
   // it to be high enough to hit every conceivable number of users for a brick.
   // We don't want to use 2^32 though, because then the application would feel
   // like it hung if we had some other bug.
-  for(UINT32 in_use_by=0; in_use_by < 128; ++in_use_by) {
+  for(uint32_t in_use_by=0; in_use_by < 128; ++in_use_by) {
     const GLVolumeListIter& iter = find_brick_with_usercount(
                                       m_vpTex3DList.begin(),
                                       m_vpTex3DList.end(), in_use_by
@@ -731,8 +731,8 @@ GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
                                bool bDownSampleTo8Bits,
                                bool bDisableBorder,
                                bool bEmulate3DWith2DStacks,
-                               UINT64 iIntraFrameCounter,
-                               UINT64 iFrameCounter) {
+                               uint64_t iIntraFrameCounter,
+                               uint64_t iFrameCounter) {
   // It can occur that we can create the brick in CPU memory but OpenGL must
   // perform a texture copy to obtain the texture.  If that happens, we'll
   // delete any brick and then try again.
@@ -772,8 +772,8 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                       bool bDownSampleTo8Bits,
                                       bool bDisableBorder,
                                       bool bEmulate3DWith2DStacks,
-                                      UINT64 iIntraFrameCounter,
-                                      UINT64 iFrameCounter) {
+                                      uint64_t iIntraFrameCounter,
+                                      uint64_t iFrameCounter) {
 
   for (GLVolumeListIter i = m_vpTex3DList.begin();
        i < m_vpTex3DList.end(); i++) {
@@ -786,13 +786,13 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
     }
   }
 
-  UINT64 iNeededCPUMemory = required_cpu_memory(*pDataset, key);
+  uint64_t iNeededCPUMemory = required_cpu_memory(*pDataset, key);
 
   /// @todo FIXME these keys are all wrong; we shouldn't be using N-dimensional
   /// data structures for the keys here.
   const UINTVECTOR3 sz = pDataset->GetBrickVoxelCounts(key);
-  const UINT64 iBitWidth = pDataset->GetBitWidth();
-  const UINT64 iCompCount = pDataset->GetComponentCount();
+  const uint64_t iBitWidth = pDataset->GetBitWidth();
+  const uint64_t iCompCount = pDataset->GetComponentCount();
 
   // for OpenGL we ignore the GPU memory load and let GL do the paging
   if (m_iAllocatedCPUMemory + iNeededCPUMemory >
@@ -938,11 +938,11 @@ void GPUMemMan::MemSizesChanged() {
 
 GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
                             GLenum wrapmode, GLsizei width, GLsizei height,
-                            GLenum intformat, UINT32 iSizePerElement,
+                            GLenum intformat, uint32_t iSizePerElement,
                             bool bHaveDepth, int iNumBuffers) {
   MESSAGE("Creating new FBO of size %i x %i", int(width), int(height));
 
-  UINT64 m_iCPUMemEstimate = GLFBOTex::EstimateCPUSize(width, height,
+  uint64_t m_iCPUMemEstimate = GLFBOTex::EstimateCPUSize(width, height,
                                                        iSizePerElement,
                                                        bHaveDepth, iNumBuffers);
 
@@ -954,8 +954,8 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
             iSizePerElement, iNumBuffers);
 
     // search for best brick to replace with this brick
-    UINT64 iMinTargetFrameCounter;
-    UINT64 iMaxTargetIntraFrameCounter;
+    uint64_t iMinTargetFrameCounter;
+    uint64_t iMaxTargetIntraFrameCounter;
     (*m_vpTex3DList.begin())->GetCounters(iMaxTargetIntraFrameCounter,
                                           iMinTargetFrameCounter);
     size_t iIndex = 0;
@@ -963,8 +963,8 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
 
     for (GLVolumeListIter i = m_vpTex3DList.begin()+1;
          i < m_vpTex3DList.end(); ++i) {
-      UINT64 iTargetFrameCounter = UINT64_INVALID;
-      UINT64 iTargetIntraFrameCounter = UINT64_INVALID;
+      uint64_t iTargetFrameCounter = UINT64_INVALID;
+      uint64_t iTargetIntraFrameCounter = UINT64_INVALID;
       (*i)->GetCounters(iTargetIntraFrameCounter, iTargetFrameCounter);
       iIndex++;
 
@@ -1081,9 +1081,9 @@ void GPUMemMan::FreeGLSLProgram(GLSLProgram* pGLSLProgram) {
   WARNING("GLSL program to free not found.");
 }
 
-UINT64 GPUMemMan::GetCPUMem() const {return m_SystemInfo->GetCPUMemSize();}
-UINT64 GPUMemMan::GetGPUMem() const {return m_SystemInfo->GetGPUMemSize();}
-UINT32 GPUMemMan::GetBitWidthMem() const {
+uint64_t GPUMemMan::GetCPUMem() const {return m_SystemInfo->GetCPUMemSize();}
+uint64_t GPUMemMan::GetGPUMem() const {return m_SystemInfo->GetGPUMemSize();}
+uint32_t GPUMemMan::GetBitWidthMem() const {
   return m_SystemInfo->GetProgramBitWidth();
 }
-UINT32 GPUMemMan::GetNumCPUs() const {return m_SystemInfo->GetNumberOfCPUs();}
+uint32_t GPUMemMan::GetNumCPUs() const {return m_SystemInfo->GetNumberOfCPUs();}

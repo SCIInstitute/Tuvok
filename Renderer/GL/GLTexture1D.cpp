@@ -39,8 +39,8 @@
 
 using namespace tuvok;
 
-GLTexture1D::GLTexture1D(UINT32 iSize, GLint internalformat, GLenum format,
-                         GLenum type,  UINT32 iSizePerElement,
+GLTexture1D::GLTexture1D(uint32_t iSize, GLint internalformat, GLenum format,
+                         GLenum type,  uint32_t iSizePerElement,
                          const GLvoid *pixels, GLint iMagFilter, GLint iMinFilter,
                          GLint wrap) :
   GLTexture(iSizePerElement, iMagFilter, iMinFilter),
@@ -62,7 +62,7 @@ GLTexture1D::GLTexture1D(UINT32 iSize, GLint internalformat, GLenum format,
                   m_type, (GLvoid*)pixels));
 }
 
-void GLTexture1D::SetData(UINT32 offset, UINT32 size, const void *pixels, bool bRestoreBinding) {
+void GLTexture1D::SetData(uint32_t offset, uint32_t size, const void *pixels, bool bRestoreBinding) {
   GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 

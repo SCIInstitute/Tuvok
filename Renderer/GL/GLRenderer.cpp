@@ -981,7 +981,7 @@ void GLRenderer::RenderSlice(const RenderRegion2D& region, double fSliceIndex,
 }
 
 bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
-                               const UINT64 iIntraFrameCounter) {
+                               const uint64_t iIntraFrameCounter) {
   GL_CHECK();
 
   // get the 3D texture from the memory manager
@@ -1110,7 +1110,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
       // Iterate; render all slices, and we'll figure out the 'M'(aximum) in
       // the shader.  Note that we iterate over all slices which have data
       // ("VoxelCount"), not over all slices ("RealVoxelCount").
-      for (UINT64 i = 0;i<vVoxelCount[sliceDir];i++) {
+      for (uint64_t i = 0;i<vVoxelCount[sliceDir];i++) {
         // First normalize to a [0..1] space
         double fSliceIndex = static_cast<double>(i) / vVoxelCount[sliceDir];
         // Now correct for PoT textures: a [0..1] space gives us the location
@@ -1170,8 +1170,8 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
 
       // convert 3D variables to the more general ND scheme used in the memory
       // manager, i.e. convert 3-vectors to stl vectors
-      vector<UINT64> vLOD; vLOD.push_back(m_iCurrentLOD);
-      vector<UINT64> vBrick;
+      vector<uint64_t> vLOD; vLOD.push_back(m_iCurrentLOD);
+      vector<uint64_t> vBrick;
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.x);
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.y);
       vBrick.push_back(m_vCurrentBrickList[iBrickIndex].vCoords.z);
@@ -1471,7 +1471,7 @@ bool GLRenderer::Execute3DFrame(RenderRegion3D& renderRegion,
   // if there is something left in the TODO list
   if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame) {
     MESSAGE("%u bricks left to render",
-            static_cast<unsigned>(UINT64(m_vCurrentBrickList.size()) -
+            static_cast<unsigned>(uint64_t(m_vCurrentBrickList.size()) -
                                   m_iBricksRenderedInThisSubFrame));
 
     // setup shaders vars
@@ -1652,7 +1652,7 @@ void GLRenderer::Cleanup() {
     m_pFBOResizeQuickBlit =NULL;
   }
 
-  for (UINT32 i = 0;i<2;i++) {
+  for (uint32_t i = 0;i<2;i++) {
     if (m_pFBO3DImageCurrent[i]) {
       mm.FreeFBO(m_pFBO3DImageCurrent[i]);
       m_pFBO3DImageCurrent[i] = NULL;
@@ -1690,7 +1690,7 @@ void GLRenderer::CreateOffscreenBuffers() {
     m_pFBO3DImageLast = NULL;
   }
 
-  for (UINT32 i=0; i < 2; i++) {
+  for (uint32_t i=0; i < 2; i++) {
     if (m_pFBO3DImageCurrent[i]) {    
       mm.FreeFBO(m_pFBO3DImageCurrent[i]);
       m_pFBO3DImageCurrent[i] = NULL;
@@ -1707,7 +1707,7 @@ void GLRenderer::CreateOffscreenBuffers() {
 
   if (m_vWinSize.area() > 0) {
     MESSAGE("Creating FBOs...");
-    for (UINT32 i = 0;i<2;i++) {
+    for (uint32_t i = 0;i<2;i++) {
       switch (m_eBlendPrecision) {
         case BP_8BIT  : if (i==0) {
                           m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
@@ -1786,7 +1786,7 @@ GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const
 float GLRenderer::CalculateScaling()
 {
   double fMaxValue     = MaxValue();
-  UINT32 iMaxRange     = UINT32(1<<m_pDataset->GetBitWidth());
+  uint32_t iMaxRange     = uint32_t(1<<m_pDataset->GetBitWidth());
   return (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ?
     1.0f : float(iMaxRange/fMaxValue);
 }
@@ -2652,7 +2652,7 @@ bool GLRenderer::Render3DView(const RenderRegion3D& renderRegion,
 
   // loop over all bricks in the current LOD level
   m_Timer.Start();
-  UINT32 bricks_this_call = 0;
+  uint32_t bricks_this_call = 0;
   fMsecPassed = 0;
 
   while (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame &&

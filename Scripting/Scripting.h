@@ -59,8 +59,8 @@ namespace tuvok {
       Scriptable* const m_source;
       const std::string m_strCommand;
       std::vector<std::string> m_vParameters;
-      UINT32 m_iMaxParam;
-      UINT32 m_iMinParam;
+      uint32_t m_iMaxParam;
+      uint32_t m_iMinParam;
       const std::string m_strDescription;
   };
 

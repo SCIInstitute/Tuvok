@@ -45,15 +45,15 @@ namespace tuvok {
 
 class GLTexture1D : public GLTexture {
   public:
-    GLTexture1D(UINT32 iSize, GLint internalformat, GLenum format, GLenum type,
-          UINT32 iSizePerElement,
+    GLTexture1D(uint32_t iSize, GLint internalformat, GLenum format, GLenum type,
+          uint32_t iSizePerElement,
           const void *pixels = 0,
           GLint iMagFilter = GL_NEAREST,
           GLint iMinFilter = GL_NEAREST,
           GLint wrap = GL_CLAMP_TO_EDGE);
     virtual ~GLTexture1D() {}
 
-    virtual void Bind(UINT32 iUnit=0) const {
+    virtual void Bind(uint32_t iUnit=0) const {
       GLint iPrevUint;
       GL(glGetIntegerv(GL_ACTIVE_TEXTURE, &iPrevUint));
 
@@ -66,12 +66,12 @@ class GLTexture1D : public GLTexture {
       GL(glActiveTexture(iPrevUint));
     }
     virtual void SetData(const void *pixels, bool bRestoreBinding=true);
-    void SetData(UINT32 offset, UINT32 size, const void *pixels, bool bRestoreBinding=true);
+    void SetData(uint32_t offset, uint32_t size, const void *pixels, bool bRestoreBinding=true);
 
-    virtual UINT64 GetCPUSize() {return UINT64(m_iSize*m_iSizePerElement);}
-    virtual UINT64 GetGPUSize() {return UINT64(m_iSize*m_iSizePerElement);}
+    virtual uint64_t GetCPUSize() {return uint64_t(m_iSize*m_iSizePerElement);}
+    virtual uint64_t GetGPUSize() {return uint64_t(m_iSize*m_iSizePerElement);}
 
-    UINT32 GetSize() const {return UINT32(m_iSize);}
+    uint32_t GetSize() const {return uint32_t(m_iSize);}
 
   protected:
     GLuint m_iSize;

@@ -42,7 +42,7 @@
 using namespace tuvok;
 
 
-GLTexture::GLTexture(UINT32 iSizePerElement, GLint iMagFilter,
+GLTexture::GLTexture(uint32_t iSizePerElement, GLint iMagFilter,
                      GLint iMinFilter) : 
 m_iGLID(UINT32_INVALID),
 m_iSizePerElement(iSizePerElement),

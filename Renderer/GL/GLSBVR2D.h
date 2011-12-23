@@ -111,7 +111,7 @@ namespace tuvok {
       virtual void UpdateLightParamsInShaders();
   
       virtual bool BindVolumeTex(const BrickKey& bkey, 
-                                 const UINT64 iIntraFrameCounter);
+                                 const uint64_t iIntraFrameCounter);
       virtual bool IsVolumeResident(const BrickKey& key) const;
       virtual void RenderSlice(const RenderRegion2D& region, 
                        double fSliceIndex,

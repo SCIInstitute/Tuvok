@@ -62,13 +62,13 @@ ScriptableListElement::ScriptableListElement(Scriptable* source,
 {
   m_vParameters = SysTools::Tokenize(strParameters, false);
 
-  m_iMaxParam = UINT32(m_vParameters.size());
+  m_iMaxParam = uint32_t(m_vParameters.size());
   m_iMinParam = 0;
 
   bool bFoundOptional = false;
-  for (UINT32 i = 0;i<m_vParameters.size();i++) {
+  for (uint32_t i = 0;i<m_vParameters.size();i++) {
     if (m_vParameters[i] == "...") {
-      m_iMaxParam = numeric_limits<UINT32>::max();
+      m_iMaxParam = numeric_limits<uint32_t>::max();
     } else {
       if (m_vParameters[i][0] == '[' && 
           m_vParameters[i][m_vParameters[i].size()-1] == ']') {
@@ -204,7 +204,7 @@ bool Scripting::ParseFile(const std::string& strFilename) {
   string line;
   std::ifstream fileData(strFilename.c_str());
 
-  UINT32 iLine=0;
+  uint32_t iLine=0;
   if (fileData.is_open())
   {
     while (! fileData.eof() )
@@ -287,7 +287,7 @@ bool Scripting::Execute(const std::string& strCommand,
     for(ScriptList::const_iterator cmd = m_ScriptableList.begin();
         cmd != m_ScriptableList.end(); ++cmd) {
       string strParams = "";
-      UINT32 iMin = (*cmd)->m_iMinParam;
+      uint32_t iMin = (*cmd)->m_iMinParam;
       for (size_t j = 0; j < (*cmd)->m_vParameters.size(); j++) {
         if (j < iMin) {
           if ((*cmd)->m_vParameters[j] == "...") iMin++;

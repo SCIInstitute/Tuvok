@@ -160,7 +160,7 @@ void SBVRGeogen3D::Triangulate(std::vector<VERTEX_FORMAT> &fArray) {
   SortByGradient(fArray);
 
   // convert to triangles
-  for (UINT32 i=0; i<(fArray.size()-2) ; i++) {
+  for (uint32_t i=0; i<(fArray.size()-2) ; i++) {
     m_vSliceTriangles.push_back(fArray[0]);
     m_vSliceTriangles.push_back(fArray[i+1]);
     m_vSliceTriangles.push_back(fArray[i+2]);
@@ -322,8 +322,8 @@ static bool CheckOrdering(const FLOATVECTOR3& a,
 /// @todo: should be replaced with std::sort.
 static void SortPoints(std::vector<VERTEX_FORMAT> &fArray) {
   // for small arrays, this bubble sort actually beats qsort.
-  for (UINT32 i= 1;i<fArray.size();++i)
-    for (UINT32 j = 1;j<fArray.size()-i;++j)
+  for (uint32_t i= 1;i<fArray.size();++i)
+    for (uint32_t j = 1;j<fArray.size()-i;++j)
       if (!CheckOrdering(fArray[j].m_vPos,fArray[j+1].m_vPos,fArray[0].m_vPos))
         std::swap(fArray[j], fArray[j+1]);
 }

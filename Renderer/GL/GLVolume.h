@@ -44,9 +44,9 @@
 namespace tuvok {
   class GLVolume  {
     public:
-      GLVolume(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
+      GLVolume(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                GLint internalformat, GLenum format, GLenum type,
-               UINT32 iSizePerElement,
+               uint32_t iSizePerElement,
                const GLvoid *pixels = 0,
                GLint iMagFilter = GL_NEAREST,
                GLint iMinFilter = GL_NEAREST,
@@ -58,8 +58,8 @@ namespace tuvok {
       virtual void SetData(const void *voxels) = 0;
       virtual void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
 
-      virtual UINT64 GetCPUSize() = 0;
-      virtual UINT64 GetGPUSize() = 0;
+      virtual uint64_t GetCPUSize() = 0;
+      virtual uint64_t GetGPUSize() = 0;
 
   protected:
       GLint  m_iMagFilter;

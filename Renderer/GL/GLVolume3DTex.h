@@ -46,9 +46,9 @@ namespace tuvok {
   /// Controls 3D volume data as a texture.
   class GLVolume3DTex : public GLVolume {
     public:
-      GLVolume3DTex(UINT32 iSizeX, UINT32 iSizeY, UINT32 iSizeZ,
+      GLVolume3DTex(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                     GLint internalformat, GLenum format, GLenum type,
-                    UINT32 iSizePerElement,
+                    uint32_t iSizePerElement,
                     const GLvoid *voxels = 0,
                     GLint iMagFilter = GL_NEAREST,
                     GLint iMinFilter = GL_NEAREST,
@@ -58,11 +58,11 @@ namespace tuvok {
       GLVolume3DTex();
       virtual ~GLVolume3DTex();
 
-      virtual void Bind(UINT32 iUnit=0);
+      virtual void Bind(uint32_t iUnit=0);
       virtual void SetData(const void *voxels);
 
-      virtual UINT64 GetCPUSize();
-      virtual UINT64 GetGPUSize();
+      virtual uint64_t GetCPUSize();
+      virtual uint64_t GetGPUSize();
 
       virtual void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
 

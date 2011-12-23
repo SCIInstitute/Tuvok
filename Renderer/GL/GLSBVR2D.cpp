@@ -312,7 +312,7 @@ void GLSBVR2D::RenderProxyGeometry() const {
 // data structure; for each slice_geom, we store the texture to use, a
 // set of (3D) texture coords, and a set of (3D) vertices.
 struct slice_geom {
-  UINT32 texid;
+  uint32_t texid;
   std::vector<float> texcoords;
   std::vector<float> tris;
 };
@@ -660,7 +660,7 @@ void GLSBVR2D::UpdateLightParamsInShaders() {
 }
 
 bool GLSBVR2D::BindVolumeTex(const BrickKey& bkey,
-                             const UINT64 iIntraFrameCounter) {
+                             const uint64_t iIntraFrameCounter) {
 
   if (m_bUse3DTexture) return GLRenderer::BindVolumeTex(bkey,iIntraFrameCounter);
 

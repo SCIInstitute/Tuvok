@@ -49,7 +49,7 @@ class CullingLOD
 {
   public:
     CullingLOD(float fScreenSpaceError=1.0f);
-    void SetScreenParams(float fFOVY, float fAspect, float fNearPlane, float fFarPlane, UINT32 iPixelCountY);
+    void SetScreenParams(float fFOVY, float fAspect, float fNearPlane, float fFarPlane, uint32_t iPixelCountY);
     void SetProjectionMatrix(const FLOATMATRIX4& mProjectionMatrix);
     void SetModelMatrix(const FLOATMATRIX4& mModelMatrix);
     void SetViewMatrix(const FLOATMATRIX4& mViewMatrix);
@@ -74,7 +74,7 @@ class CullingLOD
     float        m_fAspect;
     float        m_fNearPlane;
     float        m_fFarPlane;
-    UINT32       m_iPixelCountY;
+    uint32_t       m_iPixelCountY;
     float        m_fScreenSpaceError;
     float        m_fLODFactor;
     bool         m_bPassAll;

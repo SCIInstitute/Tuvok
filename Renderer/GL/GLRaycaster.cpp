@@ -136,7 +136,7 @@ bool GLRaycaster::LoadShaders() {
                               ? "vr-col-tfqn-lit.glsl"
                               : "vr-scal-tfqn-lit.glsl"
                            : "vr-scal-tfqn.glsl";
-
+  
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLRaycaster-VS.glsl",
                           NULL,

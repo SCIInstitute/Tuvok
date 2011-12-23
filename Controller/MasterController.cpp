@@ -43,13 +43,10 @@
 #include "../Renderer/GPUMemMan/GPUMemMan.h"
 #include "../Renderer/GPUMemMan/GPUMemManDataStructs.h"
 #include "../Renderer/GL/GLRaycaster.h"
+#include "../Renderer/GL/GLTreeRaycaster.h"
 #include "../Renderer/GL/GLSBVR.h"
 #include "../Renderer/GL/GLSBVR2D.h"
 
-#if defined(_WIN32) && defined(USE_DIRECTX)
-#include "../Renderer/DX/DXSBVR.h"
-#include "../Renderer/DX/DXRaycaster.h"
-#endif
 
 #include "../Scripting/Scripting.h"
 
@@ -163,35 +160,24 @@ MasterController::RequestNewVolumeRenderer(
                              bDisableBorder, 
                              bNoRCClipplanes);
     break;
-
-#if defined(_WIN32) && defined(USE_DIRECTX)
-  case DIRECTX_2DSBVR : // DX 10 always supports 3D textures, no need for a 2D tex renderer
-  case DIRECTX_SBVR :
-    api = "DirectX";
-    method = "Slice Based Volume Renderer";
-    retval = new DXSBVR(this, 
-                        bUseOnlyPowerOfTwo, 
-                        bDownSampleTo8Bits,
-                        bDisableBorder);
-    break;
-
-  case DIRECTX_RAYCASTER :
-    api = "DirectX";
-    method = "Raycaster";
-    retval = new DXRaycaster(this, 
-                             bUseOnlyPowerOfTwo,
+  case OPENGL_TRAYCASTER :
+    api = "OpenGL";
+    method = "Tree Raycaster";
+    retval = new GLTreeRaycaster(this, 
+                             bUseOnlyPowerOfTwo, 
                              bDownSampleTo8Bits,
-                             bDisableBorder);
+                             bDisableBorder, 
+                             bNoRCClipplanes);
     break;
-#else
+
   case DIRECTX_RAYCASTER :
   case DIRECTX_2DSBVR :
   case DIRECTX_SBVR :
+  case DIRECTX_TRAYCASTER:
     m_DebugOut.Error(_func_,"DirectX 10 renderer not yet implemented."
                             "Please select OpenGL as the render API "
                             "in the settings dialog.");
     return NULL;
-#endif
 
   default :
     m_DebugOut.Error(_func_, "Unsupported Volume renderer requested");
@@ -226,7 +212,7 @@ void MasterController::ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer) {
 }
 
 
-void MasterController::Filter(std::string, UINT32,
+void MasterController::Filter(std::string, uint32_t,
                               void*, void *, void *, void * ) {
 };
 

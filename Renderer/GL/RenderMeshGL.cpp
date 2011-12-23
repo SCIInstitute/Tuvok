@@ -74,7 +74,7 @@ void RenderMeshGL::PrepareOpaqueBuffers() {
   if (m_Data.m_VertIndices.empty()) return;
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexVBOOpaque);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(UINT32), &m_Data.m_VertIndices[0], GL_STATIC_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_splitIndex*sizeof(uint32_t), &m_Data.m_VertIndices[0], GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, m_VBOs[POSITION_VBO]);
   glBufferData(GL_ARRAY_BUFFER, m_Data.m_vertices.size()*sizeof(float)*3, &m_Data.m_vertices[0], GL_STATIC_DRAW);
 
@@ -192,7 +192,7 @@ void RenderMeshGL::PrepareTransBuffers(GLuint IndexVBO, const SortIndexPVec& lis
   }
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexVBO);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, VertIndices.size()*sizeof(UINT32), &VertIndices[0], GL_STREAM_DRAW);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, VertIndices.size()*sizeof(uint32_t), &VertIndices[0], GL_STREAM_DRAW);
 }
 
 // since OpenGL is a "piece-of-shit" API that does only support
@@ -235,7 +235,7 @@ void RenderMeshGL::UnrollArrays() {
   m_Data.m_colors = colors;
 
   // effectively disable indices
-  for (size_t i = 0;i<m_Data.m_VertIndices.size();i++)  m_Data.m_VertIndices[i] = UINT32(i);
+  for (size_t i = 0;i<m_Data.m_VertIndices.size();i++)  m_Data.m_VertIndices[i] = uint32_t(i);
 
   // equalize index arrays
   if (m_Data.m_NormalIndices.size() == m_Data.m_VertIndices.size()) m_Data.m_NormalIndices = m_Data.m_VertIndices;

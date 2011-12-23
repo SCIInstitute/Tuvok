@@ -59,11 +59,11 @@ public:
   virtual operator GLuint*(void) { return m_hTexture; }
 
   /// \todo check how much mem an FBO really occupies
-  virtual UINT64 GetCPUSize() {return EstimateCPUSize(m_iSizeX, m_iSizeY, m_iSizePerElement, m_hDepthBuffer!=0, m_iNumBuffers);}
-  virtual UINT64 GetGPUSize() {return EstimateGPUSize(m_iSizeX, m_iSizeY, m_iSizePerElement, m_hDepthBuffer!=0, m_iNumBuffers);}
+  virtual uint64_t GetCPUSize() {return EstimateCPUSize(m_iSizeX, m_iSizeY, m_iSizePerElement, m_hDepthBuffer!=0, m_iNumBuffers);}
+  virtual uint64_t GetGPUSize() {return EstimateGPUSize(m_iSizeX, m_iSizeY, m_iSizePerElement, m_hDepthBuffer!=0, m_iNumBuffers);}
 
-  static UINT64 EstimateCPUSize(GLsizei width, GLsizei height, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1) {return iNumBuffers*width*height*iSizePerElement + ((bHaveDepth) ? width*height*4 : 0);}
-  static UINT64 EstimateGPUSize(GLsizei width, GLsizei height, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1) {return EstimateCPUSize(width, height, iSizePerElement, bHaveDepth, iNumBuffers);}
+  static uint64_t EstimateCPUSize(GLsizei width, GLsizei height, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1) {return iNumBuffers*width*height*iSizePerElement + ((bHaveDepth) ? width*height*4 : 0);}
+  static uint64_t EstimateGPUSize(GLsizei width, GLsizei height, unsigned int iSizePerElement, bool bHaveDepth=false, int iNumBuffers=1) {return EstimateCPUSize(width, height, iSizePerElement, bHaveDepth, iNumBuffers);}
 
   bool Valid() const { return m_hFBO != 0; }
 

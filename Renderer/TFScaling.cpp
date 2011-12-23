@@ -47,7 +47,7 @@ scale_bit_width(const Dataset& ds, bool downsample,
 {
   size_t max_value = (ds.GetBitWidth() != 8 && downsample)
                       ? 65536 : tf.GetSize();
-  UINT32 max_range = static_cast<UINT32>(1 << ds.GetBitWidth());
+  uint32_t max_range = static_cast<uint32_t>(1 << ds.GetBitWidth());
 
   return (ds.GetBitWidth() != 8 && downsample)
           ? 1.0f : static_cast<float>(max_range) /

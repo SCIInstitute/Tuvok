@@ -83,6 +83,8 @@ public:
     DIRECTX_RAYCASTER,
     OPENGL_2DSBVR,
     DIRECTX_2DSBVR,
+    OPENGL_TRAYCASTER,
+    DIRECTX_TRAYCASTER,
     RENDERER_LAST,
   };
 
@@ -149,7 +151,7 @@ public:
 
   /// \todo this should return a pointer to memory.
   void Filter(std::string datasetName,
-              UINT32 filter,
+              uint32_t filter,
               void *var0 = 0, void *var1 = 0,
               void *var2 = 0, void *var3 = 0 );
 

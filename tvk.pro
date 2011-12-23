@@ -156,6 +156,9 @@ HEADERS += \
            IO/UVF/UVFBasic.h \
            IO/UVF/UVF.h \
            IO/UVF/UVFTables.h \
+           IO/UVF/TOCBlock.h \
+           IO/UVF/ExtendedOctree/ExtendedOctree.h \
+           IO/UVF/ExtendedOctree/ExtendedOctreeConverter.h \
            IO/VariantArray.h \
            IO/VFFConverter.h \
            IO/XML3DGeoConverter.h \
@@ -171,6 +174,7 @@ HEADERS += \
            Renderer/GL/GLInclude.h \
            Renderer/GL/GLObject.h \
            Renderer/GL/GLRaycaster.h \
+           Renderer/GL/GLTreeRaycaster.h \
            Renderer/GL/GLRenderer.h \
            Renderer/GL/GLSBVR.h \
            Renderer/GL/GLSBVR2D.h \
@@ -185,6 +189,8 @@ HEADERS += \
            Renderer/GL/GLVolume3DTex.h \
            Renderer/GL/QtGLContext.h \
            Renderer/GL/RenderMeshGL.h \
+           Renderer/GL/GLTreeRaycaster.h \
+           Renderer/GL/GLVolumePool.h \
            Renderer/GPUMemMan/GPUMemManDataStructs.h \
            Renderer/GPUMemMan/GPUMemMan.h \
            Renderer/GPUObject.h \
@@ -381,6 +387,9 @@ SOURCES += \
            IO/UVF/GeometryDataBlock.cpp \
            IO/UVF/UVF.cpp \
            IO/UVF/UVFTables.cpp \
+           IO/UVF/TOCBlock.cpp \
+           IO/UVF/ExtendedOctree/ExtendedOctree.cpp \
+           IO/UVF/ExtendedOctree/ExtendedOctreeConverter.cpp \
            IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
            IO/XML3DGeoConverter.cpp \
@@ -392,6 +401,7 @@ SOURCES += \
            Renderer/GL/GLFBOTex.cpp \
            Renderer/GL/GLFrameCapture.cpp \
            Renderer/GL/GLRaycaster.cpp \
+           Renderer/GL/GLTreeRaycaster.cpp \
            Renderer/GL/GLRenderer.cpp \
            Renderer/GL/GLSBVR.cpp \
            Renderer/GL/GLSBVR2D.cpp \
@@ -404,7 +414,9 @@ SOURCES += \
            Renderer/GL/GLVolume.cpp \
            Renderer/GL/GLVolume2DTex.cpp \
            Renderer/GL/GLVolume3DTex.cpp \
-           Renderer/GL/RenderMeshGL.cpp \           
+           Renderer/GL/RenderMeshGL.cpp \   
+           Renderer/GL/GLTreeRaycaster.cpp \
+           Renderer/GL/GLVolumePool.cpp \                   
            Renderer/GPUMemMan/GPUMemMan.cpp \
            Renderer/GPUMemMan/GPUMemManDataStructs.cpp \
            Renderer/SBVRGeogen.cpp \

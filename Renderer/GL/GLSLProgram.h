@@ -137,11 +137,11 @@ public:
   /// assume near zero CPU memory cost for shaders to avoid any memory
   /// manager from paging out shaders, the 1 is basically only to
   /// detect memory leaks
-  virtual UINT64 GetCPUSize() {return 1;}
+  virtual uint64_t GetCPUSize() {return 1;}
   /// assume near zero GPU memory cost for shaders to avoid any memory
   /// manager from paging out shaders, the 1 is basically only to
   /// detect memory leaks
-  virtual UINT64 GetGPUSize() {return 1;}
+  virtual uint64_t GetGPUSize() {return 1;}
   static bool m_bGLUseARB;
 
 private:

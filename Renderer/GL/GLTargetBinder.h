@@ -48,13 +48,13 @@ class MasterController;
 
 class GLBufferID {
 public:
-  GLBufferID(GLFBOTex* _pBuffer, UINT32 _iSubBuffer=0) :
+  GLBufferID(GLFBOTex* _pBuffer, uint32_t _iSubBuffer=0) :
     pBuffer(_pBuffer),
     iSubBuffer(_iSubBuffer)
   { }
 
   GLFBOTex* pBuffer;
-  UINT32 iSubBuffer;
+  uint32_t iSubBuffer;
 };
 
 class GLTargetBinder {

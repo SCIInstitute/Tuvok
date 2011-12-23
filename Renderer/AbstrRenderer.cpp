@@ -270,7 +270,7 @@ void AbstrRenderer::SetDataset(Dataset *vds)
 void AbstrRenderer::UpdateData(const BrickKey& bk,
                                std::tr1::shared_ptr<float> fp, size_t len)
 {
-  MESSAGE("Updating data with %u element array", static_cast<UINT32>(len));
+  MESSAGE("Updating data with %u element array", static_cast<uint32_t>(len));
   // free old data; we know we'll never need it, at this point.
   Controller::Instance().MemMan()->FreeAssociatedTextures(m_pDataset);
   dynamic_cast<ExternalDataset*>(m_pDataset)->UpdateData(bk, fp, len);
@@ -484,7 +484,7 @@ void AbstrRenderer::ClipPlaneRelativeLock(bool bRel) {
   m_bClipPlaneLocked = bRel;/// @todo: Make this per RenderRegion ?
 }
 
-void AbstrRenderer::SetSliceDepth(RenderRegion *renderRegion, UINT64 sliceDepth) {
+void AbstrRenderer::SetSliceDepth(RenderRegion *renderRegion, uint64_t sliceDepth) {
   if (renderRegion->GetSliceIndex() != sliceDepth) {
     renderRegion->SetSliceIndex(sliceDepth);
     ScheduleWindowRedraw(renderRegion);
@@ -493,7 +493,7 @@ void AbstrRenderer::SetSliceDepth(RenderRegion *renderRegion, UINT64 sliceDepth)
   }
 }
 
-UINT64 AbstrRenderer::GetSliceDepth(const RenderRegion *renderRegion) const {
+uint64_t AbstrRenderer::GetSliceDepth(const RenderRegion *renderRegion) const {
   return renderRegion->GetSliceIndex();
 }
 
@@ -600,8 +600,8 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
 
         // Easiest thing is to try rendering a lower quality LOD. So try this
         // if possible.
-        UINT64 iPerformanceBasedLODSkip =
-          std::max<UINT64>(1, m_iPerformanceBasedLODSkip) - 1;
+        uint64_t iPerformanceBasedLODSkip =
+          std::max<uint64_t>(1, m_iPerformanceBasedLODSkip) - 1;
         if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) {
           MESSAGE("Increasing start LOD to %llu as it took %g ms "
                   "to render the first LOD level (max is %g) ",
@@ -658,8 +658,8 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
           }
         } else {
           // Let's try rendering at a higher quality LOD.
-          UINT64 iPerformanceBasedLODSkip =
-            std::min<UINT64>(m_iMaxLODIndex - m_iMinLODForCurrentView,
+          uint64_t iPerformanceBasedLODSkip =
+            std::min<uint64_t>(m_iMaxLODIndex - m_iMinLODForCurrentView,
                              m_iPerformanceBasedLODSkip + 1);
           if (m_iPerformanceBasedLODSkip != iPerformanceBasedLODSkip) {
             MESSAGE("Decreasing start LOD to %llu as it took only %g ms "
@@ -685,7 +685,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
   }
 
   m_iStartLODOffset = std::min(m_iStartLODOffset,
-                               static_cast<UINT64>(m_iMaxLODIndex -
+                               static_cast<uint64_t>(m_iMaxLODIndex -
                                                    m_iLODLimits.x));
   m_iCurrentLODOffset = m_iStartLODOffset;
   RestartTimers();
@@ -700,7 +700,7 @@ void AbstrRenderer::ComputeMinLODForCurrentView() {
 
   /// @todo consider real extent not center
   FLOATVECTOR3 vfCenter(0,0,0);
-  m_iMinLODForCurrentView = static_cast<UINT64>(
+  m_iMinLODForCurrentView = static_cast<uint64_t>(
     MathTools::Clamp(m_FrustumCullingLOD.GetLODLevel(vfCenter, vExtend,
                                                      vDomainSize),
                      static_cast<int>(m_iLODLimits.y),
@@ -750,7 +750,7 @@ vector<Brick> AbstrRenderer::BuildLeftEyeSubFrameBrickList(
                              const vector<Brick>& vRightEyeBrickList) const {
   vector<Brick> vBrickList = vRightEyeBrickList;
 
-  for (UINT32 iBrick = 0;iBrick<vBrickList.size();iBrick++) {
+  for (uint32_t iBrick = 0;iBrick<vBrickList.size();iBrick++) {
     // compute minimum distance to brick corners (offset slightly to
     // the center to resolve ambiguities).
     vBrickList[iBrick].fDistance = brick_distance(vBrickList[iBrick],
@@ -1132,13 +1132,13 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
       if(m_eRendererTarget == RT_CAPTURE) {
         m_iCurrentLOD = 0;
       } else {
-        m_iCurrentLOD = std::min<UINT64>(m_iCurrentLODOffset,
+        m_iCurrentLOD = std::min<uint64_t>(m_iCurrentLODOffset,
                                          m_pDataset->GetLODLevelCount()-1);
       }
       // build new brick todo-list
       MESSAGE("Building new brick list for LOD %llu...", m_iCurrentLOD);
       m_vCurrentBrickList = BuildSubFrameBrickList();
-      MESSAGE("%u bricks made the cut.", UINT32(m_vCurrentBrickList.size()));
+      MESSAGE("%u bricks made the cut.", uint32_t(m_vCurrentBrickList.size()));
       if (m_bDoStereoRendering) {
         m_vLeftEyeBrickList =
           BuildLeftEyeSubFrameBrickList(region.modelView[1], m_vCurrentBrickList);
@@ -1174,7 +1174,7 @@ void AbstrRenderer::PlanHQMIPFrame(RenderRegion& renderRegion) {
   }
 
   if (m_iCurrentLOD > 0) {
-    m_iCurrentLOD = min<UINT64>(m_pDataset->GetLODLevelCount()-1,
+    m_iCurrentLOD = min<uint64_t>(m_pDataset->GetLODLevelCount()-1,
                                 m_iCurrentLOD-1);
   }
 
@@ -1369,9 +1369,9 @@ void AbstrRenderer::SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbu
   }
 }
 
-void AbstrRenderer::SetPerfMeasures(UINT32 iMinFramerate, bool bUseAllMeans,
+void AbstrRenderer::SetPerfMeasures(uint32_t iMinFramerate, bool bUseAllMeans,
                                     float fScreenResDecFactor,
-                                    float fSampleDecFactor, UINT32 iStartDelay) {
+                                    float fSampleDecFactor, uint32_t iStartDelay) {
   m_fMaxMSPerFrame = (iMinFramerate == 0) ? 10000 : 1000.0f / float(iMinFramerate);
   m_fScreenResDecFactor = fScreenResDecFactor;
   m_fSampleDecFactor = fSampleDecFactor;

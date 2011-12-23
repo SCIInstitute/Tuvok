@@ -61,8 +61,8 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
                                    bool bIsDownsampledTo8Bits,
                                    bool bDisableBorder,
                                    bool bEmulate3DWith2DStacks,
-                                   UINT64 iIntraFrameCounter,
-                                   UINT64 iFrameCounter,
+                                   uint64_t iIntraFrameCounter,
+                                   uint64_t iFrameCounter,
                                    MasterController* pMasterController,
                                    std::vector<unsigned char>& vUploadHub) :
   pDataset(_pDataset),
@@ -106,7 +106,7 @@ bool GLVolumeListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
   return true;
 }
 
-GLVolume* GLVolumeListElem::Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter) {
+GLVolume* GLVolumeListElem::Access(uint64_t& iIntraFrameCounter, uint64_t& iFrameCounter) {
   m_iIntraFrameCounter = iIntraFrameCounter;
   m_iFrameCounter = iFrameCounter;
   iUserCount++;
@@ -119,8 +119,8 @@ bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
                                  bool bIsDownsampledTo8Bits,
                                  bool bDisableBorder,
                                  bool bEmulate3DWith2DStacks,
-                                 UINT64& iIntraFrameCounter,
-                                 UINT64& iFrameCounter)
+                                 uint64_t& iIntraFrameCounter,
+                                 uint64_t& iFrameCounter)
 {
   if (!Match(vDimension) || iUserCount > 0
       || m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo
@@ -229,8 +229,8 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
                                bool bIsDownsampledTo8Bits,
                                bool bDisableBorder,
                                bool bEmulate3DWith2DStacks,
-                               UINT64 iIntraFrameCounter,
-                               UINT64 iFrameCounter,
+                               uint64_t iIntraFrameCounter,
+                               uint64_t iFrameCounter,
                                std::vector<unsigned char>& vUploadHub) {
   
   if(!volume) { return false; }
@@ -254,9 +254,9 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
   const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
 
   if (!m_bIsPaddedToPowerOfTwo ||
-      (MathTools::IsPow2(UINT32(vSize[0])) &&
-       MathTools::IsPow2(UINT32(vSize[1])) &&
-       MathTools::IsPow2(UINT32(vSize[2])))) {
+      (MathTools::IsPow2(uint32_t(vSize[0])) &&
+       MathTools::IsPow2(uint32_t(vSize[1])) &&
+       MathTools::IsPow2(uint32_t(vSize[2])))) {
     volume->SetData(m_bUsingHub ? &vUploadHub.at(0) : &vData.at(0));
   } else {
     std::pair<shared_ptr<unsigned char>, UINTVECTOR3> padded = PadData(
@@ -275,13 +275,13 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
 
 bool GLVolumeListElem::LoadData(std::vector<unsigned char>& vUploadHub) {
   const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
-  UINT64 iByteWidth  = pDataset->GetBitWidth()/8;
-  UINT64 iCompCount = pDataset->GetComponentCount();
+  uint64_t iByteWidth  = pDataset->GetBitWidth()/8;
+  uint64_t iCompCount = pDataset->GetComponentCount();
 
-  UINT64 iBrickSize = vSize[0]*vSize[1]*vSize[2]*iByteWidth * iCompCount;
+  uint64_t iBrickSize = vSize[0]*vSize[1]*vSize[2]*iByteWidth * iCompCount;
 
   if (!vUploadHub.empty() && iBrickSize <=
-      UINT64(m_pMasterController->IOMan()->GetIncoresize()*4)) {
+      uint64_t(m_pMasterController->IOMan()->GetIncoresize()*4)) {
     m_bUsingHub = true;
     return pDataset->GetBrick(m_Key, vUploadHub);
   } else {
@@ -296,13 +296,13 @@ void  GLVolumeListElem::FreeData() {
 static void DeleteArray(unsigned char* p) { delete[] p; }
 
 std::pair<shared_ptr<unsigned char>, UINTVECTOR3>
-GLVolumeListElem::PadData(unsigned char* pRawData, UINTVECTOR3 vSize, UINT64 iBitWidth,
-                          UINT64 iCompCount)
+GLVolumeListElem::PadData(unsigned char* pRawData, UINTVECTOR3 vSize, uint64_t iBitWidth,
+                          uint64_t iCompCount)
 {
   // pad the data to a power of two
-  UINTVECTOR3 vPaddedSize(MathTools::NextPow2(UINT32(vSize[0])),
-                          MathTools::NextPow2(UINT32(vSize[1])),
-                          MathTools::NextPow2(UINT32(vSize[2])));
+  UINTVECTOR3 vPaddedSize(MathTools::NextPow2(uint32_t(vSize[0])),
+                          MathTools::NextPow2(uint32_t(vSize[1])),
+                          MathTools::NextPow2(uint32_t(vSize[2])));
   size_t iTarget = 0;
   size_t iSource = 0;
   size_t iElementSize = static_cast<size_t>(iBitWidth/8*iCompCount);
@@ -376,8 +376,8 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
   const UINTVECTOR3 vSize = pDataset->GetBrickVoxelCounts(m_Key);
 
   bool bToggleEndian = !pDataset->IsSameEndianness();
-  UINT64 iBitWidth  = pDataset->GetBitWidth();
-  UINT64 iCompCount = pDataset->GetComponentCount();
+  uint64_t iBitWidth  = pDataset->GetBitWidth();
+  uint64_t iCompCount = pDataset->GetComponentCount();
 
   MESSAGE("%llu components of width %llu", iCompCount, iBitWidth);
 
@@ -425,9 +425,9 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
       if (bToggleEndian) {
         /// @todo BROKEN for N-dimensional data; we're assuming we only get 3D
         /// data here.
-        UINT64 iElemCount = vSize[0] * vSize[1] * vSize[2];
+        uint64_t iElemCount = vSize[0] * vSize[1] * vSize[2];
         short* pShorData = (short*)pRawData;
-        for (UINT64 i = 0;i<iCompCount*iElemCount;i++) {
+        for (uint64_t i = 0;i<iCompCount*iElemCount;i++) {
           EndianConvert::Swap<short>(pShorData+i);
         }
       }
@@ -454,23 +454,23 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
 
   glGetError();
   if (!m_bIsPaddedToPowerOfTwo ||
-      (MathTools::IsPow2(UINT32(vSize[0])) &&
-       MathTools::IsPow2(UINT32(vSize[1])) &&
-       MathTools::IsPow2(UINT32(vSize[2])))) {
+      (MathTools::IsPow2(uint32_t(vSize[0])) &&
+       MathTools::IsPow2(uint32_t(vSize[1])) &&
+       MathTools::IsPow2(uint32_t(vSize[2])))) {
     GLenum clamp = m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP;
 
     if (m_bEmulate3DWith2DStacks) {
-      volume = new GLVolume2DTex(UINT32(vSize[0]), UINT32(vSize[1]),
-                                     UINT32(vSize[2]),
+      volume = new GLVolume2DTex(uint32_t(vSize[0]), uint32_t(vSize[1]),
+                                     uint32_t(vSize[2]),
                                      glInternalformat, glFormat, glType,
-                                     UINT32(iBitWidth/8*iCompCount), pRawData,
+                                     uint32_t(iBitWidth/8*iCompCount), pRawData,
                                      GL_LINEAR, GL_LINEAR,
                                      clamp, clamp, clamp);
     } else {
-      volume = new GLVolume3DTex(UINT32(vSize[0]), UINT32(vSize[1]),
-                                     UINT32(vSize[2]),
+      volume = new GLVolume3DTex(uint32_t(vSize[0]), uint32_t(vSize[1]),
+                                     uint32_t(vSize[2]),
                                      glInternalformat, glFormat, glType,
-                                     UINT32(iBitWidth/8*iCompCount), pRawData,
+                                     uint32_t(iBitWidth/8*iCompCount), pRawData,
                                      GL_LINEAR, GL_LINEAR,
                                      clamp, clamp, clamp);
     }
@@ -483,7 +483,7 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     if (m_bEmulate3DWith2DStacks) {
       volume = new GLVolume2DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
                                      glInternalformat, glFormat, glType,
-                                     UINT32(iBitWidth/8*iCompCount),
+                                     uint32_t(iBitWidth/8*iCompCount),
                                      pPaddedData.get(),
                                      GL_LINEAR, GL_LINEAR,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,
@@ -492,7 +492,7 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
     } else {
       volume = new GLVolume3DTex(vPaddedSize[0], vPaddedSize[1], vPaddedSize[2],
                                      glInternalformat, glFormat, glType,
-                                     UINT32(iBitWidth/8*iCompCount),
+                                     uint32_t(iBitWidth/8*iCompCount),
                                      pPaddedData.get(),
                                      GL_LINEAR, GL_LINEAR,
                                      m_bDisableBorder ? GL_CLAMP_TO_EDGE : GL_CLAMP,

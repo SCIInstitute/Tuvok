@@ -153,7 +153,7 @@ void SBVRGeogen2D::ComputeGeometryRezk() {
 
   VERTEX_FORMAT pfSliceVertex[4];
   float fDelta = GetDelta(iStack);
-  UINT32 iLayerCount = UINT32(floor(1.0f/fDelta));
+  uint32_t iLayerCount = uint32_t(floor(1.0f/fDelta));
   fDelta = 1.0f / float(iLayerCount-1);
   float fDepth = 0;
   if (bFlipStack) {
@@ -163,7 +163,7 @@ void SBVRGeogen2D::ComputeGeometryRezk() {
 
   switch (iStack) {
     case 0 :{
-              for (UINT32 x = 0;x<iLayerCount;x++) {
+              for (uint32_t x = 0;x<iLayerCount;x++) {
                 InterpolateVertices(m_pfBBOXVertex[1], m_pfBBOXVertex[0], 
                                     fDepth, pfSliceVertex[0]);
                 InterpolateVertices(m_pfBBOXVertex[2], m_pfBBOXVertex[3], 
@@ -186,7 +186,7 @@ void SBVRGeogen2D::ComputeGeometryRezk() {
             } break;
     case 1 :{
 
-              for (UINT32 y = 0;y<iLayerCount;y++) {
+              for (uint32_t y = 0;y<iLayerCount;y++) {
 
                 InterpolateVertices(m_pfBBOXVertex[0], m_pfBBOXVertex[4], 
                                     fDepth, pfSliceVertex[0]);
@@ -208,7 +208,7 @@ void SBVRGeogen2D::ComputeGeometryRezk() {
               }
             }  break;
     case 2 :{
-              for (UINT32 z = 0;z<iLayerCount;z++) {
+              for (uint32_t z = 0;z<iLayerCount;z++) {
                 InterpolateVertices(m_pfBBOXVertex[0], m_pfBBOXVertex[3],
                                     fDepth, pfSliceVertex[0]);
                 InterpolateVertices(m_pfBBOXVertex[1], m_pfBBOXVertex[2],
@@ -384,7 +384,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
 
   // if something of the x stack is visible
   if (fCosAngleX > fMinCos) {
-    UINT32 iLayerCount = UINT32(floor(1.0f/fDelta.x));
+    uint32_t iLayerCount = uint32_t(floor(1.0f/fDelta.x));
     fDelta.x = 1.0f / float(iLayerCount-1);
 
     // detemine if we a moving back to front or front to back
@@ -396,7 +396,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
     }
 
     // generate ALL stack quads
-    for (UINT32 x = 0;x<iLayerCount;x++) {
+    for (uint32_t x = 0;x<iLayerCount;x++) {
 
       InterpolateVertices(m_pfBBOXVertex[2], m_pfBBOXVertex[3],
                           a, pfSliceVertex[0]);
@@ -434,7 +434,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
   // if something of the y stack is visible
   if (fCosAngleY > fMinCos) {
 
-    UINT32 iLayerCount = UINT32(floor(1.0f/fDelta.y));
+    uint32_t iLayerCount = uint32_t(floor(1.0f/fDelta.y));
     fDelta.y = 1.0f / float(iLayerCount-1);
     float a = 0;
 
@@ -446,7 +446,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
     }
 
     // generate ALL stack quads
-    for (UINT32 y = 0;y<iLayerCount;y++) {
+    for (uint32_t y = 0;y<iLayerCount;y++) {
 
       InterpolateVertices(m_pfBBOXVertex[0], m_pfBBOXVertex[4],
                           a, pfSliceVertex[0]);
@@ -482,7 +482,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
 
   // if something of the z stack is visible
   if (fCosAngleZ > fMinCos) {
-    UINT32 iLayerCount = UINT32(floor(1.0f/fDelta.z));
+    uint32_t iLayerCount = uint32_t(floor(1.0f/fDelta.z));
     fDelta.z = 1.0f / float(iLayerCount-1);
     float a = 0;
 
@@ -494,7 +494,7 @@ void SBVRGeogen2D::ComputeGeometryKrueger() {
     }
 
    // generate ALL stack quads
-    for (UINT32 z = 0;z<iLayerCount;z++) {
+    for (uint32_t z = 0;z<iLayerCount;z++) {
       InterpolateVertices(m_pfBBOXVertex[3], m_pfBBOXVertex[0],
                           a, pfSliceVertex[0]);
       InterpolateVertices(m_pfBBOXVertex[2], m_pfBBOXVertex[1],
@@ -849,7 +849,7 @@ void SBVRGeogen2D::BuildStackQuads(
 
 
   // compute number of layers to cover depth
-  UINT32 iLayerCount = UINT32(floor(fDistScale/fDelta));
+  uint32_t iLayerCount = uint32_t(floor(fDistScale/fDelta));
   fDelta = 1.0f / float(iLayerCount-1);
 
   vSliceTriangles.resize(iLayerCount*6);

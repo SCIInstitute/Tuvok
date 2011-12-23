@@ -40,7 +40,7 @@
 #include <cassert>
 using namespace tuvok;
 
-DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
+DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, uint32_t iSizeX, uint32_t iSizeY,
                          DXGI_FORMAT format) :
   DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, false),
   m_iSizeX(iSizeX),
@@ -68,7 +68,7 @@ DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
   m_pd3dDevice->CreateShaderResourceView( m_pTexture, &SRVDesc, &m_pTexture_SRV );
 }
 
-DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, UINT32 iSizeX, UINT32 iSizeY,
+DXTexture2D::DXTexture2D(ID3D10Device* pd3dDevice, uint32_t iSizeX, uint32_t iSizeY,
                          DXGI_FORMAT format, const void* pInitialData,
                          bool bIsReadOnly) :
   DXTexture(pd3dDevice, g_dx10Format[int(format)].m_iByteSize, bIsReadOnly),

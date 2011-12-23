@@ -90,13 +90,13 @@ namespace tuvok {
   // simple textures
   class SimpleTextureListElem {
   public:
-    SimpleTextureListElem(UINT32 _iAccessCounter, GLTexture2D* _pTexture, std::string _strFilename) :
+    SimpleTextureListElem(uint32_t _iAccessCounter, GLTexture2D* _pTexture, std::string _strFilename) :
       iAccessCounter(_iAccessCounter),
       pTexture(_pTexture),
       strFilename(_strFilename)
     {}
 
-    UINT32        iAccessCounter;
+    uint32_t        iAccessCounter;
     GLTexture2D*  pTexture;
     std::string   strFilename;
   };
@@ -147,8 +147,8 @@ namespace tuvok {
     GLVolumeListElem(Dataset* _pDataset, const BrickKey&,
                       bool bIsPaddedToPowerOfTwo, bool bDisableBorder,
                       bool bIsDownsampledTo8Bits, bool bEmulate3DWith2DStacks,
-                      UINT64 iIntraFrameCounter,
-                      UINT64 iFrameCounter, MasterController* pMasterController,
+                      uint64_t iIntraFrameCounter,
+                      uint64_t iFrameCounter, MasterController* pMasterController,
                       std::vector<unsigned char>& vUploadHub);
     ~GLVolumeListElem();
 
@@ -158,14 +158,14 @@ namespace tuvok {
     bool Replace(Dataset* _pDataset, const BrickKey&,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, bool bEmulate3DWith2DStacks,
-                 UINT64 iIntraFrameCounter, UINT64 iFrameCounter,
+                 uint64_t iIntraFrameCounter, uint64_t iFrameCounter,
                  std::vector<unsigned char>& vUploadHub);
     bool BestMatch(const UINTVECTOR3& vDimension,
                    bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                    bool bDisableBorder, bool bEmulate3DWith2DStacks,
-                   UINT64& iIntraFrameCounter,
-                   UINT64& iFrameCounter);
-    void GetCounters(UINT64& iIntraFrameCounter, UINT64& iFrameCounter) {
+                   uint64_t& iIntraFrameCounter,
+                   uint64_t& iFrameCounter);
+    void GetCounters(uint64_t& iIntraFrameCounter, uint64_t& iFrameCounter) {
       iIntraFrameCounter = m_iIntraFrameCounter;
       iFrameCounter = m_iFrameCounter;
     }
@@ -176,15 +176,15 @@ namespace tuvok {
     size_t GetCPUSize() const;
     ///@}
 
-    GLVolume* Access(UINT64& iIntraFrameCounter, UINT64& iFrameCounter);
+    GLVolume* Access(uint64_t& iIntraFrameCounter, uint64_t& iFrameCounter);
 
     bool LoadData(std::vector<unsigned char>& vUploadHub);
     void FreeData();
     std::pair<std::tr1::shared_ptr<unsigned char>, UINTVECTOR3> PadData(
       unsigned char* pRawData,
       UINTVECTOR3 vSize,
-      UINT64 iBitWidth,
-      UINT64 iCompCount
+      uint64_t iBitWidth,
+      uint64_t iCompCount
     );
     bool CreateTexture(std::vector<unsigned char>& vUploadHub,
                        bool bDeleteOldTexture=true);
@@ -193,16 +193,16 @@ namespace tuvok {
     std::vector<unsigned char>    vData;
     GLVolume* volume;
     Dataset*                      pDataset;
-    UINT32                        iUserCount;
+    uint32_t                        iUserCount;
 
-    UINT64 GetIntraFrameCounter() const {return m_iIntraFrameCounter;}
-    UINT64 GetFrameCounter() const {return m_iFrameCounter;}
+    uint64_t GetIntraFrameCounter() const {return m_iIntraFrameCounter;}
+    uint64_t GetFrameCounter() const {return m_iFrameCounter;}
 
   private:
     bool Match(const UINTVECTOR3& vDimension);
 
-    UINT64 m_iIntraFrameCounter;
-    UINT64 m_iFrameCounter;
+    uint64_t m_iIntraFrameCounter;
+    uint64_t m_iFrameCounter;
     MasterController* m_pMasterController;
 
     BrickKey m_Key;
@@ -222,7 +222,7 @@ namespace tuvok {
   public:
     FBOListElem(GLFBOTex* _pFBOTex) : pFBOTex(_pFBOTex)
     {}
-    FBOListElem(MasterController* pMasterController, GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, UINT32 iSizePerElement, bool bHaveDepth, int iNumBuffers) :
+    FBOListElem(MasterController* pMasterController, GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, uint32_t iSizePerElement, bool bHaveDepth, int iNumBuffers) :
       pFBOTex(new GLFBOTex(pMasterController, minfilter, magfilter, wrapmode, width, height, intformat, iSizePerElement, bHaveDepth, iNumBuffers))
     {}
 
@@ -261,7 +261,7 @@ namespace tuvok {
 
     const std::vector<std::string> vertex;
     const std::vector<std::string> fragment;
-    UINT32        iAccessCounter;
+    uint32_t        iAccessCounter;
     GLSLProgram*  pGLSLProgram;
   };
   typedef std::deque<GLSLListElem*> GLSLList;
