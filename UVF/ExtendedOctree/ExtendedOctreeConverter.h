@@ -488,4 +488,4 @@ private:
 /// used in the ExtendedOctreeConverter
 #include "ExtendedOctreeConverter.inc"
 
-#endif EXTENDEDOCTREECONVERTER_H
+#endif // EXTENDEDOCTREECONVERTER_H
