@@ -38,26 +38,26 @@
 
 using namespace tuvok;
 
-UINTVECTOR3 ExtendedOctreeInfo::GetLODCount(UINTVECTOR3 , UINTVECTOR3 , UINT32 ) {
+UINTVECTOR3 ExtendedOctreeInfo::GetLODCount(UINTVECTOR3 , UINTVECTOR3 , uint32_t ) {
   // TODO
   return UINTVECTOR3();
 }
 
-UINTVECTOR3 ExtendedOctreeInfo::GetLODSize(UINT32 , UINTVECTOR3 , UINTVECTOR3 , UINT32 ) {
+UINTVECTOR3 ExtendedOctreeInfo::GetLODSize(uint32_t , UINTVECTOR3 , UINTVECTOR3 , uint32_t ) {
   // TODO
   return UINTVECTOR3();
 }
 
-UINTVECTOR3 GetBrickSize(UINTVECTOR3 , UINT32 , UINTVECTOR3 , UINTVECTOR3 , UINT32 ) {
+UINTVECTOR3 GetBrickSize(UINTVECTOR3 , uint32_t , UINTVECTOR3 , UINTVECTOR3 , uint32_t ) {
   // TODO
   return UINTVECTOR3();
 }
 
 
-GLVolumePool::GLVolumePool(UINTVECTOR3 , UINTVECTOR3 , UINT32 ,
+GLVolumePool::GLVolumePool(UINTVECTOR3 , UINTVECTOR3 , uint32_t ,
                            const UINTVECTOR3& poolTexSize, const UINTVECTOR3& brickSize,
                            GLint internalformat, GLenum format, GLenum type,
-                           UINT32 iSizePerElement) :
+                           uint32_t iSizePerElement) :
 m_StaticLODLUT(NULL),
 m_PoolMetadataTexture(NULL),
 m_PoolDataTexture(NULL),

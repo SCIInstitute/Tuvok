@@ -51,9 +51,9 @@ namespace tuvok {
 
   class ExtendedOctreeInfo {
     public:
-      static UINTVECTOR3 GetLODCount(UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, UINT32 overlap);
-      static UINTVECTOR3 GetLODSize(UINT32 iLOD, UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, UINT32 overlap);
-      static UINTVECTOR3 GetBrickSize(UINTVECTOR3 iBrickIndex, UINT32 iLOD, UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, UINT32 overlap);
+      static UINTVECTOR3 GetLODCount(UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, uint32_t overlap);
+      static UINTVECTOR3 GetLODSize(uint32_t iLOD, UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, uint32_t overlap);
+      static UINTVECTOR3 GetBrickSize(UINTVECTOR3 iBrickIndex, uint32_t iLOD, UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, uint32_t overlap);
   };
 
   class BrickElemInfo {
@@ -85,10 +85,10 @@ namespace tuvok {
 
   class GLVolumePool : public GLObject {
     public:
-      GLVolumePool(UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, UINT32 overlap,
+      GLVolumePool(UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, uint32_t overlap,
                    const UINTVECTOR3& poolTexSize, const UINTVECTOR3& brickSize,
                    GLint internalformat, GLenum format, GLenum type, 
-                   UINT32 iSizePerElement);
+                   uint32_t iSizePerElement);
 
       bool UploadBrick(const BrickElemInfo& metaData, void* pData);
       bool IsBrickResident(const UINTVECTOR4& vBrickID) const;
@@ -112,7 +112,7 @@ namespace tuvok {
       GLint m_internalformat;
       GLenum m_format;
       GLenum m_type;
-      UINT32 m_iSizePerElement;
+      uint32_t m_iSizePerElement;
 
       void CreateGLResources();
       void FreeGLResources();
