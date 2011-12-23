@@ -27,25 +27,7 @@
 #ifndef EXTENDEDOCTREE_H
 #define EXTENDEDOCTREE_H
 
-// getting the fixed size data types to work
-#if _MSC_VER >= 1600 // VS 2010 or newer
-  #include <cstdint>
-#else 
-  #ifdef _MSC_VER // older VS
-    #include "boost/cstdint.hpp"
-    #include <functional>
-    using boost::int64_t;
-    using boost::int32_t;
-    using boost::int16_t;
-    using boost::int8_t;
-    using boost::uint64_t;
-    using boost::uint32_t;
-    using boost::uint16_t;
-    using boost::uint8_t;
-  #else // anything else
-    #include <tr1/cstdint>
-  #endif
-#endif
+#include <StdTuvokDefines.h>
 
 // make sure have access to the tr1 shared_ptr
 #ifdef _MSC_VER
