@@ -7,14 +7,15 @@
 using namespace std;
 using namespace UVFTables;
 
-UINT64 UVF::ms_ulReaderVersion = UVFVERSION;
+uint64_t UVF::ms_ulReaderVersion = UVFVERSION;
 
 UVF::UVF(std::wstring wstrFilename) : 
   m_bFileIsLoaded(false),
   m_bFileIsReadWrite(false),
-  m_streamFile(wstrFilename),
+  m_streamFile(new LargeRAWFile(wstrFilename)),
   m_iAccumOffsets(0)
 {
+
 }
 
 UVF::~UVF(void)
@@ -22,17 +23,17 @@ UVF::~UVF(void)
   Close();
 }
 
-bool UVF::CheckMagic(LargeRAWFile& streamFile) {
-  if (!streamFile.Open(false)) {
+bool UVF::CheckMagic(LargeRAWFile_ptr streamFile) {
+  if (!streamFile->Open(false)) {
     return false;
   }
 
-  if (streamFile.GetCurrentSize() < GlobalHeader::GetMinSize() + 8) {
+  if (streamFile->GetCurrentSize() < GlobalHeader::GetMinSize() + 8) {
     return false;
   }
 
   unsigned char pData[8];
-  streamFile.ReadRAW(pData, 8);
+  streamFile->ReadRAW(pData, 8);
 
   if (pData[0] != 'U' || pData[1] != 'V' || pData[2] != 'F' || pData[3] != '-' || pData[4] != 'D' || pData[5] != 'A' || pData[6] != 'T' || pData[7] != 'A') {
     return false;
@@ -42,34 +43,34 @@ bool UVF::CheckMagic(LargeRAWFile& streamFile) {
 }
 
 bool UVF::IsUVFFile(const std::wstring& wstrFilename) {
-  LargeRAWFile streamFile(wstrFilename);
+  LargeRAWFile_ptr streamFile(new LargeRAWFile (wstrFilename));
   bool bResult = CheckMagic(streamFile);
-  streamFile.Close();
+  streamFile->Close();
   return bResult;
 }
 
 bool UVF::IsUVFFile(const std::wstring& wstrFilename, bool& bChecksumFail) {
 
-  LargeRAWFile streamFile(wstrFilename);
+  LargeRAWFile_ptr streamFile( new LargeRAWFile(wstrFilename));
 
   if (!CheckMagic(streamFile)) {
     bChecksumFail = false;
-    streamFile.Close();
+    streamFile->Close();
     return false;
   }
 
 
   GlobalHeader g;
-  g.GetHeaderFromFile(&streamFile);
+  g.GetHeaderFromFile(streamFile);
   bChecksumFail = !VerifyChecksum(streamFile, g);
-  streamFile.Close();
+  streamFile->Close();
   return true;
 }
 
 bool UVF::Open(bool bMustBeSameVersion, bool bVerify, bool bReadWrite, std::string* pstrProblem) {
   if (m_bFileIsLoaded) return true;
 
-  m_bFileIsLoaded = m_streamFile.Open(bReadWrite);
+  m_bFileIsLoaded = m_streamFile->Open(bReadWrite);
 
   if (!m_bFileIsLoaded) {
     if (pstrProblem) (*pstrProblem) = "file not found or access denied";
@@ -96,7 +97,7 @@ void UVF::Close() {
       bool dirty = false;
       for (size_t i = 0;i<m_DataBlocks.size();i++) {
         if (m_DataBlocks[i]->m_bHeaderIsDirty) {
-          m_DataBlocks[i]->m_block->CopyHeaderToFile(&m_streamFile,
+          m_DataBlocks[i]->m_block->CopyHeaderToFile(m_streamFile,
                                                      m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(),
                                                      m_GlobalHeader.bIsBigEndian,
                                                      i == m_DataBlocks.size()-1);
@@ -104,10 +105,10 @@ void UVF::Close() {
         } 
         if (m_DataBlocks[i]->m_bIsDirty) {
           // for now we only support changes in the datablock that do not influence its size
-          // TODO: will need to extend this to abitrary changes once we add more features
+          // TODO: will need to extend this to arbitrary changes once we add more features
           assert(m_DataBlocks[i]->m_block->GetOffsetToNextBlock() == m_DataBlocks[i]->GetBlockSize());
 
-          m_DataBlocks[i]->m_block->CopyToFile(&m_streamFile, 
+          m_DataBlocks[i]->m_block->CopyToFile(m_streamFile, 
                                                m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(),
                                                m_GlobalHeader.bIsBigEndian,
                                                i == m_DataBlocks.size()-1);
@@ -118,7 +119,7 @@ void UVF::Close() {
         UpdateChecksum();
       }
     }
-    m_streamFile.Close();
+    m_streamFile->Close();
     m_bFileIsLoaded = false;
   }
 
@@ -131,51 +132,51 @@ void UVF::Close() {
 
 
 bool UVF::ParseGlobalHeader(bool bVerify, std::string* pstrProblem) {
-  if (m_streamFile.GetCurrentSize() < GlobalHeader::GetMinSize() + 8) {
+  if (m_streamFile->GetCurrentSize() < GlobalHeader::GetMinSize() + 8) {
     if (pstrProblem!=NULL) (*pstrProblem) = "file to small to be a UVF file";
     return false;
   }
 
   unsigned char pData[8];
-  m_streamFile.ReadRAW(pData, 8);
+  m_streamFile->ReadRAW(pData, 8);
 
   if (pData[0] != 'U' || pData[1] != 'V' || pData[2] != 'F' || pData[3] != '-' || pData[4] != 'D' || pData[5] != 'A' || pData[6] != 'T' || pData[7] != 'A') {
     if (pstrProblem!=NULL) (*pstrProblem) = "file magic not found";
     return false;
   }
   
-  m_GlobalHeader.GetHeaderFromFile(&m_streamFile);
+  m_GlobalHeader.GetHeaderFromFile(m_streamFile);
   
   return !bVerify || VerifyChecksum(m_streamFile, m_GlobalHeader, pstrProblem);
 }
 
 
-vector<unsigned char> UVF::ComputeChecksum(LargeRAWFile& streamFile, ChecksumSemanticTable eChecksumSemanticsEntry) {
+vector<unsigned char> UVF::ComputeChecksum(LargeRAWFile_ptr streamFile, ChecksumSemanticTable eChecksumSemanticsEntry) {
   vector<unsigned char> checkSum;
 
-  UINT64 iOffset    = 33+UVFTables::ChecksumElemLength(eChecksumSemanticsEntry);
-  UINT64 iFileSize  = streamFile.GetCurrentSize();
-  UINT64 iSize      = iFileSize-iOffset;
+  uint64_t iOffset    = 33+UVFTables::ChecksumElemLength(eChecksumSemanticsEntry);
+  uint64_t iFileSize  = streamFile->GetCurrentSize();
+  uint64_t iSize      = iFileSize-iOffset;
 
-  streamFile.SeekPos(iOffset);
+  streamFile->SeekPos(iOffset);
 
   unsigned char *ucBlock=new unsigned char[1<<20];
   switch (eChecksumSemanticsEntry) {
     case CS_CRC32 : {
               CRC32     crc;
-              UINT64 iBlocks=iFileSize>>20;
+              uint64_t iBlocks=iFileSize>>20;
               unsigned long dwCRC32=0xFFFFFFFF;
-              for (UINT64 i=0; i<iBlocks; i++) {
-                streamFile.ReadRAW(ucBlock,1<<20);
+              for (uint64_t i=0; i<iBlocks; i++) {
+                streamFile->ReadRAW(ucBlock,1<<20);
                 crc.chunk(ucBlock,1<<20,dwCRC32);
               }
 
               size_t iLengthLastChunk=size_t(iFileSize-(iBlocks<<20));
-              streamFile.ReadRAW(ucBlock,iLengthLastChunk);
+              streamFile->ReadRAW(ucBlock,iLengthLastChunk);
               crc.chunk(ucBlock,iLengthLastChunk,dwCRC32);
               dwCRC32^=0xFFFFFFFF;
 
-              for (UINT64 i = 0;i<4;i++) {
+              for (uint64_t i = 0;i<4;i++) {
                 unsigned char c = dwCRC32 & 255;
                 checkSum.push_back(c);
                 dwCRC32 = dwCRC32>>8;
@@ -184,13 +185,13 @@ vector<unsigned char> UVF::ComputeChecksum(LargeRAWFile& streamFile, ChecksumSem
     case CS_MD5 : {
               MD5    md5;
               int    iError=0;
-              UINT32 iBlockSize;
+              uint32_t iBlockSize;
 
               while (iSize > 0)
               {
-                iBlockSize = UINT32(min(iSize,UINT64(1<<20)));
+                iBlockSize = uint32_t(min(iSize,uint64_t(1<<20)));
 
-                streamFile.ReadRAW(ucBlock,iBlockSize);
+                streamFile->ReadRAW(ucBlock,iBlockSize);
                 md5.Update(ucBlock, iBlockSize, iError);
                 iSize   -= iBlockSize;
               }
@@ -203,12 +204,12 @@ vector<unsigned char> UVF::ComputeChecksum(LargeRAWFile& streamFile, ChecksumSem
   }
   delete [] ucBlock;
 
-  streamFile.SeekStart();
+  streamFile->SeekStart();
   return checkSum;
 }
 
 
-bool UVF::VerifyChecksum(LargeRAWFile& streamFile, GlobalHeader& globalHeader, std::string* pstrProblem) {
+bool UVF::VerifyChecksum(LargeRAWFile_ptr streamFile, GlobalHeader& globalHeader, std::string* pstrProblem) {
   vector<unsigned char> vecActualCheckSum = ComputeChecksum(streamFile, globalHeader.ulChecksumSemanticsEntry);
 
   if (vecActualCheckSum.size() != globalHeader.vcChecksum.size()) {
@@ -243,20 +244,20 @@ bool UVF::VerifyChecksum(LargeRAWFile& streamFile, GlobalHeader& globalHeader, s
 
 
 void UVF::ParseDataBlocks() {
-  UINT64 iOffset = m_GlobalHeader.GetDataPos();
+  uint64_t iOffset = m_GlobalHeader.GetDataPos();
   do  {
-    DataBlock *d = new DataBlock(&m_streamFile, iOffset, m_GlobalHeader.bIsBigEndian);
+    DataBlock *d = new DataBlock(m_streamFile, iOffset, m_GlobalHeader.bIsBigEndian);
 
-    // if we recongnize the block -> read it completely
+    // if we recognize the block -> read it completely
     if (d->ulBlockSemantics > BS_EMPTY && d->ulBlockSemantics < BS_UNKNOWN) {
       BlockSemanticTable eTableID = d->ulBlockSemantics;
       delete d;
-      d = CreateBlockFromSemanticEntry(eTableID, &m_streamFile, iOffset, m_GlobalHeader.bIsBigEndian);
+      d = CreateBlockFromSemanticEntry(eTableID, m_streamFile, iOffset, m_GlobalHeader.bIsBigEndian);
     }
 
-    m_DataBlocks.push_back(new DataBlockListElem(d,true,false,iOffset-m_GlobalHeader.GetDataPos(),d->GetOffsetToNextBlock()));
+    m_DataBlocks.push_back(new DataBlockListElem(d,true,false,iOffset-m_GlobalHeader.GetDataPos(),d->ulOffsetToNextDataBlock));
 
-    iOffset += d->GetOffsetToNextBlock();
+    iOffset += d->ulOffsetToNextDataBlock;
 
   } while (m_DataBlocks[m_DataBlocks.size()-1]->m_block->ulOffsetToNextDataBlock != 0);
 }
@@ -265,7 +266,7 @@ void UVF::ParseDataBlocks() {
 
 void UVF::UpdateChecksum() {
   if (m_GlobalHeader.ulChecksumSemanticsEntry == CS_NONE) return;
-  m_GlobalHeader.UpdateChecksum(ComputeChecksum(m_streamFile, m_GlobalHeader.ulChecksumSemanticsEntry), &m_streamFile);
+  m_GlobalHeader.UpdateChecksum(ComputeChecksum(m_streamFile, m_GlobalHeader.ulChecksumSemanticsEntry), m_streamFile);
 }
 
 bool UVF::SetGlobalHeader(const GlobalHeader& globalHeader) {
@@ -287,7 +288,7 @@ bool UVF::SetGlobalHeader(const GlobalHeader& globalHeader) {
 }
 
 bool UVF::AddConstDataBlock(const DataBlock* dataBlock) {
-  const UINT64 iSizeofData = dataBlock->ComputeDataSize();
+  const uint64_t iSizeofData = dataBlock->ComputeDataSize();
   if (!dataBlock->Verify(iSizeofData)) return false;
 
   DataBlock* d = dataBlock->Clone();
@@ -301,7 +302,7 @@ bool UVF::AddConstDataBlock(const DataBlock* dataBlock) {
 
 bool UVF::AddDataBlock(DataBlock* dataBlock,
                        bool bUseSourcePointer) {
-  const UINT64 iSizeofData = dataBlock->ComputeDataSize();
+  const uint64_t iSizeofData = dataBlock->ComputeDataSize();
 
   if (!dataBlock->Verify(iSizeofData)) return false;
 
@@ -315,8 +316,8 @@ bool UVF::AddDataBlock(DataBlock* dataBlock,
   return true;
 }
 
-UINT64 UVF::ComputeNewFileSize() {
-  UINT64 iFileSize = m_GlobalHeader.GetDataPos();
+uint64_t UVF::ComputeNewFileSize() {
+  uint64_t iFileSize = m_GlobalHeader.GetDataPos();
   for (size_t i = 0;i<m_DataBlocks.size();i++) 
     iFileSize += m_DataBlocks[i]->m_block->GetOffsetToNextBlock();
   return iFileSize;
@@ -326,7 +327,7 @@ UINT64 UVF::ComputeNewFileSize() {
 bool UVF::Create() {
   if (m_bFileIsLoaded) return false;
 
-  m_bFileIsLoaded = m_streamFile.Create();
+  m_bFileIsLoaded = m_streamFile->Create();
 
   if (m_bFileIsLoaded) {
 
@@ -341,13 +342,13 @@ bool UVF::Create() {
     pData[5] = 'A';
     pData[6] = 'T';
     pData[7] = 'A';
-    m_streamFile.WriteRAW(pData, 8);
+    m_streamFile->WriteRAW(pData, 8);
 
-    m_GlobalHeader.CopyHeaderToFile(&m_streamFile);
+    m_GlobalHeader.CopyHeaderToFile(m_streamFile);
     
-    UINT64 iOffset = m_GlobalHeader.GetDataPos();
+    uint64_t iOffset = m_GlobalHeader.GetDataPos();
     for (size_t i = 0;i<m_DataBlocks.size();i++) {
-        iOffset += m_DataBlocks[i]->m_block->CopyToFile(&m_streamFile, iOffset,
+        iOffset += m_DataBlocks[i]->m_block->CopyToFile(m_streamFile, iOffset,
                                                 m_GlobalHeader.bIsBigEndian, 
                                                 i == m_DataBlocks.size()-1);
         m_DataBlocks[i]->m_bIsDirty = false;
@@ -360,7 +361,7 @@ bool UVF::Create() {
 }
 
 
-DataBlock* UVF::GetDataBlockRW(UINT64 index, bool bOnlyChangeHeader) {
+DataBlock* UVF::GetDataBlockRW(uint64_t index, bool bOnlyChangeHeader) {
   if (bOnlyChangeHeader)
     m_DataBlocks[size_t(index)]->m_bHeaderIsDirty = true; 
   else {
@@ -375,7 +376,7 @@ bool UVF::AppendBlockToFile(DataBlock* dataBlock) {
   
   // add new block to the datablock vector
   DataBlockListElem* dble = new DataBlockListElem(dataBlock, false, false,
-                                           m_streamFile.GetCurrentSize(),
+                                           m_streamFile->GetCurrentSize(),
                                            dataBlock->GetOffsetToNextBlock());
   m_DataBlocks.push_back(dble);
 
@@ -383,7 +384,7 @@ bool UVF::AppendBlockToFile(DataBlock* dataBlock) {
   m_DataBlocks[m_DataBlocks.size()-2]->m_bHeaderIsDirty = true; 
 
   // and the last block needs to written to file
-  dataBlock->CopyToFile(&m_streamFile, m_streamFile.GetCurrentSize(),
+  dataBlock->CopyToFile(m_streamFile, m_streamFile->GetCurrentSize(),
                         m_GlobalHeader.bIsBigEndian, true);
 
   return true;
@@ -399,12 +400,12 @@ bool UVF::DropBlockFromFile(size_t iBlockIndex) {
   // remove data from file, by shifting all blocks after the
   // one to be removed towards the front of the file
 
-  UINT64 iShiftSize = m_DataBlocks[iBlockIndex]->m_block->GetOffsetToNextBlock();
+  uint64_t iShiftSize = m_DataBlocks[iBlockIndex]->m_block->GetOffsetToNextBlock();
   for (size_t i = iBlockIndex+1;i<m_DataBlocks.size();i++) {
-    UINT64 iSourcePos = m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos();
-    UINT64 iTargetPos = iSourcePos-iShiftSize;
-    UINT64 iSize      = m_DataBlocks[i]->GetBlockSize();
-    if (!m_streamFile.CopyRAW(iSize,iSourcePos,iTargetPos,
+    uint64_t iSourcePos = m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos();
+    uint64_t iTargetPos = iSourcePos-iShiftSize;
+    uint64_t iSize      = m_DataBlocks[i]->GetBlockSize();
+    if (!m_streamFile->CopyRAW(iSize,iSourcePos,iTargetPos,
                               pBuffer,BLOCK_COPY_SIZE)) {
       return false;
     }
@@ -414,11 +415,11 @@ bool UVF::DropBlockFromFile(size_t iBlockIndex) {
   // i.e. set offset to 0
   if (iBlockIndex == m_DataBlocks.size()-1) {
     m_DataBlocks[m_DataBlocks.size()-2]->m_bHeaderIsDirty = true;
-    m_streamFile.SeekPos(m_DataBlocks[iBlockIndex]->m_iOffsetInFile+m_GlobalHeader.GetDataPos());
+    m_streamFile->SeekPos(m_DataBlocks[iBlockIndex]->m_iOffsetInFile+m_GlobalHeader.GetDataPos());
   }
 
   // truncate file
-  m_streamFile.Truncate();
+  m_streamFile->Truncate();
 
   // free copy buffer
   delete [] pBuffer;

@@ -101,7 +101,7 @@ GeometryDataBlock::GeometryDataBlock(const GeometryDataBlock& other) :
 {
 }
 
-GeometryDataBlock::GeometryDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset,
+GeometryDataBlock::GeometryDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
                                      bool bIsBigEndian) :
   DataBlock(pStreamFile, iOffset, bIsBigEndian),
   verticesValid(false),
@@ -166,9 +166,9 @@ GeometryDataBlock& GeometryDataBlock::operator=(const GeometryDataBlock& other)
   return *this;
 }
 
-bool GeometryDataBlock::Verify(UINT64 iSizeofData, string* pstrProblem) const
+bool GeometryDataBlock::Verify(uint64_t iSizeofData, string* pstrProblem) const
 {
-  UINT64 iCorrectSize = ComputeDataSize();
+  uint64_t iCorrectSize = ComputeDataSize();
   bool bResult = iCorrectSize == iSizeofData;
 
   if (!bResult && pstrProblem != NULL)  {
@@ -180,27 +180,27 @@ bool GeometryDataBlock::Verify(UINT64 iSizeofData, string* pstrProblem) const
   return bResult;
 }
 
-UINT64 GeometryDataBlock::ComputeHeaderSize() const {
+uint64_t GeometryDataBlock::ComputeHeaderSize() const {
   // n_vertices + n_normals + n_texcoords + n_colors + n_vertices_indices + 
   // n_normals_indices + n_texcoords_indices + n_colors_indices + 
   // m_DefaultColor + desc + 
   // polysize
-  return sizeof(UINT64) * 8 + 4 * sizeof(float) + 
-         sizeof(UINT64) + m_Desc.size() * sizeof(char)+
-         sizeof(UINT64);
+  return sizeof(uint64_t) * 8 + 4 * sizeof(float) + 
+         sizeof(uint64_t) + m_Desc.size() * sizeof(char)+
+         sizeof(uint64_t);
 }
 
-UINT64 GeometryDataBlock::ComputeDataSize() const
+uint64_t GeometryDataBlock::ComputeDataSize() const
 {
   return sizeof(float) * (verticesValid  ? vertices.size()  : m_n_vertices) +  // 3d vertices
          sizeof(float) * (normalsValid   ? normals.size()   : m_n_normals) +   // 3d normals
          sizeof(float) * (texcoordsValid ? texcoords.size() : m_n_texcoords) + // 2d texcoords
          sizeof(float) * (colorsValid    ? colors.size()    : m_n_colors) +    // 4d colors
 
-         sizeof(UINT32) * (vertexIValid ? vIndices.size() : m_n_vertex_indices) + // vertex indices
-         sizeof(UINT32) * (normalIValid ? nIndices.size() : m_n_normal_indices) + // normal indices
-         sizeof(UINT32) * (texcoordIValid ? tIndices.size() : m_n_texcoord_indices) + // texcoord indices
-         sizeof(UINT32) * (colorIValid ? cIndices.size() : m_n_color_indices);  // color indices
+         sizeof(uint32_t) * (vertexIValid ? vIndices.size() : m_n_vertex_indices) + // vertex indices
+         sizeof(uint32_t) * (normalIValid ? nIndices.size() : m_n_normal_indices) + // normal indices
+         sizeof(uint32_t) * (texcoordIValid ? tIndices.size() : m_n_texcoord_indices) + // texcoord indices
+         sizeof(uint32_t) * (colorIValid ? cIndices.size() : m_n_color_indices);  // color indices
 }
 
 DataBlock* GeometryDataBlock::Clone() const 
@@ -208,10 +208,10 @@ DataBlock* GeometryDataBlock::Clone() const
   return new GeometryDataBlock(*this);
 }
 
-UINT64 GeometryDataBlock::GetHeaderFromFile(LargeRAWFile* stream,
-                                            UINT64 offset, bool big_endian)
+uint64_t GeometryDataBlock::GetHeaderFromFile(LargeRAWFile_ptr stream,
+                                            uint64_t offset, bool big_endian)
 {
-  UINT64 start = offset + DataBlock::GetHeaderFromFile(stream, offset,
+  uint64_t start = offset + DataBlock::GetHeaderFromFile(stream, offset,
                                                        big_endian);
   stream->SeekPos(start);
 
@@ -239,7 +239,7 @@ UINT64 GeometryDataBlock::GetHeaderFromFile(LargeRAWFile* stream,
   stream->ReadData(m_DefaultColor[2], big_endian);
   stream->ReadData(m_DefaultColor[3], big_endian);
 
-  UINT64 ulStringLengthDesc;
+  uint64_t ulStringLengthDesc;
   m_pStreamFile->ReadData(ulStringLengthDesc, big_endian);
   m_pStreamFile->ReadData(m_Desc, ulStringLengthDesc);
 
@@ -249,7 +249,7 @@ UINT64 GeometryDataBlock::GetHeaderFromFile(LargeRAWFile* stream,
   return stream->GetPos() - offset;
 }
 
-void GeometryDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+void GeometryDataBlock::CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock) {
   DataBlock::CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
   if (verticesValid) m_n_vertices = vertices.size();
@@ -273,13 +273,13 @@ void GeometryDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffs
   pStreamFile->WriteData(m_DefaultColor[1],    bIsBigEndian);
   pStreamFile->WriteData(m_DefaultColor[2],    bIsBigEndian);
   pStreamFile->WriteData(m_DefaultColor[3],    bIsBigEndian);
-  pStreamFile->WriteData(UINT64(m_Desc.size()),bIsBigEndian);
+  pStreamFile->WriteData(uint64_t(m_Desc.size()),bIsBigEndian);
   pStreamFile->WriteData(m_Desc);
   pStreamFile->WriteData(m_PolySize          , bIsBigEndian);
 }
 
 
-UINT64 GeometryDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset,
+uint64_t GeometryDataBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
                                      bool bIsBigEndian, bool bIsLastBlock)
 {
   if (!verticesValid) { 
@@ -323,7 +323,7 @@ UINT64 GeometryDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset,
   return pStreamFile->GetPos() - iOffset;
 }
 
-UINT64 GeometryDataBlock::GetOffsetToNextBlock() const
+uint64_t GeometryDataBlock::GetOffsetToNextBlock() const
 {
   return DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize() + ComputeDataSize();
 }
@@ -374,8 +374,8 @@ vector< float > GeometryDataBlock::GetColors() const {
   return colors;
 }
 
-vector< UINT32 > GeometryDataBlock::GetVertexIndices() const {
-  vector< UINT32 > v;
+vector< uint32_t > GeometryDataBlock::GetVertexIndices() const {
+  vector< uint32_t > v;
   if (!vertexIValid) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
@@ -388,48 +388,48 @@ vector< UINT32 > GeometryDataBlock::GetVertexIndices() const {
   return vIndices;
 }
 
-vector< UINT32 > GeometryDataBlock::GetNormalIndices() const {
-  vector< UINT32 > v;
+vector< uint32_t > GeometryDataBlock::GetNormalIndices() const {
+  vector< uint32_t > v;
   if (!normalIValid) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
                            sizeof(float)*m_n_texcoords+
                            sizeof(float)*m_n_colors+
-                           sizeof(UINT32)*m_n_vertex_indices);
+                           sizeof(uint32_t)*m_n_vertex_indices);
     m_pStreamFile->ReadData(v, m_n_normal_indices, m_bIsBigEndian);
     return v;
   }
   return nIndices;
 }
 
-vector< UINT32 > GeometryDataBlock::GetTexCoordIndices() const {
-  vector< UINT32 > v;
+vector< uint32_t > GeometryDataBlock::GetTexCoordIndices() const {
+  vector< uint32_t > v;
   if (!texcoordIValid) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
                            sizeof(float)*m_n_texcoords+
                            sizeof(float)*m_n_colors+
-                           sizeof(UINT32)*m_n_vertex_indices+
-                           sizeof(UINT32)*m_n_normal_indices);
+                           sizeof(uint32_t)*m_n_vertex_indices+
+                           sizeof(uint32_t)*m_n_normal_indices);
     m_pStreamFile->ReadData(v, m_n_texcoord_indices, m_bIsBigEndian);
     return v;
   }
   return tIndices;
 }
 
-vector< UINT32 > GeometryDataBlock::GetColorIndices() const {
-  vector< UINT32 > v;
+vector< uint32_t > GeometryDataBlock::GetColorIndices() const {
+  vector< uint32_t > v;
   if (!colorIValid) {
     m_pStreamFile->SeekPos(m_iOffset+DataBlock::GetOffsetToNextBlock() + ComputeHeaderSize()+
                            sizeof(float)*m_n_vertices+
                            sizeof(float)*m_n_normals+
                            sizeof(float)*m_n_texcoords+
                            sizeof(float)*m_n_colors+
-                           sizeof(UINT32)*m_n_vertex_indices+
-                           sizeof(UINT32)*m_n_normal_indices+
-                           sizeof(UINT32)*m_n_texcoord_indices);
+                           sizeof(uint32_t)*m_n_vertex_indices+
+                           sizeof(uint32_t)*m_n_normal_indices+
+                           sizeof(uint32_t)*m_n_texcoord_indices);
     m_pStreamFile->ReadData(v, m_n_color_indices, m_bIsBigEndian);
     return v;
   }
@@ -457,22 +457,22 @@ void GeometryDataBlock::SetColors(const std::vector< float >& c) {
   colors = c;
 }
 
-void GeometryDataBlock::SetVertexIndices(const std::vector< UINT32 >& vI) {
+void GeometryDataBlock::SetVertexIndices(const std::vector< uint32_t >& vI) {
   vertexIValid = true;
   vIndices = vI;
 }
 
-void GeometryDataBlock::SetNormalIndices(const std::vector< UINT32 >& nI) {
+void GeometryDataBlock::SetNormalIndices(const std::vector< uint32_t >& nI) {
   normalIValid = true;
   nIndices = nI;
 }
 
-void GeometryDataBlock::SetTexCoordIndices(const std::vector< UINT32 >& tcI) {
+void GeometryDataBlock::SetTexCoordIndices(const std::vector< uint32_t >& tcI) {
   texcoordIValid = true;
   tIndices = tcI;
 }
 
-void GeometryDataBlock::SetColorIndices(const std::vector< UINT32 >& cI) {
+void GeometryDataBlock::SetColorIndices(const std::vector< uint32_t >& cI) {
   colorIValid = true;
   cIndices = cI;
 }

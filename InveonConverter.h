@@ -49,8 +49,8 @@ public:
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir,
-                            bool bNoUserInteraction, UINT64& iHeaderSkip,
-                            UINT64& iComponentSize, UINT64& iComponentCount,
+                            bool bNoUserInteraction, uint64_t& iHeaderSkip,
+                            uint64_t& iComponentSize, uint64_t& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned,
                             bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect,
@@ -61,8 +61,8 @@ public:
 
   virtual bool ConvertToNative(const std::string& strRawFilename,
                                const std::string& strTargetFilename,
-                               UINT64 iHeaderSkip, UINT64 iComponentSize,
-                               UINT64 iComponentCount, bool bSigned,
+                               uint64_t iHeaderSkip, uint64_t iComponentSize,
+                               uint64_t iComponentCount, bool bSigned,
                                bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
                                bool bNoUserInteraction,

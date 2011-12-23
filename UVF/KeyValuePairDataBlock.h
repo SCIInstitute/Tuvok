@@ -25,25 +25,25 @@ class KeyValuePairDataBlock : public DataBlock
 public:
   KeyValuePairDataBlock();
   KeyValuePairDataBlock(const KeyValuePairDataBlock &other);
-  KeyValuePairDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
+  KeyValuePairDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
   virtual KeyValuePairDataBlock& operator=(const KeyValuePairDataBlock& other);
 
   size_t GetKeyCount() const {return m_KeyValuePairs.size();}
   std::string GetKeyByIndex(size_t iIndex) const {return m_KeyValuePairs[size_t(iIndex)].strKey;}
   std::string GetValueByIndex(size_t iIndex) const {return m_KeyValuePairs[size_t(iIndex)].strValue;}
-  UINT64 GetIndexByKey(std::string strKey) const {for (size_t i = 0;i<GetKeyCount();i++) if (GetKeyByIndex(i) == strKey) return UINT64(i); return UVF_INVALID;}
+  uint64_t GetIndexByKey(std::string strKey) const {for (size_t i = 0;i<GetKeyCount();i++) if (GetKeyByIndex(i) == strKey) return uint64_t(i); return UVF_INVALID;}
 
   bool AddPair(std::string key, std::string value);
-  virtual UINT64 ComputeDataSize() const;
+  virtual uint64_t ComputeDataSize() const;
 
 protected:
   std::vector<KeyValuePair> m_KeyValuePairs;
 
-  virtual void CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
 
-  virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
-  virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
-  virtual UINT64 GetOffsetToNextBlock() const;
+  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
+  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual uint64_t GetOffsetToNextBlock() const;
 
   virtual DataBlock* Clone() const;
 

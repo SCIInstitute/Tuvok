@@ -60,8 +60,7 @@ typedef void* QPainter;
 
 #include "TransferFunction1D.h"
 
-typedef VECTOR4<UINT64> UINT64VECTOR4;
-typedef Grid2D<UINT32> Histogram2D;
+typedef Grid2D<uint32_t> Histogram2D;
 typedef Grid2D<float> NormalizedHistogram2D;
 typedef Grid2D<FLOATVECTOR4> ColorData2D;
 typedef Grid2D< VECTOR4<char> > ColorData2D8Bit;

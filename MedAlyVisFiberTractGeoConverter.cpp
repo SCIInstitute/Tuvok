@@ -163,10 +163,10 @@ MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename)
                                                      iElementCounter;
 
                                 for (size_t i = 0;i<iElementCounter-1;i++) {
-                                  VertIndices.push_back(UINT32(iStartIndex));
-                                  VertIndices.push_back(UINT32(iStartIndex+1));
-                                  COLIndices.push_back(UINT32(iStartIndex));
-                                  COLIndices.push_back(UINT32(iStartIndex+1));
+                                  VertIndices.push_back(uint32_t(iStartIndex));
+                                  VertIndices.push_back(uint32_t(iStartIndex+1));
+                                  COLIndices.push_back(uint32_t(iStartIndex));
+                                  COLIndices.push_back(uint32_t(iStartIndex+1));
 
                                   if (i == 0) {
                                     FLOATVECTOR3 direction = (vertices[iStartIndex+1]-vertices[iStartIndex]).normalized();

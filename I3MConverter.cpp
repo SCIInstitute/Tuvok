@@ -56,8 +56,8 @@ I3MConverter::I3MConverter()
 
 bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
                                 const std::string& strTempDir, bool,
-                                UINT64& iHeaderSkip, UINT64& iComponentSize,
-                                UINT64& iComponentCount,
+                                uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+                                uint64_t& iComponentCount,
                                 bool& bConvertEndianess, bool& bSigned,
                                 bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                 FLOATVECTOR3& vVolumeAspect,
@@ -96,10 +96,10 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 
   // get file size -> used for verification later
-  UINT64 ulFileLength = I3MFile.GetCurrentSize();
+  uint64_t ulFileLength = I3MFile.GetCurrentSize();
 
   // get magic -> should be I3M_MAGIC
-  UINT32 iMagic;
+  uint32_t iMagic;
   I3MFile.ReadData(iMagic, false);
   if (iMagic != I3M_MAGIC) {
     I3MFile.Close();
@@ -109,7 +109,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   MESSAGE("I3M Magic OK");
 
   // get version number -> must match I3M_VERSION
-  UINT32 iVersion;
+  uint32_t iVersion;
   I3MFile.ReadData(iVersion, false);
   if (iVersion != I3M_VERSION) {
     I3MFile.Close();
@@ -119,7 +119,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   MESSAGE("I3M Version OK");
 
   // get volume size -> every dimension must be MAX_I3M_VOLSIZE or less
-  UINT32 iSize;
+  uint32_t iSize;
   I3MFile.ReadData(iSize, false); vVolumeSize.x = iSize;
   I3MFile.ReadData(iSize, false); vVolumeSize.y = iSize;
   I3MFile.ReadData(iSize, false); vVolumeSize.z = iSize;
@@ -176,7 +176,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   I3MFile.ReadRAW(pData, 4*vVolumeSize.volume());
   I3MFile.Close();
   // compress in-place
-  for (UINT32 i = 1;i<vVolumeSize.volume();i++) pData[i] = pData[3+i*4];
+  for (uint32_t i = 1;i<vVolumeSize.volume();i++) pData[i] = pData[3+i*4];
   // write to target file
   RAWFile.WriteRAW(pData, vVolumeSize.volume());
   delete [] pData;
@@ -238,7 +238,7 @@ void I3MConverter::Compute8BitGradientVolumeInCore(unsigned char* pSourceData, u
 void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDenseData, const UINT64VECTOR3& vVolumeSize, const UINT64VECTOR3& vDSFactor) {
   UINT64VECTOR3 vSmallSize = vVolumeSize/vDSFactor;
 
-  UINT64 iNumDownsampledValues = vDSFactor.volume();
+  uint64_t iNumDownsampledValues = vDSFactor.volume();
   size_t iTargetIndex = 0;
   size_t iSourceIndex = 0;
   for (size_t z = 0;z<size_t(vSmallSize[2]);z++) {
@@ -270,8 +270,8 @@ void I3MConverter::DownSample(LargeRAWFile& SourceRAWFile, unsigned char* pDense
 }
 
 bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
-                                   const std::string& strTargetFilename, UINT64 iHeaderSkip,
-                                   UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned,
+                                   const std::string& strTargetFilename, uint64_t iHeaderSkip,
+                                   uint64_t iComponentSize, uint64_t iComponentCount, bool bSigned,
                                    bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                                    FLOATVECTOR3 vVolumeAspect, bool ,
                                    const bool ) {
@@ -337,9 +337,9 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
     UCharDataFile.ReadRAW(pDenseData, vI3MVolumeSize.volume());
   } else {
     // volume has to be downsampled
-    UINT64VECTOR3 viDownSampleFactor(UINT64(ceil(vfDownSampleFactor.x)),
-                                   UINT64(ceil(vfDownSampleFactor.y)),
-                                   UINT64(ceil(vfDownSampleFactor.z)));
+    UINT64VECTOR3 viDownSampleFactor(uint64_t(ceil(vfDownSampleFactor.x)),
+                                   uint64_t(ceil(vfDownSampleFactor.y)),
+                                   uint64_t(ceil(vfDownSampleFactor.z)));
     vI3MVolumeSize = vVolumeSize/viDownSampleFactor;
     pDenseData = new unsigned char[size_t(vI3MVolumeSize.volume())];
 
@@ -369,13 +369,13 @@ bool I3MConverter::ConvertToNative(const std::string& strRawFilename,
   MESSAGE("Writing header information to disk");
 
   // magic
-  TargetI3MFile.WriteData<UINT32>(I3M_MAGIC, false);
+  TargetI3MFile.WriteData<uint32_t>(I3M_MAGIC, false);
   // version
-  TargetI3MFile.WriteData<UINT32>(I3M_VERSION, false);
+  TargetI3MFile.WriteData<uint32_t>(I3M_VERSION, false);
   // (subsampled) domain size
-  TargetI3MFile.WriteData<UINT32>(UINT32(vI3MVolumeSize.x), false);
-  TargetI3MFile.WriteData<UINT32>(UINT32(vI3MVolumeSize.y), false);
-  TargetI3MFile.WriteData<UINT32>(UINT32(vI3MVolumeSize.z), false);
+  TargetI3MFile.WriteData<uint32_t>(uint32_t(vI3MVolumeSize.x), false);
+  TargetI3MFile.WriteData<uint32_t>(uint32_t(vI3MVolumeSize.y), false);
+  TargetI3MFile.WriteData<uint32_t>(uint32_t(vI3MVolumeSize.z), false);
   // aspect ratio
   TargetI3MFile.WriteData(vVolumeAspect.x, false);
   TargetI3MFile.WriteData(vVolumeAspect.y, false);

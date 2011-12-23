@@ -102,9 +102,9 @@ namespace {
 bool InveonConverter::ConvertToRAW(const std::string& strSourceFilename,
                                     const std::string&,
                                     bool /* bNoUserInteraction */,
-                                    UINT64& iHeaderSkip,
-                                    UINT64& iComponentSize,
-                                    UINT64& iComponentCount,
+                                    uint64_t& iHeaderSkip,
+                                    uint64_t& iComponentSize,
+                                    uint64_t& iComponentCount,
                                     bool& bConvertEndianess, bool& bSigned,
                                     bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                     FLOATVECTOR3& vVolumeAspect,
@@ -157,11 +157,11 @@ bool InveonConverter::ConvertToRAW(const std::string& strSourceFilename,
       WARNING("%s dimensions instead of 3; continuing anyway...",
               l->second.c_str());
     } else if(l->first == "x_dimension") {
-      vVolumeSize[0] = convert<UINT64>(l->second);
+      vVolumeSize[0] = convert<uint64_t>(l->second);
     } else if(l->first == "y_dimension") {
-      vVolumeSize[1] = convert<UINT64>(l->second);
+      vVolumeSize[1] = convert<uint64_t>(l->second);
     } else if(l->first == "z_dimension") {
-      vVolumeSize[2] = convert<UINT64>(l->second);
+      vVolumeSize[2] = convert<uint64_t>(l->second);
     } else if(l->first == "pixel_size_x") {
       vVolumeAspect[0] = convert<float>(l->second);
     } else if(l->first == "pixel_size_y") {
@@ -220,8 +220,8 @@ bool InveonConverter::ConvertToRAW(const std::string& strSourceFilename,
 bool InveonConverter::ConvertToNative(
   const std::string& strRawFilename,
   const std::string& strTargetFilename,
-  UINT64 iHeaderSkip,
-  UINT64 iComponentSize, UINT64 iComponentCount,
+  uint64_t iHeaderSkip,
+  uint64_t iComponentSize, uint64_t iComponentCount,
   bool bSigned, bool bIsFloat,
   UINT64VECTOR3 vVolumeSize, FLOATVECTOR3 vVolumeAspect,
   bool bNoUserInteraction,

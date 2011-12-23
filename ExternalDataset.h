@@ -67,12 +67,12 @@ public:
   virtual float MaxGradientMagnitude() const;
 
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::uint8_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::int8_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::uint16_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::int16_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::uint32_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::int32_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int8_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint16_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int16_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint32_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int32_t>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<float>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<double>&) const;
 
@@ -88,14 +88,14 @@ public:
     return UINT64VECTOR3(voxels[0]-1, voxels[1]-1, voxels[2]-1);
   }
 
-  virtual UINT64 GetLODLevelCount() const { /* hack! */ return 1; }
+  virtual uint64_t GetLODLevelCount() const { /* hack! */ return 1; }
 
   /// Uploads external histograms.  One will be calculated implicitly if not
   /// given.  To prevent this (potentially extra) work, upload the histogram
   /// *before* the data.
   ///@{
-  void SetHistogram(const std::vector<UINT32>&);
-  void SetHistogram(const std::vector<std::vector<UINT32> >&);
+  void SetHistogram(const std::vector<uint32_t>&);
+  void SetHistogram(const std::vector<std::vector<uint32_t> >&);
   ///@}
 
   /// Adds a brick to the dataset.  The first two parameters give the data
@@ -144,7 +144,7 @@ public:
   void SetGradientMagnitudeRange(float, float);
 
   /// Number of bits in the data representation.
-  virtual UINT64 GetBitWidth() const {
+  virtual uint64_t GetBitWidth() const {
     // We query VariantArray for the type.  Yet we have one variant array per
     // brick; theoretically each brick could have a different underlying data
     // type.  However our model doesn't handle that: the data type is global
@@ -163,7 +163,7 @@ public:
     return 42;
   }
   /// Number of components per data point.
-  UINT64 GetComponentCount() const {
+  uint64_t GetComponentCount() const {
     WARNING("Assuming single-component data.");
     return 1;
   }
@@ -190,7 +190,7 @@ public:
   UINT64VECTOR3 GetDomainSize(const size_t /* lod */ = 0) const {
     return m_vDomainSize;
   }
-  void SetDomainSize(UINT64 x, UINT64 y, UINT64 z) {
+  void SetDomainSize(uint64_t x, uint64_t y, uint64_t z) {
     m_vDomainSize = UINT64VECTOR3(x,y,z);
   }
   void SetRange(const std::pair<double, double>&);

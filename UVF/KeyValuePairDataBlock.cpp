@@ -13,7 +13,7 @@ KeyValuePairDataBlock::KeyValuePairDataBlock(const KeyValuePairDataBlock &other)
 {
 }
 
-KeyValuePairDataBlock::KeyValuePairDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian) {
+KeyValuePairDataBlock::KeyValuePairDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian) {
   GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
 }
 
@@ -28,16 +28,16 @@ KeyValuePairDataBlock& KeyValuePairDataBlock::operator=(const KeyValuePairDataBl
   return *this;
 }
 
-UINT64 KeyValuePairDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian) {
-  UINT64 iStart = iOffset + DataBlock::GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
+uint64_t KeyValuePairDataBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian) {
+  uint64_t iStart = iOffset + DataBlock::GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
   pStreamFile->SeekPos(iStart);
 
-  UINT64 ulElementCount;
+  uint64_t ulElementCount;
   pStreamFile->ReadData(ulElementCount, bIsBigEndian);
 
-  for (UINT64 i = 0;i<ulElementCount;i++) {
+  for (uint64_t i = 0;i<ulElementCount;i++) {
     string key = "", value = "";
-    UINT64 iStrLength;
+    uint64_t iStrLength;
 
     pStreamFile->ReadData(iStrLength, bIsBigEndian);
     // Use a damn RasterDataBlock if it doesn't, weirdo.  This isn't meant for
@@ -59,21 +59,21 @@ UINT64 KeyValuePairDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT6
   return pStreamFile->GetPos() - iOffset;
 }
 
-void KeyValuePairDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+void KeyValuePairDataBlock::CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock) {
   DataBlock::CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
-  pStreamFile->WriteData(UINT64(m_KeyValuePairs.size()), bIsBigEndian);
+  pStreamFile->WriteData(uint64_t(m_KeyValuePairs.size()), bIsBigEndian);
 }
 
-UINT64 KeyValuePairDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+uint64_t KeyValuePairDataBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock) {
   CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
   for (size_t i = 0;i<m_KeyValuePairs.size();i++) {
     string key(m_KeyValuePairs[i].strKey), value(m_KeyValuePairs[i].strValue);
 
-    pStreamFile->WriteData(UINT64(key.length()), bIsBigEndian);
+    pStreamFile->WriteData(uint64_t(key.length()), bIsBigEndian);
     pStreamFile->WriteData(key);
 
-    pStreamFile->WriteData(UINT64(value.length()), bIsBigEndian);
+    pStreamFile->WriteData(uint64_t(value.length()), bIsBigEndian);
     pStreamFile->WriteData(value);
   }
 
@@ -84,21 +84,21 @@ DataBlock* KeyValuePairDataBlock::Clone() const {
   return new KeyValuePairDataBlock(*this);
 }
 
-UINT64 KeyValuePairDataBlock::GetOffsetToNextBlock() const {
+uint64_t KeyValuePairDataBlock::GetOffsetToNextBlock() const {
   return DataBlock::GetOffsetToNextBlock() + ComputeDataSize();
 }
 
 
-UINT64 KeyValuePairDataBlock::ComputeDataSize() const {
-  UINT64 iCharCount = 0;
+uint64_t KeyValuePairDataBlock::ComputeDataSize() const {
+  uint64_t iCharCount = 0;
 
   for (size_t i = 0;i<m_KeyValuePairs.size();i++) {
     iCharCount += m_KeyValuePairs[i].strKey.length() + m_KeyValuePairs[i].strValue.length();
   }
 
-  return sizeof(UINT64) +                 // size of the vector
+  return sizeof(uint64_t) +                 // size of the vector
        iCharCount +                   // the strings themselves
-       m_KeyValuePairs.size() * 2 * sizeof(UINT64);  // UINT64s indicating the stringlength
+       m_KeyValuePairs.size() * 2 * sizeof(uint64_t);  // UINT64s indicating the stringlength
 }
 
 bool KeyValuePairDataBlock::AddPair(string key, string value) {

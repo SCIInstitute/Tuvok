@@ -32,6 +32,7 @@ namespace UVFTables {
     BS_2D_HISTOGRAM,
     BS_MAXMIN_VALUES,
     BS_GEOMETRY,
+    BS_TOC_BLOCK,
     BS_UNKNOWN
   };
 
@@ -71,14 +72,14 @@ namespace UVFTables {
 
   std::string ChecksumSemanticToCharString(ChecksumSemanticTable uiTable);
   std::wstring ChecksumSemanticToString(ChecksumSemanticTable uiTable);
-  UINT64 ChecksumElemLength(ChecksumSemanticTable uiTable);
+  uint64_t ChecksumElemLength(ChecksumSemanticTable uiTable);
 
   std::string CompressionSemanticToCharString(CompressionSemanticTable uiTable);
   std::wstring CompressionSemanticToString(CompressionSemanticTable uiTable);
 
   std::string BlockSemanticTableToCharString(BlockSemanticTable uiTable);
   std::wstring BlockSemanticTableToString(BlockSemanticTable uiTable);
-  DataBlock* CreateBlockFromSemanticEntry(BlockSemanticTable uiTable, LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
+  DataBlock* CreateBlockFromSemanticEntry(BlockSemanticTable uiTable, LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
 
   std::string DomainSemanticToCharString(DomainSemanticTable uiTable);
   std::wstring DomainSemanticToString(DomainSemanticTable uiTable);

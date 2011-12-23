@@ -160,7 +160,7 @@ void DICOMParser::GetDirInfo(wstring wstrDirectory) {
   GetDirInfo(strDirectory);
 }
 
-void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, short& iElementID, DICOM_eType& eElementType, UINT32& iElemLength, bool bImplicit, bool bNeedsEndianConversion) {
+void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, short& iElementID, DICOM_eType& eElementType, uint32_t& iElemLength, bool bImplicit, bool bNeedsEndianConversion) {
   string typeString = "  ";
 
   fileDICOM.read((char*)&iGroupID,2);
@@ -179,7 +179,7 @@ void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, shor
   if (bImplicit) {
     eElementType = TYPE_Implicit;
     fileDICOM.read((char*)&iElemLength,4);
-    if (bNeedsEndianConversion) iElemLength = EndianConvert::Swap<UINT32>(iElemLength);
+    if (bNeedsEndianConversion) iElemLength = EndianConvert::Swap<uint32_t>(iElemLength);
     DICOM_DBG("Reader read implict field iGroupID=%i, iElementID=%i, iElemLength=%i\n", int(iGroupID), int(iElementID), iElemLength);
   } else {
     fileDICOM.read(&typeString[0],2);
@@ -188,7 +188,7 @@ void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, shor
     if (bNeedsEndianConversion) tmp = EndianConvert::Swap<short>(tmp);
     iElemLength = tmp;
     eElementType = TYPE_UN;
-    UINT32 i=0;
+    uint32_t i=0;
     for (;i<27;i++) {
       if (typeString == DICOM_TypeStrings[i]) {
         eElementType = DICOM_eType(i);
@@ -204,15 +204,15 @@ void DICOMParser::ReadHeaderElemStart(ifstream& fileDICOM, short& iGroupID, shor
 
   if ((eElementType == TYPE_OF || eElementType == TYPE_OW || eElementType == TYPE_OB || eElementType == TYPE_UT) && iElemLength == 0) {
     fileDICOM.read((char*)&iElemLength,4);
-    if (bNeedsEndianConversion) iElemLength = EndianConvert::Swap<UINT32>(iElemLength);
+    if (bNeedsEndianConversion) iElemLength = EndianConvert::Swap<uint32_t>(iElemLength);
     DICOM_DBG("Reader found zero length %c%c field and read the length again which is now (iElemLength=%i)\n", typeString[0], typeString[1], iElemLength);
   }
 }
 
 
-UINT32 DICOMParser::GetUInt(ifstream& fileDICOM, const DICOM_eType eElementType, const UINT32 iElemLength, const bool bNeedsEndianConversion) {
+uint32_t DICOMParser::GetUInt(ifstream& fileDICOM, const DICOM_eType eElementType, const uint32_t iElemLength, const bool bNeedsEndianConversion) {
   string value;
-  UINT32 result;
+  uint32_t result;
   switch (eElementType) {
     case TYPE_Implicit :
     case TYPE_IS  : {
@@ -223,7 +223,7 @@ UINT32 DICOMParser::GetUInt(ifstream& fileDICOM, const DICOM_eType eElementType,
             }
     case TYPE_UL  : {
               fileDICOM.read((char*)&result,4);
-              if (bNeedsEndianConversion) result = EndianConvert::Swap<UINT32>(result);
+              if (bNeedsEndianConversion) result = EndianConvert::Swap<uint32_t>(result);
               break;
             }
     case TYPE_US  : {
@@ -240,14 +240,14 @@ UINT32 DICOMParser::GetUInt(ifstream& fileDICOM, const DICOM_eType eElementType,
 
 
 #ifdef DEBUG_DICOM
-void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& iSeqGroupID, short& iSeqElementID, DICOMFileInfo& info, const bool bImplicit, const bool bNeedsEndianConversion, UINT32 iDepth) {
+void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& iSeqGroupID, short& iSeqElementID, DICOMFileInfo& info, const bool bImplicit, const bool bNeedsEndianConversion, uint32_t iDepth) {
   for (int i = 0;i<int(iDepth)-1;i++) Console::printf("  ");
   Console::printf("iGroupID=%x iElementID=%x elementType=SEQUENCE (undef length)\n", iSeqGroupID, iSeqElementID);
 #else
 void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& , short& , DICOMFileInfo& info, const bool bImplicit, const bool bNeedsEndianConversion) {
 #endif
   int iItemCount = 0;
-  UINT32 iData;
+  uint32_t iData;
 
   string value;
   short iGroupID, iElementID;
@@ -260,14 +260,14 @@ void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& , short& 
       iItemCount++;
       fileDICOM.read((char*)&iData,4);
       #ifdef DEBUG_DICOM
-        for (UINT32 i = 0;i<iDepth;i++) Console::printf("  ");
+        for (uint32_t i = 0;i<iDepth;i++) Console::printf("  ");
         Console::printf("START ITEM\n");
       #endif
     } else if (iData == 0xE00DFFFE) {
       iItemCount--;
       fileDICOM.read((char*)&iData,4);
       #ifdef DEBUG_DICOM
-        for (UINT32 i = 0;i<iDepth;i++) Console::printf("  ");
+        for (uint32_t i = 0;i<iDepth;i++) Console::printf("  ");
         Console::printf("END ITEM\n");
       #endif
     } else if (iData != 0xE0DDFFFE) fileDICOM.seekg(-4, ios_base::cur);
@@ -303,7 +303,7 @@ void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& , short& 
             value.resize(iData);
             fileDICOM.read(&value[0],iData);
             #ifdef DEBUG_DICOM
-              for (UINT32 i = 0;i<iDepth;i++) Console::printf("  ");
+              for (uint32_t i = 0;i<iDepth;i++) Console::printf("  ");
               Console::printf("iGroupID=%x iElementID=%x elementType=%s value=%s\n", iGroupID, iElementID, DICOM_TypeStrings[int(elementType)].c_str(), value.c_str());
             #endif
           } else {
@@ -318,13 +318,13 @@ void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& , short& 
   fileDICOM.read((char*)&iData,4);
 
 #ifdef DEBUG_DICOM
-  for (UINT32 i = 0;i<iDepth;i++) Console::printf("  ");
+  for (uint32_t i = 0;i<iDepth;i++) Console::printf("  ");
   Console::printf("END SEQUENCE\n");
 #endif
 
 }
 
-void DICOMParser::SkipUnusedElement(ifstream& fileDICOM, string& value, const UINT32 iElemLength) {
+void DICOMParser::SkipUnusedElement(ifstream& fileDICOM, string& value, const uint32_t iElemLength) {
   value.resize(iElemLength);
   fileDICOM.read(&value[0],iElemLength);
 }
@@ -363,7 +363,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
   float fSliceSpacing = 0;
 #endif
   short iGroupID, iElementID;
-  UINT32 iElemLength;
+  uint32_t iElemLength;
   DICOM_eType elementType;  
 
   // check for DICM magic.
@@ -411,7 +411,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
               }
               int iMetaHeaderLength;
               fileDICOM.read((char*)&iMetaHeaderLength,4);
-              iMetaHeaderEnd  = iMetaHeaderLength + UINT32(fileDICOM.tellg());
+              iMetaHeaderEnd  = iMetaHeaderLength + uint32_t(fileDICOM.tellg());
              } break;
         case 0x1 : {  // Version
               assert(iElemLength > 0);
@@ -772,8 +772,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
     if (!bImplicit) {
       // for an explicit file we can actually check if we found the pixel
       // data block (and not some color table)
-      UINT32 iPixelDataSize = info.m_ivSize.volume() * info.m_iAllocated / 8;
-      UINT32 iDataSizeInFile = iElemLength;
+      uint32_t iPixelDataSize = info.m_ivSize.volume() * info.m_iAllocated / 8;
+      uint32_t iDataSizeInFile = iElemLength;
       if (iDataSizeInFile == 0) fileDICOM.read((char*)&iDataSizeInFile,4);
 
       if (info.m_bIsJPEGEncoded) {
@@ -791,16 +791,16 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
           offset = 4;  // make sure it won't underflow in the next line.
         }
         offset -= 4;
-        MESSAGE("JPEG is at offset: %u", static_cast<UINT32>(offset));
-        info.SetOffsetToData(static_cast<UINT32>(offset));
+        MESSAGE("JPEG is at offset: %u", static_cast<uint32_t>(offset));
+        info.SetOffsetToData(static_cast<uint32_t>(offset));
       } else {
         if (iPixelDataSize != iDataSizeInFile) {
           elementType = TYPE_UN;
-        } else info.SetOffsetToData(UINT32(fileDICOM.tellg()));
+        } else info.SetOffsetToData(uint32_t(fileDICOM.tellg()));
       }
     } else {
       // otherwise just believe we have found the right data block
-      info.SetOffsetToData(UINT32(fileDICOM.tellg()));
+      info.SetOffsetToData(uint32_t(fileDICOM.tellg()));
     }
   }
 
@@ -817,7 +817,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
 
     DICOM_DBG("volume size: %u\n", info.m_ivSize.volume());
     DICOM_DBG("n components: %u\n", info.m_iComponentCount);
-    UINT32 iPixelDataSize = info.m_iComponentCount *
+    uint32_t iPixelDataSize = info.m_iComponentCount *
                             info.m_ivSize.volume() *
                             info.m_iAllocated / 8;
     bool bOK = false;
@@ -844,8 +844,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
         if (bOK) {
           DICOM_DBG("Manual search for GroupID seemed to work.\n");
           if (!bImplicit) {
-            UINT32 iVolumeDataSize = info.m_ivSize.volume() * info.m_iAllocated / 8;
-            UINT32 iDataSizeInFile;
+            uint32_t iVolumeDataSize = info.m_ivSize.volume() * info.m_iAllocated / 8;
+            uint32_t iDataSizeInFile;
             fileDICOM.read((char*)&iDataSizeInFile,4);
 
             if (iVolumeDataSize != iDataSizeInFile) bOK = false;
@@ -865,7 +865,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
       // and let's hope that the file ends with the data
       WARNING("Trouble parsing DICOM file; assuming data starts at %u",
               static_cast<unsigned int>(iFileLength - size_t(iPixelDataSize)));
-      info.SetOffsetToData(UINT32(iFileLength - size_t(iPixelDataSize)));
+      info.SetOffsetToData(uint32_t(iFileLength - size_t(iPixelDataSize)));
     }
   }
 
@@ -925,8 +925,8 @@ uint32_t SimpleDICOMFileInfo::GetComponentCount() const {
   return m_iComponentCount;
 }
 
-bool SimpleDICOMFileInfo::GetData(std::vector<char>& vData, UINT32 iLength,
-                                  UINT32 iOffset)
+bool SimpleDICOMFileInfo::GetData(std::vector<char>& vData, uint32_t iLength,
+                                  uint32_t iOffset)
 {
   ifstream fs;
   fs.open(m_strFileName.c_str(),fstream::binary);
@@ -993,7 +993,7 @@ DICOMFileInfo::DICOMFileInfo(const std::wstring& wstrFileName) :
   m_strDesc("")
 {}
 
-void DICOMFileInfo::SetOffsetToData(const UINT32 iOffset) {
+void DICOMFileInfo::SetOffsetToData(const uint32_t iOffset) {
   m_iOffsetToData = iOffset;
   m_iDataSize = m_iComponentCount*m_ivSize.volume()*m_iAllocated/8;
 }

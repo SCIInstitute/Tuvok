@@ -36,7 +36,6 @@
 #include <cstring>
 #include <fstream>
 #include <sstream>
-#include "boost/cstdint.hpp"
 #ifndef TUVOK_NO_ZLIB
 # include "3rdParty/zlib/zlib.h"
 #endif
@@ -57,9 +56,9 @@ IASSConverter::IASSConverter()
 bool
 IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
                            const std::string& strTempDir,
-                           bool, UINT64& iHeaderSkip,
-                           UINT64& iComponentSize,
-                           UINT64& iComponentCount,
+                           bool, uint64_t& iHeaderSkip,
+                           uint64_t& iComponentSize,
+                           uint64_t& iComponentCount,
                            bool& bConvertEndianess, bool& bSigned,
                            bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                            FLOATVECTOR3& vVolumeAspect,
@@ -151,33 +150,33 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
     return false;
   }
 
-  UINT64 strideZ = header.size.x*header.size.y*header.bpp-header.bpp;
-  UINT64 sliceSize = header.size.y * header.size.z * header.bpp;
+  uint64_t strideZ = header.size.x*header.size.y*header.bpp-header.bpp;
+  uint64_t sliceSize = header.size.y * header.size.z * header.bpp;
   unsigned char* sliceBuffer = new unsigned char[static_cast<size_t>(sliceSize)];
 
   if (header.type == MONO) {
     unsigned char* rleBuffer = new unsigned char[static_cast<size_t>(header.rleLength)];
     zLocalData.ReadRAW(rleBuffer,header.rleLength);
 
-    UINT64 posRLEStream = 0;
-    UINT64 posOutStream = 0;
-    UINT64 currLength = *rleBuffer;
-    UINT64 sliceIndex = 0;
-    UINT64 currValue = 1;
+    uint64_t posRLEStream = 0;
+    uint64_t posOutStream = 0;
+    uint64_t currLength = *rleBuffer;
+    uint64_t sliceIndex = 0;
+    uint64_t currValue = 1;
     do {
       // This loop is entered if another pixel run would exceed the size of
       // the slice buffer
       while (posOutStream + currLength >= sliceSize) {
         // How many pixels are left to fill up buffer
-        UINT64 restLength = sliceSize - posOutStream;
+        uint64_t restLength = sliceSize - posOutStream;
 
         // Set these remaining pixels
         memset(&sliceBuffer[posOutStream],
                static_cast<unsigned char>((currValue%2)*0xff), static_cast<size_t>(restLength));
 
-        for (UINT64 y = 0; y < header.size.y; y++) {
+        for (uint64_t y = 0; y < header.size.y; y++) {
           xLocalData.SeekPos(y*header.size.x+sliceIndex);
-          for (UINT64 z = 0; z < header.size.z; z++) {
+          for (uint64_t z = 0; z < header.size.z; z++) {
             xLocalData.WriteRAW(&sliceBuffer[y*header.size.z+z],1);
             xLocalData.SeekPos(xLocalData.GetPos()+strideZ);
           }
@@ -202,11 +201,11 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
 
     delete[] rleBuffer;
   } else {
-    for (UINT64 x = 0; x < header.size.x; x++) {
+    for (uint64_t x = 0; x < header.size.x; x++) {
       zLocalData.ReadRAW(sliceBuffer,sliceSize);
-      for (UINT64 y = 0; y < header.size.y; y++) {
+      for (uint64_t y = 0; y < header.size.y; y++) {
         xLocalData.SeekPos((y*header.size.x+x)*header.bpp);
-        for (UINT64 z = 0; z < header.size.z; z++) {
+        for (uint64_t z = 0; z < header.size.z; z++) {
           xLocalData.WriteRAW(&sliceBuffer[(y*header.size.z+z)*header.bpp],
                               header.bpp);
           xLocalData.SeekPos(xLocalData.GetPos()+strideZ);
@@ -226,8 +225,8 @@ IASSConverter::ConvertToRAW(const std::string& strSourceFilename,
 bool
 IASSConverter::ConvertToNative(const std::string&,
                                const std::string&,
-                               UINT64, UINT64,
-                               UINT64, bool,
+                               uint64_t, uint64_t,
+                               uint64_t, bool,
                                bool,
                                UINT64VECTOR3,
                                FLOATVECTOR3,

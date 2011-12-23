@@ -62,12 +62,12 @@ void Dataset::DeleteMeshes() {
 }
 
 /// unimplemented!
-bool Dataset::Export(UINT64, const std::string&, bool,
+bool Dataset::Export(uint64_t, const std::string&, bool,
                             bool (*)(LargeRAWFile* pSourceFile,
-                                     const std::vector<UINT64> vBrickSize,
-                                     const std::vector<UINT64> vBrickOffset,
+                                     const std::vector<uint64_t> vBrickSize,
+                                     const std::vector<uint64_t> vBrickOffset,
                                      void* pUserContext),
-                            void *, UINT64) const {
+                            void *, uint64_t) const {
   return false;
 }
 

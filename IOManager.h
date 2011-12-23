@@ -86,7 +86,7 @@ namespace tuvok {
 
 class MergeDataset {
 public:
-  MergeDataset(std::string _strFilename="", UINT64 _iHeaderSkip=0, bool _bDelete=false,
+  MergeDataset(std::string _strFilename="", uint64_t _iHeaderSkip=0, bool _bDelete=false,
                double _fScale=1.0, double _fBias=0.0) :
     strFilename(_strFilename),
     iHeaderSkip(_iHeaderSkip),
@@ -96,7 +96,7 @@ public:
   {}
 
   std::string strFilename;
-  UINT64 iHeaderSkip;
+  uint64_t iHeaderSkip;
   bool bDelete;
   double fScale;
   double fBias;
@@ -105,7 +105,7 @@ public:
 template <class T> class DataMerger {
 public:
   DataMerger(const std::vector<MergeDataset>& strFiles,
-             const std::string& strTarget, UINT64 iElemCount,
+             const std::string& strTarget, uint64_t iElemCount,
              tuvok::MasterController* pMasterController,
              bool bUseMaxMode) :
     bIsOK(false)
@@ -132,7 +132,7 @@ public:
       return;
     }
 
-    UINT64 iCopySize = std::min(iElemCount,BLOCK_COPY_SIZE/2)/sizeof(T);
+    uint64_t iCopySize = std::min(iElemCount,BLOCK_COPY_SIZE/2)/sizeof(T);
     T* pTargetBuffer = new T[size_t(iCopySize)];
     T* pSourceBuffer = new T[size_t(iCopySize)];
     for (size_t i = 1;i<strFiles.size();i++) {
@@ -151,7 +151,7 @@ public:
         return;
       }
 
-      UINT64 iReadSize=0;
+      uint64_t iReadSize=0;
       do {
          source.ReadRAW((unsigned char*)pSourceBuffer, iCopySize*sizeof(T));
          iCopySize = target.ReadRAW((unsigned char*)pTargetBuffer,
@@ -159,7 +159,7 @@ public:
 
          if (bUseMaxMode) {
            if (i == 1) {
-             for (UINT64 j = 0;j<iCopySize;j++) {
+             for (uint64_t j = 0;j<iCopySize;j++) {
                pTargetBuffer[j] = std::max<T>(
                  T(std::min<double>(
                    strFiles[0].fScale*(pTargetBuffer[j] + strFiles[0].fBias),
@@ -172,7 +172,7 @@ public:
                );
              }
            } else {
-             for (UINT64 j = 0;j<iCopySize;j++) {
+             for (uint64_t j = 0;j<iCopySize;j++) {
                pTargetBuffer[j] = std::max<T>(
                  pTargetBuffer[j],
                  T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j] +
@@ -183,7 +183,7 @@ public:
            }
          } else {
            if (i == 1) {
-             for (UINT64 j = 0;j<iCopySize;j++) {
+             for (uint64_t j = 0;j<iCopySize;j++) {
                T a = T(std::min<double>(
                  strFiles[0].fScale*(pTargetBuffer[j] + strFiles[0].fBias),
                  static_cast<double>(std::numeric_limits<T>::max())
@@ -200,7 +200,7 @@ public:
                  pTargetBuffer[j] = val;
              }
            } else {
-             for (UINT64 j = 0;j<iCopySize;j++) {
+             for (uint64_t j = 0;j<iCopySize;j++) {
                T b = T(std::min<double>(
                  strFiles[i].fScale*(pSourceBuffer[j] + strFiles[i].fBias),
                  static_cast<double>(std::numeric_limits<T>::max())
@@ -243,7 +243,7 @@ public:
 
   virtual ~MCData() {}
 
-  virtual bool PerformMC(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset) = 0;
+  virtual bool PerformMC(LargeRAWFile_ptr pSourceFile, const std::vector<uint64_t> vBrickSize, const std::vector<uint64_t> vBrickOffset) = 0;
 
 protected:
   std::string m_strTargetFile;
@@ -280,9 +280,9 @@ public:
     m_conv->ConvertToNative(m, m_strTargetFile);
   }
 
-  virtual bool PerformMC(LargeRAWFile* pSourceFile, const std::vector<UINT64> vBrickSize, const std::vector<UINT64> vBrickOffset) {
+  virtual bool PerformMC(LargeRAWFile_ptr pSourceFile, const std::vector<uint64_t> vBrickSize, const std::vector<uint64_t> vBrickOffset) {
 
-    UINT64 uSize = 1;
+    uint64_t uSize = 1;
     for (size_t i = 0;i<vBrickSize.size();i++) uSize *= vBrickSize[i];
     // Can't use bricks that we can't store in a single array.
     // Really, the whole reason we're bricking is to prevent larger-than-core
@@ -291,7 +291,7 @@ public:
     assert(uSize <= std::numeric_limits<size_t>::max());
 
     size_t iSize = static_cast<size_t>(
-                     std::min<UINT64>(uSize, std::numeric_limits<size_t>::max())
+                     std::min<uint64_t>(uSize, std::numeric_limits<size_t>::max())
                    );
     if (!m_pData) {   // since we know that no brick is larger than the first we can create a fixed array on first invocation
       m_pData = new T[iSize];
@@ -332,7 +332,7 @@ public:
 protected:
   T                  m_TIsoValue;
   T*                 m_pData;
-  UINT32             m_iIndexoffset;
+  uint32_t             m_iIndexoffset;
   MarchingCubes<T>*  m_pMarchingCubes;
   UINT64VECTOR3      m_vDataSize;
   tuvok::AbstrGeoConverter* m_conv;
@@ -353,22 +353,22 @@ public:
   bool ConvertDataset(FileStackInfo* pStack,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
-                      UINT64 iMaxBrickSize,
-                      UINT64 iBrickOverlap,
+                      uint64_t iMaxBrickSize,
+                      uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
   bool ConvertDataset(const std::string& strFilename,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       const bool bNoUserInteraction,
-                      UINT64 iMaxBrickSize,
-                      UINT64 iBrickOverlap,
+                      uint64_t iMaxBrickSize,
+                      uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
   bool ConvertDataset(const std::list<std::string>& files,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
                       const bool bNoUserInteraction,
-                      UINT64 iMaxBrickSize,
-                      UINT64 iBrickOverlap,
+                      uint64_t iMaxBrickSize,
+                      uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
   bool MergeDatasets(const std::vector <std::string>& strFilenames,
                      const std::vector <double>& vScales,
@@ -381,15 +381,15 @@ public:
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
                                     tuvok::AbstrRenderer* requester,
-                                    UINT64 iMaxBrickSize,
-                                    UINT64 iBrickOverlap,
+                                    uint64_t iMaxBrickSize,
+                                    uint64_t iBrickOverlap,
                                     bool bQuantizeTo8Bit=false) const;
   tuvok::UVFDataset* ConvertDataset(const std::string& strFilename,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
                                     tuvok::AbstrRenderer* requester,
-                                    UINT64 iMaxBrickSize,
-                                    UINT64 iBrickOverlap,
+                                    uint64_t iMaxBrickSize,
+                                    uint64_t iBrickOverlap,
                                     bool bQuantizeTo8Bit=false) const;
 
   /// evaluates the given expression. v[n] in the expression refers to
@@ -403,8 +403,8 @@ public:
   bool ReBrickDataset(const std::string& strSourceFilename,
                       const std::string& strTargetFilename,
                       const std::string& strTempDir,
-                      const UINT64 iMaxBrickSize,
-                      const UINT64 iBrickOverlap,
+                      const uint64_t iMaxBrickSize,
+                      const uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
 
   // conveniance calls that use the default bricksizes and overlaps
@@ -458,7 +458,7 @@ public:
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
                               tuvok::AbstrRenderer* requester) const;
   tuvok::Dataset* CreateDataset(const std::string& filename,
-                                UINT64 max_brick_size, bool verify) const;
+                                uint64_t max_brick_size, bool verify) const;
   void AddReader(std::tr1::shared_ptr<tuvok::FileBackedDataset>);
   bool AnalyzeDataset(const std::string& strFilename, RangeInfo& info,
                       const std::string& strTempDir) const;
@@ -466,17 +466,17 @@ public:
   bool Verify(const std::string& strFilename) const;
 
   bool ExportMesh(const tuvok::Mesh* mesh, const std::string& strTargetFilename);
-  bool ExportDataset(const tuvok::UVFDataset* pSourceData, UINT64 iLODlevel,
+  bool ExportDataset(const tuvok::UVFDataset* pSourceData, uint64_t iLODlevel,
                      const std::string& strTargetFilename,
                      const std::string& strTempDir) const;
   bool ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
-                         UINT64 iLODlevel, double fIsovalue,
+                         uint64_t iLODlevel, double fIsovalue,
                          const FLOATVECTOR4& vfColor,
                          const std::string& strTargetFilename,
                          const std::string& strTempDir) const;
   bool ExtractImageStack(const tuvok::UVFDataset* pSourceData,
                          const TransferFunction1D* pTrans,
-                         UINT64 iLODlevel, 
+                         uint64_t iLODlevel, 
                          const std::string& strTargetFilename,
                          const std::string& strTempDir,
                          bool bAllDirs) const;
@@ -511,12 +511,12 @@ public:
                                                   bool bMustSupportImport) const;
 
 
-  UINT64 GetMaxBrickSize() const {return m_iMaxBrickSize;}
-  UINT64 GetBrickOverlap() const {return m_iBrickOverlap;}
-  UINT64 GetIncoresize() const {return m_iIncoresize;}
+  uint64_t GetMaxBrickSize() const {return m_iMaxBrickSize;}
+  uint64_t GetBrickOverlap() const {return m_iBrickOverlap;}
+  uint64_t GetIncoresize() const {return m_iIncoresize;}
 
-  bool SetMaxBrickSize(const UINT64 iMaxBrickSize);
-  bool SetBrickOverlap(const UINT64 iBrickOverlap);
+  bool SetMaxBrickSize(const uint64_t iMaxBrickSize);
+  bool SetBrickOverlap(const uint64_t iBrickOverlap);
 
 private:
   std::vector<tuvok::AbstrGeoConverter*> m_vpGeoConverters;
@@ -524,9 +524,9 @@ private:
   AbstrConverter*                 m_pFinalConverter;
   std::auto_ptr<tuvok::io::DSFactory> m_dsFactory;
 
-  UINT64 m_iMaxBrickSize;
-  UINT64 m_iBrickOverlap;
-  UINT64 m_iIncoresize;
+  uint64_t m_iMaxBrickSize;
+  uint64_t m_iBrickOverlap;
+  uint64_t m_iIncoresize;
 
   void CopyToTSB(const tuvok::Mesh* m, GeometryDataBlock* tsb) const;
 };

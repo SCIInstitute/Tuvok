@@ -35,7 +35,6 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
-#include "boost/cstdint.hpp"
 #include "REKConverter.h"
 #include "Controller/Controller.h"
 #include "Basics/EndianConvert.h"
@@ -51,9 +50,9 @@ REKConverter::REKConverter()
 bool
 REKConverter::ConvertToRAW(const std::string& strSourceFilename,
                            const std::string&,
-                           bool, UINT64& iHeaderSkip,
-                           UINT64& iComponentSize,
-                           UINT64& iComponentCount,
+                           bool, uint64_t& iHeaderSkip,
+                           uint64_t& iComponentSize,
+                           uint64_t& iComponentCount,
                            bool& bConvertEndianess, bool& bSigned,
                            bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                            FLOATVECTOR3& vVolumeAspect,
@@ -73,8 +72,8 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   if(fileData.is_open()) {
     fileData.read( buffer, sizeof(buffer) );
-    if(Parse<boost::uint16_t, 2>( &buffer[10], bConvertEndianess ) != 2 &&
-       Parse<boost::uint16_t, 2>( &buffer[12], bConvertEndianess ) != 4) {
+    if(Parse<uint16_t, 2>( &buffer[10], bConvertEndianess ) != 2 &&
+       Parse<uint16_t, 2>( &buffer[12], bConvertEndianess ) != 4) {
       WARNING("The file %s is not a REK file", strSourceFilename.c_str());
       fileData.close();
       return false;
@@ -96,11 +95,11 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
   bDeleteIntermediateFile = false;
 
   // Read file format from header
-  vVolumeSize[0] = Parse<boost::uint16_t, 2>(&buffer[0], bConvertEndianess);
-  vVolumeSize[1] = Parse<boost::uint16_t, 2>(&buffer[2], bConvertEndianess);
-  vVolumeSize[2] = Parse<boost::uint16_t, 2>(&buffer[6], bConvertEndianess);
-  iComponentSize = Parse<boost::uint16_t, 2>(&buffer[4], bConvertEndianess);
-  iHeaderSkip = Parse<boost::uint16_t, 2>(&buffer[8], bConvertEndianess);
+  vVolumeSize[0] = Parse<uint16_t, 2>(&buffer[0], bConvertEndianess);
+  vVolumeSize[1] = Parse<uint16_t, 2>(&buffer[2], bConvertEndianess);
+  vVolumeSize[2] = Parse<uint16_t, 2>(&buffer[6], bConvertEndianess);
+  iComponentSize = Parse<uint16_t, 2>(&buffer[4], bConvertEndianess);
+  iHeaderSkip = Parse<uint16_t, 2>(&buffer[8], bConvertEndianess);
 
   return true;
 }
@@ -109,8 +108,8 @@ REKConverter::ConvertToRAW(const std::string& strSourceFilename,
 bool
 REKConverter::ConvertToNative(const std::string&,
                               const std::string&,
-                              UINT64, UINT64,
-                              UINT64, bool,
+                              uint64_t, uint64_t,
+                              uint64_t, bool,
                               bool,
                               UINT64VECTOR3,
                               FLOATVECTOR3,

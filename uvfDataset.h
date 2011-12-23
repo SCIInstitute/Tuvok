@@ -46,8 +46,8 @@
 /// list of brick indices for the brick itself.
 struct NDBrickKey {
   size_t timestep;
-  std::vector<UINT64> lod;
-  std::vector<UINT64> brick;
+  std::vector<uint64_t> lod;
+  std::vector<uint64_t> brick;
 };
 
 class VolumeDatasetInfo;
@@ -62,18 +62,18 @@ namespace tuvok {
 
 class UVFDataset : public FileBackedDataset {
 public:
-  UVFDataset(const std::string& strFilename, UINT64 iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion = true);
+  UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion = true);
   UVFDataset();
   virtual ~UVFDataset();
 
   // Brick Data
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::uint8_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::int8_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::uint16_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::int16_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::uint32_t>&) const;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::int32_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int8_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint16_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int16_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint32_t>&) const;
+  virtual bool GetBrick(const BrickKey&, std::vector<int32_t>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<float>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<double>&) const;
   virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const;
@@ -90,16 +90,16 @@ public:
   virtual BrickTable::size_type GetBrickCount(size_t lod, size_t ts) const;
   virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0, const size_t ts=0) const;
   ///@}
-  virtual UINT64 GetNumberOfTimesteps() const;
+  virtual uint64_t GetNumberOfTimesteps() const;
 
   // Global Data
   float MaxGradientMagnitude() const;
   virtual UINTVECTOR3 GetMaxBrickSize() const;
   virtual UINT64VECTOR3 GetMaxUsedBrickSizes() const;
   virtual UINTVECTOR3 GetBrickOverlapSize() const;
-  virtual UINT64 GetLODLevelCount() const;
-  virtual UINT64 GetBitWidth() const;
-  virtual UINT64 GetComponentCount() const;
+  virtual uint64_t GetLODLevelCount() const;
+  virtual uint64_t GetBitWidth() const;
+  virtual uint64_t GetComponentCount() const;
   virtual bool GetIsSigned() const;
   virtual bool GetIsFloat() const;
   virtual bool IsSameEndianness() const;
@@ -109,14 +109,14 @@ public:
   void ComputeRange();
 
   // Global "Operations" and additional data not from the UVF file
-  virtual bool Export(UINT64 iLODLevel, const std::string& targetFilename,
+  virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename,
                       bool bAppend,
-                      bool (*brickFunc)(LargeRAWFile* pSourceFile,
-                                        const std::vector<UINT64> vBrickSize,
-                                        const std::vector<UINT64> vBrickOffset,
+                      bool (*brickFunc)(LargeRAWFile_ptr pSourceFile,
+                                        const std::vector<uint64_t> vBrickSize,
+                                        const std::vector<uint64_t> vBrickOffset,
                                         void* pUserContext) = NULL,
                       void *pUserContext = NULL,
-                      UINT64 iOverlap=0) const;
+                      uint64_t iOverlap=0) const;
 
   virtual const std::vector<std::pair<std::string, std::string> > GetMetadata() const;
 
@@ -129,7 +129,7 @@ public:
 
   virtual bool CanRead(const std::string&, const std::vector<int8_t>&) const;
   virtual bool Verify(const std::string&) const;
-  virtual FileBackedDataset* Create(const std::string&, UINT64, bool) const;
+  virtual FileBackedDataset* Create(const std::string&, uint64_t, bool) const;
   virtual std::list<std::string> Extensions() const;
   const UVF* GetUVFFile() const {return m_pDatasetFile;}
 
@@ -143,14 +143,14 @@ public:
   NDBrickKey IndexToVectorKey(const BrickKey &k) const;
 
 private:
-  std::vector<UINT64> IndexToVector(const BrickKey &k) const;
+  std::vector<uint64_t> IndexToVector(const BrickKey &k) const;
   bool Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion=true);
   void Close();
   void FindSuitableRasterBlocks();
   void ComputeMetaData(size_t ts);
   void GetHistograms(size_t ts);
 
-  void FixOverlap(UINT64& v, UINT64 brickIndex, UINT64 maxindex, UINT64 overlap) const;
+  void FixOverlap(uint64_t& v, uint64_t brickIndex, uint64_t maxindex, uint64_t overlap) const;
 
   size_t DetermineNumberOfTimesteps();
   bool VerifyRasterDataBlock(const RasterDataBlock*) const;
@@ -189,9 +189,9 @@ private:
   UVF*                         m_pDatasetFile;
   std::pair<double,double>     m_CachedRange;
 
-  UINT64                       m_iMaxAcceptableBricksize;
+  uint64_t                       m_iMaxAcceptableBricksize;
 
-  FLOATVECTOR3 GetVolCoord(UINT64 pos, const UINT64VECTOR3& domSize) {
+  FLOATVECTOR3 GetVolCoord(uint64_t pos, const UINT64VECTOR3& domSize) {
     UINT64VECTOR3 domCoords;
 
     domCoords.x = pos % domSize.x;
@@ -206,7 +206,7 @@ private:
   }
 
   template<typename T> 
-  bool CropData(LargeRAWFile& dataFile, const PLANE<float>& plane, const UINT64VECTOR3& domSize, const UINT64 iComponentCount) {
+  bool CropData(LargeRAWFile& dataFile, const PLANE<float>& plane, const UINT64VECTOR3& domSize, const uint64_t iComponentCount) {
 
     assert(iComponentCount == size_t(iComponentCount));
 
@@ -216,14 +216,14 @@ private:
     // read only entire tuples
     iInCoreElemCount = size_t(iComponentCount)*(iInCoreElemCount/size_t(iComponentCount));
 
-    UINT64 iFileSize = dataFile.GetCurrentSize();
+    uint64_t iFileSize = dataFile.GetCurrentSize();
     if (sizeof(T)*iComponentCount*domSize.volume() != iFileSize) {
       return false;
     }
 
     T* data = new T[iInCoreElemCount];
     size_t iElemsRead;
-    UINT64 iFilePos = 0;
+    uint64_t iFilePos = 0;
     do {
       iElemsRead = dataFile.ReadRAW((unsigned char*)data, iInCoreElemCount*sizeof(T))/sizeof(T);
 

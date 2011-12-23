@@ -62,8 +62,8 @@ BOVConverter::BOVConverter()
 bool BOVConverter::ConvertToRAW(
                             const std::string& strSourceFilename,
                             const std::string&, bool,
-                            UINT64& iHeaderSkip, UINT64& iComponentSize,
-                            UINT64& iComponentCount, bool& bConvertEndianness,
+                            uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+                            uint64_t& iComponentCount, bool& bConvertEndianness,
                             bool& bSigned, bool& bIsFloat,
                             UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
@@ -108,7 +108,7 @@ bool BOVConverter::ConvertToRAW(
     std::istringstream ss(size->strValue);
     ss >> vVolumeSize[0] >> vVolumeSize[1] >> vVolumeSize[2];
     MESSAGE("Dimensions: %ux%ux%u",
-            UINT32(vVolumeSize[0]), UINT32(vVolumeSize[1]), UINT32(vVolumeSize[2]));
+            uint32_t(vVolumeSize[0]), uint32_t(vVolumeSize[1]), uint32_t(vVolumeSize[2]));
     iHeaderSkip = 0;
   }
   {
@@ -167,8 +167,8 @@ bool BOVConverter::ConvertToRAW(
 
 bool BOVConverter::ConvertToNative(const std::string& raw,
                                    const std::string& target,
-                                   UINT64 skip, UINT64 component_size,
-                                   UINT64 n_components, bool is_signed,
+                                   uint64_t skip, uint64_t component_size,
+                                   uint64_t n_components, bool is_signed,
                                    bool fp, UINT64VECTOR3 dimensions,
                                    FLOATVECTOR3 aspect, bool batch,
                                    const bool bQuantizeTo8Bit)

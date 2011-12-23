@@ -86,9 +86,9 @@ bool AnalyzeConverter::CanRead(const std::string& fn,
 bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
                                     const std::string&,
                                     bool,
-                                    UINT64& iHeaderSkip,
-                                    UINT64& iComponentSize,
-                                    UINT64& iComponentCount,
+                                    uint64_t& iHeaderSkip,
+                                    uint64_t& iComponentSize,
+                                    uint64_t& iComponentCount,
                                     bool& bConvertEndianness,
                                     bool& bSigned, bool& bIsFloat,
                                     UINT64VECTOR3& vVolumeSize,
@@ -167,7 +167,7 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   MESSAGE("%llu-bit %llux%llux%llu data.", iComponentSize,
           vVolumeSize[0], vVolumeSize[1], vVolumeSize[2]);
   {
-    UINT64 bits=0;
+    uint64_t bits=0;
     switch(hdr.datatype) {
       case DT_BINARY:        bits =  1;
                              bSigned = false;
@@ -224,7 +224,7 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
             "required; this converter is broken.");
     return false;
   }
-  iHeaderSkip = static_cast<UINT64>(hdr.voxel_offset);
+  iHeaderSkip = static_cast<uint64_t>(hdr.voxel_offset);
   MESSAGE("Skipping %llu bytes.", iHeaderSkip);
 
   strIntermediateFile = SysTools::RemoveExt(strSourceFilename) + ".img";
@@ -236,9 +236,9 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 bool AnalyzeConverter::ConvertToNative(const std::string&,
                                        const std::string&,
-                                       UINT64,
-                                       UINT64,
-                                       UINT64, bool,
+                                       uint64_t,
+                                       uint64_t,
+                                       uint64_t, bool,
                                        bool,
                                        UINT64VECTOR3,
                                        FLOATVECTOR3,

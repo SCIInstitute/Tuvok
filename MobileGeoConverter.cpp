@@ -61,12 +61,12 @@ bool MobileGeoConverter::ConvertToNative(const Mesh& m,
   G3D::GeometrySoA geometry;
   geometry.info.isOpaque = false;
   geometry.info.numberPrimitives = 
-    UINT32(m.GetVertexIndices().size() / m.GetVerticesPerPoly());
+    uint32_t(m.GetVertexIndices().size() / m.GetVerticesPerPoly());
   geometry.info.primitiveType = (m.GetMeshType() == Mesh::MT_TRIANGLES) 
                                       ? G3D::Triangle : G3D::Line;
-  geometry.info.numberIndices = UINT32(m.GetVertexIndices().size());
-  geometry.info.numberVertices = UINT32(m.GetVertices().size());
-  UINT32 vertexFloats = 0;
+  geometry.info.numberIndices = uint32_t(m.GetVertexIndices().size());
+  geometry.info.numberVertices = uint32_t(m.GetVertices().size());
+  uint32_t vertexFloats = 0;
 
   geometry.info.attributeSemantics.push_back(G3D::Position);
   geometry.vertexAttributes.push_back((float*)&m.GetVertices().at(0));
@@ -97,9 +97,9 @@ bool MobileGeoConverter::ConvertToNative(const Mesh& m,
 	  geometry.vertexAttributes.push_back((float*)&colors.at(0));
   }
 
-  geometry.info.indexSize = sizeof(UINT32);
+  geometry.info.indexSize = sizeof(uint32_t);
   geometry.info.vertexSize = vertexFloats * sizeof(float);
-  geometry.indices = (UINT32*)&m.GetVertexIndices().at(0);
+  geometry.indices = (uint32_t*)&m.GetVertexIndices().at(0);
   G3D::write(strTargetFilename, &geometry);
 
   return true;
@@ -118,14 +118,14 @@ Mesh* MobileGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   G3D::GeometrySoA geometry;
   G3D::read(strFilename, &geometry);
-  if (geometry.info.indexSize == sizeof(boost::uint16_t))
+  if (geometry.info.indexSize == sizeof(uint16_t))
   {
-	  for (UINT32 i=0; i<geometry.info.numberIndices; ++i) VertIndices.push_back((UINT32)((boost::uint16_t*)geometry.indices)[i]);
+	  for (uint32_t i=0; i<geometry.info.numberIndices; ++i) VertIndices.push_back((uint32_t)((uint16_t*)geometry.indices)[i]);
   }
-  else VertIndices = IndexVec(geometry.indices, (UINT32*)geometry.indices + geometry.info.numberIndices);
+  else VertIndices = IndexVec(geometry.indices, (uint32_t*)geometry.indices + geometry.info.numberIndices);
 
-  UINT32 i = 0;
-  for (std::vector<UINT32>::iterator it=geometry.info.attributeSemantics.begin(); it<geometry.info.attributeSemantics.end(); ++it)
+  uint32_t i = 0;
+  for (std::vector<uint32_t>::iterator it=geometry.info.attributeSemantics.begin(); it<geometry.info.attributeSemantics.end(); ++it)
   {
 	  if (*it == G3D::Position) vertices = VertVec((FLOATVECTOR3*)geometry.vertexAttributes.at(i), (FLOATVECTOR3*)geometry.vertexAttributes.at(i) + geometry.info.numberVertices);
 	  else if (*it == G3D::Normal) normals = NormVec((FLOATVECTOR3*)geometry.vertexAttributes.at(i), (FLOATVECTOR3*)geometry.vertexAttributes.at(i) + geometry.info.numberVertices);

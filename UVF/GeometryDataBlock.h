@@ -47,47 +47,47 @@ class GeometryDataBlock : public DataBlock {
 public:
   GeometryDataBlock();
   GeometryDataBlock(const GeometryDataBlock &other);
-  GeometryDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
+  GeometryDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
   virtual GeometryDataBlock& operator=(const GeometryDataBlock& other);
   virtual ~GeometryDataBlock();
 
-  virtual bool Verify(UINT64 iSizeofData, std::string* pstrProblem = NULL) const;
-  virtual UINT64 ComputeDataSize() const;
+  virtual bool Verify(uint64_t iSizeofData, std::string* pstrProblem = NULL) const;
+  virtual uint64_t ComputeDataSize() const;
 
   std::vector< float > GetVertices() const;
   std::vector< float > GetNormals() const;
   std::vector< float > GetTexCoords() const;
   std::vector< float > GetColors() const;
 
-  std::vector< UINT32 > GetVertexIndices() const;
-  std::vector< UINT32 > GetNormalIndices() const;
-  std::vector< UINT32 > GetTexCoordIndices() const;
-  std::vector< UINT32 > GetColorIndices() const;
+  std::vector< uint32_t > GetVertexIndices() const;
+  std::vector< uint32_t > GetNormalIndices() const;
+  std::vector< uint32_t > GetTexCoordIndices() const;
+  std::vector< uint32_t > GetColorIndices() const;
 
   void SetVertices(const std::vector< float >& v);
   void SetNormals(const std::vector< float >& n);
   void SetTexCoords(const std::vector< float >& tc);
   void SetColors(const std::vector< float >& c);
 
-  void SetVertexIndices(const std::vector< UINT32 >& vI);
-  void SetNormalIndices(const std::vector< UINT32 >& nI);
-  void SetTexCoordIndices(const std::vector< UINT32 >& tcI);
-  void SetColorIndices(const std::vector< UINT32 >& cI);
+  void SetVertexIndices(const std::vector< uint32_t >& vI);
+  void SetNormalIndices(const std::vector< uint32_t >& nI);
+  void SetTexCoordIndices(const std::vector< uint32_t >& tcI);
+  void SetColorIndices(const std::vector< uint32_t >& cI);
 
   const std::vector< float >& GetDefaultColor() const {return m_DefaultColor;}
   void SetDefaultColor(const std::vector< float >& color) {m_DefaultColor = color;}
 
   std::string m_Desc;
-  UINT64 GetPolySize() const {return m_PolySize;}
-  void SetPolySize(UINT64 polySize) {m_PolySize = polySize;}
+  uint64_t GetPolySize() const {return m_PolySize;}
+  void SetPolySize(uint64_t polySize) {m_PolySize = polySize;}
   
 protected:
-  UINT64 ComputeHeaderSize() const;
-  virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
-  virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
-  virtual UINT64 GetOffsetToNextBlock() const;
+  uint64_t ComputeHeaderSize() const;
+  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
+  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual uint64_t GetOffsetToNextBlock() const;
 
-  virtual void CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
   virtual DataBlock* Clone() const;
 
   friend class UVF;
@@ -99,10 +99,10 @@ protected:
   std::vector< float > colors;
 
   // indices
-  std::vector< UINT32 > vIndices;
-  std::vector< UINT32 > nIndices;
-  std::vector< UINT32 > tIndices;
-  std::vector< UINT32 > cIndices;
+  std::vector< uint32_t > vIndices;
+  std::vector< uint32_t > nIndices;
+  std::vector< uint32_t > tIndices;
+  std::vector< uint32_t > cIndices;
 
   bool verticesValid;
   bool normalsValid;
@@ -116,21 +116,21 @@ protected:
 
   std::vector< float > m_DefaultColor;
 
-  UINT64               m_PolySize;
+  uint64_t               m_PolySize;
 
 private:
   bool   m_bIsBigEndian;
 
 
-  UINT64 m_n_vertices;
-  UINT64 m_n_normals;
-  UINT64 m_n_texcoords;
-  UINT64 m_n_colors;
+  uint64_t m_n_vertices;
+  uint64_t m_n_normals;
+  uint64_t m_n_texcoords;
+  uint64_t m_n_colors;
 
-  UINT64 m_n_vertex_indices;
-  UINT64 m_n_normal_indices;
-  UINT64 m_n_texcoord_indices;
-  UINT64 m_n_color_indices;
+  uint64_t m_n_vertex_indices;
+  uint64_t m_n_normal_indices;
+  uint64_t m_n_texcoord_indices;
+  uint64_t m_n_color_indices;
 
 };
 #endif // GEOMETRYDATABLOCK_H

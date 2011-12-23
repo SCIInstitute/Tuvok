@@ -318,8 +318,8 @@ Mesh* PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
       }
 
       if (bEdgeColorsFound)  {
-        COLIndices.push_back(UINT32(colors.size()));
-        COLIndices.push_back(UINT32(colors.size()));
+        COLIndices.push_back(uint32_t(colors.size()));
+        COLIndices.push_back(uint32_t(colors.size()));
         colors.push_back(color);
       }
 

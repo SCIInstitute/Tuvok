@@ -10,28 +10,28 @@ class DataBlock {
 public:
   DataBlock();
   DataBlock(const DataBlock &other);
-  DataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
+  DataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
   virtual ~DataBlock();
   virtual DataBlock& operator=(const DataBlock& other);
-  virtual bool Verify(UINT64 iSizeofData, std::string* pstrProblem = NULL) const;
+  virtual bool Verify(uint64_t iSizeofData, std::string* pstrProblem = NULL) const;
 
   UVFTables::BlockSemanticTable GetBlockSemantic() const {return ulBlockSemantics;}
 
   std::string strBlockID;
   UVFTables::CompressionSemanticTable ulCompressionScheme;
-  virtual UINT64 ComputeDataSize() const {return 0;}
+  virtual uint64_t ComputeDataSize() const {return 0;}
 
 protected:
-  LargeRAWFile*  m_pStreamFile;
-  UINT64    m_iOffset;
+  LargeRAWFile_ptr  m_pStreamFile;
+  uint64_t    m_iOffset;
 
   UVFTables::BlockSemanticTable ulBlockSemantics;
-  UINT64 ulOffsetToNextDataBlock;
+  uint64_t ulOffsetToNextDataBlock;
 
-  virtual void CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
-  virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
-  virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
-  virtual UINT64 GetOffsetToNextBlock() const;
+  virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
+  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual uint64_t GetOffsetToNextBlock() const;
 
   virtual DataBlock* Clone() const;
 

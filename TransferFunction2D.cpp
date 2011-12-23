@@ -119,7 +119,7 @@ bool TransferFunction2D::Load(const std::string& filename, const VECTOR2<size_t>
   }
 
   // load swatch count
-  UINT32 iSwatchCount;
+  uint32_t iSwatchCount;
   file >> iSwatchCount;
 
   if(!file) {
@@ -166,7 +166,7 @@ bool TransferFunction2D::Load(const std::string& filename) {
   }
 
   // load swatch count
-  UINT32 iSwatchCount;
+  uint32_t iSwatchCount;
   file >> iSwatchCount;
   if(!file) {
     T_ERROR("Invalid swatch count in %s", filename.c_str());
@@ -374,8 +374,8 @@ ColorData2D* TransferFunction2D::RenderTransferFunction() {
 void TransferFunction2D::ComputeNonZeroLimits() {
   unsigned char* pPixelData = RenderTransferFunction8Bit();
 
-  m_vValueBBox    = UINT64VECTOR4(UINT64(m_iSize.x),0,
-                                  UINT64(m_iSize.y),0);
+  m_vValueBBox    = UINT64VECTOR4(uint64_t(m_iSize.x),0,
+                                  uint64_t(m_iSize.y),0);
 
   size_t i = 3;
   for (size_t y = 0;y<m_iSize.y;y++) {
@@ -419,7 +419,7 @@ void TransferFunction2D::Update1DTrans(const TransferFunction1D* p1DTrans) {
 // ***************************************************************************
 
 bool TFPolygon::Load(ifstream& file) {
-  UINT32 iSize;
+  uint32_t iSize;
   file >> bRadial;
   file >> iSize;
   if(!file) { return false; }
@@ -454,7 +454,7 @@ bool TFPolygon::Load(ifstream& file) {
 
 void TFPolygon::Save(ofstream& file) const {
   file << bRadial << endl;
-  file << UINT32(pPoints.size()) << endl;
+  file << uint32_t(pPoints.size()) << endl;
 
   for(size_t i=0;i<pPoints.size();++i){
     for(size_t j=0;j<2;++j){

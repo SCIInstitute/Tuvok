@@ -1,15 +1,15 @@
 #include "Histogram2DDataBlock.h"
 #include "Basics/Vectors.h"
 #include "RasterDataBlock.h"
+#include "TOCBlock.h"
 
 using namespace std;
-using namespace UVFTables;
 
 Histogram2DDataBlock::Histogram2DDataBlock() : 
   DataBlock(),
   m_fMaxGradMagnitude(0)
 {
-  ulBlockSemantics = BS_2D_HISTOGRAM;
+  ulBlockSemantics = UVFTables::BS_2D_HISTOGRAM;
   strBlockID       = "2D Histogram";
 }
 
@@ -33,7 +33,7 @@ Histogram2DDataBlock& Histogram2DDataBlock::operator=(const Histogram2DDataBlock
 }
 
 
-Histogram2DDataBlock::Histogram2DDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian) {
+Histogram2DDataBlock::Histogram2DDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian) {
   GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
 }
 
@@ -45,24 +45,85 @@ DataBlock* Histogram2DDataBlock::Clone() const {
   return new Histogram2DDataBlock(*this);
 }
 
-UINT64 Histogram2DDataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian) {
-  UINT64 iStart = iOffset + DataBlock::GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
+uint64_t Histogram2DDataBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian) {
+  uint64_t iStart = iOffset + DataBlock::GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
   pStreamFile->SeekPos(iStart);
 
-  UINT64 ulElementCountX, ulElementCountY;
+  uint64_t ulElementCountX, ulElementCountY;
   pStreamFile->ReadData(m_fMaxGradMagnitude, bIsBigEndian);
   pStreamFile->ReadData(ulElementCountX, bIsBigEndian);
   pStreamFile->ReadData(ulElementCountY, bIsBigEndian);
 
   m_vHistData.resize(size_t(ulElementCountX));
-  vector<UINT64> tmp((size_t)ulElementCountY);
+  vector<uint64_t> tmp((size_t)ulElementCountY);
   for (size_t i = 0;i<size_t(ulElementCountX);i++) {
-    pStreamFile->ReadRAW((unsigned char*)&tmp[0], ulElementCountY*sizeof(UINT64));
+    pStreamFile->ReadRAW((unsigned char*)&tmp[0], ulElementCountY*sizeof(uint64_t));
     m_vHistData[i] = tmp;
   }
 
   return pStreamFile->GetPos() - iOffset;
 }
+
+bool Histogram2DDataBlock::Compute(const TOCBlock* source, 
+                                   uint64_t iLevel,
+                                   size_t iHistoBinCount,
+                                   double fMaxNonZeroValue) {
+  // do not try to compute a histogram for floating point data,
+  // anything beyond 32 bit or more than 1 component data
+  if (source->GetComponentType() == ExtendedOctree::CT_FLOAT32 ||
+    source->GetComponentType() == ExtendedOctree::CT_FLOAT64 ||
+    source->GetComponentTypeSize() > 4 ||
+    source->GetComponentCount() != 1) return false;
+
+  // resize histogram 
+  m_vHistData.resize(iHistoBinCount);
+  for (size_t i = 0;i<iHistoBinCount;i++) {
+    m_vHistData[i].resize(256);
+    for (size_t j = 0;j<256;j++) {
+      m_vHistData[i][j] = 0;
+    }
+  }
+
+  // compute histogram
+  switch (source->GetComponentType()) {
+  case ExtendedOctree::CT_UINT8:
+    ComputeTemplate<uint8_t>(source, double(std::numeric_limits<uint8_t>::max()), iLevel, iHistoBinCount, fMaxNonZeroValue);
+    break;
+  case ExtendedOctree::CT_UINT16:
+    ComputeTemplate<uint16_t>(source, double(std::numeric_limits<uint16_t>::max()), iLevel, iHistoBinCount, fMaxNonZeroValue);
+    break;
+  case ExtendedOctree::CT_UINT32:
+    ComputeTemplate<uint32_t>(source, double(std::numeric_limits<uint32_t>::max()), iLevel, iHistoBinCount, fMaxNonZeroValue);
+    break;
+  case ExtendedOctree::CT_UINT64:
+    ComputeTemplate<uint64_t>(source, double(std::numeric_limits<uint64_t>::max()), iLevel, iHistoBinCount, fMaxNonZeroValue);
+    break;
+  case ExtendedOctree::CT_INT8:
+    ComputeTemplate<int8_t>(source, double(std::numeric_limits<int8_t>::max()), iLevel, iHistoBinCount, fMaxNonZeroValue);
+    break;
+  case ExtendedOctree::CT_INT16:
+    ComputeTemplate<int16_t>(source, double(std::numeric_limits<int16_t>::max()), iLevel, iHistoBinCount, fMaxNonZeroValue);
+    break;
+  case ExtendedOctree::CT_INT32:
+    ComputeTemplate<int32_t>(source, double(std::numeric_limits<int32_t>::max()), iLevel, iHistoBinCount, fMaxNonZeroValue);
+    break;
+  case ExtendedOctree::CT_INT64:
+    ComputeTemplate<int64_t>(source, double(std::numeric_limits<int64_t>::max()), iLevel, iHistoBinCount, fMaxNonZeroValue);
+    break;
+  case ExtendedOctree::CT_FLOAT32:
+    ComputeTemplate<float>(source, 1.0, iLevel, iHistoBinCount, fMaxNonZeroValue);
+    break;
+  case ExtendedOctree::CT_FLOAT64:
+    ComputeTemplate<double>(source, 1.0, iLevel, iHistoBinCount, fMaxNonZeroValue);
+    break;
+  }
+
+  // set data block information
+  strBlockID = "2D Histogram for datablock " + source->strBlockID;
+
+  return true;
+}
+
 
 /// \todo right now compute Histogram assumes that the lowest LOD level
 /// consists only of a single brick, this brick is used for the hist.
@@ -77,8 +138,8 @@ bool Histogram2DDataBlock::Compute(const RasterDataBlock* source,
   /// \todo right now compute Histogram assumes that at least the lowest LOD level consists only 
   //       of a single brick, this brick is used for the hist.-computation
   //       this should be changed to a more general approach
-  vector<UINT64> vSmallestLOD = source->GetSmallestBrickIndex();
-  const vector<UINT64>& vBricks = source->GetBrickCount(vSmallestLOD);
+  vector<uint64_t> vSmallestLOD = source->GetSmallestBrickIndex();
+  const vector<uint64_t>& vBricks = source->GetBrickCount(vSmallestLOD);
   for (unsigned int i = 0;i<vBricks.size();i++) if (vBricks[i] != 1) return false;
   
   /// \todo right now we can only compute 2D Histograms of at least 3D data this should be changed to a more general approach
@@ -97,14 +158,14 @@ bool Histogram2DDataBlock::Compute(const RasterDataBlock* source,
   std::vector<unsigned char> vcSourceData;
 
   // LargestSingleBrickLODBrickIndex is well defined as we tested above if we have a single brick LOD
-  vector<UINT64> vLOD = source->LargestSingleBrickLODBrickIndex();
-  vector<UINT64> vOneAndOnly;
+  vector<uint64_t> vLOD = source->LargestSingleBrickLODBrickIndex();
+  vector<uint64_t> vOneAndOnly;
   for (size_t i = 0;i<vBricks.size();i++) vOneAndOnly.push_back(0);
   if (!source->GetData(vcSourceData, vLOD, vOneAndOnly)) return false;
 
-  vector<UINT64> vSize = source->LargestSingleBrickLODBrickSize();
+  vector<uint64_t> vSize = source->LargestSingleBrickLODBrickSize();
 
-  UINT64 iDataSize = 1;
+  uint64_t iDataSize = 1;
   for (size_t i = 0;i<vSize.size();i++) iDataSize*=vSize[i];
 
   /// \todo right now only 8 and 16 bit integer data is supported this should be changed to a more general approach
@@ -248,11 +309,11 @@ bool Histogram2DDataBlock::Compute(const RasterDataBlock* source,
 }
 
 
-void Histogram2DDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+void Histogram2DDataBlock::CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock) {
   DataBlock::CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
-  UINT64 ulElementCountX = UINT64(m_vHistData.size());
-  UINT64 ulElementCountY = UINT64(m_vHistData[0].size());
+  uint64_t ulElementCountX = uint64_t(m_vHistData.size());
+  uint64_t ulElementCountY = uint64_t(m_vHistData[0].size());
 
   pStreamFile->WriteData(m_fMaxGradMagnitude, bIsBigEndian);
   pStreamFile->WriteData(ulElementCountX, bIsBigEndian);
@@ -260,29 +321,29 @@ void Histogram2DDataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iO
 }
 
 
-UINT64 Histogram2DDataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+uint64_t Histogram2DDataBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock) {
   CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
-  vector<UINT64> tmp;
+  vector<uint64_t> tmp;
   for (size_t i = 0;i<m_vHistData.size();i++) {
     tmp = m_vHistData[i];
-    pStreamFile->WriteRAW((unsigned char*)&tmp[0], tmp.size()*sizeof(UINT64));
+    pStreamFile->WriteRAW((unsigned char*)&tmp[0], tmp.size()*sizeof(uint64_t));
   }
 
   return pStreamFile->GetPos() - iOffset;
 }
 
 
-UINT64 Histogram2DDataBlock::GetOffsetToNextBlock() const {
+uint64_t Histogram2DDataBlock::GetOffsetToNextBlock() const {
   return DataBlock::GetOffsetToNextBlock() + ComputeDataSize();
 }
 
-UINT64 Histogram2DDataBlock::ComputeDataSize() const {
+uint64_t Histogram2DDataBlock::ComputeDataSize() const {
 
-  UINT64 ulElementCountX = UINT64(m_vHistData.size());
-  UINT64 ulElementCountY = UINT64((ulElementCountX == 0) ? 0 : m_vHistData[0].size());
+  uint64_t ulElementCountX = uint64_t(m_vHistData.size());
+  uint64_t ulElementCountY = uint64_t((ulElementCountX == 0) ? 0 : m_vHistData[0].size());
 
   return 1*sizeof(float) +                                // the m_fMaxGradMagnitude value
-         2*sizeof(UINT64) +                                // length of the vectors
-         ulElementCountX*ulElementCountY*sizeof(UINT64);  // the vectors themselves
+         2*sizeof(uint64_t) +                                // length of the vectors
+         ulElementCountX*ulElementCountY*sizeof(uint64_t);  // the vectors themselves
 }

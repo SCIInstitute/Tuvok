@@ -49,8 +49,8 @@ public:
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir,
                             bool bNoUserInteraction,
-                            UINT64& iHeaderSkip, UINT64& iComponentSize,
-                            UINT64& iComponentCount, bool& bConvertEndianess,
+                            uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+                            uint64_t& iComponentCount, bool& bConvertEndianess,
                             bool& bSigned, bool& bIsFloat,
                             UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
@@ -61,8 +61,8 @@ public:
   /// @todo unimplemented!
   virtual bool ConvertToNative(const std::string& strRawFilename,
                                const std::string& strTargetFilename,
-                               UINT64 iHeaderSkip, UINT64 iComponentSize,
-                               UINT64 iComponentCount, bool bSigned,
+                               uint64_t iHeaderSkip, uint64_t iComponentSize,
+                               uint64_t iComponentCount, bool bSigned,
                                bool bFloatingPoint,
                                UINT64VECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
@@ -111,13 +111,13 @@ private:
       T z;                      ///< z coord
     };
 
-    typedef stTriple<UINT64> sizeType;     ///< type for size triple
+    typedef stTriple<uint64_t> sizeType;     ///< type for size triple
     typedef stTriple<double> spacingType;  ///< type for spacing triple
 
     ePixelType type;           ///< pixel/data type
-    UINT64 bpp;                ///< bytes per pixel
-    UINT64 skip;
-    UINT64 rleLength;          ///< length of rle stream
+    uint64_t bpp;                ///< bytes per pixel
+    uint64_t skip;
+    uint64_t rleLength;          ///< length of rle stream
     sizeType size;             ///< sample size
     spacingType spacing;       ///< dimensions of one pixel in meters
     std::string creator;       /*< creator of the sample/file */

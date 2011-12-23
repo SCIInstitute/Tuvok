@@ -37,12 +37,9 @@
 
 #include <list>
 #include <string>
-#include <boost/cstdint.hpp>
 #include "BrickedDataset.h"
 
 namespace tuvok {
-
-using boost::int8_t;
 
 /// Abstract base for IO layers which support bricked datasets.
 class FileBackedDataset : public BrickedDataset {
@@ -58,7 +55,7 @@ public:
   /// Use to verify checksum.  Default implementation says the checksum is
   /// always valid.
   virtual bool Verify(const std::string&) const;
-  virtual FileBackedDataset* Create(const std::string&, UINT64, bool) const=0;
+  virtual FileBackedDataset* Create(const std::string&, uint64_t, bool) const=0;
 
   /// @return a list of file extensions readable by this format
   virtual std::list<std::string> Extensions() const=0;

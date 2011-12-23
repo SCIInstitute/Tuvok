@@ -32,7 +32,7 @@
            SCI Institute
            University of Utah
 */
-#include "boost/cstdint.hpp"
+
 #ifndef TUVOK_NO_IO
 # include "3rdParty/tiff/tiffio.h"
 #else
@@ -45,9 +45,9 @@
 using namespace tuvok;
 
 struct stk {
-  boost::uint32_t x,y,z;      ///< dimensions
-  boost::uint16_t bpp;        ///< bits per pixel
-  boost::uint16_t samples;    ///< number of components per pixel
+  uint32_t x,y,z;      ///< dimensions
+  uint16_t bpp;        ///< bits per pixel
+  uint16_t samples;    ///< number of components per pixel
 };
 
 static bool stk_read_metadata(TIFF *, struct stk &);
@@ -64,9 +64,9 @@ StkConverter::StkConverter()
 bool
 StkConverter::ConvertToRAW(const std::string& strSourceFilename,
                            const std::string& strTempDir,
-                           bool, UINT64& iHeaderSkip,
-                           UINT64& iComponentSize,
-                           UINT64& iComponentCount,
+                           bool, uint64_t& iHeaderSkip,
+                           uint64_t& iComponentSize,
+                           uint64_t& iComponentCount,
                            bool& bConvertEndianess, bool& bSigned,
                            bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                            FLOATVECTOR3& vVolumeAspect,
@@ -146,7 +146,7 @@ StkConverter::ConvertToRAW(const std::string& strSourceFilename,
 // unimplemented!
 bool
 StkConverter::ConvertToNative(const std::string&, const std::string&,
-                              UINT64, UINT64, UINT64, bool, bool, UINT64VECTOR3,
+                              uint64_t, uint64_t, uint64_t, bool, bool, UINT64VECTOR3,
                               FLOATVECTOR3, bool)
 {
   return false;
@@ -168,7 +168,7 @@ stk_read_metadata(TIFF *tif, struct stk &metadata)
     // In particular, we'll look up the UIC3Tag and count the number of values
     // in there.
     const ttag_t uic3tag = (ttag_t) 33630; // the tag is private.
-    boost::uint16_t count;
+    uint16_t count;
     void *data;
     if(TIFFGetField(tif, uic3tag, &count, &data) == 0) {
       return false;  // UIC3 tag does not exist; this is not a stk.

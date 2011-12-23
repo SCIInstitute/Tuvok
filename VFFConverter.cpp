@@ -49,7 +49,7 @@ VFFConverter::VFFConverter()
 
 bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
                                 const std::string&, bool,
-                                UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
+                                uint64_t& iHeaderSkip, uint64_t& iComponentSize, uint64_t& iComponentCount,
                                 bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                 FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                                 UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
@@ -181,8 +181,8 @@ bool VFFConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
-                             UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
+bool VFFConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, uint64_t iHeaderSkip,
+                             uint64_t iComponentSize, uint64_t iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool, bool bQuantizeTo8Bit) {
 
   // create header textfile from metadata

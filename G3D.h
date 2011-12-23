@@ -72,16 +72,16 @@ public:
 	struct GeometryInfo
 	{
 		GeometryInfo() : vertexType(AoS), numberPrimitives(0), primitiveType(Triangle), numberIndices(0), numberVertices(0), vertexSize(0), indexSize(0), isOpaque(true) {}
-		UINT32 vertexType;
-		UINT32 numberPrimitives;
-		UINT32 primitiveType;
-		UINT32 numberIndices;
-		UINT32 numberVertices;
-		UINT32 vertexSize;
-		UINT32 indexSize;
+		uint32_t vertexType;
+		uint32_t numberPrimitives;
+		uint32_t primitiveType;
+		uint32_t numberIndices;
+		uint32_t numberVertices;
+		uint32_t vertexSize;
+		uint32_t indexSize;
 		bool isOpaque;
 		
-		std::vector<UINT32> attributeSemantics;
+		std::vector<uint32_t> attributeSemantics;
 	};
 
 	struct Geometry
@@ -89,7 +89,7 @@ public:
 		Geometry() : indices(NULL) {}
 		GeometryInfo info;
 
-		UINT32 * indices;
+		uint32_t * indices;
 	};
 
 	struct GeometryAoS : Geometry
@@ -112,7 +112,7 @@ public:
 		std::vector<float*> vertexAttributes;
 	};
 
-	static UINT32 floats(UINT32 semantic)
+	static uint32_t floats(uint32_t semantic)
 	{
 		switch (semantic)
 		{
@@ -133,8 +133,8 @@ public:
 		}
 	}
 
-	static void write(const std::string & file, const GeometryAoS * const geometry, const UINT32 vertexType = AoS);
-	static void write(const std::string & file, const GeometrySoA * const geometry, const UINT32 vertexType = SoA);
+	static void write(const std::string & file, const GeometryAoS * const geometry, const uint32_t vertexType = AoS);
+	static void write(const std::string & file, const GeometrySoA * const geometry, const uint32_t vertexType = SoA);
 	static void read(const std::string & file, GeometryAoS * const geometry);
 	static void read(const std::string & file, GeometrySoA * const geometry);
 	static void print(const Geometry * const geometry, std::ostream & output = std::cout);
@@ -142,15 +142,15 @@ public:
 	static void clean(GeometrySoA * geometry);
 
 private:
-	static void writeHeader(std::fstream & fs, const GeometryInfo & info, const UINT32 * const vertexType = NULL);
-	static void writeIndices(std::fstream & fs, const UINT32 * const indices, const GeometryInfo & info);
+	static void writeHeader(std::fstream & fs, const GeometryInfo & info, const uint32_t * const vertexType = NULL);
+	static void writeIndices(std::fstream & fs, const uint32_t * const indices, const GeometryInfo & info);
 	static void writeVertices(std::fstream & fs, const float * const vertices, const GeometryInfo & info);
 	static void writeVertices(std::fstream & fs, const std::vector<float*> & vertexAttributes, const GeometryInfo & info);
 	static void writeContent(std::fstream & fs, const GeometryAoS & geometry);
 	static void writeContent(std::fstream & fs, const GeometrySoA & geometry);
 
 	static void readHeader(std::fstream & fs, GeometryInfo & info);
-	static void readIndices(std::fstream & fs, UINT32 *& indices, const GeometryInfo & info);
+	static void readIndices(std::fstream & fs, uint32_t *& indices, const GeometryInfo & info);
 	static void readVertices(std::fstream & fs, float *& vertices, const GeometryInfo & info);
 	static void readVertices(std::fstream & fs, std::vector<float*> & vertexAttributes, const GeometryInfo & info);
 	static void readContent(std::fstream & fs, GeometryAoS & geometry);
@@ -159,7 +159,7 @@ private:
 	static void convertVertices(const std::vector<float*> & vertexAttributes, float *& vertices, const GeometryInfo & info);
 	static void convertVertices(const float * const vertices, std::vector<float*> & vertexAttributes, const GeometryInfo & info);
 
-	static void cleanIndices(UINT32 * indices);
+	static void cleanIndices(uint32_t * indices);
 	static void cleanVertices(float * vertices);
 	static void cleanVertices(std::vector<float*> & vertexAttributes);
 };

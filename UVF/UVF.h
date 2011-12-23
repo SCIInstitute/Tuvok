@@ -19,7 +19,7 @@ class DataBlockListElem {
       m_iBlockSize(0)
     {}
     
-    DataBlockListElem(DataBlock* block, bool bSelfCreatedPointer, bool bIsDirty, UINT64 iOffsetInFile, UINT64 iBlockSize) :
+    DataBlockListElem(DataBlock* block, bool bSelfCreatedPointer, bool bIsDirty, uint64_t iOffsetInFile, uint64_t iBlockSize) :
       m_block(block),
       m_bSelfCreatedPointer(bSelfCreatedPointer),
       m_bIsDirty(bIsDirty),
@@ -32,12 +32,12 @@ class DataBlockListElem {
   bool m_bSelfCreatedPointer;
   bool m_bIsDirty;
   bool m_bHeaderIsDirty;
-  UINT64 m_iOffsetInFile;
+  uint64_t m_iOffsetInFile;
 
-  UINT64 GetBlockSize() {return m_iBlockSize;}
+  uint64_t GetBlockSize() {return m_iBlockSize;}
 
   protected:
-    UINT64 m_iBlockSize;
+    uint64_t m_iBlockSize;
 
     friend class UVF;
 };
@@ -45,7 +45,7 @@ class DataBlockListElem {
 class UVF
 {
 public:
-  static UINT64 ms_ulReaderVersion;
+  static uint64_t ms_ulReaderVersion;
 
   UVF(std::wstring wstrFilename);
   virtual ~UVF(void);
@@ -54,9 +54,9 @@ public:
   void Close();
 
   const GlobalHeader& GetGlobalHeader() const {return m_GlobalHeader;}
-  UINT64 GetDataBlockCount() const {return UINT64(m_DataBlocks.size());}
-  const DataBlock* GetDataBlock(UINT64 index) const {return m_DataBlocks[size_t(index)]->m_block;}
-  DataBlock* GetDataBlockRW(UINT64 index, bool bOnlyChangeHeader);
+  uint64_t GetDataBlockCount() const {return uint64_t(m_DataBlocks.size());}
+  const DataBlock* GetDataBlock(uint64_t index) const {return m_DataBlocks[size_t(index)]->m_block;}
+  DataBlock* GetDataBlockRW(uint64_t index, bool bOnlyChangeHeader);
 
   // file creation routines
   bool SetGlobalHeader(const GlobalHeader& GlobalHeader);
@@ -72,23 +72,23 @@ public:
   static bool IsUVFFile(const std::wstring& wstrFilename, bool& bChecksumFail);
 
 protected:
-  bool            m_bFileIsLoaded;
-  bool            m_bFileIsReadWrite;
-  LargeRAWFile    m_streamFile;
-  UINT64          m_iAccumOffsets;
+  bool              m_bFileIsLoaded;
+  bool              m_bFileIsReadWrite;
+  LargeRAWFile_ptr  m_streamFile;
+  uint64_t          m_iAccumOffsets;
 
   GlobalHeader m_GlobalHeader;
   std::vector< DataBlockListElem* > m_DataBlocks;
 
   bool ParseGlobalHeader(bool bVerify, std::string* pstrProblem = NULL);
   void ParseDataBlocks();
-  static bool VerifyChecksum(LargeRAWFile& streamFile, GlobalHeader& globalHeader, std::string* pstrProblem = NULL);
-  static std::vector<unsigned char> ComputeChecksum(LargeRAWFile& streamFile, UVFTables::ChecksumSemanticTable eChecksumSemanticsEntry);
+  static bool VerifyChecksum(LargeRAWFile_ptr streamFile, GlobalHeader& globalHeader, std::string* pstrProblem = NULL);
+  static std::vector<unsigned char> ComputeChecksum(LargeRAWFile_ptr streamFile, UVFTables::ChecksumSemanticTable eChecksumSemanticsEntry);
 
-  static bool CheckMagic(LargeRAWFile& streamFile);
+  static bool CheckMagic(LargeRAWFile_ptr streamFile);
 
   // file creation routines
-  UINT64 ComputeNewFileSize();
+  uint64_t ComputeNewFileSize();
   void UpdateChecksum();
 };
 #endif // UVF_H

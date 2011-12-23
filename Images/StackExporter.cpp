@@ -33,7 +33,6 @@
         University of Utah
 */
 
-#include "boost/cstdint.hpp"
 #ifndef TUVOK_NO_QT
  #include <QtGui/QImage>
  #include <QtGui/QImageWriter>
@@ -65,7 +64,7 @@ std::vector<std::pair<std::string,std::string> > StackExporter::GetSuportedImage
 bool StackExporter::WriteImage(unsigned char* pData,
                                const std::string& strFilename,
                                const UINT64VECTOR2& vSize,
-                               UINT64 iComponentCount) {
+                               uint64_t iComponentCount) {
 
   if (iComponentCount != 4 && iComponentCount != 3) return false;
   
@@ -113,11 +112,11 @@ bool StackExporter::WriteImage(unsigned char* pData,
 
 bool StackExporter::WriteSlice(unsigned char* pData,
                                const TransferFunction1D* pTrans,
-                               UINT64 iBitWidth,
+                               uint64_t iBitWidth,
                                const std::string& strCurrentDiFilename,
                                const UINT64VECTOR2& vSize,
                                float fRescale,
-                               UINT64 iComponentCount) {
+                               uint64_t iComponentCount) {
     size_t iImageCompCount = (iComponentCount == 3 || iComponentCount == 2) ? 3 : 4;
 
     using namespace boost; // for uintXX_t types.
@@ -173,8 +172,8 @@ void StackExporter::PadInplace(unsigned char* pData,
 bool StackExporter::WriteStacks(const std::string& strRAWFilename, 
                                 const std::string& strTargetFilename,
                                 const TransferFunction1D* pTrans,
-                                UINT64 iBitWidth,
-                                UINT64 iComponentCount,
+                                uint64_t iBitWidth,
+                                uint64_t iComponentCount,
                                 float fRescale,
                                 UINT64VECTOR3 vDomainSize,
                                 bool bAllDirs) {
@@ -216,12 +215,12 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
   size_t elemSize = iComponentCount*iDataByteWith;
 
   if (bAllDirs)  {
-    for (UINT64 x = 0;x<vDomainSize.x;x++) {
+    for (uint64_t x = 0;x<vDomainSize.x;x++) {
       MESSAGE("Exporting X-Axis Stack. Processing Image %llu of %llu", x+1, vDomainSize.x);
 
-      UINT64 offset = 0;
-      for (UINT64 v = 0;v<vDomainSize.y;v++) {
-        for (UINT64 u = 0;u<vDomainSize.z;u++) {
+      uint64_t offset = 0;
+      for (uint64_t v = 0;v<vDomainSize.y;v++) {
+        for (uint64_t u = 0;u<vDomainSize.z;u++) {
           dataSource.SeekPos(elemSize * (x+u*vDomainSize.x*vDomainSize.y+v*vDomainSize.x) );
           dataSource.ReadRAW(pData+offset, elemSize);
           offset += elemSize;
@@ -237,11 +236,11 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
 
     vSize = UINT64VECTOR2(vDomainSize.x, vDomainSize.z);
     strCurrentDirTargetFilename = SysTools::AppendFilename(strTargetFilename, "_y");
-    for (UINT64 y = 0;y<vDomainSize.y;y++) {
+    for (uint64_t y = 0;y<vDomainSize.y;y++) {
       MESSAGE("Exporting Y-Axis Stack. Processing Image %llu of %llu", y+1, vDomainSize.y);
 
-      UINT64 offset = 0;
-      for (UINT64 u = 0;u<vDomainSize.z;u++) {
+      uint64_t offset = 0;
+      for (uint64_t u = 0;u<vDomainSize.z;u++) {
         dataSource.SeekPos(elemSize * (y*vDomainSize.x+u*vDomainSize.x*vDomainSize.y) );
         dataSource.ReadRAW(pData+offset, vDomainSize.x*elemSize);
         offset += vDomainSize.x*elemSize;
@@ -261,7 +260,7 @@ bool StackExporter::WriteStacks(const std::string& strRAWFilename,
   }
 
   vSize = UINT64VECTOR2(vDomainSize.x, vDomainSize.y);
-  for (UINT64 z = 0;z<vDomainSize.z;z++) {
+  for (uint64_t z = 0;z<vDomainSize.z;z++) {
     MESSAGE("Exporting Z-Axis Stack. Processing Image %llu of %llu", z+1, vDomainSize.z);
 
     dataSource.ReadRAW(pData, vDomainSize.x*vDomainSize.y*elemSize);

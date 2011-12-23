@@ -33,7 +33,6 @@
            University of Utah
 */
 #include <cstring>
-#include "boost/cstdint.hpp"
 #ifndef TUVOK_NO_IO
 # include "3rdParty/tiff/tiffio.h"
 #else
@@ -69,9 +68,9 @@ TiffVolumeConverter::TiffVolumeConverter()
 bool
 TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
                                   const std::string& strTempDir,
-                                  bool, UINT64& iHeaderSkip,
-                                  UINT64& iComponentSize,
-                                  UINT64& iComponentCount,
+                                  bool, uint64_t& iHeaderSkip,
+                                  uint64_t& iComponentSize,
+                                  uint64_t& iComponentCount,
                                   bool& bConvertEndianess, bool& bSigned,
                                   bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                   FLOATVECTOR3& vVolumeAspect,
@@ -93,9 +92,9 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   {
     size_t dims[3];
     tv_dimensions(tif, dims);
-    vVolumeSize[0] = static_cast<UINT64>(dims[0]);
-    vVolumeSize[1] = static_cast<UINT64>(dims[1]);
-    vVolumeSize[2] = static_cast<UINT64>(dims[2]);
+    vVolumeSize[0] = static_cast<uint64_t>(dims[0]);
+    vVolumeSize[1] = static_cast<uint64_t>(dims[1]);
+    vVolumeSize[2] = static_cast<uint64_t>(dims[2]);
     MESSAGE("TiffVolume dimensions: %ux%ux%u", static_cast<unsigned>(dims[0]),
                                                static_cast<unsigned>(dims[1]),
                                                static_cast<unsigned>(dims[2]));
@@ -110,14 +109,14 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
 
   // read the number of bits per component from the tiff tag.
   {
-    boost::uint16_t bits_per_sample;
+    uint16_t bits_per_sample;
     TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bits_per_sample);
     iComponentSize = bits_per_sample;
     MESSAGE("%ld bits per component.", iComponentSize);
   }
   // likewise for the number of components / pixel.
   {
-    boost::uint16_t components;
+    uint16_t components;
     TIFFGetField(tif, TIFFTAG_SAMPLESPERPIXEL, &components);
     iComponentCount = components;
     {
@@ -135,7 +134,7 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
   {
     bSigned = false;
     bIsFloat = false;
-    boost::uint16_t sf;
+    uint16_t sf;
     if(TIFFGetField(tif, TIFFTAG_SAMPLEFORMAT, &sf) != 0) {
       bSigned = (sf == SAMPLEFORMAT_INT) || (sf == SAMPLEFORMAT_IEEEFP) ||
                 (sf == SAMPLEFORMAT_COMPLEXINT);
@@ -197,8 +196,8 @@ TiffVolumeConverter::ConvertToRAW(const std::string& strSourceFilename,
 bool
 TiffVolumeConverter::ConvertToNative(const std::string&,
                                      const std::string&,
-                                     UINT64, UINT64,
-                                     UINT64, bool,
+                                     uint64_t, uint64_t,
+                                     uint64_t, bool,
                                      bool,
                                      UINT64VECTOR3,
                                      FLOATVECTOR3,
@@ -215,7 +214,7 @@ static void
 tv_dimensions(TIFF *tif, size_t dims[3])
 {
 #ifndef TUVOK_NO_IO
-  UINT32 x,y;
+  uint32_t x,y;
   size_t z=0;
 
   TIFFSetDirectory(tif, 0);
@@ -245,10 +244,10 @@ tv_read_slice(TIFF *tif)
   return NULL;
 #else
   BYTE *slice;
-  UINT32 width;
-  UINT32 height;
-  boost::uint16_t bpp;
-  boost::uint16_t components;
+  uint32_t width;
+  uint32_t height;
+  uint16_t bpp;
+  uint16_t components;
   TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &width);
   TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &height);
   TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bpp);

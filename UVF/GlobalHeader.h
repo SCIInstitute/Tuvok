@@ -12,19 +12,19 @@ public:
   GlobalHeader& operator=(const GlobalHeader& other);
 
   bool                              bIsBigEndian;
-  UINT64                            ulFileVersion;
+  uint64_t                            ulFileVersion;
   UVFTables::ChecksumSemanticTable  ulChecksumSemanticsEntry;
   std::vector<unsigned char>        vcChecksum;
-  UINT64                            ulAdditionalHeaderSize;
+  uint64_t                            ulAdditionalHeaderSize;
 
 protected:
-  UINT64 GetDataPos();
-  void GetHeaderFromFile(LargeRAWFile* pStreamFile);
-  void CopyHeaderToFile(LargeRAWFile* pStreamFile);
-  UINT64 GetSize();
-  static UINT64 GetMinSize();
-  UINT64 ulOffsetToFirstDataBlock;
-  void UpdateChecksum(std::vector<unsigned char> checksum, LargeRAWFile* pStreamFile);
+  uint64_t GetDataPos();
+  void GetHeaderFromFile(LargeRAWFile_ptr pStreamFile);
+  void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile);
+  uint64_t GetSize();
+  static uint64_t GetMinSize();
+  uint64_t ulOffsetToFirstDataBlock;
+  void UpdateChecksum(std::vector<unsigned char> checksum, LargeRAWFile_ptr pStreamFile);
 
   friend class UVF;
 };

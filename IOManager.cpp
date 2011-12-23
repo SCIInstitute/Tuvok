@@ -44,7 +44,6 @@
 #include <sstream>
 #include <map>
 #include <memory>
-#include "boost/cstdint.hpp"
 #include "3rdParty/jpeglib/jconfig.h"
 
 #include "IOManager.h"
@@ -279,8 +278,8 @@ IOManager::ScanDirectory(string strDirectory) const {
 bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                const string& strTargetFilename,
                                const string& strTempDir,
-                               UINT64 iMaxBrickSize,
-                               UINT64 iBrickOverlap,
+                               uint64_t iMaxBrickSize,
+                               uint64_t iBrickOverlap,
                                const bool bQuantizeTo8Bit) const {
   MESSAGE("Request to convert stack of %s files to %s received",
           pStack->m_strDesc.c_str(), strTargetFilename.c_str());
@@ -323,7 +322,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
 
       if (!pDICOMFileInfo) continue;
 
-      UINT32 iDataSize = pDICOMStack->m_Elements[j]->GetDataSize();
+      uint32_t iDataSize = pDICOMStack->m_Elements[j]->GetDataSize();
       vData.resize(iDataSize);
 
       if (pDICOMStack->m_bIsJPEGEncoded) {
@@ -336,9 +335,9 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                   pDICOMStack->m_Elements[j]->m_strFileName.c_str());
           return false;
         }
-        MESSAGE("jpg is: %u bytes (%ux%u, %u components)", UINT32(jpg.size()),
-                UINT32(jpg.width()), UINT32(jpg.height()),
-                UINT32(jpg.components()));
+        MESSAGE("jpg is: %u bytes (%ux%u, %u components)", uint32_t(jpg.size()),
+                uint32_t(jpg.width()), uint32_t(jpg.height()),
+                uint32_t(jpg.components()));
 
         const char *jpeg_data = jpg.data();
         copy(jpeg_data, jpeg_data + jpg.size(), &vData[0]);
@@ -356,12 +355,12 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
           case  8 : break;
           case 16 : {
                 short *pData = reinterpret_cast<short*>(&vData[0]);
-                for (UINT32 k = 0;k<iDataSize/2;k++)
+                for (uint32_t k = 0;k<iDataSize/2;k++)
                   pData[k] = EndianConvert::Swap<short>(pData[k]);
                 } break;
           case 32 : {
                 int *pData = reinterpret_cast<int*>(&vData[0]);
-                for (UINT32 k = 0;k<iDataSize/4;k++)
+                for (uint32_t k = 0;k<iDataSize/4;k++)
                   pData[k] = EndianConvert::Swap<int>(pData[k]);
                 } break;
         }
@@ -378,17 +377,17 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
           switch (pDICOMStack->m_iAllocated) {
             case  8 :{
                   char *pData = reinterpret_cast<char*>(&vData[0]);
-                  for (UINT32 k = 0;k<iDataSize/2;k++)
+                  for (uint32_t k = 0;k<iDataSize/2;k++)
                     pData[k] = (char)(MAX(0.0, pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias));
                   } break;
             case 16 : {
                   short *pData = reinterpret_cast<short*>(&vData[0]);
-                  for (UINT32 k = 0;k<iDataSize/2;k++)
+                  for (uint32_t k = 0;k<iDataSize/2;k++)
                     pData[k] = (short)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
                   } break;
             case 32 : {
                   int *pData = reinterpret_cast<int*>(&vData[0]);
-                  for (UINT32 k = 0;k<iDataSize/4;k++)
+                  for (uint32_t k = 0;k<iDataSize/4;k++)
                     pData[k] = (int)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
                   } break;
           }
@@ -396,17 +395,17 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
           switch (pDICOMStack->m_iAllocated) {
             case  8 :{
                   unsigned char *pData = reinterpret_cast<unsigned char*>(&vData[0]);
-                  for (UINT32 k = 0;k<iDataSize/2;k++)
+                  for (uint32_t k = 0;k<iDataSize/2;k++)
                     pData[k] = (unsigned char)(MAX(0.0, pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias));
                   } break;
             case 16 : {
                   unsigned short *pData = reinterpret_cast<unsigned short*>(&vData[0]);
-                  for (UINT32 k = 0;k<iDataSize/2;k++)
+                  for (uint32_t k = 0;k<iDataSize/2;k++)
                     pData[k] = (unsigned short)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
                   } break;
             case 32 : {
                   unsigned int *pData = reinterpret_cast<unsigned int*>(&vData[0]);
-                  for (UINT32 k = 0;k<iDataSize/4;k++)
+                  for (uint32_t k = 0;k<iDataSize/4;k++)
                     pData[k] = (int)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
                   } break;
           }
@@ -417,7 +416,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
       // component data is 4 component data to simplify processing later.
       /// @todo FIXME: this code assumes 3 component data is always 3*char
       if (pDICOMStack->m_iComponentCount == 3) {
-        UINT32 iRGBADataSize = (iDataSize / 3 ) * 4;
+        uint32_t iRGBADataSize = (iDataSize / 3 ) * 4;
 
         // Later we'll tell RAWConverter that this dataset has
         // m_iComponentCount components.  Since we're upping the number of
@@ -427,7 +426,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
         // components in our in-memory copy of the data now differ.
 
         unsigned char *pRGBAData = new unsigned char[ iRGBADataSize ];
-        for (UINT32 k = 0;k<iDataSize/3;k++) {
+        for (uint32_t k = 0;k<iDataSize/3;k++) {
           pRGBAData[k*4+0] = vData[k*3+0];
           pRGBAData[k*4+1] = vData[k*3+1];
           pRGBAData[k*4+2] = vData[k*3+2];
@@ -444,12 +443,12 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     MESSAGE("    done creating intermediate file %s", strTempMergeFilename.c_str());
 
     UINT64VECTOR3 iSize = UINT64VECTOR3(pDICOMStack->m_ivSize);
-    iSize.z *= UINT32(pDICOMStack->m_Elements.size());
+    iSize.z *= uint32_t(pDICOMStack->m_Elements.size());
 
     /// \todo evaluate pDICOMStack->m_strModality
     /// \todo read `is floating point' property from DICOM, instead of assuming
     /// false.
-    const UINT64 timesteps = 1;
+    const uint64_t timesteps = 1;
     bool result =
       RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename,
                                       strTempDir, 0, pDICOMStack->m_iAllocated,
@@ -511,7 +510,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
             strTempMergeFilename.c_str());
 
     UINT64VECTOR3 iSize = UINT64VECTOR3(pStack->m_ivSize);
-    iSize.z *= UINT32(pStack->m_Elements.size());
+    iSize.z *= uint32_t(pStack->m_Elements.size());
 
     const string first_fn =
       SysTools::GetFilename(pStack->m_Elements[0]->m_strFileName);
@@ -519,10 +518,10 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
     const string last_fn =
       SysTools::GetFilename(pStack->m_Elements[last_elem]->m_strFileName);
 
-    const UINT64 timesteps = 1;
+    const uint64_t timesteps = 1;
 
     // grab the number of components from the first file in the set.
-    UINT64 components = pStack->m_Elements[0]->GetComponentCount();
+    uint64_t components = pStack->m_Elements[0]->GetComponentCount();
 
     bool result =
       RAWConverter::ConvertRAWDataset(strTempMergeFilename, strTargetFilename,
@@ -562,8 +561,8 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
           strTargetFilename.c_str());
 
   // convert the input files to RAW
-  UINT64        iComponentSizeG=0;
-  UINT64        iComponentCountG=0;
+  uint64_t        iComponentSizeG=0;
+  uint64_t        iComponentCountG=0;
   bool          bConvertEndianessG=false;
   bool          bSignedG=false;
   bool          bIsFloatG=false;
@@ -594,7 +593,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
         return false;
       }
 
-      UINT64 iLODLevel = 0; // always extract the highest quality here
+      uint64_t iLODLevel = 0; // always extract the highest quality here
 
       IntermediateFile.iHeaderSkip = 0;
 
@@ -646,8 +645,8 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
       } else bRAWCreated = true;
       vIntermediateFiles.push_back(IntermediateFile);
     } else {
-      UINT64        iComponentSize=0;
-      UINT64        iComponentCount=0;
+      uint64_t        iComponentSize=0;
+      uint64_t        iComponentCount=0;
       bool          bConvertEndianess=false;
       bool          bSigned=false;
       bool          bIsFloat=false;
@@ -796,7 +795,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
                     break;
                   }
         case 64 : {
-                    DataMerger<UINT64> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
+                    DataMerger<uint64_t> d(vIntermediateFiles, strMergedFile, vVolumeSizeG.volume()*iComponentCountG, MCtlr, bUseMaxMode);
                     bIsMerged = d.IsOK();
                     break;
                   }
@@ -818,7 +817,7 @@ bool IOManager::MergeDatasets(const vector <string>& strFilenames,
   string strExtTarget = SysTools::ToUpperCase(SysTools::GetExt(strTargetFilename));
   bool bTargetCreated = false;
   if (strExtTarget == "UVF") {
-    const UINT64 timesteps = 1;
+    const uint64_t timesteps = 1;
     bTargetCreated = RAWConverter::ConvertRAWDataset(
         strMergedFile, strTargetFilename, strTempDir, 0,
         iComponentSizeG, iComponentCountG, timesteps, bConvertEndianessG,
@@ -857,8 +856,8 @@ bool IOManager::ConvertDataset(const string& strFilename,
                                const string& strTargetFilename,
                                const string& strTempDir,
                                const bool bNoUserInteraction,
-                               const UINT64 iMaxBrickSize,
-                               const UINT64 iBrickOverlap,
+                               const uint64_t iMaxBrickSize,
+                               const uint64_t iBrickOverlap,
                                const bool bQuantizeTo8Bit) const {
   list<string> files;
   files.push_back(strFilename);
@@ -871,8 +870,8 @@ bool IOManager::ConvertDataset(const list<string>& files,
                                const string& strTargetFilename,
                                const string& strTempDir,
                                const bool bNoUserInteraction,
-                               UINT64 iMaxBrickSize,
-                               UINT64 iBrickOverlap,
+                               uint64_t iMaxBrickSize,
+                               uint64_t iBrickOverlap,
                                bool bQuantizeTo8Bit) const
 {
   if(files.empty()) {
@@ -943,9 +942,9 @@ bool IOManager::ConvertDataset(const list<string>& files,
   // Everything below is for exporting to non-UVF formats.
 
   string   strFilename = *files.begin();
-  UINT64        iHeaderSkip=0;
-  UINT64        iComponentSize=0;
-  UINT64        iComponentCount=0;
+  uint64_t        iHeaderSkip=0;
+  uint64_t        iComponentSize=0;
+  uint64_t        iComponentCount=0;
   bool          bConvertEndianess=false;
   bool          bSigned=false;
   bool          bIsFloat=false;
@@ -962,10 +961,10 @@ bool IOManager::ConvertDataset(const list<string>& files,
   // source is UVF
   if (strExt == "UVF") {
     // max(): disable bricksize check
-    UVFDataset v(strFilename,numeric_limits<UINT64>::max(),false,false);
+    UVFDataset v(strFilename,numeric_limits<uint64_t>::max(),false,false);
     if (!v.IsOpen()) return false;
 
-    UINT64 iLODLevel = 0; // always extract the highest quality here
+    uint64_t iLODLevel = 0; // always extract the highest quality here
 
     iHeaderSkip = 0;
     iComponentSize = v.GetBitWidth();
@@ -1057,8 +1056,8 @@ UVFDataset* IOManager::ConvertDataset(FileStackInfo* pStack,
                                       const string& strTargetFilename,
                                       const string& strTempDir,
                                       AbstrRenderer* requester,
-                                      UINT64 iMaxBrickSize,
-                                      UINT64 iBrickOverlap,
+                                      uint64_t iMaxBrickSize,
+                                      uint64_t iBrickOverlap,
                                       const bool bQuantizeTo8Bit) const {
   if (!ConvertDataset(pStack, strTargetFilename, strTempDir, iMaxBrickSize,
                       iBrickOverlap,bQuantizeTo8Bit)) {
@@ -1071,8 +1070,8 @@ UVFDataset* IOManager::ConvertDataset(const string& strFilename,
                                       const string& strTargetFilename,
                                       const string& strTempDir,
                                       AbstrRenderer* requester,
-                                      UINT64 iMaxBrickSize,
-                                      UINT64 iBrickOverlap,
+                                      uint64_t iMaxBrickSize,
+                                      uint64_t iBrickOverlap,
                                       const bool bQuantizeTo8Bit) const {
   if (!ConvertDataset(strFilename, strTargetFilename, strTempDir, false,
                       iMaxBrickSize, iBrickOverlap,bQuantizeTo8Bit)) {
@@ -1087,7 +1086,7 @@ Dataset* IOManager::LoadDataset(const string& strFilename,
 }
 
 Dataset* IOManager::CreateDataset(const string& filename,
-                                  UINT64 max_brick_size, bool verify) const {
+                                  uint64_t max_brick_size, bool verify) const {
   MESSAGE("Searching for appropriate DS for '%s'", filename.c_str());
   return m_dsFactory->Create(filename, max_brick_size, verify);
 }
@@ -1097,15 +1096,15 @@ void IOManager::AddReader(tr1::shared_ptr<FileBackedDataset> ds)
   m_dsFactory->AddReader(ds);
 }
 
-bool MCBrick(LargeRAWFile* pSourceFile, const vector<UINT64> vBrickSize,
-             const vector<UINT64> vBrickOffset, void* pUserContext) {
+bool MCBrick(LargeRAWFile_ptr pSourceFile, const vector<uint64_t> vBrickSize,
+             const vector<uint64_t> vBrickOffset, void* pUserContext) {
     MCData* pMCData = (MCData*)pUserContext;
     return pMCData->PerformMC(pSourceFile, vBrickSize, vBrickOffset);
 }
 
 bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
                                   const TransferFunction1D* pTrans,
-                                  UINT64 iLODlevel, 
+                                  uint64_t iLODlevel, 
                                   const std::string& strTargetFilename,
                                   const std::string& strTempDir,
                                   bool bAllDirs) const {
@@ -1159,7 +1158,7 @@ bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
 
 
 bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
-                                  UINT64 iLODlevel, double fIsovalue,
+                                  uint64_t iLODlevel, double fIsovalue,
                                   const FLOATVECTOR4& vfColor,
                                   const string& strTargetFilename,
                                   const string& strTempDir) const {
@@ -1173,7 +1172,7 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
 
   bool   bFloatingPoint  = pSourceData->GetIsFloat();
   bool   bSigned         = pSourceData->GetIsSigned();
-  UINT64  iComponentSize = pSourceData->GetBitWidth();
+  uint64_t  iComponentSize = pSourceData->GetBitWidth();
   FLOATVECTOR3 vScale    = FLOATVECTOR3(pSourceData->GetScale());
 
   AbstrGeoConverter* conv = GetGeoConverterForExt(SysTools::ToLowerCase(SysTools::GetExt(strTargetFilename)),true, false);
@@ -1204,8 +1203,8 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
       switch (iComponentSize) {
         case  8 : pMCData = new MCDataTemplate<unsigned char>(strTargetFilename, (unsigned char)(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
         case 16 : pMCData = new MCDataTemplate<unsigned short>(strTargetFilename, (unsigned short)(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
-        case 32 : pMCData = new MCDataTemplate<UINT32>(strTargetFilename, UINT32(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
-        case 64 : pMCData = new MCDataTemplate<UINT64>(strTargetFilename, UINT64(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case 32 : pMCData = new MCDataTemplate<uint32_t>(strTargetFilename, uint32_t(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case 64 : pMCData = new MCDataTemplate<uint64_t>(strTargetFilename, uint64_t(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
       }
     }
   }
@@ -1241,7 +1240,7 @@ bool IOManager::ExportMesh(const Mesh* mesh,
   return conv->ConvertToNative(*mesh, strTargetFilename);
 }
 
-bool IOManager::ExportDataset(const UVFDataset* pSourceData, UINT64 iLODlevel,
+bool IOManager::ExportDataset(const UVFDataset* pSourceData, uint64_t iLODlevel,
                               const string& strTargetFilename,
                               const string& strTempDir) const {
   // find the right converter to handle the output
@@ -1614,7 +1613,7 @@ bool IOManager::AnalyzeDataset(const string& strFilename, RangeInfo& info,
     UVFDataset v(strFilename,m_iMaxBrickSize,false);
     if (!v.IsOpen()) return false;
 
-    UINT64 iComponentCount = v.GetComponentCount();
+    uint64_t iComponentCount = v.GetComponentCount();
     bool bSigned = v.GetIsSigned();
     bool bIsFloat = v.GetIsFloat();
 
@@ -1668,14 +1667,14 @@ struct MergeableDatasets : public std::binary_function<Dataset, Dataset, bool> {
       return false;
     }
 
-    const UINT64 timesteps = a.GetNumberOfTimesteps();
+    const uint64_t timesteps = a.GetNumberOfTimesteps();
     if(timesteps != b.GetNumberOfTimesteps()) { return false; }
 
-    const UINT64 LoDs = a.GetLODLevelCount();
+    const uint64_t LoDs = a.GetLODLevelCount();
     if(LoDs != b.GetLODLevelCount()) { return false; }
 
-    for(UINT64 ts=0; ts < timesteps; ++ts) {
-      for(UINT64 level=0; level < LoDs; ++level) {
+    for(uint64_t ts=0; ts < timesteps; ++ts) {
+      for(uint64_t level=0; level < LoDs; ++level) {
         const size_t st_ts = static_cast<size_t>(ts);
         const size_t st_level = static_cast<size_t>(level);
         if(a.GetDomainSize() != b.GetDomainSize() ||
@@ -1710,7 +1709,7 @@ namespace {
 
 const RasterDataBlock* GetFirstRDB(const UVF& uvf)
 {
-  for(UINT64 i=0; i < uvf.GetDataBlockCount(); ++i) {
+  for(uint64_t i=0; i < uvf.GetDataBlockCount(); ++i) {
     if(uvf.GetDataBlock(i)->GetBlockSemantic() == UVFTables::BS_REG_NDIM_GRID)
     {
       return dynamic_cast<const RasterDataBlock*>(uvf.GetDataBlock(i));
@@ -1753,20 +1752,20 @@ namespace {
 }
 
 // converts 1D brick indices into RDB's indices.
-std::vector<UINT64> NDBrickIndex(const RasterDataBlock* rdb,
+std::vector<uint64_t> NDBrickIndex(const RasterDataBlock* rdb,
                                  size_t LoD, size_t b) {
-  UINT64 brick = static_cast<UINT64>(b);
-  std::vector<UINT64> lod(1);
+  uint64_t brick = static_cast<uint64_t>(b);
+  std::vector<uint64_t> lod(1);
   lod[0] = LoD;
-  const std::vector<UINT64>& counts = rdb->GetBrickCount(lod);
+  const std::vector<uint64_t>& counts = rdb->GetBrickCount(lod);
 
-  UINT64 z = static_cast<UINT64>(brick / (counts[0] * counts[1]));
+  uint64_t z = static_cast<uint64_t>(brick / (counts[0] * counts[1]));
   brick = brick % (counts[0] * counts[1]);
-  UINT64 y = static_cast<UINT64>(brick / counts[0]);
+  uint64_t y = static_cast<uint64_t>(brick / counts[0]);
   brick = brick % counts[0];
-  UINT64 x = brick;
+  uint64_t x = brick;
 
-  std::vector<UINT64> vec(3);
+  std::vector<uint64_t> vec(3);
   vec[0] = x;
   vec[1] = y;
   vec[2] = z;
@@ -1777,8 +1776,8 @@ namespace {
   /// Computes the minimum and maximum for a single brick in a raster data block.
   template<typename T>
   DOUBLEVECTOR4 get_brick_minmax(const RasterDataBlock* rdb,
-                                 const std::vector<UINT64>& vLOD,
-                                 const std::vector<UINT64>& vBrick)
+                                 const std::vector<uint64_t>& vLOD,
+                                 const std::vector<uint64_t>& vBrick)
   {
     DOUBLEVECTOR4 mmv;
     // min/max of gradients not supported...
@@ -1800,7 +1799,7 @@ std::vector<DOUBLEVECTOR4>
 MaxMin(const RasterDataBlock* rdb)
 {
   const bool is_signed = rdb->bSignedElement[0][0];
-  const UINT64 bit_width = rdb->ulElementBitSize[0][0];
+  const uint64_t bit_width = rdb->ulElementBitSize[0][0];
   const bool is_float = bit_width != rdb->ulElementMantissa[0][0];
   std::vector<DOUBLEVECTOR4> mm;
 
@@ -1808,14 +1807,14 @@ MaxMin(const RasterDataBlock* rdb)
   // When a GetData fails for that brick, we know we need to move on to the
   // next LoD.  When a GetData fails and we're at brick 0, we know we're done
   // with all of the LoDs.
-  std::vector<UINT64> vLOD(1);
+  std::vector<uint64_t> vLOD(1);
   size_t brick;
   vLOD[0] = 0;
   do {
     brick = 0;
     size_t st_lod = static_cast<size_t>(vLOD[0]);
     do {
-      std::vector<UINT64> b_idx = NDBrickIndex(rdb, st_lod, brick);
+      std::vector<uint64_t> b_idx = NDBrickIndex(rdb, st_lod, brick);
       assert(rdb->ValidBrickIndex(vLOD, b_idx));
       MESSAGE("%llu,%zu -> %llu,%llu,%llu", vLOD[0], brick,
               b_idx[0], b_idx[1], b_idx[2]);
@@ -2132,10 +2131,9 @@ IOManager::EvaluateExpression(const char* expr,
   }
 
   std::string tmp_fn = SysTools::RemoveExt(out_fn) + ".rdb";
-  std::auto_ptr<LargeRAWFile> lout = std::auto_ptr<LargeRAWFile>
-                                                  (new LargeRAWFile(tmp_fn));
+  LargeRAWFile_ptr lout(new LargeRAWFile(tmp_fn));
   lout->Create();
-  rdb->ResetFile(&*lout);
+  rdb->ResetFile(lout);
 
   // Figure out which what type our output data should be.
   size_t bit_width;
@@ -2202,8 +2200,8 @@ IOManager::EvaluateExpression(const char* expr,
 bool IOManager::ReBrickDataset(const string& strSourceFilename,
                                const string& strTargetFilename,
                                const string& strTempDir,
-                               const UINT64 iMaxBrickSize,
-                               const UINT64 iBrickOverlap,
+                               const uint64_t iMaxBrickSize,
+                               const uint64_t iBrickOverlap,
                                bool bQuantizeTo8Bit) const {
   MESSAGE("Rebricking (Phase 1/2)...");
 
@@ -2308,7 +2306,7 @@ void IOManager::AddMesh(const UVF* sourceDataset,
   uvfGlobalHeader.ulChecksumSemanticsEntry = UVFTables::CS_MD5;
   uvfFile.SetGlobalHeader(uvfGlobalHeader);
 
-  for(UINT64 i = 0; i<sourceDataset->GetDataBlockCount(); i++) {
+  for(uint64_t i = 0; i<sourceDataset->GetDataBlockCount(); i++) {
     uvfFile.AddConstDataBlock(sourceDataset->GetDataBlock(i));
   }
 
@@ -2320,14 +2318,14 @@ void IOManager::AddMesh(const UVF* sourceDataset,
   uvfFile.Close();
 }
 
-bool IOManager::SetMaxBrickSize(const UINT64 iMaxBrickSize) {
+bool IOManager::SetMaxBrickSize(const uint64_t iMaxBrickSize) {
   if (iMaxBrickSize > m_iBrickOverlap) {
     m_iMaxBrickSize = iMaxBrickSize;
     return true;
   } else return false;
 }
 
-bool IOManager::SetBrickOverlap(const UINT64 iBrickOverlap) {
+bool IOManager::SetBrickOverlap(const uint64_t iBrickOverlap) {
   if (m_iMaxBrickSize > iBrickOverlap) {
     m_iBrickOverlap = iBrickOverlap;
     return true;

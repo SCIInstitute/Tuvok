@@ -72,15 +72,15 @@ bool AbstrConverter::SupportedExtension(const std::string& ext) const
 bool
 AbstrConverter::Process8Bits(LargeRAWFile& InputData,
                              const std::string& strTargetFilename,
-                             UINT64 iSize, bool bSigned,
+                             uint64_t iSize, bool bSigned,
                              Histogram1DDataBlock* Histogram1D) {
   size_t iCurrentInCoreSize = GetIncoreSize();
 
-  UINT64 iPercent = iSize / 100;
+  uint64_t iPercent = iSize / 100;
 
   if (!InputData.IsOpen()) return false;
 
-  std::vector<UINT64> aHist(256);
+  std::vector<uint64_t> aHist(256);
   std::fill(aHist.begin(), aHist.end(), 0);
 
   bool generated_file = false;
@@ -97,7 +97,7 @@ AbstrConverter::Process8Bits(LargeRAWFile& InputData,
 
     signed char* pInData = new signed char[iCurrentInCoreSize];
 
-    UINT64 iPos = 0;
+    uint64_t iPos = 0;
     while (iPos < iSize)  {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentInCoreSize);
       if (iRead == 0) break;
@@ -107,7 +107,7 @@ AbstrConverter::Process8Bits(LargeRAWFile& InputData,
         if (Histogram1D) aHist[(unsigned char)pInData[i]]++;
       }
       OutputData.WriteRAW((unsigned char*)pInData, iRead);
-      iPos += UINT64(iRead);
+      iPos += uint64_t(iRead);
     }
 
     if (iPos < iSize) {
@@ -122,13 +122,13 @@ AbstrConverter::Process8Bits(LargeRAWFile& InputData,
       MESSAGE("Computing 1D Histogram...");
       unsigned char* pInData = new unsigned char[iCurrentInCoreSize];
 
-      UINT64 iPos = 0;
-      UINT64 iDivLast = 0;
+      uint64_t iPos = 0;
+      uint64_t iDivLast = 0;
       while (iPos < iSize)  {
         size_t iRead = InputData.ReadRAW((unsigned char*)pInData, iCurrentInCoreSize);
         if (iRead == 0) break;
         for (size_t i = 0;i<iRead;i++) aHist[pInData[i]]++;
-        iPos += UINT64(iRead);
+        iPos += uint64_t(iRead);
 
         if (iPercent > 1 && (100*iPos)/iSize > iDivLast) {
           MESSAGE("Computing 1D Histogram (%u%% complete)",
@@ -162,8 +162,8 @@ size_t AbstrConverter::GetIncoreSize() {
 bool
 AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
                                const std::string& strTargetFilename,
-                               UINT64 iComponentSize,
-                               UINT64 iSize,
+                               uint64_t iComponentSize,
+                               uint64_t iSize,
                                bool bSigned,
                                bool bIsFloat,
                                Histogram1DDataBlock* Histogram1D) {
@@ -213,12 +213,12 @@ AbstrConverter::QuantizeTo8Bit(LargeRAWFile& rawfile,
                                           Histogram1D);
       } else {
         if(bSigned) {
-          generated_target = Quantize<boost::int64_t, unsigned char>(
+          generated_target = Quantize<int64_t, unsigned char>(
             rawfile, strTargetFilename, iSize, Histogram1D
           );
         } else {
           generated_target =
-            Quantize<UINT64, unsigned char>(rawfile, strTargetFilename, iSize,
+            Quantize<uint64_t, unsigned char>(rawfile, strTargetFilename, iSize,
                                             Histogram1D);
         }
       }

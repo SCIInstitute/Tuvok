@@ -62,22 +62,22 @@ public:
   SimpleDICOMFileInfo(const SimpleDICOMFileInfo* info);
   virtual ~SimpleDICOMFileInfo() {}
 
-  virtual boost::uint32_t GetComponentCount() const;
+  virtual uint32_t GetComponentCount() const;
 
-  virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset);
-  virtual UINT32 GetOffsetToData() const { return m_iOffsetToData; }
+  virtual bool GetData(std::vector<char>&, uint32_t iLength, uint32_t iOffset);
+  virtual uint32_t GetOffsetToData() const { return m_iOffsetToData; }
   virtual SimpleFileInfo* clone();
 
   // this data is needed to fix aspect ratio which is broken in many DICOM
   // files ... idiots
   FLOATVECTOR3 m_fvPatientPosition;
-  UINT32 m_iComponentCount;
+  uint32_t m_iComponentCount;
   float  m_fScale;
   float  m_fBias;
   bool   m_bSigned;
 
 protected:
-  UINT32 m_iOffsetToData;
+  uint32_t m_iOffsetToData;
 
 };
 
@@ -89,11 +89,11 @@ public:
   DICOMFileInfo(const std::wstring& wstrFileName);
   virtual ~DICOMFileInfo() {}
 
-  UINT32       m_iSeries;
+  uint32_t       m_iSeries;
   UINTVECTOR3  m_ivSize;
   FLOATVECTOR3 m_fvfAspect;
-  UINT32       m_iAllocated;
-  UINT32       m_iStored;
+  uint32_t       m_iAllocated;
+  uint32_t       m_iStored;
   bool         m_bIsBigEndian;
   bool         m_bIsJPEGEncoded;
   std::string  m_strAcquDate;
@@ -101,7 +101,7 @@ public:
   std::string  m_strModality;
   std::string  m_strDesc;
 
-  void SetOffsetToData(const UINT32 iOffset);
+  void SetOffsetToData(const uint32_t iOffset);
 };
 
 
@@ -113,7 +113,7 @@ public:
   virtual ~DICOMStackInfo() {}
   bool Match(const DICOMFileInfo* info);
 
-  UINT32       m_iSeries;
+  uint32_t       m_iSeries;
   std::string  m_strAcquDate;
   std::string  m_strAcquTime;
   std::string  m_strModality;
@@ -164,14 +164,14 @@ public:
 protected:
 
   static void SkipUnusedElement(std::ifstream& fileDICOM, std::string& value,
-                                const UINT32 iElemLength);
+                                const uint32_t iElemLength);
   static void ReadHeaderElemStart(std::ifstream& fileDICOM, short& iGroupID,
                                   short& iElementID, DICOM_eType& eElementType,
-                                  UINT32& iElemLength, bool bImplicit,
+                                  uint32_t& iElemLength, bool bImplicit,
                                   bool bNeedsEndianConversion);
-  static UINT32 GetUInt(std::ifstream& fileDICOM,
+  static uint32_t GetUInt(std::ifstream& fileDICOM,
                         const DICOM_eType eElementType,
-                        const UINT32 iElemLength,
+                        const uint32_t iElemLength,
                         const bool bNeedsEndianConversion);
 
   #ifdef DEBUG_DICOM
@@ -181,7 +181,7 @@ protected:
                                        DICOMFileInfo& info,
                                        const bool bImplicit,
                                        const bool bNeedsEndianConversion,
-                                       UINT32 iDepth);
+                                       uint32_t iDepth);
   #else
   static void ParseUndefLengthSequence(std::ifstream& fileDICOM,
                                        short& iSeqGroupID,

@@ -53,8 +53,8 @@ public:
   static bool WriteStacks(const std::string& strRAWFilename, 
                           const std::string& strTargetFilename,
                           const TransferFunction1D* pTrans,
-                          UINT64 iBitWidth,
-                          UINT64 iComponentCount,
+                          uint64_t iBitWidth,
+                          uint64_t iComponentCount,
                           float fRescale,
                           UINT64VECTOR3 vDomainSize,
                           bool bAllDirs);
@@ -62,7 +62,7 @@ public:
   static bool WriteImage(unsigned char* pData,
                   const std::string& strTargetFilename,
                   const UINT64VECTOR2& vSize,
-                  UINT64 iComponentCount);
+                  uint64_t iComponentCount);
 protected:
   template<typename T> static void ApplyTFInplace(T* pData,
                              UINT64VECTOR2 vSize,
@@ -95,11 +95,11 @@ protected:
 
   static bool WriteSlice(unsigned char* pData,
                   const TransferFunction1D* pTrans,
-                  UINT64 iBitWidth,
+                  uint64_t iBitWidth,
                   const std::string& strCurrentDiFilename,
                   const UINT64VECTOR2& vSize,
                   float fRescale,
-                  UINT64 iComponentCount);
+                  uint64_t iComponentCount);
 
 
 };

@@ -57,13 +57,13 @@ public:
   ImageFileInfo(const std::wstring& wstrFileName);
   virtual ~ImageFileInfo() {}
 
-  virtual boost::uint32_t GetComponentCount() const;
-  virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset);
+  virtual uint32_t GetComponentCount() const;
+  virtual bool GetData(std::vector<char>&, uint32_t iLength, uint32_t iOffset);
   virtual SimpleFileInfo* clone();
 
   UINTVECTOR2 m_ivSize;
-  UINT32      m_iAllocated;
-  UINT32      m_iComponentCount;
+  uint32_t      m_iAllocated;
+  uint32_t      m_iComponentCount;
 
   void ComputeSize();
 

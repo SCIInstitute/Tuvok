@@ -54,8 +54,8 @@ NRRDConverter::NRRDConverter()
 
 bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
                                  const std::string& strTempDir, bool,
-                                 UINT64& iHeaderSkip, UINT64& iComponentSize,
-                                 UINT64& iComponentCount,
+                                 uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+                                 uint64_t& iComponentCount,
                                  bool& bConvertEndianess, bool& bSigned,
                                  bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                                  FLOATVECTOR3& vVolumeAspect,
@@ -127,7 +127,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       bSigned = true;
       bIsFloat = false;
       iComponentSize = 32;
-    } else if (kvpType->strValueUpper == "UINT" || kvpType->strValueUpper == "UNSIGNED INT" || kvpType->strValueUpper == "UINT32" || kvpType->strValueUpper == "UINT32_T") {
+    } else if (kvpType->strValueUpper == "UINT" || kvpType->strValueUpper == "UNSIGNED INT" || kvpType->strValueUpper == "uint32_t" || kvpType->strValueUpper == "UINT32_T") {
       bSigned = false;
       bIsFloat = false;
       iComponentSize = 32;
@@ -135,7 +135,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       bSigned = true;
       bIsFloat = false;
       iComponentSize = 64;
-    } else if (kvpType->strValueUpper == "ULONGLONG" || kvpType->strValueUpper == "UNSIGNED LONG LONG" || kvpType->strValueUpper == "UNSIGNED LONG LONG INT" || kvpType->strValueUpper == "UINT64" || kvpType->strValueUpper == "UINT64_T") {
+    } else if (kvpType->strValueUpper == "ULONGLONG" || kvpType->strValueUpper == "UNSIGNED LONG LONG" || kvpType->strValueUpper == "UNSIGNED LONG LONG INT" || kvpType->strValueUpper == "uint64_t" || kvpType->strValueUpper == "UINT64_T") {
       bSigned = true;
       bIsFloat = false;
       iComponentSize = 64;
@@ -192,7 +192,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   KeyValPair* kvpDataFile1 = parser.GetData("DATA FILE");
   KeyValPair* kvpDataFile2 = parser.GetData("DATAFILE");
   if (kvpDataFile1 == NULL && kvpDataFile2 == NULL) {
-    iHeaderSkip = UINT64(parser.GetStopPos());
+    iHeaderSkip = uint64_t(parser.GetStopPos());
     strRAWFile = strSourceFilename;
     bDetachedHeader = false;
 
@@ -349,10 +349,10 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       if (iByteSkip == -1) {
         LargeRAWFile f(strRAWFile);
         f.Open(false);
-        UINT64 iSize = f.GetCurrentSize();
+        uint64_t iSize = f.GetCurrentSize();
         f.Close();
 
-        iHeaderSkip = iSize - (iComponentSize/8 * iComponentCount * UINT64(vVolumeSize.volume()));
+        iHeaderSkip = iSize - (iComponentSize/8 * iComponentCount * uint64_t(vVolumeSize.volume()));
       } else {
         if (iByteSkip != 0) {
           if (bDetachedHeader)
@@ -414,8 +414,8 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
 }
 
-bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
-                             UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
+bool NRRDConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, uint64_t iHeaderSkip,
+                             uint64_t iComponentSize, uint64_t iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction,
                              const bool bQuantizeTo8Bit) {
 

@@ -274,7 +274,7 @@ bool TransferFunction1D::Save(const std::string& filename) const {
 }
 
 bool TransferFunction1D::Load(std::istream& tf) {
-  UINT32 iSize;
+  uint32_t iSize;
   tf >> iSize;
   if(!tf) {
     T_ERROR("Size information invalid.");
@@ -357,7 +357,7 @@ void TransferFunction1D::GetFloatArray(float** pfData) const {
 
 
 void TransferFunction1D::ComputeNonZeroLimits() {
-  m_vValueBBox = UINT64VECTOR2(UINT64(vColorData.size()),0);
+  m_vValueBBox = UINT64VECTOR2(uint64_t(vColorData.size()),0);
 
   for (size_t i = 0;i<vColorData.size();i++) {
     if (vColorData[i][3] != 0) {

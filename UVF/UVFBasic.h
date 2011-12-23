@@ -15,6 +15,7 @@
 #define UVF_INVALID UINT64_INVALID
 
 #include "Basics/LargeRAWFile.h"
+
 class DataBlock;
 
 #endif // UVFBASIC_H

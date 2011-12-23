@@ -4,11 +4,8 @@
 #ifndef UVF_RASTERDATABLOCK_H
 #define UVF_RASTERDATABLOCK_H
 
-#include "boost/cstdint.hpp"
-
 #include <algorithm>
 #include <string>
-#include "boost/cstdint.hpp"
 #include "DataBlock.h"
 #include "Basics/Vectors.h"
 
@@ -43,7 +40,7 @@ void SimpleMaxMin(const void* pIn, size_t iStart, size_t iCount,
   }
 }
 
-template<class T> void CombineAverage(const std::vector<UINT64>& vSource, UINT64 iTarget, const void* pIn, const void* pOut) {
+template<class T> void CombineAverage(const std::vector<uint64_t>& vSource, uint64_t iTarget, const void* pIn, const void* pOut) {
   const T *pDataIn = (T*)pIn;
   T *pDataOut = (T*)pOut;
 
@@ -55,7 +52,7 @@ template<class T> void CombineAverage(const std::vector<UINT64>& vSource, UINT64
   pDataOut[iTarget] = T(temp / double(vSource.size()));
 }
 
-template<class T, size_t iVecLength> void CombineAverage(const std::vector<UINT64>& vSource, UINT64 iTarget, const void* pIn, const void* pOut) {
+template<class T, size_t iVecLength> void CombineAverage(const std::vector<uint64_t>& vSource, uint64_t iTarget, const void* pIn, const void* pOut) {
   const T *pDataIn = (T*)pIn;
   T *pDataOut = (T*)pOut;
 
@@ -67,7 +64,7 @@ template<class T, size_t iVecLength> void CombineAverage(const std::vector<UINT6
       temp[v] += double(pDataIn[size_t(vSource[i])*iVecLength+v]) / double(vSource.size());
   }
   // make sure not to touch pDataOut before we are finished with reading pDataIn, this allows for inplace combine calls
-  for (UINT64 v = 0;v<iVecLength;v++)
+  for (uint64_t v = 0;v<iVecLength;v++)
     pDataOut[v+iTarget*iVecLength] = T(temp[v]);
 }
 
@@ -79,41 +76,41 @@ class RasterDataBlock : public DataBlock {
 public:
   RasterDataBlock();
   RasterDataBlock(const RasterDataBlock &other);
-  RasterDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
+  RasterDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
   virtual RasterDataBlock& operator=(const RasterDataBlock& other);
   virtual ~RasterDataBlock();
 
-  virtual bool Verify(UINT64 iSizeofData, std::string* pstrProblem = NULL) const;
+  virtual bool Verify(uint64_t iSizeofData, std::string* pstrProblem = NULL) const;
   virtual bool Verify(std::string* pstrProblem = NULL) const;
 
   std::vector<UVFTables::DomainSemanticTable> ulDomainSemantics;
   std::vector<double> dDomainTransformation;
-  std::vector<UINT64> ulDomainSize;
-  std::vector<UINT64> ulBrickSize;
-  std::vector<UINT64> ulBrickOverlap;
-  std::vector<UINT64> ulLODDecFactor;
-  std::vector<UINT64> ulLODGroups;
-  std::vector<UINT64> ulLODLevelCount;
-  UINT64 ulElementDimension;
-  std::vector<UINT64> ulElementDimensionSize;
+  std::vector<uint64_t> ulDomainSize;
+  std::vector<uint64_t> ulBrickSize;
+  std::vector<uint64_t> ulBrickOverlap;
+  std::vector<uint64_t> ulLODDecFactor;
+  std::vector<uint64_t> ulLODGroups;
+  std::vector<uint64_t> ulLODLevelCount;
+  uint64_t ulElementDimension;
+  std::vector<uint64_t> ulElementDimensionSize;
   std::vector<std::vector<UVFTables::ElementSemanticTable> > ulElementSemantic;
-  std::vector<std::vector<UINT64> > ulElementBitSize;
-  std::vector<std::vector<UINT64> > ulElementMantissa;
+  std::vector<std::vector<uint64_t> > ulElementBitSize;
+  std::vector<std::vector<uint64_t> > ulElementMantissa;
   std::vector<std::vector<bool> > bSignedElement;
-  UINT64 ulOffsetToDataBlock;
+  uint64_t ulOffsetToDataBlock;
 
-  virtual UINT64 ComputeDataSize() const {return ComputeDataSize(NULL);}
-  virtual UINT64 ComputeDataSize(std::string* pstrProblem) const;
-  virtual UINT64 ComputeHeaderSize() const;
+  virtual uint64_t ComputeDataSize() const {return ComputeDataSize(NULL);}
+  virtual uint64_t ComputeDataSize(std::string* pstrProblem) const;
+  virtual uint64_t ComputeHeaderSize() const;
 
   virtual bool SetBlockSemantic(UVFTables::BlockSemanticTable bs);
 
   // CONVENIENCE FUNCTIONS
   void SetScaleOnlyTransformation(const std::vector<double>& vScale);
   void SetIdentityTransformation();
-  void SetTypeToScalar(UINT64 iBitWith, UINT64 iMantissa, bool bSigned,
+  void SetTypeToScalar(uint64_t iBitWith, uint64_t iMantissa, bool bSigned,
                        UVFTables::ElementSemanticTable semantic);
-  void SetTypeToVector(UINT64 iBitWith, UINT64 iMantissa, bool bSigned,
+  void SetTypeToVector(uint64_t iBitWith, uint64_t iMantissa, bool bSigned,
                        std::vector<UVFTables::ElementSemanticTable> semantic);
   void SetTypeToUByte(UVFTables::ElementSemanticTable semantic);
   void SetTypeToUShort(UVFTables::ElementSemanticTable semantic);
@@ -124,109 +121,109 @@ public:
   void SetTypeToUInt32(UVFTables::ElementSemanticTable semantic);
   void SetTypeToUInt64(UVFTables::ElementSemanticTable semantic);
 
-  bool GetData(std::vector<boost::uint8_t>& vData,
-               const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick) const;
-  bool GetData(std::vector<boost::int8_t>& vData,
-               const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick) const;
-  bool GetData(std::vector<boost::uint16_t>& vData,
-               const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick) const;
-  bool GetData(std::vector<boost::int16_t>& vData,
-               const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick) const;
-  bool GetData(std::vector<boost::uint32_t>& vData,
-               const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick) const;
-  bool GetData(std::vector<boost::int32_t>& vData,
-               const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick) const;
+  bool GetData(std::vector<uint8_t>& vData,
+               const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick) const;
+  bool GetData(std::vector<int8_t>& vData,
+               const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick) const;
+  bool GetData(std::vector<uint16_t>& vData,
+               const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick) const;
+  bool GetData(std::vector<int16_t>& vData,
+               const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick) const;
+  bool GetData(std::vector<uint32_t>& vData,
+               const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick) const;
+  bool GetData(std::vector<int32_t>& vData,
+               const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick) const;
   bool GetData(std::vector<float>& vData,
-               const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick) const;
+               const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick) const;
   bool GetData(std::vector<double>& vData,
-               const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick) const;
-  bool SetData(boost::int8_t* pData, const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick);
-  bool SetData(boost::uint8_t* pData, const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick);
-  bool SetData(boost::int16_t*, const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick);
-  bool SetData(boost::uint16_t*, const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick);
-  bool SetData(boost::int32_t*, const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick);
-  bool SetData(boost::uint32_t*, const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick);
-  bool SetData( float*, const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick);
-  bool SetData(double*, const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick);
+               const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick) const;
+  bool SetData(int8_t* pData, const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick);
+  bool SetData(uint8_t* pData, const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick);
+  bool SetData(int16_t*, const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick);
+  bool SetData(uint16_t*, const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick);
+  bool SetData(int32_t*, const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick);
+  bool SetData(uint32_t*, const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick);
+  bool SetData( float*, const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick);
+  bool SetData(double*, const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick);
 
   /// Change the file we're reading/writing to.  Closes any open
   /// temporary file.  Maintains file position information.
   /// Useful for writing a raster data block into a new file.
   /// NOTE: steals pointer; LargeRAWFile must live as long as the RDB.
-  void ResetFile(LargeRAWFile*);
+  void ResetFile(LargeRAWFile_ptr);
 
-  const std::vector<UINT64>& GetBrickCount(const std::vector<UINT64>& vLOD) const;
-  const std::vector<UINT64>& GetBrickSize(const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const;
-  std::vector<UINT64> GetLODDomainSize(const std::vector<UINT64>& vLOD) const;
+  const std::vector<uint64_t>& GetBrickCount(const std::vector<uint64_t>& vLOD) const;
+  const std::vector<uint64_t>& GetBrickSize(const std::vector<uint64_t>& vLOD, const std::vector<uint64_t>& vBrick) const;
+  std::vector<uint64_t> GetLODDomainSize(const std::vector<uint64_t>& vLOD) const;
 
-  bool BrickedLODToFlatData(const std::vector<UINT64>& vLOD, const std::string& strTargetFile,
+  bool BrickedLODToFlatData(const std::vector<uint64_t>& vLOD, const std::string& strTargetFile,
                             bool bAppend = false, AbstrDebugOut* pDebugOut=NULL,
-                            bool (*brickFunc)(LargeRAWFile* pSourceFile,
-                                const std::vector<UINT64> vBrickSize,
-                                const std::vector<UINT64> vBrickOffset,
+                            bool (*brickFunc)(LargeRAWFile_ptr pSourceFile,
+                                const std::vector<uint64_t> vBrickSize,
+                                const std::vector<uint64_t> vBrickOffset,
                                 void* pUserContext ) = NULL,
                             void* pUserContext = NULL,
-                            UINT64 iOverlap=0) const;
+                            uint64_t iOverlap=0) const;
 
-  const std::vector<UINT64> LargestSingleBrickLODBrickIndex() const;
-  const std::vector<UINT64>& LargestSingleBrickLODBrickSize() const;
+  const std::vector<uint64_t> LargestSingleBrickLODBrickIndex() const;
+  const std::vector<uint64_t>& LargestSingleBrickLODBrickSize() const;
 
-  const std::vector<UINT64> GetSmallestBrickIndex() const;
-  const std::vector<UINT64>& GetSmallestBrickSize() const;
-  const std::vector<UINT64> GetLargestBrickSizes() const;
+  const std::vector<uint64_t> GetSmallestBrickIndex() const;
+  const std::vector<uint64_t>& GetSmallestBrickSize() const;
+  const std::vector<uint64_t> GetLargestBrickSizes() const;
 
   bool FlatDataToBrickedLOD(const void* pSourceData, const std::string& strTempFile,
-                            void (*combineFunc)(const std::vector<UINT64> &vSource, UINT64 iTarget, const void* pIn, const void* pOut),
+                            void (*combineFunc)(const std::vector<uint64_t> &vSource, uint64_t iTarget, const void* pIn, const void* pOut),
                             void (*maxminFunc)(const void* pIn, size_t iStart,
                                                size_t iCount,
                                                std::vector<DOUBLEVECTOR4>& fMinMax),
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
-  bool FlatDataToBrickedLOD(LargeRAWFile* pSourceData, const std::string& strTempFile,
-                            void (*combineFunc)(const std::vector<UINT64> &vSource, UINT64 iTarget, const void* pIn, const void* pOut),
+  bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData, const std::string& strTempFile,
+                            void (*combineFunc)(const std::vector<uint64_t> &vSource, uint64_t iTarget, const void* pIn, const void* pOut),
                             void (*maxminFunc)(const void* pIn, size_t iStart,
                                                size_t iCount,
                                                std::vector<DOUBLEVECTOR4>& fMinMax),
                             MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
   void AllocateTemp(const std::string& strTempFile, bool bBuildOffsetTables=false);
-  bool ValidLOD(const std::vector<UINT64>& vLOD) const;
-  bool ValidBrickIndex(const std::vector<UINT64>& vLOD,
-                       const std::vector<UINT64>& vBrick) const;
+  bool ValidLOD(const std::vector<uint64_t>& vLOD) const;
+  bool ValidBrickIndex(const std::vector<uint64_t>& vLOD,
+                       const std::vector<uint64_t>& vBrick) const;
 
 
 protected:
-  LargeRAWFile* m_pTempFile;
-  LargeRAWFile* m_pSourceFile;
-  UINT64        m_iSourcePos;
+  LargeRAWFile_ptr m_pTempFile;
+  LargeRAWFile_ptr m_pSourceFile;
+  uint64_t        m_iSourcePos;
 
-  virtual void CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
-  virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
-  virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
+  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
   virtual DataBlock* Clone() const;
-  virtual UINT64 GetOffsetToNextBlock() const;
+  virtual uint64_t GetOffsetToNextBlock() const;
 
-  std::vector<std::vector<UINT64> > CountToVectors(std::vector<UINT64> vCountVector) const ;
-  UINT64 ComputeElementSize() const;
-  virtual UINT64 GetLODSize(std::vector<UINT64>& vLODIndices) const;
-  virtual UINT64 ComputeLODLevelSize(const std::vector<UINT64>& vReducedDomainSize) const;
-  virtual std::vector<std::vector<UINT64> > ComputeBricks(const std::vector<UINT64>& vDomainSize) const;
-  virtual std::vector<std::vector<UINT64> > GenerateCartesianProduct(const std::vector<std::vector<UINT64> >& vElements, UINT64 iIndex=0) const;
-  UINT64 RecompLODIndexCount() const;
+  std::vector<std::vector<uint64_t> > CountToVectors(std::vector<uint64_t> vCountVector) const ;
+  uint64_t ComputeElementSize() const;
+  virtual uint64_t GetLODSize(std::vector<uint64_t>& vLODIndices) const;
+  virtual uint64_t ComputeLODLevelSize(const std::vector<uint64_t>& vReducedDomainSize) const;
+  virtual std::vector<std::vector<uint64_t> > ComputeBricks(const std::vector<uint64_t>& vDomainSize) const;
+  virtual std::vector<std::vector<uint64_t> > GenerateCartesianProduct(const std::vector<std::vector<uint64_t> >& vElements, uint64_t iIndex=0) const;
+  uint64_t RecompLODIndexCount() const;
   void CleanupTemp();
 
 
@@ -235,55 +232,55 @@ protected:
   friend class Histogram2DDataBlock;
 
   // CONVENIENCE FUNCTION HELPERS
-  std::vector<UINT64> m_vLODOffsets;
-  std::vector<std::vector<UINT64> > m_vBrickCount;
-  std::vector<std::vector<UINT64> > m_vBrickOffsets;
-  std::vector<std::vector<std::vector<UINT64> > > m_vBrickSizes;
+  std::vector<uint64_t> m_vLODOffsets;
+  std::vector<std::vector<uint64_t> > m_vBrickCount;
+  std::vector<std::vector<uint64_t> > m_vBrickOffsets;
+  std::vector<std::vector<std::vector<uint64_t> > > m_vBrickSizes;
 
-  UINT64 Serialize(const std::vector<UINT64>& vec, const std::vector<UINT64>& vSizes) const;
-  UINT64 GetLocalDataPointerOffset(const std::vector<UINT64>& vLOD, const std::vector<UINT64>& vBrick) const;
-  UINT64 GetLocalDataPointerOffset(const UINT64 iLODIndex, const UINT64 iBrickIndex) const {return m_vLODOffsets[size_t(iLODIndex)] + m_vBrickOffsets[size_t(iLODIndex)][size_t(iBrickIndex)];}
-  void SubSample(LargeRAWFile* pSourceFile, LargeRAWFile* pTargetFile, std::vector<UINT64> sourceSize, std::vector<UINT64> targetSize, void (*combineFunc)(const std::vector<UINT64> &vSource, UINT64 iTarget, const void* pIn, const void* pOut), AbstrDebugOut* pDebugOut=NULL, UINT64 iLODLevel=0, UINT64 iMaxLODLevel=0);
-  UINT64 ComputeDataSizeAndOffsetTables();
-  UINT64 GetLODSizeAndOffsetTables(std::vector<UINT64>& vLODIndices, UINT64 iLOD);
-  UINT64 ComputeLODLevelSizeAndOffsetTables(const std::vector<UINT64>& vReducedDomainSize, UINT64 iLOD);
+  uint64_t Serialize(const std::vector<uint64_t>& vec, const std::vector<uint64_t>& vSizes) const;
+  uint64_t GetLocalDataPointerOffset(const std::vector<uint64_t>& vLOD, const std::vector<uint64_t>& vBrick) const;
+  uint64_t GetLocalDataPointerOffset(const uint64_t iLODIndex, const uint64_t iBrickIndex) const {return m_vLODOffsets[size_t(iLODIndex)] + m_vBrickOffsets[size_t(iLODIndex)][size_t(iBrickIndex)];}
+  void SubSample(LargeRAWFile_ptr pSourceFile, LargeRAWFile_ptr pTargetFile, std::vector<uint64_t> sourceSize, std::vector<uint64_t> targetSize, void (*combineFunc)(const std::vector<uint64_t> &vSource, uint64_t iTarget, const void* pIn, const void* pOut), AbstrDebugOut* pDebugOut=NULL, uint64_t iLODLevel=0, uint64_t iMaxLODLevel=0);
+  uint64_t ComputeDataSizeAndOffsetTables();
+  uint64_t GetLODSizeAndOffsetTables(std::vector<uint64_t>& vLODIndices, uint64_t iLOD);
+  uint64_t ComputeLODLevelSizeAndOffsetTables(const std::vector<uint64_t>& vReducedDomainSize, uint64_t iLOD);
 
   bool TraverseBricksToWriteBrickToFile(
-      UINT64& iBrickCounter, UINT64 iBrickCount,
-      const std::vector<UINT64>& vLOD,
-      const std::vector<UINT64>& vBrickCount,
-      std::vector<UINT64> vCoords,
-      size_t iCurrentDim, UINT64 iTargetOffset,
+      uint64_t& iBrickCounter, uint64_t iBrickCount,
+      const std::vector<uint64_t>& vLOD,
+      const std::vector<uint64_t>& vBrickCount,
+      std::vector<uint64_t> vCoords,
+      size_t iCurrentDim, uint64_t iTargetOffset,
       std::vector<unsigned char> &vData,
-      LargeRAWFile* pTargetFile, UINT64 iElementSize,
-      const std::vector<UINT64>& vPrefixProd,
+      LargeRAWFile_ptr pTargetFile, uint64_t iElementSize,
+      const std::vector<uint64_t>& vPrefixProd,
       AbstrDebugOut* pDebugOut,
-      bool (*brickFunc)(LargeRAWFile* pSourceFile,
-                        const std::vector<UINT64> vBrickSize,
-                        const std::vector<UINT64> vBrickOffset,
+      bool (*brickFunc)(LargeRAWFile_ptr pSourceFile,
+                        const std::vector<uint64_t> vBrickSize,
+                        const std::vector<uint64_t> vBrickOffset,
                         void* pUserContext),
       void* pUserContext,
-      UINT64 iOverlap
+      uint64_t iOverlap
   ) const;
 
   void WriteBrickToFile(size_t iCurrentDim,
-                        UINT64& iSourceOffset, UINT64& iTargetOffset,
-                        const std::vector<UINT64>& vBrickSize,
-                        const std::vector<UINT64>& vEffectiveBrickSize,
+                        uint64_t& iSourceOffset, uint64_t& iTargetOffset,
+                        const std::vector<uint64_t>& vBrickSize,
+                        const std::vector<uint64_t>& vEffectiveBrickSize,
                         std::vector<unsigned char>& vData,
-                        LargeRAWFile* pTargetFile, UINT64 iElementSize,
-                        const std::vector<UINT64>& vPrefixProd,
-                        const std::vector<UINT64>& vPrefixProdBrick,
+                        LargeRAWFile_ptr pTargetFile, uint64_t iElementSize,
+                        const std::vector<uint64_t>& vPrefixProd,
+                        const std::vector<uint64_t>& vPrefixProdBrick,
                         bool bDoSeek) const;
 private:
-  LargeRAWFile* SeekToBrick(const std::vector<UINT64>& vLOD,
-                            const std::vector<UINT64>& vBrick) const;
+  LargeRAWFile_ptr SeekToBrick(const std::vector<uint64_t>& vLOD,
+                            const std::vector<uint64_t>& vBrick) const;
   bool GetData(unsigned char*, size_t bytes,
-               const std::vector<UINT64>& vLOD,
-               const std::vector<UINT64>& vBrick) const;
+               const std::vector<uint64_t>& vLOD,
+               const std::vector<uint64_t>& vBrick) const;
 
-  size_t GetBrickByteSize(const std::vector<UINT64>& vLOD,
-                          const std::vector<UINT64>& vBrick) const;
+  size_t GetBrickByteSize(const std::vector<uint64_t>& vLOD,
+                          const std::vector<uint64_t>& vBrick) const;
   /// @return true if 'SetData' can work given current state.
   bool Settable() const;
 };
@@ -341,8 +338,8 @@ class LODBrickIterator : public std::iterator<std::input_iterator_tag, T> {
   private:
     void NextBrick() {
       this->iter = 0;
-      std::vector<UINT64> vl(1);
-      std::vector<UINT64> b = this->NDBrickIndex(brick);
+      std::vector<uint64_t> vl(1);
+      std::vector<uint64_t> b = this->NDBrickIndex(brick);
       vl[0] = this->LODIndex();
       /// FIXME -- this getdata fails when we hit the 10th brick in a 9-brick
       /// dataset.  either fix GetData or test to make sure we're not beyond
@@ -356,19 +353,19 @@ class LODBrickIterator : public std::iterator<std::input_iterator_tag, T> {
     /// RDB doesn't expose a linear counter for bricks.  Instead it
     /// keeps separate counts for each dimension.  Thus we need to be
     /// able to take our linear counter and convert it to RDB indices.
-    std::vector<UINT64> NDBrickIndex(size_t b) {
-      UINT64 brick = static_cast<UINT64>(b);
-      std::vector<UINT64> lod(1);
+    std::vector<uint64_t> NDBrickIndex(size_t b) {
+      uint64_t brick = static_cast<uint64_t>(b);
+      std::vector<uint64_t> lod(1);
       lod[0] = LODIndex();
-      const std::vector<UINT64>& counts = rdb->GetBrickCount(lod);
+      const std::vector<uint64_t>& counts = rdb->GetBrickCount(lod);
 
-      UINT64 z = static_cast<UINT64>(brick / (counts[0] * counts[1]));
+      uint64_t z = static_cast<uint64_t>(brick / (counts[0] * counts[1]));
       brick = brick % (counts[0] * counts[1]);
-      UINT64 y = static_cast<UINT64>(brick / counts[0]);
+      uint64_t y = static_cast<uint64_t>(brick / counts[0]);
       brick = brick % counts[0];
-      UINT64 x = brick;
+      uint64_t x = brick;
 
-      std::vector<UINT64> vec(3);
+      std::vector<uint64_t> vec(3);
       vec[0] = x;
       vec[1] = y;
       vec[2] = z;

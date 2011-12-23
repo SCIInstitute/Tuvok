@@ -49,7 +49,6 @@
 # include <tr1/type_traits>
 #endif
 #include <boost/algorithm/minmax_element.hpp>
-#include <boost/cstdint.hpp>
 #include "IOManager.h"  // for the size defines
 #include "Basics/LargeRAWFile.h"
 
@@ -100,36 +99,37 @@ template<> struct ctti<unsigned short> : ctti_base<unsigned short> {
   typedef short signed_type;
   typedef unsigned_tag sign_tag;
 };
-#ifdef DETECTED_OS_WINDOWS
+#if defined(DETECTED_OS_WINDOWS) && _MSC_VER < 1600
 template<> struct ctti<int> : ctti_base<int> {
   typedef unsigned int size_type;
   typedef int  signed_type;
   typedef signed_tag sign_tag;
 };
-template<> struct ctti<UINT32> : ctti_base<UINT32> {
-  typedef UINT32 size_type;
-  typedef boost::int32_t signed_type;
+
+template<> struct ctti<unsigned int> : ctti_base<uint32_t> {
+  typedef uint32_t size_type;
+  typedef int32_t signed_type;
   typedef unsigned_tag sign_tag;
 };
 #endif
-template<> struct ctti<boost::int32_t> : ctti_base<boost::int32_t> {
-  typedef boost::uint32_t size_type;
-  typedef boost::int32_t signed_type;
+template<> struct ctti<int32_t> : ctti_base<int32_t> {
+  typedef uint32_t size_type;
+  typedef int32_t signed_type;
   typedef signed_tag sign_tag;
 };
-template<> struct ctti<boost::uint32_t> : ctti_base<boost::uint32_t> {
-  typedef boost::uint32_t size_type;
-  typedef boost::int32_t signed_type;
+template<> struct ctti<uint32_t> : ctti_base<uint32_t> {
+  typedef uint32_t size_type;
+  typedef int32_t signed_type;
   typedef unsigned_tag sign_tag;
 };
-template<> struct ctti<boost::int64_t> : ctti_base<boost::int64_t> {
-  typedef boost::uint64_t size_type;
-  typedef boost::int64_t signed_type;
+template<> struct ctti<int64_t> : ctti_base<int64_t> {
+  typedef uint64_t size_type;
+  typedef int64_t signed_type;
   typedef signed_tag sign_tag;
 };
-template<> struct ctti<boost::uint64_t> : ctti_base<boost::uint64_t> {
-  typedef boost::uint64_t size_type;
-  typedef boost::int64_t signed_type;
+template<> struct ctti<uint64_t> : ctti_base<uint64_t> {
+  typedef uint64_t size_type;
+  typedef int64_t signed_type;
   typedef unsigned_tag sign_tag;
 };
 template<> struct ctti<float> : ctti_base<float> {
@@ -147,20 +147,15 @@ template<> struct ctti<double> : ctti_base<double> {
 
 /// Type tagging.
 namespace {
-  using boost::int32_t;
-  using boost::uint32_t;
-  using boost::int64_t;
-  using boost::uint64_t;
-
   struct signed_type {};
   struct unsigned_type {};
   signed_type   type_category(signed char)    { return signed_type(); }
   unsigned_type type_category(unsigned char)  { return unsigned_type(); }
   signed_type   type_category(short)          { return signed_type(); }
   unsigned_type type_category(unsigned short) { return unsigned_type(); }
-#ifdef DETECTED_OS_WINDOWS
+#if defined(DETECTED_OS_WINDOWS) && _MSC_VER < 1600
   signed_type   type_category(int)            { return signed_type(); }
-  unsigned_type type_category(UINT32)         { return unsigned_type(); }
+  unsigned_type type_category(unsigned int)         { return unsigned_type(); }
 #endif
   signed_type   type_category(int32_t)        { return signed_type(); }
   unsigned_type type_category(uint32_t)       { return unsigned_type(); }
@@ -223,10 +218,10 @@ struct ios_data_src {
     ifs.seekg(0, std::ios::cur);
   }
 
-  UINT64 size() {
+  uint64_t size() {
     std::streampos cur = ifs.tellg();
     ifs.seekg(0, std::ios::end);
-    UINT64 retval = ifs.tellg();
+    uint64_t retval = ifs.tellg();
     ifs.seekg(cur, std::ios::beg);
     return retval/sizeof(T);
   }
@@ -248,7 +243,7 @@ struct raw_data_src {
     reset();
   }
 
-  UINT64 size() { return raw.GetCurrentSize() / sizeof(T); }
+  uint64_t size() { return raw.GetCurrentSize() / sizeof(T); }
   size_t read(unsigned char *data, size_t max_bytes) {
     return raw.ReadRAW(data, max_bytes)/sizeof(T);
   }
@@ -271,7 +266,7 @@ struct multi_raw_data_src {
     }
   }
 
-  UINT64 size() {
+  uint64_t size() {
     if(total_size == 0) {
       for(std::vector<LargeRAWFile>::iterator rf = files.begin();
           rf != files.end(); ++rf) {
@@ -294,7 +289,7 @@ struct multi_raw_data_src {
   private:
     std::vector<LargeRAWFile> files;
     size_t cur_file;
-    UINT64 total_size;
+    uint64_t total_size;
 };
 ///@}
 
@@ -306,10 +301,10 @@ namespace { namespace Fits {
   template<typename T, size_t sz> bool inXBits(T v) {
     return v < static_cast<T>(sz);
   }
-  template<> bool inXBits<boost::int8_t, 256>(boost::int8_t) { return true; }
-  template<> bool inXBits<boost::int8_t, 4096>(boost::int8_t) { return true; }
-  template<> bool inXBits<boost::uint8_t, 256>(boost::uint8_t) { return true; }
-  template<> bool inXBits<boost::uint8_t, 4096>(boost::uint8_t) { return true; }
+  template<> bool inXBits<int8_t, 256>(int8_t) { return true; }
+  template<> bool inXBits<int8_t, 4096>(int8_t) { return true; }
+  template<> bool inXBits<uint8_t, 256>(uint8_t) { return true; }
+  template<> bool inXBits<uint8_t, 4096>(uint8_t) { return true; }
 }; };
 
 /// Histogram policies.  minmax can sometimes compute a 1D histogram as it
@@ -325,7 +320,7 @@ template<typename T> struct NullHistogram {
 // fit (i.e., we know we'll need to quantize), don't bother anymore.
 template<typename T, size_t sz>
 struct UnsignedHistogram {
-  UnsignedHistogram(std::vector<UINT64>& h)
+  UnsignedHistogram(std::vector<uint64_t>& h)
     : histo(h), calculate(true) {}
 
   bool bin(T value) {
@@ -362,7 +357,7 @@ struct UnsignedHistogram {
     }
   }
   private:
-    std::vector<UINT64>& histo;
+    std::vector<uint64_t>& histo;
     bool calculate;
 };
 
@@ -374,11 +369,11 @@ template <typename T, size_t sz,
           template <typename T, size_t> class Histogram,
           class Progress>
 std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
-                         const Progress& progress, UINT64 iSize,
+                         const Progress& progress, uint64_t iSize,
                          size_t iCurrentInCoreSizeBytes)
 {
   std::vector<T> data(iCurrentInCoreSizeBytes/sizeof(T));
-  UINT64 iPos = 0;
+  uint64_t iPos = 0;
 
   // Default min is the max value representable by the data type.  Default max
   // is the smallest value representable by the data type.
@@ -399,7 +394,7 @@ std::pair<T,T> io_minmax(DataSrc<T> ds, Histogram<T, sz> histogram,
     }
     data.resize(n_records);
 
-    iPos += UINT64(n_records);
+    iPos += uint64_t(n_records);
     progress.notify("Computing value range",iPos);
 
     typedef typename std::vector<T>::const_iterator iterator;

@@ -41,7 +41,6 @@
 
 #include "../StdTuvokDefines.h"
 #include <map>
-#include "boost/cstdint.hpp"
 
 #include "Basics/Vectors.h"
 #include "Controller/Controller.h"
@@ -49,19 +48,17 @@
 #include "UVF/UVF.h"
 #include "UVF/Histogram1DDataBlock.h"
 
-using boost::int64_t;
-using boost::int8_t;
 class Histogram1DDataBlock;
 
 class RangeInfo {
 public:
   UINT64VECTOR3               m_vDomainSize;
   FLOATVECTOR3                m_vAspect;
-  UINT64                      m_iComponentSize;
+  uint64_t                      m_iComponentSize;
   int                         m_iValueType;
   std::pair<double, double>   m_fRange;
   std::pair<int64_t, int64_t> m_iRange;
-  std::pair<UINT64, UINT64>   m_uiRange;
+  std::pair<uint64_t, uint64_t>   m_uiRange;
 };
 
 namespace { // force internal linkage.
@@ -120,23 +117,23 @@ public:
                             const std::string& strTargetFilename,
                             const std::string& strTempDir,
                             const bool bNoUserInteraction,
-                            const UINT64 iTargetBrickSize,
-                            const UINT64 iTargetBrickOverlap,
+                            const uint64_t iTargetBrickSize,
+                            const uint64_t iTargetBrickOverlap,
                             const bool bQuantizeTo8Bit) = 0;
 
   virtual bool ConvertToUVF(const std::list<std::string>& files,
                             const std::string& strTargetFilename,
                             const std::string& strTempDir,
                             const bool bNoUserInteraction,
-                            const UINT64 iTargetBrickSize,
-                            const UINT64 iTargetBrickOverlap,
+                            const uint64_t iTargetBrickSize,
+                            const uint64_t iTargetBrickOverlap,
                             const bool bQuantizeTo8Bit) = 0;
 
   virtual bool ConvertToRAW(const std::string& strSourceFilename,
                             const std::string& strTempDir,
                             bool bNoUserInteraction,
-                            UINT64& iHeaderSkip, UINT64& iComponentSize,
-                            UINT64& iComponentCount,
+                            uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+                            uint64_t& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned,
                             bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
@@ -146,8 +143,8 @@ public:
 
   virtual bool ConvertToNative(const std::string& strRawFilename,
                                const std::string& strTargetFilename,
-                               UINT64 iHeaderSkip, UINT64 iComponentSize,
-                               UINT64 iComponentCount, bool bSigned,
+                               uint64_t iHeaderSkip, uint64_t iComponentSize,
+                               uint64_t iComponentCount, bool bSigned,
                                bool bFloatingPoint,
                                UINT64VECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
@@ -173,13 +170,13 @@ public:
   /// @returns false on error; true if we successfully generated
   /// 'strTargetFilename'.
   template <typename T, typename U>
-  static bool ApplyMapping(const UINT64 iSize,
+  static bool ApplyMapping(const uint64_t iSize,
                            const size_t iCurrentInCoreSizeBytes,
                            raw_data_src<T>& ds,
                            const std::string& strTargetFilename,
                            std::map<T, size_t>& binAssignments,
                            Histogram1DDataBlock* Histogram1D,
-                           TuvokProgress<UINT64> progress) {
+                           TuvokProgress<uint64_t> progress) {
     const size_t iCurrentInCoreElems = iCurrentInCoreSizeBytes / sizeof(U);
 
     ds.reset();
@@ -189,7 +186,7 @@ public:
 
     std::vector<U> targetData(iCurrentInCoreElems);
     std::vector<T> sourceData(iCurrentInCoreElems);
-    UINT64 iPos = 0;
+    uint64_t iPos = 0;
 
     assert(iSize > 0); // our minmax assert later will fail anyway, if false.
 
@@ -203,7 +200,7 @@ public:
       }
       sourceData.resize(n_records);
 
-      iPos += UINT64(n_records);
+      iPos += uint64_t(n_records);
       progress.notify("Mapping data values to bins",iPos);
 
       // Run over the in-core data and apply mapping
@@ -229,13 +226,13 @@ public:
     if(sizeof(U) == 1) { hist_size = 256; }
     assert(sizeof(U) <= 2);
 
-    std::vector<UINT64> aHist(hist_size, 0);
+    std::vector<uint64_t> aHist(hist_size, 0);
     std::pair<T,T> minmax;
 
     const size_t sz = (sizeof(U) == 2 ? 4096 : 256);
     minmax = io_minmax(raw_data_src<U>(MappedData),
                         UnsignedHistogram<U, sz>(aHist),
-                        TuvokProgress<UINT64>(iSize), iSize,
+                        TuvokProgress<uint64_t>(iSize), iSize,
                         iCurrentInCoreSizeBytes);
     assert(minmax.second >= minmax.first);
 
@@ -251,8 +248,8 @@ public:
   template <typename T, typename U>
   static bool BinningQuantize(LargeRAWFile& InputData,
                               const std::string& strTargetFilename,
-                              UINT64 iSize,
-                              UINT64& iComponentSize,
+                              uint64_t iSize,
+                              uint64_t& iComponentSize,
                               Histogram1DDataBlock* Histogram1D=0)
   {
     MESSAGE("Attempting to recover integer values by binning the data.");
@@ -269,11 +266,11 @@ public:
 
     raw_data_src<T> ds(InputData);
     std::vector<T> data(iCurrentInCoreElems);
-    TuvokProgress<UINT64> progress(iSize);
-    UINT64 iPos = 0;
+    TuvokProgress<uint64_t> progress(iSize);
+    uint64_t iPos = 0;
     bool bBinningPossible = true;
 
-    std::map<T, UINT64> bins;
+    std::map<T, uint64_t> bins;
 
     while(bBinningPossible && iPos < iSize) {
       size_t n_records = ds.read((unsigned char*)(&(data.at(0))),
@@ -285,7 +282,7 @@ public:
       }
       data.resize(n_records);
 
-      iPos += UINT64(n_records);
+      iPos += uint64_t(n_records);
       progress.notify("Counting number of unique values in the data", iPos);
 
       // Run over the in core data and sort it into bins
@@ -316,7 +313,7 @@ public:
     std::map<T, size_t> binAssignments;
     size_t binID = 0;
 
-    for (typename std::map<T, UINT64>::iterator it=bins.begin();
+    for (typename std::map<T, uint64_t>::iterator it=bins.begin();
          it != bins.end(); it++ ) {
       binAssignments[(*it).first] = binID;
       binID++;
@@ -347,7 +344,7 @@ public:
   template <typename T, typename U>
   static bool Quantize(LargeRAWFile& InputData,
                        const std::string& strTargetFilename,
-                       UINT64 iSize,
+                       uint64_t iSize,
                        Histogram1DDataBlock* Histogram1D=0,
                        size_t* iBinCount=0)
   {
@@ -369,12 +366,12 @@ public:
     }
 
     // figure out min/max
-    std::vector<UINT64> aHist(hist_size, 0);
+    std::vector<uint64_t> aHist(hist_size, 0);
     std::pair<T,T> minmax;
     const size_t sz = (sizeof(U) == 2 ? 4096 : 256);
     minmax = io_minmax(raw_data_src<T>(InputData),
                        UnsignedHistogram<T, sz>(aHist),
-                       TuvokProgress<UINT64>(iSize), iSize,
+                       TuvokProgress<uint64_t>(iSize), iSize,
                        iCurrentInCoreSizeBytes);
     assert(minmax.second >= minmax.first);
 
@@ -406,7 +403,7 @@ public:
 
     if(iBinCount != NULL) {
       *iBinCount = bins_needed<T>(minmax);
-      MESSAGE("We need %llu bins", static_cast<boost::uint64_t>(*iBinCount));
+      MESSAGE("We need %llu bins", static_cast<uint64_t>(*iBinCount));
     }
 
     size_t max_output_val = (1 << (sizeof(U)*8)) - 1;
@@ -420,13 +417,13 @@ public:
     U* pOutData = new U[iCurrentInCoreElems];
 
     InputData.SeekStart();
-    UINT64 iPos = 0;
-    UINT64 iLastDisplayedPercent = 0;
+    uint64_t iPos = 0;
+    uint64_t iLastDisplayedPercent = 0;
 
     while(iPos < iSize) {
       size_t iRead = InputData.ReadRAW((unsigned char*)pInData,
                                        std::min((iSize - iPos)*sizeof(T),
-                                       UINT64(iCurrentInCoreSizeBytes)))/sizeof(T);
+                                       uint64_t(iCurrentInCoreSizeBytes)))/sizeof(T);
       if(iRead == 0) { break; } // bail if the read gave us nothing
 
       // calculate hist + quantize to output file.
@@ -441,7 +438,7 @@ public:
         pOutData[i] = iNewVal;
         aHist[iHistIndex]++;
       }
-      iPos += static_cast<UINT64>(iRead);
+      iPos += static_cast<uint64_t>(iRead);
 
       if((100*iPos)/iSize > iLastDisplayedPercent) {
         std::ostringstream qmsg;
@@ -475,12 +472,12 @@ public:
 
   static bool Process8Bits(LargeRAWFile& InputData,
                            const std::string& strTargetFilename,
-                           UINT64 iSize, bool bSigned,
+                           uint64_t iSize, bool bSigned,
                            Histogram1DDataBlock* Histogram1D=0);
 
   static bool QuantizeTo8Bit(LargeRAWFile& rawfile,
                              const std::string& strTargetFilename,
-                             UINT64 iComponentSize, UINT64 iSize,
+                             uint64_t iComponentSize, uint64_t iSize,
                              bool bSigned, bool bIsFloat,
                              Histogram1DDataBlock* Histogram1D=0);
 

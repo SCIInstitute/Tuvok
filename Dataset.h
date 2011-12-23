@@ -48,7 +48,6 @@
 # include <tr1/memory>
 # include <tr1/unordered_map>
 #endif
-#include <boost/cstdint.hpp>
 #include <boost/noncopyable.hpp>
 #include "Basics/Grids.h"
 #include "Basics/Vectors.h"
@@ -58,8 +57,8 @@
 
 #define MAX_TRANSFERFUNCTION_SIZE 4096
 
-typedef Grid1D<UINT32> Histogram1D;
-typedef Grid2D<UINT32> Histogram2D;
+typedef Grid1D<uint32_t> Histogram1D;
+typedef Grid2D<uint32_t> Histogram2D;
 class LargeRAWFile;
 
 namespace tuvok {
@@ -90,12 +89,12 @@ public:
   virtual FLOATVECTOR3 GetBrickExtents(const BrickKey &) const = 0;
   /// Data access
   ///@{
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::uint8_t>&) const=0;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::int8_t>&) const = 0;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::uint16_t>&) const=0;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::int16_t>&) const=0;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::uint32_t>&) const=0;
-  virtual bool GetBrick(const BrickKey&, std::vector<boost::int32_t>&) const=0;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const=0;
+  virtual bool GetBrick(const BrickKey&, std::vector<int8_t>&) const = 0;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint16_t>&) const=0;
+  virtual bool GetBrick(const BrickKey&, std::vector<int16_t>&) const=0;
+  virtual bool GetBrick(const BrickKey&, std::vector<uint32_t>&) const=0;
+  virtual bool GetBrick(const BrickKey&, std::vector<int32_t>&) const=0;
   virtual bool GetBrick(const BrickKey&, std::vector<float>&) const=0;
   virtual bool GetBrick(const BrickKey&, std::vector<double>&) const=0;
   ///@}
@@ -122,9 +121,9 @@ public:
   virtual bool Crop( const PLANE<float>& , const std::string&, bool ) {return false;}
   ///@}
 
-  virtual UINT64 GetLODLevelCount() const = 0;
+  virtual uint64_t GetLODLevelCount() const = 0;
   /// @todo FIXME, should be pure virtual && overridden in derived
-  virtual UINT64 GetNumberOfTimesteps() const { return 1; }
+  virtual uint64_t GetNumberOfTimesteps() const { return 1; }
   virtual UINT64VECTOR3 GetDomainSize(const size_t lod=0,
                                       const size_t ts=0) const = 0;
   DOUBLEVECTOR3 GetScale() const {return m_DomainScale * m_UserScale;}
@@ -133,8 +132,8 @@ public:
   ///         into account any brick overlaps.
   virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const = 0;
 
-  virtual UINT64 GetBitWidth() const = 0;
-  virtual UINT64 GetComponentCount() const = 0;
+  virtual uint64_t GetBitWidth() const = 0;
+  virtual uint64_t GetComponentCount() const = 0;
   virtual bool GetIsSigned() const = 0;
   virtual bool GetIsFloat() const = 0;
   virtual bool IsSameEndianness() const = 0;
@@ -151,21 +150,21 @@ public:
 
   /// unimplemented!  Override this if you want tools built on this IO layer
   /// to be able to create data in your format.
-  virtual bool Export(UINT64 iLODLevel, const std::string& targetFilename,
+  virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename,
                       bool bAppend,
                       bool (*brickFunc)(LargeRAWFile* pSourceFile,
-                                        const std::vector<UINT64> vBrickSize,
-                                        const std::vector<UINT64> vBrickOffset,
+                                        const std::vector<uint64_t> vBrickSize,
+                                        const std::vector<uint64_t> vBrickOffset,
                                         void* pUserContext) = NULL,
                       void *pUserContext = NULL,
-                      UINT64 iOverlap=0) const;
+                      uint64_t iOverlap=0) const;
 
   /// A user-visible name for your format.  This might get displayed in UI
   /// elements; e.g. the GUI might ask if the user wants to use the "Name()
   /// reader" to open a particular file.
   virtual const char* Name() const { return "Generic"; }
   /// Virtual constructor.
-  virtual Dataset* Create(const std::string&, UINT64, bool) const=0;  
+  virtual Dataset* Create(const std::string&, uint64_t, bool) const=0;  
 
 protected:
   Histogram1D*       m_pHist1D;

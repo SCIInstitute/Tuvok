@@ -51,11 +51,11 @@ typedef std::vector< std::pair < std::string, std::string > > KVPairs;
 
 template<class T> class MinMaxScanner {
 public:
-  MinMaxScanner(LargeRAWFile* file, T& minValue, T& maxValue, UINT64 iElemCount) {
-    size_t iMaxElemCount = size_t(std::min<UINT64>(BLOCK_COPY_SIZE, iElemCount) / sizeof(T));
+  MinMaxScanner(LargeRAWFile* file, T& minValue, T& maxValue, uint64_t iElemCount) {
+    size_t iMaxElemCount = size_t(std::min<uint64_t>(BLOCK_COPY_SIZE, iElemCount) / sizeof(T));
     T* pInData = new T[iMaxElemCount];
 
-    UINT64 iPos = 0;
+    uint64_t iPos = 0;
     while (iPos < iElemCount)  {
       size_t iRead = file->ReadRAW((unsigned char*)pInData, iMaxElemCount*sizeof(T))/sizeof(T);
       if (iRead == 0) break;
@@ -64,7 +64,7 @@ public:
         if (minValue > pInData[i]) minValue = pInData[i];
         if (maxValue < pInData[i]) maxValue = pInData[i];
       }
-      iPos += UINT64(iRead);
+      iPos += uint64_t(iRead);
     }
 
     delete [] pInData;
@@ -78,45 +78,45 @@ public:
   static bool ConvertRAWDataset(const std::string& strFilename,
                                 const std::string& strTargetFilename,
                                 const std::string& strTempDir,
-                                UINT64 iHeaderSkip, UINT64 iComponentSize,
-                                UINT64 iComponentCount,
-                                UINT64 timesteps,
+                                uint64_t iHeaderSkip, uint64_t iComponentSize,
+                                uint64_t iComponentCount,
+                                uint64_t timesteps,
                                 bool bConvertEndianness, bool bSigned,
                                 bool bIsFloat, UINT64VECTOR3 vVolumeSize,
                                 FLOATVECTOR3 vVolumeAspect,
                                 const std::string& strDesc,
                                 const std::string& strSource,
-                                const UINT64 iTargetBrickSize,
-                                const UINT64 iTargetBrickOverlap,
+                                const uint64_t iTargetBrickSize,
+                                const uint64_t iTargetBrickOverlap,
                                 UVFTables::ElementSemanticTable eType=UVFTables::ES_UNDEFINED,
                                 KVPairs* pKVPairs = NULL,
                                 const bool bQuantizeTo8Bit=false);
 
   static bool ExtractGZIPDataset(const std::string& strFilename,
                                  const std::string& strUncompressedFile,
-                                 UINT64 iHeaderSkip);
+                                 uint64_t iHeaderSkip);
 
   static bool ExtractBZIP2Dataset(const std::string& strFilename,
                                   const std::string& strUncompressedFile,
-                                  UINT64 iHeaderSkip);
+                                  uint64_t iHeaderSkip);
 
   static bool ParseTXTDataset(const std::string& strFilename,
                               const std::string& strBinaryFile,
-                              UINT64 iHeaderSkip, UINT64 iComponentSize,
-                              UINT64 iComponentCount, bool bSigned,
+                              uint64_t iHeaderSkip, uint64_t iComponentSize,
+                              uint64_t iComponentCount, bool bSigned,
                               bool bIsFloat, UINT64VECTOR3 vVolumeSize);
 
-  static bool AppendRAW(const std::string& strRawFilename, UINT64 iHeaderSkip,
+  static bool AppendRAW(const std::string& strRawFilename, uint64_t iHeaderSkip,
                         const std::string& strTargetFilename,
-                        UINT64 iComponentSize,
+                        uint64_t iComponentSize,
                         bool bChangeEndianess=false,
                         bool bToSigned=false,
                         const bool bQuantizeTo8Bit=false);
 
   virtual bool ConvertToNative(const std::string& strRawFilename,
                                const std::string& strTargetFilename,
-                               UINT64 iHeaderSkip, UINT64 iComponentSize,
-                               UINT64 iComponentCount, bool bSigned,
+                               uint64_t iHeaderSkip, uint64_t iComponentSize,
+                               uint64_t iComponentCount, bool bSigned,
                                bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                                FLOATVECTOR3 vVolumeAspect,
                                bool bNoUserInteraction,
@@ -126,24 +126,24 @@ public:
                             const std::string& strTargetFilename,
                             const std::string& strTempDir,
                             const bool bNoUserInteraction,
-                            const UINT64 iTargetBrickSize,
-                            const UINT64 iTargetBrickOverlap,
+                            const uint64_t iTargetBrickSize,
+                            const uint64_t iTargetBrickOverlap,
                             const bool bQuantizeTo8Bit);
 
   virtual bool ConvertToUVF(const std::list<std::string>& files,
                             const std::string& strTargetFilename,
                             const std::string& strTempDir,
                             const bool bNoUserInteraction,
-                            const UINT64 iTargetBrickSize,
-                            const UINT64 iTargetBrickOverlap,
+                            const uint64_t iTargetBrickSize,
+                            const uint64_t iTargetBrickOverlap,
                             const bool bQuantizeTo8Bit);
 
   virtual bool Analyze(const std::string& strSourceFilename,
                        const std::string& strTempDir,
                        bool bNoUserInteraction, RangeInfo& info);
 
-  static bool Analyze(const std::string& strSourceFilename, UINT64 iHeaderSkip,
-                      UINT64 iComponentSize, UINT64 iComponentCount,
+  static bool Analyze(const std::string& strSourceFilename, uint64_t iHeaderSkip,
+                      uint64_t iComponentSize, uint64_t iComponentCount,
                       bool bSigned, bool bFloatingPoint,
                       UINT64VECTOR3 vVolumeSize,
                       RangeInfo& info);

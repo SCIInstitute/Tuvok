@@ -39,7 +39,6 @@
 #include <iterator>
 #include <list>
 #include "3rdParty/bzip2/bzlib.h"
-#include "boost/cstdint.hpp"
 
 #include "RAWConverter.h"
 #include "Basics/SysTools.h"
@@ -49,10 +48,10 @@
 #include "UVF/MaxMinDataBlock.h"
 #include "UVF/RasterDataBlock.h"
 #include "UVF/KeyValuePairDataBlock.h"
+#include "UVF/TOCBlock.h"
 #include "TuvokIOError.h"
 
 using namespace std;
-using boost::int64_t;
 using namespace tuvok;
 
 // holds UVF data blocks, because they cannot be deleted until the UVF file is
@@ -69,8 +68,8 @@ namespace { template<typename T> void DeleteArray(T *t) { delete[] t; } }
 
 static std::string convert_endianness(const std::string& strFilename,
                                       const std::string& strTempDir,
-                                      UINT64 iHeaderSkip,
-                                      UINT64 iComponentSize,
+                                      uint64_t iHeaderSkip,
+                                      uint64_t iComponentSize,
                                       size_t in_core_size)
 {
   using namespace tuvok::io;
@@ -101,10 +100,10 @@ static std::string convert_endianness(const std::string& strFilename,
   }
   MESSAGE("Performing endianness conversion ...");
 
-  UINT64 byte_length = WrongEndianData.GetCurrentSize();
+  uint64_t byte_length = WrongEndianData.GetCurrentSize();
   size_t buffer_size = std::min<size_t>(static_cast<size_t>(byte_length),
                                         static_cast<size_t>(in_core_size));
-  UINT64 bytes_converted = 0;
+  uint64_t bytes_converted = 0;
 
   std::tr1::shared_ptr<unsigned char> buffer(new unsigned char[buffer_size],
                                              DeleteArray<unsigned char>);
@@ -144,7 +143,7 @@ static std::string convert_endianness(const std::string& strFilename,
       throw IOException("Write failed during endianness conversion.", __FILE__,
                         __LINE__);
     }
-    bytes_converted += static_cast<UINT64>(bytes_written);
+    bytes_converted += static_cast<uint64_t>(bytes_written);
 
     MESSAGE("Performing endianness conversion"
             "\n%i%% complete",
@@ -171,7 +170,7 @@ public:
 static std::tr1::shared_ptr<KeyValuePairDataBlock> metadata(
   const string& strDesc, const string& strSource,
   bool bLittleEndian, bool bSigned, bool bIsFloat,
-  UINT64 iComponentSize,
+  uint64_t iComponentSize,
   KVPairs* pKVPairs
 )
 {
@@ -210,18 +209,18 @@ static std::tr1::shared_ptr<KeyValuePairDataBlock> metadata(
 bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const string& strTargetFilename,
                                      const string& strTempDir,
-                                     UINT64 iHeaderSkip,
-                                     UINT64 iComponentSize,
-                                     UINT64 iComponentCount,
-                                     UINT64 timesteps,
+                                     uint64_t iHeaderSkip,
+                                     uint64_t iComponentSize,
+                                     uint64_t iComponentCount,
+                                     uint64_t timesteps,
                                      bool bConvertEndianness, bool bSigned,
                                      bool bIsFloat,
                                      UINT64VECTOR3 vVolumeSize,
                                      FLOATVECTOR3 vVolumeAspect,
                                      const string& strDesc,
                                      const string& strSource,
-                                     const UINT64 iTargetBrickSize,
-                                     const UINT64 iTargetBrickOverlap,
+                                     const uint64_t iTargetBrickSize,
+                                     const uint64_t iTargetBrickOverlap,
                                      UVFTables::ElementSemanticTable eType,
                                      KVPairs* pKVPairs,
                                      const bool bQuantizeTo8Bit)
@@ -354,7 +353,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           MESSAGE("Dataset is 32bit integers.");
           if(bSigned) {
             use_target =
-              Quantize<boost::int32_t, unsigned short>(
+              Quantize<int32_t, unsigned short>(
                 *sourceData, tmpQuantizedFile,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D
@@ -362,14 +361,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           } else {
             size_t iBinCount = 0;
             use_target =
-              Quantize<UINT32, unsigned short>(
+              Quantize<uint32_t, unsigned short>(
                 *sourceData, tmpQuantizedFile,
                 iComponentCount*vVolumeSize.volume()*timesteps, &Histogram1D, 
                 &iBinCount
               );
             if (iBinCount > 0 && iBinCount <= 256) {
               use_target =
-                BinningQuantize<UINT32, unsigned char>(
+                BinningQuantize<uint32_t, unsigned char>(
                   *sourceData, tmpQuantizedFile,
                   iComponentCount*vVolumeSize.volume()*timesteps,
                   iComponentSize, &Histogram1D
@@ -393,7 +392,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           MESSAGE("Dataset is 64bit integers.");
           if(bSigned) {
             use_target =
-              Quantize<boost::int64_t, unsigned short>(
+              Quantize<int64_t, unsigned short>(
                 *sourceData, tmpQuantizedFile,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D
@@ -401,14 +400,14 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           } else {
             size_t iBinCount = 0;
             use_target =
-              Quantize<UINT64, unsigned short>(
+              Quantize<uint64_t, unsigned short>(
                 *sourceData, tmpQuantizedFile,
                 iComponentCount*vVolumeSize.volume()*timesteps,
                 &Histogram1D, &iBinCount
               );
             if (iBinCount > 0 && iBinCount <= 256) {
               use_target =
-                BinningQuantize<UINT64, unsigned char>(
+                BinningQuantize<uint64_t, unsigned char>(
                   *sourceData, tmpQuantizedFile,
                   iComponentCount*vVolumeSize.volume()*timesteps,
                   iComponentSize, &Histogram1D
@@ -441,10 +440,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   // assume all timesteps have same dimensions / etc, so the LOD calculation
   // applies to all TSs.
-  UINT64 iLodLevelCount = 1;
-  UINT64 iMaxVal = vVolumeSize.maxVal();
+  uint64_t iLodLevelCount = 1;
+  uint64_t iMaxVal = vVolumeSize.maxVal();
   // generate LOD down to at least a 64^3 brick
-  while (iMaxVal > std::min<UINT64>(64, iTargetBrickSize)) {
+  while (iMaxVal > std::min<uint64_t>(64, iTargetBrickSize)) {
     iMaxVal /= 2;
     iLodLevelCount++;
   }
@@ -507,7 +506,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                vSem.push_back(UVFTables::ES_BLUE);
                vSem.push_back(UVFTables::ES_ALPHA);
                break;
-      default : for (UINT64 i = 0;i<iComponentCount;i++) {
+      default : for (uint64_t i = 0;i<iComponentCount;i++) {
                   vSem.push_back(eType);
                 }
                 break;
@@ -516,7 +515,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     {
       // The mantissa size really isn't used currently, other than
       // getting stored in the UVF.  But be sure to set it 'correctly' anyway.
-      UINT64 mantissa_size = 0;
+      uint64_t mantissa_size = 0;
       if(bIsFloat && iComponentSize == 64) {
         mantissa_size = 52; // assume ieee-854
       } else if(bIsFloat && iComponentSize == 32) {
@@ -652,7 +651,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     // do not compute histograms when we are dealing with color data
     /// \todo change this if we want to support non color multi component data
     if (iComponentCount != 4) {
-      // if no resampling was perfomed above, we need to compute the
+      // if no re sampling was performed above, we need to compute the
       // 1d histogram here
       if (Histogram1D.GetHistogram().empty()) {
         MESSAGE("Computing 1D Histogram...");
@@ -666,7 +665,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       MESSAGE("Computing 2D Histogram...");
       Histogram2DDataBlock& Histogram2D = *blocks[ts].hist2d;
       if (!Histogram2D.Compute(dataVolume, Histogram1D.GetHistogram().size(),
-          MaxMinData.m_GlobalMaxMin.maxScalar)) {
+          MaxMinData.GetGlobalValue().maxScalar)) {
         T_ERROR("Computation of 2D Histogram failed!");
         uvfFile.Close();
         return false;
@@ -710,7 +709,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
  * @param iHeaderSkip number of bytes to skip off of strFilename */
 bool RAWConverter::ExtractGZIPDataset(const string& strFilename,
                                       const string& strUncompressedFile,
-                                      UINT64 iHeaderSkip)
+                                      uint64_t iHeaderSkip)
 {
   FILE *f_compressed;
   FILE *f_inflated;
@@ -838,7 +837,7 @@ bz_err_test(int bz_err)
  * @param iHeaderSkip number of bytes to skip of strFilename's header*/
 bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
                                        const string& strUncompressedFile,
-                                       UINT64 iHeaderSkip)
+                                       uint64_t iHeaderSkip)
 {
 #ifdef TUVOK_NO_IO
   T_ERROR("Tuvok built without IO routines; bzip2 not available!");
@@ -905,9 +904,9 @@ bool RAWConverter::ExtractBZIP2Dataset(const string& strFilename,
 
 bool RAWConverter::ParseTXTDataset(const string& strFilename,
                                      const string& strBinaryFile,
-                                     UINT64 iHeaderSkip,
-                                     UINT64 iComponentSize,
-                                     UINT64 iComponentCount,
+                                     uint64_t iHeaderSkip,
+                                     uint64_t iComponentSize,
+                                     uint64_t iComponentCount,
                                      bool bSigned,
                                      bool bIsFloat,
                                      UINT64VECTOR3 vVolumeSize)
@@ -1015,7 +1014,7 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
                       }
                     }
                   } else {
-                    UINT32 tmp;
+                    uint32_t tmp;
                     while (sourceFile) {
                       sourceFile >> tmp;
                       if(sourceFile) {
@@ -1041,8 +1040,8 @@ bool RAWConverter::ParseTXTDataset(const string& strFilename,
 
 bool RAWConverter::ConvertToNative(const std::string& strRawFilename,
                                    const std::string& strTargetFilename,
-                                   UINT64 iHeaderSkip,
-                                   UINT64 iComponentSize, UINT64, bool, bool,
+                                   uint64_t iHeaderSkip,
+                                   uint64_t iComponentSize, uint64_t, bool, bool,
                                    UINT64VECTOR3, FLOATVECTOR3, bool,
                                    bool bQuantizeTo8Bit) {
   // convert raw to raw is easy :-), just copy the file and ignore the metadata
@@ -1059,9 +1058,9 @@ bool RAWConverter::ConvertToNative(const std::string& strRawFilename,
 }
 
 bool RAWConverter::AppendRAW(const std::string& strRawFilename,
-                             UINT64 iHeaderSkip,
+                             uint64_t iHeaderSkip,
                              const std::string& strTargetFilename,
-                             UINT64 iComponentSize, bool bChangeEndianess,
+                             uint64_t iComponentSize, bool bChangeEndianess,
                              bool bToSigned, bool bQuantizeTo8Bit) {
   // TODO:
   // should we ever need this combination
@@ -1087,10 +1086,10 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
     return false;
   }
 
-  UINT64 iSourceSize = fSource.GetCurrentSize();
-  UINT64 iCopySize = min(iSourceSize,BLOCK_COPY_SIZE);
+  uint64_t iSourceSize = fSource.GetCurrentSize();
+  uint64_t iCopySize = min(iSourceSize,BLOCK_COPY_SIZE);
   unsigned char* pBuffer = new unsigned char[size_t(iCopySize)];
-  UINT64 iCopiedSize = 0;
+  uint64_t iCopiedSize = 0;
 
   do {
     MESSAGE("Writing output data\n%g%% completed", 100.0f*float(iCopiedSize)/float(iSourceSize));
@@ -1114,7 +1113,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
                   break;
         case 64 : // ulonglong to longlong
                   for (size_t i = 0;i<iCopySize;i+=8)
-                    (*(int64_t*)(pBuffer+i)) = int64_t(*(UINT64*)(pBuffer+i)) - std::numeric_limits<int64_t>::max();
+                    (*(int64_t*)(pBuffer+i)) = int64_t(*(uint64_t*)(pBuffer+i)) - std::numeric_limits<int64_t>::max();
                   break;
         default : T_ERROR("Unsuported data type for vff files.");
                   return false;
@@ -1151,8 +1150,8 @@ bool RAWConverter::ConvertToUVF(const std::string& strSourceFilename,
                                 const std::string& strTargetFilename,
                                 const std::string& strTempDir,
                                 const bool bNoUserInteraction,
-                                const UINT64 iTargetBrickSize,
-                                const UINT64 iTargetBrickOverlap,
+                                const uint64_t iTargetBrickSize,
+                                const uint64_t iTargetBrickOverlap,
                                 const bool bQuantizeTo8Bit)
 {
   std::list<std::string> files;
@@ -1167,14 +1166,14 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
                                 const std::string& strTargetFilename,
                                 const std::string& strTempDir,
                                 const bool bNoUserInteraction,
-                                const UINT64 iTargetBrickSize,
-                                const UINT64 iTargetBrickOverlap,
+                                const uint64_t iTargetBrickSize,
+                                const uint64_t iTargetBrickOverlap,
                                 const bool bQuantizeTo8Bit)
 {
   // all the parameters set here are just defaults, they should all be
   // overridden in ConvertToRAW which takes them as call by reference
-  UINT64        iComponentSize=8;
-  UINT64        iComponentCount=1;
+  uint64_t        iComponentSize=8;
+  uint64_t        iComponentCount=1;
   bool          bConvertEndianess=false;
   bool          bSigned=true;
   bool          bIsFloat=false;
@@ -1184,14 +1183,14 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
   UVFTables::ElementSemanticTable eType;
   std::list<string> strIntermediateFile;
   std::list<bool>   bDeleteIntermediateFile;
-  std::list<UINT64> header_skip;
+  std::list<uint64_t> header_skip;
 
   bool success = true;
   for(std::list<std::string>::const_iterator fn = files.begin();
       fn != files.end(); ++fn) {
     std::string intermediate;
     bool bDelete;
-    UINT64 iHeaderSkip;
+    uint64_t iHeaderSkip;
     /// @todo assuming iComponentSize, etc. are the same for all files; should
     /// really be a list for each of them, like for intermediate, iHeaderskip,
     /// etc.
@@ -1226,8 +1225,8 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
     merged.Create();
 
     std::list<bool>::const_iterator del = bDeleteIntermediateFile.begin();
-    std::list<UINT64>::const_iterator hdr = header_skip.begin();
-    const UINT64 payload_sz = vVolumeSize.volume() * iComponentSize/8 *
+    std::list<uint64_t>::const_iterator hdr = header_skip.begin();
+    const uint64_t payload_sz = vVolumeSize.volume() * iComponentSize/8 *
                               iComponentCount;
     for(std::list<std::string>::const_iterator fn = strIntermediateFile.begin();
         fn != strIntermediateFile.end(); ++fn, ++del, ++hdr) {
@@ -1243,7 +1242,7 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
           break;
         }
         merged.WriteRAW(data, std::min(payload_sz - bytes_written,
-                                       static_cast<UINT64>(elems)));
+                                       static_cast<uint64_t>(elems)));
         bytes_written += elems;
       } while(bytes_written < payload_sz);
 
@@ -1290,9 +1289,9 @@ bool RAWConverter::ConvertToUVF(const std::list<std::string>& files,
 bool RAWConverter::Analyze(const std::string& strSourceFilename,
                            const std::string& strTempDir,
                            bool bNoUserInteraction, RangeInfo& info) {
-  UINT64        iHeaderSkip=0;
-  UINT64        iComponentSize=0;
-  UINT64        iComponentCount=0;
+  uint64_t        iHeaderSkip=0;
+  uint64_t        iComponentSize=0;
+  uint64_t        iComponentCount=0;
   bool          bConvertEndianess=false;
   bool          bSigned=false;
   bool          bIsFloat=false;
@@ -1334,8 +1333,8 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
 }
 
 bool RAWConverter::Analyze(const std::string& strSourceFilename,
-                           UINT64 iHeaderSkip, UINT64 iComponentSize,
-                           UINT64 iComponentCount, bool bSigned,
+                           uint64_t iHeaderSkip, uint64_t iComponentSize,
+                           uint64_t iComponentCount, bool bSigned,
                            bool bFloatingPoint, UINT64VECTOR3 vVolumeSize,
                            RangeInfo& info) {
   // open source file
@@ -1346,7 +1345,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
     return false;
   }
 
-  UINT64 iElemCount = vVolumeSize.volume()*iComponentCount;
+  uint64_t iElemCount = vVolumeSize.volume()*iComponentCount;
 
   if (bFloatingPoint) {
     if (!bSigned) {
@@ -1445,9 +1444,9 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
                    info.m_iRange.second = iMax;
                    break;
                  } else {
-                   UINT64 iMin = numeric_limits<UINT64>::max();
-                   UINT64 iMax = numeric_limits<UINT64>::min();
-                   MinMaxScanner<UINT64> scanner(&fSource, iMin, iMax, iElemCount);
+                   uint64_t iMin = numeric_limits<uint64_t>::max();
+                   uint64_t iMax = numeric_limits<uint64_t>::min();
+                   MinMaxScanner<uint64_t> scanner(&fSource, iMin, iMax, iElemCount);
                    info.m_uiRange.first  = iMin;
                    info.m_uiRange.second = iMax;
                  }

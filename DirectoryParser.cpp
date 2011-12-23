@@ -131,8 +131,8 @@ FileStackInfo::~FileStackInfo() {
 }
 
 FileStackInfo::FileStackInfo( UINTVECTOR3  ivSize, FLOATVECTOR3 fvfAspect,
-                              UINT32 iAllocated, UINT32 iStored,
-                              UINT32 iComponentCount, 
+                              uint32_t iAllocated, uint32_t iStored,
+                              uint32_t iComponentCount, 
                               bool bSigned, bool bIsBigEndian, 
                               bool bIsJPEGEncoded, const std::string& strDesc, 
                               const std::string& strFileType) :

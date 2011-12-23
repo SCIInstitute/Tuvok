@@ -31,42 +31,42 @@ GlobalHeader& GlobalHeader::operator=(const GlobalHeader& other)  {
   return *this;
 }
 
-UINT64 GlobalHeader::GetDataPos() {
+uint64_t GlobalHeader::GetDataPos() {
   return 8 + GetSize();
 }
 
-void GlobalHeader::GetHeaderFromFile(LargeRAWFile* pStreamFile) {
+void GlobalHeader::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile) {
   pStreamFile->ReadData(bIsBigEndian, false);
   pStreamFile->ReadData(ulFileVersion, bIsBigEndian);
-  UINT64 uintSem;
+  uint64_t uintSem;
   pStreamFile->ReadData(uintSem, bIsBigEndian);
   ulChecksumSemanticsEntry = (ChecksumSemanticTable)uintSem;
-  UINT64 ulChecksumLength;
+  uint64_t ulChecksumLength;
   pStreamFile->ReadData(ulChecksumLength, bIsBigEndian);
    pStreamFile->ReadData(vcChecksum, ulChecksumLength, bIsBigEndian);
   pStreamFile->ReadData(ulOffsetToFirstDataBlock, bIsBigEndian);
 }
 
-void GlobalHeader::CopyHeaderToFile(LargeRAWFile* pStreamFile) {
+void GlobalHeader::CopyHeaderToFile(LargeRAWFile_ptr pStreamFile) {
   pStreamFile->WriteData(bIsBigEndian, false);
   pStreamFile->WriteData(ulFileVersion, bIsBigEndian);
-  pStreamFile->WriteData(UINT64(ulChecksumSemanticsEntry), bIsBigEndian);
-  pStreamFile->WriteData(UINT64(vcChecksum.size()), bIsBigEndian);
+  pStreamFile->WriteData(uint64_t(ulChecksumSemanticsEntry), bIsBigEndian);
+  pStreamFile->WriteData(uint64_t(vcChecksum.size()), bIsBigEndian);
   pStreamFile->WriteData(vcChecksum, bIsBigEndian);
   pStreamFile->WriteData(ulOffsetToFirstDataBlock, bIsBigEndian);
 }
 
-UINT64 GlobalHeader::GetSize() {
+uint64_t GlobalHeader::GetSize() {
   return GetMinSize() + vcChecksum.size() + ulOffsetToFirstDataBlock;
 }
 
-UINT64 GlobalHeader::GetMinSize() {
-  return sizeof(bool) + 4 * sizeof(UINT64);
+uint64_t GlobalHeader::GetMinSize() {
+  return sizeof(bool) + 4 * sizeof(uint64_t);
 }
 
-void GlobalHeader::UpdateChecksum(vector<unsigned char> checksum, LargeRAWFile* pStreamFile) {
+void GlobalHeader::UpdateChecksum(vector<unsigned char> checksum, LargeRAWFile_ptr pStreamFile) {
   vcChecksum = checksum;
-  UINT64 ulLastPos = pStreamFile->GetPos();
+  uint64_t ulLastPos = pStreamFile->GetPos();
   pStreamFile->SeekPos(33);
   pStreamFile->WriteData(vcChecksum, bIsBigEndian);
   pStreamFile->SeekPos(ulLastPos);

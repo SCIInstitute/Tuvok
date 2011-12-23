@@ -43,14 +43,14 @@ using namespace boost;
 
 namespace tuvok {
 
-typedef std::vector<std::vector<UINT32> > hist2d;
+typedef std::vector<std::vector<uint32_t> > hist2d;
 
 ExternalDataset::ExternalDataset()
 {
   // setup some default histograms.
   // default value is 1, since the `FilledSize' ignores 0-valued elements, so
   // other code would think a histogram filled with 0's is empty.
-  std::vector<UINT32> h1d(8,1);
+  std::vector<uint32_t> h1d(8,1);
   hist2d h2d;
   h2d.resize(256);
   for(hist2d::iterator iter = h2d.begin(); iter < h2d.end(); ++iter) {
@@ -142,7 +142,7 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
       break;
   }
   UINTVECTOR3 sz = this->GetBrickVoxelCounts(bk);
-  MESSAGE("Copied brick of size %u, dimensions %u %u %u", UINT32(bytes),
+  MESSAGE("Copied brick of size %u, dimensions %u %u %u", uint32_t(bytes),
           sz[0], sz[1], sz[2]);
   return true;
 }
@@ -240,24 +240,24 @@ float ExternalDataset::MaxGradientMagnitude() const
   return m_fMaxMagnitude;
 }
 
-void ExternalDataset::SetHistogram(const std::vector<UINT32>& hist)
+void ExternalDataset::SetHistogram(const std::vector<uint32_t>& hist)
 {
   if(m_pHist1D) { delete m_pHist1D; }
   m_pHist1D = new Histogram1D(hist.size());
   std::memcpy(m_pHist1D->GetDataPointer(), &(hist.at(0)),
-              sizeof(UINT32)*hist.size());
+              sizeof(uint32_t)*hist.size());
 }
 
-void ExternalDataset::SetHistogram(const std::vector<std::vector<UINT32> >& hist)
+void ExternalDataset::SetHistogram(const std::vector<std::vector<uint32_t> >& hist)
 {
   if(m_pHist2D) { delete m_pHist2D; }
   // assume the 2D histogram is square: hist[0].size() == hist[1].size() == ...
   const VECTOR2<size_t> sz(hist.size(), hist[0].size());
   m_pHist2D = new Histogram2D(sz);
 
-  UINT32 *data = m_pHist2D->GetDataPointer();
+  uint32_t *data = m_pHist2D->GetDataPointer();
   for(hist2d::const_iterator iter = hist.begin(); iter < hist.end(); ++iter) {
-    std::memcpy(data, &(iter->at(0)), sizeof(UINT32)*iter->size());
+    std::memcpy(data, &(iter->at(0)), sizeof(uint32_t)*iter->size());
     data += iter->size();
   }
 }

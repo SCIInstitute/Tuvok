@@ -51,8 +51,8 @@ VGStudioConverter::VGStudioConverter()
 
 bool VGStudioConverter::ConvertToRAW(const std::string& strSourceFilename,
                             const std::string&, bool,
-                            UINT64& iHeaderSkip, UINT64& iComponentSize,
-                            UINT64& iComponentCount, bool& bConvertEndianess,
+                            uint64_t& iHeaderSkip, uint64_t& iComponentSize,
+                            uint64_t& iComponentCount, bool& bConvertEndianess,
                             bool& bSigned, bool& bIsFloat,
                             UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,

@@ -56,19 +56,19 @@ public:
 
   std::string   m_strFileName;
   std::wstring  m_wstrFileName;
-  UINT32        m_iImageIndex;
+  uint32_t        m_iImageIndex;
 
-  UINT32 GetDataSize() const {
+  uint32_t GetDataSize() const {
     return m_iDataSize; /* = m_iComponentCount*m_ivSize.volume()*m_iAllocated/8; */
   }
-  virtual boost::uint32_t GetComponentCount() const = 0;
+  virtual uint32_t GetComponentCount() const = 0;
 
   virtual bool GetData(std::vector<char>&);
-  virtual bool GetData(std::vector<char>&, UINT32 iLength, UINT32 iOffset) = 0;
+  virtual bool GetData(std::vector<char>&, uint32_t iLength, uint32_t iOffset) = 0;
   virtual SimpleFileInfo* clone() = 0;
 
 protected:
-  UINT32 m_iDataSize;
+  uint32_t m_iDataSize;
 };
 
 
@@ -77,8 +77,8 @@ public:
   FileStackInfo();
   FileStackInfo(const FileStackInfo* other);
   FileStackInfo(UINTVECTOR3 ivSize, FLOATVECTOR3 fvfAspect, 
-                UINT32 iAllocated, UINT32 iStored,
-                UINT32 iComponentCount, bool bSigned, bool bIsBigEndian, 
+                uint32_t iAllocated, uint32_t iStored,
+                uint32_t iComponentCount, bool bSigned, bool bIsBigEndian, 
                 bool bIsJPEGEncoded, const std::string& strDesc, 
                 const std::string& strFileType);
   virtual ~FileStackInfo();
@@ -87,11 +87,11 @@ public:
 
   UINTVECTOR3  m_ivSize;
   FLOATVECTOR3 m_fvfAspect;
-  UINT32       m_iAllocated;
-  UINT32       m_iStored;
+  uint32_t       m_iAllocated;
+  uint32_t       m_iStored;
   /// @todo get rid of this, read it from the first file in the sequence
   /// instead.
-  UINT32       m_iComponentCount;
+  uint32_t       m_iComponentCount;
   bool         m_bSigned;
   bool         m_bIsBigEndian;
   bool         m_bIsJPEGEncoded;

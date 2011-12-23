@@ -54,7 +54,7 @@ static void first_block(const std::string& filename,
 }
 
 Dataset* DSFactory::Create(const std::string& filename,
-                           UINT64 max_brick_size,
+                           uint64_t max_brick_size,
                            bool verify) const throw(DSOpenFailed)
 {
   std::vector<int8_t> bytes(512);

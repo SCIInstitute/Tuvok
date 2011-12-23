@@ -9,7 +9,7 @@ using namespace UVFTables;
 DataBlock::DataBlock() : 
   strBlockID(""),
   ulCompressionScheme(COS_NONE),
-  m_pStreamFile(NULL),
+  m_pStreamFile(),
   m_iOffset(0),
   ulBlockSemantics(BS_EMPTY),
   ulOffsetToNextDataBlock(0)
@@ -24,7 +24,7 @@ DataBlock::DataBlock(const DataBlock &other) :
   ulOffsetToNextDataBlock(other.ulOffsetToNextDataBlock)
 {}
 
-DataBlock::DataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian)  {
+DataBlock::DataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian)  {
   GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
 }
 
@@ -48,17 +48,17 @@ DataBlock* DataBlock::Clone() const {
   return new DataBlock(*this);
 }
 
-UINT64 DataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian) {
+uint64_t DataBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian) {
   m_pStreamFile = pStreamFile;
   m_iOffset = iOffset;
 
   m_pStreamFile->SeekPos(iOffset);
 
-  UINT64 ulStringLengthBlockID;
+  uint64_t ulStringLengthBlockID;
   m_pStreamFile->ReadData(ulStringLengthBlockID, bIsBigEndian);
   m_pStreamFile->ReadData(strBlockID, ulStringLengthBlockID);
 
-  UINT64 uintSem;
+  uint64_t uintSem;
   m_pStreamFile->ReadData(uintSem, bIsBigEndian);
   ulBlockSemantics = (BlockSemanticTable)uintSem;
   m_pStreamFile->ReadData(uintSem, bIsBigEndian);
@@ -69,31 +69,31 @@ UINT64 DataBlock::GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset, b
   return m_pStreamFile->GetPos() - iOffset;
 }
 
-void DataBlock::CopyHeaderToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+void DataBlock::CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock) {
   pStreamFile->SeekPos(iOffset);
 
-  pStreamFile->WriteData(UINT64(strBlockID.size()), bIsBigEndian);
+  pStreamFile->WriteData(uint64_t(strBlockID.size()), bIsBigEndian);
   pStreamFile->WriteData(strBlockID);
-  pStreamFile->WriteData(UINT64(ulBlockSemantics), bIsBigEndian);
-  pStreamFile->WriteData(UINT64(ulCompressionScheme), bIsBigEndian);
+  pStreamFile->WriteData(uint64_t(ulBlockSemantics), bIsBigEndian);
+  pStreamFile->WriteData(uint64_t(ulCompressionScheme), bIsBigEndian);
 
   if (bIsLastBlock)
-    pStreamFile->WriteData(UINT64(0), bIsBigEndian);
+    pStreamFile->WriteData(uint64_t(0), bIsBigEndian);
   else
     pStreamFile->WriteData(GetOffsetToNextBlock(), bIsBigEndian);
 }
 
-UINT64 DataBlock::CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+uint64_t DataBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock) {
   CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
   return pStreamFile->GetPos() - iOffset;
 }
 
-UINT64 DataBlock::GetOffsetToNextBlock() const {
-  return strBlockID.size() + 4 * sizeof(UINT64);
+uint64_t DataBlock::GetOffsetToNextBlock() const {
+  return strBlockID.size() + 4 * sizeof(uint64_t);
 }
 
-bool DataBlock::Verify(UINT64 iSizeofData, std::string* pstrProblem) const {
-  UINT64 iCorrectSize = ComputeDataSize();
+bool DataBlock::Verify(uint64_t iSizeofData, std::string* pstrProblem) const {
+  uint64_t iCorrectSize = ComputeDataSize();
   bool bResult = iCorrectSize == iSizeofData;
 
   if (pstrProblem != NULL)  {

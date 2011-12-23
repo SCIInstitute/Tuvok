@@ -6,6 +6,7 @@
 #include <algorithm>
 #include "DataBlock.h"
 #include "Basics/Vectors.h"
+#include "ExtendedOctree/ExtendedOctreeConverter.h"
 
 template<class T, class S> class MaxMinElemen {
 public:
@@ -37,6 +38,7 @@ public:
 };
 
 typedef MaxMinElemen<double, double> InternalMaxMinElement;
+typedef std::vector<std::vector<InternalMaxMinElement> > MaxMinVec;
 
 class MaxMinDataBlock : public DataBlock
 {
@@ -44,30 +46,39 @@ public:
   MaxMinDataBlock(size_t iComponentCount);
   ~MaxMinDataBlock();
   MaxMinDataBlock(const MaxMinDataBlock &other);
-  MaxMinDataBlock(LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian);
+  MaxMinDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
 
   virtual MaxMinDataBlock& operator=(const MaxMinDataBlock& other);
-  virtual UINT64 ComputeDataSize() const;
+  virtual uint64_t ComputeDataSize() const;
 
   const InternalMaxMinElement& GetValue(size_t iIndex, size_t iComponent=0);
   void StartNewValue();
   void MergeData(const std::vector<DOUBLEVECTOR4>& fMaxMinData);
+  void SetDataFromFlatVector(BrickStatVec& source, uint64_t iComponentCount);
 
-  InternalMaxMinElement m_GlobalMaxMin;
+  const InternalMaxMinElement& GetGlobalValue(size_t iComponent=0) const {
+    return m_GlobalMaxMin[iComponent];
+  }
 
-protected:
-	typedef std::vector<std::vector<InternalMaxMinElement> > MaxMin;
-  std::vector<std::vector<InternalMaxMinElement> >  m_vfMaxMinData;
-  size_t                                            m_iComponentCount;
+  size_t GetComponentCount() const {
+    return m_iComponentCount;
+  }
 
-  virtual UINT64 GetHeaderFromFile(LargeRAWFile* pStreamFile, UINT64 iOffset,
+protected:	
+  std::vector<InternalMaxMinElement> m_GlobalMaxMin;
+  MaxMinVec   m_vfMaxMinData;
+  size_t  m_iComponentCount;
+
+  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
                                    bool bIsBigEndian);
-  virtual UINT64 CopyToFile(LargeRAWFile* pStreamFile, UINT64 iOffset,
+  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
                             bool bIsBigEndian, bool bIsLastBlock);
-  virtual UINT64 GetOffsetToNextBlock() const;
+  virtual uint64_t GetOffsetToNextBlock() const;
 
   virtual DataBlock* Clone() const;
   void MergeData(const InternalMaxMinElement& data, const size_t iComponent);
+  void ResetGlobal();
+  void SetComponentCount(size_t iComponentCount);
 };
 
 #endif // MAXMINDATABLOCK_H

@@ -43,7 +43,6 @@
 #else
 # include <tr1/memory>
 #endif
-#include "boost/cstdint.hpp"
 
 namespace tuvok {
 
@@ -75,18 +74,18 @@ public:
   VariantArray(const VariantArray &);
   ~VariantArray();
 
-  void set(const std::tr1::shared_ptr<boost::uint8_t>, size_t len);
-  void set(const std::tr1::shared_ptr<boost::int8_t>, size_t len);
-  void set(const std::tr1::shared_ptr<boost::uint16_t>, size_t len);
-  void set(const std::tr1::shared_ptr<boost::int16_t>, size_t len);
+  void set(const std::tr1::shared_ptr<uint8_t>, size_t len);
+  void set(const std::tr1::shared_ptr<int8_t>, size_t len);
+  void set(const std::tr1::shared_ptr<uint16_t>, size_t len);
+  void set(const std::tr1::shared_ptr<int16_t>, size_t len);
   void set(const std::tr1::shared_ptr<float>, size_t len);
 
   size_t size() const { return length; }
 
-  const boost::uint8_t* getub() const;
-  const boost::int8_t* getb() const;
-  const boost::uint16_t* getus() const;
-  const boost::int16_t* gets() const;
+  const uint8_t* getub() const;
+  const int8_t* getb() const;
+  const uint16_t* getus() const;
+  const int16_t* gets() const;
   const float* getf() const;
   DataType type() const;
 
@@ -96,10 +95,10 @@ private:
   void reset(); ///< set all internal pointers to null.
 
 private:
-  std::tr1::shared_ptr<boost::uint8_t>  scalar_ub;
-  std::tr1::shared_ptr<boost::int8_t>   scalar_b;
-  std::tr1::shared_ptr<boost::int16_t>  scalar_s;
-  std::tr1::shared_ptr<boost::uint16_t> scalar_us;
+  std::tr1::shared_ptr<uint8_t>  scalar_ub;
+  std::tr1::shared_ptr<int8_t>   scalar_b;
+  std::tr1::shared_ptr<int16_t>  scalar_s;
+  std::tr1::shared_ptr<uint16_t> scalar_us;
   std::tr1::shared_ptr<float>    scalar_f;
   size_t                         length;
   enum DataType                  data_type;

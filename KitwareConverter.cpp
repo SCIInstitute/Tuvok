@@ -52,7 +52,7 @@ KitwareConverter::KitwareConverter()
 
 bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
                             const std::string&, bool,
-                            UINT64& iHeaderSkip, UINT64& iComponentSize, UINT64& iComponentCount,
+                            uint64_t& iHeaderSkip, uint64_t& iComponentSize, uint64_t& iComponentCount,
                             bool& bConvertEndianess, bool& bSigned, bool& bIsFloat, UINT64VECTOR3& vVolumeSize,
                             FLOATVECTOR3& vVolumeAspect, std::string& strTitle,
                             UVFTables::ElementSemanticTable& eType, std::string& strIntermediateFile,
@@ -160,7 +160,7 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
       return false;
     }
 
-    UINT32 iDims = static_cast<UINT32>(dimsize->vuiValue.size());
+    uint32_t iDims = static_cast<uint32_t>(dimsize->vuiValue.size());
 
     if (dims == NULL) {
       WARNING("Unable to find 'NDims' tag in file %s relying on 'DimSize' tag.", strSourceFilename.c_str());
@@ -213,7 +213,7 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
       } else {
         LargeRAWFile f(strIntermediateFile);
         if (f.Open(false)) {
-          UINT64 iFileSize = f.GetCurrentSize();
+          uint64_t iFileSize = f.GetCurrentSize();
           f.Close();
           iHeaderSkip = iFileSize - (iComponentSize/8)*vVolumeSize.volume()*iComponentCount;
         } else {
@@ -230,8 +230,8 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-bool KitwareConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, UINT64 iHeaderSkip,
-                             UINT64 iComponentSize, UINT64 iComponentCount, bool bSigned, bool bFloatingPoint,
+bool KitwareConverter::ConvertToNative(const std::string& strRawFilename, const std::string& strTargetFilename, uint64_t iHeaderSkip,
+                             uint64_t iComponentSize, uint64_t iComponentCount, bool bSigned, bool bFloatingPoint,
                              UINT64VECTOR3 vVolumeSize,FLOATVECTOR3 vVolumeAspect, bool bNoUserInteraction,
                              const bool bQuantizeTo8Bit) {
 

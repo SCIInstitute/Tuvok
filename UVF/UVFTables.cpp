@@ -9,6 +9,7 @@ using namespace std;
 #include "KeyValuePairDataBlock.h"
 #include "MaxMinDataBlock.h"
 #include "GeometryDataBlock.h"
+#include "TOCBlock.h"
 
 string UVFTables::ChecksumSemanticToCharString(ChecksumSemanticTable uiTable) {
   switch (uiTable) {
@@ -25,7 +26,7 @@ wstring UVFTables::ChecksumSemanticToString(ChecksumSemanticTable uiTable) {
   return result;
 }
 
-UINT64 UVFTables::ChecksumElemLength(ChecksumSemanticTable uiTable) {
+uint64_t UVFTables::ChecksumElemLength(ChecksumSemanticTable uiTable) {
   switch (uiTable) {
     case (CS_NONE)  : return 0;
     case (CS_CRC32) : return 32/8;
@@ -69,7 +70,7 @@ wstring UVFTables::BlockSemanticTableToString(BlockSemanticTable uiTable) {
   return result;
 }
 
-DataBlock* UVFTables::CreateBlockFromSemanticEntry(BlockSemanticTable uiTable, LargeRAWFile* pStreamFile, UINT64 iOffset, bool bIsBigEndian) {
+DataBlock* UVFTables::CreateBlockFromSemanticEntry(BlockSemanticTable uiTable, LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian) {
   switch (uiTable) {
     case (BS_EMPTY)              : return new DataBlock(pStreamFile, iOffset, bIsBigEndian);
     case (BS_REG_NDIM_GRID)      : /* fall through */
@@ -79,7 +80,8 @@ DataBlock* UVFTables::CreateBlockFromSemanticEntry(BlockSemanticTable uiTable, L
     case (BS_2D_HISTOGRAM)       : return new Histogram2DDataBlock(pStreamFile, iOffset, bIsBigEndian);
     case (BS_KEY_VALUE_PAIRS)    : return new KeyValuePairDataBlock(pStreamFile, iOffset, bIsBigEndian);
     case (BS_MAXMIN_VALUES)      : return new MaxMinDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_GEOMETRY)      : return new GeometryDataBlock(pStreamFile, iOffset, bIsBigEndian);
+    case (BS_GEOMETRY)           : return new GeometryDataBlock(pStreamFile, iOffset, bIsBigEndian);
+    case (BS_TOC_BLOCK)          : return new TOCBlock(pStreamFile, iOffset, bIsBigEndian);
     default                      : throw "CreateBlockFromSemanticEntry: Unknown block semantic";
   }
 }
