@@ -251,7 +251,7 @@ void ExtendedOctreeConverter::Compress(ExtendedOctree &tree, size_t iBrickSkip) 
       // ignore bricks that are already compressed
       if (tree.m_vTOC[i].m_eCompression == m_eCompression) continue;
 
-      uint64_t compressedLength = 100000000000000000; // TODO remove this
+      uint64_t compressedLength = 100000000000000000ULL; // TODO remove this
 
       // TODO: compress into pData
 
