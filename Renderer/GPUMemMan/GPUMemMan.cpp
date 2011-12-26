@@ -282,7 +282,8 @@ void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
   if(vol_ds->qpUser.empty()) {
     dbg.Message(_func_, "Cleaning up all 3D textures associated w/ dataset %s",
                 ds_name.c_str());
-    FreeAssociatedTextures(pVolumeDataset, requester->GetContext()->GetShareGroupID());
+    if (requester->GetContext()) // if we never created a context then we never created any textures
+      FreeAssociatedTextures(pVolumeDataset, requester->GetContext()->GetShareGroupID());
     dbg.Message(_func_, "Released Dataset %s", ds_name.c_str());
     delete pVolumeDataset;
     m_vpVolumeDatasets.erase(vol_ds);
