@@ -991,7 +991,8 @@ bool GLRenderer::BindVolumeTex(const BrickKey& bkey,
                                                          m_bDisableBorder,
                                                          false,
                                                          iIntraFrameCounter,
-                                                         m_iFrameCounter);
+                                                         m_iFrameCounter,
+                                                         m_pContext->GetShareGroupID());
   GL_CHECK();
   if(m_pGLVolume) {
     m_pGLVolume->SetFilter(ComputeGLFilter(), ComputeGLFilter());
@@ -1762,11 +1763,11 @@ void GLRenderer::CreateOffscreenBuffers() {
       }
       m_pFBOIsoHit[i]   = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, m_texFormat32,
-                                    4*4, true, 2);
+                                    4*4, m_pContext->GetShareGroupID(), true, 2);
 
       m_pFBOCVHit[i]    = mm.GetFBO(GL_NEAREST, GL_NEAREST, GL_CLAMP,
                                     m_vWinSize.x, m_vWinSize.y, m_texFormat16,
-                                    2*4, true, 2);
+                                    2*4, m_pContext->GetShareGroupID(), true, 2);
     }
   }
 }
@@ -2064,7 +2065,7 @@ bool GLRenderer::LoadAndVerifyShader(std::vector<std::string> vert,
   }
 
   GPUMemMan& mm = *(m_pMasterController->MemMan());
-  (*program) = mm.GetGLSLProgram(vert, frag);
+  (*program) = mm.GetGLSLProgram(vert, frag, m_pContext->GetShareGroupID());
 
   if((*program) == NULL || !(*program)->IsValid()) {
     /// @todo fixme report *which* shaders!
@@ -2741,7 +2742,7 @@ void GLRenderer::SetLogoParams(std::string strLogoFilename, int iLogoPos) {
     m_pLogoTex =NULL;
   }
   if (m_strLogoFilename != "")
-    m_pLogoTex = mm.Load2DTextureFromFile(m_strLogoFilename);
+    m_pLogoTex = mm.Load2DTextureFromFile(m_strLogoFilename, m_pContext->GetShareGroupID());
   ScheduleCompleteRedraw();
 }
 
@@ -2921,7 +2922,8 @@ bool GLRenderer::IsVolumeResident(const BrickKey& key) const {
   // normally we use "real" 3D textures so implement this method
   // for 3D textures, it is overridden by 2D texture children
   return m_pMasterController->MemMan()->IsResident(m_pDataset, key,
-    m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, false
+    m_bUseOnlyPowerOfTwo, m_bDownSampleTo8Bits, m_bDisableBorder, false,
+    m_pContext->GetShareGroupID()
   );
 }
 

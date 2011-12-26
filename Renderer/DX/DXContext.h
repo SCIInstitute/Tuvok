@@ -49,13 +49,16 @@ namespace tuvok {
 /// contexts will be considered equivalent.
 class DXContext : public Context {
   public:
-    DXContext() { ctx = NULL; }
+    DXContext(int iShareGroupID) : Context(iShareGroupID) { ctx = NULL; }
 
     /// Create an ID from the given context.
-    DXContext(ID3D10Device *c) {
+    DXContext(ID3D10Device *c) : Context() {
       ctx = c;
     }
-    DXContext(const DXContext &dx) { ctx = dx.ctx; }
+    DXContext(const DXContext &dx) {
+       m_iShareGroupID = dx.m_iShareGrouID;
+       ctx = dx.ctx;
+    }
 
     static DXContext Current(ID3D10Device *c) { return DXContext(c); }
 
@@ -68,6 +71,7 @@ class DXContext : public Context {
 
     DXContext& operator=(const DXContext &ct) {
       this->ctx = ct.ctx;
+      this->m_iShareGroupID = ct.m_iShareGroupID;
       return *this;
     }
 };

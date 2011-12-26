@@ -46,6 +46,7 @@
 #endif
 #include "../Context.h"
 #include "GLStateManager.h"
+#include <cassert>
 
 namespace tuvok {
 
@@ -57,10 +58,9 @@ public:
   #define GetContext wglGetCurrentContext
 #else
   #define GetContext glXGetCurrentContext
-#endif  
+#endif
 
-
-    GLContext() {
+    GLContext(int iShareGroupID) : Context(iShareGroupID) {
       ctx = GetContext();
       if (ctx) 
         m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
@@ -69,19 +69,21 @@ public:
     }
 
     /// Create an ID from the given context.
-    GLContext(const GLContext& ct): Context() {
+    GLContext(const GLContext& ct) {
+      m_iShareGroupID = ct.m_iShareGroupID;
       ctx = ct.ctx;
       m_pState = ct.m_pState;
     }
     
-    static std::tr1::shared_ptr<Context> Current() {
+    static std::tr1::shared_ptr<Context> Current(int iShareGroupID) {
        if(contextMap.find(GetContext()) == contextMap.end()) {
          std::pair<const void*, std::tr1::shared_ptr<Context> > tmp(
             GetContext(),
-            std::tr1::shared_ptr<Context>(new GLContext())
+            std::tr1::shared_ptr<Context>(new GLContext(iShareGroupID))
          );
          return contextMap.insert(tmp).first->second; // return what we're inserting
        }
+       assert(iShareGroupID == contextMap[QGLContext::currentContext()]->GetShareGroupID());
        return contextMap[GetContext()];
     }
 
@@ -93,6 +95,7 @@ public:
     }
 
     GLContext& operator=(const GLContext &ct) {
+      this->m_iShareGroupID = ct.m_iShareGroupID;
       this->ctx = ct.ctx;
       return *this;
     }

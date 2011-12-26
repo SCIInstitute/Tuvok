@@ -64,7 +64,8 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
                                    uint64_t iIntraFrameCounter,
                                    uint64_t iFrameCounter,
                                    MasterController* pMasterController,
-                                   std::vector<unsigned char>& vUploadHub) :
+                                   std::vector<unsigned char>& vUploadHub,
+                                   int iShareGroupID) :
   pDataset(_pDataset),
   iUserCount(1),
   m_iIntraFrameCounter(iIntraFrameCounter),
@@ -75,7 +76,8 @@ GLVolumeListElem::GLVolumeListElem(Dataset* _pDataset, const BrickKey& key,
   m_bIsDownsampledTo8Bits(bIsDownsampledTo8Bits),
   m_bDisableBorder(bDisableBorder),
   m_bEmulate3DWith2DStacks(bEmulate3DWith2DStacks),
-  m_bUsingHub(false)
+  m_bUsingHub(false),
+  m_iShareGroupID(iShareGroupID)
 {
   // initialize the volumes to be null pointers.
   volume = NULL;
@@ -92,14 +94,16 @@ GLVolumeListElem::~GLVolumeListElem() {
 bool GLVolumeListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
                               bool bIsPaddedToPowerOfTwo,
                               bool bIsDownsampledTo8Bits, bool bDisableBorder,
-                              bool bEmulate3DWith2DStacks)
+                              bool bEmulate3DWith2DStacks,
+                              int iShareGroupID)
 {
   if (_pDataset != pDataset ||
       m_Key != key ||
       m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo ||
       m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits ||
       m_bDisableBorder != bDisableBorder ||
-      m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks) {
+      m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks ||
+      m_iShareGroupID == iShareGroupID) {
     return false;
   }
 
@@ -120,13 +124,15 @@ bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
                                  bool bDisableBorder,
                                  bool bEmulate3DWith2DStacks,
                                  uint64_t& iIntraFrameCounter,
-                                 uint64_t& iFrameCounter)
+                                 uint64_t& iFrameCounter,
+                                 int iShareGroupID)
 {
   if (!Match(vDimension) || iUserCount > 0
       || m_bIsPaddedToPowerOfTwo != bIsPaddedToPowerOfTwo
       || m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits
       || m_bDisableBorder != bDisableBorder
-      || m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks) {
+      || m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks
+      || m_iShareGroupID == iShareGroupID) {
     return false;
   }
 
@@ -231,7 +237,8 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
                                bool bEmulate3DWith2DStacks,
                                uint64_t iIntraFrameCounter,
                                uint64_t iFrameCounter,
-                               std::vector<unsigned char>& vUploadHub) {
+                               std::vector<unsigned char>& vUploadHub,
+                               int iShareGroupID) {
   
   if(!volume) { return false; }
 
@@ -241,6 +248,7 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
   m_bIsDownsampledTo8Bits  = bIsDownsampledTo8Bits;
   m_bDisableBorder         = bDisableBorder;
   m_bEmulate3DWith2DStacks = bEmulate3DWith2DStacks;
+  assert(m_iShareGroupID == iShareGroupID);
 
   m_iIntraFrameCounter = iIntraFrameCounter;
   m_iFrameCounter = iFrameCounter;

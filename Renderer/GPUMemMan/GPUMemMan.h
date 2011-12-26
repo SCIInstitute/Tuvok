@@ -68,7 +68,7 @@ class GPUMemMan {
     Dataset* LoadDataset(const std::string& strFilename,
                          AbstrRenderer* requester);
     void AddDataset(Dataset* ds, AbstrRenderer *requester);
-    void FreeAssociatedTextures(Dataset* pDataset);
+    void FreeAssociatedTextures(Dataset* pDataset, int iShareGroupID);
     void FreeDataset(Dataset* pVolumeDataset, AbstrRenderer* requester);
 
     void Changed1DTrans(const AbstrRenderer* requester,
@@ -79,7 +79,8 @@ class GPUMemMan {
     void Get1DTransFromFile(const std::string& strFilename,
                             AbstrRenderer* requester,
                             TransferFunction1D** ppTransferFunction1D,
-                            GLTexture1D** tex, size_t iSize=0);
+                            GLTexture1D** tex,
+                            size_t iSize=0);
     std::pair<TransferFunction1D*, GLTexture1D*>
     SetExternal1DTrans(const std::vector<unsigned char>& rgba,
                        AbstrRenderer* requester);
@@ -104,28 +105,31 @@ class GPUMemMan {
     void Free2DTrans(TransferFunction2D* pTransferFunction2D,
                      const AbstrRenderer* requester);
 
-    GLTexture2D* Load2DTextureFromFile(const std::string& strFilename);
+    GLTexture2D* Load2DTextureFromFile(const std::string& strFilename, int iShareGroupID);
     void FreeTexture(GLTexture2D* pTexture);
 
     GLVolume* GetVolume(Dataset* pDataset, const BrickKey& key,
                         bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                         bool bDisableBorder, bool bEmulate3DWith2DStacks,
-                        uint64_t iIntraFrameCounter, uint64_t iFrameCounter);
+                        uint64_t iIntraFrameCounter, uint64_t iFrameCounter,
+                        int iShareGroupID);
     bool IsResident(const Dataset* pDataset,
                     const BrickKey& key, bool bUseOnlyPowerOfTwo,
                     bool bDownSampleTo8Bits, bool bDisableBorder,
-                    bool bEmulate3DWith2DStacks) const;
+                    bool bEmulate3DWith2DStacks,
+                    int iShareGroupID) const;
 
     void Release3DTexture(GLVolume* pGLVolume);
 
     GLFBOTex* GetFBO(GLenum minfilter, GLenum magfilter, GLenum wrapmode,
                      GLsizei width, GLsizei height, GLenum intformat,
-                     uint32_t iSizePerElement, bool bHaveDepth=false,
-                     int iNumBuffers=1);
+                     uint32_t iSizePerElement, int iShareGroupID, 
+                     bool bHaveDepth=false, int iNumBuffers=1);
     void FreeFBO(GLFBOTex* pFBO);
 
     GLSLProgram* GetGLSLProgram(const std::vector<std::string>& vert,
-                                const std::vector<std::string>& frag);
+                                const std::vector<std::string>& frag,
+                                int iShareGroupID);
     void FreeGLSLProgram(GLSLProgram* pGLSLProgram);
 
     void MemSizesChanged();
@@ -171,9 +175,10 @@ class GPUMemMan {
                                bool bDisableBorder,
                                bool bEmulate3DWith2DStacks,
                                uint64_t iIntraFrameCounter,
-                               uint64_t iFrameCounter);
-    size_t DeleteUnusedBricks();
-    void DeleteArbitraryBrick();
+                               uint64_t iFrameCounter,
+                               int iShareGroupID);
+    size_t DeleteUnusedBricks(int iShareGroupID);
+    void DeleteArbitraryBrick(int iShareGroupID);
     void Delete3DTexture(size_t iIndex);
     void Delete3DTexture(const GLVolumeListIter &tex);
 };

@@ -42,6 +42,7 @@
 
 #include "../Context.h"
 #include "GLStateManager.h"
+#include <cassert>
 
 namespace tuvok {
 
@@ -49,7 +50,7 @@ namespace tuvok {
 class QtGLContext : public Context {
   public:
     /// Create an ID with the current context.
-    QtGLContext() {
+    QtGLContext(int iShareGroupID) : Context(iShareGroupID) {
       ctx = QGLContext::currentContext();
       if (ctx) 
         m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
@@ -58,26 +59,33 @@ class QtGLContext : public Context {
     }
     /// Create an ID from the given context.
     /// NOTE: Do not create multiple QtGLContext's from the same QGLContext!
-    QtGLContext(const QGLContext *ct) {
+    QtGLContext(const QGLContext *ct, int iShareGroupID) :
+      Context(iShareGroupID)
+    {
+      m_iShareGroupID = iShareGroupID;
       ctx = ct;
       if (ctx) 
         m_pState = std::tr1::shared_ptr<StateManager>(new GLStateManager());
       else
         m_pState = std::tr1::shared_ptr<StateManager>();
     }
-    QtGLContext(const QtGLContext& ct) : Context(ct) {
+    QtGLContext(const QtGLContext& ct, int iShareGroupID) :
+      Context(iShareGroupID)
+    {
+      m_iShareGroupID = ct.m_iShareGroupID;
       ctx = ct.ctx;
       m_pState = ct.m_pState;
     }
 
-    static std::tr1::shared_ptr<Context> Current() {
+    static std::tr1::shared_ptr<Context> Current(int iShareGroupID) {
        if(contextMap.find(QGLContext::currentContext()) == contextMap.end()) {
          std::pair<const void*, std::tr1::shared_ptr<Context> > tmp(
            QGLContext::currentContext(),
-           std::tr1::shared_ptr<Context>(new QtGLContext())
+           std::tr1::shared_ptr<Context>(new QtGLContext(iShareGroupID))
          );
          return contextMap.insert(tmp).first->second; // return what we're inserting
        }
+       assert(iShareGroupID == contextMap[QGLContext::currentContext()]->GetShareGroupID());
        return contextMap[QGLContext::currentContext()];
     }
 
@@ -89,6 +97,7 @@ class QtGLContext : public Context {
     }
 
     QtGLContext& operator=(const QtGLContext &ct) {
+      this->m_iShareGroupID = ct.m_iShareGroupID;
       this->ctx = ct.ctx;
       return *this;
     }

@@ -510,6 +510,7 @@ class AbstrRenderer: public Scriptable {
     virtual void SetInterpolant(Interpolant eInterpolant);
     Interpolant GetInterpolant() const {return m_eInterpolant;}
 
+    std::tr1::shared_ptr<Context> GetContext() const {return m_pContext;}
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
     /// memory.  It's expected you'll set another one directly afterwards.
@@ -526,6 +527,7 @@ class AbstrRenderer: public Scriptable {
 
     /// @returns if the data we're rendering is RGBA or not.
     virtual bool RGBAData() const;
+
 
   protected:
     MasterController*   m_pMasterController;

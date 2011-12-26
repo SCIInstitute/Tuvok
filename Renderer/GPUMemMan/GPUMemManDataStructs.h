@@ -57,13 +57,15 @@
 #include "../../StdTuvokDefines.h"
 #include "../GL/GLFBOTex.h"
 #include "../GL/GLSLProgram.h"
+#include "Renderer/AbstrRenderer.h"
+
 
 class TransferFunction1D;
 class TransferFunction2D;
 class VolumeDataset;
+
 namespace tuvok {
   class Dataset;
-  class AbstrRenderer;
   class GLTexture1D;
   class GLTexture2D;
   class GLTexture3D;
@@ -76,13 +78,15 @@ namespace tuvok {
   class VolDataListElem {
   public:
     VolDataListElem(Dataset* _pVolumeDataset, AbstrRenderer* pUser) :
-      pVolumeDataset(_pVolumeDataset)
+      pVolumeDataset(_pVolumeDataset),
+      m_iShareGroupID(pUser->GetContext()->GetShareGroupID())
     {
       qpUser.push_back(pUser);
     }
 
-    Dataset* pVolumeDataset;
+    Dataset*          pVolumeDataset;
     AbstrRendererList qpUser;
+    int               m_iShareGroupID;
   };
   typedef std::deque<VolDataListElem> VolDataList;
   typedef VolDataList::iterator VolDataListIter;
@@ -90,15 +94,17 @@ namespace tuvok {
   // simple textures
   class SimpleTextureListElem {
   public:
-    SimpleTextureListElem(uint32_t _iAccessCounter, GLTexture2D* _pTexture, std::string _strFilename) :
+    SimpleTextureListElem(uint32_t _iAccessCounter, GLTexture2D* _pTexture, std::string _strFilename, int iShareGroupID) :
       iAccessCounter(_iAccessCounter),
       pTexture(_pTexture),
-      strFilename(_strFilename)
+      strFilename(_strFilename),
+      m_iShareGroupID(iShareGroupID)
     {}
 
-    uint32_t        iAccessCounter;
+    uint32_t      iAccessCounter;
     GLTexture2D*  pTexture;
     std::string   strFilename;
+    int           m_iShareGroupID;
   };
   typedef std::deque<SimpleTextureListElem> SimpleTextureList;
   typedef SimpleTextureList::iterator SimpleTextureListIter;
@@ -108,7 +114,8 @@ namespace tuvok {
   public:
     Trans1DListElem(TransferFunction1D* _pTransferFunction1D, GLTexture1D* _pTexture, AbstrRenderer* pUser) :
       pTransferFunction1D(_pTransferFunction1D),
-      pTexture(_pTexture)
+        pTexture(_pTexture),
+        m_iShareGroupID(pUser->GetContext()->GetShareGroupID())
     {
       qpUser.push_back(pUser);
     }
@@ -116,6 +123,7 @@ namespace tuvok {
     TransferFunction1D*  pTransferFunction1D;
     GLTexture1D*    pTexture;
     AbstrRendererList  qpUser;
+    int m_iShareGroupID;
   };
   typedef std::deque<Trans1DListElem> Trans1DList;
   typedef Trans1DList::iterator Trans1DListIter;
@@ -125,7 +133,8 @@ namespace tuvok {
   public:
     Trans2DListElem(TransferFunction2D* _pTransferFunction2D, GLTexture2D* _pTexture, AbstrRenderer* pUser) :
       pTransferFunction2D(_pTransferFunction2D),
-      pTexture(_pTexture)
+      pTexture(_pTexture),
+      m_iShareGroupID(pUser->GetContext()->GetShareGroupID())
     {
       qpUser.push_back(pUser);
     }
@@ -133,6 +142,7 @@ namespace tuvok {
     TransferFunction2D*  pTransferFunction2D;
     GLTexture2D*    pTexture;
     AbstrRendererList  qpUser;
+    int m_iShareGroupID;
   };
   typedef std::deque<Trans2DListElem> Trans2DList;
   typedef Trans2DList::iterator Trans2DListIter;
@@ -149,22 +159,22 @@ namespace tuvok {
                       bool bIsDownsampledTo8Bits, bool bEmulate3DWith2DStacks,
                       uint64_t iIntraFrameCounter,
                       uint64_t iFrameCounter, MasterController* pMasterController,
-                      std::vector<unsigned char>& vUploadHub);
+                      std::vector<unsigned char>& vUploadHub, int iShareGroupID);
     ~GLVolumeListElem();
 
     bool Equals(const Dataset* _pDataset, const BrickKey&,
                 bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
-                bool bDisableBorder, bool bEmulate3DWith2DStacks);
+                bool bDisableBorder, bool bEmulate3DWith2DStacks, int iShareGroupID);
     bool Replace(Dataset* _pDataset, const BrickKey&,
                  bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                  bool bDisableBorder, bool bEmulate3DWith2DStacks,
                  uint64_t iIntraFrameCounter, uint64_t iFrameCounter,
-                 std::vector<unsigned char>& vUploadHub);
+                 std::vector<unsigned char>& vUploadHub, int iShareGroupID);
     bool BestMatch(const UINTVECTOR3& vDimension,
                    bool bIsPaddedToPowerOfTwo, bool bIsDownsampledTo8Bits,
                    bool bDisableBorder, bool bEmulate3DWith2DStacks,
                    uint64_t& iIntraFrameCounter,
-                   uint64_t& iFrameCounter);
+                   uint64_t& iFrameCounter, int iShareGroupID);
     void GetCounters(uint64_t& iIntraFrameCounter, uint64_t& iFrameCounter) {
       iIntraFrameCounter = m_iIntraFrameCounter;
       iFrameCounter = m_iFrameCounter;
@@ -191,13 +201,16 @@ namespace tuvok {
     void FreeTexture();
 
     std::vector<unsigned char>    vData;
-    GLVolume* volume;
+    GLVolume*                     volume;
     Dataset*                      pDataset;
-    uint32_t                        iUserCount;
+    uint32_t                      iUserCount;
+
 
     uint64_t GetIntraFrameCounter() const {return m_iIntraFrameCounter;}
     uint64_t GetFrameCounter() const {return m_iFrameCounter;}
 
+    int GetShareGroupID() const {return m_iShareGroupID;}
+  
   private:
     bool Match(const UINTVECTOR3& vDimension);
 
@@ -211,6 +224,7 @@ namespace tuvok {
     bool m_bDisableBorder;
     bool m_bEmulate3DWith2DStacks;
     bool m_bUsingHub;
+    int m_iShareGroupID;
   };
 
   typedef std::deque<GLVolumeListElem*> GLVolumeList;
@@ -220,10 +234,19 @@ namespace tuvok {
   // framebuffer objects
   class FBOListElem {
   public:
-    FBOListElem(GLFBOTex* _pFBOTex) : pFBOTex(_pFBOTex)
+    FBOListElem(GLFBOTex* _pFBOTex, int iShareGroupID) : 
+        pFBOTex(_pFBOTex),
+        m_iShareGroupID(iShareGroupID)
     {}
-    FBOListElem(MasterController* pMasterController, GLenum minfilter, GLenum magfilter, GLenum wrapmode, GLsizei width, GLsizei height, GLenum intformat, uint32_t iSizePerElement, bool bHaveDepth, int iNumBuffers) :
-      pFBOTex(new GLFBOTex(pMasterController, minfilter, magfilter, wrapmode, width, height, intformat, iSizePerElement, bHaveDepth, iNumBuffers))
+    FBOListElem(MasterController* pMasterController, GLenum minfilter,
+                GLenum magfilter, GLenum wrapmode,
+                GLsizei width, GLsizei height, GLenum intformat,
+                uint32_t iSizePerElement, bool bHaveDepth, 
+                int iNumBuffers, int iShareGroupID) :
+      pFBOTex(new GLFBOTex(pMasterController, minfilter, magfilter,
+                           wrapmode, width, height, intformat, 
+                           iSizePerElement, bHaveDepth, iNumBuffers)),
+      m_iShareGroupID(iShareGroupID)
     {}
 
     ~FBOListElem()
@@ -232,20 +255,23 @@ namespace tuvok {
     }
 
     GLFBOTex* pFBOTex;
+    int m_iShareGroupID;
   };
   typedef std::deque<FBOListElem*> FBOList;
   typedef FBOList::iterator FBOListIter;
 
 
-  // framebuffer objects
+  // shader objects
   class GLSLListElem {
   public:
     GLSLListElem(MasterController* mc,
                  const std::vector<std::string>& vert,
-                 const std::vector<std::string>& frag) :
+                 const std::vector<std::string>& frag,
+                 int iShareGroupID) :
       vertex(vert), fragment(frag),
       iAccessCounter(1),
-      pGLSLProgram(new GLSLProgram(mc))
+      pGLSLProgram(new GLSLProgram(mc)),
+      m_iShareGroupID(iShareGroupID)
     {
       pGLSLProgram->Load(vert, frag);
       if(!pGLSLProgram->IsValid()) {
@@ -263,6 +289,7 @@ namespace tuvok {
     const std::vector<std::string> fragment;
     uint32_t        iAccessCounter;
     GLSLProgram*  pGLSLProgram;
+    int m_iShareGroupID;
   };
   typedef std::deque<GLSLListElem*> GLSLList;
   typedef GLSLList::iterator GLSLListIter;

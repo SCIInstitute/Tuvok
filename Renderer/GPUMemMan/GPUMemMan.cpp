@@ -282,7 +282,7 @@ void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
   if(vol_ds->qpUser.empty()) {
     dbg.Message(_func_, "Cleaning up all 3D textures associated w/ dataset %s",
                 ds_name.c_str());
-    FreeAssociatedTextures(pVolumeDataset);
+    FreeAssociatedTextures(pVolumeDataset, requester->GetContext()->GetShareGroupID());
     dbg.Message(_func_, "Released Dataset %s", ds_name.c_str());
     delete pVolumeDataset;
     m_vpVolumeDatasets.erase(vol_ds);
@@ -294,10 +294,10 @@ void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
 
 // ******************** Simple Textures
 
-GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
+GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename, int iShareGroupID) {
   for (SimpleTextureListIter i = m_vpSimpleTextures.begin();
        i < m_vpSimpleTextures.end(); ++i) {
-    if (i->strFilename == strFilename) {
+    if (i->strFilename == strFilename && i->m_iShareGroupID == iShareGroupID) {
       MESSAGE("Reusing %s", strFilename.c_str());
       i->iAccessCounter++;
       return i->pTexture;
@@ -321,7 +321,7 @@ GLTexture2D* GPUMemMan::Load2DTextureFromFile(const string& strFilename) {
   m_iAllocatedGPUMemory += tex->GetGPUSize();
   m_iAllocatedCPUMemory += tex->GetCPUSize();
 
-  m_vpSimpleTextures.push_back(SimpleTextureListElem(1,tex,strFilename));
+  m_vpSimpleTextures.push_back(SimpleTextureListElem(1,tex,strFilename,iShareGroupID));
   return tex;
 #else
   T_ERROR("No Qt support!");
@@ -609,12 +609,13 @@ bool GPUMemMan::IsResident(const Dataset* pDataset,
                            const BrickKey& key,
                            bool bUseOnlyPowerOfTwo, bool bDownSampleTo8Bits,
                            bool bDisableBorder,
-                           bool bEmulate3DWith2DStacks) const {
+                           bool bEmulate3DWith2DStacks,
+                           int iShareGroupID) const {
   for(GLVolumeListConstIter i = m_vpTex3DList.begin();
       i < m_vpTex3DList.end(); ++i) {
     if((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                     bDownSampleTo8Bits, bDisableBorder,
-                    bEmulate3DWith2DStacks)) {
+                    bEmulate3DWith2DStacks, iShareGroupID)) {
       return true;
     }
   }
@@ -639,7 +640,8 @@ required_cpu_memory(const Dataset& ds, const BrickKey& key)
 static GLVolumeListIter
 find_closest_texture(GLVolumeList &lst, const UINTVECTOR3& vSize,
                      bool use_pot, bool downsample, bool disable_border,
-                     bool bEmulate3DWith2DStacks)
+                     bool bEmulate3DWith2DStacks,
+                     int iShareGroupID)
 {
   uint64_t iTargetFrameCounter = UINT64_INVALID;
   uint64_t iTargetIntraFrameCounter = UINT64_INVALID;
@@ -648,7 +650,8 @@ find_closest_texture(GLVolumeList &lst, const UINTVECTOR3& vSize,
   for (GLVolumeListIter i=lst.begin(); i < lst.end(); ++i) {
     if ((*i)->BestMatch(vSize, use_pot, downsample, disable_border,
                         bEmulate3DWith2DStacks,
-                        iTargetIntraFrameCounter, iTargetFrameCounter)) {
+                        iTargetIntraFrameCounter, iTargetFrameCounter,
+                        iShareGroupID)) {
       iBestMatch = i;
     }
   }
@@ -666,16 +669,16 @@ find_closest_texture(GLVolumeList &lst, const UINTVECTOR3& vSize,
 // texes would be expensive.
 template <typename ForwIter> static ForwIter
 find_brick_with_usercount(ForwIter first, const ForwIter last,
-                          uint32_t user_count)
+                          int iShareGroupID, uint32_t user_count)
 {
-  while(first != last && (*first)->iUserCount != user_count) {
+  while(first != last && !((*first)->iUserCount == user_count && iShareGroupID == (*first)->GetShareGroupID())) {
     ++first;
   }
   return first;
 }
 
 // Gets rid of *all* unused bricks.  Returns the number of bricks it deleted.
-size_t GPUMemMan::DeleteUnusedBricks() {
+size_t GPUMemMan::DeleteUnusedBricks(int iShareGroupID) {
   size_t removed = 0;
   // This is a bit harsh.  erase() in the middle of a deque invalidates *all*
   // iterators.  So we repeatedly search for unused bricks, until our search
@@ -689,7 +692,7 @@ size_t GPUMemMan::DeleteUnusedBricks() {
     found = false;
     const GLVolumeListIter& iter = find_brick_with_usercount(
                                       m_vpTex3DList.begin(),
-                                      m_vpTex3DList.end(), 0
+                                      m_vpTex3DList.end(), 0, iShareGroupID
                                     );
     if(iter != m_vpTex3DList.end()) {
       ++removed;
@@ -703,7 +706,7 @@ size_t GPUMemMan::DeleteUnusedBricks() {
 }
 
 // We don't have enough CPU memory to load something.  Get rid of a brick.
-void GPUMemMan::DeleteArbitraryBrick() {
+void GPUMemMan::DeleteArbitraryBrick(int iShareGroupID) {
   assert(!m_vpTex3DList.empty());
 
   // Identify the least used brick.  The 128 is an arbitrary choice.  We want
@@ -713,7 +716,7 @@ void GPUMemMan::DeleteArbitraryBrick() {
   for(uint32_t in_use_by=0; in_use_by < 128; ++in_use_by) {
     const GLVolumeListIter& iter = find_brick_with_usercount(
                                       m_vpTex3DList.begin(),
-                                      m_vpTex3DList.end(), in_use_by
+                                      m_vpTex3DList.end(), iShareGroupID, in_use_by
                                     );
     if(iter != m_vpTex3DList.end()) {
       MESSAGE("  Deleting texture %d",
@@ -732,7 +735,8 @@ GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
                                bool bDisableBorder,
                                bool bEmulate3DWith2DStacks,
                                uint64_t iIntraFrameCounter,
-                               uint64_t iFrameCounter) {
+                               uint64_t iFrameCounter,
+                               int iShareGroupID) {
   // It can occur that we can create the brick in CPU memory but OpenGL must
   // perform a texture copy to obtain the texture.  If that happens, we'll
   // delete any brick and then try again.
@@ -741,7 +745,8 @@ GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
       return this->AllocOrGetVolume(pDataset, key,
                                     bUseOnlyPowerOfTwo, bDownSampleTo8Bits,
                                     bDisableBorder, bEmulate3DWith2DStacks,
-                                    iIntraFrameCounter, iFrameCounter);
+                                    iIntraFrameCounter, iFrameCounter,
+                                    iShareGroupID);
     } catch(OutOfMemory&) { // Texture allocation failed.
       // If texture allocation failed and we had no bricks loaded, then the
       // system must be extremely memory limited.  Make a note and then bail.
@@ -751,13 +756,13 @@ GLVolume* GPUMemMan::GetVolume(Dataset* pDataset, const BrickKey& key,
       }
       // Delete all bricks that aren't used.  If that ends up being nothing,
       // then we're pretty screwed.  Stupidly choose a brick in that case.
-      if(0 == DeleteUnusedBricks()) {
+      if(0 == DeleteUnusedBricks(iShareGroupID)) {
         WARNING("No bricks unused.  Falling back to "
                 "deleting bricks that ARE in use!");
         // Delete up to 4 bricks.  We want to delete multiple bricks here
         // because we'll temporarily need copies of the bricks in memory.
         for(size_t i=0; i < 4 && !m_vpTex3DList.empty(); ++i) {
-          DeleteArbitraryBrick();
+          DeleteArbitraryBrick(iShareGroupID);
         }
       }
     }
@@ -773,13 +778,14 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                       bool bDisableBorder,
                                       bool bEmulate3DWith2DStacks,
                                       uint64_t iIntraFrameCounter,
-                                      uint64_t iFrameCounter) {
+                                      uint64_t iFrameCounter,
+                                      int iShareGroupID) {
 
   for (GLVolumeListIter i = m_vpTex3DList.begin();
        i < m_vpTex3DList.end(); i++) {
     if ((*i)->Equals(pDataset, key, bUseOnlyPowerOfTwo,
                      bDownSampleTo8Bits, bDisableBorder,
-                     bEmulate3DWith2DStacks)) {
+                     bEmulate3DWith2DStacks, iShareGroupID)) {
       GL_CHECK();
       MESSAGE("Reusing 3D texture");
       return (*i)->Access(iIntraFrameCounter, iFrameCounter);
@@ -807,14 +813,16 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                                        bUseOnlyPowerOfTwo,
                                                        bDownSampleTo8Bits,
                                                        bDisableBorder,
-                                                       bEmulate3DWith2DStacks);
+                                                       bEmulate3DWith2DStacks,
+                                                       iShareGroupID);
     if (iBestMatch != m_vpTex3DList.end()) {
       // found a suitable brick that can be replaced
       (*iBestMatch)->Replace(pDataset, key, bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits, bDisableBorder,
                              bEmulate3DWith2DStacks,
                              iIntraFrameCounter, iFrameCounter,
-                             m_vUploadHub);
+                             m_vUploadHub,
+                             iShareGroupID);
       (*iBestMatch)->iUserCount++;
       return (*iBestMatch)->volume;
     } else {
@@ -835,7 +843,7 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
           return NULL;
         }
 
-        DeleteArbitraryBrick();
+        DeleteArbitraryBrick(iShareGroupID);
       }
     }
   }
@@ -856,7 +864,8 @@ GLVolume* GPUMemMan::AllocOrGetVolume(Dataset* pDataset,
                                                      iIntraFrameCounter,
                                                      iFrameCounter,
                                                      m_MasterController,
-                                                     m_vUploadHub);
+                                                     m_vUploadHub,
+                                                     iShareGroupID);
 
   if (pNew3DTex->volume == NULL) {
     T_ERROR("Failed to create OpenGL resource for volume.");
@@ -903,19 +912,19 @@ void GPUMemMan::Delete3DTexture(size_t iIndex) {
 
 // Functor to identify a texture that belongs to a particular dataset.
 struct DatasetTexture: std::binary_function<Dataset, GLVolumeListElem, bool> {
-  bool operator()(const GLVolumeListElem* tex, const Dataset* ds) const {
-    return tex->pDataset == ds;
+  bool operator()(const GLVolumeListElem* tex, std::pair<const Dataset*, int> dsinfo) const {
+    return tex->pDataset == dsinfo.first && tex->GetShareGroupID() == dsinfo.second;
   }
 };
 
-void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset) {
+void GPUMemMan::FreeAssociatedTextures(Dataset* pDataset, int iShareGroupID) {
   // Don't use singleton; see destructor comments.
   AbstrDebugOut &dbg = *(m_MasterController->DebugOut());
 
   while(1) { // exit condition is checked for and `break'd in the loop.
     const GLVolumeListIter& iter =
       std::find_if(m_vpTex3DList.begin(), m_vpTex3DList.end(),
-                   std::tr1::bind(DatasetTexture(), _1, pDataset));
+                   std::tr1::bind(DatasetTexture(), _1, make_pair(pDataset,iShareGroupID)) );
     if(iter == m_vpTex3DList.end()) {
       break;
     }
@@ -938,7 +947,7 @@ void GPUMemMan::MemSizesChanged() {
 
 GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
                             GLenum wrapmode, GLsizei width, GLsizei height,
-                            GLenum intformat, uint32_t iSizePerElement,
+                            GLenum intformat, uint32_t iSizePerElement, int iShareGroupID,
                             bool bHaveDepth, int iNumBuffers) {
   MESSAGE("Creating new FBO of size %i x %i", int(width), int(height));
 
@@ -987,7 +996,7 @@ GLFBOTex* GPUMemMan::GetFBO(GLenum minfilter, GLenum magfilter,
 
   FBOListElem* e = new FBOListElem(m_MasterController, minfilter, magfilter,
                                    wrapmode, width, height, intformat,
-                                   iSizePerElement, bHaveDepth, iNumBuffers);
+                                   iSizePerElement, bHaveDepth, iNumBuffers, iShareGroupID);
 
   if(!e->pFBOTex->Valid()) {
     T_ERROR("FBO creation failed!");
@@ -1026,10 +1035,12 @@ void GPUMemMan::FreeFBO(GLFBOTex* pFBO) {
 }
 
 GLSLProgram* GPUMemMan::GetGLSLProgram(const std::vector<std::string>& vert,
-                                       const std::vector<std::string>& frag)
+                                       const std::vector<std::string>& frag,
+                                       int iShareGroupID)
 {
   for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
-    if(vert.size() == (*i)->vertex.size() &&
+    if((*i)->m_iShareGroupID == iShareGroupID &&
+       vert.size() == (*i)->vertex.size() &&
        frag.size() == (*i)->fragment.size() &&
        std::equal(vert.begin(), vert.end(), (*i)->vertex.begin()) &&
        std::equal(frag.begin(), frag.end(), (*i)->fragment.begin()))
@@ -1044,7 +1055,7 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const std::vector<std::string>& vert,
           static_cast<unsigned>(vert.size()),
           static_cast<unsigned>(frag.size()));
 
-  GLSLListElem* e = new GLSLListElem(m_MasterController, vert, frag);
+  GLSLListElem* e = new GLSLListElem(m_MasterController, vert, frag, iShareGroupID);
 
   if(e->pGLSLProgram == NULL) {
     T_ERROR("Failed to create program!");
