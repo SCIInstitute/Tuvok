@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
         ren->LoadDataset(uvf_file);
         ren->AddShaderPath("../../Shaders");
         ren->Resize(UINTVECTOR2(100,100));
-        ren->Initialize(GLContextID::Current());
+        ren->Initialize(GLContextID::Current(0));
         ren->Cleanup();
         Controller::Instance().ReleaseVolumeRenderer(ren);
       }
