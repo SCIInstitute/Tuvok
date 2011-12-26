@@ -99,7 +99,7 @@ int main(int argc, const char *argv[])
     );
     ren->LoadDataset(uvf_file);
     ren->AddShaderPath("../../Shaders");
-    ren->Initialize(GLContext::Current());
+    ren->Initialize(GLContext::Current(0));
     ren->Resize(UINTVECTOR2(640,480));
     ren->SetRendererTarget(AbstrRenderer::RT_HEADLESS);
     ren->Paint();
