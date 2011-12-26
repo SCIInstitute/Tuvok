@@ -69,8 +69,7 @@ public:
     }
 
     /// Create an ID from the given context.
-    GLContext(const GLContext& ct) {
-      m_iShareGroupID = ct.m_iShareGroupID;
+    GLContext(const GLContext& ct) : Context(ct.m_iShareGroupID) {
       ctx = ct.ctx;
       m_pState = ct.m_pState;
     }
