@@ -49,7 +49,6 @@ public:
 
   virtual ~Context() {}
   std::tr1::shared_ptr<StateManager> GetStateManager() {return m_pState;}
-  void SetShareGroupID(int ID);
   int GetShareGroupID() const {return m_iShareGroupID;} 
 
 protected:
