@@ -103,7 +103,7 @@ bool GLVolumeListElem::Equals(const Dataset* _pDataset, const BrickKey& key,
       m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits ||
       m_bDisableBorder != bDisableBorder ||
       m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks ||
-      m_iShareGroupID == iShareGroupID) {
+      m_iShareGroupID != iShareGroupID) {
     return false;
   }
 
@@ -132,7 +132,7 @@ bool GLVolumeListElem::BestMatch(const UINTVECTOR3& vDimension,
       || m_bIsDownsampledTo8Bits != bIsDownsampledTo8Bits
       || m_bDisableBorder != bDisableBorder
       || m_bEmulate3DWith2DStacks != bEmulate3DWith2DStacks
-      || m_iShareGroupID == iShareGroupID) {
+      || m_iShareGroupID != iShareGroupID) {
     return false;
   }
 
