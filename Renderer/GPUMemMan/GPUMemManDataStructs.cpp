@@ -249,6 +249,10 @@ bool GLVolumeListElem::Replace(Dataset* _pDataset,
   m_bDisableBorder         = bDisableBorder;
   m_bEmulate3DWith2DStacks = bEmulate3DWith2DStacks;
   assert(m_iShareGroupID == iShareGroupID);
+#ifdef NDEBUG
+  // avoid 'unused variable' warning.
+  (void)iShareGroupID;
+#endif
 
   m_iIntraFrameCounter = iIntraFrameCounter;
   m_iFrameCounter = iFrameCounter;
