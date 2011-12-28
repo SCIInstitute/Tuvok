@@ -96,7 +96,12 @@ std::tr1::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
     }
   }
   const struct aiocb* const cblist[1] = { cb };
-  aio_suspend(cblist, 1, NULL);
+  {
+    int susp=0;
+    do {
+      susp = aio_suspend(cblist, 1, NULL);
+    } while(susp == -1 && errno==EINTR);
+  }
 
   assert(aio_error(cb) == 0);
 #ifndef NDEBUG
