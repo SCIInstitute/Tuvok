@@ -88,3 +88,10 @@ void LargeFile::truncate(const char* path, boost::uint64_t length)
     }
   }
 }
+
+void LargeFile::truncate(boost::uint64_t length)
+{
+  LargeFile::truncate(this->m_filename.c_str(), length);
+  // move offset down if it's beyond EOF.
+  this->byte_offset = std::min(this->byte_offset, length);
+}

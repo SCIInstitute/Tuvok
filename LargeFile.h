@@ -120,6 +120,7 @@ class LargeFile {
 
     virtual bool is_open() const = 0;
     virtual void close() = 0;
+    virtual void truncate(boost::uint64_t length=0);
 
     static void truncate(const char* path, boost::uint64_t length);
 

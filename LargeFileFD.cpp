@@ -206,3 +206,28 @@ void LargeFileFD::open(std::ios_base::openmode mode)
     throw std::ios_base::failure("Could not open file.");
   }
 }
+
+void LargeFileFD::truncate(boost::uint64_t len) {
+  if(this->fd == -1) {
+    LargeFile::truncate(this->m_filename.c_str(), len);
+    return;
+  }
+  if(ftruncate(this->fd, len) != 0) {
+    switch(errno) {
+      case EFBIG: /* fall through */
+      case EINVAL: throw std::length_error("broken length"); break;
+      case EIO: throw std::ios::failure("io error"); break;
+      case EACCES: throw std::runtime_error("permission error"); break;
+      case EISDIR: throw std::domain_error("path given is directory"); break;
+      case ELOOP: throw std::runtime_error("too many levels of symlinks");
+        break;
+      case ENAMETOOLONG: throw std::runtime_error("path too long"); break;
+      case ENOENT: throw std::runtime_error("bad path"); break;
+      case ENOTDIR: throw std::domain_error("path is not valid"); break;
+      case EROFS: throw std::runtime_error("path is on RO filesystem"); break;
+      case EBADF: throw std::ios::failure("invalid file descriptor"); break;
+    }
+  }
+  // move the offset down if it's beyond EOF.
+  this->byte_offset = std::min(this->byte_offset, len);
+}
