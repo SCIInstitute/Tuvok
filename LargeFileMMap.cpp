@@ -136,7 +136,7 @@ void LargeFileMMap::open(std::ios_base::openmode mode)
 
   /* are we opening the file read only?  Truncate the length down to the file
    * size, then -- mapping less memory is easier on the kernel. */
-  if(mode & std::ios_base::in) {
+  if(mode & std::ios_base::in && !(mode & std::ios_base::out)) {
     this->length = std::min(this->length, this->filesize());
   }
 
