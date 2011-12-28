@@ -39,9 +39,6 @@
 
 #include <cstring>
 
-// a 'delete' functor that just does nothing.
-struct null_deleter { void operator()(const void*) const {} };
-
 LargeFileMMap::LargeFileMMap(const std::string fn,
                              std::ios_base::openmode mode,
                              boost::uint64_t header_size,
@@ -87,7 +84,7 @@ std::tr1::shared_ptr<const void> LargeFileMMap::rd(boost::uint64_t offset,
   /* Our shared_ptr here is a bit sketch.  We give them a pointer, but if
    * 'this' dies we'll kill the mmap, thereby invalidating the pointer.  So,
    * umm.. don't do that. */
-  std::tr1::shared_ptr<const void> mem(begin, null_deleter());
+  std::tr1::shared_ptr<const void> mem(begin, nonstd::null_deleter());
 
   this->bytes_read = end - begin;
   /* Note that we don't actually use the 'length' parameter.  We really can't.

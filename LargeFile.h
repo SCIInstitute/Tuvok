@@ -41,6 +41,7 @@
 #endif
 
 #include <boost/cstdint.hpp>
+#include "nonstd.h"
 
 /** Generic class for accessing large quantities of binary data. */
 class LargeFile {
@@ -91,7 +92,6 @@ class LargeFile {
     /// offsets.
     ///@{
     // a 'delete' functor that just does nothing.
-    struct null_deleter { void operator()(const void*) const {} };
     template<typename T> void read(T* v, size_t N=1) {
       std::tr1::shared_ptr<const void> m = this->rd(this->byte_offset,
                                                     sizeof(T)*N);
@@ -100,12 +100,12 @@ class LargeFile {
       this->byte_offset += sizeof(T)*N;
     }
     template<typename T> void write(const T& v) {
-      this->wr(std::tr1::shared_ptr<const void>(&v, null_deleter()),
+      this->wr(std::tr1::shared_ptr<const void>(&v, nonstd::null_deleter()),
                this->byte_offset, sizeof(T));
       this->byte_offset += sizeof(T);
     }
     template<typename T> void write(const T* v, size_t N=1) {
-      this->wr(std::tr1::shared_ptr<const void>(v, null_deleter()),
+      this->wr(std::tr1::shared_ptr<const void>(v, nonstd::null_deleter()),
                sizeof(T)*N);
       // don't increase byte_offset -- this version of wr() does it for us!
     }
