@@ -90,8 +90,8 @@ class LargeFile {
     ///@{
     // a 'delete' functor that just does nothing.
     struct null_deleter { void operator()(const void*) const {} };
-    template<typename T> void read(T& v) {
-      v = *static_cast<const T*>(this->read(this->byte_offset,sizeof(T)).get());
+    template<typename T> void read(T* v) {
+      *v =*static_cast<const T*>(this->read(this->byte_offset,sizeof(T)).get());
       this->byte_offset += sizeof(T);
     }
     template<typename T> void write(const T& v) {
