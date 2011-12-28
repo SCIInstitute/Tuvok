@@ -150,7 +150,9 @@ void LargeFileAIO::write(const std::tr1::shared_ptr<const void>& data,
     // allocate a new buffer and hold on to that.
     int8_t* buf = new int8_t[len];
     ::memcpy(buf, data.get(), len);
-    saved_data = std::tr1::shared_ptr<const void>(buf);
+    const void* bufv = static_cast<const void*>(buf);
+    saved_data = std::tr1::shared_ptr<const void>(bufv,
+                                                  DeleteArray<const void>());
   } else {
     saved_data = std::tr1::shared_ptr<const void>(data);
   }
@@ -234,7 +236,7 @@ struct aiocb* LargeFileAIO::submit_new_request(boost::uint64_t offset,
 
   cb->aio_fildes = this->fd;
   cb->aio_offset = offset;
-  std::tr1::shared_ptr<void> data(new int8_t[len]);
+  std::tr1::shared_ptr<void> data(new int8_t[len], DeleteArray<int8_t>());
   cb->aio_buf = data.get();
   cb->aio_nbytes = len;
   {
