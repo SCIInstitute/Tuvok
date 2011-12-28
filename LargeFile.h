@@ -95,6 +95,8 @@ class LargeFile {
     virtual bool is_open() const = 0;
     virtual void close() = 0;
 
+    static void truncate(const char* path, boost::uint64_t length);
+
   protected:
     std::string     m_filename;
     boost::uint64_t header_size;

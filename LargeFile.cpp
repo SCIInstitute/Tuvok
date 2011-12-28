@@ -25,6 +25,8 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
+#include <errno.h>
+#include <stdexcept>
 
 #include "LargeFile.h"
 
@@ -61,3 +63,26 @@ void LargeFile::seek(boost::uint64_t to)
 }
 
 boost::uint64_t LargeFile::offset() const { return this->byte_offset; }
+
+void LargeFile::truncate(const char* path, boost::uint64_t length)
+{
+  int rv = 0;
+  do {
+    rv = ::truncate(path, length);
+  } while(rv == -1 && errno == EINTR);
+  if(rv == -1) {
+    switch(errno) {
+      case EFBIG: /* fall through */
+      case EINVAL: throw std::length_error("broken length"); break;
+      case EIO: throw std::ios::failure("io error"); break;
+      case EACCES: throw std::runtime_error("permission error"); break;
+      case EISDIR: throw std::domain_error("path given is directory"); break;
+      case ELOOP: throw std::runtime_error("too many levels of symlinks");
+        break;
+      case ENAMETOOLONG: throw std::runtime_error("path too long"); break;
+      case ENOENT: throw std::runtime_error("bad path"); break;
+      case ENOTDIR: throw std::domain_error("path is not valid"); break;
+      case EROFS: throw std::runtime_error("path is on RO filesystem"); break;
+    }
+  }
+}
