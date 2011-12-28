@@ -66,6 +66,16 @@ struct TimestepBlocks {
 
 namespace { template<typename T> void DeleteArray(T *t) { delete[] t; } }
 
+namespace {
+  template<typename Target>
+  void change_endianness(unsigned char* buffer,
+                         size_t bytes_read) {
+    Target* buf = reinterpret_cast<Target*>(buffer);
+    const size_t N = bytes_read / sizeof(Target);
+    std::transform(buf, buf+N, buf, EndianConvert::Swap<Target>);
+  }
+}
+
 static std::string convert_endianness(const std::string& strFilename,
                                       const std::string& strTempDir,
                                       uint64_t iHeaderSkip,
@@ -112,27 +122,9 @@ static std::string convert_endianness(const std::string& strFilename,
     using namespace boost;
     size_t bytes_read = WrongEndianData.ReadRAW(buffer.get(), buffer_size);
     switch(iComponentSize) {
-      case 16:
-        for(size_t i=0; i < bytes_read; i+= 2) {
-          EndianConvert::Swap<uint16_t>(
-            reinterpret_cast<uint16_t*>((buffer.get())+i)
-          );
-        }
-        break;
-      case 32:
-        for(size_t i=0; i < bytes_read; i+= 4) {
-          EndianConvert::Swap<float>(
-            reinterpret_cast<float*>((buffer.get())+i)
-          );
-        }
-        break;
-      case 64:
-        for(size_t i=0; i < bytes_read; i+= 8) {
-          EndianConvert::Swap<double>(
-            reinterpret_cast<double*>((*buffer)+i)
-          );
-        }
-        break;
+      case 16: change_endianness<uint16_t>(buffer.get(), bytes_read); break;
+      case 32: change_endianness<float>(buffer.get(), bytes_read); break;
+      case 64: change_endianness<double>(buffer.get(), bytes_read); break;
     }
     size_t bytes_written = ConvertedEndianData.WriteRAW(buffer.get(),
                                                         bytes_read);
@@ -1122,15 +1114,9 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
 
     if (bChangeEndianess) {
       switch (iComponentSize) {
-        case 16 : for (size_t i = 0;i<iCopySize;i+=2)
-                    EndianConvert::Swap<unsigned short>((unsigned short*)(pBuffer+i));
-                  break;
-        case 32 : for (size_t i = 0;i<iCopySize;i+=4)
-                    EndianConvert::Swap<float>((float*)(pBuffer+i));
-                  break;
-        case 64 : for (size_t i = 0;i<iCopySize;i+=8)
-                    EndianConvert::Swap<double>((double*)(pBuffer+i));
-                  break;
+        case 16 : change_endianness<uint16_t>(pBuffer, iCopySize); break;
+        case 32 : change_endianness<float>(pBuffer, iCopySize); break;
+        case 64 : change_endianness<double>(pBuffer, iCopySize); break;
       }
     }
 
