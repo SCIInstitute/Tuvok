@@ -318,8 +318,35 @@ namespace {
   }
 }
 
+// tests to make sure 'truncate' works
+static void lf_truncate() {
+  std::ofstream ofs;
+  const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+
+  const size_t N = 64;
+  const int64_t VALUE = -42;
+  {
+    int64_t data[N];
+    std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE));
+    ofs.write(reinterpret_cast<const char*>(data), sizeof(int64_t)*N);
+  }
+
+  ofs.close();
+  LargeFile::truncate(tmpf.c_str(), 0);
+
+  std::ifstream ifs(tmpf.c_str(), std::ios::in | std::ios::binary);
+  {
+    int64_t test;
+    TS_ASSERT(!ifs.fail()); // stream should be okay.
+    ifs.read(reinterpret_cast<char*>(&test), sizeof(int64_t));
+    TS_ASSERT(ifs.fail()); // ... but that read should have broken it.
+  }
+}
+
 class LargeFileTests : public CxxTest::TestSuite {
 public:
+  void test_truncate() { lf_truncate(); }
+
   void test_mmap_open() { lf_generic_open<LargeFileMMap>(); }
   void test_mmap_read() { lf_generic_read<LargeFileMMap>(); }
   void test_mmap_write() { lf_generic_write<LargeFileMMap>(); }
