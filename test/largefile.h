@@ -7,6 +7,7 @@
 #include <cxxtest/TestSuite.h>
 
 #include "LargeFileAIO.h"
+#include "LargeFileC.h"
 #include "LargeFileFD.h"
 #include "LargeFileMMap.h"
 
@@ -549,4 +550,17 @@ public:
   void test_aio_truncate() { lf_generic_truncate<LargeFileAIO>(); }
   void test_aio_wroffset() { lf_generic_wroffset<LargeFileAIO>(); }
   void test_aio_rdoffset() { lf_generic_rdoffset<LargeFileAIO>(); }
+
+  void test_c_open() { lf_generic_open<LargeFileC>(); }
+  void test_c_read() { lf_generic_read<LargeFileC>(); }
+  void test_c_write() { lf_generic_write<LargeFileC>(); }
+  void test_c_write_only() { lf_generic_write_only<LargeFileC>(); }
+  void test_c_header() { lf_generic_header<LargeFileC>(); }
+  void test_c_large_header() { lf_generic_large_header<LargeFileC>(); }
+  void test_c_enqueue() { lf_generic_enqueue<LargeFileC>(); }
+  void test_c_reopen() { lf_generic_reopen<LargeFileC>(); }
+  void test_c_rw_single() { lf_generic_rw_single<LargeFileC>(); }
+  void test_c_truncate() { lf_generic_truncate<LargeFileC>(); }
+  void test_c_wroffset() { lf_generic_wroffset<LargeFileC>(); }
+  void test_c_rdoffset() { lf_generic_rdoffset<LargeFileC>(); }
 };
