@@ -98,6 +98,7 @@ std::tr1::shared_ptr<const void> LargeFileFD::rd(boost::uint64_t offset,
     completed += bytes;
   } while(completed < len && errno == EINTR);
 
+  this->bytes_read = completed;
   // we need to cast it to a 'const void' to return it...
   std::tr1::shared_ptr<const void> mem =
     std::tr1::static_pointer_cast<const void>(data);

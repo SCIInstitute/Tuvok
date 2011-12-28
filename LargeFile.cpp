@@ -28,6 +28,12 @@
 #include <errno.h>
 #include <stdexcept>
 
+#ifndef NDEBUG
+# include <iostream>
+# define DEBUG(...) do { std::cerr << __VA_ARGS__ << "\n"; } while(0)
+#else
+# define DEBUG(...) do { /* nothing, debug msg removed. */ } while(0)
+#endif
 #include "LargeFile.h"
 
 LargeFile::LargeFile(const std::string fn,
@@ -36,7 +42,8 @@ LargeFile::LargeFile(const std::string fn,
                      boost::uint64_t /* length */) :
   m_filename(fn),
   header_size(hsz),
-  byte_offset(0)
+  byte_offset(0),
+  bytes_read(0)
 {
 }
 LargeFile::LargeFile(const std::wstring fn,
@@ -45,7 +52,8 @@ LargeFile::LargeFile(const std::wstring fn,
                      boost::uint64_t /* length */) :
   m_filename(fn.begin(), fn.end()),
   header_size(hsz),
-  byte_offset(0)
+  byte_offset(0),
+  bytes_read(0)
 {
 }
 
@@ -57,10 +65,13 @@ std::tr1::shared_ptr<const void> LargeFile::rd(size_t length)
   return rv;
 }
 
+boost::uint64_t LargeFile::gcount() const { return this->bytes_read; }
+
 void LargeFile::wr(const std::tr1::shared_ptr<const void>& data,
-                      size_t length)
+                   size_t length)
 {
   this->wr(data, this->byte_offset, length);
+  this->byte_offset += length;
 }
 
 void LargeFile::seek(boost::uint64_t to) { this->byte_offset = to; }
@@ -69,6 +80,7 @@ boost::uint64_t LargeFile::offset() const { return this->byte_offset; }
 void LargeFile::truncate(const char* path, boost::uint64_t length)
 {
   int rv = 0;
+  DEBUG("path=" << path);
   do {
     rv = ::truncate(path, length);
   } while(rv == -1 && errno == EINTR);

@@ -108,11 +108,11 @@ std::tr1::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
   if(e != 0) {
     DEBUG("aio incomplete! aio_error(" << cb << ") = " << e);
   }
+#endif
   ssize_t bytes = aio_return(cb);
   assert(bytes == static_cast<ssize_t>(len));
-#else
-  aio_return(cb);
-#endif
+
+  this->bytes_read = bytes;
   // both our control block and our data buffer are dynamically allocated.
   // Make sure they'll both get freed up; control block now, and the data will
   // be the return shared_ptr, so it's that ptr's responsibility to clean it
@@ -120,6 +120,7 @@ std::tr1::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
   std::tr1::shared_ptr<const void> mem = this->control.find(cb)->second;
   delete cb;
   this->control.erase(cb);
+
   return mem;
 }
 

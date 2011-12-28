@@ -77,13 +77,19 @@ std::tr1::shared_ptr<const void> LargeFileMMap::rd(boost::uint64_t offset,
     return std::tr1::shared_ptr<const void>();
   }
 
+  const char* bytes = static_cast<const char*>(this->map);
+  const char* begin = bytes + this->header_size + offset;
+  const char* end = bytes+offset+this->header_size+len;
+  const char* end_buffer = bytes + this->length;
+  // what if they try to read beyond the end of the buffer?
+  if(end > end_buffer) { end = end_buffer; }
+
   /* Our shared_ptr here is a bit sketch.  We give them a pointer, but if
    * 'this' dies we'll kill the mmap, thereby invalidating the pointer.  So,
    * umm.. don't do that. */
-  const char* bytes = static_cast<const char*>(this->map);
-  std::tr1::shared_ptr<const void> mem(bytes+this->header_size+offset,
-                                       null_deleter());
+  std::tr1::shared_ptr<const void> mem(begin, null_deleter());
 
+  this->bytes_read = end - begin;
   /* Note that we don't actually use the 'length' parameter.  We really can't.
    * It's up to the user to make sure they don't go beyond the length they gave
    * us... */

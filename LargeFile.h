@@ -74,7 +74,10 @@ class LargeFile {
     /// the type that makes sense for them.
     /// The file's current byte offset is undefined after this operation.
     virtual std::tr1::shared_ptr<const void> rd(boost::uint64_t offset,
-                                                  size_t len) = 0;
+                                                size_t len) = 0;
+    /// returns the number of bytes read during the last read.
+    virtual boost::uint64_t gcount() const;
+
     /// writes a block of data.
     /// The file's current byte offset is undefined after this operation.
     virtual void wr(const std::tr1::shared_ptr<const void>& data,
@@ -104,7 +107,7 @@ class LargeFile {
     template<typename T> void write(const T* v, size_t N=1) {
       this->wr(std::tr1::shared_ptr<const void>(v, null_deleter()),
                sizeof(T)*N);
-      this->byte_offset += sizeof(T)*N;
+      // don't increase byte_offset -- this version of wr() does it for us!
     }
     ///@}
 
@@ -128,6 +131,7 @@ class LargeFile {
     std::string     m_filename;
     boost::uint64_t header_size;
     boost::uint64_t byte_offset;
+    boost::uint64_t bytes_read; // number of bytes read during last read
 
   private:
     LargeFile(const LargeFile&);
