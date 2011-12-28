@@ -48,7 +48,10 @@ static void first_block(const std::string& filename,
 {
   std::ifstream ifs(filename.c_str(), std::ifstream::in |
                                       std::ifstream::binary);
-  block.resize(512);
+  block.resize(512, 0);
+  if(!ifs.is_open()) {
+    return;
+  }
   ifs.read(reinterpret_cast<char*>(&block[0]), 512);
   ifs.close();
 }

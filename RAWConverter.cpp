@@ -218,7 +218,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
                                      const bool bQuantizeTo8Bit)
 {
   if (!SysTools::FileExists(strFilename)) {
-    T_ERROR("Data file %s not found; maybe there is an invalid reference in the header file?", strFilename.c_str());
+    T_ERROR("Data file %s not found; maybe there is an invalid reference in "
+            "the header file?", strFilename.c_str());
     return false;
   }
 
@@ -241,7 +242,8 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
     bConvertEndianness = false;
   }
 
-  MESSAGE("Converting RAW dataset %s to %s", strFilename.c_str(), strTargetFilename.c_str());
+  MESSAGE("Converting RAW dataset %s to %s", strFilename.c_str(),
+          strTargetFilename.c_str());
 
   string tmpQuantizedFile = strTempDir+SysTools::GetFilename(strFilename)+".quantized";
 
@@ -556,28 +558,32 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       case 8 :
         switch (iComponentCount) {
           case 1:
-            bBrickingOK =dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"1",
-                                            CombineAverage<unsigned char,1>,
-                                            SimpleMaxMin<unsigned char,1>,
-                                            &MaxMinData, dbg);
+            bBrickingOK = dataVolume->FlatDataToBrickedLOD(
+              sourceData.get(), tmpfile+"1",
+              CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char,1>,
+              &MaxMinData, dbg
+            );
             break;
           case 2:
-            bBrickingOK =dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"2",
-                                            CombineAverage<unsigned char,2>,
-                                            SimpleMaxMin<unsigned char,2>,
-                                            &MaxMinData, dbg);
+            bBrickingOK = dataVolume->FlatDataToBrickedLOD(
+              sourceData.get(), tmpfile+"2",
+              CombineAverage<unsigned char,2>, SimpleMaxMin<unsigned char,2>,
+              &MaxMinData, dbg
+            );
             break;
           case 3:
-            bBrickingOK =dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"3",
-                                            CombineAverage<unsigned char,3>,
-                                            SimpleMaxMin<unsigned char,3>,
-                                            &MaxMinData, dbg);
+            bBrickingOK = dataVolume->FlatDataToBrickedLOD(
+              sourceData.get(), tmpfile+"3",
+              CombineAverage<unsigned char,3>, SimpleMaxMin<unsigned char,3>,
+              &MaxMinData, dbg
+            );
             break;
           case 4:
-            bBrickingOK =dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"4",
-                                            CombineAverage<unsigned char,4>,
-                                            SimpleMaxMin<unsigned char,4>,
-                                            &MaxMinData, dbg);
+            bBrickingOK = dataVolume->FlatDataToBrickedLOD(
+              sourceData.get(), tmpfile+"4",
+              CombineAverage<unsigned char,4>, SimpleMaxMin<unsigned char,4>,
+              &MaxMinData, dbg
+            );
             break;
           default:
             T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
