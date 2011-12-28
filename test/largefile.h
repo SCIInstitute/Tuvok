@@ -400,6 +400,112 @@ namespace {
   }
 }
 
+// test truncate actually cutting off some values
+namespace {
+  template<class T> void lf_generic_truncate() {
+    std::ofstream ofs;
+    const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    ofs.close();
+
+    const size_t N = 64;
+    const int64_t VALUE[] = { -42, 96, 67 };
+    { // write N VALUE[0]'s, N VALUE[1]'s, then truncate down to two values.
+      T lf(tmpf, std::ios::out, 0, sizeof(int64_t)*128);
+      int64_t data[N];
+      std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE[0]));
+      lf.write(data, N);
+      {
+        int64_t d[N];
+        std::generate(d, d+N, std::tr1::bind(generate_constant, VALUE[1]));
+        lf.write(d, N);
+      }
+      lf.close();
+      lf.truncate(sizeof(int64_t)*2);
+    }
+    { // ensure the filesize is correct (truncate did something)
+      std::ifstream ifs(tmpf.c_str(), std::ios::in | std::ios::binary);
+      ifs.seekg(0, std::ios::end);
+      TS_ASSERT_EQUALS(static_cast<uint64_t>(ifs.tellg()), sizeof(int64_t)*2);
+    }
+    { // append N VALUE[2]'s
+      T lf(tmpf, std::ios::out, 0, sizeof(int64_t)*128);
+      int64_t data[N];
+      std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE[2]));
+      lf.seek(sizeof(int64_t)*2);
+      lf.write(data, N);
+    }
+    { // now make sure we have 2 VALUE[0]'s and N VALUE[2]'s, no VALUE[1]'s!
+      const boost::uint64_t len = sizeof(int64_t)*(N+2);
+      T lf(tmpf, std::ios::in, 0, len);
+      std::tr1::shared_ptr<const void> mem = lf.rd(0, len);
+      const int64_t* data = static_cast<const int64_t*>(mem.get());
+      TS_ASSERT_EQUALS(data[0], VALUE[0]);
+      TS_ASSERT_EQUALS(data[1], VALUE[0]);
+      for(size_t i=2; i < N+2; ++i) {
+        // should be no VALUE[1]'s; we truncated that.
+        TS_ASSERT_EQUALS(data[i], VALUE[2]);
+      }
+    }
+    remove(tmpf.c_str());
+  }
+}
+
+// ensures writing increases the offset as it should.
+namespace {
+  template<class T> void lf_generic_wroffset() {
+    std::ofstream ofs;
+    const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    ofs.close();
+    const size_t N = 64;
+    const int64_t VALUE[] = { -42, 96, 67 };
+    { // write N VALUE[0]'s, N VALUE[1]'s, then truncate down to two values.
+      T lf(tmpf, std::ios::out, 0, sizeof(int64_t)*128);
+      TS_ASSERT_EQUALS(lf.offset(), static_cast<boost::uint64_t>(0));
+      int64_t data[N];
+      std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE[0]));
+      lf.write(data, N);
+      TS_ASSERT_EQUALS(lf.offset(), sizeof(int64_t)*N);
+      lf.write(data[0]);
+      TS_ASSERT_EQUALS(lf.offset(), sizeof(int64_t)*(N+1));
+      lf.seek(lf.offset()-sizeof(int64_t));
+      TS_ASSERT_EQUALS(lf.offset(), sizeof(int64_t)*N);
+      lf.seek(0);
+      TS_ASSERT_EQUALS(lf.offset(), static_cast<boost::uint64_t>(0));
+    }
+    remove(tmpf.c_str());
+  }
+}
+
+// ensures reading increases the offset as it should.
+namespace {
+  template<class T> void lf_generic_rdoffset() {
+    std::ofstream ofs;
+    const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    const size_t N = 64;
+    const int64_t VALUE[] = { -42 };
+    {
+      int64_t data[N];
+      std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE[0]));
+      ofs.write(reinterpret_cast<const char*>(data), sizeof(int64_t)*N);
+    }
+    ofs.close();
+    T lf(tmpf, std::ios::in, 0, sizeof(int64_t)*128);
+    TS_ASSERT_EQUALS(lf.offset(), static_cast<boost::uint64_t>(0));
+    const size_t len = sizeof(int64_t)*(N/2);
+    lf.rd(len);
+    TS_ASSERT_EQUALS(lf.offset(), sizeof(int64_t)*(N/2));
+    {
+      int64_t data[N/2];
+      lf.seek(sizeof(int64_t));
+      lf.read(data, N/4);
+      TS_ASSERT_EQUALS(lf.offset(), sizeof(int64_t)*((N/4)+1));
+      TS_ASSERT_EQUALS(data[0], VALUE[0]);
+    }
+
+    remove(tmpf.c_str());
+  }
+}
+
 class LargeFileTests : public CxxTest::TestSuite {
 public:
   void test_truncate() { lf_truncate(); }
@@ -413,6 +519,9 @@ public:
   void test_mmap_enqueue() { lf_generic_enqueue<LargeFileMMap>(); }
   void test_mmap_reopen() { lf_generic_reopen<LargeFileMMap>(); }
   void test_mmap_rw_single() { lf_generic_rw_single<LargeFileMMap>(); }
+  void test_mmap_truncate() { lf_generic_truncate<LargeFileMMap>(); }
+  void test_mmap_wroffset() { lf_generic_wroffset<LargeFileMMap>(); }
+  void test_mmap_rdoffset() { lf_generic_rdoffset<LargeFileMMap>(); }
 
   void test_fd_open() { lf_generic_open<LargeFileFD>(); }
   void test_fd_read() { lf_generic_read<LargeFileFD>(); }
@@ -423,6 +532,9 @@ public:
   void test_fd_enqueue() { lf_generic_enqueue<LargeFileFD>(); }
   void test_fd_reopen() { lf_generic_reopen<LargeFileFD>(); }
   void test_fd_rw_single() { lf_generic_rw_single<LargeFileFD>(); }
+  void test_fd_truncate() { lf_generic_truncate<LargeFileFD>(); }
+  void test_fd_wroffset() { lf_generic_wroffset<LargeFileFD>(); }
+  void test_fd_rdoffset() { lf_generic_rdoffset<LargeFileFD>(); }
 
   void test_aio_open() { lf_generic_open<LargeFileAIO>(); }
   void test_aio_read() { lf_generic_read<LargeFileAIO>(); }
@@ -434,4 +546,7 @@ public:
   void test_aio_enqueue() { lf_generic_enqueue<LargeFileAIO>(); }
   void test_aio_reopen() { lf_generic_reopen<LargeFileAIO>(); }
   void test_aio_rw_single() { lf_generic_rw_single<LargeFileAIO>(); }
+  void test_aio_truncate() { lf_generic_truncate<LargeFileAIO>(); }
+  void test_aio_wroffset() { lf_generic_wroffset<LargeFileAIO>(); }
+  void test_aio_rdoffset() { lf_generic_rdoffset<LargeFileAIO>(); }
 };
