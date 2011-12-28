@@ -81,6 +81,9 @@ class LargeFile {
     virtual void write(const std::tr1::shared_ptr<const void>& data,
                        boost::uint64_t offset,
                        size_t len) = 0;
+    /// writes data at the current byte offset
+    virtual void write(const std::tr1::shared_ptr<const void>& data,
+                       size_t len);
 
     /// read/write calls of a single element.  Only usable with implicit
     /// offsets.

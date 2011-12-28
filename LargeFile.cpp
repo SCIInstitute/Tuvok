@@ -55,6 +55,12 @@ std::tr1::shared_ptr<const void> LargeFile::read(size_t length)
   return this->read(this->byte_offset, length);
 }
 
+void LargeFile::write(const std::tr1::shared_ptr<const void>& data,
+                      size_t length)
+{
+  this->write(data, this->byte_offset, length);
+}
+
 void LargeFile::seek(boost::uint64_t to) { this->byte_offset = to; }
 boost::uint64_t LargeFile::offset() const { return this->byte_offset; }
 
