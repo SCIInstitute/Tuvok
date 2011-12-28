@@ -380,9 +380,9 @@ namespace {
       T lf(tmpf, std::ios::out, 0, sizeof(int64_t)*128);
       s8 = u8 = s16 = u16 = s32 = u32 = s64 = u64 = 0;
       d = f = 0.0f;
-      lf.read(s8); lf.read(u8); lf.read(s16); lf.read(u16);
-      lf.read(s32); lf.read(u32); lf.read(s64); lf.read(u64);
-      lf.read(f); lf.read(d);
+      lf.read(&s8); lf.read(&u8); lf.read(&s16); lf.read(&u16);
+      lf.read(&s32); lf.read(&u32); lf.read(&s64); lf.read(&u64);
+      lf.read(&f); lf.read(&d);
       TS_ASSERT_EQUALS(s8, -7);
       TS_ASSERT_EQUALS(u8, 19);
       TS_ASSERT_EQUALS(s16,  6);
