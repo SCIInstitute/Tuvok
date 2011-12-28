@@ -64,7 +64,8 @@ Dataset* DSFactory::Create(const std::string& filename,
   if(!ds.expired()) {
     return ds.lock()->Create(filename, max_brick_size, verify);
   }
-  throw DSOpenFailed("No reader can read this data!");
+  throw DSOpenFailed(filename.c_str(), "No reader can read this data!",
+                     __FILE__, __LINE__);
 }
 
 const std::tr1::weak_ptr<Dataset>

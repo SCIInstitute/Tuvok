@@ -47,7 +47,7 @@ namespace io {
 class DSOpenFailed : virtual public IOException {
   public:
     DSOpenFailed(const char* s, const char* where=NULL,
-                 size_t ln=0) : IOException(s, where, ln) {}
+                 size_t ln=0) : IOException(s, where, ln), file(NULL) {}
     DSOpenFailed(const char* filename, const char* s,
                  const char* where=NULL, size_t ln=0)
                  : IOException(s, where, ln),
