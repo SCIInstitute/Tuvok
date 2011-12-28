@@ -49,16 +49,16 @@ LargeFile::LargeFile(const std::wstring fn,
 {
 }
 
-std::tr1::shared_ptr<const void> LargeFile::read(size_t length)
+std::tr1::shared_ptr<const void> LargeFile::rd(size_t length)
 {
   // The other 'read' will take account of the header_size.
   return this->read(this->byte_offset, length);
 }
 
-void LargeFile::write(const std::tr1::shared_ptr<const void>& data,
+void LargeFile::wr(const std::tr1::shared_ptr<const void>& data,
                       size_t length)
 {
-  this->write(data, this->byte_offset, length);
+  this->wr(data, this->byte_offset, length);
 }
 
 void LargeFile::seek(boost::uint64_t to) { this->byte_offset = to; }

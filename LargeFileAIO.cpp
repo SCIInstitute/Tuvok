@@ -81,8 +81,8 @@ namespace {
   };
 }
 
-std::tr1::shared_ptr<const void> LargeFileAIO::read(boost::uint64_t offset,
-                                                    size_t len)
+std::tr1::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
+                                                  size_t len)
 {
   struct aiocb *cb;
 
@@ -139,9 +139,9 @@ void LargeFileAIO::enqueue(boost::uint64_t offset, size_t len)
   submit_new_request(real_offset, len);
 }
 
-void LargeFileAIO::write(const std::tr1::shared_ptr<const void>& data,
-                         boost::uint64_t offset,
-                         size_t len)
+void LargeFileAIO::wr(const std::tr1::shared_ptr<const void>& data,
+                      boost::uint64_t offset,
+                      size_t len)
 {
   if(len == 0) { return; }
 

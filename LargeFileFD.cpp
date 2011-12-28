@@ -71,8 +71,8 @@ namespace {
   };
 }
 
-std::tr1::shared_ptr<const void> LargeFileFD::read(boost::uint64_t offset,
-                                                   size_t len)
+std::tr1::shared_ptr<const void> LargeFileFD::rd(boost::uint64_t offset,
+                                                 size_t len)
 {
   if(!this->is_open()) {
     throw std::ios_base::failure("file is not open!!");
@@ -104,9 +104,9 @@ std::tr1::shared_ptr<const void> LargeFileFD::read(boost::uint64_t offset,
   return mem;
 }
 
-void LargeFileFD::write(const std::tr1::shared_ptr<const void>& data,
-                        boost::uint64_t offset,
-                        size_t len)
+void LargeFileFD::wr(const std::tr1::shared_ptr<const void>& data,
+                     boost::uint64_t offset,
+                     size_t len)
 {
   if(!this->is_open()) {
     throw std::ios_base::failure("file is not open!!");

@@ -50,26 +50,17 @@ class LargeFileMMap : public LargeFileFD {
 
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
-    std::tr1::shared_ptr<const void> read(boost::uint64_t offset, size_t len);
+    std::tr1::shared_ptr<const void> rd(boost::uint64_t offset, size_t len);
+    using LargeFile::read;
+    using LargeFile::rd;
 
     /// writes a block of data.
-    void write(const std::tr1::shared_ptr<const void>& data,
-               boost::uint64_t offset, size_t len);
+    void wr(const std::tr1::shared_ptr<const void>& data,
+            boost::uint64_t offset, size_t len);
+    using LargeFile::wr;
 
     virtual bool is_open() const;
     virtual void close();
-
-    struct null_deleter { void operator()(const void*) const {} };
-    template<typename T> void read(T* v) {
-      uint64_t offs = this->byte_offset;
-      *v = *static_cast<const T*>(this->read(offs, sizeof(T)).get());
-      this->byte_offset += sizeof(T);
-    }
-    template<typename T> void write(const T& v) {
-      this->write(std::tr1::shared_ptr<const void>(&v, null_deleter()),
-                  this->byte_offset, sizeof(T));
-      this->byte_offset += sizeof(T);
-    }
 
   private:
     void* map;

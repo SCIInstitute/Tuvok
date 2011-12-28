@@ -51,13 +51,15 @@ class LargeFileFD : public LargeFile {
 
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
-    virtual std::tr1::shared_ptr<const void> read(boost::uint64_t offset,
-                                                  size_t len);
+    virtual std::tr1::shared_ptr<const void> rd(boost::uint64_t offset,
+                                                size_t len);
+    using LargeFile::read;
+    using LargeFile::rd;
 
     /// writes a block of data.
-    virtual void write(const std::tr1::shared_ptr<const void>& data,
-                       boost::uint64_t offset,
-                       size_t len);
+    virtual void wr(const std::tr1::shared_ptr<const void>& data,
+                    boost::uint64_t offset,
+                    size_t len);
 
     /// notifies the object that we're going to need the following data soon.
     /// Many implementations will prefetch this data when it knows this.

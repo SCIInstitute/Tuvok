@@ -70,8 +70,8 @@ LargeFileMMap::~LargeFileMMap()
   this->close();
 }
 
-std::tr1::shared_ptr<const void> LargeFileMMap::read(boost::uint64_t offset,
-                                                     size_t len)
+std::tr1::shared_ptr<const void> LargeFileMMap::rd(boost::uint64_t offset,
+                                                   size_t len)
 {
   if(len == 0 || (!this->is_open())) {
     return std::tr1::shared_ptr<const void>();
@@ -90,8 +90,8 @@ std::tr1::shared_ptr<const void> LargeFileMMap::read(boost::uint64_t offset,
   return mem;
 }
 
-void LargeFileMMap::write(const std::tr1::shared_ptr<const void>& data,
-                          boost::uint64_t offset, size_t len)
+void LargeFileMMap::wr(const std::tr1::shared_ptr<const void>& data,
+                       boost::uint64_t offset, size_t len)
 {
   if(len == 0) { return; }
   if(!this->is_open()) {

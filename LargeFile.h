@@ -68,21 +68,20 @@ class LargeFile {
     /// LargeFiles are always 'raw': std::ios::binary is implied.
     virtual void open(std::ios_base::openmode mode = std::ios_base::in) = 0;
 
+    /// Uses the current byte offset to read data from the file.
+    virtual std::tr1::shared_ptr<const void> rd(size_t len);
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
     /// The file's current byte offset is undefined after this operation.
-    virtual std::tr1::shared_ptr<const void> read(boost::uint64_t offset,
+    virtual std::tr1::shared_ptr<const void> rd(boost::uint64_t offset,
                                                   size_t len) = 0;
-    /// Uses the current byte offset to read data from the file.
-    virtual std::tr1::shared_ptr<const void> read(size_t len);
-
     /// writes a block of data.
     /// The file's current byte offset is undefined after this operation.
-    virtual void write(const std::tr1::shared_ptr<const void>& data,
+    virtual void wr(const std::tr1::shared_ptr<const void>& data,
                        boost::uint64_t offset,
                        size_t len) = 0;
     /// writes data at the current byte offset
-    virtual void write(const std::tr1::shared_ptr<const void>& data,
+    virtual void wr(const std::tr1::shared_ptr<const void>& data,
                        size_t len);
 
     /// read/write calls of a single element.  Only usable with implicit
@@ -90,14 +89,22 @@ class LargeFile {
     ///@{
     // a 'delete' functor that just does nothing.
     struct null_deleter { void operator()(const void*) const {} };
-    template<typename T> void read(T* v) {
-      *v =*static_cast<const T*>(this->read(this->byte_offset,sizeof(T)).get());
-      this->byte_offset += sizeof(T);
+    template<typename T> void read(T* v, size_t N=1) {
+      std::tr1::shared_ptr<const void> m = this->rd(this->byte_offset,
+                                                    sizeof(T)*N);
+      const T* mem = static_cast<const T*>(m.get());
+      std::copy(mem, mem+N, v);
+      this->byte_offset += sizeof(T)*N;
     }
     template<typename T> void write(const T& v) {
-      this->write(std::tr1::shared_ptr<const void>(&v, null_deleter()),
-                  this->byte_offset, sizeof(T));
+      this->wr(std::tr1::shared_ptr<const void>(&v, null_deleter()),
+               this->byte_offset, sizeof(T));
       this->byte_offset += sizeof(T);
+    }
+    template<typename T> void write(const T* v, size_t N=1) {
+      this->wr(std::tr1::shared_ptr<const void>(v, null_deleter()),
+               sizeof(T)*N);
+      this->byte_offset += sizeof(T)*N;
     }
     ///@}
 
