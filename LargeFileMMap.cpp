@@ -115,6 +115,9 @@ void LargeFileMMap::wr(const std::tr1::shared_ptr<const void>& data,
 
 void LargeFileMMap::open(std::ios_base::openmode mode)
 {
+  if(LargeFileFD::is_open()) {
+    LargeFileFD::close();
+  }
   LargeFileFD::open(mode);
 
 #if _POSIX_C_SOURCE >= 200112L

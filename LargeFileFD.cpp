@@ -173,7 +173,7 @@ bool LargeFileFD::is_open() const
 
 void LargeFileFD::close()
 {
-  if(!this->is_open()) { return; }
+  if(!LargeFileFD::is_open()) { return; }
 
   int cl;
   do {
@@ -190,7 +190,7 @@ void LargeFileFD::close()
 
 void LargeFileFD::open(std::ios_base::openmode mode)
 {
-  if(this->is_open()) {
+  if(LargeFileFD::is_open()) {
     this->close();
   }
   int access = O_RDONLY;
