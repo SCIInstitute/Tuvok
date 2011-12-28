@@ -69,6 +69,7 @@ HEADERS += \
            Basics/Vectors.h \
            Basics/Mesh.h \
            Basics/KDTree.h \
+           Basics/nonstd.h \
            Controller/Controller.h \
            Controller/MasterController.h \
            DebugOut/AbstrDebugOut.h \
