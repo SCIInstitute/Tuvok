@@ -204,6 +204,7 @@ HEADERS += \
            StdTuvokDefines.h
 
 unix:HEADERS += \
+  Basics/EndianFile.h \
   Basics/LargeFile.h \
   Basics/LargeFileAIO.h \
   Basics/LargeFileFD.h \
@@ -425,6 +426,7 @@ SOURCES += \
            Scripting/Scripting.cpp
 
 unix:SOURCES += \
+  Basics/EndianFile.cpp \
   Basics/LargeFile.cpp \
   Basics/LargeFileAIO.cpp \
   Basics/LargeFileFD.cpp \
