@@ -60,7 +60,7 @@ namespace EndianConvert {
    * \date October.2004
    */
   template<class TYPE>
-  inline void Swap(TYPE* x) {
+  inline void SwapSitu(TYPE* x) {
   #ifndef ENDIANCONVERT_THREAD_SAFE
     static
   #endif
@@ -80,8 +80,6 @@ namespace EndianConvert {
     }
     *x=uSwapSpace.t;
   }
-
-
 
   /**
    * Swap routine to convert between little and big-endian.
@@ -104,15 +102,13 @@ namespace EndianConvert {
   #endif
     char c;
     uSwapSpace.t=x;
-    for (int i=0; i<(int)(sizeof(TYPE)>>1); i++) {  // use int here to supress warning when called with 8bit data
+    for (int i=0; i<(int)(sizeof(TYPE)>>1); i++) {  // use int here to suppress warning when called with 8bit data
       c=uSwapSpace.c[i];
       uSwapSpace.c[i]=uSwapSpace.c[sizeof(TYPE)-i-1];
       uSwapSpace.c[sizeof(TYPE)-i-1]=c;
     }
     return uSwapSpace.t;
   }
-
-
 
   /**
    * Checks whether this machine is big-endian.
@@ -129,8 +125,6 @@ namespace EndianConvert {
     return tmp.c[0]!=0x20;
   }
 
-
-
   /**
    * Checks whether this machine is little-endian.
    * \return true if the machine is little-endian, false otherwise
@@ -139,7 +133,6 @@ namespace EndianConvert {
   inline bool IsLittleEndian(void) {
     return !IsBigEndian();
   }
-
 
   template<class T>
   inline bool IsNaN(T a) {
