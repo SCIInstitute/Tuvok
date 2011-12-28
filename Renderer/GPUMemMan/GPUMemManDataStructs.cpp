@@ -435,9 +435,8 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
         /// data here.
         uint64_t iElemCount = vSize[0] * vSize[1] * vSize[2];
         short* pShorData = (short*)pRawData;
-        for (uint64_t i = 0;i<iCompCount*iElemCount;i++) {
-          EndianConvert::Swap<short>(pShorData+i);
-        }
+        std::transform(pShorData, pShorData+(iCompCount*iElemCount), pShorData,
+                       EndianConvert::Swap<short>);
       }
 
       switch (iCompCount) {
