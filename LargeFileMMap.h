@@ -46,6 +46,8 @@ class LargeFileMMap : public LargeFileFD {
                   boost::uint64_t length = UINT64_PAGE_MAX);
     virtual ~LargeFileMMap();
 
+    void open(std::ios_base::openmode mode = std::ios_base::in);
+
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
     std::tr1::shared_ptr<const void> read(boost::uint64_t offset, size_t len);
@@ -56,9 +58,6 @@ class LargeFileMMap : public LargeFileFD {
 
     virtual bool is_open() const;
     virtual void close();
-
-  protected:
-    void open(std::ios_base::openmode mode = std::ios_base::in);
 
   private:
     void* map;

@@ -47,6 +47,8 @@ class LargeFileFD : public LargeFile {
                 boost::uint64_t length=0);
     virtual ~LargeFileFD();
 
+    virtual void open(std::ios_base::openmode mode = std::ios_base::in);
+
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
     virtual std::tr1::shared_ptr<const void> read(boost::uint64_t offset,
@@ -64,9 +66,6 @@ class LargeFileFD : public LargeFile {
     virtual boost::uint64_t filesize() const;
     virtual bool is_open() const;
     virtual void close();
-
-  protected:
-    virtual void open(std::ios_base::openmode mode = std::ios_base::in);
 
   protected:
     int fd;

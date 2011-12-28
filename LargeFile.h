@@ -63,6 +63,11 @@ class LargeFile {
               boost::uint64_t length=0);
     virtual ~LargeFile() {}
 
+    /// The file is automatically opened upon construction, but you can use
+    /// this to reopen in a different mode, for example.
+    /// LargeFiles are always 'raw': std::ios::binary is implied.
+    virtual void open(std::ios_base::openmode mode = std::ios_base::in) = 0;
+
     /// reads a block of data, returns a pointer to it.  User must cast it to
     /// the type that makes sense for them.
     /// The file's current byte offset is undefined after this operation.
@@ -89,10 +94,6 @@ class LargeFile {
 
     virtual bool is_open() const = 0;
     virtual void close() = 0;
-
-
-  protected:
-    virtual void open(std::ios_base::openmode mode = std::ios_base::in) = 0;
 
   protected:
     std::string     m_filename;
