@@ -8,6 +8,7 @@
 #include <Basics/MathTools.h>
 #include <Basics/SysTools.h>
 #include "Controller/Controller.h"
+#include "Basics/nonstd.h"
 
 using namespace boost;
 using namespace std;
@@ -932,7 +933,10 @@ bool RasterDataBlock::FlatDataToBrickedLOD(const void* pSourceData, const string
   pSourceFile.WriteRAW((unsigned char*)pSourceData, iInPointerSize);
 
   // convert the flat file to our bricked LOD representation
-  bool bResult = FlatDataToBrickedLOD(&pSourceFile, strTempFile, combineFunc, maxminFunc, pMaxMinDatBlock, pDebugOut);
+  bool bResult = FlatDataToBrickedLOD(
+    std::tr1::shared_ptr<LargeRAWFile>(&pSourceFile, nonstd::null_deleter()),
+    strTempFile, combineFunc, maxminFunc, pMaxMinDatBlock, pDebugOut
+  );
 
   // delete tempfile
   pSourceFile.Delete();
