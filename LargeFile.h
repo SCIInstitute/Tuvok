@@ -82,12 +82,14 @@ class LargeFile {
     virtual void enqueue(boost::uint64_t offset, size_t len) = 0;
 
     std::string filename() const { return this->m_filename; }
+    virtual boost::uint64_t filesize() const = 0;
 
     virtual void seek(boost::uint64_t);
     virtual boost::uint64_t offset() const;
 
     virtual bool is_open() const = 0;
     virtual void close() = 0;
+
 
   protected:
     virtual void open(std::ios_base::openmode mode = std::ios_base::in) = 0;

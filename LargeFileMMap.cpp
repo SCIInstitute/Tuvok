@@ -42,22 +42,6 @@
 // a 'delete' functor that just does nothing.
 struct null_deleter { void operator()(const void*) const {} };
 
-static uint64_t filesize(int fd) {
-  off_t original = lseek(fd, 0, SEEK_CUR);
-  if(original == -1) {
-    throw std::runtime_error("could not get current file position");
-  }
-  off_t sz = lseek(fd, 0, SEEK_END);
-  if(sz == -1) {
-    throw std::runtime_error("could not get file size");
-  }
-  if(lseek(fd, original, SEEK_SET) == -1) {
-    throw std::runtime_error("could not reset file position.");
-  }
-  return static_cast<uint64_t>(sz);
-}
-
-
 LargeFileMMap::LargeFileMMap(const std::string fn,
                              std::ios_base::openmode mode,
                              boost::uint64_t header_size,
@@ -114,7 +98,7 @@ void LargeFileMMap::write(const std::tr1::shared_ptr<const void>& data,
     throw std::invalid_argument("file is not open.");
   }
 
-  if(filesize(fd) < offset+this->header_size+len) {
+  if(this->filesize() < offset+this->header_size+len) {
     /* extend the file because it is too small -- mmap cannot make files
      * larger. */
     if(ftruncate(fd, offset+this->header_size+len) != 0) {
@@ -153,7 +137,7 @@ void LargeFileMMap::open(std::ios_base::openmode mode)
   /* are we opening the file read only?  Truncate the length down to the file
    * size, then -- mapping less memory is easier on the kernel. */
   if(mode & std::ios_base::in) {
-    this->length = std::min(this->length, filesize(this->fd));
+    this->length = std::min(this->length, this->filesize());
   }
 
   /* length must be a multiple of the page size.  Round it up. */

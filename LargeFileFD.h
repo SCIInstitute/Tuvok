@@ -61,6 +61,7 @@ class LargeFileFD : public LargeFile {
     /// Many implementations will prefetch this data when it knows this.
     virtual void enqueue(boost::uint64_t offset, size_t len);
 
+    virtual boost::uint64_t filesize() const;
     virtual bool is_open() const;
     virtual void close();
 

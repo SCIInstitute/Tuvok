@@ -152,6 +152,24 @@ void LargeFileFD::enqueue(boost::uint64_t offset, size_t len)
 #endif
 }
 
+boost::uint64_t LargeFileFD::filesize() const
+{
+  struct stat st;
+  if(stat(m_filename.c_str(), &st) == -1) {
+    switch(errno) {
+      case EACCES: throw std::ios::failure("no search permission."); break;
+      case EIO: throw std::ios::failure("I/O error."); break;
+      case ELOOP: throw std::ios::failure("loop in symbolic links."); break;
+      case ENAMETOOLONG: throw std::ios::failure("name too long"); break;
+      case ENOENT: throw std::ios::failure("file does not exist."); break;
+      case EOVERFLOW: throw std::overflow_error("need more bits."); break;
+    }
+    return 0;
+  }
+
+  return static_cast<boost::uint64_t>(st.st_size);
+}
+
 bool LargeFileFD::is_open() const
 {
   return this->fd != -1;
