@@ -559,28 +559,28 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         switch (iComponentCount) {
           case 1:
             bBrickingOK = dataVolume->FlatDataToBrickedLOD(
-              sourceData.get(), tmpfile+"1",
+              sourceData, tmpfile+"1",
               CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char,1>,
               &MaxMinData, dbg
             );
             break;
           case 2:
             bBrickingOK = dataVolume->FlatDataToBrickedLOD(
-              sourceData.get(), tmpfile+"2",
+              sourceData, tmpfile+"2",
               CombineAverage<unsigned char,2>, SimpleMaxMin<unsigned char,2>,
               &MaxMinData, dbg
             );
             break;
           case 3:
             bBrickingOK = dataVolume->FlatDataToBrickedLOD(
-              sourceData.get(), tmpfile+"3",
+              sourceData, tmpfile+"3",
               CombineAverage<unsigned char,3>, SimpleMaxMin<unsigned char,3>,
               &MaxMinData, dbg
             );
             break;
           case 4:
             bBrickingOK = dataVolume->FlatDataToBrickedLOD(
-              sourceData.get(), tmpfile+"4",
+              sourceData, tmpfile+"4",
               CombineAverage<unsigned char,4>, SimpleMaxMin<unsigned char,4>,
               &MaxMinData, dbg
             );
@@ -595,10 +595,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         break;
       case 16:
             switch (iComponentCount) {
-              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"1", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short, 1>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"2", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short, 2>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"3", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short, 3>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"4", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short, 4>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"1", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short, 1>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"2", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short, 2>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"3", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short, 3>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"4", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short, 4>, &MaxMinData, &Controller::Debug::Out()); break;
               default:
                 T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
                         int(iComponentCount), int(iComponentSize));
@@ -608,10 +608,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
             } break;
       case 32 :
             switch (iComponentCount) {
-              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"1", CombineAverage<float,1>, SimpleMaxMin<float, 1>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"2", CombineAverage<float,2>, SimpleMaxMin<float, 2>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"3", CombineAverage<float,3>, SimpleMaxMin<float, 3>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData.get(), tmpfile+"4", CombineAverage<float,4>, SimpleMaxMin<float, 4>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"1", CombineAverage<float,1>, SimpleMaxMin<float, 1>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"2", CombineAverage<float,2>, SimpleMaxMin<float, 2>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"3", CombineAverage<float,3>, SimpleMaxMin<float, 3>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"4", CombineAverage<float,4>, SimpleMaxMin<float, 4>, &MaxMinData, &Controller::Debug::Out()); break;
               default:
                 T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
                         int(iComponentCount), int(iComponentSize));
