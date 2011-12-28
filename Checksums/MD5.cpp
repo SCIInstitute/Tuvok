@@ -139,7 +139,8 @@ void MD5::II( uint32_t& A, uint32_t B, uint32_t C, uint32_t D, uint32_t X, uint3
         A += B;
 }
 
-void MD5::ByteToUINT(uint32_t* Output, uint8_t* Input, uint32_t nLength, int& error)
+void MD5::ByteToUINT(uint32_t* Output, const uint8_t* Input, uint32_t nLength,
+                     int& error)
 {
         //entry invariants
         if( nLength % 4 != 0 ) error = -23;
@@ -157,7 +158,7 @@ void MD5::ByteToUINT(uint32_t* Output, uint8_t* Input, uint32_t nLength, int& er
         }
 }
 
-void MD5::Transform(uint8_t Block[64], int& error)
+void MD5::Transform(const uint8_t Block[64], int& error)
 {
         uint32_t a = m_lMD5[0];
         uint32_t b = m_lMD5[1];
@@ -259,7 +260,8 @@ MD5::MD5()
         m_lMD5[3] = MD5_INIT_STATE_3;
 }
 
-void MD5::UINTToByte(uint8_t* Output, uint32_t* Input, uint32_t nLength, int& error)
+void MD5::UINTToByte(uint8_t* Output, const uint32_t* Input, uint32_t nLength,
+                     int& error)
 {
          //entry invariants
         if( nLength % 4 != 0 ) error = -22;
@@ -295,7 +297,7 @@ std::vector<uint8_t> MD5::Final(int& error)
 }
 
 
-void MD5::Update( uint8_t* Input, uint32_t nInputLen, int& error )
+void MD5::Update(const uint8_t* Input, uint32_t nInputLen, int& error)
 {
         uint32_t nIndex = (uint32_t)((m_nCount[0] >> 3) & 0x3F);
 
@@ -309,7 +311,7 @@ void MD5::Update( uint8_t* Input, uint32_t nInputLen, int& error )
         uint32_t nPartLen = 64 - nIndex;
         if (nInputLen >= nPartLen)
         {
-                memmove( &m_lpszBuffer[nIndex], Input, nPartLen );
+                memmove(&m_lpszBuffer[nIndex], Input, nPartLen);
 
                 Transform( m_lpszBuffer, error );
                 for (i = nPartLen; i + 63 < nInputLen; i += 64)
@@ -323,6 +325,5 @@ void MD5::Update( uint8_t* Input, uint32_t nInputLen, int& error )
                 i = 0;
         }
 
-        memmove( &m_lpszBuffer[nIndex], &Input[i], nInputLen-i);
-
+        memmove(&m_lpszBuffer[nIndex], &Input[i], nInputLen-i);
 }
