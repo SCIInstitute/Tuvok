@@ -36,6 +36,7 @@
 #else
 # define DEBUG(s) do { /* nothing, debug msg removed. */ } while(0)
 #endif
+#include <stdexcept>
 #include <vector>
 #include "LargeFileAIO.h"
 
@@ -215,11 +216,21 @@ void LargeFileAIO::close()
   this->flush_writes();
 
   // okay.  anything left in there isn't important.  just cancel all of 'em.
-  //aio_cancel(this->fd, NULL);
+  if(aio_cancel(this->fd, NULL) == EBADF) {
+    throw std::out_of_range("bad file descriptor");
+  }
 
   // all of those aiocb* were dynamically allocated.  free them up.
   for(Reqs::const_iterator i = this->control.begin();
       i != this->control.end(); ++i) {
+    // _return on them first; the library might be waiting for us to do that
+    // before it frees up internal resources.
+#ifndef NDEBUG
+    ssize_t rv = aio_return(i->first);
+    assert(rv != EINVAL);
+#else
+    aio_return(i->first);
+#endif
     delete i->first;
   }
   // we don't worry about the shared_ptr's -- they'll clean themselves up
