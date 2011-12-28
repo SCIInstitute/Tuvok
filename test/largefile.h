@@ -256,20 +256,56 @@ void lf_aio_nocopy() {
   end: remove(tmpf.c_str());
 }
 
+// does a bunch of writes followed by a read.  Hints that we'll need the read
+// data soonish in between all those writes.
+namespace {
+  template<typename T> void lf_generic_enqueue() {
+    std::ofstream ofs;
+    const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    ofs.close();
+
+    const size_t N = 64;
+    const int64_t VALUE[8] = { -42,42, 19,-6, 4,12, 24,9  };
+    const size_t offset = 32768;
+    T lf(tmpf, std::ios::in | std::ios::out, 0, sizeof(int64_t)*N*8+offset);
+
+    for(size_t i=0; i < 8; ++i) {
+      int64_t data[N];
+      const boost::uint64_t this_offset = offset + i*(sizeof(int64_t)*N);
+      std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE[i]));
+      lf.write(std::tr1::shared_ptr<const void>(data, null_deleter),
+                                                this_offset,
+                                                sizeof(int64_t)*N);
+      if(i == 5) {
+        lf.enqueue(offset, sizeof(int64_t)*N);
+      }
+    }
+    std::tr1::shared_ptr<const void> mem = lf.read(offset, sizeof(int64_t)*N);
+    const int64_t* data = static_cast<const int64_t*>(mem.get());
+    for(size_t i=0; i < N; ++i) {
+      TS_ASSERT_EQUALS(data[i], VALUE[0]);
+    }
+    remove(tmpf.c_str());
+  }
+}
+
 class LargeFileTests : public CxxTest::TestSuite {
 public:
   void test_mmap_open() { lf_generic_open<LargeFileMMap>(); }
   void test_mmap_read() { lf_generic_read<LargeFileMMap>(); }
   void test_mmap_write() { lf_generic_write<LargeFileMMap>(); }
+  void test_mmap_write_only() { lf_generic_write_only<LargeFileMMap>(); }
   void test_mmap_header() { lf_generic_header<LargeFileMMap>(); }
   void test_mmap_large_header() { lf_generic_large_header<LargeFileMMap>(); }
+  void test_mmap_enqueue() { lf_generic_enqueue<LargeFileMMap>(); }
+
   void test_fd_open() { lf_generic_open<LargeFileFD>(); }
   void test_fd_read() { lf_generic_read<LargeFileFD>(); }
   void test_fd_write() { lf_generic_write<LargeFileFD>(); }
+  void test_fd_write_only() { lf_generic_write_only<LargeFileFD>(); }
   void test_fd_header() { lf_generic_header<LargeFileFD>(); }
   void test_fd_large_header() { lf_generic_large_header<LargeFileFD>(); }
-  void test_mmap_write_only() { lf_generic_write_only<LargeFileMMap>(); }
-  void test_fd_write_only() { lf_generic_write_only<LargeFileFD>(); }
+  void test_fd_enqueue() { lf_generic_enqueue<LargeFileFD>(); }
 
   void test_aio_open() { lf_generic_open<LargeFileAIO>(); }
   void test_aio_read() { lf_generic_read<LargeFileAIO>(); }
@@ -278,4 +314,5 @@ public:
   void test_aio_header() { lf_generic_header<LargeFileAIO>(); }
   void test_aio_large_header() { lf_generic_large_header<LargeFileAIO>(); }
   void test_aio_nocopy() { lf_aio_nocopy(); }
+  void test_aio_enqueue() { lf_generic_enqueue<LargeFileAIO>(); }
 };
