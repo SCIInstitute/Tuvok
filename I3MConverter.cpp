@@ -149,7 +149,7 @@ bool I3MConverter::ConvertToRAW(const std::string& strSourceFilename,
   I3MFile.ReadData(vVolumeAspect.x, false);
   I3MFile.ReadData(vVolumeAspect.y, false);
   I3MFile.ReadData(vVolumeAspect.z, false);
-  MESSAGE("Aspect Ration (%g x %g x %g)",
+  MESSAGE("Aspect Ratio (%g x %g x %g)",
           vVolumeAspect.x, vVolumeAspect.y, vVolumeAspect.z);
 
   // header is completed all test passed, now we can read the volume,
