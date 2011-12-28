@@ -32,9 +32,9 @@
 #include <errno.h>
 #ifndef NDEBUG
 # include <iostream>
-# define DEBUG(s) do { std::cerr << s << "\n"; } while(0)
+# define DEBUG(...) do { std::cerr << __VA_ARGS__ << "\n"; } while(0)
 #else
-# define DEBUG(s) do { /* nothing, debug msg removed. */ } while(0)
+# define DEBUG(...) do { /* nothing, debug msg removed. */ } while(0)
 #endif
 #include <stdexcept>
 #include <vector>
@@ -103,8 +103,11 @@ std::tr1::shared_ptr<const void> LargeFileAIO::rd(boost::uint64_t offset,
     } while(susp == -1 && errno==EINTR);
   }
 
-  assert(aio_error(cb) == 0);
 #ifndef NDEBUG
+  int e = aio_error(cb);
+  if(e != 0) {
+    DEBUG("aio incomplete! aio_error(" << cb << ") = " << e);
+  }
   ssize_t bytes = aio_return(cb);
   assert(bytes == static_cast<ssize_t>(len));
 #else
