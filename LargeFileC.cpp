@@ -32,6 +32,9 @@
 #if _POSIX_C_SOURCE >= 200112L
 # include <sys/types.h>
 #endif
+#ifdef _MSC_VER
+# include <io.h>
+#endif
 #ifndef NDEBUG
 # include <iostream>
 # define DEBUG(...) do { std::cerr << __VA_ARGS__ << "\n"; } while(0)

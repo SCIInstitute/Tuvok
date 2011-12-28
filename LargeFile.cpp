@@ -28,6 +28,10 @@
 #include <errno.h>
 #include <stdexcept>
 
+#ifdef DETECTED_OS_WINDOWS
+# include <windows.h>
+#endif
+
 #ifndef NDEBUG
 # include <iostream>
 # define DEBUG(...) do { std::cerr << __VA_ARGS__ << "\n"; } while(0)
@@ -79,8 +83,18 @@ boost::uint64_t LargeFile::offset() const { return this->byte_offset; }
 
 void LargeFile::truncate(const char* path, boost::uint64_t length)
 {
-  int rv = 0;
   DEBUG("path=" << path);
+#ifdef DETECTED_OS_WINDOWS
+  HANDLE fp = CreateFile(path, GENERIC_WRITE,
+                         FILE_SHARE_READ|FILE_SHARED_WRITE|FILE_SHARE_DELETE,
+                         NULL, OPEN_EXISTING, 0, NULL);
+  LARGE_INTEGER location;
+  location.QuadPart = static_cast<LONGLONG>(length);
+  SetFilePointerEx(fp, location, NULL, FILE_BEGIN);
+  SetEndOfFile(fp);
+  CloseHandle(fp);
+#else
+  int rv = 0;
   do {
     rv = ::truncate(path, length);
   } while(rv == -1 && errno == EINTR);
@@ -99,6 +113,7 @@ void LargeFile::truncate(const char* path, boost::uint64_t length)
       case EROFS: throw std::runtime_error("path is on RO filesystem"); break;
     }
   }
+#endif
 }
 
 void LargeFile::truncate(boost::uint64_t length)
