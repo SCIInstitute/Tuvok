@@ -289,6 +289,35 @@ namespace {
   }
 }
 
+// tests reopening a file r/w after opening in RO.
+namespace {
+  template<class T> void lf_generic_reopen() {
+    std::ofstream ofs;
+    const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    ofs.close();
+
+    const size_t N = 64;
+    const int64_t VALUE = -42;
+    T lf(tmpf, std::ios::in, 0, sizeof(int64_t)*N);
+
+    {
+      int64_t data[N];
+      std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE));
+      lf.open(std::ios::out);
+      lf.write(std::tr1::shared_ptr<const void>(data, null_deleter), 0,
+                                                sizeof(int64_t)*N);
+    }
+    lf.close();
+
+    T lfread(tmpf, std::ios::in, 0, sizeof(int64_t)*N);
+    std::tr1::shared_ptr<const void> mem = lfread.read(0, sizeof(int64_t)*N);
+    const int64_t* data = static_cast<const int64_t*>(mem.get());
+    for(size_t i=0; i < N; ++i) { TS_ASSERT_EQUALS(data[i], VALUE); }
+
+    remove(tmpf.c_str());
+  }
+}
+
 class LargeFileTests : public CxxTest::TestSuite {
 public:
   void test_mmap_open() { lf_generic_open<LargeFileMMap>(); }
@@ -298,6 +327,7 @@ public:
   void test_mmap_header() { lf_generic_header<LargeFileMMap>(); }
   void test_mmap_large_header() { lf_generic_large_header<LargeFileMMap>(); }
   void test_mmap_enqueue() { lf_generic_enqueue<LargeFileMMap>(); }
+  void test_mmap_reopen() { lf_generic_reopen<LargeFileMMap>(); }
 
   void test_fd_open() { lf_generic_open<LargeFileFD>(); }
   void test_fd_read() { lf_generic_read<LargeFileFD>(); }
@@ -306,6 +336,7 @@ public:
   void test_fd_header() { lf_generic_header<LargeFileFD>(); }
   void test_fd_large_header() { lf_generic_large_header<LargeFileFD>(); }
   void test_fd_enqueue() { lf_generic_enqueue<LargeFileFD>(); }
+  void test_fd_reopen() { lf_generic_reopen<LargeFileFD>(); }
 
   void test_aio_open() { lf_generic_open<LargeFileAIO>(); }
   void test_aio_read() { lf_generic_read<LargeFileAIO>(); }
@@ -315,4 +346,5 @@ public:
   void test_aio_large_header() { lf_generic_large_header<LargeFileAIO>(); }
   void test_aio_nocopy() { lf_aio_nocopy(); }
   void test_aio_enqueue() { lf_generic_enqueue<LargeFileAIO>(); }
+  void test_aio_reopen() { lf_generic_reopen<LargeFileAIO>(); }
 };
