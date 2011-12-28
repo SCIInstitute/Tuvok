@@ -51,7 +51,7 @@ namespace {
       TS_FAIL("Could not open file at all.");
       return;
     }
-    std::tr1::shared_ptr<const void> mem = lf.read(0, len * sizeof(uint64_t));
+    std::tr1::shared_ptr<const void> mem = lf.rd(0, len * sizeof(uint64_t));
     const uint64_t* data = static_cast<const uint64_t*>(mem.get());
     assert(data != NULL);
     for(size_t i=0; i < len; ++i) {
@@ -79,14 +79,14 @@ namespace {
       T lf(tmpf, std::ios::out, 0, sizeof(int64_t)*N);
       int64_t data[N];
       std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE));
-      lf.write(std::tr1::shared_ptr<const void>(data, null_deleter), 0,
-                                                sizeof(int64_t)*N);
+      lf.wr(std::tr1::shared_ptr<const void>(data, null_deleter), 0,
+                                             sizeof(int64_t)*N);
       lf.close();
     }
     MESSAGE("Write complete, closed.  Starting read.");
     {
       T lf(tmpf, std::ios::in);
-      std::tr1::shared_ptr<const void> mem = lf.read(0, N*sizeof(int64_t));
+      std::tr1::shared_ptr<const void> mem = lf.rd(0, N*sizeof(int64_t));
       const int64_t* data = static_cast<const int64_t*>(mem.get());
       for(size_t i=0; i < N; ++i) {
         TS_ASSERT_EQUALS(data[i], VALUE);
@@ -110,8 +110,8 @@ namespace {
       T lf(tmpf, std::ios::out, 0, sizeof(int64_t)*N);
       int64_t data[N];
       std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE));
-      lf.write(std::tr1::shared_ptr<const void>(data, null_deleter), 0,
-                                                sizeof(int64_t)*N);
+      lf.wr(std::tr1::shared_ptr<const void>(data, null_deleter), 0,
+                                             sizeof(int64_t)*N);
       lf.close();
     }
     {
@@ -149,17 +149,17 @@ namespace {
 
       int64_t data[N];
       std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE[0]));
-      lf.write(std::tr1::shared_ptr<const void>(data, null_deleter), 0,
-                                                sizeof(int64_t)*N);
+      lf.wr(std::tr1::shared_ptr<const void>(data, null_deleter), 0,
+                                             sizeof(int64_t)*N);
       std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE[1]));
-      lf.write(std::tr1::shared_ptr<const void>(data, null_deleter),
-                                                sizeof(int64_t)*N,
-                                                sizeof(int64_t)*N);
+      lf.wr(std::tr1::shared_ptr<const void>(data, null_deleter),
+                                             sizeof(int64_t)*N,
+                                             sizeof(int64_t)*N);
       lf.close();
     }
     { /* read.  offset so we see 1 VALUE[0] and N VALUE[1]'s. */
       T lf(tmpf, std::ios::in, sizeof(int64_t)*(N-1));
-      std::tr1::shared_ptr<const void> mem = lf.read(0, (N+1)*sizeof(int64_t));
+      std::tr1::shared_ptr<const void> mem = lf.rd(0, (N+1)*sizeof(int64_t));
       const int64_t* data = static_cast<const int64_t*>(mem.get());
       TS_ASSERT_EQUALS(data[0], VALUE[0]);
       for(size_t i=1; i < N+1; ++i) {
@@ -189,18 +189,18 @@ namespace {
       int64_t data[N];
       lf.seek(offset);
       std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE[0]));
-      lf.write(std::tr1::shared_ptr<const void>(data, null_deleter), offset,
-                                                sizeof(int64_t)*N);
+      lf.wr(std::tr1::shared_ptr<const void>(data, null_deleter), offset,
+                                             sizeof(int64_t)*N);
       std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE[1]));
-      lf.write(std::tr1::shared_ptr<const void>(data, null_deleter),
-                                                sizeof(int64_t)*N + offset,
-                                                sizeof(int64_t)*N);
+      lf.wr(std::tr1::shared_ptr<const void>(data, null_deleter),
+                                             sizeof(int64_t)*N + offset,
+                                             sizeof(int64_t)*N);
       lf.close();
     }
     { /* now read.  We'll use a header offset so that we expect to see one
        * VALUE[0] and then N VALUE[1]s.*/
       T lf(tmpf, std::ios::in, offset);
-      std::tr1::shared_ptr<const void> mem = lf.read(0, 2*N*sizeof(int64_t));
+      std::tr1::shared_ptr<const void> mem = lf.rd(0, 2*N*sizeof(int64_t));
       const int64_t* data = static_cast<const int64_t*>(mem.get());
       for(size_t i=0; i < N; ++i) {
         TS_ASSERT_EQUALS(data[i], VALUE[0]);
@@ -231,9 +231,9 @@ void lf_aio_nocopy() {
     for(size_t i=0; i < 3; ++i) {
       std::generate(data[i], data[i]+N,
                     std::tr1::bind(generate_constant, VALUE[i]));
-      lf.write(std::tr1::shared_ptr<const void>(data[i], null_deleter),
-                                                offset + i*N*sizeof(int64_t),
-                                                sizeof(int64_t)*N);
+      lf.wr(std::tr1::shared_ptr<const void>(data[i], null_deleter),
+                                             offset + i*N*sizeof(int64_t),
+                                             sizeof(int64_t)*N);
     }
   }
   {
@@ -273,14 +273,14 @@ namespace {
       int64_t data[N];
       const boost::uint64_t this_offset = offset + i*(sizeof(int64_t)*N);
       std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE[i]));
-      lf.write(std::tr1::shared_ptr<const void>(data, null_deleter),
-                                                this_offset,
-                                                sizeof(int64_t)*N);
+      lf.wr(std::tr1::shared_ptr<const void>(data, null_deleter),
+                                             this_offset,
+                                             sizeof(int64_t)*N);
       if(i == 5) {
         lf.enqueue(offset, sizeof(int64_t)*N);
       }
     }
-    std::tr1::shared_ptr<const void> mem = lf.read(offset, sizeof(int64_t)*N);
+    std::tr1::shared_ptr<const void> mem = lf.rd(offset, sizeof(int64_t)*N);
     const int64_t* data = static_cast<const int64_t*>(mem.get());
     for(size_t i=0; i < N; ++i) {
       TS_ASSERT_EQUALS(data[i], VALUE[0]);
@@ -304,13 +304,13 @@ namespace {
       int64_t data[N];
       std::generate(data, data+N, std::tr1::bind(generate_constant, VALUE));
       lf.open(std::ios::out);
-      lf.write(std::tr1::shared_ptr<const void>(data, null_deleter), 0,
-                                                sizeof(int64_t)*N);
+      lf.wr(std::tr1::shared_ptr<const void>(data, null_deleter), 0,
+                                             sizeof(int64_t)*N);
     }
     lf.close();
 
     T lfread(tmpf, std::ios::in, 0, sizeof(int64_t)*N);
-    std::tr1::shared_ptr<const void> mem = lfread.read(0, sizeof(int64_t)*N);
+    std::tr1::shared_ptr<const void> mem = lfread.rd(0, sizeof(int64_t)*N);
     const int64_t* data = static_cast<const int64_t*>(mem.get());
     for(size_t i=0; i < N; ++i) { TS_ASSERT_EQUALS(data[i], VALUE); }
 
@@ -380,8 +380,10 @@ namespace {
       T lf(tmpf, std::ios::out, 0, sizeof(int64_t)*128);
       s8 = u8 = s16 = u16 = s32 = u32 = s64 = u64 = 0;
       d = f = 0.0f;
-      lf.read(&s8); lf.read(&u8); lf.read(&s16); lf.read(&u16);
-      lf.read(&s32); lf.read(&u32); lf.read(&s64); lf.read(&u64);
+      lf.read(&s8); lf.read(&u8);
+      lf.read(&s16); lf.read(&u16);
+      lf.read(&s32); lf.read(&u32);
+      lf.read(&s64); lf.read(&u64);
       lf.read(&f); lf.read(&d);
       TS_ASSERT_EQUALS(s8, -7);
       TS_ASSERT_EQUALS(u8, 19);
