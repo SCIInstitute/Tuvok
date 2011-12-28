@@ -67,10 +67,7 @@ LargeFileAIO::~LargeFileAIO()
   this->close();
 }
 
-namespace {
-  template<typename T> struct DeleteArray {
-    void operator()(const T* t) const { delete[] t; }
-  };
+namespace nonstd {
   // hack.  This only works here because we know we are always allocating
   // bytes, even though our interface requires us to shove them into a const
   // void*.
@@ -169,8 +166,9 @@ void LargeFileAIO::wr(const std::tr1::shared_ptr<const void>& data,
     int8_t* buf = new int8_t[len];
     ::memcpy(buf, data.get(), len);
     const void* bufv = static_cast<const void*>(buf);
-    saved_data = std::tr1::shared_ptr<const void>(bufv,
-                                                  DeleteArray<const void>());
+    saved_data = std::tr1::shared_ptr<const void>(
+      bufv, nonstd::DeleteArray<const void>()
+    );
   } else {
     saved_data = std::tr1::shared_ptr<const void>(data);
   }
@@ -264,7 +262,8 @@ struct aiocb* LargeFileAIO::submit_new_request(boost::uint64_t offset,
 
   cb->aio_fildes = this->fd;
   cb->aio_offset = offset;
-  std::tr1::shared_ptr<void> data(new int8_t[len], DeleteArray<int8_t>());
+  std::tr1::shared_ptr<void> data(new int8_t[len],
+                                  nonstd::DeleteArray<int8_t>());
   cb->aio_buf = data.get();
   cb->aio_nbytes = len;
   {

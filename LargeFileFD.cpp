@@ -65,12 +65,6 @@ LargeFileFD::~LargeFileFD()
   }
 }
 
-namespace {
-  template<typename T> struct DeleteArray {
-    void operator()(const T* t) const { delete[] t; }
-  };
-}
-
 std::tr1::shared_ptr<const void> LargeFileFD::rd(boost::uint64_t offset,
                                                  size_t len)
 {
@@ -86,7 +80,7 @@ std::tr1::shared_ptr<const void> LargeFileFD::rd(boost::uint64_t offset,
 #endif
 
   std::tr1::shared_ptr<char> data =
-    std::tr1::shared_ptr<char>(new char[len], DeleteArray<char>());
+    std::tr1::shared_ptr<char>(new char[len], nonstd::DeleteArray<char>());
   ssize_t bytes;
   size_t completed = 0;
   do {

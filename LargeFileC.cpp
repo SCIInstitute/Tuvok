@@ -64,12 +64,6 @@ LargeFileC::~LargeFileC()
   }
 }
 
-namespace {
-  template<typename T> struct DeleteArray {
-    void operator()(const T* t) const { delete[] t; }
-  };
-}
-
 int seeko(FILE* strm, boost::uint64_t off, int whence) {
 #if _POSIX_C_SOURCE >= 200112L
   if(fseeko(strm, off, whence) < 0) {
@@ -93,7 +87,7 @@ std::tr1::shared_ptr<const void> LargeFileC::rd(boost::uint64_t offset,
     throw std::ios_base::failure("could not seek to correct file position");
   }
 
-  std::tr1::shared_ptr<char> data(new char[len], DeleteArray<char>());
+  std::tr1::shared_ptr<char> data(new char[len], nonstd::DeleteArray<char>());
 
   size_t nitems = fread(data.get(), 1, len, this->fp);
   this->bytes_read = nitems;
