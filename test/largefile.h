@@ -342,6 +342,8 @@ static void lf_truncate() {
     ifs.read(reinterpret_cast<char*>(&test), sizeof(int64_t));
     TS_ASSERT(ifs.fail()); // ... but that read should have broken it.
   }
+
+  remove(tmpf.c_str());
 }
 
 // tests convenience read/write of a single value calls
