@@ -128,6 +128,10 @@ class LargeFile {
     std::string     m_filename;
     boost::uint64_t header_size;
     boost::uint64_t byte_offset;
+
+  private:
+    LargeFile(const LargeFile&);
+    LargeFile& operator=(const LargeFile&);
 };
 
 #endif /* BASICS_LARGEFILE_H */

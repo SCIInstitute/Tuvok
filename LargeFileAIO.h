@@ -83,6 +83,9 @@ class LargeFileAIO : public LargeFileFD {
     typedef std::tr1::unordered_map<struct aiocb*,
                                     std::tr1::shared_ptr<const void> > Reqs;
   private:
+    LargeFileAIO(const LargeFileAIO&);
+    LargeFileAIO& operator=(const LargeFileAIO&);
+
     struct aiocb* submit_new_request(boost::uint64_t offset, size_t len);
     void flush_writes();
 

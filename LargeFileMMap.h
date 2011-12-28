@@ -65,6 +65,10 @@ class LargeFileMMap : public LargeFileFD {
   private:
     void* map;
     boost::uint64_t length;
+
+  private:
+    LargeFileMMap(const LargeFileMMap&);
+    LargeFileMMap& operator=(const LargeFileMMap&);
 };
 
 #endif /* BASICS_LARGEFILE_MMAP_H */
