@@ -4,6 +4,7 @@
 using namespace std;
 
 LargeRAWFile::LargeRAWFile(const std::string& strFilename, uint64_t iHeaderSize):
+  m_StreamFile(NULL),
   m_strFilename(strFilename),
   m_bIsOpen(false),
   m_bWritable(false),

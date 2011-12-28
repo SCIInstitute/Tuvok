@@ -156,7 +156,7 @@ protected:
   std::string   m_strFilename;
   bool          m_bIsOpen;
   bool          m_bWritable;
-  uint64_t        m_iHeaderSize;
+  uint64_t      m_iHeaderSize;
 };
 
 #ifdef _MSC_VER
