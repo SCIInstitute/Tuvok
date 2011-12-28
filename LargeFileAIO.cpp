@@ -106,6 +106,30 @@ std::tr1::shared_ptr<const void> LargeFileAIO::read(boost::uint64_t offset,
   return mem;
 }
 
+/// notifies the object that we're going to need the following data soon.
+/// Many implementations will prefetch this data when it knows this.
+void LargeFileAIO::enqueue(boost::uint64_t offset, size_t len)
+{
+  if(len == 0) { return; }
+  struct aiocb* cb;
+
+  // hint at the FD level.  Not terribly important; the kernel will get the
+  // read request in just a second, when we submit.  But it might be able to
+  // read a page or two before we get to submitting the request -- especially
+  // if we happen to get put to sleep between now and then.
+  LargeFileFD::enqueue(offset, len);
+
+  // do they already have such a request outstanding?
+  const boost::uint64_t real_offset = offset + this->header_size;
+  cb = find_request(this->control, real_offset, len);
+  if(cb != NULL) {
+    DEBUG("request already exists... ignoring it.");
+    return;
+  }
+
+  submit_new_request(real_offset, len);
+}
+
 void LargeFileAIO::write(const std::tr1::shared_ptr<const void>& data,
                          boost::uint64_t offset,
                          size_t len)

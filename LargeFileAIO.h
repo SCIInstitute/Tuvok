@@ -53,6 +53,9 @@ class LargeFileAIO : public LargeFileFD {
     /// the type that makes sense for them.
     virtual std::tr1::shared_ptr<const void> read(boost::uint64_t offset,
                                                   size_t len);
+    /// notifies the object that we're going to need the following data soon.
+    /// Many implementations will prefetch this data when it knows this.
+    virtual void enqueue(boost::uint64_t offset, size_t len);
 
     /// writes a block of data.
     virtual void write(const std::tr1::shared_ptr<const void>& data,
