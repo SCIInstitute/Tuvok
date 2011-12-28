@@ -52,7 +52,9 @@ LargeFile::LargeFile(const std::wstring fn,
 std::tr1::shared_ptr<const void> LargeFile::rd(size_t length)
 {
   // The other 'read' will take account of the header_size.
-  return this->read(this->byte_offset, length);
+  std::tr1::shared_ptr<const void> rv(this->rd(this->byte_offset, length));
+  this->byte_offset += length;
+  return rv;
 }
 
 void LargeFile::wr(const std::tr1::shared_ptr<const void>& data,

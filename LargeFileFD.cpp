@@ -111,7 +111,6 @@ void LargeFileFD::wr(const std::tr1::shared_ptr<const void>& data,
   if(!this->is_open()) {
     throw std::ios_base::failure("file is not open!!");
   }
-  boost::uint64_t cur_offset = this->byte_offset;
 
   if(lseek(this->fd, offset+this->header_size, SEEK_SET) < 0) {
     throw std::ios_base::failure("could not seek to correct file position.");
@@ -127,9 +126,6 @@ void LargeFileFD::wr(const std::tr1::shared_ptr<const void>& data,
     }
     written += wr;
   } while(written < len && errno == EINTR);
-
-  /* again, don't bother checking for failure; we'll detect on the next IOp. */
-  lseek(this->fd, cur_offset, SEEK_SET);
 }
 
 void LargeFileFD::enqueue(boost::uint64_t offset, size_t len)
