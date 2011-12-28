@@ -134,6 +134,12 @@ void LargeFileMMap::open(std::ios_base::openmode mode)
     mmap_flags = MAP_SHARED; /* MAP_PRIVATE? */
   }
 
+  // if the file is empty... we can't map it anyway.  Just close it and bail.
+  if(this->filesize() == 0) {
+    LargeFileFD::close();
+    return;
+  }
+
   /* are we opening the file read only?  Truncate the length down to the file
    * size, then -- mapping less memory is easier on the kernel. */
   if(mode & std::ios_base::in && !(mode & std::ios_base::out)) {
