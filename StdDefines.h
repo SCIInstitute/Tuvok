@@ -39,10 +39,11 @@
 #ifndef STDDEFINES_H
 #define STDDEFINES_H
 
+#include <limits>
 #if _MSC_VER >= 1600 // VS 2010 or newer
 #include <cstdint>
 #else 
-#include "../IO/3rdParty/boost/boost/cstdint.hpp"
+#include "boost/cstdint.hpp"
 using boost::int64_t;
 using boost::int32_t;
 using boost::int16_t;
