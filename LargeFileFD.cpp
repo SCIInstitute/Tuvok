@@ -152,10 +152,10 @@ void LargeFileFD::open(std::ios_base::openmode mode)
     this->close();
   }
   int access = O_RDONLY;
-  if(mode & std::ios_base::in) {
-    access = O_RDONLY;
-  } else {
+  if(mode & std::ios_base::out) {
     access = O_RDWR | O_CREAT;
+  } else {
+    access = O_RDONLY;
   }
 
   this->fd = ::open(this->m_filename.c_str(), access,

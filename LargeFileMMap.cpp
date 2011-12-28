@@ -134,12 +134,12 @@ void LargeFileMMap::open(std::ios_base::openmode mode)
 #endif
 
   int mmap_prot = PROT_READ, mmap_flags = MAP_SHARED;
-  if(mode & std::ios_base::in) {
-    mmap_prot = PROT_READ;
-    mmap_flags = MAP_SHARED; /* MAP_PRIVATE? */
-  } else if(mode & std::ios_base::out) {
+  if(mode & std::ios_base::out) {
     mmap_prot = PROT_WRITE;
     mmap_flags = MAP_SHARED;
+  } else if(mode & std::ios_base::in) {
+    mmap_prot = PROT_READ;
+    mmap_flags = MAP_SHARED; /* MAP_PRIVATE? */
   }
 
   /* are we opening the file read only?  Truncate the length down to the file
