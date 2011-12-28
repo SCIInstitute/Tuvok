@@ -76,6 +76,18 @@ class LargeFileAIO : public LargeFileFD {
 
     virtual void close();
 
+    struct null_deleter { void operator()(const void*) const {} };
+    template<typename T> void read(T& v) {
+      uint64_t offs = this->byte_offset - header_size;
+      v = *static_cast<const T*>(this->read(offs, sizeof(T)).get());
+      this->byte_offset += sizeof(T);
+    }
+    template<typename T> void write(const T& v) {
+      this->write(std::tr1::shared_ptr<const void>(&v, null_deleter()),
+                  this->byte_offset, sizeof(T));
+      this->byte_offset += sizeof(T);
+    }
+
     typedef std::tr1::unordered_map<struct aiocb*,
                                     std::tr1::shared_ptr<const void> > Reqs;
   private:

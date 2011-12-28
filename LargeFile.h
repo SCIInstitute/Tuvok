@@ -82,6 +82,22 @@ class LargeFile {
                        boost::uint64_t offset,
                        size_t len) = 0;
 
+    /// read/write calls of a single element.  Only usable with implicit
+    /// offsets.
+    ///@{
+    // a 'delete' functor that just does nothing.
+    struct null_deleter { void operator()(const void*) const {} };
+    template<typename T> void read(T& v) {
+      v = *static_cast<const T*>(this->read(this->byte_offset,sizeof(T)).get());
+      this->byte_offset += sizeof(T);
+    }
+    template<typename T> void write(const T& v) {
+      this->write(std::tr1::shared_ptr<const void>(&v, null_deleter()),
+                  this->byte_offset, sizeof(T));
+      this->byte_offset += sizeof(T);
+    }
+    ///@}
+
     /// notifies the object that we're going to need the following data soon.
     /// Many implementations will prefetch this data when it knows this.
     virtual void enqueue(boost::uint64_t offset, size_t len) = 0;

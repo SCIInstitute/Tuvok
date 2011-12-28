@@ -51,17 +51,11 @@ LargeFile::LargeFile(const std::wstring fn,
 
 std::tr1::shared_ptr<const void> LargeFile::read(size_t length)
 {
-  // The other 'read' will take account of the header_size.  It has to be this
-  // way because the other read is public, and that's the only semantics that
-  // make sense.
-  return this->read(this->byte_offset - this->header_size, length);
+  // The other 'read' will take account of the header_size.
+  return this->read(this->byte_offset, length);
 }
 
-void LargeFile::seek(boost::uint64_t to)
-{
-  byte_offset = to + this->header_size;
-}
-
+void LargeFile::seek(boost::uint64_t to) { this->byte_offset = to; }
 boost::uint64_t LargeFile::offset() const { return this->byte_offset; }
 
 void LargeFile::truncate(const char* path, boost::uint64_t length)
