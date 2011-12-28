@@ -40,30 +40,38 @@ void SimpleMaxMin(const void* pIn, size_t iStart, size_t iCount,
   }
 }
 
-template<class T> void CombineAverage(const std::vector<uint64_t>& vSource, uint64_t iTarget, const void* pIn, const void* pOut) {
-  const T *pDataIn = (T*)pIn;
-  T *pDataOut = (T*)pOut;
+template<class T>
+void CombineAverage(const std::vector<uint64_t>& vSource, uint64_t iTarget,
+                    const void* pIn, void* pOut) {
+  const T *pDataIn = static_cast<const T*>(pIn);
+  T *pDataOut = static_cast<T*>(pOut);
 
   double temp = 0;
   for (size_t i = 0;i<vSource.size();i++) {
     temp += double(pDataIn[size_t(vSource[i])]);
   }
-  // make sure not to touch pDataOut before we are finished with reading pDataIn, this allows for inplace combine calls
+
+  // make sure not to touch pDataOut before we are finished with
+  // reading pDataIn, this allows for inplace combine calls
   pDataOut[iTarget] = T(temp / double(vSource.size()));
 }
 
-template<class T, size_t iVecLength> void CombineAverage(const std::vector<uint64_t>& vSource, uint64_t iTarget, const void* pIn, const void* pOut) {
-  const T *pDataIn = (T*)pIn;
-  T *pDataOut = (T*)pOut;
+template<class T, size_t iVecLength>
+void CombineAverage(const std::vector<uint64_t>& vSource, uint64_t iTarget,
+                    const void* pIn, void* pOut) {
+  const T *pDataIn = static_cast<const T*>(pIn);
+  T *pDataOut = static_cast<T*>(pOut);
 
   double temp[iVecLength];  
-  for (size_t i = 0;i<size_t(iVecLength);i++) temp[i] = 0.0;
+  std::fill(temp, temp+iVecLength, 0.0);
 
   for (size_t i = 0;i<vSource.size();i++) {
     for (size_t v = 0;v<size_t(iVecLength);v++)
       temp[v] += double(pDataIn[size_t(vSource[i])*iVecLength+v]) / double(vSource.size());
   }
-  // make sure not to touch pDataOut before we are finished with reading pDataIn, this allows for inplace combine calls
+
+  // make sure not to touch pDataOut before we are finished with
+  // reading pDataIn, this allows for inplace combine calls
   for (uint64_t v = 0;v<iVecLength;v++)
     pDataOut[v+iTarget*iVecLength] = T(temp[v]);
 }
@@ -76,11 +84,13 @@ class RasterDataBlock : public DataBlock {
 public:
   RasterDataBlock();
   RasterDataBlock(const RasterDataBlock &other);
-  RasterDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
+  RasterDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                  bool bIsBigEndian);
   virtual RasterDataBlock& operator=(const RasterDataBlock& other);
   virtual ~RasterDataBlock();
 
-  virtual bool Verify(uint64_t iSizeofData, std::string* pstrProblem = NULL) const;
+  virtual bool Verify(uint64_t iSizeofData,
+                      std::string* pstrProblem = NULL) const;
   virtual bool Verify(std::string* pstrProblem = NULL) const;
 
   std::vector<UVFTables::DomainSemanticTable> ulDomainSemantics;
@@ -168,11 +178,16 @@ public:
   /// NOTE: steals pointer; LargeRAWFile must live as long as the RDB.
   void ResetFile(LargeRAWFile_ptr);
 
-  const std::vector<uint64_t>& GetBrickCount(const std::vector<uint64_t>& vLOD) const;
-  const std::vector<uint64_t>& GetBrickSize(const std::vector<uint64_t>& vLOD, const std::vector<uint64_t>& vBrick) const;
-  std::vector<uint64_t> GetLODDomainSize(const std::vector<uint64_t>& vLOD) const;
+  const std::vector<uint64_t>& GetBrickCount(const std::vector<uint64_t>& vLOD)
+                                             const;
+  const std::vector<uint64_t>& GetBrickSize(const std::vector<uint64_t>& vLOD,
+                                            const std::vector<uint64_t>& vBrick)
+                                            const;
+  std::vector<uint64_t> GetLODDomainSize(const std::vector<uint64_t>& vLOD)
+                                         const;
 
-  bool BrickedLODToFlatData(const std::vector<uint64_t>& vLOD, const std::string& strTargetFile,
+  bool BrickedLODToFlatData(const std::vector<uint64_t>& vLOD,
+                            const std::string& strTargetFile,
                             bool bAppend = false, AbstrDebugOut* pDebugOut=NULL,
                             bool (*brickFunc)(LargeRAWFile_ptr pSourceFile,
                                 const std::vector<uint64_t> vBrickSize,
@@ -188,19 +203,23 @@ public:
   const std::vector<uint64_t>& GetSmallestBrickSize() const;
   const std::vector<uint64_t> GetLargestBrickSizes() const;
 
-  bool FlatDataToBrickedLOD(const void* pSourceData, const std::string& strTempFile,
-                            void (*combineFunc)(const std::vector<uint64_t> &vSource, uint64_t iTarget, const void* pIn, const void* pOut),
-                            void (*maxminFunc)(const void* pIn, size_t iStart,
-                                               size_t iCount,
-                                               std::vector<DOUBLEVECTOR4>& fMinMax),
-                            MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
-  bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData, const std::string& strTempFile,
-                            void (*combineFunc)(const std::vector<uint64_t> &vSource, uint64_t iTarget, const void* pIn, const void* pOut),
-                            void (*maxminFunc)(const void* pIn, size_t iStart,
-                                               size_t iCount,
-                                               std::vector<DOUBLEVECTOR4>& fMinMax),
-                            MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
-  void AllocateTemp(const std::string& strTempFile, bool bBuildOffsetTables=false);
+  bool FlatDataToBrickedLOD(
+    const void* pSourceData, const std::string& strTempFile,
+    void (*combineFunc)(const std::vector<uint64_t> &vSource, uint64_t iTarget,
+                        const void* pIn, void* pOut),
+    void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
+                       std::vector<DOUBLEVECTOR4>& fMinMax),
+    MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
+  bool FlatDataToBrickedLOD(
+    LargeRAWFile_ptr pSourceData, const std::string& strTempFile,
+    void (*combineFunc)(const std::vector<uint64_t> &vSource, uint64_t iTarget,
+                        const void* pIn, void* pOut),
+    void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
+                       std::vector<DOUBLEVECTOR4>& fMinMax),
+    MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
+
+  void AllocateTemp(const std::string& strTempFile,
+                    bool bBuildOffsetTables=false);
   bool ValidLOD(const std::vector<uint64_t>& vLOD) const;
   bool ValidBrickIndex(const std::vector<uint64_t>& vLOD,
                        const std::vector<uint64_t>& vBrick) const;
@@ -211,18 +230,27 @@ protected:
   LargeRAWFile_ptr m_pSourceFile;
   uint64_t        m_iSourcePos;
 
-  virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
-  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
-  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                                bool bIsBigEndian, bool bIsLastBlock);
+  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
+                                     uint64_t iOffset, bool bIsBigEndian);
+  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                              bool bIsBigEndian, bool bIsLastBlock);
   virtual DataBlock* Clone() const;
   virtual uint64_t GetOffsetToNextBlock() const;
 
-  std::vector<std::vector<uint64_t> > CountToVectors(std::vector<uint64_t> vCountVector) const ;
+  std::vector<std::vector<uint64_t> >
+    CountToVectors(std::vector<uint64_t> vCountVector) const;
   uint64_t ComputeElementSize() const;
   virtual uint64_t GetLODSize(std::vector<uint64_t>& vLODIndices) const;
-  virtual uint64_t ComputeLODLevelSize(const std::vector<uint64_t>& vReducedDomainSize) const;
-  virtual std::vector<std::vector<uint64_t> > ComputeBricks(const std::vector<uint64_t>& vDomainSize) const;
-  virtual std::vector<std::vector<uint64_t> > GenerateCartesianProduct(const std::vector<std::vector<uint64_t> >& vElements, uint64_t iIndex=0) const;
+  virtual uint64_t
+    ComputeLODLevelSize(const std::vector<uint64_t>& vReducedDomainSize) const;
+  virtual std::vector<std::vector<uint64_t> >
+    ComputeBricks(const std::vector<uint64_t>& vDomainSize) const;
+
+  virtual std::vector<std::vector<uint64_t> > GenerateCartesianProduct(
+    const std::vector<std::vector<uint64_t> >& vElements, uint64_t iIndex=0
+  ) const;
   uint64_t RecompLODIndexCount() const;
   void CleanupTemp();
 
@@ -237,13 +265,31 @@ protected:
   std::vector<std::vector<uint64_t> > m_vBrickOffsets;
   std::vector<std::vector<std::vector<uint64_t> > > m_vBrickSizes;
 
-  uint64_t Serialize(const std::vector<uint64_t>& vec, const std::vector<uint64_t>& vSizes) const;
-  uint64_t GetLocalDataPointerOffset(const std::vector<uint64_t>& vLOD, const std::vector<uint64_t>& vBrick) const;
-  uint64_t GetLocalDataPointerOffset(const uint64_t iLODIndex, const uint64_t iBrickIndex) const {return m_vLODOffsets[size_t(iLODIndex)] + m_vBrickOffsets[size_t(iLODIndex)][size_t(iBrickIndex)];}
-  void SubSample(LargeRAWFile_ptr pSourceFile, LargeRAWFile_ptr pTargetFile, std::vector<uint64_t> sourceSize, std::vector<uint64_t> targetSize, void (*combineFunc)(const std::vector<uint64_t> &vSource, uint64_t iTarget, const void* pIn, const void* pOut), AbstrDebugOut* pDebugOut=NULL, uint64_t iLODLevel=0, uint64_t iMaxLODLevel=0);
+  uint64_t Serialize(const std::vector<uint64_t>& vec,
+                     const std::vector<uint64_t>& vSizes) const;
+  uint64_t GetLocalDataPointerOffset(const std::vector<uint64_t>& vLOD,
+                                     const std::vector<uint64_t>& vBrick) const;
+  uint64_t GetLocalDataPointerOffset(const uint64_t iLODIndex,
+                                     const uint64_t iBrickIndex) const {
+    return m_vLODOffsets[size_t(iLODIndex)] +
+           m_vBrickOffsets[size_t(iLODIndex)][size_t(iBrickIndex)];
+  }
+
+  void SubSample(LargeRAWFile_ptr pSourceFile, LargeRAWFile_ptr pTargetFile,
+                 std::vector<uint64_t> sourceSize,
+                 std::vector<uint64_t> targetSize,
+                 void (*combineFunc)(const std::vector<uint64_t> &vSource,
+                                     uint64_t iTarget, const void* pIn,
+                                     void* pOut),
+                 AbstrDebugOut* pDebugOut=NULL, uint64_t iLODLevel=0,
+                 uint64_t iMaxLODLevel=0);
+
   uint64_t ComputeDataSizeAndOffsetTables();
-  uint64_t GetLODSizeAndOffsetTables(std::vector<uint64_t>& vLODIndices, uint64_t iLOD);
-  uint64_t ComputeLODLevelSizeAndOffsetTables(const std::vector<uint64_t>& vReducedDomainSize, uint64_t iLOD);
+  uint64_t GetLODSizeAndOffsetTables(std::vector<uint64_t>& vLODIndices,
+                                     uint64_t iLOD);
+  uint64_t ComputeLODLevelSizeAndOffsetTables(
+    const std::vector<uint64_t>& vReducedDomainSize, uint64_t iLOD
+  );
 
   bool TraverseBricksToWriteBrickToFile(
       uint64_t& iBrickCounter, uint64_t iBrickCount,
@@ -388,5 +434,4 @@ class LODBrickIterator : public std::iterator<std::input_iterator_tag, T> {
     size_t iter;
     bool eos; // end-of-stream.
 };
-
 #endif // UVF_RASTERDATABLOCK_H

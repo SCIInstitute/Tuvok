@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GLOBALHEADER_H
-#define GLOBALHEADER_H
+#ifndef UVF_GLOBALHEADER_H
+#define UVF_GLOBALHEADER_H
 
 #include <vector>
 #include "UVFTables.h"
@@ -12,10 +12,10 @@ public:
   GlobalHeader& operator=(const GlobalHeader& other);
 
   bool                              bIsBigEndian;
-  uint64_t                            ulFileVersion;
+  uint64_t                          ulFileVersion;
   UVFTables::ChecksumSemanticTable  ulChecksumSemanticsEntry;
   std::vector<unsigned char>        vcChecksum;
-  uint64_t                            ulAdditionalHeaderSize;
+  uint64_t                          ulAdditionalHeaderSize;
 
 protected:
   uint64_t GetDataPos();
@@ -24,9 +24,10 @@ protected:
   uint64_t GetSize();
   static uint64_t GetMinSize();
   uint64_t ulOffsetToFirstDataBlock;
-  void UpdateChecksum(std::vector<unsigned char> checksum, LargeRAWFile_ptr pStreamFile);
+  void UpdateChecksum(std::vector<unsigned char> checksum,
+                      LargeRAWFile_ptr pStreamFile);
 
   friend class UVF;
 };
 
-#endif // GLOBALHEADER_H
+#endif // UVF_GLOBALHEADER_H

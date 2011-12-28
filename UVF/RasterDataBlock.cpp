@@ -775,11 +775,14 @@ void RasterDataBlock::SubSample(LargeRAWFile_ptr pSourceFile,
                                 LargeRAWFile_ptr pTargetFile,
                                 std::vector<uint64_t> sourceSize,
                                 std::vector<uint64_t> targetSize,
-                                void (*combineFunc)(const std::vector<uint64_t> &vSource,
-                                                    uint64_t iTarget,
-                                                    const void* pIn,
-                                                    const void* pOut),
-                               AbstrDebugOut* pDebugOut, uint64_t iLODLevel, uint64_t iMaxLODLevel) {
+                                void (*combineFunc)(
+                                  const std::vector<uint64_t> &vSource,
+                                  uint64_t iTarget,
+                                  const void* pIn, void* pOut
+                                ),
+                                AbstrDebugOut* pDebugOut, uint64_t iLODLevel,
+                                uint64_t iMaxLODLevel)
+{
   pSourceFile->SeekStart();
   pTargetFile->SeekStart();
 
@@ -913,12 +916,14 @@ void RasterDataBlock::AllocateTemp(const string& strTempFile, bool bBuildOffsetT
  * \return void
  * \see FlatDataToBrickedLOD
  */
-bool RasterDataBlock::FlatDataToBrickedLOD(const void* pSourceData, const string& strTempFile,
-                                           void (*combineFunc)(const vector<uint64_t>& vSource, uint64_t iTarget, const void* pIn, const void* pOut),
-                                           void (*maxminFunc)(const void* pIn, size_t iStart,
-                                                              size_t iCount,
-                                                              std::vector<DOUBLEVECTOR4>& fMinMax),
-                                              MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut) {
+bool RasterDataBlock::FlatDataToBrickedLOD(
+  const void* pSourceData, const string& strTempFile,
+  void (*combineFunc)(const vector<uint64_t>& vSource, uint64_t iTarget,
+                      const void* pIn, void* pOut),
+  void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
+                     std::vector<DOUBLEVECTOR4>& fMinMax),
+  MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut)
+{
   // size of input data
   uint64_t iInPointerSize = ComputeElementSize()/8;
   for (size_t i = 0;i<ulDomainSize.size();i++) iInPointerSize *= ulDomainSize[i];
@@ -971,7 +976,7 @@ bool
 RasterDataBlock::FlatDataToBrickedLOD(
   LargeRAWFile_ptr pSourceData, const string& strTempFile,
   void (*combineFunc)(const vector<uint64_t>& vSource, uint64_t iTarget,
-                      const void* pIn, const void* pOut),
+                      const void* pIn, void* pOut),
   void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
                      std::vector<DOUBLEVECTOR4>& fMinMax),
   MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut)

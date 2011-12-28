@@ -34,8 +34,8 @@
 
 #pragma once
 
-#ifndef GEOMETRYDATABLOCK_H
-#define GEOMETRYDATABLOCK_H
+#ifndef UVF_GEOMETRYDATABLOCK_H
+#define UVF_GEOMETRYDATABLOCK_H
 
 #include <string>
 #include <vector>
@@ -47,11 +47,13 @@ class GeometryDataBlock : public DataBlock {
 public:
   GeometryDataBlock();
   GeometryDataBlock(const GeometryDataBlock &other);
-  GeometryDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
+  GeometryDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                    bool bIsBigEndian);
   virtual GeometryDataBlock& operator=(const GeometryDataBlock& other);
   virtual ~GeometryDataBlock();
 
-  virtual bool Verify(uint64_t iSizeofData, std::string* pstrProblem = NULL) const;
+  virtual bool Verify(uint64_t iSizeofData,
+                      std::string* pstrProblem = NULL) const;
   virtual uint64_t ComputeDataSize() const;
 
   std::vector< float > GetVertices() const;
@@ -75,7 +77,9 @@ public:
   void SetColorIndices(const std::vector< uint32_t >& cI);
 
   const std::vector< float >& GetDefaultColor() const {return m_DefaultColor;}
-  void SetDefaultColor(const std::vector< float >& color) {m_DefaultColor = color;}
+  void SetDefaultColor(const std::vector<float>& color) {
+    m_DefaultColor = color;
+  }
 
   std::string m_Desc;
   uint64_t GetPolySize() const {return m_PolySize;}
@@ -83,11 +87,14 @@ public:
   
 protected:
   uint64_t ComputeHeaderSize() const;
-  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
-  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
+                                     uint64_t iOffset, bool bIsBigEndian);
+  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                              bool bIsBigEndian, bool bIsLastBlock);
   virtual uint64_t GetOffsetToNextBlock() const;
 
-  virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                                bool bIsBigEndian, bool bIsLastBlock);
   virtual DataBlock* Clone() const;
 
   friend class UVF;
@@ -116,11 +123,10 @@ protected:
 
   std::vector< float > m_DefaultColor;
 
-  uint64_t               m_PolySize;
+  uint64_t             m_PolySize;
 
 private:
   bool   m_bIsBigEndian;
-
 
   uint64_t m_n_vertices;
   uint64_t m_n_normals;
@@ -131,6 +137,5 @@ private:
   uint64_t m_n_normal_indices;
   uint64_t m_n_texcoord_indices;
   uint64_t m_n_color_indices;
-
 };
-#endif // GEOMETRYDATABLOCK_H
+#endif // UVF_GEOMETRYDATABLOCK_H

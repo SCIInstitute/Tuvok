@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef HISTOGRAM1DDATABLOCK_H
-#define HISTOGRAM1DDATABLOCK_H
+#ifndef UVF_HISTOGRAM1DDATABLOCK_H
+#define UVF_HISTOGRAM1DDATABLOCK_H
 
 #include "DataBlock.h"
 #include "TOCBlock.h"
@@ -14,7 +14,8 @@ public:
   Histogram1DDataBlock();
   ~Histogram1DDataBlock();
   Histogram1DDataBlock(const Histogram1DDataBlock &other);
-  Histogram1DDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
+  Histogram1DDataBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                       bool bIsBigEndian);
   virtual Histogram1DDataBlock& operator=(const Histogram1DDataBlock& other);
   virtual uint64_t ComputeDataSize() const;
 
@@ -27,14 +28,18 @@ public:
 protected:
   std::vector<uint64_t> m_vHistData;
 
-  virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
-  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
-  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock);
+  virtual void CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                                bool bIsBigEndian, bool bIsLastBlock);
+  virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
+                                     uint64_t iOffset, bool bIsBigEndian);
+  virtual uint64_t CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                              bool bIsBigEndian, bool bIsLastBlock);
   virtual uint64_t GetOffsetToNextBlock() const;
 
   virtual DataBlock* Clone() const;
 
-  template < class T > void ComputeTemplate(const TOCBlock* source, uint64_t iLevel) {
+  template <class T> void ComputeTemplate(const TOCBlock* source,
+                                          uint64_t iLevel) {
     // compute histogram by iterating over all bricks of the given level
     UINT64VECTOR3 bricksInSourceLevel = source->GetBrickCount(iLevel);
 
@@ -46,7 +51,6 @@ protected:
     for (uint64_t bz = 0;bz<bricksInSourceLevel.z;bz++) {
       for (uint64_t by = 0;by<bricksInSourceLevel.y;by++) {
         for (uint64_t bx = 0;bx<bricksInSourceLevel.x;bx++) {
-
           UINT64VECTOR4 brickCoords(bx,by,bz,iLevel);
           source->GetData((uint8_t*)pTempBrickData, brickCoords);
           UINTVECTOR3 bricksize = source->GetBrickSize(brickCoords);
@@ -64,10 +68,7 @@ protected:
         }
       }
     }
-
     delete [] pTempBrickData;
-
   }
 };
-
-#endif // HISTOGRAM1DDATABLOCK_H
+#endif // UVF_HISTOGRAM1DDATABLOCK_H

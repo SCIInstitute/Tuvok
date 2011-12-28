@@ -3,7 +3,6 @@
 #ifndef UVFTABLES_H
 #define UVFTABLES_H
 
-#include <limits>
 #include "UVFBasic.h"
 
 /************************************************
@@ -79,7 +78,9 @@ namespace UVFTables {
 
   std::string BlockSemanticTableToCharString(BlockSemanticTable uiTable);
   std::wstring BlockSemanticTableToString(BlockSemanticTable uiTable);
-  DataBlock* CreateBlockFromSemanticEntry(BlockSemanticTable uiTable, LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
+  DataBlock* CreateBlockFromSemanticEntry(BlockSemanticTable uiTable,
+                                          LargeRAWFile_ptr pStreamFile,
+                                          uint64_t iOffset, bool bIsBigEndian);
 
   std::string DomainSemanticToCharString(DomainSemanticTable uiTable);
   std::wstring DomainSemanticToString(DomainSemanticTable uiTable);

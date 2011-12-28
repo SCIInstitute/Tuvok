@@ -19,7 +19,9 @@ class DataBlockListElem {
       m_iBlockSize(0)
     {}
     
-    DataBlockListElem(DataBlock* block, bool bSelfCreatedPointer, bool bIsDirty, uint64_t iOffsetInFile, uint64_t iBlockSize) :
+    DataBlockListElem(DataBlock* block, bool bSelfCreatedPointer,
+                      bool bIsDirty, uint64_t iOffsetInFile,
+                      uint64_t iBlockSize) :
       m_block(block),
       m_bSelfCreatedPointer(bSelfCreatedPointer),
       m_bIsDirty(bIsDirty),
@@ -50,12 +52,15 @@ public:
   UVF(std::wstring wstrFilename);
   virtual ~UVF(void);
 
-  bool Open(bool bMustBeSameVersion=true, bool bVerify=true, bool bReadWrite=false, std::string* pstrProblem = NULL);
+  bool Open(bool bMustBeSameVersion=true, bool bVerify=true,
+            bool bReadWrite=false, std::string* pstrProblem = NULL);
   void Close();
 
   const GlobalHeader& GetGlobalHeader() const {return m_GlobalHeader;}
   uint64_t GetDataBlockCount() const {return uint64_t(m_DataBlocks.size());}
-  const DataBlock* GetDataBlock(uint64_t index) const {return m_DataBlocks[size_t(index)]->m_block;}
+  const DataBlock* GetDataBlock(uint64_t index) const {
+    return m_DataBlocks[size_t(index)]->m_block;
+  }
   DataBlock* GetDataBlockRW(uint64_t index, bool bOnlyChangeHeader);
 
   // file creation routines
@@ -78,12 +83,17 @@ protected:
   uint64_t          m_iAccumOffsets;
 
   GlobalHeader m_GlobalHeader;
-  std::vector< DataBlockListElem* > m_DataBlocks;
+  std::vector<DataBlockListElem*> m_DataBlocks;
 
   bool ParseGlobalHeader(bool bVerify, std::string* pstrProblem = NULL);
   void ParseDataBlocks();
-  static bool VerifyChecksum(LargeRAWFile_ptr streamFile, GlobalHeader& globalHeader, std::string* pstrProblem = NULL);
-  static std::vector<unsigned char> ComputeChecksum(LargeRAWFile_ptr streamFile, UVFTables::ChecksumSemanticTable eChecksumSemanticsEntry);
+  static bool VerifyChecksum(LargeRAWFile_ptr streamFile,
+                             GlobalHeader& globalHeader,
+                             std::string* pstrProblem = NULL);
+  static std::vector<unsigned char> ComputeChecksum(
+    LargeRAWFile_ptr streamFile,
+    UVFTables::ChecksumSemanticTable eChecksumSemanticsEntry
+  );
 
   static bool CheckMagic(LargeRAWFile_ptr streamFile);
 
