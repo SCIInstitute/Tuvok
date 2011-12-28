@@ -66,6 +66,14 @@ LargeFileMMap::LargeFileMMap(const std::string fn,
 {
   this->open(mode);
 }
+LargeFileMMap::LargeFileMMap(const std::wstring fn,
+                             std::ios_base::openmode mode,
+                             boost::uint64_t header_size,
+                             boost::uint64_t length) :
+  LargeFileFD(fn, mode, header_size), map(NULL), length(length)
+{
+  this->open(mode);
+}
 
 LargeFileMMap::~LargeFileMMap()
 {

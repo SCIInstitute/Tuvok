@@ -40,6 +40,10 @@ class LargeFileMMap : public LargeFileFD {
                   std::ios_base::openmode mode = std::ios_base::in,
                   boost::uint64_t header_size=0,
                   boost::uint64_t length = UINT64_PAGE_MAX);
+    LargeFileMMap(const std::wstring fn,
+                  std::ios_base::openmode mode = std::ios_base::in,
+                  boost::uint64_t header_size=0,
+                  boost::uint64_t length = UINT64_PAGE_MAX);
     virtual ~LargeFileMMap();
 
     /// reads a block of data, returns a pointer to it.  User must cast it to

@@ -49,6 +49,14 @@ LargeFileFD::LargeFileFD(const std::string fn,
 {
   this->open(mode);
 }
+LargeFileFD::LargeFileFD(const std::wstring fn,
+                         std::ios_base::openmode mode,
+                         boost::uint64_t header_size,
+                         boost::uint64_t /* length */) :
+  LargeFile(fn, mode, header_size), fd(-1)
+{
+  this->open(mode);
+}
 
 LargeFileFD::~LargeFileFD()
 {

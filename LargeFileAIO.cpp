@@ -53,6 +53,14 @@ LargeFileAIO::LargeFileAIO(const std::string fn,
 {
   this->open(mode);
 }
+LargeFileAIO::LargeFileAIO(const std::wstring fn,
+                           std::ios_base::openmode mode,
+                           boost::uint64_t header_size,
+                           boost::uint64_t /* length */) :
+  LargeFileFD(fn, mode, header_size), writes_copied(true)
+{
+  this->open(mode);
+}
 
 LargeFileAIO::~LargeFileAIO()
 {

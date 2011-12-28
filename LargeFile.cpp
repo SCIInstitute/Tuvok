@@ -37,6 +37,15 @@ LargeFile::LargeFile(const std::string fn,
   byte_offset(0)
 {
 }
+LargeFile::LargeFile(const std::wstring fn,
+                     std::ios_base::openmode,
+                     boost::uint64_t hsz,
+                     boost::uint64_t /* length */) :
+  m_filename(fn.begin(), fn.end()),
+  header_size(hsz),
+  byte_offset(0)
+{
+}
 
 std::tr1::shared_ptr<const void> LargeFile::read(size_t length)
 {

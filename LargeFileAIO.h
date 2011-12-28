@@ -47,6 +47,12 @@ class LargeFileAIO : public LargeFileFD {
                  std::ios_base::openmode mode = std::ios_base::in,
                  boost::uint64_t header_size=0,
                  boost::uint64_t length=0);
+    /// @argument header_size is maintained as a "base" offset.  Seeking to
+    /// byte 0 actually seeks to 'header_size'.
+    LargeFileAIO(const std::wstring fn,
+                 std::ios_base::openmode mode = std::ios_base::in,
+                 boost::uint64_t header_size=0,
+                 boost::uint64_t length=0);
     virtual ~LargeFileAIO();
 
     /// reads a block of data, returns a pointer to it.  User must cast it to
