@@ -57,18 +57,21 @@ HEADERS += \
            Basics/Checksums/crc32.h \
            Basics/Checksums/MD5.h \
            Basics/CommandReturn.h \
-           Basics/TuvokException.h \
+           Basics/EndianFile.h \
            Basics/GeometryGenerator.h \
            Basics/Grids.h \
+           Basics/KDTree.h \
+           Basics/LargeFile.h \
+           Basics/LargeFileC.h \
            Basics/LargeRAWFile.h \
            Basics/MathTools.h \
            Basics/MC.h \
-           Basics/Plane.h \
-           Basics/Timer.h \
-           Basics/SysTools.h \
-           Basics/Vectors.h \
            Basics/Mesh.h \
-           Basics/KDTree.h \
+           Basics/Plane.h \
+           Basics/SysTools.h \
+           Basics/Timer.h \
+           Basics/TuvokException.h \
+           Basics/Vectors.h \
            Basics/nonstd.h \
            Controller/Controller.h \
            Controller/MasterController.h \
@@ -205,8 +208,6 @@ HEADERS += \
            StdTuvokDefines.h
 
 unix:HEADERS += \
-  Basics/EndianFile.h \
-  Basics/LargeFile.h \
   Basics/LargeFileAIO.h \
   Basics/LargeFileFD.h \
   Basics/LargeFileMMap.h
@@ -216,8 +217,11 @@ SOURCES += \
            Basics/Appendix.cpp \
            Basics/ArcBall.cpp \
            Basics/Checksums/MD5.cpp \
+           Basics/EndianFile.cpp \
            Basics/GeometryGenerator.cpp \
            Basics/LargeRAWFile.cpp \
+           Basics/LargeFile.cpp \
+           Basics/LargeFileC.cpp \
            Basics/MathTools.cpp \
            Basics/MC.cpp \
            Basics/Plane.cpp \
@@ -427,8 +431,6 @@ SOURCES += \
            Scripting/Scripting.cpp
 
 unix:SOURCES += \
-  Basics/EndianFile.cpp \
-  Basics/LargeFile.cpp \
   Basics/LargeFileAIO.cpp \
   Basics/LargeFileFD.cpp \
   Basics/LargeFileMMap.cpp \
