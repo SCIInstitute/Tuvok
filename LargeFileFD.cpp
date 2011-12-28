@@ -124,6 +124,26 @@ void LargeFileFD::write(const std::tr1::shared_ptr<const void>& data,
   lseek(this->fd, cur_offset, SEEK_SET);
 }
 
+void LargeFileFD::enqueue(boost::uint64_t offset, size_t len)
+{
+  if(len == 0) { return; }
+#if _POSIX_C_SOURCE >= 200112L
+  int adv = posix_fadvise(this->fd, offset, len, POSIX_FADV_WILLNEED);
+  // this should basically always succeed.  the only way it can fail is if we
+  // gave it a bogus FD or something.  if that's the case, that points to
+  // either a programming error or some sort of nasty memory corruption.
+  switch(adv) {
+    case 0: /* nothing, good. */ break;
+    case EBADF: throw std::out_of_range("bad file descriptor."); break;
+    case EINVAL: throw std::invalid_argument("bad argument"); break;
+    case ESPIPE: throw std::domain_error("fd refers to a pipe?!"); break;
+  }
+#else
+  (void) offset;
+  (void) len;
+#endif
+}
+
 bool LargeFileFD::is_open() const
 {
   return this->fd != -1;

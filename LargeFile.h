@@ -69,6 +69,10 @@ class LargeFile {
                        boost::uint64_t offset,
                        size_t len) = 0;
 
+    /// notifies the object that we're going to need the following data soon.
+    /// Many implementations will prefetch this data when it knows this.
+    virtual void enqueue(boost::uint64_t offset, size_t len) = 0;
+
     std::string filename() const { return this->m_filename; }
 
     virtual void seek(boost::uint64_t);
