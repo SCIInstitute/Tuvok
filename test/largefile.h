@@ -343,6 +343,61 @@ static void lf_truncate() {
   }
 }
 
+// tests convenience read/write of a single value calls
+namespace {
+  template<class T> void lf_generic_rw_single() {
+    std::ofstream ofs;
+    const std::string tmpf = mk_tmpfile(ofs, std::ios::out | std::ios::binary);
+    ofs.close();
+
+    boost::int8_t s8 = -7;
+    boost::uint8_t u8 = 19;
+    boost::int16_t s16 = 6;
+    boost::uint16_t u16 = 74;
+    boost::int32_t s32 = -15;
+    boost::uint32_t u32 = 2048;
+    boost::int64_t s64 = -21438907;
+    boost::uint64_t u64 = 234987;
+    float f = 9.81;
+    double d = 4.242;
+
+    {
+      // just overestimate the size, it doesn't matter much anyway.
+      T lf(tmpf, std::ios::out, 0, sizeof(int64_t)*128);
+      lf.write(s8);
+      lf.write(u8);
+      lf.write(s16);
+      lf.write(u16);
+      lf.write(s32);
+      lf.write(u32);
+      lf.write(s64);
+      lf.write(u64);
+      lf.write(f);
+      lf.write(d);
+    }
+    {
+      // just overestimate the size, it doesn't matter much anyway.
+      T lf(tmpf, std::ios::out, 0, sizeof(int64_t)*128);
+      s8 = u8 = s16 = u16 = s32 = u32 = s64 = u64 = 0;
+      d = f = 0.0f;
+      lf.read(s8); lf.read(u8); lf.read(s16); lf.read(u16);
+      lf.read(s32); lf.read(u32); lf.read(s64); lf.read(u64);
+      lf.read(f); lf.read(d);
+      TS_ASSERT_EQUALS(s8, -7);
+      TS_ASSERT_EQUALS(u8, 19);
+      TS_ASSERT_EQUALS(s16,  6);
+      TS_ASSERT_EQUALS(u16, 74);
+      TS_ASSERT_EQUALS(s32, -15);
+      TS_ASSERT_EQUALS(u32, 2048UL);
+      TS_ASSERT_EQUALS(s64, -21438907);
+      TS_ASSERT_EQUALS(u64, 234987ULL);
+      TS_ASSERT_DELTA(f, 9.81, 0.0001);
+      TS_ASSERT_DELTA(d, 4.242, 0.0001);
+    }
+    remove(tmpf.c_str());
+  }
+}
+
 class LargeFileTests : public CxxTest::TestSuite {
 public:
   void test_truncate() { lf_truncate(); }
@@ -355,6 +410,7 @@ public:
   void test_mmap_large_header() { lf_generic_large_header<LargeFileMMap>(); }
   void test_mmap_enqueue() { lf_generic_enqueue<LargeFileMMap>(); }
   void test_mmap_reopen() { lf_generic_reopen<LargeFileMMap>(); }
+  void test_mmap_rw_single() { lf_generic_rw_single<LargeFileMMap>(); }
 
   void test_fd_open() { lf_generic_open<LargeFileFD>(); }
   void test_fd_read() { lf_generic_read<LargeFileFD>(); }
@@ -364,6 +420,7 @@ public:
   void test_fd_large_header() { lf_generic_large_header<LargeFileFD>(); }
   void test_fd_enqueue() { lf_generic_enqueue<LargeFileFD>(); }
   void test_fd_reopen() { lf_generic_reopen<LargeFileFD>(); }
+  void test_fd_rw_single() { lf_generic_rw_single<LargeFileFD>(); }
 
   void test_aio_open() { lf_generic_open<LargeFileAIO>(); }
   void test_aio_read() { lf_generic_read<LargeFileAIO>(); }
@@ -374,4 +431,5 @@ public:
   void test_aio_nocopy() { lf_aio_nocopy(); }
   void test_aio_enqueue() { lf_generic_enqueue<LargeFileAIO>(); }
   void test_aio_reopen() { lf_generic_reopen<LargeFileAIO>(); }
+  void test_aio_rw_single() { lf_generic_rw_single<LargeFileAIO>(); }
 };
