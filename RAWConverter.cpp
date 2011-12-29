@@ -41,6 +41,7 @@
 #include "3rdParty/bzip2/bzlib.h"
 
 #include "RAWConverter.h"
+#include "Basics/nonstd.h"
 #include "Basics/SysTools.h"
 #include "IO/gzio.h"
 #include "UVF/Histogram1DDataBlock.h"
@@ -63,8 +64,6 @@ struct TimestepBlocks {
   MaxMinDataBlock *maxmin;
   Histogram2DDataBlock *hist2d;
 };
-
-namespace { template<typename T> void DeleteArray(T *t) { delete[] t; } }
 
 namespace {
   template<typename Target>
@@ -115,8 +114,10 @@ static std::string convert_endianness(const std::string& strFilename,
                                         static_cast<size_t>(in_core_size));
   uint64_t bytes_converted = 0;
 
-  std::tr1::shared_ptr<unsigned char> buffer(new unsigned char[buffer_size],
-                                             DeleteArray<unsigned char>);
+  std::tr1::shared_ptr<unsigned char> buffer(
+    new unsigned char[buffer_size],
+    nonstd::DeleteArray<unsigned char>()
+  );
 
   while(bytes_converted < byte_length) {
     using namespace boost;
