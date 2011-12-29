@@ -87,9 +87,9 @@ void LargeFile::truncate(const char* path, boost::uint64_t length)
 {
   DEBUG("path=" << path);
 #ifdef DETECTED_OS_WINDOWS
-  HANDLE fp = CreateFile(path, GENERIC_WRITE,
-                         FILE_SHARE_READ|FILE_SHARED_WRITE|FILE_SHARE_DELETE,
-                         NULL, OPEN_EXISTING, 0, NULL);
+  HANDLE fp = CreateFileA(path, GENERIC_WRITE,
+                          FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+                          NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
   LARGE_INTEGER location;
   location.QuadPart = static_cast<LONGLONG>(length);
   SetFilePointerEx(fp, location, NULL, FILE_BEGIN);
