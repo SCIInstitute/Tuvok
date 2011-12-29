@@ -125,7 +125,6 @@ void UVF::Close() {
 
   for (size_t i = 0;i<m_DataBlocks.size();i++) {
     if (m_DataBlocks[i]->m_bSelfCreatedPointer) delete m_DataBlocks[i]->m_block;
-    delete m_DataBlocks[i];
   }
   m_DataBlocks.clear();
 }
@@ -255,8 +254,10 @@ void UVF::ParseDataBlocks() {
       d = CreateBlockFromSemanticEntry(eTableID, m_streamFile, iOffset, m_GlobalHeader.bIsBigEndian);
     }
 
-    m_DataBlocks.push_back(new DataBlockListElem(d,true,false,iOffset-m_GlobalHeader.GetDataPos(),d->ulOffsetToNextDataBlock));
-
+    m_DataBlocks.push_back(std::tr1::shared_ptr<DataBlockListElem>(
+      new DataBlockListElem(d, true, false, iOffset-m_GlobalHeader.GetDataPos(),
+                            d->ulOffsetToNextDataBlock)
+    ));
     iOffset += d->ulOffsetToNextDataBlock;
 
   } while (m_DataBlocks[m_DataBlocks.size()-1]->m_block->ulOffsetToNextDataBlock != 0);
@@ -293,7 +294,10 @@ bool UVF::AddConstDataBlock(const DataBlock* dataBlock) {
 
   DataBlock* d = dataBlock->Clone();
   
-  m_DataBlocks.push_back(new DataBlockListElem(d,true,true,m_iAccumOffsets, d->GetOffsetToNextBlock()));
+  m_DataBlocks.push_back(std::tr1::shared_ptr<DataBlockListElem>(
+    new DataBlockListElem(d,true,true,m_iAccumOffsets,
+                          d->GetOffsetToNextBlock())
+  ));
   d->ulOffsetToNextDataBlock = d->GetOffsetToNextBlock();
   m_iAccumOffsets += d->ulOffsetToNextDataBlock;
 
@@ -309,7 +313,10 @@ bool UVF::AddDataBlock(DataBlock* dataBlock,
   DataBlock* d;
   if (bUseSourcePointer) d = dataBlock; else d = dataBlock->Clone();
   
-  m_DataBlocks.push_back(new DataBlockListElem(d,!bUseSourcePointer, true, m_iAccumOffsets, d->GetOffsetToNextBlock()));
+  m_DataBlocks.push_back(std::tr1::shared_ptr<DataBlockListElem>(
+    new DataBlockListElem(d,!bUseSourcePointer, true, m_iAccumOffsets,
+                          d->GetOffsetToNextBlock())
+  ));
   d->ulOffsetToNextDataBlock = d->GetOffsetToNextBlock();
   m_iAccumOffsets += d->ulOffsetToNextDataBlock;
 
@@ -378,7 +385,7 @@ bool UVF::AppendBlockToFile(DataBlock* dataBlock) {
   DataBlockListElem* dble = new DataBlockListElem(dataBlock, false, false,
                                            m_streamFile->GetCurrentSize(),
                                            dataBlock->GetOffsetToNextBlock());
-  m_DataBlocks.push_back(dble);
+  m_DataBlocks.push_back(std::tr1::shared_ptr<DataBlockListElem>(dble));
 
   // the block before the last needs to rewrite offset
   m_DataBlocks[m_DataBlocks.size()-2]->m_bHeaderIsDirty = true; 
@@ -427,7 +434,6 @@ bool UVF::DropBlockFromFile(size_t iBlockIndex) {
   // remove data from datablock vector
   if (m_DataBlocks[iBlockIndex]->m_bSelfCreatedPointer) 
     delete m_DataBlocks[iBlockIndex]->m_block; 
-  delete m_DataBlocks[iBlockIndex];
   m_DataBlocks.erase(m_DataBlocks.begin()+iBlockIndex);
 
   return true;

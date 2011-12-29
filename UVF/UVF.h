@@ -83,7 +83,7 @@ protected:
   uint64_t          m_iAccumOffsets;
 
   GlobalHeader m_GlobalHeader;
-  std::vector<DataBlockListElem*> m_DataBlocks;
+  std::vector<std::tr1::shared_ptr<DataBlockListElem> > m_DataBlocks;
 
   bool ParseGlobalHeader(bool bVerify, std::string* pstrProblem = NULL);
   void ParseDataBlocks();
