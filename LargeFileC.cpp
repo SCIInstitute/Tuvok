@@ -71,7 +71,7 @@ int seeko(FILE* strm, boost::uint64_t off, int whence) {
 #if _POSIX_C_SOURCE >= 200112L
   if(fseeko(strm, off, whence) < 0) {
 #else
-  if(fseek(strm, off, whence) < 0) {
+  if(fseek(strm, static_cast<long>(off), whence) < 0) {
 #endif
     DEBUG("seek failed, errno=" << errno);
     return -1;
