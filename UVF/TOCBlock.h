@@ -31,14 +31,18 @@ public:
                             ExtendedOctree::COMPONENT_TYPE eType,
                             uint64_t iComponentCount, UINT64VECTOR3 vVolumeSize,
                             DOUBLEVECTOR3 vScale, size_t iCacheSize, 
-                            MaxMinDataBlock* pMaxMinDatBlock = NULL,
+                            std::tr1::shared_ptr<MaxMinDataBlock>
+                              pMaxMinDatBlock =
+                                std::tr1::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL);
   bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData,
                             const std::string& strTempFile, 
                             ExtendedOctree::COMPONENT_TYPE eType,
                             uint64_t iComponentCount, UINT64VECTOR3 vVolumeSize,
                             DOUBLEVECTOR3 vScale, size_t iCacheSize, 
-                            MaxMinDataBlock* pMaxMinDatBlock = NULL,
+                            std::tr1::shared_ptr<MaxMinDataBlock>
+                              pMaxMinDatBlock =
+                                std::tr1::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL);
 
   bool BrickedLODToFlatData(const std::string& strTargetFile, uint64_t iLoD,

@@ -209,14 +209,20 @@ public:
                         const void* pIn, void* pOut),
     void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
                        std::vector<DOUBLEVECTOR4>& fMinMax),
-    MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
+    std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock =
+      std::tr1::shared_ptr<MaxMinDataBlock>(),
+    AbstrDebugOut* pDebugOut=NULL
+  );
   bool FlatDataToBrickedLOD(
     LargeRAWFile_ptr pSourceData, const std::string& strTempFile,
     void (*combineFunc)(const std::vector<uint64_t> &vSource, uint64_t iTarget,
                         const void* pIn, void* pOut),
     void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
                        std::vector<DOUBLEVECTOR4>& fMinMax),
-    MaxMinDataBlock* pMaxMinDatBlock = NULL, AbstrDebugOut* pDebugOut=NULL);
+    std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock =
+      std::tr1::shared_ptr<MaxMinDataBlock>(),
+    AbstrDebugOut* pDebugOut=NULL
+  );
 
   void AllocateTemp(const std::string& strTempFile,
                     bool bBuildOffsetTables=false);

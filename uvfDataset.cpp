@@ -1139,7 +1139,7 @@ bool UVFDataset::AppendMesh(Mesh* m) {
     MESSAGE("Successfully reopened file in readwrite mode.");
 
     // now create a GeometryDataBlock ...
-    GeometryDataBlock tsb;
+    std::tr1::shared_ptr<GeometryDataBlock> tsb(new GeometryDataBlock());
 
     // ... and transfer the data from the mesh object
     // source data
@@ -1151,50 +1151,50 @@ bool UVFDataset::AppendMesh(Mesh* m) {
     // target data
     vector<float> fVec;
     size_t iVerticesPerPoly = m->GetVerticesPerPoly();
-    tsb.SetPolySize(iVerticesPerPoly);
+    tsb->SetPolySize(iVerticesPerPoly);
 
     if (v.size()) {
       fVec.resize(v.size()*3);
       memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float));
-      tsb.SetVertices(fVec);
+      tsb->SetVertices(fVec);
     } else {
       // even if the vectors are empty still let the datablock know
-      tsb.SetVertices(vector<float>()); 
+      tsb->SetVertices(vector<float>()); 
     }
 
     if (n.size()) {
       fVec.resize(n.size()*3);
       memcpy(&fVec[0],&n[0],n.size()*3*sizeof(float));
-      tsb.SetNormals(fVec);
+      tsb->SetNormals(fVec);
     } else {
       // even if the vectors are empty still let the datablock know
-      tsb.SetNormals(vector<float>());
+      tsb->SetNormals(vector<float>());
     }
     if (t.size()) {
       fVec.resize(t.size()*2);
       memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float));
-      tsb.SetTexCoords(fVec);
+      tsb->SetTexCoords(fVec);
     } else {
       // even if the vectors are empty still let the datablock know
-      tsb.SetTexCoords(vector<float>());
+      tsb->SetTexCoords(vector<float>());
     }
     if (c.size()) {
       fVec.resize(c.size()*4);
       memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float));
-      tsb.SetColors(fVec);
+      tsb->SetColors(fVec);
     } else {
       // even if the vectors are empty still let the datablock know
-      tsb.SetColors(vector<float>());
+      tsb->SetColors(vector<float>());
     }
 
-    tsb.SetVertexIndices(m->GetVertexIndices());
-    tsb.SetNormalIndices(m->GetNormalIndices());
-    tsb.SetTexCoordIndices(m->GetTexCoordIndices());
-    tsb.SetColorIndices(m->GetColorIndices());
+    tsb->SetVertexIndices(m->GetVertexIndices());
+    tsb->SetNormalIndices(m->GetNormalIndices());
+    tsb->SetTexCoordIndices(m->GetTexCoordIndices());
+    tsb->SetColorIndices(m->GetColorIndices());
 
-    tsb.m_Desc = m->Name();
+    tsb->m_Desc = m->Name();
     
-    m_pDatasetFile->AppendBlockToFile(&tsb);
+    m_pDatasetFile->AppendBlockToFile(tsb);
 
     MESSAGE("Writing changes to disk");
     Close();

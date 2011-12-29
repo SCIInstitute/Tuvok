@@ -22,8 +22,8 @@ public:
 
   bool Compute(const TOCBlock* source, uint64_t iLevel, size_t iHistoBinCount,
                double fMaxNonZeroValue);
-  bool Compute(const RasterDataBlock* source, size_t iHistoBinCount,
-               double fMaxNonZeroValue);
+  bool Compute(const RasterDataBlock* source,
+               size_t iHistoBinCount, double fMaxNonZeroValue);
 
   const std::vector< std::vector<uint64_t> >& GetHistogram() const {
     return m_vHistData;

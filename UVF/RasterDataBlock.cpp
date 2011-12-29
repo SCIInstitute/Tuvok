@@ -922,7 +922,8 @@ bool RasterDataBlock::FlatDataToBrickedLOD(
                       const void* pIn, void* pOut),
   void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
                      std::vector<DOUBLEVECTOR4>& fMinMax),
-  MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut)
+  std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
+  AbstrDebugOut* pDebugOut)
 {
   // size of input data
   uint64_t iInPointerSize = ComputeElementSize()/8;
@@ -979,7 +980,8 @@ RasterDataBlock::FlatDataToBrickedLOD(
                       const void* pIn, void* pOut),
   void (*maxminFunc)(const void* pIn, size_t iStart, size_t iCount,
                      std::vector<DOUBLEVECTOR4>& fMinMax),
-  MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* pDebugOut)
+  std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
+  AbstrDebugOut* pDebugOut)
 {
 
   // parameter sanity checks

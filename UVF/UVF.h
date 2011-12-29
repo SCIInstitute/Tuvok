@@ -11,27 +11,23 @@ class DataBlock;
 class DataBlockListElem {
   public:
     DataBlockListElem() :
-      m_block(NULL),
-      m_bSelfCreatedPointer(false),
       m_bIsDirty(false),
       m_bHeaderIsDirty(false),
       m_iOffsetInFile(0),
       m_iBlockSize(0)
     {}
     
-    DataBlockListElem(DataBlock* block, bool bSelfCreatedPointer,
+    DataBlockListElem(std::tr1::shared_ptr<DataBlock> block,
                       bool bIsDirty, uint64_t iOffsetInFile,
                       uint64_t iBlockSize) :
       m_block(block),
-      m_bSelfCreatedPointer(bSelfCreatedPointer),
       m_bIsDirty(bIsDirty),
       m_bHeaderIsDirty(bIsDirty),
       m_iOffsetInFile(iOffsetInFile),
       m_iBlockSize(iBlockSize)
     {}
 
-  DataBlock* m_block;
-  bool m_bSelfCreatedPointer;
+  std::tr1::shared_ptr<DataBlock> m_block;
   bool m_bIsDirty;
   bool m_bHeaderIsDirty;
   uint64_t m_iOffsetInFile;
@@ -59,18 +55,18 @@ public:
   const GlobalHeader& GetGlobalHeader() const {return m_GlobalHeader;}
   uint64_t GetDataBlockCount() const {return uint64_t(m_DataBlocks.size());}
   const DataBlock* GetDataBlock(uint64_t index) const {
-    return m_DataBlocks[size_t(index)]->m_block;
+    return m_DataBlocks[size_t(index)]->m_block.get();
   }
   DataBlock* GetDataBlockRW(uint64_t index, bool bOnlyChangeHeader);
 
   // file creation routines
   bool SetGlobalHeader(const GlobalHeader& GlobalHeader);
   bool AddConstDataBlock(const DataBlock* dataBlock);
-  bool AddDataBlock(DataBlock* dataBlock, bool bUseSourcePointer=false);
+  bool AddDataBlock(std::tr1::shared_ptr<DataBlock> dataBlock);
   bool Create();
 
   // RW access routines
-  bool AppendBlockToFile(DataBlock* dataBlock);
+  bool AppendBlockToFile(std::tr1::shared_ptr<DataBlock> dataBlock);
   bool DropBlockFromFile(size_t iBlockIndex);
 
   static bool IsUVFFile(const std::wstring& wstrFilename);

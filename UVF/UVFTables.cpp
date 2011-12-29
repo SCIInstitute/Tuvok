@@ -70,20 +70,41 @@ wstring UVFTables::BlockSemanticTableToString(BlockSemanticTable uiTable) {
   return result;
 }
 
-DataBlock* UVFTables::CreateBlockFromSemanticEntry(BlockSemanticTable uiTable, LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian) {
+std::tr1::shared_ptr<DataBlock>
+UVFTables::CreateBlockFromSemanticEntry(BlockSemanticTable uiTable,
+                                        LargeRAWFile_ptr pStreamFile,
+                                        uint64_t iOffset, bool bIsBigEndian) {
+  DataBlock* d;
   switch (uiTable) {
-    case (BS_EMPTY)              : return new DataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_REG_NDIM_GRID)      : /* fall through */
-    case (BS_NDIM_TRANSFER_FUNC) : /* fall through */
-    case (BS_PREVIEW_IMAGE)      : return new RasterDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_1D_HISTOGRAM)       : return new Histogram1DDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_2D_HISTOGRAM)       : return new Histogram2DDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_KEY_VALUE_PAIRS)    : return new KeyValuePairDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_MAXMIN_VALUES)      : return new MaxMinDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_GEOMETRY)           : return new GeometryDataBlock(pStreamFile, iOffset, bIsBigEndian);
-    case (BS_TOC_BLOCK)          : return new TOCBlock(pStreamFile, iOffset, bIsBigEndian);
-    default                      : throw "CreateBlockFromSemanticEntry: Unknown block semantic";
+    case BS_EMPTY:
+      d = new DataBlock(pStreamFile, iOffset, bIsBigEndian);
+      break;
+    case BS_REG_NDIM_GRID:       /* fall through */
+    case BS_NDIM_TRANSFER_FUNC:  /* fall through */
+    case BS_PREVIEW_IMAGE:
+      d = new RasterDataBlock(pStreamFile, iOffset, bIsBigEndian);
+      break;
+    case BS_1D_HISTOGRAM:
+      d = new Histogram1DDataBlock(pStreamFile, iOffset, bIsBigEndian);
+      break;
+    case BS_2D_HISTOGRAM:
+      d = new Histogram2DDataBlock(pStreamFile, iOffset, bIsBigEndian);
+      break;
+    case BS_KEY_VALUE_PAIRS: 
+      d = new KeyValuePairDataBlock(pStreamFile, iOffset, bIsBigEndian);
+      break;
+    case BS_MAXMIN_VALUES: 
+      d = new MaxMinDataBlock(pStreamFile, iOffset, bIsBigEndian);
+      break;
+    case BS_GEOMETRY:
+      d = new GeometryDataBlock(pStreamFile, iOffset, bIsBigEndian);
+      break;
+    case BS_TOC_BLOCK:
+      d = new TOCBlock(pStreamFile, iOffset, bIsBigEndian);
+      break;
+    default: throw "CreateBlockFromSemanticEntry: Unknown block semantic";
   }
+  return std::tr1::shared_ptr<DataBlock>(d);
 }
 
 string UVFTables::DomainSemanticToCharString(DomainSemanticTable uiTable) {

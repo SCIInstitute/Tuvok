@@ -78,10 +78,13 @@ uint64_t TOCBlock::ComputeDataSize() const {
   return m_ExtendedOctree.GetSize();
 }
 
-bool TOCBlock::FlatDataToBrickedLOD(const std::string& strSourceFile, const std::string& strTempFile,
-                                    ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount, 
-                                    UINT64VECTOR3 vVolumeSize, DOUBLEVECTOR3 vScale, size_t iCacheSize, 
-                                    MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* debugOut) {
+bool TOCBlock::FlatDataToBrickedLOD(
+  const std::string& strSourceFile, const std::string& strTempFile,
+  ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount, 
+  UINT64VECTOR3 vVolumeSize, DOUBLEVECTOR3 vScale, size_t iCacheSize, 
+  std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
+  AbstrDebugOut* debugOut
+) {
   LargeRAWFile_ptr inFile(new LargeRAWFile(strSourceFile));
   if (!inFile->Open()) {
     return false;
@@ -90,13 +93,15 @@ bool TOCBlock::FlatDataToBrickedLOD(const std::string& strSourceFile, const std:
   return FlatDataToBrickedLOD(inFile, strTempFile, eType, iComponentCount, 
                               vVolumeSize, vScale, iCacheSize, 
                               pMaxMinDatBlock, debugOut);
-
 }
 
-bool TOCBlock::FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData, const std::string& strTempFile,
-                                    ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount, 
-                                    UINT64VECTOR3 vVolumeSize, DOUBLEVECTOR3 vScale, size_t iCacheSize,
-                                    MaxMinDataBlock* pMaxMinDatBlock, AbstrDebugOut* ) {
+bool TOCBlock::FlatDataToBrickedLOD(
+  LargeRAWFile_ptr pSourceData, const std::string& strTempFile,
+  ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount, 
+  UINT64VECTOR3 vVolumeSize, DOUBLEVECTOR3 vScale, size_t iCacheSize,
+  std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
+  AbstrDebugOut*
+) {
   LargeRAWFile_ptr outFile(new LargeRAWFile(strTempFile));
   if (!outFile->Create()) {
     return false;

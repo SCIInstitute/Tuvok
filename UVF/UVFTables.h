@@ -78,9 +78,10 @@ namespace UVFTables {
 
   std::string BlockSemanticTableToCharString(BlockSemanticTable uiTable);
   std::wstring BlockSemanticTableToString(BlockSemanticTable uiTable);
-  DataBlock* CreateBlockFromSemanticEntry(BlockSemanticTable uiTable,
-                                          LargeRAWFile_ptr pStreamFile,
-                                          uint64_t iOffset, bool bIsBigEndian);
+  std::tr1::shared_ptr<DataBlock> CreateBlockFromSemanticEntry(
+    BlockSemanticTable uiTable, LargeRAWFile_ptr pStreamFile,
+    uint64_t iOffset, bool bIsBigEndian
+  );
 
   std::string DomainSemanticToCharString(DomainSemanticTable uiTable);
   std::wstring DomainSemanticToString(DomainSemanticTable uiTable);

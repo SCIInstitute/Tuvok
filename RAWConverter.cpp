@@ -58,11 +58,9 @@ using namespace tuvok;
 // holds UVF data blocks, because they cannot be deleted until the UVF file is
 // written.
 struct TimestepBlocks {
-  TimestepBlocks(): rdb(NULL), maxmin(NULL), hist2d(NULL) {}
-  ~TimestepBlocks() { delete rdb; delete maxmin; delete hist2d; }
-  RasterDataBlock *rdb;
-  MaxMinDataBlock *maxmin;
-  Histogram2DDataBlock *hist2d;
+  std::tr1::shared_ptr<RasterDataBlock> rdb;
+  std::tr1::shared_ptr<MaxMinDataBlock> maxmin;
+  std::tr1::shared_ptr<Histogram2DDataBlock> hist2d;
 };
 
 namespace {
@@ -451,12 +449,16 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
   std::vector<struct TimestepBlocks> blocks(static_cast<size_t>(timesteps));
 
   for(size_t ts=0; ts < static_cast<size_t>(timesteps); ++ts) {
-    blocks[ts].rdb = new RasterDataBlock();
-    blocks[ts].maxmin = new MaxMinDataBlock(
-                          static_cast<size_t>(iComponentCount)
-                        );
-    blocks[ts].hist2d = new Histogram2DDataBlock();
-    RasterDataBlock* dataVolume = blocks[ts].rdb;
+    blocks[ts].rdb = std::tr1::shared_ptr<RasterDataBlock>(
+      new RasterDataBlock()
+    );
+    blocks[ts].maxmin = std::tr1::shared_ptr<MaxMinDataBlock>(
+      new MaxMinDataBlock(static_cast<size_t>(iComponentCount))
+    );
+    blocks[ts].hist2d = std::tr1::shared_ptr<Histogram2DDataBlock>(
+      new Histogram2DDataBlock()
+    );
+    std::tr1::shared_ptr<RasterDataBlock> dataVolume = blocks[ts].rdb;
 
     if (strSource == "") {
       dataVolume->strBlockID = (strDesc!="")
@@ -554,7 +556,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       return false;
     }
 
-    MaxMinDataBlock& MaxMinData = *blocks[ts].maxmin;
+    std::tr1::shared_ptr<MaxMinDataBlock> MaxMinData = blocks[ts].maxmin;
     switch (iComponentSize) {
       case 8 :
         switch (iComponentCount) {
@@ -562,28 +564,28 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
             bBrickingOK = dataVolume->FlatDataToBrickedLOD(
               sourceData, tmpfile+"1",
               CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char,1>,
-              &MaxMinData, dbg
+              MaxMinData, dbg
             );
             break;
           case 2:
             bBrickingOK = dataVolume->FlatDataToBrickedLOD(
               sourceData, tmpfile+"2",
               CombineAverage<unsigned char,2>, SimpleMaxMin<unsigned char,2>,
-              &MaxMinData, dbg
+              MaxMinData, dbg
             );
             break;
           case 3:
             bBrickingOK = dataVolume->FlatDataToBrickedLOD(
               sourceData, tmpfile+"3",
               CombineAverage<unsigned char,3>, SimpleMaxMin<unsigned char,3>,
-              &MaxMinData, dbg
+              MaxMinData, dbg
             );
             break;
           case 4:
             bBrickingOK = dataVolume->FlatDataToBrickedLOD(
               sourceData, tmpfile+"4",
               CombineAverage<unsigned char,4>, SimpleMaxMin<unsigned char,4>,
-              &MaxMinData, dbg
+              MaxMinData, dbg
             );
             break;
           default:
@@ -596,10 +598,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         break;
       case 16:
             switch (iComponentCount) {
-              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"1", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short, 1>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"2", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short, 2>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"3", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short, 3>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"4", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short, 4>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"1", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short, 1>, MaxMinData, &Controller::Debug::Out()); break;
+              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"2", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short, 2>, MaxMinData, &Controller::Debug::Out()); break;
+              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"3", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short, 3>, MaxMinData, &Controller::Debug::Out()); break;
+              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"4", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short, 4>, MaxMinData, &Controller::Debug::Out()); break;
               default:
                 T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
                         int(iComponentCount), int(iComponentSize));
@@ -609,10 +611,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
             } break;
       case 32 :
             switch (iComponentCount) {
-              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"1", CombineAverage<float,1>, SimpleMaxMin<float, 1>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"2", CombineAverage<float,2>, SimpleMaxMin<float, 2>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"3", CombineAverage<float,3>, SimpleMaxMin<float, 3>, &MaxMinData, &Controller::Debug::Out()); break;
-              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"4", CombineAverage<float,4>, SimpleMaxMin<float, 4>, &MaxMinData, &Controller::Debug::Out()); break;
+              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"1", CombineAverage<float,1>, SimpleMaxMin<float, 1>, MaxMinData, &Controller::Debug::Out()); break;
+              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"2", CombineAverage<float,2>, SimpleMaxMin<float, 2>, MaxMinData, &Controller::Debug::Out()); break;
+              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"3", CombineAverage<float,3>, SimpleMaxMin<float, 3>, MaxMinData, &Controller::Debug::Out()); break;
+              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"4", CombineAverage<float,4>, SimpleMaxMin<float, 4>, MaxMinData, &Controller::Debug::Out()); break;
               default:
                 T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
                         int(iComponentCount), int(iComponentSize));
@@ -641,7 +643,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       return false;
     }
 
-    if (!uvfFile.AddDataBlock(dataVolume, true)) {
+    if (!uvfFile.AddDataBlock(dataVolume)) {
       T_ERROR("AddDataBlock failed!");
       uvfFile.Close();
       return false;
@@ -654,7 +656,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       // 1d histogram here
       if (Histogram1D.GetHistogram().empty()) {
         MESSAGE("Computing 1D Histogram...");
-        if (!Histogram1D.Compute(dataVolume)) {
+        if (!Histogram1D.Compute(dataVolume.get())) {
           T_ERROR("Computation of 1D Histogram failed!");
           uvfFile.Close();
           return false;
@@ -662,27 +664,32 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       }
 
       MESSAGE("Computing 2D Histogram...");
-      Histogram2DDataBlock& Histogram2D = *blocks[ts].hist2d;
-      if (!Histogram2D.Compute(dataVolume, Histogram1D.GetHistogram().size(),
-          MaxMinData.GetGlobalValue().maxScalar)) {
+      std::tr1::shared_ptr<Histogram2DDataBlock> Histogram2D =
+        blocks[ts].hist2d;
+      if (!Histogram2D->Compute(dataVolume.get(),
+                                Histogram1D.GetHistogram().size(),
+                                MaxMinData->GetGlobalValue().maxScalar)) {
         T_ERROR("Computation of 2D Histogram failed!");
         uvfFile.Close();
         return false;
       }
       MESSAGE("Storing histogram data...");
-      uvfFile.AddDataBlock(&Histogram1D);
-      uvfFile.AddDataBlock(&Histogram2D);
+      uvfFile.AddDataBlock(
+        std::tr1::shared_ptr<Histogram1DDataBlock>(&Histogram1D,
+                                                   nonstd::null_deleter())
+      );
+      uvfFile.AddDataBlock(Histogram2D);
     }
 
     MESSAGE("Storing acceleration data...");
-    uvfFile.AddDataBlock(&MaxMinData);
+    uvfFile.AddDataBlock(MaxMinData);
     sourceData->Close();
   }
 
 
   MESSAGE("Storing metadata...");
 
-  uvfFile.AddDataBlock(metaPairs.get());
+  uvfFile.AddDataBlock(metaPairs);
 
   MESSAGE("Writing UVF file...");
 

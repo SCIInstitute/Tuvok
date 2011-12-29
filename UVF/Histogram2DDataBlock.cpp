@@ -129,9 +129,10 @@ bool Histogram2DDataBlock::Compute(const TOCBlock* source,
 /// consists only of a single brick, this brick is used for the hist.
 /// computation
 //       this should be changed to a more general approach
-bool Histogram2DDataBlock::Compute(const RasterDataBlock* source,
-                                   size_t iHistoBinCount,
-                                   double fMaxNonZeroValue) {
+bool Histogram2DDataBlock::Compute(
+  const RasterDataBlock* source,
+  size_t iHistoBinCount, double fMaxNonZeroValue
+) {
   /// \todo right now we can only compute Histograms of scalar data this should be changed to a more general approach
   if (source->ulElementDimension != 1 || source->ulElementDimensionSize.size() != 1) return false;
 

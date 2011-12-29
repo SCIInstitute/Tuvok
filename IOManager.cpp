@@ -48,6 +48,7 @@
 
 #include "IOManager.h"
 
+#include "Basics/nonstd.h"
 #include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "DSFactory.h"
@@ -1883,7 +1884,7 @@ CreateUVFFromRDB(const std::string& filename,
   double max_val = DBL_MAX;
   {
     const size_t components = static_cast<size_t>(rdb->ulElementDimensionSize[0]);
-    MaxMinDataBlock mmdb(components);
+    std::tr1::shared_ptr<MaxMinDataBlock> mmdb(new MaxMinDataBlock(components));
     std::vector<DOUBLEVECTOR4> minmax = MaxMin(rdb);
     MESSAGE("found %u brick min/maxes...",
             static_cast<unsigned>(minmax.size()));
@@ -1893,23 +1894,27 @@ CreateUVFFromRDB(const std::string& filename,
       max_val = std::max(max_val, i->y);
 
       // merge in the current brick's minmax.
-      mmdb.StartNewValue();
+      mmdb->StartNewValue();
       std::vector<DOUBLEVECTOR4> tmp(1);
       tmp[0] = *i;
-      mmdb.MergeData(tmp);
+      mmdb->MergeData(tmp);
     }
 
-    outuvf.AddDataBlock(&mmdb);
+    outuvf.AddDataBlock(mmdb);
   }
 
   { // histograms
-    Histogram1DDataBlock hist1d;
-    hist1d.Compute(rdb);
-    outuvf.AddDataBlock(&hist1d);
+    std::tr1::shared_ptr<Histogram1DDataBlock> hist1d(
+      new Histogram1DDataBlock()
+    );
+    hist1d->Compute(rdb);
+    outuvf.AddDataBlock(hist1d);
     {
-      Histogram2DDataBlock hist2d;
-      hist2d.Compute(rdb, hist1d.GetHistogram().size(), max_val);
-      outuvf.AddDataBlock(&hist2d);
+      std::tr1::shared_ptr<Histogram2DDataBlock> hist2d(
+        new Histogram2DDataBlock()
+      );
+      hist2d->Compute(rdb, hist1d->GetHistogram().size(), max_val);
+      outuvf.AddDataBlock(hist2d);
     }
   }
 
@@ -2294,10 +2299,10 @@ void IOManager::AddMesh(const UVF* sourceDataset,
   if (m->GetNormalIndices().empty()) m->RecomputeNormals();
 
   // now create a GeometryDataBlock ...
-  GeometryDataBlock tsb;
+  std::tr1::shared_ptr<GeometryDataBlock> tsb(new GeometryDataBlock());
 
   // ... and transfer the data from the mesh object
-  CopyToTSB(m, &tsb);
+  CopyToTSB(m, tsb.get());
 
   wstring wuvf(uvf_fn.begin(), uvf_fn.end());
   UVF uvfFile(wuvf);
@@ -2311,7 +2316,7 @@ void IOManager::AddMesh(const UVF* sourceDataset,
   }
 
   MESSAGE("Adding triangle soup block...");
-  uvfFile.AddDataBlock(&tsb, true);
+  uvfFile.AddDataBlock(tsb);
 
   uvfFile.Create();
   MESSAGE("Computing checksum...");
