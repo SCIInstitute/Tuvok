@@ -1128,9 +1128,9 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
 
     if (bChangeEndianess) {
       switch (iComponentSize) {
-        case 16 : change_endianness<uint16_t>(pBuffer, iCopySize); break;
-        case 32 : change_endianness<float>(pBuffer, iCopySize); break;
-        case 64 : change_endianness<double>(pBuffer, iCopySize); break;
+        case 16 : change_endianness<uint16_t>(pBuffer, size_t(iCopySize)); break;
+        case 32 : change_endianness<float>(pBuffer, size_t(iCopySize)); break;
+        case 64 : change_endianness<double>(pBuffer, size_t(iCopySize)); break;
       }
     }
 
