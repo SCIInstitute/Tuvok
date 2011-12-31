@@ -79,14 +79,12 @@ namespace tuvok {
   public:
     VolDataListElem(Dataset* _pVolumeDataset, AbstrRenderer* pUser) :
       pVolumeDataset(_pVolumeDataset)
-    //  m_iShareGroupID(pUser->GetContext()->GetShareGroupID())
     {
       qpUser.push_back(pUser);
     }
 
     Dataset*          pVolumeDataset;
     AbstrRendererList qpUser;
- //   int               m_iShareGroupID;
   };
   typedef std::deque<VolDataListElem> VolDataList;
   typedef VolDataList::iterator VolDataListIter;
