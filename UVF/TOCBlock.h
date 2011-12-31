@@ -58,7 +58,10 @@ public:
   uint64_t GetLoDCount() const;
   UINT64VECTOR3 GetBrickCount(uint64_t iLoD) const;
   UINTVECTOR3 GetBrickSize(UINT64VECTOR4 coordinates) const;
+  DOUBLEVECTOR3 GetBrickAspect(UINT64VECTOR4 coordinates) const;
   UINT64VECTOR3 GetLODDomainSize(uint64_t iLoD) const;
+
+  uint64_t GetLinearBrickIndex(UINT64VECTOR4 coordinates) const;
 
   uint64_t GetComponentCount() const {
     return m_ExtendedOctree.GetComponentCount();

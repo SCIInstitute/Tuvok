@@ -154,6 +154,10 @@ UINTVECTOR3 TOCBlock::GetBrickSize(UINT64VECTOR4 coordinates) const {
   return m_ExtendedOctree.ComputeBrickSize(coordinates);
 }
 
+DOUBLEVECTOR3 TOCBlock::GetBrickAspect(UINT64VECTOR4 coordinates) const {
+  return m_ExtendedOctree.ComputeBrickAspect(coordinates);
+}
+
 UINT64VECTOR3 TOCBlock::GetLODDomainSize(uint64_t iLoD) const {
   return m_ExtendedOctree.GetLoDSize(iLoD);
 }
@@ -204,4 +208,8 @@ DOUBLEVECTOR3 TOCBlock::GetScale() const {
 
 void TOCBlock::SetScale(const DOUBLEVECTOR3& scale) {
   m_ExtendedOctree.SetGlobalAspect(scale);
+}
+
+uint64_t TOCBlock::GetLinearBrickIndex(UINT64VECTOR4 coordinates) const {
+  return m_ExtendedOctree.BrickCoordsToIndex(coordinates);
 }

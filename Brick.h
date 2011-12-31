@@ -54,8 +54,8 @@
 namespace tuvok {
 
 /// Datasets are organized as a set of bricks, stored in a hash table.  A key
-/// into this table consists of an LOD index plus a brick index; at some
-/// point we'll likely add a time index.  An element in the table contains
+/// into this table consists of an LOD index plus a brick index. 
+/// An element in the table contains
 /// brick metadata, but no data; to obtain the data one must query the dataset.
 /// @todo FIXME: this can be a tuple internally, but the interface should be a
 ///  struct or similar: if a new component gets added to the key which is not

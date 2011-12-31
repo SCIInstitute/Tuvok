@@ -224,7 +224,7 @@ UINTVECTOR3 ExtendedOctree::ComputeBrickSize(const UINT64VECTOR4& vBrickCoords) 
 */
 DOUBLEVECTOR3 ExtendedOctree::ComputeBrickAspect(const UINT64VECTOR4& vBrickCoords) const {  
   const UINTVECTOR3 brickSize = ComputeBrickSize(vBrickCoords);
-  return m_vLODTable[size_t(vBrickCoords.w)].m_vAspect * DOUBLEVECTOR3(brickSize)/m_iBrickSize.maxVal();
+  return m_vLODTable[size_t(vBrickCoords.w)].m_vAspect * DOUBLEVECTOR3(brickSize)/brickSize.maxVal();
 }
 
 /*

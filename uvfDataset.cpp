@@ -255,8 +255,7 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
             const BrickKey k = BrickKey(timestep, j,
               static_cast<size_t>(z*bc.x*bc.y+y*bc.x + x));
 
-            bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) /
-                           float(GetDomainSize(j, timestep).maxVal());
+            bmd.extents  = FLOATVECTOR3( pVolumeDataBlock->GetBrickAspect(coords) * DOUBLEVECTOR3(GetEffectiveBrickSize(k))) / float(GetDomainSize(j, timestep).maxVal());
             bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) -
                            vNormalizedDomainSize * 0.5f;
             bmd.n_voxels = pVolumeDataBlock->GetBrickSize(coords);
@@ -577,7 +576,6 @@ UINT64VECTOR3 UVFDataset::GetDomainSize(const size_t lod, const size_t iTs) cons
 uint64_t UVFDataset::GetNumberOfTimesteps() const {
   return m_timesteps.size();
 }
-
 
 float UVFDataset::MaxGradientMagnitude() const
 {
@@ -1053,7 +1051,8 @@ void UVFDataset::ComputeRange() {
     if (m_bToCBlock) {
       for(size_t tsi=0; tsi < m_timesteps.size(); ++tsi) {
         for (size_t i=0; i < GetBrickCount(0, tsi); i++) {
-          const InternalMaxMinElement& maxMinElement = m_timesteps[tsi]->m_pMaxMinData->GetValue(i);
+          const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[tsi]);
+          const InternalMaxMinElement& maxMinElement = ts->m_pMaxMinData->GetValue(i, ts->GetDB()->GetComponentCount() == 4 ? 3 : 0);
 
           if (i>0) {
             limits.first  = min(limits.first, maxMinElement.minScalar);
@@ -1092,84 +1091,60 @@ void UVFDataset::ComputeRange() {
   }
 }
 
-
-bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
-{
+InternalMaxMinElement UVFDataset::MaxMinForKey(const BrickKey &k) const {
+  InternalMaxMinElement maxMinElement;
   if (m_bToCBlock) {
-    // TODO
-    return true;
+    const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::tr1::get<0>(k)]);
+    size_t iLinIndex = size_t(ts->GetDB()->GetLinearBrickIndex(KeyToTOCVector(k)));
+    return  ts->m_pMaxMinData->GetValue(iLinIndex, ts->GetDB()->GetComponentCount() == 4 ? 3 : 0 );
   } else {
-    // if we have no max min data we have to assume that every block is visible
-    if(NULL == m_timesteps[std::tr1::get<0>(k)]->m_pMaxMinData) {return true;}
 
     const NDBrickKey& key = IndexToVectorKey(k);
     size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
     
     const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[key.timestep]);
-    const InternalMaxMinElement& maxMinElement = ts->m_vvaMaxMin[iLOD]
-                                           [static_cast<size_t>(key.brick[0])]
-                                           [static_cast<size_t>(key.brick[1])]
-                                           [static_cast<size_t>(key.brick[2])];
-
-    return (isoval <= maxMinElement.maxScalar);
+    return ts->m_vvaMaxMin[iLOD]
+                          [static_cast<size_t>(key.brick[0])]
+                          [static_cast<size_t>(key.brick[1])]
+                          [static_cast<size_t>(key.brick[2])];
   }
+}
+
+bool UVFDataset::ContainsData(const BrickKey &k, double isoval) const
+{
+  // if we have no max min data we have to assume that every block is visible
+  if(NULL == m_timesteps[std::tr1::get<0>(k)]->m_pMaxMinData) {return true;}
+  const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
+  return (isoval <= maxMinElement.maxScalar);
 }
 
 bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax) const
 {
-  if (m_bToCBlock) {
-    // TODO
-    return true;
-  } else {
-    // if we have no max min data we have to assume that every block is visible
-    if(NULL == m_timesteps[std::tr1::get<0>(k)]->m_pMaxMinData) {return true;}
-
-    const NDBrickKey& key = IndexToVectorKey(k);
-    size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
-    const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[key.timestep]);
-    const InternalMaxMinElement& maxMinElement = ts->m_vvaMaxMin[iLOD]
-                                           [static_cast<size_t>(key.brick[0])]
-                                           [static_cast<size_t>(key.brick[1])]
-                                           [static_cast<size_t>(key.brick[2])];
-
-    return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
-  }
+  // if we have no max min data we have to assume that every block is visible
+  if(NULL == m_timesteps[std::tr1::get<0>(k)]->m_pMaxMinData) {return true;}
+  const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
+  return (fMax >= maxMinElement.minScalar && fMin <= maxMinElement.maxScalar);
 }
 
 bool UVFDataset::ContainsData(const BrickKey &k, double fMin,double fMax, double fMinGradient,double fMaxGradient) const
 {
-  if (m_bToCBlock) {
-    // TODO
-    return true;
-  } else {
-    // if we have no max min data we have to assume that every block is visible
-    if(NULL == m_timesteps[std::tr1::get<0>(k)]->m_pMaxMinData) {return true;}
-
-    const NDBrickKey& key = IndexToVectorKey(k);
-    size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
-    const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[key.timestep]);
-    const InternalMaxMinElement& maxMinElement = ts->m_vvaMaxMin[iLOD]
-                                           [static_cast<size_t>(key.brick[0])]
-                                           [static_cast<size_t>(key.brick[1])]
-                                           [static_cast<size_t>(key.brick[2])];
-
-    return (fMax >= maxMinElement.minScalar &&
-            fMin <= maxMinElement.maxScalar)
-                           &&
-           (fMaxGradient >= maxMinElement.minGradient &&
-            fMinGradient <= maxMinElement.maxGradient);
-  }
+  // if we have no max min data we have to assume that every block is visible
+  if(NULL == m_timesteps[std::tr1::get<0>(k)]->m_pMaxMinData) {return true;}
+  const InternalMaxMinElement maxMinElement = MaxMinForKey(k);
+  return (fMax >= maxMinElement.minScalar &&
+          fMin <= maxMinElement.maxScalar)
+                         &&
+         (fMaxGradient >= maxMinElement.minGradient &&
+          fMinGradient <= maxMinElement.maxGradient);
 }
 
 const std::vector< std::pair < std::string, std::string > > UVFDataset::GetMetadata() const {
   std::vector< std::pair < std::string, std::string > > v;
-
   if (m_pKVDataBlock)  {
     for (size_t i = 0;i<m_pKVDataBlock->GetKeyCount();i++) {
       v.push_back(std::make_pair(m_pKVDataBlock->GetKeyByIndex(i), m_pKVDataBlock->GetValueByIndex(i)));
     }
   }
-
   return v;
 }
 

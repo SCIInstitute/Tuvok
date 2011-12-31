@@ -236,6 +236,8 @@ private:
 
   uint64_t                     m_iMaxAcceptableBricksize;
 
+  InternalMaxMinElement MaxMinForKey(const BrickKey &k) const;
+
   FLOATVECTOR3 GetVolCoord(uint64_t pos, const UINT64VECTOR3& domSize) {
     UINT64VECTOR3 domCoords;
 

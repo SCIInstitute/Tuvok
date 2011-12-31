@@ -183,8 +183,8 @@ void MaxMinDataBlock::SetDataFromFlatVector(BrickStatVec& source, uint64_t iComp
     for (size_t j = 0;j<stcc;++j) {
       InternalMaxMinElement data(source[i*stcc+j].minScalar, 
                                  source[i*stcc+j].maxScalar, 
-                                  std::numeric_limits<double>::max(), 
-                                 -std::numeric_limits<double>::max());
+                                 -std::numeric_limits<double>::max(), 
+                                  std::numeric_limits<double>::max());
 
       m_vfMaxMinData[i][j] = data;
       m_GlobalMaxMin[j].Merge(data);
