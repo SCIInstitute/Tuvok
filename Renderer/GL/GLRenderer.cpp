@@ -1714,14 +1714,14 @@ void GLRenderer::CreateOffscreenBuffers() {
                           m_pFBO3DImageLast = mm.GetFBO(GL_NEAREST, GL_NEAREST,
                                                         GL_CLAMP, m_vWinSize.x,
                                                         m_vWinSize.y, GL_RGBA8,
-                                                        4, true);
+                                                        4, m_pContext->GetShareGroupID(), true);
                         }
                         m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
                                                             GL_NEAREST,
                                                             GL_CLAMP,
                                                             m_vWinSize.x,
                                                             m_vWinSize.y,
-                                                            GL_RGBA8, 4, true);
+                                                            GL_RGBA8, 4, m_pContext->GetShareGroupID(), true);
                         break;
 
         case BP_16BIT : if (i==0) {
@@ -1729,7 +1729,7 @@ void GLRenderer::CreateOffscreenBuffers() {
                                                         GL_CLAMP, m_vWinSize.x,
                                                         m_vWinSize.y,
                                                         m_texFormat16, 2*4,
-                                                        true);
+                                                        m_pContext->GetShareGroupID(), true);
                         }
                         m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
                                                             GL_NEAREST,
@@ -1737,7 +1737,7 @@ void GLRenderer::CreateOffscreenBuffers() {
                                                             m_vWinSize.x,
                                                             m_vWinSize.y,
                                                             m_texFormat16,
-                                                            2*4, true);
+                                                            2*4, m_pContext->GetShareGroupID(), true);
                         break;
 
         case BP_32BIT : if (i==0) {
@@ -1745,7 +1745,7 @@ void GLRenderer::CreateOffscreenBuffers() {
                                                         GL_CLAMP, m_vWinSize.x,
                                                         m_vWinSize.y,
                                                         m_texFormat32, 4*4,
-                                                        true);
+                                                        m_pContext->GetShareGroupID(), true);
                         }
                         m_pFBO3DImageCurrent[i] = mm.GetFBO(GL_NEAREST,
                                                             GL_NEAREST,
@@ -1753,7 +1753,7 @@ void GLRenderer::CreateOffscreenBuffers() {
                                                             m_vWinSize.x,
                                                             m_vWinSize.y,
                                                             m_texFormat32,
-                                                            4*4, true);
+                                                            4*4, m_pContext->GetShareGroupID(), true);
                         break;
 
         default       : MESSAGE("Invalid Blending Precision");
