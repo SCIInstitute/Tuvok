@@ -60,6 +60,48 @@ class UVF;
 
 namespace tuvok {
 
+  class Timestep  {
+  public:
+  	Timestep() : 
+      m_fMaxGradMagnitude(0), 
+      m_pVolumeDataBlock(NULL),
+      m_pHist1DDataBlock(NULL), 
+      m_pHist2DDataBlock(NULL),
+      m_pMaxMinData(NULL)
+    {}  
+    float                        m_fMaxGradMagnitude;
+    const DataBlock*             m_pVolumeDataBlock; ///< data
+    const Histogram1DDataBlock*  m_pHist1DDataBlock;
+    const Histogram2DDataBlock*  m_pHist2DDataBlock;
+    const MaxMinDataBlock*       m_pMaxMinData;      ///< acceleration info
+    size_t                       block_number;
+  };
+
+  class RDTimestep : public Timestep   {
+  public:
+    RDTimestep() : Timestep() {}
+
+    const RasterDataBlock* GetDB() const {return dynamic_cast<const RasterDataBlock*>(m_pVolumeDataBlock);}
+
+    /// number of voxels of overlap with neighboring bricks
+    UINTVECTOR3                  m_aOverlap;
+    /// size of the domain for this timestep (i.e. n_voxels in finest LOD)
+    std::vector<UINT64VECTOR3>   m_aDomainSize;
+    /// max values for logical brick indices; std::vector index gives LOD.
+    std::vector<UINT64VECTOR3>   m_vaBrickCount;
+    /// the size of each individual brick.  Slowest moving dimension is LOD;
+    /// then x,y,z.
+    std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
+    /// same layout as m_vvaBrickSize, but gives acceleration min/max info.
+    std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
+  };
+
+  class TOCTimestep : public Timestep   {
+  public:
+    TOCTimestep() : Timestep() {}
+    const TOCBlock* GetDB() const {return dynamic_cast<const TOCBlock*>(m_pVolumeDataBlock);}
+  };
+
 class UVFDataset : public FileBackedDataset {
 public:
   UVFDataset(const std::string& strFilename, uint64_t iMaxAcceptableBricksize, bool bVerify, bool bMustBeSameVersion = true);
@@ -68,6 +110,8 @@ public:
 
   // Brick Data
   virtual UINTVECTOR3 GetBrickVoxelCounts(const BrickKey&) const;
+  virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const;
+
   virtual bool GetBrick(const BrickKey&, std::vector<uint8_t>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<int8_t>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<uint16_t>&) const;
@@ -76,7 +120,6 @@ public:
   virtual bool GetBrick(const BrickKey&, std::vector<int32_t>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<float>&) const;
   virtual bool GetBrick(const BrickKey&, std::vector<double>&) const;
-  virtual UINT64VECTOR3 GetEffectiveBrickSize(const BrickKey &) const;
 
   /// Acceleration queries.
   virtual bool ContainsData(const BrickKey &k, double isoval) const;
@@ -134,19 +177,22 @@ public:
   const UVF* GetUVFFile() const {return m_pDatasetFile;}
 
   virtual const char* Name() const { 
-    if (m_timesteps.size()) 
-      return m_timesteps[0].m_pVolumeDataBlock->strBlockID.c_str(); 
+    if (m_timesteps.size())
+      return m_timesteps[0]->m_pVolumeDataBlock->strBlockID.c_str(); 
     else
       return "Generic UVF Dataset"; 
   }
 
   NDBrickKey IndexToVectorKey(const BrickKey &k) const;
+  UINT64VECTOR4 KeyToTOCVector(const BrickKey &k) const;
+
+  bool IsTOCBlock() const {return m_bToCBlock;}
 
 private:
   std::vector<uint64_t> IndexToVector(const BrickKey &k) const;
   bool Open(bool bVerify, bool bReadWrite, bool bMustBeSameVersion=true);
   void Close();
-  void FindSuitableRasterBlocks();
+  void FindSuitableDataBlocks();
   void ComputeMetaData(size_t ts);
   void GetHistograms(size_t ts);
 
@@ -154,33 +200,32 @@ private:
 
   size_t DetermineNumberOfTimesteps();
   bool VerifyRasterDataBlock(const RasterDataBlock*) const;
+  bool VerifyTOCBlock(const TOCBlock* tb) const;
+
+  template <class T> bool GetBrickTemplate(const BrickKey& k,
+                            std::vector<T>& vData) const
+  {
+   if (m_bToCBlock) {
+      const UINT64VECTOR4 coords = KeyToTOCVector(k);
+      const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::tr1::get<0>(k)]);
+
+      size_t targetSize = size_t(ts->GetDB()->GetComponentTypeSize() *
+                                 ts->GetDB()->GetComponentCount() *
+                                 ts->GetDB()->GetBrickSize(coords).volume())/sizeof(T);
+      if (vData.size() < targetSize)
+        vData.resize(targetSize);
+      ts->GetDB()->GetData((uint8_t*)&vData[0],coords);
+      return true;
+    } else {
+      const NDBrickKey& key = this->IndexToVectorKey(k);
+      const RDTimestep* ts = static_cast<RDTimestep*>(m_timesteps[key.timestep]);
+      return ts->GetDB()->GetData(vData, key.lod, key.brick);
+    }
+  }
 
 private:
-  struct Timestep {
-	Timestep() : m_fMaxGradMagnitude(0), m_pVolumeDataBlock(NULL),
-				 m_pHist1DDataBlock(NULL), m_pHist2DDataBlock(NULL), 
-				 m_pMaxMinData(NULL) {}
-    /// used for 2D TF scaling
-    float                        m_fMaxGradMagnitude;
-    const RasterDataBlock*       m_pVolumeDataBlock; ///< data
-    const Histogram1DDataBlock*  m_pHist1DDataBlock;
-    const Histogram2DDataBlock*  m_pHist2DDataBlock;
-    MaxMinDataBlock*             m_pMaxMinData;      ///< acceleration info
-
-    /// number of voxels of overlap with neighboring bricks
-    UINTVECTOR3                  m_aOverlap;
-    /// size of the domain for this timestep (i.e. n_voxels in finest LOD)
-    std::vector<UINT64VECTOR3>   m_aDomainSize;
-    /// max values for logical brick indices; std::vector index gives LOD.
-    std::vector<UINT64VECTOR3>   m_vaBrickCount;
-    /// the size of each individual brick.  Slowest moving dimension is LOD;
-    /// then x,y,z.
-    std::vector<std::vector<std::vector<std::vector<UINT64VECTOR3> > > >  m_vvaBrickSize;
-    /// same layout as m_vvaBrickSize, but gives acceleration min/max info.
-    std::vector<std::vector<std::vector<std::vector<InternalMaxMinElement> > > > m_vvaMaxMin;
-    size_t                       block_number;
-  };
-  std::vector<Timestep>        m_timesteps;
+  bool                         m_bToCBlock;
+  std::vector< Timestep* >     m_timesteps;
   std::vector<GeometryDataBlock*> m_TriSoupBlocks;
   const KeyValuePairDataBlock* m_pKVDataBlock;
   UINTVECTOR3                  m_aMaxBrickSize;
@@ -189,7 +234,7 @@ private:
   UVF*                         m_pDatasetFile;
   std::pair<double,double>     m_CachedRange;
 
-  uint64_t                       m_iMaxAcceptableBricksize;
+  uint64_t                     m_iMaxAcceptableBricksize;
 
   FLOATVECTOR3 GetVolCoord(uint64_t pos, const UINT64VECTOR3& domSize) {
     UINT64VECTOR3 domCoords;
