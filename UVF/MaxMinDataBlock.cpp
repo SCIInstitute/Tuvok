@@ -139,7 +139,7 @@ uint64_t MaxMinDataBlock::ComputeDataSize() const {
          32 * m_vfMaxMinData.size() * m_iComponentCount;        // vector of data
 }
 
-const InternalMaxMinElement& MaxMinDataBlock::GetValue(size_t iIndex, size_t iComponent) {
+const InternalMaxMinElement& MaxMinDataBlock::GetValue(size_t iIndex, size_t iComponent) const {
   if(iIndex >= m_vfMaxMinData.size() ||
      iComponent >= m_vfMaxMinData[iIndex].size()) {
     throw std::length_error("MaxMinDataBlock: Invalid maxmin index.");

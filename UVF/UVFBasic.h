@@ -4,9 +4,9 @@
 #define UVFBASIC_H
 
 #ifndef UVFVERSION
-  #define UVFVERSION 3
+  #define UVFVERSION 4
 #else
-  #if UVFVERSION != 3
+  #if UVFVERSION != 4
     #error [UVFBasic.h] Version mismatch
   #endif
 #endif

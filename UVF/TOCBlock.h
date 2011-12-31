@@ -18,19 +18,18 @@ public:
   TOCBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
   virtual uint64_t ComputeDataSize() const;
 
-  void SetOverlap(uint32_t iOverlap) {m_iOverlap=iOverlap;}
-  uint32_t GetOverlap() const {return m_iOverlap;}
-
-  void SetMaxBricksize(const UINTVECTOR3& vMaxBrickSize) {
-    m_vMaxBrickSize=vMaxBrickSize;
-  }
-  UINTVECTOR3 GetMaxBricksize() const {return m_vMaxBrickSize;}
+  uint32_t GetOverlap() const {return m_ExtendedOctree.GetOverlap();}
+  UINTVECTOR3 GetMaxBricksize() const {return m_ExtendedOctree.GetMaxBricksize();}
 
   bool FlatDataToBrickedLOD(const std::string& strSourceFile,
                             const std::string& strTempFile, 
                             ExtendedOctree::COMPONENT_TYPE eType,
-                            uint64_t iComponentCount, UINT64VECTOR3 vVolumeSize,
-                            DOUBLEVECTOR3 vScale, size_t iCacheSize, 
+                            uint64_t iComponentCount, 
+                            const UINT64VECTOR3& vVolumeSize,
+                            const DOUBLEVECTOR3& vScale, 
+                            const UINTVECTOR3& vMaxBrickSize,
+                            uint32_t iOverlap,
+                            size_t iCacheSize, 
                             std::tr1::shared_ptr<MaxMinDataBlock>
                               pMaxMinDatBlock =
                                 std::tr1::shared_ptr<MaxMinDataBlock>(),
@@ -38,8 +37,12 @@ public:
   bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData,
                             const std::string& strTempFile, 
                             ExtendedOctree::COMPONENT_TYPE eType,
-                            uint64_t iComponentCount, UINT64VECTOR3 vVolumeSize,
-                            DOUBLEVECTOR3 vScale, size_t iCacheSize, 
+                            uint64_t iComponentCount, 
+                            const UINT64VECTOR3& vVolumeSize,
+                            const DOUBLEVECTOR3& vScale, 
+                            const UINTVECTOR3& vMaxBrickSize,
+                            uint32_t iOverlap,
+                            size_t iCacheSize, 
                             std::tr1::shared_ptr<MaxMinDataBlock>
                               pMaxMinDatBlock =
                                 std::tr1::shared_ptr<MaxMinDataBlock>(),
@@ -66,6 +69,12 @@ public:
   ExtendedOctree::COMPONENT_TYPE GetComponentType() const {
     return m_ExtendedOctree.GetComponentType();
   }
+
+  bool GetIsSigned() const;
+  bool GetIsFloat() const;
+
+  DOUBLEVECTOR3 GetScale() const;
+  void SetScale(const DOUBLEVECTOR3& scale);
 
 protected:
   uint64_t m_iOffsetToOctree;

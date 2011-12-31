@@ -51,7 +51,7 @@ public:
   virtual MaxMinDataBlock& operator=(const MaxMinDataBlock& other);
   virtual uint64_t ComputeDataSize() const;
 
-  const InternalMaxMinElement& GetValue(size_t iIndex, size_t iComponent=0);
+  const InternalMaxMinElement& GetValue(size_t iIndex, size_t iComponent=0) const;
   void StartNewValue();
   void MergeData(const std::vector<DOUBLEVECTOR4>& fMaxMinData);
   void SetDataFromFlatVector(BrickStatVec& source, uint64_t iComponentCount);

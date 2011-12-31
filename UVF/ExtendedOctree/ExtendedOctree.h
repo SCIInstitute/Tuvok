@@ -165,6 +165,18 @@ public:
   uint64_t GetLODCount() const {return m_vLODTable.size();}
 
   /**
+    Returns the single sided overhead
+    @return  the single sided overhead
+  */
+  uint32_t GetOverlap() const {return m_iOverlap;}
+
+  /**
+    Returns the brick size limit
+    @return the brick size limit
+  */
+  UINTVECTOR3 GetMaxBricksize() const {return m_iBrickSize;}
+
+  /**
     Returns the number of bricks in a given LoD level. The result of this
     call is a vector that contains the brick count for each dimension
     to get the (scalar) number of bricks in  this level call .volume() on this

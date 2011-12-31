@@ -81,27 +81,40 @@ uint64_t TOCBlock::ComputeDataSize() const {
 bool TOCBlock::FlatDataToBrickedLOD(
   const std::string& strSourceFile, const std::string& strTempFile,
   ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount, 
-  UINT64VECTOR3 vVolumeSize, DOUBLEVECTOR3 vScale, size_t iCacheSize, 
+  const UINT64VECTOR3& vVolumeSize, 
+  const DOUBLEVECTOR3& vScale, 
+  const UINTVECTOR3& vMaxBrickSize,
+  uint32_t iOverlap,
+  size_t iCacheSize, 
   std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut* debugOut
 ) {
+
   LargeRAWFile_ptr inFile(new LargeRAWFile(strSourceFile));
   if (!inFile->Open()) {
     return false;
   }
 
   return FlatDataToBrickedLOD(inFile, strTempFile, eType, iComponentCount, 
-                              vVolumeSize, vScale, iCacheSize, 
+                              vVolumeSize, vScale, vMaxBrickSize,
+                              iOverlap, iCacheSize, 
                               pMaxMinDatBlock, debugOut);
 }
 
 bool TOCBlock::FlatDataToBrickedLOD(
   LargeRAWFile_ptr pSourceData, const std::string& strTempFile,
   ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount, 
-  UINT64VECTOR3 vVolumeSize, DOUBLEVECTOR3 vScale, size_t iCacheSize,
+  const UINT64VECTOR3& vVolumeSize, 
+  const DOUBLEVECTOR3& vScale, 
+  const UINTVECTOR3& vMaxBrickSize,
+  uint32_t iOverlap,
+  size_t iCacheSize,
   std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut*
 ) {
+  m_vMaxBrickSize = vMaxBrickSize;
+  m_iOverlap = iOverlap;
+
   LargeRAWFile_ptr outFile(new LargeRAWFile(strTempFile));
   if (!outFile->Create()) {
     return false;
@@ -147,4 +160,48 @@ UINT64VECTOR3 TOCBlock::GetLODDomainSize(uint64_t iLoD) const {
 
 uint64_t TOCBlock::GetLoDCount() const {
   return m_ExtendedOctree.GetLODCount();
+}
+
+bool TOCBlock::GetIsSigned() const {
+  const ExtendedOctree::COMPONENT_TYPE t = GetComponentType();
+  switch (t) {
+    case ExtendedOctree::CT_INT8:
+    case ExtendedOctree::CT_INT16:
+    case ExtendedOctree::CT_INT32:
+    case ExtendedOctree::CT_INT64:
+    case ExtendedOctree::CT_FLOAT32:
+    case ExtendedOctree::CT_FLOAT64: return true;
+
+    case ExtendedOctree::CT_UINT8:
+    case ExtendedOctree::CT_UINT16:
+    case ExtendedOctree::CT_UINT32:
+    case ExtendedOctree::CT_UINT64: 
+    default: return false;
+  }
+}
+
+bool TOCBlock::GetIsFloat() const {
+  const ExtendedOctree::COMPONENT_TYPE t = GetComponentType();
+  switch (t) {
+    case ExtendedOctree::CT_FLOAT32:
+    case ExtendedOctree::CT_FLOAT64: return true;
+
+    case ExtendedOctree::CT_INT8:
+    case ExtendedOctree::CT_INT16:
+    case ExtendedOctree::CT_INT32:
+    case ExtendedOctree::CT_INT64:
+    case ExtendedOctree::CT_UINT8:
+    case ExtendedOctree::CT_UINT16:
+    case ExtendedOctree::CT_UINT32:
+    case ExtendedOctree::CT_UINT64: 
+    default: return false;
+  }
+}
+
+DOUBLEVECTOR3 TOCBlock::GetScale() const {
+  return m_ExtendedOctree.GetGlobalbAspect();
+}
+
+void TOCBlock::SetScale(const DOUBLEVECTOR3& scale) {
+  m_ExtendedOctree.SetGlobalAspect(scale);
 }

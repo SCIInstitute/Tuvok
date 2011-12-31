@@ -1424,7 +1424,7 @@ bool RasterDataBlock::BrickedLODToFlatData(const vector<uint64_t>& vLOD, const s
 
 #ifdef _DEBUG
   for (size_t i = 0;i<ulBrickSize.size();i++) {
-    assert(iOverlap <= ulBrickOverlap[i]);  // we cannot output more overlap
+    assert(iOverlap <= ulBrickOverlap[i]/2);  // we cannot output more overlap
                                             // than we have stored
   }
 #endif
