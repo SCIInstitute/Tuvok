@@ -52,11 +52,10 @@ class DXContext : public Context {
     DXContext(int iShareGroupID) : Context(iShareGroupID) { ctx = NULL; }
 
     /// Create an ID from the given context.
-    DXContext(ID3D10Device *c) : Context() {
+    DXContext(ID3D10Device *c) : Context(m_iShareGroupID) {
       ctx = c;
     }
-    DXContext(const DXContext &dx) {
-       m_iShareGroupID = dx.m_iShareGrouID;
+    DXContext(const DXContext &dx) : Context(m_iShareGroupID) {
        ctx = dx.ctx;
     }
 
