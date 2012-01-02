@@ -27,7 +27,7 @@
 #ifndef EXTENDEDOCTREE_H
 #define EXTENDEDOCTREE_H
 
-#include <StdTuvokDefines.h>
+#include "Basics/StdDefines.h"
 
 // make sure have access to the tr1 shared_ptr
 #ifdef _MSC_VER
@@ -37,10 +37,10 @@
 #endif
 
 // for the LargeRawfile class
-#include "../../../Basics/LargeRAWFile.h"
+#include "Basics/LargeRAWFile.h"
 
 // for the small fixed size vectors
-#include "../../../Basics/Vectors.h"
+#include "Basics/Vectors.h"
 
 /*! \brief This structure holds information about a specific level in the tree
  *
@@ -205,7 +205,7 @@ public:
     @param vBrickCoords coordinates of a brick: x,y,z are the spacial coordinates, w is the LoD level
     @return the aspect ration of a specific brick
   */
-  DOUBLEVECTOR3 ComputeBrickAspect(const UINT64VECTOR4& vBrickCoords) const;
+  DOUBLEVECTOR3 GetBrickAspect(const UINT64VECTOR4& vBrickCoords) const;
 
   /**
     use to get the raw (uncompressed) data of a specific brick

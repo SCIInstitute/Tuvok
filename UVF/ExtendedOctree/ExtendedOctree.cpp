@@ -142,28 +142,28 @@ void ExtendedOctree::ComputeMetadata() {
     if (!m_vLODTable.empty())  {
       if (vVolumeSize.x > vUsableBrickSize.x) {
         l.m_iLODPixelSize.x = uint64_t(ceil(vVolumeSize.x/2.0));
-        vAspect.x *= (vVolumeSize.x%2) ? (vVolumeSize.x/l.m_iLODPixelSize.x) : 2;
+        vAspect.x *= (vVolumeSize.x%2) ? float(vVolumeSize.x)/float(l.m_iLODPixelSize.x) : 2;
       } 
 
       if (vVolumeSize.y > vUsableBrickSize.y) {
         l.m_iLODPixelSize.y = uint64_t(ceil(vVolumeSize.y/2.0));
-        vAspect.y *= (vVolumeSize.y%2) ? (vVolumeSize.y/l.m_iLODPixelSize.y) : 2;
+        vAspect.y *= (vVolumeSize.y%2) ? float(vVolumeSize.y)/float(l.m_iLODPixelSize.y) : 2;
       }
       if (vVolumeSize.z > vUsableBrickSize.z) {
         l.m_iLODPixelSize.z = uint64_t(ceil(vVolumeSize.z/2.0));
-        vAspect.z *= (vVolumeSize.z%2) ? (vVolumeSize.z/l.m_iLODPixelSize.z) : 2;
+        vAspect.z *= (vVolumeSize.z%2) ? float(vVolumeSize.z)/float(l.m_iLODPixelSize.z) : 2;
       }
       vAspect /= vAspect.maxVal();
 
       vVolumeSize = l.m_iLODPixelSize;
     }
-    
+
     l.m_vAspect = vAspect;
     l.m_iLODBrickCount.x = uint64_t(ceil( vVolumeSize.x / double(vUsableBrickSize.x)));
     l.m_iLODBrickCount.y = uint64_t(ceil( vVolumeSize.y / double(vUsableBrickSize.y)));
     l.m_iLODBrickCount.z = uint64_t(ceil( vVolumeSize.z / double(vUsableBrickSize.z)));
-    
-     m_vLODTable.push_back(l);
+
+    m_vLODTable.push_back(l);
   } while (vVolumeSize.x > vUsableBrickSize.x ||
            vVolumeSize.y > vUsableBrickSize.y ||
            vVolumeSize.z > vUsableBrickSize.z);
@@ -216,15 +216,12 @@ UINTVECTOR3 ExtendedOctree::ComputeBrickSize(const UINT64VECTOR4& vBrickCoords) 
 }
 
 /*
- ComputeBrickAspect:
+ GetBrickAspect:
  
- the brick aspect is defined as the deformation of a unit cube to the brick so
- it is computed as the aspect ratio of the LoD (due to anisotropic downsampling)
- times the deformation from a unit cube (normalized by the maximum dimension)
+ the aspect ratio of the LoD (can be different from 1:1:1 due to anisotropic downsampling)
 */
-DOUBLEVECTOR3 ExtendedOctree::ComputeBrickAspect(const UINT64VECTOR4& vBrickCoords) const {  
-  const UINTVECTOR3 brickSize = ComputeBrickSize(vBrickCoords);
-  return m_vLODTable[size_t(vBrickCoords.w)].m_vAspect * DOUBLEVECTOR3(brickSize)/brickSize.maxVal();
+DOUBLEVECTOR3 ExtendedOctree::GetBrickAspect(const UINT64VECTOR4& vBrickCoords) const {  
+  return m_vLODTable[size_t(vBrickCoords.w)].m_vAspect;
 }
 
 /*

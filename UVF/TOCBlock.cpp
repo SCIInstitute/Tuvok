@@ -185,7 +185,7 @@ UINTVECTOR3 TOCBlock::GetBrickSize(UINT64VECTOR4 coordinates) const {
 }
 
 DOUBLEVECTOR3 TOCBlock::GetBrickAspect(UINT64VECTOR4 coordinates) const {
-  return m_ExtendedOctree.ComputeBrickAspect(coordinates);
+  return m_ExtendedOctree.GetBrickAspect(coordinates);
 }
 
 UINT64VECTOR3 TOCBlock::GetLODDomainSize(uint64_t iLoD) const {

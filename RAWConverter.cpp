@@ -43,6 +43,7 @@
 #include "RAWConverter.h"
 #include "Basics/nonstd.h"
 #include "Basics/SysTools.h"
+#include "Basics/SystemInfo.h"
 #include "IO/gzio.h"
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
@@ -58,7 +59,9 @@ using namespace tuvok;
 // holds UVF data blocks, because they cannot be deleted until the UVF file is
 // written.
 struct TimestepBlocks {
+  std::tr1::shared_ptr<TOCBlock> tocblock;
   std::tr1::shared_ptr<RasterDataBlock> rdb;
+
   std::tr1::shared_ptr<MaxMinDataBlock> maxmin;
   std::tr1::shared_ptr<Histogram2DDataBlock> hist2d;
 };
@@ -448,238 +451,354 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
   std::vector<struct TimestepBlocks> blocks(static_cast<size_t>(timesteps));
 
+
   for(size_t ts=0; ts < static_cast<size_t>(timesteps); ++ts) {
-    blocks[ts].rdb = std::tr1::shared_ptr<RasterDataBlock>(
-      new RasterDataBlock()
-    );
+    
     blocks[ts].maxmin = std::tr1::shared_ptr<MaxMinDataBlock>(
       new MaxMinDataBlock(static_cast<size_t>(iComponentCount))
-    );
+      );
     blocks[ts].hist2d = std::tr1::shared_ptr<Histogram2DDataBlock>(
       new Histogram2DDataBlock()
-    );
-    std::tr1::shared_ptr<RasterDataBlock> dataVolume = blocks[ts].rdb;
-
-    if (strSource == "") {
-      dataVolume->strBlockID = (strDesc!="")
-                               ? strDesc + " volume converted by ImageVis3D"
-                               : "Volume converted by ImageVis3D";
-    } else {
-      dataVolume->strBlockID = (strDesc!="")
-                              ? strDesc + " volume converted from " + strSource
-                                + " by ImageVis3D"
-                              : "Volume converted from " + strSource +
-                                " by ImageVis3D";
-    }
-
-    dataVolume->ulCompressionScheme = UVFTables::COS_NONE;
-    dataVolume->ulDomainSemantics.push_back(UVFTables::DS_X);
-    dataVolume->ulDomainSemantics.push_back(UVFTables::DS_Y);
-    dataVolume->ulDomainSemantics.push_back(UVFTables::DS_Z);
-
-    dataVolume->ulDomainSize.push_back(vVolumeSize.x);
-    dataVolume->ulDomainSize.push_back(vVolumeSize.y);
-    dataVolume->ulDomainSize.push_back(vVolumeSize.z);
-
-    dataVolume->ulLODDecFactor.push_back(2);
-    dataVolume->ulLODDecFactor.push_back(2);
-    dataVolume->ulLODDecFactor.push_back(2);
-
-    dataVolume->ulLODGroups.push_back(0);
-    dataVolume->ulLODGroups.push_back(0);
-    dataVolume->ulLODGroups.push_back(0);
-
-    dataVolume->ulLODLevelCount.push_back(iLodLevelCount);
-
-    vector<UVFTables::ElementSemanticTable> vSem;
-
-    switch (iComponentCount) {
-      case 3 : vSem.push_back(UVFTables::ES_RED);
-               vSem.push_back(UVFTables::ES_GREEN);
-               vSem.push_back(UVFTables::ES_BLUE);
-               break;
-      case 4 : vSem.push_back(UVFTables::ES_RED);
-               vSem.push_back(UVFTables::ES_GREEN);
-               vSem.push_back(UVFTables::ES_BLUE);
-               vSem.push_back(UVFTables::ES_ALPHA);
-               break;
-      default : for (uint64_t i = 0;i<iComponentCount;i++) {
-                  vSem.push_back(eType);
-                }
-                break;
-    }
-
-    {
-      // The mantissa size really isn't used currently, other than
-      // getting stored in the UVF.  But be sure to set it 'correctly' anyway.
-      uint64_t mantissa_size = 0;
-      if(bIsFloat && iComponentSize == 64) {
-        mantissa_size = 52; // assume ieee-854
-      } else if(bIsFloat && iComponentSize == 32) {
-        mantissa_size = 23; // assume ieee-754
-      } else {
-        mantissa_size = iComponentSize;
-      }
-      dataVolume->SetTypeToVector(iComponentSize, mantissa_size, bSigned, vSem);
-    }
-
-    dataVolume->ulBrickSize.push_back(iTargetBrickSize);
-    dataVolume->ulBrickSize.push_back(iTargetBrickSize);
-    dataVolume->ulBrickSize.push_back(iTargetBrickSize);
-
-    dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap);
-    dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap);
-    dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap);
-
-    vector<double> vScale;
-    vScale.push_back(vVolumeAspect.x);
-    vScale.push_back(vVolumeAspect.y);
-    vScale.push_back(vVolumeAspect.z);
-    dataVolume->SetScaleOnlyTransformation(vScale);
-
-    std::string tmpfile;
-    {
-      ostringstream tmpfn;
-      tmpfn << strTempDir << ts << "tempFile.tmp";
-      tmpfile = tmpfn.str();
-    }
-    AbstrDebugOut *dbg = &Controller::Debug::Out();
-
-    bool bBrickingOK = false;
-    // increment the header skip so the next iteration pulls out the next
-    // timestep in our conglomeration of multiple TSs into a single file.
-    iHeaderSkip += iComponentSize/8 * iComponentCount * vVolumeSize.volume();
-
-    if (!sourceData->IsOpen()) {
-      T_ERROR("Unable to open source file %s",
-              sourceData->GetFilename().c_str());
-      return false;
-    }
+      );    
 
     std::tr1::shared_ptr<MaxMinDataBlock> MaxMinData = blocks[ts].maxmin;
-    switch (iComponentSize) {
-      case 8 :
-        switch (iComponentCount) {
-          case 1:
-            bBrickingOK = dataVolume->FlatDataToBrickedLOD(
-              sourceData, tmpfile+"1",
-              CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char,1>,
-              MaxMinData, dbg
-            );
-            break;
-          case 2:
-            bBrickingOK = dataVolume->FlatDataToBrickedLOD(
-              sourceData, tmpfile+"2",
-              CombineAverage<unsigned char,2>, SimpleMaxMin<unsigned char,2>,
-              MaxMinData, dbg
-            );
-            break;
-          case 3:
-            bBrickingOK = dataVolume->FlatDataToBrickedLOD(
-              sourceData, tmpfile+"3",
-              CombineAverage<unsigned char,3>, SimpleMaxMin<unsigned char,3>,
-              MaxMinData, dbg
-            );
-            break;
-          case 4:
-            bBrickingOK = dataVolume->FlatDataToBrickedLOD(
-              sourceData, tmpfile+"4",
-              CombineAverage<unsigned char,4>, SimpleMaxMin<unsigned char,4>,
-              MaxMinData, dbg
-            );
-            break;
-          default:
-            T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
-                    int(iComponentCount), int(iComponentSize));
+
+    if (Controller::ConstInstance().ExperimentalFeatures()) {
+
+      blocks[ts].tocblock = std::tr1::shared_ptr<TOCBlock>(
+        new TOCBlock()
+      );
+      std::tr1::shared_ptr<TOCBlock> dataVolume = blocks[ts].tocblock;
+
+      if (strSource == "") {
+        dataVolume->strBlockID = (strDesc!="")
+          ? strDesc + " volume converted by ImageVis3D"
+          : "Volume converted by ImageVis3D";
+      } else {
+        dataVolume->strBlockID = (strDesc!="")
+          ? strDesc + " volume converted from " + strSource
+          + " by ImageVis3D"
+          : "Volume converted from " + strSource +
+          " by ImageVis3D";
+      }
+
+      ExtendedOctree::COMPONENT_TYPE ct = ExtendedOctree::CT_UINT8;
+
+      switch (iComponentSize) {
+      case 8  : 
+        ct = (bSigned) ? ExtendedOctree::CT_INT8 : ExtendedOctree::CT_UINT8;
+        break;
+      case 16 : 
+        ct = (bSigned) ? ExtendedOctree::CT_INT16 : ExtendedOctree::CT_UINT16;
+        break;
+      case 32 : 
+        if (bIsFloat)
+          ct = ExtendedOctree::CT_FLOAT32;
+        else
+          ct = (bSigned) ? ExtendedOctree::CT_INT32 : ExtendedOctree::CT_UINT32;
+        break;
+      case 64 : 
+        if (bIsFloat)
+          ct = ExtendedOctree::CT_FLOAT64;
+        else
+          ct = (bSigned) ? ExtendedOctree::CT_INT64 : ExtendedOctree::CT_UINT64;
+        break;
+      }
+
+      std::string tmpfile;
+      {
+        ostringstream tmpfn;
+        tmpfn << strTempDir << ts << "tempFile.tmp";
+        tmpfile = tmpfn.str();
+      }
+
+      MESSAGE("Building level of detail hierarchy ...");
+      bool bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile, 
+        ct, iComponentCount, 
+        vVolumeSize,
+        DOUBLEVECTOR3(vVolumeAspect), 
+        UINTVECTOR3(uint32_t(iTargetBrickSize),uint32_t(iTargetBrickSize),uint32_t(iTargetBrickSize)),
+        uint32_t(iTargetBrickOverlap),
+        size_t(Controller::ConstInstance().SysInfo()->GetCPUMemSize()),
+        MaxMinData,
+        &Controller::Debug::Out()
+        );
+      MESSAGE("Hierarchy computation complete");
+
+      if (!bBrickingOK) {
+        uvfFile.Close();
+        T_ERROR("Brick generation failed, aborting.");
+        return false;
+      }
+
+      if (!uvfFile.AddDataBlock(dataVolume)) {
+        T_ERROR("AddDataBlock failed!");
+        uvfFile.Close();
+        return false;
+      }
+
+      // do not compute histograms when we are dealing with color data
+      /// \todo change this if we want to support non color multi component data
+      if (iComponentCount != 4) {
+        // if no re sampling was performed above, we need to compute the
+        // 1d histogram here
+        if (Histogram1D.GetHistogram().empty()) {
+          MESSAGE("Computing 1D Histogram...");
+          if (!Histogram1D.Compute(dataVolume.get(),0)) {
+            T_ERROR("Computation of 1D Histogram failed!");
             uvfFile.Close();
-            sourceData->Close();
+            return false;
+          }
+        }
+
+        MESSAGE("Computing 2D Histogram...");
+        std::tr1::shared_ptr<Histogram2DDataBlock> Histogram2D =
+          blocks[ts].hist2d;
+        if (!Histogram2D->Compute(dataVolume.get(), 0,
+          Histogram1D.GetHistogram().size(),
+          MaxMinData->GetGlobalValue().maxScalar)) {
+            T_ERROR("Computation of 2D Histogram failed!");
+            uvfFile.Close();
             return false;
         }
-        break;
-      case 16:
-            switch (iComponentCount) {
-              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"1", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short, 1>, MaxMinData, &Controller::Debug::Out()); break;
-              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"2", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short, 2>, MaxMinData, &Controller::Debug::Out()); break;
-              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"3", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short, 3>, MaxMinData, &Controller::Debug::Out()); break;
-              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"4", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short, 4>, MaxMinData, &Controller::Debug::Out()); break;
-              default:
-                T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
-                        int(iComponentCount), int(iComponentSize));
-                uvfFile.Close();
-                sourceData->Close();
-                return false;
-            } break;
-      case 32 :
-            switch (iComponentCount) {
-              case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"1", CombineAverage<float,1>, SimpleMaxMin<float, 1>, MaxMinData, &Controller::Debug::Out()); break;
-              case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"2", CombineAverage<float,2>, SimpleMaxMin<float, 2>, MaxMinData, &Controller::Debug::Out()); break;
-              case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"3", CombineAverage<float,3>, SimpleMaxMin<float, 3>, MaxMinData, &Controller::Debug::Out()); break;
-              case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"4", CombineAverage<float,4>, SimpleMaxMin<float, 4>, MaxMinData, &Controller::Debug::Out()); break;
-              default:
-                T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
-                        int(iComponentCount), int(iComponentSize));
-                uvfFile.Close();
-                sourceData->Close();
-                return false;
-            } break;
-      default:
-        T_ERROR("Unsupported iComponentSize %i.", int(iComponentSize));
-        uvfFile.Close();
-        sourceData->Close();
-        return false;
-    }
+        MESSAGE("Storing histogram data...");
+        uvfFile.AddDataBlock(
+          std::tr1::shared_ptr<Histogram1DDataBlock>(&Histogram1D,
+          nonstd::null_deleter())
+          );
+        uvfFile.AddDataBlock(Histogram2D);
+      }
 
-    if (!bBrickingOK) {
-      uvfFile.Close();
-      T_ERROR("Brick generation failed, aborting.");
-      return false;
-    }
+    } else {
 
-    string strProblemDesc;
-    if (!dataVolume->Verify(&strProblemDesc)) {
-      T_ERROR("Verify failed with the following reason: %s",
-              strProblemDesc.c_str());
-      uvfFile.Close();
-      return false;
-    }
+      blocks[ts].rdb = std::tr1::shared_ptr<RasterDataBlock>(
+        new RasterDataBlock()
+        );
+      std::tr1::shared_ptr<RasterDataBlock> dataVolume = blocks[ts].rdb;
 
-    if (!uvfFile.AddDataBlock(dataVolume)) {
-      T_ERROR("AddDataBlock failed!");
-      uvfFile.Close();
-      return false;
-    }
+      if (strSource == "") {
+        dataVolume->strBlockID = (strDesc!="")
+                                 ? strDesc + " volume converted by ImageVis3D"
+                                 : "Volume converted by ImageVis3D";
+      } else {
+        dataVolume->strBlockID = (strDesc!="")
+                                ? strDesc + " volume converted from " + strSource
+                                  + " by ImageVis3D"
+                                : "Volume converted from " + strSource +
+                                  " by ImageVis3D";
+      }
 
-    // do not compute histograms when we are dealing with color data
-    /// \todo change this if we want to support non color multi component data
-    if (iComponentCount != 4) {
-      // if no re sampling was performed above, we need to compute the
-      // 1d histogram here
-      if (Histogram1D.GetHistogram().empty()) {
-        MESSAGE("Computing 1D Histogram...");
-        if (!Histogram1D.Compute(dataVolume.get())) {
-          T_ERROR("Computation of 1D Histogram failed!");
-          uvfFile.Close();
-          return false;
+      dataVolume->ulCompressionScheme = UVFTables::COS_NONE;
+      dataVolume->ulDomainSemantics.push_back(UVFTables::DS_X);
+      dataVolume->ulDomainSemantics.push_back(UVFTables::DS_Y);
+      dataVolume->ulDomainSemantics.push_back(UVFTables::DS_Z);
+
+      dataVolume->ulDomainSize.push_back(vVolumeSize.x);
+      dataVolume->ulDomainSize.push_back(vVolumeSize.y);
+      dataVolume->ulDomainSize.push_back(vVolumeSize.z);
+
+      dataVolume->ulLODDecFactor.push_back(2);
+      dataVolume->ulLODDecFactor.push_back(2);
+      dataVolume->ulLODDecFactor.push_back(2);
+
+      dataVolume->ulLODGroups.push_back(0);
+      dataVolume->ulLODGroups.push_back(0);
+      dataVolume->ulLODGroups.push_back(0);
+
+      dataVolume->ulLODLevelCount.push_back(iLodLevelCount);
+
+      vector<UVFTables::ElementSemanticTable> vSem;
+
+      switch (iComponentCount) {
+        case 3 : vSem.push_back(UVFTables::ES_RED);
+                 vSem.push_back(UVFTables::ES_GREEN);
+                 vSem.push_back(UVFTables::ES_BLUE);
+                 break;
+        case 4 : vSem.push_back(UVFTables::ES_RED);
+                 vSem.push_back(UVFTables::ES_GREEN);
+                 vSem.push_back(UVFTables::ES_BLUE);
+                 vSem.push_back(UVFTables::ES_ALPHA);
+                 break;
+        default : for (uint64_t i = 0;i<iComponentCount;i++) {
+                    vSem.push_back(eType);
+                  }
+                  break;
+      }
+
+      {
+        // The mantissa size really isn't used currently, other than
+        // getting stored in the UVF.  But be sure to set it 'correctly' anyway.
+        uint64_t mantissa_size = 0;
+        if(bIsFloat && iComponentSize == 64) {
+          mantissa_size = 52; // assume ieee-854
+        } else if(bIsFloat && iComponentSize == 32) {
+          mantissa_size = 23; // assume ieee-754
+        } else {
+          mantissa_size = iComponentSize;
         }
+        dataVolume->SetTypeToVector(iComponentSize, mantissa_size, bSigned, vSem);
       }
 
-      MESSAGE("Computing 2D Histogram...");
-      std::tr1::shared_ptr<Histogram2DDataBlock> Histogram2D =
-        blocks[ts].hist2d;
-      if (!Histogram2D->Compute(dataVolume.get(),
-                                Histogram1D.GetHistogram().size(),
-                                MaxMinData->GetGlobalValue().maxScalar)) {
-        T_ERROR("Computation of 2D Histogram failed!");
+      dataVolume->ulBrickSize.push_back(iTargetBrickSize);
+      dataVolume->ulBrickSize.push_back(iTargetBrickSize);
+      dataVolume->ulBrickSize.push_back(iTargetBrickSize);
+
+      dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap);
+      dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap);
+      dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap);
+
+      vector<double> vScale;
+      vScale.push_back(vVolumeAspect.x);
+      vScale.push_back(vVolumeAspect.y);
+      vScale.push_back(vVolumeAspect.z);
+      dataVolume->SetScaleOnlyTransformation(vScale);
+
+      std::string tmpfile;
+      {
+        ostringstream tmpfn;
+        tmpfn << strTempDir << ts << "tempFile.tmp";
+        tmpfile = tmpfn.str();
+      }
+      AbstrDebugOut *dbg = &Controller::Debug::Out();
+
+      bool bBrickingOK = false;
+      // increment the header skip so the next iteration pulls out the next
+      // timestep in our conglomeration of multiple TSs into a single file.
+      iHeaderSkip += iComponentSize/8 * iComponentCount * vVolumeSize.volume();
+
+      if (!sourceData->IsOpen()) {
+        T_ERROR("Unable to open source file %s",
+                sourceData->GetFilename().c_str());
+        return false;
+      }
+
+      switch (iComponentSize) {
+        case 8 :
+          switch (iComponentCount) {
+            case 1:
+              bBrickingOK = dataVolume->FlatDataToBrickedLOD(
+                sourceData, tmpfile+"1",
+                CombineAverage<unsigned char,1>, SimpleMaxMin<unsigned char,1>,
+                MaxMinData, dbg
+              );
+              break;
+            case 2:
+              bBrickingOK = dataVolume->FlatDataToBrickedLOD(
+                sourceData, tmpfile+"2",
+                CombineAverage<unsigned char,2>, SimpleMaxMin<unsigned char,2>,
+                MaxMinData, dbg
+              );
+              break;
+            case 3:
+              bBrickingOK = dataVolume->FlatDataToBrickedLOD(
+                sourceData, tmpfile+"3",
+                CombineAverage<unsigned char,3>, SimpleMaxMin<unsigned char,3>,
+                MaxMinData, dbg
+              );
+              break;
+            case 4:
+              bBrickingOK = dataVolume->FlatDataToBrickedLOD(
+                sourceData, tmpfile+"4",
+                CombineAverage<unsigned char,4>, SimpleMaxMin<unsigned char,4>,
+                MaxMinData, dbg
+              );
+              break;
+            default:
+              T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
+                      int(iComponentCount), int(iComponentSize));
+              uvfFile.Close();
+              sourceData->Close();
+              return false;
+          }
+          break;
+        case 16:
+              switch (iComponentCount) {
+                case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"1", CombineAverage<unsigned short,1>, SimpleMaxMin<unsigned short, 1>, MaxMinData, &Controller::Debug::Out()); break;
+                case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"2", CombineAverage<unsigned short,2>, SimpleMaxMin<unsigned short, 2>, MaxMinData, &Controller::Debug::Out()); break;
+                case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"3", CombineAverage<unsigned short,3>, SimpleMaxMin<unsigned short, 3>, MaxMinData, &Controller::Debug::Out()); break;
+                case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"4", CombineAverage<unsigned short,4>, SimpleMaxMin<unsigned short, 4>, MaxMinData, &Controller::Debug::Out()); break;
+                default:
+                  T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
+                          int(iComponentCount), int(iComponentSize));
+                  uvfFile.Close();
+                  sourceData->Close();
+                  return false;
+              } break;
+        case 32 :
+              switch (iComponentCount) {
+                case 1 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"1", CombineAverage<float,1>, SimpleMaxMin<float, 1>, MaxMinData, &Controller::Debug::Out()); break;
+                case 2 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"2", CombineAverage<float,2>, SimpleMaxMin<float, 2>, MaxMinData, &Controller::Debug::Out()); break;
+                case 3 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"3", CombineAverage<float,3>, SimpleMaxMin<float, 3>, MaxMinData, &Controller::Debug::Out()); break;
+                case 4 : bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile+"4", CombineAverage<float,4>, SimpleMaxMin<float, 4>, MaxMinData, &Controller::Debug::Out()); break;
+                default:
+                  T_ERROR("Unsupported iComponentCount %i for iComponentSize %i.",
+                          int(iComponentCount), int(iComponentSize));
+                  uvfFile.Close();
+                  sourceData->Close();
+                  return false;
+              } break;
+        default:
+          T_ERROR("Unsupported iComponentSize %i.", int(iComponentSize));
+          uvfFile.Close();
+          sourceData->Close();
+          return false;
+      }
+
+      if (!bBrickingOK) {
+        uvfFile.Close();
+        T_ERROR("Brick generation failed, aborting.");
+        return false;
+      }
+
+      string strProblemDesc;
+      if (!dataVolume->Verify(&strProblemDesc)) {
+        T_ERROR("Verify failed with the following reason: %s",
+                strProblemDesc.c_str());
         uvfFile.Close();
         return false;
       }
-      MESSAGE("Storing histogram data...");
-      uvfFile.AddDataBlock(
-        std::tr1::shared_ptr<Histogram1DDataBlock>(&Histogram1D,
-                                                   nonstd::null_deleter())
-      );
-      uvfFile.AddDataBlock(Histogram2D);
-    }
+
+      if (!uvfFile.AddDataBlock(dataVolume)) {
+        T_ERROR("AddDataBlock failed!");
+        uvfFile.Close();
+        return false;
+      }
+
+      // do not compute histograms when we are dealing with color data
+      /// \todo change this if we want to support non color multi component data
+      if (iComponentCount != 4) {
+        // if no re sampling was performed above, we need to compute the
+        // 1d histogram here
+        if (Histogram1D.GetHistogram().empty()) {
+          MESSAGE("Computing 1D Histogram...");
+          if (!Histogram1D.Compute(dataVolume.get())) {
+            T_ERROR("Computation of 1D Histogram failed!");
+            uvfFile.Close();
+            return false;
+          }
+        }
+
+        MESSAGE("Computing 2D Histogram...");
+        std::tr1::shared_ptr<Histogram2DDataBlock> Histogram2D =
+          blocks[ts].hist2d;
+        if (!Histogram2D->Compute(dataVolume.get(),
+          Histogram1D.GetHistogram().size(),
+          MaxMinData->GetGlobalValue().maxScalar)) {
+            T_ERROR("Computation of 2D Histogram failed!");
+            uvfFile.Close();
+            return false;
+        }
+        MESSAGE("Storing histogram data...");
+        uvfFile.AddDataBlock(
+          std::tr1::shared_ptr<Histogram1DDataBlock>(&Histogram1D,
+          nonstd::null_deleter())
+          );
+        uvfFile.AddDataBlock(Histogram2D);
+      }
+
+  }
+
+
 
     MESSAGE("Storing acceleration data...");
     uvfFile.AddDataBlock(MaxMinData);
