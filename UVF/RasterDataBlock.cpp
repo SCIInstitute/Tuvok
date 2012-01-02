@@ -1416,11 +1416,14 @@ void RasterDataBlock::ResetFile(LargeRAWFile_ptr raw)
   m_pStreamFile = m_pSourceFile = raw;
 }
 
-bool RasterDataBlock::BrickedLODToFlatData(const vector<uint64_t>& vLOD, const std::string& strTargetFile,
-                                           bool bAppend, AbstrDebugOut* pDebugOut,
-                                           bool (*brickFunc)(LargeRAWFile_ptr pSourceFile, const std::vector<uint64_t> vBrickSize, const std::vector<uint64_t> vBrickOffset, void* pUserContext ),
-                                           void* pUserContext,
-                                           uint64_t iOverlap) const {
+ bool RasterDataBlock::ApplyFunction(const std::vector<uint64_t>& vLOD,
+                                     bool (*brickFunc)(void* pData, 
+                                                    const UINTVECTOR3& vBrickSize,
+                                                    const UINT64VECTOR3& vBrickOffset,
+                                                    void* pUserContext),
+                                     void* pUserContext,
+                                     uint64_t iOverlap,
+                                     AbstrDebugOut* pDebugOut) const {
 
 #ifdef _DEBUG
   for (size_t i = 0;i<ulBrickSize.size();i++) {
@@ -1428,6 +1431,36 @@ bool RasterDataBlock::BrickedLODToFlatData(const vector<uint64_t>& vLOD, const s
                                             // than we have stored
   }
 #endif
+
+  const vector<uint64_t> vBrickCount = GetBrickCount(vLOD);
+  vector<uint64_t> vCoords(vBrickCount.size());
+
+  std::vector<unsigned char> pData;
+
+  // generate 1D offset coords into serialized target data
+  vector<uint64_t> vPrefixProd;
+  vPrefixProd.push_back(1);
+  uint64_t iBrickCount = vBrickCount[0];
+  vector<uint64_t> vLODDomSize = GetLODDomainSize(vLOD);
+  for (size_t i = 1;i<vLODDomSize.size();i++) {
+    vPrefixProd.push_back(*(vPrefixProd.end()-1) * vLODDomSize[i-1]);
+    iBrickCount *= vBrickCount[i];
+  }
+  uint64_t iElementSize = ComputeElementSize();
+  uint64_t iBrickCounter = 0;
+
+  TraverseBricksToApplyFunction(iBrickCounter, iBrickCount, vLOD, vBrickCount, vCoords,
+                                vBrickCount.size()-1, pData,
+                                iElementSize/8, vPrefixProd, pDebugOut, brickFunc,
+                                pUserContext, iOverlap );
+
+  return true;
+}
+
+bool RasterDataBlock::BrickedLODToFlatData(const vector<uint64_t>& vLOD, const std::string& strTargetFile,
+                                           bool bAppend, AbstrDebugOut* pDebugOut) const {
+
+
 
   LargeRAWFile_ptr pTargetFile = LargeRAWFile_ptr(new LargeRAWFile(strTargetFile));
 
@@ -1463,8 +1496,7 @@ bool RasterDataBlock::BrickedLODToFlatData(const vector<uint64_t>& vLOD, const s
 
   TraverseBricksToWriteBrickToFile(iBrickCounter, iBrickCount, vLOD, vBrickCount, vCoords,
                                     vBrickCount.size()-1, iTargetOffset, pData, pTargetFile,
-                                    iElementSize/8, vPrefixProd, pDebugOut, brickFunc,
-                                    pUserContext, iOverlap );
+                                    iElementSize/8, vPrefixProd, pDebugOut);
 
   pTargetFile->Close();
   return true;
@@ -1472,36 +1504,31 @@ bool RasterDataBlock::BrickedLODToFlatData(const vector<uint64_t>& vLOD, const s
 
 
 bool
-RasterDataBlock::TraverseBricksToWriteBrickToFile(
+RasterDataBlock::TraverseBricksToApplyFunction(
   uint64_t& iBrickCounter, uint64_t iBrickCount,
   const std::vector<uint64_t>& vLOD,
   const std::vector<uint64_t>& vBrickCount,
   std::vector<uint64_t> vCoords,
-  size_t iCurrentDim, uint64_t iTargetOffset,
+  size_t iCurrentDim,
   std::vector<unsigned char>& vData,
-  LargeRAWFile_ptr pTargetFile,
   uint64_t iElementSize,
   const std::vector<uint64_t>& vPrefixProd,
   AbstrDebugOut* pDebugOut,
-  bool (*brickFunc)(LargeRAWFile_ptr pSourceFile,
-                    const std::vector<uint64_t> vBrickSize,
-                    const std::vector<uint64_t> vBrickOffset,
-                    void* pUserContext),
+  bool (*brickFunc)(void* pData, 
+    const UINTVECTOR3& vBrickSize,
+    const UINT64VECTOR3& vBrickOffset,
+    void* pUserContext),
   void* pUserContext, uint64_t iOverlap
 ) const {
   if (iCurrentDim>0) {
     for (size_t i = 0;i<vBrickCount[iCurrentDim];i++) {
       vCoords[iCurrentDim] = i;
-      if (!TraverseBricksToWriteBrickToFile(iBrickCounter, iBrickCount, vLOD, vBrickCount,
-                                            vCoords, iCurrentDim-1, iTargetOffset,vData ,
-                                            pTargetFile, iElementSize, vPrefixProd, pDebugOut,
-                                            brickFunc, pUserContext, iOverlap)) return false;
+      if (!TraverseBricksToApplyFunction(iBrickCounter, iBrickCount, vLOD, vBrickCount,
+                                         vCoords, iCurrentDim-1,vData ,
+                                         iElementSize, vPrefixProd, pDebugOut,
+                                         brickFunc, pUserContext, iOverlap)) return false;
     }
   } else {
-    for (size_t i = 1;i<ulDomainSize.size();i++) {
-      iTargetOffset += vPrefixProd[i] * vCoords[i] * (ulBrickSize[i]-ulBrickOverlap[i]);
-    }
-
     for (size_t i = 0;i<vBrickCount[0];i++) {
 
       vCoords[0] = i;
@@ -1515,6 +1542,75 @@ RasterDataBlock::TraverseBricksToWriteBrickToFile(
       }
 
       GetData(vData, vLOD, vCoords);
+      std::vector<unsigned char> vDataOverlapFixed(vData.size());
+
+      std::vector<uint64_t> vBrickPrefixProduct(vCoords);
+      vBrickPrefixProduct[0] = 1;
+      for (size_t j = 1;j<vBrickSize.size();j++) {
+        vBrickPrefixProduct[j] = vBrickSize[j-1]*vBrickPrefixProduct[j-1];
+      }
+
+      uint64_t iSourceOffset = 0, iTargetOffset = 0;
+      if (pDebugOut) pDebugOut->Message(_func_, "Extracting volume data\nProcessing brick %i of %i",int(++iBrickCounter),int(iBrickCount));
+
+
+      WriteBrickToArray(vBrickCount.size()-1, iSourceOffset, iTargetOffset, vBrickSize,
+                       vEffectiveBrickSize, vData, vDataOverlapFixed, iElementSize, vPrefixProd,
+                       vBrickPrefixProduct);
+
+      std::vector<uint64_t> vAbsCoords(vCoords);
+      for (size_t j = 0;j<ulBrickSize.size();j++)
+        vAbsCoords[j] *= (ulBrickSize[j]-ulBrickOverlap[j]);
+
+      if (pDebugOut) pDebugOut->Message(_func_, "Processing volume data\nProcessing brick %i of %i",int(iBrickCounter),int(iBrickCount));
+
+      if (!brickFunc(&vDataOverlapFixed[0], UINTVECTOR3(vEffectiveBrickSize), UINT64VECTOR3(vAbsCoords), pUserContext )) return false;
+
+    }
+  }
+  return true;
+}
+
+bool
+RasterDataBlock::TraverseBricksToWriteBrickToFile(
+  uint64_t& iBrickCounter, uint64_t iBrickCount,
+  const std::vector<uint64_t>& vLOD,
+  const std::vector<uint64_t>& vBrickCount,
+  std::vector<uint64_t> vCoords,
+  size_t iCurrentDim, uint64_t iTargetOffset,
+  std::vector<unsigned char>& vData,
+  LargeRAWFile_ptr pTargetFile,
+  uint64_t iElementSize,
+  const std::vector<uint64_t>& vPrefixProd,
+  AbstrDebugOut* pDebugOut
+) const {
+  if (iCurrentDim>0) {
+    for (size_t i = 0;i<vBrickCount[iCurrentDim];i++) {
+      vCoords[iCurrentDim] = i;
+      if (!TraverseBricksToWriteBrickToFile(iBrickCounter, iBrickCount, vLOD, vBrickCount,
+                                            vCoords, iCurrentDim-1, iTargetOffset, vData,
+                                            pTargetFile, iElementSize, vPrefixProd, 
+                                            pDebugOut)) return false;
+    }
+  } else {
+
+    for (size_t i = 1;i<ulDomainSize.size();i++) {
+      iTargetOffset += vPrefixProd[i] * vCoords[i] * (ulBrickSize[i]-ulBrickOverlap[i]);
+    }
+
+    for (size_t i = 0;i<vBrickCount[0];i++) {
+
+      vCoords[0] = i;
+      const std::vector<uint64_t> vBrickSize = GetBrickSize(vLOD, vCoords);
+      std::vector<uint64_t> vEffectiveBrickSize = vBrickSize;
+
+      for (size_t j = 0;j<vEffectiveBrickSize.size();j++) {
+        if (vCoords[j] < vBrickCount[j]-1) {
+          vEffectiveBrickSize[j] -= ulBrickOverlap[j];
+        }
+      }
+
+      GetData(vData, vLOD, vCoords);
 
       std::vector<uint64_t> vBrickPrefixProduct(vCoords);
       vBrickPrefixProduct[0] = 1;
@@ -1523,30 +1619,12 @@ RasterDataBlock::TraverseBricksToWriteBrickToFile(
       }
 
       uint64_t iSourceOffset = 0;
-      if (brickFunc) {
-        if (pDebugOut) pDebugOut->Message(_func_, "Extracting volume data\nProcessing brick %i of %i",int(++iBrickCounter),int(iBrickCount));
-
-        iTargetOffset = 0;
-
-        WriteBrickToFile(vBrickCount.size()-1, iSourceOffset, iTargetOffset, vBrickSize,
-                         vEffectiveBrickSize, vData, pTargetFile, iElementSize, vPrefixProd,
-                         vBrickPrefixProduct, false);
-
-        std::vector<uint64_t> vAbsCoords(vCoords);
-        for (size_t j = 0;j<ulBrickSize.size();j++)
-          vAbsCoords[j] *= (ulBrickSize[j]-ulBrickOverlap[j]);
-
-        if (pDebugOut) pDebugOut->Message(_func_, "Processing volume data\nProcessing brick %i of %i",int(iBrickCounter),int(iBrickCount));
-        if (!brickFunc(pTargetFile, vEffectiveBrickSize, vAbsCoords, pUserContext )) return false;
-        pTargetFile->Close();
-        pTargetFile->Create();
-      } else {
-        if (pDebugOut) pDebugOut->Message(_func_, "Processing brick %i of %i",int(++iBrickCounter),int(iBrickCount));
-        WriteBrickToFile(vBrickCount.size()-1, iSourceOffset, iTargetOffset, vBrickSize,
-                         vEffectiveBrickSize, vData, pTargetFile, iElementSize, vPrefixProd,
-                         vBrickPrefixProduct, true);
-        iTargetOffset += vEffectiveBrickSize[0];
-      }
+      
+      if (pDebugOut) pDebugOut->Message(_func_, "Processing brick %i of %i",int(++iBrickCounter),int(iBrickCount));
+      WriteBrickToFile(vBrickCount.size()-1, iSourceOffset, iTargetOffset, vBrickSize,
+                       vEffectiveBrickSize, vData, pTargetFile, iElementSize, vPrefixProd,
+                       vBrickPrefixProduct, true);
+      iTargetOffset += vEffectiveBrickSize[0];
     }
   }
   return true;
@@ -1576,5 +1654,31 @@ RasterDataBlock::WriteBrickToFile(size_t iCurrentDim,
     pTargetFile->WriteRAW(&(vData.at(size_t(iSourceOffset*iElementSize))),
                           vEffectiveBrickSize[0]*iElementSize);
     iSourceOffset += vBrickSize[0];
+  }
+}
+
+void
+RasterDataBlock::WriteBrickToArray(size_t iCurrentDim,
+                                  uint64_t& iSourceOffset, uint64_t& iTargetOffset,
+                                  const std::vector<uint64_t>& vBrickSize,
+                                  const std::vector<uint64_t>& vEffectiveBrickSize,
+                                  std::vector<unsigned char>& vData,
+                                  std::vector<unsigned char>& vTarget,
+                                  uint64_t iElementSize,
+                                  const std::vector<uint64_t>& vPrefixProd,
+                                  const std::vector<uint64_t>& vBrickPrefixProduct) const {
+  if (iCurrentDim>0) {
+    for (size_t i = 0;i<vEffectiveBrickSize[iCurrentDim];i++) {
+      WriteBrickToArray(iCurrentDim-1, iSourceOffset, iTargetOffset, vBrickSize,
+                       vEffectiveBrickSize, vData, vTarget, iElementSize, vPrefixProd,
+                       vBrickPrefixProduct);
+    }
+    iSourceOffset += (vBrickSize[iCurrentDim]-vEffectiveBrickSize[iCurrentDim])*vBrickPrefixProduct[iCurrentDim];
+  } else {
+    memcpy(&(vTarget.at(size_t(iTargetOffset*iElementSize))), 
+           &(vData.at(size_t(iSourceOffset*iElementSize))),
+           size_t(vEffectiveBrickSize[0]*iElementSize));
+    iSourceOffset += vBrickSize[0];
+    iTargetOffset += vEffectiveBrickSize[0];
   }
 }

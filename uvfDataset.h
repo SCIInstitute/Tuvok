@@ -153,13 +153,15 @@ public:
 
   // Global "Operations" and additional data not from the UVF file
   virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename,
-                      bool bAppend,
-                      bool (*brickFunc)(LargeRAWFile_ptr pSourceFile,
-                                        const std::vector<uint64_t> vBrickSize,
-                                        const std::vector<uint64_t> vBrickOffset,
-                                        void* pUserContext) = NULL,
-                      void *pUserContext = NULL,
-                      uint64_t iOverlap=0) const;
+    bool bAppend) const;
+
+  virtual bool ApplyFunction(uint64_t iLODLevel, 
+                        bool (*brickFunc)(void* pData, 
+                                          const UINTVECTOR3& vBrickSize,
+                                          const UINT64VECTOR3& vBrickOffset,
+                                          void* pUserContext),
+                        void *pUserContext= NULL,
+                        uint64_t iOverlap=0) const;
 
   virtual const std::vector<std::pair<std::string, std::string> > GetMetadata() const;
 

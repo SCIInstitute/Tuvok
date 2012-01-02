@@ -148,16 +148,18 @@ public:
   virtual bool ContainsData(const BrickKey&, double /*fMin*/, double /*fMax*/) const {return true;}
   virtual bool ContainsData(const BrickKey&, double /*fMin*/, double /*fMax*/, double /*fMinGradient*/, double /*fMaxGradient*/) const {return true;}
 
-  /// unimplemented!  Override this if you want tools built on this IO layer
+  /// unimplemented!  Override these if you want tools built on this IO layer
   /// to be able to create data in your format.
-  virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename,
-                      bool bAppend,
-                      bool (*brickFunc)(LargeRAWFile* pSourceFile,
-                                        const std::vector<uint64_t> vBrickSize,
-                                        const std::vector<uint64_t> vBrickOffset,
-                                        void* pUserContext) = NULL,
-                      void *pUserContext = NULL,
-                      uint64_t iOverlap=0) const;
+  virtual bool Export(uint64_t iLODLevel, const std::string& targetFilename, 
+    bool bAppend) const = 0;
+
+  virtual bool ApplyFunction(uint64_t iLODLevel, 
+                        bool (*brickFunc)(void* pData, 
+                                          const UINTVECTOR3& vBrickSize,
+                                          const UINT64VECTOR3& vBrickOffset,
+                                          void* pUserContext),
+                        void *pUserContext,
+                        uint64_t iOverlap) const = 0;
 
   /// A user-visible name for your format.  This might get displayed in UI
   /// elements; e.g. the GUI might ask if the user wants to use the "Name()

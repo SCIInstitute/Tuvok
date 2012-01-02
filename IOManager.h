@@ -242,8 +242,7 @@ public:
   {}
 
   virtual ~MCData() {}
-
-  virtual bool PerformMC(LargeRAWFile_ptr pSourceFile, const std::vector<uint64_t> vBrickSize, const std::vector<uint64_t> vBrickOffset) = 0;
+  virtual bool PerformMC(void* pData, const UINTVECTOR3& vBrickSize, const UINT64VECTOR3& vBrickOffset) = 0;
 
 protected:
   std::string m_strTargetFile;
@@ -258,7 +257,6 @@ public:
                  const FLOATVECTOR4& vColor) :
     MCData(strTargetFile),
     m_TIsoValue(TIsoValue),
-    m_pData(NULL),
     m_iIndexoffset(0),
     m_pMarchingCubes(new MarchingCubes<T>()),
     m_vDataSize(vDataSize),
@@ -270,7 +268,6 @@ public:
 
   virtual ~MCDataTemplate() {
     delete m_pMarchingCubes;
-    delete m_pData;
     tuvok::Mesh m = tuvok::Mesh(m_vertices, m_normals, tuvok::TexCoordVec(),
                                 tuvok::ColorVec(), m_indices, m_indices, 
                                 tuvok::IndexVec(),tuvok::IndexVec(), 
@@ -280,28 +277,12 @@ public:
     m_conv->ConvertToNative(m, m_strTargetFile);
   }
 
-  virtual bool PerformMC(LargeRAWFile_ptr pSourceFile, const std::vector<uint64_t> vBrickSize, const std::vector<uint64_t> vBrickOffset) {
-
-    uint64_t uSize = 1;
-    for (size_t i = 0;i<vBrickSize.size();i++) uSize *= vBrickSize[i];
-    // Can't use bricks that we can't store in a single array.
-    // Really, the whole reason we're bricking is to prevent larger-than-core
-    // data, so this should never happen anyway -- we'd have no way to create
-    // such a brick.
-    assert(uSize <= std::numeric_limits<size_t>::max());
-
-    size_t iSize = static_cast<size_t>(
-                     std::min<uint64_t>(uSize, std::numeric_limits<size_t>::max())
-                   );
-    if (!m_pData) {   // since we know that no brick is larger than the first we can create a fixed array on first invocation
-      m_pData = new T[iSize];
-    }
-
-    pSourceFile->SeekStart();
-    pSourceFile->ReadRAW((unsigned char*)m_pData, size_t(iSize*sizeof(T)));
+  virtual bool PerformMC(void* pData, const UINTVECTOR3& vBrickSize, const UINT64VECTOR3& vBrickOffset) {
+   
+    T* ptData = (T*)pData;
 
     // extract isosurface
-    m_pMarchingCubes->SetVolume(int(vBrickSize[0]), int(vBrickSize[1]), int(vBrickSize[2]), m_pData);
+    m_pMarchingCubes->SetVolume(vBrickSize.x, vBrickSize.y, vBrickSize.z, ptData);
     m_pMarchingCubes->Process(m_TIsoValue);
 
     // brick scale
@@ -331,7 +312,6 @@ public:
 
 protected:
   T                  m_TIsoValue;
-  T*                 m_pData;
   uint32_t             m_iIndexoffset;
   MarchingCubes<T>*  m_pMarchingCubes;
   UINT64VECTOR3      m_vDataSize;

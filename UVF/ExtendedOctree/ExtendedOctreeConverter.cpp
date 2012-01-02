@@ -140,7 +140,6 @@ bool ExtendedOctreeConverter::Convert(LargeRAWFile_ptr pLargeRAWFileIn,
 
   // add header to file
   e.WriteHeader(pLargeRAWFileOut, iOutOffset);
-  
 
   // write bricks in the cache to disk
   FlushCache(e);
@@ -234,48 +233,22 @@ void ExtendedOctreeConverter::GetInputBrick(std::vector<uint8_t>& vData,
 /*
   Compress:
 
-  Compresses the bricks using the method specified in m_eCompression
-  staring with index iBrickSkip. This is a two step process: First, we 
-  march from front to back compressing each brick, next we fill the holes 
-  that the compression created in between the bricks by shifting bricks to
-  the front. Note that as both the SetBrick and the GetBrick calls are
-  using the brick cache on my cases not much is done here except that for
-  the target position, used when the cache is flushed, is updated.
+  Apply compression requests and fill holes between compressed 
+  bricks by shifting bricks to the front.
 */
 void ExtendedOctreeConverter::Compress(ExtendedOctree &tree, size_t iBrickSkip) {
   if (m_eCompression != CT_NONE) {
+    const size_t iVoxelSize =tree.GetComponentTypeSize() * size_t(tree.m_iComponentCount);
+    uint8_t *pBrickData = new uint8_t[tree.m_iBrickSize.volume() * iVoxelSize];
 
-    uint8_t* pData = NULL;
-    // compress bricks in file (front to back)
-    for (size_t i = iBrickSkip;i<tree.m_vTOC.size();++i) {      
-      // ignore bricks that are already compressed
-      if (tree.m_vTOC[i].m_eCompression == m_eCompression) continue;
-
-      uint64_t compressedLength = 100000000000000000ULL; // TODO remove this
-
-      // TODO: compress into pData
-
-      // did we gain anything from the compression?
-      if (compressedLength < tree.m_vTOC[i].m_iLength) {
-        // then copy data and update tree.m_vTOC[index].m_iLength
-        tree.m_vTOC[i].m_iLength = compressedLength;
-        tree.m_vTOC[i].m_eCompression = m_eCompression;
-        SetBrick(pData, tree, i);
-      }
+    for (size_t i = iBrickSkip;i<tree.m_vTOC.size();++i) {
+      GetBrick(pBrickData, tree, i);
+      if (i>0)
+        tree.m_vTOC[i].m_iOffset = tree.m_vTOC[i-1].m_iOffset+tree.m_vTOC[i-1].m_iLength;
+      SetBrick(pBrickData, tree, i, true);
     }
 
-    // fill holes in the file by shifting bricks towards the front
-    for (size_t i = 1;i<tree.m_vTOC.size();++i) {
-      uint64_t iDenseOffset = tree.m_vTOC[i-1].m_iOffset+tree.m_vTOC[i-1].m_iLength;
-      uint64_t iActualOffset = tree.m_vTOC[i].m_iOffset;
-
-      // do we need to shift ?
-      if (iDenseOffset < iActualOffset) {
-        GetBrick(pData, tree, i);
-        tree.m_vTOC[i].m_iOffset = iDenseOffset;
-        SetBrick(pData, tree, i);
-      }
-    }
+    delete [] pBrickData;
   }
 }
 
@@ -285,8 +258,8 @@ void ExtendedOctreeConverter::Compress(ExtendedOctree &tree, size_t iBrickSkip) 
   Convenience function that takes vector coordinates of a brick
   turns them into a 1D index and calls the scalar SetBrick
 */
-void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, const UINT64VECTOR4& vBrickCoords) {
-  SetBrick(pData, tree, tree.BrickCoordsToIndex(vBrickCoords));
+void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, const UINT64VECTOR4& vBrickCoords, bool bForceWrite) {
+  SetBrick(pData, tree, tree.BrickCoordsToIndex(vBrickCoords), bForceWrite);
 }
 
 /*
@@ -295,7 +268,7 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, con
   Convenience function that takes vector coordinates of a brick
   turns them into a 1D index and calls the scalar GetBrick
 */
-void ExtendedOctreeConverter::GetBrick(uint8_t* pData, const ExtendedOctree &tree, const UINT64VECTOR4& vBrickCoords) {
+void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, const UINT64VECTOR4& vBrickCoords) {
   GetBrick(pData, tree, tree.BrickCoordsToIndex(vBrickCoords));
 }
 
@@ -327,12 +300,12 @@ void ExtendedOctreeConverter::FlushCache(ExtendedOctree &tree) {
   }
 }
 
-void ExtendedOctreeConverter::WriteBrickToDisk(const ExtendedOctree &tree, BrickCacheIter element) {
+void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element) {
   WriteBrickToDisk(tree, element->m_pData, element->m_index);
   element->m_bDirty = false;
 }
 
-void ExtendedOctreeConverter::WriteBrickToDisk(const ExtendedOctree &tree, uint8_t* pData, size_t index) {
+void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index) {
   if (m_pBrickStatVec) {
     const size_t cc = size_t(tree.m_iComponentCount);
 
@@ -380,8 +353,32 @@ void ExtendedOctreeConverter::WriteBrickToDisk(const ExtendedOctree &tree, uint8
      (*m_pBrickStatVec)[index*cc+c] = elem[c];
   }
 
+  // compress brick if requested and beneficial
   tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset+tree.m_vTOC[index].m_iOffset);
-  tree.m_pLargeRAWFile->WriteRAW(pData, tree.m_vTOC[index].m_iLength);
+  uint64_t uncompressedLength = tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() * tree.GetComponentTypeSize() * tree.GetComponentCount();
+  if (m_eCompression != CT_NONE) { 
+    uint8_t* pCompressedData = new uint8_t[size_t(uncompressedLength)];
+    uint64_t compressedLength = uncompressedLength;
+
+    // TODO: compress into pCompressedData using m_eCompression method
+
+    // did we gain anything from the compression?
+    if (compressedLength < uncompressedLength) {
+      tree.m_vTOC[index].m_iLength = compressedLength;
+      tree.m_vTOC[index].m_eCompression = m_eCompression;
+      tree.m_pLargeRAWFile->WriteRAW(pCompressedData, tree.m_vTOC[index].m_iLength);
+    } else {
+      tree.m_vTOC[index].m_iLength = uncompressedLength;
+      tree.m_vTOC[index].m_eCompression = CT_NONE;
+      tree.m_pLargeRAWFile->WriteRAW(pData, tree.m_vTOC[index].m_iLength);
+    }
+
+    delete [] pCompressedData;
+  } else {
+    tree.m_vTOC[index].m_iLength = uncompressedLength;
+    tree.m_vTOC[index].m_eCompression = CT_NONE;
+    tree.m_pLargeRAWFile->WriteRAW(pData, tree.m_vTOC[index].m_iLength);
+  }
 }
 
 /*
@@ -404,7 +401,7 @@ struct HasIndex : public std::binary_function <CacheEntry, uint64_t, bool> {
   cache entry (the entry with the oldest access counter). In either case (hit or miss) we update the 
   access counter, i.e. we use true LRU as caching strategy. 
 */
-void ExtendedOctreeConverter::GetBrick(uint8_t* pData, const ExtendedOctree &tree, uint64_t index) {
+void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uint64_t index) {
   if (m_vBrickCache.empty()) {
     tree.GetBrickData(pData, index);
     return;
@@ -451,9 +448,12 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, const ExtendedOctree &tre
   Writes a brick to the tree. First we check if the cache is enabled, if not we simply write out 
   the brick to disk. Otherwise we check the cache and, if we have a hit, write into the cache copy
   otherwise we search for a suitable cache entry (the entry with the oldest access counter). 
-  In either case (hit or miss) we update the access counter, i.e. we use true LRU as caching strategy. 
+  In either case (hit or miss) we update the access counter, i.e. we use true LRU as caching strategy.
+  If bForceWrite is enabled we write the data to disk directly bypassing the write cache, if in this 
+  case a cache miss occurs we only write to disk and don't update the cache in a cache hit case we update
+  the data and write to disk.
 */
-void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uint64_t index) {
+void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uint64_t index, bool bForceWrite) {
   if (m_vBrickCache.empty()) {
     WriteBrickToDisk(tree, pData, size_t(index));
     return;
@@ -463,7 +463,12 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
   
   if (cacheEntry == m_vBrickCache.end()) { 
     // cache miss
-        
+
+    if (bForceWrite) {
+      WriteBrickToDisk(tree, pData, size_t(index));
+      return;
+    }
+
     // find cache entry to evict from cache
     cacheEntry = m_vBrickCache.begin();
     for (BrickCacheIter i = m_vBrickCache.begin();i != m_vBrickCache.end();++i) {
@@ -483,14 +488,15 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
     cacheEntry->m_bDirty = true;
     cacheEntry->m_index = size_t(index);
     cacheEntry->m_iAccess = ++m_iCacheAccessCounter;
-    memcpy(cacheEntry->m_pData, pData, size_t(tree.m_vTOC[cacheEntry->m_index].m_iLength));        
-    
+    memcpy(cacheEntry->m_pData, pData, size_t(tree.m_vTOC[cacheEntry->m_index].m_iLength));
   } else {    
     // cache hit
     cacheEntry->m_bDirty = true;
     cacheEntry->m_iAccess = ++m_iCacheAccessCounter;
     memcpy(cacheEntry->m_pData, pData, size_t(tree.m_vTOC[size_t(index)].m_iLength));    
+    if (bForceWrite) WriteBrickToDisk(tree, cacheEntry);
   }
+
 }
 
 
@@ -743,7 +749,7 @@ bool ExtendedOctreeConverter::ExportToRAW(const ExtendedOctree &tree,
   const size_t iVoxelSize =tree. GetComponentTypeSize() * size_t(tree.m_iComponentCount);
   uint8_t *pBrickData = new uint8_t[tree.m_iBrickSize.volume() * iVoxelSize];
   
-  const UINT64VECTOR3 outSize =tree. m_vLODTable[size_t(iLODLevel)].m_iLODPixelSize;
+  const UINT64VECTOR3 outSize = tree.m_vLODTable[size_t(iLODLevel)].m_iLODPixelSize;
   
   UINT64VECTOR3 bricksToExport = tree.GetBrickCount(iLODLevel);  
   for (uint64_t z = 0;z<bricksToExport.z;++z) {
@@ -798,6 +804,8 @@ bool ExtendedOctreeConverter::ExportToRAW(const ExtendedOctree &tree,
       }
     }
   }
+
+  delete [] pBrickData;
   return true;
 }
 
@@ -818,4 +826,76 @@ bool ExtendedOctreeConverter::ExportToRAW(const ExtendedOctree &tree,
     return false;
   }
   return ExportToRAW(tree, outFile, iLODLevel, iOffset);  
+}
+
+/*
+  ReduceOverlap:
+
+  takes a brick with the octree's standart overlap and
+  reduces that overlap by skipOverlap, e.g. if skipOverlap
+  equals the octree's overlap, this function removed any
+  overlap from the brick. This function changes the given
+  array in place.
+*/
+void ExtendedOctreeConverter::ReduceOverlap(uint8_t *pBrickData, const UINTVECTOR3& vBrickSize, size_t iVoxelSize, uint32_t skipOverlap){
+  const UINTVECTOR3 vTargetBrickSize = vBrickSize-skipOverlap*2;
+
+  for (uint32_t z = 0;z<vBrickSize.z-2*skipOverlap;++z) {
+    for (uint32_t y = 0;y<vBrickSize.y-2*skipOverlap;++y) {
+      // below is just the ususal 3D to 1D conversion where
+      // we skip skipOverlap elements in each input dimension
+      // for theoutput we simplz use the smaler size
+      size_t inOffset = iVoxelSize * ( skipOverlap +
+                                      (y+skipOverlap) * vBrickSize.x +
+                                      (z+skipOverlap) * vBrickSize.x*vBrickSize.y);
+      size_t outOffset = iVoxelSize * (y * vTargetBrickSize.x + 
+                                       z * vTargetBrickSize.x*vTargetBrickSize.y);
+      memcpy(pBrickData+outOffset, pBrickData+inOffset, iVoxelSize*vTargetBrickSize.x);
+    }
+  }
+}
+
+/*
+ ApplyFunction:
+ 
+ Applies a function to each brick of a given LoD level. 
+ This method simply iterates over all bricks of the given LoD 
+ level (x,y,z for-loops) and for each brick it writes hands the 
+ brick with (possibily modified ) overlap to the supplied function.
+*/
+bool ExtendedOctreeConverter::ApplyFunction(const ExtendedOctree &tree, uint64_t iLODLevel,
+                                            bool (*brickFunc)(void* pData, 
+                                                const UINTVECTOR3& vBrickSize,
+                                                const UINT64VECTOR3& vBrickOffset,
+                                                void* pUserContext),
+                                            void* pUserContext, uint32_t iOverlap) {
+
+  if (iLODLevel >= tree.GetLODCount() || iOverlap > tree.m_iOverlap) return false;
+
+  uint32_t skipOverlap = tree.m_iOverlap-iOverlap;
+
+  const size_t iVoxelSize = tree.GetComponentTypeSize() * size_t(tree.m_iComponentCount);
+  uint8_t *pBrickData = new uint8_t[tree.m_iBrickSize.volume() * iVoxelSize];
+  
+  const UINT64VECTOR3 outSize=tree.m_vLODTable[size_t(iLODLevel)].m_iLODPixelSize;
+
+  UINT64VECTOR3 bricksToExport = tree.GetBrickCount(iLODLevel);  
+  for (uint64_t z = 0;z<bricksToExport.z;++z) {
+    for (uint64_t y = 0;y<bricksToExport.y;++y) {
+      for (uint64_t x = 0;x<bricksToExport.x;++x) {
+        const UINT64VECTOR4 coords(x,y,z, iLODLevel);
+        const UINTVECTOR3 brickSize = tree.ComputeBrickSize(coords);  
+
+        tree.GetBrickData(pBrickData, coords);
+        if (skipOverlap != 0) ReduceOverlap(pBrickData, brickSize, iVoxelSize, skipOverlap);
+
+        if(!brickFunc(pBrickData, brickSize, coords.xyz(),pUserContext)) {
+          delete [] pBrickData;
+          return false;
+        }
+      }
+    }
+  }
+  delete [] pBrickData;
+  return true;
 }

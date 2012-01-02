@@ -804,22 +804,22 @@ UINTVECTOR3 UVFDataset::GetBrickVoxelCounts(const BrickKey& k) const
   }  
 }
 
+
+
 bool UVFDataset::Export(uint64_t iLODLevel, const std::string& targetFilename,
-                        bool bAppend,
-                        bool (*brickFunc)(LargeRAWFile_ptr pSourceFile,
-                                          const std::vector<uint64_t> vBrickSize,
-                                          const std::vector<uint64_t> vBrickOffset,
-                                          void* pUserContext),
-                        void *pUserContext,
-                        uint64_t iOverlap) const
-{
+                        bool bAppend) const {
  if (m_bToCBlock) {
     bool okay = true;
     for(std::vector<Timestep*>::const_iterator ts = m_timesteps.begin();
-        ts != m_timesteps.end(); ++ts) {
-     // const TOCTimestep* toc_ts = static_cast<TOCTimestep*>(*ts);
-
-      // TODO
+      ts != m_timesteps.end(); ++ts) {
+      const TOCTimestep* toc_ts = static_cast<TOCTimestep*>(*ts);
+      // Unbrick each timestep.  Append the data if the user asks, but we must
+      // always append on second and subsequent timesteps!
+      okay &= toc_ts->GetDB()->BrickedLODToFlatData(
+                iLODLevel, targetFilename,
+                bAppend || ts != m_timesteps.begin(),
+                &Controller::Debug::Out()
+               );
     }
     return okay;
   } else {
@@ -831,14 +831,49 @@ bool UVFDataset::Export(uint64_t iLODLevel, const std::string& targetFilename,
       // Unbrick each timestep.  Append the data if the user asks, but we must
       // always append on second and subsequent timesteps!
       okay &= rd_ts->GetDB()->BrickedLODToFlatData(
-                vLOD, targetFilename, bAppend || ts != m_timesteps.begin(),
-                &Controller::Debug::Out(), brickFunc, pUserContext, iOverlap
+                vLOD, targetFilename, 
+                bAppend || ts != m_timesteps.begin(),
+                &Controller::Debug::Out()
+                );
+    }
+    return okay; 
+  }
+}
+
+bool UVFDataset::ApplyFunction(uint64_t iLODLevel, 
+                      bool (*brickFunc)(void* pData, 
+                                        const UINTVECTOR3& vBrickSize,
+                                        const UINT64VECTOR3& vBrickOffset,
+                                        void* pUserContext),
+                      void *pUserContext,
+                      uint64_t iOverlap) const {
+
+ if (m_bToCBlock) {
+    bool okay = true;
+    for(std::vector<Timestep*>::const_iterator ts = m_timesteps.begin();
+      ts != m_timesteps.end(); ++ts) {
+      const TOCTimestep* toc_ts = static_cast<TOCTimestep*>(*ts);
+      okay &= toc_ts->GetDB()->ApplyFunction(
+                iLODLevel,             
+                brickFunc, pUserContext, 
+                uint32_t(iOverlap), &Controller::Debug::Out()
               );
     }
     return okay;
-  }  
+  } else {
+    std::vector<uint64_t> vLOD; vLOD.push_back(iLODLevel);
+    bool okay = true;
+    for(std::vector<Timestep*>::const_iterator ts = m_timesteps.begin();
+        ts != m_timesteps.end(); ++ts) {
+      const RDTimestep* rd_ts = static_cast<RDTimestep*>(*ts);
+      okay &= rd_ts->GetDB()->ApplyFunction(
+                vLOD, brickFunc, pUserContext, 
+                iOverlap, &Controller::Debug::Out()
+                ); 
+    }
+    return okay;  
+  }
 }
-
 
 // BrickKey's index is 1D. For UVF's RDB, we've got a 3D index.  When we create the
 // brick index to satisfy the interface, we do so in a reversible way.  This

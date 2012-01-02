@@ -61,16 +61,6 @@ void Dataset::DeleteMeshes() {
   m_vpMeshList.clear();
 }
 
-/// unimplemented!
-bool Dataset::Export(uint64_t, const std::string&, bool,
-                            bool (*)(LargeRAWFile* pSourceFile,
-                                     const std::vector<uint64_t> vBrickSize,
-                                     const std::vector<uint64_t> vBrickOffset,
-                                     void* pUserContext),
-                            void *, uint64_t) const {
-  return false;
-}
-
 void Dataset::SetRescaleFactors(const DOUBLEVECTOR3& rescale) {
   m_UserScale = rescale;
 }

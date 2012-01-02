@@ -134,12 +134,42 @@ bool TOCBlock::FlatDataToBrickedLOD(
   }
 }
 
-bool TOCBlock::BrickedLODToFlatData(const std::string& strTargetFile, uint64_t iLoD, AbstrDebugOut* ) const{
-  return ExtendedOctreeConverter::ExportToRAW(m_ExtendedOctree,strTargetFile,iLoD,0);  
+bool TOCBlock::BrickedLODToFlatData(uint64_t iLoD,
+                                    const std::string& strTargetFile,
+                                    bool bAppend, AbstrDebugOut* pDebugOut) const{
+  LargeRAWFile_ptr outFile;
+  outFile = LargeRAWFile_ptr(new LargeRAWFile(strTargetFile));
+  if (bAppend) {
+    if (!outFile->Append()) {
+      return false;
+    }
+  } else {
+    if (!outFile->Create()) {
+      return false;
+    }
+  }
+
+  return BrickedLODToFlatData(iLoD, outFile, bAppend, pDebugOut);
 }
 
-bool TOCBlock::BrickedLODToFlatData(LargeRAWFile_ptr pTargetFile, uint64_t iLoD, AbstrDebugOut* ) const {
-  return ExtendedOctreeConverter::ExportToRAW(m_ExtendedOctree,pTargetFile,iLoD,0);  
+
+bool TOCBlock::BrickedLODToFlatData(uint64_t iLoD,
+                            LargeRAWFile_ptr pTargetFile,
+                            bool bAppend, AbstrDebugOut*) const{
+    uint64_t iOffset = bAppend ? pTargetFile->GetCurrentSize() : 0;
+    return ExtendedOctreeConverter::ExportToRAW(m_ExtendedOctree, pTargetFile, iLoD, iOffset);
+}
+
+bool TOCBlock::ApplyFunction(uint64_t iLoD,
+                             bool (*brickFunc)(void* pData, 
+                                    const UINTVECTOR3& vBrickSize,
+                                    const UINT64VECTOR3& vBrickOffset,
+                                    void* pUserContext),
+                             void* pUserContext,
+                             uint32_t iOverlap,
+                             AbstrDebugOut*) const {
+  
+    return ExtendedOctreeConverter::ApplyFunction(m_ExtendedOctree, iLoD, brickFunc, pUserContext, iOverlap);
 }
 
 void TOCBlock::GetData(uint8_t* pData, UINT64VECTOR4 coordinates) const {

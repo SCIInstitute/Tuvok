@@ -226,7 +226,23 @@ public:
    */
   static bool ExportToRAW(const ExtendedOctree &tree, LargeRAWFile_ptr pLargeRAWFile, uint64_t iLODLevel, uint64_t iOffset);
 
+ /**
+   Exports a specific LoD Level brick by brick into a given function 
 
+   @parame tree the octree to be processed
+   @param iLODLevel the level to be exported
+   @param brickFunc user function executed in the data
+   @param pUserContext pointer to additional user data which is passed to the user function
+   @param iOverlap number of overlap voxels to e included in the export
+   @return true iff the export was successful
+   */
+  static bool ApplyFunction(const ExtendedOctree &tree, uint64_t iLODLevel,
+                            bool (*brickFunc)(void* pData, 
+                                              const UINTVECTOR3& vBrickSize,
+                                              const UINT64VECTOR3& vBrickOffset,
+                                              void* pUserContext),
+                            void* pUserContext, uint32_t iOverlap=0);
+  
 private:
   /// internal data for the progress indicator call
   float m_fProgress;
@@ -324,7 +340,7 @@ private:
     @param tree target extended octree
     @param vBrickCoords the coordinates (x,y,z, LoD) of the requested brick
   */ 
-  void GetBrick(uint8_t* pData, const ExtendedOctree &tree,
+  void GetBrick(uint8_t* pData, ExtendedOctree &tree,
                 const UINT64VECTOR4& vBrickCoords);
 
   /**
@@ -334,7 +350,7 @@ private:
     @param tree target extended octree
     @param index the 1D-index of the brick
   */
-  void GetBrick(uint8_t* pData, const ExtendedOctree &tree, uint64_t index);
+  void GetBrick(uint8_t* pData, ExtendedOctree &tree, uint64_t index);
 
   /**
     Stores a specific brick to disk (or cache) from pData
@@ -342,9 +358,10 @@ private:
     @param pData the source buffer of the brick data
     @param tree target extended octree
     @param vBrickCoords the coordinates (x,y,z, LoD) of the requested brick
+    @param bForceWrite forces the brick to be flushed to disk, if compression is enabled this performs the compression
   */ 
   void SetBrick(uint8_t* pData, ExtendedOctree &tree, 
-                const UINT64VECTOR4& vBrickCoords);
+                const UINT64VECTOR4& vBrickCoords, bool bForceWrite=false);
 
   /**
     Stores a specific brick to disk (or cache) from pData
@@ -352,8 +369,10 @@ private:
     @param pData the source buffer of the brick data
     @param tree target extended octree
     @param index the 1D-index of the brick
+    @param bForceWrite forces the brick to be flushed to disk, if compression is enabled this performs the compression
   */
-  void SetBrick(uint8_t* pData, ExtendedOctree &tree, uint64_t index);
+  void SetBrick(uint8_t* pData, ExtendedOctree &tree,
+                uint64_t index, bool bForceWritee=false);
 
   /**
     Prepares the cache data structures, effectively resizes the 
@@ -377,7 +396,7 @@ private:
     @param tree target extended octree
     @param element iterator to the element in the cache to be written to disk
   */
-  void WriteBrickToDisk(const ExtendedOctree &tree, BrickCacheIter element);
+  void WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element);
 
   /**
     Write a single brick at index i in the ToC to disk and updates
@@ -387,7 +406,25 @@ private:
     @param pData the data of the brick
     @param index index of the brick to be written
   */
-  void WriteBrickToDisk(const ExtendedOctree &tree, uint8_t* pData, size_t index);
+  void WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index);
+
+
+  /**
+    This function takes a brick with the octree's standart overlap 
+    and reduces that overlap by skipOverlap, e.g. if skipOverlap
+    equals the octree's overlap, this function removed any
+    overlap from the brick. This function changes the given
+    array in place.
+
+    @param pBrickData the voxels of the brick, changes are made to 
+                      this array in place
+    @param vBrickSize the 3D size of the brick
+    @param iVoxelSize the size (in bytes) of a voxl in the tree
+    @param skipOverlap the number of overlap voxesl to be removed
+  */
+  static void ReduceOverlap(uint8_t *pBrickData, const UINTVECTOR3& vBrickSize,
+    size_t iVoxelSize, uint32_t skipOverlap);
+
 
   /**
     Computes the mean value of inputs a to h

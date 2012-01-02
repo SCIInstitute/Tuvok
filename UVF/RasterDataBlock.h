@@ -188,13 +188,16 @@ public:
 
   bool BrickedLODToFlatData(const std::vector<uint64_t>& vLOD,
                             const std::string& strTargetFile,
-                            bool bAppend = false, AbstrDebugOut* pDebugOut=NULL,
-                            bool (*brickFunc)(LargeRAWFile_ptr pSourceFile,
-                                const std::vector<uint64_t> vBrickSize,
-                                const std::vector<uint64_t> vBrickOffset,
-                                void* pUserContext ) = NULL,
-                            void* pUserContext = NULL,
-                            uint64_t iOverlap=0) const;
+                            bool bAppend = false, AbstrDebugOut* pDebugOut=NULL) const;
+
+  bool ApplyFunction(const std::vector<uint64_t>& vLOD,
+                     bool (*brickFunc)(void* pData, 
+                                    const UINTVECTOR3& vBrickSize,
+                                    const UINT64VECTOR3& vBrickOffset,
+                                    void* pUserContext),
+                     void* pUserContext = NULL,
+                     uint64_t iOverlap=0,
+                     AbstrDebugOut* pDebugOut=NULL) const;
 
   const std::vector<uint64_t> LargestSingleBrickLODBrickIndex() const;
   const std::vector<uint64_t>& LargestSingleBrickLODBrickSize() const;
@@ -306,14 +309,28 @@ protected:
       std::vector<unsigned char> &vData,
       LargeRAWFile_ptr pTargetFile, uint64_t iElementSize,
       const std::vector<uint64_t>& vPrefixProd,
+      AbstrDebugOut* pDebugOut
+  ) const;
+
+  bool TraverseBricksToApplyFunction(
+      uint64_t& iBrickCounter, uint64_t iBrickCount,
+      const std::vector<uint64_t>& vLOD,
+      const std::vector<uint64_t>& vBrickCount,
+      std::vector<uint64_t> vCoords,
+      size_t iCurrentDim,
+      std::vector<unsigned char> &vData,
+      uint64_t iElementSize,
+      const std::vector<uint64_t>& vPrefixProd,
       AbstrDebugOut* pDebugOut,
-      bool (*brickFunc)(LargeRAWFile_ptr pSourceFile,
-                        const std::vector<uint64_t> vBrickSize,
-                        const std::vector<uint64_t> vBrickOffset,
+      bool (*brickFunc)(void* pData, 
+                        const UINTVECTOR3& vBrickSize,
+                        const UINT64VECTOR3& vBrickOffset,
                         void* pUserContext),
       void* pUserContext,
       uint64_t iOverlap
   ) const;
+
+
 
   void WriteBrickToFile(size_t iCurrentDim,
                         uint64_t& iSourceOffset, uint64_t& iTargetOffset,
@@ -324,6 +341,15 @@ protected:
                         const std::vector<uint64_t>& vPrefixProd,
                         const std::vector<uint64_t>& vPrefixProdBrick,
                         bool bDoSeek) const;
+  void WriteBrickToArray(size_t iCurrentDim,
+                         uint64_t& iSourceOffset, uint64_t& iTargetOffset,
+                         const std::vector<uint64_t>& vBrickSize,
+                         const std::vector<uint64_t>& vEffectiveBrickSize,
+                         std::vector<unsigned char>& vData,
+                         std::vector<unsigned char>& vTarget,
+                         uint64_t iElementSize,
+                         const std::vector<uint64_t>& vPrefixProd,
+                         const std::vector<uint64_t>& vBrickPrefixProduct) const;
 private:
   LargeRAWFile_ptr SeekToBrick(const std::vector<uint64_t>& vLOD,
                             const std::vector<uint64_t>& vBrick) const;

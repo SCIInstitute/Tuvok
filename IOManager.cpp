@@ -1097,11 +1097,13 @@ void IOManager::AddReader(tr1::shared_ptr<FileBackedDataset> ds)
   m_dsFactory->AddReader(ds);
 }
 
-bool MCBrick(LargeRAWFile_ptr pSourceFile, const vector<uint64_t> vBrickSize,
-             const vector<uint64_t> vBrickOffset, void* pUserContext) {
+
+bool MCBrick(void* pData, const UINTVECTOR3& vBrickSize, 
+                const UINT64VECTOR3& vBrickOffset, void* pUserContext) {
     MCData* pMCData = (MCData*)pUserContext;
-    return pMCData->PerformMC(pSourceFile, vBrickSize, vBrickOffset);
+    return pMCData->PerformMC(pData, vBrickSize, vBrickOffset);
 }
+
 
 bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
                                   const TransferFunction1D* pTrans,
@@ -1215,7 +1217,7 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
     return false;
   }
 
-  bool bResult = pSourceData->Export(iLODlevel, strTempFilename, false, &MCBrick, (void*)pMCData, 1);
+  bool bResult = pSourceData->ApplyFunction(iLODlevel,&MCBrick, (void*)pMCData, 1);
 
   if (SysTools::FileExists(strTempFilename)) remove (strTempFilename.c_str());
   delete pMCData;

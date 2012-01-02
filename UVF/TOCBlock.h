@@ -48,10 +48,23 @@ public:
                                 std::tr1::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL);
 
-  bool BrickedLODToFlatData(const std::string& strTargetFile, uint64_t iLoD,
-                            AbstrDebugOut* pDebugOut=NULL) const;
-  bool BrickedLODToFlatData(LargeRAWFile_ptr pTargetFile, uint64_t iLoD,
-                            AbstrDebugOut* pDebugOut=NULL) const;
+  bool BrickedLODToFlatData(uint64_t iLoD,
+                            const std::string& strTargetFile,
+                            bool bAppend = false, AbstrDebugOut* pDebugOut=NULL) const;
+
+  bool BrickedLODToFlatData(uint64_t iLoD,
+                            LargeRAWFile_ptr pTargetFile,
+                            bool bAppend = false, AbstrDebugOut* pDebugOut=NULL) const;
+
+
+  bool ApplyFunction(uint64_t iLoD,                          
+                     bool (*brickFunc)(void* pData, 
+                                    const UINTVECTOR3& vBrickSize,
+                                    const UINT64VECTOR3& vBrickOffset,
+                                    void* pUserContext) = NULL,
+                     void* pUserContext = NULL,
+                     uint32_t iOverlap=0,
+                     AbstrDebugOut* pDebugOut=NULL) const;
 
   void GetData(uint8_t* pData, UINT64VECTOR4 coordinates) const;
 

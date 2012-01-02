@@ -285,6 +285,32 @@ uint64_t ExtendedOctree::BrickCoordsToIndex(const UINT64VECTOR4& vBrickCoords) c
          vBrickCoords.z * vLODSize.x * vLODSize.y;
 }
 
+
+/*
+ IndexToBrickCoords:
+ 
+ Computes the 4D coordinates for the 1D ToC index 
+*/ 
+UINT64VECTOR4 ExtendedOctree::IndexToBrickCoords(uint64_t index) const {
+  UINT64VECTOR4 vBrickCoords(0,0,0,0);
+
+  for (size_t i = 0;i<m_vLODTable.size();++i) {
+    if (m_vLODTable[i].m_iLoDOffset <= index) {
+      vBrickCoords.w = i;
+    } else {
+      break;
+    }
+  }
+  index -= m_vLODTable[size_t(vBrickCoords.w)].m_iLoDOffset;
+
+  UINT64VECTOR3 brickCount = m_vLODTable[size_t(vBrickCoords.w)].m_iLODBrickCount;
+  vBrickCoords.x = index % brickCount.x;
+  vBrickCoords.y = (index / brickCount.x) % brickCount.y;
+  vBrickCoords.z = index / (brickCount.x*brickCount.y);
+  return vBrickCoords;
+}
+
+
 /*
  SetGlobalAspect:
  

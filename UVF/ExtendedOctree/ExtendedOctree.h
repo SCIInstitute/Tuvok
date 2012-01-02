@@ -242,12 +242,20 @@ public:
     else
       return (m_vTOC.end()-1)->m_iOffset+(m_vTOC.end()-1)->m_iLength;
   }
+
   /**
     Converts a 4-D brick coordinates into a 1D index, as used by the TOC
     @param vBrickCoords coordinates of a brick: x,y,z are the spacial coordinates, w is the LoD level
     @return the 1D index to be used for the ToC
   */
   uint64_t BrickCoordsToIndex(const UINT64VECTOR4& vBrickCoords) const;
+
+  /**
+    Converts a 1D index into 4-D brick coordinates 
+    @param  the 1D index as used for the ToC
+    @return vBrickCoords coordinates of a brick: x,y,z are the spacial coordinates, w is the LoD level
+  */
+  UINT64VECTOR4 IndexToBrickCoords(uint64_t index) const;
 
 private:
   /// type of the volume components (e.g. byte, int, float) stored as a COMPONENT_TYPE enum
