@@ -5,9 +5,9 @@
 template<class T> T ExtendedOctreeConverter::Average(T a, T b, T c, T d) {
   return T((double(a) + double(b) + double(c) + double(d)) / 4.0);
 }
-  
+
 template<class T> T ExtendedOctreeConverter::Average(T a, T b, T c, T d, T e, T f, T g, T h) {
-  return T((double(a) + double(b) + double(c) + double(d) + 
+  return T((double(a) + double(b) + double(c) + double(d) +
             double(e) + double(f) + double(g) + double(h)) / 8.0);
 }
 
@@ -20,7 +20,7 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
   uint64_t iCompCount = tree.m_iComponentCount;
 
   const UINTVECTOR3& sourceSize = tree.ComputeBrickSize(sourceCoords);
-  GetBrick((uint8_t*)pSourceData, tree, sourceCoords);    
+  GetBrick((uint8_t*)pSourceData, tree, sourceCoords);
 
   uint32_t evenSizeX = (sourceSize.x-2*m_iOverlap)/2;
   uint32_t evenSizeY = (sourceSize.y-2*m_iOverlap)/2;
@@ -54,19 +54,19 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
                                   *(p4+c), *(p5+c), *(p6+c), *(p7+c));
           *(pTargetData+c) = average;
         }
-        p0+=2*iCompCount; 
-        p1+=2*iCompCount; 
-        p2+=2*iCompCount; 
+        p0+=2*iCompCount;
+        p1+=2*iCompCount;
+        p2+=2*iCompCount;
         p3+=2*iCompCount;
-        p4+=2*iCompCount; 
+        p4+=2*iCompCount;
         p5+=2*iCompCount;
-        p6+=2*iCompCount; 
+        p6+=2*iCompCount;
         p7+=2*iCompCount;
         pTargetData+=iCompCount;
       }
     }
   }
-    
+
   // process odd boundaries (if any)
 
   // plane at the end of the x-axis
@@ -119,9 +119,9 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
           T average = Average<T>(*(p0+c), *(p1+c), *(p4+c), *(p5+c));
           *(pTargetData+c) = average;
         }
-        p0+=2*iCompCount; 
-        p1+=2*iCompCount; 
-        p4+=2*iCompCount; 
+        p0+=2*iCompCount;
+        p1+=2*iCompCount;
+        p4+=2*iCompCount;
         p5+=2*iCompCount;
         pTargetData+=iCompCount;
       }
@@ -151,10 +151,10 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
           T average = Average<T>(*(p0+c), *(p2+c), *(p4+c), *(p6+c));
           *(pTargetData+c) = average;
         }
-        p0+=2*iCompCount; 
-        p2+=2*iCompCount; 
-        p4+=2*iCompCount; 
-        p6+=2*iCompCount; 
+        p0+=2*iCompCount;
+        p2+=2*iCompCount;
+        p4+=2*iCompCount;
+        p6+=2*iCompCount;
         pTargetData+=iCompCount;
       }
     }
@@ -202,8 +202,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
         T average = Average<T>(*(p0+c), *(p4+c));
         *(pTargetData+c) = average;
       }
-      p0+=2*iCompCount; 
-      p4+=2*iCompCount; 
+      p0+=2*iCompCount;
+      p4+=2*iCompCount;
       pTargetData+=iCompCount;
     }
   }
@@ -247,9 +247,9 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
 	  }
   }
 }
-  
+
 template<class T> void ExtendedOctreeConverter::DownsampleBrick(ExtendedOctree &tree, const UINT64VECTOR4& vBrickCoords, T* pData, T* pSourceData) {
-  
+
   const UINTVECTOR3& vTargetBricksize = tree.ComputeBrickSize(vBrickCoords);
   const uint64_t iUncompressedBrickSize = vTargetBricksize.volume() * tree.GetComponentTypeSize() * tree.GetComponentCount();
   memset (pData,0,size_t(iUncompressedBrickSize));
@@ -258,67 +258,66 @@ template<class T> void ExtendedOctreeConverter::DownsampleBrick(ExtendedOctree &
   tree.m_vTOC.push_back(t);
 
   const UINT64VECTOR4 bricksInLowerLevel = tree.GetBrickCount(vBrickCoords.w-1);
-    
+
   const bool bHasBrickRight  = vBrickCoords.x*2+1 < bricksInLowerLevel.x;
   const bool bHasBrickBottom = vBrickCoords.y*2+1 < bricksInLowerLevel.y;
   const bool bHasBrickBack   = vBrickCoords.z*2+1 < bricksInLowerLevel.z;
-    
+
   const UINTVECTOR3 splitPos(uint32_t(ceil((tree.m_iBrickSize.x-2*m_iOverlap)/2.0)),
                              uint32_t(ceil((tree.m_iBrickSize.y-2*m_iOverlap)/2.0)),
                              uint32_t(ceil((tree.m_iBrickSize.z-2*m_iOverlap)/2.0)));
-    
-    
-  // read up to eight bricks and average them into the one brick      
+
+  // read up to eight bricks and average them into the one brick
   UINT64VECTOR4 sourceIndex(vBrickCoords.x*2, vBrickCoords.y*2, vBrickCoords.z*2, vBrickCoords.w-1);
   UINTVECTOR3 targetOffset(0,0,0);
   DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
-    
+
   if (bHasBrickRight) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2+1, vBrickCoords.y*2, vBrickCoords.z*2, vBrickCoords.w-1);
     targetOffset = UINTVECTOR3(splitPos.x,0,0);
     DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
-  }      
-    
-  if (bHasBrickBottom) { 
+  }
+
+  if (bHasBrickBottom) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2, vBrickCoords.y*2+1, vBrickCoords.z*2, vBrickCoords.w-1);
     targetOffset = UINTVECTOR3(0,splitPos.y,0);
     DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
-  }      
+  }
 
-  if (bHasBrickBack) { 
+  if (bHasBrickBack) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2, vBrickCoords.y*2, vBrickCoords.z*2+1, vBrickCoords.w-1);
     targetOffset = UINTVECTOR3(0,0,splitPos.z);
     DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
-  }      
-        
-  if (bHasBrickRight && bHasBrickBottom) { 
+  }
+
+  if (bHasBrickRight && bHasBrickBottom) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2+1, vBrickCoords.y*2+1, vBrickCoords.z*2, vBrickCoords.w-1);
     targetOffset = UINTVECTOR3(splitPos.x,splitPos.y,0);
     DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
-  }      
+  }
 
-  if (bHasBrickRight && bHasBrickBack) { 
+  if (bHasBrickRight && bHasBrickBack) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2+1, vBrickCoords.y*2, vBrickCoords.z*2+1, vBrickCoords.w-1);
     targetOffset = UINTVECTOR3(splitPos.x,0,splitPos.z);
     DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
-  }      
+  }
 
-  if (bHasBrickBottom && bHasBrickBack) { 
+  if (bHasBrickBottom && bHasBrickBack) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2, vBrickCoords.y*2+1, vBrickCoords.z*2+1, vBrickCoords.w-1);
     targetOffset = UINTVECTOR3(0,splitPos.y,splitPos.z);
     DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
-  }      
+  }
 
-  if (bHasBrickRight && bHasBrickBottom && bHasBrickBack) { 
+  if (bHasBrickRight && bHasBrickBottom && bHasBrickBack) {
     sourceIndex = UINT64VECTOR4(vBrickCoords.x*2+1, vBrickCoords.y*2+1, vBrickCoords.z*2+1, vBrickCoords.w-1);
     targetOffset = splitPos;
     DownsampleBricktoBrick<T>(tree, pData, vTargetBricksize, pSourceData, sourceIndex, targetOffset);
-  }      
-    
+  }
+
   SetBrick((uint8_t*)pData, tree, vBrickCoords);
-}  
-  
-template<class T> void ExtendedOctreeConverter::ComputeHirarchy(ExtendedOctree &tree) {
+}
+
+template<class T> void ExtendedOctreeConverter::ComputeHierarchy(ExtendedOctree &tree) {
   T* pTempDataSource = new T[size_t(tree.m_iBrickSize.volume()*tree.m_iComponentCount)];
   T* pTempDataTarget = new T[size_t(tree.m_iBrickSize.volume()*tree.m_iComponentCount)];
   for (size_t LoD = 1;LoD<tree.m_vLODTable.size();LoD++) {
@@ -340,7 +339,7 @@ template<class T> void ExtendedOctreeConverter::ComputeHirarchy(ExtendedOctree &
   delete [] pTempDataTarget;
 }
 
-template<class T> BrickStatVec ExtendedOctreeConverter::ComputeBrickStats(uint8_t* pData, uint64_t iLength, size_t iComponentCount) {  
+template<class T> BrickStatVec ExtendedOctreeConverter::ComputeBrickStats(uint8_t* pData, uint64_t iLength, size_t iComponentCount) {
   BrickStatVec minmax;
   minmax.resize(iComponentCount);
 

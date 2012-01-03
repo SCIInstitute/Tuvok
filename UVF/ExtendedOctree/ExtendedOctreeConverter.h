@@ -1,18 +1,18 @@
 /*
  The MIT License
- 
+
  Copyright (c) 2011 Interactive Visualization and Data Analysis Group
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a
  copy of this software and associated documentation files (the "Software"),
  to deal in the Software without restriction, including without limitation
  the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the
  Software is furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included
  in all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
@@ -34,13 +34,13 @@
 /*! \brief A single brick cache entry
  *
  *  This class is used in a vector/list etc. like data structure within
- *  the ExtendedOctreeConverter class it mainly stores an aray with the
+ *  the ExtendedOctreeConverter class it mainly stores an array with the
  *  brick data but also contains an access counter for the FIFO implementation,
  *  a dirty bool to indicate that this brick has changed in mem but has not
  *  yet written to disk, and index indicating to which brick the data belongs
  */
 class CacheEntry {
-public:  
+public:
   /**
     default constructor, flags this CacheEntry as unused
   */
@@ -56,7 +56,7 @@ public:
     cleanup memory if this cache entry was ever active
   */
   ~CacheEntry() {
-    delete [] m_pData;    
+    delete [] m_pData;
   }
 
   /**
@@ -75,16 +75,16 @@ public:
 
     m_size = size;
   }
-  
+
   /**
     Actually allocates the memory specified with the size
   */
   void Allocate() {
     delete [] m_pData;
-    m_pData = new uint8_t[m_size];    
+    m_pData = new uint8_t[m_size];
   }
-  
-  /// the data pointer 
+
+  /// the data pointer
   uint8_t* m_pData;
 
   /// true iff the cache entry has been changed but the changes have not yet been committed
@@ -112,18 +112,18 @@ typedef BrickCache::iterator BrickCacheIter;
  */
 template<class T> class BrickStats {
 public:
-     BrickStats() :
-        minScalar(0),
-        maxScalar(0)
-      {}
+  BrickStats() :
+    minScalar(0),
+    maxScalar(0)
+  {}
 
-      BrickStats(T _minScalar, T _maxScalar) :
-        minScalar(_minScalar),
-        maxScalar(_maxScalar)
-      {}
+  BrickStats(T _minScalar, T _maxScalar) :
+    minScalar(_minScalar),
+    maxScalar(_maxScalar)
+  {}
 
-      T minScalar;
-      T maxScalar;
+  T minScalar;
+  T maxScalar;
 };
 
 
@@ -136,7 +136,6 @@ typedef std::vector< BrickStats< double > > BrickStatVec;
  */
 class ExtendedOctreeConverter {
 public:
-
   /**
     Default constructor, which takes memory management parameters
 
@@ -144,15 +143,15 @@ public:
     @param iOverlap the voxel overlap (must be smaller than half the brick size in all dimensions)
     @param iMemLimit the amount of memory in bytes the converter is allowed to use for caching
   */
-  ExtendedOctreeConverter(const UINTVECTOR3& vBrickSize, 
-                          uint32_t iOverlap, uint64_t iMemLimit) : 
-      m_fProgress(0.0f),
-      m_vBrickSize(vBrickSize), 
-      m_iOverlap(iOverlap),
-      m_iMemLimit(iMemLimit),
-      m_iCacheAccessCounter(0),
-      m_pBrickStatVec(NULL)
-      {}
+  ExtendedOctreeConverter(const UINTVECTOR3& vBrickSize,
+                          uint32_t iOverlap, uint64_t iMemLimit) :
+    m_fProgress(0.0f),
+    m_vBrickSize(vBrickSize),
+    m_iOverlap(iOverlap),
+    m_iMemLimit(iMemLimit),
+    m_iCacheAccessCounter(0),
+    m_pBrickStatVec(NULL)
+    {}
 
   /**
     This call starts the conversion process of a simple linear file of raw volume
@@ -163,18 +162,18 @@ public:
     @param eComponentType the type of data stored (e.g. UINT8 for 8bit unsigned char data)
     @param iComponentCount the vector length of a voxel (e.g. 1 for scalar data or 3 for RGB)
     @param vVolumeSize the dimensions of the input volume
-    @param vVolumeAspect the aspect ratio of the input volume 
+    @param vVolumeAspect the aspect ratio of the input volume
     @param targetFile the target file for the processed data
     @param iOutOffset bytes to precede the data in the target file
     @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
     @param compression the desired compression method, defaults to none (=CT_NONE)
-    @return  true if the conversion succeeded, the main reason for failure would be a disk I/O issue
+    @return true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
-  bool Convert(const std::string& filename, uint64_t iOffset, 
-               ExtendedOctree::COMPONENT_TYPE eComponentType, 
-               uint64_t iComponentCount, const UINT64VECTOR3& vVolumeSize, 
+  bool Convert(const std::string& filename, uint64_t iOffset,
+               ExtendedOctree::COMPONENT_TYPE eComponentType,
+               uint64_t iComponentCount, const UINT64VECTOR3& vVolumeSize,
                const DOUBLEVECTOR3& vVolumeAspect,
-               const std::string& targetFile, uint64_t iOutOffset, 
+               const std::string& targetFile, uint64_t iOutOffset,
                BrickStatVec* stats = NULL,
                COMPORESSION_TYPE compression=CT_NONE);
 
@@ -187,17 +186,17 @@ public:
     @param eComponentType the type of data stored (e.g. UINT8 for 8bit unsigned char data)
     @param iComponentCount the vector length of a voxel (e.g. 1 for scalar data or 3 for RGB)
     @param vVolumeSize the dimensions of the input volume
-    @param vVolumeAspect the aspect ratio of the input volume 
+    @param vVolumeAspect the aspect ratio of the input volume
     @param pLargeRAWOutFile a large raw-file pointer to the target file for the processed data
     @param iOutOffset bytes to precede the data in the target file
     @param stats pointer to a vector to store the statistics of each brick, can be set to NULL to disable statistics computation
     @param compression the desired compression method, defaults to none (=CT_NONE)
     @return  true if the conversion succeeded, the main reason for failure would be a disk I/O issue
   */
-  bool Convert(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset, 
-               ExtendedOctree::COMPONENT_TYPE eComponentType, 
+  bool Convert(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset,
+               ExtendedOctree::COMPONENT_TYPE eComponentType,
                uint64_t iComponentCount, const UINT64VECTOR3& vVolumeSize,
-               const DOUBLEVECTOR3& vVolumeAspect, 
+               const DOUBLEVECTOR3& vVolumeAspect,
                LargeRAWFile_ptr pLargeRAWOutFile, uint64_t iOutOffset,
                BrickStatVec* stats = NULL,
                COMPORESSION_TYPE compression= CT_NONE);
@@ -208,26 +207,30 @@ public:
 
 
   /**
-   Exports a specific LoD Level into a continuous raw file 
+   Exports a specific LoD Level into a continuous raw file
    @param filename the file to be written to, any existing data is overridden
    @param iLODLevel the level to be exported
    @param  iOffset the bytes to be skipped from the beginning of the file
    @return true iff the export was successful
    */
-  static bool ExportToRAW(const ExtendedOctree &tree, const std::string& filename, uint64_t iLODLevel, uint64_t iOffset);
+  static bool ExportToRAW(const ExtendedOctree &tree,
+                          const std::string& filename, uint64_t iLODLevel,
+                          uint64_t iOffset);
 
   /**
-   Exports a specific LoD Level into a continuous raw file 
+   Exports a specific LoD Level into a continuous raw file
 
    @param pointer to a LargeRAW file, file needs to be open, any existing data is overridden
    @param iLODLevel the level to be exported
    @param  iOffset the bytes to be skipped from the beginning of the file
    @return true iff the export was successful
    */
-  static bool ExportToRAW(const ExtendedOctree &tree, LargeRAWFile_ptr pLargeRAWFile, uint64_t iLODLevel, uint64_t iOffset);
+  static bool ExportToRAW(const ExtendedOctree &tree,
+                          LargeRAWFile_ptr pLargeRAWFile, uint64_t iLODLevel,
+                          uint64_t iOffset);
 
  /**
-   Exports a specific LoD Level brick by brick into a given function 
+   Exports a specific LoD Level brick by brick into a given function
 
    @parame tree the octree to be processed
    @param iLODLevel the level to be exported
@@ -237,12 +240,12 @@ public:
    @return true iff the export was successful
    */
   static bool ApplyFunction(const ExtendedOctree &tree, uint64_t iLODLevel,
-                            bool (*brickFunc)(void* pData, 
+                            bool (*brickFunc)(void* pData,
                                               const UINTVECTOR3& vBrickSize,
                                               const UINT64VECTOR3& vBrickOffset,
                                               void* pUserContext),
                             void* pUserContext, uint32_t iOverlap=0);
-  
+
 private:
   /// internal data for the progress indicator call
   float m_fProgress;
@@ -250,13 +253,13 @@ private:
   /// the maximum brick size allowed (including overlap) e.g. the usable size is in x is m_vBrickSize.x-2*m_iOverlap
   UINTVECTOR3 m_vBrickSize;
 
-  /// the brick overlap 
+  /// the brick overlap
   uint32_t m_iOverlap;
 
   /// max amount of memory in bytes to be used by the cache
   uint64_t m_iMemLimit;
 
-  /// desired compression method for new bricks, may be ignored by the system 
+  /// desired compression method for new bricks, may be ignored by the system
   /// e.g. when a compressed brick would be larger than the uncompressed
   COMPORESSION_TYPE m_eCompression;
 
@@ -271,7 +274,7 @@ private:
 
   /**
     Compresses the bricks using the method specified in m_eCompression
-    staring with index iBrickSkip
+    starting with index iBrickSkip
 
     @param tree the Extended Octree containing the bricks to be compressed
     @param iBrickSkip the bricks to be skipped, i.e. iBrickSkip is the first index to be compressed
@@ -290,11 +293,11 @@ private:
     @param regionSize x,y,z extension of the region to be copied
     @param voxelSize the size (in bytes) of a brick voxel (i.e. component-size*component-count)
   */
-  void CopyBrickToBrick(std::vector<uint8_t>& vSourceData, 
+  void CopyBrickToBrick(std::vector<uint8_t>& vSourceData,
                         const UINTVECTOR3& sourceBrickSize,
-                        std::vector<uint8_t>& vTargetData, 
+                        std::vector<uint8_t>& vTargetData,
                         const UINTVECTOR3& targetBrickSize,
-                        const UINTVECTOR3& sourceOffset, 
+                        const UINTVECTOR3& sourceOffset,
                         const UINTVECTOR3& targetOffset,
                         const UINTVECTOR3& regionSize,
                         size_t voxelSize);
@@ -308,7 +311,7 @@ private:
     @param iInOffset offset into the source file
     @param coords brick coordinates of the brick to be extracted
   */
-  void GetInputBrick(std::vector<uint8_t>& vData, 
+  void GetInputBrick(std::vector<uint8_t>& vData,
                      ExtendedOctree &tree, LargeRAWFile_ptr pLargeRAWFileIn,
                      uint64_t iInOffset, const UINT64VECTOR4& coords);
 
@@ -339,7 +342,7 @@ private:
     @param pData the target buffer of the brick data
     @param tree target extended octree
     @param vBrickCoords the coordinates (x,y,z, LoD) of the requested brick
-  */ 
+  */
   void GetBrick(uint8_t* pData, ExtendedOctree &tree,
                 const UINT64VECTOR4& vBrickCoords);
 
@@ -358,9 +361,9 @@ private:
     @param pData the source buffer of the brick data
     @param tree target extended octree
     @param vBrickCoords the coordinates (x,y,z, LoD) of the requested brick
-    @param bForceWrite forces the brick to be flushed to disk, if compression is enabled this performs the compression
-  */ 
-  void SetBrick(uint8_t* pData, ExtendedOctree &tree, 
+    @param bForceWrite forces the brick to be flushed to disk. if compression is enabled this performs the compression
+  */
+  void SetBrick(uint8_t* pData, ExtendedOctree &tree,
                 const UINT64VECTOR4& vBrickCoords, bool bForceWrite=false);
 
   /**
@@ -375,7 +378,7 @@ private:
                 uint64_t index, bool bForceWritee=false);
 
   /**
-    Prepares the cache data structures, effectively resizes the 
+    Prepares the cache data structures, effectively resizes the
     std collection and notifies all elements of the maximum brick size
 
     @param tree target extended octree
@@ -388,7 +391,7 @@ private:
     @param tree target extended octree
   */
   void FlushCache(ExtendedOctree &tree);
-  
+
   /**
     Write a single brick at index i in the ToC to disk and updates
     the minmax data structure if it is set
@@ -410,28 +413,28 @@ private:
 
 
   /**
-    This function takes a brick with the octree's standart overlap 
+    This function takes a brick with the octree's standart overlap
     and reduces that overlap by skipOverlap, e.g. if skipOverlap
     equals the octree's overlap, this function removed any
     overlap from the brick. This function changes the given
     array in place.
 
-    @param pBrickData the voxels of the brick, changes are made to 
+    @param pBrickData the voxels of the brick, changes are made to
                       this array in place
     @param vBrickSize the 3D size of the brick
     @param iVoxelSize the size (in bytes) of a voxl in the tree
     @param skipOverlap the number of overlap voxesl to be removed
   */
   static void ReduceOverlap(uint8_t *pBrickData, const UINTVECTOR3& vBrickSize,
-    size_t iVoxelSize, uint32_t skipOverlap);
+                            size_t iVoxelSize, uint32_t skipOverlap);
 
 
   /**
     Computes the mean value of inputs a to h
-    intermediate computations are carried out in double precision to avoid 
-    clamping and-or quantization. This function is used for the majority 
+    intermediate computations are carried out in double precision to avoid
+    clamping and-or quantization. This function is used for the majority
     of values when downsampling the bricks, only when no neighbors are present
-    in one or multiple directions are the other Average functions (with 4 
+    in one or multiple directions are the other Average functions (with 4
     and 2 parameters) called
 
     @param a value to be averaged
@@ -445,12 +448,12 @@ private:
     @return the average/mean of values a to h
   */
   template<class T> T Average(T a, T b, T c, T d, T e, T f, T g, T h);
-  
+
   /**
     Computes the mean value of inputs a to d
-    intermediate computations are carried out in double precision to avoid 
-    clamping and-or quantization. This function is used for if neighbors in
-    one dimension are missing 
+    intermediate computations are carried out in double precision to avoid
+    clamping and-or quantization. This function is used when neighbors in
+    one dimension are missing
 
     @param a value to be averaged
     @param b value to be averaged
@@ -462,19 +465,19 @@ private:
 
   /**
     Computes the mean value (a+b)/2 of a and b
-    intermediate computations are carried out in double precision to avoid 
-    clamping and-or quantization. This function is used for if neighbors in
-    two dimensions are missing 
+    intermediate computations are carried out in double precision to avoid
+    clamping and-or quantization. This function is used when neighbors in
+    two dimensions are missing
 
     @param a value to be averaged
     @param b value to be averaged
-    @return the average/mean of values a and b 
+    @return the average/mean of values a and b
   */
   template<class T> T Average(T a, T b);
 
   /**
     This function takes ONE source brick and down-samples this one into the appropriate position
-    into target brick the i.e. this function must be called up to eight times, 
+    into target brick the i.e. this function must be called up to eight times,
     depending on the position, to complete the down sampling process of one target brick
 
     @param tree target extended octree
@@ -488,7 +491,7 @@ private:
                                                 const UINTVECTOR3& targetSize,
                                                 T* pSourceData,
                                                 const UINT64VECTOR4& sourceCoords,
-                                                const UINTVECTOR3& targetOffset);  
+                                                const UINTVECTOR3& targetOffset);
 
   /**
     This function down-samples up to eight bricks into a single brick.
@@ -500,8 +503,8 @@ private:
     @param pData pointer to hold the temp data during the downsampling process
     @param pSourceData pointer to hold the temp data during the downsampling process
   */
-  template<class T> void DownsampleBrick(ExtendedOctree &tree, 
-                                         const UINT64VECTOR4& vBrickCoords, 
+  template<class T> void DownsampleBrick(ExtendedOctree &tree,
+                                         const UINT64VECTOR4& vBrickCoords,
                                          T* pData, T* pSourceData);
 
   /**
@@ -510,7 +513,7 @@ private:
 
     @param tree target extended octree
   */
-  template<class T> void ComputeHirarchy(ExtendedOctree &tree);
+  template<class T> void ComputeHierarchy(ExtendedOctree &tree);
 
 
   /**
@@ -523,7 +526,7 @@ private:
   template<class T> BrickStatVec ComputeBrickStats(uint8_t* pData, uint64_t iLength, size_t iComponentCount);
 };
 
-/// this file contains all the implementations of the template functions 
+/// this file contains all the implementations of the template functions
 /// used in the ExtendedOctreeConverter
 #include "ExtendedOctreeConverter.inc"
 

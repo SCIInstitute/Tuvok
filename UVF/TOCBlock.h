@@ -12,7 +12,7 @@ class MaxMinDataBlock;
 class TOCBlock : public DataBlock
 {
 public:
-  TOCBlock(); 
+  TOCBlock();
   virtual ~TOCBlock();
   TOCBlock(const TOCBlock &other);
   TOCBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian);
@@ -22,27 +22,27 @@ public:
   UINTVECTOR3 GetMaxBricksize() const {return m_ExtendedOctree.GetMaxBricksize();}
 
   bool FlatDataToBrickedLOD(const std::string& strSourceFile,
-                            const std::string& strTempFile, 
+                            const std::string& strTempFile,
                             ExtendedOctree::COMPONENT_TYPE eType,
-                            uint64_t iComponentCount, 
+                            uint64_t iComponentCount,
                             const UINT64VECTOR3& vVolumeSize,
-                            const DOUBLEVECTOR3& vScale, 
+                            const DOUBLEVECTOR3& vScale,
                             const UINTVECTOR3& vMaxBrickSize,
                             uint32_t iOverlap,
-                            size_t iCacheSize, 
+                            size_t iCacheSize,
                             std::tr1::shared_ptr<MaxMinDataBlock>
                               pMaxMinDatBlock =
                                 std::tr1::shared_ptr<MaxMinDataBlock>(),
                             AbstrDebugOut* pDebugOut=NULL);
   bool FlatDataToBrickedLOD(LargeRAWFile_ptr pSourceData,
-                            const std::string& strTempFile, 
+                            const std::string& strTempFile,
                             ExtendedOctree::COMPONENT_TYPE eType,
-                            uint64_t iComponentCount, 
+                            uint64_t iComponentCount,
                             const UINT64VECTOR3& vVolumeSize,
-                            const DOUBLEVECTOR3& vScale, 
+                            const DOUBLEVECTOR3& vScale,
                             const UINTVECTOR3& vMaxBrickSize,
                             uint32_t iOverlap,
-                            size_t iCacheSize, 
+                            size_t iCacheSize,
                             std::tr1::shared_ptr<MaxMinDataBlock>
                               pMaxMinDatBlock =
                                 std::tr1::shared_ptr<MaxMinDataBlock>(),
@@ -57,8 +57,8 @@ public:
                             bool bAppend = false, AbstrDebugOut* pDebugOut=NULL) const;
 
 
-  bool ApplyFunction(uint64_t iLoD,                          
-                     bool (*brickFunc)(void* pData, 
+  bool ApplyFunction(uint64_t iLoD,
+                     bool (*brickFunc)(void* pData,
                                     const UINTVECTOR3& vBrickSize,
                                     const UINT64VECTOR3& vBrickOffset,
                                     void* pUserContext) = NULL,
@@ -99,7 +99,7 @@ protected:
   uint32_t m_iOverlap;
   UINTVECTOR3 m_vMaxBrickSize;
   std::string m_strDeleteTempFile;
-  
+
   uint64_t ComputeHeaderSize() const;
   virtual uint64_t GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
                                      uint64_t iOffset, bool bIsBigEndian);

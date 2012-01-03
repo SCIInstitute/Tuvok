@@ -17,7 +17,7 @@ TOCBlock::TOCBlock() :
   strBlockID       = "Table of Contents Raster Data Block";
 }
 
-TOCBlock::TOCBlock(const TOCBlock &other) : 
+TOCBlock::TOCBlock(const TOCBlock &other) :
   DataBlock(other),
   m_bIsBigEndian(other.m_bIsBigEndian)
 {
@@ -25,24 +25,29 @@ TOCBlock::TOCBlock(const TOCBlock &other) :
 }
 
 TOCBlock::~TOCBlock(){
-  if (!m_strDeleteTempFile.empty() ) {
+  if (!m_strDeleteTempFile.empty()) {
     m_ExtendedOctree.Close();
     remove(m_strDeleteTempFile.c_str());
   }
 }
 
-TOCBlock::TOCBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian) {
+TOCBlock::TOCBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                   bool bIsBigEndian) {
   GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
 }
 
-uint64_t TOCBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian) {
+uint64_t TOCBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
+                                     uint64_t iOffset, bool bIsBigEndian) {
   m_bIsBigEndian = bIsBigEndian;
-  m_iOffsetToOctree = iOffset + DataBlock::GetHeaderFromFile(pStreamFile, iOffset, bIsBigEndian);
+  m_iOffsetToOctree = iOffset +
+                      DataBlock::GetHeaderFromFile(pStreamFile, iOffset,
+                                                   bIsBigEndian);
   m_ExtendedOctree.Open(m_pStreamFile, m_iOffsetToOctree);
   return pStreamFile->GetPos() - iOffset;
 }
 
-uint64_t TOCBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+uint64_t TOCBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
+                              bool bIsBigEndian, bool bIsLastBlock) {
   CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
   uint64_t iDataSize = ComputeDataSize();
@@ -80,12 +85,12 @@ uint64_t TOCBlock::ComputeDataSize() const {
 
 bool TOCBlock::FlatDataToBrickedLOD(
   const std::string& strSourceFile, const std::string& strTempFile,
-  ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount, 
-  const UINT64VECTOR3& vVolumeSize, 
-  const DOUBLEVECTOR3& vScale, 
+  ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount,
+  const UINT64VECTOR3& vVolumeSize,
+  const DOUBLEVECTOR3& vScale,
   const UINTVECTOR3& vMaxBrickSize,
   uint32_t iOverlap,
-  size_t iCacheSize, 
+  size_t iCacheSize,
   std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
   AbstrDebugOut* debugOut
 ) {
@@ -95,17 +100,17 @@ bool TOCBlock::FlatDataToBrickedLOD(
     return false;
   }
 
-  return FlatDataToBrickedLOD(inFile, strTempFile, eType, iComponentCount, 
+  return FlatDataToBrickedLOD(inFile, strTempFile, eType, iComponentCount,
                               vVolumeSize, vScale, vMaxBrickSize,
-                              iOverlap, iCacheSize, 
+                              iOverlap, iCacheSize,
                               pMaxMinDatBlock, debugOut);
 }
 
 bool TOCBlock::FlatDataToBrickedLOD(
   LargeRAWFile_ptr pSourceData, const std::string& strTempFile,
-  ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount, 
-  const UINT64VECTOR3& vVolumeSize, 
-  const DOUBLEVECTOR3& vScale, 
+  ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount,
+  const UINT64VECTOR3& vVolumeSize,
+  const DOUBLEVECTOR3& vScale,
   const UINTVECTOR3& vMaxBrickSize,
   uint32_t iOverlap,
   size_t iCacheSize,
@@ -123,7 +128,8 @@ bool TOCBlock::FlatDataToBrickedLOD(
   m_strDeleteTempFile = strTempFile;
   ExtendedOctreeConverter c(m_vMaxBrickSize, m_iOverlap, iCacheSize);
   BrickStatVec statsVec;
-  bool bResult = c.Convert(pSourceData, 0, eType, iComponentCount, vVolumeSize, vScale, outFile, 0, &statsVec, CT_ZIP);
+  bool bResult = c.Convert(pSourceData, 0, eType, iComponentCount, vVolumeSize,
+                           vScale, outFile, 0, &statsVec, CT_ZIP);
   outFile->Close();
 
   if (bResult) {
@@ -134,9 +140,12 @@ bool TOCBlock::FlatDataToBrickedLOD(
   }
 }
 
-bool TOCBlock::BrickedLODToFlatData(uint64_t iLoD,
-                                    const std::string& strTargetFile,
-                                    bool bAppend, AbstrDebugOut* pDebugOut) const{
+bool TOCBlock::BrickedLODToFlatData(
+  uint64_t iLoD,
+  const std::string& strTargetFile,
+  bool bAppend,
+  AbstrDebugOut* pDebugOut
+) const {
   LargeRAWFile_ptr outFile;
   outFile = LargeRAWFile_ptr(new LargeRAWFile(strTargetFile));
   if (bAppend) {
@@ -154,22 +163,26 @@ bool TOCBlock::BrickedLODToFlatData(uint64_t iLoD,
 
 
 bool TOCBlock::BrickedLODToFlatData(uint64_t iLoD,
-                            LargeRAWFile_ptr pTargetFile,
-                            bool bAppend, AbstrDebugOut*) const{
-    uint64_t iOffset = bAppend ? pTargetFile->GetCurrentSize() : 0;
-    return ExtendedOctreeConverter::ExportToRAW(m_ExtendedOctree, pTargetFile, iLoD, iOffset);
+                                    LargeRAWFile_ptr pTargetFile,
+                                    bool bAppend, AbstrDebugOut*) const {
+  uint64_t iOffset = bAppend ? pTargetFile->GetCurrentSize() : 0;
+  return ExtendedOctreeConverter::ExportToRAW(m_ExtendedOctree, pTargetFile,
+                                              iLoD, iOffset);
 }
 
 bool TOCBlock::ApplyFunction(uint64_t iLoD,
-                             bool (*brickFunc)(void* pData, 
-                                    const UINTVECTOR3& vBrickSize,
-                                    const UINT64VECTOR3& vBrickOffset,
-                                    void* pUserContext),
+                             bool (*brickFunc)(
+                               void* pData,
+                               const UINTVECTOR3& vBrickSize,
+                               const UINT64VECTOR3& vBrickOffset,
+                               void* pUserContext
+                             ),
                              void* pUserContext,
                              uint32_t iOverlap,
                              AbstrDebugOut*) const {
-  
-    return ExtendedOctreeConverter::ApplyFunction(m_ExtendedOctree, iLoD, brickFunc, pUserContext, iOverlap);
+  return ExtendedOctreeConverter::ApplyFunction(m_ExtendedOctree, iLoD,
+                                                brickFunc, pUserContext,
+                                                iOverlap);
 }
 
 void TOCBlock::GetData(uint8_t* pData, UINT64VECTOR4 coordinates) const {
@@ -209,7 +222,7 @@ bool TOCBlock::GetIsSigned() const {
     case ExtendedOctree::CT_UINT8:
     case ExtendedOctree::CT_UINT16:
     case ExtendedOctree::CT_UINT32:
-    case ExtendedOctree::CT_UINT64: 
+    case ExtendedOctree::CT_UINT64:
     default: return false;
   }
 }
@@ -227,13 +240,13 @@ bool TOCBlock::GetIsFloat() const {
     case ExtendedOctree::CT_UINT8:
     case ExtendedOctree::CT_UINT16:
     case ExtendedOctree::CT_UINT32:
-    case ExtendedOctree::CT_UINT64: 
+    case ExtendedOctree::CT_UINT64:
     default: return false;
   }
 }
 
 DOUBLEVECTOR3 TOCBlock::GetScale() const {
-  return m_ExtendedOctree.GetGlobalbAspect();
+  return m_ExtendedOctree.GetGlobalAspect();
 }
 
 void TOCBlock::SetScale(const DOUBLEVECTOR3& scale) {

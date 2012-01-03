@@ -1,18 +1,18 @@
 /*
  The MIT License
- 
+
  Copyright (c) 2011 Interactive Visualization and Data Analysis Group
- 
+
  Permission is hereby granted, free of charge, to any person obtaining a
  copy of this software and associated documentation files (the "Software"),
  to deal in the Software without restriction, including without limitation
  the rights to use, copy, modify, merge, publish, distribute, sublicense,
  and/or sell copies of the Software, and to permit persons to whom the
  Software is furnished to do so, subject to the following conditions:
- 
+
  The above copyright notice and this permission notice shall be included
  in all copies or substantial portions of the Software.
- 
+
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
@@ -44,10 +44,10 @@
 
 /*! \brief This structure holds information about a specific level in the tree
  *
- *  This structure holds information about a specific level of the tree, 
+ *  This structure holds information about a specific level of the tree,
  *  such as the overall size of the level in pixels and in bricks,
- *  and the aspect ratio (which may vary from level to level if we 
- *  downsample anisotropic) 
+ *  and the aspect ratio (which may vary from level to level if we
+ *  downsample anisotropically)
  */
 struct LODInfo {
   /// the aspect ratio of all bricks in this LoD, does not
@@ -60,7 +60,7 @@ struct LODInfo {
   /// number of bricks in x, y, and z in this LoD
   UINT64VECTOR3 m_iLODBrickCount;
   /// sum of all m_iLODBrickCount.volume() of the all the
-  /// lower LoD, e.g. for LoD with index 2 this would be 
+  /// lower LoD, e.g. for LoD with index 2 this would be
   /// lod[0].m_iLODBrickCount.volume() + lod[1].m_iLODBrickCount.volume()
   /// it does NOT take the current LoD into account and is
   /// just the offset
@@ -76,8 +76,8 @@ enum COMPORESSION_TYPE {
 
 /*! \brief This structure holds information about a specific brick in the tree
  *
- *  This structure holds information about a specific brick in the tree, 
- *  such the offset from the header, the length (or size) in bytes of the brick 
+ *  This structure holds information about a specific brick in the tree,
+ *  such the offset from the header, the length (or size) in bytes of the brick
  *  and the compression method
  */
 struct TOCEntry {
@@ -93,7 +93,7 @@ struct TOCEntry {
   COMPORESSION_TYPE m_eCompression;
 };
 
-// forward to the raw to brick converter, required for the 
+// forward to the raw to brick converter, required for the
 // friend declaration down below
 class ExtendedOctreeConverter;
 
@@ -102,7 +102,7 @@ class ExtendedOctreeConverter;
  *  This class holds the actual octree data
  */
 class ExtendedOctree {
-public: 
+public:
   /// This enum lists the different data types
   enum COMPONENT_TYPE {
     CT_UINT8,
@@ -116,15 +116,12 @@ public:
     CT_FLOAT32,
     CT_FLOAT64
   };
-  
-  /**
-    default constructor, does nothing more than set the internal 
-    state to fail save values
-  */
+
+  /** does nothing more than set the internal state to fail safe values */
   ExtendedOctree();
 
   /**
-    Reads the header information from an already open large raw file skipping iOffset bytes at the beginning 
+    Reads the header information from an already open large raw file skipping iOffset bytes at the beginning
     @param  pLargeRAWFile the file the header is read from, file must be open already
     @param  iOffset the bytes to be skipped from the beginning of the file to get to the octree header
     @return returns false if something went wrong trying to read from the file
@@ -132,8 +129,8 @@ public:
   bool Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset);
 
   /**
-    Reads the header information from an file skipping iOffset bytes at the beginning 
-    @param  filename the name of the input file 
+    Reads the header information from an file skipping iOffset bytes at the beginning
+    @param  filename the name of the input file
     @param  iOffset the bytes to be skipped from the beginning of the file to get to the octree header
     @return returns false if something went wrong trying to read from the file
   */
@@ -147,17 +144,17 @@ public:
   void Close();
 
   /**
-    Returns the component type enumerator of this octree 
+    Returns the component type enumerator of this octree
     @return returns the component type enumerator of this octree
   */
   COMPONENT_TYPE GetComponentType() const {return m_eComponentType;}
 
   /**
     Returns the value domain dimension
-    @return the value domain dimension 
+    @return the value domain dimension
   */
   uint64_t GetComponentCount() const {return m_iComponentCount;}
-  
+
   /**
     Returns the level of detail count, i.e. the depth of the tree
     @return the level of detail count, i.e. the depth of the tree
@@ -218,26 +215,26 @@ public:
     Returns the global aspect ratio of the volume
     @return the global aspect ratio of the volume
   */
-  DOUBLEVECTOR3 GetGlobalbAspect() const {return m_vVolumeAspect;}
+  DOUBLEVECTOR3 GetGlobalAspect() const {return m_vVolumeAspect;}
 
   /**
     Use to set the global aspect ratio of the volume, will write this into the header
     @param vVolumeAspect the new aspect ratio of the volume
   */
   bool SetGlobalAspect(const DOUBLEVECTOR3& vVolumeAspect);
-  
+
   /**
     Returns the size (in bytes) of the component type e.g. 4 for CT_INT64
     @return the size (in bytes) of the component type
   */
   size_t GetComponentTypeSize() const;
-  
+
   /**
     Returns the size of entire octree in bytes (including the header)
     @return the size of entire octree in bytes (including the header)
   */
   uint64_t GetSize() const {
-    if (m_vTOC.empty()) 
+    if (m_vTOC.empty())
       return ComputeHeaderSize();
     else
       return (m_vTOC.end()-1)->m_iOffset+(m_vTOC.end()-1)->m_iLength;
@@ -251,7 +248,7 @@ public:
   uint64_t BrickCoordsToIndex(const UINT64VECTOR4& vBrickCoords) const;
 
   /**
-    Converts a 1D index into 4-D brick coordinates 
+    Converts a 1D index into 4-D brick coordinates
     @param  the 1D index as used for the ToC
     @return vBrickCoords coordinates of a brick: x,y,z are the spacial coordinates, w is the LoD level
   */
@@ -284,13 +281,13 @@ private:
 
   /// the table of contents of the file, it holds the metadata for all bricks
   std::vector<TOCEntry> m_vTOC;
-  
+
   /// table of LoD metadata
   std::vector<LODInfo> m_vLODTable;
 
   /**
     Computes whether a brick is the last brick in a row, column, or slice.
-   
+
     @param vBrickCoords coordinates of a brick: x,y,z are the spacial coordinates, w is the LoD level
     @return whether a brick is the last brick in a row, column, or slice
   */
