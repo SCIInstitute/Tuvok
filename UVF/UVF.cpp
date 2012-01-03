@@ -97,21 +97,27 @@ void UVF::Close() {
       bool dirty = false;
       for (size_t i = 0;i<m_DataBlocks.size();i++) {
         if (m_DataBlocks[i]->m_bHeaderIsDirty) {
-          m_DataBlocks[i]->m_block->CopyHeaderToFile(m_streamFile,
-                                                     m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(),
-                                                     m_GlobalHeader.bIsBigEndian,
-                                                     i == m_DataBlocks.size()-1);
+          m_DataBlocks[i]->m_block->CopyHeaderToFile(
+            m_streamFile,
+            m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(),
+            m_GlobalHeader.bIsBigEndian,
+            i == m_DataBlocks.size()-1
+          );
           dirty = true;
         } 
         if (m_DataBlocks[i]->m_bIsDirty) {
-          // for now we only support changes in the datablock that do not influence its size
-          // TODO: will need to extend this to arbitrary changes once we add more features
-          assert(m_DataBlocks[i]->m_block->GetOffsetToNextBlock() == m_DataBlocks[i]->GetBlockSize());
+          // for now we only support changes in the datablock that do
+          // not influence its size TODO: will need to extend this to
+          // arbitrary changes once we add more features
+          assert(m_DataBlocks[i]->m_block->GetOffsetToNextBlock() ==
+                 m_DataBlocks[i]->GetBlockSize());
 
-          m_DataBlocks[i]->m_block->CopyToFile(m_streamFile, 
-                                               m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(),
-                                               m_GlobalHeader.bIsBigEndian,
-                                               i == m_DataBlocks.size()-1);
+          m_DataBlocks[i]->m_block->CopyToFile(
+            m_streamFile,
+            m_DataBlocks[i]->m_iOffsetInFile+m_GlobalHeader.GetDataPos(),
+            m_GlobalHeader.bIsBigEndian,
+            i == m_DataBlocks.size()-1
+          );
           dirty = true;
         }
       }
