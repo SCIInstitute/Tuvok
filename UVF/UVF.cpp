@@ -1,7 +1,8 @@
 #include <sstream>
 #include "UVF.h"
-#include <Basics/Checksums/crc32.h>
-#include <Basics/Checksums/MD5.h>
+#include "Basics/Checksums/crc32.h"
+#include "Basics/Checksums/MD5.h"
+#include "Basics/nonstd.h"
 #include "DataBlock.h"
 
 using namespace std;
@@ -402,7 +403,9 @@ bool UVF::DropBlockFromFile(size_t iBlockIndex) {
   if (!m_bFileIsReadWrite)  return false;
 
   // create copy buffer
-  unsigned char* pBuffer = new unsigned char[BLOCK_COPY_SIZE];
+  std::tr1::shared_ptr<unsigned char> pBuffer(
+    new unsigned char[BLOCK_COPY_SIZE], nonstd::DeleteArray<unsigned char>()
+  );
 
   // remove data from file, by shifting all blocks after the
   // one to be removed towards the front of the file
@@ -413,8 +416,8 @@ bool UVF::DropBlockFromFile(size_t iBlockIndex) {
                           m_GlobalHeader.GetDataPos();
     uint64_t iTargetPos = iSourcePos-iShiftSize;
     uint64_t iSize      = m_DataBlocks[i]->GetBlockSize();
-    if (!m_streamFile->CopyRAW(iSize,iSourcePos,iTargetPos,
-                              pBuffer,BLOCK_COPY_SIZE)) {
+    if (!m_streamFile->CopyRAW(iSize, iSourcePos, iTargetPos,
+                               pBuffer.get(), BLOCK_COPY_SIZE)) {
       return false;
     }
   }
@@ -429,9 +432,6 @@ bool UVF::DropBlockFromFile(size_t iBlockIndex) {
 
   // truncate file
   m_streamFile->Truncate();
-
-  // free copy buffer
-  delete [] pBuffer;
 
   // remove data from datablock vector
   m_DataBlocks.erase(m_DataBlocks.begin()+iBlockIndex);
