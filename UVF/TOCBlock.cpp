@@ -42,7 +42,7 @@ uint64_t TOCBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
   m_iOffsetToOctree = iOffset +
                       DataBlock::GetHeaderFromFile(pStreamFile, iOffset,
                                                    bIsBigEndian);
-  m_ExtendedOctree.Open(m_pStreamFile, m_iOffsetToOctree);
+  m_ExtendedOctree.Open(pStreamFile, m_iOffsetToOctree);
   return pStreamFile->GetPos() - iOffset;
 }
 
@@ -56,8 +56,8 @@ uint64_t TOCBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
   for (uint64_t i = 0;i<iDataSize;i+=BLOCK_COPY_SIZE) {
     uint64_t iCopySize = min(BLOCK_COPY_SIZE, iDataSize-i);
 
-    m_pStreamFile->ReadRAW(pData, iCopySize);
-    pStreamFile->WriteRAW(pData, iCopySize);
+    assert(iCopySize==m_pStreamFile->ReadRAW(pData, iCopySize));
+    assert(iCopySize==pStreamFile->WriteRAW(pData, iCopySize));
   }
   delete [] pData;
 
