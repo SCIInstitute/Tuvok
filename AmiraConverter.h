@@ -30,45 +30,6 @@
 
 #include "RAWConverter.h"
 
-
-// Your standard ostream_iterator will essentially do "stream << *iter".  That
-// doesn't work well for binary files, however, in which we need to use
-// "stream.write(&*iter, sizeof(T))".  Hence this implements a binary
-// ostream_iterator.
-template<typename T> class binary_ostream_iterator :
-public std::iterator<std::output_iterator_tag, void, void, void, void> {
-public:
-	binary_ostream_iterator(std::ostream& os) : stream(os) {}
-	binary_ostream_iterator(const binary_ostream_iterator& boi) :
-	stream(boi.stream) { }
-
-	binary_ostream_iterator& operator=(const T& value) {
-		this->stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
-		return *this;
-	}
-	
-	// TODO: This is clearly not what we want but I added this operator to get it to compile at all
-	//       Tom please fix this.
-	binary_ostream_iterator& operator=(const binary_ostream_iterator<T>& ) {
-		return *this;
-	}
-	
-
-	binary_ostream_iterator& operator*() { return *this; }
-	binary_ostream_iterator& operator++() { return *this; }
-	binary_ostream_iterator& operator++(int) { return *this; }
-	std::output_iterator_tag iterator_category(const binary_ostream_iterator&) {
-		return std::output_iterator_tag();
-	}
-
-private:
-	std::ostream& stream;
-
-private:
-};
-
-
-
 /// A converter for Amira files, we think.
 class AmiraConverter : public RAWConverter {
 public:

@@ -29,6 +29,35 @@
 #include <fstream>
 #include <iterator>
 
+namespace {
+// Your standard ostream_iterator will essentially do "stream << *iter".  That
+// doesn't work well for binary files, however, in which we need to use
+// "stream.write(&*iter, sizeof(T))".  Hence this implements a binary
+// ostream_iterator.
+template<typename T> class binary_ostream_iterator :
+  public std::iterator<std::output_iterator_tag, T> {
+public:
+  binary_ostream_iterator(std::ostream& os) : stream(os) {}
+  binary_ostream_iterator(const binary_ostream_iterator& boi) :
+    stream(boi.stream) { }
+
+  binary_ostream_iterator& operator=(const T& value) {
+    this->stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
+    return *this;
+  }
+
+  binary_ostream_iterator& operator*() { return *this; }
+  binary_ostream_iterator& operator++() { return *this; }
+  binary_ostream_iterator& operator++(int) { return *this; }
+
+private:
+	std::ostream& stream;
+
+private:
+    binary_ostream_iterator& operator=(const binary_ostream_iterator<T>&);
+};
+}
+
 AmiraConverter::AmiraConverter()
 {
   m_vConverterDesc = "Amira";
@@ -36,7 +65,7 @@ AmiraConverter::AmiraConverter()
 }
 
 bool AmiraConverter::CanRead(const std::string& fn,
-                               const std::vector<int8_t>& start) const
+                             const std::vector<int8_t>& start) const
 {
   if(!AbstrConverter::CanRead(fn, start)) {
     MESSAGE("Base class says we can't read it...");
@@ -139,23 +168,22 @@ bool AmiraConverter::ConvertToRAW(const std::string& strSourceFilename,
     bDeleteIntermediateFile = false;
     return false;
   }
-/*  std::copy(std::istream_iterator<double>(amira),
+  std::copy(std::istream_iterator<double>(amira),
             std::istream_iterator<double>(),
             binary_ostream_iterator<double>(inter));
- */
   return true;
 }
 
 bool AmiraConverter::ConvertToNative(const std::string&,
-                                       const std::string&,
-                                       uint64_t,
-                                       uint64_t,
-                                       uint64_t, bool,
-                                       bool,
-                                       UINT64VECTOR3,
-                                       FLOATVECTOR3,
-                                       bool,
-                                       const bool)
+                                     const std::string&,
+                                     uint64_t,
+                                     uint64_t,
+                                     uint64_t, bool,
+                                     bool,
+                                     UINT64VECTOR3,
+                                     FLOATVECTOR3,
+                                     bool,
+                                     const bool)
 {
   return false;
 }
