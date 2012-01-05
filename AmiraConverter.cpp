@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2010 Scientific Computing and Imaging Institute,
+   Copyright (c) 2011 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -25,13 +25,7 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-/**
-  \file    AnalyzeConverter.cpp
-  \author  Tom Fogal
-           SCI Institute
-           University of Utah
-*/
-#include "AnalyzeConverter.h"
+#include "AmiraConverter.h"
 #include <fstream>
 #include <iterator>
 
@@ -63,13 +57,13 @@ private:
 private:
 };
 
-AnalyzeConverter::AnalyzeConverter()
+AmiraConverter::AmiraConverter()
 {
   m_vConverterDesc = "Amira";
   m_vSupportedExt.push_back("AM");
 }
 
-bool AnalyzeConverter::CanRead(const std::string& fn,
+bool AmiraConverter::CanRead(const std::string& fn,
                                const std::vector<int8_t>& start) const
 {
   if(!AbstrConverter::CanRead(fn, start)) {
@@ -103,7 +97,7 @@ bool AnalyzeConverter::CanRead(const std::string& fn,
   return true;
 }
 
-bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
+bool AmiraConverter::ConvertToRAW(const std::string& strSourceFilename,
                                     const std::string& strTempDir,
                                     bool,
                                     uint64_t& iHeaderSkip,
@@ -180,7 +174,7 @@ bool AnalyzeConverter::ConvertToRAW(const std::string& strSourceFilename,
   return true;
 }
 
-bool AnalyzeConverter::ConvertToNative(const std::string&,
+bool AmiraConverter::ConvertToNative(const std::string&,
                                        const std::string&,
                                        uint64_t,
                                        uint64_t,

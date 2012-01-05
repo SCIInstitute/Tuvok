@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2010 Scientific Computing and Imaging Institute,
+   Copyright (c) 2011 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
