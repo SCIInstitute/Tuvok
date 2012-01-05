@@ -216,8 +216,7 @@ uint32_t DICOMParser::GetUInt(ifstream& fileDICOM, const DICOM_eType eElementTyp
   switch (eElementType) {
     case TYPE_Implicit :
     case TYPE_IS  : {
-              value.resize(iElemLength);
-              fileDICOM.read(&value[0],iElemLength);
+              ReadSizedElement(fileDICOM, value, iElemLength);
               result = atoi(value.c_str());
               break;
             }
@@ -324,9 +323,15 @@ void DICOMParser::ParseUndefLengthSequence(ifstream& fileDICOM, short& , short& 
 
 }
 
-void DICOMParser::SkipUnusedElement(ifstream& fileDICOM, string& value, const uint32_t iElemLength) {
+void DICOMParser::ReadSizedElement(ifstream& fileDICOM, string& value, const uint32_t iElemLength) {
   value.resize(iElemLength);
-  fileDICOM.read(&value[0],iElemLength);
+  if (iElemLength) {
+    fileDICOM.read(&value[0],iElemLength);
+  }
+}
+
+void DICOMParser::SkipUnusedElement(ifstream& fileDICOM, string& value, const uint32_t iElemLength) {
+  ReadSizedElement(fileDICOM, value, iElemLength);
 }
 
 bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
@@ -341,7 +346,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
 
   info.m_strFileName = strFilename;
   info.m_wstrFileName = wstring(strFilename.begin(), strFilename.end());
-  info.m_ivSize.z = 1; // default if slices does not apear in the dicom
+  info.m_ivSize.z = 1; // default if slices does not appear in the dicom
 
   // check for basic properties
   if (!SysTools::GetFileStats(strFilename, stat_buf)) {// file must exist
@@ -416,12 +421,10 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
         case 0x1 : {  // Version
               assert(iElemLength > 0);
               if(iElemLength == 0) { iElemLength = 1; } // guarantee progress.
-              value.resize(iElemLength);
-              fileDICOM.read(&value[0],iElemLength);
+              ReadSizedElement(fileDICOM, value, iElemLength);
              } break;
         case 0x10 : {  // Parse Type to find out endianess
-              value.resize(iElemLength);
-              fileDICOM.read(&value[0],iElemLength);
+              ReadSizedElement(fileDICOM, value, iElemLength);
               if (value[iElemLength-1] == 0) value.resize(iElemLength-1);
 
               if (value == "1.2.840.10008.1.2") {   // Implicit VR Little Endian
@@ -464,8 +467,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
               bParsingMetaHeader = false;
              } break;
         default : {
-          value.resize(iElemLength);
-          fileDICOM.read(&value[0],iElemLength);
+          SkipUnusedElement(fileDICOM, value, iElemLength);
         } break;
       }
       ReadHeaderElemStart(fileDICOM, iGroupID, iElementID, elementType,
@@ -485,8 +487,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
         value = "SEQUENCE";
       } else {
         // HACK: here we simply skip over the entire sequence
-        value.resize(iElemLength);
-        fileDICOM.read(&value[0],iElemLength);
+        SkipUnusedElement(fileDICOM, value, iElemLength);
         value = "SKIPPED EXPLICIT SEQUENCE";
       }
     } else if (elementType == TYPE_Implicit && iElemLength == 0xFFFFFFFF) { // read implicit sequence
@@ -548,9 +549,8 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
               } break;
              } break;
         case 0x18 : switch (iElementID) {
-              case 0x50 : { // Slice Thinkness
-                    value.resize(iElemLength);
-                    fileDICOM.read(&value[0],iElemLength);
+              case 0x50 : { // Slice Thickness
+                    ReadSizedElement(fileDICOM, value, iElemLength);
                     info.m_fvfAspect.z = float(atof(value.c_str()));
                     #ifdef DEBUG_DICOM
                     {
@@ -561,8 +561,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     #endif
                     } break;
               case 0x88 : { // Spacing
-                    value.resize(iElemLength);
-                    fileDICOM.read(&value[0],iElemLength);
+                    ReadSizedElement(fileDICOM, value, iElemLength);
                     #ifdef DEBUG_DICOM
                     fSliceSpacing = float(atof(value.c_str()));
                     {
@@ -573,8 +572,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     #endif
                     } break;
                default : {
-                value.resize(iElemLength);
-                fileDICOM.read(&value[0],iElemLength);
+                SkipUnusedElement(fileDICOM, value, iElemLength);
               } break;
             }  break;
         case 0x20 : switch (iElementID) {
@@ -600,9 +598,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     } break;
               case 0x32 : // patient position
                 {
-                    value.resize(iElemLength);
-                    fileDICOM.read(&value[0],iElemLength);
-
+                    ReadSizedElement(fileDICOM, value, iElemLength);
                     size_t iDelimiter = value.find_first_of("\\");
 
                     info.m_fvPatientPosition.x = float(atof(value.substr(0,iDelimiter).c_str()));
@@ -625,8 +621,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     #endif
                 }  break;
               default : {
-                value.resize(iElemLength);
-                fileDICOM.read(&value[0],iElemLength);
+                SkipUnusedElement(fileDICOM, value, iElemLength);
               } break;
              } break;
         case 0x28 : switch (iElementID) {
@@ -676,8 +671,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                       break;
               case 0x30 : // x,y spacing
                 {
-                    value.resize(iElemLength);
-                    fileDICOM.read(&value[0],iElemLength);
+                    ReadSizedElement(fileDICOM, value, iElemLength);
 
                     size_t iDelimiter = value.find_first_of("\\");
 
@@ -726,8 +720,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     #endif
                     break;
               case 0x1052 : // Rescale Intercept (Bias)
-                    value.resize(iElemLength);
-                    fileDICOM.read(&value[0],iElemLength);
+                    ReadSizedElement(fileDICOM, value, iElemLength);
                     info.m_fBias = float(atof(value.c_str()));
                     #ifdef DEBUG_DICOM
                     {
@@ -738,8 +731,7 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     #endif
                     break;
               case 0x1053 : // Rescale Slope (Scale)
-                    value.resize(iElemLength);
-                    fileDICOM.read(&value[0],iElemLength);
+                    ReadSizedElement(fileDICOM, value, iElemLength);
                     info.m_fScale = float(atof(value.c_str()));
                     #ifdef DEBUG_DICOM
                     {
@@ -750,13 +742,11 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     #endif
                     break;
               default : {
-                value.resize(iElemLength);
-                fileDICOM.read(&value[0],iElemLength);
+                SkipUnusedElement(fileDICOM, value, iElemLength);
               } break;
              } break;
         default : {
-          value.resize(iElemLength);
-          fileDICOM.read(&value[0],iElemLength);
+          SkipUnusedElement(fileDICOM, value, iElemLength);
         } break;
 
       }

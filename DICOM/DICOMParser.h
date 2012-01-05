@@ -162,7 +162,8 @@ public:
 
   static bool GetDICOMFileInfo(const std::string& fileName, DICOMFileInfo& info);
 protected:
-
+  static void ReadSizedElement(std::ifstream& fileDICOM, std::string& value, 
+                                const uint32_t iElemLength);
   static void SkipUnusedElement(std::ifstream& fileDICOM, std::string& value,
                                 const uint32_t iElemLength);
   static void ReadHeaderElemStart(std::ifstream& fileDICOM, short& iGroupID,
