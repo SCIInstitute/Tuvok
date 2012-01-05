@@ -25,8 +25,8 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-#ifndef TUVOK_ANALYZE_CONVERTER_H
-#define TUVOK_ANALYZE_CONVERTER_H
+#ifndef TUVOK_AMIRA_CONVERTER_H
+#define TUVOK_AMIRA_CONVERTER_H
 
 #include "RAWConverter.h"
 
@@ -65,4 +65,4 @@ public:
    virtual bool CanImportData() const { return true; }
 
 };
-#endif // TUVOK_ANALYZE_CONVERTER_H
+#endif // TUVOK_AMIRA_CONVERTER_H
