@@ -876,7 +876,7 @@ bool ExtendedOctreeConverter::ApplyFunction(const ExtendedOctree &tree, uint64_t
   const size_t iVoxelSize = tree.GetComponentTypeSize() * size_t(tree.m_iComponentCount);
   uint8_t *pBrickData = new uint8_t[tree.m_iBrickSize.volume() * iVoxelSize];
 
-  const UINT64VECTOR3 outSize=tree.m_vLODTable[size_t(iLODLevel)].m_iLODPixelSize;
+  //const UINT64VECTOR3 outSize=tree.m_vLODTable[size_t(iLODLevel)].m_iLODPixelSize;
 
   UINT64VECTOR3 bricksToExport = tree.GetBrickCount(iLODLevel);
   for (uint64_t z = 0;z<bricksToExport.z;++z) {
