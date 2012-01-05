@@ -68,6 +68,7 @@
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/Histogram2DDataBlock.h"
 
+#include "AmiraConverter.h"
 #include "AnalyzeConverter.h"
 #include "BOVConverter.h"
 #include "NRRDConverter.h"
@@ -158,6 +159,7 @@ IOManager::IOManager() :
   m_vpConverters.push_back(new KitwareConverter());
   m_vpConverters.push_back(new InveonConverter());
   m_vpConverters.push_back(new AnalyzeConverter());
+  m_vpConverters.push_back(new AmiraConverter());
   m_dsFactory->AddReader(tr1::shared_ptr<UVFDataset>(new UVFDataset()));
 }
 
