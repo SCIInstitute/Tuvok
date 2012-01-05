@@ -281,6 +281,15 @@ bool InveonConverter::CanRead(const std::string&,
 {
   using namespace std::tr1::placeholders;
 
+  std::string as_string(
+    static_cast<const signed char*>(&*start.begin()),
+    static_cast<const signed char*>(&*(start.end()-1))
+  );
+  if(as_string.find("Header") == std::string::npos) {
+    MESSAGE("No 'Header' in our header... not mine.");
+    return false;
+  }
+
   // Are there any non-ascii characters?
   std::vector<int8_t>::const_iterator notascii = std::find_if(
     start.begin(), start.end(),
