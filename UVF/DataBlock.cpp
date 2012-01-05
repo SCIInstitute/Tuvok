@@ -52,6 +52,8 @@ uint64_t DataBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOf
   m_pStreamFile = pStreamFile;
   m_iOffset = iOffset;
 
+  assert(pStreamFile->IsOpen());
+
   m_pStreamFile->SeekPos(iOffset);
 
   uint64_t ulStringLengthBlockID;
@@ -70,6 +72,7 @@ uint64_t DataBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOf
 }
 
 void DataBlock::CopyHeaderToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset, bool bIsBigEndian, bool bIsLastBlock) {
+  assert(pStreamFile->IsOpen());
   pStreamFile->SeekPos(iOffset);
 
   pStreamFile->WriteData(uint64_t(strBlockID.size()), bIsBigEndian);

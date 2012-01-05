@@ -38,6 +38,7 @@ TOCBlock::TOCBlock(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
 
 uint64_t TOCBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
                                      uint64_t iOffset, bool bIsBigEndian) {
+  assert(pStreamFile->IsOpen());
   m_bIsBigEndian = bIsBigEndian;
   m_iOffsetToOctree = iOffset +
                       DataBlock::GetHeaderFromFile(pStreamFile, iOffset,
@@ -48,6 +49,8 @@ uint64_t TOCBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
 
 uint64_t TOCBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
                               bool bIsBigEndian, bool bIsLastBlock) {
+  assert(m_pStreamFile->IsOpen()); // source data
+  assert(pStreamFile->IsOpen()); // destination
   CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
   uint64_t iDataSize = ComputeDataSize();
