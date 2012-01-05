@@ -307,11 +307,13 @@ namespace SysTools {
 
   string GetPath(const string& fileName) {
     string path = fileName.substr(0,MAX(int(fileName.find_last_of("\\")),int(fileName.find_last_of("/")))+1);
+    if(path.empty()) { path = "./"; }
     return path;
   }
 
   wstring GetPath(const wstring& fileName) {
     wstring path = fileName.substr(0,MAX(int(fileName.find_last_of(L"\\")),int(fileName.find_last_of(L"/")))+1);
+    if(path.empty()) { path = L"./"; }
     return path;
   }
 
