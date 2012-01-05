@@ -342,6 +342,7 @@
     <ClCompile Include="Basics\Checksums\MD5.cpp" />
     <ClCompile Include="Basics\KDTree.cpp" />
     <ClCompile Include="Basics\Mesh.cpp" />
+    <ClCompile Include="IO\AmiraConverter.cpp" />
     <ClCompile Include="IO\Images\StackExporter.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctree.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp" />
@@ -940,6 +941,7 @@
     <ClInclude Include="Basics\3rdParty\tclap\Visitor.h" />
     <ClInclude Include="Basics\3rdParty\tclap\XorHandler.h" />
     <ClInclude Include="Basics\3rdParty\tclap\ZshCompletionOutput.h" />
+    <ClInclude Include="IO\AmiraConverter.h" />
     <ClInclude Include="IO\Images\StackExporter.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctree.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h" />

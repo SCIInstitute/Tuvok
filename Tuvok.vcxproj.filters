@@ -810,6 +810,9 @@
     <ClCompile Include="Renderer\GL\GLTreeRaycaster.cpp">
       <Filter>Renderer\GL</Filter>
     </ClCompile>
+    <ClCompile Include="IO\AmiraConverter.cpp">
+      <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1637,6 +1640,9 @@
     </ClInclude>
     <ClInclude Include="Renderer\GL\GLTreeRaycaster.h">
       <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\AmiraConverter.h">
+      <Filter>IO\Volume Converter</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
