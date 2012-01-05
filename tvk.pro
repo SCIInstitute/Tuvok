@@ -108,6 +108,7 @@ HEADERS += \
            IO/3rdParty/tiff/tif_predict.h \
            IO/3rdParty/tiff/uvcode.h \
            IO/AbstrConverter.h \
+           IO/AmiraConverter.h \
            IO/AnalyzeConverter.h \
            IO/BOVConverter.h \
            IO/BrickedDataset.h \
@@ -344,6 +345,7 @@ SOURCES += \
            IO/3rdParty/tiff/tif_jpeg.c \
            IO/3rdParty/tiff/tif_ojpeg.c \
            IO/AbstrConverter.cpp \
+           IO/AmiraConverter.cpp \
            IO/AnalyzeConverter.cpp \
            IO/BOVConverter.cpp \
            IO/BrickedDataset.cpp \
