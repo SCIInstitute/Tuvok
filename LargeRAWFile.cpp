@@ -1,5 +1,11 @@
-#include "LargeRAWFile.h"
 #include <sstream>
+#ifdef _MSC_VER
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
+#include "LargeRAWFile.h"
+#include "nonstd.h"
 
 using namespace std;
 
@@ -266,11 +272,14 @@ bool LargeRAWFile::Copy(const std::wstring& wstrSource,
 
   uint64_t iFileSize = source.GetCurrentSize();
   uint64_t iCopySize = min(iFileSize,BLOCK_COPY_SIZE);
-  unsigned char* pBuffer = new unsigned char[size_t(iCopySize)];
+  std::tr1::shared_ptr<unsigned char> pBuffer(
+    new unsigned char[size_t(iCopySize)],
+    nonstd::DeleteArray<unsigned char>()
+  );
 
   do {
-    iCopySize = source.ReadRAW(pBuffer, iCopySize);
-    target.WriteRAW(pBuffer, iCopySize);
+    iCopySize = source.ReadRAW(pBuffer.get(), iCopySize);
+    target.WriteRAW(pBuffer.get(), iCopySize);
   } while (iCopySize>0);
 
   target.Close();
