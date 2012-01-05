@@ -139,10 +139,10 @@ bool AmiraConverter::ConvertToRAW(const std::string& strSourceFilename,
     bDeleteIntermediateFile = false;
     return false;
   }
-  std::copy(std::istream_iterator<double>(amira),
+/*  std::copy(std::istream_iterator<double>(amira),
             std::istream_iterator<double>(),
             binary_ostream_iterator<double>(inter));
- 
+ */
   return true;
 }
 
