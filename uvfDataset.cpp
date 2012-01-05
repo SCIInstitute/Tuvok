@@ -41,6 +41,7 @@
 #include "UVF/Histogram2DDataBlock.h"
 #include "UVF/GeometryDataBlock.h"
 #include "uvfMesh.h"
+#include "../Basics/MathTools.h"
 
 using namespace boost;
 using namespace std;
@@ -237,6 +238,7 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
   if (m_bToCBlock) {
     TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[timestep]);
     const TOCBlock* pVolumeDataBlock = ts->GetDB();
+    m_DomainScale = pVolumeDataBlock->GetScale();
 
     for (size_t j = 0;j<pVolumeDataBlock->GetLoDCount();j++) {
       UINT64VECTOR3 bc = pVolumeDataBlock->GetBrickCount(j);
@@ -1628,6 +1630,37 @@ bool UVFDataset::GetBrick(const BrickKey& k, std::vector<float>& vData) const {
 
 bool UVFDataset::GetBrick(const BrickKey& k, std::vector<double>& vData) const {
   return GetBrickTemplate<double>(k,vData);
+}
+
+std::pair<FLOATVECTOR3, FLOATVECTOR3> UVFDataset::GetTextCoords(BrickTable::const_iterator brick, bool bUseOnlyPowerOfTwo) const {
+
+  if (m_bToCBlock) {
+    const UINT64VECTOR4 coords = KeyToTOCVector(brick->first);
+    const TOCBlock* tb = static_cast<TOCTimestep*>(m_timesteps[std::tr1::get<0>(brick->first)])->GetDB();
+
+    uint32_t iOverlap = tb->GetOverlap();
+    FLOATVECTOR3 brickAspect = FLOATVECTOR3(tb->GetBrickAspect(coords));
+    FLOATVECTOR3 vTexcoordsMin;
+    FLOATVECTOR3 vTexcoordsMax;
+
+    if (bUseOnlyPowerOfTwo) {
+      UINTVECTOR3 vRealVoxelCount(MathTools::NextPow2(brick->second.n_voxels.x),
+        MathTools::NextPow2(brick->second.n_voxels.y),
+        MathTools::NextPow2(brick->second.n_voxels.z)
+        );
+      vTexcoordsMin = float(iOverlap) / FLOATVECTOR3(vRealVoxelCount);
+      vTexcoordsMax = 1.0f-vTexcoordsMin;
+      vTexcoordsMax -= FLOATVECTOR3(vRealVoxelCount - brick->second.n_voxels) / FLOATVECTOR3(vRealVoxelCount);
+    } else {
+      vTexcoordsMin = float(iOverlap) / FLOATVECTOR3(brick->second.n_voxels);
+      vTexcoordsMax = 1.0f-vTexcoordsMin;
+    }
+
+    return std::make_pair(vTexcoordsMin, vTexcoordsMax*brickAspect);
+   
+  } else {
+    return Dataset::GetTextCoords(brick, bUseOnlyPowerOfTwo);
+  }
 }
 
 }; // tuvok namespace.

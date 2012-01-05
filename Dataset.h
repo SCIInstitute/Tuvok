@@ -168,6 +168,11 @@ public:
   /// Virtual constructor.
   virtual Dataset* Create(const std::string&, uint64_t, bool) const=0;  
 
+  /// this function computes the texture coordinates for a given brick
+  /// this may be non trivial with power of two padding, overlap handling
+  /// and per brick rescale
+  virtual  std::pair<FLOATVECTOR3, FLOATVECTOR3> GetTextCoords(BrickTable::const_iterator brick, bool bUseOnlyPowerOfTwo) const;
+
 protected:
   Histogram1D*       m_pHist1D;
   Histogram2D*       m_pHist2D;

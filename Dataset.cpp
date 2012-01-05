@@ -32,6 +32,7 @@
            University of Utah
 */
 #include "Dataset.h"
+#include "../Basics/MathTools.h"
 
 namespace tuvok {
 
@@ -68,5 +69,55 @@ void Dataset::SetRescaleFactors(const DOUBLEVECTOR3& rescale) {
 DOUBLEVECTOR3 Dataset::GetRescaleFactors() const {
   return m_UserScale;
 }
+
+std::pair<FLOATVECTOR3, FLOATVECTOR3> Dataset::GetTextCoords(BrickTable::const_iterator brick, bool bUseOnlyPowerOfTwo) const {
+
+  FLOATVECTOR3 vTexcoordsMin;
+  FLOATVECTOR3 vTexcoordsMax;
+
+  UINTVECTOR3 vOverlap = GetBrickOverlapSize();
+  bool first_x = BrickIsFirstInDimension(0, brick->first);
+  bool first_y = BrickIsFirstInDimension(1, brick->first);
+  bool first_z = BrickIsFirstInDimension(2, brick->first);
+  bool last_x = BrickIsLastInDimension(0, brick->first);
+  bool last_y = BrickIsLastInDimension(1, brick->first);
+  bool last_z = BrickIsLastInDimension(2, brick->first);
+
+  if (bUseOnlyPowerOfTwo) {
+    UINTVECTOR3 vRealVoxelCount(MathTools::NextPow2(brick->second.n_voxels.x),
+                                MathTools::NextPow2(brick->second.n_voxels.y),
+                                MathTools::NextPow2(brick->second.n_voxels.z)
+                                );
+    vTexcoordsMin = FLOATVECTOR3(
+      (first_x) ? 0.5f/vRealVoxelCount.x : vOverlap.x*0.5f/vRealVoxelCount.x,
+      (first_y) ? 0.5f/vRealVoxelCount.y : vOverlap.y*0.5f/vRealVoxelCount.y,
+      (first_z) ? 0.5f/vRealVoxelCount.z : vOverlap.z*0.5f/vRealVoxelCount.z
+      );
+    vTexcoordsMax = FLOATVECTOR3(
+      (last_x) ? 1.0f-0.5f/vRealVoxelCount.x : 1.0f-vOverlap.x*0.5f/vRealVoxelCount.x,
+      (last_y) ? 1.0f-0.5f/vRealVoxelCount.y : 1.0f-vOverlap.y*0.5f/vRealVoxelCount.y,
+      (last_z) ? 1.0f-0.5f/vRealVoxelCount.z : 1.0f-vOverlap.z*0.5f/vRealVoxelCount.z
+      );
+
+    vTexcoordsMax -= FLOATVECTOR3(vRealVoxelCount - brick->second.n_voxels) /
+                                    FLOATVECTOR3(vRealVoxelCount);
+  } else {
+
+    vTexcoordsMin = FLOATVECTOR3(
+      (first_x) ? 0.5f/brick->second.n_voxels.x : vOverlap.x*0.5f/brick->second.n_voxels.x,
+      (first_y) ? 0.5f/brick->second.n_voxels.y : vOverlap.y*0.5f/brick->second.n_voxels.y,
+      (first_z) ? 0.5f/brick->second.n_voxels.z : vOverlap.z*0.5f/brick->second.n_voxels.z
+      );
+    // for padded volume adjust texcoords
+    vTexcoordsMax = FLOATVECTOR3(
+      (last_x) ? 1.0f-0.5f/brick->second.n_voxels.x : 1.0f-vOverlap.x*0.5f/brick->second.n_voxels.x,
+      (last_y) ? 1.0f-0.5f/brick->second.n_voxels.y : 1.0f-vOverlap.y*0.5f/brick->second.n_voxels.y,
+      (last_z) ? 1.0f-0.5f/brick->second.n_voxels.z : 1.0f-vOverlap.z*0.5f/brick->second.n_voxels.z
+      );
+  }
+
+  return std::make_pair(vTexcoordsMin, vTexcoordsMax);
+}
+
 
 }; // tuvok namespace.

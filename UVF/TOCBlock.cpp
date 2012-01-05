@@ -21,6 +21,7 @@ TOCBlock::TOCBlock(const TOCBlock &other) :
   DataBlock(other),
   m_bIsBigEndian(other.m_bIsBigEndian)
 {
+  if (!m_pStreamFile->IsOpen()) m_pStreamFile->Open();
   GetHeaderFromFile(m_pStreamFile, m_iOffset, m_bIsBigEndian);
 }
 
@@ -49,7 +50,8 @@ uint64_t TOCBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile,
 
 uint64_t TOCBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
                               bool bIsBigEndian, bool bIsLastBlock) {
-  assert(m_pStreamFile->IsOpen()); // source data
+  if (!m_pStreamFile->IsOpen()) m_pStreamFile->Open(); // source data
+
   assert(pStreamFile->IsOpen()); // destination
   CopyHeaderToFile(pStreamFile, iOffset, bIsBigEndian, bIsLastBlock);
 
