@@ -518,7 +518,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         vVolumeSize,
         DOUBLEVECTOR3(vVolumeAspect), 
         UINTVECTOR3(uint32_t(iTargetBrickSize),uint32_t(iTargetBrickSize),uint32_t(iTargetBrickSize)),
-        uint32_t(iTargetBrickOverlap),
+        uint32_t(iTargetBrickOverlap/2),
         size_t(Controller::ConstInstance().SysInfo()->GetCPUMemSize()),
         MaxMinData,
         &Controller::Debug::Out()
