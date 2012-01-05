@@ -30,7 +30,7 @@ static double convert_todbl(const char*);
 
 /** Keeps track of the current string index, for error reporting. */
 /**@{*/
-static void count();
+static void count(YYLTYPE* lloc);
 static size_t column = 0;
 /**@}*/
 
@@ -38,7 +38,6 @@ static YY_BUFFER_STATE scanning_buf;
 void parser_set_string(const char*);
 
 %}
-
 
 d       ([0-9])
 integer ({d}+)
@@ -48,52 +47,53 @@ volume  (v)
 %%
 
 {integer} {
-  count();
+  count(yylloc);
   yylval->y_dbl = convert_todbl(yytext);
   return token(DOUBLE);
 }
 
 {dbl} {
-  count();
+  count(yylloc);
   yylval->y_dbl = convert_todbl(yytext);
   return token(DOUBLE);
 }
 
 {volume} {
-  count();
+  count(yylloc);
   yylval->y_dbl = 0.0; // nullify it.
   return token(VOLUME);
 }
 [\[] {
-  count();
+  count(yylloc);
   yylval->y_dbl = 0.0; // nullify it.
   return token(OPEN_BRACKET);
 }
 [\]] {
-  count();
+  count(yylloc);
   yylval->y_dbl = 0.0; // nullify it.
   return token(CLOSE_BRACKET);
 }
-[+]  { count(); yylval->y_dbl = 0.0; return token(PLUS); }
-[-]  { count(); yylval->y_dbl = 0.0; return token(MINUS); }
-[/]  { count(); yylval->y_dbl = 0.0; return token(DIVIDE); }
-[\*] { count(); yylval->y_dbl = 0.0; return token(MULTIPLY); }
-[>]  { count(); yylval->y_dbl = 0.0; return token(GREATER_THAN); }
-[<]  { count(); yylval->y_dbl = 0.0; return token(LESS_THAN); }
-[=]  { count(); yylval->y_dbl = 0.0; return token(EQUAL_TO); }
-[(]  { count(); yylval->y_dbl = 0.0; return token(OPEN_PAREN); }
-[)]  { count(); yylval->y_dbl = 0.0; return token(CLOSE_PAREN); }
-[\?] { count(); yylval->y_dbl = 0.0; return token(QUESTION_MARK); }
-[:]  { count(); yylval->y_dbl = 0.0; return token(COLON); }
+[+]  { count(yylloc); yylval->y_dbl = 0.0; return token(PLUS); }
+[-]  { count(yylloc); yylval->y_dbl = 0.0; return token(MINUS); }
+[/]  { count(yylloc); yylval->y_dbl = 0.0; return token(DIVIDE); }
+[\*] { count(yylloc); yylval->y_dbl = 0.0; return token(MULTIPLY); }
+[>]  { count(yylloc); yylval->y_dbl = 0.0; return token(GREATER_THAN); }
+[<]  { count(yylloc); yylval->y_dbl = 0.0; return token(LESS_THAN); }
+[=]  { count(yylloc); yylval->y_dbl = 0.0; return token(EQUAL_TO); }
+[(]  { count(yylloc); yylval->y_dbl = 0.0; return token(OPEN_PAREN); }
+[)]  { count(yylloc); yylval->y_dbl = 0.0; return token(CLOSE_PAREN); }
+[\?] { count(yylloc); yylval->y_dbl = 0.0; return token(QUESTION_MARK); }
+[:]  { count(yylloc); yylval->y_dbl = 0.0; return token(COLON); }
 
-[ \t\v\f\n] { count(); }
-. { count(); return token(BAD); }
+[ \t\v\f\n] { count(yylloc); }
+. { count(yylloc); return token(BAD); }
 
 %%
 
 /** keeps track of the # of lines/columns in a couple global variables,
- * for the * purpose of reporting errors. */
-static void count()
+ * for the purpose of reporting errors.
+ * @todo FIXME should just remove 'column' and rely on yylloc aka lloc */
+static void count(YYLTYPE* lloc)
 {
   size_t i;
 
@@ -106,6 +106,8 @@ static void count()
       ++column;
     }
   }
+  lloc->first_column = column;
+  lloc->first_line = yylineno;
 }
 
 static double convert_todbl(const char *s)

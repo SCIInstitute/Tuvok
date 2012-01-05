@@ -497,7 +497,7 @@ static double convert_todbl(const char*);
 
 /** Keeps track of the current string index, for error reporting. */
 /**@{*/
-static void count();
+static void count(YYLTYPE* lloc);
 static size_t column = 0;
 /**@}*/
 
@@ -703,7 +703,7 @@ YY_DECL
     
         YYLTYPE * yylloc;
     
-#line 48 "tvk-scan.lpp"
+#line 47 "tvk-scan.lpp"
 
 
 #line 710 "./tvk-scan.lexer.cpp"
@@ -791,118 +791,118 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 50 "tvk-scan.lpp"
+#line 49 "tvk-scan.lpp"
 {
-  count();
+  count(yylloc);
   yylval->y_dbl = convert_todbl(yytext);
   return token(DOUBLE);
 }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 56 "tvk-scan.lpp"
+#line 55 "tvk-scan.lpp"
 {
-  count();
+  count(yylloc);
   yylval->y_dbl = convert_todbl(yytext);
   return token(DOUBLE);
 }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 62 "tvk-scan.lpp"
+#line 61 "tvk-scan.lpp"
 {
-  count();
+  count(yylloc);
   yylval->y_dbl = 0.0; // nullify it.
   return token(VOLUME);
 }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 67 "tvk-scan.lpp"
+#line 66 "tvk-scan.lpp"
 {
-  count();
+  count(yylloc);
   yylval->y_dbl = 0.0; // nullify it.
   return token(OPEN_BRACKET);
 }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 72 "tvk-scan.lpp"
+#line 71 "tvk-scan.lpp"
 {
-  count();
+  count(yylloc);
   yylval->y_dbl = 0.0; // nullify it.
   return token(CLOSE_BRACKET);
 }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 77 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(PLUS); }
+#line 76 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(PLUS); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 78 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(MINUS); }
+#line 77 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(MINUS); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 79 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(DIVIDE); }
+#line 78 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(DIVIDE); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 80 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(MULTIPLY); }
+#line 79 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(MULTIPLY); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 81 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(GREATER_THAN); }
+#line 80 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(GREATER_THAN); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 82 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(LESS_THAN); }
+#line 81 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(LESS_THAN); }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 83 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(EQUAL_TO); }
+#line 82 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(EQUAL_TO); }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 84 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(OPEN_PAREN); }
+#line 83 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(OPEN_PAREN); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 85 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(CLOSE_PAREN); }
+#line 84 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(CLOSE_PAREN); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 86 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(QUESTION_MARK); }
+#line 85 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(QUESTION_MARK); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 87 "tvk-scan.lpp"
-{ count(); yylval->y_dbl = 0.0; return token(COLON); }
+#line 86 "tvk-scan.lpp"
+{ count(yylloc); yylval->y_dbl = 0.0; return token(COLON); }
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 89 "tvk-scan.lpp"
-{ count(); }
+#line 88 "tvk-scan.lpp"
+{ count(yylloc); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 90 "tvk-scan.lpp"
-{ count(); return token(BAD); }
+#line 89 "tvk-scan.lpp"
+{ count(yylloc); return token(BAD); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 92 "tvk-scan.lpp"
+#line 91 "tvk-scan.lpp"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
 #line 909 "./tvk-scan.lexer.cpp"
@@ -1863,13 +1863,14 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 92 "tvk-scan.lpp"
+#line 91 "tvk-scan.lpp"
 
 
 
 /** keeps track of the # of lines/columns in a couple global variables,
- * for the * purpose of reporting errors. */
-static void count()
+ * for the purpose of reporting errors.
+ * @todo FIXME should just remove 'column' and rely on yylloc aka lloc */
+static void count(YYLTYPE* lloc)
 {
   size_t i;
 
@@ -1882,6 +1883,8 @@ static void count()
       ++column;
     }
   }
+  lloc->first_column = column;
+  lloc->first_line = yylineno;
 }
 
 static double convert_todbl(const char *s)
