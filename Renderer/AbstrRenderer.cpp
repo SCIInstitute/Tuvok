@@ -905,7 +905,8 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
   vector<Brick> vBrickList;
 
   UINTVECTOR3 vOverlap = m_pDataset->GetBrickOverlapSize();
-  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize(size_t(m_iCurrentLOD));
+  UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize(0);
+
   FLOATVECTOR3 vScale(float(m_pDataset->GetScale().x),
                       float(m_pDataset->GetScale().y),
                       float(m_pDataset->GetScale().z));
@@ -959,44 +960,9 @@ vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistance
               static_cast<unsigned>(std::tr1::get<1>(brick->first)),
               static_cast<unsigned>(std::tr1::get<2>(brick->first)));
     } else {
-      bool first_x = m_pDataset->BrickIsFirstInDimension(0, brick->first);
-      bool first_y = m_pDataset->BrickIsFirstInDimension(1, brick->first);
-      bool first_z = m_pDataset->BrickIsFirstInDimension(2, brick->first);
-      bool last_x = m_pDataset->BrickIsLastInDimension(0, brick->first);
-      bool last_y = m_pDataset->BrickIsLastInDimension(1, brick->first);
-      bool last_z = m_pDataset->BrickIsLastInDimension(2, brick->first);
-      // compute texture coordinates
-      if (m_bUseOnlyPowerOfTwo) {
-        UINTVECTOR3 vRealVoxelCount(MathTools::NextPow2(b.vVoxelCount.x),
-                                    MathTools::NextPow2(b.vVoxelCount.y),
-                                    MathTools::NextPow2(b.vVoxelCount.z));
-        b.vTexcoordsMin = FLOATVECTOR3(
-          (first_x) ? 0.5f/vRealVoxelCount.x : vOverlap.x*0.5f/vRealVoxelCount.x,
-          (first_y) ? 0.5f/vRealVoxelCount.y : vOverlap.y*0.5f/vRealVoxelCount.y,
-          (first_z) ? 0.5f/vRealVoxelCount.z : vOverlap.z*0.5f/vRealVoxelCount.z
-        );
-        b.vTexcoordsMax = FLOATVECTOR3(
-          (last_x) ? 1.0f-0.5f/vRealVoxelCount.x : 1.0f-vOverlap.x*0.5f/vRealVoxelCount.x,
-          (last_y) ? 1.0f-0.5f/vRealVoxelCount.y : 1.0f-vOverlap.y*0.5f/vRealVoxelCount.y,
-          (last_z) ? 1.0f-0.5f/vRealVoxelCount.z : 1.0f-vOverlap.z*0.5f/vRealVoxelCount.z
-        );
-
-        b.vTexcoordsMax -= FLOATVECTOR3(vRealVoxelCount - b.vVoxelCount) /
-                           FLOATVECTOR3(vRealVoxelCount);
-      } else {
-        // compute texture coordinates
-        b.vTexcoordsMin = FLOATVECTOR3(
-          (first_x) ? 0.5f/b.vVoxelCount.x : vOverlap.x*0.5f/b.vVoxelCount.x,
-          (first_y) ? 0.5f/b.vVoxelCount.y : vOverlap.y*0.5f/b.vVoxelCount.y,
-          (first_z) ? 0.5f/b.vVoxelCount.z : vOverlap.z*0.5f/b.vVoxelCount.z
-        );
-        // for padded volume adjust texcoords
-        b.vTexcoordsMax = FLOATVECTOR3(
-          (last_x) ? 1.0f-0.5f/b.vVoxelCount.x : 1.0f-vOverlap.x*0.5f/b.vVoxelCount.x,
-          (last_y) ? 1.0f-0.5f/b.vVoxelCount.y : 1.0f-vOverlap.y*0.5f/b.vVoxelCount.y,
-          (last_z) ? 1.0f-0.5f/b.vVoxelCount.z : 1.0f-vOverlap.z*0.5f/b.vVoxelCount.z
-        );
-      }
+      std::pair<FLOATVECTOR3, FLOATVECTOR3> vTexcoords = m_pDataset->GetTextCoords(brick, m_bUseOnlyPowerOfTwo);
+      b.vTexcoordsMin = vTexcoords.first;
+      b.vTexcoordsMax = vTexcoords.second;
 
       // the depth order doesn't really matter for MIP rotations,
       // since we need to traverse every brick anyway.  So we do a
@@ -1068,7 +1034,7 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
   // let the mesh know about our current state, technically
   // SetVolumeAABB only needs to be called when the geometry of volume
   // has changed (rescale) and SetUserPos only when the view has 
-  // changed (matrix update) but the mesh class is smart enougth to catch 
+  // changed (matrix update) but the mesh class is smart enough to catch 
   // redundant changes so we just leave the code here for now
   if (m_bSupportsMeshes) {
     FLOATVECTOR3 vCenter, vExtend;
