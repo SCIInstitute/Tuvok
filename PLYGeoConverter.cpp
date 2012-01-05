@@ -261,10 +261,13 @@ Mesh* PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
         string strValue = GetToken(line);
 
         double fValue=0.0; int iValue=0;
-        if (tr1::get<1>(faceProps[i]) <= PROPT_DOUBLE) 
+        if (tr1::get<1>(faceProps[i]) <= PROPT_DOUBLE) {
           fValue = atof(strValue.c_str());
-        else
+          iValue = static_cast<int>(fValue);
+        } else {
           iValue = atoi(strValue.c_str());
+          fValue = static_cast<double>(iValue);
+        }
 
         switch (tr1::get<2>(faceProps[i])) {
           case FPROP_LIST : {
