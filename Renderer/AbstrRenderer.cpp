@@ -903,8 +903,6 @@ bool AbstrRenderer::ContainsData(const BrickKey& key) const
 
 vector<Brick> AbstrRenderer::BuildSubFrameBrickList(bool bUseResidencyAsDistanceCriterion) {
   vector<Brick> vBrickList;
-
-  UINTVECTOR3 vOverlap = m_pDataset->GetBrickOverlapSize();
   UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize(0);
 
   FLOATVECTOR3 vScale(float(m_pDataset->GetScale().x),
