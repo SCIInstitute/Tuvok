@@ -1140,7 +1140,6 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
   } else {
     if (m_bOrthoView) {
       FLOATMATRIX4 maOrtho;
-      UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
       DOUBLEVECTOR2 vWinAspectRatio = 1.0 / DOUBLEVECTOR2(m_vWinSize);
       vWinAspectRatio = vWinAspectRatio / vWinAspectRatio.maxVal();
       float fRoot2Scale = (vWinAspectRatio.x < vWinAspectRatio.y) ?
