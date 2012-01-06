@@ -392,15 +392,6 @@ public:
     // Reset the histogram.  We'll be quantizing the data.
     std::fill(aHist.begin(), aHist.end(), 0);
 
-    LargeRAWFile OutputData(strTargetFilename);
-    OutputData.Create(iSize*sizeof(unsigned short));
-
-    if(!OutputData.IsOpen()) {
-      InputData.Close();
-      T_ERROR("Could not create output file '%s'", strTargetFilename.c_str());
-      return "";
-    }
-
     if(iBinCount != NULL) {
       *iBinCount = bins_needed<T>(minmax);
       MESSAGE("We need %llu bins", static_cast<uint64_t>(*iBinCount));
@@ -412,6 +403,21 @@ public:
                                            minmax.second);
     double fQuantFactHist = QuantizationFactor(hist_size-1, minmax.first,
                                                minmax.second);
+
+    bool bDataWillbeChanged = fQuantFact != 1.0 || minmax.first != 0;
+
+    LargeRAWFile OutputData(strTargetFilename);
+    // if the only reason for quantization is the histogram computation
+    // we don't need an output file
+    if (bDataWillbeChanged) {      
+      OutputData.Create(iSize*sizeof(unsigned short));
+      if(!OutputData.IsOpen()) {
+        InputData.Close();
+        T_ERROR("Could not create output file '%s'", strTargetFilename.c_str());
+        return false;
+      }
+    }
+
 
     T* pInData = new T[iCurrentInCoreElems];
     U* pOutData = new U[iCurrentInCoreElems];
@@ -444,10 +450,18 @@ public:
         std::ostringstream qmsg;
 
         if (fQuantFact == 1.0) 
-          qmsg << "Quantizing to " << (minmax.second-minmax.first)+1
-               << " integer values (input data has range from "
-               << minmax.first << " to " << minmax.second << ")\n"
-               << (100*iPos)/iSize << "% complete";
+          if (minmax.first == 0) 
+            qmsg << "Computing quantized histogram with " << hist_size
+            << " bins (input data has range from "
+            << minmax.first << " to " << minmax.second << ")\n"
+            << (100*iPos)/iSize << "% complete";
+          else
+            qmsg << "Quantizing to " << (minmax.second-minmax.first)+1
+                 << " integer values (input data has range from "
+                 << minmax.first << " to " << minmax.second << ")\n"
+                 << (100*iPos)/iSize << "% complete";
+          
+
         else
           qmsg << "Quantizing to " << max_output_val
                << " integer values (input data has range from "
@@ -456,18 +470,23 @@ public:
         MESSAGE("%s", qmsg.str().c_str());
         iLastDisplayedPercent = (100*iPos)/iSize;
       }
-      OutputData.WriteRAW(reinterpret_cast<unsigned char*>(pOutData),
-                          sizeof(U)*iRead);
+
+      if (bDataWillbeChanged) 
+        OutputData.WriteRAW(reinterpret_cast<unsigned char*>(pOutData),
+                            sizeof(U)*iRead);
     }
 
     delete[] pInData;
     delete[] pOutData;
-    OutputData.Close();
     InputData.Close();
-
     if(Histogram1D) { Histogram1D->SetHistogram(aHist); }
 
-    return true;
+    if (bDataWillbeChanged) {
+      OutputData.Close();
+      return true;
+    } else {
+      return false;
+    }
   }
 
   static bool Process8Bits(LargeRAWFile& InputData,
