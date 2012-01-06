@@ -74,6 +74,8 @@ public:
   uint32_t m_iComponentCount;
   float  m_fScale;
   float  m_fBias;
+  float m_fWindowWidth;
+  float m_fWindowCenter;
   bool   m_bSigned;
 
 protected:

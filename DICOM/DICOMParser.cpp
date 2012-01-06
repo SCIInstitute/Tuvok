@@ -719,6 +719,28 @@ bool DICOMParser::GetDICOMFileInfo(const string& strFilename,
                     }
                     #endif
                     break;
+              case 0x1050: // Window Center
+                ReadSizedElement(fileDICOM, value, iElemLength);
+                info.m_fWindowCenter = float(atof(value.c_str()));
+                #ifdef DEBUG_DICOM
+                  {
+                    stringstream ss;
+                    ss << info.m_fWindowCenter << " (Window Center: recognized and stored)";
+                    value = ss.str();
+                  }
+                #endif
+                break;
+              case 0x1051: // Window Width
+                ReadSizedElement(fileDICOM, value, iElemLength);
+                info.m_fWindowWidth =-float(atof(value.c_str()));
+                #ifdef DEBUG_DICOM
+                  {
+                    stringstream ss;
+                    ss << info.m_fWindowWidth << " (Window Width: recognized and stored)";
+                    value = ss.str();
+                  }
+                #endif
+                break;
               case 0x1052 : // Rescale Intercept (Bias)
                     ReadSizedElement(fileDICOM, value, iElemLength);
                     info.m_fBias = float(atof(value.c_str()));
@@ -873,6 +895,8 @@ SimpleDICOMFileInfo::SimpleDICOMFileInfo(const std::string& strFileName) :
   m_iComponentCount(1),
   m_fScale(1.0f),
   m_fBias(0.0f),
+  m_fWindowWidth(0),
+  m_fWindowCenter(0),
   m_bSigned(false),
   m_iOffsetToData(0)
 {
