@@ -830,7 +830,7 @@ bool ExtendedOctreeConverter::ExportToRAW(const ExtendedOctree &tree,
 /*
   ReduceOverlap:
 
-  takes a brick with the octree's standart overlap and
+  takes a brick with the octree's standard overlap and
   reduces that overlap by skipOverlap, e.g. if skipOverlap
   equals the octree's overlap, this function removed any
   overlap from the brick. This function changes the given
@@ -841,9 +841,9 @@ void ExtendedOctreeConverter::ReduceOverlap(uint8_t *pBrickData, const UINTVECTO
 
   for (uint32_t z = 0;z<vBrickSize.z-2*skipOverlap;++z) {
     for (uint32_t y = 0;y<vBrickSize.y-2*skipOverlap;++y) {
-      // below is just the ususal 3D to 1D conversion where
+      // below is just the usual 3D to 1D conversion where
       // we skip skipOverlap elements in each input dimension
-      // for theoutput we simplz use the smaler size
+      // for the output we simply use the smaller size
       size_t inOffset = iVoxelSize * ( skipOverlap +
                                       (y+skipOverlap) * vBrickSize.x +
                                       (z+skipOverlap) * vBrickSize.x*vBrickSize.y);
@@ -860,7 +860,7 @@ void ExtendedOctreeConverter::ReduceOverlap(uint8_t *pBrickData, const UINTVECTO
  Applies a function to each brick of a given LoD level.
  This method simply iterates over all bricks of the given LoD
  level (x,y,z for-loops) and for each brick it writes hands the
- brick with (possibily modified ) overlap to the supplied function.
+ brick with (possibly modified) overlap to the supplied function.
 */
 bool ExtendedOctreeConverter::ApplyFunction(const ExtendedOctree &tree, uint64_t iLODLevel,
                                             bool (*brickFunc)(void* pData,
@@ -875,8 +875,6 @@ bool ExtendedOctreeConverter::ApplyFunction(const ExtendedOctree &tree, uint64_t
 
   const size_t iVoxelSize = tree.GetComponentTypeSize() * size_t(tree.m_iComponentCount);
   uint8_t *pBrickData = new uint8_t[tree.m_iBrickSize.volume() * iVoxelSize];
-
-  //const UINT64VECTOR3 outSize=tree.m_vLODTable[size_t(iLODLevel)].m_iLODPixelSize;
 
   UINT64VECTOR3 bricksToExport = tree.GetBrickCount(iLODLevel);
   for (uint64_t z = 0;z<bricksToExport.z;++z) {
