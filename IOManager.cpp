@@ -370,9 +370,11 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
       }
 
  
-    // removed this code for now, not sure if we really need it. 
-    // none of the other vis tools I looked at use the scale and bias 
-    // parameters
+      // HACK: For now we set bias to 0 for unsigned file as we've encountered a number 
+      // of DICOM files files were the bias parameter would create negative values and 
+      // so far I don't know how to interpret this correctly
+      if (!pDICOMStack->m_bSigned) pDICOMFileInfo->m_fBias = 0.0f;
+
 
      if (pDICOMFileInfo->m_fScale != 1.0f || pDICOMFileInfo->m_fBias != 0.0f) {
         MESSAGE("Applying Scale and Bias  ...");
@@ -380,41 +382,52 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
           switch (pDICOMStack->m_iAllocated) {
             case  8 :{
                   char *pData = reinterpret_cast<char*>(&vData[0]);
-                  for (uint32_t k = 0;k<iDataSize/2;k++)
-                    pData[k] = (char)(MAX(0.0, pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias));
-                  } break;
+                  for (uint32_t k = 0;k<iDataSize/2;k++){
+                    float sbValue = pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias;
+                    pData[k] = (char)(sbValue);
+                  }} break;
             case 16 : {
                   short *pData = reinterpret_cast<short*>(&vData[0]);
-                  for (uint32_t k = 0;k<iDataSize/2;k++)
-                    pData[k] = (short)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
-                  } break;
+                  for (uint32_t k = 0;k<iDataSize/2;k++){
+                    float sbValue = pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias;
+                    pData[k] = (short)(sbValue);
+                  }} break;
             case 32 : {
                   int *pData = reinterpret_cast<int*>(&vData[0]);
-                  for (uint32_t k = 0;k<iDataSize/4;k++)
-                    pData[k] = (int)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
-                  } break;
+                  for (uint32_t k = 0;k<iDataSize/4;k++){
+                    float sbValue = pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias;
+                    pData[k] = (int)(sbValue);
+                  }} break;
           }
         } else {
           switch (pDICOMStack->m_iAllocated) {
             case  8 :{
                   unsigned char *pData = reinterpret_cast<unsigned char*>(&vData[0]);
-                  for (uint32_t k = 0;k<iDataSize/2;k++)
-                    pData[k] = (unsigned char)(MAX(0.0, pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias));
-                  } break;
+                  for (uint32_t k = 0;k<iDataSize/2;k++){
+                    float sbValue = pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias;
+                    pData[k] = (unsigned char)(sbValue);
+                  }} break;
             case 16 : {
                   unsigned short *pData = reinterpret_cast<unsigned short*>(&vData[0]);
-                  for (uint32_t k = 0;k<iDataSize/2;k++)
-                    pData[k] = (unsigned short)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
-                  } break;
+                  for (uint32_t k = 0;k<iDataSize/2;k++){
+                    float sbValue = pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias;
+                    pData[k] = (unsigned short)(sbValue);
+                  }} break;
             case 32 : {
                   unsigned int *pData = reinterpret_cast<unsigned int*>(&vData[0]);
-                  for (uint32_t k = 0;k<iDataSize/4;k++)
-                    pData[k] = (int)(pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias);
-                  } break;
+                  for (uint32_t k = 0;k<iDataSize/4;k++) {
+                    float sbValue = pData[k] * pDICOMFileInfo->m_fScale + pDICOMFileInfo->m_fBias;
+                    pData[k] = (unsigned int)(sbValue);
+                  }} break;
           }
         }
       }
  
+      // TODO: implement proper DICOM Windowing
+      if (pDICOMFileInfo->m_fWindowWidth > 0) {
+        WARNING("DICOM Windowing parameters found!");
+      }
+
       // Create temporary file with the DICOM (image) data.  We pretend 3
       // component data is 4 component data to simplify processing later.
       /// @todo FIXME: this code assumes 3 component data is always 3*char
