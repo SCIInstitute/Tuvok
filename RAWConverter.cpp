@@ -540,7 +540,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       // do not compute histograms when we are dealing with color data
       /// \todo change this if we want to support non color multi component data
       if (iComponentCount != 4) {
-        // if no re sampling was performed above, we need to compute the
+        // if no re-sampling was performed above, we need to compute the
         // 1d histogram here
         if (Histogram1D.GetHistogram().empty()) {
           MESSAGE("Computing 1D Histogram...");
