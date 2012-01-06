@@ -135,6 +135,9 @@ bool TOCBlock::FlatDataToBrickedLOD(
   m_strDeleteTempFile = strTempFile;
   ExtendedOctreeConverter c(m_vMaxBrickSize, m_iOverlap, iCacheSize);
   BrickStatVec statsVec;
+
+  if (!pSourceData->IsOpen()) pSourceData->Open();
+
   bool bResult = c.Convert(pSourceData, 0, eType, iComponentCount, vVolumeSize,
                            vScale, outFile, 0, &statsVec, CT_ZIP);
   outFile->Close();
