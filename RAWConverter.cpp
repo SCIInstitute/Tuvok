@@ -518,7 +518,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
         vVolumeSize,
         DOUBLEVECTOR3(vVolumeAspect), 
         UINTVECTOR3(uint32_t(iTargetBrickSize),uint32_t(iTargetBrickSize),uint32_t(iTargetBrickSize)),
-        uint32_t(iTargetBrickOverlap/2),
+        uint32_t(iTargetBrickOverlap),
         size_t(Controller::ConstInstance().SysInfo()->GetCPUMemSize()),
         MaxMinData,
         &Controller::Debug::Out()
@@ -643,9 +643,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       dataVolume->ulBrickSize.push_back(iTargetBrickSize);
       dataVolume->ulBrickSize.push_back(iTargetBrickSize);
 
-      dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap);
-      dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap);
-      dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap);
+      dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap*2);
+      dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap*2);
+      dataVolume->ulBrickOverlap.push_back(iTargetBrickOverlap*2);
 
       vector<double> vScale;
       vScale.push_back(vVolumeAspect.x);
@@ -1189,7 +1189,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
                              bool bToSigned, bool bQuantizeTo8Bit) {
   // TODO:
   // should we ever need this combination
-  // "append +quantize" the implemenation should be here :-)
+  // "append +quantize" the implementation should be here :-)
   if (bQuantizeTo8Bit) {
     T_ERROR("Quantization to 8bit during append operations not supported.");
     return false;
@@ -1240,7 +1240,7 @@ bool RAWConverter::AppendRAW(const std::string& strRawFilename,
                   for (size_t i = 0;i<iCopySize;i+=8)
                     (*(int64_t*)(pBuffer+i)) = int64_t(*(uint64_t*)(pBuffer+i)) - std::numeric_limits<int64_t>::max();
                   break;
-        default : T_ERROR("Unsuported data type for vff files.");
+        default : T_ERROR("Unsupported data type for vff files.");
                   return false;
       }
     }
@@ -1468,7 +1468,7 @@ bool RAWConverter::Analyze(const std::string& strSourceFilename,
 
   if (bFloatingPoint) {
     if (!bSigned) {
-      T_ERROR("Unable unsupported data type. (unsiged float)");
+      T_ERROR("Unable unsupported data type. (unsigned float)");
       fSource.Close();
       return false;
     }

@@ -64,7 +64,7 @@
 typedef std::tr1::tuple<std::string,std::string,bool,bool> tConverterFormat;
 
 #define DEFAULT_BRICKSIZE (256)
-#define DEFAULT_BRICKOVERLAP (4)
+#define DEFAULT_BRICKOVERLAP (2)
 #define DEFAULT_INCORESIZE (DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE)
 
 class AbstrConverter;
@@ -387,7 +387,7 @@ public:
                       const uint64_t iBrickOverlap,
                       bool bQuantizeTo8Bit=false) const;
 
-  // conveniance calls that use the default bricksizes and overlaps
+  // convenience calls that use the default bricksizes and overlaps
   tuvok::UVFDataset* ConvertDataset(FileStackInfo* pStack,
                                     const std::string& strTargetFilename,
                                     const std::string& strTempDir,
