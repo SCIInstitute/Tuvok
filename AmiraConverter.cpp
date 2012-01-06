@@ -37,12 +37,12 @@ namespace {
 template<typename T> class binary_ostream_iterator :
   public std::iterator<std::output_iterator_tag, T> {
 public:
-  binary_ostream_iterator(std::ostream& os) : stream(os) {}
-  binary_ostream_iterator(const binary_ostream_iterator& boi) :
+  binary_ostream_iterator(std::ostream& os) : stream(&os) {}
+  binary_ostream_iterator(const binary_ostream_iterator<T>& boi) :
     stream(boi.stream) { }
 
   binary_ostream_iterator& operator=(const T& value) {
-    this->stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
+    this->stream->write(reinterpret_cast<const char*>(&value), sizeof(T));
     return *this;
   }
 
@@ -50,11 +50,13 @@ public:
   binary_ostream_iterator& operator++() { return *this; }
   binary_ostream_iterator& operator++(int) { return *this; }
 
+protected:
+  binary_ostream_iterator<T>& operator=(const binary_ostream_iterator<T>& boi) {
+    this->stream = boi.stream;
+    return *this;
+  }
 private:
-	std::ostream& stream;
-
-private:
-    binary_ostream_iterator& operator=(const binary_ostream_iterator<T>&);
+  std::ostream* stream;
 };
 }
 
