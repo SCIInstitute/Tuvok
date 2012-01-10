@@ -415,13 +415,23 @@ namespace SysTools {
     return L"";
   }
 
-  string  RemoveExt(const string& fileName) {
-    return fileName.substr(0,fileName.find_last_of("."));
+
+  std::string  RemoveExt(const std::string& fileName) {
+    size_t indexDot = fileName.find_last_of(".");
+    size_t indexSlash = MAX(int(fileName.find_last_of("\\")),int(fileName.find_last_of("/")));
+    if (indexDot == string::npos || (indexSlash != string::npos && indexDot < indexSlash)) return fileName;
+
+    return fileName.substr(0,indexDot);
   }
 
-  wstring RemoveExt(const wstring& fileName) {
-    return fileName.substr(0,fileName.find_last_of(L"."));
+  std::wstring  RemoveExt(const std::wstring& fileName) {
+    size_t indexDot = fileName.find_last_of(L".");
+    size_t indexSlash = MAX(int(fileName.find_last_of(L"\\")),int(fileName.find_last_of(L"/")));
+    if (indexDot == wstring::npos || (indexSlash != wstring::npos && indexDot < indexSlash)) return fileName;
+
+    return fileName.substr(0,indexDot);
   }
+
 
   string  ChangeExt(const string& fileName, const std::string& newext) {
     return RemoveExt(fileName)+ "." + newext;
