@@ -241,7 +241,7 @@ bool GLRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
   this->m_texFormat16 = GL_RGBA16;
   this->m_texFormat32 = GL_RGBA;
   if(driver_supports_fp_textures()) {
-    MESSAGE("Flaoting point textures supported (yay!)");
+    MESSAGE("Floating point textures supported (good!)");
     this->m_texFormat16 = GL_RGBA16F_ARB;
     this->m_texFormat32 = GL_RGBA32F_ARB;
   }
