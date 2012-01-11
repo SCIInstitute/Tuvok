@@ -1,0 +1,38 @@
+These shaders can be a bit confusing.  This is a quick guide to how
+this works.
+
+The issue we have is that we need to support different functionality
+based on situations which are not known until runtime.  For example,
+the user could load a scalar field or an RGB[A] field.  If they load a
+scalar field, we want to do volume rendering as normal.  For an RGBA
+field, we want to use the currently-set transfer function to scale the
+individual channels, but we don't actually want to change the colors.
+Another example is sampling the volume: if their card supports 3D
+textures, the problem is simple -- just sample the 3D texture.  If it
+doesn't, we create a set of 2D textures, change them dynamically, and
+manually interpolate between the slices.
+
+This sampling is an irrelevant detail to the code that just does volume
+rendering.  Therefore there are multiple 'sampleVolume' functions, all
+with the same interface.  The 3D version simply calls texture3D as one
+might expect.  The 2D version samples two of the textures and returns
+an interpolated result between the two of them.
+
+The two versions define a function with the same signature.  We
+therefore cannot use both of them at the same time, of course.  The
+C++ code, generally in Renderer/GL/ checks what kind of texture we are
+using and then chooses one and only one of them to link in to the final
+program.  In this way, 'sampleVolume' is essentially a function which
+is runtime-dispatched based on the type of textures (2D or 3D) we have
+available.
+
+
+We need runtime-dispatch for 'VRender1D' as well, but it must work
+differently.  In that case, the signature of the method must change
+depending on a runtime variable which decides the 'scaling method'.
+(The short of what's behind the 'scaling method' is that we have a
+bias+scale method for transforming data values for the case of a client
+app which does not do the quantization that ImageVis3D does.)  For
+this case, we have a trampoline function (VRender1DProxy.glsl) which
+just bounces into the appropriate method based on a special uniform we
+define just for this purpose.
