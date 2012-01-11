@@ -133,8 +133,8 @@ bool GLTreeRaycaster::LoadShaders() {
                            ? (m_pDataset->GetComponentCount() == 3 ||
                               m_pDataset->GetComponentCount() == 4)
                               ? "vr-col-tfqn-lit.glsl"
-                              : "vr-scal-tfqn-lit.glsl"
-                           : "vr-scal-tfqn-lit.glsl";
+                              : "VRender1DLit.glsl"
+                           : "VRender1DLit.glsl";
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
