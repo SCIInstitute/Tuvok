@@ -75,30 +75,33 @@ void GLSBVR::CleanupShaders() {
 }
 
 bool GLSBVR::LoadShaders() {
-
   if (!GLRenderer::LoadShaders()) {
     T_ERROR("Error in parent call -> aborting");
     return false;
   }
 
-  const std::string tfqn = m_pDataset
-                           ? (m_pDataset->GetComponentCount() == 3 ||
-                              m_pDataset->GetComponentCount() == 4)
-                              ? "VRender1D-Color.glsl"
-                              : "VRender1D.glsl"
-                           : "VRender1D.glsl";
+  std::string tfqn = m_pDataset
+                     ? (m_pDataset->GetComponentCount() == 3 ||
+                        m_pDataset->GetComponentCount() == 4)
+                        ? "VRender1D-Color"
+                        : "VRender1D"
+                     : "VRender1D";
   const std::string tfqnLit = m_pDataset
                            ? (m_pDataset->GetComponentCount() == 3 ||
                               m_pDataset->GetComponentCount() == 4)
                               ? "VRender1DLit-Color.glsl"
                               : "VRender1DLit.glsl"
                            : "VRender1DLit.glsl";
+  const std::string bias = tfqn + "-BScale.glsl";
+  tfqn += ".glsl";
 
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
                           NULL,
                           "Volume3D.glsl",      // SampleVolume
                           tfqn.c_str(),         // VRender1D
+                          bias.c_str(),
+                          "VRender1DProxy.glsl",
                           "FTB.glsl",           // TraversalOrderDepColor
                           "GLSBVR-1D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
@@ -142,8 +145,10 @@ bool GLSBVR::LoadShaders() {
                           NULL,
                           "Volume3D.glsl",      // SampleVolume
                           tfqn.c_str(),         // VRender1D
+                          bias.c_str(),
                           "FTB.glsl",           // TraversalOrderDepColor
                           "lighting.glsl",      // Lighting (for Mesh)
+                          "VRender1DProxy.glsl",
                           "GLSBVR-Mesh-1D-FS.glsl", NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTransMesh[1], m_vShaderSearchDirs,
                           "GLSBVR-Mesh-VS.glsl",

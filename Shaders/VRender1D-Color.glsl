@@ -36,9 +36,12 @@ uniform sampler1D texTrans; ///< the 1D Transfer function
 
 vec4 sampleVolume(vec3);
 
-vec4 VRender1D(const vec3 tex_pos,
-               in float tf_scale,
-               in float opacity_correction)
+// since this is color data... we aren't really using a "bit width"-based idea
+// to scale the transfer function.  However this matches the VRender1D_BitWidth
+// interface as opposed to the _BiasScale interface, so we use the name anyway.
+vec4 VRender1D_BitWidth(const vec3 tex_pos,
+                        in float tf_scale,
+                        in float opacity_correction)
 {
   vec4 v = sampleVolume(tex_pos);
   v = v * texture1D(texTrans, (v.r+v.g+v.b)/3.0);

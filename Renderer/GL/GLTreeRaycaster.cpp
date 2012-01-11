@@ -122,12 +122,12 @@ bool GLTreeRaycaster::LoadShaders() {
    shaderNames[6] = "GLTreeRaycaster-ISO-FS.glsl";
   }
 
-  const std::string tfqn = m_pDataset
-                           ? (m_pDataset->GetComponentCount() == 3 ||
-                              m_pDataset->GetComponentCount() == 4)
-                              ? "VRender1D-Color.glsl"
-                              : "VRender1D.glsl"
-                           : "VRender1D.glsl";
+  std::string tfqn = m_pDataset
+                     ? (m_pDataset->GetComponentCount() == 3 ||
+                        m_pDataset->GetComponentCount() == 4)
+                        ? "VRender1D-Color"
+                        : "VRender1D"
+                     : "VRender1D";
 
   const std::string tfqnLit = m_pDataset
                            ? (m_pDataset->GetComponentCount() == 3 ||
@@ -135,6 +135,8 @@ bool GLTreeRaycaster::LoadShaders() {
                               ? "VRender1DLit-Color.glsl"
                               : "VRender1DLit.glsl"
                            : "VRender1DLit.glsl";
+  const std::string bias = tfqn + "-BScale.glsl";
+  tfqn += ".glsl";
 
   if(!LoadAndVerifyShader(&m_pProgramRenderFrontFaces, m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",
@@ -151,6 +153,8 @@ bool GLTreeRaycaster::LoadShaders() {
                           "clip-plane.glsl",    // ClipByPlane
                           "Volume3D.glsl",      // SampleVolume
                           tfqn.c_str(),         // VRender1D
+                          bias.c_str(),
+                          "VRender1DProxy.glsl",
                           shaderNames[0],  NULL) ||
      !LoadAndVerifyShader(&m_pProgram1DTrans[1], m_vShaderSearchDirs,
                           "GLTreeRaycaster-VS.glsl",

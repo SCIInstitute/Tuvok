@@ -45,19 +45,7 @@ uniform float fStepScale;     ///< opacity correction quotient
 
 vec3 Lighting(vec3 vPosition, vec3 vNormal, vec3 vLightAmbient,
               vec3 vLightDiffuse, vec3 vLightSpecular, vec3 vLightDir);
-
-#ifdef BIAS_SCALE
-  uniform float TFuncBias;    ///< bias amount for transfer func
-  vec4 VRender1D(const vec3 tex_pos,
-                 in float tf_scale,
-                 in float tf_bias,
-                 in float opacity_correction);
-#else
-  vec4 VRender1D(const vec3 tex_pos,
-                 in float tf_scale,
-                 in float opacity_correction);
-#endif
-
+vec4 VRender1D(const vec3 tex_pos);
 vec4 TraversalOrderDepColor(const vec4 color);
 
 void main(void)
@@ -72,13 +60,7 @@ void main(void)
       gl_FragColor = vec4(vLightColor.x,vLightColor.y,vLightColor.z,gl_Color.w);
     }
   } else {
-    #if defined(BIAS_SCALE)
-      gl_FragColor = VRender1D(gl_TexCoord[0].xyz,
-                               fTransScale, TFuncBias, fStepScale);
-    #else
-      gl_FragColor = VRender1D(gl_TexCoord[0].xyz, 
-                               fTransScale, fStepScale);
-    #endif
+    gl_FragColor = VRender1D(gl_TexCoord[0].xyz);
   }
 
   // pre-multiplication of alpha, if needed.

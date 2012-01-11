@@ -39,10 +39,10 @@ vec4 sampleVolume(vec3);
 // TODO:
 // do something with scale and bias 
 
-vec4 VRender1D(const vec3 tex_pos,
-               in float tf_scale,
-               in float tf_bias,
-               in float opacity_correction)
+vec4 VRender1D_BiasScale(const vec3 tex_pos,
+                         in float tf_scale,
+                         in float tf_bias,
+                         in float opacity_correction)
 {
   vec4 v = sampleVolume(tex_pos);
   v = v * texture1D(texTrans, (v.r+v.g+v.b)/3.0);

@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2010 Scientific Computing and Imaging Institute,
+   Copyright (c) 2011 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -25,38 +25,36 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
 /**
-  \author  Tom Fogal
-           University of Utah
-  \brief   Function for performing "standard" volume rendering.
+  \brief Proxy function to provide a unified interface over the VRender
+         functions.
+
+  'VRender1D' takes different parameters depending on whether or not we are
+  using the 'bias + scale' version or the version that assumes ranges based on
+  bit widths.  This version calls the appropriate one based on a runtime
+  setting.
 */
 
 uniform sampler3D texVolume;  ///< the data volume
 uniform sampler1D texTrans; ///< the 1D Transfer function
 
-vec4 sampleVolume(vec3);
+uniform int ScaleMethod;
+uniform float TFuncBias;      ///< bias for 1D TFqn lookup
+uniform float fTransScale;    ///< scale for 1D Transfer function lookup
+uniform float fStepScale;     ///< opacity correction quotient
 
-/* bias and scale method for mapping a TF to a value. */
-vec4 bias_scale(const vec3 tex_pos, const float bias, const float scale)
-{
-  float vol_val = sampleVolume(tex_pos).x;
-  vol_val = (vol_val + bias) / scale;
+vec4 VRender1D_BitWidth(const vec3 tex_pos, in float scale, in float opac);
+vec4 VRender1D_BiasScale(const vec3 tex_pos, in float scale, in float bias,
+                         in float opac);
 
-  return texture1D(texTrans, vol_val);
-}
-
-/* Performs the basic 1D volume rendering; sampling, looking up the value in
- * the LUT (tfqn), and doing opacity correction. */
-vec4 VRender1D_BiasScale(const vec3 tex_pos,
-                         in float tf_scale,
-                         in float tf_bias,
-                         in float opacity_correction)
-{
-  vec4 lut_v = bias_scale(tex_pos, tf_bias, tf_scale);
-
-  // apply opacity correction
-  lut_v.a = 1.0 - pow(1.0 - lut_v.a, opacity_correction);
-
-  return lut_v;
+vec4 VRender1D(const vec3 tex_pos) {
+  if(0 == ScaleMethod) {
+    // default / normal operation.
+    return VRender1D_BitWidth(tex_pos, fTransScale, fStepScale);
+  } else if(1 == ScaleMethod) {
+    // bias and scale method
+    return VRender1D_BiasScale(tex_pos, fTransScale, TFuncBias, fStepScale);
+  }
+  // error case: make things red.
+  return vec4(1.0, 0.0, 0.0, 0.01);
 }

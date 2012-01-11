@@ -36,30 +36,13 @@
 uniform sampler1D texTrans; ///< the 1D Transfer function
 uniform float fTransScale;    ///< scale for 1D Transfer function lookup
 uniform float fStepScale;     ///< opacity correction quotient
-
-#ifdef BIAS_SCALE
-  uniform float TFuncBias;    ///< bias amount for transfer func
-  vec4 VRender1D(const vec3 tex_pos,
-                 in float tf_scale,
-                 in float tf_bias,
-                 in float opacity_correction);
-#else
-  vec4 VRender1D(const vec3 tex_pos,
-                 in float tf_scale,
-                 in float opacity_correction);
-#endif
+vec4 VRender1D(const vec3 tex_pos);
 
 vec4 TraversalOrderDepColor(const vec4 color);
 
 void main(void)
 {
-#if defined(BIAS_SCALE)
-  gl_FragColor = VRender1D(gl_TexCoord[0].xyz,
-                           fTransScale, TFuncBias, fStepScale);
-#else
-  gl_FragColor = VRender1D(gl_TexCoord[0].xyz, 
-                           fTransScale, fStepScale);
-#endif
+  gl_FragColor = VRender1D(gl_TexCoord[0].xyz);
 
   // pre-multiplication of alpha, if needed.
   gl_FragColor = TraversalOrderDepColor(gl_FragColor);

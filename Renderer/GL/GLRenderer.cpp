@@ -246,21 +246,27 @@ bool GLRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
     this->m_texFormat32 = GL_RGBA32F_ARB;
   }
 
-  return LoadShaders();
+  if(!LoadShaders()) {
+    return false;
+  }
+  SetConstantShaderVars();
+  return true;
 }
 
 bool GLRenderer::LoadShaders(const string& volumeAccessFunction, bool bBindVolume) {
-  const std::string tfqn = m_pDataset
-                           ? m_pDataset->GetComponentCount() == 4
-                              ? "VRender1D-Color.glsl"
-                              : "VRender1D.glsl"
-                           : "VRender1D.glsl";
+  std::string tfqn = m_pDataset
+                     ? m_pDataset->GetComponentCount() == 4
+                        ? "VRender1D-Color"
+                        : "VRender1D"
+                     : "VRender1D";
   const std::string tfqnLit = m_pDataset
                            ? (m_pDataset->GetComponentCount() == 3 ||
                               m_pDataset->GetComponentCount() == 4)
                               ? "VRender1DLit-Color.glsl"
                               : "VRender1DLit.glsl"
                            : "VRender1DLit.glsl";
+  const std::string bias = tfqn + "-BScale.glsl";
+  tfqn += ".glsl";
 
   MESSAGE("Loading '%s' volume rendering...", tfqn.c_str());
 
@@ -271,7 +277,8 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction, bool bBindVolum
      !LoadAndVerifyShader(&m_pProgram1DTransSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
                           NULL,
-                          tfqn.c_str(), "lighting.glsl",
+                          tfqn.c_str(), bias.c_str(), "lighting.glsl",
+                          "VRender1DProxy.glsl",
                           "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
                           "Transfer-VS.glsl",
@@ -284,7 +291,8 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction, bool bBindVolum
      !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
                           NULL,
-                          tfqn.c_str(), "lighting.glsl",
+                          tfqn.c_str(), bias.c_str(), "lighting.glsl",
+                          "VRender1DProxy.glsl",
                            "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
      !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
                           "SlicesIn3D.glsl",
@@ -1785,10 +1793,19 @@ GLRenderer::SetBrickDepShaderVarsSlice(const UINTVECTOR3& vVoxelCount) const
 // to scale the TF in the same manner that we've scaled the data.
 float GLRenderer::CalculateScaling()
 {
-  double fMaxValue     = MaxValue();
-  uint32_t iMaxRange     = uint32_t(1<<m_pDataset->GetBitWidth());
+  double fMaxValue   = MaxValue();
+  uint32_t iMaxRange = uint32_t(1<<m_pDataset->GetBitWidth());
   return (m_pDataset->GetBitWidth() != 8 && m_bDownSampleTo8Bits) ?
     1.0f : float(iMaxRange/fMaxValue);
+}
+
+void GLRenderer::SetConstantShaderVars()
+{
+  // no scaling for this case.
+  m_pProgram1DTransSlice->Set("fStepScale", 1.0f);
+
+  m_pProgram1DTransSlice->Set("ScaleMethod", 0);
+  m_pProgram1DTransSlice3D->Set("ScaleMethod", 0);
 }
 
 void GLRenderer::SetDataDepShaderVars() {

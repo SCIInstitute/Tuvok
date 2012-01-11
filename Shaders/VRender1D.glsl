@@ -32,8 +32,8 @@
   \brief   Function for performing "standard" volume rendering.
 */
 
-uniform sampler3D texVolume;  ///< the data volume
-uniform sampler1D texTrans; ///< the 1D Transfer function
+uniform sampler3D texVolume; ///< the data volume
+uniform sampler1D texTrans;  ///< the 1D Transfer function
 
 vec4 sampleVolume(vec3);
 
@@ -45,9 +45,9 @@ vec4 bit_width(const vec3 tex_pos, const float tf_scale)
 
 /* Performs the basic 1D volume rendering; sampling, looking up the value in
  * the LUT (tfqn), and doing opacity correction. */
-vec4 VRender1D(const vec3 tex_pos,
-               in float tf_scale,
-               in float opacity_correction)
+vec4 VRender1D_BitWidth(const vec3 tex_pos,
+                        in float tf_scale,
+                        in float opacity_correction)
 {
   vec4 lut_v = bit_width(tex_pos,tf_scale);
 

@@ -154,6 +154,10 @@ class GLRenderer : public AbstrRenderer {
     /// over the raw data will usually want to override this to be 1, since
     /// they generally won't support any notion of TF scaling.
     virtual float CalculateScaling();
+    /// shader variables which will be constant with respect to the data set.
+    /// these might be things which are dependent on program settings or
+    /// similar.
+    virtual void SetConstantShaderVars();
     virtual void SetDataDepShaderVars();
 
     virtual bool Render3DView(const RenderRegion3D& renderRegion, float& fMsecPassed);
