@@ -260,7 +260,7 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction, bool bBindVolum
                               m_pDataset->GetComponentCount() == 4)
                               ? "vr-col-tfqn-lit.glsl"
                               : "vr-scal-tfqn-lit.glsl"
-                           : "vr-scal-tfqn.glsl";
+                           : "vr-scal-tfqn-lit.glsl";
 
   MESSAGE("Loading '%s' volume rendering...", tfqn.c_str());
 

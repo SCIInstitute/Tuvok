@@ -128,7 +128,7 @@ bool GLSBVR2D::LoadShaders() {
                               m_pDataset->GetComponentCount() == 4)
                               ? "vr-col-tfqn-lit.glsl"
                               : "vr-scal-tfqn-lit.glsl"
-                           : "vr-scal-tfqn.glsl";
+                           : "vr-scal-tfqn-lit.glsl";
   
   if(!LoadAndVerifyShader(&m_pProgram1DTrans[0], m_vShaderSearchDirs,
                           "GLSBVR-VS.glsl",
