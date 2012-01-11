@@ -258,7 +258,7 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction, bool bBindVolum
   const std::string tfqnLit = m_pDataset
                            ? (m_pDataset->GetComponentCount() == 3 ||
                               m_pDataset->GetComponentCount() == 4)
-                              ? "vr-col-tfqn-lit.glsl"
+                              ? "VRender1DLit-Color.glsl"
                               : "VRender1DLit.glsl"
                            : "VRender1DLit.glsl";
 
