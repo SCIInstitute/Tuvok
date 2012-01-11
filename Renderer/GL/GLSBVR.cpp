@@ -84,7 +84,7 @@ bool GLSBVR::LoadShaders() {
   const std::string tfqn = m_pDataset
                            ? (m_pDataset->GetComponentCount() == 3 ||
                               m_pDataset->GetComponentCount() == 4)
-                              ? "vr-col-tfqn.glsl"
+                              ? "VRender1D-Color.glsl"
                               : "VRender1D.glsl"
                            : "VRender1D.glsl";
   const std::string tfqnLit = m_pDataset
