@@ -434,4 +434,12 @@ void ExternalDataset::Recalculate1DHistogram()
 #endif
 }
 
+// parameters don't really make much sense for this .. hrm.
+ExternalDataset* ExternalDataset::Create(const std::string& /* filename */,
+                                         uint64_t /* max_brick_size */,
+                                         bool /* verify */) const
+{
+  return new ExternalDataset();
+}
+
 } //namespace tuvok
