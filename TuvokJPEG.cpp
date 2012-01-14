@@ -70,6 +70,19 @@ static void jpg_error(j_common_ptr);
 
 static void fill_buffer_from_file(std::vector<char>& buf, const char *fn,
                                   std::streamoff offset);
+#ifdef TUVOK_NO_IO
+// If we have no JPEG library, then just use an empty implementation.
+struct j_implementation : public JPEG::j_impl {
+  // the reference to jpg_error avoids an 'unused function' warning.
+  j_implementation() { (void)jpg_error; }
+  void set_data(const std::vector<char>&) { }
+  virtual ~j_implementation() { }
+  std::vector<char> data;       ///< hunk of memory we'll read the jpeg from.
+  bool started;                 ///< whether we've started decompressing
+  jpeg_error_mgr jerr;          ///< how jpeg will report errors
+  jpeg_decompress_struct jinfo; ///< main interface for decompression
+};
+#else
 
 /// To avoid including jpeglib in the header, we create an opaque pointer to
 /// the `jpeg implementation'.  This is what we'll actually end up pointing to.
@@ -117,6 +130,7 @@ struct j_implementation : public JPEG::j_impl {
   jpeg_error_mgr jerr;          ///< how jpeg will report errors
   jpeg_decompress_struct jinfo; ///< main interface for decompression
 };
+#endif
 
 JPEG::JPEG(const std::string &fn, std::streamoff offset) :
   w(0), h(0), bpp(0), jpeg_impl(new j_implementation)
@@ -156,6 +170,10 @@ size_t JPEG::size() const { return this->w * this->h * this->bpp; }
 // Decode the JPEG data and give back the raw array.
 const char* JPEG::data()
 {
+#ifdef TUVOK_NO_IO
+  T_ERROR("IO library not compiled in; not implemented!");
+  return NULL;
+#else
   // If the JPEG isn't valid, we can't load anything from it; just bail.
   if(!this->valid()) { return NULL; }
 
@@ -165,6 +183,7 @@ const char* JPEG::data()
   j_implementation *jimpl = dynamic_cast<j_implementation*>(this->jpeg_impl);
 
   {
+
     JSAMPLE *jbuffer = NULL;
     const size_t row_sz = this->w * this->bpp;
     jbuffer = new JSAMPLE[row_sz];
@@ -191,6 +210,7 @@ const char* JPEG::data()
   this->jpeg_impl = NULL;
 
   return &this->buffer.at(0);
+#endif // TUVOK_NO_IO
 }
 
 void JPEG::initialize()
