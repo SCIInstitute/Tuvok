@@ -792,7 +792,6 @@ void GLRenderer::EndFrame(const vector<char>& justCompletedRegions) {
           CompletedASubframe(renderRegions[i]);
         }
       }
-
     } else {
       if (!renderRegions[0]->isBlank && renderRegions[0]->isTargetBlank) {
         TargetIsBlankButFrameIsNotFinished(renderRegions[0]);
