@@ -195,8 +195,8 @@ public:
   bool IsSameEndianness() const {
     return true;
   }
-  UINT64VECTOR3 GetDomainSize(const size_t lod=0,
-                              const size_t ts=0) const {
+  UINT64VECTOR3 GetDomainSize(const size_t=0,
+                              const size_t=0) const {
     return m_vDomainSize;
   }
   void SetDomainSize(uint64_t x, uint64_t y, uint64_t z) {
@@ -209,16 +209,17 @@ public:
   virtual std::pair<double,double> GetRange() const;
 
   /// unimplemented!  Not really needed for integrations.
-  virtual bool Export(uint64_t lod, const std::string& target,
-                      bool append) const { return false; }
+  virtual bool Export(uint64_t, const std::string&, bool) const {
+    return false;
+  }
   /// unimplemented!  Not really needed for integrations.
   virtual bool ApplyFunction(
-    uint64_t iLODLevel,
-    bool (*brickFunc)(void* pData, const UINTVECTOR3& vBrickSize,
-                      const UINT64VECTOR3& vBrickOffset,
-                      void* pUserContext),
-    void *pUserContext,
-    uint64_t iOverlap
+    uint64_t,
+    bool (*)(void* pData, const UINTVECTOR3& vBrickSize,
+             const UINT64VECTOR3& vBrickOffset,
+             void* pUserContext),
+    void *,
+    uint64_t
   ) const { return false; }
 
   virtual const char* Name() const { return "External dataset"; }
