@@ -24,6 +24,7 @@ include_directories(${QT_INCLUDE_DIR})
 
 include_directories(. ${TUVOK_EXTERNAL_INCLUDES} Basics Controller DebugOut IO
                     Renderer Scripting 3rdParty/GLEW IO/3rdParty/boost
+                    IO/exception IO/expressions
                     ${QT_INCLUDE_DIR})
 
 # Tuvok will not build as a shared lib.
@@ -33,6 +34,11 @@ set(TUVOK_LIBRARY tuvok CACHE FILEPATH "Tuvok library name.")
 set(TUVOK_INCLUDE
     "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/3rdParty;${CMAKE_CURRENT_SOURCE_DIR}/IO/3rdParty/boost;${QT_INCLUDE_DIR}"
     CACHE STRING "Tuvok include directory (Tuvok's source tree root)" FORCE)
+# fPIC is required for libraries.
+if(${CMAKE_COMPILER_IS_GNUCXX})
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+endif(${CMAKE_COMPILER_IS_GNUCXX})
 
 # Disable Qt as well.  Needed for now... working on it, slowly.
 #set(TUVOK_DEFINES -DTUVOK_NO_IO -DTUVOK_NO_QT CACHE STRING
