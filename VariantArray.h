@@ -66,7 +66,7 @@ namespace tuvok {
 class VariantArray {
 public:
   enum DataType {
-    DT_UBYTE=0, DT_BYTE, DT_USHORT, DT_SHORT, DT_FLOAT
+    DT_UBYTE=0, DT_BYTE, DT_USHORT, DT_SHORT, DT_FLOAT, DT_DOUBLE
   };
 
 public:
@@ -79,6 +79,7 @@ public:
   void set(const std::tr1::shared_ptr<uint16_t>, size_t len);
   void set(const std::tr1::shared_ptr<int16_t>, size_t len);
   void set(const std::tr1::shared_ptr<float>, size_t len);
+  void set(const std::tr1::shared_ptr<double>, size_t len);
 
   size_t size() const { return length; }
 
@@ -87,6 +88,7 @@ public:
   const uint16_t* getus() const;
   const int16_t* gets() const;
   const float* getf() const;
+  const double* getd() const;
   DataType type() const;
 
   VariantArray& operator=(const VariantArray &);
@@ -100,6 +102,7 @@ private:
   std::tr1::shared_ptr<int16_t>  scalar_s;
   std::tr1::shared_ptr<uint16_t> scalar_us;
   std::tr1::shared_ptr<float>    scalar_f;
+  std::tr1::shared_ptr<double>   scalar_d;
   size_t                         length;
   enum DataType                  data_type;
 };

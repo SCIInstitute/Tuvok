@@ -57,6 +57,8 @@ void Volume::SetVolumes(const std::vector<VariantArray>& vols) {
 
 double Volume::Evaluate(size_t idx) const {
   switch(this->v[this->Index()].type()) {
+    case VariantArray::DT_DOUBLE:
+      return *(this->v[this->Index()].getd()+idx);
     case VariantArray::DT_FLOAT:
       return static_cast<double>(*(this->v[this->Index()].getf()+idx));
     case VariantArray::DT_UBYTE:

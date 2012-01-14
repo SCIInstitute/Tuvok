@@ -107,6 +107,9 @@ public:
   /// topmost, farthest brick.
   ///@{
   void AddBrick(const BrickKey&, const BrickMD&,
+                const std::tr1::shared_ptr<double>, size_t len,
+                double fMin, double fMax);
+  void AddBrick(const BrickKey&, const BrickMD&,
                 const std::tr1::shared_ptr<float>, size_t len,
                 float fMin, float fMax);
   void AddBrick(const BrickKey&, const BrickMD&,
@@ -122,6 +125,8 @@ public:
   ///@}
   /// Updates the data within an existing brick.
   ///@{
+  void UpdateData(const BrickKey&, const std::tr1::shared_ptr<double>,
+                  size_t len);
   void UpdateData(const BrickKey&, const std::tr1::shared_ptr<float>,
                   size_t len);
   void UpdateData(const BrickKey&, const std::tr1::shared_ptr<unsigned char>,
@@ -158,6 +163,7 @@ public:
       case VariantArray::DT_USHORT: return 16;
       case VariantArray::DT_SHORT:  return 16;
       case VariantArray::DT_FLOAT:  return 32;
+      case VariantArray::DT_DOUBLE: return 64;
     }
     assert(1==0);
     return 42;
@@ -176,13 +182,15 @@ public:
       case VariantArray::DT_USHORT: return false;
       case VariantArray::DT_SHORT:  return true;
       case VariantArray::DT_FLOAT:  return true;
+      case VariantArray::DT_DOUBLE: return true;
     }
     return true;
   }
   bool GetIsFloat() const {
     assert(!this->m_Data.empty());
     DataTable::const_iterator iter = this->m_Data.begin();
-    return iter->second.type() == VariantArray::DT_FLOAT;
+    return iter->second.type() == VariantArray::DT_FLOAT ||
+           iter->second.type() == VariantArray::DT_DOUBLE;
   }
   bool IsSameEndianness() const {
     return true;

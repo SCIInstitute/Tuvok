@@ -115,6 +115,11 @@ bool ExternalDataset::GetBrick(const BrickKey& bk,
   const VariantArray &varray = brick_data->second;
 
   switch(brick_data->second.type()) {
+    case VariantArray::DT_DOUBLE:
+      bytes = brick_data->second.size() * sizeof(double);
+      brick.resize(bytes);
+      std::memcpy(&brick.at(0), varray.getd(), bytes);
+      break;
     case VariantArray::DT_FLOAT:
       bytes = brick_data->second.size() * sizeof(float);
       brick.resize(bytes);
@@ -297,6 +302,15 @@ add_brick(ExternalDataset &ds, const BrickKey& bk,
 
 
 void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
+                               const std::tr1::shared_ptr<double> data,
+                               size_t len, double dMin, double dMax)
+{
+  BrickedDataset::AddBrick(bk, md);
+  add_brick(*this, bk, data, len, this->m_Data, dMin, dMax);
+  Recalculate1DHistogram();
+}
+
+void ExternalDataset::AddBrick(const BrickKey& bk, const BrickMD& md,
                                const std::tr1::shared_ptr<float> data,
                                size_t len, float fMin, float fMax)
 {
@@ -348,6 +362,12 @@ namespace {
   }
 }; // anonymous namespace.
 
+void ExternalDataset::UpdateData(const BrickKey& bk,
+                                 const std::tr1::shared_ptr<double> data,
+                                 size_t len)
+{
+  update_data(this->m_Data, bk, data, len);
+}
 void ExternalDataset::UpdateData(const BrickKey& bk,
                                  const std::tr1::shared_ptr<float> data,
                                  size_t len)

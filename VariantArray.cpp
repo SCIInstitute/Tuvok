@@ -47,6 +47,7 @@ VariantArray::VariantArray(const VariantArray &va) :
   this->scalar_us = va.scalar_us;
   this->scalar_s = va.scalar_s;
   this->scalar_f = va.scalar_f;
+  this->scalar_d = va.scalar_d;
 }
 
 VariantArray::~VariantArray() {}
@@ -92,6 +93,14 @@ void VariantArray::set(const std::tr1::shared_ptr<float> data, size_t len)
   this->data_type = DT_FLOAT;
 }
 
+void VariantArray::set(const std::tr1::shared_ptr<double> data, size_t len)
+{
+  this->reset();
+  this->length = len;
+  this->scalar_d = data;
+  this->data_type = DT_DOUBLE;
+}
+
 const uint8_t* VariantArray::getub() const
 {
   assert(this->data_type == DT_UBYTE);
@@ -119,6 +128,11 @@ const float* VariantArray::getf() const
   assert(this->data_type == DT_FLOAT);
   return this->scalar_f.get();
 }
+const double* VariantArray::getd() const
+{
+  assert(this->data_type == DT_DOUBLE);
+  return this->scalar_d.get();
+}
 
 VariantArray& VariantArray::operator=(const VariantArray &va)
 {
@@ -127,6 +141,7 @@ VariantArray& VariantArray::operator=(const VariantArray &va)
   this->scalar_us = va.scalar_us;
   this->scalar_s = va.scalar_s;
   this->scalar_f = va.scalar_f;
+  this->scalar_d = va.scalar_d;
   this->length = va.length;
   this->data_type = va.data_type;
   return *this;
@@ -141,6 +156,7 @@ void VariantArray::reset()
   this->scalar_us.reset();
   this->scalar_s.reset();
   this->scalar_f.reset();
+  this->scalar_d.reset();
 }
 
 }; // namespace tuvok
