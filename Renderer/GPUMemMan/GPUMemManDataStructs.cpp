@@ -400,6 +400,7 @@ bool GLVolumeListElem::CreateTexture(std::vector<unsigned char>& vUploadHub,
   if (m_bIsDownsampledTo8Bits && iBitWidth != 8) {
     // here we assume that data which is not 8 bit is 16 bit
     if (iBitWidth != 16) {
+      T_ERROR("Don't know how to handle %llu-bit data.", iBitWidth);
       FreeData();
       return false;
     }
