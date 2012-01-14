@@ -18,18 +18,25 @@ endif(COMMAND CMAKE_POLICY)
 
 project(tuvok)
 
+find_package(Qt4 REQUIRED)
+include(${QT_USE_FILE})
+include_directories(${QT_INCLUDE_DIR})
+
 include_directories(. ${TUVOK_EXTERNAL_INCLUDES} Basics Controller DebugOut IO
-                    Renderer Scripting 3rdParty/GLEW IO/3rdParty/boost)
+                    Renderer Scripting 3rdParty/GLEW IO/3rdParty/boost
+                    ${QT_INCLUDE_DIR})
 
 # Tuvok will not build as a shared lib.
 set(BUILD_SHARED_LIBS OFF)
 
 set(TUVOK_LIBRARY tuvok CACHE FILEPATH "Tuvok library name.")
 set(TUVOK_INCLUDE
-    "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/3rdParty;${CMAKE_CURRENT_SOURCE_DIR}/IO/3rdParty/boost"
+    "${CMAKE_CURRENT_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/3rdParty;${CMAKE_CURRENT_SOURCE_DIR}/IO/3rdParty/boost;${QT_INCLUDE_DIR}"
     CACHE STRING "Tuvok include directory (Tuvok's source tree root)" FORCE)
 
-set(TUVOK_DEFINES -DTUVOK_NO_IO -DTUVOK_NO_QT CACHE STRING
+# Disable Qt as well.  Needed for now... working on it, slowly.
+#set(TUVOK_DEFINES -DTUVOK_NO_IO -DTUVOK_NO_QT CACHE STRING
+set(TUVOK_DEFINES -DTUVOK_NO_IO CACHE STRING
     "Defines needed for building Tuvok in most projects.")
 
 # Disable IO and Qt within Tuvok.
@@ -47,4 +54,5 @@ add_library(${TUVOK_LIBRARY} ${TUVOK_SRCS})
 if(APPLE)
   target_link_libraries(${TUVOK_LIBRARY} "-framework CoreFoundation")
 endif(APPLE)
+target_link_libraries(${TUVOK_LIBRARY} ${QT_LIBRARIES})
 target_link_libraries(${TUVOK_LIBRARY} ${GL_LIBRARY})
