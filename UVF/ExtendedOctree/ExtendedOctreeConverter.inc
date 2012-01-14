@@ -74,7 +74,7 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
     for (uint32_t z = 0;z<(sourceSize.z-2*m_iOverlap)/2;z++) {
       for (uint32_t y = 0;y<(sourceSize.y-2*m_iOverlap)/2;y++) {
         T *p0 = pSourceData + iCompCount* (
-                               (2*(evenSizeX+1)+m_iOverlap)
+                               (2*(evenSizeX)+m_iOverlap)
                             +  (2*y+m_iOverlap)*sourceSize.x
                             +  (2*z+m_iOverlap)*sourceSize.x*sourceSize.y
                             );
@@ -83,7 +83,7 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
         T *p3 = p1 + iCompCount * sourceSize.x;
 
         T* pTargetData = pData + iCompCount * (
-                                  (evenSizeX+1 +m_iOverlap + targetOffset.x)
+                                  (evenSizeX +m_iOverlap + targetOffset.x)
                                 + (y+m_iOverlap+targetOffset.y)*targetSize.x
                                 + (z+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
                                 );
@@ -101,7 +101,7 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
     for (uint32_t z = 0;z<evenSizeZ;z++) {
       T *p0 = pSourceData + iCompCount* (
                               (2*0+m_iOverlap)
-                          +  (2*(evenSizeY+1)+m_iOverlap)*sourceSize.x
+                          +  (2*(evenSizeY)+m_iOverlap)*sourceSize.x
                           +  (2*z+m_iOverlap)*sourceSize.x*sourceSize.y
                           );
       T *p1 = p0 + iCompCount * sourceSize.x*sourceSize.y;
@@ -110,7 +110,7 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
       T *p5 = p1+iCompCount;
       T* pTargetData = pData + iCompCount * (
                                 (0+m_iOverlap + targetOffset.x)
-                              + (evenSizeY+1+m_iOverlap+targetOffset.y)*targetSize.x
+                              + (evenSizeY+m_iOverlap+targetOffset.y)*targetSize.x
                               + (z+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
                               );
 
@@ -134,7 +134,7 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
       T *p0 = pSourceData + iCompCount* (
                               (2*0+m_iOverlap)
                           +  (2*y+m_iOverlap)*sourceSize.x
-                          +  (2*(evenSizeZ+1)+m_iOverlap)*sourceSize.x*sourceSize.y
+                          +  (2*(evenSizeZ)+m_iOverlap)*sourceSize.x*sourceSize.y
                           );
       T *p2 = p0 + iCompCount * sourceSize.x;
 
@@ -143,7 +143,7 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
       T* pTargetData = pData + iCompCount * (
                                 (0+m_iOverlap + targetOffset.x)
                               +  (y+m_iOverlap+targetOffset.y)*targetSize.x
-                              +  (evenSizeZ+1+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
+                              +  (evenSizeZ+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
                               );
 
       for (uint32_t x = 0;x<evenSizeX;x++) {
@@ -164,15 +164,15 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
   if (sourceSize.x%2 && sourceSize.y%2) {
     for (uint32_t z = 0;z<(sourceSize.z-2*m_iOverlap)/2;z++) {
       T *p0 = pSourceData + iCompCount* (
-                             (2*(evenSizeX+1)+m_iOverlap)
-                          +  (2*(evenSizeY+1)+m_iOverlap)*sourceSize.x
+                             (2*(evenSizeX)+m_iOverlap)
+                          +  (2*(evenSizeY)+m_iOverlap)*sourceSize.x
                           +  (2*z+m_iOverlap)*sourceSize.x*sourceSize.y
                           );
       T *p1 = p0 + iCompCount * sourceSize.x*sourceSize.y;
 
       T* pTargetData = pData + iCompCount * (
-                                 (evenSizeX+1 +m_iOverlap + targetOffset.x)
-                              +  (evenSizeY+1+m_iOverlap+targetOffset.y)*targetSize.x
+                                 (evenSizeX +m_iOverlap + targetOffset.x)
+                              +  (evenSizeY+m_iOverlap+targetOffset.y)*targetSize.x
                               +  (z+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
                               );
 
@@ -187,14 +187,14 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
   if (sourceSize.y%2 && sourceSize.z%2) {
     T *p0 = pSourceData + iCompCount* (
                             (2*0+m_iOverlap)
-                        +  (2*(evenSizeY+1)+m_iOverlap)*sourceSize.x
-                        +  (2*(evenSizeZ+1)+m_iOverlap)*sourceSize.x*sourceSize.y
+                        +  (2*(evenSizeY)+m_iOverlap)*sourceSize.x
+                        +  (2*(evenSizeZ)+m_iOverlap)*sourceSize.x*sourceSize.y
                         );
     T *p4 = p0+iCompCount;
     T* pTargetData = pData + iCompCount * (
                               (0+m_iOverlap + targetOffset.x)
-                            + (evenSizeY+1+m_iOverlap+targetOffset.y)*targetSize.x
-                            + (evenSizeZ+1+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
+                            + (evenSizeY+m_iOverlap+targetOffset.y)*targetSize.x
+                            + (evenSizeZ+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
                             );
 
     for (uint32_t x = 0;x<evenSizeX;x++) {
@@ -212,16 +212,16 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
   if (sourceSize.x%2 && sourceSize.z%2) {
     for (uint32_t y = 0;y<evenSizeY;y++) {
       T *p0 = pSourceData + iCompCount* (
-                             (2*(evenSizeX+1)+m_iOverlap)
+                             (2*(evenSizeX)+m_iOverlap)
                           +  (2*y+m_iOverlap)*sourceSize.x
-                          +  (2*(evenSizeZ+1)+m_iOverlap)*sourceSize.x*sourceSize.y
+                          +  (2*(evenSizeZ)+m_iOverlap)*sourceSize.x*sourceSize.y
                           );
       T *p2 = p0 + iCompCount * sourceSize.x;
 
       T* pTargetData = pData + iCompCount * (
-                                 (evenSizeX+1+m_iOverlap + targetOffset.x)
+                                 (evenSizeX+m_iOverlap + targetOffset.x)
                               +  (y+m_iOverlap+targetOffset.y)*targetSize.x
-                              +  (evenSizeZ+1+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
+                              +  (evenSizeZ+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
                               );
       for (uint32_t c = 0;c<iCompCount;c++) {
         T average = Average<T>(*(p0+c), *(p2+c));
@@ -233,14 +233,14 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
   // single voxel at the x/y/z corner
   if (sourceSize.x%2 && sourceSize.y%2 && sourceSize.z%2) {
     T *p0 = pSourceData + iCompCount* (
-                            (2*(evenSizeX+1)+m_iOverlap)
-                        +  (2*(evenSizeY+1)+m_iOverlap)*sourceSize.x
-                        +  (2*(evenSizeZ+1)+m_iOverlap)*sourceSize.x*sourceSize.y
+                            (2*(evenSizeX)+m_iOverlap)
+                        +  (2*(evenSizeY)+m_iOverlap)*sourceSize.x
+                        +  (2*(evenSizeZ)+m_iOverlap)*sourceSize.x*sourceSize.y
                         );
     T* pTargetData = pData + iCompCount * (
-                              (evenSizeX+1+m_iOverlap + targetOffset.x)
-                            +  (evenSizeY+1+m_iOverlap+targetOffset.y)*targetSize.x
-                            +  (evenSizeZ+1+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
+                              (evenSizeX+m_iOverlap + targetOffset.x)
+                            +  (evenSizeY+m_iOverlap+targetOffset.y)*targetSize.x
+                            +  (evenSizeZ+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
                             );
     for (uint32_t c = 0;c<iCompCount;c++) {
       *(pTargetData+c) = *p0;
