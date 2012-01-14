@@ -46,11 +46,8 @@
 #endif
 #include "../Context.h"
 #include "GLStateManager.h"
-#include <cassert>
 
 namespace tuvok {
-
-
 
 class GLContext : public Context {
 public:
@@ -82,7 +79,6 @@ public:
          );
          return contextMap.insert(tmp).first->second; // return what we're inserting
        }
-       assert(iShareGroupID == contextMap[QGLContext::currentContext()]->GetShareGroupID());
        return contextMap[GetContext()];
     }
 
@@ -104,5 +100,4 @@ public:
 };
 
 }
-
 #endif // TUVOK_GL_CONTEXT_ID_H
