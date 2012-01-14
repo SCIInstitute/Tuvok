@@ -1804,8 +1804,10 @@ void GLRenderer::SetConstantShaderVars()
   // no scaling for this case.
   m_pProgram1DTransSlice->Set("fStepScale", 1.0f);
 
-  m_pProgram1DTransSlice->Set("ScaleMethod", 0);
-  m_pProgram1DTransSlice3D->Set("ScaleMethod", 0);
+  int method = static_cast<int>(this->m_TFScalingMethod);
+  MESSAGE("Setting scale method to %d", method);
+  m_pProgram1DTransSlice->Set("ScaleMethod", method);
+  m_pProgram1DTransSlice3D->Set("ScaleMethod", method);
 }
 
 void GLRenderer::SetDataDepShaderVars() {
