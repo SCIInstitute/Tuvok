@@ -45,7 +45,8 @@
 #include <sstream>
 #include <string>
 #include "InveonConverter.h"
-#include <Basics/EndianConvert.h>
+#include "Basics/EndianConvert.h"
+#include "Basics/SysTools.h"
 
 InveonConverter::InveonConverter()
 {

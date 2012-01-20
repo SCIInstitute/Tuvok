@@ -41,6 +41,7 @@
 
 #include "../StdTuvokDefines.h"
 #include <map>
+#include <sstream>
 
 #include "Basics/Vectors.h"
 #include "Controller/Controller.h"

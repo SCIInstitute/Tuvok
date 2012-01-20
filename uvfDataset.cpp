@@ -31,8 +31,9 @@
 
 #include "uvfDataset.h"
 
-#include "IOManager.h"
 #include "RAWConverter.h"
+#include "Basics/MathTools.h"
+#include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "TuvokIOError.h"
 #include "UVF/UVF.h"
@@ -41,7 +42,6 @@
 #include "UVF/Histogram2DDataBlock.h"
 #include "UVF/GeometryDataBlock.h"
 #include "uvfMesh.h"
-#include "../Basics/MathTools.h"
 
 using namespace boost;
 using namespace std;

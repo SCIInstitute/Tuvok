@@ -42,11 +42,12 @@
 #include <string>
 #include <vector>
 #include "AbstrConverter.h"
-#include "IOManager.h"  // for the size defines
+#include "Basics/SysTools.h"
 #include "Controller/Controller.h"
-#include "UVF/Histogram1DDataBlock.h"
+#include "IOManager.h"  // for the size defines
 #include "Quantize.h"
 #include "TuvokIOError.h"
+#include "UVF/Histogram1DDataBlock.h"
 
 using namespace tuvok;
 

@@ -52,14 +52,8 @@
 #include <limits>
 #include <list>
 #include <string>
-#include "Controller/MasterController.h"
-#include "Basics/MC.h"
-#include "Basics/SysTools.h"
-#include "Basics/LargeRAWFile.h"
-#include "Basics/Mesh.h"
 #include "Basics/TuvokException.h"
 #include "TransferFunction1D.h"
-#include "AbstrGeoConverter.h"
 
 typedef std::tr1::tuple<std::string,std::string,bool,bool> tConverterFormat;
 
@@ -74,9 +68,11 @@ class UVF;
 class GeometryDataBlock;
 
 namespace tuvok {
+  class AbstrGeoConverter;
   class AbstrRenderer;
   class Dataset;
   class FileBackedDataset;
+  class Mesh;
   class UVFDataset;
   class MasterController;
   namespace io {

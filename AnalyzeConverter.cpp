@@ -32,6 +32,7 @@
            University of Utah
 */
 #include "AnalyzeConverter.h"
+#include "Basics/SysTools.h"
 
 AnalyzeConverter::AnalyzeConverter()
 {

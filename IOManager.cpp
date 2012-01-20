@@ -48,6 +48,7 @@
 
 #include "IOManager.h"
 
+#include "Basics/MC.h"
 #include "Basics/nonstd.h"
 #include "Basics/SysTools.h"
 #include "Controller/Controller.h"
@@ -84,6 +85,7 @@
 #include "VGStudioConverter.h"
 
 #include "Mesh.h"
+#include "AbstrGeoConverter.h"
 #include "OBJGeoConverter.h"
 #include "PLYGeoConverter.h"
 #include "MobileGeoConverter.h"
