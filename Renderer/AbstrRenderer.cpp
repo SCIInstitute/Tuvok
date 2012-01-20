@@ -35,11 +35,12 @@
 */
 
 #include <algorithm>
+#include <sstream>
 #include "AbstrRenderer.h"
-#include <Controller/Controller.h>
-#include <IO/Tuvok_QtPlugins.h>
-#include <IO/IOManager.h>
-#include <Renderer/GPUMemMan/GPUMemMan.h>
+#include "Controller/Controller.h"
+#include "IO/Tuvok_QtPlugins.h"
+#include "IO/IOManager.h"
+#include "Renderer/GPUMemMan/GPUMemMan.h"
 #include "Basics/MathTools.h"
 #include "Basics/GeometryGenerator.h"
 #include "IO/ExternalDataset.h"

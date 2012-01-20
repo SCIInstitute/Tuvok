@@ -34,6 +34,7 @@
 //
 //!    Copyright (C) 2008 SCI Institute
 
+#include <sstream>
 
 #include "MasterController.h"
 #include "../Basics/SystemInfo.h"
