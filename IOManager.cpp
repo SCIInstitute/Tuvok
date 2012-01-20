@@ -567,6 +567,138 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
   #pragma warning(default:4996)
 #endif
 
+template <class T> class DataMerger {
+public:
+  DataMerger(const std::vector<MergeDataset>& strFiles,
+             const std::string& strTarget, uint64_t iElemCount,
+             tuvok::MasterController* pMasterController,
+             bool bUseMaxMode) :
+    bIsOK(false)
+  {
+    AbstrDebugOut& dbg = *(pMasterController->DebugOut());
+    dbg.Message(_func_,"Copying first file %s ...",
+                SysTools::GetFilename(strFiles[0].strFilename).c_str());
+    if (!LargeRAWFile::Copy(strFiles[0].strFilename, strTarget,
+                            strFiles[0].iHeaderSkip)) {
+      dbg.Error("Could not copy '%s' to '%s'", strFiles[0].strFilename.c_str(),
+                strTarget.c_str());
+      bIsOK = false;
+      return;
+    }
+
+    dbg.Message(_func_,"Merging ...");
+    LargeRAWFile target(strTarget);
+    target.Open(true);
+
+    if (!target.IsOpen()) {
+      dbg.Error("Could not open '%s'", strTarget.c_str());
+      remove(strTarget.c_str());
+      bIsOK = false;
+      return;
+    }
+
+    uint64_t iCopySize = std::min(iElemCount,BLOCK_COPY_SIZE/2)/sizeof(T);
+    T* pTargetBuffer = new T[size_t(iCopySize)];
+    T* pSourceBuffer = new T[size_t(iCopySize)];
+    for (size_t i = 1;i<strFiles.size();i++) {
+      dbg.Message(_func_,"Merging with file %s ...",
+                  SysTools::GetFilename(strFiles[i].strFilename).c_str());
+      LargeRAWFile source(strFiles[i].strFilename, strFiles[i].iHeaderSkip);
+      source.Open(false);
+      if (!source.IsOpen()) {
+        dbg.Error(_func_, "Could not open '%s'!",
+                  strFiles[i].strFilename.c_str());
+        delete [] pTargetBuffer;
+        delete [] pSourceBuffer;
+        target.Close();
+        remove(strTarget.c_str());
+        bIsOK = false;
+        return;
+      }
+
+      uint64_t iReadSize=0;
+      do {
+         source.ReadRAW((unsigned char*)pSourceBuffer, iCopySize*sizeof(T));
+         iCopySize = target.ReadRAW((unsigned char*)pTargetBuffer,
+                                    iCopySize*sizeof(T))/sizeof(T);
+
+         if (bUseMaxMode) {
+           if (i == 1) {
+             for (uint64_t j = 0;j<iCopySize;j++) {
+               pTargetBuffer[j] = std::max<T>(
+                 T(std::min<double>(
+                   strFiles[0].fScale*(pTargetBuffer[j] + strFiles[0].fBias),
+                   static_cast<double>(std::numeric_limits<T>::max())
+                 )),
+                 T(std::min<double>(
+                   strFiles[i].fScale*(pSourceBuffer[j] + strFiles[i].fBias),
+                   static_cast<double>(std::numeric_limits<T>::max()))
+                 )
+               );
+             }
+           } else {
+             for (uint64_t j = 0;j<iCopySize;j++) {
+               pTargetBuffer[j] = std::max<T>(
+                 pTargetBuffer[j],
+                 T(std::min<double>(strFiles[i].fScale*(pSourceBuffer[j] +
+                                                        strFiles[i].fBias),
+                                    static_cast<double>(std::numeric_limits<T>::max())))
+               );
+             }
+           }
+         } else {
+           if (i == 1) {
+             for (uint64_t j = 0;j<iCopySize;j++) {
+               T a = T(std::min<double>(
+                 strFiles[0].fScale*(pTargetBuffer[j] + strFiles[0].fBias),
+                 static_cast<double>(std::numeric_limits<T>::max())
+               ));
+               T b = T(std::min<double>(
+                 strFiles[i].fScale*(pSourceBuffer[j] + strFiles[i].fBias),
+                 static_cast<double>(std::numeric_limits<T>::max())
+               ));
+               T val = a + b;
+
+               if (val < a || val < b) // overflow
+                 pTargetBuffer[j] = std::numeric_limits<T>::max();
+               else
+                 pTargetBuffer[j] = val;
+             }
+           } else {
+             for (uint64_t j = 0;j<iCopySize;j++) {
+               T b = T(std::min<double>(
+                 strFiles[i].fScale*(pSourceBuffer[j] + strFiles[i].fBias),
+                 static_cast<double>(std::numeric_limits<T>::max())
+               ));
+               T val = pTargetBuffer[j] + b;
+
+               if (val < pTargetBuffer[j] || val < b) // overflow
+                 pTargetBuffer[j] = std::numeric_limits<T>::max();
+               else
+                 pTargetBuffer[j] = val;
+             }
+           }
+         }
+         target.SeekPos(iReadSize*sizeof(T));
+         target.WriteRAW((unsigned char*)pTargetBuffer, iCopySize*sizeof(T));
+         iReadSize += iCopySize;
+      } while (iReadSize < iElemCount);
+      source.Close();
+    }
+
+    delete [] pTargetBuffer;
+    delete [] pSourceBuffer;
+    target.Close();
+
+    bIsOK = true;
+  }
+
+  bool IsOK() const {return bIsOK;}
+
+private:
+  bool bIsOK;
+};
+
 bool IOManager::MergeDatasets(const vector <string>& strFilenames,
                               const vector <double>& vScales,
                               const vector<double>& vBiases,
