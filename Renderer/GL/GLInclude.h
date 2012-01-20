@@ -150,8 +150,8 @@
         glEnd();                                                         \
     } while(0)                                                           
 #else
-  #define glBegin(mode) glBegin(mode)
-  #define glEnd() glEnd()                                                
+  #define GLBEGIN(mode) do { glBegin(mode); } while(0)
+  #define GLEND() do { glEnd(); } while(0)
 #endif
 
 #endif // TUVOK_GLINCLUDE_H
