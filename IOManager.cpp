@@ -1244,9 +1244,21 @@ void IOManager::AddReader(tr1::shared_ptr<FileBackedDataset> ds)
   m_dsFactory->AddReader(ds);
 }
 
+class MCData {
+public:
+  MCData(const std::string& strTargetFile) :
+    m_strTargetFile(strTargetFile)
+  {}
+
+  virtual ~MCData() {}
+  virtual bool PerformMC(void* pData, const UINTVECTOR3& vBrickSize, const UINT64VECTOR3& vBrickOffset) = 0;
+
+protected:
+  std::string m_strTargetFile;
+};
 
 bool MCBrick(void* pData, const UINTVECTOR3& vBrickSize, 
-                const UINT64VECTOR3& vBrickOffset, void* pUserContext) {
+             const UINT64VECTOR3& vBrickOffset, void* pUserContext) {
     MCData* pMCData = (MCData*)pUserContext;
     return pMCData->PerformMC(pData, vBrickSize, vBrickOffset);
 }
@@ -1306,6 +1318,79 @@ bool IOManager::ExtractImageStack(const tuvok::UVFDataset* pSourceData,
   return bTargetCreated;
 }
 
+template <class T> class MCDataTemplate  : public MCData {
+public:
+  MCDataTemplate(const std::string& strTargetFile, T TIsoValue, 
+                 const FLOATVECTOR3& vScale, 
+                 UINT64VECTOR3 vDataSize, tuvok::AbstrGeoConverter* conv,
+                 const FLOATVECTOR4& vColor) :
+    MCData(strTargetFile),
+    m_TIsoValue(TIsoValue),
+    m_iIndexoffset(0),
+    m_pMarchingCubes(new MarchingCubes<T>()),
+    m_vDataSize(vDataSize),
+    m_conv(conv),
+    m_vColor(vColor),
+    m_vScale(vScale)
+  {
+  }
+
+  virtual ~MCDataTemplate() {
+    delete m_pMarchingCubes;
+    tuvok::Mesh m = tuvok::Mesh(m_vertices, m_normals, tuvok::TexCoordVec(),
+                                tuvok::ColorVec(), m_indices, m_indices, 
+                                tuvok::IndexVec(),tuvok::IndexVec(), 
+                                false,false,"Marching Cubes mesh by ImageVis3D",
+                                tuvok::Mesh::MT_TRIANGLES);
+    m.SetDefaultColor(m_vColor);
+    m_conv->ConvertToNative(m, m_strTargetFile);
+  }
+
+  virtual bool PerformMC(void* pData, const UINTVECTOR3& vBrickSize, const UINT64VECTOR3& vBrickOffset) {
+   
+    T* ptData = (T*)pData;
+
+    // extract isosurface
+    m_pMarchingCubes->SetVolume(vBrickSize.x, vBrickSize.y, vBrickSize.z, ptData);
+    m_pMarchingCubes->Process(m_TIsoValue);
+
+    // brick scale
+    float fMaxSize = (FLOATVECTOR3(m_vDataSize) * m_vScale).maxVal();
+
+    FLOATVECTOR3 vecBrickOffset(vBrickOffset);
+    vecBrickOffset = vecBrickOffset * m_vScale;
+
+    for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
+        m_vertices.push_back((m_pMarchingCubes->m_Isosurface->vfVertices[i]+vecBrickOffset-FLOATVECTOR3(m_vDataSize)/2.0f)/fMaxSize);
+    }
+
+    for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
+      m_normals.push_back(m_pMarchingCubes->m_Isosurface->vfNormals[i]);
+    }    
+
+    for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iTriangles;i++) {
+      m_indices.push_back(m_pMarchingCubes->m_Isosurface->viTriangles[i].x+m_iIndexoffset);
+      m_indices.push_back(m_pMarchingCubes->m_Isosurface->viTriangles[i].y+m_iIndexoffset);
+      m_indices.push_back(m_pMarchingCubes->m_Isosurface->viTriangles[i].z+m_iIndexoffset);
+    }
+
+    m_iIndexoffset += m_pMarchingCubes->m_Isosurface->iVertices;
+
+    return true;
+  }
+
+protected:
+  T                  m_TIsoValue;
+  uint32_t             m_iIndexoffset;
+  MarchingCubes<T>*  m_pMarchingCubes;
+  UINT64VECTOR3      m_vDataSize;
+  tuvok::AbstrGeoConverter* m_conv;
+  FLOATVECTOR4       m_vColor;
+  FLOATVECTOR3       m_vScale;
+  tuvok::VertVec     m_vertices;
+  tuvok::NormVec     m_normals;
+  tuvok::IndexVec    m_indices;
+};
 
 bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
                                   uint64_t iLODlevel, double fIsovalue,
