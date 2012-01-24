@@ -84,10 +84,11 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   decreaseScreenResNow(false),
   decreaseSamplingRate(false),
   decreaseSamplingRateNow(false),
+  doAnotherRedrawDueToLowResOutput(false),
   m_fMaxMSPerFrame(10000),
   m_fScreenResDecFactor(2.0f),
   m_fSampleDecFactor(2.0f),
-  m_bUseAllMeans(false),
+  m_bRenderLowResIntermediateResults(false),
   m_bOffscreenIsLowRes(false),
   m_iStartDelay(1000),
   m_iMinLODForCurrentView(0),
@@ -370,7 +371,7 @@ bool AbstrRenderer::CheckForRedraw() {
     //   last draw was low res or sample rate for interactivity
     if (m_vCurrentBrickList.size() > m_iBricksRenderedInThisSubFrame ||
         m_iCurrentLODOffset > m_iMinLODForCurrentView ||
-        this->doAnotherRedrawDueToAllMeans) {
+        this->doAnotherRedrawDueToLowResOutput) {
       if (m_iCheckCounter == 0 || m_eRendererTarget != RT_INTERACTIVE) {
         MESSAGE("Still drawing...");
         return true;
@@ -615,7 +616,7 @@ void AbstrRenderer::ComputeMaxLODForCurrentView() {
           MESSAGE("Would like to increase start LOD as it took %g ms "
                   "to render the first LOD level (max is %g) BUT CAN'T.",
                   this->msecPassed[0], m_fMaxMSPerFrame);
-          if (m_bUseAllMeans) {
+          if (m_bRenderLowResIntermediateResults) {
             if (this->decreaseSamplingRate && this->decreaseScreenRes) {
               MESSAGE("Even with UseAllMeans there is nothing that "
                       "can be done to meet the specified framerate.");
@@ -774,7 +775,7 @@ double AbstrRenderer::MaxValue() const {
 bool AbstrRenderer::OnlyRecomposite(RenderRegion* region) const {
   return !region->isBlank &&
           m_bPerformReCompose &&
-         !this->doAnotherRedrawDueToAllMeans;
+         !this->doAnotherRedrawDueToLowResOutput;
 }
 
 bool AbstrRenderer::RegionNeedsBrick(const RenderRegion& rr,
@@ -1078,13 +1079,13 @@ void AbstrRenderer::PlanFrame(RenderRegion3D& region) {
       this->decreaseScreenResNow = this->decreaseScreenRes;
       bBuildNewList = true;
       if (this->decreaseSamplingRateNow || this->decreaseScreenResNow)
-        this->doAnotherRedrawDueToAllMeans = true;
+        this->doAnotherRedrawDueToLowResOutput = true;
     } else {
       if (this->decreaseSamplingRateNow || this->decreaseScreenResNow) {
         this->decreaseScreenResNow = false;
         this->decreaseSamplingRateNow = false;
         m_iBricksRenderedInThisSubFrame = 0;
-        this->doAnotherRedrawDueToAllMeans = false;
+        this->doAnotherRedrawDueToLowResOutput = false;
       } else {
         if (m_iCurrentLODOffset > m_iMinLODForCurrentView) {
           bBuildNewList = true;
@@ -1334,20 +1335,20 @@ void AbstrRenderer::SetConsiderPreviousDepthbuffer(bool bConsiderPreviousDepthbu
   }
 }
 
-void AbstrRenderer::SetPerfMeasures(uint32_t iMinFramerate, bool bUseAllMeans,
+void AbstrRenderer::SetPerfMeasures(uint32_t iMinFramerate, bool bRenderLowResIntermediateResults,
                                     float fScreenResDecFactor,
                                     float fSampleDecFactor, uint32_t iStartDelay) {
   m_fMaxMSPerFrame = (iMinFramerate == 0) ? 10000 : 1000.0f / float(iMinFramerate);
   m_fScreenResDecFactor = fScreenResDecFactor;
   m_fSampleDecFactor = fSampleDecFactor;
-  m_bUseAllMeans = bUseAllMeans;
+  m_bRenderLowResIntermediateResults = bRenderLowResIntermediateResults;
 
-  if (!m_bUseAllMeans) {
+  if (!m_bRenderLowResIntermediateResults) {
     this->decreaseScreenRes = false;
     this->decreaseScreenResNow = false;
     this->decreaseSamplingRate = false;
     this->decreaseSamplingRateNow = false;
-    this->doAnotherRedrawDueToAllMeans = false;
+    this->doAnotherRedrawDueToLowResOutput = false;
   }
 
   m_iStartDelay = iStartDelay;

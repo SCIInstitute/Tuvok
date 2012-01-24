@@ -365,7 +365,7 @@ class AbstrRenderer: public Scriptable {
     }
 
     void SetTimeSlice(uint32_t iMSecs) {m_iTimeSliceMSecs = iMSecs;}
-    void SetPerfMeasures(uint32_t iMinFramerate, bool bUseAllMeans,
+    void SetPerfMeasures(uint32_t iMinFramerate, bool bRenderLowResIntermediateResults,
                          float fScreenResDecFactor,
                          float fSampleDecFactor, uint32_t iStartDelay);
     void SetRescaleFactors(const DOUBLEVECTOR3& vfRescale) {
@@ -565,13 +565,13 @@ class AbstrRenderer: public Scriptable {
     bool decreaseScreenResNow;
     bool decreaseSamplingRate; ///< dec.'d sampling rate (less shader work)
     bool decreaseSamplingRateNow;
-    bool doAnotherRedrawDueToAllMeans; ///< previous subframe had res or rate
+    bool doAnotherRedrawDueToLowResOutput; ///< previous subframe had res or rate
                                        ///  reduced; we need another render to
                                        ///  complete finish up.
     float  m_fMaxMSPerFrame;
     float  m_fScreenResDecFactor;
     float  m_fSampleDecFactor;
-    bool   m_bUseAllMeans;
+    bool   m_bRenderLowResIntermediateResults;
     bool   m_bOffscreenIsLowRes;
     uint32_t m_iStartDelay;
     uint64_t m_iMinLODForCurrentView;

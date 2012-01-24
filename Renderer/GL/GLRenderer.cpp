@@ -587,7 +587,7 @@ bool GLRenderer::Paint() {
     }
   } else {
     for (size_t i=0; i < renderRegions.size(); ++i) {
-      if (renderRegions[i]->redrawMask) {
+      if (renderRegions[i]->redrawMask || doAnotherRedrawDueToLowResOutput) {
         SetRenderTargetArea(*renderRegions[i], this->decreaseScreenResNow);
         if (renderRegions[i]->is3D()) {
           RenderRegion3D &region3D = *static_cast<RenderRegion3D*>
