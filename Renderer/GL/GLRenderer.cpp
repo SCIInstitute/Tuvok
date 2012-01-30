@@ -1806,7 +1806,9 @@ void GLRenderer::SetConstantShaderVars()
   int method = static_cast<int>(this->m_TFScalingMethod);
   MESSAGE("Setting scale method to %d", method);
   m_pProgram1DTransSlice->Set("ScaleMethod", method);
+  GL_CHECK(); // TODO Tom: why are we trying to set a variable that does not exist in the shader?
   m_pProgram1DTransSlice3D->Set("ScaleMethod", method);
+  GL_CHECK(); // TODO Tom: why are we trying to set a variable that does not exist in the shader?
 }
 
 void GLRenderer::SetDataDepShaderVars() {
