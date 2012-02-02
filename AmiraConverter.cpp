@@ -29,36 +29,29 @@
 #include <fstream>
 #include <iterator>
 
-namespace {
 // Your standard ostream_iterator will essentially do "stream << *iter".  That
 // doesn't work well for binary files, however, in which we need to use
 // "stream.write(&*iter, sizeof(T))".  Hence this implements a binary
 // ostream_iterator.
-template<typename T> class binary_ostream_iterator :
-  public std::iterator<std::output_iterator_tag, T> {
+class binary_ostream_iterator :
+  public std::iterator<std::output_iterator_tag, double> {
 public:
   binary_ostream_iterator(std::ostream& os) : stream(&os) {}
-  binary_ostream_iterator(const binary_ostream_iterator<T>& boi) :
+  binary_ostream_iterator(const binary_ostream_iterator& boi) :
     stream(boi.stream) { }
 
-  binary_ostream_iterator& operator=(const T& value) {
-    this->stream->write(reinterpret_cast<const char*>(&value), sizeof(T));
+  binary_ostream_iterator& operator=(const value_type& value) {
+    this->stream->write(reinterpret_cast<const char*>(&value), sizeof(double));
     return *this;
   }
 
   binary_ostream_iterator& operator*() { return *this; }
   binary_ostream_iterator& operator++() { return *this; }
-  binary_ostream_iterator& operator++(int) { return *this; }
+  binary_ostream_iterator operator++(int) { return *this; }
 
-protected:
-  binary_ostream_iterator<T>& operator=(const binary_ostream_iterator<T>& boi) {
-    this->stream = boi.stream;
-    return *this;
-  }
 private:
   std::ostream* stream;
 };
-}
 
 AmiraConverter::AmiraConverter()
 {
@@ -172,7 +165,7 @@ bool AmiraConverter::ConvertToRAW(const std::string& strSourceFilename,
   }
   std::copy(std::istream_iterator<double>(amira),
             std::istream_iterator<double>(),
-            binary_ostream_iterator<double>(inter));
+            binary_ostream_iterator(inter));
   return true;
 }
 
