@@ -290,11 +290,12 @@ INTVECTOR2 TransferFunction2D::Normalized2Offscreen(FLOATVECTOR2 vfCoord, VECTOR
 
 unsigned char* TransferFunction2D::RenderTransferFunction8Bit() {
   VECTOR2<size_t> vRS = GetRenderSize();
-  if (m_pColorData == NULL ) m_pColorData = new ColorData2D(m_iSize);
-  if (m_pPixelData == NULL ) m_pPixelData = new unsigned char[4*m_iSize.area()];
+  if (m_pColorData == NULL) m_pColorData = new ColorData2D(m_iSize);
+  if (m_pPixelData == NULL) m_pPixelData = new unsigned char[4*m_iSize.area()];
 
 #ifndef TUVOK_NO_QT
-  if (m_pRCanvas == NULL )   m_pRCanvas   = new QImage(int(vRS.x), int(vRS.y), QImage::Format_ARGB32);
+  if (m_pRCanvas == NULL)   m_pRCanvas   = new QImage(int(vRS.x), int(vRS.y),
+                                                      QImage::Format_ARGB32);
 
   if (m_pPixelData != NULL && m_bUseCachedData) return m_pPixelData;
 

@@ -204,7 +204,7 @@ public:
     return ReBrickDataset(strSourceFilename,strTargetFilename,strTempDir,m_iMaxBrickSize,m_iBrickOverlap,bQuantizeTo8Bit);
   }
 
-  tuvok::Mesh* LoadMesh(const std::string& meshfile) const;
+  std::tr1::shared_ptr<tuvok::Mesh> LoadMesh(const std::string& meshfile) const;
 
   void AddMesh(const UVF* sourceDataset,
                   const std::string& trisoup_file,
@@ -283,7 +283,7 @@ private:
   uint64_t m_iBrickOverlap;
   uint64_t m_iIncoresize;
 
-  void CopyToTSB(const tuvok::Mesh* m, GeometryDataBlock* tsb) const;
+  void CopyToTSB(const tuvok::Mesh& m, GeometryDataBlock* tsb) const;
 };
 
 #endif // IOMANAGER_H

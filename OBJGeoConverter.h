@@ -46,7 +46,8 @@ namespace tuvok {
   public:
     OBJGeoConverter();
     virtual ~OBJGeoConverter() {}
-    virtual Mesh* ConvertToMesh(const std::string& strFilename);
+    virtual std::tr1::shared_ptr<Mesh>
+      ConvertToMesh(const std::string& strFilename);
     virtual bool ConvertToNative(const Mesh& m,
                                  const std::string& strTargetFilename);
 

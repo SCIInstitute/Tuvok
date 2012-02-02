@@ -50,7 +50,7 @@ MedAlyVisFiberTractGeoConverter::MedAlyVisFiberTractGeoConverter() :
 }
 
 
-Mesh*
+std::tr1::shared_ptr<Mesh>
 MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename)
 {
   VertVec       vertices;
@@ -195,8 +195,10 @@ MedAlyVisFiberTractGeoConverter::ConvertToMesh(const std::string& strFilename)
   std::string desc = m_vConverterDesc + " data converted from " +
                      SysTools::GetFilename(strFilename);
 
-  Mesh* m = new Mesh(vertices,NormVec(),TexCoordVec(),colors,
-                     VertIndices,IndexVec(),IndexVec(),COLIndices,
-                     false,false,desc,Mesh::MT_LINES);
+  std::tr1::shared_ptr<Mesh> m(
+    new Mesh(vertices,NormVec(),TexCoordVec(),colors,
+             VertIndices,IndexVec(),IndexVec(),COLIndices,
+             false,false,desc,Mesh::MT_LINES)
+  );
   return m;
 }

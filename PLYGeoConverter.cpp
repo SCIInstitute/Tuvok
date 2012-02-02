@@ -50,8 +50,8 @@ PLYGeoConverter::PLYGeoConverter() :
 }
 
 
-Mesh* PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
-  
+std::tr1::shared_ptr<Mesh>
+PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
   VertVec       vertices;
   NormVec       normals;
   TexCoordVec   texcoords;
@@ -334,10 +334,12 @@ Mesh* PLYGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
 
-  Mesh* m = new Mesh(vertices,normals,texcoords,colors,
-                     VertIndices,NormalIndices,TCIndices,COLIndices,
-                     false,false,desc, (iFaceCount > 0) ? Mesh::MT_TRIANGLES:Mesh::MT_LINES);
-  return m;
+  return std::tr1::shared_ptr<Mesh>(
+    new Mesh(vertices,normals,texcoords,colors,
+             VertIndices,NormalIndices,TCIndices,COLIndices,
+             false,false,desc, (iFaceCount > 0) ? Mesh::MT_TRIANGLES
+                                                : Mesh::MT_LINES)
+  );
 }
 
 

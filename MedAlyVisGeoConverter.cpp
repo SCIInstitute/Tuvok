@@ -50,7 +50,8 @@ MedAlyVisGeoConverter::MedAlyVisGeoConverter() :
 }
 
 
-Mesh* MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
+std::tr1::shared_ptr<Mesh>
+MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
   ifstream trisoup(strFilename.c_str(), ios::binary);
   if(!trisoup) {
     // hack, we really want some kind of 'file not found' exception.
@@ -95,8 +96,10 @@ Mesh* MedAlyVisGeoConverter::ConvertToMesh(const std::string& strFilename) {
 
   std::string desc = m_vConverterDesc + " data converted from " + SysTools::GetFilename(strFilename);
 
-  Mesh* m = new Mesh(vertices,NormVec(),TexCoordVec(),ColorVec(),
-                     VertIndices,IndexVec(),IndexVec(),IndexVec(),
-                     false,false,desc,Mesh::MT_TRIANGLES);
+  std::tr1::shared_ptr<Mesh> m(
+    new Mesh(vertices,NormVec(),TexCoordVec(),ColorVec(),
+             VertIndices,IndexVec(),IndexVec(),IndexVec(),
+             false,false,desc,Mesh::MT_TRIANGLES)
+  );
   return m;
 }

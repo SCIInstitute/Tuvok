@@ -37,6 +37,11 @@
 #ifndef ABSTRGEOCONVERTER_H
 #define ABSTRGEOCONVERTER_H
 
+#ifdef _MSC_VER
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
 #include "../StdTuvokDefines.h"
 #include "../Basics/Mesh.h"
 #include <string>
@@ -48,7 +53,9 @@ class AbstrGeoConverter {
 public:
   virtual ~AbstrGeoConverter() {}
 
-  virtual Mesh* ConvertToMesh(const std::string& strRawFilename);
+  virtual std::tr1::shared_ptr<Mesh> ConvertToMesh(
+    const std::string& strRawFilename
+  );
 
   virtual bool ConvertToNative(const Mesh& m,
                                const std::string& strTargetFilename);

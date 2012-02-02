@@ -1318,7 +1318,7 @@ bool UVFDataset::RemoveMesh(size_t iMeshIndex) {
   }
 }
 
-bool UVFDataset::AppendMesh(Mesh* m) {
+bool UVFDataset::AppendMesh(const Mesh& m) {
   Close();
 
   MESSAGE("Attempting to reopen file in readwrite mode.");
@@ -1336,14 +1336,14 @@ bool UVFDataset::AppendMesh(Mesh* m) {
 
     // ... and transfer the data from the mesh object
     // source data
-    const VertVec&      v = m->GetVertices();
-    const NormVec&      n = m->GetNormals();
-    const TexCoordVec&  t = m->GetTexCoords();
-    const ColorVec&     c = m->GetColors();
+    const VertVec&      v = m.GetVertices();
+    const NormVec&      n = m.GetNormals();
+    const TexCoordVec&  t = m.GetTexCoords();
+    const ColorVec&     c = m.GetColors();
 
     // target data
     vector<float> fVec;
-    size_t iVerticesPerPoly = m->GetVerticesPerPoly();
+    size_t iVerticesPerPoly = m.GetVerticesPerPoly();
     tsb->SetPolySize(iVerticesPerPoly);
 
     if (v.size()) {
@@ -1380,12 +1380,12 @@ bool UVFDataset::AppendMesh(Mesh* m) {
       tsb->SetColors(vector<float>());
     }
 
-    tsb->SetVertexIndices(m->GetVertexIndices());
-    tsb->SetNormalIndices(m->GetNormalIndices());
-    tsb->SetTexCoordIndices(m->GetTexCoordIndices());
-    tsb->SetColorIndices(m->GetColorIndices());
+    tsb->SetVertexIndices(m.GetVertexIndices());
+    tsb->SetNormalIndices(m.GetNormalIndices());
+    tsb->SetTexCoordIndices(m.GetTexCoordIndices());
+    tsb->SetColorIndices(m.GetColorIndices());
 
-    tsb->m_Desc = m->Name();
+    tsb->m_Desc = m.Name();
     
     m_pDatasetFile->AppendBlockToFile(tsb);
 

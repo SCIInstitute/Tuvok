@@ -371,14 +371,13 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
         }
       }
 
- 
-      // HACK: For now we set bias to 0 for unsigned file as we've encountered a number 
-      // of DICOM files files were the bias parameter would create negative values and 
-      // so far I don't know how to interpret this correctly
+      // HACK: For now we set bias to 0 for unsigned file as we've
+      // encountered a number of DICOM files files were the bias
+      // parameter would create negative values and so far I don't know
+      // how to interpret this correctly
       if (!pDICOMStack->m_bSigned) pDICOMFileInfo->m_fBias = 0.0f;
 
-
-     if (pDICOMFileInfo->m_fScale != 1.0f || pDICOMFileInfo->m_fBias != 0.0f) {
+      if (pDICOMFileInfo->m_fScale != 1.0f || pDICOMFileInfo->m_fBias != 0.0f) {
         MESSAGE("Applying Scale and Bias  ...");
         if (pDICOMStack->m_bSigned) {
           switch (pDICOMStack->m_iAllocated) {
@@ -434,7 +433,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
       // component data is 4 component data to simplify processing later.
       /// @todo FIXME: this code assumes 3 component data is always 3*char
       if (pDICOMStack->m_iComponentCount == 3) {
-        uint32_t iRGBADataSize = (iDataSize / 3 ) * 4;
+        uint32_t iRGBADataSize = (iDataSize / 3) * 4;
 
         // Later we'll tell RAWConverter that this dataset has
         // m_iComponentCount components.  Since we're upping the number of
@@ -443,7 +442,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
         // Do note that the number of components in the data and the number of
         // components in our in-memory copy of the data now differ.
 
-        unsigned char *pRGBAData = new unsigned char[ iRGBADataSize ];
+        unsigned char *pRGBAData = new unsigned char[iRGBADataSize];
         for (uint32_t k = 0;k<iDataSize/3;k++) {
           pRGBAData[k*4+0] = vData[k*3+0];
           pRGBAData[k*4+1] = vData[k*3+1];
@@ -451,7 +450,7 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
           pRGBAData[k*4+3] = 255;
         }
         fs.write((char*)pRGBAData, iRGBADataSize);
-        delete [] pRGBAData;
+        delete[] pRGBAData;
       } else {
         fs.write(&vData[0], iDataSize);
       }
@@ -478,9 +477,8 @@ bool IOManager::ConvertDataset(FileStackInfo* pStack,
                                       false, iSize, pDICOMStack->m_fvfAspect,
                                       "DICOM stack",
                                       SysTools::GetFilename(
-                                        pDICOMStack->m_Elements[0]->m_strFileName)
-                                      + " to " +
-                                      SysTools::GetFilename(
+                                      pDICOMStack->m_Elements[0]->m_strFileName)
+                                      + " to " + SysTools::GetFilename(
                                         pDICOMStack->m_Elements[
                                           pDICOMStack->m_Elements.size()-1
                                         ]->m_strFileName
@@ -1338,7 +1336,6 @@ public:
   }
 
   virtual ~MCDataTemplate() {
-    delete m_pMarchingCubes;
     tuvok::Mesh m = tuvok::Mesh(m_vertices, m_normals, tuvok::TexCoordVec(),
                                 tuvok::ColorVec(), m_indices, m_indices, 
                                 tuvok::IndexVec(),tuvok::IndexVec(), 
@@ -1353,7 +1350,8 @@ public:
     T* ptData = (T*)pData;
 
     // extract isosurface
-    m_pMarchingCubes->SetVolume(vBrickSize.x, vBrickSize.y, vBrickSize.z, ptData);
+    m_pMarchingCubes->SetVolume(vBrickSize.x, vBrickSize.y, vBrickSize.z,
+                                ptData);
     m_pMarchingCubes->Process(m_TIsoValue);
 
     // brick scale
@@ -1363,7 +1361,7 @@ public:
     vecBrickOffset = vecBrickOffset * m_vScale;
 
     for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
-        m_vertices.push_back((m_pMarchingCubes->m_Isosurface->vfVertices[i]+vecBrickOffset-FLOATVECTOR3(m_vDataSize)/2.0f)/fMaxSize);
+      m_vertices.push_back((m_pMarchingCubes->m_Isosurface->vfVertices[i]+vecBrickOffset-FLOATVECTOR3(m_vDataSize)/2.0f)/fMaxSize);
     }
 
     for (int i = 0;i<m_pMarchingCubes->m_Isosurface->iVertices;i++) {
@@ -1383,8 +1381,8 @@ public:
 
 protected:
   T                  m_TIsoValue;
-  uint32_t             m_iIndexoffset;
-  MarchingCubes<T>*  m_pMarchingCubes;
+  uint32_t           m_iIndexoffset;
+  std::tr1::shared_ptr<MarchingCubes<T> > m_pMarchingCubes;
   UINT64VECTOR3      m_vDataSize;
   tuvok::AbstrGeoConverter* m_conv;
   FLOATVECTOR4       m_vColor;
@@ -1405,7 +1403,7 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
   }
 
   string strTempFilename = strTempDir + SysTools::GetFilename(strTargetFilename)+".tmp_raw";
-  MCData* pMCData = NULL;
+  std::tr1::shared_ptr<MCData> pMCData;
 
   bool   bFloatingPoint  = pSourceData->GetIsFloat();
   bool   bSigned         = pSourceData->GetIsSigned();
@@ -1424,24 +1422,54 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
   if (bFloatingPoint) {
     if (bSigned) {
       switch (iComponentSize) {
-        case 32 : pMCData = new MCDataTemplate<float>(strTargetFilename, float(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
-        case 64 : pMCData = new MCDataTemplate<double>(strTargetFilename, double(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case 32:
+          pMCData.reset(new MCDataTemplate<float>(strTargetFilename,
+            float(fIsovalue), vScale, vDomainSize, conv, vfColor
+          )); break;
+        case 64:
+          pMCData.reset(new MCDataTemplate<double>(strTargetFilename,
+            double(fIsovalue), vScale, vDomainSize, conv, vfColor
+          )); break;
       }
     }
   } else {
     if (bSigned) {
       switch (iComponentSize) {
-        case  8 : pMCData = new MCDataTemplate<char>(strTargetFilename, char(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
-        case 16 : pMCData = new MCDataTemplate<short>(strTargetFilename, short(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
-        case 32 : pMCData = new MCDataTemplate<int>(strTargetFilename, int(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
-        case 64 : pMCData = new MCDataTemplate<int64_t>(strTargetFilename, int64_t(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case  8:
+          pMCData.reset(new MCDataTemplate<char>(strTargetFilename,
+            char(fIsovalue), vScale, vDomainSize, conv, vfColor
+          )); break;
+        case 16:
+          pMCData.reset(new MCDataTemplate<short>(strTargetFilename,
+            short(fIsovalue), vScale, vDomainSize, conv, vfColor
+          )); break;
+        case 32:
+          pMCData.reset(new MCDataTemplate<int>(strTargetFilename,
+            int(fIsovalue), vScale, vDomainSize, conv, vfColor
+          )); break;
+        case 64:
+          pMCData.reset(new MCDataTemplate<int64_t>(strTargetFilename,
+            int64_t(fIsovalue), vScale, vDomainSize, conv, vfColor
+          )); break;
       }
     } else {
       switch (iComponentSize) {
-        case  8 : pMCData = new MCDataTemplate<unsigned char>(strTargetFilename, (unsigned char)(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
-        case 16 : pMCData = new MCDataTemplate<unsigned short>(strTargetFilename, (unsigned short)(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
-        case 32 : pMCData = new MCDataTemplate<uint32_t>(strTargetFilename, uint32_t(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
-        case 64 : pMCData = new MCDataTemplate<uint64_t>(strTargetFilename, uint64_t(fIsovalue), vScale, vDomainSize, conv, vfColor); break;
+        case  8:
+          pMCData.reset(new MCDataTemplate<unsigned char>(strTargetFilename,
+            (unsigned char)(fIsovalue), vScale, vDomainSize, conv, vfColor
+          )); break;
+        case 16:
+          pMCData.reset(new MCDataTemplate<unsigned short>(strTargetFilename,
+            (unsigned short)(fIsovalue), vScale, vDomainSize, conv, vfColor
+          )); break;
+        case 32:
+          pMCData.reset(new MCDataTemplate<uint32_t>(strTargetFilename,
+            uint32_t(fIsovalue), vScale, vDomainSize, conv, vfColor
+          )); break;
+        case 64:
+          pMCData.reset(new MCDataTemplate<uint64_t>(strTargetFilename,
+            uint64_t(fIsovalue), vScale, vDomainSize, conv, vfColor
+          )); break;
       }
     }
   }
@@ -1451,10 +1479,10 @@ bool IOManager::ExtractIsosurface(const tuvok::UVFDataset* pSourceData,
     return false;
   }
 
-  bool bResult = pSourceData->ApplyFunction(iLODlevel,&MCBrick, (void*)pMCData, 1);
+  bool bResult = pSourceData->ApplyFunction(iLODlevel,&MCBrick,
+                                            (void*)pMCData.get(), 1);
 
   if (SysTools::FileExists(strTempFilename)) remove (strTempFilename.c_str());
-  delete pMCData;
 
   if (bResult)
     return true;
@@ -2278,7 +2306,7 @@ void TypedRead(std::vector<T>& data,
 namespace {
   template<typename T>
   void ReadAndEvalBrick(
-    RasterDataBlock* rdb,
+    RasterDataBlock& rdb,
     const std::vector<std::tr1::shared_ptr<UVFDataset> >& uvfs,
     const std::vector<BrickTable::const_iterator>& iters,
     tuvok::expression::Node* tree
@@ -2295,7 +2323,7 @@ namespace {
 
     MESSAGE("Writing ...");
     NDBrickKey nk = uvfs[0]->IndexToVectorKey(iters[0]->first);
-    if(false == rdb->SetData(&output[0], nk.lod, nk.brick)) {
+    if(false == rdb.SetData(&output[0], nk.lod, nk.brick)) {
       T_ERROR("Write failed!");
     }
   }
@@ -2357,7 +2385,7 @@ IOManager::EvaluateExpression(const char* expr,
   }
 #endif
 
-  RasterDataBlock* rdb = new RasterDataBlock();
+  std::tr1::shared_ptr<RasterDataBlock> rdb(new RasterDataBlock());
   rdb->SetBlockSemantic(UVFTables::BS_REG_NDIM_GRID);
   rdb->SetIdentityTransformation();
   rdb->SetTypeToUShort(UVFTables::ES_RED);
@@ -2394,32 +2422,32 @@ IOManager::EvaluateExpression(const char* expr,
               static_cast<unsigned>(i+1), static_cast<unsigned>(uvf.size()));
       // Read in the data we need.
       if(is_float && bit_width == 32) {
-        ReadAndEvalBrick<float>(rdb, uvf, viters, tree);
+        ReadAndEvalBrick<float>(*rdb, uvf, viters, tree);
       } else if(is_float && bit_width == 64) {
         // Not implemented in UVF...
         T_ERROR("double format data not supported!");
         continue;
       } else if( is_signed && bit_width ==  8) {
-        ReadAndEvalBrick< int8_t>(rdb, uvf, viters, tree);
+        ReadAndEvalBrick< int8_t>(*rdb, uvf, viters, tree);
       } else if(!is_signed && bit_width ==  8) {
-        ReadAndEvalBrick<uint8_t>(rdb, uvf, viters, tree);
+        ReadAndEvalBrick<uint8_t>(*rdb, uvf, viters, tree);
       } else if( is_signed && bit_width == 16) {
-        ReadAndEvalBrick< int16_t>(rdb, uvf, viters, tree);
+        ReadAndEvalBrick< int16_t>(*rdb, uvf, viters, tree);
       } else if(!is_signed && bit_width == 16) {
-        ReadAndEvalBrick<uint16_t>(rdb, uvf, viters, tree);
+        ReadAndEvalBrick<uint16_t>(*rdb, uvf, viters, tree);
       // These types aren't yet implemented in UVF/RasterDataBlock.
       } else if( is_signed && bit_width == 32) {
         T_ERROR("32bit signed int data not implemented!");
-        //ReadAndEvalBrick< int32_t>(rdb, uvf, viters, tree);
+        //ReadAndEvalBrick< int32_t>(*rdb, uvf, viters, tree);
       } else if(!is_signed && bit_width == 32) {
         T_ERROR("32bit unsigned data not implemented!");
-        //ReadAndEvalBrick<uint32_t>(rdb, uvf, viters, tree);
+        //ReadAndEvalBrick<uint32_t>(*rdb, uvf, viters, tree);
       } else if( is_signed && bit_width == 64) {
         T_ERROR("64bit signed int data not implemented!");
-        //ReadAndEvalBrick< int64_t>(rdb, uvf, viters, tree);
+        //ReadAndEvalBrick< int64_t>(*rdb, uvf, viters, tree);
       } else if(!is_signed && bit_width == 64) {
         T_ERROR("64bit unsigned data not implemented!");
-        //ReadAndEvalBrick<uint64_t>(rdb, uvf, viters, tree);
+        //ReadAndEvalBrick<uint64_t>(*rdb, uvf, viters, tree);
       } else {
         T_ERROR("Could not figure out destination data type!");
       }
@@ -2433,9 +2461,7 @@ IOManager::EvaluateExpression(const char* expr,
                                  _1, 1));
   }
 
-  CreateUVFFromRDB(out_fn, rdb);
-
-  delete rdb;
+  CreateUVFFromRDB(out_fn, rdb.get());
 }
 
 bool IOManager::ReBrickDataset(const string& strSourceFilename,
@@ -2467,16 +2493,16 @@ bool IOManager::ReBrickDataset(const string& strSourceFilename,
 }
 
 
-void IOManager::CopyToTSB(const Mesh* m, GeometryDataBlock* tsb) const {
+void IOManager::CopyToTSB(const Mesh& m, GeometryDataBlock* tsb) const {
   // source data
-  const VertVec&      v = m->GetVertices();
-  const NormVec&      n = m->GetNormals();
-  const TexCoordVec&  t = m->GetTexCoords();
-  const ColorVec&     c = m->GetColors();
+  const VertVec&      v = m.GetVertices();
+  const NormVec&      n = m.GetNormals();
+  const TexCoordVec&  t = m.GetTexCoords();
+  const ColorVec&     c = m.GetColors();
 
   // target data
   vector<float> fVec;
-  size_t iVerticesPerPoly = m->GetVerticesPerPoly();
+  size_t iVerticesPerPoly = m.GetVerticesPerPoly();
   tsb->SetPolySize(iVerticesPerPoly );
 
   if (v.size()) {fVec.resize(v.size()*3); memcpy(&fVec[0],&v[0],v.size()*3*sizeof(float)); tsb->SetVertices(fVec);}
@@ -2484,22 +2510,22 @@ void IOManager::CopyToTSB(const Mesh* m, GeometryDataBlock* tsb) const {
   if (t.size()) {fVec.resize(t.size()*2); memcpy(&fVec[0],&t[0],t.size()*2*sizeof(float)); tsb->SetTexCoords(fVec);}
   if (c.size()) {fVec.resize(c.size()*4); memcpy(&fVec[0],&c[0],c.size()*4*sizeof(float)); tsb->SetColors(fVec);}
 
-  tsb->SetVertexIndices(m->GetVertexIndices());
-  tsb->SetNormalIndices(m->GetNormalIndices());
-  tsb->SetTexCoordIndices(m->GetTexCoordIndices());
-  tsb->SetColorIndices(m->GetColorIndices());
+  tsb->SetVertexIndices(m.GetVertexIndices());
+  tsb->SetNormalIndices(m.GetNormalIndices());
+  tsb->SetTexCoordIndices(m.GetTexCoordIndices());
+  tsb->SetColorIndices(m.GetColorIndices());
 
-  tsb->m_Desc = m->Name();
+  tsb->m_Desc = m.Name();
 }
 
 
-Mesh* IOManager::LoadMesh(const string& meshfile) const
+std::tr1::shared_ptr<Mesh> IOManager::LoadMesh(const string& meshfile) const
 {
   MESSAGE("Opening Mesh File ...");
 
   // iterate through all our converters, stopping when one successfully
   // converts our data.
-  Mesh* m = NULL;
+  std::tr1::shared_ptr<Mesh> m;
   for(vector<AbstrGeoConverter*>::const_iterator conv =
       m_vpGeoConverters.begin(); conv != m_vpGeoConverters.end(); ++conv) {
     MESSAGE("Attempting converter '%s'", (*conv)->GetDesc().c_str());
@@ -2520,12 +2546,12 @@ Mesh* IOManager::LoadMesh(const string& meshfile) const
 }
 
 void IOManager::AddMesh(const UVF* sourceDataset,
-                           const string& meshfile,
-                           const string& uvf_fn) const
+                        const string& meshfile,
+                        const string& uvf_fn) const
 {
-  Mesh* m = LoadMesh(meshfile);
+  std::tr1::shared_ptr<Mesh> m = LoadMesh(meshfile);
 
-  if (m == NULL) {
+  if (!m) {
     WARNING("No converter for geometry file %s can be found",
             meshfile.c_str());
     throw tuvok::io::DSOpenFailed(meshfile.c_str(), __FILE__, __LINE__);
@@ -2538,7 +2564,7 @@ void IOManager::AddMesh(const UVF* sourceDataset,
   std::tr1::shared_ptr<GeometryDataBlock> tsb(new GeometryDataBlock());
 
   // ... and transfer the data from the mesh object
-  CopyToTSB(m, tsb.get());
+  CopyToTSB(*m, tsb.get());
 
   wstring wuvf(uvf_fn.begin(), uvf_fn.end());
   UVF uvfFile(wuvf);

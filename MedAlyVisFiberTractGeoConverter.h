@@ -41,12 +41,13 @@
 #include "AbstrGeoConverter.h"
 
 namespace tuvok {
-
   class MedAlyVisFiberTractGeoConverter : public AbstrGeoConverter {
   public:
     MedAlyVisFiberTractGeoConverter();
     virtual ~MedAlyVisFiberTractGeoConverter() {}
-    virtual Mesh* ConvertToMesh(const std::string& strFilename);
+    virtual std::tr1::shared_ptr<Mesh> ConvertToMesh(
+      const std::string& strFilename
+    );
 
     virtual bool CanImportData() const { return true; }
 
