@@ -2399,7 +2399,7 @@ IOManager::EvaluateExpression(const char* expr,
     // (happens with experimental features enabled in settings -- see RAWConverter::ConvertRAWDataset(...) ).
     if (rdb1 == NULL) {
       throw tuvok::io::IOException("No raster data blocks present in the first volume.",
-                __FILE__, __LINE__);
+                                   __FILE__, __LINE__);
     }
     *rdb = *rdb1;
   }
