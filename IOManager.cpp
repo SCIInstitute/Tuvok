@@ -2395,10 +2395,12 @@ IOManager::EvaluateExpression(const char* expr,
     UVF firstvol(wide_vol);
     firstvol.Open(false, false, false);
     const RasterDataBlock* rdb1 = GetFirstRDB(firstvol);
-    // Received this exception when using datasets that were converted to the octree based UVF format
-    // (happens with experimental features enabled in settings -- see RAWConverter::ConvertRAWDataset(...) ).
+    // Received this exception when using datasets that were converted to the
+    // octree based UVF format (happens with experimental features enabled in
+    // settings -- see RAWConverter::ConvertRAWDataset(...) ).
     if (rdb1 == NULL) {
-      throw tuvok::io::IOException("No raster data blocks present in the first volume.",
+      throw tuvok::io::IOException("No raster data blocks present in the "
+                                   "first volume.",
                                    __FILE__, __LINE__);
     }
     *rdb = *rdb1;
