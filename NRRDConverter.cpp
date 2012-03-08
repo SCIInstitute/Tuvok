@@ -145,7 +145,6 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
       iComponentSize = 32;
     } else if (kvpType->strValueUpper == "UINT" ||
                kvpType->strValueUpper == "UNSIGNED INT" ||
-               kvpType->strValueUpper == "uint32_t" ||
                kvpType->strValueUpper == "UINT32_T") {
       bSigned = false;
       bIsFloat = false;
@@ -163,7 +162,6 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     } else if (kvpType->strValueUpper == "ULONGLONG" ||
                kvpType->strValueUpper == "UNSIGNED LONG LONG" ||
                kvpType->strValueUpper == "UNSIGNED LONG LONG INT" ||
-               kvpType->strValueUpper == "uint64_t" ||
                kvpType->strValueUpper == "UINT64_T") {
       bSigned = true;
       bIsFloat = false;
