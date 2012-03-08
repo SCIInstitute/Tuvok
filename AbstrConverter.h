@@ -479,7 +479,6 @@ public:
 
     delete[] pInData;
     delete[] pOutData;
-    InputData.Close();
     if(Histogram1D) { Histogram1D->SetHistogram(aHist); }
 
     if (bDataWillbeChanged) {
