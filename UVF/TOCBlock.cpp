@@ -61,6 +61,9 @@ uint64_t TOCBlock::CopyToFile(LargeRAWFile_ptr pStreamFile, uint64_t iOffset,
   for (uint64_t i = 0;i<iDataSize;i+=BLOCK_COPY_SIZE) {
     uint64_t iCopySize = min(BLOCK_COPY_SIZE, iDataSize-i);
     uint64_t bytes = m_pStreamFile->ReadRAW(pData, iCopySize);
+#ifdef NDEBUG
+    (void)bytes;
+#endif
     assert(bytes == iCopySize && "we know the exact file size; a short read "
            "makes no sense.");
     bytes = pStreamFile->WriteRAW(pData, iCopySize);
