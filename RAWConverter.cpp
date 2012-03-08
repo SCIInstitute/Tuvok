@@ -667,7 +667,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       iHeaderSkip += iComponentSize/8 * iComponentCount * vVolumeSize.volume();
 
       if (!sourceData->IsOpen()) {
-        T_ERROR("Unable to open source file %s",
+        T_ERROR("Unable to open source file '%s'",
                 sourceData->GetFilename().c_str());
         return false;
       }
