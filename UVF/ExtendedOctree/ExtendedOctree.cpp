@@ -163,6 +163,7 @@ void ExtendedOctree::ComputeMetadata() {
     l.m_iLODBrickCount.y = uint64_t(ceil( vVolumeSize.y / double(vUsableBrickSize.y)));
     l.m_iLODBrickCount.z = uint64_t(ceil( vVolumeSize.z / double(vUsableBrickSize.z)));
 
+    l.m_iLoDOffset = 0; // don't know it yet, but for now quiet a warning.
     m_vLODTable.push_back(l);
   } while (vVolumeSize.x > vUsableBrickSize.x ||
            vVolumeSize.y > vUsableBrickSize.y ||
