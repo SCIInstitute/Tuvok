@@ -93,6 +93,7 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
   vVolumeSize = UINT64VECTOR3(1,1,1);
   vVolumeAspect = FLOATVECTOR3(1,1,1);
   string        strRAWFile;
+  bDeleteIntermediateFile = false;
 
   // read data
   KeyValueFileParser parser(strSourceFilename, true);
