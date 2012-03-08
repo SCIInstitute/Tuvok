@@ -52,6 +52,30 @@ HEADERS += \
            3rdParty/GLEW/GL/glew.h \
            3rdParty/GLEW/GL/glxew.h \
            3rdParty/GLEW/GL/wglew.h \
+           3rdParty/LUA/lapi.h \
+           3rdParty/LUA/lauxlib.h \
+           3rdParty/LUA/lcode.h \
+           3rdParty/LUA/lctype.h \
+           3rdParty/LUA/ldebug.h \
+           3rdParty/LUA/ldo.h \
+           3rdParty/LUA/lfunc.h \
+           3rdParty/LUA/lgc.h \
+           3rdParty/LUA/llimits.h \
+           3rdParty/LUA/lmem.h \
+           3rdParty/LUA/lobject.h \
+           3rdParty/LUA/lopcodes.h \
+           3rdParty/LUA/lparser.h \
+           3rdParty/LUA/lstate.h \
+           3rdParty/LUA/lstring.h \
+           3rdParty/LUA/ltable.h \
+           3rdParty/LUA/ltm.h \
+           3rdParty/LUA/lua.h \
+           3rdParty/LUA/lua.hpp \
+           3rdParty/LUA/luaconf.h \
+           3rdParty/LUA/lualib.h \
+           3rdParty/LUA/lundump.h \
+           3rdParty/LUA/lvm.h \
+           3rdParty/LUA/lzio.h \
            Basics/Appendix.h \
            Basics/ArcBall.h \
            Basics/Checksums/crc32.h \
@@ -215,6 +239,38 @@ unix:HEADERS += \
 
 SOURCES += \
            3rdParty/GLEW/GL/glew.c \
+           3rdParty/LUA/lapi.c \
+           3rdParty/LUA/lauxlib.c \
+           3rdParty/LUA/lbaselib.c \
+           3rdParty/LUA/lbitlib.c \
+           3rdParty/LUA/lcode.c \
+           3rdParty/LUA/lcorolib.c \
+           3rdParty/LUA/lctype.c \
+           3rdParty/LUA/ldblib.c \
+           3rdParty/LUA/ldebug.c \
+           3rdParty/LUA/ldo.c \
+           3rdParty/LUA/ldump.c \
+           3rdParty/LUA/lfunc.c \
+           3rdParty/LUA/lgc.c \
+           3rdParty/LUA/linit.c \
+           3rdParty/LUA/liolib.c \
+           3rdParty/LUA/llex.c \
+           3rdParty/LUA/lmathlib.c \
+           3rdParty/LUA/lmem.c \
+           3rdParty/LUA/loadlib.c \
+           3rdParty/LUA/lobject.c \
+           3rdParty/LUA/lopcodes.c \
+           3rdParty/LUA/loslib.c \
+           3rdParty/LUA/lparser.c \
+           3rdParty/LUA/lstate.c \
+           3rdParty/LUA/lstring.c \
+           3rdParty/LUA/lstrlib.c \
+           3rdParty/LUA/ltable.c \
+           3rdParty/LUA/ltablib.c \
+           3rdParty/LUA/ltm.c \
+           3rdParty/LUA/lundump.c \
+           3rdParty/LUA/lvm.c \
+           3rdParty/LUA/lzio.c \
            Basics/Appendix.cpp \
            Basics/ArcBall.cpp \
            Basics/Checksums/MD5.cpp \
