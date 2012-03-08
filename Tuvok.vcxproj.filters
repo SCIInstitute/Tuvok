@@ -109,6 +109,9 @@
     <Filter Include="IO\UVF\ExtendedOctree">
       <UniqueIdentifier>{1e4cc322-e18f-4a8d-b2c8-1fcd1b0e6e47}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3rd Party\LUA">
+      <UniqueIdentifier>{5cc872bb-81d0-4e04-b08d-aceaf76ab364}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Basics\Appendix.cpp">
@@ -812,6 +815,102 @@
     </ClCompile>
     <ClCompile Include="IO\AmiraConverter.cpp">
       <Filter>IO\Volume Converter</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lapi.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lauxlib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lbaselib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lbitlib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lcode.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lcorolib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lctype.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\ldblib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\ldebug.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\ldo.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\ldump.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lfunc.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lgc.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\linit.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\liolib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\llex.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lmathlib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lmem.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\loadlib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lobject.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lopcodes.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\loslib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lparser.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lstate.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lstring.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lstrlib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\ltable.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\ltablib.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\ltm.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lundump.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lvm.c">
+      <Filter>3rd Party\LUA</Filter>
+    </ClCompile>
+    <ClCompile Include="3rdParty\LUA\lzio.c">
+      <Filter>3rd Party\LUA</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1643,6 +1742,81 @@
     </ClInclude>
     <ClInclude Include="IO\AmiraConverter.h">
       <Filter>IO\Volume Converter</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lapi.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lauxlib.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lcode.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lctype.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\ldebug.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\ldo.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lfunc.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lgc.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\llex.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\llimits.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lmem.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lobject.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lopcodes.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lparser.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lstate.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lstring.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\ltable.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\ltm.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lua.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lua.hpp">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\luaconf.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lualib.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lundump.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lvm.h">
+      <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="3rdParty\LUA\lzio.h">
+      <Filter>3rd Party\LUA</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
