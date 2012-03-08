@@ -107,35 +107,64 @@ bool NRRDConverter::ConvertToRAW(const std::string& strSourceFilename,
     T_ERROR("Could not open find token \"type\" in file %s", strSourceFilename.c_str());
     return false;
   } else {
-    if (kvpType->strValueUpper == "SIGNED CHAR" || kvpType->strValueUpper == "INT8" || kvpType->strValueUpper == "INT8_T") {
+    if (kvpType->strValueUpper == "SIGNED CHAR" ||
+        kvpType->strValueUpper == "INT8" || kvpType->strValueUpper == "INT8_T") {
       bSigned = true;
       bIsFloat = false;
       iComponentSize = 8;
-    } else if (kvpType->strValueUpper == "UCHAR" || kvpType->strValueUpper == "UNSIGNED CHAR" ||  kvpType->strValueUpper == "UINT8" || kvpType->strValueUpper == "UINT8_T") {
+    } else if (kvpType->strValueUpper == "UCHAR" ||
+               kvpType->strValueUpper == "UNSIGNED CHAR" ||
+               kvpType->strValueUpper == "UINT8" ||
+               kvpType->strValueUpper == "UINT8_T") {
       bSigned = false;
       bIsFloat = false;
       iComponentSize = 8;
-    } else if (kvpType->strValueUpper == "SHORT" || kvpType->strValueUpper == "SHORT INT" ||  kvpType->strValueUpper == "SIGNED SHORT" || kvpType->strValueUpper == "SIGNED SHORT INT" || kvpType->strValueUpper == "INT16" || kvpType->strValueUpper == "INT16_T") {
+    } else if (kvpType->strValueUpper == "SHORT" ||
+               kvpType->strValueUpper == "SHORT INT" ||
+               kvpType->strValueUpper == "SIGNED SHORT" ||
+               kvpType->strValueUpper == "SIGNED SHORT INT" ||
+               kvpType->strValueUpper == "INT16" ||
+               kvpType->strValueUpper == "INT16_T") {
       bSigned = true;
       bIsFloat = false;
       iComponentSize = 16;
-    } else if (kvpType->strValueUpper == "USHORT" || kvpType->strValueUpper == "UNSIGNED SHORT" || kvpType->strValueUpper == "UNSIGNED SHORT INT" || kvpType->strValueUpper == "UINT16" || kvpType->strValueUpper == "UINT16_T") {
+    } else if (kvpType->strValueUpper == "USHORT" ||
+               kvpType->strValueUpper == "UNSIGNED SHORT" ||
+               kvpType->strValueUpper == "UNSIGNED SHORT INT" ||
+               kvpType->strValueUpper == "UINT16" ||
+               kvpType->strValueUpper == "UINT16_T") {
       bSigned = false;
       bIsFloat = false;
       iComponentSize = 16;
-    } else if (kvpType->strValueUpper == "INT" || kvpType->strValueUpper == "SIGNED INT" || kvpType->strValueUpper == "INT32" || kvpType->strValueUpper == "INT32_T") {
+    } else if (kvpType->strValueUpper == "INT" ||
+               kvpType->strValueUpper == "SIGNED INT" ||
+               kvpType->strValueUpper == "INT32" ||
+               kvpType->strValueUpper == "INT32_T") {
       bSigned = true;
       bIsFloat = false;
       iComponentSize = 32;
-    } else if (kvpType->strValueUpper == "UINT" || kvpType->strValueUpper == "UNSIGNED INT" || kvpType->strValueUpper == "uint32_t" || kvpType->strValueUpper == "UINT32_T") {
+    } else if (kvpType->strValueUpper == "UINT" ||
+               kvpType->strValueUpper == "UNSIGNED INT" ||
+               kvpType->strValueUpper == "uint32_t" ||
+               kvpType->strValueUpper == "UINT32_T") {
       bSigned = false;
       bIsFloat = false;
       iComponentSize = 32;
-    } else if (kvpType->strValueUpper == "LONGLONG" || kvpType->strValueUpper == "LONG LONG" || kvpType->strValueUpper == "LONG LONG INT" || kvpType->strValueUpper == "SIGNED LONG LONG" || kvpType->strValueUpper == "SIGNED LONG LONG INT" || kvpType->strValueUpper == "INT64" || kvpType->strValueUpper == "INT64_T") {
+    } else if (kvpType->strValueUpper == "LONGLONG" ||
+               kvpType->strValueUpper == "LONG LONG" ||
+               kvpType->strValueUpper == "LONG LONG INT" ||
+               kvpType->strValueUpper == "SIGNED LONG LONG" ||
+               kvpType->strValueUpper == "SIGNED LONG LONG INT" ||
+               kvpType->strValueUpper == "INT64" ||
+               kvpType->strValueUpper == "INT64_T") {
       bSigned = true;
       bIsFloat = false;
       iComponentSize = 64;
-    } else if (kvpType->strValueUpper == "ULONGLONG" || kvpType->strValueUpper == "UNSIGNED LONG LONG" || kvpType->strValueUpper == "UNSIGNED LONG LONG INT" || kvpType->strValueUpper == "uint64_t" || kvpType->strValueUpper == "UINT64_T") {
+    } else if (kvpType->strValueUpper == "ULONGLONG" ||
+               kvpType->strValueUpper == "UNSIGNED LONG LONG" ||
+               kvpType->strValueUpper == "UNSIGNED LONG LONG INT" ||
+               kvpType->strValueUpper == "uint64_t" ||
+               kvpType->strValueUpper == "UINT64_T") {
       bSigned = true;
       bIsFloat = false;
       iComponentSize = 64;
