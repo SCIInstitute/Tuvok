@@ -147,7 +147,8 @@ bool KitwareConverter::ConvertToRAW(const std::string& strSourceFilename,
 
 
     if (ElementNumberOfChannels == NULL) {
-      MESSAGE("Unable to find 'ElementNumberOfChannels ' tag in file %s assuming scalar data.", strSourceFilename.c_str());
+      MESSAGE("Unable to find 'ElementNumberOfChannels' tag in file '%s'; "
+              "assuming scalar data.", strSourceFilename.c_str());
       iComponentCount = 1;
     } else {
       iComponentCount = ElementNumberOfChannels->iValue;
