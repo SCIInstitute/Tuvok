@@ -453,18 +453,16 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
 
   for(size_t ts=0; ts < static_cast<size_t>(timesteps); ++ts) {
-    
     blocks[ts].maxmin = std::tr1::shared_ptr<MaxMinDataBlock>(
       new MaxMinDataBlock(static_cast<size_t>(iComponentCount))
       );
     blocks[ts].hist2d = std::tr1::shared_ptr<Histogram2DDataBlock>(
       new Histogram2DDataBlock()
-      );    
+      );
 
     std::tr1::shared_ptr<MaxMinDataBlock> MaxMinData = blocks[ts].maxmin;
 
     if (Controller::ConstInstance().ExperimentalFeatures()) {
-
       blocks[ts].tocblock = std::tr1::shared_ptr<TOCBlock>(
         new TOCBlock()
       );
@@ -485,19 +483,19 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       ExtendedOctree::COMPONENT_TYPE ct = ExtendedOctree::CT_UINT8;
 
       switch (iComponentSize) {
-      case 8  : 
+      case 8  :
         ct = (bSigned) ? ExtendedOctree::CT_INT8 : ExtendedOctree::CT_UINT8;
         break;
-      case 16 : 
+      case 16 :
         ct = (bSigned) ? ExtendedOctree::CT_INT16 : ExtendedOctree::CT_UINT16;
         break;
-      case 32 : 
+      case 32 :
         if (bIsFloat)
           ct = ExtendedOctree::CT_FLOAT32;
         else
           ct = (bSigned) ? ExtendedOctree::CT_INT32 : ExtendedOctree::CT_UINT32;
         break;
-      case 64 : 
+      case 64 :
         if (bIsFloat)
           ct = ExtendedOctree::CT_FLOAT64;
         else
@@ -513,10 +511,10 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       }
 
       MESSAGE("Building level of detail hierarchy ...");
-      bool bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile, 
-        ct, iComponentCount, 
+      bool bBrickingOK = dataVolume->FlatDataToBrickedLOD(sourceData, tmpfile,
+        ct, iComponentCount,
         vVolumeSize,
-        DOUBLEVECTOR3(vVolumeAspect), 
+        DOUBLEVECTOR3(vVolumeAspect),
         UINTVECTOR3(uint32_t(iTargetBrickSize),uint32_t(iTargetBrickSize),uint32_t(iTargetBrickSize)),
         uint32_t(iTargetBrickOverlap),
         size_t(Controller::ConstInstance().SysInfo()->GetCPUMemSize()),
@@ -568,9 +566,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           );
         uvfFile.AddDataBlock(Histogram2D);
       }
-
     } else {
-
       blocks[ts].rdb = std::tr1::shared_ptr<RasterDataBlock>(
         new RasterDataBlock()
         );
@@ -795,16 +791,11 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           );
         uvfFile.AddDataBlock(Histogram2D);
       }
-
-  }
-
-
-
+    }
     MESSAGE("Storing acceleration data...");
     uvfFile.AddDataBlock(MaxMinData);
     sourceData->Close();
   }
-
 
   MESSAGE("Storing metadata...");
 
