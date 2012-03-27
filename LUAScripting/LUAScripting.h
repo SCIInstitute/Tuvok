@@ -112,12 +112,13 @@ public:
     int initStackTop = lua_gettop(mL);
 
     // Idea: Build a 'callable' table.
-    // It's metatable will have a __call metamethod that points at the
+    // Its metatable will have a __call metamethod that points to the
     // function closure.
 
-    // We do this, instead of associating a metatable with the closure itself,
-    // because all metatables are unique per-type (this is true for everything
-    // except tables).
+    // We do this because all metatables are unique per-type which eliminates
+    // the possibilty of using a metatable on the function closure itself.
+    // The only exception to this rule is the table type, its metatable is
+    // unique per table.
 
     // Table containing the function closure.
     lua_newtable(mL);
@@ -133,6 +134,7 @@ public:
                        LUACFunExec<FunPtr>::returnType>::exec,
                      1);
 
+    // Associate closure with __call metamethod.
     lua_setfield(mL, -2, "__call");
 
     // Associate metatable with primary table.

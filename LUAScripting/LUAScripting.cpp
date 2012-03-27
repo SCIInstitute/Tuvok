@@ -299,8 +299,7 @@ namespace
     sc->registerFunction(&dfun, "func", "Test");
 
     luaL_dostring(L, "return getmetatable(test.dummyFun).__call(1,2,39)");
-    luaL_dostring(L, "return (test[\"dummyFun\"])(1,2,39)");
-    luaL_dostring(L, "return (test.dummyFun)(1,2,39)");
+    luaL_dostring(L, "return test.dummyFun(1,2,39)");
     CHECK_EQUAL(42, lua_tointeger(L, -1));
     lua_pop(L, 1);
 
@@ -324,7 +323,11 @@ namespace
     CHECK_EQUAL(42, lua_tointeger(L, -1));
     lua_pop(L, 1);
 
-    luaL_dostring(L, "return func(1,2,39)");
+    //luaL_dostring(L, "return getmetatable(func).__call(1,2,39)");
+    //luaL_dostring(L, "return func(1,2,39)");
+    luaL_loadstring(L, "func(1,2,39)");
+    luaL_loadstring(L, "return func(1,2,39)");
+    lua_pcall(L, 0, LUA_MULTRET, 0);
     CHECK_EQUAL(42, lua_tointeger(L, -1));
     lua_pop(L, 1);
 

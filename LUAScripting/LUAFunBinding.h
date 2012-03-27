@@ -272,10 +272,6 @@ public:
     #error LUAFunBinding.h redefines PLP
 #endif
 
-#ifdef PHP_INIT
-    #error LUAFunBinding.h redefines PHP_INIT
-#endif
-
 #ifdef PHP
     #error LUAFunBinding.h redefines PHP
 #endif
@@ -290,31 +286,32 @@ public:
 // The classes below could easily be written without these preprocessor macros,
 // but they make it easier to replicate the classes when more parameters are
 // needed.
-#define EP_INIT   int pos = 1;
+#define EP_INIT     int pos = 2;  // We are using the __call metamethod, so
+                                  // the table associated with the metamethod
+                                  // will take the first stack position.
 
 // Variable Name
-#define NM(x)     x##_v
+#define NM(x)       x##_v
 
 // Extract Parameter
-#define EP(x)     x NM(x) = LUAStrictStack<x>::get(L, pos); ++pos;
+#define EP(x)       x NM(x) = LUAStrictStack<x>::get(L, pos); ++pos;
 
 // Function signature extraction
-#define SG(x)     LUAStrictStack<x>::getTypeStr()
+#define SG(x)       LUAStrictStack<x>::getTypeStr()
 
 // Member variable name and definition.
-#define M_NM(x)   x##_mv
-#define MVAR(x)   x M_NM(x)
+#define M_NM(x)     x##_mv
+#define MVAR(x)     x M_NM(x)
 
-// Pull parameter from stack into member variable.
-#define PLP_INIT  int pos = 1;
-#define PLP(x)    M_NM(x) = LUAStrictStack<x>::get(L, pos); ++pos;
+// Pull parameter from stack into member variable (starts at x -- start index)
+#define PLP_INIT(x) int pos = x;
+#define PLP(x)      M_NM(x) = LUAStrictStack<x>::get(L, pos); ++pos;
 
 // Push parameter from member variable onto the top of the stack.
-#define PHP_INIT  int pos = 1;
-#define PHP(x)    LUAStrictStack<x>::push(L, M_NM(x)); ++pos;
+#define PHP(x)      LUAStrictStack<x>::push(L, M_NM(x));
 
 // Member variable initialization (initialize with the default for that type).
-#define MVIT(x)   M_NM(x)(LUAStrictStack<x>::getDefault())
+#define MVIT(x)     M_NM(x)(LUAStrictStack<x>::getDefault())
 
 // LUA C function execution template.
 template<typename LUAFunExec>
@@ -328,7 +325,8 @@ class LUACFunExec
   // Pushing and pulling parameters from the stack are used to store parameters
   // on the undo / redo stacks within the program.
   void pushParamsToStack(lua_State* L) const;
-  void pullParamsFromStack(lua_State* L);
+  void pullParamsFromStack(lua_State* L, int si); // si = start index on the
+                                                  // stack
 };
 
 //--------------
@@ -349,8 +347,8 @@ public:
     return SG(Ret) + " " + funcName + "()";
   }
 
-  void pushParamsToStack(lua_State* L) const  {}
-  void pullParamsFromStack(lua_State* L)      {}
+  void pushParamsToStack(lua_State* L) const      {}
+  void pullParamsFromStack(lua_State* L, int si)  {}
 };
 
 //-------------
@@ -377,9 +375,9 @@ public:
   : MVIT(P1) {}
 
   void pushParamsToStack(lua_State* L) const
-  { PHP_INIT; PHP(P1); }
-  void pullParamsFromStack(lua_State* L)
-  { PLP_INIT; PLP(P1); }
+  { PHP(P1); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); }
 
   // Member variables.
   MVAR(P1);
@@ -409,9 +407,9 @@ public:
     : MVIT(P1), MVIT(P2) {}
 
   void pushParamsToStack(lua_State* L) const
-  { PHP_INIT; PHP(P1); PHP(P2); }
-  void pullParamsFromStack(lua_State* L)
-  { PLP_INIT; PLP(P1); PLP(P2); }
+  { PHP(P1); PHP(P2); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); }
 
   // Member variables.
   MVAR(P1); MVAR(P2);
@@ -442,9 +440,9 @@ public:
     : MVIT(P1), MVIT(P2), MVIT(P3) {}
 
   void pushParamsToStack(lua_State* L) const
-  { PHP_INIT; PHP(P1); PHP(P2); PHP(P3); }
-  void pullParamsFromStack(lua_State* L)
-  { PLP_INIT; PLP(P1); PLP(P2); PLP(P3); }
+  { PHP(P1); PHP(P2); PHP(P3); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); }
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3);
@@ -475,9 +473,9 @@ public:
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
 
   void pushParamsToStack(lua_State* L) const
-  { PHP_INIT; PHP(P1); PHP(P2); PHP(P3); PHP(P4); }
-  void pullParamsFromStack(lua_State* L)
-  { PLP_INIT; PLP(P1); PLP(P2); PLP(P3); PLP(P4); }
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); }
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4);
@@ -509,9 +507,9 @@ public:
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
 
   void pushParamsToStack(lua_State* L) const
-  { PHP_INIT; PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); }
-  void pullParamsFromStack(lua_State* L)
-  { PLP_INIT; PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5);
@@ -543,9 +541,9 @@ public:
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
 
   void pushParamsToStack(lua_State* L) const
-  { PHP_INIT; PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
-  void pullParamsFromStack(lua_State* L)
-  { PLP_INIT; PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6);
@@ -563,7 +561,6 @@ public:
 #undef MVAR
 #undef PLP_INIT
 #undef PLP
-#undef PHP_INIT
 #undef PHP
 #undef MVIT
 
