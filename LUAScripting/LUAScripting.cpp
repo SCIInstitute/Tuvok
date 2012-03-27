@@ -127,20 +127,20 @@ void* LUAScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
 string LUAScripting::getUnqualifiedName(const string& fqName) const
 {
   const string delims(QUALIFIED_NAME_DELIMITER);
-  string::size_type beg = fqName.find_last_of(delims, 0);
+  string::size_type beg = fqName.find_last_of(delims);
   if (beg == string::npos)
   {
     return fqName;
   }
   else
   {
-    return fqName.substr(beg, string::npos);
+    return fqName.substr(beg + 1, string::npos);
   }
 }
 
 //-----------------------------------------------------------------------------
-void LUAScripting::bindClosureWithFQName(const string& fqName,
-                                         int tableIndex)
+void LUAScripting::bindClosureTableWithFQName(const string& fqName,
+                                              int tableIndex)
 {
   int baseStackIndex = lua_gettop(mL);
 
@@ -188,7 +188,27 @@ void LUAScripting::bindClosureWithFQName(const string& fqName,
       lua_pushvalue(mL, -1);    // Push table to keep it on the stack.
       lua_setglobal(mL, token.c_str());
     }
-    else if (type != LUA_TTABLE)  // Other
+    else if (type == LUA_TTABLE)  // Other
+    {
+      // Check to make sure this table is NOT a registered function.
+      if (lua_getmetatable(mL, -1) != 0)
+      {
+        // We have a metatable, check to see if isRegFunc exists and is 1.
+        lua_getfield(mL, -1, "isRegFunc");
+        if (lua_isnil(mL, -1) == 0)
+        {
+          // We already know that it is a function at this point, but lets go
+          // through the motions anyways.
+          if (lua_toboolean(mL, -1) == 1)
+          {
+            throw LUAFunBindError("Can't register functions on top of other"
+                                  "functions.");
+          }
+        }
+        lua_pop(mL, 1);
+      }
+    }
+    else
     {
       throw LUAFunBindError("A module in the fully qualified name"
                             "not of type table.");
@@ -258,11 +278,29 @@ void LUAScripting::bindClosureWithFQName(const string& fqName,
       {
         // Keep the table at the top, but remove the table we came from.
         lua_remove(mL, -2);
+
+        // Check to make sure this table is NOT a registered function.
+        if (lua_getmetatable(mL, -1) != 0)
+        {
+          // We have a metatable, check to see if isRegFunc exists and is 1.
+          lua_getfield(mL, -1, "isRegFunc");
+          if (lua_isnil(mL, -1) == 0)
+          {
+            // We already know that it is a function at this point, but lets go
+            // through the motions anyways.
+            if (lua_toboolean(mL, -1) == 1)
+            {
+              throw LUAFunBindError("Can't register functions on top of other"
+                                    "functions.");
+            }
+          }
+          lua_pop(mL, 1);
+        }
       }
       else
       {
         throw LUAFunBindError("A module in the fully qualified name"
-                                      "not of type table.");
+                              "not of type table.");
       }
     }
   }
@@ -367,7 +405,6 @@ namespace
 
   int dfun(int a, int b, int c)
   {
-    printf("dfun called\n");
     return a + b + c;
   }
 }

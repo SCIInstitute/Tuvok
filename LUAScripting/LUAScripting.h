@@ -137,10 +137,17 @@ public:
     // Associate closure with __call metamethod.
     lua_setfield(mL, -2, "__call");
 
+    // Add boolean to the metatable indicating that this table is a registered
+    // function. Used to ensure that we can't register functions 'on top' of
+    // other functions.
+    // e.g. If we register renderer.eye as a function, without this check, we
+    // could also register renderer.eye.ball as a function.
+    // While it works just fine, it's confusing, so we're disallowing it.
+    lua_pushboolean(mL, 1);
+    lua_setfield(mL, -2, "isRegFunc");
+
     // Associate metatable with primary table.
     lua_setmetatable(mL, -2);
-
-    // Begin building function metadata.
 
     // Function description
     lua_pushstring(mL, TBL_MD_DESC);
@@ -200,7 +207,6 @@ public:
     lua_pushvalue(mL, -2);
     lua_settable(mL, tableIndex);
 
-    //lua_pop(mL, 1); // Pop defaults table.
     // Do a deep copy of the defaults table.
     // If we don't do this, we push another reference of the defaults table
     // instead of a deep copy of the table.
@@ -227,7 +233,7 @@ public:
 
     // Install the closure in the appropriate module based on its
     // fully qualified name.
-    bindClosureWithFQName(name, tableIndex);
+    bindClosureTableWithFQName(name, tableIndex);
 
     lua_pop(mL, 1);   // Pop the closure table.
 
@@ -240,8 +246,8 @@ public:
   // system.
   lua_State* getLUAState()  {return mL;}
 
-  // Names for data stored in a function closure's metadata table.
-  // Exposed for debugging purposes.
+  // Names for data stored in a function's encapsulating table.
+  // Exposed for unit testing purposes.
   static const char* TBL_MD_DESC;         ///< Description
   static const char* TBL_MD_SIG;          ///< Signature
   static const char* TBL_MD_SIG_NAME;     ///< Signature with name
@@ -254,7 +260,7 @@ private:
 
   /// Binds the closure given at closureIndex to the fully qualified name (fq).
   /// ensureModuleExists and bindClosureToTable are helper functions.
-  void bindClosureWithFQName(const std::string& fqName, int closureIndex);
+  void bindClosureTableWithFQName(const std::string& fqName, int closureIndex);
 
   /// Retrieves the unqualified name given the qualified name.
   std::string getUnqualifiedName(const std::string& fqName) const;
