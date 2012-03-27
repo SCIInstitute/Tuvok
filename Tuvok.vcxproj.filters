@@ -816,100 +816,100 @@
     <ClCompile Include="IO\AmiraConverter.cpp">
       <Filter>IO\Volume Converter</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lapi.c">
+    <ClCompile Include="3rdParty\LUA\lapi.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lauxlib.c">
+    <ClCompile Include="3rdParty\LUA\lauxlib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lbaselib.c">
+    <ClCompile Include="3rdParty\LUA\lbaselib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lbitlib.c">
+    <ClCompile Include="3rdParty\LUA\lbitlib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lcode.c">
+    <ClCompile Include="3rdParty\LUA\lcode.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lcorolib.c">
+    <ClCompile Include="3rdParty\LUA\lcorolib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lctype.c">
+    <ClCompile Include="3rdParty\LUA\lctype.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\ldblib.c">
+    <ClCompile Include="3rdParty\LUA\ldblib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\ldebug.c">
+    <ClCompile Include="3rdParty\LUA\ldebug.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\ldo.c">
+    <ClCompile Include="3rdParty\LUA\ldo.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\ldump.c">
+    <ClCompile Include="3rdParty\LUA\ldump.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lfunc.c">
+    <ClCompile Include="3rdParty\LUA\lfunc.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lgc.c">
+    <ClCompile Include="3rdParty\LUA\lgc.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\linit.c">
+    <ClCompile Include="3rdParty\LUA\linit.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\liolib.c">
+    <ClCompile Include="3rdParty\LUA\liolib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\llex.c">
+    <ClCompile Include="3rdParty\LUA\llex.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lmathlib.c">
+    <ClCompile Include="3rdParty\LUA\lmathlib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lmem.c">
+    <ClCompile Include="3rdParty\LUA\lmem.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\loadlib.c">
+    <ClCompile Include="3rdParty\LUA\loadlib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lobject.c">
+    <ClCompile Include="3rdParty\LUA\lobject.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lopcodes.c">
+    <ClCompile Include="3rdParty\LUA\lopcodes.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\loslib.c">
+    <ClCompile Include="3rdParty\LUA\loslib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lparser.c">
+    <ClCompile Include="3rdParty\LUA\lparser.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lstate.c">
+    <ClCompile Include="3rdParty\LUA\lstate.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lstring.c">
+    <ClCompile Include="3rdParty\LUA\lstring.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lstrlib.c">
+    <ClCompile Include="3rdParty\LUA\lstrlib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\ltable.c">
+    <ClCompile Include="3rdParty\LUA\ltable.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\ltablib.c">
+    <ClCompile Include="3rdParty\LUA\ltablib.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\ltm.c">
+    <ClCompile Include="3rdParty\LUA\ltm.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lundump.c">
+    <ClCompile Include="3rdParty\LUA\lundump.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lvm.c">
+    <ClCompile Include="3rdParty\LUA\lvm.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
-    <ClCompile Include="3rdParty\LUA\lzio.c">
+    <ClCompile Include="3rdParty\LUA\lzio.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
   </ItemGroup>

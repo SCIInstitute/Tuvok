@@ -1765,11 +1765,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -1789,7 +1789,7 @@
 				Name="LUA"
 				>
 				<File
-					RelativePath=".\3rdParty\LUA\lapi.c"
+					RelativePath=".\3rdParty\LUA\lapi.cpp"
 					>
 				</File>
 				<File
@@ -1797,7 +1797,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lauxlib.c"
+					RelativePath=".\3rdParty\LUA\lauxlib.cpp"
 					>
 				</File>
 				<File
@@ -1805,15 +1805,15 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lbaselib.c"
+					RelativePath=".\3rdParty\LUA\lbaselib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lbitlib.c"
+					RelativePath=".\3rdParty\LUA\lbitlib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lcode.c"
+					RelativePath=".\3rdParty\LUA\lcode.cpp"
 					>
 				</File>
 				<File
@@ -1821,11 +1821,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lcorolib.c"
+					RelativePath=".\3rdParty\LUA\lcorolib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lctype.c"
+					RelativePath=".\3rdParty\LUA\lctype.cpp"
 					>
 				</File>
 				<File
@@ -1833,11 +1833,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\ldblib.c"
+					RelativePath=".\3rdParty\LUA\ldblib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\ldebug.c"
+					RelativePath=".\3rdParty\LUA\ldebug.cpp"
 					>
 				</File>
 				<File
@@ -1845,7 +1845,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\ldo.c"
+					RelativePath=".\3rdParty\LUA\ldo.cpp"
 					>
 				</File>
 				<File
@@ -1853,11 +1853,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\ldump.c"
+					RelativePath=".\3rdParty\LUA\ldump.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lfunc.c"
+					RelativePath=".\3rdParty\LUA\lfunc.cpp"
 					>
 				</File>
 				<File
@@ -1865,7 +1865,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lgc.c"
+					RelativePath=".\3rdParty\LUA\lgc.cpp"
 					>
 				</File>
 				<File
@@ -1873,15 +1873,15 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\linit.c"
+					RelativePath=".\3rdParty\LUA\linit.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\liolib.c"
+					RelativePath=".\3rdParty\LUA\liolib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\llex.c"
+					RelativePath=".\3rdParty\LUA\llex.cpp"
 					>
 				</File>
 				<File
@@ -1893,11 +1893,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lmathlib.c"
+					RelativePath=".\3rdParty\LUA\lmathlib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lmem.c"
+					RelativePath=".\3rdParty\LUA\lmem.cpp"
 					>
 				</File>
 				<File
@@ -1905,11 +1905,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\loadlib.c"
+					RelativePath=".\3rdParty\LUA\loadlib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lobject.c"
+					RelativePath=".\3rdParty\LUA\lobject.cpp"
 					>
 				</File>
 				<File
@@ -1917,7 +1917,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lopcodes.c"
+					RelativePath=".\3rdParty\LUA\lopcodes.cpp"
 					>
 				</File>
 				<File
@@ -1925,11 +1925,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\loslib.c"
+					RelativePath=".\3rdParty\LUA\loslib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lparser.c"
+					RelativePath=".\3rdParty\LUA\lparser.cpp"
 					>
 				</File>
 				<File
@@ -1937,7 +1937,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lstate.c"
+					RelativePath=".\3rdParty\LUA\lstate.cpp"
 					>
 				</File>
 				<File
@@ -1945,7 +1945,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lstring.c"
+					RelativePath=".\3rdParty\LUA\lstring.cpp"
 					>
 				</File>
 				<File
@@ -1953,11 +1953,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lstrlib.c"
+					RelativePath=".\3rdParty\LUA\lstrlib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\ltable.c"
+					RelativePath=".\3rdParty\LUA\ltable.cpp"
 					>
 				</File>
 				<File
@@ -1965,11 +1965,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\ltablib.c"
+					RelativePath=".\3rdParty\LUA\ltablib.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\ltm.c"
+					RelativePath=".\3rdParty\LUA\ltm.cpp"
 					>
 				</File>
 				<File
@@ -1993,7 +1993,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lundump.c"
+					RelativePath=".\3rdParty\LUA\lundump.cpp"
 					>
 				</File>
 				<File
@@ -2001,7 +2001,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lvm.c"
+					RelativePath=".\3rdParty\LUA\lvm.cpp"
 					>
 				</File>
 				<File
@@ -2009,7 +2009,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\3rdParty\LUA\lzio.c"
+					RelativePath=".\3rdParty\LUA\lzio.cpp"
 					>
 				</File>
 				<File
