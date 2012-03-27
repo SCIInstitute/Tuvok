@@ -27,30 +27,50 @@
  */
 
 /**
- \file    LUAScripting_test.cpp
+ \file    LUAScriptHook.h
  \author  James Hughes
           SCI Institute
           University of Utah
- \date    Mar 21, 2012
- \brief   Unit tests for the LUATesting class.
+ \date    Mar 26, 2012
+ \brief   A hook into the LUAScriptingSystem.
+          Gets called when hooked LUA functions are executed.
+          Used for updating the UI when actions, such as undo/redo, are
+          executed.
+          Instantiate this class alongside your class.
  */
 
-#ifndef EXTERNAL_UNIT_TESTING
+#ifndef LUASCRIPT_HOOK_H_
+#define LUASCRIPT_HOOK_H_
 
-#include "Controller/Controller.h"
-#include "3rdParty/LUA/lua.hpp"
-
-#else
-
-#include <assert.h>
-#include "utestCommon.h"
-
-#endif
-
-#include <vector>
-#include "LUAScripting.h"
 
 namespace tuvok
 {
 
-} /* namespace tuvok */
+class LUAScripting;
+
+class LUAScriptHook
+{
+public:
+
+  LUAScriptHook(std::tr1::shared_ptr<LUAScripting> scriptSys);
+  virtual ~LUAScriptHook();
+
+  /// Hooks the indicated fully qualified function name with the given function.
+  /// \param  fqName    Fully qualified name to hook.
+  /// \param  f         Function pointer.
+  template <typename FunPtr>
+  void hookFunction(const std::string& fqName, FunPtr f);
+
+private:
+
+  /// Scripting system we are bound to.
+  std::tr1::shared_ptr<LUAScripting>  mScriptSystem;
+
+  /// Functions registered with this hook.
+  std::vector<std::string>            mHookedFunctions;
+};
+
+}
+
+#endif
+

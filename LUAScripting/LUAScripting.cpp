@@ -61,7 +61,6 @@ using namespace std;
 namespace tuvok
 {
 
-
 const char* LUAScripting::TBL_MD_DESC           = "desc";
 const char* LUAScripting::TBL_MD_SIG            = "signature";
 const char* LUAScripting::TBL_MD_SIG_NAME       = "sigName";
@@ -891,7 +890,7 @@ SUITE(TestLUAScriptingSystem)
     string m3(float a)  {return "Test str";}
     int m4(string reg)
     {
-      printf("Testing string print %s", reg.c_str());
+      printf("Str Print: %s\n", reg.c_str());
       return 67;
     }
   };

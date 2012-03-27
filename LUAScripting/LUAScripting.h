@@ -80,7 +80,7 @@ struct LUAMemberCallback
 {
   static int exec(lua_State* L)
   {
-    FunPtr fp = (FunPtr)lua_touserdata(L, lua_upvalueindex(1));
+    FunPtr fp = *(FunPtr*)lua_touserdata(L, lua_upvalueindex(1));
     typename LUACFunExec<FunPtr>::classType* C =
         static_cast<typename LUACFunExec<FunPtr>::classType*>(
             lua_touserdata(L, lua_upvalueindex(2)));
@@ -135,22 +135,6 @@ public:
   /// in performance critical code, otherwise just pass back a reference to
   /// to an internal structure.
   std::vector<FunctionDesc> getAllFuncDescs() const;
-
-
-  /// Binds a function to be called when one of the registered LUA functions
-  /// execute. Example uses of this function: updating the UI when an undo
-  /// is issued (it needs to know what information to update).
-  /// \param  f         The function to call when hookTo is executed.
-  ///                   Must have the same function signature as hookTo.
-  ///                   Will be checked at runtime.
-  /// \param  hookTo    The fully qualified name to bind to. A function
-  ///                   must already be registered with this hook name.
-  ///                   E.G. "render.eye".
-  template <typename FunPtr>
-  void addHook(FunPtr f, const std::string& hookTo)
-  {
-
-  }
 
   /// Registers a static C++ function with LUA.
   /// Since LUA is compiled as CPP, it is safe to throw exceptions from the
@@ -230,9 +214,35 @@ public:
     // Create a callable function table and leave it on the stack.
     lua_CFunction proxyFunc = &LUAMemberCallback<FunPtr, typename
         LUACFunExec<FunPtr>::returnType>::exec;
-    createCallableFuncTable(proxyFunc, f, NULL);
+//    createCallableFuncTable(proxyFunc, f, NULL);
 
+    // Table containing the function closure.
+    lua_newtable(mL);
     int tableIndex = lua_gettop(mL);
+
+    // Create a new metatable
+    lua_newtable(mL);
+
+    // Create a full user data and store the function pointer data inside of it.
+    void* udata = lua_newuserdata(mL, sizeof(FunPtr));
+    memcpy(udata, &f, sizeof(FunPtr));
+    lua_pushlightuserdata(mL, (void*)C);
+    lua_pushcclosure(mL, proxyFunc, 2);
+
+    // Associate closure with __call metamethod.
+    lua_setfield(mL, -2, "__call");
+
+    // Add boolean to the metatable indicating that this table is a registered
+    // function. Used to ensure that we can't register functions 'on top' of
+    // other functions.
+    // e.g. If we register renderer.eye as a function, without this check, we
+    // could also register renderer.eye.ball as a function.
+    // While it works just fine, it's confusing, so we're disallowing it.
+    lua_pushboolean(mL, 1);
+    lua_setfield(mL, -2, "isRegFunc");
+
+    // Associate metatable with primary table.
+    lua_setmetatable(mL, -2);
 
     // Add function metadata to the table.
     std::string sig = LUACFunExec<FunPtr>::getSignature("");
@@ -277,9 +287,23 @@ public:
 
 private:
 
+  /// Binds a function to be called when one of the registered LUA functions
+  /// execute. Example uses of this function: updating the UI when an undo
+  /// is issued (it needs to know what information to update).
+  /// \param  f         The function to call when hookTo is executed.
+  ///                   Must have the same function signature as hookTo.
+  ///                   Will be checked at runtime.
+  /// \param  hookTo    The fully qualified name to bind to. A function
+  ///                   must already be registered with this hook name.
+  ///                   E.G. "render.eye".
+  template <typename FunPtr>
+  void addHook(FunPtr f, const std::string& hookTo)
+  {
+
+  }
+
   /// Returns true if the table at stackIndex is a registered function.
   bool isRegisteredFunction(int stackIndex) const;
-
 
   /// Creates a callable LUA table. classInstance can be NULL.
   /// Leaves the table on the top of the LUA stack.
