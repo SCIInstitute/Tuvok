@@ -77,7 +77,6 @@ LUAScripting::LUAScripting()
 
   if (mL == NULL) throw LUAError("Failed to initialize LUA.");
 
-  // Setup lua panic function and open default libraries.
   lua_atpanic(mL, &luaPanic);
   luaL_openlibs(mL);
 }
@@ -127,7 +126,7 @@ vector<LUAScripting::FunctionDesc> LUAScripting::getAllFuncDescs() const
 {
   vector<LUAScripting::FunctionDesc> ret;
 
-  // Iterate over all registered modules, and do a recursive descent through
+  // Iterate over all registered modules and do a recursive descent through
   // all of the tables to find all functions.
   for (vector<string>::const_iterator it = mRegisteredGlobals.begin();
        it != mRegisteredGlobals.end(); ++it)
@@ -152,10 +151,7 @@ void LUAScripting::getTableFuncDefs(vector<LUAScripting::FunctionDesc>& descs)
   {
     // The name of the function is the 'key'.
     FunctionDesc desc;
-    // DO NOT DO THIS. This confuses lua_next -- it promotes the key value
-    // to a string.
-    //desc.funcName = lua_tostring(mL, -2);
-    // That is why we push the key, then perform the string translation.
+
     lua_getfield(mL, -1, TBL_MD_QNAME);
     desc.funcName = getUnqualifiedName(string(lua_tostring(mL, -1)));
     lua_pop(mL, 1);
@@ -181,13 +177,11 @@ void LUAScripting::getTableFuncDefs(vector<LUAScripting::FunctionDesc>& descs)
   {
     // Check if the value is a table. If so, check to see if it is a function,
     // otherwise, recurse into the table.
-    // Value is at the top of the stack.
     int type = lua_type(mL, -1);
-    // Create a new table (module) at the global level.
+
     if (type == LUA_TTABLE)
     {
       // Recurse into the table.
-      // Ensure there at least 2 empty stack slots.
       lua_checkstack(mL, 2);
       getTableFuncDefs(descs);
     }
@@ -363,7 +357,7 @@ void LUAScripting::bindClosureTableWithFQName(const string& fqName,
     }
   }
 
-  // This is a programmer error, NOT forwardly visible to the user.
+  // If this assert fails, it is a programmer error.
   assert(baseStackIndex == lua_gettop(mL));
 }
 
@@ -394,8 +388,7 @@ bool LUAScripting::isRegisteredFunction(int stackIndex) const
 
 //-----------------------------------------------------------------------------
 void LUAScripting::createCallableFuncTable(lua_CFunction proxyFunc,
-                                           void* realFuncToCall,
-                                           void* classInstance)
+                                           void* realFuncToCall)
 {
   // Table containing the function closure.
   lua_newtable(mL);
@@ -406,8 +399,7 @@ void LUAScripting::createCallableFuncTable(lua_CFunction proxyFunc,
 
   // Push C Closure containing our function pointer onto the LUA stack.
   lua_pushlightuserdata(mL, (void*)realFuncToCall);
-  lua_pushlightuserdata(mL, (void*)classInstance);
-  lua_pushcclosure(mL, proxyFunc, 2);
+  lua_pushcclosure(mL, proxyFunc, 1);
 
   // Associate closure with __call metamethod.
   lua_setfield(mL, -2, "__call");
@@ -483,7 +475,7 @@ void LUAScripting::createDefaultsAndLastExecTables(int tableIndex,
     lua_settable(mL, defTablePos);
   }
 
-  // Insert defaults table in closure metatable.
+  // Insert defaults table in closure table.
   lua_pushstring(mL, TBL_MD_FUN_PDEFS);
   lua_pushvalue(mL, defTablePos);
   lua_settable(mL, tableIndex);

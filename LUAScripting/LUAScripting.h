@@ -46,8 +46,7 @@ namespace tuvok
 // LUA BINDING HELPER STRUCTURES
 //===============================
 
-// These structures were created in order to handle void return types *easily*
-// and without code duplication.
+// These structures were created in order to handle void return types *easily*.
 
 /// TODO: Store LUAScripting class as an upvalue.
 
@@ -79,12 +78,10 @@ struct LUACallback <FunPtr, void>
 // LUA SCRIPTING CLASS
 //=====================
 
-// TODO: Add pointer to member variables and user data.
-
 class LUAScripting
 {
   friend class LUAMemberHook; // For adding member function hooks.
-  friend class LUAMemberReg;  // For adding member function regisration.
+  friend class LUAMemberReg;  // For adding member function registration.
 public:
 
   LUAScripting();
@@ -96,7 +93,7 @@ public:
     std::string funcName;   ///< Name of the function.
     std::string funcDesc;   ///< Description of the function provided by the
                             ///< registrar.
-    std::string funcSig;    ///< Function signature includes the function name.
+    std::string funcSig;    ///< Function signature, includes the function name.
   };
 
   /// Return all function descriptions.
@@ -107,9 +104,9 @@ public:
   /// Unregisters the function associated with the fully qualified name.
   void unregisterFunction(const std::string& fqName);
 
-  /// Hooks the indicated fully qualified function name with the given function.
-  /// \param  fqName    Fully qualified name to hook.
+  /// Hooks a fully qualified function name with the given function.
   /// \param  f         Function pointer.
+  /// \param  fqName    Fully qualified name to hook.
   //
   /// TO HOOK MEMBER FUNCTIONS: To install hooks using member functions,
   /// use the LUAMemberHook mediator class. This class will automatically
@@ -136,7 +133,7 @@ public:
   ///               C++ functions are allowed, with the exception of periods.
   ///               Example: "renderer.eye"
   ///               To call a function registered with the name in the example,
-  ///               just call: renderer.eye( ... ) in LUA.
+  ///               just call renderer.eye( ... ) in LUA.
   /// \param  desc  Description of f.
   //
   /// TO REGISTER MEMBER FUNCTIONS: To register member functions,
@@ -158,7 +155,7 @@ public:
     // Create a callable function table and leave it on the stack.
     lua_CFunction proxyFunc = &LUACallback<FunPtr, typename
         LUACFunExec<FunPtr>::returnType>::exec;
-    createCallableFuncTable(proxyFunc, (void*)f, NULL);
+    createCallableFuncTable(proxyFunc, (void*)f);
 
     int tableIndex = lua_gettop(mL);
 
@@ -188,9 +185,9 @@ public:
     assert(initStackTop == lua_gettop(mL));
   }
 
-  // This function is to be used only for testing.
-  // Upgrade to a shared_ptr if it is to be used outside the LUA scripting
-  // system.
+  /// This function is to be used only for testing.
+  /// Upgrade to a shared_ptr if it is to be used outside the LUA scripting
+  /// system.
   lua_State* getLUAState()  {return mL;}
 
   // Names for data stored in a function's encapsulating table.
@@ -209,8 +206,7 @@ private:
   /// Returns true if the table at stackIndex is a registered function.
   bool isRegisteredFunction(int stackIndex) const;
 
-  /// Retrieves the function table with the associated with the fully qualified
-  /// function name.
+  /// Retrieves the function table given the fully qualified function name.
   /// Places the function table at the top of the stack. If the function fails
   /// to find the function table, false is returned and nothing is pushed
   /// onto the stack.
@@ -219,8 +215,7 @@ private:
   /// Creates a callable LUA table. classInstance can be NULL.
   /// Leaves the table on the top of the LUA stack.
   void createCallableFuncTable(lua_CFunction proxyFunc,
-                               void* realFuncToCall,
-                               void* classInstance);
+                               void* realFuncToCall);
 
   /// Populates the table at the given index with the given function metadata.
   void populateWithMetadata(const std::string& name,
@@ -229,13 +224,12 @@ private:
                             const std::string& signatureWithName,
                             int tableIndex);
 
-  /// Creates the defaults and last exec tables, and places them inside the
+  /// Creates the defaults and last exec tables and places them inside the
   /// table given at tableIndex.
   /// Expects that the parameters are at the top of the stack.
   void createDefaultsAndLastExecTables(int tableIndex, int numParams);
 
   /// Binds the closure given at closureIndex to the fully qualified name (fq).
-  /// ensureModuleExists and bindClosureToTable are helper functions.
   void bindClosureTableWithFQName(const std::string& fqName, int closureIndex);
 
   /// Retrieves the unqualified name given the qualified name.
@@ -255,9 +249,8 @@ private:
   /// The one true LUA state.
   lua_State*                mL;
 
-  /// List of registered modules/functions that in LUA's global table.
-  /// Used to iterate through all registered functions and return a description
-  /// related to those functions.
+  /// List of registered modules/functions in LUA's global table.
+  /// Used to iterate through all registered functions.
   std::vector<std::string>  mRegisteredGlobals;
 
 

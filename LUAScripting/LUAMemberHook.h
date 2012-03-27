@@ -66,10 +66,10 @@ public:
 
   }
 
-  /// TODO: implement a 'loose' hook where the function one has to match a
+  /// TODO: implement a 'loose' hook where the function must match a
   ///       particular signature (such as void myfunc(lua_State* L).
   ///       Only do this if there is an identifiable need for it.
-  ///       I want imagevis3d to throw exceptions when its api changes, and it
+  ///       I want imagevis3d to throw exceptions when its api changes and it
   ///       hasn't been updated to comply.
 
 

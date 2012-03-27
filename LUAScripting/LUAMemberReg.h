@@ -171,7 +171,7 @@ private:
   std::tr1::shared_ptr<LUAScripting>  mScriptSystem;
 
   /// Functions registered.
-  /// Used for unregistering these functions.
+  /// Used to unregister all functions.
   std::vector<std::string>            mRegisteredFunctions;
 };
 
