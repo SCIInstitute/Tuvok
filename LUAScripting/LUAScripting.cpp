@@ -393,6 +393,131 @@ bool LUAScripting::isRegisteredFunction(int stackIndex) const
 }
 
 
+//-----------------------------------------------------------------------------
+void LUAScripting::createCallableFuncTable(lua_CFunction proxyFunc,
+                                           void* realFuncToCall,
+                                           void* classInstance)
+{
+  // Table containing the function closure.
+  lua_newtable(mL);
+  int tableIndex = lua_gettop(mL);
+
+  // Create a new metatable
+  lua_newtable(mL);
+
+  // Push C Closure containing our function pointer onto the LUA stack.
+  lua_pushlightuserdata(mL, (void*)realFuncToCall);
+  lua_pushlightuserdata(mL, (void*)classInstance);
+  lua_pushcclosure(mL, proxyFunc, 2);
+
+  // Associate closure with __call metamethod.
+  lua_setfield(mL, -2, "__call");
+
+  // Add boolean to the metatable indicating that this table is a registered
+  // function. Used to ensure that we can't register functions 'on top' of
+  // other functions.
+  // e.g. If we register renderer.eye as a function, without this check, we
+  // could also register renderer.eye.ball as a function.
+  // While it works just fine, it's confusing, so we're disallowing it.
+  lua_pushboolean(mL, 1);
+  lua_setfield(mL, -2, "isRegFunc");
+
+  // Associate metatable with primary table.
+  lua_setmetatable(mL, -2);
+
+  // Leave the table on the top of the stack...
+}
+
+//-----------------------------------------------------------------------------
+void LUAScripting::populateWithMetadata(const std::string& name,
+                                        const std::string& desc,
+                                        const std::string& sig,
+                                        const std::string& sigWithName,
+                                        int tableIndex)
+{
+  // XXX: Change these to lua_setfield
+
+  // Function description
+  lua_pushstring(mL, TBL_MD_DESC);
+  lua_pushstring(mL, desc.c_str());
+  lua_settable(mL, tableIndex);
+
+  // Function signature
+  lua_pushstring(mL, TBL_MD_SIG);
+  lua_pushstring(mL, sig.c_str());
+  lua_settable(mL, tableIndex);
+
+  // Function signature with name
+  lua_pushstring(mL, TBL_MD_SIG_NAME);
+  lua_pushstring(mL, sigWithName.c_str());
+  lua_settable(mL, tableIndex);
+
+  // Number of times this function has been executed
+  // (takes into account undos, so if a function is undone then this
+  //  count will decrease).
+  lua_pushstring(mL, TBL_MD_NUM_EXEC);
+  lua_pushnumber(mL, 0);
+  lua_settable(mL, tableIndex);
+
+  // Fully qualified function name.
+  lua_pushstring(mL, TBL_MD_QNAME);
+  lua_pushstring(mL, name.c_str());
+  lua_settable(mL, tableIndex);
+}
+
+//-----------------------------------------------------------------------------
+void LUAScripting::createDefaultsAndLastExecTables(int tableIndex,
+                                                   int numFunParams)
+{
+  int entryTop = lua_gettop(mL);
+  int firstParamPos = (lua_gettop(mL) - numFunParams) + 1;
+
+  // Create defaults table.
+  lua_newtable(mL);
+  int defTablePos = lua_gettop(mL);
+
+  for (int i = 0; i < numFunParams; i++)
+  {
+    int stackIndex = firstParamPos + i;
+    lua_pushnumber(mL, i);
+    lua_pushvalue(mL, stackIndex);
+    lua_settable(mL, defTablePos);
+  }
+
+  // Insert defaults table in closure metatable.
+  lua_pushstring(mL, TBL_MD_FUN_PDEFS);
+  lua_pushvalue(mL, defTablePos);
+  lua_settable(mL, tableIndex);
+
+  // Do a deep copy of the defaults table.
+  // If we don't do this, we push another reference of the defaults table
+  // instead of a deep copy of the table.
+  lua_newtable(mL);
+  int lastExecTablePos = lua_gettop(mL);
+
+  lua_pushnil(mL);  // First key
+  while (lua_next(mL, defTablePos))
+  {
+    lua_pushvalue(mL, -2);  // Push key
+    lua_pushvalue(mL, -2);  // Push value
+    lua_settable(mL, lastExecTablePos);
+    lua_pop(mL, 1);         // Pop value, keep key for next iteration.
+  }
+  // lua_next has popped off our initial key.
+
+  // Push a copy of the defaults table onto the stack, and use it as the
+  // 'last executed values'.
+  lua_pushstring(mL, TBL_MD_FUN_LAST_EXEC);
+  lua_pushvalue(mL, -2);
+  lua_settable(mL, tableIndex);
+
+  lua_pop(mL, 2);   // Pop the last-exec and the default tables.
+
+  // Remove parameters from the stack.
+  lua_pop(mL, numFunParams);
+}
+
+
 //==============================================================================
 //
 // UNIT TESTING
@@ -400,12 +525,17 @@ bool LUAScripting::isRegisteredFunction(int stackIndex) const
 //==============================================================================
 
 #ifdef EXTERNAL_UNIT_TESTING
+
+void printRegisteredFunctions(LUAScripting* s);
+
 namespace
 {
   int dfun(int a, int b, int c);
 
   TEST( TestDynamicModuleRegistration )
   {
+    TEST_HEADER;
+
     auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
     lua_State* L = sc->getLUAState();
 
@@ -480,6 +610,8 @@ namespace
     CHECK_THROW(
         sc->registerFunction(&dfun, "func.Func2", "Func."),
         LUAFunBindError);
+
+    printRegisteredFunctions(sc.get());
   }
 
   int dfun(int a, int b, int c)
@@ -488,7 +620,7 @@ namespace
   }
 }
 
-namespace
+SUITE(TestLUAScriptingSystem)
 {
   string str_int(int in)
   {
@@ -530,6 +662,8 @@ namespace
   // When you add new types to LUAFunBinding.h, test them here.
   TEST( TestRegistration )
   {
+    TEST_HEADER;
+
     auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
     lua_State* L = sc->getLUAState();
 
@@ -553,6 +687,8 @@ namespace
     luaL_dostring(L, "return flt.flt2.int2.dbl2(2,2,1,4,5,5)");
     CHECK_CLOSE(30.0f, lua_tonumber(L, -1), 0.0001f);
     lua_pop(L, 1);
+
+    printRegisteredFunctions(sc.get());
   }
 
 
@@ -560,6 +696,8 @@ namespace
   // Tests a series of functions closure metadata.
   TEST( TestClosureMetadata )
   {
+    TEST_HEADER;
+
     auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
     lua_State* L = sc->getLUAState();
 
@@ -698,12 +836,15 @@ namespace
     // Remove table
     lua_pop(L, 1);
 
-    // No need to test last exec table, it is just a copy of thedefaults table
-    // at this point
+    // No need to test last exec table, it is just a copy of defaults.
+
+    printRegisteredFunctions(sc.get());
   }
 
   TEST(Test_getAllFuncDescs)
   {
+    TEST_HEADER;
+
     // Test retrieval of all function descriptions.
     auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
     lua_State* L = sc->getLUAState();
@@ -738,21 +879,95 @@ namespace
     CHECK_EQUAL("Desc 4", d[3].funcDesc.c_str());
     CHECK_EQUAL("string mixer(bool, int, float, double, string)",
                 d[3].funcSig.c_str());
+
+    printRegisteredFunctions(sc.get());
+  }
+
+  class A
+  {
+  public:
+    bool m1()           {return true;}
+    bool m2(int a)      {return (a > 40) ? true : false;}
+    string m3(float a)  {return "Test str";}
+    int m4(string reg)
+    {
+      printf("Testing string print %s", reg.c_str());
+      return 67;
+    }
+  };
+
+  TEST(MemberFunctionRegistration)
+  {
+    TEST_HEADER;
+
+    auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
+    lua_State* L = sc->getLUAState();
+
+    auto_ptr<A> a(new A);
+
+    sc->registerMemberFunction(a.get(), &A::m1, "a.m1", "A::m1");
+    sc->registerMemberFunction(a.get(), &A::m2, "a.m2", "A::m2");
+    sc->registerMemberFunction(a.get(), &A::m3, "a.m3", "A::m3");
+    sc->registerMemberFunction(a.get(), &A::m4, "m4",   "A::m4");
+
+    luaL_dostring(L, "return a.m1()");
+    CHECK_EQUAL(1, lua_toboolean(L, -1));
+    lua_pop(L, 1);
+
+    luaL_dostring(L, "return a.m2(41)");
+    CHECK_EQUAL(1, lua_toboolean(L, -1));
+    lua_pop(L, 1);
+
+    luaL_dostring(L, "return a.m2(40)");
+    CHECK_EQUAL(0, lua_toboolean(L, -1));
+    lua_pop(L, 1);
+
+    luaL_dostring(L, "return a.m3(4.2)");
+    CHECK_EQUAL("Test str", lua_tostring(L, -1));
+    lua_pop(L, 1);
+
+    luaL_dostring(L, "return m4(\"This is my string\")");
+    CHECK_EQUAL(67, lua_tointeger(L, -1));
+    lua_pop(L, 1);
+  }
+
+  TEST(CallbackMethodsOnExec)
+  {
+    TEST_HEADER;
+
   }
 
   TEST(LastExecMetaPopulation)
   {
+    TEST_HEADER;
 
   }
 
   TEST(Provenance)
   {
+    TEST_HEADER;
 
   }
 
   TEST(UndoRedo)
   {
+    TEST_HEADER;
 
+  }
+}
+
+void printRegisteredFunctions(LUAScripting* s)
+{
+  vector<LUAScripting::FunctionDesc> regFuncs = s->getAllFuncDescs();
+
+  printf("\n All registered functions \n");
+
+  for (vector<LUAScripting::FunctionDesc>::iterator it = regFuncs.begin(); it != regFuncs.end();
+       ++it)
+  {
+    printf("\n  Function:     %s\n", it->funcName.c_str());
+    printf("  Description:  %s\n", it->funcDesc.c_str());
+    printf("  Signature:    %s\n", it->funcSig.c_str());
   }
 }
 

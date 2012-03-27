@@ -49,13 +49,15 @@ namespace tuvok
 // These structures were created in order to handle void return types *easily*
 // and without code duplication.
 
-template <typename FunPtr, typename Ret >
+/// TODO: Store LUAScripting class as an upvalue.
+
+template <typename FunPtr, typename Ret>
 struct LUACallback
 {
   static int exec(lua_State* L)
   {
     FunPtr fp = (FunPtr)lua_touserdata(L, lua_upvalueindex(1));
-    Ret r = LUACFunExec<FunPtr>().run(fp, L);
+    Ret r = LUACFunExec<FunPtr>::run(fp, L);
     LUAStrictStack<Ret>().push(L, r);
     return 1;
   }
@@ -68,7 +70,37 @@ struct LUACallback <FunPtr, void>
   static int exec(lua_State* L)
   {
     FunPtr fp = (FunPtr)lua_touserdata(L, lua_upvalueindex(1));
-    LUACFunExec<FunPtr>().run(fp, L);
+    LUACFunExec<FunPtr>::run(fp, L);
+    return 0;
+  }
+};
+
+template <typename FunPtr, typename Ret>
+struct LUAMemberCallback
+{
+  static int exec(lua_State* L)
+  {
+    FunPtr fp = (FunPtr)lua_touserdata(L, lua_upvalueindex(1));
+    typename LUACFunExec<FunPtr>::classType* C =
+        static_cast<typename LUACFunExec<FunPtr>::classType*>(
+            lua_touserdata(L, lua_upvalueindex(2)));
+    Ret r = LUACFunExec<FunPtr>::run(C, fp, L);
+    LUAStrictStack<Ret>().push(L, r);
+    return 1;
+  }
+};
+
+// Without a return value.
+template <typename FunPtr>
+struct LUAMemberCallback <FunPtr, void>
+{
+  static int exec(lua_State* L)
+  {
+    FunPtr fp = (FunPtr)lua_touserdata(L, lua_upvalueindex(1));
+    typename LUACFunExec<FunPtr>::classType* C =
+        static_cast<typename LUACFunExec<FunPtr>::classType*>(
+            lua_touserdata(L, lua_upvalueindex(2)));
+    LUACFunExec<FunPtr>::run(C, fp, L);
     return 0;
   }
 };
@@ -77,6 +109,7 @@ struct LUACallback <FunPtr, void>
 // LUA SCRIPTING CLASS
 //=====================
 
+// TODO: Add pointer to member variables and user data.
 
 class LUAScripting
 {
@@ -97,12 +130,27 @@ public:
   // Ability to unregister all functions?
 
 
-  // Return all function descriptions.
-  // This vector can be very large. This function will not generally be used
-  // in performance critical code. If it was, pass an internal reference
-  // to a non-local vector.
+  /// Return all function descriptions.
+  /// This vector can be very large. This function will not generally be used
+  /// in performance critical code, otherwise just pass back a reference to
+  /// to an internal structure.
   std::vector<FunctionDesc> getAllFuncDescs() const;
 
+
+  /// Binds a function to be called when one of the registered LUA functions
+  /// execute. Example uses of this function: updating the UI when an undo
+  /// is issued (it needs to know what information to update).
+  /// \param  f         The function to call when hookTo is executed.
+  ///                   Must have the same function signature as hookTo.
+  ///                   Will be checked at runtime.
+  /// \param  hookTo    The fully qualified name to bind to. A function
+  ///                   must already be registered with this hook name.
+  ///                   E.G. "render.eye".
+  template <typename FunPtr>
+  void addHook(FunPtr f, const std::string& hookTo)
+  {
+
+  }
 
   /// Registers a static C++ function with LUA.
   /// Since LUA is compiled as CPP, it is safe to throw exceptions from the
@@ -126,137 +174,89 @@ public:
   void registerFunction(FunPtr f, const std::string& name,
                         const std::string& desc)
   {
-    int initStackTop = lua_gettop(mL);
-
     // Idea: Build a 'callable' table.
-    // Its metatable will have a __call metamethod that points to the
+    // Its metatable will have a __call metamethod that points to the C
     // function closure.
 
     // We do this because all metatables are unique per-type which eliminates
     // the possibilty of using a metatable on the function closure itself.
-    // The only exception to this rule is the table type, its metatable is
-    // unique per table.
+    // The only exception to this rule is the table type itself.
+    int initStackTop = lua_gettop(mL);
 
-    // Table containing the function closure.
-    lua_newtable(mL);
+    // Create a callable function table and leave it on the stack.
+    lua_CFunction proxyFunc = &LUACallback<FunPtr, typename
+        LUACFunExec<FunPtr>::returnType>::exec;
+    createCallableFuncTable(proxyFunc, (void*)f, NULL);
+
     int tableIndex = lua_gettop(mL);
 
-    // Create a new metatable
-    lua_newtable(mL);
+    // Add function metadata to the table.
+    std::string sig = LUACFunExec<FunPtr>::getSignature("");
+    std::string sigWithName = LUACFunExec<FunPtr>::getSignature(
+        getUnqualifiedName(name));
+    populateWithMetadata(name, desc, sig, sigWithName, tableIndex);
 
-    // Push C Closure containing our function pointer onto the LUA stack.
-    lua_pushlightuserdata(mL, (void*)f);
-    lua_pushcclosure(mL,
-                     &LUACallback<FunPtr, typename
-                       LUACFunExec<FunPtr>::returnType>::exec,
-                     1);
-
-    // Associate closure with __call metamethod.
-    lua_setfield(mL, -2, "__call");
-
-    // Add boolean to the metatable indicating that this table is a registered
-    // function. Used to ensure that we can't register functions 'on top' of
-    // other functions.
-    // e.g. If we register renderer.eye as a function, without this check, we
-    // could also register renderer.eye.ball as a function.
-    // While it works just fine, it's confusing, so we're disallowing it.
-    lua_pushboolean(mL, 1);
-    lua_setfield(mL, -2, "isRegFunc");
-
-    // Associate metatable with primary table.
-    lua_setmetatable(mL, -2);
-
-    // Function description
-    lua_pushstring(mL, TBL_MD_DESC);
-    lua_pushstring(mL, desc.c_str());
-    lua_settable(mL, tableIndex);
-
-    // Function signature
-    lua_pushstring(mL, TBL_MD_SIG);
-    lua_pushstring(mL, LUACFunExec<FunPtr>::getSignature("").c_str());
-    lua_settable(mL, tableIndex);
-
-    // Function signature with name
-    lua_pushstring(mL, TBL_MD_SIG_NAME);
-    lua_pushstring(mL, LUACFunExec<FunPtr>::
-                   getSignature(getUnqualifiedName(name)).c_str());
-    lua_settable(mL, tableIndex);
-
-    // Number of times this function has been executed
-    // (takes into account undos, so if a function is undone then this
-    //  count will decrease).
-    lua_pushstring(mL, TBL_MD_NUM_EXEC);
-    lua_pushnumber(mL, 0);
-    lua_settable(mL, tableIndex);
-
-    // Fully qualified function name.
-    lua_pushstring(mL, TBL_MD_QNAME);
-    lua_pushstring(mL, name.c_str());
-    lua_settable(mL, tableIndex);
-
-    // Create and populate the defaults table.
-    lua_newtable(mL);
-
-    int defTablePos = lua_gettop(mL);
+    // Push default values for function parameters onto the stack.
     LUACFunExec<FunPtr> defaultParams = LUACFunExec<FunPtr>();
-    lua_checkstack(mL, 10); // This should be the maximum number of parameters
-                            // accepted by the system.
+    lua_checkstack(mL, 10); // Max num parameters accepted by the system.
     defaultParams.pushParamsToStack(mL);
+    int numFunParams = lua_gettop(mL) - tableIndex;
+    createDefaultsAndLastExecTables(tableIndex, numFunParams);
 
-    int defParamBot = lua_gettop(mL);
-    int numFunParams = defParamBot - defTablePos;
+    int testPos = lua_gettop(mL);
 
-    // Generate ordered default parameter table.
-    // XXX: We could blow the LUA stack depending on the number of parameters
-    // given in the function. Need to resize the size of the lua stack
-    // dynamically.
-    for (int i = 0; i < numFunParams; i++)
-    {
-      int stackIndex = defTablePos + i + 1;
-      lua_pushnumber(mL, i);
-      lua_pushvalue(mL, stackIndex);
-      lua_settable(mL, defTablePos);
-    }
-
-    // Remove parameters from the stack.
-    lua_settop(mL, defTablePos);
-
-    // Insert defaults table in closure metatable.
-    lua_pushstring(mL, TBL_MD_FUN_PDEFS);
-    lua_pushvalue(mL, -2);
-    lua_settable(mL, tableIndex);
-
-    // Do a deep copy of the defaults table.
-    // If we don't do this, we push another reference of the defaults table
-    // instead of a deep copy of the table.
-    lua_newtable(mL);
-    int lastExecTablePos = lua_gettop(mL);
-
-    lua_pushnil(mL);  // First key
-    while (lua_next(mL, defTablePos))
-    {
-      lua_pushvalue(mL, -2);  // Push key
-      lua_pushvalue(mL, -2);  // Push value
-      lua_settable(mL, lastExecTablePos);
-      lua_pop(mL, 1);         // Pop value, keep key for next iteration.
-    }
-    // lua_next has popped off our initial key.
-
-    // Push a copy of the defaults table onto the stack, and use it as the
-    // 'last executed values'.
-    lua_pushstring(mL, TBL_MD_FUN_LAST_EXEC);
-    lua_pushvalue(mL, -2);
-    lua_settable(mL, tableIndex);
-
-    lua_pop(mL, 2);   // Pop the last-exec and the default tables.
-
-    // Install the closure in the appropriate module based on its
+    // Install the callable table in the appropriate module based on its
     // fully qualified name.
     bindClosureTableWithFQName(name, tableIndex);
 
-    lua_pop(mL, 1);   // Pop the closure table.
+    testPos = lua_gettop(mL);
 
-    // This is a programmer error, NOT forwardly visible to the user.
+    lua_pop(mL, 1);   // Pop the callable table.
+
+    assert(initStackTop == lua_gettop(mL));
+  }
+
+  // Member function pointers. See above for description of parameters.
+  template <typename T, typename FunPtr>
+  void registerMemberFunction(T* C, FunPtr f, const std::string& name,
+                              const std::string& desc)
+  {
+    // XXX: Look into an implementation with smart pointers.
+    int initStackTop = lua_gettop(mL);
+
+    // Member function pointers are not memory addresses, they are
+    // compiler dependent, and need to be copied into lua in an appropriate
+    // manner.
+    // Create a callable function table and leave it on the stack.
+    lua_CFunction proxyFunc = &LUAMemberCallback<FunPtr, typename
+        LUACFunExec<FunPtr>::returnType>::exec;
+    createCallableFuncTable(proxyFunc, f, NULL);
+
+    int tableIndex = lua_gettop(mL);
+
+    // Add function metadata to the table.
+    std::string sig = LUACFunExec<FunPtr>::getSignature("");
+    std::string sigWithName = LUACFunExec<FunPtr>::getSignature(
+        getUnqualifiedName(name));
+    populateWithMetadata(name, desc, sig, sigWithName, tableIndex);
+
+    // Push default values for function parameters onto the stack.
+    LUACFunExec<FunPtr> defaultParams = LUACFunExec<FunPtr>();
+    lua_checkstack(mL, 10); // Max num parameters accepted by the system.
+    defaultParams.pushParamsToStack(mL);
+    int numFunParams = lua_gettop(mL) - tableIndex;
+    createDefaultsAndLastExecTables(tableIndex, numFunParams);
+
+    int testPos = lua_gettop(mL);
+
+    // Install the callable table in the appropriate module based on its
+    // fully qualified name.
+    bindClosureTableWithFQName(name, tableIndex);
+
+    testPos = lua_gettop(mL);
+
+    lua_pop(mL, 1);   // Pop the callable table.
+
     assert(initStackTop == lua_gettop(mL));
   }
 
@@ -280,6 +280,25 @@ private:
   /// Returns true if the table at stackIndex is a registered function.
   bool isRegisteredFunction(int stackIndex) const;
 
+
+  /// Creates a callable LUA table. classInstance can be NULL.
+  /// Leaves the table on the top of the LUA stack.
+  void createCallableFuncTable(lua_CFunction proxyFunc,
+                               void* realFuncToCall,
+                               void* classInstance);
+
+  /// Populates the table at the given index with the given function metadata.
+  void populateWithMetadata(const std::string& name,
+                            const std::string& description,
+                            const std::string& signature,
+                            const std::string& signatureWithName,
+                            int tableIndex);
+
+  /// Creates the defaults and last exec tables, and places them inside the
+  /// table given at tableIndex.
+  /// Expects that the parameters are at the top of the stack.
+  void createDefaultsAndLastExecTables(int tableIndex, int numParams);
+
   /// Binds the closure given at closureIndex to the fully qualified name (fq).
   /// ensureModuleExists and bindClosureToTable are helper functions.
   void bindClosureTableWithFQName(const std::string& fqName, int closureIndex);
@@ -301,10 +320,9 @@ private:
   /// The one true LUA state.
   lua_State*                mL;
 
-  /// List of registered modules/functions that are in the globals tabl
-  /// (built from the functions that are registered with the system).
-  /// Used to iterate through all registered functions and return metadata
-  /// associated with those functions.
+  /// List of registered modules/functions that in LUA's global table.
+  /// Used to iterate through all registered functions and return a description
+  /// related to those functions.
   std::vector<std::string>  mRegisteredGlobals;
 
 

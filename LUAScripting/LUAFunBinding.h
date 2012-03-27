@@ -43,7 +43,9 @@ namespace tuvok
 {
 
 //==============================================================
+//
 // LUA PARAM GETTER/PUSHER (we do NOT pop off of the LUA stack)
+//
 //==============================================================
 
 // LUA strict type stack
@@ -236,7 +238,9 @@ public:
 //			  Consider support for 3D and 4D graphics vectors.
 
 //==========================
+//
 // LUA C FUNCTION EXECUTION
+//
 //==========================
 
 // Check prior definitions.
@@ -329,6 +333,15 @@ class LUACFunExec
                                                   // stack
 };
 
+
+//------------------
+//
+// STATIC FUNCTIONS
+//
+//------------------
+
+// Are return values useful to store alongside the parameters?
+
 //--------------
 // 0 PARAMETERS
 //--------------
@@ -336,6 +349,7 @@ template<typename Ret>
 class LUACFunExec<Ret (*)()>
 {
 public:
+  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)();
   static Ret run(fpType fp, lua_State* L)
@@ -358,6 +372,7 @@ template<typename Ret, typename P1>
 class LUACFunExec<Ret (*)(P1)>
 {
 public:
+  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1);
   static Ret run(fpType fp, lua_State* L)
@@ -390,6 +405,7 @@ template<typename Ret, typename P1, typename P2>
 class LUACFunExec<Ret (*)(P1, P2)>
 {
 public:
+  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1, P2);
   static Ret run(fpType fp, lua_State* L)
@@ -422,6 +438,7 @@ template<typename Ret, typename P1, typename P2, typename P3>
 class LUACFunExec<Ret (*)(P1, P2, P3)>
 {
 public:
+  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1, P2, P3);
   static Ret run(fpType fp, lua_State* L)
@@ -455,6 +472,7 @@ template<typename Ret, typename P1, typename P2, typename P3, typename P4>
 class LUACFunExec<Ret (*)(P1, P2, P3, P4)>
 {
 public:
+  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1, P2, P3, P4);
   static Ret run(fpType fp, lua_State* L)
@@ -489,6 +507,7 @@ template<typename Ret, typename P1, typename P2, typename P3, typename P4,
 class LUACFunExec<Ret (*)(P1, P2, P3, P4, P5)>
 {
 public:
+  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1, P2, P3, P4, P5);
   static Ret run(fpType fp, lua_State* L)
@@ -523,6 +542,7 @@ template<typename Ret, typename P1, typename P2, typename P3, typename P4,
 class LUACFunExec<Ret (*)(P1, P2, P3, P4, P5, P6)>
 {
 public:
+  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6);
   static Ret run(fpType fp, lua_State* L)
@@ -552,6 +572,250 @@ public:
 
 // ... Add as many parameters as you want here ...
 
+//------------------
+//
+// MEMBER FUNCTIONS
+//
+//------------------
+
+// XXX: Add const member functions?
+
+//--------------
+// 0 PARAMETERS
+//--------------
+template<typename T, typename Ret>
+class LUACFunExec<Ret (T::*)()>
+{
+public:
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)();
+  static Ret run(T* c, fpType fp, lua_State* L)
+  {
+    return (c->*fp)();
+  }
+  static std::string getSignature(const std::string& funcName)
+  {
+    return SG(Ret) + " " + funcName + "()";
+  }
+
+  void pushParamsToStack(lua_State* L) const      {}
+  void pullParamsFromStack(lua_State* L, int si)  {}
+};
+
+//-------------
+// 1 PARAMETER
+//-------------
+template<typename T, typename Ret, typename P1>
+class LUACFunExec<Ret (T::*)(P1)>
+{
+public:
+
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)(P1);
+  static Ret run(T* c, fpType fp, lua_State* L)
+  {
+    EP_INIT;
+                    EP(P1);
+    return (c->*fp)(NM(P1));
+  }
+  static std::string getSignature(const std::string& funcName)
+  {
+    return SG(Ret) + " " + funcName + "(" + SG(P1) + ")";
+  }
+
+  LUACFunExec()
+  : MVIT(P1) {}
+
+  void pushParamsToStack(lua_State* L) const
+  { PHP(P1); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); }
+
+  // Member variables.
+  MVAR(P1);
+};
+
+//--------------
+// 2 PARAMETERS
+//--------------
+template<typename T, typename Ret, typename P1, typename P2>
+class LUACFunExec<Ret (T::*)(P1, P2)>
+{
+public:
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)(P1, P2);
+  static Ret run(T* c, fpType fp, lua_State* L)
+  {
+    EP_INIT;
+                    EP(P1); EP(P2);
+    return (c->*fp)(NM(P1), NM(P2));
+  }
+  static std::string getSignature(const std::string& funcName)
+  {
+    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
+  }
+
+  LUACFunExec()
+    : MVIT(P1), MVIT(P2) {}
+
+  void pushParamsToStack(lua_State* L) const
+  { PHP(P1); PHP(P2); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); }
+
+  // Member variables.
+  MVAR(P1); MVAR(P2);
+};
+
+//--------------
+// 3 PARAMETERS
+//--------------
+template<typename T, typename Ret, typename P1, typename P2, typename P3>
+class LUACFunExec<Ret (T::*)(P1, P2, P3)>
+{
+public:
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)(P1, P2, P3);
+  static Ret run(T* c, fpType fp, lua_State* L)
+  {
+    EP_INIT;
+                    EP(P1); EP(P2); EP(P3);
+    return (c->*fp)(NM(P1), NM(P2), NM(P3)); // nom, nom, nom ...
+  }
+  static std::string getSignature(const std::string& funcName)
+  {
+    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
+           SG(P3) + ")";
+  }
+
+  LUACFunExec()
+    : MVIT(P1), MVIT(P2), MVIT(P3) {}
+
+  void pushParamsToStack(lua_State* L) const
+  { PHP(P1); PHP(P2); PHP(P3); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); }
+
+  // Member variables.
+  MVAR(P1); MVAR(P2); MVAR(P3);
+};
+
+//--------------
+// 4 PARAMETERS
+//--------------
+template<typename T, typename Ret, typename P1, typename P2, typename P3, typename P4>
+class LUACFunExec<Ret (T::*)(P1, P2, P3, P4)>
+{
+public:
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)(P1, P2, P3, P4);
+  static Ret run(T* c, fpType fp, lua_State* L)
+  {
+    EP_INIT;
+                    EP(P1); EP(P2); EP(P3); EP(P4);
+    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4));
+  }
+  static std::string getSignature(const std::string& funcName)
+  {
+    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
+            SG(P3) + ", " + SG(P4) + ")";
+  }
+
+  LUACFunExec()
+    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
+
+  void pushParamsToStack(lua_State* L) const
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); }
+
+  // Member variables.
+  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4);
+};
+
+//--------------
+// 5 PARAMETERS
+//--------------
+template<typename T, typename Ret, typename P1, typename P2, typename P3,
+         typename P4, typename P5>
+class LUACFunExec<Ret (T::*)(P1, P2, P3, P4, P5)>
+{
+public:
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5);
+  static Ret run(T* c, fpType fp, lua_State* L)
+  {
+    EP_INIT;
+                    EP(P1); EP(P2); EP(P3); EP(P4); EP(P5);
+    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5));
+  }
+  static std::string getSignature(const std::string& funcName)
+  {
+    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
+            SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ")";
+  }
+
+  LUACFunExec()
+    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
+
+  void pushParamsToStack(lua_State* L) const
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
+
+  // Member variables.
+  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5);
+};
+
+//--------------
+// 6 PARAMETERS
+//--------------
+template<typename T, typename Ret, typename P1, typename P2, typename P3,
+         typename P4, typename P5, typename P6>
+class LUACFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6)>
+{
+public:
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6);
+  static Ret run(T* c, fpType fp, lua_State* L)
+  {
+    EP_INIT;
+                    EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6);
+    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6));
+  }
+  static std::string getSignature(const std::string& funcName)
+  {
+    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
+            SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ")";
+  }
+
+  LUACFunExec()
+    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
+
+  void pushParamsToStack(lua_State* L) const
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
+  void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
+
+  // Member variables.
+  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6);
+};
+
+// ... Add as many parameters as you want here ...
 
 #undef EP_INIT
 #undef NM
