@@ -49,7 +49,6 @@ public:
   explicit LUAError(const char* e, const char* where = NULL, size_t ln = 0)
     : tuvok::Exception(e, where, ln)
   {}
-
   virtual ~LUAError() throw() { }
 
 };
@@ -61,10 +60,17 @@ public:
   explicit LUAFunBindError(const char* e, const char* where = NULL, size_t ln = 0)
     : LUAError(e, where, ln)
   {}
-
   virtual ~LUAFunBindError() throw() { }
 };
 
+class LUANonExistantFunction : virtual public LUAError
+{
+public:
+  explicit LUANonExistantFunction(const char* e, const char* where = NULL, size_t ln = 0)
+    : LUAError(e, where, ln)
+  {}
+  virtual ~LUANonExistantFunction() throw() { }
+};
 
 } /* namespace tuvok */
 

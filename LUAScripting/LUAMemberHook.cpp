@@ -27,16 +27,15 @@
  */
 
 /**
- \file    LUAScriptHook.cpp
+ \file    LUAMemberHook.cpp
  \author  James Hughes
           SCI Institute
           University of Utah
  \date    Mar 26, 2012
- \brief   A hook into the LUAScriptingSystem.
-          Gets called when hooked LUA functions are executed.
+ \brief   A mechanism to hook into the Scripting System using member functions.
           Used for updating the UI when actions, such as undo/redo, are
           executed.
-          Instantiate this class alongside your class.
+          Instantiate this class alongside your encapsulating class.
  */
 
 #ifndef EXTERNAL_UNIT_TESTING
@@ -56,7 +55,7 @@
 #include "LUAError.h"
 #include "LUAFunBinding.h"
 #include "LUAScripting.h"
-#include "LUAScriptHook.h"
+#include "LUAMemberHook.h"
 
 using namespace std;
 
@@ -64,13 +63,13 @@ namespace tuvok
 {
 
 
-LUAScriptHook::LUAScriptHook(tr1::shared_ptr<LUAScripting> scriptSys)
+LUAMemberHook::LUAMemberHook(tr1::shared_ptr<LUAScripting> scriptSys)
 : mScriptSystem(scriptSys)
 {
 
 }
 
-LUAScriptHook::~LUAScriptHook()
+LUAMemberHook::~LUAMemberHook()
 {
 
 }

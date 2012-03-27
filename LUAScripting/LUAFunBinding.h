@@ -73,10 +73,10 @@ template<>
 class LUAStrictStack<void>
 {
 public:
-  // All functions but getTypeStr don't do anything since it doesn't make
-  // sense in the context of void. Compiler errors will result if there is
-  // an attempted access. Generally, getTypeStr from this specialization
-  // is only called when building the return type of function signatures.
+  // All functions but getTypeStr don't do anything since none of these
+  // functions make sense in the context of 'void'.
+  // getTypeStr is only called when building the  return type of function
+  // signatures.
   static int get(lua_State* L, int pos);
   static void push(lua_State* L, int in);
 
@@ -232,8 +232,9 @@ public:
 };
 
 // TODO:	Add support for std::vector and std::map, both to be implemented as
-//        tables in LUA. std::vector is efficiently implemented. It is stored
-//        internally as an array in a LUA table.
+//        tables in LUA. std::vector would be efficiently implemented in LUA.
+//        In LUA, it would be stored internally as an array instead of
+//        key/value pairs in a hash table.
 //			  See http://www.lua.org/doc/hopl.pdf -- page 2, para 2. See ref 31.
 //			  Consider support for 3D and 4D graphics vectors.
 
@@ -288,8 +289,8 @@ public:
 // LUA stack and storing them in local/member variables to be consumed later.
 
 // The classes below could easily be written without these preprocessor macros,
-// but they make it easier to replicate the classes when more parameters are
-// needed.
+// but the macros make it easier to replicate the classes when more parameters
+// are needed.
 #define EP_INIT     int pos = 2;  // We are using the __call metamethod, so
                                   // the table associated with the metamethod
                                   // will take the first stack position.
@@ -317,7 +318,7 @@ public:
 // Member variable initialization (initialize with the default for that type).
 #define MVIT(x)     M_NM(x)(LUAStrictStack<x>::getDefault())
 
-// LUA C function execution template.
+// LUA C function execution base unspecialized template.
 template<typename LUAFunExec>
 class LUACFunExec
 {
@@ -711,7 +712,8 @@ public:
 //--------------
 // 4 PARAMETERS
 //--------------
-template<typename T, typename Ret, typename P1, typename P2, typename P3, typename P4>
+template<typename T, typename Ret, typename P1, typename P2, typename P3,
+         typename P4>
 class LUACFunExec<Ret (T::*)(P1, P2, P3, P4)>
 {
 public:

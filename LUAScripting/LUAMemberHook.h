@@ -27,20 +27,19 @@
  */
 
 /**
- \file    LUAScriptHook.h
+ \file    LUAMemberHook.h
  \author  James Hughes
           SCI Institute
           University of Utah
  \date    Mar 26, 2012
- \brief   A hook into the LUAScriptingSystem.
-          Gets called when hooked LUA functions are executed.
+ \brief   A mechanism to hook into the Scripting System using member functions.
           Used for updating the UI when actions, such as undo/redo, are
           executed.
-          Instantiate this class alongside your class.
+          Instantiate this class alongside your encapsulating class.
  */
 
-#ifndef LUASCRIPT_HOOK_H_
-#define LUASCRIPT_HOOK_H_
+#ifndef LUAMEMBER_HOOK_H_
+#define LUAMEMBER_HOOK_H_
 
 
 namespace tuvok
@@ -48,26 +47,43 @@ namespace tuvok
 
 class LUAScripting;
 
-class LUAScriptHook
+class LUAMemberHook
 {
 public:
 
-  LUAScriptHook(std::tr1::shared_ptr<LUAScripting> scriptSys);
-  virtual ~LUAScriptHook();
+  LUAMemberHook(std::tr1::shared_ptr<LUAScripting> scriptSys);
+  virtual ~LUAMemberHook();
 
-  /// Hooks the indicated fully qualified function name with the given function.
-  /// \param  fqName    Fully qualified name to hook.
-  /// \param  f         Function pointer.
-  template <typename FunPtr>
-  void hookFunction(const std::string& fqName, FunPtr f);
+  /// Hooks a member function to the execution of the given lua function
+  /// (fqName).
+  /// The given function (f) MUST match the signature of the hooked function,
+  /// including its return type. This is the 'strictness'.
+  /// It is not permitted to install more than one hook on the same LUA function.
+  /// I.E. you can not hook render.eye twice using the same LUAMemberHook.
+  template <typename T, typename FunPtr>
+  void strictHook(T* C, FunPtr f, const std::string& fqName)
+  {
+
+  }
+
+  /// TODO: implement a 'loose' hook where the function one has to match a
+  ///       particular signature (such as void myfunc(lua_State* L).
+  ///       Only do this if there is an identifiable need for it.
+  ///       I want imagevis3d to throw exceptions when its api changes, and it
+  ///       hasn't been updated to comply.
+
 
 private:
 
   /// Scripting system we are bound to.
   std::tr1::shared_ptr<LUAScripting>  mScriptSystem;
 
-  /// Functions registered with this hook.
+  /// Functions registered with this hook -- used for unregistering hooks.
   std::vector<std::string>            mHookedFunctions;
+
+  /// ID used by LUA in order to identify the functions hooked by this class.
+  /// This ID is used as the key in the hook table.
+  std::string                         mHookID;
 };
 
 }

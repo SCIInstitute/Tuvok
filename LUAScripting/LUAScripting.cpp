@@ -262,7 +262,7 @@ void LUAScripting::bindClosureTableWithFQName(const string& fqName,
       lua_pushvalue(mL, -1);    // Push table to keep it on the stack.
       lua_setglobal(mL, token.c_str());
 
-      // Add table name to the list of global registered modules
+      // Add table name to the list of registered globals.
       mRegisteredGlobals.push_back(token);
     }
     else if (type == LUA_TTABLE)  // Other
@@ -290,7 +290,7 @@ void LUAScripting::bindClosureTableWithFQName(const string& fqName,
 
       // Since the function is registered at the global level, we need to add
       // it to the registered globals list. This ensures all functions are
-      // covered during the getAllFuncDescs function call.
+      // covered during a getAllFuncDescs function call.
       mRegisteredGlobals.push_back(token);
     }
     else
@@ -516,6 +516,181 @@ void LUAScripting::createDefaultsAndLastExecTables(int tableIndex,
   lua_pop(mL, numFunParams);
 }
 
+//-----------------------------------------------------------------------------
+bool LUAScripting::getFunctionTable(const std::string& fqName)
+{
+  int baseStackIndex = lua_gettop(mL);
+
+  // Tokenize the fully qualified name.
+  const string delims(QUALIFIED_NAME_DELIMITER);
+  vector<string> tokens;
+
+  string::size_type beg = 0;
+  string::size_type end = 0;
+
+  string token;
+  int depth = 0;
+
+  while (end != string::npos)
+  {
+    end = fqName.find_first_of(delims, beg);
+
+    if (end != string::npos)
+    {
+      token = fqName.substr(beg, end - beg);
+      beg = end + 1;
+
+      // If the depth is 0, pull from globals, otherwise pull from the table
+      // on the top of the stack.
+      if (depth == 0)
+      {
+        lua_getglobal(mL, token.c_str());
+      }
+      else
+      {
+        lua_getfield(mL, -1, token.c_str());
+        lua_remove(mL, -2); // Remove the old table from the stack.
+      }
+
+      if (lua_isnil(mL, -1))
+      {
+        lua_settop(mL, baseStackIndex);
+        return false;
+      }
+
+      if (beg == fqName.size())
+      {
+        // Empty function name.
+        lua_settop(mL, baseStackIndex);
+        return false;
+      }
+    }
+    else
+    {
+      token = fqName.substr(beg, string::npos);
+
+      // Attempt to retrieve the function.
+      if (depth == 0)
+      {
+        lua_getglobal(mL, token.c_str());
+      }
+      else
+      {
+        lua_getfield(mL, -1, token.c_str());
+        lua_remove(mL, -2); // Remove the old table from the stack.
+      }
+
+      // Leave the function table on the top of the stack.
+    }
+
+    ++depth;
+  }
+
+  lua_settop(mL, baseStackIndex);
+
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+void LUAScripting::unregisterFunction(const std::string& fqName)
+{
+  // Lookup the function table based on the fully qualified name.
+  int baseStackIndex = lua_gettop(mL);
+
+  // Tokenize the fully qualified name.
+  const string delims(QUALIFIED_NAME_DELIMITER);
+  vector<string> tokens;
+
+  string::size_type beg = 0;
+  string::size_type end = 0;
+
+  string token;
+  int depth = 0;
+
+  while (end != string::npos)
+  {
+    end = fqName.find_first_of(delims, beg);
+
+    if (end != string::npos)
+    {
+      token = fqName.substr(beg, end - beg);
+      beg = end + 1;
+
+      // If the depth is 0, pull from globals, otherwise pull from the table
+      // on the top of the stack.
+      if (depth == 0)
+      {
+        lua_getglobal(mL, token.c_str());
+      }
+      else
+      {
+        lua_getfield(mL, -1, token.c_str());
+        lua_remove(mL, -2);
+      }
+
+      if (lua_isnil(mL, -1))
+      {
+        lua_settop(mL, baseStackIndex);
+        throw LUANonExistantFunction("Function not found in unregister.");
+      }
+
+      if (beg == fqName.size())
+      {
+        // Empty function name.
+        lua_settop(mL, baseStackIndex);
+        throw LUANonExistantFunction("Function not found in unregister.");
+      }
+    }
+    else
+    {
+      token = fqName.substr(beg, string::npos);
+
+      // Attempt to retrieve the function.
+      if (depth == 0)
+      {
+        lua_getglobal(mL, token.c_str());
+      }
+      else
+      {
+        lua_getfield(mL, -1, token.c_str());
+      }
+
+      if (lua_isnil(mL, -1))
+      {
+        lua_settop(mL, baseStackIndex);
+        throw LUANonExistantFunction("Function not found in unregister.");
+      }
+
+      if (isRegisteredFunction(lua_gettop(mL)))
+      {
+        // Remove the function from the top of the stack, we don't need it
+        // anymore.
+        lua_pop(mL, 1);
+        if (depth == 0)
+        {
+          // Unregister from globals (just assign nil to the variable)
+          // http://www.lua.org/pil/1.2.html
+          lua_setglobal(mL, token.c_str());
+        }
+        else
+        {
+          // Unregister from parent table.
+          lua_pushnil(mL);
+          lua_setfield(mL, -2, token.c_str());
+        }
+      }
+      else
+      {
+        lua_settop(mL, baseStackIndex);
+        throw LUANonExistantFunction("Function not found in unregister.");
+      }
+    }
+
+    ++depth;
+  }
+
+  lua_settop(mL, baseStackIndex);
+}
 
 //==============================================================================
 //
@@ -527,9 +702,13 @@ void LUAScripting::createDefaultsAndLastExecTables(int tableIndex,
 
 void printRegisteredFunctions(LUAScripting* s);
 
-namespace
+SUITE(TestLUAScriptingSystem)
 {
-  int dfun(int a, int b, int c);
+  int dfun(int a, int b, int c)
+  {
+    return a + b + c;
+  }
+
 
   TEST( TestDynamicModuleRegistration )
   {
@@ -571,7 +750,6 @@ namespace
     CHECK_EQUAL(42, lua_tointeger(L, -1));
     lua_pop(L, 1);
 
-    luaL_loadstring(L, "func(1,2,39)");
     luaL_loadstring(L, "return func(1,2,39)");
     lua_pcall(L, 0, LUA_MULTRET, 0);
     CHECK_EQUAL(42, lua_tointeger(L, -1));
@@ -581,7 +759,7 @@ namespace
 
     // Check for appropriate exceptions.
     // XXX: We could make more exception classes whose names more closely
-    // match the exceptions we are getting below.
+    // match the exceptions we are getting.
 
     // Exception: No trailing name after period.
     CHECK_THROW(
@@ -613,14 +791,7 @@ namespace
     printRegisteredFunctions(sc.get());
   }
 
-  int dfun(int a, int b, int c)
-  {
-    return a + b + c;
-  }
-}
 
-SUITE(TestLUAScriptingSystem)
-{
   string str_int(int in)
   {
     ostringstream os;
@@ -789,7 +960,7 @@ SUITE(TestLUAScriptingSystem)
     //---------------
     // Test defaults
     //---------------
-    // Use a new function, 'mixer' to test the defaults and last table.
+    // Use a new function, 'mixer', to test the defaults table.
     sc->registerFunction(&mixer, "mixer", "Testing all parameter types");
 
     exe = string("return mixer.")
@@ -880,54 +1051,6 @@ SUITE(TestLUAScriptingSystem)
                 d[3].funcSig.c_str());
 
     printRegisteredFunctions(sc.get());
-  }
-
-  class A
-  {
-  public:
-    bool m1()           {return true;}
-    bool m2(int a)      {return (a > 40) ? true : false;}
-    string m3(float a)  {return "Test str";}
-    int m4(string reg)
-    {
-      printf("Str Print: %s\n", reg.c_str());
-      return 67;
-    }
-  };
-
-  TEST(MemberFunctionRegistration)
-  {
-    TEST_HEADER;
-
-    auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
-    lua_State* L = sc->getLUAState();
-
-    auto_ptr<A> a(new A);
-
-    sc->registerMemberFunction(a.get(), &A::m1, "a.m1", "A::m1");
-    sc->registerMemberFunction(a.get(), &A::m2, "a.m2", "A::m2");
-    sc->registerMemberFunction(a.get(), &A::m3, "a.m3", "A::m3");
-    sc->registerMemberFunction(a.get(), &A::m4, "m4",   "A::m4");
-
-    luaL_dostring(L, "return a.m1()");
-    CHECK_EQUAL(1, lua_toboolean(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return a.m2(41)");
-    CHECK_EQUAL(1, lua_toboolean(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return a.m2(40)");
-    CHECK_EQUAL(0, lua_toboolean(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return a.m3(4.2)");
-    CHECK_EQUAL("Test str", lua_tostring(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return m4(\"This is my string\")");
-    CHECK_EQUAL(67, lua_tointeger(L, -1));
-    lua_pop(L, 1);
   }
 
   TEST(CallbackMethodsOnExec)
