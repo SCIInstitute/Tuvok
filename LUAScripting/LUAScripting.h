@@ -85,6 +85,23 @@ public:
   LUAScripting();
   virtual ~LUAScripting();
 
+  /// Function description returned from getFuncDescs().
+  struct FunctionDesc
+  {
+    std::string funcName;   ///< Name of the function.
+    std::string funcDesc;   ///< Description of the function provided by the
+                            ///< registrar.
+    std::string funcSig;    ///< Function signature includes the function name.
+  };
+
+  // Ability to unregister all functions?
+
+
+  // Return all function descriptions.
+  // This vector can be very large. This function will not generally be used
+  // in performance critical code. If it was, pass an internal reference
+  // to a non-local vector.
+  std::vector<FunctionDesc> getAllFuncDescs() const;
 
 
   /// Registers a static C++ function with LUA.
@@ -182,6 +199,8 @@ public:
 
     int defTablePos = lua_gettop(mL);
     LUACFunExec<FunPtr> defaultParams = LUACFunExec<FunPtr>();
+    lua_checkstack(mL, 10); // This should be the maximum number of parameters
+                            // accepted by the system.
     defaultParams.pushParamsToStack(mL);
 
     int defParamBot = lua_gettop(mL);
@@ -258,12 +277,18 @@ public:
 
 private:
 
+  /// Returns true if the table at stackIndex is a registered function.
+  bool isRegisteredFunction(int stackIndex) const;
+
   /// Binds the closure given at closureIndex to the fully qualified name (fq).
   /// ensureModuleExists and bindClosureToTable are helper functions.
   void bindClosureTableWithFQName(const std::string& fqName, int closureIndex);
 
   /// Retrieves the unqualified name given the qualified name.
-  std::string getUnqualifiedName(const std::string& fqName) const;
+  static std::string getUnqualifiedName(const std::string& fqName);
+
+  /// Recursive function helper for getAllFuncDescs.
+  void getTableFuncDefs(std::vector<LUAScripting::FunctionDesc>& descs) const;
 
   /// LUA panic function. LUA calls this when an unrecoverable error occurs
   /// in the interpreter.
@@ -273,7 +298,15 @@ private:
   static void* luaInternalAlloc(void* ud, void* ptr, size_t osize, size_t nsize);
 
 
-  lua_State* mL;  ///< The one true LUA state.
+  /// The one true LUA state.
+  lua_State*                mL;
+
+  /// List of registered modules/functions that are in the globals tabl
+  /// (built from the functions that are registered with the system).
+  /// Used to iterate through all registered functions and return metadata
+  /// associated with those functions.
+  std::vector<std::string>  mRegisteredGlobals;
+
 
 };
 

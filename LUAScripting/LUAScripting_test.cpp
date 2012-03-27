@@ -47,6 +47,7 @@
 
 #endif
 
+#include <vector>
 #include "LUAScripting.h"
 
 namespace tuvok

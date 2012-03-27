@@ -124,7 +124,82 @@ void* LUAScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
 }
 
 //-----------------------------------------------------------------------------
-string LUAScripting::getUnqualifiedName(const string& fqName) const
+vector<LUAScripting::FunctionDesc> LUAScripting::getAllFuncDescs() const
+{
+  vector<LUAScripting::FunctionDesc> ret;
+
+  // Iterate over all registered modules, and do a recursive descent through
+  // all of the tables to find all functions.
+  for (vector<string>::const_iterator it = mRegisteredGlobals.begin();
+       it != mRegisteredGlobals.end(); ++it)
+  {
+    lua_getglobal(mL, (*it).c_str());
+    getTableFuncDefs(ret);
+    lua_pop(mL, 1);
+  }
+
+  return ret;
+}
+
+//-----------------------------------------------------------------------------
+void LUAScripting::getTableFuncDefs(vector<LUAScripting::FunctionDesc>& descs)
+  const
+{
+  // Iterate over the first table on the stack.
+  int tablePos = lua_gettop(mL);
+
+  // Check to see if it is a registered function.
+  if (isRegisteredFunction(-1))
+  {
+    // The name of the function is the 'key'.
+    FunctionDesc desc;
+    // DO NOT DO THIS. This confuses lua_next -- it promotes the key value
+    // to a string.
+    //desc.funcName = lua_tostring(mL, -2);
+    // That is why we push the key, then perform the string translation.
+    lua_getfield(mL, -1, TBL_MD_QNAME);
+    desc.funcName = getUnqualifiedName(string(lua_tostring(mL, -1)));
+    lua_pop(mL, 1);
+
+    lua_getfield(mL, -1, TBL_MD_DESC);
+    desc.funcDesc = lua_tostring(mL, -1);
+    lua_pop(mL, 1);
+
+    lua_getfield(mL, -1, TBL_MD_SIG_NAME);
+    desc.funcSig = lua_tostring(mL, -1);
+    lua_pop(mL, 1);
+
+    descs.push_back(desc);
+
+    // This was a function, not a table. We do not recurse into its contents.
+    return;
+  }
+
+  // Push first key.
+  lua_pushnil(mL);
+  int stackSize = lua_gettop(mL);
+  while (lua_next(mL, tablePos))
+  {
+    // Check if the value is a table. If so, check to see if it is a function,
+    // otherwise, recurse into the table.
+    // Value is at the top of the stack.
+    int type = lua_type(mL, -1);
+    // Create a new table (module) at the global level.
+    if (type == LUA_TTABLE)
+    {
+      // Recurse into the table.
+      // Ensure there at least 2 empty stack slots.
+      lua_checkstack(mL, 2);
+      getTableFuncDefs(descs);
+    }
+
+    // Pop value off of the stack in preparation for the next iteration.
+    lua_pop(mL, 1);
+  }
+}
+
+//-----------------------------------------------------------------------------
+string LUAScripting::getUnqualifiedName(const string& fqName)
 {
   const string delims(QUALIFIED_NAME_DELIMITER);
   string::size_type beg = fqName.find_last_of(delims);
@@ -183,29 +258,20 @@ void LUAScripting::bindClosureTableWithFQName(const string& fqName,
     // Create a new table (module) at the global level.
     if (type == LUA_TNIL)
     {
-      lua_pop(mL, 1); // Pop nil off the stack
+      lua_pop(mL, 1);           // Pop nil off the stack
       lua_newtable(mL);
       lua_pushvalue(mL, -1);    // Push table to keep it on the stack.
       lua_setglobal(mL, token.c_str());
+
+      // Add table name to the list of global registered modules
+      mRegisteredGlobals.push_back(token);
     }
     else if (type == LUA_TTABLE)  // Other
     {
-      // Check to make sure this table is NOT a registered function.
-      if (lua_getmetatable(mL, -1) != 0)
+      if (isRegisteredFunction(-1))
       {
-        // We have a metatable, check to see if isRegFunc exists and is 1.
-        lua_getfield(mL, -1, "isRegFunc");
-        if (lua_isnil(mL, -1) == 0)
-        {
-          // We already know that it is a function at this point, but lets go
-          // through the motions anyways.
-          if (lua_toboolean(mL, -1) == 1)
-          {
-            throw LUAFunBindError("Can't register functions on top of other"
-                                  "functions.");
-          }
-        }
-        lua_pop(mL, 1);
+        throw LUAFunBindError("Can't register functions on top of other"
+                              "functions.");
       }
     }
     else
@@ -222,6 +288,11 @@ void LUAScripting::bindClosureTableWithFQName(const string& fqName,
       lua_pop(mL, 1); // Pop nil off the stack
       lua_pushvalue(mL, tableIndex);
       lua_setglobal(mL, token.c_str());
+
+      // Since the function is registered at the global level, we need to add
+      // it to the registered globals list. This ensures all functions are
+      // covered during the getAllFuncDescs function call.
+      mRegisteredGlobals.push_back(token);
     }
     else
     {
@@ -279,22 +350,10 @@ void LUAScripting::bindClosureTableWithFQName(const string& fqName,
         // Keep the table at the top, but remove the table we came from.
         lua_remove(mL, -2);
 
-        // Check to make sure this table is NOT a registered function.
-        if (lua_getmetatable(mL, -1) != 0)
+        if (isRegisteredFunction(-1))
         {
-          // We have a metatable, check to see if isRegFunc exists and is 1.
-          lua_getfield(mL, -1, "isRegFunc");
-          if (lua_isnil(mL, -1) == 0)
-          {
-            // We already know that it is a function at this point, but lets go
-            // through the motions anyways.
-            if (lua_toboolean(mL, -1) == 1)
-            {
-              throw LUAFunBindError("Can't register functions on top of other"
-                                    "functions.");
-            }
-          }
-          lua_pop(mL, 1);
+          throw LUAFunBindError("Can't register functions on top of other"
+                                "functions.");
         }
       }
       else
@@ -309,6 +368,29 @@ void LUAScripting::bindClosureTableWithFQName(const string& fqName,
   assert(baseStackIndex == lua_gettop(mL));
 }
 
+//-----------------------------------------------------------------------------
+bool LUAScripting::isRegisteredFunction(int stackIndex) const
+{
+  // Check to make sure this table is NOT a registered function.
+  if (lua_getmetatable(mL, stackIndex) != 0)
+  {
+    // We have a metatable, check to see if isRegFunc exists and is 1.
+    lua_getfield(mL, -1, "isRegFunc");
+    if (lua_isnil(mL, -1) == 0)
+    {
+      // We already know that it is a function at this point, but lets go
+      // through the motions anyways.
+      if (lua_toboolean(mL, -1) == 1)
+      {
+        lua_pop(mL, 2); // Pop the metatable and isRegFunc off the stack.
+        return true;
+      }
+    }
+    lua_pop(mL, 2); // Pop the metatable and isRegFunc off the stack.
+  }
+
+  return false;
+}
 
 
 //==============================================================================
@@ -336,7 +418,6 @@ namespace
     sc->registerFunction(&dfun, "test.test2.dummy", "Test");
     sc->registerFunction(&dfun, "func", "Test");
 
-    luaL_dostring(L, "return getmetatable(test.dummyFun).__call(1,2,39)");
     luaL_dostring(L, "return test.dummyFun(1,2,39)");
     CHECK_EQUAL(42, lua_tointeger(L, -1));
     lua_pop(L, 1);
@@ -361,8 +442,6 @@ namespace
     CHECK_EQUAL(42, lua_tointeger(L, -1));
     lua_pop(L, 1);
 
-    //luaL_dostring(L, "return getmetatable(func).__call(1,2,39)");
-    //luaL_dostring(L, "return func(1,2,39)");
     luaL_loadstring(L, "func(1,2,39)");
     luaL_loadstring(L, "return func(1,2,39)");
     lua_pcall(L, 0, LUA_MULTRET, 0);
@@ -621,6 +700,44 @@ namespace
 
     // No need to test last exec table, it is just a copy of thedefaults table
     // at this point
+  }
+
+  TEST(Test_getAllFuncDescs)
+  {
+    // Test retrieval of all function descriptions.
+    auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
+    lua_State* L = sc->getLUAState();
+
+    sc->registerFunction(&str_int,            "str.int",            "Desc 1");
+    sc->registerFunction(&str_int2,           "str2.int2",          "Desc 2");
+    sc->registerFunction(&flt_flt2_int2_dbl2, "flt.flt2.int2.dbl2", "Desc 3");
+    sc->registerFunction(&mixer,              "mixer",              "Desc 4");
+
+    //
+    std::vector<LUAScripting::FunctionDesc> d = sc->getAllFuncDescs();
+
+    // Verify all of the function descriptions.
+    // Since all of the functions are in different base tables, we can extract
+    // them in the order that we registered them.
+    // Otherwise, its determine by the hashing function used internally by
+    // LUA (key/value pair association).
+    CHECK_EQUAL("int", d[0].funcName.c_str());
+    CHECK_EQUAL("Desc 1", d[0].funcDesc.c_str());
+    CHECK_EQUAL("string int(int)", d[0].funcSig.c_str());
+
+    CHECK_EQUAL("int2", d[1].funcName.c_str());
+    CHECK_EQUAL("Desc 2", d[1].funcDesc.c_str());
+    CHECK_EQUAL("string int2(int, int)", d[1].funcSig.c_str());
+
+    CHECK_EQUAL("dbl2", d[2].funcName.c_str());
+    CHECK_EQUAL("Desc 3", d[2].funcDesc.c_str());
+    CHECK_EQUAL("float dbl2(float, float, int, int, double, double)",
+                d[2].funcSig.c_str());
+
+    CHECK_EQUAL("mixer", d[3].funcName.c_str());
+    CHECK_EQUAL("Desc 4", d[3].funcDesc.c_str());
+    CHECK_EQUAL("string mixer(bool, int, float, double, string)",
+                d[3].funcSig.c_str());
   }
 
   TEST(LastExecMetaPopulation)
