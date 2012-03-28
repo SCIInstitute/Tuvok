@@ -54,7 +54,7 @@ struct LUAMemberCallback
 {
   static int exec(lua_State* L)
   {
-    FunPtr fp = *(FunPtr*)lua_touserdata(L, lua_upvalueindex(1));
+    FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
     typename LUACFunExec<FunPtr>::classType* C =
         static_cast<typename LUACFunExec<FunPtr>::classType*>(
             lua_touserdata(L, lua_upvalueindex(2)));
@@ -70,7 +70,7 @@ struct LUAMemberCallback <FunPtr, void>
 {
   static int exec(lua_State* L)
   {
-    FunPtr fp = *(FunPtr*)lua_touserdata(L, lua_upvalueindex(1));
+    FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
     typename LUACFunExec<FunPtr>::classType* C =
         static_cast<typename LUACFunExec<FunPtr>::classType*>(
             lua_touserdata(L, lua_upvalueindex(2)));
@@ -116,7 +116,7 @@ public:
     // Create a full user data and store the function pointer data inside of it.
     void* udata = lua_newuserdata(L, sizeof(FunPtr));
     memcpy(udata, &f, sizeof(FunPtr));
-    lua_pushlightuserdata(L, (void*)C);
+    lua_pushlightuserdata(L, static_cast<void*>(C));
     lua_pushcclosure(L, proxyFunc, 2);
 
     // Associate closure with __call metamethod.

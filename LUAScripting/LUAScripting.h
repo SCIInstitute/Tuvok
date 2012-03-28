@@ -55,7 +55,8 @@ struct LUACallback
 {
   static int exec(lua_State* L)
   {
-    FunPtr fp = (FunPtr)lua_touserdata(L, lua_upvalueindex(1));
+    FunPtr fp = reinterpret_cast<FunPtr>(
+        lua_touserdata(L, lua_upvalueindex(1)));
     Ret r = LUACFunExec<FunPtr>::run(fp, L);
     LUAStrictStack<Ret>().push(L, r);
     return 1;
@@ -68,7 +69,8 @@ struct LUACallback <FunPtr, void>
 {
   static int exec(lua_State* L)
   {
-    FunPtr fp = (FunPtr)lua_touserdata(L, lua_upvalueindex(1));
+    FunPtr fp = reinterpret_cast<FunPtr>(
+        lua_touserdata(L, lua_upvalueindex(1)));
     LUACFunExec<FunPtr>::run(fp, L);
     return 0;
   }

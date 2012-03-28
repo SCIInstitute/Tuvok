@@ -395,7 +395,7 @@ void LUAScripting::createCallableFuncTable(lua_CFunction proxyFunc,
   lua_newtable(mL);
 
   // Push C Closure containing our function pointer onto the LUA stack.
-  lua_pushlightuserdata(mL, (void*)realFuncToCall);
+  lua_pushlightuserdata(mL, realFuncToCall);
   lua_pushcclosure(mL, proxyFunc, 1);
 
   // Associate closure with __call metamethod.
@@ -1073,7 +1073,8 @@ void printRegisteredFunctions(LUAScripting* s)
 
   printf("\n All registered functions \n");
 
-  for (vector<LUAScripting::FunctionDesc>::iterator it = regFuncs.begin(); it != regFuncs.end();
+  for (vector<LUAScripting::FunctionDesc>::iterator it = regFuncs.begin();
+       it != regFuncs.end();
        ++it)
   {
     printf("\n  Function:     %s\n", it->funcName.c_str());

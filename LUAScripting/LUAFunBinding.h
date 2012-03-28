@@ -129,12 +129,12 @@ class LUAStrictStack<float>
 public:
   static float get(lua_State* L, int pos)
   {
-    return (float) luaL_checknumber(L, pos);
+    return static_cast<float>(luaL_checknumber(L, pos));
   }
 
   static void push(lua_State* L, float in)
   {
-    lua_pushnumber(L, (lua_Number) in);
+    lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
   static std::string getTypeStr() { return "float"; }
@@ -147,12 +147,12 @@ class LUAStrictStack<double>
 public:
   static double get(lua_State* L, int pos)
   {
-    return (double) luaL_checknumber(L, pos);
+    return static_cast<double>(luaL_checknumber(L, pos));
   }
 
   static void push(lua_State* L, double in)
   {
-    lua_pushnumber(L, (lua_Number) in);
+    lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
   static std::string getTypeStr() { return "double"; }
