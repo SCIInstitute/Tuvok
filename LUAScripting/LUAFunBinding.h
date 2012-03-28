@@ -36,8 +36,8 @@
  */
 
 // This is a complete implementation of static function binding in LUA.
-#ifndef LUAFUNBINDING_H_
-#define LUAFUNBINDING_H_
+#ifndef TUVOK_LUAFUNBINDING_H_
+#define TUVOK_LUAFUNBINDING_H_
 
 namespace tuvok
 {

@@ -38,8 +38,8 @@
           Instantiate this class alongside your encapsulating class.
  */
 
-#ifndef LUAMEMBER_HOOK_H_
-#define LUAMEMBER_HOOK_H_
+#ifndef TUVOK_LUAMEMBER_HOOK_H_
+#define TUVOK_LUAMEMBER_HOOK_H_
 
 
 namespace tuvok

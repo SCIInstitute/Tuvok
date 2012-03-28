@@ -43,7 +43,7 @@
 
 #else
 
-#include "assert.h"
+#include <assert.h>
 #include "utestCommon.h"
 
 #endif
@@ -90,7 +90,7 @@ LUAScripting::~LUAScripting()
 //-----------------------------------------------------------------------------
 int LUAScripting::luaPanic(lua_State* L)
 {
-  // Note: We compile LUA as c plus plus. So we won't have problems throwing
+  // Note: We compile LUA as c plus plus, so we won't have problems throwing
   // exceptions from functions called by LUA. When not compiling as CPP, LUA
   // uses set_jmp and long_jmp. This can cause issues when exceptions are
   // thrown, see:
@@ -105,11 +105,9 @@ int LUAScripting::luaPanic(lua_State* L)
 
 //-----------------------------------------------------------------------------
 void* LUAScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
-                                            size_t nsize)
+                                     size_t nsize)
 {
   // TODO: Convert to use new (mind the realloc).
-  (void) ud;
-  (void) osize;
   if (nsize == 0)
   {
     free(ptr);
@@ -357,7 +355,6 @@ void LUAScripting::bindClosureTableWithFQName(const string& fqName,
     }
   }
 
-  // If this assert fails, it is a programmer error.
   assert(baseStackIndex == lua_gettop(mL));
 }
 

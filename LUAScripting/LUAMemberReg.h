@@ -36,8 +36,8 @@
           Should be instantiated alongside an encapsulating class.
  */
 
-#ifndef LUAMEMBER_REG_H_
-#define LUAMEMBER_REG_H_
+#ifndef TUVOK_LUAMEMBER_REG_H_
+#define TUVOK_LUAMEMBER_REG_H_
 
 
 namespace tuvok

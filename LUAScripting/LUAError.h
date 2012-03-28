@@ -35,8 +35,10 @@
   \brief   Defines exceptions thrown in the LUA scripting system.
 */
 
-#ifndef LUAERROR_H_
-#define LUAERROR_H_
+#ifndef TUVOK_LUAERROR_H_
+#define TUVOK_LUAERROR_H_
+
+#include "TuvokException.h"
 
 namespace tuvok
 {

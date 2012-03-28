@@ -36,8 +36,8 @@
           Made to be unit tested externally.
  */
 
-#ifndef LUASCRIPTING_H_
-#define LUASCRIPTING_H_
+#ifndef TUVOK_LUASCRIPTING_H_
+#define TUVOK_LUASCRIPTING_H_
 
 namespace tuvok
 {
@@ -97,8 +97,6 @@ public:
   };
 
   /// Return all function descriptions.
-  /// This vector can be very large. This function will not generally be used
-  /// in performance critical code.
   std::vector<FunctionDesc> getAllFuncDescs() const;
 
   /// Unregisters the function associated with the fully qualified name.
