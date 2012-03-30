@@ -35,10 +35,12 @@
 */
 
 #include "GeometryGenerator.h"
-#include<cmath>
+#include <cmath>
 #define CONST_PI 3.14159265358979323846f
 
 using namespace std;
+
+namespace tuvok {
 
 vector<Triangle> GeometryGenerator::GenArrow(float  fOverallLength,
                                              float  fShaftToHeadRatio,
@@ -118,4 +120,6 @@ vector<Triangle> GeometryGenerator::GenArrow(float  fOverallLength,
   }
 
   return vGeometry;
+}
+
 }

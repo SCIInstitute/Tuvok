@@ -41,6 +41,8 @@
 #include "StdDefines.h"
 #include "Vectors.h"
 
+namespace tuvok {
+
 class Ray
 {
   public:
@@ -53,4 +55,6 @@ class Ray
       return start+direction*d;
     }
 };
+
+}
 #endif // BASICS_RAY_H

@@ -43,6 +43,8 @@
 #include "StdDefines.h"
 #include "Vectors.h"
 
+namespace tuvok {
+
 class PosNormalVertex {
 public:
   PosNormalVertex(const FLOATVECTOR3& vPos = FLOATVECTOR3(0,0,0),
@@ -73,4 +75,6 @@ public:
                                         float  fHeadRadius,
                                         uint32_t iSegments);
 };
+
+}
 #endif // BASICS_GEOMETRYGENERATOR_H
