@@ -84,7 +84,8 @@ public:
   void RemoveUnusedVertices();
 
 protected:
-  template <typename T> void RemoveUnusedEntries(IndexVec& indices, std::vector<T>& entries) const {
+  template <typename T>
+  void RemoveUnusedEntries(IndexVec& indices, std::vector<T>& entries) const {
     // compute an inverse lookup index, i.e. for each
     // vertex, store what indices point to it
     std::vector<size_t> inverseIndex(entries.size(),0);
@@ -138,7 +139,7 @@ public:
                     const FLOATVECTOR3& translation);
 
   double Pick(const Ray& ray, FLOATVECTOR3& normal, 
-              FLOATVECTOR2& tc, FLOATVECTOR4& color) {
+              FLOATVECTOR2& tc, FLOATVECTOR4& color) const {
     double tmin=0, tmax=0;
     if (!AABBIntersect(ray, tmin, tmax))
       return std::numeric_limits<double>::max();
@@ -180,11 +181,13 @@ public:
 
   const std::string& Name() const {return m_MeshDesc;}
 
-  const FLOATMATRIX4& GetTransformFromOriginal() {return m_TransformFromOriginal;}
+  const FLOATMATRIX4& GetTransformFromOriginal() const {
+    return m_TransformFromOriginal;
+  }
   void DeleteTransformFromOriginal() {m_TransformFromOriginal = FLOATMATRIX4();}
 
-  const FLOATVECTOR3& GetMin() {return m_Bounds[0];}
-  const FLOATVECTOR3& GetMax() {return m_Bounds[1];}
+  const FLOATVECTOR3& GetMin() const {return m_Bounds[0];}
+  const FLOATVECTOR3& GetMax() const {return m_Bounds[1];}
 
   // currently these two calls are somewhat redundant, but in the future we 
   // may want to support curved surfaces, in that case the first call would
@@ -219,7 +222,7 @@ private:
                            FLOATVECTOR2& tc, FLOATVECTOR4& color) const;
 
   // AABB Test
-  bool AABBIntersect(const Ray& r, double& tmin, double& tmax);
+  bool AABBIntersect(const Ray& r, double& tmin, double& tmax) const;
   FLOATVECTOR3  m_Bounds[2];
 
   friend class KDTree;

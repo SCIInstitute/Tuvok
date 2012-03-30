@@ -578,7 +578,7 @@ const KDTree* Mesh::GetKDTree() const {
   return m_KDTree;
 }
 
-bool Mesh::AABBIntersect(const Ray& r, double& tmin, double& tmax) {
+bool Mesh::AABBIntersect(const Ray& r, double& tmin, double& tmax) const {
   double tymin, tymax, tzmin, tzmax;
 
   DOUBLEVECTOR3 inv_direction(1.0/r.direction.x, 

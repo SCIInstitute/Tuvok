@@ -35,8 +35,8 @@
 
 #pragma once
 
-#ifndef RAY_H
-#define RAY_H
+#ifndef BASICS_RAY_H
+#define BASICS_RAY_H
 
 #include "StdDefines.h"
 #include "Vectors.h"
@@ -53,4 +53,4 @@ class Ray
       return start+direction*d;
     }
 };
-#endif // RAY
+#endif // BASICS_RAY_H

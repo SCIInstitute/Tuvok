@@ -26,7 +26,6 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-
 /**
   \file    GeometryGenerator.cpp
   \author  Jens Krueger
@@ -37,8 +36,8 @@
 
 #pragma once
 
-#ifndef GEOMETRYGENERATOR_H
-#define GEOMETRYGENERATOR_H
+#ifndef BASICS_GEOMETRYGENERATOR_H
+#define BASICS_GEOMETRYGENERATOR_H
 
 #include <vector>
 #include "StdDefines.h"
@@ -46,7 +45,8 @@
 
 class PosNormalVertex {
 public:
-  PosNormalVertex(const FLOATVECTOR3& vPos = FLOATVECTOR3(0,0,0), const FLOATVECTOR3& vNormal = FLOATVECTOR3(1,0,0)) :
+  PosNormalVertex(const FLOATVECTOR3& vPos = FLOATVECTOR3(0,0,0),
+                  const FLOATVECTOR3& vNormal = FLOATVECTOR3(1,0,0)) :
       m_vPos(vPos), m_vNormal(vNormal) {}
 
   FLOATVECTOR3 m_vPos;
@@ -55,7 +55,8 @@ public:
 
 class Triangle {
 public:
-  Triangle(const PosNormalVertex& a, const PosNormalVertex& b, const PosNormalVertex& c) {
+  Triangle(const PosNormalVertex& a, const PosNormalVertex& b,
+           const PosNormalVertex& c) {
     m_vertices[0] = a;
     m_vertices[1] = b;
     m_vertices[2] = c;
@@ -71,7 +72,5 @@ public:
                                         float  fShaftRadius,
                                         float  fHeadRadius,
                                         uint32_t iSegments);
-
 };
-
-#endif // GEOMETRYGENERATOR_H
+#endif // BASICS_GEOMETRYGENERATOR_H
