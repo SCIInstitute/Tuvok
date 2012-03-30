@@ -32,6 +32,7 @@
         SCI Institute
         University of Utah
 */
+#include "StdTuvokDefines.h"
 
 #ifndef TUVOK_NO_QT
  #include <QtGui/QImage>
