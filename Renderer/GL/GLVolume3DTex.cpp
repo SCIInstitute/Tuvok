@@ -86,11 +86,11 @@ void GLVolume3DTex::SetData(const void *voxels) {
   if (m_pTexture) m_pTexture->SetData(voxels);
 }
 
-uint64_t GLVolume3DTex::GetCPUSize() {
+uint64_t GLVolume3DTex::GetCPUSize() const {
   return (m_pTexture) ? m_pTexture->GetCPUSize() : 0;
 }
 
-uint64_t GLVolume3DTex::GetGPUSize() {
+uint64_t GLVolume3DTex::GetGPUSize() const {
   return (m_pTexture) ? m_pTexture->GetGPUSize() : 0;
 }
 

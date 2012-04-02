@@ -61,8 +61,8 @@ namespace tuvok {
       virtual void Bind(uint32_t iUnit, int depth, int iStack) const;
       virtual void SetData(const void *voxels);
 
-      virtual uint64_t GetCPUSize();
-      virtual uint64_t GetGPUSize();
+      virtual uint64_t GetCPUSize() const;
+      virtual uint64_t GetGPUSize() const;
 
       uint32_t GetSizeX() {return m_iSizeX;}
       uint32_t GetSizeY() {return m_iSizeY;}

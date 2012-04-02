@@ -63,11 +63,11 @@ public:
   virtual operator GLuint*(void) { return m_hTexture; }
 
   /// \todo check how much mem an FBO really occupies
-  virtual uint64_t GetCPUSize() {
+  virtual uint64_t GetCPUSize() const {
     return EstimateCPUSize(m_iSizeX, m_iSizeY, m_iSizePerElement,
                            m_hDepthBuffer!=0, m_iNumBuffers);
   }
-  virtual uint64_t GetGPUSize() {
+  virtual uint64_t GetGPUSize() const {
     return EstimateGPUSize(m_iSizeX, m_iSizeY, m_iSizePerElement,
                            m_hDepthBuffer!=0, m_iNumBuffers);
   }

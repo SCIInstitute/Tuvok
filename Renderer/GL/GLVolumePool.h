@@ -105,8 +105,8 @@ namespace tuvok {
                        unsigned int iDataTextureUnit) const;
 
       virtual ~GLVolumePool();
-      virtual uint64_t GetCPUSize();
-      virtual uint64_t GetGPUSize();
+      virtual uint64_t GetCPUSize() const;
+      virtual uint64_t GetGPUSize() const;
 
     protected:
       std::map<UINTVECTOR4, BrickElemInfo> m_BrickHash;

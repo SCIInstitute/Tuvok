@@ -40,9 +40,10 @@
 
 #include "../../StdTuvokDefines.h"
 #include "GLInclude.h"
+#include "../GPUObject.h"
 
 namespace tuvok {
-  class GLVolume  {
+  class GLVolume : public GPUObject {
     public:
       GLVolume(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
                GLint internalformat, GLenum format, GLenum type,
@@ -59,13 +60,9 @@ namespace tuvok {
       virtual void SetFilter(GLint iMagFilter = GL_NEAREST,
                              GLint iMinFilter = GL_NEAREST);
 
-      virtual uint64_t GetCPUSize() = 0;
-      virtual uint64_t GetGPUSize() = 0;
-
   protected:
       GLint  m_iMagFilter;
       GLint  m_iMinFilter;
-
   };
 }
 #endif // GLVOLUME_H

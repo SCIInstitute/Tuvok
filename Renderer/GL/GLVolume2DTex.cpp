@@ -219,7 +219,7 @@ void GLVolume2DTex::SetData(const void *voxels) {
   }
 }
 
-uint64_t GLVolume2DTex::GetCPUSize() {
+uint64_t GLVolume2DTex::GetCPUSize() const {
   if (m_iCPUSize) return m_iCPUSize;
 
   uint64_t iSize = 0;
@@ -231,7 +231,7 @@ uint64_t GLVolume2DTex::GetCPUSize() {
   return iSize;
 }
 
-uint64_t GLVolume2DTex::GetGPUSize() {
+uint64_t GLVolume2DTex::GetGPUSize() const {
   if (m_iGPUSize) return m_iGPUSize;
 
   uint64_t iSize = 0;

@@ -74,10 +74,10 @@ class GLTexture3D : public GLTexture {
     void SetData(const UINTVECTOR3& offset, const UINTVECTOR3& size,
                  const void *pixels, bool bRestoreBinding=true);
 
-    virtual uint64_t GetCPUSize() {
+    virtual uint64_t GetCPUSize() const {
       return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);
     }
-    virtual uint64_t GetGPUSize() {
+    virtual uint64_t GetGPUSize() const {
       return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);
     }
 

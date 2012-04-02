@@ -60,8 +60,8 @@ namespace tuvok {
       virtual void Bind(uint32_t iUnit=0);
       virtual void SetData(const void *voxels);
 
-      virtual uint64_t GetCPUSize();
-      virtual uint64_t GetGPUSize();
+      virtual uint64_t GetCPUSize() const;
+      virtual uint64_t GetGPUSize() const;
 
       virtual void SetFilter(GLint iMagFilter = GL_NEAREST,
                              GLint iMinFilter = GL_NEAREST);
