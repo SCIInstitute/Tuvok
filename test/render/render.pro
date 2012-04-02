@@ -45,3 +45,13 @@ contains(QMAKE_PRL_CONFIG, shared) {
 SOURCES += \
   ../context.cpp \
   render.cpp
+
+unix:!macx { SOURCES += ../glx-context.cpp }
+macx { SOURCES += ../cgl-context.cpp }
+win32 { SOURCES += ../wgl-context.cpp }
+
+HEADERS += \
+  ../context.h \
+  ../cgl-context.h \
+  ../glx-context.h \
+  ../wgl-context.h

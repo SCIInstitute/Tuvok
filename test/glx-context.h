@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2010 Scientific Computing and Imaging Institute,
+   Copyright (c) 2012 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -25,44 +25,34 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
-/**
-  \file    context.cpp
-  \author  Tom Fogal
-           SCI Institute
-           University of Utah
-  \brief   Simple wrapper for establishing an OpenGL context.
-*/
-#ifndef TUVOK_TEST_CONTEXT_H
-#define TUVOK_TEST_CONTEXT_H
+#ifndef TUVOK_GLX_CONTEXT_H
+#define TUVOK_GLX_CONTEXT_H
 
 #include "StdTuvokDefines.h"
-#include <exception>
-#include "boost/cstdint.hpp"
+#ifdef _MSC_VER
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
+
+#include "context.h"
 
 namespace tuvok {
+  struct xinfo;
 
-class TvkContext {
-  public:
-    virtual ~TvkContext();
-    // Virtual coonstructor for appropriate kind of context.
-    static TvkContext* Create(uint32_t width, uint32_t height,
-                              uint8_t color_bits=32, uint8_t depth_bits=24,
-                              uint8_t stencil_bits=8, bool double_buffer=true);
+  class TvkGLXContext: public TvkContext {
+    public:
+      TvkGLXContext(uint32_t w, uint32_t h, uint8_t color_bits,
+                    uint8_t depth_bits, uint8_t stencil_bits,
+                    bool double_buffer);
+      virtual ~TvkGLXContext();
 
-    virtual bool isValid() const=0;
-    virtual bool makeCurrent()=0;
-    virtual bool swapBuffers()=0;
-};
+      bool isValid() const;
+      bool makeCurrent();
+      bool swapBuffers();
 
-class NoAvailableContext : public std::exception {
-  public:
-    virtual ~NoAvailableContext() throw() {}
-    virtual const char* what() const throw() {
-      return "No context was available to utilize.";
-    }
-};
-
+    private:
+      std::tr1::shared_ptr<struct xinfo> xi;
+  };
 }
-
-#endif // TUVOK_TEST_CONTEXT_H
+#endif /* TUVOK_GLX_CONTEXT_H */

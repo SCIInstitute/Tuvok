@@ -42,5 +42,15 @@ contains(QMAKE_PRL_CONFIG, shared) {
 }
 
 SOURCES += \
-  shadertest.cpp \
-  ../context.cpp
+  ../context.cpp \
+  shadertest.cpp
+
+unix:!macx { SOURCES += ../glx-context.cpp }
+macx { SOURCES += ../cgl-context.cpp }
+win32 { SOURCES += ../wgl-context.cpp }
+
+HEADERS += \
+  ../context.h \
+  ../cgl-context.h \
+  ../glx-context.h \
+  ../wgl-context.h
