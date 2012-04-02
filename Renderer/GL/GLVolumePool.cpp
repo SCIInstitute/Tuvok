@@ -1,4 +1,4 @@
-/*/*
+/*
    For more information, please see: http://software.sci.utah.edu
 
    The MIT License
@@ -31,7 +31,7 @@
 //!             SCI Institute, University of Utah
 //!    Date   : November 2011
 //
-//!    Copyright (C) 2011 IVDA, MMC, DFKI, SCI Institute
+//!    Copyright (C) 2011 IVDA, MMCI, DFKI, SCI Institute
 
 
 #include "GLVolumePool.h"
