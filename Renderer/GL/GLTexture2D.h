@@ -47,12 +47,10 @@ namespace tuvok {
 class GLTexture2D : public GLTexture {
   public:
     GLTexture2D(uint32_t iSizeX, uint32_t iSizeY, GLint internalformat,
-      GLenum format, GLenum type, uint32_t iSizePerElement,
-      const GLvoid *pixels = 0,
-      GLint iMagFilter = GL_NEAREST,
-      GLint iMinFilter = GL_NEAREST,
-      GLint wrapX = GL_CLAMP_TO_EDGE,
-      GLint wrapY = GL_CLAMP_TO_EDGE
+                GLenum format, GLenum type, uint32_t iSizePerElement,
+                const GLvoid *pixels = 0,
+                GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST,
+                GLint wrapX = GL_CLAMP_TO_EDGE, GLint wrapY = GL_CLAMP_TO_EDGE
     );
     virtual ~GLTexture2D() {}
 
@@ -70,12 +68,19 @@ class GLTexture2D : public GLTexture {
     }
 
     virtual void SetData(const void *pixels, bool bRestoreBinding=true);
-    void SetData(const UINTVECTOR2& offset, const UINTVECTOR2& size, const void *pixels, bool bRestoreBinding=true);
+    void SetData(const UINTVECTOR2& offset, const UINTVECTOR2& size,
+                 const void *pixels, bool bRestoreBinding=true);
 
-    virtual uint64_t GetCPUSize() {return uint64_t(m_iSizeX*m_iSizeY*m_iSizePerElement);}
-    virtual uint64_t GetGPUSize() {return uint64_t(m_iSizeX*m_iSizeY*m_iSizePerElement);}
+    virtual uint64_t GetCPUSize() {
+      return uint64_t(m_iSizeX*m_iSizeY*m_iSizePerElement);
+    }
+    virtual uint64_t GetGPUSize() {
+      return uint64_t(m_iSizeX*m_iSizeY*m_iSizePerElement);
+    }
 
-    UINTVECTOR2 GetSize() const {return UINTVECTOR2(uint32_t(m_iSizeX), uint32_t(m_iSizeY));}
+    UINTVECTOR2 GetSize() const {
+      return UINTVECTOR2(uint32_t(m_iSizeX), uint32_t(m_iSizeY));
+    }
 
   protected:
     GLuint m_iSizeX;

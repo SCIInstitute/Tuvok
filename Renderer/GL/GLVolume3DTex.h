@@ -40,7 +40,6 @@
 #include "GLVolume.h"
 
 namespace tuvok {
-
   class GLTexture3D;
 
   /// Controls 3D volume data as a texture.
@@ -64,11 +63,11 @@ namespace tuvok {
       virtual uint64_t GetCPUSize();
       virtual uint64_t GetGPUSize();
 
-      virtual void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
-
+      virtual void SetFilter(GLint iMagFilter = GL_NEAREST,
+                             GLint iMinFilter = GL_NEAREST);
     private:
       GLTexture3D* m_pTexture;  
       void FreeGLResources();
   };
-};
+}
 #endif // GLVOLUME3DTEX_H

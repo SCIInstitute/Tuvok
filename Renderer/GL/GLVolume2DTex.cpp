@@ -53,18 +53,18 @@ GLVolume2DTex::GLVolume2DTex(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
   GLVolume(iSizeX, iSizeY, iSizeZ, internalformat, format, type,
            iSizePerElement, voxels, iMagFilter, iMinFilter,wrapX,
            wrapY, wrapZ),
-      m_iSizeX(iSizeX),
-      m_iSizeY(iSizeY),
-      m_iSizeZ(iSizeZ),
-      m_internalformat(internalformat),
-      m_format(format),
-      m_type(type),
-      m_iSizePerElement(iSizePerElement),
-      m_wrapX(wrapX),
-      m_wrapY(wrapY),
-      m_wrapZ(wrapZ),
-      m_iGPUSize(0),
-      m_iCPUSize(0)
+  m_iSizeX(iSizeX),
+  m_iSizeY(iSizeY),
+  m_iSizeZ(iSizeZ),
+  m_internalformat(internalformat),
+  m_format(format),
+  m_type(type),
+  m_iSizePerElement(iSizePerElement),
+  m_wrapX(wrapX),
+  m_wrapY(wrapY),
+  m_wrapZ(wrapZ),
+  m_iGPUSize(0),
+  m_iCPUSize(0)
 {
   m_pTextures.resize(3);
   CreateGLResources();
@@ -170,8 +170,10 @@ void GLVolume2DTex::SetData(const void *voxels) {
 
 
   const char* charPtr = static_cast<const char*>(voxels);
-  char* copyBuffer = new char[static_cast<size_t>(max(m_pTextures[0][0]->GetCPUSize(),
-                                  m_pTextures[1][0]->GetCPUSize()))];
+  char* copyBuffer = new char[static_cast<size_t>(max(
+    m_pTextures[0][0]->GetCPUSize(),
+    m_pTextures[1][0]->GetCPUSize())
+  )];
   size_t sliceElemCount = m_iSizeY*m_iSizeX;
 
   for (size_t i = 0;i<m_pTextures[0].size();i++){

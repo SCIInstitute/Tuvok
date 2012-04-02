@@ -38,24 +38,28 @@
 
 using namespace tuvok;
 
-UINTVECTOR3 ExtendedOctreeInfo::GetLODCount(UINTVECTOR3 , UINTVECTOR3 , uint32_t ) {
+UINTVECTOR3 ExtendedOctreeInfo::GetLODCount(UINTVECTOR3, UINTVECTOR3,
+                                            uint32_t) {
   // TODO
   return UINTVECTOR3();
 }
 
-UINTVECTOR3 ExtendedOctreeInfo::GetLODSize(uint32_t , UINTVECTOR3 , UINTVECTOR3 , uint32_t ) {
+UINTVECTOR3 ExtendedOctreeInfo::GetLODSize(uint32_t, UINTVECTOR3, UINTVECTOR3,
+                                           uint32_t) {
   // TODO
   return UINTVECTOR3();
 }
 
-UINTVECTOR3 GetBrickSize(UINTVECTOR3 , uint32_t , UINTVECTOR3 , UINTVECTOR3 , uint32_t ) {
+UINTVECTOR3 GetBrickSize(UINTVECTOR3, uint32_t, UINTVECTOR3, UINTVECTOR3,
+                         uint32_t) {
   // TODO
   return UINTVECTOR3();
 }
 
 
-GLVolumePool::GLVolumePool(UINTVECTOR3 , UINTVECTOR3 , uint32_t ,
-                           const UINTVECTOR3& poolTexSize, const UINTVECTOR3& brickSize,
+GLVolumePool::GLVolumePool(UINTVECTOR3, UINTVECTOR3, uint32_t,
+                           const UINTVECTOR3& poolTexSize,
+                           const UINTVECTOR3& brickSize,
                            GLint internalformat, GLenum format, GLenum type,
                            uint32_t iSizePerElement) :
 m_StaticLODLUT(NULL),
@@ -84,13 +88,14 @@ bool GLVolumePool::UploadBrick(const BrickElemInfo& metaData, void* pData) {
   UpdateMetadataTexture();
 
   // upload brick to 3D texture
-  m_PoolDataTexture->SetData(vPoolCoordiantes*m_brickSize, metaData.m_vVoxelSize, pData);
-
+  m_PoolDataTexture->SetData(vPoolCoordiantes*m_brickSize,
+                             metaData.m_vVoxelSize, pData);
   return true;
 }
 
 bool GLVolumePool::IsBrickResident(const UINTVECTOR4& vBrickID) const {  
-  for (std::deque< VolumePoolElemInfo >::const_iterator iter = m_BricksInPool.begin();
+  for (std::deque<VolumePoolElemInfo>::const_iterator iter =
+         m_BricksInPool.begin();
        iter != m_BricksInPool.end();
        iter++) {
          if (iter->m_vBrickID == vBrickID)  return true;
@@ -99,7 +104,8 @@ bool GLVolumePool::IsBrickResident(const UINTVECTOR4& vBrickID) const {
   return false;
 }
 
-void GLVolumePool::BindTexures(unsigned int iMetaTextureUnit, unsigned int iDataTextureUnit) const{
+void GLVolumePool::BindTexures(unsigned int iMetaTextureUnit,
+                               unsigned int iDataTextureUnit) const {
   m_PoolMetadataTexture->Bind(iMetaTextureUnit);
   m_PoolDataTexture->Bind(iDataTextureUnit);
 }
@@ -140,4 +146,3 @@ uint64_t GLVolumePool::GetCPUSize() {
 uint64_t GLVolumePool::GetGPUSize() {
   return GetCPUSize();
 }
-

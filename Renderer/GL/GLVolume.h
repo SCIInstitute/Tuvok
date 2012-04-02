@@ -56,7 +56,8 @@ namespace tuvok {
       GLVolume();
       virtual ~GLVolume();
       virtual void SetData(const void *voxels) = 0;
-      virtual void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
+      virtual void SetFilter(GLint iMagFilter = GL_NEAREST,
+                             GLint iMinFilter = GL_NEAREST);
 
       virtual uint64_t GetCPUSize() = 0;
       virtual uint64_t GetGPUSize() = 0;

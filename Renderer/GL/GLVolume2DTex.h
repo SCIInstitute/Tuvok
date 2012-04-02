@@ -41,7 +41,6 @@
 #include <vector>
 
 namespace tuvok {
-
   class GLTexture2D;
 
   /// Emulates a 3D volume using stacks of 3D textures.
@@ -69,7 +68,8 @@ namespace tuvok {
       uint32_t GetSizeY() {return m_iSizeY;}
       uint32_t GetSizeZ() {return m_iSizeZ;}
 
-      virtual void SetFilter(GLint iMagFilter = GL_NEAREST, GLint iMinFilter = GL_NEAREST);
+      virtual void SetFilter(GLint iMagFilter = GL_NEAREST,
+                             GLint iMinFilter = GL_NEAREST);
 
     private:
       std::vector< std::vector<GLTexture2D*> > m_pTextures;
@@ -91,5 +91,5 @@ namespace tuvok {
       void CreateGLResources();
       void FreeGLResources();
   };
-};
+}
 #endif // GLVOLUME2DTEX_H

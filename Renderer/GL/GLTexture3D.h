@@ -71,7 +71,8 @@ class GLTexture3D : public GLTexture {
     }
     
     virtual void SetData(const void *pixels, bool bRestoreBinding=true);
-    void SetData(const UINTVECTOR3& offset, const UINTVECTOR3& size, const void *pixels, bool bRestoreBinding=true);
+    void SetData(const UINTVECTOR3& offset, const UINTVECTOR3& size,
+                 const void *pixels, bool bRestoreBinding=true);
 
     virtual uint64_t GetCPUSize() {
       return uint64_t(m_iSizeX*m_iSizeY*m_iSizeZ*m_iSizePerElement);
@@ -81,7 +82,8 @@ class GLTexture3D : public GLTexture {
     }
 
     UINTVECTOR3 GetSize() const {
-      return UINTVECTOR3(uint32_t(m_iSizeX),uint32_t(m_iSizeY),uint32_t(m_iSizeZ));
+      return UINTVECTOR3(uint32_t(m_iSizeX), uint32_t(m_iSizeY),
+                         uint32_t(m_iSizeZ));
     }
 
   protected:

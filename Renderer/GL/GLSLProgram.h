@@ -115,19 +115,22 @@ public:
   void Set(const char *name, float x, float y) const;
   void Set(const char *name, float x, float y, float z) const;
   void Set(const char *name, float x, float y, float z, float w) const;
-  void Set(const char *name, const float *m, size_t size, bool bTranspose=false) const;
+  void Set(const char *name, const float *m, size_t size,
+           bool bTranspose=false) const;
 
   void Set(const char *name, int x) const;
   void Set(const char *name, int x, int y) const;
   void Set(const char *name, int x, int y, int z) const;
   void Set(const char *name, int x, int y, int z, int w) const;
-  void Set(const char *name, const int *m, size_t size, bool bTranspose=false) const;
+  void Set(const char *name, const int *m, size_t size,
+           bool bTranspose=false) const;
 
   void Set(const char *name, bool x) const;
   void Set(const char *name, bool x, bool y) const;
   void Set(const char *name, bool x, bool y, bool z) const;
   void Set(const char *name, bool x, bool y, bool z, bool w) const;
-  void Set(const char *name, const bool *m, size_t size, bool bTranspose=false) const;
+  void Set(const char *name, const bool *m, size_t size,
+           bool bTranspose=false) const;
 
   /// Sets a texture parameter.
   void SetTexture(const std::string& name, const GLTexture& pTexture);

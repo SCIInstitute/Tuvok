@@ -48,24 +48,31 @@
 #include "GLTexture3D.h"
 
 namespace tuvok {
-
   class ExtendedOctreeInfo {
     public:
-      static UINTVECTOR3 GetLODCount(UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, uint32_t overlap);
-      static UINTVECTOR3 GetLODSize(uint32_t iLOD, UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, uint32_t overlap);
-      static UINTVECTOR3 GetBrickSize(UINTVECTOR3 iBrickIndex, uint32_t iLOD, UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, uint32_t overlap);
+      static UINTVECTOR3 GetLODCount(UINTVECTOR3 inputSize,
+                                     UINTVECTOR3 innerBricksize,
+                                     uint32_t overlap);
+      static UINTVECTOR3 GetLODSize(uint32_t iLOD, UINTVECTOR3 inputSize,
+                                    UINTVECTOR3 innerBricksize,
+                                    uint32_t overlap);
+      static UINTVECTOR3 GetBrickSize(UINTVECTOR3 iBrickIndex, uint32_t iLOD,
+                                      UINTVECTOR3 inputSize,
+                                      UINTVECTOR3 innerBricksize,
+                                      uint32_t overlap);
   };
 
   class BrickElemInfo {
   public:
-    BrickElemInfo(UINTVECTOR4 vBrickID, UINTVECTOR3 vVoxelSize, FLOATVECTOR3 vTopLeft, FLOATVECTOR3 vBottomRight) :
+    BrickElemInfo(UINTVECTOR4 vBrickID, UINTVECTOR3 vVoxelSize,
+                  FLOATVECTOR3 vTopLeft, FLOATVECTOR3 vBottomRight) :
       m_vBrickID(vBrickID),
       m_vVoxelSize(vVoxelSize),
       m_vTopLeft(vTopLeft),
       m_vBottomRight(vBottomRight)
     {}
 
-    UINTVECTOR4 m_vBrickID; 
+    UINTVECTOR4 m_vBrickID;
     UINTVECTOR3 m_vVoxelSize;
     FLOATVECTOR3 m_vTopLeft;
     FLOATVECTOR3 m_vBottomRight;
@@ -73,7 +80,8 @@ namespace tuvok {
 
   class VolumePoolElemInfo : public BrickElemInfo {
   public:
-    VolumePoolElemInfo(const BrickElemInfo& bei, const UINTVECTOR3& vPoolCoordiantes, int iPriority) :
+    VolumePoolElemInfo(const BrickElemInfo& bei,
+                       const UINTVECTOR3& vPoolCoordiantes, int iPriority) :
         BrickElemInfo(bei),
         m_vPoolCoordiantes(vPoolCoordiantes),
         m_iPriority(iPriority)
@@ -85,23 +93,25 @@ namespace tuvok {
 
   class GLVolumePool : public GLObject {
     public:
-      GLVolumePool(UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize, uint32_t overlap,
-                   const UINTVECTOR3& poolTexSize, const UINTVECTOR3& brickSize,
-                   GLint internalformat, GLenum format, GLenum type, 
+      GLVolumePool(UINTVECTOR3 inputSize, UINTVECTOR3 innerBricksize,
+                   uint32_t overlap, const UINTVECTOR3& poolTexSize,
+                   const UINTVECTOR3& brickSize,
+                   GLint internalformat, GLenum format, GLenum type,
                    uint32_t iSizePerElement);
 
       bool UploadBrick(const BrickElemInfo& metaData, void* pData);
       bool IsBrickResident(const UINTVECTOR4& vBrickID) const;
-      void BindTexures(unsigned int iMetaTextureUnit, unsigned int iDataTextureUnit) const;
+      void BindTexures(unsigned int iMetaTextureUnit,
+                       unsigned int iDataTextureUnit) const;
 
       virtual ~GLVolumePool();
       virtual uint64_t GetCPUSize();
       virtual uint64_t GetGPUSize();
 
-
-  protected:
+    protected:
       std::map<UINTVECTOR4, BrickElemInfo> m_BrickHash;
-      std::deque< VolumePoolElemInfo > m_BricksInPool; // TODO replace this by a priority queue
+      /// @todo replace this by a priority queue
+      std::deque<VolumePoolElemInfo> m_BricksInPool;
       GLTexture1D* m_StaticLODLUT;
       GLTexture2D* m_PoolMetadataTexture;
       GLTexture3D* m_PoolDataTexture;
@@ -119,7 +129,6 @@ namespace tuvok {
 
       UINTVECTOR3 FindNextPoolPosition();
       void UpdateMetadataTexture();
-
   };
 }
 #endif // GLVOLUMEPOOL_H
