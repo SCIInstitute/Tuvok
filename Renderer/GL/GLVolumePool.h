@@ -81,13 +81,13 @@ namespace tuvok {
   class VolumePoolElemInfo : public BrickElemInfo {
   public:
     VolumePoolElemInfo(const BrickElemInfo& bei,
-                       const UINTVECTOR3& vPoolCoordiantes, int iPriority) :
+                       const UINTVECTOR3& vPoolCoordinates, int iPriority) :
         BrickElemInfo(bei),
-        m_vPoolCoordiantes(vPoolCoordiantes),
+        m_vPoolCoordinates(vPoolCoordinates),
         m_iPriority(iPriority)
     {}
 
-    UINTVECTOR3 m_vPoolCoordiantes;
+    UINTVECTOR3 m_vPoolCoordinates;
     int m_iPriority;
   };
 
