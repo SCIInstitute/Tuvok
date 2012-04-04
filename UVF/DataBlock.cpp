@@ -58,6 +58,9 @@ uint64_t DataBlock::GetHeaderFromFile(LargeRAWFile_ptr pStreamFile, uint64_t iOf
 
   uint64_t ulStringLengthBlockID;
   m_pStreamFile->ReadData(ulStringLengthBlockID, bIsBigEndian);
+  // this should be a simple string, i.e. "Block", "RasterData" etc.  So if it
+  // doesn't fit in a 32bit uint, that's a bit odd.
+  assert(ulStringLengthBlockID <= 4294967296);
   m_pStreamFile->ReadData(strBlockID, ulStringLengthBlockID);
 
   uint64_t uintSem;
