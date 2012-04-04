@@ -48,7 +48,7 @@ class LuaScripting
   friend class LuaMemberReg;  // For adding member function registration.
 public:
 
-  LuaScripting();
+  LuaScripting();             // Will generate a new Lua state.
   virtual ~LuaScripting();
 
   /// These structures were created in order to handle void return types easily
@@ -123,6 +123,9 @@ public:
 
   /// Unregisters the function associated with the fully qualified name.
   void unregisterFunction(const std::string& fqName);
+
+  /// Unregisters all functions registered using this LuaScripting instance.
+  void unregisterAllFunctions();
 
   /// Registers a static C++ function with LUA.
   /// Since LUA is compiled as CPP, it is safe to throw exceptions from the
@@ -257,9 +260,9 @@ public:
     lua_setfield(mL, hookTable, os.str().c_str());
   }
 
-  /// This function is to be used only for testing.
-  /// Upgrade to a shared_ptr if it is to be used outside the LUA scripting
-  /// system.
+  /// NOTE: We cannot use shared_ptr for the lua_State. It allocates memory
+  /// for this structure using luaInternalAlloc, and a call to delete, without
+  /// informing Lua, could be disastrous.
   lua_State* getLUAState()  {return mL;}
 
   // Names for data stored in a function's encapsulating table.
@@ -275,20 +278,36 @@ public:
   static const char* TBL_MD_HOOKS;        ///< Static function hooks table
   static const char* TBL_MD_HOOK_INDEX;   ///< Static function hook index
   static const char* TBL_MD_MEMBER_HOOKS; ///< Class member function hook table
+  static const char* TBL_MD_CPP_CLASS;    ///< Light user data to LuaScripting
 
 private:
 
-  // Returns a new member hook ID.
+  /// Returns a new member hook ID.
   std::string getNewMemberHookID();
 
-  // Stack expectations: the function table at tableIndex, and the parameters
-  // required to call the function directly after the table on the stack.
-  // There must be no other values on the stack above tableIndex other than the
-  // table and the parameters to call the function.
+  /// Recursive helper function for unregisterAllFunctions().
+  /// Expects that the table from which to remove functions is on the top of the
+  /// stack.
+  /// \param  parentTable If 0, the table is remove from globals if it is a
+  ///                     function.
+  /// \param  tableName   Name of the table on the top of the stack.
+  void removeFunctionsFromTable(int parentTable, const char* tableName);
+
+  /// Stack expectations: the function table at tableIndex, and the parameters
+  /// required to call the function directly after the table on the stack.
+  /// There must be no other values on the stack above tableIndex other than the
+  /// table and the parameters to call the function.
   static void doHooks(lua_State* L, int tableIndex);
 
   /// Returns true if the table at stackIndex is a registered function.
+  /// Makes no guarantees that it is a function registered by this class.
   bool isRegisteredFunction(int stackIndex) const;
+
+  /// Returns true if the function table at stackIndex was create by this
+  /// LuaScripting class. For now, we create our own unique Lua instance, so
+  /// we are guaranteed this, but this is forward thinking for the future
+  /// when we need to share the Lua state.
+  bool isOurRegisteredFunction(int stackIndex) const;
 
   /// Retrieves the function table given the fully qualified function name.
   /// Places the function table at the top of the stack. If the function fails
@@ -333,15 +352,15 @@ private:
 
 
   /// The one true LUA state.
-  lua_State*                mL;
+  lua_State*                        mL;
 
   /// List of registered modules/functions in LUA's global table.
   /// Used to iterate through all registered functions.
-  std::vector<std::string>  mRegisteredGlobals;
+  std::vector<std::string>          mRegisteredGlobals;
 
   /// Index used to assign a unique ID to classes that wish to register
   /// hooks.
-  int                       mMemberHookIndex;
+  int                               mMemberHookIndex;
 
 
 };

@@ -72,6 +72,7 @@ const char* LuaScripting::TBL_MD_FUN_LAST_EXEC  = "tblLastExec";
 const char* LuaScripting::TBL_MD_HOOKS          = "tblHooks";
 const char* LuaScripting::TBL_MD_HOOK_INDEX     = "hookIndex";
 const char* LuaScripting::TBL_MD_MEMBER_HOOKS   = "tblMHooks";
+const char* LuaScripting::TBL_MD_CPP_CLASS      = "scriptingCPP";
 
 
 //-----------------------------------------------------------------------------
@@ -89,7 +90,9 @@ LuaScripting::LuaScripting()
 //-----------------------------------------------------------------------------
 LuaScripting::~LuaScripting()
 {
-
+  unregisterAllFunctions(); // Technically, we only need to call this if we
+                            // are not in charge of the lua_State.
+  lua_close(mL);
 }
 
 //-----------------------------------------------------------------------------
@@ -125,6 +128,75 @@ void* LuaScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
 }
 
 //-----------------------------------------------------------------------------
+void LuaScripting::unregisterAllFunctions()
+{
+  for (vector<string>::const_iterator it = mRegisteredGlobals.begin();
+       it != mRegisteredGlobals.end(); ++it)
+  {
+    lua_getglobal(mL, (*it).c_str());
+    removeFunctionsFromTable(-1, (*it).c_str());
+    lua_pop(mL, 1);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::removeFunctionsFromTable(int parentTable,
+                                            const char* tableName)
+{
+  // Iterate over the first table on the stack.
+  int tablePos = lua_gettop(mL);
+
+  // Check to see if it is a registered function.
+  if (isRegisteredFunction(-1))
+  {
+    // Only output function info its registered to us.
+    if (isOurRegisteredFunction(-1))
+    {
+      if (parentTable == 0)
+      {
+        lua_pushnil(mL);
+        lua_setglobal(mL, tableName);
+      }
+      else
+      {
+        lua_pushnil(mL);
+        lua_setfield(mL, parentTable, tableName);
+      }
+    }
+
+    // This was a function, not a table.
+    return;
+  }
+
+  string nextTableName;
+
+  // Push first key.
+  lua_pushnil(mL);
+  while (lua_next(mL, tablePos))
+  {
+    // Check if the value is a table. If so, check to see if it is a function,
+    // otherwise, recurse into the table.
+    int type = lua_type(mL, -1);
+
+    if (type == LUA_TTABLE)
+    {
+      // Obtain the key value (we don't want to call lua_tostring on the key
+      // used for lua_next. This will confuse lua_next).
+      lua_pushvalue(mL, -2);
+      nextTableName = lua_tostring(mL, -1);
+      lua_pop(mL, 1);
+
+      // Recurse into the table.
+      lua_checkstack(mL, 4);
+      removeFunctionsFromTable(tablePos, nextTableName.c_str());
+    }
+
+    // Pop value off of the stack in preparation for the next iteration.
+    lua_pop(mL, 1);
+  }
+}
+
+//-----------------------------------------------------------------------------
 vector<LuaScripting::FunctionDesc> LuaScripting::getAllFuncDescs() const
 {
   vector<LuaScripting::FunctionDesc> ret;
@@ -152,30 +224,33 @@ void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
   // Check to see if it is a registered function.
   if (isRegisteredFunction(-1))
   {
-    // The name of the function is the 'key'.
-    FunctionDesc desc;
+    // Only output function info its registered to us.
+    if (isOurRegisteredFunction(-1))
+    {
+      // The name of the function is the 'key'.
+      FunctionDesc desc;
 
-    lua_getfield(mL, -1, TBL_MD_QNAME);
-    desc.funcName = getUnqualifiedName(string(lua_tostring(mL, -1)));
-    lua_pop(mL, 1);
+      lua_getfield(mL, -1, TBL_MD_QNAME);
+      desc.funcName = getUnqualifiedName(string(lua_tostring(mL, -1)));
+      lua_pop(mL, 1);
 
-    lua_getfield(mL, -1, TBL_MD_DESC);
-    desc.funcDesc = lua_tostring(mL, -1);
-    lua_pop(mL, 1);
+      lua_getfield(mL, -1, TBL_MD_DESC);
+      desc.funcDesc = lua_tostring(mL, -1);
+      lua_pop(mL, 1);
 
-    lua_getfield(mL, -1, TBL_MD_SIG_NAME);
-    desc.funcSig = lua_tostring(mL, -1);
-    lua_pop(mL, 1);
+      lua_getfield(mL, -1, TBL_MD_SIG_NAME);
+      desc.funcSig = lua_tostring(mL, -1);
+      lua_pop(mL, 1);
 
-    descs.push_back(desc);
+      descs.push_back(desc);
+    }
 
-    // This was a function, not a table. We do not recurse into its contents.
+    // This was a function, not a table.
     return;
   }
 
   // Push first key.
   lua_pushnil(mL);
-  int stackSize = lua_gettop(mL);
   while (lua_next(mL, tablePos))
   {
     // Check if the value is a table. If so, check to see if it is a function,
@@ -185,7 +260,7 @@ void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
     if (type == LUA_TTABLE)
     {
       // Recurse into the table.
-      lua_checkstack(mL, 2);
+      lua_checkstack(mL, 4);
       getTableFuncDefs(descs);
     }
 
@@ -364,6 +439,23 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
 }
 
 //-----------------------------------------------------------------------------
+bool LuaScripting::isOurRegisteredFunction(int stackIndex) const
+{
+  // Extract the light user data that holds a pointer to the class that was
+  // used to register this function.
+  lua_getfield(mL, stackIndex, TBL_MD_CPP_CLASS);
+  if (lua_isnil(mL, -1) == 0)
+  {
+    if (lua_touserdata(mL, -1) == this)
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+//-----------------------------------------------------------------------------
 bool LuaScripting::isRegisteredFunction(int stackIndex) const
 {
   // Check to make sure this table is NOT a registered function.
@@ -467,6 +559,12 @@ void LuaScripting::populateWithMetadata(const std::string& name,
 
   lua_pushinteger(mL, 0);
   lua_setfield(mL, tableIndex, TBL_MD_HOOK_INDEX);
+
+  // Ensure our class is present as a light user data.
+  // In this way, we can identify our own functions, and our functions
+  // can modify state (such as provenance).
+  lua_pushlightuserdata(mL, this);
+  lua_setfield(mL, tableIndex, TBL_MD_CPP_CLASS);
 
   assert(top == lua_gettop(mL));
 }
