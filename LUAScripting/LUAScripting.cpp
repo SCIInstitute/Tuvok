@@ -63,17 +63,20 @@ namespace tuvok
 
 const char* LuaScripting::TBL_MD_DESC           = "desc";
 const char* LuaScripting::TBL_MD_SIG            = "signature";
+const char* LuaScripting::TBL_MD_SIG_NO_RET     = "sigNoRet";
 const char* LuaScripting::TBL_MD_SIG_NAME       = "sigName";
 const char* LuaScripting::TBL_MD_NUM_EXEC       = "numExec";
 const char* LuaScripting::TBL_MD_QNAME          = "fqName";
 const char* LuaScripting::TBL_MD_FUN_PDEFS      = "tblDefaults";
 const char* LuaScripting::TBL_MD_FUN_LAST_EXEC  = "tblLastExec";
 const char* LuaScripting::TBL_MD_HOOKS          = "tblHooks";
+const char* LuaScripting::TBL_MD_HOOK_INDEX     = "hookIndex";
 const char* LuaScripting::TBL_MD_MEMBER_HOOKS   = "tblMHooks";
 
 
 //-----------------------------------------------------------------------------
 LuaScripting::LuaScripting()
+: mMemberHookIndex(0)
 {
   mL = lua_newstate(luaInternalAlloc, NULL);
 
@@ -398,7 +401,8 @@ void LuaScripting::createCallableFuncTable(lua_CFunction proxyFunc,
 
   // Push C Closure containing our function pointer onto the LUA stack.
   lua_pushlightuserdata(mL, realFuncToCall);
-  lua_pushcclosure(mL, proxyFunc, 1);
+  lua_pushboolean(mL, 0);   // We are NOT a hook being called.
+  lua_pushcclosure(mL, proxyFunc, 2);
 
   // Associate closure with __call metamethod.
   lua_setfield(mL, -2, "__call");
@@ -423,8 +427,11 @@ void LuaScripting::populateWithMetadata(const std::string& name,
                                         const std::string& desc,
                                         const std::string& sig,
                                         const std::string& sigWithName,
+                                        const std::string& sigNoReturn,
                                         int tableIndex)
 {
+  int top = lua_gettop(mL);
+
   // Function description
   lua_pushstring(mL, desc.c_str());
   lua_setfield(mL, tableIndex, TBL_MD_DESC);
@@ -436,6 +443,10 @@ void LuaScripting::populateWithMetadata(const std::string& name,
   // Function signature with name
   lua_pushstring(mL, sigWithName.c_str());
   lua_setfield(mL, tableIndex, TBL_MD_SIG_NAME);
+
+  // Function signature no return.
+  lua_pushstring(mL, sigNoReturn.c_str());
+  lua_setfield(mL, tableIndex, TBL_MD_SIG_NO_RET);
 
   // Number of times this function has been executed
   // (takes into account undos, so if a function is undone then this
@@ -453,6 +464,11 @@ void LuaScripting::populateWithMetadata(const std::string& name,
 
   lua_newtable(mL);
   lua_setfield(mL, tableIndex, TBL_MD_MEMBER_HOOKS);
+
+  lua_pushinteger(mL, 0);
+  lua_setfield(mL, tableIndex, TBL_MD_HOOK_INDEX);
+
+  assert(top == lua_gettop(mL));
 }
 
 //-----------------------------------------------------------------------------
@@ -571,7 +587,11 @@ bool LuaScripting::getFunctionTable(const std::string& fqName)
         lua_remove(mL, -2); // Remove the old table from the stack.
       }
 
+      if (lua_isnil(mL, -1))
+        return false;
+
       // Leave the function table on the top of the stack.
+      return true;
     }
 
     ++depth;
@@ -683,6 +703,67 @@ void LuaScripting::unregisterFunction(const std::string& fqName)
   lua_settop(mL, baseStackIndex);
 }
 
+//-----------------------------------------------------------------------------
+void LuaScripting::doHooks(lua_State* L, int tableIndex)
+{
+  int stackTop = lua_gettop(L);
+  int numArgs = stackTop - tableIndex;
+
+  lua_checkstack(L, numArgs + 3);
+
+  // Obtain the hooks table and iterate over it calling the lua closures.
+  lua_getfield(L, tableIndex, TBL_MD_HOOKS);
+  int hookTable = lua_gettop(L);
+
+  lua_pushnil(L);
+  while (lua_next(L, hookTable))
+  {
+    // The value at the top of the stack is the lua closure to call.
+    // This call will automatically pop the function off the stack,
+    // so we don't need a pop at the end of the loop
+
+    // Push all of the arguments.
+    for (int i = 0; i < numArgs; i++)
+    {
+      lua_pushvalue(L, tableIndex + i + 1);
+    }
+    lua_pcall(L, numArgs, 0, 0);
+  }
+  lua_pop(L, 1);  // Remove the hooks table.
+
+  // Obtain the member function hooks table, and iterate over it.
+  // XXX: Update to allow classes to register multiple hook for one function
+  //      I don't see a need for this now, so I'm not implementing it.
+  //      But a way to do it would be to make this member hooks table contain
+  //      tables named after the member hook references, and index the
+  //      function much like we index them in the hooks table above (with an
+  //      index stored in the table).
+  lua_getfield(L, tableIndex, TBL_MD_MEMBER_HOOKS);
+  hookTable = lua_gettop(L);
+  lua_pushnil(L);
+  while (lua_next(L, hookTable))
+  {
+    // Push all of the arguments.
+    for (int i = 0; i < numArgs; i++)
+    {
+      lua_pushvalue(L, tableIndex + i + 1);
+    }
+    lua_pcall(L, numArgs, 0, 0);
+  }
+  lua_pop(L, 1);  // Remove the member hooks table.
+
+  assert(stackTop == lua_gettop(L));
+}
+
+//-----------------------------------------------------------------------------
+std::string LuaScripting::getNewMemberHookID()
+{
+  ostringstream os;
+  os << "mh" << mMemberHookIndex;
+  ++mMemberHookIndex;
+  return os.str();
+}
+
 //==============================================================================
 //
 // UNIT TESTING
@@ -779,7 +860,7 @@ SUITE(TestLUAScriptingSystem)
         sc->registerFunction(&dfun, "func.Func2", "Func."),
         LUAFunBindError);
 
-    printRegisteredFunctions(sc.get());
+    //printRegisteredFunctions(sc.get());
   }
 
 
@@ -849,7 +930,7 @@ SUITE(TestLUAScriptingSystem)
     CHECK_CLOSE(30.0f, lua_tonumber(L, -1), 0.0001f);
     lua_pop(L, 1);
 
-    printRegisteredFunctions(sc.get());
+//    printRegisteredFunctions(sc.get());
   }
 
 
@@ -999,7 +1080,7 @@ SUITE(TestLUAScriptingSystem)
 
     // No need to test last exec table, it is just a copy of defaults.
 
-    printRegisteredFunctions(sc.get());
+//    printRegisteredFunctions(sc.get());
   }
 
   TEST(Test_getAllFuncDescs)
@@ -1041,7 +1122,93 @@ SUITE(TestLUAScriptingSystem)
     CHECK_EQUAL("string mixer(bool, int, float, double, string)",
                 d[3].funcSig.c_str());
 
-    printRegisteredFunctions(sc.get());
+//    printRegisteredFunctions(sc.get());
+  }
+
+  static int hook1Called = 0;
+  static int hook1CallVal = 0;
+
+  static int hook1aCalled = 0;
+  static int hook1aCallVal = 0;
+
+  static int hook2Called = 0;
+  static int hook2CallVal1 = 0;
+  static int hook2CallVal2 = 0;
+
+  void myHook1(int a)
+  {
+    printf("Called my hook 1 with %d\n", a);
+    ++hook1Called;
+    hook1CallVal = a;
+  }
+
+  void myHook1a(int a)
+  {
+    printf("Called my hook 1a with %d\n", a);
+    ++hook1aCalled;
+    hook1aCallVal = a;
+  }
+
+  void myHook2(int a, int b)
+  {
+    printf("Called my hook 2 with %d %d\n", a, b);
+    ++hook2Called;
+    hook2CallVal1 = a;
+    hook2CallVal2 = b;
+  }
+
+  TEST(StaticStrictHook)
+  {
+    TEST_HEADER;
+
+    auto_ptr<LuaScripting> sc(new LuaScripting());
+    lua_State* L = sc->getLUAState();
+
+    sc->registerFunction(&str_int,            "func1", "Function 1");
+    sc->registerFunction(&str_int2,           "a.func2", "Function 2");
+
+    sc->strictHook(&myHook1, "func1");
+    sc->strictHook(&myHook1, "func1");
+    sc->strictHook(&myHook1a, "func1");
+    sc->strictHook(&myHook2, "a.func2");
+
+    // Test hooks on function 1 (the return value of hooks don't matter)
+    luaL_dostring(L, "func1(23)");
+
+    // Test hooks on function 2
+    luaL_dostring(L, "a.func2(42, 53)");
+
+    CHECK_EQUAL(2,  hook1Called);
+    CHECK_EQUAL(23, hook1CallVal);
+    CHECK_EQUAL(1,  hook1aCalled);
+    CHECK_EQUAL(23, hook1aCallVal);
+    CHECK_EQUAL(1,  hook2Called);
+    CHECK_EQUAL(42, hook2CallVal1);
+    CHECK_EQUAL(53, hook2CallVal2);
+
+    // Test failure cases
+
+    // Invalid function names
+    CHECK_THROW(
+        sc->strictHook(&myHook1, "func3"),
+        LUANonExistantFunction);
+
+    CHECK_THROW(
+        sc->strictHook(&myHook2, "b.func2"),
+        LUANonExistantFunction);
+
+    // Incompatible function signatures
+    CHECK_THROW(
+        sc->strictHook(&myHook1, "a.func2"),
+        LUAInvalidFunSignature);
+
+    CHECK_THROW(
+        sc->strictHook(&myHook1a, "a.func2"),
+        LUAInvalidFunSignature);
+
+    CHECK_THROW(
+        sc->strictHook(&myHook2, "func1"),
+        LUAInvalidFunSignature);
   }
 
   TEST(CallbackMethodsOnExec)
@@ -1086,6 +1253,7 @@ void printRegisteredFunctions(LuaScripting* s)
 }
 
 #endif
+
 
 
 } /* namespace tuvok */

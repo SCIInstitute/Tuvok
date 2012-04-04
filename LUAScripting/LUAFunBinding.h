@@ -291,9 +291,9 @@ public:
 // The classes below could easily be written without these preprocessor macros,
 // but the macros make it easier to replicate the classes when more parameters
 // are needed.
-#define EP_INIT     int pos = 2;  // We are using the __call metamethod, so
-                                  // the table associated with the metamethod
-                                  // will take the first stack position.
+#define EP_INIT(idx) int pos = idx; // We are using the __call metamethod, so
+                                    // the table associated with the metamethod
+                                    // will take the first stack position.
 
 // Variable Name
 #define NM(x)       x##_v
@@ -325,6 +325,7 @@ class LuaCFunExec
   // We want to keep the run and getSignature functions static so we don't
   // have to initialize member variables for these common operations
   // (we don't know their types).
+  static std::string getSigNoReturn(const std::string& funcName);
   static std::string getSignature(const std::string& funcName);
 
   // Pushing and pulling parameters from the stack are used to store parameters
@@ -350,17 +351,18 @@ template<typename Ret>
 class LuaCFunExec<Ret (*)()>
 {
 public:
-  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)();
-  static Ret run(fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
     return fp();
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "()";
+    return funcName + "()";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   void pushParamsToStack(lua_State* L) const      {}
   void pullParamsFromStack(lua_State* L, int si)  {}
@@ -373,19 +375,21 @@ template<typename Ret, typename P1>
 class LuaCFunExec<Ret (*)(P1)>
 {
 public:
-  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1);
-  static Ret run(fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
               EP(P1);
     return fp(NM(P1));
   }
-  static std::string getSignature(const std::string& funcName)
+
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ")";
+    return funcName + "(" + SG(P1) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
   : MVIT(P1) {}
@@ -406,19 +410,20 @@ template<typename Ret, typename P1, typename P2>
 class LuaCFunExec<Ret (*)(P1, P2)>
 {
 public:
-  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1, P2);
-  static Ret run(fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
               EP(P1); EP(P2);
     return fp(NM(P1), NM(P2));
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
     : MVIT(P1), MVIT(P2) {}
@@ -439,20 +444,20 @@ template<typename Ret, typename P1, typename P2, typename P3>
 class LuaCFunExec<Ret (*)(P1, P2, P3)>
 {
 public:
-  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1, P2, P3);
-  static Ret run(fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
               EP(P1); EP(P2); EP(P3);
     return fp(NM(P1), NM(P2), NM(P3)); // nom, nom, nom ...
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
-           SG(P3) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3) {}
@@ -473,20 +478,21 @@ template<typename Ret, typename P1, typename P2, typename P3, typename P4>
 class LuaCFunExec<Ret (*)(P1, P2, P3, P4)>
 {
 public:
-  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1, P2, P3, P4);
-  static Ret run(fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
               EP(P1); EP(P2); EP(P3); EP(P4);
     return fp(NM(P1), NM(P2), NM(P3), NM(P4));
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
-            SG(P3) + ", " + SG(P4) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " +
+           SG(P4) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
@@ -508,20 +514,21 @@ template<typename Ret, typename P1, typename P2, typename P3, typename P4,
 class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5)>
 {
 public:
-  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1, P2, P3, P4, P5);
-  static Ret run(fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
               EP(P1); EP(P2); EP(P3); EP(P4); EP(P5);
     return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5));
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
-            SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " +
+            SG(P4) + ", " + SG(P5) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
@@ -543,20 +550,21 @@ template<typename Ret, typename P1, typename P2, typename P3, typename P4,
 class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5, P6)>
 {
 public:
-  static const int memberFunc = 0;
   typedef Ret returnType;
   typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6);
-  static Ret run(fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
               EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6);
     return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6));
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
-            SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " +
+            SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
@@ -588,18 +596,19 @@ template<typename T, typename Ret>
 class LuaCFunExec<Ret (T::*)()>
 {
 public:
-  static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
   typedef Ret (T::*fpType)();
-  static Ret run(T* c, fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
     return (c->*fp)();
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "()";
+    return funcName + "()";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   void pushParamsToStack(lua_State* L) const      {}
   void pullParamsFromStack(lua_State* L, int si)  {}
@@ -612,21 +621,21 @@ template<typename T, typename Ret, typename P1>
 class LuaCFunExec<Ret (T::*)(P1)>
 {
 public:
-
-  static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
   typedef Ret (T::*fpType)(P1);
-  static Ret run(T* c, fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
                     EP(P1);
     return (c->*fp)(NM(P1));
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ")";
+    return funcName + "(" + SG(P1) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
   : MVIT(P1) {}
@@ -647,20 +656,21 @@ template<typename T, typename Ret, typename P1, typename P2>
 class LuaCFunExec<Ret (T::*)(P1, P2)>
 {
 public:
-  static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
   typedef Ret (T::*fpType)(P1, P2);
-  static Ret run(T* c, fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
                     EP(P1); EP(P2);
     return (c->*fp)(NM(P1), NM(P2));
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
     : MVIT(P1), MVIT(P2) {}
@@ -681,21 +691,22 @@ template<typename T, typename Ret, typename P1, typename P2, typename P3>
 class LuaCFunExec<Ret (T::*)(P1, P2, P3)>
 {
 public:
-  static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
   typedef Ret (T::*fpType)(P1, P2, P3);
-  static Ret run(T* c, fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
                     EP(P1); EP(P2); EP(P3);
     return (c->*fp)(NM(P1), NM(P2), NM(P3)); // nom, nom, nom ...
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
            SG(P3) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3) {}
@@ -717,21 +728,22 @@ template<typename T, typename Ret, typename P1, typename P2, typename P3,
 class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4)>
 {
 public:
-  static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
   typedef Ret (T::*fpType)(P1, P2, P3, P4);
-  static Ret run(T* c, fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
                     EP(P1); EP(P2); EP(P3); EP(P4);
     return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4));
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
             SG(P3) + ", " + SG(P4) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
@@ -753,21 +765,22 @@ template<typename T, typename Ret, typename P1, typename P2, typename P3,
 class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5)>
 {
 public:
-  static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5);
-  static Ret run(T* c, fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
                     EP(P1); EP(P2); EP(P3); EP(P4); EP(P5);
     return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5));
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
             SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
@@ -793,17 +806,19 @@ public:
   typedef T classType;
   typedef Ret returnType;
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6);
-  static Ret run(T* c, fpType fp, lua_State* L)
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT;
+    EP_INIT(paramStackIndex);
                     EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6);
     return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6));
   }
-  static std::string getSignature(const std::string& funcName)
+  static std::string getSigNoReturn(const std::string& funcName)
   {
-    return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " +
             SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ")";
   }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}

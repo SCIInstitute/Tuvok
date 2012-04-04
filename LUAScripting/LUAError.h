@@ -59,7 +59,8 @@ public:
 class LUAFunBindError : virtual public LUAError
 {
 public:
-  explicit LUAFunBindError(const char* e, const char* where = NULL, size_t ln = 0)
+  explicit LUAFunBindError(const char* e, const char* where = NULL,
+                           size_t ln = 0)
     : LUAError(e, where, ln)
   {}
   virtual ~LUAFunBindError() throw() { }
@@ -68,10 +69,21 @@ public:
 class LUANonExistantFunction : virtual public LUAError
 {
 public:
-  explicit LUANonExistantFunction(const char* e, const char* where = NULL, size_t ln = 0)
+  explicit LUANonExistantFunction(const char* e, const char* where = NULL,
+                                  size_t ln = 0)
     : LUAError(e, where, ln)
   {}
   virtual ~LUANonExistantFunction() throw() { }
+};
+
+class LUAInvalidFunSignature : virtual public LUAError
+{
+public:
+  explicit LUAInvalidFunSignature(const char* e, const char* where = NULL,
+                                  size_t ln = 0)
+    : LUAError(e, where, ln)
+  {}
+  virtual ~LUAInvalidFunSignature() throw() { }
 };
 
 } /* namespace tuvok */

@@ -63,6 +63,7 @@ namespace tuvok
 
 LuaMemberReg::LuaMemberReg(tr1::shared_ptr<LuaScripting> scriptSys)
 : mScriptSystem(scriptSys)
+, mHookID(scriptSys->getNewMemberHookID())
 {
 
 }
@@ -74,6 +75,14 @@ LuaMemberReg::~LuaMemberReg()
        it != mRegisteredFunctions.end(); ++it)
   {
     mScriptSystem->unregisterFunction(*it);
+  }
+
+  // Loop through the hooks, and unregister them from their functions
+  for (vector<string>::iterator it = mHookedFunctions.begin();
+       it != mHookedFunctions.end(); ++it)
+  {
+    // Push the table associated with the function to the top.
+    mScriptSystem->getFunctionTable(*it);
   }
 }
 
@@ -103,6 +112,18 @@ SUITE(LuaTestMemberFunctionRegistration)
       return 67;
     }
     void m5()           {printf("Test scoping.\n");}
+
+    int hookm2_var;
+    void hookm2(int a)
+    {
+      hookm2_var = a;
+    }
+
+    float hookm3_var;
+    void hookm3(float a)
+    {
+      hookm3_var = a;
+    }
 
     // The registration instance.
     LuaMemberReg  mReg;
@@ -183,6 +204,37 @@ SUITE(LuaTestMemberFunctionRegistration)
       luaL_dostring(L, "return a.m5");
       CHECK_EQUAL(1, lua_isnil(L, -1));
     }
+  }
+
+  TEST(MemberFunctionCallHooks)
+  {
+    TEST_HEADER;
+
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    lua_State* L = sc->getLUAState();
+
+    auto_ptr<A> a(new A(sc));
+
+    a->mReg.registerFunction(a.get(), &A::m1, "m1", "A::m1");
+    a->mReg.registerFunction(a.get(), &A::m2, "m2", "A::m2");
+    a->mReg.registerFunction(a.get(), &A::m3, "m3", "A::m3");
+    a->mReg.registerFunction(a.get(), &A::m4, "m4", "A::m4");
+    a->mReg.registerFunction(a.get(), &A::m5, "m5", "A::m5");
+
+    a->mReg.strictHook(a.get(), &A::hookm2, "m2");
+    a->mReg.strictHook(a.get(), &A::hookm3, "m3");
+
+    luaL_dostring(L, "m2(34)");
+    luaL_dostring(L, "m3(6.3)");
+
+    // Check
+    CHECK_EQUAL(34, a->hookm2_var);
+    CHECK_CLOSE(6.3, a->hookm3_var, 0.001);
+  }
+
+  TEST(MemberFunctionCallHookDeregistration)
+  {
+
   }
 }
 
