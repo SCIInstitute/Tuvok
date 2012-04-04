@@ -1,5 +1,5 @@
 TEMPLATE          = app
-CONFIG           += qt staticlib static warn_on stl exceptions
+CONFIG           += exceptions qt rtti staticlib static stl warn_on
 TARGET            = shtest
 DEPENDPATH       += . ../../
 INCLUDEPATH      += ../
