@@ -54,6 +54,7 @@
 #include "LUAError.h"
 #include "LUAFunBinding.h"
 #include "LUAScripting.h"
+#include "LUAProvenance.h"
 
 using namespace std;
 
@@ -74,19 +75,22 @@ const char* LuaScripting::TBL_MD_HOOKS          = "tblHooks";
 const char* LuaScripting::TBL_MD_HOOK_INDEX     = "hookIndex";
 const char* LuaScripting::TBL_MD_MEMBER_HOOKS   = "tblMHooks";
 const char* LuaScripting::TBL_MD_CPP_CLASS      = "scriptingCPP";
+const char* LuaScripting::TBL_MD_STACK_EXEMPT   = "stackExempt";
 
 
 //-----------------------------------------------------------------------------
 LuaScripting::LuaScripting()
 : mMemberHookIndex(0)
-, mProvenance(this)
+, mProvenance(new LuaProvenance(this))
 {
   mL = lua_newstate(luaInternalAlloc, NULL);
 
-  if (mL == NULL) throw LUAError("Failed to initialize LUA.");
+  if (mL == NULL) throw LuaError("Failed to initialize LUA.");
 
   lua_atpanic(mL, &luaPanic);
   luaL_openlibs(mL);
+
+  mProvenance->registerLuaProvenanceFunctions();
 }
 
 //-----------------------------------------------------------------------------
@@ -106,7 +110,7 @@ int LuaScripting::luaPanic(lua_State* L)
   // thrown, see:
   // http://developers.sun.com/solaris/articles/mixing.html#except .
 
-  throw LUAError("Unrecoverable LUA error");
+  throw LuaError("Unrecoverable LUA error");
 
   // Returning from this function would mean that abort() gets called by LUA.
   // We don't want this.
@@ -132,13 +136,13 @@ void* LuaScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
 //-----------------------------------------------------------------------------
 bool LuaScripting::isProvenanceEnabled()
 {
-  return mProvenance.isEnabled();
+  return mProvenance->isEnabled();
 }
 
 //-----------------------------------------------------------------------------
 void LuaScripting::enableProvenance(bool enable)
 {
-  mProvenance.setEnabled(enable);
+  mProvenance->setEnabled(enable);
 }
 
 //-----------------------------------------------------------------------------
@@ -325,7 +329,7 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
       tokens.push_back(fqName.substr(beg, end - beg));
       beg = end + 1;
       if (beg == fqName.size())
-        throw LUAFunBindError("Invalid function name. No function "
+        throw LuaFunBindError("Invalid function name. No function "
                               "name after trailing period.");
     }
     else
@@ -334,7 +338,7 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
     }
   }
 
-  if (tokens.size() == 0) throw LUAFunBindError("No function name specified.");
+  if (tokens.size() == 0) throw LuaFunBindError("No function name specified.");
 
   // Build name hierarchy in LUA, handle base case specially due to globals.
   vector<string>::iterator it = tokens.begin();
@@ -360,13 +364,13 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
     {
       if (isRegisteredFunction(-1))
       {
-        throw LUAFunBindError("Can't register functions on top of other"
+        throw LuaFunBindError("Can't register functions on top of other"
                               "functions.");
       }
     }
     else
     {
-      throw LUAFunBindError("A module in the fully qualified name"
+      throw LuaFunBindError("A module in the fully qualified name"
                             "not of type table.");
     }
     // keep the table on the stack
@@ -386,7 +390,7 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
     }
     else
     {
-      throw LUAFunBindError("Unable to bind function closure."
+      throw LuaFunBindError("Unable to bind function closure."
                             "Duplicate name already exists in globals.");
     }
   }
@@ -418,7 +422,7 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
       }
       else
       {
-        throw LUAFunBindError("Unable to bind function closure."
+        throw LuaFunBindError("Unable to bind function closure."
                               "Duplicate name already exists at last"
                               "descendant.");
       }
@@ -442,13 +446,13 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
 
         if (isRegisteredFunction(-1))
         {
-          throw LUAFunBindError("Can't register functions on top of other"
+          throw LuaFunBindError("Can't register functions on top of other"
                                 "functions.");
         }
       }
       else
       {
-        throw LUAFunBindError("A module in the fully qualified name"
+        throw LuaFunBindError("A module in the fully qualified name"
                               "not of type table.");
       }
     }
@@ -515,7 +519,11 @@ void LuaScripting::createCallableFuncTable(lua_CFunction proxyFunc,
   // Push C Closure containing our function pointer onto the LUA stack.
   lua_pushlightuserdata(mL, realFuncToCall);
   lua_pushboolean(mL, 0);   // We are NOT a hook being called.
-  lua_pushcclosure(mL, proxyFunc, 2);
+  // We are safe pushing this unprotected pointer: LuaScripting always
+  // deregisters all functions it has registered, so no residual light
+  // user data will be left in Lua.
+  lua_pushlightuserdata(mL, static_cast<void*>(this));
+  lua_pushcclosure(mL, proxyFunc, 3);
 
   // Associate closure with __call metamethod.
   lua_setfield(mL, -2, "__call");
@@ -581,6 +589,9 @@ void LuaScripting::populateWithMetadata(const std::string& name,
   lua_pushinteger(mL, 0);
   lua_setfield(mL, tableIndex, TBL_MD_HOOK_INDEX);
 
+  lua_pushboolean(mL, 0);
+  lua_setfield(mL, tableIndex, TBL_MD_STACK_EXEMPT);
+
   // Ensure our class is present as a light user data.
   // In this way, we can identify our own functions, and our functions
   // can modify state (such as provenance).
@@ -604,7 +615,7 @@ void LuaScripting::createDefaultsAndLastExecTables(int tableIndex,
   for (int i = 0; i < numFunParams; i++)
   {
     int stackIndex = firstParamPos + i;
-    lua_pushnumber(mL, i);
+    lua_pushinteger(mL, i);
     lua_pushvalue(mL, stackIndex);
     lua_settable(mL, defTablePos);
   }
@@ -621,6 +632,8 @@ void LuaScripting::createDefaultsAndLastExecTables(int tableIndex,
   int lastExecTablePos = lua_gettop(mL);
 
   lua_pushnil(mL);  // First key
+  // We use lua_next because order is not important. Just getting the key
+  // value pairs is important.
   while (lua_next(mL, defTablePos))
   {
     lua_pushvalue(mL, -2);  // Push key
@@ -633,7 +646,7 @@ void LuaScripting::createDefaultsAndLastExecTables(int tableIndex,
   // Push a copy of the defaults table onto the stack, and use it as the
   // 'last executed values'.
   lua_pushstring(mL, TBL_MD_FUN_LAST_EXEC);
-  lua_pushvalue(mL, -2);
+  lua_pushvalue(mL, lastExecTablePos);
   lua_settable(mL, tableIndex);
 
   lua_pop(mL, 2);   // Pop the last-exec and the default tables.
@@ -761,14 +774,14 @@ void LuaScripting::unregisterFunction(const std::string& fqName)
       if (lua_isnil(mL, -1))
       {
         lua_settop(mL, baseStackIndex);
-        throw LUANonExistantFunction("Function not found in unregister.");
+        throw LuaNonExistantFunction("Function not found in unregister.");
       }
 
       if (beg == fqName.size())
       {
         // Empty function name.
         lua_settop(mL, baseStackIndex);
-        throw LUANonExistantFunction("Function not found in unregister.");
+        throw LuaNonExistantFunction("Function not found in unregister.");
       }
     }
     else
@@ -788,7 +801,7 @@ void LuaScripting::unregisterFunction(const std::string& fqName)
       if (lua_isnil(mL, -1))
       {
         lua_settop(mL, baseStackIndex);
-        throw LUANonExistantFunction("Function not found in unregister.");
+        throw LuaNonExistantFunction("Function not found in unregister.");
       }
 
       if (isRegisteredFunction(lua_gettop(mL)))
@@ -818,7 +831,7 @@ void LuaScripting::unregisterFunction(const std::string& fqName)
       else
       {
         lua_settop(mL, baseStackIndex);
-        throw LUANonExistantFunction("Function not found in unregister.");
+        throw LuaNonExistantFunction("Function not found in unregister.");
       }
     }
 
@@ -887,6 +900,41 @@ std::string LuaScripting::getNewMemberHookID()
   os << "mh" << mMemberHookIndex;
   ++mMemberHookIndex;
   return os.str();
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::doProvenanceFromExec(lua_State* L,
+                            std::tr1::shared_ptr<LuaCFunAbstract> funParams,
+                            std::tr1::shared_ptr<LuaCFunAbstract> emptyParams)
+{
+  if (mProvenance->isEnabled())
+  {
+    // Obtain fully qualified function name (doProvenanceFromExec is executed
+    // from the context of the exec function in one of the LuaCallback structs).
+    lua_getfield(L, 1, LuaScripting::TBL_MD_QNAME);
+    std::string fqName = lua_tostring(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, LuaScripting::TBL_MD_STACK_EXEMPT);
+    bool stackExempt = lua_toboolean(L, -1) ? true : false;
+    lua_pop(L, 1);
+
+    // Execute provenace.
+    mProvenance->logExecution(fqName,
+                              stackExempt,
+                              funParams,
+                              emptyParams);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::setUndoRedoStackExempt(const string& funcName, bool exempt)
+{
+  lua_State* L = mL;
+  getFunctionTable(funcName);
+
+  lua_pushboolean(L, exempt ? 1 : 0);
+  lua_setfield(L, -2, TBL_MD_STACK_EXEMPT);
 }
 
 //==============================================================================
@@ -961,29 +1009,29 @@ SUITE(TestLUAScriptingSystem)
     // Exception: No trailing name after period.
     CHECK_THROW(
         sc->registerFunction(&dfun, "err.err.dummyFun.", "Func."),
-        LUAFunBindError);
+        LuaFunBindError);
 
     // Exception: Duplicate name already exists in globals.
     CHECK_THROW(
         sc->registerFunction(&dfun, "p1", "Func."),
-        LUAFunBindError);
+        LuaFunBindError);
 
     // Exception: Duplicate name already exists at last descendant.
     CHECK_THROW(
         sc->registerFunction(&dfun, "p1.p2", "Func."),
-        LUAFunBindError);
+        LuaFunBindError);
 
     // Exception: A module in the fully qualified name not of type table.
     // (descendant case).
     CHECK_THROW(
         sc->registerFunction(&dfun, "test.dummyFun.Func", "Func."),
-        LUAFunBindError);
+        LuaFunBindError);
 
     // Exception: A module in the fully qualified name not of type table.
     // (global case).
     CHECK_THROW(
         sc->registerFunction(&dfun, "func.Func2", "Func."),
-        LUAFunBindError);
+        LuaFunBindError);
 
     //printRegisteredFunctions(sc.get());
   }
@@ -1224,28 +1272,39 @@ SUITE(TestLUAScriptingSystem)
     //
     std::vector<LuaScripting::FunctionDesc> d = sc->getAllFuncDescs();
 
+    // We want to skip all of the subsystems that were registered when
+    // LuaScripting is created (like provenance).
+    // So we just look at the size of d, and use that as an indexing
+    // mechanism.
+    int ds = d.size();
+    int i;
+
     // Verify all of the function descriptions.
     // Since all of the functions are in different base tables, we can extract
     // them in the order that we registered them.
     // Otherwise, its determine by the hashing function used internally by
     // LUA (key/value pair association).
-    CHECK_EQUAL("int", d[0].funcName.c_str());
-    CHECK_EQUAL("Desc 1", d[0].funcDesc.c_str());
-    CHECK_EQUAL("string int(int)", d[0].funcSig.c_str());
+    i = ds - 4;
+    CHECK_EQUAL("int", d[i].funcName.c_str());
+    CHECK_EQUAL("Desc 1", d[i].funcDesc.c_str());
+    CHECK_EQUAL("string int(int)", d[i].funcSig.c_str());
 
-    CHECK_EQUAL("int2", d[1].funcName.c_str());
-    CHECK_EQUAL("Desc 2", d[1].funcDesc.c_str());
-    CHECK_EQUAL("string int2(int, int)", d[1].funcSig.c_str());
+    i = ds - 3;
+    CHECK_EQUAL("int2", d[i].funcName.c_str());
+    CHECK_EQUAL("Desc 2", d[i].funcDesc.c_str());
+    CHECK_EQUAL("string int2(int, int)", d[i].funcSig.c_str());
 
-    CHECK_EQUAL("dbl2", d[2].funcName.c_str());
-    CHECK_EQUAL("Desc 3", d[2].funcDesc.c_str());
+    i = ds - 2;
+    CHECK_EQUAL("dbl2", d[i].funcName.c_str());
+    CHECK_EQUAL("Desc 3", d[i].funcDesc.c_str());
     CHECK_EQUAL("float dbl2(float, float, int, int, double, double)",
-                d[2].funcSig.c_str());
+                d[i].funcSig.c_str());
 
-    CHECK_EQUAL("mixer", d[3].funcName.c_str());
-    CHECK_EQUAL("Desc 4", d[3].funcDesc.c_str());
+    i = ds - 1;
+    CHECK_EQUAL("mixer", d[i].funcName.c_str());
+    CHECK_EQUAL("Desc 4", d[i].funcDesc.c_str());
     CHECK_EQUAL("string mixer(bool, int, float, double, string)",
-                d[3].funcSig.c_str());
+                d[i].funcSig.c_str());
 
 //    printRegisteredFunctions(sc.get());
   }
@@ -1316,24 +1375,24 @@ SUITE(TestLUAScriptingSystem)
     // Invalid function names
     CHECK_THROW(
         sc->strictHook(&myHook1, "func3"),
-        LUANonExistantFunction);
+        LuaNonExistantFunction);
 
     CHECK_THROW(
         sc->strictHook(&myHook2, "b.func2"),
-        LUANonExistantFunction);
+        LuaNonExistantFunction);
 
     // Incompatible function signatures
     CHECK_THROW(
         sc->strictHook(&myHook1, "a.func2"),
-        LUAInvalidFunSignature);
+        LuaInvalidFunSignature);
 
     CHECK_THROW(
         sc->strictHook(&myHook1a, "a.func2"),
-        LUAInvalidFunSignature);
+        LuaInvalidFunSignature);
 
     CHECK_THROW(
         sc->strictHook(&myHook2, "func1"),
-        LUAInvalidFunSignature);
+        LuaInvalidFunSignature);
   }
 }
 

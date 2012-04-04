@@ -44,46 +44,76 @@ namespace tuvok
 {
 
 /// Generic LUA error.
-class LUAError : virtual public tuvok::Exception
+class LuaError : virtual public tuvok::Exception
 {
 public:
 
-  explicit LUAError(const char* e, const char* where = NULL, size_t ln = 0)
+  explicit LuaError(const char* e, const char* where = NULL, size_t ln = 0)
     : tuvok::Exception(e, where, ln)
   {}
-  virtual ~LUAError() throw() { }
+  virtual ~LuaError() throw() { }
 
 };
 
 /// Errors dealing with the LUA-Based function registration system.
-class LUAFunBindError : virtual public LUAError
+class LuaFunBindError : virtual public LuaError
 {
 public:
-  explicit LUAFunBindError(const char* e, const char* where = NULL,
+  explicit LuaFunBindError(const char* e, const char* where = NULL,
                            size_t ln = 0)
-    : LUAError(e, where, ln)
+    : LuaError(e, where, ln)
   {}
-  virtual ~LUAFunBindError() throw() { }
+  virtual ~LuaFunBindError() throw() { }
 };
 
-class LUANonExistantFunction : virtual public LUAError
+class LuaNonExistantFunction : virtual public LuaError
 {
 public:
-  explicit LUANonExistantFunction(const char* e, const char* where = NULL,
+  explicit LuaNonExistantFunction(const char* e, const char* where = NULL,
                                   size_t ln = 0)
-    : LUAError(e, where, ln)
+    : LuaError(e, where, ln)
   {}
-  virtual ~LUANonExistantFunction() throw() { }
+  virtual ~LuaNonExistantFunction() throw() { }
 };
 
-class LUAInvalidFunSignature : virtual public LUAError
+class LuaInvalidFunSignature : virtual public LuaError
 {
 public:
-  explicit LUAInvalidFunSignature(const char* e, const char* where = NULL,
+  explicit LuaInvalidFunSignature(const char* e, const char* where = NULL,
                                   size_t ln = 0)
-    : LUAError(e, where, ln)
+    : LuaError(e, where, ln)
   {}
-  virtual ~LUAInvalidFunSignature() throw() { }
+  virtual ~LuaInvalidFunSignature() throw() { }
+};
+
+class LuaProvenanceReenter : virtual public LuaError
+{
+public:
+  explicit LuaProvenanceReenter(const char* e, const char* where = NULL,
+                                  size_t ln = 0)
+    : LuaError(e, where, ln)
+  {}
+  virtual ~LuaProvenanceReenter() throw() { }
+};
+
+class LuaProvenanceInvalidRedo : virtual public LuaError
+{
+public:
+  explicit LuaProvenanceInvalidRedo(const char* e, const char* where = NULL,
+                                  size_t ln = 0)
+    : LuaError(e, where, ln)
+  {}
+  virtual ~LuaProvenanceInvalidRedo() throw() { }
+};
+
+class LuaProvenanceInvalidUndo : virtual public LuaError
+{
+public:
+  explicit LuaProvenanceInvalidUndo(const char* e, const char* where = NULL,
+                                  size_t ln = 0)
+    : LuaError(e, where, ln)
+  {}
+  virtual ~LuaProvenanceInvalidUndo() throw() { }
 };
 
 } /* namespace tuvok */

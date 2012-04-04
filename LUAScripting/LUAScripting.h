@@ -39,15 +39,16 @@
 #ifndef TUVOK_LUASCRIPTING_H_
 #define TUVOK_LUASCRIPTING_H_
 
-#include "LUAProvenance.h"
-
 namespace tuvok
 {
 
+class LuaProvenance;
+
 class LuaScripting
 {
-  friend class LuaMemberHook; // For adding member function hooks.
-  friend class LuaMemberReg;  // For adding member function registration.
+  friend class LuaMemberRegUnsafe;  // For adding member function registration.
+  friend class LuaProvenance;       // For obtaining function tables.
+
 public:
 
   LuaScripting();             // Will generate a new Lua state.
@@ -83,17 +84,28 @@ public:
       if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
       {
         // We are NOT a hook. Our parameters start at index 2 (because the
-        // callable table is at the first index), and we want to call all
+        // callable table is at the first index). We will want to call all
         // hooks associated with our table.
         r = LuaCFunExec<FunPtr>::run(L, 2, fp);
+
+        std::tr1::shared_ptr<LuaCFunAbstract> execParams(
+            new LuaCFunExec<FunPtr>());
+        std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
+            new LuaCFunExec<FunPtr>());
+        // Fill execParams. Function parameters start at index 2.
+        execParams->pullParamsFromStack(L, 2);
+
+        // Obtain reference to LuaScripting in order to invoke provenance.
+        // See createCallableFuncTable for justification on pulling an
+        // instance of LuaScripting out of Lua.
+        LuaScripting* ss = static_cast<LuaScripting*>(
+            lua_touserdata(L, lua_upvalueindex(3)));
+        ss->doProvenanceFromExec(L, execParams, emptyParams);
 
         // Call registered hooks.
         // Note: The first parameter on the stack (not on the top, but
         // on the bottom) is the table associated with the function.
         LuaScripting::doHooks(L, 1);
-
-        // TODO: Add provenance here (hooked calls don't need to be logged).
-        // TODO: Add last exec parameters to the last exec table here.
       }
       else
       {
@@ -115,6 +127,21 @@ public:
       if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
       {
         LuaCFunExec<FunPtr>::run(L, 2, fp);
+
+        std::tr1::shared_ptr<LuaCFunAbstract> execParams(
+            new LuaCFunExec<FunPtr>());
+        std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
+            new LuaCFunExec<FunPtr>());
+        // Fill execParams. Function parameters start at index 2.
+        execParams->pullParamsFromStack(L, 2);
+
+        // Obtain reference to LuaScripting in order to invoke provenance.
+        // See createCallableFuncTable for justification on pulling an
+        // instance of LuaScripting out of Lua.
+        LuaScripting* ss = static_cast<LuaScripting*>(
+            lua_touserdata(L, lua_upvalueindex(3)));
+        ss->doProvenanceFromExec(L, execParams, emptyParams);
+
         LuaScripting::doHooks(L, 1);
       }
       else
@@ -177,7 +204,7 @@ public:
 
     // Push default values for function parameters onto the stack.
     LuaCFunExec<FunPtr> defaultParams = LuaCFunExec<FunPtr>();
-    lua_checkstack(mL, 10); // Max num parameters accepted by the system.
+    lua_checkstack(mL, LUAC_MAX_NUM_PARAMS + 2);
     defaultParams.pushParamsToStack(mL);
     int numFunParams = lua_gettop(mL) - tableIndex;
     createDefaultsAndLastExecTables(tableIndex, numFunParams);
@@ -213,7 +240,7 @@ public:
 
     if (getFunctionTable(name) == false)
     {
-      throw LUANonExistantFunction("Unable to find function with which to"
+      throw LuaNonExistantFunction("Unable to find function with which to"
                                    "associate a hook.");
     }
 
@@ -229,7 +256,7 @@ public:
       os << "Hook's parameter signature and the parameter signature of the "
             "function to hook must match. Hook's signature: \"" << sigHook <<
             "\"Function to hook's signature: " << sigReg;
-      throw LUAInvalidFunSignature(os.str().c_str());
+      throw LuaInvalidFunSignature(os.str().c_str());
     }
     lua_pop(mL, 1);
 
@@ -254,11 +281,17 @@ public:
     lua_pushlightuserdata(mL, reinterpret_cast<void*>(f));
     lua_pushboolean(mL, 1);  // We ARE a hook. This affects the stack, and
                              // whether we want to perform provenance.
+    // As a hook, we don't need to add mScriptSystem to the closure, since
+    // we don't perform provenance on hooks.
     lua_pushcclosure(mL, proxyFunc, 2);
 
     // Associate closure with hook table.
     lua_setfield(mL, hookTable, os.str().c_str());
   }
+
+  /// Ensures the function is not added to the undo/redo stack. Examples include
+  /// the undo and redo functions themselves.
+  void setUndoRedoStackExempt(const std::string& funcName, bool exempt);
 
   /// NOTE: We cannot use shared_ptr for the lua_State. It allocates memory
   /// for this structure using luaInternalAlloc, and a call to delete, without
@@ -279,6 +312,7 @@ public:
   static const char* TBL_MD_HOOK_INDEX;   ///< Static function hook index
   static const char* TBL_MD_MEMBER_HOOKS; ///< Class member function hook table
   static const char* TBL_MD_CPP_CLASS;    ///< Light user data to LuaScripting
+  static const char* TBL_MD_STACK_EXEMPT; ///< True if undo/redo stack exempt
 
 private:
 
@@ -364,6 +398,9 @@ private:
   static void* luaInternalAlloc(void* ud, void* ptr, size_t osize,
                                 size_t nsize);
 
+  void doProvenanceFromExec(lua_State* L,
+                            std::tr1::shared_ptr<LuaCFunAbstract> funParams,
+                            std::tr1::shared_ptr<LuaCFunAbstract> emptyParams);
 
   /// The one true LUA state.
   lua_State*                        mL;
@@ -376,7 +413,7 @@ private:
   /// hooks.
   int                               mMemberHookIndex;
 
-  LuaProvenance                     mProvenance;
+  std::auto_ptr<LuaProvenance>      mProvenance;
 
 };
 

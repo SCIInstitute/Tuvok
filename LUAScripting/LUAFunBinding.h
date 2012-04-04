@@ -244,6 +244,9 @@ public:
 //
 //==========================
 
+// Please update the following definition if you add more parameters.
+#define LUAC_MAX_NUM_PARAMS (6)
+
 // Check prior definitions.
 #ifdef EP_INIT
     #error __FILE__ redefines EP_INIT
@@ -326,6 +329,9 @@ public:
   virtual ~LuaCFunAbstract() {}
 
   virtual void pushParamsToStack(lua_State* L) const      = 0;
+
+  /// Pulls parameters from the stack, starting at the non-psuedo index si.
+  /// Does NOT pop the parameters off the stack.
   virtual void pullParamsFromStack(lua_State* L, int si)  = 0;
 };
 

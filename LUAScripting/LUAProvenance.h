@@ -33,10 +33,16 @@
 #ifndef TUVOK_LUAPROVENANCE_H_
 #define TUVOK_LUAPROVENANCE_H_
 
+#include "LuaMemberRegUnsafe.h"
+
 namespace tuvok
 {
 
 class LuaScripting;
+
+// XXX: Add entire provenance history when the need calls for it.
+// TODO: Implement MAX size for undo / redo buffer. Think circular buffer, or
+//       just std::vector::erase for simplicity.
 
 class LuaProvenance
 {
@@ -48,36 +54,62 @@ public:
   bool isEnabled();
   void setEnabled(bool enabled);
 
-  void logProvenance(std::string function,
-                     std::tr1::shared_ptr<LuaCFunAbstract> funParams);
+  void logExecution(const std::string& function,
+                    bool undoRedoStackExempt,
+                    std::tr1::shared_ptr<LuaCFunAbstract> funParams,
+                    std::tr1::shared_ptr<LuaCFunAbstract> emptyParams);
 
   void issueUndo();
   void issueRedo();
+
+  /// Registers provenance functions with LUA.
+  /// These functions are NEVER deregistered, and persist for the lifetime
+  /// of the associated LuaScripting system.
+  void registerLuaProvenanceFunctions();
+
+  /// Clears all provenance and the undo/redo stack.
+  void clearProvenance();
+
+  /// Enable / disable the provenance reentry exception.
+  /// Disabling this will not allow provenance reentry, but will not throw
+  /// an exception, and instead, return from provenance function immediately
+  /// upon a detected reentry.
+  void enableProvReentryEx(bool enable);
 
 private:
 
   bool                  mEnabled;
 
-  struct UndoItem
+  struct UndoRedoItem
   {
-    /// prevExec contains the prior execution parameters for the function that
-    /// was executed at this undo step. prevExec is for repopulating the
-    /// lastExec table in the function's callable LUA table.
-    std::string functionCalled;
-    std::tr1::shared_ptr<LuaCFunAbstract> prevExec;
-    std::tr1::shared_ptr<LuaCFunAbstract> undoEntry;
+    UndoRedoItem(const std::string& funName,
+                 std::tr1::shared_ptr<LuaCFunAbstract> undo,
+                 std::tr1::shared_ptr<LuaCFunAbstract> redo)
+    : function(funName), undoParams(undo), redoParams(redo)
+    {}
+
+    /// Function name we operate on at this stack index.
+    std::string function;
+
+    /// Prior execution of undoFunction (saved in lastExec table entry).
+    std::tr1::shared_ptr<LuaCFunAbstract> undoParams;
+
+    /// Parameters of the function, exactly as it was called.
+    std::tr1::shared_ptr<LuaCFunAbstract> redoParams;
   };
 
-  struct RedoItem
-  {
-    std::string functionCalled;
-    std::tr1::shared_ptr<LuaCFunAbstract> redoEntry;
-  };
+  std::vector<UndoRedoItem> mUndoRedoStack; ///< Contains all undo/redo entries.
+  int                       mStackPointer;  ///< 1 based Index into
+                                            ///< mUndoRedoStack.
 
-  std::vector<UndoItem> mUndoStack;
-  std::vector<RedoItem> mRedoStack;
+  LuaScripting* const       mScripting;
+  LuaMemberRegUnsafe        mMemberReg;
 
-  LuaScripting* const   mScripting;
+
+  /// This flag is only used when issuing an undo or redo. This is to ensure
+  /// we don't get called when we are logging provenance.
+  bool                      mLoggingProvenance;
+  bool                      mDoProvReenterException;
 };
 
 }
