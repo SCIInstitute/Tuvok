@@ -36,14 +36,13 @@
           This class is used for internal purposes only, please use
           LuaMemberReg instead.
 
-          This class exists solely so that the LuaScripting class and its
-          composited classes can register functions without the need for a
-          shared pointer.
+          Exists solely to provide member function registration to LuaScripting
+          and its composited classes (without the need for a shared_ptr).
 
-          If you do use this class, instead of LuaMemberReg, be sure to call
+          If you do use this class instead of LuaMemberReg, be sure to call
           the unregisterAll function manually when your class is destroyed.
           It is your responsibility to ensure that the LuaScripting pointer
-          remains valid througout the lifetime of LuaMemberRegUnsafe.
+          remains valid throughout the lifetime of LuaMemberRegUnsafe.
  */
 
 #ifndef TUVOK_LUAMEMBER_REG_UNSAFE_H_
@@ -60,8 +59,6 @@ class LuaScripting;
 // LUA BINDING HELPER STRUCTURES
 //===============================
 
-
-// Member registration/hooking mediator class.
 class LuaMemberRegUnsafe
 {
 public:
@@ -74,7 +71,6 @@ public:
   {
     static int exec(lua_State* L)
     {
-      // TODO: Add provenance here.
       FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
       typename LuaCFunExec<FunPtr>::classType* C =
                   static_cast<typename LuaCFunExec<FunPtr>::classType*>(
@@ -89,10 +85,11 @@ public:
             new LuaCFunExec<FunPtr>());
         std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
             new LuaCFunExec<FunPtr>());
-        // Fill execParams. Function parameters start at index 2.
+        // Fill execParams. Function parameters start at index 2 (callable
+        // table starts at index 1).
         execParams->pullParamsFromStack(L, 2);
 
-        // Obtain reference to LuaScripting in order to invoke provenance.
+        // Obtain reference to LuaScripting to invoke provenance.
         // See createCallableFuncTable for justification on pulling an
         // instance of LuaScripting out of Lua.
         LuaScripting* ss = static_cast<LuaScripting*>(
@@ -112,13 +109,11 @@ public:
     }
   };
 
-  // Without a return value.
   template <typename FunPtr>
   struct LuaMemberCallback <FunPtr, void>
   {
     static int exec(lua_State* L)
     {
-      // TODO: Add provenance here.
       FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
       typename LuaCFunExec<FunPtr>::classType* C =
           static_cast<typename LuaCFunExec<FunPtr>::classType*>(
@@ -132,12 +127,8 @@ public:
             new LuaCFunExec<FunPtr>());
         std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
             new LuaCFunExec<FunPtr>());
-        // Fill execParams. Function parameters start at index 2.
         execParams->pullParamsFromStack(L, 2);
 
-        // Obtain reference to LuaScripting in order to invoke provenance.
-        // See createCallableFuncTable for justification on pulling an
-        // instance of LuaScripting out of Lua.
         LuaScripting* ss = static_cast<LuaScripting*>(
             lua_touserdata(L, lua_upvalueindex(4)));
         ss->doProvenanceFromExec(L, execParams, emptyParams);
@@ -155,7 +146,7 @@ public:
 
 
   // See LuaScripting::registerFunction for an in depth description of params.
-  // The only difference is the parameter C, which the context class for the
+  // The only difference is the parameter C, which is the context class for the
   // member function pointer.
   template <typename T, typename FunPtr>
   void registerFunction(T* C, FunPtr f, const std::string& name,
@@ -217,18 +208,14 @@ public:
 
     // Push default values for function parameters onto the stack.
     LuaCFunExec<FunPtr> defaultParams = LuaCFunExec<FunPtr>();
-    lua_checkstack(L, 10); // Max num parameters accepted by the system.
+    lua_checkstack(L, LUAC_MAX_NUM_PARAMS); // Max num parameters supported
     defaultParams.pushParamsToStack(L);
     int numFunParams = lua_gettop(L) - tableIndex;
     ss->createDefaultsAndLastExecTables(tableIndex, numFunParams);
 
-    int testPos = lua_gettop(L);
-
     // Install the callable table in the appropriate module based on its
     // fully qualified name.
     ss->bindClosureTableWithFQName(name, tableIndex);
-
-    testPos = lua_gettop(L);
 
     lua_pop(L, 1);   // Pop the callable table.
 
@@ -299,7 +286,7 @@ public:
     lua_pushboolean(L, 1);  // We ARE a hook. This affects the stack, and
                             // whether we want to perform provenance.
                             // Also, we don't need to push a ref to
-                            // mScriptSystem
+                            // mScriptSystem.
     lua_pushcclosure(L, proxyFunc, 3);
 
     // Associate closure with hook table.

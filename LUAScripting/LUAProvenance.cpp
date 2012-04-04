@@ -73,7 +73,7 @@ LuaProvenance::LuaProvenance(LuaScripting* scripting)
 //-----------------------------------------------------------------------------
 LuaProvenance::~LuaProvenance()
 {
-  // We purposefully do NOT call unregisterUndoRedo here.
+  // We purposefully do NOT unregister our undo/redo functions.
   // Since we are being destroyed, it is likely the lua_State has already
   // been closed by the class that composited us.
 }
@@ -82,9 +82,8 @@ LuaProvenance::~LuaProvenance()
 void LuaProvenance::registerLuaProvenanceFunctions()
 {
   // NOTE: We cannot use the LuaMemberReg class to manage our registered
-  // functions because it relies on a shared pointer to LuaScripting, and
-  // since we are composited inside of LuaScripting, no such shared pointer
-  // is available.
+  // functions because it relies on a shared pointer to LuaScripting; since we
+  // are composited inside of LuaScripting, no such shared pointer is available.
   mMemberReg.registerFunction(this, &LuaProvenance::issueUndo,
                               "provenance.undo",
                               "Undoes last script call.");
@@ -152,9 +151,7 @@ void LuaProvenance::logExecution(const string& fname,
     }
   }
 
-  // Will not log anything if this call was issued as an undo/redo step.
-  // (UNDO would log in provenance, if we implement that, because it is
-  //  undoRedoStackExempt, but not provenance exempt).
+  // Will not log anything if this call was issued as part of an undo/redo.
   if (mUndoRedoProvenanceDisable)
     return;
 
@@ -184,7 +181,7 @@ void LuaProvenance::logExecution(const string& fname,
   lua_getfield(L, -1, LuaScripting::TBL_MD_FUN_LAST_EXEC);
   int lastExecTable = lua_gettop(L);
 
-  lua_checkstack(L, LUAC_MAX_NUM_PARAMS + 2); // key/value pair.
+  lua_checkstack(L, LUAC_MAX_NUM_PARAMS + 2); // 2 = key/value pair.
 
   // Count the number of parameters.
   int numParams = 0;
@@ -324,7 +321,6 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
 
     // Execute the call (ignore return values).
     // This will pop all parameters and the function off the stack.
-    // NOTE: We MUST disable provenance at this point.
     mUndoRedoProvenanceDisable = true;
     lua_call(L, numParams + 1, 0);      // The + 1 is for the function table.
     mUndoRedoProvenanceDisable = false;
@@ -607,11 +603,53 @@ SUITE(LuaProvenanceTests)
     CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidRedo);
   }
 
+  static int i1     = 0;
+  static string s1  = "nop";
+  static bool b1    = false;
+
+  static void set_i1(int a)     {i1 = a;}
+  static void set_s1(string s)  {s1 = s;}
+  static void set_b1(bool a)    {b1 = a;}
+
+
   TEST(ProvenanceStaticTests)
   {
     // We don't need to test the provenance functionality, just that it is
-    // hooked up correctly. The above class test of provenance tests the
-    // functionality of the provenance system fairly thoroughly.
+    // hooked up correctly. The above TEST tests the provenance system fairly
+    // thoroughly.
+    TEST_HEADER;
+
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+    lua_State* L = sc->getLUAState();
+
+    sc->registerFunction(&set_i1, "set_i1", "");
+    sc->registerFunction(&set_s1, "set_s1", "");
+    sc->registerFunction(&set_b1, "set_b1", "");
+
+    luaL_dostring(L, "set_i1(23)");
+    luaL_dostring(L, "set_s1(\"Test String\")");
+    luaL_dostring(L, "set_b1(true)");
+
+    CHECK_EQUAL(23, i1);
+    CHECK_EQUAL("Test String", s1.c_str());
+    CHECK_EQUAL(true, b1);
+
+    luaL_dostring(L, "provenance.undo()");
+    CHECK_EQUAL(false, b1);
+
+    // TODO: This should really be 'nop'. Fix it after we add default resets.
+    luaL_dostring(L, "provenance.undo()");
+    CHECK_EQUAL("", s1.c_str());
+
+    luaL_dostring(L, "provenance.redo()");
+    CHECK_EQUAL("Test String", s1.c_str());
+
+    // TODO: This should really be 'nop'. Fix it after we add default resets.
+    luaL_dostring(L, "provenance.undo()");
+    CHECK_EQUAL("", s1.c_str());
+
+    luaL_dostring(L, "provenance.undo()");
+    CHECK_EQUAL(0, i1);
   }
 
 }

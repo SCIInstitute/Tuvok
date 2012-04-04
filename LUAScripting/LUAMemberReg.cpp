@@ -225,7 +225,7 @@ SUITE(LuaTestMemberFunctionRegistration)
     CHECK_CLOSE(6.3, a->hookm3_var, 0.001);
 
     CHECK_THROW(a->mReg.strictHook(a.get(), &A::hookm2, "m1a"),
-                    LuaNonExistantFunction);
+                LuaNonExistantFunction);
 
     CHECK_THROW(a->mReg.strictHook(a.get(), &A::hookm2, "m1"),
                 LuaInvalidFunSignature);

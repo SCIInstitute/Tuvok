@@ -36,14 +36,13 @@
           This class is used for internal purposes only, please use
           LuaMemberReg instead.
 
-          This class exists solely so that the LuaScripting class and its
-          composited classes can register functions without the need for a
-          shared pointer.
+          Exists solely to provide member function registration to LuaScripting
+          and its composited classes (without the need for a shared_ptr).
 
-          If you do use this class, instead of LuaMemberReg, be sure to call
+          If you do use this class instead of LuaMemberReg, be sure to call
           the unregisterAll function manually when your class is destroyed.
           It is your responsibility to ensure that the LuaScripting pointer
-          remains valid througout the lifetime of LuaMemberRegUnsafe.
+          remains valid throughout the lifetime of LuaMemberRegUnsafe.
  */
 
 
@@ -131,13 +130,15 @@ void LuaMemberRegUnsafe::unregisterHooks()
     // Push the table associated with the function to the top.
     mScriptSystem->getFunctionTable(*it);
 
-    // Obtain the hooked member function table.
-    lua_getfield(L, -1, LuaScripting::TBL_MD_MEMBER_HOOKS);
-
     if (lua_isnil(L, -1))
     {
-      printf("nil\n");
+      // Ignore missing function table and move on.
+      lua_pop(L,1);
+      continue;
     }
+
+    // Obtain the hooked member function table.
+    lua_getfield(L, -1, LuaScripting::TBL_MD_MEMBER_HOOKS);
 
     // Just set the member hook ID field to nil, don't check to see if its there
     // since we do not wan to throw an exception (likely called from

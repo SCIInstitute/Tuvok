@@ -40,30 +40,39 @@ namespace tuvok
 
 class LuaScripting;
 
-// XXX: Add entire provenance history when the need calls for it.
 // TODO: Implement MAX size for undo / redo buffer. Think circular buffer, or
 //       just std::vector::erase for simplicity.
 
 class LuaProvenance
 {
 public:
-  // Class made for compositing inside LuaScripting, hence the raw pointer.
+  // This class is made for compositing inside LuaScripting, hence the pointer.
   LuaProvenance(LuaScripting* scripting);
   ~LuaProvenance();
 
   bool isEnabled() const;
   void setEnabled(bool enabled);
 
+  /// Logs the execution of a function.
+  /// \param  function            Name of the function that executed.
+  /// \param  undoRedoStackExempt True if no entry should be genereated inside
+  ///                             the undo/redo stacks.
+  /// \param  funParams           The parameters used when executing function.
+  /// \param  emptyParams         The same type as funParams, but initialized
+  ///                             to defaults.
   void logExecution(const std::string& function,
                     bool undoRedoStackExempt,
                     std::tr1::shared_ptr<LuaCFunAbstract> funParams,
                     std::tr1::shared_ptr<LuaCFunAbstract> emptyParams);
 
+  /// Performs an undo.
   void issueUndo();
+
+  /// Performs a redo.
   void issueRedo();
 
   /// Registers provenance functions with LUA.
-  /// These functions are NEVER deregistered, and persist for the lifetime
+  /// These functions are NEVER deregistered and persist for the lifetime
   /// of the associated LuaScripting system.
   void registerLuaProvenanceFunctions();
 
@@ -71,18 +80,12 @@ public:
   void clearProvenance();
 
   /// Enable / disable the provenance reentry exception.
-  /// Disabling this will not allow provenance reentry, but will not throw
-  /// an exception, and instead, return from provenance function immediately
-  /// upon a detected reentry.
+  /// Disabling this will not make provenance reentrant. Instead it will not
+  /// throw an exception, and it return from provenance function immediately
+  /// without performing any work.
   void enableProvReentryEx(bool enable);
 
 private:
-
-  enum WHICH_PARAM
-  {
-    USE_UNDO_PARAMS,
-    USE_REDO_PARAMS,
-  };
 
   struct UndoRedoItem
   {
@@ -115,7 +118,7 @@ private:
                                             ///< mUndoRedoStack.
 
   LuaScripting* const       mScripting;
-  LuaMemberRegUnsafe        mMemberReg;
+  LuaMemberRegUnsafe        mMemberReg;     ///< Used for member registration.
 
 
   /// This flag is only used when issuing an undo or redo. This is to ensure

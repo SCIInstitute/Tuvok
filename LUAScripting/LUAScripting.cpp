@@ -1420,6 +1420,16 @@ SUITE(TestLUAScriptingSystem)
   }
 }
 
+TEST(TestDefaultReset)
+{
+
+}
+
+TEST(CallingLuaScripting)
+{
+
+}
+
 void printRegisteredFunctions(LuaScripting* s)
 {
   vector<LuaScripting::FunctionDesc> regFuncs = s->getAllFuncDescs();
