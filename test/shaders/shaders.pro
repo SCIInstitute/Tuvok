@@ -16,7 +16,7 @@ unix:LIBS        += -lGL -lX11
 macx:LIBS        += -lX11 -framework CoreFoundation
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
 unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
-LIBS             += -lGLU
+unix:!macx:LIBS  += -lGLU
 # Try to link to GLU statically.
 gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
 for(d, gludirs) {

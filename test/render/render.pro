@@ -15,7 +15,7 @@ QT               += opengl
 LIBS             += -lTuvok -ltuvokexpr -lz
 unix:LIBS        += -lGL -lX11
 macx:LIBS        += -framework CoreFoundation
-LIBS             += -lGLU
+unix:!macx:LIBS  += -lGLU
 # Try to link to GLU statically.
 gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
 for(d, gludirs) {
