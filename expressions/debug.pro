@@ -1,6 +1,6 @@
 TEMPLATE          = app
 win32:TEMPLATE    = vcapp
-CONFIG            = exceptions largefile static stl warn_on
+CONFIG            = exceptions largefile rtti static stl warn_on
 DEFINES          += DEBUG_LEX YY_NO_UNPUT
 macx:DEFINES     += QT_MAC_USE_COCOA=1
 TARGET            = lexdbg

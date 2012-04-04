@@ -1,6 +1,6 @@
 TEMPLATE          = lib
 win32:TEMPLATE    = vclib
-CONFIG            = create_prl exceptions largefile static staticlib stl
+CONFIG            = create_prl exceptions largefile rtti static staticlib stl
 CONFIG           += warn_on
 DEFINES          += TUVOK_NO_QT
 TARGET            = tuvokio
