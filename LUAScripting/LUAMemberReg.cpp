@@ -61,13 +61,13 @@ using namespace std;
 namespace tuvok
 {
 
-LUAMemberReg::LUAMemberReg(tr1::shared_ptr<LUAScripting> scriptSys)
+LuaMemberReg::LuaMemberReg(tr1::shared_ptr<LuaScripting> scriptSys)
 : mScriptSystem(scriptSys)
 {
 
 }
 
-LUAMemberReg::~LUAMemberReg()
+LuaMemberReg::~LuaMemberReg()
 {
   // Loop through the registered functions and unregister them with the system.
   for (vector<string>::iterator it = mRegisteredFunctions.begin();
@@ -85,12 +85,12 @@ LUAMemberReg::~LUAMemberReg()
 
 #ifdef EXTERNAL_UNIT_TESTING
 
-SUITE(LUATestMemberFunctionRegistration)
+SUITE(LuaTestMemberFunctionRegistration)
 {
   class A
   {
   public:
-    A(tr1::shared_ptr<LUAScripting> ss)
+    A(tr1::shared_ptr<LuaScripting> ss)
     : mReg(ss)
     {}
 
@@ -105,7 +105,7 @@ SUITE(LUATestMemberFunctionRegistration)
     void m5()           {printf("Test scoping.\n");}
 
     // The registration instance.
-    LUAMemberReg  mReg;
+    LuaMemberReg  mReg;
   };
 
   TEST(MemberFunctionRegistration)
@@ -118,7 +118,7 @@ SUITE(LUATestMemberFunctionRegistration)
 
     // Scope out the scripting system.
     {
-      tr1::shared_ptr<LUAScripting> sc(new LUAScripting());
+      tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
       L = sc->getLUAState();
 
       a = auto_ptr<A>(new A(sc));
@@ -161,7 +161,7 @@ SUITE(LUATestMemberFunctionRegistration)
   {
     TEST_HEADER;
 
-    tr1::shared_ptr<LUAScripting> sc(new LUAScripting());
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
     lua_State* L = sc->getLUAState();
 
     {

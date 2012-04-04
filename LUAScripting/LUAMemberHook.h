@@ -45,14 +45,14 @@
 namespace tuvok
 {
 
-class LUAScripting;
+class LuaScripting;
 
-class LUAMemberHook
+class LuaMemberHook
 {
 public:
 
-  LUAMemberHook(std::tr1::shared_ptr<LUAScripting> scriptSys);
-  virtual ~LUAMemberHook();
+  LuaMemberHook(std::tr1::shared_ptr<LuaScripting> scriptSys);
+  virtual ~LuaMemberHook();
 
   /// Hooks a member function to the execution of the given lua function
   /// (fqName).
@@ -76,7 +76,7 @@ public:
 private:
 
   /// Scripting system we are bound to.
-  std::tr1::shared_ptr<LUAScripting>  mScriptSystem;
+  std::tr1::shared_ptr<LuaScripting>  mScriptSystem;
 
   /// Functions registered with this hook -- used for unregistering hooks.
   std::vector<std::string>            mHookedFunctions;

@@ -61,17 +61,19 @@ using namespace std;
 namespace tuvok
 {
 
-const char* LUAScripting::TBL_MD_DESC           = "desc";
-const char* LUAScripting::TBL_MD_SIG            = "signature";
-const char* LUAScripting::TBL_MD_SIG_NAME       = "sigName";
-const char* LUAScripting::TBL_MD_NUM_EXEC       = "numExec";
-const char* LUAScripting::TBL_MD_QNAME          = "fqName";
-const char* LUAScripting::TBL_MD_FUN_PDEFS      = "pDefaults";
-const char* LUAScripting::TBL_MD_FUN_LAST_EXEC  = "pLastExec";
+const char* LuaScripting::TBL_MD_DESC           = "desc";
+const char* LuaScripting::TBL_MD_SIG            = "signature";
+const char* LuaScripting::TBL_MD_SIG_NAME       = "sigName";
+const char* LuaScripting::TBL_MD_NUM_EXEC       = "numExec";
+const char* LuaScripting::TBL_MD_QNAME          = "fqName";
+const char* LuaScripting::TBL_MD_FUN_PDEFS      = "tblDefaults";
+const char* LuaScripting::TBL_MD_FUN_LAST_EXEC  = "tblLastExec";
+const char* LuaScripting::TBL_MD_HOOKS          = "tblHooks";
+const char* LuaScripting::TBL_MD_MEMBER_HOOKS   = "tblMHooks";
 
 
 //-----------------------------------------------------------------------------
-LUAScripting::LUAScripting()
+LuaScripting::LuaScripting()
 {
   mL = lua_newstate(luaInternalAlloc, NULL);
 
@@ -82,13 +84,13 @@ LUAScripting::LUAScripting()
 }
 
 //-----------------------------------------------------------------------------
-LUAScripting::~LUAScripting()
+LuaScripting::~LuaScripting()
 {
 
 }
 
 //-----------------------------------------------------------------------------
-int LUAScripting::luaPanic(lua_State* L)
+int LuaScripting::luaPanic(lua_State* L)
 {
   // Note: We compile LUA as c plus plus, so we won't have problems throwing
   // exceptions from functions called by LUA. When not compiling as CPP, LUA
@@ -104,7 +106,7 @@ int LUAScripting::luaPanic(lua_State* L)
 }
 
 //-----------------------------------------------------------------------------
-void* LUAScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
+void* LuaScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
                                      size_t nsize)
 {
   // TODO: Convert to use new (mind the realloc).
@@ -120,9 +122,9 @@ void* LUAScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
 }
 
 //-----------------------------------------------------------------------------
-vector<LUAScripting::FunctionDesc> LUAScripting::getAllFuncDescs() const
+vector<LuaScripting::FunctionDesc> LuaScripting::getAllFuncDescs() const
 {
-  vector<LUAScripting::FunctionDesc> ret;
+  vector<LuaScripting::FunctionDesc> ret;
 
   // Iterate over all registered modules and do a recursive descent through
   // all of the tables to find all functions.
@@ -138,7 +140,7 @@ vector<LUAScripting::FunctionDesc> LUAScripting::getAllFuncDescs() const
 }
 
 //-----------------------------------------------------------------------------
-void LUAScripting::getTableFuncDefs(vector<LUAScripting::FunctionDesc>& descs)
+void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
   const
 {
   // Iterate over the first table on the stack.
@@ -190,7 +192,7 @@ void LUAScripting::getTableFuncDefs(vector<LUAScripting::FunctionDesc>& descs)
 }
 
 //-----------------------------------------------------------------------------
-string LUAScripting::getUnqualifiedName(const string& fqName)
+string LuaScripting::getUnqualifiedName(const string& fqName)
 {
   const string delims(QUALIFIED_NAME_DELIMITER);
   string::size_type beg = fqName.find_last_of(delims);
@@ -205,7 +207,7 @@ string LUAScripting::getUnqualifiedName(const string& fqName)
 }
 
 //-----------------------------------------------------------------------------
-void LUAScripting::bindClosureTableWithFQName(const string& fqName,
+void LuaScripting::bindClosureTableWithFQName(const string& fqName,
                                               int tableIndex)
 {
   int baseStackIndex = lua_gettop(mL);
@@ -359,7 +361,7 @@ void LUAScripting::bindClosureTableWithFQName(const string& fqName,
 }
 
 //-----------------------------------------------------------------------------
-bool LUAScripting::isRegisteredFunction(int stackIndex) const
+bool LuaScripting::isRegisteredFunction(int stackIndex) const
 {
   // Check to make sure this table is NOT a registered function.
   if (lua_getmetatable(mL, stackIndex) != 0)
@@ -384,7 +386,7 @@ bool LUAScripting::isRegisteredFunction(int stackIndex) const
 
 
 //-----------------------------------------------------------------------------
-void LUAScripting::createCallableFuncTable(lua_CFunction proxyFunc,
+void LuaScripting::createCallableFuncTable(lua_CFunction proxyFunc,
                                            void* realFuncToCall)
 {
   // Table containing the function closure.
@@ -417,44 +419,44 @@ void LUAScripting::createCallableFuncTable(lua_CFunction proxyFunc,
 }
 
 //-----------------------------------------------------------------------------
-void LUAScripting::populateWithMetadata(const std::string& name,
+void LuaScripting::populateWithMetadata(const std::string& name,
                                         const std::string& desc,
                                         const std::string& sig,
                                         const std::string& sigWithName,
                                         int tableIndex)
 {
-  // XXX: Change these to lua_setfield
-
   // Function description
-  lua_pushstring(mL, TBL_MD_DESC);
   lua_pushstring(mL, desc.c_str());
-  lua_settable(mL, tableIndex);
+  lua_setfield(mL, tableIndex, TBL_MD_DESC);
 
   // Function signature
-  lua_pushstring(mL, TBL_MD_SIG);
   lua_pushstring(mL, sig.c_str());
-  lua_settable(mL, tableIndex);
+  lua_setfield(mL, tableIndex, TBL_MD_SIG);
 
   // Function signature with name
-  lua_pushstring(mL, TBL_MD_SIG_NAME);
   lua_pushstring(mL, sigWithName.c_str());
-  lua_settable(mL, tableIndex);
+  lua_setfield(mL, tableIndex, TBL_MD_SIG_NAME);
 
   // Number of times this function has been executed
   // (takes into account undos, so if a function is undone then this
   //  count will decrease).
-  lua_pushstring(mL, TBL_MD_NUM_EXEC);
   lua_pushnumber(mL, 0);
-  lua_settable(mL, tableIndex);
+  lua_setfield(mL, tableIndex, TBL_MD_NUM_EXEC);
 
   // Fully qualified function name.
-  lua_pushstring(mL, TBL_MD_QNAME);
   lua_pushstring(mL, name.c_str());
-  lua_settable(mL, tableIndex);
+  lua_setfield(mL, tableIndex, TBL_MD_QNAME);
+
+  // Build empty hook tables.
+  lua_newtable(mL);
+  lua_setfield(mL, tableIndex, TBL_MD_HOOKS);
+
+  lua_newtable(mL);
+  lua_setfield(mL, tableIndex, TBL_MD_MEMBER_HOOKS);
 }
 
 //-----------------------------------------------------------------------------
-void LUAScripting::createDefaultsAndLastExecTables(int tableIndex,
+void LuaScripting::createDefaultsAndLastExecTables(int tableIndex,
                                                    int numFunParams)
 {
   int entryTop = lua_gettop(mL);
@@ -506,7 +508,7 @@ void LUAScripting::createDefaultsAndLastExecTables(int tableIndex,
 }
 
 //-----------------------------------------------------------------------------
-bool LUAScripting::getFunctionTable(const std::string& fqName)
+bool LuaScripting::getFunctionTable(const std::string& fqName)
 {
   int baseStackIndex = lua_gettop(mL);
 
@@ -581,7 +583,7 @@ bool LUAScripting::getFunctionTable(const std::string& fqName)
 }
 
 //-----------------------------------------------------------------------------
-void LUAScripting::unregisterFunction(const std::string& fqName)
+void LuaScripting::unregisterFunction(const std::string& fqName)
 {
   // Lookup the function table based on the fully qualified name.
   int baseStackIndex = lua_gettop(mL);
@@ -689,7 +691,7 @@ void LUAScripting::unregisterFunction(const std::string& fqName)
 
 #ifdef EXTERNAL_UNIT_TESTING
 
-void printRegisteredFunctions(LUAScripting* s);
+void printRegisteredFunctions(LuaScripting* s);
 
 SUITE(TestLUAScriptingSystem)
 {
@@ -703,7 +705,7 @@ SUITE(TestLUAScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
+    auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
     lua_State* L = sc->getLUAState();
 
     // Test successful bindings and their results.
@@ -823,7 +825,7 @@ SUITE(TestLUAScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
+    auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
     lua_State* L = sc->getLUAState();
 
     sc->registerFunction(&str_int, "str.int", "");
@@ -857,7 +859,7 @@ SUITE(TestLUAScriptingSystem)
   {
     TEST_HEADER;
 
-    auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
+    auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
     lua_State* L = sc->getLUAState();
 
     sc->registerFunction(&str_int, "str.fint", "desc str_int");
@@ -870,22 +872,22 @@ SUITE(TestLUAScriptingSystem)
     //------------------
     // Test description
     //------------------
-    exe = string("return str.fint.") + LUAScripting::TBL_MD_DESC;
+    exe = string("return str.fint.") + LuaScripting::TBL_MD_DESC;
     luaL_dostring(L, exe.c_str());
     CHECK_EQUAL("desc str_int", lua_tostring(L, -1));
     lua_pop(L, 1);
 
-    exe = string("return str.fint2.") + LUAScripting::TBL_MD_DESC;
+    exe = string("return str.fint2.") + LuaScripting::TBL_MD_DESC;
     luaL_dostring(L, exe.c_str());
     CHECK_EQUAL("desc str_int2", lua_tostring(L, -1));
     lua_pop(L, 1);
 
-    exe = string("return fint.") + LUAScripting::TBL_MD_DESC;
+    exe = string("return fint.") + LuaScripting::TBL_MD_DESC;
     luaL_dostring(L, exe.c_str());
     CHECK_EQUAL("desc int_", lua_tostring(L, -1));
     lua_pop(L, 1);
 
-    exe = string("return print_flt.") + LUAScripting::TBL_MD_DESC;
+    exe = string("return print_flt.") + LuaScripting::TBL_MD_DESC;
     luaL_dostring(L, exe.c_str());
     CHECK_EQUAL("Prints Floats", lua_tostring(L, -1));
     lua_pop(L, 1);
@@ -895,34 +897,34 @@ SUITE(TestLUAScriptingSystem)
     // Test signature
     //----------------
     exe = "return str.fint.";
-    luaL_dostring(L, string(exe + LUAScripting::TBL_MD_SIG).c_str());
+    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG).c_str());
     CHECK_EQUAL("string (int)", lua_tostring(L, -1));
     lua_pop(L, 1);
-    luaL_dostring(L, string(exe + LUAScripting::TBL_MD_SIG_NAME).c_str());
+    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG_NAME).c_str());
     CHECK_EQUAL("string fint(int)", lua_tostring(L, -1));
     lua_pop(L, 1);
 
     exe = "return str.fint2.";
-    luaL_dostring(L, string(exe + LUAScripting::TBL_MD_SIG).c_str());
+    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG).c_str());
     CHECK_EQUAL("string (int, int)", lua_tostring(L, -1));
     lua_pop(L, 1);
-    luaL_dostring(L, string(exe + LUAScripting::TBL_MD_SIG_NAME).c_str());
+    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG_NAME).c_str());
     CHECK_EQUAL("string fint2(int, int)", lua_tostring(L, -1));
     lua_pop(L, 1);
 
     exe = "return fint.";
-    luaL_dostring(L, string(exe + LUAScripting::TBL_MD_SIG).c_str());
+    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG).c_str());
     CHECK_EQUAL("int ()", lua_tostring(L, -1));
     lua_pop(L, 1);
-    luaL_dostring(L, string(exe + LUAScripting::TBL_MD_SIG_NAME).c_str());
+    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG_NAME).c_str());
     CHECK_EQUAL("int fint()", lua_tostring(L, -1));
     lua_pop(L, 1);
 
     exe = "return print_flt.";
-    luaL_dostring(L, string(exe + LUAScripting::TBL_MD_SIG).c_str());
+    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG).c_str());
     CHECK_EQUAL("void (float)", lua_tostring(L, -1));
     lua_pop(L, 1);
-    luaL_dostring(L, string(exe + LUAScripting::TBL_MD_SIG_NAME).c_str());
+    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG_NAME).c_str());
     CHECK_EQUAL("void print_flt(float)", lua_tostring(L, -1));
     lua_pop(L, 1);
 
@@ -931,7 +933,7 @@ SUITE(TestLUAScriptingSystem)
     // Number of executions (simple value -- only testing one function)
     //------------------------------------------------------------------
     exe = string("return print_flt.")
-        + LUAScripting::TBL_MD_NUM_EXEC;
+        + LuaScripting::TBL_MD_NUM_EXEC;
     luaL_dostring(L, exe.c_str());
     CHECK_EQUAL(0, lua_tointeger(L, -1));
     lua_pop(L, 1);
@@ -941,7 +943,7 @@ SUITE(TestLUAScriptingSystem)
     // Qualified name (simple value -- only testing one function)
     //------------------------------------------------------------
     exe = string("return str.fint2.")
-        + LUAScripting::TBL_MD_QNAME;
+        + LuaScripting::TBL_MD_QNAME;
     luaL_dostring(L, exe.c_str());
     CHECK_EQUAL("str.fint2", lua_tostring(L, -1));
     lua_pop(L, 1);
@@ -953,7 +955,7 @@ SUITE(TestLUAScriptingSystem)
     sc->registerFunction(&mixer, "mixer", "Testing all parameter types");
 
     exe = string("return mixer.")
-        + LUAScripting::TBL_MD_FUN_PDEFS;
+        + LuaScripting::TBL_MD_FUN_PDEFS;
     luaL_dostring(L, exe.c_str());
     CHECK_EQUAL(LUA_TTABLE, lua_type(L, -1));
 
@@ -1005,7 +1007,7 @@ SUITE(TestLUAScriptingSystem)
     TEST_HEADER;
 
     // Test retrieval of all function descriptions.
-    auto_ptr<LUAScripting> sc(new LUAScripting());  // want to use unique_ptr
+    auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
     lua_State* L = sc->getLUAState();
 
     sc->registerFunction(&str_int,            "str.int",            "Desc 1");
@@ -1014,7 +1016,7 @@ SUITE(TestLUAScriptingSystem)
     sc->registerFunction(&mixer,              "mixer",              "Desc 4");
 
     //
-    std::vector<LUAScripting::FunctionDesc> d = sc->getAllFuncDescs();
+    std::vector<LuaScripting::FunctionDesc> d = sc->getAllFuncDescs();
 
     // Verify all of the function descriptions.
     // Since all of the functions are in different base tables, we can extract
@@ -1067,13 +1069,13 @@ SUITE(TestLUAScriptingSystem)
   }
 }
 
-void printRegisteredFunctions(LUAScripting* s)
+void printRegisteredFunctions(LuaScripting* s)
 {
-  vector<LUAScripting::FunctionDesc> regFuncs = s->getAllFuncDescs();
+  vector<LuaScripting::FunctionDesc> regFuncs = s->getAllFuncDescs();
 
   printf("\n All registered functions \n");
 
-  for (vector<LUAScripting::FunctionDesc>::iterator it = regFuncs.begin();
+  for (vector<LuaScripting::FunctionDesc>::iterator it = regFuncs.begin();
        it != regFuncs.end();
        ++it)
   {

@@ -63,13 +63,13 @@ namespace tuvok
 {
 
 
-LUAMemberHook::LUAMemberHook(tr1::shared_ptr<LUAScripting> scriptSys)
+LuaMemberHook::LuaMemberHook(tr1::shared_ptr<LuaScripting> scriptSys)
 : mScriptSystem(scriptSys)
 {
 
 }
 
-LUAMemberHook::~LUAMemberHook()
+LuaMemberHook::~LuaMemberHook()
 {
 
 }

@@ -46,32 +46,32 @@ namespace tuvok
 // LUA BINDING HELPER STRUCTURES
 //===============================
 
-// These structures were created in order to handle void return types *easily*.
-
 /// TODO: Store LUAScripting class as an upvalue.
 
+// These structures were created in order to handle void return types *easily*.
+
 template <typename FunPtr, typename Ret>
-struct LUACallback
+struct LuaCallback
 {
   static int exec(lua_State* L)
   {
     FunPtr fp = reinterpret_cast<FunPtr>(
         lua_touserdata(L, lua_upvalueindex(1)));
-    Ret r = LUACFunExec<FunPtr>::run(fp, L);
-    LUAStrictStack<Ret>().push(L, r);
+    Ret r = LuaCFunExec<FunPtr>::run(fp, L);
+    LuaStrictStack<Ret>().push(L, r);
     return 1;
   }
 };
 
 // Without a return value.
 template <typename FunPtr>
-struct LUACallback <FunPtr, void>
+struct LuaCallback <FunPtr, void>
 {
   static int exec(lua_State* L)
   {
     FunPtr fp = reinterpret_cast<FunPtr>(
         lua_touserdata(L, lua_upvalueindex(1)));
-    LUACFunExec<FunPtr>::run(fp, L);
+    LuaCFunExec<FunPtr>::run(fp, L);
     return 0;
   }
 };
@@ -80,14 +80,14 @@ struct LUACallback <FunPtr, void>
 // LUA SCRIPTING CLASS
 //=====================
 
-class LUAScripting
+class LuaScripting
 {
-  friend class LUAMemberHook; // For adding member function hooks.
-  friend class LUAMemberReg;  // For adding member function registration.
+  friend class LuaMemberHook; // For adding member function hooks.
+  friend class LuaMemberReg;  // For adding member function registration.
 public:
 
-  LUAScripting();
-  virtual ~LUAScripting();
+  LuaScripting();
+  virtual ~LuaScripting();
 
   /// Function description returned from getFuncDescs().
   struct FunctionDesc
@@ -153,20 +153,20 @@ public:
     int initStackTop = lua_gettop(mL);
 
     // Create a callable function table and leave it on the stack.
-    lua_CFunction proxyFunc = &LUACallback<FunPtr, typename
-        LUACFunExec<FunPtr>::returnType>::exec;
+    lua_CFunction proxyFunc = &LuaCallback<FunPtr, typename
+        LuaCFunExec<FunPtr>::returnType>::exec;
     createCallableFuncTable(proxyFunc, (void*)f);
 
     int tableIndex = lua_gettop(mL);
 
     // Add function metadata to the table.
-    std::string sig = LUACFunExec<FunPtr>::getSignature("");
-    std::string sigWithName = LUACFunExec<FunPtr>::getSignature(
+    std::string sig = LuaCFunExec<FunPtr>::getSignature("");
+    std::string sigWithName = LuaCFunExec<FunPtr>::getSignature(
         getUnqualifiedName(name));
     populateWithMetadata(name, desc, sig, sigWithName, tableIndex);
 
     // Push default values for function parameters onto the stack.
-    LUACFunExec<FunPtr> defaultParams = LUACFunExec<FunPtr>();
+    LuaCFunExec<FunPtr> defaultParams = LuaCFunExec<FunPtr>();
     lua_checkstack(mL, 10); // Max num parameters accepted by the system.
     defaultParams.pushParamsToStack(mL);
     int numFunParams = lua_gettop(mL) - tableIndex;
@@ -199,6 +199,8 @@ public:
   static const char* TBL_MD_QNAME;        ///< Fully qualified function name
   static const char* TBL_MD_FUN_PDEFS;    ///< Function parameter defaults
   static const char* TBL_MD_FUN_LAST_EXEC;///< Parameters from last execution
+  static const char* TBL_MD_HOOKS;        ///< Static function hooks table
+  static const char* TBL_MD_MEMBER_HOOKS; ///< Class member function hook table
 
 private:
 
@@ -236,7 +238,7 @@ private:
   static std::string getUnqualifiedName(const std::string& fqName);
 
   /// Recursive function helper for getAllFuncDescs.
-  void getTableFuncDefs(std::vector<LUAScripting::FunctionDesc>& descs) const;
+  void getTableFuncDefs(std::vector<LuaScripting::FunctionDesc>& descs) const;
 
   /// LUA panic function. LUA calls this when an unrecoverable error occurs
   /// in the interpreter.

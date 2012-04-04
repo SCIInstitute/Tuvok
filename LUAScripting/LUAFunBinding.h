@@ -53,7 +53,7 @@ namespace tuvok
 // LUA stack.
 
 template<typename T>
-class LUAStrictStack
+class LuaStrictStack
 {
 public:
   // Intentionally left unimplemented to generate compiler errors if this
@@ -70,7 +70,7 @@ public:
 // Specializations (supported parameter/return types)
 
 template<>
-class LUAStrictStack<void>
+class LuaStrictStack<void>
 {
 public:
   // All functions but getTypeStr don't do anything since none of these
@@ -86,7 +86,7 @@ public:
 };
 
 template<>
-class LUAStrictStack<int>
+class LuaStrictStack<int>
 {
 public:
   static int get(lua_State* L, int pos)
@@ -104,7 +104,7 @@ public:
 };
 
 template<>
-class LUAStrictStack<bool>
+class LuaStrictStack<bool>
 {
 public:
   static bool get(lua_State* L, int pos)
@@ -124,7 +124,7 @@ public:
 };
 
 template<>
-class LUAStrictStack<float>
+class LuaStrictStack<float>
 {
 public:
   static float get(lua_State* L, int pos)
@@ -142,7 +142,7 @@ public:
 };
 
 template<>
-class LUAStrictStack<double>
+class LuaStrictStack<double>
 {
 public:
   static double get(lua_State* L, int pos)
@@ -160,7 +160,7 @@ public:
 };
 
 template<>
-class LUAStrictStack<const char *>
+class LuaStrictStack<const char *>
 {
 public:
   static const char* get(lua_State* L, int pos)
@@ -178,7 +178,7 @@ public:
 };
 
 template<>
-class LUAStrictStack<std::string>
+class LuaStrictStack<std::string>
 {
 public:
   static std::string get(lua_State* L, int pos)
@@ -196,7 +196,7 @@ public:
 };
 
 template<>
-class LUAStrictStack<std::string&>
+class LuaStrictStack<std::string&>
 {
 public:
   static std::string get(lua_State* L, int pos)
@@ -214,7 +214,7 @@ public:
 };
 
 template<>
-class LUAStrictStack<const std::string&>
+class LuaStrictStack<const std::string&>
 {
 public:
   static std::string get(lua_State* L, int pos)
@@ -246,43 +246,43 @@ public:
 
 // Check prior definitions.
 #ifdef EP_INIT
-    #error LUAFunBinding.h redefines EP_INIT
+    #error __FILE__ redefines EP_INIT
 #endif
 
 #ifdef NM
-    #error LUAFunBinding.h redefines NM
+    #error __FILE__ redefines NM
 #endif
 
 #ifdef EP
-    #error LUAFunBinding.h redefines EP
+    #error __FILE__ redefines EP
 #endif
 
 #ifdef SG
-    #error LUAFunBinding.h redefines SG
+    #error __FILE__ redefines SG
 #endif
 
 #ifdef M_NM
-    #error LUAFunBinding.h redefines M_NM
+    #error __FILE__ redefines M_NM
 #endif
 
 #ifdef MVAR
-    #error LUAFunBinding.h redefines MVAR
+    #error __FILE__ redefines MVAR
 #endif
 
 #ifdef PLP_INIT
-    #error LUAFunBinding.h redefines PLP_INIT
+    #error __FILE__ redefines PLP_INIT
 #endif
 
 #ifdef PLP
-    #error LUAFunBinding.h redefines PLP
+    #error __FILE__ redefines PLP
 #endif
 
 #ifdef PHP
-    #error LUAFunBinding.h redefines PHP
+    #error __FILE__ redefines PHP
 #endif
 
 #ifdef MVIT
-    #error LUAFunBinding.h redefines MVIT
+    #error __FILE__ redefines MVIT
 #endif
 
 // These definitions deal with extracting parameters off of the
@@ -299,10 +299,10 @@ public:
 #define NM(x)       x##_v
 
 // Extract Parameter
-#define EP(x)       x NM(x) = LUAStrictStack<x>::get(L, pos); ++pos;
+#define EP(x)       x NM(x) = LuaStrictStack<x>::get(L, pos++);
 
 // Function signature extraction
-#define SG(x)       LUAStrictStack<x>::getTypeStr()
+#define SG(x)       LuaStrictStack<x>::getTypeStr()
 
 // Member variable name and definition.
 #define M_NM(x)     x##_mv
@@ -310,17 +310,17 @@ public:
 
 // Pull parameter from stack into member variable (starts at x -- start index)
 #define PLP_INIT(x) int pos = x;
-#define PLP(x)      M_NM(x) = LUAStrictStack<x>::get(L, pos); ++pos;
+#define PLP(x)      M_NM(x) = LuaStrictStack<x>::get(L, pos++);
 
 // Push parameter from member variable onto the top of the stack.
-#define PHP(x)      LUAStrictStack<x>::push(L, M_NM(x));
+#define PHP(x)      LuaStrictStack<x>::push(L, M_NM(x));
 
 // Member variable initialization (initialize with the default for that type).
-#define MVIT(x)     M_NM(x)(LUAStrictStack<x>::getDefault())
+#define MVIT(x)     M_NM(x)(LuaStrictStack<x>::getDefault())
 
 // LUA C function execution base unspecialized template.
-template<typename LUAFunExec>
-class LUACFunExec
+template<typename LuaFunExec>
+class LuaCFunExec
 {
   // We want to keep the run and getSignature functions static so we don't
   // have to initialize member variables for these common operations
@@ -347,7 +347,7 @@ class LUACFunExec
 // 0 PARAMETERS
 //--------------
 template<typename Ret>
-class LUACFunExec<Ret (*)()>
+class LuaCFunExec<Ret (*)()>
 {
 public:
   static const int memberFunc = 0;
@@ -370,7 +370,7 @@ public:
 // 1 PARAMETER
 //-------------
 template<typename Ret, typename P1>
-class LUACFunExec<Ret (*)(P1)>
+class LuaCFunExec<Ret (*)(P1)>
 {
 public:
   static const int memberFunc = 0;
@@ -387,7 +387,7 @@ public:
     return SG(Ret) + " " + funcName + "(" + SG(P1) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
   : MVIT(P1) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -403,7 +403,7 @@ public:
 // 2 PARAMETERS
 //--------------
 template<typename Ret, typename P1, typename P2>
-class LUACFunExec<Ret (*)(P1, P2)>
+class LuaCFunExec<Ret (*)(P1, P2)>
 {
 public:
   static const int memberFunc = 0;
@@ -420,7 +420,7 @@ public:
     return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
     : MVIT(P1), MVIT(P2) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -436,7 +436,7 @@ public:
 // 3 PARAMETERS
 //--------------
 template<typename Ret, typename P1, typename P2, typename P3>
-class LUACFunExec<Ret (*)(P1, P2, P3)>
+class LuaCFunExec<Ret (*)(P1, P2, P3)>
 {
 public:
   static const int memberFunc = 0;
@@ -454,7 +454,7 @@ public:
            SG(P3) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -470,7 +470,7 @@ public:
 // 4 PARAMETERS
 //--------------
 template<typename Ret, typename P1, typename P2, typename P3, typename P4>
-class LUACFunExec<Ret (*)(P1, P2, P3, P4)>
+class LuaCFunExec<Ret (*)(P1, P2, P3, P4)>
 {
 public:
   static const int memberFunc = 0;
@@ -488,7 +488,7 @@ public:
             SG(P3) + ", " + SG(P4) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -505,7 +505,7 @@ public:
 //--------------
 template<typename Ret, typename P1, typename P2, typename P3, typename P4,
          typename P5>
-class LUACFunExec<Ret (*)(P1, P2, P3, P4, P5)>
+class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5)>
 {
 public:
   static const int memberFunc = 0;
@@ -523,7 +523,7 @@ public:
             SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -540,7 +540,7 @@ public:
 //--------------
 template<typename Ret, typename P1, typename P2, typename P3, typename P4,
          typename P5, typename P6>
-class LUACFunExec<Ret (*)(P1, P2, P3, P4, P5, P6)>
+class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5, P6)>
 {
 public:
   static const int memberFunc = 0;
@@ -558,7 +558,7 @@ public:
             SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -585,7 +585,7 @@ public:
 // 0 PARAMETERS
 //--------------
 template<typename T, typename Ret>
-class LUACFunExec<Ret (T::*)()>
+class LuaCFunExec<Ret (T::*)()>
 {
 public:
   static const int memberFunc = 1;
@@ -609,7 +609,7 @@ public:
 // 1 PARAMETER
 //-------------
 template<typename T, typename Ret, typename P1>
-class LUACFunExec<Ret (T::*)(P1)>
+class LuaCFunExec<Ret (T::*)(P1)>
 {
 public:
 
@@ -628,7 +628,7 @@ public:
     return SG(Ret) + " " + funcName + "(" + SG(P1) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
   : MVIT(P1) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -644,7 +644,7 @@ public:
 // 2 PARAMETERS
 //--------------
 template<typename T, typename Ret, typename P1, typename P2>
-class LUACFunExec<Ret (T::*)(P1, P2)>
+class LuaCFunExec<Ret (T::*)(P1, P2)>
 {
 public:
   static const int memberFunc = 1;
@@ -662,7 +662,7 @@ public:
     return SG(Ret) + " " + funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
     : MVIT(P1), MVIT(P2) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -678,7 +678,7 @@ public:
 // 3 PARAMETERS
 //--------------
 template<typename T, typename Ret, typename P1, typename P2, typename P3>
-class LUACFunExec<Ret (T::*)(P1, P2, P3)>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3)>
 {
 public:
   static const int memberFunc = 1;
@@ -697,7 +697,7 @@ public:
            SG(P3) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -714,7 +714,7 @@ public:
 //--------------
 template<typename T, typename Ret, typename P1, typename P2, typename P3,
          typename P4>
-class LUACFunExec<Ret (T::*)(P1, P2, P3, P4)>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4)>
 {
 public:
   static const int memberFunc = 1;
@@ -733,7 +733,7 @@ public:
             SG(P3) + ", " + SG(P4) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -750,7 +750,7 @@ public:
 //--------------
 template<typename T, typename Ret, typename P1, typename P2, typename P3,
          typename P4, typename P5>
-class LUACFunExec<Ret (T::*)(P1, P2, P3, P4, P5)>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5)>
 {
 public:
   static const int memberFunc = 1;
@@ -769,7 +769,7 @@ public:
             SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
 
   void pushParamsToStack(lua_State* L) const
@@ -786,7 +786,7 @@ public:
 //--------------
 template<typename T, typename Ret, typename P1, typename P2, typename P3,
          typename P4, typename P5, typename P6>
-class LUACFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6)>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6)>
 {
 public:
   static const int memberFunc = 1;
@@ -805,7 +805,7 @@ public:
             SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ")";
   }
 
-  LUACFunExec()
+  LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
 
   void pushParamsToStack(lua_State* L) const

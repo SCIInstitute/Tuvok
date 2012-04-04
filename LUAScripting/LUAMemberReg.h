@@ -43,57 +43,57 @@
 namespace tuvok
 {
 
-class LUAScripting;
+class LuaScripting;
 
 //===============================
 // LUA BINDING HELPER STRUCTURES
 //===============================
 
 template <typename FunPtr, typename Ret>
-struct LUAMemberCallback
+struct LuaMemberCallback
 {
   static int exec(lua_State* L)
   {
     FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
-    typename LUACFunExec<FunPtr>::classType* C =
-        static_cast<typename LUACFunExec<FunPtr>::classType*>(
+    typename LuaCFunExec<FunPtr>::classType* C =
+        static_cast<typename LuaCFunExec<FunPtr>::classType*>(
             lua_touserdata(L, lua_upvalueindex(2)));
-    Ret r = LUACFunExec<FunPtr>::run(C, fp, L);
-    LUAStrictStack<Ret>().push(L, r);
+    Ret r = LuaCFunExec<FunPtr>::run(C, fp, L);
+    LuaStrictStack<Ret>().push(L, r);
     return 1;
   }
 };
 
 // Without a return value.
 template <typename FunPtr>
-struct LUAMemberCallback <FunPtr, void>
+struct LuaMemberCallback <FunPtr, void>
 {
   static int exec(lua_State* L)
   {
     FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
-    typename LUACFunExec<FunPtr>::classType* C =
-        static_cast<typename LUACFunExec<FunPtr>::classType*>(
+    typename LuaCFunExec<FunPtr>::classType* C =
+        static_cast<typename LuaCFunExec<FunPtr>::classType*>(
             lua_touserdata(L, lua_upvalueindex(2)));
-    LUACFunExec<FunPtr>::run(C, fp, L);
+    LuaCFunExec<FunPtr>::run(C, fp, L);
     return 0;
   }
 };
 
 
 // Member registration mediator class.
-class LUAMemberReg
+class LuaMemberReg
 {
 public:
 
-  LUAMemberReg(std::tr1::shared_ptr<LUAScripting> scriptSys);
-  virtual ~LUAMemberReg();
+  LuaMemberReg(std::tr1::shared_ptr<LuaScripting> scriptSys);
+  virtual ~LuaMemberReg();
 
 
   template <typename T, typename FunPtr>
   void registerFunction(T* C, FunPtr f, const std::string& name,
                         const std::string& desc)
   {
-    LUAScripting* ss  = mScriptSystem.get();
+    LuaScripting* ss  = mScriptSystem.get();
     lua_State*    L   = ss->getLUAState();
 
     int initStackTop = lua_gettop(L);
@@ -103,8 +103,8 @@ public:
     // They need to be copied into lua in an portable manner.
     // See the C++ standard.
     // Create a callable function table and leave it on the stack.
-    lua_CFunction proxyFunc = &LUAMemberCallback<FunPtr, typename
-        LUACFunExec<FunPtr>::returnType>::exec;
+    lua_CFunction proxyFunc = &LuaMemberCallback<FunPtr, typename
+        LuaCFunExec<FunPtr>::returnType>::exec;
 
     // Table containing the function closure.
     lua_newtable(L);
@@ -135,13 +135,13 @@ public:
     lua_setmetatable(L, -2);
 
     // Add function metadata to the table.
-    std::string sig = LUACFunExec<FunPtr>::getSignature("");
-    std::string sigWithName = LUACFunExec<FunPtr>::getSignature(
+    std::string sig = LuaCFunExec<FunPtr>::getSignature("");
+    std::string sigWithName = LuaCFunExec<FunPtr>::getSignature(
         ss->getUnqualifiedName(name));
     ss->populateWithMetadata(name, desc, sig, sigWithName, tableIndex);
 
     // Push default values for function parameters onto the stack.
-    LUACFunExec<FunPtr> defaultParams = LUACFunExec<FunPtr>();
+    LuaCFunExec<FunPtr> defaultParams = LuaCFunExec<FunPtr>();
     lua_checkstack(L, 10); // Max num parameters accepted by the system.
     defaultParams.pushParamsToStack(L);
     int numFunParams = lua_gettop(L) - tableIndex;
@@ -168,7 +168,7 @@ public:
 private:
 
   /// Scripting system we are bound to.
-  std::tr1::shared_ptr<LUAScripting>  mScriptSystem;
+  std::tr1::shared_ptr<LuaScripting>  mScriptSystem;
 
   /// Functions registered.
   /// Used to unregister all functions.
