@@ -44,6 +44,7 @@ TvkCGLContext::TvkCGLContext(uint32_t, uint32_t, uint8_t color_bits,
                              bool double_buffer, bool visible) :
   ci(new struct cinfo())
 {
+  (void)visible;
   ci->pix = NULL; ci->ctx = NULL;
   CGLPixelFormatAttribute attribs[] = {
     kCGLPFAColorSize, static_cast<CGLPixelFormatAttribute>(color_bits),

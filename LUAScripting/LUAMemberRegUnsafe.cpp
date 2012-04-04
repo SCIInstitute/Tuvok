@@ -27,11 +27,6 @@
  */
 
 /**
- \file    LUAMemberReg.cpp
- \author  James Hughes
-          SCI Institute
-          University of Utah
- \date    Mar 26, 2012
  \brief   This mediator class handles member function registration.
           This class is used for internal purposes only, please use
           LuaMemberReg instead.

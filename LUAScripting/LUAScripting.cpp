@@ -109,9 +109,11 @@ int LuaScripting::luaPanic(lua_State* L)
   // uses set_jmp and long_jmp. This can cause issues when exceptions are
   // thrown, see:
   // http://developers.sun.com/solaris/articles/mixing.html#except .
+#ifdef EXTERNAL_UNIT_TESTING
   printf("Panicking!!! %s\n", lua_tostring(L, -1));
+#endif
 
-  throw LuaError("Unrecoverable LUA error");
+  throw LuaError("Unrecoverable Lua error");
 
   // Returning from this function would mean that abort() gets called by LUA.
   // We don't want this.
