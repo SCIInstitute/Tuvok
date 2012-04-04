@@ -41,10 +41,9 @@ struct cinfo {
 
 TvkCGLContext::TvkCGLContext(uint32_t, uint32_t, uint8_t color_bits,
                              uint8_t depth_bits, uint8_t stencil_bits,
-                             bool double_buffer, bool visible) :
+                             bool double_buffer, bool) :
   ci(new struct cinfo())
 {
-  (void)visible;
   ci->pix = NULL; ci->ctx = NULL;
   CGLPixelFormatAttribute attribs[] = {
     kCGLPFAColorSize, static_cast<CGLPixelFormatAttribute>(color_bits),
