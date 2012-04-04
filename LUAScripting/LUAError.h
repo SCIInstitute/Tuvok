@@ -96,11 +96,22 @@ public:
   virtual ~LuaProvenanceReenter() throw() { }
 };
 
+class LuaProvenanceInvalidUndoOrRedo : virtual public LuaError
+{
+public:
+  explicit LuaProvenanceInvalidUndoOrRedo(const char* e,
+                                          const char* where = NULL,
+                                          size_t ln = 0)
+    : LuaError(e, where, ln)
+  {}
+  virtual ~LuaProvenanceInvalidUndoOrRedo() throw() { }
+};
+
 class LuaProvenanceInvalidRedo : virtual public LuaError
 {
 public:
   explicit LuaProvenanceInvalidRedo(const char* e, const char* where = NULL,
-                                  size_t ln = 0)
+                                    size_t ln = 0)
     : LuaError(e, where, ln)
   {}
   virtual ~LuaProvenanceInvalidRedo() throw() { }
@@ -110,7 +121,7 @@ class LuaProvenanceInvalidUndo : virtual public LuaError
 {
 public:
   explicit LuaProvenanceInvalidUndo(const char* e, const char* where = NULL,
-                                  size_t ln = 0)
+                                    size_t ln = 0)
     : LuaError(e, where, ln)
   {}
   virtual ~LuaProvenanceInvalidUndo() throw() { }

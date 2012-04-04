@@ -109,6 +109,7 @@ int LuaScripting::luaPanic(lua_State* L)
   // uses set_jmp and long_jmp. This can cause issues when exceptions are
   // thrown, see:
   // http://developers.sun.com/solaris/articles/mixing.html#except .
+  printf("Panicking!!! %s\n", lua_tostring(L, -1));
 
   throw LuaError("Unrecoverable LUA error");
 
@@ -612,47 +613,36 @@ void LuaScripting::createDefaultsAndLastExecTables(int tableIndex,
   lua_newtable(mL);
   int defTablePos = lua_gettop(mL);
 
-  for (int i = 0; i < numFunParams; i++)
-  {
-    int stackIndex = firstParamPos + i;
-    lua_pushinteger(mL, i);
-    lua_pushvalue(mL, stackIndex);
-    lua_settable(mL, defTablePos);
-  }
+  copyParamsToTable(defTablePos, firstParamPos, numFunParams);
 
   // Insert defaults table in closure table.
   lua_pushstring(mL, TBL_MD_FUN_PDEFS);
   lua_pushvalue(mL, defTablePos);
   lua_settable(mL, tableIndex);
 
-  // Do a deep copy of the defaults table.
-  // If we don't do this, we push another reference of the defaults table
-  // instead of a deep copy of the table.
-  lua_newtable(mL);
-  int lastExecTablePos = lua_gettop(mL);
-
-  lua_pushnil(mL);  // First key
-  // We use lua_next because order is not important. Just getting the key
-  // value pairs is important.
-  while (lua_next(mL, defTablePos))
-  {
-    lua_pushvalue(mL, -2);  // Push key
-    lua_pushvalue(mL, -2);  // Push value
-    lua_settable(mL, lastExecTablePos);
-    lua_pop(mL, 1);         // Pop value, keep key for next iteration.
-  }
-  // lua_next has popped off our initial key.
-
-  // Push a copy of the defaults table onto the stack, and use it as the
-  // 'last executed values'.
-  lua_pushstring(mL, TBL_MD_FUN_LAST_EXEC);
-  lua_pushvalue(mL, lastExecTablePos);
-  lua_settable(mL, tableIndex);
-
-  lua_pop(mL, 2);   // Pop the last-exec and the default tables.
+  // Pop the defaults table.
+  lua_pop(mL, 1);
 
   // Remove parameters from the stack.
   lua_pop(mL, numFunParams);
+
+  copyDefaultsTableToLastExec(tableIndex);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::copyParamsToTable(int tableIndex,
+                                     int paramStartIndex,
+                                     int numParams)
+{
+  // Push table onto the top of the stack.
+  // This is why you shouldn't use psuedo indices for paramStartIndex.
+  for (int i = 0; i < numParams; i++)
+  {
+    int stackIndex = paramStartIndex + i;
+    lua_pushinteger(mL, i);
+    lua_pushvalue(mL, stackIndex);
+    lua_settable(mL, tableIndex);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -935,6 +925,40 @@ void LuaScripting::setUndoRedoStackExempt(const string& funcName, bool exempt)
 
   lua_pushboolean(L, exempt ? 1 : 0);
   lua_setfield(L, -2, TBL_MD_STACK_EXEMPT);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::copyDefaultsTableToLastExec(int funTableIndex)
+{
+  // Push a copy of the defaults table onto the stack.
+  lua_getfield(mL, funTableIndex, TBL_MD_FUN_PDEFS);
+  int defTablePos = lua_gettop(mL);
+
+  // Do a deep copy of the defaults table.
+  // If we don't do this, we push another reference of the defaults table
+  // instead of a deep copy of the table.
+  lua_newtable(mL);
+  int lastExecTablePos = lua_gettop(mL);
+
+  lua_pushnil(mL);  // First key
+  // We use lua_next because order is not important. Just getting the key
+  // value pairs is important.
+  while (lua_next(mL, defTablePos))
+  {
+    lua_pushvalue(mL, -2);  // Push key
+    lua_pushvalue(mL, -2);  // Push value
+    lua_settable(mL, lastExecTablePos);
+    lua_pop(mL, 1);         // Pop value, keep key for next iteration.
+  }
+  // lua_next has popped off our initial key.
+
+  // Push a copy of the defaults table onto the stack, and use it as the
+  // 'last executed values'.
+  lua_pushstring(mL, TBL_MD_FUN_LAST_EXEC);
+  lua_pushvalue(mL, lastExecTablePos);
+  lua_settable(mL, funTableIndex);
+
+  lua_pop(mL, 2);   // Pop the last-exec and the default tables.
 }
 
 //==============================================================================

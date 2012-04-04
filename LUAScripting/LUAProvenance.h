@@ -51,7 +51,7 @@ public:
   LuaProvenance(LuaScripting* scripting);
   ~LuaProvenance();
 
-  bool isEnabled();
+  bool isEnabled() const;
   void setEnabled(bool enabled);
 
   void logExecution(const std::string& function,
@@ -78,7 +78,11 @@ public:
 
 private:
 
-  bool                  mEnabled;
+  enum WHICH_PARAM
+  {
+    USE_UNDO_PARAMS,
+    USE_REDO_PARAMS,
+  };
 
   struct UndoRedoItem
   {
@@ -98,6 +102,14 @@ private:
     std::tr1::shared_ptr<LuaCFunAbstract> redoParams;
   };
 
+  // Calls the function at UndoRedoItem index: funcIndex using the params
+  // specified by funcToUse.
+  void performUndoRedoOp(const std::string& funcName,
+                         std::tr1::shared_ptr<LuaCFunAbstract> params);
+
+
+  bool                      mEnabled;
+
   std::vector<UndoRedoItem> mUndoRedoStack; ///< Contains all undo/redo entries.
   int                       mStackPointer;  ///< 1 based Index into
                                             ///< mUndoRedoStack.
@@ -110,6 +122,10 @@ private:
   /// we don't get called when we are logging provenance.
   bool                      mLoggingProvenance;
   bool                      mDoProvReenterException;
+
+  /// Used to disable the provenance system when issuing an undo or redo
+  /// call.
+  bool                      mUndoRedoProvenanceDisable;
 };
 
 }

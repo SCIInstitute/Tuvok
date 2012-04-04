@@ -48,6 +48,7 @@
 #include "LUAFunBinding.h"
 #include "LUAScripting.h"
 #include "LUAProvenance.h"
+#include "LUAMemberReg.h"
 
 using namespace std;
 
@@ -64,6 +65,7 @@ LuaProvenance::LuaProvenance(LuaScripting* scripting)
 , mStackPointer(0)
 , mLoggingProvenance(false)
 , mDoProvReenterException(true)
+, mUndoRedoProvenanceDisable(false)
 {
   mUndoRedoStack.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
 }
@@ -113,7 +115,7 @@ void LuaProvenance::registerLuaProvenanceFunctions()
 }
 
 //-----------------------------------------------------------------------------
-bool LuaProvenance::isEnabled()
+bool LuaProvenance::isEnabled() const
 {
   return mEnabled;
 }
@@ -150,6 +152,12 @@ void LuaProvenance::logExecution(const string& fname,
     }
   }
 
+  // Will not log anything if this call was issued as an undo/redo step.
+  // (UNDO would log in provenance, if we implement that, because it is
+  //  undoRedoStackExempt, but not provenance exempt).
+  if (mUndoRedoProvenanceDisable)
+    return;
+
   mLoggingProvenance = true;  // Used to tell when someone has done something
                               // bad: exec a registered lua function within
                               // another registered lua function.
@@ -162,10 +170,12 @@ void LuaProvenance::logExecution(const string& fname,
   }
 
   // Erase redo hisory if we have a stack pointer beneath the top of the stack.
-  for (int i = 0; i < mUndoRedoStack.size() - mStackPointer; i++)
+  int stackDiff = mUndoRedoStack.size() - mStackPointer;
+  for (int i = 0; i < stackDiff; i++)
   {
     mUndoRedoStack.pop_back();
   }
+  assert(mUndoRedoStack.size() == mStackPointer);
 
   // Gather last execution parameters for inclusion in the undo stack.
   lua_State* L = mScripting->getLUAState();
@@ -229,10 +239,25 @@ void LuaProvenance::logExecution(const string& fname,
 //-----------------------------------------------------------------------------
 void LuaProvenance::issueUndo()
 {
+  // If mStackPointer is at 1, then we can undo to the 'default' state.
   if (mStackPointer == 0)
   {
     throw LuaProvenanceInvalidUndo("Undo pointer at bottom of stack.");
   }
+
+  int undoIndex         = mStackPointer - 1;
+  UndoRedoItem undoItem = mUndoRedoStack[undoIndex];
+
+  try
+  {
+    performUndoRedoOp(undoItem.function, undoItem.undoParams);
+  }
+  catch (LuaProvenanceInvalidUndoOrRedo& e)
+  {
+    throw LuaProvenanceInvalidUndo(e.what(), e.where(), e.lineno());
+  }
+
+  --mStackPointer;
 }
 
 //-----------------------------------------------------------------------------
@@ -242,7 +267,100 @@ void LuaProvenance::issueRedo()
   {
     throw LuaProvenanceInvalidRedo("Redo pointer at top of stack.");
   }
+
+  // The stack pointer is 1 based, this is the next element on the stack.
+  int redoIndex = mStackPointer;
+  UndoRedoItem redoItem = mUndoRedoStack[redoIndex];
+
+  try
+  {
+    performUndoRedoOp(redoItem.function, redoItem.redoParams);
+  }
+  catch (LuaProvenanceInvalidUndoOrRedo& e)
+  {
+    throw LuaProvenanceInvalidRedo(e.what(), e.where(), e.lineno());
+  }
+
+  ++mStackPointer;
 }
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::performUndoRedoOp(const string& funcName,
+                                      tr1::shared_ptr<LuaCFunAbstract> params)
+{
+  // Obtain function's table, then grab its metamethod __call.
+  // Push parameters onto the stack after the __call method, and execute.
+  lua_State* L = mScripting->getLUAState();
+  int initStackTop = lua_gettop(L);
+  mScripting->getFunctionTable(funcName);
+  int funTable = lua_gettop(L);
+  if (lua_isnil(L, -1))
+  {
+    throw LuaProvenanceInvalidUndoOrRedo("Function table does not exist.");
+  }
+
+  if (lua_getmetatable(L, -1))
+  {
+    // Push function onto the stack.
+    lua_getfield(L, -1, "__call");
+
+    if (lua_isnil(L, -1))
+    {
+      throw LuaProvenanceInvalidUndoOrRedo("Function has invalid function "
+                                           "pointer.");
+    }
+
+    // Before we push the parameters, we need to push the function table.
+    // (this is always the first parameter).
+    lua_pushvalue(L, funTable);
+
+    // Push parameters onto the stack.
+    int paramStart = lua_gettop(L);
+    params->pushParamsToStack(L);
+    int numParams = lua_gettop(L) - paramStart;
+    paramStart += 1;
+
+    // NOTE!! We need to push the function table! The function expects it!
+
+    // Execute the call (ignore return values).
+    // This will pop all parameters and the function off the stack.
+    // NOTE: We MUST disable provenance at this point.
+    mUndoRedoProvenanceDisable = true;
+    lua_call(L, numParams + 1, 0);      // The + 1 is for the function table.
+    mUndoRedoProvenanceDisable = false;
+
+    // Pop the metatable
+    lua_pop(L, 1);
+
+    // Last exec table parameters will match what we just executed.
+    paramStart = lua_gettop(L);
+    params->pushParamsToStack(L);
+    numParams = lua_gettop(L) - paramStart;
+    paramStart += 1;
+
+    lua_getfield(L, funTable, LuaScripting::TBL_MD_FUN_LAST_EXEC);
+
+    mScripting->copyParamsToTable(lua_gettop(L), paramStart, numParams);
+
+    // Remove last exec table from the stack.
+    lua_pop(L, 1);
+
+    // Remove parameters from stack.
+    lua_pop(L, numParams);
+  }
+  else
+  {
+    throw LuaProvenanceInvalidUndoOrRedo("Does not appear to be a valid "
+                                         "function.");
+  }
+
+  // Pop the function table
+  lua_pop(L, 1);
+
+  assert(initStackTop == lua_gettop(L));
+}
+
+
 
 //-----------------------------------------------------------------------------
 void LuaProvenance::clearProvenance()
@@ -272,10 +390,13 @@ SUITE(LuaProvenanceTests)
 
     A(tr1::shared_ptr<LuaScripting> ss)
     : mReg(ss)
-    {}
+    {
+      i1 = 0; i2 = 0;
+      f1 = 0.0f; f2 = 0.0f;
+    }
 
-    int     i1 = 0, i2 = 0;
-    float   f1 = 0.0f, f2 = 0.0f;
+    int     i1, i2;
+    float   f1, f2;
     string  s1, s2;
 
     void set_i1(int i)    {i1 = i;}
@@ -320,6 +441,16 @@ SUITE(LuaProvenanceTests)
     a->mReg.registerFunction(a.get(), &A::get_s1, "get_s1", "");
     a->mReg.registerFunction(a.get(), &A::get_s2, "get_s2", "");
 
+    // Use an unprotected call to grab the exception. Change all lua_pcalls
+    // to lua_call.
+    // TODO: Need to think about this problem in general, and how we are going
+    // to deal with it. More than likely, we will not expose pcall to the end
+    // user of this system.
+    luaL_loadstring(L, "provenance.redo()");
+    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidRedo);
+    luaL_loadstring(L, "provenance.undo()");
+    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidUndo);
+
     luaL_dostring(L, "set_i1(1)");
     luaL_dostring(L, "set_i2(10)");
     luaL_dostring(L, "set_i1(2)");
@@ -346,10 +477,13 @@ SUITE(LuaProvenanceTests)
 
     // Test to see if we 'throw' if we redo passed where there is no redo.
     // This should NOT affect the current state of the undo buffer.
-    CHECK_THROW(luaL_dostring(L, "provenance.redo()"),
-                LuaProvenanceInvalidRedo);
-    CHECK_THROW(luaL_dostring(L, "provenance.undo()"),
-                LuaProvenanceInvalidUndo);
+//    CHECK_THROW(luaL_dostring(L, "provenance.redo()"),
+//                LuaProvenanceInvalidRedo);
+//    CHECK_THROW(luaL_dostring(L, "provenance.undo()"),
+//                LuaProvenanceInvalidUndo);
+
+
+
 
     // Begin issuing undo / redos
     luaL_dostring(L, "provenance.undo()");
@@ -400,8 +534,8 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL(a->i1, 0);
 
     // This invalid undo should not destroy state.
-    CHECK_THROW(luaL_dostring(L, "provenance.undo()"),
-                LuaProvenanceInvalidUndo);
+    luaL_loadstring(L, "provenance.undo()");
+    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidUndo);
 
     // Check to make sure default values are present.
     CHECK_EQUAL(a->i1, 0);
@@ -439,10 +573,10 @@ SUITE(LuaProvenanceTests)
     luaL_dostring(L, "provenance.redo()");
     CHECK_EQUAL(a->i2, 30);
     luaL_dostring(L, "provenance.redo()");
-    CHECK_CLOSE(a->f1, -5.3f, 0.001f);
+    CHECK_CLOSE(a->f2, -5.3f, 0.001f);
 
-    CHECK_THROW(luaL_dostring(L, "provenance.redo()"),
-                LuaProvenanceInvalidRedo);
+    luaL_loadstring(L, "provenance.redo()");
+    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidRedo);
 
     // Check final values again.
     CHECK_EQUAL(a->i1, 100);
@@ -458,18 +592,19 @@ SUITE(LuaProvenanceTests)
     luaL_dostring(L, "provenance.undo()");
     luaL_dostring(L, "provenance.undo()");
     luaL_dostring(L, "provenance.undo()");
-    luaL_dostring(L, "seti1(42)");
+    luaL_dostring(L, "set_i1(42)");
+    CHECK_EQUAL(42, a->i1);
 
-    CHECK_THROW(luaL_dostring(L, "provenance.redo()"),
-                LuaProvenanceInvalidRedo);
+    luaL_loadstring(L, "provenance.redo()");
+    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidRedo);
 
     luaL_dostring(L, "provenance.undo()");
     luaL_dostring(L, "provenance.undo()");
     luaL_dostring(L, "provenance.redo()");
-    luaL_dostring(L, "seti1(45)");
+    luaL_dostring(L, "set_i1(45)");
 
-    CHECK_THROW(luaL_dostring(L, "provenance.redo()"),
-                LuaProvenanceInvalidRedo);
+    luaL_loadstring(L, "provenance.redo()");
+    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidRedo);
   }
 
   TEST(ProvenanceStaticTests)

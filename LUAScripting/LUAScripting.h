@@ -402,6 +402,15 @@ private:
                             std::tr1::shared_ptr<LuaCFunAbstract> funParams,
                             std::tr1::shared_ptr<LuaCFunAbstract> emptyParams);
 
+  /// Expects the function table to be given at funTableIndex
+  /// Copies the defaults table to the last exec table (used for undo/redo).
+  void copyDefaultsTableToLastExec(int funTableIndex);
+
+  /// Expects parameters to start at paramStartIndex. The table to receive the
+  /// parameters should be at tableIndex.
+  /// Do NOT use psuedo indices for tableIndex or paramStartIndex.
+  void copyParamsToTable(int tableIndex, int paramStartIndex, int numParams);
+
   /// The one true LUA state.
   lua_State*                        mL;
 
