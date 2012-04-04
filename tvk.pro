@@ -22,6 +22,15 @@ macx:LIBS        += -framework CoreFoundation
 win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
+LIBS             += -lGLU
+# Try to link to GLU statically.
+gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
+for(d, gludirs) {
+  if(exists($${d}/libGLU.a) && static) {
+    LIBS -= -lGLU;
+    LIBS += $${d}/libGLU.a
+  }
+}
 
 # Find the location of QtGui's prl file, and include it here so we can look at
 # the QMAKE_PRL_CONFIG variable.

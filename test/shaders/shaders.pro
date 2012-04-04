@@ -12,10 +12,19 @@ macx:QMAKE_LIBDIR+= /usr/X11R6/lib
 QMAKE_LIBDIR     += ../../Build ../../IO/expressions
 QT               += opengl
 LIBS             += -lTuvok -ltuvokexpr -lz
-unix:LIBS        += -lGL -lGLU -lX11
+unix:LIBS        += -lGL -lX11
 macx:LIBS        += -lX11 -framework CoreFoundation
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing -g
 unix:QMAKE_CFLAGS += -fno-strict-aliasing -g
+LIBS             += -lGLU
+# Try to link to GLU statically.
+gludirs = /usr/lib /usr/lib/x86_64-linux-gnu
+for(d, gludirs) {
+  if(exists($${d}/libGLU.a) && static) {
+    LIBS -= -lGLU;
+    LIBS += $${d}/libGLU.a
+  }
+}
 
 ### Should we link Qt statically or as a shared lib?
 # Find the location of QtGui's prl file, and include it here so we can look at
