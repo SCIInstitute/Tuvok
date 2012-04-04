@@ -41,7 +41,7 @@ struct cinfo {
 
 TvkCGLContext::TvkCGLContext(uint32_t, uint32_t, uint8_t color_bits,
                              uint8_t depth_bits, uint8_t stencil_bits,
-                             bool double_buffer) :
+                             bool double_buffer, bool visible) :
   ci(new struct cinfo())
 {
   ci->pix = NULL; ci->ctx = NULL;

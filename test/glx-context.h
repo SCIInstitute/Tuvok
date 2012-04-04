@@ -44,7 +44,8 @@ namespace tuvok {
     public:
       TvkGLXContext(uint32_t w, uint32_t h, uint8_t color_bits,
                     uint8_t depth_bits, uint8_t stencil_bits,
-                    bool double_buffer);
+                    bool double_buffer,
+                    bool visible);
       virtual ~TvkGLXContext();
 
       bool isValid() const;

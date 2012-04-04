@@ -26,10 +26,11 @@
    DEALINGS IN THE SOFTWARE.
 */
 #include "StdTuvokDefines.h"
+#include <stdexcept>
 #include <GL/glxew.h>
 
-#include "Controller/Controller.h"
 #include "glx-context.h"
+#include "Controller/Controller.h"
 
 namespace tuvok {
 
@@ -41,13 +42,14 @@ struct xinfo {
   Colormap cmap;
 };
 
-static struct xinfo x_connect(uint32_t, uint32_t, bool);
+static struct xinfo x_connect(uint32_t, uint32_t, bool, bool);
 static XVisualInfo* find_visual(Display*, bool);
 static void glx_init(Display*, XVisualInfo*, GLXContext&);
 
 TvkGLXContext::TvkGLXContext(uint32_t w, uint32_t h, uint8_t,
                              uint8_t, uint8_t,
-                             bool double_buffer) :
+                             bool double_buffer,
+                             bool visible) :
   xi(new struct xinfo())
 {
   // if you *really* require a specific value... just hack this class
@@ -55,7 +57,7 @@ TvkGLXContext::TvkGLXContext(uint32_t w, uint32_t h, uint8_t,
   // and use them there.
   WARNING("Ignoring color, depth, stencil bits.  For many applications, it "
           "is better to let the GLX library choose the \"best\" visual.");
-  *this->xi = x_connect(w, h, double_buffer);
+  *this->xi = x_connect(w, h, double_buffer, visible);
   glx_init(xi->display, xi->visual, xi->ctx);
   this->makeCurrent();
   MESSAGE("Current context: %p", glXGetCurrentContext());
@@ -92,7 +94,7 @@ bool TvkGLXContext::swapBuffers()
 }
 
 static struct xinfo
-x_connect(uint32_t width, uint32_t height, bool dbl_buffer)
+x_connect(uint32_t width, uint32_t height, bool dbl_buffer, bool visible)
 {
   struct xinfo rv;
 
@@ -120,7 +122,13 @@ x_connect(uint32_t width, uint32_t height, bool dbl_buffer)
                          CWBackPixel | CWBorderPixel | CWColormap |
                          CWOverrideRedirect | CWEventMask,
                          &xw_attr);
-  XStoreName(rv.display, rv.win, "Tuvok testing");
+  XStoreName(rv.display, rv.win, "Tuvok");
+  if(visible) {
+    if(XMapRaised(rv.display, rv.win) != 0) {
+      T_ERROR("Could not map window!");
+      throw std::runtime_error("could not map window");
+    }
+  }
   XSync(rv.display, False);
 
   return rv;

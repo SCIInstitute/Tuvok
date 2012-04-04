@@ -48,17 +48,18 @@ TvkContext::~TvkContext() { }
 
 TvkContext* TvkContext::Create(uint32_t width, uint32_t height,
                                uint8_t color_bits, uint8_t depth_bits,
-                               uint8_t stencil_bits, bool double_buffer)
+                               uint8_t stencil_bits, bool double_buffer,
+                               bool visible)
 {
 #ifdef DETECTED_OS_WINDOWS
   return new TvkWGLContext(width, height, color_bits, depth_bits, stencil_bits,
-                           double_buffer);
+                           double_buffer, visible);
 #elif defined(DETECTED_OS_APPLE)
   return new TvkCGLContext(width, height, color_bits, depth_bits, stencil_bits,
-                           double_buffer);
+                           double_buffer, visible);
 #else
   return new TvkGLXContext(width, height, color_bits, depth_bits, stencil_bits,
-                           double_buffer);
+                           double_buffer, visible);
 #endif
 }
 

@@ -70,7 +70,7 @@ static void outputLastError() {
 
 TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
                              uint8_t depth_bits, uint8_t stencil_bits,
-                             bool double_buffer) :
+                             bool double_buffer, bool visible) :
   wi(new struct winfo())
 {
   wi->deviceContext = wi->renderingContext = wi->window = NULL;
@@ -92,7 +92,11 @@ TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
     outputLastError();
     return;
   }
-  ShowWindow(wi->window, SW_HIDE);
+  if(visible) {
+    ShowWindow(wi->window, SW_SHOW);
+  } else {
+    ShowWindow(wi->window, SW_HIDE);
+  }
 
   wi->deviceContext = GetDC(wi->window);
   if(!wi->deviceContext) {

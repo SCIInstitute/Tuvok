@@ -48,7 +48,8 @@ class TvkContext {
     // Virtual coonstructor for appropriate kind of context.
     static TvkContext* Create(uint32_t width, uint32_t height,
                               uint8_t color_bits=32, uint8_t depth_bits=24,
-                              uint8_t stencil_bits=8, bool double_buffer=true);
+                              uint8_t stencil_bits=8, bool double_buffer=true,
+                              bool visible=false);
 
     virtual bool isValid() const=0;
     virtual bool makeCurrent()=0;

@@ -43,7 +43,7 @@ class TvkCGLContext : public TvkContext {
   public:
     TvkCGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
                   uint8_t depth_bits, uint8_t stencil_bits,
-                  bool double_buffer);
+                  bool double_buffer, bool visible);
     virtual ~TvkCGLContext();
 
     bool isValid() const;
