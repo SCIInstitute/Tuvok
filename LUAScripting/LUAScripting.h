@@ -39,7 +39,7 @@
 #ifndef TUVOK_LUASCRIPTING_H_
 #define TUVOK_LUASCRIPTING_H_
 
-//#include "LUAProvenance.h"
+#include "LUAProvenance.h"
 
 namespace tuvok
 {
@@ -376,6 +376,7 @@ private:
   /// hooks.
   int                               mMemberHookIndex;
 
+  LuaProvenance                     mProvenance;
 
 };
 

@@ -79,6 +79,7 @@ const char* LuaScripting::TBL_MD_CPP_CLASS      = "scriptingCPP";
 //-----------------------------------------------------------------------------
 LuaScripting::LuaScripting()
 : mMemberHookIndex(0)
+, mProvenance(this)
 {
   mL = lua_newstate(luaInternalAlloc, NULL);
 
@@ -131,13 +132,13 @@ void* LuaScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
 //-----------------------------------------------------------------------------
 bool LuaScripting::isProvenanceEnabled()
 {
-  return true;
+  return mProvenance.isEnabled();
 }
 
 //-----------------------------------------------------------------------------
 void LuaScripting::enableProvenance(bool enable)
 {
-
+  mProvenance.setEnabled(enable);
 }
 
 //-----------------------------------------------------------------------------
@@ -1333,30 +1334,6 @@ SUITE(TestLUAScriptingSystem)
     CHECK_THROW(
         sc->strictHook(&myHook2, "func1"),
         LUAInvalidFunSignature);
-  }
-
-  TEST(CallbackMethodsOnExec)
-  {
-    TEST_HEADER;
-
-  }
-
-  TEST(LastExecMetaPopulation)
-  {
-    TEST_HEADER;
-
-  }
-
-  TEST(Provenance)
-  {
-    TEST_HEADER;
-
-  }
-
-  TEST(UndoRedo)
-  {
-    TEST_HEADER;
-
   }
 }
 
