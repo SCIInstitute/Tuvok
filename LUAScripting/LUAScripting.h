@@ -39,6 +39,8 @@
 #ifndef TUVOK_LUASCRIPTING_H_
 #define TUVOK_LUASCRIPTING_H_
 
+//#include "LUAProvenance.h"
+
 namespace tuvok
 {
 
@@ -50,6 +52,22 @@ public:
 
   LuaScripting();             // Will generate a new Lua state.
   virtual ~LuaScripting();
+
+  /// Default: Provenance is enabled.
+  bool isProvenanceEnabled();
+  void enableProvenance(bool enable);
+
+  /// Function description returned from getFuncDescs().
+  struct FunctionDesc
+  {
+    std::string funcName;   ///< Name of the function.
+    std::string funcDesc;   ///< Description of the function provided by the
+                            ///< registrar.
+    std::string funcSig;    ///< Function signature, includes the function name.
+  };
+
+  /// Return all function descriptions.
+  std::vector<FunctionDesc> getAllFuncDescs() const;
 
   /// These structures were created in order to handle void return types easily
   ///@{
@@ -108,24 +126,6 @@ public:
     }
   };
   ///@}
-
-  /// Function description returned from getFuncDescs().
-  struct FunctionDesc
-  {
-    std::string funcName;   ///< Name of the function.
-    std::string funcDesc;   ///< Description of the function provided by the
-                            ///< registrar.
-    std::string funcSig;    ///< Function signature, includes the function name.
-  };
-
-  /// Return all function descriptions.
-  std::vector<FunctionDesc> getAllFuncDescs() const;
-
-  /// Unregisters the function associated with the fully qualified name.
-  void unregisterFunction(const std::string& fqName);
-
-  /// Unregisters all functions registered using this LuaScripting instance.
-  void unregisterAllFunctions();
 
   /// Registers a static C++ function with LUA.
   /// Since LUA is compiled as CPP, it is safe to throw exceptions from the
@@ -282,6 +282,16 @@ public:
 
 private:
 
+  // NEVER deregister member functions, always let LuaMemberReg deregister
+  // the functions.
+
+  /// Unregisters the function associated with the fully qualified name.
+  void unregisterFunction(const std::string& fqName);
+
+  /// Unregisters all functions registered using this LuaScripting instance.
+  /// Should NEVER be called outside LuaScripting's destructor.
+  void unregisterAllFunctions();
+
   /// Returns a new member hook ID.
   std::string getNewMemberHookID();
 
@@ -308,6 +318,10 @@ private:
   /// we are guaranteed this, but this is forward thinking for the future
   /// when we need to share the Lua state.
   bool isOurRegisteredFunction(int stackIndex) const;
+
+  /// Returns true if the given fully qualified function name would be stored
+  /// in lua globlas.
+  bool isGlobalFunction(std::string fqName);
 
   /// Retrieves the function table given the fully qualified function name.
   /// Places the function table at the top of the stack. If the function fails

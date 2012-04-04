@@ -318,10 +318,23 @@ public:
 // Member variable initialization (initialize with the default for that type).
 #define MVIT(x)     M_NM(x)(LuaStrictStack<x>::getDefault())
 
+// Abstract base classed used to push and pull parameters off of internal
+// undo/redo stacks.
+class LuaCFunAbstract
+{
+public:
+  virtual ~LuaCFunAbstract() {}
+
+  virtual void pushParamsToStack(lua_State* L) const      = 0;
+  virtual void pullParamsFromStack(lua_State* L, int si)  = 0;
+};
+
+
 // LUA C function execution base unspecialized template.
 template<typename LuaFunExec>
-class LuaCFunExec
+class LuaCFunExec : public LuaCFunAbstract
 {
+public:
   // We want to keep the run and getSignature functions static so we don't
   // have to initialize member variables for these common operations
   // (we don't know their types).
@@ -330,9 +343,9 @@ class LuaCFunExec
 
   // Pushing and pulling parameters from the stack are used to store parameters
   // on the undo / redo stacks within the program.
-  void pushParamsToStack(lua_State* L) const;
-  void pullParamsFromStack(lua_State* L, int si); // si = start index on the
-                                                  // stack
+  virtual void pushParamsToStack(lua_State* L) const;
+  virtual void pullParamsFromStack(lua_State* L, int si); // si = starting
+                                                          // stack index
 };
 
 
@@ -348,7 +361,7 @@ class LuaCFunExec
 // 0 PARAMETERS
 //--------------
 template<typename Ret>
-class LuaCFunExec<Ret (*)()>
+class LuaCFunExec<Ret (*)()> : public LuaCFunAbstract
 {
 public:
   typedef Ret returnType;
@@ -364,15 +377,15 @@ public:
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
-  void pushParamsToStack(lua_State* L) const      {}
-  void pullParamsFromStack(lua_State* L, int si)  {}
+  virtual void pushParamsToStack(lua_State* L) const      {}
+  virtual void pullParamsFromStack(lua_State* L, int si)  {}
 };
 
 //-------------
 // 1 PARAMETER
 //-------------
 template<typename Ret, typename P1>
-class LuaCFunExec<Ret (*)(P1)>
+class LuaCFunExec<Ret (*)(P1)> : public LuaCFunAbstract
 {
 public:
   typedef Ret returnType;
@@ -394,9 +407,9 @@ public:
   LuaCFunExec()
   : MVIT(P1) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); }
 
   // Member variables.
@@ -407,7 +420,7 @@ public:
 // 2 PARAMETERS
 //--------------
 template<typename Ret, typename P1, typename P2>
-class LuaCFunExec<Ret (*)(P1, P2)>
+class LuaCFunExec<Ret (*)(P1, P2)> : public LuaCFunAbstract
 {
 public:
   typedef Ret returnType;
@@ -428,9 +441,9 @@ public:
   LuaCFunExec()
     : MVIT(P1), MVIT(P2) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); PHP(P2); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); }
 
   // Member variables.
@@ -441,7 +454,7 @@ public:
 // 3 PARAMETERS
 //--------------
 template<typename Ret, typename P1, typename P2, typename P3>
-class LuaCFunExec<Ret (*)(P1, P2, P3)>
+class LuaCFunExec<Ret (*)(P1, P2, P3)> : public LuaCFunAbstract
 {
 public:
   typedef Ret returnType;
@@ -462,9 +475,9 @@ public:
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); PHP(P2); PHP(P3); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); }
 
   // Member variables.
@@ -475,7 +488,7 @@ public:
 // 4 PARAMETERS
 //--------------
 template<typename Ret, typename P1, typename P2, typename P3, typename P4>
-class LuaCFunExec<Ret (*)(P1, P2, P3, P4)>
+class LuaCFunExec<Ret (*)(P1, P2, P3, P4)> : public LuaCFunAbstract
 {
 public:
   typedef Ret returnType;
@@ -511,7 +524,7 @@ public:
 //--------------
 template<typename Ret, typename P1, typename P2, typename P3, typename P4,
          typename P5>
-class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5)>
+class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5)> : public LuaCFunAbstract
 {
 public:
   typedef Ret returnType;
@@ -533,9 +546,9 @@ public:
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
 
   // Member variables.
@@ -547,7 +560,7 @@ public:
 //--------------
 template<typename Ret, typename P1, typename P2, typename P3, typename P4,
          typename P5, typename P6>
-class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5, P6)>
+class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5, P6)> : public LuaCFunAbstract
 {
 public:
   typedef Ret returnType;
@@ -569,9 +582,9 @@ public:
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
 
   // Member variables.
@@ -593,7 +606,7 @@ public:
 // 0 PARAMETERS
 //--------------
 template<typename T, typename Ret>
-class LuaCFunExec<Ret (T::*)()>
+class LuaCFunExec<Ret (T::*)()> : public LuaCFunAbstract
 {
 public:
   typedef T classType;
@@ -610,15 +623,15 @@ public:
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
-  void pushParamsToStack(lua_State* L) const      {}
-  void pullParamsFromStack(lua_State* L, int si)  {}
+  virtual void pushParamsToStack(lua_State* L) const      {}
+  virtual void pullParamsFromStack(lua_State* L, int si)  {}
 };
 
 //-------------
 // 1 PARAMETER
 //-------------
 template<typename T, typename Ret, typename P1>
-class LuaCFunExec<Ret (T::*)(P1)>
+class LuaCFunExec<Ret (T::*)(P1)> : public LuaCFunAbstract
 {
 public:
   typedef T classType;
@@ -640,9 +653,9 @@ public:
   LuaCFunExec()
   : MVIT(P1) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); }
 
   // Member variables.
@@ -653,7 +666,7 @@ public:
 // 2 PARAMETERS
 //--------------
 template<typename T, typename Ret, typename P1, typename P2>
-class LuaCFunExec<Ret (T::*)(P1, P2)>
+class LuaCFunExec<Ret (T::*)(P1, P2)> : public LuaCFunAbstract
 {
 public:
   typedef T classType;
@@ -675,9 +688,9 @@ public:
   LuaCFunExec()
     : MVIT(P1), MVIT(P2) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); PHP(P2); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); }
 
   // Member variables.
@@ -688,7 +701,7 @@ public:
 // 3 PARAMETERS
 //--------------
 template<typename T, typename Ret, typename P1, typename P2, typename P3>
-class LuaCFunExec<Ret (T::*)(P1, P2, P3)>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3)> : public LuaCFunAbstract
 {
 public:
   typedef T classType;
@@ -711,9 +724,9 @@ public:
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); PHP(P2); PHP(P3); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); }
 
   // Member variables.
@@ -725,7 +738,7 @@ public:
 //--------------
 template<typename T, typename Ret, typename P1, typename P2, typename P3,
          typename P4>
-class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4)>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4)> : public LuaCFunAbstract
 {
 public:
   typedef T classType;
@@ -748,9 +761,9 @@ public:
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); PHP(P2); PHP(P3); PHP(P4); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); }
 
   // Member variables.
@@ -762,7 +775,7 @@ public:
 //--------------
 template<typename T, typename Ret, typename P1, typename P2, typename P3,
          typename P4, typename P5>
-class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5)>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5)> : public LuaCFunAbstract
 {
 public:
   typedef T classType;
@@ -785,9 +798,9 @@ public:
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
 
   // Member variables.
@@ -799,7 +812,7 @@ public:
 //--------------
 template<typename T, typename Ret, typename P1, typename P2, typename P3,
          typename P4, typename P5, typename P6>
-class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6)>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6)> : public LuaCFunAbstract
 {
 public:
   static const int memberFunc = 1;
@@ -823,9 +836,9 @@ public:
   LuaCFunExec()
     : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
 
-  void pushParamsToStack(lua_State* L) const
+  virtual void pushParamsToStack(lua_State* L) const
   { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
-  void pullParamsFromStack(lua_State* L, int si)
+  virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
 
   // Member variables.

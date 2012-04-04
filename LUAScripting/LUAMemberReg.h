@@ -261,7 +261,12 @@ public:
 
     // Associate closure with hook table.
     lua_setfield(L, hookTable, mHookID.c_str());
+
+    mHookedFunctions.push_back(name);
   }
+
+  void unregisterFunctions();
+  void unregisterHooks();
 
 private:
 

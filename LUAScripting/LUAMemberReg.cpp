@@ -61,6 +61,7 @@ using namespace std;
 namespace tuvok
 {
 
+//-----------------------------------------------------------------------------
 LuaMemberReg::LuaMemberReg(tr1::shared_ptr<LuaScripting> scriptSys)
 : mScriptSystem(scriptSys)
 , mHookID(scriptSys->getNewMemberHookID())
@@ -68,14 +69,40 @@ LuaMemberReg::LuaMemberReg(tr1::shared_ptr<LuaScripting> scriptSys)
 
 }
 
+//-----------------------------------------------------------------------------
 LuaMemberReg::~LuaMemberReg()
+{
+  // Unhook before unregister!
+  unregisterHooks();
+  unregisterFunctions();
+}
+
+//-----------------------------------------------------------------------------
+void LuaMemberReg::unregisterFunctions()
 {
   // Loop through the registered functions and unregister them with the system.
   for (vector<string>::iterator it = mRegisteredFunctions.begin();
        it != mRegisteredFunctions.end(); ++it)
   {
-    mScriptSystem->unregisterFunction(*it);
+    try
+    {
+      mScriptSystem->unregisterFunction(*it);
+    }
+    catch (LUAError& e)
+    {
+      // If this happens, it means that someone else unregistered our
+      // function.
+      // Ignore it and move on.
+    }
   }
+
+  mRegisteredFunctions.clear();
+}
+
+//-----------------------------------------------------------------------------
+void LuaMemberReg::unregisterHooks()
+{
+  lua_State* L = mScriptSystem->getLUAState();
 
   // Loop through the hooks, and unregister them from their functions
   for (vector<string>::iterator it = mHookedFunctions.begin();
@@ -83,7 +110,26 @@ LuaMemberReg::~LuaMemberReg()
   {
     // Push the table associated with the function to the top.
     mScriptSystem->getFunctionTable(*it);
+
+    // Obtain the hooked member function table.
+    lua_getfield(L, -1, LuaScripting::TBL_MD_MEMBER_HOOKS);
+
+    if (lua_isnil(L, -1))
+    {
+      printf("nil\n");
+    }
+
+    // Just set the member hook ID field to nil, don't check to see if its there
+    // since we do not wan to throw an exception (likely called from
+    // destructor).
+    lua_pushnil(L);
+    lua_setfield(L, -2, mHookID.c_str());
+
+    // Pop function table and hooks table off the stack.
+    lua_pop(L, 2);
   }
+
+  mHookedFunctions.clear();
 }
 
 //==============================================================================
@@ -206,7 +252,7 @@ SUITE(LuaTestMemberFunctionRegistration)
     }
   }
 
-  TEST(MemberFunctionCallHooks)
+  TEST(MemberFunctionCallHooksAndDereg)
   {
     TEST_HEADER;
 
@@ -230,12 +276,33 @@ SUITE(LuaTestMemberFunctionRegistration)
     // Check
     CHECK_EQUAL(34, a->hookm2_var);
     CHECK_CLOSE(6.3, a->hookm3_var, 0.001);
+
+    CHECK_THROW(a->mReg.strictHook(a.get(), &A::hookm2, "m1a"),
+                    LUANonExistantFunction);
+
+    CHECK_THROW(a->mReg.strictHook(a.get(), &A::hookm2, "m1"),
+                LUAInvalidFunSignature);
+
+    CHECK_THROW(a->mReg.strictHook(a.get(), &A::hookm2, "m2"),
+                LUAFunBindError);
+
+    a->mReg.unregisterHooks();
+
+    // Test hooks with new values, and ensure they remain unchanged.
+    luaL_dostring(L, "m2(42)");
+    luaL_dostring(L, "m3(42.2)");
+
+    CHECK_EQUAL(34, a->hookm2_var);
+    CHECK_CLOSE(6.3, a->hookm3_var, 0.001);
+
+    // Retest hooking after deregistration.
+    a->mReg.strictHook(a.get(), &A::hookm2, "m2");
+
+    luaL_dostring(L, "m2(452)");
+
+    CHECK_EQUAL(452, a->hookm2_var);
   }
 
-  TEST(MemberFunctionCallHookDeregistration)
-  {
-
-  }
 }
 
 #endif

@@ -49,6 +49,7 @@
 #endif
 
 #include <vector>
+#include <algorithm>
 
 #include "LUAError.h"
 #include "LUAFunBinding.h"
@@ -128,15 +129,32 @@ void* LuaScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
 }
 
 //-----------------------------------------------------------------------------
+bool LuaScripting::isProvenanceEnabled()
+{
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::enableProvenance(bool enable)
+{
+
+}
+
+//-----------------------------------------------------------------------------
 void LuaScripting::unregisterAllFunctions()
 {
   for (vector<string>::const_iterator it = mRegisteredGlobals.begin();
        it != mRegisteredGlobals.end(); ++it)
   {
+    string global = (*it);
     lua_getglobal(mL, (*it).c_str());
-    removeFunctionsFromTable(-1, (*it).c_str());
+    // Don't need to check if the top of the stack is nil. unregisterFunction
+    // removes all global functions from mRegisteredGlobals.
+    removeFunctionsFromTable(0, (*it).c_str());
     lua_pop(mL, 1);
   }
+
+  mRegisteredGlobals.clear();
 }
 
 //-----------------------------------------------------------------------------
@@ -448,10 +466,12 @@ bool LuaScripting::isOurRegisteredFunction(int stackIndex) const
   {
     if (lua_touserdata(mL, -1) == this)
     {
+      lua_pop(mL, 1);
       return true;
     }
   }
 
+  lua_pop(mL, 1);
   return false;
 }
 
@@ -780,6 +800,12 @@ void LuaScripting::unregisterFunction(const std::string& fqName)
           // Unregister from globals (just assign nil to the variable)
           // http://www.lua.org/pil/1.2.html
           lua_setglobal(mL, token.c_str());
+
+          // Also remove from mRegisteredGlobals.
+          mRegisteredGlobals.erase(remove(mRegisteredGlobals.begin(),
+                                          mRegisteredGlobals.end(),
+                                          fqName),
+                                   mRegisteredGlobals.end());
         }
         else
         {
