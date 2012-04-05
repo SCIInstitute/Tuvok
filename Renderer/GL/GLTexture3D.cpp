@@ -83,7 +83,8 @@ GLTexture3D::GLTexture3D(uint32_t iSizeX, uint32_t iSizeY, uint32_t iSizeZ,
   GL(glBindTexture(GL_TEXTURE_3D, prevTex));
 }
 
-void GLTexture3D::SetData(const UINTVECTOR3& offset, const UINTVECTOR3& size, const void *pixels, bool bRestoreBinding) {
+void GLTexture3D::SetData(const UINTVECTOR3& offset, const UINTVECTOR3& size,
+                          const void *pixels, bool bRestoreBinding) {
   GL(glPixelStorei(GL_PACK_ALIGNMENT, 1));
   GL(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
