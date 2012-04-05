@@ -86,30 +86,31 @@ void LuaProvenance::registerLuaProvenanceFunctions()
   // are composited inside of LuaScripting, no such shared pointer is available.
   mMemberReg.registerFunction(this, &LuaProvenance::issueUndo,
                               "provenance.undo",
-                              "Undoes last script call.");
-  mScripting->setUndoRedoStackExempt("provenance.undo", true);
+                              "Undoes last call.",
+                              false);
   mMemberReg.registerFunction(this, &LuaProvenance::issueRedo,
                               "provenance.redo",
-                              "Redoes the last undo call.");
-  mScripting->setUndoRedoStackExempt("provenance.redo", true);
+                              "Redoes the last undo.",
+                              false);
   mMemberReg.registerFunction(this, &LuaProvenance::setEnabled,
                               "provenance.enable",
                               "Enable/Disable provenance. This is not an "
                               "undo-able action and will clear your provenance "
-                              "history if disabled.");
-  mScripting->setUndoRedoStackExempt("provenance.enable", true);
+                              "history if disabled.",
+                              false);
   mMemberReg.registerFunction(this, &LuaProvenance::clearProvenance,
                               "provenance.clear",
                               "Clears all provenance and undo/redo stacks. "
-                              "This is not an undo-able action.");
-  mScripting->setUndoRedoStackExempt("provenance.clear", true);
+                              "This is not an undo-able action.",
+                              false);
   mMemberReg.registerFunction(this, &LuaProvenance::enableProvReentryEx,
                               "provenance.enableReentryException",
                               "Enables/Disables the provenance reentry "
                               "exception. Disable this to (take a deep breath) "
                               "allow functions registered with LuaScripting to "
                               "call other functions registered within "
-                              "LuaScripting from within Lua.");
+                              "LuaScripting from within Lua.",
+                              true);
   // Reentry exception does not need to be stack exempt.
 }
 
@@ -317,8 +318,6 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
     int numParams = lua_gettop(L) - paramStart;
     paramStart += 1;
 
-    // NOTE!! We need to push the function table! The function expects it!
-
     // Execute the call (ignore return values).
     // This will pop all parameters and the function off the stack.
     mUndoRedoProvenanceDisable = true;
@@ -418,48 +417,45 @@ SUITE(LuaProvenanceTests)
     TEST_HEADER;
 
     tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
-    lua_State* L = sc->getLUAState();
 
     auto_ptr<A> a(new A(sc));
 
-    a->mReg.registerFunction(a.get(), &A::set_i1, "set_i1", "");
-    a->mReg.registerFunction(a.get(), &A::set_i2, "set_i2", "");
-    a->mReg.registerFunction(a.get(), &A::get_i1, "get_i1", "");
-    a->mReg.registerFunction(a.get(), &A::get_i2, "get_i2", "");
+    a->mReg.registerFunction(a.get(), &A::set_i1, "set_i1", "", true);
+    a->mReg.registerFunction(a.get(), &A::set_i2, "set_i2", "", true);
+    a->mReg.registerFunction(a.get(), &A::get_i1, "get_i1", "", false);
+    a->mReg.registerFunction(a.get(), &A::get_i2, "get_i2", "", false);
 
-    a->mReg.registerFunction(a.get(), &A::set_f1, "set_f1", "");
-    a->mReg.registerFunction(a.get(), &A::set_f2, "set_f2", "");
-    a->mReg.registerFunction(a.get(), &A::get_f1, "get_f1", "");
-    a->mReg.registerFunction(a.get(), &A::get_f2, "get_f2", "");
+    a->mReg.registerFunction(a.get(), &A::set_f1, "set_f1", "", true);
+    a->mReg.registerFunction(a.get(), &A::set_f2, "set_f2", "", true);
+    a->mReg.registerFunction(a.get(), &A::get_f1, "get_f1", "", false);
+    a->mReg.registerFunction(a.get(), &A::get_f2, "get_f2", "", false);
 
-    a->mReg.registerFunction(a.get(), &A::set_s1, "set_s1", "");
-    a->mReg.registerFunction(a.get(), &A::set_s2, "set_s2", "");
-    a->mReg.registerFunction(a.get(), &A::get_s1, "get_s1", "");
-    a->mReg.registerFunction(a.get(), &A::get_s2, "get_s2", "");
+    a->mReg.registerFunction(a.get(), &A::set_s1, "set_s1", "", true);
+    a->mReg.registerFunction(a.get(), &A::set_s2, "set_s2", "", true);
+    a->mReg.registerFunction(a.get(), &A::get_s1, "get_s1", "", false);
+    a->mReg.registerFunction(a.get(), &A::get_s2, "get_s2", "", false);
 
     // Use an unprotected call to grab the exception. Change all lua_pcalls
     // to lua_call.
     // TODO: Need to think about this problem in general, and how we are going
     // to deal with it. More than likely, we will not expose pcall to the end
     // user of this system.
-    luaL_loadstring(L, "provenance.redo()");
-    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidRedo);
-    luaL_loadstring(L, "provenance.undo()");
-    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidUndo);
+    CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
+    CHECK_THROW(sc->exec("provenance.undo()"), LuaProvenanceInvalidUndo);
 
-    luaL_dostring(L, "set_i1(1)");
-    luaL_dostring(L, "set_i2(10)");
-    luaL_dostring(L, "set_i1(2)");
-    luaL_dostring(L, "set_i1(3)");
-    luaL_dostring(L, "set_i2(20)");
-    luaL_dostring(L, "set_f1(2.3)");
-    luaL_dostring(L, "set_s1(\"T\")");
-    luaL_dostring(L, "set_s1(\"Test\")");
-    luaL_dostring(L, "set_s2(\"Test2\")");
-    luaL_dostring(L, "set_f1(1.5)");
-    luaL_dostring(L, "set_i1(100)");
-    luaL_dostring(L, "set_i2(30)");
-    luaL_dostring(L, "set_f2(-5.3)");
+    sc->exec("set_i1(1)");
+    sc->exec("set_i2(10)");
+    sc->exec("set_i1(2)");
+    sc->exec("set_i1(3)");
+    sc->exec("set_i2(20)");
+    sc->exec("set_f1(2.3)");
+    sc->exec("set_s1('T')");
+    sc->exec("set_s1('Test')");
+    sc->exec("set_s2('Test2')");
+    sc->exec("set_f1(1.5)");
+    sc->exec("set_i1(100)");
+    sc->exec("set_i2(30)");
+    sc->exec("set_f2(-5.3)");
 
     // Check final values.
     CHECK_EQUAL(a->i1, 100);
@@ -471,67 +467,58 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL(a->s1.c_str(), "Test");
     CHECK_EQUAL(a->s2.c_str(), "Test2");
 
-    // Test to see if we 'throw' if we redo passed where there is no redo.
-    // This should NOT affect the current state of the undo buffer.
-//    CHECK_THROW(luaL_dostring(L, "provenance.redo()"),
-//                LuaProvenanceInvalidRedo);
-//    CHECK_THROW(luaL_dostring(L, "provenance.undo()"),
-//                LuaProvenanceInvalidUndo);
-
-
-
+    CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
 
     // Begin issuing undo / redos
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_CLOSE(a->f2, 0.0f, 0.001f);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_CLOSE(a->f2, -5.3f, 0.001f);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_CLOSE(a->f2, 0.0f, 0.001f);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i2, 20);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i1, 3);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->i1, 100);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i1, 3);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_CLOSE(a->f1, 2.3f, 0.001f);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->s2.c_str(), "");
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->s2.c_str(), "Test2");
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_CLOSE(a->f1, 1.5f, 0.001f);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->i1, 100);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i1, 3);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_CLOSE(a->f1, 2.3f, 0.001f);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->s2.c_str(), "");
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->s1.c_str(), "T");
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->s1.c_str(), "");
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_CLOSE(a->f1, 0.0f, 0.001f);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i2, 10);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i1, 2);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i1, 1);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i2, 0);
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i1, 0);
 
     // This invalid undo should not destroy state.
-    luaL_loadstring(L, "provenance.undo()");
-    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidUndo);
+    CHECK_THROW(sc->exec("provenance.undo()"), LuaProvenanceInvalidUndo);
 
     // Check to make sure default values are present.
     CHECK_EQUAL(a->i1, 0);
@@ -544,35 +531,34 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL(a->s2.c_str(), "");
 
     // Check redoing EVERYTHING.
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->i1, 1);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->i2, 10);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->i1, 2);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->i1, 3);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->i2, 20);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_CLOSE(a->f1, 2.3f, 0.001f);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->s1, "T");
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->s1, "Test");
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->s2, "Test2");
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_CLOSE(a->f1, 1.5f, 0.001f);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->i1, 100);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL(a->i2, 30);
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_CLOSE(a->f2, -5.3f, 0.001f);
 
-    luaL_loadstring(L, "provenance.redo()");
-    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidRedo);
+    CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
 
     // Check final values again.
     CHECK_EQUAL(a->i1, 100);
@@ -585,22 +571,20 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL(a->s2.c_str(), "Test2");
 
     // Check lopping off sections of the redo buffer.
-    luaL_dostring(L, "provenance.undo()");
-    luaL_dostring(L, "provenance.undo()");
-    luaL_dostring(L, "provenance.undo()");
-    luaL_dostring(L, "set_i1(42)");
+    sc->exec("provenance.undo()");
+    sc->exec("provenance.undo()");
+    sc->exec("provenance.undo()");
+    sc->exec("set_i1(42)");
     CHECK_EQUAL(42, a->i1);
 
-    luaL_loadstring(L, "provenance.redo()");
-    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidRedo);
+    CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
 
-    luaL_dostring(L, "provenance.undo()");
-    luaL_dostring(L, "provenance.undo()");
-    luaL_dostring(L, "provenance.redo()");
-    luaL_dostring(L, "set_i1(45)");
+    sc->exec("provenance.undo()");
+    sc->exec("provenance.undo()");
+    sc->exec("provenance.redo()");
+    sc->exec("set_i1(45)");
 
-    luaL_loadstring(L, "provenance.redo()");
-    CHECK_THROW(lua_call(L, 0, 0), LuaProvenanceInvalidRedo);
+    CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
   }
 
   static int i1     = 0;
@@ -611,7 +595,6 @@ SUITE(LuaProvenanceTests)
   static void set_s1(string s)  {s1 = s;}
   static void set_b1(bool a)    {b1 = a;}
 
-
   TEST(ProvenanceStaticTests)
   {
     // We don't need to test the provenance functionality, just that it is
@@ -619,36 +602,35 @@ SUITE(LuaProvenanceTests)
     // thoroughly.
     TEST_HEADER;
 
-    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
-    lua_State* L = sc->getLUAState();
+    auto_ptr<LuaScripting> sc(new LuaScripting());
 
-    sc->registerFunction(&set_i1, "set_i1", "");
-    sc->registerFunction(&set_s1, "set_s1", "");
-    sc->registerFunction(&set_b1, "set_b1", "");
+    sc->registerFunction(&set_i1, "set_i1", "", true);
+    sc->registerFunction(&set_s1, "set_s1", "", true);
+    sc->registerFunction(&set_b1, "set_b1", "", true);
 
-    luaL_dostring(L, "set_i1(23)");
-    luaL_dostring(L, "set_s1(\"Test String\")");
-    luaL_dostring(L, "set_b1(true)");
+    sc->exec("set_i1(23)");
+    sc->exec("set_s1(\"Test String\")");
+    sc->exec("set_b1(true)");
 
     CHECK_EQUAL(23, i1);
     CHECK_EQUAL("Test String", s1.c_str());
     CHECK_EQUAL(true, b1);
 
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(false, b1);
 
     // TODO: This should really be 'nop'. Fix it after we add default resets.
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL("", s1.c_str());
 
-    luaL_dostring(L, "provenance.redo()");
+    sc->exec("provenance.redo()");
     CHECK_EQUAL("Test String", s1.c_str());
 
     // TODO: This should really be 'nop'. Fix it after we add default resets.
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL("", s1.c_str());
 
-    luaL_dostring(L, "provenance.undo()");
+    sc->exec("provenance.undo()");
     CHECK_EQUAL(0, i1);
   }
 

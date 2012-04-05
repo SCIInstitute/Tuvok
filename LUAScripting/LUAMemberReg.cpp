@@ -126,49 +126,22 @@ SUITE(LuaTestMemberFunctionRegistration)
   {
     TEST_HEADER;
 
-    auto_ptr<A> a;  // Want unique_ptr
-    lua_State* L;   // Storing this is a big no-no in real code. It is to test
-                    // the scoping below.
+    auto_ptr<A> a;
 
-    // Scope out the scripting system.
-    {
-      tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
-      L = sc->getLUAState();
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
-      a = auto_ptr<A>(new A(sc));
+    a = auto_ptr<A>(new A(sc));
 
-      a->mReg.registerFunction(a.get(), &A::m1, "a.m1", "A::m1");
-      a->mReg.registerFunction(a.get(), &A::m2, "a.m2", "A::m2");
-      a->mReg.registerFunction(a.get(), &A::m3, "a.m3", "A::m3");
-      a->mReg.registerFunction(a.get(), &A::m4, "m4",   "A::m4");
+    a->mReg.registerFunction(a.get(), &A::m1, "a.m1", "A::m1", true);
+    a->mReg.registerFunction(a.get(), &A::m2, "a.m2", "A::m2", true);
+    a->mReg.registerFunction(a.get(), &A::m3, "a.m3", "A::m3", true);
+    a->mReg.registerFunction(a.get(), &A::m4, "m4",   "A::m4", true);
 
-      luaL_dostring(L, "return a.m1()");
-      CHECK_EQUAL(1, lua_toboolean(L, -1));
-      lua_pop(L, 1);
-
-      luaL_dostring(L, "return a.m2(41)");
-      CHECK_EQUAL(1, lua_toboolean(L, -1));
-      lua_pop(L, 1);
-
-      luaL_dostring(L, "return a.m2(40)");
-      CHECK_EQUAL(0, lua_toboolean(L, -1));
-      lua_pop(L, 1);
-
-      luaL_dostring(L, "return a.m3(4.2)");
-      CHECK_EQUAL("Test str", lua_tostring(L, -1));
-      lua_pop(L, 1);
-
-      luaL_dostring(L, "return m4(\"This is my string\")");
-      CHECK_EQUAL(67, lua_tointeger(L, -1));
-      lua_pop(L, 1);
-    }
-
-    // Test more registrations even though the shared_ptr that created the
-    // scripting system is now out of scope.
-    {
-      a->mReg.registerFunction(a.get(), &A::m5, "a.m5", "A::m5");
-      luaL_dostring(L, "a.m5()");
-    }
+    CHECK_EQUAL(true, sc->execRet<bool>("a.m1()"));
+    CHECK_EQUAL(true, sc->execRet<bool>("a.m2(41)"));
+    CHECK_EQUAL(false, sc->execRet<bool>("a.m2(40)"));
+    CHECK_EQUAL("Test str", sc->execRet<string>("a.m3(4.2)").c_str());
+    CHECK_EQUAL(67, sc->execRet<int>("m4('This is my string')"));
   }
 
   TEST(MemberFunctionDeregistration)
@@ -176,27 +149,23 @@ SUITE(LuaTestMemberFunctionRegistration)
     TEST_HEADER;
 
     tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
-    lua_State* L = sc->getLUAState();
 
     {
       auto_ptr<A> a(new A(sc));
 
-      a->mReg.registerFunction(a.get(), &A::m1, "a.m1", "A::m1");
-      a->mReg.registerFunction(a.get(), &A::m2, "a.m2", "A::m2");
-      a->mReg.registerFunction(a.get(), &A::m5, "a.m5", "A::m5");
+      a->mReg.registerFunction(a.get(), &A::m1, "a.m1", "A::m1", true);
+      a->mReg.registerFunction(a.get(), &A::m2, "a.m2", "A::m2", true);
+      a->mReg.registerFunction(a.get(), &A::m5, "a.m5", "A::m5", true);
 
-      luaL_dostring(L, "a.m5()");
+      sc->exec("a.m5()");
     }
 
-    {
-      // Now check that all of the registered functions no longer exist.
-      luaL_dostring(L, "return a.m1");
-      CHECK_EQUAL(1, lua_isnil(L, -1));
-      luaL_dostring(L, "return a.m2");
-      CHECK_EQUAL(1, lua_isnil(L, -1));
-      luaL_dostring(L, "return a.m5");
-      CHECK_EQUAL(1, lua_isnil(L, -1));
-    }
+    /// TODO  Ensure LuaNonExistantFunction is thrown. This will have to be
+    ///       coordinated with Lua somehow when using exec. Should be
+    ///       straightforward with cexec.
+    CHECK_THROW(sc->exec("a.m1()"), LuaError);
+    CHECK_THROW(sc->exec("a.m2(34)"), LuaError);
+    CHECK_THROW(sc->exec("a.m5()"), LuaError);
   }
 
   TEST(MemberFunctionCallHooksAndDereg)
@@ -204,21 +173,20 @@ SUITE(LuaTestMemberFunctionRegistration)
     TEST_HEADER;
 
     tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
-    lua_State* L = sc->getLUAState();
 
     auto_ptr<A> a(new A(sc));
 
-    a->mReg.registerFunction(a.get(), &A::m1, "m1", "A::m1");
-    a->mReg.registerFunction(a.get(), &A::m2, "m2", "A::m2");
-    a->mReg.registerFunction(a.get(), &A::m3, "m3", "A::m3");
-    a->mReg.registerFunction(a.get(), &A::m4, "m4", "A::m4");
-    a->mReg.registerFunction(a.get(), &A::m5, "m5", "A::m5");
+    a->mReg.registerFunction(a.get(), &A::m1, "m1", "A::m1", true);
+    a->mReg.registerFunction(a.get(), &A::m2, "m2", "A::m2", true);
+    a->mReg.registerFunction(a.get(), &A::m3, "m3", "A::m3", true);
+    a->mReg.registerFunction(a.get(), &A::m4, "m4", "A::m4", true);
+    a->mReg.registerFunction(a.get(), &A::m5, "m5", "A::m5", true);
 
     a->mReg.strictHook(a.get(), &A::hookm2, "m2");
     a->mReg.strictHook(a.get(), &A::hookm3, "m3");
 
-    luaL_dostring(L, "m2(34)");
-    luaL_dostring(L, "m3(6.3)");
+    sc->exec("m2(34)");
+    sc->exec("m3(6.3)");
 
     // Check
     CHECK_EQUAL(34, a->hookm2_var);
@@ -236,8 +204,8 @@ SUITE(LuaTestMemberFunctionRegistration)
     a->mReg.unregisterHooks();
 
     // Test hooks with new values, and ensure they remain unchanged.
-    luaL_dostring(L, "m2(42)");
-    luaL_dostring(L, "m3(42.2)");
+    sc->exec("m2(42)");
+    sc->exec("m3(42.2)");
 
     CHECK_EQUAL(34, a->hookm2_var);
     CHECK_CLOSE(6.3, a->hookm3_var, 0.001);
@@ -245,7 +213,7 @@ SUITE(LuaTestMemberFunctionRegistration)
     // Retest hooking after deregistration.
     a->mReg.strictHook(a.get(), &A::hookm2, "m2");
 
-    luaL_dostring(L, "m2(452)");
+    sc->exec("m2(452)");
 
     CHECK_EQUAL(452, a->hookm2_var);
   }

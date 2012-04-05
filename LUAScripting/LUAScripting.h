@@ -46,15 +46,126 @@ class LuaProvenance;
 
 class LuaScripting
 {
-  friend class LuaMemberRegUnsafe;  // For adding member function registration.
+  friend class LuaMemberRegUnsafe;  // For member function registration.
   friend class LuaProvenance;       // For obtaining function tables.
-
 public:
 
-  LuaScripting();             // Will generate a new Lua state.
+  LuaScripting();
   virtual ~LuaScripting();
 
-  /// Default: Provenance is enabled.
+  /// Registers a static C++ function with LUA.
+  /// Since LUA is compiled as CPP, it is safe to throw exceptions from the
+  /// function pointed to by f.
+  /// \param  f         Any function pointer.
+  ///                   f's parameters and return value will be handled
+  ///                   automatically.
+  ///                   The number of parameters allowed in f is limited by
+  ///                   the templates in LUAFunBinding.h.
+  /// \param  name      Period delimited fully qualified name of f inside of LUA
+  ///                   No characters other than those regularly allowed inside
+  ///                   C++ functions are allowed, with the exception of periods
+  ///                   Example: "renderer.eye"
+  /// \param  desc      Description of f.
+  /// \param  undoRedo  If true, this function will add itself to the
+  ///                   provenance tracking system and undo/redo will be handled
+  ///                   automatically. If false, the function will not use
+  ///                   undo/redo functionality in the provenance system.
+  ///                   You will not want undo/redo on functions that do not
+  ///                   modify state (such as getters).
+  ///
+  /// TO REGISTER MEMBER FUNCTIONS:
+  /// Use the LUAMemberReg mediator class. It will clean up for you.
+  /// functions.
+  template <typename FunPtr>
+  void registerFunction(FunPtr f,
+                        const std::string& name,
+                        const std::string& desc,
+                        bool undoRedo);
+
+  /// Hooks a fully qualified function name with the given function.
+  /// All hooks are called directly after the bound Lua function is called,
+  /// but before the return values (if any) are sent back to Lua.
+  /// \param  f         Function pointer.
+  /// \param  name      Fully qualified name to hook.
+  //
+  /// TO HOOK USING MEMBER FUNCTIONS:
+  /// Use the LuaMemberReg mediator class. It will clean up for you.
+  template <typename FunPtr>
+  void strictHook(FunPtr f, const std::string& name);
+
+  /// Executes a command.
+  ///
+  /// Example: exec("provenance.undo()")
+  ///   or     exec("myFunc(34, "string", ...)")
+  void exec(const std::string& cmd);
+
+  /// Executes a command, and expects 1 return value.
+  ///
+  /// Example: T a = executeRet<T>("myFunc()")
+  template <typename T>
+  T execRet(const std::string& cmd);
+
+  /// The following functions allow you to call a function using C++ types.
+  ///
+  /// Example: exec("myFunc", a, b, c, d, ...)
+  ///@{
+  void cexec(const std::string& cmd);
+
+  template <typename P1>
+  void cexec(const std::string& cmd, P1 p1);
+
+  template <typename P1, typename P2>
+  void cexec(const std::string& cmd, P1 p1, P2 p2);
+
+  template <typename P1, typename P2, typename P3>
+  void cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3);
+
+  template <typename P1, typename P2, typename P3, typename P4>
+  void cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4);
+
+  template <typename P1, typename P2, typename P3, typename P4, typename P5>
+  void cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5);
+
+  template <typename P1, typename P2, typename P3, typename P4, typename P5,
+            typename P6>
+  void cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
+  ///@}
+
+  /// The following functions allow you to call a function using C++ types.
+  /// Unlike the functions above, these functions also return the execution
+  /// result of the function.
+  ///
+  /// NOTE: You must match the return type of the function exactly, otherwise
+  ///       a runtime exception will be thrown.
+  ///
+  /// Example: T a = cexecRet<T>("myFunc", p1, p2, ...)
+  ///@{
+  template <typename T>
+  T cexecRet(const std::string& cmd);
+
+  template <typename T, typename P1>
+  T cexecRet(const std::string& cmd, P1 p1);
+
+  template <typename T, typename P1, typename P2>
+  T cexecRet(const std::string& cmd, P1 p1, P2 p2);
+
+  template <typename T, typename P1, typename P2, typename P3>
+  T cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3);
+
+  template <typename T, typename P1, typename P2, typename P3, typename P4>
+  T cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4);
+
+  template <typename T, typename P1, typename P2, typename P3, typename P4,
+            typename P5>
+  T cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5);
+
+  template <typename T, typename P1, typename P2, typename P3, typename P4,
+            typename P5, typename P6>
+  T cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
+  ///@}
+
+  /// Default: Provenance is enabled. Disabling provenance will disable undo/
+  /// redo.
   bool isProvenanceEnabled();
   void enableProvenance(bool enable);
 
@@ -69,234 +180,6 @@ public:
 
   /// Return all function descriptions.
   std::vector<FunctionDesc> getAllFuncDescs() const;
-
-  /// These structures were created in order to handle void return types easily
-  ///@{
-  template <typename FunPtr, typename Ret>
-  struct LuaCallback
-  {
-    static int exec(lua_State* L)
-    {
-      FunPtr fp = reinterpret_cast<FunPtr>(
-          lua_touserdata(L, lua_upvalueindex(1)));
-
-      Ret r;
-      if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
-      {
-        // We are NOT a hook. Our parameters start at index 2 (because the
-        // callable table is at the first index). We will want to call all
-        // hooks associated with our table.
-        r = LuaCFunExec<FunPtr>::run(L, 2, fp);
-
-        std::tr1::shared_ptr<LuaCFunAbstract> execParams(
-            new LuaCFunExec<FunPtr>());
-        std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
-            new LuaCFunExec<FunPtr>());
-        // Fill execParams. Function parameters start at index 2.
-        execParams->pullParamsFromStack(L, 2);
-
-        // Obtain reference to LuaScripting in order to invoke provenance.
-        // See createCallableFuncTable for justification on pulling an
-        // instance of LuaScripting out of Lua.
-        LuaScripting* ss = static_cast<LuaScripting*>(
-            lua_touserdata(L, lua_upvalueindex(3)));
-        ss->doProvenanceFromExec(L, execParams, emptyParams);
-
-        // Call registered hooks.
-        // Note: The first parameter on the stack (not on the top, but
-        // on the bottom) is the table associated with the function.
-        LuaScripting::doHooks(L, 1);
-      }
-      else
-      {
-        r = LuaCFunExec<FunPtr>::run(L, 1, fp);
-      }
-
-      LuaStrictStack<Ret>().push(L, r);
-      return 1;
-    }
-  };
-
-  template <typename FunPtr>
-  struct LuaCallback <FunPtr, void>
-  {
-    static int exec(lua_State* L)
-    {
-      FunPtr fp = reinterpret_cast<FunPtr>(
-          lua_touserdata(L, lua_upvalueindex(1)));
-      if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
-      {
-        LuaCFunExec<FunPtr>::run(L, 2, fp);
-
-        std::tr1::shared_ptr<LuaCFunAbstract> execParams(
-            new LuaCFunExec<FunPtr>());
-        std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
-            new LuaCFunExec<FunPtr>());
-        // Fill execParams. Function parameters start at index 2.
-        execParams->pullParamsFromStack(L, 2);
-
-        // Obtain reference to LuaScripting in order to invoke provenance.
-        // See createCallableFuncTable for justification on pulling an
-        // instance of LuaScripting out of Lua.
-        LuaScripting* ss = static_cast<LuaScripting*>(
-            lua_touserdata(L, lua_upvalueindex(3)));
-        ss->doProvenanceFromExec(L, execParams, emptyParams);
-
-        LuaScripting::doHooks(L, 1);
-      }
-      else
-      {
-        LuaCFunExec<FunPtr>::run(L, 1, fp);
-      }
-
-      return 0;
-    }
-  };
-  ///@}
-
-  /// Registers a static C++ function with LUA.
-  /// Since LUA is compiled as CPP, it is safe to throw exceptions from the
-  /// function pointed to by f.
-  /// \param  f     Any function pointer.
-  ///               f's parameters and return value will be handled
-  ///               automatically.
-  ///               The number of parameters allowed in f is limited by
-  ///               the templates in LUAFunBinding.h. If you need more
-  ///               parameters, create the appropriate template in
-  ///               LUAFunBinding.h.
-  /// \param  name  Period delimited fully qualified name of f inside of LUA.
-  ///               No characters other than those regularly allowed inside
-  ///               C++ functions are allowed, with the exception of periods.
-  ///               Example: "renderer.eye"
-  ///               To call a function registered with the name in the example,
-  ///               just call renderer.eye( ... ) in Lua.
-  /// \param  desc  Description of f.
-  //
-  /// TO REGISTER MEMBER FUNCTIONS: To register member functions,
-  /// use the LUAMemberReg mediator class. This class will automatically
-  /// unregister all registered member functions through its destructor.
-  template <typename FunPtr>
-  void registerFunction(FunPtr f, const std::string& name,
-                        const std::string& desc)
-  {
-    // Idea: Build a 'callable' table.
-    // Its metatable will have a __call metamethod that points to the C
-    // function closure.
-
-    // We do this because all metatables are unique per-type which eliminates
-    // the possibilty of using a metatable on the function closure itself.
-    // The only exception to this rule is the table type itself.
-    int initStackTop = lua_gettop(mL);
-
-    // Create a callable function table and leave it on the stack.
-    lua_CFunction proxyFunc = &LuaCallback<FunPtr, typename
-        LuaCFunExec<FunPtr>::returnType>::exec;
-    createCallableFuncTable(proxyFunc, reinterpret_cast<void*>(f));
-
-    int tableIndex = lua_gettop(mL);
-
-    // Add function metadata to the table.
-    std::string sig = LuaCFunExec<FunPtr>::getSignature("");
-    std::string sigWithName = LuaCFunExec<FunPtr>::getSignature(
-        getUnqualifiedName(name));
-    std::string sigNoRet = LuaCFunExec<FunPtr>::getSigNoReturn("");
-    populateWithMetadata(name, desc, sig, sigWithName, sigNoRet, tableIndex);
-
-    // Push default values for function parameters onto the stack.
-    LuaCFunExec<FunPtr> defaultParams = LuaCFunExec<FunPtr>();
-    lua_checkstack(mL, LUAC_MAX_NUM_PARAMS + 2);
-    defaultParams.pushParamsToStack(mL);
-    int numFunParams = lua_gettop(mL) - tableIndex;
-    createDefaultsAndLastExecTables(tableIndex, numFunParams);
-
-    int testPos = lua_gettop(mL);
-
-    // Install the callable table in the appropriate module based on its
-    // fully qualified name.
-    bindClosureTableWithFQName(name, tableIndex);
-
-    testPos = lua_gettop(mL);
-
-    lua_pop(mL, 1);   // Pop the callable table.
-
-    assert(initStackTop == lua_gettop(mL));
-  }
-
-  /// Hooks a fully qualified function name with the given function.
-  /// All hooks are called directly after the bound Lua function is called,
-  /// but before the return values (if any) are sent back to Lua.
-  /// \param  f         Function pointer.
-  /// \param  fqName    Fully qualified name to hook.
-  //
-  /// TO HOOK MEMBER FUNCTIONS: To install hooks using member functions,
-  /// use the LUAMemberHook mediator class. This class will automatically
-  /// unhook all hooked member functions through its destructor.
-  template <typename FunPtr>
-  void strictHook(FunPtr f, const std::string& name)
-  {
-    // Need to check the signature of the function that we are trying to bind
-    // into the script system.
-    int initStackTop = lua_gettop(mL);
-
-    if (getFunctionTable(name) == false)
-    {
-      throw LuaNonExistantFunction("Unable to find function with which to"
-                                   "associate a hook.");
-    }
-
-    int funcTable = lua_gettop(mL);
-
-    // Check function signatures.
-    lua_getfield(mL, funcTable, TBL_MD_SIG_NO_RET);
-    std::string sigReg = lua_tostring(mL, -1);
-    std::string sigHook = LuaCFunExec<FunPtr>::getSigNoReturn("");
-    if (sigReg.compare(sigHook) != 0)
-    {
-      std::ostringstream os;
-      os << "Hook's parameter signature and the parameter signature of the "
-            "function to hook must match. Hook's signature: \"" << sigHook <<
-            "\"Function to hook's signature: " << sigReg;
-      throw LuaInvalidFunSignature(os.str().c_str());
-    }
-    lua_pop(mL, 1);
-
-    // Obtain hook table.
-    lua_getfield(mL, -1, TBL_MD_HOOKS);
-    int hookTable = lua_gettop(mL);
-
-    // Generate a hook descriptor (we make it a name as opposed to a natural
-    // number because we want Lua to use the hash table implementation behind
-    // the scenes, not the array table).
-    lua_getfield(mL, funcTable, TBL_MD_HOOK_INDEX);
-    std::ostringstream os;
-    int hookIndex = lua_tointeger(mL, -1);
-    os << "h" << hookIndex;
-    lua_pop(mL, 1);
-    lua_pushinteger(mL, hookIndex + 1);
-    lua_setfield(mL, funcTable, TBL_MD_HOOK_INDEX);
-
-    // Push closure
-    lua_CFunction proxyFunc = &LuaCallback<FunPtr, typename
-            LuaCFunExec<FunPtr>::returnType>::exec;
-    lua_pushlightuserdata(mL, reinterpret_cast<void*>(f));
-    lua_pushboolean(mL, 1);  // We ARE a hook. This affects the stack, and
-                             // whether we want to perform provenance.
-    // As a hook, we don't need to add mScriptSystem to the closure, since
-    // we don't perform provenance on hooks.
-    lua_pushcclosure(mL, proxyFunc, 2);
-
-    // Associate closure with hook table.
-    lua_setfield(mL, hookTable, os.str().c_str());
-  }
-
-  /// Ensures the function is not added to the undo/redo stack. Examples include
-  /// the undo and redo functions themselves.
-  void setUndoRedoStackExempt(const std::string& funcName, bool exempt);
-
-  /// NOTE: We cannot use shared_ptr for the lua_State. It allocates memory
-  /// for this structure using luaInternalAlloc, and a call to delete, without
-  /// informing Lua, could be disastrous.
-  lua_State* getLUAState()  {return mL;}
 
   // Names for data stored in a function's encapsulating table.
   // Exposed for unit testing purposes.
@@ -316,8 +199,21 @@ public:
 
 private:
 
+  /// Used by friend class LuaProvenance.
+  lua_State* getLUAState()  {return mL;}
+
   // NEVER deregister member functions, always let LuaMemberReg deregister
   // the functions.
+
+  /// Ensures the function is not added to the undo/redo stack. Examples include
+  /// the undo and redo functions themselves.
+  void setUndoRedoStackExempt(const std::string& funcName);
+
+  /// Prepare function for execution (places function on the top of the stack).
+  void prepForExecution(const std::string& fqName);
+
+  /// Execute the function on the top of the stack. Works excatly like lua_call.
+  void executeFunctionOnStack(int nparams, int nret);
 
   /// Unregisters the function associated with the fully qualified name.
   void unregisterFunction(const std::string& fqName);
@@ -424,15 +320,354 @@ private:
 
   std::auto_ptr<LuaProvenance>      mProvenance;
 
+
+  /// These structures were created in order to handle void return types easily
+  ///@{
+  template <typename FunPtr, typename Ret>
+  struct LuaCallback
+  {
+    static int exec(lua_State* L)
+    {
+      FunPtr fp = reinterpret_cast<FunPtr>(
+          lua_touserdata(L, lua_upvalueindex(1)));
+
+      Ret r;
+      if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
+      {
+        // We are NOT a hook. Our parameters start at index 2 (because the
+        // callable table is at the first index). We will want to call all
+        // hooks associated with our table.
+        r = LuaCFunExec<FunPtr>::run(L, 2, fp);
+
+        std::tr1::shared_ptr<LuaCFunAbstract> execParams(
+            new LuaCFunExec<FunPtr>());
+        std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
+            new LuaCFunExec<FunPtr>());
+        // Fill execParams. Function parameters start at index 2.
+        execParams->pullParamsFromStack(L, 2);
+
+        // Obtain reference to LuaScripting in order to invoke provenance.
+        // See createCallableFuncTable for justification on pulling an
+        // instance of LuaScripting out of Lua.
+        LuaScripting* ss = static_cast<LuaScripting*>(
+            lua_touserdata(L, lua_upvalueindex(3)));
+        ss->doProvenanceFromExec(L, execParams, emptyParams);
+
+        // Call registered hooks.
+        // Note: The first parameter on the stack (not on the top, but
+        // on the bottom) is the table associated with the function.
+        LuaScripting::doHooks(L, 1);
+      }
+      else
+      {
+        r = LuaCFunExec<FunPtr>::run(L, 1, fp);
+      }
+
+      LuaStrictStack<Ret>().push(L, r);
+      return 1;
+    }
+  };
+
+  template <typename FunPtr>
+  struct LuaCallback <FunPtr, void>
+  {
+    static int exec(lua_State* L)
+    {
+      FunPtr fp = reinterpret_cast<FunPtr>(
+          lua_touserdata(L, lua_upvalueindex(1)));
+      if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
+      {
+        LuaCFunExec<FunPtr>::run(L, 2, fp);
+
+        std::tr1::shared_ptr<LuaCFunAbstract> execParams(
+            new LuaCFunExec<FunPtr>());
+        std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
+            new LuaCFunExec<FunPtr>());
+        // Fill execParams. Function parameters start at index 2.
+        execParams->pullParamsFromStack(L, 2);
+
+        // Obtain reference to LuaScripting in order to invoke provenance.
+        // See createCallableFuncTable for justification on pulling an
+        // instance of LuaScripting out of Lua.
+        LuaScripting* ss = static_cast<LuaScripting*>(
+            lua_touserdata(L, lua_upvalueindex(3)));
+        ss->doProvenanceFromExec(L, execParams, emptyParams);
+
+        LuaScripting::doHooks(L, 1);
+      }
+      else
+      {
+        LuaCFunExec<FunPtr>::run(L, 1, fp);
+      }
+
+      return 0;
+    }
+  };
+  ///@}
+
 };
+
+
+template <typename T>
+T LuaScripting::execRet(const std::string& cmd)
+{
+  std::string retCmd = "return " + cmd;
+  luaL_loadstring(mL, retCmd.c_str());
+  lua_call(mL, 0, LUA_MULTRET);
+  T ret = LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  lua_pop(mL, 1); // Pop return value.
+  return ret;
+}
+
+
+template <typename P1>
+void LuaScripting::cexec(const std::string& cmd, P1 p1)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  executeFunctionOnStack(1, 0);
+}
+template <typename P1, typename P2>
+void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  LuaStrictStack<P2>::push(mL, p2);
+  executeFunctionOnStack(2, 0);
+}
+template <typename P1, typename P2, typename P3>
+void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  LuaStrictStack<P2>::push(mL, p2);
+  LuaStrictStack<P3>::push(mL, p3);
+  executeFunctionOnStack(3, 0);
+}
+template <typename P1, typename P2, typename P3, typename P4>
+void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  LuaStrictStack<P2>::push(mL, p2);
+  LuaStrictStack<P3>::push(mL, p3);
+  LuaStrictStack<P4>::push(mL, p4);
+  executeFunctionOnStack(4, 0);
+}
+template <typename P1, typename P2, typename P3, typename P4, typename P5>
+void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
+                         P5 p5)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  LuaStrictStack<P2>::push(mL, p2);
+  LuaStrictStack<P3>::push(mL, p3);
+  LuaStrictStack<P4>::push(mL, p4);
+  LuaStrictStack<P5>::push(mL, p5);
+  executeFunctionOnStack(5, 0);
+}
+template <typename P1, typename P2, typename P3, typename P4, typename P5,
+          typename P6>
+void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
+                         P5 p5, P6 p6)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  LuaStrictStack<P2>::push(mL, p2);
+  LuaStrictStack<P3>::push(mL, p3);
+  LuaStrictStack<P4>::push(mL, p4);
+  LuaStrictStack<P5>::push(mL, p5);
+  LuaStrictStack<P6>::push(mL, p6);
+  executeFunctionOnStack(6, 0);
+}
+
+template <typename T>
+T LuaScripting::cexecRet(const std::string& cmd)
+{
+  prepForExecution(cmd);
+  executeFunctionOnStack(0, 1);
+  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+}
+template <typename T, typename P1>
+T LuaScripting::cexecRet(const std::string& cmd, P1 p1)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  executeFunctionOnStack(1, 1);
+  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+}
+template <typename T, typename P1, typename P2>
+T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  LuaStrictStack<P2>::push(mL, p2);
+  executeFunctionOnStack(2, 1);
+  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+}
+template <typename T, typename P1, typename P2, typename P3>
+T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  LuaStrictStack<P2>::push(mL, p2);
+  LuaStrictStack<P3>::push(mL, p3);
+  executeFunctionOnStack(3, 1);
+  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+}
+template <typename T, typename P1, typename P2, typename P3, typename P4>
+T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  LuaStrictStack<P2>::push(mL, p2);
+  LuaStrictStack<P3>::push(mL, p3);
+  LuaStrictStack<P4>::push(mL, p4);
+  executeFunctionOnStack(4, 1);
+  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+}
+template <typename T, typename P1, typename P2, typename P3, typename P4,
+          typename P5>
+T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
+                         P5 p5)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  LuaStrictStack<P2>::push(mL, p2);
+  LuaStrictStack<P3>::push(mL, p3);
+  LuaStrictStack<P4>::push(mL, p4);
+  LuaStrictStack<P5>::push(mL, p5);
+  executeFunctionOnStack(5, 1);
+  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+}
+template <typename T, typename P1, typename P2, typename P3, typename P4,
+          typename P5, typename P6>
+T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
+                         P5 p5, P6 p6)
+{
+  prepForExecution(cmd);
+  LuaStrictStack<P1>::push(mL, p1);
+  LuaStrictStack<P2>::push(mL, p2);
+  LuaStrictStack<P3>::push(mL, p3);
+  LuaStrictStack<P4>::push(mL, p4);
+  LuaStrictStack<P5>::push(mL, p5);
+  LuaStrictStack<P6>::push(mL, p6);
+  executeFunctionOnStack(6, 1);
+  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+}
+
+
+template <typename FunPtr>
+void LuaScripting::registerFunction(FunPtr f, const std::string& name,
+                                    const std::string& desc, bool undoRedo)
+{
+  // Idea: Build a 'callable' table.
+  // Its metatable will have a __call metamethod that points to the C
+  // function closure.
+
+  // We do this because all metatables are unique per-type which eliminates
+  // the possibilty of using a metatable on the function closure itself.
+  // The only exception to this rule is the table type itself.
+  int initStackTop = lua_gettop(mL);
+
+  // Create a callable function table and leave it on the stack.
+  lua_CFunction proxyFunc = &LuaCallback<FunPtr, typename
+      LuaCFunExec<FunPtr>::returnType>::exec;
+  createCallableFuncTable(proxyFunc, reinterpret_cast<void*>(f));
+
+  int tableIndex = lua_gettop(mL);
+
+  // Add function metadata to the table.
+  std::string sig = LuaCFunExec<FunPtr>::getSignature("");
+  std::string sigWithName = LuaCFunExec<FunPtr>::getSignature(
+      getUnqualifiedName(name));
+  std::string sigNoRet = LuaCFunExec<FunPtr>::getSigNoReturn("");
+  populateWithMetadata(name, desc, sig, sigWithName, sigNoRet, tableIndex);
+
+  // Push default values for function parameters onto the stack.
+  LuaCFunExec<FunPtr> defaultParams = LuaCFunExec<FunPtr>();
+  lua_checkstack(mL, LUAC_MAX_NUM_PARAMS + 2);
+  defaultParams.pushParamsToStack(mL);
+  int numFunParams = lua_gettop(mL) - tableIndex;
+  createDefaultsAndLastExecTables(tableIndex, numFunParams);
+
+  int testPos = lua_gettop(mL);
+
+  // Install the callable table in the appropriate module based on its
+  // fully qualified name.
+  bindClosureTableWithFQName(name, tableIndex);
+
+  testPos = lua_gettop(mL);
+
+  lua_pop(mL, 1);   // Pop the callable table.
+
+  if (undoRedo == false)  setUndoRedoStackExempt(name);
+
+  assert(initStackTop == lua_gettop(mL));
+}
+
+template <typename FunPtr>
+void LuaScripting::strictHook(FunPtr f, const std::string& name)
+{
+  // Need to check the signature of the function that we are trying to bind
+  // into the script system.
+  int initStackTop = lua_gettop(mL);
+
+  if (getFunctionTable(name) == false)
+  {
+    throw LuaNonExistantFunction("Unable to find function with which to"
+                                 "associate a hook.");
+  }
+
+  int funcTable = lua_gettop(mL);
+
+  // Check function signatures.
+  lua_getfield(mL, funcTable, TBL_MD_SIG_NO_RET);
+  std::string sigReg = lua_tostring(mL, -1);
+  std::string sigHook = LuaCFunExec<FunPtr>::getSigNoReturn("");
+  if (sigReg.compare(sigHook) != 0)
+  {
+    std::ostringstream os;
+    os << "Hook's parameter signature and the parameter signature of the "
+          "function to hook must match. Hook's signature: \"" << sigHook <<
+          "\"Function to hook's signature: " << sigReg;
+    throw LuaInvalidFunSignature(os.str().c_str());
+  }
+  lua_pop(mL, 1);
+
+  // Obtain hook table.
+  lua_getfield(mL, -1, TBL_MD_HOOKS);
+  int hookTable = lua_gettop(mL);
+
+  // Generate a hook descriptor (we make it a name as opposed to a natural
+  // number because we want Lua to use the hash table implementation behind
+  // the scenes, not the array table).
+  lua_getfield(mL, funcTable, TBL_MD_HOOK_INDEX);
+  std::ostringstream os;
+  int hookIndex = lua_tointeger(mL, -1);
+  os << "h" << hookIndex;
+  lua_pop(mL, 1);
+  lua_pushinteger(mL, hookIndex + 1);
+  lua_setfield(mL, funcTable, TBL_MD_HOOK_INDEX);
+
+  // Push closure
+  lua_CFunction proxyFunc = &LuaCallback<FunPtr, typename
+          LuaCFunExec<FunPtr>::returnType>::exec;
+  lua_pushlightuserdata(mL, reinterpret_cast<void*>(f));
+  lua_pushboolean(mL, 1);  // We ARE a hook. This affects the stack, and
+                           // whether we want to perform provenance.
+  // As a hook, we don't need to add mScriptSystem to the closure, since
+  // we don't perform provenance on hooks.
+  lua_pushcclosure(mL, proxyFunc, 2);
+
+  // Associate closure with hook table.
+  lua_setfield(mL, hookTable, os.str().c_str());
+}
 
 // TODO Class to unwind the LUA stack when an exception occurs.
 //      Something akin to: LuaStackRAII(L) at the top of a function.
 //      This will grab the index at the top of the lua stack, and rewind to
 //      it in the class' destructor.
-//
-//      Look into whether or not important information could be on the stack
-//      related to the error.
 //
 //      Note. This shouldn't be used in all functions. Some functions
 //      purposefully leave values on the top of the stack. In these cases, we

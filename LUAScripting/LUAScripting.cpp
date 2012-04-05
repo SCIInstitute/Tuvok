@@ -109,11 +109,10 @@ int LuaScripting::luaPanic(lua_State* L)
   // uses set_jmp and long_jmp. This can cause issues when exceptions are
   // thrown, see:
   // http://developers.sun.com/solaris/articles/mixing.html#except .
-#ifdef EXTERNAL_UNIT_TESTING
-  printf("Panicking!!! %s\n", lua_tostring(L, -1));
-#endif
 
-  throw LuaError("Unrecoverable Lua error");
+  ostringstream os;
+  os << "Lua Error: " << lua_tostring(L, -1);
+  throw LuaError(os.str().c_str());
 
   // Returning from this function would mean that abort() gets called by LUA.
   // We don't want this.
@@ -920,13 +919,23 @@ void LuaScripting::doProvenanceFromExec(lua_State* L,
 }
 
 //-----------------------------------------------------------------------------
-void LuaScripting::setUndoRedoStackExempt(const string& funcName, bool exempt)
+void LuaScripting::setUndoRedoStackExempt(const string& funcName)
 {
   lua_State* L = mL;
   getFunctionTable(funcName);
 
-  lua_pushboolean(L, exempt ? 1 : 0);
+  lua_pushboolean(L, 1);
   lua_setfield(L, -2, TBL_MD_STACK_EXEMPT);
+
+  // Remove tables that are usually associated with undo/redo functionality.
+  lua_pushnil(L);
+  lua_setfield(L, -2, TBL_MD_FUN_PDEFS);
+
+  lua_pushnil(L);
+  lua_setfield(L, -2, TBL_MD_FUN_LAST_EXEC);
+
+  // Pop off the function table.
+  lua_pop(L, 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -963,6 +972,45 @@ void LuaScripting::copyDefaultsTableToLastExec(int funTableIndex)
   lua_pop(mL, 2);   // Pop the last-exec and the default tables.
 }
 
+//-----------------------------------------------------------------------------
+void LuaScripting::prepForExecution(const std::string& fqName)
+{
+  getFunctionTable(fqName);
+  lua_getmetatable(mL, -1);
+  lua_getfield(mL, -1, "__call");
+
+  // Remove metatable.
+  lua_remove(mL, lua_gettop(mL) - 1);
+
+  // Push a reference of the function table. This will be the first parameter
+  // to the function we call.
+  lua_pushvalue(mL, -2);
+
+  // Remove the function table we pushed with getFunctionTable.
+  lua_remove(mL, lua_gettop(mL) - 3);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::executeFunctionOnStack(int nparams, int nret)
+{
+  // + 1 is for the function table that was pushed by prepForExecution.
+  lua_call(mL, nparams + 1, nret);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::exec(const std::string& cmd)
+{
+  luaL_loadstring(mL, cmd.c_str());
+  lua_call(mL, 0, 0);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::cexec(const std::string& cmd)
+{
+  prepForExecution(cmd);
+  executeFunctionOnStack(0, 0);
+}
+
 //==============================================================================
 //
 // UNIT TESTING
@@ -986,45 +1034,23 @@ SUITE(TestLUAScriptingSystem)
     TEST_HEADER;
 
     auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
-    lua_State* L = sc->getLUAState();
 
     // Test successful bindings and their results.
-    sc->registerFunction(&dfun, "test.dummyFun", "My test dummy func.");
-    sc->registerFunction(&dfun, "p1.p2.p3.dummy", "Test");
-    sc->registerFunction(&dfun, "p1.p2.p.dummy", "Test");
-    sc->registerFunction(&dfun, "p1.np.p3.p4.dummy", "Test");
-    sc->registerFunction(&dfun, "test.dummyFun2", "Test");
-    sc->registerFunction(&dfun, "test.test2.dummy", "Test");
-    sc->registerFunction(&dfun, "func", "Test");
+    sc->registerFunction(&dfun, "test.dummyFun", "My test dummy func.", true);
+    sc->registerFunction(&dfun, "p1.p2.p3.dummy", "Test", true);
+    sc->registerFunction(&dfun, "p1.p2.p.dummy", "Test", true);
+    sc->registerFunction(&dfun, "p1.np.p3.p4.dummy", "Test", true);
+    sc->registerFunction(&dfun, "test.dummyFun2", "Test", true);
+    sc->registerFunction(&dfun, "test.test2.dummy", "Test", true);
+    sc->registerFunction(&dfun, "func", "Test", true);
 
-    luaL_dostring(L, "return test.dummyFun(1,2,39)");
-    CHECK_EQUAL(42, lua_tointeger(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return p1.p2.p3.dummy(1,2,39)");
-    CHECK_EQUAL(42, lua_tointeger(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return p1.p2.p.dummy(1,2,39)");
-    CHECK_EQUAL(42, lua_tointeger(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return p1.np.p3.p4.dummy(1,2,39)");
-    CHECK_EQUAL(42, lua_tointeger(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return test.dummyFun2(1,2,39)");
-    CHECK_EQUAL(42, lua_tointeger(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return test.test2.dummy(1,2,39)");
-    CHECK_EQUAL(42, lua_tointeger(L, -1));
-    lua_pop(L, 1);
-
-    luaL_loadstring(L, "return func(1,2,39)");
-    lua_pcall(L, 0, LUA_MULTRET, 0);
-    CHECK_EQUAL(42, lua_tointeger(L, -1));
-    lua_pop(L, 1);
+    CHECK_EQUAL(42, sc->execRet<int>("test.dummyFun(1,2,39)"));
+    CHECK_EQUAL(42, sc->execRet<int>("p1.p2.p3.dummy(1,2,39)"));
+    CHECK_EQUAL(65, sc->execRet<int>("p1.p2.p.dummy(5,21,39)"));
+    CHECK_EQUAL(42, sc->execRet<int>("p1.np.p3.p4.dummy(1,2,39)"));
+    CHECK_EQUAL(42, sc->execRet<int>("test.dummyFun2(1,2,39)"));
+    CHECK_EQUAL(42, sc->execRet<int>("test.test2.dummy(1,2,39)"));
+    CHECK_EQUAL(42, sc->execRet<int>("func(1,2,39)"));
 
     // Test failure cases.
 
@@ -1034,32 +1060,30 @@ SUITE(TestLUAScriptingSystem)
 
     // Exception: No trailing name after period.
     CHECK_THROW(
-        sc->registerFunction(&dfun, "err.err.dummyFun.", "Func."),
+        sc->registerFunction(&dfun, "err.err.dummyFun.", "Func.", true),
         LuaFunBindError);
 
     // Exception: Duplicate name already exists in globals.
     CHECK_THROW(
-        sc->registerFunction(&dfun, "p1", "Func."),
+        sc->registerFunction(&dfun, "p1", "Func.", true),
         LuaFunBindError);
 
     // Exception: Duplicate name already exists at last descendant.
     CHECK_THROW(
-        sc->registerFunction(&dfun, "p1.p2", "Func."),
+        sc->registerFunction(&dfun, "p1.p2", "Func.", true),
         LuaFunBindError);
 
     // Exception: A module in the fully qualified name not of type table.
     // (descendant case).
     CHECK_THROW(
-        sc->registerFunction(&dfun, "test.dummyFun.Func", "Func."),
+        sc->registerFunction(&dfun, "test.dummyFun.Func", "Func.", true),
         LuaFunBindError);
 
     // Exception: A module in the fully qualified name not of type table.
     // (global case).
     CHECK_THROW(
-        sc->registerFunction(&dfun, "func.Func2", "Func."),
+        sc->registerFunction(&dfun, "func.Func2", "Func.", true),
         LuaFunBindError);
-
-    //printRegisteredFunctions(sc.get());
   }
 
 
@@ -1106,30 +1130,20 @@ SUITE(TestLUAScriptingSystem)
     TEST_HEADER;
 
     auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
-    lua_State* L = sc->getLUAState();
 
-    sc->registerFunction(&str_int, "str.int", "");
-    sc->registerFunction(&str_int2, "str.int2", "");
-    sc->registerFunction(&flt_flt2_int2_dbl2, "flt.flt2.int2.dbl2", "");
-    sc->registerFunction(&mixer, "mixer", "");
+    sc->registerFunction(&str_int, "str.int", "", true);
+    sc->registerFunction(&str_int2, "str.int2", "", true);
+    sc->registerFunction(&flt_flt2_int2_dbl2, "flt.flt2.int2.dbl2", "", true);
+    sc->registerFunction(&mixer, "mixer", "", true);
 
-    luaL_dostring(L, "return str.int(97)");
-    CHECK_EQUAL("(97)", lua_tostring(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return str.int2(978, 42)");
-    CHECK_EQUAL("(978,42)", lua_tostring(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return mixer(true, 10, 12.6, 392.9, \"My sTrIng\")");
-    CHECK_EQUAL("My sTrIng 1 10 12.6 392.9", lua_tostring(L, -1));
-    lua_pop(L, 1);
-
-    luaL_dostring(L, "return flt.flt2.int2.dbl2(2,2,1,4,5,5)");
-    CHECK_CLOSE(30.0f, lua_tonumber(L, -1), 0.0001f);
-    lua_pop(L, 1);
-
-//    printRegisteredFunctions(sc.get());
+    CHECK_EQUAL("(97)",     sc->execRet<string>("str.int(97)").c_str());
+    CHECK_EQUAL("(978,42)", sc->execRet<string>("str.int2(978, 42)").c_str());
+    CHECK_EQUAL("My sTrIng 1 10 12.6 392.9",
+                sc->execRet<string>("mixer(true, 10, 12.6, 392.9, 'My sTrIng')")
+                  .c_str());
+    CHECK_CLOSE(30.0f,
+                sc->execRet<float>("flt.flt2.int2.dbl2(2,2,1,4,5,5)"),
+                0.0001f);
   }
 
 
@@ -1140,146 +1154,74 @@ SUITE(TestLUAScriptingSystem)
     TEST_HEADER;
 
     auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
-    lua_State* L = sc->getLUAState();
 
-    sc->registerFunction(&str_int, "str.fint", "desc str_int");
-    sc->registerFunction(&str_int2, "str.fint2", "desc str_int2");
-    sc->registerFunction(&int_, "fint", "desc int_");
-    sc->registerFunction(&print_flt, "print_flt", "Prints Floats");
+    sc->registerFunction(&str_int, "str.fint", "desc str_int", true);
+    sc->registerFunction(&str_int2, "str.fint2", "desc str_int2", true);
+    sc->registerFunction(&int_, "fint", "desc int_", true);
+    sc->registerFunction(&print_flt, "print_flt", "Prints Floats", true);
 
     string exe;
+
+    // The following sections exploit lua_call's ability to 'execute' variables.
+    // The result is the variable itself (if 1+ returns or LUA_MULTRET).
+    // We are using our internal function result evaluation methods (execRet)
+    // to evaluate and check the types of variables coming out of lua.
 
     //------------------
     // Test description
     //------------------
-    exe = string("return str.fint.") + LuaScripting::TBL_MD_DESC;
-    luaL_dostring(L, exe.c_str());
-    CHECK_EQUAL("desc str_int", lua_tostring(L, -1));
-    lua_pop(L, 1);
+    exe = string("str.fint.") + LuaScripting::TBL_MD_DESC;
+    CHECK_EQUAL("desc str_int", sc->execRet<string>(exe).c_str());
 
-    exe = string("return str.fint2.") + LuaScripting::TBL_MD_DESC;
-    luaL_dostring(L, exe.c_str());
-    CHECK_EQUAL("desc str_int2", lua_tostring(L, -1));
-    lua_pop(L, 1);
+    exe = string("str.fint2.") + LuaScripting::TBL_MD_DESC;
+    CHECK_EQUAL("desc str_int2", sc->execRet<string>(exe).c_str());
 
-    exe = string("return fint.") + LuaScripting::TBL_MD_DESC;
-    luaL_dostring(L, exe.c_str());
-    CHECK_EQUAL("desc int_", lua_tostring(L, -1));
-    lua_pop(L, 1);
+    exe = string("fint.") + LuaScripting::TBL_MD_DESC;
+    CHECK_EQUAL("desc int_", sc->execRet<string>(exe).c_str());
 
-    exe = string("return print_flt.") + LuaScripting::TBL_MD_DESC;
-    luaL_dostring(L, exe.c_str());
-    CHECK_EQUAL("Prints Floats", lua_tostring(L, -1));
-    lua_pop(L, 1);
-
+    exe = string("print_flt.") + LuaScripting::TBL_MD_DESC;
+    CHECK_EQUAL("Prints Floats", sc->execRet<string>(exe).c_str());
 
     //----------------
     // Test signature
     //----------------
-    exe = "return str.fint.";
-    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG).c_str());
-    CHECK_EQUAL("string (int)", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG_NAME).c_str());
-    CHECK_EQUAL("string fint(int)", lua_tostring(L, -1));
-    lua_pop(L, 1);
+    std::string temp;
 
-    exe = "return str.fint2.";
-    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG).c_str());
-    CHECK_EQUAL("string (int, int)", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG_NAME).c_str());
-    CHECK_EQUAL("string fint2(int, int)", lua_tostring(L, -1));
-    lua_pop(L, 1);
+    exe = "str.fint.";
+    temp = string(exe + LuaScripting::TBL_MD_SIG);
+    CHECK_EQUAL("string (int)", sc->execRet<string>(temp).c_str());
+    temp = string(exe + LuaScripting::TBL_MD_SIG_NAME);
+    CHECK_EQUAL("string fint(int)", sc->execRet<string>(temp).c_str());
 
-    exe = "return fint.";
-    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG).c_str());
-    CHECK_EQUAL("int ()", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG_NAME).c_str());
-    CHECK_EQUAL("int fint()", lua_tostring(L, -1));
-    lua_pop(L, 1);
+    exe = "str.fint2.";
+    temp = string(exe + LuaScripting::TBL_MD_SIG);
+    CHECK_EQUAL("string (int, int)", sc->execRet<string>(temp).c_str());
+    temp = string(exe + LuaScripting::TBL_MD_SIG_NAME);
+    CHECK_EQUAL("string fint2(int, int)", sc->execRet<string>(temp).c_str());
 
-    exe = "return print_flt.";
-    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG).c_str());
-    CHECK_EQUAL("void (float)", lua_tostring(L, -1));
-    lua_pop(L, 1);
-    luaL_dostring(L, string(exe + LuaScripting::TBL_MD_SIG_NAME).c_str());
-    CHECK_EQUAL("void print_flt(float)", lua_tostring(L, -1));
-    lua_pop(L, 1);
+    exe = "fint.";
+    temp = string(exe + LuaScripting::TBL_MD_SIG);
+    CHECK_EQUAL("int ()", sc->execRet<string>(temp).c_str());
+    temp = string(exe + LuaScripting::TBL_MD_SIG_NAME);
+    CHECK_EQUAL("int fint()", sc->execRet<string>(temp).c_str());
 
+    exe = "print_flt.";
+    temp = string(exe + LuaScripting::TBL_MD_SIG);
+    CHECK_EQUAL("void (float)", sc->execRet<string>(temp).c_str());
+    temp = string(exe + LuaScripting::TBL_MD_SIG_NAME);
+    CHECK_EQUAL("void print_flt(float)", sc->execRet<string>(temp).c_str());
 
     //------------------------------------------------------------------
     // Number of executions (simple value -- only testing one function)
     //------------------------------------------------------------------
-    exe = string("return print_flt.")
-        + LuaScripting::TBL_MD_NUM_EXEC;
-    luaL_dostring(L, exe.c_str());
-    CHECK_EQUAL(0, lua_tointeger(L, -1));
-    lua_pop(L, 1);
-
+    exe = string("print_flt.") + LuaScripting::TBL_MD_NUM_EXEC;
+    CHECK_EQUAL(0, sc->execRet<int>(exe));
 
     //------------------------------------------------------------
     // Qualified name (simple value -- only testing one function)
     //------------------------------------------------------------
-    exe = string("return str.fint2.")
-        + LuaScripting::TBL_MD_QNAME;
-    luaL_dostring(L, exe.c_str());
-    CHECK_EQUAL("str.fint2", lua_tostring(L, -1));
-    lua_pop(L, 1);
-
-    //---------------
-    // Test defaults
-    //---------------
-    // Use a new function, 'mixer', to test the defaults table.
-    sc->registerFunction(&mixer, "mixer", "Testing all parameter types");
-
-    exe = string("return mixer.")
-        + LuaScripting::TBL_MD_FUN_PDEFS;
-    luaL_dostring(L, exe.c_str());
-    CHECK_EQUAL(LUA_TTABLE, lua_type(L, -1));
-
-    // First param: bool
-    lua_pushnumber(L, 0);
-    lua_gettable(L, -2);
-    CHECK_EQUAL(LUA_TBOOLEAN, lua_type(L, -1));
-    CHECK_EQUAL(0, lua_toboolean(L, -1));
-    lua_pop(L, 1);
-
-    // Second param: int
-    lua_pushnumber(L, 1);
-    lua_gettable(L, -2);
-    CHECK_EQUAL(LUA_TNUMBER, lua_type(L, -1));
-    CHECK_CLOSE(0.0f, lua_tonumber(L, -1), 0.001f);
-    lua_pop(L, 1);
-
-    // Third param: float
-    lua_pushnumber(L, 2);
-    lua_gettable(L, -2);
-    CHECK_EQUAL(LUA_TNUMBER, lua_type(L, -1));
-    CHECK_CLOSE(0.0f, lua_tonumber(L, -1), 0.001f);
-    lua_pop(L, 1);
-
-    // Fourth param: double
-    lua_pushnumber(L, 3);
-    lua_gettable(L, -2);
-    CHECK_EQUAL(LUA_TNUMBER, lua_type(L, -1));
-    CHECK_CLOSE(0.0f, lua_tonumber(L, -1), 0.001f);
-    lua_pop(L, 1);
-
-    // Fifth param: string
-    lua_pushnumber(L, 4);
-    lua_gettable(L, -2);
-    CHECK_EQUAL(LUA_TSTRING, lua_type(L, -1));
-    CHECK_EQUAL("", lua_tostring(L, -1));
-    lua_pop(L, 1);
-
-    // Remove table
-    lua_pop(L, 1);
-
-    // No need to test last exec table, it is just a copy of defaults.
-
-//    printRegisteredFunctions(sc.get());
+    exe = string("str.fint2.") + LuaScripting::TBL_MD_QNAME;
+    CHECK_EQUAL("str.fint2", sc->execRet<string>(exe).c_str());
   }
 
   TEST(Test_getAllFuncDescs)
@@ -1288,12 +1230,15 @@ SUITE(TestLUAScriptingSystem)
 
     // Test retrieval of all function descriptions.
     auto_ptr<LuaScripting> sc(new LuaScripting());  // want to use unique_ptr
-    lua_State* L = sc->getLUAState();
 
-    sc->registerFunction(&str_int,            "str.int",            "Desc 1");
-    sc->registerFunction(&str_int2,           "str2.int2",          "Desc 2");
-    sc->registerFunction(&flt_flt2_int2_dbl2, "flt.flt2.int2.dbl2", "Desc 3");
-    sc->registerFunction(&mixer,              "mixer",              "Desc 4");
+    sc->registerFunction(&str_int,            "str.int",            "Desc 1",
+                         true);
+    sc->registerFunction(&str_int2,           "str2.int2",          "Desc 2",
+                         true);
+    sc->registerFunction(&flt_flt2_int2_dbl2, "flt.flt2.int2.dbl2", "Desc 3",
+                         true);
+    sc->registerFunction(&mixer,              "mixer",              "Desc 4",
+                         true);
 
     //
     std::vector<LuaScripting::FunctionDesc> d = sc->getAllFuncDescs();
@@ -1372,10 +1317,9 @@ SUITE(TestLUAScriptingSystem)
     TEST_HEADER;
 
     auto_ptr<LuaScripting> sc(new LuaScripting());
-    lua_State* L = sc->getLUAState();
 
-    sc->registerFunction(&str_int,            "func1", "Function 1");
-    sc->registerFunction(&str_int2,           "a.func2", "Function 2");
+    sc->registerFunction(&str_int,            "func1", "Function 1", true);
+    sc->registerFunction(&str_int2,           "a.func2", "Function 2", true);
 
     sc->strictHook(&myHook1, "func1");
     sc->strictHook(&myHook1, "func1");
@@ -1383,10 +1327,10 @@ SUITE(TestLUAScriptingSystem)
     sc->strictHook(&myHook2, "a.func2");
 
     // Test hooks on function 1 (the return value of hooks don't matter)
-    luaL_dostring(L, "func1(23)");
+    sc->exec("func1(23)");
 
     // Test hooks on function 2
-    luaL_dostring(L, "a.func2(42, 53)");
+    sc->exec("a.func2(42, 53)");
 
     CHECK_EQUAL(2,  hook1Called);
     CHECK_EQUAL(23, hook1CallVal);
@@ -1420,17 +1364,141 @@ SUITE(TestLUAScriptingSystem)
         sc->strictHook(&myHook2, "func1"),
         LuaInvalidFunSignature);
   }
+
+  static int    i1  = 0;
+  static string s1  = "nop";
+  static bool   b1  = false;
+
+  static void   set_i1(int a)     {i1 = a;}
+  static void   set_s1(string s)  {s1 = s;}
+  static void   set_b1(bool a)    {b1 = a;}
+
+  static int    get_i1()          {return i1;}
+  static string get_s1()          {return s1;}
+  static bool   get_b1()          {return b1;}
+
+  static void   paste_i1()        {i1 = 25;}
+
+  int ti1 = 0, ti2 = 0, ti3 = 0, ti4 = 0, ti5 = 0, ti6 = 0;
+  static void set_1ti(int i1)     {ti1 = i1;}
+  static void set_2ti(int i1, int i2)
+  { ti1 = i1; ti2 = i2 ;}
+  static void set_3ti(int i1, int i2, int i3)
+  { ti1 = i1; ti2 = i2; ti3 = i3; }
+  static void set_4ti(int i1, int i2, int i3, int i4)
+  { ti1 = i1; ti2 = i2; ti3 = i3; ti4 = i4; }
+  static void set_5ti(int i1, int i2, int i3, int i4, int i5)
+  { ti1 = i1; ti2 = i2; ti3 = i3; ti4 = i4; ti5 = i5;}
+  static void set_6ti(int i1, int i2, int i3, int i4, int i5, int i6)
+  { ti1 = i1; ti2 = i2; ti3 = i3; ti4 = i4; ti5 = i5; ti6 = i6;}
+
+  static string testParamReturn(int a, bool b, float c, string s)
+  {
+    ostringstream os;
+    os << "Out: " << a << " " << b << " " << c << " " << s;
+    return os.str();
+  }
+
+  TEST(CallingLuaScript)
+  {
+    TEST_HEADER;
+
+    auto_ptr<LuaScripting> sc(new LuaScripting());
+
+    sc->registerFunction(&set_i1, "set_i1", "", true);
+    sc->registerFunction(&set_s1, "set_s1", "", true);
+    sc->registerFunction(&set_b1, "set_b1", "", true);
+    sc->registerFunction(&paste_i1, "paste_i1", "", true);
+
+    sc->registerFunction(&get_i1, "get_i1", "", false);
+    sc->registerFunction(&get_s1, "get_s1", "", false);
+    sc->registerFunction(&get_b1, "get_b1", "", false);
+
+    // Test execute function and executeRet function.
+    sc->exec("set_i1(34)");
+    CHECK_EQUAL(34, i1);
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL(0, i1);
+
+    CHECK_EQUAL(0, sc->execRet<int>("get_i1()"));
+    sc->exec("set_i1(34)");
+    CHECK_EQUAL(34, sc->execRet<int>("get_i1()"));
+    sc->exec("set_s1('My String')");
+    CHECK_EQUAL("My String", s1.c_str());
+    CHECK_EQUAL("My String", sc->execRet<string>("get_s1()").c_str());
+
+    // Test out c++ parameter execution
+    sc->registerFunction(&set_1ti, "set_1ti", "", true);
+    sc->registerFunction(&set_2ti, "set_2ti", "", true);
+    sc->registerFunction(&set_3ti, "set_3ti", "", true);
+    sc->registerFunction(&set_4ti, "set_4ti", "", true);
+    sc->registerFunction(&set_5ti, "set_5ti", "", true);
+    sc->registerFunction(&set_6ti, "set_6ti", "", true);
+
+    // No parameter versions.
+    sc->cexec("paste_i1");
+    CHECK_EQUAL(25, sc->cexecRet<int>("get_i1"));
+
+    // 1 parameter.
+    sc->cexec("set_1ti", 10);
+    CHECK_EQUAL(10, ti1);
+
+    // 2 parameters
+    sc->cexec("set_2ti", 20, 22);
+    CHECK_EQUAL(20, ti1);
+    CHECK_EQUAL(22, ti2);
+
+    // 3 parameters
+    sc->cexec("set_3ti", 30, 32, 34);
+    CHECK_EQUAL(30, ti1);
+    CHECK_EQUAL(32, ti2);
+    CHECK_EQUAL(34, ti3);
+
+    // 4 parameters
+    sc->cexec("set_4ti", 40, 42, 44, 46);
+    CHECK_EQUAL(40, ti1);
+    CHECK_EQUAL(42, ti2);
+    CHECK_EQUAL(44, ti3);
+    CHECK_EQUAL(46, ti4);
+
+    // 5 parameters
+    sc->cexec("set_5ti", 50, 52, 54, 56, 58);
+    CHECK_EQUAL(50, ti1);
+    CHECK_EQUAL(52, ti2);
+    CHECK_EQUAL(54, ti3);
+    CHECK_EQUAL(56, ti4);
+    CHECK_EQUAL(58, ti5);
+
+    // 6 parameters
+    sc->cexec("set_6ti", 60, 62, 64, 66, 68, 70);
+    CHECK_EQUAL(60, ti1);
+    CHECK_EQUAL(62, ti2);
+    CHECK_EQUAL(64, ti3);
+    CHECK_EQUAL(66, ti4);
+    CHECK_EQUAL(68, ti5);
+    CHECK_EQUAL(70, ti6);
+
+    // Multiple parameters, and 1 return value.
+    sc->registerFunction(&testParamReturn, "tpr", "", true);
+    CHECK_EQUAL("Out: 65 1 4.3 str!",
+                sc->cexecRet<string>("tpr", 65, true, 4.3, "str!").c_str());
+  }
+
+  TEST(TestDefaultSettings)
+  {
+    TEST_HEADER;
+
+  }
+
+  /// TODO: Add tests for passing shared_ptr's around, and how they work
+  /// with regards to the undo/redo stack.
+
+  /// TODO: Add tests to check the exceptions thrown in the case of too many /
+  /// too little parameters for cexec, and the return values for execRet.
+
 }
 
-TEST(TestDefaultReset)
-{
 
-}
-
-TEST(CallingLuaScripting)
-{
-
-}
 
 void printRegisteredFunctions(LuaScripting* s)
 {

@@ -35,7 +35,19 @@
  \brief   Auxiliary templates used to implement 1-1 function binding in LUA.
  */
 
-// This is a complete implementation of static function binding in LUA.
+
+/// TODO: Look into rewriting using variadic templates when we support C++11.
+
+/// **** INSTRUCTIONS ****
+/// When adding new parameters below, there are multiple places you need to
+/// make changes. They are listed in these instructions.
+/// 1) Change the member function and static function templates to reflect the
+///    new number of parameters.
+/// 2) Update LUAC_MAX_NUM_PARAMS below. This is only use to ensure we don't
+///    exceed our stack space in Lua.
+/// 3) Add additional execution function to LuaScripting.
+
+
 #ifndef TUVOK_LUAFUNBINDING_H_
 #define TUVOK_LUAFUNBINDING_H_
 
@@ -47,6 +59,10 @@ namespace tuvok
 // LUA PARAM GETTER/PUSHER (we do NOT pop off of the LUA stack)
 //
 //==============================================================
+
+#define VOID_TYPE_STRING ("void")
+
+class LuaEmptyType {};
 
 // LUA strict type stack
 // This template enforces strict type compliance while converting types on the
@@ -70,17 +86,28 @@ public:
 // Specializations (supported parameter/return types)
 
 template<>
+class LuaStrictStack<LuaEmptyType>
+{
+public:
+  static LuaEmptyType get(lua_State* L, int pos)   {return getDefault();}
+  static void push(lua_State* L, int in)  {}
+
+  static std::string  getTypeStr() { return "EMPTY TYPE"; }
+  static LuaEmptyType getDefault() { return LuaEmptyType(); }
+};
+
+template<>
 class LuaStrictStack<void>
 {
 public:
-  // All functions but getTypeStr don't do anything since none of these
-  // functions make sense in the context of 'void'.
-  // getTypeStr is only called when building the  return type of function
+  // All functions except getTypeStr and push don't do anything since none of
+  // these functions make sense in the context of 'void'.
+  // getTypeStr is only called when building the return type of function
   // signatures.
   static int get(lua_State* L, int pos);
   static void push(lua_State* L, int in);
 
-  static std::string getTypeStr() { return "void"; }
+  static std::string getTypeStr() { return VOID_TYPE_STRING; }
 
   static int         getDefault();
 };
@@ -237,6 +264,21 @@ public:
 //        key/value pairs in a hash table.
 //			  See http://www.lua.org/doc/hopl.pdf -- page 2, para 2. See ref 31.
 //			  Consider support for 3D and 4D graphics vectors.
+
+//==========================================================
+//
+// PUSH CLASS ALLOWS PUSHING A VARIABLE NUMBER OF ARGUMENTS
+//
+//==========================================================
+
+//template <typename RET = LuaEmptyType, typename T1 = LuaEmptyType,
+//          typename T2 = LuaEmptyType, typename T3 = LuaEmptyType,
+//          typename T4 = LuaEmptyType, typename T5 = LuaEmptyType,
+//          typename T6 = LuaEmptyType>
+//class LuaPushClass
+//{
+//
+//};
 
 //==========================
 //
