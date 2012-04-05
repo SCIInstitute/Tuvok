@@ -56,7 +56,7 @@ SOURCES += \
   render.cpp
 
 unix:!macx { SOURCES += ../glx-context.cpp }
-macx { SOURCES += ../cgl-context.cpp }
+macx { SOURCES += ../cgl-context.cpp ../agl-context.cpp }
 win32 { SOURCES += ../wgl-context.cpp }
 
 HEADERS += \

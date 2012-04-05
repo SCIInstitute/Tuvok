@@ -25,46 +25,35 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
+#ifndef TUVOK_AGL_CONTEXT_H
+#define TUVOK_AGL_CONTEXT_H
 
-/**
-  \file    context.cpp
-  \author  Tom Fogal
-           SCI Institute
-           University of Utah
-  \brief   Establishes an OpenGL context.
-*/
-#include "StdTuvokDefines.h"
-#include "Controller/Controller.h"
-
+#ifdef _MSC_VER
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
 #include "context.h"
-
-#include "agl-context.h"
-#include "cgl-context.h"
-#include "glx-context.h"
-#include "wgl-context.h"
 
 namespace tuvok {
 
-TvkContext::~TvkContext() { }
+struct cinfo;
 
-TvkContext* TvkContext::Create(uint32_t width, uint32_t height,
-                               uint8_t color_bits, uint8_t depth_bits,
-                               uint8_t stencil_bits, bool double_buffer,
-                               bool visible)
-{
-#ifdef DETECTED_OS_WINDOWS
-  return new TvkWGLContext(width, height, color_bits, depth_bits, stencil_bits,
-                           double_buffer, visible);
-#elif defined(DETECTED_OS_APPLE) && defined(USE_CGL)
-  return new TvkCGLContext(width, height, color_bits, depth_bits, stencil_bits,
-                           double_buffer, visible);
-#elif defined(DETECTED_OS_APPLE)
-  return new TvkAGLContext(width, height, color_bits, depth_bits, stencil_bits,
-                           double_buffer, visible);
-#else
-  return new TvkGLXContext(width, height, color_bits, depth_bits, stencil_bits,
-                           double_buffer, visible);
-#endif
-}
+class TvkAGLContext : public TvkContext {
+  public:
+    TvkAGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
+                  uint8_t depth_bits, uint8_t stencil_bits,
+                  bool double_buffer, bool visible);
+    virtual ~TvkAGLContext();
+
+    bool isValid() const;
+    bool makeCurrent();
+    bool swapBuffers();
+
+  private:
+    std::tr1::shared_ptr<struct cinfo> ci;
+};
 
 }
+
+#endif /* TUVOK_AGL_CONTEXT_H */
