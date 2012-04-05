@@ -76,12 +76,6 @@ int main(int argc, const char *argv[])
       T_ERROR("Could not utilize context.");
       return EXIT_FAILURE;
     }
-
-    GLenum err = glewInit();
-    if(err != GLEW_OK) {
-      T_ERROR("Error initializing GLEW: %s", glewGetErrorString(err));
-      return EXIT_FAILURE;
-    }
     Controller::Instance().DebugOut()->SetOutput(true,true,true,true);
 
     // Convert the data into a UVF.

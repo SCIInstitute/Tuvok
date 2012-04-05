@@ -70,12 +70,6 @@ int main(int argc, char *argv[])
 
   try {
     std::auto_ptr<TvkContext> ctx(TvkContext::Create(320,240, 32,24,8, true));
-
-    GLenum err = glewInit();
-    if(err != GLEW_OK) {
-      T_ERROR("Error initializing GLEW: %s", glewGetErrorString(err));
-      return EXIT_FAILURE;
-    }
     Controller::Instance().DebugOut()->SetOutput(true,true,false,true);
 
     // Convert the data into a UVF.
