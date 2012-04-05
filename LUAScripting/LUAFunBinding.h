@@ -40,10 +40,10 @@
 
 /// **** INSTRUCTIONS ****
 /// When adding new parameters below, there are multiple places you need to
-/// make changes. They are listed in these instructions.
+/// make changes.
 /// 1) Change the member function and static function templates to reflect the
 ///    new number of parameters.
-/// 2) Update LUAC_MAX_NUM_PARAMS below. This is only use to ensure we don't
+/// 2) Update LUAC_MAX_NUM_PARAMS below. This is only used to ensure we don't
 ///    exceed our stack space in Lua.
 /// 3) Add additional execution function to LuaScripting.
 
@@ -61,8 +61,6 @@ namespace tuvok
 //==============================================================
 
 #define VOID_TYPE_STRING ("void")
-
-class LuaEmptyType {};
 
 // LUA strict type stack
 // This template enforces strict type compliance while converting types on the
@@ -84,17 +82,6 @@ public:
 //			If we do want to support these, what do these types mean inside of LUA?
 
 // Specializations (supported parameter/return types)
-
-template<>
-class LuaStrictStack<LuaEmptyType>
-{
-public:
-  static LuaEmptyType get(lua_State* L, int pos)   {return getDefault();}
-  static void push(lua_State* L, int in)  {}
-
-  static std::string  getTypeStr() { return "EMPTY TYPE"; }
-  static LuaEmptyType getDefault() { return LuaEmptyType(); }
-};
 
 template<>
 class LuaStrictStack<void>
@@ -264,21 +251,6 @@ public:
 //        key/value pairs in a hash table.
 //			  See http://www.lua.org/doc/hopl.pdf -- page 2, para 2. See ref 31.
 //			  Consider support for 3D and 4D graphics vectors.
-
-//==========================================================
-//
-// PUSH CLASS ALLOWS PUSHING A VARIABLE NUMBER OF ARGUMENTS
-//
-//==========================================================
-
-//template <typename RET = LuaEmptyType, typename T1 = LuaEmptyType,
-//          typename T2 = LuaEmptyType, typename T3 = LuaEmptyType,
-//          typename T4 = LuaEmptyType, typename T5 = LuaEmptyType,
-//          typename T6 = LuaEmptyType>
-//class LuaPushClass
-//{
-//
-//};
 
 //==========================
 //
