@@ -30,24 +30,32 @@
 #define TUVOK_GL_HASH_TABLE_H
 
 #include "StdTuvokDefines.h"
+#if defined(_MSC_VER)
+# include <memory>
+#else
+# include <tr1/memory>
+#endif
+#include "Basics/Vectors.h"
+#include "GLObject.h"
 
 namespace tuvok {
 
-class GLVolumePool;
-class Dataset;
+struct hinfo;
 
 class GLHashTable : public GLObject {
   public:
-    GLHashTable();
+    GLHashTable(const UINTVECTOR2& texSize,
+                std::tr1::shared_ptr<AbstrRenderer>& ren);
     virtual ~GLHashTable() { }
 
-    // runs through hash table and searches for required bricks.
-    // when needed, adds bricks to the given VolumePool.
-    void ProcessHashTable(GLVolumePool& vp, const Dataset& ds);
+    void Activate(uint32_t imgUnit, uint32_t texUnit);
+    std::vector<UINTVECTOR4> GetList();
 
     virtual uint64_t GetCPUSize() const;
     virtual uint64_t GetGPUSize() const;
+
   private:
+    std::tr1::shared_ptr<struct hinfo> hi;
 };
 
 }
