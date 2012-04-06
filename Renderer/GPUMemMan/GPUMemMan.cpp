@@ -1035,28 +1035,33 @@ void GPUMemMan::FreeFBO(GLFBOTex* pFBO) {
   WARNING("FBO to free not found.");
 }
 
+struct deref_glsl : public std::binary_function<GLSLListElem*, GLSLListElem*,
+                                                bool> {
+  bool operator ()(const GLSLListElem* a, const GLSLListElem* b) const {
+    return *a == *b;
+  }
+};
+
 GLSLProgram* GPUMemMan::GetGLSLProgram(const std::vector<std::string>& vert,
                                        const std::vector<std::string>& frag,
                                        int iShareGroupID)
 {
-  for (GLSLListIter i = m_vpGLSLList.begin();i<m_vpGLSLList.end();i++) {
-    if((*i)->m_iShareGroupID == iShareGroupID &&
-       vert.size() == (*i)->vertex.size() &&
-       frag.size() == (*i)->fragment.size() &&
-       std::equal(vert.begin(), vert.end(), (*i)->vertex.begin()) &&
-       std::equal(frag.begin(), frag.end(), (*i)->fragment.begin()))
-    {
-      MESSAGE("Reusing GLSL program.");
-      (*i)->iAccessCounter++;
-      return (*i)->pGLSLProgram;
-    }
+  GLSLListElem elem(m_MasterController, vert, frag, iShareGroupID, false);
+  using namespace std::tr1::placeholders;
+  GLSLListIter i = std::find_if(m_vpGLSLList.begin(), m_vpGLSLList.end(),
+                                std::tr1::bind(deref_glsl(), _1, &elem));
+  if(i != m_vpGLSLList.end()) {
+    MESSAGE("Reusing GLSL program.");
+    (*i)->iAccessCounter++;
+    return (*i)->pGLSLProgram;
   }
 
   MESSAGE("Creating new GLSL program from %u-element VS and %u-element FS",
           static_cast<unsigned>(vert.size()),
           static_cast<unsigned>(frag.size()));
 
-  GLSLListElem* e = new GLSLListElem(m_MasterController, vert, frag, iShareGroupID);
+  GLSLListElem* e = new GLSLListElem(m_MasterController, vert, frag,
+                                     iShareGroupID);
 
   if(e->pGLSLProgram == NULL) {
     T_ERROR("Failed to create program!");

@@ -265,22 +265,35 @@ namespace tuvok {
     GLSLListElem(MasterController* mc,
                  const std::vector<std::string>& vert,
                  const std::vector<std::string>& frag,
-                 int iShareGroupID) :
+                 int iShareGroupID,
+                 bool load=true) :
       vertex(vert), fragment(frag),
       iAccessCounter(1),
       pGLSLProgram(new GLSLProgram(mc)),
       m_iShareGroupID(iShareGroupID)
     {
-      pGLSLProgram->Load(vert, frag);
-      if(!pGLSLProgram->IsValid()) {
-        delete pGLSLProgram;
-        pGLSLProgram = NULL;
+      if(load) {
+        pGLSLProgram->Load(vert, frag);
+        if(!pGLSLProgram->IsValid()) {
+          delete pGLSLProgram;
+          pGLSLProgram = NULL;
+        }
       }
     }
 
     ~GLSLListElem()
     {
       delete pGLSLProgram;
+    }
+
+    bool operator ==(const GLSLListElem& glsl) const {
+      return m_iShareGroupID == glsl.m_iShareGroupID &&
+             vertex.size() == glsl.vertex.size() &&
+             fragment.size() == glsl.fragment.size() &&
+             std::equal(vertex.begin(), vertex.end(),
+                        glsl.vertex.begin()) &&
+             std::equal(fragment.begin(), fragment.end(),
+                        glsl.fragment.begin());
     }
 
     const std::vector<std::string> vertex;
