@@ -68,10 +68,10 @@ static std::string find_filename(std::vector<std::string> directories,
 {
   // if we're on Mac, first try to see if the file is in our bundle.
 #ifdef DETECTED_OS_APPLE
-  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(file))) {
-    file = SysTools::GetFromResourceOnMac(file);
-    MESSAGE("Found %s in bundle, using that.", file.c_str());
-    return file;
+  if (SysTools::FileExists(SysTools::GetFromResourceOnMac(filename))) {
+    filename = SysTools::GetFromResourceOnMac(filename);
+    MESSAGE("Found %s in bundle, using that.", filename.c_str());
+    return filename;
   }
 #endif
 
