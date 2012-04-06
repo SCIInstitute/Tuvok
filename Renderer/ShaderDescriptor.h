@@ -45,11 +45,6 @@ class ShaderDescriptor {
     /// to compose the shader.
     bool operator ==(const ShaderDescriptor& sd) const;
 
-    // temporary hack -- make an iterator instead
-    std::vector<std::string> GetVertexShaders() const;
-    // temporary hack -- make an iterator instead
-    std::vector<std::string> GetFragmentShaders() const;
-
     /// Shader iterator.  When dereferenced, produces a pair of 'program text'
     /// (first) and the source of that program text (second).  The latter is
     /// only intended for diagnostics, and may be empty.

@@ -1057,8 +1057,8 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const ShaderDescriptor& sdesc,
   }
 
   MESSAGE("Creating new GLSL program from %u-element VS and %u-element FS",
-          static_cast<unsigned>(sdesc.GetVertexShaders().size()),
-          static_cast<unsigned>(sdesc.GetFragmentShaders().size()));
+          std::distance(sdesc.begin_vertex(), sdesc.end_vertex()),
+          std::distance(sdesc.begin_fragment(), sdesc.end_fragment()));
 
   GLSLListElem* e = new GLSLListElem(m_MasterController, sdesc,
                                      iShareGroupID);

@@ -168,31 +168,6 @@ bool ShaderDescriptor::operator ==(const ShaderDescriptor& sd) const
   return this->si == sd.si;
 }
 
-// temporary hack -- make an iterator instead
-std::vector<std::string> ShaderDescriptor::GetVertexShaders() const
-{
-  std::vector<std::string> rv;
-  typedef std::vector<std::pair<std::string, enum shader_type> > sv;
-  for(sv::const_iterator v = this->si->vertex.begin();
-      v != this->si->vertex.end(); ++v) {
-    rv.push_back(v->first);
-  }
-  return rv;
-}
-
-// temporary hack -- make an iterator instead
-std::vector<std::string> ShaderDescriptor::GetFragmentShaders() const
-{
-  std::vector<std::string> rv;
-  typedef std::vector<std::pair<std::string, enum shader_type> > sv;
-  for(sv::const_iterator f = this->si->fragment.begin();
-      f != this->si->fragment.end(); ++f) {
-    rv.push_back(f->first);
-  }
-  return rv;
-}
-
-
 static std::string readfile(const std::string& filename) {
   // open in append mode so the file pointer will be at EOF and we can
   // therefore easily/quickly figure out the file size.
