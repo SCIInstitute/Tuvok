@@ -206,6 +206,7 @@ HEADERS += \
            Renderer/ContextIdentification.h \
            Renderer/CullingLOD.h \
            Renderer/FrameCapture.h \
+           Renderer/ShaderDescriptor.h \
            Renderer/GL/GLCommon.h \
            Renderer/GL/GLHashTable.h \
            Renderer/GL/GLStateManager.h \
@@ -472,6 +473,7 @@ SOURCES += \
            Renderer/Context.cpp \
            Renderer/CullingLOD.cpp \
            Renderer/FrameCapture.cpp \
+           Renderer/ShaderDescriptor.cpp \
            Renderer/GL/GLCommon.cpp \
            Renderer/GL/GLHashTable.cpp \
            Renderer/GL/GLStateManager.cpp \           
