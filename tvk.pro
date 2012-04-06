@@ -210,6 +210,7 @@ HEADERS += \
            Renderer/GL/GLStateManager.h \
            Renderer/GL/GLContext.h \
            Renderer/GL/GLFrameCapture.h \
+           Renderer/GL/GLImageTexture2D.h \
            Renderer/GL/GLInclude.h \
            Renderer/GL/GLObject.h \
            Renderer/GL/GLRaycaster.h \
@@ -474,6 +475,7 @@ SOURCES += \
            Renderer/GL/GLStateManager.cpp \           
            Renderer/GL/GLFBOTex.cpp \
            Renderer/GL/GLFrameCapture.cpp \
+           Renderer/GL/GLImageTexture2D.cpp \
            Renderer/GL/GLRaycaster.cpp \
            Renderer/GL/GLRenderer.cpp \
            Renderer/GL/GLSBVR.cpp \
