@@ -271,7 +271,7 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction,
   const std::string bias = tfqn + "-BScale.glsl";
   tfqn += ".glsl";
 
-  MESSAGE("Loading '%s' volume rendering...", tfqn.c_str());
+  MESSAGE("Loading '%s' volume rendering shader...", tfqn.c_str());
 
   // we want to call 'MemMan::GetGLSLProgram' repeatedly, always using the same
   // memory manager (duh), and always using the same context ID.

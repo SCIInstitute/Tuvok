@@ -77,8 +77,9 @@ typedef enum {
 
 namespace tuvok {
 
-class MasterController;
 class GLTexture;
+class MasterController;
+class ShaderDescriptor;
 
 typedef std::map<std::string, int> texMap;
 
@@ -96,10 +97,7 @@ public:
   virtual ~GLSLProgram();
 
   /// Loads a series of shaders.
-  /// @param vert a set of filenames to load the vertex shader from.
-  /// @param frag a set of filenames to load the fragment shaders from
-  void Load(const std::vector<std::string>& vert,
-            const std::vector<std::string>& frag);
+  void Load(const ShaderDescriptor& sd);
 
   /// Enables this shader for rendering.
   void Enable(void);

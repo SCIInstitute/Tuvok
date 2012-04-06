@@ -272,8 +272,7 @@ namespace tuvok {
       m_iShareGroupID(iShareGroupID)
     {
       if(load) {
-        pGLSLProgram->Load(sdesc.GetVertexShaders(),
-                           sdesc.GetFragmentShaders());
+        pGLSLProgram->Load(sdesc);
         if(!pGLSLProgram->IsValid()) {
           delete pGLSLProgram;
           pGLSLProgram = NULL;

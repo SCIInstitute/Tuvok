@@ -9,6 +9,7 @@
 # include <tr1/memory>
 #endif
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace tuvok {
@@ -48,6 +49,29 @@ class ShaderDescriptor {
     std::vector<std::string> GetVertexShaders() const;
     // temporary hack -- make an iterator instead
     std::vector<std::string> GetFragmentShaders() const;
+
+    /// Shader iterator.  When dereferenced, produces a pair of 'program text'
+    /// (first) and the source of that program text (second).  The latter is
+    /// only intended for diagnostics, and may be empty.
+    struct SIterator : public std::iterator<std::input_iterator_tag,
+                                           std::string> {
+      SIterator(const SIterator&);
+      SIterator& operator++();
+      SIterator& operator++(int);
+      bool operator==(const SIterator&) const;
+      bool operator!=(const SIterator&) const;
+      std::pair<std::string, std::string> operator*() const;
+      private:
+        struct siterinfo;
+        std::tr1::shared_ptr<siterinfo> si;
+        SIterator(struct siterinfo);
+        friend class ShaderDescriptor;
+    };
+    /// Iterate over the list of shaders.
+    SIterator begin_vertex() const;
+    SIterator end_vertex() const;
+    SIterator begin_fragment() const;
+    SIterator end_fragment() const;
 
   private:
     struct sinfo;

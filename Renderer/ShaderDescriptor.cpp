@@ -6,6 +6,7 @@
 #endif
 #include <algorithm>
 #include <cstdarg>
+#include <fstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -191,6 +192,119 @@ std::vector<std::string> ShaderDescriptor::GetFragmentShaders() const
   return rv;
 }
 
+
+static std::string readfile(const std::string& filename) {
+  // open in append mode so the file pointer will be at EOF and we can
+  // therefore easily/quickly figure out the file size.
+  std::ifstream ifs(filename.c_str(), std::ios::in | std::ios::ate);
+  if(!ifs.is_open()) {
+    T_ERROR("Could not open shader '%s'", filename.c_str());
+    throw std::runtime_error("file could not be opened");
+  }
+  std::ifstream::pos_type len = ifs.tellg();
+  ifs.seekg(0, std::ios::beg);
+
+  std::vector<char> file(size_t(len+std::ifstream::pos_type(1)), 0);
+  size_t offset=0;
+  do {
+    std::streamsize length = std::streamsize(len) - std::streamsize(offset);
+    ifs.read(&file[offset], length);
+    offset += size_t(ifs.gcount());
+  } while(!ifs.eof() && std::ifstream::pos_type(offset) < len);
+  ifs.close();
+
+  return std::string(&file[0]);
+}
+
+typedef std::vector<std::pair<std::string, enum shader_type> > slist;
+// internal implementation: we keep track of which object (ShaderDescriptor) we
+// came from, the location within that object, and what type we are.  The
+// latter helps us with equality; no location in the vertex shader list is
+// equal to any location in the fragment shader list.
+struct ShaderDescriptor::SIterator::siterinfo {
+  const ShaderDescriptor* sd;
+  slist::const_iterator location;
+  enum VertFrag { ITER_VERTEX, ITER_FRAGMENT } vf;
+
+  siterinfo(const ShaderDescriptor* sdesc, slist::const_iterator loc,
+            enum VertFrag typ) : sd(sdesc), location(loc), vf(typ) { }
+  bool operator==(const siterinfo& sit) const {
+    return this->vf == sit.vf &&
+           this->location == sit.location;
+  }
+};
+
+ShaderDescriptor::SIterator::SIterator(const ShaderDescriptor::SIterator& sit) :
+  si(sit.si) { }
+ShaderDescriptor::SIterator::SIterator(
+  struct ShaderDescriptor::SIterator::siterinfo sit
+) : si(new ShaderDescriptor::SIterator::siterinfo(sit)) { }
+ShaderDescriptor::SIterator& ShaderDescriptor::SIterator::operator++() {
+  ++this->si->location;
+  return *this;
+}
+ShaderDescriptor::SIterator& ShaderDescriptor::SIterator::operator++(int n) {
+  std::advance(this->si->location, n);
+  return *this;
+}
+bool
+ShaderDescriptor::SIterator::operator==(const ShaderDescriptor::SIterator& sit)
+const {
+  return *(this->si) == (*sit.si);
+}
+bool
+ShaderDescriptor::SIterator::operator!=(const ShaderDescriptor::SIterator& sit)
+const {
+  return !(*this == sit);
+}
+std::pair<std::string, std::string>
+ShaderDescriptor::SIterator::operator*() const {
+  std::pair<std::string, std::string> rv(
+    std::make_pair(this->si->location->first, "(in-memory)")
+  );
+  if(this->si->location->second == SHADER_VERTEX_DISK ||
+     this->si->location->second == SHADER_FRAGMENT_DISK) {
+    // load it from disk and replace those parameters.
+    rv.first = readfile(this->si->location->first);
+    rv.second = this->si->location->first;
+  }
+  return rv;
+}
+
+ShaderDescriptor::SIterator ShaderDescriptor::begin_vertex() const {
+  return ShaderDescriptor::SIterator(
+    ShaderDescriptor::SIterator::siterinfo(
+      this, this->si->vertex.begin(),
+      ShaderDescriptor::SIterator::siterinfo::ITER_VERTEX
+    )
+  );
+}
+ShaderDescriptor::SIterator ShaderDescriptor::end_vertex() const {
+  return ShaderDescriptor::SIterator(
+    ShaderDescriptor::SIterator::siterinfo(
+      this, this->si->vertex.end(),
+      ShaderDescriptor::SIterator::siterinfo::ITER_VERTEX
+    )
+  );
+}
+
+ShaderDescriptor::SIterator ShaderDescriptor::begin_fragment() const {
+  return ShaderDescriptor::SIterator(
+    ShaderDescriptor::SIterator::siterinfo(
+      this, this->si->fragment.begin(),
+      ShaderDescriptor::SIterator::siterinfo::ITER_FRAGMENT
+    )
+  );
+}
+ShaderDescriptor::SIterator ShaderDescriptor::end_fragment() const {
+  return ShaderDescriptor::SIterator(
+    ShaderDescriptor::SIterator::siterinfo(
+      this, this->si->fragment.end(),
+      ShaderDescriptor::SIterator::siterinfo::ITER_FRAGMENT
+    )
+  );
+}
+
 } // namespace tuvok
 
 /*
@@ -218,4 +332,3 @@ std::vector<std::string> ShaderDescriptor::GetFragmentShaders() const
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
