@@ -263,11 +263,10 @@ namespace tuvok {
   class GLSLListElem {
   public:
     GLSLListElem(MasterController* mc,
-                 const std::vector<std::string>& vert,
-                 const std::vector<std::string>& frag,
+                 const ShaderDescriptor& sd,
                  int iShareGroupID,
                  bool load=true) :
-      sdesc(vert, frag),
+      sdesc(sd),
       iAccessCounter(1),
       pGLSLProgram(new GLSLProgram(mc)),
       m_iShareGroupID(iShareGroupID)
@@ -282,10 +281,7 @@ namespace tuvok {
       }
     }
 
-    ~GLSLListElem()
-    {
-      delete pGLSLProgram;
-    }
+    ~GLSLListElem() { delete pGLSLProgram; }
 
     bool operator ==(const GLSLListElem& glsl) const {
       return m_iShareGroupID == glsl.m_iShareGroupID &&
@@ -293,8 +289,8 @@ namespace tuvok {
     }
 
     ShaderDescriptor sdesc;
-    uint32_t        iAccessCounter;
-    GLSLProgram*  pGLSLProgram;
+    uint32_t iAccessCounter;
+    GLSLProgram* pGLSLProgram;
     int m_iShareGroupID;
   };
   typedef std::deque<GLSLListElem*> GLSLList;

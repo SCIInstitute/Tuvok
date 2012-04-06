@@ -60,6 +60,7 @@
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
 #include "Renderer/AbstrRenderer.h"
+#include "Renderer/ShaderDescriptor.h"
 #include "Renderer/GL/GLError.h"
 #include "Renderer/GL/GLTexture1D.h"
 #include "Renderer/GL/GLTexture2D.h"
@@ -1042,11 +1043,10 @@ struct deref_glsl : public std::binary_function<GLSLListElem*, GLSLListElem*,
   }
 };
 
-GLSLProgram* GPUMemMan::GetGLSLProgram(const std::vector<std::string>& vert,
-                                       const std::vector<std::string>& frag,
+GLSLProgram* GPUMemMan::GetGLSLProgram(const ShaderDescriptor& sdesc,
                                        int iShareGroupID)
 {
-  GLSLListElem elem(m_MasterController, vert, frag, iShareGroupID, false);
+  GLSLListElem elem(m_MasterController, sdesc, iShareGroupID, false);
   using namespace std::tr1::placeholders;
   GLSLListIter i = std::find_if(m_vpGLSLList.begin(), m_vpGLSLList.end(),
                                 std::tr1::bind(deref_glsl(), _1, &elem));
@@ -1057,10 +1057,10 @@ GLSLProgram* GPUMemMan::GetGLSLProgram(const std::vector<std::string>& vert,
   }
 
   MESSAGE("Creating new GLSL program from %u-element VS and %u-element FS",
-          static_cast<unsigned>(vert.size()),
-          static_cast<unsigned>(frag.size()));
+          static_cast<unsigned>(sdesc.GetVertexShaders().size()),
+          static_cast<unsigned>(sdesc.GetFragmentShaders().size()));
 
-  GLSLListElem* e = new GLSLListElem(m_MasterController, vert, frag,
+  GLSLListElem* e = new GLSLListElem(m_MasterController, sdesc,
                                      iShareGroupID);
 
   if(e->pGLSLProgram == NULL) {

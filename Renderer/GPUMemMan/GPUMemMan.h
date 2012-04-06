@@ -3,7 +3,7 @@
 
    The MIT License
 
-   Copyright (c) 2008 Scientific Computing and Imaging Institute,
+   Copyright (c) 2012 Scientific Computing and Imaging Institute,
    University of Utah.
 
 
@@ -24,14 +24,6 @@
    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
-*/
-
-/**
-  \file    GLFBOTex.h
-  \author  Jens Krueger
-           SCI Institute
-           University of Utah
-  \date    August 2008
 */
 #pragma once
 
@@ -127,8 +119,7 @@ class GPUMemMan {
                      bool bHaveDepth=false, int iNumBuffers=1);
     void FreeFBO(GLFBOTex* pFBO);
 
-    GLSLProgram* GetGLSLProgram(const std::vector<std::string>& vert,
-                                const std::vector<std::string>& frag,
+    GLSLProgram* GetGLSLProgram(const ShaderDescriptor& sdesc,
                                 int iShareGroupID);
     void FreeGLSLProgram(GLSLProgram* pGLSLProgram);
 

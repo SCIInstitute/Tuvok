@@ -40,23 +40,25 @@
 #include <stdexcept>
 #include <typeinfo>
 #include "GLInclude.h"
-#include "GLFBOTex.h"
 #include "GLRenderer.h"
+
+#include "Basics/GeometryGenerator.h"
+#include "Basics/MathTools.h"
+#include "Basics/SystemInfo.h"
+#include "Basics/SysTools.h"
+#include "Controller/Controller.h"
+#include "IO/FileBackedDataset.h"
+#include "IO/TransferFunction1D.h"
+#include "IO/TransferFunction2D.h"
+#include "Renderer/Context.h"
+#include "Renderer/SBVRGeogen.h"
+#include "Renderer/GPUMemMan/GPUMemMan.h"
+#include "Renderer/ShaderDescriptor.h"
+#include "GLFBOTex.h"
 #include "GLSLProgram.h"
 #include "GLTexture1D.h"
 #include "GLTexture2D.h"
 #include "GLVolume3DTex.h"
-#include <Controller/Controller.h>
-#include <Basics/SystemInfo.h>
-#include <Basics/SysTools.h>
-#include <Basics/MathTools.h>
-#include "IO/FileBackedDataset.h"
-#include "IO/TransferFunction1D.h"
-#include "IO/TransferFunction2D.h"
-#include "../GPUMemMan/GPUMemMan.h"
-#include "../../Basics/GeometryGenerator.h"
-#include "../SBVRGeogen.h"
-#include "../Context.h"
 
 using namespace std;
 using namespace tuvok;
@@ -253,7 +255,8 @@ bool GLRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
   return true;
 }
 
-bool GLRenderer::LoadShaders(const string& volumeAccessFunction, bool bBindVolume) {
+bool GLRenderer::LoadShaders(const string& volumeAccessFunction,
+                             bool bBindVolume) {
   std::string tfqn = m_pDataset
                      ? m_pDataset->GetComponentCount() == 4
                         ? "VRender1D-Color"
@@ -270,138 +273,139 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction, bool bBindVolum
 
   MESSAGE("Loading '%s' volume rendering...", tfqn.c_str());
 
-  if(!LoadAndVerifyShader(&m_pProgramTrans, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Transfer-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgram1DTransSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          tfqn.c_str(), bias.c_str(), "lighting.glsl",
-                          "VRender1DProxy.glsl",
-                          "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
-     !LoadAndVerifyShader(&m_pProgram2DTransSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                           "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
-     !LoadAndVerifyShader(&m_pProgramMIPSlice, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                           "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
-     !LoadAndVerifyShader(&m_pProgram1DTransSlice3D, m_vShaderSearchDirs,
-                          "SlicesIn3D.glsl",
-                          NULL,
-                          tfqn.c_str(), bias.c_str(), "lighting.glsl",
-                          "VRender1DProxy.glsl",
-                           "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
-     !LoadAndVerifyShader(&m_pProgram2DTransSlice3D, m_vShaderSearchDirs,
-                          "SlicesIn3D.glsl",
-                          NULL,
-                           "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL) ||
-     !LoadAndVerifyShader(&m_pProgramTransMIP, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                           "Transfer-MIP-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramIsoCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                           "Compose-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramColorCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-Color-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramCVCompose, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-CV-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramComposeAnaglyphs, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-Anaglyphs-FS.glsl",
-                          NULL)                                              ||
-     !LoadAndVerifyShader(&m_pProgramSBSStereo, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-SBS-FS.glsl",
-                          NULL)                                              ||
-     !LoadAndVerifyShader(&m_pProgramAFStereo, m_vShaderSearchDirs,
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-AF-FS.glsl",
-                          NULL)                                              ||
-     !LoadAndVerifyShader(&m_pProgramComposeScanlineStereo,
-                          m_vShaderSearchDirs, 
-                          "Transfer-VS.glsl",
-                          NULL,
-                          "Compose-Scanline-FS.glsl", NULL) ||
-     !LoadAndVerifyShader(&m_pProgramBBox,
-                          m_vShaderSearchDirs, 
-                          "BBox-VS.glsl",
-                          NULL,
-                          "BBox-FS.glsl",
-                          NULL) ||
-     !LoadAndVerifyShader(&m_pProgramMeshFTB,
-                          m_vShaderSearchDirs,
-                          "Mesh-VS.glsl",
-                          NULL,                          
-                          "Mesh-FS.glsl","FTB.glsl","lighting.glsl",NULL) ||
-    !LoadAndVerifyShader(&m_pProgramMeshBTF,
-                          m_vShaderSearchDirs,
-                          "Mesh-VS.glsl",
-                          NULL,                          
-                          "Mesh-FS.glsl","BTF.glsl","lighting.glsl", NULL))
-  {
-      T_ERROR("Error loading transfer function shaders.");
-      return false;
-  } else {
-    m_pProgramTrans->ConnectTextureID("texColor",0);
-    m_pProgramTrans->ConnectTextureID("texDepth",1);
+  // we want to call 'MemMan::GetGLSLProgram' repeatedly, always using the same
+  // memory manager (duh), and always using the same context ID.
+  // Make a small functor so we don't have to keep specifying those parameters.
+  GPUMemMan& mm = *(Controller::Instance().MemMan());
+  using namespace std::tr1::placeholders;
+  std::tr1::function<GLSLProgram*(const ShaderDescriptor&)> program =
+    std::tr1::bind(&GPUMemMan::GetGLSLProgram, &mm, _1,
+                   m_pContext->GetShareGroupID());
 
-    if (bBindVolume) m_pProgram1DTransSlice->ConnectTextureID("texVolume",0);
-    m_pProgram1DTransSlice->ConnectTextureID("texTrans",1);
+  m_pProgramTrans = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "Transfer-FS.glsl", NULL)
+  );
+  m_pProgram1DTransSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    tfqn.c_str(), bias.c_str(), "lighting.glsl", "VRender1DProxy.glsl",
+    "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+  );
+  m_pProgram2DTransSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+  );
+  m_pProgramMIPSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "MIP-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+  );
+  m_pProgram1DTransSlice3D = program(ShaderDescriptor::Create(
+    m_vShaderSearchDirs,
+    "SlicesIn3D.glsl", NULL,
+    tfqn.c_str(), bias.c_str(), "lighting.glsl", "VRender1DProxy.glsl",
+    "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+  );
+  m_pProgram2DTransSlice3D = program(ShaderDescriptor::Create(
+    m_vShaderSearchDirs,
+    "SlicesIn3D.glsl", NULL,
+    "2D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
+  );
+  m_pProgramTransMIP = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "Transfer-MIP-FS.glsl", NULL)
+  );
+  m_pProgramIsoCompose = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "Compose-FS.glsl", NULL)
+  );
+  m_pProgramColorCompose = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "Compose-Color-FS.glsl", NULL)
+  );
+  m_pProgramCVCompose = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "Compose-CV-FS.glsl", NULL)
+  );
+  m_pProgramComposeAnaglyphs = program(ShaderDescriptor::Create(
+    m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "Compose-Anaglyphs-FS.glsl", NULL)
+  );
+  m_pProgramSBSStereo = program(ShaderDescriptor::Create(
+    m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "Compose-SBS-FS.glsl", NULL)
+  );
+  m_pProgramAFStereo = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "Compose-AF-FS.glsl", NULL)
+  );
+  m_pProgramComposeScanlineStereo = program(ShaderDescriptor::Create(
+    m_vShaderSearchDirs,
+    "Transfer-VS.glsl", NULL,
+    "Compose-Scanline-FS.glsl", NULL)
+  );
+  m_pProgramBBox = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "BBox-VS.glsl", NULL,
+    "BBox-FS.glsl", NULL)
+  );
+  m_pProgramMeshFTB = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Mesh-VS.glsl", NULL,
+    "Mesh-FS.glsl","FTB.glsl","lighting.glsl",NULL)
+  );
+  m_pProgramMeshBTF = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
+    "Mesh-VS.glsl", NULL,
+    "Mesh-FS.glsl","BTF.glsl","lighting.glsl", NULL)
+  );
 
-    if (bBindVolume) m_pProgram2DTransSlice->ConnectTextureID("texVolume",0);
-    m_pProgram2DTransSlice->ConnectTextureID("texTrans",1);
+  m_pProgramTrans->ConnectTextureID("texColor",0);
+  m_pProgramTrans->ConnectTextureID("texDepth",1);
 
-    if (bBindVolume) m_pProgram1DTransSlice3D->ConnectTextureID("texVolume",0);
-    m_pProgram1DTransSlice3D->ConnectTextureID("texTrans",1);
+  if (bBindVolume) m_pProgram1DTransSlice->ConnectTextureID("texVolume",0);
+  m_pProgram1DTransSlice->ConnectTextureID("texTrans",1);
 
-    if (bBindVolume) m_pProgram2DTransSlice3D->ConnectTextureID("texVolume",0);
-    m_pProgram2DTransSlice3D->ConnectTextureID("texTrans",1);
+  if (bBindVolume) m_pProgram2DTransSlice->ConnectTextureID("texVolume",0);
+  m_pProgram2DTransSlice->ConnectTextureID("texTrans",1);
 
-    if (bBindVolume) m_pProgramMIPSlice->ConnectTextureID("texVolume",0);
+  if (bBindVolume) m_pProgram1DTransSlice3D->ConnectTextureID("texVolume",0);
+  m_pProgram1DTransSlice3D->ConnectTextureID("texTrans",1);
 
-    m_pProgramTransMIP->ConnectTextureID("texLast",0);
-    m_pProgramTransMIP->ConnectTextureID("texTrans",1);
+  if (bBindVolume) m_pProgram2DTransSlice3D->ConnectTextureID("texVolume",0);
+  m_pProgram2DTransSlice3D->ConnectTextureID("texTrans",1);
 
-    FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
+  if (bBindVolume) m_pProgramMIPSlice->ConnectTextureID("texVolume",0);
 
-    m_pProgramIsoCompose->ConnectTextureID("texRayHitPos",0);
-    m_pProgramIsoCompose->ConnectTextureID("texRayHitNormal",1);
-    m_pProgramIsoCompose->Set("vProjParam",vParams.x, vParams.y);
+  m_pProgramTransMIP->ConnectTextureID("texLast",0);
+  m_pProgramTransMIP->ConnectTextureID("texTrans",1);
 
-    m_pProgramColorCompose->ConnectTextureID("texRayHitPos",0);
-    m_pProgramColorCompose->ConnectTextureID("texRayHitNormal",1);
-    m_pProgramColorCompose->Set("vProjParam",vParams.x, vParams.y);
+  FLOATVECTOR2 vParams = m_FrustumCullingLOD.GetDepthScaleParams();
 
-    m_pProgramCVCompose->ConnectTextureID("texRayHitPos",0);
-    m_pProgramCVCompose->ConnectTextureID("texRayHitNormal",1);
-    m_pProgramCVCompose->ConnectTextureID("texRayHitPos2",2);
-    m_pProgramCVCompose->ConnectTextureID("texRayHitNormal2",3);
-    m_pProgramCVCompose->Set("vProjParam",vParams.x, vParams.y);
+  m_pProgramIsoCompose->ConnectTextureID("texRayHitPos",0);
+  m_pProgramIsoCompose->ConnectTextureID("texRayHitNormal",1);
+  m_pProgramIsoCompose->Set("vProjParam",vParams.x, vParams.y);
 
-    m_pProgramComposeAnaglyphs->ConnectTextureID("texLeftEye",0);
-    m_pProgramComposeAnaglyphs->ConnectTextureID("texRightEye",1);
+  m_pProgramColorCompose->ConnectTextureID("texRayHitPos",0);
+  m_pProgramColorCompose->ConnectTextureID("texRayHitNormal",1);
+  m_pProgramColorCompose->Set("vProjParam",vParams.x, vParams.y);
 
-    m_pProgramComposeScanlineStereo->ConnectTextureID("texLeftEye",0);
-    m_pProgramComposeScanlineStereo->ConnectTextureID("texRightEye",1);
+  m_pProgramCVCompose->ConnectTextureID("texRayHitPos",0);
+  m_pProgramCVCompose->ConnectTextureID("texRayHitNormal",1);
+  m_pProgramCVCompose->ConnectTextureID("texRayHitPos2",2);
+  m_pProgramCVCompose->ConnectTextureID("texRayHitNormal2",3);
+  m_pProgramCVCompose->Set("vProjParam",vParams.x, vParams.y);
 
-    m_pProgramSBSStereo->ConnectTextureID("texLeftEye",0);
-    m_pProgramSBSStereo->ConnectTextureID("texRightEye",1);    
+  m_pProgramComposeAnaglyphs->ConnectTextureID("texLeftEye",0);
+  m_pProgramComposeAnaglyphs->ConnectTextureID("texRightEye",1);
 
-    m_pProgramAFStereo->ConnectTextureID("texLeftEye",0);
-    m_pProgramAFStereo->ConnectTextureID("texRightEye",1);    
-  }
+  m_pProgramComposeScanlineStereo->ConnectTextureID("texLeftEye",0);
+  m_pProgramComposeScanlineStereo->ConnectTextureID("texRightEye",1);
+
+  m_pProgramSBSStereo->ConnectTextureID("texLeftEye",0);
+  m_pProgramSBSStereo->ConnectTextureID("texRightEye",1);
+
+  m_pProgramAFStereo->ConnectTextureID("texLeftEye",0);
+  m_pProgramAFStereo->ConnectTextureID("texRightEye",1);
+
   return true;
 }
 
@@ -2084,7 +2088,8 @@ bool GLRenderer::LoadAndVerifyShader(std::vector<std::string> vert,
   }
 
   GPUMemMan& mm = *(m_pMasterController->MemMan());
-  (*program) = mm.GetGLSLProgram(vert, frag, m_pContext->GetShareGroupID());
+  (*program) = mm.GetGLSLProgram(ShaderDescriptor(vert, frag),
+                                 m_pContext->GetShareGroupID());
 
   if((*program) == NULL || !(*program)->IsValid()) {
     /// @todo fixme report *which* shaders!

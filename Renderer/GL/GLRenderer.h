@@ -40,12 +40,12 @@
 #include <string>
 #include <vector>
 
-#include "../../StdTuvokDefines.h"
-#include <Basics/Timer.h>
-#include "../AbstrRenderer.h"
+#include "StdTuvokDefines.h"
+#include "Basics/Timer.h"
+#include "Renderer/AbstrRenderer.h"
 #include "GLTargetBinder.h"
-#include "RenderMeshGL.h"
 #include "GLStateManager.h"
+#include "RenderMeshGL.h"
 
 namespace tuvok {
 
