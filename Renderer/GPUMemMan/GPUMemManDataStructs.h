@@ -58,6 +58,7 @@
 #include "../GL/GLFBOTex.h"
 #include "../GL/GLSLProgram.h"
 #include "Renderer/AbstrRenderer.h"
+#include "Renderer/ShaderDescriptor.h"
 
 
 class TransferFunction1D;
@@ -203,7 +204,6 @@ namespace tuvok {
     Dataset*                      pDataset;
     uint32_t                      iUserCount;
 
-
     uint64_t GetIntraFrameCounter() const {return m_iIntraFrameCounter;}
     uint64_t GetFrameCounter() const {return m_iFrameCounter;}
 
@@ -267,13 +267,14 @@ namespace tuvok {
                  const std::vector<std::string>& frag,
                  int iShareGroupID,
                  bool load=true) :
-      vertex(vert), fragment(frag),
+      sdesc(vert, frag),
       iAccessCounter(1),
       pGLSLProgram(new GLSLProgram(mc)),
       m_iShareGroupID(iShareGroupID)
     {
       if(load) {
-        pGLSLProgram->Load(vert, frag);
+        pGLSLProgram->Load(sdesc.GetVertexShaders(),
+                           sdesc.GetFragmentShaders());
         if(!pGLSLProgram->IsValid()) {
           delete pGLSLProgram;
           pGLSLProgram = NULL;
@@ -288,16 +289,10 @@ namespace tuvok {
 
     bool operator ==(const GLSLListElem& glsl) const {
       return m_iShareGroupID == glsl.m_iShareGroupID &&
-             vertex.size() == glsl.vertex.size() &&
-             fragment.size() == glsl.fragment.size() &&
-             std::equal(vertex.begin(), vertex.end(),
-                        glsl.vertex.begin()) &&
-             std::equal(fragment.begin(), fragment.end(),
-                        glsl.fragment.begin());
+             sdesc == glsl.sdesc;
     }
 
-    const std::vector<std::string> vertex;
-    const std::vector<std::string> fragment;
+    ShaderDescriptor sdesc;
     uint32_t        iAccessCounter;
     GLSLProgram*  pGLSLProgram;
     int m_iShareGroupID;
