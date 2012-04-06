@@ -183,7 +183,7 @@ UINTVECTOR3 GLVolumePool::FindNextPoolPosition() const {
   UINTVECTOR3 idx;
   try {
     idx = increment(m_allocPos, logMax);
-  } catch(const std::overflow_error& e) {
+  } catch(const std::overflow_error&) {
     // we ran out of space.. what should we replace?
     // whatever's at the top of the queue.
     const VolumePoolElemInfo& vei = m_BricksInPool.front();
