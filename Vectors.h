@@ -1181,8 +1181,6 @@ public:
 
   // OpenGL
   #ifdef USEGL
-
-
     static void BuildStereoLookAtAndProjection(const VECTOR3<T> vEye, const VECTOR3<T> vAt, const VECTOR3<T> vUp,
                                               T fFOVY, T fAspect, T fZNear, T fZFar, T fFocalLength,
                                               T fEyeDist, int iEyeID, MATRIX4<T>& mView, MATRIX4<T>& mProj) {
@@ -1322,7 +1320,6 @@ public:
       glMatrixMode(GL_TEXTURE);
       glLoadMatrixf(M);
     }
-
   #endif
 };
 
