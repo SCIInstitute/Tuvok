@@ -110,12 +110,25 @@ private:
   void performUndoRedoOp(const std::string& funcName,
                          std::tr1::shared_ptr<LuaCFunAbstract> params);
 
+  /// Cursory description of the current undo stack.
+  std::vector<std::string> getUndoStackDesc();
+
+  /// Cursory description of the redo stack.
+  std::vector<std::string> getRedoStackDesc();
+
+  /// Description of all functions executed till this point.
+  std::vector<std::string> getFullProvenanceDesc();
+
 
   bool                      mEnabled;
 
   std::vector<UndoRedoItem> mUndoRedoStack; ///< Contains all undo/redo entries.
   int                       mStackPointer;  ///< 1 based Index into
                                             ///< mUndoRedoStack.
+
+  /// Provenance description list. Text description of all functions executed to
+  /// this point (including undo/redo exempt functions).
+  std::vector<std::string>  mProvenanceDescList;
 
   LuaScripting* const       mScripting;
   LuaMemberRegUnsafe        mMemberReg;     ///< Used for member registration.

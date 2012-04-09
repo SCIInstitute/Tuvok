@@ -32,8 +32,10 @@
           SCI Institute
           University of Utah
  \date    Mar 21, 2012
- \brief   Interface to the LUA scripting system built for Tuvok.
-          Made to be unit tested externally.
+ \brief   Interface to the Lua scripting system built for Tuvok.
+
+          To see examples of how to use the system, consult the unit tests at
+          the bottom of LuaMemberReg.cpp and LuaScripting.cpp.
  */
 
 #ifndef TUVOK_LUASCRIPTING_H_

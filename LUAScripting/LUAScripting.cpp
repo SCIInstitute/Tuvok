@@ -33,7 +33,9 @@
           University of Utah
  \date    Mar 21, 2012
  \brief   Interface to the LUA scripting system built for Tuvok.
-          Made to be unit tested externally.
+
+          To see examples of how to use the system, consult the unit tests at
+          the bottom of LuaMemberReg.cpp and LuaScripting.cpp.
  */
 
 #ifndef EXTERNAL_UNIT_TESTING

@@ -344,7 +344,7 @@ public:
 
   virtual void pushParamsToStack(lua_State* L) const      = 0;
 
-  /// Pulls parameters from the stack, starting at the non-psuedo index si.
+  /// Pulls parameters from the stack, starting at the non-pseudo index si.
   /// Does NOT pop the parameters off the stack.
   virtual void pullParamsFromStack(lua_State* L, int si)  = 0;
 };

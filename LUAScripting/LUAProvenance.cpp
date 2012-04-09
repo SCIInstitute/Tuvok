@@ -52,7 +52,8 @@
 
 using namespace std;
 
-#define DEFAULT_PROVENANCE_BUFFER_SIZE  (50)
+#define DEFAULT_UNDOREDO_BUFFER_SIZE  (50)
+#define DEFAULT_PROVENANCE_BUFFER_SIZE  (150)
 
 namespace tuvok
 {
@@ -68,6 +69,7 @@ LuaProvenance::LuaProvenance(LuaScripting* scripting)
 , mUndoRedoProvenanceDisable(false)
 {
   mUndoRedoStack.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
+  mProvenanceDescList.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
 }
 
 //-----------------------------------------------------------------------------
@@ -120,6 +122,24 @@ bool LuaProvenance::isEnabled() const
   return mEnabled;
 }
 
+//-----------------------------------------------------------------------------
+std::vector<std::string> LuaProvenance::getUndoStackDesc()
+{
+  // Print from the current stack pointer downwards.
+
+}
+
+//-----------------------------------------------------------------------------
+std::vector<std::string> LuaProvenance::getRedoStackDesc()
+{
+
+}
+
+//-----------------------------------------------------------------------------
+std::vector<std::string> LuaProvenance::getFullProvenanceDesc()
+{
+
+}
 
 //-----------------------------------------------------------------------------
 void LuaProvenance::setEnabled(bool enabled)
