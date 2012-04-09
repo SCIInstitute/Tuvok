@@ -44,19 +44,19 @@ namespace tuvok
 {
 
 /// Generic LUA error.
-class LuaError : virtual public tuvok::Exception
+class LuaError : public Exception
 {
 public:
 
   explicit LuaError(const char* e, const char* where = NULL, size_t ln = 0)
-    : tuvok::Exception(e, where, ln)
+    : Exception(e, where, ln)
   {}
   virtual ~LuaError() throw() { }
 
 };
 
 /// Errors dealing with the LUA-Based function registration system.
-class LuaFunBindError : virtual public LuaError
+class LuaFunBindError : public LuaError
 {
 public:
   explicit LuaFunBindError(const char* e, const char* where = NULL,
@@ -66,7 +66,7 @@ public:
   virtual ~LuaFunBindError() throw() { }
 };
 
-class LuaNonExistantFunction : virtual public LuaError
+class LuaNonExistantFunction : public LuaError
 {
 public:
   explicit LuaNonExistantFunction(const char* e, const char* where = NULL,
@@ -76,7 +76,7 @@ public:
   virtual ~LuaNonExistantFunction() throw() { }
 };
 
-class LuaInvalidFunSignature : virtual public LuaError
+class LuaInvalidFunSignature : public LuaError
 {
 public:
   explicit LuaInvalidFunSignature(const char* e, const char* where = NULL,
@@ -86,7 +86,7 @@ public:
   virtual ~LuaInvalidFunSignature() throw() { }
 };
 
-class LuaProvenanceReenter : virtual public LuaError
+class LuaProvenanceReenter : public LuaError
 {
 public:
   explicit LuaProvenanceReenter(const char* e, const char* where = NULL,
@@ -96,7 +96,7 @@ public:
   virtual ~LuaProvenanceReenter() throw() { }
 };
 
-class LuaProvenanceInvalidUndoOrRedo : virtual public LuaError
+class LuaProvenanceInvalidUndoOrRedo : public LuaError
 {
 public:
   explicit LuaProvenanceInvalidUndoOrRedo(const char* e,
@@ -107,7 +107,7 @@ public:
   virtual ~LuaProvenanceInvalidUndoOrRedo() throw() { }
 };
 
-class LuaProvenanceInvalidRedo : virtual public LuaError
+class LuaProvenanceInvalidRedo : public LuaError
 {
 public:
   explicit LuaProvenanceInvalidRedo(const char* e, const char* where = NULL,
@@ -117,7 +117,7 @@ public:
   virtual ~LuaProvenanceInvalidRedo() throw() { }
 };
 
-class LuaProvenanceInvalidUndo : virtual public LuaError
+class LuaProvenanceInvalidUndo : public LuaError
 {
 public:
   explicit LuaProvenanceInvalidUndo(const char* e, const char* where = NULL,
