@@ -89,7 +89,7 @@ void LuaProvenance::registerLuaProvenanceFunctions()
   // are composited inside of LuaScripting, no such shared pointer is available.
   mMemberReg.registerFunction(this, &LuaProvenance::issueUndo,
                               "provenance.undo",
-                              "Undoes last call.",
+                              "Undoes last command.",
                               false);
   mMemberReg.registerFunction(this, &LuaProvenance::issueRedo,
                               "provenance.redo",
@@ -109,24 +109,24 @@ void LuaProvenance::registerLuaProvenanceFunctions()
   mMemberReg.registerFunction(this, &LuaProvenance::enableProvReentryEx,
                               "provenance.enableReentryException",
                               "Enables/Disables the provenance reentry "
-                              "exception. Disable this to (take a deep breath) "
+                              "exception. Disable this to "
                               "allow functions registered with LuaScripting to "
                               "call other functions registered within "
                               "LuaScripting from within Lua.",
                               true);
   mMemberReg.registerFunction(this, &LuaProvenance::printUndoStack,
                               "provenance.logUndoStack",
-                              "Prints the contents of the undo stack"
+                              "Prints the contents of the undo stack "
                               "to 'log.info'.",
                               false);
   mMemberReg.registerFunction(this, &LuaProvenance::printRedoStack,
                               "provenance.logRedoStack",
-                              "Prints the contents of the redo stack"
+                              "Prints the contents of the redo stack "
                               "to 'log.info'.",
                               false);
   mMemberReg.registerFunction(this, &LuaProvenance::printProvRecord,
-                              "provenance.logProvenanceRecord",
-                              "Prints the entire provenance record to"
+                              "provenance.logProvRecord",
+                              "Prints the entire provenance record "
                               "to 'log.info'.",
                               false);
   // Reentry exception does not need to be stack exempt.
@@ -194,9 +194,6 @@ void LuaProvenance::logExecution(const string& fname,
 {
   // TODO: Add indentation to provenance record for registered functions that
   //       are called within other registered functions.
-
-  // TODO: Add checks on the parameters given. If they are the same, the
-  //       function should be ignored.
 
   if (mLoggingProvenance)
   {
@@ -475,7 +472,8 @@ std::vector<std::string> LuaProvenance::getRedoStackDesc()
   string undoVals;
   string redoVals;
   string result;
-  for (vector<string>::size_type i = mStackPointer; i < mUndoRedoStack.size(); i++)
+  for (vector<string>::size_type i = mStackPointer; i < mUndoRedoStack.size();
+      i++)
   {
     undoVals = mUndoRedoStack[i].undoParams->getFormattedParameterValues();
     redoVals = mUndoRedoStack[i].redoParams->getFormattedParameterValues();
@@ -768,7 +766,7 @@ SUITE(LuaProvenanceTests)
     sc->setExpectedExceptionFlag(false);
 
     // Uncomment to view all provenance.
-    //sc->exec("provenance.logProvenanceRecord()");
+    //sc->exec("provenance.logProvRecord()");
   }
 
   static int i1     = 0;

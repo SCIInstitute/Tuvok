@@ -225,7 +225,9 @@ public:
     std::string funcName;   ///< Name of the function.
     std::string funcDesc;   ///< Description of the function provided by the
                             ///< registrar.
-    std::string funcSig;    ///< Function signature, includes the function name.
+    std::string paramSig;   ///< Function parameter signature, only parameters.
+    std::string funcSig;    ///< Full function signature.
+    std::string funcFQName; ///< Fully qualified function name.
   };
 
   /// Return all function descriptions.
@@ -389,6 +391,12 @@ private:
 
   /// Exec failure.
   void logExecFailure(const std::string& failure);
+
+  /// Prints all currently registered functions using log.info.
+  void printFunctions();
+
+  /// Prints all currently registered functions using log.info.
+  void printHelp();
 
   /// Lua Registry Values
   ///@{

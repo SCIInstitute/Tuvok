@@ -219,7 +219,7 @@ SUITE(LuaTestMemberFunctionRegistration)
 
     CHECK_EQUAL(452, a->hookm2_var);
 
-    sc->exec("provenance.logProvenanceRecord()");
+    sc->exec("provenance.logProvRecord()");
   }
 
 }

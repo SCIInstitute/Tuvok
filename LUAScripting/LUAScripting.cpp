@@ -167,9 +167,18 @@ void* LuaScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
 //-----------------------------------------------------------------------------
 void LuaScripting::registerScriptFunctions()
 {
+  // Note: All these functions are provenance exempt because we do not want
+  // to even see that they were run in the provenance log. There is no reason
+  // include them.
+  mMemberReg->registerFunction(this, &LuaScripting::printHelp,
+                               "help",
+                               "Same as log.printFunctions with an additional "
+                               "header.",
+                               false);
+  setProvenanceExempt("help");
   mMemberReg->registerFunction(this, &LuaScripting::logInfo,
                                "log.info",
-                               "Adds string to log.",
+                               "Logs general information.",
                                false);
   setProvenanceExempt("log.info");
   /// TODO: Make a separate function for logging errors (using logInfo now).
@@ -177,7 +186,13 @@ void LuaScripting::registerScriptFunctions()
                                 "log.error",
                                 "Logs an error.",
                                 false);
-   setProvenanceExempt("log.error");
+  setProvenanceExempt("log.error");
+  mMemberReg->registerFunction(this, &LuaScripting::printFunctions,
+                               "log.printFunctions",
+                               "Prints all registered functions using "
+                               "'log.info'.",
+                               false);
+  setProvenanceExempt("log.printFunctions");
 }
 
 //-----------------------------------------------------------------------------
@@ -187,6 +202,32 @@ void LuaScripting::logInfo(string log)
 #ifdef EXTERNAL_UNIT_TESTING
   cout << log << endl;
 #endif
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::printFunctions()
+{
+  vector<FunctionDesc> funcDescs = getAllFuncDescs();
+  for (vector<FunctionDesc>::iterator it = funcDescs.begin();
+      it != funcDescs.end(); ++it)
+  {
+    FunctionDesc d = *it;
+    ostringstream os;
+    os << "'" << d.funcFQName << "' Usage: '"<< d.funcFQName << d.paramSig;
+    os << "' " << d.funcDesc;
+    logInfo(os.str());
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::printHelp()
+{
+  logInfo("");
+  logInfo("Tuvok Scripting Interface.");
+  logInfo("List of all functions follows.");
+  logInfo("");
+
+  printFunctions();
 }
 
 //-----------------------------------------------------------------------------
@@ -320,6 +361,7 @@ void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
 
       lua_getfield(mL, -1, TBL_MD_QNAME);
       desc.funcName = getUnqualifiedName(string(lua_tostring(mL, -1)));
+      desc.funcFQName = string(lua_tostring(mL, -1));
       lua_pop(mL, 1);
 
       lua_getfield(mL, -1, TBL_MD_DESC);
@@ -327,7 +369,11 @@ void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
       lua_pop(mL, 1);
 
       lua_getfield(mL, -1, TBL_MD_SIG_NAME);
-      desc.funcSig = lua_tostring(mL, -1);
+      desc.funcSig = string(lua_tostring(mL, -1));
+      lua_pop(mL, 1);
+
+      lua_getfield(mL, -1, TBL_MD_SIG_NO_RET);
+      desc.paramSig = string(lua_tostring(mL, -1));
       lua_pop(mL, 1);
 
       descs.push_back(desc);
@@ -1688,9 +1734,26 @@ SUITE(TestLUAScriptingSystem)
   TEST(TestDefaultSettings)
   {
     TEST_HEADER;
-
   }
 
+
+  TEST(MiscPrinting)
+  {
+    TEST_HEADER;
+
+    auto_ptr<LuaScripting> sc(new LuaScripting());
+
+    sc->registerFunction(&set_i1, "set_i1", "", true);
+    sc->registerFunction(&set_s1, "set_s1", "", true);
+    sc->registerFunction(&set_b1, "set_b1", "", true);
+    sc->registerFunction(&paste_i1, "paste_i1", "", true);
+
+    sc->registerFunction(&get_i1, "get_i1", "", false);
+    sc->registerFunction(&get_s1, "get_s1", "", false);
+    sc->registerFunction(&get_b1, "get_b1", "", false);
+
+    sc->exec("help()");
+  }
 
 
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -1725,7 +1788,6 @@ SUITE(TestLUAScriptingSystem)
   /// TODO: Add tests to check the exceptions thrown in the case of too many /
   /// too little parameters for cexec, and the return values for execRet.
 
-  /// TODO: Test default parameter resets (setDefaults).
 }
 
 

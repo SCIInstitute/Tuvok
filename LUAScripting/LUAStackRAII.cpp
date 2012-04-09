@@ -52,7 +52,7 @@
 
 using namespace std;
 
-#define TUVOK_LUARAII_ASSERT
+//#define TUVOK_LUARAII_ASSERT
 
 namespace tuvok
 {
