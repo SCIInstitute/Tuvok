@@ -68,6 +68,7 @@ LuaProvenance::LuaProvenance(LuaScripting* scripting)
 , mDoProvReenterException(true)
 , mUndoRedoProvenanceDisable(false)
 , mProvenanceDescLogEnabled(true)
+, mTemporarilyDisabled(false)
 {
   mUndoRedoStack.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
   mProvenanceDescList.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
@@ -194,6 +195,9 @@ void LuaProvenance::logExecution(const string& fname,
 {
   // TODO: Add indentation to provenance record for registered functions that
   //       are called within other registered functions.
+
+  if (mTemporarilyDisabled)
+    return;
 
   if (mLoggingProvenance)
   {
@@ -535,6 +539,12 @@ void LuaProvenance::printProvRecord()
   }
 }
 
+//-----------------------------------------------------------------------------
+void LuaProvenance::setDisableProvTemporarily(bool disable)
+{
+  mTemporarilyDisabled = disable;
+}
+
 //==============================================================================
 //
 // UNIT TESTING
@@ -788,7 +798,7 @@ SUITE(LuaProvenanceTests)
 
     sc->registerFunction(&set_i1, "set_i1", "", true);
     sc->registerFunction(&set_s1, "set_s1", "", true);
-    sc->setDefaults("set_s1", "nop");
+    sc->setDefaults("set_s1", "nop", false);
     sc->registerFunction(&set_b1, "set_b1", "", true);
 
     sc->exec("set_i1(23)");

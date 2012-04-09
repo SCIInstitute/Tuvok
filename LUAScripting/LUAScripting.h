@@ -179,39 +179,45 @@ public:
   T cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
   ///@}
 
-  /// The following functions allow you to specify the default parameters to use
+  /// The following functions allow you to specify default parameters to use
   /// for registered functions.
   /// This is so you can specify different undo/redo defaults (such as turning
   /// lighting ON by default).
+  /// NOTE: You should call this directly after registering the function (name).
+  ///       Waiting until the function has already been used to set its defaults
+  ///       results in undefined behavior on the undo/redo stack.
   /// \param  name        Fully qualified name of the function whose defaults
   ///                     you would like to set.
   /// \param  callFunc    If true, the function will be called for you with the
   ///                     given parameters.
+  /// \param  call        If true, the function indicated by (name) will be
+  ///                     called with the given parameters. This call will
+  ///                     not be logged with the provenance system.
   ///@{
   template <typename P1>
   void setDefaults(const std::string& name,
-                   P1 p1);
+                   P1 p1, bool call);
 
   template <typename P1, typename P2>
   void setDefaults(const std::string& name,
-                   P1 p1, P2 p2);
+                   P1 p1, P2 p2, bool call);
 
   template <typename P1, typename P2, typename P3>
   void setDefaults(const std::string& name,
-                   P1 p1, P2 p2, P3 p3);
+                   P1 p1, P2 p2, P3 p3, bool call);
 
   template <typename P1, typename P2, typename P3, typename P4>
   void setDefaults(const std::string& name,
-                   P1 p1, P2 p2, P3 p3, P4 p4);
+                   P1 p1, P2 p2, P3 p3, P4 p4, bool call);
 
   template <typename P1, typename P2, typename P3, typename P4, typename P5>
   void setDefaults(const std::string& name,
-                   P1 p1, P2 p2, P3 p3, P4 p4, P5 p5);
+                   P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, bool call);
 
   template <typename P1, typename P2, typename P3, typename P4, typename P5,
             typename P6>
   void setDefaults(const std::string& name,
-                   P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
+                   P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, bool call);
   ///@}
 
   /// Default: Provenance is enabled. Disabling provenance will disable undo/
@@ -273,6 +279,10 @@ private:
   /// E.G. Debug logging functions should be provenance exempt.
   void setProvenanceExempt(const std::string& fqName);
 
+  /// This function exists because mProvenance is an incomplete type when this
+  /// header is being compiled. It just routes to
+  /// mProvenance->setDisableProvTemporarily(...)
+  void setTempProvDisable(bool disable);
 
   /// Ensures the function is not added to the undo/redo stack. Examples include
   /// the undo and redo functions themselves.
@@ -926,7 +936,7 @@ T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
 
 template <typename P1>
 void LuaScripting::setDefaults(const std::string& name,
-                               P1 p1)
+                               P1 p1, bool call)
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
@@ -949,11 +959,15 @@ void LuaScripting::setDefaults(const std::string& name,
   resetFunDefault(pos++, ftable);
 
   lua_pop(mL, 1); // Remove function table.
+
+  setTempProvDisable(true);
+  if (call) cexec(name, p1);
+  setTempProvDisable(false);
 }
 
 template <typename P1, typename P2>
 void LuaScripting::setDefaults(const std::string& name,
-                               P1 p1, P2 p2)
+                               P1 p1, P2 p2, bool call)
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
@@ -979,11 +993,15 @@ void LuaScripting::setDefaults(const std::string& name,
   resetFunDefault(pos++, ftable);
 
   lua_pop(mL, 1); // Remove function table.
+
+  setTempProvDisable(true);
+  if (call) cexec(name, p1, p2);
+  setTempProvDisable(false);
 }
 
 template <typename P1, typename P2, typename P3>
 void LuaScripting::setDefaults(const std::string& name,
-                               P1 p1, P2 p2, P3 p3)
+                               P1 p1, P2 p2, P3 p3, bool call)
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
@@ -1012,11 +1030,15 @@ void LuaScripting::setDefaults(const std::string& name,
   resetFunDefault(pos++, ftable);
 
   lua_pop(mL, 1); // Remove function table.
+
+  setTempProvDisable(true);
+  if (call) cexec(name, p1, p2, p3);
+  setTempProvDisable(false);
 }
 
 template <typename P1, typename P2, typename P3, typename P4>
 void LuaScripting::setDefaults(const std::string& name,
-                               P1 p1, P2 p2, P3 p3, P4 p4)
+                               P1 p1, P2 p2, P3 p3, P4 p4, bool call)
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
@@ -1048,11 +1070,15 @@ void LuaScripting::setDefaults(const std::string& name,
   resetFunDefault(pos++, ftable);
 
   lua_pop(mL, 1); // Remove function table.
+
+  setTempProvDisable(true);
+  if (call) cexec(name, p1, p2, p3, p4);
+  setTempProvDisable(false);
 }
 
 template <typename P1, typename P2, typename P3, typename P4, typename P5>
 void LuaScripting::setDefaults(const std::string& name,
-                               P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
+                               P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, bool call)
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
@@ -1087,12 +1113,17 @@ void LuaScripting::setDefaults(const std::string& name,
   resetFunDefault(pos++, ftable);
 
   lua_pop(mL, 1); // Remove function table.
+
+  setTempProvDisable(true);
+  if (call) cexec(name, p1, p2, p3, p4, p5);
+  setTempProvDisable(false);
 }
 
 template <typename P1, typename P2, typename P3, typename P4, typename P5,
           typename P6>
 void LuaScripting::setDefaults(const std::string& name,
-                               P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
+                               P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6,
+                               bool call)
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
@@ -1130,6 +1161,10 @@ void LuaScripting::setDefaults(const std::string& name,
   resetFunDefault(pos++, ftable);
 
   lua_pop(mL, 1); // Remove function table.
+
+  setTempProvDisable(true);
+  if (call) cexec(name, p1, p2, p3, p4, p5, p6);
+  setTempProvDisable(false);
 }
 
 template <typename FunPtr>

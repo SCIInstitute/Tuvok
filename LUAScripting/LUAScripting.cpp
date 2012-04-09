@@ -1253,6 +1253,11 @@ void LuaScripting::setExpectedExceptionFlag(bool expected)
                LuaScripting::REG_EXPECTED_EXCEPTION_FLAG);
 }
 
+//-----------------------------------------------------------------------------
+void LuaScripting::setTempProvDisable(bool disable)
+{
+  mProvenance->setDisableProvTemporarily(disable);
+}
 
 //==============================================================================
 //
@@ -1734,6 +1739,106 @@ SUITE(TestLUAScriptingSystem)
   TEST(TestDefaultSettings)
   {
     TEST_HEADER;
+
+    auto_ptr<LuaScripting> sc(new LuaScripting());
+
+    sc->registerFunction(&set_i1, "set_i1", "", true);
+    sc->setDefaults("set_i1", 40, true);
+    sc->registerFunction(&set_s1, "set_s1", "", true);
+    sc->setDefaults("set_s1", "s1", true);
+    sc->registerFunction(&set_b1, "set_b1", "", true);
+    sc->setDefaults("set_b1", true, true);
+    sc->registerFunction(&paste_i1, "paste_i1", "", true);
+
+    // Ensure we don't have anything on the undo stack already.
+    // (tests to make sure the provenance system was disabled when a call
+    //  was made to registered functions inside of setDefaults).
+    sc->setExpectedExceptionFlag(true);
+    CHECK_THROW(sc->exec("provenance.undo()"), LuaProvenanceInvalidUndo);
+    sc->setExpectedExceptionFlag(false);
+
+    CHECK_EQUAL(40, i1);
+    CHECK_EQUAL("s1", s1.c_str());
+    CHECK_EQUAL(true, b1);
+
+    sc->cexec("set_i1", 42);
+    CHECK_EQUAL(42, i1);
+    sc->cexec("set_b1", false);
+    CHECK_EQUAL(false, b1);
+    sc->cexec("set_s1", "new");
+    CHECK_EQUAL("new", s1.c_str());
+
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL("s1", s1.c_str());
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL(true, b1);
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL(40, i1);
+
+    sc->exec("provenance.redo()");
+    CHECK_EQUAL(42, i1);
+    sc->exec("provenance.undo()");
+
+    sc->setExpectedExceptionFlag(true);
+    CHECK_THROW(sc->exec("provenance.undo()"), LuaProvenanceInvalidUndo);
+    sc->setExpectedExceptionFlag(false);
+
+    // Test out c++ parameter execution
+    sc->registerFunction(&set_1ti, "set_1ti", "", true);
+    sc->setDefaults("set_1ti", 10, true);
+    CHECK_EQUAL(10, ti1);
+    sc->registerFunction(&set_2ti, "set_2ti", "", true);
+    sc->setDefaults("set_2ti", 11, 21, true);
+    CHECK_EQUAL(11, ti1);
+    CHECK_EQUAL(21, ti2);
+    sc->registerFunction(&set_3ti, "set_3ti", "", true);
+    sc->setDefaults("set_3ti", 12, 22, 32, true);
+    CHECK_EQUAL(12, ti1);
+    CHECK_EQUAL(22, ti2);
+    CHECK_EQUAL(32, ti3);
+    sc->registerFunction(&set_4ti, "set_4ti", "", true);
+    sc->setDefaults("set_4ti", 13, 23, 33, 43, true);
+    CHECK_EQUAL(13, ti1);
+    CHECK_EQUAL(23, ti2);
+    CHECK_EQUAL(33, ti3);
+    CHECK_EQUAL(43, ti4);
+    sc->registerFunction(&set_5ti, "set_5ti", "", true);
+    sc->setDefaults("set_5ti", 14, 24, 34, 44, 54, true);
+    CHECK_EQUAL(14, ti1);
+    CHECK_EQUAL(24, ti2);
+    CHECK_EQUAL(34, ti3);
+    CHECK_EQUAL(44, ti4);
+    CHECK_EQUAL(54, ti5);
+    sc->registerFunction(&set_6ti, "set_6ti", "", true);
+    sc->setDefaults("set_6ti", 15, 25, 35, 45, 55, 65, true);
+    CHECK_EQUAL(15, ti1);
+    CHECK_EQUAL(25, ti2);
+    CHECK_EQUAL(35, ti3);
+    CHECK_EQUAL(45, ti4);
+    CHECK_EQUAL(55, ti5);
+    CHECK_EQUAL(65, ti6);
+
+    sc->setExpectedExceptionFlag(true);
+    CHECK_THROW(sc->exec("provenance.undo()"), LuaProvenanceInvalidUndo);
+    sc->setExpectedExceptionFlag(false);
+
+    sc->cexec("set_6ti", 60, 62, 64, 66, 68, 70);
+
+    CHECK_EQUAL(60, ti1);
+    CHECK_EQUAL(62, ti2);
+    CHECK_EQUAL(64, ti3);
+    CHECK_EQUAL(66, ti4);
+    CHECK_EQUAL(68, ti5);
+    CHECK_EQUAL(70, ti6);
+
+    sc->exec("provenance.undo()");
+
+    CHECK_EQUAL(15, ti1);
+    CHECK_EQUAL(25, ti2);
+    CHECK_EQUAL(35, ti3);
+    CHECK_EQUAL(45, ti4);
+    CHECK_EQUAL(55, ti5);
+    CHECK_EQUAL(65, ti6);
   }
 
 

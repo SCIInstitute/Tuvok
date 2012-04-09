@@ -364,10 +364,8 @@ bool LSS_compareTypes()
 template <typename T>
 void LSS_pushTypeInfo(lua_State* L)
 {
-  // Close your eyes.
   lua_pushlightuserdata(L,const_cast<void*>(reinterpret_cast<const void*>(
                                 LSS_getTypeInfo<T>())));
-  // Open your eyes.
 }
 
 #endif

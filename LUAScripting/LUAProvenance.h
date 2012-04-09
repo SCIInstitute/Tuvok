@@ -95,6 +95,11 @@ public:
   /// Each parameter indicates the number of hooks called.
   void logHooks(int staticHooks, int memberHooks);
 
+  /// Temporarily disables provenance. Used when setting defaults for
+  /// functions in the scripting system. We don't want to register any calls
+  /// to provenance when we are registering defaults.
+  void setDisableProvTemporarily(bool disable);
+
 private:
 
   struct UndoRedoItem
@@ -130,6 +135,7 @@ private:
   void printProvRecord();
 
   bool                      mEnabled;
+  bool                      mTemporarilyDisabled;
 
   std::vector<UndoRedoItem> mUndoRedoStack; ///< Contains all undo/redo entries.
   int                       mStackPointer;  ///< 1 based Index into
