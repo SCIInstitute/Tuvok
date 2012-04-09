@@ -776,6 +776,7 @@ SUITE(LuaProvenanceTests)
 
     sc->registerFunction(&set_i1, "set_i1", "", true);
     sc->registerFunction(&set_s1, "set_s1", "", true);
+    sc->setDefaults("set_s1", "nop");
     sc->registerFunction(&set_b1, "set_b1", "", true);
 
     sc->exec("set_i1(23)");
@@ -791,14 +792,14 @@ SUITE(LuaProvenanceTests)
 
     // TODO: This should really be 'nop'. Fix it after we add default resets.
     sc->exec("provenance.undo()");
-    CHECK_EQUAL("", s1.c_str());
+    CHECK_EQUAL("nop", s1.c_str());
 
     sc->exec("provenance.redo()");
     CHECK_EQUAL("Test String", s1.c_str());
 
     // TODO: This should really be 'nop'. Fix it after we add default resets.
     sc->exec("provenance.undo()");
-    CHECK_EQUAL("", s1.c_str());
+    CHECK_EQUAL("nop", s1.c_str());
 
     sc->exec("provenance.undo()");
     CHECK_EQUAL(0, i1);

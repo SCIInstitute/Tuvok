@@ -127,6 +127,26 @@ public:
   virtual ~LuaProvenanceInvalidUndo() throw() { }
 };
 
+class LuaInvalidType : public LuaError
+{
+public:
+  explicit LuaInvalidType(const char* e, const char* where = NULL,
+                          size_t ln = 0)
+    : LuaError(e, where, ln)
+  {}
+  virtual ~LuaInvalidType() throw() { }
+};
+
+class LuaUnequalNumParams : public LuaError
+{
+public:
+  explicit LuaUnequalNumParams(const char* e, const char* where = NULL,
+                               size_t ln = 0)
+    : LuaError(e, where, ln)
+  {}
+  virtual ~LuaUnequalNumParams() throw() { }
+};
+
 } /* namespace tuvok */
 
 #endif /* LUAERROR_H_ */

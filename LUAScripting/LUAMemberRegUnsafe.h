@@ -108,6 +108,9 @@ private:
       Ret r;
       if (lua_toboolean(L, lua_upvalueindex(3)) == 0)
       {
+        LuaScripting* ss = static_cast<LuaScripting*>(
+            lua_touserdata(L, lua_upvalueindex(4)));
+
         std::tr1::shared_ptr<LuaCFunAbstract> execParams(
             new LuaCFunExec<FunPtr>());
         std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
@@ -119,8 +122,6 @@ private:
         // Obtain reference to LuaScripting to invoke provenance.
         // See createCallableFuncTable for justification on pulling an
         // instance of LuaScripting out of Lua.
-        LuaScripting* ss = static_cast<LuaScripting*>(
-            lua_touserdata(L, lua_upvalueindex(4)));
         ss->doProvenanceFromExec(L, execParams, emptyParams);
 
         try
@@ -163,14 +164,15 @@ private:
 
       if (lua_toboolean(L, lua_upvalueindex(3)) == 0)
       {
+        LuaScripting* ss = static_cast<LuaScripting*>(
+            lua_touserdata(L, lua_upvalueindex(4)));
+
         std::tr1::shared_ptr<LuaCFunAbstract> execParams(
             new LuaCFunExec<FunPtr>());
         std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
             new LuaCFunExec<FunPtr>());
         execParams->pullParamsFromStack(L, 2);
 
-        LuaScripting* ss = static_cast<LuaScripting*>(
-            lua_touserdata(L, lua_upvalueindex(4)));
         ss->doProvenanceFromExec(L, execParams, emptyParams);
 
         try
@@ -266,6 +268,14 @@ void LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
   defaultParams.pushParamsToStack(L);
   int numFunParams = lua_gettop(L) - tableIndex;
   ss->createDefaultsAndLastExecTables(tableIndex, numFunParams);
+  lua_pushinteger(L, numFunParams);
+  lua_setfield(L, tableIndex, LuaScripting::TBL_MD_NUM_PARAMS);
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  // Generate the type table (buildTypeTable places table on top of the stack).
+  LuaCFunExec<FunPtr>::buildTypeTable(L);
+  lua_setfield(L, tableIndex, LuaScripting::TBL_MD_TYPES_TABLE);
+#endif
 
   // Install the callable table in the appropriate module based on its
   // fully qualified name.

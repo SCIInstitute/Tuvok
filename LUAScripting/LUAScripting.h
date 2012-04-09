@@ -242,12 +242,16 @@ public:
   static const char* TBL_MD_CPP_CLASS;    ///< Light user data to LuaScripting
   static const char* TBL_MD_STACK_EXEMPT; ///< True if undo/redo stack exempt
   static const char* TBL_MD_PROV_EXEMPT;  ///< True if provenance exempt.
-  static const char* TBL_MD_TYPES_TABLE;  ///< type_info userdata table.
+  static const char* TBL_MD_NUM_PARAMS;   ///< Number of parameters accepted.
 
-private:
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static const char* TBL_MD_TYPES_TABLE;  ///< type_info userdata table.
+#endif
 
   /// Used by friend class LuaProvenance.
   lua_State* getLUAState()  {return mL;}
+
+private:
 
   /// This function should be used sparingly, and only for those functions that
   /// do not modify state nor return internal state in some way.
@@ -257,8 +261,6 @@ private:
   /// E.G. Debug logging functions should be provenance exempt.
   void setProvenanceExempt(const std::string& fqName);
 
-  // NEVER deregister member functions, always let LuaMemberReg deregister
-  // the functions.
 
   /// Ensures the function is not added to the undo/redo stack. Examples include
   /// the undo and redo functions themselves.
@@ -273,20 +275,16 @@ private:
   /// Unregisters the function associated with the fully qualified name.
   void unregisterFunction(const std::string& fqName);
 
+  /// Resets default for function. Value to set as default is assumed to be on
+  /// the top of the stack. It is popped off the stack.
+  /// \param  argumentPos     Function argument position (e.g. f(1,2,3), 1 is at
+  ///                         argument pos 0, 2 at pos 1, and 3 at pos 2).
+  /// \param  ftableStackPos  Stack position of the function table.
+  void resetFunDefault(int argumentPos, int ftableStackPos);
+
   /// Unregisters all functions registered using this LuaScripting instance.
   /// Should NEVER be called outside LuaScripting's destructor.
   void unregisterAllFunctions();
-
-  /// Expects the value to be added as the default to be on the top of the
-  /// stack. Pops this value off when the function completes.
-  /// \param  type          Type to check.
-  /// \param  funParamPo    Position of the parameter in the function's param
-  ///                       list.
-  /// \param  valueIndex    Position of the default value on the stack.
-  /// \param  funTableIndex Position of the function table on the stack.
-  void checkTypeAndAddAsDefault(const std::type_info& type,
-                                int funParamPos,
-                                int funTableIndex);
 
   /// Returns a new member hook ID.
   std::string getNewMemberHookID();
@@ -382,6 +380,14 @@ private:
   /// Exec failure.
   void logExecFailure(const std::string& failure);
 
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  /// Assumes all function parameters are on top of the stack, where the
+  /// parameter at the top of the stack corresponds to the last argument
+  /// in the function parameter list.
+  template <typename FunPtr>
+  void validateTypeTableAgainstStack(int funTableIndex);
+#endif
+
   /// The one true LUA state.
   lua_State*                        mL;
 
@@ -409,6 +415,9 @@ private:
       Ret r;
       if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
       {
+        LuaScripting* ss = static_cast<LuaScripting*>(
+                    lua_touserdata(L, lua_upvalueindex(3)));
+
         std::tr1::shared_ptr<LuaCFunAbstract> execParams(
             new LuaCFunExec<FunPtr>());
         std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
@@ -419,8 +428,6 @@ private:
         // Obtain reference to LuaScripting in order to invoke provenance.
         // See createCallableFuncTable for justification on pulling an
         // instance of LuaScripting out of Lua.
-        LuaScripting* ss = static_cast<LuaScripting*>(
-            lua_touserdata(L, lua_upvalueindex(3)));
         ss->doProvenanceFromExec(L, execParams, emptyParams);
 
         // We are NOT a hook. Our parameters start at index 2 (because the
@@ -466,6 +473,9 @@ private:
           lua_touserdata(L, lua_upvalueindex(1)));
       if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
       {
+        LuaScripting* ss = static_cast<LuaScripting*>(
+                    lua_touserdata(L, lua_upvalueindex(3)));
+
         std::tr1::shared_ptr<LuaCFunAbstract> execParams(
             new LuaCFunExec<FunPtr>());
         std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
@@ -473,8 +483,6 @@ private:
         // Fill execParams. Function parameters start at index 2.
         execParams->pullParamsFromStack(L, 2);
 
-        LuaScripting* ss = static_cast<LuaScripting*>(
-            lua_touserdata(L, lua_upvalueindex(3)));
         ss->doProvenanceFromExec(L, execParams, emptyParams);
 
         try
@@ -520,34 +528,121 @@ T LuaScripting::execRet(const std::string& cmd)
 }
 
 
-template <typename P1>
-void LuaScripting::cexec(const std::string& cmd, P1 p1)
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+
+template <typename T>
+void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
+                         int ftable, int typesTable, int check_pos)
 {
-  prepForExecution(cmd);
+  lua_pushinteger(L, check_pos++);
+  lua_gettable(L, typesTable);
+  if (LSS_compareToTypeOnStack<T>(L, -1) == false)
+  {
+    // Test the one special case (const char* --> std::string)
+    if ((   LSS_compareToTypeOnStack<std::string>(L, -1)
+         || LSS_compareToTypeOnStack<const char*>(L, -1)))
+    {
+      if (   LSS_compareTypes<std::string, T>()
+          || LSS_compareTypes<const char*, T>())
+      {
+        lua_pop(L, 1);
+        return;
+      }
+    }
+
+    std::ostringstream os;
+    os << "Invalid argument at position " << check_pos;
+    os << " for call to function " << name;
+    throw LuaInvalidType(os.str().c_str());
+  }
+  lua_pop(L, 1);
+}
+
+#endif
+
+
+template <typename P1>
+void LuaScripting::cexec(const std::string& name, P1 p1)
+{
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 1) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   executeFunctionOnStack(1, 0);
 }
 template <typename P1, typename P2>
-void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2)
+void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 2) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   LuaStrictStack<P2>::push(mL, p2);
   executeFunctionOnStack(2, 0);
 }
 template <typename P1, typename P2, typename P3>
-void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3)
+void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 3) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   LuaStrictStack<P2>::push(mL, p2);
   LuaStrictStack<P3>::push(mL, p3);
   executeFunctionOnStack(3, 0);
 }
 template <typename P1, typename P2, typename P3, typename P4>
-void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4)
+void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 4) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   LuaStrictStack<P2>::push(mL, p2);
   LuaStrictStack<P3>::push(mL, p3);
@@ -555,10 +650,26 @@ void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4)
   executeFunctionOnStack(4, 0);
 }
 template <typename P1, typename P2, typename P3, typename P4, typename P5>
-void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
+void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
                          P5 p5)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 5) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   LuaStrictStack<P2>::push(mL, p2);
   LuaStrictStack<P3>::push(mL, p3);
@@ -568,10 +679,27 @@ void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
 }
 template <typename P1, typename P2, typename P3, typename P4, typename P5,
           typename P6>
-void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
+void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
                          P5 p5, P6 p6)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 6) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P6>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   LuaStrictStack<P2>::push(mL, p2);
   LuaStrictStack<P3>::push(mL, p3);
@@ -582,70 +710,167 @@ void LuaScripting::cexec(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
 }
 
 template <typename T>
-T LuaScripting::cexecRet(const std::string& cmd)
+T LuaScripting::cexecRet(const std::string& name)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
   executeFunctionOnStack(0, 1);
   return LuaStrictStack<T>::get(mL, lua_gettop(mL));
 }
 template <typename T, typename P1>
-T LuaScripting::cexecRet(const std::string& cmd, P1 p1)
+T LuaScripting::cexecRet(const std::string& name, P1 p1)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 1) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   executeFunctionOnStack(1, 1);
-  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  T ret = LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  lua_pop(mL, 1); // Pop return value.
+  return ret;
 }
 template <typename T, typename P1, typename P2>
-T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2)
+T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 2) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   LuaStrictStack<P2>::push(mL, p2);
   executeFunctionOnStack(2, 1);
-  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  T ret = LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  lua_pop(mL, 1); // Pop return value.
+  return ret;
 }
 template <typename T, typename P1, typename P2, typename P3>
-T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3)
+T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 3) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   LuaStrictStack<P2>::push(mL, p2);
   LuaStrictStack<P3>::push(mL, p3);
   executeFunctionOnStack(3, 1);
-  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  T ret = LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  lua_pop(mL, 1); // Pop return value.
+  return ret;
 }
 template <typename T, typename P1, typename P2, typename P3, typename P4>
-T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4)
+T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 4) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   LuaStrictStack<P2>::push(mL, p2);
   LuaStrictStack<P3>::push(mL, p3);
   LuaStrictStack<P4>::push(mL, p4);
   executeFunctionOnStack(4, 1);
-  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  T ret = LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  lua_pop(mL, 1); // Pop return value.
+  return ret;
 }
 template <typename T, typename P1, typename P2, typename P3, typename P4,
           typename P5>
-T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
+T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
                          P5 p5)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 5) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   LuaStrictStack<P2>::push(mL, p2);
   LuaStrictStack<P3>::push(mL, p3);
   LuaStrictStack<P4>::push(mL, p4);
   LuaStrictStack<P5>::push(mL, p5);
   executeFunctionOnStack(5, 1);
-  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  T ret = LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  lua_pop(mL, 1); // Pop return value.
+  return ret;
 }
 template <typename T, typename P1, typename P2, typename P3, typename P4,
           typename P5, typename P6>
-T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
+T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
                          P5 p5, P6 p6)
 {
-  prepForExecution(cmd);
+  prepForExecution(name);
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  int ftable = lua_gettop(mL);
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 6) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P6>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
   LuaStrictStack<P1>::push(mL, p1);
   LuaStrictStack<P2>::push(mL, p2);
   LuaStrictStack<P3>::push(mL, p3);
@@ -653,31 +878,11 @@ T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
   LuaStrictStack<P5>::push(mL, p5);
   LuaStrictStack<P6>::push(mL, p6);
   executeFunctionOnStack(6, 1);
-  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  T ret = LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  lua_pop(mL, 1); // Pop return value.
+  return ret;
 }
 
-// From the C++ Standard [ISO/IEC 14882:1998(E)]
-// to ISO N3337 (post-C++11 standard with minor corrections)
-//  ¤5.2.8, first point . I paraphrase below (standard is copyrighted).
-//
-//   typeid returns an object of static type std::type_info. The object
-//   referred to by the return value (lvalue) of typeid is guaranteed to exist
-//   for the lifetime of the program.
-//
-// From this, we can safely deduce that the address of any type_info class will
-// remain valid for the life of the program.
-//
-// As such, we can store a pointer to a type_info object inside lua as a void*
-// and recast the object to compare types at a later time.
-// This functionality is needed for the setDefaults function and to ensure
-// that the objects pointed to by shared_ptrs are indeed the same type.
-//
-// I'm not considering cases where serialization to an external memory buffer
-// and back is concerned (you could use the type_info name, but that is
-// compiler dependent, and will not be cross-platform).
-//
-// For serialization, you could possibly use the template specializations in
-// LuaFunBinding, but shared_ptrs would need to be considered carefully.
 
 template <typename P1>
 void LuaScripting::setDefaults(const std::string& name,
@@ -685,8 +890,23 @@ void LuaScripting::setDefaults(const std::string& name,
 {
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
+  int pos = 0;
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 1) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
+
   LuaStrictStack<P1>::push(mL, p1);
-  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  resetFunDefault(pos++, ftable);
+
   lua_pop(mL, 1); // Remove function table.
 }
 
@@ -696,10 +916,26 @@ void LuaScripting::setDefaults(const std::string& name,
 {
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
+  int pos = 0;
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 2) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
+
   LuaStrictStack<P1>::push(mL, p1);
-  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P2>::push(mL, p2);
-  checkTypeAndAddAsDefault(typeid(p2), 0, ftable);
+  resetFunDefault(pos++, ftable);
+
   lua_pop(mL, 1); // Remove function table.
 }
 
@@ -709,12 +945,29 @@ void LuaScripting::setDefaults(const std::string& name,
 {
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
+  int pos = 0;
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 3) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
+
   LuaStrictStack<P1>::push(mL, p1);
-  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P2>::push(mL, p2);
-  checkTypeAndAddAsDefault(typeid(p2), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P3>::push(mL, p3);
-  checkTypeAndAddAsDefault(typeid(p3), 0, ftable);
+  resetFunDefault(pos++, ftable);
+
   lua_pop(mL, 1); // Remove function table.
 }
 
@@ -724,14 +977,32 @@ void LuaScripting::setDefaults(const std::string& name,
 {
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
+  int pos = 0;
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 4) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
+
   LuaStrictStack<P1>::push(mL, p1);
-  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P2>::push(mL, p2);
-  checkTypeAndAddAsDefault(typeid(p2), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P3>::push(mL, p3);
-  checkTypeAndAddAsDefault(typeid(p3), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P4>::push(mL, p4);
-  checkTypeAndAddAsDefault(typeid(p4), 0, ftable);
+  resetFunDefault(pos++, ftable);
+
   lua_pop(mL, 1); // Remove function table.
 }
 
@@ -741,16 +1012,35 @@ void LuaScripting::setDefaults(const std::string& name,
 {
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
+  int pos = 0;
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 5) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
+
   LuaStrictStack<P1>::push(mL, p1);
-  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P2>::push(mL, p2);
-  checkTypeAndAddAsDefault(typeid(p2), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P3>::push(mL, p3);
-  checkTypeAndAddAsDefault(typeid(p3), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P4>::push(mL, p4);
-  checkTypeAndAddAsDefault(typeid(p4), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P5>::push(mL, p5);
-  checkTypeAndAddAsDefault(typeid(p5), 0, ftable);
+  resetFunDefault(pos++, ftable);
+
   lua_pop(mL, 1); // Remove function table.
 }
 
@@ -761,21 +1051,40 @@ void LuaScripting::setDefaults(const std::string& name,
 {
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
+  int pos = 0;
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  lua_getfield(mL, ftable, TBL_MD_NUM_PARAMS);
+  if (lua_tointeger(mL, -1) != 6) throw LuaUnequalNumParams("Unequal params");
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
+  int ttable = lua_gettop(mL);
+  int check_pos = 0;
+  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P6>(mL, name, ftable, ttable, check_pos++);
+  lua_pop(mL, 1);
+#endif
+
   LuaStrictStack<P1>::push(mL, p1);
-  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P2>::push(mL, p2);
-  checkTypeAndAddAsDefault(typeid(p2), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P3>::push(mL, p3);
-  checkTypeAndAddAsDefault(typeid(p3), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P4>::push(mL, p4);
-  checkTypeAndAddAsDefault(typeid(p4), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P5>::push(mL, p5);
-  checkTypeAndAddAsDefault(typeid(p5), 0, ftable);
+  resetFunDefault(pos++, ftable);
   LuaStrictStack<P6>::push(mL, p6);
-  checkTypeAndAddAsDefault(typeid(p6), 0, ftable);
+  resetFunDefault(pos++, ftable);
+
   lua_pop(mL, 1); // Remove function table.
 }
-
 
 template <typename FunPtr>
 void LuaScripting::registerFunction(FunPtr f, const std::string& name,
@@ -810,9 +1119,14 @@ void LuaScripting::registerFunction(FunPtr f, const std::string& name,
   defaultParams.pushParamsToStack(mL);
   int numFunParams = lua_gettop(mL) - tableIndex;
   createDefaultsAndLastExecTables(tableIndex, numFunParams);
+  lua_pushinteger(mL, numFunParams);
+  lua_setfield(mL, tableIndex, TBL_MD_NUM_PARAMS);
 
-  // TODO: Create and populate C++ types table
-  // (LuaCFunExec<FunPtr> should be used to extract the types)
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  // Generate the type table (buildTypeTable places table on top of the stack).
+  LuaCFunExec<FunPtr>::buildTypeTable(mL);
+  lua_setfield(mL, tableIndex, TBL_MD_TYPES_TABLE);
+#endif
 
   int testPos = lua_gettop(mL);
 

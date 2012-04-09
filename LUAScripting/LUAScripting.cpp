@@ -80,7 +80,11 @@ const char* LuaScripting::TBL_MD_MEMBER_HOOKS   = "tblMHooks";
 const char* LuaScripting::TBL_MD_CPP_CLASS      = "scriptingCPP";
 const char* LuaScripting::TBL_MD_STACK_EXEMPT   = "stackExempt";
 const char* LuaScripting::TBL_MD_PROV_EXEMPT    = "provExempt";
+const char* LuaScripting::TBL_MD_NUM_PARAMS     = "numParams";
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
 const char* LuaScripting::TBL_MD_TYPES_TABLE    = "typesTable";
+#endif
 
 
 //-----------------------------------------------------------------------------
@@ -1085,7 +1089,7 @@ void LuaScripting::prepForExecution(const std::string& fqName)
   lua_pushvalue(mL, -2);
 
   // Remove the function table we pushed with getFunctionTable.
-  lua_remove(mL, lua_gettop(mL) - 3);
+  lua_remove(mL, lua_gettop(mL) - 2);
 }
 
 //-----------------------------------------------------------------------------
@@ -1109,6 +1113,26 @@ void LuaScripting::cexec(const std::string& cmd)
   executeFunctionOnStack(0, 0);
 }
 
+//-----------------------------------------------------------------------------
+void LuaScripting::resetFunDefault(int argumentPos, int ftableStackPos)
+{
+  int valPos = lua_gettop(mL);
+  lua_getfield(mL, ftableStackPos, TBL_MD_FUN_PDEFS);
+  int defs = lua_gettop(mL);
+  lua_getfield(mL, ftableStackPos, TBL_MD_FUN_LAST_EXEC);
+  int exec = lua_gettop(mL);
+
+  lua_pushinteger(mL, argumentPos);
+  lua_pushvalue(mL, valPos);
+  lua_settable(mL, defs);
+
+  lua_pushinteger(mL, argumentPos);
+  lua_pushvalue(mL, valPos);
+  lua_settable(mL, exec);
+
+  lua_pop(mL, 3); // Pop the defaults table, last exec table, and value at
+                  // top of the stack.
+}
 
 //-----------------------------------------------------------------------------
 void LuaScripting::logExecFailure(const std::string& failure)
@@ -1120,22 +1144,6 @@ void LuaScripting::logExecFailure(const std::string& failure)
     os << ": " << failure;
   }
   mProvenance->ammendLastProvLog(os.str());
-}
-
-//-----------------------------------------------------------------------------
-void LuaScripting::checkTypeAndAddAsDefault(const std::type_info& type,
-                                            int funParamPos,
-                                            int valueIndex,
-                                            int funTableIndex)
-{
-  lua_getfield(mL, funTableIndex, TBL_MD_FUN_PDEFS);     // Defaults table.
-  lua_getfield(mL, funTableIndex, TBL_MD_FUN_LAST_EXEC); // Last Exec table.
-  lua_getfield(mL, funTableIndex, TBL_MD_TYPES_TABLE);   // Types table.
-  int dti = lua_gettop(mL) - 2;
-  int lti = lua_gettop(mL) - 1;
-  int tti = lua_gettop(mL);
-
-  //
 }
 
 
@@ -1610,7 +1618,7 @@ SUITE(TestLUAScriptingSystem)
     // Multiple parameters, and 1 return value.
     sc->registerFunction(&testParamReturn, "tpr", "", true);
     CHECK_EQUAL("Out: 65 1 4.3 str!",
-                sc->cexecRet<string>("tpr", 65, true, 4.3, "str!").c_str());
+                sc->cexecRet<string>("tpr", 65, true, 4.3f, "str!").c_str());
   }
 
   TEST(TestDefaultSettings)
@@ -1618,6 +1626,32 @@ SUITE(TestLUAScriptingSystem)
     TEST_HEADER;
 
   }
+
+
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+
+  TEST(TestLuaRTTIChecks)
+  {
+    TEST_HEADER;
+
+    auto_ptr<LuaScripting> sc(new LuaScripting());
+
+    sc->registerFunction(&testParamReturn, "tpr", "", true);
+    CHECK_EQUAL("Out: 65 1 4.3 str!",
+                sc->cexecRet<string>("tpr", 65, true, 4.3f, "str!").c_str());
+
+    CHECK_THROW(sc->cexec("tpr", 12, true),               LuaUnequalNumParams);
+    CHECK_THROW(sc->cexec("tpr", 12, true, 4.3f, "s", 1), LuaUnequalNumParams);
+    CHECK_THROW(sc->cexec("tpr", 12, "s", 4.3f, "s"),     LuaInvalidType);
+    CHECK_THROW(sc->cexec("tpr", "s", false, 4.3f, "s"),  LuaInvalidType);
+    CHECK_THROW(sc->cexec("tpr", 5, false, 32, "s"),      LuaInvalidType);
+    CHECK_THROW(sc->cexec("tpr", 5, false, 32.0, "s"),    LuaInvalidType);
+    CHECK_THROW(sc->cexec("tpr", 5, false, 32.0f, 3),     LuaInvalidType);
+  }
+
+#endif
+
 
   /// TODO: Add tests for passing shared_ptr's around, and how they work
   /// with regards to the undo/redo stack.

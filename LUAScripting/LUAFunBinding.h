@@ -54,6 +54,20 @@
 #include <iomanip>
 #include <typeinfo>
 
+// Uncomment DEBUG_USE_RUNTIME_TYPE_CHECKING to check types of function calls
+// made through lua at run time.
+// (will be especially useful to debug shared_ptr type issues)
+//
+// I haven't used RTTI up to this point, and have relied on templates instead,
+// so I don't want to make it a requirement now.
+#define TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+#include <typeinfo>
+#endif
+
+
 namespace tuvok
 {
 
@@ -62,38 +76,6 @@ namespace tuvok
 // LUA PARAM GETTER/PUSHER (we do NOT pop off of the LUA stack)
 //
 //==============================================================
-
-// Use this to debug shared_ptr mismatches. The system will use RTTI typeid
-// to ensure that types are consistent.
-// Checks will be added to the setDefaults function, and checks will be
-// added for all
-#define DEBUG_USE_RUNTIME_TYPE_CHECKING
-
-#ifdef DEBUG_USE_RUNTIME_TYPE_CHECKING
-// Type used for type identification. See bottom of file for justification
-// via C++ standard. This could easily be changed to use specialization
-typedef std::type_info* LSSTypeID;
-
-template <typename T>
-LSSTypeID LSS_getTypeInfo()
-{
-  return &typeid(T);
-}
-
-template <typename T>
-bool LSS_compareTypeInfo(lua_State* L, int stackIndex)
-{
-  LSSTypeID a = static_cast<LSSTypeID>(lua_touserdata(L, stackIndex));
-  return (*a) == (*LSS_getTypeInfo<T>());
-}
-
-template <typename T>
-void LSS_pushTypeInfo(lua_State* L)
-{
-  lua_pushlightuserdata(L, static_cast<void*>(LSS_getTypeInfo<T>()));
-}
-
-#endif
 
 // LUA strict type stack
 // This template enforces strict type compliance while converting types on the
@@ -132,7 +114,6 @@ public:
   static std::string getTypeStr() { return "void"; }
 
   static int         getDefault();
-  static LSSTypeID   getTypeID();
 };
 
 template<>
@@ -336,6 +317,62 @@ public:
 //			  See http://www.lua.org/doc/hopl.pdf -- page 2, para 2. See ref 31.
 //			  Consider support for 3D and 4D graphics vectors.
 
+//========================
+//
+// RUN TIME TYPE CHECKING
+//
+//========================
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+
+//
+// From the C++ Standard [ISO/IEC 14882:1998(E)]
+// to ISO N3337 (post-C++11 standard with minor corrections)
+//  ¤5.2.8, first point. I paraphrase below (standard is copyrighted).
+//
+//   typeid returns an object of static type std::type_info. The object
+//   referred to by the return value (lvalue) of typeid is guaranteed to exist
+//   for the lifetime of the program.
+//
+// From this, we can safely deduce that the address of any type_info class will
+// remain valid for the life of the program.
+//
+// As such, we can store a pointer to a type_info object inside lua as a void*
+// and recast the object to compare types at a later time.
+// This functionality is needed for the setDefaults function and to ensure
+// that the objects pointed to by shared_ptrs are indeed the same type.
+//
+
+typedef const std::type_info* LSSTypeID;
+
+template <typename T>
+LSSTypeID LSS_getTypeInfo() { return &typeid(T); }
+
+template <typename T>
+bool LSS_compareToTypeOnStack(lua_State* L, int stackIndex)
+{
+  LSSTypeID a = static_cast<LSSTypeID>(lua_touserdata(L, stackIndex));
+  return (*a) == (*LSS_getTypeInfo<T>());
+}
+
+template <typename T1, typename T2>
+bool LSS_compareTypes()
+{
+  return (*LSS_getTypeInfo<T1>()) == (*LSS_getTypeInfo<T2>());
+}
+
+template <typename T>
+void LSS_pushTypeInfo(lua_State* L)
+{
+  // Close your eyes.
+  lua_pushlightuserdata(L,const_cast<void*>(reinterpret_cast<const void*>(
+                                LSS_getTypeInfo<T>())));
+  // Open your eyes.
+}
+
+#endif
+
+
 //==========================
 //
 // LUA C FUNCTION EXECUTION
@@ -449,6 +486,7 @@ public:
   // (we don't know their types).
   static std::string getSigNoReturn(const std::string& funcName);
   static std::string getSignature(const std::string& funcName);
+  static void buildTypeTable(lua_State* L);
 
   // Pushing and pulling parameters from the stack are used to store parameters
   // on the undo / redo stacks within the program.
@@ -496,6 +534,13 @@ public:
     return "";
   }
 
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    lua_newtable(L);
+  }
+#endif
+
 };
 
 //-------------
@@ -542,6 +587,15 @@ public:
     return LuaStrictStack<P1>::getValStr(M_NM(P1));
   }
 
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+  }
+#endif
+
   // Member variables.
   MVAR(P1);
 };
@@ -581,6 +635,16 @@ public:
     return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
            LuaStrictStack<P2>::getValStr(M_NM(P2));
   }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+  }
+#endif
 
   // Member variables.
   MVAR(P1); MVAR(P2);
@@ -622,6 +686,17 @@ public:
            LuaStrictStack<P2>::getValStr(M_NM(P2)) + ", " +
            LuaStrictStack<P3>::getValStr(M_NM(P3));
   }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+  }
+#endif
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3);
@@ -665,6 +740,18 @@ public:
            LuaStrictStack<P3>::getValStr(M_NM(P3)) + ", " +
            LuaStrictStack<P4>::getValStr(M_NM(P4));
   }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
+  }
+#endif
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4);
@@ -710,6 +797,19 @@ public:
            LuaStrictStack<P4>::getValStr(M_NM(P4)) + ", " +
            LuaStrictStack<P5>::getValStr(M_NM(P5));
   }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
+  }
+#endif
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5);
@@ -757,6 +857,20 @@ public:
            LuaStrictStack<P6>::getValStr(M_NM(P6));
   }
 
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
+  }
+#endif
+
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6);
 };
@@ -798,6 +912,13 @@ public:
     return "";
   }
 
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    lua_newtable(L);
+  }
+#endif
+
   virtual void pushParamsToStack(lua_State* L) const      {}
   virtual void pullParamsFromStack(lua_State* L, int si)  {}
 };
@@ -837,6 +958,15 @@ public:
   {
     return LuaStrictStack<P1>::getValStr(M_NM(P1));
   }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+  }
+#endif
 
   // Member variables.
   MVAR(P1);
@@ -878,6 +1008,16 @@ public:
     return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
            LuaStrictStack<P2>::getValStr(M_NM(P2));
   }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+  }
+#endif
 
   // Member variables.
   MVAR(P1); MVAR(P2);
@@ -921,6 +1061,17 @@ public:
            LuaStrictStack<P2>::getValStr(M_NM(P2)) + ", " +
            LuaStrictStack<P3>::getValStr(M_NM(P3));
   }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+  }
+#endif
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3);
@@ -966,6 +1117,18 @@ public:
            LuaStrictStack<P3>::getValStr(M_NM(P3)) + ", " +
            LuaStrictStack<P4>::getValStr(M_NM(P4));
   }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
+  }
+#endif
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4);
@@ -1013,6 +1176,18 @@ public:
            LuaStrictStack<P5>::getValStr(M_NM(P5));
   }
 
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
+  }
+#endif
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5);
@@ -1062,6 +1237,20 @@ public:
            LuaStrictStack<P6>::getValStr(M_NM(P6));
   }
 
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
+  }
+#endif
+
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6);
 };
@@ -1078,6 +1267,8 @@ public:
 #undef PLP
 #undef PHP
 #undef MVIT
+
+
 
 } /* namespace tuvok */
 
