@@ -114,6 +114,21 @@ void LuaProvenance::registerLuaProvenanceFunctions()
                               "call other functions registered within "
                               "LuaScripting from within Lua.",
                               true);
+  mMemberReg.registerFunction(this, &LuaProvenance::printUndoStack,
+                              "provenance.logUndoStack",
+                              "Prints the contents of the undo stack"
+                              "to 'log.info'.",
+                              false);
+  mMemberReg.registerFunction(this, &LuaProvenance::printRedoStack,
+                              "provenance.logRedoStack",
+                              "Prints the contents of the redo stack"
+                              "to 'log.info'.",
+                              false);
+  mMemberReg.registerFunction(this, &LuaProvenance::printProvRecord,
+                              "provenance.logProvenanceRecord",
+                              "Prints the entire provenance record to"
+                              "to 'log.info'.",
+                              false);
   // Reentry exception does not need to be stack exempt.
 }
 
@@ -132,54 +147,6 @@ void LuaProvenance::enableLogAll(bool enabled)
   {
     mProvenanceDescList.clear();
   }
-}
-
-//-----------------------------------------------------------------------------
-vector<string> LuaProvenance::getUndoStackDesc()
-{
-  // Print from the current stack pointer downwards.
-  vector<string> ret;
-  string undoVals;
-  string redoVals;
-  string result;
-  for (int i = mStackPointer - 1; i >= 0; i--)
-  {
-    undoVals = mUndoRedoStack[i].undoParams->getFormattedParameterValues();
-    redoVals = mUndoRedoStack[i].redoParams->getFormattedParameterValues();
-
-    result = undoVals + " -- redo: " + redoVals;
-
-    ret.push_back(result);
-  }
-
-  return ret;
-}
-
-//-----------------------------------------------------------------------------
-std::vector<std::string> LuaProvenance::getRedoStackDesc()
-{
-  // Print from the current stack pointer downwards.
-  vector<string> ret;
-  string undoVals;
-  string redoVals;
-  string result;
-  for (vector<string>::size_type i = mStackPointer; i < mUndoRedoStack.size(); i++)
-  {
-    undoVals = mUndoRedoStack[i].undoParams->getFormattedParameterValues();
-    redoVals = mUndoRedoStack[i].redoParams->getFormattedParameterValues();
-
-    result = undoVals + " -- redo: " + redoVals;
-
-    ret.push_back(result);
-  }
-
-  return ret;
-}
-
-//-----------------------------------------------------------------------------
-std::vector<std::string> LuaProvenance::getFullProvenanceDesc()
-{
-  return mProvenanceDescList;
 }
 
 //-----------------------------------------------------------------------------
@@ -214,9 +181,9 @@ void LuaProvenance::logHooks(int staticHooks, int memberHooks)
   int hooksCalled = staticHooks + memberHooks;
 
   ostringstream os;
-  os << " + " << hooksCalled << " hooks called";
+  os << " -- " << hooksCalled << " hook(s) called";
 
-  mProvenanceDescList.push_back(os.str());
+  ammendLastProvLog(os.str());
 }
 
 //-----------------------------------------------------------------------------
@@ -225,6 +192,12 @@ void LuaProvenance::logExecution(const string& fname,
                                  tr1::shared_ptr<LuaCFunAbstract> funParams,
                                  tr1::shared_ptr<LuaCFunAbstract> emptyParams)
 {
+  // TODO: Add indentation to provenance record for registered functions that
+  //       are called within other registered functions.
+
+  // TODO: Add checks on the parameters given. If they are the same, the
+  //       function should be ignored.
+
   if (mLoggingProvenance)
   {
     if (mDoProvReenterException)
@@ -239,9 +212,7 @@ void LuaProvenance::logExecution(const string& fname,
     }
   }
 
-  mLoggingProvenance = true;  // Used to tell when someone has done something
-                              // bad: exec a registered lua function within
-                              // another registered lua function.
+  mLoggingProvenance = true;
 
   if (mProvenanceDescLogEnabled)
   {
@@ -472,6 +443,98 @@ void LuaProvenance::enableProvReentryEx(bool enable)
   mDoProvReenterException = enable;
 }
 
+//-----------------------------------------------------------------------------
+vector<string> LuaProvenance::getUndoStackDesc()
+{
+  // Print from the current stack pointer downwards.
+  vector<string> ret;
+  string undoVals;
+  string redoVals;
+  string result;
+  for (int i = mStackPointer - 1; i >= 0; i--)
+  {
+    undoVals = mUndoRedoStack[i].undoParams->getFormattedParameterValues();
+    redoVals = mUndoRedoStack[i].redoParams->getFormattedParameterValues();
+
+    ostringstream os;
+    const string& fun = mUndoRedoStack[i].function;
+    os << fun << "(" << undoVals << ") -- " << fun << "(" << redoVals << ")";
+    ret.push_back(os.str());
+  }
+
+  return ret;
+}
+
+//-----------------------------------------------------------------------------
+std::vector<std::string> LuaProvenance::getRedoStackDesc()
+{
+  // Print from the current stack pointer downwards.
+  vector<string> ret;
+  string undoVals;
+  string redoVals;
+  string result;
+  for (vector<string>::size_type i = mStackPointer; i < mUndoRedoStack.size(); i++)
+  {
+    undoVals = mUndoRedoStack[i].undoParams->getFormattedParameterValues();
+    redoVals = mUndoRedoStack[i].redoParams->getFormattedParameterValues();
+
+    ostringstream os;
+    const string& fun = mUndoRedoStack[i].function;
+    os << fun << "(" << redoVals << ") -- " << fun << "(" << undoVals << ")";
+    ret.push_back(os.str());
+  }
+
+  return ret;
+}
+
+//-----------------------------------------------------------------------------
+std::vector<std::string> LuaProvenance::getFullProvenanceDesc()
+{
+  return mProvenanceDescList;
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::printUndoStack()
+{
+  mScripting->exec("log.info(''); log.info('Undo Stack (left is undo, "
+                   "right redo):');");
+
+  vector<string> undoStack = getUndoStackDesc();
+  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
+      ++it)
+  {
+    // We use cexec for a little bit more efficiency.
+    mScripting->cexec("log.info", (*it));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::printRedoStack()
+{
+  mScripting->exec("log.info(''); log.info('Redo Stack (left is redo, "
+                   "right undo):');");
+
+  vector<string> undoStack = getRedoStackDesc();
+  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
+      ++it)
+  {
+    mScripting->cexec("log.info", (*it));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::printProvRecord()
+{
+  mScripting->exec("log.info(''); log.info('Provenance Record:');");
+
+  vector<string> undoStack = getFullProvenanceDesc();
+  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
+      ++it)
+  {
+    mScripting->cexec("log.info", (*it));
+  }
+}
+
 //==============================================================================
 //
 // UNIT TESTING
@@ -606,6 +669,7 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL(a->s1.c_str(), "T");
     sc->exec("provenance.undo()");
     CHECK_EQUAL(a->s1.c_str(), "");
+
     sc->exec("provenance.undo()");
     CHECK_CLOSE(a->f1, 0.0f, 0.001f);
     sc->exec("provenance.undo()");
@@ -614,6 +678,7 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL(a->i1, 2);
     sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i1, 1);
+
     sc->exec("provenance.undo()");
     CHECK_EQUAL(a->i2, 0);
     sc->exec("provenance.undo()");
@@ -688,7 +753,8 @@ SUITE(LuaProvenanceTests)
 
     CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
 
-    sc->printProvRecord();
+    // Uncomment to view all provenance.
+    //sc->exec("provenance.logProvenanceRecord()");
   }
 
   static int i1     = 0;

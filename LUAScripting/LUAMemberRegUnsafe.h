@@ -132,6 +132,11 @@ private:
           ss->logExecFailure(e.what());
           throw;
         }
+        catch (...)
+        {
+          ss->logExecFailure("");
+          throw;
+        }
 
         ss->doHooks(L, 1);
       }
@@ -174,8 +179,12 @@ private:
         }
         catch (std::exception& e)
         {
-          std::string failureStr = e.what();
-          ss->logExecFailure(failureStr);
+          ss->logExecFailure(e.what());
+          throw;
+        }
+        catch (...)
+        {
+          ss->logExecFailure("");
           throw;
         }
 

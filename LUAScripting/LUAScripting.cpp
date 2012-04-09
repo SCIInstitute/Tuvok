@@ -79,6 +79,8 @@ const char* LuaScripting::TBL_MD_HOOK_INDEX     = "hookIndex";
 const char* LuaScripting::TBL_MD_MEMBER_HOOKS   = "tblMHooks";
 const char* LuaScripting::TBL_MD_CPP_CLASS      = "scriptingCPP";
 const char* LuaScripting::TBL_MD_STACK_EXEMPT   = "stackExempt";
+const char* LuaScripting::TBL_MD_PROV_EXEMPT    = "provExempt";
+const char* LuaScripting::TBL_MD_TYPES_TABLE    = "typesTable";
 
 
 //-----------------------------------------------------------------------------
@@ -94,9 +96,9 @@ LuaScripting::LuaScripting()
   lua_atpanic(mL, &luaPanic);
   luaL_openlibs(mL);
 
-  mProvenance->registerLuaProvenanceFunctions();
-
   registerScriptFunctions();
+
+  mProvenance->registerLuaProvenanceFunctions();
 }
 
 //-----------------------------------------------------------------------------
@@ -148,6 +150,7 @@ void LuaScripting::registerScriptFunctions()
                                "log.info",
                                "Adds string to log.",
                                false);
+  setProvenanceExempt("log.info");
 }
 
 //-----------------------------------------------------------------------------
@@ -617,6 +620,9 @@ void LuaScripting::populateWithMetadata(const std::string& name,
   lua_pushboolean(mL, 0);
   lua_setfield(mL, tableIndex, TBL_MD_STACK_EXEMPT);
 
+  lua_pushboolean(mL, 0);
+  lua_setfield(mL, tableIndex, TBL_MD_PROV_EXEMPT);
+
   // Ensure our class is present as a light user data.
   // In this way, we can identify our own functions, and our functions
   // can modify state (such as provenance).
@@ -896,6 +902,13 @@ void LuaScripting::doHooks(lua_State* L, int tableIndex)
     logExecFailure(os.str());
     throw;
   }
+  catch (...)
+  {
+    ostringstream os;
+    os << " Static Hook";
+    logExecFailure(os.str());
+    throw;
+  }
 
   int numMemberHooks = 0;
 
@@ -929,6 +942,13 @@ void LuaScripting::doHooks(lua_State* L, int tableIndex)
   {
     ostringstream os;
     os << " Member Hook: " << e.what();
+    logExecFailure(os.str());
+    throw;
+  }
+  catch (...)
+  {
+    ostringstream os;
+    os << " Member Hook";
     logExecFailure(os.str());
     throw;
   }
@@ -966,11 +986,18 @@ void LuaScripting::doProvenanceFromExec(lua_State* L,
     bool stackExempt = lua_toboolean(L, -1) ? true : false;
     lua_pop(L, 1);
 
-    // Execute provenace.
-    mProvenance->logExecution(fqName,
-                              stackExempt,
-                              funParams,
-                              emptyParams);
+    lua_getfield(L, 1, LuaScripting::TBL_MD_PROV_EXEMPT);
+    bool provExempt = lua_toboolean(L, -1) ? true : false;
+    lua_pop(L, 1);
+
+    if (provExempt == false)
+    {
+      // Execute provenace.
+      mProvenance->logExecution(fqName,
+                                stackExempt,
+                                funParams,
+                                emptyParams);
+    }
   }
 }
 
@@ -989,6 +1016,21 @@ void LuaScripting::setUndoRedoStackExempt(const string& funcName)
 
   lua_pushnil(L);
   lua_setfield(L, -2, TBL_MD_FUN_LAST_EXEC);
+
+  // Pop off the function table.
+  lua_pop(L, 1);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::setProvenanceExempt(const std::string& fqName)
+{
+  setUndoRedoStackExempt(fqName);
+
+  lua_State* L = mL;
+  getFunctionTable(fqName);
+
+  lua_pushboolean(L, 1);
+  lua_setfield(L, -2, TBL_MD_PROV_EXEMPT);
 
   // Pop off the function table.
   lua_pop(L, 1);
@@ -1067,47 +1109,36 @@ void LuaScripting::cexec(const std::string& cmd)
   executeFunctionOnStack(0, 0);
 }
 
-//-----------------------------------------------------------------------------
-void LuaScripting::printUndoStack()
-{
-  vector<string> undoStack = mProvenance->getUndoStackDesc();
-  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
-      ++it)
-  {
-    // We use cexec for a semblance of efficiency.
-    cexec("log.info", (*it));
-  }
-}
-
-//-----------------------------------------------------------------------------
-void LuaScripting::printRedoStack()
-{
-  vector<string> undoStack = mProvenance->getRedoStackDesc();
-  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
-      ++it)
-  {
-    cexec("log.info", (*it));
-  }
-}
-
-//-----------------------------------------------------------------------------
-void LuaScripting::printProvRecord()
-{
-  vector<string> undoStack = mProvenance->getFullProvenanceDesc();
-  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
-      ++it)
-  {
-    cexec("log.info", (*it));
-  }
-}
 
 //-----------------------------------------------------------------------------
 void LuaScripting::logExecFailure(const std::string& failure)
 {
   ostringstream os;
-  os << " -- FAILED: " << failure;
+  os << " -- FAILED";
+  if (failure.size() > 0)
+  {
+    os << ": " << failure;
+  }
   mProvenance->ammendLastProvLog(os.str());
 }
+
+//-----------------------------------------------------------------------------
+void LuaScripting::checkTypeAndAddAsDefault(const std::type_info& type,
+                                            int funParamPos,
+                                            int valueIndex,
+                                            int funTableIndex)
+{
+  lua_getfield(mL, funTableIndex, TBL_MD_FUN_PDEFS);     // Defaults table.
+  lua_getfield(mL, funTableIndex, TBL_MD_FUN_LAST_EXEC); // Last Exec table.
+  lua_getfield(mL, funTableIndex, TBL_MD_TYPES_TABLE);   // Types table.
+  int dti = lua_gettop(mL) - 2;
+  int lti = lua_gettop(mL) - 1;
+  int tti = lua_gettop(mL);
+
+  //
+}
+
+
 
 //==============================================================================
 //
@@ -1594,6 +1625,7 @@ SUITE(TestLUAScriptingSystem)
   /// TODO: Add tests to check the exceptions thrown in the case of too many /
   /// too little parameters for cexec, and the return values for execRet.
 
+  /// TODO: Test default parameter resets (setDefaults).
 }
 
 

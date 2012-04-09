@@ -52,6 +52,7 @@
 #define TUVOK_LUAFUNBINDING_H_
 
 #include <iomanip>
+#include <typeinfo>
 
 namespace tuvok
 {
@@ -62,7 +63,37 @@ namespace tuvok
 //
 //==============================================================
 
-#define VOID_TYPE_STRING ("void")
+// Use this to debug shared_ptr mismatches. The system will use RTTI typeid
+// to ensure that types are consistent.
+// Checks will be added to the setDefaults function, and checks will be
+// added for all
+#define DEBUG_USE_RUNTIME_TYPE_CHECKING
+
+#ifdef DEBUG_USE_RUNTIME_TYPE_CHECKING
+// Type used for type identification. See bottom of file for justification
+// via C++ standard. This could easily be changed to use specialization
+typedef std::type_info* LSSTypeID;
+
+template <typename T>
+LSSTypeID LSS_getTypeInfo()
+{
+  return &typeid(T);
+}
+
+template <typename T>
+bool LSS_compareTypeInfo(lua_State* L, int stackIndex)
+{
+  LSSTypeID a = static_cast<LSSTypeID>(lua_touserdata(L, stackIndex));
+  return (*a) == (*LSS_getTypeInfo<T>());
+}
+
+template <typename T>
+void LSS_pushTypeInfo(lua_State* L)
+{
+  lua_pushlightuserdata(L, static_cast<void*>(LSS_getTypeInfo<T>()));
+}
+
+#endif
 
 // LUA strict type stack
 // This template enforces strict type compliance while converting types on the
@@ -98,9 +129,10 @@ public:
   static void push(lua_State* L, int in);
 
   static std::string getValStr(int in);
-  static std::string getTypeStr() { return VOID_TYPE_STRING; }
+  static std::string getTypeStr() { return "void"; }
 
   static int         getDefault();
+  static LSSTypeID   getTypeID();
 };
 
 template<>
@@ -220,7 +252,6 @@ public:
     std::ostringstream os;
     os << "'" << in << "'";
     return os.str();
-    return std::string(in);
   }
   static std::string getTypeStr() { return "string"; }
   static std::string getDefault() { return ""; }
@@ -242,7 +273,9 @@ public:
 
   static std::string getValStr(std::string in)
   {
-    return in;
+    std::ostringstream os;
+    os << "'" << in << "'";
+    return os.str();
   }
   static std::string getTypeStr() { return "string"; }
   static std::string getDefault() { return ""; }
@@ -264,7 +297,9 @@ public:
 
   static std::string getValStr(std::string& in)
   {
-    return in;
+    std::ostringstream os;
+    os << "'" << in << "'";
+    return os.str();
   }
   static std::string getTypeStr() { return "string"; }
   static std::string getDefault() { return ""; }
@@ -286,7 +321,9 @@ public:
 
   static std::string getValStr(const std::string& in)
   {
-    return in;
+    std::ostringstream os;
+    os << "'" << in << "'";
+    return os.str();
   }
   static std::string getTypeStr() { return "string"; }
   static std::string getDefault() { return ""; }
@@ -449,6 +486,8 @@ public:
   }
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  static void constructTypesTable(lua_State* L, int tblIndex)
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const      {}
   virtual void pullParamsFromStack(lua_State* L, int si)  {}
@@ -456,6 +495,7 @@ public:
   {
     return "";
   }
+
 };
 
 //-------------
@@ -480,6 +520,14 @@ public:
   }
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
+
+  static void constructTypesTable(lua_State* L)
+  {
+    int pos = 0;
+    const std::type_info* key;
+    lua_pushinteger(L, pos++);
+    lua_pushinteger(L, LuaStrictStack<P1>::getTypeID());
+  }
 
   LuaCFunExec()
   : MVIT(P1) {}

@@ -95,17 +95,6 @@ public:
   /// Each parameter indicates the number of hooks called.
   void logHooks(int staticHooks, int memberHooks);
 
-  /// Cursory description of the current undo stack.
-  std::vector<std::string> getUndoStackDesc();
-
-  /// Cursory description of the redo stack.
-  std::vector<std::string> getRedoStackDesc();
-
-  /// Description of all functions executed till this point.
-  std::vector<std::string> getFullProvenanceDesc();
-
-
-
 private:
 
   struct UndoRedoItem
@@ -131,7 +120,14 @@ private:
   void performUndoRedoOp(const std::string& funcName,
                          std::tr1::shared_ptr<LuaCFunAbstract> params);
 
+  std::vector<std::string> getUndoStackDesc();
+  void printUndoStack();
 
+  std::vector<std::string> getRedoStackDesc();
+  void printRedoStack();
+
+  std::vector<std::string> getFullProvenanceDesc();
+  void printProvRecord();
 
   bool                      mEnabled;
 

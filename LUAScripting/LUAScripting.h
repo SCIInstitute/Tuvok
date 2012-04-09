@@ -41,6 +41,9 @@
 #ifndef TUVOK_LUASCRIPTING_H_
 #define TUVOK_LUASCRIPTING_H_
 
+#include <typeinfo>
+// TODO: Include lua headers here.
+
 namespace tuvok
 {
 
@@ -76,6 +79,9 @@ public:
   ///                   You will not want undo/redo on functions that do not
   ///                   modify state (such as getters).
   ///
+  /// NOTES: The system is re-entrant, so you may call lua from within
+  /// registered functions, or even call other registered functions.
+  ///
   /// TO REGISTER MEMBER FUNCTIONS:
   /// Use the LUAMemberReg mediator class. It will clean up for you.
   /// functions.
@@ -109,6 +115,7 @@ public:
   T execRet(const std::string& cmd);
 
   /// The following functions allow you to call a function using C++ types.
+  /// These function are faster compared to the exec functions given above.
   ///
   /// Example: exec("myFunc", a, b, c, d, ...)
   ///@{
@@ -167,6 +174,41 @@ public:
   T cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
   ///@}
 
+  /// The following functions allow you to specify the default parameters to use
+  /// for registered functions.
+  /// This is so you can specify different undo/redo defaults (such as turning
+  /// lighting ON by default).
+  /// \param  name        Fully qualified name of the function whose defaults
+  ///                     you would like to set.
+  /// \param  callFunc    If true, the function will be called for you with the
+  ///                     given parameters.
+  ///@{
+  template <typename P1>
+  void setDefaults(const std::string& name,
+                   P1 p1);
+
+  template <typename P1, typename P2>
+  void setDefaults(const std::string& name,
+                   P1 p1, P2 p2);
+
+  template <typename P1, typename P2, typename P3>
+  void setDefaults(const std::string& name,
+                   P1 p1, P2 p2, P3 p3);
+
+  template <typename P1, typename P2, typename P3, typename P4>
+  void setDefaults(const std::string& name,
+                   P1 p1, P2 p2, P3 p3, P4 p4);
+
+  template <typename P1, typename P2, typename P3, typename P4, typename P5>
+  void setDefaults(const std::string& name,
+                   P1 p1, P2 p2, P3 p3, P4 p4, P5 p5);
+
+  template <typename P1, typename P2, typename P3, typename P4, typename P5,
+            typename P6>
+  void setDefaults(const std::string& name,
+                   P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6);
+  ///@}
+
   /// Default: Provenance is enabled. Disabling provenance will disable undo/
   /// redo.
   bool isProvenanceEnabled();
@@ -199,15 +241,21 @@ public:
   static const char* TBL_MD_MEMBER_HOOKS; ///< Class member function hook table
   static const char* TBL_MD_CPP_CLASS;    ///< Light user data to LuaScripting
   static const char* TBL_MD_STACK_EXEMPT; ///< True if undo/redo stack exempt
-
-  void printUndoStack();
-  void printRedoStack();
-  void printProvRecord();
+  static const char* TBL_MD_PROV_EXEMPT;  ///< True if provenance exempt.
+  static const char* TBL_MD_TYPES_TABLE;  ///< type_info userdata table.
 
 private:
 
   /// Used by friend class LuaProvenance.
   lua_State* getLUAState()  {return mL;}
+
+  /// This function should be used sparingly, and only for those functions that
+  /// do not modify state nor return internal state in some way.
+  /// I could not think of any functions outside the purview of LuaScripting
+  /// that would need to be provenance exempt, so it will remain private for
+  /// now.
+  /// E.G. Debug logging functions should be provenance exempt.
+  void setProvenanceExempt(const std::string& fqName);
 
   // NEVER deregister member functions, always let LuaMemberReg deregister
   // the functions.
@@ -228,6 +276,17 @@ private:
   /// Unregisters all functions registered using this LuaScripting instance.
   /// Should NEVER be called outside LuaScripting's destructor.
   void unregisterAllFunctions();
+
+  /// Expects the value to be added as the default to be on the top of the
+  /// stack. Pops this value off when the function completes.
+  /// \param  type          Type to check.
+  /// \param  funParamPo    Position of the parameter in the function's param
+  ///                       list.
+  /// \param  valueIndex    Position of the default value on the stack.
+  /// \param  funTableIndex Position of the function table on the stack.
+  void checkTypeAndAddAsDefault(const std::type_info& type,
+                                int funParamPos,
+                                int funTableIndex);
 
   /// Returns a new member hook ID.
   std::string getNewMemberHookID();
@@ -376,6 +435,11 @@ private:
           ss->logExecFailure(e.what());
           throw;
         }
+        catch (...)
+        {
+          ss->logExecFailure("");
+          throw;
+        }
 
         // Call registered hooks.
         // Note: The first parameter on the stack (not on the top, but
@@ -420,6 +484,11 @@ private:
         catch (std::exception& e)
         {
           ss->logExecFailure(e.what());
+          throw;
+        }
+        catch (...)
+        {
+          ss->logExecFailure("");
           throw;
         }
 
@@ -587,6 +656,126 @@ T LuaScripting::cexecRet(const std::string& cmd, P1 p1, P2 p2, P3 p3, P4 p4,
   return LuaStrictStack<T>::get(mL, lua_gettop(mL));
 }
 
+// From the C++ Standard [ISO/IEC 14882:1998(E)]
+// to ISO N3337 (post-C++11 standard with minor corrections)
+//  ¤5.2.8, first point . I paraphrase below (standard is copyrighted).
+//
+//   typeid returns an object of static type std::type_info. The object
+//   referred to by the return value (lvalue) of typeid is guaranteed to exist
+//   for the lifetime of the program.
+//
+// From this, we can safely deduce that the address of any type_info class will
+// remain valid for the life of the program.
+//
+// As such, we can store a pointer to a type_info object inside lua as a void*
+// and recast the object to compare types at a later time.
+// This functionality is needed for the setDefaults function and to ensure
+// that the objects pointed to by shared_ptrs are indeed the same type.
+//
+// I'm not considering cases where serialization to an external memory buffer
+// and back is concerned (you could use the type_info name, but that is
+// compiler dependent, and will not be cross-platform).
+//
+// For serialization, you could possibly use the template specializations in
+// LuaFunBinding, but shared_ptrs would need to be considered carefully.
+
+template <typename P1>
+void LuaScripting::setDefaults(const std::string& name,
+                               P1 p1)
+{
+  getFunctionTable(name);
+  int ftable = lua_gettop(mL);
+  LuaStrictStack<P1>::push(mL, p1);
+  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  lua_pop(mL, 1); // Remove function table.
+}
+
+template <typename P1, typename P2>
+void LuaScripting::setDefaults(const std::string& name,
+                               P1 p1, P2 p2)
+{
+  getFunctionTable(name);
+  int ftable = lua_gettop(mL);
+  LuaStrictStack<P1>::push(mL, p1);
+  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  LuaStrictStack<P2>::push(mL, p2);
+  checkTypeAndAddAsDefault(typeid(p2), 0, ftable);
+  lua_pop(mL, 1); // Remove function table.
+}
+
+template <typename P1, typename P2, typename P3>
+void LuaScripting::setDefaults(const std::string& name,
+                               P1 p1, P2 p2, P3 p3)
+{
+  getFunctionTable(name);
+  int ftable = lua_gettop(mL);
+  LuaStrictStack<P1>::push(mL, p1);
+  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  LuaStrictStack<P2>::push(mL, p2);
+  checkTypeAndAddAsDefault(typeid(p2), 0, ftable);
+  LuaStrictStack<P3>::push(mL, p3);
+  checkTypeAndAddAsDefault(typeid(p3), 0, ftable);
+  lua_pop(mL, 1); // Remove function table.
+}
+
+template <typename P1, typename P2, typename P3, typename P4>
+void LuaScripting::setDefaults(const std::string& name,
+                               P1 p1, P2 p2, P3 p3, P4 p4)
+{
+  getFunctionTable(name);
+  int ftable = lua_gettop(mL);
+  LuaStrictStack<P1>::push(mL, p1);
+  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  LuaStrictStack<P2>::push(mL, p2);
+  checkTypeAndAddAsDefault(typeid(p2), 0, ftable);
+  LuaStrictStack<P3>::push(mL, p3);
+  checkTypeAndAddAsDefault(typeid(p3), 0, ftable);
+  LuaStrictStack<P4>::push(mL, p4);
+  checkTypeAndAddAsDefault(typeid(p4), 0, ftable);
+  lua_pop(mL, 1); // Remove function table.
+}
+
+template <typename P1, typename P2, typename P3, typename P4, typename P5>
+void LuaScripting::setDefaults(const std::string& name,
+                               P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
+{
+  getFunctionTable(name);
+  int ftable = lua_gettop(mL);
+  LuaStrictStack<P1>::push(mL, p1);
+  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  LuaStrictStack<P2>::push(mL, p2);
+  checkTypeAndAddAsDefault(typeid(p2), 0, ftable);
+  LuaStrictStack<P3>::push(mL, p3);
+  checkTypeAndAddAsDefault(typeid(p3), 0, ftable);
+  LuaStrictStack<P4>::push(mL, p4);
+  checkTypeAndAddAsDefault(typeid(p4), 0, ftable);
+  LuaStrictStack<P5>::push(mL, p5);
+  checkTypeAndAddAsDefault(typeid(p5), 0, ftable);
+  lua_pop(mL, 1); // Remove function table.
+}
+
+template <typename P1, typename P2, typename P3, typename P4, typename P5,
+          typename P6>
+void LuaScripting::setDefaults(const std::string& name,
+                               P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
+{
+  getFunctionTable(name);
+  int ftable = lua_gettop(mL);
+  LuaStrictStack<P1>::push(mL, p1);
+  checkTypeAndAddAsDefault(typeid(p1), 0, ftable);
+  LuaStrictStack<P2>::push(mL, p2);
+  checkTypeAndAddAsDefault(typeid(p2), 0, ftable);
+  LuaStrictStack<P3>::push(mL, p3);
+  checkTypeAndAddAsDefault(typeid(p3), 0, ftable);
+  LuaStrictStack<P4>::push(mL, p4);
+  checkTypeAndAddAsDefault(typeid(p4), 0, ftable);
+  LuaStrictStack<P5>::push(mL, p5);
+  checkTypeAndAddAsDefault(typeid(p5), 0, ftable);
+  LuaStrictStack<P6>::push(mL, p6);
+  checkTypeAndAddAsDefault(typeid(p6), 0, ftable);
+  lua_pop(mL, 1); // Remove function table.
+}
+
 
 template <typename FunPtr>
 void LuaScripting::registerFunction(FunPtr f, const std::string& name,
@@ -621,6 +810,9 @@ void LuaScripting::registerFunction(FunPtr f, const std::string& name,
   defaultParams.pushParamsToStack(mL);
   int numFunParams = lua_gettop(mL) - tableIndex;
   createDefaultsAndLastExecTables(tableIndex, numFunParams);
+
+  // TODO: Create and populate C++ types table
+  // (LuaCFunExec<FunPtr> should be used to extract the types)
 
   int testPos = lua_gettop(mL);
 
