@@ -163,9 +163,11 @@ SUITE(LuaTestMemberFunctionRegistration)
     /// TODO  Ensure LuaNonExistantFunction is thrown. This will have to be
     ///       coordinated with Lua somehow when using exec. Should be
     ///       straightforward with cexec.
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(sc->exec("a.m1()"), LuaError);
     CHECK_THROW(sc->exec("a.m2(34)"), LuaError);
     CHECK_THROW(sc->exec("a.m5()"), LuaError);
+    sc->setExpectedExceptionFlag(false);
   }
 
   TEST(MemberFunctionCallHooksAndDereg)

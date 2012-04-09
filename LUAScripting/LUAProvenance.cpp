@@ -250,6 +250,7 @@ void LuaProvenance::logExecution(const string& fname,
 
   // Gather last execution parameters for inclusion in the undo stack.
   lua_State* L = mScripting->getLUAState();
+  LuaStackRAII _a = LuaStackRAII(L, 0);
   int stackTop = lua_gettop(L);
   mScripting->getFunctionTable(fname.c_str());
   lua_getfield(L, -1, LuaScripting::TBL_MD_FUN_LAST_EXEC);
@@ -362,6 +363,7 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
   // Obtain function's table, then grab its metamethod __call.
   // Push parameters onto the stack after the __call method, and execute.
   lua_State* L = mScripting->getLUAState();
+  LuaStackRAII _a = LuaStackRAII(L, 0);
   int initStackTop = lua_gettop(L);
   mScripting->getFunctionTable(funcName);
   int funTable = lua_gettop(L);
@@ -605,8 +607,10 @@ SUITE(LuaProvenanceTests)
     // TODO: Need to think about this problem in general, and how we are going
     // to deal with it. More than likely, we will not expose pcall to the end
     // user of this system.
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
     CHECK_THROW(sc->exec("provenance.undo()"), LuaProvenanceInvalidUndo);
+    sc->setExpectedExceptionFlag(false);
 
     sc->exec("set_i1(1)");
     sc->exec("set_i2(10)");
@@ -632,7 +636,9 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL(a->s1.c_str(), "Test");
     CHECK_EQUAL(a->s2.c_str(), "Test2");
 
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
+    sc->setExpectedExceptionFlag(false);
 
     // Begin issuing undo / redos
     sc->exec("provenance.undo()");
@@ -685,7 +691,9 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL(a->i1, 0);
 
     // This invalid undo should not destroy state.
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(sc->exec("provenance.undo()"), LuaProvenanceInvalidUndo);
+    sc->setExpectedExceptionFlag(false);
 
     // Check to make sure default values are present.
     CHECK_EQUAL(a->i1, 0);
@@ -725,7 +733,9 @@ SUITE(LuaProvenanceTests)
     sc->exec("provenance.redo()");
     CHECK_CLOSE(a->f2, -5.3f, 0.001f);
 
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
+    sc->setExpectedExceptionFlag(false);
 
     // Check final values again.
     CHECK_EQUAL(a->i1, 100);
@@ -744,14 +754,18 @@ SUITE(LuaProvenanceTests)
     sc->exec("set_i1(42)");
     CHECK_EQUAL(42, a->i1);
 
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
+    sc->setExpectedExceptionFlag(false);
 
     sc->exec("provenance.undo()");
     sc->exec("provenance.undo()");
     sc->exec("provenance.redo()");
     sc->exec("set_i1(45)");
 
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
+    sc->setExpectedExceptionFlag(false);
 
     // Uncomment to view all provenance.
     //sc->exec("provenance.logProvenanceRecord()");

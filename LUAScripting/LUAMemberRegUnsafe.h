@@ -101,6 +101,8 @@ private:
   {
     static int exec(lua_State* L)
     {
+      LuaStackRAII _a = LuaStackRAII(L, 1); // 1 for the return value.
+
       FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
       typename LuaCFunExec<FunPtr>::classType* C =
                   static_cast<typename LuaCFunExec<FunPtr>::classType*>(
@@ -157,6 +159,8 @@ private:
   {
     static int exec(lua_State* L)
     {
+      LuaStackRAII _a = LuaStackRAII(L, 0);
+
       FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
       typename LuaCFunExec<FunPtr>::classType* C =
           static_cast<typename LuaCFunExec<FunPtr>::classType*>(
@@ -210,6 +214,8 @@ void LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
 {
   LuaScripting* ss  = mScriptSystem;
   lua_State*    L   = ss->getLUAState();
+
+  LuaStackRAII _a = LuaStackRAII(L, 0);
 
   int initStackTop = lua_gettop(L);
 
@@ -299,6 +305,8 @@ void LuaMemberRegUnsafe::strictHook(T* C, FunPtr f, const std::string& name)
   LuaScripting* ss  = mScriptSystem;
   lua_State*    L   = ss->getLUAState();
 
+  LuaStackRAII _a = LuaStackRAII(L, 0);
+
   // Need to check the signature of the function that we are trying to bind
   // into the script system.
   int initStackTop = lua_gettop(L);
@@ -358,6 +366,8 @@ void LuaMemberRegUnsafe::strictHook(T* C, FunPtr f, const std::string& name)
   lua_setfield(L, hookTable, mHookID.c_str());
 
   mHookedFunctions.push_back(name);
+
+  lua_pop(L, 2);  // Remove the function table and the hooks table.
 }
 
 }

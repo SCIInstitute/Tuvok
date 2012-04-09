@@ -53,8 +53,6 @@
 #include <vector>
 #include <algorithm>
 
-#include "LUAError.h"
-#include "LUAFunBinding.h"
 #include "LUAScripting.h"
 #include "LUAProvenance.h"
 #include "LuaMemberRegUnsafe.h"
@@ -82,6 +80,10 @@ const char* LuaScripting::TBL_MD_STACK_EXEMPT   = "stackExempt";
 const char* LuaScripting::TBL_MD_PROV_EXEMPT    = "provExempt";
 const char* LuaScripting::TBL_MD_NUM_PARAMS     = "numParams";
 
+// To avoid naming conflicts with other libraries, we prefix all of our
+// registry values with tuvok_
+const char* LuaScripting::REG_EXPECTED_EXCEPTION_FLAG = "tuvok_exceptFlag";
+
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
 const char* LuaScripting::TBL_MD_TYPES_TABLE    = "typesTable";
 #endif
@@ -99,6 +101,8 @@ LuaScripting::LuaScripting()
 
   lua_atpanic(mL, &luaPanic);
   luaL_openlibs(mL);
+
+  setExpectedExceptionFlag(false);
 
   registerScriptFunctions();
 
@@ -124,6 +128,19 @@ int LuaScripting::luaPanic(lua_State* L)
 
   ostringstream os;
   os << "Lua Error: " << lua_tostring(L, -1);
+
+  lua_getfield(L, LUA_REGISTRYINDEX,
+                 LuaScripting::REG_EXPECTED_EXCEPTION_FLAG);
+  bool isExpectingException = lua_toboolean(L, -1) ? true : false;
+  if (isExpectingException == false)
+  {
+    // Even though we are in the Lua panic function, we can still use Lua to
+    // log information and errors.
+    ostringstream luaOut;
+    luaOut << "log.error([==[" << os.str() << "]==])";  // Could also use [[ ]]
+    luaL_dostring(L, luaOut.str().c_str());
+  }
+
   throw LuaError(os.str().c_str());
 
   // Returning from this function would mean that abort() gets called by LUA.
@@ -155,11 +172,18 @@ void LuaScripting::registerScriptFunctions()
                                "Adds string to log.",
                                false);
   setProvenanceExempt("log.info");
+  /// TODO: Make a separate function for logging errors (using logInfo now).
+  mMemberReg->registerFunction(this, &LuaScripting::logInfo,
+                                "log.error",
+                                "Logs an error.",
+                                false);
+   setProvenanceExempt("log.error");
 }
 
 //-----------------------------------------------------------------------------
 void LuaScripting::logInfo(string log)
 {
+  // TODO: Add logging functionality for Tuvok.
 #ifdef EXTERNAL_UNIT_TESTING
   cout << log << endl;
 #endif
@@ -180,6 +204,7 @@ void LuaScripting::enableProvenance(bool enable)
 //-----------------------------------------------------------------------------
 void LuaScripting::unregisterAllFunctions()
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   for (vector<string>::const_iterator it = mRegisteredGlobals.begin();
        it != mRegisteredGlobals.end(); ++it)
   {
@@ -198,6 +223,7 @@ void LuaScripting::unregisterAllFunctions()
 void LuaScripting::removeFunctionsFromTable(int parentTable,
                                             const char* tableName)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   // Iterate over the first table on the stack.
   int tablePos = lua_gettop(mL);
 
@@ -254,6 +280,11 @@ void LuaScripting::removeFunctionsFromTable(int parentTable,
 //-----------------------------------------------------------------------------
 vector<LuaScripting::FunctionDesc> LuaScripting::getAllFuncDescs() const
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+                        // ¤3.7.3.1 -- Automatic storage duration.
+                        // ¤6.7.2 -- Destroyed at the end of the block in
+                        //           reverse order of creation.
+
   vector<LuaScripting::FunctionDesc> ret;
 
   // Iterate over all registered modules and do a recursive descent through
@@ -273,6 +304,8 @@ vector<LuaScripting::FunctionDesc> LuaScripting::getAllFuncDescs() const
 void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
   const
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
   // Iterate over the first table on the stack.
   int tablePos = lua_gettop(mL);
 
@@ -343,6 +376,8 @@ string LuaScripting::getUnqualifiedName(const string& fqName)
 void LuaScripting::bindClosureTableWithFQName(const string& fqName,
                                               int tableIndex)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0, __FILE__, __LINE__);
+
   int baseStackIndex = lua_gettop(mL);
 
   // Tokenize the fully qualified name.
@@ -489,13 +524,13 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
       }
     }
   }
-
-  assert(baseStackIndex == lua_gettop(mL));
 }
 
 //-----------------------------------------------------------------------------
 bool LuaScripting::isOurRegisteredFunction(int stackIndex) const
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
   // Extract the light user data that holds a pointer to the class that was
   // used to register this function.
   lua_getfield(mL, stackIndex, TBL_MD_CPP_CLASS);
@@ -515,6 +550,8 @@ bool LuaScripting::isOurRegisteredFunction(int stackIndex) const
 //-----------------------------------------------------------------------------
 bool LuaScripting::isRegisteredFunction(int stackIndex) const
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
   // Check to make sure this table is NOT a registered function.
   if (lua_getmetatable(mL, stackIndex) != 0)
   {
@@ -541,6 +578,8 @@ bool LuaScripting::isRegisteredFunction(int stackIndex) const
 void LuaScripting::createCallableFuncTable(lua_CFunction proxyFunc,
                                            void* realFuncToCall)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 1, __FILE__, __LINE__);
+
   // Table containing the function closure.
   lua_newtable(mL);
   int tableIndex = lua_gettop(mL);
@@ -583,6 +622,8 @@ void LuaScripting::populateWithMetadata(const std::string& name,
                                         const std::string& sigNoReturn,
                                         int tableIndex)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
   int top = lua_gettop(mL);
 
   // Function description
@@ -640,6 +681,8 @@ void LuaScripting::populateWithMetadata(const std::string& name,
 void LuaScripting::createDefaultsAndLastExecTables(int tableIndex,
                                                    int numFunParams)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, -numFunParams);
+
   int entryTop = lua_gettop(mL);
   int firstParamPos = (lua_gettop(mL) - numFunParams) + 1;
 
@@ -1043,6 +1086,8 @@ void LuaScripting::setProvenanceExempt(const std::string& fqName)
 //-----------------------------------------------------------------------------
 void LuaScripting::copyDefaultsTableToLastExec(int funTableIndex)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
   // Push a copy of the defaults table onto the stack.
   lua_getfield(mL, funTableIndex, TBL_MD_FUN_PDEFS);
   int defTablePos = lua_gettop(mL);
@@ -1095,6 +1140,9 @@ void LuaScripting::prepForExecution(const std::string& fqName)
 //-----------------------------------------------------------------------------
 void LuaScripting::executeFunctionOnStack(int nparams, int nret)
 {
+  // - 2 because we have the function table as a transparent parameter
+  // and lua_call will also pop the function off the stack.
+  LuaStackRAII _a = LuaStackRAII(mL, -nparams - 2 + nret);
   // + 1 is for the function table that was pushed by prepForExecution.
   lua_call(mL, nparams + 1, nret);
 }
@@ -1102,6 +1150,7 @@ void LuaScripting::executeFunctionOnStack(int nparams, int nret)
 //-----------------------------------------------------------------------------
 void LuaScripting::exec(const std::string& cmd)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   luaL_loadstring(mL, cmd.c_str());
   lua_call(mL, 0, 0);
 }
@@ -1109,6 +1158,7 @@ void LuaScripting::exec(const std::string& cmd)
 //-----------------------------------------------------------------------------
 void LuaScripting::cexec(const std::string& cmd)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(cmd);
   executeFunctionOnStack(0, 0);
 }
@@ -1116,6 +1166,8 @@ void LuaScripting::cexec(const std::string& cmd)
 //-----------------------------------------------------------------------------
 void LuaScripting::resetFunDefault(int argumentPos, int ftableStackPos)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, -1);
+
   int valPos = lua_gettop(mL);
   lua_getfield(mL, ftableStackPos, TBL_MD_FUN_PDEFS);
   int defs = lua_gettop(mL);
@@ -1146,6 +1198,14 @@ void LuaScripting::logExecFailure(const std::string& failure)
   mProvenance->ammendLastProvLog(os.str());
 }
 
+//-----------------------------------------------------------------------------
+void LuaScripting::setExpectedExceptionFlag(bool expected)
+{
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  lua_pushboolean(mL, expected ? 1 : 0);
+  lua_setfield(mL, LUA_REGISTRYINDEX,
+               LuaScripting::REG_EXPECTED_EXCEPTION_FLAG);
+}
 
 
 //==============================================================================
@@ -1196,6 +1256,7 @@ SUITE(TestLUAScriptingSystem)
     // match the exceptions we are getting.
 
     // Exception: No trailing name after period.
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(
         sc->registerFunction(&dfun, "err.err.dummyFun.", "Func.", true),
         LuaFunBindError);
@@ -1221,6 +1282,7 @@ SUITE(TestLUAScriptingSystem)
     CHECK_THROW(
         sc->registerFunction(&dfun, "func.Func2", "Func.", true),
         LuaFunBindError);
+    sc->setExpectedExceptionFlag(false);
   }
 
 
@@ -1480,6 +1542,7 @@ SUITE(TestLUAScriptingSystem)
     // Test failure cases
 
     // Invalid function names
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(
         sc->strictHook(&myHook1, "func3"),
         LuaNonExistantFunction);
@@ -1500,6 +1563,7 @@ SUITE(TestLUAScriptingSystem)
     CHECK_THROW(
         sc->strictHook(&myHook2, "func1"),
         LuaInvalidFunSignature);
+    sc->setExpectedExceptionFlag(false);
   }
 
   static int    i1  = 0;
@@ -1641,6 +1705,7 @@ SUITE(TestLUAScriptingSystem)
     CHECK_EQUAL("Out: 65 1 4.3 str!",
                 sc->cexecRet<string>("tpr", 65, true, 4.3f, "str!").c_str());
 
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(sc->cexec("tpr", 12, true),               LuaUnequalNumParams);
     CHECK_THROW(sc->cexec("tpr", 12, true, 4.3f, "s", 1), LuaUnequalNumParams);
     CHECK_THROW(sc->cexec("tpr", 12, "s", 4.3f, "s"),     LuaInvalidType);
@@ -1648,6 +1713,7 @@ SUITE(TestLUAScriptingSystem)
     CHECK_THROW(sc->cexec("tpr", 5, false, 32, "s"),      LuaInvalidType);
     CHECK_THROW(sc->cexec("tpr", 5, false, 32.0, "s"),    LuaInvalidType);
     CHECK_THROW(sc->cexec("tpr", 5, false, 32.0f, 3),     LuaInvalidType);
+    sc->setExpectedExceptionFlag(false);
   }
 
 #endif

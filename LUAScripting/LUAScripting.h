@@ -44,6 +44,10 @@
 #include <typeinfo>
 // TODO: Include lua headers here.
 
+#include "LUAError.h"
+#include "LUAFunBinding.h"
+#include "LUAStackRAII.h"
+
 namespace tuvok
 {
 
@@ -54,6 +58,7 @@ class LuaScripting
 {
   friend class LuaMemberRegUnsafe;  // For member function registration.
   friend class LuaProvenance;       // For obtaining function tables.
+  friend class LuaStackRAII;        // For unwinding lua stack during exception
 public:
 
   LuaScripting();
@@ -248,10 +253,15 @@ public:
   static const char* TBL_MD_TYPES_TABLE;  ///< type_info userdata table.
 #endif
 
-  /// Used by friend class LuaProvenance.
-  lua_State* getLUAState()  {return mL;}
+  /// Sets a flag in the Lua registry indicating that an exception is expected
+  /// that will cause the lua stack to be unbalanced in internal functions.
+  /// This is to avoid debug log output, more than anything else.
+  void setExpectedExceptionFlag(bool expected);
 
 private:
+
+  /// Used by friend class LuaProvenance.
+  lua_State* getLUAState()  {return mL;}
 
   /// This function should be used sparingly, and only for those functions that
   /// do not modify state nor return internal state in some way.
@@ -380,13 +390,12 @@ private:
   /// Exec failure.
   void logExecFailure(const std::string& failure);
 
-#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
-  /// Assumes all function parameters are on top of the stack, where the
-  /// parameter at the top of the stack corresponds to the last argument
-  /// in the function parameter list.
-  template <typename FunPtr>
-  void validateTypeTableAgainstStack(int funTableIndex);
-#endif
+  /// Lua Registry Values
+  ///@{
+  /// Expected exception flag. Affects LuaStackRAII, and the logging of errors.
+  static const char* REG_EXPECTED_EXCEPTION_FLAG;
+  ///@}
+
 
   /// The one true LUA state.
   lua_State*                        mL;
@@ -409,6 +418,8 @@ private:
   {
     static int exec(lua_State* L)
     {
+      LuaStackRAII _a = LuaStackRAII(L, 1); // 1 return value.
+
       FunPtr fp = reinterpret_cast<FunPtr>(
           lua_touserdata(L, lua_upvalueindex(1)));
 
@@ -469,6 +480,8 @@ private:
   {
     static int exec(lua_State* L)
     {
+      LuaStackRAII _a = LuaStackRAII(L, 0);
+
       FunPtr fp = reinterpret_cast<FunPtr>(
           lua_touserdata(L, lua_upvalueindex(1)));
       if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
@@ -519,6 +532,8 @@ private:
 template <typename T>
 T LuaScripting::execRet(const std::string& cmd)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
   std::string retCmd = "return " + cmd;
   luaL_loadstring(mL, retCmd.c_str());
   lua_call(mL, 0, LUA_MULTRET);
@@ -534,6 +549,8 @@ template <typename T>
 void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
                          int ftable, int typesTable, int check_pos)
 {
+  LuaStackRAII _a = LuaStackRAII(L, 0);
+
   lua_pushinteger(L, check_pos++);
   lua_gettable(L, typesTable);
   if (LSS_compareToTypeOnStack<T>(L, -1) == false)
@@ -564,6 +581,7 @@ void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
 template <typename P1>
 void LuaScripting::cexec(const std::string& name, P1 p1)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -583,6 +601,7 @@ void LuaScripting::cexec(const std::string& name, P1 p1)
 template <typename P1, typename P2>
 void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -604,6 +623,7 @@ void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2)
 template <typename P1, typename P2, typename P3>
 void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -627,6 +647,7 @@ void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3)
 template <typename P1, typename P2, typename P3, typename P4>
 void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -653,6 +674,7 @@ template <typename P1, typename P2, typename P3, typename P4, typename P5>
 void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
                          P5 p5)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -682,6 +704,7 @@ template <typename P1, typename P2, typename P3, typename P4, typename P5,
 void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
                          P5 p5, P6 p6)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -712,13 +735,17 @@ void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
 template <typename T>
 T LuaScripting::cexecRet(const std::string& name)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
   executeFunctionOnStack(0, 1);
-  return LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  T ret = LuaStrictStack<T>::get(mL, lua_gettop(mL));
+  lua_pop(mL, 1); // Pop return value.
+  return ret;
 }
 template <typename T, typename P1>
 T LuaScripting::cexecRet(const std::string& name, P1 p1)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -741,6 +768,7 @@ T LuaScripting::cexecRet(const std::string& name, P1 p1)
 template <typename T, typename P1, typename P2>
 T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -765,6 +793,7 @@ T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2)
 template <typename T, typename P1, typename P2, typename P3>
 T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -791,6 +820,7 @@ T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3)
 template <typename T, typename P1, typename P2, typename P3, typename P4>
 T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -821,6 +851,7 @@ template <typename T, typename P1, typename P2, typename P3, typename P4,
 T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
                          P5 p5)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -853,6 +884,7 @@ template <typename T, typename P1, typename P2, typename P3, typename P4,
 T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
                          P5 p5, P6 p6)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   prepForExecution(name);
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   int ftable = lua_gettop(mL);
@@ -888,6 +920,7 @@ template <typename P1>
 void LuaScripting::setDefaults(const std::string& name,
                                P1 p1)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
   int pos = 0;
@@ -914,6 +947,7 @@ template <typename P1, typename P2>
 void LuaScripting::setDefaults(const std::string& name,
                                P1 p1, P2 p2)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
   int pos = 0;
@@ -943,6 +977,7 @@ template <typename P1, typename P2, typename P3>
 void LuaScripting::setDefaults(const std::string& name,
                                P1 p1, P2 p2, P3 p3)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
   int pos = 0;
@@ -975,6 +1010,7 @@ template <typename P1, typename P2, typename P3, typename P4>
 void LuaScripting::setDefaults(const std::string& name,
                                P1 p1, P2 p2, P3 p3, P4 p4)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
   int pos = 0;
@@ -1010,6 +1046,7 @@ template <typename P1, typename P2, typename P3, typename P4, typename P5>
 void LuaScripting::setDefaults(const std::string& name,
                                P1 p1, P2 p2, P3 p3, P4 p4, P5 p5)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
   int pos = 0;
@@ -1049,6 +1086,7 @@ template <typename P1, typename P2, typename P3, typename P4, typename P5,
 void LuaScripting::setDefaults(const std::string& name,
                                P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
   getFunctionTable(name);
   int ftable = lua_gettop(mL);
   int pos = 0;
@@ -1090,6 +1128,8 @@ template <typename FunPtr>
 void LuaScripting::registerFunction(FunPtr f, const std::string& name,
                                     const std::string& desc, bool undoRedo)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
   // Idea: Build a 'callable' table.
   // Its metatable will have a __call metamethod that points to the C
   // function closure.
@@ -1128,13 +1168,9 @@ void LuaScripting::registerFunction(FunPtr f, const std::string& name,
   lua_setfield(mL, tableIndex, TBL_MD_TYPES_TABLE);
 #endif
 
-  int testPos = lua_gettop(mL);
-
   // Install the callable table in the appropriate module based on its
   // fully qualified name.
   bindClosureTableWithFQName(name, tableIndex);
-
-  testPos = lua_gettop(mL);
 
   lua_pop(mL, 1);   // Pop the callable table.
 
@@ -1146,6 +1182,8 @@ void LuaScripting::registerFunction(FunPtr f, const std::string& name,
 template <typename FunPtr>
 void LuaScripting::strictHook(FunPtr f, const std::string& name)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
   // Need to check the signature of the function that we are trying to bind
   // into the script system.
   int initStackTop = lua_gettop(mL);
@@ -1199,17 +1237,9 @@ void LuaScripting::strictHook(FunPtr f, const std::string& name)
 
   // Associate closure with hook table.
   lua_setfield(mL, hookTable, os.str().c_str());
-}
 
-// TODO Class to unwind the LUA stack when an exception occurs.
-//      Something akin to: LuaStackRAII(L) at the top of a function.
-//      This will grab the index at the top of the lua stack, and rewind to
-//      it in the class' destructor.
-//
-//      Note. This shouldn't be used in all functions. Some functions
-//      purposefully leave values on the top of the stack. In these cases, we
-//      could have a parameter in the constructor indicating how many values
-//      to leave on the stack.
+  lua_pop(mL, 2);  // Remove the function table and the hooks table.
+}
 
 } /* namespace tuvok */
 #endif /* LUASCRIPTING_H_ */
