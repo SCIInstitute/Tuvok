@@ -61,7 +61,6 @@ public:
   LuaMemberRegUnsafe(LuaScripting* scriptSys);
   virtual ~LuaMemberRegUnsafe();
 
-
   // See LuaScripting::registerFunction for an in depth description of params.
   // The only difference is the parameter C, which is the context class for the
   // member function pointer.
@@ -109,9 +108,6 @@ private:
       Ret r;
       if (lua_toboolean(L, lua_upvalueindex(3)) == 0)
       {
-        // We are not a hook call.
-        r = LuaCFunExec<FunPtr>::run(L, 2, C, fp);
-
         std::tr1::shared_ptr<LuaCFunAbstract> execParams(
             new LuaCFunExec<FunPtr>());
         std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
@@ -127,7 +123,17 @@ private:
             lua_touserdata(L, lua_upvalueindex(4)));
         ss->doProvenanceFromExec(L, execParams, emptyParams);
 
-        LuaScripting::doHooks(L, 1);
+        try
+        {
+          r = LuaCFunExec<FunPtr>::run(L, 2, C, fp);
+        }
+        catch (std::exception& e)
+        {
+          ss->logExecFailure(e.what());
+          throw;
+        }
+
+        ss->doHooks(L, 1);
       }
       else
       {
@@ -152,8 +158,6 @@ private:
 
       if (lua_toboolean(L, lua_upvalueindex(3)) == 0)
       {
-        LuaCFunExec<FunPtr>::run(L, 2, C, fp);
-
         std::tr1::shared_ptr<LuaCFunAbstract> execParams(
             new LuaCFunExec<FunPtr>());
         std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
@@ -164,7 +168,18 @@ private:
             lua_touserdata(L, lua_upvalueindex(4)));
         ss->doProvenanceFromExec(L, execParams, emptyParams);
 
-        LuaScripting::doHooks(L, 1);
+        try
+        {
+          LuaCFunExec<FunPtr>::run(L, 2, C, fp);
+        }
+        catch (std::exception& e)
+        {
+          std::string failureStr = e.what();
+          ss->logExecFailure(failureStr);
+          throw;
+        }
+
+        ss->doHooks(L, 1);
       }
       else
       {

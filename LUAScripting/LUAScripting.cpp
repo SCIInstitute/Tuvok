@@ -57,6 +57,7 @@
 #include "LUAFunBinding.h"
 #include "LUAScripting.h"
 #include "LUAProvenance.h"
+#include "LuaMemberRegUnsafe.h"
 
 using namespace std;
 
@@ -84,6 +85,7 @@ const char* LuaScripting::TBL_MD_STACK_EXEMPT   = "stackExempt";
 LuaScripting::LuaScripting()
 : mMemberHookIndex(0)
 , mProvenance(new LuaProvenance(this))
+, mMemberReg(new LuaMemberRegUnsafe(this))
 {
   mL = lua_newstate(luaInternalAlloc, NULL);
 
@@ -93,6 +95,8 @@ LuaScripting::LuaScripting()
   luaL_openlibs(mL);
 
   mProvenance->registerLuaProvenanceFunctions();
+
+  registerScriptFunctions();
 }
 
 //-----------------------------------------------------------------------------
@@ -135,6 +139,23 @@ void* LuaScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
   {
     return realloc(ptr, nsize);
   }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::registerScriptFunctions()
+{
+  mMemberReg->registerFunction(this, &LuaScripting::logInfo,
+                               "log.info",
+                               "Adds string to log.",
+                               false);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::logInfo(string log)
+{
+#ifdef EXTERNAL_UNIT_TESTING
+  cout << log << endl;
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -842,25 +863,41 @@ void LuaScripting::doHooks(lua_State* L, int tableIndex)
 
   lua_checkstack(L, numArgs + 3);
 
+  int numStaticHooks = 0;
+
   // Obtain the hooks table and iterate over it calling the lua closures.
   lua_getfield(L, tableIndex, TBL_MD_HOOKS);
   int hookTable = lua_gettop(L);
 
-  lua_pushnil(L);
-  while (lua_next(L, hookTable))
+  try
   {
-    // The value at the top of the stack is the lua closure to call.
-    // This call will automatically pop the function off the stack,
-    // so we don't need a pop at the end of the loop
-
-    // Push all of the arguments.
-    for (int i = 0; i < numArgs; i++)
+    lua_pushnil(L);
+    while (lua_next(L, hookTable))
     {
-      lua_pushvalue(L, tableIndex + i + 1);
+      // The value at the top of the stack is the lua closure to call.
+      // This call will automatically pop the function off the stack,
+      // so we don't need a pop at the end of the loop
+
+      // Push all of the arguments.
+      for (int i = 0; i < numArgs; i++)
+      {
+        lua_pushvalue(L, tableIndex + i + 1);
+      }
+      lua_pcall(L, numArgs, 0, 0);
+
+      ++numStaticHooks;
     }
-    lua_pcall(L, numArgs, 0, 0);
+    lua_pop(L, 1);  // Remove the hooks table.
   }
-  lua_pop(L, 1);  // Remove the hooks table.
+  catch (exception& e)
+  {
+    ostringstream os;
+    os << " Static Hook: " << e.what();
+    logExecFailure(os.str());
+    throw;
+  }
+
+  int numMemberHooks = 0;
 
   // Obtain the member function hooks table, and iterate over it.
   // XXX: Update to allow classes to register multiple hook for one function
@@ -871,17 +908,34 @@ void LuaScripting::doHooks(lua_State* L, int tableIndex)
   //      index stored in the table).
   lua_getfield(L, tableIndex, TBL_MD_MEMBER_HOOKS);
   hookTable = lua_gettop(L);
-  lua_pushnil(L);
-  while (lua_next(L, hookTable))
+
+  try
   {
-    // Push all of the arguments.
-    for (int i = 0; i < numArgs; i++)
+    lua_pushnil(L);
+    while (lua_next(L, hookTable))
     {
-      lua_pushvalue(L, tableIndex + i + 1);
+      // Push all of the arguments.
+      for (int i = 0; i < numArgs; i++)
+      {
+        lua_pushvalue(L, tableIndex + i + 1);
+      }
+      lua_pcall(L, numArgs, 0, 0);
+
+      ++numMemberHooks;
     }
-    lua_pcall(L, numArgs, 0, 0);
+    lua_pop(L, 1);  // Remove the member hooks table.
   }
-  lua_pop(L, 1);  // Remove the member hooks table.
+  catch (exception& e)
+  {
+    ostringstream os;
+    os << " Member Hook: " << e.what();
+    logExecFailure(os.str());
+    throw;
+  }
+
+  int totalHooks = numStaticHooks + numMemberHooks;
+  if (totalHooks > 0)
+    mProvenance->logHooks(numStaticHooks, numMemberHooks);
 
   assert(stackTop == lua_gettop(L));
 }
@@ -1011,6 +1065,48 @@ void LuaScripting::cexec(const std::string& cmd)
 {
   prepForExecution(cmd);
   executeFunctionOnStack(0, 0);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::printUndoStack()
+{
+  vector<string> undoStack = mProvenance->getUndoStackDesc();
+  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
+      ++it)
+  {
+    // We use cexec for a semblance of efficiency.
+    cexec("log.info", (*it));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::printRedoStack()
+{
+  vector<string> undoStack = mProvenance->getRedoStackDesc();
+  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
+      ++it)
+  {
+    cexec("log.info", (*it));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::printProvRecord()
+{
+  vector<string> undoStack = mProvenance->getFullProvenanceDesc();
+  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
+      ++it)
+  {
+    cexec("log.info", (*it));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::logExecFailure(const std::string& failure)
+{
+  ostringstream os;
+  os << " -- FAILED: " << failure;
+  mProvenance->ammendLastProvLog(os.str());
 }
 
 //==============================================================================

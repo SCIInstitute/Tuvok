@@ -51,6 +51,8 @@
 #ifndef TUVOK_LUAFUNBINDING_H_
 #define TUVOK_LUAFUNBINDING_H_
 
+#include <iomanip>
+
 namespace tuvok
 {
 
@@ -74,6 +76,7 @@ public:
   // template is chosen.
   static T get(lua_State* L, int pos);
   static void push(lua_State* L, T data);
+  static std::string getValStr(T in);
   static std::string getTypesStr();
   static T getDefault();
 };
@@ -94,6 +97,7 @@ public:
   static int get(lua_State* L, int pos);
   static void push(lua_State* L, int in);
 
+  static std::string getValStr(int in);
   static std::string getTypeStr() { return VOID_TYPE_STRING; }
 
   static int         getDefault();
@@ -113,6 +117,12 @@ public:
     lua_pushinteger(L, in);
   }
 
+  static std::string getValStr(int in)
+  {
+    std::ostringstream os;
+    os << in;
+    return os.str();
+  }
   static std::string getTypeStr() { return "int"; }
   static int         getDefault() { return 0; }
 };
@@ -133,6 +143,12 @@ public:
     lua_pushboolean(L, in ? 1 : 0);
   }
 
+  static std::string getValStr(bool in)
+  {
+    std::ostringstream os;
+    os << std::boolalpha << in;
+    return os.str();
+  }
   static std::string getTypeStr() { return "bool"; }
   static bool        getDefault() { return false; }
 };
@@ -151,6 +167,12 @@ public:
     lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
+  static std::string getValStr(float in)
+  {
+    std::ostringstream os;
+    os << std::setprecision(2) << in;
+    return os.str();
+  }
   static std::string getTypeStr() { return "float"; }
   static float       getDefault() { return 0.0f; }
 };
@@ -169,6 +191,12 @@ public:
     lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
+  static std::string getValStr(double in)
+  {
+    std::ostringstream os;
+    os << std::setprecision(4) << in;
+    return os.str();
+  }
   static std::string getTypeStr() { return "double"; }
   static double      getDefault() { return 0.0; }
 };
@@ -187,6 +215,13 @@ public:
     lua_pushstring(L, in);
   }
 
+  static std::string getValStr(const char* in)
+  {
+    std::ostringstream os;
+    os << "'" << in << "'";
+    return os.str();
+    return std::string(in);
+  }
   static std::string getTypeStr() { return "string"; }
   static std::string getDefault() { return ""; }
 };
@@ -205,6 +240,10 @@ public:
     lua_pushstring(L, in.c_str());
   }
 
+  static std::string getValStr(std::string in)
+  {
+    return in;
+  }
   static std::string getTypeStr() { return "string"; }
   static std::string getDefault() { return ""; }
 };
@@ -223,6 +262,10 @@ public:
     lua_pushstring(L, in.c_str());
   }
 
+  static std::string getValStr(std::string& in)
+  {
+    return in;
+  }
   static std::string getTypeStr() { return "string"; }
   static std::string getDefault() { return ""; }
 };
@@ -241,6 +284,10 @@ public:
     lua_pushstring(L, in.c_str());
   }
 
+  static std::string getValStr(const std::string& in)
+  {
+    return in;
+  }
   static std::string getTypeStr() { return "string"; }
   static std::string getDefault() { return ""; }
 };
@@ -347,6 +394,11 @@ public:
   /// Pulls parameters from the stack, starting at the non-pseudo index si.
   /// Does NOT pop the parameters off the stack.
   virtual void pullParamsFromStack(lua_State* L, int si)  = 0;
+
+  /// Returns a string with the formated parameter values in it
+  /// e.g. If there were 3 parameters, a boolean, a string, and an int, then
+  /// "true, 'hi', 463" would be a possible result of the function.
+  virtual std::string getFormattedParameterValues() const = 0;
 };
 
 
@@ -366,6 +418,7 @@ public:
   virtual void pushParamsToStack(lua_State* L) const;
   virtual void pullParamsFromStack(lua_State* L, int si); // si = starting
                                                           // stack index
+  virtual std::string getFormattedParameterValues() const;
 };
 
 
@@ -399,6 +452,10 @@ public:
 
   virtual void pushParamsToStack(lua_State* L) const      {}
   virtual void pullParamsFromStack(lua_State* L, int si)  {}
+  virtual std::string getFormattedParameterValues() const
+  {
+    return "";
+  }
 };
 
 //-------------
@@ -431,6 +488,11 @@ public:
   { PHP(P1); }
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1));
+  }
 
   // Member variables.
   MVAR(P1);
@@ -466,6 +528,12 @@ public:
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); }
 
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
+           LuaStrictStack<P2>::getValStr(M_NM(P2));
+  }
+
   // Member variables.
   MVAR(P1); MVAR(P2);
 };
@@ -499,6 +567,13 @@ public:
   { PHP(P1); PHP(P2); PHP(P3); }
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
+           LuaStrictStack<P2>::getValStr(M_NM(P2)) + ", " +
+           LuaStrictStack<P3>::getValStr(M_NM(P3));
+  }
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3);
@@ -534,6 +609,14 @@ public:
   { PHP(P1); PHP(P2); PHP(P3); PHP(P4); }
   void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
+           LuaStrictStack<P2>::getValStr(M_NM(P2)) + ", " +
+           LuaStrictStack<P3>::getValStr(M_NM(P3)) + ", " +
+           LuaStrictStack<P4>::getValStr(M_NM(P4));
+  }
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4);
@@ -571,6 +654,15 @@ public:
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
 
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
+           LuaStrictStack<P2>::getValStr(M_NM(P2)) + ", " +
+           LuaStrictStack<P3>::getValStr(M_NM(P3)) + ", " +
+           LuaStrictStack<P4>::getValStr(M_NM(P4)) + ", " +
+           LuaStrictStack<P5>::getValStr(M_NM(P5));
+  }
+
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5);
 };
@@ -606,6 +698,16 @@ public:
   { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
+           LuaStrictStack<P2>::getValStr(M_NM(P2)) + ", " +
+           LuaStrictStack<P3>::getValStr(M_NM(P3)) + ", " +
+           LuaStrictStack<P4>::getValStr(M_NM(P4)) + ", " +
+           LuaStrictStack<P5>::getValStr(M_NM(P5)) + ", " +
+           LuaStrictStack<P6>::getValStr(M_NM(P6));
+  }
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6);
@@ -643,6 +745,11 @@ public:
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
+  virtual std::string getFormattedParameterValues() const
+  {
+    return "";
+  }
+
   virtual void pushParamsToStack(lua_State* L) const      {}
   virtual void pullParamsFromStack(lua_State* L, int si)  {}
 };
@@ -677,6 +784,11 @@ public:
   { PHP(P1); }
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1));
+  }
 
   // Member variables.
   MVAR(P1);
@@ -713,6 +825,12 @@ public:
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); }
 
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
+           LuaStrictStack<P2>::getValStr(M_NM(P2));
+  }
+
   // Member variables.
   MVAR(P1); MVAR(P2);
 };
@@ -748,6 +866,13 @@ public:
   { PHP(P1); PHP(P2); PHP(P3); }
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
+           LuaStrictStack<P2>::getValStr(M_NM(P2)) + ", " +
+           LuaStrictStack<P3>::getValStr(M_NM(P3));
+  }
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3);
@@ -786,6 +911,14 @@ public:
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); }
 
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
+           LuaStrictStack<P2>::getValStr(M_NM(P2)) + ", " +
+           LuaStrictStack<P3>::getValStr(M_NM(P3)) + ", " +
+           LuaStrictStack<P4>::getValStr(M_NM(P4));
+  }
+
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4);
 };
@@ -822,6 +955,16 @@ public:
   { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); }
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
+           LuaStrictStack<P2>::getValStr(M_NM(P2)) + ", " +
+           LuaStrictStack<P3>::getValStr(M_NM(P3)) + ", " +
+           LuaStrictStack<P4>::getValStr(M_NM(P4)) + ", " +
+           LuaStrictStack<P5>::getValStr(M_NM(P5));
+  }
+
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5);
@@ -860,6 +1003,16 @@ public:
   { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
   virtual void pullParamsFromStack(lua_State* L, int si)
   { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return LuaStrictStack<P1>::getValStr(M_NM(P1)) + ", " +
+           LuaStrictStack<P2>::getValStr(M_NM(P2)) + ", " +
+           LuaStrictStack<P3>::getValStr(M_NM(P3)) + ", " +
+           LuaStrictStack<P4>::getValStr(M_NM(P4)) + ", " +
+           LuaStrictStack<P5>::getValStr(M_NM(P5)) + ", " +
+           LuaStrictStack<P6>::getValStr(M_NM(P6));
+  }
 
   // Member variables.
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6);

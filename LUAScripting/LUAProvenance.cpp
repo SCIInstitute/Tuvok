@@ -67,6 +67,7 @@ LuaProvenance::LuaProvenance(LuaScripting* scripting)
 , mLoggingProvenance(false)
 , mDoProvReenterException(true)
 , mUndoRedoProvenanceDisable(false)
+, mProvenanceDescLogEnabled(true)
 {
   mUndoRedoStack.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
   mProvenanceDescList.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
@@ -123,22 +124,62 @@ bool LuaProvenance::isEnabled() const
 }
 
 //-----------------------------------------------------------------------------
-std::vector<std::string> LuaProvenance::getUndoStackDesc()
+void LuaProvenance::enableLogAll(bool enabled)
+{
+  mProvenanceDescLogEnabled = enabled;
+
+  if (mProvenanceDescLogEnabled == false)
+  {
+    mProvenanceDescList.clear();
+  }
+}
+
+//-----------------------------------------------------------------------------
+vector<string> LuaProvenance::getUndoStackDesc()
 {
   // Print from the current stack pointer downwards.
+  vector<string> ret;
+  string undoVals;
+  string redoVals;
+  string result;
+  for (int i = mStackPointer - 1; i >= 0; i--)
+  {
+    undoVals = mUndoRedoStack[i].undoParams->getFormattedParameterValues();
+    redoVals = mUndoRedoStack[i].redoParams->getFormattedParameterValues();
 
+    result = undoVals + " -- redo: " + redoVals;
+
+    ret.push_back(result);
+  }
+
+  return ret;
 }
 
 //-----------------------------------------------------------------------------
 std::vector<std::string> LuaProvenance::getRedoStackDesc()
 {
+  // Print from the current stack pointer downwards.
+  vector<string> ret;
+  string undoVals;
+  string redoVals;
+  string result;
+  for (vector<string>::size_type i = mStackPointer; i < mUndoRedoStack.size(); i++)
+  {
+    undoVals = mUndoRedoStack[i].undoParams->getFormattedParameterValues();
+    redoVals = mUndoRedoStack[i].redoParams->getFormattedParameterValues();
 
+    result = undoVals + " -- redo: " + redoVals;
+
+    ret.push_back(result);
+  }
+
+  return ret;
 }
 
 //-----------------------------------------------------------------------------
 std::vector<std::string> LuaProvenance::getFullProvenanceDesc()
 {
-
+  return mProvenanceDescList;
 }
 
 //-----------------------------------------------------------------------------
@@ -150,6 +191,32 @@ void LuaProvenance::setEnabled(bool enabled)
   }
 
   mEnabled = enabled;
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::ammendLastProvLog(const string& ammend)
+{
+  assert(mProvenanceDescList.size() > 0);
+
+  string ammendedLog = mProvenanceDescList.back();
+  ammendedLog += ammend;
+
+  mProvenanceDescList.pop_back();
+  mProvenanceDescList.push_back(ammendedLog);
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::logHooks(int staticHooks, int memberHooks)
+{
+  if (mEnabled == false || mProvenanceDescLogEnabled == false)
+    return;
+
+  int hooksCalled = staticHooks + memberHooks;
+
+  ostringstream os;
+  os << " + " << hooksCalled << " hooks called";
+
+  mProvenanceDescList.push_back(os.str());
 }
 
 //-----------------------------------------------------------------------------
@@ -172,16 +239,31 @@ void LuaProvenance::logExecution(const string& fname,
     }
   }
 
-  // Will not log anything if this call was issued as part of an undo/redo.
-  if (mUndoRedoProvenanceDisable)
-    return;
-
   mLoggingProvenance = true;  // Used to tell when someone has done something
                               // bad: exec a registered lua function within
                               // another registered lua function.
 
-  // Add provenance before this check. Undo and redo reside below this call.
-  if (undoRedoStackExempt)
+  if (mProvenanceDescLogEnabled)
+  {
+    string provParams = funParams->getFormattedParameterValues();
+
+    ostringstream os;
+    if (mUndoRedoProvenanceDisable)
+      os << " -- Called: \"";
+
+    os << fname << "(" << provParams << ")";
+    if (mUndoRedoProvenanceDisable)
+    {
+      os << "\"";
+      ammendLastProvLog(os.str());
+    }
+    else
+    {
+      mProvenanceDescList.push_back(os.str());
+    }
+  }
+
+  if (undoRedoStackExempt || mUndoRedoProvenanceDisable)
   {
     mLoggingProvenance = false;
     return;
@@ -605,6 +687,8 @@ SUITE(LuaProvenanceTests)
     sc->exec("set_i1(45)");
 
     CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
+
+    sc->printProvRecord();
   }
 
   static int i1     = 0;

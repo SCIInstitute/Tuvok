@@ -45,6 +45,7 @@ namespace tuvok
 {
 
 class LuaProvenance;
+class LuaMemberRegUnsafe;
 
 class LuaScripting
 {
@@ -199,6 +200,10 @@ public:
   static const char* TBL_MD_CPP_CLASS;    ///< Light user data to LuaScripting
   static const char* TBL_MD_STACK_EXEMPT; ///< True if undo/redo stack exempt
 
+  void printUndoStack();
+  void printRedoStack();
+  void printProvRecord();
+
 private:
 
   /// Used by friend class LuaProvenance.
@@ -239,7 +244,7 @@ private:
   /// required to call the function directly after the table on the stack.
   /// There must be no other values on the stack above tableIndex other than the
   /// table and the parameters to call the function.
-  static void doHooks(lua_State* L, int tableIndex);
+  void doHooks(lua_State* L, int tableIndex);
 
   /// Returns true if the table at stackIndex is a registered function.
   /// Makes no guarantees that it is a function registered by this class.
@@ -309,6 +314,15 @@ private:
   /// Do NOT use psuedo indices for tableIndex or paramStartIndex.
   void copyParamsToTable(int tableIndex, int paramStartIndex, int numParams);
 
+  /// Registers our functions with the scripting system.
+  void registerScriptFunctions();
+
+  /// Logs info.
+  void logInfo(std::string log);
+
+  /// Exec failure.
+  void logExecFailure(const std::string& failure);
+
   /// The one true LUA state.
   lua_State*                        mL;
 
@@ -321,7 +335,7 @@ private:
   int                               mMemberHookIndex;
 
   std::auto_ptr<LuaProvenance>      mProvenance;
-
+  std::auto_ptr<LuaMemberRegUnsafe> mMemberReg;
 
   /// These structures were created in order to handle void return types easily
   ///@{
@@ -336,11 +350,6 @@ private:
       Ret r;
       if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
       {
-        // We are NOT a hook. Our parameters start at index 2 (because the
-        // callable table is at the first index). We will want to call all
-        // hooks associated with our table.
-        r = LuaCFunExec<FunPtr>::run(L, 2, fp);
-
         std::tr1::shared_ptr<LuaCFunAbstract> execParams(
             new LuaCFunExec<FunPtr>());
         std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
@@ -355,13 +364,27 @@ private:
             lua_touserdata(L, lua_upvalueindex(3)));
         ss->doProvenanceFromExec(L, execParams, emptyParams);
 
+        // We are NOT a hook. Our parameters start at index 2 (because the
+        // callable table is at the first index). We will want to call all
+        // hooks associated with our table.
+        try
+        {
+          r = LuaCFunExec<FunPtr>::run(L, 2, fp);
+        }
+        catch (std::exception& e)
+        {
+          ss->logExecFailure(e.what());
+          throw;
+        }
+
         // Call registered hooks.
         // Note: The first parameter on the stack (not on the top, but
         // on the bottom) is the table associated with the function.
-        LuaScripting::doHooks(L, 1);
+        ss->doHooks(L, 1);
       }
       else
       {
+        // The catching of hook failures is done in doHooks.
         r = LuaCFunExec<FunPtr>::run(L, 1, fp);
       }
 
@@ -379,8 +402,6 @@ private:
           lua_touserdata(L, lua_upvalueindex(1)));
       if (lua_toboolean(L, lua_upvalueindex(2)) == 0)
       {
-        LuaCFunExec<FunPtr>::run(L, 2, fp);
-
         std::tr1::shared_ptr<LuaCFunAbstract> execParams(
             new LuaCFunExec<FunPtr>());
         std::tr1::shared_ptr<LuaCFunAbstract> emptyParams(
@@ -388,17 +409,25 @@ private:
         // Fill execParams. Function parameters start at index 2.
         execParams->pullParamsFromStack(L, 2);
 
-        // Obtain reference to LuaScripting in order to invoke provenance.
-        // See createCallableFuncTable for justification on pulling an
-        // instance of LuaScripting out of Lua.
         LuaScripting* ss = static_cast<LuaScripting*>(
             lua_touserdata(L, lua_upvalueindex(3)));
         ss->doProvenanceFromExec(L, execParams, emptyParams);
 
-        LuaScripting::doHooks(L, 1);
+        try
+        {
+          LuaCFunExec<FunPtr>::run(L, 2, fp);
+        }
+        catch (std::exception& e)
+        {
+          ss->logExecFailure(e.what());
+          throw;
+        }
+
+        ss->doHooks(L, 1);
       }
       else
       {
+        // The catching of hook failures is done in doHooks.
         LuaCFunExec<FunPtr>::run(L, 1, fp);
       }
 

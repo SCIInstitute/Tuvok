@@ -53,6 +53,9 @@ public:
   bool isEnabled() const;
   void setEnabled(bool enabled);
 
+  /// Enable/Disable provenance logs of all commands.
+  void enableLogAll(bool enabled);
+
   /// Logs the execution of a function.
   /// \param  function            Name of the function that executed.
   /// \param  undoRedoStackExempt True if no entry should be genereated inside
@@ -64,6 +67,9 @@ public:
                     bool undoRedoStackExempt,
                     std::tr1::shared_ptr<LuaCFunAbstract> funParams,
                     std::tr1::shared_ptr<LuaCFunAbstract> emptyParams);
+
+  // Modifies the last provenance log.
+  void ammendLastProvLog(const std::string& ammend);
 
   /// Performs an undo.
   void issueUndo();
@@ -84,6 +90,21 @@ public:
   /// throw an exception, and it return from provenance function immediately
   /// without performing any work.
   void enableProvReentryEx(bool enable);
+
+  /// Log hooks will be called directly after the function is called.
+  /// Each parameter indicates the number of hooks called.
+  void logHooks(int staticHooks, int memberHooks);
+
+  /// Cursory description of the current undo stack.
+  std::vector<std::string> getUndoStackDesc();
+
+  /// Cursory description of the redo stack.
+  std::vector<std::string> getRedoStackDesc();
+
+  /// Description of all functions executed till this point.
+  std::vector<std::string> getFullProvenanceDesc();
+
+
 
 private:
 
@@ -110,14 +131,6 @@ private:
   void performUndoRedoOp(const std::string& funcName,
                          std::tr1::shared_ptr<LuaCFunAbstract> params);
 
-  /// Cursory description of the current undo stack.
-  std::vector<std::string> getUndoStackDesc();
-
-  /// Cursory description of the redo stack.
-  std::vector<std::string> getRedoStackDesc();
-
-  /// Description of all functions executed till this point.
-  std::vector<std::string> getFullProvenanceDesc();
 
 
   bool                      mEnabled;
@@ -138,6 +151,7 @@ private:
   /// we don't get called when we are logging provenance.
   bool                      mLoggingProvenance;
   bool                      mDoProvReenterException;
+  bool                      mProvenanceDescLogEnabled;
 
   /// Used to disable the provenance system when issuing an undo or redo
   /// call.
