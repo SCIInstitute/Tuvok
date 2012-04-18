@@ -383,9 +383,11 @@
     <ClCompile Include="Renderer\AbstrRenderer.cpp" />
     <ClCompile Include="Renderer\Context.cpp" />
     <ClCompile Include="Renderer\CullingLOD.cpp" />
+    <ClCompile Include="Renderer\GL\GLCommon.cpp" />
     <ClCompile Include="Renderer\GL\GLTreeRaycaster.cpp" />
     <ClCompile Include="Renderer\GL\GLVolumePool.cpp" />
     <ClCompile Include="Renderer\RenderMesh.cpp" />
+    <ClCompile Include="Renderer\ShaderDescriptor.cpp" />
     <ClCompile Include="Renderer\TFScaling.cpp" />
     <ClCompile Include="Renderer\GPUMemMan\GPUMemMan.cpp" />
     <ClCompile Include="Renderer\GPUMemMan\GPUMemManDataStructs.cpp" />
@@ -1009,12 +1011,14 @@
     <ClInclude Include="Renderer\ContextIdentification.h" />
     <ClInclude Include="Renderer\CullingLOD.h" />
     <ClInclude Include="Renderer\DX\DXContext.h" />
+    <ClInclude Include="Renderer\GL\GLCommon.h" />
     <ClInclude Include="Renderer\GL\GLContext.h" />
     <ClInclude Include="Renderer\GL\GLTreeRaycaster.h" />
     <ClInclude Include="Renderer\GL\GLVolumePool.h" />
     <ClInclude Include="Renderer\GL\QtGLContext.h" />
     <ClInclude Include="Renderer\RenderMesh.h" />
     <ClInclude Include="Renderer\RenderRegion.h" />
+    <ClInclude Include="Renderer\ShaderDescriptor.h" />
     <ClInclude Include="Renderer\StateManager.h" />
     <ClInclude Include="Renderer\TFScaling.h" />
     <ClInclude Include="Renderer\GPUMemMan\GPUMemMan.h" />

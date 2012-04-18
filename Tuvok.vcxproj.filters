@@ -912,6 +912,12 @@
     <ClCompile Include="3rdParty\LUA\lzio.cpp">
       <Filter>3rd Party\LUA</Filter>
     </ClCompile>
+    <ClCompile Include="Renderer\ShaderDescriptor.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\GLCommon.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1817,6 +1823,12 @@
     </ClInclude>
     <ClInclude Include="3rdParty\LUA\lzio.h">
       <Filter>3rd Party\LUA</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\ShaderDescriptor.h">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\GLCommon.h">
+      <Filter>Renderer\GL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
