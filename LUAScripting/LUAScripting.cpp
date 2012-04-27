@@ -79,6 +79,8 @@ const char* LuaScripting::TBL_MD_CPP_CLASS      = "scriptingCPP";
 const char* LuaScripting::TBL_MD_STACK_EXEMPT   = "stackExempt";
 const char* LuaScripting::TBL_MD_PROV_EXEMPT    = "provExempt";
 const char* LuaScripting::TBL_MD_NUM_PARAMS     = "numParams";
+const char* LuaScripting::TBL_MD_UNDO_HOOK      = "undoHook";
+const char* LuaScripting::TBL_MD_REDO_HOOK      = "redoHook";
 
 // To avoid naming conflicts with other libraries, we prefix all of our
 // registry values with tuvok_

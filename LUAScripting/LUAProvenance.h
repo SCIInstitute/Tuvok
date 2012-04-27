@@ -119,7 +119,7 @@ private:
     UndoRedoItem(const std::string& funName,
                  std::tr1::shared_ptr<LuaCFunAbstract> undo,
                  std::tr1::shared_ptr<LuaCFunAbstract> redo)
-    : function(funName), undoParams(undo), redoParams(redo)
+    : function(funName), undoParams(undo), redoParams(redo), childItems()
     {}
 
     /// Function name we operate on at this stack index.
@@ -130,6 +130,38 @@ private:
 
     /// Parameters of the function, exactly as it was called.
     std::tr1::shared_ptr<LuaCFunAbstract> redoParams;
+
+    /// Child items will be RARELY used. Only by those few functions that
+    /// nest lua provenance enabled function calls inside of other lua
+    /// provenance enabled functions (function composition). Built to perform
+    /// provenance on composited class instances and to handle function
+    /// composition better.
+    ///
+    /// Generally, the undo step will be the only step that cares about these
+    /// child items (redoing will call the function that generated these items
+    /// in the first place -- so redoing will ignore the child items completely)
+    /// I have some hand written notes on the structure of this provenance
+    /// system, if there are any interested parties.
+    std::tr1::shared_ptr<std::vector<UndoRedoItem> > childItems;
+
+    /// Pushing child items like this (along with the way the provenance calls
+    /// functions, then their children) reverses the order in which the
+    /// functions were called originally. We want this for undo.
+    ///
+    /// Reversing the call sequence appropriately resets the state of the
+    /// program back to before the composited function was called (see
+    /// ProvenanceCompositeSingle unit test). Mostly has to deal with the top
+    /// most composited function having different parameter defaults / current
+    /// undoredo stack state.
+    void addChildItem(const UndoRedoItem& item)
+    {
+      if (childItems.get() == NULL)
+      {
+        childItems = std::tr1::shared_ptr<std::vector<UndoRedoItem> >(
+            new std::vector<UndoRedoItem>());
+      }
+      childItems->push_back(item);
+    }
   };
 
   typedef std::vector<UndoRedoItem> URStackType;
@@ -137,7 +169,8 @@ private:
   // Calls the function at UndoRedoItem index: funcIndex using the params
   // specified by funcToUse.
   void performUndoRedoOp(const std::string& funcName,
-                         std::tr1::shared_ptr<LuaCFunAbstract> params);
+                         std::tr1::shared_ptr<LuaCFunAbstract> params,
+                         bool isUndo);
 
   std::vector<std::string> getUndoStackDesc();
   void printUndoStack();

@@ -238,8 +238,7 @@ void LuaProvenance::logExecution(const string& fname,
     }
   }
 
-  // Only the first command should be logged in provenance (mCommandDepth)
-  if (undoRedoStackExempt || mUndoRedoProvenanceDisable || mCommandDepth > 0)
+  if (undoRedoStackExempt || mUndoRedoProvenanceDisable)
   {
     mLoggingProvenance = false;
     return;
@@ -289,8 +288,19 @@ void LuaProvenance::logExecution(const string& fname,
     lua_pop(L, numParams);
   }
 
-  mUndoRedoStack.push_back(UndoRedoItem(fname, emptyParams, funParams));
-  ++mStackPointer;
+  if (mCommandDepth == 0)
+  {
+    mUndoRedoStack.push_back(UndoRedoItem(fname, emptyParams, funParams));
+    ++mStackPointer;
+  }
+  else
+  {
+    assert(mUndoRedoStack.size() > 0);
+    // Push a child (child on the top of the stack -- we know there must be an
+    // entry on the top of the stack because our depth is greater than 0).
+    mUndoRedoStack.back().addChildItem(
+        UndoRedoItem(fname, emptyParams, funParams));
+  }
 
   // Repopulate the lastExec table to most recently executed function parameters
   // We are overwriting the previous entries (see
@@ -326,13 +336,35 @@ void LuaProvenance::issueUndo()
   int undoIndex         = mStackPointer - 1;
   UndoRedoItem undoItem = mUndoRedoStack[undoIndex];
 
+  // TODO: Add BruteReroll here. Need to test instance indices.
+
   try
   {
-    performUndoRedoOp(undoItem.function, undoItem.undoParams);
+    performUndoRedoOp(undoItem.function, undoItem.undoParams, true);
   }
   catch (LuaProvenanceInvalidUndoOrRedo& e)
   {
     throw LuaProvenanceInvalidUndo(e.what(), e.where(), e.lineno());
+  }
+
+  if (undoItem.childItems != NULL)
+  {
+    // Iterate through all of the children, and undo those as well.
+    // Note: Notice, we are undoing the parent first, then all of the children.
+    //       This constitutes a reversal of the function calls.
+
+    for (std::vector<UndoRedoItem>::iterator it = undoItem.childItems->begin();
+         it != undoItem.childItems->end(); it++)
+    {
+      try
+      {
+        performUndoRedoOp(it->function, it->undoParams, true);
+      }
+      catch (LuaProvenanceInvalidUndoOrRedo& e)
+      {
+        throw LuaProvenanceInvalidUndo(e.what(), e.where(), e.lineno());
+      }
+    }
   }
 
   --mStackPointer;
@@ -353,19 +385,23 @@ void LuaProvenance::issueRedo()
 
   try
   {
-    performUndoRedoOp(redoItem.function, redoItem.redoParams);
+    performUndoRedoOp(redoItem.function, redoItem.redoParams, false);
   }
   catch (LuaProvenanceInvalidUndoOrRedo& e)
   {
     throw LuaProvenanceInvalidRedo(e.what(), e.where(), e.lineno());
   }
 
+  // Notice, we ignore any child undo/redo items. They exist solely to help
+  // undo reset the program state when a composited function is undone.
+
   ++mStackPointer;
 }
 
 //-----------------------------------------------------------------------------
 void LuaProvenance::performUndoRedoOp(const string& funcName,
-                                      tr1::shared_ptr<LuaCFunAbstract> params)
+                                      tr1::shared_ptr<LuaCFunAbstract> params,
+                                      bool isUndo)
 {
   // Obtain function's table, then grab its metamethod __call.
   // Push parameters onto the stack after the __call method, and execute.
@@ -382,7 +418,32 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
   if (lua_getmetatable(L, -1))
   {
     // Push function onto the stack.
-    lua_getfield(L, -1, "__call");
+    bool hasHook = false;
+
+    if (isUndo)
+    {
+      // Check for an undo hook
+      lua_getfield(L, funTable, LuaScripting::TBL_MD_UNDO_HOOK);
+      if (lua_isnil(L, -1) == 0)
+        hasHook = true;
+      else
+        lua_pop(L, 1);
+    }
+    else
+    {
+      // Check for redo hook
+      lua_getfield(L, funTable, LuaScripting::TBL_MD_REDO_HOOK);
+      if (lua_isnil(L, -1) == 0)
+        hasHook = true;
+      else
+        lua_pop(L, 1);
+    }
+
+    // If we don't have a hook, just use the function itself.
+    if (hasHook == false)
+    {
+      lua_getfield(L, -1, "__call");
+    }
 
     if (lua_isnil(L, -1))
     {
@@ -629,11 +690,6 @@ SUITE(LuaProvenanceTests)
     a->mReg.registerFunction(a.get(), &A::get_s1, "get_s1", "", false);
     a->mReg.registerFunction(a.get(), &A::get_s2, "get_s2", "", false);
 
-    // Use an unprotected call to grab the exception. Change all lua_pcalls
-    // to lua_call.
-    // TODO: Need to think about this problem in general, and how we are going
-    // to deal with it. More than likely, we will not expose pcall to the end
-    // user of this system.
     sc->setExpectedExceptionFlag(true);
     CHECK_THROW(sc->exec("provenance.redo()"), LuaProvenanceInvalidRedo);
     CHECK_THROW(sc->exec("provenance.undo()"), LuaProvenanceInvalidUndo);
@@ -831,14 +887,12 @@ SUITE(LuaProvenanceTests)
     sc->exec("provenance.undo()");
     CHECK_EQUAL(false, b1);
 
-    // TODO: This should really be 'nop'. Fix it after we add default resets.
     sc->exec("provenance.undo()");
     CHECK_EQUAL("nop", s1.c_str());
 
     sc->exec("provenance.redo()");
     CHECK_EQUAL("Test String", s1.c_str());
 
-    // TODO: This should really be 'nop'. Fix it after we add default resets.
     sc->exec("provenance.undo()");
     CHECK_EQUAL("nop", s1.c_str());
 
@@ -850,6 +904,8 @@ SUITE(LuaProvenanceTests)
 
   static void set_i1_s1_b1(int a, string b, bool c)
   {
+    // This is roundabout, but the whole idea is to test composited lua
+    // provenance enabled functions.
     {
       ostringstream os;
       os << "set_i1(" << a << ")";
@@ -870,7 +926,7 @@ SUITE(LuaProvenanceTests)
     }
   }
 
-  TEST(ProvenanceCommandDepth)
+  TEST(ProvenanceCompositeSingle)
   {
     TEST_HEADER;
 
@@ -892,10 +948,46 @@ SUITE(LuaProvenanceTests)
 
     sc->exec("setAll(78, 'Str Test', false)");
 
-    sc->exec("provenance.logProvRecord()");
-    sc->exec("provenance.logUndoStack()");
+    CHECK_EQUAL(78, i1);
+    CHECK_EQUAL("Str Test", s1.c_str());
+    CHECK_EQUAL(false, b1);
+
+    sc->exec("provenance.undo()");
+
+    // Check to make sure i1, s1, and b1 do not have default values.
+    // (ensure composited functions implement undo correctly).
+    CHECK_EQUAL(23, i1);
+    CHECK_EQUAL("Test String", s1.c_str());
+    CHECK_EQUAL(true, b1);
 
     delete sc;
+  }
+
+  TEST(ProvenanceCompositeMultiple)
+  {
+    TEST_HEADER;
+
+    // Similar to ProvenanceSingleCommandDepth, but we want to test
+    // composited functions of composited functions.
+  }
+
+  TEST(ProvenanceUndoRedoHooks)
+  {
+    TEST_HEADER;
+
+    // Test whether we can hook special functions into the undo/redo chain.
+
+    // Test 'relative' functions (deltas).
+
+    // Test 'absolute' functions.
+
+  }
+
+  TEST(ProvenanceDisabling)
+  {
+    TEST_HEADER;
+
+    // Test whether the provenance system can be properly disabled.
   }
 
 }

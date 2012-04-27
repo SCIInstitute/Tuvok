@@ -280,6 +280,8 @@ public:
   static const char* TBL_MD_STACK_EXEMPT; ///< True if undo/redo stack exempt
   static const char* TBL_MD_PROV_EXEMPT;  ///< True if provenance exempt.
   static const char* TBL_MD_NUM_PARAMS;   ///< Number of parameters accepted.
+  static const char* TBL_MD_UNDO_HOOK;    ///< Non-nil if undo hook present.
+  static const char* TBL_MD_REDO_HOOK;    ///< Non-nil if redo hook present.
 
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   static const char* TBL_MD_TYPES_TABLE;  ///< type_info userdata table.
