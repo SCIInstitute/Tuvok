@@ -69,6 +69,8 @@ LuaProvenance::LuaProvenance(LuaScripting* scripting)
 , mDoProvReenterException(true)
 , mProvenanceDescLogEnabled(true)
 , mUndoRedoProvenanceDisable(false)
+, mInCommandGroup(false)
+, mCommandGroupID(0)
 {
   mUndoRedoStack.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
   mProvenanceDescList.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
@@ -491,6 +493,20 @@ std::vector<std::string> LuaProvenance::getRedoStackDesc()
   }
 
   return ret;
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::beginCommandGroup()
+{
+  mInCommandGroup = true;
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::endCommandGroup()
+{
+  ++mCommandGroupID;
+  mCommandGroupID = mCommandGroupID % 2;  // Alternate between 0 and 1.
+  mInCommandGroup = false;
 }
 
 //-----------------------------------------------------------------------------

@@ -100,6 +100,14 @@ public:
   /// to provenance when we are registering defaults.
   void setDisableProvTemporarily(bool disable);
 
+  /// Begin a new command group.
+  /// Command groups lump commands together that should be undone / redone
+  /// together.
+  void beginCommandGroup();
+
+  /// End a command group.
+  void endCommandGroup();
+
 private:
 
   struct UndoRedoItem
@@ -160,6 +168,14 @@ private:
   /// Used to disable the provenance system when issuing an undo or redo
   /// call.
   bool                      mUndoRedoProvenanceDisable;
+
+  /// True if we are inside an undo/redo group.
+  /// Groups represent a group of commands that should be undone / redone
+  /// together. Commands get automatically grouped together when the commands
+  /// get 'nested'. As in, one registered function calls back into lua and
+  /// executes another registered command.
+  bool                      mInCommandGroup;
+  int                       mCommandGroupID;
 };
 
 }

@@ -114,6 +114,21 @@ public:
   template <typename FunPtr>
   void strictHook(FunPtr f, const std::string& name);
 
+  /// Lua Class Instance Construction
+  ///
+  /// Use this method to begin constructing a class.
+  /// Add functions to the class using the returned LuaInstanceReg instance.
+  ///
+  /// The static constructor function pointer should construct and return an
+  /// instance of the class <T>.
+  /// This constructor will be bound into Lua at <fqName>.new . Also, the
+  /// table at <fqName> will be made executable, and will call this
+  /// constructor function.
+  template <typename T, typename FunPtr>
+  LuaClassInstanceReg constructClass(const std::string& fqName, FunPtr constructor,
+                                const std::string& classDesc);
+
+
   /// Executes a command.
   ///
   /// Example: exec("provenance.undo()")
