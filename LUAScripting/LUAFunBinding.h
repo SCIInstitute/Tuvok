@@ -322,6 +322,15 @@ public:
   {
     LuaStackRAII _a(L, 0);
 
+    // If the class that was passed to us didn't exist (nil) then we will
+    // ignore the attempted retrieval, and return the default instance ID.
+    // This allows out of order deletion (ignoring deletions of already
+    // deleted classes).
+    if (lua_isnil(L, pos))
+    {
+      return LuaClassInstance(LuaClassInstance::DEFAULT_INSTANCE_ID);
+    }
+
     lua_getfield(L, pos, "_DefaultInstance_");
     if (lua_isnil(L, -1))
     {
@@ -337,7 +346,7 @@ public:
     else
     {
       lua_pop(L, 1);
-      return LuaClassInstance(-1);
+      return LuaClassInstance(LuaClassInstance::DEFAULT_INSTANCE_ID);
     }
   }
 
@@ -349,7 +358,7 @@ public:
     // instance ID.
     // TODO: This can be done more efficiently by parsing and walking the
     // tables ourselves.
-    if (in.getGlobalInstID() != -1)
+    if (in.getGlobalInstID() != LuaClassInstance::DEFAULT_INSTANCE_ID)
     {
       std::ostringstream os;
       os << "return " << LuaClassInstance::CLASS_INSTANCE_TABLE << "."

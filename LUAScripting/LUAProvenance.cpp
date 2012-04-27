@@ -323,15 +323,11 @@ void LuaProvenance::logExecution(const string& fname,
   mLoggingProvenance = false;
 }
 
-
 //-----------------------------------------------------------------------------
-tr1::tuple<int, int, int> LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
+int LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
 {
   int numUndos = 0;
   vector<int> unresolved; // Unresolved instances.
-
-  int lowestID = numeric_limits<int>::max();
-  int highestID = numeric_limits<int>::min();
 
   while (undoIndex >= 0)
   {
@@ -349,15 +345,9 @@ tr1::tuple<int, int, int> LuaProvenance::bruteRerollDetermineUndos(int undoIndex
                          undoItem.instDeletions->end());
       sort(unresolved.begin(), unresolved.end());
 
-      // of global instance ID's.
-      int lowest = *unresolved.begin();
-      int highest = unresolved.back();
-      if (lowest < lowestID) lowestID = lowest; // last will always be the lowest.
-      if (highest > highestID) highestID = highest;
-
       // Sanity check that there are no duplicates, and that the list is
       // sequential (no gaps). These must be true due to non-duplication
-      int last = lowest;
+      int last = *unresolved.begin();
       for (vector<int>::iterator it = unresolved.begin() + 1;
           it != unresolved.end(); ++it)
       {
@@ -365,28 +355,32 @@ tr1::tuple<int, int, int> LuaProvenance::bruteRerollDetermineUndos(int undoIndex
         {
           throw LuaProvenanceFailedUndo("Duplicate global IDs");
         }
-        // This will throw at errant times because of the set difference below.
-//        if (*it - last != 1)
-//        {
-//          throw LuaProvenanceFailedUndo("Unsequential global IDs");
-//        }
         last = *it;
       }
     }
     if (undoItem.instCreations.get())
     {
       // instDeletions and instCreations are always sorted.
-      vector<int> diff;
-      diff.reserve(unresolved.size() + undoItem.instCreations->size());
-      set_difference(unresolved.begin(), unresolved.end(),
-                     undoItem.instCreations->begin(),
-                     undoItem.instCreations->end(),
-                     diff.begin());
-      unresolved = diff;
+      vector<int> diff; // Could make this more efficient if stored above.
+      diff.resize(max(unresolved.size(), undoItem.instCreations->size()), 0);
+      vector<int>::iterator it = set_symmetric_difference(
+               unresolved.begin(), unresolved.end(),
+               undoItem.instCreations->begin(),
+               undoItem.instCreations->end(),
+               diff.begin()); // Could just use back_inserter...
+
+      unresolved.clear();
+      vector<int>::size_type resultSize = it - diff.begin();
+
+      if (resultSize > 0)
+      {
+        unresolved.resize(resultSize, 0);
+        std::copy(diff.begin(), it, unresolved.begin());
+      }
     }
     if (unresolved.size() == 0)
     {
-      return tr1::make_tuple(numUndos, lowestID, highestID);
+      return numUndos;
     }
     --undoIndex;
   }
@@ -394,7 +388,7 @@ tr1::tuple<int, int, int> LuaProvenance::bruteRerollDetermineUndos(int undoIndex
   throw LuaProvenanceFailedUndo("Not enough information in undo buffer "
                                 "to undo specified operation.");
 
-  return tr1::make_tuple(numUndos, lowestID, highestID);
+  return numUndos;
 }
 
 //-----------------------------------------------------------------------------
@@ -410,39 +404,32 @@ void LuaProvenance::issueUndo()
   UndoRedoItem undoItem = mUndoRedoStack[undoIndex];
 
   int numUndos = 1;
-  int lowestID = 0;
-  int highestID = 0;
 
   // Check to see if this step deleted any instances. If it did, we will have
   // to check how far back we need to undo. Then force the entire system
   // to undo to that point.
   if (undoItem.instDeletions.get() != 0)
   {
-    mUndoingInstanceDel = true;
     // Detect how far back we need to roll.
-    tr1::tuple<int, int, int> ret = bruteRerollDetermineUndos(undoIndex);
-    numUndos = tr1::get<0>(ret);
-    lowestID = tr1::get<1>(ret);
-    highestID = tr1::get<2>(ret);
-    if (numUndos == 0)
-      numUndos = 1;
+    mUndoingInstanceDel = true;
+    numUndos = bruteRerollDetermineUndos(undoIndex);
   }
 
-  // This is the brute reroll implementation. If we run into class deletions,
-  // then in order to undo these deletions, we need to roll back to when they
+  // This is the brute reroll.
+  // In order to deal with class deletions, we roll back to when they
   // were created and redo everything.
-  // There is probably a more efficient way of doing this, but this is
-  // guaranteed to work without any special code.
+  // There is a more efficient way of doing this, but this is
+  // guaranteed to work without any special code. It serves as a good
+  // baseline algorithm.
   for (int i = 0; i < numUndos; i++)
   {
     issueUndoInternal();
   }
 
-
-
   // Redo back to directly before undo (the vast majority of the time -- the
   // times we don't have any instance deletions -- we never enter this loop).
-  mScripting->setNextTempClassInstRange(lowestID, highestID);
+  // NOTE: We don't need to set the global ID instance range here! That is
+  // handled automatically inside issueRedo.
   for (int i = 0; i < numUndos - 1; i++)
   {
     issueRedo();
@@ -450,27 +437,6 @@ void LuaProvenance::issueUndo()
 
   mUndoingInstanceDel = false;
 }
-
-//{
-//  lua_State* L = mScripting->getLUAState();
-//  string lastExecTable = "return deleteClass.";
-//  lastExecTable += LuaScripting::TBL_MD_FUN_LAST_EXEC;
-//  int tableIndex, numParams;
-//
-//  luaL_dostring(L, lastExecTable.c_str());
-//  tableIndex = lua_gettop(L);
-//  lua_pushnil(L);
-//  numParams = 0;
-//  while (lua_next(L, tableIndex))
-//  {
-//    ++numParams;
-//    lua_pop(L, 1);
-//  }
-//
-//  lua_pop(L, 1);
-//
-//  cout << numParams << endl;
-//}
 
 //-----------------------------------------------------------------------------
 void LuaProvenance::issueUndoInternal()

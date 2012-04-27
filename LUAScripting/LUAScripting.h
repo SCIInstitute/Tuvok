@@ -61,6 +61,11 @@ class LuaProvenance;
 class LuaMemberRegUnsafe;
 class LuaClassInstanceReg;
 
+
+/// Usage Note: If you construct any Lua Class instances that retain a
+/// shared_ptr reference to this LuaScripting class, be sure to call
+/// removeAllRegistrations before deleting LuaScripting.
+/// Consider using weak_ptr instead.
 class LuaScripting
 {
   friend class LuaMemberRegUnsafe;  // For getNewMemberHookID.
@@ -73,6 +78,11 @@ public:
 
   LuaScripting();
   virtual ~LuaScripting();
+
+  /// Removes all class definitions and function registrations from the system.
+  /// This will clean up any lingering classes that may have lingering
+  /// shared pointer references.
+  void removeAllRegistrations();
 
   /// Registers a static C++ function with LUA.
   /// Since Lua is compiled as CPP, it is safe to throw exceptions from the

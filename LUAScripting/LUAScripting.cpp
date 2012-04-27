@@ -122,10 +122,18 @@ LuaScripting::LuaScripting()
 //-----------------------------------------------------------------------------
 LuaScripting::~LuaScripting()
 {
-  unregisterAllFunctions();
-  deleteAllClassInstances();
+  removeAllRegistrations();
 
   lua_close(mL);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::removeAllRegistrations()
+{
+  // Class instances should be destroyed before removing functions
+  // (deleteClass needs to be present when deleting instances).
+  deleteAllClassInstances();
+  unregisterAllFunctions();
 }
 
 //-----------------------------------------------------------------------------
@@ -149,7 +157,8 @@ int LuaScripting::luaPanic(lua_State* L)
     // log information and errors.
     ostringstream luaOut;
     luaOut << "log.error([==[" << os.str() << "]==])";  // Could also use [[ ]]
-    luaL_dostring(L, luaOut.str().c_str());
+    string error = luaOut.str();
+    luaL_dostring(L, error.c_str());
   }
 
   throw LuaError(os.str().c_str());
@@ -361,12 +370,14 @@ void LuaScripting::deleteAllClassInstances()
       lua_pop(mL, 1);  // Pop value off stack.
     }
 
-    // Erase the class instance table.
+    // Push a new table and replace the old instance table with it
+    // (permanently removing all residual instance tables).
     {
       ostringstream os;
-      os << LuaClassInstance::CLASS_INSTANCE_TABLE << " = nil";
+      os << LuaClassInstance::CLASS_INSTANCE_TABLE << " = {}";
       luaL_dostring(mL, os.str().c_str());
     }
+
   }
 
   // Pop off the instance table (or nil).

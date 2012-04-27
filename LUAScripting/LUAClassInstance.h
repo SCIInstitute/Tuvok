@@ -60,6 +60,10 @@ public:
   /// Retrieves global instance ID
   int getGlobalInstID() const       {return mInstanceID;}
 
+  /// Returns true if this is the default instance of this class (no
+  /// real data or functions).
+  bool isDefaultInstance() const;
+
   /// Data stored in the instance metatable.
   ///@{
   static const char*    MD_GLOBAL_INSTANCE_ID;  ///< Instance ID
@@ -74,6 +78,8 @@ public:
 
   static const char* CLASS_INSTANCE_TABLE;  ///< The global class instance table
   static const char* CLASS_INSTANCE_PREFIX; ///< Prefix for class instances
+
+  static const int DEFAULT_INSTANCE_ID = -1;
 
   /// Only use for testing.
   /// Please use LuaScripting::exec() instead.

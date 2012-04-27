@@ -152,7 +152,7 @@ private:
   /// 1) Number of undos that must be performed
   /// 2) Lower ID bound for the instances created (lowest ID created).
   /// 3) Higher ID bound for the instances created (highest ID created).
-  std::tr1::tuple<int, int, int> bruteRerollDetermineUndos(int undoIndex);
+  int bruteRerollDetermineUndos(int undoIndex);
 
   struct UndoRedoItem
   {

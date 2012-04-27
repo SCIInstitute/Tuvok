@@ -83,5 +83,10 @@ lua_State* LuaClassInstance::internalGetLuaState(
   return ss->getLUAState();
 }
 
+bool LuaClassInstance::isDefaultInstance() const
+{
+  return (mInstanceID == DEFAULT_INSTANCE_ID);
+}
+
 }
 

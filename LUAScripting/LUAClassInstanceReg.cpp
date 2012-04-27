@@ -1324,9 +1324,29 @@ SUITE(LuaTestClassInstanceRegistration)
       ++a_con; ++a_des;
       compareAccumulators();
 
+      // All classes but z were created and destroyed in the last call
+      // (due to the nature of brute reroll -- a more intelligent algorithm
+      //  could be built. But this works for now, and serves as the base case
+      //  we know works).
+
+      // Undo the deletion of C.
+      gSS->exec("provenance.undo()");
+      ++c_con; ++a_con;
+      ++b_con; ++b_des;
+      ++a_con; ++b_con; ++c_con; ++d_con; ++a_des; ++b_des; ++c_des; ++d_des;
+      ++a_con; ++a_des;
+      compareAccumulators();
+
 
     }
 
+    // Get rid of our global instance.
+    // Because of the bad form we used above (not placing weak pointers in
+    // the instances of the lua classes, and instead reference a global
+    // variabl that contains a reference to the scripting class) we have to get
+    // rid of all registered lua classes before we call reset).
+    gSS->removeAllRegistrations();
+    gSS.reset();
   }
 
   TEST(ClassHelpAndLog)
