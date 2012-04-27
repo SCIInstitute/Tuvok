@@ -41,7 +41,6 @@
 #ifndef TUVOK_LUASCRIPTING_H_
 #define TUVOK_LUASCRIPTING_H_
 
-#include <typeinfo>
 // TODO: Include lua headers here.
 
 #include "LUAError.h"
@@ -65,8 +64,9 @@ public:
   virtual ~LuaScripting();
 
   /// Registers a static C++ function with LUA.
-  /// Since LUA is compiled as CPP, it is safe to throw exceptions from the
-  /// function pointed to by f.
+  /// Since Lua is compiled as CPP, it is safe to throw exceptions from the
+  /// function pointed to by f (since Lua detects that it is being compiled in
+  /// cpp, and uses exceptions instead of long jumping).
   /// \param  f         Any function pointer.
   ///                   f's parameters and return value will be handled
   ///                   automatically.
@@ -113,7 +113,7 @@ public:
   ///   or     exec("myFunc(34, "string", ...)")
   void exec(const std::string& cmd);
 
-  /// Executes a command, and expects 1 return value.
+  /// Executes a command and returns 1 value.
   ///
   /// Example: T a = executeRet<T>("myFunc()")
   template <typename T>
@@ -184,7 +184,7 @@ public:
   /// This is so you can specify different undo/redo defaults (such as turning
   /// lighting ON by default).
   /// NOTE: You should call this directly after registering the function (name).
-  ///       Waiting until the function has already been used to set its defaults
+  ///       Waiting to set defaults until after the function has been called
   ///       results in undefined behavior on the undo/redo stack.
   /// \param  name        Fully qualified name of the function whose defaults
   ///                     you would like to set.

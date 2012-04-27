@@ -551,6 +551,7 @@ void LuaProvenance::setDisableProvTemporarily(bool disable)
 //
 //==============================================================================
 
+#ifdef EXTERNAL_UNIT_TESTING
 
 SUITE(LuaProvenanceTests)
 {
@@ -829,5 +830,6 @@ SUITE(LuaProvenanceTests)
 
 }
 
+#endif
 
 }

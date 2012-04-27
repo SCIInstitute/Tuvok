@@ -43,7 +43,8 @@ namespace tuvok
 class LuaStackRAII
 {
 public:
-  /// Use this class to ensure the stack is cleaned up properly.
+  /// Use this class to ensure the Lua stack is cleaned up properly when an
+  /// exception is thrown.
   /// \param  finalRelStackHeight   Final relative stack height.
   ///                               Accepts any valid integer. Positive values
   ///                               indicate that values will be left on the
