@@ -64,6 +64,7 @@ namespace tuvok
 LuaProvenance::LuaProvenance(LuaScripting* scripting)
 : mEnabled(true)
 , mTemporarilyDisabled(false)
+, mUndoingInstanceDel(false)
 , mStackPointer(0)
 , mScripting(scripting)
 , mMemberReg(scripting)
@@ -323,10 +324,13 @@ void LuaProvenance::logExecution(const string& fname,
 }
 
 //-----------------------------------------------------------------------------
-int LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
+tr1::tuple<int, int, int> LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
 {
   int numUndos = 0;
   vector<int> unresolved; // Unresolved instances.
+
+  int lowestID = numeric_limits<int>::max();
+  int highestID = numeric_limits<int>::min();
 
   while (undoIndex >= 0)
   {
@@ -343,6 +347,24 @@ int LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
                          undoItem.instDeletions->begin(),
                          undoItem.instDeletions->end());
       sort(unresolved.begin(), unresolved.end());
+
+      // of global instance ID's.
+      int lowest = *unresolved.begin();
+      int highest = *unresolved.end();
+      if (lowest < lowestID) lowestID = lowest; // last will always be the lowest.
+      if (highest > highestID) highestID = highest;
+
+      // Sanity check that there are no duplicates, and that the list is
+      // sequential (no gaps). These must be true due to non-duplication
+      int last = lowest;
+      for (vector<int>::iterator it = unresolved.begin() + 1;
+          it != unresolved.end(); ++it)
+      {
+        if (last == *it || *it - last != 1)
+        {
+          throw LuaProvenanceFailedUndo("Unsequential or duplicate global IDs");
+        }
+      }
     }
     if (undoItem.instCreations.get())
     {
@@ -357,7 +379,7 @@ int LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
     }
     if (unresolved.size() == 0)
     {
-      return numUndos;
+      return tr1::make_tuple(numUndos, lowestID, highestID);
     }
     --undoIndex;
   }
@@ -365,7 +387,7 @@ int LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
   throw LuaProvenanceFailedUndo("Not enough information in undo buffer "
                                 "to undo specified operation.");
 
-  return numUndos;
+  return tr1::make_tuple(numUndos, lowestID, highestID);
 }
 
 //-----------------------------------------------------------------------------
@@ -381,14 +403,20 @@ void LuaProvenance::issueUndo()
   UndoRedoItem undoItem = mUndoRedoStack[undoIndex];
 
   int numUndos = 1;
+  int lowestID = 0;
+  int highestID = 0;
 
   // Check to see if this step deleted any instances. If it did, we will have
   // to check how far back we need to undo. Then force the entire system
   // to undo to that point.
   if (undoItem.instDeletions.get() != 0)
   {
+    mUndoingInstanceDel = true;
     // Detect how far back we need to roll.
-    numUndos = bruteRerollDetermineUndos(undoIndex);
+    tr1::tuple<int, int, int> ret = bruteRerollDetermineUndos(undoIndex);
+    numUndos = tr1::get<0>(ret);
+    lowestID = tr1::get<1>(ret);
+    highestID = tr1::get<2>(ret);
     if (numUndos == 0)
       numUndos = 1;
   }
@@ -405,10 +433,13 @@ void LuaProvenance::issueUndo()
 
   // Redo back to directly before undo (the vast majority of the time -- the
   // times we don't have any instance deletions -- we never enter this loop).
+  mScripting->setNextTempClassInstRange(lowestID, highestID);
   for (int i = 0; i < numUndos - 1; i++)
   {
     issueRedo();
   }
+
+  mUndoingInstanceDel = false;
 }
 
 //-----------------------------------------------------------------------------
@@ -505,7 +536,19 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
   lua_State* L = mScripting->getLUAState();
   LuaStackRAII _a = LuaStackRAII(L, 0);
 
-  mScripting->getFunctionTable(funcName);
+  if (mScripting->getFunctionTable(funcName) == false)
+  {
+    if (mUndoingInstanceDel)
+    {
+      // Failed to find the function. Since we are undoing, we assume this was
+      // due to an instance call that no longer exists. We ignore it for now.
+      return;
+    }
+    else
+    {
+      throw LuaProvenanceInvalidUndoOrRedo("Function table does not exist.");
+    }
+  }
   int funTable = lua_gettop(L);
   if (lua_isnil(L, -1))
   {
@@ -660,7 +703,7 @@ vector<string> LuaProvenance::getUndoStackDesc()
 }
 
 //-----------------------------------------------------------------------------
-std::vector<std::string> LuaProvenance::getRedoStackDesc()
+vector<string> LuaProvenance::getRedoStackDesc()
 {
   // Print from the current stack pointer downwards.
   vector<string> ret;

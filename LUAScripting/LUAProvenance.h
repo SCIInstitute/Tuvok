@@ -36,6 +36,12 @@
 
 #include "LuaMemberRegUnsafe.h"
 
+#ifdef DETECTED_OS_WINDOWS
+#include <tuple>
+#else
+#include <tr1/tuple>
+#endif
+
 namespace tuvok
 {
 
@@ -142,7 +148,11 @@ private:
   /// compeletly rebuild the instances at the given undo index.
   /// Returns the number of undos that must be executed to get to a state
   /// directly before the instance object was created.
-  int bruteRerollDetermineUndos(int undoIndex);
+  /// Returns 3 integers:
+  /// 1) Number of undos that must be performed
+  /// 2) Lower ID bound for the instances created (lowest ID created).
+  /// 3) Higher ID bound for the instances created (highest ID created).
+  std::tr1::tuple<int, int, int> bruteRerollDetermineUndos(int undoIndex);
 
   struct UndoRedoItem
   {
@@ -243,6 +253,8 @@ private:
 
   bool                      mEnabled;
   bool                      mTemporarilyDisabled;
+
+  bool                      mUndoingInstanceDel;  ///< Used in error checking.
 
   URStackType               mUndoRedoStack; ///< Contains all undo/redo entries.
   int                       mStackPointer;  ///< 1 based Index into

@@ -978,7 +978,10 @@ bool LuaScripting::getFunctionTable(const std::string& fqName)
       }
 
       if (lua_isnil(mL, -1))
+      {
+        lua_settop(mL, baseStackIndex);
         return false;
+      }
 
       // Leave the function table on the top of the stack.
       return true;
@@ -1454,31 +1457,20 @@ void LuaScripting::deleteLuaClassInstance(LuaClassInstance inst)
 {
   LuaStackRAII _a(mL, 0);
 
-  int stackTop = lua_gettop(mL);
-
-  try
+  if (getFunctionTable(inst.fqName()))
   {
-    LuaStrictStack<LuaClassInstance>::push(mL, inst);
     destroyClassInstanceTable(lua_gettop(mL));
-  }
-  catch (LuaError& e)
-  {
-    // Ignore it. Likely it was deleted before hand, and we are trying to
-    // delete it again.
-    // XXX Figure out how to make this check only cover 1 case, instead of many.
-    lua_settop(mL, stackTop);
-    return;
-  }
 
-  // Erase the class instance.
-  {
-    ostringstream os;
-    os << inst.fqName() << " = nil";
-    luaL_dostring(mL, os.str().c_str());
-  }
+    // Erase the class instance.
+    {
+      ostringstream os;
+      os << inst.fqName() << " = nil";
+      luaL_dostring(mL, os.str().c_str());
+    }
 
-  // Pop the class instance table.
-  lua_pop(mL, 1);
+    // Pop the class instance table.
+    lua_pop(mL, 1);
+  }
 }
 
 //-----------------------------------------------------------------------------

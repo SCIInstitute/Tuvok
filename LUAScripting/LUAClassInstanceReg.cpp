@@ -465,6 +465,8 @@ SUITE(LuaTestClassInstanceRegistration)
 
   TEST(ClassProvenance)
   {
+    TEST_HEADER;
+
     // Thoroughly test class provenance.
     tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
@@ -490,6 +492,9 @@ SUITE(LuaTestClassInstanceRegistration)
 
     sc->exec("deleteClass(" + a1Name + ")");
 
+    // RAW POINTER IS NOW BAD. NEED TO REFORM THE POINTER!
+    // THIS IS WHY YOU DON'T USE THE POINTER!
+
     b_destructor = 0;
     LuaClassInstance b1 = sc->execRet<LuaClassInstance>("factory.b1.new()");
 
@@ -511,6 +516,13 @@ SUITE(LuaTestClassInstanceRegistration)
 
     // Recreate class a (with its last state)
     sc->exec("provenance.undo()");
+
+    // Since the class was just recreated on undo, we can now get the raw
+    // pointer.
+    a1p = a1.getRawPointer<A>(sc);
+
+    // Notice, the state is back where it was when we deleted the class.
+    // The provenance system handles this automatically.
     CHECK_EQUAL(15, a1p->i1);
     CHECK_EQUAL(60, a1p->i2);
 
@@ -525,6 +537,8 @@ SUITE(LuaTestClassInstanceRegistration)
   {
     // Test compositing classes together (new Lua classes are created from
     // another class' constructor).
+
+    // This will be a complex case, testing the provenance system's integrity.
   }
 
   TEST(ClassHelpAndLog)

@@ -204,7 +204,10 @@ private:
 
       // Pass back our instance.
       LuaClassInstance instance(instID);
-      LuaStrictStack<LuaClassInstance>().push(L, instance);
+      if (ss->getFunctionTable(instance.fqName()) == false)
+      {
+        throw LuaFunBindError("Unable to find table after it was created!");
+      }
 
       // Add this instance to the provenance system.
       ss->getProvenanceSys()->addCreatedInstanceToLastURItem(instID);
@@ -309,9 +312,8 @@ void LuaClassInstanceReg::constructor(FunPtr f, const std::string& desc)
 
     // Since we did the registerConstructor above we will have our function
     // table present.
-    std::ostringstream os;
-    os << "return " << mClassPath;
-    luaL_dostring(L, os.str().c_str());
+    if (mSS->getFunctionTable(mClassPath) == false)
+      throw LuaFunBindError("Unable to find table we just built!");
 
     // Now we have the class table on the top of the stack
     //int funTable = lua_gettop(L);
