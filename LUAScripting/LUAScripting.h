@@ -115,6 +115,31 @@ public:
   template <typename FunPtr>
   void strictHook(FunPtr f, const std::string& name);
 
+  /// Sets the undo function for the registered function specified by name.
+  /// The default undo function is to re-execute the last command executed.
+  /// E.G. If you execute "fun(1.5)", then "fun(5.5)", then execute an undo,
+  ///      the undo will execute fun(1.5) to undo fun(5.5).
+  /// If there is no prior command, then the command is called with 'default'
+  /// values. Default values are determined by the LuaStrictStack class, or
+  /// by the user specifying them using setDefault.
+  /// E.G. If an undo is executed again on the example given above, fun(0.0)
+  ///      will be executed to undo fun(1.5). 0.0 is the default for a float.
+  ///      To reset defaults on a per function basis, use the setDefaults
+  ///      family of functions.
+  /// \param  f       Function to call. If the function does not have the
+  ///                 same signature of the function registered at name,
+  ///                 a runtime will be thrown if RTTI is enabled.
+  /// \param  name    The fully qualified name of the function that you wish to
+  ///                 reset the undo function for.
+  template <typename FunPtr>
+  void setUndoFun(FunPtr f, const std::string& name);
+
+  /// Sets the redo function for the registered function specified by name.
+  /// The default redo is just to re-execute the function with the same args.
+  /// The f and name parameters are the exact same as setUndoFun.
+  template <typename FunPtr>
+  void setRedoFun(FunPtr f, const std::string& name);
+
 //  /// Lua Class Instance Construction
 //  ///
 //  /// Use this method to begin constructing a class.
@@ -293,6 +318,12 @@ public:
   void setExpectedExceptionFlag(bool expected);
 
 private:
+
+  template <typename FunPtr>
+  void strictHookInternal(FunPtr f,
+                          const std::string& name,
+                          bool registerUndo,
+                          bool registerRedo);
 
   /// Used by friend class LuaProvenance.
   lua_State* getLUAState()  {return mL;}
@@ -1269,7 +1300,11 @@ void LuaScripting::registerFunction(FunPtr f, const std::string& name,
 }
 
 template <typename FunPtr>
-void LuaScripting::strictHook(FunPtr f, const std::string& name)
+void LuaScripting::strictHookInternal(
+    FunPtr f,
+    const std::string& name,
+    bool registerUndo,
+    bool registerRedo)
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0);
 
@@ -1282,6 +1317,8 @@ void LuaScripting::strictHook(FunPtr f, const std::string& name)
   }
 
   int funcTable = lua_gettop(mL);
+
+  int a4 = lua_gettop(mL);
 
   // Check function signatures.
   lua_getfield(mL, funcTable, TBL_MD_SIG_NO_RET);
@@ -1297,20 +1334,30 @@ void LuaScripting::strictHook(FunPtr f, const std::string& name)
   }
   lua_pop(mL, 1);
 
+  int a3 = lua_gettop(mL);
+
   // Obtain hook table.
   lua_getfield(mL, -1, TBL_MD_HOOKS);
   int hookTable = lua_gettop(mL);
 
-  // Generate a hook descriptor (we make it a name as opposed to a natural
-  // number because we want Lua to use the hash table implementation behind
-  // the scenes, not the array table).
-  lua_getfield(mL, funcTable, TBL_MD_HOOK_INDEX);
+  int a2 = lua_gettop(mL);
+
+  bool regUndoRedo = (registerUndo || registerRedo);
   std::ostringstream os;
-  int hookIndex = lua_tointeger(mL, -1);
-  os << "h" << hookIndex;
-  lua_pop(mL, 1);
-  lua_pushinteger(mL, hookIndex + 1);
-  lua_setfield(mL, funcTable, TBL_MD_HOOK_INDEX);
+  if (!regUndoRedo)
+  {
+    // Generate a hook descriptor (we make it a name as opposed to a natural
+    // number because we want Lua to use the hash table implementation behind
+    // the scenes, not the array table).
+    lua_getfield(mL, funcTable, TBL_MD_HOOK_INDEX);
+    int hookIndex = lua_tointeger(mL, -1);
+    os << "h" << hookIndex;
+    lua_pop(mL, 1);
+    lua_pushinteger(mL, hookIndex + 1);
+    lua_setfield(mL, funcTable, TBL_MD_HOOK_INDEX);
+  }
+
+  int a1 = lua_gettop(mL);
 
   // Push closure
   lua_CFunction proxyFunc = &LuaCallback<FunPtr, typename
@@ -1322,10 +1369,60 @@ void LuaScripting::strictHook(FunPtr f, const std::string& name)
   // we don't perform provenance on hooks.
   lua_pushcclosure(mL, proxyFunc, 2);
 
-  // Associate closure with hook table.
-  lua_setfield(mL, hookTable, os.str().c_str());
+  int a = lua_gettop(mL);
+
+  if (!regUndoRedo)
+  {
+    // Associate closure with hook table.
+    lua_setfield(mL, hookTable, os.str().c_str());
+  }
+  else
+  {
+    int b = lua_gettop(mL);
+    std::string fieldToQuery = LuaScripting::TBL_MD_UNDO_FUNC;
+    bool isUndo = true;
+
+    if (registerRedo)
+    {
+      fieldToQuery = LuaScripting::TBL_MD_REDO_FUNC;
+      isUndo = false;
+    }
+
+    lua_getfield(mL, funcTable, fieldToQuery.c_str());
+
+    if (lua_isnil(mL, -1) == 0)
+    {
+      if (isUndo) throw LuaUndoFuncAlreadySet("Undo function already set.");
+      else        throw LuaRedoFuncAlreadySet("Redo function already set.");
+    }
+
+    lua_pop(mL, 1);
+    lua_setfield(mL, funcTable, fieldToQuery.c_str());
+  }
+
+  int d = lua_gettop(mL);
 
   lua_pop(mL, 2);  // Remove the function table and the hooks table.
+}
+
+template <typename FunPtr>
+void LuaScripting::strictHook(FunPtr f, const std::string& name)
+{
+  strictHookInternal(f, name, false, false);
+}
+
+template <typename FunPtr>
+void LuaScripting::setUndoFun(FunPtr f, const std::string& name)
+{
+  // Uses strict hook.
+  strictHookInternal(f, name, true, false);
+}
+
+template <typename FunPtr>
+void LuaScripting::setRedoFun(FunPtr f, const std::string& name)
+{
+  // Uses strict hook.
+  strictHookInternal(f, name, false, true);
 }
 
 } /* namespace tuvok */

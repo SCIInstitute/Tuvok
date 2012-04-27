@@ -1921,6 +1921,71 @@ SUITE(TestLUAScriptingSystem)
     sc->exec("help()");
   }
 
+  static float f1 = 0.0;
+
+  void set_f1(float f)  {f1 = f;}
+
+  void undo_i1(int i)   {i1 = i * 2;}
+  void undo_f1(float f) {f1 = f + 2.5f;}
+  void undo_s1(string s){s1 = s + "hi";}
+
+  void redo_i1(int i)   {i1 = i * 4;}
+  void redo_f1(float f) {f1 = f - 5.0f;}
+  void redo_s1(string s){s1 = s + "hi2";}
+
+  TEST(TestUndoRedoHooks)
+  {
+    TEST_HEADER;
+
+    // Setup custom undo/redo hooks and test their efficacy.
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+
+    sc->registerFunction(&set_i1, "set_i1", "", true);
+    sc->registerFunction(&set_s1, "set_s1", "", true);
+    sc->registerFunction(&set_b1, "set_b1", "", true);
+    sc->registerFunction(&set_f1, "set_f1", "", true);
+
+    // Customize undo functions (these undo functions will result in invalid
+    // undo state, but thats what we want in order to detect correct redo/undo
+    // hook installation).
+    sc->setUndoFun(&undo_i1, "set_i1");
+    sc->setUndoFun(&undo_f1, "set_f1");
+    sc->setUndoFun(&undo_s1, "set_s1");
+
+    sc->setRedoFun(&redo_i1, "set_i1");
+    sc->setRedoFun(&redo_f1, "set_f1");
+    sc->setRedoFun(&redo_s1, "set_s1");
+
+    sc->exec("set_i1(100)");
+    sc->exec("set_f1(126.5)");
+    sc->exec("set_s1('Test')");
+
+    CHECK_EQUAL(i1, 100);
+    CHECK_CLOSE(f1, 126.5f, 0.001f);
+    CHECK_EQUAL(s1.c_str(), "Test");
+
+    sc->exec("set_i1(1000)");
+    sc->exec("set_f1(500.0)");
+    sc->exec("set_s1('nop')");
+
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL("Testhi", s1.c_str());
+
+    sc->exec("provenance.undo()");
+    CHECK_CLOSE(129.0f, f1, 0.001f);
+
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL(200, i1);
+
+    sc->exec("provenance.redo()");
+    CHECK_EQUAL(4000, i1);
+
+    sc->exec("provenance.redo()");
+    CHECK_CLOSE(495.0, f1, 0.001f);
+
+    sc->exec("provenance.redo()");
+    CHECK_EQUAL("nophi2", s1.c_str());
+  }
 
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
 
