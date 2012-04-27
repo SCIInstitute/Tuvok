@@ -41,6 +41,8 @@
 namespace tuvok
 {
 
+class LuaScripting;
+
 class LuaClassInstance
 {
 public:
@@ -55,14 +57,48 @@ public:
   /// Looks up the class constructor.
   std::string getClassConstructor() const;
 
-  static const char* MD_GLOBAL_ID;
-  static const char* MD_FACTORY_NAME;
+  /// Retrieves global instance ID
+  int getGlobalInstID() const       {return mInstanceID;}
+
+  /// Use this function extremely sparingly. Memory management for the returned
+  /// pointer is handled internally.
+  template <typename T>
+  T* getRawPointer(std::tr1::shared_ptr<LuaScripting> ss);
+
+  /// Data stored in the instance metatable.
+  ///@{
+  static const char*    MD_GLOBAL_INSTANCE_ID;  ///< Instance ID
+  static const char*    MD_FACTORY_NAME;        ///< Generational factory.
+  static const char*    MD_INSTANCE;            ///< Instance pointer.
+  static const char*    MD_DEL_FUN;             ///< Delete function.
+  ///@}
+
+  /// SYSTEM_TABLE really should be stored in LuaScripting. But do to its
+  /// use in LuaFunBinding.h, it is stored here.
+  static const char* SYSTEM_TABLE;          ///< The LuaScripting system table
+
+  static const char* CLASS_INSTANCE_TABLE;  ///< The global class instance table
+  static const char* CLASS_INSTANCE_PREFIX; ///< Prefix for class instances
 
 private:
+
+  lua_State* internalGetLuaState(std::tr1::shared_ptr<LuaScripting> ss);
 
   int         mInstanceID;
 
 };
+
+template <typename T>
+T* LuaClassInstance::getRawPointer(std::tr1::shared_ptr<LuaScripting> ss)
+{
+  std::ostringstream os;
+  os << "return getmetatable(" << fqName() << ")." << MD_INSTANCE;
+  luaL_dostring(internalGetLuaState(ss), os.str().c_str());
+
+  // TODO: Add RTTI
+
+  return reinterpret_cast<T*>(lua_touserdata(internalGetLuaState(ss), -1));
+}
 
 } /* namespace tuvok */
 

@@ -120,6 +120,7 @@ private:
                  std::tr1::shared_ptr<LuaCFunAbstract> undo,
                  std::tr1::shared_ptr<LuaCFunAbstract> redo)
     : function(funName), undoParams(undo), redoParams(redo), childItems()
+    , instCreations(), instDeletions()
     {}
 
     /// Function name we operate on at this stack index.
@@ -161,6 +162,33 @@ private:
             new std::vector<UndoRedoItem>());
       }
       childItems->push_back(item);
+    }
+
+    /// Instance IDs that were created as a result of this call
+    /// (these instance IDs will be contiguous. e.g. [2, 5] or [234, 265], but
+    ///  never {245, 246, 248} where we are missing an instance ID in a specific
+    ///  range).
+    std::tr1::shared_ptr<std::vector<int> > instCreations;
+    void addInstCreation(int id)
+    {
+      if (instCreations.get() == NULL)
+      {
+        instCreations = std::tr1::shared_ptr<std::vector<int> >(
+            new std::vector<int>());
+      }
+      instCreations->push_back(id);
+    }
+
+    /// Instance IDs that were deleted as a result of this call.
+    std::tr1::shared_ptr<std::vector<int> > instDeletions;
+    void addInstDeletion(int id)
+    {
+      if (instDeletions.get() == NULL)
+      {
+        instDeletions = std::tr1::shared_ptr<std::vector<int> >(
+            new std::vector<int>());
+      }
+      instDeletions->push_back(id);
     }
   };
 

@@ -321,23 +321,41 @@ public:
   {
     // Grab the metatable of the table at pos and extract global ID.
     lua_getmetatable(L, pos);
-    lua_getfield(L, -1, );
-    return luaL_checkstring(L, pos);
+    lua_getfield(L, -1, LuaClassInstance::MD_GLOBAL_INSTANCE_ID);
+    int globalID = lua_tointeger(L, -1);
+    lua_pop(L, 2);
+    return LuaClassInstance(globalID);
   }
 
   static void push(lua_State* L, LuaClassInstance in)
   {
-    lua_pushstring(L, in.c_str());
+    // Lookup the instance table in the global instance table based on the
+    // instance ID.
+    // TODO: This can be done more efficiently by parsing and walking the
+    // tables ourselves.
+    if (in.getGlobalInstID() != -1)
+    {
+      std::ostringstream os;
+      os << "return " << LuaClassInstance::CLASS_INSTANCE_TABLE << "."
+         << LuaClassInstance::CLASS_INSTANCE_PREFIX << in.getGlobalInstID();
+      luaL_dostring(L, os.str().c_str()); // Return the class instance.
+    }
+    else
+    {
+      // Empty table.
+      lua_newtable(L);
+    }
   }
 
-  static std::string getValStr(const std::string& in)
+  static std::string getValStr(LuaClassInstance in)
   {
     std::ostringstream os;
-    os << "'" << in << "'";
+    os << LuaClassInstance::CLASS_INSTANCE_TABLE << "."
+       << LuaClassInstance::CLASS_INSTANCE_PREFIX << in.getGlobalInstID();
     return os.str();
   }
-  static std::string getTypeStr() { return "string"; }
-  static std::string getDefault() { return ""; }
+  static std::string getTypeStr() { return "LuaClass"; }
+  static LuaClassInstance getDefault() { return LuaClassInstance(-1); }
 };
 
 // TODO:	Add support for std::vector and std::map, both to be implemented as

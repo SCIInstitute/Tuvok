@@ -53,6 +53,15 @@ using namespace std;
 namespace tuvok
 {
 
+const char* LuaClassInstance::MD_GLOBAL_INSTANCE_ID = "globalID";
+const char* LuaClassInstance::MD_FACTORY_NAME       = "factoryName";
+const char* LuaClassInstance::MD_INSTANCE           = "instance";
+const char* LuaClassInstance::MD_DEL_FUN            = "delFun";
+
+const char* LuaClassInstance::SYSTEM_TABLE          = "_sys_";
+const char* LuaClassInstance::CLASS_INSTANCE_TABLE  = "_sys_.inst";
+const char* LuaClassInstance::CLASS_INSTANCE_PREFIX = "m";
+
 LuaClassInstance::LuaClassInstance(int instanceID)
 : mInstanceID(instanceID)
 {
@@ -63,8 +72,15 @@ LuaClassInstance::LuaClassInstance(int instanceID)
 std::string LuaClassInstance::fqName() const
 {
   std::ostringstream os;
-  os << LuaScripting::CLASS_INSTANCE_TABLE << ".m" << mInstanceID;
+  os << LuaClassInstance::CLASS_INSTANCE_TABLE << "."
+     << LuaClassInstance::CLASS_INSTANCE_PREFIX << mInstanceID;
   return os.str();
+}
+
+lua_State* LuaClassInstance::internalGetLuaState(
+    tr1::shared_ptr<LuaScripting> ss)
+{
+  return ss->getLUAState();
 }
 
 }

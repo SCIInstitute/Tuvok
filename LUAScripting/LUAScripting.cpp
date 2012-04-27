@@ -56,6 +56,7 @@
 #include "LUAScripting.h"
 #include "LUAProvenance.h"
 #include "LuaMemberRegUnsafe.h"
+#include "LuaClassInstanceReg.h"
 
 using namespace std;
 
@@ -82,9 +83,6 @@ const char* LuaScripting::TBL_MD_NUM_PARAMS     = "numParams";
 const char* LuaScripting::TBL_MD_UNDO_FUNC      = "undoHook";
 const char* LuaScripting::TBL_MD_REDO_FUNC      = "redoHook";
 
-const char* LuaScripting::SYSTEM_TABLE          = "_sys_";
-const char* LuaScripting::CLASS_INSTANCE_TABLE  = "_sys_.inst";
-
 // To avoid naming conflicts with other libraries, we prefix all of our
 // registry values with tuvok_
 const char* LuaScripting::REG_EXPECTED_EXCEPTION_FLAG = "tuvok_exceptFlag";
@@ -98,6 +96,10 @@ const char* LuaScripting::TBL_MD_TYPES_TABLE    = "typesTable";
 LuaScripting::LuaScripting()
 : mMemberHookIndex(0)
 , mGlobalInstanceID(0)
+, mGlobalTempInstRange(false)
+, mGlobalTempInstLow(0)
+, mGlobalTempInstHigh(0)
+, mGlobalTempCurrent(0)
 , mProvenance(new LuaProvenance(this))
 , mMemberReg(new LuaMemberRegUnsafe(this))
 {
@@ -118,8 +120,9 @@ LuaScripting::LuaScripting()
 //-----------------------------------------------------------------------------
 LuaScripting::~LuaScripting()
 {
-  unregisterAllFunctions(); // Technically, we only need to call this if we
-                            // are not in charge of the lua_State.
+  unregisterAllFunctions();
+  deleteAllClassInstances();
+
   lua_close(mL);
 }
 
@@ -185,6 +188,11 @@ void LuaScripting::registerScriptFunctions()
                                "header.",
                                false);
   setProvenanceExempt("help");
+
+  mMemberReg->registerFunction(this, &LuaScripting::deleteLuaClassInstance,
+                               "deleteClass",
+                               "Deletes a Lua class instance.",
+                               true);
 
   mMemberReg->registerFunction(this, &LuaScripting::logInfo,
                                "print",
@@ -311,6 +319,80 @@ void LuaScripting::unregisterAllFunctions()
   }
 
   mRegisteredGlobals.clear();
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::deleteAllClassInstances()
+{
+  // Iterate over the class instance table and call destroyClassInstanceTable
+  // on all of the key values.
+  LuaStackRAII _a(mL, 0);
+
+  lua_getglobal(mL, LuaClassInstance::SYSTEM_TABLE);
+  if (lua_isnil(mL, -1) == 1)
+  {
+    lua_pop(mL, 1);
+    return;
+  }
+  lua_pop(mL, 1);
+
+  // Place the class instance table on the top of the stack.
+  {
+    ostringstream os;
+    os << "return " << LuaClassInstance::CLASS_INSTANCE_TABLE;
+    luaL_dostring(mL, os.str().c_str());
+  }
+
+  int instTable = lua_gettop(mL);
+  if (lua_isnil(mL, instTable) == 0)
+  {
+    // Push first key.
+    lua_pushnil(mL);
+    while (lua_next(mL, instTable))
+    {
+      // Check if the value is a table. If so, check to see if it is a function,
+      // otherwise, recurse into the table.
+      destroyClassInstanceTable(lua_gettop(mL));
+      lua_pop(mL, 1);  // Pop value off stack.
+    }
+
+    // Erase the class instance table.
+    {
+      ostringstream os;
+      os << LuaClassInstance::CLASS_INSTANCE_TABLE << " = nil";
+      luaL_dostring(mL, os.str().c_str());
+    }
+  }
+
+  // Pop off the instance table (or nil).
+  lua_pop(mL, 1);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::destroyClassInstanceTable(int tableIndex)
+{
+  LuaStackRAII _a(mL, 0);
+
+  lua_getmetatable(mL, tableIndex);
+  int mt = lua_gettop(mL);
+
+  // Pull the delete function from the table.
+  lua_getfield(mL, mt, LuaClassInstance::MD_DEL_FUN);
+  LuaClassInstanceReg::DelFunSig fun = reinterpret_cast<
+      LuaClassInstanceReg::DelFunSig>(lua_touserdata(mL, -1));
+  lua_pop(mL, 1);
+
+  // Pull the instance pointer from the table.
+  lua_getfield(mL, mt, LuaClassInstance::MD_INSTANCE);
+  void* cls = lua_touserdata(mL, -1);
+  lua_pop(mL, 1);
+
+  // Remove metatable from the stack.
+  lua_pop(mL, 1);
+
+  // Call the delete function with the instance pointer.
+  // Permanently removes the memory for our class.
+  fun(cls);
 }
 
 //-----------------------------------------------------------------------------
@@ -522,7 +604,12 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
       lua_setglobal(mL, token.c_str());
 
       // Add table name to the list of registered globals.
-      mRegisteredGlobals.push_back(token);
+      // Only add it if it is NOT in the system table. The system table
+      // stores class instances, and other accumulations of functions
+      // that we do not want showing up in help.
+      // We also will clean up the system table manually.
+      if (token.compare(LuaClassInstance::SYSTEM_TABLE) != 0)
+        mRegisteredGlobals.push_back(token);
     }
     else if (type == LUA_TTABLE)  // Other
     {
@@ -1325,19 +1412,80 @@ void LuaScripting::endCommand()
 }
 
 //-----------------------------------------------------------------------------
-void LuaScripting::addLuaClass(ClassDefFun def, const std::string fqName)
+void LuaScripting::addLuaClassDef(ClassDefFun f, const std::string fqName)
 {
   // Build constructor into the Lua class table (at fqName).
   // (Setup appropriate LuaClassInstanceReg to grab constructor).
+  LuaClassInstanceReg reg(this, fqName, f);
 
+  // Call class definition function.
+  // This class will construct an appropriate class instance table using the
+  // constructor given in f.
+  f(reg);
+
+  // Populate the 'new' function's table with the class definition function,
+  // and the full factory name.
+  ostringstream retNewFun;
+  retNewFun << "return " << fqName << ".new";
+  luaL_dostring(mL, retNewFun.str().c_str());
+
+  lua_pushlightuserdata(mL, reinterpret_cast<void*>(f));
+  lua_setfield(mL, -2, LuaClassInstanceReg::CONS_MD_CLASS_DEFINITION);
+
+  lua_pushstring(mL, fqName.c_str());
+  lua_setfield(mL, -2, LuaClassInstanceReg::CONS_MD_FACTORY_NAME);
+
+  // Pop the new function table.
+  lua_pop(mL, 1);
 
 }
 
 //-----------------------------------------------------------------------------
-void LuaScripting::doClassDelete(lua_State* L)
+void LuaScripting::deleteLuaClassInstance(LuaClassInstance inst)
 {
-  // Table to delete is the first parameter.
+  LuaStackRAII _a(mL, 0);
+
+  LuaStrictStack<LuaClassInstance>::push(mL, inst);
+  destroyClassInstanceTable(lua_gettop(mL));
+
+  // TODO: Update the deleted class instance IDs in the provenance system.
+
+  // Erase the class instance.
+  {
+    ostringstream os;
+    os << inst.fqName() << " = nil";
+    luaL_dostring(mL, os.str().c_str());
+  }
 }
+
+//-----------------------------------------------------------------------------
+int LuaScripting::getNewClassInstID()
+{
+  if (mGlobalTempInstRange)
+  {
+    int ret = mGlobalTempCurrent;
+    ++mGlobalTempCurrent;
+    if (mGlobalTempCurrent > mGlobalTempInstHigh)
+    {
+      mGlobalTempInstRange = false;
+    }
+    return ret;
+  }
+  else
+  {
+    return mGlobalInstanceID++;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::setNextTempClassInstRange(int low, int high)
+{
+  mGlobalTempInstRange = true;
+  mGlobalTempInstLow = low;
+  mGlobalTempInstHigh = high;
+  mGlobalTempCurrent = low;
+}
+
 
 //==============================================================================
 //

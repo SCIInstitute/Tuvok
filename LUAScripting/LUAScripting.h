@@ -68,6 +68,7 @@ class LuaScripting
   friend class LuaStackRAII;        // For unwinding lua stack during exception
   friend class LuaClassInstanceHook;// For getNewMemberHookID.
   friend class LuaClassInstanceReg; // For obtaining Lua instance.
+  friend class LuaClassInstance;    // For obtaining Lua instance.
 public:
 
   LuaScripting();
@@ -157,7 +158,7 @@ public:
   /// \param  def     The class definition function (see unit tests).
   /// \param  fqName  The fully qualified name where the constructor for
   ///                 the class will be installed.
-  void addLuaClass(ClassDefFun def, const std::string fqName);
+  void addLuaClassDef(ClassDefFun def, const std::string fqName);
 
 
   /// Executes a command.
@@ -318,9 +319,6 @@ public:
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   static const char* TBL_MD_TYPES_TABLE;  ///< type_info userdata table.
 #endif
-
-  static const char* SYSTEM_TABLE;        ///< The LuaScripting system table.
-  static const char* CLASS_INSTANCE_TABLE;///< The global class instance table.
 
   /// Sets a flag in the Lua registry indicating that an exception is expected
   /// that will cause the lua stack to be unbalanced in internal functions.
@@ -485,9 +483,28 @@ private:
   /// Prints all currently registered functions using log.info.
   void printHelp();
 
-  /// Called when the user issues a classDelet(...) call.
-  /// The table to delete will be the first parameter.
-  void doClassDelete(lua_State* L);
+  /// Delete's a lua class instance. Does not delete a class definition.
+  /// Class definitions are permanent.
+  void deleteLuaClassInstance(LuaClassInstance inst);
+
+  /// Retrieves a new class instance ID. This function is modified by
+  /// setNextTempClassInstRange.
+  int getNewClassInstID();
+
+  /// Removes all class instances from the system table.
+  void deleteAllClassInstances();
+
+  /// Deletes the class instance in the table. The table should be removed
+  /// and no longer called after this function is executable.
+  void destroyClassInstanceTable(int tableIndex);
+
+  /// Used when redoing class instance creation. Ensures that the same id is
+  /// used when creating the classes. Starts getNewClassInstID at low, and
+  /// when current > high, we move to where we were when creating instance IDs.
+  /// \param  low   The lowest instance ID to return when using
+  ///               getNewClassInstID.
+  /// \param  high  The highest instance
+  void setNextTempClassInstRange(int low, int high);
 
   /// Just calls provenance begin/end command.
   void beginCommand();
@@ -513,6 +530,10 @@ private:
 
   /// Current global instance ID that will be used to create new Lua classes.
   int                               mGlobalInstanceID;
+  bool                              mGlobalTempInstRange;
+  int                               mGlobalTempInstLow;
+  int                               mGlobalTempInstHigh;
+  int                               mGlobalTempCurrent;
 
   std::auto_ptr<LuaProvenance>      mProvenance;
   std::auto_ptr<LuaMemberRegUnsafe> mMemberReg;
@@ -1337,8 +1358,6 @@ void LuaScripting::strictHookInternal(
 
   int funcTable = lua_gettop(mL);
 
-  int a4 = lua_gettop(mL);
-
   // Check function signatures.
   lua_getfield(mL, funcTable, TBL_MD_SIG_NO_RET);
   std::string sigReg = lua_tostring(mL, -1);
@@ -1353,13 +1372,9 @@ void LuaScripting::strictHookInternal(
   }
   lua_pop(mL, 1);
 
-  int a3 = lua_gettop(mL);
-
   // Obtain hook table.
   lua_getfield(mL, -1, TBL_MD_HOOKS);
   int hookTable = lua_gettop(mL);
-
-  int a2 = lua_gettop(mL);
 
   bool regUndoRedo = (registerUndo || registerRedo);
   std::ostringstream os;
@@ -1376,8 +1391,6 @@ void LuaScripting::strictHookInternal(
     lua_setfield(mL, funcTable, TBL_MD_HOOK_INDEX);
   }
 
-  int a1 = lua_gettop(mL);
-
   // Push closure
   lua_CFunction proxyFunc = &LuaCallback<FunPtr, typename
           LuaCFunExec<FunPtr>::returnType>::exec;
@@ -1388,8 +1401,6 @@ void LuaScripting::strictHookInternal(
   // we don't perform provenance on hooks.
   lua_pushcclosure(mL, proxyFunc, 2);
 
-  int a = lua_gettop(mL);
-
   if (!regUndoRedo)
   {
     // Associate closure with hook table.
@@ -1397,7 +1408,6 @@ void LuaScripting::strictHookInternal(
   }
   else
   {
-    int b = lua_gettop(mL);
     std::string fieldToQuery = LuaScripting::TBL_MD_UNDO_FUNC;
     bool isUndo = true;
 
@@ -1418,8 +1428,6 @@ void LuaScripting::strictHookInternal(
     lua_pop(mL, 1);
     lua_setfield(mL, funcTable, fieldToQuery.c_str());
   }
-
-  int d = lua_gettop(mL);
 
   lua_pop(mL, 2);  // Remove the function table and the hooks table.
 }

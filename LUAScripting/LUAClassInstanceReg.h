@@ -34,6 +34,7 @@
 #define TUVOK_LUACLASSINSTANCEREG_H_
 
 #include "LuaClassInstance.h"
+#include "LuaMemberRegUnsafe.h"
 
 namespace tuvok
 {
@@ -58,17 +59,39 @@ public:
 
 private:
 
-  /// The constructors are called from LuaScripting.
 
-  /// Since LuaClassInstanceReg is used in a limited capacity, and only by the
-  /// LuaScripting class, we use a non-shared pointer to LuaScripting.
-  LuaClassInstanceReg(LuaScripting* scriptSys, const std::string& fqName,
-                      bool doConstruction);
+  /// Called by LuaScripting to construct a class instance table.
+  explicit LuaClassInstanceReg(LuaScripting* scriptSys,
+                               const std::string& fqName,
+                               LuaScripting::ClassDefFun f);
+
+  /// Used internally to construct instances of a class from a class instance
+  /// table. Instances are initialized at instanceLoc.
+  explicit LuaClassInstanceReg(LuaScripting* scriptSys,
+                               const std::string& instanceLoc,
+                               void* instance);
 
   /// Pointer to our encapsulating class.
-  LuaScripting*             mSS;
-  std::string               mClassPath; ///< fqName passed into init.
-  bool                      mDoConstruction;
+  LuaScripting*                     mSS;
+  std::string                       mClassPath; ///< fqName passed into init.
+
+  bool                              mDoConstruction;
+  LuaScripting::ClassDefFun         mClassDefinition;
+  void*                             mClassInstance;
+
+  // We use the unsafe version because we don't want our functions deleted
+  // when this class goes out of scope, and we do not have access to a
+  // shared_ptr instance of LuaScripting system.
+  std::auto_ptr<LuaMemberRegUnsafe> mRegistration;
+
+  /// Data stored in the constructor table
+  ///@{
+  static const char*    CONS_MD_CLASS_DEFINITION;
+  static const char*    CONS_MD_FACTORY_NAME;
+  ///@}
+
+  /// Signature for delFun in LuaConstructorCallback.
+  typedef void (*DelFunSig)(void* inst);
 
   template <typename FunPtr>
   struct LuaConstructorCallback
@@ -127,18 +150,71 @@ private:
       // on the bottom) is the table associated with the function.
       ss->doHooks(L, 1, provExempt);
 
+      // Grab extra data from constructor table.
+      lua_getfield(L, newFunTableIndex, CONS_MD_CLASS_DEFINITION);
+      LuaScripting::ClassDefFun fDef =
+          reinterpret_cast<LuaScripting::ClassDefFun>(lua_touserdata(L, -1));
+      lua_pop(L, 1);
 
-      // TODO: Take pointer, and create appropriate instance table.
-      // **** Functionize ****
-      // Create instance table (including its functions)
+      lua_getfield(L, newFunTableIndex, CONS_MD_FACTORY_NAME);
+      std::string factoryFQName = lua_tostring(L, -1);
+      lua_pop(L, 1);
 
-      // Assign instance table to global index (we need to determine what
-      // global index to use, likely just a variable in LuaScripting::
-      // SYSTEM_TABLE .
-      // **** Functionize ****
+      // Create an instance of this class.
+      // First we build where we will be placing this class instance
+      // (in the global instance table).
+      int instID = ss->getNewClassInstID();
+      std::string instanceLoc;
+      {
+        std::ostringstream os;
+        os << LuaClassInstance::CLASS_INSTANCE_TABLE;
+        os << "." << LuaClassInstance::CLASS_INSTANCE_PREFIX << instID;
+        instanceLoc = os.str();
+      }
 
-      LuaStrictStack<LuaClassInstance>().push(L, r);
+      // Build instance table where we will place class instance table.
+      lua_newtable(L); // (1)
+
+      // Metatable
+      lua_newtable(L);
+
+      lua_pushinteger(L, instID);
+      lua_setfield(L, -2, LuaClassInstance::MD_GLOBAL_INSTANCE_ID);
+
+      lua_pushstring(L, factoryFQName.c_str());
+      lua_setfield(L, -2, LuaClassInstance::MD_FACTORY_NAME);
+
+      lua_pushlightuserdata(L, r);
+      lua_setfield(L, -2, LuaClassInstance::MD_INSTANCE);
+
+      lua_pushlightuserdata(L, reinterpret_cast<void*>(
+          &LuaConstructorCallback<FunPtr>::del));
+      lua_setfield(L, -2, LuaClassInstance::MD_DEL_FUN);
+
+      lua_setmetatable(L, -2);
+
+      // Bind (1)
+      ss->bindClosureTableWithFQName(instanceLoc, lua_gettop(L));
+      lua_pop(L, 1);  // Pop instance table.
+
+      // Construct functions in our instance table.
+      LuaClassInstanceReg reg(ss, instanceLoc, r);
+      fDef(reg);
+
+      // Pass back our instance.
+      LuaClassInstance instance(instID);
+      LuaStrictStack<LuaClassInstance>().push(L, instance);
       return 1;
+    }
+
+    // Casts the void* to the appropriate type, and deletes the class
+    // instance.
+    static void del(void* inst)
+    {
+      // Cast and delete the class instance.
+      // NOTE: returnType should already be a pointer type.
+      delete (reinterpret_cast<typename LuaCFunExec<FunPtr>::returnType>(
+          inst));
     }
   };
 
@@ -166,9 +242,12 @@ private:
     int tableIndex = lua_gettop(L);
 
     // Add function metadata to the table.
-    std::string sig = LuaCFunExec<FunPtr>::getSignature("");
-    std::string sigWithName = LuaCFunExec<FunPtr>::getSignature(
-        mSS->getUnqualifiedName(name));
+    // We know the constructor will return a class that strict stack is not
+    // capable of handling. So we insert our own return value.
+    std::string sig = "LuaClassInstance "
+        + LuaCFunExec<FunPtr>::getSigNoReturn("");
+    std::string sigWithName = "LuaClassInstance " +
+        LuaCFunExec<FunPtr>::getSigNoReturn(mSS->getUnqualifiedName(name));
     std::string sigNoRet = LuaCFunExec<FunPtr>::getSigNoReturn("");
     mSS->populateWithMetadata(name, desc, sig, sigWithName, sigNoRet,
                               tableIndex);
@@ -211,7 +290,7 @@ void LuaClassInstanceReg::constructor(FunPtr f, const std::string& desc)
   {
     // Construct 'constructor' table.
     lua_State* L = mSS->getLUAState();
-    LuaStackRAII _a = new LuaStackRAII(L, 0);
+    LuaStackRAII _a(L, 0);
 
     // Register 'new'. This will automatically create the necessary class table.
     std::string fqFunName = mClassPath;
@@ -225,24 +304,25 @@ void LuaClassInstanceReg::constructor(FunPtr f, const std::string& desc)
     luaL_dostring(L, os.str().c_str());
 
     // Now we have the class table on the top of the stack
-    int funTable = lua_gettop(L);
+    //int funTable = lua_gettop(L);
 
-    // Setup metatable (just calls the new function)
-    {
-      std::ostringstream os;
-      os << fqFunName << "()";
-      lua_newtable(L);
-      luaL_loadstring(L, os.str().c_str());
-      lua_setfield(L, -2, "__call");
+    // TODO: Get metatable working (need to pass parameters through --
+    // if __call points to new table, then __call needs to be weak).
+//    // Setup metatable (just calls the new function)
+//    {
+//      std::ostringstream os;
+//      os << fqFunName << "()";
+//      lua_newtable(L);
+//      luaL_loadstring(L, os.str().c_str());
+//      lua_setfield(L, -2, "__call");
+//
+//      lua_setmetatable(L, funTable);
+//    }
 
-      lua_setmetatable(L, funTable);
-    }
+    // TODO typeID
 
-    // Delete function
-    // TODO
-
-    // typeID
-    // TODO
+    // Pop function table off stack.
+    lua_pop(L, 1);
   }
 }
 
@@ -254,7 +334,16 @@ void LuaClassInstanceReg::function(FunPtr f,
 {
   if (mDoConstruction == false)
   {
+    assert(mRegistration.get());
+
+    std::ostringstream qualifiedName;
+    qualifiedName << mClassPath << "." << unqualifiedName;
+
     // Function pointer f is guaranteed to be a member function pointer.
+    mRegistration->registerFunction(
+        reinterpret_cast<typename LuaCFunExec<FunPtr>::classType*>(
+            mClassInstance),
+        f, qualifiedName.str(), desc, undoRedo);
   }
 }
 
