@@ -62,9 +62,10 @@ class LuaMemberRegUnsafe;
 
 class LuaScripting
 {
-  friend class LuaMemberRegUnsafe;  // For member function registration.
+  friend class LuaMemberRegUnsafe;  // For getNewMemberHookID.
   friend class LuaProvenance;       // For obtaining function tables.
   friend class LuaStackRAII;        // For unwinding lua stack during exception
+  friend class LuaClassInstanceHook;// For getNewMemberHookID.
 public:
 
   LuaScripting();
@@ -114,19 +115,20 @@ public:
   template <typename FunPtr>
   void strictHook(FunPtr f, const std::string& name);
 
-  /// Lua Class Instance Construction
-  ///
-  /// Use this method to begin constructing a class.
-  /// Add functions to the class using the returned LuaInstanceReg instance.
-  ///
-  /// The static constructor function pointer should construct and return an
-  /// instance of the class <T>.
-  /// This constructor will be bound into Lua at <fqName>.new . Also, the
-  /// table at <fqName> will be made executable, and will call this
-  /// constructor function.
-  template <typename T, typename FunPtr>
-  LuaClassInstanceReg constructClass(const std::string& fqName, FunPtr constructor,
-                                const std::string& classDesc);
+//  /// Lua Class Instance Construction
+//  ///
+//  /// Use this method to begin constructing a class.
+//  /// Add functions to the class using the returned LuaInstanceReg instance.
+//  ///
+//  /// The static constructor function pointer should construct and return an
+//  /// instance of the class <T>.
+//  /// This constructor will be bound into Lua at <fqName>.new . Also, the
+//  /// table at <fqName> will be made executable, and will call this
+//  /// constructor function.
+//  template <typename T, typename FunPtr>
+//  LuaClassInstanceReg constructClass(const std::string& fqName,
+//                                     FunPtr constructor,
+//                                     const std::string& classDesc);
 
 
   /// Executes a command.
@@ -438,6 +440,10 @@ private:
   /// Prints all currently registered functions using log.info.
   void printHelp();
 
+  /// Just calls provenance begin/end command.
+  void beginCommand();
+  void endCommand();
+
   /// Lua Registry Values
   ///@{
   /// Expected exception flag. Affects LuaStackRAII, and the logging of errors.
@@ -492,20 +498,24 @@ private:
         // We are NOT a hook. Our parameters start at index 2 (because the
         // callable table is at the first index). We will want to call all
         // hooks associated with our table.
+        ss->beginCommand();
         try
         {
           r = LuaCFunExec<FunPtr>::run(L, 2, fp);
         }
         catch (std::exception& e)
         {
+          ss->endCommand();
           ss->logExecFailure(e.what());
           throw;
         }
         catch (...)
         {
+          ss->endCommand();
           ss->logExecFailure("");
           throw;
         }
+        ss->endCommand();
 
         // Call registered hooks.
         // Note: The first parameter on the stack (not on the top, but
@@ -546,6 +556,7 @@ private:
 
         bool provExempt = ss->doProvenanceFromExec(L, execParams, emptyParams);
 
+        ss->beginCommand();
         try
         {
           LuaCFunExec<FunPtr>::run(L, 2, fp);
@@ -553,13 +564,16 @@ private:
         catch (std::exception& e)
         {
           ss->logExecFailure(e.what());
+          ss->endCommand();
           throw;
         }
         catch (...)
         {
           ss->logExecFailure("");
+          ss->endCommand();
           throw;
         }
+        ss->endCommand();
 
         ss->doHooks(L, 1, provExempt);
       }

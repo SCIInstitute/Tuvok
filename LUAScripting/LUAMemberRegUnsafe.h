@@ -126,6 +126,7 @@ private:
         // instance of LuaScripting out of Lua.
         bool provExempt = ss->doProvenanceFromExec(L, execParams, emptyParams);
 
+        ss->beginCommand();
         try
         {
           r = LuaCFunExec<FunPtr>::run(L, 2, C, fp);
@@ -133,13 +134,16 @@ private:
         catch (std::exception& e)
         {
           ss->logExecFailure(e.what());
+          ss->endCommand();
           throw;
         }
         catch (...)
         {
           ss->logExecFailure("");
+          ss->endCommand();
           throw;
         }
+        ss->endCommand();
 
         ss->doHooks(L, 1, provExempt);
       }
@@ -179,6 +183,7 @@ private:
 
         bool provExempt = ss->doProvenanceFromExec(L, execParams, emptyParams);
 
+        ss->beginCommand();
         try
         {
           LuaCFunExec<FunPtr>::run(L, 2, C, fp);
@@ -186,13 +191,16 @@ private:
         catch (std::exception& e)
         {
           ss->logExecFailure(e.what());
+          ss->endCommand();
           throw;
         }
         catch (...)
         {
           ss->logExecFailure("");
+          ss->endCommand();
           throw;
         }
+        ss->endCommand();
 
         ss->doHooks(L, 1, provExempt);
       }

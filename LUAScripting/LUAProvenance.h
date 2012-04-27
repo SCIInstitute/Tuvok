@@ -28,6 +28,7 @@
 
 /**
  \brief   Provenance system composited inside of the LuaScripting class.
+          Not reentrant (logging and command depth).
  */
 
 #ifndef TUVOK_LUAPROVENANCE_H_
@@ -103,10 +104,13 @@ public:
   /// Begin a new command group.
   /// Command groups lump commands together that should be undone / redone
   /// together.
-  void beginCommandGroup();
+  void beginCommand();
 
   /// End a command group.
-  void endCommandGroup();
+  void endCommand();
+
+  // Retrieve command depth.
+  int getCommandDepth()   {return mCommandDepth;}
 
 private:
 
@@ -169,13 +173,10 @@ private:
   /// call.
   bool                      mUndoRedoProvenanceDisable;
 
-  /// True if we are inside an undo/redo group.
-  /// Groups represent a group of commands that should be undone / redone
-  /// together. Commands get automatically grouped together when the commands
-  /// get 'nested'. As in, one registered function calls back into lua and
-  /// executes another registered command.
-  bool                      mInCommandGroup;
-  int                       mCommandGroupID;
+  /// Current command depth. Only the first command is placed in provenance
+  /// and the undo/redo buffer. The calls deeper than the first command are
+  /// still logged into the provenance logging system for debugging purposes.
+  int                       mCommandDepth;
 };
 
 }

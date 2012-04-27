@@ -1306,6 +1306,18 @@ void LuaScripting::setTempProvDisable(bool disable)
   mProvenance->setDisableProvTemporarily(disable);
 }
 
+//-----------------------------------------------------------------------------
+void LuaScripting::beginCommand()
+{
+  mProvenance->beginCommand();
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::endCommand()
+{
+  mProvenance->endCommand();
+}
+
 //==============================================================================
 //
 // UNIT TESTING

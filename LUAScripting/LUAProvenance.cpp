@@ -28,6 +28,7 @@
 
 /**
  \brief   Provenance system composited inside of the LuaScripting class.
+          Not reentrant (logging and command depth).
  */
 
 #ifndef EXTERNAL_UNIT_TESTING
@@ -69,8 +70,7 @@ LuaProvenance::LuaProvenance(LuaScripting* scripting)
 , mDoProvReenterException(true)
 , mProvenanceDescLogEnabled(true)
 , mUndoRedoProvenanceDisable(false)
-, mInCommandGroup(false)
-, mCommandGroupID(0)
+, mCommandDepth(0)
 {
   mUndoRedoStack.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
   mProvenanceDescList.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
@@ -225,7 +225,8 @@ void LuaProvenance::logExecution(const string& fname,
     if (mUndoRedoProvenanceDisable)
       os << " -- Called: \"";
 
-    os << fname << "(" << provParams << ")";
+    os << fname << "(" << provParams << ")"
+       << " - depth:" << mCommandDepth;
     if (mUndoRedoProvenanceDisable)
     {
       os << "\"";
@@ -237,7 +238,8 @@ void LuaProvenance::logExecution(const string& fname,
     }
   }
 
-  if (undoRedoStackExempt || mUndoRedoProvenanceDisable)
+  // Only the first command should be logged in provenance (mCommandDepth)
+  if (undoRedoStackExempt || mUndoRedoProvenanceDisable || mCommandDepth > 0)
   {
     mLoggingProvenance = false;
     return;
@@ -496,17 +498,15 @@ std::vector<std::string> LuaProvenance::getRedoStackDesc()
 }
 
 //-----------------------------------------------------------------------------
-void LuaProvenance::beginCommandGroup()
+void LuaProvenance::beginCommand()
 {
-  mInCommandGroup = true;
+	++mCommandDepth;
 }
 
 //-----------------------------------------------------------------------------
-void LuaProvenance::endCommandGroup()
+void LuaProvenance::endCommand()
 {
-  ++mCommandGroupID;
-  mCommandGroupID = mCommandGroupID % 2;  // Alternate between 0 and 1.
-  mInCommandGroup = false;
+	--mCommandDepth;
 }
 
 //-----------------------------------------------------------------------------
@@ -821,7 +821,7 @@ SUITE(LuaProvenanceTests)
     sc->registerFunction(&set_b1, "set_b1", "", true);
 
     sc->exec("set_i1(23)");
-    sc->exec("set_s1(\"Test String\")");
+    sc->exec("set_s1('Test String')");
     sc->exec("set_b1(true)");
 
     CHECK_EQUAL(23, i1);
@@ -844,6 +844,58 @@ SUITE(LuaProvenanceTests)
 
     sc->exec("provenance.undo()");
     CHECK_EQUAL(0, i1);
+  }
+
+  LuaScripting* sc = NULL;
+
+  static void set_i1_s1_b1(int a, string b, bool c)
+  {
+    {
+      ostringstream os;
+      os << "set_i1(" << a << ")";
+      sc->exec(os.str());
+    }
+
+    {
+      ostringstream os;
+      os << "set_s1('" << b << "')";
+      sc->exec(os.str());
+    }
+
+    {
+      ostringstream os;
+      if (c)    os << "set_b1(true)";
+      else      os << "set_b1(false)";
+      sc->exec(os.str());
+    }
+  }
+
+  TEST(ProvenanceCommandDepth)
+  {
+    TEST_HEADER;
+
+    sc = new LuaScripting();
+
+    sc->registerFunction(&set_i1, "set_i1", "", true);
+    sc->registerFunction(&set_s1, "set_s1", "", true);
+    sc->setDefaults("set_s1", "nop", false);
+    sc->registerFunction(&set_b1, "set_b1", "", true);
+    sc->registerFunction(&set_i1_s1_b1, "setAll", "", true);
+
+    sc->exec("set_i1(23)");
+    sc->exec("set_s1('Test String')");
+    sc->exec("set_b1(true)");
+
+    CHECK_EQUAL(23, i1);
+    CHECK_EQUAL("Test String", s1.c_str());
+    CHECK_EQUAL(true, b1);
+
+    sc->exec("setAll(78, 'Str Test', false)");
+
+    sc->exec("provenance.logProvRecord()");
+    sc->exec("provenance.logUndoStack()");
+
+    delete sc;
   }
 
 }
