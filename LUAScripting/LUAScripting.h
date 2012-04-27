@@ -349,6 +349,9 @@ public:
   /// testing purposes.
   LuaProvenance* getProvenanceSys() const {return mProvenance.get();}
 
+  /// Used for testing purposes only.
+  int getCurrentClassInstID() {return mGlobalInstanceID;}
+
 private:
 
   template <typename FunPtr>

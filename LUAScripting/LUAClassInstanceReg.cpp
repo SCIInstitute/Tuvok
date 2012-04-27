@@ -91,15 +91,15 @@ LuaClassInstanceReg::LuaClassInstanceReg(LuaScripting* scriptSys,
 
 SUITE(LuaTestClassInstanceRegistration)
 {
+  int a_constructor = 0;
   int a_destructor = 0;
-  int b_destructor = 0;
-
   class A
   {
   public:
 
     A(int a, float b, string c)
     {
+      ++a_constructor;
       i1 = a; i2 = 0;
       f1 = b; f2 = 0.0f;
       s1 = c;
@@ -156,11 +156,14 @@ SUITE(LuaTestClassInstanceRegistration)
 
   };
 
+  int b_constructor = 0;
+  int b_destructor = 0;
   class B
   {
   public:
     B()
     {
+      ++b_constructor;
       i1 = 0; f1 = 0;
     }
 
@@ -500,7 +503,6 @@ SUITE(LuaTestClassInstanceRegistration)
 
     // Testing only the first instance of a1.
     std::string b1Name = b1.fqName();
-    //B* b1p = b1.getRawPointer<B>(sc);
     
     sc->exec(b1Name + ".set_i1(158)");
     sc->exec(b1Name + ".set_f1(345.89)");
@@ -533,12 +535,655 @@ SUITE(LuaTestClassInstanceRegistration)
     CHECK_EQUAL("String 2", a1p->s2.c_str());
   }
 
+  tr1::shared_ptr<LuaScripting> gSS;
+
+  static int c_constructor = 0;
+  static int c_destructor = 0;
+  class C
+  {
+  public:
+    C()
+    : a(gSS->execRet<LuaClassInstance>("factory.a.new(2, 2.63, 'str')"))
+    {
+      ++c_constructor;
+      i1 = 0;
+      f1 = 0.0f;
+    }
+
+    ~C()
+    {
+      ++c_destructor;
+      gSS->exec("deleteClass(" + a.fqName() + ")"); // Our responsibility
+    }
+
+    LuaClassInstance a;
+
+    int i1;
+    float f1;
+    string s1;
+
+    void set_i1(int i)    {i1 = i;}
+    int get_i1()          {return i1;}
+
+    void set_f1(float f)  {f1 = f;}
+    float get_f1()        {return f1;}
+
+    void set_s1(string s) {s1 = s;}
+    string get_s1()       {return s1;}
+
+    // Methods to set i1 values in a.
+    void set_a_i2(int i)
+    {
+      ostringstream os;
+      os << a.fqName() << ".set_i2(" << i << ")";
+      gSS->exec(os.str());
+    }
+    int get_a_i2()
+    {
+      return gSS->execRet<int>(a.fqName() + ".get_i2()");
+    }
+    void set_a_f2(float f)
+    {
+      ostringstream os;
+      os << a.fqName() << ".set_f2(" << f << ")";
+      gSS->exec(os.str());
+    }
+    float get_a_f2()
+    {
+      return gSS->execRet<float>(a.fqName() + ".get_f2()");
+    }
+    void set_a_s2(string s)
+    {
+      ostringstream os;
+      os << a.fqName() << ".set_s2('" << s << "')";
+      gSS->exec(os.str());
+    }
+    string get_a_s2()
+    {
+      return gSS->execRet<string>(a.fqName() + "get_s2()");
+    }
+
+
+    static void luaDefineClass(LuaClassInstanceReg& d)
+    {
+      d.constructor(&luaConstruct, "C's constructor.");
+      d.function(&C::set_i1, "set_i1", "", true);
+      d.function(&C::get_i1, "get_i1", "", false);
+
+      d.function(&C::set_f1, "set_f1", "", true);
+      d.function(&C::get_f1, "get_f1", "", false);
+
+      d.function(&C::set_s1, "set_s1", "", true);
+      d.function(&C::get_s1, "get_s1", "", false);
+
+      d.function(&C::set_a_i2, "set_a_i2", "", true);
+      d.function(&C::get_a_i2, "get_a_i2", "", false);
+
+      d.function(&C::set_a_f2, "set_a_f2", "", true);
+      d.function(&C::get_a_f2, "get_a_f2", "", false);
+
+      d.function(&C::set_a_s2, "set_a_s2", "", true);
+      d.function(&C::get_a_s2, "get_a_s2", "", false);
+    }
+
+  private:
+
+    static C* luaConstruct() {return new C();}
+  };
+
+  static int d_constructor = 0;
+  static int d_destructor = 0;
+  class D
+  {
+  public:
+    D()
+    : b(gSS->execRet<LuaClassInstance>("factory.b.new()"))
+    , c(gSS->execRet<LuaClassInstance>("factory.c.new()"))
+    {
+      ++d_constructor;
+    }
+
+    ~D()
+    {
+      ++d_destructor;
+      gSS->exec("deleteClass(" + c.fqName() + ")"); // Our responsibility
+      gSS->exec("deleteClass(" + b.fqName() + ")"); // Our responsibility
+    }
+
+    LuaClassInstance b;
+    LuaClassInstance c;
+
+    void set_i1(int i)
+    {
+      ostringstream os;
+      os << b.fqName() << ".set_i1(" << i << ")";
+      gSS->exec(os.str());
+    }
+    int get_i1()
+    {
+      return gSS->execRet<int>(b.fqName() + ".get_i1()");
+    }
+
+    void set_f1(float f)
+    {
+      ostringstream os;
+      os << b.fqName() << ".set_f1(" << f << ")";
+      gSS->exec(os.str());
+    }
+    float get_f1()
+    {
+      return gSS->execRet<float>(b.fqName() + "get_f1()");
+    }
+
+    void set_s1(string s)
+    {
+      ostringstream os;
+      os << b.fqName() << ".set_s1('" << s << "')";
+      gSS->exec(os.str());
+    }
+    string get_s1()
+    {
+      return gSS->execRet<string>(b.fqName() + "get_s1()");
+    }
+
+    // 3 levels of indirection (D -> C -> A)
+    void set_a_i2(int i)
+    {
+      ostringstream os;
+      os << c.fqName() << ".set_a_i2(" << i << ")";
+      gSS->exec(os.str());
+    }
+    int get_a_i2()
+    {
+      return gSS->execRet<int>(c.fqName() + ".get_a_i2()");
+    }
+    void set_a_f2(float f)
+    {
+      ostringstream os;
+      os << c.fqName() << ".set_a_f2(" << f << ")";
+      gSS->exec(os.str());
+    }
+    float get_a_f2()
+    {
+      return gSS->execRet<float>(c.fqName() + "get_a_f2()");
+    }
+    void set_a_s2(string s)
+    {
+      ostringstream os;
+      os << c.fqName() << ".set_a_s2('" << s << "')";
+      gSS->exec(os.str());
+    }
+    string get_a_s2()
+    {
+      return gSS->execRet<string>(c.fqName() + "get_a_s2()");
+    }
+
+    static void luaDefineClass(LuaClassInstanceReg& d)
+    {
+      d.constructor(&luaConstruct, "D's constructor.");
+      d.function(&D::set_i1, "set_i1", "", true);
+      d.function(&D::get_i1, "get_i1", "", false);
+
+      d.function(&D::set_f1, "set_f1", "", true);
+      d.function(&D::get_f1, "get_f1", "", false);
+
+      d.function(&D::set_s1, "set_s1", "", true);
+      d.function(&D::get_s1, "get_s1", "", false);
+
+      d.function(&D::set_a_i2, "set_a_i2", "", true);
+      d.function(&D::get_a_i2, "get_a_i2", "", false);
+
+      d.function(&D::set_a_f2, "set_a_f2", "", true);
+      d.function(&D::get_a_f2, "get_a_f2", "", false);
+
+      d.function(&D::set_a_s2, "set_a_s2", "", true);
+      d.function(&D::get_a_s2, "get_a_s2", "", false);
+    }
+
+  private:
+
+    static D* luaConstruct() {return new D();}
+
+  };
+
+  // Helps keeps track of destructor / constructor calls.
+  int a_con = 0;
+  int a_des = 0;
+
+  int b_con = 0;
+  int b_des = 0;
+
+  int c_con = 0;
+  int c_des = 0;
+
+  int d_con = 0;
+  int d_des = 0;
+
+  void compareAccumulators()
+  {
+    CHECK_EQUAL(a_con, a_constructor);
+    CHECK_EQUAL(a_des, a_destructor);
+
+    CHECK_EQUAL(b_con, b_constructor);
+    CHECK_EQUAL(b_des, b_destructor);
+
+    CHECK_EQUAL(c_con, c_constructor);
+    CHECK_EQUAL(c_des, c_destructor);
+
+    CHECK_EQUAL(d_con, d_constructor);
+    CHECK_EQUAL(d_des, d_destructor);
+  }
+
+  void clearAccumulators()
+  {
+    a_constructor = 0;
+    a_destructor = 0;
+
+    b_constructor = 0;
+    b_destructor = 0;
+
+    c_constructor = 0;
+    c_destructor = 0;
+
+    d_constructor = 0;
+    d_destructor = 0;
+
+    a_con = 0;
+    a_des = 0;
+
+    b_con = 0;
+    b_des = 0;
+
+    c_con = 0;
+    c_des = 0;
+
+    d_con = 0;
+    d_des = 0;
+  }
+
   TEST(ClassProvenanceCompositing)
   {
     // Test compositing classes together (new Lua classes are created from
     // another class' constructor).
 
     // This will be a complex case, testing the provenance system's integrity.
+    TEST_HEADER;
+
+    // Thoroughly test class provenance.
+    gSS = tr1::shared_ptr<LuaScripting>(new LuaScripting());
+
+    // Register class definitions.
+    gSS->addLuaClassDef(&A::luaDefineClass, "factory.a");
+    gSS->addLuaClassDef(&B::luaDefineClass, "factory.b");
+    gSS->addLuaClassDef(&C::luaDefineClass, "factory.c");
+    gSS->addLuaClassDef(&D::luaDefineClass, "factory.d");
+
+    clearAccumulators();
+
+    // Test Just the D class for now (composition).
+    {
+      LuaClassInstance d = gSS->execRet<LuaClassInstance>("factory.d.new()");
+      ++a_con; ++b_con; ++c_con; ++d_con;
+      compareAccumulators();
+
+      // Obtain instances to all of our classes.
+      string dn = d.fqName();
+      D* dp = d.getRawPointer<D>(gSS);
+
+      LuaClassInstance d_c = dp->c;
+      LuaClassInstance d_b = dp->b;
+
+      string d_cn = d_c.fqName();
+      C* d_cp = d_c.getRawPointer<C>(gSS);
+
+      string d_bn = d_b.fqName();
+      B* d_bp = d_b.getRawPointer<B>(gSS);
+
+      LuaClassInstance d_c_a = d_cp->a;
+
+      string d_c_an = d_c_a.fqName();
+      A* d_c_ap = d_c_a.getRawPointer<A>(gSS);
+
+      // Set several variables using d's functions.
+
+      // Set B's variables through C functions
+      gSS->exec(dn + ".set_i1(643)");
+      gSS->exec(dn + ".set_f1(34.83)");
+      gSS->exec(dn + ".set_s1('James')");
+
+      // Set C's A _#2's variables through C functions.
+      gSS->exec(dn + ".set_a_i2(121)");
+      gSS->exec(dn + ".set_a_f2(12.21)");
+      gSS->exec(dn + ".set_a_s2('Hughes')");
+
+      // Set C's variables through C.
+      gSS->exec(d_cn + ".set_i1(823)");
+      gSS->exec(d_cn + ".set_f1(230.212)");
+      gSS->exec(d_cn + ".set_s1('C Vars')");
+
+      // Set A's _#1 variables through A.
+      gSS->exec(d_c_an + ".set_i1(2346)");
+      gSS->exec(d_c_an + ".set_f1(543.4325)");
+      gSS->exec(d_c_an + ".set_s1('A Vars')");
+
+      // Test that B's variables were set.
+      CHECK_EQUAL(643, d_bp->i1);
+      CHECK_CLOSE(34.83, d_bp->f1, 0.0001f);
+      CHECK_EQUAL("James", d_bp->s1.c_str());
+
+      // Test that A's _#2 variables were set.
+      CHECK_EQUAL(121, d_c_ap->i2);
+      CHECK_CLOSE(12.21, d_c_ap->f2, 0.0001f);
+      CHECK_EQUAL("Hughes", d_c_ap->s2.c_str());
+
+      // Test that C's variables were set.
+      CHECK_EQUAL(823, d_cp->i1);
+      CHECK_CLOSE(230.212, d_cp->f1, 0.0001f);
+      CHECK_EQUAL("C Vars", d_cp->s1.c_str());
+
+      // Test that A's variables were set.
+      CHECK_EQUAL(2346, d_c_ap->i1);
+      CHECK_CLOSE(543.4325, d_c_ap->f1, 0.0001f);
+      CHECK_EQUAL("A Vars", d_c_ap->s1.c_str());
+
+      // Undo A's _#1 variables
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      // Remember: A has a constructor, but it does not set its values using
+      //           its getter/setter functions, so there state will not be
+      //           what the constructor set them as. They will be defaults.
+      //           Their state will return to normal once we undo/redo D's
+      //           constructor.
+      CHECK_EQUAL(0, d_c_ap->i1);
+      CHECK_CLOSE(0.0, d_c_ap->f1, 0.0001f);
+      CHECK_EQUAL("", d_c_ap->s1.c_str());
+
+      // Undo C's variables
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      CHECK_EQUAL(0, d_cp->i1);
+      CHECK_CLOSE(0.0f, d_cp->f1, 0.0001f);
+      CHECK_EQUAL("", d_cp->s1.c_str());
+
+      // Undo C's A _#2's variables
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      CHECK_EQUAL(0, d_c_ap->i2);
+      CHECK_CLOSE(0.0f, d_c_ap->f2, 0.0001f);
+      CHECK_EQUAL("", d_c_ap->s2.c_str());
+
+      // Undo B's variables
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      CHECK_EQUAL(0, d_bp->i1);
+      CHECK_CLOSE(0.0f, d_bp->f1, 0.0001f);
+      CHECK_EQUAL("", d_bp->s1.c_str());
+
+      // Redo all of the way back.
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+
+      // Recheck variables
+      // Test that B's variables were set.
+      CHECK_EQUAL(643, d_bp->i1);
+      CHECK_CLOSE(34.83, d_bp->f1, 0.0001f);
+      CHECK_EQUAL("James", d_bp->s1.c_str());
+
+      // Test that A's _#2 variables were set.
+      CHECK_EQUAL(121, d_c_ap->i2);
+      CHECK_CLOSE(12.21, d_c_ap->f2, 0.0001f);
+      CHECK_EQUAL("Hughes", d_c_ap->s2.c_str());
+
+      // Test that C's variables were set.
+      CHECK_EQUAL(823, d_cp->i1);
+      CHECK_CLOSE(230.212, d_cp->f1, 0.0001f);
+      CHECK_EQUAL("C Vars", d_cp->s1.c_str());
+
+      // Test that A's variables were set.
+      CHECK_EQUAL(2346, d_c_ap->i1);
+      CHECK_CLOSE(543.4325, d_c_ap->f1, 0.0001f);
+      CHECK_EQUAL("A Vars", d_c_ap->s1.c_str());
+
+      int oldInstTop = gSS->getCurrentClassInstID();
+
+      // Delete the class.
+      gSS->exec("deleteClass(" + dn + ")");
+      ++a_des; ++b_des; ++c_des; ++d_des;
+      compareAccumulators();
+
+      CHECK_EQUAL(oldInstTop, gSS->getCurrentClassInstID());
+
+      // Undo deletion (all classes should be recreated with the above state).
+      gSS->exec("provenance.undo()");
+      ++a_con; ++b_con; ++c_con; ++d_con;
+      compareAccumulators();
+
+      CHECK_EQUAL(oldInstTop, gSS->getCurrentClassInstID());
+
+      // Re-grab pointers (the globalID's will not have changed).
+      dp = d.getRawPointer<D>(gSS);
+      d_cp = d_c.getRawPointer<C>(gSS);
+      d_bp = d_b.getRawPointer<B>(gSS);
+      d_c_ap = d_c_a.getRawPointer<A>(gSS);
+
+      // Recheck variables
+      // Test that B's variables were set.
+      CHECK_EQUAL(643, d_bp->i1);
+      CHECK_CLOSE(34.83, d_bp->f1, 0.0001f);
+      CHECK_EQUAL("James", d_bp->s1.c_str());
+
+      // Test that A's _#2 variables were set.
+      CHECK_EQUAL(121, d_c_ap->i2);
+      CHECK_CLOSE(12.21, d_c_ap->f2, 0.0001f);
+      CHECK_EQUAL("Hughes", d_c_ap->s2.c_str());
+
+      // Test that C's variables were set.
+      CHECK_EQUAL(823, d_cp->i1);
+      CHECK_CLOSE(230.212, d_cp->f1, 0.0001f);
+      CHECK_EQUAL("C Vars", d_cp->s1.c_str());
+
+      // Test that A's variables were set.
+      CHECK_EQUAL(2346, d_c_ap->i1);
+      CHECK_CLOSE(543.4325, d_c_ap->f1, 0.0001f);
+      CHECK_EQUAL("A Vars", d_c_ap->s1.c_str());
+
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+      gSS->exec("provenance.undo()");
+
+      CHECK_EQUAL(0, d_c_ap->i1);
+      CHECK_CLOSE(0.0, d_c_ap->f1, 0.0001f);
+      CHECK_EQUAL("", d_c_ap->s1.c_str());
+
+      CHECK_EQUAL(0, d_cp->i1);
+      CHECK_CLOSE(0.0f, d_cp->f1, 0.0001f);
+      CHECK_EQUAL("", d_cp->s1.c_str());
+
+      CHECK_EQUAL(0, d_c_ap->i2);
+      CHECK_CLOSE(0.0f, d_c_ap->f2, 0.0001f);
+      CHECK_EQUAL("", d_c_ap->s2.c_str());
+
+      CHECK_EQUAL(0, d_bp->i1);
+      CHECK_CLOSE(0.0f, d_bp->f1, 0.0001f);
+      CHECK_EQUAL("", d_bp->s1.c_str());
+
+      // Undo class creation.
+      gSS->exec("provenance.undo()");
+      ++a_des; ++b_des; ++c_des; ++d_des;
+      compareAccumulators();
+
+      // Redo class creation.
+      gSS->exec("provenance.redo()");
+      ++a_con; ++b_con; ++c_con; ++d_con;
+      compareAccumulators();
+
+      // Re-grab pointers (the globalID's will not have changed).
+      dp = d.getRawPointer<D>(gSS);
+      d_cp = d_c.getRawPointer<C>(gSS);
+      d_bp = d_b.getRawPointer<B>(gSS);
+      d_c_ap = d_c_a.getRawPointer<A>(gSS);
+
+      // Remember! The constructor was just called. So a's constructed
+      // values sholud be there (2, 2.63, 'str')
+      CHECK_EQUAL(2, d_c_ap->i1);
+      CHECK_CLOSE(2.63, d_c_ap->f1, 0.0001f);
+      CHECK_EQUAL("str", d_c_ap->s1.c_str());
+
+      CHECK_EQUAL(0, d_cp->i1);
+      CHECK_CLOSE(0.0f, d_cp->f1, 0.0001f);
+      CHECK_EQUAL("", d_cp->s1.c_str());
+
+      CHECK_EQUAL(0, d_c_ap->i2);
+      CHECK_CLOSE(0.0f, d_c_ap->f2, 0.0001f);
+      CHECK_EQUAL("", d_c_ap->s2.c_str());
+
+      CHECK_EQUAL(0, d_bp->i1);
+      CHECK_CLOSE(0.0f, d_bp->f1, 0.0001f);
+      CHECK_EQUAL("", d_bp->s1.c_str());
+
+      // Redo all of the way back.
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+      gSS->exec("provenance.redo()");
+
+      // Recheck variables
+      // Test that B's variables were set.
+      CHECK_EQUAL(643, d_bp->i1);
+      CHECK_CLOSE(34.83, d_bp->f1, 0.0001f);
+      CHECK_EQUAL("James", d_bp->s1.c_str());
+
+      // Test that A's _#2 variables were set.
+      CHECK_EQUAL(121, d_c_ap->i2);
+      CHECK_CLOSE(12.21, d_c_ap->f2, 0.0001f);
+      CHECK_EQUAL("Hughes", d_c_ap->s2.c_str());
+
+      // Test that C's variables were set.
+      CHECK_EQUAL(823, d_cp->i1);
+      CHECK_CLOSE(230.212, d_cp->f1, 0.0001f);
+      CHECK_EQUAL("C Vars", d_cp->s1.c_str());
+
+      // Test that A's variables were set.
+      CHECK_EQUAL(2346, d_c_ap->i1);
+      CHECK_CLOSE(543.4325, d_c_ap->f1, 0.0001f);
+      CHECK_EQUAL("A Vars", d_c_ap->s1.c_str());
+
+      // Redo deletion
+      gSS->exec("provenance.redo()");
+      ++a_des; ++b_des; ++c_des; ++d_des;
+      compareAccumulators();
+
+      // We can check this class after we are done below.
+    }
+
+    // No need to clear the accumulators, just keep them going.
+
+
+//    // Test interleaving creation of A,B,C, and D.
+//    {
+//      // Create d
+//      // (a_ b_ c_ d_constructor = 1)
+//      ++a_c; ++b_c; ++c_c; ++d_c;
+//      compareAccumulators();
+//
+//      // Set misc values for d
+//
+//      // Create a
+//      // (a_constructor = 2)
+//      ++a_c;
+//      compareAccumulators();
+//
+//      // Set misc values for a/d
+//
+//      // Create c
+//      // (c_constructor = 2, a_constructor = 3)
+//      ++c_c; ++a_c;
+//      compareAccumulators();
+//
+//      // Set misc values a/c/d
+//
+//      // Create b
+//      // (b_constructor = 2)
+//      ++b_c;
+//      compareAccumulators();
+//
+//      // Set misc values for all
+//
+//      // delete a
+//      // (a_destructor = 1)
+//      ++a_d;
+//      compareAccumulators();
+//
+//      // set misc values for b,c,d
+//
+//      // delete d
+//      // (a_destructor = 2, b_ c_ d_destructor = 1)
+//      ++a_d; ++b_d; ++c_d; ++d_d;
+//      compareAccumulators();
+//
+//      // set misc values for c and b
+//
+//      // delete b
+//      // (b_destructor = 2)
+//      ++b_d;
+//      compareAccumulators();
+//
+//      // set misc values for c
+//
+//      // delete c
+//      // (a_destructor = 3, c_destructor = 2)
+//      ++a_d; ++c_d;
+//      compareAccumulators();
+//
+//      // test undo/redo of this entire system
+//
+//      // undo - delete c
+//      // (c_constructor = )
+//
+//      // Undoing c should travel all the way back to the creation of d.
+//      // (d_constructor = 2
+//    }
+
   }
 
   TEST(ClassHelpAndLog)
@@ -551,13 +1196,9 @@ SUITE(LuaTestClassInstanceRegistration)
   {
     tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
-    // Register class definitions.
-    sc->addLuaClassDef(&A::luaDefineClass, "factory.a1");
-    sc->addLuaClassDef(&B::luaDefineClass, "factory.b1");
 
-    // Test the classes.
-    LuaClassInstance a_1 = sc->execRet<LuaClassInstance>(
-        "factory.a1.new(2, 2.63, 'str')");
+
+
   }
 
 }

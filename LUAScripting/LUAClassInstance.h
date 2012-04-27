@@ -60,11 +60,6 @@ public:
   /// Retrieves global instance ID
   int getGlobalInstID() const       {return mInstanceID;}
 
-  /// Use this function extremely sparingly. Memory management for the returned
-  /// pointer is handled internally.
-  template <typename T>
-  T* getRawPointer(std::tr1::shared_ptr<LuaScripting> ss);
-
   /// Data stored in the instance metatable.
   ///@{
   static const char*    MD_GLOBAL_INSTANCE_ID;  ///< Instance ID
@@ -80,6 +75,13 @@ public:
   static const char* CLASS_INSTANCE_TABLE;  ///< The global class instance table
   static const char* CLASS_INSTANCE_PREFIX; ///< Prefix for class instances
 
+  /// Only use for testing.
+  /// Please use LuaScripting::exec() instead.
+  /// This pointer can die on you at any time. Also, undo/redo can invalidate
+  /// this pointer.
+  template <typename T>
+  T* getRawPointer(std::tr1::shared_ptr<LuaScripting> ss);
+
 private:
 
   lua_State* internalGetLuaState(std::tr1::shared_ptr<LuaScripting> ss);
@@ -93,7 +95,8 @@ T* LuaClassInstance::getRawPointer(std::tr1::shared_ptr<LuaScripting> ss)
 {
   std::ostringstream os;
   os << "return getmetatable(" << fqName() << ")." << MD_INSTANCE;
-  luaL_dostring(internalGetLuaState(ss), os.str().c_str());
+  std::string luaCall = os.str();
+  luaL_dostring(internalGetLuaState(ss), luaCall.c_str());
 
   // TODO: Add RTTI
 

@@ -40,6 +40,7 @@
 namespace tuvok
 {
 
+/// Testing documentation
 class LuaClassInstanceReg
 {
   friend class LuaScripting;
@@ -124,6 +125,16 @@ private:
       // instance of LuaScripting out of Lua.
       bool provExempt = ss->doProvenanceFromExec(L, execParams, emptyParams);
 
+      // It is important that we obtain our class ID before any composited
+      // classes. This has to do with the way we are destroyed when undoing
+      // a constructor. The parent class is always deleted first, which
+      // will cascade delete all children (in order).
+      //
+      // In other words, do not move this line below the
+      // LuaCFunExec<FunPtr>::run below. This will cause the parent Lua class
+      // having the highest global ID (which doesn't make sense anyways).
+      int instID = ss->getNewClassInstID();
+
       // We are NOT a hook. Our parameters start at index 2 (because the
       // callable table is at the first index). We will want to call all
       // hooks associated with our table.
@@ -164,7 +175,6 @@ private:
       // Create an instance of this class.
       // First we build where we will be placing this class instance
       // (in the global instance table).
-      int instID = ss->getNewClassInstID();
       std::string instanceLoc;
       {
         std::ostringstream os;

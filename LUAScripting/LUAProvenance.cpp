@@ -323,6 +323,7 @@ void LuaProvenance::logExecution(const string& fname,
   mLoggingProvenance = false;
 }
 
+
 //-----------------------------------------------------------------------------
 tr1::tuple<int, int, int> LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
 {
@@ -350,7 +351,7 @@ tr1::tuple<int, int, int> LuaProvenance::bruteRerollDetermineUndos(int undoIndex
 
       // of global instance ID's.
       int lowest = *unresolved.begin();
-      int highest = *unresolved.end();
+      int highest = unresolved.back();
       if (lowest < lowestID) lowestID = lowest; // last will always be the lowest.
       if (highest > highestID) highestID = highest;
 
@@ -360,10 +361,15 @@ tr1::tuple<int, int, int> LuaProvenance::bruteRerollDetermineUndos(int undoIndex
       for (vector<int>::iterator it = unresolved.begin() + 1;
           it != unresolved.end(); ++it)
       {
-        if (last == *it || *it - last != 1)
+        if (last == *it)
         {
-          throw LuaProvenanceFailedUndo("Unsequential or duplicate global IDs");
+          throw LuaProvenanceFailedUndo("Duplicate global IDs");
         }
+        if (*it - last != 1)
+        {
+          throw LuaProvenanceFailedUndo("Unsequential global IDs");
+        }
+        last = *it;
       }
     }
     if (undoItem.instCreations.get())
@@ -510,6 +516,16 @@ void LuaProvenance::issueRedo()
   // The stack pointer is 1 based, this is the next element on the stack.
   int redoIndex = mStackPointer;
   UndoRedoItem redoItem = mUndoRedoStack[redoIndex];
+
+  // Upon recreation of instances, we need to ensure our instances have
+  // the same ID's. This code block will ensure that.
+  if (redoItem.instCreations.get() != 0)
+  {
+    // instCreations is always ordered.
+    int lowestID = redoItem.instCreations->front();
+    int highestID = redoItem.instCreations->back();
+    mScripting->setNextTempClassInstRange(lowestID, highestID);
+  }
 
   try
   {
