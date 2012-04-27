@@ -82,6 +82,9 @@ const char* LuaScripting::TBL_MD_NUM_PARAMS     = "numParams";
 const char* LuaScripting::TBL_MD_UNDO_FUNC      = "undoHook";
 const char* LuaScripting::TBL_MD_REDO_FUNC      = "redoHook";
 
+const char* LuaScripting::SYSTEM_TABLE          = "_sys_";
+const char* LuaScripting::CLASS_INSTANCE_TABLE  = "_sys_.inst";
+
 // To avoid naming conflicts with other libraries, we prefix all of our
 // registry values with tuvok_
 const char* LuaScripting::REG_EXPECTED_EXCEPTION_FLAG = "tuvok_exceptFlag";
@@ -94,6 +97,7 @@ const char* LuaScripting::TBL_MD_TYPES_TABLE    = "typesTable";
 //-----------------------------------------------------------------------------
 LuaScripting::LuaScripting()
 : mMemberHookIndex(0)
+, mGlobalInstanceID(0)
 , mProvenance(new LuaProvenance(this))
 , mMemberReg(new LuaMemberRegUnsafe(this))
 {
@@ -280,7 +284,7 @@ void LuaScripting::printHelp()
 }
 
 //-----------------------------------------------------------------------------
-bool LuaScripting::isProvenanceEnabled()
+bool LuaScripting::isProvenanceEnabled() const
 {
   return mProvenance->isEnabled();
 }
@@ -1318,6 +1322,21 @@ void LuaScripting::beginCommand()
 void LuaScripting::endCommand()
 {
   mProvenance->endCommand();
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::addLuaClass(ClassDefFun def, const std::string fqName)
+{
+  // Build constructor into the Lua class table (at fqName).
+  // (Setup appropriate LuaClassInstanceReg to grab constructor).
+
+
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::doClassDelete(lua_State* L)
+{
+  // Table to delete is the first parameter.
 }
 
 //==============================================================================

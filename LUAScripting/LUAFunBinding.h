@@ -55,6 +55,8 @@
 #include <typeinfo>
 #include <sstream>
 
+#include "LUAClassInstance.h"
+
 // Uncomment TUVOK_DEBUG_LUA_USE_RTTI_CHECKS to check types of function calls
 // made through lua at run time.
 // (will be especially useful to debug shared_ptr type issues)
@@ -297,6 +299,33 @@ public:
   }
 
   static void push(lua_State* L, const std::string& in)
+  {
+    lua_pushstring(L, in.c_str());
+  }
+
+  static std::string getValStr(const std::string& in)
+  {
+    std::ostringstream os;
+    os << "'" << in << "'";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "string"; }
+  static std::string getDefault() { return ""; }
+};
+
+template<>
+class LuaStrictStack<LuaClassInstance>
+{
+public:
+  static LuaClassInstance get(lua_State* L, int pos)
+  {
+    // Grab the metatable of the table at pos and extract global ID.
+    lua_getmetatable(L, pos);
+    lua_getfield(L, -1, );
+    return luaL_checkstring(L, pos);
+  }
+
+  static void push(lua_State* L, LuaClassInstance in)
   {
     lua_pushstring(L, in.c_str());
   }

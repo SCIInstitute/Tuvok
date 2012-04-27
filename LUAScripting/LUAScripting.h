@@ -59,6 +59,7 @@ namespace tuvok
 
 class LuaProvenance;
 class LuaMemberRegUnsafe;
+class LuaClassInstanceReg;
 
 class LuaScripting
 {
@@ -66,6 +67,7 @@ class LuaScripting
   friend class LuaProvenance;       // For obtaining function tables.
   friend class LuaStackRAII;        // For unwinding lua stack during exception
   friend class LuaClassInstanceHook;// For getNewMemberHookID.
+  friend class LuaClassInstanceReg; // For obtaining Lua instance.
 public:
 
   LuaScripting();
@@ -140,20 +142,22 @@ public:
   template <typename FunPtr>
   void setRedoFun(FunPtr f, const std::string& name);
 
-//  /// Lua Class Instance Construction
-//  ///
-//  /// Use this method to begin constructing a class.
-//  /// Add functions to the class using the returned LuaInstanceReg instance.
-//  ///
-//  /// The static constructor function pointer should construct and return an
-//  /// instance of the class <T>.
-//  /// This constructor will be bound into Lua at <fqName>.new . Also, the
-//  /// table at <fqName> will be made executable, and will call this
-//  /// constructor function.
-//  template <typename T, typename FunPtr>
-//  LuaClassInstanceReg constructClass(const std::string& fqName,
-//                                     FunPtr constructor,
-//                                     const std::string& classDesc);
+  typedef void (*ClassDefFun)(LuaClassInstanceReg& reg);
+  /// Registers a new lua class given a 'class definition function'.
+  /// Consult unit tests in LuaClassInstanceReg.cpp for examples on using the
+  /// LuaClassInstanceReg class.
+  ///
+  /// Lua classes are useful for objects that are frequently created
+  /// and destroyed. When you register a class, you are giving Lua the
+  /// ability to create / destroy these classes at will -- and call all
+  /// exposed functions when the class instances are alive.
+  ///
+  /// Provenance is enabled for these classes.
+  ///
+  /// \param  def     The class definition function (see unit tests).
+  /// \param  fqName  The fully qualified name where the constructor for
+  ///                 the class will be installed.
+  void addLuaClass(ClassDefFun def, const std::string fqName);
 
 
   /// Executes a command.
@@ -271,8 +275,11 @@ public:
 
   /// Default: Provenance is enabled. Disabling provenance will disable undo/
   /// redo.
-  bool isProvenanceEnabled();
+  bool isProvenanceEnabled() const;
   void enableProvenance(bool enable);
+
+  int getCurGlobalInstID() const  {return mGlobalInstanceID;}
+  void incrementGlobalInstID()    {mGlobalInstanceID++;}
 
   /// Function description returned from getFuncDescs().
   struct FunctionDesc
@@ -311,6 +318,9 @@ public:
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   static const char* TBL_MD_TYPES_TABLE;  ///< type_info userdata table.
 #endif
+
+  static const char* SYSTEM_TABLE;        ///< The LuaScripting system table.
+  static const char* CLASS_INSTANCE_TABLE;///< The global class instance table.
 
   /// Sets a flag in the Lua registry indicating that an exception is expected
   /// that will cause the lua stack to be unbalanced in internal functions.
@@ -421,6 +431,8 @@ private:
   void createDefaultsAndLastExecTables(int tableIndex, int numParams);
 
   /// Binds the closure given at closureIndex to the fully qualified name (fq).
+  /// In reality, you can use this function to bind any lua value to the
+  /// indicated function name.
   void bindClosureTableWithFQName(const std::string& fqName, int closureIndex);
 
   /// Retrieves the unqualified name given the qualified name.
@@ -473,6 +485,10 @@ private:
   /// Prints all currently registered functions using log.info.
   void printHelp();
 
+  /// Called when the user issues a classDelet(...) call.
+  /// The table to delete will be the first parameter.
+  void doClassDelete(lua_State* L);
+
   /// Just calls provenance begin/end command.
   void beginCommand();
   void endCommand();
@@ -494,6 +510,9 @@ private:
   /// Index used to assign a unique ID to classes that wish to register
   /// hooks.
   int                               mMemberHookIndex;
+
+  /// Current global instance ID that will be used to create new Lua classes.
+  int                               mGlobalInstanceID;
 
   std::auto_ptr<LuaProvenance>      mProvenance;
   std::auto_ptr<LuaMemberRegUnsafe> mMemberReg;

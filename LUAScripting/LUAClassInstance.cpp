@@ -27,43 +27,45 @@
 */
 
 /**
-  \brief  Class used to identify class instances inside of Lua.
-          Class proxies are easier to use than some management scheme
-          to keep track of class instances internally.
-
-          These class proxies also give us a chance to perform undo/redo
-          appropriately for the lifetime of objects.
+  \brief   
 */
 
-#ifndef TUVOK_LUACLASSINSTANCE_H_
-#define TUVOK_LUACLASSINSTANCE_H_
+
+#ifndef EXTERNAL_UNIT_TESTING
+
+#include "Controller/Controller.h"
+#include "3rdParty/LUA/lua.hpp"
+
+#else
+
+#include <assert.h>
+#include "utestCommon.h"
+
+#endif
+
+#include <vector>
+
+#include "LUAScripting.h"
+#include "LUAClassInstance.h"
+
+using namespace std;
 
 namespace tuvok
 {
 
-class LuaClassInstance
+LuaClassInstance::LuaClassInstance(int instanceID)
+: mInstanceID(instanceID)
 {
-public:
-  LuaClassInstance(int instanceID);
-  ~LuaClassInstance() {}
 
-  /// Retrieves the fully qualified name to the class instance.
-  /// You can use this fully qualified name to hook functions associated
-  /// with the class (using LuaMemberReg), or perform other operations.
-  std::string fqName() const;
+}
 
-  /// Looks up the class constructor.
-  std::string getClassConstructor() const;
+//{return mFullyQualifiedName;}
+std::string LuaClassInstance::fqName() const
+{
+  std::ostringstream os;
+  os << LuaScripting::CLASS_INSTANCE_TABLE << ".m" << mInstanceID;
+  return os.str();
+}
 
-  static const char* MD_GLOBAL_ID;
-  static const char* MD_FACTORY_NAME;
+}
 
-private:
-
-  int         mInstanceID;
-
-};
-
-} /* namespace tuvok */
-
-#endif

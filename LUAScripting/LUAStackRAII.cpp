@@ -83,6 +83,9 @@ LuaStackRAII::~LuaStackRAII()
     bool expected = lua_toboolean(mL, -1) ? true : false;
     lua_pop(mL, 1);
 
+    // Pull value out of the Lua register to see if this is really an
+    // error, or an expected event (in the case of unit testing this would
+    // likely be an expected exception)
     if (expected == false)
     {
       // Take advantage of the fact that this class will be used in conjunction
@@ -106,11 +109,6 @@ LuaStackRAII::~LuaStackRAII()
 
       os << "]==])";
 
-      // Pull value out of the Lua register to see if this is really an
-      // error, or an expected event (in the case of unit testing this would
-      // likely be an expected exception)
-
-      // Bypass lua since this is a lua error.
       luaL_dostring(mL, os.str().c_str());
 
 #ifdef TUVOK_LUARAII_ASSERT

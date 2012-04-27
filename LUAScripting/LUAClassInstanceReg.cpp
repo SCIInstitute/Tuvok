@@ -47,6 +47,7 @@
 #include "LUAScripting.h"
 #include "LUAStackRAII.h"
 #include "LUAClassInstanceReg.h"
+#include "LUAClassInstance.h"
 
 using namespace std;
 
@@ -54,11 +55,92 @@ namespace tuvok
 {
 
 LuaClassInstanceReg::LuaClassInstanceReg(
-    std::tr1::shared_ptr<LuaScripting> scriptSys,
-    const std::string& fqName)
+    LuaScripting* scriptSys,
+    const std::string& fqName,
+    bool doConstruction)
 : mSS(scriptSys)
 , mClassPath(fqName)
+, mDoConstruction(doConstruction)
 {}
+
+
+//==============================================================================
+//
+// UNIT TESTING
+//
+//==============================================================================
+
+#ifdef EXTERNAL_UNIT_TESTING
+
+SUITE(LuaTestClassInstanceRegistration)
+{
+  class A
+  {
+  public:
+
+    A(int a, float b, string c)
+    {
+      i1 = 0; i2 = 0;
+      f1 = 0.0f; f2 = 0.0f;
+    }
+
+    int     i1, i2;
+    float   f1, f2;
+    string  s1, s2;
+
+    void set_i1(int i)    {i1 = i;}
+    void set_i2(int i)    {i2 = i;}
+    int get_i1()          {return i1;}
+    int get_i2()          {return i2;}
+
+    void set_f1(float f)  {f1 = f;}
+    void set_f2(float f)  {f2 = f;}
+    float get_f1()        {return f1;}
+    float get_f2()        {return f2;}
+
+    void set_s1(string s) {s1 = s;}
+    void set_s2(string s) {s2 = s;}
+    string get_s1()       {return s1;}
+    string get_s2()       {return s2;}
+
+    static void luaDefineClass(LuaClassInstanceReg& d)
+    {
+      d.constructor(&luaConstruct, "A's constructor.");
+      d.function(&A::set_i1, "set_i1", "", true);
+      d.function(&A::set_i2, "set_i2", "", true);
+      d.function(&A::get_i1, "get_i1", "", false);
+      d.function(&A::get_i2, "get_i2", "", false);
+
+      d.function(&A::set_f1, "set_f1", "", true);
+      d.function(&A::set_f2, "set_f2", "", true);
+      d.function(&A::get_f1, "get_f1", "", false);
+      d.function(&A::get_f2, "get_f2", "", false);
+
+      d.function(&A::set_s1, "set_s1", "", true);
+      d.function(&A::set_s2, "set_s2", "", true);
+      d.function(&A::get_s1, "get_s1", "", false);
+      d.function(&A::get_s2, "get_s2", "", false);
+    }
+
+  private:
+
+    static A* luaConstruct(int a, float b, string c)
+    { return new A(a, b, c); }
+
+  };
+
+  TEST(MemberFunctionRegistration)
+  {
+    TEST_HEADER;
+
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+
+  }
+
+
+}
+
+#endif
 
 
 } /* namespace tuvok */
