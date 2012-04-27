@@ -65,7 +65,9 @@ using namespace std;
 // Disable "'this' used in base member initializer list warning"
 // this is not referenced in either of the initialized classes,
 // but is merely stored.
+#ifdef DETECTED_OS_WINDOWS
 #pragma warning( disable : 4355 )
+#endif
 
 namespace tuvok
 {
@@ -141,7 +143,9 @@ void LuaScripting::removeAllRegistrations()
   unregisterAllFunctions();
 }
 
+#ifdef DETECTED_OS_WINDOWS
 #pragma warning( disable : 4702 )  // Unreachable code warning.
+#endif
 //-----------------------------------------------------------------------------
 int LuaScripting::luaPanic(lua_State* L)
 {
@@ -173,7 +177,9 @@ int LuaScripting::luaPanic(lua_State* L)
   // We don't want this.
   return 0;
 }
+#ifdef DETECTED_OS_WINDOWS
 #pragma warning(default:4702)  // Reenable unreachable code arning
+#endif
 
 //-----------------------------------------------------------------------------
 void* LuaScripting::luaInternalAlloc(void* /*ud*/, void* ptr, size_t /*osize*/,

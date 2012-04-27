@@ -200,6 +200,8 @@ HEADERS += \
            IO/VariantArray.h \
            IO/VFFConverter.h \
            IO/XML3DGeoConverter.h \
+           LUAScripting/LUAClassInstance.h \
+           LUAScripting/LUAClassInstanceReg.h \
            LUAScripting/LUAError.h \
            LUAScripting/LUAFunBinding.h \
            LUAScripting/LUAMemberReg.h \
@@ -476,6 +478,8 @@ SOURCES += \
            IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
            IO/XML3DGeoConverter.cpp \
+           LUAScripting/LUAClassInstance.cpp \
+           LUAScripting/LUAClassInstanceReg.cpp \
            LUAScripting/LUAMemberReg.cpp \
            LUAScripting/LUAMemberRegUnsafe.cpp \
            LUAScripting/LUAProvenance.cpp \
