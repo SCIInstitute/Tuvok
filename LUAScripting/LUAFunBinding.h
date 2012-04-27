@@ -56,6 +56,7 @@
 #include <sstream>
 
 #include "LUAClassInstance.h"
+#include "LUAStackRAII.h"
 
 // Uncomment TUVOK_DEBUG_LUA_USE_RTTI_CHECKS to check types of function calls
 // made through lua at run time.
@@ -319,16 +320,31 @@ class LuaStrictStack<LuaClassInstance>
 public:
   static LuaClassInstance get(lua_State* L, int pos)
   {
-    // Grab the metatable of the table at pos and extract global ID.
-    lua_getmetatable(L, pos);
-    lua_getfield(L, -1, LuaClassInstance::MD_GLOBAL_INSTANCE_ID);
-    int globalID = lua_tointeger(L, -1);
-    lua_pop(L, 2);
-    return LuaClassInstance(globalID);
+    LuaStackRAII _a(L, 0);
+
+    lua_getfield(L, pos, "_DefaultInstance_");
+    if (lua_isnil(L, -1))
+    {
+      lua_pop(L, 1);
+
+      // Grab the metatable of the table at pos and extract global ID.
+      lua_getmetatable(L, pos);
+      lua_getfield(L, -1, LuaClassInstance::MD_GLOBAL_INSTANCE_ID);
+      int globalID = luaL_checkinteger(L, -1);
+      lua_pop(L, 2);
+      return LuaClassInstance(globalID);
+    }
+    else
+    {
+      lua_pop(L, 1);
+      return LuaClassInstance(-1);
+    }
   }
 
   static void push(lua_State* L, LuaClassInstance in)
   {
+    LuaStackRAII _a(L, 1);
+
     // Lookup the instance table in the global instance table based on the
     // instance ID.
     // TODO: This can be done more efficiently by parsing and walking the
@@ -344,6 +360,8 @@ public:
     {
       // Empty table.
       lua_newtable(L);
+      lua_pushboolean(L, 1);
+      lua_setfield(L, -2, "_DefaultInstance_");
     }
   }
 

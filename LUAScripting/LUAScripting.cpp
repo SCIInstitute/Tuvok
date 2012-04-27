@@ -1456,6 +1456,9 @@ void LuaScripting::deleteLuaClassInstance(LuaClassInstance inst)
     os << inst.fqName() << " = nil";
     luaL_dostring(mL, os.str().c_str());
   }
+
+  // Pop the class instance table.
+  lua_pop(mL, 1);
 }
 
 //-----------------------------------------------------------------------------

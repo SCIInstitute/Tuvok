@@ -91,7 +91,8 @@ LuaClassInstanceReg::LuaClassInstanceReg(LuaScripting* scriptSys,
 
 SUITE(LuaTestClassInstanceRegistration)
 {
-  bool a_destructor = false;
+  int a_destructor = 0;
+  int b_destructor = 0;
 
   class A
   {
@@ -106,8 +107,7 @@ SUITE(LuaTestClassInstanceRegistration)
 
     ~A()
     {
-      a_destructor = true;
-      cout << "Destructor called" << endl;
+      ++a_destructor;
     }
 
     int     i1, i2;
@@ -129,6 +129,7 @@ SUITE(LuaTestClassInstanceRegistration)
     string get_s1()       {return s1;}
     string get_s2()       {return s2;}
 
+    // Class definition. The real meat defining a class.
     static void luaDefineClass(LuaClassInstanceReg& d)
     {
       d.constructor(&luaConstruct, "A's constructor.");
@@ -155,23 +156,74 @@ SUITE(LuaTestClassInstanceRegistration)
 
   };
 
+  class B
+  {
+  public:
+    B()
+    {
+      i1 = 0; f1 = 0;
+    }
+
+    ~B()
+    {
+      ++b_destructor;
+    }
+
+    int i1;
+    float f1;
+    string s1;
+
+    void set_i1(int i)    {i1 = i;}
+    int get_i1()          {return i1;}
+
+    void set_f1(float f)  {f1 = f;}
+    float get_f1()        {return f1;}
+
+    void set_s1(string s) {s1 = s;}
+    string get_s1()       {return s1;}
+
+    static void luaDefineClass(LuaClassInstanceReg& d)
+    {
+      d.constructor(&luaConstruct, "B's constructor.");
+      d.function(&B::set_i1, "set_i1", "", true);
+      d.function(&B::get_i1, "get_i1", "", false);
+
+      d.function(&B::set_f1, "set_f1", "", true);
+      d.function(&B::get_f1, "get_f1", "", false);
+
+      d.function(&B::set_s1, "set_s1", "", true);
+      d.function(&B::get_s1, "get_s1", "", false);
+    }
+
+  private:
+
+    static B* luaConstruct() {return new B();}
+
+  };
+
   TEST(ClassRegistration)
   {
     TEST_HEADER;
 
-    a_destructor = false;
+    a_destructor = 0;
 
     {
       tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
+      // Register class definitions.
       sc->addLuaClassDef(&A::luaDefineClass, "factory.a1");
+      sc->addLuaClassDef(&B::luaDefineClass, "factory.b1");
 
       // Test the classes.
       LuaClassInstance a_1 = sc->execRet<LuaClassInstance>(
           "factory.a1.new(2, 2.63, 'str')");
+      // Dummy instances to test destructors when the scripting system
+      // goes out of scope.
+      sc->execRet<LuaClassInstance>("factory.a1.new(2, 2.63, 'str')");
+      sc->execRet<LuaClassInstance>("factory.b1.new()");
 
+      // Testing only the first instance of a1.
       std::string aInst = a_1.fqName();
-
       A* a = a_1.getRawPointer<A>(sc);
 
       CHECK_EQUAL(2, a->i1);
@@ -202,22 +254,173 @@ SUITE(LuaTestClassInstanceRegistration)
       CHECK_EQUAL("String 2", sc->execRet<string>(aInst + ".get_s2()"));
     }
 
-    // Ensure destructor was called.
-    CHECK_EQUAL(true, a_destructor);
+    // Ensure destructor was called (we created two instances of the class).
+    CHECK_EQUAL(2, a_destructor);
+    CHECK_EQUAL(1, b_destructor);
 
+    a_destructor = 0;
+    b_destructor = 0;
+
+    // More thorough checks
+    {
+      tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+
+      // Register class definitions.
+      sc->addLuaClassDef(&A::luaDefineClass, "factory.a1");
+      sc->addLuaClassDef(&B::luaDefineClass, "factory.b1");
+
+      LuaClassInstance a1 = sc->execRet<LuaClassInstance>(
+          "factory.a1.new(2, 6, 'mystr')");
+      LuaClassInstance a2 = sc->execRet<LuaClassInstance>(
+          "factory.a1.new(4, 2.63, 'str')");
+      LuaClassInstance b1 = sc->execRet<LuaClassInstance>("factory.b1.new()");
+
+      std::string a1Name = a1.fqName();
+      A* a1Ptr = a1.getRawPointer<A>(sc);
+
+      std::string a2Name = a2.fqName();
+      A* a2Ptr = a2.getRawPointer<A>(sc);
+
+      std::string b1Name = b1.fqName();
+      B* b1Ptr = b1.getRawPointer<B>(sc);
+
+      // Check global ID (a1 == 0, a2 == 1, b1 == 2)
+      CHECK_EQUAL(0, a1.getGlobalInstID());
+      CHECK_EQUAL(1, a2.getGlobalInstID());
+      CHECK_EQUAL(2, b1.getGlobalInstID());
+
+      sc->exec(a1Name + ".set_i1(15)");
+      sc->exec(a1Name + ".set_i2(60)");
+      sc->exec(a1Name + ".set_f1(1.5)");
+      sc->exec(a1Name + ".set_f2(3.5)");
+      sc->cexec(a1Name + ".set_s1", "String 1");
+      sc->cexec(a1Name + ".set_s2", "String 2");
+
+      sc->exec(a2Name + ".set_i2(60)");
+      sc->exec(a2Name + ".set_f2(3.5)");
+      sc->cexec(a2Name + ".set_s2", "String 2");
+
+      sc->exec(b1Name + ".set_i1(158)");
+      sc->exec(b1Name + ".set_f1(345.89)");
+      sc->cexec(b1Name + ".set_s1", "B1 str");
+
+      // Check a1
+      CHECK_EQUAL(15, a1Ptr->i1);
+      CHECK_EQUAL(15, sc->execRet<int>(a1Name + ".get_i1()"));
+      CHECK_EQUAL(60, a1Ptr->i2);
+      CHECK_EQUAL(60, sc->execRet<int>(a1Name + ".get_i2()"));
+
+      CHECK_CLOSE(1.5f, a1Ptr->f1, 0.001f);
+      CHECK_CLOSE(1.5f, sc->execRet<float>(a1Name + ".get_f1()"), 0.001f);
+      CHECK_CLOSE(3.5f, a1Ptr->f2, 0.001f);
+      CHECK_CLOSE(3.5f, sc->execRet<float>(a1Name + ".get_f2()"), 0.001f);
+
+      CHECK_EQUAL("String 1", a1Ptr->s1.c_str());
+      CHECK_EQUAL("String 1", sc->execRet<string>(a1Name + ".get_s1()"));
+      CHECK_EQUAL("String 2", a1Ptr->s2.c_str());
+      CHECK_EQUAL("String 2", sc->execRet<string>(a1Name + ".get_s2()"));
+
+      // Check a2
+      CHECK_EQUAL(4, a2Ptr->i1);
+      CHECK_CLOSE(2.63f, a2Ptr->f1, 0.001f);
+      CHECK_EQUAL("str", a2Ptr->s1.c_str());
+      CHECK_EQUAL(60, a2Ptr->i2);
+      CHECK_CLOSE(3.5f, a2Ptr->f2, 0.001f);
+      CHECK_EQUAL("String 2", a2Ptr->s2);
+
+      // Check b1
+      CHECK_EQUAL(158, b1Ptr->i1);
+      CHECK_CLOSE(345.89f, b1Ptr->f1, 0.001f);
+      CHECK_EQUAL("B1 str", b1Ptr->s1);
+
+      // Check whether the class delete function works.
+      sc->exec("deleteClass(" + a2Name + ")");
+      sc->setExpectedExceptionFlag(true);
+      CHECK_THROW(sc->exec(a2Name + ".set_i2(60)"), LuaError);
+      sc->setExpectedExceptionFlag(false);
+      CHECK_EQUAL(1, a_destructor);
+
+      sc->exec("deleteClass(" + a1Name + ")");
+      CHECK_EQUAL(2, a_destructor);
+
+      sc->exec("deleteClass(" + b1Name + ")");
+      CHECK_EQUAL(1, b_destructor);
+    }
+
+    // TODO: Test exceptions.
+  }
+
+  int hooki1 = 0;
+  float hookf1 = 0.0;
+  string hooks1;
+
+  void testHookSeti1(int i)
+  {
+    hooki1 = i;
+  }
+
+  void testHookSetf1(float f)
+  {
+    hookf1 = f;
+  }
+
+  void testHookSets1(string s)
+  {
+    hooks1 = s;
   }
 
   TEST(ClassHooks)
   {
+    TEST_HEADER;
+
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+
+    {
+      sc->addLuaClassDef(&A::luaDefineClass, "factory.a1");
+
+      LuaClassInstance a_1 = sc->execRet<LuaClassInstance>(
+          "factory.a1.new(2, 2.63, 'str')");
+
+      std::string aInst = a_1.fqName();
+
+      A* a = a_1.getRawPointer<A>(sc);
+
+      // Hook i1, f1, and s1.
+      // Member function hooks would work in the same way, but using
+      // LuaMemberReg .
+      sc->strictHook(&testHookSeti1, aInst + ".set_i1");
+      sc->strictHook(&testHookSetf1, aInst + ".set_f1");
+      sc->strictHook(&testHookSets1, aInst + ".set_s1");
+
+      // Call into the class.
+      sc->exec(aInst + ".set_i1(15)");
+      sc->exec(aInst + ".set_f1(1.5)");
+      sc->cexec(aInst + ".set_s1", "String 1");
+
+      CHECK_EQUAL(15, a->i1);
+      CHECK_EQUAL(15, hooki1);
+
+      CHECK_CLOSE(1.5f, a->f1, 0.001f);
+      CHECK_CLOSE(1.5f, hookf1, 0.001f);
+
+      CHECK_EQUAL("String 1", a->s1.c_str());
+      CHECK_EQUAL("String 1", hooks1);
+    }
 
   }
 
   TEST(ClassProvenance)
   {
-
+    // Thoroughly test class provenance.
   }
 
   TEST(ClassHelpAndLog)
+  {
+    // Help should be given for classes, but not for any of their instances
+    // in the _sys_ table.
+  }
+
+  TEST(ClassRTTITypeChecks)
   {
 
   }
