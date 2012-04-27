@@ -46,6 +46,8 @@ class LuaScripting;
 
 class LuaProvenance
 {
+  friend class LuaClassInstanceReg;   // For setting deleted / constructed
+                                      // class instances.
 public:
   // This class is made for compositing inside LuaScripting, hence the pointer.
   LuaProvenance(LuaScripting* scripting);
@@ -109,10 +111,38 @@ public:
   /// End a command group.
   void endCommand();
 
-  // Retrieve command depth.
+  /// Retrieve command depth.
   int getCommandDepth()   {return mCommandDepth;}
 
+  /// Testing function to check if the last undo/redo item contains the list
+  /// of deleted items.
+  /// Returns true if all of the deleted items are present.
+  bool testLastURItemHasDeletedItems(const std::vector<int>& delItems) const;
+
+  /// Testing function to check if the last undo/redo item contains the list
+  /// of created items.
+  /// Returns true if all of the created items are present.
+  bool testLastURItemHasCreatedItems(const std::vector<int>& createdItems)const;
+
+private: // For LuaClassInstanceReg
+
+  /// Adds a deleted instance to the last Undo/Redo item.
+  void addDeletedInstanceToLastURItem(int globalID);
+
+  /// Adds a constructed instance to the last Undo/Redo item.
+  void addCreatedInstanceToLastURItem(int globalID);
+
 private:
+
+  /// Issue an undo that does NOT check whether instances were created /
+  /// destroyed.
+  void issueUndoInternal();
+
+  /// Determines the number of undos that need to be executed in order to
+  /// compeletly rebuild the instances at the given undo index.
+  /// Returns the number of undos that must be executed to get to a state
+  /// directly before the instance object was created.
+  int bruteRerollDetermineUndos(int undoIndex);
 
   struct UndoRedoItem
   {
@@ -177,6 +207,7 @@ private:
             new std::vector<int>());
       }
       instCreations->push_back(id);
+      std::sort(instCreations->begin(), instCreations->end());
     }
 
     /// Instance IDs that were deleted as a result of this call.
@@ -189,6 +220,7 @@ private:
             new std::vector<int>());
       }
       instDeletions->push_back(id);
+      std::sort(instDeletions->begin(), instDeletions->end());
     }
   };
 

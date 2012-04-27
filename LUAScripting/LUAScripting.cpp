@@ -82,6 +82,8 @@ const char* LuaScripting::TBL_MD_PROV_EXEMPT    = "provExempt";
 const char* LuaScripting::TBL_MD_NUM_PARAMS     = "numParams";
 const char* LuaScripting::TBL_MD_UNDO_FUNC      = "undoHook";
 const char* LuaScripting::TBL_MD_REDO_FUNC      = "redoHook";
+const char* LuaScripting::TBL_MD_NULL_UNDO      = "nullUndo";
+const char* LuaScripting::TBL_MD_NULL_REDO      = "nullRedo";
 
 // To avoid naming conflicts with other libraries, we prefix all of our
 // registry values with tuvok_
@@ -193,6 +195,9 @@ void LuaScripting::registerScriptFunctions()
                                "deleteClass",
                                "Deletes a Lua class instance.",
                                true);
+  setNullUndoFun("deleteClass");  // Undo doesn't do anything. Instance
+                                  // cleanup is done inside of provenance.
+                                  // All child undo items are still executed.
 
   mMemberReg->registerFunction(this, &LuaScripting::logInfo,
                                "print",
@@ -387,12 +392,16 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
   void* cls = lua_touserdata(mL, -1);
   lua_pop(mL, 1);
 
+  lua_getfield(mL, mt, LuaClassInstance::MD_GLOBAL_INSTANCE_ID);
+  int instID = lua_tointeger(mL, -1);
+  lua_pop(mL, 1);
+
   // Remove metatable from the stack.
   lua_pop(mL, 1);
 
   // Call the delete function with the instance pointer.
   // Permanently removes the memory for our class.
-  fun(cls);
+  fun(this, instID, cls);
 }
 
 //-----------------------------------------------------------------------------
@@ -1445,10 +1454,21 @@ void LuaScripting::deleteLuaClassInstance(LuaClassInstance inst)
 {
   LuaStackRAII _a(mL, 0);
 
-  LuaStrictStack<LuaClassInstance>::push(mL, inst);
-  destroyClassInstanceTable(lua_gettop(mL));
+  int stackTop = lua_gettop(mL);
 
-  // TODO: Update the deleted class instance IDs in the provenance system.
+  try
+  {
+    LuaStrictStack<LuaClassInstance>::push(mL, inst);
+    destroyClassInstanceTable(lua_gettop(mL));
+  }
+  catch (LuaError& e)
+  {
+    // Ignore it. Likely it was deleted before hand, and we are trying to
+    // delete it again.
+    // XXX Figure out how to make this check only cover 1 case, instead of many.
+    lua_settop(mL, stackTop);
+    return;
+  }
 
   // Erase the class instance.
   {
@@ -1489,6 +1509,44 @@ void LuaScripting::setNextTempClassInstRange(int low, int high)
   mGlobalTempCurrent = low;
 }
 
+
+//-----------------------------------------------------------------------------
+void LuaScripting::setNullUndoFun(const std::string& name)
+{
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
+  // Need to check the signature of the function that we are trying to bind
+  // into the script system.
+  if (getFunctionTable(name) == false)
+  {
+    throw LuaNonExistantFunction("Unable to find function with which to"
+                                 "associate a null undo function.");
+  }
+
+  lua_pushboolean(mL, 1);
+  lua_setfield(mL, -2, TBL_MD_NULL_UNDO);
+
+  lua_pop(mL, 1);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::setNullRedoFun(const std::string& name)
+{
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
+  // Need to check the signature of the function that we are trying to bind
+  // into the script system.
+  if (getFunctionTable(name) == false)
+  {
+    throw LuaNonExistantFunction("Unable to find function with which to"
+                                 "associate a null redo function.");
+  }
+
+  lua_pushboolean(mL, 1);
+  lua_setfield(mL, -2, TBL_MD_NULL_REDO);
+
+  lua_pop(mL, 1);
+}
 
 //==============================================================================
 //

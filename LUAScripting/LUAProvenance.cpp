@@ -44,6 +44,7 @@
 #endif
 
 #include <vector>
+#include <algorithm>
 
 #include "LUAError.h"
 #include "LUAFunBinding.h"
@@ -322,6 +323,52 @@ void LuaProvenance::logExecution(const string& fname,
 }
 
 //-----------------------------------------------------------------------------
+int LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
+{
+  int numUndos = 0;
+  vector<int> unresolved; // Unresolved instances.
+
+  while (undoIndex >= 0)
+  {
+    UndoRedoItem undoItem = mUndoRedoStack[undoIndex];
+    ++numUndos; // Always want to undo once more than resolved location.
+
+    if (undoItem.instDeletions.get())
+    {
+      // It doesn't matter where we copy (front or back).
+      // Don't need to worry about duplicates. We can't delete classes
+      // multiple times.
+      unresolved.reserve( unresolved.size() + undoItem.instDeletions->size());
+      unresolved.insert( unresolved.end(),
+                         undoItem.instDeletions->begin(),
+                         undoItem.instDeletions->end());
+      sort(unresolved.begin(), unresolved.end());
+    }
+    if (undoItem.instCreations.get())
+    {
+      // instDeletions and instCreations are always sorted.
+      vector<int> diff;
+      diff.reserve(unresolved.size() + undoItem.instCreations->size());
+      set_difference(unresolved.begin(), unresolved.end(),
+                     undoItem.instCreations->begin(),
+                     undoItem.instCreations->end(),
+                     diff.begin());
+      unresolved = diff;
+    }
+    if (unresolved.size() == 0)
+    {
+      return numUndos;
+    }
+    --undoIndex;
+  }
+
+  throw LuaProvenanceFailedUndo("Not enough information in undo buffer "
+                                "to undo specified operation.");
+
+  return numUndos;
+}
+
+//-----------------------------------------------------------------------------
 void LuaProvenance::issueUndo()
 {
   // If mStackPointer is at 1, then we can undo to the 'default' state.
@@ -333,7 +380,47 @@ void LuaProvenance::issueUndo()
   int undoIndex         = mStackPointer - 1;
   UndoRedoItem undoItem = mUndoRedoStack[undoIndex];
 
-  // TODO: Add BruteReroll here. Need to test instance indices.
+  int numUndos = 1;
+
+  // Check to see if this step deleted any instances. If it did, we will have
+  // to check how far back we need to undo. Then force the entire system
+  // to undo to that point.
+  if (undoItem.instDeletions.get() != 0)
+  {
+    // Detect how far back we need to roll.
+    numUndos = bruteRerollDetermineUndos(undoIndex);
+    if (numUndos == 0)
+      numUndos = 1;
+  }
+
+  // This is the brute reroll implementation. If we run into class deletions,
+  // then in order to undo these deletions, we need to roll back to when they
+  // were created and redo everything.
+  // There is probably a more efficient way of doing this, but this is
+  // guaranteed to work without any special code.
+  for (int i = 0; i < numUndos; i++)
+  {
+    issueUndoInternal();
+  }
+
+  // Redo back to directly before undo (the vast majority of the time -- the
+  // times we don't have any instance deletions -- we never enter this loop).
+  for (int i = 0; i < numUndos - 1; i++)
+  {
+    issueRedo();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::issueUndoInternal()
+{
+  if (mStackPointer == 0)
+  {
+    throw LuaProvenanceInvalidUndo("Undo pointer at bottom of stack.");
+  }
+
+  int undoIndex         = mStackPointer - 1;
+  UndoRedoItem undoItem = mUndoRedoStack[undoIndex];
 
   try
   {
@@ -348,7 +435,7 @@ void LuaProvenance::issueUndo()
   {
     // Iterate through all of the children, and undo those as well.
     // Note: Notice, we are undoing the parent first, then all of the children.
-    //       This constitutes a reversal of the function calls.
+    //       This constitutes a reversal of the function calls from redo.
 
     for (std::vector<UndoRedoItem>::iterator it = undoItem.childItems->begin();
          it != undoItem.childItems->end(); it++)
@@ -362,6 +449,19 @@ void LuaProvenance::issueUndo()
         throw LuaProvenanceInvalidUndo(e.what(), e.where(), e.lineno());
       }
     }
+  }
+
+  // Delete any instances that were created at the end of the redo chain.
+  if (undoItem.instCreations.get() != 0)
+  {
+    // Manually call the delete function (no provenance).
+    mUndoRedoProvenanceDisable = true;
+    for (vector<int>::iterator it = undoItem.instCreations->begin();
+        it != undoItem.instCreations->end(); ++it)
+    {
+      mScripting->deleteLuaClassInstance(LuaClassInstance(*it));
+    }
+    mUndoRedoProvenanceDisable = false;
   }
 
   --mStackPointer;
@@ -419,21 +519,46 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
 
     if (isUndo)
     {
-      // Check for an undo hook
-      lua_getfield(L, funTable, LuaScripting::TBL_MD_UNDO_FUNC);
-      if (lua_isnil(L, -1) == 0)
-        hasHook = true;
-      else
+      // Check to see if we should not execute any undo.
+      lua_getfield(L, funTable, LuaScripting::TBL_MD_NULL_UNDO);
+      if (!(lua_isnil(L, -1) == 0 && lua_toboolean(L, -1) == 1))
+      {
         lua_pop(L, 1);
+
+        // Check for an undo hook
+        lua_getfield(L, funTable, LuaScripting::TBL_MD_UNDO_FUNC);
+        if (lua_isnil(L, -1) == 0)
+          hasHook = true;
+        else
+          lua_pop(L, 1);
+      }
+      else
+      {
+        lua_pop(L, 1);
+        luaL_dostring(L, "return function(...) end");  // null vararg function
+        hasHook = true;
+      }
     }
     else
     {
       // Check for redo hook
-      lua_getfield(L, funTable, LuaScripting::TBL_MD_REDO_FUNC);
-      if (lua_isnil(L, -1) == 0)
-        hasHook = true;
-      else
+      lua_getfield(L, funTable, LuaScripting::TBL_MD_NULL_REDO);
+      if (!(lua_isnil(L, -1) == 0 && lua_toboolean(L, -1) == 1))
+      {
         lua_pop(L, 1);
+
+        lua_getfield(L, funTable, LuaScripting::TBL_MD_REDO_FUNC);
+        if (lua_isnil(L, -1) == 0)
+          hasHook = true;
+        else
+          lua_pop(L, 1);
+      }
+      else
+      {
+        lua_pop(L, 1);
+        luaL_dostring(L, "return function(...) end");  // null vararg function
+        hasHook = true;
+      }
     }
 
     // If we don't have a hook, just use the function itself.
@@ -621,6 +746,78 @@ void LuaProvenance::printProvRecord()
 void LuaProvenance::setDisableProvTemporarily(bool disable)
 {
   mTemporarilyDisabled = disable;
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::addDeletedInstanceToLastURItem(int globalID)
+{
+  if (mUndoRedoProvenanceDisable == true)
+    return;
+
+  // The stack pointer might be zero if we are being deleted at program
+  // termination.
+  if (mStackPointer >= 1)
+  {
+    mUndoRedoStack.back().addInstDeletion(globalID);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::addCreatedInstanceToLastURItem(int globalID)
+{
+  if (mUndoRedoProvenanceDisable == true)
+    return;
+
+  assert(mStackPointer >= 1);
+  mUndoRedoStack.back().addInstCreation(globalID);
+}
+
+//-----------------------------------------------------------------------------
+bool LuaProvenance::testLastURItemHasDeletedItems(const vector<int>& delItems)
+  const
+{
+  UndoRedoItem ur = mUndoRedoStack.back();
+
+  if (ur.instDeletions.get() == 0)
+  {
+    return delItems.size() == 0 ? true : false;
+  }
+
+  for (vector<int>::const_iterator it = delItems.begin(); it != delItems.end();
+      ++it)
+  {
+    if (find(ur.instDeletions->begin(), ur.instDeletions->end(), *it)
+        == ur.instDeletions->end())
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+bool LuaProvenance::testLastURItemHasCreatedItems(const vector<int>&
+                                                  createdItems) const
+{
+  UndoRedoItem ur = mUndoRedoStack.back();
+
+  if (ur.instCreations.get() == 0)
+  {
+    return createdItems.size() == 0 ? true : false;
+  }
+
+  for (vector<int>::const_iterator it = createdItems.begin();
+      it != createdItems.end(); ++it)
+  {
+    if (find(ur.instCreations->begin(), ur.instCreations->end(), *it)
+        == ur.instCreations->end())
+    {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 //==============================================================================
@@ -1074,6 +1271,52 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL("2nd string", s2.c_str());
     CHECK_EQUAL(true, b2);
 
+  }
+
+  TEST(ProvenanceNullUndoRedo)
+  {
+    TEST_HEADER;
+
+    auto_ptr<LuaScripting> sc(new LuaScripting());
+
+    sc->registerFunction(&set_i1, "set_i1", "", true);
+    sc->setNullUndoFun("set_i1");
+    sc->registerFunction(&set_s1, "set_s1", "", true);
+    sc->setNullUndoFun("set_s1");
+    sc->registerFunction(&set_b1, "set_b1", "", true);
+    sc->setNullRedoFun("set_b1");
+
+    sc->exec("set_i1(23)");
+    sc->exec("set_s1('Test String')");
+    sc->exec("set_b1(true)");
+
+    CHECK_EQUAL(23, i1);
+    CHECK_EQUAL("Test String", s1.c_str());
+    CHECK_EQUAL(true, b1);
+
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL(false, b1);
+
+    // Null undo function.
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL("Test String", s1.c_str());
+
+    sc->exec("provenance.redo()");
+    CHECK_EQUAL("Test String", s1.c_str());
+
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL("Test String", s1.c_str());
+
+    // Null undo function
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL(23, i1);
+
+    sc->exec("provenance.redo()");
+    sc->exec("provenance.redo()");
+
+    // Null redo function
+    sc->exec("provenance.redo()");
+    CHECK_EQUAL(false, b1);
   }
 
   TEST(ProvenanceDisabling)

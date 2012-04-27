@@ -271,9 +271,35 @@ SUITE(LuaTestClassInstanceRegistration)
 
       LuaClassInstance a1 = sc->execRet<LuaClassInstance>(
           "factory.a1.new(2, 6, 'mystr')");
+
+      {
+        const int csize = 1;
+        int ra[csize] = {0};
+        const vector<int> v(ra, ra+csize);
+        CHECK_EQUAL(true,
+                    sc->getProvenanceSys()->testLastURItemHasCreatedItems(v));
+      }
+
       LuaClassInstance a2 = sc->execRet<LuaClassInstance>(
           "factory.a1.new(4, 2.63, 'str')");
+
+      {
+        const int csize = 1;
+        int ra[csize] = {1};
+        const vector<int> v(ra, ra+csize);
+        CHECK_EQUAL(true,
+                    sc->getProvenanceSys()->testLastURItemHasCreatedItems(v));
+      }
+
       LuaClassInstance b1 = sc->execRet<LuaClassInstance>("factory.b1.new()");
+
+      {
+        const int csize = 1;
+        int ra[csize] = {2};
+        const vector<int> v(ra, ra+csize);
+        CHECK_EQUAL(true,
+                    sc->getProvenanceSys()->testLastURItemHasCreatedItems(v));
+      }
 
       std::string a1Name = a1.fqName();
       A* a1Ptr = a1.getRawPointer<A>(sc);
@@ -284,10 +310,14 @@ SUITE(LuaTestClassInstanceRegistration)
       std::string b1Name = b1.fqName();
       B* b1Ptr = b1.getRawPointer<B>(sc);
 
+      int a1InstID = a1.getGlobalInstID();
+      int a2InstID = a2.getGlobalInstID();
+      int b1InstID = b1.getGlobalInstID();
+
       // Check global ID (a1 == 0, a2 == 1, b1 == 2)
-      CHECK_EQUAL(0, a1.getGlobalInstID());
-      CHECK_EQUAL(1, a2.getGlobalInstID());
-      CHECK_EQUAL(2, b1.getGlobalInstID());
+      CHECK_EQUAL(0, a1InstID);
+      CHECK_EQUAL(1, a2InstID);
+      CHECK_EQUAL(2, b1InstID);
 
       sc->exec(a1Name + ".set_i1(15)");
       sc->exec(a1Name + ".set_i2(60)");
@@ -340,11 +370,35 @@ SUITE(LuaTestClassInstanceRegistration)
       sc->setExpectedExceptionFlag(false);
       CHECK_EQUAL(1, a_destructor);
 
+      {
+        const int csize = 1;
+        int ra[csize] = {a2InstID};
+        const vector<int> v(ra, ra+csize);
+        CHECK_EQUAL(true,
+                    sc->getProvenanceSys()->testLastURItemHasDeletedItems(v));
+      }
+
       sc->exec("deleteClass(" + a1Name + ")");
       CHECK_EQUAL(2, a_destructor);
 
+      {
+        const int csize = 1;
+        int ra[csize] = {a1InstID};
+        const vector<int> v(ra, ra+csize);
+        CHECK_EQUAL(true,
+                    sc->getProvenanceSys()->testLastURItemHasDeletedItems(v));
+      }
+
       sc->exec("deleteClass(" + b1Name + ")");
       CHECK_EQUAL(1, b_destructor);
+
+      {
+        const int csize = 1;
+        int ra[csize] = {b1InstID};
+        const vector<int> v(ra, ra+csize);
+        CHECK_EQUAL(true,
+                    sc->getProvenanceSys()->testLastURItemHasDeletedItems(v));
+      }
     }
 
     // TODO: Test exceptions.
@@ -412,17 +466,84 @@ SUITE(LuaTestClassInstanceRegistration)
   TEST(ClassProvenance)
   {
     // Thoroughly test class provenance.
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+
+    // Register class definitions.
+    sc->addLuaClassDef(&A::luaDefineClass, "factory.a1");
+    sc->addLuaClassDef(&B::luaDefineClass, "factory.b1");
+
+    a_destructor = 0;
+    LuaClassInstance a1 = sc->execRet<LuaClassInstance>(
+        "factory.a1.new(2, 2.63, 'str')");
+
+    // Testing only the first instance of a1.
+    std::string a1Name = a1.fqName();
+    A* a1p = a1.getRawPointer<A>(sc);
+
+    // Call into the class.
+    sc->exec(a1Name + ".set_i1(15)");
+    sc->exec(a1Name + ".set_i2(60)");
+    sc->exec(a1Name + ".set_f1(1.5)");
+    sc->exec(a1Name + ".set_f2(3.5)");
+    sc->cexec(a1Name + ".set_s1", "String 1");
+    sc->cexec(a1Name + ".set_s2", "String 2");
+
+    sc->exec("deleteClass(" + a1Name + ")");
+
+    b_destructor = 0;
+    LuaClassInstance b1 = sc->execRet<LuaClassInstance>("factory.b1.new()");
+
+    // Testing only the first instance of a1.
+    std::string b1Name = b1.fqName();
+    //B* b1p = b1.getRawPointer<B>(sc);
+    
+    sc->exec(b1Name + ".set_i1(158)");
+    sc->exec(b1Name + ".set_f1(345.89)");
+    sc->cexec(b1Name + ".set_s1", "B1 str");
+
+    sc->exec("provenance.undo()");
+    sc->exec("provenance.undo()");
+    sc->exec("provenance.undo()");
+
+    // Delete class b.
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL(1, b_destructor);
+
+    // Recreate class a (with its last state)
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL(15, a1p->i1);
+    CHECK_EQUAL(60, a1p->i2);
+
+    CHECK_CLOSE(1.5f, a1p->f1, 0.001f);
+    CHECK_CLOSE(3.5f, a1p->f2, 0.001f);
+
+    CHECK_EQUAL("String 1", a1p->s1.c_str());
+    CHECK_EQUAL("String 2", a1p->s2.c_str());
+  }
+
+  TEST(ClassProvenanceCompositing)
+  {
+    // Test compositing classes together (new Lua classes are created from
+    // another class' constructor).
   }
 
   TEST(ClassHelpAndLog)
   {
-    // Help should be given for classes, but not for any of their instances
+    // Help should be given for classes, but not for any of their instances 
     // in the _sys_ table.
   }
 
   TEST(ClassRTTITypeChecks)
   {
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
+    // Register class definitions.
+    sc->addLuaClassDef(&A::luaDefineClass, "factory.a1");
+    sc->addLuaClassDef(&B::luaDefineClass, "factory.b1");
+
+    // Test the classes.
+    LuaClassInstance a_1 = sc->execRet<LuaClassInstance>(
+        "factory.a1.new(2, 2.63, 'str')");
   }
 
 }

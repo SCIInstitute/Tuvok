@@ -127,6 +127,16 @@ public:
   virtual ~LuaProvenanceInvalidUndo() throw() { }
 };
 
+class LuaProvenanceFailedUndo : public LuaError
+{
+public:
+  explicit LuaProvenanceFailedUndo(const char* e, const char* where = NULL,
+                                   size_t ln = 0)
+    : LuaError(e, where, ln)
+  {}
+  virtual ~LuaProvenanceFailedUndo() throw() { }
+};
+
 class LuaInvalidType : public LuaError
 {
 public:

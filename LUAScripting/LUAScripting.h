@@ -137,11 +137,26 @@ public:
   template <typename FunPtr>
   void setUndoFun(FunPtr f, const std::string& name);
 
+  /// Use this function to ensure that no functions are called on undo.
+  /// The last executed parameters table is still updated upon undo.
+  /// Use this function if you do not have any idea about how many arguments
+  /// the function takes, and you would like to nullify its undo/redo
+  /// operations. It is used to nullify undo on constructors / destructors
+  /// of lua instance classes.
+  /// All composited functions are called.
+  /// XXX: Could be replaced with a function hook that ignores the function's
+  ///      arguments (does not enforce strict argument compliance).
+  void setNullUndoFun(const std::string& name);
+
   /// Sets the redo function for the registered function specified by name.
   /// The default redo is just to re-execute the function with the same args.
   /// The f and name parameters are the exact same as setUndoFun.
   template <typename FunPtr>
   void setRedoFun(FunPtr f, const std::string& name);
+
+  /// Use this function to ensure that no functions are called on redo.
+  /// The last executed parameters table is still updated upon redo.
+  void setNullRedoFun(const std::string& name);
 
   typedef void (*ClassDefFun)(LuaClassInstanceReg& reg);
   /// Registers a new lua class given a 'class definition function'.
@@ -315,6 +330,10 @@ public:
   static const char* TBL_MD_NUM_PARAMS;   ///< Number of parameters accepted.
   static const char* TBL_MD_UNDO_FUNC;    ///< Non-nil if undo hook present.
   static const char* TBL_MD_REDO_FUNC;    ///< Non-nil if redo hook present.
+  static const char* TBL_MD_NULL_UNDO;    ///< If true, no undo function
+                                          ///< is called.
+  static const char* TBL_MD_NULL_REDO;    ///< If true, no redo function
+                                          ///< is called.
 
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   static const char* TBL_MD_TYPES_TABLE;  ///< type_info userdata table.
@@ -325,6 +344,11 @@ public:
   /// This is to avoid debug log output, more than anything else.
   void setExpectedExceptionFlag(bool expected);
 
+
+  /// Please do not use this function in production code. It is used for
+  /// testing purposes.
+  LuaProvenance* getProvenanceSys() const {return mProvenance.get();}
+
 private:
 
   template <typename FunPtr>
@@ -334,7 +358,7 @@ private:
                           bool registerRedo);
 
   /// Used by friend class LuaProvenance.
-  lua_State* getLUAState()  {return mL;}
+  lua_State* getLUAState() const {return mL;}
 
   /// This function should be used sparingly, and only for those functions that
   /// do not modify state nor return internal state in some way.

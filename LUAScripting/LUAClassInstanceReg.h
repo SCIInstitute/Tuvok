@@ -33,8 +33,9 @@
 #ifndef TUVOK_LUACLASSINSTANCEREG_H_
 #define TUVOK_LUACLASSINSTANCEREG_H_
 
-#include "LuaClassInstance.h"
-#include "LuaMemberRegUnsafe.h"
+#include "LUAClassInstance.h"
+#include "LUAMemberRegUnsafe.h"
+#include "LUAProvenance.h"
 
 namespace tuvok
 {
@@ -91,7 +92,7 @@ private:
   ///@}
 
   /// Signature for delFun in LuaConstructorCallback.
-  typedef void (*DelFunSig)(void* inst);
+  typedef void (*DelFunSig)(LuaScripting* ss, int id, void* inst);
 
   template <typename FunPtr>
   struct LuaConstructorCallback
@@ -204,13 +205,20 @@ private:
       // Pass back our instance.
       LuaClassInstance instance(instID);
       LuaStrictStack<LuaClassInstance>().push(L, instance);
+
+      // Add this instance to the provenance system.
+      ss->getProvenanceSys()->addCreatedInstanceToLastURItem(instID);
+
       return 1;
     }
 
     // Casts the void* to the appropriate type, and deletes the class
     // instance.
-    static void del(void* inst)
+    static void del(LuaScripting* ss, int globalInstID, void* inst)
     {
+      //addDeletedInstanceToLastURItem
+      ss->getProvenanceSys()->addDeletedInstanceToLastURItem(globalInstID);
+
       // Cast and delete the class instance.
       // NOTE: returnType should already be a pointer type.
       delete (reinterpret_cast<typename LuaCFunExec<FunPtr>::returnType>(
@@ -296,6 +304,8 @@ void LuaClassInstanceReg::constructor(FunPtr f, const std::string& desc)
     std::string fqFunName = mClassPath;
     fqFunName += ".new";
     registerConstructor(f, fqFunName, desc, true);
+    mSS->setNullUndoFun(fqFunName); // We do not want to exe new when undoing
+                                    // All child undo items are still executed.
 
     // Since we did the registerConstructor above we will have our function
     // table present.
