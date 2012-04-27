@@ -48,8 +48,8 @@
 #include "../Renderer/GL/GLSBVR.h"
 #include "../Renderer/GL/GLSBVR2D.h"
 
-
 #include "../Scripting/Scripting.h"
+#include "../LUAScripting/LUAScripting.h"
 
 using namespace tuvok;
 
@@ -57,6 +57,7 @@ MasterController::MasterController() :
   m_bDeleteDebugOutOnExit(false),
   m_pProvenance(NULL),
   m_bExperimentalFeatures(false),
+  m_pLuaScript(new LuaScripting()),
   m_pActiveRenderer(NULL)
 {
   m_pSystemInfo   = new SystemInfo();

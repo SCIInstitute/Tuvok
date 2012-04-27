@@ -124,7 +124,7 @@ private:
         // Obtain reference to LuaScripting to invoke provenance.
         // See createCallableFuncTable for justification on pulling an
         // instance of LuaScripting out of Lua.
-        ss->doProvenanceFromExec(L, execParams, emptyParams);
+        bool provExempt = ss->doProvenanceFromExec(L, execParams, emptyParams);
 
         try
         {
@@ -141,7 +141,7 @@ private:
           throw;
         }
 
-        ss->doHooks(L, 1);
+        ss->doHooks(L, 1, provExempt);
       }
       else
       {
@@ -177,7 +177,7 @@ private:
             new LuaCFunExec<FunPtr>());
         execParams->pullParamsFromStack(L, 2);
 
-        ss->doProvenanceFromExec(L, execParams, emptyParams);
+        bool provExempt = ss->doProvenanceFromExec(L, execParams, emptyParams);
 
         try
         {
@@ -194,7 +194,7 @@ private:
           throw;
         }
 
-        ss->doHooks(L, 1);
+        ss->doHooks(L, 1, provExempt);
       }
       else
       {

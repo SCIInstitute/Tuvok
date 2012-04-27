@@ -127,7 +127,7 @@ int LuaScripting::luaPanic(lua_State* L)
   // http://developers.sun.com/solaris/articles/mixing.html#except .
 
   ostringstream os;
-  os << "Lua Error: " << lua_tostring(L, -1);
+  os << lua_tostring(L, -1);
 
   lua_getfield(L, LUA_REGISTRYINDEX,
                  LuaScripting::REG_EXPECTED_EXCEPTION_FLAG);
@@ -149,7 +149,7 @@ int LuaScripting::luaPanic(lua_State* L)
 }
 
 //-----------------------------------------------------------------------------
-void* LuaScripting::luaInternalAlloc(void* ud, void* ptr, size_t osize,
+void* LuaScripting::luaInternalAlloc(void* /*ud*/, void* ptr, size_t /*osize*/,
                                      size_t nsize)
 {
   // TODO: Convert to use new (mind the realloc).
@@ -170,23 +170,40 @@ void LuaScripting::registerScriptFunctions()
   // Note: All these functions are provenance exempt because we do not want
   // to even see that they were run in the provenance log. There is no reason
   // include them.
+  lua_pushnil(mL);
+  lua_setglobal(mL, "print");
+
   mMemberReg->registerFunction(this, &LuaScripting::printHelp,
                                "help",
                                "Same as log.printFunctions with an additional "
                                "header.",
                                false);
   setProvenanceExempt("help");
+
+  mMemberReg->registerFunction(this, &LuaScripting::logInfo,
+                               "print",
+                               "Logs general information.",
+                               false);
+  setProvenanceExempt("print");
+
   mMemberReg->registerFunction(this, &LuaScripting::logInfo,
                                "log.info",
                                "Logs general information.",
                                false);
   setProvenanceExempt("log.info");
-  /// TODO: Make a separate function for logging errors (using logInfo now).
-  mMemberReg->registerFunction(this, &LuaScripting::logInfo,
+
+  mMemberReg->registerFunction(this, &LuaScripting::logWarn,
+                               "log.warn",
+                               "Logs general information.",
+                               false);
+  setProvenanceExempt("log.warn");
+
+  mMemberReg->registerFunction(this, &LuaScripting::logError,
                                 "log.error",
                                 "Logs an error.",
                                 false);
   setProvenanceExempt("log.error");
+
   mMemberReg->registerFunction(this, &LuaScripting::printFunctions,
                                "log.printFunctions",
                                "Prints all registered functions using "
@@ -201,6 +218,30 @@ void LuaScripting::logInfo(string log)
   // TODO: Add logging functionality for Tuvok.
 #ifdef EXTERNAL_UNIT_TESTING
   cout << log << endl;
+#else
+  MESSAGE(log.c_str());
+#endif
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::logWarn(string log)
+{
+  // TODO: Add logging functionality for Tuvok.
+#ifdef EXTERNAL_UNIT_TESTING
+  cout << "Warn: " << log << endl;
+#else
+  MESSAGE(log.c_str());
+#endif
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::logError(string log)
+{
+  // TODO: Add logging functionality for Tuvok.
+#ifdef EXTERNAL_UNIT_TESTING
+  cout << "Error: " << log << endl;
+#else
+  T_ERROR(log.c_str());
 #endif
 }
 
@@ -213,19 +254,25 @@ void LuaScripting::printFunctions()
   {
     FunctionDesc d = *it;
     ostringstream os;
-    os << "'" << d.funcFQName << "' Usage: '"<< d.funcFQName << d.paramSig;
-    os << "' " << d.funcDesc;
-    logInfo(os.str());
+    os << "'" << d.funcFQName << "' " << d.funcDesc;
+    ostringstream osUsage;
+    osUsage << "    Usage: '"<< d.funcFQName << d.paramSig << "'";
+    cexec("log.info", os.str());
+    cexec("log.info", osUsage.str());
   }
 }
 
 //-----------------------------------------------------------------------------
 void LuaScripting::printHelp()
 {
-  logInfo("");
-  logInfo("Tuvok Scripting Interface.");
-  logInfo("List of all functions follows.");
-  logInfo("");
+  // We execute the commands from lua because there may be hooks on the logInfo
+  // and logError functions.
+  cexec("log.info", "");
+  cexec("log.info", "------------------------------");
+  cexec("log.info", "Tuvok Scripting Interface");
+  cexec("log.info", "List of all functions follows");
+  cexec("log.info", "------------------------------");
+  cexec("log.info", "");
 
   printFunctions();
 }
@@ -423,8 +470,6 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
                                               int tableIndex)
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0, __FILE__, __LINE__);
-
-  int baseStackIndex = lua_gettop(mL);
 
   // Tokenize the fully qualified name.
   const string delims(QUALIFIED_NAME_DELIMITER);
@@ -628,7 +673,6 @@ void LuaScripting::createCallableFuncTable(lua_CFunction proxyFunc,
 
   // Table containing the function closure.
   lua_newtable(mL);
-  int tableIndex = lua_gettop(mL);
 
   // Create a new metatable
   lua_newtable(mL);
@@ -729,7 +773,6 @@ void LuaScripting::createDefaultsAndLastExecTables(int tableIndex,
 {
   LuaStackRAII _a = LuaStackRAII(mL, -numFunParams);
 
-  int entryTop = lua_gettop(mL);
   int firstParamPos = (lua_gettop(mL) - numFunParams) + 1;
 
   // Create defaults table.
@@ -955,7 +998,7 @@ void LuaScripting::unregisterFunction(const std::string& fqName)
 }
 
 //-----------------------------------------------------------------------------
-void LuaScripting::doHooks(lua_State* L, int tableIndex)
+void LuaScripting::doHooks(lua_State* L, int tableIndex, bool provExempt)
 {
   int stackTop = lua_gettop(L);
   int numArgs = stackTop - tableIndex;
@@ -1047,7 +1090,7 @@ void LuaScripting::doHooks(lua_State* L, int tableIndex)
   }
 
   int totalHooks = numStaticHooks + numMemberHooks;
-  if (totalHooks > 0)
+  if (totalHooks > 0 && provExempt == false)
     mProvenance->logHooks(numStaticHooks, numMemberHooks);
 
   assert(stackTop == lua_gettop(L));
@@ -1063,7 +1106,7 @@ std::string LuaScripting::getNewMemberHookID()
 }
 
 //-----------------------------------------------------------------------------
-void LuaScripting::doProvenanceFromExec(lua_State* L,
+bool LuaScripting::doProvenanceFromExec(lua_State* L,
                             std::tr1::shared_ptr<LuaCFunAbstract> funParams,
                             std::tr1::shared_ptr<LuaCFunAbstract> emptyParams)
 {
@@ -1091,7 +1134,11 @@ void LuaScripting::doProvenanceFromExec(lua_State* L,
                                 funParams,
                                 emptyParams);
     }
+
+    return provExempt;
   }
+
+  return true;
 }
 
 //-----------------------------------------------------------------------------

@@ -61,14 +61,14 @@ namespace tuvok
 //-----------------------------------------------------------------------------
 LuaProvenance::LuaProvenance(LuaScripting* scripting)
 : mEnabled(true)
+, mTemporarilyDisabled(false)
+, mStackPointer(0)
 , mScripting(scripting)
 , mMemberReg(scripting)
-, mStackPointer(0)
 , mLoggingProvenance(false)
 , mDoProvReenterException(true)
-, mUndoRedoProvenanceDisable(false)
 , mProvenanceDescLogEnabled(true)
-, mTemporarilyDisabled(false)
+, mUndoRedoProvenanceDisable(false)
 {
   mUndoRedoStack.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
   mProvenanceDescList.reserve(DEFAULT_PROVENANCE_BUFFER_SIZE);
@@ -247,7 +247,8 @@ void LuaProvenance::logExecution(const string& fname,
   {
     mUndoRedoStack.pop_back();
   }
-  assert(mUndoRedoStack.size() == mStackPointer);
+  assert(mUndoRedoStack.size() ==
+         static_cast<URStackType::size_type>(mStackPointer));
 
   // Gather last execution parameters for inclusion in the undo stack.
   lua_State* L = mScripting->getLUAState();
@@ -336,7 +337,8 @@ void LuaProvenance::issueUndo()
 //-----------------------------------------------------------------------------
 void LuaProvenance::issueRedo()
 {
-  if (mStackPointer == mUndoRedoStack.size())
+  if (static_cast<URStackType::size_type>(mStackPointer) ==
+      mUndoRedoStack.size())
   {
     throw LuaProvenanceInvalidRedo("Redo pointer at top of stack.");
   }

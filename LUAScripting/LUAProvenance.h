@@ -120,6 +120,8 @@ private:
     std::tr1::shared_ptr<LuaCFunAbstract> redoParams;
   };
 
+  typedef std::vector<UndoRedoItem> URStackType;
+
   // Calls the function at UndoRedoItem index: funcIndex using the params
   // specified by funcToUse.
   void performUndoRedoOp(const std::string& funcName,
@@ -137,7 +139,7 @@ private:
   bool                      mEnabled;
   bool                      mTemporarilyDisabled;
 
-  std::vector<UndoRedoItem> mUndoRedoStack; ///< Contains all undo/redo entries.
+  URStackType               mUndoRedoStack; ///< Contains all undo/redo entries.
   int                       mStackPointer;  ///< 1 based Index into
                                             ///< mUndoRedoStack.
 

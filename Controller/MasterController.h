@@ -44,6 +44,7 @@
 #else
 # include <tr1/functional>
 #endif
+#include <tr1/memory>
 #include <list>
 #include <string>
 #include <vector>
@@ -63,6 +64,7 @@ namespace tuvok {
 class AbstrRenderer;
 class GPUMemMan;
 class Scripting;
+class LuaScripting;
 
 typedef std::deque<AbstrRenderer*> AbstrRendererList;
 
@@ -146,6 +148,14 @@ public:
   const SystemInfo* SysInfo() const { return m_pSystemInfo; }
   ///@}
 
+  /// Lua scripting engine.
+  ///@{
+  std::tr1::shared_ptr<LuaScripting>  LuaScriptEngine()
+      {return m_pLuaScript;}
+  std::tr1::shared_ptr<LuaScripting>  LuaScriptEngine() const
+      {return m_pLuaScript;}
+  ///@}
+
   Scripting*       ScriptEngine()       { return m_pScriptEngine; }
   const Scripting* ScriptEngine() const { return m_pScriptEngine; }
 
@@ -220,6 +230,8 @@ private:
   bool             m_bDeleteDebugOutOnExit;
   provenance_func* m_pProvenance;
   bool             m_bExperimentalFeatures;
+
+  std::tr1::shared_ptr<LuaScripting>  m_pLuaScript;
 
   AbstrRendererList m_vVolumeRenderer;
   // The active renderer should point into a member of the renderer list.

@@ -39,6 +39,10 @@
 
 #ifndef EXTERNAL_UNIT_TESTING
 
+#include <iostream>
+#include <tr1/memory>
+#include <string>
+
 #include "Controller/Controller.h"
 #include "3rdParty/LUA/lua.hpp"
 

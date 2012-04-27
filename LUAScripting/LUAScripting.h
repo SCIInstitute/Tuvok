@@ -41,7 +41,14 @@
 #ifndef TUVOK_LUASCRIPTING_H_
 #define TUVOK_LUASCRIPTING_H_
 
-// TODO: Include lua headers here.
+#ifndef EXTERNAL_UNIT_TESTING
+#include "3rdParty/LUA/lua.hpp"
+#include <assert.h>
+
+#include <iostream>
+#include <tr1/memory>
+#include <string>
+#endif
 
 #include "LUAError.h"
 #include "LUAFunBinding.h"
@@ -323,7 +330,7 @@ private:
   /// required to call the function directly after the table on the stack.
   /// There must be no other values on the stack above tableIndex other than the
   /// table and the parameters to call the function.
-  void doHooks(lua_State* L, int tableIndex);
+  void doHooks(lua_State* L, int tableIndex, bool provExempt);
 
   /// Returns true if the table at stackIndex is a registered function.
   /// Makes no guarantees that it is a function registered by this class.
@@ -380,7 +387,9 @@ private:
   static void* luaInternalAlloc(void* ud, void* ptr, size_t osize,
                                 size_t nsize);
 
-  void doProvenanceFromExec(lua_State* L,
+  /// Returns true if the function is provenance exempt.
+  /// Used to tell whether or not we should log hooks later on.
+  bool doProvenanceFromExec(lua_State* L,
                             std::tr1::shared_ptr<LuaCFunAbstract> funParams,
                             std::tr1::shared_ptr<LuaCFunAbstract> emptyParams);
 
@@ -398,6 +407,12 @@ private:
 
   /// Logs info.
   void logInfo(std::string log);
+
+  /// Logs a warning.
+  void logWarn(std::string log);
+
+  /// Logs a failure.
+  void logError(std::string log);
 
   /// Exec failure.
   void logExecFailure(const std::string& failure);
@@ -457,7 +472,7 @@ private:
         // Obtain reference to LuaScripting in order to invoke provenance.
         // See createCallableFuncTable for justification on pulling an
         // instance of LuaScripting out of Lua.
-        ss->doProvenanceFromExec(L, execParams, emptyParams);
+        bool provExempt = ss->doProvenanceFromExec(L, execParams, emptyParams);
 
         // We are NOT a hook. Our parameters start at index 2 (because the
         // callable table is at the first index). We will want to call all
@@ -480,7 +495,7 @@ private:
         // Call registered hooks.
         // Note: The first parameter on the stack (not on the top, but
         // on the bottom) is the table associated with the function.
-        ss->doHooks(L, 1);
+        ss->doHooks(L, 1, provExempt);
       }
       else
       {
@@ -514,7 +529,7 @@ private:
         // Fill execParams. Function parameters start at index 2.
         execParams->pullParamsFromStack(L, 2);
 
-        ss->doProvenanceFromExec(L, execParams, emptyParams);
+        bool provExempt = ss->doProvenanceFromExec(L, execParams, emptyParams);
 
         try
         {
@@ -531,7 +546,7 @@ private:
           throw;
         }
 
-        ss->doHooks(L, 1);
+        ss->doHooks(L, 1, provExempt);
       }
       else
       {
@@ -565,7 +580,7 @@ T LuaScripting::execRet(const std::string& cmd)
 
 template <typename T>
 void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
-                         int ftable, int typesTable, int check_pos)
+                         int typesTable, int check_pos)
 {
   LuaStackRAII _a = LuaStackRAII(L, 0);
 
@@ -610,7 +625,7 @@ void LuaScripting::cexec(const std::string& name, P1 p1)
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -630,8 +645,8 @@ void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2)
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -652,9 +667,9 @@ void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3)
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -676,10 +691,10 @@ void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4)
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -703,11 +718,11 @@ void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -733,12 +748,12 @@ void LuaScripting::cexec(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P6>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P6>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -774,7 +789,7 @@ T LuaScripting::cexecRet(const std::string& name, P1 p1)
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -797,8 +812,8 @@ T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2)
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -822,9 +837,9 @@ T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3)
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -849,10 +864,10 @@ T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4)
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -880,11 +895,11 @@ T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -913,12 +928,12 @@ T LuaScripting::cexecRet(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4,
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P6>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P6>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
   LuaStrictStack<P1>::push(mL, p1);
@@ -951,7 +966,7 @@ void LuaScripting::setDefaults(const std::string& name,
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
 
@@ -982,8 +997,8 @@ void LuaScripting::setDefaults(const std::string& name,
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
 
@@ -1016,9 +1031,9 @@ void LuaScripting::setDefaults(const std::string& name,
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
 
@@ -1053,10 +1068,10 @@ void LuaScripting::setDefaults(const std::string& name,
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
 
@@ -1093,11 +1108,11 @@ void LuaScripting::setDefaults(const std::string& name,
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
 
@@ -1138,12 +1153,12 @@ void LuaScripting::setDefaults(const std::string& name,
   lua_getfield(mL, ftable, LuaScripting::TBL_MD_TYPES_TABLE);
   int ttable = lua_gettop(mL);
   int check_pos = 0;
-  Tuvok_luaCheckParam<P1>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P2>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P3>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P4>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P5>(mL, name, ftable, ttable, check_pos++);
-  Tuvok_luaCheckParam<P6>(mL, name, ftable, ttable, check_pos++);
+  Tuvok_luaCheckParam<P1>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P2>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P3>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P4>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P5>(mL, name, ttable, check_pos++);
+  Tuvok_luaCheckParam<P6>(mL, name, ttable, check_pos++);
   lua_pop(mL, 1);
 #endif
 
@@ -1229,8 +1244,6 @@ void LuaScripting::strictHook(FunPtr f, const std::string& name)
 
   // Need to check the signature of the function that we are trying to bind
   // into the script system.
-  int initStackTop = lua_gettop(mL);
-
   if (getFunctionTable(name) == false)
   {
     throw LuaNonExistantFunction("Unable to find function with which to"

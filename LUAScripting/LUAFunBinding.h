@@ -53,6 +53,7 @@
 
 #include <iomanip>
 #include <typeinfo>
+#include <sstream>
 
 // Uncomment DEBUG_USE_RUNTIME_TYPE_CHECKING to check types of function calls
 // made through lua at run time.
@@ -512,7 +513,7 @@ class LuaCFunExec<Ret (*)()> : public LuaCFunAbstract
 public:
   typedef Ret returnType;
   typedef Ret (*fpType)();
-  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
+  static Ret run(lua_State*, int, fpType fp)
   {
     return fp();
   }
@@ -525,8 +526,8 @@ public:
   static void constructTypesTable(lua_State* L, int tblIndex)
   {}
 
-  virtual void pushParamsToStack(lua_State* L) const      {}
-  virtual void pullParamsFromStack(lua_State* L, int si)  {}
+  virtual void pushParamsToStack(lua_State*) const   {}
+  virtual void pullParamsFromStack(lua_State*, int)  {}
   virtual std::string getFormattedParameterValues() const
   {
     return "";
@@ -567,7 +568,6 @@ public:
   static void constructTypesTable(lua_State* L)
   {
     int pos = 0;
-    const std::type_info* key;
     lua_pushinteger(L, pos++);
     lua_pushinteger(L, LuaStrictStack<P1>::getTypeID());
   }
@@ -894,7 +894,7 @@ public:
   typedef T classType;
   typedef Ret returnType;
   typedef Ret (T::*fpType)();
-  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
+  static Ret run(lua_State*, int, T* c, fpType fp)
   {
     return (c->*fp)();
   }
@@ -917,8 +917,8 @@ public:
   }
 #endif
 
-  virtual void pushParamsToStack(lua_State* L) const      {}
-  virtual void pullParamsFromStack(lua_State* L, int si)  {}
+  virtual void pushParamsToStack(lua_State*) const   {}
+  virtual void pullParamsFromStack(lua_State*, int)  {}
 };
 
 //-------------
