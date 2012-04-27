@@ -1765,11 +1765,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
@@ -5579,6 +5579,74 @@
 			</File>
 			<File
 				RelativePath=".\Scripting\Scripting.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="LuaScripting"
+			>
+			<File
+				RelativePath=".\LUAScripting\LUAClassInstance.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAClassInstance.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAClassInstanceReg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAClassInstanceReg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAError.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAFunBinding.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAMemberReg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAMemberReg.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAMemberRegUnsafe.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAMemberRegUnsafe.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAProvenance.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAProvenance.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAScripting.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAScripting.h"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAStackRAII.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\LUAScripting\LUAStackRAII.h"
 				>
 			</File>
 		</Filter>
