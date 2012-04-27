@@ -44,7 +44,6 @@
 #else
 # include <tr1/functional>
 #endif
-#include <tr1/memory>
 #include <list>
 #include <string>
 #include <vector>

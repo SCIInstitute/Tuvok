@@ -40,7 +40,11 @@
 #ifndef EXTERNAL_UNIT_TESTING
 
 #include <iostream>
+#ifdef _MSC_VER
+#include <memory.h>
+#else
 #include <tr1/memory>
+#endif
 #include <string>
 
 #include "Controller/Controller.h"

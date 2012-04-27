@@ -328,6 +328,7 @@ int LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
 {
   int numUndos = 0;
   vector<int> unresolved; // Unresolved instances.
+  bool resolved = false;
 
   while (undoIndex >= 0)
   {
@@ -380,13 +381,17 @@ int LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
     }
     if (unresolved.size() == 0)
     {
-      return numUndos;
+      resolved = true;
+      break;
     }
     --undoIndex;
   }
 
-  throw LuaProvenanceFailedUndo("Not enough information in undo buffer "
-                                "to undo specified operation.");
+  if (resolved == false)
+  {
+    throw LuaProvenanceFailedUndo("Not enough information in undo buffer "
+                                  "to undo specified operation.");
+  }
 
   return numUndos;
 }

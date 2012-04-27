@@ -103,7 +103,7 @@ void LuaMemberRegUnsafe::unregisterFunctions()
     {
       mScriptSystem->unregisterFunction(*it);
     }
-    catch (LuaError& e)
+    catch (LuaError&)
     {
       // If this happens, it means that someone else unregistered our
       // function.

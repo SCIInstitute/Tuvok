@@ -62,6 +62,11 @@ using namespace std;
 
 #define QUALIFIED_NAME_DELIMITER  "."
 
+// Disable "'this' used in base member initializer list warning"
+// this is not referenced in either of the initialized classes,
+// but is merely stored.
+#pragma warning( disable : 4355 )
+
 namespace tuvok
 {
 
@@ -136,6 +141,7 @@ void LuaScripting::removeAllRegistrations()
   unregisterAllFunctions();
 }
 
+#pragma warning( disable : 4702 )  // Unreachable code warning.
 //-----------------------------------------------------------------------------
 int LuaScripting::luaPanic(lua_State* L)
 {
@@ -167,6 +173,7 @@ int LuaScripting::luaPanic(lua_State* L)
   // We don't want this.
   return 0;
 }
+#pragma warning(default:4702)  // Reenable unreachable code arning
 
 //-----------------------------------------------------------------------------
 void* LuaScripting::luaInternalAlloc(void* /*ud*/, void* ptr, size_t /*osize*/,

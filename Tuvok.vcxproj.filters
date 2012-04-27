@@ -112,6 +112,9 @@
     <Filter Include="3rd Party\LUA">
       <UniqueIdentifier>{5cc872bb-81d0-4e04-b08d-aceaf76ab364}</UniqueIdentifier>
     </Filter>
+    <Filter Include="LuaScripting">
+      <UniqueIdentifier>{ac830070-fb1d-49ef-8a74-e988a6000f11}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Basics\Appendix.cpp">
@@ -917,6 +920,27 @@
     </ClCompile>
     <ClCompile Include="Renderer\GL\GLCommon.cpp">
       <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="LUAScripting\LUAClassInstance.cpp">
+      <Filter>LuaScripting</Filter>
+    </ClCompile>
+    <ClCompile Include="LUAScripting\LUAClassInstanceReg.cpp">
+      <Filter>LuaScripting</Filter>
+    </ClCompile>
+    <ClCompile Include="LUAScripting\LUAMemberReg.cpp">
+      <Filter>LuaScripting</Filter>
+    </ClCompile>
+    <ClCompile Include="LUAScripting\LUAMemberRegUnsafe.cpp">
+      <Filter>LuaScripting</Filter>
+    </ClCompile>
+    <ClCompile Include="LUAScripting\LUAProvenance.cpp">
+      <Filter>LuaScripting</Filter>
+    </ClCompile>
+    <ClCompile Include="LUAScripting\LUAScripting.cpp">
+      <Filter>LuaScripting</Filter>
+    </ClCompile>
+    <ClCompile Include="LUAScripting\LUAStackRAII.cpp">
+      <Filter>LuaScripting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1829,6 +1853,33 @@
     </ClInclude>
     <ClInclude Include="Renderer\GL\GLCommon.h">
       <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAClassInstance.h">
+      <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAClassInstanceReg.h">
+      <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAError.h">
+      <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAFunBinding.h">
+      <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAMemberReg.h">
+      <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAMemberRegUnsafe.h">
+      <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAProvenance.h">
+      <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAScripting.h">
+      <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAStackRAII.h">
+      <Filter>LuaScripting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
