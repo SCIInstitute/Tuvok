@@ -965,12 +965,118 @@ SUITE(LuaProvenanceTests)
     delete sc;
   }
 
+  static int i2     = 0;
+  static string s2  = "nop";
+  static bool b2    = false;
+
+  static void set_i2(int a)     {i2 = a;}
+  static void set_s2(string s)  {s2 = s;}
+  static void set_b2(bool a)    {b2 = a;}
+
+  static void dup_s2(string b)
+  {
+    {
+      ostringstream os;
+      os << "set_s2('" << b << "')";
+      sc->exec(os.str());
+    }
+  }
+
+  static void setMultPrelude(int a, string b)
+  {
+    {
+      ostringstream os;
+      os << "set_i2(" << a << ")";
+      sc->exec(os.str());
+    }
+
+    {
+      ostringstream os;
+      os << "dup_s2('" << b << "')";
+      sc->exec(os.str());
+    }
+  }
+
+  static void setMult(int a, string b, bool c)
+  {
+    {
+      ostringstream os;
+      os << "setAll_1(" << a << ",'" << b << "'," << boolalpha << c << ")";
+      sc->exec(os.str());
+    }
+
+    {
+      ostringstream os;
+      os << "setMult_2(" << a << ",'" << b << "')";
+      sc->exec(os.str());
+    }
+
+    {
+      ostringstream os;
+      os << "set_b2(" << boolalpha << c << ")";
+      sc->exec(os.str());
+    }
+  }
+
   TEST(ProvenanceCompositeMultiple)
   {
     TEST_HEADER;
 
     // Similar to ProvenanceSingleCommandDepth, but we want to test
     // composited functions of composited functions.
+
+    sc = new LuaScripting();
+
+    sc->registerFunction(&set_i1, "set_i1", "", true);
+    sc->registerFunction(&set_s1, "set_s1", "", true);
+    sc->registerFunction(&set_b1, "set_b1", "", true);
+    sc->registerFunction(&set_i1_s1_b1, "setAll_1", "", true);
+
+    sc->registerFunction(&set_i2, "set_i2", "", true);
+    sc->registerFunction(&set_s2, "set_s2", "", true);
+    sc->registerFunction(&dup_s2, "dup_s2", "", true);
+    sc->registerFunction(&set_b2, "set_b2", "", true);
+    sc->registerFunction(&setMultPrelude, "setMult_2", "", true);
+    sc->registerFunction(&setMult, "setAll", "", true);
+
+    sc->exec("set_i1(23)");
+    sc->exec("set_s1('Test String')");
+    sc->exec("set_b1(true)");
+
+    CHECK_EQUAL(23, i1);
+    CHECK_EQUAL("Test String", s1.c_str());
+    CHECK_EQUAL(true, b1);
+
+    sc->exec("set_i2(46)");
+    sc->exec("set_s2('2nd string')");
+    sc->exec("set_b2(true)");
+
+    CHECK_EQUAL(46, i2);
+    CHECK_EQUAL("2nd string", s2.c_str());
+    CHECK_EQUAL(true, b2);
+
+    sc->exec("setAll(78, 'Str Test', false)");
+
+    CHECK_EQUAL(78, i1);
+    CHECK_EQUAL("Str Test", s1.c_str());
+    CHECK_EQUAL(false, b1);
+
+    CHECK_EQUAL(78, i2);
+    CHECK_EQUAL("Str Test", s2.c_str());
+    CHECK_EQUAL(false, b2);
+
+    sc->exec("provenance.undo()");
+
+    // Check to make sure i1, s1, and b1 do not have default values.
+    // (ensure composited functions implement undo correctly).
+    CHECK_EQUAL(23, i1);
+    CHECK_EQUAL("Test String", s1.c_str());
+    CHECK_EQUAL(true, b1);
+
+    CHECK_EQUAL(46, i2);
+    CHECK_EQUAL("2nd string", s2.c_str());
+    CHECK_EQUAL(true, b2);
+
   }
 
   TEST(ProvenanceDisabling)
