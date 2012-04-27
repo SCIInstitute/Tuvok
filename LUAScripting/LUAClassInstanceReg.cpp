@@ -822,6 +822,11 @@ SUITE(LuaTestClassInstanceRegistration)
 
     // Test Just the D class for now (composition).
     {
+      lua_State* L = gSS->getLUAState();
+      string lastExecTable = "return deleteClass.";
+      lastExecTable += LuaScripting::TBL_MD_FUN_LAST_EXEC;
+      int tableIndex, numParams;
+
       LuaClassInstance d = gSS->execRet<LuaClassInstance>("factory.d.new()");
       ++a_con; ++b_con; ++c_con; ++d_con;
       compareAccumulators();
@@ -963,6 +968,18 @@ SUITE(LuaTestClassInstanceRegistration)
 
       int oldInstTop = gSS->getCurrentClassInstID();
 
+      luaL_dostring(L, lastExecTable.c_str());
+      tableIndex = lua_gettop(L);
+      lua_pushnil(L);
+      numParams = 0;
+      while (lua_next(L, tableIndex))
+      {
+        ++numParams;
+        lua_pop(L, 1);
+      }
+
+      CHECK_EQUAL(1, numParams);
+
       // Delete the class.
       gSS->exec("deleteClass(" + dn + ")");
       ++a_des; ++b_des; ++c_des; ++d_des;
@@ -1053,7 +1070,7 @@ SUITE(LuaTestClassInstanceRegistration)
       d_c_ap = d_c_a.getRawPointer<A>(gSS);
 
       // Remember! The constructor was just called. So a's constructed
-      // values sholud be there (2, 2.63, 'str')
+      // values should be in the class (2, 2.63, 'str')
       CHECK_EQUAL(2, d_c_ap->i1);
       CHECK_CLOSE(2.63, d_c_ap->f1, 0.0001f);
       CHECK_EQUAL("str", d_c_ap->s1.c_str());
@@ -1108,81 +1125,207 @@ SUITE(LuaTestClassInstanceRegistration)
       CHECK_CLOSE(543.4325, d_c_ap->f1, 0.0001f);
       CHECK_EQUAL("A Vars", d_c_ap->s1.c_str());
 
+      // Check the last exec table for deleteClass...
+
+
+      {
+        luaL_dostring(L, lastExecTable.c_str());
+        tableIndex = lua_gettop(L);
+        lua_pushnil(L);
+        numParams = 0;
+        while (lua_next(L, tableIndex))
+        {
+          ++numParams;
+          lua_pop(L, 1);
+        }
+
+        lua_pop(L, 1);
+
+        CHECK_EQUAL(1, numParams);
+      }
+
       // Redo deletion
       gSS->exec("provenance.redo()");
       ++a_des; ++b_des; ++c_des; ++d_des;
       compareAccumulators();
+
+      {
+        luaL_dostring(L, lastExecTable.c_str());
+        tableIndex = lua_gettop(L);
+        lua_pushnil(L);
+        numParams = 0;
+        while (lua_next(L, tableIndex))
+        {
+          ++numParams;
+          lua_pop(L, 1);
+        }
+
+        lua_pop(L, 1);
+
+        CHECK_EQUAL(1, numParams);
+      }
 
       // We can check this class after we are done below.
     }
 
     // No need to clear the accumulators, just keep them going.
 
+    // Test interleaving creation of A,B,C, and D.
+    {
+      // This 'z' class will be used to test creating / destroying all
+      // classes when we issue an undo delete on 'z'.
+      LuaClassInstance z = gSS->execRet<LuaClassInstance>("factory.b.new()");
+      ++b_con;
+      compareAccumulators();
+      string zn = z.fqName();
 
-//    // Test interleaving creation of A,B,C, and D.
-//    {
-//      // Create d
-//      // (a_ b_ c_ d_constructor = 1)
-//      ++a_c; ++b_c; ++c_c; ++d_c;
-//      compareAccumulators();
-//
-//      // Set misc values for d
-//
-//      // Create a
-//      // (a_constructor = 2)
-//      ++a_c;
-//      compareAccumulators();
-//
-//      // Set misc values for a/d
-//
-//      // Create c
-//      // (c_constructor = 2, a_constructor = 3)
-//      ++c_c; ++a_c;
-//      compareAccumulators();
-//
-//      // Set misc values a/c/d
-//
-//      // Create b
-//      // (b_constructor = 2)
-//      ++b_c;
-//      compareAccumulators();
-//
-//      // Set misc values for all
-//
-//      // delete a
-//      // (a_destructor = 1)
-//      ++a_d;
-//      compareAccumulators();
-//
-//      // set misc values for b,c,d
-//
-//      // delete d
-//      // (a_destructor = 2, b_ c_ d_destructor = 1)
-//      ++a_d; ++b_d; ++c_d; ++d_d;
-//      compareAccumulators();
-//
-//      // set misc values for c and b
-//
-//      // delete b
-//      // (b_destructor = 2)
-//      ++b_d;
-//      compareAccumulators();
-//
-//      // set misc values for c
-//
-//      // delete c
-//      // (a_destructor = 3, c_destructor = 2)
-//      ++a_d; ++c_d;
-//      compareAccumulators();
-//
-//      // test undo/redo of this entire system
-//
-//      // undo - delete c
-//      // (c_constructor = )
-//
-//      // Undoing c should travel all the way back to the creation of d.
-//      // (d_constructor = 2
-//    }
+      // --== Create d ==--
+      LuaClassInstance d = gSS->execRet<LuaClassInstance>("factory.d.new()");
+      ++a_con; ++b_con; ++c_con; ++d_con;
+      compareAccumulators();
+
+      // Obtain instances to all of our classes.
+      string dn = d.fqName();
+      D* dp = d.getRawPointer<D>(gSS);
+
+      LuaClassInstance d_c = dp->c;
+      LuaClassInstance d_b = dp->b;
+
+      string d_cn = d_c.fqName();
+      C* d_cp = d_c.getRawPointer<C>(gSS);
+
+      string d_bn = d_b.fqName();
+      B* d_bp = d_b.getRawPointer<B>(gSS);
+
+      LuaClassInstance d_c_a = d_cp->a;
+
+      string d_c_an = d_c_a.fqName();
+     // A* d_c_ap = d_c_a.getRawPointer<A>(gSS);
+
+      // Set misc values for d
+      // Set B's variables through C functions
+      gSS->exec(dn + ".set_i1(643)");
+      gSS->exec(dn + ".set_f1(34.83)");
+      gSS->exec(dn + ".set_s1('James')");
+
+      // Test that B's variables were set.
+      CHECK_EQUAL(643, d_bp->i1);
+      CHECK_CLOSE(34.83, d_bp->f1, 0.0001f);
+      CHECK_EQUAL("James", d_bp->s1.c_str());
+
+      // --== Create a ==--
+      LuaClassInstance a = gSS->execRet<LuaClassInstance>("factory.a.new("
+          "42, 42.42, '4242-10')");
+      ++a_con;
+      compareAccumulators();
+
+      string an = a.fqName();
+      //A* ap = a.getRawPointer<A>(gSS);
+
+      // Set misc values for a/d
+      gSS->exec(an + ".set_i2(158)");
+      gSS->exec(an + ".set_f2(345.89)");
+      gSS->cexec(an + ".set_s2", "A str");
+
+      gSS->exec(dn + ".set_i1(128)");
+      gSS->exec(dn + ".set_f1(64.64)");
+      gSS->exec(dn + ".set_s1('bit')");
+
+      // --== Create c ==--
+      LuaClassInstance c = gSS->execRet<LuaClassInstance>("factory.c.new()");
+      ++c_con; ++a_con;
+      compareAccumulators();
+
+      string cn = c.fqName();
+      //C* cp = c.getRawPointer<C>(gSS);
+
+      gSS->exec(cn + ".set_i1(64)");
+      gSS->exec(cn + ".set_f1(32.32)");
+      gSS->exec(cn + ".set_s1('b--')");
+
+      // --== Create b ==--
+      LuaClassInstance b = gSS->execRet<LuaClassInstance>("factory.b.new()");
+      ++b_con;
+      compareAccumulators();
+
+      string bn = b.fqName();
+      //B* bp = b.getRawPointer<B>(gSS);
+
+      gSS->exec(bn + ".set_i1(32)");
+      gSS->exec(bn + ".set_f1(16.16)");
+      gSS->exec(bn + ".set_s1('-it')");
+
+      // --== delete a ==--
+      gSS->exec("deleteClass(" + an + ")");
+      ++a_des;
+      compareAccumulators();
+
+      // set misc values for b,c,d
+      gSS->exec(bn + ".set_i1(16)");
+      gSS->exec(bn + ".set_f1(8.8)");
+      gSS->exec(bn + ".set_s1('test')");
+
+      gSS->exec(cn + ".set_i1(8)");
+      gSS->exec(cn + ".set_f1(4.4)");
+      gSS->exec(cn + ".set_s1('test2')");
+
+      gSS->exec(dn + ".set_a_i2(4)");
+      gSS->exec(dn + ".set_a_f2(2.2)");
+      gSS->exec(dn + ".set_a_s2('test3')");
+
+      // delete d
+      gSS->exec("deleteClass(" + dn + ")");
+      ++a_des; ++b_des; ++c_des; ++d_des;
+      compareAccumulators();
+
+      // set misc values for c and b
+      gSS->exec(bn + ".set_i1(2)");
+      gSS->exec(bn + ".set_f1(1.1)");
+      gSS->exec(bn + ".set_s1('t1')");
+
+      gSS->exec(cn + ".set_i1(256)");
+      gSS->exec(cn + ".set_f1(128.128)");
+      gSS->exec(cn + ".set_s1('t2')");
+
+      // delete b
+      gSS->exec("deleteClass(" + bn + ")");
+      ++b_des;
+      compareAccumulators();
+
+      // set misc values for c
+      gSS->exec(cn + ".set_a_i2(512)");
+      gSS->exec(cn + ".set_a_f2(256.256)");
+      gSS->exec(cn + ".set_a_s2('t3')");
+
+      // delete c
+      gSS->exec("deleteClass(" + cn + ")");
+      ++a_des; ++c_des;
+      compareAccumulators();
+
+      // delete z
+      gSS->exec("deleteClass(" + zn + ")");
+      ++b_des;
+
+      // test undo/redo of this system.
+
+      clearAccumulators();
+
+      // Undo the deletion of z -- this is an extremely large undertaking.
+      // This is the worst case scenario for the brute reroll algorithm in
+      // the provenance system. It ends undoing / redoing everything since
+      // we began this system.
+      gSS->exec("provenance.undo()");
+      // Keep in mind, everything has been destroyed, so no destructor increase
+      // will be recorded. BUT, every class should be created and destroyed...
+      ++b_con;
+      ++a_con; ++c_con; ++a_des; ++c_des;
+      ++b_con; ++b_des;
+      ++a_con; ++b_con; ++c_con; ++d_con; ++a_des; ++b_des; ++c_des; ++d_des;
+      ++a_con; ++a_des;
+      compareAccumulators();
+
+
+    }
 
   }
 

@@ -355,6 +355,21 @@ public:
       os << "return " << LuaClassInstance::CLASS_INSTANCE_TABLE << "."
          << LuaClassInstance::CLASS_INSTANCE_PREFIX << in.getGlobalInstID();
       luaL_dostring(L, os.str().c_str()); // Return the class instance.
+
+      // Interesting corner case: If the class instance has already been
+      // deleted, luaL_dostring will return nil, and result in us deleting
+      // elements from our last exec table.
+      // Since deleteClass has a null undo function, we are safe doing this.
+      // deleteClass will be the only function that runs into this corner case.
+      if (lua_isnil(L, -1))
+      {
+        lua_pop(L, 1);
+
+        // Empty table.
+        lua_newtable(L);
+        lua_pushboolean(L, 1);
+        lua_setfield(L, -2, "_DefaultInstance_");
+      }
     }
     else
     {

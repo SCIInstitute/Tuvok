@@ -352,6 +352,10 @@ public:
   /// Used for testing purposes only.
   int getCurrentClassInstID() {return mGlobalInstanceID;}
 
+  /// Used by friend class LuaProvenance.
+  /// Any public use of this function should be for testing purposes only.
+  lua_State* getLUAState() const {return mL;}
+
 private:
 
   template <typename FunPtr>
@@ -359,9 +363,6 @@ private:
                           const std::string& name,
                           bool registerUndo,
                           bool registerRedo);
-
-  /// Used by friend class LuaProvenance.
-  lua_State* getLUAState() const {return mL;}
 
   /// This function should be used sparingly, and only for those functions that
   /// do not modify state nor return internal state in some way.

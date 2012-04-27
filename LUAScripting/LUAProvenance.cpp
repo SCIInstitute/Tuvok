@@ -365,10 +365,11 @@ tr1::tuple<int, int, int> LuaProvenance::bruteRerollDetermineUndos(int undoIndex
         {
           throw LuaProvenanceFailedUndo("Duplicate global IDs");
         }
-        if (*it - last != 1)
-        {
-          throw LuaProvenanceFailedUndo("Unsequential global IDs");
-        }
+        // This will throw at errant times because of the set difference below.
+//        if (*it - last != 1)
+//        {
+//          throw LuaProvenanceFailedUndo("Unsequential global IDs");
+//        }
         last = *it;
       }
     }
@@ -437,6 +438,8 @@ void LuaProvenance::issueUndo()
     issueUndoInternal();
   }
 
+
+
   // Redo back to directly before undo (the vast majority of the time -- the
   // times we don't have any instance deletions -- we never enter this loop).
   mScripting->setNextTempClassInstRange(lowestID, highestID);
@@ -447,6 +450,27 @@ void LuaProvenance::issueUndo()
 
   mUndoingInstanceDel = false;
 }
+
+//{
+//  lua_State* L = mScripting->getLUAState();
+//  string lastExecTable = "return deleteClass.";
+//  lastExecTable += LuaScripting::TBL_MD_FUN_LAST_EXEC;
+//  int tableIndex, numParams;
+//
+//  luaL_dostring(L, lastExecTable.c_str());
+//  tableIndex = lua_gettop(L);
+//  lua_pushnil(L);
+//  numParams = 0;
+//  while (lua_next(L, tableIndex))
+//  {
+//    ++numParams;
+//    lua_pop(L, 1);
+//  }
+//
+//  lua_pop(L, 1);
+//
+//  cout << numParams << endl;
+//}
 
 //-----------------------------------------------------------------------------
 void LuaProvenance::issueUndoInternal()
