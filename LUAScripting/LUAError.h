@@ -147,6 +147,26 @@ public:
   virtual ~LuaUnequalNumParams() throw() { }
 };
 
+class LuaUndoFuncAlreadySet : public LuaError
+{
+public:
+  explicit LuaUndoFuncAlreadySet(const char* e, const char* where = NULL,
+                                 size_t ln = 0)
+    : LuaError(e, where, ln)
+  {}
+  virtual ~LuaUndoFuncAlreadySet() throw() { }
+};
+
+class LuaRedoFuncAlreadySet : public LuaError
+{
+public:
+  explicit LuaRedoFuncAlreadySet(const char* e, const char* where = NULL,
+                                 size_t ln = 0)
+    : LuaError(e, where, ln)
+  {}
+  virtual ~LuaRedoFuncAlreadySet() throw() { }
+};
+
 } /* namespace tuvok */
 
 #endif /* LUAERROR_H_ */

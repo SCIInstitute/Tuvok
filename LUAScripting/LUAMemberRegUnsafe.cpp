@@ -86,8 +86,9 @@ LuaMemberRegUnsafe::~LuaMemberRegUnsafe()
 //-----------------------------------------------------------------------------
 void LuaMemberRegUnsafe::unregisterAll()
 {
-  // Unhook BEFORE register!
+  // Unhook BEFORE unregister!
   unregisterHooks();
+  unregisterUndoRedoFunctions();
   unregisterFunctions();
 }
 
@@ -117,6 +118,7 @@ void LuaMemberRegUnsafe::unregisterFunctions()
 void LuaMemberRegUnsafe::unregisterHooks()
 {
   lua_State* L = mScriptSystem->getLUAState();
+  LuaStackRAII _a = LuaStackRAII(L, 0);
 
   // Loop through the hooks, and unregister them from their functions
   for (vector<string>::iterator it = mHookedFunctions.begin();
@@ -146,6 +148,43 @@ void LuaMemberRegUnsafe::unregisterHooks()
   }
 
   mHookedFunctions.clear();
+}
+
+//-----------------------------------------------------------------------------
+void LuaMemberRegUnsafe::unregisterUndoRedoFunctions()
+{
+  lua_State* L = mScriptSystem->getLUAState();
+  LuaStackRAII _a = LuaStackRAII(L, 0);
+
+  // Loop through the hooks, and unregister them from their functions
+  for (vector<UndoRedoReg>::iterator it = mRegisteredUndoRedo.begin();
+       it != mRegisteredUndoRedo.end(); ++it)
+  {
+    // Push the table associated with the function to the top.
+    mScriptSystem->getFunctionTable(it->functionName);
+
+    if (lua_isnil(L, -1))
+    {
+      // Ignore missing function table and move on.
+      lua_pop(L,1);
+      continue;
+    }
+
+    lua_pushnil(L);
+    if (it->isUndo)
+    {
+      lua_setfield(L, -2, LuaScripting::TBL_MD_UNDO_FUNC);
+    }
+    else
+    {
+      lua_setfield(L, -2, LuaScripting::TBL_MD_REDO_FUNC);
+    }
+
+    // Pop function table off the stack.
+    lua_pop(L, 1);
+  }
+
+  mRegisteredUndoRedo.clear();
 }
 
 //==============================================================================

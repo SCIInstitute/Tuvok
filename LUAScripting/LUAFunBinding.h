@@ -55,7 +55,7 @@
 #include <typeinfo>
 #include <sstream>
 
-// Uncomment DEBUG_USE_RUNTIME_TYPE_CHECKING to check types of function calls
+// Uncomment TUVOK_DEBUG_LUA_USE_RTTI_CHECKS to check types of function calls
 // made through lua at run time.
 // (will be especially useful to debug shared_ptr type issues)
 //

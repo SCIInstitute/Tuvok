@@ -226,6 +226,113 @@ SUITE(LuaTestMemberFunctionRegistration)
     sc->exec("provenance.logProvRecord()");
   }
 
+  class B
+  {
+  public:
+
+    B(tr1::shared_ptr<LuaScripting> ss)
+    : mReg(ss)
+    {
+      i1 = 0; i2 = 0;
+      f1 = 0.0f; f2 = 0.0f;
+    }
+
+    int     i1, i2;
+    float   f1, f2;
+    string  s1, s2;
+
+    void set_i1(int i)    {i1 = i;}
+    void set_i2(int i)    {i2 = i;}
+    int get_i1()          {return i1;}
+    int get_i2()          {return i2;}
+
+    void set_f1(float f)  {f1 = f;}
+    void set_f2(float f)  {f2 = f;}
+    float get_f1()        {return f1;}
+    float get_f2()        {return f2;}
+
+    void set_s1(string s) {s1 = s;}
+    void set_s2(string s) {s2 = s;}
+    string get_s1()       {return s1;}
+    string get_s2()       {return s2;}
+
+    void undo_i1(int i)   {i1 = i * 2;}
+    void undo_f1(float f) {f1 = f + 2.5f;}
+    void undo_s1(string s){s1 = s + "hi";}
+
+    void redo_i1(int i)   {i1 = i * 4;}
+    void redo_f1(float f) {f1 = f - 5.0f;}
+    void redo_s1(string s){s1 = s + "hi2";}
+
+    LuaMemberReg mReg;
+  };
+
+  TEST(MemberUndoRedoHooks)
+  {
+    TEST_HEADER;
+
+    // Setup custom undo/redo hooks and test their efficacy.
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+
+    auto_ptr<B> b(new B(sc));
+
+    b->mReg.registerFunction(b.get(), &B::set_i1, "set_i1", "", true);
+    b->mReg.registerFunction(b.get(), &B::set_i2, "set_i2", "", true);
+    b->mReg.registerFunction(b.get(), &B::get_i1, "get_i1", "", false);
+    b->mReg.registerFunction(b.get(), &B::get_i2, "get_i2", "", false);
+
+    b->mReg.registerFunction(b.get(), &B::set_f1, "set_f1", "", true);
+    b->mReg.registerFunction(b.get(), &B::set_f2, "set_f2", "", true);
+    b->mReg.registerFunction(b.get(), &B::get_f1, "get_f1", "", false);
+    b->mReg.registerFunction(b.get(), &B::get_f2, "get_f2", "", false);
+
+    b->mReg.registerFunction(b.get(), &B::set_s1, "set_s1", "", true);
+    b->mReg.registerFunction(b.get(), &B::set_s2, "set_s2", "", true);
+    b->mReg.registerFunction(b.get(), &B::get_s1, "get_s1", "", false);
+    b->mReg.registerFunction(b.get(), &B::get_s2, "get_s2", "", false);
+
+    // Customize undo functions (these undo functions will result in invalid
+    // undo state, but thats what we want in order to detect correct redo/undo
+    // hook installation).
+    b->mReg.setUndoFun(b.get(), &B::undo_i1, "set_i1");
+    b->mReg.setUndoFun(b.get(), &B::undo_f1, "set_f1");
+    b->mReg.setUndoFun(b.get(), &B::undo_s1, "set_s1");
+
+    b->mReg.setRedoFun(b.get(), &B::redo_i1, "set_i1");
+    b->mReg.setRedoFun(b.get(), &B::redo_f1, "set_f1");
+    b->mReg.setRedoFun(b.get(), &B::redo_s1, "set_s1");
+
+    sc->exec("set_i1(100)");
+    sc->exec("set_f1(126.5)");
+    sc->exec("set_s1('Test')");
+
+    CHECK_EQUAL(b->i1, 100);
+    CHECK_CLOSE(b->f1, 126.5f, 0.001f);
+    CHECK_EQUAL(b->s1.c_str(), "Test");
+
+    sc->exec("set_i1(1000)");
+    sc->exec("set_f1(500.0)");
+    sc->exec("set_s1('nop')");
+
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL("Testhi", b->s1.c_str());
+
+    sc->exec("provenance.undo()");
+    CHECK_CLOSE(129.0f, b->f1, 0.001f);
+
+    sc->exec("provenance.undo()");
+    CHECK_EQUAL(200, b->i1);
+
+    sc->exec("provenance.redo()");
+    CHECK_EQUAL(4000, b->i1);
+
+    sc->exec("provenance.redo()");
+    CHECK_CLOSE(495.0, b->f1, 0.001f);
+
+    sc->exec("provenance.redo()");
+    CHECK_EQUAL("nophi2", b->s1.c_str());
+  }
+
 }
 
 #endif

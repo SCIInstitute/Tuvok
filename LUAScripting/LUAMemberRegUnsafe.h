@@ -61,24 +61,36 @@ public:
   LuaMemberRegUnsafe(LuaScripting* scriptSys);
   virtual ~LuaMemberRegUnsafe();
 
-  // See LuaScripting::registerFunction for an in depth description of params.
-  // The only difference is the parameter C, which is the context class for the
-  // member function pointer.
+  /// See LuaScripting::registerFunction for an in depth description of params.
+  /// The only difference is the parameter C, which is the context class for the
+  /// member function pointer.
   template <typename T, typename FunPtr>
   void registerFunction(T* C, FunPtr f, const std::string& name,
                         const std::string& desc, bool undoRedo);
 
-  // See LuaScripting::strictHook.
+  /// See LuaScripting::strictHook.
   template <typename T, typename FunPtr>
   void strictHook(T* C, FunPtr f, const std::string& name);
 
+  /// See LuaScripting::undoHook. Sets the undo function for the registered
+  /// function at 'name'.
+  template <typename T, typename FunPtr>
+  void setUndoFun(T* C, FunPtr f, const std::string& name);
+
+  /// See LuaScripting::redoHook. Sets the redo function for the registered
+  /// function at 'name'.
+  template <typename T, typename FunPtr>
+  void setRedoFun(T* C, FunPtr f, const std::string& name);
+
+  /// Unregisters all functions and hooks in the correct order.
   void unregisterAll();
 
-  // Before issuing a call to either one of the functions below, please
+  // Before issuing a call to any of the functions below, please
   // consider using unregisterAll instead. In certain circumstances,
   // unregisterHooks must be called before unregisterFunctions.
   void unregisterFunctions();
   void unregisterHooks();
+  void unregisterUndoRedoFunctions();
 
 private:
 
@@ -95,6 +107,24 @@ private:
   /// ID used by LUA in order to identify the functions hooked by this class.
   /// This ID is used as the key in the hook table.
   const std::string                   mHookID;
+
+
+  struct UndoRedoReg
+  {
+    UndoRedoReg(const std::string& funName, bool undo)
+    : functionName(funName), isUndo(undo)
+    {}
+
+    std::string     functionName;
+    bool            isUndo;
+  };
+  std::vector<UndoRedoReg>            mRegisteredUndoRedo;
+
+  /// Strict hook internal -- called by strictHook and the setUndoFun and
+  /// setRedoFun methods.
+  template <typename T, typename FunPtr>
+  void strictHookInternal(T* C, FunPtr f, const std::string& name,
+                          bool registerUndo, bool registerRedo);
 
   template <typename FunPtr, typename Ret>
   struct LuaMemberCallback
@@ -310,6 +340,18 @@ void LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
 template <typename T, typename FunPtr>
 void LuaMemberRegUnsafe::strictHook(T* C, FunPtr f, const std::string& name)
 {
+  strictHookInternal(C, f, name, false, false);
+}
+
+template <typename T, typename FunPtr>
+void LuaMemberRegUnsafe::strictHookInternal(
+    T* C,
+    FunPtr f,
+    const std::string& name,
+    bool registerUndo,
+    bool registerRedo
+    )
+{
   LuaScripting* ss  = mScriptSystem;
   lua_State*    L   = ss->getLUAState();
 
@@ -347,16 +389,20 @@ void LuaMemberRegUnsafe::strictHook(T* C, FunPtr f, const std::string& name)
   lua_getfield(L, -1, LuaScripting::TBL_MD_MEMBER_HOOKS);
   int hookTable = lua_gettop(L);
 
-  // Ensure our hook descriptor is not already there.
-  lua_getfield(L, -1, mHookID.c_str());
-  if (lua_isnil(L, -1) == 0)
+  bool regUndoRedo = (registerUndo || registerRedo);
+  if (!regUndoRedo)
   {
-    lua_settop(L, initStackTop);
-    std::ostringstream os;
-    os << "Instance of LuaMemberReg has already bound " << name;
-    throw LuaFunBindError(os.str().c_str());
+    // Ensure our hook descriptor is not already there.
+    lua_getfield(L, -1, mHookID.c_str());
+    if (lua_isnil(L, -1) == 0)
+    {
+      lua_settop(L, initStackTop);
+      std::ostringstream os;
+      os << "Instance of LuaMemberReg has already bound " << name;
+      throw LuaFunBindError(os.str().c_str());
+    }
+    lua_pop(L, 1);
   }
-  lua_pop(L, 1);
 
   // Push closure
   lua_CFunction proxyFunc = &LuaMemberCallback<FunPtr, typename
@@ -370,12 +416,54 @@ void LuaMemberRegUnsafe::strictHook(T* C, FunPtr f, const std::string& name)
                           // mScriptSystem.
   lua_pushcclosure(L, proxyFunc, 3);
 
-  // Associate closure with hook table.
-  lua_setfield(L, hookTable, mHookID.c_str());
+  if (!regUndoRedo)
+  {
+    // Associate closure with hook table.
+    lua_setfield(L, hookTable, mHookID.c_str());
+    mHookedFunctions.push_back(name);
+  }
+  else
+  {
+    std::string fieldToQuery = LuaScripting::TBL_MD_UNDO_FUNC;
+    bool isUndo = true;
 
-  mHookedFunctions.push_back(name);
+    if (registerRedo)
+    {
+      fieldToQuery = LuaScripting::TBL_MD_REDO_FUNC;
+      isUndo = false;
+    }
+
+    lua_getfield(L, funcTable, fieldToQuery.c_str());
+
+    if (lua_isnil(L, -1) == 0)
+    {
+      if (isUndo) throw LuaUndoFuncAlreadySet("Undo function already set.");
+      else        throw LuaRedoFuncAlreadySet("Redo function already set.");
+    }
+
+    lua_pop(L, 1);
+    lua_setfield(L, funcTable, fieldToQuery.c_str());
+
+    mRegisteredUndoRedo.push_back(UndoRedoReg(name, isUndo));
+  }
 
   lua_pop(L, 2);  // Remove the function table and the hooks table.
+}
+
+// See LuaScripting::undoHook.
+template <typename T, typename FunPtr>
+void LuaMemberRegUnsafe::setUndoFun(T* C, FunPtr f, const std::string& name)
+{
+  // Uses strict hook.
+  strictHookInternal(C, f, name, true, false);
+}
+
+// See LuaScripting::redoHook.
+template <typename T, typename FunPtr>
+void LuaMemberRegUnsafe::setRedoFun(T* C, FunPtr f, const std::string& name)
+{
+  // Uses strict hook.
+  strictHookInternal(C, f, name, false, true);
 }
 
 }

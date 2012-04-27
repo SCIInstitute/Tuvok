@@ -407,7 +407,7 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
   // Push parameters onto the stack after the __call method, and execute.
   lua_State* L = mScripting->getLUAState();
   LuaStackRAII _a = LuaStackRAII(L, 0);
-  int initStackTop = lua_gettop(L);
+
   mScripting->getFunctionTable(funcName);
   int funTable = lua_gettop(L);
   if (lua_isnil(L, -1))
@@ -423,7 +423,7 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
     if (isUndo)
     {
       // Check for an undo hook
-      lua_getfield(L, funTable, LuaScripting::TBL_MD_UNDO_HOOK);
+      lua_getfield(L, funTable, LuaScripting::TBL_MD_UNDO_FUNC);
       if (lua_isnil(L, -1) == 0)
         hasHook = true;
       else
@@ -432,7 +432,7 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
     else
     {
       // Check for redo hook
-      lua_getfield(L, funTable, LuaScripting::TBL_MD_REDO_HOOK);
+      lua_getfield(L, funTable, LuaScripting::TBL_MD_REDO_FUNC);
       if (lua_isnil(L, -1) == 0)
         hasHook = true;
       else
@@ -443,17 +443,16 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
     if (hasHook == false)
     {
       lua_getfield(L, -1, "__call");
-    }
+      if (lua_isnil(L, -1))
+      {
+        throw LuaProvenanceInvalidUndoOrRedo("Function has invalid function "
+                                             "pointer.");
+      }
 
-    if (lua_isnil(L, -1))
-    {
-      throw LuaProvenanceInvalidUndoOrRedo("Function has invalid function "
-                                           "pointer.");
+      // Before we push the parameters, we need to push the function table.
+      // (this is always the first parameter for non-hook functions).
+      lua_pushvalue(L, funTable);
     }
-
-    // Before we push the parameters, we need to push the function table.
-    // (this is always the first parameter).
-    lua_pushvalue(L, funTable);
 
     // Push parameters onto the stack.
     int paramStart = lua_gettop(L);
@@ -461,10 +460,15 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
     int numParams = lua_gettop(L) - paramStart;
     paramStart += 1;
 
+    // Determine the number of parameters. There is one extra parameter for
+    // functions who are not hooks (the function table itself).
+    int functionParams = numParams;
+    if (hasHook == false) functionParams++;
+
     // Execute the call (ignore return values).
     // This will pop all parameters and the function off the stack.
     mUndoRedoProvenanceDisable = true;
-    lua_call(L, numParams + 1, 0);      // The + 1 is for the function table.
+    lua_call(L, functionParams, 0);
     mUndoRedoProvenanceDisable = false;
 
     // Pop the metatable
@@ -494,8 +498,6 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
 
   // Pop the function table
   lua_pop(L, 1);
-
-  assert(initStackTop == lua_gettop(L));
 }
 
 
@@ -969,18 +971,6 @@ SUITE(LuaProvenanceTests)
 
     // Similar to ProvenanceSingleCommandDepth, but we want to test
     // composited functions of composited functions.
-  }
-
-  TEST(ProvenanceUndoRedoHooks)
-  {
-    TEST_HEADER;
-
-    // Test whether we can hook special functions into the undo/redo chain.
-
-    // Test 'relative' functions (deltas).
-
-    // Test 'absolute' functions.
-
   }
 
   TEST(ProvenanceDisabling)
