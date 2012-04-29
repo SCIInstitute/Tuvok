@@ -840,8 +840,6 @@ void LuaScripting::populateWithMetadata(const std::string& name,
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0);
 
-  int top = lua_gettop(mL);
-
   // Function description
   lua_pushstring(mL, desc.c_str());
   lua_setfield(mL, tableIndex, TBL_MD_DESC);
@@ -889,8 +887,6 @@ void LuaScripting::populateWithMetadata(const std::string& name,
   // can modify state (such as provenance).
   lua_pushlightuserdata(mL, this);
   lua_setfield(mL, tableIndex, TBL_MD_CPP_CLASS);
-
-  assert(top == lua_gettop(mL));
 }
 
 //-----------------------------------------------------------------------------

@@ -255,8 +255,6 @@ void LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
 
   LuaStackRAII _a = LuaStackRAII(L, 0);
 
-  int initStackTop = lua_gettop(L);
-
   // Member function pointers are not pointing to a function, they are
   // compiler dependent and are pointing to a memory address.
   // They need to be copied into lua in an portable manner.
@@ -333,8 +331,6 @@ void LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
   mRegisteredFunctions.push_back(name);
 
   if (undoRedo == false)  ss->setUndoRedoStackExempt(name);
-
-  assert(initStackTop == lua_gettop(L));
 }
 
 template <typename T, typename FunPtr>
