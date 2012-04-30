@@ -1134,6 +1134,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Renderer\ShaderDescriptor.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Renderer\ShaderDescriptor.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Renderer\StateManager.h"
 				>
 			</File>
@@ -1308,6 +1316,14 @@
 			<Filter
 				Name="GL"
 				>
+				<File
+					RelativePath=".\Renderer\GL\GLCommon.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Renderer\GL\GLCommon.h"
+					>
+				</File>
 				<File
 					RelativePath=".\Renderer\GL\GLContext.h"
 					>
@@ -1765,11 +1781,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
 					>
 				</File>
 				<File
-					RelativePath=".\IO\3rdParty\boost\boost\config\compiler\vacpp.hpp"
+					RelativePath=".\IO\3rdParty\boost\boost\config\stdlib\vacpp.hpp"
 					>
 				</File>
 				<File
