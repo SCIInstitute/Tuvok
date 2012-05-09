@@ -55,8 +55,8 @@
 
 #include "LUAScripting.h"
 #include "LUAProvenance.h"
-#include "LuaMemberRegUnsafe.h"
-#include "LuaClassInstanceReg.h"
+#include "LUAMemberRegUnsafe.h"
+#include "LUAClassInstanceReg.h"
 
 using namespace std;
 

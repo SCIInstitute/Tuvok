@@ -40,7 +40,7 @@
 #ifndef TUVOK_LUAMEMBER_REG_H_
 #define TUVOK_LUAMEMBER_REG_H_
 
-#include "LuaMemberRegUnsafe.h"
+#include "LUAMemberRegUnsafe.h"
 
 namespace tuvok
 {

@@ -43,7 +43,8 @@
 #ifndef TUVOK_LUAMEMBER_REG_UNSAFE_H_
 #define TUVOK_LUAMEMBER_REG_UNSAFE_H_
 
-#include "LuaScripting.h"
+#include "LUAScripting.h"
+#include <cstring>
 
 namespace tuvok
 {

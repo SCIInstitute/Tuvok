@@ -34,7 +34,8 @@
 #ifndef TUVOK_LUAPROVENANCE_H_
 #define TUVOK_LUAPROVENANCE_H_
 
-#include "LuaMemberRegUnsafe.h"
+#include "LUAMemberRegUnsafe.h"
+#include <algorithm>
 
 #ifdef DETECTED_OS_WINDOWS
 #include <tuple>

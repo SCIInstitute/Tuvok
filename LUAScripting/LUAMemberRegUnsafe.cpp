@@ -58,7 +58,7 @@
 #include "LUAError.h"
 #include "LUAFunBinding.h"
 #include "LUAScripting.h"
-#include "LuaMemberRegUnsafe.h"
+#include "LUAMemberRegUnsafe.h"
 
 using namespace std;
 
