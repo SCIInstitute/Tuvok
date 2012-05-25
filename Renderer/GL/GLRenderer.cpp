@@ -288,7 +288,7 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction,
   );
   m_pProgram1DTransSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
     "Transfer-VS.glsl", NULL,
-    tfqn.c_str(), bias.c_str(), "lighting.glsl", "VRender1DProxy.glsl",
+    //tfqn.c_str(), bias.c_str(), "lighting.glsl", "VRender1DProxy.glsl",
     "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
   );
   m_pProgram2DTransSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
@@ -1069,7 +1069,8 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     for (size_t i = 0;i<size_t(m_pDataset->GetLODLevelCount());i++) {
       if (m_pDataset->GetBrickCount(i, m_iTimestep) == 1) {
           iCurrentLOD = i;
-          vVoxelCount = UINTVECTOR3(m_pDataset->GetDomainSize(i));
+          const BrickKey bkey(m_iTimestep, iCurrentLOD, 0);
+          vVoxelCount = UINTVECTOR3(m_pDataset->GetBrickVoxelCounts(bkey));
           break;
       }
     }
@@ -1077,7 +1078,8 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     if (!renderRegion.GetUseMIP()) SetBrickDepShaderVarsSlice(vVoxelCount);
 
     // Get the brick at this LOD; note we're guaranteed this brick will cover
-    // the entire domain, because the search above gives us the coarsest LOD!
+    // the entire domain, because the search above gives us the finest LOD
+    // covered by a single brick
     const BrickKey bkey(m_iTimestep, iCurrentLOD, 0);
 
     if (!BindVolumeTex(bkey,0)) {
@@ -1106,7 +1108,7 @@ bool GLRenderer::Render2DView(RenderRegion2D& renderRegion) {
     } else {
      vRealVoxelCount = vVoxelCount;
     }
-    FLOATVECTOR3 vMinCoords = FLOATVECTOR3(0.5f/FLOATVECTOR3(vRealVoxelCount));
+    FLOATVECTOR3 vMinCoords = FLOATVECTOR3(  (FLOATVECTOR3(vVoxelCount) - FLOATVECTOR3(m_pDataset->GetDomainSize(iCurrentLOD))+ 1)  /(2.0f * FLOATVECTOR3(vRealVoxelCount) ) );
     FLOATVECTOR3 vMaxCoords = (FLOATVECTOR3(vVoxelCount) / FLOATVECTOR3(vRealVoxelCount)) - vMinCoords;
 
     UINT64VECTOR3 vDomainSize = m_pDataset->GetDomainSize();
@@ -1804,15 +1806,16 @@ float GLRenderer::CalculateScaling()
 
 void GLRenderer::SetConstantShaderVars()
 {
+  /*
   // no scaling for this case.
   m_pProgram1DTransSlice->Set("fStepScale", 1.0f);
-
   int method = static_cast<int>(this->m_TFScalingMethod);
   MESSAGE("Setting scale method to %d", method);
   m_pProgram1DTransSlice->Set("ScaleMethod", method);
   GL_CHECK(); // TODO Tom: why are we trying to set a variable that does not exist in the shader?
   m_pProgram1DTransSlice3D->Set("ScaleMethod", method);
   GL_CHECK(); // TODO Tom: why are we trying to set a variable that does not exist in the shader?
+  */
 }
 
 void GLRenderer::SetDataDepShaderVars() {
