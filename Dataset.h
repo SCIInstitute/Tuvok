@@ -155,7 +155,7 @@ public:
 
   virtual bool ApplyFunction(uint64_t iLODLevel, 
                         bool (*brickFunc)(void* pData, 
-                                          const UINTVECTOR3& vBrickSize,
+                                          const UINT64VECTOR3& vBrickSize,
                                           const UINT64VECTOR3& vBrickOffset,
                                           void* pUserContext),
                         void *pUserContext,

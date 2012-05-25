@@ -262,7 +262,7 @@ void UVFDataset::ComputeMetaData(size_t timestep) {
             bmd.extents  = FLOATVECTOR3(GetEffectiveBrickSize(k)) * FLOATVECTOR3(pVolumeDataBlock->GetBrickAspect(coords)) / maxVal;
             bmd.center   = FLOATVECTOR3(vBrickCorner + bmd.extents/2.0f) -
                            vNormalizedDomainSize * 0.5f;
-            bmd.n_voxels = pVolumeDataBlock->GetBrickSize(coords);
+            bmd.n_voxels = UINTVECTOR3(pVolumeDataBlock->GetBrickSize(coords));
             AddBrick(k, bmd);
             vBrickCorner.z += bmd.extents.z;
           }
@@ -796,7 +796,7 @@ UINTVECTOR3 UVFDataset::GetBrickVoxelCounts(const BrickKey& k) const
  if (m_bToCBlock) {
     const UINT64VECTOR4 coords = KeyToTOCVector(k);
     const TOCTimestep* ts = static_cast<TOCTimestep*>(m_timesteps[std::tr1::get<0>(k)]);
-    return ts->GetDB()->GetBrickSize(coords);
+    return UINTVECTOR3(ts->GetDB()->GetBrickSize(coords));
   } else {
     size_t iLOD = static_cast<size_t>(std::tr1::get<1>(k));
     const NDBrickKey& key = IndexToVectorKey(k);
@@ -846,7 +846,7 @@ bool UVFDataset::Export(uint64_t iLODLevel, const std::string& targetFilename,
 
 bool UVFDataset::ApplyFunction(uint64_t iLODLevel, 
                       bool (*brickFunc)(void* pData, 
-                                        const UINTVECTOR3& vBrickSize,
+                                        const UINT64VECTOR3& vBrickSize,
                                         const UINT64VECTOR3& vBrickOffset,
                                         void* pUserContext),
                       void *pUserContext,

@@ -19,7 +19,7 @@ public:
   virtual uint64_t ComputeDataSize() const;
 
   uint32_t GetOverlap() const {return m_ExtendedOctree.GetOverlap();}
-  UINTVECTOR3 GetMaxBricksize() const {return m_ExtendedOctree.GetMaxBricksize();}
+  UINT64VECTOR3 GetMaxBricksize() const {return m_ExtendedOctree.GetMaxBricksize();}
 
   bool FlatDataToBrickedLOD(const std::string& strSourceFile,
                             const std::string& strTempFile,
@@ -27,7 +27,7 @@ public:
                             uint64_t iComponentCount,
                             const UINT64VECTOR3& vVolumeSize,
                             const DOUBLEVECTOR3& vScale,
-                            const UINTVECTOR3& vMaxBrickSize,
+                            const UINT64VECTOR3& vMaxBrickSize,
                             uint32_t iOverlap,
                             size_t iCacheSize,
                             std::tr1::shared_ptr<MaxMinDataBlock>
@@ -40,7 +40,7 @@ public:
                             uint64_t iComponentCount,
                             const UINT64VECTOR3& vVolumeSize,
                             const DOUBLEVECTOR3& vScale,
-                            const UINTVECTOR3& vMaxBrickSize,
+                            const UINT64VECTOR3& vMaxBrickSize,
                             uint32_t iOverlap,
                             size_t iCacheSize,
                             std::tr1::shared_ptr<MaxMinDataBlock>
@@ -59,7 +59,7 @@ public:
 
   bool ApplyFunction(uint64_t iLoD,
                      bool (*brickFunc)(void* pData,
-                                    const UINTVECTOR3& vBrickSize,
+                                    const UINT64VECTOR3& vBrickSize,
                                     const UINT64VECTOR3& vBrickOffset,
                                     void* pUserContext) = NULL,
                      void* pUserContext = NULL,
@@ -70,7 +70,7 @@ public:
 
   uint64_t GetLoDCount() const;
   UINT64VECTOR3 GetBrickCount(uint64_t iLoD) const;
-  UINTVECTOR3 GetBrickSize(UINT64VECTOR4 coordinates) const;
+  UINT64VECTOR3 GetBrickSize(UINT64VECTOR4 coordinates) const;
   DOUBLEVECTOR3 GetBrickAspect(UINT64VECTOR4 coordinates) const;
   UINT64VECTOR3 GetLODDomainSize(uint64_t iLoD) const;
 
@@ -85,6 +85,9 @@ public:
   ExtendedOctree::COMPONENT_TYPE GetComponentType() const {
     return m_ExtendedOctree.GetComponentType();
   }
+  UINTVECTOR2 GetAtlasSize(UINT64VECTOR4 coordinates) const {
+    return m_ExtendedOctree.GetBrickToCData(coordinates).m_iAtlasSize;
+  }
 
   bool GetIsSigned() const;
   bool GetIsFloat() const;
@@ -97,7 +100,7 @@ protected:
   ExtendedOctree m_ExtendedOctree;
   bool m_bIsBigEndian;
   uint32_t m_iOverlap;
-  UINTVECTOR3 m_vMaxBrickSize;
+  UINT64VECTOR3 m_vMaxBrickSize;
   std::string m_strDeleteTempFile;
 
   uint64_t ComputeHeaderSize() const;

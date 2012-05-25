@@ -98,7 +98,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount,
   const UINT64VECTOR3& vVolumeSize,
   const DOUBLEVECTOR3& vScale,
-  const UINTVECTOR3& vMaxBrickSize,
+  const UINT64VECTOR3& vMaxBrickSize,
   uint32_t iOverlap,
   size_t iCacheSize,
   std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
@@ -121,7 +121,7 @@ bool TOCBlock::FlatDataToBrickedLOD(
   ExtendedOctree::COMPONENT_TYPE eType, uint64_t iComponentCount,
   const UINT64VECTOR3& vVolumeSize,
   const DOUBLEVECTOR3& vScale,
-  const UINTVECTOR3& vMaxBrickSize,
+  const UINT64VECTOR3& vMaxBrickSize,
   uint32_t iOverlap,
   size_t iCacheSize,
   std::tr1::shared_ptr<MaxMinDataBlock> pMaxMinDatBlock,
@@ -186,7 +186,7 @@ bool TOCBlock::BrickedLODToFlatData(uint64_t iLoD,
 bool TOCBlock::ApplyFunction(uint64_t iLoD,
                              bool (*brickFunc)(
                                void* pData,
-                               const UINTVECTOR3& vBrickSize,
+                               const UINT64VECTOR3& vBrickSize,
                                const UINT64VECTOR3& vBrickOffset,
                                void* pUserContext
                              ),
@@ -206,7 +206,7 @@ UINT64VECTOR3 TOCBlock::GetBrickCount(uint64_t iLoD) const {
   return m_ExtendedOctree.GetBrickCount(iLoD);
 }
 
-UINTVECTOR3 TOCBlock::GetBrickSize(UINT64VECTOR4 coordinates) const {
+UINT64VECTOR3 TOCBlock::GetBrickSize(UINT64VECTOR4 coordinates) const {
   return m_ExtendedOctree.ComputeBrickSize(coordinates);
 }
 

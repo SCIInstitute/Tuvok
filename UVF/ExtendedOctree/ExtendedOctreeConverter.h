@@ -143,7 +143,7 @@ public:
     @param iOverlap the voxel overlap (must be smaller than half the brick size in all dimensions)
     @param iMemLimit the amount of memory in bytes the converter is allowed to use for caching
   */
-  ExtendedOctreeConverter(const UINTVECTOR3& vBrickSize,
+  ExtendedOctreeConverter(const UINT64VECTOR3& vBrickSize,
                           uint32_t iOverlap, uint64_t iMemLimit) :
     m_fProgress(0.0f),
     m_vBrickSize(vBrickSize),
@@ -208,14 +208,139 @@ public:
 
   /**
    Exports a specific LoD Level into a continuous raw file
+   @param tree the input octree
    @param filename the file to be written to, any existing data is overridden
    @param iLODLevel the level to be exported
    @param  iOffset the bytes to be skipped from the beginning of the file
    @return true iff the export was successful
    */
   static bool ExportToRAW(const ExtendedOctree &tree,
-                          const std::string& filename, uint64_t iLODLevel,
+                          const std::string& filename,
+                          uint64_t iLODLevel,
                           uint64_t iOffset);
+
+  /**
+   Converts a brick into atlantified representation
+   @param tree the input octree
+   @param index the 4D brick coordinates of the brick to be converted
+   @param atlasSize the size of the 2D texture atlas
+   @param pData pointer to mem to hold atlantified data
+   */
+  static void Atalantify(const ExtendedOctree &tree,
+                         const UINT64VECTOR4& vBrickCoords,
+                         const UINTVECTOR2& atlasSize,
+                         uint8_t* pData);
+
+  /**
+   Converts a brick into atlantified representation
+   @param tree the input octree
+   @param index the 1D brick index of the brick to be converted
+   @param atlasSize the size of the 2D texture atlas
+   @param pData pointer to mem to hold atlantified data
+   */
+   static void Atalantify(const ExtendedOctree &tree,
+                          size_t index,
+                          const UINTVECTOR2& atlasSize,
+                          uint8_t* pData);
+
+
+  /**
+    Converts a brick into atlantified representation
+    @param metaData the brick meta-data for the input brick
+    @param atlasSize the size of the 2D texture atlas
+    @param pData pointer to mem to hold non-atlantified data
+    @param pData pointer to mem to hold atlantified data
+    */
+  static void Atalantify(size_t iSizeInBytes,
+                         const UINT64VECTOR3& vMaxBrickSize,
+                         const UINT64VECTOR3& vCurrBrickSize,
+                         const UINTVECTOR2& atlasSize,
+                         uint8_t* pDataSource,
+                         uint8_t* pDataTarget);
+
+
+  /**
+   Converts all bricks in a tree into atlantified representation
+   this conversion happens in-place and consequently only works
+   for trees that do no use compression on the bricks
+   @param vBrickCoords the brick to be converted
+   @param atlasSize the size of the 2D texture atlas
+   @return true iff the conversion was successful
+  */
+  static bool Atalantify(ExtendedOctree &tree,                         
+                         const UINTVECTOR2& atlasSize);
+
+  /**
+   Converts all bricks in a tree into atlantified representation
+   and writes the converted data into the specified file
+   @param vBrickCoords the brick to be converted
+   @param atlasSize the size of the 2D texture atlas
+   @param pLargeRAWFile target file to write the data into
+   @param iOffset offset into the target file
+   @return true iff the conversion was successful
+   */
+  static bool Atalantify(ExtendedOctree &tree,
+                         const UINTVECTOR2& atlasSize,
+                         LargeRAWFile_ptr pLargeRAWFile,
+                         uint64_t iOffset,
+                         COMPORESSION_TYPE eCompression);
+
+  /**
+    Converts a brick into simple 3D representation
+    @param metaData the brick meta-data for the input brick
+    @param pData pointer to mem to hold atlantified data
+    @param pData pointer to mem to hold non-atlantified data
+    */
+  static void DeAtalantify(size_t iSizeInBytes,
+                           const UINTVECTOR2& vCurrentAtlasSize,
+                           const UINT64VECTOR3& vMaxBrickSize,
+                           const UINT64VECTOR3& vCurrBrickSize,
+                           uint8_t* pDataSource,
+                           uint8_t* pDataTarget);
+
+  /**
+   Converts a brick into simple 3D representation
+   @param tree the input octree
+   @param index the 4D brick coordinates of the brick to be converted
+   @param pData pointer to mem to hold simple 3D data
+   */
+  static void DeAtalantify(const ExtendedOctree &tree,
+                           const UINT64VECTOR4& vBrickCoords,
+                           uint8_t* pData);
+
+  /**
+   Converts a brick into simple 3D representation
+   @param tree the input octree
+   @param index the 1D brick index of the brick to be converted
+   @param pData pointer to mem to hold simple 3D data
+   */
+   static void DeAtalantify(const ExtendedOctree &tree,
+                            size_t index,
+                            uint8_t* pData);
+
+
+  /**
+   Converts all bricks in a tree into simple 3D representation
+   this conversion happens in-place and consequently only works
+   for trees that do no use compression on the bricks
+   @param vBrickCoords the brick to be converted
+   @return true iff the conversion was successful
+  */
+  static bool DeAtalantify(ExtendedOctree &tree);
+
+  /**
+   Converts all bricks in a tree into simple 3D representation
+   and writes the converted data into the specified file
+   @param vBrickCoords the brick to be converted
+   @param pLargeRAWFile target file to write the data into
+   @param iOffset offset into the target file
+   @return true iff the conversion was successful
+   */
+  static bool DeAtalantify(const ExtendedOctree &tree,
+                           LargeRAWFile_ptr pLargeRAWFile,
+                           uint64_t iOffset,
+                           COMPORESSION_TYPE eCompression);
+
 
   /**
    Exports a specific LoD Level into a continuous raw file
@@ -226,7 +351,8 @@ public:
    @return true iff the export was successful
    */
   static bool ExportToRAW(const ExtendedOctree &tree,
-                          LargeRAWFile_ptr pLargeRAWFile, uint64_t iLODLevel,
+                          LargeRAWFile_ptr pLargeRAWFile,
+                          uint64_t iLODLevel,
                           uint64_t iOffset);
 
  /**
@@ -241,7 +367,7 @@ public:
    */
   static bool ApplyFunction(const ExtendedOctree &tree, uint64_t iLODLevel,
                             bool (*brickFunc)(void* pData,
-                                              const UINTVECTOR3& vBrickSize,
+                                              const UINT64VECTOR3& vBrickSize,
                                               const UINT64VECTOR3& vBrickOffset,
                                               void* pUserContext),
                             void* pUserContext, uint32_t iOverlap=0);
@@ -251,7 +377,7 @@ private:
   float m_fProgress;
 
   /// the maximum brick size allowed (including overlap) e.g. the usable size is in x is m_vBrickSize.x-2*m_iOverlap
-  UINTVECTOR3 m_vBrickSize;
+  UINT64VECTOR3 m_vBrickSize;
 
   /// the brick overlap
   uint32_t m_iOverlap;
@@ -294,12 +420,12 @@ private:
     @param voxelSize the size (in bytes) of a brick voxel (i.e. component-size*component-count)
   */
   void CopyBrickToBrick(std::vector<uint8_t>& vSourceData,
-                        const UINTVECTOR3& sourceBrickSize,
+                        const UINT64VECTOR3& sourceBrickSize,
                         std::vector<uint8_t>& vTargetData,
-                        const UINTVECTOR3& targetBrickSize,
-                        const UINTVECTOR3& sourceOffset,
-                        const UINTVECTOR3& targetOffset,
-                        const UINTVECTOR3& regionSize,
+                        const UINT64VECTOR3& targetBrickSize,
+                        const UINT64VECTOR3& sourceOffset,
+                        const UINT64VECTOR3& targetOffset,
+                        const UINT64VECTOR3& regionSize,
                         size_t voxelSize);
 
   /**
@@ -325,7 +451,8 @@ private:
     @param iInOffset offset into the source file
   */
   void PermuteInputData(ExtendedOctree &tree,
-                        LargeRAWFile_ptr pLargeRAWFileIn, uint64_t iInOffset);
+                        LargeRAWFile_ptr pLargeRAWFileIn,
+                        uint64_t iInOffset);
 
   /**
     This method fills the overlaps between the bricks, it assumes
@@ -398,8 +525,9 @@ private:
 
     @param tree target extended octree
     @param element iterator to the element in the cache to be written to disk
+    @param eCompression desired compression method for new bricks, may be ignored by the system
   */
-  void WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element);
+  static void WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression);
 
   /**
     Write a single brick at index i in the ToC to disk and updates
@@ -407,9 +535,10 @@ private:
 
     @param tree target extended octree
     @param pData the data of the brick
+    @param eCompression desired compression method for new bricks, may be ignored by the system
     @param index index of the brick to be written
   */
-  void WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index);
+  static void WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression);
 
 
   /**
@@ -425,7 +554,7 @@ private:
     @param iVoxelSize the size (in bytes) of a voxl in the tree
     @param skipOverlap the number of overlap voxesl to be removed
   */
-  static void ReduceOverlap(uint8_t *pBrickData, const UINTVECTOR3& vBrickSize,
+  static void ReduceOverlap(uint8_t *pBrickData, const UINT64VECTOR3& vBrickSize,
                             size_t iVoxelSize, uint32_t skipOverlap);
 
 
@@ -488,10 +617,10 @@ private:
     @param targetOffset coordinates were to place the down-sampled data in the target brick
   */
   template<class T> void DownsampleBricktoBrick(ExtendedOctree &tree, T* pData,
-                                                const UINTVECTOR3& targetSize,
+                                                const UINT64VECTOR3& targetSize,
                                                 T* pSourceData,
                                                 const UINT64VECTOR4& sourceCoords,
-                                                const UINTVECTOR3& targetOffset);
+                                                const UINT64VECTOR3& targetOffset);
 
   /**
     This function down-samples up to eight bricks into a single brick.
@@ -523,7 +652,7 @@ private:
     @param iLength size (IN BYTES) of the array
     @param iComponentCount number of components per voxel
   */
-  template<class T> BrickStatVec ComputeBrickStats(uint8_t* pData, uint64_t iLength, size_t iComponentCount);
+  template<class T> static BrickStatVec ComputeBrickStats(uint8_t* pData, uint64_t iLength, size_t iComponentCount);
 };
 
 /// this file contains all the implementations of the template functions

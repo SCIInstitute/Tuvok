@@ -157,7 +157,7 @@ public:
 
   virtual bool ApplyFunction(uint64_t iLODLevel, 
                         bool (*brickFunc)(void* pData, 
-                                          const UINTVECTOR3& vBrickSize,
+                                          const UINT64VECTOR3& vBrickSize,
                                           const UINT64VECTOR3& vBrickOffset,
                                           void* pUserContext),
                         void *pUserContext= NULL,
@@ -221,7 +221,13 @@ private:
                                  ts->GetDB()->GetBrickSize(coords).volume())/sizeof(T);
       if (vData.size() < targetSize)
         vData.resize(targetSize);
-      ts->GetDB()->GetData((uint8_t*)&vData[0],coords);
+      uint8_t* pData = (uint8_t*)&vData[0];
+      ts->GetDB()->GetData(pData,coords);
+      if (ts->GetDB()->GetAtlasSize(coords).area() != 0) {
+        ExtendedOctreeConverter::DeAtalantify(targetSize, ts->GetDB()->GetAtlasSize(coords), 
+                                              ts->GetDB()->GetMaxBricksize(),
+                                              ts->GetDB()->GetBrickSize(coords), pData,pData);
+      }
       return true;
     } else {
       const NDBrickKey& key = this->IndexToVectorKey(k);

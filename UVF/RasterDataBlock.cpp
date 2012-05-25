@@ -1418,7 +1418,7 @@ void RasterDataBlock::ResetFile(LargeRAWFile_ptr raw)
 
  bool RasterDataBlock::ApplyFunction(const std::vector<uint64_t>& vLOD,
                                      bool (*brickFunc)(void* pData, 
-                                                    const UINTVECTOR3& vBrickSize,
+                                                    const UINT64VECTOR3& vBrickSize,
                                                     const UINT64VECTOR3& vBrickOffset,
                                                     void* pUserContext),
                                      void* pUserContext,
@@ -1515,7 +1515,7 @@ RasterDataBlock::TraverseBricksToApplyFunction(
   const std::vector<uint64_t>& vPrefixProd,
   AbstrDebugOut* pDebugOut,
   bool (*brickFunc)(void* pData, 
-    const UINTVECTOR3& vBrickSize,
+    const UINT64VECTOR3& vBrickSize,
     const UINT64VECTOR3& vBrickOffset,
     void* pUserContext),
   void* pUserContext, uint64_t iOverlap
@@ -1564,7 +1564,7 @@ RasterDataBlock::TraverseBricksToApplyFunction(
 
       if (pDebugOut) pDebugOut->Message(_func_, "Processing volume data\nProcessing brick %i of %i",int(iBrickCounter),int(iBrickCount));
 
-      if (!brickFunc(&vDataOverlapFixed[0], UINTVECTOR3(vEffectiveBrickSize), UINT64VECTOR3(vAbsCoords), pUserContext )) return false;
+      if (!brickFunc(&vDataOverlapFixed[0], UINT64VECTOR3(vEffectiveBrickSize), UINT64VECTOR3(vAbsCoords), pUserContext )) return false;
 
     }
   }

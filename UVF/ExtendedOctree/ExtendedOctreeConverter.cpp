@@ -163,7 +163,7 @@ void ExtendedOctreeConverter::GetInputBrick(std::vector<uint8_t>& vData,
                                             ExtendedOctree &tree,
                                             LargeRAWFile_ptr pLargeRAWFileIn,
                                             uint64_t iInOffset, const UINT64VECTOR4& coords) {
-  UINTVECTOR3 vBrickSize = tree.ComputeBrickSize(coords);
+  UINT64VECTOR3 vBrickSize = tree.ComputeBrickSize(coords);
   uint64_t iBricksSize = (tree.m_vTOC.end()-1)->m_iLength;
   if (vData.size() != size_t(iBricksSize)) vData.resize(size_t(iBricksSize));
 
@@ -294,22 +294,22 @@ void ExtendedOctreeConverter::SetupCache(ExtendedOctree &tree) {
 void ExtendedOctreeConverter::FlushCache(ExtendedOctree &tree) {
   for (BrickCacheIter i = m_vBrickCache.begin();i != m_vBrickCache.end();++i) {
     if (i->m_bDirty) {
-      WriteBrickToDisk(tree, i);
+      WriteBrickToDisk(tree, i, m_pBrickStatVec, m_eCompression);
     }
   }
 }
 
-void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element) {
-  WriteBrickToDisk(tree, element->m_pData, element->m_index);
+void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, BrickCacheIter element, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression) {
+  WriteBrickToDisk(tree, element->m_pData, element->m_index, pBrickStatVec, eCompression);
   element->m_bDirty = false;
 }
 
-void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index) {
-  if (m_pBrickStatVec) {
+void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression) {
+  if (pBrickStatVec) {
     const size_t cc = size_t(tree.m_iComponentCount);
 
-    if (m_pBrickStatVec->size() < (index+1)*cc) {
-      m_pBrickStatVec->resize((index+1)*cc);
+    if (pBrickStatVec->size() < (index+1)*cc) {
+      pBrickStatVec->resize((index+1)*cc);
     }
 
     BrickStatVec elem;
@@ -349,13 +349,13 @@ void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pD
     }
 
     for (size_t c = 0;c<cc;++c)
-     (*m_pBrickStatVec)[index*cc+c] = elem[c];
+     (*pBrickStatVec)[index*cc+c] = elem[c];
   }
 
   // compress brick if requested and beneficial
   tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset+tree.m_vTOC[index].m_iOffset);
   uint64_t uncompressedLength = tree.ComputeBrickSize(tree.IndexToBrickCoords(index)).volume() * tree.GetComponentTypeSize() * tree.GetComponentCount();
-  if (m_eCompression != CT_NONE) {
+  if (eCompression != CT_NONE) {
     uint8_t* pCompressedData = new uint8_t[size_t(uncompressedLength)];
     uint64_t compressedLength = uncompressedLength;
 
@@ -364,7 +364,7 @@ void ExtendedOctreeConverter::WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pD
     // did we gain anything from the compression?
     if (compressedLength < uncompressedLength) {
       tree.m_vTOC[index].m_iLength = compressedLength;
-      tree.m_vTOC[index].m_eCompression = m_eCompression;
+      tree.m_vTOC[index].m_eCompression = eCompression;
       tree.m_pLargeRAWFile->WriteRAW(pCompressedData, tree.m_vTOC[index].m_iLength);
     } else {
       tree.m_vTOC[index].m_iLength = uncompressedLength;
@@ -426,7 +426,7 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
       cacheEntry->Allocate();
     } else {
       // if it's dirty, write to disk
-      if (cacheEntry->m_bDirty) WriteBrickToDisk(tree, cacheEntry);
+      if (cacheEntry->m_bDirty) WriteBrickToDisk(tree, cacheEntry, m_pBrickStatVec, m_eCompression);
     }
 
     // put new entry into cache
@@ -454,7 +454,7 @@ void ExtendedOctreeConverter::GetBrick(uint8_t* pData, ExtendedOctree &tree, uin
 */
 void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uint64_t index, bool bForceWrite) {
   if (m_vBrickCache.empty()) {
-    WriteBrickToDisk(tree, pData, size_t(index));
+    WriteBrickToDisk(tree, pData, size_t(index), m_pBrickStatVec, m_eCompression);
     return;
   }
 
@@ -464,7 +464,7 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
     // cache miss
 
     if (bForceWrite) {
-      WriteBrickToDisk(tree, pData, size_t(index));
+      WriteBrickToDisk(tree, pData, size_t(index), m_pBrickStatVec, m_eCompression);
       return;
     }
 
@@ -480,7 +480,7 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
       cacheEntry->Allocate();
     } else {
       // if it's dirty, write to disk
-      if (cacheEntry->m_bDirty) WriteBrickToDisk(tree, cacheEntry);
+      if (cacheEntry->m_bDirty) WriteBrickToDisk(tree, cacheEntry, m_pBrickStatVec, m_eCompression);
     }
 
     // put new entry into cache
@@ -493,7 +493,7 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
     cacheEntry->m_bDirty = true;
     cacheEntry->m_iAccess = ++m_iCacheAccessCounter;
     memcpy(cacheEntry->m_pData, pData, size_t(tree.m_vTOC[size_t(index)].m_iLength));
-    if (bForceWrite) WriteBrickToDisk(tree, cacheEntry);
+    if (bForceWrite) WriteBrickToDisk(tree, cacheEntry, m_pBrickStatVec, m_eCompression);
   }
 
 }
@@ -505,10 +505,10 @@ void ExtendedOctreeConverter::SetBrick(uint8_t* pData, ExtendedOctree &tree, uin
   Copies (parts) of one brick into another. This routine is used to fill the
   overlap regions. Index Magic explained in he function.
 */
-void ExtendedOctreeConverter::CopyBrickToBrick(std::vector<uint8_t>& vSourceData, const UINTVECTOR3& sourceBrickSize,
-                                               std::vector<uint8_t>& vTargetData, const UINTVECTOR3& targetBrickSize,
-                                               const UINTVECTOR3& sourceOffset, const UINTVECTOR3& targetOffset,
-                                               const UINTVECTOR3& regionSize, size_t voxelSize) {
+void ExtendedOctreeConverter::CopyBrickToBrick(std::vector<uint8_t>& vSourceData, const UINT64VECTOR3& sourceBrickSize,
+                                               std::vector<uint8_t>& vTargetData, const UINT64VECTOR3& targetBrickSize,
+                                               const UINT64VECTOR3& sourceOffset, const UINT64VECTOR3& targetOffset,
+                                               const UINT64VECTOR3& regionSize, size_t voxelSize) {
   for (uint32_t z = 0;z<regionSize.z;z++) {
     for (uint32_t y = 0;y<regionSize.y;y++) {
 
@@ -578,68 +578,68 @@ void ExtendedOctreeConverter::FillOverlap(ExtendedOctree &tree, uint64_t iLoD) {
         bool bHasRightNeighbour = x < baseBricks.x-1;
 
         UINT64VECTOR4 coords(x,y,z,iLoD);
-        UINTVECTOR3 targetBrickSize = tree.ComputeBrickSize(coords);
+        UINT64VECTOR3 targetBrickSize = tree.ComputeBrickSize(coords);
         GetBrick(&vTargetData[0], tree,  coords);
 
         // first the six direct neighbors
         if (bHasRightNeighbour) {
           UINT64VECTOR4 sourceCoords(x+1,y,z,iLoD);
-          UINTVECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
+          UINT64VECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
           GetBrick(&vSourceData[0], tree, sourceCoords);
 
           CopyBrickToBrick(vSourceData, sourceBrickSize, vTargetData, targetBrickSize,
-                           UINTVECTOR3(tree.m_iOverlap,0,0), UINTVECTOR3(targetBrickSize.x-tree.m_iOverlap,0,0),
-                           UINTVECTOR3(tree.m_iOverlap, sourceBrickSize.y, sourceBrickSize.z),
+                           UINT64VECTOR3(tree.m_iOverlap,0,0), UINT64VECTOR3(targetBrickSize.x-tree.m_iOverlap,0,0),
+                           UINT64VECTOR3(tree.m_iOverlap, sourceBrickSize.y, sourceBrickSize.z),
                            iElementSize);
         }
         if (bHasBottomNeighbour) {
           UINT64VECTOR4 sourceCoords(x,y+1,z,iLoD);
-          UINTVECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
+          UINT64VECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
           GetBrick(&vSourceData[0], tree, sourceCoords);
 
           CopyBrickToBrick(vSourceData, sourceBrickSize, vTargetData, targetBrickSize,
-                           UINTVECTOR3(0,tree.m_iOverlap,0), UINTVECTOR3(0,targetBrickSize.y-tree.m_iOverlap,0),
-                           UINTVECTOR3(sourceBrickSize.x, tree.m_iOverlap, sourceBrickSize.z),
+                           UINT64VECTOR3(0,tree.m_iOverlap,0), UINT64VECTOR3(0,targetBrickSize.y-tree.m_iOverlap,0),
+                           UINT64VECTOR3(sourceBrickSize.x, tree.m_iOverlap, sourceBrickSize.z),
                            iElementSize);
         }
         if (bHasBackNeighbour) {
           UINT64VECTOR4 sourceCoords(x,y,z+1,iLoD);
-          UINTVECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
+          UINT64VECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
           GetBrick(&vSourceData[0], tree, sourceCoords);
 
           CopyBrickToBrick(vSourceData, sourceBrickSize, vTargetData, targetBrickSize,
-            UINTVECTOR3(0,0,tree.m_iOverlap), UINTVECTOR3(0,0,targetBrickSize.z-tree.m_iOverlap),
-            UINTVECTOR3(sourceBrickSize.x, sourceBrickSize.y, tree.m_iOverlap),
+            UINT64VECTOR3(0,0,tree.m_iOverlap), UINT64VECTOR3(0,0,targetBrickSize.z-tree.m_iOverlap),
+            UINT64VECTOR3(sourceBrickSize.x, sourceBrickSize.y, tree.m_iOverlap),
             iElementSize);
         }
         if (bHasLeftNeighbour) {
           UINT64VECTOR4 sourceCoords(x-1,y,z,iLoD);
-          UINTVECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
+          UINT64VECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
           GetBrick(&vSourceData[0], tree, sourceCoords);
 
           CopyBrickToBrick(vSourceData, sourceBrickSize, vTargetData, targetBrickSize,
-            UINTVECTOR3(sourceBrickSize.x-tree.m_iOverlap*2,0,0), UINTVECTOR3(0,0,0),
-            UINTVECTOR3(tree.m_iOverlap, sourceBrickSize.y, sourceBrickSize.z),
+            UINT64VECTOR3(sourceBrickSize.x-tree.m_iOverlap*2,0,0), UINT64VECTOR3(0,0,0),
+            UINT64VECTOR3(tree.m_iOverlap, sourceBrickSize.y, sourceBrickSize.z),
             iElementSize);
         }
         if (bHasTopNeighbour) {
           UINT64VECTOR4 sourceCoords(x,y-1,z,iLoD);
-          UINTVECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
+          UINT64VECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
           GetBrick(&vSourceData[0], tree, sourceCoords);
 
           CopyBrickToBrick(vSourceData, sourceBrickSize, vTargetData, targetBrickSize,
-            UINTVECTOR3(0,sourceBrickSize.y-tree.m_iOverlap*2,0), UINTVECTOR3(0,0,0),
-            UINTVECTOR3(sourceBrickSize.x, tree.m_iOverlap, sourceBrickSize.z),
+            UINT64VECTOR3(0,sourceBrickSize.y-tree.m_iOverlap*2,0), UINT64VECTOR3(0,0,0),
+            UINT64VECTOR3(sourceBrickSize.x, tree.m_iOverlap, sourceBrickSize.z),
             iElementSize);
         }
         if (bHasFrontNeighbour) {
           UINT64VECTOR4 sourceCoords(x,y,z-1,iLoD);
-          UINTVECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
+          UINT64VECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
           GetBrick(&vSourceData[0], tree, sourceCoords);
 
           CopyBrickToBrick(vSourceData, sourceBrickSize, vTargetData, targetBrickSize,
-                           UINTVECTOR3(0,0,sourceBrickSize.z-tree.m_iOverlap*2), UINTVECTOR3(0,0,0),
-                           UINTVECTOR3(sourceBrickSize.x, sourceBrickSize.y, tree.m_iOverlap),
+                           UINT64VECTOR3(0,0,sourceBrickSize.z-tree.m_iOverlap*2), UINT64VECTOR3(0,0,0),
+                           UINT64VECTOR3(sourceBrickSize.x, sourceBrickSize.y, tree.m_iOverlap),
                            iElementSize);
         }
 
@@ -647,12 +647,12 @@ void ExtendedOctreeConverter::FillOverlap(ExtendedOctree &tree, uint64_t iLoD) {
         // previous cases)
         if (bHasBottomNeighbour && bHasRightNeighbour) {
           UINT64VECTOR4 sourceCoords(x+1,y+1,z,iLoD);
-          UINTVECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
+          UINT64VECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
           GetBrick(&vSourceData[0], tree, sourceCoords);
 
           CopyBrickToBrick(vSourceData, sourceBrickSize, vTargetData, targetBrickSize,
-                           UINTVECTOR3(tree.m_iOverlap,tree.m_iOverlap,0), UINTVECTOR3(targetBrickSize.x-tree.m_iOverlap,targetBrickSize.y-tree.m_iOverlap,0),
-                           UINTVECTOR3(tree.m_iOverlap, tree.m_iOverlap, sourceBrickSize.z),
+                           UINT64VECTOR3(tree.m_iOverlap,tree.m_iOverlap,0), UINT64VECTOR3(targetBrickSize.x-tree.m_iOverlap,targetBrickSize.y-tree.m_iOverlap,0),
+                           UINT64VECTOR3(tree.m_iOverlap, tree.m_iOverlap, sourceBrickSize.z),
                            iElementSize);
         }
 
@@ -661,32 +661,32 @@ void ExtendedOctreeConverter::FillOverlap(ExtendedOctree &tree, uint64_t iLoD) {
         // bottom right corner
         if (bHasRightNeighbour && bHasBackNeighbour) {
           UINT64VECTOR4 sourceCoords(x+1,y,z+1,iLoD);
-          UINTVECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
+          UINT64VECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
           GetBrick(&vSourceData[0], tree, sourceCoords);
 
           CopyBrickToBrick(vSourceData, sourceBrickSize, vTargetData, targetBrickSize,
-                           UINTVECTOR3(tree.m_iOverlap,0,tree.m_iOverlap), UINTVECTOR3(targetBrickSize.x-tree.m_iOverlap,0,targetBrickSize.z-tree.m_iOverlap),
-                           UINTVECTOR3(tree.m_iOverlap, sourceBrickSize.y, tree.m_iOverlap),
+                           UINT64VECTOR3(tree.m_iOverlap,0,tree.m_iOverlap), UINT64VECTOR3(targetBrickSize.x-tree.m_iOverlap,0,targetBrickSize.z-tree.m_iOverlap),
+                           UINT64VECTOR3(tree.m_iOverlap, sourceBrickSize.y, tree.m_iOverlap),
                            iElementSize);
         }
         if (bHasBottomNeighbour && bHasBackNeighbour) {
           UINT64VECTOR4 sourceCoords(x,y+1,z+1,iLoD);
-          UINTVECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
+          UINT64VECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
           GetBrick(&vSourceData[0], tree, sourceCoords);
 
           CopyBrickToBrick(vSourceData, sourceBrickSize, vTargetData, targetBrickSize,
-                           UINTVECTOR3(0,tree.m_iOverlap,tree.m_iOverlap), UINTVECTOR3(0,targetBrickSize.y-tree.m_iOverlap,targetBrickSize.z-tree.m_iOverlap),
-                           UINTVECTOR3(sourceBrickSize.x, tree.m_iOverlap, tree.m_iOverlap),
+                           UINT64VECTOR3(0,tree.m_iOverlap,tree.m_iOverlap), UINT64VECTOR3(0,targetBrickSize.y-tree.m_iOverlap,targetBrickSize.z-tree.m_iOverlap),
+                           UINT64VECTOR3(sourceBrickSize.x, tree.m_iOverlap, tree.m_iOverlap),
                            iElementSize);
         }
         if (bHasRightNeighbour && bHasBottomNeighbour && bHasBackNeighbour) {
           UINT64VECTOR4 sourceCoords(x+1,y+1,z+1,iLoD);
-          UINTVECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
+          UINT64VECTOR3 sourceBrickSize = tree.ComputeBrickSize(sourceCoords);
           GetBrick(&vSourceData[0], tree, sourceCoords);
 
           CopyBrickToBrick(vSourceData, sourceBrickSize, vTargetData, targetBrickSize,
-                           UINTVECTOR3(tree.m_iOverlap,tree.m_iOverlap,tree.m_iOverlap), UINTVECTOR3(targetBrickSize.x-tree.m_iOverlap,targetBrickSize.y-tree.m_iOverlap,targetBrickSize.z-tree.m_iOverlap),
-                           UINTVECTOR3(tree.m_iOverlap, tree.m_iOverlap, tree.m_iOverlap),
+                           UINT64VECTOR3(tree.m_iOverlap,tree.m_iOverlap,tree.m_iOverlap), UINT64VECTOR3(targetBrickSize.x-tree.m_iOverlap,targetBrickSize.y-tree.m_iOverlap,targetBrickSize.z-tree.m_iOverlap),
+                           UINT64VECTOR3(tree.m_iOverlap, tree.m_iOverlap, tree.m_iOverlap),
                            iElementSize);
         }
 
@@ -717,7 +717,7 @@ void ExtendedOctreeConverter::PermuteInputData(ExtendedOctree &tree, LargeRAWFil
       for (uint64_t x = 0;x<baseBricks.x;x++) {
         UINT64VECTOR4 coords(x,y,z,0);
         uint64_t iUncompressedBrickSize = tree.ComputeBrickSize(UINT64VECTOR4(x,y,z,0)).volume() * tree.GetComponentTypeSize() * tree.GetComponentCount();
-        TOCEntry t = {iCurrentOutOffset, iUncompressedBrickSize, CT_NONE};
+        TOCEntry t = {iCurrentOutOffset, iUncompressedBrickSize, CT_NONE, iUncompressedBrickSize, UINTVECTOR2(0,0)};
         tree.m_vTOC.push_back(t);
 
         GetInputBrick(vData, tree, pLargeRAWFileIn, iInOffset, coords);
@@ -755,7 +755,7 @@ bool ExtendedOctreeConverter::ExportToRAW(const ExtendedOctree &tree,
     for (uint64_t y = 0;y<bricksToExport.y;++y) {
       for (uint64_t x = 0;x<bricksToExport.x;++x) {
         const UINT64VECTOR4 coords(x,y,z, iLODLevel);
-        const UINTVECTOR3 brickSize = tree.ComputeBrickSize(coords);
+        const UINT64VECTOR3 brickSize = tree.ComputeBrickSize(coords);
 
         tree.GetBrickData(pBrickData, coords);
 
@@ -836,8 +836,8 @@ bool ExtendedOctreeConverter::ExportToRAW(const ExtendedOctree &tree,
   overlap from the brick. This function changes the given
   array in place.
 */
-void ExtendedOctreeConverter::ReduceOverlap(uint8_t *pBrickData, const UINTVECTOR3& vBrickSize, size_t iVoxelSize, uint32_t skipOverlap){
-  const UINTVECTOR3 vTargetBrickSize = vBrickSize-skipOverlap*2;
+void ExtendedOctreeConverter::ReduceOverlap(uint8_t *pBrickData, const UINT64VECTOR3& vBrickSize, size_t iVoxelSize, uint32_t skipOverlap){
+  const UINT64VECTOR3 vTargetBrickSize = vBrickSize-skipOverlap*2;
 
   for (uint32_t z = 0;z<vBrickSize.z-2*skipOverlap;++z) {
     for (uint32_t y = 0;y<vBrickSize.y-2*skipOverlap;++y) {
@@ -864,7 +864,7 @@ void ExtendedOctreeConverter::ReduceOverlap(uint8_t *pBrickData, const UINTVECTO
 */
 bool ExtendedOctreeConverter::ApplyFunction(const ExtendedOctree &tree, uint64_t iLODLevel,
                                             bool (*brickFunc)(void* pData,
-                                                const UINTVECTOR3& vBrickSize,
+                                                const UINT64VECTOR3& vBrickSize,
                                                 const UINT64VECTOR3& vBrickOffset,
                                                 void* pUserContext),
                                             void* pUserContext, uint32_t iOverlap) {
@@ -881,7 +881,7 @@ bool ExtendedOctreeConverter::ApplyFunction(const ExtendedOctree &tree, uint64_t
     for (uint64_t y = 0;y<bricksToExport.y;++y) {
       for (uint64_t x = 0;x<bricksToExport.x;++x) {
         const UINT64VECTOR4 coords(x,y,z, iLODLevel);
-        const UINTVECTOR3 brickSize = tree.ComputeBrickSize(coords);
+        const UINT64VECTOR3 brickSize = tree.ComputeBrickSize(coords);
 
         tree.GetBrickData(pBrickData, coords);
         if (skipOverlap != 0) ReduceOverlap(pBrickData, brickSize, iVoxelSize, skipOverlap);
@@ -895,4 +895,300 @@ bool ExtendedOctreeConverter::ApplyFunction(const ExtendedOctree &tree, uint64_t
   }
   delete [] pBrickData;
   return true;
+}
+
+
+void ExtendedOctreeConverter::Atalantify(const ExtendedOctree &tree,
+                                         const UINT64VECTOR4& vBrickCoords,
+                                         const UINTVECTOR2& atlasSize,
+                                         uint8_t* pData) {
+
+  Atalantify(tree, size_t(tree.BrickCoordsToIndex(vBrickCoords)), atlasSize, pData);
+}
+
+void ExtendedOctreeConverter::Atalantify(const ExtendedOctree &tree,
+                                         size_t index,
+                                         const UINTVECTOR2& atlasSize,
+                                         uint8_t* pData) {
+
+
+  const TOCEntry& metaData = tree.GetBrickToCData(index);
+  const UINT64VECTOR3 maxBrickSize  = tree.GetMaxBricksize();
+  const UINT64VECTOR3 currBrickSize = tree.ComputeBrickSize(tree.IndexToBrickCoords(index));
+
+  tree.GetBrickData(pData, index);
+
+  // bail out if brick is atlantified and the size
+  // is correct
+  if (metaData.m_iAtlasSize == atlasSize) return;
+
+  // if the the brick is already atlantified differently
+  // then convert it back to plain format first 
+  if (metaData.m_iAtlasSize.area() != 0) 
+    DeAtalantify(size_t(currBrickSize.volume()*tree.GetComponentTypeSize()*tree.GetComponentCount()), metaData.m_iAtlasSize, maxBrickSize, currBrickSize, pData, pData);
+
+  // finally atlantify
+  Atalantify(size_t(currBrickSize.volume()*tree.GetComponentTypeSize()*tree.GetComponentCount()), maxBrickSize, currBrickSize, atlasSize, pData, pData);
+}
+
+bool ExtendedOctreeConverter::Atalantify(ExtendedOctree &tree,
+                                         const UINTVECTOR2& atlasSize,
+                                         LargeRAWFile_ptr pLargeRAWFile,
+                                         uint64_t iOffset,
+                                         COMPORESSION_TYPE eCompression) {
+  ExtendedOctree e;
+
+  // setup target metadata
+  e.m_eComponentType = tree.m_eComponentType;
+  e.m_iComponentCount = tree.m_iComponentCount;
+  e.m_vVolumeSize = tree.m_vVolumeSize;
+  e.m_vVolumeAspect = tree.m_vVolumeAspect;
+  e.m_iBrickSize = tree.m_iBrickSize;
+  e.m_iOverlap = tree.m_iOverlap;
+  e.m_iOffset = iOffset;
+  e.m_pLargeRAWFile = pLargeRAWFile;
+  e.ComputeMetadata();
+
+  size_t CacheElementDataSize = size_t(tree.GetComponentTypeSize() * tree.GetComponentCount() * tree.m_iBrickSize.volume());
+  unsigned char* pData = new unsigned char[CacheElementDataSize];
+
+
+  // go throught all bricks and convert them to deatlantified format
+  for (size_t iBrick = 0;iBrick<tree.m_vTOC.size();iBrick++) {
+    // convert
+    Atalantify(tree, iBrick, atlasSize, pData);
+    
+    // write updated data to disk
+    const uint64_t iUncompressedBrickSize = tree.ComputeBrickSize(tree.IndexToBrickCoords(iBrick)).volume() * tree.GetComponentTypeSize() * tree.GetComponentCount();
+    const TOCEntry t = {(e.m_vTOC.end()-1)->m_iLength+(e.m_vTOC.end()-1)->m_iOffset, iUncompressedBrickSize, CT_NONE, iUncompressedBrickSize, atlasSize};
+    e.m_vTOC.push_back(t);
+
+    WriteBrickToDisk(e, pData, iBrick, NULL, eCompression);
+  }
+
+
+  delete [] pData;
+
+  // write updated ToC to file
+  e.WriteHeader(pLargeRAWFile, iOffset);
+
+  return false;}
+
+
+bool ExtendedOctreeConverter::Atalantify(ExtendedOctree &tree,                         
+                                         const UINTVECTOR2& atlasSize) {
+
+  bool bTreeWasInRWModeAlready = tree.IsInRWMode();
+
+  if (!bTreeWasInRWModeAlready)
+    if (!tree.ReOpenRW()) return false;
+
+  size_t CacheElementDataSize = size_t(tree.GetComponentTypeSize() * tree.GetComponentCount() * tree.m_iBrickSize.volume());
+  unsigned char* pData = new unsigned char[CacheElementDataSize];
+
+  // go throught all bricks and convert them to atlantified format
+  for (size_t iBrick = 0;iBrick<tree.m_vTOC.size();iBrick++) {
+    // if brick is ok -> skip it
+    if (tree.m_vTOC[iBrick].m_iAtlasSize == atlasSize) continue;
+
+    // this method shall not be called on trees with compressed bricks
+    if (tree.m_vTOC[iBrick].m_eCompression != CT_NONE)  {
+      if (!bTreeWasInRWModeAlready) tree.ReOpenR();
+      return false;
+    }
+
+    // convert
+    Atalantify(tree, iBrick, atlasSize, pData);
+
+    // write updated data to disk
+    tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset+tree.m_vTOC[iBrick].m_iOffset);
+    tree.m_vTOC[iBrick].m_iAtlasSize = atlasSize;
+    tree.m_pLargeRAWFile->WriteRAW(pData, tree.m_vTOC[iBrick].m_iLength);
+  }
+
+  delete [] pData;
+
+  // write updated ToC to file
+  tree.WriteHeader(tree.m_pLargeRAWFile, tree.m_iOffset);
+
+  if (!bTreeWasInRWModeAlready)
+    if (!tree.ReOpenR()) return false;
+
+  return true;
+}
+
+void ExtendedOctreeConverter::Atalantify(size_t iSizeInBytes,
+                                         const UINT64VECTOR3& vMaxBrickSize,
+                                         const UINT64VECTOR3& vCurrBrickSize,
+                                         const UINTVECTOR2& atlasSize,
+                                         uint8_t* pDataSource,
+                                         uint8_t* pDataTarget) {
+
+  // can't do in-place conversion 
+  if (pDataSource == pDataTarget) {
+    uint8_t* temp = new uint8_t[iSizeInBytes];
+    memcpy(temp, pDataTarget, iSizeInBytes);
+    Atalantify(iSizeInBytes, vMaxBrickSize, vCurrBrickSize, atlasSize, temp, pDataTarget);
+    delete [] temp;
+    return;
+  }
+
+  // do the actual atlasify
+  const size_t iSizePerElement = iSizeInBytes/vCurrBrickSize.volume();
+  const unsigned int iTilesPerRow = (unsigned int)(atlasSize.x / vMaxBrickSize.x);
+  uint8_t* pDataSourceIter = pDataSource;
+  for (unsigned int z = 0;z<vCurrBrickSize.z;++z) {
+    const unsigned int iTileX = z % iTilesPerRow;
+    const unsigned int iTileY = z / iTilesPerRow;
+    for (unsigned int y = 0;y<vCurrBrickSize.y;++y) {
+      memcpy(pDataTarget+(iSizePerElement*(iTileX*vMaxBrickSize.x+(iTileY*vMaxBrickSize.y+y)*atlasSize.x)), 
+             pDataSourceIter, 
+             vCurrBrickSize.x*iSizePerElement);
+      pDataSourceIter += vCurrBrickSize.x*iSizePerElement;
+    }
+  }
+
+}
+
+
+void ExtendedOctreeConverter::DeAtalantify(const ExtendedOctree &tree,
+                                         const UINT64VECTOR4& vBrickCoords,
+                                         uint8_t* pData) {
+
+  DeAtalantify(tree, size_t(tree.BrickCoordsToIndex(vBrickCoords)), pData);
+}
+
+void ExtendedOctreeConverter::DeAtalantify(const ExtendedOctree &tree,
+                                         size_t index,
+                                         uint8_t* pData) {
+
+
+  const TOCEntry& metaData = tree.GetBrickToCData(index);
+  const UINT64VECTOR3 maxBrickSize  = tree.GetMaxBricksize();
+  const UINT64VECTOR3 currBrickSize = tree.ComputeBrickSize(tree.IndexToBrickCoords(index));
+  tree.GetBrickData(pData, index);
+
+  // bail out if brick is atlantified and the size
+  // is correct
+  if (metaData.m_iAtlasSize.area() == 0) return;
+
+  DeAtalantify(size_t(currBrickSize.volume()*tree.GetComponentTypeSize()*tree.GetComponentCount()), metaData.m_iAtlasSize, maxBrickSize, currBrickSize, pData, pData);
+}
+
+
+bool ExtendedOctreeConverter::DeAtalantify(const ExtendedOctree &tree,
+                                           LargeRAWFile_ptr pLargeRAWFile,
+                                           uint64_t iOffset,
+                                           COMPORESSION_TYPE eCompression) {
+  ExtendedOctree e;
+
+  // setup target metadata
+  e.m_eComponentType = tree.m_eComponentType;
+  e.m_iComponentCount = tree.m_iComponentCount;
+  e.m_vVolumeSize = tree.m_vVolumeSize;
+  e.m_vVolumeAspect = tree.m_vVolumeAspect;
+  e.m_iBrickSize = tree.m_iBrickSize;
+  e.m_iOverlap = tree.m_iOverlap;
+  e.m_iOffset = iOffset;
+  e.m_pLargeRAWFile = pLargeRAWFile;
+  e.ComputeMetadata();
+
+  size_t CacheElementDataSize = size_t(tree.GetComponentTypeSize() * tree.GetComponentCount() * tree.m_iBrickSize.volume());
+  unsigned char* pData = new unsigned char[CacheElementDataSize];
+
+
+  // go throught all bricks and convert them to deatlantified format
+  for (size_t iBrick = 0;iBrick<tree.m_vTOC.size();iBrick++) {
+    // convert
+    DeAtalantify(tree, iBrick, pData);
+    
+    // write updated data to disk
+    const uint64_t iUncompressedBrickSize = tree.ComputeBrickSize(tree.IndexToBrickCoords(iBrick)).volume() * tree.GetComponentTypeSize() * tree.GetComponentCount();
+    const TOCEntry t = {(e.m_vTOC.end()-1)->m_iLength+(e.m_vTOC.end()-1)->m_iOffset, iUncompressedBrickSize, CT_NONE, iUncompressedBrickSize, UINTVECTOR2(0,0)};
+    e.m_vTOC.push_back(t);
+
+    WriteBrickToDisk(e, pData, iBrick, NULL, eCompression);
+  }
+
+
+  delete [] pData;
+
+  // write updated ToC to file
+  e.WriteHeader(pLargeRAWFile, iOffset);
+
+  return false;
+}
+
+
+bool ExtendedOctreeConverter::DeAtalantify(ExtendedOctree &tree) {
+
+  bool bTreeWasInRWModeAlready = tree.IsInRWMode();
+
+  if (!bTreeWasInRWModeAlready)
+    if (!tree.ReOpenRW()) return false;
+
+  size_t CacheElementDataSize = size_t(tree.GetComponentTypeSize() * tree.GetComponentCount() * tree.m_iBrickSize.volume());
+  unsigned char* pData = new unsigned char[CacheElementDataSize];
+
+  // go throught all bricks and convert them to 3D brick format
+  for (size_t iBrick = 0;iBrick<tree.m_vTOC.size();iBrick++) {
+    // if brick is ok -> skip it
+    if (tree.m_vTOC[iBrick].m_iAtlasSize.area() == 0) continue;
+
+    // this method shall not be called on trees with compressed bricks
+    if (tree.m_vTOC[iBrick].m_eCompression != CT_NONE)  {
+      if (!bTreeWasInRWModeAlready) tree.ReOpenR();
+      return false;
+    }
+
+    // convert
+    DeAtalantify(tree, iBrick, pData);
+    // write updated data to disk
+
+    tree.m_pLargeRAWFile->SeekPos(tree.m_iOffset+tree.m_vTOC[iBrick].m_iOffset);
+    tree.m_vTOC[iBrick].m_iAtlasSize = UINTVECTOR2(0,0);
+    tree.m_pLargeRAWFile->WriteRAW(pData, tree.m_vTOC[iBrick].m_iLength);
+  }
+
+  delete [] pData;
+
+  // write updated ToC to file
+  tree.WriteHeader(tree.m_pLargeRAWFile, tree.m_iOffset);
+
+  if (!bTreeWasInRWModeAlready)
+    if (!tree.ReOpenR()) return false;
+
+  return true;
+}
+
+void ExtendedOctreeConverter::DeAtalantify(size_t iSizeInBytes,
+                                           const UINTVECTOR2& vCurrentAtlasSize,
+                                           const UINT64VECTOR3& vMaxBrickSize,
+                                           const UINT64VECTOR3& vCurrBrickSize,
+                                           uint8_t* pDataSource,
+                                           uint8_t* pDataTarget) {
+  
+  // can't do in-place conversion 
+  if (pDataSource == pDataTarget) {
+    uint8_t* temp = new uint8_t[iSizeInBytes];
+    memcpy(temp, pDataTarget, iSizeInBytes);
+    DeAtalantify(iSizeInBytes, vCurrentAtlasSize, vMaxBrickSize, vCurrBrickSize, temp, pDataTarget);
+    delete [] temp;
+    return;
+  }
+  
+  // do the actual de-atlasify
+  const size_t iSizePerElement = iSizeInBytes/vCurrBrickSize.volume();
+  const unsigned int iTilesPerRow = (unsigned int)(vCurrentAtlasSize.x / vMaxBrickSize.x);
+  uint8_t* pDataTargetIter = pDataTarget;
+  for (unsigned int z = 0;z<vCurrBrickSize.z;++z) {
+    const unsigned int iTileX = z % iTilesPerRow;
+    const unsigned int iTileY = z / iTilesPerRow;
+    for (unsigned int y = 0;y<vCurrBrickSize.y;++y) {
+      memcpy(pDataTargetIter,
+             pDataSource+(iSizePerElement*(iTileX*vMaxBrickSize.x+(iTileY*vMaxBrickSize.y+y)*vCurrentAtlasSize.x)),               
+             vCurrBrickSize.x*iSizePerElement);
+      pDataTargetIter += vCurrBrickSize.x*iSizePerElement;
+    }
+  }
 }

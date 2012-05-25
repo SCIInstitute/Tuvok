@@ -1257,10 +1257,10 @@ protected:
   std::string m_strTargetFile;
 };
 
-bool MCBrick(void* pData, const UINTVECTOR3& vBrickSize, 
+bool MCBrick(void* pData, const UINT64VECTOR3& vBrickSize, 
              const UINT64VECTOR3& vBrickOffset, void* pUserContext) {
     MCData* pMCData = (MCData*)pUserContext;
-    return pMCData->PerformMC(pData, vBrickSize, vBrickOffset);
+    return pMCData->PerformMC(pData, UINTVECTOR3(vBrickSize), vBrickOffset);
 }
 
 

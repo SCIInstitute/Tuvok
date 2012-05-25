@@ -215,7 +215,7 @@ public:
   /// unimplemented!  Not really needed for integrations.
   virtual bool ApplyFunction(
     uint64_t,
-    bool (*)(void* pData, const UINTVECTOR3& vBrickSize,
+    bool (*)(void* pData, const UINT64VECTOR3& vBrickSize,
              const UINT64VECTOR3& vBrickOffset,
              void* pUserContext),
     void *,

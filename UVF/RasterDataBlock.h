@@ -192,7 +192,7 @@ public:
 
   bool ApplyFunction(const std::vector<uint64_t>& vLOD,
                      bool (*brickFunc)(void* pData, 
-                                    const UINTVECTOR3& vBrickSize,
+                                    const UINT64VECTOR3& vBrickSize,
                                     const UINT64VECTOR3& vBrickOffset,
                                     void* pUserContext),
                      void* pUserContext = NULL,
@@ -323,7 +323,7 @@ protected:
       const std::vector<uint64_t>& vPrefixProd,
       AbstrDebugOut* pDebugOut,
       bool (*brickFunc)(void* pData, 
-                        const UINTVECTOR3& vBrickSize,
+                        const UINT64VECTOR3& vBrickSize,
                         const UINT64VECTOR3& vBrickOffset,
                         void* pUserContext),
       void* pUserContext,

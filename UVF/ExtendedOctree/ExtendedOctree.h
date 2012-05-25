@@ -91,6 +91,27 @@ struct TOCEntry {
 
   /// the compression scheme of this brick
   COMPORESSION_TYPE m_eCompression;
+
+  /// valid bytes in this brick (used for streaming files)
+  /// for a complete brick m_iLength is euqal to m_iValidLength
+  uint64_t m_iValidLength;
+
+  /// if this block is stored in "atlantified" format
+  /// i.e. packed for 2D texture atlas representation
+  /// then this varialbe holds the size of a 2D texture
+  /// to store the atlas, otherwise at least one component
+  /// is equal to zero
+  UINTVECTOR2 m_iAtlasSize;
+
+  // Returns the size of this struct it is basicallz the
+  // the sum of sizeof calls to all members as that may
+  // be different from siyzeo(TOCEntry) due to compilers
+  // padding this struct
+  static size_t SizeInFile() {
+    return // sizeof(uint64_t /*m_iOffset*/) +   // m_iOffset is not stored but computed at load
+           sizeof(uint64_t/*m_iLength*/) + sizeof(COMPORESSION_TYPE /*m_eCompression*/) +
+           sizeof(uint64_t /*m_iValidLength*/) + sizeof(UINTVECTOR2 /*m_iAtlasSize*/);
+  }
 };
 
 // forward to the raw to brick converter, required for the
@@ -156,6 +177,12 @@ public:
   uint64_t GetComponentCount() const {return m_iComponentCount;}
 
   /**
+    Returns the true iff the dataset contains pre-computed normals
+    @return true iff the dataset contains pre-computed normals
+  */
+  bool GetContainsPrecomputedNormals() const {return m_bPrecomputedNormals;}
+
+  /**
     Returns the level of detail count, i.e. the depth of the tree
     @return the level of detail count, i.e. the depth of the tree
   */
@@ -171,7 +198,7 @@ public:
     Returns the brick size limit
     @return the brick size limit
   */
-  UINTVECTOR3 GetMaxBricksize() const {return m_iBrickSize;}
+  UINT64VECTOR3 GetMaxBricksize() const {return m_iBrickSize;}
 
   /**
     Returns the number of bricks in a given LoD level. The result of this
@@ -195,7 +222,22 @@ public:
     @param vBrickCoords coordinates of a brick: x,y,z are the spacial coordinates, w is the LoD level
     @return the size of a specific brick
   */
-  UINTVECTOR3 ComputeBrickSize(const UINT64VECTOR4& vBrickCoords) const;
+  UINT64VECTOR3 ComputeBrickSize(const UINT64VECTOR4& vBrickCoords) const;
+
+
+  /**
+    Returns the ToC Entry of a brick
+    @param vBrickCoords coordinates of a brick: x,y,z are the spacial coordinates, w is the LoD level
+    @return the ToC Entry of a brick
+  */
+  const TOCEntry& GetBrickToCData(const UINT64VECTOR4& vBrickCoords) const;
+
+  /**
+    Returns the ToC Entry of a brick
+    @param index 1D index of the brick
+    @return the ToC Entry of a brick
+  */
+  const TOCEntry& GetBrickToCData(size_t index) const;
 
   /**
     Returns the aspect ration of a specific brick, this does not include the global aspect ratio
@@ -210,6 +252,7 @@ public:
     @param vBrickCoords coordinates of a brick: x,y,z are the spacial coordinates, w is the LoD level
   */
   void GetBrickData(uint8_t* pData, const UINT64VECTOR4& vBrickCoords) const;
+
 
   /**
     Returns the global aspect ratio of the volume
@@ -261,6 +304,11 @@ private:
   /// stores how may components we have per voxel e.g. 4 for color data
   uint64_t m_iComponentCount;
 
+  /// true iff the dataset contains pre-computed normals in the YZW components in addition
+  /// to the actual data in the X channel, consequently this value is only true if
+  /// the datasets component count is 4
+  bool m_bPrecomputedNormals;
+
   /// the size (in voxels) of the volume represented by the hierarchy (= the size of LoD level 0)
   UINT64VECTOR3 m_vVolumeSize;
 
@@ -268,7 +316,7 @@ private:
   DOUBLEVECTOR3 m_vVolumeAspect;
 
   /// maximum brick size i.e. the brick size of a non-boundary brick
-  UINTVECTOR3 m_iBrickSize;
+  UINT64VECTOR3 m_iBrickSize;
 
   /// brick overlap
   uint32_t m_iOverlap;
@@ -334,8 +382,29 @@ private:
   */
   void GetBrickData(uint8_t* pData, uint64_t index) const;
 
+  /** 
+    returns true iff the large raw file holding this tree's
+    data is is currently in RW mode
+  */
+  bool IsInRWMode() const  {return m_pLargeRAWFile->IsWritable();}
+
+  /**
+     close the file and reopen in RW mode
+     does nothing if the file is already open in rw-mode
+     @return if the file could be re-openend in rw-mode
+  */
+  bool ReOpenRW();
+
+  /** 
+    close the file if it is in rw mode and reopen in read-only mode
+    does nothing if the file is already open in read-only mode
+    @return if the file could be re-openend in read-only mode
+  */
+  bool ReOpenR();
+
   /// give the converter access to the internal data
   friend class ExtendedOctreeConverter;
+
 };
 
 #endif //  EXTENDEDOCTREE_H

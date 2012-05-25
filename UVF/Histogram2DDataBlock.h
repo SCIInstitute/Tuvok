@@ -92,7 +92,7 @@ protected:
 
           UINT64VECTOR4 brickCoords(bx,by,bz,iLevel);
           source->GetData((uint8_t*)pTempBrickData, brickCoords);
-          UINTVECTOR3 bricksize = source->GetBrickSize(brickCoords);
+          UINTVECTOR3 bricksize = UINTVECTOR3(source->GetBrickSize(brickCoords));
 
           for (uint32_t z = iOverlap;z<bricksize.z-iOverlap;z++) {
             for (uint32_t y = iOverlap;y<bricksize.y-iOverlap;y++) {
@@ -115,7 +115,7 @@ protected:
 
           UINT64VECTOR4 brickCoords(bx,by,bz,iLevel);
           source->GetData((uint8_t*)pTempBrickData, brickCoords);
-          UINTVECTOR3 bricksize = source->GetBrickSize(brickCoords);
+          UINTVECTOR3 bricksize = UINTVECTOR3(source->GetBrickSize(brickCoords));
 
           for (uint32_t z = iOverlap;z<bricksize.z-iOverlap;z++) {
             for (uint32_t y = iOverlap;y<bricksize.y-iOverlap;y++) {

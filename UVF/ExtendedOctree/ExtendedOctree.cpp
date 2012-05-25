@@ -27,6 +27,7 @@
 ExtendedOctree::ExtendedOctree() :
   m_eComponentType(CT_UINT8), 
   m_iComponentCount(0), 
+  m_bPrecomputedNormals(false),
   m_vVolumeSize(0,0,0), 
   m_vVolumeAspect(0,0,0), 
   m_iBrickSize(0,0,0), 
@@ -73,6 +74,7 @@ bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset) {
   m_pLargeRAWFile->SeekPos(m_iOffset);
   m_pLargeRAWFile->ReadData(m_eComponentType, isBE);
   m_pLargeRAWFile->ReadData(m_iComponentCount, isBE);
+  m_pLargeRAWFile->ReadData(m_bPrecomputedNormals, isBE);
   m_pLargeRAWFile->ReadData(m_vVolumeSize.x, isBE);
   m_pLargeRAWFile->ReadData(m_vVolumeSize.y, isBE);
   m_pLargeRAWFile->ReadData(m_vVolumeSize.z, isBE);
@@ -88,6 +90,10 @@ bool ExtendedOctree::Open(LargeRAWFile_ptr pLargeRAWFile, uint64_t iOffset) {
   // is zero than there must have been an issue reading the file
   if (m_iComponentCount * m_vVolumeSize.volume() * 
       m_vVolumeAspect.volume() * m_iBrickSize.volume() == 0) return false;
+
+  // if the dataset is supposed to contain precomputed normals
+  // it must have four components (data + 3D normal)
+  if (m_bPrecomputedNormals && m_iComponentCount != 4) return false;
 
   // compute metadata
   ComputeMetadata();
@@ -133,7 +139,7 @@ void ExtendedOctree::ComputeMetadata() {
   UINT64VECTOR3 vVolumeSize = m_vVolumeSize;
   DOUBLEVECTOR3 vAspect(1.0,1.0,1.0);
 
-  const UINTVECTOR3 vUsableBrickSize= m_iBrickSize - 2*m_iOverlap;
+  const UINT64VECTOR3 vUsableBrickSize= m_iBrickSize - 2*m_iOverlap;
   do { 
     LODInfo l;
     l.m_iLODPixelSize = vVolumeSize;
@@ -207,11 +213,11 @@ UINT64VECTOR3 ExtendedOctree::GetLoDSize(uint64_t iLOD) const {
  the maximum size in this case we also return the maximum size (just like with
  inner bricks).
 */
-UINTVECTOR3 ExtendedOctree::ComputeBrickSize(const UINT64VECTOR4& vBrickCoords) const {
+UINT64VECTOR3 ExtendedOctree::ComputeBrickSize(const UINT64VECTOR4& vBrickCoords) const {
   const VECTOR3<bool> bIsLast = IsLastBrick(vBrickCoords);
   const UINT64VECTOR3 iPixelSize = m_vLODTable[size_t(vBrickCoords.w)].m_iLODPixelSize;
 
-  return UINTVECTOR3(bIsLast.x && (iPixelSize.x != m_iBrickSize.x-2*m_iOverlap) ? (2*m_iOverlap + iPixelSize.x%(m_iBrickSize.x-2*m_iOverlap)) : m_iBrickSize.x,
+  return UINT64VECTOR3(bIsLast.x && (iPixelSize.x != m_iBrickSize.x-2*m_iOverlap) ? (2*m_iOverlap + iPixelSize.x%(m_iBrickSize.x-2*m_iOverlap)) : m_iBrickSize.x,
                      bIsLast.y && (iPixelSize.y != m_iBrickSize.y-2*m_iOverlap) ? (2*m_iOverlap + iPixelSize.y%(m_iBrickSize.y-2*m_iOverlap)) : m_iBrickSize.y,
                      bIsLast.z && (iPixelSize.z != m_iBrickSize.z-2*m_iOverlap) ? (2*m_iOverlap + iPixelSize.z%(m_iBrickSize.z-2*m_iOverlap)) : m_iBrickSize.z);
 }
@@ -224,6 +230,16 @@ UINTVECTOR3 ExtendedOctree::ComputeBrickSize(const UINT64VECTOR4& vBrickCoords) 
 DOUBLEVECTOR3 ExtendedOctree::GetBrickAspect(const UINT64VECTOR4& vBrickCoords) const {  
   return m_vLODTable[size_t(vBrickCoords.w)].m_vAspect;
 }
+
+
+const TOCEntry& ExtendedOctree::GetBrickToCData(const UINT64VECTOR4& vBrickCoords) const {
+  return m_vTOC[size_t(BrickCoordsToIndex(vBrickCoords))];
+}
+
+const TOCEntry& ExtendedOctree::GetBrickToCData(size_t index) const {
+  return m_vTOC[index];
+}
+
 
 /*
  GetBrickData (scalar):
@@ -317,31 +333,22 @@ UINT64VECTOR4 ExtendedOctree::IndexToBrickCoords(uint64_t index) const {
  read only again
 */ 
 bool ExtendedOctree::SetGlobalAspect(const DOUBLEVECTOR3& vVolumeAspect) {
-  // close read only file
-  m_pLargeRAWFile->Close();
+  bool bTreeWasInRWModeAlready = IsInRWMode();
+  if (!bTreeWasInRWModeAlready && !ReOpenRW()) return false;
 
-  // re-open in read/write mode
-  if (m_pLargeRAWFile->Open(true)) {
-    const bool isBE = EndianConvert::IsBigEndian();
+  const bool isBE = EndianConvert::IsBigEndian();
 
-    // change aspect ratio entries
-    m_vVolumeAspect = vVolumeAspect;
-    m_pLargeRAWFile->SeekPos(m_iOffset+sizeof(ExtendedOctree::COMPONENT_TYPE) 
-                             + sizeof(uint64_t) + 3 * sizeof(uint64_t));        
-    m_pLargeRAWFile->WriteData(m_vVolumeAspect.x, isBE);
-    m_pLargeRAWFile->WriteData(m_vVolumeAspect.y, isBE);
-    m_pLargeRAWFile->WriteData(m_vVolumeAspect.z, isBE);
+  // change aspect ratio entries
+  m_vVolumeAspect = vVolumeAspect;
+  m_pLargeRAWFile->SeekPos(m_iOffset+sizeof(ExtendedOctree::COMPONENT_TYPE) 
+                            + sizeof(uint64_t) + 3 * sizeof(uint64_t));        
+  m_pLargeRAWFile->WriteData(m_vVolumeAspect.x, isBE);
+  m_pLargeRAWFile->WriteData(m_vVolumeAspect.y, isBE);
+  m_pLargeRAWFile->WriteData(m_vVolumeAspect.z, isBE);
 
-    // close and re-open read only
-    m_pLargeRAWFile->Close();
-    m_pLargeRAWFile->Open(false);
-    return true;
-  } else {
-    // file failed to open in read/write mode
-    // re-open read only
-    m_pLargeRAWFile->Open(false);
-    return false;
-  }
+  if (!bTreeWasInRWModeAlready && !ReOpenR()) return false;
+
+  return true;
 }
 
 /*
@@ -365,10 +372,11 @@ uint64_t ExtendedOctree::ComputeBrickCount() const {
  length in bytes and the compression method)
 */
 uint64_t ExtendedOctree::ComputeHeaderSize() const {
-  return sizeof(ExtendedOctree::COMPONENT_TYPE) + sizeof(uint64_t) +
+  return     
+    sizeof(ExtendedOctree::COMPONENT_TYPE) + sizeof(uint64_t) +
          3 * sizeof(uint64_t) +
          3 * sizeof(double) +  3 * sizeof(uint32_t) + sizeof(uint32_t) +
-         ComputeBrickCount() * (sizeof(COMPORESSION_TYPE) + sizeof(uint64_t));
+         ComputeBrickCount() * TOCEntry::SizeInFile();
 }
 
 /*
@@ -388,6 +396,7 @@ void ExtendedOctree::WriteHeader(LargeRAWFile_ptr pLargeRAWFile,
   m_pLargeRAWFile->SeekPos(m_iOffset);
   m_pLargeRAWFile->WriteData(m_eComponentType, isBE);
   m_pLargeRAWFile->WriteData(m_iComponentCount, isBE);
+  m_pLargeRAWFile->WriteData(m_bPrecomputedNormals, isBE);
   m_pLargeRAWFile->WriteData(m_vVolumeSize.x, isBE);
   m_pLargeRAWFile->WriteData(m_vVolumeSize.y, isBE);
   m_pLargeRAWFile->WriteData(m_vVolumeSize.z, isBE);
@@ -439,4 +448,28 @@ uint32_t ExtendedOctree::GetComponentTypeSize(COMPONENT_TYPE t) {
 */
 size_t ExtendedOctree::GetComponentTypeSize() const {
   return GetComponentTypeSize(m_eComponentType);
+}
+
+
+bool ExtendedOctree::ReOpenRW() {
+  if (IsInRWMode()) return true;
+
+  // close read-only file
+  m_pLargeRAWFile->Close();
+
+  // re-open in read/write mode
+  if (m_pLargeRAWFile->Open(true)) {
+    
+    // if opening in rw failed, return to read only mode
+    m_pLargeRAWFile->Open(false);
+    return false;
+  }
+  return true;
+}
+
+bool ExtendedOctree::ReOpenR() {
+  if (!IsInRWMode()) return true;
+
+  m_pLargeRAWFile->Close();
+  return m_pLargeRAWFile->Open(false);
 }
