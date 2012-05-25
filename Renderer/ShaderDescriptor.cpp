@@ -80,7 +80,8 @@ static std::string find_filename(std::vector<std::string> directories,
   sv::iterator end = std::remove_if(directories.begin(), directories.end(),
                                     std::not1(std::ptr_fun(exists)));
   for(sv::const_iterator e = end; e != directories.end(); ++e) {
-    WARNING("Directory %s does not exist!", e->c_str());
+    if (!e->empty())
+      WARNING("Directory %s does not exist!", e->c_str());
   }
   // also, we know they're junk, so don't search in them
   directories.erase(end, directories.end());
