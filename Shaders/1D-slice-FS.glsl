@@ -42,7 +42,8 @@ vec4 VRender1D(const vec3 pos);
 
 void main(void)
 {
-  gl_FragColor = VRender1D(gl_TexCoord[0].xyz);
+  float fVolumVal = sampleVolume(gl_TexCoord[0].xyz).x;
+  gl_FragColor = texture1D(texTrans, fVolumVal*fTransScale);
 
   gl_FragColor.rgb *= gl_FragColor.a;
   gl_FragColor.a = 1.0;
