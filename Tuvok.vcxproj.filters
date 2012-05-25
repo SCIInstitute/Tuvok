@@ -2056,5 +2056,32 @@
     <None Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.inc">
       <Filter>IO\UVF\ExtendedOctree</Filter>
     </None>
+    <None Include="Shaders\VRender1D-Color.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\VRender1D-Color-BScale.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\VRender1DLit.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\VRender1DLit-BScale.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\VRender1DLit-Color.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\VRender1DLit-Color-BScale.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\VRender1DProxy.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\VRender1D.glsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\VRender1D-BScale.glsl">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

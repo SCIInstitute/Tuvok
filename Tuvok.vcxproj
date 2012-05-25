@@ -1307,6 +1307,15 @@
     <None Include="Shaders\vr-col-tfqn.glsl" />
     <None Include="Shaders\vr-scal-tfqn-lit.glsl" />
     <None Include="Shaders\vr-scal-tfqn.glsl" />
+    <None Include="Shaders\VRender1D-BScale.glsl" />
+    <None Include="Shaders\VRender1D-Color-BScale.glsl" />
+    <None Include="Shaders\VRender1D-Color.glsl" />
+    <None Include="Shaders\VRender1D.glsl" />
+    <None Include="Shaders\VRender1DLit-BScale.glsl" />
+    <None Include="Shaders\VRender1DLit-Color-BScale.glsl" />
+    <None Include="Shaders\VRender1DLit-Color.glsl" />
+    <None Include="Shaders\VRender1DLit.glsl" />
+    <None Include="Shaders\VRender1DProxy.glsl" />
     <None Include="Tuvok.pro" />
     <None Include="tvk.pro" />
   </ItemGroup>
