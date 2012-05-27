@@ -30,6 +30,7 @@
 #include <cstring>
 #include <functional>
 #include "ExtendedOctree.h"
+#include "VolumeTools.h"
 
 /*! \brief A single brick cache entry
  *
@@ -226,7 +227,7 @@ public:
    @param atlasSize the size of the 2D texture atlas
    @param pData pointer to mem to hold atlantified data
    */
-  static void Atalantify(const ExtendedOctree &tree,
+  static void Atalasify(const ExtendedOctree &tree,
                          const UINT64VECTOR4& vBrickCoords,
                          const UINTVECTOR2& atlasSize,
                          uint8_t* pData);
@@ -238,26 +239,10 @@ public:
    @param atlasSize the size of the 2D texture atlas
    @param pData pointer to mem to hold atlantified data
    */
-   static void Atalantify(const ExtendedOctree &tree,
+   static void Atalasify(const ExtendedOctree &tree,
                           size_t index,
                           const UINTVECTOR2& atlasSize,
                           uint8_t* pData);
-
-
-  /**
-    Converts a brick into atlantified representation
-    @param metaData the brick meta-data for the input brick
-    @param atlasSize the size of the 2D texture atlas
-    @param pData pointer to mem to hold non-atlantified data
-    @param pData pointer to mem to hold atlantified data
-    */
-  static void Atalantify(size_t iSizeInBytes,
-                         const UINT64VECTOR3& vMaxBrickSize,
-                         const UINT64VECTOR3& vCurrBrickSize,
-                         const UINTVECTOR2& atlasSize,
-                         uint8_t* pDataSource,
-                         uint8_t* pDataTarget);
-
 
   /**
    Converts all bricks in a tree into atlantified representation
@@ -267,7 +252,7 @@ public:
    @param atlasSize the size of the 2D texture atlas
    @return true iff the conversion was successful
   */
-  static bool Atalantify(ExtendedOctree &tree,                         
+  static bool Atalasify(ExtendedOctree &tree,                         
                          const UINTVECTOR2& atlasSize);
 
   /**
@@ -279,32 +264,19 @@ public:
    @param iOffset offset into the target file
    @return true iff the conversion was successful
    */
-  static bool Atalantify(ExtendedOctree &tree,
+  static bool Atalasify(ExtendedOctree &tree,
                          const UINTVECTOR2& atlasSize,
                          LargeRAWFile_ptr pLargeRAWFile,
                          uint64_t iOffset,
                          COMPORESSION_TYPE eCompression);
-
-  /**
-    Converts a brick into simple 3D representation
-    @param metaData the brick meta-data for the input brick
-    @param pData pointer to mem to hold atlantified data
-    @param pData pointer to mem to hold non-atlantified data
-    */
-  static void DeAtalantify(size_t iSizeInBytes,
-                           const UINTVECTOR2& vCurrentAtlasSize,
-                           const UINT64VECTOR3& vMaxBrickSize,
-                           const UINT64VECTOR3& vCurrBrickSize,
-                           uint8_t* pDataSource,
-                           uint8_t* pDataTarget);
-
+  
   /**
    Converts a brick into simple 3D representation
    @param tree the input octree
    @param index the 4D brick coordinates of the brick to be converted
    @param pData pointer to mem to hold simple 3D data
    */
-  static void DeAtalantify(const ExtendedOctree &tree,
+  static void DeAtalasify(const ExtendedOctree &tree,
                            const UINT64VECTOR4& vBrickCoords,
                            uint8_t* pData);
 
@@ -314,7 +286,7 @@ public:
    @param index the 1D brick index of the brick to be converted
    @param pData pointer to mem to hold simple 3D data
    */
-   static void DeAtalantify(const ExtendedOctree &tree,
+   static void DeAtalasify(const ExtendedOctree &tree,
                             size_t index,
                             uint8_t* pData);
 
@@ -326,7 +298,7 @@ public:
    @param vBrickCoords the brick to be converted
    @return true iff the conversion was successful
   */
-  static bool DeAtalantify(ExtendedOctree &tree);
+  static bool DeAtalasify(ExtendedOctree &tree);
 
   /**
    Converts all bricks in a tree into simple 3D representation
@@ -336,7 +308,7 @@ public:
    @param iOffset offset into the target file
    @return true iff the conversion was successful
    */
-  static bool DeAtalantify(const ExtendedOctree &tree,
+  static bool DeAtalasify(const ExtendedOctree &tree,
                            LargeRAWFile_ptr pLargeRAWFile,
                            uint64_t iOffset,
                            COMPORESSION_TYPE eCompression);
@@ -539,70 +511,6 @@ private:
     @param index index of the brick to be written
   */
   static void WriteBrickToDisk(ExtendedOctree &tree, uint8_t* pData, size_t index, BrickStatVec* pBrickStatVec, COMPORESSION_TYPE eCompression);
-
-
-  /**
-    This function takes a brick with the octree's standart overlap
-    and reduces that overlap by skipOverlap, e.g. if skipOverlap
-    equals the octree's overlap, this function removed any
-    overlap from the brick. This function changes the given
-    array in place.
-
-    @param pBrickData the voxels of the brick, changes are made to
-                      this array in place
-    @param vBrickSize the 3D size of the brick
-    @param iVoxelSize the size (in bytes) of a voxl in the tree
-    @param skipOverlap the number of overlap voxesl to be removed
-  */
-  static void ReduceOverlap(uint8_t *pBrickData, const UINT64VECTOR3& vBrickSize,
-                            size_t iVoxelSize, uint32_t skipOverlap);
-
-
-  /**
-    Computes the mean value of inputs a to h
-    intermediate computations are carried out in double precision to avoid
-    clamping and-or quantization. This function is used for the majority
-    of values when downsampling the bricks, only when no neighbors are present
-    in one or multiple directions are the other Average functions (with 4
-    and 2 parameters) called
-
-    @param a value to be averaged
-    @param b value to be averaged
-    @param c value to be averaged
-    @param d value to be averaged
-    @param e value to be averaged
-    @param f value to be averaged
-    @param g value to be averaged
-    @param h value to be averaged
-    @return the average/mean of values a to h
-  */
-  template<class T> T Average(T a, T b, T c, T d, T e, T f, T g, T h);
-
-  /**
-    Computes the mean value of inputs a to d
-    intermediate computations are carried out in double precision to avoid
-    clamping and-or quantization. This function is used when neighbors in
-    one dimension are missing
-
-    @param a value to be averaged
-    @param b value to be averaged
-    @param c value to be averaged
-    @param d value to be averaged
-    @return the average/mean of values a to d
-  */
-  template<class T> T Average(T a, T b, T c, T d);
-
-  /**
-    Computes the mean value (a+b)/2 of a and b
-    intermediate computations are carried out in double precision to avoid
-    clamping and-or quantization. This function is used when neighbors in
-    two dimensions are missing
-
-    @param a value to be averaged
-    @param b value to be averaged
-    @return the average/mean of values a and b
-  */
-  template<class T> T Average(T a, T b);
 
   /**
     This function takes ONE source brick and down-samples this one into the appropriate position

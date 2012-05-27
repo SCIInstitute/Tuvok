@@ -1,16 +1,3 @@
-  template<class T> T ExtendedOctreeConverter::Average(T a, T b) {
-  return T((double(a) + double(b)) / 2.0);
-}
-
-template<class T> T ExtendedOctreeConverter::Average(T a, T b, T c, T d) {
-  return T((double(a) + double(b) + double(c) + double(d)) / 4.0);
-}
-
-template<class T> T ExtendedOctreeConverter::Average(T a, T b, T c, T d, T e, T f, T g, T h) {
-  return T((double(a) + double(b) + double(c) + double(d) +
-            double(e) + double(f) + double(g) + double(h)) / 8.0);
-}
-
 template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedOctree &tree, T* pData,
                                               const UINT64VECTOR3& targetSize,
                                               T* pSourceData,
@@ -50,9 +37,9 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
 
       for (uint64_t x = 0;x<evenSizeX;x++) {
         for (uint32_t c = 0;c<iCompCount;c++) {
-          T average = Average<T>(*(p0+c), *(p1+c), *(p2+c), *(p3+c),
-                                  *(p4+c), *(p5+c), *(p6+c), *(p7+c));
-          *(pTargetData+c) = average;
+          T Average = VolumeTools::Average<T, double>(*(p0+c), *(p1+c), *(p2+c), *(p3+c),
+                                                           *(p4+c), *(p5+c), *(p6+c), *(p7+c));
+          *(pTargetData+c) = Average;
         }
         p0+=2*iCompCount;
         p1+=2*iCompCount;
@@ -89,8 +76,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
                                 );
 
         for (uint32_t c = 0;c<iCompCount;c++) {
-          T average = Average<T>(*(p0+c), *(p1+c), *(p2+c), *(p3+c));
-          *(pTargetData+c) = average;
+          T Average = VolumeTools::Average<T, double>(*(p0+c), *(p1+c), *(p2+c), *(p3+c));
+          *(pTargetData+c) = Average;
         }
       }
     }
@@ -116,8 +103,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
 
       for (uint64_t x = 0;x<evenSizeX;x++) {
         for (uint32_t c = 0;c<iCompCount;c++) {
-          T average = Average<T>(*(p0+c), *(p1+c), *(p4+c), *(p5+c));
-          *(pTargetData+c) = average;
+          T Average = VolumeTools::Average<T, double>(*(p0+c), *(p1+c), *(p4+c), *(p5+c));
+          *(pTargetData+c) = Average;
         }
         p0+=2*iCompCount;
         p1+=2*iCompCount;
@@ -148,8 +135,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
 
       for (uint64_t x = 0;x<evenSizeX;x++) {
         for (uint32_t c = 0;c<iCompCount;c++) {
-          T average = Average<T>(*(p0+c), *(p2+c), *(p4+c), *(p6+c));
-          *(pTargetData+c) = average;
+          T Average = VolumeTools::Average<T, double>(*(p0+c), *(p2+c), *(p4+c), *(p6+c));
+          *(pTargetData+c) = Average;
         }
         p0+=2*iCompCount;
         p2+=2*iCompCount;
@@ -177,8 +164,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
                               );
 
       for (uint32_t c = 0;c<iCompCount;c++) {
-        T average = Average<T>(*(p0+c), *(p1+c));
-        *(pTargetData+c) = average;
+        T Average = VolumeTools::Average<T, double>(*(p0+c), *(p1+c));
+        *(pTargetData+c) = Average;
       }
     }
   }
@@ -199,8 +186,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
 
     for (uint64_t x = 0;x<evenSizeX;x++) {
       for (uint32_t c = 0;c<iCompCount;c++) {
-        T average = Average<T>(*(p0+c), *(p4+c));
-        *(pTargetData+c) = average;
+        T Average = VolumeTools::Average<T, double>(*(p0+c), *(p4+c));
+        *(pTargetData+c) = Average;
       }
       p0+=2*iCompCount;
       p4+=2*iCompCount;
@@ -224,8 +211,8 @@ template<class T> void ExtendedOctreeConverter::DownsampleBricktoBrick(ExtendedO
                               +  (evenSizeZ+m_iOverlap+targetOffset.z)*targetSize.x*targetSize.y
                               );
       for (uint32_t c = 0;c<iCompCount;c++) {
-        T average = Average<T>(*(p0+c), *(p2+c));
-        *(pTargetData+c) = average;
+        T Average = VolumeTools::Average<T, double>(*(p0+c), *(p2+c));
+        *(pTargetData+c) = Average;
       }
     }
   }

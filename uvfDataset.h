@@ -224,7 +224,7 @@ private:
       uint8_t* pData = (uint8_t*)&vData[0];
       ts->GetDB()->GetData(pData,coords);
       if (ts->GetDB()->GetAtlasSize(coords).area() != 0) {
-        ExtendedOctreeConverter::DeAtalantify(targetSize, ts->GetDB()->GetAtlasSize(coords), 
+        VolumeTools::DeAtalasify(targetSize, ts->GetDB()->GetAtlasSize(coords), 
                                               ts->GetDB()->GetMaxBricksize(),
                                               ts->GetDB()->GetBrickSize(coords), pData,pData);
       }
