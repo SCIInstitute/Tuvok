@@ -197,6 +197,7 @@ HEADERS += \
            IO/UVF/TOCBlock.h \
            IO/UVF/ExtendedOctree/ExtendedOctree.h \
            IO/UVF/ExtendedOctree/ExtendedOctreeConverter.h \
+           IO/UVF/ExtendedOctree/VolumeTools.h \
            IO/VariantArray.h \
            IO/VFFConverter.h \
            IO/XML3DGeoConverter.h \
@@ -475,6 +476,7 @@ SOURCES += \
            IO/UVF/TOCBlock.cpp \
            IO/UVF/ExtendedOctree/ExtendedOctree.cpp \
            IO/UVF/ExtendedOctree/ExtendedOctreeConverter.cpp \
+           IO/UVF/ExtendedOctree/VolumeTools.cpp \
            IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
            IO/XML3DGeoConverter.cpp \
