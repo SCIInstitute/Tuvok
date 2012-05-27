@@ -182,6 +182,9 @@ SOURCES += \
   ./UVF/Histogram2DDataBlock.cpp \
   ./UVF/KeyValuePairDataBlock.cpp \
   ./UVF/MaxMinDataBlock.cpp \
+  ./UVF/ExtendedOctree/ExtendedOctree.cpp
+  ./UVF/ExtendedOctree/ExtendedOctreeConverter.cpp
+  ./UVF/ExtendedOctree/VolumeTools.cpp
   ./uvfMesh.cpp \
   ./UVF/RasterDataBlock.cpp \
   ./UVF/UVF.cpp \
@@ -287,6 +290,9 @@ HEADERS += \
   ./UVF/UVFBasic.h \
   ./UVF/UVF.h \
   ./UVF/UVFTables.h \
+  ./UVF/ExtendedOctree/ExtendedOctree.h
+  ./UVF/ExtendedOctree/ExtendedOctreeConverter.h
+  ./UVF/ExtendedOctree/VolumeTools.h
   ./VariantArray.h \
   ./VFFConverter.h \
   ./VGIHeaderParser.h \
