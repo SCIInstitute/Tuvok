@@ -272,6 +272,17 @@ void LuaScripting::registerScriptFunctions()
                                   // cleanup is done inside of provenance.
                                   // All child undo items are still executed.
 
+  mMemberReg->registerFunction(this, &LuaScripting::getClassUniqueID,
+                               "getClassUNID",
+                               "Retrieves the unique ID of the given class.",
+                               false);
+
+  mMemberReg->registerFunction(this, &LuaScripting::getClassWithUniqueID,
+                               "getClassWithUNID",
+                               "Retrieves the class with the specified unique "
+                               "ID.",
+                               false);
+
   mMemberReg->registerFunction(this, &LuaScripting::logInfo,
                                "print",
                                "Logs general information.",
@@ -1135,13 +1146,13 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
     {
       if (isRegisteredFunction(-1))
       {
-        throw LuaFunBindError("Can't register functions on top of other"
+        throw LuaFunBindError("Can't register functions on top of other "
                               "functions.");
       }
     }
     else
     {
-      throw LuaFunBindError("A module in the fully qualified name"
+      throw LuaFunBindError("A module in the fully qualified name "
                             "not of type table.");
     }
     // keep the table on the stack
@@ -1161,7 +1172,7 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
     }
     else
     {
-      throw LuaFunBindError("Unable to bind function closure."
+      throw LuaFunBindError("Unable to bind function closure. "
                             "Duplicate name already exists in globals.");
     }
   }
@@ -1193,8 +1204,8 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
       }
       else
       {
-        throw LuaFunBindError("Unable to bind function closure."
-                              "Duplicate name already exists at last"
+        throw LuaFunBindError("Unable to bind function closure. "
+                              "Duplicate name already exists at last "
                               "descendant.");
       }
     }
@@ -1217,13 +1228,13 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
 
         if (isRegisteredFunction(-1))
         {
-          throw LuaFunBindError("Can't register functions on top of other"
+          throw LuaFunBindError("Can't register functions on top of other "
                                 "functions.");
         }
       }
       else
       {
-        throw LuaFunBindError("A module in the fully qualified name"
+        throw LuaFunBindError("A module in the fully qualified name "
                               "not of type table.");
       }
     }
@@ -2096,6 +2107,17 @@ bool LuaScripting::isLuaClassInstance(int tableIndex)
   return true;
 }
 
+//-----------------------------------------------------------------------------
+int LuaScripting::getClassUniqueID(LuaClassInstance inst)
+{
+  return inst.getGlobalInstID();
+}
+
+LuaClassInstance LuaScripting::getClassWithUniqueID(int ID)
+{
+  return LuaClassInstance(ID);
+}
+
 //==============================================================================
 //
 // UNIT TESTING
@@ -2833,6 +2855,63 @@ SUITE(TestLUAScriptingSystem)
     CHECK_EQUAL("ref 1", r1.c_str());
   }
 
+  vector<int>     vecA;
+  vector<string>  vecB;
+
+  void vecIntString(vector<int> a, vector<string> b)
+  {
+    vecA.clear();
+    vecB.clear();
+
+    vecA.resize(a.size());
+    vecB.resize(b.size());
+
+    copy(a.begin(), a.end(), vecA.begin());
+    copy(b.begin(), b.end(), vecB.begin());
+  }
+
+  bool predString(string a, string b)
+  {
+    return a.compare(b) == 0;
+  }
+
+  bool predInt(int a, int b)
+  {
+    return a == b;
+  }
+
+  TEST(TestVectors)
+  {
+    TEST_HEADER;
+
+    auto_ptr<LuaScripting> sc(new LuaScripting());
+
+    sc->registerFunction(&vecIntString, "vecIntStr", "", true);
+
+    vector<int> a; vector<string> b;
+    a.push_back(5);
+    a.push_back(10);
+    a.push_back(15);
+    a.push_back(20);
+    a.push_back(25);
+    a.push_back(30);
+    b.push_back("String 1");
+    b.push_back("String 2");
+    b.push_back("Str 3");
+    b.push_back("Str 4");
+    b.push_back("Str 5");
+
+    sc->cexec("vecIntStr", a, b);
+    CHECK_EQUAL(true, equal(vecA.begin(), vecA.end(), a.begin(), predInt));
+    CHECK_EQUAL(true, equal(vecB.begin(), vecB.end(), b.begin(), predString));
+    int intArray[4] = {23, 48, 59, 12};
+    string strArray[4] = {"str 1", "str 2", "str 3", "str 4"};
+    sc->exec("vecIntStr({23, 48, 59, 12}, {'str 1', 'str 2', 'str 3', 'str 4'})");
+    CHECK_EQUAL(true, equal(vecA.begin(), vecA.end(), intArray, predInt));
+    CHECK_EQUAL(true, equal(vecB.begin(), vecB.end(), strArray, predString));
+  }
+
+  // More unit tests are spread out amongst the LUA* files.
 
   /// TODO: Add tests for passing shared_ptr's around, and how they work
   /// with regards to the undo/redo stack.

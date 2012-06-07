@@ -1148,9 +1148,9 @@ void GPUMemMan::registerLuaDatasetClass() {
 /// TODO: This, and the above registerLuaDatasetClass should be moved to their
 ///       own CPP file.
 void GPUMemMan::registerDataSetClassFunctions(
-    LuaClassRegistration<Dataset>& reg,
+    LuaClassRegistration<Dataset>&,
     Dataset*,
-    LuaScripting* ss) {
+    LuaScripting*) {
 
   // Register all of dataset's exposed functions here.
 

@@ -528,6 +528,7 @@ SOURCES += \
            Renderer/SBVRGeogen2D.cpp \
            Renderer/SBVRGeogen3D.cpp \
            Renderer/RenderMesh.cpp \
+           Renderer/RenderRegion.cpp \
            Renderer/TFScaling.cpp \
            Scripting/Scripting.cpp
 

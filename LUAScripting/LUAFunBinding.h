@@ -197,7 +197,7 @@ public:
 
   typedef unsigned int Type;
 
-  static int get(lua_State* L, unsigned int pos)
+  static int get(lua_State* L, int pos)
   {
     return luaL_checknumber(L, pos);
   }
@@ -558,6 +558,157 @@ public:
   {
     return std::tr1::shared_ptr<T>();
   }
+};
+
+// Generic vector type that uses previously defined types on the stack.
+template <typename T>
+class LuaStrictStack<std::vector<T> >
+{
+public:
+
+  typedef std::vector<typename LuaStrictStack<T>::Type > Type;
+
+  static Type get(lua_State* L, int pos)
+  {
+    // Ensure that there is a table on the top of the stack.
+    LuaStackRAII _a(L, 0);
+
+    Type ret;
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    // There should be a table at 'pos', containing four numerical elements.
+    int index = 1;
+    while ( 1 )
+    {
+      // Check to see if this index exists in the table.
+      lua_pushinteger(L, index);
+      lua_gettable(L, pos);
+
+      if (lua_isnil(L, -1))
+      {
+        lua_pop(L, 1);
+        break;
+      }
+
+      ret.push_back(LuaStrictStack<T>::get(L, lua_gettop(L)));
+      lua_pop(L, 1);
+
+      ++index;
+    }
+
+    return ret;
+  }
+
+  static void push(lua_State* L, Type in)
+  {
+    LuaStackRAII _a(L, 1);
+
+    // Place all of our vector values in a new table.
+    lua_newtable(L);
+    int tblPos = lua_gettop(L);
+
+    int index = 1;
+    typename Type::iterator it;
+    for (it = in.begin(); it != in.end(); ++it)
+    {
+      lua_pushinteger(L, index);
+      LuaStrictStack<T>::push(L, *it);
+      lua_settable(L, tblPos);
+      ++index;
+    }
+  }
+
+  static std::string getValStr(Type in)
+  {
+    std::ostringstream os;
+    os << "{";
+    for (typename Type::iterator it = in.begin(); it != in.end(); ++it)
+    {
+      if (it != in.begin())
+        os << ", ";
+      os << LuaStrictStack<T>::getValStr(*it);
+    }
+    os << "}";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "GenericVector"; }
+  static Type getDefault() {return Type();}
+};
+
+// This is the exact same implementation as above.
+template <typename T>
+class LuaStrictStack<const std::vector<T>& >
+{
+public:
+
+  typedef std::vector<typename LuaStrictStack<T>::Type > Type;
+
+  static Type get(lua_State* L, int pos)
+  {
+    // Ensure that there is a table on the top of the stack.
+    LuaStackRAII _a(L, 0);
+
+    Type ret;
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    // There should be a table at 'pos', containing four numerical elements.
+    int index = 1;
+    while ( 1 )
+    {
+      // Check to see if this index exists in the table.
+      lua_pushinteger(L, index);
+      lua_gettable(L, pos);
+
+      if (lua_isnil(L, -1))
+      {
+        lua_pop(L, 1);
+        break;
+      }
+
+      ret.push_back(LuaStrictStack<T>::get(L, lua_gettop(L)));
+      lua_pop(L, 1);
+
+      ++index;
+    }
+
+    return ret;
+  }
+
+  static void push(lua_State* L, Type in)
+  {
+    LuaStackRAII _a(L, 1);
+
+    // Place all of our vector values in a new table.
+    lua_newtable(L);
+    int tblPos = lua_gettop(L);
+
+    int index = 1;
+    for (typename Type::iterator it = in.begin(); it != in.end(); ++it)
+    {
+      lua_pushinteger(L, index);
+      LuaStrictStack<T>::push(L, *it);
+      lua_settable(L, tblPos);
+      ++index;
+    }
+  }
+
+  static std::string getValStr(Type in)
+  {
+    std::ostringstream os;
+    os << "{";
+    for (typename Type::iterator it = in.begin(); it != in.end(); ++it)
+    {
+      if (it != in.begin())
+        os << ", ";
+      os << LuaStrictStack<T>::getValStr(*it);
+    }
+    os << "}";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "GenericVector"; }
+  static Type getDefault() {return Type();}
 };
 
 // TODO:  If boost detected, add boost shared_ptr.

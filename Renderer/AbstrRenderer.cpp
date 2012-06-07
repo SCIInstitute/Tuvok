@@ -1536,6 +1536,16 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "getRendererType",
                     "Retrieves the renderer type.", false);
 
+  id = reg.function(&AbstrRenderer::GetRendererTarget,
+                    "getRendererTarget",
+                    "Renderer target specifies the interaction mode. "
+                    "The two basic modes are interactive (standard ImageVis3D "
+                    "mode), and high quality capture mode.", false);
+  id = reg.function(&AbstrRenderer::SetRendererTarget,
+                    "setRendererTarget",
+                    "Specifies the renderer target. See getRendererTarget.",
+                    true);
+
   id = reg.function(&AbstrRenderer::LuaGetDataset,
                     "getDataset",
                     "Retrieves the renderer's current dataset.", false);

@@ -37,6 +37,10 @@ class AbstrRenderer;
 class GLRenderer;
 class GLSBVR2D;
 
+class LuaScripting;
+template <typename T> class LuaClassRegistration;
+
+
   // NOTE: client code should never directly modify a RenderRegion. Instead,
   // modifications should be done through the tuvok API so that tuvok is aware
   // of these changes.
@@ -81,6 +85,10 @@ class GLSBVR2D;
       return (minCoord[0] < pos[0] && pos[0] < maxCoord[0]) &&
         (minCoord[1] < pos[1] && pos[1] < maxCoord[1]);
     }
+
+    static void defineLuaInterface(LuaClassRegistration<RenderRegion>& reg,
+                                   RenderRegion* me,
+                                   LuaScripting* ss);
 
     // These really should just be for 3D and for 3D MIP. But because 3D MIP is
     // considered 2D, we have to put this here for now...

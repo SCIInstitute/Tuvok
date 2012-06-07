@@ -70,6 +70,12 @@ LuaStackRAII::LuaStackRAII(lua_State* L, int finalRelStackHeight,
   mLine = line;
 }
 
+static void luaStackRAIIInternalDoString(lua_State* mL, std::string str)
+{
+  luaL_dostring(mL, str.c_str());
+}
+
+
 //-----------------------------------------------------------------------------
 LuaStackRAII::~LuaStackRAII()
 {
@@ -109,7 +115,8 @@ LuaStackRAII::~LuaStackRAII()
 
       os << "]==])";
 
-      luaL_dostring(mL, os.str().c_str());
+      //luaL_dostring(mL, os.str().c_str());
+      luaStackRAIIInternalDoString(mL, os.str());
 
 #ifdef TUVOK_LUARAII_ASSERT
       assert(stackTop == stackTarget);

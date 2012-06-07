@@ -598,6 +598,12 @@ private:
   /// and no longer called after this function is executable.
   void destroyClassInstanceTable(int tableIndex);
 
+  /// Retrieves the class' unique ID.
+  int getClassUniqueID(LuaClassInstance inst);
+
+  /// Retrieves the class with the given Unique ID.
+  LuaClassInstance getClassWithUniqueID(int ID);
+
   /// Used when redoing class instance creation. Ensures that the same id is
   /// used when creating the classes. Starts getNewClassInstID at low, and
   /// when current > high, we move to where we were when creating instance IDs.

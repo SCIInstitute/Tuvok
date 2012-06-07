@@ -56,6 +56,7 @@
 #include "../Scripting/Scripting.h"
 #include "../LUAScripting/LUAScripting.h"
 #include "../LUAScripting/LUAMemberReg.h"
+#include "../LUAScripting/LUATuvokSpecificTypes.h"
 
 using namespace tuvok;
 
@@ -276,6 +277,15 @@ void MasterController::RegisterCalls(Scripting* pScriptEngine) {
                                  "(string) argument.");
 }
 
+static RenderRegion* CreateRenderRegion3D() {
+  return new RenderRegion3D();
+}
+
+static RenderRegion* CreateRenderRegion2D(RenderRegion::EWindowMode mode,
+                                          uint64_t sliceIndex) {
+  return new RenderRegion2D(mode, sliceIndex);
+}
+
 void MasterController::AddLuaRendererType(const std::string& rendererLoc,
                                           const std::string& rendererName,
                                           int value) {
@@ -289,7 +299,7 @@ TUVOK_LUA_REGISTER_ENUM_TYPE(MasterController::EVolumeRendererType)
 void MasterController::RegisterLuaCommands() {
   std::tr1::shared_ptr<LuaScripting> ss = LuaScript();
 
-  // Register volume renderer creation class.
+  // Register volume renderer class.
   std::string renderer = "tuvok.renderer";
   ss->registerClass<AbstrRenderer>(
       this,
@@ -312,6 +322,26 @@ void MasterController::RegisterLuaCommands() {
   AddLuaRendererType(renderer, "DirectX_2DSBVR", DIRECTX_2DSBVR);
   AddLuaRendererType(renderer, "DirectX_Raycaster", DIRECTX_RAYCASTER);
   AddLuaRendererType(renderer, "DirectX_TRaycaster", DIRECTX_TRAYCASTER);
+
+  // Register RenderRegion3D.
+  ss->registerClassStatic<RenderRegion>(
+      &CreateRenderRegion3D,
+      "tuvok.renderRegion3D",
+      "Constructs a 3D render region.",
+      LuaClassRegCallback<RenderRegion>::Type(
+          RenderRegion::defineLuaInterface));
+
+  // Register RenderRegion2D.
+  ss->registerClassStatic<RenderRegion>(
+      &CreateRenderRegion2D,
+      "tuvok.renderRegion2D",
+      "Constructs a 2D render region.",
+      LuaClassRegCallback<RenderRegion>::Type(
+          RenderRegion::defineLuaInterface));
+  ss->addParamInfo("tuvok.renderRegion2D.new", 0, "mode",
+                   "Specifies viewing axis.");
+  ss->addParamInfo("tuvok.renderRegion2D.new", 1, "sliceIndex",
+                   "Index of slice to view.");
 }
 
 bool MasterController::Execute(const std::string& strCommand,

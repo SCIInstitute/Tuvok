@@ -244,8 +244,8 @@ private:
       // instance of LuaScripting out of Lua.
       bool provExempt = ss->doProvenanceFromExec(L, execParams, emptyParams);
 
-      // Places the instance table and its metatable at stack position -2 and -1
-      // respectively.
+      // Places the instance table and its metatable at stack position -2 and
+      // -1 respectively.
       LuaClassInstance inst = buildCoreInstanceTable(L, ss, consTable,
                                                      ss->getNewClassInstID());
       int mt = lua_gettop(L);
@@ -270,25 +270,35 @@ private:
       }
       ss->endCommand();
 
-      // Call registration fptr.
-      lua_getfield(L, consTable,
-                   LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
-      typename LuaClassRegCallback<CLS>::Type* cbFptr =
-          reinterpret_cast<typename LuaClassRegCallback<CLS>::Type* >(
-              lua_touserdata(L, -1));
-      LuaClassRegistration<CLS> reg(ss, dynamic_cast<CLS*>(r),
-                                    inst.getGlobalInstID());
-      (*cbFptr)(reg, r, ss);
-      lua_pop(L, 1);
+      // Check to see if the function succeeded.
+      if (r != NULL)
+      {
+        // Call registration fptr.
+        lua_getfield(L, consTable,
+                     LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
+        typename LuaClassRegCallback<CLS>::Type* cbFptr =
+            reinterpret_cast<typename LuaClassRegCallback<CLS>::Type* >(
+                lua_touserdata(L, -1));
+        LuaClassRegistration<CLS> reg(ss, dynamic_cast<CLS*>(r),
+                                      inst.getGlobalInstID());
+        (*cbFptr)(reg, r, ss);
+        lua_pop(L, 1);
 
-      ss->doHooks(L, 1, provExempt);
+        ss->doHooks(L, 1, provExempt);
 
-      // Places function table on the top of the stack.
-      finalize(L, ss, reinterpret_cast<void*>(r), inst, mt, instTable,
-               reinterpret_cast<void*>(
-                   &LuaConstructorCallback<CLS, FunPtr>::del),
-               reinterpret_cast<void*>(
-                   &LuaConstructorCallback<CLS, FunPtr>::delCallback));
+        // Places function table on the top of the stack.
+        finalize(L, ss, reinterpret_cast<void*>(r), inst, mt, instTable,
+                 reinterpret_cast<void*>(
+                     &LuaConstructorCallback<CLS, FunPtr>::del),
+                 reinterpret_cast<void*>(
+                     &LuaConstructorCallback<CLS, FunPtr>::delCallback));
+      }
+      else
+      {
+        // Create a default LuaClassInstance and return that.
+        LuaClassInstance inst;
+        LuaStrictStack<LuaClassInstance>::push(L, inst);
+      }
 
       return 1;
     }
@@ -369,26 +379,35 @@ private:
       }
       ss->endCommand();
 
-      // Call registration fptr.
-      lua_getfield(L, consTable,
-                   LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
-      typename LuaClassRegCallback<CLS>::Type* cbFptr =
-          reinterpret_cast<typename LuaClassRegCallback<CLS>::Type* >(
-              lua_touserdata(L, -1));
-      LuaClassRegistration<CLS> reg(ss, dynamic_cast<CLS*>(r),
-                                    inst.getGlobalInstID());
-      (*cbFptr)(reg, r, ss);
-      lua_pop(L, 1);
+      if (r != NULL)
+      {
+        // Call registration fptr.
+        lua_getfield(L, consTable,
+                     LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
+        typename LuaClassRegCallback<CLS>::Type* cbFptr =
+            reinterpret_cast<typename LuaClassRegCallback<CLS>::Type* >(
+                lua_touserdata(L, -1));
+        LuaClassRegistration<CLS> reg(ss, dynamic_cast<CLS*>(r),
+                                      inst.getGlobalInstID());
+        (*cbFptr)(reg, r, ss);
+        lua_pop(L, 1);
 
-      ss->doHooks(L, 1, provExempt);
+        ss->doHooks(L, 1, provExempt);
 
-      // Places function table on the top of the stack.
-      finalize(L, ss, reinterpret_cast<void*>(r), inst, mt, instTable,
-         reinterpret_cast<void*>(
-             &LuaMemberConstructorCallback<CLS, FunPtr>::del),
-         reinterpret_cast<void*>(
-             &LuaMemberConstructorCallback<CLS, FunPtr>::delCallback)
-         );
+        // Places function table on the top of the stack.
+        finalize(L, ss, reinterpret_cast<void*>(r), inst, mt, instTable,
+           reinterpret_cast<void*>(
+               &LuaMemberConstructorCallback<CLS, FunPtr>::del),
+           reinterpret_cast<void*>(
+               &LuaMemberConstructorCallback<CLS, FunPtr>::delCallback)
+           );
+      }
+      else
+      {
+        // Create a default LuaClassInstance and return that.
+        LuaClassInstance inst;
+        LuaStrictStack<LuaClassInstance>::push(L, inst);
+      }
 
       return 1;
     }

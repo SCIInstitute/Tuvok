@@ -45,6 +45,7 @@
 #include "../Basics/Vectors.h"
 #include "../StdTuvokDefines.h"
 #include "../Renderer/AbstrRenderer.h"
+#include "../Renderer/RenderRegion.h"
 
 namespace tuvok
 {
@@ -246,6 +247,33 @@ public:
   static VECTOR2<T>  getDefault() { return VECTOR2<T>(); }
 };
 
+template <>
+class LuaStrictStack<uint64_t>
+{
+public:
+
+  typedef uint64_t Type;
+
+  static uint64_t get(lua_State* L, int pos)
+  {
+    return static_cast<uint64_t>(luaL_checknumber(L, pos));
+  }
+
+  static void push(lua_State* L, uint64_t in)
+  {
+    lua_pushnumber(L, static_cast<double>(in));
+  }
+
+  static std::string getValStr(uint64_t in)
+  {
+    std::ostringstream os;
+    os << in;
+    return os.str();
+  }
+  static std::string getTypeStr() { return "uint64_t"; }
+  static uint64_t getDefault(){ return 0; }
+};
+
 } // namespace tuvok
 
 // Register standard Tuvok enumerations. These enumerations declare their own
@@ -257,5 +285,7 @@ TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERendererTarget)
 TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EStereoMode)
 TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EBlendPrecision)
 TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ScalingMethod)
+
+TUVOK_LUA_REGISTER_ENUM_TYPE(RenderRegion::EWindowMode)
 
 #endif /* LUATUVOKSPECIFICTYPES_H_ */
