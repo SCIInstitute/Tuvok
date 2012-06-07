@@ -2198,12 +2198,14 @@ static int dir_gc (lua_State *L)
 
 static int luaopen_dir(lua_State *L)
 {
+  LuaStackRAII _a(L, 0);
   luaL_newmetatable(L, DirMetatable);
 
   // set its __gc field
   lua_pushstring(L, "__gc");
   lua_pushcfunction(L, dir_gc);
   lua_settable(L, -3);
+  lua_pop(L, 1);  // Pop the metatable.
 
   // register the `dir' function
   lua_pushcfunction(L, l_dir);
@@ -2217,27 +2219,29 @@ static int luaopen_dir(lua_State *L)
 
 #endif
 
-static const char* LuaOSCaptureFun = "function os.capture(cmd, raw)\n"
+static const char* LuaOSCaptureFun = "os.capture = function(cmd, raw)\n"
     "local f = assert(io.popen(cmd, 'r'))\n"
     "local s = assert(f:read('*a'))\n"
     "f:close()\n"
     "if raw then return s end\n"
     "s = string.gsub(s, '^%s+', '')\n"
     "s = string.gsub(s, '%s+$', '')\n"
-    "s = string.gsub(s, '[\n\r]+', ' ')\n"
+    "s = string.gsub(s, '[\\n\\r]+', ' ')\n"
     "return s\n"
-  "end\n";
+    "end\n";
 
 //-----------------------------------------------------------------------------
 void LuaScripting::registerLuaUtilityFunctions()
 {
+  LuaStackRAII _a(mL, 0);
+
   // Register the dir() lua function.
 #ifndef DETECTED_OS_WINDOWS
   luaopen_dir(mL);
 #endif
 
-  // Register os.capture command.
-  luaL_dostring(mL, LuaOSCaptureFun);
+  // Place capture command at the top of the stack.
+  exec(LuaOSCaptureFun);
 }
 
 //-----------------------------------------------------------------------------

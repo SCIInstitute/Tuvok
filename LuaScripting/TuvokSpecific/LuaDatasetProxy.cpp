@@ -33,6 +33,7 @@
 #include "Controller/Controller.h"
 #include "3rdParty/LUA/lua.hpp"
 #include "IO/IOManager.h"
+#include "IO/FileBackedDataset.h"
 
 #include <vector>
 
@@ -65,6 +66,16 @@ void LuaDatasetProxy::bindDataset(Dataset* ds)
   if (ds != NULL)
   {
     // Register dataset functions using ds.
+    std::string id;
+
+    // Attempt to cast the dataset to a file backed dataset.
+    FileBackedDataset* fileDataset = dynamic_cast<FileBackedDataset*>(ds);
+    if (fileDataset != NULL)
+    {
+      id = mReg->functionProxy(fileDataset, &FileBackedDataset::Filename,
+                               "path", "Full path to the dataset.", false);
+    }
+
   }
 
 }

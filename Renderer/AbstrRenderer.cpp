@@ -49,8 +49,10 @@
 #include "RenderMesh.h"
 #include "Scripting/Scripting.h"
 
-#include "LUAScripting/LUAScripting.h"
-#include "LUAScripting/TuvokSpecific/LUATuvokTypes.h"
+#include "LuaScripting/LuaScripting.h"
+#include "LuaScripting/LuaClassInstance.h"
+#include "LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
+#include "LuaScripting/TuvokSpecific/LuaDatasetProxy.h"
 
 using namespace std;
 using namespace tuvok;
@@ -173,9 +175,11 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   }
 
   // Create our dataset proxy.
-  LuaClassInstance inst =
+  m_pLuaDataset =
       m_pMasterController->LuaScript()->cexecRet<LuaClassInstance>(
       "tuvok.datasetProxy.new");
+  m_pLuaDatasetPtr = m_pLuaDataset.getRawPointer<LuaDatasetProxy>(
+      m_pMasterController->LuaScript());
 }
 
 bool AbstrRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
@@ -191,9 +195,14 @@ bool AbstrRenderer::LoadDataset(const string& strFilename) {
     return false;
   }
 
-  if (m_pDataset) m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
+  if (m_pDataset)
+  {
+    m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
+    m_pLuaDatasetPtr->bindDataset(NULL);
+  }
 
   m_pDataset = m_pMasterController->IOMan()->LoadDataset(strFilename,this);
+  m_pLuaDatasetPtr->bindDataset(m_pDataset);
 
   if (m_pDataset == NULL) {
     T_ERROR("IOManager call to load dataset failed.");
@@ -1527,7 +1536,7 @@ void AbstrRenderer::SetInterpolant(Interpolant eInterpolant) {
 }
 
 LuaClassInstance AbstrRenderer::LuaGetDataset() {
-  return m_pMasterController->LuaScript()->getLuaClassInstance(m_pDataset);
+  return m_pLuaDataset;
 }
 
 void AbstrRenderer::RegisterLuaFunctions(

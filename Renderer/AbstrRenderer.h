@@ -67,6 +67,7 @@ namespace tuvok {
 
 class MasterController;
 class RenderMesh;
+class LuaDatasetProxy;
 
 class Brick {
 public:
@@ -712,6 +713,8 @@ class AbstrRenderer: public Scriptable {
     // Private Lua-only functions
   private:
 
+    LuaClassInstance m_pLuaDataset;
+    LuaDatasetProxy* m_pLuaDatasetPtr;
     LuaClassInstance LuaGetDataset();
 
 };

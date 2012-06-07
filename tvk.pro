@@ -2,7 +2,7 @@ TEMPLATE          = lib
 win32:TEMPLATE    = vclib
 CONFIG           += warn_on qt rtti static staticlib stl largefile
 CONFIG           += exceptions
-macx:DEFINES     += QT_MAC_USE_COCOA=1
+macx:DEFINES     += QT_MAC_USE_COCOA=1 LUA_USE_MACOSX=1
 DEFINES          += _FILE_OFFSET_BITS=64
 TARGET            = Build/Tuvok
 win32 {
