@@ -361,7 +361,7 @@ int LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
       // instDeletions and instCreations are always sorted.
       vector<int> diff; // Could make this more efficient if stored above.
       diff.resize(max(unresolved.size(), undoItem.instCreations->size()), 0);
-      vector<int>::iterator it = set_symmetric_difference(
+      vector<int>::iterator it = set_difference(
                unresolved.begin(), unresolved.end(),
                undoItem.instCreations->begin(),
                undoItem.instCreations->end(),

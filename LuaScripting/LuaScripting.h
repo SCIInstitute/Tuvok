@@ -407,6 +407,12 @@ public:
   /// the same class.
   void notifyOfDeletion(LuaClassInstance inst);
 
+  /// Returns true if we are running in verbose mode.
+  bool isVerbose()    {return mVerboseMode;}
+
+  /// Verbose print. Prints a message using log.info only if verbose is enabled.
+  void vPrint(const char* fmt, ...);
+
 private:
 
   template <typename FunPtr>
@@ -618,6 +624,9 @@ private:
   /// Registers Lua utility functions, such as dir and os.capture.
   void registerLuaUtilityFunctions();
 
+  /// Enable / disable verbose mode for the scripting system.
+  void enableVerboseMode(bool enable);
+
   /// Just calls provenance begin/end command.
   void beginCommand();
   void endCommand();
@@ -650,6 +659,8 @@ private:
   std::auto_ptr<LuaProvenance>      mProvenance;
   std::auto_ptr<LuaMemberRegUnsafe> mMemberReg;
   std::auto_ptr<LuaClassConstructor>mClassCons;
+
+  bool                              mVerboseMode;
 
   /// These structures were created in order to handle void return types easily
   ///@{

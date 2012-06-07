@@ -295,6 +295,7 @@ private:
       }
       else
       {
+        ss->vPrint("Failed to load class.");
         // Create a default LuaClassInstance and return that.
         LuaClassInstance inst;
         LuaStrictStack<LuaClassInstance>::push(L, inst);
@@ -404,6 +405,7 @@ private:
       }
       else
       {
+        ss->vPrint("Failed to load class.");
         // Create a default LuaClassInstance and return that.
         LuaClassInstance inst;
         LuaStrictStack<LuaClassInstance>::push(L, inst);

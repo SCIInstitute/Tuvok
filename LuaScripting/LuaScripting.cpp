@@ -52,6 +52,8 @@
 
 #include <vector>
 #include <algorithm>
+#include <stdio.h>
+#include <stdarg.h>
 
 #include "LuaScripting.h"
 #include "LuaProvenance.h"
@@ -124,6 +126,7 @@ LuaScripting::LuaScripting()
 , mProvenance(new LuaProvenance(this))
 , mMemberReg(new LuaMemberRegUnsafe(this))
 , mClassCons(new LuaClassConstructor(this))
+, mVerboseMode(false)
 {
   mL = lua_newstate(luaInternalAlloc, NULL);
 
@@ -322,6 +325,13 @@ void LuaScripting::registerScriptFunctions()
                                "'log.info'.",
                                false);
   setProvenanceExempt("log.printFunctions");
+
+  mMemberReg->registerFunction(this, &LuaScripting::enableVerboseMode,
+                               "luaVerboseMode",
+                               "Enables/disables lua debug mode "
+                               "(verbose mode).",
+                               false);
+  setProvenanceExempt("luaVerboseMode");
 
   registerLuaUtilityFunctions();
 }
@@ -2041,10 +2051,12 @@ int LuaScripting::getNewClassInstID()
     {
       mGlobalTempInstRange = false;
     }
+    vPrint("Class - Reuse: %d", ret);
     return ret;
   }
   else
   {
+    vPrint("Class - New: %d", mGlobalInstanceID);
     return mGlobalInstanceID++;
   }
 }
@@ -2226,6 +2238,32 @@ void LuaScripting::registerLuaUtilityFunctions()
 
   // Register os.capture command.
   luaL_dostring(mL, LuaOSCaptureFun);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::enableVerboseMode(bool enable)
+{
+  mVerboseMode = enable;
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::vPrint(const char* fmt, ...)
+{
+  if (isVerbose() == false)
+    return;
+
+  char msgBuffer[1024]; // We're not concerned with efficiency in this func.
+
+  va_list arglist;
+  va_start(arglist, fmt);
+  vsnprintf(msgBuffer, 1000, fmt, arglist);
+  va_end(arglist);
+
+  string complete = "Verbose[";
+  complete += msgBuffer;
+  complete += "]";
+
+  cexec("log.info", complete);
 }
 
 //==============================================================================

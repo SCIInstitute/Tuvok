@@ -57,15 +57,24 @@ LuaDatasetProxy::~LuaDatasetProxy()
 
 void LuaDatasetProxy::bindDataset(Dataset* ds)
 {
+  if (mReg == NULL)
+    throw LuaError("Unable to bind dataset, no class registration available.");
+
+  mReg->clearProxyFunctions();
+
+  if (ds != NULL)
+  {
+    // Register dataset functions using ds.
+  }
 
 }
 
 void LuaDatasetProxy::defineLuaInterface(
     LuaClassRegistration<LuaDatasetProxy>& reg,
     LuaDatasetProxy* me,
-    LuaScripting* ss)
+    LuaScripting*)
 {
-  mReg = new LuaClassRegistration<LuaDatasetProxy>(reg);
+  me->mReg = new LuaClassRegistration<LuaDatasetProxy>(reg);
 }
 
 } /* namespace tuvok */

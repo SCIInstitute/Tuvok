@@ -49,10 +49,10 @@ public:
 
   void bindDataset(Dataset* ds);
 
-  LuaDatasetProxy* luaDatasetCons() {return new LuaDatasetProxy;}
-  void defineLuaInterface(LuaClassRegistration<LuaDatasetProxy>& reg,
-                          LuaDatasetProxy* me,
-                          LuaScripting* ss);
+  static LuaDatasetProxy* luaConstruct() {return new LuaDatasetProxy;}
+  static void defineLuaInterface(LuaClassRegistration<LuaDatasetProxy>& reg,
+                                 LuaDatasetProxy* me,
+                                 LuaScripting* ss);
 
 private:
 

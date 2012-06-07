@@ -171,6 +171,11 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   if(unregistered) {
     RegisterCalls(m_pMasterController->ScriptEngine());
   }
+
+  // Create our dataset proxy.
+  LuaClassInstance inst =
+      m_pMasterController->LuaScript()->cexecRet<LuaClassInstance>(
+      "tuvok.datasetProxy.new");
 }
 
 bool AbstrRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
@@ -1529,6 +1534,8 @@ void AbstrRenderer::RegisterLuaFunctions(
     LuaClassRegistration<AbstrRenderer>& reg,
     AbstrRenderer*,
     LuaScripting* ss) {
+
+  ss->vPrint("Registering abstract renderer functions.");
 
   std::string id;
 

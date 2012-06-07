@@ -57,6 +57,7 @@
 #include "../LuaScripting/LuaScripting.h"
 #include "../LuaScripting/LuaMemberReg.h"
 #include "../LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
+#include "../LuaScripting/TuvokSpecific/LuaDatasetProxy.h"
 
 using namespace tuvok;
 
@@ -342,6 +343,16 @@ void MasterController::RegisterLuaCommands() {
                    "Specifies viewing axis.");
   ss->addParamInfo("tuvok.renderRegion2D.new", 1, "sliceIndex",
                    "Index of slice to view.");
+
+  // Register dataset proxy
+  ss->registerClassStatic<LuaDatasetProxy>(
+      &LuaDatasetProxy::luaConstruct,
+      "tuvok.datasetProxy",
+      "Constructs a dataset proxy. Construction of these proxies should be "
+      "left to the abstract renderer. If you just need to load a dataset, use "
+      "tuvok.dataset.new instead.",
+      LuaClassRegCallback<LuaDatasetProxy>::Type(
+          LuaDatasetProxy::defineLuaInterface));
 }
 
 bool MasterController::Execute(const std::string& strCommand,
