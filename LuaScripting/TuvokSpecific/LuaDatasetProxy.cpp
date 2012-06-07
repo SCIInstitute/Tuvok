@@ -30,6 +30,15 @@
  \brief A Lua class proxy for IO's dataset class.
  */
 
+#include "Controller/Controller.h"
+#include "3rdParty/LUA/lua.hpp"
+#include "IO/IOManager.h"
+
+#include <vector>
+
+#include "../LuaScripting.h"
+#include "../LuaClassRegistration.h"
+
 #include "LuaDatasetProxy.h"
 
 namespace tuvok
@@ -37,13 +46,26 @@ namespace tuvok
 
 LuaDatasetProxy::LuaDatasetProxy()
 {
-  // TODO Auto-generated constructor stub
-
+  mReg = NULL;
 }
 
 LuaDatasetProxy::~LuaDatasetProxy()
 {
-  // TODO Auto-generated destructor stub
+  if (mReg != NULL)
+    delete mReg;
+}
+
+void LuaDatasetProxy::bindDataset(Dataset* ds)
+{
+
+}
+
+void LuaDatasetProxy::defineLuaInterface(
+    LuaClassRegistration<LuaDatasetProxy>& reg,
+    LuaDatasetProxy* me,
+    LuaScripting* ss)
+{
+  mReg = new LuaClassRegistration<LuaDatasetProxy>(reg);
 }
 
 } /* namespace tuvok */

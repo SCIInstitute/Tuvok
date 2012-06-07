@@ -37,7 +37,7 @@
 
 #include "../LUAScripting/LUAScripting.h"
 #include "../LUAScripting/LUAClassRegistration.h"
-#include "../LUAScripting/LUATuvokSpecificTypes.h"
+#include "../LUAScripting/TuvokSpecific/LUATuvokTypes.h"
 
 namespace tuvok {
 

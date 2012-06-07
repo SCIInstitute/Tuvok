@@ -51,8 +51,6 @@ class LuaClassRegistration
   friend class LuaClassConstructor; // The only class that can instantiate us.
 public:
 
-  LuaClassRegistration() {}   // Dummy constructor to facilitate copying when
-                              // not in a constructor.
   ~LuaClassRegistration() {}
 
   bool canRegister() const    {return (mPtr != NULL);}

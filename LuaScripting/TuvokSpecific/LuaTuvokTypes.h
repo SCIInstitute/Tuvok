@@ -39,13 +39,13 @@
 
 // LuaFunBinding must always come before our implementation, because we depend
 // on the templates it has built.
-#include "LuaFunBinding.h"
+#include "../LuaFunBinding.h"
 
 // Standard
-#include "../Basics/Vectors.h"
-#include "../StdTuvokDefines.h"
-#include "../Renderer/AbstrRenderer.h"
-#include "../Renderer/RenderRegion.h"
+#include "../../Basics/Vectors.h"
+#include "../../StdTuvokDefines.h"
+#include "../../Renderer/AbstrRenderer.h"
+#include "../../Renderer/RenderRegion.h"
 
 namespace tuvok
 {

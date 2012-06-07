@@ -50,7 +50,7 @@
 #include "Scripting/Scripting.h"
 
 #include "LUAScripting/LUAScripting.h"
-#include "LUAScripting/LUATuvokSpecificTypes.h"
+#include "LUAScripting/TuvokSpecific/LUATuvokTypes.h"
 
 using namespace std;
 using namespace tuvok;

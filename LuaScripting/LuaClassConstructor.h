@@ -56,7 +56,7 @@ public:
       const std::string& desc, bool undoRedo,
       typename LuaClassRegCallback<CLS>::Type& callback)
   {
-    lua_State* L = mSS->getLUAState();
+    lua_State* L = mSS->getLuaState();
 
     LuaStackRAII _a = LuaStackRAII(L, 0);
 
@@ -127,7 +127,7 @@ public:
       bool undoRedo,
       typename LuaClassRegCallback<CLS>::Type& callback)
   {
-    lua_State* L = mSS->getLUAState();
+    lua_State* L = mSS->getLuaState();
     LuaStackRAII _a = LuaStackRAII(L, 0);
 
     // Member function pointers are not pointing to a function, they are

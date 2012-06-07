@@ -33,14 +33,31 @@
 #ifndef LUADATASETPROXY_H_
 #define LUADATASETPROXY_H_
 
+#include "../LuaScripting.h"
+#include "../LuaClassRegistration.h"
+
 namespace tuvok
 {
+
+class Dataset;
 
 class LuaDatasetProxy
 {
 public:
   LuaDatasetProxy();
   virtual ~LuaDatasetProxy();
+
+  void bindDataset(Dataset* ds);
+
+  LuaDatasetProxy* luaDatasetCons() {return new LuaDatasetProxy;}
+  void defineLuaInterface(LuaClassRegistration<LuaDatasetProxy>& reg,
+                          LuaDatasetProxy* me,
+                          LuaScripting* ss);
+
+private:
+
+  /// Class registration we received from defineLuaInterface.
+  LuaClassRegistration<LuaDatasetProxy>* mReg;
 };
 
 } /* namespace tuvok */
