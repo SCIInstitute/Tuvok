@@ -59,6 +59,7 @@
 #include <tr1/memory>
 #endif
 
+#include "LUACommon.h"
 #include "LUAError.h"
 #include "LUAFunBinding.h"
 #include "LUAStackRAII.h"
@@ -70,6 +71,7 @@ namespace tuvok
 class LuaProvenance;
 class LuaMemberRegUnsafe;
 class LuaClassConstructor;
+template <class T> class LuaClassRegistration;
 
 /// Usage Note: If you construct any Lua Class instances that retain a
 /// shared_ptr reference to this LuaScripting class, be sure to call
@@ -128,6 +130,13 @@ public:
   ///
   /// NOTES: The system is re-entrant, so you may call lua from within
   /// registered functions, or even call other registered functions.
+  ///
+  /// Automatic Undo/Redo: In order for automatic undo/redo to function
+  /// properly with registered functions, the following property needs to be
+  /// satisfied: your functions must be idempotent, or a composition
+  /// of idempotent functions such that all of the side-effects of the function
+  /// are known to the provenance system. This is further explained in the
+  /// Lua Scripting paper.
   ///
   /// TO REGISTER MEMBER FUNCTIONS:
   /// Use the LUAMemberReg mediator class. It will clean up for you.
@@ -189,70 +198,87 @@ public:
   /// The last executed parameters table is still updated upon redo.
   void setNullRedoFun(const std::string& name);
 
-//  // Use std::bind2nd to pass in an additional user defined parameter.
-//  // Testing use of std::tr1::bind.
-//  typedef std::tr1::function<void (LuaClassInstanceReg& reg)> ClassDefFun;
-//  /// Registers a new lua class given a 'class definition function'.
-//  /// Consult unit tests in LuaClassInstanceReg.cpp for examples on using the
-//  /// LuaClassInstanceReg class.
-//  ///
-//  /// Lua classes are useful for objects that are frequently created
-//  /// and destroyed. When you register a class, you are giving Lua the
-//  /// ability to create / destroy these classes at will -- and call all
-//  /// exposed functions when the class instances are alive.
-//  ///
-//  /// Provenance is enabled for these classes.
-//  ///
-//  /// \param  def     The class definition function (see unit tests).
-//  /// \param  fqName  The fully qualified name where the constructor for
-//  ///                 the class will be installed.
-//  void addLuaClassDef(ClassDefFun def, const std::string fqName);
-
-  /// Registers a Lua class.
+  /// Registers a Lua class. This method was ultimately chosen over the
+  /// two methods below (both were implemented and tested) due to 3 reasons:
+  /// 1) Depending on what registration functions we use, we can potentially
+  ///    determine what functions are associated with a particular class
+  ///    without having to create an instance of the class.
+  /// 2) Gets rid of the pointer stack / id stacks that we setup to support
+  ///    function registration in the second method.
+  /// 3) Can register classes that know nothing about LuaScripting.
+  ///    Particularly useful for not breaking encapsulation. A practical
+  ///    example of this is to register the Dataset IO class without IO
+  ///    knowing about Tuvok.
   /// \param fp         Pointer to a function that will construct the class and
-  ///                   pass back a pointer to it.
-  /// \param className  Where the class should be registered in Lua.
+  ///                   return a pointer to it.
+  /// \param className  Fully qualified class name.
   /// \param desc       Class description.
+  /// \param callback   Callback issued directly after the constructor is called
+  ///                   This callback is tightly bound to the return type of
+  ///                   FunPtr. If FunPtr has the return type of T*, then the
+  ///                   function signature the callback is:
+  ///                   callback(LuaClassRegistration<T>& reg, T* cls);
   /// @{
-  template <typename T, typename FunPtr>
+
+  // The following definition references the return type of the Function pointer
+  //  we are registering (FunPtr).
+
+  template <typename T, typename CLS, typename FunPtr>
   void registerClass(T* t, FunPtr fp, const std::string& className,
-                     const std::string& desc);
-  template <typename FunPtr>
+                     const std::string& desc,
+                     typename LuaClassRegCallback<CLS>::Type callback);
+
+  template <typename CLS, typename FunPtr>
   void registerClassStatic(FunPtr fp, const std::string& className,
-                           const std::string& desc);
+                           const std::string& desc,
+                           typename LuaClassRegCallback<CLS>::Type callback);
+
+  #undef FUNPTR_RET_TYPE
+
   /// @}
 
 
-  // Proposed alternate method for registering class'. This method would not
-  // be as cumbersome as the current implementation. Also, it opens up the
-  // possibility of knowing what functions are registered before any instance
-  // of the class is created. Also gets rid of the nasty pointer stack we
-  // need to maintain with the current version.
-//  /// Registers a Lua class.
-//  /// \param fp         Pointer to a function that will construct the class and
-//  ///                   pass back a pointer to it.
-//  /// \param className  Where the class should be registered in Lua.
-//  /// \param desc       Class description.
-//  /// \param callback   Callback that will be issued to register lua commands.
-//  ///                   This callback is tightly bound to the return type of
-//  ///                   FunPtr.
-//  ///                   The function signature of this callback, if FunPtr has
-//  ///                   the return type of T*, is:
-//  ///                   callback(LuaClassRegistration<T>& reg, T* cls);
-//  /// @{
-//  /// TLUA_FUNPTR_RET points to the return type of the Function pointer we
-//  ///  are registering (FunPtr).
-//#define TLUA_FUNPTR_RET typename LuaCFunExec<FunPtr>::returnType
-//  template <typename T, typename FunPtr>
-//  void registerClass(T* t, FunPtr fp, const std::string& className,
-//                     const std::string& desc,
-//                     std::tr1::function<void (
-//                         LuaClassRegistration<TLUA_FUNPTR_RET>& reg,
-//                         TLUA_FUNPTR_RET* cls)> callback);
-//  template <typename FunPtr>
-//  void registerClassStatic(FunPtr fp, const std::string& className,
-//                           const std::string& desc);
-//  /// @}
+  //
+  // ALTERNATE CLASS REGISTRATION METHOD #1
+  //
+  //  // Use std::bind2nd to pass in an additional user defined parameter.
+  //  // Testing use of std::tr1::bind.
+  //  typedef std::tr1::function<void (LuaClassInstanceReg& reg)> ClassDefFun;
+  //  /// Registers a new lua class given a 'class definition function'.
+  //  /// Consult unit tests in LuaClassInstanceReg.cpp for examples on using the
+  //  /// LuaClassInstanceReg class.
+  //  ///
+  //  /// Lua classes are useful for objects that are frequently created
+  //  /// and destroyed. When you register a class, you are giving Lua the
+  //  /// ability to create / destroy these classes at will -- and call all
+  //  /// exposed functions when the class instances are alive.
+  //  ///
+  //  /// Provenance is enabled for these classes.
+  //  ///
+  //  /// \param  def     The class definition function (see unit tests).
+  //  /// \param  fqName  The fully qualified name where the constructor for
+  //  ///                 the class will be installed.
+  //  void addLuaClassDef(ClassDefFun def, const std::string fqName);
+
+
+  //
+  // ALTERNATE CLASS REGISTRATION METHOD #2
+  //
+  //  /// Registers a Lua class.
+  //  /// \param fp         Pointer to a function that will construct the class and
+  //  ///                   pass back a pointer to it.
+  //  /// \param className  Where the class should be registered in Lua.
+  //  /// \param desc       Class description.
+  //  /// @{
+  //  template <typename T, typename FunPtr>
+  //  void registerClass(T* t, FunPtr fp, const std::string& className,
+  //                     const std::string& desc);
+  //  template <typename FunPtr>
+  //  void registerClassStatic(FunPtr fp, const std::string& className,
+  //                           const std::string& desc);
+  //  /// @}
+
+
 
 
   /// Retrieves the LuaClassInstance given the object pointer.
@@ -829,9 +855,11 @@ private:
 namespace tuvok
 {
 
-template <typename T, typename FunPtr>
-void LuaScripting::registerClass(T* t, FunPtr fp, const std::string& className,
-                                 const std::string& desc)
+template <typename T, typename CLS, typename FunPtr>
+void LuaScripting::registerClass(
+    T* t, FunPtr fp, const std::string& className,
+    const std::string& desc,
+    typename LuaClassRegCallback<CLS>::Type callback)
 {
   // Register f as the function _new. This function will be called to construct
   // a pointer to the class we want to create. This function is guaranteed
@@ -843,9 +871,9 @@ void LuaScripting::registerClass(T* t, FunPtr fp, const std::string& className,
   // Register 'new'. This will automatically create the necessary class table.
   std::string fqFunName = className;
   fqFunName += ".new";
-  mClassCons->registerMemberConstructor(t, fp, fqFunName, desc, true);
+  mClassCons->registerMemberConstructor(t, fp, fqFunName, desc, true, callback);
   setNullUndoFun(fqFunName); // We do not want to exe new when undoing
-                                  // All child undo items are still executed.
+                             // All child undo items are still executed.
 
   // Since we did the registerConstructor above we will have our function
   // table present.
@@ -869,9 +897,11 @@ void LuaScripting::registerClass(T* t, FunPtr fp, const std::string& className,
 
 }
 
-template <typename FunPtr>
-void LuaScripting::registerClassStatic(FunPtr fp, const std::string& className,
-                                       const std::string& desc)
+template <typename CLS, typename FunPtr>
+void LuaScripting::registerClassStatic(
+    FunPtr fp, const std::string& className,
+    const std::string& desc,
+    typename LuaClassRegCallback<CLS>::Type callback)
 {
   // Register f as the function _new. This function will be called to construct
   // a pointer to the class we want to create. This function is guaranteed
@@ -883,9 +913,9 @@ void LuaScripting::registerClassStatic(FunPtr fp, const std::string& className,
   // Register 'new'. This will automatically create the necessary class table.
   std::string fqFunName = className;
   fqFunName += ".new";
-  mClassCons->registerConstructor(fp, fqFunName, desc, true);
+  mClassCons->registerConstructor(fp, fqFunName, desc, true, callback);
   setNullUndoFun(fqFunName); // We do not want to exe new when undoing
-                                  // All child undo items are still executed.
+                             // All child undo items are still executed.
 
   // Since we did the registerConstructor above we will have our function
   // table present.
@@ -907,6 +937,86 @@ void LuaScripting::registerClassStatic(FunPtr fp, const std::string& className,
   // Pop the new function table.
   lua_pop(mL, 1);
 }
+
+// METHOD #2 IMPLEMENTATION
+//template <typename T, typename FunPtr>
+//void LuaScripting::registerClass(T* t, FunPtr fp, const std::string& className,
+//                                 const std::string& desc)
+//{
+//  // Register f as the function _new. This function will be called to construct
+//  // a pointer to the class we want to create. This function is guaranteed
+//  // to be a static function.
+//  // Construct 'constructor' table.
+//  lua_State* L = getLUAState();
+//  LuaStackRAII _a(L, 0);
+//
+//  // Register 'new'. This will automatically create the necessary class table.
+//  std::string fqFunName = className;
+//  fqFunName += ".new";
+//  mClassCons->registerMemberConstructor(t, fp, fqFunName, desc, true);
+//  setNullUndoFun(fqFunName); // We do not want to exe new when undoing
+//                                  // All child undo items are still executed.
+//
+//  // Since we did the registerConstructor above we will have our function
+//  // table present.
+//  if (getFunctionTable(className) == false)
+//    throw LuaFunBindError("Unable to find table we just built!");
+//
+//  // Pop function table off stack.
+//  lua_pop(L, 1);
+//
+//  // Populate the 'new' function's table with the class definition function,
+//  // and the full factory name.
+//  std::ostringstream retNewFun;
+//  retNewFun << "return " << className << ".new";
+//  luaL_dostring(mL, retNewFun.str().c_str());
+//
+//  lua_pushstring(mL, className.c_str());
+//  lua_setfield(mL, -2, LuaClassConstructor::CONS_MD_FACTORY_NAME);
+//
+//  // Pop the new function table.
+//  lua_pop(mL, 1);
+//
+//}
+//
+//template <typename FunPtr>
+//void LuaScripting::registerClassStatic(FunPtr fp, const std::string& className,
+//                                       const std::string& desc)
+//{
+//  // Register f as the function _new. This function will be called to construct
+//  // a pointer to the class we want to create. This function is guaranteed
+//  // to be a static function.
+//  // Construct 'constructor' table.
+//  lua_State* L = getLUAState();
+//  LuaStackRAII _a(L, 0);
+//
+//  // Register 'new'. This will automatically create the necessary class table.
+//  std::string fqFunName = className;
+//  fqFunName += ".new";
+//  mClassCons->registerConstructor(fp, fqFunName, desc, true);
+//  setNullUndoFun(fqFunName); // We do not want to exe new when undoing
+//                                  // All child undo items are still executed.
+//
+//  // Since we did the registerConstructor above we will have our function
+//  // table present.
+//  if (getFunctionTable(className) == false)
+//    throw LuaFunBindError("Unable to find table we just built!");
+//
+//  // Pop function table off stack.
+//  lua_pop(L, 1);
+//
+//  // Populate the 'new' function's table with the class definition function,
+//  // and the full factory name.
+//  std::ostringstream retNewFun;
+//  retNewFun << "return " << className << ".new";
+//  luaL_dostring(mL, retNewFun.str().c_str());
+//
+//  lua_pushstring(mL, className.c_str());
+//  lua_setfield(mL, -2, LuaClassConstructor::CONS_MD_FACTORY_NAME);
+//
+//  // Pop the new function table.
+//  lua_pop(mL, 1);
+//}
 
 template <typename T>
 T LuaScripting::execRet(const std::string& cmd)

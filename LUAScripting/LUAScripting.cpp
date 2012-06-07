@@ -784,6 +784,20 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
   }
   lua_pop(mL, 1);
 
+  lua_getfield(mL, mt, LuaClassInstance::MD_DEL_CALLBACK_PTR);
+  LuaClassConstructor::DelFunSig delCallbackFun = reinterpret_cast<
+      LuaClassConstructor::DelFunSig>(lua_touserdata(mL, -1));
+  lua_pop(mL, 1);
+
+  // Delete the function pointer light user data. It is stored in the
+  // constructor's table.
+  lua_getfield(mL, tableIndex, "new");
+  lua_getfield(mL, tableIndex,
+               LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
+  delCallbackFun(lua_touserdata(mL, -1));
+  lua_pop(mL, 2);
+  // CONS_MD_FUNC_REGISTRATION_FPTR
+
   // Remove metatable from the stack.
   lua_pop(mL, 1);
 }

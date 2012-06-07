@@ -205,6 +205,7 @@ HEADERS += \
            LUAScripting/LUAClassConstructor.h \
            LUAScripting/LUAClassInstance.h \
            LUAScripting/LUAClassRegistration.h \
+           LUAScripting/LUACommon.h \
            LUAScripting/LUAError.h \
            LUAScripting/LUAFunBinding.h \
            LUAScripting/LUAFunBindingCore.h \

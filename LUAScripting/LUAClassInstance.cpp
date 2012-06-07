@@ -57,6 +57,7 @@ const char* LuaClassInstance::MD_GLOBAL_INSTANCE_ID = "globalID";
 const char* LuaClassInstance::MD_FACTORY_NAME       = "factoryName";
 const char* LuaClassInstance::MD_INSTANCE           = "instance";
 const char* LuaClassInstance::MD_DEL_FUN            = "delFun";
+const char* LuaClassInstance::MD_DEL_CALLBACK_PTR   = "delCallbackPtr";
 const char* LuaClassInstance::MD_NO_DELETE_HINT     = "deleteHint";
 
 const char* LuaClassInstance::SYSTEM_TABLE          = "_sys_";

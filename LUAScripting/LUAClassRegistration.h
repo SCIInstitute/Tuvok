@@ -35,6 +35,7 @@
 #ifndef TUVOK_LUACLASSREGISTRATION_H_
 #define TUVOK_LUACLASSREGISTRATION_H_
 
+#include "LUACommon.h"
 #include "LUAClassInstance.h"
 #include "LUAMemberRegUnsafe.h"
 #include "LUAProvenance.h"
@@ -42,26 +43,15 @@
 namespace tuvok
 {
 
+class LuaClassConstructor;
+
 template <typename T>
 class LuaClassRegistration
 {
+  friend class LuaClassConstructor; // The only class that can instantiate us.
 public:
 
-  LuaClassRegistration(std::tr1::shared_ptr<LuaScripting> ss, T* t)
-  : mSS(ss)
-  , mPtr(t)
-  , mRegistration(ss.get())
-  {
-    obtainID();
-  }
-
-  ~LuaClassRegistration()
-  {
-    if (mPtr && mSS.expired() == false)
-    {
-      mSS.lock()->notifyOfDeletion(LuaClassInstance(mGlobalID));
-    }
-  }
+  ~LuaClassRegistration() {}
 
   bool canRegister() const    {return (mPtr != NULL);}
 
@@ -88,29 +78,20 @@ public:
 
 private:
 
-  void obtainID()
-  {
-    // Setup inst
-    std::tr1::shared_ptr<LuaScripting> ss(mSS);
-    int createdID = ss->classPopCreateID();
-    if (createdID != -1)
-    {
-      mGlobalID = createdID;
-      ss->classPushCreatePtr(mPtr);
-      ss->classPushValidateCreateID(mGlobalID);
-    }
-    else
-    {
-      mPtr = NULL;
-    }
-  }
+  // Feel free to copy the class.
+  LuaClassRegistration(LuaScripting* ss, T* t, int globalID)
+  : mSS(ss)
+  , mGlobalID(globalID)
+  , mPtr(t)
+  , mRegistration(ss)
+  {}
 
-  std::tr1::weak_ptr<LuaScripting>        mSS;
+  LuaScripting*         mSS;
 
-  int                                     mGlobalID;
-  T*                                      mPtr;
+  int                   mGlobalID;
+  T*                    mPtr;
 
-  LuaMemberRegUnsafe                      mRegistration;
+  LuaMemberRegUnsafe    mRegistration;
 
 };
 
@@ -141,7 +122,7 @@ std::string LuaClassRegistration<T>::function(FunPtr f,
 template <typename T>
 void LuaClassRegistration<T>::inherit(LuaClassInstance them)
 {
-  std::tr1::shared_ptr<LuaScripting> ss(mSS);
+  LuaScripting* ss(mSS);
   lua_State* L = ss->getLUAState();
 
   LuaStackRAII _a(L, 0);

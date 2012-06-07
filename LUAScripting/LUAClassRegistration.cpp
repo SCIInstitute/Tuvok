@@ -72,14 +72,11 @@ SUITE(LuaTestClassRegistration)
   public:
 
     A(int a, float b, string c, tr1::shared_ptr<LuaScripting> ss)
-    : d(ss, this)
     {
       ++a_constructor;
       i1 = a; i2 = 0;
       f1 = b; f2 = 0.0f;
       s1 = c;
-
-      registerFunctions();
     }
 
     ~A()
@@ -90,8 +87,6 @@ SUITE(LuaTestClassRegistration)
     int     i1, i2;
     float   f1, f2;
     string  s1, s2;
-
-    LuaClassRegistration<A> d;
 
     void set_i1(int i)    {i1 = i;}
     void set_i2(int i)    {i2 = i;}
@@ -109,7 +104,8 @@ SUITE(LuaTestClassRegistration)
     string get_s2()       {return s2;}
 
     // Class definition. The real meat defining a class.
-    void registerFunctions()
+    static void registerFunctions(LuaClassRegistration<A>& d, A* me,
+                                  LuaScripting* ss)
     {
       d.function(&A::set_i1, "set_i1", "", true);
       d.function(&A::set_i2, "set_i2", "", true);
@@ -139,12 +135,9 @@ SUITE(LuaTestClassRegistration)
   {
   public:
     B(tr1::shared_ptr<LuaScripting> ss)
-    : d(ss, this)
     {
       ++b_constructor;
       i1 = 0; f1 = 0;
-
-      registerFunctions();
     }
 
     ~B()
@@ -156,8 +149,6 @@ SUITE(LuaTestClassRegistration)
     float f1;
     string s1;
 
-    LuaClassRegistration<B> d;
-
     void set_i1(int i)    {i1 = i;}
     int get_i1()          {return i1;}
 
@@ -167,7 +158,8 @@ SUITE(LuaTestClassRegistration)
     void set_s1(string s) {s1 = s;}
     string get_s1()       {return s1;}
 
-    void registerFunctions()
+    void registerFunctions(LuaClassRegistration<B>& d, B* me,
+                           LuaScripting* ss)
     {
       d.function(&B::set_i1, "set_i1", "", true);
       d.function(&B::get_i1, "get_i1", "", false);
@@ -193,8 +185,12 @@ SUITE(LuaTestClassRegistration)
       tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
       // Register class definitions.
-      sc->registerClassStatic(&A::luaConstruct, "factory.a1", "a class");
-      sc->registerClassStatic(&B::luaConstruct, "factory.b1", "b class");
+      sc->registerClassStatic<A>(&A::luaConstruct, "factory.a1", "a class",
+                                 LuaClassRegCallback<A>::Type(
+                                     &A::registerFunctions));
+      sc->registerClassStatic<B>(&B::luaConstruct, "factory.b1", "b class",
+                                 LuaClassRegCallback<B>::Type(
+                                     &B::registerFunctions));
 
       // Test the classes.
       LuaClassInstance a_1 = sc->cexecRet<LuaClassInstance>(
@@ -250,8 +246,12 @@ SUITE(LuaTestClassRegistration)
       tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
       // Register class definitions.
-      sc->registerClassStatic(&A::luaConstruct, "factory.a1", "a class");
-      sc->registerClassStatic(&B::luaConstruct, "factory.b1", "b class");
+      sc->registerClassStatic<A>(&A::luaConstruct, "factory.a1", "a class",
+                                 LuaClassRegCallback<A>::Type(
+                                     &A::registerFunctions));
+      sc->registerClassStatic<B>(&B::luaConstruct, "factory.b1", "b class",
+                                 LuaClassRegCallback<B>::Type(
+                                     &B::registerFunctions));
 
       LuaClassInstance a1 = sc->cexecRet<LuaClassInstance>(
           "factory.a1.new", 2, 6.0, "mystr", sc);
@@ -419,7 +419,9 @@ SUITE(LuaTestClassRegistration)
     tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
     {
-      sc->registerClassStatic(&A::luaConstruct, "factory.a1", "");
+      sc->registerClassStatic<A>(&A::luaConstruct, "factory.a1", "a class",
+                                 LuaClassRegCallback<A>::Type(
+                                     &A::registerFunctions));
 
       LuaClassInstance a_1 = sc->cexecRet<LuaClassInstance>(
           "factory.a1.new", 2, 2.63, "str", sc);
@@ -461,8 +463,12 @@ SUITE(LuaTestClassRegistration)
     tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
     // Register class definitions.
-    sc->registerClassStatic(&A::luaConstruct, "factory.a1", "");
-    sc->registerClassStatic(&B::luaConstruct, "factory.b1", "");
+    sc->registerClassStatic<A>(&A::luaConstruct, "factory.a1", "a class",
+                               LuaClassRegCallback<A>::Type(
+                                   &A::registerFunctions));
+    sc->registerClassStatic<B>(&B::luaConstruct, "factory.b1", "b class",
+                               LuaClassRegCallback<B>::Type(
+                                   &B::registerFunctions));
 
     a_destructor = 0;
     LuaClassInstance a1 = sc->cexecRet<LuaClassInstance>(
@@ -532,8 +538,7 @@ SUITE(LuaTestClassRegistration)
   {
   public:
     C()
-    : d(gSS, this)
-    , a(gSS->cexecRet<LuaClassInstance>("factory.a.new", 2, 2.63, "str", gSS))
+    : a(gSS->cexecRet<LuaClassInstance>("factory.a.new", 2, 2.63, "str", gSS))
     {
       ++c_constructor;
       i1 = 0;

@@ -53,7 +53,8 @@ using namespace std;
 namespace tuvok
 {
 
-const char* LuaClassConstructor::CONS_MD_FACTORY_NAME       = "factoryName";
+const char* LuaClassConstructor::CONS_MD_FACTORY_NAME           = "factoryName";
+const char* LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR = "consFptr";
 
 LuaClassConstructor::LuaClassConstructor(LuaScripting* ss)
 : mSS(ss)
@@ -105,7 +106,8 @@ int LuaClassConstructor::createCoreMetatable(lua_State* L, int instID,
 }
 
 void LuaClassConstructor::finalizeMetatable(lua_State* L, int mt,
-                                            void* ptr, void* delPtr)
+                                            void* ptr, void* delPtr,
+                                            void* delCallbackPtr)
 {
   // Setup metatable attributes that depend on the class pointer and
   // the type FunPtr.
@@ -114,6 +116,9 @@ void LuaClassConstructor::finalizeMetatable(lua_State* L, int mt,
 
   lua_pushlightuserdata(L, delPtr);
   lua_setfield(L, mt, LuaClassInstance::MD_DEL_FUN);
+
+  lua_pushlightuserdata(L, delCallbackPtr);
+  lua_setfield(L, mt, LuaClassInstance::MD_DEL_CALLBACK_PTR);
 }
 
 LuaClassInstance LuaClassConstructor::finalizeInstanceTable(LuaScripting* ss,
@@ -150,11 +155,11 @@ LuaClassInstance LuaClassConstructor::buildCoreInstanceTable(lua_State* L,
 
 void LuaClassConstructor::finalize(lua_State* L, LuaScripting* ss, void* r,
                                    LuaClassInstance inst, int mt, int instTable,
-                                   void* delFun)
+                                   void* delFun, void* delCallbackFun)
 {
   addToLookupTable(ss, L, r, inst.getGlobalInstID());
 
-  finalizeMetatable(L, mt, r, delFun);
+  finalizeMetatable(L, mt, r, delFun, delCallbackFun);
 
   // Remove the metatable first, then the instance table (otherwise,
   // metatable's index would be one lower than what we recorded).
