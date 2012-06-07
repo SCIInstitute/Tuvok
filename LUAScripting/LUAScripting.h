@@ -42,16 +42,21 @@
 #define TUVOK_LUASCRIPTING_H_
 
 #ifndef EXTERNAL_UNIT_TESTING
+
 #include "3rdParty/LUA/lua.hpp"
 #include <assert.h>
 
 #include <iostream>
+#include <string>
+
+#endif
+
 #ifdef _MSC_VER
+#include <functional>
 #include <memory>
 #else
+#include <tr1/functional>
 #include <tr1/memory>
-#endif
-#include <string>
 #endif
 
 #include "LUAError.h"
@@ -173,7 +178,9 @@ public:
   /// The last executed parameters table is still updated upon redo.
   void setNullRedoFun(const std::string& name);
 
-  typedef void (*ClassDefFun)(LuaClassInstanceReg& reg);
+  // Use std::bind2nd to pass in an additional user defined parameter.
+  // Testing use of std::tr1::bind.
+  typedef std::tr1::function<void (LuaClassInstanceReg& reg)> ClassDefFun;
   /// Registers a new lua class given a 'class definition function'.
   /// Consult unit tests in LuaClassInstanceReg.cpp for examples on using the
   /// LuaClassInstanceReg class.

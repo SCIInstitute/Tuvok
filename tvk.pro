@@ -206,10 +206,13 @@ HEADERS += \
            LUAScripting/LUAClassInstanceReg.h \
            LUAScripting/LUAError.h \
            LUAScripting/LUAFunBinding.h \
+           LUAScripting/LUAFunBindingCore.h \
            LUAScripting/LUAMemberReg.h \
            LUAScripting/LUAMemberRegUnsafe.h \
            LUAScripting/LUAProvenance.h \
            LUAScripting/LUAScripting.h \
+           LUAScripting/LUAScriptingExecBody.h \
+           LUAScripting/LUAScriptingExecHeader.h \
            LUAScripting/LUAStackRAII.h \
            Renderer/StateManager.h \
            Renderer/AbstrRenderer.h \

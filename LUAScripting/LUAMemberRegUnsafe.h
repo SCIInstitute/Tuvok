@@ -356,11 +356,8 @@ void LuaMemberRegUnsafe::strictHookInternal(
 
   // Need to check the signature of the function that we are trying to bind
   // into the script system.
-  int initStackTop = lua_gettop(L);
-
   if (ss->getFunctionTable(name) == false)
   {
-    lua_settop(L, initStackTop);
     throw LuaNonExistantFunction("Unable to find function with which to"
                                  "associate a hook.");
   }
@@ -373,7 +370,6 @@ void LuaMemberRegUnsafe::strictHookInternal(
   std::string sigHook = LuaCFunExec<FunPtr>::getSigNoReturn("");
   if (sigReg.compare(sigHook) != 0)
   {
-    lua_settop(L, initStackTop);
     std::ostringstream os;
     os << "Hook's parameter signature and the parameter signature of the "
           "function to hook must match. Hook's signature: \"" << sigHook <<
@@ -393,7 +389,6 @@ void LuaMemberRegUnsafe::strictHookInternal(
     lua_getfield(L, -1, mHookID.c_str());
     if (lua_isnil(L, -1) == 0)
     {
-      lua_settop(L, initStackTop);
       std::ostringstream os;
       os << "Instance of LuaMemberReg has already bound " << name;
       throw LuaFunBindError(os.str().c_str());

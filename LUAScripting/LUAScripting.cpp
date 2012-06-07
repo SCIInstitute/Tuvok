@@ -426,6 +426,14 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
   // Call the delete function with the instance pointer.
   // Permanently removes the memory for our class.
   fun(this, instID, cls);
+
+  // Delete the functional pointer.
+  lua_getfield(mL, tableIndex, LuaClassInstanceReg::CONS_MD_CLASS_DEFINITION);
+  LuaScripting::ClassDefFun* fDef =
+      reinterpret_cast<LuaScripting::ClassDefFun*>(lua_touserdata(mL, -1));
+  lua_pop(mL, 1);
+
+  delete fDef;
 }
 
 //-----------------------------------------------------------------------------
@@ -1448,7 +1456,7 @@ void LuaScripting::addLuaClassDef(ClassDefFun f, const std::string fqName)
 {
   // Build constructor into the Lua class table (at fqName).
   // (Setup appropriate LuaClassInstanceReg to grab constructor).
-  LuaClassInstanceReg reg(this, fqName, f);
+  LuaClassInstanceReg reg(this, fqName);
 
   // Call class definition function.
   // This class will construct an appropriate class instance table using the
@@ -1461,7 +1469,8 @@ void LuaScripting::addLuaClassDef(ClassDefFun f, const std::string fqName)
   retNewFun << "return " << fqName << ".new";
   luaL_dostring(mL, retNewFun.str().c_str());
 
-  lua_pushlightuserdata(mL, reinterpret_cast<void*>(f));
+  ClassDefFun* cls = new ClassDefFun(f);
+  lua_pushlightuserdata(mL, reinterpret_cast<void*>(cls));
   lua_setfield(mL, -2, LuaClassInstanceReg::CONS_MD_CLASS_DEFINITION);
 
   lua_pushstring(mL, fqName.c_str());

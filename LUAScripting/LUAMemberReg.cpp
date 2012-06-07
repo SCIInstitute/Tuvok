@@ -202,6 +202,7 @@ SUITE(LuaTestMemberFunctionRegistration)
     CHECK_EQUAL(34, a->hookm2_var);
     CHECK_CLOSE(6.3, a->hookm3_var, 0.001);
 
+    sc->setExpectedExceptionFlag(true);
     CHECK_THROW(a->mReg.strictHook(a.get(), &A::hookm2, "m1a"),
                 LuaNonExistantFunction);
 
@@ -210,6 +211,7 @@ SUITE(LuaTestMemberFunctionRegistration)
 
     CHECK_THROW(a->mReg.strictHook(a.get(), &A::hookm2, "m2"),
                 LuaFunBindError);
+    sc->setExpectedExceptionFlag(false);
 
     a->mReg.unregisterHooks();
 
