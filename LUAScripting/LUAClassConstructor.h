@@ -30,12 +30,10 @@
  \brief
  */
 
-#ifndef LUACLASSCONSTRUCTOR_H_
-#define LUACLASSCONSTRUCTOR_H_
+#ifndef TUVOK_LUACLASSCONSTRUCTOR_H_
+#define TUVOK_LUACLASSCONSTRUCTOR_H_
 
 #include "LUAClassInstance.h"
-#include "LUAMemberRegUnsafe.h"
-#include "LUAProvenance.h"
 
 namespace tuvok
 {
@@ -195,10 +193,10 @@ public:
     if (undoRedo == false)  mSS->setUndoRedoStackExempt(name);
   }
 
-private:
-
   /// Signature for delFun in LuaConstructorCallback.
   typedef void (*DelFunSig)(void* inst);
+
+private:
 
   template <typename FunPtr>
   struct LuaConstructorCallback

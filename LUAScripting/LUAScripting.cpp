@@ -111,7 +111,7 @@ LuaScripting::LuaScripting()
 , mGlobalTempCurrent(0)
 , mProvenance(new LuaProvenance(this))
 , mMemberReg(new LuaMemberRegUnsafe(this))
-, mClassCons(this)
+, mClassCons(new LuaClassConstructor(this))
 {
   mL = lua_newstate(luaInternalAlloc, NULL);
 
@@ -428,8 +428,8 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
 
   // Pull the delete function from the table.
   lua_getfield(mL, mt, LuaClassInstance::MD_DEL_FUN);
-  LuaClassInstanceReg::DelFunSig fun = reinterpret_cast<
-      LuaClassInstanceReg::DelFunSig>(lua_touserdata(mL, -1));
+  LuaClassConstructor::DelFunSig fun = reinterpret_cast<
+      LuaClassConstructor::DelFunSig>(lua_touserdata(mL, -1));
   lua_pop(mL, 1);
 
   // Pull the instance pointer from the table.
@@ -454,14 +454,6 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
 
   // Remove metatable from the stack.
   lua_pop(mL, 1);
-
-  // Delete the functional pointer.
-  lua_getfield(mL, tableIndex, LuaClassInstanceReg::CONS_MD_CLASS_DEFINITION);
-  LuaScripting::ClassDefFun* fDef =
-      reinterpret_cast<LuaScripting::ClassDefFun*>(lua_touserdata(mL, -1));
-  lua_pop(mL, 1);
-
-  delete fDef;
 }
 
 //-----------------------------------------------------------------------------

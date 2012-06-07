@@ -46,14 +46,13 @@
 
 #include "LUAScripting.h"
 #include "LUAStackRAII.h"
-#include "LUAClassConstructor.h"
 #include "LUAClassInstance.h"
+#include "LUAProvenance.h"
 
 using namespace std;
 namespace tuvok
 {
 
-const char* LuaClassConstructor::CONS_MD_CLASS_DEFINITION   = "classDefFun";
 const char* LuaClassConstructor::CONS_MD_FACTORY_NAME       = "factoryName";
 
 LuaClassConstructor::LuaClassConstructor(LuaScripting* ss)
@@ -138,7 +137,7 @@ LuaClassInstance LuaClassConstructor::buildCoreInstanceTable(lua_State* L,
   // Build instance table.
   lua_newtable(L);
   int instTable = lua_gettop(L);
-  int mt = createCoreMetatable(L, instID, consTable);
+  createCoreMetatable(L, instID, consTable);
 
   // Attach an instance of the instance table so that the constructor
   // can register its functions.

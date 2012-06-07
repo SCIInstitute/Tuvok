@@ -69,7 +69,6 @@ public:
 
   std::string getFQName()     {return LuaClassInstance(mGlobalID).fqName();}
 
-
 private:
 
 

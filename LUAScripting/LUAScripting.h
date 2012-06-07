@@ -63,15 +63,13 @@
 #include "LUAFunBinding.h"
 #include "LUAStackRAII.h"
 #include "LUAScriptingExecHeader.h"
-#include "LUAClassConstructor.h"
 
 namespace tuvok
 {
 
 class LuaProvenance;
 class LuaMemberRegUnsafe;
-class LuaClassInstanceReg;
-
+class LuaClassConstructor;
 
 /// Usage Note: If you construct any Lua Class instances that retain a
 /// shared_ptr reference to this LuaScripting class, be sure to call
@@ -79,11 +77,12 @@ class LuaClassInstanceReg;
 /// Consider using weak_ptr instead.
 class LuaScripting
 {
+  // TODO: Expose getLuaState function and most of these can go away.
   friend class LuaMemberRegUnsafe;  // For getNewMemberHookID.
   friend class LuaProvenance;       // For obtaining function tables.
   friend class LuaStackRAII;        // For unwinding lua stack during exception
   friend class LuaClassInstanceHook;// For getNewMemberHookID.
-  friend class LuaClassInstanceReg; // For obtaining Lua instance.
+  friend class LuaClassConstructor; // For createCallableFuncTable.
   friend class LuaClassRegistration;// For notifyOfDeletion.
   friend class LuaClassInstance;    // For obtaining Lua instance.
 public:
@@ -209,8 +208,8 @@ public:
   void registerClass(T* t, const FunPtr fp, std::string& className,
                      std::string& desc);
   template <typename FunPtr>
-  void registerClassStaticCons(FunPtr fp, std::string& className,
-                               const std::string& desc);
+  void registerClassStatic(const FunPtr fp, std::string& className,
+                           const std::string& desc);
   /// @}
 
   /// Retrieves the LuaClassInstance given the object pointer.
@@ -443,8 +442,7 @@ private:
 
   /// Creates a callable LUA table. classInstance can be NULL.
   /// Leaves the table on the top of the LUA stack.
-  void createCallableFuncTable(lua_CFunction proxyFunc,
-                               void* realFuncToCall);
+  void createCallableFuncTable(lua_CFunction proxyFunc, void* realFuncToCall);
 
   /// Populates the table at the given index with the given function metadata.
   void populateWithMetadata(const std::string& name,
@@ -604,7 +602,7 @@ private:
 
   std::auto_ptr<LuaProvenance>      mProvenance;
   std::auto_ptr<LuaMemberRegUnsafe> mMemberReg;
-  LuaClassConstructor               mClassCons;
+  std::auto_ptr<LuaClassConstructor>mClassCons;
 
   /// These structures were created in order to handle void return types easily
   ///@{
@@ -731,6 +729,15 @@ private:
 
 };
 
+} // namespace tuvok
+
+// We need to place this here to resolve a circular reference introduced by the
+// functions below.
+#include "LUAClassConstructor.h"
+
+namespace tuvok
+{
+
 template <typename T, typename FunPtr>
 void LuaScripting::registerClass(T* t, const FunPtr fp, std::string& className,
                                  std::string& desc)
@@ -745,7 +752,7 @@ void LuaScripting::registerClass(T* t, const FunPtr fp, std::string& className,
   // Register 'new'. This will automatically create the necessary class table.
   std::string fqFunName = className;
   fqFunName += ".new";
-  mClassCons.registerMemberConstructor(t, fp, fqFunName, desc, true);
+  mClassCons->registerMemberConstructor(t, fp, fqFunName, desc, true);
   setNullUndoFun(fqFunName); // We do not want to exe new when undoing
                                   // All child undo items are still executed.
 
@@ -772,8 +779,8 @@ void LuaScripting::registerClass(T* t, const FunPtr fp, std::string& className,
 }
 
 template <typename FunPtr>
-void LuaScripting::registerClassStaticCons(FunPtr fp, std::string& className,
-                                           const std::string& desc)
+void LuaScripting::registerClassStatic(const FunPtr fp, std::string& className,
+                                       const std::string& desc)
 {
   // Register f as the function _new. This function will be called to construct
   // a pointer to the class we want to create. This function is guaranteed
@@ -785,7 +792,7 @@ void LuaScripting::registerClassStaticCons(FunPtr fp, std::string& className,
   // Register 'new'. This will automatically create the necessary class table.
   std::string fqFunName = className;
   fqFunName += ".new";
-  mClassCons.registerConstructor(fp, fqFunName, desc, true);
+  mClassCons->registerConstructor(fp, fqFunName, desc, true);
   setNullUndoFun(fqFunName); // We do not want to exe new when undoing
                                   // All child undo items are still executed.
 

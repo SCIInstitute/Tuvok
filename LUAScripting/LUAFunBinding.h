@@ -401,6 +401,61 @@ public:
   static LuaClassInstance getDefault() { return LuaClassInstance(-1); }
 };
 
+// Shared pointer type to allow arbitrary pointers to be passed into the system.
+// Be careful when using shared pointers with the LuaScripting class.
+// The LuaScripting class will not be destroyed until the class' provenance
+// record is cleared in this particular case. This is because a shared pointer
+// reference to LuaScripting will be stored inside of the provenance system.
+template <typename T>
+class LuaStrictStack<std::tr1::shared_ptr<T> >
+{
+public:
+  static std::tr1::shared_ptr<T> get(lua_State* L, int pos)
+  {
+    std::tr1::shared_ptr<T>* ptr =
+        reinterpret_cast<std::tr1::shared_ptr<T>* >(lua_touserdata(L, pos));
+    return *ptr;
+  }
+
+  static int gc(lua_State* L)
+  {
+    // Explicitly call the shared pointer's destructor.
+    std::tr1::shared_ptr<T>* ptr =
+        reinterpret_cast<std::tr1::shared_ptr<T>* >(lua_touserdata(L, 1));
+    ptr->~shared_ptr();
+    return 0;
+  }
+
+  static void push(lua_State* L, std::tr1::shared_ptr<T> in)
+  {
+    // Allocate space for a shared pointer.
+    void* spData = lua_newuserdata(L, sizeof(std::tr1::shared_ptr<T>));
+    new(spData) std::tr1::shared_ptr<T>(in);
+
+    // Setup metatable for the shared pointer to ensure it is dereferenced
+    // when the lua instance is destroyed. We need to explicitly call the
+    // destructor of the user data.
+    lua_newtable(L);
+    lua_pushcfunction(L, gc);
+    lua_setfield(L, -2, "__gc");
+    lua_setmetatable(L, -2);
+  }
+
+  static std::string getValStr(std::tr1::shared_ptr<T>)
+  {
+    std::ostringstream os;
+    os << "SharedPointer";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "shared_ptr"; }
+  static std::tr1::shared_ptr<T> getDefault()
+  {
+    return std::tr1::shared_ptr<T>();
+  }
+};
+
+// TODO:  If boost detected, add boost shared_ptr.
+
 // TODO:	Add support for std::vector and std::map, both to be implemented as
 //        tables in LUA. std::vector would be efficiently implemented in LUA.
 //        In LUA, it would be stored internally as an array instead of
