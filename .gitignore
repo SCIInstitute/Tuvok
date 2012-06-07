@@ -6,3 +6,6 @@ Basics
 IO
 *.o
 *.vcxproj.user
+test/context/tvktest
+test/render/tuvok
+test/shaders/shtest

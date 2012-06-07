@@ -47,7 +47,7 @@
 #include "Renderer/GL/GLFBOTex.h"
 #include "Renderer/GL/GLFrameCapture.h"
 #include "Renderer/GL/GLRenderer.h"
-#include "LUAScripting/LUAScripting.h"
+#include "LuaScripting/LuaScripting.h"
 
 #include "context.h"
 

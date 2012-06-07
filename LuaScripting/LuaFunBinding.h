@@ -816,6 +816,6 @@ void LSS_pushTypeInfo(lua_State* L)
 //
 //============================
 
-#include "LUAFunBindingCore.h"
+#include "LuaFunBindingCore.h"
 
 #endif /* LUAFUNBINDING_H_ */

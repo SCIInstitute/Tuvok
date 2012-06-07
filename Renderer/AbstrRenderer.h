@@ -57,8 +57,8 @@
 #include "Context.h"
 #include "Basics/Interpolant.h"
 
-#include "LUAScripting/LUAScripting.h"
-#include "LUAScripting/LUAClassRegistration.h"
+#include "LuaScripting/LuaScripting.h"
+#include "LuaScripting/LuaClassRegistration.h"
 
 class TransferFunction1D;
 class TransferFunction2D;

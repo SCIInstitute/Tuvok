@@ -35,9 +35,9 @@
 
 #include "RenderRegion.h"
 
-#include "../LUAScripting/LUAScripting.h"
-#include "../LUAScripting/LUAClassRegistration.h"
-#include "../LUAScripting/TuvokSpecific/LUATuvokTypes.h"
+#include "../LuaScripting/LuaScripting.h"
+#include "../LuaScripting/LuaClassRegistration.h"
+#include "../LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
 
 namespace tuvok {
 

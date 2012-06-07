@@ -33,6 +33,7 @@
 #ifndef TUVOK_LUACLASSCONSTRUCTOR_H_
 #define TUVOK_LUACLASSCONSTRUCTOR_H_
 
+#include <cstring>
 #include "LuaClassInstance.h"
 
 namespace tuvok
