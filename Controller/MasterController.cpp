@@ -291,10 +291,14 @@ void MasterController::RegisterLuaCommands() {
 
   // Register volume renderer creation class.
   std::string renderer = "tuvok.renderer";
-  ss->registerClass(this, &MasterController::RequestNewVolumeRenderer,
-                    renderer,
-                    "Constructs a new renderer. The first parameter is one "
-                    "of the values in the tuvok.renderer.types table.");
+  ss->registerClass<AbstrRenderer>(
+      this,
+      &MasterController::RequestNewVolumeRenderer,
+      renderer,
+      "Constructs a new renderer. The first parameter is one "
+      "of the values in the tuvok.renderer.types table.",
+      LuaClassRegCallback<AbstrRenderer>::Type(
+          AbstrRenderer::RegisterLuaFunctions));
 
   // Populate the tuvok.renderer.type table.
   ss->exec(renderer + ".types = {}");

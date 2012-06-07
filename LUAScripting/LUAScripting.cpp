@@ -2787,6 +2787,52 @@ SUITE(TestLUAScriptingSystem)
 
 #endif
 
+  std::string r1;
+  std::string r2;
+
+  void strRef1(const std::string& ref)
+  {
+    r1 = ref;
+  }
+
+  void strRef2(std::string& ref)
+  {
+    r2 = ref;
+  }
+
+  TEST(TestStringReferences)
+  {
+    TEST_HEADER;
+
+    auto_ptr<LuaScripting> sc(new LuaScripting());
+
+    sc->registerFunction(&strRef1, "set_r1", "", true);
+    sc->setDefaults("set_r1", "ref 1", true);
+    sc->registerFunction(&strRef2, "set_r2", "", true);
+    sc->setDefaults("set_r2", "ref 2", true);
+
+    CHECK_EQUAL("ref 1", r1.c_str());
+    CHECK_EQUAL("ref 2", r2.c_str());
+
+    sc->cexec("set_r1", "r1 - change1");
+    CHECK_EQUAL("r1 - change1", r1.c_str());
+    sc->cexec("set_r1", "r1 - change2");
+    CHECK_EQUAL("r1 - change2", r1.c_str());
+    sc->cexec("set_r2", "r2 - change1");
+    CHECK_EQUAL("r2 - change1", r2.c_str());
+    sc->cexec("set_r1", "r1 - change3");
+    CHECK_EQUAL("r1 - change3", r1.c_str());
+
+    sc->cexec("provenance.undo");
+    CHECK_EQUAL("r1 - change2", r1.c_str());
+    sc->cexec("provenance.undo");
+    CHECK_EQUAL("ref 2", r2.c_str());
+    sc->cexec("provenance.undo");
+    CHECK_EQUAL("r1 - change1", r1.c_str());
+    sc->cexec("provenance.undo");
+    CHECK_EQUAL("ref 1", r1.c_str());
+  }
+
 
   /// TODO: Add tests for passing shared_ptr's around, and how they work
   /// with regards to the undo/redo stack.

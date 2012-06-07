@@ -58,6 +58,9 @@ template<typename T>
 class LuaStrictStack<VECTOR4<T> >
 {
 public:
+
+  typedef VECTOR4<T> Type;
+
   static VECTOR4<T> get(lua_State* L, int pos)
   {
     LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.
@@ -128,6 +131,9 @@ template<typename T>
 class LuaStrictStack<VECTOR3<T> >
 {
 public:
+
+  typedef VECTOR3<T> Type;
+
   static VECTOR3<T> get(lua_State* L, int pos)
   {
     LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.
@@ -189,6 +195,9 @@ template<typename T>
 class LuaStrictStack<VECTOR2<T> >
 {
 public:
+
+  typedef VECTOR2<T> Type;
+
   static VECTOR2<T> get(lua_State* L, int pos)
   {
     LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.

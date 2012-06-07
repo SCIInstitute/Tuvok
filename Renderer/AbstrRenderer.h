@@ -514,6 +514,12 @@ class AbstrRenderer: public Scriptable {
     Interpolant GetInterpolant() const {return m_eInterpolant;}
 
     std::tr1::shared_ptr<Context> GetContext() const {return m_pContext;}
+
+    /// Registers base class Lua functions.
+    static void RegisterLuaFunctions(LuaClassRegistration<AbstrRenderer>& reg,
+                                     AbstrRenderer* me,
+                                     LuaScripting* ss);
+
   protected:
     /// Unsets the current transfer function, including deleting it from GPU
     /// memory.  It's expected you'll set another one directly afterwards.
@@ -668,8 +674,6 @@ class AbstrRenderer: public Scriptable {
     // light direction (for both)
     FLOATVECTOR3        m_vLightDir;
 
-    LuaClassRegistration<AbstrRenderer> m_pClassReg;
-
     virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);
     void                ComputeMinLODForCurrentView();
     void                ComputeMaxLODForCurrentView();
@@ -703,9 +707,6 @@ class AbstrRenderer: public Scriptable {
   private:
     float               m_fIsovalue;
     float               m_fCVIsovalue;
-
-    /// Registers base class Lua functions.
-    void RegisterAbsLuaFunctions();
 
 };
 

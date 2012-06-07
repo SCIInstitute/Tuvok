@@ -40,79 +40,19 @@
 
 namespace tuvok
 {
-// Check prior definitions.
-#ifdef EP_INIT
-    #error __FILE__ redefines EP_INIT
+#ifdef TLUA_VNM
+    #error __FILE__ redefines TLUA_VNM
 #endif
 
-#ifdef NM
-    #error __FILE__ redefines NM
+#ifdef TLUA_M_VNM
+    #error __FILE__ redefines TLUA_M_VNM
 #endif
-
-#ifdef EP
-    #error __FILE__ redefines EP
-#endif
-
-#ifdef SG
-    #error __FILE__ redefines SG
-#endif
-
-#ifdef M_NM
-    #error __FILE__ redefines M_NM
-#endif
-
-#ifdef MVAR
-    #error __FILE__ redefines MVAR
-#endif
-
-#ifdef PLP_INIT
-    #error __FILE__ redefines PLP_INIT
-#endif
-
-#ifdef PLP
-    #error __FILE__ redefines PLP
-#endif
-
-#ifdef PHP
-    #error __FILE__ redefines PHP
-#endif
-
-#ifdef MVIT
-    #error __FILE__ redefines MVIT
-#endif
-
-// These definitions deal with extracting parameters off of the
-// LUA stack and storing them in local/member variables to be consumed later.
-
-// The classes below could easily be written without these preprocessor macros,
-// but the macros make it easier to replicate the classes when more parameters
-// are needed.
-#define EP_INIT(idx) int pos = idx; // We are using the __call metamethod, so
-                                    // the table associated with the metamethod
-                                    // will take the first stack position.
 
 // Variable Name
-#define NM(x)       x##_v
-
-// Extract Parameter
-#define EP(x)       x NM(x) = LuaStrictStack<x>::get(L, pos++);
-
-// Function signature extraction
-#define SG(x)       LuaStrictStack<x>::getTypeStr()
+#define TLUA_VNM(x)       x##_v
 
 // Member variable name and definition.
-#define M_NM(x)     x##_mv
-#define MVAR(x)     x M_NM(x)
-
-// Pull parameter from stack into member variable (starts at x -- start index)
-#define PLP_INIT(x) int pos = x;
-#define PLP(x)      M_NM(x) = LuaStrictStack<x>::get(L, pos++);
-
-// Push parameter from member variable onto the top of the stack.
-#define PHP(x)      LuaStrictStack<x>::push(L, M_NM(x));
-
-// Member variable initialization (initialize with the default for that type).
-#define MVIT(x)     M_NM(x)(LuaStrictStack<x>::getDefault())
+#define TLUA_M_VNM(x)     x##_mv
 
 // Abstract base classed used to push and pull parameters off of internal
 // undo/redo stacks.
@@ -181,7 +121,7 @@ public:
     return funcName + "()";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
   static void constructTypesTable(lua_State* L, int tblIndex)
   {}
 
@@ -214,29 +154,36 @@ public:
   typedef Ret (*fpType)(P1);
   static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); 
-    return fp(NM(P1));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    return fp(TLUA_VNM(P1));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
     ;
   }
 
@@ -249,7 +196,8 @@ public:
   }
 #endif
 
-  MVAR(P1); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+
 };
 
 //---------------
@@ -264,30 +212,42 @@ public:
   typedef Ret (*fpType)(P1, P2);
   static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); 
-    return fp(NM(P1), NM(P2));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    return fp(TLUA_VNM(P1), TLUA_VNM(P2));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
     ;
   }
 
@@ -301,7 +261,9 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+
 };
 
 //---------------
@@ -316,31 +278,48 @@ public:
   typedef Ret (*fpType)(P1, P2, P3);
   static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); 
-    return fp(NM(P1), NM(P2), NM(P3));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    return fp(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
     ;
   }
 
@@ -355,7 +334,10 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+
 };
 
 //---------------
@@ -370,32 +352,54 @@ public:
   typedef Ret (*fpType)(P1, P2, P3, P4);
   static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    return fp(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
     ;
   }
 
@@ -411,7 +415,11 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+
 };
 
 //---------------
@@ -426,33 +434,60 @@ public:
   typedef Ret (*fpType)(P1, P2, P3, P4, P5);
   static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    return fp(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
     ;
   }
 
@@ -469,7 +504,12 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+
 };
 
 //---------------
@@ -484,34 +524,66 @@ public:
   typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6);
   static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    return fp(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
     ;
   }
 
@@ -529,7 +601,13 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+
 };
 
 //---------------
@@ -544,35 +622,72 @@ public:
   typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6, P7);
   static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    return fp(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
     ;
   }
 
@@ -591,7 +706,14 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+
 };
 
 //---------------
@@ -606,36 +728,78 @@ public:
   typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6, P7, P8);
   static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    typename LuaStrictStack<P8>::Type TLUA_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    return fp(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7), TLUA_VNM(P8));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ", " + LuaStrictStack<P8>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+    , TLUA_M_VNM(P8)(LuaStrictStack<P8>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+    LuaStrictStack<P8>::push(L, TLUA_M_VNM(P8));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    TLUA_M_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(TLUA_M_VNM(P8))
     ;
   }
 
@@ -655,7 +819,15 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+  typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
+
 };
 
 //---------------
@@ -670,37 +842,84 @@ public:
   typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9);
   static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    typename LuaStrictStack<P8>::Type TLUA_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    typename LuaStrictStack<P9>::Type TLUA_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+    return fp(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7), TLUA_VNM(P8), TLUA_VNM(P9));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ", " + LuaStrictStack<P8>::getTypeStr()
+        + ", " + LuaStrictStack<P9>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+    , TLUA_M_VNM(P8)(LuaStrictStack<P8>::getDefault())
+    , TLUA_M_VNM(P9)(LuaStrictStack<P9>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+    LuaStrictStack<P8>::push(L, TLUA_M_VNM(P8));
+    LuaStrictStack<P9>::push(L, TLUA_M_VNM(P9));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    TLUA_M_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    TLUA_M_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(TLUA_M_VNM(P8))
+        + ", " + LuaStrictStack<P9>::getValStr(TLUA_M_VNM(P9))
     ;
   }
 
@@ -721,7 +940,16 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+  typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
+  typename LuaStrictStack<P9>::Type TLUA_M_VNM(P9);
+
 };
 
 //---------------
@@ -736,38 +964,90 @@ public:
   typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10);
   static Ret run(lua_State* L, int paramStackIndex, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    typename LuaStrictStack<P8>::Type TLUA_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    typename LuaStrictStack<P9>::Type TLUA_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+    typename LuaStrictStack<P10>::Type TLUA_VNM(P10) = LuaStrictStack<P10>::get(L, pos++);
+    return fp(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7), TLUA_VNM(P8), TLUA_VNM(P9), TLUA_VNM(P10));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ", " + LuaStrictStack<P8>::getTypeStr()
+        + ", " + LuaStrictStack<P9>::getTypeStr()
+        + ", " + LuaStrictStack<P10>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+    , TLUA_M_VNM(P8)(LuaStrictStack<P8>::getDefault())
+    , TLUA_M_VNM(P9)(LuaStrictStack<P9>::getDefault())
+    , TLUA_M_VNM(P10)(LuaStrictStack<P10>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+    LuaStrictStack<P8>::push(L, TLUA_M_VNM(P8));
+    LuaStrictStack<P9>::push(L, TLUA_M_VNM(P9));
+    LuaStrictStack<P10>::push(L, TLUA_M_VNM(P10));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    TLUA_M_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    TLUA_M_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+    TLUA_M_VNM(P10) = LuaStrictStack<P10>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(TLUA_M_VNM(P8))
+        + ", " + LuaStrictStack<P9>::getValStr(TLUA_M_VNM(P9))
+        + ", " + LuaStrictStack<P10>::getValStr(TLUA_M_VNM(P10))
     ;
   }
 
@@ -789,7 +1069,17 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+  typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
+  typename LuaStrictStack<P9>::Type TLUA_M_VNM(P9);
+  typename LuaStrictStack<P10>::Type TLUA_M_VNM(P10);
+
 };
 
 
@@ -818,7 +1108,7 @@ public:
     return funcName + "()";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   virtual std::string getFormattedParameterValues() const
   {
@@ -849,29 +1139,36 @@ public:
   typedef Ret (T::*fpType)(P1);
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); 
-    return (c->*fp)(NM(P1));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
     ;
   }
 
@@ -884,7 +1181,8 @@ public:
   }
 #endif
 
-  MVAR(P1); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+
 };
 
 //---------------
@@ -900,30 +1198,42 @@ public:
   typedef Ret (T::*fpType)(P1, P2);
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); 
-    return (c->*fp)(NM(P1), NM(P2));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
     ;
   }
 
@@ -937,7 +1247,9 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+
 };
 
 //---------------
@@ -953,31 +1265,48 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3);
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
     ;
   }
 
@@ -992,7 +1321,10 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+
 };
 
 //---------------
@@ -1008,32 +1340,54 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4);
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
     ;
   }
 
@@ -1049,7 +1403,11 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+
 };
 
 //---------------
@@ -1065,33 +1423,60 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5);
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
     ;
   }
 
@@ -1108,7 +1493,12 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+
 };
 
 //---------------
@@ -1124,34 +1514,66 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6);
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
     ;
   }
 
@@ -1169,7 +1591,13 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+
 };
 
 //---------------
@@ -1185,35 +1613,72 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7);
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
     ;
   }
 
@@ -1232,7 +1697,14 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+
 };
 
 //---------------
@@ -1248,36 +1720,78 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8);
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    typename LuaStrictStack<P8>::Type TLUA_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7), TLUA_VNM(P8));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ", " + LuaStrictStack<P8>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+    , TLUA_M_VNM(P8)(LuaStrictStack<P8>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+    LuaStrictStack<P8>::push(L, TLUA_M_VNM(P8));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    TLUA_M_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(TLUA_M_VNM(P8))
     ;
   }
 
@@ -1297,7 +1811,15 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+  typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
+
 };
 
 //---------------
@@ -1313,37 +1835,84 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9);
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    typename LuaStrictStack<P8>::Type TLUA_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    typename LuaStrictStack<P9>::Type TLUA_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7), TLUA_VNM(P8), TLUA_VNM(P9));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ", " + LuaStrictStack<P8>::getTypeStr()
+        + ", " + LuaStrictStack<P9>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+    , TLUA_M_VNM(P8)(LuaStrictStack<P8>::getDefault())
+    , TLUA_M_VNM(P9)(LuaStrictStack<P9>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+    LuaStrictStack<P8>::push(L, TLUA_M_VNM(P8));
+    LuaStrictStack<P9>::push(L, TLUA_M_VNM(P9));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    TLUA_M_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    TLUA_M_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(TLUA_M_VNM(P8))
+        + ", " + LuaStrictStack<P9>::getValStr(TLUA_M_VNM(P9))
     ;
   }
 
@@ -1364,7 +1933,16 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+  typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
+  typename LuaStrictStack<P9>::Type TLUA_M_VNM(P9);
+
 };
 
 //---------------
@@ -1380,38 +1958,90 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10);
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    typename LuaStrictStack<P8>::Type TLUA_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    typename LuaStrictStack<P9>::Type TLUA_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+    typename LuaStrictStack<P10>::Type TLUA_VNM(P10) = LuaStrictStack<P10>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7), TLUA_VNM(P8), TLUA_VNM(P9), TLUA_VNM(P10));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ", " + LuaStrictStack<P8>::getTypeStr()
+        + ", " + LuaStrictStack<P9>::getTypeStr()
+        + ", " + LuaStrictStack<P10>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+    , TLUA_M_VNM(P8)(LuaStrictStack<P8>::getDefault())
+    , TLUA_M_VNM(P9)(LuaStrictStack<P9>::getDefault())
+    , TLUA_M_VNM(P10)(LuaStrictStack<P10>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+    LuaStrictStack<P8>::push(L, TLUA_M_VNM(P8));
+    LuaStrictStack<P9>::push(L, TLUA_M_VNM(P9));
+    LuaStrictStack<P10>::push(L, TLUA_M_VNM(P10));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    TLUA_M_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    TLUA_M_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+    TLUA_M_VNM(P10) = LuaStrictStack<P10>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(TLUA_M_VNM(P8))
+        + ", " + LuaStrictStack<P9>::getValStr(TLUA_M_VNM(P9))
+        + ", " + LuaStrictStack<P10>::getValStr(TLUA_M_VNM(P10))
     ;
   }
 
@@ -1433,7 +2063,17 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+  typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
+  typename LuaStrictStack<P9>::Type TLUA_M_VNM(P9);
+  typename LuaStrictStack<P10>::Type TLUA_M_VNM(P10);
+
 };
 
 //------------------
@@ -1461,7 +2101,7 @@ public:
     return funcName + "()";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   virtual std::string getFormattedParameterValues() const
   {
@@ -1477,7 +2117,8 @@ public:
 
   virtual void pushParamsToStack(lua_State*) const   {}
   virtual void pullParamsFromStack(lua_State*, int)  {}
-};//---------------
+};
+//---------------
 // 1 PARAMETERS
 //---------------
 template <typename T, typename Ret, typename P1>
@@ -1490,29 +2131,36 @@ public:
   typedef Ret (T::*fpType)(P1) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); 
-    return (c->*fp)(NM(P1));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
     ;
   }
 
@@ -1525,7 +2173,8 @@ public:
   }
 #endif
 
-  MVAR(P1); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+
 };
 
 //---------------
@@ -1541,30 +2190,42 @@ public:
   typedef Ret (T::*fpType)(P1, P2) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); 
-    return (c->*fp)(NM(P1), NM(P2));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
     ;
   }
 
@@ -1578,7 +2239,9 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+
 };
 
 //---------------
@@ -1594,31 +2257,48 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
     ;
   }
 
@@ -1633,7 +2313,10 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+
 };
 
 //---------------
@@ -1649,32 +2332,54 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
     ;
   }
 
@@ -1690,7 +2395,11 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+
 };
 
 //---------------
@@ -1706,33 +2415,60 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
     ;
   }
 
@@ -1749,7 +2485,12 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+
 };
 
 //---------------
@@ -1765,34 +2506,66 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
     ;
   }
 
@@ -1810,7 +2583,13 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+
 };
 
 //---------------
@@ -1826,35 +2605,72 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
     ;
   }
 
@@ -1873,7 +2689,14 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+
 };
 
 //---------------
@@ -1889,36 +2712,78 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    typename LuaStrictStack<P8>::Type TLUA_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7), TLUA_VNM(P8));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ", " + LuaStrictStack<P8>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+    , TLUA_M_VNM(P8)(LuaStrictStack<P8>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+    LuaStrictStack<P8>::push(L, TLUA_M_VNM(P8));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    TLUA_M_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(TLUA_M_VNM(P8))
     ;
   }
 
@@ -1938,7 +2803,15 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+  typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
+
 };
 
 //---------------
@@ -1954,37 +2827,84 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    typename LuaStrictStack<P8>::Type TLUA_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    typename LuaStrictStack<P9>::Type TLUA_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7), TLUA_VNM(P8), TLUA_VNM(P9));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ", " + LuaStrictStack<P8>::getTypeStr()
+        + ", " + LuaStrictStack<P9>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+    , TLUA_M_VNM(P8)(LuaStrictStack<P8>::getDefault())
+    , TLUA_M_VNM(P9)(LuaStrictStack<P9>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+    LuaStrictStack<P8>::push(L, TLUA_M_VNM(P8));
+    LuaStrictStack<P9>::push(L, TLUA_M_VNM(P9));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    TLUA_M_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    TLUA_M_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(TLUA_M_VNM(P8))
+        + ", " + LuaStrictStack<P9>::getValStr(TLUA_M_VNM(P9))
     ;
   }
 
@@ -2005,7 +2925,16 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+  typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
+  typename LuaStrictStack<P9>::Type TLUA_M_VNM(P9);
+
 };
 
 //---------------
@@ -2021,38 +2950,90 @@ public:
   typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10));
+    int pos = paramStackIndex;
+    typename LuaStrictStack<P1>::Type TLUA_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    typename LuaStrictStack<P2>::Type TLUA_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    typename LuaStrictStack<P3>::Type TLUA_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    typename LuaStrictStack<P4>::Type TLUA_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    typename LuaStrictStack<P5>::Type TLUA_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    typename LuaStrictStack<P6>::Type TLUA_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    typename LuaStrictStack<P7>::Type TLUA_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    typename LuaStrictStack<P8>::Type TLUA_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    typename LuaStrictStack<P9>::Type TLUA_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+    typename LuaStrictStack<P10>::Type TLUA_VNM(P10) = LuaStrictStack<P10>::get(L, pos++);
+    return (c->*fp)(TLUA_VNM(P1), TLUA_VNM(P2), TLUA_VNM(P3), TLUA_VNM(P4), TLUA_VNM(P5), TLUA_VNM(P6), TLUA_VNM(P7), TLUA_VNM(P8), TLUA_VNM(P9), TLUA_VNM(P10));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ")";
+    return funcName + "(" + LuaStrictStack<P1>::getTypeStr()
+        + ", " + LuaStrictStack<P2>::getTypeStr()
+        + ", " + LuaStrictStack<P3>::getTypeStr()
+        + ", " + LuaStrictStack<P4>::getTypeStr()
+        + ", " + LuaStrictStack<P5>::getTypeStr()
+        + ", " + LuaStrictStack<P6>::getTypeStr()
+        + ", " + LuaStrictStack<P7>::getTypeStr()
+        + ", " + LuaStrictStack<P8>::getTypeStr()
+        + ", " + LuaStrictStack<P9>::getTypeStr()
+        + ", " + LuaStrictStack<P10>::getTypeStr()
+        + ")";
   }
   static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+  { return LuaStrictStack<Ret>::getTypeStr() + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10) {}
+    : TLUA_M_VNM(P1)(LuaStrictStack<P1>::getDefault())
+    , TLUA_M_VNM(P2)(LuaStrictStack<P2>::getDefault())
+    , TLUA_M_VNM(P3)(LuaStrictStack<P3>::getDefault())
+    , TLUA_M_VNM(P4)(LuaStrictStack<P4>::getDefault())
+    , TLUA_M_VNM(P5)(LuaStrictStack<P5>::getDefault())
+    , TLUA_M_VNM(P6)(LuaStrictStack<P6>::getDefault())
+    , TLUA_M_VNM(P7)(LuaStrictStack<P7>::getDefault())
+    , TLUA_M_VNM(P8)(LuaStrictStack<P8>::getDefault())
+    , TLUA_M_VNM(P9)(LuaStrictStack<P9>::getDefault())
+    , TLUA_M_VNM(P10)(LuaStrictStack<P10>::getDefault())
+  {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); }
+  {
+    LuaStrictStack<P1>::push(L, TLUA_M_VNM(P1));
+    LuaStrictStack<P2>::push(L, TLUA_M_VNM(P2));
+    LuaStrictStack<P3>::push(L, TLUA_M_VNM(P3));
+    LuaStrictStack<P4>::push(L, TLUA_M_VNM(P4));
+    LuaStrictStack<P5>::push(L, TLUA_M_VNM(P5));
+    LuaStrictStack<P6>::push(L, TLUA_M_VNM(P6));
+    LuaStrictStack<P7>::push(L, TLUA_M_VNM(P7));
+    LuaStrictStack<P8>::push(L, TLUA_M_VNM(P8));
+    LuaStrictStack<P9>::push(L, TLUA_M_VNM(P9));
+    LuaStrictStack<P10>::push(L, TLUA_M_VNM(P10));
+}
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); }
+  {
+    int pos = si;
+    TLUA_M_VNM(P1) = LuaStrictStack<P1>::get(L, pos++);
+    TLUA_M_VNM(P2) = LuaStrictStack<P2>::get(L, pos++);
+    TLUA_M_VNM(P3) = LuaStrictStack<P3>::get(L, pos++);
+    TLUA_M_VNM(P4) = LuaStrictStack<P4>::get(L, pos++);
+    TLUA_M_VNM(P5) = LuaStrictStack<P5>::get(L, pos++);
+    TLUA_M_VNM(P6) = LuaStrictStack<P6>::get(L, pos++);
+    TLUA_M_VNM(P7) = LuaStrictStack<P7>::get(L, pos++);
+    TLUA_M_VNM(P8) = LuaStrictStack<P8>::get(L, pos++);
+    TLUA_M_VNM(P9) = LuaStrictStack<P9>::get(L, pos++);
+    TLUA_M_VNM(P10) = LuaStrictStack<P10>::get(L, pos++);
+}
 
   virtual std::string getFormattedParameterValues() const
   {
     return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
+                 LuaStrictStack<P1>::getValStr(TLUA_M_VNM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(TLUA_M_VNM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(TLUA_M_VNM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(TLUA_M_VNM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(TLUA_M_VNM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(TLUA_M_VNM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(TLUA_M_VNM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(TLUA_M_VNM(P8))
+        + ", " + LuaStrictStack<P9>::getValStr(TLUA_M_VNM(P9))
+        + ", " + LuaStrictStack<P10>::getValStr(TLUA_M_VNM(P10))
     ;
   }
 
@@ -2074,21 +3055,22 @@ public:
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); 
+  typename LuaStrictStack<P1>::Type TLUA_M_VNM(P1);
+  typename LuaStrictStack<P2>::Type TLUA_M_VNM(P2);
+  typename LuaStrictStack<P3>::Type TLUA_M_VNM(P3);
+  typename LuaStrictStack<P4>::Type TLUA_M_VNM(P4);
+  typename LuaStrictStack<P5>::Type TLUA_M_VNM(P5);
+  typename LuaStrictStack<P6>::Type TLUA_M_VNM(P6);
+  typename LuaStrictStack<P7>::Type TLUA_M_VNM(P7);
+  typename LuaStrictStack<P8>::Type TLUA_M_VNM(P8);
+  typename LuaStrictStack<P9>::Type TLUA_M_VNM(P9);
+  typename LuaStrictStack<P10>::Type TLUA_M_VNM(P10);
+
 };
 
 
-#undef EP_INIT
-#undef NM
-#undef EP
-#undef SG
-#undef M_NM
-#undef MVAR
-#undef PLP_INIT
-#undef PLP
-#undef PHP
-#undef MVIT
-
+#undef TLUA_VNM
+#undef TLUA_M_VNM
 
 
 } /* namespace tuvok */

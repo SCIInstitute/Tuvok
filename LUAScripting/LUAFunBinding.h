@@ -99,6 +99,9 @@ template<typename T>
 class LuaStrictStack
 {
 public:
+
+  typedef void Type;  // This type will be used to store the data.
+
   // Intentionally left unimplemented to generate compiler errors if this
   // template is chosen.
   static T get(lua_State* L, int pos);
@@ -117,6 +120,9 @@ template<>
 class LuaStrictStack<void>
 {
 public:
+
+  typedef void Type;
+
   // All functions except getTypeStr and push don't do anything since none of
   // these functions make sense in the context of 'void'.
   // getTypeStr is only called when building the return type of function
@@ -134,6 +140,9 @@ template<>
 class LuaStrictStack<LuaTable>
 {
 public:
+
+  typedef LuaTable Type;
+
   static LuaTable get(lua_State*, int pos)
   {
     return LuaTable(pos);
@@ -158,6 +167,9 @@ template<>
 class LuaStrictStack<int>
 {
 public:
+
+  typedef int Type;
+
   static int get(lua_State* L, int pos)
   {
     return luaL_checkint(L, pos);
@@ -179,9 +191,39 @@ public:
 };
 
 template<>
+class LuaStrictStack<unsigned int>
+{
+public:
+
+  typedef unsigned int Type;
+
+  static int get(lua_State* L, unsigned int pos)
+  {
+    return luaL_checknumber(L, pos);
+  }
+
+  static void push(lua_State* L, unsigned int in)
+  {
+    lua_pushnumber(L, static_cast<double>(in));
+  }
+
+  static std::string getValStr(unsigned int in)
+  {
+    std::ostringstream os;
+    os << in;
+    return os.str();
+  }
+  static std::string getTypeStr() { return "unsigned int"; }
+  static unsigned int getDefault(){ return 0; }
+};
+
+template<>
 class LuaStrictStack<bool>
 {
 public:
+
+  typedef bool Type;
+
   static bool get(lua_State* L, int pos)
   {
     luaL_checktype(L, pos, LUA_TBOOLEAN);
@@ -208,6 +250,9 @@ template<>
 class LuaStrictStack<float>
 {
 public:
+
+  typedef float Type;
+
   static float get(lua_State* L, int pos)
   {
     return static_cast<float>(luaL_checknumber(L, pos));
@@ -232,6 +277,9 @@ template<>
 class LuaStrictStack<double>
 {
 public:
+
+  typedef double Type;
+
   static double get(lua_State* L, int pos)
   {
     return static_cast<double>(luaL_checknumber(L, pos));
@@ -256,6 +304,9 @@ template<>
 class LuaStrictStack<const char *>
 {
 public:
+
+  typedef std::string Type;
+
   static const char* get(lua_State* L, int pos)
   {
     return luaL_checkstring(L, pos);
@@ -280,6 +331,9 @@ template<>
 class LuaStrictStack<std::string>
 {
 public:
+
+  typedef std::string Type;
+
   static std::string get(lua_State* L, int pos)
   {
     return luaL_checkstring(L, pos);
@@ -304,17 +358,20 @@ template<>
 class LuaStrictStack<std::string&>
 {
 public:
+
+  typedef std::string Type;
+
   static std::string get(lua_State* L, int pos)
   {
     return luaL_checkstring(L, pos);
   }
 
-  static void push(lua_State* L, std::string& in)
+  static void push(lua_State* L, const std::string& in)
   {
     lua_pushstring(L, in.c_str());
   }
 
-  static std::string getValStr(std::string& in)
+  static std::string getValStr(const std::string& in)
   {
     std::ostringstream os;
     os << "'" << in << "'";
@@ -328,6 +385,9 @@ template<>
 class LuaStrictStack<const std::string&>
 {
 public:
+
+  typedef std::string Type;
+
   static std::string get(lua_State* L, int pos)
   {
     return luaL_checkstring(L, pos);
@@ -352,6 +412,9 @@ template<>
 class LuaStrictStack<LuaClassInstance>
 {
 public:
+
+  typedef LuaClassInstance Type;
+
   static LuaClassInstance get(lua_State* L, int pos)
   {
     LuaStackRAII _a(L, 0);
@@ -443,6 +506,9 @@ template <typename T>
 class LuaStrictStack<std::tr1::shared_ptr<T> >
 {
 public:
+
+  typedef std::tr1::shared_ptr<T> Type;
+
   static std::tr1::shared_ptr<T> get(lua_State* L, int pos)
   {
     std::tr1::shared_ptr<T>* ptr =
@@ -514,6 +580,7 @@ namespace tuvok { \
   class LuaStrictStack<X> \
   { \
   public: \
+    typedef X Type; \
     static X get(lua_State* L, int pos) \
     { \
       return static_cast<X>(luaL_checkint(L, pos)); \
