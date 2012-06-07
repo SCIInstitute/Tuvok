@@ -366,10 +366,11 @@ void LuaScripting::printHelp()
   printFunctions();
 
   cexec("log.info", "");
-  cexec("log.info", "Use the 'info' function to get additional information on"
+  cexec("log.info", "Use the 'info' function to get additional information on "
       "classes and functions. E.G. info(print)");
 }
 
+//-----------------------------------------------------------------------------
 bool IsParenthesesOrSpacePred(char c)
 {
     switch(c)
@@ -1974,6 +1975,37 @@ void LuaScripting::classUnwindCreatePtr(int targetSize)
     classPopCreatePtr();
   }
 }
+
+//-----------------------------------------------------------------------------
+int LuaScripting::classPopValidateCreateID()
+{
+  if (mValidateCreatedIDs.size() > 0)
+  {
+    int ret = mValidateCreatedIDs.back();
+    mValidateCreatedIDs.pop_back();
+    return ret;
+  }
+  else
+  {
+    return -1;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::classPushValidateCreateID(int id)
+{
+  mValidateCreatedIDs.push_back(id);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::classUnwindValidateCreateID(int targetSize)
+{
+  while (targetSize > (int)mValidateCreatedIDs.size())
+  {
+    classPopValidateCreateID();
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 LuaClassInstance LuaScripting::getLuaClassInstance(void* p)

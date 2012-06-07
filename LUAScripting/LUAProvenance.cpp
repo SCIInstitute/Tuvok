@@ -103,7 +103,7 @@ void LuaProvenance::registerLuaProvenanceFunctions()
   mMemberReg.registerFunction(this, &LuaProvenance::setEnabled,
                               "provenance.enable",
                               "Enable/Disable provenance. This is not an "
-                              "undo-able action and will clear your provenance "
+                              "undoable action and will clear your provenance "
                               "history if disabled.",
                               false);
   mMemberReg.registerFunction(this, &LuaProvenance::clearProvenance,
@@ -114,10 +114,7 @@ void LuaProvenance::registerLuaProvenanceFunctions()
   mMemberReg.registerFunction(this, &LuaProvenance::enableProvReentryEx,
                               "provenance.enableReentryException",
                               "Enables/Disables the provenance reentry "
-                              "exception. Disable this to "
-                              "allow functions registered with LuaScripting to "
-                              "call other functions registered within "
-                              "LuaScripting from within Lua.",
+                              "exception.",
                               true);
   mMemberReg.registerFunction(this, &LuaProvenance::printUndoStack,
                               "provenance.logUndoStack",

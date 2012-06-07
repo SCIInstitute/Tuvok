@@ -75,7 +75,9 @@ public:
   std::string function(FunPtr f, const std::string& unqualifiedName,
                        const std::string& desc, bool undoRedo);
 
-  std::string getFQName()     {return LuaClassInstance(mGlobalID).fqName();}
+  std::string getFQName() const {return getLuaInstance().fqName();}
+  LuaClassInstance getLuaInstance() const {return LuaClassInstance(mGlobalID);}
+
 
   /// Makes this class instance inherit methods from the given class instance.
   /// Use this function sparingly. A strong reference to the given instance will
@@ -95,6 +97,7 @@ private:
     {
       mGlobalID = createdID;
       ss->classPushCreatePtr(mPtr);
+      ss->classPushValidateCreateID(mGlobalID);
     }
     else
     {

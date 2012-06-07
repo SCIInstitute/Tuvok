@@ -237,6 +237,7 @@ private:
 
       int createIDStackTop = ss->classGetCreateIDSize();
       int createPtrStackTop = ss->classGetCreatePtrSize();
+      int createValidateIDStackTop = ss->classGetValidateCreateIDSize();
       ss->classPushCreateID(inst.getGlobalInstID());
       ss->beginCommand();
       try
@@ -249,6 +250,7 @@ private:
         ss->logExecFailure(e.what());
         ss->classUnwindCreateID(createIDStackTop);
         ss->classUnwindCreatePtr(createPtrStackTop);
+        ss->classUnwindValidateCreateID(createValidateIDStackTop);
         throw;
       }
       catch (...)
@@ -257,18 +259,23 @@ private:
         ss->logExecFailure("");
         ss->classUnwindCreateID(createIDStackTop);
         ss->classUnwindCreatePtr(createPtrStackTop);
+        ss->classUnwindValidateCreateID(createValidateIDStackTop);
         throw;
       }
       ss->endCommand();
       ss->classPopCreatePtr();
-//      if (r != ss->classPopCreatePtr())
-//        throw LuaError("Unequal creation pointer stack! This indicates that "
-//            "Lua classes were created in the initializer list of one of the "
-//            "classes. Reordering the initializer list so that "
-//            "LuaClassRegistration comes before the creation of othe Lua classes"
-//            "will fix the problem.");
-      assert(createIDStackTop == ss->classGetCreateIDSize());
-      assert(createPtrStackTop == ss->classGetCreatePtrSize());
+      if (inst.getGlobalInstID() != ss->classPopValidateCreateID())
+        throw LuaError("Unequal creation pointer stack! This indicates that "
+            "Lua classes were created in the initializer list of one of the "
+            "classes. Reordering the initializer list so that "
+            "LuaClassRegistration comes before the creation of the Lua classes"
+            "will fix the problem.");
+      if (createIDStackTop != ss->classGetCreateIDSize())
+        throw LuaError("Inconsistent class creation.");
+      if (createPtrStackTop != ss->classGetCreatePtrSize())
+        throw LuaError("Inconsistent class creation.");
+      if (createValidateIDStackTop != ss->classGetValidateCreateIDSize())
+        throw LuaError("Inconsistent class creation.");
 
       ss->doHooks(L, 1, provExempt);
 
@@ -332,6 +339,7 @@ private:
 
       int createIDStackTop = ss->classGetCreateIDSize();
       int createPtrStackTop = ss->classGetCreatePtrSize();
+      int createValidateIDStackTop = ss->classGetValidateCreateIDSize();
       ss->classPushCreateID(inst.getGlobalInstID());
       ss->beginCommand();
       try
@@ -344,6 +352,7 @@ private:
         ss->logExecFailure(e.what());
         ss->classUnwindCreateID(createIDStackTop);
         ss->classUnwindCreatePtr(createPtrStackTop);
+        ss->classUnwindValidateCreateID(createValidateIDStackTop);
         throw;
       }
       catch (...)
@@ -351,21 +360,23 @@ private:
         ss->endCommand();
         ss->logExecFailure("");
         ss->classUnwindCreateID(createIDStackTop);
-
         ss->classUnwindCreatePtr(createPtrStackTop);
+        ss->classUnwindValidateCreateID(createValidateIDStackTop);
         throw;
       }
       ss->endCommand();
       ss->classPopCreatePtr();
-//      if (r != ss->classPopCreatePtr())
-//        throw LuaError("Unequal creation pointer stack! This indicates that "
-//            "Lua classes were created in the initializer list of one of the "
-//            "classes. Reordering the initializer list so that "
-//            "LuaClassRegistration comes before the creation of othe Lua classes"
-//            "will fix the problem.");
+      if (inst.getGlobalInstID() != ss->classPopValidateCreateID())
+        throw LuaError("Unequal creation pointer stack! This indicates that "
+            "Lua classes were created in the initializer list of one of the "
+            "classes. Reordering the initializer list so that "
+            "LuaClassRegistration comes before the creation of the Lua classes"
+            "will fix the problem.");
       if (createIDStackTop != ss->classGetCreateIDSize())
         throw LuaError("Inconsistent class creation.");
       if (createPtrStackTop != ss->classGetCreatePtrSize())
+        throw LuaError("Inconsistent class creation.");
+      if (createValidateIDStackTop != ss->classGetValidateCreateIDSize())
         throw LuaError("Inconsistent class creation.");
 
       ss->doHooks(L, 1, provExempt);

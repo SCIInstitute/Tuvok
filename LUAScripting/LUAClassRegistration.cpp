@@ -1468,6 +1468,15 @@ SUITE(LuaTestClassRegistration)
 
 }
 
+SUITE(LuaTestClassRegistration_MultipleInheritence)
+{
+  TEST(TestMultipleInheritence)
+  {
+    // Help should be given for classes, but not for any of their instances
+    // in the _sys_ table.
+  }
+}
+
 #endif
 
 } /* namespace tuvok */

@@ -222,6 +222,39 @@ public:
                            const std::string& desc);
   /// @}
 
+
+  // Proposed alternate method for registering class'. This method would not
+  // be as cumbersome as the current implementation. Also, it opens up the
+  // possibility of knowing what functions are registered before any instance
+  // of the class is created. Also gets rid of the nasty pointer stack we
+  // need to maintain with the current version.
+//  /// Registers a Lua class.
+//  /// \param fp         Pointer to a function that will construct the class and
+//  ///                   pass back a pointer to it.
+//  /// \param className  Where the class should be registered in Lua.
+//  /// \param desc       Class description.
+//  /// \param callback   Callback that will be issued to register lua commands.
+//  ///                   This callback is tightly bound to the return type of
+//  ///                   FunPtr.
+//  ///                   The function signature of this callback, if FunPtr has
+//  ///                   the return type of T*, is:
+//  ///                   callback(LuaClassRegistration<T>& reg, T* cls);
+//  /// @{
+//  /// TLUA_FUNPTR_RET points to the return type of the Function pointer we
+//  ///  are registering (FunPtr).
+//#define TLUA_FUNPTR_RET typename LuaCFunExec<FunPtr>::returnType
+//  template <typename T, typename FunPtr>
+//  void registerClass(T* t, FunPtr fp, const std::string& className,
+//                     const std::string& desc,
+//                     std::tr1::function<void (
+//                         LuaClassRegistration<TLUA_FUNPTR_RET>& reg,
+//                         TLUA_FUNPTR_RET* cls)> callback);
+//  template <typename FunPtr>
+//  void registerClassStatic(FunPtr fp, const std::string& className,
+//                           const std::string& desc);
+//  /// @}
+
+
   /// Retrieves the LuaClassInstance given the object pointer.
   LuaClassInstance getLuaClassInstance(void* p);
 
@@ -608,17 +641,27 @@ private:
   // LuaClassRegistration.
   int classPopCreateID(); // Returns -1 if there are no ids to pop
   void classPushCreateID(int id);
-  int classGetCreateIDSize() {return mCreatedIDs.size();}
+  size_t classGetCreateIDSize() {return mCreatedIDs.size();}
   void classUnwindCreateID(int targetSize);
   std::vector<int> mCreatedIDs;
 
+  /// The following pointer methods are DEPRECATED.
   /// These pointers are only used for error checking purposes.
   /// See LuaClassRegistration and LuaClassConstructor.
   void* classPopCreatePtr();  // Returns null if there are no ids to pop
   void classPushCreatePtr(void* ptr);
-  int classGetCreatePtrSize() {return mCreatedPtrs.size();}
+  size_t classGetCreatePtrSize() {return mCreatedPtrs.size();}
   void classUnwindCreatePtr(int targetSize);
   std::vector<void*> mCreatedPtrs;
+
+  /// These pointers are used for error checking purposes.
+  /// This is to ensure the classes got assigned the correct id's.
+  int classPopValidateCreateID();
+  void classPushValidateCreateID(int id);
+  size_t classGetValidateCreateIDSize() {return mValidateCreatedIDs.size();}
+  void classUnwindValidateCreateID(int targetSize);
+  std::vector<int> mValidateCreatedIDs;
+
 
 
   /// Lua Registry Values

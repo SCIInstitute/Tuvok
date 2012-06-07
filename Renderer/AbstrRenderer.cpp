@@ -1528,7 +1528,8 @@ void AbstrRenderer::RegisterAbsLuaFunctions() {
   std::string id;
   std::tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
 
-  id = m_pClassReg.function(&AbstrRenderer::GetRendererType, "getRendererType",
+  id = m_pClassReg.function(&AbstrRenderer::GetRendererType,
+                            "getRendererType",
                             "Retrieves the renderer type.", false);
   ss->addReturnInfo(id, "Return info test.");
 }
