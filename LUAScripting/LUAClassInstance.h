@@ -78,19 +78,19 @@ public:
 
   static const char* CLASS_INSTANCE_TABLE;  ///< The global class instance table
   static const char* CLASS_INSTANCE_PREFIX; ///< Prefix for class instances
+  static const char* CLASS_LOOKUP_TABLE;    ///< Global class lookup table.
 
   static const int DEFAULT_INSTANCE_ID = -1;
 
-  /// Only use for testing.
+  /// Only use these two functions for testing.
   /// Please use LuaScripting::exec() instead.
-  /// This pointer can die on you at any time. Also, undo/redo can invalidate
+  /// This pointer can die on you at any time. Undo/redo can invalidate
   /// this pointer.
   template <typename T>
   T* getRawPointer(std::tr1::shared_ptr<LuaScripting> ss);
+  void* getVoidPointer(LuaScripting* ss);
 
 private:
-
-  lua_State* internalGetLuaState(std::tr1::shared_ptr<LuaScripting> ss);
 
   int         mInstanceID;
 
@@ -99,14 +99,8 @@ private:
 template <typename T>
 T* LuaClassInstance::getRawPointer(std::tr1::shared_ptr<LuaScripting> ss)
 {
-  std::ostringstream os;
-  os << "return getmetatable(" << fqName() << ")." << MD_INSTANCE;
-  std::string luaCall = os.str();
-  luaL_dostring(internalGetLuaState(ss), luaCall.c_str());
-
   // TODO: Add RTTI
-
-  return reinterpret_cast<T*>(lua_touserdata(internalGetLuaState(ss), -1));
+  return reinterpret_cast<T*>(getVoidPointer(ss.get()));
 }
 
 } /* namespace tuvok */

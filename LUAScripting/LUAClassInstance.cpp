@@ -61,6 +61,7 @@ const char* LuaClassInstance::MD_DEL_FUN            = "delFun";
 const char* LuaClassInstance::SYSTEM_TABLE          = "_sys_";
 const char* LuaClassInstance::CLASS_INSTANCE_TABLE  = "_sys_.inst";
 const char* LuaClassInstance::CLASS_INSTANCE_PREFIX = "m";
+const char* LuaClassInstance::CLASS_LOOKUP_TABLE    = "_sys_.lookup";
 
 LuaClassInstance::LuaClassInstance(int instanceID)
 : mInstanceID(instanceID)
@@ -77,15 +78,24 @@ std::string LuaClassInstance::fqName() const
   return os.str();
 }
 
-lua_State* LuaClassInstance::internalGetLuaState(
-    tr1::shared_ptr<LuaScripting> ss)
-{
-  return ss->getLUAState();
-}
 
 bool LuaClassInstance::isDefaultInstance() const
 {
   return (mInstanceID == DEFAULT_INSTANCE_ID);
+}
+
+void* LuaClassInstance::getVoidPointer(LuaScripting* ss)
+{
+  lua_State* L = ss->getLUAState();
+  LuaStackRAII _a(L, 0);
+
+  ss->getFunctionTable(fqName());
+  lua_getmetatable(L, -1);
+  lua_getfield(L, -1, MD_INSTANCE);
+  void* r = lua_touserdata(L, -1);
+  lua_pop(L, 3);  // Table, metatable, and userdata.
+
+  return r;
 }
 
 }

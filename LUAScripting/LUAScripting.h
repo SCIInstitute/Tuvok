@@ -197,6 +197,8 @@ public:
   ///                 the class will be installed.
   void addLuaClassDef(ClassDefFun def, const std::string fqName);
 
+  /// Retrieves the LuaClassInstance given the object pointer.
+  LuaClassInstance getLuaClassInstance(void* p);
 
   /// Executes a command.
   ///
@@ -340,6 +342,10 @@ private:
                           bool registerUndo,
                           bool registerRedo);
 
+  /// Pushes the table associated with the LuaClassInstance to the top of the
+  /// stack. Returns false if it could not find the class instance table.
+  bool getClassTable(LuaClassInstance inst);
+
   /// This function should be used sparingly, and only for those functions that
   /// do not modify state nor return internal state in some way.
   /// I could not think of any functions outside the purview of LuaScripting
@@ -412,6 +418,8 @@ private:
   /// Places the function table at the top of the stack. If the function fails
   /// to find the function table, false is returned and nothing is pushed
   /// onto the stack.
+  /// Note: You can use this function as a generic way of grabbing tables
+  ///       at a particular fully qualified name.
   bool getFunctionTable(const std::string& fqName);
 
   /// Creates a callable LUA table. classInstance can be NULL.

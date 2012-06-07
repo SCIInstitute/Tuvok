@@ -183,6 +183,15 @@ private:
       std::string factoryFQName = lua_tostring(L, -1);
       lua_pop(L, 1);
 
+      // Push our index into the lookup table. Use the class instance pointer
+      // we created earlier as the lookup in this table.
+      if (ss->getFunctionTable(LuaClassInstance::CLASS_LOOKUP_TABLE) == false)
+        throw LuaError("Unable to obtain class lookup table!");
+      lua_pushlightuserdata(L, r);
+      lua_pushinteger(L, instID);
+      lua_settable(L, -3);
+      lua_pop(L, 1);
+
       // Create an instance of this class.
       // First we build where we will be placing this class instance
       // (in the global instance table).
@@ -331,6 +340,15 @@ private:
 
       lua_getfield(L, newFunTableIndex, CONS_MD_FACTORY_NAME);
       std::string factoryFQName = lua_tostring(L, -1);
+      lua_pop(L, 1);
+
+      // Push our index into the lookup table. Use the class instance pointer
+      // we created earlier as the lookup in this table.
+      if (ss->getFunctionTable(LuaClassInstance::CLASS_LOOKUP_TABLE) == false)
+        throw LuaError("Unable to obtain class lookup table!");
+      lua_pushlightuserdata(L, r);
+      lua_pushinteger(L, instID);
+      lua_settable(L, -3);
       lua_pop(L, 1);
 
       // Create an instance of this class.

@@ -1458,6 +1458,26 @@ SUITE(LuaTestClassInstanceRegistration)
     CHECK_EQUAL("String 1", sc->execRet<string>(aName + ".get_s1()"));
   }
 
+  TEST(PointerRetrievalOfClasses)
+  {
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+
+    // Register class definitions.
+    sc->addLuaClassDef(&A::luaDefineClass, "factory.a1");
+
+    // Test the classes.
+    LuaClassInstance a_1 = sc->execRet<LuaClassInstance>(
+        "factory.a1.new(2, 2.63, 'str')");
+
+    // Testing only the first instance of a1.
+    std::string aInst = a_1.fqName();
+    A* a = a_1.getRawPointer<A>(sc);
+
+    LuaClassInstance aAlt = sc->getLuaClassInstance(reinterpret_cast<void*>(a));
+
+    CHECK_EQUAL(a_1.getGlobalInstID(), aAlt.getGlobalInstID());
+  }
+
   TEST(ClassHelpAndLog)
   {
     // Help should be given for classes, but not for any of their instances 

@@ -124,6 +124,20 @@ LuaScripting::LuaScripting()
   registerScriptFunctions();
 
   mProvenance->registerLuaProvenanceFunctions();
+
+  // Construct Lua Class Instance lookup table.
+  LuaStackRAII _a(mL, 0);
+
+  // First construct the system table.
+  lua_newtable(mL);
+  lua_setglobal(mL, LuaClassInstance::SYSTEM_TABLE);
+
+  // Generate class lookup table.
+  {
+    ostringstream os;
+    os << LuaClassInstance::CLASS_LOOKUP_TABLE << " = {}";
+    luaL_dostring(mL, os.str().c_str());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -178,7 +192,7 @@ int LuaScripting::luaPanic(lua_State* L)
   return 0;
 }
 #ifdef DETECTED_OS_WINDOWS
-#pragma warning(default:4702)  // Reenable unreachable code arning
+#pragma warning(default:4702)  // Reenable unreachable code warning
 #endif
 
 //-----------------------------------------------------------------------------
@@ -391,6 +405,12 @@ void LuaScripting::deleteAllClassInstances()
       luaL_dostring(mL, os.str().c_str());
     }
 
+    // Erase the old lookup table.
+    {
+      ostringstream os;
+      os << LuaClassInstance::CLASS_LOOKUP_TABLE << " = {}";
+      luaL_dostring(mL, os.str().c_str());
+    }
   }
 
   // Pop off the instance table (or nil).
@@ -1454,6 +1474,8 @@ void LuaScripting::endCommand()
 //-----------------------------------------------------------------------------
 void LuaScripting::addLuaClassDef(ClassDefFun f, const std::string fqName)
 {
+  LuaStackRAII _a(mL, 0);
+
   // Build constructor into the Lua class table (at fqName).
   // (Setup appropriate LuaClassInstanceReg to grab constructor).
   LuaClassInstanceReg reg(this, fqName);
@@ -1478,7 +1500,36 @@ void LuaScripting::addLuaClassDef(ClassDefFun f, const std::string fqName)
 
   // Pop the new function table.
   lua_pop(mL, 1);
+}
 
+//-----------------------------------------------------------------------------
+LuaClassInstance LuaScripting::getLuaClassInstance(void* p)
+{
+  LuaStackRAII _a(mL, 0);
+
+  // Grab lookup table and attempt to lookup the light user data.
+  getFunctionTable(LuaClassInstance::CLASS_LOOKUP_TABLE);
+
+  lua_pushlightuserdata(mL, p);
+  lua_gettable(mL, -2);
+
+  if (lua_isnil(mL, -1))
+  {
+    throw LuaNonExistantClassInstancePointer("Unable to find class instance");
+  }
+
+  int instID = luaL_checkinteger(mL, -1);
+
+  lua_pop(mL, 2);
+
+  return LuaClassInstance(instID);
+}
+
+//-----------------------------------------------------------------------------
+bool LuaScripting::getClassTable(LuaClassInstance inst)
+{
+  LuaStackRAII _a(mL, 1);
+  return getFunctionTable(inst.fqName());
 }
 
 //-----------------------------------------------------------------------------
@@ -1488,6 +1539,8 @@ void LuaScripting::deleteLuaClassInstance(LuaClassInstance inst)
 
   if (getFunctionTable(inst.fqName()))
   {
+    void* rawPointer = inst.getVoidPointer(this);
+
     destroyClassInstanceTable(lua_gettop(mL));
 
     // Erase the class instance.
@@ -1495,6 +1548,19 @@ void LuaScripting::deleteLuaClassInstance(LuaClassInstance inst)
       ostringstream os;
       os << inst.fqName() << " = nil";
       luaL_dostring(mL, os.str().c_str());
+    }
+
+    // Remove the class ID from the lookup table.
+    if (getFunctionTable(LuaClassInstance::CLASS_LOOKUP_TABLE))
+    {
+      lua_pushlightuserdata(mL, rawPointer);
+      lua_pushnil(mL);
+      lua_settable(mL, -3);
+      lua_pop(mL, 1);
+    }
+    else
+    {
+      throw LuaError("Unable to find class lookup table...");
     }
 
     // Pop the class instance table.
