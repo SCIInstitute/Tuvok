@@ -46,10 +46,8 @@
 #include "Basics/Vectors.h"
 #include "Controller/Controller.h"
 #include "Quantize.h"
-#include "UVF/UVF.h"
+#include "UVF/UVFTables.h"
 #include "UVF/Histogram1DDataBlock.h"
-
-class Histogram1DDataBlock;
 
 class RangeInfo {
 public:

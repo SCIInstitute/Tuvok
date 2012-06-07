@@ -51,6 +51,7 @@
 #include "UVF/RasterDataBlock.h"
 #include "UVF/KeyValuePairDataBlock.h"
 #include "UVF/TOCBlock.h"
+#include "UVF/UVF.h"
 #include "TuvokIOError.h"
 
 using namespace std;
