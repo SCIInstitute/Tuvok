@@ -43,11 +43,15 @@
 # include <tr1/memory>
 #endif
 #include "../StdTuvokDefines.h"
-#include "../Basics/Mesh.h"
 #include <string>
 #include <vector>
+#include "Basics/Vectors.h"
 
 namespace tuvok {
+
+typedef std::vector<FLOATVECTOR3> VertVec;
+typedef std::vector<uint32_t> IndexVec;
+class Mesh;
 
 class AbstrGeoConverter {
 public:
