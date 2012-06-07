@@ -57,10 +57,6 @@
 
 typedef std::tr1::tuple<std::string,std::string,bool,bool> tConverterFormat;
 
-#define DEFAULT_BRICKSIZE (256)
-#define DEFAULT_BRICKOVERLAP (2)
-#define DEFAULT_INCORESIZE (DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE*DEFAULT_BRICKSIZE)
-
 class AbstrConverter;
 class FileStackInfo;
 class RangeInfo;

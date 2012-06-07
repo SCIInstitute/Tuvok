@@ -35,7 +35,7 @@
 #ifndef TUVOK_DATASET_H
 #define TUVOK_DATASET_H
 
-#include <StdTuvokDefines.h>
+#include "StdTuvokDefines.h"
 
 #include <cstdlib>
 #include <utility>
@@ -53,7 +53,6 @@
 #include "Basics/Vectors.h"
 #include "Brick.h"
 #include "Basics/tr1.h"
-#include "Basics/Mesh.h"
 
 #define MAX_TRANSFERFUNCTION_SIZE 4096
 
@@ -64,6 +63,7 @@ class LargeRAWFile;
 namespace tuvok {
 
 class Metadata;
+class Mesh;
 
 /// Abstract interface to a dataset.
 /// noncopyable not because it wouldn't work, but because we might be holding a

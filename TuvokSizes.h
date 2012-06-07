@@ -3,7 +3,9 @@
 
    The MIT License
 
-   Copyright (c) 2010 Interactive Visualization and Data Analysis Group.
+   Copyright (c) 2012 Scientific Computing and Imaging Institute,
+   University of Utah.
+
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,39 +25,14 @@
    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
    DEALINGS IN THE SOFTWARE.
 */
-
-//!    File   : XML3DGeoConverter.h
-//!    Author : Jens Krueger
-//!             IVCI & DFKI & MMCI, Saarbruecken
-//!             SCI Institute, University of Utah
-//!    Date   : July 2010
-//
-//!    Copyright (C) 2010 DFKI, MMCI, SCI Institute
-
 #pragma once
 
-#ifndef XML3DGEOCONVERTER_H
-#define XML3DGEOCONVERTER_H
+#ifndef TUVOK_SIZES_H
+#define TUVOK_SIZES_H
 
-#include "../StdTuvokDefines.h"
-#include "AbstrGeoConverter.h"
+const unsigned int DEFAULT_BRICKSIZE = 256;
+const unsigned int DEFAULT_BRICKOVERLAP = 2;
+const unsigned int DEFAULT_INCORESIZE =
+  DEFAULT_BRICKSIZE * DEFAULT_BRICKSIZE * DEFAULT_BRICKSIZE;
 
-namespace tuvok {
-
-  class XML3DGeoConverter : public AbstrGeoConverter {
-  public:
-    XML3DGeoConverter();
-    virtual ~XML3DGeoConverter() {}
-    virtual bool ConvertToNative(const Mesh& m,
-                                 const std::string& strTargetFilename);
-
-    virtual bool CanExportData() const { return true; }
-
-  protected:
-    void ConvertToNative(const Mesh& m, size_t iMeshIndex, std::ofstream& outStream) const;
-
-    void WriteHeader(std::ofstream& outStream);
-    void WriteFooter(std::ofstream& outStream, size_t iMeshCount);
-  };
-}
-#endif // XML3DGEOCONVERTER_H
+#endif /* TUVOK_SIZES_H */

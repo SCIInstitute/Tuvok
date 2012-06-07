@@ -33,6 +33,7 @@
 
 #include "MobileGeoConverter.h"
 #include "Controller/Controller.h"
+#include "G3D.h"
 #include "SysTools.h"
 #include "Mesh.h"
 #include "TuvokIOError.h"

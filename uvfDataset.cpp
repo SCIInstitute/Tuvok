@@ -36,6 +36,7 @@
 #include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "TuvokIOError.h"
+#include "TuvokSizes.h"
 #include "UVF/UVF.h"
 #include "UVF/Histogram1DDataBlock.h"
 #include "UVF/KeyValuePairDataBlock.h"

@@ -32,7 +32,8 @@
            University of Utah
 */
 #include "Dataset.h"
-#include "../Basics/MathTools.h"
+#include "Basics/MathTools.h"
+#include "Basics/Mesh.h"
 
 namespace tuvok {
 

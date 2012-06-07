@@ -49,7 +49,6 @@
 #include "IOManager.h"
 
 #include "Basics/MC.h"
-#include "Basics/nonstd.h"
 #include "Basics/SysTools.h"
 #include "Controller/Controller.h"
 #include "DSFactory.h"
@@ -64,6 +63,7 @@
 #include "Renderer/GPUMemMan/GPUMemMan.h"
 #include "TuvokJPEG.h"
 #include "TransferFunction1D.h"
+#include "TuvokSizes.h"
 #include "uvfDataset.h"
 #include "UVF/UVF.h"
 #include "UVF/GeometryDataBlock.h"

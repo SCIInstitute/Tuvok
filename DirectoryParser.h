@@ -33,8 +33,6 @@
            University of Utah
   \date    September 2008
 */
-
-
 #pragma once
 
 #ifndef DIRECTORYPARSER_H
@@ -43,8 +41,8 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include "../StdTuvokDefines.h"
-#include "../Basics/Vectors.h"
+#include "StdTuvokDefines.h"
+#include "Basics/Vectors.h"
 
 class SimpleFileInfo {
 public:

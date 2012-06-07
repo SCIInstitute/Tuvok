@@ -47,6 +47,7 @@
 #include "IOManager.h"  // for the size defines
 #include "Quantize.h"
 #include "TuvokIOError.h"
+#include "TuvokSizes.h"
 #include "UVF/Histogram1DDataBlock.h"
 
 using namespace tuvok;

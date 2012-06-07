@@ -36,8 +36,7 @@
 #ifndef G3D_H
 #define G3D_H
 
-#include "../StdTuvokDefines.h"
-#include <iostream>
+#include "StdTuvokDefines.h"
 #include <fstream>
 #include <vector>
 
@@ -137,7 +136,7 @@ public:
 	static void write(const std::string & file, const GeometrySoA * const geometry, const uint32_t vertexType = SoA);
 	static void read(const std::string & file, GeometryAoS * const geometry);
 	static void read(const std::string & file, GeometrySoA * const geometry);
-	static void print(const Geometry * const geometry, std::ostream & output = std::cout);
+	static void print(const Geometry * const geometry, std::ostream & output);
 	static void clean(GeometryAoS * geometry);
 	static void clean(GeometrySoA * geometry);
 

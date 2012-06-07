@@ -41,7 +41,6 @@
 
 #include "KeyValueFileParser.h"
 
-
 /** \class VGIHeaderParser
  * VGIHeaderParser parses VGStudio header file s(*.vgi)
  * essentailly these are simple text files strucutured as

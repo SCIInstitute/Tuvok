@@ -38,7 +38,6 @@
 
 #include "../StdTuvokDefines.h"
 #include "AbstrGeoConverter.h"
-#include "G3D.h"
 
 namespace tuvok {
   class Mesh;

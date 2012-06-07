@@ -35,7 +35,7 @@
 #ifndef TUVOK_BRICK_H
 #define TUVOK_BRICK_H
 
-#include <StdTuvokDefines.h>
+#include "StdTuvokDefines.h"
 
 #include <utility>
 #ifdef DETECTED_OS_WINDOWS

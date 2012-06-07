@@ -37,7 +37,6 @@
 #ifndef BOVCONVERTER_H
 #define BOVCONVERTER_H
 
-#include "../StdTuvokDefines.h"
 #include "RAWConverter.h"
 
 class BOVConverter : public RAWConverter {

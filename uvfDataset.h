@@ -288,7 +288,7 @@ private:
       iElemsRead = dataFile.ReadRAW((unsigned char*)data, iInCoreElemCount*sizeof(T))/sizeof(T);
 
       // march through the data tuple by tuple
-      // TODO: optimize this by computing the start and end of a scan line ad perform block operations
+      // TODO: optimize this by computing the start and end of a scan line and perform block operations
       for (size_t elem = 0;elem<iElemsRead;elem+=size_t(iComponentCount)) {
         FLOATVECTOR3 volCoord = GetVolCoord((iFilePos/sizeof(T)+elem)/iComponentCount, domSize);
 

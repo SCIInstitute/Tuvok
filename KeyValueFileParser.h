@@ -44,7 +44,7 @@
 #endif
 #include <string>
 #include <vector>
-#include <fstream>
+#include <iosfwd>
 #ifdef _WIN32
   #pragma warning (default : 4995)
 #endif

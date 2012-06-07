@@ -33,14 +33,12 @@
   \version 1.0
   \date    July 2009
 */
-
-
 #pragma once
 
 #ifndef I3MCONVERTER_H
 #define I3MCONVERTER_H
 
-#include "../StdTuvokDefines.h"
+#include "StdTuvokDefines.h"
 #include "RAWConverter.h"
 
 class I3MConverter : public RAWConverter {
