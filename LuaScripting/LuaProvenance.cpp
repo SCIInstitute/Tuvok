@@ -46,11 +46,11 @@
 #include <vector>
 #include <algorithm>
 
-#include "LUAError.h"
-#include "LUAFunBinding.h"
-#include "LUAScripting.h"
-#include "LUAProvenance.h"
-#include "LUAMemberReg.h"
+#include "LuaError.h"
+#include "LuaFunBinding.h"
+#include "LuaScripting.h"
+#include "LuaProvenance.h"
+#include "LuaMemberReg.h"
 
 using namespace std;
 
@@ -253,7 +253,7 @@ void LuaProvenance::logExecution(const string& fname,
          static_cast<URStackType::size_type>(mStackPointer));
 
   // Gather last execution parameters for inclusion in the undo stack.
-  lua_State* L = mScripting->getLUAState();
+  lua_State* L = mScripting->getLuaState();
   LuaStackRAII _a = LuaStackRAII(L, 0);
   mScripting->getFunctionTable(fname.c_str());
   lua_getfield(L, -1, LuaScripting::TBL_MD_FUN_LAST_EXEC);
@@ -541,7 +541,7 @@ void LuaProvenance::performUndoRedoOp(const string& funcName,
 {
   // Obtain function's table, then grab its metamethod __call.
   // Push parameters onto the stack after the __call method, and execute.
-  lua_State* L = mScripting->getLUAState();
+  lua_State* L = mScripting->getLuaState();
   LuaStackRAII _a = LuaStackRAII(L, 0);
 
   if (mScripting->getFunctionTable(funcName) == false)

@@ -47,8 +47,8 @@
 
 #include <vector>
 
-#include "LUAScripting.h"
-#include "LUAStackRAII.h"
+#include "LuaScripting.h"
+#include "LuaStackRAII.h"
 
 using namespace std;
 

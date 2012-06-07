@@ -43,7 +43,7 @@
 #ifndef TUVOK_LUAMEMBER_REG_UNSAFE_H_
 #define TUVOK_LUAMEMBER_REG_UNSAFE_H_
 
-#include "LUAScripting.h"
+#include "LuaScripting.h"
 #include <cstring>
 
 namespace tuvok
@@ -106,7 +106,7 @@ private:
   /// Functions registered with this hook -- used for unregistering hooks.
   std::vector<std::string>            mHookedFunctions;
 
-  /// ID used by LUA in order to identify the functions hooked by this class.
+  /// ID used by Lua in order to identify the functions hooked by this class.
   /// This ID is used as the key in the hook table.
   const std::string                   mHookID;
 
@@ -253,7 +253,7 @@ std::string LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
                                                  bool undoRedo)
 {
   LuaScripting* ss  = mScriptSystem;
-  lua_State*    L   = ss->getLUAState();
+  lua_State*    L   = ss->getLuaState();
 
   LuaStackRAII _a = LuaStackRAII(L, 0);
 
@@ -353,7 +353,7 @@ void LuaMemberRegUnsafe::strictHookInternal(
     )
 {
   LuaScripting* ss  = mScriptSystem;
-  lua_State*    L   = ss->getLUAState();
+  lua_State*    L   = ss->getLuaState();
 
   LuaStackRAII _a = LuaStackRAII(L, 0);
 

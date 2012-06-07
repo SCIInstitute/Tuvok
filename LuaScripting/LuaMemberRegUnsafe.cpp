@@ -55,10 +55,10 @@
 
 #include <vector>
 
-#include "LUAError.h"
-#include "LUAFunBinding.h"
-#include "LUAScripting.h"
-#include "LUAMemberRegUnsafe.h"
+#include "LuaError.h"
+#include "LuaFunBinding.h"
+#include "LuaScripting.h"
+#include "LuaMemberRegUnsafe.h"
 
 using namespace std;
 
@@ -117,7 +117,7 @@ void LuaMemberRegUnsafe::unregisterFunctions()
 //-----------------------------------------------------------------------------
 void LuaMemberRegUnsafe::unregisterHooks()
 {
-  lua_State* L = mScriptSystem->getLUAState();
+  lua_State* L = mScriptSystem->getLuaState();
   LuaStackRAII _a = LuaStackRAII(L, 0);
 
   // Loop through the hooks, and unregister them from their functions
@@ -153,7 +153,7 @@ void LuaMemberRegUnsafe::unregisterHooks()
 //-----------------------------------------------------------------------------
 void LuaMemberRegUnsafe::unregisterUndoRedoFunctions()
 {
-  lua_State* L = mScriptSystem->getLUAState();
+  lua_State* L = mScriptSystem->getLuaState();
   LuaStackRAII _a = LuaStackRAII(L, 0);
 
   // Loop through the hooks, and unregister them from their functions

@@ -27,12 +27,12 @@
  */
 
 /**
- \file    LUAScripting.cpp
+ \file    LuaScripting.cpp
  \author  James Hughes
           SCI Institute
           University of Utah
  \date    Mar 21, 2012
- \brief   Interface to the LUA scripting system built for Tuvok.
+ \brief   Interface to the Lua scripting system built for Tuvok.
 
           To see examples of how to use the system, consult the unit tests at
           the bottom of LuaMemberReg.cpp and LuaScripting.cpp.
@@ -53,9 +53,9 @@
 #include <vector>
 #include <algorithm>
 
-#include "LUAScripting.h"
-#include "LUAProvenance.h"
-#include "LUAMemberRegUnsafe.h"
+#include "LuaScripting.h"
+#include "LuaProvenance.h"
+#include "LuaMemberRegUnsafe.h"
 
 // We are including this ourselves because we do not want dependencies on
 // Tuvok's SysTools.
@@ -127,7 +127,7 @@ LuaScripting::LuaScripting()
 {
   mL = lua_newstate(luaInternalAlloc, NULL);
 
-  if (mL == NULL) throw LuaError("Failed to initialize LUA.");
+  if (mL == NULL) throw LuaError("Failed to initialize Lua.");
 
   lua_atpanic(mL, &luaPanic);
   luaL_openlibs(mL);
@@ -203,8 +203,8 @@ void LuaScripting::removeAllRegistrations()
 //-----------------------------------------------------------------------------
 int LuaScripting::luaPanic(lua_State* L)
 {
-  // Note: We compile LUA as c plus plus, so we won't have problems throwing
-  // exceptions from functions called by LUA. When not compiling as CPP, LUA
+  // Note: We compile Lua as c plus plus, so we won't have problems throwing
+  // exceptions from functions called by Lua. When not compiling as CPP, Lua
   // uses set_jmp and long_jmp. This can cause issues when exceptions are
   // thrown, see:
   // http://developers.sun.com/solaris/articles/mixing.html#except .
@@ -227,7 +227,7 @@ int LuaScripting::luaPanic(lua_State* L)
 
   throw LuaError(os.str().c_str());
 
-  // Returning from this function would mean that abort() gets called by LUA.
+  // Returning from this function would mean that abort() gets called by Lua.
   // We don't want this.
   return 0;
 }
@@ -1128,7 +1128,7 @@ void LuaScripting::bindClosureTableWithFQName(const string& fqName,
 
   if (tokens.size() == 0) throw LuaFunBindError("No function name specified.");
 
-  // Build name hierarchy in LUA, handle base case specially due to globals.
+  // Build name hierarchy in Lua, handle base case specially due to globals.
   vector<string>::iterator it = tokens.begin();
   string token = (*it);
   ++it;
@@ -1312,7 +1312,7 @@ void LuaScripting::createCallableFuncTable(lua_CFunction proxyFunc,
   // Create a new metatable
   lua_newtable(mL);
 
-  // Push C Closure containing our function pointer onto the LUA stack.
+  // Push C Closure containing our function pointer onto the Lua stack.
   lua_pushlightuserdata(mL, realFuncToCall);
   lua_pushboolean(mL, 0);   // We are NOT a hook being called.
   // We are safe pushing this unprotected pointer: LuaScripting always
@@ -2238,7 +2238,7 @@ void LuaScripting::registerLuaUtilityFunctions()
 
 void printRegisteredFunctions(LuaScripting* s);
 
-SUITE(TestLUAScriptingSystem)
+SUITE(TestLuaScriptingSystem)
 {
   int dfun(int a, int b, int c)
   {
@@ -2343,7 +2343,7 @@ SUITE(TestLUAScriptingSystem)
     return os.str();
   }
 
-  // When you add new types to LUAFunBinding.h, test them here.
+  // When you add new types to LuaFunBinding.h, test them here.
   TEST( TestRegistration )
   {
     TEST_HEADER;
@@ -2473,7 +2473,7 @@ SUITE(TestLUAScriptingSystem)
     // Since all of the functions are in different base tables, we can extract
     // them in the order that we registered them.
     // Otherwise, its determine by the hashing function used internally by
-    // LUA (key/value pair association).
+    // Lua (key/value pair association).
     i = ds - 4;
     CHECK_EQUAL("int", d[i].funcName.c_str());
     CHECK_EQUAL("Desc 1", d[i].funcDesc.c_str());
@@ -3021,7 +3021,7 @@ SUITE(TestLUAScriptingSystem)
     CHECK_EQUAL(true, equal(vecB.begin(), vecB.end(), strArray, predString));
   }
 
-  // More unit tests are spread out amongst the LUA* files.
+  // More unit tests are spread out amongst the Lua* files.
 
   /// TODO: Add tests for passing shared_ptr's around, and how they work
   /// with regards to the undo/redo stack.

@@ -27,7 +27,7 @@
  */
 
 /**
- \file    LUAMemberReg.cpp
+ \file    LuaMemberReg.cpp
  \author  James Hughes
           SCI Institute
           University of Utah
@@ -59,10 +59,10 @@
 
 #include <vector>
 
-#include "LUAError.h"
-#include "LUAFunBinding.h"
-#include "LUAScripting.h"
-#include "LUAMemberReg.h"
+#include "LuaError.h"
+#include "LuaFunBinding.h"
+#include "LuaScripting.h"
+#include "LuaMemberReg.h"
 
 using namespace std;
 

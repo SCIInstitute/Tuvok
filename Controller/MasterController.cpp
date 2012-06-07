@@ -54,9 +54,9 @@
 #include "../Renderer/GL/GLSBVR2D.h"
 
 #include "../Scripting/Scripting.h"
-#include "../LUAScripting/LUAScripting.h"
-#include "../LUAScripting/LUAMemberReg.h"
-#include "../LUAScripting/LUATuvokSpecificTypes.h"
+#include "../LuaScripting/LuaScripting.h"
+#include "../LuaScripting/LuaMemberReg.h"
+#include "../LuaScripting/TuvokSpecific/LuaTuvokTypes.h"
 
 using namespace tuvok;
 

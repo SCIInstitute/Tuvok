@@ -27,7 +27,7 @@
  */
 
 /**
- \file    LUAMemberReg.h
+ \file    LuaMemberReg.h
  \author  James Hughes
           SCI Institute
           University of Utah
@@ -40,7 +40,7 @@
 #ifndef TUVOK_LUAMEMBER_REG_H_
 #define TUVOK_LUAMEMBER_REG_H_
 
-#include "LUAMemberRegUnsafe.h"
+#include "LuaMemberRegUnsafe.h"
 
 namespace tuvok
 {

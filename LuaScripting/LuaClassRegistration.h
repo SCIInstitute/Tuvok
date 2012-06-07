@@ -35,10 +35,10 @@
 #ifndef TUVOK_LUACLASSREGISTRATION_H_
 #define TUVOK_LUACLASSREGISTRATION_H_
 
-#include "LUACommon.h"
-#include "LUAClassInstance.h"
-#include "LUAMemberRegUnsafe.h"
-#include "LUAProvenance.h"
+#include "LuaCommon.h"
+#include "LuaClassInstance.h"
+#include "LuaMemberRegUnsafe.h"
+#include "LuaProvenance.h"
 
 namespace tuvok
 {
@@ -175,7 +175,7 @@ template <typename T>
 void LuaClassRegistration<T>::inherit(LuaClassInstance them)
 {
   LuaScripting* ss(mSS);
-  lua_State* L = ss->getLUAState();
+  lua_State* L = ss->getLuaState();
 
   LuaStackRAII _a(L, 0);
 
@@ -205,7 +205,7 @@ void LuaClassRegistration<T>::inherit(LuaClassInstance them,
                                       const std::string& function)
 {
   LuaScripting* ss(mSS);
-  lua_State* L = ss->getLUAState();
+  lua_State* L = ss->getLuaState();
 
   LuaStackRAII _a(L, 0);
 

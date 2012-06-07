@@ -27,7 +27,7 @@
  */
 
 /**
- \file    LUAScripting.h
+ \file    LuaScripting.h
  \author  James Hughes
           SCI Institute
           University of Utah
@@ -59,11 +59,11 @@
 #include <tr1/memory>
 #endif
 
-#include "LUACommon.h"
-#include "LUAError.h"
-#include "LUAFunBinding.h"
-#include "LUAStackRAII.h"
-#include "LUAScriptingExecHeader.h"
+#include "LuaCommon.h"
+#include "LuaError.h"
+#include "LuaFunBinding.h"
+#include "LuaStackRAII.h"
+#include "LuaScriptingExecHeader.h"
 
 namespace tuvok
 {
@@ -105,7 +105,7 @@ public:
   /// shared pointer references.
   void removeAllRegistrations();
 
-  /// Registers a static C++ function with LUA.
+  /// Registers a static C++ function with Lua.
   /// Since Lua is compiled as CPP, it is safe to throw exceptions from the
   /// function pointed to by f (since Lua detects that it is being compiled in
   /// cpp, and uses exceptions instead of long jumping).
@@ -113,8 +113,8 @@ public:
   ///                   f's parameters and return value will be handled
   ///                   automatically.
   ///                   The number of parameters allowed in f is limited by
-  ///                   the templates in LUAFunBinding.h.
-  /// \param  name      Period delimited fully qualified name of f inside of LUA
+  ///                   the templates in LuaFunBinding.h.
+  /// \param  name      Period delimited fully qualified name of f inside of Lua
   ///                   No characters other than those regularly allowed inside
   ///                   C++ functions are allowed, with the exception of periods
   ///                   Example: "renderer.eye"
@@ -139,7 +139,7 @@ public:
   /// Lua Scripting paper.
   ///
   /// TO REGISTER MEMBER FUNCTIONS:
-  /// Use the LUAMemberReg mediator class. It will clean up for you.
+  /// Use the LuaMemberReg mediator class. It will clean up for you.
   /// functions.
   template <typename FunPtr>
   std::string registerFunction(FunPtr f,
@@ -395,7 +395,7 @@ public:
 
   /// Used by friend class LuaProvenance.
   /// Any public use of this function should be for testing purposes only.
-  lua_State* getLUAState() const {return mL;}
+  lua_State* getLuaState() const {return mL;}
 
   /// Notifies the scripting system of an object's deletion.
   /// Use this function in the object's destructor if you believe deleteClass
@@ -502,8 +502,8 @@ private:
   ///       at a particular fully qualified name.
   bool getFunctionTable(const std::string& fqName);
 
-  /// Creates a callable LUA table. classInstance can be NULL.
-  /// Leaves the table on the top of the LUA stack.
+  /// Creates a callable Lua table. classInstance can be NULL.
+  /// Leaves the table on the top of the Lua stack.
   void createCallableFuncTable(lua_CFunction proxyFunc, void* realFuncToCall);
 
   /// Populates the table at the given index with the given function metadata.
@@ -533,11 +533,11 @@ private:
   /// Retrieve the function description from the given table.
   FunctionDesc getFunctionDescFromTable(int table) const;
 
-  /// LUA panic function. LUA calls this when an unrecoverable error occurs
+  /// Lua panic function. Lua calls this when an unrecoverable error occurs
   /// in the interpreter.
   static int luaPanic(lua_State* L);
 
-  /// Customized memory allocator called from within LUA.
+  /// Customized memory allocator called from within Lua.
   static void* luaInternalAlloc(void* ud, void* ptr, size_t osize,
                                 size_t nsize);
 
@@ -629,10 +629,10 @@ private:
   ///@}
 
 
-  /// The one true LUA state.
+  /// The one true Lua state.
   lua_State*                        mL;
 
-  /// List of registered modules/functions in LUA's global table.
+  /// List of registered modules/functions in Lua's global table.
   /// Used to iterate through all registered functions.
   std::vector<std::string>          mRegisteredGlobals;
 
@@ -780,7 +780,7 @@ private:
 
 // We need to place this here to resolve a circular reference introduced by the
 // functions below.
-#include "LUAClassConstructor.h"
+#include "LuaClassConstructor.h"
 
 namespace tuvok
 {
@@ -795,7 +795,7 @@ void LuaScripting::registerClass(
   // a pointer to the class we want to create. This function is guaranteed
   // to be a static function.
   // Construct 'constructor' table.
-  lua_State* L = getLUAState();
+  lua_State* L = getLuaState();
   LuaStackRAII _a(L, 0);
 
   // Register 'new'. This will automatically create the necessary class table.
@@ -838,7 +838,7 @@ void LuaScripting::registerClassStatic(
   // a pointer to the class we want to create. This function is guaranteed
   // to be a static function.
   // Construct 'constructor' table.
-  lua_State* L = getLUAState();
+  lua_State* L = getLuaState();
   LuaStackRAII _a(L, 0);
 
   // Register 'new'. This will automatically create the necessary class table.
@@ -941,7 +941,7 @@ void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
 #endif
 
 // Include cexec/cexecRet/setDefaults function bodies
-#include "LUAScriptingExecBody.h"
+#include "LuaScriptingExecBody.h"
 
 template <typename FunPtr>
 std::string LuaScripting::registerFunction(FunPtr f, const std::string& name,

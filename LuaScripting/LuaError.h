@@ -27,7 +27,7 @@
 */
 
 /**
-  \file    LUAError.h
+  \file    LuaError.h
   \author  James Hughes
            SCI Institute
            University of Utah
@@ -47,7 +47,7 @@
 namespace tuvok
 {
 
-/// Generic LUA error.
+/// Generic Lua error.
 class LuaError : public Exception
 {
 public:
@@ -59,7 +59,7 @@ public:
 
 };
 
-/// Errors dealing with the LUA-Based function registration system.
+/// Errors dealing with the Lua-Based function registration system.
 class LuaFunBindError : public LuaError
 {
 public:

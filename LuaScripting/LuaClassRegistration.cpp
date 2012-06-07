@@ -45,10 +45,10 @@
 
 #include <vector>
 
-#include "LUAScripting.h"
-#include "LUAStackRAII.h"
-#include "LUAClassConstructor.h"
-#include "LUAClassRegistration.h"
+#include "LuaScripting.h"
+#include "LuaStackRAII.h"
+#include "LuaClassConstructor.h"
+#include "LuaClassRegistration.h"
 
 using namespace std;
 
@@ -820,7 +820,7 @@ SUITE(LuaTestClassRegistration)
 
     // Test Just the D class for now (composition).
     {
-      lua_State* L = gSS->getLUAState();
+      lua_State* L = gSS->getLuaState();
       string lastExecTable = "return deleteClass.";
       lastExecTable += LuaScripting::TBL_MD_FUN_LAST_EXEC;
       int tableIndex, numParams;

@@ -202,21 +202,22 @@ HEADERS += \
            IO/VariantArray.h \
            IO/VFFConverter.h \
            IO/XML3DGeoConverter.h \
-           LUAScripting/LUAClassConstructor.h \
-           LUAScripting/LUAClassInstance.h \
-           LUAScripting/LUAClassRegistration.h \
-           LUAScripting/LUACommon.h \
-           LUAScripting/LUAError.h \
-           LUAScripting/LUAFunBinding.h \
-           LUAScripting/LUAFunBindingCore.h \
-           LUAScripting/LUAMemberReg.h \
-           LUAScripting/LUAMemberRegUnsafe.h \
-           LUAScripting/LUAProvenance.h \
-           LUAScripting/LUAScripting.h \
-           LUAScripting/LUAScriptingExecBody.h \
-           LUAScripting/LUAScriptingExecHeader.h \
-           LUAScripting/LUAStackRAII.h \
-           LUAScripting/LUATuvokSpecificTypes.h \
+           LuaScripting/LuaClassConstructor.h \
+           LuaScripting/LuaClassInstance.h \
+           LuaScripting/LuaClassRegistration.h \
+           LuaScripting/LuaCommon.h \
+           LuaScripting/LuaError.h \
+           LuaScripting/LuaFunBinding.h \
+           LuaScripting/LuaFunBindingCore.h \
+           LuaScripting/LuaMemberReg.h \
+           LuaScripting/LuaMemberRegUnsafe.h \
+           LuaScripting/LuaProvenance.h \
+           LuaScripting/LuaScripting.h \
+           LuaScripting/LuaScriptingExecBody.h \
+           LuaScripting/LuaScriptingExecHeader.h \
+           LuaScripting/LuaStackRAII.h \
+           LuaScripting/TuvokSpecific/LuaDatasetProxy.h \
+           LuaScripting/TuvokSpecific/LuaTuvokTypes.h \
            Renderer/StateManager.h \
            Renderer/AbstrRenderer.h \
            Renderer/Context.h \
@@ -487,14 +488,15 @@ SOURCES += \
            IO/VariantArray.cpp \
            IO/VFFConverter.cpp \
            IO/XML3DGeoConverter.cpp \
-           LUAScripting/LUAClassConstructor.cpp \
-           LUAScripting/LUAClassInstance.cpp \
-           LUAScripting/LUAClassRegistration.cpp \
-           LUAScripting/LUAMemberReg.cpp \
-           LUAScripting/LUAMemberRegUnsafe.cpp \
-           LUAScripting/LUAProvenance.cpp \
-           LUAScripting/LUAScripting.cpp \
-           LUAScripting/LUAStackRAII.cpp \
+           LuaScripting/LuaClassConstructor.cpp \
+           LuaScripting/LuaClassInstance.cpp \
+           LuaScripting/LuaClassRegistration.cpp \
+           LuaScripting/LuaMemberReg.cpp \
+           LuaScripting/LuaMemberRegUnsafe.cpp \
+           LuaScripting/LuaProvenance.cpp \
+           LuaScripting/LuaScripting.cpp \
+           LuaScripting/LuaStackRAII.cpp \
+           LuaScripting/TuvokSpecific/LuaDatasetProxy.cpp \
            Renderer/AbstrRenderer.cpp \
            Renderer/Context.cpp \
            Renderer/CullingLOD.cpp \

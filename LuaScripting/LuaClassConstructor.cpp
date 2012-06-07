@@ -44,10 +44,10 @@
 
 #include <vector>
 
-#include "LUAScripting.h"
-#include "LUAStackRAII.h"
-#include "LUAClassInstance.h"
-#include "LUAProvenance.h"
+#include "LuaScripting.h"
+#include "LuaStackRAII.h"
+#include "LuaClassInstance.h"
+#include "LuaProvenance.h"
 
 using namespace std;
 namespace tuvok

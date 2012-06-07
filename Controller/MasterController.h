@@ -56,7 +56,7 @@
 #include "../DebugOut/ConsoleOut.h"
 
 #include "../Scripting/Scriptable.h"
-#include "LUAScripting/LUAClassInstance.h"
+#include "LuaScripting/LuaClassInstance.h"
 
 class SystemInfo;
 class IOManager;

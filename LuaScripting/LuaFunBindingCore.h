@@ -35,8 +35,8 @@
 #include <typeinfo>
 #include <sstream>
 
-#include "LUAClassInstance.h"
-#include "LUAStackRAII.h"
+#include "LuaClassInstance.h"
+#include "LuaStackRAII.h"
 
 namespace tuvok
 {

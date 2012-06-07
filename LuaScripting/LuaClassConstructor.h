@@ -33,7 +33,7 @@
 #ifndef TUVOK_LUACLASSCONSTRUCTOR_H_
 #define TUVOK_LUACLASSCONSTRUCTOR_H_
 
-#include "LUAClassInstance.h"
+#include "LuaClassInstance.h"
 
 namespace tuvok
 {
@@ -116,7 +116,7 @@ public:
     if (undoRedo == false)  mSS->setUndoRedoStackExempt(name);
   }
 
-  // This is the exact same function as LUAMemberRegUnsafe::registerFunction
+  // This is the exact same function as LuaMemberRegUnsafe::registerFunction
   // with the exception of the proxyFunc, and addition to the global
   // registered function list.
   template <typename CLS, typename T, typename FunPtr>

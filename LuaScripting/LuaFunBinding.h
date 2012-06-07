@@ -27,7 +27,7 @@
  */
 
 /**
- \file    LUAFunBinding.h
+ \file    LuaFunBinding.h
  \author  James Hughes
           SCI Institute
           University of Utah
@@ -46,8 +46,8 @@
 #include <typeinfo>
 #include <sstream>
 
-#include "LUAClassInstance.h"
-#include "LUAStackRAII.h"
+#include "LuaClassInstance.h"
+#include "LuaStackRAII.h"
 
 // Uncomment TUVOK_DEBUG_LUA_USE_RTTI_CHECKS to check types of function calls
 // made through lua at run time.
@@ -91,9 +91,9 @@ private:
 //
 //==============================================================
 
-// LUA strict type stack
+// Lua strict type stack
 // This template enforces strict type compliance while converting types on the
-// LUA stack.
+// Lua stack.
 
 template<typename T>
 class LuaStrictStack
@@ -112,7 +112,7 @@ public:
 };
 
 // TODO: 	Shared pointers. Need to decide if we even want to support these.
-//			If we do want to support these, what do these types mean inside of LUA?
+//			If we do want to support these, what do these types mean inside of Lua?
 
 // Specializations (supported parameter/return types)
 
@@ -714,8 +714,8 @@ public:
 // TODO:  If boost detected, add boost shared_ptr.
 
 // TODO:	Add support for std::vector and std::map, both to be implemented as
-//        tables in LUA. std::vector would be efficiently implemented in LUA.
-//        In LUA, it would be stored internally as an array instead of
+//        tables in Lua. std::vector would be efficiently implemented in Lua.
+//        In Lua, it would be stored internally as an array instead of
 //        key/value pairs in a hash table.
 //			  See http://www.lua.org/doc/hopl.pdf -- page 2, para 2. See ref 31.
 //			  Consider support for 3D and 4D graphics vectors.

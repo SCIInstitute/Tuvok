@@ -45,8 +45,8 @@
 
 #include <vector>
 
-#include "LUAScripting.h"
-#include "LUAClassInstance.h"
+#include "LuaScripting.h"
+#include "LuaClassInstance.h"
 
 using namespace std;
 
@@ -94,7 +94,7 @@ bool LuaClassInstance::isDefaultInstance() const
 
 void* LuaClassInstance::getVoidPointer(LuaScripting* ss)
 {
-  lua_State* L = ss->getLUAState();
+  lua_State* L = ss->getLuaState();
   LuaStackRAII _a(L, 0);
 
   ss->getFunctionTable(fqName());

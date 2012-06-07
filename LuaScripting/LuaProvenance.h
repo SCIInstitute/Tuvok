@@ -34,7 +34,7 @@
 #ifndef TUVOK_LUAPROVENANCE_H_
 #define TUVOK_LUAPROVENANCE_H_
 
-#include "LUAMemberRegUnsafe.h"
+#include "LuaMemberRegUnsafe.h"
 #include <algorithm>
 
 #ifdef DETECTED_OS_WINDOWS
@@ -87,7 +87,7 @@ public:
   /// Performs a redo.
   void issueRedo();
 
-  /// Registers provenance functions with LUA.
+  /// Registers provenance functions with Lua.
   /// These functions are NEVER deregistered and persist for the lifetime
   /// of the associated LuaScripting system.
   void registerLuaProvenanceFunctions();
