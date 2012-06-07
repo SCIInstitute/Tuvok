@@ -60,7 +60,6 @@
 #include "IO/Images/ImageParser.h"
 #include "IO/Images/StackExporter.h"
 #include "Quantize.h"
-#include "Renderer/GPUMemMan/GPUMemMan.h"
 #include "TuvokJPEG.h"
 #include "TransferFunction1D.h"
 #include "TuvokSizes.h"
@@ -140,7 +139,8 @@ IOManager::IOManager() :
   m_dsFactory(new io::DSFactory()),
   m_iMaxBrickSize(DEFAULT_BRICKSIZE),
   m_iBrickOverlap(DEFAULT_BRICKOVERLAP),
-  m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize)
+  m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize),
+  m_LoadDS(NULL)
 {
   m_vpGeoConverters.push_back(new PLYGeoConverter());
   m_vpGeoConverters.push_back(new OBJGeoConverter());
@@ -1229,9 +1229,22 @@ UVFDataset* IOManager::ConvertDataset(const string& strFilename,
   return dynamic_cast<UVFDataset*>(LoadDataset(strTargetFilename, requester));
 }
 
+void IOManager::SetMemManLoadFunction(
+  std::tr1::function<tuvok::Dataset*(const std::string&,
+                                     AbstrRenderer*)>& f
+) {
+  m_LoadDS = f;
+}
+
 Dataset* IOManager::LoadDataset(const string& strFilename,
                                 AbstrRenderer* requester) const {
-  return Controller::Instance().MemMan()->LoadDataset(strFilename, requester);
+  if(!m_LoadDS) {
+    // logic error; you should have set this after creating the MemMgr!
+    T_ERROR("Never set the internal LoadDS callback!");
+    throw tuvok::io::DSOpenFailed("Internal error; callback never set!",
+                                  __FILE__, __LINE__);
+  }
+  return m_LoadDS(strFilename, requester);
 }
 
 Dataset* IOManager::CreateDataset(const string& filename,

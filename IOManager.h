@@ -41,9 +41,11 @@
 
 #include "StdTuvokDefines.h"
 #ifdef _MSC_VER
+# include <functional>
 # include <memory>
 # include <tuple>
 #else
+# include <tr1/functional>
 # include <tr1/memory>
 # include <tr1/tuple>
 #endif
@@ -207,8 +209,18 @@ public:
                   const std::string& trisoup_file,
                   const std::string& uvf) const;
 
+  ///@{
+  /// We jump into the memory manager to load a data set, but the memory
+  /// manager is defined elsewhere.  This sets/uses the callback to utilize the
+  /// memory manager to call us.  The MMgr will in turn use the DSFactory from
+  /// here to actually create the data set.
+  void SetMemManLoadFunction(
+    std::tr1::function<tuvok::Dataset*(const std::string&,
+                                       tuvok::AbstrRenderer*)>& f
+  );
   tuvok::Dataset* LoadDataset(const std::string& strFilename,
                               tuvok::AbstrRenderer* requester) const;
+  ///@}
   tuvok::Dataset* CreateDataset(const std::string& filename,
                                 uint64_t max_brick_size, bool verify) const;
   void AddReader(std::tr1::shared_ptr<tuvok::FileBackedDataset>);
@@ -279,6 +291,8 @@ private:
   uint64_t m_iMaxBrickSize;
   uint64_t m_iBrickOverlap;
   uint64_t m_iIncoresize;
+  std::tr1::function<tuvok::Dataset* (const std::string&,
+                                      tuvok::AbstrRenderer*)> m_LoadDS;
 
   void CopyToTSB(const tuvok::Mesh& m, GeometryDataBlock* tsb) const;
 };
