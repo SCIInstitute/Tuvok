@@ -56,6 +56,7 @@
 #include "../DebugOut/ConsoleOut.h"
 
 #include "../Scripting/Scriptable.h"
+#include "LUAScripting/LUAClassInstance.h"
 
 class SystemInfo;
 class IOManager;
@@ -66,6 +67,7 @@ class AbstrRenderer;
 class GPUMemMan;
 class Scripting;
 class LuaScripting;
+class LuaMemberReg;
 
 typedef std::deque<AbstrRenderer*> AbstrRendererList;
 
@@ -99,16 +101,10 @@ public:
   /// undefined after this operation.
   void Cleanup();
 
-  /// Create a new renderer.
-  AbstrRenderer* RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
-                                          bool bUseOnlyPowerOfTwo,
-                                          bool bDownSampleTo8Bits,
-                                          bool bDisableBorder,
-                                          bool bNoRCClipplanes,
-                                          bool bBiasAndScaleTF=false);
-
-  /// Indicate that a renderer is no longer needed.
-  void ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer);
+  /// Lua scripting engine.
+  ///@{
+  std::tr1::shared_ptr<LuaScripting>  LuaScript()       { return m_pLuaScript; }
+  ///@}
 
   /// Add another debug output
   /// \param debugOut      the new stream
@@ -149,14 +145,6 @@ public:
   const SystemInfo* SysInfo() const { return m_pSystemInfo; }
   ///@}
 
-  /// Lua scripting engine.
-  ///@{
-  std::tr1::shared_ptr<LuaScripting>  LuaScriptEngine()
-      {return m_pLuaScript;}
-  std::tr1::shared_ptr<LuaScripting>  LuaScriptEngine() const
-      {return m_pLuaScript;}
-  ///@}
-
   Scripting*       ScriptEngine()       { return m_pScriptEngine; }
   const Scripting* ScriptEngine() const { return m_pScriptEngine; }
 
@@ -193,33 +181,42 @@ public:
   bool ExperimentalFeatures() const;
   void ExperimentalFeatures(bool b);
 
-  /// Command execution.
-  ///@{
-  class FailedCommand: public Exception {};
-  class CommandNotFound: public FailedCommand {};
-  class ParseError: public FailedCommand {};
-  class SemanticError: public FailedCommand {};
-  /// Registers a new command.  The function is expected to take a string with
-  /// the arguments and both parse and execute it.
-  /// 'f' should throw 'ParseError' if the arguments do not parse.
-  /// 'f' should throw 'SemanticError' if the command makes no sense for the
-  /// current state of the system.
-  typedef std::tr1::function<CommandReturn (AbstrRenderer*,
-                                            std::vector<std::string> args)>
-    command;
-  void RegisterCommand(const std::string name, command& f);
 
-  /// Takes a string for a command, parses it, and executes it.
-  tuvok::CommandReturn Command(const std::string cmd) throw(FailedCommand);
+  /// Indicate that a renderer is no longer needed.
+  /// This is now called from Abstract renderer's destructor.
+  /// All LuaClassInstances should be destroyed with the destroyClass lua call.
+  /// @{
+  void ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer);
+  void ReleaseVolumeRenderer(LuaClassInstance pVolumeRenderer);
+  /// @}
 
-  /// For convenience.  Lets you invoke an unregistered command.
-  tuvok::CommandReturn Command(const command& f, const std::string args)
-    throw(FailedCommand);
-  ///@}
 
 private:
   /// Initializer; add all our builtin commands.
   void RegisterInternalCommands();
+  void RegisterLuaCommands();
+
+  /// Helper function for RegisterLuaCommands. Helps in setting up the renderer
+  /// types table in tuvok.renderer.
+  void AddLuaRendererType(const std::string& rendererLoc,
+                          const std::string& rendererName,
+                          int value);
+
+  //--------------
+  // Lua commands
+  //--------------
+
+  /// Creates a new volume renderer.
+  /// Used as a constructor function for Lua classes.
+  AbstrRenderer* RequestNewVolumeRenderer(int eRendererType,
+                                          bool bUseOnlyPowerOfTwo,
+                                          bool bDownSampleTo8Bits,
+                                          bool bDisableBorder,
+                                          bool bNoRCClipplanes,
+                                          bool bBiasAndScaleTF);
+
+
+
 
 private:
   SystemInfo*      m_pSystemInfo;
@@ -233,18 +230,11 @@ private:
   bool             m_bExperimentalFeatures;
 
   std::tr1::shared_ptr<LuaScripting>  m_pLuaScript;
+  std::auto_ptr<LuaMemberReg>         m_pMemReg;
 
   AbstrRendererList m_vVolumeRenderer;
   // The active renderer should point into a member of the renderer list.
   AbstrRenderer*   m_pActiveRenderer;
-  struct TuvokCommand {
-    std::string name;
-    command cmd;
-    bool operator<(const TuvokCommand& c) const { return name < c.name; }
-    bool operator==(const TuvokCommand& c) const { return name == c.name; }
-    bool operator==(const std::string & c) const { return name == c; }
-  };
-  std::list<TuvokCommand> m_Commands;
 };
 
 }

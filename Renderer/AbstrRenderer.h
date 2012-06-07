@@ -57,6 +57,8 @@
 #include "Context.h"
 #include "Basics/Interpolant.h"
 
+#include "LUAScripting/LUAScripting.h"
+#include "LUAScripting/LUAClassRegistration.h"
 
 class TransferFunction1D;
 class TransferFunction2D;
@@ -699,6 +701,8 @@ class AbstrRenderer: public Scriptable {
   private:
     float               m_fIsovalue;
     float               m_fCVIsovalue;
+
+    LuaClassRegistration  m_pClassReg;
 };
 
 }; //namespace tuvok

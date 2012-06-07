@@ -47,6 +47,7 @@ class LuaClassInstance
 {
 public:
   LuaClassInstance(int instanceID);
+  LuaClassInstance();
   ~LuaClassInstance() {}
 
   /// Retrieves the fully qualified name to the class instance.
@@ -63,6 +64,7 @@ public:
   /// Returns true if this is the default instance of this class (no
   /// real data or functions).
   bool isDefaultInstance() const;
+  bool isValid() const              {return !isDefaultInstance();}
 
   /// Data stored in the instance metatable.
   ///@{

@@ -350,6 +350,7 @@ private:
         ss->endCommand();
         ss->logExecFailure("");
         ss->classUnwindCreateID(createIDStackTop);
+
         ss->classUnwindCreatePtr(createPtrStackTop);
         throw;
       }
@@ -360,8 +361,10 @@ private:
             "classes. Reordering the initializer list so that "
             "LuaClassRegistration comes before the creation of othe Lua classes"
             "will fix the problem.");
-      assert(createIDStackTop == ss->classGetCreateIDSize());
-      assert(createPtrStackTop == ss->classGetCreatePtrSize());
+      if (createIDStackTop != ss->classGetCreateIDSize())
+        throw LuaError("Inconsistent class creation.");
+      if (createPtrStackTop != ss->classGetCreatePtrSize())
+        throw LuaError("Inconsistent class creation.");
 
       ss->doHooks(L, 1, provExempt);
 

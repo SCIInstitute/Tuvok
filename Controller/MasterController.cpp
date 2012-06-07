@@ -55,6 +55,7 @@
 
 #include "../Scripting/Scripting.h"
 #include "../LUAScripting/LUAScripting.h"
+#include "../LUAScripting/LUAMemberReg.h"
 
 using namespace tuvok;
 
@@ -63,6 +64,7 @@ MasterController::MasterController() :
   m_pProvenance(NULL),
   m_bExperimentalFeatures(false),
   m_pLuaScript(new LuaScripting()),
+  m_pMemReg(new LuaMemberReg(m_pLuaScript)),
   m_pActiveRenderer(NULL)
 {
   m_pSystemInfo   = new SystemInfo();
@@ -70,10 +72,13 @@ MasterController::MasterController() :
   m_pGPUMemMan    = new GPUMemMan(this);
   m_pScriptEngine = new Scripting();
   RegisterCalls(m_pScriptEngine);
+
   using namespace std::tr1::placeholders;
   std::tr1::function<Dataset*(const std::string&, AbstrRenderer*)> f =
     std::tr1::bind(&GPUMemMan::LoadDataset, m_pGPUMemMan, _1, _2);
   m_pIOManager->SetMemManLoadFunction(f);
+
+  RegisterLuaCommands();
 }
 
 
@@ -130,15 +135,14 @@ const AbstrDebugOut *MasterController::DebugOut() const {
            : static_cast<const AbstrDebugOut*>(&m_DebugOut);
 }
 
+
 AbstrRenderer*
-MasterController::RequestNewVolumeRenderer(
-    EVolumeRendererType eRendererType, 
-    bool bUseOnlyPowerOfTwo,
-    bool bDownSampleTo8Bits, 
-    bool bDisableBorder,
-    bool bNoRCClipplanes, 
-    bool bBiasAndScaleTF)
-{
+MasterController::RequestNewVolumeRenderer(int eRendererType,
+                                           bool bUseOnlyPowerOfTwo,
+                                           bool bDownSampleTo8Bits,
+                                           bool bDisableBorder,
+                                           bool bNoRCClipplanes,
+                                           bool bBiasAndScaleTF) {
   std::string api;
   std::string method;
   AbstrRenderer *retval;
@@ -147,8 +151,8 @@ MasterController::RequestNewVolumeRenderer(
   case OPENGL_SBVR :
     api = "OpenGL";
     method = "Slice Based Volume Renderer";
-    retval = new GLSBVR(this, 
-                        bUseOnlyPowerOfTwo, 
+    retval = new GLSBVR(this,
+                        bUseOnlyPowerOfTwo,
                         bDownSampleTo8Bits,
                         bDisableBorder);
     break;
@@ -156,8 +160,8 @@ MasterController::RequestNewVolumeRenderer(
   case OPENGL_2DSBVR :
     api = "OpenGL";
     method = "Axis Aligned 2D Slice Based Volume Renderer";
-    retval = new GLSBVR2D(this, 
-                          bUseOnlyPowerOfTwo, 
+    retval = new GLSBVR2D(this,
+                          bUseOnlyPowerOfTwo,
                           bDownSampleTo8Bits,
                           bDisableBorder);
     break;
@@ -165,19 +169,19 @@ MasterController::RequestNewVolumeRenderer(
   case OPENGL_RAYCASTER :
     api = "OpenGL";
     method = "Raycaster";
-    retval = new GLRaycaster(this, 
-                             bUseOnlyPowerOfTwo, 
+    retval = new GLRaycaster(this,
+                             bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits,
-                             bDisableBorder, 
+                             bDisableBorder,
                              bNoRCClipplanes);
     break;
   case OPENGL_TRAYCASTER :
     api = "OpenGL";
     method = "Tree Raycaster";
-    retval = new GLTreeRaycaster(this, 
-                             bUseOnlyPowerOfTwo, 
+    retval = new GLTreeRaycaster(this,
+                             bUseOnlyPowerOfTwo,
                              bDownSampleTo8Bits,
-                             bDisableBorder, 
+                             bDisableBorder,
                              bNoRCClipplanes);
     break;
 
@@ -204,22 +208,49 @@ MasterController::RequestNewVolumeRenderer(
   return m_vVolumeRenderer[m_vVolumeRenderer.size()-1];
 }
 
+void MasterController::ReleaseVolumeRenderer(LuaClassInstance pRenderer)
+{
+  ReleaseVolumeRenderer(pRenderer.getRawPointer<AbstrRenderer>(LuaScript()));
+}
 
 void MasterController::ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer) {
+
+  // Note: Even if this function is called from deleteClass inside lua, it is
+  // still safe to check whether the pointer exists inside of lua. The pointer
+  // in the pointer lookup table is always removed before deletion of the
+  // pointer itself.
+  LuaClassInstance inst;
+  try {
+    inst = LuaScript()->getLuaClassInstance(pVolumeRenderer);
+  }
+  catch (LuaNonExistantClassInstancePointer&) {
+    // Ignore it. This more than likely means we are inside of the class'
+    // destructor.
+  }
+
+  bool foundRenderer = false;
+
   for (AbstrRendererListIter i = m_vVolumeRenderer.begin();
        i < m_vVolumeRenderer.end();
        ++i) {
 
     if (*i == pVolumeRenderer) {
-      m_DebugOut.Message(_func_, "Deleting volume renderer");
-      delete pVolumeRenderer;
-
+      foundRenderer = true;
+      m_DebugOut.Message(_func_, "Removing volume renderer");
       m_vVolumeRenderer.erase(i);
-      return;
+      break;
     }
   }
 
-  m_DebugOut.Warning(_func_, "requested volume renderer not found");
+  // Only warn if we did find the instance in lua, but didn't find it in our
+  // abstract renderer list.
+  if (foundRenderer == false && inst.isValid())
+    m_DebugOut.Warning(_func_, "requested volume renderer not found");
+
+  // Delete the class if it hasn't been already. This covers the case where
+  // the class calls ReleaseVolumeRenderer instead of calling deleteClass.
+  if (inst.isValid())
+    LuaScript()->cexec("deleteClass", inst);
 }
 
 
@@ -243,6 +274,38 @@ void MasterController::RegisterCalls(Scripting* pScriptEngine) {
   pScriptEngine->RegisterCommand(this, "set_tf_1d", "",
                                  "Sets the 1D transfer from the "
                                  "(string) argument.");
+}
+
+void MasterController::AddLuaRendererType(const std::string& rendererLoc,
+                                          const std::string& rendererName,
+                                          int value) {
+  std::ostringstream os;
+  os << rendererLoc << ".types." << rendererName << "=" << value;
+  LuaScript()->exec(os.str());
+}
+
+void MasterController::RegisterLuaCommands() {
+  std::tr1::shared_ptr<LuaScripting> ss = LuaScript();
+
+  // Register volume renderer creation class.
+  std::string renderer = "tuvok.renderer";
+  ss->registerClass(this, &MasterController::RequestNewVolumeRenderer,
+                    renderer,
+                    "Constructs a new renderer. The first parameter is one "
+                    "of the values in the tuvok.renderer.types table.");
+
+  // Populate the tuvok.renderer.type table.
+  ss->exec(renderer + ".types = {}");
+
+  AddLuaRendererType(renderer, "OpenGL_SVBR", OPENGL_SBVR);
+  AddLuaRendererType(renderer, "OpenGL_2DSBVR", OPENGL_2DSBVR);
+  AddLuaRendererType(renderer, "OpenGL_Raycaster", OPENGL_RAYCASTER);
+  AddLuaRendererType(renderer, "OpenGL_TRaycaster", OPENGL_TRAYCASTER);
+
+  AddLuaRendererType(renderer, "DirectX_SVBR", DIRECTX_SBVR);
+  AddLuaRendererType(renderer, "DirectX_2DSBVR", DIRECTX_2DSBVR);
+  AddLuaRendererType(renderer, "DirectX_Raycaster", DIRECTX_RAYCASTER);
+  AddLuaRendererType(renderer, "DirectX_TRaycaster", DIRECTX_TRAYCASTER);
 }
 
 bool MasterController::Execute(const std::string& strCommand,
@@ -346,86 +409,4 @@ void MasterController::ExperimentalFeatures(bool b) {
   m_bExperimentalFeatures = b;
 }
 
-// removes leading spaces from a string.
-static std::string ltrim(const std::string s)
-{
-  std::istringstream iss(s);
-  std::string nosp;
-  iss >> nosp;
-  return nosp;
-}
 
-static std::vector<std::string> split_string(const std::string s)
-{
-  enum ParserState { Normal, InQuotedString };
-  enum ParserState st = Normal;
-  std::string current;
-  std::vector<std::string> rv;
-
-  for(std::string::const_iterator is = s.begin(); is != s.end(); ++is) {
-    switch(st) {
-      case Normal:
-        if(*is == '\"') {
-          st = InQuotedString;
-        } else if(isspace(*is) && current != "") {
-          rv.push_back(ltrim(current));
-          current = "";
-        } else {
-          current += *is;
-        }
-        break;
-      case InQuotedString:
-        if(*is == '\"') {
-          st = Normal;
-          rv.push_back(current);
-          current = "";
-        } else {
-          current += *is;
-        }
-        break;
-    }
-  }
-  // we should not have ended inside a quoted string.
-  if(st == InQuotedString) {
-    throw MasterController::ParseError();
-  }
-
-  if(!current.empty()) { rv.push_back(ltrim(current)); }
-
-  return rv;
-}
-
-void MasterController::RegisterCommand(const std::string name, command& f)
-{
-  TuvokCommand c;
-  c.name = name;
-  c.cmd = f;
-  m_Commands.push_front(c);
-  m_Commands.sort();
-}
-
-CommandReturn MasterController::Command(const std::string cmd)
-  throw(FailedCommand)
-{
-  std::istringstream iss(cmd);
-  std::string cname;
-  iss >> cname;
-
-  std::list<TuvokCommand>::const_iterator iter =
-    std::find(m_Commands.begin(), m_Commands.end(), cname);
-  if(iter == m_Commands.end()) {
-    throw CommandNotFound();
-  }
-  const command& f = iter->cmd;
-  // remove the command itself from the arguments.
-  std::string args = cmd.substr(cname.length());
-  return this->Command(f, args);
-}
-
-CommandReturn MasterController::Command(const command& f,
-                                        const std::string args)
-                                        throw(FailedCommand)
-{
-  std::vector<std::string> split_args = split_string(args);
-  return f(m_pActiveRenderer, split_args);
-}

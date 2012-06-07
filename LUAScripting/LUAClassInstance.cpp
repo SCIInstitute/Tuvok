@@ -70,6 +70,12 @@ LuaClassInstance::LuaClassInstance(int instanceID)
 
 }
 
+LuaClassInstance::LuaClassInstance()
+: mInstanceID(DEFAULT_INSTANCE_ID)
+{
+
+}
+
 //{return mFullyQualifiedName;}
 std::string LuaClassInstance::fqName() const
 {

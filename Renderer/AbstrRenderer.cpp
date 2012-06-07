@@ -150,7 +150,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_cSpecularM(1.0f,1.0f,1.0f,1.0f),
   m_vLightDir(0.0f,0.0f,-1.0f),
   m_fIsovalue(0.5f),
-  m_fCVIsovalue(0.8f)
+  m_fCVIsovalue(0.8f),
+  m_pClassReg(pMasterController->LuaScript(), this)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
@@ -220,6 +221,9 @@ AbstrRenderer::~AbstrRenderer() {
   if (m_pDataset) m_pMasterController->MemMan()->FreeDataset(m_pDataset, this);
   if (m_p1DTrans) m_pMasterController->MemMan()->Free1DTrans(m_p1DTrans, this);
   if (m_p2DTrans) m_pMasterController->MemMan()->Free2DTrans(m_p2DTrans, this);
+  // Ensure the master controller has remove this abstract renderer from its
+  // list.
+  m_pMasterController->ReleaseVolumeRenderer(this);
 }
 
 static std::string render_mode(AbstrRenderer::ERenderMode mode) {

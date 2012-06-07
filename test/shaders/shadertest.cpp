@@ -47,6 +47,7 @@
 #include "Renderer/GL/GLFBOTex.h"
 #include "Renderer/GL/GLFrameCapture.h"
 #include "Renderer/GL/GLRenderer.h"
+#include "LUAScripting/LUAScripting.h"
 
 #include "context.h"
 
@@ -82,12 +83,18 @@ int main(int argc, char *argv[])
     );
 
     AbstrRenderer* ren;
+    std::tr1::shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
 
     for(int i=0; i < MasterController::RENDERER_LAST; ++i) {
-      ren = Controller::Instance().RequestNewVolumeRenderer(
-              static_cast<MasterController::EVolumeRendererType>(i),
-              false, false, false, false, false
-            );
+//      ren = Controller::Instance().RequestNewVolumeRenderer(
+//              static_cast<MasterController::EVolumeRendererType>(i),
+//              false, false, false, false, false
+//            );
+
+      LuaClassInstance inst = ss->cexecRet<LuaClassInstance>(
+          "tuvok.renderer.new", i, false, false, false, false, false);
+      ren = inst.getRawPointer<AbstrRenderer>(ss);
+
       if(ren != NULL) {
         ren->LoadDataset(uvf_file);
         ren->AddShaderPath("../../Shaders");
@@ -98,10 +105,14 @@ int main(int argc, char *argv[])
       }
 
       // again w/ Raycaster clip planes disabled.
-      ren = Controller::Instance().RequestNewVolumeRenderer(
-              static_cast<MasterController::EVolumeRendererType>(i),
-              false, false, false, true, false
-            );
+//      ren = Controller::Instance().RequestNewVolumeRenderer(
+//              static_cast<MasterController::EVolumeRendererType>(i),
+//              false, false, false, true, false
+//            );
+      inst = ss->cexecRet<LuaClassInstance>(
+          "tuvok.renderer.new", i, false, false, false, true, false);
+      ren = inst.getRawPointer<AbstrRenderer>(ss);
+
       if(ren != NULL) {
         ren->LoadDataset(uvf_file);
         ren->AddShaderPath("../../Shaders");

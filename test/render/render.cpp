@@ -49,6 +49,7 @@
 #include "Renderer/GL/GLFBOTex.h"
 #include "Renderer/GL/GLFrameCapture.h"
 #include "Renderer/GL/GLRenderer.h"
+#include "LUAScripting/LUAScripting.h"
 
 #include "context.h"
 
@@ -87,10 +88,15 @@ int main(int argc, const char *argv[])
       filename, uvf_file, tmpdir, true, 256, 4, quantize8
     );
 
-    AbstrRenderer* ren;
-    ren = Controller::Instance().RequestNewVolumeRenderer(
-      MasterController::OPENGL_SBVR, false, false, false, false, false
-    );
+//    AbstrRenderer* ren;
+//    ren = Controller::Instance().RequestNewVolumeRenderer(
+//      MasterController::OPENGL_SBVR, false, false, false, false, false
+//    );
+    std::tr1::shared_ptr<LuaScripting> ss = Controller::Instance().LuaScript();
+    LuaClassInstance inst = ss->cexecRet<LuaClassInstance>(
+        "tuvok.renderer.new",
+        int(MasterController::OPENGL_SBVR), false, false, false, false, false);
+    AbstrRenderer* ren = inst.getRawPointer<AbstrRenderer>(ss);
     ren->LoadDataset(uvf_file);
     ren->AddShaderPath("../../Shaders");
     ren->Initialize(GLContext::Current(0));
