@@ -412,7 +412,14 @@ public:
     // Explicitly call the shared pointer's destructor.
     std::tr1::shared_ptr<T>& ptr =
         *reinterpret_cast<std::tr1::shared_ptr<T>* >(lua_touserdata(L, 1));
-    ptr.std::tr1::template shared_ptr<T>::~shared_ptr<T>();
+
+    // Using clang for external unit testing. While VC and GCC don't have a
+    // problem with the latter syntax, clang can't handle it.
+#ifdef EXTERNAL_UNIT_TESTING
+    ptr.~shared_ptr();
+#else
+    ptr.std::tr1::template shared_ptr<T>::~shared_ptr();
+#endif
     return 0;
   }
 
