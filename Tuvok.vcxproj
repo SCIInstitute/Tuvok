@@ -380,8 +380,9 @@
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp" />
     <ClCompile Include="IO\UVF\TOCBlock.cpp" />
     <ClCompile Include="IO\XML3DGeoConverter.cpp" />
+    <ClCompile Include="LUAScripting\LUAClassConstructor.cpp" />
     <ClCompile Include="LUAScripting\LUAClassInstance.cpp" />
-    <ClCompile Include="LUAScripting\LUAClassInstanceReg.cpp" />
+    <ClCompile Include="LUAScripting\LUAClassRegistration.cpp" />
     <ClCompile Include="LUAScripting\LUAMemberReg.cpp" />
     <ClCompile Include="LUAScripting\LUAMemberRegUnsafe.cpp" />
     <ClCompile Include="LUAScripting\LUAProvenance.cpp" />
@@ -1013,8 +1014,9 @@
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h" />
     <ClInclude Include="IO\UVF\TOCBlock.h" />
     <ClInclude Include="IO\XML3DGeoConverter.h" />
+    <ClInclude Include="LUAScripting\LUAClassConstructor.h" />
     <ClInclude Include="LUAScripting\LUAClassInstance.h" />
-    <ClInclude Include="LUAScripting\LUAClassInstanceReg.h" />
+    <ClInclude Include="LUAScripting\LUAClassRegistration.h" />
     <ClInclude Include="LUAScripting\LUAError.h" />
     <ClInclude Include="LUAScripting\LUAFunBinding.h" />
     <ClInclude Include="LUAScripting\LUAMemberReg.h" />

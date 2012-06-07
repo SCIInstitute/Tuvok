@@ -924,9 +924,6 @@
     <ClCompile Include="LUAScripting\LUAClassInstance.cpp">
       <Filter>LuaScripting</Filter>
     </ClCompile>
-    <ClCompile Include="LUAScripting\LUAClassInstanceReg.cpp">
-      <Filter>LuaScripting</Filter>
-    </ClCompile>
     <ClCompile Include="LUAScripting\LUAMemberReg.cpp">
       <Filter>LuaScripting</Filter>
     </ClCompile>
@@ -940,6 +937,12 @@
       <Filter>LuaScripting</Filter>
     </ClCompile>
     <ClCompile Include="LUAScripting\LUAStackRAII.cpp">
+      <Filter>LuaScripting</Filter>
+    </ClCompile>
+    <ClCompile Include="LUAScripting\LUAClassConstructor.cpp">
+      <Filter>LuaScripting</Filter>
+    </ClCompile>
+    <ClCompile Include="LUAScripting\LUAClassRegistration.cpp">
       <Filter>LuaScripting</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1857,9 +1860,6 @@
     <ClInclude Include="LUAScripting\LUAClassInstance.h">
       <Filter>LuaScripting</Filter>
     </ClInclude>
-    <ClInclude Include="LUAScripting\LUAClassInstanceReg.h">
-      <Filter>LuaScripting</Filter>
-    </ClInclude>
     <ClInclude Include="LUAScripting\LUAError.h">
       <Filter>LuaScripting</Filter>
     </ClInclude>
@@ -1879,6 +1879,12 @@
       <Filter>LuaScripting</Filter>
     </ClInclude>
     <ClInclude Include="LUAScripting\LUAStackRAII.h">
+      <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAClassConstructor.h">
+      <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LUAScripting\LUAClassRegistration.h">
       <Filter>LuaScripting</Filter>
     </ClInclude>
   </ItemGroup>

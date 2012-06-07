@@ -519,7 +519,7 @@ void LuaScripting::notifyOfDeletion(void* p)
       exec(os.str());
     }
   }
-  catch (LuaNonExistantClassInstancePointer& e)
+  catch (LuaNonExistantClassInstancePointer&)
   {
     // Ignore. We weren't created by the scripting engine.
   }
