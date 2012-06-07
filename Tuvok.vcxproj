@@ -378,6 +378,7 @@
     <ClCompile Include="IO\Images\StackExporter.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctree.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp" />
+    <ClCompile Include="IO\UVF\ExtendedOctree\VolumeTools.cpp" />
     <ClCompile Include="IO\UVF\TOCBlock.cpp" />
     <ClCompile Include="IO\XML3DGeoConverter.cpp" />
     <ClCompile Include="LUAScripting\LUAClassConstructor.cpp" />
@@ -388,6 +389,7 @@
     <ClCompile Include="LUAScripting\LUAProvenance.cpp" />
     <ClCompile Include="LUAScripting\LUAScripting.cpp" />
     <ClCompile Include="LUAScripting\LUAStackRAII.cpp" />
+    <ClCompile Include="LuaScripting\TuvokSpecific\LuaDatasetProxy.cpp" />
     <ClCompile Include="Renderer\AbstrRenderer.cpp" />
     <ClCompile Include="Renderer\Context.cpp" />
     <ClCompile Include="Renderer\CullingLOD.cpp" />
@@ -395,6 +397,7 @@
     <ClCompile Include="Renderer\GL\GLTreeRaycaster.cpp" />
     <ClCompile Include="Renderer\GL\GLVolumePool.cpp" />
     <ClCompile Include="Renderer\RenderMesh.cpp" />
+    <ClCompile Include="Renderer\RenderRegion.cpp" />
     <ClCompile Include="Renderer\ShaderDescriptor.cpp" />
     <ClCompile Include="Renderer\TFScaling.cpp" />
     <ClCompile Include="Renderer\GPUMemMan\GPUMemMan.cpp" />
@@ -1012,6 +1015,7 @@
     <ClInclude Include="IO\Images\StackExporter.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctree.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h" />
+    <ClInclude Include="IO\UVF\ExtendedOctree\VolumeTools.h" />
     <ClInclude Include="IO\UVF\TOCBlock.h" />
     <ClInclude Include="IO\XML3DGeoConverter.h" />
     <ClInclude Include="LUAScripting\LUAClassConstructor.h" />
@@ -1024,6 +1028,8 @@
     <ClInclude Include="LUAScripting\LUAProvenance.h" />
     <ClInclude Include="LUAScripting\LUAScripting.h" />
     <ClInclude Include="LUAScripting\LUAStackRAII.h" />
+    <ClInclude Include="LuaScripting\TuvokSpecific\LuaDatasetProxy.h" />
+    <ClInclude Include="LuaScripting\TuvokSpecific\LuaTuvokTypes.h" />
     <ClInclude Include="Renderer\AbstrRenderer.h" />
     <ClInclude Include="Renderer\Context.h" />
     <ClInclude Include="Renderer\ContextIdentification.h" />

@@ -197,9 +197,9 @@ public:
 
   typedef unsigned int Type;
 
-  static int get(lua_State* L, int pos)
+  static unsigned int get(lua_State* L, int pos)
   {
-    return luaL_checknumber(L, pos);
+    return static_cast<unsigned int>(luaL_checknumber(L, pos));
   }
 
   static void push(lua_State* L, unsigned int in)

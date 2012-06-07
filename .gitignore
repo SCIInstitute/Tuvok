@@ -5,3 +5,4 @@ Build
 Basics
 IO
 *.o
+*.vcxproj.user

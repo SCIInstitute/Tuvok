@@ -115,6 +115,9 @@
     <Filter Include="LuaScripting">
       <UniqueIdentifier>{ac830070-fb1d-49ef-8a74-e988a6000f11}</UniqueIdentifier>
     </Filter>
+    <Filter Include="LuaScripting\TuvokSpecific">
+      <UniqueIdentifier>{c1103421-38e0-4390-b8a5-bbc892417c77}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Basics\Appendix.cpp">
@@ -944,6 +947,15 @@
     </ClCompile>
     <ClCompile Include="LUAScripting\LUAClassRegistration.cpp">
       <Filter>LuaScripting</Filter>
+    </ClCompile>
+    <ClCompile Include="LuaScripting\TuvokSpecific\LuaDatasetProxy.cpp">
+      <Filter>LuaScripting\TuvokSpecific</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\RenderRegion.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="IO\UVF\ExtendedOctree\VolumeTools.cpp">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1886,6 +1898,15 @@
     </ClInclude>
     <ClInclude Include="LUAScripting\LUAClassRegistration.h">
       <Filter>LuaScripting</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaScripting\TuvokSpecific\LuaDatasetProxy.h">
+      <Filter>LuaScripting\TuvokSpecific</Filter>
+    </ClInclude>
+    <ClInclude Include="LuaScripting\TuvokSpecific\LuaTuvokTypes.h">
+      <Filter>LuaScripting\TuvokSpecific</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\UVF\ExtendedOctree\VolumeTools.h">
+      <Filter>IO\UVF\ExtendedOctree</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

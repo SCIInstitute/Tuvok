@@ -994,8 +994,7 @@ std::string LuaScripting::registerFunction(FunPtr f, const std::string& name,
   // We do this because all metatables are unique per-type which eliminates
   // the possibilty of using a metatable on the function closure itself.
   // The only exception to this rule is the table type itself.
-  int initStackTop = lua_gettop(mL);
-
+  
   // Create a callable function table and leave it on the stack.
   lua_CFunction proxyFunc = &LuaCallback<FunPtr, typename
       LuaCFunExec<FunPtr>::returnType>::exec;
@@ -1032,8 +1031,6 @@ std::string LuaScripting::registerFunction(FunPtr f, const std::string& name,
   lua_pop(mL, 1);   // Pop the callable table.
 
   if (undoRedo == false)  setUndoRedoStackExempt(name);
-
-  assert(initStackTop == lua_gettop(mL));
 
   return name;
 }
