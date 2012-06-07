@@ -728,6 +728,14 @@ void LuaScripting::deleteAllClassInstances()
       // otherwise, recurse into the table.
       destroyClassInstanceTable(lua_gettop(mL));
       lua_pop(mL, 1);  // Pop value off stack.
+
+      // It is safe to clear existing fields while traversing the table with
+      // next. See http://www.lua.org/manual/5.2/manual.html#pdf-next --
+      // while this is the next function inside of lua, it applies to lua_next
+      // as well.
+      lua_pushvalue(mL, -1);
+      lua_pushnil(mL);
+      lua_settable(mL, instTable);
     }
 
     // Push a new table and replace the old instance table with it
@@ -1928,98 +1936,6 @@ void LuaScripting::endCommand()
 {
   mProvenance->endCommand();
 }
-
-//-----------------------------------------------------------------------------
-int LuaScripting::classPopCreateID()
-{
-  if (mCreatedIDs.size() > 0)
-  {
-    int ret = mCreatedIDs.back();
-    mCreatedIDs.pop_back();
-    return ret;
-  }
-  else
-  {
-    return -1;
-  }
-}
-
-//-----------------------------------------------------------------------------
-void LuaScripting::classPushCreateID(int id)
-{
-  mCreatedIDs.push_back(id);
-}
-
-
-//-----------------------------------------------------------------------------
-void LuaScripting::classUnwindCreateID(int targetSize)
-{
-  while (targetSize > (int)mCreatedIDs.size())
-  {
-    classPopCreateID();
-  }
-}
-
-//-----------------------------------------------------------------------------
-void* LuaScripting::classPopCreatePtr()
-{
-  if (mCreatedPtrs.size() > 0)
-  {
-    void* ret = mCreatedPtrs.back();
-    mCreatedPtrs.pop_back();
-    return ret;
-  }
-  else
-  {
-    return NULL;
-  }
-}
-
-//-----------------------------------------------------------------------------
-void LuaScripting::classPushCreatePtr(void* ptr)
-{
-  mCreatedPtrs.push_back(ptr);
-}
-
-//-----------------------------------------------------------------------------
-void LuaScripting::classUnwindCreatePtr(int targetSize)
-{
-  while (targetSize > (int)mCreatedIDs.size())
-  {
-    classPopCreatePtr();
-  }
-}
-
-//-----------------------------------------------------------------------------
-int LuaScripting::classPopValidateCreateID()
-{
-  if (mValidateCreatedIDs.size() > 0)
-  {
-    int ret = mValidateCreatedIDs.back();
-    mValidateCreatedIDs.pop_back();
-    return ret;
-  }
-  else
-  {
-    return -1;
-  }
-}
-
-//-----------------------------------------------------------------------------
-void LuaScripting::classPushValidateCreateID(int id)
-{
-  mValidateCreatedIDs.push_back(id);
-}
-
-//-----------------------------------------------------------------------------
-void LuaScripting::classUnwindValidateCreateID(int targetSize)
-{
-  while (targetSize > (int)mValidateCreatedIDs.size())
-  {
-    classPopValidateCreateID();
-  }
-}
-
 
 //-----------------------------------------------------------------------------
 LuaClassInstance LuaScripting::getLuaClassInstance(void* p)

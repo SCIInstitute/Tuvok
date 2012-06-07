@@ -54,7 +54,7 @@ public:
   void registerConstructor(
       FunPtr f, const std::string& name,
       const std::string& desc, bool undoRedo,
-      typename LuaClassRegCallback<CLS>::Type callback)
+      typename LuaClassRegCallback<CLS>::Type& callback)
   {
     lua_State* L = mSS->getLUAState();
 
@@ -102,7 +102,8 @@ public:
     lua_setfield(L, tableIndex, LuaScripting::TBL_MD_TYPES_TABLE);
 #endif
 
-    lua_pushlightuserdata(L, new typename LuaClassRegCallback<CLS>::Type(callback));
+    lua_pushlightuserdata(L, new typename LuaClassRegCallback<CLS>::Type(
+        callback));
     lua_setfield(L, tableIndex,
                  LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
 
@@ -118,13 +119,13 @@ public:
   // This is the exact same function as LUAMemberRegUnsafe::registerFunction
   // with the exception of the proxyFunc, and addition to the global
   // registered function list.
-  template <typename T, typename CLS, typename FunPtr>
+  template <typename CLS, typename T, typename FunPtr>
   void registerMemberConstructor(
       T* C, FunPtr f,
       const std::string& name,
       const std::string& desc,
       bool undoRedo,
-      typename LuaClassRegCallback<CLS>::Type callback)
+      typename LuaClassRegCallback<CLS>::Type& callback)
   {
     lua_State* L = mSS->getLUAState();
     LuaStackRAII _a = LuaStackRAII(L, 0);
@@ -193,7 +194,9 @@ public:
     lua_setfield(L, tableIndex, LuaScripting::TBL_MD_TYPES_TABLE);
 #endif
 
-    lua_pushlightuserdata(L, new typename LuaClassRegCallback<CLS>::Type(callback));
+    // This will be freed by LuaScripting -- in the destroyClassTable function.
+    lua_pushlightuserdata(L, new typename LuaClassRegCallback<CLS>::Type(
+        callback));
     lua_setfield(L, tableIndex,
                  LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
 
@@ -222,7 +225,7 @@ private:
 
       // The function table that called us on the top of the stack.
       int consTable = 1;
-      CLS* r = NULL;
+      typename LuaCFunExec<FunPtr>::returnType r = NULL;
 
       FunPtr fp = reinterpret_cast<FunPtr>(                                   //
           lua_touserdata(L, lua_upvalueindex(1)));                            //
@@ -248,10 +251,6 @@ private:
       int mt = lua_gettop(L);
       int instTable = mt - 1;
 
-//      size_t createIDStackTop = ss->classGetCreateIDSize();
-//      size_t createPtrStackTop = ss->classGetCreatePtrSize();
-//      size_t createValidateIDStackTop = ss->classGetValidateCreateIDSize();
-//      ss->classPushCreateID(inst.getGlobalInstID());
       ss->beginCommand();
       try
       {
@@ -261,51 +260,35 @@ private:
       {
         ss->endCommand();
         ss->logExecFailure(e.what());
-//        ss->classUnwindCreateID(createIDStackTop);
-//        ss->classUnwindCreatePtr(createPtrStackTop);
-//        ss->classUnwindValidateCreateID(createValidateIDStackTop);
         throw;
       }
       catch (...)
       {
         ss->endCommand();
         ss->logExecFailure("");
-//        ss->classUnwindCreateID(createIDStackTop);
-//        ss->classUnwindCreatePtr(createPtrStackTop);
-//        ss->classUnwindValidateCreateID(createValidateIDStackTop);
         throw;
       }
       ss->endCommand();
-//      ss->classPopCreatePtr();
-//      if (inst.getGlobalInstID() != ss->classPopValidateCreateID())
-//        throw LuaError("Unequal creation pointer stack! This indicates that "
-//            "Lua classes were created in the initializer list of one of the "
-//            "classes. Reordering the initializer list so that "
-//            "LuaClassRegistration comes before the creation of the Lua classes"
-//            "will fix the problem.");
-//      if (createIDStackTop != ss->classGetCreateIDSize())
-//        throw LuaError("Inconsistent class creation.");
-//      if (createPtrStackTop != ss->classGetCreatePtrSize())
-//        throw LuaError("Inconsistent class creation.");
-//      if (createValidateIDStackTop != ss->classGetValidateCreateIDSize())
-//        throw LuaError("Inconsistent class creation.");
 
       // Call registration fptr.
       lua_getfield(L, consTable,
                    LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
-      typename LuaClassRegCallback<CLS>::Type cbFptr =
-          reinterpret_cast<typename LuaClassRegCallback<CLS>::Type >(
+      typename LuaClassRegCallback<CLS>::Type* cbFptr =
+          reinterpret_cast<typename LuaClassRegCallback<CLS>::Type* >(
               lua_touserdata(L, -1));
-      LuaClassRegistration<CLS> reg(ss, r, inst.getGlobalInstID());
-      cbFptr(reg, r);
+      LuaClassRegistration<CLS> reg(ss, dynamic_cast<CLS*>(r),
+                                    inst.getGlobalInstID());
+      (*cbFptr)(reg, r, ss);
       lua_pop(L, 1);
 
       ss->doHooks(L, 1, provExempt);
 
       // Places function table on the top of the stack.
-      finalize(L, ss, r, inst, mt, instTable,
-               reinterpret_cast<void*>(&LuaConstructorCallback<CLS, FunPtr>::del),
-               reinterpret_cast<void*>(&LuaConstructorCallback<CLS, FunPtr>::delCallback));
+      finalize(L, ss, reinterpret_cast<void*>(r), inst, mt, instTable,
+               reinterpret_cast<void*>(
+                   &LuaConstructorCallback<CLS, FunPtr>::del),
+               reinterpret_cast<void*>(
+                   &LuaConstructorCallback<CLS, FunPtr>::delCallback));
 
       return 1;
     }
@@ -322,7 +305,8 @@ private:
 
     static void delCallback(void* callback)
     {
-      delete (reinterpret_cast<typename LuaClassRegCallback<CLS>::Type >(callback));
+      delete (reinterpret_cast<typename LuaClassRegCallback<CLS>::Type* >(
+          callback));
     }
   };
 
@@ -337,7 +321,7 @@ private:
 
       // The function table that called us on the top of the stack.
       int consTable = 1;
-      CLS* r = NULL;
+      typename LuaCFunExec<FunPtr>::returnType r = NULL;
 
       FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L,                     //
                                                        lua_upvalueindex(1))); //
@@ -366,10 +350,6 @@ private:
       int mt = lua_gettop(L);
       int instTable = mt - 1;
 
-//      size_t createIDStackTop = ss->classGetCreateIDSize();
-//      size_t createPtrStackTop = ss->classGetCreatePtrSize();
-//      size_t createValidateIDStackTop = ss->classGetValidateCreateIDSize();
-//      ss->classPushCreateID(inst.getGlobalInstID());
       ss->beginCommand();
       try
       {
@@ -379,50 +359,35 @@ private:
       {
         ss->endCommand();
         ss->logExecFailure(e.what());
-//        ss->classUnwindCreateID(createIDStackTop);
-//        ss->classUnwindCreatePtr(createPtrStackTop);
-//        ss->classUnwindValidateCreateID(createValidateIDStackTop);
         throw;
       }
       catch (...)
       {
         ss->endCommand();
         ss->logExecFailure("");
-//        ss->classUnwindCreateID(createIDStackTop);
-//        ss->classUnwindCreatePtr(createPtrStackTop);
-//        ss->classUnwindValidateCreateID(createValidateIDStackTop);
         throw;
       }
       ss->endCommand();
-//      ss->classPopCreatePtr();
-//      if (inst.getGlobalInstID() != ss->classPopValidateCreateID())
-//        throw LuaError("Unequal creation pointer stack! This indicates that "
-//            "Lua classes were created in the initializer list of one of the "
-//            "classes. Reordering the initializer list so that "
-//            "LuaClassRegistration comes before the creation of the Lua classes"
-//            "will fix the problem.");
-//      if (createIDStackTop != ss->classGetCreateIDSize())
-//        throw LuaError("Inconsistent class creation.");
-//      if (createPtrStackTop != ss->classGetCreatePtrSize())
-//        throw LuaError("Inconsistent class creation.");
-//      if (createValidateIDStackTop != ss->classGetValidateCreateIDSize())
-//        throw LuaError("Inconsistent class creation.");
 
       // Call registration fptr.
       lua_getfield(L, consTable,
                    LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
-      typename LuaClassRegCallback<CLS>::Type cbFptr =
-          reinterpret_cast<typename LuaClassRegCallback<CLS>::Type >(lua_touserdata(L, -1));
-      LuaClassRegistration<CLS> reg(ss, r, inst.getGlobalInstID());
-      cbFptr(reg, r);
+      typename LuaClassRegCallback<CLS>::Type* cbFptr =
+          reinterpret_cast<typename LuaClassRegCallback<CLS>::Type* >(
+              lua_touserdata(L, -1));
+      LuaClassRegistration<CLS> reg(ss, dynamic_cast<CLS*>(r),
+                                    inst.getGlobalInstID());
+      (*cbFptr)(reg, r, ss);
       lua_pop(L, 1);
 
       ss->doHooks(L, 1, provExempt);
 
       // Places function table on the top of the stack.
-      finalize(L, ss, r, inst, mt, instTable,
-         reinterpret_cast<void*>(&LuaMemberConstructorCallback<CLS, FunPtr>::del),
-         reinterpret_cast<void*>(&LuaMemberConstructorCallback<CLS, FunPtr>::delCallback)
+      finalize(L, ss, reinterpret_cast<void*>(r), inst, mt, instTable,
+         reinterpret_cast<void*>(
+             &LuaMemberConstructorCallback<CLS, FunPtr>::del),
+         reinterpret_cast<void*>(
+             &LuaMemberConstructorCallback<CLS, FunPtr>::delCallback)
          );
 
       return 1;
@@ -440,7 +405,8 @@ private:
 
     static void delCallback(void* callback)
     {
-      delete (reinterpret_cast<typename LuaClassRegCallback<CLS>::Type >(callback));
+      delete (reinterpret_cast<typename LuaClassRegCallback<CLS>::Type* >(
+          callback));
     }
   };
 
