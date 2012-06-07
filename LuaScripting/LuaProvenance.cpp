@@ -764,8 +764,8 @@ void LuaProvenance::printUndoStack()
                    "right redo):');");
 
   vector<string> undoStack = getUndoStackDesc();
-  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
-      ++it)
+  for (vector<string>::reverse_iterator it = undoStack.rbegin();
+      it != undoStack.rend(); ++it)
   {
     // We use cexec for a little bit more efficiency.
     mScripting->cexec("log.info", (*it));
@@ -779,8 +779,8 @@ void LuaProvenance::printRedoStack()
                    "right undo):');");
 
   vector<string> undoStack = getRedoStackDesc();
-  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
-      ++it)
+  for (vector<string>::reverse_iterator it = undoStack.rbegin();
+      it != undoStack.rend(); ++it)
   {
     mScripting->cexec("log.info", (*it));
   }

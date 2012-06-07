@@ -67,7 +67,8 @@ public:
   /// Returns true if this is the default instance of this class (no
   /// real data or functions).
   bool isDefaultInstance() const;
-  bool isValid() const              {return !isDefaultInstance();}
+  bool isValid(std::tr1::shared_ptr<LuaScripting> ss) const;
+  bool isValid(LuaScripting* ss) const;
 
   /// Data stored in the instance metatable.
   ///@{

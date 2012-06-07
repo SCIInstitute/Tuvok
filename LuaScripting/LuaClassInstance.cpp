@@ -92,6 +92,31 @@ bool LuaClassInstance::isDefaultInstance() const
   return (mInstanceID == DEFAULT_INSTANCE_ID);
 }
 
+bool LuaClassInstance::isValid(std::tr1::shared_ptr<LuaScripting> ss) const
+{
+  return isValid(ss.get());
+}
+
+bool LuaClassInstance::isValid(LuaScripting* ss) const
+{
+  LuaStackRAII _a(ss->getLuaState(), 0);
+
+  if (isDefaultInstance())
+    return false;
+
+  // Check to see whether an instance is present in the instance table.
+  // If it is not, then this is NOT a valid class.
+  if (ss->getFunctionTable(fqName()))
+  {
+    lua_pop(ss->getLuaState(), 1);
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
 void* LuaClassInstance::getVoidPointer(LuaScripting* ss)
 {
   lua_State* L = ss->getLuaState();

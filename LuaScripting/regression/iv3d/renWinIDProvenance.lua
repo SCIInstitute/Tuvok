@@ -30,7 +30,7 @@ for i=1,stress do
    provenance.undo()
    r2 = getClassWithUNID(r2id)
    -- By issuing the next call, we clear the redo we made with the prior undo.
-   r2:setBGColors({1,0,0},{1,1,0}) -- Set annoying BG colors
+   r2.setBGColors({1,0,0},{1,1,0}) -- Set annoying BG colors
    if r2id ~= getClassUNID(r2) then
       error('Id\'s not the same.')
    end
@@ -40,7 +40,8 @@ for i=1,stress do
 
    provenance.undo() -- Undoes deletion of r1
    r1 = getClassWithUNID(r1id)
-   r1:setBGColors({0,1,0},{1,1,0})
+   print('r1raw: ' .. getClassUNID(r1))
+   r1.setBGColors({0,1,0},{1,1,0})
    if r1id ~= getClassUNID(r1) then
       error('Id\'s not the same.')
    end

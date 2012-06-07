@@ -391,7 +391,7 @@ public:
   static std::string getValStr(MATRIX2<T> in)
   {
     std::ostringstream os;
-    os << "{ ";
+    os << "{ \n  ";
     os << LuaStrictStack<VECTOR2<T> >::getValStr(VECTOR2<T>(in.m11, in.m12));
     os << ",\n";
     os << "  ";
@@ -460,7 +460,7 @@ public:
   static std::string getValStr(MATRIX3<T> in)
   {
     std::ostringstream os;
-    os << "{ ";
+    os << "{ \n  ";
     os << LuaStrictStack<VECTOR3<T> >::getValStr(VECTOR3<T>(in.m11, in.m12, in.m13));
     os << ",\n";
     os << "  ";
@@ -542,7 +542,7 @@ public:
   static std::string getValStr(MATRIX4<T> in)
   {
     std::ostringstream os;
-    os << "{ ";
+    os << "{ \n  ";
     os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
     os << ",\n";
     os << "  ";

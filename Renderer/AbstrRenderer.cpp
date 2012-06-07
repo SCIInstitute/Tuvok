@@ -459,7 +459,7 @@ void AbstrRenderer::SetTranslation(RenderRegion *renderRegion,
 void AbstrRenderer::LuaSetRegionTranslation4x4(LuaClassInstance region,
                                                FLOATMATRIX4 translation) {
   tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
-  return SetTranslation(region.getRawPointer<RenderRegion>(ss), translation);
+  SetTranslation(region.getRawPointer<RenderRegion>(ss), translation);
 }
 
 const FLOATMATRIX4&
