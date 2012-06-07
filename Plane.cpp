@@ -42,6 +42,13 @@ ExtendedPlane::ExtendedPlane(): m_Plane(ms_Plane) {
   m_mat[1] = FLOATMATRIX4();
 }
 
+ExtendedPlane::ExtendedPlane(const FLOATMATRIX4& m1, const FLOATMATRIX4& m2,
+                             const PLANE<float>& plane)
+: m_Plane(plane)
+{
+  m_mat[0] = m1;
+  m_mat[1] = m2;
+}
 
 ExtendedPlane ExtendedPlane::FarawayPlane() {
   ExtendedPlane p;

@@ -49,6 +49,10 @@ class ExtendedPlane {
   public:
     ExtendedPlane();
 
+    // Used to construct an extended plane inside Lua.
+    ExtendedPlane(const FLOATMATRIX4& m1, const FLOATMATRIX4& m2,
+                  const PLANE<float>& plane);
+
     static ExtendedPlane FarawayPlane();
 
     /// Transform the plane by the given matrix.
@@ -72,6 +76,8 @@ class ExtendedPlane {
     float z() const { return m_Plane.z; }
 
     const PLANE<float>& Plane() const { return m_Plane; }
+    const FLOATMATRIX4& Mat1() const {return m_mat[0];}
+    const FLOATMATRIX4& Mat2() const {return m_mat[1];}
 
     bool operator ==(const ExtendedPlane &ep) const {
       return m_Plane == ep.m_Plane;
