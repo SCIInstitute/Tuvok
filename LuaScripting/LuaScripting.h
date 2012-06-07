@@ -416,6 +416,14 @@ public:
   /// Returns true if we are running in verbose mode.
   bool isVerbose()    {return mVerboseMode;}
 
+  /// Returns a list of possible completions to the given command.
+  std::vector<std::string> completeCommand(const std::string& fqName);
+
+  /// Retrieves the commands 'path'.
+  /// E.G. getCmdPath("iv3d.ren.two.get") = "iv3d.ren.two"
+  std::string getCmdPath(std::string fqName);
+
+
   /// Verbose print. Prints a message using log.info only if verbose is enabled.
   void vPrint(const char* fmt, ...);
 
@@ -632,6 +640,12 @@ private:
   /// Just calls provenance begin/end command.
   void beginCommand();
   void endCommand();
+
+  /// Performs a correction search given the table in which to search, and the
+  /// name within the table. If the name is unique, it will be the only value
+  /// in the returned vector of strings.
+  std::vector<std::string> performCorrection(int tbl,
+                                             const std::string& name);
 
   /// Lua Registry Values
   ///@{

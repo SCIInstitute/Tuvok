@@ -1106,6 +1106,211 @@ string LuaScripting::getUnqualifiedName(const string& fqName)
 }
 
 //-----------------------------------------------------------------------------
+vector<string> LuaScripting::performCorrection(int tbl,
+                                               const std::string& name)
+{
+  LuaStackRAII _a = LuaStackRAII(mL, 0, __FILE__, __LINE__);
+  vector<string> ret;
+
+  lua_pushnil(mL);
+  while (lua_next(mL, tbl))
+  {
+    // We don't care about the value, only the key.
+    lua_pop(mL, 1);
+
+    // Push a copy of the key, so we don't mess up the iteration.
+    lua_pushvalue(mL, lua_gettop(mL));
+
+    // We only want string keys.
+    if (lua_isstring(mL, lua_gettop(mL)))
+    {
+      const char* str = lua_tostring(mL, lua_gettop(mL));
+
+      // Check to see if name is contained as a prefix of str.
+      if (name.size() == 0 || name.compare((size_t)0, name.size(), str, 0, name.size()) == 0)
+      {
+        ret.push_back(str);
+      }
+    }
+
+    lua_pop(mL, 1);
+  }
+
+  return ret;
+}
+
+//-----------------------------------------------------------------------------
+vector<string> LuaScripting::completeCommand(const std::string& fqName)
+{
+  LuaStackRAII _a = LuaStackRAII(mL, 0, __FILE__, __LINE__);
+
+  vector<string> ret;
+
+  // Tokenize the fully qualified name.
+  const string delims(QUALIFIED_NAME_DELIMITER);
+  vector<string> tokens;
+
+  string::size_type beg = 0;
+  string::size_type end = 0;
+
+  while (end != string::npos)
+  {
+    end = fqName.find_first_of(delims, beg);
+
+    if (end != string::npos)
+    {
+      tokens.push_back(fqName.substr(beg, end - beg));
+      beg = end + 1;
+    }
+    else
+    {
+      tokens.push_back(fqName.substr(beg, string::npos));
+    }
+  }
+
+  if (tokens.size() == 0) throw LuaFunBindError("No function name specified.");
+
+  // Build name hierarchy in Lua, handle base case specially due to globals.
+  vector<string>::iterator it = tokens.begin();
+  string token = (*it);
+  ++it;
+
+  lua_getglobal(mL, token.c_str());
+  int type = lua_type(mL, -1);
+  if (it != tokens.end())
+  {
+    // Create a new table (module) at the global level.
+    if (type != LUA_TTABLE)
+    {
+      lua_pop(mL, 1); // pop value off the stack.
+
+      // Iterate through the global's table and compare the names of all
+      // registered keys. If the key contains the same prefix, then we should
+      // add it to the returned vector<string>.
+
+      // Grab the globals table and perform correction.
+      lua_rawgeti(mL, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+      ret = performCorrection(lua_gettop(mL), token);
+      lua_pop(mL, 1);
+      return ret;
+    }
+    // keep the table on the stack
+  }
+  else
+  {
+    lua_pop(mL, 1); // pop value off the stack.
+
+    // Iterate through the global's table and compare the names of all
+    // registered keys. If the key contains the same prefix, then we should
+    // add it to the returned vector<string>.
+
+    // Grab the globals table.
+    lua_rawgeti(mL, LUA_REGISTRYINDEX, LUA_RIDX_GLOBALS);
+    ret = performCorrection(lua_gettop(mL), token);
+    lua_pop(mL, 1);
+    return ret;
+  }
+
+
+  for (; it != tokens.end(); ++it)
+  {
+    token = *it;
+
+    // The table we are working with is on the top of the stack.
+    // Retrieve the key and test its type.
+    lua_pushstring(mL, token.c_str());
+    lua_gettable(mL, -2);
+
+    type = lua_type(mL, -1);
+
+    // Check to see if we are at the end.
+    if ((it != tokens.end()) && (it + 1 == tokens.end()))
+    {
+      // Attempt to perform a correction (this is the last element in the
+      // vector).
+
+      lua_pop(mL, 1); // pop value off the stack.
+
+      // Iterate through the global's table and compare the names of all
+      // registered keys. If the key contains the same prefix, then we should
+      // add it to the returned vector<string>.
+
+      ret = performCorrection(lua_gettop(mL), token);
+      lua_pop(mL, 1);
+      return ret;
+    }
+    else
+    {
+      // Create a new table (module) at the global level.
+      if (type != LUA_TTABLE)
+      {
+        lua_pop(mL, 1); // pop value off the stack.
+
+        // Iterate through the global's table and compare the names of all
+        // registered keys. If the key contains the same prefix, then we should
+        // add it to the returned vector<string>.
+
+        ret = performCorrection(lua_gettop(mL), token);
+        lua_pop(mL, 1);
+        return ret;
+      }
+      // keep the table on the stack, but remove the old table.
+      lua_remove(mL, -2);
+    }
+  }
+
+  return ret;
+}
+
+//-----------------------------------------------------------------------------
+std::string LuaScripting::getCmdPath(std::string fqName)
+{
+  const string delims(QUALIFIED_NAME_DELIMITER);
+  vector<string> tokens;
+
+  string::size_type beg = 0;
+  string::size_type end = 0;
+
+  while (end != string::npos)
+  {
+    end = fqName.find_first_of(delims, beg);
+
+    if (end != string::npos)
+    {
+      tokens.push_back(fqName.substr(beg, end - beg));
+      beg = end + 1;
+    }
+    else
+    {
+      tokens.push_back(fqName.substr(beg, string::npos));
+    }
+  }
+
+  vector<string>::iterator it = tokens.begin();
+  string token;
+  string ret;
+
+  for (; it != tokens.end(); ++it)
+  {
+    token = *it;
+
+    // Check to see if we are at the end.
+    if ((it != tokens.end()) && (it + 1 == tokens.end()))
+    {
+      return ret;
+    }
+    else
+    {
+      if (it != tokens.begin())
+        ret += ".";
+      ret += token;
+    }
+  }
+
+  return ret;
+}
+
+//-----------------------------------------------------------------------------
 void LuaScripting::bindClosureTableWithFQName(const string& fqName,
                                               int tableIndex)
 {

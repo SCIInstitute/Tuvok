@@ -60,6 +60,10 @@ const char* LuaClassInstance::MD_DEL_FUN            = "delFun";
 const char* LuaClassInstance::MD_DEL_CALLBACK_PTR   = "delCallbackPtr";
 const char* LuaClassInstance::MD_NO_DELETE_HINT     = "deleteHint";
 
+// NOTE: Only keys that begin with an underscore and are followed by upper
+// case letters are reserved by Lua. See:
+// http://www.lua.org/manual/5.2/manual.html#4.5 . As such, we do not use
+// uppercase lettersin SYSTEMT_TABLE, just lower case letters.
 const char* LuaClassInstance::SYSTEM_TABLE          = "_sys_";
 const char* LuaClassInstance::CLASS_INSTANCE_TABLE  = "_sys_.inst";
 const char* LuaClassInstance::CLASS_INSTANCE_PREFIX = "m";

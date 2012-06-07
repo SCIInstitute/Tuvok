@@ -246,12 +246,12 @@ void MasterController::ReleaseVolumeRenderer(AbstrRenderer* pVolumeRenderer) {
 
   // Only warn if we did find the instance in lua, but didn't find it in our
   // abstract renderer list.
-  if (foundRenderer == false && inst.isValid())
+  if (foundRenderer == false && inst.isValid(LuaScript()))
     m_DebugOut.Warning(_func_, "requested volume renderer not found");
 
   // Delete the class if it hasn't been already. This covers the case where
   // the class calls ReleaseVolumeRenderer instead of calling deleteClass.
-  if (inst.isValid())
+  if (inst.isValid(LuaScript()))
     LuaScript()->cexec("deleteClass", inst);
 }
 
