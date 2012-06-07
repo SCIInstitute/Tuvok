@@ -63,6 +63,7 @@
 #include "Quantize.h"
 #include "Renderer/GPUMemMan/GPUMemMan.h"
 #include "TuvokJPEG.h"
+#include "TransferFunction1D.h"
 #include "uvfDataset.h"
 #include "UVF/UVF.h"
 #include "UVF/GeometryDataBlock.h"

@@ -53,7 +53,7 @@
 #include <list>
 #include <string>
 #include "Basics/TuvokException.h"
-#include "TransferFunction1D.h"
+#include "Basics/Vectors.h"
 
 typedef std::tr1::tuple<std::string,std::string,bool,bool> tConverterFormat;
 
@@ -66,6 +66,7 @@ class FileStackInfo;
 class RangeInfo;
 class UVF;
 class GeometryDataBlock;
+class TransferFunction1D;
 
 namespace tuvok {
   class AbstrGeoConverter;

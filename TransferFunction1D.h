@@ -49,8 +49,6 @@ typedef VECTOR2<uint64_t> UINT64VECTOR2;
 typedef Grid1D<uint32_t> Histogram1D;
 typedef Grid1D<float> NormalizedHistogram1D;
 
-class TransferFunction2D;
-
 class TransferFunction1D
 {
 public:
