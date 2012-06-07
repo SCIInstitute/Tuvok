@@ -288,7 +288,7 @@ bool GLRenderer::LoadShaders(const string& volumeAccessFunction,
   );
   m_pProgram1DTransSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
     "Transfer-VS.glsl", NULL,
-    //tfqn.c_str(), bias.c_str(), "lighting.glsl", "VRender1DProxy.glsl",
+    tfqn.c_str(), bias.c_str(), "lighting.glsl", "VRender1DProxy.glsl",
     "1D-slice-FS.glsl", volumeAccessFunction.c_str(), NULL)
   );
   m_pProgram2DTransSlice = program(ShaderDescriptor::Create(m_vShaderSearchDirs,
