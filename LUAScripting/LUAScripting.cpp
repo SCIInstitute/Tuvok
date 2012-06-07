@@ -1648,7 +1648,7 @@ void LuaScripting::classPushCreateID(int id)
 //-----------------------------------------------------------------------------
 void LuaScripting::classUnwindCreateID(int targetSize)
 {
-  while (targetSize > mCreatedIDs.size())
+  while (targetSize > (int)mCreatedIDs.size())
   {
     classPopCreateID();
   }
@@ -1678,7 +1678,7 @@ void LuaScripting::classPushCreatePtr(void* ptr)
 //-----------------------------------------------------------------------------
 void LuaScripting::classUnwindCreatePtr(int targetSize)
 {
-  while (targetSize > mCreatedIDs.size())
+  while (targetSize > (int)mCreatedIDs.size())
   {
     classPopCreatePtr();
   }

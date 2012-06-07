@@ -116,8 +116,7 @@ void LuaClassConstructor::finalizeMetatable(lua_State* L, int mt,
   lua_setfield(L, mt, LuaClassInstance::MD_DEL_FUN);
 }
 
-LuaClassInstance LuaClassConstructor::finalizeInstanceTable(lua_State* L,
-                                                            LuaScripting* ss,
+LuaClassInstance LuaClassConstructor::finalizeInstanceTable(LuaScripting* ss,
                                                             int instTable,
                                                             int instID)
 {
@@ -146,7 +145,7 @@ LuaClassInstance LuaClassConstructor::buildCoreInstanceTable(lua_State* L,
 
   // Bind the instance table so that the user can register functions in
   // their constructor.
-  return finalizeInstanceTable(L, ss, instTable, instID);
+  return finalizeInstanceTable(ss, instTable, instID);
 }
 
 void LuaClassConstructor::finalize(lua_State* L, LuaScripting* ss, void* r,

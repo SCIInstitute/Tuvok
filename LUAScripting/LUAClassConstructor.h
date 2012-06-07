@@ -400,7 +400,7 @@ private:
                                  int instID,
                                  int consTable);
   static void finalizeMetatable(lua_State* L, int mt, void* ptr, void* delPtr);
-  static LuaClassInstance finalizeInstanceTable(lua_State* L, LuaScripting* ss,
+  static LuaClassInstance finalizeInstanceTable(LuaScripting* ss,
                                                 int instTable, int instID);
 
 

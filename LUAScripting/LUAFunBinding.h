@@ -38,16 +38,6 @@
 
 /// TODO: Look into rewriting using variadic templates when we support C++11.
 
-/// **** INSTRUCTIONS ****
-/// When adding new parameters below, there are multiple places you need to
-/// make changes.
-/// 1) Change the member function and static function templates to reflect the
-///    new number of parameters.
-/// 2) Update LUAC_MAX_NUM_PARAMS below. This is only used to ensure we don't
-///    exceed our stack space in Lua.
-/// 3) Add additional execution functions to LuaScripting (exec, cexec and their
-///    associated ret functions).
-
 
 #ifndef TUVOK_LUAFUNBINDING_H_
 #define TUVOK_LUAFUNBINDING_H_
@@ -420,9 +410,9 @@ public:
   static int gc(lua_State* L)
   {
     // Explicitly call the shared pointer's destructor.
-    std::tr1::shared_ptr<T>* ptr =
-        reinterpret_cast<std::tr1::shared_ptr<T>* >(lua_touserdata(L, 1));
-    (*ptr).~shared_ptr();
+    std::tr1::shared_ptr<T>& ptr =
+        *reinterpret_cast<std::tr1::shared_ptr<T>* >(lua_touserdata(L, 1));
+    ptr.std::tr1::template shared_ptr<T>::~shared_ptr<T>();
     return 0;
   }
 

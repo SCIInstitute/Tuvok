@@ -218,8 +218,6 @@ SUITE(LuaTestClassRegistration)
       // Register class definitions.
       sc->registerClassStatic(&A::luaConstruct, "factory.a1", "a class");
       sc->registerClassStatic(&B::luaConstruct, "factory.b1", "b class");
-      //sc->addLuaClassDef(&A::luaDefineClass, "factory.a1");
-      //sc->addLuaClassDef(&B::luaDefineClass, "factory.b1");
 
       // Test the classes.
       LuaClassInstance a_1 = sc->cexecRet<LuaClassInstance>(
@@ -1365,121 +1363,94 @@ SUITE(LuaTestClassRegistration)
     gSS.reset();
   }
 
-//  class DWMC;
-//  class IHUC
-//  {
-//    friend class DWMC;
-//  public:
-//
-//    IHUC(int a): _a(a) {}
-//
-//  private:
-//    // This is DWMC's constructor.
-//    DWMC* hai(int a, float b, string c);
-//
-//    int _a;
-//  };
-//
-//  class DWMC
-//  {
-//  public:
-//
-//    DWMC()
-//    : d
-//    {
-//
-//    }
-//
-//    LuaClassRegistration d;
-//
-//    static int tag;
-//
-//    void registerFunctions(IHUC& m)
-//    {
-//      tag = m._a;
-//
-//      d.memberConstructor(&m, &IHUC::hai, "DWMC's constructor.");
-//
-//      d.function(&DWMC::set_i1, "set_i1", "", true);
-//      d.function(&DWMC::get_i1, "get_i1", "", false);
-//
-//      d.function(&DWMC::set_f1, "set_f1", "", true);
-//      d.function(&DWMC::get_f1, "get_f1", "", false);
-//
-//      d.function(&DWMC::set_s1, "set_s1", "", true);
-//      d.function(&DWMC::get_s1, "get_s1", "", false);
-//    }
-//
-//    int     i1;
-//    float   f1;
-//    string  s1;
-//
-//    void set_i1(int i)    {i1 = i;}
-//    int get_i1()          {return i1;}
-//
-//    void set_f1(float f)  {f1 = f;}
-//    float get_f1()        {return f1;}
-//
-//    void set_s1(string s) {s1 = s;}
-//    string get_s1()       {return s1;}
-//
-//  private:
-//  };
-//
-//  int DWMC::tag = 0;
-//
-//  DWMC* IHUC::hai(int a, float b, string c)
-//  {
-//    DWMC* inst = new DWMC();
-//    inst->i1 = a;
-//    inst->f1 = b;
-//    inst->s1 = c;
-//    return inst;
-//  }
-//
-//  TEST(ConstructorMemberRegistration)
-//  {
-//    TEST_HEADER;
-//
-//    // Thoroughly test class provenance.
-//    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
-//
-//    const int tag = 94328147;
-//    IHUC encapClass(tag);
-//
-//    // Register class definitions.
-//    sc->addLuaClassDef(tr1::bind(DWMC::luaDefineClass,
-//                                 tr1::placeholders::_1,
-//                                 encapClass), "factory.a");
-//
-//    LuaClassInstance aInst = sc->cexecRet<LuaClassInstance>(
-//        "factory.a.new", 2, 2.63, "str", sc);
-//
-//    // Testing only the first instance of a1.
-//    std::string aName = aInst.fqName();
-//    DWMC* a = aInst.getRawPointer<DWMC>(sc);
-//
-//    // Check that we were passed the correct class via the binding mechanism.
-//    CHECK_EQUAL(tag, a->tag);
-//
-//    CHECK_EQUAL(2, a->i1);
-//    CHECK_CLOSE(2.63f, a->f1, 0.001f);
-//    CHECK_EQUAL("str", a->s1.c_str());
-//
-//    // Call into the class.
-//    sc->exec(aName + ".set_i1(15)");
-//    sc->exec(aName + ".set_f1(1.5)");
-//    sc->cexec(aName + ".set_s1", "String 1");
-//
-//    CHECK_EQUAL(15, a->i1);
-//    CHECK_EQUAL(15, sc->execRet<int>(aName + ".get_i1()"));
-//
-//    CHECK_CLOSE(1.5f, a->f1, 0.001f);
-//    CHECK_CLOSE(1.5f, sc->execRet<float>(aName + ".get_f1()"), 0.001f);
-//
-//    CHECK_EQUAL("String 1", a->s1.c_str());
-//    CHECK_EQUAL("String 1", sc->execRet<string>(aName + ".get_s1()"));
-//  }
+  // Keep a weak pointer reference to ss if stored in X.
+  class X
+  {
+  public:
+
+    X(tr1::shared_ptr<LuaScripting> ss)
+    : d(ss, this)
+    {
+      registerFunctions();
+    }
+
+    int i1;
+    float f1;
+    string s1;
+
+    LuaClassRegistration d;
+
+    void set_i1(int i)    {i1 = i;}
+    int get_i1()          {return i1;}
+
+    void set_f1(float f)  {f1 = f;}
+    float get_f1()        {return f1;}
+
+    void set_s1(string s) {s1 = s;}
+    string get_s1()       {return s1;}
+
+    void registerFunctions()
+    {
+      d.function(&X::set_i1, "set_i1", "", true);
+      d.function(&X::get_i1, "get_i1", "", false);
+
+      d.function(&X::set_f1, "set_f1", "", true);
+      d.function(&X::get_f1, "get_f1", "", false);
+
+      d.function(&X::set_s1, "set_s1", "", true);
+      d.function(&X::get_s1, "get_s1", "", false);
+    }
+
+  };
+
+  class Y
+  {
+  public:
+
+    Y(tr1::shared_ptr<LuaScripting> ss)
+    : mSS(ss)
+    {}
+
+    X* constructX()
+    {
+      return new X(mSS);
+    }
+
+  private:
+    tr1::shared_ptr<LuaScripting> mSS;
+  };
+
+  TEST(MemberFunctionConstructor)
+  {
+    // Tests out using member functions as constructors.
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+
+    Y* y = new Y(sc);
+
+    // Register class definitions.
+    sc->registerClass(y, &Y::constructX, "factory.x", "");
+
+    // Test the classes.
+    LuaClassInstance xc = sc->cexecRet<LuaClassInstance>(
+        "factory.x.new");
+
+    // Testing only the first instance of a1.
+    std::string xInst = xc.fqName();
+    X* x = xc.getRawPointer<X>(sc);
+
+    // Call into the class.
+    sc->exec(xInst + ".set_i1(15)");
+    sc->exec(xInst + ".set_f1(1.5)");
+    sc->cexec(xInst + ".set_s1", "String 1");
+
+    CHECK_EQUAL(15, x->i1);
+    CHECK_CLOSE(1.5f, x->f1, 0.001f);
+    CHECK_EQUAL("String 1", x->s1.c_str());
+
+    sc->clean();
+
+    delete y;
+  }
 
   TEST(PointerRetrievalOfClasses)
   {
