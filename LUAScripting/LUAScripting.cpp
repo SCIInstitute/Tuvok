@@ -111,6 +111,7 @@ LuaScripting::LuaScripting()
 , mGlobalTempCurrent(0)
 , mProvenance(new LuaProvenance(this))
 , mMemberReg(new LuaMemberRegUnsafe(this))
+, mClassCons(this)
 {
   mL = lua_newstate(luaInternalAlloc, NULL);
 
@@ -1522,37 +1523,98 @@ void LuaScripting::endCommand()
   mProvenance->endCommand();
 }
 
+////----------------------------------------------------------------------------
+//void LuaScripting::addLuaClassDef(ClassDefFun f, const std::string fqName)
+//{
+//  LuaStackRAII _a(mL, 0);
+//
+//  // Build constructor into the Lua class table (at fqName).
+//  // (Setup appropriate LuaClassInstanceReg to grab constructor).
+//  LuaClassInstanceReg reg(this, fqName);
+//
+//  setAttributeIgnore(true);
+//  // Call class definition function.
+//  // This class will construct an appropriate class instance table using the
+//  // constructor given in f.
+//  f(reg);
+//  setAttributeIgnore(false);
+//
+//  // Populate the 'new' function's table with the class definition function,
+//  // and the full factory name.
+//  ostringstream retNewFun;
+//  retNewFun << "return " << fqName << ".new";
+//  luaL_dostring(mL, retNewFun.str().c_str());
+//
+//  ClassDefFun* cls = new ClassDefFun(f);
+//  lua_pushlightuserdata(mL, reinterpret_cast<void*>(cls));
+//  lua_setfield(mL, -2, LuaClassInstanceReg::CONS_MD_CLASS_DEFINITION);
+//
+//  lua_pushstring(mL, fqName.c_str());
+//  lua_setfield(mL, -2, LuaClassInstanceReg::CONS_MD_FACTORY_NAME);
+//
+//  // Pop the new function table.
+//  lua_pop(mL, 1);
+//}
+
 //-----------------------------------------------------------------------------
-void LuaScripting::addLuaClassDef(ClassDefFun f, const std::string fqName)
+int LuaScripting::classPopCreateID()
 {
-  LuaStackRAII _a(mL, 0);
+  if (mCreatedIDs.size() > 0)
+  {
+    int ret = mCreatedIDs.back();
+    mCreatedIDs.pop_back();
+    return ret;
+  }
+  else
+  {
+    return -1;
+  }
+}
 
-  // Build constructor into the Lua class table (at fqName).
-  // (Setup appropriate LuaClassInstanceReg to grab constructor).
-  LuaClassInstanceReg reg(this, fqName);
+//-----------------------------------------------------------------------------
+void LuaScripting::classPushCreateID(int id)
+{
+  mCreatedIDs.push_back(id);
+}
 
-  setAttributeIgnore(true);
-  // Call class definition function.
-  // This class will construct an appropriate class instance table using the
-  // constructor given in f.
-  f(reg);
-  setAttributeIgnore(false);
 
-  // Populate the 'new' function's table with the class definition function,
-  // and the full factory name.
-  ostringstream retNewFun;
-  retNewFun << "return " << fqName << ".new";
-  luaL_dostring(mL, retNewFun.str().c_str());
+//-----------------------------------------------------------------------------
+void LuaScripting::classUnwindCreateID(int targetSize)
+{
+  while (targetSize > mCreatedIDs.size())
+  {
+    classPopCreateID();
+  }
+}
 
-  ClassDefFun* cls = new ClassDefFun(f);
-  lua_pushlightuserdata(mL, reinterpret_cast<void*>(cls));
-  lua_setfield(mL, -2, LuaClassInstanceReg::CONS_MD_CLASS_DEFINITION);
+//-----------------------------------------------------------------------------
+void* LuaScripting::classPopCreatePtr()
+{
+  if (mCreatedPtrs.size() > 0)
+  {
+    void* ret = mCreatedPtrs.back();
+    mCreatedPtrs.pop_back();
+    return ret;
+  }
+  else
+  {
+    return NULL;
+  }
+}
 
-  lua_pushstring(mL, fqName.c_str());
-  lua_setfield(mL, -2, LuaClassInstanceReg::CONS_MD_FACTORY_NAME);
+//-----------------------------------------------------------------------------
+void LuaScripting::classPushCreatePtr(void* ptr)
+{
+  mCreatedPtrs.push_back(ptr);
+}
 
-  // Pop the new function table.
-  lua_pop(mL, 1);
+//-----------------------------------------------------------------------------
+void LuaScripting::classUnwindCreatePtr(int targetSize)
+{
+  while (targetSize > mCreatedIDs.size())
+  {
+    classPopCreatePtr();
+  }
 }
 
 //-----------------------------------------------------------------------------

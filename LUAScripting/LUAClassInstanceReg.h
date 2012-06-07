@@ -194,6 +194,8 @@ private:
 
       // Push our index into the lookup table. Use the class instance pointer
       // we created earlier as the lookup in this table.
+      // Be sure to do this BEFORE we construct functions. The class
+      // registration system will use pointers to lookup the class instance.
       if (ss->getFunctionTable(LuaClassInstance::CLASS_LOOKUP_TABLE) == false)
         throw LuaError("Unable to obtain class lookup table!");
       lua_pushlightuserdata(L, r);
