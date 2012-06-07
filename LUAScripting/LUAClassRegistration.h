@@ -68,11 +68,15 @@ public:
   std::string getFQName() const {return getLuaInstance().fqName();}
   LuaClassInstance getLuaInstance() const {return LuaClassInstance(mGlobalID);}
 
+  /// Inherits a function from another class instance.
+  /// Use this if you have complete control over the other class instance
+  /// and you know the inherited function won't be called when the other class
+  /// has been deleted.
+  void inherit(LuaClassInstance inst, const std::string& function);
 
-  /// Makes this class instance inherit methods from the given class instance.
+  /// Makes this class instance inherit ALL methods from the given class.
   /// Use this function sparingly. A strong reference to the given instance will
-  /// be generated. If the instance is every destroyed, we will run into access
-  /// violations.
+  /// be generated.
   /// TODO: Detect inherited classes and make them weak references.
   void inherit(LuaClassInstance from);
 
@@ -144,6 +148,40 @@ void LuaClassRegistration<T>::inherit(LuaClassInstance them)
   lua_setfield(L, -2, "__index");
 
   lua_pop(L, 1);  // pop off the metatable.
+
+  lua_pop(L, 2);
+}
+
+template <typename T>
+void LuaClassRegistration<T>::inherit(LuaClassInstance them,
+                                      const std::string& function)
+{
+  LuaScripting* ss(mSS);
+  lua_State* L = ss->getLUAState();
+
+  LuaStackRAII _a(L, 0);
+
+  // Generate our own LuaClassInstance.
+  LuaClassInstance us(mGlobalID);
+
+  // Obtain the metatable for 'us'.
+  ss->getFunctionTable(us.fqName());
+  int ourTable = lua_gettop(L);
+  ss->getFunctionTable(them.fqName());
+  int theirTable = lua_gettop(L);
+
+  if (lua_isnil(L, ourTable))
+    throw LuaNonExistantClassInstancePointer("Can't find destination table.");
+
+
+  if (lua_isnil(L, theirTable))
+    throw LuaNonExistantClassInstancePointer("Can't find source table.");
+
+  // Grab their function and place it in our class.
+  lua_getfield(L, theirTable, function.c_str());
+  if (lua_isnil(L, -1))
+    throw LuaNonExistantFunction("No function found in source table.");
+  lua_setfield(L, ourTable, function.c_str());
 
   lua_pop(L, 2);
 }

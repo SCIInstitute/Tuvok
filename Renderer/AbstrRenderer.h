@@ -708,6 +708,12 @@ class AbstrRenderer: public Scriptable {
     float               m_fIsovalue;
     float               m_fCVIsovalue;
 
+
+    // Private Lua-only functions
+  private:
+
+    LuaClassInstance LuaGetDataset();
+
 };
 
 }; //namespace tuvok

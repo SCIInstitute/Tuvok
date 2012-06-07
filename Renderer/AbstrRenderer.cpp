@@ -1521,6 +1521,10 @@ void AbstrRenderer::SetInterpolant(Interpolant eInterpolant) {
   }
 }
 
+LuaClassInstance AbstrRenderer::LuaGetDataset() {
+  return m_pMasterController->LuaScript()->getLuaClassInstance(m_pDataset);
+}
+
 void AbstrRenderer::RegisterLuaFunctions(
     LuaClassRegistration<AbstrRenderer>& reg,
     AbstrRenderer*,
@@ -1531,5 +1535,27 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::GetRendererType,
                     "getRendererType",
                     "Retrieves the renderer type.", false);
-  ss->addReturnInfo(id, "Return info test.");
+
+  id = reg.function(&AbstrRenderer::LuaGetDataset,
+                    "getDataset",
+                    "Retrieves the renderer's current dataset.", false);
+
+  id = reg.function(&AbstrRenderer::SetBackgroundColors,
+                    "setBGColors",
+                    "Sets the background colors.", true);
+  ss->addParamInfo(id, 0, "topColor", "Top [0,1] RGB color.");
+  ss->addParamInfo(id, 1, "botColor", "Bottom [0,1] RGB color");
+
+  id = reg.function(&AbstrRenderer::SetTextColor,
+                    "setTextColor",
+                    "Sets the text color.", true);
+  ss->addParamInfo(id, 0, "textColor", "Text [0,1] RGBA color.");
+
+  id = reg.function(&AbstrRenderer::SetBlendPrecision, "setBlendPrecision",
+                    "Sets the blending precision to 8, 16, or 32 bit.", true);
+
+  id = reg.function(&AbstrRenderer::SetLogoParams, "setLogoParams",
+                    "Sets the filename and position of a logo.", true);
+  ss->addParamInfo(id, 0, "filename", "Filename of the logo.");
+  ss->addParamInfo(id, 1, "pos", "Position of the logo.");
 }

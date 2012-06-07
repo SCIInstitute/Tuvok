@@ -159,6 +159,13 @@ class GPUMemMan {
 
     std::vector<unsigned char> m_vUploadHub;
 
+    void registerLuaDatasetClass();
+    Dataset* luaLoadDataset(const std::string& filename);
+    static void registerDataSetClassFunctions(
+        LuaClassRegistration<Dataset>& reg,
+        Dataset* ds,
+        LuaScripting* ss);
+
     GLVolume* AllocOrGetVolume(Dataset* pDataset,
                                const BrickKey& key,
                                bool bUseOnlyPowerOfTwo,

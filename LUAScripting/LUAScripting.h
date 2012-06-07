@@ -231,8 +231,7 @@ public:
 
 
   /// Retrieves the LuaClassInstance given the object pointer.
-  /// This function is deperecated. Please don't use it. It is unreliable when
-  /// multiple inheritence is used.
+  /// Only use the pointer that was returned from the class constructor.
   LuaClassInstance getLuaClassInstance(void* p);
 
   /// Executes a command.
@@ -397,6 +396,16 @@ public:
   /// Used by friend class LuaProvenance.
   /// Any public use of this function should be for testing purposes only.
   lua_State* getLUAState() const {return mL;}
+
+  /// Notifies the scripting system of an object's deletion.
+  /// Use this function in the object's destructor if you believe deleteClass
+  /// was not called on the object (E.G. the object is GUI window, and the user
+  /// clicked the close button, and you have no control over the deletion of
+  /// the object).
+  /// It is safe to call this function repeatedly. You may also call the
+  /// function even though deleteClass was called. deleteClass is reentrant for
+  /// the same class.
+  void notifyOfDeletion(LuaClassInstance inst);
 
 private:
 
@@ -596,16 +605,6 @@ private:
   ///               getNewClassInstID.
   /// \param  high  The highest instance
   void setNextTempClassInstRange(int low, int high);
-
-  /// Notifies the scripting system of an object's deletion.
-  /// Use this function in the object's constructor if you believe deleteClass
-  /// was not called on the object (E.G. the object is GUI window, and the user
-  /// clicked the close button, and you have no control over the deletion of
-  /// the object).
-  /// It is safe to call this function repeatedly. You may also call the
-  /// function even though deleteClass was called. deleteClass is reentrant for
-  /// the same class.
-  void notifyOfDeletion(LuaClassInstance inst);
 
   /// Returns true if the path specified points to a class instance.
   bool isLuaClassInstance(int tableIndex);

@@ -85,6 +85,8 @@ GPUMemMan::GPUMemMan(MasterController* masterController) :
 
   m_vUploadHub.resize(size_t(m_iInCoreSize*4));
   m_iAllocatedCPUMemory = size_t(m_iInCoreSize*4);
+
+  registerLuaDatasetClass();
 }
 
 GPUMemMan::~GPUMemMan() {
@@ -206,14 +208,18 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
     }
   }
 
-  MESSAGE("Loading %s", strFilename.c_str());
-  const IOManager& mgr = *(m_MasterController->IOMan());
+  LuaClassInstance luaDataset = m_MasterController->LuaScript()->
+      cexecRet<LuaClassInstance>("tuvok.dataset.new", strFilename);
+  Dataset* ds =
+      luaDataset.getRawPointer<Dataset>(m_MasterController->LuaScript());
+  FileBackedDataset* dataset = dynamic_cast<FileBackedDataset*>(ds);
+
+  /// @todo Change the code below to use the lua instance, instead of resorting
+  ///       to grabbing a raw pointer.
+
   /// @todo fixme: just use `Dataset's here; instead of explicitly doing the
   /// IsOpen check, below, just rely on an exception being thrown.
   // false: assume the file has already been verified
-  FileBackedDataset* dataset = dynamic_cast<FileBackedDataset*>(
-    mgr.CreateDataset(strFilename, mgr.GetMaxBrickSize(), false)
-  );
 
   // We might not need this check anymore; CreateDataset should throw an
   // exception, and we'll never get here, if opening fails.
@@ -225,6 +231,19 @@ Dataset* GPUMemMan::LoadDataset(const string& strFilename,
     T_ERROR("Error opening dataset %s", strFilename.c_str());
     return NULL;
   }
+}
+
+Dataset* GPUMemMan::luaLoadDataset(const string& filename) {
+  MESSAGE("Loading %s", filename.c_str());
+  const IOManager& mgr = *(m_MasterController->IOMan());
+  /// @todo fixme: just use `Dataset's here; instead of explicitly doing the
+  /// IsOpen check, above, just rely on an exception being thrown.
+  // false: assume the file has already been verified
+  FileBackedDataset* dataset = dynamic_cast<FileBackedDataset*>(
+    mgr.CreateDataset(filename, mgr.GetMaxBrickSize(), false)
+  );
+
+  return dataset;
 }
 
 void GPUMemMan::AddDataset(Dataset* ds, AbstrRenderer *requester)
@@ -287,7 +306,12 @@ void GPUMemMan::FreeDataset(Dataset* pVolumeDataset,
     if (requester->GetContext()) // if we never created a context then we never created any textures
       FreeAssociatedTextures(pVolumeDataset, requester->GetContext()->GetShareGroupID());
     dbg.Message(_func_, "Released Dataset %s", ds_name.c_str());
-    delete pVolumeDataset;
+
+    // Locate the volume dataset in Lua and issue a deleteClass on it.
+    m_MasterController->LuaScript()->cexec(
+        "deleteClass",
+        m_MasterController->LuaScript()->getLuaClassInstance(pVolumeDataset));
+
     m_vpVolumeDatasets.erase(vol_ds);
   } else {
     dbg.Message(_func_,"Decreased access count but dataset %s is still "
@@ -1105,3 +1129,32 @@ uint32_t GPUMemMan::GetBitWidthMem() const {
   return m_SystemInfo->GetProgramBitWidth();
 }
 uint32_t GPUMemMan::GetNumCPUs() const {return m_SystemInfo->GetNumberOfCPUs();}
+
+
+
+void GPUMemMan::registerLuaDatasetClass() {
+  std::tr1::shared_ptr<LuaScripting> ss = m_MasterController->LuaScript();
+
+  // Register volume renderer creation class.
+  ss->registerClass<Dataset>(
+      this,
+      &GPUMemMan::luaLoadDataset,
+      "tuvok.dataset",
+      "Loads a new dataset. The dataset's memory will be managed by Lua.",
+      LuaClassRegCallback<Dataset>::Type(
+          &GPUMemMan::registerDataSetClassFunctions));
+}
+
+/// TODO: This, and the above registerLuaDatasetClass should be moved to their
+///       own CPP file.
+void GPUMemMan::registerDataSetClassFunctions(
+    LuaClassRegistration<Dataset>& reg,
+    Dataset*,
+    LuaScripting* ss) {
+
+  // Register all of dataset's exposed functions here.
+
+}
+
+
+
