@@ -128,7 +128,7 @@ private:
   void strictHookInternal(T* C, FunPtr f, const std::string& name,
                           bool registerUndo, bool registerRedo);
 
-  template <typename FunPtr, typename Ret>
+  template <typename T, typename FunPtr, typename Ret>
   struct LuaMemberCallback
   {
     static int exec(lua_State* L)
@@ -136,9 +136,9 @@ private:
       LuaStackRAII _a = LuaStackRAII(L, 1); // 1 for the return value.
 
       FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
+      T* bClass = reinterpret_cast<T*>(lua_touserdata(L, lua_upvalueindex(2)));
       typename LuaCFunExec<FunPtr>::classType* C =
-                  static_cast<typename LuaCFunExec<FunPtr>::classType*>(
-                      lua_touserdata(L, lua_upvalueindex(2)));
+          dynamic_cast<typename LuaCFunExec<FunPtr>::classType*>(bClass);
       Ret r;
       if (lua_toboolean(L, lua_upvalueindex(3)) == 0)
       {
@@ -190,17 +190,17 @@ private:
     }
   };
 
-  template <typename FunPtr>
-  struct LuaMemberCallback <FunPtr, void>
+  template <typename T, typename FunPtr>
+  struct LuaMemberCallback <T, FunPtr, void>
   {
     static int exec(lua_State* L)
     {
       LuaStackRAII _a = LuaStackRAII(L, 0);
 
       FunPtr fp = *static_cast<FunPtr*>(lua_touserdata(L, lua_upvalueindex(1)));
+      T* bClass = reinterpret_cast<T*>(lua_touserdata(L, lua_upvalueindex(2)));
       typename LuaCFunExec<FunPtr>::classType* C =
-          static_cast<typename LuaCFunExec<FunPtr>::classType*>(
-              lua_touserdata(L, lua_upvalueindex(2)));
+          dynamic_cast<typename LuaCFunExec<FunPtr>::classType*>(bClass);
 
       if (lua_toboolean(L, lua_upvalueindex(3)) == 0)
       {
@@ -262,7 +262,7 @@ std::string LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
   // They need to be copied into lua in an portable manner.
   // See the C++ standard.
   // Create a callable function table and leave it on the stack.
-  lua_CFunction proxyFunc = &LuaMemberCallback<FunPtr, typename
+  lua_CFunction proxyFunc = &LuaMemberCallback<T, FunPtr, typename
       LuaCFunExec<FunPtr>::returnType>::exec;
 
   // Table containing the function closure.
@@ -275,7 +275,7 @@ std::string LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
   // Create a full user data and store the function pointer data inside of it.
   void* udata = lua_newuserdata(L, sizeof(FunPtr));
   memcpy(udata, &f, sizeof(FunPtr));
-  lua_pushlightuserdata(L, static_cast<void*>(C));
+  lua_pushlightuserdata(L, reinterpret_cast<void*>(C));
   lua_pushboolean(L, 0);  // We are NOT a hook.
   // We are safe pushing this unprotected pointer: LuaScripting always
   // deregisters all functions it has registered, so no residual light
@@ -400,7 +400,7 @@ void LuaMemberRegUnsafe::strictHookInternal(
   }
 
   // Push closure
-  lua_CFunction proxyFunc = &LuaMemberCallback<FunPtr, typename
+  lua_CFunction proxyFunc = &LuaMemberCallback<T, FunPtr, typename
           LuaCFunExec<FunPtr>::returnType>::exec;
   void* udata = lua_newuserdata(L, sizeof(FunPtr));
   memcpy(udata, &f, sizeof(FunPtr));

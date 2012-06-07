@@ -42,20 +42,26 @@
 namespace tuvok
 {
 
+template <typename T>
 class LuaClassRegistration
 {
 public:
 
-  template <typename T>
   LuaClassRegistration(std::tr1::shared_ptr<LuaScripting> ss, T* t)
   : mSS(ss)
-  , mPtr(reinterpret_cast<void*>(t))
+  , mPtr(t)
   , mRegistration(ss.get())
   {
     obtainID();
   }
 
-  virtual ~LuaClassRegistration();
+  ~LuaClassRegistration()
+  {
+    if (mPtr && mSS.expired() == false)
+    {
+      mSS.lock()->notifyOfDeletion(LuaClassInstance(mGlobalID));
+    }
+  }
 
   bool canRegister() const    {return (mPtr != NULL);}
 
@@ -76,25 +82,38 @@ public:
   /// be generated. If the instance is every destroyed, we will run into access
   /// violations.
   /// TODO: Detect inherited classes and make them weak references.
-  void inherit(LuaClassInstance inst);
+  void inherit(LuaClassInstance from);
 
 private:
 
-
-
-  void obtainID();
+  void obtainID()
+  {
+    // Setup inst
+    std::tr1::shared_ptr<LuaScripting> ss(mSS);
+    int createdID = ss->classPopCreateID();
+    if (createdID != -1)
+    {
+      mGlobalID = createdID;
+      ss->classPushCreatePtr(mPtr);
+    }
+    else
+    {
+      mPtr = NULL;
+    }
+  }
 
   std::tr1::weak_ptr<LuaScripting>        mSS;
 
   int                                     mGlobalID;
-  void*                                   mPtr;
+  T*                                      mPtr;
 
   LuaMemberRegUnsafe                      mRegistration;
 
 };
 
+template <typename T>
 template <typename FunPtr>
-std::string LuaClassRegistration::function(FunPtr f,
+std::string LuaClassRegistration<T>::function(FunPtr f,
                                            const std::string& unqualifiedName,
                                            const std::string& desc,
                                            bool undoRedo)
@@ -110,11 +129,39 @@ std::string LuaClassRegistration::function(FunPtr f,
   qualifiedName << inst.fqName() << "." << unqualifiedName;
 
   // Function pointer f is guaranteed to be a member function pointer.
-  mRegistration.registerFunction(
-      reinterpret_cast<typename LuaCFunExec<FunPtr>::classType*>(mPtr),
-      f, qualifiedName.str(), desc, undoRedo);
+  mRegistration.registerFunction(mPtr, f, qualifiedName.str(), desc,
+                                 undoRedo);
 
   return qualifiedName.str();
+}
+
+template <typename T>
+void LuaClassRegistration<T>::inherit(LuaClassInstance them)
+{
+  std::tr1::shared_ptr<LuaScripting> ss(mSS);
+  lua_State* L = ss->getLUAState();
+
+  LuaStackRAII _a(L, 0);
+
+  // Generate our own LuaClassInstance.
+  LuaClassInstance us(mGlobalID);
+
+  // Obtain the metatable for 'us'.
+  ss->getFunctionTable(us.fqName());
+  int ourTable = lua_gettop(L);
+  ss->getFunctionTable(them.fqName());
+  int theirTable = lua_gettop(L);
+
+  if (lua_getmetatable(L, ourTable) == 0)
+    throw LuaError("Unable to find metatable for our class!");
+
+  // Set the index metamethod.
+  lua_pushvalue(L, theirTable);
+  lua_setfield(L, -2, "__index");
+
+  lua_pop(L, 1);  // pop off the metatable.
+
+  lua_pop(L, 2);
 }
 
 } /* namespace tuvok */

@@ -392,7 +392,7 @@ void LuaScripting::printClassHelp(int tableIndex)
   getTableFuncDefs(funcDescs);
   lua_pop(mL, 1);
 
-  lua_getmetatable(mL, tableIndex);
+  assert(lua_getmetatable(mL, tableIndex) != 0);
   lua_getfield(mL, -1, LuaClassInstance::MD_FACTORY_NAME);
   string factoryName = lua_tostring(mL, -1);
   lua_pop(mL, 2); // Pop metatable and factory name off the stack.
@@ -444,9 +444,9 @@ void LuaScripting::infoHelp(LuaTable table)
   str += desc.funcDesc;
   cexec("log.info", str);
 
-  ostringstream osUsage;
-  osUsage << "  Usage: '"<< desc.funcFQName << desc.paramSig << "'";
-  cexec("log.info", osUsage.str());
+//  ostringstream osUsage;
+//  osUsage << "  Usage: '"<< desc.funcFQName << desc.paramSig << "'";
+//  cexec("log.info", osUsage.str());
 
   // Parse the function's parameters
   string commaDelimitedParams = desc.paramSig;
@@ -488,11 +488,15 @@ void LuaScripting::infoHelp(LuaTable table)
   // Could be nil.
   lua_getfield(mL, funTable, TBL_MD_PARAM_DESC);
   int descTable = lua_gettop(mL);
+  vector<string> paramOutput;
+
+  ostringstream osUsage;
+  osUsage << "  Signature: '"<< desc.funcFQName << "(";
 
   if (tokens.size() != 0)
   {
-    cexec("log.info", "");
-    cexec("log.info", "  Parameters:");
+    paramOutput.push_back("");
+    paramOutput.push_back("  Parameters:");
     int accum = 1;
 
     for (vector<string>::iterator it = tokens.begin(); it != tokens.end(); ++it)
@@ -501,18 +505,26 @@ void LuaScripting::infoHelp(LuaTable table)
       string paramInfo = "";
       string paramName = "";
 
+      if (it != tokens.begin())
+        osUsage << ", ";
+
+      osUsage << *it;
+
       if (!lua_isnil(mL, descTable))
       {
         ostringstream pName;
         ostringstream pDesc;
         pName << accum << PARAM_DESC_NAME_SUFFIX;
-        pName << accum << PARAM_DESC_INFO_SUFFIX;
+        pDesc << accum << PARAM_DESC_INFO_SUFFIX;
 
         lua_getfield(mL, descTable, pName.str().c_str());
         if (!lua_isnil(mL, -1))
+        {
           paramName = lua_tostring(mL, -1);
+          osUsage << " " << paramName;
+        }
         lua_pop(mL, 1);
-        lua_getfield(mL, descTable, pName.str().c_str());
+        lua_getfield(mL, descTable, pDesc.str().c_str());
         if (!lua_isnil(mL, -1))
           paramInfo = lua_tostring(mL, -1);
         lua_pop(mL, 1);
@@ -531,10 +543,19 @@ void LuaScripting::infoHelp(LuaTable table)
         infoStream << " -- " << paramInfo;
       }
 
-      cexec("log.info", infoStream.str());
+      paramOutput.push_back(infoStream.str());
       ++accum;
     }
 
+  }
+
+  osUsage << ")'";
+  cexec("log.info", osUsage.str());
+
+  for (vector<string>::iterator it = paramOutput.begin();
+      it != paramOutput.end(); ++it)
+  {
+    cexec("log.info", *it);
   }
 
   // Add return value information (stored at index 0 in the parameter table).
@@ -598,6 +619,9 @@ void LuaScripting::addParamInfo(const std::string& fqname, int paramID,
                                 const std::string& desc)
 {
   LuaStackRAII _a(mL, 0);
+
+  // Correct the zero based parameter.
+  paramID++;
 
   if (getFunctionTable(fqname) == false)
   {
@@ -730,7 +754,7 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
 {
   LuaStackRAII _a(mL, 0);
 
-  lua_getmetatable(mL, tableIndex);
+  assert(lua_getmetatable(mL, tableIndex) != 0);
   int mt = lua_gettop(mL);
 
   // Pull the delete function from the table.
@@ -764,17 +788,13 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
 }
 
 //-----------------------------------------------------------------------------
-void LuaScripting::notifyOfDeletion(void* p)
+void LuaScripting::notifyOfDeletion(LuaClassInstance inst)
 {
   LuaStackRAII _a(mL, 0);
 
   setExpectedExceptionFlag(true);
   try
   {
-    // We want to call delete class explicitly. This will add it to the
-    // provenance system.
-    LuaClassInstance inst = getLuaClassInstance(p);
-
     // Don't even attempt anything if we did not find the function table.
     if (getFunctionTable(inst.fqName()) == false)
     {
@@ -974,8 +994,7 @@ void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
   }
 
   // Check the '__index' metamethod if a metatable exists.
-  lua_getmetatable(mL, tablePos);
-  if (lua_isnil(mL, -1) == false)
+  if (lua_getmetatable(mL, tablePos))
   {
     lua_getfield(mL, -1, "__index");
     if (lua_isnil(mL, -1) == false)
@@ -984,9 +1003,8 @@ void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
       lua_checkstack(mL, 4);
       getTableFuncDefs(descs);
     }
-    lua_pop(mL, 1);
+    lua_pop(mL, 2);
   }
-  lua_pop(mL, 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -1794,7 +1812,7 @@ void LuaScripting::copyDefaultsTableToLastExec(int funTableIndex)
 void LuaScripting::prepForExecution(const std::string& fqName)
 {
   getFunctionTable(fqName);
-  lua_getmetatable(mL, -1);
+  assert(lua_getmetatable(mL, -1) != 0);
   lua_getfield(mL, -1, "__call");
 
   // Remove metatable.
@@ -2100,17 +2118,15 @@ bool LuaScripting::isLuaClassInstance(int tableIndex)
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0);
 
-  lua_getmetatable(mL, tableIndex);
-  if (lua_isnil(mL, -1))
+  if (lua_getmetatable(mL, tableIndex) == 0)
   {
-    lua_pop(mL, 1); // Pop nil off the stack.
     return false;
   }
 
   lua_getfield(mL, -1, LuaClassInstance::MD_GLOBAL_INSTANCE_ID);
   if (lua_isnil(mL, -1))
   {
-    lua_pop(mL, 2);
+    lua_pop(mL, 2); // nil and metatable off the stack.
     return false;
   }
 

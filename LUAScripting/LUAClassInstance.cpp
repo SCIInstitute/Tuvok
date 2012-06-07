@@ -97,7 +97,7 @@ void* LuaClassInstance::getVoidPointer(LuaScripting* ss)
   LuaStackRAII _a(L, 0);
 
   ss->getFunctionTable(fqName());
-  lua_getmetatable(L, -1);
+  assert(lua_getmetatable(L, -1) != 0);
   lua_getfield(L, -1, MD_INSTANCE);
   void* r = lua_touserdata(L, -1);
   lua_pop(L, 3);  // Table, metatable, and userdata.

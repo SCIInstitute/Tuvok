@@ -55,58 +55,6 @@ using namespace std;
 namespace tuvok
 {
 
-LuaClassRegistration::~LuaClassRegistration()
-{
-  if (mPtr && mSS.expired() == false)
-  {
-    mSS.lock()->notifyOfDeletion(mPtr);
-  }
-}
-
-void LuaClassRegistration::obtainID()
-{
-  // Setup inst
-  std::tr1::shared_ptr<LuaScripting> ss(mSS);
-  int createdID = ss->classPopCreateID();
-  if (createdID != -1)
-  {
-    mGlobalID = createdID;
-    ss->classPushCreatePtr(mPtr);
-  }
-  else
-  {
-    mPtr = NULL;
-  }
-}
-
-void LuaClassRegistration::inherit(LuaClassInstance them)
-{
-  std::tr1::shared_ptr<LuaScripting> ss(mSS);
-  lua_State* L = ss->getLUAState();
-
-  LuaStackRAII _a(L, 0);
-
-  // Generate our own LuaClassInstance.
-  LuaClassInstance us(mGlobalID);
-
-  // Obtain the metatable for 'us'.
-  ss->getFunctionTable(us.fqName());
-  int ourTable = lua_gettop(L);
-  ss->getFunctionTable(them.fqName());
-  int theirTable = lua_gettop(L);
-
-  lua_getmetatable(L, ourTable);
-  if (lua_isnil(L, -1))
-    throw LuaError("Unable to find metatable for our class!");
-
-  // Set the index metamethod.
-  lua_pushvalue(L, theirTable);
-  lua_setfield(L, -2, "__index");
-
-  lua_pop(L, 1);  // pop off the metatable.
-
-  lua_pop(L, 2);
-}
 
 //==============================================================================
 //
@@ -143,7 +91,7 @@ SUITE(LuaTestClassRegistration)
     float   f1, f2;
     string  s1, s2;
 
-    LuaClassRegistration d;
+    LuaClassRegistration<A> d;
 
     void set_i1(int i)    {i1 = i;}
     void set_i2(int i)    {i2 = i;}
@@ -208,7 +156,7 @@ SUITE(LuaTestClassRegistration)
     float f1;
     string s1;
 
-    LuaClassRegistration d;
+    LuaClassRegistration<B> d;
 
     void set_i1(int i)    {i1 = i;}
     int get_i1()          {return i1;}
@@ -600,7 +548,7 @@ SUITE(LuaTestClassRegistration)
       gSS->exec("deleteClass(" + a.fqName() + ")"); // Our responsibility
     }
 
-    LuaClassRegistration d;
+    LuaClassRegistration<C> d;
     LuaClassInstance a;
 
     int i1;
@@ -694,7 +642,7 @@ SUITE(LuaTestClassRegistration)
       gSS->exec("deleteClass(" + b.fqName() + ")"); // Our responsibility
     }
 
-    LuaClassRegistration d;
+    LuaClassRegistration<D> d;
     LuaClassInstance b;
     LuaClassInstance c;
 
@@ -1407,7 +1355,7 @@ SUITE(LuaTestClassRegistration)
     float f1;
     string s1;
 
-    LuaClassRegistration d;
+    LuaClassRegistration<X> d;
 
     void set_i1(int i)    {i1 = i;}
     int get_i1()          {return i1;}

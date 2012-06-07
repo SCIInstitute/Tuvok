@@ -215,6 +215,7 @@ HEADERS += \
            LUAScripting/LUAScriptingExecBody.h \
            LUAScripting/LUAScriptingExecHeader.h \
            LUAScripting/LUAStackRAII.h \
+           LUAScripting/LUATuvokSpecificTypes.h \
            Renderer/StateManager.h \
            Renderer/AbstrRenderer.h \
            Renderer/Context.h \

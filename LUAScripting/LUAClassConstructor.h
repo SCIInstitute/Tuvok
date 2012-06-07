@@ -260,12 +260,13 @@ private:
         throw;
       }
       ss->endCommand();
-      if (r != ss->classPopCreatePtr())
-        throw LuaError("Unequal creation pointer stack! This indicates that "
-            "Lua classes were created in the initializer list of one of the "
-            "classes. Reordering the initializer list so that "
-            "LuaClassRegistration comes before the creation of othe Lua classes"
-            "will fix the problem.");
+      ss->classPopCreatePtr();
+//      if (r != ss->classPopCreatePtr())
+//        throw LuaError("Unequal creation pointer stack! This indicates that "
+//            "Lua classes were created in the initializer list of one of the "
+//            "classes. Reordering the initializer list so that "
+//            "LuaClassRegistration comes before the creation of othe Lua classes"
+//            "will fix the problem.");
       assert(createIDStackTop == ss->classGetCreateIDSize());
       assert(createPtrStackTop == ss->classGetCreatePtrSize());
 
@@ -355,12 +356,13 @@ private:
         throw;
       }
       ss->endCommand();
-      if (r != ss->classPopCreatePtr())
-        throw LuaError("Unequal creation pointer stack! This indicates that "
-            "Lua classes were created in the initializer list of one of the "
-            "classes. Reordering the initializer list so that "
-            "LuaClassRegistration comes before the creation of othe Lua classes"
-            "will fix the problem.");
+      ss->classPopCreatePtr();
+//      if (r != ss->classPopCreatePtr())
+//        throw LuaError("Unequal creation pointer stack! This indicates that "
+//            "Lua classes were created in the initializer list of one of the "
+//            "classes. Reordering the initializer list so that "
+//            "LuaClassRegistration comes before the creation of othe Lua classes"
+//            "will fix the problem.");
       if (createIDStackTop != ss->classGetCreateIDSize())
         throw LuaError("Inconsistent class creation.");
       if (createPtrStackTop != ss->classGetCreatePtrSize())

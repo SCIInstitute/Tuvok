@@ -244,11 +244,12 @@ class AbstrRenderer: public Scriptable {
     /** Sets up a gradient background which fades vertically.
      * @param vColors[0] is the color at the bottom;
      * @param vColors[1] is the color at the top. */
-    virtual bool SetBackgroundColors(FLOATVECTOR3 vColors[2]) {
-      if (vColors[0] != m_vBackgroundColors[0] ||
-          vColors[1] != m_vBackgroundColors[1]) {
-        m_vBackgroundColors[0]=vColors[0];
-        m_vBackgroundColors[1]=vColors[1];
+    virtual bool SetBackgroundColors(FLOATVECTOR3 vTopColor,
+                                     FLOATVECTOR3 vBotColor) {
+      if (vTopColor != m_vBackgroundColors[0] ||
+          vBotColor != m_vBackgroundColors[1]) {
+        m_vBackgroundColors[0]=vTopColor;
+        m_vBackgroundColors[1]=vBotColor;
         ScheduleCompleteRedraw();
         return true;
       } return false;
@@ -667,7 +668,7 @@ class AbstrRenderer: public Scriptable {
     // light direction (for both)
     FLOATVECTOR3        m_vLightDir;
 
-    LuaClassRegistration m_pClassReg;
+    LuaClassRegistration<AbstrRenderer> m_pClassReg;
 
     virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);
     void                ComputeMinLODForCurrentView();

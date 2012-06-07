@@ -83,7 +83,7 @@ class LuaScripting
   friend class LuaStackRAII;        // For unwinding lua stack during exception
   friend class LuaClassInstanceHook;// For getNewMemberHookID.
   friend class LuaClassConstructor; // For createCallableFuncTable.
-  friend class LuaClassRegistration;// For notifyOfDeletion.
+  template<class T> friend class LuaClassRegistration;// For notifyOfDeletion.
   friend class LuaClassInstance;    // For obtaining Lua instance.
 public:
 
@@ -303,6 +303,11 @@ public:
   /// should be filled with the given optional values.
 
   /// Sets additional parameter information (such as name and description).
+  /// \param fqname   Fully qualified name of the function.
+  /// \param paramID  Zero based. 0 represents the first parameter, n represents
+  ///                 the (n-1)'th parameter.
+  /// \param name     The name of the parameter.
+  /// \param desc     The description.
   void addParamInfo(const std::string& fqname, int paramID,
                     const std::string& name, const std::string& desc);
 
@@ -590,7 +595,7 @@ private:
   /// It is safe to call this function repeatedly. You may also call the
   /// function even though deleteClass was called. deleteClass is reentrant for
   /// the same class.
-  void notifyOfDeletion(void* p);
+  void notifyOfDeletion(LuaClassInstance inst);
 
   /// Returns true if the path specified points to a class instance.
   bool isLuaClassInstance(int tableIndex);

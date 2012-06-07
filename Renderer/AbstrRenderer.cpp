@@ -49,6 +49,9 @@
 #include "RenderMesh.h"
 #include "Scripting/Scripting.h"
 
+#include "LUAScripting/LUAScripting.h"
+#include "LUAScripting/LUATuvokSpecificTypes.h"
+
 using namespace std;
 using namespace tuvok;
 
@@ -1520,12 +1523,6 @@ void AbstrRenderer::SetInterpolant(Interpolant eInterpolant) {
       ScheduleCompleteRedraw();
   }
 }
-
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERendererType)
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERendererTarget)
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EStereoMode)
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EBlendPrecision)
-TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ScalingMethod)
 
 void AbstrRenderer::RegisterAbsLuaFunctions() {
   std::string id;
