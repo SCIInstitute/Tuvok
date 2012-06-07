@@ -31,6 +31,8 @@
 #ifndef RENDERREGION_H
 #define RENDERREGION_H
 
+#include "../Basics/Plane.h"
+
 namespace tuvok {
 
 class AbstrRenderer;
@@ -69,11 +71,12 @@ template <typename T> class LuaClassRegistration;
     // it considers what is visible to the user not what is in the backbuffer)
     bool isTargetBlank;
 
-    RenderRegion(EWindowMode mode):
+    RenderRegion(EWindowMode mode, AbstrRenderer* ren):
       windowMode(mode),
       redrawMask(true),
       isBlank(true),
-      isTargetBlank(true)
+      isTargetBlank(true),
+      mRen(ren)
     {
     }
     virtual ~RenderRegion() { /* nothing to destruct */ }
@@ -109,12 +112,35 @@ template <typename T> class LuaClassRegistration;
     virtual void SetSliceIndex(uint64_t index) = 0;
     virtual void GetFlipView(bool &flipX, bool &flipY) const = 0;
     virtual void SetFlipView(bool flipX, bool flipY) = 0;
+
+    AbstrRenderer* mRen;
+
+  private:
+
+    // Lua functions that expose functionality. The guts of most of these
+    // functions exist in the abstract renderer.
+    void luaSetRotation4x4(FLOATMATRIX4 mat);
+    FLOATMATRIX4 luaGetRotation4x4();
+    void luaSet2DFlipMode(bool bFlipX, bool bFlipY);
+    bool luaGet2DFlipModeX();
+    bool luaGet2DFlipModeY();
+    bool luaGetUseMIP() const;
+    void luaSetUseMIP(bool bUseMIP);
+    void luaSetTranslation4x4(FLOATMATRIX4 translation);
+    FLOATMATRIX4 luaGetTranslation4x4();
+    void luaSetSliceDepth(uint64_t sliceDepth);
+    uint64_t luaGetSliceDepth() const;
+    void luaSetClipPlane(ExtendedPlane plane);
+    ExtendedPlane luaGetClipPlane();
+    void luaEnableClipPlane(bool enable);
+    bool luaIsClipPlaneEnabled();
+    void luaShowClipPlane(bool enable);
   };
 
   class RenderRegion2D : public RenderRegion {
   public:
-    RenderRegion2D(EWindowMode mode, uint64_t sliceIndex) :
-      RenderRegion(mode),
+    RenderRegion2D(EWindowMode mode, uint64_t sliceIndex, AbstrRenderer* ren) :
+      RenderRegion(mode, ren),
       useMIP(false),
       sliceIndex(sliceIndex)
     {
@@ -149,7 +175,7 @@ template <typename T> class LuaClassRegistration;
 
   class RenderRegion3D : public RenderRegion {
   public:
-    RenderRegion3D() : RenderRegion(WM_3D) { /*no code */ }
+    RenderRegion3D(AbstrRenderer* ren) : RenderRegion(WM_3D, ren) {}
     virtual ~RenderRegion3D() { /* nothing to destruct */ }
 
     virtual bool is3D() const { return true; }

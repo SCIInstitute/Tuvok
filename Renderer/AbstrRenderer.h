@@ -300,18 +300,12 @@ class AbstrRenderer: public Scriptable {
 
     virtual void SetRotation(RenderRegion * region,
                              const FLOATMATRIX4& rotation);
-    void LuaSetRegionRotation4x4(LuaClassInstance region,
-                                 FLOATMATRIX4 rotation);
     virtual const FLOATMATRIX4& GetRotation(const RenderRegion *renderRegion) const;
-    FLOATMATRIX4 LuaGetRegionRotation4x4(LuaClassInstance region);
 
     virtual void SetTranslation(RenderRegion *renderRegion,
                                 const FLOATMATRIX4& translation);
-    void LuaSetRegionTranslation4x4(LuaClassInstance region,
-                                    FLOATMATRIX4 translation);
     virtual const FLOATMATRIX4& GetTranslation(
                                         const RenderRegion *renderRegion) const;
-    FLOATMATRIX4 LuaGetRegionTranslation4x4(LuaClassInstance region);
 
     void SetClipPlane(RenderRegion *renderRegion,
                       const ExtendedPlane& plane);
@@ -329,9 +323,7 @@ class AbstrRenderer: public Scriptable {
 
     /// slice parameter for slice views.
     virtual void SetSliceDepth(RenderRegion *renderRegion, uint64_t fSliceDepth);
-    void LuaSetSliceDepth(LuaClassInstance region, uint64_t fSliceDepth);
     virtual uint64_t GetSliceDepth(const RenderRegion *renderRegion) const;
-    uint64_t LuaGetSliceDepth(LuaClassInstance renderRegion) const;
 
     void SetClearFramebuffer(bool bClearFramebuffer) {
       m_bClearFramebuffer = bClearFramebuffer;
@@ -344,15 +336,10 @@ class AbstrRenderer: public Scriptable {
 
     virtual void SetLogoParams(std::string strLogoFilename, int iLogoPos);
     void Set2DFlipMode(RenderRegion *renderRegion, bool bFlipX, bool bFlipY);
-    void LuaSet2DFlipMode(LuaClassInstance region, bool bFlipX, bool bFlipY);
     void Get2DFlipMode(const RenderRegion *renderRegion, bool& bFlipX,
                        bool& bFlipY) const;
-    bool LuaGet2DFlipModeX(LuaClassInstance region);
-    bool LuaGet2DFlipModeY(LuaClassInstance region);
     bool GetUseMIP(const RenderRegion *renderRegion) const;
-    bool LuaGetUseMIP(LuaClassInstance region) const;
     void SetUseMIP(RenderRegion *renderRegion, bool bUseMIP);
-    void LuaSetUseMIP(LuaClassInstance region, bool bUseMIP);
 
     uint64_t GetMaxLODIndex() const { return m_iMaxLODIndex; }
     uint64_t GetMinLODIndex() const { return m_iMinLODForCurrentView; }

@@ -68,6 +68,7 @@ class GPUMemMan;
 class Scripting;
 class LuaScripting;
 class LuaMemberReg;
+class RenderRegion;
 
 typedef std::deque<AbstrRenderer*> AbstrRendererList;
 
@@ -195,6 +196,11 @@ private:
   /// Initializer; add all our builtin commands.
   void RegisterInternalCommands();
   void RegisterLuaCommands();
+
+  RenderRegion* LuaCreateRenderRegion3D(LuaClassInstance ren);
+  RenderRegion* LuaCreateRenderRegion2D(int mode,  // RenderRegion::EWindowMode
+                                        uint64_t sliceIndex,
+                                        LuaClassInstance ren);
 
   /// Helper function for RegisterLuaCommands. Helps in setting up the renderer
   /// types table in tuvok.renderer.

@@ -378,6 +378,8 @@ public:
   static const char* PARAM_DESC_NAME_SUFFIX;
   static const char* PARAM_DESC_INFO_SUFFIX;
 
+  static const char* SYSTEM_NOP_COMMAND;  ///< The no-op command.
+
   /// Sets a flag in the Lua registry indicating that an exception is expected
   /// that will cause the lua stack to be unbalanced in internal functions.
   /// This is to avoid debug log output, more than anything else.
@@ -423,9 +425,36 @@ public:
   /// E.G. getCmdPath("iv3d.ren.two.get") = "iv3d.ren.two"
   std::string getCmdPath(std::string fqName);
 
+  /// All commands between these two function calls will be grouped together
+  /// so that one provenance.undo() command will undo/redo all of them.
+  /// @{
+  void beginCommandGroup();
+  void endCommandGroup();
+  /// @}
 
   /// Verbose print. Prints a message using log.info only if verbose is enabled.
   void vPrint(const char* fmt, ...);
+
+private: // Used by LuaMemberRegUnsafe
+
+  /// Just calls provenance begin/end command.
+  void beginCommand();
+  void endCommand();
+
+  /// Exec failure.
+  void logExecFailure(const std::string& failure);
+
+  /// Stack expectations: the function table at tableIndex, and the parameters
+  /// required to call the function directly after the table on the stack.
+  /// There must be no other values on the stack above tableIndex other than the
+  /// table and the parameters to call the function.
+  void doHooks(lua_State* L, int tableIndex, bool provExempt);
+
+  /// Returns true if the function is provenance exempt.
+  /// Used to tell whether or not we should log hooks later on.
+  bool doProvenanceFromExec(lua_State* L,
+                            std::tr1::shared_ptr<LuaCFunAbstract> funParams,
+                            std::tr1::shared_ptr<LuaCFunAbstract> emptyParams);
 
 private:
 
@@ -489,12 +518,6 @@ private:
   /// \param  tableName   Name of the table on the top of the stack.
   void removeFunctionsFromTable(int parentTable, const char* tableName);
 
-  /// Stack expectations: the function table at tableIndex, and the parameters
-  /// required to call the function directly after the table on the stack.
-  /// There must be no other values on the stack above tableIndex other than the
-  /// table and the parameters to call the function.
-  void doHooks(lua_State* L, int tableIndex, bool provExempt);
-
   /// Returns true if the table at stackIndex is a registered function.
   /// Makes no guarantees that it is a function registered by this class.
   bool isRegisteredFunction(int stackIndex) const;
@@ -556,12 +579,6 @@ private:
   static void* luaInternalAlloc(void* ud, void* ptr, size_t osize,
                                 size_t nsize);
 
-  /// Returns true if the function is provenance exempt.
-  /// Used to tell whether or not we should log hooks later on.
-  bool doProvenanceFromExec(lua_State* L,
-                            std::tr1::shared_ptr<LuaCFunAbstract> funParams,
-                            std::tr1::shared_ptr<LuaCFunAbstract> emptyParams);
-
   /// Expects the function table to be given at funTableIndex
   /// Copies the defaults table to the last exec table (used for undo/redo).
   void copyDefaultsTableToLastExec(int funTableIndex);
@@ -582,9 +599,6 @@ private:
 
   /// Logs a failure.
   void logError(std::string log);
-
-  /// Exec failure.
-  void logExecFailure(const std::string& failure);
 
   /// Prints all currently registered functions using log.info.
   void printFunctions();
@@ -636,10 +650,6 @@ private:
 
   /// Enable / disable verbose mode for the scripting system.
   void enableVerboseMode(bool enable);
-
-  /// Just calls provenance begin/end command.
-  void beginCommand();
-  void endCommand();
 
   /// Performs a correction search given the table in which to search, and the
   /// name within the table. If the name is unique, it will be the only value

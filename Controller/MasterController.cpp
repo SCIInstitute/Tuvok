@@ -278,13 +278,17 @@ void MasterController::RegisterCalls(Scripting* pScriptEngine) {
                                  "(string) argument.");
 }
 
-static RenderRegion* CreateRenderRegion3D() {
-  return new RenderRegion3D();
+RenderRegion* MasterController::LuaCreateRenderRegion3D(LuaClassInstance ren) {
+  return new RenderRegion3D(ren.getRawPointer<AbstrRenderer>(LuaScript()));
 }
 
-static RenderRegion* CreateRenderRegion2D(RenderRegion::EWindowMode mode,
-                                          uint64_t sliceIndex) {
-  return new RenderRegion2D(mode, sliceIndex);
+RenderRegion* MasterController::LuaCreateRenderRegion2D(
+    int mode,
+    uint64_t sliceIndex,
+    LuaClassInstance ren) {
+  return new RenderRegion2D(static_cast<RenderRegion::EWindowMode>(mode),
+                            sliceIndex,
+                            ren.getRawPointer<AbstrRenderer>(LuaScript()));
 }
 
 void MasterController::AddLuaRendererType(const std::string& rendererLoc,
@@ -294,8 +298,6 @@ void MasterController::AddLuaRendererType(const std::string& rendererLoc,
   os << rendererLoc << ".types." << rendererName << "=" << value;
   LuaScript()->exec(os.str());
 }
-
-TUVOK_LUA_REGISTER_ENUM_TYPE(MasterController::EVolumeRendererType)
 
 void MasterController::RegisterLuaCommands() {
   std::tr1::shared_ptr<LuaScripting> ss = LuaScript();
@@ -325,16 +327,16 @@ void MasterController::RegisterLuaCommands() {
   AddLuaRendererType(renderer, "DirectX_TRaycaster", DIRECTX_TRAYCASTER);
 
   // Register RenderRegion3D.
-  ss->registerClassStatic<RenderRegion>(
-      &CreateRenderRegion3D,
+  ss->registerClass<RenderRegion>(this,
+      &MasterController::LuaCreateRenderRegion3D,
       "tuvok.renderRegion3D",
       "Constructs a 3D render region.",
       LuaClassRegCallback<RenderRegion>::Type(
           RenderRegion::defineLuaInterface));
 
   // Register RenderRegion2D.
-  ss->registerClassStatic<RenderRegion>(
-      &CreateRenderRegion2D,
+  ss->registerClass<RenderRegion>(this,
+      &MasterController::LuaCreateRenderRegion2D,
       "tuvok.renderRegion2D",
       "Constructs a 2D render region.",
       LuaClassRegCallback<RenderRegion>::Type(

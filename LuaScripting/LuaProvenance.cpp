@@ -528,6 +528,31 @@ void LuaProvenance::issueRedo()
     throw LuaProvenanceInvalidRedo(e.what(), e.where(), e.lineno());
   }
 
+  // Issue redo to all children ONLY if flag is set (the only function that
+  // sets the flag is setLastItemAsAlsoRedoChildren).
+  if (redoItem.alsoRedoChildren)
+  {
+    if (redoItem.childItems != NULL)
+    {
+      // Iterate through all of the children, and undo those as well.
+      // Note: Notice, we are undoing the parent first, then all of the children.
+      //       This constitutes a reversal of the function calls from redo.
+
+      for (std::vector<UndoRedoItem>::iterator it=redoItem.childItems->begin();
+           it != redoItem.childItems->end(); it++)
+      {
+        try
+        {
+          performUndoRedoOp(it->function, it->redoParams, false);
+        }
+        catch (LuaProvenanceInvalidUndoOrRedo& e)
+        {
+          throw LuaProvenanceInvalidRedo(e.what(), e.where(), e.lineno());
+        }
+      }
+    }
+  }
+
   // Notice, we ignore any child undo/redo items. They exist solely to help
   // undo reset the program state when a composited function is undone.
 
@@ -875,6 +900,15 @@ bool LuaProvenance::testLastURItemHasCreatedItems(const vector<int>&
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::setLastURItemAlsoRedoChildren()
+{
+  if (mUndoRedoStack.size() > 0)
+  {
+    mUndoRedoStack.back().alsoRedoChildren = true;
+  }
 }
 
 //==============================================================================

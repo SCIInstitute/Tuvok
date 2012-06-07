@@ -43,9 +43,11 @@
 
 // Standard
 #include "../../Basics/Vectors.h"
+#include "../../Basics/Plane.h"
 #include "../../StdTuvokDefines.h"
 #include "../../Renderer/AbstrRenderer.h"
 #include "../../Renderer/RenderRegion.h"
+#include "../../Controller/MasterController.h"
 
 namespace tuvok
 {
@@ -273,64 +275,6 @@ public:
   static std::string getTypeStr() { return "uint64_t"; }
   static uint64_t getDefault(){ return 0; }
 };
-
-/// @todo Write extended plane type and update RenderWindow.cpp to use this
-///       instead of bypassing the LuaClassInstance.
-//template<>
-//class LuaStrictStack<ExtendedPlane>
-//{
-//  typedef ExtendedPlane Type;
-//
-//  static ExtendedPlane get(lua_State* L, int pos)
-//  {
-//    LuaStackRAII _a(L, 0);
-//
-//    luaL_checktype(L, pos, LUA_TTABLE);
-//
-//    lua_pushinteger(L, 1);
-//    lua_gettable(L, pos);
-//    rows[0] = LuaStrictStack<VECTOR2<T> >::get(L, lua_gettop(L));
-//    lua_pop(L, 1);
-//
-//    lua_pushinteger(L, 2);
-//    lua_gettable(L, pos);
-//    rows[1] = LuaStrictStack<VECTOR2<T> >::get(L, lua_gettop(L));
-//    lua_pop(L, 1);
-//
-//    return MATRIX2<T>(rows);
-//  }
-//
-//  static void push(lua_State* L, MATRIX2<T> in)
-//  {
-//    LuaStackRAII _a(L, 1);
-//
-//    lua_newtable(L);
-//    int tbl = lua_gettop(L);
-//
-//    // Push rows of the matrix.
-//    lua_pushinteger(L, 1);
-//    LuaStrictStack<VECTOR2<T> >::push(L, VECTOR2<T>(in.m11, in.m12));
-//    lua_settable(L, tbl);
-//
-//    lua_pushinteger(L, 2);
-//    LuaStrictStack<VECTOR2<T> >::push(L, VECTOR2<T>(in.m21, in.m22));
-//    lua_settable(L, tbl);
-//  }
-//
-//  static std::string getValStr(MATRIX2<T> in)
-//  {
-//    std::ostringstream os;
-//    os << "{ ";
-//    os << LuaStrictStack<VECTOR2<T> >::getValStr(VECTOR2<T>(in.m11, in.m12));
-//    os << ",\n";
-//    os << "  ";
-//    os << LuaStrictStack<VECTOR2<T> >::getValStr(VECTOR2<T>(in.m21, in.m22));
-//    os << " }";
-//    return os.str();
-//  }
-//  static std::string getTypeStr() { return "Matrix22"; }
-//  static MATRIX2<T>  getDefault() { return MATRIX2<T>(); }
-//};
 
 /// NOTE: We are choosing to store matrices in row-major order because
 ///       initialization of these matrices looks prettier in Lua:
@@ -561,6 +505,78 @@ public:
 };
 
 
+/// @todo Write extended plane type and update RenderWindow.cpp to use this
+///       instead of bypassing the LuaClassInstance.
+template<>
+class LuaStrictStack<ExtendedPlane>
+{
+public:
+  typedef ExtendedPlane Type;
+
+  static ExtendedPlane get(lua_State* L, int pos)
+  {
+    LuaStackRAII _a(L, 0);
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    VECTOR4<float> plane=LuaStrictStack<VECTOR4<float> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    FLOATMATRIX4 m1 =
+        LuaStrictStack<FLOATMATRIX4 >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 3);
+    lua_gettable(L, pos);
+    FLOATMATRIX4 m2 =
+        LuaStrictStack<FLOATMATRIX4 >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    return ExtendedPlane(m1, m2, plane);
+  }
+
+  static void push(lua_State* L, ExtendedPlane in)
+  {
+    LuaStackRAII _a(L, 1);
+
+    lua_newtable(L);
+    int tbl = lua_gettop(L);
+
+    // Push rows of the matrix.
+    lua_pushinteger(L, 1);
+    LuaStrictStack<VECTOR4<float> >::push(L, VECTOR4<float>(in.Plane().x,
+                                                            in.Plane().y,
+                                                            in.Plane().z,
+                                                            in.Plane().w));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 2);
+    LuaStrictStack<FLOATMATRIX4 >::push(L, FLOATMATRIX4(in.Mat1()));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 3);
+    LuaStrictStack<FLOATMATRIX4 >::push(L, FLOATMATRIX4(in.Mat2()));
+    lua_settable(L, tbl);
+  }
+
+  static std::string getValStr(ExtendedPlane in)
+  {
+    std::ostringstream os;
+    os << "{ ";
+    os << LuaStrictStack<VECTOR4<float> >::getValStr(
+        VECTOR4<float>(in.Plane()));
+    os << " }";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "ExtendedPlane"; }
+  static ExtendedPlane  getDefault() { return ExtendedPlane(); }
+};
+
+
 } // namespace tuvok
 
 // Register standard Tuvok enumerations. These enumerations declare their own
@@ -572,6 +588,8 @@ TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERendererTarget)
 TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EStereoMode)
 TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EBlendPrecision)
 TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ScalingMethod)
+
+TUVOK_LUA_REGISTER_ENUM_TYPE(MasterController::EVolumeRendererType)
 
 TUVOK_LUA_REGISTER_ENUM_TYPE(RenderRegion::EWindowMode)
 

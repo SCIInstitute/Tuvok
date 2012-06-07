@@ -106,6 +106,8 @@ const char* LuaScripting::TBL_MD_PARAM_DESC     = "tblParamDesc";
 const char* LuaScripting::PARAM_DESC_NAME_SUFFIX = "n";
 const char* LuaScripting::PARAM_DESC_INFO_SUFFIX = "i";
 
+const char* LuaScripting::SYSTEM_NOP_COMMAND    = "_sys_.nop";
+
 // To avoid naming conflicts with other libraries, we prefix all of our
 // registry values with tuvok_
 const char* LuaScripting::REG_EXPECTED_EXCEPTION_FLAG = "tuvok_exceptFlag";
@@ -135,18 +137,20 @@ LuaScripting::LuaScripting()
   lua_atpanic(mL, &luaPanic);
   luaL_openlibs(mL);
 
+  LuaStackRAII _a(mL, 0);
+
+  // First construct the system table (functions in registerScriptFunctions
+  // may want to register themselves in _sys_).
+  // Functions registered in _sys_ do not show up when performing help(),
+  // but they must be manually deregistered.
+  lua_newtable(mL);
+  lua_setglobal(mL, LuaClassInstance::SYSTEM_TABLE);
+
   setExpectedExceptionFlag(false);
 
   registerScriptFunctions();
 
   mProvenance->registerLuaProvenanceFunctions();
-
-  // Construct Lua Class Instance lookup table.
-  LuaStackRAII _a(mL, 0);
-
-  // First construct the system table.
-  lua_newtable(mL);
-  lua_setglobal(mL, LuaClassInstance::SYSTEM_TABLE);
 
   // Generate class lookup table.
   {
@@ -255,6 +259,13 @@ void* LuaScripting::luaInternalAlloc(void* /*ud*/, void* ptr, size_t /*osize*/,
 }
 
 //-----------------------------------------------------------------------------
+static int nopFun()
+{
+  // This function's existence is to do nothing.
+  return 0;
+}
+
+//-----------------------------------------------------------------------------
 void LuaScripting::registerScriptFunctions()
 {
   // Note: All these functions are provenance exempt because we do not want
@@ -332,6 +343,10 @@ void LuaScripting::registerScriptFunctions()
                                "(verbose mode).",
                                false);
   setProvenanceExempt("luaVerboseMode");
+
+  registerFunction(&nopFun, SYSTEM_NOP_COMMAND, "No-op "
+      "function that helps to logically group commands in the provenance "
+      "system.", true);
 
   registerLuaUtilityFunctions();
 }
@@ -725,6 +740,13 @@ void LuaScripting::unregisterAllFunctions()
   }
 
   mRegisteredGlobals.clear();
+
+  // Special case system nop function.
+  getFunctionTable("_sys_");
+  int parentTable = lua_gettop(mL);
+  getFunctionTable(SYSTEM_NOP_COMMAND);
+  removeFunctionsFromTable(parentTable, SYSTEM_NOP_COMMAND);
+  lua_pop(mL, 2);
 }
 
 //-----------------------------------------------------------------------------
@@ -2474,6 +2496,22 @@ void LuaScripting::vPrint(const char* fmt, ...)
   complete += "]";
 
   cexec("log.info", complete);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::beginCommandGroup()
+{
+  // Initiate provenance with a 'dummy' function.
+  cexec(SYSTEM_NOP_COMMAND);
+  mProvenance->setLastURItemAlsoRedoChildren();
+  beginCommand();
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::endCommandGroup()
+{
+  // End the provenance begun with the 'dummy' function above.
+  endCommand();
 }
 
 //==============================================================================

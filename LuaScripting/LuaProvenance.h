@@ -53,8 +53,6 @@ class LuaScripting;
 
 class LuaProvenance
 {
-  friend class LuaClassConstructor;
-  friend class LuaScripting;          // For setting deleted class instances.
 public:
   // This class is made for compositing inside LuaScripting, hence the pointer.
   LuaProvenance(LuaScripting* scripting);
@@ -131,7 +129,12 @@ public:
   /// Returns true if all of the created items are present.
   bool testLastURItemHasCreatedItems(const std::vector<int>& createdItems)const;
 
-private: // For LuaClassInstanceReg
+  /// Looks at the top of the undo/redo stack, and sets the
+  /// 'alsoRedoChildren' flag to true in the UndoRedoItem.
+  void setLastURItemAlsoRedoChildren();
+
+  // The following two functions are only meant for LuaClassConstructor
+  // and LuaScripting.
 
   /// Adds a deleted instance to the last Undo/Redo item.
   void addDeletedInstanceToLastURItem(int globalID);
@@ -161,7 +164,7 @@ private:
                  std::tr1::shared_ptr<LuaCFunAbstract> undo,
                  std::tr1::shared_ptr<LuaCFunAbstract> redo)
     : function(funName), undoParams(undo), redoParams(redo), childItems()
-    , instCreations(), instDeletions()
+    , instCreations(), instDeletions(), alsoRedoChildren(false)
     {}
 
     /// Function name we operate on at this stack index.
@@ -233,6 +236,11 @@ private:
       instDeletions->push_back(id);
       std::sort(instDeletions->begin(), instDeletions->end());
     }
+
+    /// This flag informs the system that the children of this undo/redo
+    /// item must be explicitly called by the redo mechanism. This is only
+    /// used to group command together.
+    bool alsoRedoChildren;
   };
 
   typedef std::vector<UndoRedoItem> URStackType;
