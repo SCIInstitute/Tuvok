@@ -75,7 +75,7 @@ private:
 
   void obtainID();
 
-  std::tr1::shared_ptr<LuaScripting>      mSS;
+  std::tr1::weak_ptr<LuaScripting>        mSS;
 
   int                                     mGlobalID;
   void*                                   mPtr;

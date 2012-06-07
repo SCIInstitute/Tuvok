@@ -90,6 +90,14 @@ public:
   LuaScripting();
   virtual ~LuaScripting();
 
+  /// It is highly recommended to call this function as your program is about
+  /// to terminate. All it does is clear the provenance history and perform
+  /// a complete Lua garbage collection cycle. This is necessary to get rid
+  /// of any shared_ptr objects that may be in the provenance system.
+  /// If you pass any shared_ptr's that reference LuaScripting, you must call
+  /// this function. Otherwise, you will have memory leaks.
+  void clean();
+
   /// Removes all class definitions and function registrations from the system.
   /// This will clean up any lingering classes that may have lingering
   /// shared pointer references.
@@ -205,10 +213,10 @@ public:
   /// \param desc       Class description.
   /// @{
   template <typename T, typename FunPtr>
-  void registerClass(T* t, const FunPtr fp, std::string& className,
-                     std::string& desc);
+  void registerClass(T* t, FunPtr fp, const std::string& className,
+                     const std::string& desc);
   template <typename FunPtr>
-  void registerClassStatic(const FunPtr fp, std::string& className,
+  void registerClassStatic(FunPtr fp, const std::string& className,
                            const std::string& desc);
   /// @}
 
@@ -337,7 +345,6 @@ public:
   /// This is to avoid debug log output, more than anything else.
   void setExpectedExceptionFlag(bool expected);
 
-
   /// Please do not use this function in production code. It is used for
   /// testing purposes.
   LuaProvenance* getProvenanceSys() const {return mProvenance.get();}
@@ -359,6 +366,13 @@ private:
                           const std::string& name,
                           bool registerUndo,
                           bool registerRedo);
+
+  /// Clears out all function's last exec tables. This is done when the
+  /// provenance system is cleared. This even clears every class function's
+  /// last exec table -- all tables must be cleared in order to get rid of
+  /// dangling shared_ptrs.
+  void clearAllLastExecTables();
+  void clearLastExecFromTable();  ///< Expects recurse table to be on stack top.
 
   /// Pushes the table associated with the LuaClassInstance to the top of the
   /// stack. Returns false if it could not find the class instance table.
@@ -739,8 +753,8 @@ namespace tuvok
 {
 
 template <typename T, typename FunPtr>
-void LuaScripting::registerClass(T* t, const FunPtr fp, std::string& className,
-                                 std::string& desc)
+void LuaScripting::registerClass(T* t, FunPtr fp, const std::string& className,
+                                 const std::string& desc)
 {
   // Register f as the function _new. This function will be called to construct
   // a pointer to the class we want to create. This function is guaranteed
@@ -779,7 +793,7 @@ void LuaScripting::registerClass(T* t, const FunPtr fp, std::string& className,
 }
 
 template <typename FunPtr>
-void LuaScripting::registerClassStatic(const FunPtr fp, std::string& className,
+void LuaScripting::registerClassStatic(FunPtr fp, const std::string& className,
                                        const std::string& desc)
 {
   // Register f as the function _new. This function will be called to construct
@@ -859,6 +873,19 @@ void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
     {
       if (   LSS_compareTypes<std::string, T>()
           || LSS_compareTypes<const char*, T>())
+      {
+        lua_pop(L, 1);
+        return;
+      }
+    }
+
+    if (    LSS_compareToTypeOnStack<float>(L, -1)
+         || LSS_compareToTypeOnStack<double>(L, -1)
+         )
+    {
+      if (   LSS_compareTypes<float, T>()
+          || LSS_compareTypes<double, T>()
+          )
       {
         lua_pop(L, 1);
         return;

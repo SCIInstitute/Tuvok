@@ -422,7 +422,7 @@ public:
     // Explicitly call the shared pointer's destructor.
     std::tr1::shared_ptr<T>* ptr =
         reinterpret_cast<std::tr1::shared_ptr<T>* >(lua_touserdata(L, 1));
-    ptr->~shared_ptr();
+    (*ptr).~shared_ptr();
     return 0;
   }
 

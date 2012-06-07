@@ -56,7 +56,6 @@
 #include "LUAScripting.h"
 #include "LUAProvenance.h"
 #include "LUAMemberRegUnsafe.h"
-#include "LUAClassInstanceReg.h"
 
 using namespace std;
 
@@ -147,6 +146,33 @@ LuaScripting::~LuaScripting()
   removeAllRegistrations();
 
   lua_close(mL);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::clean()
+{
+  exec("provenance.clear()"); // Provenance will perform the full GC.
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::clearAllLastExecTables()
+{
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  for (vector<string>::const_iterator it = mRegisteredGlobals.begin();
+       it != mRegisteredGlobals.end(); ++it)
+  {
+    string global = (*it);
+    lua_getglobal(mL, (*it).c_str());
+    // Don't need to check if the top of the stack is nil. unregisterFunction
+    // removes all global functions from mRegisteredGlobals.
+    clearLastExecFromTable();
+    lua_pop(mL, 1);
+  }
+
+  // Be sure to clear all class functions.
+  getFunctionTable(LuaClassInstance::CLASS_INSTANCE_TABLE);
+  clearLastExecFromTable();
+  lua_pop(mL, 1);
 }
 
 //-----------------------------------------------------------------------------
@@ -551,6 +577,48 @@ void LuaScripting::removeFunctionsFromTable(int parentTable,
       // Recurse into the table.
       lua_checkstack(mL, 4);
       removeFunctionsFromTable(tablePos, nextTableName.c_str());
+    }
+
+    // Pop value off of the stack in preparation for the next iteration.
+    lua_pop(mL, 1);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::clearLastExecFromTable()
+{
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+  // Iterate over the first table on the stack.
+  int tablePos = lua_gettop(mL);
+
+  // Check to see if we are a registered function.
+  if (isRegisteredFunction(-1))
+  {
+    // Only output function info its registered to us.
+    if (isOurRegisteredFunction(-1))
+    {
+      lua_pushnil(mL);
+      lua_setfield(mL, tablePos, TBL_MD_FUN_LAST_EXEC);
+      copyDefaultsTableToLastExec(tablePos);
+    }
+
+    // This was a function, not a table.
+    return;
+  }
+
+  // Push first key.
+  lua_pushnil(mL);
+  while (lua_next(mL, tablePos))
+  {
+    // Check if the value is a table. If so, check to see if it is a function,
+    // otherwise, recurse into the table.
+    int type = lua_type(mL, -1);
+
+    if (type == LUA_TTABLE)
+    {
+      // Recurse into the table.
+      lua_checkstack(mL, 4);
+      clearLastExecFromTable();
     }
 
     // Pop value off of the stack in preparation for the next iteration.
@@ -1380,6 +1448,13 @@ void LuaScripting::copyDefaultsTableToLastExec(int funTableIndex)
 
   // Push a copy of the defaults table onto the stack.
   lua_getfield(mL, funTableIndex, TBL_MD_FUN_PDEFS);
+
+  if (lua_isnil(mL, -1))
+  {
+    lua_pop(mL, 1);
+    return;
+  }
+
   int defTablePos = lua_gettop(mL);
 
   // Do a deep copy of the defaults table.
@@ -2432,7 +2507,6 @@ SUITE(TestLUAScriptingSystem)
     CHECK_THROW(sc->cexec("tpr", 12, "s", 4.3f, "s"),     LuaInvalidType);
     CHECK_THROW(sc->cexec("tpr", "s", false, 4.3f, "s"),  LuaInvalidType);
     CHECK_THROW(sc->cexec("tpr", 5, false, 32, "s"),      LuaInvalidType);
-    CHECK_THROW(sc->cexec("tpr", 5, false, 32.0, "s"),    LuaInvalidType);
     CHECK_THROW(sc->cexec("tpr", 5, false, 32.0f, 3),     LuaInvalidType);
     sc->setExpectedExceptionFlag(false);
   }

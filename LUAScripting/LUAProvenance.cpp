@@ -683,6 +683,12 @@ void LuaProvenance::clearProvenance()
 {
   mUndoRedoStack.clear();
   mStackPointer = 0;
+
+  // Clear out last exec for ALL functions. This will clean up any dangling
+  // shared pointers.
+  mScripting->clearAllLastExecTables();
+  mScripting->exec("collectgarbage()"); // Force a gc cycle to clean up all
+                                        // shared_ptrs.
 }
 
 //-----------------------------------------------------------------------------
