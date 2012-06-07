@@ -1399,6 +1399,8 @@ SUITE(LuaTestClassRegistration)
 
   TEST(MemberFunctionConstructor)
   {
+    TEST_HEADER;
+
     // Tests out using member functions as constructors.
     tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
@@ -1431,6 +1433,8 @@ SUITE(LuaTestClassRegistration)
 
   TEST(PointerRetrievalOfClasses)
   {
+    TEST_HEADER;
+
     tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
     // Register class definitions.
@@ -1461,19 +1465,543 @@ SUITE(LuaTestClassRegistration)
   {
     tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
 
-
-
-
   }
 
 }
 
-SUITE(LuaTestClassRegistration_MultipleInheritence)
+SUITE(LuaTestClassRegistration_MultipleInheritenceFromTop)
 {
-  TEST(TestMultipleInheritence)
+
+  // The classes knowing about A is not realistic, but serves to test our
+  // casting implmentation well.
+  // A more realistic implementation is the from bottom unit test.
+  class A;
+
+  class B
   {
+  public:
+
+    virtual ~B() {};
+
+    void registerBFuncs(LuaClassRegistration<A>& reg);
+
+    void set_b1(int b)  {b1 = b;}
+    int get_b1()        {return b1;}
+
+    virtual string B_className() = 0;
+
+    int b1;
+  };
+
+  class C
+  {
+  public:
+
+    virtual ~C() {};
+
+    void registerCFuncs(LuaClassRegistration<A>& reg);
+
+    void set_c1(int v)  {c1 = v;}
+    int get_c1()        {return c1;}
+
+    virtual string C_className()  {return "C Class";}
+
+    int c1;
+
+  };
+
+  class X
+  {
+  public:
+
+    virtual ~X() {};
+
+    void registerXFuncs(LuaClassRegistration<A>& reg);
+
+    void set_x1(int v)  {x1 = v;}
+    int get_x1()        {return x1;}
+
+    virtual string X_className()  {return "X class";}
+
+    int x1;
+
+  };
+
+  class Y
+  {
+  public:
+
+    virtual ~Y() {};
+
+    void registerYFuncs(LuaClassRegistration<A>& reg);
+
+    void set_y1(int v)  {y1 = v;}
+    int get_y1()        {return y1;}
+
+    virtual string Y_className()  {return "Y class";}
+
+    int y1;
+
+  };
+
+  class Z : public X, public Y
+  {
+  public:
+
+    virtual ~Z() {};
+
+    void registerZFuncs(LuaClassRegistration<A>& reg);
+
+    // We only override X, not Y.
+    virtual string Y_className() {return "Z from Y class";}
+    virtual string X_className() {return "Z from X class";}
+
+    virtual string Z_className() {return "Z class";}
+
+    void set_z1(int v)  {z1 = v;}
+    int get_z1()        {return z1;}
+
+    void set_z2(int v)  {z2 = v;}
+    int get_z2()        {return z2;}
+
+    int z1;
+    int z2;
+
+  };
+
+
+  int a_constructor = 0;
+  int a_destructor = 0;
+  class A : public C, public B, public Z
+  {
+  public:
+
+    A(int a, float b, string c, tr1::shared_ptr<LuaScripting> ss)
+    : d(ss, this)
+    {
+      ++a_constructor;
+      i1 = a;
+      f1 = b;
+      s1 = c;
+
+      registerFunctions();
+    }
+
+    ~A()
+    {
+      ++a_destructor;
+    }
+
+    int     i1;
+    float   f1;
+    string  s1;
+
+    LuaClassRegistration<A> d;
+
+    void set_i1(int i)    {i1 = i;}
+    int get_i1()          {return i1;}
+
+    void set_f1(float f)  {f1 = f;}
+    float get_f1()        {return f1;}
+
+    void set_s1(string s) {s1 = s;}
+    string get_s1()       {return s1;}
+
+    // Class definition. The real meat defining a class.
+    void registerFunctions()
+    {
+      d.function(&A::set_i1, "set_i1", "", true);
+      d.function(&A::get_i1, "get_i1", "", false);
+
+      d.function(&A::set_f1, "set_f1", "", true);
+      d.function(&A::get_f1, "get_f1", "", false);
+
+      d.function(&A::set_s1, "set_s1", "", true);
+      d.function(&A::get_s1, "get_s1", "", false);
+
+      registerBFuncs(d);
+      registerCFuncs(d);
+      registerXFuncs(d);
+      registerYFuncs(d);
+      registerZFuncs(d);
+    }
+
+    // Overriden methods
+    // Override B (mandatory)
+    virtual string B_className() {return "A from B class";}
+    // Do NOT override Z_className
+    // Do NOT override X_className
+    // Override Y
+    virtual string Y_className()  {return "A from Y class";}
+    // Override C
+    virtual string C_className()  {return "A from C class";}
+
+    static A* luaConstruct(int a, float b, string c,
+                           tr1::shared_ptr<LuaScripting> ss)
+    { return new A(a, b, c, ss); }
+  };
+
+  void B::registerBFuncs(LuaClassRegistration<A>& reg)
+  {
+    reg.function(&B::set_b1, "set_b1", "", true);
+    reg.function(&B::get_b1, "get_b1", "", false);
+    reg.function(&B::B_className, "B_className", "", false);
+  }
+
+  void C::registerCFuncs(LuaClassRegistration<A>& reg)
+  {
+    reg.function(&C::set_c1, "set_c1", "", true);
+    reg.function(&C::get_c1, "get_c1", "", false);
+    reg.function(&C::C_className, "C_className", "", false);
+  }
+
+  void X::registerXFuncs(LuaClassRegistration<A>& reg)
+  {
+    reg.function(&X::set_x1, "set_x1", "", true);
+    reg.function(&X::get_x1, "get_x1", "", false);
+    reg.function(&X::X_className, "X_className", "", false);
+  }
+
+  void Y::registerYFuncs(LuaClassRegistration<A>& reg)
+  {
+    reg.function(&Y::set_y1, "set_y1", "", true);
+    reg.function(&Y::get_y1, "get_y1", "", false);
+    reg.function(&Y::Y_className, "Y_className", "", false);
+  }
+
+  void Z::registerZFuncs(LuaClassRegistration<A>& reg)
+  {
+    reg.function(&Z::set_z1, "set_z1", "", true);
+    reg.function(&Z::get_z1, "get_z1", "", false);
+    reg.function(&Z::set_z2, "set_z2", "", true);
+    reg.function(&Z::get_z2, "get_z2", "", false);
+    reg.function(&Z::Z_className, "Z_className", "", false);
+  }
+
+  TEST(TestMultipleInheritence_FromTop)
+  {
+    TEST_HEADER;
+
     // Help should be given for classes, but not for any of their instances
     // in the _sys_ table.
+
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+
+    // Register class definitions.
+    sc->registerClassStatic(&A::luaConstruct, "factory.a1", "");
+
+    // Test the classes.
+    LuaClassInstance a_1 = sc->cexecRet<LuaClassInstance>(
+        "factory.a1.new", 2, 2.63, "str", sc);
+
+    // Testing only the first instance of a1.
+    std::string nm = a_1.fqName();
+    A* a = a_1.getRawPointer<A>(sc);
+
+    // Test out function registrations and check the results.
+    sc->cexec(nm + ".set_x1", 11);
+    CHECK_EQUAL(11, sc->cexecRet<int>(nm + ".get_x1"));
+
+    sc->cexec(nm + ".set_y1", 21);
+    CHECK_EQUAL(21, sc->cexecRet<int>(nm + ".get_y1"));
+
+    sc->cexec(nm + ".set_z1", 101);
+    CHECK_EQUAL(101, sc->cexecRet<int>(nm + ".get_z1"));
+
+    sc->cexec(nm + ".set_z2", 102);
+    CHECK_EQUAL(102, sc->cexecRet<int>(nm + ".get_z2"));
+
+    sc->cexec(nm + ".set_b1", 500);
+    CHECK_EQUAL(500, sc->cexecRet<int>(nm + ".get_b1"));
+
+    sc->cexec(nm + ".set_c1", 1000);
+    CHECK_EQUAL(1000, sc->cexecRet<int>(nm + ".get_c1"));
+
+    sc->exec(nm + ".set_i1(15)");
+    sc->exec(nm + ".set_f1(1.5)");
+    sc->cexec(nm + ".set_s1", "String 1");
+
+    CHECK_EQUAL(15, a->i1);
+    CHECK_CLOSE(1.5f, a->f1, 0.001f);
+    CHECK_EQUAL("String 1", a->s1.c_str());
+
+    // Test overriden methods.
+    CHECK_EQUAL(sc->cexecRet<string>(nm + ".B_className").c_str(),
+                "A from B class");
+    CHECK_EQUAL(sc->cexecRet<string>(nm + ".C_className").c_str(),
+                "A from C class");
+    CHECK_EQUAL(sc->cexecRet<string>(nm + ".X_className").c_str(),
+                "Z from X class");
+    CHECK_EQUAL(sc->cexecRet<string>(nm + ".Y_className").c_str(),
+                "A from Y class");
+    CHECK_EQUAL(sc->cexecRet<string>(nm + ".Z_className").c_str(),
+                "Z class");
+
+    cout << "--";
+    cout << "--" << endl;
+
+    sc->clean();
+  }
+}
+
+SUITE(LuaTestClassRegistration_MultipleInheritenceFromBottom)
+{
+  // The classes knowing about A is not realistic, but serves to test our
+  // casting implmentation well.
+  // A more realistic implementation is the from bottom unit test.
+  class A;
+
+  class B
+  {
+  public:
+
+    virtual ~B() {};
+
+    void set_b1(int b)  {b1 = b;}
+    int get_b1()        {return b1;}
+
+    virtual string B_className() = 0;
+
+    int b1;
+  };
+
+  class C
+  {
+  public:
+
+    virtual ~C() {};
+
+    void set_c1(int v)  {c1 = v;}
+    int get_c1()        {return c1;}
+
+    virtual string C_className()  {return "C Class";}
+
+    int c1;
+
+  };
+
+
+  class X
+  {
+  public:
+
+    X(tr1::shared_ptr<LuaScripting> ss)
+    : d(ss, this)
+    {registerXFuncs();}
+    virtual ~X() {};
+
+    LuaClassRegistration<X> d;
+
+    void registerXFuncs()
+    {
+      d.function(&X::set_x1, "set_x1", "", true);
+      d.function(&X::get_x1, "get_x1", "", false);
+      d.function(&X::X_className, "X_className", "", false);
+    }
+
+    void set_x1(int v)  {x1 = v;}
+    int get_x1()        {return x1;}
+
+    virtual string X_className()  {return "X class";}
+
+    int x1;
+
+  };
+
+  class Y
+  {
+  public:
+
+    virtual ~Y() {};
+
+    void set_y1(int v)  {y1 = v;}
+    int get_y1()        {return y1;}
+
+    virtual string Y_className()  {return "Y class";}
+
+    int y1;
+
+  };
+
+  class Z : public X, public Y
+  {
+  public:
+
+    Z(tr1::shared_ptr<LuaScripting> ss)
+    : X(ss)
+    {registerZFuncs();}
+
+    virtual ~Z() {};
+
+    void registerZFuncs()
+    {
+      d.function(&Z::set_z1, "set_z1", "", true);
+      d.function(&Z::get_z1, "get_z1", "", false);
+      d.function(&Z::set_z2, "set_z2", "", true);
+      d.function(&Z::get_z2, "get_z2", "", false);
+      d.function(&Z::Z_className, "Z_className", "", false);
+    }
+
+    // We only override X, not Y.
+    virtual string Y_className() {return "Z from Y class";}
+    virtual string X_className() {return "Z from X class";}
+
+    virtual string Z_className() {return "Z class";}
+
+    void set_z1(int v)  {z1 = v;}
+    int get_z1()        {return z1;}
+
+    void set_z2(int v)  {z2 = v;}
+    int get_z2()        {return z2;}
+
+    int z1;
+    int z2;
+
+  };
+
+
+  int a_constructor = 0;
+  int a_destructor = 0;
+  class A : public C, public B, public Z
+  {
+  public:
+
+    A(int a, float b, string c, tr1::shared_ptr<LuaScripting> ss)
+    : Z(ss)
+    {
+      ++a_constructor;
+      i1 = a;
+      f1 = b;
+      s1 = c;
+
+      registerFunctions();
+    }
+
+    ~A()
+    {
+      ++a_destructor;
+    }
+
+    int     i1;
+    float   f1;
+    string  s1;
+
+    void set_i1(int i)    {i1 = i;}
+    int get_i1()          {return i1;}
+
+    void set_f1(float f)  {f1 = f;}
+    float get_f1()        {return f1;}
+
+    void set_s1(string s) {s1 = s;}
+    string get_s1()       {return s1;}
+
+    // Class definition. The real meat defining a class.
+    void registerFunctions()
+    {
+      d.function(&A::set_i1, "set_i1", "", true);
+      d.function(&A::get_i1, "get_i1", "", false);
+
+      d.function(&A::set_f1, "set_f1", "", true);
+      d.function(&A::get_f1, "get_f1", "", false);
+
+      d.function(&A::set_s1, "set_s1", "", true);
+      d.function(&A::get_s1, "get_s1", "", false);
+
+      // There is NO dynamic cast from X to B, C, or Y. Therefore, we cannot
+      // register ANY of their functions.
+      // But we can register these functions as A.
+      d.function(&A::B_className, "B_className", "", false);
+      d.function(&A::C_className, "C_className", "", false);
+      d.function(&A::Y_className, "Y_className", "", false);
+
+      d.function(&A::set_b1, "set_b1", "", true);
+      d.function(&A::get_b1, "get_b1", "", false);
+
+      d.function(&A::set_c1, "set_c1", "", true);
+      d.function(&A::get_c1, "get_c1", "", false);
+
+      d.function(&A::set_y1, "set_y1", "", true);
+      d.function(&A::get_y1, "get_y1", "", false);
+    }
+
+    // Overriden methods
+    // Override B (mandatory)
+    virtual string B_className() {return "A from B class";}
+    // Do NOT override Z_className
+    // Do NOT override X_className
+    // Override Y
+    virtual string Y_className()  {return "A from Y class";}
+    // Override C
+    virtual string C_className()  {return "A from C class";}
+
+    static A* luaConstruct(int a, float b, string c,
+                           tr1::shared_ptr<LuaScripting> ss)
+    { return new A(a, b, c, ss); }
+  };
+
+  TEST(TestMultipleInheritence_FromBottom)
+  {
+    TEST_HEADER;
+
+    // Help should be given for classes, but not for any of their instances
+    // in the _sys_ table.
+
+    tr1::shared_ptr<LuaScripting> sc(new LuaScripting());
+
+    // Register class definitions.
+    sc->registerClassStatic(&A::luaConstruct, "factory.a1", "");
+
+    // Test the classes.
+    LuaClassInstance a_1 = sc->cexecRet<LuaClassInstance>(
+        "factory.a1.new", 2, 2.63, "str", sc);
+
+    // Testing only the first instance of a1.
+    std::string nm = a_1.fqName();
+    A* a = a_1.getRawPointer<A>(sc);
+
+    // Test out function registrations and check the results.
+    sc->cexec(nm + ".set_x1", 11);
+    CHECK_EQUAL(11, sc->cexecRet<int>(nm + ".get_x1"));
+
+    sc->cexec(nm + ".set_y1", 21);
+    CHECK_EQUAL(21, sc->cexecRet<int>(nm + ".get_y1"));
+
+    sc->cexec(nm + ".set_z1", 101);
+    CHECK_EQUAL(101, sc->cexecRet<int>(nm + ".get_z1"));
+
+    sc->cexec(nm + ".set_z2", 102);
+    CHECK_EQUAL(102, sc->cexecRet<int>(nm + ".get_z2"));
+
+    sc->cexec(nm + ".set_b1", 500);
+    CHECK_EQUAL(500, sc->cexecRet<int>(nm + ".get_b1"));
+
+    sc->cexec(nm + ".set_c1", 1000);
+    CHECK_EQUAL(1000, sc->cexecRet<int>(nm + ".get_c1"));
+
+    sc->exec(nm + ".set_i1(15)");
+    sc->exec(nm + ".set_f1(1.5)");
+    sc->cexec(nm + ".set_s1", "String 1");
+
+    CHECK_EQUAL(15, a->i1);
+    CHECK_CLOSE(1.5f, a->f1, 0.001f);
+    CHECK_EQUAL("String 1", a->s1.c_str());
+
+    // Test overriden methods.
+    CHECK_EQUAL(sc->cexecRet<string>(nm + ".B_className").c_str(),
+                "A from B class");
+    CHECK_EQUAL(sc->cexecRet<string>(nm + ".C_className").c_str(),
+                "A from C class");
+    CHECK_EQUAL(sc->cexecRet<string>(nm + ".X_className").c_str(),
+                "Z from X class");
+    CHECK_EQUAL(sc->cexecRet<string>(nm + ".Y_className").c_str(),
+                "A from Y class");
+    CHECK_EQUAL(sc->cexecRet<string>(nm + ".Z_className").c_str(),
+                "Z class");
+
+    cout << "--";
+    cout << "--" << endl;
+
+    sc->clean();
   }
 }
 

@@ -235,9 +235,9 @@ private:
       int mt = lua_gettop(L);
       int instTable = mt - 1;
 
-      int createIDStackTop = ss->classGetCreateIDSize();
-      int createPtrStackTop = ss->classGetCreatePtrSize();
-      int createValidateIDStackTop = ss->classGetValidateCreateIDSize();
+      size_t createIDStackTop = ss->classGetCreateIDSize();
+      size_t createPtrStackTop = ss->classGetCreatePtrSize();
+      size_t createValidateIDStackTop = ss->classGetValidateCreateIDSize();
       ss->classPushCreateID(inst.getGlobalInstID());
       ss->beginCommand();
       try
@@ -337,9 +337,9 @@ private:
       int mt = lua_gettop(L);
       int instTable = mt - 1;
 
-      int createIDStackTop = ss->classGetCreateIDSize();
-      int createPtrStackTop = ss->classGetCreatePtrSize();
-      int createValidateIDStackTop = ss->classGetValidateCreateIDSize();
+      size_t createIDStackTop = ss->classGetCreateIDSize();
+      size_t createPtrStackTop = ss->classGetCreatePtrSize();
+      size_t createValidateIDStackTop = ss->classGetValidateCreateIDSize();
       ss->classPushCreateID(inst.getGlobalInstID());
       ss->beginCommand();
       try

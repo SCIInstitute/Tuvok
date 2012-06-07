@@ -256,6 +256,8 @@ public:
 
 
   /// Retrieves the LuaClassInstance given the object pointer.
+  /// This function is deperecated. Please don't use it. It is unreliable when
+  /// multiple inheritence is used.
   LuaClassInstance getLuaClassInstance(void* p);
 
   /// Executes a command.
