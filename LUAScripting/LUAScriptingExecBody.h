@@ -648,7 +648,6 @@
   template <typename P1>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, bool call)
   {
-    if (mSetAttributeIgnore) return; // Bail if we are ignoring attribute settings.
     LuaStackRAII _a = LuaStackRAII(mL, 0);
     getFunctionTable(name);
     int ftable = lua_gettop(mL);
@@ -673,7 +672,6 @@
   template <typename P1, typename P2>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, bool call)
   {
-    if (mSetAttributeIgnore) return; // Bail if we are ignoring attribute settings.
     LuaStackRAII _a = LuaStackRAII(mL, 0);
     getFunctionTable(name);
     int ftable = lua_gettop(mL);
@@ -701,7 +699,6 @@
   template <typename P1, typename P2, typename P3>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, bool call)
   {
-    if (mSetAttributeIgnore) return; // Bail if we are ignoring attribute settings.
     LuaStackRAII _a = LuaStackRAII(mL, 0);
     getFunctionTable(name);
     int ftable = lua_gettop(mL);
@@ -732,7 +729,6 @@
   template <typename P1, typename P2, typename P3, typename P4>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, bool call)
   {
-    if (mSetAttributeIgnore) return; // Bail if we are ignoring attribute settings.
     LuaStackRAII _a = LuaStackRAII(mL, 0);
     getFunctionTable(name);
     int ftable = lua_gettop(mL);
@@ -766,7 +762,6 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, bool call)
   {
-    if (mSetAttributeIgnore) return; // Bail if we are ignoring attribute settings.
     LuaStackRAII _a = LuaStackRAII(mL, 0);
     getFunctionTable(name);
     int ftable = lua_gettop(mL);
@@ -803,7 +798,6 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, bool call)
   {
-    if (mSetAttributeIgnore) return; // Bail if we are ignoring attribute settings.
     LuaStackRAII _a = LuaStackRAII(mL, 0);
     getFunctionTable(name);
     int ftable = lua_gettop(mL);
@@ -843,7 +837,6 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, bool call)
   {
-    if (mSetAttributeIgnore) return; // Bail if we are ignoring attribute settings.
     LuaStackRAII _a = LuaStackRAII(mL, 0);
     getFunctionTable(name);
     int ftable = lua_gettop(mL);
@@ -886,7 +879,6 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, bool call)
   {
-    if (mSetAttributeIgnore) return; // Bail if we are ignoring attribute settings.
     LuaStackRAII _a = LuaStackRAII(mL, 0);
     getFunctionTable(name);
     int ftable = lua_gettop(mL);
@@ -932,7 +924,6 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, bool call)
   {
-    if (mSetAttributeIgnore) return; // Bail if we are ignoring attribute settings.
     LuaStackRAII _a = LuaStackRAII(mL, 0);
     getFunctionTable(name);
     int ftable = lua_gettop(mL);
@@ -981,7 +972,6 @@
   template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10>
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, P10 p10, bool call)
   {
-    if (mSetAttributeIgnore) return; // Bail if we are ignoring attribute settings.
     LuaStackRAII _a = LuaStackRAII(mL, 0);
     getFunctionTable(name);
     int ftable = lua_gettop(mL);

@@ -90,6 +90,10 @@ const char* LuaScripting::TBL_MD_UNDO_FUNC      = "undoHook";
 const char* LuaScripting::TBL_MD_REDO_FUNC      = "redoHook";
 const char* LuaScripting::TBL_MD_NULL_UNDO      = "nullUndo";
 const char* LuaScripting::TBL_MD_NULL_REDO      = "nullRedo";
+const char* LuaScripting::TBL_MD_PARAM_DESC     = "tblParamDesc";
+
+const char* LuaScripting::PARAM_DESC_NAME_SUFFIX = "n";
+const char* LuaScripting::PARAM_DESC_INFO_SUFFIX = "i";
 
 // To avoid naming conflicts with other libraries, we prefix all of our
 // registry values with tuvok_
@@ -254,6 +258,12 @@ void LuaScripting::registerScriptFunctions()
                                false);
   setProvenanceExempt("help");
 
+  mMemberReg->registerFunction(this, &LuaScripting::infoHelp,
+                               "info",
+                               "Prints detailed help regarding a function.",
+                               false);
+  setProvenanceExempt("info");
+
   mMemberReg->registerFunction(this, &LuaScripting::deleteLuaClassInstance,
                                "deleteClass",
                                "Deletes a Lua class instance.",
@@ -336,11 +346,8 @@ void LuaScripting::printFunctions()
   {
     FunctionDesc d = *it;
     ostringstream os;
-    os << "'" << d.funcFQName << "' " << d.funcDesc;
-    ostringstream osUsage;
-    osUsage << "    Usage: '"<< d.funcFQName << d.paramSig << "'";
+    os << "'" << d.funcFQName << "' -- " << d.funcDesc;
     cexec("log.info", os.str());
-    cexec("log.info", osUsage.str());
   }
 }
 
@@ -357,6 +364,280 @@ void LuaScripting::printHelp()
   cexec("log.info", "");
 
   printFunctions();
+
+  cexec("log.info", "");
+  cexec("log.info", "Use the 'info' function to get additional information on"
+      "classes and functions. E.G. info(print)");
+}
+
+bool IsParenthesesOrSpacePred(char c)
+{
+    switch(c)
+    {
+    case '(':
+    case ')':
+    case ' ':
+        return true;
+    default:
+        return false;
+    }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::printClassHelp(int tableIndex)
+{
+  vector<LuaScripting::FunctionDesc> funcDescs;
+
+  lua_pushvalue(mL, tableIndex);
+  getTableFuncDefs(funcDescs);
+  lua_pop(mL, 1);
+
+  lua_getmetatable(mL, tableIndex);
+  lua_getfield(mL, -1, LuaClassInstance::MD_FACTORY_NAME);
+  string factoryName = lua_tostring(mL, -1);
+  lua_pop(mL, 2); // Pop metatable and factory name off the stack.
+
+  string header = "Function listing follows for class created from '";
+  header += factoryName;
+  header += "'";
+  cexec("log.info", "");
+  cexec("log.info", header);
+  cexec("log.info", "");
+
+  for (vector<FunctionDesc>::iterator it = funcDescs.begin();
+      it != funcDescs.end(); ++it)
+  {
+    FunctionDesc d = *it;
+    ostringstream os;
+    os << "'" << getUnqualifiedName(d.funcFQName) << "' -- " << d.funcDesc;
+    cexec("log.info", os.str());
+  }
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::infoHelp(LuaTable table)
+{
+  LuaStackRAII _a(mL, 0);
+
+  int funTable = table.getStackLocation();
+
+  if (isLuaClassInstance(funTable))
+  {
+    printClassHelp(funTable);
+    return;
+  }
+
+  if (isRegisteredFunction(funTable) == false)
+  {
+    cexec("log.warn", "Value given is not recognized as a function.");
+    return;
+  }
+
+  // Obtain basic descriptions from the table.
+  FunctionDesc desc = getFunctionDescFromTable(lua_gettop(mL));
+
+  // Obtain extra information about the function's parameters.
+  cexec("log.info", "");
+  cexec("log.info", desc.funcFQName);
+
+  string str = "  ";
+  str += desc.funcDesc;
+  cexec("log.info", str);
+
+  ostringstream osUsage;
+  osUsage << "  Usage: '"<< desc.funcFQName << desc.paramSig << "'";
+  cexec("log.info", osUsage.str());
+
+  // Parse the function's parameters
+  string commaDelimitedParams = desc.paramSig;
+  commaDelimitedParams.erase(remove_if(
+      commaDelimitedParams.begin(),
+      commaDelimitedParams.end(),
+      &IsParenthesesOrSpacePred), commaDelimitedParams.end());
+
+  // Tokenize the fully qualified name.
+  const string delims(",");
+  vector<string> tokens;
+
+  string::size_type beg = 0;
+  string::size_type end = 0;
+
+  while (end != string::npos)
+  {
+    end = commaDelimitedParams.find_first_of(delims, beg);
+
+    string tmpStr;
+    if (end != string::npos)
+    {
+      tmpStr = commaDelimitedParams.substr(beg, end - beg);
+      if (tmpStr.size() > 0)
+        tokens.push_back(tmpStr);
+      beg = end + 1;
+      if (beg == commaDelimitedParams.size())
+        throw LuaFunBindError("Invalid function name. No function "
+                              "name after trailing period.");
+    }
+    else
+    {
+      tmpStr = commaDelimitedParams.substr(beg, string::npos);
+      if (tmpStr.size() > 0)
+        tokens.push_back(tmpStr);
+    }
+  }
+
+  // Could be nil.
+  lua_getfield(mL, funTable, TBL_MD_PARAM_DESC);
+  int descTable = lua_gettop(mL);
+
+  if (tokens.size() != 0)
+  {
+    cexec("log.info", "");
+    cexec("log.info", "  Parameters:");
+    int accum = 1;
+
+    for (vector<string>::iterator it = tokens.begin(); it != tokens.end(); ++it)
+    {
+      // Check to see if the parameter has an additional description.
+      string paramInfo = "";
+      string paramName = "";
+
+      if (!lua_isnil(mL, descTable))
+      {
+        ostringstream pName;
+        ostringstream pDesc;
+        pName << accum << PARAM_DESC_NAME_SUFFIX;
+        pName << accum << PARAM_DESC_INFO_SUFFIX;
+
+        lua_getfield(mL, descTable, pName.str().c_str());
+        if (!lua_isnil(mL, -1))
+          paramName = lua_tostring(mL, -1);
+        lua_pop(mL, 1);
+        lua_getfield(mL, descTable, pName.str().c_str());
+        if (!lua_isnil(mL, -1))
+          paramInfo = lua_tostring(mL, -1);
+        lua_pop(mL, 1);
+      }
+
+      ostringstream infoStream;
+      infoStream << "   " << *it;
+
+      if (paramName.size() > 0)
+      {
+        infoStream << " " << paramName;
+      }
+
+      if (paramInfo.size() > 0)
+      {
+        infoStream << " -- " << paramInfo;
+      }
+
+      cexec("log.info", infoStream.str());
+      ++accum;
+    }
+
+  }
+
+  // Add return value information (stored at index 0 in the parameter table).
+  string sig = desc.funcSig;
+  size_t found = sig.find_first_of(" ");
+
+  // Extract first keyword
+  string retType = sig.substr(0, found);  // found is the # of characters
+  ostringstream retOut;
+
+  if (retType.compare("void") != 0)
+  {
+    cexec("log.info", "");
+    cexec("log.info", "  Return Value:");
+    retOut << "   " << retType;
+
+    string paramInfo = "";
+    string paramName = "";
+
+    if (!lua_isnil(mL, descTable))
+    {
+      ostringstream pName;
+      ostringstream pDesc;
+      pName << "0" << PARAM_DESC_NAME_SUFFIX;
+      pDesc << "0" << PARAM_DESC_INFO_SUFFIX;
+
+      lua_getfield(mL, descTable, pName.str().c_str());
+      if (!lua_isnil(mL, -1))
+        paramName = lua_tostring(mL, -1);
+      lua_pop(mL, 1);
+      lua_getfield(mL, descTable, pDesc.str().c_str());
+      if (!lua_isnil(mL, -1))
+        paramInfo = lua_tostring(mL, -1);
+      lua_pop(mL, 1);
+    }
+
+    if (paramName.size() > 0)
+    {
+      retOut << " " << paramName;
+    }
+
+    if (paramInfo.size() > 0)
+    {
+      retOut << " -- " << paramInfo;
+    }
+
+    cexec("log.info", retOut.str());
+  }
+
+
+  // Pop the description table off the stack
+  lua_pop(mL, 1);
+
+  // Pop the function table off the stack
+  lua_pop(mL, 1);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::addParamInfo(const std::string& fqname, int paramID,
+                                const std::string& name,
+                                const std::string& desc)
+{
+  LuaStackRAII _a(mL, 0);
+
+  if (getFunctionTable(fqname) == false)
+  {
+    cexec("log.warn", "Unable to find function: " + fqname);
+    return;
+  }
+  int funTable = lua_gettop(mL);
+
+  ostringstream nameKey;
+  ostringstream infoKey;
+
+  nameKey << paramID << PARAM_DESC_NAME_SUFFIX;
+  infoKey << paramID << PARAM_DESC_INFO_SUFFIX;
+
+  lua_getfield(mL, funTable, TBL_MD_PARAM_DESC);
+  if (lua_isnil(mL, -1))
+  {
+    // Create the table since it doesn't exist.
+    lua_pop(mL, 1);
+    lua_newtable(mL);
+    lua_pushvalue(mL, -1);
+    lua_setfield(mL, funTable, TBL_MD_PARAM_DESC);
+  }
+  int descTable = lua_gettop(mL);
+
+  lua_pushstring(mL, name.c_str());
+  lua_setfield(mL, descTable, nameKey.str().c_str());
+
+  lua_pushstring(mL, desc.c_str());
+  lua_setfield(mL, descTable, infoKey.str().c_str());
+
+  // Pop the function table and the description table
+  lua_pop(mL, 2);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::addReturnInfo(const std::string& fqname,
+                                 const std::string& desc)
+{
+  addParamInfo(fqname, 0, "", desc);
 }
 
 //-----------------------------------------------------------------------------
@@ -665,25 +946,7 @@ void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
     if (isOurRegisteredFunction(-1))
     {
       // The name of the function is the 'key'.
-      FunctionDesc desc;
-
-      lua_getfield(mL, -1, TBL_MD_QNAME);
-      desc.funcName = getUnqualifiedName(string(lua_tostring(mL, -1)));
-      desc.funcFQName = string(lua_tostring(mL, -1));
-      lua_pop(mL, 1);
-
-      lua_getfield(mL, -1, TBL_MD_DESC);
-      desc.funcDesc = lua_tostring(mL, -1);
-      lua_pop(mL, 1);
-
-      lua_getfield(mL, -1, TBL_MD_SIG_NAME);
-      desc.funcSig = string(lua_tostring(mL, -1));
-      lua_pop(mL, 1);
-
-      lua_getfield(mL, -1, TBL_MD_SIG_NO_RET);
-      desc.paramSig = string(lua_tostring(mL, -1));
-      lua_pop(mL, 1);
-
+      FunctionDesc desc = getFunctionDescFromTable(lua_gettop(mL));
       descs.push_back(desc);
     }
 
@@ -709,6 +972,49 @@ void LuaScripting::getTableFuncDefs(vector<LuaScripting::FunctionDesc>& descs)
     // Pop value off of the stack in preparation for the next iteration.
     lua_pop(mL, 1);
   }
+
+  // Check the '__index' metamethod if a metatable exists.
+  lua_getmetatable(mL, tablePos);
+  if (lua_isnil(mL, -1) == false)
+  {
+    lua_getfield(mL, -1, "__index");
+    if (lua_isnil(mL, -1) == false)
+    {
+      // Recurse into the table.
+      lua_checkstack(mL, 4);
+      getTableFuncDefs(descs);
+    }
+    lua_pop(mL, 1);
+  }
+  lua_pop(mL, 1);
+}
+
+//-----------------------------------------------------------------------------
+LuaScripting::FunctionDesc
+LuaScripting::getFunctionDescFromTable(int table) const
+{
+  LuaStackRAII _a(mL, 0);
+
+  FunctionDesc desc;
+
+  lua_getfield(mL, table, TBL_MD_QNAME);
+  desc.funcName = getUnqualifiedName(string(lua_tostring(mL, -1)));
+  desc.funcFQName = string(lua_tostring(mL, -1));
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, table, TBL_MD_DESC);
+  desc.funcDesc = lua_tostring(mL, -1);
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, table, TBL_MD_SIG_NAME);
+  desc.funcSig = string(lua_tostring(mL, -1));
+  lua_pop(mL, 1);
+
+  lua_getfield(mL, table, TBL_MD_SIG_NO_RET);
+  desc.paramSig = string(lua_tostring(mL, -1));
+  lua_pop(mL, 1);
+
+  return desc;
 }
 
 //-----------------------------------------------------------------------------
@@ -1590,39 +1896,6 @@ void LuaScripting::endCommand()
   mProvenance->endCommand();
 }
 
-////----------------------------------------------------------------------------
-//void LuaScripting::addLuaClassDef(ClassDefFun f, const std::string fqName)
-//{
-//  LuaStackRAII _a(mL, 0);
-//
-//  // Build constructor into the Lua class table (at fqName).
-//  // (Setup appropriate LuaClassInstanceReg to grab constructor).
-//  LuaClassInstanceReg reg(this, fqName);
-//
-//  setAttributeIgnore(true);
-//  // Call class definition function.
-//  // This class will construct an appropriate class instance table using the
-//  // constructor given in f.
-//  f(reg);
-//  setAttributeIgnore(false);
-//
-//  // Populate the 'new' function's table with the class definition function,
-//  // and the full factory name.
-//  ostringstream retNewFun;
-//  retNewFun << "return " << fqName << ".new";
-//  luaL_dostring(mL, retNewFun.str().c_str());
-//
-//  ClassDefFun* cls = new ClassDefFun(f);
-//  lua_pushlightuserdata(mL, reinterpret_cast<void*>(cls));
-//  lua_setfield(mL, -2, LuaClassInstanceReg::CONS_MD_CLASS_DEFINITION);
-//
-//  lua_pushstring(mL, fqName.c_str());
-//  lua_setfield(mL, -2, LuaClassInstanceReg::CONS_MD_FACTORY_NAME);
-//
-//  // Pop the new function table.
-//  lua_pop(mL, 1);
-//}
-
 //-----------------------------------------------------------------------------
 int LuaScripting::classPopCreateID()
 {
@@ -1820,6 +2093,29 @@ void LuaScripting::setNullRedoFun(const std::string& name)
   lua_setfield(mL, -2, TBL_MD_NULL_REDO);
 
   lua_pop(mL, 1);
+}
+
+//-----------------------------------------------------------------------------
+bool LuaScripting::isLuaClassInstance(int tableIndex)
+{
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
+  lua_getmetatable(mL, tableIndex);
+  if (lua_isnil(mL, -1))
+  {
+    lua_pop(mL, 1); // Pop nil off the stack.
+    return false;
+  }
+
+  lua_getfield(mL, -1, LuaClassInstance::MD_GLOBAL_INSTANCE_ID);
+  if (lua_isnil(mL, -1))
+  {
+    lua_pop(mL, 2);
+    return false;
+  }
+
+  lua_pop(mL, 2);
+  return true;
 }
 
 //==============================================================================

@@ -530,7 +530,6 @@ class AbstrRenderer: public Scriptable {
     /// @returns if the data we're rendering is RGBA or not.
     virtual bool RGBAData() const;
 
-
   protected:
     MasterController*   m_pMasterController;
     std::tr1::shared_ptr<Context> m_pContext;
@@ -668,6 +667,8 @@ class AbstrRenderer: public Scriptable {
     // light direction (for both)
     FLOATVECTOR3        m_vLightDir;
 
+    LuaClassRegistration m_pClassReg;
+
     virtual void        ScheduleRecompose(RenderRegion *renderRegion=NULL);
     void                ComputeMinLODForCurrentView();
     void                ComputeMaxLODForCurrentView();
@@ -702,7 +703,9 @@ class AbstrRenderer: public Scriptable {
     float               m_fIsovalue;
     float               m_fCVIsovalue;
 
-    LuaClassRegistration  m_pClassReg;
+    /// Registers base class Lua functions.
+    void RegisterAbsLuaFunctions();
+
 };
 
 }; //namespace tuvok

@@ -79,6 +79,35 @@ void LuaClassRegistration::obtainID()
   }
 }
 
+void LuaClassRegistration::inherit(LuaClassInstance them)
+{
+  std::tr1::shared_ptr<LuaScripting> ss(mSS);
+  lua_State* L = ss->getLUAState();
+
+  LuaStackRAII _a(L, 0);
+
+  // Generate our own LuaClassInstance.
+  LuaClassInstance us(mGlobalID);
+
+  // Obtain the metatable for 'us'.
+  ss->getFunctionTable(us.fqName());
+  int ourTable = lua_gettop(L);
+  ss->getFunctionTable(them.fqName());
+  int theirTable = lua_gettop(L);
+
+  lua_getmetatable(L, ourTable);
+  if (lua_isnil(L, -1))
+    throw LuaError("Unable to find metatable for our class!");
+
+  // Set the index metamethod.
+  lua_pushvalue(L, theirTable);
+  lua_setfield(L, -2, "__index");
+
+  lua_pop(L, 1);  // pop off the metatable.
+
+  lua_pop(L, 2);
+}
+
 //==============================================================================
 //
 // UNIT TESTING

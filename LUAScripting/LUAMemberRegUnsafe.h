@@ -65,9 +65,10 @@ public:
   /// See LuaScripting::registerFunction for an in depth description of params.
   /// The only difference is the parameter C, which is the context class for the
   /// member function pointer.
+  /// \return The name parameter.
   template <typename T, typename FunPtr>
-  void registerFunction(T* C, FunPtr f, const std::string& name,
-                        const std::string& desc, bool undoRedo);
+  std::string registerFunction(T* C, FunPtr f, const std::string& name,
+                               const std::string& desc, bool undoRedo);
 
   /// See LuaScripting::strictHook.
   template <typename T, typename FunPtr>
@@ -246,10 +247,10 @@ private:
 };
 
 template <typename T, typename FunPtr>
-void LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
-                                          const std::string& name,
-                                          const std::string& desc,
-                                          bool undoRedo)
+std::string LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
+                                                 const std::string& name,
+                                                 const std::string& desc,
+                                                 bool undoRedo)
 {
   LuaScripting* ss  = mScriptSystem;
   lua_State*    L   = ss->getLUAState();
@@ -332,6 +333,8 @@ void LuaMemberRegUnsafe::registerFunction(T* C, FunPtr f,
   mRegisteredFunctions.push_back(name);
 
   if (undoRedo == false)  ss->setUndoRedoStackExempt(name);
+
+  return name;
 }
 
 template <typename T, typename FunPtr>

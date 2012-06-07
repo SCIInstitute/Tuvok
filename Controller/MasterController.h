@@ -208,7 +208,7 @@ private:
 
   /// Creates a new volume renderer.
   /// Used as a constructor function for Lua classes.
-  AbstrRenderer* RequestNewVolumeRenderer(int eRendererType,
+  AbstrRenderer* RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
                                           bool bUseOnlyPowerOfTwo,
                                           bool bDownSampleTo8Bits,
                                           bool bDisableBorder,

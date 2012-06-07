@@ -124,6 +124,8 @@ public:
   ///                   You will not want undo/redo on functions that do not
   ///                   modify state (such as getters).
   ///
+  /// \return The name parameter. You can use this as an id.
+  ///
   /// NOTES: The system is re-entrant, so you may call lua from within
   /// registered functions, or even call other registered functions.
   ///
@@ -131,10 +133,10 @@ public:
   /// Use the LUAMemberReg mediator class. It will clean up for you.
   /// functions.
   template <typename FunPtr>
-  void registerFunction(FunPtr f,
-                        const std::string& name,
-                        const std::string& desc,
-                        bool undoRedo);
+  std::string registerFunction(FunPtr f,
+                               const std::string& name,
+                               const std::string& desc,
+                               bool undoRedo);
 
   /// Hooks a fully qualified function name with the given function.
   /// All hooks are called directly after the bound Lua function is called,
@@ -290,6 +292,23 @@ public:
   TUVOK_LUA_SETDEFAULTS_FUNCTIONS
   ///@}
 
+  /// TODO: Build the set optional parameters functions.
+  ///       Possible signature:
+  /// void setOptional(std::string id, int arg, T paramValue);
+  /// Lets you specify optional parameters for registered functions.
+  /// All optional parameters must be grouped at the end of the parameter list.
+  /// Optional parameters are different from defaults in that defaults deal
+  /// with undoing the very first call. Whereas, optional parameters
+  /// indicate that if certain parameters aren't specified, the parameters
+  /// should be filled with the given optional values.
+
+  /// Sets additional parameter information (such as name and description).
+  void addParamInfo(const std::string& fqname, int paramID,
+                    const std::string& name, const std::string& desc);
+
+  /// Sets additional return value information.
+  void addReturnInfo(const std::string& fqname, const std::string& desc);
+
   /// Default: Provenance is enabled. Disabling provenance will disable undo/
   /// redo.
   bool isProvenanceEnabled() const;
@@ -335,10 +354,15 @@ public:
                                           ///< is called.
   static const char* TBL_MD_NULL_REDO;    ///< If true, no redo function
                                           ///< is called.
+  static const char* TBL_MD_PARAM_DESC;   ///< Additional parameter descriptions
+                                          ///< table.
 
 #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
   static const char* TBL_MD_TYPES_TABLE;  ///< type_info userdata table.
 #endif
+
+  static const char* PARAM_DESC_NAME_SUFFIX;
+  static const char* PARAM_DESC_INFO_SUFFIX;
 
   /// Sets a flag in the Lua registry indicating that an exception is expected
   /// that will cause the lua stack to be unbalanced in internal functions.
@@ -482,6 +506,9 @@ private:
   /// Recursive function helper for getAllFuncDescs.
   void getTableFuncDefs(std::vector<LuaScripting::FunctionDesc>& descs) const;
 
+  /// Retrieve the function description from the given table.
+  FunctionDesc getFunctionDescFromTable(int table) const;
+
   /// LUA panic function. LUA calls this when an unrecoverable error occurs
   /// in the interpreter.
   static int luaPanic(lua_State* L);
@@ -526,6 +553,12 @@ private:
   /// Prints all currently registered functions using log.info.
   void printHelp();
 
+  /// Prints help for the given class instance table.
+  void printClassHelp(int tableIndex);
+
+  /// Prints help about a specific function given by func.
+  void infoHelp(LuaTable table);
+
   /// Delete's a lua class instance. Does not delete a class definition.
   /// Class definitions are permanent.
   void deleteLuaClassInstance(LuaClassInstance inst);
@@ -540,11 +573,6 @@ private:
   /// Deletes the class instance in the table. The table should be removed
   /// and no longer called after this function is executable.
   void destroyClassInstanceTable(int tableIndex);
-
-  /// When set to true, all set function attribute calls are ignored (used to
-  /// ensure we don't set defaults or properties when the function doesn't
-  /// exist -- this happens when we use LuaClassInstanceReg).
-  void setAttributeIgnore(bool truth) {mSetAttributeIgnore = truth;}
 
   /// Used when redoing class instance creation. Ensures that the same id is
   /// used when creating the classes. Starts getNewClassInstID at low, and
@@ -563,6 +591,9 @@ private:
   /// function even though deleteClass was called. deleteClass is reentrant for
   /// the same class.
   void notifyOfDeletion(void* p);
+
+  /// Returns true if the path specified points to a class instance.
+  bool isLuaClassInstance(int tableIndex);
 
   /// Just calls provenance begin/end command.
   void beginCommand();
@@ -602,10 +633,6 @@ private:
   /// Index used to assign a unique ID to classes that wish to register
   /// hooks.
   int                               mMemberHookIndex;
-
-  /// Used to disable the ability to set attributes and defaults.
-  /// See setAttributeIgnore
-  bool                              mSetAttributeIgnore;
 
   /// Current global instance ID that will be used to create new Lua classes.
   int                               mGlobalInstanceID;
@@ -906,8 +933,9 @@ void Tuvok_luaCheckParam(lua_State* L, const std::string& name,
 #include "LUAScriptingExecBody.h"
 
 template <typename FunPtr>
-void LuaScripting::registerFunction(FunPtr f, const std::string& name,
-                                    const std::string& desc, bool undoRedo)
+std::string LuaScripting::registerFunction(FunPtr f, const std::string& name,
+                                           const std::string& desc,
+                                           bool undoRedo)
 {
   LuaStackRAII _a = LuaStackRAII(mL, 0);
 
@@ -958,6 +986,8 @@ void LuaScripting::registerFunction(FunPtr f, const std::string& name,
   if (undoRedo == false)  setUndoRedoStackExempt(name);
 
   assert(initStackTop == lua_gettop(mL));
+
+  return name;
 }
 
 template <typename FunPtr>
@@ -1062,8 +1092,6 @@ void LuaScripting::strictHook(FunPtr f, const std::string& name)
 template <typename FunPtr>
 void LuaScripting::setUndoFun(FunPtr f, const std::string& name)
 {
-  if (mSetAttributeIgnore) return;
-
   // Uses strict hook.
   strictHookInternal(f, name, true, false);
 }
@@ -1071,8 +1099,6 @@ void LuaScripting::setUndoFun(FunPtr f, const std::string& name)
 template <typename FunPtr>
 void LuaScripting::setRedoFun(FunPtr f, const std::string& name)
 {
-  if (mSetAttributeIgnore) return;
-
   // Uses strict hook.
   strictHookInternal(f, name, false, true);
 }

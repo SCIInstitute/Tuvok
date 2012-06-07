@@ -137,7 +137,7 @@ const AbstrDebugOut *MasterController::DebugOut() const {
 
 
 AbstrRenderer*
-MasterController::RequestNewVolumeRenderer(int eRendererType,
+MasterController::RequestNewVolumeRenderer(EVolumeRendererType eRendererType,
                                            bool bUseOnlyPowerOfTwo,
                                            bool bDownSampleTo8Bits,
                                            bool bDisableBorder,
@@ -283,6 +283,8 @@ void MasterController::AddLuaRendererType(const std::string& rendererLoc,
   os << rendererLoc << ".types." << rendererName << "=" << value;
   LuaScript()->exec(os.str());
 }
+
+TUVOK_LUA_REGISTER_ENUM_TYPE(MasterController::EVolumeRendererType)
 
 void MasterController::RegisterLuaCommands() {
   std::tr1::shared_ptr<LuaScripting> ss = LuaScript();

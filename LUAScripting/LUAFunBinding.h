@@ -66,6 +66,25 @@
 namespace tuvok
 {
 
+// Defines the expected input from lua to be a table.
+class LuaTable
+{
+public:
+  LuaTable(int stackLocation)
+  : mStackLocation(stackLocation)
+  {}
+  LuaTable()
+  : mStackLocation(INVALID_STACK_LOC)
+  {}
+
+  bool isTableValid()     {return mStackLocation != INVALID_STACK_LOC;}
+  int getStackLocation()  {return mStackLocation;}
+
+private:
+  static const int INVALID_STACK_LOC = 0;
+  int mStackLocation;
+};
+
 //==============================================================
 //
 // LUA PARAM GETTER/PUSHER (we do NOT pop off of the LUA stack)
@@ -109,6 +128,30 @@ public:
   static std::string getTypeStr() { return "void"; }
 
   static int         getDefault();
+};
+
+template<>
+class LuaStrictStack<LuaTable>
+{
+public:
+  static LuaTable get(lua_State*, int pos)
+  {
+    return LuaTable(pos);
+  }
+
+  static void push(lua_State* L, LuaTable in)
+  {
+    lua_pushvalue(L, in.getStackLocation());
+  }
+
+  static std::string getValStr(LuaTable in)
+  {
+    std::ostringstream os;
+    os << "Table at stack pos: " << in.getStackLocation();
+    return os.str();
+  }
+  static std::string getTypeStr() { return "LuaTable"; }
+  static LuaTable    getDefault() { return LuaTable(); }
 };
 
 template<>
@@ -459,6 +502,39 @@ public:
 //        key/value pairs in a hash table.
 //			  See http://www.lua.org/doc/hopl.pdf -- page 2, para 2. See ref 31.
 //			  Consider support for 3D and 4D graphics vectors.
+
+// For binding enumeration types, we provide the following template
+// specialization definition.
+// TODO: Add convertable to int field that tells the RTTI mechanism that we
+//       can just static_cast to an integer and be fine.
+#define TUVOK_LUA_STRINGIFY(X) #X
+#define TUVOK_LUA_REGISTER_ENUM_TYPE(X)\
+namespace tuvok { \
+  template<> \
+  class LuaStrictStack<X> \
+  { \
+  public: \
+    static X get(lua_State* L, int pos) \
+    { \
+      return static_cast<X>(luaL_checkint(L, pos)); \
+    } \
+   \
+    static void push(lua_State* L, X in) \
+    { \
+      lua_pushinteger(L, static_cast<int>(in)); \
+    } \
+      \
+    static std::string getValStr(X in) \
+    { \
+      std::ostringstream os; \
+      os << static_cast<int>(in); \
+      return os.str(); \
+    } \
+    static std::string getTypeStr() { return TUVOK_LUA_STRINGIFY(X); } \
+    static X           getDefault() { return static_cast<X>(0); } \
+  };\
+}
+
 
 //========================
 //

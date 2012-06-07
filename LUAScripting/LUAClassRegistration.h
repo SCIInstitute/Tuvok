@@ -63,11 +63,20 @@ public:
   /// LuaScripting::registerFunction but with the unqualifiedName parameter.
   /// unqualifiedName is the name of the function to register without the class
   /// name appended to it.
+  /// \return The fully qualified name for this function. Useful for applying
+  ///         option parameters and defaults.
   template <typename FunPtr>
-  void function(FunPtr f, const std::string& unqualifiedName,
-                const std::string& desc, bool undoRedo);
+  std::string function(FunPtr f, const std::string& unqualifiedName,
+                       const std::string& desc, bool undoRedo);
 
   std::string getFQName()     {return LuaClassInstance(mGlobalID).fqName();}
+
+  /// Makes this class instance inherit methods from the given class instance.
+  /// Use this function sparingly. A strong reference to the given instance will
+  /// be generated. If the instance is every destroyed, we will run into access
+  /// violations.
+  /// TODO: Detect inherited classes and make them weak references.
+  void inherit(LuaClassInstance inst);
 
 private:
 
@@ -85,10 +94,10 @@ private:
 };
 
 template <typename FunPtr>
-void LuaClassRegistration::function(FunPtr f,
-                                   const std::string& unqualifiedName,
-                                   const std::string& desc,
-                                   bool undoRedo)
+std::string LuaClassRegistration::function(FunPtr f,
+                                           const std::string& unqualifiedName,
+                                           const std::string& desc,
+                                           bool undoRedo)
 {
   if (canRegister() == false)
     throw LuaError("Check canRegister before registering functions! This "
@@ -104,6 +113,8 @@ void LuaClassRegistration::function(FunPtr f,
   mRegistration.registerFunction(
       reinterpret_cast<typename LuaCFunExec<FunPtr>::classType*>(mPtr),
       f, qualifiedName.str(), desc, undoRedo);
+
+  return qualifiedName.str();
 }
 
 } /* namespace tuvok */

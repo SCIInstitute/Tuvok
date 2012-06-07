@@ -149,9 +149,9 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   m_cDiffuseM(1.0f,1.0f,1.0f,1.0f),
   m_cSpecularM(1.0f,1.0f,1.0f,1.0f),
   m_vLightDir(0.0f,0.0f,-1.0f),
+  m_pClassReg(pMasterController->LuaScript(), this),
   m_fIsovalue(0.5f),
-  m_fCVIsovalue(0.8f),
-  m_pClassReg(pMasterController->LuaScript(), this)
+  m_fCVIsovalue(0.8f)
 {
   m_vBackgroundColors[0] = FLOATVECTOR3(0,0,0);
   m_vBackgroundColors[1] = FLOATVECTOR3(0,0,0);
@@ -169,6 +169,8 @@ AbstrRenderer::AbstrRenderer(MasterController* pMasterController,
   if(unregistered) {
     RegisterCalls(m_pMasterController->ScriptEngine());
   }
+
+  RegisterAbsLuaFunctions();
 }
 
 bool AbstrRenderer::Initialize(std::tr1::shared_ptr<Context> ctx) {
@@ -1517,4 +1519,19 @@ void AbstrRenderer::SetInterpolant(Interpolant eInterpolant) {
       m_eInterpolant = eInterpolant; 
       ScheduleCompleteRedraw();
   }
+}
+
+TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERendererType)
+TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERendererTarget)
+TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EStereoMode)
+TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EBlendPrecision)
+TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ScalingMethod)
+
+void AbstrRenderer::RegisterAbsLuaFunctions() {
+  std::string id;
+  std::tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+
+  id = m_pClassReg.function(&AbstrRenderer::GetRendererType, "getRendererType",
+                            "Retrieves the renderer type.", false);
+  ss->addReturnInfo(id, "Return info test.");
 }
