@@ -59,6 +59,7 @@
 #include "IO/IOManager.h"
 #include "IO/TransferFunction1D.h"
 #include "IO/TransferFunction2D.h"
+#include "IO/TuvokSizes.h"
 #include "Renderer/AbstrRenderer.h"
 #include "Renderer/ShaderDescriptor.h"
 #include "Renderer/GL/GLError.h"

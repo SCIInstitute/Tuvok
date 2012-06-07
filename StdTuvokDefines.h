@@ -90,7 +90,4 @@
 # define _func_ "???"
 #endif
 
-
-
-
 #endif // STDTUVOKDEFINES_H

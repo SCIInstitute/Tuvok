@@ -180,6 +180,7 @@ HEADERS += \
            IO/TransferFunction2D.h \
            IO/TuvokIOError.h \
            IO/TuvokJPEG.h \
+           IO/TuvokSizes.h \
            IO/Tuvok_QtPlugins.h \
            IO/UVF/DataBlock.h \
            IO/uvfDataset.h \
