@@ -51,6 +51,8 @@ class LuaClassRegistration
   friend class LuaClassConstructor; // The only class that can instantiate us.
 public:
 
+  LuaClassRegistration() {}   // Dummy constructor to facilitate copying when
+                              // not in a constructor.
   ~LuaClassRegistration() {}
 
   bool canRegister() const    {return (mPtr != NULL);}
@@ -64,6 +66,16 @@ public:
   template <typename FunPtr>
   std::string function(FunPtr f, const std::string& unqualifiedName,
                        const std::string& desc, bool undoRedo);
+
+  /// Same as 'function' but allows you to register functions that are attached
+  /// to classes other than the one that has been instantiated by the Lua
+  /// system. Use this function with care, as a dangling pointer will be left
+  /// if the other class is deleted.
+  template <typename CLS, typename FunPtr>
+  std::string functionProxy(CLS* otherClass, FunPtr f,
+                            const std::string& unqualifiedName,
+                            const std::string& desc,
+                            bool undoRedo);
 
   std::string getFQName() const {return getLuaInstance().fqName();}
   LuaClassInstance getLuaInstance() const {return LuaClassInstance(mGlobalID);}
@@ -80,6 +92,11 @@ public:
   /// TODO: Detect inherited classes and make them weak references.
   void inherit(LuaClassInstance from);
 
+  /// Clears out any registered proxy functions. Generally, when constructing a
+  /// proxy class, you would use this function when you switch pointers
+  /// internally.
+  void clearProxyFunctions();
+
 private:
 
   // Feel free to copy the class.
@@ -90,12 +107,14 @@ private:
   , mRegistration(ss)
   {}
 
-  LuaScripting*         mSS;
+  LuaScripting*             mSS;
 
-  int                   mGlobalID;
-  T*                    mPtr;
+  int                       mGlobalID;
+  T*                        mPtr;
 
-  LuaMemberRegUnsafe    mRegistration;
+  LuaMemberRegUnsafe        mRegistration;
+
+  std::vector<std::string>  mProxyFunctions;
 
 };
 
@@ -119,6 +138,35 @@ std::string LuaClassRegistration<T>::function(FunPtr f,
   // Function pointer f is guaranteed to be a member function pointer.
   mRegistration.registerFunction(mPtr, f, qualifiedName.str(), desc,
                                  undoRedo);
+
+  return qualifiedName.str();
+}
+
+template <typename T>
+template <typename CLS, typename FunPtr>
+std::string LuaClassRegistration<T>::functionProxy(
+    CLS* otherClass, FunPtr f,
+    const std::string& unqualifiedName,
+    const std::string& desc,
+    bool undoRedo)
+{
+  if (canRegister() == false)
+    throw LuaError("Check canRegister before registering functions! This "
+        "error indicates that you have a Lua class that was not created using "
+        "the scripting system.");
+
+  LuaClassInstance inst(mGlobalID);
+
+  std::ostringstream qualifiedName;
+  qualifiedName << inst.fqName() << "." << unqualifiedName;
+
+  // Function pointer f is guaranteed to be a member function pointer.
+  mRegistration.registerFunction(otherClass, f, qualifiedName.str(), desc,
+                                 undoRedo);
+
+  // Add this function to the proxy function list. This list can be used to
+  // wipe out existing proxy functions.
+  mProxyFunctions.push_back(unqualifiedName);
 
   return qualifiedName.str();
 }
@@ -184,6 +232,20 @@ void LuaClassRegistration<T>::inherit(LuaClassInstance them,
   lua_setfield(L, ourTable, function.c_str());
 
   lua_pop(L, 2);
+}
+
+template <typename T>
+void LuaClassRegistration<T>::clearProxyFunctions()
+{
+  LuaClassInstance inst(mGlobalID);
+  for (std::vector<std::string>::iterator it = mProxyFunctions.begin();
+      it != mProxyFunctions.end(); ++it)
+  {
+    std::ostringstream os;
+    os << inst.fqName() << "." << *it;
+    mSS->unregisterFunction(os.str());
+  }
+  mProxyFunctions.clear();
 }
 
 } /* namespace tuvok */

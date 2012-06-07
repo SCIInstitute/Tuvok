@@ -615,6 +615,9 @@ private:
   /// Returns true if the path specified points to a class instance.
   bool isLuaClassInstance(int tableIndex);
 
+  /// Registers Lua utility functions, such as dir and os.capture.
+  void registerLuaUtilityFunctions();
+
   /// Just calls provenance begin/end command.
   void beginCommand();
   void endCommand();
