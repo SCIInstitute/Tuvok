@@ -440,12 +440,19 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
   int instID = lua_tointeger(mL, -1);
   lua_pop(mL, 1);
 
-  // Remove metatable from the stack.
-  lua_pop(mL, 1);
-
   // Call the delete function with the instance pointer.
   // Permanently removes the memory for our class.
-  fun(this, instID, cls);
+  getProvenanceSys()->addDeletedInstanceToLastURItem(instID);
+
+  lua_getfield(mL, mt, LuaClassInstance::MD_NO_DELETE_HINT);
+  if (lua_toboolean(mL, -1) == 0)
+  {
+    fun(cls);
+  }
+  lua_pop(mL, 1);
+
+  // Remove metatable from the stack.
+  lua_pop(mL, 1);
 
   // Delete the functional pointer.
   lua_getfield(mL, tableIndex, LuaClassInstanceReg::CONS_MD_CLASS_DEFINITION);
@@ -454,6 +461,50 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
   lua_pop(mL, 1);
 
   delete fDef;
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::notifyOfDeletion(void* p)
+{
+  LuaStackRAII _a(mL, 0);
+
+  setExpectedExceptionFlag(true);
+  try
+  {
+    // We want to call delete class explicitly. This will add it to the
+    // provenance system.
+    LuaClassInstance inst = getLuaClassInstance(p);
+
+    // Don't even attempt anything if we did not find the function table.
+    if (getFunctionTable(inst.fqName()) == false)
+    {
+      setExpectedExceptionFlag(false);
+      return;
+    }
+    lua_pop(mL, 1); // Pop the function table.
+
+    // Ensure the delete call does not attempt to delete the object.
+    // (since this function is called from the destructor, delete has already
+    //  been called on this object).
+    {
+      ostringstream os;
+      os << "getmetatable(" << inst.fqName() << ")."
+         << LuaClassInstance::MD_NO_DELETE_HINT << " = true";
+      luaL_dostring(mL, os.str().c_str());
+    }
+
+    // Execute the delete call.
+    {
+      ostringstream os;
+      os << "deleteClass(" << inst.fqName() << ")";
+      exec(os.str());
+    }
+  }
+  catch (LuaNonExistantClassInstancePointer& e)
+  {
+    // Ignore. We weren't created by the scripting engine.
+  }
+  setExpectedExceptionFlag(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -1480,10 +1531,12 @@ void LuaScripting::addLuaClassDef(ClassDefFun f, const std::string fqName)
   // (Setup appropriate LuaClassInstanceReg to grab constructor).
   LuaClassInstanceReg reg(this, fqName);
 
+  setAttributeIgnore(true);
   // Call class definition function.
   // This class will construct an appropriate class instance table using the
   // constructor given in f.
   f(reg);
+  setAttributeIgnore(false);
 
   // Populate the 'new' function's table with the class definition function,
   // and the full factory name.
@@ -1539,16 +1592,21 @@ void LuaScripting::deleteLuaClassInstance(LuaClassInstance inst)
 
   if (getFunctionTable(inst.fqName()))
   {
+    // Hurry and grab the raw pointer before we delete the table and
+    // invalidate the LuaClassInstance.
     void* rawPointer = inst.getVoidPointer(this);
 
-    destroyClassInstanceTable(lua_gettop(mL));
-
-    // Erase the class instance.
+    // Erase the class instance. We want to do this first, before we delete
+    // the entity itself. This is to facilitate re-entry (if we attempt to
+    // delete the entity again, we can't, we won't make it passed the
+    // getFunctionTable function).
     {
       ostringstream os;
       os << inst.fqName() << " = nil";
       luaL_dostring(mL, os.str().c_str());
     }
+
+    destroyClassInstanceTable(lua_gettop(mL));
 
     // Remove the class ID from the lookup table.
     if (getFunctionTable(LuaClassInstance::CLASS_LOOKUP_TABLE))

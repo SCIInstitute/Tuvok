@@ -53,8 +53,9 @@ class LuaScripting;
 
 class LuaProvenance
 {
-  friend class LuaClassInstanceReg;   // For setting deleted / constructed
+  friend class LuaClassInstanceReg;   // For setting constructed
                                       // class instances.
+  friend class LuaScripting;          // For setting deleted class instances.
 public:
   // This class is made for compositing inside LuaScripting, hence the pointer.
   LuaProvenance(LuaScripting* scripting);

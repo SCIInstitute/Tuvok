@@ -200,6 +200,16 @@ public:
   /// Retrieves the LuaClassInstance given the object pointer.
   LuaClassInstance getLuaClassInstance(void* p);
 
+  /// Notifies the scripting system of an object's deletion.
+  /// Use this function in the object's constructor if you believe deleteClass
+  /// was not called on the object (E.G. the object is GUI window, and the user
+  /// clicked the close button, and you have no control over the deletion of
+  /// the object).
+  /// It is safe to call this function repeatedly. You may also call the
+  /// function even though deleteClass was called. deleteClass is reentrant for
+  /// the same class.
+  void notifyOfDeletion(void* p);
+
   /// Executes a command.
   ///
   /// Example: exec("provenance.undo()")
@@ -510,6 +520,11 @@ private:
   /// and no longer called after this function is executable.
   void destroyClassInstanceTable(int tableIndex);
 
+  /// When set to true, all set function attribute calls are ignored (used to
+  /// ensure we don't set defaults or properties when the function doesn't
+  /// exist -- this happens when we use LuaClassInstanceReg).
+  void setAttributeIgnore(bool truth) {mSetAttributeIgnore = truth;}
+
   /// Used when redoing class instance creation. Ensures that the same id is
   /// used when creating the classes. Starts getNewClassInstID at low, and
   /// when current > high, we move to where we were when creating instance IDs.
@@ -539,6 +554,10 @@ private:
   /// Index used to assign a unique ID to classes that wish to register
   /// hooks.
   int                               mMemberHookIndex;
+
+  /// Used to disable the ability to set attributes and defaults.
+  /// See setAttributeIgnore
+  bool                              mSetAttributeIgnore;
 
   /// Current global instance ID that will be used to create new Lua classes.
   int                               mGlobalInstanceID;
@@ -894,6 +913,8 @@ void LuaScripting::strictHook(FunPtr f, const std::string& name)
 template <typename FunPtr>
 void LuaScripting::setUndoFun(FunPtr f, const std::string& name)
 {
+  if (mSetAttributeIgnore) return;
+
   // Uses strict hook.
   strictHookInternal(f, name, true, false);
 }
@@ -901,6 +922,8 @@ void LuaScripting::setUndoFun(FunPtr f, const std::string& name)
 template <typename FunPtr>
 void LuaScripting::setRedoFun(FunPtr f, const std::string& name)
 {
+  if (mSetAttributeIgnore) return;
+
   // Uses strict hook.
   strictHookInternal(f, name, false, true);
 }

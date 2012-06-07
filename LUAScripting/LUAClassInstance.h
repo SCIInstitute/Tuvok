@@ -70,6 +70,10 @@ public:
   static const char*    MD_FACTORY_NAME;        ///< Generational factory.
   static const char*    MD_INSTANCE;            ///< Instance pointer.
   static const char*    MD_DEL_FUN;             ///< Delete function.
+  static const char*    MD_NO_DELETE_HINT;      ///< If true, delete will not be
+                                                ///< called on the class.
+                                                ///< Used when the constructor
+                                                ///< notifies us of destruction.
   ///@}
 
   /// SYSTEM_TABLE really should be stored in LuaScripting. But do to its

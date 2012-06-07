@@ -201,7 +201,7 @@ public:
 
 };
 
-#define LUAC_MAX_NUM_PARAMS (16)
+#define LUAC_MAX_NUM_PARAMS (10)
 //---------------
 // 1 PARAMETERS
 //---------------
@@ -790,456 +790,6 @@ public:
 #endif
 
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); 
-};
-
-//---------------
-// 11 PARAMETERS
-//---------------
-template <typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11>
-class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11)> : public LuaCFunAbstract
-{
-public:
-  static const int memberFunc = 0;
-  typedef Ret returnType;
-  typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11);
-  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
-  {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11));
-  }
-  static std::string getSigNoReturn(const std::string& funcName)
-  {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ")";
-  }
-  static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
-
-  LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11) {}
-
-  virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); }
-  virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); }
-
-  virtual std::string getFormattedParameterValues() const
-  {
-    return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-    ;
-  }
-
-#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
-  static void buildTypeTable(lua_State* L)
-  {
-    int pos = 0;
-    lua_newtable(L);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-  }
-#endif
-
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); 
-};
-
-//---------------
-// 12 PARAMETERS
-//---------------
-template <typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11, typename P12>
-class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12)> : public LuaCFunAbstract
-{
-public:
-  static const int memberFunc = 0;
-  typedef Ret returnType;
-  typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12);
-  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
-  {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); EP(P12); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11), NM(P12));
-  }
-  static std::string getSigNoReturn(const std::string& funcName)
-  {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ", " + SG(P12) + ")";
-  }
-  static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
-
-  LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11), MVIT(P12) {}
-
-  virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); PHP(P12); }
-  virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); PLP(P12); }
-
-  virtual std::string getFormattedParameterValues() const
-  {
-    return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-        + ", " + LuaStrictStack<P12>::getValStr(M_NM(P12))
-    ;
-  }
-
-#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
-  static void buildTypeTable(lua_State* L)
-  {
-    int pos = 0;
-    lua_newtable(L);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P12>(L); lua_settable(L, -3);
-  }
-#endif
-
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); MVAR(P12); 
-};
-
-//---------------
-// 13 PARAMETERS
-//---------------
-template <typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11, typename P12, typename P13>
-class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13)> : public LuaCFunAbstract
-{
-public:
-  static const int memberFunc = 0;
-  typedef Ret returnType;
-  typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13);
-  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
-  {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); EP(P12); EP(P13); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11), NM(P12), NM(P13));
-  }
-  static std::string getSigNoReturn(const std::string& funcName)
-  {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ", " + SG(P12) + ", " + SG(P13) + ")";
-  }
-  static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
-
-  LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11), MVIT(P12), MVIT(P13) {}
-
-  virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); PHP(P12); PHP(P13); }
-  virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); PLP(P12); PLP(P13); }
-
-  virtual std::string getFormattedParameterValues() const
-  {
-    return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-        + ", " + LuaStrictStack<P12>::getValStr(M_NM(P12))
-        + ", " + LuaStrictStack<P13>::getValStr(M_NM(P13))
-    ;
-  }
-
-#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
-  static void buildTypeTable(lua_State* L)
-  {
-    int pos = 0;
-    lua_newtable(L);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P12>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P13>(L); lua_settable(L, -3);
-  }
-#endif
-
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); MVAR(P12); MVAR(P13); 
-};
-
-//---------------
-// 14 PARAMETERS
-//---------------
-template <typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11, typename P12, typename P13, typename P14>
-class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14)> : public LuaCFunAbstract
-{
-public:
-  static const int memberFunc = 0;
-  typedef Ret returnType;
-  typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14);
-  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
-  {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); EP(P12); EP(P13); EP(P14); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11), NM(P12), NM(P13), NM(P14));
-  }
-  static std::string getSigNoReturn(const std::string& funcName)
-  {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ", " + SG(P12) + ", " + SG(P13) + ", " + SG(P14) + ")";
-  }
-  static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
-
-  LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11), MVIT(P12), MVIT(P13), MVIT(P14) {}
-
-  virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); PHP(P12); PHP(P13); PHP(P14); }
-  virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); PLP(P12); PLP(P13); PLP(P14); }
-
-  virtual std::string getFormattedParameterValues() const
-  {
-    return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-        + ", " + LuaStrictStack<P12>::getValStr(M_NM(P12))
-        + ", " + LuaStrictStack<P13>::getValStr(M_NM(P13))
-        + ", " + LuaStrictStack<P14>::getValStr(M_NM(P14))
-    ;
-  }
-
-#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
-  static void buildTypeTable(lua_State* L)
-  {
-    int pos = 0;
-    lua_newtable(L);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P12>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P13>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P14>(L); lua_settable(L, -3);
-  }
-#endif
-
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); MVAR(P12); MVAR(P13); MVAR(P14); 
-};
-
-//---------------
-// 15 PARAMETERS
-//---------------
-template <typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11, typename P12, typename P13, typename P14, typename P15>
-class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15)> : public LuaCFunAbstract
-{
-public:
-  static const int memberFunc = 0;
-  typedef Ret returnType;
-  typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15);
-  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
-  {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); EP(P12); EP(P13); EP(P14); EP(P15); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11), NM(P12), NM(P13), NM(P14), NM(P15));
-  }
-  static std::string getSigNoReturn(const std::string& funcName)
-  {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ", " + SG(P12) + ", " + SG(P13) + ", " + SG(P14) + ", " + SG(P15) + ")";
-  }
-  static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
-
-  LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11), MVIT(P12), MVIT(P13), MVIT(P14), MVIT(P15) {}
-
-  virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); PHP(P12); PHP(P13); PHP(P14); PHP(P15); }
-  virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); PLP(P12); PLP(P13); PLP(P14); PLP(P15); }
-
-  virtual std::string getFormattedParameterValues() const
-  {
-    return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-        + ", " + LuaStrictStack<P12>::getValStr(M_NM(P12))
-        + ", " + LuaStrictStack<P13>::getValStr(M_NM(P13))
-        + ", " + LuaStrictStack<P14>::getValStr(M_NM(P14))
-        + ", " + LuaStrictStack<P15>::getValStr(M_NM(P15))
-    ;
-  }
-
-#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
-  static void buildTypeTable(lua_State* L)
-  {
-    int pos = 0;
-    lua_newtable(L);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P12>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P13>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P14>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P15>(L); lua_settable(L, -3);
-  }
-#endif
-
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); MVAR(P12); MVAR(P13); MVAR(P14); MVAR(P15); 
-};
-
-//---------------
-// 16 PARAMETERS
-//---------------
-template <typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11, typename P12, typename P13, typename P14, typename P15, typename P16>
-class LuaCFunExec<Ret (*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16)> : public LuaCFunAbstract
-{
-public:
-  static const int memberFunc = 0;
-  typedef Ret returnType;
-  typedef Ret (*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16);
-  static Ret run(lua_State* L, int paramStackIndex, fpType fp)
-  {
-    EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); EP(P12); EP(P13); EP(P14); EP(P15); EP(P16); 
-    return fp(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11), NM(P12), NM(P13), NM(P14), NM(P15), NM(P16));
-  }
-  static std::string getSigNoReturn(const std::string& funcName)
-  {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ", " + SG(P12) + ", " + SG(P13) + ", " + SG(P14) + ", " + SG(P15) + ", " + SG(P16) + ")";
-  }
-  static std::string getSignature(const std::string& funcName)
-  { return SG(Ret) + " " + getSigNoReturn(funcName); }
-
-  LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11), MVIT(P12), MVIT(P13), MVIT(P14), MVIT(P15), MVIT(P16) {}
-
-  virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); PHP(P12); PHP(P13); PHP(P14); PHP(P15); PHP(P16); }
-  virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); PLP(P12); PLP(P13); PLP(P14); PLP(P15); PLP(P16); }
-
-  virtual std::string getFormattedParameterValues() const
-  {
-    return
-                 LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-        + ", " + LuaStrictStack<P12>::getValStr(M_NM(P12))
-        + ", " + LuaStrictStack<P13>::getValStr(M_NM(P13))
-        + ", " + LuaStrictStack<P14>::getValStr(M_NM(P14))
-        + ", " + LuaStrictStack<P15>::getValStr(M_NM(P15))
-        + ", " + LuaStrictStack<P16>::getValStr(M_NM(P16))
-    ;
-  }
-
-#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
-  static void buildTypeTable(lua_State* L)
-  {
-    int pos = 0;
-    lua_newtable(L);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P12>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P13>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P14>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P15>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P16>(L); lua_settable(L, -3);
-  }
-#endif
-
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); MVAR(P12); MVAR(P13); MVAR(P14); MVAR(P15); MVAR(P16); 
 };
 
 
@@ -1886,52 +1436,83 @@ public:
   MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); 
 };
 
+//------------------
+//
+// MEMBER FUNCTIONS
+//
+//------------------
+
+//--------------
+// 0 PARAMETERS
+//--------------
+template<typename T, typename Ret>
+class LuaCFunExec<Ret (T::*)() const> : public LuaCFunAbstract
+{
+public:
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)() const;
+  static Ret run(lua_State*, int, T* c, fpType fp)
+  {
+    return (c->*fp)();
+  }
+  static std::string getSigNoReturn(const std::string& funcName)
+  {
+    return funcName + "()";
+  }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return "";
+  }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    lua_newtable(L);
+  }
+#endif
+
+  virtual void pushParamsToStack(lua_State*) const   {}
+  virtual void pullParamsFromStack(lua_State*, int)  {}
+};//---------------
+// 1 PARAMETERS
 //---------------
-// 11 PARAMETERS
-//---------------
-template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11>
-class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11)> : public LuaCFunAbstract
+template <typename T, typename Ret, typename P1>
+class LuaCFunExec<Ret (T::*)(P1) const> : public LuaCFunAbstract
 {
 public:
   static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
-  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11);
+  typedef Ret (T::*fpType)(P1) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
     EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11));
+            EP(P1); 
+    return (c->*fp)(NM(P1));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ")";
+    return funcName + "(" + SG(P1) + ")";
   }
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11) {}
+    : MVIT(P1) {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); }
+  { PHP(P1); }
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); }
+  { PLP_INIT(si); PLP(P1); }
 
   virtual std::string getFormattedParameterValues() const
   {
     return
                  LuaStrictStack<P1>::getValStr(M_NM(P1))
-        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
     ;
   }
 
@@ -1941,69 +1522,49 @@ public:
     int pos = 0;
     lua_newtable(L);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); 
+  MVAR(P1); 
 };
 
 //---------------
-// 12 PARAMETERS
+// 2 PARAMETERS
 //---------------
-template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11, typename P12>
-class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12)> : public LuaCFunAbstract
+template <typename T, typename Ret, typename P1, typename P2>
+class LuaCFunExec<Ret (T::*)(P1, P2) const> : public LuaCFunAbstract
 {
 public:
   static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
-  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12);
+  typedef Ret (T::*fpType)(P1, P2) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
     EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); EP(P12); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11), NM(P12));
+            EP(P1); EP(P2); 
+    return (c->*fp)(NM(P1), NM(P2));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ", " + SG(P12) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ")";
   }
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11), MVIT(P12) {}
+    : MVIT(P1), MVIT(P2) {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); PHP(P12); }
+  { PHP(P1); PHP(P2); }
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); PLP(P12); }
+  { PLP_INIT(si); PLP(P1); PLP(P2); }
 
   virtual std::string getFormattedParameterValues() const
   {
     return
                  LuaStrictStack<P1>::getValStr(M_NM(P1))
         + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
-        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-        + ", " + LuaStrictStack<P12>::getValStr(M_NM(P12))
     ;
   }
 
@@ -2014,53 +1575,43 @@ public:
     lua_newtable(L);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P12>(L); lua_settable(L, -3);
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); MVAR(P12); 
+  MVAR(P1); MVAR(P2); 
 };
 
 //---------------
-// 13 PARAMETERS
+// 3 PARAMETERS
 //---------------
-template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11, typename P12, typename P13>
-class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13)> : public LuaCFunAbstract
+template <typename T, typename Ret, typename P1, typename P2, typename P3>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3) const> : public LuaCFunAbstract
 {
 public:
   static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
-  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13);
+  typedef Ret (T::*fpType)(P1, P2, P3) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
     EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); EP(P12); EP(P13); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11), NM(P12), NM(P13));
+            EP(P1); EP(P2); EP(P3); 
+    return (c->*fp)(NM(P1), NM(P2), NM(P3));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ", " + SG(P12) + ", " + SG(P13) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ")";
   }
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11), MVIT(P12), MVIT(P13) {}
+    : MVIT(P1), MVIT(P2), MVIT(P3) {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); PHP(P12); PHP(P13); }
+  { PHP(P1); PHP(P2); PHP(P3); }
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); PLP(P12); PLP(P13); }
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); }
 
   virtual std::string getFormattedParameterValues() const
   {
@@ -2068,16 +1619,6 @@ public:
                  LuaStrictStack<P1>::getValStr(M_NM(P1))
         + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
         + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
-        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-        + ", " + LuaStrictStack<P12>::getValStr(M_NM(P12))
-        + ", " + LuaStrictStack<P13>::getValStr(M_NM(P13))
     ;
   }
 
@@ -2089,53 +1630,43 @@ public:
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P12>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P13>(L); lua_settable(L, -3);
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); MVAR(P12); MVAR(P13); 
+  MVAR(P1); MVAR(P2); MVAR(P3); 
 };
 
 //---------------
-// 14 PARAMETERS
+// 4 PARAMETERS
 //---------------
-template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11, typename P12, typename P13, typename P14>
-class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14)> : public LuaCFunAbstract
+template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4) const> : public LuaCFunAbstract
 {
 public:
   static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
-  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14);
+  typedef Ret (T::*fpType)(P1, P2, P3, P4) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
     EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); EP(P12); EP(P13); EP(P14); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11), NM(P12), NM(P13), NM(P14));
+            EP(P1); EP(P2); EP(P3); EP(P4); 
+    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ", " + SG(P12) + ", " + SG(P13) + ", " + SG(P14) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ")";
   }
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11), MVIT(P12), MVIT(P13), MVIT(P14) {}
+    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4) {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); PHP(P12); PHP(P13); PHP(P14); }
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); }
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); PLP(P12); PLP(P13); PLP(P14); }
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); }
 
   virtual std::string getFormattedParameterValues() const
   {
@@ -2144,16 +1675,6 @@ public:
         + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
         + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
         + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
-        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-        + ", " + LuaStrictStack<P12>::getValStr(M_NM(P12))
-        + ", " + LuaStrictStack<P13>::getValStr(M_NM(P13))
-        + ", " + LuaStrictStack<P14>::getValStr(M_NM(P14))
     ;
   }
 
@@ -2166,53 +1687,43 @@ public:
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P12>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P13>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P14>(L); lua_settable(L, -3);
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); MVAR(P12); MVAR(P13); MVAR(P14); 
+  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); 
 };
 
 //---------------
-// 15 PARAMETERS
+// 5 PARAMETERS
 //---------------
-template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11, typename P12, typename P13, typename P14, typename P15>
-class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15)> : public LuaCFunAbstract
+template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5) const> : public LuaCFunAbstract
 {
 public:
   static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
-  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15);
+  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
     EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); EP(P12); EP(P13); EP(P14); EP(P15); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11), NM(P12), NM(P13), NM(P14), NM(P15));
+            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); 
+    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ", " + SG(P12) + ", " + SG(P13) + ", " + SG(P14) + ", " + SG(P15) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ")";
   }
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11), MVIT(P12), MVIT(P13), MVIT(P14), MVIT(P15) {}
+    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5) {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); PHP(P12); PHP(P13); PHP(P14); PHP(P15); }
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); }
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); PLP(P12); PLP(P13); PLP(P14); PLP(P15); }
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); }
 
   virtual std::string getFormattedParameterValues() const
   {
@@ -2222,16 +1733,6 @@ public:
         + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
         + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
         + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
-        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
-        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
-        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
-        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
-        + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-        + ", " + LuaStrictStack<P12>::getValStr(M_NM(P12))
-        + ", " + LuaStrictStack<P13>::getValStr(M_NM(P13))
-        + ", " + LuaStrictStack<P14>::getValStr(M_NM(P14))
-        + ", " + LuaStrictStack<P15>::getValStr(M_NM(P15))
     ;
   }
 
@@ -2245,53 +1746,299 @@ public:
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P12>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P13>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P14>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P15>(L); lua_settable(L, -3);
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); MVAR(P12); MVAR(P13); MVAR(P14); MVAR(P15); 
+  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); 
 };
 
 //---------------
-// 16 PARAMETERS
+// 6 PARAMETERS
 //---------------
-template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10, typename P11, typename P12, typename P13, typename P14, typename P15, typename P16>
-class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16)> : public LuaCFunAbstract
+template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6) const> : public LuaCFunAbstract
 {
 public:
   static const int memberFunc = 1;
   typedef T classType;
   typedef Ret returnType;
-  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10, P11, P12, P13, P14, P15, P16);
+  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6) const;
   static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
   {
     EP_INIT(paramStackIndex);
-            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); EP(P11); EP(P12); EP(P13); EP(P14); EP(P15); EP(P16); 
-    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10), NM(P11), NM(P12), NM(P13), NM(P14), NM(P15), NM(P16));
+            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); 
+    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6));
   }
   static std::string getSigNoReturn(const std::string& funcName)
   {
-    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ", " + SG(P11) + ", " + SG(P12) + ", " + SG(P13) + ", " + SG(P14) + ", " + SG(P15) + ", " + SG(P16) + ")";
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ")";
   }
   static std::string getSignature(const std::string& funcName)
   { return SG(Ret) + " " + getSigNoReturn(funcName); }
 
   LuaCFunExec()
-    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10), MVIT(P11), MVIT(P12), MVIT(P13), MVIT(P14), MVIT(P15), MVIT(P16) {}
+    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6) {}
 
   virtual void pushParamsToStack(lua_State* L) const
-  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); PHP(P11); PHP(P12); PHP(P13); PHP(P14); PHP(P15); PHP(P16); }
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); }
   virtual void pullParamsFromStack(lua_State* L, int si)
-  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); PLP(P11); PLP(P12); PLP(P13); PLP(P14); PLP(P15); PLP(P16); }
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return
+                 LuaStrictStack<P1>::getValStr(M_NM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
+    ;
+  }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
+  }
+#endif
+
+  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); 
+};
+
+//---------------
+// 7 PARAMETERS
+//---------------
+template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6, P7) const> : public LuaCFunAbstract
+{
+public:
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7) const;
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
+  {
+    EP_INIT(paramStackIndex);
+            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); 
+    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7));
+  }
+  static std::string getSigNoReturn(const std::string& funcName)
+  {
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ")";
+  }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+
+  LuaCFunExec()
+    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7) {}
+
+  virtual void pushParamsToStack(lua_State* L) const
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); }
+  virtual void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return
+                 LuaStrictStack<P1>::getValStr(M_NM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
+    ;
+  }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
+  }
+#endif
+
+  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); 
+};
+
+//---------------
+// 8 PARAMETERS
+//---------------
+template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6, P7, P8) const> : public LuaCFunAbstract
+{
+public:
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8) const;
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
+  {
+    EP_INIT(paramStackIndex);
+            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); 
+    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8));
+  }
+  static std::string getSigNoReturn(const std::string& funcName)
+  {
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ")";
+  }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+
+  LuaCFunExec()
+    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8) {}
+
+  virtual void pushParamsToStack(lua_State* L) const
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); }
+  virtual void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return
+                 LuaStrictStack<P1>::getValStr(M_NM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
+    ;
+  }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
+  }
+#endif
+
+  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); 
+};
+
+//---------------
+// 9 PARAMETERS
+//---------------
+template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9) const> : public LuaCFunAbstract
+{
+public:
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9) const;
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
+  {
+    EP_INIT(paramStackIndex);
+            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); 
+    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9));
+  }
+  static std::string getSigNoReturn(const std::string& funcName)
+  {
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ")";
+  }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+
+  LuaCFunExec()
+    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9) {}
+
+  virtual void pushParamsToStack(lua_State* L) const
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); }
+  virtual void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); }
+
+  virtual std::string getFormattedParameterValues() const
+  {
+    return
+                 LuaStrictStack<P1>::getValStr(M_NM(P1))
+        + ", " + LuaStrictStack<P2>::getValStr(M_NM(P2))
+        + ", " + LuaStrictStack<P3>::getValStr(M_NM(P3))
+        + ", " + LuaStrictStack<P4>::getValStr(M_NM(P4))
+        + ", " + LuaStrictStack<P5>::getValStr(M_NM(P5))
+        + ", " + LuaStrictStack<P6>::getValStr(M_NM(P6))
+        + ", " + LuaStrictStack<P7>::getValStr(M_NM(P7))
+        + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
+        + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
+    ;
+  }
+
+#ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
+  static void buildTypeTable(lua_State* L)
+  {
+    int pos = 0;
+    lua_newtable(L);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P1>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P2>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P3>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P4>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P5>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P6>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P7>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
+    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
+  }
+#endif
+
+  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); 
+};
+
+//---------------
+// 10 PARAMETERS
+//---------------
+template <typename T, typename Ret, typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7, typename P8, typename P9, typename P10>
+class LuaCFunExec<Ret (T::*)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) const> : public LuaCFunAbstract
+{
+public:
+  static const int memberFunc = 1;
+  typedef T classType;
+  typedef Ret returnType;
+  typedef Ret (T::*fpType)(P1, P2, P3, P4, P5, P6, P7, P8, P9, P10) const;
+  static Ret run(lua_State* L, int paramStackIndex, T* c, fpType fp)
+  {
+    EP_INIT(paramStackIndex);
+            EP(P1); EP(P2); EP(P3); EP(P4); EP(P5); EP(P6); EP(P7); EP(P8); EP(P9); EP(P10); 
+    return (c->*fp)(NM(P1), NM(P2), NM(P3), NM(P4), NM(P5), NM(P6), NM(P7), NM(P8), NM(P9), NM(P10));
+  }
+  static std::string getSigNoReturn(const std::string& funcName)
+  {
+    return funcName + "(" + SG(P1) + ", " + SG(P2) + ", " + SG(P3) + ", " + SG(P4) + ", " + SG(P5) + ", " + SG(P6) + ", " + SG(P7) + ", " + SG(P8) + ", " + SG(P9) + ", " + SG(P10) + ")";
+  }
+  static std::string getSignature(const std::string& funcName)
+  { return SG(Ret) + " " + getSigNoReturn(funcName); }
+
+  LuaCFunExec()
+    : MVIT(P1), MVIT(P2), MVIT(P3), MVIT(P4), MVIT(P5), MVIT(P6), MVIT(P7), MVIT(P8), MVIT(P9), MVIT(P10) {}
+
+  virtual void pushParamsToStack(lua_State* L) const
+  { PHP(P1); PHP(P2); PHP(P3); PHP(P4); PHP(P5); PHP(P6); PHP(P7); PHP(P8); PHP(P9); PHP(P10); }
+  virtual void pullParamsFromStack(lua_State* L, int si)
+  { PLP_INIT(si); PLP(P1); PLP(P2); PLP(P3); PLP(P4); PLP(P5); PLP(P6); PLP(P7); PLP(P8); PLP(P9); PLP(P10); }
 
   virtual std::string getFormattedParameterValues() const
   {
@@ -2306,12 +2053,6 @@ public:
         + ", " + LuaStrictStack<P8>::getValStr(M_NM(P8))
         + ", " + LuaStrictStack<P9>::getValStr(M_NM(P9))
         + ", " + LuaStrictStack<P10>::getValStr(M_NM(P10))
-        + ", " + LuaStrictStack<P11>::getValStr(M_NM(P11))
-        + ", " + LuaStrictStack<P12>::getValStr(M_NM(P12))
-        + ", " + LuaStrictStack<P13>::getValStr(M_NM(P13))
-        + ", " + LuaStrictStack<P14>::getValStr(M_NM(P14))
-        + ", " + LuaStrictStack<P15>::getValStr(M_NM(P15))
-        + ", " + LuaStrictStack<P16>::getValStr(M_NM(P16))
     ;
   }
 
@@ -2330,16 +2071,10 @@ public:
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P8>(L); lua_settable(L, -3);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P9>(L); lua_settable(L, -3);
     lua_pushinteger(L, pos++); LSS_pushTypeInfo<P10>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P11>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P12>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P13>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P14>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P15>(L); lua_settable(L, -3);
-    lua_pushinteger(L, pos++); LSS_pushTypeInfo<P16>(L); lua_settable(L, -3);
   }
 #endif
 
-  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); MVAR(P11); MVAR(P12); MVAR(P13); MVAR(P14); MVAR(P15); MVAR(P16); 
+  MVAR(P1); MVAR(P2); MVAR(P3); MVAR(P4); MVAR(P5); MVAR(P6); MVAR(P7); MVAR(P8); MVAR(P9); MVAR(P10); 
 };
 
 

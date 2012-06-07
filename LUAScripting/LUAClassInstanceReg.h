@@ -65,6 +65,15 @@ public:
   void function(FunPtr f, const std::string& unqualifiedName,
                 const std::string& desc, bool undoRedo);
 
+  /// Returns the fully qualified name for LuaClassInstanceReg.
+  std::string getFQName() const             {return mClassPath;}
+
+  template <typename T>
+  T* getClassInstance()
+  {
+    return reinterpret_cast<T*>(mClassInstance);
+  }
+
 private:
 
 
@@ -104,7 +113,7 @@ private:
   ///@}
 
   /// Signature for delFun in LuaConstructorCallback.
-  typedef void (*DelFunSig)(LuaScripting* ss, int id, void* inst);
+  typedef void (*DelFunSig)(void* inst);
 
   template <typename FunPtr>
   struct LuaConstructorCallback
@@ -218,6 +227,9 @@ private:
       lua_pushlightuserdata(L, r);
       lua_setfield(L, -2, LuaClassInstance::MD_INSTANCE);
 
+      lua_pushboolean(L, 0);
+      lua_setfield(L, -2, LuaClassInstance::MD_NO_DELETE_HINT);
+
       lua_pushlightuserdata(L, reinterpret_cast<void*>(
           &LuaConstructorCallback<FunPtr>::del));
       lua_setfield(L, -2, LuaClassInstance::MD_DEL_FUN);
@@ -247,11 +259,8 @@ private:
 
     // Casts the void* to the appropriate type, and deletes the class
     // instance.
-    static void del(LuaScripting* ss, int globalInstID, void* inst)
+    static void del(void* inst)
     {
-      //addDeletedInstanceToLastURItem
-      ss->getProvenanceSys()->addDeletedInstanceToLastURItem(globalInstID);
-
       // Cast and delete the class instance.
       // NOTE: returnType should already be a pointer type.
       delete (reinterpret_cast<typename LuaCFunExec<FunPtr>::returnType>(
@@ -377,6 +386,9 @@ private:
       lua_pushlightuserdata(L, r);
       lua_setfield(L, -2, LuaClassInstance::MD_INSTANCE);
 
+      lua_pushboolean(L, 0);
+      lua_setfield(L, -2, LuaClassInstance::MD_NO_DELETE_HINT);
+
       lua_pushlightuserdata(L, reinterpret_cast<void*>(
           &LuaConstructorCallback<FunPtr>::del));
       lua_setfield(L, -2, LuaClassInstance::MD_DEL_FUN);
@@ -406,11 +418,8 @@ private:
 
     // Casts the void* to the appropriate type, and deletes the class
     // instance.
-    static void del(LuaScripting* ss, int globalInstID, void* inst)
+    static void del(void* inst)
     {
-      //addDeletedInstanceToLastURItem
-      ss->getProvenanceSys()->addDeletedInstanceToLastURItem(globalInstID);
-
       // Cast and delete the class instance.
       // NOTE: returnType should already be a pointer type.
       delete (reinterpret_cast<typename LuaCFunExec<FunPtr>::returnType>(
