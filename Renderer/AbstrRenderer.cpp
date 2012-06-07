@@ -423,15 +423,31 @@ RenderRegion3D* AbstrRenderer::GetFirst3DRegion() {
   return NULL;
 }
 
+LuaClassInstance AbstrRenderer::LuaGetFirst3DRegion() {
+  return m_pMasterController->LuaScript()->getLuaClassInstance(
+      dynamic_cast<RenderRegion*>(GetFirst3DRegion()));
+}
+
 void AbstrRenderer::SetRotation(RenderRegion *renderRegion,
                                 const FLOATMATRIX4& rotation) {
   renderRegion->rotation = rotation;
   ScheduleWindowRedraw(renderRegion);
 }
 
+void AbstrRenderer::LuaSetRegionRotation4x4(LuaClassInstance region,
+                                         FLOATMATRIX4 rotation) {
+  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  SetRotation(region.getRawPointer<RenderRegion>(ss), rotation);
+}
+
 const FLOATMATRIX4&
 AbstrRenderer::GetRotation(const RenderRegion* renderRegion) const {
   return renderRegion->rotation;
+}
+
+FLOATMATRIX4 AbstrRenderer::LuaGetRegionRotation4x4(LuaClassInstance region) {
+  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  return GetRotation(region.getRawPointer<RenderRegion>(ss));
 }
 
 void AbstrRenderer::SetTranslation(RenderRegion *renderRegion,
@@ -440,9 +456,20 @@ void AbstrRenderer::SetTranslation(RenderRegion *renderRegion,
   ScheduleWindowRedraw(renderRegion);
 }
 
+void AbstrRenderer::LuaSetRegionTranslation4x4(LuaClassInstance region,
+                                               FLOATMATRIX4 translation) {
+  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  return SetTranslation(region.getRawPointer<RenderRegion>(ss), translation);
+}
+
 const FLOATMATRIX4&
 AbstrRenderer::GetTranslation(const RenderRegion* renderRegion) const {
   return renderRegion->translation;
+}
+
+FLOATMATRIX4 AbstrRenderer::LuaGetRegionTranslation4x4(LuaClassInstance region) {
+  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  return GetTranslation(region.getRawPointer<RenderRegion>(ss));
 }
 
 void AbstrRenderer::SetClipPlane(RenderRegion *renderRegion,
@@ -515,8 +542,18 @@ void AbstrRenderer::SetSliceDepth(RenderRegion *renderRegion, uint64_t sliceDept
   }
 }
 
+void AbstrRenderer::LuaSetSliceDepth(LuaClassInstance region, uint64_t sliceDepth) {
+  tr1::shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
+  return SetSliceDepth(region.getRawPointer<RenderRegion>(ss), sliceDepth);
+}
+
 uint64_t AbstrRenderer::GetSliceDepth(const RenderRegion *renderRegion) const {
   return renderRegion->GetSliceIndex();
+}
+
+uint64_t AbstrRenderer::LuaGetSliceDepth(LuaClassInstance renderRegion) const {
+  tr1::shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
+  return GetSliceDepth(renderRegion.getRawPointer<RenderRegion>(ss));
 }
 
 void AbstrRenderer::SetGlobalBBox(bool bRenderBBox) {
@@ -1296,18 +1333,51 @@ void AbstrRenderer::Set2DFlipMode(RenderRegion *renderRegion,
   ScheduleWindowRedraw(renderRegion);
 }
 
+void AbstrRenderer::LuaSet2DFlipMode(LuaClassInstance region,
+                                     bool flipX, bool flipY)
+{
+  tr1::shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
+  Set2DFlipMode(region.getRawPointer<RenderRegion>(ss), flipX, flipY);
+}
+
 void AbstrRenderer::Get2DFlipMode(const RenderRegion *renderRegion,
                                   bool& flipX, bool& flipY) const {
   renderRegion->GetFlipView(flipX, flipY);
+}
+
+bool AbstrRenderer::LuaGet2DFlipModeX(LuaClassInstance region)
+{
+  tr1::shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
+  bool flipX = false, flipY = false;
+  Get2DFlipMode(region.getRawPointer<RenderRegion>(ss), flipX, flipY);
+  return flipX;
+}
+
+bool AbstrRenderer::LuaGet2DFlipModeY(LuaClassInstance region)
+{
+  tr1::shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
+  bool flipX = false, flipY = false;
+  Get2DFlipMode(region.getRawPointer<RenderRegion>(ss), flipX, flipY);
+  return flipY;
 }
 
 bool AbstrRenderer::GetUseMIP(const RenderRegion *renderRegion) const {
   return renderRegion->GetUseMIP();
 }
 
+bool AbstrRenderer::LuaGetUseMIP(LuaClassInstance region) const {
+  tr1::shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
+  return GetUseMIP(region.getRawPointer<RenderRegion>(ss));
+}
+
 void AbstrRenderer::SetUseMIP(RenderRegion *renderRegion, bool useMIP) {
   renderRegion->SetUseMIP(useMIP);
   ScheduleWindowRedraw(renderRegion);
+}
+
+void AbstrRenderer::LuaSetUseMIP(LuaClassInstance region, bool bUseMIP) {
+  tr1::shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
+  SetUseMIP(region.getRawPointer<RenderRegion>(ss), bUseMIP);
 }
 
 void AbstrRenderer::SetStereo(bool bStereoRendering) {
@@ -1417,6 +1487,37 @@ AbstrRenderer::SetRenderRegions(const std::vector<RenderRegion*> &regions)
 
   this->RestartTimers();
   this->msecPassedCurrentFrame = -1.0f;
+}
+
+void
+AbstrRenderer::LuaSetRenderRegions(std::vector<LuaClassInstance> regions)
+{
+  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+
+  // Generate our own vector of render regions from the provided information.
+  this->renderRegions.clear();
+  this->renderRegions.reserve(regions.size());
+  for (std::vector<LuaClassInstance>::iterator it = regions.begin();
+      it != regions.end(); ++it)
+  {
+    this->renderRegions.push_back((*it).getRawPointer<RenderRegion>(ss));
+  }
+
+  this->RestartTimers();
+  this->msecPassedCurrentFrame = -1.0f;
+}
+
+std::vector<LuaClassInstance> AbstrRenderer::LuaGetRenderRegions()
+{
+  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  std::vector<LuaClassInstance> ret;
+  ret.reserve(this->renderRegions.size());
+  for (std::vector<RenderRegion*>::iterator it = this->renderRegions.begin();
+      it != this->renderRegions.end(); ++it)
+  {
+    ret.push_back(ss->getLuaClassInstance(*it));
+  }
+  return ret;
 }
 
 void AbstrRenderer::RemoveMeshData(size_t index) {
@@ -1557,9 +1658,20 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "Renderer target specifies the interaction mode. "
                     "The two basic modes are interactive (standard ImageVis3D "
                     "mode), and high quality capture mode.", false);
+
   id = reg.function(&AbstrRenderer::SetRendererTarget,
                     "setRendererTarget",
                     "Specifies the renderer target. See getRendererTarget.",
+                    true);
+
+  id = reg.function(&AbstrRenderer::LuaGetSliceDepth,
+                    "getRegionSliceDepth",
+                    "Retrieves the slice depth.",
+                    false);
+
+  id = reg.function(&AbstrRenderer::LuaSetSliceDepth,
+                    "setRegionSliceDepth",
+                    "Sets the slice depth.",
                     true);
 
   id = reg.function(&AbstrRenderer::LuaGetDataset,
@@ -1584,4 +1696,59 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "Sets the filename and position of a logo.", true);
   ss->addParamInfo(id, 0, "filename", "Filename of the logo.");
   ss->addParamInfo(id, 1, "pos", "Position of the logo.");
+
+  id = reg.function(&AbstrRenderer::LuaSetRenderRegions,
+                    "setRenderRegions",
+                    "Sets regions to render. See tuvok.renderRegion3D "
+                    "and tuvok.renderRegion2D.",
+                    true);
+  ss->addParamInfo(id, 0, "regionArray", "Render region array.");
+
+  id = reg.function(&AbstrRenderer::LuaGetRenderRegions,
+                    "getRenderRegions",
+                    "Retrieves the current render regions.", false);
+
+  id = reg.function(&AbstrRenderer::LuaGetFirst3DRegion,
+                    "getFirst3DRenderRegion",
+                    "Retrieves the first 3D render region. A default instance "
+                    "is returned if none is found.",
+                    false);
+
+  id = reg.function(&AbstrRenderer::LuaSetRegionRotation4x4,
+                    "setRegionRotation4x4",
+                    "Sets the render region's world space rotation as a 4x4"
+                    "matrix.",
+                    true);
+
+  id = reg.function(&AbstrRenderer::LuaGetRegionRotation4x4,
+                    "getRegionRotation4x4",
+                    "Retrieves render region's rotation as a 4x4 matrix.",
+                    false);
+
+  id = reg.function(&AbstrRenderer::LuaSetRegionTranslation4x4,
+                    "setRegionTranslation4x4",
+                    "Sets the render region's translation as a 4x4 matrix.",
+                    true);
+
+  id = reg.function(&AbstrRenderer::LuaGetRegionTranslation4x4,
+                    "getRegionTranslation4x4",
+                    "Retrieves the render region's translation as a 4x4 matrix."
+                    , false);
+
+  id = reg.function(&AbstrRenderer::LuaSet2DFlipMode,
+                    "setRegion2DFlipMode",
+                    "Sets horizontal and vertical flip flags.", true);
+  id = reg.function(&AbstrRenderer::LuaGet2DFlipModeX,
+                    "getRegion2DFlipModeX",
+                    "Returns current horizontal flip flag value.", false);
+  id = reg.function(&AbstrRenderer::LuaGet2DFlipModeY,
+                    "getRegion2DFlipModeY",
+                    "Returns current vertical flip flag value.", false);
+
+  id = reg.function(&AbstrRenderer::LuaSetUseMIP,
+                    "setRegionUseMIP",
+                    "...", true);
+  id = reg.function(&AbstrRenderer::LuaGetUseMIP,
+                    "getRegionUseMIP",
+                    "...", false);
 }

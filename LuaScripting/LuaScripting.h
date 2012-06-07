@@ -328,7 +328,7 @@ public:
   bool isProvenanceEnabled() const;
   void enableProvenance(bool enable);
 
-  int getCurGlobalInstID() const  {return mGlobalInstanceID;}
+  LuaClassInstance::IDType getCurGlobalInstID() const{return mGlobalInstanceID;}
   void incrementGlobalInstID()    {mGlobalInstanceID++;}
 
   /// Function description returned from getFuncDescs().
@@ -388,10 +388,10 @@ public:
   LuaProvenance* getProvenanceSys() const {return mProvenance.get();}
 
   /// Used for testing purposes only.
-  int getCurrentClassInstID() {return mGlobalInstanceID;}
+  LuaClassInstance::IDType getCurrentClassInstID() {return mGlobalInstanceID;}
 
   /// Retrieves the last created instance ID
-  int getLastCreatedInstID()  {return mGlobalInstanceID - 1;}
+  LuaClassInstance::IDType getLastCreatedInstID(){return mGlobalInstanceID - 1;}
 
   /// Used by friend class LuaProvenance.
   /// Any public use of this function should be for testing purposes only.
@@ -406,6 +406,12 @@ public:
   /// function even though deleteClass was called. deleteClass is reentrant for
   /// the same class.
   void notifyOfDeletion(LuaClassInstance inst);
+
+  /// Allows you to temporarily disable the provenance system. This will not
+  /// wipe any provenance records, but will allow you to make lua calls without
+  /// having them logged by the system.
+  /// This function routes to mProvenance->setDisableProvTemporarily(...)
+  void setTempProvDisable(bool disable);
 
   /// Returns true if we are running in verbose mode.
   bool isVerbose()    {return mVerboseMode;}
@@ -439,11 +445,6 @@ private:
   /// now.
   /// E.G. Debug logging functions should be provenance exempt.
   void setProvenanceExempt(const std::string& fqName);
-
-  /// This function exists because mProvenance is an incomplete type when this
-  /// header is being compiled. It just routes to
-  /// mProvenance->setDisableProvTemporarily(...)
-  void setTempProvDisable(bool disable);
 
   /// Ensures the function is not added to the undo/redo stack. Examples include
   /// the undo and redo functions themselves.
@@ -608,7 +609,7 @@ private:
   int getClassUniqueID(LuaClassInstance inst);
 
   /// Retrieves the class with the given Unique ID.
-  LuaClassInstance getClassWithUniqueID(int ID);
+  LuaClassInstance getClassWithUniqueID(LuaClassInstance::IDType ID);
 
   /// Used when redoing class instance creation. Ensures that the same id is
   /// used when creating the classes. Starts getNewClassInstID at low, and
@@ -616,7 +617,8 @@ private:
   /// \param  low   The lowest instance ID to return when using
   ///               getNewClassInstID.
   /// \param  high  The highest instance
-  void setNextTempClassInstRange(int low, int high);
+  void setNextTempClassInstRange(LuaClassInstance::IDType low,
+                                 LuaClassInstance::IDType high);
 
   /// Returns true if the path specified points to a class instance.
   bool isLuaClassInstance(int tableIndex);
@@ -650,11 +652,11 @@ private:
   int                               mMemberHookIndex;
 
   /// Current global instance ID that will be used to create new Lua classes.
-  int                               mGlobalInstanceID;
+  LuaClassInstance::IDType          mGlobalInstanceID;
   bool                              mGlobalTempInstRange;
-  int                               mGlobalTempInstLow;
-  int                               mGlobalTempInstHigh;
-  int                               mGlobalTempCurrent;
+  LuaClassInstance::IDType          mGlobalTempInstLow;
+  LuaClassInstance::IDType          mGlobalTempInstHigh;
+  LuaClassInstance::IDType          mGlobalTempCurrent;
 
   std::auto_ptr<LuaProvenance>      mProvenance;
   std::auto_ptr<LuaMemberRegUnsafe> mMemberReg;

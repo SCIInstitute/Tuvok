@@ -2062,7 +2062,8 @@ int LuaScripting::getNewClassInstID()
 }
 
 //-----------------------------------------------------------------------------
-void LuaScripting::setNextTempClassInstRange(int low, int high)
+void LuaScripting::setNextTempClassInstRange(LuaClassInstance::IDType low,
+                                             LuaClassInstance::IDType high)
 {
   mGlobalTempInstRange = true;
   mGlobalTempInstLow = low;
@@ -2137,7 +2138,7 @@ int LuaScripting::getClassUniqueID(LuaClassInstance inst)
 }
 
 //-----------------------------------------------------------------------------
-LuaClassInstance LuaScripting::getClassWithUniqueID(int ID)
+LuaClassInstance LuaScripting::getClassWithUniqueID(LuaClassInstance::IDType ID)
 {
   return LuaClassInstance(ID);
 }

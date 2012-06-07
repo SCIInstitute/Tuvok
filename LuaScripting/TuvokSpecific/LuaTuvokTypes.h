@@ -66,7 +66,7 @@ public:
   {
     LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.
 
-    VECTOR4<T> ret;
+    Type ret;
 
     // There should be a table at 'pos', containing four numerical elements.
     luaL_checktype(L, pos, LUA_TTABLE);
@@ -121,7 +121,7 @@ public:
   static std::string getValStr(VECTOR4<T> in)
   {
     std::ostringstream os;
-    os << "<" << in.x << ", " << in.y << ", " << in.z << ", " << in.w << ">";
+    os << "{" << in.x << ", " << in.y << ", " << in.z << ", " << in.w << "}";
     return os.str();
   }
   static std::string getTypeStr() { return "Vector4"; }
@@ -185,7 +185,7 @@ public:
   static std::string getValStr(VECTOR3<T> in)
   {
     std::ostringstream os;
-    os << "<" << in.x << ", " << in.y << ", " << in.z << ">";
+    os << "{" << in.x << ", " << in.y << ", " << in.z << "}";
     return os.str();
   }
   static std::string getTypeStr() { return "Vector3"; }
@@ -240,7 +240,7 @@ public:
   static std::string getValStr(VECTOR2<T> in)
   {
     std::ostringstream os;
-    os << "<" << in.x << ", " << in.y << ">";
+    os << "{" << in.x << ", " << in.y << "}";
     return os.str();
   }
   static std::string getTypeStr() { return "Vector2"; }
@@ -273,6 +273,293 @@ public:
   static std::string getTypeStr() { return "uint64_t"; }
   static uint64_t getDefault(){ return 0; }
 };
+
+/// @todo Write extended plane type and update RenderWindow.cpp to use this
+///       instead of bypassing the LuaClassInstance.
+//template<>
+//class LuaStrictStack<ExtendedPlane>
+//{
+//  typedef ExtendedPlane Type;
+//
+//  static ExtendedPlane get(lua_State* L, int pos)
+//  {
+//    LuaStackRAII _a(L, 0);
+//
+//    luaL_checktype(L, pos, LUA_TTABLE);
+//
+//    lua_pushinteger(L, 1);
+//    lua_gettable(L, pos);
+//    rows[0] = LuaStrictStack<VECTOR2<T> >::get(L, lua_gettop(L));
+//    lua_pop(L, 1);
+//
+//    lua_pushinteger(L, 2);
+//    lua_gettable(L, pos);
+//    rows[1] = LuaStrictStack<VECTOR2<T> >::get(L, lua_gettop(L));
+//    lua_pop(L, 1);
+//
+//    return MATRIX2<T>(rows);
+//  }
+//
+//  static void push(lua_State* L, MATRIX2<T> in)
+//  {
+//    LuaStackRAII _a(L, 1);
+//
+//    lua_newtable(L);
+//    int tbl = lua_gettop(L);
+//
+//    // Push rows of the matrix.
+//    lua_pushinteger(L, 1);
+//    LuaStrictStack<VECTOR2<T> >::push(L, VECTOR2<T>(in.m11, in.m12));
+//    lua_settable(L, tbl);
+//
+//    lua_pushinteger(L, 2);
+//    LuaStrictStack<VECTOR2<T> >::push(L, VECTOR2<T>(in.m21, in.m22));
+//    lua_settable(L, tbl);
+//  }
+//
+//  static std::string getValStr(MATRIX2<T> in)
+//  {
+//    std::ostringstream os;
+//    os << "{ ";
+//    os << LuaStrictStack<VECTOR2<T> >::getValStr(VECTOR2<T>(in.m11, in.m12));
+//    os << ",\n";
+//    os << "  ";
+//    os << LuaStrictStack<VECTOR2<T> >::getValStr(VECTOR2<T>(in.m21, in.m22));
+//    os << " }";
+//    return os.str();
+//  }
+//  static std::string getTypeStr() { return "Matrix22"; }
+//  static MATRIX2<T>  getDefault() { return MATRIX2<T>(); }
+//};
+
+/// NOTE: We are choosing to store matrices in row-major order because
+///       initialization of these matrices looks prettier in Lua:
+///       M = { {0, 1, 0},
+///             {1, 2, 1},
+///             {0, 1, 0} }
+///
+/// Plus, M[1][2] is a natural analog of the mathematical notation M_12.
+
+/// @todo Add metamethods so we can perform linear algebra with the normal
+/// matrix/matrix and matrix/vector products inside of Lua.
+
+template<typename T>
+class LuaStrictStack<MATRIX2<T> >
+{
+public:
+
+  typedef MATRIX2<T> Type;
+
+  static MATRIX2<T> get(lua_State* L, int pos)
+  {
+    LuaStackRAII _a(L, 0);
+
+    VECTOR2<T> rows[2];
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    rows[0] = LuaStrictStack<VECTOR2<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    rows[1] = LuaStrictStack<VECTOR2<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    return MATRIX2<T>(rows);
+  }
+
+  static void push(lua_State* L, MATRIX2<T> in)
+  {
+    LuaStackRAII _a(L, 1);
+
+    lua_newtable(L);
+    int tbl = lua_gettop(L);
+
+    // Push rows of the matrix.
+    lua_pushinteger(L, 1);
+    LuaStrictStack<VECTOR2<T> >::push(L, VECTOR2<T>(in.m11, in.m12));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 2);
+    LuaStrictStack<VECTOR2<T> >::push(L, VECTOR2<T>(in.m21, in.m22));
+    lua_settable(L, tbl);
+  }
+
+  static std::string getValStr(MATRIX2<T> in)
+  {
+    std::ostringstream os;
+    os << "{ ";
+    os << LuaStrictStack<VECTOR2<T> >::getValStr(VECTOR2<T>(in.m11, in.m12));
+    os << ",\n";
+    os << "  ";
+    os << LuaStrictStack<VECTOR2<T> >::getValStr(VECTOR2<T>(in.m21, in.m22));
+    os << " }";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "Matrix22"; }
+  static MATRIX2<T>  getDefault() { return MATRIX2<T>(); }
+};
+
+template<typename T>
+class LuaStrictStack<MATRIX3<T> >
+{
+public:
+
+  typedef MATRIX3<T> Type;
+
+  static MATRIX3<T> get(lua_State* L, int pos)
+  {
+    LuaStackRAII _a(L, 0);
+
+    VECTOR3<T> rows[3];
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    rows[0] = LuaStrictStack<VECTOR3<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    rows[1] = LuaStrictStack<VECTOR3<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 3);
+    lua_gettable(L, pos);
+    rows[2] = LuaStrictStack<VECTOR3<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    return MATRIX3<T>(rows);
+  }
+
+  static void push(lua_State* L, MATRIX3<T> in)
+  {
+    LuaStackRAII _a(L, 1);
+
+    lua_newtable(L);
+    int tbl = lua_gettop(L);
+
+    // Push rows of the matrix.
+    lua_pushinteger(L, 1);
+    LuaStrictStack<VECTOR3<T> >::push(L, VECTOR3<T>(in.m11, in.m12, in.m13));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 2);
+    LuaStrictStack<VECTOR3<T> >::push(L, VECTOR3<T>(in.m21, in.m22, in.m23));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 3);
+    LuaStrictStack<VECTOR3<T> >::push(L, VECTOR3<T>(in.m31, in.m32, in.m33));
+    lua_settable(L, tbl);
+  }
+
+  static std::string getValStr(MATRIX3<T> in)
+  {
+    std::ostringstream os;
+    os << "{ ";
+    os << LuaStrictStack<VECTOR3<T> >::getValStr(VECTOR3<T>(in.m11, in.m12, in.m13));
+    os << ",\n";
+    os << "  ";
+    os << LuaStrictStack<VECTOR3<T> >::getValStr(VECTOR3<T>(in.m21, in.m22, in.m23));
+    os << ",\n";
+    os << "  ";
+    os << LuaStrictStack<VECTOR3<T> >::getValStr(VECTOR3<T>(in.m31, in.m32, in.m33));
+    os << " }";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "Matrix33"; }
+  static MATRIX3<T>  getDefault() { return MATRIX3<T>(); }
+};
+
+
+template<typename T>
+class LuaStrictStack<MATRIX4<T> >
+{
+public:
+
+  typedef MATRIX4<T> Type;
+
+  static MATRIX4<T> get(lua_State* L, int pos)
+  {
+    LuaStackRAII _a(L, 0);
+
+    VECTOR4<T> rows[4];
+
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    rows[0] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    rows[1] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 3);
+    lua_gettable(L, pos);
+    rows[2] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 4);
+    lua_gettable(L, pos);
+    rows[3] = LuaStrictStack<VECTOR4<T> >::get(L, lua_gettop(L));
+    lua_pop(L, 1);
+
+    return MATRIX4<T>(rows);
+  }
+
+  static void push(lua_State* L, MATRIX4<T> in)
+  {
+    LuaStackRAII _a(L, 1);
+
+    lua_newtable(L);
+    int tbl = lua_gettop(L);
+
+    // Push rows of the matrix.
+    lua_pushinteger(L, 1);
+    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 2);
+    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 3);
+    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 4);
+    LuaStrictStack<VECTOR4<T> >::push(L, VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
+    lua_settable(L, tbl);
+  }
+
+  static std::string getValStr(MATRIX4<T> in)
+  {
+    std::ostringstream os;
+    os << "{ ";
+    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m11, in.m12, in.m13, in.m14));
+    os << ",\n";
+    os << "  ";
+    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m21, in.m22, in.m23, in.m24));
+    os << ",\n";
+    os << "  ";
+    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m31, in.m32, in.m33, in.m34));
+    os << ",\n";
+    os << "  ";
+    os << LuaStrictStack<VECTOR4<T> >::getValStr(VECTOR4<T>(in.m41, in.m42, in.m43, in.m44));
+    os << " }";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "Matrix44"; }
+  static MATRIX4<T>  getDefault() { return MATRIX4<T>(); }
+};
+
 
 } // namespace tuvok
 

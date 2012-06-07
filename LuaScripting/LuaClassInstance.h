@@ -46,7 +46,10 @@ class LuaScripting;
 class LuaClassInstance
 {
 public:
-  LuaClassInstance(int instanceID);
+
+  typedef int IDType;
+
+  explicit LuaClassInstance(IDType instanceID);
   LuaClassInstance();
   ~LuaClassInstance() {}
 
@@ -59,7 +62,7 @@ public:
   std::string getClassConstructor() const;
 
   /// Retrieves global instance ID
-  int getGlobalInstID() const       {return mInstanceID;}
+  IDType getGlobalInstID() const       {return mInstanceID;}
 
   /// Returns true if this is the default instance of this class (no
   /// real data or functions).
@@ -99,7 +102,7 @@ public:
 
 private:
 
-  int         mInstanceID;
+  IDType         mInstanceID;
 
 };
 
