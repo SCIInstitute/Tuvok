@@ -126,7 +126,8 @@ void* LuaClassInstance::getVoidPointer(LuaScripting* ss)
   lua_State* L = ss->getLuaState();
   LuaStackRAII _a(L, 0);
 
-  ss->getFunctionTable(fqName());
+  if (ss->getFunctionTable(fqName()) == false)
+    throw LuaError("Invalid function table.");
   assert(lua_getmetatable(L, -1) != 0);
   lua_getfield(L, -1, MD_INSTANCE);
   void* r = lua_touserdata(L, -1);

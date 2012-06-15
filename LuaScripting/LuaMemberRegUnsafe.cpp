@@ -125,12 +125,11 @@ void LuaMemberRegUnsafe::unregisterHooks()
        it != mHookedFunctions.end(); ++it)
   {
     // Push the table associated with the function to the top.
-    mScriptSystem->getFunctionTable(*it);
-
-    if (lua_isnil(L, -1))
+    if (mScriptSystem->getFunctionTable(*it) == false)
     {
-      // Ignore missing function table and move on.
-      lua_pop(L,1);
+      // Ignore missing function table and move one (in this instance, it is
+      // likely that the function was unregistered before we got the chance
+      // to unregister our hook).
       continue;
     }
 
@@ -161,12 +160,9 @@ void LuaMemberRegUnsafe::unregisterUndoRedoFunctions()
        it != mRegisteredUndoRedo.end(); ++it)
   {
     // Push the table associated with the function to the top.
-    mScriptSystem->getFunctionTable(it->functionName);
-
-    if (lua_isnil(L, -1))
+    if (mScriptSystem->getFunctionTable(it->functionName) == false)
     {
       // Ignore missing function table and move on.
-      lua_pop(L,1);
       continue;
     }
 

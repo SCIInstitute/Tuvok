@@ -649,7 +649,8 @@
   void LuaScripting::setDefaults(const std::string& name, P1 p1, bool call)
   {
     LuaStackRAII _a = LuaStackRAII(mL, 0);
-    getFunctionTable(name);
+    if (getFunctionTable(name) == false)
+      throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
     int pos = 0;
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -673,7 +674,8 @@
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, bool call)
   {
     LuaStackRAII _a = LuaStackRAII(mL, 0);
-    getFunctionTable(name);
+    if (getFunctionTable(name) == false)
+      throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
     int pos = 0;
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -700,7 +702,8 @@
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, bool call)
   {
     LuaStackRAII _a = LuaStackRAII(mL, 0);
-    getFunctionTable(name);
+    if (getFunctionTable(name) == false)
+      throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
     int pos = 0;
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -730,7 +733,8 @@
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, bool call)
   {
     LuaStackRAII _a = LuaStackRAII(mL, 0);
-    getFunctionTable(name);
+    if (getFunctionTable(name) == false)
+      throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
     int pos = 0;
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -763,7 +767,8 @@
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, bool call)
   {
     LuaStackRAII _a = LuaStackRAII(mL, 0);
-    getFunctionTable(name);
+    if (getFunctionTable(name) == false)
+      throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
     int pos = 0;
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -799,7 +804,8 @@
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, bool call)
   {
     LuaStackRAII _a = LuaStackRAII(mL, 0);
-    getFunctionTable(name);
+    if (getFunctionTable(name) == false)
+      throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
     int pos = 0;
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -838,7 +844,8 @@
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, bool call)
   {
     LuaStackRAII _a = LuaStackRAII(mL, 0);
-    getFunctionTable(name);
+    if (getFunctionTable(name) == false)
+      throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
     int pos = 0;
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -880,7 +887,8 @@
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, bool call)
   {
     LuaStackRAII _a = LuaStackRAII(mL, 0);
-    getFunctionTable(name);
+    if (getFunctionTable(name) == false)
+      throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
     int pos = 0;
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -925,7 +933,8 @@
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, bool call)
   {
     LuaStackRAII _a = LuaStackRAII(mL, 0);
-    getFunctionTable(name);
+    if (getFunctionTable(name) == false)
+      throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
     int pos = 0;
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS
@@ -973,7 +982,8 @@
   void LuaScripting::setDefaults(const std::string& name, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, P10 p10, bool call)
   {
     LuaStackRAII _a = LuaStackRAII(mL, 0);
-    getFunctionTable(name);
+    if (getFunctionTable(name) == false)
+      throw LuaNonExistantFunction("Can't find function");
     int ftable = lua_gettop(mL);
     int pos = 0;
   #ifdef TUVOK_DEBUG_LUA_USE_RTTI_CHECKS

@@ -255,7 +255,8 @@ void LuaProvenance::logExecution(const string& fname,
   // Gather last execution parameters for inclusion in the undo stack.
   lua_State* L = mScripting->getLuaState();
   LuaStackRAII _a = LuaStackRAII(L, 0);
-  mScripting->getFunctionTable(fname.c_str());
+  if (mScripting->getFunctionTable(fname.c_str()) == false)
+    throw LuaError("Provenance unable to find function");
   lua_getfield(L, -1, LuaScripting::TBL_MD_FUN_LAST_EXEC);
   int lastExecTable = lua_gettop(L);
 

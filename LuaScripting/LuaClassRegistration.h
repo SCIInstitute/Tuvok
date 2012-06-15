@@ -181,9 +181,11 @@ void LuaClassRegistration<T>::inherit(LuaClassInstance them)
   LuaClassInstance us(mGlobalID);
 
   // Obtain the metatable for 'us'.
-  ss->getFunctionTable(us.fqName());
+  if (ss->getFunctionTable(us.fqName()) == false)
+    throw LuaError("Invalid 'us' function table.");
   int ourTable = lua_gettop(L);
-  ss->getFunctionTable(them.fqName());
+  if (ss->getFunctionTable(them.fqName()) == false)
+    throw LuaError("Invalid 'them' function table.");
   int theirTable = lua_gettop(L);
 
   if (lua_getmetatable(L, ourTable) == 0)
@@ -211,9 +213,11 @@ void LuaClassRegistration<T>::inherit(LuaClassInstance them,
   LuaClassInstance us(mGlobalID);
 
   // Obtain the metatable for 'us'.
-  ss->getFunctionTable(us.fqName());
+  if (ss->getFunctionTable(us.fqName()) == false)
+    throw LuaError("Invalid 'us' function table.");
   int ourTable = lua_gettop(L);
-  ss->getFunctionTable(them.fqName());
+  if (ss->getFunctionTable(them.fqName()) == false)
+    throw LuaError("Invalid 'them' function table.");
   int theirTable = lua_gettop(L);
 
   if (lua_isnil(L, ourTable))

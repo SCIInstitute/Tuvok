@@ -190,7 +190,8 @@ void LuaScripting::clearAllLastExecTables()
   }
 
   // Be sure to clear all class functions.
-  getFunctionTable(LuaClassInstance::CLASS_INSTANCE_TABLE);
+  if (getFunctionTable(LuaClassInstance::CLASS_INSTANCE_TABLE) == false)
+    throw LuaError("Unable to find system class instance table!");
   clearLastExecFromTable();
   lua_pop(mL, 1);
 }
@@ -742,9 +743,11 @@ void LuaScripting::unregisterAllFunctions()
   mRegisteredGlobals.clear();
 
   // Special case system nop function.
-  getFunctionTable("_sys_");
+  if (getFunctionTable("_sys_") == false)
+    throw LuaError("Unable to find system table!");
   int parentTable = lua_gettop(mL);
-  getFunctionTable(SYSTEM_NOP_COMMAND);
+  if (getFunctionTable(SYSTEM_NOP_COMMAND) == false)
+    throw LuaError("Unable to find no-op command in system table!");
   removeFunctionsFromTable(parentTable, SYSTEM_NOP_COMMAND);
   lua_pop(mL, 2);
 }
@@ -2015,8 +2018,11 @@ bool LuaScripting::doProvenanceFromExec(lua_State* L,
 //-----------------------------------------------------------------------------
 void LuaScripting::setUndoRedoStackExempt(const string& funcName)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
   lua_State* L = mL;
-  getFunctionTable(funcName);
+  if (getFunctionTable(funcName) == false)
+    throw LuaNonExistantFunction("Could not find function");
 
   lua_pushboolean(L, 1);
   lua_setfield(L, -2, TBL_MD_STACK_EXEMPT);
@@ -2035,10 +2041,13 @@ void LuaScripting::setUndoRedoStackExempt(const string& funcName)
 //-----------------------------------------------------------------------------
 void LuaScripting::setProvenanceExempt(const std::string& fqName)
 {
+  LuaStackRAII _a = LuaStackRAII(mL, 0);
+
   setUndoRedoStackExempt(fqName);
 
   lua_State* L = mL;
-  getFunctionTable(fqName);
+  if (getFunctionTable(fqName) == false)
+    throw LuaNonExistantFunction("Could not find function");
 
   lua_pushboolean(L, 1);
   lua_setfield(L, -2, TBL_MD_PROV_EXEMPT);
@@ -2093,7 +2102,9 @@ void LuaScripting::copyDefaultsTableToLastExec(int funTableIndex)
 //-----------------------------------------------------------------------------
 void LuaScripting::prepForExecution(const std::string& fqName)
 {
-  getFunctionTable(fqName);
+  if (getFunctionTable(fqName) == false)
+    throw LuaNonExistantFunction("Could not find function");
+
   assert(lua_getmetatable(mL, -1) != 0);
   lua_getfield(mL, -1, "__call");
 
@@ -2202,7 +2213,8 @@ LuaClassInstance LuaScripting::getLuaClassInstance(void* p)
   LuaStackRAII _a(mL, 0);
 
   // Grab lookup table and attempt to lookup the light user data.
-  getFunctionTable(LuaClassInstance::CLASS_LOOKUP_TABLE);
+  if (getFunctionTable(LuaClassInstance::CLASS_LOOKUP_TABLE) == false)
+    throw LuaNonExistantFunction("Could not find class lookup table!");
 
   lua_pushlightuserdata(mL, p);
   lua_gettable(mL, -2);
