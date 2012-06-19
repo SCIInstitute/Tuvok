@@ -212,6 +212,9 @@ vector<unsigned char> UVF::ComputeChecksum(LargeRAWFile_ptr streamFile, Checksum
 
 
 bool UVF::VerifyChecksum(LargeRAWFile_ptr streamFile, GlobalHeader& globalHeader, std::string* pstrProblem) {
+  if (globalHeader.ulChecksumSemanticsEntry == CS_NONE)
+    return true;
+
   vector<unsigned char> vecActualCheckSum = ComputeChecksum(streamFile, globalHeader.ulChecksumSemanticsEntry);
 
   if (vecActualCheckSum.size() != globalHeader.vcChecksum.size()) {
