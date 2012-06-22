@@ -81,6 +81,9 @@ MasterController::MasterController() :
   m_pIOManager->SetMemManLoadFunction(f);
 
   RegisterLuaCommands();
+
+  // TEMPORARY -- Disable the provenance system.
+  LuaScript()->cexec("provenance.enable", false);
 }
 
 

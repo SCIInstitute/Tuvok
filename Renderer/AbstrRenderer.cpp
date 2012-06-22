@@ -1753,6 +1753,7 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "scheduleCompleteRedraw", "", false);
   id = reg.function(&AbstrRenderer::CheckForRedraw,
                     "checkForRedraw", "", false);
+  ss->setProvenanceExempt(id);  // This function was spamming the prov record.
 
 
   /// @todo This function is deprecated. Just delete the render window that

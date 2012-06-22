@@ -190,10 +190,11 @@ void LuaScripting::clearAllLastExecTables()
   }
 
   // Be sure to clear all class functions.
-  if (getFunctionTable(LuaClassInstance::CLASS_INSTANCE_TABLE) == false)
-    throw LuaError("Unable to find system class instance table!");
-  clearLastExecFromTable();
-  lua_pop(mL, 1);
+  if (getFunctionTable(LuaClassInstance::CLASS_INSTANCE_TABLE) != false)
+  {
+    clearLastExecFromTable();
+    lua_pop(mL, 1);
+  }
 }
 
 //-----------------------------------------------------------------------------

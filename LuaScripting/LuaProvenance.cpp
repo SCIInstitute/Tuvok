@@ -70,7 +70,7 @@ LuaProvenance::LuaProvenance(LuaScripting* scripting)
 , mMemberReg(scripting)
 , mLoggingProvenance(false)
 , mDoProvReenterException(true)
-, mProvenanceDescLogEnabled(true)
+, mProvenanceDescLogEnabled(false)  // Disable the provenance log (performance)
 , mUndoRedoProvenanceDisable(false)
 , mCommandDepth(0)
 {
@@ -105,6 +105,10 @@ void LuaProvenance::registerLuaProvenanceFunctions()
                               "Enable/Disable provenance. This is not an "
                               "undoable action and will clear your provenance "
                               "history if disabled.",
+                              false);
+  mMemberReg.registerFunction(this, &LuaProvenance::enableLogAll,
+                              "provenance.enableProvLog",
+                              "Enables/Disables provenance log (def: false).",
                               false);
   mMemberReg.registerFunction(this, &LuaProvenance::clearProvenance,
                               "provenance.clear",
@@ -197,7 +201,7 @@ void LuaProvenance::logExecution(const string& fname,
   // TODO: Add indentation to provenance record for registered functions that
   //       are called within other registered functions.
 
-  if (mTemporarilyDisabled)
+  if (mTemporarilyDisabled || mEnabled == false)
     return;
 
   if (mLoggingProvenance)
@@ -397,6 +401,9 @@ int LuaProvenance::bruteRerollDetermineUndos(int undoIndex)
 //-----------------------------------------------------------------------------
 void LuaProvenance::issueUndo()
 {
+  if (mEnabled == false)
+    return;
+
   // If mStackPointer is at 1, then we can undo to the 'default' state.
   if (mStackPointer == 0)
   {
@@ -500,6 +507,9 @@ void LuaProvenance::issueUndoInternal()
 //-----------------------------------------------------------------------------
 void LuaProvenance::issueRedo()
 {
+  if (mEnabled == false)
+    return;
+
   if (static_cast<URStackType::size_type>(mStackPointer) ==
       mUndoRedoStack.size())
   {
@@ -768,12 +778,18 @@ vector<string> LuaProvenance::getRedoStackDesc()
 //-----------------------------------------------------------------------------
 void LuaProvenance::beginCommand()
 {
+  if (mEnabled == false)
+    return;
+
 	++mCommandDepth;
 }
 
 //-----------------------------------------------------------------------------
 void LuaProvenance::endCommand()
 {
+  if (mEnabled == false)
+    return;
+
 	--mCommandDepth;
 }
 
@@ -788,6 +804,9 @@ void LuaProvenance::printUndoStack()
 {
   mScripting->exec("log.info(''); log.info('Undo Stack (left is undo, "
                    "right redo):');");
+
+  if (mEnabled == false)
+    mScripting->exec("log.info('** Provenance disabled.')");
 
   vector<string> undoStack = getUndoStackDesc();
   for (vector<string>::reverse_iterator it = undoStack.rbegin();
@@ -804,6 +823,9 @@ void LuaProvenance::printRedoStack()
   mScripting->exec("log.info(''); log.info('Redo Stack (left is redo, "
                    "right undo):');");
 
+  if (mEnabled == false)
+    mScripting->exec("log.info('** Provenance disabled.')");
+
   vector<string> undoStack = getRedoStackDesc();
   for (vector<string>::reverse_iterator it = undoStack.rbegin();
       it != undoStack.rend(); ++it)
@@ -816,6 +838,9 @@ void LuaProvenance::printRedoStack()
 void LuaProvenance::printProvRecord()
 {
   mScripting->exec("log.info(''); log.info('Provenance Record:');");
+
+  if (mEnabled == false)
+    mScripting->exec("log.info('** Provenance disabled.')");
 
   vector<string> undoStack = getFullProvenanceDesc();
   for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
@@ -834,7 +859,7 @@ void LuaProvenance::setDisableProvTemporarily(bool disable)
 //-----------------------------------------------------------------------------
 void LuaProvenance::addDeletedInstanceToLastURItem(int globalID)
 {
-  if (mUndoRedoProvenanceDisable == true)
+  if (mUndoRedoProvenanceDisable == true || mEnabled == false)
     return;
 
   // The stack pointer might be zero if we are being deleted at program
@@ -848,7 +873,7 @@ void LuaProvenance::addDeletedInstanceToLastURItem(int globalID)
 //-----------------------------------------------------------------------------
 void LuaProvenance::addCreatedInstanceToLastURItem(int globalID)
 {
-  if (mUndoRedoProvenanceDisable == true)
+  if (mUndoRedoProvenanceDisable == true || mEnabled == false)
     return;
 
   assert(mStackPointer >= 1);
@@ -859,6 +884,9 @@ void LuaProvenance::addCreatedInstanceToLastURItem(int globalID)
 bool LuaProvenance::testLastURItemHasDeletedItems(const vector<int>& delItems)
   const
 {
+  if (mUndoRedoStack.size() == 0)
+    return false;
+
   UndoRedoItem ur = mUndoRedoStack.back();
 
   if (ur.instDeletions.get() == 0)
@@ -883,6 +911,9 @@ bool LuaProvenance::testLastURItemHasDeletedItems(const vector<int>& delItems)
 bool LuaProvenance::testLastURItemHasCreatedItems(const vector<int>&
                                                   createdItems) const
 {
+  if (mUndoRedoStack.size() == 0)
+    return false;
+
   UndoRedoItem ur = mUndoRedoStack.back();
 
   if (ur.instCreations.get() == 0)

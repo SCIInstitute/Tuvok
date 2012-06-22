@@ -415,6 +415,14 @@ public:
   /// This function routes to mProvenance->setDisableProvTemporarily(...)
   void setTempProvDisable(bool disable);
 
+  /// This function should be used sparingly, and only for those functions that
+  /// do not modify state nor return internal state in some way.
+  /// Turns out that we want functions that get called every frame to be
+  /// provenance exempt as well. Otherwise the provenance record is useless
+  /// and grows too fast (which is a performance concern).
+  /// E.G. Debug logging functions should be provenance exempt.
+  void setProvenanceExempt(const std::string& fqName);
+
   /// Returns true if we are running in verbose mode.
   bool isVerbose()    {return mVerboseMode;}
 
@@ -474,14 +482,6 @@ private:
   /// Pushes the table associated with the LuaClassInstance to the top of the
   /// stack. Returns false if it could not find the class instance table.
   bool getClassTable(LuaClassInstance inst);
-
-  /// This function should be used sparingly, and only for those functions that
-  /// do not modify state nor return internal state in some way.
-  /// I could not think of any functions outside the purview of LuaScripting
-  /// that would need to be provenance exempt, so it will remain private for
-  /// now.
-  /// E.G. Debug logging functions should be provenance exempt.
-  void setProvenanceExempt(const std::string& fqName);
 
   /// Ensures the function is not added to the undo/redo stack. Examples include
   /// the undo and redo functions themselves.
