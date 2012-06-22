@@ -198,12 +198,12 @@ public:
 
   static unsigned long get(lua_State* L, int pos)
   {
-    return luaL_checknumber(L, pos);
+    return static_cast<unsigned long>(luaL_checknumber(L, pos));
   }
 
   static void push(lua_State* L, unsigned long in)
   {
-    lua_pushnumber(L, in);
+    lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
   static std::string getValStr(unsigned long in)

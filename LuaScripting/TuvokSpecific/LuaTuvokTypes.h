@@ -56,30 +56,30 @@ namespace tuvok
 //       to function inside of Lua (add, subtract, and multiply metamethods).
 
 template <>
-class LuaStrictStack<uint64_t>
+class LuaStrictStack<unsigned long long>
 {
 public:
 
-  typedef uint64_t Type;
+  typedef unsigned long long Type;
 
-  static uint64_t get(lua_State* L, int pos)
+  static unsigned long long get(lua_State* L, int pos)
   {
-    return static_cast<uint64_t>(luaL_checknumber(L, pos));
+    return static_cast<unsigned long long>(luaL_checknumber(L, pos));
   }
 
-  static void push(lua_State* L, uint64_t in)
+  static void push(lua_State* L, unsigned long long in)
   {
-    lua_pushnumber(L, static_cast<double>(in));
+    lua_pushnumber(L, static_cast<lua_Number>(in));
   }
 
-  static std::string getValStr(uint64_t in)
+  static std::string getValStr(unsigned long long in)
   {
     std::ostringstream os;
     os << in;
     return os.str();
   }
-  static std::string getTypeStr() { return "uint64_t"; }
-  static uint64_t getDefault(){ return 0; }
+  static std::string getTypeStr() { return "unsigned long long"; }
+  static unsigned long long getDefault(){ return 0; }
 };
 
 // All numeric types are converted to doubles inside Lua. Therefore there is
