@@ -55,6 +55,33 @@ namespace tuvok
 // TODO: Add metatable to vector types in order to get basic vector operations
 //       to function inside of Lua (add, subtract, and multiply metamethods).
 
+template <>
+class LuaStrictStack<uint64_t>
+{
+public:
+
+  typedef uint64_t Type;
+
+  static uint64_t get(lua_State* L, int pos)
+  {
+    return static_cast<uint64_t>(luaL_checknumber(L, pos));
+  }
+
+  static void push(lua_State* L, uint64_t in)
+  {
+    lua_pushnumber(L, static_cast<double>(in));
+  }
+
+  static std::string getValStr(uint64_t in)
+  {
+    std::ostringstream os;
+    os << in;
+    return os.str();
+  }
+  static std::string getTypeStr() { return "uint64_t"; }
+  static uint64_t getDefault(){ return 0; }
+};
+
 // All numeric types are converted to doubles inside Lua. Therefore there is
 // no need to specialize on the type of vector.
 template<typename T>
@@ -195,6 +222,70 @@ public:
 };
 
 template<typename T>
+class LuaStrictStack<const VECTOR3<T>& >
+{
+public:
+
+  typedef VECTOR3<T> Type;
+
+  static VECTOR3<T> get(lua_State* L, int pos)
+  {
+    LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.
+
+    VECTOR3<T> ret;
+
+    // There should be a table at 'pos', containing four numerical elements.
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    ret.x = static_cast<T>(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    ret.y = static_cast<T>(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 3);
+    lua_gettable(L, pos);
+    ret.z = static_cast<T>(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+
+    return ret;
+  }
+
+  static void push(lua_State* L, VECTOR3<T> in)
+  {
+    LuaStackRAII _a(L, 1);  ///< TODO: Remove once thoroughly tested.
+
+    lua_newtable(L);
+    int tbl = lua_gettop(L);
+
+    lua_pushinteger(L, 1);
+    lua_pushnumber(L, static_cast<lua_Number>(in.x));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 2);
+    lua_pushnumber(L, static_cast<lua_Number>(in.y));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 3);
+    lua_pushnumber(L, static_cast<lua_Number>(in.z));
+    lua_settable(L, tbl);
+  }
+
+  static std::string getValStr(VECTOR3<T> in)
+  {
+    std::ostringstream os;
+    os << "{" << in.x << ", " << in.y << ", " << in.z << "}";
+    return os.str();
+  }
+  static std::string getTypeStr() { return "Vector3"; }
+  static VECTOR3<T>  getDefault() { return VECTOR3<T>(); }
+};
+
+template<typename T>
 class LuaStrictStack<VECTOR2<T> >
 {
 public:
@@ -249,32 +340,62 @@ public:
   static VECTOR2<T>  getDefault() { return VECTOR2<T>(); }
 };
 
-template <>
-class LuaStrictStack<uint64_t>
+// Exact same duplicate of VECTOR2<T>, but as a const reference specialization.
+template<typename T>
+class LuaStrictStack<const VECTOR2<T>& >
 {
 public:
 
-  typedef uint64_t Type;
+  typedef VECTOR2<T> Type;
 
-  static uint64_t get(lua_State* L, int pos)
+  static VECTOR2<T> get(lua_State* L, int pos)
   {
-    return static_cast<uint64_t>(luaL_checknumber(L, pos));
+    LuaStackRAII _a(L, 0);  ///< TODO: Remove once thoroughly tested.
+
+    VECTOR2<T> ret;
+
+    // There should be a table at 'pos', containing four numerical elements.
+    luaL_checktype(L, pos, LUA_TTABLE);
+
+    lua_pushinteger(L, 1);
+    lua_gettable(L, pos);
+    ret.x = static_cast<T>(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_pushinteger(L, 2);
+    lua_gettable(L, pos);
+    ret.y = static_cast<T>(luaL_checknumber(L, -1));
+    lua_pop(L, 1);
+
+    return ret;
   }
 
-  static void push(lua_State* L, uint64_t in)
+  static void push(lua_State* L, VECTOR2<T> in)
   {
-    lua_pushnumber(L, static_cast<double>(in));
+    LuaStackRAII _a(L, 1);  ///< TODO: Remove once thoroughly tested.
+
+    lua_newtable(L);
+    int tbl = lua_gettop(L);
+
+    lua_pushinteger(L, 1);
+    lua_pushnumber(L, static_cast<lua_Number>(in.x));
+    lua_settable(L, tbl);
+
+    lua_pushinteger(L, 2);
+    lua_pushnumber(L, static_cast<lua_Number>(in.y));
+    lua_settable(L, tbl);
   }
 
-  static std::string getValStr(uint64_t in)
+  static std::string getValStr(VECTOR2<T> in)
   {
     std::ostringstream os;
-    os << in;
+    os << "{" << in.x << ", " << in.y << "}";
     return os.str();
   }
-  static std::string getTypeStr() { return "uint64_t"; }
-  static uint64_t getDefault(){ return 0; }
+  static std::string getTypeStr() { return "Vector2"; }
+  static VECTOR2<T>  getDefault() { return VECTOR2<T>(); }
 };
+
 
 /// NOTE: We are choosing to store matrices in row-major order because
 ///       initialization of these matrices looks prettier in Lua:
@@ -588,6 +709,7 @@ TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERendererTarget)
 TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EStereoMode)
 TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::EBlendPrecision)
 TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ScalingMethod)
+TUVOK_LUA_REGISTER_ENUM_TYPE(AbstrRenderer::ERenderMode)
 
 TUVOK_LUA_REGISTER_ENUM_TYPE(MasterController::EVolumeRendererType)
 

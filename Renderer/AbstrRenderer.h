@@ -293,6 +293,9 @@ class AbstrRenderer: public Scriptable {
       /// @todo: Make this bool a per 3d render region toggle.
       return m_bRenderPlanesIn3D;}
 
+    void LuaSet2DPlanesIn3DView(bool bRenderPlanesIn3D,LuaClassInstance region);
+    bool LuaGet2DPlanesIn3DView() const {return Get2DPlanesIn3DView();}
+
     /** Change the size of the render window.  Any previous image is
      * destroyed, causing a full redraw on the next render.
      * \param vWinSize  new width and height of the view window */
@@ -313,6 +316,7 @@ class AbstrRenderer: public Scriptable {
     virtual void EnableClipPlane(RenderRegion *renderRegion=NULL);
     virtual void DisableClipPlane(RenderRegion *renderRegion=NULL);
     virtual void ShowClipPlane(bool, RenderRegion *renderRegion=NULL);
+    void LuaShowClipPlane(bool bShown, LuaClassInstance inst);
     const ExtendedPlane& GetClipPlane() const;
 
     virtual void ClipPlaneRelativeLock(bool);
@@ -539,6 +543,8 @@ class AbstrRenderer: public Scriptable {
 
     /// @returns if the data we're rendering is RGBA or not.
     virtual bool RGBAData() const;
+
+    void LuaCloneRenderMode(LuaClassInstance inst);
 
   protected:
     MasterController*   m_pMasterController;

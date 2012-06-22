@@ -136,5 +136,10 @@ void* LuaClassInstance::getVoidPointer(LuaScripting* ss)
   return r;
 }
 
+void LuaClassInstance::invalidate()
+{
+  mInstanceID = DEFAULT_INSTANCE_ID;
+}
+
 }
 

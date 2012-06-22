@@ -40,6 +40,8 @@
 #include "../LuaScripting.h"
 #include "../LuaClassRegistration.h"
 
+#include "LuaTuvokTypes.h"
+
 #include "LuaDatasetProxy.h"
 
 namespace tuvok
@@ -68,12 +70,18 @@ void LuaDatasetProxy::bindDataset(Dataset* ds)
     // Register dataset functions using ds.
     std::string id;
 
+    //GetDomainSize
+    id = mReg->functionProxy(ds, &Dataset::GetDomainSize,
+                             "getDomainSize", "", false);
+
     // Attempt to cast the dataset to a file backed dataset.
     FileBackedDataset* fileDataset = dynamic_cast<FileBackedDataset*>(ds);
     if (fileDataset != NULL)
     {
       id = mReg->functionProxy(fileDataset, &FileBackedDataset::Filename,
                                "path", "Full path to the dataset.", false);
+
+
     }
 
   }

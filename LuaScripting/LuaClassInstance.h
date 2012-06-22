@@ -69,6 +69,8 @@ public:
   bool isDefaultInstance() const;
   bool isValid(std::tr1::shared_ptr<LuaScripting> ss) const;
   bool isValid(LuaScripting* ss) const;
+  void invalidate();  // Invalidates this class instance. isValid will return
+                      // false and the instanceID will be lost.
 
   /// Data stored in the instance metatable.
   ///@{

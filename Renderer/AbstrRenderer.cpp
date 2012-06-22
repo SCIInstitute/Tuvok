@@ -510,6 +510,13 @@ void AbstrRenderer::ShowClipPlane(bool bShown,
   }
 }
 
+void AbstrRenderer::LuaShowClipPlane(bool bShown,
+                                     LuaClassInstance inst)
+{
+  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  ShowClipPlane(bShown, inst.getRawPointer<RenderRegion>(ss));
+}
+
 const ExtendedPlane& AbstrRenderer::GetClipPlane() const {
   return m_ClipPlane;
 }
@@ -1238,6 +1245,13 @@ void AbstrRenderer::Set2DPlanesIn3DView(bool bRenderPlanesIn3D,
   }
 }
 
+void AbstrRenderer::LuaSet2DPlanesIn3DView(bool bRenderPlanesIn3D,
+                                           LuaClassInstance region)
+{
+  tr1::shared_ptr<LuaScripting> ss = m_pMasterController->LuaScript();
+  Set2DPlanesIn3DView(bRenderPlanesIn3D,region.getRawPointer<RenderRegion>(ss));
+}
+
 void AbstrRenderer::SetCVIsoValue(float fIsovalue) {
   if (m_fCVIsovalue != fIsovalue) {
     m_fCVIsovalue = fIsovalue;
@@ -1583,6 +1597,32 @@ LuaClassInstance AbstrRenderer::LuaGetDataset() {
   return m_pLuaDataset;
 }
 
+void AbstrRenderer::LuaCloneRenderMode(LuaClassInstance inst) {
+  tr1::shared_ptr<LuaScripting> ss(m_pMasterController->LuaScript());
+  AbstrRenderer* other = inst.getRawPointer<AbstrRenderer>(ss);
+
+  this->SetUseLighting(other->GetUseLighting());
+  this->SetSampleRateModifier(other->GetSampleRateModifier());
+  this->SetGlobalBBox(other->GetGlobalBBox());
+  this->SetLocalBBox(other->GetLocalBBox());
+
+  if (other->IsClipPlaneEnabled())
+    this->EnableClipPlane();
+  else
+    this->DisableClipPlane();
+
+  this->SetIsosufaceColor(other->GetIsosufaceColor());
+  this->SetIsoValue(other->GetIsoValue());
+  this->SetCVIsoValue(other->GetCVIsoValue());
+  this->SetCVSize(other->GetCVSize());
+  this->SetCVContextScale(other->GetCVContextScale());
+  this->SetCVBorderScale(other->GetCVBorderScale());
+  this->SetCVColor(other->GetCVColor());
+  this->SetCV(other->GetCV());
+  this->SetCVFocusPos(other->GetCVFocusPos());
+  this->SetInterpolant(other->GetInterpolant());
+}
+
 void AbstrRenderer::RegisterLuaFunctions(
     LuaClassRegistration<AbstrRenderer>& reg,
     AbstrRenderer*,
@@ -1607,6 +1647,17 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "Specifies the renderer target. See getRendererTarget.",
                     true);
 
+  id = reg.function(&AbstrRenderer::SetRendermode,
+                    "setRenderMode",
+                    "Set the render mode (1D transfer function, 2D transfer "
+                    "function, etc...",
+                    true);
+  id = reg.function(&AbstrRenderer::GetRendermode,
+                    "getRenderMode",
+                    "Returns the renderer mode (1D transfer function, 2D "
+                    "transfer function, etc...",
+                    false);
+
   id = reg.function(&AbstrRenderer::LuaGetDataset,
                     "getDataset",
                     "Retrieves the renderer's current dataset.", false);
@@ -1616,6 +1667,9 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "Sets the background colors.", true);
   ss->addParamInfo(id, 0, "topColor", "Top [0,1] RGB color.");
   ss->addParamInfo(id, 1, "botColor", "Bottom [0,1] RGB color");
+  id = reg.function(&AbstrRenderer::GetBackgroundColor,
+                    "getBackgroundColor", "Retrieves specified background "
+                    "color.", false);
 
   id = reg.function(&AbstrRenderer::SetTextColor,
                     "setTextColor",
@@ -1652,4 +1706,129 @@ void AbstrRenderer::RegisterLuaFunctions(
   id = reg.function(&AbstrRenderer::ClipPlaneRelativeLock,
                     "setClipPlaneLocked", "Sets relative clip plane lock.",
                     true);
+
+  id = reg.function(&AbstrRenderer::SupportsClearView,
+                    "doesSupportClearView", "Returns true if clear view is "
+                    "supported by this renderer instance.", false);
+
+  id = reg.function(&AbstrRenderer::SetCV, "setClearViewEnabled",
+                    "Enables/Disables clear view.", true);
+  id = reg.function(&AbstrRenderer::GetCV, "getClearViewEnabled",
+                    "Returns clear view enabled state.", false);
+
+  id = reg.function(&AbstrRenderer::SetRenderCoordArrows,
+                    "setCoordinateArrowsEnabled", "Enables/Disables rendering "
+                    "of coordinate axes.", true);
+  id = reg.function(&AbstrRenderer::GetRenderCoordArrows,
+                    "getCoordinateArrowsEnabled", "Returns coordinate axes "
+                    "enabled state.", false);
+
+  id = reg.function(&AbstrRenderer::Transfer3DRotationToMIP,
+                    "transfer3DRotationToMIP", "Transfers current 3D rotation "
+                    "into all 2D render regions. Has the effect of applying "
+                    "3D rotation to maximal intensity projection.", true);
+  id = reg.function(&AbstrRenderer::SetMIPRotationAngle,
+                    "setMIPRotationAngle", "", true);
+  id = reg.function(&AbstrRenderer::SetMIPLOD, "setMIPLODEnabled",
+                    "Enables/Disables MIP LOD.", true);
+
+  id = reg.function(&AbstrRenderer::LuaSet2DPlanesIn3DView,
+                    "set2DPlanesIn3DView", "Adds 2D planes to the 3d view.",
+                    true);
+  id = reg.function(&AbstrRenderer::LuaGet2DPlanesIn3DView,
+                    "get2DPlanesIn3DView", "Returns 2D planes in 3D view "
+                    "enabled state.", false);
+
+  id = reg.function(&AbstrRenderer::SetStereo,
+                    "setStereoEnabled", "Enables/Disables stereo rendering.",
+                    true);
+  id = reg.function(&AbstrRenderer::GetStereo,
+                    "getStereoEnabled", "Returns stereo enabled state.",
+                    false);
+
+  id = reg.function(&AbstrRenderer::SetTimeSlice,
+                    "setTimeSlice", "", false);
+
+  id = reg.function(&AbstrRenderer::ScheduleCompleteRedraw,
+                    "scheduleCompleteRedraw", "", false);
+  id = reg.function(&AbstrRenderer::CheckForRedraw,
+                    "checkForRedraw", "", false);
+
+
+  /// @todo This function is deprecated. Just delete the render window that
+  /// created this abstract renderer, or delete the abstract renderer itself.
+  id = reg.function(&AbstrRenderer::Cleanup, "cleanup",
+                    "Deallocates GPU memory allocated during the rendering "
+                    "process. Should always be called before deleting "
+                    "the renderer.", false);
+
+  /// @todo Pick was not exposed and subsequently removed from IV3D because
+  ///       of a discussion I had with Tom. We will need to re-implement it
+  ///       correctly.
+//  id = reg.function(&AbstrRenderer::Pick,
+//                    "pick", "Obtains an index for the volume element at the "
+//                    "specified screen coordinates. Output is printed to "
+//                    "the 'Other' debug channel.", false);
+
+  id = reg.function(&AbstrRenderer::SetPerfMeasures, "setPerfMeasures",
+                    "Deallocates GPU memory allocated during the rendering "
+                    "process. Should always be called before deleting "
+                    "the renderer.", false);
+  ss->addParamInfo(id, 0, "minFramerate", "");
+  ss->addParamInfo(id, 1, "renderLowResResults", "If true, renders low "
+      "resolution intermediate results.");
+  ss->addParamInfo(id, 2, "screenResDecFactor", "");
+  ss->addParamInfo(id, 3, "sampleDecFactor", "");
+  ss->addParamInfo(id, 4, "startDelay", "");
+
+  id = reg.function(&AbstrRenderer::SetOrthoView, "setOrthoViewEnabled",
+                    "Enables/Disables orthographic view.", true);
+  id = reg.function(&AbstrRenderer::GetOrthoView, "getOrthoViewEnabled",
+                    "Returns orthographic view enabled state.", false);
+
+  id = reg.function(&AbstrRenderer::LuaCloneRenderMode, "cloneRenderMode",
+                    "Clones this renderer's mode from the specified renderer.",
+                    true);
+
+  id = reg.function(&AbstrRenderer::SetUseLighting, "setLightingEnabled",
+                    "Enables/Disables lighting.", true);
+  id = reg.function(&AbstrRenderer::GetUseLighting, "getLightingEnabled",
+                    "Returns lighting enabled state.", false);
+
+  id = reg.function(&AbstrRenderer::SetSampleRateModifier,
+                    "setSampleRateModifier", "", true);
+
+  id = reg.function(&AbstrRenderer::SetIsoValue,
+                    "setIsoValue", "", true);
+  id = reg.function(&AbstrRenderer::SetIsosufaceColor,
+                    "setIsosufaceColor", "", true);
+  id = reg.function(&AbstrRenderer::GetIsosufaceColor,
+                    "getIsosufaceColor", "", false);
+
+  id = reg.function(&AbstrRenderer::SetCVIsoValue,
+                    "setCVIsoValue", "", true);
+  id = reg.function(&AbstrRenderer::SetCVSize,
+                    "setCVSize", "", true);
+  id = reg.function(&AbstrRenderer::SetCVContextScale,
+                    "setCVContextScale", "", true);
+  id = reg.function(&AbstrRenderer::SetCVBorderScale,
+                    "setCVBorderScale", "", true);
+  id = reg.function(&AbstrRenderer::SetCVColor,
+                    "setCVColor", "", true);
+  id = reg.function(&AbstrRenderer::GetCVColor,
+                    "getCVColor", "", true);
+  id = reg.function(&AbstrRenderer::SetCV,
+                    "setCV", "", true);
+  //id = reg.function(&AbstrRenderer::SetCVFocusPos,
+   //                 "SetCVFocusPos", "", true);
+
+
+  id = reg.function(&AbstrRenderer::SetGlobalBBox,
+                    "setGlobalBBox", "", true);
+  id = reg.function(&AbstrRenderer::SetLocalBBox,
+                    "setLocalBBox", "", true);
+
+  id = reg.function(&AbstrRenderer::LuaShowClipPlane,
+                    "showClipPlane", "", true);
 }
+
