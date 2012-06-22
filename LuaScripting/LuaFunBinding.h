@@ -191,29 +191,29 @@ public:
 };
 
 template<>
-class LuaStrictStack<size_t>
+class LuaStrictStack<unsigned long>
 {
 public:
-  typedef size_t Type;
+  typedef unsigned long Type;
 
-  static size_t get(lua_State* L, int pos)
+  static unsigned long get(lua_State* L, int pos)
   {
     return luaL_checknumber(L, pos);
   }
 
-  static void push(lua_State* L, size_t in)
+  static void push(lua_State* L, unsigned long in)
   {
     lua_pushnumber(L, in);
   }
 
-  static std::string getValStr(size_t in)
+  static std::string getValStr(unsigned long in)
   {
     std::ostringstream os;
     os << in;
     return os.str();
   }
-  static std::string  getTypeStr()  { return "size_t"; }
-  static size_t       getDefault()  { return 0; }
+  static std::string    getTypeStr()  { return "unsigned long"; }
+  static unsigned long  getDefault()  { return 0; }
 };
 
 template<>
