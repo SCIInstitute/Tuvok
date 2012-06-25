@@ -58,6 +58,7 @@
   #define LARGE_STAT_BUFFER struct __stat64
 #else
   #include <wchar.h>
+  #include <sys/stat.h>
   typedef wchar_t WCHAR;
   typedef unsigned char CHAR;
   #define LARGE_STAT_BUFFER struct stat
