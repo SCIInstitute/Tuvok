@@ -13,9 +13,9 @@ unix:LIBS        += -lz -lrt
 win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
-debug{
-  unix:QMAKE_CFLAGS += -D_GLIBCXX_DEBUG
-  unix:QMAKE_CXXFLAGS += -D_GLIBCXX_DEBUG
+unix:debug {
+  QMAKE_CFLAGS += -D_GLIBCXX_DEBUG
+  QMAKE_CXXFLAGS += -D_GLIBCXX_DEBUG
 }
 
 # If this is a 10.5 machine, build for both x86 and x86_64.  Not
