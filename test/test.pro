@@ -13,7 +13,7 @@ unix:LIBS        += -lz -lrt
 win32:LIBS       += shlwapi.lib
 unix:QMAKE_CXXFLAGS += -fno-strict-aliasing
 unix:QMAKE_CFLAGS += -fno-strict-aliasing
-unix:debug {
+unix:CONFIG(debug, debug|release) {
   QMAKE_CFLAGS += -D_GLIBCXX_DEBUG
   QMAKE_CXXFLAGS += -D_GLIBCXX_DEBUG
 }
