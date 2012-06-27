@@ -838,7 +838,7 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
   lua_pop(mL, 1);
 
   lua_getfield(mL, mt, LuaClassInstance::MD_GLOBAL_INSTANCE_ID);
-  int instID = lua_tointeger(mL, -1);
+  int instID = static_cast<int>(lua_tointeger(mL, -1));
   lua_pop(mL, 1);
 
   // Call the delete function with the instance pointer.
@@ -2228,7 +2228,7 @@ LuaClassInstance LuaScripting::getLuaClassInstance(void* p)
     throw LuaNonExistantClassInstancePointer("Unable to find class instance");
   }
 
-  int instID = luaL_checkinteger(mL, -1);
+  int instID = static_cast<int>(luaL_checkinteger(mL, -1));
 
   lua_pop(mL, 2);
 

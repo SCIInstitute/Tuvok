@@ -459,7 +459,7 @@ public:
       // Grab the metatable of the table at pos and extract global ID.
       assert(lua_getmetatable(L, pos) != 0);
       lua_getfield(L, -1, LuaClassInstance::MD_GLOBAL_INSTANCE_ID);
-      int globalID = luaL_checkinteger(L, -1);
+      int globalID = static_cast<int>(luaL_checkinteger(L, -1));
       lua_pop(L, 2);
       return LuaClassInstance(globalID);
     }

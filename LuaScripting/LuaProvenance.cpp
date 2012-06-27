@@ -248,7 +248,7 @@ void LuaProvenance::logExecution(const string& fname,
   }
 
   // Erase redo hisory if we have a stack pointer beneath the top of the stack.
-  int stackDiff = mUndoRedoStack.size() - mStackPointer;
+  int stackDiff = static_cast<int>(mUndoRedoStack.size()) - mStackPointer;
   for (int i = 0; i < stackDiff; i++)
   {
     mUndoRedoStack.pop_back();
