@@ -128,7 +128,8 @@ void* LuaClassInstance::getVoidPointer(LuaScripting* ss)
 
   if (ss->getFunctionTable(fqName()) == false)
     throw LuaError("Invalid function table.");
-  assert(lua_getmetatable(L, -1) != 0);
+  if (lua_getmetatable(L, -1) == 0)
+    throw LuaError("Unable to obtain function metatable");
   lua_getfield(L, -1, MD_INSTANCE);
   void* r = lua_touserdata(L, -1);
   lua_pop(L, 3);  // Table, metatable, and userdata.

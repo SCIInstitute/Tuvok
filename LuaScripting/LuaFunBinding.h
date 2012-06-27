@@ -111,9 +111,6 @@ public:
   static T getDefault();
 };
 
-// TODO: 	Shared pointers. Need to decide if we even want to support these.
-//			If we do want to support these, what do these types mean inside of Lua?
-
 // Specializations (supported parameter/return types)
 
 template<>
@@ -480,7 +477,7 @@ public:
     // Lookup the instance table in the global instance table based on the
     // instance ID.
     // TODO: This can be done more efficiently by parsing and walking the
-    // tables ourselves.
+    // tables ourselves (LuaScripting::getFunctionTable)
     if (in.getGlobalInstID() != LuaClassInstance::DEFAULT_INSTANCE_ID)
     {
       std::ostringstream os;
@@ -491,6 +488,7 @@ public:
       // Interesting corner case: If the class instance has already been
       // deleted, luaL_dostring will return nil, and result in us deleting
       // elements from our last exec table.
+      //
       // Since deleteClass has a null undo function, we are safe doing this.
       // deleteClass will be the only function that runs into this corner case.
       if (lua_isnil(L, -1))
@@ -525,8 +523,8 @@ public:
 
 // Shared pointer type to allow arbitrary pointers to be passed into the system.
 // Be careful when using shared pointers with the LuaScripting class.
-// The LuaScripting class will not be destroyed until the class' provenance
-// record is cleared in this particular case. This is because a shared pointer
+// The LuaScripting class will not be destroyed until the provenance
+// record is cleared. This is because a shared pointer
 // reference to LuaScripting will be stored inside of the provenance system.
 template <typename T>
 class LuaStrictStack<std::tr1::shared_ptr<T> >
@@ -739,12 +737,7 @@ public:
 
 // TODO:  If boost detected, add boost shared_ptr.
 
-// TODO:	Add support for std::vector and std::map, both to be implemented as
-//        tables in Lua. std::vector would be efficiently implemented in Lua.
-//        In Lua, it would be stored internally as an array instead of
-//        key/value pairs in a hash table.
-//			  See http://www.lua.org/doc/hopl.pdf -- page 2, para 2. See ref 31.
-//			  Consider support for 3D and 4D graphics vectors.
+// TODO:	Add support for std::map, to be implemented as a Lua table.
 
 // For binding enumeration types, we provide the following template
 // specialization definition.

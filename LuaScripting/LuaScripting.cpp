@@ -442,7 +442,8 @@ void LuaScripting::printClassHelp(int tableIndex)
   getTableFuncDefs(funcDescs);
   lua_pop(mL, 1);
 
-  assert(lua_getmetatable(mL, tableIndex) != 0);
+  if (lua_getmetatable(mL, tableIndex) == 0)
+    throw LuaError("Unable to obtain function metatable.");
   lua_getfield(mL, -1, LuaClassInstance::MD_FACTORY_NAME);
   string factoryName = lua_tostring(mL, -1);
   lua_pop(mL, 2); // Pop metatable and factory name off the stack.
@@ -821,7 +822,8 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
 {
   LuaStackRAII _a(mL, 0);
 
-  assert(lua_getmetatable(mL, tableIndex) != 0);
+  if (lua_getmetatable(mL, tableIndex) == 0)
+    throw LuaError("Unable to obtain function metatable.");
   int mt = lua_gettop(mL);
 
   // Pull the delete function from the table.
@@ -2106,7 +2108,8 @@ void LuaScripting::prepForExecution(const std::string& fqName)
   if (getFunctionTable(fqName) == false)
     throw LuaNonExistantFunction("Could not find function");
 
-  assert(lua_getmetatable(mL, -1) != 0);
+  if (lua_getmetatable(mL, -1) == 0)
+    throw LuaError("Unable to find function metatable.");
   lua_getfield(mL, -1, "__call");
 
   // Remove metatable.

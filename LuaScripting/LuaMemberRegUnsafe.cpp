@@ -48,7 +48,7 @@
 
 #else
 
-#include "assert.h"
+#include <assert.h>
 #include "utestCommon.h"
 
 #endif
