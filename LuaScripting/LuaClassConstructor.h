@@ -108,6 +108,10 @@ public:
     lua_setfield(L, tableIndex,
                  LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
 
+    lua_pushlightuserdata(L, reinterpret_cast<void*>(
+        &LuaConstructorCallback<CLS, FunPtr>::delCallback));
+    lua_setfield(L, tableIndex, LuaClassInstance::MD_DEL_CALLBACK_PTR);
+
     // Install the callable table in the appropriate module based on its
     // fully qualified name.
     mSS->bindClosureTableWithFQName(name, tableIndex);
@@ -201,6 +205,10 @@ public:
     lua_setfield(L, tableIndex,
                  LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
 
+    lua_pushlightuserdata(L, reinterpret_cast<void*>(
+        &LuaConstructorCallback<CLS, FunPtr>::delCallback));
+    lua_setfield(L, tableIndex, LuaClassInstance::MD_DEL_CALLBACK_PTR);
+
     // Install the callable table in the appropriate module based on its
     // fully qualified name.
     mSS->bindClosureTableWithFQName(name, tableIndex);
@@ -290,9 +298,7 @@ private:
         // Places function table on the top of the stack.
         finalize(L, ss, reinterpret_cast<void*>(r), inst, mt, instTable,
                  reinterpret_cast<void*>(
-                     &LuaConstructorCallback<CLS, FunPtr>::del),
-                 reinterpret_cast<void*>(
-                     &LuaConstructorCallback<CLS, FunPtr>::delCallback));
+                     &LuaConstructorCallback<CLS, FunPtr>::del));
       }
       else
       {
@@ -399,9 +405,7 @@ private:
         // Places function table on the top of the stack.
         finalize(L, ss, reinterpret_cast<void*>(r), inst, mt, instTable,
            reinterpret_cast<void*>(
-               &LuaMemberConstructorCallback<CLS, FunPtr>::del),
-           reinterpret_cast<void*>(
-               &LuaMemberConstructorCallback<CLS, FunPtr>::delCallback)
+               &LuaMemberConstructorCallback<CLS, FunPtr>::del)
            );
       }
       else
@@ -439,7 +443,7 @@ private:
                                                  int consTable, int instID);
   static void finalize(lua_State* L, LuaScripting* ss, void* r,
                        LuaClassInstance inst, int mt, int instTable,
-                       void* delFun, void* delCallbackFun);
+                       void* delFun);
 
 
   // Utility functions for buildCoreInstanceTable and finalize.
@@ -448,8 +452,7 @@ private:
   static int createCoreMetatable(lua_State* L,
                                  int instID,
                                  int consTable);
-  static void finalizeMetatable(lua_State* L, int mt, void* ptr, void* delPtr,
-                                void* delCallbackPtr);
+  static void finalizeMetatable(lua_State* L, int mt, void* ptr, void* delPtr);
   static LuaClassInstance finalizeInstanceTable(LuaScripting* ss,
                                                 int instTable, int instID);
 

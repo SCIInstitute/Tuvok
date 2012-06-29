@@ -623,6 +623,9 @@ private:
   /// Removes all class instances from the system table.
   void deleteAllClassInstances();
 
+  /// Cleans up class constructors stored in mRegisteredClasses.
+  void cleanupClassConstructors();
+
   /// Deletes the class instance in the table. The table should be removed
   /// and no longer called after this function is executable.
   void destroyClassInstanceTable(int tableIndex);
@@ -670,6 +673,9 @@ private:
   /// List of registered modules/functions in Lua's global table.
   /// Used to iterate through all registered functions.
   std::vector<std::string>          mRegisteredGlobals;
+
+  /// List of registered classes. Needed for cleanup purposes.
+  std::vector<std::string>          mRegisteredClasses;
 
   /// Index used to assign a unique ID to classes that wish to register
   /// hooks.
@@ -863,6 +869,10 @@ void LuaScripting::registerClass(
   // Pop the new function table.
   lua_pop(mL, 1);
 
+  // Store the class in the 'registered class' stack.
+  // This stack lets us get rid of the callback pointers stored inside of the
+  // 'new' function in the class constructor.
+  mRegisteredClasses.push_back(className);
 }
 
 template <typename CLS, typename FunPtr>
@@ -904,6 +914,11 @@ void LuaScripting::registerClassStatic(
 
   // Pop the new function table.
   lua_pop(mL, 1);
+
+  // Store the class in the 'registered class' stack.
+  // This stack lets us get rid of the callback pointers stored inside of the
+  // 'new' function in the class constructor.
+  mRegisteredClasses.push_back(className);
 }
 
 template <typename T>

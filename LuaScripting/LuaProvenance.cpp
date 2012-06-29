@@ -169,7 +169,8 @@ void LuaProvenance::setEnabled(bool enabled)
 //-----------------------------------------------------------------------------
 void LuaProvenance::ammendLastProvLog(const string& ammend)
 {
-  assert(mProvenanceDescList.size() > 0);
+  if (mProvenanceDescList.size() <= 0)
+    return;
 
   string ammendedLog = mProvenanceDescList.back();
   ammendedLog += ammend;
@@ -1393,6 +1394,8 @@ SUITE(LuaProvenanceTests)
     CHECK_EQUAL(46, i2);
     CHECK_EQUAL("2nd string", s2.c_str());
     CHECK_EQUAL(true, b2);
+
+    delete sc;
 
   }
 

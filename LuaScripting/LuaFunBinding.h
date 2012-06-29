@@ -549,7 +549,7 @@ public:
 
     // Using clang for external unit testing. While VC and GCC don't have a
     // problem with the latter syntax, clang can't handle it.
-#ifdef EXTERNAL_UNIT_TESTING
+#ifdef __clang__
     ptr.~shared_ptr();
 #else
     ptr.std::tr1::template shared_ptr<T>::~shared_ptr();

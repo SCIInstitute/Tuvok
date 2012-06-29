@@ -393,6 +393,7 @@ SUITE(LuaTestClassRegistration)
     // TODO: Test exceptions.
   }
 
+
   int hooki1 = 0;
   float hookf1 = 0.0;
   string hooks1;

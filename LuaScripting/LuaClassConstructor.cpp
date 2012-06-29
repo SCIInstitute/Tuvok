@@ -106,8 +106,7 @@ int LuaClassConstructor::createCoreMetatable(lua_State* L, int instID,
 }
 
 void LuaClassConstructor::finalizeMetatable(lua_State* L, int mt,
-                                            void* ptr, void* delPtr,
-                                            void* delCallbackPtr)
+                                            void* ptr, void* delPtr)
 {
   // Setup metatable attributes that depend on the class pointer and
   // the type FunPtr.
@@ -116,9 +115,6 @@ void LuaClassConstructor::finalizeMetatable(lua_State* L, int mt,
 
   lua_pushlightuserdata(L, delPtr);
   lua_setfield(L, mt, LuaClassInstance::MD_DEL_FUN);
-
-  lua_pushlightuserdata(L, delCallbackPtr);
-  lua_setfield(L, mt, LuaClassInstance::MD_DEL_CALLBACK_PTR);
 }
 
 LuaClassInstance LuaClassConstructor::finalizeInstanceTable(LuaScripting* ss,
@@ -155,11 +151,11 @@ LuaClassInstance LuaClassConstructor::buildCoreInstanceTable(lua_State* L,
 
 void LuaClassConstructor::finalize(lua_State* L, LuaScripting* ss, void* r,
                                    LuaClassInstance inst, int mt, int instTable,
-                                   void* delFun, void* delCallbackFun)
+                                   void* delFun)
 {
   addToLookupTable(ss, L, r, inst.getGlobalInstID());
 
-  finalizeMetatable(L, mt, r, delFun, delCallbackFun);
+  finalizeMetatable(L, mt, r, delFun);
 
   // Remove the metatable first, then the instance table (otherwise,
   // metatable's index would be one lower than what we recorded).

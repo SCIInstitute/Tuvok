@@ -203,6 +203,7 @@ void LuaScripting::removeAllRegistrations()
   // Class instances should be destroyed before removing functions
   // (deleteClass needs to be present when deleting instances).
   deleteAllClassInstances();
+  cleanupClassConstructors();
   unregisterAllFunctions();
 }
 
@@ -852,22 +853,49 @@ void LuaScripting::destroyClassInstanceTable(int tableIndex)
   }
   lua_pop(mL, 1);
 
-  lua_getfield(mL, mt, LuaClassInstance::MD_DEL_CALLBACK_PTR);
-  LuaClassConstructor::DelFunSig delCallbackFun = reinterpret_cast<
-      LuaClassConstructor::DelFunSig>(lua_touserdata(mL, -1));
-  lua_pop(mL, 1);
-
-  // Delete the function pointer light user data. It is stored in the
-  // constructor's table.
-  lua_getfield(mL, tableIndex, "new");
-  lua_getfield(mL, tableIndex,
-               LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
-  delCallbackFun(lua_touserdata(mL, -1));
-  lua_pop(mL, 2);
-  // CONS_MD_FUNC_REGISTRATION_FPTR
-
   // Remove metatable from the stack.
   lua_pop(mL, 1);
+}
+
+//-----------------------------------------------------------------------------
+void LuaScripting::cleanupClassConstructors()
+{
+  LuaStackRAII _a(mL, 0);
+
+  for (vector<string>::iterator it = mRegisteredClasses.begin();
+      it != mRegisteredClasses.end(); ++it)
+  {
+    if (getFunctionTable(*it) == false)
+      continue;
+
+    int tblIndex = lua_gettop(mL);
+    lua_getfield(mL, tblIndex, "new");
+    if (lua_isnil(mL, lua_gettop(mL)))
+    {
+      lua_pop(mL, 2);
+      continue;
+    }
+
+    int consTable = lua_gettop(mL);
+
+    lua_getfield(mL, consTable, LuaClassInstance::MD_DEL_CALLBACK_PTR);
+    LuaClassConstructor::DelFunSig delCallbackFun = reinterpret_cast<
+        LuaClassConstructor::DelFunSig>(lua_touserdata(mL, -1));
+    lua_pop(mL, 1);
+
+    // Delete the function pointer light user data. It is stored in the
+    // constructor's table.
+    lua_getfield(mL, consTable,
+                 LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
+    delCallbackFun(lua_touserdata(mL, -1));
+
+    lua_pushnil(mL);
+    lua_setfield(mL, tblIndex, "new");
+
+    lua_pop(mL, 2);
+  }
+
+  mRegisteredClasses.clear();
 }
 
 //-----------------------------------------------------------------------------
