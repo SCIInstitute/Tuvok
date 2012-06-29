@@ -892,7 +892,7 @@ void LuaScripting::cleanupClassConstructors()
     lua_pushnil(mL);
     lua_setfield(mL, tblIndex, "new");
 
-    lua_pop(mL, 2);
+    lua_pop(mL, 3);
   }
 
   mRegisteredClasses.clear();
