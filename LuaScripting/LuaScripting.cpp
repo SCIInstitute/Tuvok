@@ -58,6 +58,7 @@
 #include "LuaScripting.h"
 #include "LuaProvenance.h"
 #include "LuaMemberRegUnsafe.h"
+#include "LuaDebug.h"
 
 // We are including this ourselves because we do not want dependencies on
 // Tuvok's SysTools.

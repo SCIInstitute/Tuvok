@@ -259,6 +259,7 @@ private:
 
   std::vector<std::string> getFullProvenanceDesc();
   void printProvRecord();
+  void printProvRecordToFile(const std::string& file);
 
   bool                      mEnabled;
   bool                      mTemporarilyDisabled;

@@ -45,6 +45,8 @@
 
 #include <vector>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 #include "LuaError.h"
 #include "LuaFunBinding.h"
@@ -81,7 +83,7 @@ LuaProvenance::LuaProvenance(LuaScripting* scripting)
 //-----------------------------------------------------------------------------
 LuaProvenance::~LuaProvenance()
 {
-  // We purposefully do NOT unregister our undo/redo functions.
+  // We purposefully do NOT unregister our Lua functions.
   // Since we are being destroyed, it is likely the lua_State has already
   // been closed by the class that composited us.
 }
@@ -130,8 +132,13 @@ void LuaProvenance::registerLuaProvenanceFunctions()
                               "Prints the contents of the redo stack "
                               "to 'log.info'.",
                               false);
+  mMemberReg.registerFunction(this, &LuaProvenance::printProvRecordToFile,
+                              "provenance.logProvRecord_toFile",
+                              "Prints the entire provenance record "
+                              "to 'log.info'.",
+                              false);
   mMemberReg.registerFunction(this, &LuaProvenance::printProvRecord,
-                              "provenance.logProvRecord",
+                              "provenance.logProvRecord_toConsole",
                               "Prints the entire provenance record "
                               "to 'log.info'.",
                               false);
@@ -849,6 +856,28 @@ void LuaProvenance::printProvRecord()
   {
     mScripting->cexec("log.info", (*it));
   }
+}
+
+//-----------------------------------------------------------------------------
+void LuaProvenance::printProvRecordToFile(const std::string& file)
+{
+  ofstream f;
+  f.open(file.c_str());
+  f << "Provenance Record:" << endl;
+
+  if (mEnabled == false)
+  {
+    f << "** Provenance disabled." << endl;
+  }
+
+  vector<string> undoStack = getFullProvenanceDesc();
+  for (vector<string>::iterator it = undoStack.begin(); it != undoStack.end();
+      ++it)
+  {
+    f << (*it) << endl;
+  }
+
+  f.close();
 }
 
 //-----------------------------------------------------------------------------
