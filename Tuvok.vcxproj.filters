@@ -957,6 +957,9 @@
     <ClCompile Include="IO\UVF\ExtendedOctree\VolumeTools.cpp">
       <Filter>IO\UVF\ExtendedOctree</Filter>
     </ClCompile>
+    <ClCompile Include="IO\LinesGeoConverter.cpp">
+      <Filter>IO</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Basics\Appendix.h">
@@ -1907,6 +1910,9 @@
     </ClInclude>
     <ClInclude Include="IO\UVF\ExtendedOctree\VolumeTools.h">
       <Filter>IO\UVF\ExtendedOctree</Filter>
+    </ClInclude>
+    <ClInclude Include="IO\LinesGeoConverter.h">
+      <Filter>IO</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

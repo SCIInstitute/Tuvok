@@ -376,6 +376,7 @@
     <ClCompile Include="Basics\Mesh.cpp" />
     <ClCompile Include="IO\AmiraConverter.cpp" />
     <ClCompile Include="IO\Images\StackExporter.cpp" />
+    <ClCompile Include="IO\LinesGeoConverter.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctree.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.cpp" />
     <ClCompile Include="IO\UVF\ExtendedOctree\VolumeTools.cpp" />
@@ -1013,6 +1014,7 @@
     <ClInclude Include="Basics\3rdParty\tclap\ZshCompletionOutput.h" />
     <ClInclude Include="IO\AmiraConverter.h" />
     <ClInclude Include="IO\Images\StackExporter.h" />
+    <ClInclude Include="IO\LinesGeoConverter.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctree.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\ExtendedOctreeConverter.h" />
     <ClInclude Include="IO\UVF\ExtendedOctree\VolumeTools.h" />
