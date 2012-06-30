@@ -34,9 +34,14 @@
 
 #pragma once
 
-#ifndef RENDERMESHGL_H
-#define RENDERMESHGL_H
+#ifndef TUVOK_RENDERMESHGL_H
+#define TUVOK_RENDERMESHGL_H
 
+#ifdef _MSC_VER
+# include <array>
+#else
+# include <tr1/array>
+#endif
 #include "../RenderMesh.h"
 #include "GLInclude.h"
 
@@ -61,6 +66,12 @@ public:
   virtual void RenderTransGeometryInside();
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
 
+  typedef std::tr1::array<float, 3> color;
+  /// if on, adds some simple geometry at the location of every vertex.
+  void EnableVertexMarkers(bool b);
+  /// changes the color of the markers used for vertices.
+  void SetVertexMarkerColor(color c);
+
 private:
   bool   m_bGLInitialized;
 
@@ -70,6 +81,7 @@ private:
       NORMAL_VBO,
       TEXCOORD_VBO,
       COLOR_VBO,
+      SPHERE_VBO,
       DATA_VBO_COUNT
   };
 
@@ -87,6 +99,14 @@ private:
   GLuint m_IndexVBOFront;
   GLuint m_IndexVBOBehind;
   GLuint m_IndexVBOInside;
+  GLuint m_SpheresVBO;
+
+  typedef std::tr1::array<float, 3> point;
+  typedef std::tr1::array<point, 3> triangle;
+  typedef std::tr1::array<triangle, 20> isocahedron;
+  isocahedron m_Isocahedron;
+  bool   m_bSpheresEnabled;
+  color  m_SphereColor;
 
   void PrepareOpaqueBuffers();
   void PrepareTransBuffers(GLuint IndexVBO,
@@ -94,7 +114,10 @@ private:
   void RenderGeometry(GLuint IndexVBO, size_t count);
 
   void UnrollArrays();
+
+  /// generate the geometry for an isocahedron, filling m_Isocahedron.
+  void PrepareIsocahedron();
 };
 
 }
-#endif // RENDERMESHGL_H
+#endif // TUVOK_RENDERMESHGL_H

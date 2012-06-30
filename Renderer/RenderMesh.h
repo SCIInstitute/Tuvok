@@ -39,7 +39,7 @@
 
 #include "../Basics/Mesh.h"
 #include <list>
-#include <stdarg.h>
+#include <cstdarg>
 
 namespace tuvok {
 
