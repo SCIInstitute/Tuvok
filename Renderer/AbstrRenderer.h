@@ -272,6 +272,9 @@ class AbstrRenderer: public Scriptable {
     float GetSampleRateModifier() const { return m_fSampleRateModifier; }
 
     virtual void SetIsoValue(float fIsovalue);
+    /// the given isovalue is in the range [0,1] and is interpreted as a
+    /// percentage of the available isovalues.
+    virtual void SetIsoValueRelative(float fIsovalue);
     float GetIsoValue() const { return m_fIsovalue; }
 
     virtual void SetIsosufaceColor(const FLOATVECTOR3& vColor);

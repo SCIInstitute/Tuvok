@@ -36,6 +36,7 @@
 
 #include <algorithm>
 #include <sstream>
+#include <utility>
 #include "AbstrRenderer.h"
 #include "Controller/Controller.h"
 #include "IO/Tuvok_QtPlugins.h"
@@ -350,6 +351,23 @@ void AbstrRenderer::SetIsoValue(float fIsovalue) {
     m_fIsovalue = fIsovalue;
     Schedule3DWindowRedraws();
   }
+}
+
+/// The given isoval is interpreted relative to the min/max of the range of the
+/// data values: 0 is the min and 1 is the max.
+void AbstrRenderer::SetIsoValueRelative(float isorel) {
+  // can't assert a proper range, but we can at least prevent idiots from
+  // calling 'SetIsoValueRelative(255)'.
+  assert(-0.01 <= isorel && isorel <= 1.01);
+  // clamp it to [0,1]
+  isorel = std::max(0.0f, isorel);
+  isorel = std::min(1.0f, isorel);
+
+  // grab the range and lerp the given isoval to that range
+  std::pair<double,double> minmax = m_pDataset->GetRange();
+  float newiso = MathTools::lerp<float,float>(isorel, 0.0, 1.0,
+                                              minmax.first, minmax.second);
+  this->SetIsoValue(newiso);
 }
 
 double AbstrRenderer::GetNormalizedIsovalue() const
@@ -1800,7 +1818,9 @@ void AbstrRenderer::RegisterLuaFunctions(
                     "setSampleRateModifier", "", true);
 
   id = reg.function(&AbstrRenderer::SetIsoValue,
-                    "setIsoValue", "", true);
+                    "setIsoValue", "changes the current isovalue", true);
+  id = reg.function(&AbstrRenderer::SetIsoValueRelative,
+                    "setIsoValueRelative", "changes isovalue; [0,1] range", true);
   id = reg.function(&AbstrRenderer::SetIsosufaceColor,
                     "setIsosufaceColor", "", true);
   id = reg.function(&AbstrRenderer::GetIsosufaceColor,
