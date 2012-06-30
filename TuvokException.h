@@ -37,7 +37,7 @@ namespace tuvok {
 class Exception : virtual public std::exception {
   public:
     Exception() : location(NULL), line(0) {}
-    Exception(const char* e, const char* where = NULL, size_t ln=0)
+    Exception(std::string e, const char* where = NULL, size_t ln=0)
       : std::exception(), error(e), location(where), line(ln) { }
     virtual ~Exception() throw() { }
 
