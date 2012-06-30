@@ -307,7 +307,7 @@ void RenderMeshGL::PrepareIsocahedron() {
     {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11}
   };
 
-  std::memset(m_Isocahedron.data(), 0, sizeof(m_Isocahedron.size()));
+  std::memset(&m_Isocahedron[0], 0, sizeof(m_Isocahedron.size()));
   for(size_t i=0; i < m_Isocahedron.size(); ++i) { // foreach triangle
     GLuint idx[3] = { indices[i][0], indices[i][1], indices[i][2] };
     point a = {{ iso[idx[0]][0], iso[idx[0]][1], iso[idx[0]][2] }};
