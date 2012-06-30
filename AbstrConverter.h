@@ -51,21 +51,20 @@
 
 class RangeInfo {
 public:
-  UINT64VECTOR3               m_vDomainSize;
-  FLOATVECTOR3                m_vAspect;
+  UINT64VECTOR3                 m_vDomainSize;
+  FLOATVECTOR3                  m_vAspect;
   uint64_t                      m_iComponentSize;
-  int                         m_iValueType;
-  std::pair<double, double>   m_fRange;
-  std::pair<int64_t, int64_t> m_iRange;
-  std::pair<uint64_t, uint64_t>   m_uiRange;
+  int                           m_iValueType;
+  std::pair<double, double>     m_fRange;
+  std::pair<int64_t, int64_t>   m_iRange;
+  std::pair<uint64_t, uint64_t> m_uiRange;
 };
 
 namespace { // force internal linkage.
   // Figure out what factor we should multiply each element in the data set by
   // to quantize it.
   template <typename T>
-  double QuantizationFactor(size_t max_out,
-                                   const T& mn, const T& mx)
+  double QuantizationFactor(size_t max_out, const T& mn, const T& mx)
   {
     double quant = max_out / (static_cast<double>(mx) - mn);
     // ensure we don't "stretch" the data values, only "compress" them if
@@ -77,16 +76,14 @@ namespace { // force internal linkage.
   // values in there.  Attempting to `compress' the range and that to
   // integers is going to leave us with 1 value.
   template <>
-  double QuantizationFactor(size_t max_out,
-                                   const float& mn, const float& mx)
+  double QuantizationFactor(size_t max_out, const float& mn, const float& mx)
   {
     return max_out / (mx - mn);
   }
   // Side note: we use references here because constant template parameters
   // must be integral or reference types.
   template <>
-  double QuantizationFactor(size_t max_out,
-                                   const double& mn, const double& mx)
+  double QuantizationFactor(size_t max_out, const double& mn, const double& mx)
   {
     return max_out / (mx - mn);
   }
@@ -230,9 +227,9 @@ public:
 
     const size_t sz = (sizeof(U) == 2 ? 4096 : 256);
     minmax = io_minmax(raw_data_src<U>(MappedData),
-                        UnsignedHistogram<U, sz>(aHist),
-                        TuvokProgress<uint64_t>(iSize), iSize,
-                        iCurrentInCoreSizeBytes);
+                       UnsignedHistogram<U, sz>(aHist),
+                       TuvokProgress<uint64_t>(iSize), iSize,
+                       iCurrentInCoreSizeBytes);
     assert(minmax.second >= minmax.first);
 
     MappedData.Close();
@@ -313,7 +310,7 @@ public:
     size_t binID = 0;
 
     for (typename std::map<T, uint64_t>::iterator it=bins.begin();
-         it != bins.end(); it++ ) {
+         it != bins.end(); it++) {
       binAssignments[(*it).first] = binID;
       binID++;
     }
@@ -417,7 +414,6 @@ public:
       }
     }
 
-
     T* pInData = new T[iCurrentInCoreElems];
     U* pOutData = new U[iCurrentInCoreElems];
 
@@ -508,7 +504,6 @@ protected:
 protected:
   std::string               m_vConverterDesc;
   std::vector<std::string>  m_vSupportedExt;
-
 };
 
 #endif // ABSTRCONVERTER_H
