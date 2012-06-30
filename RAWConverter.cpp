@@ -53,6 +53,7 @@
 #include "UVF/TOCBlock.h"
 #include "UVF/UVF.h"
 #include "TuvokIOError.h"
+#include "Quantize.h"
 
 using namespace std;
 using namespace tuvok;
