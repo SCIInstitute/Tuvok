@@ -16,6 +16,7 @@ unix:QMAKE_CFLAGS += -fno-strict-aliasing
 unix:CONFIG(debug, debug|release) {
   QMAKE_CFLAGS += -D_GLIBCXX_DEBUG
   QMAKE_CXXFLAGS += -D_GLIBCXX_DEBUG
+  LIBS += -lGLU
 }
 
 # If this is a 10.5 machine, build for both x86 and x86_64.  Not

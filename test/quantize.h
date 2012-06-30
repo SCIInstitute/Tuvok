@@ -22,7 +22,7 @@ bool quantize(LargeRAWFile& input,
               const std::string& outfn, uint64_t values,
               Histogram1DDataBlock* hist, T)
 {
-  return AbstrConverter::Quantize<T, unsigned short>(input, outfn, values, hist);
+  return Quantize<T, unsigned short>(input, outfn, values, hist);
 }
 
 template <>
@@ -47,7 +47,7 @@ bool quantize8(LargeRAWFile& input,
                const std::string& outfn, uint64_t values,
                Histogram1DDataBlock* hist, T)
 {
-  return AbstrConverter::Quantize<T, unsigned char>(input, outfn, values, hist);
+  return Quantize<T, unsigned char>(input, outfn, values, hist);
 }
 
 template <>
