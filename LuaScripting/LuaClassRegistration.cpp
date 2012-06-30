@@ -70,7 +70,7 @@ namespace tuvok
 // UNIT TESTING
 //
 //==============================================================================
-#ifdef LUASCRIPTING_NO_TUVOK
+#ifdef LUASCRIPTING_UNIT_TESTS
 
 SUITE(LuaTestClassRegistration)
 {
