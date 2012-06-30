@@ -59,9 +59,10 @@ LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
     throw DSParseFailed(rawFilename.c_str(), "number of vertices", __FILE__,
                         __LINE__);
   }
+  size_t n_vertices_st = static_cast<size_t>(n_vertices);
   MESSAGE("%llu vertices.", n_vertices);
-  VertVec vertices(n_vertices);
-  for(uint64_t i=0; i < n_vertices; ++i) {
+  VertVec vertices(n_vertices_st);
+  for(size_t i=0; i < n_vertices_st; ++i) {
     FLOATVECTOR3 tmp;
     lines >> tmp[0] >> tmp[1] >> tmp[2];
     vertices[i] = tmp;
@@ -77,8 +78,9 @@ LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
     throw DSParseFailed("number of edges", __FILE__, __LINE__);
   }
   MESSAGE("%llu edges.", n_edges);
-  IndexVec edges(n_edges*2); // an indexVec holds a single elem, not a pair
-  for(uint64_t i=0; i < n_edges; ++i) {
+  size_t n_edges_st = static_cast<size_t>(n_edges);
+  IndexVec edges(static_cast<size_t>(n_edges*2)); // an indexVec holds a single elem, not a pair
+  for(size_t i=0; i < n_edges_st; ++i) {
     UINTVECTOR2 e;
     lines >> e[0] >> e[1];
     edges[i+0] = e[0]-1;
@@ -94,9 +96,10 @@ LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
     throw DSParseFailed("number of colors", __FILE__, __LINE__);
   }
   MESSAGE("%llu colors.", n_colors);
-  ColorVec colors(n_colors);
+  size_t n_colors_st = static_cast<size_t>(n_colors);
+  ColorVec colors(n_colors_st);
   FLOATVECTOR3 c;
-  for(uint64_t i=0; i < n_colors; ++i) {
+  for(size_t i=0; i < n_colors; ++i) {
     lines >> c[0] >> c[1] >> c[2];
     colors[i] = c;
   }
@@ -110,9 +113,10 @@ LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
     throw DSParseFailed("number of color indices", __FILE__, __LINE__);
   }
   MESSAGE("%llu color indices", n_color_indices);
-  IndexVec c_indices(n_color_indices);
+  size_t n_color_indices_st = static_cast<size_t>(n_color_indices);
+  IndexVec c_indices(n_color_indices_st);
   uint32_t cindex;
-  for(uint64_t i=0; i < n_color_indices; ++i) {
+  for(size_t i=0; i < n_color_indices_st; ++i) {
     lines >> cindex;
     c_indices[i] = cindex-1;
   }
@@ -123,7 +127,7 @@ LinesGeoConverter::ConvertToMesh(const std::string& rawFilename) {
   // we're good, except the data are in a different coordinate space.
   // oops!  Subtract 0.5 from X and Y to get it into the right place.
   for(VertVec::iterator v = vertices.begin(); v != vertices.end(); ++v) {
-    *v = FLOATVECTOR3((*v)[0]-0.5, (*v)[1]-0.5, (*v)[2]);
+    *v = FLOATVECTOR3((*v)[0]-0.5f, (*v)[1]-0.5f, (*v)[2]);
   }
 
   return std::tr1::shared_ptr<Mesh>(new Mesh(
