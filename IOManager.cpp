@@ -87,6 +87,7 @@
 #include "Mesh.h"
 #include "AbstrGeoConverter.h"
 #include "OBJGeoConverter.h"
+#include "LinesGeoConverter.h"
 #include "PLYGeoConverter.h"
 #include "MobileGeoConverter.h"
 #include "MedAlyVisGeoConverter.h"
@@ -142,6 +143,7 @@ IOManager::IOManager() :
   m_iIncoresize(m_iMaxBrickSize*m_iMaxBrickSize*m_iMaxBrickSize),
   m_LoadDS(NULL)
 {
+  m_vpGeoConverters.push_back(new LinesGeoConverter());
   m_vpGeoConverters.push_back(new PLYGeoConverter());
   m_vpGeoConverters.push_back(new OBJGeoConverter());
   m_vpGeoConverters.push_back(new MobileGeoConverter());
@@ -2555,8 +2557,8 @@ std::tr1::shared_ptr<Mesh> IOManager::LoadMesh(const string& meshfile) const
               (*conv)->GetDesc().c_str(), meshfile.c_str());
       try {
         m = (*conv)->ConvertToMesh(meshfile);
-      } catch (const tuvok::io::DSOpenFailed& err) {
-        WARNING("Converter %s can read files, but conversion failed! %s",
+      } catch (const std::exception& err) {
+        WARNING("Converter %s can read files, but conversion failed: %s",
                 (*conv)->GetDesc().c_str(), err.what());
         throw;
       }

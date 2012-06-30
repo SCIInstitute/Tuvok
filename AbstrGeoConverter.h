@@ -34,8 +34,8 @@
 
 #pragma once
 
-#ifndef ABSTRGEOCONVERTER_H
-#define ABSTRGEOCONVERTER_H
+#ifndef TUVOK_ABSTRGEOCONVERTER_H
+#define TUVOK_ABSTRGEOCONVERTER_H
 
 #ifdef _MSC_VER
 # include <memory>
@@ -68,7 +68,9 @@ public:
   /// @return SupportedExtension() for the file's extension
   virtual bool CanRead(const std::string& fn) const;
 
-  const std::vector<std::string>& SupportedExt() const  { return m_vSupportedExt; }
+  const std::vector<std::string>& SupportedExt() const {
+    return m_vSupportedExt;
+  }
   const std::string& GetDesc() const { return m_vConverterDesc; }
 
   virtual bool CanExportData() const { return false; }
@@ -102,4 +104,4 @@ protected:
 
 };
 }
-#endif // ABSTRGEOCONVERTER_H
+#endif // TUVOK_ABSTRGEOCONVERTER_H
