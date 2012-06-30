@@ -74,13 +74,13 @@ typedef std::vector< SortIndex > SortIndexVec;
 typedef std::vector< SortIndex* > SortIndexPVec;
 
 
-class RenderMesh : public Mesh 
+class RenderMesh : public Mesh
 {
 public:
   RenderMesh(const Mesh& other, float fTransTreshhold=1.0f);
-  RenderMesh(const VertVec& vertices, const NormVec& normals, 
+  RenderMesh(const VertVec& vertices, const NormVec& normals,
        const TexCoordVec& texcoords, const ColorVec& colors,
-       const IndexVec& vIndices, const IndexVec& nIndices, 
+       const IndexVec& vIndices, const IndexVec& nIndices,
        const IndexVec& tIndices, const IndexVec& cIndices,
        bool bBuildKDTree, bool bScaleToUnitCube,
        const std::string& desc, EMeshType meshType,
@@ -103,39 +103,39 @@ public:
   // ****** the calls below are only used for transparent meshes *******
   // *******************************************************************
 
-  /**\brief Specifies the position of the volume's AABB 
+  /**\brief Specifies the position of the volume's AABB
    * \param min the min coodinates of the AABB
    * \param max the max coodinates of the AABB
    */
-  void SetVolumeAABB(const FLOATVECTOR3& min, 
+  void SetVolumeAABB(const FLOATVECTOR3& min,
                      const FLOATVECTOR3& max);
 
-  /**\brief Accepts the transformed position of the viewer relative to the 
+  /**\brief Accepts the transformed position of the viewer relative to the
    *        untransformed volume
-   * \param viewPoint the transformedposition of the viewer relative to the 
+   * \param viewPoint the transformedposition of the viewer relative to the
    *                  untransformed volume
    */
   void SetUserPos(const FLOATVECTOR3& viewPoint);
 
-  /**\brief Returns the list of all polygons in front of the AABB as 
-   *        computed by SetUserPos 
+  /**\brief Returns the list of all polygons in front of the AABB as
+   *        computed by SetUserPos
    * \param sorted if true then the resulting list is depth sorted
    * \result the points in front of the AABB
    */
   const SortIndexPVec& GetFrontPointList(bool bSorted);
-  /**\brief Returns the list of all polygons inside the AABB as 
-   *        computed by SetUserPos 
+  /**\brief Returns the list of all polygons inside the AABB as
+   *        computed by SetUserPos
    * \param sorted if true then the resulting list is depth sorted
    * \result the points inside the AABB
    */
   const SortIndexPVec& GetInPointList(bool bSorted);
-  /**\brief Returns the list of all polygons behind the AABB as 
+  /**\brief Returns the list of all polygons behind the AABB as
    *        computed by SetUserPos this list is nor depth sorted
    * \param sorted if true then the resulting list is depth sorted
    * \result the points behind the AABB
    */
   const SortIndexPVec& GetBehindPointList(bool bSorted);
-  
+
   virtual void GeometryHasChanged(bool bUpdateAABB, bool bUpdateKDtree);
 
   void EnableOverSorting(bool bOver) {
@@ -166,7 +166,7 @@ protected:
 
   // transparent meshes
   FLOATVECTOR3 m_viewPoint;
-  FLOATVECTOR3 m_VolumeMin; 
+  FLOATVECTOR3 m_VolumeMin;
   FLOATVECTOR3 m_VolumeMax;
   bool         m_QuadrantsDirty;
   bool         m_FIBHashDirty;
@@ -177,35 +177,34 @@ protected:
   SortIndexPVec m_InPointList;
   SortIndexPVec m_BehindPointList;
 
-  /**\brief If the mesh contains transparent parts this call creates 
-   *        27 lists pointing to parts of the transparent mesh in the 27 
-   *        quadrants defined by the 6 planes of the volume's AABB
+  /** If the mesh contains transparent parts this call creates * 27
+   *  lists pointing to parts of the transparent mesh in the 27 * quadrants
+   *  defined by the 6 planes of the volume's AABB
    */
   void SortTransparentDataIntoQuadrants();
 
-  /**\brief If the mesh contains transparent parts this call creates 
-   *        three lists pointing to parts of the transparent mesh
-   *        one list conatins all triangles in front of the AABB specified 
-   *        by min and max as viewed from viewPoint. 
+  /** If the mesh contains transparent parts this call creates
+   *  three lists pointing to parts of the transparent mesh
+   *  one list conatins all triangles in front of the AABB specified
+   *  by min and max as viewed from viewPoint.
    */
   void RehashTransparentData();
 
-  /**\brief Sorts a point into one of the 27 quadrants in and around the volume 
+  /** Sorts a point into one of the 27 quadrants in and around the volume
    * \param pos of the point to be sorted
    * \result the quadrant index
    */
   size_t PosToQuadrant(const FLOATVECTOR3& pos);
 
-  /**\brief Appends a quadrant with index "index" to "target"
+  /** Appends a quadrant with index "index" to "target"
    * \param target the list to append to
    * \param index the index of the quadrant to be appended to "target"
    */
   void Append(SortIndexPVec& target, size_t index) {
-    target.insert(target.end(), 
+    target.insert(target.end(),
                   m_Quadrants[index].begin(),
                   m_Quadrants[index].end());
   }
-
 
   void Front(int index,...);
 
