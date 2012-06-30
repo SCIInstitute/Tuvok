@@ -46,31 +46,29 @@ namespace io {
 /// Generic base for a failed open
 class DSOpenFailed : virtual public IOException {
   public:
-    DSOpenFailed(const char* s, const char* where=NULL,
-                 size_t ln=0) : IOException(s, where, ln), file(NULL) {}
-    DSOpenFailed(const char* filename, const char* s,
+    DSOpenFailed(std::string s, const char* where=NULL,
+                 size_t ln=0) : IOException(s, where, ln) {}
+    DSOpenFailed(std::string filename, std::string s,
                  const char* where=NULL, size_t ln=0)
                  : IOException(s, where, ln),
                    file(filename) {}
     virtual ~DSOpenFailed() throw() {}
 
-    const char* File() const { return file; }
+    const char* File() const { return file.c_str(); }
 
   private:
-    const char* file;
+    std::string file;
 };
 
 
 /// something went wrong in the parse process of a file
 class DSParseFailed : virtual public DSOpenFailed {
   public:
-    DSParseFailed(const char* s, const char* where=NULL,
-                  size_t ln=0) : IOException(s, where, ln),
-                                 DSOpenFailed(s, where, ln) {}
-    DSParseFailed(const char* f, const char* s,
+    DSParseFailed(std::string err, const char* where=NULL,
+                  size_t ln=0) : DSOpenFailed(err, where, ln) {}
+    DSParseFailed(const char* f, std::string s,
                   const char* where=NULL, size_t ln=0)
-                  : IOException(s, where, ln),
-                    DSOpenFailed(f, s, where, ln) {}
+                  : DSOpenFailed(f, s, where, ln) {}
     virtual ~DSParseFailed() throw() {}
 };
 
@@ -79,21 +77,19 @@ class DSParseFailed : virtual public DSOpenFailed {
 /// file was invalid.
 class DSVerificationFailed : virtual public DSOpenFailed {
   public:
-    DSVerificationFailed(const char* s, const char* where=NULL,
-                         size_t ln=0) : IOException(s, where, ln),
-                                        DSOpenFailed(s, where, ln) {}
+    DSVerificationFailed(std::string s, const char* where=NULL,
+                         size_t ln=0) : DSOpenFailed(s, where, ln) {}
     virtual ~DSVerificationFailed() throw() {}
 };
 
 /// Oversized bricks; needs re-bricking
 class DSBricksOversized : virtual public DSOpenFailed {
   public:
-    DSBricksOversized(const char* s,
+    DSBricksOversized(std::string s,
                       size_t bsz,
                       const char* where=NULL,
                       size_t ln=0)
-                      : IOException(s, where, ln),
-                        DSOpenFailed(s, where, ln),
+                      : DSOpenFailed(s, where, ln),
                         brick_size(bsz) {}
     size_t BrickSize() const { return this->brick_size; }
 
