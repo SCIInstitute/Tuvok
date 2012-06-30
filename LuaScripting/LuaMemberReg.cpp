@@ -36,8 +36,7 @@
           Should be instantiated alongside an encapsulating class.
  */
 
-
-#ifndef EXTERNAL_UNIT_TESTING
+#ifndef LUASCRIPTING_NO_TUVOK
 
 #include <iostream>
 #ifdef _MSC_VER
@@ -52,9 +51,19 @@
 
 #else
 
+#include <iostream>
+#include <tr1/memory>
+#include <string>
+#include <cstring>
 #include <assert.h>
-#include "utestCommon.h"
 
+#include "NoTuvok/LuaTuvokException.h"
+#include "Lua/lua.hpp"
+
+#endif
+
+#ifdef LUASCRIPTING_UNIT_TESTS
+#include "utestCommon.h"
 #endif
 
 #include <vector>
@@ -93,7 +102,7 @@ LuaMemberReg::~LuaMemberReg()
 //
 //==============================================================================
 
-#ifdef EXTERNAL_UNIT_TESTING
+#ifdef LUASCRIPTING_NO_TUVOK
 
 SUITE(LuaTestMemberFunctionRegistration)
 {
@@ -229,7 +238,7 @@ SUITE(LuaTestMemberFunctionRegistration)
 
     CHECK_EQUAL(452, a->hookm2_var);
 
-    sc->exec("provenance.logProvRecord()");
+    sc->exec("provenance.logProvRecord_toConsole()");
   }
 
   class B

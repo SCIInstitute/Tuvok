@@ -38,16 +38,26 @@
           the bottom of LuaMemberReg.cpp and LuaScripting.cpp.
  */
 
-#ifndef EXTERNAL_UNIT_TESTING
+#ifndef LUASCRIPTING_NO_TUVOK
 
 #include "Controller/Controller.h"
 #include "3rdParty/LUA/lua.hpp"
 
 #else
 
+#include <iostream>
+#include <tr1/memory>
+#include <string>
+#include <cstring>
 #include <assert.h>
-#include "utestCommon.h"
 
+#include "NoTuvok/LuaTuvokException.h"
+#include "Lua/lua.hpp"
+
+#endif
+
+#ifdef LUASCRIPTING_UNIT_TESTS
+#include "utestCommon.h"
 #endif
 
 #include <vector>
@@ -58,10 +68,10 @@
 #include "LuaScripting.h"
 #include "LuaProvenance.h"
 #include "LuaMemberRegUnsafe.h"
-#include "LuaDebug.h"
 
 // We are including this ourselves because we do not want dependencies on
 // Tuvok's SysTools.
+
 #ifndef DETECTED_OS_WINDOWS
 #include <dirent.h>
 #include <errno.h>
@@ -359,7 +369,7 @@ void LuaScripting::registerScriptFunctions()
 void LuaScripting::logInfo(string log)
 {
   // TODO: Add logging functionality for Tuvok.
-#ifdef EXTERNAL_UNIT_TESTING
+#ifdef LUASCRIPTING_NO_TUVOK
   cout << log << endl;
 #else
   MESSAGE(log.c_str());
@@ -370,7 +380,7 @@ void LuaScripting::logInfo(string log)
 void LuaScripting::logWarn(string log)
 {
   // TODO: Add logging functionality for Tuvok.
-#ifdef EXTERNAL_UNIT_TESTING
+#ifdef LUASCRIPTING_NO_TUVOK
   cout << "Warn: " << log << endl;
 #else
   MESSAGE(log.c_str());
@@ -381,7 +391,7 @@ void LuaScripting::logWarn(string log)
 void LuaScripting::logError(string log)
 {
   // TODO: Add logging functionality for Tuvok.
-#ifdef EXTERNAL_UNIT_TESTING
+#ifdef LUASCRIPTING_NO_TUVOK
   cout << "Error: " << log << endl;
 #else
   T_ERROR(log.c_str());
@@ -2565,7 +2575,7 @@ void LuaScripting::endCommandGroup()
 //
 //==============================================================================
 
-#ifdef EXTERNAL_UNIT_TESTING
+#ifdef LUASCRIPTING_UNIT_TESTS
 
 void printRegisteredFunctions(LuaScripting* s);
 

@@ -27,38 +27,38 @@
  */
 
 /**
- \file    LuaDebug.h
+ \file    LuaTuvokException.cpp
  \author  James Hughes
- \date    Jun 29, 2012
- \brief   Provides debugging functions within Lua.
+ \brief   Provides tuvok::Exception when LuaScripting is compiled outside
+          ouf tuvok.
  */
 
-#ifndef LUADEBUG_H_
-#define LUADEBUG_H_
-
-#include "LuaMemberRegUnsafe.h"
+#ifndef LUA_TUVOKEXCEPTION_H_
+#define LUA_TUVOKEXCEPTION_H_
 
 namespace tuvok
 {
-class LuaScripting;
-  
-class LuaDebug
+
+class Exception : virtual public std::exception
 {
 public:
-  LuaDebug(LuaScripting* scripting);
-  virtual ~LuaDebug();
+  Exception() : location(NULL), line(0) {}
+  Exception(const char* e, const char* where = NULL, size_t ln = 0)
+    : std::exception(), error(e), location(where), line(ln) {}
+  virtual ~Exception() throw() {}
 
-  /// Registers debugging functions in Lua.
-  void registerLuaDebugFunctions();
+  virtual const char* what() const throw() {return this->error.c_str(); }
+  const char* where() const {return this->location;}
+  size_t lineno() const {return this->line;}
 
-private:
-
-  /// Watches the given function for changes.
-  void watchFunction(const std::string& function);
-
-
-  LuaMemberRegUnsafe        mMemberReg;     ///< Used for member registration.
+protected:
+  std::string error;
+  const char* location;
+  size_t      line;
 };
 
-} /* namespace tuvok */
-#endif /* LUADEBUG_H_ */
+}
+
+
+#endif /* LUA_TUVOKEXCEPTION_H_ */
+

@@ -5,6 +5,7 @@ Build
 Basics
 IO
 *.o
+*.swp
 *.vcxproj.user
 test/context/tvktest
 test/render/tuvok

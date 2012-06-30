@@ -41,7 +41,7 @@
 #ifndef TUVOK_LUASCRIPTING_H_
 #define TUVOK_LUASCRIPTING_H_
 
-#ifndef EXTERNAL_UNIT_TESTING
+#ifndef LUASCRIPTING_NO_TUVOK
 
 #include "3rdParty/LUA/lua.hpp"
 #include <assert.h>

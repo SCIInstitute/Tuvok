@@ -30,17 +30,26 @@
  \brief   
  */
 
-
-#ifndef EXTERNAL_UNIT_TESTING
+#ifndef LUASCRIPTING_NO_TUVOK
 
 #include "Controller/Controller.h"
 #include "3rdParty/LUA/lua.hpp"
 
 #else
 
+#include <iostream>
+#include <tr1/memory>
+#include <string>
+#include <cstring>
 #include <assert.h>
-#include "utestCommon.h"
 
+#include "NoTuvok/LuaTuvokException.h"
+#include "Lua/lua.hpp"
+
+#endif
+
+#ifdef LUASCRIPTING_UNIT_TESTS
+#include "utestCommon.h"
 #endif
 
 #include <vector>
@@ -61,7 +70,7 @@ namespace tuvok
 // UNIT TESTING
 //
 //==============================================================================
-#ifdef EXTERNAL_UNIT_TESTING
+#ifdef LUASCRIPTING_NO_TUVOK
 
 SUITE(LuaTestClassRegistration)
 {

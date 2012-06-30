@@ -29,11 +29,31 @@
 /**
  \file    LuaDebug.cpp
  \author  James Hughes
- SCI Institute
- University of Utah
  \date    Jun 29, 2012
  \brief   
  */
+
+#ifndef LUASCRIPTING_NO_TUVOK
+
+#include "Controller/Controller.h"
+#include "3rdParty/LUA/lua.hpp"
+
+#else
+
+#include <iostream>
+#include <tr1/memory>
+#include <string>
+#include <cstring>
+#include <vector>
+
+#include "NoTuvok/LuaTuvokException.h"
+#include "Lua/lua.hpp"
+
+#endif
+
+#ifdef LUASCRIPTING_UNIT_TESTS
+#include "utestCommon.h"
+#endif
 
 #include "LuaDebug.h"
 

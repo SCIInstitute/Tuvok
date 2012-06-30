@@ -38,10 +38,10 @@
 #ifndef TUVOK_LUAERROR_H_
 #define TUVOK_LUAERROR_H_
 
-#ifndef EXTERNAL_UNIT_TESTING
+#ifndef LUASCRIPTING_NO_TUVOK
 #include "../Basics/TuvokException.h"
 #else
-#include "TuvokException.h"
+#include "NoTuvok/LuaTuvokException.h"
 #endif
 
 namespace tuvok
