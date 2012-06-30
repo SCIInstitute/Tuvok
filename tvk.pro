@@ -170,6 +170,7 @@ HEADERS += \
            IO/StkConverter.h \
            IO/TiffVolumeConverter.h \
            IO/AbstrGeoConverter.h \
+           IO/LinesGeoConverter.h \
            IO/OBJGeoConverter.h \
            IO/PLYGeoConverter.h \
            IO/MobileGeoConverter.h \
@@ -460,6 +461,7 @@ SOURCES += \
            IO/StkConverter.cpp \
            IO/TiffVolumeConverter.cpp \
            IO/AbstrGeoConverter.cpp \
+           IO/LinesGeoConverter.cpp \
            IO/OBJGeoConverter.cpp \
            IO/PLYGeoConverter.cpp \
            IO/MobileGeoConverter.cpp \
