@@ -38,6 +38,8 @@
 #ifndef TUVOK_LUAERROR_H_
 #define TUVOK_LUAERROR_H_
 
+#include <string>
+
 #ifndef LUASCRIPTING_NO_TUVOK
 #include "../Basics/TuvokException.h"
 #else

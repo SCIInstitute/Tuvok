@@ -31,38 +31,13 @@
           Not reentrant (logging and command depth).
  */
 
-#ifndef LUASCRIPTING_NO_TUVOK
-
-#include "Controller/Controller.h"
-#include "3rdParty/LUA/lua.hpp"
-
-#else
-
-#include <iostream>
-#include <memory>
-#include <string>
-#include <cstring>
 #include <assert.h>
 
-#include "NoTuvok/LuaTuvokException.h"
-#include "Lua/lua.hpp"
-
-#endif
-
-#ifdef LUASCRIPTING_UNIT_TESTS
-#include "utestCommon.h"
-#endif
-
 #include <vector>
-#include <algorithm>
-#include <iostream>
 #include <fstream>
 
 #include "LuaScripting.h"
-#include "LuaError.h"
-#include "LuaFunBinding.h"
 #include "LuaProvenance.h"
-#include "LuaMemberReg.h"
 
 using namespace std;
 
@@ -990,6 +965,7 @@ void LuaProvenance::setLastURItemAlsoRedoChildren()
 //==============================================================================
 
 #ifdef LUASCRIPTING_UNIT_TESTS
+#include "utestCommon.h"
 
 SUITE(LuaProvenanceTests)
 {

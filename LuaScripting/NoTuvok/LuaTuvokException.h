@@ -36,6 +36,8 @@
 #ifndef LUA_TUVOKEXCEPTION_H_
 #define LUA_TUVOKEXCEPTION_H_
 
+#include <string>
+
 namespace tuvok
 {
 

@@ -45,16 +45,12 @@
 #else
 
 #include <iostream>
-#include <string>
 #include <vector>
-#include <cstring>
 #include <assert.h>
 
 #endif
 
-#ifdef LUASCRIPTING_UNIT_TESTS
-#include "utestCommon.h"
-#endif
+#include <cstring>
 
 #include "LuaScripting.h"
 #include "LuaProvenance.h"
@@ -2566,6 +2562,7 @@ void LuaScripting::endCommandGroup()
 //==============================================================================
 
 #ifdef LUASCRIPTING_UNIT_TESTS
+#include "utestCommon.h"
 
 void printRegisteredFunctions(LuaScripting* s);
 

@@ -30,23 +30,9 @@
  \brief
  */
 
-#ifdef LUASCRIPTING_NO_TUVOK
-
-#include <string>
-#include <cstring>
-#include <assert.h>
-
-#endif
-
 #include <vector>
 
-#ifdef LUASCRIPTING_UNIT_TESTS
-#include "utestCommon.h"
-#endif
-
 #include "LuaScripting.h"
-#include "LuaStackRAII.h"
-#include "LuaClassInstance.h"
 #include "LuaProvenance.h"
 
 using namespace std;

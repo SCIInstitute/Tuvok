@@ -40,34 +40,9 @@
           remains valid throughout the lifetime of LuaMemberRegUnsafe.
  */
 
-
-#ifndef LUASCRIPTING_NO_TUVOK
-
-#include "Controller/Controller.h"
-#include "3rdParty/LUA/lua.hpp"
-
-#else
-
-#include <iostream>
-#include <memory>
-#include <string>
-#include <cstring>
-#include <assert.h>
-
-#include "NoTuvok/LuaTuvokException.h"
-#include "Lua/lua.hpp"
-
-#endif
-
-#ifdef LUASCRIPTING_UNIT_TESTS
-#include "utestCommon.h"
-#endif
-
 #include <vector>
 
 #include "LuaScripting.h"
-#include "LuaError.h"
-#include "LuaFunBinding.h"
 #include "LuaMemberRegUnsafe.h"
 
 using namespace std;

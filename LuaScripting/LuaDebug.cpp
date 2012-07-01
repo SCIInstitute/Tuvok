@@ -33,12 +33,8 @@
  \brief   
  */
 
-#ifdef LUASCRIPTING_NO_TUVOK
-
 #include <string>
 #include <vector>
-
-#endif
 
 #include "LuaDebug.h"
 

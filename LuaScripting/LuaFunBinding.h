@@ -43,7 +43,6 @@
 #define TUVOK_LUAFUNBINDING_H_
 
 #include <iomanip>
-#include <typeinfo>
 #include <sstream>
 
 #include "LuaClassInstance.h"

@@ -30,10 +30,7 @@
   \brief   
 */
 
-#ifdef LUASCRIPTING_NO_TUVOK
 #include <iostream>
-#endif
-
 #include <vector>
 
 #include "LuaScripting.h"

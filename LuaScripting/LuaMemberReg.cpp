@@ -36,41 +36,9 @@
           Should be instantiated alongside an encapsulating class.
  */
 
-#ifndef LUASCRIPTING_NO_TUVOK
-
-#include <iostream>
-#ifdef _MSC_VER
-#include <memory.h>
-#else
-#include <tr1/memory>
-#endif
-#include <string>
-
-#include "Controller/Controller.h"
-#include "3rdParty/LUA/lua.hpp"
-
-#else
-
-#include <iostream>
-#include <memory>
-#include <string>
-#include <cstring>
-#include <assert.h>
-
-#include "NoTuvok/LuaTuvokException.h"
-#include "Lua/lua.hpp"
-
-#endif
-
-#ifdef LUASCRIPTING_UNIT_TESTS
-#include "utestCommon.h"
-#endif
-
 #include <vector>
 
 #include "LuaScripting.h"
-#include "LuaError.h"
-#include "LuaFunBinding.h"
 #include "LuaMemberReg.h"
 
 using namespace std;
@@ -103,6 +71,7 @@ LuaMemberReg::~LuaMemberReg()
 //==============================================================================
 
 #ifdef LUASCRIPTING_UNIT_TESTS
+#include "utestCommon.h"
 
 SUITE(LuaTestMemberFunctionRegistration)
 {

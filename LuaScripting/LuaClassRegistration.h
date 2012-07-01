@@ -35,10 +35,7 @@
 #ifndef TUVOK_LUACLASSREGISTRATION_H_
 #define TUVOK_LUACLASSREGISTRATION_H_
 
-#include "LuaCommon.h"
-#include "LuaClassInstance.h"
 #include "LuaMemberRegUnsafe.h"
-#include "LuaProvenance.h"
 
 namespace tuvok
 {
