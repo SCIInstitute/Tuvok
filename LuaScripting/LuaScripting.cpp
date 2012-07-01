@@ -2555,6 +2555,8 @@ void LuaScripting::endCommandGroup()
   endCommand();
 }
 
+} /* namespace tuvok */
+
 //==============================================================================
 //
 // UNIT TESTING
@@ -2563,6 +2565,7 @@ void LuaScripting::endCommandGroup()
 
 #ifdef LUASCRIPTING_UNIT_TESTS
 #include "utestCommon.h"
+using namespace tuvok;
 
 void printRegisteredFunctions(LuaScripting* s);
 
@@ -3381,4 +3384,3 @@ void printRegisteredFunctions(LuaScripting* s)
 
 
 
-} /* namespace tuvok */

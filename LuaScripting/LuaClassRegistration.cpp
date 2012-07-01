@@ -40,6 +40,8 @@ namespace tuvok
 {
 
 
+} /* namespace tuvok */
+
 //==============================================================================
 //
 // UNIT TESTING
@@ -47,6 +49,10 @@ namespace tuvok
 //==============================================================================
 #ifdef LUASCRIPTING_UNIT_TESTS
 #include "utestCommon.h"
+#include "LuaClassRegistration.h"
+#include "LuaProvenance.h"
+
+using namespace tuvok;
 
 SUITE(LuaTestClassRegistration)
 {
@@ -2005,4 +2011,3 @@ SUITE(LuaTestClassRegistration_MultipleInheritenceFromBottom)
 
 #endif
 
-} /* namespace tuvok */

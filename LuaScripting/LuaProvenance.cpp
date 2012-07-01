@@ -958,6 +958,8 @@ void LuaProvenance::setLastURItemAlsoRedoChildren()
   }
 }
 
+} // namespace tuvok
+
 //==============================================================================
 //
 // UNIT TESTING
@@ -966,6 +968,8 @@ void LuaProvenance::setLastURItemAlsoRedoChildren()
 
 #ifdef LUASCRIPTING_UNIT_TESTS
 #include "utestCommon.h"
+#include "LuaMemberReg.h"
+using namespace tuvok;
 
 SUITE(LuaProvenanceTests)
 {
@@ -1471,4 +1475,3 @@ SUITE(LuaProvenanceTests)
 
 #endif
 
-}

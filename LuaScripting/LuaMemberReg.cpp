@@ -64,6 +64,8 @@ LuaMemberReg::~LuaMemberReg()
   unregisterAll();
 }
 
+} /* namespace tuvok */
+
 //==============================================================================
 //
 // UNIT TESTING
@@ -72,6 +74,7 @@ LuaMemberReg::~LuaMemberReg()
 
 #ifdef LUASCRIPTING_UNIT_TESTS
 #include "utestCommon.h"
+using namespace tuvok;
 
 SUITE(LuaTestMemberFunctionRegistration)
 {
@@ -321,7 +324,6 @@ SUITE(LuaTestMemberFunctionRegistration)
 
 #endif
 
-} /* namespace tuvok */
 
 
 
