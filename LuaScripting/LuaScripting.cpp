@@ -41,18 +41,14 @@
 #ifndef LUASCRIPTING_NO_TUVOK
 
 #include "Controller/Controller.h"
-#include "3rdParty/LUA/lua.hpp"
 
 #else
 
 #include <iostream>
-#include <memory>
 #include <string>
+#include <vector>
 #include <cstring>
 #include <assert.h>
-
-#include "NoTuvok/LuaTuvokException.h"
-#include "Lua/lua.hpp"
 
 #endif
 
@@ -60,14 +56,8 @@
 #include "utestCommon.h"
 #endif
 
-#include <vector>
-#include <algorithm>
-#include <stdio.h>
-#include <stdarg.h>
-
 #include "LuaScripting.h"
 #include "LuaProvenance.h"
-#include "LuaMemberRegUnsafe.h"
 
 // We are including this ourselves because we do not want dependencies on
 // Tuvok's SysTools.

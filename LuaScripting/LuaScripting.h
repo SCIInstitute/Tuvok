@@ -44,10 +44,6 @@
 #ifndef LUASCRIPTING_NO_TUVOK
 
 #include "3rdParty/LUA/lua.hpp"
-#include <assert.h>
-
-#include <iostream>
-#include <string>
 
 #ifdef _MSC_VER
 #include <functional>
@@ -62,6 +58,10 @@
 #include <functional>
 #include <memory>
 
+#include "Lua/lua.hpp"
+#include "NoTuvok/LuaTuvokException.h"
+
+#ifdef __clang__
 // Place shared_ptr and function in the tr1 namespace.
 namespace std { 
   namespace tr1 {
@@ -69,6 +69,7 @@ namespace std {
     using std::function;
   }
 }
+#endif
 
 #endif
 

@@ -30,34 +30,13 @@
  \brief   
  */
 
-#ifndef LUASCRIPTING_NO_TUVOK
-
-#include "Controller/Controller.h"
-#include "3rdParty/LUA/lua.hpp"
-
-#else
-
-#include <iostream>
-#include <memory>
+#ifdef LUASCRIPTING_NO_TUVOK
 #include <string>
-#include <cstring>
-#include <assert.h>
-
-#include "NoTuvok/LuaTuvokException.h"
-#include "Lua/lua.hpp"
-
-#endif
-
-#ifdef LUASCRIPTING_UNIT_TESTS
-#include "utestCommon.h"
 #endif
 
 #include <vector>
 
 #include "LuaScripting.h"
-#include "LuaStackRAII.h"
-#include "LuaClassConstructor.h"
-#include "LuaClassRegistration.h"
 
 using namespace std;
 
@@ -71,6 +50,7 @@ namespace tuvok
 //
 //==============================================================================
 #ifdef LUASCRIPTING_UNIT_TESTS
+#include "utestCommon.h"
 
 SUITE(LuaTestClassRegistration)
 {

@@ -30,28 +30,19 @@
  \brief
  */
 
-#ifndef LUASCRIPTING_NO_TUVOK
+#ifdef LUASCRIPTING_NO_TUVOK
 
-#include "3rdParty/LUA/lua.hpp"
-
-#else
-
-#include <iostream>
-#include <memory>
 #include <string>
 #include <cstring>
 #include <assert.h>
 
-#include "NoTuvok/LuaTuvokException.h"
-#include "Lua/lua.hpp"
-
 #endif
+
+#include <vector>
 
 #ifdef LUASCRIPTING_UNIT_TESTS
 #include "utestCommon.h"
 #endif
-
-#include <vector>
 
 #include "LuaScripting.h"
 #include "LuaStackRAII.h"
