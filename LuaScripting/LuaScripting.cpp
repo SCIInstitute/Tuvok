@@ -46,7 +46,7 @@
 #else
 
 #include <iostream>
-#include <tr1/memory>
+#include <memory>
 #include <string>
 #include <cstring>
 #include <assert.h>

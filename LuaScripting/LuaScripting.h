@@ -49,8 +49,6 @@
 #include <iostream>
 #include <string>
 
-#endif
-
 #ifdef _MSC_VER
 #include <functional>
 #include <memory>
@@ -58,6 +56,22 @@
 #include <tr1/functional>
 #include <tr1/memory>
 #endif
+
+#else
+
+#include <functional>
+#include <memory>
+
+// Place shared_ptr and function in the tr1 namespace.
+namespace std { 
+  namespace tr1 {
+    using std::shared_ptr;
+    using std::function;
+  }
+}
+
+#endif
+
 
 #include "LuaCommon.h"
 #include "LuaError.h"

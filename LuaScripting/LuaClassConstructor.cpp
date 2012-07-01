@@ -32,13 +32,12 @@
 
 #ifndef LUASCRIPTING_NO_TUVOK
 
-#include "Controller/Controller.h"
 #include "3rdParty/LUA/lua.hpp"
 
 #else
 
 #include <iostream>
-#include <tr1/memory>
+#include <memory>
 #include <string>
 #include <cstring>
 #include <assert.h>

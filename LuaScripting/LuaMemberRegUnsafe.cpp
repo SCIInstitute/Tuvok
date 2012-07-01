@@ -49,7 +49,7 @@
 #else
 
 #include <iostream>
-#include <tr1/memory>
+#include <memory>
 #include <string>
 #include <cstring>
 #include <assert.h>
@@ -65,9 +65,9 @@
 
 #include <vector>
 
+#include "LuaScripting.h"
 #include "LuaError.h"
 #include "LuaFunBinding.h"
-#include "LuaScripting.h"
 #include "LuaMemberRegUnsafe.h"
 
 using namespace std;

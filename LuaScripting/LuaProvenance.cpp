@@ -39,7 +39,7 @@
 #else
 
 #include <iostream>
-#include <tr1/memory>
+#include <memory>
 #include <string>
 #include <cstring>
 #include <assert.h>
@@ -58,9 +58,9 @@
 #include <iostream>
 #include <fstream>
 
+#include "LuaScripting.h"
 #include "LuaError.h"
 #include "LuaFunBinding.h"
-#include "LuaScripting.h"
 #include "LuaProvenance.h"
 #include "LuaMemberReg.h"
 
@@ -486,7 +486,7 @@ void LuaProvenance::issueUndoInternal()
     throw LuaProvenanceInvalidUndo(e.what(), e.where(), e.lineno());
   }
 
-  if (undoItem.childItems != NULL)
+  if (undoItem.childItems.get() != NULL)
   {
     // Iterate through all of the children, and undo those as well.
     // Note: Notice, we are undoing the parent first, then all of the children.
@@ -561,7 +561,7 @@ void LuaProvenance::issueRedo()
   // sets the flag is setLastItemAsAlsoRedoChildren).
   if (redoItem.alsoRedoChildren)
   {
-    if (redoItem.childItems != NULL)
+    if (redoItem.childItems.get() != NULL)
     {
       // Iterate through all of the children, and undo those as well.
       // Note: Notice, we are undoing the parent first, then all of the children.

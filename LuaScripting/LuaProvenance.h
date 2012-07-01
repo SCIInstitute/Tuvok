@@ -37,12 +37,6 @@
 #include "LuaMemberRegUnsafe.h"
 #include <algorithm>
 
-#ifdef DETECTED_OS_WINDOWS
-#include <tuple>
-#else
-#include <tr1/tuple>
-#endif
-
 namespace tuvok
 {
 
