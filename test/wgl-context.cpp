@@ -35,14 +35,16 @@
 */
 #include "StdTuvokDefines.h"
 #ifdef DETECTED_OS_WINDOWS
-# include <GL/wglew.h>
 # include <windows.h>
+# include <GL/gl.h>
+# include <GL/wglew.h>
 #else
 # include <GL/glxew.h>
 #endif
 #include "Controller/Controller.h"
 
-#include "context.h"
+#include "wgl-context.h"
+#include <sstream>
 
 namespace tuvok {
 
@@ -73,7 +75,9 @@ TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
                              bool double_buffer, bool visible) :
   wi(new struct winfo())
 {
-  wi->deviceContext = wi->renderingContext = wi->window = NULL;
+  wi->deviceContext = NULL;
+  wi->renderingContext = NULL;
+  wi->window = NULL;
   if(w == 0 || h == 0 ||
      !(color_bits==8 || color_bits==16 || color_bits==24 || color_bits==32) ||
      !(depth_bits==8 || depth_bits==16 || depth_bits==24 || depth_bits==32 ||
@@ -85,7 +89,7 @@ TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
 
   wi->window = CreateWindowExW(WS_EX_TOOLWINDOW, L"Static", L"GLContextWindow",
                                WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN ,
-                               0, 0, width, height, 0, 0,
+                               0, 0, w, h, 0, 0,
                                GetModuleHandle(NULL), 0);
   if (!wi->window)
   {
@@ -102,7 +106,7 @@ TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
   if(!wi->deviceContext) {
     // GetDC doesn't SetLastError, but this still works anyway...
     outputLastError();
-    DestroyWindow(window);
+    DestroyWindow(wi->window);
     throw NoAvailableContext();
   }
 
@@ -110,9 +114,9 @@ TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
   pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
   pfd.nVersion = 1;
   pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_TYPE_RGBA;
-  if (useDoubleBuffer) pfd.dwFlags |= PFD_DOUBLEBUFFER;
+  if (double_buffer) pfd.dwFlags |= PFD_DOUBLEBUFFER;
   pfd.iPixelType = PFD_TYPE_RGBA;
-  pfd.cColorBits = colorBits;
+  pfd.cColorBits = color_bits;
   pfd.cRedBits = 0;
   pfd.cRedShift = 0;
   pfd.cGreenBits = 0;
@@ -126,8 +130,8 @@ TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
   pfd.cAccumGreenBits = 0;
   pfd.cAccumBlueBits = 0;
   pfd.cAccumAlphaBits = 0;
-  pfd.cDepthBits = depthBits;
-  pfd.cStencilBits = stencilBits;
+  pfd.cDepthBits = depth_bits;
+  pfd.cStencilBits = stencil_bits;
   pfd.cAuxBuffers = 0;
   pfd.iLayerType = PFD_MAIN_PLANE;
   pfd.bReserved = 0;
@@ -146,7 +150,7 @@ TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
   }
 
   PIXELFORMATDESCRIPTOR pfdResult;
-  DescribePixelFormat(deviceContext, pixelFormat,
+  DescribePixelFormat(wi->deviceContext, pixelFormat,
                       sizeof(PIXELFORMATDESCRIPTOR), &pfdResult);
 
   if (!(pfdResult.dwFlags & PFD_SUPPORT_OPENGL))
@@ -157,21 +161,21 @@ TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
     throw NoAvailableContext();
   }
 
-  if (useDoubleBuffer && !(pfdResult.dwFlags & PFD_DOUBLEBUFFER)) {
+  if (double_buffer && !(pfdResult.dwFlags & PFD_DOUBLEBUFFER)) {
     WARNING("No double buffer support!");
   }
 
   std::ostringstream ss;
-  if (pfdResult.cColorBits != colorBits) {
-    ss << "Color bits requested: " << colorBits << ", actual color bits: "
+  if (pfdResult.cColorBits != color_bits) {
+    ss << "Color bits requested: " << color_bits << ", actual color bits: "
        << pfdResult.cColorBits << "\n";
   }
-  if (pfdResult.cDepthBits != depthBits) {
-    ss << "Depth bits requested " << depthBits << ", actual depth bits: "
+  if (pfdResult.cDepthBits != depth_bits) {
+    ss << "Depth bits requested " << depth_bits << ", actual depth bits: "
        << pfdResult.cDepthBits << "\n";
   }
-  if (pfdResult.cStencilBits != stencilBits) {
-    ss << "Stencil bits requested " << stencilBits << ", actual stencil bits:"
+  if (pfdResult.cStencilBits != stencil_bits) {
+    ss << "Stencil bits requested " << stencil_bits << ", actual stencil bits:"
        << pfdResult.cStencilBits << "\n";
   }
   MESSAGE("%s", ss.str().c_str());
@@ -183,14 +187,15 @@ TvkWGLContext::TvkWGLContext(uint32_t w, uint32_t h, uint8_t color_bits,
     throw NoAvailableContext();
   }
 
-  renderingContext = wglCreateContext(deviceContext);
+  wi->renderingContext = wglCreateContext(wi->deviceContext);
 
-  if (!renderingContext) {
+  if (!wi->renderingContext) {
     outputLastError();
     ReleaseDC(wi->window, wi->deviceContext);
     DestroyWindow(wi->window);
     throw NoAvailableContext();
   }
+  makeCurrent();
 }
 
 TvkWGLContext::~TvkWGLContext()
@@ -219,7 +224,7 @@ bool TvkWGLContext::swapBuffers()
 {
   if(!isValid()) { return false; }
 
-  if(!wglSwapBuffers(wi->deviceContext, WGL_SWAP_MAIN_PLANE)) {
+  if(!SwapBuffers(wi->deviceContext)) {
     outputLastError();
     return false;
   }
