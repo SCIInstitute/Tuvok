@@ -83,7 +83,7 @@ MasterController::MasterController() :
   RegisterLuaCommands();
 
   // TEMPORARY -- Disable the provenance system.
-  LuaScript()->cexec("provenance.enable", true);
+  LuaScript()->cexec("provenance.enable", false);
 }
 
 
