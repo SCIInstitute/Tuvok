@@ -14,7 +14,7 @@
 
 using namespace tuvok;
 
-int windowWidth = 4, windowHeight = 4;
+uint32_t windowWidth = 4, windowHeight = 4;
 
 int main(int, const char *[])
 {
@@ -28,8 +28,8 @@ int main(int, const char *[])
     GLubyte* pixels = new GLubyte[windowWidth*windowHeight*4];
     GL(glReadPixels(0, 0, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
   
-    for (size_t v = 0;v<windowHeight;++v) {
-      for (size_t u = 0;u<windowWidth;++u) {
+    for (uint32_t v = 0;v<windowHeight;++v) {
+      for (uint32_t u = 0;u<windowWidth;++u) {
         std::cout << "("  << int(pixels[0+4*(u+v*windowWidth)])
                   << ", " << int(pixels[1+4*(u+v*windowWidth)])
                   << ", " << int(pixels[2+4*(u+v*windowWidth)])
