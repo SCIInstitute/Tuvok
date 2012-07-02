@@ -7,22 +7,42 @@
 #include <memory>
 
 #include <GL/glew.h>
+#include <Renderer/GL/GLInclude.h>
 
 #include "Controller/Controller.h"
 #include "context.h"
 
 using namespace tuvok;
 
+int windowWidth = 4, windowHeight = 4;
+
 int main(int, const char *[])
 {
   try {
-    std::auto_ptr<TvkContext> ctx(TvkContext::Create(640,480, 32,24,8, true));
+    std::auto_ptr<TvkContext> ctx(TvkContext::Create(windowWidth,windowHeight, 32, 24, 8, true));
     Controller::Instance().DebugOut()->SetOutput(true,true,true,true);
+
+    GL(glClearColor(0.1f, 0.2f, 0.3f, 1.0f));
+    GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+    GLubyte* pixels = new GLubyte[windowWidth*windowHeight*4];
+    GL(glReadPixels(0, 0, windowWidth, windowHeight, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+  
+    for (size_t v = 0;v<windowHeight;++v) {
+      for (size_t u = 0;u<windowWidth;++u) {
+        std::cout << "("  << int(pixels[0+4*(u+v*windowWidth)])
+                  << ", " << int(pixels[1+4*(u+v*windowWidth)])
+                  << ", " << int(pixels[2+4*(u+v*windowWidth)])
+                  << ", " << int(pixels[3+4*(u+v*windowWidth)]) << ") ";
+      }
+      std::cout << std::endl;
+    }
+
+
   } catch(const std::exception& e) {
     std::cerr << "Exception: " << e.what() << "\n";
     return EXIT_FAILURE;
   }
-
   return EXIT_SUCCESS;
 }
 
