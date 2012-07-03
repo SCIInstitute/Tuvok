@@ -110,9 +110,24 @@ LuaClassInstance LuaClassConstructor::finalizeInstanceTable(LuaScripting* ss,
   LuaClassInstance instance(instID);
 
   ss->bindClosureTableWithFQName(instance.fqName(), instTable);
-  ss->getProvenanceSys()->addCreatedInstanceToLastURItem(instID);
 
   return instance;
+}
+
+void LuaClassConstructor::postExecFailure(LuaScripting* ss,
+                                          LuaClassInstance inst)
+{
+  string removeClass = inst.fqName();
+  removeClass += " = nil";
+
+  luaL_dostring(ss->getLuaState(), removeClass.c_str());
+}
+
+void LuaClassConstructor::postExecSuccess(LuaScripting* ss,
+                                          LuaClassInstance inst)
+{
+  ss->getProvenanceSys()->addCreatedInstanceToLastURItem(
+      inst.getGlobalInstID());
 }
 
 LuaClassInstance LuaClassConstructor::buildCoreInstanceTable(lua_State* L,

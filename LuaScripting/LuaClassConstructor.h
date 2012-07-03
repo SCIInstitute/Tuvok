@@ -268,12 +268,14 @@ private:
       catch (std::exception& e)
       {
         ss->endCommand();
+        postExecFailure(ss, inst);
         ss->logExecFailure(e.what());
         throw;
       }
       catch (...)
       {
         ss->endCommand();
+        postExecFailure(ss, inst);
         ss->logExecFailure("");
         throw;
       }
@@ -282,6 +284,7 @@ private:
       // Check to see if the function succeeded.
       if (r != NULL)
       {
+        postExecSuccess(ss, inst);
         // Call registration fptr.
         lua_getfield(L, consTable,
                      LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
@@ -302,10 +305,11 @@ private:
       }
       else
       {
+        postExecFailure(ss, inst);
         ss->vPrint("Failed to load class.");
         // Create a default LuaClassInstance and return that.
-        LuaClassInstance inst;
-        LuaStrictStack<LuaClassInstance>::push(L, inst);
+        LuaClassInstance instFail;
+        LuaStrictStack<LuaClassInstance>::push(L, instFail);
       }
 
       return 1;
@@ -376,12 +380,14 @@ private:
       catch (std::exception& e)
       {
         ss->endCommand();
+        postExecFailure(ss, inst);
         ss->logExecFailure(e.what());
         throw;
       }
       catch (...)
       {
         ss->endCommand();
+        postExecFailure(ss, inst);
         ss->logExecFailure("");
         throw;
       }
@@ -389,6 +395,7 @@ private:
 
       if (r != NULL)
       {
+        postExecSuccess(ss, inst);
         // Call registration fptr.
         lua_getfield(L, consTable,
                      LuaClassConstructor::CONS_MD_FUNC_REGISTRATION_FPTR);
@@ -411,9 +418,10 @@ private:
       else
       {
         ss->vPrint("Failed to load class.");
+        postExecFailure(ss, inst);
         // Create a default LuaClassInstance and return that.
-        LuaClassInstance inst;
-        LuaStrictStack<LuaClassInstance>::push(L, inst);
+        LuaClassInstance instFail;
+        LuaStrictStack<LuaClassInstance>::push(L, instFail);
       }
 
       return 1;
@@ -456,6 +464,8 @@ private:
   static LuaClassInstance finalizeInstanceTable(LuaScripting* ss,
                                                 int instTable, int instID);
 
+  static void postExecSuccess(LuaScripting* ss, LuaClassInstance inst);
+  static void postExecFailure(LuaScripting* ss, LuaClassInstance inst);
 
 };
 
