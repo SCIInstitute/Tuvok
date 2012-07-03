@@ -39,6 +39,7 @@
 #include "IO/KeyValueFileParser.h"
 #include "Controller/Controller.h"
 #include "Basics/SysTools.h"
+#include "exception/FileNotFound.h"
 
 enum DataType {
   UnknownType,
@@ -97,8 +98,11 @@ bool BOVConverter::ConvertToRAW(
                               file->strValue
                             );
       if(!SysTools::FileExists(strIntermediateFile)) {
-        T_ERROR("Cannot find file (%s) referenced in BOV!",
-                file->strValue.c_str());
+        std::ostringstream err;
+        err << "Data file referenced in BOV (" << strIntermediateFile
+            << ") not found!";
+        T_ERROR("%s", err.str().c_str());
+        throw FILE_NOT_FOUND(err.str().c_str());
       }
     }
     MESSAGE("Reading data from %s", strIntermediateFile.c_str());
