@@ -66,7 +66,7 @@ class DSParseFailed : virtual public DSOpenFailed {
   public:
     DSParseFailed(std::string err, const char* where=NULL,
                   size_t ln=0) : DSOpenFailed(err, where, ln) {}
-    DSParseFailed(const char* f, std::string s,
+    DSParseFailed(std::string f, std::string s,
                   const char* where=NULL, size_t ln=0)
                   : DSOpenFailed(f, s, where, ln) {}
     virtual ~DSParseFailed() throw() {}

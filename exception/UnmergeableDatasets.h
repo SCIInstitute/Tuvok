@@ -39,7 +39,7 @@ namespace tuvok { namespace io {
 
 class UnmergeableDatasets : virtual public tuvok::Exception {
   public:
-    UnmergeableDatasets(const char* e, const char* where=NULL, size_t ln=0)
+    UnmergeableDatasets(std::string e, const char* where=NULL, size_t ln=0)
       : tuvok::Exception(e, where, ln) {}
 };
 

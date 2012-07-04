@@ -48,7 +48,7 @@ namespace tuvok { namespace io {
 
 class ReadTimeout : virtual public IOException {
   public:
-    ReadTimeout(const char* e, const char* where=NULL,
+    ReadTimeout(std::string e, const char* where=NULL,
                 size_t ln=0)
       : IOException(e, where, ln) {}
     virtual ~ReadTimeout() throw() {}

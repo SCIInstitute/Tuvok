@@ -48,7 +48,7 @@ namespace tuvok { namespace io {
 
 class FileNotFound : virtual public IOException {
   public:
-    FileNotFound(const char* e, const char* where=NULL,
+    FileNotFound(std::string e, const char* where=NULL,
                  size_t ln=0)
       : IOException(e, where, ln) {}
     virtual ~FileNotFound() throw() {}
