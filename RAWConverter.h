@@ -78,7 +78,7 @@ public:
   static bool ConvertRAWDataset(const std::string& strFilename,
                                 const std::string& strTargetFilename,
                                 const std::string& strTempDir,
-                                uint64_t iHeaderSkip, uint64_t iComponentSize,
+                                uint64_t iHeaderSkip, size_t iComponentSize,
                                 uint64_t iComponentCount,
                                 uint64_t timesteps,
                                 bool bConvertEndianness, bool bSigned,

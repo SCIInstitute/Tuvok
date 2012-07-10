@@ -529,7 +529,7 @@ template <typename T, typename U>
 static bool BinningQuantize(LargeRAWFile& InputData,
                             const std::string& strTargetFilename,
                             uint64_t iSize,
-                            uint64_t& iComponentSize,
+                            size_t& iComponentSize,
                             Histogram1DDataBlock* Histogram1D=0)
 {
   MESSAGE("Attempting to recover integer values by binning the data.");
