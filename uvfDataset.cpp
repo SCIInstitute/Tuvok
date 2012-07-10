@@ -433,7 +433,10 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
                        (m_pDatasetFile->GetDataBlock(block));
           if(VerifyRasterDataBlock(rdb)) {
             ++raster;
-            if (rdb->ulElementDimensionSize[0] == 4) { is_color = true; }
+            if (rdb->ulElementDimensionSize[0] == 4 ||
+                rdb->ulElementDimensionSize[0] == 3) {
+              is_color = true;
+            }
           }
         }
         break;
@@ -451,18 +454,17 @@ size_t UVFDataset::DetermineNumberOfTimesteps()
       default: break;
     }
   }
-  if(!is_color) {
-    MESSAGE("Block counts (toc, raster, hist1, hist2, accel): (%u, %u, %u, %u, %u)",
-            static_cast<unsigned>(toc),
-            static_cast<unsigned>(raster),
-            static_cast<unsigned>(hist1d),
-            static_cast<unsigned>(hist2d),
-            static_cast<unsigned>(accel));
-  }
+  MESSAGE("Block counts (toc, raster, hist1, hist2, accel): (%u, %u, %u, %u, %u)",
+          static_cast<unsigned>(toc),
+          static_cast<unsigned>(raster),
+          static_cast<unsigned>(hist1d),
+          static_cast<unsigned>(hist2d),
+          static_cast<unsigned>(accel));
 
   if (toc > raster) m_bToCBlock = true;
 
-  if(is_color && raster+toc == accel) {
+  // color data is weird; none of our extra blocks are useful.
+  if(is_color) {
     return std::max(raster,toc);
   }
   if(raster+toc == hist1d && hist1d == hist2d && hist2d == accel) {
@@ -493,6 +495,7 @@ bool UVFDataset::VerifyRasterDataBlock(const RasterDataBlock* rdb) const
   /// \todo: change this if we want to support vector data
   // check if we have anything other than scalars or color
   if (rdb->ulElementDimensionSize[0] == 1 ||
+      rdb->ulElementDimensionSize[0] == 3 ||
       rdb->ulElementDimensionSize[0] == 4) {
     // check if the data's coarsest LOD level contains only one brick
     const vector<uint64_t>& vSmallestLODBrickCount = rdb->GetBrickCount(rdb->GetSmallestBrickIndex());

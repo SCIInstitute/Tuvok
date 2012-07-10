@@ -548,7 +548,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
 
       // do not compute histograms when we are dealing with color data
       /// \todo change this if we want to support non color multi component data
-      if (iComponentCount != 4) {
+      if (iComponentCount != 4 && iComponentCount != 3) {
         // if no re-sampling was performed above, we need to compute the
         // 1d histogram here
         if (Histogram1D.GetHistogram().empty()) {
@@ -576,6 +576,9 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           nonstd::null_deleter())
           );
         uvfFile.AddDataBlock(Histogram2D);
+
+        MESSAGE("Storing acceleration data...");
+        uvfFile.AddDataBlock(MaxMinData);
       }
     } else {
       blocks[ts].rdb = std::tr1::shared_ptr<RasterDataBlock>(
@@ -750,6 +753,7 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           sourceData->Close();
           return false;
       }
+      MESSAGE("Finished bricking the data...");
 
       if (!bBrickingOK) {
         uvfFile.Close();
@@ -766,14 +770,15 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
       }
 
       if (!uvfFile.AddDataBlock(dataVolume)) {
-        T_ERROR("AddDataBlock failed!");
+        T_ERROR("Could not add raster data block!");
         uvfFile.Close();
         return false;
       }
+      MESSAGE("RDB has been added.");
 
       // do not compute histograms when we are dealing with color data
       /// \todo change this if we want to support non color multi component data
-      if (iComponentCount != 4) {
+      if (iComponentCount != 4 && iComponentCount != 3) {
         // if no re sampling was performed above, we need to compute the
         // 1d histogram here
         if (Histogram1D.GetHistogram().empty()) {
@@ -801,10 +806,11 @@ bool RAWConverter::ConvertRAWDataset(const string& strFilename,
           nonstd::null_deleter())
           );
         uvfFile.AddDataBlock(Histogram2D);
+
+        MESSAGE("Storing acceleration data...");
+        uvfFile.AddDataBlock(MaxMinData);
       }
     }
-    MESSAGE("Storing acceleration data...");
-    uvfFile.AddDataBlock(MaxMinData);
     sourceData->Close();
   }
 
